@@ -117,7 +117,9 @@ pub fn rule_applies(rule: AlmanacRule, context: &DayContext) -> Option<bool> {
             (sexagenary + CYCLE_LENGTH - first) % CYCLE_LENGTH < length
         }
         AlmanacRule::BranchIn(branches) => branches.contains(&context.branch_index()),
-        AlmanacRule::BranchBySolarMonth(table) => table[solar_month].contains(&context.branch_index()),
+        AlmanacRule::BranchBySolarMonth(table) => {
+            table[solar_month].contains(&context.branch_index())
+        }
         AlmanacRule::StemBySolarMonth(table) => table[solar_month].contains(&context.stem_index()),
         AlmanacRule::SexagenaryBySolarMonth(table) => table[solar_month].contains(&sexagenary),
         AlmanacRule::SexagenaryByLunarMonth(table) => table[lunar_month].contains(&sexagenary),
@@ -150,9 +152,18 @@ mod tests {
     #[test]
     fn a_sexagenary_list_matches_only_the_days_it_lists() {
         let ctx = context();
-        assert_eq!(rule_applies(AlmanacRule::SexagenaryIn(&[0]), &ctx), Some(true));
-        assert_eq!(rule_applies(AlmanacRule::SexagenaryIn(&[1, 2]), &ctx), Some(false));
-        assert_eq!(rule_applies(AlmanacRule::SexagenaryIn(&[]), &ctx), Some(false));
+        assert_eq!(
+            rule_applies(AlmanacRule::SexagenaryIn(&[0]), &ctx),
+            Some(true)
+        );
+        assert_eq!(
+            rule_applies(AlmanacRule::SexagenaryIn(&[1, 2]), &ctx),
+            Some(false)
+        );
+        assert_eq!(
+            rule_applies(AlmanacRule::SexagenaryIn(&[]), &ctx),
+            Some(false)
+        );
     }
 
     /// 八専 opens on 壬子, position 48, and runs twelve days — so it wraps
@@ -169,7 +180,11 @@ mod tests {
             let ctx = DayContext::new(day, Meridian::JAPAN);
             let position = ctx.sexagenary().index();
             let expected = (55..60).contains(&position) || (0..5).contains(&position);
-            assert_eq!(rule_applies(wrapping, &ctx), Some(expected), "at {position}");
+            assert_eq!(
+                rule_applies(wrapping, &ctx),
+                Some(expected),
+                "at {position}"
+            );
         }
     }
 
@@ -177,7 +192,10 @@ mod tests {
     fn a_branch_list_ignores_the_stem() {
         let ctx = context();
         assert_eq!(rule_applies(AlmanacRule::BranchIn(&[0]), &ctx), Some(true));
-        assert_eq!(rule_applies(AlmanacRule::BranchIn(&[2, 5]), &ctx), Some(false));
+        assert_eq!(
+            rule_applies(AlmanacRule::BranchIn(&[2, 5]), &ctx),
+            Some(false)
+        );
     }
 
     /// Only the eleventh row holds the rat branch, so only a day in 節月
@@ -224,8 +242,7 @@ mod tests {
     }
 
     /// Twenty-five days into the eleventh 節月 and nowhere else.
-    static TWENTY_FIFTH_DAY_OF_THE_ELEVENTH_MONTH: [u8; 12] =
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 0];
+    static TWENTY_FIFTH_DAY_OF_THE_ELEVENTH_MONTH: [u8; 12] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 0];
 
     /// 大雪 2023 fell on 7 December, RD 738861, so 2024-01-01 is 25 days into
     /// its 節月.

@@ -280,8 +280,14 @@ mod tests {
     /// branch and the month branch are both 子 and the direct is 建.
     #[test]
     fn new_years_day_2024_was_a_day_of_establish() {
-        assert_eq!(direct_of(Rd(738_886), Meridian::JAPAN), TwelveDirect::Establish);
-        assert_eq!(direct_of(Rd(738_886), Meridian::JAPAN).japanese_name(), "建");
+        assert_eq!(
+            direct_of(Rd(738_886), Meridian::JAPAN),
+            TwelveDirect::Establish
+        );
+        assert_eq!(
+            direct_of(Rd(738_886), Meridian::JAPAN).japanese_name(),
+            "建"
+        );
     }
 
     #[test]
