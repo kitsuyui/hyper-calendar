@@ -1,0 +1,25 @@
+# typos is a source code spell checker
+# https://github.com/crate-ci/typos
+#
+# This crate stores localised calendar vocabulary as string data, so many of
+# its "words" are German, Dutch, Polish, Vietnamese, Bengali or romanised
+# names that an English dictionary would happily "correct" into other words.
+# Each entry below is a real word in the language it belongs to.
+[default.extend-words]
+# German and Dutch month names.
+Januar = "Januar"
+Februar = "Februar"
+Juni = "Juni"
+Juli = "Juli"
+Oktober = "Oktober"
+Dezember = "Dezember"
+juni = "juni"
+juli = "juli"
+oktober = "oktober"
+# Polish sierpień, abbreviated.
+sie = "sie"
+# Vietnamese "Thứ Ba", Tuesday.
+Ba = "Ba"
+# The CLDR identifier of the Bengali numbering system.
+beng = "beng"
+BENG = "BENG"
