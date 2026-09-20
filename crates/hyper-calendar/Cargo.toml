@@ -126,3 +126,17 @@ hc-uncertainty = { workspace = true, optional = true }
 hc-deep-time = { workspace = true, optional = true }
 hc-planetary = { workspace = true, optional = true }
 hc-relativity = { workspace = true, optional = true }
+
+# Each example needs only part of the library, and saying so keeps
+# `cargo build --features <one thing>` from trying to compile all of them.
+[[example]]
+name = "kaei3"
+required-features = ["lunar"]
+
+[[example]]
+name = "deep_time"
+required-features = ["deep-time"]
+
+[[example]]
+name = "easter"
+required-features = ["holiday"]
