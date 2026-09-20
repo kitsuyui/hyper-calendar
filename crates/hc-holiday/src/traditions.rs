@@ -30,9 +30,7 @@ use crate::computus::offsets::{
     GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY, PALM_SUNDAY, PENTECOST, SACRED_HEART,
     TRINITY_SUNDAY, WHIT_MONDAY,
 };
-use crate::rule::{
-    CalendarSystem, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-};
+use crate::rule::{CalendarSystem, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
 
 /// 清明, the fifth solar term.
 const QINGMING: SolarTerm = match SolarTerm::from_degrees(15) {
@@ -50,9 +48,17 @@ const fn feast(name: &'static str, local: &'static str, rule: Rule) -> HolidayRu
 // ─────────────────────────────────────────────────────────────────────────
 
 static CHRISTIAN_WESTERN_RULES: &[HolidayRule] = &[
-    feast("Solemnity of Mary, Mother of God", "", Rule::gregorian(1, 1)),
+    feast(
+        "Solemnity of Mary, Mother of God",
+        "",
+        Rule::gregorian(1, 1),
+    ),
     feast("Epiphany", "", Rule::gregorian(1, 6)),
-    feast("Candlemas", "Presentation of the Lord", Rule::gregorian(2, 2)),
+    feast(
+        "Candlemas",
+        "Presentation of the Lord",
+        Rule::gregorian(2, 2),
+    ),
     feast("Ash Wednesday", "", Rule::easter(ASH_WEDNESDAY)),
     feast("Annunciation", "", Rule::gregorian(3, 25)),
     feast("Palm Sunday", "", Rule::easter(PALM_SUNDAY)),
@@ -114,15 +120,51 @@ static CHRISTIAN_ORTHODOX_RULES: &[HolidayRule] = &[
     // The fixed feasts are stated in the Julian calendar, so they appear
     // thirteen days later on a civil calendar for as long as the two
     // calendars are thirteen days apart, which is until 2100.
-    feast("Nativity of Christ", "", Rule::in_calendar(CalendarSystem::Julian, 12, 25)),
-    feast("Theophany", "", Rule::in_calendar(CalendarSystem::Julian, 1, 6)),
-    feast("Meeting of the Lord", "", Rule::in_calendar(CalendarSystem::Julian, 2, 2)),
-    feast("Annunciation", "", Rule::in_calendar(CalendarSystem::Julian, 3, 25)),
-    feast("Transfiguration", "", Rule::in_calendar(CalendarSystem::Julian, 8, 6)),
-    feast("Dormition of the Theotokos", "", Rule::in_calendar(CalendarSystem::Julian, 8, 15)),
-    feast("Nativity of the Theotokos", "", Rule::in_calendar(CalendarSystem::Julian, 9, 8)),
-    feast("Exaltation of the Cross", "", Rule::in_calendar(CalendarSystem::Julian, 9, 14)),
-    feast("Presentation of the Theotokos", "", Rule::in_calendar(CalendarSystem::Julian, 11, 21)),
+    feast(
+        "Nativity of Christ",
+        "",
+        Rule::in_calendar(CalendarSystem::Julian, 12, 25),
+    ),
+    feast(
+        "Theophany",
+        "",
+        Rule::in_calendar(CalendarSystem::Julian, 1, 6),
+    ),
+    feast(
+        "Meeting of the Lord",
+        "",
+        Rule::in_calendar(CalendarSystem::Julian, 2, 2),
+    ),
+    feast(
+        "Annunciation",
+        "",
+        Rule::in_calendar(CalendarSystem::Julian, 3, 25),
+    ),
+    feast(
+        "Transfiguration",
+        "",
+        Rule::in_calendar(CalendarSystem::Julian, 8, 6),
+    ),
+    feast(
+        "Dormition of the Theotokos",
+        "",
+        Rule::in_calendar(CalendarSystem::Julian, 8, 15),
+    ),
+    feast(
+        "Nativity of the Theotokos",
+        "",
+        Rule::in_calendar(CalendarSystem::Julian, 9, 8),
+    ),
+    feast(
+        "Exaltation of the Cross",
+        "",
+        Rule::in_calendar(CalendarSystem::Julian, 9, 14),
+    ),
+    feast(
+        "Presentation of the Theotokos",
+        "",
+        Rule::in_calendar(CalendarSystem::Julian, 11, 21),
+    ),
     // The movable cycle, from the Julian computus.
     feast("Clean Monday", "", Rule::paschal(ASH_WEDNESDAY - 2)),
     feast("Lazarus Saturday", "", Rule::paschal(-8)),
@@ -162,7 +204,12 @@ pub static CHRISTIAN_ORTHODOX: RuleSet = RuleSet {
 
 /// An Islamic observance: tabular, and therefore a prediction.
 const fn hijri(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
-    feast(name, local, Rule::in_calendar(CalendarSystem::IslamicCivil, month, day)).approximate()
+    feast(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::IslamicCivil, month, day),
+    )
+    .approximate()
 }
 
 static ISLAMIC_RULES: &[HolidayRule] = &[
@@ -205,7 +252,11 @@ pub static ISLAMIC: RuleSet = RuleSet {
 /// A Hebrew-calendar observance. The month numbering is Tishrei-first, so
 /// Nisan is 7 and Adar — Adar II in a leap year — is 6.
 const fn hebrew_day(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
-    feast(name, local, Rule::in_calendar(CalendarSystem::Hebrew, month, day))
+    feast(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::Hebrew, month, day),
+    )
 }
 
 static JEWISH_RULES: &[HolidayRule] = &[
@@ -258,15 +309,36 @@ pub static JEWISH: RuleSet = RuleSet {
 static BUDDHIST_RULES: &[HolidayRule] = &[
     // Theravada, approximated: the Thai lunar month n is usually the
     // Chinese lunar month n − 2, and these are all full moons.
-    feast("Magha Puja", "วันมาฆบูชา", Rule::in_calendar(CalendarSystem::Chinese, 1, 15))
-        .approximate(),
-    feast("Vesak", "วันวิสาขบูชา", Rule::in_calendar(CalendarSystem::Chinese, 4, 15)).approximate(),
-    feast("Asalha Puja", "วันอาสาฬหบูชา", Rule::in_calendar(CalendarSystem::Chinese, 6, 15))
-        .approximate(),
-    feast("Vassa (Rains Retreat) begins", "วันเข้าพรรษา", Rule::in_calendar(CalendarSystem::Chinese, 6, 16))
-        .approximate(),
-    feast("Pavarana (Rains Retreat) ends", "วันออกพรรษา", Rule::in_calendar(CalendarSystem::Chinese, 9, 15))
-        .approximate(),
+    feast(
+        "Magha Puja",
+        "วันมาฆบูชา",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 15),
+    )
+    .approximate(),
+    feast(
+        "Vesak",
+        "วันวิสาขบูชา",
+        Rule::in_calendar(CalendarSystem::Chinese, 4, 15),
+    )
+    .approximate(),
+    feast(
+        "Asalha Puja",
+        "วันอาสาฬหบูชา",
+        Rule::in_calendar(CalendarSystem::Chinese, 6, 15),
+    )
+    .approximate(),
+    feast(
+        "Vassa (Rains Retreat) begins",
+        "วันเข้าพรรษา",
+        Rule::in_calendar(CalendarSystem::Chinese, 6, 16),
+    )
+    .approximate(),
+    feast(
+        "Pavarana (Rains Retreat) ends",
+        "วันออกพรรษา",
+        Rule::in_calendar(CalendarSystem::Chinese, 9, 15),
+    )
+    .approximate(),
     // Mahayana, East Asian: fixed in the Gregorian calendar in Japan since
     // the 1873 adoption, and on the eighth of the fourth lunar month in
     // China, Korea and Vietnam.
@@ -323,8 +395,16 @@ static CHINESE_FOLK_RULES: &[HolidayRule] = &[
             days: -1,
         },
     ),
-    feast("Spring Festival", "春節", Rule::in_calendar(CalendarSystem::Chinese, 1, 1)),
-    feast("Lantern Festival", "元宵節", Rule::in_calendar(CalendarSystem::Chinese, 1, 15)),
+    feast(
+        "Spring Festival",
+        "春節",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 1),
+    ),
+    feast(
+        "Lantern Festival",
+        "元宵節",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 15),
+    ),
     feast(
         "Qingming Festival",
         "清明節",
@@ -333,12 +413,36 @@ static CHINESE_FOLK_RULES: &[HolidayRule] = &[
             meridian: Meridian::CHINA,
         },
     ),
-    feast("Dragon Boat Festival", "端午節", Rule::in_calendar(CalendarSystem::Chinese, 5, 5)),
-    feast("Qixi Festival", "七夕", Rule::in_calendar(CalendarSystem::Chinese, 7, 7)),
-    feast("Ghost Festival", "中元節", Rule::in_calendar(CalendarSystem::Chinese, 7, 15)),
-    feast("Mid-Autumn Festival", "中秋節", Rule::in_calendar(CalendarSystem::Chinese, 8, 15)),
-    feast("Double Ninth Festival", "重陽節", Rule::in_calendar(CalendarSystem::Chinese, 9, 9)),
-    feast("Laba Festival", "臘八節", Rule::in_calendar(CalendarSystem::Chinese, 12, 8)),
+    feast(
+        "Dragon Boat Festival",
+        "端午節",
+        Rule::in_calendar(CalendarSystem::Chinese, 5, 5),
+    ),
+    feast(
+        "Qixi Festival",
+        "七夕",
+        Rule::in_calendar(CalendarSystem::Chinese, 7, 7),
+    ),
+    feast(
+        "Ghost Festival",
+        "中元節",
+        Rule::in_calendar(CalendarSystem::Chinese, 7, 15),
+    ),
+    feast(
+        "Mid-Autumn Festival",
+        "中秋節",
+        Rule::in_calendar(CalendarSystem::Chinese, 8, 15),
+    ),
+    feast(
+        "Double Ninth Festival",
+        "重陽節",
+        Rule::in_calendar(CalendarSystem::Chinese, 9, 9),
+    ),
+    feast(
+        "Laba Festival",
+        "臘八節",
+        Rule::in_calendar(CalendarSystem::Chinese, 12, 8),
+    ),
     feast(
         "Winter Solstice Festival",
         "冬至",

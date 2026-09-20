@@ -290,8 +290,14 @@ mod tests {
 
     #[test]
     fn the_two_computations_coincide_in_2025_and_differ_in_2024() {
-        assert_eq!(easter(Computus::Gregorian, 2025), easter(Computus::Julian, 2025));
-        assert_ne!(easter(Computus::Gregorian, 2024), easter(Computus::Julian, 2024));
+        assert_eq!(
+            easter(Computus::Gregorian, 2025),
+            easter(Computus::Julian, 2025)
+        );
+        assert_ne!(
+            easter(Computus::Gregorian, 2024),
+            easter(Computus::Julian, 2024)
+        );
     }
 
     #[test]
@@ -301,7 +307,11 @@ mod tests {
             let western = gregorian_easter(year).expect("in range");
             assert_eq!(Weekday::from_rd(western), Weekday::Sunday, "Western {year}");
             let orthodox = orthodox_easter(year).expect("in range");
-            assert_eq!(Weekday::from_rd(orthodox), Weekday::Sunday, "Orthodox {year}");
+            assert_eq!(
+                Weekday::from_rd(orthodox),
+                Weekday::Sunday,
+                "Orthodox {year}"
+            );
         }
     }
 

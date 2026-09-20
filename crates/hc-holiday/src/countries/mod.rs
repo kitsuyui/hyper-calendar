@@ -118,10 +118,20 @@ mod tests {
     #[test]
     fn every_country_is_reachable_by_its_code() {
         for country in ALL {
-            assert_eq!(by_code(country.code).map(|found| found.code), Some(country.code));
+            assert_eq!(
+                by_code(country.code).map(|found| found.code),
+                Some(country.code)
+            );
         }
         assert_eq!(by_code("jp").map(|found| found.code), Some("JP"));
         assert!(by_code("ZZ").is_none());
+    }
+
+    #[test]
+    fn the_registry_holds_the_number_of_countries_the_readme_claims() {
+        // `README.md` and `docs/observances.md` both state this figure, and a
+        // documented count that drifts is a documented lie.
+        assert_eq!(ALL.len(), 43);
     }
 
     #[test]
@@ -157,16 +167,14 @@ mod tests {
                 let hijri = matches!(
                     rule.rule,
                     Rule::FixedInCalendar {
-                        system: CalendarSystem::IslamicCivil
-                            | CalendarSystem::IslamicUmmAlQura,
+                        system: CalendarSystem::IslamicCivil | CalendarSystem::IslamicUmmAlQura,
                         ..
                     }
                 ) || matches!(
                     rule.rule,
                     Rule::Offset {
                         base: Rule::FixedInCalendar {
-                            system: CalendarSystem::IslamicCivil
-                                | CalendarSystem::IslamicUmmAlQura,
+                            system: CalendarSystem::IslamicCivil | CalendarSystem::IslamicUmmAlQura,
                             ..
                         },
                         ..

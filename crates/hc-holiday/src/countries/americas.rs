@@ -53,8 +53,12 @@ static US_RULES: &[HolidayRule] = &[
     // The Uniform Monday Holiday Act of 1968 took effect on 1 January 1971.
     HolidayRule::public("Washington's Birthday", "", Rule::gregorian(2, 22))
         .years(Some(1879), Some(1970)),
-    HolidayRule::public("Washington's Birthday", "", Rule::nth(2, 3, Weekday::Monday))
-        .years(Some(1971), None),
+    HolidayRule::public(
+        "Washington's Birthday",
+        "",
+        Rule::nth(2, 3, Weekday::Monday),
+    )
+    .years(Some(1971), None),
     HolidayRule::public("Memorial Day", "", Rule::gregorian(5, 30)).years(Some(1888), Some(1970)),
     HolidayRule::public("Memorial Day", "", Rule::last(5, Weekday::Monday)).years(Some(1971), None),
     HolidayRule::public(
@@ -142,9 +146,13 @@ static CA_RULES: &[HolidayRule] = &[
     HolidayRule::public("Louis Riel Day", "", Rule::nth(2, 3, Weekday::Monday))
         .in_regions(CA_MANITOBA)
         .years(Some(2008), None),
-    HolidayRule::public("Nova Scotia Heritage Day", "", Rule::nth(2, 3, Weekday::Monday))
-        .in_regions(CA_NOVA_SCOTIA)
-        .years(Some(2015), None),
+    HolidayRule::public(
+        "Nova Scotia Heritage Day",
+        "",
+        Rule::nth(2, 3, Weekday::Monday),
+    )
+    .in_regions(CA_NOVA_SCOTIA)
+    .years(Some(2015), None),
     HolidayRule::public("Islander Day", "", Rule::nth(2, 3, Weekday::Monday))
         .in_regions(CA_PRINCE_EDWARD_ISLAND)
         .years(Some(2009), None),
@@ -159,22 +167,37 @@ static CA_RULES: &[HolidayRule] = &[
             weekday: Weekday::Monday,
         },
     ),
-    HolidayRule::public("Saint-Jean-Baptiste Day", "Fête nationale du Québec", Rule::gregorian(6, 24))
-        .in_regions(CA_QUEBEC),
+    HolidayRule::public(
+        "Saint-Jean-Baptiste Day",
+        "Fête nationale du Québec",
+        Rule::gregorian(6, 24),
+    )
+    .in_regions(CA_QUEBEC),
     HolidayRule::public("Canada Day", "Fête du Canada", Rule::gregorian(7, 1)),
     HolidayRule::public("Civic Holiday", "", Rule::nth(8, 1, Weekday::Monday))
         .in_regions(CA_AUGUST_CIVIC),
-    HolidayRule::public("Discovery Day", "", Rule::nth(8, 3, Weekday::Monday))
-        .in_regions(CA_YUKON),
-    HolidayRule::public("Labour Day", "Fête du Travail", Rule::nth(9, 1, Weekday::Monday)),
+    HolidayRule::public("Discovery Day", "", Rule::nth(8, 3, Weekday::Monday)).in_regions(CA_YUKON),
+    HolidayRule::public(
+        "Labour Day",
+        "Fête du Travail",
+        Rule::nth(9, 1, Weekday::Monday),
+    ),
     HolidayRule::public(
         "National Day for Truth and Reconciliation",
         "Journée nationale de la vérité et de la réconciliation",
         Rule::gregorian(9, 30),
     )
     .years(Some(2021), None),
-    HolidayRule::public("Thanksgiving", "Action de grâce", Rule::nth(10, 2, Weekday::Monday)),
-    HolidayRule::public("Remembrance Day", "Jour du Souvenir", Rule::gregorian(11, 11)),
+    HolidayRule::public(
+        "Thanksgiving",
+        "Action de grâce",
+        Rule::nth(10, 2, Weekday::Monday),
+    ),
+    HolidayRule::public(
+        "Remembrance Day",
+        "Jour du Souvenir",
+        Rule::gregorian(11, 11),
+    ),
     HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
     HolidayRule::public("Boxing Day", "Lendemain de Noël", Rule::gregorian(12, 26)),
 ];
@@ -215,7 +238,11 @@ pub static CANADA: RuleSet = RuleSet {
 /// through the 2018 handover; the 2024 constitutional reform moved the term
 /// change to 1 October, so 2024 was the first handover kept on that date.
 fn presidential_handover(year: i64) -> Days {
-    let (first_year, month) = if year >= 2024 { (2024i64, 10u8) } else { (1934, 12) };
+    let (first_year, month) = if year >= 2024 {
+        (2024i64, 10u8)
+    } else {
+        (1934, 12)
+    };
     if year < first_year || (year - first_year).rem_euclid(6) != 0 {
         return Days::new();
     }
@@ -225,20 +252,48 @@ fn presidential_handover(year: i64) -> Days {
 static MX_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
     // The 2006 reform moved three fixed dates onto Mondays.
-    HolidayRule::fixed_public("Constitution Day", "Día de la Constitución", Rule::gregorian(2, 5))
-        .years(None, Some(2005)),
-    HolidayRule::fixed_public("Constitution Day", "Día de la Constitución", Rule::nth(2, 1, Weekday::Monday))
-        .years(Some(2006), None),
-    HolidayRule::fixed_public("Benito Juárez's Birthday", "Natalicio de Benito Juárez", Rule::gregorian(3, 21))
-        .years(None, Some(2005)),
-    HolidayRule::fixed_public("Benito Juárez's Birthday", "Natalicio de Benito Juárez", Rule::nth(3, 3, Weekday::Monday))
-        .years(Some(2006), None),
+    HolidayRule::fixed_public(
+        "Constitution Day",
+        "Día de la Constitución",
+        Rule::gregorian(2, 5),
+    )
+    .years(None, Some(2005)),
+    HolidayRule::fixed_public(
+        "Constitution Day",
+        "Día de la Constitución",
+        Rule::nth(2, 1, Weekday::Monday),
+    )
+    .years(Some(2006), None),
+    HolidayRule::fixed_public(
+        "Benito Juárez's Birthday",
+        "Natalicio de Benito Juárez",
+        Rule::gregorian(3, 21),
+    )
+    .years(None, Some(2005)),
+    HolidayRule::fixed_public(
+        "Benito Juárez's Birthday",
+        "Natalicio de Benito Juárez",
+        Rule::nth(3, 3, Weekday::Monday),
+    )
+    .years(Some(2006), None),
     HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Independence Day", "Día de la Independencia", Rule::gregorian(9, 16)),
-    HolidayRule::fixed_public("Revolution Day", "Día de la Revolución", Rule::gregorian(11, 20))
-        .years(None, Some(2005)),
-    HolidayRule::fixed_public("Revolution Day", "Día de la Revolución", Rule::nth(11, 3, Weekday::Monday))
-        .years(Some(2006), None),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Día de la Independencia",
+        Rule::gregorian(9, 16),
+    ),
+    HolidayRule::fixed_public(
+        "Revolution Day",
+        "Día de la Revolución",
+        Rule::gregorian(11, 20),
+    )
+    .years(None, Some(2005)),
+    HolidayRule::fixed_public(
+        "Revolution Day",
+        "Día de la Revolución",
+        Rule::nth(11, 3, Weekday::Monday),
+    )
+    .years(Some(2006), None),
     HolidayRule::fixed_public(
         "Presidential Inauguration",
         "Transmisión del Poder Ejecutivo Federal",
@@ -266,25 +321,61 @@ pub static MEXICO: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 static BR_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Confraternização Universal", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "New Year's Day",
+        "Confraternização Universal",
+        Rule::gregorian(1, 1),
+    ),
     // Carnival is a ponto facultativo, not a feriado nacional, however
     // universally the country stops.
-    HolidayRule::observance("Carnival Monday", "Segunda-feira de Carnaval", Rule::easter(SHROVE_MONDAY)),
-    HolidayRule::public("Carnival Tuesday", "Terça-feira de Carnaval", Rule::easter(SHROVE_TUESDAY))
-        .of_kind(Kind::Bank),
-    HolidayRule::fixed_public("Good Friday", "Sexta-feira da Paixão", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::observance(
+        "Carnival Monday",
+        "Segunda-feira de Carnaval",
+        Rule::easter(SHROVE_MONDAY),
+    ),
+    HolidayRule::public(
+        "Carnival Tuesday",
+        "Terça-feira de Carnaval",
+        Rule::easter(SHROVE_TUESDAY),
+    )
+    .of_kind(Kind::Bank),
+    HolidayRule::fixed_public(
+        "Good Friday",
+        "Sexta-feira da Paixão",
+        Rule::easter(GOOD_FRIDAY),
+    ),
     HolidayRule::observance("Easter Sunday", "Páscoa", Rule::easter(EASTER_SUNDAY)),
     HolidayRule::fixed_public("Tiradentes", "Tiradentes", Rule::gregorian(4, 21)),
     HolidayRule::fixed_public("Labour Day", "Dia do Trabalhador", Rule::gregorian(5, 1)),
-    HolidayRule::public("Corpus Christi", "Corpus Christi", Rule::easter(CORPUS_CHRISTI))
-        .of_kind(Kind::Bank),
-    HolidayRule::fixed_public("Independence Day", "Independência do Brasil", Rule::gregorian(9, 7)),
-    HolidayRule::fixed_public("Our Lady of Aparecida", "Nossa Senhora Aparecida", Rule::gregorian(10, 12))
-        .years(Some(1980), None),
+    HolidayRule::public(
+        "Corpus Christi",
+        "Corpus Christi",
+        Rule::easter(CORPUS_CHRISTI),
+    )
+    .of_kind(Kind::Bank),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Independência do Brasil",
+        Rule::gregorian(9, 7),
+    ),
+    HolidayRule::fixed_public(
+        "Our Lady of Aparecida",
+        "Nossa Senhora Aparecida",
+        Rule::gregorian(10, 12),
+    )
+    .years(Some(1980), None),
     HolidayRule::fixed_public("All Souls' Day", "Finados", Rule::gregorian(11, 2)),
-    HolidayRule::fixed_public("Republic Day", "Proclamação da República", Rule::gregorian(11, 15)),
-    HolidayRule::fixed_public("Black Awareness Day", "Dia da Consciência Negra", Rule::gregorian(11, 20))
-        .years(Some(2024), None),
+    HolidayRule::fixed_public(
+        "Republic Day",
+        "Proclamação da República",
+        Rule::gregorian(11, 15),
+    ),
+    HolidayRule::fixed_public(
+        "Black Awareness Day",
+        "Dia da Consciência Negra",
+        Rule::gregorian(11, 20),
+    )
+    .years(Some(2024), None),
     HolidayRule::fixed_public("Christmas Day", "Natal", Rule::gregorian(12, 25)),
 ];
 

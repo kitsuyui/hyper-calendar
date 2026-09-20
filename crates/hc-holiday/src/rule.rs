@@ -10,12 +10,12 @@
 //! pure data: [`Rule::WeekdayOnOrAfter`], [`Rule::WeekdayOnOrBefore`] and
 //! [`Rule::Offset`].
 
+use hc_calendar::Calendar as _;
 use hc_calendar::{Month, Rd, Weekday};
 use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
 use hc_calendars_lunar::tabular::{self, LeapYearRule};
 use hc_calendars_lunar::{ChineseCalendar, DangiCalendar, LunisolarDate, VietnameseCalendar};
-use hc_calendar::Calendar as _;
 use hc_calendars_solar::{gregorian, julian};
 use hc_seasons::solar_terms::term_day;
 use hc_seasons::{Meridian, SolarTerm};
@@ -158,10 +158,14 @@ impl CalendarSystem {
         match self {
             Self::Gregorian => gregorian::to_fixed(year, month.ordinal, day).ok(),
             Self::Julian => julian::to_fixed(year, month.ordinal, day).ok(),
-            Self::IslamicCivil => {
-                tabular::to_fixed(tabular::CIVIL_EPOCH, LeapYearRule::Civil, year, month.ordinal, day)
-                    .ok()
-            }
+            Self::IslamicCivil => tabular::to_fixed(
+                tabular::CIVIL_EPOCH,
+                LeapYearRule::Civil,
+                year,
+                month.ordinal,
+                day,
+            )
+            .ok(),
             Self::IslamicUmmAlQura => islamic_umalqura::to_fixed(year, month.ordinal, day).ok(),
             Self::Hebrew => hebrew::to_fixed(year, month, day).ok(),
             Self::Chinese => ChineseCalendar
@@ -394,8 +398,9 @@ impl Rule {
             return Days::new();
         };
         match self {
-            Self::FixedGregorian { month, day } => gregorian::to_fixed(year, *month, *day)
-                .map_or_else(|_| Days::new(), Days::one),
+            Self::FixedGregorian { month, day } => {
+                gregorian::to_fixed(year, *month, *day).map_or_else(|_| Days::new(), Days::one)
+            }
             Self::NthWeekday { month, n, weekday } => {
                 let Some((start, end)) = gregorian_month_span(year, *month) else {
                     return Days::new();
@@ -412,16 +417,22 @@ impl Rule {
                     .nth_within(-1, start, end)
                     .map_or_else(Days::new, Days::one)
             }
-            Self::WeekdayOnOrAfter { month, day, weekday } => {
-                gregorian::to_fixed(year, *month, *day)
-                    .map_or_else(|_| Days::new(), |anchor| Days::one(weekday.on_or_after(anchor)))
-            }
-            Self::WeekdayOnOrBefore { month, day, weekday } => {
-                gregorian::to_fixed(year, *month, *day).map_or_else(
-                    |_| Days::new(),
-                    |anchor| Days::one(weekday.on_or_before(anchor)),
-                )
-            }
+            Self::WeekdayOnOrAfter {
+                month,
+                day,
+                weekday,
+            } => gregorian::to_fixed(year, *month, *day).map_or_else(
+                |_| Days::new(),
+                |anchor| Days::one(weekday.on_or_after(anchor)),
+            ),
+            Self::WeekdayOnOrBefore {
+                month,
+                day,
+                weekday,
+            } => gregorian::to_fixed(year, *month, *day).map_or_else(
+                |_| Days::new(),
+                |anchor| Days::one(weekday.on_or_before(anchor)),
+            ),
             Self::FixedInCalendar { system, month, day } => {
                 fixed_in_calendar(*system, *month, *day, first, last)
             }
@@ -439,8 +450,14 @@ impl Rule {
                 // neighbouring years are searched too and the result clamped.
                 let mut out = Days::new();
                 for probe in [year - 1, year, year + 1] {
-                    for shifted in base.days_in_year(probe).shifted(i32::from(*days)).as_slice() {
-                        if *shifted >= first && *shifted <= last && !out.as_slice().contains(shifted)
+                    for shifted in base
+                        .days_in_year(probe)
+                        .shifted(i32::from(*days))
+                        .as_slice()
+                    {
+                        if *shifted >= first
+                            && *shifted <= last
+                            && !out.as_slice().contains(shifted)
                         {
                             out.push(*shifted);
                         }
@@ -466,13 +483,7 @@ fn gregorian_month_span(year: i64, month: u8) -> Option<(Rd, Rd)> {
 /// The calendar years that can possibly overlap a Gregorian year are the one
 /// containing 1 January through the one containing 31 December, so the search
 /// is bounded without knowing anything about the calendar's year length.
-fn fixed_in_calendar(
-    system: CalendarSystem,
-    month: Month,
-    day: u8,
-    first: Rd,
-    last: Rd,
-) -> Days {
+fn fixed_in_calendar(system: CalendarSystem, month: Month, day: u8, first: Rd, last: Rd) -> Days {
     let mut out = Days::new();
     let Some(from) = system.year_containing(first) else {
         return out;
@@ -499,8 +510,7 @@ fn lunar_phase_day(phase: Phase, year: i64, month: u8, day: u8, meridian: Meridi
         return Days::new();
     };
     let start = meridian.midnight(anchor);
-    let moment =
-        hc_astro::moon_phase_at_or_after(phase.elongation_degrees(), start);
+    let moment = hc_astro::moon_phase_at_or_after(phase.elongation_degrees(), start);
     Days::one(meridian.day_of(moment))
 }
 
@@ -872,7 +882,9 @@ impl RuleSet {
     /// The substitution policy in force in `year`, if any.
     #[must_use]
     pub fn substitution_in(&self, year: i64) -> Option<&'static SubstitutionPolicy> {
-        self.substitution.iter().find(|policy| policy.applies_in(year))
+        self.substitution
+            .iter()
+            .find(|policy| policy.applies_in(year))
     }
 
     /// The weekend days in force in `year`.
@@ -892,7 +904,9 @@ impl RuleSet {
     /// Returned as an iterator of the raw codes, which may repeat; callers
     /// that want a set should build one.
     pub fn region_codes(&self) -> impl Iterator<Item = &'static str> + '_ {
-        self.rules.iter().flat_map(|rule| rule.regions.iter().copied())
+        self.rules
+            .iter()
+            .flat_map(|rule| rule.regions.iter().copied())
     }
 }
 

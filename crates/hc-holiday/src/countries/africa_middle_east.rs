@@ -63,15 +63,51 @@ fn yom_haatzmaut(year: i64) -> Days {
 static IL_INDEPENDENCE: Rule = Rule::Computed(yom_haatzmaut);
 
 static IL_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("Rosh Hashanah", "ראש השנה", Rule::in_calendar(CalendarSystem::Hebrew, 1, 1)),
-    HolidayRule::fixed_public("Rosh Hashanah", "ראש השנה", Rule::in_calendar(CalendarSystem::Hebrew, 1, 2)),
-    HolidayRule::fixed_public("Yom Kippur", "יום כיפור", Rule::in_calendar(CalendarSystem::Hebrew, 1, 10)),
-    HolidayRule::fixed_public("Sukkot", "סוכות", Rule::in_calendar(CalendarSystem::Hebrew, 1, 15)),
-    HolidayRule::fixed_public("Simchat Torah", "שמחת תורה", Rule::in_calendar(CalendarSystem::Hebrew, 1, 22)),
-    HolidayRule::observance("Hanukkah", "חנוכה", Rule::in_calendar(CalendarSystem::Hebrew, 3, 25)),
-    HolidayRule::observance("Purim", "פורים", Rule::in_calendar(CalendarSystem::Hebrew, 6, 14)),
-    HolidayRule::fixed_public("Passover", "פסח", Rule::in_calendar(CalendarSystem::Hebrew, 7, 15)),
-    HolidayRule::fixed_public("Seventh Day of Passover", "שביעי של פסח", Rule::in_calendar(CalendarSystem::Hebrew, 7, 21)),
+    HolidayRule::fixed_public(
+        "Rosh Hashanah",
+        "ראש השנה",
+        Rule::in_calendar(CalendarSystem::Hebrew, 1, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Rosh Hashanah",
+        "ראש השנה",
+        Rule::in_calendar(CalendarSystem::Hebrew, 1, 2),
+    ),
+    HolidayRule::fixed_public(
+        "Yom Kippur",
+        "יום כיפור",
+        Rule::in_calendar(CalendarSystem::Hebrew, 1, 10),
+    ),
+    HolidayRule::fixed_public(
+        "Sukkot",
+        "סוכות",
+        Rule::in_calendar(CalendarSystem::Hebrew, 1, 15),
+    ),
+    HolidayRule::fixed_public(
+        "Simchat Torah",
+        "שמחת תורה",
+        Rule::in_calendar(CalendarSystem::Hebrew, 1, 22),
+    ),
+    HolidayRule::observance(
+        "Hanukkah",
+        "חנוכה",
+        Rule::in_calendar(CalendarSystem::Hebrew, 3, 25),
+    ),
+    HolidayRule::observance(
+        "Purim",
+        "פורים",
+        Rule::in_calendar(CalendarSystem::Hebrew, 6, 14),
+    ),
+    HolidayRule::fixed_public(
+        "Passover",
+        "פסח",
+        Rule::in_calendar(CalendarSystem::Hebrew, 7, 15),
+    ),
+    HolidayRule::fixed_public(
+        "Seventh Day of Passover",
+        "שביעי של פסח",
+        Rule::in_calendar(CalendarSystem::Hebrew, 7, 21),
+    ),
     HolidayRule::observance(
         "Yom HaZikaron",
         "יום הזיכרון",
@@ -82,8 +118,16 @@ static IL_RULES: &[HolidayRule] = &[
     ),
     HolidayRule::fixed_public("Yom HaAtzmaut", "יום העצמאות", IL_INDEPENDENCE)
         .years(Some(1949), None),
-    HolidayRule::fixed_public("Shavuot", "שבועות", Rule::in_calendar(CalendarSystem::Hebrew, 9, 6)),
-    HolidayRule::observance("Tisha B'Av", "תשעה באב", Rule::in_calendar(CalendarSystem::Hebrew, 11, 9)),
+    HolidayRule::fixed_public(
+        "Shavuot",
+        "שבועות",
+        Rule::in_calendar(CalendarSystem::Hebrew, 9, 6),
+    ),
+    HolidayRule::observance(
+        "Tisha B'Av",
+        "תשעה באב",
+        Rule::in_calendar(CalendarSystem::Hebrew, 11, 9),
+    ),
 ];
 
 /// Israel.
@@ -129,22 +173,54 @@ static SA_RULES: &[HolidayRule] = &[
     // The Umm al-Qurā calendar is Saudi Arabia's own civil calendar, so its
     // holidays are dated in it. It remains a computation: the Eid dates are
     // proclaimed on a sighting.
-    HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 9, 30))
-        .approximate(),
-    HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 10, 1))
-        .approximate(),
-    HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 10, 2))
-        .approximate(),
-    HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 10, 3))
-        .approximate(),
-    HolidayRule::fixed_public("Day of Arafah", "يوم عرفة", Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 12, 9))
-        .approximate(),
-    HolidayRule::fixed_public("Eid al-Adha", "عيد الأضحى", Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 12, 10))
-        .approximate(),
-    HolidayRule::fixed_public("Eid al-Adha", "عيد الأضحى", Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 12, 11))
-        .approximate(),
-    HolidayRule::fixed_public("Eid al-Adha", "عيد الأضحى", Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 12, 12))
-        .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Fitr",
+        "عيد الفطر",
+        Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 9, 30),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Fitr",
+        "عيد الفطر",
+        Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 10, 1),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Fitr",
+        "عيد الفطر",
+        Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 10, 2),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Fitr",
+        "عيد الفطر",
+        Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 10, 3),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Day of Arafah",
+        "يوم عرفة",
+        Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 12, 9),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Adha",
+        "عيد الأضحى",
+        Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 12, 10),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Adha",
+        "عيد الأضحى",
+        Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 12, 11),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Adha",
+        "عيد الأضحى",
+        Rule::in_calendar(CalendarSystem::IslamicUmmAlQura, 12, 12),
+    )
+    .approximate(),
     HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(9, 23))
         .years(Some(2005), None),
 ];
@@ -186,27 +262,60 @@ static AE_WEEKEND: &[WeekendPolicy] = &[
 ];
 
 static AE_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "رأس السنة الميلادية", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "New Year's Day",
+        "رأس السنة الميلادية",
+        Rule::gregorian(1, 1),
+    ),
     // The Cabinet circular states Eid al-Fitr as "29 Ramadan to 3 Shawwal",
     // so both possible last days of Ramadan are listed; in a 29-day Ramadan
     // the second simply does not exist.
-    HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", Rule::in_calendar(CalendarSystem::IslamicCivil, 9, 29))
-        .approximate(),
-    HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", Rule::in_calendar(CalendarSystem::IslamicCivil, 9, 30))
-        .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Fitr",
+        "عيد الفطر",
+        Rule::in_calendar(CalendarSystem::IslamicCivil, 9, 29),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Fitr",
+        "عيد الفطر",
+        Rule::in_calendar(CalendarSystem::IslamicCivil, 9, 30),
+    )
+    .approximate(),
     HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", EID_AL_FITR).approximate(),
-    HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", Rule::in_calendar(CalendarSystem::IslamicCivil, 10, 2))
-        .approximate(),
-    HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", Rule::in_calendar(CalendarSystem::IslamicCivil, 10, 3))
-        .approximate(),
-    HolidayRule::fixed_public("Day of Arafah", "يوم عرفة", Rule::in_calendar(CalendarSystem::IslamicCivil, 12, 9))
-        .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Fitr",
+        "عيد الفطر",
+        Rule::in_calendar(CalendarSystem::IslamicCivil, 10, 2),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Fitr",
+        "عيد الفطر",
+        Rule::in_calendar(CalendarSystem::IslamicCivil, 10, 3),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Day of Arafah",
+        "يوم عرفة",
+        Rule::in_calendar(CalendarSystem::IslamicCivil, 12, 9),
+    )
+    .approximate(),
     HolidayRule::fixed_public("Eid al-Adha", "عيد الأضحى", EID_AL_ADHA).approximate(),
-    HolidayRule::fixed_public("Eid al-Adha", "عيد الأضحى", Rule::in_calendar(CalendarSystem::IslamicCivil, 12, 11))
+    HolidayRule::fixed_public(
+        "Eid al-Adha",
+        "عيد الأضحى",
+        Rule::in_calendar(CalendarSystem::IslamicCivil, 12, 11),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Adha",
+        "عيد الأضحى",
+        Rule::in_calendar(CalendarSystem::IslamicCivil, 12, 12),
+    )
+    .approximate(),
+    HolidayRule::fixed_public("Islamic New Year", "رأس السنة الهجرية", HIJRI_NEW_YEAR)
         .approximate(),
-    HolidayRule::fixed_public("Eid al-Adha", "عيد الأضحى", Rule::in_calendar(CalendarSystem::IslamicCivil, 12, 12))
-        .approximate(),
-    HolidayRule::fixed_public("Islamic New Year", "رأس السنة الهجرية", HIJRI_NEW_YEAR).approximate(),
     HolidayRule::fixed_public("Prophet's Birthday", "المولد النبوي", MAWLID).approximate(),
     HolidayRule::fixed_public("Commemoration Day", "يوم الشهيد", Rule::gregorian(11, 30))
         .years(Some(2015), Some(2018)),
@@ -244,8 +353,12 @@ static TR_RULES: &[HolidayRule] = &[
         Rule::gregorian(4, 23),
     )
     .years(Some(1921), None),
-    HolidayRule::fixed_public("Labour and Solidarity Day", "Emek ve Dayanışma Günü", Rule::gregorian(5, 1))
-        .years(Some(2009), None),
+    HolidayRule::fixed_public(
+        "Labour and Solidarity Day",
+        "Emek ve Dayanışma Günü",
+        Rule::gregorian(5, 1),
+    )
+    .years(Some(2009), None),
     HolidayRule::fixed_public(
         "Commemoration of Atatürk, Youth and Sports Day",
         "Atatürk'ü Anma, Gençlik ve Spor Bayramı",
@@ -290,8 +403,12 @@ static TR_RULES: &[HolidayRule] = &[
     )
     .approximate(),
     HolidayRule::fixed_public("Victory Day", "Zafer Bayramı", Rule::gregorian(8, 30)),
-    HolidayRule::fixed_public("Republic Day", "Cumhuriyet Bayramı", Rule::gregorian(10, 29))
-        .years(Some(1923), None),
+    HolidayRule::fixed_public(
+        "Republic Day",
+        "Cumhuriyet Bayramı",
+        Rule::gregorian(10, 29),
+    )
+    .years(Some(1923), None),
 ];
 
 /// Türkiye.
@@ -315,30 +432,71 @@ pub static TURKEY: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 static EG_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("Coptic Christmas", "عيد الميلاد المجيد", Rule::gregorian(1, 7)),
-    HolidayRule::fixed_public("Revolution Day", "عيد ثورة 25 يناير", Rule::gregorian(1, 25))
-        .years(Some(2012), None),
-    HolidayRule::fixed_public("Sinai Liberation Day", "عيد تحرير سيناء", Rule::gregorian(4, 25))
-        .years(Some(1982), None),
+    HolidayRule::fixed_public(
+        "Coptic Christmas",
+        "عيد الميلاد المجيد",
+        Rule::gregorian(1, 7),
+    ),
+    HolidayRule::fixed_public(
+        "Revolution Day",
+        "عيد ثورة 25 يناير",
+        Rule::gregorian(1, 25),
+    )
+    .years(Some(2012), None),
+    HolidayRule::fixed_public(
+        "Sinai Liberation Day",
+        "عيد تحرير سيناء",
+        Rule::gregorian(4, 25),
+    )
+    .years(Some(1982), None),
     // Sham El-Nessim is the day after Coptic Easter, which follows the
     // Julian computus.
     HolidayRule::fixed_public("Sham El-Nessim", "شم النسيم", Rule::paschal(EASTER_MONDAY)),
     HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("30 June Revolution", "عيد ثورة 30 يونيو", Rule::gregorian(6, 30))
-        .years(Some(2014), None),
-    HolidayRule::fixed_public("Revolution Day", "عيد ثورة 23 يوليو", Rule::gregorian(7, 23)),
-    HolidayRule::fixed_public("Armed Forces Day", "عيد القوات المسلحة", Rule::gregorian(10, 6)),
+    HolidayRule::fixed_public(
+        "30 June Revolution",
+        "عيد ثورة 30 يونيو",
+        Rule::gregorian(6, 30),
+    )
+    .years(Some(2014), None),
+    HolidayRule::fixed_public(
+        "Revolution Day",
+        "عيد ثورة 23 يوليو",
+        Rule::gregorian(7, 23),
+    ),
+    HolidayRule::fixed_public(
+        "Armed Forces Day",
+        "عيد القوات المسلحة",
+        Rule::gregorian(10, 6),
+    ),
     HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", EID_AL_FITR).approximate(),
-    HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", Rule::in_calendar(CalendarSystem::IslamicCivil, 10, 2))
-        .approximate(),
-    HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", Rule::in_calendar(CalendarSystem::IslamicCivil, 10, 3))
-        .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Fitr",
+        "عيد الفطر",
+        Rule::in_calendar(CalendarSystem::IslamicCivil, 10, 2),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Fitr",
+        "عيد الفطر",
+        Rule::in_calendar(CalendarSystem::IslamicCivil, 10, 3),
+    )
+    .approximate(),
     HolidayRule::fixed_public("Eid al-Adha", "عيد الأضحى", EID_AL_ADHA).approximate(),
-    HolidayRule::fixed_public("Eid al-Adha", "عيد الأضحى", Rule::in_calendar(CalendarSystem::IslamicCivil, 12, 11))
+    HolidayRule::fixed_public(
+        "Eid al-Adha",
+        "عيد الأضحى",
+        Rule::in_calendar(CalendarSystem::IslamicCivil, 12, 11),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Eid al-Adha",
+        "عيد الأضحى",
+        Rule::in_calendar(CalendarSystem::IslamicCivil, 12, 12),
+    )
+    .approximate(),
+    HolidayRule::fixed_public("Islamic New Year", "رأس السنة الهجرية", HIJRI_NEW_YEAR)
         .approximate(),
-    HolidayRule::fixed_public("Eid al-Adha", "عيد الأضحى", Rule::in_calendar(CalendarSystem::IslamicCivil, 12, 12))
-        .approximate(),
-    HolidayRule::fixed_public("Islamic New Year", "رأس السنة الهجرية", HIJRI_NEW_YEAR).approximate(),
     HolidayRule::fixed_public("Prophet's Birthday", "المولد النبوي", MAWLID).approximate(),
 ];
 
@@ -422,7 +580,8 @@ static ZA_RULES: &[HolidayRule] = &[
     HolidayRule::public("Youth Day", "", Rule::gregorian(6, 16)).years(Some(1995), None),
     HolidayRule::public("National Women's Day", "", Rule::gregorian(8, 9)).years(Some(1995), None),
     HolidayRule::public("Heritage Day", "", Rule::gregorian(9, 24)).years(Some(1995), None),
-    HolidayRule::public("Day of Reconciliation", "", Rule::gregorian(12, 16)).years(Some(1995), None),
+    HolidayRule::public("Day of Reconciliation", "", Rule::gregorian(12, 16))
+        .years(Some(1995), None),
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
     HolidayRule::public("Day of Goodwill", "", Rule::gregorian(12, 26)),
 ];

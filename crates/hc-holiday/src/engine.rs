@@ -221,9 +221,7 @@ impl<'a> HolidayCalendar<'a> {
         let Ok(year) = gregorian::year_from_fixed(day) else {
             return false;
         };
-        self.rules
-            .weekend_in(year)
-            .contains(&Weekday::from_rd(day))
+        self.rules.weekend_in(year).contains(&Weekday::from_rd(day))
     }
 
     /// Whether `day` is a working day: neither the weekend nor a holiday.
@@ -301,7 +299,9 @@ impl<'a> HolidayCalendar<'a> {
 /// Convenience: every holiday of one year for one rule set.
 #[must_use]
 pub fn holidays_in_year(rules: &RuleSet, region: Option<&str>, year: i64) -> Vec<Holiday> {
-    HolidayCalendar::for_year(rules, region, year).all().to_vec()
+    HolidayCalendar::for_year(rules, region, year)
+        .all()
+        .to_vec()
 }
 
 /// Convenience: whether one day is a day-off holiday.
@@ -387,13 +387,10 @@ fn evaluate(
         let Some(policy) = rules.substitution_in(year) else {
             continue;
         };
-        let trigger = occurrence
-            .rule
-            .substitute_trigger
-            .unwrap_or(policy.trigger);
-        if !trigger.contains(&Weekday::from_rd(occurrence.date))
-            && !(policy.on_collision && collided)
-        {
+        let trigger = occurrence.rule.substitute_trigger.unwrap_or(policy.trigger);
+        let triggered = trigger.contains(&Weekday::from_rd(occurrence.date))
+            || (policy.on_collision && collided);
+        if !triggered {
             continue;
         }
         let Some(target) = substitute_day(occurrence.date, policy, trigger, &occupied) else {
@@ -441,7 +438,10 @@ fn evaluate(
                 if policy.max_gap == 0 {
                     continue;
                 }
-                if policy.exclude_weekdays.contains(&Weekday::from_rd(candidate)) {
+                if policy
+                    .exclude_weekdays
+                    .contains(&Weekday::from_rd(candidate))
+                {
                     continue;
                 }
                 if occupied.binary_search(&candidate).is_ok() {
@@ -545,12 +545,12 @@ mod tests {
     }
 
     static SIMPLE_RULES: [HolidayRule; 2] = [
-        HolidayRule::public("New Year's Day", "", Rule::FixedGregorian { month: 1, day: 1 }),
-        HolidayRule::fixed_public(
-            "Anniversary",
+        HolidayRule::public(
+            "New Year's Day",
             "",
-            Rule::FixedGregorian { month: 7, day: 4 },
+            Rule::FixedGregorian { month: 1, day: 1 },
         ),
+        HolidayRule::fixed_public("Anniversary", "", Rule::FixedGregorian { month: 7, day: 4 }),
     ];
 
     static FORWARD: [SubstitutionPolicy; 1] = [SubstitutionPolicy {
@@ -648,10 +648,7 @@ mod tests {
             .expect("in range");
         assert_eq!(first + second, whole);
         assert_eq!(whole, 4);
-        assert_eq!(
-            calendar.business_days_between(friday, monday),
-            Some(-4)
-        );
+        assert_eq!(calendar.business_days_between(friday, monday), Some(-4));
     }
 
     #[test]

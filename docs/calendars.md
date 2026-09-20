@@ -29,27 +29,28 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | --- | --- | --- | --- |
 | Proleptic Gregorian | `gregory` | `hc-calendars-solar` | Done |
 | Proleptic Julian | `julian` | `hc-calendars-solar` | Done |
-| Julian→Gregorian reform (per country) | `julian-gregorian` | `hc-calendars-solar` | Done |
-| ISO 8601 week date | `iso8601` | `hc-calendars-solar` | Done |
-| ISO 8601 ordinal date | `ordinal` | `hc-calendars-solar` | Done |
+| Julian→Gregorian reform (per country) | `julian-gregorian-<polity>`, 13 of them | `hc-calendars-solar` | Done |
+| ISO 8601 week date | `iso8601-week` | `hc-calendars-solar` | Done |
+| ISO 8601 ordinal date | `iso8601-ordinal` | `hc-calendars-solar` | Done |
 | Julian Day Number / MJD | `julian-day` | `hc-calendars-solar` | Done |
 | Coptic | `coptic` | `hc-calendars-solar` | Done |
 | Ethiopic (Amete Mihret) | `ethiopic` | `hc-calendars-solar` | Done |
-| Ethiopic (Amete Alem) | `ethioaa` | `hc-calendars-solar` | Done |
+| Ethiopic (Amete Alem) | — | `hc-calendars-solar` | Partial — an `amete-alem-year` field on `ethiopic`, not a calendar of its own |
 | Ancient Egyptian wandering year | `egyptian` | `hc-calendars-solar` | Done |
 | Armenian | `armenian` | `hc-calendars-solar` | Done |
-| Solar Hijri (Persian), arithmetic | `persian` | `hc-calendars-solar` | Partial — 33-year cycle; astronomical variant in stage 3 |
+| Solar Hijri (Persian), arithmetic | `persian-arithmetic` | `hc-calendars-solar` | Partial — 33-year cycle; astronomical variant in stage 3 |
 | Indian national civil (Śaka) | `indian` | `hc-calendars-solar` | Done |
-| Thai solar (Buddhist Era) | `buddhist` | `hc-calendars-solar` | Done |
+| Thai solar (Buddhist Era) | `buddhist` | `hc-calendars-solar` | Partial — the 1889–1940 April year start is not modelled |
 | Minguo (Republic of China) | `roc` | `hc-calendars-solar` | Done |
 | Juche (DPRK) | `juche` | `hc-calendars-solar` | Done |
 | Holocene / Human Era (人類紀元) | `holocene` | `hc-calendars-solar` | Done |
+| Japanese imperial year (皇紀) | `japanese-imperial` | `hc-calendars-solar` | Done — proleptic before the 1873 adoption |
 | Byzantine / Anno Mundi world era | `byzantine` | `hc-calendars-solar` | Done |
 | Roman *ab urbe condita* | `roman-auc` | `hc-calendars-solar` | Done |
-| French Republican, arithmetic (Romme) | `french-republican` | `hc-calendars-solar` | Partial — equinox variant in stage 3 |
-| Bahá'í (Badíʿ), arithmetic portion | `bahai` | `hc-calendars-solar` | Partial — Naw-Rúz is astronomical, stage 3 |
+| French Republican, arithmetic (Romme) | `french-republican-arithmetic` | `hc-calendars-solar` | Partial — equinox variant in stage 3 |
+| Bahá'í (Badíʿ), arithmetic portion | `bahai-arithmetic` | `hc-calendars-solar` | Partial — Naw-Rúz is astronomical, stage 3 |
 | Symmetry454 | `symmetry454` | `hc-calendars-solar` | Done |
-| World Calendar (1930 proposal) | `world` | `hc-calendars-solar` | Done |
+| World Calendar (1930 proposal) | `world-calendar` | `hc-calendars-solar` | Done |
 
 ## Stage 2 — Lunar and lunisolar calendars
 
@@ -87,15 +88,19 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 
 | Calendar | Id | Crate | Status |
 | --- | --- | --- | --- |
-| Japanese imperial eras (和暦, 大化 → 令和) | `japanese` | `hc-calendars-regional` | Done |
+| Japanese imperial eras (和暦, 大化 → 令和) | `japanese` | `hc-calendars-regional` | Done — 248 nengō |
+| Japanese eras, Northern Court (北朝) | `japanese-northern` | `hc-calendars-regional` | Done |
+| Japanese eras, Southern Court (南朝) | `japanese-southern` | `hc-calendars-regional` | Done |
 | Chinese sexagenary cycle (干支), incl. the four pillars (四柱/八字) | `sexagenary` | `hc-calendar::cycle` | Done |
 | Chinese regnal eras (年号) | `chinese-regnal` | `hc-calendars-regional` | Planned |
 | Korean regnal eras | `korean-regnal` | `hc-calendars-regional` | Planned |
-| Maya long count | `maya-longcount` | `hc-calendars-regional` | Done |
+| Maya long count (GMT 584283) | `maya-longcount` | `hc-calendars-regional` | Done |
+| Maya long count (GMT+2, 584285) | `maya-longcount-gmt2` | `hc-calendars-regional` | Done |
 | Maya Tzolkʼin (260 days) | `maya-tzolkin` | `hc-calendars-regional` | Done |
 | Maya Haabʼ (365 days) | `maya-haab` | `hc-calendars-regional` | Done |
 | Maya calendar round | `maya-round` | `hc-calendars-regional` | Done |
-| Aztec Tonalpohualli and Xiuhpohualli | `aztec` | `hc-calendars-regional` | Planned |
+| Aztec Tonalpohualli | `aztec-tonalpohualli` | `hc-calendars-regional` | Done |
+| Aztec Xiuhpohualli | `aztec-xiuhpohualli` | `hc-calendars-regional` | Done |
 | Balinese Pawukon (ten concurrent cycles) | `balinese-pawukon` | `hc-calendars-regional` | Done |
 | Javanese Pasaran (five-day market week) | `javanese-pasaran` | `hc-calendars-regional` | Done |
 | Igbo four-day week (Izu) | `igbo` | `hc-calendars-regional` | Planned |

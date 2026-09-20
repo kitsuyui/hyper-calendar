@@ -47,19 +47,32 @@ static AU_RULES: &[HolidayRule] = &[
     // Australia and the ACT. Nationally the crate takes the stricter of the
     // two and leaves it where it falls.
     HolidayRule::fixed_public("Anzac Day", "", Rule::gregorian(4, 25)).years(Some(1921), None),
-    HolidayRule::public("Labour Day", "", Rule::nth(5, 1, Weekday::Monday)).in_regions(AU_MAY_LABOUR),
+    HolidayRule::public("Labour Day", "", Rule::nth(5, 1, Weekday::Monday))
+        .in_regions(AU_MAY_LABOUR),
     HolidayRule::public("Reconciliation Day", "", Rule::nth(5, 4, Weekday::Monday))
         .in_regions(AU_ACT)
         .years(Some(2018), None),
-    HolidayRule::public("Western Australia Day", "", Rule::nth(6, 1, Weekday::Monday))
-        .in_regions(AU_WA),
+    HolidayRule::public(
+        "Western Australia Day",
+        "",
+        Rule::nth(6, 1, Weekday::Monday),
+    )
+    .in_regions(AU_WA),
     HolidayRule::public("Sovereign's Birthday", "", Rule::nth(6, 2, Weekday::Monday))
         .in_regions(AU_JUNE_SOVEREIGN),
     HolidayRule::public("Picnic Day", "", Rule::nth(8, 1, Weekday::Monday)).in_regions(AU_NT),
-    HolidayRule::public("Royal Queensland Show", "", Rule::nth(8, 2, Weekday::Wednesday))
-        .in_regions(AU_QLD),
-    HolidayRule::public("Sovereign's Birthday", "", Rule::nth(10, 1, Weekday::Monday))
-        .in_regions(AU_QLD),
+    HolidayRule::public(
+        "Royal Queensland Show",
+        "",
+        Rule::nth(8, 2, Weekday::Wednesday),
+    )
+    .in_regions(AU_QLD),
+    HolidayRule::public(
+        "Sovereign's Birthday",
+        "",
+        Rule::nth(10, 1, Weekday::Monday),
+    )
+    .in_regions(AU_QLD),
     HolidayRule::public("Labour Day", "", Rule::nth(10, 1, Weekday::Monday))
         .in_regions(AU_OCTOBER_LABOUR),
     HolidayRule::public("Melbourne Cup Day", "", Rule::nth(11, 1, Weekday::Tuesday))
@@ -143,7 +156,8 @@ static NZ_RULES: &[HolidayRule] = &[
         .years(Some(2014), None),
     HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
     HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Anzac Day", "", Rule::gregorian(4, 25)).years(Some(1921), Some(2013)),
+    HolidayRule::fixed_public("Anzac Day", "", Rule::gregorian(4, 25))
+        .years(Some(1921), Some(2013)),
     HolidayRule::public("Anzac Day", "", Rule::gregorian(4, 25)).years(Some(2014), None),
     HolidayRule::public("Sovereign's Birthday", "", Rule::nth(6, 1, Weekday::Monday)),
     HolidayRule::fixed_public("Matariki", "Matariki", Rule::Computed(matariki))

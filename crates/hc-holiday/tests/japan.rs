@@ -11,8 +11,17 @@ use hc_calendars_solar::gregorian;
 use hc_holiday::countries::JAPAN;
 use hc_holiday::engine::{Holiday, HolidayCalendar};
 
+/// Panics rather than returning a `Result`, because every date in this file
+/// is a literal the author typed and a bad one is a bug in the test.
+///
+/// # Panics
+///
+/// When the year, month and day are not a Gregorian date.
 fn ymd(year: i64, month: u8, day: u8) -> Rd {
-    gregorian::to_fixed(year, month, day).expect("valid Gregorian date")
+    match gregorian::to_fixed(year, month, day) {
+        Ok(fixed) => fixed,
+        Err(error) => panic!("{year}-{month:02}-{day:02} is not a date: {error:?}"),
+    }
 }
 
 fn year(year: i64) -> HolidayCalendar<'static> {
@@ -263,7 +272,8 @@ fn the_2019_accession_produced_a_ten_day_golden_week() {
     // Twenty-seven April to six May inclusive, weekends included.
     for day in 27..=30 {
         assert!(
-            year(2019).is_holiday(ymd(2019, 4, day)) || !year(2019).is_business_day(ymd(2019, 4, day)),
+            year(2019).is_holiday(ymd(2019, 4, day))
+                || !year(2019).is_business_day(ymd(2019, 4, day)),
             "2019-04-{day} should not be a working day"
         );
     }
@@ -406,13 +416,7 @@ fn a_recent_year_matches_the_cabinet_offices_published_list() {
 
 #[test]
 fn the_number_of_holidays_grew_with_each_amendment() {
-    let counts = [
-        (1950, 9),
-        (1965, 9),
-        (1967, 12),
-        (1997, 14),
-        (2017, 16),
-    ];
+    let counts = [(1950, 9), (1965, 9), (1967, 12), (1997, 14), (2017, 16)];
     for (y, expected) in counts {
         let base = year(y)
             .all()
@@ -456,7 +460,12 @@ fn every_japanese_holiday_is_exact_because_nothing_in_the_table_is_a_guess() {
     use hc_holiday::rule::Confidence;
     for y in 1948..=2050 {
         for holiday in year(y).all() {
-            assert_eq!(holiday.confidence, Confidence::Exact, "{y} {}", holiday.name);
+            assert_eq!(
+                holiday.confidence,
+                Confidence::Exact,
+                "{y} {}",
+                holiday.name
+            );
         }
     }
 }

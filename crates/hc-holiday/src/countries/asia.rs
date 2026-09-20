@@ -60,12 +60,28 @@ static CN_RULES: &[HolidayRule] = &[
         },
     )
     .years(Some(2025), None),
-    HolidayRule::fixed_public("Spring Festival", "春节", Rule::in_calendar(CalendarSystem::Chinese, 1, 1)),
-    HolidayRule::fixed_public("Spring Festival", "春节", Rule::in_calendar(CalendarSystem::Chinese, 1, 2)),
-    HolidayRule::fixed_public("Spring Festival", "春节", Rule::in_calendar(CalendarSystem::Chinese, 1, 3))
-        .years(None, Some(2007)),
-    HolidayRule::fixed_public("Spring Festival", "春节", Rule::in_calendar(CalendarSystem::Chinese, 1, 3))
-        .years(Some(2014), None),
+    HolidayRule::fixed_public(
+        "Spring Festival",
+        "春节",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Spring Festival",
+        "春节",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 2),
+    ),
+    HolidayRule::fixed_public(
+        "Spring Festival",
+        "春节",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 3),
+    )
+    .years(None, Some(2007)),
+    HolidayRule::fixed_public(
+        "Spring Festival",
+        "春节",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 3),
+    )
+    .years(Some(2014), None),
     HolidayRule::fixed_public(
         "Qingming Festival",
         "清明节",
@@ -84,10 +100,18 @@ static CN_RULES: &[HolidayRule] = &[
         .years(Some(1999), Some(2007)),
     HolidayRule::fixed_public("Labour Day", "劳动节", Rule::gregorian(5, 2))
         .years(Some(2025), None),
-    HolidayRule::fixed_public("Dragon Boat Festival", "端午节", Rule::in_calendar(CalendarSystem::Chinese, 5, 5))
-        .years(Some(2008), None),
-    HolidayRule::fixed_public("Mid-Autumn Festival", "中秋节", Rule::in_calendar(CalendarSystem::Chinese, 8, 15))
-        .years(Some(2008), None),
+    HolidayRule::fixed_public(
+        "Dragon Boat Festival",
+        "端午节",
+        Rule::in_calendar(CalendarSystem::Chinese, 5, 5),
+    )
+    .years(Some(2008), None),
+    HolidayRule::fixed_public(
+        "Mid-Autumn Festival",
+        "中秋节",
+        Rule::in_calendar(CalendarSystem::Chinese, 8, 15),
+    )
+    .years(Some(2008), None),
     HolidayRule::fixed_public("National Day", "国庆节", Rule::gregorian(10, 1)),
     HolidayRule::fixed_public("National Day", "国庆节", Rule::gregorian(10, 2)),
     HolidayRule::fixed_public("National Day", "国庆节", Rule::gregorian(10, 3)),
@@ -118,7 +142,11 @@ pub static CHINA: RuleSet = RuleSet {
 static TW_NEW_YEAR: Rule = Rule::in_calendar(CalendarSystem::Chinese, 1, 1);
 
 static TW_RULES: &[HolidayRule] = &[
-    HolidayRule::public("Founding Day of the Republic of China", "中華民國開國紀念日", Rule::gregorian(1, 1)),
+    HolidayRule::public(
+        "Founding Day of the Republic of China",
+        "中華民國開國紀念日",
+        Rule::gregorian(1, 1),
+    ),
     // The Lunar New Year cluster is never adjusted by the Saturday/Sunday
     // rule: 人事行政總處 extends it instead, by a different number of days
     // each year, and this crate does not guess an administrative decision.
@@ -130,9 +158,21 @@ static TW_RULES: &[HolidayRule] = &[
             days: -1,
         },
     ),
-    HolidayRule::fixed_public("Spring Festival", "春節", Rule::in_calendar(CalendarSystem::Chinese, 1, 1)),
-    HolidayRule::fixed_public("Spring Festival", "春節", Rule::in_calendar(CalendarSystem::Chinese, 1, 2)),
-    HolidayRule::fixed_public("Spring Festival", "春節", Rule::in_calendar(CalendarSystem::Chinese, 1, 3)),
+    HolidayRule::fixed_public(
+        "Spring Festival",
+        "春節",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Spring Festival",
+        "春節",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 2),
+    ),
+    HolidayRule::fixed_public(
+        "Spring Festival",
+        "春節",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 3),
+    ),
     HolidayRule::public("Peace Memorial Day", "和平紀念日", Rule::gregorian(2, 28))
         .years(Some(1997), None),
     HolidayRule::public("Children's Day", "兒童節", Rule::gregorian(4, 4)).years(Some(2011), None),
@@ -145,8 +185,16 @@ static TW_RULES: &[HolidayRule] = &[
         },
     ),
     HolidayRule::public("Labour Day", "勞動節", Rule::gregorian(5, 1)),
-    HolidayRule::public("Dragon Boat Festival", "端午節", Rule::in_calendar(CalendarSystem::Chinese, 5, 5)),
-    HolidayRule::public("Mid-Autumn Festival", "中秋節", Rule::in_calendar(CalendarSystem::Chinese, 8, 15)),
+    HolidayRule::public(
+        "Dragon Boat Festival",
+        "端午節",
+        Rule::in_calendar(CalendarSystem::Chinese, 5, 5),
+    ),
+    HolidayRule::public(
+        "Mid-Autumn Festival",
+        "中秋節",
+        Rule::in_calendar(CalendarSystem::Chinese, 8, 15),
+    ),
     HolidayRule::public("Teachers' Day", "孔子誕辰紀念日", Rule::gregorian(9, 28))
         .years(Some(2025), None),
     HolidayRule::public("National Day", "國慶日", Rule::gregorian(10, 10)),
@@ -215,10 +263,14 @@ static KR_RULES: &[HolidayRule] = &[
     .substituted_from(2014)
     .substitute_on(SUNDAY_ONLY)
     .years(Some(1989), None),
-    HolidayRule::public("Seollal", "설날", Rule::in_calendar(CalendarSystem::Dangi, 1, 1))
-        .substituted_from(2014)
-        .substitute_on(SUNDAY_ONLY)
-        .years(Some(1985), None),
+    HolidayRule::public(
+        "Seollal",
+        "설날",
+        Rule::in_calendar(CalendarSystem::Dangi, 1, 1),
+    )
+    .substituted_from(2014)
+    .substitute_on(SUNDAY_ONLY)
+    .years(Some(1985), None),
     HolidayRule::public(
         "Seollal",
         "설날",
@@ -237,14 +289,17 @@ static KR_RULES: &[HolidayRule] = &[
     HolidayRule::public("Children's Day", "어린이날", Rule::gregorian(5, 5))
         .substituted_from(2014)
         .years(Some(1975), None),
-    HolidayRule::public("Buddha's Birthday", "부처님 오신 날", Rule::in_calendar(CalendarSystem::Dangi, 4, 8))
-        .substituted_from(2023)
-        .years(Some(1975), None),
+    HolidayRule::public(
+        "Buddha's Birthday",
+        "부처님 오신 날",
+        Rule::in_calendar(CalendarSystem::Dangi, 4, 8),
+    )
+    .substituted_from(2023)
+    .years(Some(1975), None),
     HolidayRule::fixed_public("Memorial Day", "현충일", Rule::gregorian(6, 6)),
     HolidayRule::public("Constitution Day", "제헌절", Rule::gregorian(7, 17))
         .years(Some(1949), Some(2007)),
-    HolidayRule::public("Liberation Day", "광복절", Rule::gregorian(8, 15))
-        .substituted_from(2021),
+    HolidayRule::public("Liberation Day", "광복절", Rule::gregorian(8, 15)).substituted_from(2021),
     // Chuseok is the fourteenth, fifteenth and sixteenth of the eighth
     // month.
     HolidayRule::public(
@@ -258,9 +313,13 @@ static KR_RULES: &[HolidayRule] = &[
     .substituted_from(2014)
     .substitute_on(SUNDAY_ONLY)
     .years(Some(1989), None),
-    HolidayRule::public("Chuseok", "추석", Rule::in_calendar(CalendarSystem::Dangi, 8, 15))
-        .substituted_from(2014)
-        .substitute_on(SUNDAY_ONLY),
+    HolidayRule::public(
+        "Chuseok",
+        "추석",
+        Rule::in_calendar(CalendarSystem::Dangi, 8, 15),
+    )
+    .substituted_from(2014)
+    .substitute_on(SUNDAY_ONLY),
     HolidayRule::public(
         "Chuseok",
         "추석",
@@ -281,8 +340,7 @@ static KR_RULES: &[HolidayRule] = &[
     HolidayRule::public("Hangul Day", "한글날", Rule::gregorian(10, 9))
         .substituted_from(2021)
         .years(Some(2013), None),
-    HolidayRule::public("Christmas Day", "성탄절", Rule::gregorian(12, 25))
-        .substituted_from(2023),
+    HolidayRule::public("Christmas Day", "성탄절", Rule::gregorian(12, 25)).substituted_from(2023),
 ];
 
 static KR_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
@@ -329,8 +387,12 @@ static IN_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
     HolidayRule::fixed_public("Id-ul-Fitr", "ईद उल-फ़ित्र", EID_AL_FITR).approximate(),
     HolidayRule::fixed_public("Id-ul-Zuha", "ईद उल-अज़हा", EID_AL_ADHA).approximate(),
-    HolidayRule::fixed_public("Muharram", "मुहर्रम", Rule::in_calendar(CalendarSystem::IslamicCivil, 1, 10))
-        .approximate(),
+    HolidayRule::fixed_public(
+        "Muharram",
+        "मुहर्रम",
+        Rule::in_calendar(CalendarSystem::IslamicCivil, 1, 10),
+    )
+    .approximate(),
     HolidayRule::fixed_public("Milad-un-Nabi", "ईद मिलाद उन-नबी", MAWLID).approximate(),
 ];
 
@@ -367,8 +429,12 @@ static TH_ASALHA: Rule = Rule::in_calendar(CalendarSystem::Chinese, 6, 15);
 
 static TH_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "วันขึ้นปีใหม่", Rule::gregorian(1, 1)),
-    HolidayRule::public("Makha Bucha", "วันมาฆบูชา", Rule::in_calendar(CalendarSystem::Chinese, 1, 15))
-        .approximate(),
+    HolidayRule::public(
+        "Makha Bucha",
+        "วันมาฆบูชา",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 15),
+    )
+    .approximate(),
     HolidayRule::public("Chakri Memorial Day", "วันจักรี", Rule::gregorian(4, 6)),
     HolidayRule::fixed_public("Songkran", "วันสงกรานต์", Rule::gregorian(4, 13)),
     HolidayRule::fixed_public("Songkran", "วันสงกรานต์", Rule::gregorian(4, 14)),
@@ -376,10 +442,18 @@ static TH_RULES: &[HolidayRule] = &[
     HolidayRule::public("Labour Day", "วันแรงงานแห่งชาติ", Rule::gregorian(5, 1)),
     HolidayRule::public("Coronation Day", "วันฉัตรมงคล", Rule::gregorian(5, 4))
         .years(Some(2019), None),
-    HolidayRule::public("Visakha Bucha", "วันวิสาขบูชา", Rule::in_calendar(CalendarSystem::Chinese, 4, 15))
-        .approximate(),
-    HolidayRule::public("Queen Suthida's Birthday", "วันเฉลิมพระชนมพรรษาสมเด็จพระนางเจ้าฯ", Rule::gregorian(6, 3))
-        .years(Some(2019), None),
+    HolidayRule::public(
+        "Visakha Bucha",
+        "วันวิสาขบูชา",
+        Rule::in_calendar(CalendarSystem::Chinese, 4, 15),
+    )
+    .approximate(),
+    HolidayRule::public(
+        "Queen Suthida's Birthday",
+        "วันเฉลิมพระชนมพรรษาสมเด็จพระนางเจ้าฯ",
+        Rule::gregorian(6, 3),
+    )
+    .years(Some(2019), None),
     HolidayRule::public("Asalha Bucha", "วันอาสาฬหบูชา", TH_ASALHA).approximate(),
     HolidayRule::fixed_public(
         "Khao Phansa",
@@ -390,13 +464,29 @@ static TH_RULES: &[HolidayRule] = &[
         },
     )
     .approximate(),
-    HolidayRule::public("King Vajiralongkorn's Birthday", "วันเฉลิมพระชนมพรรษา", Rule::gregorian(7, 28))
-        .years(Some(2017), None),
-    HolidayRule::public("Queen Mother's Birthday", "วันแม่แห่งชาติ", Rule::gregorian(8, 12)),
-    HolidayRule::public("Passing of King Bhumibol", "วันคล้ายวันสวรรคต", Rule::gregorian(10, 13))
-        .years(Some(2017), None),
+    HolidayRule::public(
+        "King Vajiralongkorn's Birthday",
+        "วันเฉลิมพระชนมพรรษา",
+        Rule::gregorian(7, 28),
+    )
+    .years(Some(2017), None),
+    HolidayRule::public(
+        "Queen Mother's Birthday",
+        "วันแม่แห่งชาติ",
+        Rule::gregorian(8, 12),
+    ),
+    HolidayRule::public(
+        "Passing of King Bhumibol",
+        "วันคล้ายวันสวรรคต",
+        Rule::gregorian(10, 13),
+    )
+    .years(Some(2017), None),
     HolidayRule::public("Chulalongkorn Day", "วันปิยมหาราช", Rule::gregorian(10, 23)),
-    HolidayRule::public("King Bhumibol's Birthday", "วันพ่อแห่งชาติ", Rule::gregorian(12, 5)),
+    HolidayRule::public(
+        "King Bhumibol's Birthday",
+        "วันพ่อแห่งชาติ",
+        Rule::gregorian(12, 5),
+    ),
     HolidayRule::public("Constitution Day", "วันรัฐธรรมนูญ", Rule::gregorian(12, 10)),
     HolidayRule::public("New Year's Eve", "วันสิ้นปี", Rule::gregorian(12, 31)),
 ];
@@ -445,16 +535,41 @@ static VN_RULES: &[HolidayRule] = &[
             days: -1,
         },
     ),
-    HolidayRule::fixed_public("Tết", "Tết Nguyên Đán", Rule::in_calendar(CalendarSystem::Vietnamese, 1, 1)),
-    HolidayRule::fixed_public("Tết", "Tết Nguyên Đán", Rule::in_calendar(CalendarSystem::Vietnamese, 1, 2)),
-    HolidayRule::fixed_public("Tết", "Tết Nguyên Đán", Rule::in_calendar(CalendarSystem::Vietnamese, 1, 3)),
-    HolidayRule::fixed_public("Tết", "Tết Nguyên Đán", Rule::in_calendar(CalendarSystem::Vietnamese, 1, 4)),
-    HolidayRule::public("Hùng Kings' Festival", "Giỗ Tổ Hùng Vương", Rule::in_calendar(CalendarSystem::Vietnamese, 3, 10))
-        .years(Some(2007), None),
-    HolidayRule::public("Reunification Day", "Ngày Giải phóng miền Nam", Rule::gregorian(4, 30)),
+    HolidayRule::fixed_public(
+        "Tết",
+        "Tết Nguyên Đán",
+        Rule::in_calendar(CalendarSystem::Vietnamese, 1, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Tết",
+        "Tết Nguyên Đán",
+        Rule::in_calendar(CalendarSystem::Vietnamese, 1, 2),
+    ),
+    HolidayRule::fixed_public(
+        "Tết",
+        "Tết Nguyên Đán",
+        Rule::in_calendar(CalendarSystem::Vietnamese, 1, 3),
+    ),
+    HolidayRule::fixed_public(
+        "Tết",
+        "Tết Nguyên Đán",
+        Rule::in_calendar(CalendarSystem::Vietnamese, 1, 4),
+    ),
+    HolidayRule::public(
+        "Hùng Kings' Festival",
+        "Giỗ Tổ Hùng Vương",
+        Rule::in_calendar(CalendarSystem::Vietnamese, 3, 10),
+    )
+    .years(Some(2007), None),
+    HolidayRule::public(
+        "Reunification Day",
+        "Ngày Giải phóng miền Nam",
+        Rule::gregorian(4, 30),
+    ),
     HolidayRule::public("Labour Day", "Ngày Quốc tế Lao động", Rule::gregorian(5, 1)),
     HolidayRule::public("National Day", "Quốc khánh", Rule::gregorian(9, 2)),
-    HolidayRule::public("National Day", "Quốc khánh", Rule::gregorian(9, 1)).years(Some(2021), None),
+    HolidayRule::public("National Day", "Quốc khánh", Rule::gregorian(9, 1))
+        .years(Some(2021), None),
 ];
 
 static VN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
@@ -488,18 +603,38 @@ pub static VIETNAM: RuleSet = RuleSet {
 
 static ID_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("New Year's Day", "Tahun Baru Masehi", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Chinese New Year", "Tahun Baru Imlek", Rule::in_calendar(CalendarSystem::Chinese, 1, 1))
-        .years(Some(2003), None),
-    HolidayRule::fixed_public("Isra and Mi'raj", "Isra Mikraj", Rule::in_calendar(CalendarSystem::IslamicCivil, 7, 27))
-        .approximate(),
-    HolidayRule::fixed_public("Good Friday", "Wafat Isa Almasih", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public(
+        "Chinese New Year",
+        "Tahun Baru Imlek",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 1),
+    )
+    .years(Some(2003), None),
+    HolidayRule::fixed_public(
+        "Isra and Mi'raj",
+        "Isra Mikraj",
+        Rule::in_calendar(CalendarSystem::IslamicCivil, 7, 27),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Good Friday",
+        "Wafat Isa Almasih",
+        Rule::easter(GOOD_FRIDAY),
+    ),
     HolidayRule::fixed_public("Labour Day", "Hari Buruh", Rule::gregorian(5, 1))
         .years(Some(2014), None),
     HolidayRule::fixed_public("Ascension", "Kenaikan Isa Almasih", Rule::easter(ASCENSION)),
-    HolidayRule::fixed_public("Vesak", "Hari Raya Waisak", Rule::in_calendar(CalendarSystem::Chinese, 4, 15))
-        .approximate(),
-    HolidayRule::fixed_public("Pancasila Day", "Hari Lahir Pancasila", Rule::gregorian(6, 1))
-        .years(Some(2017), None),
+    HolidayRule::fixed_public(
+        "Vesak",
+        "Hari Raya Waisak",
+        Rule::in_calendar(CalendarSystem::Chinese, 4, 15),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "Pancasila Day",
+        "Hari Lahir Pancasila",
+        Rule::gregorian(6, 1),
+    )
+    .years(Some(2017), None),
     HolidayRule::fixed_public("Eid al-Fitr", "Idul Fitri", EID_AL_FITR).approximate(),
     HolidayRule::fixed_public(
         "Eid al-Fitr",
@@ -509,8 +644,12 @@ static ID_RULES: &[HolidayRule] = &[
     .approximate(),
     HolidayRule::fixed_public("Eid al-Adha", "Idul Adha", EID_AL_ADHA).approximate(),
     HolidayRule::fixed_public("Islamic New Year", "Tahun Baru Islam", HIJRI_NEW_YEAR).approximate(),
-    HolidayRule::fixed_public("Independence Day", "Hari Kemerdekaan", Rule::gregorian(8, 17))
-        .years(Some(1945), None),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Hari Kemerdekaan",
+        Rule::gregorian(8, 17),
+    )
+    .years(Some(1945), None),
     HolidayRule::fixed_public("Mawlid", "Maulid Nabi Muhammad", MAWLID).approximate(),
     HolidayRule::fixed_public("Christmas Day", "Hari Raya Natal", Rule::gregorian(12, 25)),
 ];
@@ -538,13 +677,25 @@ pub static INDONESIA: RuleSet = RuleSet {
 
 static SG_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Chinese New Year", "农历新年", Rule::in_calendar(CalendarSystem::Chinese, 1, 1)),
-    HolidayRule::public("Chinese New Year", "农历新年", Rule::in_calendar(CalendarSystem::Chinese, 1, 2)),
+    HolidayRule::public(
+        "Chinese New Year",
+        "农历新年",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 1),
+    ),
+    HolidayRule::public(
+        "Chinese New Year",
+        "农历新年",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 2),
+    ),
     HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
     HolidayRule::public("Hari Raya Puasa", "", EID_AL_FITR).approximate(),
     HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::public("Vesak Day", "", Rule::in_calendar(CalendarSystem::Chinese, 4, 15))
-        .approximate(),
+    HolidayRule::public(
+        "Vesak Day",
+        "",
+        Rule::in_calendar(CalendarSystem::Chinese, 4, 15),
+    )
+    .approximate(),
     HolidayRule::public("Hari Raya Haji", "", EID_AL_ADHA).approximate(),
     HolidayRule::public("National Day", "", Rule::gregorian(8, 9)).years(Some(1965), None),
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
@@ -578,8 +729,16 @@ pub static SINGAPORE: RuleSet = RuleSet {
 
 static MY_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "Tahun Baru", Rule::gregorian(1, 1)),
-    HolidayRule::public("Chinese New Year", "Tahun Baru Cina", Rule::in_calendar(CalendarSystem::Chinese, 1, 1)),
-    HolidayRule::public("Chinese New Year", "Tahun Baru Cina", Rule::in_calendar(CalendarSystem::Chinese, 1, 2)),
+    HolidayRule::public(
+        "Chinese New Year",
+        "Tahun Baru Cina",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 1),
+    ),
+    HolidayRule::public(
+        "Chinese New Year",
+        "Tahun Baru Cina",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 2),
+    ),
     HolidayRule::public("Hari Raya Aidilfitri", "", EID_AL_FITR).approximate(),
     HolidayRule::public(
         "Hari Raya Aidilfitri",
@@ -588,10 +747,18 @@ static MY_RULES: &[HolidayRule] = &[
     )
     .approximate(),
     HolidayRule::public("Labour Day", "Hari Pekerja", Rule::gregorian(5, 1)),
-    HolidayRule::public("Wesak Day", "Hari Wesak", Rule::in_calendar(CalendarSystem::Chinese, 4, 15))
-        .approximate(),
-    HolidayRule::public("Agong's Birthday", "Hari Keputeraan Agong", Rule::nth(6, 1, Weekday::Monday))
-        .years(Some(2017), None),
+    HolidayRule::public(
+        "Wesak Day",
+        "Hari Wesak",
+        Rule::in_calendar(CalendarSystem::Chinese, 4, 15),
+    )
+    .approximate(),
+    HolidayRule::public(
+        "Agong's Birthday",
+        "Hari Keputeraan Agong",
+        Rule::nth(6, 1, Weekday::Monday),
+    )
+    .years(Some(2017), None),
     HolidayRule::public("Hari Raya Haji", "", EID_AL_ADHA).approximate(),
     HolidayRule::public("Awal Muharram", "", HIJRI_NEW_YEAR).approximate(),
     HolidayRule::public("National Day", "Hari Kebangsaan", Rule::gregorian(8, 31))
@@ -629,23 +796,47 @@ pub static MALAYSIA: RuleSet = RuleSet {
 
 static PH_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("New Year's Day", "Bagong Taon", Rule::gregorian(1, 1)),
-    HolidayRule::public("Chinese New Year", "", Rule::in_calendar(CalendarSystem::Chinese, 1, 1))
-        .of_kind(Kind::Bank)
-        .years(Some(2012), None),
-    HolidayRule::fixed_public("Maundy Thursday", "Huwebes Santo", Rule::easter(MAUNDY_THURSDAY)),
+    HolidayRule::public(
+        "Chinese New Year",
+        "",
+        Rule::in_calendar(CalendarSystem::Chinese, 1, 1),
+    )
+    .of_kind(Kind::Bank)
+    .years(Some(2012), None),
+    HolidayRule::fixed_public(
+        "Maundy Thursday",
+        "Huwebes Santo",
+        Rule::easter(MAUNDY_THURSDAY),
+    ),
     HolidayRule::fixed_public("Good Friday", "Biyernes Santo", Rule::easter(GOOD_FRIDAY)),
     HolidayRule::public("Black Saturday", "Sabado de Gloria", Rule::easter(-1)).of_kind(Kind::Bank),
     HolidayRule::fixed_public("Day of Valour", "Araw ng Kagitingan", Rule::gregorian(4, 9)),
     HolidayRule::fixed_public("Labor Day", "Araw ng mga Manggagawa", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Independence Day", "Araw ng Kalayaan", Rule::gregorian(6, 12)),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Araw ng Kalayaan",
+        Rule::gregorian(6, 12),
+    ),
     HolidayRule::fixed_public("Eid'l Fitr", "", EID_AL_FITR).approximate(),
     HolidayRule::fixed_public("Eid'l Adha", "", EID_AL_ADHA).approximate(),
     HolidayRule::public("Ninoy Aquino Day", "", Rule::gregorian(8, 21)).of_kind(Kind::Bank),
-    HolidayRule::fixed_public("National Heroes Day", "Araw ng mga Bayani", Rule::last(8, Weekday::Monday))
-        .years(Some(2007), None),
-    HolidayRule::public("All Saints' Day", "Araw ng mga Patay", Rule::gregorian(11, 1))
-        .of_kind(Kind::Bank),
-    HolidayRule::fixed_public("Bonifacio Day", "Araw ni Bonifacio", Rule::gregorian(11, 30)),
+    HolidayRule::fixed_public(
+        "National Heroes Day",
+        "Araw ng mga Bayani",
+        Rule::last(8, Weekday::Monday),
+    )
+    .years(Some(2007), None),
+    HolidayRule::public(
+        "All Saints' Day",
+        "Araw ng mga Patay",
+        Rule::gregorian(11, 1),
+    )
+    .of_kind(Kind::Bank),
+    HolidayRule::fixed_public(
+        "Bonifacio Day",
+        "Araw ni Bonifacio",
+        Rule::gregorian(11, 30),
+    ),
     HolidayRule::public("Immaculate Conception", "", Rule::gregorian(12, 8))
         .of_kind(Kind::Bank)
         .years(Some(2019), None),
@@ -701,12 +892,19 @@ static NP_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("Prithvi Jayanti", "पृथ्वी जयन्ती", Rule::gregorian(1, 11))
         .approximate(),
     HolidayRule::fixed_public("Martyrs' Day", "शहीद दिवस", Rule::gregorian(1, 30)).approximate(),
-    HolidayRule::fixed_public("National Democracy Day", "प्रजातन्त्र दिवस", Rule::gregorian(2, 19))
-        .approximate(),
-    HolidayRule::fixed_public("International Women's Day", "नारी दिवस", Rule::gregorian(3, 8)),
+    HolidayRule::fixed_public(
+        "National Democracy Day",
+        "प्रजातन्त्र दिवस",
+        Rule::gregorian(2, 19),
+    )
+    .approximate(),
+    HolidayRule::fixed_public(
+        "International Women's Day",
+        "नारी दिवस",
+        Rule::gregorian(3, 8),
+    ),
     HolidayRule::fixed_public("Labour Day", "श्रमिक दिवस", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Republic Day", "गणतन्त्र दिवस", Rule::gregorian(5, 29))
-        .approximate(),
+    HolidayRule::fixed_public("Republic Day", "गणतन्त्र दिवस", Rule::gregorian(5, 29)).approximate(),
     HolidayRule::fixed_public("Constitution Day", "संविधान दिवस", Rule::gregorian(9, 19))
         .approximate(),
 ];

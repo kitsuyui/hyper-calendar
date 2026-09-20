@@ -10,12 +10,27 @@ use hc_calendars_solar::gregorian;
 use hc_holiday::countries::{self, CountryRules};
 use hc_holiday::engine::{Holiday, HolidayCalendar};
 
+/// Panics rather than returning a `Result`, because every date in this file
+/// is a literal the author typed and a bad one is a bug in the test.
+///
+/// # Panics
+///
+/// When the year, month and day are not a Gregorian date.
 fn ymd(year: i64, month: u8, day: u8) -> Rd {
-    gregorian::to_fixed(year, month, day).expect("valid Gregorian date")
+    match gregorian::to_fixed(year, month, day) {
+        Ok(fixed) => fixed,
+        Err(error) => panic!("{year}-{month:02}-{day:02} is not a date: {error:?}"),
+    }
 }
 
+/// # Panics
+///
+/// When `code` is not a country this crate carries.
 fn table(code: &str) -> &'static CountryRules {
-    countries::by_code(code).expect("a registered country")
+    match countries::by_code(code) {
+        Some(country) => country,
+        None => panic!("{code} is not a registered country"),
+    }
 }
 
 /// Assert that each `(year, month, day, name)` is a day off with that name.
@@ -150,7 +165,11 @@ fn canada_federal_and_provincial_holidays() {
             (2025, 5, 19, "Victoria Day"),
         ],
     );
-    expect("CA", Some("CA-QC"), &[(2025, 6, 24, "Saint-Jean-Baptiste Day")]);
+    expect(
+        "CA",
+        Some("CA-QC"),
+        &[(2025, 6, 24, "Saint-Jean-Baptiste Day")],
+    );
     // Quebec has no Family Day; Ontario has no Saint-Jean-Baptiste Day.
     expect_working("CA", Some("CA-QC"), &[(2025, 2, 17)]);
     expect_working("CA", Some("CA-ON"), &[(2025, 6, 24)]);
@@ -280,10 +299,17 @@ fn northern_ireland_and_scotland_have_their_own_days() {
     expect(
         "GB",
         Some("GB-NIR"),
-        &[(2024, 3, 17, "St Patrick's Day"), (2024, 7, 12, "Battle of the Boyne")],
+        &[
+            (2024, 3, 17, "St Patrick's Day"),
+            (2024, 7, 12, "Battle of the Boyne"),
+        ],
     );
     expect("GB", Some("GB-SCT"), &[(2024, 1, 2, "2 January")]);
-    expect_working("GB", Some("GB-EAW"), &[(2024, 3, 17), (2024, 7, 12), (2024, 1, 2)]);
+    expect_working(
+        "GB",
+        Some("GB-EAW"),
+        &[(2024, 3, 17), (2024, 7, 12), (2024, 1, 2)],
+    );
     // St Andrew's Day 2024 fell on a Saturday and was kept on the Monday.
     expect_substitute("GB", Some("GB-SCT"), 2024, (11, 30), (12, 2));
 }
@@ -323,7 +349,14 @@ fn france_metropolitan_and_alsace_moselle() {
             (2025, 11, 11, "Armistice Day"),
         ],
     );
-    expect("FR", Some("FR-57"), &[(2025, 4, 18, "Good Friday"), (2025, 12, 26, "St Stephen's Day")]);
+    expect(
+        "FR",
+        Some("FR-57"),
+        &[
+            (2025, 4, 18, "Good Friday"),
+            (2025, 12, 26, "St Stephen's Day"),
+        ],
+    );
     expect_working("FR", None, &[(2025, 4, 18), (2025, 12, 26)]);
     // 8 May was not a holiday between 1959 and 1981.
     expect_working("FR", None, &[(1970, 5, 8)]);
@@ -347,13 +380,29 @@ fn germany_federal_and_laender() {
     expect(
         "DE",
         Some("DE-BY"),
-        &[(2024, 1, 6, "Epiphany"), (2024, 5, 30, "Corpus Christi"), (2025, 11, 1, "All Saints' Day")],
+        &[
+            (2024, 1, 6, "Epiphany"),
+            (2024, 5, 30, "Corpus Christi"),
+            (2025, 11, 1, "All Saints' Day"),
+        ],
     );
-    expect("DE", Some("DE-SN"), &[(2024, 11, 20, "Day of Prayer and Repentance")]);
-    expect("DE", Some("DE-BE"), &[(2025, 3, 8, "International Women's Day")]);
+    expect(
+        "DE",
+        Some("DE-SN"),
+        &[(2024, 11, 20, "Day of Prayer and Repentance")],
+    );
+    expect(
+        "DE",
+        Some("DE-BE"),
+        &[(2025, 3, 8, "International Women's Day")],
+    );
     expect_working("DE", None, &[(2024, 1, 6), (2024, 11, 20), (2025, 3, 8)]);
     // Buß- und Bettag was federal until 1994.
-    expect("DE", None, &[(1994, 11, 16, "Day of Prayer and Repentance")]);
+    expect(
+        "DE",
+        None,
+        &[(1994, 11, 16, "Day of Prayer and Repentance")],
+    );
 }
 
 #[test]
@@ -773,7 +822,9 @@ fn the_philippines_distinguishes_regular_from_special_days() {
     let calendar = HolidayCalendar::for_year(table("PH"), None, 2025);
     let all_souls = calendar.on(ymd(2025, 11, 1));
     assert!(
-        all_souls.iter().any(|holiday| holiday.name == "All Saints' Day"),
+        all_souls
+            .iter()
+            .any(|holiday| holiday.name == "All Saints' Day"),
         "All Saints' Day should be listed as a special non-working day"
     );
 }
@@ -789,7 +840,11 @@ fn nepal_keeps_a_one_day_weekend_until_2026() {
     let new = HolidayCalendar::for_year(country, None, 2026);
     assert!(new.is_weekend(ymd(2026, 3, 7)));
     assert!(new.is_weekend(ymd(2026, 3, 8)));
-    expect("NP", None, &[(2024, 5, 1, "Labour Day"), (2025, 5, 1, "Labour Day")]);
+    expect(
+        "NP",
+        None,
+        &[(2024, 5, 1, "Labour Day"), (2025, 5, 1, "Labour Day")],
+    );
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -818,7 +873,14 @@ fn israeli_independence_day_moves_away_from_the_sabbath() {
     // 5 Iyar 5784 was 13 May 2024, a Monday, so Yom HaAtzmaut moved to the
     // Tuesday; 5 Iyar 5785 was 3 May 2025, a Saturday, so it moved back to
     // the Thursday.
-    expect("IL", None, &[(2024, 5, 14, "Yom HaAtzmaut"), (2025, 5, 1, "Yom HaAtzmaut")]);
+    expect(
+        "IL",
+        None,
+        &[
+            (2024, 5, 14, "Yom HaAtzmaut"),
+            (2025, 5, 1, "Yom HaAtzmaut"),
+        ],
+    );
     expect_working("IL", None, &[(2025, 5, 3), (2024, 5, 13)]);
 }
 
@@ -901,7 +963,12 @@ fn turkey_national_and_religious_holidays() {
         None,
         &[
             (2024, 4, 23, "National Sovereignty and Children's Day"),
-            (2024, 5, 19, "Commemoration of Atatürk, Youth and Sports Day"),
+            (
+                2024,
+                5,
+                19,
+                "Commemoration of Atatürk, Youth and Sports Day",
+            ),
             (2024, 8, 30, "Victory Day"),
             (2024, 10, 29, "Republic Day"),
             (2025, 7, 15, "Democracy and National Unity Day"),
@@ -984,9 +1051,17 @@ fn australia_national_and_state_holidays() {
     expect(
         "AU",
         Some("AU-VIC"),
-        &[(2024, 3, 11, "Labour Day"), (2024, 11, 5, "Melbourne Cup Day"), (2025, 6, 9, "Sovereign's Birthday")],
+        &[
+            (2024, 3, 11, "Labour Day"),
+            (2024, 11, 5, "Melbourne Cup Day"),
+            (2025, 6, 9, "Sovereign's Birthday"),
+        ],
     );
-    expect("AU", Some("AU-WA"), &[(2025, 6, 2, "Western Australia Day")]);
+    expect(
+        "AU",
+        Some("AU-WA"),
+        &[(2025, 6, 2, "Western Australia Day")],
+    );
     expect("AU", Some("AU-SA"), &[(2025, 12, 26, "Proclamation Day")]);
     expect_working("AU", None, &[(2024, 3, 11), (2024, 11, 5)]);
     // Australia Day 2025 fell on a Sunday and was observed on the Monday.
@@ -1011,5 +1086,9 @@ fn new_zealand_mondayisation_and_matariki() {
     // Waitangi Day 2021 fell on a Saturday; mondayisation began in 2014.
     expect_substitute("NZ", None, 2021, (2, 6), (2, 8));
     expect_working("NZ", None, &[(2010, 2, 8), (2021, 6, 25)]);
-    expect("NZ", None, &[(2022, 6, 24, "Matariki"), (2026, 7, 10, "Matariki")]);
+    expect(
+        "NZ",
+        None,
+        &[(2022, 6, 24, "Matariki"), (2026, 7, 10, "Matariki")],
+    );
 }

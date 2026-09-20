@@ -61,8 +61,12 @@ use crate::rule::{
 /// Every Japanese public holiday rule, 1948 to today.
 static RULES: &[HolidayRule] = &[
     // ── The original nine, 昭和23年法律第178号 ──────────────────────────
-    HolidayRule::public("New Year's Day", "元日", Rule::FixedGregorian { month: 1, day: 1 })
-        .years(Some(1949), None),
+    HolidayRule::public(
+        "New Year's Day",
+        "元日",
+        Rule::FixedGregorian { month: 1, day: 1 },
+    )
+    .years(Some(1949), None),
     HolidayRule::public(
         "Coming of Age Day",
         "成人の日",
@@ -109,8 +113,12 @@ static RULES: &[HolidayRule] = &[
         },
     )
     .years(Some(1948), None),
-    HolidayRule::public("Culture Day", "文化の日", Rule::FixedGregorian { month: 11, day: 3 })
-        .years(Some(1948), None),
+    HolidayRule::public(
+        "Culture Day",
+        "文化の日",
+        Rule::FixedGregorian { month: 11, day: 3 },
+    )
+    .years(Some(1948), None),
     HolidayRule::public(
         "Labour Thanksgiving Day",
         "勤労感謝の日",
@@ -222,11 +230,19 @@ static RULES: &[HolidayRule] = &[
         Rule::FixedGregorian { month: 5, day: 4 },
     )
     .years(Some(2007), None),
-    HolidayRule::public("Shōwa Day", "昭和の日", Rule::FixedGregorian { month: 4, day: 29 })
-        .years(Some(2007), None),
+    HolidayRule::public(
+        "Shōwa Day",
+        "昭和の日",
+        Rule::FixedGregorian { month: 4, day: 29 },
+    )
+    .years(Some(2007), None),
     // ── 海の日 ───────────────────────────────────────────────────────────
-    HolidayRule::public("Marine Day", "海の日", Rule::FixedGregorian { month: 7, day: 20 })
-        .years(Some(1996), Some(2002)),
+    HolidayRule::public(
+        "Marine Day",
+        "海の日",
+        Rule::FixedGregorian { month: 7, day: 20 },
+    )
+    .years(Some(1996), Some(2002)),
     HolidayRule::public(
         "Marine Day",
         "海の日",
@@ -237,10 +253,18 @@ static RULES: &[HolidayRule] = &[
         },
     )
     .years(Some(2003), Some(2019)),
-    HolidayRule::public("Marine Day", "海の日", Rule::FixedGregorian { month: 7, day: 23 })
-        .years(Some(2020), Some(2020)),
-    HolidayRule::public("Marine Day", "海の日", Rule::FixedGregorian { month: 7, day: 22 })
-        .years(Some(2021), Some(2021)),
+    HolidayRule::public(
+        "Marine Day",
+        "海の日",
+        Rule::FixedGregorian { month: 7, day: 23 },
+    )
+    .years(Some(2020), Some(2020)),
+    HolidayRule::public(
+        "Marine Day",
+        "海の日",
+        Rule::FixedGregorian { month: 7, day: 22 },
+    )
+    .years(Some(2021), Some(2021)),
     HolidayRule::public(
         "Marine Day",
         "海の日",
@@ -252,14 +276,30 @@ static RULES: &[HolidayRule] = &[
     )
     .years(Some(2022), None),
     // ── 山の日 ───────────────────────────────────────────────────────────
-    HolidayRule::public("Mountain Day", "山の日", Rule::FixedGregorian { month: 8, day: 11 })
-        .years(Some(2016), Some(2019)),
-    HolidayRule::public("Mountain Day", "山の日", Rule::FixedGregorian { month: 8, day: 10 })
-        .years(Some(2020), Some(2020)),
-    HolidayRule::public("Mountain Day", "山の日", Rule::FixedGregorian { month: 8, day: 8 })
-        .years(Some(2021), Some(2021)),
-    HolidayRule::public("Mountain Day", "山の日", Rule::FixedGregorian { month: 8, day: 11 })
-        .years(Some(2022), None),
+    HolidayRule::public(
+        "Mountain Day",
+        "山の日",
+        Rule::FixedGregorian { month: 8, day: 11 },
+    )
+    .years(Some(2016), Some(2019)),
+    HolidayRule::public(
+        "Mountain Day",
+        "山の日",
+        Rule::FixedGregorian { month: 8, day: 10 },
+    )
+    .years(Some(2020), Some(2020)),
+    HolidayRule::public(
+        "Mountain Day",
+        "山の日",
+        Rule::FixedGregorian { month: 8, day: 8 },
+    )
+    .years(Some(2021), Some(2021)),
+    HolidayRule::public(
+        "Mountain Day",
+        "山の日",
+        Rule::FixedGregorian { month: 8, day: 11 },
+    )
+    .years(Some(2022), None),
     // ── The imperial one-offs, each its own special law ─────────────────
     // 昭和34年法律第16号.
     HolidayRule::public(
