@@ -1,0 +1,104 @@
+//! Lunar and lunisolar calendars for `hyper-calendar`.
+//!
+//! A lunar calendar counts months and lets the seasons drift; a lunisolar one
+//! counts months and then patches a thirteenth in so that the seasons do not.
+//! Both kinds are here, and the crate is organised around the only question
+//! that really separates one of them from another: **where does the rule come
+//! from?**
+//!
+//! | | Calendar | Rule comes from |
+//! |---|---|---|
+//! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], [`hebrew`] | a counting rule, exact by definition |
+//! | Tabulated | [`islamic_umalqura`] | a published table, exact where the table reaches |
+//! | Computed | [`chinese`], [`dangi`], [`vietnamese`], [`japanese_tenpo`], [`islamic_observational`] | an astronomical model, exact only to the model |
+//!
+//! The three rows behave differently and the crate does not pretend
+//! otherwise. Arithmetic calendars answer for any year you like. The
+//! tabulated one refuses every day outside 1300–1600 AH rather than
+//! extrapolating. The computed ones carry bounded ranges, say what their
+//! model is worth, and — in the observational Hijri case — say plainly that
+//! they are predicting a human decision.
+//!
+//! # Two engines, nine calendars
+//!
+//! Almost nothing here is written twice.
+//!
+//! * [`tabular`] is the whole arithmetic Hijri calendar, with the
+//!   intercalation scheme and the epoch as parameters. Four schemes times two
+//!   epochs is eight calendars; [`islamic_civil`] and
+//!   [`islamic_astronomical`] are the two CLDR names for them.
+//! * [`lunisolar`] is the whole East Asian machinery — conjunction-to-
+//!   conjunction months, the winter-solstice anchor, the no-zhōngqì leap
+//!   rule — with the meridian, the epoch, the year numbering and the
+//!   solar-term convention as parameters. [`chinese`], [`dangi`],
+//!   [`vietnamese`] and [`japanese_tenpo`] are four parameter sets and no
+//!   algorithm at all.
+//!
+//! [`hebrew`] stands alone because its rules genuinely are its own, and
+//! [`islamic_umalqura`] stands alone because a table is not an algorithm.
+//!
+//! # What this crate will not tell you
+//!
+//! It will not tell you what any authority announced. The Hijri months of
+//! religious practice are proclaimed on sighting; the Chinese, Korean,
+//! Vietnamese and Japanese calendars were promulgated by bureaux with their
+//! own tables and their own solar theories. Every date here is what the
+//! stated rule gives, computed now. Where a published table exists, the
+//! crate compares itself against it and reports the disagreement rate in a
+//! test rather than quietly matching on the cases that happen to agree.
+//!
+//! # Example
+//!
+//! ```
+//! use hc_calendar::{Calendar, Month};
+//! use hc_calendars_lunar::{ChineseCalendar, LunisolarDate};
+//!
+//! // Chinese New Year 2024 began the year of the Wood Dragon.
+//! let new_year = ChineseCalendar
+//!     .to_fixed(LunisolarDate::new(4_661, Month::regular(1), 1))
+//!     .expect("in range");
+//! assert_eq!(new_year.to_julian_day_number(), 2_460_351);
+//!
+//! let cycle = hc_calendars_lunar::chinese::PARAMETERS.sexagenary_year(4_661);
+//! assert_eq!((cycle.stem_name(), cycle.zodiac_animal()), ("jia", "dragon"));
+//! ```
+
+#![cfg_attr(not(feature = "std"), no_std)]
+#![forbid(unsafe_code)]
+#![warn(missing_docs)]
+
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
+mod civil;
+
+pub mod chinese;
+pub mod dangi;
+pub mod hebrew;
+pub mod islamic_astronomical;
+pub mod islamic_civil;
+pub mod islamic_observational;
+pub mod islamic_umalqura;
+pub mod japanese_tenpo;
+pub mod lunisolar;
+pub mod tabular;
+pub mod vietnamese;
+
+pub use chinese::{ChineseCalendar, ChineseDate};
+pub use dangi::{DangiCalendar, DangiDate};
+pub use hebrew::{HebrewCalendar, HebrewDate};
+pub use islamic_astronomical::IslamicAstronomicalCalendar;
+pub use islamic_civil::IslamicCivilCalendar;
+pub use islamic_observational::{
+    IslamicObservationalCalendar, ObservationSite, VisibilityCriterion,
+};
+pub use islamic_umalqura::IslamicUmmAlQuraCalendar;
+pub use japanese_tenpo::{JapaneseTenpoCalendar, JapaneseTenpoDate};
+pub use lunisolar::{
+    LunisolarCalendar, LunisolarDate, LunisolarParameters, MeridianEra, SolarTermMode,
+};
+pub use tabular::{IslamicDate, LeapYearRule, TabularIslamicCalendar};
+pub use vietnamese::{VietnameseCalendar, VietnameseDate};
+
+pub use hc_astro;
+pub use hc_calendar;
