@@ -88,7 +88,7 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Calendar | Id | Crate | Status |
 | --- | --- | --- | --- |
 | Japanese imperial eras (和暦, 大化 → 令和) | `japanese` | `hc-calendars-regional` | Done |
-| Chinese sexagenary cycle (干支) | `sexagenary` | `hc-calendar::cycle` | Done |
+| Chinese sexagenary cycle (干支), incl. the four pillars (四柱/八字) | `sexagenary` | `hc-calendar::cycle` | Done |
 | Chinese regnal eras (年号) | `chinese-regnal` | `hc-calendars-regional` | Planned |
 | Korean regnal eras | `korean-regnal` | `hc-calendars-regional` | Planned |
 | Maya long count | `maya-longcount` | `hc-calendars-regional` | Done |
@@ -113,6 +113,14 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Celtic Coligny | `coligny` | `hc-calendars-regional` | Researching — reconstruction |
 | Inca | `inca` | `hc-calendars-regional` | Researching — no surviving written record |
 | Discordian | `discordian` | `hc-calendars-regional` | Planned |
+
+The sexagenary cycle covers the year, month, day and hour pillars, the twelve
+double-hours (十二時辰) beginning at 23:00, and the 五虎遁 and 五鼠遁 rules
+that derive the month and hour stems. Its three rival year boundaries — 立春,
+the lunisolar new year, and 1 January — each have their own separately named
+function, because they share their arithmetic and differ only in which days
+they cover. The solar terms that fix the month pillar and the 立春 boundary
+are taken as arguments, from `hc-seasons`: `hc-calendar` carries no ephemeris.
 
 ## Stage 5 — Seasonal subdivisions
 
