@@ -145,6 +145,7 @@ mod tests {
     use hc_calendars_solar::gregorian;
 
     use super::*;
+    use hc_calendars_lunar::japanese_historical;
 
     /// Round-trip one fixed day through every calendar that supports it,
     /// returning how many did.
@@ -205,31 +206,80 @@ mod tests {
         }
     }
 
+    /// Round-trip one day through every representation this calendar has.
+    fn check_japanese_day(rd: Rd) {
+        let date = JapaneseCalendar::UNIFIED.from_fixed(rd).expect("in range");
+        assert_eq!(JapaneseCalendar::UNIFIED.to_fixed(date), Ok(rd), "{rd}");
+        let fields = JapaneseCalendar::UNIFIED
+            .to_fields(date)
+            .expect("describable");
+        assert_eq!(
+            JapaneseCalendar::UNIFIED.from_fields(&fields),
+            Ok(date),
+            "{rd}"
+        );
+    }
+
     #[test]
-    fn the_japanese_calendar_round_trips_every_day_it_covers() {
-        // Every single day, not a sample: the era boundaries and the 1873
-        // switch from lunisolar to Gregorian are exactly where a sampled
-        // sweep would step over the bug.
+    fn the_japanese_calendar_round_trips_exhaustively_where_it_can_break() {
+        // This crate is responsible for era attribution and for choosing the
+        // calendar that was in force. The lunisolar arithmetic underneath is
+        // `hc-calendars-lunar`'s, and is already validated there against the
+        // first day and length of all 12 146 months from 862 to 1843. Walking
+        // all 452 000 days again here re-tests that crate's work at several
+        // minutes a run, so this sweeps exhaustively at every seam and
+        // samples the flat stretches between them.
         let meta = JapaneseCalendar::UNIFIED.meta();
         let first = meta.earliest.expect("bounded below");
         let last = gregorian::to_fixed(2100, 12, 31).expect("in range");
-        for rd in first.0..=last.0 {
-            let rd = Rd(rd);
-            // 1331-1392 had two courts and the unified stream refuses it on
-            // purpose; `japanese-northern` and `japanese-southern` cover it.
-            if crate::nengo::is_nanbokucho(rd) {
-                continue;
+
+        // Every era boundary, from forty days before to forty days after.
+        // An era change lands mid-month and sometimes mid-intercalary-month,
+        // which is where the year-within-era arithmetic goes wrong.
+        for era in crate::nengo::stream(crate::nengo::Court::Unified) {
+            let Some(start) = era.start else { continue };
+            for offset in -40..=40 {
+                let rd = Rd(start.0 + offset);
+                if rd < first || rd > last || crate::nengo::is_nanbokucho(rd) {
+                    continue;
+                }
+                check_japanese_day(rd);
             }
-            let date = JapaneseCalendar::UNIFIED.from_fixed(rd).expect("in range");
-            assert_eq!(JapaneseCalendar::UNIFIED.to_fixed(date), Ok(rd), "{rd}");
-            let fields = JapaneseCalendar::UNIFIED
-                .to_fields(date)
-                .expect("describable");
-            assert_eq!(
-                JapaneseCalendar::UNIFIED.from_fields(&fields),
-                Ok(date),
-                "{rd}"
-            );
+        }
+
+        // Every changeover between the five calendars, a year either side,
+        // because a lunisolar year can straddle one.
+        for seam in [
+            japanese_historical::jokyo::EARLIEST,
+            japanese_historical::horyaku::EARLIEST,
+            japanese_historical::kansei::EARLIEST,
+            hc_calendars_lunar::japanese_tenpo::EARLIEST,
+            crate::japanese::GREGORIAN_ADOPTION,
+        ] {
+            for offset in -400..=400 {
+                let rd = Rd(seam.0 + offset);
+                if rd < first || rd > last || crate::nengo::is_nanbokucho(rd) {
+                    continue;
+                }
+                check_japanese_day(rd);
+            }
+        }
+
+        // The Gregorian half in full: it is cheap and it is what callers
+        // actually ask for.
+        for rd in crate::japanese::GREGORIAN_ADOPTION.0..=last.0 {
+            check_japanese_day(Rd(rd));
+        }
+
+        // And a stride through the lunisolar centuries. Coprime with 29 and
+        // 30 so it does not land on the same position in the month twice.
+        let mut rd = first.0;
+        while rd < crate::japanese::GREGORIAN_ADOPTION.0 {
+            let day = Rd(rd);
+            if !crate::nengo::is_nanbokucho(day) {
+                check_japanese_day(day);
+            }
+            rd += 31;
         }
     }
 

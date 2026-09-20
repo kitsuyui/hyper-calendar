@@ -337,13 +337,52 @@ pub fn calendar_to_fixed(year: i64, month: Month, day: u8) -> CalendarResult<Rd>
         // order rather than by a boundary this function would have to
         // duplicate.
         let date = LunisolarDate::new(year, month, day);
-        for engine in [
-            &japanese_tenpo::ENGINE,
-            &japanese_historical::kansei::ENGINE,
-            &japanese_historical::horyaku::ENGINE,
-            &japanese_historical::jokyo::ENGINE,
-            &japanese_historical::senmyo::ENGINE,
-        ] {
+        // Ordered by which system was in force in that year, so the common
+        // case is one attempt rather than five. A lunisolar year can straddle
+        // a changeover, so the rest stay as fallbacks rather than being
+        // ruled out.
+        let ordered: [&LunisolarCalendar; 5] = if year >= 1844 {
+            [
+                &japanese_tenpo::ENGINE,
+                &japanese_historical::kansei::ENGINE,
+                &japanese_historical::horyaku::ENGINE,
+                &japanese_historical::jokyo::ENGINE,
+                &japanese_historical::senmyo::ENGINE,
+            ]
+        } else if year >= 1798 {
+            [
+                &japanese_historical::kansei::ENGINE,
+                &japanese_tenpo::ENGINE,
+                &japanese_historical::horyaku::ENGINE,
+                &japanese_historical::jokyo::ENGINE,
+                &japanese_historical::senmyo::ENGINE,
+            ]
+        } else if year >= 1755 {
+            [
+                &japanese_historical::horyaku::ENGINE,
+                &japanese_historical::kansei::ENGINE,
+                &japanese_historical::jokyo::ENGINE,
+                &japanese_tenpo::ENGINE,
+                &japanese_historical::senmyo::ENGINE,
+            ]
+        } else if year >= 1685 {
+            [
+                &japanese_historical::jokyo::ENGINE,
+                &japanese_historical::horyaku::ENGINE,
+                &japanese_historical::senmyo::ENGINE,
+                &japanese_historical::kansei::ENGINE,
+                &japanese_tenpo::ENGINE,
+            ]
+        } else {
+            [
+                &japanese_historical::senmyo::ENGINE,
+                &japanese_historical::jokyo::ENGINE,
+                &japanese_historical::horyaku::ENGINE,
+                &japanese_historical::kansei::ENGINE,
+                &japanese_tenpo::ENGINE,
+            ]
+        };
+        for engine in ordered {
             if let Ok(rd) = engine.to_fixed(date) {
                 // Guard against a neighbouring system accepting a year that
                 // was not its own: the answer has to read back the same way.
