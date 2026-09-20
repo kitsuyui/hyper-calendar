@@ -101,7 +101,7 @@ The cross-cutting ones, because national tables depend on them.
 | Zoroastrian | Nowruz, Mehregan, Yalda, Sadeh, the Gahambars | Planned |
 | Shinto | 初詣, 節分, 七五三, and the major 祭 with fixed dates | Planned — 節分 and the other 雑節 are in `hc-seasons`, but no Shinto rule table exists yet |
 | Pagan / Wheel of the Year | Samhain, Yule, Imbolc, Ostara, Beltane, Litha, Lughnasadh, Mabon | Planned |
-| Secular international | UN observance days, Earth Day, International Workers' Day, Pi Day | Planned |
+| Secular international | UN observance days established by General Assembly resolution, and UNESCO international days | Planned — each entry cites its resolution |
 
 ## Stage 2 — National public holidays
 
@@ -161,8 +161,8 @@ which the engine takes on the same terms as its own.
 | Business-day calculation (weekend rules by country, including Friday–Saturday, Thursday–Friday and one-day weekends) | Done |
 | Trading-day calendars for major exchanges | Planned |
 | School terms | Out of scope — too local and too volatile |
-| Name days (Catholic, Orthodox, Nordic) | Planned |
-| Anniversaries and commemorations without a day off | Partial — `Kind::Observance` exists and a handful of tables use it, but no dedicated commemoration list has been compiled |
+| Name days and the sanctorale | Planned — as named authorities rather than one list, since the Roman calendar was recast in 1969 and the Swedish *namnsdagslängd* was revised in 1901, 1993 and 2001 ([policy.md](policy.md) §5) |
+| Anniversaries and commemorations without a day off | Partial — `Kind::Observance` exists and a handful of tables use it. A general commemoration list is **out of scope** under [policy.md](policy.md) §10: no authority defines which commemorations belong, so its coverage could never be stated. Individual ones enter through whichever authority proclaims them |
 
 ## Adding a country
 

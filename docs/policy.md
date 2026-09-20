@@ -166,7 +166,56 @@ This is a cost, and it is paid deliberately. A date library is a dependency of
 everything else; it should not drag a tree behind it. It also keeps the
 WebAssembly artefact small and the `cargo audit` surface near zero.
 
-## 10. Scope
+## 10. Recurring events need an authority, not an opinion
+
+Periodic events — Olympiads, World Cups, election years, Jubilee years — are
+legitimately calendrical: the question they answer is "which year in the cycle
+is this" or "when is the next one". A general historical timeline is not.
+
+The line between them is **not** this project's judgement about what matters.
+It is whether **a disciplined external authority defines the set**.
+
+| In scope, because someone else defines the set | Who defines it |
+| --- | --- |
+| The modern Olympic Games | The International Olympic Committee |
+| The FIFA World Cup | FIFA |
+| Leap seconds | The IERS |
+| The geological time scale | The International Commission on Stratigraphy |
+| Jubilee years | The Holy See |
+| A national election cycle | That country's electoral law |
+| A public holiday, including a monarch's official birthday | That country's statute or gazette |
+
+The test is not "is this important" but "**could this repository be wrong about
+the list, and would anyone be able to tell?**" An externally defined set can be
+checked against its source, cited, dated, and corrected when the source
+changes — which is what `sources_checked` already exists for. A set this
+project curates cannot be checked against anything, because there is nothing
+to check it against.
+
+That is why "notable world events" is out of scope and a monarch's birthday is
+not automatically out: where the birthday is a public holiday, a gazette
+defines it and it belongs in `hc-holiday`; where it is not, no authority
+defines the list of birthdays worth recording, so there is no list to be right
+about.
+
+### The operational consequences
+
+**A closure condition must be stateable.** "Every celebration of the modern
+Games, plus the scheduled future ones" is a set that can be complete. "Notable
+events" is not, so its coverage can never be stated honestly — and stating
+coverage honestly is what §3 and §4 of this document are for.
+
+**Exceptions must stay a minority.** A cycle with exceptions is still a cycle:
+the Olympics have four (1916, 1940 and 1944 cancelled; 2020 held in 2021)
+against roughly thirty-five celebrations. If the exceptions ever outnumber the
+entries the rule produces, it has stopped being a rule and become a list, and
+it leaves scope at that point. Record the ratio where it is close.
+
+**An authority's own revisions are data, not corrections.** When the source
+changes, the old version stays and the new one is added under its own name, as
+§5 requires. The 1912 American birthstone list and the 2016 one are both real.
+
+## 11. Scope
 
 `hyper-calendar` computes and formats. It has no UI, no I/O beyond optionally
 reading a TZif file, no clock (the caller supplies the current time), no

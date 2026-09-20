@@ -164,6 +164,7 @@ Not calendars in their own right, but named subdivisions layered onto one.
 | Fictional calendars from specific works (Shire Reckoning, Stardates, Imperial Dating) | Copyrighted settings. The `hc-relativity` and `hc-planetary` primitives are there so a downstream crate can build one. |
 | "Perpetual" business calendars (4-4-5, 13-period retail) | Organisation-specific rather than cultural; better expressed as a downstream rule than as a calendar. |
 | Liturgical *ordo* for a specific denomination and year | An editorial product, not an algorithm. The movable-feast computus that underlies it is in `hc-holiday`. |
+| A general timeline of historical events | No authority defines the set, so its coverage could never be stated honestly — see [policy.md](policy.md) §10. Periodic events whose set *is* externally defined, such as the Olympiads the IOC counts, are in scope. |
 
 ## Adding a calendar
 
