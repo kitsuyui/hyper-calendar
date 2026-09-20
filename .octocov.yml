@@ -12,7 +12,17 @@ codeToTestRatio:
     - "tests/**/*.rs"
 testExecutionTime:
   if: true
-  acceptable: 10min
+  # Higher than a single-crate project would need, deliberately. This suite's
+  # main evidence is exhaustive: the Japanese era calendar round-trips every
+  # day from 862 to 2100, the lunar calendars tens of thousands of days each,
+  # and the ISO 8601 parser every day from 1583 to 2400 through three date
+  # forms in two formats. Under llvm-cov instrumentation that runs three to
+  # five times slower than a plain `cargo test`.
+  #
+  # The threshold exists to catch a test that has started hanging, not to
+  # pressure the sweeps into being sampled. If it is ever exceeded, check
+  # which crate grew before lowering the coverage instead.
+  acceptable: 25min
 diff:
   datastores:
     - artifact://${GITHUB_REPOSITORY}
