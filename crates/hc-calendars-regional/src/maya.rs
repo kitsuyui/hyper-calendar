@@ -342,9 +342,74 @@ impl fmt::Display for MayaCalendarRoundDate {
     }
 }
 
-/// The Maya long count.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct MayaLongCountCalendar;
+/// The Maya long count, under a stated correlation with the Julian day.
+///
+/// The long count is an unbroken count of days, so converting it to any other
+/// calendar needs exactly one number: which Julian day `0.0.0.0.0` fell on.
+/// Two values are in published use and they differ by two days, which is
+/// enough to move any Maya date across a weekday boundary.
+///
+/// Rather than take a parameter that a caller can forget, both are registered
+/// as their own calendars, as [`docs/policy.md`](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/policy.md)
+/// §5 requires: `maya-longcount` uses the GMT 584 283 correlation and
+/// `maya-longcount-gmt2` uses 584 285. Asking for both and comparing them is
+/// then a two-line loop rather than a question the caller has to know to ask.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MayaLongCountCalendar {
+    correlation: i64,
+}
+
+impl Default for MayaLongCountCalendar {
+    fn default() -> Self {
+        Self::GMT
+    }
+}
+
+impl MayaLongCountCalendar {
+    /// The Goodman–Martínez–Thompson correlation, 584 283.
+    ///
+    /// The mainstream choice, and the one supported by the radiocarbon
+    /// evidence of Kennett et al., *Scientific Reports* 3, 1597 (2013).
+    pub const GMT: Self = Self {
+        correlation: GMT_CORRELATION,
+    };
+
+    /// The "Lounsbury" or GMT+2 correlation, 584 285.
+    pub const GMT_PLUS_TWO: Self = Self {
+        correlation: GMT_PLUS_TWO_CORRELATION,
+    };
+
+    /// A long count under an arbitrary correlation constant.
+    ///
+    /// Provided because correlation is an open research question rather than
+    /// a closed list; the two published values above are the named ones.
+    #[must_use]
+    pub const fn with_correlation(correlation: i64) -> Self {
+        Self { correlation }
+    }
+
+    /// The correlation constant this calendar uses.
+    #[must_use]
+    pub const fn correlation(self) -> i64 {
+        self.correlation
+    }
+
+    /// The fixed day of `0.0.0.0.0` under this correlation.
+    #[must_use]
+    pub const fn epoch(self) -> Rd {
+        Rd(self.correlation - hc_calendar::fixed::JDN_OF_RD_ZERO)
+    }
+
+    /// This calendar's identifier.
+    #[must_use]
+    pub const fn id(self) -> CalendarId {
+        if self.correlation == GMT_PLUS_TWO_CORRELATION {
+            CalendarId("maya-longcount-gmt2")
+        } else {
+            CalendarId("maya-longcount")
+        }
+    }
+}
 
 /// The 260-day tzolk'in.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -366,23 +431,23 @@ impl Calendar for MayaLongCountCalendar {
 
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
-            id: CalendarId("maya-longcount"),
+            id: self.id(),
             english_name: "Maya long count",
             year_kind: YearKind::EpochForward,
             has_leap_months: false,
             is_astronomical: false,
-            earliest: Some(EPOCH),
-            latest: Some(LONG_COUNT_LATEST),
+            earliest: Some(self.epoch()),
+            latest: Some(Rd(self.epoch().0 + 20 * 144_000 - 1)),
         }
     }
 
     fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
-        Ok(Rd(EPOCH.0 + date.days()?))
+        Ok(Rd(self.epoch().0 + date.days()?))
     }
 
     fn from_fixed(&self, rd: Rd) -> CalendarResult<Self::Date> {
         self.meta().check_range(rd)?;
-        Ok(MayaLongCountDate::from_days(rd.0 - EPOCH.0))
+        Ok(MayaLongCountDate::from_days(rd.0 - self.epoch().0))
     }
 
     fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
@@ -630,6 +695,79 @@ impl Calendar for MayaCalendarRoundCalendar {
 }
 
 #[cfg(test)]
+mod correlation_tests {
+    use super::*;
+
+    #[test]
+    fn the_two_correlations_are_separate_calendars() {
+        assert_eq!(
+            MayaLongCountCalendar::GMT.id(),
+            CalendarId("maya-longcount")
+        );
+        assert_eq!(
+            MayaLongCountCalendar::GMT_PLUS_TWO.id(),
+            CalendarId("maya-longcount-gmt2")
+        );
+        assert_eq!(MayaLongCountCalendar::default(), MayaLongCountCalendar::GMT);
+    }
+
+    #[test]
+    fn the_two_correlations_differ_by_exactly_two_days() {
+        let gmt = MayaLongCountCalendar::GMT;
+        let plus_two = MayaLongCountCalendar::GMT_PLUS_TWO;
+        assert_eq!(plus_two.epoch().0 - gmt.epoch().0, 2);
+
+        // The same long count lands two days apart, which is the whole
+        // reason both are registered: a caller who silently got one of them
+        // would be two days out with no indication.
+        let date = MayaLongCountDate::from_days(13 * 144_000);
+        let under_gmt = gmt.to_fixed(date).unwrap();
+        let under_plus_two = plus_two.to_fixed(date).unwrap();
+        assert_eq!(under_plus_two.0 - under_gmt.0, 2);
+    }
+
+    #[test]
+    fn the_thirteenth_baktun_lands_where_each_correlation_says() {
+        // 13.0.0.0.0 is 2012-12-21 under GMT, and 2012-12-23 under GMT+2.
+        let thirteen = MayaLongCountDate::from_days(13 * 144_000);
+        let gmt_day = MayaLongCountCalendar::GMT.to_fixed(thirteen).unwrap();
+        assert_eq!(
+            hc_calendars_solar::gregorian::from_fixed(gmt_day),
+            Ok((2012, 12, 21))
+        );
+        let other_day = MayaLongCountCalendar::GMT_PLUS_TWO
+            .to_fixed(thirteen)
+            .unwrap();
+        assert_eq!(
+            hc_calendars_solar::gregorian::from_fixed(other_day),
+            Ok((2012, 12, 23))
+        );
+    }
+
+    #[test]
+    fn both_correlations_round_trip_over_their_whole_range() {
+        for calendar in [
+            MayaLongCountCalendar::GMT,
+            MayaLongCountCalendar::GMT_PLUS_TWO,
+        ] {
+            for rd in (calendar.epoch().0..calendar.epoch().0 + 1_000_000).step_by(7_919) {
+                let date = calendar.from_fixed(Rd(rd)).unwrap();
+                assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "rd {rd}");
+            }
+        }
+    }
+
+    #[test]
+    fn an_arbitrary_correlation_is_available_but_unnamed() {
+        // Correlation is an open research question, so a caller may supply
+        // one; only the two published values get identifiers.
+        let custom = MayaLongCountCalendar::with_correlation(584_286);
+        assert_eq!(custom.correlation(), 584_286);
+        assert_eq!(custom.id(), CalendarId("maya-longcount"));
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use hc_calendars_solar::gregorian;
 
@@ -658,10 +796,12 @@ mod tests {
     fn the_thirteenth_baktun_ended_on_the_twenty_first_of_december_2012() {
         // The most widely published Maya date there is.
         let day = greg(2012, 12, 21);
-        let long_count = MayaLongCountCalendar.from_fixed(day).expect("in range");
+        let long_count = MayaLongCountCalendar::GMT
+            .from_fixed(day)
+            .expect("in range");
         assert_eq!(long_count, MayaLongCountDate::new(13, 0, 0, 0, 0));
         assert_eq!(long_count.to_string(), "13.0.0.0.0");
-        assert_eq!(MayaLongCountCalendar.to_fixed(long_count), Ok(day));
+        assert_eq!(MayaLongCountCalendar::GMT.to_fixed(long_count), Ok(day));
     }
 
     #[test]
@@ -699,7 +839,7 @@ mod tests {
         // count for an arbitrary Gregorian date under the same correlation.
         let day = greg(2026, 9, 21);
         assert_eq!(
-            MayaLongCountCalendar
+            MayaLongCountCalendar::GMT
                 .from_fixed(day)
                 .expect("in range")
                 .to_string(),
@@ -752,19 +892,19 @@ mod tests {
     #[test]
     fn the_long_count_covers_exactly_twenty_baktun() {
         assert_eq!(
-            MayaLongCountCalendar.from_fixed(EPOCH),
+            MayaLongCountCalendar::GMT.from_fixed(EPOCH),
             Ok(MayaLongCountDate::new(0, 0, 0, 0, 0))
         );
         assert_eq!(
-            MayaLongCountCalendar.from_fixed(LONG_COUNT_LATEST),
+            MayaLongCountCalendar::GMT.from_fixed(LONG_COUNT_LATEST),
             Ok(MayaLongCountDate::new(19, 19, 19, 17, 19))
         );
         assert_eq!(
-            MayaLongCountCalendar.from_fixed(Rd(EPOCH.0 - 1)),
+            MayaLongCountCalendar::GMT.from_fixed(Rd(EPOCH.0 - 1)),
             Err(CalendarError::BeforeEpoch)
         );
         assert_eq!(
-            MayaLongCountCalendar.from_fixed(Rd(LONG_COUNT_LATEST.0 + 1)),
+            MayaLongCountCalendar::GMT.from_fixed(Rd(LONG_COUNT_LATEST.0 + 1)),
             Err(CalendarError::AfterSupportedRange)
         );
     }
@@ -892,7 +1032,9 @@ mod tests {
     #[test]
     fn fields_carry_the_five_long_count_places() {
         let date = MayaLongCountDate::new(13, 0, 13, 17, 2);
-        let fields = MayaLongCountCalendar.to_fields(date).expect("describable");
+        let fields = MayaLongCountCalendar::GMT
+            .to_fields(date)
+            .expect("describable");
         assert_eq!(fields.extra.get("baktun"), Some(13));
         assert_eq!(fields.extra.get("katun"), Some(0));
         assert_eq!(fields.extra.get("tun"), Some(13));
@@ -900,10 +1042,10 @@ mod tests {
         assert_eq!(fields.extra.get("kin"), Some(2));
         assert_eq!(fields.extra.len(), 5);
         assert_eq!(fields.year, 13);
-        assert_eq!(MayaLongCountCalendar.from_fields(&fields), Ok(date));
+        assert_eq!(MayaLongCountCalendar::GMT.from_fields(&fields), Ok(date));
         let empty = DateFields::new(0);
         assert_eq!(
-            MayaLongCountCalendar.from_fields(&empty),
+            MayaLongCountCalendar::GMT.from_fields(&empty),
             Err(CalendarError::MissingField("baktun"))
         );
     }

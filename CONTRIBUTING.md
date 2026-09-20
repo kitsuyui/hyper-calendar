@@ -38,7 +38,7 @@ cargo build -p hyper-calendar-ffi --release                            # shared 
 ```
 
 All of these must pass. `unwrap()` and `expect()` are deny-level lints outside
-tests — see [`docs/policy.md`](docs/policy.md) §7.
+tests — see [`docs/policy.md`](docs/policy.md) §8.
 
 ## What a good change looks like
 

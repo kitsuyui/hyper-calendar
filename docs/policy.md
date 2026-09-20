@@ -67,7 +67,55 @@ Some questions have no answer, and the API says so instead of inventing one:
 - **Local time that does not exist.** When a DST transition skips an hour,
   `hc-tz` returns `Nonexistent` rather than silently shifting.
 
-## 5. Modularity is a compile-time property
+## 5. Competing conventions get names, not parameters
+
+Where authorities genuinely disagree about what a calendar does, the library
+registers **each convention as its own named calendar** rather than taking a
+parameter, picking a default, or refusing to answer.
+
+This is already how the Julian-to-Gregorian reform works: `julian-gregorian-gb`
+and `julian-gregorian-ru` are separate calendars, because a date written in
+Britain in 1700 and the same day written in Russia belong to different
+calendars, not to one calendar with a setting. The rule generalises.
+
+It applies to:
+
+- The Japanese courts. Between 1331 and 1392 two courts proclaimed eras at the
+  same time, so `japanese-northern` and `japanese-southern` are separate
+  calendars. `japanese` is the unified stream and declines the years of the
+  schism — not as a refusal to choose, but because outside those years there
+  really is only one stream, and inside them the two named calendars are the
+  answer.
+- Correlation constants, where two are in published use.
+- Leap-year schemes over the same structure and epoch.
+- Intercalation schools, where practitioners' almanacs disagree.
+
+### Why this beats the alternatives
+
+A **parameter** can be forgotten. The caller who does not know the question
+exists gets whatever the default is, silently, and the library has taken a
+position on their behalf without saying so.
+
+A **refusal** is honest but unhelpful. "Two courts proclaimed eras that year"
+is true and leaves the caller with nothing to compute.
+
+A **name** does both jobs. `japanese-southern` cannot be selected by accident,
+it appears in a registry listing so the choice is discoverable, it is
+self-documenting at the call site, and asking for both and comparing them is
+one loop.
+
+The cost is more identifiers. That is the right cost: the identifiers exist
+because the disagreements exist, and hiding them behind one name does not make
+a calendar less contested.
+
+### Where a parameter is still right
+
+When the variation is *continuous* or *open-ended* rather than a short list of
+named conventions — an observation meridian, a location, a published
+uncertainty series — a parameter is correct, because there is no finite set of
+names to enumerate.
+
+## 6. Modularity is a compile-time property
 
 Requirement 8 of the original brief: not everything should be compiled into
 everything. The workspace is split so that a caller who wants Gregorian dates
@@ -81,7 +129,7 @@ and nothing else pays for Gregorian dates and nothing else.
 - No crate depends on another unless it genuinely needs it. The dependency
   graph is a DAG and is documented in [architecture.md](architecture.md).
 
-## 6. Correctness is demonstrated, not asserted
+## 7. Correctness is demonstrated, not asserted
 
 - Every conversion is round-trip tested over its whole supported range.
 - Every algorithm is anchored to at least one independently published
@@ -95,7 +143,7 @@ and nothing else pays for Gregorian dates and nothing else.
   `cargo audit` on every pull request. Coverage is reported by octocov with a
   70% floor.
 
-## 7. `unwrap` and `expect` are forbidden outside tests
+## 8. `unwrap` and `expect` are forbidden outside tests
 
 `.cargo/config.toml` sets `-Dclippy::unwrap_used` and
 `-Dclippy::expect_used`. A library that panics is a library that cannot be
@@ -107,7 +155,7 @@ The two `impl Add`/`impl Sub` operators on `Duration` are the deliberate
 exception: they panic on overflow so that ordinary arithmetic reads normally,
 and every one of them has a `checked_*` twin.
 
-## 8. No dependencies without a reason
+## 9. No dependencies without a reason
 
 The workspace has exactly one optional external dependency: `libm`, for
 floating-point math on `no_std` targets that lack it. Everything else —
@@ -118,7 +166,7 @@ This is a cost, and it is paid deliberately. A date library is a dependency of
 everything else; it should not drag a tree behind it. It also keeps the
 WebAssembly artefact small and the `cargo audit` surface near zero.
 
-## 9. Scope
+## 10. Scope
 
 `hyper-calendar` computes and formats. It has no UI, no I/O beyond optionally
 reading a TZif file, no clock (the caller supplies the current time), no
