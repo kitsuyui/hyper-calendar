@@ -62,6 +62,8 @@ Marineris = "Marineris"
 # LOLF article 1; Claus Tøndering, cited for the Birashk cycle.
 exercice = "exercice"
 sur = "sur"
+# French "maintenant" — "just now" in the relative-time data.
+maintenant = "maintenant"
 Claus = "Claus"
 # Balinese Buda (Wednesday in the Pawukon), not the Buddha.
 Buda = "Buda"

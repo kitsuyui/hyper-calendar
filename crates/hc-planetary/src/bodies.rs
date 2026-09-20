@@ -164,15 +164,11 @@ impl Body {
         // Four hops is more than enough for Charon -> Pluto or Titan ->
         // Saturn; the bound stops a malformed table from looping forever.
         for _ in 0..4 {
-            match body.primary {
-                None => return None,
-                Some(name) => {
-                    if name == "Sun" {
-                        return Some(abs(body.sidereal_orbit_days));
-                    }
-                    body = by_name(name)?;
-                }
+            let name = body.primary?;
+            if name == "Sun" {
+                return Some(abs(body.sidereal_orbit_days));
             }
+            body = by_name(name)?;
         }
         None
     }

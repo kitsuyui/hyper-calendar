@@ -4,6 +4,21 @@
 # spellcheck.yml. When a check is added there, add it here too: a gate that
 # only exists on the server costs a round trip to discover.
 #
+# These hooks passing is necessary but not sufficient, and the reason is
+# version skew. CI installs the *latest* stable Rust and the latest `typos`
+# on every run, so both lint against newer rules than a local toolchain that
+# has not been updated. Two failures have already reached a pull request that
+# way: `clippy::question_mark` on Rust 1.98 against 1.95 locally, and a French
+# word that `typos` 1.46 knows and 1.39 does not.
+#
+# So before pushing anything substantial:
+#
+#     rustup update stable
+#     cargo install typos-cli   # or: brew upgrade typos-cli
+#
+# The `versions` job below prints what is installed, so a stale toolchain is
+# visible in the hook output rather than discovered in CI.
+#
 # Git hook environment variables are cleared first so that nested or sibling
 # repositories are not affected: https://git-scm.com/docs/githooks
 
@@ -22,6 +37,10 @@ pre-commit:
 pre-push:
   parallel: true
   jobs:
+    # Not a gate — a reminder. CI runs newer versions than these, so a local
+    # pass does not guarantee a CI pass.
+    - name: versions
+      run: printf 'local toolchain: '; rustc --version; printf 'local typos:     '; typos --version
     - name: fmt
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo fmt --all -- --check
     - name: clippy

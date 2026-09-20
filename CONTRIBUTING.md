@@ -40,6 +40,19 @@ cargo build -p hyper-calendar-ffi --release                            # shared 
 All of these must pass. `unwrap()` and `expect()` are deny-level lints outside
 tests — see [`docs/policy.md`](docs/policy.md) §8.
 
+**Update your tools before pushing.** CI installs the latest stable Rust and
+the latest `typos` on every run, so a local pass with an older toolchain is not
+a guarantee — a newer clippy or a newer dictionary will find things yours does
+not:
+
+```sh
+rustup update stable
+cargo install typos-cli
+```
+
+The `lefthook` pre-push hook prints both versions so a stale toolchain shows up
+in the hook output rather than in a failed pull request.
+
 ## What a good change looks like
 
 - **One concern per pull request.** A new calendar, or a bug fix, not both.
