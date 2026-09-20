@@ -26,6 +26,8 @@ std = [
     "hc-astro?/std",
     "hc-seasons?/std",
     "hc-almanac?/std",
+    "hc-fiscal?/std",
+    "hc-attributes?/std",
     "hc-tz?/std",
     "hc-format?/std",
     "hc-i18n?/std",
@@ -45,6 +47,8 @@ alloc = [
     "hc-astro?/alloc",
     "hc-seasons?/alloc",
     "hc-almanac?/alloc",
+    "hc-fiscal?/alloc",
+    "hc-attributes?/alloc",
     "hc-tz?/alloc",
     "hc-format?/alloc",
     "hc-i18n?/alloc",
@@ -70,6 +74,10 @@ astro = ["civil", "dep:hc-astro"]
 seasons = ["astro", "dep:hc-seasons"]
 # The almanac annotations: mansions, nine stars, directs, selected days.
 almanac = ["seasons", "lunar", "dep:hc-almanac"]
+# Fiscal, tax and academic years.
+fiscal = ["civil", "dep:hc-fiscal"]
+# Birthstones, birth flowers, moon names and traditional month names.
+attributes = ["seasons", "dep:hc-attributes"]
 # Time zones.
 tz = ["civil", "dep:hc-tz"]
 # ISO 8601 / RFC 3339 parsing and formatting.
@@ -97,6 +105,8 @@ full = [
     "astro",
     "seasons",
     "almanac",
+    "fiscal",
+    "attributes",
     "tz",
     "format",
     "i18n",
@@ -117,6 +127,8 @@ hc-calendars-regional = { workspace = true, optional = true }
 hc-astro = { workspace = true, optional = true }
 hc-seasons = { workspace = true, optional = true }
 hc-almanac = { workspace = true, optional = true }
+hc-fiscal = { workspace = true, optional = true }
+hc-attributes = { workspace = true, optional = true }
 hc-tz = { workspace = true, optional = true }
 hc-format = { workspace = true, optional = true }
 hc-i18n = { workspace = true, optional = true }

@@ -58,6 +58,11 @@ thn = "thn"
 wth = "wth"
 # Valles Marineris.
 Marineris = "Marineris"
+# French "exercice" (the financial year) and "sur", both in the quoted text of
+# LOLF article 1; Claus Tøndering, cited for the Birashk cycle.
+exercice = "exercice"
+sur = "sur"
+Claus = "Claus"
 # Balinese Buda (Wednesday in the Pawukon), not the Buddha.
 Buda = "Buda"
 buda = "buda"
