@@ -16,8 +16,9 @@ keywords.workspace = true
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["full"]
-full = ["hyper-calendar/full"]
+default = ["civil"]
+civil = ["hc/civil", "hc/format"]
+full = ["hc/full"]
 
 [dependencies]
-hyper-calendar = { workspace = true, features = ["std"] }
+hc = { package = "hyper-calendar", version = "0.1.0", path = "../hyper-calendar", default-features = false, features = ["std"] }
