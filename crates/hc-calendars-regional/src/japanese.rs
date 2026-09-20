@@ -77,7 +77,7 @@ use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd,
     YearKind,
 };
-use hc_calendars_lunar::{LunisolarDate, japanese_tenpo};
+use hc_calendars_lunar::{LunisolarCalendar, LunisolarDate, japanese_historical, japanese_tenpo};
 use hc_calendars_solar::gregorian;
 
 use crate::nengo::{self, Court, Nengo};
@@ -95,9 +95,18 @@ pub const ID_SOUTHERN: CalendarId = CalendarId("japanese-southern");
 /// follow 明治5年12月2日 directly.
 pub const GREGORIAN_ADOPTION: Rd = Rd(683_735);
 
-/// The earliest day this calendar converts: 天保15年1月1日 = 1844-02-18, the
-/// first day of the Tenpō calendar.
-pub const EARLIEST: Rd = japanese_tenpo::EARLIEST;
+/// The earliest day this calendar converts: 貞観4年1月1日 = 862-02-07, the
+/// first day Senmyō-reki was in force in Japan.
+///
+/// Japan used five lunisolar systems in succession before the Gregorian
+/// adoption, and this calendar reads whichever one was in force on the day
+/// asked about. Before 862 the systems are 大衍暦 and earlier, which
+/// `hc-calendars-lunar` does not implement because nothing available could
+/// validate them, so this is where the range stops.
+///
+/// `nengo::era_at` still names the era for any day from 645; it is the
+/// *calendar* underneath that runs out, not the era table.
+pub const EARLIEST: Rd = japanese_historical::senmyo::EARLIEST;
 
 /// The latest day this calendar converts, 9999-12-31.
 ///
@@ -274,10 +283,30 @@ pub fn calendar_year_month_day(rd: Rd) -> CalendarResult<(i64, Month, u8)> {
     }
     if rd >= GREGORIAN_ADOPTION {
         let (year, month, day) = gregorian::from_fixed(rd)?;
-        Ok((year, Month::regular(month), day))
+        return Ok((year, Month::regular(month), day));
+    }
+    let date = engine_in_force(rd).from_fixed(rd)?;
+    Ok((date.year, date.month, date.day))
+}
+
+/// The lunisolar system Japan was using on a given day.
+///
+/// Japan changed calendar five times between 862 and 1872, and a date only
+/// means what the system in force at the time says it means. Reading every
+/// pre-1873 date through Tenpō-reki — the last of the five — would be wrong
+/// by up to two days for the 982 years before 1844, because Senmyō-reki's
+/// solar theory had drifted that far by the time it was replaced.
+fn engine_in_force(rd: Rd) -> &'static LunisolarCalendar {
+    if rd >= japanese_tenpo::EARLIEST {
+        &japanese_tenpo::ENGINE
+    } else if rd >= japanese_historical::kansei::EARLIEST {
+        &japanese_historical::kansei::ENGINE
+    } else if rd >= japanese_historical::horyaku::EARLIEST {
+        &japanese_historical::horyaku::ENGINE
+    } else if rd >= japanese_historical::jokyo::EARLIEST {
+        &japanese_historical::jokyo::ENGINE
     } else {
-        let date = japanese_tenpo::ENGINE.from_fixed(rd)?;
-        Ok((date.year, date.month, date.day))
+        &japanese_historical::senmyo::ENGINE
     }
 }
 
@@ -302,7 +331,35 @@ pub fn calendar_to_fixed(year: i64, month: Month, day: u8) -> CalendarResult<Rd>
         }
         Ok(rd)
     } else {
-        japanese_tenpo::ENGINE.to_fixed(LunisolarDate::new(year, month, day))
+        // The system is chosen by the year, since the day is what is being
+        // computed. Each engine refuses a year outside its own period, so a
+        // date in a changeover year is resolved by trying the candidates in
+        // order rather than by a boundary this function would have to
+        // duplicate.
+        let date = LunisolarDate::new(year, month, day);
+        for engine in [
+            &japanese_tenpo::ENGINE,
+            &japanese_historical::kansei::ENGINE,
+            &japanese_historical::horyaku::ENGINE,
+            &japanese_historical::jokyo::ENGINE,
+            &japanese_historical::senmyo::ENGINE,
+        ] {
+            if let Ok(rd) = engine.to_fixed(date) {
+                // Guard against a neighbouring system accepting a year that
+                // was not its own: the answer has to read back the same way.
+                if calendar_year_month_day(rd) == Ok((year, month, day)) {
+                    return Ok(rd);
+                }
+            }
+        }
+        // No system in force accepted the year. Distinguish "earlier than any
+        // calendar this crate implements" from "a year none of them has",
+        // because the first is a range limit and the second is a bad date.
+        if year < 862 {
+            Err(CalendarError::BeforeEpoch)
+        } else {
+            Err(CalendarError::YearOutOfRange)
+        }
     }
 }
 
@@ -716,20 +773,24 @@ mod tests {
     }
 
     #[test]
-    fn the_calendar_refuses_days_before_the_tenpo_calendar() {
-        assert_eq!(EARLIEST, greg(1844, 2, 18));
+    fn the_calendar_refuses_days_before_senmyo_reki() {
+        assert_eq!(EARLIEST, greg(862, 2, 7));
         assert_eq!(
-            JapaneseCalendar::UNIFIED.from_fixed(EARLIEST),
-            Ok(japanese("天保", 15, 1, 1))
+            JapaneseCalendar::UNIFIED
+                .from_fixed(EARLIEST)
+                .map(|d| d.era.kanji),
+            Ok("貞観")
         );
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(Rd(EARLIEST.0 - 1)),
             Err(CalendarError::BeforeEpoch)
         );
-        // 元禄15年12月14日, the night of the Akō vendetta, is exactly the
-        // kind of date this module will not guess at.
+        // 大化元年, the first era of all, predates Senmyō-reki by two
+        // centuries and is exactly the kind of date this module will not
+        // guess at. 元禄15年12月14日 — the night of the Akō vendetta — used
+        // to be refused too, and is now answered by Jōkyō-reki.
         assert_eq!(
-            JapaneseCalendar::UNIFIED.to_fixed(japanese("元禄", 15, 12, 14)),
+            JapaneseCalendar::UNIFIED.to_fixed(japanese("大化", 1, 1, 1)),
             Err(CalendarError::BeforeEpoch)
         );
         // But the era lookup still knows the era was in force.
@@ -828,7 +889,10 @@ mod tests {
 
     #[test]
     fn the_lunisolar_half_agrees_with_the_tenpo_calendar_day_for_day() {
-        for rd in EARLIEST.0..GREGORIAN_ADOPTION.0 {
+        // Only over Tenpō's own period. Before 1844 the calendar in force was
+        // one of the four earlier systems, and reading those years through
+        // Tenpō-reki is exactly the error this wiring exists to avoid.
+        for rd in japanese_tenpo::EARLIEST.0..GREGORIAN_ADOPTION.0 {
             let rd = Rd(rd);
             let tenpo = japanese_tenpo::ENGINE.from_fixed(rd).expect("in range");
             let date = JapaneseCalendar::UNIFIED.from_fixed(rd).expect("in range");
@@ -845,6 +909,12 @@ mod tests {
             if start < EARLIEST || start > LATEST {
                 continue;
             }
+            // The unified stream declines the years when two courts were
+            // proclaiming at once; those eras belong to the Northern and
+            // Southern calendars and are covered by their own tests.
+            if nengo::is_nanbokucho(start) {
+                continue;
+            }
             let date = JapaneseCalendar::UNIFIED
                 .from_fixed(start)
                 .expect("in range");
@@ -855,24 +925,25 @@ mod tests {
     }
 
     #[test]
-    fn the_eras_in_range_are_the_ones_from_tenpo_onward() {
+    fn the_eras_in_range_run_from_the_ninth_century() {
         let covered: usize = nengo::stream(Court::Unified)
             .filter(|era| {
                 era.start
                     .is_some_and(|start| start >= EARLIEST && start <= LATEST)
             })
             .count();
-        // 弘化 嘉永 安政 万延 文久 元治 慶応 明治 大正 昭和 平成 令和.
-        assert_eq!(covered, 12);
-        // 天保 began before the supported range but covers part of it.
-        let tenpo = nengo::by_kanji("天保").expect("in table");
-        assert!(tenpo.start.expect("dated") < EARLIEST);
+        // Every dated era from 貞観 onwards, now that the four pre-Tenpō
+        // systems are wired in; it was twelve when the range began in 1844.
+        assert_eq!(covered, 195);
+        // 貞観 began before the supported range but covers part of it.
+        let jogan = nengo::by_kanji("貞観").expect("in table");
+        assert!(jogan.start.expect("dated") < EARLIEST);
         assert_eq!(
             JapaneseCalendar::UNIFIED
                 .from_fixed(EARLIEST)
                 .expect("in range")
                 .era,
-            tenpo
+            jogan
         );
     }
 

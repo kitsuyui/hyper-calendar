@@ -215,6 +215,11 @@ mod tests {
         let last = gregorian::to_fixed(2100, 12, 31).expect("in range");
         for rd in first.0..=last.0 {
             let rd = Rd(rd);
+            // 1331-1392 had two courts and the unified stream refuses it on
+            // purpose; `japanese-northern` and `japanese-southern` cover it.
+            if crate::nengo::is_nanbokucho(rd) {
+                continue;
+            }
             let date = JapaneseCalendar::UNIFIED.from_fixed(rd).expect("in range");
             assert_eq!(JapaneseCalendar::UNIFIED.to_fixed(date), Ok(rd), "{rd}");
             let fields = JapaneseCalendar::UNIFIED
