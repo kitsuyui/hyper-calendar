@@ -7,9 +7,10 @@
 # dictionary would happily "correct" into unrelated words. Every entry below is
 # a real word or identifier in the language or standard it belongs to.
 #
-# typos does not merge nested configuration files, so this is the single place
-# where the whole workspace's vocabulary lives. Per-crate `_typos.toml` files
-# exist only so that a crate can be checked in isolation.
+# typos does not merge nested configuration files: a `_typos.toml` inside a
+# crate silences a run rooted at that crate and is ignored by a run rooted at
+# the repository, which is what CI does. So this is the only such file in the
+# workspace, and a new crate's vocabulary belongs here rather than beside it.
 
 [files]
 extend-exclude = ["Cargo.lock"]
@@ -39,3 +40,21 @@ eto = "eto"
 IST = "IST"
 # 彼岸明け, the last day of the equinoctial week, romanised as "higan-ake".
 ake = "ake"
+# Relative-time vocabulary. German "vor 3 Tagen", "Tage", "ein"; Danish and
+# Dutch "als" and "alle"; Spanish "hace 3 dias"; French and Dutch "seconde";
+# Czech "dne"/"dny" and "minut"; Welsh "mis"/"fis" for month; Indonesian "thn"
+# and Welsh "wth" as narrow unit abbreviations.
+vor = "vor"
+als = "als"
+ein = "ein"
+Tage = "Tage"
+hace = "hace"
+seconde = "seconde"
+dne = "dne"
+minut = "minut"
+alle = "alle"
+mis = "mis"
+thn = "thn"
+wth = "wth"
+# Valles Marineris.
+Marineris = "Marineris"
