@@ -1,0 +1,21 @@
+[package]
+name = "hc-calendar"
+description = "Calendar abstraction for hyper-calendar: Rata Die fixed days, civil time, the Calendar/DynCalendar traits and the calendar registry."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[features]
+default = ["std"]
+std = ["alloc", "hc-core/std"]
+alloc = ["hc-core/alloc"]
+
+[dependencies]
+hc-core = { workspace = true }

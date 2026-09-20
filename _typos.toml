@@ -1,0 +1,17 @@
+# typos is a source code spell checker
+# https://github.com/crate-ci/typos
+[default.extend-words]
+# Romanised calendar, astronomical and locale vocabulary that typos would
+# otherwise "correct" into unrelated English words.
+Ecclesiastical = "Ecclesiastical"
+Tebet = "Tebet"
+Nd = "Nd"
+BA = "BA"
+Ket = "Ket"
+Fro = "Fro"
+Wih = "Wih"
+Tage = "Tage"
+strat = "strat"
+
+[files]
+extend-exclude = ["Cargo.lock"]

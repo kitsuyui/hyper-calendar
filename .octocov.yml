@@ -1,0 +1,25 @@
+# https://github.com/k1LoW/octocov?tab=readme-ov-file#configuration
+coverage:
+  acceptable: 70%
+  paths:
+    - coverage.lcov
+codeToTestRatio:
+  acceptable: 1:0.005
+  code:
+    - "crates/**/src/**/*.rs"
+  test:
+    - "crates/**/tests/**/*.rs"
+    - "tests/**/*.rs"
+testExecutionTime:
+  if: true
+  acceptable: 10min
+diff:
+  datastores:
+    - artifact://${GITHUB_REPOSITORY}
+comment:
+  if: is_pull_request
+  updatePrevious: true
+report:
+  if: is_default_branch
+  datastores:
+    - artifact://${GITHUB_REPOSITORY}

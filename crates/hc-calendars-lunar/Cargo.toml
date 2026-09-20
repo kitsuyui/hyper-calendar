@@ -1,0 +1,23 @@
+[package]
+name = "hc-calendars-lunar"
+description = "Lunar and lunisolar calendars for hyper-calendar: Hijri, Hebrew, Chinese, Japanese Tenpo, Korean and Vietnamese."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[features]
+default = ["std"]
+std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-astro/std"]
+alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-astro/alloc"]
+
+[dependencies]
+hc-core = { workspace = true }
+hc-calendar = { workspace = true }
+hc-astro = { workspace = true }

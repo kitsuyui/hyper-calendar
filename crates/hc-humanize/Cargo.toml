@@ -1,0 +1,23 @@
+[package]
+name = "hc-humanize"
+description = "Human-readable time for hyper-calendar: relative times, duration phrasing and localised rounding."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[features]
+default = ["std"]
+std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-i18n/std"]
+alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-i18n/alloc"]
+
+[dependencies]
+hc-core = { workspace = true }
+hc-calendar = { workspace = true }
+hc-i18n = { workspace = true }

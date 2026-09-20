@@ -1,0 +1,26 @@
+[package]
+name = "hc-astro"
+description = "Astronomical algorithms for hyper-calendar: solar longitude, lunar phase, equinoxes, solstices, Delta T and rise/set events."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[features]
+default = ["std"]
+std = ["alloc", "hc-core/std", "hc-calendar/std"]
+alloc = ["hc-core/alloc", "hc-calendar/alloc"]
+# Floating-point math for `no_std` builds. Every series in this crate is
+# transcendental, so a build with neither `std` nor `libm` compiles but
+# panics on the first sine. Enable this when targeting bare metal.
+libm = ["hc-core/libm"]
+
+[dependencies]
+hc-core = { workspace = true }
+hc-calendar = { workspace = true }

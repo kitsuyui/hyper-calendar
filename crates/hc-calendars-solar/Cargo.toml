@@ -1,0 +1,22 @@
+[package]
+name = "hc-calendars-solar"
+description = "Solar and arithmetic calendars for hyper-calendar: Gregorian, Julian, ISO week date, Coptic, Ethiopic, Persian, Indian, Buddhist, Holocene and friends."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[features]
+default = ["std"]
+std = ["alloc", "hc-core/std", "hc-calendar/std"]
+alloc = ["hc-core/alloc", "hc-calendar/alloc"]
+
+[dependencies]
+hc-core = { workspace = true }
+hc-calendar = { workspace = true }

@@ -1,0 +1,24 @@
+[package]
+name = "hyper-calendar-ffi"
+description = "A C ABI shared library for hyper-calendar."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[lib]
+name = "hyper_calendar"
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[features]
+default = ["full"]
+full = ["hyper-calendar/full"]
+
+[dependencies]
+hyper-calendar = { workspace = true, features = ["std"] }

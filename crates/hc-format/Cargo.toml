@@ -1,0 +1,24 @@
+[package]
+name = "hc-format"
+description = "Parsing and formatting for hyper-calendar: ISO 8601, RFC 3339, RFC 2822, ISO durations and intervals."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[features]
+default = ["std"]
+std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-calendars-solar/std", "hc-tz/std"]
+alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-calendars-solar/alloc", "hc-tz/alloc"]
+
+[dependencies]
+hc-core = { workspace = true }
+hc-calendar = { workspace = true }
+hc-calendars-solar = { workspace = true }
+hc-tz = { workspace = true }
