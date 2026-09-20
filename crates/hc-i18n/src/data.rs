@@ -1729,7 +1729,6 @@ mod tests {
     use super::*;
     use crate::locale::Locale;
     use crate::names::{NameContext, NameWidth};
-    use alloc::format;
     use alloc::string::ToString as _;
     use alloc::vec::Vec;
 
@@ -2018,6 +2017,6 @@ mod tests {
                 "pl", "pt", "ru", "th", "tr", "vi", "zh-Hans", "zh-Hant"
             ]
         );
-        assert_eq!(format!("{}", ROOT.tag), "und");
+        assert_eq!(ROOT.tag.to_string(), "und");
     }
 }
