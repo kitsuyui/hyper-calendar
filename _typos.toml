@@ -58,3 +58,12 @@ thn = "thn"
 wth = "wth"
 # Valles Marineris.
 Marineris = "Marineris"
+# Balinese Buda (Wednesday in the Pawukon), not the Buddha.
+Buda = "Buda"
+buda = "buda"
+# Japanese era names: 仁安 Nin'an, 文治 Bunji.
+Nin = "Nin"
+Bunji = "Bunji"
+bunji = "bunji"
+# 亥 in the Korean Revised Romanisation of the earthly branches.
+hae = "hae"
