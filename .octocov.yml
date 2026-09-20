@@ -22,7 +22,13 @@ testExecutionTime:
   # The threshold exists to catch a test that has started hanging, not to
   # pressure the sweeps into being sampled. If it is ever exceeded, check
   # which crate grew before lowering the coverage instead.
-  acceptable: 25min
+  #
+  # It was briefly 25 minutes, to accommodate a Japanese sweep that walked
+  # 452 000 days re-testing arithmetic another crate already validates. That
+  # sweep now targets the seams instead and takes thirteen seconds rather than
+  # six minutes, so the ceiling comes back down. Raising a limit to fit a test
+  # that should not have been that slow is the wrong way round.
+  acceptable: 15min
 diff:
   datastores:
     - artifact://${GITHUB_REPOSITORY}
