@@ -67,3 +67,13 @@ Bunji = "Bunji"
 bunji = "bunji"
 # 亥 in the Korean Revised Romanisation of the earthly branches.
 hae = "hae"
+# Holiday names in their own languages. French "Assomption" and "pont";
+# Dutch "Onze Lieve Vrouw"; Danish and Norwegian "Grundlovsdag" and
+# "Lov", "lov", "som"; Vietnamese "Viet Nam".
+Assomption = "Assomption"
+pont = "pont"
+Lieve = "Lieve"
+Lov = "Lov"
+lov = "lov"
+som = "som"
+Nam = "Nam"

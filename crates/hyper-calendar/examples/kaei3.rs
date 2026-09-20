@@ -59,14 +59,20 @@ fn main() {
 
     // The Tenpō calendar in this workspace numbers a lunisolar year by the
     // Gregorian year it starts in, so Kaei 3 is 1850.
-    let first_day = tenpo
+    let Ok(first_day) = tenpo
         .from_fields(&DateFields::ymd(1850, 1, 1))
         .and_then(|date| tenpo.to_fixed(date))
-        .expect("Kaei 3 begins inside the Tenpō calendar's supported range");
-    let next_year = tenpo
+    else {
+        eprintln!("Kaei 3 is outside the Tenpō calendar's supported range");
+        return;
+    };
+    let Ok(next_year) = tenpo
         .from_fields(&DateFields::ymd(1851, 1, 1))
         .and_then(|date| tenpo.to_fixed(date))
-        .expect("Kaei 4 begins inside the Tenpō calendar's supported range");
+    else {
+        eprintln!("Kaei 4 is outside the Tenpō calendar's supported range");
+        return;
+    };
     let last_day = Rd(next_year.get() - 1);
 
     println!(
