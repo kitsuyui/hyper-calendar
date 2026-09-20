@@ -61,7 +61,7 @@ use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd,
     YearKind,
 };
-use hc_core::math::{floor, round};
+use hc_core::math::{floor, round, sin_deg};
 
 use crate::civil;
 
@@ -137,6 +137,258 @@ pub enum SolarTermMode {
     Mean,
 }
 
+/// Where a month's first day comes from.
+///
+/// The distinction is 平朔 against 定朔, and East Asian calendrical history
+/// turns on it: the mean conjunction is arithmetic, the true one needs a
+/// theory of the Sun's and the Moon's unequal motion. China moved from the
+/// first to the second with Li Chunfeng's Linde system of 665, and Japan
+/// inherited the change with the Gihō calendar of 697.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub enum ConjunctionMode {
+    /// *Heisaku* (平朔): the month begins at the mean conjunction, so the
+    /// months alternate 30, 29, 30, 29 with an occasional doubled long month.
+    Mean,
+    /// *Teisaku* (定朔): the month begins at the true conjunction — the mean
+    /// one displaced by the equations of centre of the Sun and the Moon, as
+    /// the system's own 日躔 and 月離 tables gave them.
+    #[default]
+    True,
+    /// 定朔 taken from modern astronomy instead of from the system's tables.
+    ///
+    /// Offered because of a measurement, not as a convenience. A pre-modern
+    /// 定朔 is a *table lookup* — fourteen tabulated daily increments per
+    /// half anomalistic month — and this crate has the tables for no system
+    /// but Senmyō-reki. [`ConjunctionMode::True`] approximates such a table
+    /// by a single sine, which caps out at about 90% agreement with the
+    /// published Japanese month starts, while the true conjunction reproduces
+    /// them at 94% for Senmyō-reki and 99% for the Edo systems. That is not
+    /// an accident: those bureaux computed conjunctions to within an hour or
+    /// two, and it was their *solar* theory that was two days out.
+    ///
+    /// This mode therefore changes **only** where a month begins. The
+    /// solstice, the 恒気 major solar terms, the leap-month rule and the
+    /// year's structure all stay on the system's own 歳実, which is where
+    /// the historical drift lives and where substituting modern astronomy
+    /// would destroy the thing worth reproducing.
+    Apparent,
+}
+
+/// The period constants of one historical calendar system, and nothing else.
+///
+/// # Why this exists
+///
+/// A calendar that ran for eight centuries on ninth-century constants is not
+/// the sky. Senmyō-reki's tropical year is 365.24464 days, about 3.4 minutes
+/// too long; over the 823 years Japan used it the twenty-four solar terms
+/// slid roughly two days away from the Sun, and *that drift is the calendar*.
+/// It is why the Jōkyō reform happened, and a reconstruction that computed
+/// the Sun from a modern series would quietly erase the very thing the
+/// documents record.
+///
+/// So a calendar carrying a [`MeanMotionModel`] does not call `hc-astro` at
+/// all. Its solstices, its conjunctions and its major solar terms are all
+/// linear functions of its own 歳実 and 朔実, phased at its own epoch, and
+/// they drift exactly as the system drifted.
+///
+/// # The model
+///
+/// * **Winter solstice** (冬至): [`solstice_epoch`] plus a whole number of
+///   [`tropical_year`]s.
+/// * **Major solar terms** (中気): the 恒気 rule — twelve equal twelfths of
+///   the same tropical year from that solstice. Every Japanese system before
+///   Tenpō-reki used it; Tenpō-reki's switch to 定気 was itself the headline
+///   of the 1844 reform, which is why Tenpō-reki has no model here and uses
+///   the apparent Sun.
+/// * **Conjunction** (朔): [`conjunction_epoch`] plus a whole number of
+///   [`synodic_month`]s, displaced under [`ConjunctionMode::True`] by
+///
+///   ```text
+///   Δt = solar_equation_days · sin(anomaly from the solstice)
+///      − lunar_equation_days · sin(anomaly from perigee)
+///   ```
+///
+///   which is the 朓朒 of the 日躔 table plus the 朓朒 of the 月離 table,
+///   each already expressed as a time because that is how the historical
+///   tables expressed them.
+/// * **進朔**, where the system used it: a conjunction later in the day than
+///   [`MeanMotionModel::advance_limit`] gives its month a first day of *the
+///   next* day. See
+///   that field; it is not astronomy and it moves a quarter of all month
+///   boundaries.
+///
+/// The Sun's anomaly is measured **from the winter solstice** because that is
+/// where the East Asian systems put the Sun's perigee (盈初縮末). In the
+/// ninth century perihelion really did fall within a day or two of the
+/// solstice, so the assumption cost Senmyō-reki little at first and rather
+/// more by the seventeenth, when perihelion had moved ten days past it. That
+/// is a property of the historical system, faithfully reproduced, not an
+/// approximation introduced here.
+///
+/// # What the model deliberately omits
+///
+/// One lunar inequality, the equation of centre, and no others. No evection
+/// and no variation — **because no East Asian system before the Western
+/// tables modelled them.** Together they reach about 1.9° of elongation,
+/// which is about 0.16 days of conjunction timing, and that residual is the
+/// single largest reason a reconstruction disagrees with a surviving almanac
+/// by one day. Adding them would move this code towards the sky and away
+/// from the calendar.
+///
+/// [`solstice_epoch`]: MeanMotionModel::solstice_epoch
+/// [`tropical_year`]: MeanMotionModel::tropical_year
+/// [`conjunction_epoch`]: MeanMotionModel::conjunction_epoch
+/// [`synodic_month`]: MeanMotionModel::synodic_month
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct MeanMotionModel {
+    /// 歳実, the system's tropical year in mean solar days.
+    pub tropical_year: f64,
+    /// 朔実, the system's synodic month in mean solar days.
+    pub synodic_month: f64,
+    /// 近点月, the system's anomalistic month in mean solar days.
+    ///
+    /// Only the 定朔 correction uses it, and only through the phase of a
+    /// sine, so an error of a part in a million costs about a tenth of a day
+    /// of lunar phase over eight centuries.
+    pub anomalistic_month: f64,
+    /// A reference winter solstice, as a fractional fixed day **in the
+    /// calendar's own local mean time**.
+    ///
+    /// Local, not Universal: the whole model is arithmetic in mean solar
+    /// days at the capital's meridian, exactly as the bureau computed it, so
+    /// no ΔT and no time-scale conversion enters anywhere.
+    pub solstice_epoch: f64,
+    /// A reference mean conjunction, as a fractional fixed day in local mean
+    /// time.
+    pub conjunction_epoch: f64,
+    /// A reference lunar perigee, as a fractional fixed day in local mean
+    /// time; the phase of the 遅疾 correction.
+    pub perigee_epoch: f64,
+    /// Whether months begin at the mean or the true conjunction.
+    pub conjunction_mode: ConjunctionMode,
+    /// 日躔最大朓朒, the greatest displacement of the true conjunction from
+    /// the mean one caused by the Sun's unequal motion, **in days**.
+    ///
+    /// Days rather than degrees because that is the form the historical
+    /// systems tabulated: the 日躔 and 月離 tables of a Chinese or Japanese
+    /// calendar give 朓朒 directly as a time, already divided by a daily
+    /// motion. Reproducing them in their own units means reproducing the
+    /// division they actually performed, including where it was physically
+    /// the wrong one.
+    pub solar_equation_days: f64,
+    /// 月離最大朓朒, the same for the Moon's unequal motion, in days.
+    pub lunar_equation_days: f64,
+    /// 進朔限, the fraction of the day past which a conjunction is held over
+    /// to the following day, or `None` for a system that did not do this.
+    ///
+    /// *Shinsaku* (進朔) is not astronomy and was never claimed to be. When
+    /// the computed conjunction fell late in the day the bureau moved the
+    /// first of the month to the next day anyway, so that the waxing
+    /// crescent would be visible on the third and the calendar would not be
+    /// publicly embarrassed. Li Chunfeng's Linde system of 665 introduced it
+    /// with a limit of 1005/1340 of a day; Senmyō-reki set 6300/8400, which
+    /// is exactly three quarters, or 18:00 local mean time; Taien-reki used
+    /// something nearer 2655/3040. Shibukawa Harumi abolished it in
+    /// Jōkyō-reki as having no basis, which is why the later Japanese
+    /// systems leave this `None`.
+    ///
+    /// **It moves about a quarter of all month boundaries**, so a
+    /// reconstruction that ignores it is not reconstructing the calendar
+    /// that was published.
+    pub advance_limit: Option<f64>,
+}
+
+impl MeanMotionModel {
+    /// The moment of the `index`-th winter solstice after the epoch.
+    #[must_use]
+    pub fn winter_solstice(&self, index: i64) -> f64 {
+        self.solstice_epoch + index as f64 * self.tropical_year
+    }
+
+    /// The day containing the `index`-th winter solstice.
+    #[must_use]
+    pub fn winter_solstice_day(&self, index: i64) -> Rd {
+        Rd(floor(self.winter_solstice(index)) as i64)
+    }
+
+    /// The last winter solstice falling on or before `rd`.
+    ///
+    /// The linear estimate is exact to well under a day, so the two
+    /// correction loops run at most once each.
+    #[must_use]
+    pub fn winter_solstice_on_or_before(&self, rd: Rd) -> Rd {
+        let mut index =
+            floor((rd.0 as f64 + 1.0 - self.solstice_epoch) / self.tropical_year) as i64;
+        while self.winter_solstice_day(index) > rd {
+            index -= 1;
+        }
+        while self.winter_solstice_day(index + 1) <= rd {
+            index += 1;
+        }
+        self.winter_solstice_day(index)
+    }
+
+    /// The mean conjunction numbered `index` from the epoch.
+    #[must_use]
+    pub fn mean_conjunction(&self, index: i64) -> f64 {
+        self.conjunction_epoch + index as f64 * self.synodic_month
+    }
+
+    /// The conjunction numbered `index`, mean or true as the system says.
+    #[must_use]
+    pub fn conjunction(&self, index: i64) -> f64 {
+        let mean = self.mean_conjunction(index);
+        match self.conjunction_mode {
+            // The apparent case needs a meridian, which this type does not
+            // carry; `LunisolarParameters::conjunction_moment` handles it and
+            // never reaches here.
+            ConjunctionMode::Mean | ConjunctionMode::Apparent => mean,
+            ConjunctionMode::True => {
+                let solstice = self.winter_solstice(floor(
+                    (mean - self.solstice_epoch) / self.tropical_year,
+                ) as i64);
+                let solar_anomaly = 360.0 * (mean - solstice) / self.tropical_year;
+                let lunar_anomaly = 360.0 * (mean - self.perigee_epoch) / self.anomalistic_month;
+                mean + self.solar_equation_days * sin_deg(solar_anomaly)
+                    - self.lunar_equation_days * sin_deg(lunar_anomaly)
+            }
+        }
+    }
+
+    /// The day a conjunction moment begins its month on, after 進朔.
+    ///
+    /// Separated from [`MeanMotionModel::conjunction`] because a calendar
+    /// whose [`ConjunctionMode`] is [`Apparent`](ConjunctionMode::Apparent)
+    /// gets its moment elsewhere and still holds it over by the same rule.
+    #[must_use]
+    pub fn day_of_conjunction(&self, local_moment: f64) -> Rd {
+        let day = floor(local_moment);
+        let held_over = self
+            .advance_limit
+            .is_some_and(|limit| local_moment - day >= limit);
+        Rd(day as i64 + i64::from(held_over))
+    }
+
+    /// A conjunction index within one month of `rd`, from which the search
+    /// loops converge in a step or two.
+    #[must_use]
+    pub fn nearby_conjunction_index(&self, rd: Rd) -> i64 {
+        floor((rd.0 as f64 - self.conjunction_epoch) / self.synodic_month) as i64
+    }
+
+    /// Which of the twelve major solar terms the Sun had last passed at local
+    /// midnight beginning `rd`, under the 恒気 rule.
+    ///
+    /// Twelve equal twelfths of the system's own tropical year from its own
+    /// solstice; the whole-solstice part of the count cancels in the modulo,
+    /// so no solstice index has to be found first.
+    #[must_use]
+    pub fn major_solar_term(&self, rd: Rd) -> i64 {
+        let twelfths = (rd.0 as f64 - self.solstice_epoch) / (self.tropical_year / 12.0);
+        adjusted_modulo(11 + floor(twelfths) as i64, 12)
+    }
+}
+
 /// Everything that distinguishes one lunisolar calendar from another.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct LunisolarParameters {
@@ -153,6 +405,16 @@ pub struct LunisolarParameters {
     pub year_offset: i64,
     /// How major solar terms are placed.
     pub solar_term_mode: SolarTermMode,
+    /// The system's own period constants, when it has them.
+    ///
+    /// `None` — the case for [`crate::chinese`], [`crate::dangi`],
+    /// [`crate::vietnamese`] and [`crate::japanese_tenpo`] — means the Sun
+    /// and the Moon come from `hc-astro`, which is right for a calendar
+    /// still in force or one whose rule was *defined* as the true sky.
+    /// `Some` means the calendar is a historical system reconstructed from
+    /// its own constants, and `hc-astro` is not consulted at all. See
+    /// [`MeanMotionModel`] for why that distinction is not a detail.
+    pub mean_motion: Option<MeanMotionModel>,
     /// The earliest fixed day this calendar will convert.
     pub earliest: Option<Rd>,
     /// The latest fixed day this calendar will convert.
@@ -218,6 +480,12 @@ impl LunisolarParameters {
     /// falls.
     #[must_use]
     pub fn winter_solstice_day(&self, gregorian_year: i64) -> Rd {
+        if let Some(model) = &self.mean_motion {
+            // A mean solstice drifting by at most a couple of days over a
+            // system's lifetime never leaves December, so the last one of the
+            // Gregorian year is the one wanted.
+            return model.winter_solstice_on_or_before(civil::to_rd(gregorian_year, 12, 31));
+        }
         self.local_from_universal(hc_astro::solstice(gregorian_year, Solstice::December))
             .day()
     }
@@ -225,6 +493,9 @@ impl LunisolarParameters {
     /// The last winter solstice falling on or before `rd`, as a local day.
     #[must_use]
     pub fn winter_solstice_on_or_before(&self, rd: Rd) -> Rd {
+        if let Some(model) = &self.mean_motion {
+            return model.winter_solstice_on_or_before(rd);
+        }
         let year = civil::year_from_rd(rd);
         let candidate = self.winter_solstice_day(year);
         if candidate <= rd {
@@ -249,15 +520,62 @@ impl LunisolarParameters {
     /// The first day of the first lunar month beginning on or after `rd`.
     #[must_use]
     pub fn new_moon_on_or_after(&self, rd: Rd) -> Rd {
-        self.local_from_universal(hc_astro::new_moon_at_or_after(self.midnight(rd)))
-            .day()
+        let Some(model) = &self.mean_motion else {
+            return self
+                .local_from_universal(hc_astro::new_moon_at_or_after(self.midnight(rd)))
+                .day();
+        };
+        let mut index = model.nearby_conjunction_index(rd);
+        while self.conjunction_day(model, index) < rd {
+            index += 1;
+        }
+        while self.conjunction_day(model, index - 1) >= rd {
+            index -= 1;
+        }
+        self.conjunction_day(model, index)
     }
 
     /// The first day of the last lunar month beginning before `rd`.
     #[must_use]
     pub fn new_moon_before(&self, rd: Rd) -> Rd {
-        self.local_from_universal(hc_astro::new_moon_before(self.midnight(rd)))
-            .day()
+        let Some(model) = &self.mean_motion else {
+            return self
+                .local_from_universal(hc_astro::new_moon_before(self.midnight(rd)))
+                .day();
+        };
+        let mut index = model.nearby_conjunction_index(rd);
+        while self.conjunction_day(model, index) >= rd {
+            index -= 1;
+        }
+        while self.conjunction_day(model, index + 1) < rd {
+            index += 1;
+        }
+        self.conjunction_day(model, index)
+    }
+
+    /// The local-time moment of the conjunction numbered `index`.
+    ///
+    /// The meridian lives here rather than in [`MeanMotionModel`], which is
+    /// why the apparent case is resolved at this level: the model's whole
+    /// arithmetic is local mean time, and turning a Universal Time
+    /// conjunction into that needs the calendar's offset.
+    #[must_use]
+    pub fn conjunction_moment(&self, model: &MeanMotionModel, index: i64) -> f64 {
+        let mean = model.mean_conjunction(index);
+        if model.conjunction_mode != ConjunctionMode::Apparent {
+            return model.conjunction(index);
+        }
+        let midpoint = Moment(mean - self.zone_offset_days(Rd(floor(mean) as i64)));
+        self.local_from_universal(hc_astro::new_moon_before(Moment(
+            midpoint.0 + MEAN_SYNODIC_MONTH / 2.0,
+        )))
+        .0
+    }
+
+    /// The first day of the month whose conjunction is numbered `index`.
+    #[must_use]
+    pub fn conjunction_day(&self, model: &MeanMotionModel, index: i64) -> Rd {
+        model.day_of_conjunction(self.conjunction_moment(model, index))
     }
 
     /// Which of the twelve major solar terms, numbered 1 to 12, the Sun had
@@ -267,6 +585,12 @@ impl LunisolarParameters {
     /// the one that must contain it.
     #[must_use]
     pub fn major_solar_term(&self, rd: Rd) -> i64 {
+        // A system carrying its own constants that nonetheless asks for the
+        // apparent Sun is not a combination history offers; the parameters
+        // permit it, and it falls through to the astronomical branch.
+        if let (Some(model), SolarTermMode::Mean) = (&self.mean_motion, self.solar_term_mode) {
+            return model.major_solar_term(rd);
+        }
         match self.solar_term_mode {
             SolarTermMode::Apparent => {
                 let longitude = hc_astro::solar_longitude(self.midnight(rd));
@@ -701,6 +1025,7 @@ mod tests {
         epoch: CHINESE_EPOCH,
         year_offset: 0,
         solar_term_mode: SolarTermMode::Apparent,
+        mean_motion: None,
         earliest: None,
         latest: None,
     };
@@ -800,6 +1125,7 @@ mod tests {
             epoch: CHINESE_EPOCH,
             year_offset: 0,
             solar_term_mode: SolarTermMode::Apparent,
+            mean_motion: None,
             earliest: None,
             latest: None,
         };
@@ -920,6 +1246,132 @@ mod tests {
                     .branch_name(),
                 "zi"
             );
+        }
+    }
+
+    /// A deliberately crude mean-motion model, for exercising the arithmetic
+    /// rather than any particular calendar.
+    const TOY: MeanMotionModel = MeanMotionModel {
+        tropical_year: 365.25,
+        synodic_month: 29.5,
+        anomalistic_month: 27.5,
+        solstice_epoch: 1_000.25,
+        conjunction_epoch: 1_010.75,
+        perigee_epoch: 1_005.0,
+        conjunction_mode: ConjunctionMode::Mean,
+        solar_equation_days: 0.2,
+        lunar_equation_days: 0.4,
+        advance_limit: None,
+    };
+
+    #[test]
+    fn a_mean_motion_model_spaces_its_solstices_by_exactly_its_year() {
+        for index in -10..10i64 {
+            let gap = TOY.winter_solstice(index + 1) - TOY.winter_solstice(index);
+            assert!((gap - TOY.tropical_year).abs() < 1e-9, "{gap}");
+        }
+        assert!((TOY.winter_solstice(0) - TOY.solstice_epoch).abs() < 1e-12);
+    }
+
+    #[test]
+    fn a_mean_motion_model_finds_the_solstice_on_or_before_any_day() {
+        for offset in -400..400i64 {
+            let rd = Rd(1_000 + offset);
+            let found = TOY.winter_solstice_on_or_before(rd);
+            assert!(found <= rd);
+            assert!(
+                rd.0 - found.0 < 366,
+                "{rd} was {} days after",
+                rd.0 - found.0
+            );
+            // And the next one really is after `rd`.
+            let index = round((found.0 as f64 - TOY.solstice_epoch) / TOY.tropical_year) as i64;
+            assert!(TOY.winter_solstice_day(index + 1) > rd);
+        }
+    }
+
+    #[test]
+    fn a_mean_motion_model_spaces_its_mean_conjunctions_by_exactly_its_month() {
+        for index in -10..10i64 {
+            let gap = TOY.mean_conjunction(index + 1) - TOY.mean_conjunction(index);
+            assert!((gap - TOY.synodic_month).abs() < 1e-9, "{gap}");
+            // Under the mean rule the conjunction is the mean conjunction.
+            assert!((TOY.conjunction(index) - TOY.mean_conjunction(index)).abs() < 1e-12);
+        }
+    }
+
+    #[test]
+    fn the_true_conjunction_rule_displaces_the_mean_one_within_its_amplitudes() {
+        static TRUE_RULE: MeanMotionModel = MeanMotionModel {
+            conjunction_mode: ConjunctionMode::True,
+            ..TOY
+        };
+        let mut largest: f64 = 0.0;
+        let mut ever_moved = false;
+        for index in 0..500i64 {
+            let shift = TRUE_RULE.conjunction(index) - TRUE_RULE.mean_conjunction(index);
+            largest = largest.max(shift.abs());
+            if shift.abs() > 0.05 {
+                ever_moved = true;
+            }
+        }
+        assert!(ever_moved, "the correction never moved anything");
+        // The two sines cannot together exceed the sum of their amplitudes.
+        let bound = TOY.solar_equation_days + TOY.lunar_equation_days;
+        assert!(largest <= bound, "{largest} exceeded {bound}");
+        assert!(largest > bound * 0.8, "{largest} never approached {bound}");
+    }
+
+    #[test]
+    fn the_advance_limit_moves_a_late_conjunction_and_nothing_else() {
+        static HELD_OVER: MeanMotionModel = MeanMotionModel {
+            advance_limit: Some(0.75),
+            ..TOY
+        };
+        assert_eq!(TOY.day_of_conjunction(500.9), Rd(500));
+        assert_eq!(HELD_OVER.day_of_conjunction(500.9), Rd(501));
+        assert_eq!(HELD_OVER.day_of_conjunction(500.74), Rd(500));
+        assert_eq!(HELD_OVER.day_of_conjunction(500.0), Rd(500));
+        // Negative fixed days behave the same way, and the fraction that
+        // matters is the one measured from the floor rather than from zero:
+        // −500.1 is a tenth of a day before day −500, so it sits nine tenths
+        // of the way through day −501 and is held over.
+        assert_eq!(HELD_OVER.day_of_conjunction(-500.9), Rd(-501));
+        assert_eq!(HELD_OVER.day_of_conjunction(-500.5), Rd(-501));
+        assert_eq!(HELD_OVER.day_of_conjunction(-500.1), Rd(-500));
+    }
+
+    #[test]
+    fn the_mean_solar_terms_of_a_model_advance_one_step_every_twelfth_of_its_year() {
+        let step = TOY.tropical_year / 12.0;
+        let mut previous = TOY.major_solar_term(Rd(1_000));
+        let mut changes = 0;
+        for offset in 0..366i64 {
+            let term = TOY.major_solar_term(Rd(1_000 + offset));
+            assert!((1..=12).contains(&term));
+            if term != previous {
+                changes += 1;
+                assert_eq!(term, previous % 12 + 1);
+            }
+            previous = term;
+        }
+        // Twelve terms in a year, and a year is 365 days here.
+        assert_eq!(changes, 12, "step was {step}");
+    }
+
+    #[test]
+    fn a_parameter_set_without_a_model_is_left_entirely_to_hc_astro() {
+        // The regression guard for the four calendars that existed before
+        // mean-motion models did: none of them may acquire one by accident.
+        assert!(ENGINE_TEST.mean_motion.is_none());
+        for parameters in [
+            &crate::chinese::PARAMETERS,
+            &crate::dangi::PARAMETERS,
+            &crate::vietnamese::PARAMETERS,
+            &crate::japanese_tenpo::PARAMETERS,
+        ] {
+            assert!(parameters.mean_motion.is_none(), "{}", parameters.id);
+            assert_eq!(parameters.solar_term_mode, SolarTermMode::Apparent);
         }
     }
 

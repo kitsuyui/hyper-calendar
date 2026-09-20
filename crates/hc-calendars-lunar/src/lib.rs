@@ -11,15 +11,19 @@
 //! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], [`hebrew`] | a counting rule, exact by definition |
 //! | Tabulated | [`islamic_umalqura`] | a published table, exact where the table reaches |
 //! | Computed | [`chinese`], [`dangi`], [`vietnamese`], [`japanese_tenpo`], [`islamic_observational`] | an astronomical model, exact only to the model |
+//! | Historical | [`japanese_historical`] | the system's *own* period constants, exact to the bureau that published it |
 //!
 //! The three rows behave differently and the crate does not pretend
 //! otherwise. Arithmetic calendars answer for any year you like. The
 //! tabulated one refuses every day outside 1300–1600 AH rather than
 //! extrapolating. The computed ones carry bounded ranges, say what their
 //! model is worth, and — in the observational Hijri case — say plainly that
-//! they are predicting a human decision.
+//! they are predicting a human decision. The historical ones run on
+//! ninth-, seventeenth- and eighteenth-century constants and reproduce those
+//! systems' errors on purpose, because the errors are what the surviving
+//! documents record.
 //!
-//! # Two engines, nine calendars
+//! # Two engines, thirteen calendars
 //!
 //! Almost nothing here is written twice.
 //!
@@ -29,10 +33,13 @@
 //!   [`islamic_astronomical`] are the two CLDR names for them.
 //! * [`lunisolar`] is the whole East Asian machinery — conjunction-to-
 //!   conjunction months, the winter-solstice anchor, the no-zhōngqì leap
-//!   rule — with the meridian, the epoch, the year numbering and the
-//!   solar-term convention as parameters. [`chinese`], [`dangi`],
-//!   [`vietnamese`] and [`japanese_tenpo`] are four parameter sets and no
-//!   algorithm at all.
+//!   rule — with the meridian, the epoch, the year numbering, the solar-term
+//!   convention and, optionally, a whole set of historical period constants
+//!   as parameters. [`chinese`], [`dangi`], [`vietnamese`] and
+//!   [`japanese_tenpo`] are four parameter sets and no algorithm at all;
+//!   [`japanese_historical`] is four more, carrying the 歳実 and 朔実 of
+//!   Senmyō-reki, Jōkyō-reki, Hōryaku-reki and Kansei-reki so that those
+//!   calendars drift away from the sky exactly as they historically did.
 //!
 //! [`hebrew`] stands alone because its rules genuinely are its own, and
 //! [`islamic_umalqura`] stands alone because a table is not an algorithm.
@@ -46,6 +53,12 @@
 //! stated rule gives, computed now. Where a published table exists, the
 //! crate compares itself against it and reports the disagreement rate in a
 //! test rather than quietly matching on the cases that happen to agree.
+//!
+//! The four calendars in [`japanese_historical`] are the exception that
+//! proves the rule: they *do* aim at what the bureau published, they are
+//! measured against 982 years of 内田正男『日本暦日原典』-derived table, and
+//! they agree with it on 96.4% to 99.1% of days. The README states every one
+//! of those rates, including the ones that are not 100%.
 //!
 //! # Example
 //!
@@ -79,6 +92,7 @@ pub mod islamic_astronomical;
 pub mod islamic_civil;
 pub mod islamic_observational;
 pub mod islamic_umalqura;
+pub mod japanese_historical;
 pub mod japanese_tenpo;
 pub mod lunisolar;
 pub mod tabular;
@@ -93,9 +107,14 @@ pub use islamic_observational::{
     IslamicObservationalCalendar, ObservationSite, VisibilityCriterion,
 };
 pub use islamic_umalqura::IslamicUmmAlQuraCalendar;
+pub use japanese_historical::horyaku::HoryakuCalendar;
+pub use japanese_historical::jokyo::JokyoCalendar;
+pub use japanese_historical::kansei::KanseiCalendar;
+pub use japanese_historical::senmyo::SenmyoCalendar;
 pub use japanese_tenpo::{JapaneseTenpoCalendar, JapaneseTenpoDate};
 pub use lunisolar::{
-    LunisolarCalendar, LunisolarDate, LunisolarParameters, MeridianEra, SolarTermMode,
+    ConjunctionMode, LunisolarCalendar, LunisolarDate, LunisolarParameters, MeanMotionModel,
+    MeridianEra, SolarTermMode,
 };
 pub use tabular::{IslamicDate, LeapYearRule, TabularIslamicCalendar};
 pub use vietnamese::{VietnameseCalendar, VietnameseDate};
@@ -134,6 +153,10 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::DangiCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::VietnameseCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::JapaneseTenpoCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::KanseiCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::HoryakuCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::JokyoCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::SenmyoCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::HebrewCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::IslamicCivilCalendar)));
         registry.insert(Box::new(DynAdapter::new(
@@ -157,7 +180,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 9);
+        assert_eq!(registry.len(), 13);
     }
 
     #[test]

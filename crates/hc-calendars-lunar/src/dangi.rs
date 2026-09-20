@@ -79,6 +79,7 @@ pub static PARAMETERS: LunisolarParameters = LunisolarParameters {
     epoch: CHINESE_EPOCH,
     year_offset: YEAR_OFFSET,
     solar_term_mode: SolarTermMode::Apparent,
+    mean_motion: None,
     earliest: Some(EARLIEST),
     latest: Some(LATEST),
 };
