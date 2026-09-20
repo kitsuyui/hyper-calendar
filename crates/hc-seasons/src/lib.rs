@@ -18,6 +18,10 @@
 //!   principal phases of a month, 十五夜 and 十三夜.
 //! * [`seasons`] — the four seasons, astronomical, meteorological and East
 //!   Asian.
+//! * [`zodiac`] — 黄道十二宮: the ecliptic cut into twelve, tropically
+//!   (the Western signs), siderally (the Indian rāśi, and the solar months
+//!   the Tamil, Bengali and Malayalam calendars take from them) and as the
+//!   Chinese 十二次.
 //! * [`lunisolar`] — a minimal month-and-day derivation that exists only
 //!   because 六曜 and 十五夜 need one, and that should be deleted when
 //!   `hc-calendars-lunar` lands.
@@ -72,6 +76,7 @@ pub mod rokuyo;
 pub mod seasons;
 pub mod solar_terms;
 pub mod zassetsu;
+pub mod zodiac;
 
 mod gregorian;
 
@@ -83,6 +88,10 @@ pub use rokuyo::Rokuyo;
 pub use seasons::{Hemisphere, Season, SeasonDefinition};
 pub use solar_terms::{SolarTerm, TermKind, TermOrder};
 pub use zassetsu::{Zassetsu, ZassetsuRule};
+pub use zodiac::{
+    Ayanamsa, ChineseStation, Element, Modality, Rashi, RulingPlanet, SiderealSign, SignPeriod,
+    SolarMonthTradition, TropicalSign,
+};
 
 pub use hc_astro;
 pub use hc_calendar;

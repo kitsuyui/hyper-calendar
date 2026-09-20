@@ -51,6 +51,16 @@ impl Meridian {
     /// Korea Standard Time, UTC+9, the meridian the Dangi calendar uses.
     pub const KOREA: Self = Self::from_seconds(9 * 3_600);
 
+    /// India Standard Time, UTC+5:30, the 82°30′E meridian.
+    ///
+    /// Unusually, India's civil offset *is* its reference meridian's local
+    /// mean time exactly: 82°30′ is 5½ hours east of Greenwich to the second.
+    /// The Calendar Reform Committee of 1955 fixed this meridian for the
+    /// national calendar, and the *Indian Astronomical Ephemeris* computes
+    /// the saṅkrānti — the Sun's entries into the sidereal signs — at it, so
+    /// it is the meridian for [`crate::zodiac::rashi`].
+    pub const INDIA: Self = Self::from_seconds(5 * 3_600 + 1_800);
+
     /// Beijing local mean time, 116°25′E, i.e. UTC+7:45:40.
     ///
     /// Chinese calendar dates before the 1929 switch to the 120° standard
@@ -162,8 +172,17 @@ mod tests {
         assert_eq!(Meridian::JAPAN.offset_seconds(), 32_400);
         assert_eq!(Meridian::CHINA.offset_seconds(), 28_800);
         assert_eq!(Meridian::KOREA, Meridian::JAPAN);
+        assert_eq!(Meridian::INDIA.offset_seconds(), 19_800);
         assert!((Meridian::JAPAN.offset_hours() - 9.0).abs() < 1e-12);
         assert!((Meridian::CHINA.offset_days() - 1.0 / 3.0).abs() < 1e-12);
+    }
+
+    /// India's civil offset is its reference meridian's mean solar time to
+    /// the second, which is not true of most countries.
+    #[test]
+    fn the_indian_meridian_is_exactly_five_and_a_half_hours_east() {
+        assert_eq!(Meridian::from_longitude_degrees(82.5), Meridian::INDIA);
+        assert!((Meridian::INDIA.offset_hours() - 5.5).abs() < 1e-12);
     }
 
     /// 1397/180 hours is the Beijing local mean time offset used for Chinese

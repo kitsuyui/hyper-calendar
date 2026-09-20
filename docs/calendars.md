@@ -134,7 +134,10 @@ Not calendars in their own right, but named subdivisions layered onto one.
 | Moon phases as a calendar layer | `hc-seasons` | Done |
 | 六曜 — rokuyō (先勝, 友引, 先負, 仏滅, 大安, 赤口) | `hc-seasons` | Done |
 | 十二直 and 二十八宿 | `hc-seasons` | Planned |
-| Western astrological signs (tropical) | `hc-seasons` | Planned |
+| 黄道十二宮 — Western zodiac signs (tropical), with periods | `hc-seasons` | Done |
+| Sidereal signs / rāśi, with the Lahiri and other ayanamsas | `hc-seasons` | Done |
+| Indian solar months (Tamil, Bengali, Malayalam) over the rāśi | `hc-seasons` | Done |
+| 十二次 — the Chinese twelvefold ecliptic division | `hc-seasons` | Done |
 | Traditional Irish/Gaelic quarter days | `hc-seasons` | Planned |
 
 ## Stage 6 — Non-terrestrial
@@ -168,3 +171,7 @@ Not calendars in their own right, but named subdivisions layered onto one.
 
 If step 1 makes you want to add a branch to shared logic, stop — see
 [policy.md](policy.md) §2.
+
+If two authorities disagree about what the calendar does, register both under
+their own identifiers rather than taking a parameter or picking a default —
+see [policy.md](policy.md) §5.
