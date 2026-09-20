@@ -1,0 +1,6 @@
+# typos configuration for this crate.
+#
+# "IST" is India Standard Time, the zone abbreviation Asia/Kolkata publishes
+# and the leading field of its POSIX TZ string. It is data, not prose.
+[default.extend-words]
+IST = "IST"
