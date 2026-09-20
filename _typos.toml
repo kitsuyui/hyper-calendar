@@ -1,17 +1,39 @@
 # typos is a source code spell checker
 # https://github.com/crate-ci/typos
-[default.extend-words]
-# Romanised calendar, astronomical and locale vocabulary that typos would
-# otherwise "correct" into unrelated English words.
-Ecclesiastical = "Ecclesiastical"
-Tebet = "Tebet"
-Nd = "Nd"
-BA = "BA"
-Ket = "Ket"
-Fro = "Fro"
-Wih = "Wih"
-Tage = "Tage"
-strat = "strat"
+#
+# This repository stores the world's calendar vocabulary as string data, so a
+# great many of its "words" are German, Dutch, Polish, Vietnamese, Bengali,
+# romanised Chinese or Japanese, or standards abbreviations that an English
+# dictionary would happily "correct" into unrelated words. Every entry below is
+# a real word or identifier in the language or standard it belongs to.
+#
+# typos does not merge nested configuration files, so this is the single place
+# where the whole workspace's vocabulary lives. Per-crate `_typos.toml` files
+# exist only so that a crate can be checked in isolation.
 
 [files]
 extend-exclude = ["Cargo.lock"]
+
+[default.extend-words]
+# German and Dutch month names.
+Januar = "Januar"
+Februar = "Februar"
+Juni = "Juni"
+Juli = "Juli"
+Oktober = "Oktober"
+Dezember = "Dezember"
+juni = "juni"
+juli = "juli"
+oktober = "oktober"
+# Polish "sierpień", abbreviated.
+sie = "sie"
+# Vietnamese "Thứ Ba", Tuesday.
+Ba = "Ba"
+# The CLDR identifier of the Bengali numbering system.
+beng = "beng"
+BENG = "BENG"
+# 干支, the sexagenary cycle, romanised from Japanese.
+eto = "eto"
+# India Standard Time, and the other zone abbreviations typos mistakes for
+# English words.
+IST = "IST"
