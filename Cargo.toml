@@ -8,6 +8,7 @@ members = [
     "crates/hc-calendars-regional",
     "crates/hc-astro",
     "crates/hc-seasons",
+    "crates/hc-almanac",
     "crates/hc-tz",
     "crates/hc-format",
     "crates/hc-i18n",
@@ -42,6 +43,7 @@ hc-calendars-lunar = { version = "0.1.0", path = "crates/hc-calendars-lunar", de
 hc-calendars-regional = { version = "0.1.0", path = "crates/hc-calendars-regional", default-features = false }
 hc-astro = { version = "0.1.0", path = "crates/hc-astro", default-features = false }
 hc-seasons = { version = "0.1.0", path = "crates/hc-seasons", default-features = false }
+hc-almanac = { version = "0.1.0", path = "crates/hc-almanac", default-features = false }
 hc-tz = { version = "0.1.0", path = "crates/hc-tz", default-features = false }
 hc-format = { version = "0.1.0", path = "crates/hc-format", default-features = false }
 hc-i18n = { version = "0.1.0", path = "crates/hc-i18n", default-features = false }

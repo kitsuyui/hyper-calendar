@@ -66,6 +66,7 @@ pub mod juche;
 pub mod julian;
 pub mod julian_day;
 pub mod julian_gregorian;
+pub mod koki;
 pub mod minguo;
 pub mod ordinal;
 pub mod persian;
@@ -91,6 +92,7 @@ pub use julian_day::{
     JulianDayCalendar, JulianDayNumber, ModifiedJulianDay, ModifiedJulianDayCalendar,
 };
 pub use julian_gregorian::{Adoption, ReformCalendar, ReformDate};
+pub use koki::{KokiCalendar, KokiDate};
 pub use minguo::{MinguoCalendar, MinguoDate};
 pub use ordinal::{OrdinalCalendar, OrdinalDate};
 pub use persian::{ArithmeticPersianCalendar, PersianDate};
@@ -133,6 +135,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::BuddhistCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::MinguoCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::JucheCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::KokiCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::HoloceneCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ByzantineCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::RomanCalendar)));
@@ -157,7 +160,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 22;
+const CALENDAR_COUNT: usize = 23;
 
 #[cfg(test)]
 mod tests {
