@@ -106,10 +106,19 @@
 //!
 //! # Features
 //!
-//! Everything here is `&'static` data and integer arithmetic, so the crate
-//! needs neither `std` nor `alloc` for any of its functionality. Both
-//! features exist only to propagate to the `hc-*` crates below it, and the
-//! crate builds and tests under `--no-default-features --features alloc`.
+//! Every table is `&'static` data and every lookup is an array index, so
+//! the tables need neither `std` nor `alloc`. The `std` and `alloc` features
+//! exist only to propagate to the `hc-*` crates below, and the crate builds
+//! under `--no-default-features --features alloc`.
+//!
+//! The one part that needs more is the Harvest Moon, because it reaches the
+//! astronomy. `hc_core::math` panics without a floating-point backend, so a
+//! `no_std` caller that wants [`moon_names::harvest_moon`],
+//! [`moon_names::september_moon_name`] or [`zodiac_stones::stones_on`] must
+//! also enable `hc-core/libm`. Everything else — all six birthstone lists,
+//! both flower lists, every month-name set, every weekday table and the
+//! moon-name tables themselves — works with `alloc` alone, because none of
+//! it computes anything.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]
@@ -179,21 +188,23 @@ mod tests {
         assert!(checked >= 20, "only {checked} authorities");
     }
 
+    /// Identifiers must be unique across the whole crate, not merely within
+    /// a module, because [`gaps`] and a caller's own index both key on them.
+    ///
+    /// The quadratic comparison is over twenty-five items and keeps the test
+    /// free of `alloc`, which the crate otherwise does not need.
     #[test]
     fn every_authority_identifier_is_unique_across_the_whole_crate() {
-        let ids: [&str; 24] = core::array::from_fn(|index| {
-            every_authority()
-                .nth(index)
-                .map_or("", |authority| authority.id)
-        });
-        for (position, id) in ids.iter().enumerate() {
-            if id.is_empty() {
-                continue;
-            }
-            for other in &ids[position + 1..] {
-                assert_ne!(id, other, "duplicate authority id {id}");
+        let total = authority_count();
+        for position in 0..total {
+            let Some(id) = every_authority().nth(position).map(|a| a.id) else {
+                panic!("authority_count() over-counts at {position}");
+            };
+            for other in every_authority().skip(position + 1) {
+                assert_ne!(id, other.id, "duplicate authority id {id}");
             }
         }
+        assert!(every_authority().nth(total).is_none());
     }
 
     /// A contested list must carry its caveat where a caller will meet it.
