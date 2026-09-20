@@ -37,3 +37,5 @@ eto = "eto"
 # India Standard Time, and the other zone abbreviations typos mistakes for
 # English words.
 IST = "IST"
+# 彼岸明け, the last day of the equinoctial week, romanised as "higan-ake".
+ake = "ake"
