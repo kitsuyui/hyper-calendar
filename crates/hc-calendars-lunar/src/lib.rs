@@ -102,3 +102,70 @@ pub use vietnamese::{VietnameseCalendar, VietnameseDate};
 
 pub use hc_astro;
 pub use hc_calendar;
+
+/// Registration of every calendar in this crate, for the dynamic registry.
+#[cfg(feature = "alloc")]
+mod registration {
+    extern crate alloc;
+
+    use alloc::boxed::Box;
+
+    use hc_calendar::{CalendarRegistry, DynAdapter};
+
+    /// Insert every calendar in this crate into a registry.
+    ///
+    /// The observational Hijri calendar is registered at its Mecca default.
+    /// It is a *prediction of a human decision* rather than a computation,
+    /// so a caller who cares about a particular country's announcements
+    /// should build an [`crate::IslamicObservationalCalendar`] with that
+    /// site and insert it themselves, replacing this entry.
+    ///
+    /// The tabular Hijri variants beyond the two canonical epochs are not
+    /// registered. They share the `islamic-civil` and `islamic-tbla`
+    /// identifiers with different leap-year rules, so registering them would
+    /// mean two calendars claiming one name; construct them directly from
+    /// [`crate::TabularIslamicCalendar`] when a specific scheme is wanted.
+    ///
+    /// Inserting is idempotent: a second call replaces rather than
+    /// duplicates, since [`CalendarRegistry::insert`] keys on the calendar's
+    /// identifier.
+    pub fn register_all(registry: &mut CalendarRegistry) {
+        registry.insert(Box::new(DynAdapter::new(crate::ChineseCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::DangiCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::VietnameseCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::JapaneseTenpoCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::HebrewCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::IslamicCivilCalendar)));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::IslamicAstronomicalCalendar,
+        )));
+        registry.insert(Box::new(DynAdapter::new(crate::IslamicUmmAlQuraCalendar)));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::IslamicObservationalCalendar::MECCA,
+        )));
+    }
+}
+
+#[cfg(feature = "alloc")]
+pub use registration::register_all;
+
+#[cfg(all(test, feature = "alloc"))]
+mod registration_tests {
+    use hc_calendar::CalendarRegistry;
+
+    #[test]
+    fn every_calendar_registers_under_a_distinct_identifier() {
+        let mut registry = CalendarRegistry::new();
+        super::register_all(&mut registry);
+        assert_eq!(registry.len(), 9);
+    }
+
+    #[test]
+    fn registering_twice_replaces_rather_than_duplicates() {
+        let mut registry = CalendarRegistry::new();
+        super::register_all(&mut registry);
+        let first = registry.len();
+        super::register_all(&mut registry);
+        assert_eq!(registry.len(), first);
+    }
+}

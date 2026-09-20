@@ -17,8 +17,13 @@ name = "hyper_calendar"
 crate-type = ["cdylib", "staticlib", "rlib"]
 
 [features]
-default = ["full"]
-full = ["hyper-calendar/full"]
+default = ["civil"]
+civil = ["hc/civil"]
+full = ["hc/full"]
 
 [dependencies]
-hyper-calendar = { workspace = true, features = ["std"] }
+# Aliased to `hc` because this crate's own library is named `hyper_calendar`
+# so that the artifact is `libhyper_calendar.{so,dylib,dll}`, which is what a
+# C caller expects to link. Without the alias the two share an extern name and
+# rustdoc cannot tell them apart.
+hc = { package = "hyper-calendar", version = "0.1.0", path = "../hyper-calendar", default-features = false, features = ["std"] }
