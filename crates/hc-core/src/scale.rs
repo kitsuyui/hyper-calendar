@@ -215,8 +215,9 @@ fn add_small_offset(base: Duration, offset_secs: f64) -> Duration {
 /// `tt_secs` is a TT reading in seconds from the 1970 epoch.
 #[must_use]
 pub fn tdb_minus_tt_secs(tt_secs: f64) -> f64 {
-    // Julian centuries of TT from J2000.0 (= 946_727_935.816 s on this epoch).
-    let centuries = (tt_secs - 946_727_935.816) / (36_525.0 * 86_400.0);
+    // Julian centuries of TT from J2000.0, whose TT reading on this epoch is
+    // exactly 946_728_000 s. See `crate::epoch::J2000`.
+    let centuries = (tt_secs - 946_728_000.0) / (36_525.0 * 86_400.0);
     0.001_657 * math::sin(628.307_6 * centuries + 6.240_1)
         + 0.000_022 * math::sin(575.338_5 * centuries + 4.297_0)
         + 0.000_014 * math::sin(1_256.615_2 * centuries + 6.196_9)

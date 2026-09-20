@@ -45,9 +45,11 @@ pub const GPS: Epoch = Epoch {
 pub const J2000: Epoch = Epoch {
     id: "j2000",
     description: "J2000.0, 2000-01-01T12:00:00 TT",
-    // 2000-01-01T12:00:00 TT is 946_727_967.816 s after 1970-01-01T00:00:00 TT,
-    // and TT - TAI is 32.184 s exactly.
-    tai_reading: Duration::from_attos(946_727_935_632_000_000_000_000_000),
+    // 2000-01-01T12:00:00 TT is exactly 946_728_000 s after
+    // 1970-01-01T00:00:00 TT: 10_957 days of 86_400 s plus twelve hours. The
+    // same event's TAI label is 11:59:27.816, because TT - TAI is 32.184 s
+    // exactly, so the TAI reading is 32.184 s less.
+    tai_reading: Duration::from_attos(946_727_967_816_000_000_000_000_000),
 };
 
 /// `1977-01-01T00:00:00 TAI`, the origin of TCG and TCB.
@@ -142,11 +144,23 @@ mod tests {
 
     #[test]
     fn j2000_reads_noon_on_the_first_of_january_in_tt() {
+        // 10_957 days from 1970-01-01 to 2000-01-01, plus twelve hours. The
+        // round number is the point: if the epoch is right, the TT reading is
+        // exact, and any slip shows up immediately.
         let tt: Instant<Tt> = J2000.instant().convert();
-        assert_eq!(
-            tt.since_epoch(),
-            Duration::from_secs(946_727_967) + Duration::from_millis(816)
-        );
+        assert_eq!(tt.since_epoch(), Duration::from_secs(946_728_000));
+    }
+
+    #[test]
+    fn j2000_agrees_with_the_utc_path() {
+        // The same instant reached the other way: 2000-01-01T12:00:00 TT is
+        // 11:59:27.816 TAI, and TAI - UTC was 32 s in 2000, so it is
+        // 11:58:55.816 UTC. Deriving the epoch through the leap-second table
+        // instead of through the TT offset is what catches a constant that
+        // was built by applying the wrong correction in the wrong direction.
+        let unix = crate::unix::UnixTime::new(946_727_935, 816_000_000_000_000_000).unwrap();
+        let from_utc = crate::unix::tai_from_unix(unix, crate::unix::LeapPolicy::Strict).unwrap();
+        assert_eq!(from_utc, J2000.instant());
     }
 
     #[test]
