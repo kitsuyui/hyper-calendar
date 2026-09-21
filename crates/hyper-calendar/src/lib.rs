@@ -26,6 +26,9 @@
 //! | `regional` | [`hc_calendars_regional`] | Japanese eras, Maya, Pawukon |
 //! | `astro` | [`hc_astro`] | Solar longitude, phases, rise and set |
 //! | `seasons` | [`hc_seasons`] | 24 solar terms, 72 pentads, zassetsu |
+//! | `almanac` | [`hc_almanac`] | 六曜, 二十八宿, 九星, 暦注下段, 選日 |
+//! | `fiscal` | [`hc_fiscal`] | 年度, fiscal, tax and academic years |
+//! | `attributes` | [`hc_attributes`] | Birthstones, birth flowers, moon names |
 //! | `tz` | [`hc_tz`] | Time zones |
 //! | `humanize` | [`hc_humanize`] | "3 days ago" |
 //! | `holiday` | [`hc_holiday`] | Holidays and observances |
@@ -73,14 +76,20 @@ pub use hc_calendar::{
 #[cfg(feature = "civil")]
 pub mod civil;
 
+#[cfg(feature = "almanac")]
+pub use hc_almanac;
 #[cfg(feature = "astro")]
 pub use hc_astro;
+#[cfg(feature = "attributes")]
+pub use hc_attributes;
 #[cfg(feature = "lunar")]
 pub use hc_calendars_lunar;
 #[cfg(feature = "regional")]
 pub use hc_calendars_regional;
 #[cfg(feature = "deep-time")]
 pub use hc_deep_time;
+#[cfg(feature = "fiscal")]
+pub use hc_fiscal;
 #[cfg(feature = "format")]
 pub use hc_format;
 #[cfg(feature = "holiday")]

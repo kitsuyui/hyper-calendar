@@ -103,9 +103,13 @@ impl SolarMonthTradition {
     /// Siṃha for the Malayalam one, in mid-August.
     #[must_use]
     pub const fn year_opening_month(self) -> Rashi {
+        // Exhaustive on purpose. A `_` arm here would give a new tradition
+        // Meṣa by default and a wrong month ordinal for all twelve signs,
+        // confidently — which policy §3 rates worse than a refusal. Every
+        // sibling match in this module is exhaustive for the same reason.
         match self {
+            Self::Sanskrit | Self::Tamil | Self::Bengali => SiderealSign::MESHA,
             Self::Malayalam => SiderealSign::SIMHA,
-            _ => SiderealSign::MESHA,
         }
     }
 }

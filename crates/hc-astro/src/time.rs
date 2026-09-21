@@ -245,29 +245,24 @@ pub fn centuries_from_dynamical_julian_date(julian_date: f64) -> f64 {
 
 /// The fixed day on which a proleptic Gregorian year begins.
 ///
-/// This crate cannot ask `hc-calendars-solar` for this: the solar calendars
-/// depend on the astronomy, not the other way round, so the twenty lines of
-/// Gregorian arithmetic are repeated here deliberately. The formula is the
-/// one in Reingold & Dershowitz, *Calendrical Calculations*, 4th ed., §2.2.
+/// An adapter over [`hc_calendar::gregorian::new_year`], which owns this
+/// arithmetic. An earlier version of this module implemented it here, on the
+/// grounds that "this crate cannot ask `hc-calendars-solar` for this: the
+/// solar calendars depend on the astronomy, not the other way round." That
+/// was true and beside the point — the owner is `hc-calendar`, which this
+/// crate already depends on, and which the solar calendars depend on too.
 #[must_use]
-pub fn gregorian_new_year(year: i64) -> Rd {
-    let y = year - 1;
-    Rd(365 * y + y.div_euclid(4) - y.div_euclid(100) + y.div_euclid(400) + 1)
+pub const fn gregorian_new_year(year: i64) -> Rd {
+    hc_calendar::gregorian::new_year(year)
 }
 
 /// The proleptic Gregorian year containing a fixed day.
+///
+/// An adapter over [`hc_calendar::gregorian::year_from_fixed`]; see
+/// [`gregorian_new_year`].
 #[must_use]
-pub fn gregorian_year_from_rd(rd: Rd) -> i64 {
-    let d0 = rd.0 - 1;
-    let n400 = d0.div_euclid(146_097);
-    let d1 = d0.rem_euclid(146_097);
-    let n100 = d1.div_euclid(36_524);
-    let d2 = d1.rem_euclid(36_524);
-    let n4 = d2.div_euclid(1_461);
-    let d3 = d2.rem_euclid(1_461);
-    let n1 = d3.div_euclid(365);
-    let year = 400 * n400 + 100 * n100 + 4 * n4 + n1;
-    if n100 == 4 || n1 == 4 { year } else { year + 1 }
+pub const fn gregorian_year_from_rd(rd: Rd) -> i64 {
+    hc_calendar::gregorian::year_from_fixed(rd)
 }
 
 /// A moment as a decimal Gregorian year, e.g. 2000.5 for midsummer 2000.

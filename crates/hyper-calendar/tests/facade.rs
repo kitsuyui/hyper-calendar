@@ -1,0 +1,67 @@
+//! Every feature that compiles a crate in must also give a way to reach it.
+//!
+//! This file exists because four features did not. `almanac`, `fiscal`,
+//! `attributes` and `units` each declared an optional dependency, appeared in
+//! `full`, and had no `pub use` — so enabling them paid the compile cost of a
+//! crate the caller then had no path to. Nothing caught it, because a missing
+//! re-export is not a compile error anywhere.
+//!
+//! It is one now. Each check below names a real item in its crate, so the
+//! test fails to compile if the re-export goes away, and fails to *link* if
+//! the item is renamed. That is stronger than listing the module paths,
+//! which would pass against an empty re-export.
+
+#![expect(
+    clippy::assertions_on_constants,
+    reason = "the assertions are compile-time reachability checks; their \
+              runtime value is incidental"
+)]
+
+#[test]
+#[cfg(feature = "units")]
+fn the_units_feature_reaches_its_crate() {
+    use hyper_calendar::hc_units;
+    assert_eq!(
+        hc_units::unit::HOUR.seconds,
+        hc_units::Ratio::from_secs(3600)
+    );
+    // And through the prelude, which is the path most callers take.
+    use hyper_calendar::prelude::Unit;
+    let _: Unit = hc_units::unit::SECOND;
+}
+
+#[test]
+#[cfg(feature = "almanac")]
+fn the_almanac_feature_reaches_its_crate() {
+    use hyper_calendar::hc_almanac;
+    let _ = hc_almanac::rokuyo::rokuyo(hc_almanac::Rd(738_886), hc_almanac::Meridian::JAPAN);
+}
+
+#[test]
+#[cfg(feature = "fiscal")]
+fn the_fiscal_feature_reaches_its_crate() {
+    use hyper_calendar::hc_fiscal;
+    // Japan's 年度, the example that put this crate in the workspace.
+    assert!(!hc_fiscal::countries::ALL.is_empty());
+}
+
+#[test]
+#[cfg(feature = "attributes")]
+fn the_attributes_feature_reaches_its_crate() {
+    use hyper_calendar::hc_attributes;
+    assert!(hc_attributes::authority_count() > 0);
+}
+
+#[test]
+#[cfg(feature = "relativity")]
+fn the_relativity_feature_reaches_its_crate() {
+    use hyper_calendar::hc_relativity;
+    assert!(hc_relativity::lorentz_factor(0.6).is_ok());
+}
+
+#[test]
+#[cfg(feature = "deep-time")]
+fn the_deep_time_feature_reaches_its_crate() {
+    use hyper_calendar::hc_deep_time;
+    assert!(hc_deep_time::GALACTIC_YEAR.julian_years > 0.0);
+}

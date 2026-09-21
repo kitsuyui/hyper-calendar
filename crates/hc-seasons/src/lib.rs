@@ -22,9 +22,9 @@
 //!   (the Western signs), siderally (the Indian rāśi, and the solar months
 //!   the Tamil, Bengali and Malayalam calendars take from them) and as the
 //!   Chinese 十二次.
-//! * [`lunisolar`] — a minimal month-and-day derivation that exists only
-//!   because 六曜 and 十五夜 need one, and that should be deleted when
-//!   `hc-calendars-lunar` lands.
+//! * [`lunisolar`] — a minimal month-and-day derivation, kept rather than
+//!   routed through `hc-calendars-lunar` for measured reasons the module
+//!   itself records.
 //!
 //! # A day is not an instant, and a meridian is not optional
 //!

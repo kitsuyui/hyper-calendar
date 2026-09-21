@@ -10,12 +10,18 @@
 //! on 大安 and funeral parlours close on 友引, so a library that gets this
 //! wrong is wrong about something with money attached.
 //!
-//! # The dependency this module should not have
+//! # Where the lunisolar date comes from
 //!
 //! 六曜 is a function of the lunisolar month and day, so it needs a lunisolar
-//! calendar. `hc-calendars-lunar` is the crate that will own one; until it
-//! exists, [`crate::lunisolar`] carries a minimal derivation and this module
-//! calls it. When `hc-calendars-lunar` lands, re-point both.
+//! calendar, and this module calls [`crate::lunisolar`]'s minimal derivation
+//! rather than `hc-calendars-lunar`'s full one.
+//!
+//! An earlier version of this note said to re-point it once
+//! `hc-calendars-lunar` landed. It has landed, and the answer turned out to
+//! be no: see [`crate::lunisolar`] for the measurement. Routing through the
+//! real calendar makes every 六曜 pay for a new-moon search, and routing only
+//! some of this crate's annotations through it makes them contradict each
+//! other.
 //!
 //! # Before 1873
 //!

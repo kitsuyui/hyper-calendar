@@ -12,7 +12,8 @@
 //! The practical reason is sharper. Five crates had grown their own private
 //! copy of these six functions, each with its own tests — `hc-tz` for POSIX
 //! transition rules, `hc-seasons` and `hc-attributes` for month arithmetic,
-//! `hc-calendars-lunar` for its epochs, `hc-planetary` for landing dates.
+//! `hc-calendars-lunar` for its epochs, `hc-planetary` for landing dates,
+//! `hc-astro` for the start of a solar year.
 //! Each was written because the crate could not depend on
 //! `hc-calendars-solar` without inverting the layering or waiting for it to
 //! exist. Every one of them said in a comment that it should be deleted
@@ -62,10 +63,34 @@ pub const fn days_in_year(year: i64) -> u16 {
     if is_leap_year(year) { 366 } else { 365 }
 }
 
+/// The earliest year this implementation converts.
+///
+/// The bound is what keeps `365 * year` inside `i64`. Without it
+/// [`to_fixed`] overflows and panics — a `Result`-returning function that
+/// aborts before it can return its error, which policy §8 forbids. The
+/// constant used to live only in `hc-calendars-solar`, so its callers were
+/// safe and this crate's were not.
+pub const MIN_YEAR: i64 = -9_999_999;
+
+/// The latest year this implementation converts.
+pub const MAX_YEAR: i64 = 9_999_999;
+
+/// Whether a year is one this module will convert.
+#[must_use]
+pub const fn year_in_range(year: i64) -> bool {
+    year >= MIN_YEAR && year <= MAX_YEAR
+}
+
 /// The fixed day of 1 January of `year`.
 ///
 /// Uses the proleptic Gregorian rule in both directions, so it is defined for
 /// negative years as well.
+///
+/// # Panics
+///
+/// Outside [`MIN_YEAR`]..=[`MAX_YEAR`] the multiplication overflows. Callers
+/// that take a year from outside the library should check
+/// [`year_in_range`] first, or use [`to_fixed`], which checks.
 #[must_use]
 pub const fn new_year(year: i64) -> Rd {
     let previous = year - 1;
@@ -80,9 +105,13 @@ pub const fn new_year(year: i64) -> Rd {
 ///
 /// # Errors
 ///
-/// Returns [`CalendarError::MonthOutOfRange`] or
+/// Returns [`CalendarError::YearOutOfRange`] outside
+/// [`MIN_YEAR`]..=[`MAX_YEAR`], and [`CalendarError::MonthOutOfRange`] or
 /// [`CalendarError::DayOutOfRange`] when the date does not exist.
 pub const fn to_fixed(year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
+    if !year_in_range(year) {
+        return Err(CalendarError::YearOutOfRange);
+    }
     let length = match days_in_month(year, month) {
         Some(length) => length,
         None => return Err(CalendarError::MonthOutOfRange),
@@ -165,6 +194,34 @@ pub const fn day_of_year(year: i64, month: u8, day: u8) -> CalendarResult<u16> {
 mod tests {
     use super::*;
     use crate::weekday::Weekday;
+
+    /// `to_fixed` returns a `Result`, so it must not abort before returning
+    /// one. It used to: the year bound that stops `365 * year` overflowing
+    /// lived in `hc-calendars-solar`, so a year past it reached the
+    /// multiplication here and panicked.
+    #[test]
+    fn a_year_past_the_bound_is_an_error_and_not_a_panic() {
+        assert_eq!(
+            to_fixed(MAX_YEAR + 1, 1, 1),
+            Err(CalendarError::YearOutOfRange)
+        );
+        assert_eq!(
+            to_fixed(MIN_YEAR - 1, 1, 1),
+            Err(CalendarError::YearOutOfRange)
+        );
+        assert_eq!(
+            to_fixed(3_000_000_000_000_000, 1, 1),
+            Err(CalendarError::YearOutOfRange)
+        );
+        assert_eq!(
+            to_fixed(i64::MAX, 12, 31),
+            Err(CalendarError::YearOutOfRange)
+        );
+        assert_eq!(to_fixed(i64::MIN, 1, 1), Err(CalendarError::YearOutOfRange));
+        // And the bounds themselves still convert.
+        assert!(to_fixed(MAX_YEAR, 12, 31).is_ok());
+        assert!(to_fixed(MIN_YEAR, 1, 1).is_ok());
+    }
 
     #[test]
     fn the_epoch_is_the_first_of_january_of_year_one() {

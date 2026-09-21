@@ -26,14 +26,12 @@ use hc_calendar::{
 
 use crate::common;
 
-/// The earliest year this implementation converts.
+/// The year bounds, re-exported from the crate that owns this arithmetic.
 ///
-/// The bound exists so that `365 * year` cannot overflow `i64` and so that
-/// `from_fixed` can reject nonsense rather than wrapping.
-pub const MIN_YEAR: i64 = -9_999_999;
-
-/// The latest year this implementation converts.
-pub const MAX_YEAR: i64 = 9_999_999;
+/// They were defined here, which meant this crate rejected an out-of-range
+/// year and `hc_calendar::gregorian` panicked on one. The bound belongs with
+/// the multiplication it protects.
+pub use hc_calendar::gregorian::{MAX_YEAR, MIN_YEAR};
 
 /// Whether `year` is a Gregorian leap year.
 ///

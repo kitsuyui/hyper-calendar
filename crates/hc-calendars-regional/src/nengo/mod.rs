@@ -234,14 +234,49 @@ pub const fn is_nanbokucho(rd: Rd) -> bool {
 /// Look an era up by its identifier, kanji, hiragana reading or Hepburn
 /// romanisation.
 ///
-/// A bare romanisation that collides — `"showa"` is both 正和 and 昭和 —
-/// resolves to whichever era kept the plain identifier; use the kanji or
-/// the year-suffixed identifier to be explicit.
+/// A bare romanisation or reading that collides — `"Showa"` and `"しょうわ"`
+/// are both 正和 (1312) and 昭和 (1926) — resolves to whichever era kept the
+/// plain identifier, here 昭和; use the kanji or the year-suffixed
+/// identifier (`showa-1312`) to name the other one.
+///
+/// Some collisions have no winner: 弘安 and 康安 are both `Koan`, and the
+/// table gives both a year suffix, so neither kept a plain `koan`. There the
+/// earlier era answers and the caller has to be explicit.
+///
+/// The passes matter. Identifiers and kanji are unique across the whole
+/// table, so they are searched first and completely; only then are the
+/// ambiguous romanisations and readings tried. Searching all four fields in
+/// one pass over a chronologically ordered table would hand every collision
+/// to the *earlier* era, which for 昭和 is six centuries wrong and is what
+/// this function used to do.
 #[must_use]
 pub fn find(name: &str) -> Option<&'static Nengo> {
-    ALL.iter().find(|era| {
-        era.id == name || era.kanji == name || era.reading == name || era.romaji == name
-    })
+    if let Some(exact) = ALL.iter().find(|era| era.id == name || era.kanji == name) {
+        return Some(exact);
+    }
+    let mut ambiguous = ALL
+        .iter()
+        .filter(|era| era.reading == name || era.romaji == name);
+    let first = ambiguous.next()?;
+    if !is_year_suffixed(first.id) {
+        return Some(first);
+    }
+    // The first match carries a year suffix, so it is the era that lost the
+    // plain identifier. Look for the one that kept it before settling.
+    Some(
+        ambiguous
+            .find(|era| !is_year_suffixed(era.id))
+            .unwrap_or(first),
+    )
+}
+
+/// Whether an identifier carries the `-YYYY` suffix that marks the era which
+/// lost a romanisation collision, as `showa-1312` did to `showa`.
+fn is_year_suffixed(id: &str) -> bool {
+    match id.rsplit_once('-') {
+        Some((_, tail)) => tail.len() == 4 && tail.bytes().all(|byte| byte.is_ascii_digit()),
+        None => false,
+    }
 }
 
 /// Look an era up by its kanji, which is unique across the whole table.
@@ -322,6 +357,56 @@ mod tests {
     use hc_calendars_solar::{gregorian, julian};
 
     use super::*;
+
+    /// The identifier and kanji namespaces have to be unique for `find` to
+    /// be able to resolve a collision at all, so that is checked here rather
+    /// than assumed by the function that relies on it.
+    #[test]
+    fn identifiers_and_kanji_are_unique_across_the_table() {
+        for (index, era) in ALL.iter().enumerate() {
+            for other in &ALL[index + 1..] {
+                assert_ne!(era.id, other.id, "duplicate id {}", era.id);
+                assert_ne!(era.kanji, other.kanji, "duplicate kanji {}", era.kanji);
+            }
+        }
+    }
+
+    /// Twelve romanisations and twelve readings are shared by two eras each.
+    /// Every one of them used to resolve to the earlier era, because the
+    /// search ran over a chronologically ordered table in a single pass.
+    #[test]
+    fn a_colliding_romanisation_resolves_to_the_era_that_kept_the_plain_id() {
+        // 昭和 (1926) keeps `showa`; 正和 (1312) is `showa-1312`.
+        let showa = find("Showa").expect("Showa is an era");
+        assert_eq!(showa.kanji, "昭和");
+        assert_eq!(showa.id, "showa");
+        assert_eq!(find("しょうわ").map(|era| era.kanji), Some("昭和"));
+        assert_eq!(find("showa-1312").map(|era| era.kanji), Some("正和"));
+        assert_eq!(find("正和").map(|era| era.id), Some("showa-1312"));
+
+        // 弘安 (1278) and 康安 (1361) are both `Koan` and the table suffixes
+        // both, so there is no plain identifier to prefer and the earlier era
+        // answers. Asserted so that giving one of them a plain `koan` later
+        // is a deliberate change rather than a silent one.
+        assert_eq!(find("Koan").map(|era| era.id), Some("koan-1278"));
+        assert_eq!(find("康安").map(|era| era.id), Some("koan-1361"));
+    }
+
+    /// The property the two passes are for, over the whole table: a bare id
+    /// always finds the era that owns it, whatever else shares its
+    /// romanisation.
+    #[test]
+    fn every_era_is_findable_by_its_own_identifier() {
+        for era in ALL {
+            assert_eq!(
+                find(era.id).map(|found| found.kanji),
+                Some(era.kanji),
+                "{} did not find itself",
+                era.id
+            );
+            assert_eq!(find(era.kanji).map(|found| found.id), Some(era.id));
+        }
+    }
 
     #[test]
     fn the_table_holds_all_two_hundred_and_forty_eight_eras() {
