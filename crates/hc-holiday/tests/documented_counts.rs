@@ -12,11 +12,13 @@ use hc_holiday::{CalendarSystem, Rule, countries, traditions};
 /// Whether a rule is dated in a Hijri calendar, following `Offset` down to
 /// the rule it shifts.
 fn uses_hijri(rule: &Rule) -> bool {
+    // Compared by identifier, because a `CalendarSystem` is now a struct
+    // carrying function pointers and those cannot appear in a pattern.
     match rule {
-        Rule::FixedInCalendar { system, .. } => matches!(
-            system,
-            CalendarSystem::IslamicCivil | CalendarSystem::IslamicUmmAlQura
-        ),
+        Rule::FixedInCalendar { system, .. } => {
+            *system == CalendarSystem::ISLAMIC_CIVIL
+                || *system == CalendarSystem::ISLAMIC_UMM_AL_QURA
+        }
         Rule::Offset { base, .. } => uses_hijri(base),
         _ => false,
     }
@@ -46,5 +48,5 @@ fn hijri_dates_appear_in_the_number_of_countries_the_readme_states() {
 
 #[test]
 fn the_tradition_count_is_the_one_the_readme_states() {
-    assert_eq!(traditions::ALL.len(), 6);
+    assert_eq!(traditions::ALL.len(), 7);
 }
