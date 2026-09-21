@@ -182,6 +182,22 @@ pub struct DateFields {
     pub month: Option<Month>,
     /// The day within the month, counting from 1.
     pub day: Option<u8>,
+    /// Whether this is the intercalary repetition of [`DateFields::day`].
+    ///
+    /// The day analogue of [`Month::leap`], and needed for the same reason.
+    /// Several calendars occasionally repeat a day number rather than a month
+    /// number: the Tibetan *lhag* day, the Hindu *adhika tithi*, and the
+    /// Balinese *ngunaratri* adjustment all produce two consecutive fixed
+    /// days that a calendar names identically.
+    ///
+    /// Without this flag those two days round-trip to the same fields, which
+    /// breaks the contract [`crate::Calendar`] states — `from_fixed` after
+    /// `to_fixed` would return the wrong one of the pair. Most calendars
+    /// leave it `false` and never think about it.
+    ///
+    /// The opposite case, a day number that is *skipped*, needs no
+    /// representation: a date that does not exist is simply an error.
+    pub leap_day: bool,
     /// Calendar-specific fields.
     pub extra: ExtraFields,
 }
@@ -201,6 +217,7 @@ impl DateFields {
             year,
             month: None,
             day: None,
+            leap_day: false,
             extra: ExtraFields::new(),
         }
     }
@@ -213,6 +230,7 @@ impl DateFields {
             year,
             month: Some(Month::regular(month)),
             day: Some(day),
+            leap_day: false,
             extra: ExtraFields::new(),
         }
     }
@@ -225,8 +243,18 @@ impl DateFields {
             year,
             month: Some(Month::leap(month)),
             day: Some(day),
+            leap_day: false,
             extra: ExtraFields::new(),
         }
+    }
+
+    /// The same date marked as the intercalary repetition of its day.
+    ///
+    /// See [`DateFields::leap_day`] for when a calendar needs this.
+    #[must_use]
+    pub const fn as_leap_day(mut self) -> Self {
+        self.leap_day = true;
+        self
     }
 
     /// The same date tagged with an era.
@@ -325,6 +353,53 @@ mod tests {
         assert_eq!(fields.era, Some("reiwa"));
         assert_eq!(fields.month, Some(Month::regular(4)));
         assert_eq!(fields.day, Some(29));
+        assert_eq!(fields.extra.get("cycle"), Some(60));
+    }
+}
+
+#[cfg(test)]
+mod leap_day_tests {
+    use super::*;
+
+    #[test]
+    fn a_repeated_day_is_distinguishable_from_the_day_it_repeats() {
+        let ordinary = DateFields::ymd(2026, 3, 15);
+        let repeated = DateFields::ymd(2026, 3, 15).as_leap_day();
+        assert!(!ordinary.leap_day);
+        assert!(repeated.leap_day);
+        // This is the whole point: two fixed days that a calendar names the
+        // same way must not compare equal, or `from_fixed(to_fixed(d))`
+        // cannot return the right one of the pair.
+        assert_ne!(ordinary, repeated);
+    }
+
+    #[test]
+    fn ordinary_constructors_do_not_mark_a_leap_day() {
+        assert!(!DateFields::new(2026).leap_day);
+        assert!(!DateFields::ymd(2026, 1, 1).leap_day);
+        assert!(!DateFields::ymd_leap_month(2026, 4, 1).leap_day);
+    }
+
+    #[test]
+    fn the_leap_month_and_leap_day_flags_are_independent() {
+        // The Tibetan calendar can have both in one year, and a date could
+        // in principle be a repeated day inside a repeated month.
+        let both = DateFields::ymd_leap_month(2026, 4, 15).as_leap_day();
+        assert!(both.month.unwrap().leap);
+        assert!(both.leap_day);
+        assert_ne!(both, DateFields::ymd_leap_month(2026, 4, 15));
+        assert_ne!(both, DateFields::ymd(2026, 4, 15).as_leap_day());
+    }
+
+    #[test]
+    fn the_builder_composes_with_the_others() {
+        let fields = DateFields::ymd(5, 4, 29)
+            .as_leap_day()
+            .with_era("reiwa")
+            .with_extra("cycle", 60)
+            .unwrap();
+        assert!(fields.leap_day);
+        assert_eq!(fields.era, Some("reiwa"));
         assert_eq!(fields.extra.get("cycle"), Some(60));
     }
 }

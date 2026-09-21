@@ -464,6 +464,7 @@ impl Calendar for MayaLongCountCalendar {
             year: date.baktun,
             month: None,
             day: None,
+            leap_day: false,
             extra,
         })
     }
@@ -522,6 +523,7 @@ impl Calendar for MayaTzolkinCalendar {
             year: date.round,
             month: None,
             day: None,
+            leap_day: false,
             extra,
         })
     }
@@ -582,6 +584,7 @@ impl Calendar for MayaHaabCalendar {
             year: date.round,
             month: Some(Month::regular(date.position.month)),
             day: Some(date.position.day.saturating_add(1)),
+            leap_day: false,
             extra: ExtraFields::new(),
         })
     }
@@ -673,6 +676,7 @@ impl Calendar for MayaCalendarRoundCalendar {
             year: date.round,
             month: Some(Month::regular(date.haab.month)),
             day: Some(date.haab.day.saturating_add(1)),
+            leap_day: false,
             extra,
         })
     }

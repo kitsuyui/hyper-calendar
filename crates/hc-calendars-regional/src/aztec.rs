@@ -304,6 +304,7 @@ impl Calendar for AztecTonalpohualliCalendar {
             year: date.round,
             month: None,
             day: None,
+            leap_day: false,
             extra,
         })
     }
@@ -358,6 +359,7 @@ impl Calendar for AztecXiuhpohualliCalendar {
             year: date.round,
             month: Some(Month::regular(date.position.month)),
             day: Some(date.position.day),
+            leap_day: false,
             extra: ExtraFields::new(),
         })
     }
