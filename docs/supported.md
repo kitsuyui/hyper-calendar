@@ -147,10 +147,11 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-8 tables, feature `holiday`.
+9 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
+| `bahai` | Bahá'í Faith | 15 |
 | `buddhist` | Buddhism | 9 |
 | `chinese-folk` | Chinese folk tradition | 11 |
 | `christian-orthodox` | Christianity (Julian computus) | 18 |

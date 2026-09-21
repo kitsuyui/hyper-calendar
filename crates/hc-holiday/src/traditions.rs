@@ -17,12 +17,16 @@
 //! | --- | --- | --- |
 //! | Christian, Western | Gregorian computus, Gregorian fixed feasts | exact |
 //! | Christian, Orthodox | Julian computus, Julian fixed feasts | exact as stated; churches on the Revised Julian calendar keep the fixed feasts thirteen days earlier |
+//! | Ethiopian Orthodox | Ethiopic calendar; the Bahire Hasab cycle as offsets from the Julian-computus Pascha | exact as stated; a feast kept on a fixed Gregorian date by practice is not modelled |
+//! | Coptic Orthodox | Coptic calendar; the paschal cycle as offsets from the Julian-computus Pascha | exact |
 //! | Islamic | tabular civil Hijri | **approximate** — the observed date is a sighting decision |
 //! | Jewish | arithmetic Hebrew calendar | exact; the day begins at the preceding sunset, which this crate does not model |
+//! | Bahá'í | arithmetic Badíʿ calendar; the Twin Holy Birthdays from the Bahá'í World Centre table | **approximate** for every Badíʿ-dated day, because the calendar kept since 172 BE begins on the Tehran equinox and the arithmetic one on 21 March; exact for the tabulated birthdays, 2015–2064, and a reported gap after |
 //! | Buddhist | approximated from the Chinese lunisolar calendar | **approximate** — see [`BUDDHIST`] |
 //! | Chinese folk | Chinese lunisolar calendar and the solar terms | exact to the astronomical model |
 
 use hc_calendar::Weekday;
+use hc_calendars_solar::{bahai, gregorian};
 use hc_seasons::{Meridian, SolarTerm};
 
 use crate::computus::offsets::{
@@ -30,7 +34,9 @@ use crate::computus::offsets::{
     GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY, PALM_SUNDAY, PENTECOST, SACRED_HEART,
     TRINITY_SUNDAY, WHIT_MONDAY,
 };
-use crate::rule::{CalendarSystem, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
+use crate::rule::{
+    CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
+};
 
 /// 清明, the fifth solar term.
 const QINGMING: SolarTerm = match SolarTerm::from_degrees(15) {
@@ -505,6 +511,184 @@ pub static JEWISH: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// The Bahá'í Faith
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A holy day dated in the Badíʿ calendar: a prediction, because the Badíʿ
+/// calendar this crate has is the arithmetic Western one and the calendar
+/// kept since 172 BE is astronomical. See [`BAHAI`].
+const fn badi(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    feast(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::BADI, month, day),
+    )
+    .approximate()
+}
+
+/// The Birth of the Báb since 172 BE, from the Bahá'í World Centre's table
+/// of Badíʿ dates for 172–221 BE (2015–2064).
+///
+/// The Universal House of Justice's letter of 10 July 2014 set the Twin
+/// Holy Birthdays on "the first and the second day following the
+/// occurrence of the eighth new moon after Naw-Rúz" — a lunar rule on an
+/// otherwise solar calendar, decided against the Tehran meridian, which no
+/// arithmetic in this crate reproduces. The table is the source, and past
+/// its last year the rule reports a gap rather than a guess.
+fn birth_of_the_bab(year: i64) -> Days {
+    let (month, day) = match year {
+        2015 => (11, 13),
+        2016 => (11, 1),
+        2017 => (10, 21),
+        2018 => (11, 9),
+        2019 => (10, 29),
+        2020 => (10, 18),
+        2021 => (11, 6),
+        2022 => (10, 26),
+        2023 => (10, 16),
+        2024 => (11, 2),
+        2025 => (10, 22),
+        2026 => (11, 10),
+        2027 => (10, 30),
+        2028 => (10, 19),
+        2029 => (11, 7),
+        2030 => (10, 28),
+        2031 => (10, 17),
+        2032 => (11, 4),
+        2033 => (10, 24),
+        2034 => (11, 12),
+        2035 => (11, 1),
+        2036 => (10, 20),
+        2037 => (11, 8),
+        2038 => (10, 29),
+        2039 => (10, 19),
+        2040 => (11, 6),
+        2041 => (10, 26),
+        2042 => (10, 15),
+        2043 => (11, 3),
+        2044 => (10, 22),
+        2045 => (11, 10),
+        2046 => (10, 30),
+        2047 => (10, 20),
+        2048 => (11, 7),
+        2049 => (10, 28),
+        2050 => (10, 17),
+        2051 => (11, 5),
+        2052 => (10, 24),
+        2053 => (11, 11),
+        2054 => (11, 1),
+        2055 => (10, 21),
+        2056 => (11, 8),
+        2057 => (10, 29),
+        2058 => (10, 18),
+        2059 => (11, 6),
+        2060 => (10, 25),
+        2061 => (10, 14),
+        2062 => (11, 2),
+        2063 => (10, 23),
+        2064 => (11, 10),
+        _ => return Days::new(),
+    };
+    gregorian::to_fixed(year, month, day).map_or_else(|_| Days::new(), Days::one)
+}
+
+/// The tabulated Birth of the Báb; the Birth of Bahá'u'lláh is the day after.
+const BIRTH_OF_THE_BAB: Rule = Rule::Tabulated {
+    function: birth_of_the_bab,
+    first_year: 2015,
+    last_year: 2064,
+};
+
+static BAHAI_RULES: &[HolidayRule] = &[
+    badi("Naw-Rúz", "عید نوروز", 1, 1),
+    badi("First day of Riḍván", "عید رضوان", 2, 13),
+    badi("Ninth day of Riḍván", "عید رضوان", 3, 2),
+    badi("Twelfth day of Riḍván", "عید رضوان", 3, 5),
+    badi("Declaration of the Báb", "بعثت حضرت باب", 4, 8),
+    badi("Ascension of Bahá'u'lláh", "صعود حضرت بهاءالله", 4, 13),
+    badi("Martyrdom of the Báb", "شهادت حضرت باب", 6, 17),
+    // The Twin Holy Birthdays: the fixed Badíʿ dates of Western practice
+    // until 171 BE — 5 ʻIlm and 9 Qudrat, which the arithmetic calendar puts
+    // on 20 October and 12 November — and the published lunar table from
+    // 172 BE. In Iran and the Middle East they were kept on 1 and 2 Muḥarram
+    // before then; that convention is not carried.
+    badi("Birth of the Báb", "میلاد حضرت باب", 12, 5).years(None, Some(2014)),
+    badi("Birth of Bahá'u'lláh", "میلاد حضرت بهاءالله", 13, 9).years(None, Some(2014)),
+    feast("Birth of the Báb", "میلاد حضرت باب", BIRTH_OF_THE_BAB).years(Some(2015), None),
+    feast(
+        "Birth of Bahá'u'lláh",
+        "میلاد حضرت بهاءالله",
+        Rule::Offset {
+            base: &BIRTH_OF_THE_BAB,
+            days: 1,
+        },
+    )
+    .years(Some(2015), None),
+    badi("Day of the Covenant", "یوم میثاق", 14, 4),
+    badi("Ascension of ʻAbdu'l-Bahá", "صعود حضرت عبدالبهاء", 14, 6),
+    // The two periods, by their first day. Ayyám-i-Há is not a month: the
+    // calendar numbers it zero.
+    HolidayRule::observance(
+        "First day of Ayyám-i-Há",
+        "ایام هاء",
+        Rule::in_calendar(CalendarSystem::BADI, bahai::AYYAM_I_HA, 1),
+    )
+    .approximate(),
+    badi("First day of the Fast", "صیام", 19, 1),
+];
+
+/// The Bahá'í Faith.
+///
+/// The nine holy days on which work is suspended — Naw-Rúz, the first,
+/// ninth and twelfth days of Riḍván, the Declaration of the Báb, the
+/// Ascension of Bahá'u'lláh, the Martyrdom of the Báb and the Twin Holy
+/// Birthdays — with the two on which it is not, the Day of the Covenant
+/// and the Ascension of ʻAbdu'l-Bahá; and the first days of Ayyám-i-Há and
+/// of the Fast, the month of ʻAláʼ.
+///
+/// # What is firm and what is not
+///
+/// The days are dated in the Badíʿ calendar, and the Badíʿ calendar this
+/// crate has is the arithmetic Western one: Naw-Rúz on 21 March and the
+/// year as long as the Gregorian year. That is the calendar Bahá'ís outside
+/// the Middle East kept until 171 BE. Since Naw-Rúz 172 BE (2015) the
+/// calendar is unified on the Tehran equinox, so Naw-Rúz falls on 20 March
+/// in about half of all years and every date of that year moves with it —
+/// which is why every Badíʿ-dated entry is flagged approximate. The Bahá'í
+/// World Centre's table gives the observed Naw-Rúz through 221 BE, and a
+/// tabulated calendar built on it is the planned repair.
+///
+/// The Twin Holy Birthdays are the exception in both directions. Since
+/// 172 BE they are not a Badíʿ date at all but a lunar rule, and they come
+/// from the same table: exact for 2015–2064, and a reported gap after.
+/// Before 2015 they are the fixed 5 ʻIlm and 9 Qudrat of Western practice.
+///
+/// A Bahá'í day runs from sunset to sunset, so each observance begins at
+/// sunset on the day before the date given. The hours of the Ascension of
+/// Bahá'u'lláh (3 a.m.) and the Martyrdom of the Báb (noon) are not
+/// modelled.
+///
+/// The names are Persian, as the Bahá'í Reference Library heads them; the
+/// three days of Riḍván share one.
+pub static BAHAI: RuleSet = RuleSet {
+    code: "bahai",
+    english_name: "Bahá'í Faith",
+    rules: BAHAI_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Badíʿ dates 172 to 221 BE, prepared by an ad hoc committee at the \
+              Bahá'í World Centre from data of HM Nautical Almanac Office, \
+              2014 (bahai-library.com/pdf/uhj/uhj_bahai_dates_172-221.pdf, \
+              retrieved 2026-09-22), for the Badíʿ date of every holy day and \
+              the Twin Holy Birthdays; the Universal House of Justice, letter \
+              of 10 July 2014, for the lunar rule; Days of Remembrance, Bahá'í \
+              Reference Library, Persian edition, for the names, with the \
+              community's usual terms for the days it does not head",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Buddhism
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -679,6 +863,7 @@ pub static ALL: &[&RuleSet] = &[
     &COPTIC_ORTHODOX,
     &ISLAMIC,
     &JEWISH,
+    &BAHAI,
     &BUDDHIST,
     &CHINESE_FOLK,
 ];
