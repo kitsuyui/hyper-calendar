@@ -112,7 +112,7 @@ The cross-cutting ones, because national tables depend on them.
 | Hindu | Diwali, Holi, Navaratri, Dussehra, Ganesh Chaturthi, Janmashtami, Maha Shivaratri, Raksha Bandhan, Makar Sankranti, Ram Navami | Planned — needs `hindu-lunar` |
 | Sikh | Vaisakhi, Guru Nanak Gurpurab, Hola Mohalla, Bandi Chhor Divas | Planned |
 | Jain | Mahavir Jayanti, Paryushana, Diwali | Planned |
-| Bahá'í | The nine holy days, the Fast, Ayyám-i-Há, Naw-Rúz | Planned |
+| Bahá'í | The nine holy days — Naw-Rúz, the three days of Riḍván, the Declaration of the Báb, the Ascension of Bahá'u'lláh, the Martyrdom of the Báb, the Twin Holy Birthdays — with the Day of the Covenant and the Ascension of ʻAbdu'l-Bahá, and the first days of Ayyám-i-Há and of the Fast | Done — every Badíʿ-dated day is flagged `Approximate`, because the crate's Badíʿ calendar is the pre-2015 arithmetic one (see [calendars.md](calendars.md)); the Twin Holy Birthdays follow the Bahá'í World Centre's table, exact for 2015–2064 and a reported gap after |
 | Zoroastrian | Nowruz, Mehregan, Yalda, Sadeh, the Gahambars | Planned |
 | Shinto | 初詣, 節分, 七五三, and the major 祭 with fixed dates | Planned — 節分 and the other 雑節 are in `hc-seasons`, but no Shinto rule table exists yet |
 | Pagan / Wheel of the Year | Samhain, Yule, Imbolc, Ostara, Beltane, Litha, Lughnasadh, Mabon | Planned |

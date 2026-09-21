@@ -5,7 +5,7 @@ use hc_calendars_solar::gregorian;
 use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::rule::{Confidence, Kind, RuleSet};
 use hc_holiday::traditions::{
-    self, BUDDHIST, CHINESE_FOLK, CHRISTIAN_ORTHODOX, CHRISTIAN_WESTERN, COPTIC_ORTHODOX,
+    self, BAHAI, BUDDHIST, CHINESE_FOLK, CHRISTIAN_ORTHODOX, CHRISTIAN_WESTERN, COPTIC_ORTHODOX,
     ETHIOPIAN_ORTHODOX, ISLAMIC, JEWISH,
 };
 
@@ -344,6 +344,69 @@ fn the_buddhist_table_separates_what_it_knows_from_what_it_approximates() {
             (2024, 12, 8, "Bodhi Day"),
             (2025, 5, 5, "Buddha's Birthday (lunar reckoning)"),
         ],
+    );
+}
+
+#[test]
+fn the_bahai_year_is_dated_in_the_badi_calendar_and_the_twin_birthdays_follow_the_table() {
+    // 183 BE. The World Centre table puts its Naw-Rúz on 21 March, so this is
+    // a year in which the arithmetic calendar and the observed one agree, and
+    // every date below is also the one in the table's 21-March column.
+    expect(
+        &BAHAI,
+        &[
+            (2026, 3, 21, "Naw-Rúz"),
+            (2026, 4, 21, "First day of Riḍván"),
+            (2026, 4, 29, "Ninth day of Riḍván"),
+            (2026, 5, 2, "Twelfth day of Riḍván"),
+            (2026, 5, 24, "Declaration of the Báb"),
+            (2026, 5, 29, "Ascension of Bahá'u'lláh"),
+            (2026, 7, 10, "Martyrdom of the Báb"),
+            (2026, 11, 10, "Birth of the Báb"),
+            (2026, 11, 11, "Birth of Bahá'u'lláh"),
+            (2026, 11, 26, "Day of the Covenant"),
+            (2026, 11, 28, "Ascension of ʻAbdu'l-Bahá"),
+            (2027, 2, 26, "First day of Ayyám-i-Há"),
+            (2027, 3, 2, "First day of the Fast"),
+            // The lunar rule, from the table: its first year, a year in which
+            // the two birthdays straddle a Badíʿ month, and its last year.
+            (2015, 11, 13, "Birth of the Báb"),
+            (2015, 11, 14, "Birth of Bahá'u'lláh"),
+            (2024, 11, 2, "Birth of the Báb"),
+            (2024, 11, 3, "Birth of Bahá'u'lláh"),
+            (2025, 10, 22, "Birth of the Báb"),
+            (2064, 11, 10, "Birth of the Báb"),
+            (2064, 11, 11, "Birth of Bahá'u'lláh"),
+            // Before 172 BE: the fixed dates of Western practice.
+            (2014, 10, 20, "Birth of the Báb"),
+            (2014, 11, 12, "Birth of Bahá'u'lláh"),
+        ],
+    );
+}
+
+#[test]
+fn the_bahai_table_flags_its_predictions_and_reports_where_its_table_ends() {
+    // 182 BE: the arithmetic calendar puts Naw-Rúz on 21 March 2025 and it
+    // was kept on the 20th. Every Badíʿ-dated entry is therefore a
+    // prediction; only the tabulated birthdays are exact.
+    let calendar = HolidayCalendar::for_year(&BAHAI, None, 2025);
+    assert!(!calendar.all().is_empty());
+    for holiday in calendar.all() {
+        let expected = match holiday.name {
+            "Birth of the Báb" | "Birth of Bahá'u'lláh" => Confidence::Exact,
+            _ => Confidence::Approximate,
+        };
+        assert_eq!(holiday.confidence, expected, "{}", holiday.name);
+    }
+    for year in [2014, 2015, 2025, 2064] {
+        let calendar = HolidayCalendar::for_year(&BAHAI, None, year);
+        assert!(calendar.is_complete(), "{year}: {:?}", calendar.gaps());
+    }
+    let after = HolidayCalendar::for_year(&BAHAI, None, 2065);
+    assert!(
+        !after.is_complete(),
+        "the birthday table ends with 2064: {:?}",
+        after.gaps()
     );
 }
 
