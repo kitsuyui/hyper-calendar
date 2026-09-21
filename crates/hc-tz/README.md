@@ -110,9 +110,11 @@ name under each — everything a caller needs to explain the problem to a user.
   are cross-checked against the system database wherever one is present.
 * Gregorian arithmetic (needed for `Mm.w.d` and `Jn` rules) is the standard
   Rata Die formulation from Reingold and Dershowitz, *Calendrical
-  Calculations* (4th ed., §2.2). **It lives privately in this crate only until
-  `hc-calendars-solar` lands**, at which point the private `gregorian` module
-  should be deleted and its three functions taken from there instead.
+  Calculations* (4th ed., §2.2), and it is **not** implemented here: the
+  private `gregorian` module is four thin adapters over `hc_calendar`'s
+  implementation, which policy §2 names as the one owner of this arithmetic.
+  An earlier version of this line scheduled that consolidation against
+  `hc-calendars-solar`; it happened, and against `hc-calendar`.
 
 ## Deliberate omissions
 

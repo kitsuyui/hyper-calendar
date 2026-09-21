@@ -139,10 +139,21 @@ mod registration {
     /// should build an [`crate::IslamicObservationalCalendar`] with that
     /// site and insert it themselves, replacing this entry.
     ///
-    /// The tabular Hijri variants beyond the two canonical epochs are not
-    /// registered. They share the `islamic-civil` and `islamic-tbla`
-    /// identifiers with different leap-year rules, so registering them would
-    /// mean two calendars claiming one name; construct them directly from
+    /// Tabular Hijri variants beyond the two canonical epochs get names of
+    /// their own rather than being withheld. An earlier version of this
+    /// note declined to register any of them "because they share the
+    /// `islamic-civil` and `islamic-tbla` identifiers" — but a competing
+    /// convention that shares a name is precisely what policy §5 says to
+    /// solve by minting a name, and `islamic-fatimid` is that name for the
+    /// Ṭayyibī Bohra *Misri* calendar, which a community of about a million
+    /// people uses for every religious date and which is defined by an
+    /// authority that publishes it.
+    ///
+    /// The Kūshyār ibn Labbān and Ḥabash al-Ḥāsib schemes stay
+    /// constructible rather than registered. They are medieval *zīj*
+    /// variants with no community keeping them and no authority publishing
+    /// them today, so under policy §10 there is nobody who could say the
+    /// registry was wrong about them. Build one from
     /// [`crate::TabularIslamicCalendar`] when a specific scheme is wanted.
     ///
     /// Inserting is idempotent: a second call replaces rather than
@@ -157,6 +168,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::HoryakuCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::JokyoCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::SenmyoCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::tabular::FATIMID)));
         registry.insert(Box::new(DynAdapter::new(crate::HebrewCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::IslamicCivilCalendar)));
         registry.insert(Box::new(DynAdapter::new(
@@ -180,7 +192,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 13);
+        assert_eq!(registry.len(), 14);
     }
 
     #[test]

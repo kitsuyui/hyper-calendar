@@ -1,0 +1,21 @@
+[package]
+name = "hc-units"
+description = "Exactly defined units of time for hyper-calendar: SI, civil, horological, decimal, hexadecimal, media and musical, as exact rationals."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[features]
+default = ["std"]
+std = ["alloc", "hc-core/std"]
+alloc = ["hc-core/alloc"]
+
+[dependencies]
+hc-core = { workspace = true }

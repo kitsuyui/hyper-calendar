@@ -73,7 +73,7 @@ mod tests {
     fn modulo_is_non_negative_for_negative_inputs() {
         assert!((modulo(-1.0, 360.0) - 359.0).abs() < 1e-12);
         assert!((modulo(361.0, 360.0) - 1.0).abs() < 1e-12);
-        assert!(modulo(-0.25, 1.0) - 0.75 < 1e-12);
+        assert!((modulo(-0.25, 1.0) - 0.75).abs() < 1e-12);
     }
 
     #[test]

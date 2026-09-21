@@ -22,6 +22,11 @@
 //! counts days with [`hc_calendar::Rd`] and never multiplies a mean.
 
 use hc_core::Duration;
+use hc_units::Unit;
+use hc_units::unit::{
+    DAY, HOUR, MEAN_GREGORIAN_MONTH, MEAN_GREGORIAN_QUARTER, MEAN_GREGORIAN_YEAR, MINUTE, SECOND,
+    WEEK,
+};
 
 /// A unit a span of time can be expressed in.
 ///
@@ -53,7 +58,38 @@ pub enum TimeUnit {
 ///
 /// Exact, and divisible by both 12 and 4, so the month and quarter means
 /// below are exact too.
-pub const MEAN_YEAR_SECONDS: i64 = 31_556_952;
+///
+/// Taken from [`hc_units`] rather than written here. `hc-units` is the crate
+/// that owns "a named length of time", and this crate's question — which
+/// unit to phrase a span in — is a different one that happens to need the
+/// same numbers. Policy §2: one implementation, in the crate that owns the
+/// idea.
+pub const MEAN_YEAR_SECONDS: i64 = whole_seconds(MEAN_GREGORIAN_YEAR);
+
+/// A unit's length in whole seconds, for the table below.
+///
+/// # Panics
+///
+/// If the unit is not a whole number of seconds, or does not fit in `i64`.
+/// Every unit this module names is both, and these are `const` contexts, so
+/// a violation is a compile error rather than a runtime one.
+const fn whole_seconds(unit: Unit) -> i64 {
+    assert!(
+        unit.seconds.denominator() == 1,
+        "a humanised unit must be a whole number of seconds"
+    );
+    let value = unit.seconds.numerator();
+    assert!(
+        value >= i64::MIN as i128 && value <= i64::MAX as i128,
+        "a humanised unit must fit in i64 seconds"
+    );
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "bounded to the i64 range on the line above"
+    )]
+    let seconds = value as i64;
+    seconds
+}
 
 impl TimeUnit {
     /// Every unit, shortest first.
@@ -102,13 +138,13 @@ impl TimeUnit {
     #[must_use]
     pub const fn mean_seconds(self) -> i64 {
         match self {
-            Self::Second => 1,
-            Self::Minute => 60,
-            Self::Hour => 3_600,
-            Self::Day => 86_400,
-            Self::Week => 604_800,
-            Self::Month => MEAN_YEAR_SECONDS / 12,
-            Self::Quarter => MEAN_YEAR_SECONDS / 4,
+            Self::Second => whole_seconds(SECOND),
+            Self::Minute => whole_seconds(MINUTE),
+            Self::Hour => whole_seconds(HOUR),
+            Self::Day => whole_seconds(DAY),
+            Self::Week => whole_seconds(WEEK),
+            Self::Month => whole_seconds(MEAN_GREGORIAN_MONTH),
+            Self::Quarter => whole_seconds(MEAN_GREGORIAN_QUARTER),
             Self::Year => MEAN_YEAR_SECONDS,
         }
     }
@@ -273,6 +309,9 @@ mod tests {
         // days. The point of that number here is that it divides by both 12
         // and 4 without a remainder, so no unit length is a rounded one.
         assert_eq!(MEAN_YEAR_SECONDS, 146_097 * 86_400 / 400);
+        // The divisibility is a property of the number, not of where it is
+        // stored, so it is asserted against the arithmetic rather than
+        // against the constant it now comes from.
         assert_eq!(TimeUnit::Month.mean_seconds() * 12, MEAN_YEAR_SECONDS);
         assert_eq!(TimeUnit::Quarter.mean_seconds() * 4, MEAN_YEAR_SECONDS);
         assert_eq!(TimeUnit::Month.mean_seconds(), 2_629_746);

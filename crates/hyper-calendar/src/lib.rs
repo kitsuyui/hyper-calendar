@@ -19,12 +19,16 @@
 //! | Feature | Brings in | For |
 //! | --- | --- | --- |
 //! | `civil` *(default)* | [`hc_calendar`], [`hc_calendars_solar`] | Gregorian-family dates |
+//! | `units` | [`hc_units`] | Flicks, helakim, decimal time, BPM |
 //! | `format` *(default)* | [`hc_format`] | ISO 8601, RFC 3339, patterns |
 //! | `i18n` *(default)* | [`hc_i18n`] | Locales, plural rules, names |
 //! | `lunar` | [`hc_astro`], [`hc_calendars_lunar`] | Hijri, Hebrew, Chinese, Tenpō |
 //! | `regional` | [`hc_calendars_regional`] | Japanese eras, Maya, Pawukon |
 //! | `astro` | [`hc_astro`] | Solar longitude, phases, rise and set |
 //! | `seasons` | [`hc_seasons`] | 24 solar terms, 72 pentads, zassetsu |
+//! | `almanac` | [`hc_almanac`] | 六曜, 二十八宿, 九星, 暦注下段, 選日 |
+//! | `fiscal` | [`hc_fiscal`] | 年度, fiscal, tax and academic years |
+//! | `attributes` | [`hc_attributes`] | Birthstones, birth flowers, moon names |
 //! | `tz` | [`hc_tz`] | Time zones |
 //! | `humanize` | [`hc_humanize`] | "3 days ago" |
 //! | `holiday` | [`hc_holiday`] | Holidays and observances |
@@ -72,14 +76,20 @@ pub use hc_calendar::{
 #[cfg(feature = "civil")]
 pub mod civil;
 
+#[cfg(feature = "almanac")]
+pub use hc_almanac;
 #[cfg(feature = "astro")]
 pub use hc_astro;
+#[cfg(feature = "attributes")]
+pub use hc_attributes;
 #[cfg(feature = "lunar")]
 pub use hc_calendars_lunar;
 #[cfg(feature = "regional")]
 pub use hc_calendars_regional;
 #[cfg(feature = "deep-time")]
 pub use hc_deep_time;
+#[cfg(feature = "fiscal")]
+pub use hc_fiscal;
 #[cfg(feature = "format")]
 pub use hc_format;
 #[cfg(feature = "holiday")]
@@ -98,6 +108,21 @@ pub use hc_seasons;
 pub use hc_tz;
 #[cfg(feature = "uncertainty")]
 pub use hc_uncertainty;
+#[cfg(feature = "units")]
+pub use hc_units;
+
+/// The repository README, compiled as doctests and nothing else.
+///
+/// All three of its examples once used API that did not exist — a
+/// `Worldline` constructor, a `LightYears` newtype, two accessors — while
+/// describing a capability the library really has and tests elsewhere.
+/// Nothing caught it because a README is not compiled. This makes it one.
+///
+/// `cfg(doctest)` keeps the text out of the rendered documentation, where it
+/// would duplicate the module header above.
+#[cfg(all(doctest, feature = "alloc", feature = "civil", feature = "relativity"))]
+#[doc = include_str!("../../../README.md")]
+struct ReadmeDoctests;
 
 /// The version of this crate, for FFI callers and bug reports.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -127,6 +152,9 @@ pub mod prelude {
 
     #[cfg(feature = "uncertainty")]
     pub use hc_uncertainty::{FuzzyInstant, Uncertain};
+
+    #[cfg(feature = "units")]
+    pub use hc_units::{Quantity, Ratio, Tempo, Unit};
 }
 
 /// A registry populated with every calendar the enabled features provide.

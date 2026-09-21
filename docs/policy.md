@@ -36,6 +36,27 @@ Welsh plural rules, should mean adding a data entry, not editing control flow.**
 When a change forces a branch into shared logic, that is a signal the
 abstraction is wrong, not that the new case is special.
 
+### One implementation, in the crate that owns the idea
+
+The converse rule matters as much. When two crates need the same arithmetic,
+it goes in the one whose definition it *is*, and the others adapt the shape.
+Proleptic Gregorian conversion lives in `hc-calendar` because "day 1 is
+0001-01-01" is what fixes the origin of `Rd`, not a fact about the Gregorian
+calendar — the eras, validation and `Calendar` implementation stay in
+`hc-calendars-solar`.
+
+This is not tidiness. Five crates had each grown a private copy of those six
+functions, every one of them written because the crate could not depend on
+`hc-calendars-solar` yet, and every one of them carrying a comment saying it
+should be deleted later. A second implementation is a second thing to be
+wrong, and the measurable case is next door: `hc-almanac` uses a simplified
+lunisolar derivation and differs from the real one on 89 of 3,653 days.
+
+Where a shape change is genuinely wanted — bare integers instead of `Rd` and
+`Result`, because the call site is a `const` table of published dates — keep
+the adapter and make it a thin one, with a test that asserts it changes the
+shape and nothing else.
+
 ## 3. Precision is stated, never implied
 
 Anything this library returns carries a claim about how well it is known.

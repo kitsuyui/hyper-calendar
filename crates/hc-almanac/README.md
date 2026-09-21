@@ -116,13 +116,27 @@ instant within roughly ten minutes of local midnight can be assigned the wrong
 sharpest real case the crate tests is 立秋 2025, which fell at 22:52 JST on 7
 August: the whole of that day is 申月, which is what makes it the autumn 天赦日.
 
-For the lunisolar class the divergence is measured rather than asserted. Over the
-3,653 days of 2024–2033 at the Chinese meridian, `hc-seasons`' minimal derivation
-and `hc-calendars-lunar`'s full Chinese calendar disagree on **89 days, 2.4%**, in
-a handful of contiguous runs — they differ about a whole month's numbering, not
-about single days. `context::tests` carries that measurement. The crate uses the
-minimal derivation deliberately, so that 六曜, 不成就日 and 二十七宿 agree with one
-another and with the 六曜 a caller gets from `hc-seasons`; `hc-calendars-lunar` is
+For the lunisolar class the divergence is measured rather than asserted, and
+the measurement lives in `hc_seasons::lunisolar` beside both implementations.
+Over the 3,653 days of 2024–2033, `hc-seasons`' minimal derivation and the
+Japanese 旧暦 disagree on **89 days, 2.4%**, in a handful of contiguous runs —
+they differ about a whole month's numbering, not about single days.
+
+**A correction to an earlier version of this note:** it said the comparison
+was against `hc-calendars-lunar`'s Chinese calendar. That was the wrong
+reference. Japan computes the 旧暦 at 135°E and China at 120°E, and that hour
+moves month boundaries on its own, so measuring against the Chinese calendar
+conflates a meridian difference with a method difference — it gives 239 days
+rather than 89, nearly triple. The right reference is the unbounded Tenpō
+engine, which is the Tenpō rules continued past their 1872 abolition, and is
+what Japanese almanacs have keyed 六曜 to ever since.
+
+This crate uses the minimal derivation deliberately, so that 六曜, 不成就日 and
+二十七宿 agree with one another and with the 六曜 a caller gets from
+`hc-seasons`. Routing through the real calendar was tried and rejected: it
+makes every annotation pay for a new-moon search, taking the seasons crate's
+own test suite from seconds to over ten minutes, and routing only some of the
+annotations makes them contradict each other. `hc-calendars-lunar` is
 re-exported for callers who want the fuller article.
 
 ## Documented gaps

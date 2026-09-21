@@ -1,3 +1,10 @@
+> **This file is the roadmap, not the inventory.** What exists is listed in
+> [`supported.md`](supported.md), which is generated from the code and cannot
+> drift from it. What is here is the part a generator cannot produce: what is
+> planned, what is being researched, what is out of scope and why, and how to
+> add a calendar. Where a row below is marked Done, `supported.md` is the
+> authority on its identifier, range and day boundary.
+
 # Calendar coverage
 
 Requirement 3 of the project brief asks for every calendar we can know about,
@@ -29,10 +36,11 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | --- | --- | --- | --- |
 | Proleptic Gregorian | `gregory` | `hc-calendars-solar` | Done |
 | Proleptic Julian | `julian` | `hc-calendars-solar` | Done |
-| Julian→Gregorian reform (per country) | `julian-gregorian-<polity>`, 13 of them | `hc-calendars-solar` | Done |
+| Julian→Gregorian reform (per country) | `julian-gregorian-<polity>`, 12 of them | `hc-calendars-solar` | Done |
 | ISO 8601 week date | `iso8601-week` | `hc-calendars-solar` | Done |
 | ISO 8601 ordinal date | `iso8601-ordinal` | `hc-calendars-solar` | Done |
-| Julian Day Number / MJD | `julian-day` | `hc-calendars-solar` | Done |
+| Julian Day Number | `julian-day` | `hc-calendars-solar` | Done |
+| Modified Julian Day | `modified-julian-day` | `hc-calendars-solar` | Done |
 | Coptic | `coptic` | `hc-calendars-solar` | Done |
 | Ethiopic (Amete Mihret) | `ethiopic` | `hc-calendars-solar` | Done |
 | Ethiopic (Amete Alem) | — | `hc-calendars-solar` | Partial — an `amete-alem-year` field on `ethiopic`, not a calendar of its own |
@@ -60,6 +68,7 @@ These need the astronomical engine, so they live behind the `lunar` feature.
 | --- | --- | --- | --- |
 | Tabular Islamic, civil epoch | `islamic-civil` | `hc-calendars-lunar` | Done |
 | Tabular Islamic, astronomical epoch | `islamic-tbla` | `hc-calendars-lunar` | Done |
+| Fatimid / Ṭayyibī Bohra *Misri* | `islamic-fatimid` | `hc-calendars-lunar` | Done |
 | Umm al-Qura (Saudi official) | `islamic-umalqura` | `hc-calendars-lunar` | Done — table-driven, 1300–1600 AH |
 | Observational Hijri | `islamic-rgsa` | `hc-calendars-lunar` | Partial — visibility model is a simplification |
 | Hebrew | `hebrew` | `hc-calendars-lunar` | Done |
@@ -91,7 +100,8 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Japanese imperial eras (和暦, 大化 → 令和) | `japanese` | `hc-calendars-regional` | Done — 248 nengō |
 | Japanese eras, Northern Court (北朝) | `japanese-northern` | `hc-calendars-regional` | Done |
 | Japanese eras, Southern Court (南朝) | `japanese-southern` | `hc-calendars-regional` | Done |
-| Chinese sexagenary cycle (干支), incl. the four pillars (四柱/八字) | `sexagenary` | `hc-calendar::cycle` | Done |
+| Japanese eras, as proclaimed (改元当時) | `japanese-proclaimed` | `hc-calendars-regional` | Done |
+| Chinese sexagenary cycle (干支), incl. the four pillars (四柱/八字) | `sexagenary` | `hc-calendars-regional` (arithmetic in `hc-calendar::cycle`) | Done |
 | Chinese regnal eras (年号) | `chinese-regnal` | `hc-calendars-regional` | Planned |
 | Korean regnal eras | `korean-regnal` | `hc-calendars-regional` | Planned |
 | Maya long count (GMT 584283) | `maya-longcount` | `hc-calendars-regional` | Done |
@@ -135,13 +145,14 @@ Not calendars in their own right, but named subdivisions layered onto one.
 | --- | --- | --- |
 | 二十四節気 — the 24 solar terms | `hc-seasons` | Done |
 | 七十二候 — the 72 pentads (Chinese and Japanese variants) | `hc-seasons` | Done |
-| 雑節 — zassetsu (節分, 彼岸, 八十八夜, 入梅, 土用, 二百十日) | `hc-seasons` | Done |
+| 雑節 — zassetsu (節分, 彼岸, 社日, 八十八夜, 入梅, 半夏生, 土用, 二百十日, 二百二十日) | `hc-seasons` | Done |
 | Moon phases as a calendar layer | `hc-seasons` | Done |
 | 六曜 — rokuyō (先勝, 友引, 先負, 仏滅, 大安, 赤口) | `hc-seasons` | Done |
-| 十二直 and 二十八宿 | `hc-seasons` | Planned |
+| 十二直 and 二十八宿 (and 二十七宿) | `hc-almanac` | Done |
+| 九星, 七曜, 暦注下段, 選日 | `hc-almanac` | Done |
 | 黄道十二宮 — Western zodiac signs (tropical), with periods | `hc-seasons` | Done |
 | Sidereal signs / rāśi, with the Lahiri and other ayanamsas | `hc-seasons` | Done |
-| Indian solar months (Tamil, Bengali, Malayalam) over the rāśi | `hc-seasons` | Done |
+| Indian solar months (Sanskrit, Tamil, Bengali, Malayalam) over the rāśi | `hc-seasons` | Done |
 | 十二次 — the Chinese twelvefold ecliptic division | `hc-seasons` | Done |
 | Traditional Irish/Gaelic quarter days | `hc-seasons` | Planned |
 
@@ -162,7 +173,6 @@ Not calendars in their own right, but named subdivisions layered onto one.
 | Calendar | Why not |
 | --- | --- |
 | Fictional calendars from specific works (Shire Reckoning, Stardates, Imperial Dating) | Copyrighted settings. The `hc-relativity` and `hc-planetary` primitives are there so a downstream crate can build one. |
-| "Perpetual" business calendars (4-4-5, 13-period retail) | Organisation-specific rather than cultural; better expressed as a downstream rule than as a calendar. |
 | Liturgical *ordo* for a specific denomination and year | An editorial product, not an algorithm. The movable-feast computus that underlies it is in `hc-holiday`. |
 | A general timeline of historical events | No authority defines the set, so its coverage could never be stated honestly — see [policy.md](policy.md) §10. Periodic events whose set *is* externally defined, such as the Olympiads the IOC counts, are in scope. |
 

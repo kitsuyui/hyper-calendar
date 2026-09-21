@@ -2,6 +2,7 @@
 resolver = "3"
 members = [
     "crates/hc-core",
+    "crates/hc-units",
     "crates/hc-calendar",
     "crates/hc-calendars-solar",
     "crates/hc-calendars-lunar",
@@ -39,6 +40,7 @@ keywords = ["calendar", "datetime", "i18n", "astronomy", "wasm"]
 
 [workspace.dependencies]
 hc-core = { version = "0.1.0", path = "crates/hc-core", default-features = false }
+hc-units = { version = "0.1.0", path = "crates/hc-units", default-features = false }
 hc-calendar = { version = "0.1.0", path = "crates/hc-calendar", default-features = false }
 hc-calendars-solar = { version = "0.1.0", path = "crates/hc-calendars-solar", default-features = false }
 hc-calendars-lunar = { version = "0.1.0", path = "crates/hc-calendars-lunar", default-features = false }

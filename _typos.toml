@@ -84,3 +84,7 @@ Lov = "Lov"
 lov = "lov"
 som = "som"
 Nam = "Nam"
+# A tuplet is a group of notes played in the time of a different number of
+# them — a triplet is one. Not a misspelling of "tuple".
+tuplets = "tuplets"
+tuplet = "tuplet"

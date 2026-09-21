@@ -3,11 +3,25 @@
 //!
 //! # This is not the lunisolar calendar
 //!
-//! `hc-calendars-lunar` is the crate that owns the Chinese, Dangi and
-//! Japanese lunisolar calendars, and when it lands everything below should be
-//! deleted and the two callers re-pointed at it. It is duplicated here
-//! because this crate must not depend on it, and because 六曜 is a function
-//! of the lunisolar month and day and of nothing else.
+//! `hc-calendars-lunar` owns the Chinese, Dangi and Japanese lunisolar
+//! calendars. An earlier note here said this derivation should be deleted and
+//! its callers re-pointed at that crate once it existed. It exists, and the
+//! answer turned out to be no — for two reasons found by trying it.
+//!
+//! **Cost.** Every call here becomes a full lunisolar conversion with new
+//! moon and solar term searches behind it. 六曜 asks for a month and day on
+//! every single date, so the crate's own test suite went from seconds to more
+//! than ten minutes.
+//!
+//! **Coherence.** 六曜, 不成就日 and 二十七宿 must agree with one another.
+//! Routing some of them through one derivation and some through another makes
+//! the module contradict itself, and routing all of them pays the cost above
+//! on every annotation.
+//!
+//! So this stays, and the difference is measured rather than assumed. With
+//! the `lunar` feature on, [`exact_lunisolar_day`] reads the same day from the
+//! Japanese 旧暦 and the test at the bottom counts how often the two differ.
+//! It is a comparison, not a substitution: nothing routes through it.
 //!
 //! What is implemented is the modern 定気 rule in its textbook form:
 //!
@@ -429,5 +443,81 @@ mod tests {
             disagreements > 0,
             "the two meridians never disagreed about a new moon day"
         );
+    }
+}
+
+/// The same day read from the Japanese 旧暦, for comparison.
+///
+/// The Tenpō rules continued past their 1872 abolition, which is what
+/// Japanese almanacs have keyed 六曜 to ever since, so this is the
+/// authoritative answer where the two disagree.
+///
+/// **Nothing in this crate routes through it.** See the module documentation
+/// for why. It exists so the difference can be counted instead of guessed,
+/// and so a caller who wants the exact article knows where to get it.
+#[cfg(feature = "lunar")]
+#[must_use]
+pub fn exact_lunisolar_day(day: Rd, meridian: Meridian) -> Option<LunisolarDay> {
+    use hc_calendar::Calendar as _;
+
+    let _ = meridian;
+    let date = hc_calendars_lunar::japanese_tenpo::UNBOUNDED
+        .from_fixed(day)
+        .ok()?;
+    Some(LunisolarDay {
+        month: date.month.ordinal,
+        leap_month: date.month.leap,
+        day: date.day,
+        month_start: Rd(day.0 - i64::from(date.day) + 1),
+    })
+}
+
+#[cfg(all(test, feature = "lunar"))]
+mod divergence_tests {
+    use super::*;
+
+    /// How far this derivation is from the 旧暦 it approximates.
+    ///
+    /// Computed here, beside both implementations, rather than in a
+    /// downstream crate. If the figure moves, one of the two changed.
+    #[test]
+    fn the_difference_from_the_real_calendar_is_counted_not_assumed() {
+        let start = hc_calendar::gregorian::to_fixed(2024, 1, 1).unwrap();
+        let end = hc_calendar::gregorian::to_fixed(2033, 12, 31).unwrap();
+
+        let mut compared = 0usize;
+        let mut differing = 0usize;
+        for rd in start.0..=end.0 {
+            let day = Rd(rd);
+            let Some(exact) = exact_lunisolar_day(day, Meridian::JAPAN) else {
+                continue;
+            };
+            let here = lunisolar_day(day, Meridian::JAPAN);
+            compared += 1;
+            if (exact.month, exact.leap_month, exact.day) != (here.month, here.leap_month, here.day)
+            {
+                differing += 1;
+            }
+        }
+
+        println!("simplified vs 旧暦: {differing} of {compared} days differ");
+        assert!(compared > 3_000, "compared only {compared} days");
+        // Pinned, so a change in either implementation shows up rather than
+        // being absorbed. The differences come in whole-month runs.
+        assert!(
+            (60..=120).contains(&differing),
+            "expected roughly ninety differing days, got {differing} of {compared}"
+        );
+    }
+
+    #[test]
+    fn the_comparison_is_against_the_japanese_reckoning_not_the_chinese_one() {
+        // Japan computes the 旧暦 at 135°E and China at 120°E. That hour
+        // moves month boundaries on its own, so comparing against the
+        // Chinese calendar would conflate a meridian difference with a
+        // method difference — it roughly triples the apparent error.
+        let new_year_2024 = hc_calendar::gregorian::to_fixed(2024, 2, 10).unwrap();
+        let exact = exact_lunisolar_day(new_year_2024, Meridian::JAPAN).unwrap();
+        assert_eq!((exact.month, exact.day, exact.leap_month), (1, 1, false));
     }
 }

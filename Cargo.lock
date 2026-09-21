@@ -22,6 +22,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "hc-attributes"
+version = "0.1.0"
+dependencies = [
+ "hc-calendar",
+ "hc-core",
+ "hc-seasons",
+]
+
+[[package]]
 name = "hc-calendar"
 version = "0.1.0"
 dependencies = [
@@ -71,6 +80,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "hc-fiscal"
+version = "0.1.0"
+dependencies = [
+ "hc-calendar",
+ "hc-calendars-solar",
+ "hc-core",
+]
+
+[[package]]
 name = "hc-format"
 version = "0.1.0"
 dependencies = [
@@ -100,6 +118,7 @@ dependencies = [
  "hc-calendar",
  "hc-core",
  "hc-i18n",
+ "hc-units",
 ]
 
 [[package]]
@@ -133,6 +152,7 @@ version = "0.1.0"
 dependencies = [
  "hc-astro",
  "hc-calendar",
+ "hc-calendars-lunar",
  "hc-core",
 ]
 
@@ -152,17 +172,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "hc-units"
+version = "0.1.0"
+dependencies = [
+ "hc-core",
+]
+
+[[package]]
 name = "hyper-calendar"
 version = "0.1.0"
 dependencies = [
  "hc-almanac",
  "hc-astro",
+ "hc-attributes",
  "hc-calendar",
  "hc-calendars-lunar",
  "hc-calendars-regional",
  "hc-calendars-solar",
  "hc-core",
  "hc-deep-time",
+ "hc-fiscal",
  "hc-format",
  "hc-holiday",
  "hc-humanize",
@@ -172,6 +201,7 @@ dependencies = [
  "hc-seasons",
  "hc-tz",
  "hc-uncertainty",
+ "hc-units",
 ]
 
 [[package]]

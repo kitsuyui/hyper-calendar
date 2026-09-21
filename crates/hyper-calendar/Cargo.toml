@@ -19,6 +19,7 @@ default = ["std", "civil", "format", "i18n"]
 std = [
     "alloc",
     "hc-core/std",
+    "hc-units?/std",
     "hc-calendar?/std",
     "hc-calendars-solar?/std",
     "hc-calendars-lunar?/std",
@@ -40,6 +41,7 @@ std = [
 ]
 alloc = [
     "hc-core/alloc",
+    "hc-units?/alloc",
     "hc-calendar?/alloc",
     "hc-calendars-solar?/alloc",
     "hc-calendars-lunar?/alloc",
@@ -64,6 +66,9 @@ alloc = [
 libm = ["hc-core/libm"]
 
 # --- Capability bundles ----------------------------------------------------
+# Exactly defined units of time: SI, civil, horological, decimal,
+# hexadecimal, media and musical.
+units = ["dep:hc-units"]
 # Civil dates: the Gregorian family plus the calendar abstraction.
 civil = ["dep:hc-calendar", "dep:hc-calendars-solar"]
 # Lunisolar calendars, which need the astronomical engine.
@@ -101,6 +106,7 @@ relativity = ["uncertainty", "dep:hc-relativity"]
 
 # Everything. Convenient for applications, wasteful for embedded targets.
 full = [
+    "units",
     "civil",
     "lunar",
     "regional",
@@ -122,6 +128,7 @@ full = [
 
 [dependencies]
 hc-core = { workspace = true }
+hc-units = { workspace = true, optional = true }
 hc-calendar = { workspace = true, optional = true }
 hc-calendars-solar = { workspace = true, optional = true }
 hc-calendars-lunar = { workspace = true, optional = true }

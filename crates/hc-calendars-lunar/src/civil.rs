@@ -1,89 +1,75 @@
-//! The scrap of proleptic Gregorian arithmetic this crate needs for itself.
+//! Gregorian helpers in the shapes this crate uses.
 //!
-//! Every calendar here is defined against a fixed day, not against the
-//! Gregorian calendar, so the library proper never needs this. Three things
-//! do: the era boundaries of the East Asian meridian tables, which the
-//! sources state as Gregorian dates; the Tenpō cutover of 1872-12-02; and the
-//! published reference dates the tests anchor on.
-//!
-//! `hc-calendars-solar` owns the real Gregorian calendar. This module is
-//! deliberately *not* that: it is forty lines of arithmetic with no
-//! validation, no era handling and no `Calendar` implementation, kept private
-//! so that the two crates stay independent of one another.
+//! The conversion itself lives in [`hc_calendar::gregorian`], which owns it
+//! because it is what defines `Rd`. This module was a private copy, written
+//! before anything in the workspace held one. It is now three adapters that
+//! change the shape and nothing else: the epochs and validation ranges here
+//! are `const` expressions built from published dates, so they need a total
+//! function rather than one that returns `Result`.
 
 use hc_calendar::Rd;
+use hc_calendar::gregorian;
 
-/// Days elapsed before the first of each month in an ordinary year.
-const MONTH_OFFSETS: [i64; 12] = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-
-/// Whether `year` is a leap year in the proleptic Gregorian calendar.
+/// Whether `year` is a Gregorian leap year.
+///
+/// Used only by this crate's tests, which check epochs and reference dates
+/// against published Gregorian equivalents; the calendars themselves work in
+/// fixed days.
+#[allow(dead_code)]
 pub(crate) const fn is_leap_year(year: i64) -> bool {
-    year.rem_euclid(4) == 0 && (year.rem_euclid(100) != 0 || year.rem_euclid(400) == 0)
+    gregorian::is_leap_year(year)
 }
 
-/// The fixed day of a proleptic Gregorian date.
+/// The fixed day of a Gregorian date.
 ///
-/// No validation: `month` must be in `1..=12` and `day` within the month.
+/// Saturates to the year's first day for a date that does not exist. Every
+/// call site is a constant from a published table, so an impossible date is a
+/// transcription error the surrounding tests catch, not a runtime condition.
 pub(crate) const fn to_rd(year: i64, month: u8, day: u8) -> Rd {
-    let prior = year - 1;
-    let leap_adjust = if month > 2 && is_leap_year(year) {
-        1
-    } else {
-        0
-    };
-    Rd(365 * prior + prior.div_euclid(4) - prior.div_euclid(100)
-        + prior.div_euclid(400)
-        + MONTH_OFFSETS[month as usize - 1]
-        + leap_adjust
-        + day as i64)
-}
-
-/// The proleptic Gregorian year containing a fixed day.
-///
-/// The four nested divisions are the usual 400/100/4/1-year cascade; the
-/// final correction catches the last day of a leap year, which the plain
-/// division would push into the following year.
-pub(crate) const fn year_from_rd(rd: Rd) -> i64 {
-    let days = rd.0 - 1;
-    let cycles_400 = days.div_euclid(146_097);
-    let within_400 = days.rem_euclid(146_097);
-    let cycles_100 = within_400.div_euclid(36_524);
-    let within_100 = within_400.rem_euclid(36_524);
-    let cycles_4 = within_100.div_euclid(1_461);
-    let within_4 = within_100.rem_euclid(1_461);
-    let years_1 = within_4.div_euclid(365);
-    let year = 400 * cycles_400 + 100 * cycles_100 + 4 * cycles_4 + years_1;
-    if cycles_100 == 4 || years_1 == 4 {
-        year
-    } else {
-        year + 1
+    match gregorian::to_fixed(year, month, day) {
+        Ok(rd) => rd,
+        Err(_) => gregorian::new_year(year),
     }
 }
 
-/// The proleptic Gregorian year, month and day of a fixed day.
+/// The Gregorian year containing a fixed day.
+pub(crate) const fn year_from_rd(rd: Rd) -> i64 {
+    gregorian::year_from_fixed(rd)
+}
+
+/// The Gregorian year, month and day of a fixed day.
 ///
-/// Only the tests need this direction — the library itself converts *into*
-/// fixed days — but it is what makes a failing assertion readable, so it is
-/// kept rather than inlined into each test module.
-#[cfg_attr(not(test), allow(dead_code))]
+/// Used only by this crate's tests, for the same reason as
+/// [`is_leap_year`].
+#[allow(dead_code)]
 pub(crate) const fn from_rd(rd: Rd) -> (i64, u8, u8) {
-    let year = year_from_rd(rd);
-    let day_of_year = rd.0 - to_rd(year, 1, 1).0;
-    let leap = is_leap_year(year);
-    // The correction absorbs February's irregularity so that the other
-    // eleven months fall out of a single division; the form is the one in
-    // Reingold and Dershowitz, *Calendrical Calculations*.
-    let correction = if day_of_year < (if leap { 60 } else { 59 }) {
-        0
-    } else if leap {
-        1
-    } else {
-        2
-    };
-    let month = ((12 * (day_of_year + correction) + 373) / 367) as u8;
-    let leap_adjust = if month > 2 && leap { 1 } else { 0 };
-    let day = (day_of_year + 1 - MONTH_OFFSETS[month as usize - 1] - leap_adjust) as u8;
-    (year, month, day)
+    match gregorian::from_fixed(rd) {
+        Ok(parts) => parts,
+        Err(_) => (0, 1, 1),
+    }
+}
+
+#[cfg(test)]
+mod adapter_tests {
+    use super::*;
+
+    #[test]
+    fn the_adapters_change_shape_and_nothing_else() {
+        for rd in -80_000..80_000 {
+            let day = Rd(rd);
+            assert_eq!(from_rd(day), gregorian::from_fixed(day).unwrap());
+            assert_eq!(year_from_rd(day), gregorian::year_from_fixed(day));
+        }
+        for year in [-400i64, 0, 1, 622, 1582, 1873, 2024] {
+            assert_eq!(is_leap_year(year), gregorian::is_leap_year(year));
+            assert_eq!(to_rd(year, 1, 1), gregorian::new_year(year));
+        }
+    }
+
+    #[test]
+    fn an_impossible_constant_saturates_rather_than_panicking() {
+        assert_eq!(to_rd(2023, 2, 30), gregorian::new_year(2023));
+    }
 }
 
 #[cfg(test)]

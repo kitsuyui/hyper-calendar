@@ -117,6 +117,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::UNIFIED)));
         registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::NORTHERN)));
         registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::SOUTHERN)));
+        registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::PROCLAIMED)));
         registry.insert(Box::new(DynAdapter::new(crate::MayaLongCountCalendar::GMT)));
         registry.insert(Box::new(DynAdapter::new(
             crate::MayaLongCountCalendar::GMT_PLUS_TWO,
@@ -137,7 +138,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 13;
+const CALENDAR_COUNT: usize = 14;
 
 #[cfg(test)]
 mod tests {
