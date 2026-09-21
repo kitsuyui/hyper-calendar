@@ -5,7 +5,8 @@ use hc_calendars_solar::gregorian;
 use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::rule::{Confidence, Kind, RuleSet};
 use hc_holiday::traditions::{
-    self, BUDDHIST, CHINESE_FOLK, CHRISTIAN_ORTHODOX, CHRISTIAN_WESTERN, ISLAMIC, JEWISH,
+    self, BUDDHIST, CHINESE_FOLK, CHRISTIAN_ORTHODOX, CHRISTIAN_WESTERN, ETHIOPIAN_ORTHODOX,
+    ISLAMIC, JEWISH,
 };
 
 /// Panics rather than returning a `Result`, because every date in this file
@@ -86,6 +87,31 @@ fn the_orthodox_fixed_feasts_sit_thirteen_days_after_the_western_ones() {
             (2024, 8, 28, "Dormition of the Theotokos"),
             (2025, 1, 7, "Nativity of Christ"),
             (2025, 9, 21, "Nativity of the Theotokos"),
+        ],
+    );
+}
+
+#[test]
+fn the_ethiopian_movable_cycle_is_the_julian_computus_under_its_own_names() {
+    // Bahire Hasab and the Julian Paschalion are one Alexandrian computus,
+    // so Fasika is Pascha's Sunday every year, and the tewsak are the same
+    // offsets in days. 2024 is walked from the Fast of Nineveh to Pentecost;
+    // 2025 and 2026 pin the Sunday itself.
+    expect(
+        &ETHIOPIAN_ORTHODOX,
+        &[
+            (2024, 2, 26, "Tsome Nenewe (Fast of Nineveh) begins"),
+            (2024, 3, 11, "Abiy Tsom (Great Lent) begins"),
+            (2024, 4, 7, "Debre Zeit (Mid-Lent)"),
+            (2024, 4, 28, "Hosanna (Palm Sunday)"),
+            (2024, 5, 3, "Siklet (Good Friday)"),
+            (2024, 5, 5, "Fasika (Easter)"),
+            (2024, 5, 29, "Rekbe Kahnat (Mid-Pentecost)"),
+            (2024, 6, 13, "Erget (Ascension)"),
+            (2024, 6, 23, "Paraclete (Pentecost)"),
+            (2025, 4, 20, "Fasika (Easter)"),
+            (2026, 4, 12, "Fasika (Easter)"),
+            (2025, 8, 19, "Debre Tabor (Transfiguration)"),
         ],
     );
 }

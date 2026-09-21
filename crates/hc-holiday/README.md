@@ -90,16 +90,18 @@ South Africa, South Korea, Spain, Sweden, Switzerland, Taiwan, Thailand,
 Türkiye, the United Arab Emirates, the United Kingdom (three bank-holiday
 jurisdictions), the United States, Vietnam.
 
-**Seven traditions.** Christianity under both computations, the fixed feasts
-of the Ethiopian Orthodox Tewahedo Church, Islam, Judaism, Buddhism
-(partial), and Chinese folk tradition.
+**Seven traditions.** Christianity under both computations, the Ethiopian
+Orthodox Tewahedo Church, Islam, Judaism, Buddhism (partial), and Chinese
+folk tradition.
 
-The Ethiopian entry is worth a word. Its feasts are ordinary fixed dates —
+The Ethiopian entry is worth a word. Its fixed feasts are ordinary dates —
 29 Tahsas, 11 Tirr — in the Ethiopic calendar, and until `CalendarSystem`
 stopped being a closed enum none of them could be written down at all. Its
-movable feasts are still absent, because *Bahire Hasab* has its own cycle
-and approximating Fasika with the Julian Paschalion would be the mistake the
-table exists to stop making.
+movable cycle follows *Bahire Hasab*, whose arithmetic is its own but whose
+rule is the Alexandrian computus: Tinsae is the Orthodox Pascha every year,
+so the cycle is written as the *tewsak* offsets from the Julian-computus
+Easter, from the Fast of Nineveh to Paraclete, and three years of anchors
+check it.
 
 Japan is complete back to 1948. Every other country is the **present-day
 national list**, with historical `valid_from` / `valid_until` years wherever a

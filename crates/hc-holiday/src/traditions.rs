@@ -217,26 +217,64 @@ const fn ethiopic_feast(
     )
 }
 
+/// The *tewsak* of Bahire Hasab that the shared offsets do not already
+/// name: days from Tinsae (Easter Sunday) to the start of the Fast of
+/// Nineveh, the start of the Great Fast, Mid-Lent Sunday and Mid-Pentecost.
+const TSOME_NENEWE: i16 = -69;
+const ABIY_TSOM: i16 = -55;
+const DEBRE_ZEIT: i16 = -28;
+const REKBE_KAHNAT: i16 = 24;
+
 static ETHIOPIAN_ORTHODOX_RULES: &[HolidayRule] = &[
     ethiopic_feast("Enkutatash (New Year)", "እንቁጣጣሽ", 1, 1),
     ethiopic_feast("Meskel (Finding of the True Cross)", "መስቀል", 1, 17),
     ethiopic_feast("Genna (Christmas)", "ገና", 4, 29),
     ethiopic_feast("Timkat (Epiphany)", "ጥምቀት", 5, 11),
+    ethiopic_feast("Debre Tabor (Transfiguration)", "ደብረ ታቦር", 12, 13),
+    // The movable cycle of Bahire Hasab, as offsets from Tinsae.
+    feast(
+        "Tsome Nenewe (Fast of Nineveh) begins",
+        "ጾመ ነነዌ",
+        Rule::paschal(TSOME_NENEWE),
+    ),
+    feast(
+        "Abiy Tsom (Great Lent) begins",
+        "ዐቢይ ጾም",
+        Rule::paschal(ABIY_TSOM),
+    ),
+    feast(
+        "Debre Zeit (Mid-Lent)",
+        "ደብረ ዘይት",
+        Rule::paschal(DEBRE_ZEIT),
+    ),
+    feast("Hosanna (Palm Sunday)", "ሆሣዕና", Rule::paschal(PALM_SUNDAY)),
+    feast("Siklet (Good Friday)", "ስቅለት", Rule::paschal(GOOD_FRIDAY)),
+    feast("Fasika (Easter)", "ፋሲካ", Rule::paschal(EASTER_SUNDAY)),
+    feast(
+        "Rekbe Kahnat (Mid-Pentecost)",
+        "ርክበ ካህናት",
+        Rule::paschal(REKBE_KAHNAT),
+    ),
+    feast("Erget (Ascension)", "ዕርገት", Rule::paschal(ASCENSION)),
+    feast("Paraclete (Pentecost)", "ጰራቅሊጦስ", Rule::paschal(PENTECOST)),
 ];
 
-/// The fixed feasts of the Ethiopian Orthodox Tewahedo Church.
+/// The feasts of the Ethiopian Orthodox Tewahedo Church.
 ///
-/// This table exists as much to demonstrate something as to serve dates.
-/// Every entry is an ordinary fixed date — 29 Tahsas, 11 Tirr — in the
-/// calendar the church actually keeps, and until [`CalendarSystem`] stopped
-/// being a closed enum **none of them could be written down at all**. The
-/// options were to approximate them in a calendar they do not belong to, or
-/// to leave them out.
+/// The fixed ones are ordinary dates — 29 Tahsas, 11 Tirr — in the calendar
+/// the church actually keeps, and until [`CalendarSystem`] stopped being a
+/// closed enum **none of them could be written down at all**. The options
+/// were to approximate them in a calendar they do not belong to, or to
+/// leave them out.
 ///
-/// The movable feasts are not here. The Ethiopian Paschal computus, *Bahire
-/// Hasab*, has its own cycle of evangelists and its own *tewsak* offsets,
-/// and approximating Fasika with the Julian Paschalion would be the mistake
-/// this table was written to stop making. It is a gap, stated as one.
+/// The movable ones follow *Bahire Hasab*, the Ethiopian computus. Its
+/// arithmetic — the cycle of evangelists, *wengelawi*, *abektie* and
+/// *metqi* — is its own, but it is the Alexandrian computus, the same rule
+/// the Julian Paschalion states, and Tinsae falls on the Orthodox Pascha
+/// every year. So the cycle is written as offsets from the Julian-computus
+/// Easter: the *tewsak* of the Ethiopian tables are the same numbers of
+/// days, and the test anchors check three years of them. What is not here
+/// is a second implementation of the same Sunday under another name.
 ///
 /// # Calendrical date and kept date
 ///
@@ -253,15 +291,16 @@ static ETHIOPIAN_ORTHODOX_RULES: &[HolidayRule] = &[
 /// source per country to state. Saying so is better than quietly choosing.
 pub static ETHIOPIAN_ORTHODOX: RuleSet = RuleSet {
     code: "ethiopian-orthodox",
-    english_name: "Ethiopian Orthodox Tewahedo (fixed feasts)",
+    english_name: "Ethiopian Orthodox Tewahedo",
     rules: ETHIOPIAN_ORTHODOX_RULES,
     substitution: &[],
     bridges: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The fixed feasts of the Ethiopian Orthodox Tewahedo Church as \
-              dated in the Ethiopic calendar; the movable cycle of Bahire \
-              Hasab is deliberately absent",
+              dated in the Ethiopic calendar; the movable cycle as the tewsak \
+              of Bahire Hasab, offsets from Tinsae, which coincides with the \
+              Julian-computus Pascha",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
