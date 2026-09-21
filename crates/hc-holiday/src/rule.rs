@@ -532,7 +532,7 @@ impl Rule {
     #[must_use]
     pub const fn easter(offset: i16) -> Self {
         Self::EasterRelative {
-            computus: Computus::Gregorian,
+            computus: Computus::GREGORIAN,
             offset,
         }
     }
@@ -541,7 +541,7 @@ impl Rule {
     #[must_use]
     pub const fn paschal(offset: i16) -> Self {
         Self::EasterRelative {
-            computus: Computus::Julian,
+            computus: Computus::JULIAN,
             offset,
         }
     }

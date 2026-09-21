@@ -25,14 +25,91 @@
 use hc_calendar::Rd;
 use hc_calendars_solar::{gregorian, julian};
 
-/// Which paschal reckoning to use.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Computus {
-    /// The Gregorian computus: Western Christianity from 1583 onwards.
-    Gregorian,
-    /// The Julian computus: most Orthodox churches, and all of Christendom
-    /// before the reform.
-    Julian,
+/// A paschal reckoning: a rule that gives Easter Sunday for a year.
+///
+/// Two ship, and they are the two that govern nearly every church. A third
+/// — the astronomical Easter of the 1997 Aleppo proposal, say — is an entry
+/// with its own function, not a variant this crate has to be taught
+/// (ADR 0007). Two reckonings are equal when they have the same identifier.
+#[derive(Debug, Clone, Copy)]
+pub struct Computus {
+    /// A short identifier: `gregorian`, `julian`.
+    pub id: &'static str,
+    /// The name in English.
+    pub english_name: &'static str,
+    /// The first Gregorian year the reckoning is defined for.
+    pub first_year: i64,
+    easter: fn(i64) -> Option<Rd>,
+}
+
+impl PartialEq for Computus {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for Computus {}
+
+impl core::hash::Hash for Computus {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
+
+impl Computus {
+    /// A reckoning from its identifier, its English name, its first year
+    /// and the function that computes its Easter.
+    #[must_use]
+    pub const fn new(
+        id: &'static str,
+        english_name: &'static str,
+        first_year: i64,
+        easter: fn(i64) -> Option<Rd>,
+    ) -> Self {
+        Self {
+            id,
+            english_name,
+            first_year,
+            easter,
+        }
+    }
+
+    /// Easter Sunday of a Gregorian year under this reckoning, or `None`
+    /// outside the years it is defined for.
+    #[must_use]
+    pub fn easter(self, year: i64) -> Option<Rd> {
+        (self.easter)(year)
+    }
+}
+
+hc_core::catalogue! {
+    type: Computus,
+    id: |computus| computus.id,
+    tests: computus_tests,
+    associated;
+
+    /// Every reckoning this crate ships.
+    pub const ALL;
+    /// The reckoning with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// The Gregorian computus: Western Christianity from 1583 onwards.
+        pub const GREGORIAN = Self::new(
+            "gregorian",
+            "Gregorian computus",
+            GREGORIAN_COMPUTUS_FIRST_YEAR,
+            gregorian_easter,
+        );
+        /// The Julian computus: most Orthodox churches, and all of
+        /// Christendom before the reform.
+        pub const JULIAN = Self::new(
+            "julian",
+            "Julian computus",
+            JULIAN_COMPUTUS_FIRST_YEAR,
+            orthodox_easter,
+        );
+    }
 }
 
 /// The first Gregorian year the Gregorian computus is defined for.
@@ -67,10 +144,7 @@ pub const COMPUTUS_LAST_YEAR: i64 = 4099;
 /// Returns `None` outside the years the computus is defined for.
 #[must_use]
 pub fn easter(computus: Computus, year: i64) -> Option<Rd> {
-    match computus {
-        Computus::Gregorian => gregorian_easter(year),
-        Computus::Julian => orthodox_easter(year),
-    }
+    computus.easter(year)
 }
 
 /// Western Easter Sunday, as a Gregorian month and day.
@@ -291,12 +365,12 @@ mod tests {
     #[test]
     fn the_two_computations_coincide_in_2025_and_differ_in_2024() {
         assert_eq!(
-            easter(Computus::Gregorian, 2025),
-            easter(Computus::Julian, 2025)
+            easter(Computus::GREGORIAN, 2025),
+            easter(Computus::JULIAN, 2025)
         );
         assert_ne!(
-            easter(Computus::Gregorian, 2024),
-            easter(Computus::Julian, 2024)
+            easter(Computus::GREGORIAN, 2024),
+            easter(Computus::JULIAN, 2024)
         );
     }
 
