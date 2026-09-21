@@ -1,0 +1,41 @@
+# https://github.com/k1LoW/octocov?tab=readme-ov-file#configuration
+coverage:
+  acceptable: 70%
+  paths:
+    - coverage.lcov
+codeToTestRatio:
+  acceptable: 1:0.005
+  code:
+    - "crates/**/src/**/*.rs"
+  test:
+    - "crates/**/tests/**/*.rs"
+    - "tests/**/*.rs"
+testExecutionTime:
+  if: true
+  # Higher than a single-crate project would need, deliberately. This suite's
+  # main evidence is exhaustive: the Japanese era calendar round-trips every
+  # day from 862 to 2100, the lunar calendars tens of thousands of days each,
+  # and the ISO 8601 parser every day from 1583 to 2400 through three date
+  # forms in two formats. Under llvm-cov instrumentation that runs three to
+  # five times slower than a plain `cargo test`.
+  #
+  # The threshold exists to catch a test that has started hanging, not to
+  # pressure the sweeps into being sampled. If it is ever exceeded, check
+  # which crate grew before lowering the coverage instead.
+  #
+  # It was briefly 25 minutes, to accommodate a Japanese sweep that walked
+  # 452 000 days re-testing arithmetic another crate already validates. That
+  # sweep now targets the seams instead and takes thirteen seconds rather than
+  # six minutes, so the ceiling comes back down. Raising a limit to fit a test
+  # that should not have been that slow is the wrong way round.
+  acceptable: 15min
+diff:
+  datastores:
+    - artifact://${GITHUB_REPOSITORY}
+comment:
+  if: is_pull_request
+  updatePrevious: true
+report:
+  if: is_default_branch
+  datastores:
+    - artifact://${GITHUB_REPOSITORY}

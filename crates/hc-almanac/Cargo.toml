@@ -1,0 +1,25 @@
+[package]
+name = "hc-almanac"
+description = "Japanese and Chinese almanac annotations for hyper-calendar: the 28 mansions, the nine stars, the twelve directs, the lower register and the selected days."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[features]
+default = ["std"]
+std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-astro/std", "hc-seasons/std", "hc-calendars-lunar/std"]
+alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-astro/alloc", "hc-seasons/alloc", "hc-calendars-lunar/alloc"]
+
+[dependencies]
+hc-core = { workspace = true }
+hc-calendar = { workspace = true }
+hc-astro = { workspace = true }
+hc-seasons = { workspace = true }
+hc-calendars-lunar = { workspace = true }

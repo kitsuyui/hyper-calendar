@@ -1,0 +1,154 @@
+[package]
+name = "hyper-calendar"
+description = "A universal calendar and time library: every scale from Planck time to cosmology, every calendar we can model, on Earth and off it."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[features]
+default = ["std", "civil", "format", "i18n"]
+
+# --- Build shape -----------------------------------------------------------
+std = [
+    "alloc",
+    "hc-core/std",
+    "hc-calendar?/std",
+    "hc-calendars-solar?/std",
+    "hc-calendars-lunar?/std",
+    "hc-calendars-regional?/std",
+    "hc-astro?/std",
+    "hc-seasons?/std",
+    "hc-almanac?/std",
+    "hc-fiscal?/std",
+    "hc-attributes?/std",
+    "hc-tz?/std",
+    "hc-format?/std",
+    "hc-i18n?/std",
+    "hc-humanize?/std",
+    "hc-holiday?/std",
+    "hc-uncertainty?/std",
+    "hc-deep-time?/std",
+    "hc-planetary?/std",
+    "hc-relativity?/std",
+]
+alloc = [
+    "hc-core/alloc",
+    "hc-calendar?/alloc",
+    "hc-calendars-solar?/alloc",
+    "hc-calendars-lunar?/alloc",
+    "hc-calendars-regional?/alloc",
+    "hc-astro?/alloc",
+    "hc-seasons?/alloc",
+    "hc-almanac?/alloc",
+    "hc-fiscal?/alloc",
+    "hc-attributes?/alloc",
+    "hc-tz?/alloc",
+    "hc-format?/alloc",
+    "hc-i18n?/alloc",
+    "hc-humanize?/alloc",
+    "hc-holiday?/alloc",
+    "hc-uncertainty?/alloc",
+    "hc-deep-time?/alloc",
+    "hc-planetary?/alloc",
+    "hc-relativity?/alloc",
+]
+libm = ["hc-core/libm"]
+
+# --- Capability bundles ----------------------------------------------------
+# Civil dates: the Gregorian family plus the calendar abstraction.
+civil = ["dep:hc-calendar", "dep:hc-calendars-solar"]
+# Lunisolar calendars, which need the astronomical engine.
+lunar = ["civil", "dep:hc-astro", "dep:hc-calendars-lunar"]
+# Regional and cyclic calendars.
+regional = ["lunar", "dep:hc-calendars-regional"]
+# Astronomy on its own, for solar longitude and phases.
+astro = ["civil", "dep:hc-astro"]
+# The 24 solar terms, 72 pentads and zassetsu.
+seasons = ["astro", "dep:hc-seasons"]
+# The almanac annotations: mansions, nine stars, directs, selected days.
+almanac = ["seasons", "lunar", "dep:hc-almanac"]
+# Fiscal, tax and academic years.
+fiscal = ["civil", "dep:hc-fiscal"]
+# Birthstones, birth flowers, moon names and traditional month names.
+attributes = ["seasons", "dep:hc-attributes"]
+# Time zones.
+tz = ["civil", "dep:hc-tz"]
+# ISO 8601 / RFC 3339 parsing and formatting.
+format = ["civil", "dep:hc-format"]
+# Locales, plural rules and localised vocabulary.
+i18n = ["civil", "dep:hc-i18n"]
+# Human-readable relative times.
+humanize = ["i18n", "dep:hc-humanize"]
+# Holidays and religious observances.
+holiday = ["regional", "seasons", "dep:hc-holiday"]
+# Significant figures, error bars and fuzzy intervals.
+uncertainty = ["dep:hc-uncertainty"]
+# Planck time to cosmology.
+deep-time = ["uncertainty", "dep:hc-deep-time"]
+# Mars sols and other bodies.
+planetary = ["astro", "dep:hc-planetary"]
+# Special and general relativistic time dilation.
+relativity = ["uncertainty", "dep:hc-relativity"]
+
+# Everything. Convenient for applications, wasteful for embedded targets.
+full = [
+    "civil",
+    "lunar",
+    "regional",
+    "astro",
+    "seasons",
+    "almanac",
+    "fiscal",
+    "attributes",
+    "tz",
+    "format",
+    "i18n",
+    "humanize",
+    "holiday",
+    "uncertainty",
+    "deep-time",
+    "planetary",
+    "relativity",
+]
+
+[dependencies]
+hc-core = { workspace = true }
+hc-calendar = { workspace = true, optional = true }
+hc-calendars-solar = { workspace = true, optional = true }
+hc-calendars-lunar = { workspace = true, optional = true }
+hc-calendars-regional = { workspace = true, optional = true }
+hc-astro = { workspace = true, optional = true }
+hc-seasons = { workspace = true, optional = true }
+hc-almanac = { workspace = true, optional = true }
+hc-fiscal = { workspace = true, optional = true }
+hc-attributes = { workspace = true, optional = true }
+hc-tz = { workspace = true, optional = true }
+hc-format = { workspace = true, optional = true }
+hc-i18n = { workspace = true, optional = true }
+hc-humanize = { workspace = true, optional = true }
+hc-holiday = { workspace = true, optional = true }
+hc-uncertainty = { workspace = true, optional = true }
+hc-deep-time = { workspace = true, optional = true }
+hc-planetary = { workspace = true, optional = true }
+hc-relativity = { workspace = true, optional = true }
+
+# Each example needs only part of the library, and saying so keeps
+# `cargo build --features <one thing>` from trying to compile all of them.
+[[example]]
+name = "kaei3"
+required-features = ["lunar"]
+
+[[example]]
+name = "deep_time"
+required-features = ["deep-time"]
+
+[[example]]
+name = "easter"
+required-features = ["holiday"]

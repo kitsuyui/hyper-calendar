@@ -1,0 +1,24 @@
+[package]
+name = "hc-core"
+description = "Core time primitives for hyper-calendar: exact durations, uniform time scales (TAI/TT/TCG/TDB/TCB/GPS/UT1), leap seconds and epochs."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[features]
+default = ["std"]
+std = ["alloc"]
+alloc = []
+# Floating-point math for `no_std` builds. Enable this instead of `std` when
+# targeting bare metal or a minimal WebAssembly runtime.
+libm = ["dep:libm"]
+
+[dependencies]
+libm = { version = "0.2", optional = true, default-features = false }

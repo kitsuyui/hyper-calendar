@@ -1,0 +1,24 @@
+[package]
+name = "hc-calendars-regional"
+description = "Regional and cyclic calendars for hyper-calendar: Japanese imperial eras, Maya, Balinese Pawukon and sexagenary cycles."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[features]
+default = ["std"]
+std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-calendars-solar/std", "hc-calendars-lunar/std"]
+alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-calendars-solar/alloc", "hc-calendars-lunar/alloc"]
+
+[dependencies]
+hc-core = { workspace = true }
+hc-calendar = { workspace = true }
+hc-calendars-solar = { workspace = true }
+hc-calendars-lunar = { workspace = true }

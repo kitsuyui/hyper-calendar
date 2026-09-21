@@ -1,0 +1,71 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/hc-core",
+    "crates/hc-calendar",
+    "crates/hc-calendars-solar",
+    "crates/hc-calendars-lunar",
+    "crates/hc-calendars-regional",
+    "crates/hc-astro",
+    "crates/hc-seasons",
+    "crates/hc-almanac",
+    "crates/hc-fiscal",
+    "crates/hc-attributes",
+    "crates/hc-tz",
+    "crates/hc-format",
+    "crates/hc-i18n",
+    "crates/hc-humanize",
+    "crates/hc-holiday",
+    "crates/hc-uncertainty",
+    "crates/hc-deep-time",
+    "crates/hc-planetary",
+    "crates/hc-relativity",
+    "crates/hyper-calendar",
+    "crates/hyper-calendar-ffi",
+    "crates/hyper-calendar-wasm",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.90"
+authors = ["Yui Kitsu <kitsuyui+github@kitsuyui.com>"]
+license = "BSD-3-Clause"
+repository = "https://github.com/kitsuyui/hyper-calendar"
+homepage = "https://github.com/kitsuyui/hyper-calendar"
+readme = "README.md"
+categories = ["date-and-time", "internationalization", "no-std", "science"]
+keywords = ["calendar", "datetime", "i18n", "astronomy", "wasm"]
+
+[workspace.dependencies]
+hc-core = { version = "0.1.0", path = "crates/hc-core", default-features = false }
+hc-calendar = { version = "0.1.0", path = "crates/hc-calendar", default-features = false }
+hc-calendars-solar = { version = "0.1.0", path = "crates/hc-calendars-solar", default-features = false }
+hc-calendars-lunar = { version = "0.1.0", path = "crates/hc-calendars-lunar", default-features = false }
+hc-calendars-regional = { version = "0.1.0", path = "crates/hc-calendars-regional", default-features = false }
+hc-astro = { version = "0.1.0", path = "crates/hc-astro", default-features = false }
+hc-seasons = { version = "0.1.0", path = "crates/hc-seasons", default-features = false }
+hc-almanac = { version = "0.1.0", path = "crates/hc-almanac", default-features = false }
+hc-fiscal = { version = "0.1.0", path = "crates/hc-fiscal", default-features = false }
+hc-attributes = { version = "0.1.0", path = "crates/hc-attributes", default-features = false }
+hc-tz = { version = "0.1.0", path = "crates/hc-tz", default-features = false }
+hc-format = { version = "0.1.0", path = "crates/hc-format", default-features = false }
+hc-i18n = { version = "0.1.0", path = "crates/hc-i18n", default-features = false }
+hc-humanize = { version = "0.1.0", path = "crates/hc-humanize", default-features = false }
+hc-holiday = { version = "0.1.0", path = "crates/hc-holiday", default-features = false }
+hc-uncertainty = { version = "0.1.0", path = "crates/hc-uncertainty", default-features = false }
+hc-deep-time = { version = "0.1.0", path = "crates/hc-deep-time", default-features = false }
+hc-planetary = { version = "0.1.0", path = "crates/hc-planetary", default-features = false }
+hc-relativity = { version = "0.1.0", path = "crates/hc-relativity", default-features = false }
+hyper-calendar = { version = "0.1.0", path = "crates/hyper-calendar", default-features = false }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+
+# Size-first profile for WebAssembly and shared-library artifacts.
+[profile.release-compact]
+inherits = "release"
+opt-level = "z"
+panic = "abort"

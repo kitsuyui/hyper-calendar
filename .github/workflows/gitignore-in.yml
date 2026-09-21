@@ -1,0 +1,11 @@
+name: Update gitignore file
+on:
+  schedule:
+    # daily at 00:00
+    - cron: '0 0 * * *'
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  update-gitignore:
+    uses: kitsuyui/gh-actions-workflows/.github/workflows/gitignore-in.yml@a7071a4635eaece62696cd7132306616ce283c47

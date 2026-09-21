@@ -1,0 +1,22 @@
+[package]
+name = "hc-relativity"
+description = "Relativistic time for hyper-calendar: Lorentz transforms, special and gravitational time dilation and worldline integration."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[features]
+default = ["std"]
+std = ["alloc", "hc-core/std", "hc-uncertainty/std"]
+alloc = ["hc-core/alloc", "hc-uncertainty/alloc"]
+
+[dependencies]
+hc-core = { workspace = true }
+hc-uncertainty = { workspace = true }

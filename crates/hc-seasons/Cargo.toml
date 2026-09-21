@@ -1,0 +1,23 @@
+[package]
+name = "hc-seasons"
+description = "Seasonal subdivisions for hyper-calendar: the 24 solar terms, the 72 pentads, zassetsu and moon-phase calendars."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[features]
+default = ["std"]
+std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-astro/std"]
+alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-astro/alloc"]
+
+[dependencies]
+hc-core = { workspace = true }
+hc-calendar = { workspace = true }
+hc-astro = { workspace = true }

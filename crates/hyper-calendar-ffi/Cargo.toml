@@ -1,0 +1,29 @@
+[package]
+name = "hyper-calendar-ffi"
+description = "A C ABI shared library for hyper-calendar."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[lib]
+name = "hyper_calendar"
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[features]
+default = ["civil"]
+civil = ["hc/civil"]
+full = ["hc/full"]
+
+[dependencies]
+# Aliased to `hc` because this crate's own library is named `hyper_calendar`
+# so that the artifact is `libhyper_calendar.{so,dylib,dll}`, which is what a
+# C caller expects to link. Without the alias the two share an extern name and
+# rustdoc cannot tell them apart.
+hc = { package = "hyper-calendar", version = "0.1.0", path = "../hyper-calendar", default-features = false, features = ["std"] }
