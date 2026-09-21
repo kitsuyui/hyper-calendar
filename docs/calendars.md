@@ -58,6 +58,8 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | French Republican, arithmetic (Romme) | `french-republican-arithmetic` | `hc-calendars-solar` | Partial — equinox variant in stage 3 |
 | Bahá'í (Badíʿ), arithmetic portion | `bahai-arithmetic` | `hc-calendars-solar` | Partial — Naw-Rúz is astronomical, stage 3 |
 | Symmetry454 | `symmetry454` | `hc-calendars-solar` | Done |
+| Symmetry010 | `symmetry010` | `hc-calendars-solar` | Done |
+| Revised Julian (Milanković, 1923) | `revised-julian` | `hc-calendars-solar` | Done |
 | World Calendar (1930 proposal) | `world-calendar` | `hc-calendars-solar` | Done |
 
 ## Stage 2 — Lunar and lunisolar calendars
