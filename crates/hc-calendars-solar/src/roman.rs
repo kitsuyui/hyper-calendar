@@ -21,8 +21,9 @@
 //! * **It does not count days by kalends, nones and ides.** A Roman wrote
 //!   *a.d. III Kal. Apr.*, counting backwards inclusively from the next
 //!   named day, not "30 March". That is a formatting question rather than a
-//!   calendar one, and it belongs with the other presentation logic in
-//!   `hc-format`.
+//!   calendar one, and it lives with the other presentation logic, in
+//!   `hc_format::roman` — including the doubled sixth day before the
+//!   Kalends of March that gives bissextile years their name.
 //!
 //! The AUC era was in any case rarely used for dating in antiquity — Romans
 //! named years after the consuls. It is a convenience of later historians,

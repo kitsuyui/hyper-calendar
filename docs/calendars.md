@@ -155,6 +155,7 @@ Not calendars in their own right, but named subdivisions layered onto one.
 | 十二直 and 二十八宿 (and 二十七宿) | `hc-almanac` | Done |
 | Computus cycles — golden number, dominical letter, epact, solar cycle, indiction, Julian Period | `hc-calendars-solar::cycles` | Done |
 | Medieval year-start styles — Lady Day, Annunciation (Florentine and Pisan), Nativity, *more veneto*, Greek | `hc-calendars-solar::year_style` | Done |
+| Roman day notation — kalends, nones, ides, *pridie*, the doubled bissextile day | `hc-format::roman` | Done |
 | 九星, 七曜, 暦注下段, 選日 | `hc-almanac` | Done |
 | 黄道十二宮 — Western zodiac signs (tropical), with periods | `hc-seasons` | Done |
 | Sidereal signs / rāśi, with the Lahiri and other ayanamsas | `hc-seasons` | Done |
