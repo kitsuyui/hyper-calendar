@@ -180,6 +180,24 @@ impl CalendarSystem {
         }
     }
 
+    /// Whether this calendar can answer for every day of a Gregorian year.
+    ///
+    /// The Chinese, Korean and Vietnamese calendars stop at 2150 and start
+    /// at 1645; Umm al-Qurā is a published table and refuses years outside
+    /// it. A rule dated in one of those calendars has no answer outside
+    /// their range — which is different from having no occurrence, and used
+    /// to be indistinguishable from it.
+    #[must_use]
+    pub fn covers_gregorian_year(self, year: i64) -> bool {
+        let Ok(first) = gregorian::to_fixed(year, 1, 1) else {
+            return false;
+        };
+        let Ok(last) = gregorian::to_fixed(year, 12, 31) else {
+            return false;
+        };
+        self.year_containing(first).is_some() && self.year_containing(last).is_some()
+    }
+
     /// The year of this calendar that contains `rd`, or `None` outside the
     /// calendar's supported range.
     #[must_use]
@@ -335,6 +353,23 @@ pub enum Rule {
     /// The function takes a Gregorian year and returns the days it falls on
     /// in that year.
     Computed(fn(i64) -> Days),
+    /// A computed rule backed by a published table, which therefore has a
+    /// last year.
+    ///
+    /// [`Rule::Computed`] is a formula and answers for any year. A table
+    /// runs out, and when it does the function returns nothing — which
+    /// looks exactly like a year the holiday does not fall in. New
+    /// Zealand's Matariki is the case: the table here reaches 2035 and the
+    /// Act schedules dates through 2052, so from 2036 a public holiday
+    /// simply stopped appearing.
+    Tabulated {
+        /// The table, as a function of the Gregorian year.
+        function: fn(i64) -> Days,
+        /// The first year the table covers.
+        first_year: i64,
+        /// The last year the table covers.
+        last_year: i64,
+    },
 }
 
 impl Rule {
@@ -384,11 +419,53 @@ impl Rule {
         }
     }
 
+    /// Whether this rule can be answered at all for Gregorian `year`.
+    ///
+    /// False when the rule is dated in a calendar whose supported range
+    /// does not reach that year — a 春節 in 2151, a Hijri feast before the
+    /// Umm al-Qurā table begins. [`Rule::days_in_year`] returns an empty
+    /// list in that case, which is indistinguishable from "this holiday
+    /// does not occur that year", and that silence is what this exists to
+    /// break.
+    ///
+    /// A rule that *can* be answered may still yield nothing — 29 February
+    /// in a common year is resolvable and empty.
+    #[must_use]
+    pub fn is_resolvable_in(&self, year: i64) -> bool {
+        match self {
+            Self::FixedInCalendar { system, .. } => system.covers_gregorian_year(year),
+            Self::Tabulated {
+                first_year,
+                last_year,
+                ..
+            } => (*first_year..=*last_year).contains(&year),
+            // A shifted rule needs its base in the same year. It also
+            // *probes* the neighbouring years, because a shift can cross a
+            // New Year, but requiring those too would report a gap in every
+            // usable edge year: 除夕 is 春節 minus a day, so in 2150 it would
+            // be called unanswerable on account of 春節 2151, when 春節 never
+            // falls near enough to 1 January to matter.
+            //
+            // The residue is exact and small: a shifted holiday can still
+            // be missed when its base lies in an out-of-range year *and*
+            // falls within `days` of the year boundary.
+            Self::Offset { base, .. } => base.is_resolvable_in(year),
+            // Everything else is Gregorian arithmetic, astronomy or a
+            // closure, none of which has a calendar range to fall outside.
+            // The solar terms and the computus do have accuracy limits, but
+            // those are a question about confidence, not about whether an
+            // answer exists.
+            _ => true,
+        }
+    }
+
     /// The days this rule falls on within Gregorian `year`.
     ///
     /// Returns an empty list when the rule yields nothing that year — 29
     /// February in a common year, 30 Ḥeshvan in a short Hebrew year, or a
-    /// calendar date outside the supported range of its calendar.
+    /// calendar date outside the supported range of its calendar. The last
+    /// of those is not really "nothing"; ask [`Rule::is_resolvable_in`] to
+    /// tell the two apart.
     #[must_use]
     pub fn days_in_year(&self, year: i64) -> Days {
         let Ok(first) = gregorian::to_fixed(year, 1, 1) else {
@@ -466,6 +543,7 @@ impl Rule {
                 out
             }
             Self::Computed(function) => function(year).clamped(first, last),
+            Self::Tabulated { function, .. } => function(year).clamped(first, last),
         }
     }
 }

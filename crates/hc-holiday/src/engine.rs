@@ -64,6 +64,27 @@ impl Holiday {
     }
 }
 
+/// A holiday the calendar could not compute, and why.
+///
+/// A rule dated in the Chinese, Korean, Vietnamese or Umm al-Qurā calendar
+/// has no answer outside that calendar's range, and an evaluated calendar
+/// used to express that by simply not listing the holiday — so
+/// `holidays_in_year(CHINA, 2151)` returned seven entries instead of
+/// thirteen, with 春節, 端午節 and 中秋節 missing and everything that
+/// remained marked [`Confidence::Exact`](crate::Confidence::Exact).
+///
+/// Policy §4 says the library refuses rather than guesses. Omitting a
+/// holiday silently is a guess — that it did not happen.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Gap {
+    /// The Gregorian year that could not be answered.
+    pub year: i64,
+    /// The English name of the holiday.
+    pub name: &'static str,
+    /// Its name in the local language, or `""`.
+    pub local_name: &'static str,
+}
+
 /// An evaluated rule set over a span of years.
 ///
 /// Building one is the expensive part — solar terms and lunar conjunctions
@@ -78,6 +99,7 @@ pub struct HolidayCalendar<'a> {
     first_day: Rd,
     last_day: Rd,
     holidays: Vec<Holiday>,
+    gaps: Vec<Gap>,
 }
 
 impl<'a> HolidayCalendar<'a> {
@@ -100,8 +122,8 @@ impl<'a> HolidayCalendar<'a> {
     ) -> Self {
         let first_day = gregorian::to_fixed(first_year, 1, 1).unwrap_or(Rd(0));
         let last_day = gregorian::to_fixed(last_year, 12, 31).unwrap_or(Rd(-1));
-        let holidays = if first_year > last_year {
-            Vec::new()
+        let (holidays, gaps) = if first_year > last_year {
+            (Vec::new(), Vec::new())
         } else {
             evaluate(rules, region, first_year, last_year)
         };
@@ -113,6 +135,7 @@ impl<'a> HolidayCalendar<'a> {
             first_day,
             last_day,
             holidays,
+            gaps,
         }
     }
 
@@ -120,6 +143,27 @@ impl<'a> HolidayCalendar<'a> {
     #[must_use]
     pub fn for_year(rules: &'a RuleSet, region: Option<&'a str>, year: i64) -> Self {
         Self::new(rules, region, year, year)
+    }
+
+    /// The holidays this calendar could not compute, and the years it could
+    /// not compute them in.
+    ///
+    /// Empty for every year inside every referenced calendar's range, which
+    /// is every year most callers ask about. When it is not empty, the
+    /// holiday list is incomplete and [`HolidayCalendar::is_complete`] says
+    /// so.
+    #[must_use]
+    pub fn gaps(&self) -> &[Gap] {
+        &self.gaps
+    }
+
+    /// Whether every rule could be answered for every year asked for.
+    ///
+    /// A `false` here does not mean the answers given are wrong; it means
+    /// some are missing. See [`HolidayCalendar::gaps`] for which.
+    #[must_use]
+    pub fn is_complete(&self) -> bool {
+        self.gaps.is_empty()
     }
 
     /// The rule set behind this calendar.
@@ -327,13 +371,28 @@ fn evaluate(
     region: Option<&str>,
     first_year: i64,
     last_year: i64,
-) -> Vec<Holiday> {
+) -> (Vec<Holiday>, Vec<Gap>) {
     // One year of slack each side: a substitution can push 31 December into
     // January, and a bridge can sit either side of New Year's Day.
     let mut base: Vec<Occurrence> = Vec::new();
+    let mut gaps: Vec<Gap> = Vec::new();
     for year in (first_year - 1)..=(last_year + 1) {
         for rule in rules.rules {
             if !rule.applies_in(year) || !rule.applies_in_region(region) {
+                continue;
+            }
+            // Only the years actually asked for are reported as gaps; the
+            // year of slack on each side exists to catch a substitution
+            // crossing New Year, and its absence is not a hole in the
+            // answer.
+            if !rule.rule.is_resolvable_in(year) {
+                if (first_year..=last_year).contains(&year) {
+                    gaps.push(Gap {
+                        year,
+                        name: rule.name,
+                        local_name: rule.local_name,
+                    });
+                }
                 continue;
             }
             for date in rule.rule.days_in_year(year).as_slice() {
@@ -474,7 +533,7 @@ fn evaluate(
         gregorian::to_fixed(first_year, 1, 1),
         gregorian::to_fixed(last_year, 12, 31),
     ) else {
-        return Vec::new();
+        return (Vec::new(), gaps);
     };
     out.retain(|holiday| holiday.date >= clip_start && holiday.date <= clip_end);
     out.sort_by_key(|holiday| {
@@ -486,7 +545,7 @@ fn evaluate(
         )
     });
     out.dedup_by_key(|holiday| (holiday.date.0, holiday.name, holiday.observed_for.is_some()));
-    out
+    (out, gaps)
 }
 
 /// Where a substitution lands.

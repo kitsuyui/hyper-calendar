@@ -124,7 +124,10 @@ pub static AUSTRALIA: RuleSet = RuleSet {
 ///
 /// The Act schedules dates through 2052. Only the years published in the
 /// sources this crate checked are carried here; a year outside them yields
-/// nothing rather than an invented Friday.
+/// nothing rather than an invented Friday — and, because "nothing" and "no
+/// holiday that year" used to be the same answer, the rule is a
+/// [`Rule::Tabulated`] with its last year written down, so a calendar built
+/// past 2035 reports Matariki as a gap instead of dropping it.
 fn matariki(year: i64) -> Days {
     let (month, day) = match year {
         2022 => (6u8, 24u8),
@@ -160,8 +163,16 @@ static NZ_RULES: &[HolidayRule] = &[
         .years(Some(1921), Some(2013)),
     HolidayRule::public("Anzac Day", "", Rule::gregorian(4, 25)).years(Some(2014), None),
     HolidayRule::public("Sovereign's Birthday", "", Rule::nth(6, 1, Weekday::Monday)),
-    HolidayRule::fixed_public("Matariki", "Matariki", Rule::Computed(matariki))
-        .years(Some(2022), None),
+    HolidayRule::fixed_public(
+        "Matariki",
+        "Matariki",
+        Rule::Tabulated {
+            function: matariki,
+            first_year: 2022,
+            last_year: 2035,
+        },
+    )
+    .years(Some(2022), None),
     HolidayRule::public("Labour Day", "", Rule::nth(10, 4, Weekday::Monday)),
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
     HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
