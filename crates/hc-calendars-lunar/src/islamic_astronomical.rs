@@ -29,14 +29,14 @@ pub const PARAMETERS: TabularIslamicCalendar = TabularIslamicCalendar::new(
     ID,
     "Hijri (tabular, astronomical epoch)",
     EPOCH,
-    LeapYearRule::Civil,
+    LeapYearRule::CIVIL,
 );
 
 /// The earliest fixed day this calendar converts.
-pub const EARLIEST: Rd = earliest(EPOCH, LeapYearRule::Civil);
+pub const EARLIEST: Rd = earliest(EPOCH, LeapYearRule::CIVIL);
 
 /// The latest fixed day this calendar converts.
-pub const LATEST: Rd = latest(EPOCH, LeapYearRule::Civil);
+pub const LATEST: Rd = latest(EPOCH, LeapYearRule::CIVIL);
 
 /// The tabular Hijri calendar on the astronomical epoch.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]

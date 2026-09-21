@@ -207,7 +207,7 @@ hc_core::catalogue! {
             |year, month, day| {
                 tabular::to_fixed(
                     tabular::CIVIL_EPOCH,
-                    LeapYearRule::Civil,
+                    LeapYearRule::CIVIL,
                     year,
                     month.ordinal,
                     day,
@@ -215,7 +215,7 @@ hc_core::catalogue! {
                 .ok()
             },
             |rd| {
-                tabular::from_fixed(tabular::CIVIL_EPOCH, LeapYearRule::Civil, rd)
+                tabular::from_fixed(tabular::CIVIL_EPOCH, LeapYearRule::CIVIL, rd)
                     .ok()
                     .map(|(year, _, _)| year)
             },
