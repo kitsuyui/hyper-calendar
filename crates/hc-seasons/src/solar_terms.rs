@@ -92,191 +92,186 @@ pub enum TermKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SolarTerm(u8);
 
-/// The names of one term: the characters, two romanisations and a gloss.
-struct TermNames {
-    chinese: &'static str,
-    japanese: &'static str,
-    pinyin: &'static str,
-    romaji: &'static str,
-    english: &'static str,
-}
+/// The ways the 24 positions are named, one entry per language or
+/// convention. See [`hc_calendar::shape::Naming`].
+pub mod namings {
+    use hc_calendar::shape::Naming;
 
-/// The name table, indexed by longitude / 15 from 春分.
-///
-/// The Chinese column is in traditional characters, the Japanese column in
-/// post-1946 shinjitai; the two differ for 驚蟄/啓蟄, 小滿/小満 and 處暑/処暑,
-/// which is why they are separate columns rather than one. Pinyin is the
-/// Mandarin reading with tone marks, romaji the Japanese one in Hepburn.
-const TERM_NAMES: [TermNames; TERMS_PER_YEAR] = [
-    TermNames {
-        chinese: "春分",
-        japanese: "春分",
-        pinyin: "Chūnfēn",
-        romaji: "Shunbun",
-        english: "spring equinox",
-    },
-    TermNames {
-        chinese: "清明",
-        japanese: "清明",
-        pinyin: "Qīngmíng",
-        romaji: "Seimei",
-        english: "clear and bright",
-    },
-    TermNames {
-        chinese: "穀雨",
-        japanese: "穀雨",
-        pinyin: "Gǔyǔ",
-        romaji: "Kokuu",
-        english: "grain rain",
-    },
-    TermNames {
-        chinese: "立夏",
-        japanese: "立夏",
-        pinyin: "Lìxià",
-        romaji: "Rikka",
-        english: "beginning of summer",
-    },
-    TermNames {
-        chinese: "小滿",
-        japanese: "小満",
-        pinyin: "Xiǎomǎn",
-        romaji: "Shōman",
-        english: "grain fills",
-    },
-    TermNames {
-        chinese: "芒種",
-        japanese: "芒種",
-        pinyin: "Mángzhòng",
-        romaji: "Bōshu",
-        english: "grain in ear",
-    },
-    TermNames {
-        chinese: "夏至",
-        japanese: "夏至",
-        pinyin: "Xiàzhì",
-        romaji: "Geshi",
-        english: "summer solstice",
-    },
-    TermNames {
-        chinese: "小暑",
-        japanese: "小暑",
-        pinyin: "Xiǎoshǔ",
-        romaji: "Shōsho",
-        english: "minor heat",
-    },
-    TermNames {
-        chinese: "大暑",
-        japanese: "大暑",
-        pinyin: "Dàshǔ",
-        romaji: "Taisho",
-        english: "major heat",
-    },
-    TermNames {
-        chinese: "立秋",
-        japanese: "立秋",
-        pinyin: "Lìqiū",
-        romaji: "Risshū",
-        english: "beginning of autumn",
-    },
-    TermNames {
-        chinese: "處暑",
-        japanese: "処暑",
-        pinyin: "Chǔshǔ",
-        romaji: "Shosho",
-        english: "limit of heat",
-    },
-    TermNames {
-        chinese: "白露",
-        japanese: "白露",
-        pinyin: "Báilù",
-        romaji: "Hakuro",
-        english: "white dew",
-    },
-    TermNames {
-        chinese: "秋分",
-        japanese: "秋分",
-        pinyin: "Qiūfēn",
-        romaji: "Shūbun",
-        english: "autumn equinox",
-    },
-    TermNames {
-        chinese: "寒露",
-        japanese: "寒露",
-        pinyin: "Hánlù",
-        romaji: "Kanro",
-        english: "cold dew",
-    },
-    TermNames {
-        chinese: "霜降",
-        japanese: "霜降",
-        pinyin: "Shuāngjiàng",
-        romaji: "Sōkō",
-        english: "frost descends",
-    },
-    TermNames {
-        chinese: "立冬",
-        japanese: "立冬",
-        pinyin: "Lìdōng",
-        romaji: "Rittō",
-        english: "beginning of winter",
-    },
-    TermNames {
-        chinese: "小雪",
-        japanese: "小雪",
-        pinyin: "Xiǎoxuě",
-        romaji: "Shōsetsu",
-        english: "minor snow",
-    },
-    TermNames {
-        chinese: "大雪",
-        japanese: "大雪",
-        pinyin: "Dàxuě",
-        romaji: "Taisetsu",
-        english: "major snow",
-    },
-    TermNames {
-        chinese: "冬至",
-        japanese: "冬至",
-        pinyin: "Dōngzhì",
-        romaji: "Tōji",
-        english: "winter solstice",
-    },
-    TermNames {
-        chinese: "小寒",
-        japanese: "小寒",
-        pinyin: "Xiǎohán",
-        romaji: "Shōkan",
-        english: "minor cold",
-    },
-    TermNames {
-        chinese: "大寒",
-        japanese: "大寒",
-        pinyin: "Dàhán",
-        romaji: "Daikan",
-        english: "major cold",
-    },
-    TermNames {
-        chinese: "立春",
-        japanese: "立春",
-        pinyin: "Lìchūn",
-        romaji: "Risshun",
-        english: "beginning of spring",
-    },
-    TermNames {
-        chinese: "雨水",
-        japanese: "雨水",
-        pinyin: "Yǔshuǐ",
-        romaji: "Usui",
-        english: "rain water",
-    },
-    TermNames {
-        chinese: "驚蟄",
-        japanese: "啓蟄",
-        pinyin: "Jīngzhé",
-        romaji: "Keichitsu",
-        english: "insects awaken",
-    },
-];
+    hc_core::catalogue! {
+        type: Naming<24>,
+        id: |naming| naming.id,
+        provenance: |naming| naming.authority,
+        tests: term_naming_tests,
+
+        /// Every naming this crate ships.
+        pub const ALL;
+        /// The naming with this identifier.
+        pub fn by_id;
+
+        entries: {
+            /// The `chinese` column.
+            pub const TRADITIONAL_CHINESE = Naming {
+                id: "zh-hant",
+                english_name: "Traditional Chinese",
+                names: &[
+                "春分",
+                "清明",
+                "穀雨",
+                "立夏",
+                "小滿",
+                "芒種",
+                "夏至",
+                "小暑",
+                "大暑",
+                "立秋",
+                "處暑",
+                "白露",
+                "秋分",
+                "寒露",
+                "霜降",
+                "立冬",
+                "小雪",
+                "大雪",
+                "冬至",
+                "小寒",
+                "大寒",
+                "立春",
+                "雨水",
+                "驚蟄",
+                ],
+                authority: "Traditional characters, as the almanacs of Taiwan and Hong Kong print the 二十四節氣",
+            };
+            /// The `japanese` column.
+            pub const JAPANESE = Naming {
+                id: "ja",
+                english_name: "Japanese",
+                names: &[
+                "春分",
+                "清明",
+                "穀雨",
+                "立夏",
+                "小満",
+                "芒種",
+                "夏至",
+                "小暑",
+                "大暑",
+                "立秋",
+                "処暑",
+                "白露",
+                "秋分",
+                "寒露",
+                "霜降",
+                "立冬",
+                "小雪",
+                "大雪",
+                "冬至",
+                "小寒",
+                "大寒",
+                "立春",
+                "雨水",
+                "啓蟄",
+                ],
+                authority: "Post-1946 shinjitai, as the 暦要項 of the National Astronomical Observatory of Japan prints them",
+            };
+            /// The `pinyin` column.
+            pub const PINYIN = Naming {
+                id: "zh-pinyin-toned",
+                english_name: "Hanyu Pinyin",
+                names: &[
+                "Chūnfēn",
+                "Qīngmíng",
+                "Gǔyǔ",
+                "Lìxià",
+                "Xiǎomǎn",
+                "Mángzhòng",
+                "Xiàzhì",
+                "Xiǎoshǔ",
+                "Dàshǔ",
+                "Lìqiū",
+                "Chǔshǔ",
+                "Báilù",
+                "Qiūfēn",
+                "Hánlù",
+                "Shuāngjiàng",
+                "Lìdōng",
+                "Xiǎoxuě",
+                "Dàxuě",
+                "Dōngzhì",
+                "Xiǎohán",
+                "Dàhán",
+                "Lìchūn",
+                "Yǔshuǐ",
+                "Jīngzhé",
+                ],
+                authority: "汉语拼音方案 (1958), with tone marks",
+            };
+            /// The `romaji` column.
+            pub const ROMAJI = Naming {
+                id: "ja-latn",
+                english_name: "Japanese, romanised",
+                names: &[
+                "Shunbun",
+                "Seimei",
+                "Kokuu",
+                "Rikka",
+                "Shōman",
+                "Bōshu",
+                "Geshi",
+                "Shōsho",
+                "Taisho",
+                "Risshū",
+                "Shosho",
+                "Hakuro",
+                "Shūbun",
+                "Kanro",
+                "Sōkō",
+                "Rittō",
+                "Shōsetsu",
+                "Taisetsu",
+                "Tōji",
+                "Shōkan",
+                "Daikan",
+                "Risshun",
+                "Usui",
+                "Keichitsu",
+                ],
+                authority: "Hepburn romanisation of the Japanese readings",
+            };
+            /// The `english` column.
+            pub const ENGLISH = Naming {
+                id: "en",
+                english_name: "English glosses",
+                names: &[
+                "spring equinox",
+                "clear and bright",
+                "grain rain",
+                "beginning of summer",
+                "grain fills",
+                "grain in ear",
+                "summer solstice",
+                "minor heat",
+                "major heat",
+                "beginning of autumn",
+                "limit of heat",
+                "white dew",
+                "autumn equinox",
+                "cold dew",
+                "frost descends",
+                "beginning of winter",
+                "minor snow",
+                "major snow",
+                "winter solstice",
+                "minor cold",
+                "major cold",
+                "beginning of spring",
+                "rain water",
+                "insects awaken",
+                ],
+                authority: "This crate's glosses of the characters; nothing depends on them",
+            };
+        }
+    }
+}
 
 /// How many places the 立春-first ordering is rotated from the internal one.
 ///
@@ -391,7 +386,7 @@ impl SolarTerm {
     /// The name in traditional Chinese characters, e.g. `"驚蟄"`.
     #[must_use]
     pub const fn chinese_name(self) -> &'static str {
-        TERM_NAMES[self.0 as usize].chinese
+        namings::TRADITIONAL_CHINESE.names[self.0 as usize]
     }
 
     /// The name in Japanese shinjitai, e.g. `"啓蟄"`.
@@ -399,19 +394,19 @@ impl SolarTerm {
     /// Identical to [`Self::chinese_name`] for 21 of the 24 terms.
     #[must_use]
     pub const fn japanese_name(self) -> &'static str {
-        TERM_NAMES[self.0 as usize].japanese
+        namings::JAPANESE.names[self.0 as usize]
     }
 
     /// The Mandarin reading in pinyin with tone marks, e.g. `"Jīngzhé"`.
     #[must_use]
     pub const fn pinyin(self) -> &'static str {
-        TERM_NAMES[self.0 as usize].pinyin
+        namings::PINYIN.names[self.0 as usize]
     }
 
     /// The Japanese reading in Hepburn romaji, e.g. `"Keichitsu"`.
     #[must_use]
     pub const fn romaji(self) -> &'static str {
-        TERM_NAMES[self.0 as usize].romaji
+        namings::ROMAJI.names[self.0 as usize]
     }
 
     /// A short English gloss, e.g. `"insects awaken"`.
@@ -420,7 +415,7 @@ impl SolarTerm {
     /// a dictionary would have it, and nothing in this crate depends on them.
     #[must_use]
     pub const fn english_name(self) -> &'static str {
-        TERM_NAMES[self.0 as usize].english
+        namings::ENGLISH.names[self.0 as usize]
     }
 
     /// The next term, 15° further along the ecliptic, wrapping at 360°.

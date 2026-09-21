@@ -216,89 +216,86 @@ impl Ayanamsa {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SiderealSign(u8);
 
-/// One row of the rāśi table.
-struct RashiNames {
-    sanskrit: &'static str,
-    devanagari: &'static str,
-    english: &'static str,
-}
+/// The ways the 12 positions are named, one entry per language or
+/// convention. See [`hc_calendar::shape::Naming`].
+pub mod namings {
+    use hc_calendar::shape::Naming;
 
-/// The rāśi table, indexed by sidereal longitude / 30 from Meṣa.
-///
-/// The Sanskrit column is in IAST transliteration with diacritics, because
-/// Meṣa and Mesa, Vṛṣabha and Vrsabha, Siṃha and Simha are different words
-/// and a calendar library that flattens them is throwing away the
-/// information a reader needs to look them up. The Devanagari column is the
-/// same names in the script they are written in.
-///
-/// The English column is the emblem, which is what the Sanskrit name means:
-/// the twelve rāśi and the twelve Western signs depict the same twelve
-/// things, in the same order, because they are the same scheme transmitted
-/// from Hellenistic astronomy in the early centuries CE. Only Dhanus differs
-/// in emblem — a bow rather than an archer — and Makara is a sea-creature of
-/// Indian rather than Greek description.
-const RASHI_NAMES: [RashiNames; SIGNS_PER_ZODIAC] = [
-    RashiNames {
-        sanskrit: "Meṣa",
-        devanagari: "मेष",
-        english: "the Ram",
-    },
-    RashiNames {
-        sanskrit: "Vṛṣabha",
-        devanagari: "वृषभ",
-        english: "the Bull",
-    },
-    RashiNames {
-        sanskrit: "Mithuna",
-        devanagari: "मिथुन",
-        english: "the Twins",
-    },
-    RashiNames {
-        sanskrit: "Karka",
-        devanagari: "कर्क",
-        english: "the Crab",
-    },
-    RashiNames {
-        sanskrit: "Siṃha",
-        devanagari: "सिंह",
-        english: "the Lion",
-    },
-    RashiNames {
-        sanskrit: "Kanyā",
-        devanagari: "कन्या",
-        english: "the Maiden",
-    },
-    RashiNames {
-        sanskrit: "Tulā",
-        devanagari: "तुला",
-        english: "the Scales",
-    },
-    RashiNames {
-        sanskrit: "Vṛścika",
-        devanagari: "वृश्चिक",
-        english: "the Scorpion",
-    },
-    RashiNames {
-        sanskrit: "Dhanus",
-        devanagari: "धनु",
-        english: "the Bow",
-    },
-    RashiNames {
-        sanskrit: "Makara",
-        devanagari: "मकर",
-        english: "the Sea-creature",
-    },
-    RashiNames {
-        sanskrit: "Kumbha",
-        devanagari: "कुम्भ",
-        english: "the Pot",
-    },
-    RashiNames {
-        sanskrit: "Mīna",
-        devanagari: "मीन",
-        english: "the Fishes",
-    },
-];
+    hc_core::catalogue! {
+        type: Naming<12>,
+        id: |naming| naming.id,
+        provenance: |naming| naming.authority,
+        tests: rashi_naming_tests,
+
+        /// Every naming this crate ships.
+        pub const ALL;
+        /// The naming with this identifier.
+        pub fn by_id;
+
+        entries: {
+            /// The `sanskrit` column.
+            pub const SANSKRIT = Naming {
+                id: "sa-latn",
+                english_name: "Sanskrit, IAST",
+                names: &[
+                "Meṣa",
+                "Vṛṣabha",
+                "Mithuna",
+                "Karka",
+                "Siṃha",
+                "Kanyā",
+                "Tulā",
+                "Vṛścika",
+                "Dhanus",
+                "Makara",
+                "Kumbha",
+                "Mīna",
+                ],
+                authority: "IAST transliteration with diacritics",
+            };
+            /// The `devanagari` column.
+            pub const DEVANAGARI = Naming {
+                id: "sa",
+                english_name: "Sanskrit, Devanagari",
+                names: &[
+                "मेष",
+                "वृषभ",
+                "मिथुन",
+                "कर्क",
+                "सिंह",
+                "कन्या",
+                "तुला",
+                "वृश्चिक",
+                "धनु",
+                "मकर",
+                "कुम्भ",
+                "मीन",
+                ],
+                authority: "The names in the script they are written in",
+            };
+            /// The `english` column.
+            pub const ENGLISH = Naming {
+                id: "en",
+                english_name: "English emblems",
+                names: &[
+                "the Ram",
+                "the Bull",
+                "the Twins",
+                "the Crab",
+                "the Lion",
+                "the Maiden",
+                "the Scales",
+                "the Scorpion",
+                "the Bow",
+                "the Sea-creature",
+                "the Pot",
+                "the Fishes",
+                ],
+                authority: "The emblem each name means, in English",
+            };
+        }
+    }
+}
 
 impl SiderealSign {
     /// Meṣa, the Ram — Aries' counterpart, sidereal 0°–30°.
@@ -378,19 +375,19 @@ impl SiderealSign {
     /// The name in IAST transliteration, e.g. `"Vṛṣabha"`.
     #[must_use]
     pub const fn sanskrit_name(self) -> &'static str {
-        RASHI_NAMES[self.0 as usize].sanskrit
+        namings::SANSKRIT.names[self.0 as usize]
     }
 
     /// The name in Devanagari, e.g. `"वृषभ"`.
     #[must_use]
     pub const fn devanagari_name(self) -> &'static str {
-        RASHI_NAMES[self.0 as usize].devanagari
+        namings::DEVANAGARI.names[self.0 as usize]
     }
 
     /// The emblem in English, e.g. `"the Bull"`.
     #[must_use]
     pub const fn emblem(self) -> &'static str {
-        RASHI_NAMES[self.0 as usize].english
+        namings::ENGLISH.names[self.0 as usize]
     }
 
     /// The Western name of the counterpart sign, e.g. `"Taurus"`.

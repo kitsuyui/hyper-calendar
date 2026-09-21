@@ -158,6 +158,43 @@ impl CycleShape {
     }
 }
 
+/// One way of naming the `N` positions of a cycle: a language, a script or
+/// a convention, with its source.
+///
+/// A cycle that many languages name — the twenty-four solar terms, the
+/// twenty-eight mansions, the twelve signs — has no single set of names, and
+/// the set of ways to name it is open: a Korean or Vietnamese column is an
+/// entry somebody adds, not a field a struct has to be given (ADR 0007). So
+/// each cycle keeps a catalogue of `Naming`s, one per language or
+/// convention, each holding exactly `N` names and saying where they came
+/// from. [`CycleShape::names`] is the special case of a calendar's own
+/// names; [`crate::cycle::readings::Reading`] is the sexagenary cycle's,
+/// which has two arrays rather than one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Naming<const N: usize> {
+    /// A short identifier: the language, then the script or romanisation
+    /// where the language has more than one, or the convention.
+    pub id: &'static str,
+    /// What to call the naming in English.
+    pub english_name: &'static str,
+    /// The names, position 0 first.
+    pub names: &'static [&'static str; N],
+    /// Where the names come from.
+    pub authority: &'static str,
+}
+
+impl<const N: usize> Naming<N> {
+    /// The name of a zero-based position.
+    ///
+    /// # Panics
+    ///
+    /// If `index` is `N` or more.
+    #[must_use]
+    pub const fn name(&self, index: usize) -> &'static str {
+        self.names[index]
+    }
+}
+
 /// The kind name for a calendar's months.
 pub const MONTH: &str = "month";
 
