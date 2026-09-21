@@ -134,65 +134,273 @@ static SNAKE: [u8; 1] = [5];
 /// One of the 選日.
 ///
 /// Ordering is the order a 暦注 reference lists them, roughly by how often a
-/// modern almanac prints them.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[non_exhaustive]
-pub enum SelectedDay {
-    /// 一粒万倍日 — "one grain, ten thousand fold". The best-known of the
-    /// modern 選日.
-    IchiryuManbai,
-    /// 三隣亡 — the day a building raised will burn three neighbours down.
-    Sanrinbo,
-    /// 不成就日 — the day nothing comes to fruition.
-    Fujoju,
-    /// 八専 — eight of the twelve days from 壬子 to 癸亥.
-    Hassen,
-    /// 八専の間日 — the four days inside that window the taboo skips.
-    HassenInterval,
-    /// 十方暮 — ten days when the ten directions are shut.
-    Jippogure,
-    /// 天一天上 — the sixteen days 天一神 spends in heaven, when no
-    /// direction is blocked.
-    TenichiTenjo,
-    /// 庚申 — the night the 三尸 report your sins to heaven; stay awake.
-    Koshin,
-    /// 甲子 — the head of the sexagenary cycle; 大黒天's day.
-    Kinoene,
-    /// 己巳 — 弁財天's day, the strongest money day of the sixty.
-    TsuchinotoMi,
-    /// 寅の日 — the tiger goes a thousand leagues and returns; money spent
-    /// comes back.
-    TigerDay,
-    /// 巳の日 — the serpent is 弁財天's messenger.
-    SnakeDay,
-    /// 大犯土 — seven days when 土公神 is in the earth and it must not be
-    /// broken.
-    GreatEarthTaboo,
-    /// 小犯土 — the lesser seven days of the same taboo.
-    LesserEarthTaboo,
-    /// 犯土の間日 — the single day, 丁丑, between the two.
-    EarthTabooInterval,
+/// modern almanac prints them. The set is a publisher's list, not a fixed
+/// vocabulary, which is why it is a table and not an `enum` (ADR 0007): a
+/// 選日 this crate has not met is an entry with its own rule.
+#[derive(Debug, Clone, Copy)]
+pub struct SelectedDay {
+    /// A short identifier, the variant name in kebab case.
+    pub id: &'static str,
+    rule: AlmanacRule,
+    japanese_name: &'static str,
+    romaji: &'static str,
+    english_name: &'static str,
+    auspicious: Option<bool>,
+    meaning: &'static str,
+}
+
+impl PartialEq for SelectedDay {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for SelectedDay {}
+
+impl core::hash::Hash for SelectedDay {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
+
+impl PartialOrd for SelectedDay {
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for SelectedDay {
+    /// Listing order: the position in [`SelectedDay::ALL`].
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+        self.index().cmp(&other.index())
+    }
+}
+
+hc_core::catalogue! {
+    type: SelectedDay,
+    id: |entry| entry.id,
+    tests: selected_day_tests,
+    associated;
+
+    /// All fifteen, in listing order.
+    pub const ALL;
+    /// The entry with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// 一粒万倍日 — "one grain, ten thousand fold". The best-known of the
+        /// modern 選日.
+        pub const ICHIRYU_MANBAI = Self {
+            id: "ichiryu-manbai",
+            rule: AlmanacRule::BranchBySolarMonth(&ICHIRYU_MANBAI),
+            japanese_name: "一粒万倍日",
+            romaji: "ichiryū manbai bi",
+            english_name: "one grain yields ten thousand",
+            auspicious: Some(true),
+            meaning: "a single grain of rice becomes ten thousand: good for beginnings, \
+                 opening a shop and sowing — and bad for borrowing, since a debt \
+                 multiplies too",
+        };
+        /// 三隣亡 — the day a building raised will burn three neighbours down.
+        pub const SANRINBO = Self {
+            id: "sanrinbo",
+            rule: AlmanacRule::BranchBySolarMonth(&SANRINBO),
+            japanese_name: "三隣亡",
+            romaji: "sanrinbō",
+            english_name: "ruin of three neighbours",
+            auspicious: Some(false),
+            meaning: "a house raised today burns, and takes the three neighbouring houses \
+                 with it: builders keep the day free",
+        };
+        /// 不成就日 — the day nothing comes to fruition.
+        pub const FUJOJU = Self {
+            id: "fujoju",
+            rule: AlmanacRule::LunarDayByLunarMonth(&FUJOJU),
+            japanese_name: "不成就日",
+            romaji: "fujōju bi",
+            english_name: "day of no accomplishment",
+            auspicious: Some(false),
+            meaning: "nothing undertaken today comes to anything",
+        };
+        /// 八専 — eight of the twelve days from 壬子 to 癸亥.
+        pub const HASSEN = Self {
+            id: "hassen",
+            rule: AlmanacRule::SexagenaryIn(&HASSEN_DAYS),
+            japanese_name: "八専",
+            romaji: "hassen",
+            english_name: "the eight days of doubled influence",
+            auspicious: None,
+            meaning: "the stem and branch share one of the five phases, so whatever the \
+                 day already was is doubled; modern almanacs read it as simply \
+                 unlucky",
+        };
+        /// 八専の間日 — the four days inside that window the taboo skips.
+        pub const HASSEN_INTERVAL = Self {
+            id: "hassen-interval",
+            rule: AlmanacRule::SexagenaryIn(&HASSEN_INTERVAL_DAYS),
+            japanese_name: "八専の間日",
+            romaji: "hassen no manibi",
+            english_name: "the days the eight-day taboo skips",
+            auspicious: None,
+            meaning: "inside the 八専 window, but exempt from it",
+        };
+        /// 十方暮 — ten days when the ten directions are shut.
+        pub const JIPPOGURE = Self {
+            id: "jippogure",
+            rule: AlmanacRule::SexagenaryRun {
+                first: 20,
+                length: 10,
+            },
+            japanese_name: "十方暮",
+            romaji: "jippōgure",
+            english_name: "the ten directions are shut",
+            auspicious: Some(false),
+            meaning: "the phases of stem and branch are in mutual conquest: much labour \
+                 and little result",
+        };
+        /// 天一天上 — the sixteen days 天一神 spends in heaven, when no
+        /// direction is blocked.
+        pub const TENICHI_TENJO = Self {
+            id: "tenichi-tenjo",
+            rule: AlmanacRule::SexagenaryRun {
+                first: 29,
+                length: 16,
+            },
+            japanese_name: "天一天上",
+            romaji: "ten'ichi tenjō",
+            english_name: "the wandering god is in heaven",
+            auspicious: Some(true),
+            meaning: "天一神 has gone up to heaven, so no direction is blocked and travel \
+                 is free — but marriage is still avoided",
+        };
+        /// 庚申 — the night the 三尸 report your sins to heaven; stay awake.
+        pub const KOSHIN = Self {
+            id: "koshin",
+            rule: AlmanacRule::SexagenaryIn(&KOSHIN),
+            japanese_name: "庚申",
+            romaji: "kōshin",
+            english_name: "the metal-monkey vigil",
+            auspicious: None,
+            meaning: "the three corpse-worms leave a sleeper's body to report his sins to \
+                 heaven, so the night is spent awake",
+        };
+        /// 甲子 — the head of the sexagenary cycle; 大黒天's day.
+        pub const KINOENE = Self {
+            id: "kinoene",
+            rule: AlmanacRule::SexagenaryIn(&KINOENE),
+            japanese_name: "甲子",
+            romaji: "kinoene",
+            english_name: "the head of the sexagenary cycle",
+            auspicious: Some(true),
+            meaning: "the first day of the sixty; a vigil kept for 大黒天",
+        };
+        /// 己巳 — 弁財天's day, the strongest money day of the sixty.
+        pub const TSUCHINOTO_MI = Self {
+            id: "tsuchinoto-mi",
+            rule: AlmanacRule::SexagenaryIn(&TSUCHINOTO_MI),
+            japanese_name: "己巳",
+            romaji: "tsuchinoto mi",
+            english_name: "the earth-serpent day of Benzaiten",
+            auspicious: Some(true),
+            meaning: "the serpent is 弁財天's messenger and 己 is the earth that nurtures \
+                 metal, so the day is doubly one for money",
+        };
+        /// 寅の日 — the tiger goes a thousand leagues and returns; money spent
+        /// comes back.
+        pub const TIGER_DAY = Self {
+            id: "tiger-day",
+            rule: AlmanacRule::BranchIn(&TIGER),
+            japanese_name: "寅の日",
+            romaji: "tora no hi",
+            english_name: "day of the tiger",
+            auspicious: Some(true),
+            meaning: "the tiger goes a thousand leagues and returns a thousand, so money \
+                 spent today comes back — but a bride would come back too",
+        };
+        /// 巳の日 — the serpent is 弁財天's messenger.
+        pub const SNAKE_DAY = Self {
+            id: "snake-day",
+            rule: AlmanacRule::BranchIn(&SNAKE),
+            japanese_name: "巳の日",
+            romaji: "mi no hi",
+            english_name: "day of the serpent",
+            auspicious: Some(true),
+            meaning: "弁財天's day; good for money and for the arts",
+        };
+        /// 大犯土 — seven days when 土公神 is in the earth and it must not be
+        /// broken.
+        pub const GREAT_EARTH_TABOO = Self {
+            id: "great-earth-taboo",
+            rule: AlmanacRule::SexagenaryRun {
+                first: 6,
+                length: 7,
+            },
+            japanese_name: "大犯土",
+            romaji: "ōtsuchi",
+            english_name: "greater taboo on breaking ground",
+            auspicious: Some(false),
+            meaning: "土公神 is in the earth: no digging, no well-sinking, no sowing, no \
+                 groundbreaking",
+        };
+        /// 小犯土 — the lesser seven days of the same taboo.
+        pub const LESSER_EARTH_TABOO = Self {
+            id: "lesser-earth-taboo",
+            rule: AlmanacRule::SexagenaryRun {
+                first: 14,
+                length: 7,
+            },
+            japanese_name: "小犯土",
+            romaji: "kotsuchi",
+            english_name: "lesser taboo on breaking ground",
+            auspicious: Some(false),
+            meaning: "the same taboo in its lesser seven-day form",
+        };
+        /// 犯土の間日 — the single day, 丁丑, between the two.
+        pub const EARTH_TABOO_INTERVAL = Self {
+            id: "earth-taboo-interval",
+            rule: AlmanacRule::SexagenaryIn(&EARTH_TABOO_INTERVAL),
+            japanese_name: "犯土の間日",
+            romaji: "bondo no manibi",
+            english_name: "the day between the two earth taboos",
+            auspicious: None,
+            meaning: "the single day of exemption between the two",
+        };
+    }
+}
+
+/// Byte-for-byte equality of two identifiers, usable in `const` context.
+const fn same_id(left: &str, right: &str) -> bool {
+    let (left, right) = (left.as_bytes(), right.as_bytes());
+    if left.len() != right.len() {
+        return false;
+    }
+    let mut index = 0;
+    while index < left.len() {
+        if left[index] != right[index] {
+            return false;
+        }
+        index += 1;
+    }
+    true
 }
 
 impl SelectedDay {
-    /// All fifteen, in listing order.
-    pub const ALL: [Self; 15] = [
-        Self::IchiryuManbai,
-        Self::Sanrinbo,
-        Self::Fujoju,
-        Self::Hassen,
-        Self::HassenInterval,
-        Self::Jippogure,
-        Self::TenichiTenjo,
-        Self::Koshin,
-        Self::Kinoene,
-        Self::TsuchinotoMi,
-        Self::TigerDay,
-        Self::SnakeDay,
-        Self::GreatEarthTaboo,
-        Self::LesserEarthTaboo,
-        Self::EarthTabooInterval,
-    ];
+    /// This entry's position in [`SelectedDay::ALL`].
+    ///
+    /// # Panics
+    ///
+    /// If the entry is not in [`SelectedDay::ALL`].
+    #[must_use]
+    pub const fn index(self) -> u8 {
+        let mut index = 0;
+        while index < Self::ALL.len() {
+            if same_id(Self::ALL[index].id, self.id) {
+                return index as u8;
+            }
+            index += 1;
+        }
+        panic!("an entry that is not in ALL has no index")
+    }
 
     /// The rule that fixes this day.
     ///
@@ -203,101 +411,25 @@ impl SelectedDay {
     /// which is also the first day of 十方暮.
     #[must_use]
     pub const fn rule(self) -> AlmanacRule {
-        match self {
-            Self::IchiryuManbai => AlmanacRule::BranchBySolarMonth(&ICHIRYU_MANBAI),
-            Self::Sanrinbo => AlmanacRule::BranchBySolarMonth(&SANRINBO),
-            Self::Fujoju => AlmanacRule::LunarDayByLunarMonth(&FUJOJU),
-            Self::Hassen => AlmanacRule::SexagenaryIn(&HASSEN_DAYS),
-            Self::HassenInterval => AlmanacRule::SexagenaryIn(&HASSEN_INTERVAL_DAYS),
-            Self::Jippogure => AlmanacRule::SexagenaryRun {
-                first: 20,
-                length: 10,
-            },
-            Self::TenichiTenjo => AlmanacRule::SexagenaryRun {
-                first: 29,
-                length: 16,
-            },
-            Self::Koshin => AlmanacRule::SexagenaryIn(&KOSHIN),
-            Self::Kinoene => AlmanacRule::SexagenaryIn(&KINOENE),
-            Self::TsuchinotoMi => AlmanacRule::SexagenaryIn(&TSUCHINOTO_MI),
-            Self::TigerDay => AlmanacRule::BranchIn(&TIGER),
-            Self::SnakeDay => AlmanacRule::BranchIn(&SNAKE),
-            Self::GreatEarthTaboo => AlmanacRule::SexagenaryRun {
-                first: 6,
-                length: 7,
-            },
-            Self::LesserEarthTaboo => AlmanacRule::SexagenaryRun {
-                first: 14,
-                length: 7,
-            },
-            Self::EarthTabooInterval => AlmanacRule::SexagenaryIn(&EARTH_TABOO_INTERVAL),
-        }
+        self.rule
     }
 
     /// The name in Japanese characters, e.g. `"一粒万倍日"`.
     #[must_use]
     pub const fn japanese_name(self) -> &'static str {
-        match self {
-            Self::IchiryuManbai => "一粒万倍日",
-            Self::Sanrinbo => "三隣亡",
-            Self::Fujoju => "不成就日",
-            Self::Hassen => "八専",
-            Self::HassenInterval => "八専の間日",
-            Self::Jippogure => "十方暮",
-            Self::TenichiTenjo => "天一天上",
-            Self::Koshin => "庚申",
-            Self::Kinoene => "甲子",
-            Self::TsuchinotoMi => "己巳",
-            Self::TigerDay => "寅の日",
-            Self::SnakeDay => "巳の日",
-            Self::GreatEarthTaboo => "大犯土",
-            Self::LesserEarthTaboo => "小犯土",
-            Self::EarthTabooInterval => "犯土の間日",
-        }
+        self.japanese_name
     }
 
     /// The reading in Hepburn romaji.
     #[must_use]
     pub const fn romaji(self) -> &'static str {
-        match self {
-            Self::IchiryuManbai => "ichiryū manbai bi",
-            Self::Sanrinbo => "sanrinbō",
-            Self::Fujoju => "fujōju bi",
-            Self::Hassen => "hassen",
-            Self::HassenInterval => "hassen no manibi",
-            Self::Jippogure => "jippōgure",
-            Self::TenichiTenjo => "ten'ichi tenjō",
-            Self::Koshin => "kōshin",
-            Self::Kinoene => "kinoene",
-            Self::TsuchinotoMi => "tsuchinoto mi",
-            Self::TigerDay => "tora no hi",
-            Self::SnakeDay => "mi no hi",
-            Self::GreatEarthTaboo => "ōtsuchi",
-            Self::LesserEarthTaboo => "kotsuchi",
-            Self::EarthTabooInterval => "bondo no manibi",
-        }
+        self.romaji
     }
 
     /// A one-line English gloss.
     #[must_use]
     pub const fn english_name(self) -> &'static str {
-        match self {
-            Self::IchiryuManbai => "one grain yields ten thousand",
-            Self::Sanrinbo => "ruin of three neighbours",
-            Self::Fujoju => "day of no accomplishment",
-            Self::Hassen => "the eight days of doubled influence",
-            Self::HassenInterval => "the days the eight-day taboo skips",
-            Self::Jippogure => "the ten directions are shut",
-            Self::TenichiTenjo => "the wandering god is in heaven",
-            Self::Koshin => "the metal-monkey vigil",
-            Self::Kinoene => "the head of the sexagenary cycle",
-            Self::TsuchinotoMi => "the earth-serpent day of Benzaiten",
-            Self::TigerDay => "day of the tiger",
-            Self::SnakeDay => "day of the serpent",
-            Self::GreatEarthTaboo => "greater taboo on breaking ground",
-            Self::LesserEarthTaboo => "lesser taboo on breaking ground",
-            Self::EarthTabooInterval => "the day between the two earth taboos",
-        }
+        self.english_name
     }
 
     /// Whether an almanac counts the day auspicious.
@@ -309,71 +441,13 @@ impl SelectedDay {
     /// it.
     #[must_use]
     pub const fn is_auspicious(self) -> Option<bool> {
-        match self {
-            Self::IchiryuManbai
-            | Self::TenichiTenjo
-            | Self::Kinoene
-            | Self::TsuchinotoMi
-            | Self::TigerDay
-            | Self::SnakeDay => Some(true),
-            Self::Sanrinbo
-            | Self::Fujoju
-            | Self::Jippogure
-            | Self::GreatEarthTaboo
-            | Self::LesserEarthTaboo => Some(false),
-            Self::Hassen | Self::HassenInterval | Self::Koshin | Self::EarthTabooInterval => None,
-        }
+        self.auspicious
     }
 
     /// What the day is held to mean, in one sentence.
     #[must_use]
     pub const fn meaning(self) -> &'static str {
-        match self {
-            Self::IchiryuManbai => {
-                "a single grain of rice becomes ten thousand: good for beginnings, \
-                 opening a shop and sowing — and bad for borrowing, since a debt \
-                 multiplies too"
-            }
-            Self::Sanrinbo => {
-                "a house raised today burns, and takes the three neighbouring houses \
-                 with it: builders keep the day free"
-            }
-            Self::Fujoju => "nothing undertaken today comes to anything",
-            Self::Hassen => {
-                "the stem and branch share one of the five phases, so whatever the \
-                 day already was is doubled; modern almanacs read it as simply \
-                 unlucky"
-            }
-            Self::HassenInterval => "inside the 八専 window, but exempt from it",
-            Self::Jippogure => {
-                "the phases of stem and branch are in mutual conquest: much labour \
-                 and little result"
-            }
-            Self::TenichiTenjo => {
-                "天一神 has gone up to heaven, so no direction is blocked and travel \
-                 is free — but marriage is still avoided"
-            }
-            Self::Koshin => {
-                "the three corpse-worms leave a sleeper's body to report his sins to \
-                 heaven, so the night is spent awake"
-            }
-            Self::Kinoene => "the first day of the sixty; a vigil kept for 大黒天",
-            Self::TsuchinotoMi => {
-                "the serpent is 弁財天's messenger and 己 is the earth that nurtures \
-                 metal, so the day is doubly one for money"
-            }
-            Self::TigerDay => {
-                "the tiger goes a thousand leagues and returns a thousand, so money \
-                 spent today comes back — but a bride would come back too"
-            }
-            Self::SnakeDay => "弁財天's day; good for money and for the arts",
-            Self::GreatEarthTaboo => {
-                "土公神 is in the earth: no digging, no well-sinking, no sowing, no \
-                 groundbreaking"
-            }
-            Self::LesserEarthTaboo => "the same taboo in its lesser seven-day form",
-            Self::EarthTabooInterval => "the single day of exemption between the two",
-        }
+        self.meaning
     }
 
     /// Whether this 選日 holds on the day a context describes.
@@ -429,40 +503,19 @@ impl SelectedDaySet {
     /// The 選日 in the set, in [`SelectedDay::ALL`] order.
     pub fn iter(self) -> impl Iterator<Item = SelectedDay> {
         SelectedDay::ALL
-            .into_iter()
+            .iter()
+            .copied()
             .filter(move |day| self.contains(*day))
     }
 }
 
-impl SelectedDay {
-    /// This 選日's position in [`SelectedDay::ALL`].
-    #[must_use]
-    pub const fn index(self) -> u8 {
-        match self {
-            Self::IchiryuManbai => 0,
-            Self::Sanrinbo => 1,
-            Self::Fujoju => 2,
-            Self::Hassen => 3,
-            Self::HassenInterval => 4,
-            Self::Jippogure => 5,
-            Self::TenichiTenjo => 6,
-            Self::Koshin => 7,
-            Self::Kinoene => 8,
-            Self::TsuchinotoMi => 9,
-            Self::TigerDay => 10,
-            Self::SnakeDay => 11,
-            Self::GreatEarthTaboo => 12,
-            Self::LesserEarthTaboo => 13,
-            Self::EarthTabooInterval => 14,
-        }
-    }
-}
+impl SelectedDay {}
 
 /// Every 選日 in force on a day, from a context.
 #[must_use]
 pub fn selected_days_of_context(context: &DayContext) -> SelectedDaySet {
     let mut set = SelectedDaySet::EMPTY;
-    for day in SelectedDay::ALL {
+    for day in SelectedDay::ALL.iter().copied() {
         if day.applies_to(context) == Some(true) {
             set = set.with(day);
         }
@@ -499,7 +552,7 @@ mod tests {
 
     #[test]
     fn every_selected_day_has_a_name_a_reading_and_a_meaning() {
-        for day in SelectedDay::ALL {
+        for day in SelectedDay::ALL.iter().copied() {
             assert!(!day.japanese_name().is_empty());
             assert!(!day.romaji().is_empty());
             assert!(!day.english_name().is_empty());
@@ -515,7 +568,7 @@ mod tests {
         }
         let mut set = SelectedDaySet::EMPTY;
         assert!(set.is_empty());
-        for day in SelectedDay::ALL {
+        for day in SelectedDay::ALL.iter().copied() {
             assert!(!set.contains(day));
             set = set.with(day);
             assert!(set.contains(day));
@@ -535,7 +588,7 @@ mod tests {
         for day in 1..=31 {
             let rd = rd_2025(12, day);
             assert_eq!(
-                holds(SelectedDay::IchiryuManbai, rd),
+                holds(SelectedDay::ICHIRYU_MANBAI, rd),
                 expected.contains(&day),
                 "2025-12-{day:02}"
             );
@@ -564,7 +617,7 @@ mod tests {
         for month in 1..=12u32 {
             for day in 1..=LENGTHS[(month - 1) as usize] {
                 assert_eq!(
-                    holds(SelectedDay::IchiryuManbai, rd_2025(month, day)),
+                    holds(SelectedDay::ICHIRYU_MANBAI, rd_2025(month, day)),
                     expected[(month - 1) as usize].contains(&day),
                     "2025-{month:02}-{day:02}"
                 );
@@ -593,7 +646,7 @@ mod tests {
         let mut total = 0;
         for month in 1..=12u32 {
             for day in 1..=LENGTHS[(month - 1) as usize] {
-                let holds_today = holds(SelectedDay::Sanrinbo, rd_2025(month, day));
+                let holds_today = holds(SelectedDay::SANRINBO, rd_2025(month, day));
                 assert_eq!(
                     holds_today,
                     expected[(month - 1) as usize].contains(&day),
@@ -611,9 +664,9 @@ mod tests {
     /// month number.
     #[test]
     fn the_leap_month_uses_the_row_of_the_month_it_follows() {
-        assert!(holds(SelectedDay::Fujoju, rd_2025(7, 30)), "2025-07-30");
+        assert!(holds(SelectedDay::FUJOJU, rd_2025(7, 30)), "2025-07-30");
         for day in [7, 15] {
-            assert!(holds(SelectedDay::Fujoju, rd_2025(8, day)), "2025-08-{day}");
+            assert!(holds(SelectedDay::FUJOJU, rd_2025(8, day)), "2025-08-{day}");
         }
     }
 
@@ -624,7 +677,7 @@ mod tests {
         let expected = [1, 9, 17, 24];
         for day in 1..=31 {
             assert_eq!(
-                holds(SelectedDay::Fujoju, rd_2025(12, day)),
+                holds(SelectedDay::FUJOJU, rd_2025(12, day)),
                 expected.contains(&day),
                 "2025-12-{day:02}"
             );
@@ -650,8 +703,8 @@ mod tests {
             assert_eq!(closing.sexagenary().index(), 59, "2025-{month:02}-{last}");
             // The window's first and last days are 八専 proper; the four
             // 間日 inside it are not.
-            assert!(holds(SelectedDay::Hassen, rd_2025(month, first)));
-            assert!(holds(SelectedDay::Hassen, rd_2025(month, last)));
+            assert!(holds(SelectedDay::HASSEN, rd_2025(month, first)));
+            assert!(holds(SelectedDay::HASSEN, rd_2025(month, last)));
         }
     }
 
@@ -663,8 +716,8 @@ mod tests {
         let mut window = 0;
         for offset in 0..60 {
             let rd = NEW_YEAR_2025 + offset;
-            let eight = holds(SelectedDay::Hassen, rd);
-            let four = holds(SelectedDay::HassenInterval, rd);
+            let eight = holds(SelectedDay::HASSEN, rd);
+            let four = holds(SelectedDay::HASSEN_INTERVAL, rd);
             assert!(!(eight && four));
             both += i32::from(eight || four);
             window += i32::from(eight);
@@ -690,12 +743,12 @@ mod tests {
             assert_eq!(on(rd_2025(month, last)).sexagenary().index(), 29);
             for day in first..=last {
                 assert!(
-                    holds(SelectedDay::Jippogure, rd_2025(month, day)),
+                    holds(SelectedDay::JIPPOGURE, rd_2025(month, day)),
                     "2025-{month:02}-{day}"
                 );
             }
-            assert!(!holds(SelectedDay::Jippogure, rd_2025(month, first) - 1));
-            assert!(!holds(SelectedDay::Jippogure, rd_2025(month, last) + 1));
+            assert!(!holds(SelectedDay::JIPPOGURE, rd_2025(month, first) - 1));
+            assert!(!holds(SelectedDay::JIPPOGURE, rd_2025(month, last) + 1));
         }
     }
 
@@ -707,9 +760,9 @@ mod tests {
         let mut length = 0;
         for offset in 0..60 {
             let rd = NEW_YEAR_2025 + offset;
-            let heaven = holds(SelectedDay::TenichiTenjo, rd);
+            let heaven = holds(SelectedDay::TENICHI_TENJO, rd);
             length += i32::from(heaven);
-            overlap += i32::from(heaven && holds(SelectedDay::Jippogure, rd));
+            overlap += i32::from(heaven && holds(SelectedDay::JIPPOGURE, rd));
         }
         assert_eq!(length, 16);
         assert_eq!(overlap, 1);
@@ -721,8 +774,8 @@ mod tests {
     fn the_twenty_first_of_december_2025_opened_the_sexagenary_cycle() {
         let rd = rd_2025(12, 21);
         assert_eq!(on(rd).sexagenary().index(), 0);
-        assert!(holds(SelectedDay::Kinoene, rd));
-        assert!(!holds(SelectedDay::TsuchinotoMi, rd));
+        assert!(holds(SelectedDay::KINOENE, rd));
+        assert!(!holds(SelectedDay::TSUCHINOTO_MI, rd));
     }
 
     /// 2025-12-26 is 己巳, and therefore also a 巳の日; arachne.jp prints
@@ -731,9 +784,9 @@ mod tests {
     fn the_twenty_sixth_of_december_2025_was_the_earth_serpent_day() {
         let rd = rd_2025(12, 26);
         assert_eq!(on(rd).sexagenary().index(), 5);
-        assert!(holds(SelectedDay::TsuchinotoMi, rd));
-        assert!(holds(SelectedDay::SnakeDay, rd));
-        assert!(!holds(SelectedDay::TigerDay, rd));
+        assert!(holds(SelectedDay::TSUCHINOTO_MI, rd));
+        assert!(holds(SelectedDay::SNAKE_DAY, rd));
+        assert!(!holds(SelectedDay::TIGER_DAY, rd));
     }
 
     /// The published 寅の日 and 巳の日 for December 2025: tigers on the 11th
@@ -741,8 +794,8 @@ mod tests {
     #[test]
     fn the_branch_days_recur_every_twelve_days() {
         for (kind, days) in [
-            (SelectedDay::TigerDay, vec![11, 23]),
-            (SelectedDay::SnakeDay, vec![2, 14, 26]),
+            (SelectedDay::TIGER_DAY, vec![11, 23]),
+            (SelectedDay::SNAKE_DAY, vec![2, 14, 26]),
         ] {
             for day in 1..=31 {
                 assert_eq!(
@@ -760,10 +813,10 @@ mod tests {
     #[test]
     fn the_single_sexagenary_days_fall_once_in_sixty() {
         for kind in [
-            SelectedDay::Koshin,
-            SelectedDay::Kinoene,
-            SelectedDay::TsuchinotoMi,
-            SelectedDay::EarthTabooInterval,
+            SelectedDay::KOSHIN,
+            SelectedDay::KINOENE,
+            SelectedDay::TSUCHINOTO_MI,
+            SelectedDay::EARTH_TABOO_INTERVAL,
         ] {
             let count = (0..60)
                 .filter(|offset| holds(kind, NEW_YEAR_2025 + offset))
@@ -779,9 +832,9 @@ mod tests {
         let mut run = 0;
         for offset in 0..60 {
             let rd = NEW_YEAR_2025 + offset;
-            let great = holds(SelectedDay::GreatEarthTaboo, rd);
-            let lesser = holds(SelectedDay::LesserEarthTaboo, rd);
-            let between = holds(SelectedDay::EarthTabooInterval, rd);
+            let great = holds(SelectedDay::GREAT_EARTH_TABOO, rd);
+            let lesser = holds(SelectedDay::LESSER_EARTH_TABOO, rd);
+            let between = holds(SelectedDay::EARTH_TABOO_INTERVAL, rd);
             assert!(u8::from(great) + u8::from(lesser) + u8::from(between) <= 1);
             let position = on(rd).sexagenary().index();
             assert_eq!(
@@ -802,9 +855,9 @@ mod tests {
             .map(|offset| NEW_YEAR_2025 + offset)
             .find(|rd| on(*rd).sexagenary().index() == 20)
             .expect("甲申 occurs within sixty days");
-        assert!(holds(SelectedDay::LesserEarthTaboo, closing));
-        assert!(holds(SelectedDay::Jippogure, closing));
-        assert!(!holds(SelectedDay::LesserEarthTaboo, closing + 1));
+        assert!(holds(SelectedDay::LESSER_EARTH_TABOO, closing));
+        assert!(holds(SelectedDay::JIPPOGURE, closing));
+        assert!(!holds(SelectedDay::LESSER_EARTH_TABOO, closing + 1));
     }
 
     #[test]
@@ -812,7 +865,7 @@ mod tests {
         for offset in 0..90 {
             let rd = Rd(NEW_YEAR_2025 + offset);
             let set = selected_days(rd, Meridian::JAPAN);
-            for kind in SelectedDay::ALL {
+            for kind in SelectedDay::ALL.iter().copied() {
                 assert_eq!(
                     set.contains(kind),
                     holds(kind, rd.0),

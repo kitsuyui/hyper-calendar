@@ -26,7 +26,7 @@
 //! 復日, 天火日, 地火日, the three 悪日 and 往亡日 are 節切り; 大明日, 天恩日,
 //! 神吉日, 重日 and 五墓日 are 不断; 鬼宿日 is the 28-day mansion cycle; and
 //! 凶会日 is the one where the sources genuinely fight — see
-//! [`LowerRegister::Kuenichi`].
+//! [`LowerRegister::KUENICHI`].
 //!
 //! # Provenance, and a warning about apparent corroboration
 //!
@@ -372,7 +372,7 @@ static JIKANICHI: [&[u8]; 12] = [
 /// entries in parentheses, corroborated by the identical 貞享暦 tables
 /// published by 歳事暦 and うまずたゆまず.
 ///
-/// See [`LowerRegister::Kuenichi`] for the 節切り / 月切り dispute.
+/// See [`LowerRegister::KUENICHI`] for the 節切り / 月切り dispute.
 static KUENICHI: [&[u8]; 12] = [
     &[27, 50],                                       // 寅節
     &[15, 51, 57],                                   // 卯節
@@ -391,185 +391,380 @@ static KUENICHI: [&[u8]; 12] = [
 /// One of the 暦注下段.
 ///
 /// Ordering groups the auspicious ones first, then the inauspicious, which
-/// is roughly how a reference lists them.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[non_exhaustive]
-pub enum LowerRegister {
-    /// 大明日 — "the great brightness"; heaven and earth are in accord.
-    Daimyonichi,
-    /// 天恩日 — heaven's grace descends. For celebrations only.
-    Tenonnichi,
-    /// 母倉日 — heaven cherishes mankind as a mother her child.
-    Bosonichi,
-    /// 月徳日 — the month's virtue; for building and moving earth.
-    Tsukitokunichi,
-    /// 神吉日 — good for anything to do with the gods.
-    Kamiyoshinichi,
-    /// 鬼宿日 — the day of 鬼宿; the best of the twenty-eight mansions.
-    Kishukunichi,
-    /// 天赦日 — heaven pardons all things. The most auspicious day there is.
-    Tenshanichi,
-    /// 大禍日 — the great calamity; one of the 三箇の悪日.
-    Taikanichi,
-    /// 狼藉日 — violence and disorder; one of the 三箇の悪日.
-    Rojakunichi,
-    /// 滅門日 — the ruin of a whole house; one of the 三箇の悪日.
-    Metsumonnichi,
-    /// 帰忌日 — the taboo on returning home.
-    Kikonichi,
-    /// 血忌日 — the taboo on the sight of blood.
-    Chiiminichi,
-    /// 重日 — whatever is done today is doubled, for good or ill.
-    Junichi,
-    /// 復日 — the same doubling, keyed to the stem instead of the branch.
-    Fukunichi,
-    /// 往亡日 — "go and perish"; the taboo on setting out.
-    Omonichi,
-    /// 凶会日 — the gathering of ills; the two breaths fail to harmonise.
-    ///
-    /// # The one rule this crate had to choose
-    ///
-    /// Sources contradict each other about whether 凶会日 is 節切り or 月切り,
-    /// and the contradiction is inside single documents. Japanese
-    /// Wikipedia's prose says 「宣明暦時代は節切りで、貞享暦以降は月切り（旧
-    /// 暦）による」 but its own table is headed 「注：節切り。」 with rows
-    /// labelled 寅節 through 丑節. こよみる computes it by 旧暦月;
-    /// うまずたゆまず and 歳事暦 by 節月; 精選版日本国語大辞典 phrases it as
-    /// 旧暦正月.
-    ///
-    /// **This crate uses the 節月**, because the table it ships is the one
-    /// Japanese Wikipedia prints and that table is labelled 節切り, and
-    /// because every other 節-or-month rule in this module is 節切り. A
-    /// caller who needs the 月切り reading must build the rule itself from
-    /// [`LowerRegister::rule`]'s table and evaluate it against
-    /// [`DayContext::lunisolar`].
-    Kuenichi,
-    /// 十死日 — also 十死一生日 or 天殺日. Second only to 受死日.
-    Jushinichi,
-    /// 受死日, also called 黒日 — the worst day of all, printed as a black
-    /// dot. Named `Kurobi` here only because 十死日 and 受死日 romanise to
-    /// almost the same thing and one of them had to take its other name.
-    Kurobi, // renamed below; see `Jushibi`.
-    /// 天火日 — a roof raised today burns.
-    Tenkanichi,
-    /// 地火日 — the earth is full of fire; do not break it.
-    Jikanichi,
-    /// 五墓日 — five graves; five deaths.
-    Gomunichi,
+/// is roughly how a reference lists them. The set varies by publisher and by
+/// era, which is why it is a table and not an `enum` (ADR 0007): an
+/// annotation this crate has not met is an entry with its own rule.
+#[derive(Debug, Clone, Copy)]
+pub struct LowerRegister {
+    /// A short identifier, the variant name in kebab case.
+    pub id: &'static str,
+    rule: AlmanacRule,
+    japanese_name: &'static str,
+    romaji: &'static str,
+    english_name: &'static str,
+    auspicious: bool,
+    meaning: &'static str,
+    suppresses_the_rest: bool,
+}
+
+impl PartialEq for LowerRegister {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for LowerRegister {}
+
+impl core::hash::Hash for LowerRegister {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
+
+impl PartialOrd for LowerRegister {
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for LowerRegister {
+    /// Listing order: the position in [`LowerRegister::ALL`].
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+        self.index().cmp(&other.index())
+    }
+}
+
+hc_core::catalogue! {
+    type: LowerRegister,
+    id: |entry| entry.id,
+    tests: lower_register_tests,
+    associated;
+
+    /// All twenty-one, in listing order.
+    pub const ALL;
+    /// The entry with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// 大明日 — "the great brightness"; heaven and earth are in accord.
+        pub const DAIMYONICHI = Self {
+            id: "daimyonichi",
+            rule: AlmanacRule::SexagenaryIn(&DAIMYONICHI),
+            japanese_name: "大明日",
+            romaji: "daimyōnichi",
+            english_name: "day of great brightness",
+            auspicious: true,
+            meaning: "yin and yang are in accord; auspicious in all things, and especially \
+                 for building, moving house and travel",
+            suppresses_the_rest: false,
+        };
+        /// 天恩日 — heaven's grace descends. For celebrations only.
+        pub const TENONNICHI = Self {
+            id: "tenonnichi",
+            rule: AlmanacRule::SexagenaryIn(&TENONNICHI),
+            japanese_name: "天恩日",
+            romaji: "ten'onnichi",
+            english_name: "day of heaven's grace",
+            auspicious: true,
+            meaning: "heaven's grace descends on all below; use it for celebrations, and \
+                 never for a funeral or any other sorrowful matter",
+            suppresses_the_rest: false,
+        };
+        /// 母倉日 — heaven cherishes mankind as a mother her child.
+        pub const BOSONICHI = Self {
+            id: "bosonichi",
+            rule: AlmanacRule::BranchBySolarMonth(&BOSONICHI),
+            japanese_name: "母倉日",
+            romaji: "bosōnichi",
+            english_name: "day heaven cherishes as a mother",
+            auspicious: true,
+            meaning: "heaven cherishes mankind as a mother her child; auspicious in all \
+                 things, and greatly so for marriage",
+            suppresses_the_rest: false,
+        };
+        /// 月徳日 — the month's virtue; for building and moving earth.
+        pub const TSUKITOKUNICHI = Self {
+            id: "tsukitokunichi",
+            rule: AlmanacRule::StemBySolarMonth(&TSUKITOKUNICHI),
+            japanese_name: "月徳日",
+            romaji: "tsukitokunichi",
+            english_name: "day of the month's virtue",
+            auspicious: true,
+            meaning: "the virtue of the month; good for building, repair and breaking ground",
+            suppresses_the_rest: false,
+        };
+        /// 神吉日 — good for anything to do with the gods.
+        pub const KAMIYOSHINICHI = Self {
+            id: "kamiyoshinichi",
+            rule: AlmanacRule::SexagenaryIn(&KAMIYOSHINICHI),
+            japanese_name: "神吉日",
+            romaji: "kamiyoshinichi",
+            english_name: "day good for the gods",
+            auspicious: true,
+            meaning: "good for everything to do with the gods — shrine visits, festivals, \
+                 prayers, ancestral rites — and bad for anything unclean",
+            suppresses_the_rest: false,
+        };
+        /// 鬼宿日 — the day of 鬼宿; the best of the twenty-eight mansions.
+        pub const KISHUKUNICHI = Self {
+            id: "kishukunichi",
+            rule: AlmanacRule::Mansion(Mansion::GHOST),
+            japanese_name: "鬼宿日",
+            romaji: "kishukunichi",
+            english_name: "day of the ghost mansion",
+            auspicious: true,
+            meaning: "the best of the twenty-eight mansions; the dictionaries add that \
+                 marriage is the one exception",
+            suppresses_the_rest: false,
+        };
+        /// 天赦日 — heaven pardons all things. The most auspicious day there is.
+        pub const TENSHANICHI = Self {
+            id: "tenshanichi",
+            rule: AlmanacRule::SexagenaryBySolarMonth(&TENSHANICHI),
+            japanese_name: "天赦日",
+            romaji: "tenshanichi",
+            english_name: "day heaven pardons everything",
+            auspicious: true,
+            meaning: "the hundred gods assemble in heaven and heaven forgives every offence; \
+                 the almanac prints 万よし against it, and it is the most auspicious day \
+                 in the calendar",
+            suppresses_the_rest: false,
+        };
+        /// 大禍日 — the great calamity; one of the 三箇の悪日.
+        pub const TAIKANICHI = Self {
+            id: "taikanichi",
+            rule: AlmanacRule::BranchBySolarMonth(&TAIKANICHI),
+            japanese_name: "大禍日",
+            romaji: "taikanichi",
+            english_name: "day of great calamity",
+            auspicious: false,
+            meaning: "the severest of the three evil days; bad for quarrels, house repair, \
+                 gates, sea voyages and funerals",
+            suppresses_the_rest: false,
+        };
+        /// 狼藉日 — violence and disorder; one of the 三箇の悪日.
+        pub const ROJAKUNICHI = Self {
+            id: "rojakunichi",
+            rule: AlmanacRule::BranchBySolarMonth(&ROJAKUNICHI),
+            japanese_name: "狼藉日",
+            romaji: "rōjakunichi",
+            english_name: "day of violence and disorder",
+            auspicious: false,
+            meaning: "whatever is attempted comes to violence and fails; one of the three \
+                 evil days",
+            suppresses_the_rest: false,
+        };
+        /// 滅門日 — the ruin of a whole house; one of the 三箇の悪日.
+        pub const METSUMONNICHI = Self {
+            id: "metsumonnichi",
+            rule: AlmanacRule::BranchBySolarMonth(&METSUMONNICHI),
+            japanese_name: "滅門日",
+            romaji: "metsumonnichi",
+            english_name: "day that destroys a house",
+            auspicious: false,
+            meaning: "a whole house and line is destroyed; one of the three evil days",
+            suppresses_the_rest: false,
+        };
+        /// 帰忌日 — the taboo on returning home.
+        pub const KIKONICHI = Self {
+            id: "kikonichi",
+            rule: AlmanacRule::BranchBySolarMonth(&KIKONICHI),
+            japanese_name: "帰忌日",
+            romaji: "kikonichi",
+            english_name: "day one must not go home",
+            auspicious: false,
+            meaning: "the essence of a baleful star blocks the doorway; do not travel, do not \
+                 come home, do not move house or take a wife",
+            suppresses_the_rest: false,
+        };
+        /// 血忌日 — the taboo on the sight of blood.
+        pub const CHIIMINICHI = Self {
+            id: "chiiminichi",
+            rule: AlmanacRule::BranchBySolarMonth(&CHIIMINICHI),
+            japanese_name: "血忌日",
+            romaji: "chiiminichi",
+            english_name: "day one must not see blood",
+            auspicious: false,
+            meaning: "do nothing that draws blood: no acupuncture, no surgery, no execution, \
+                 no hunting",
+            suppresses_the_rest: false,
+        };
+        /// 重日 — whatever is done today is doubled, for good or ill.
+        pub const JUNICHI = Self {
+            id: "junichi",
+            rule: AlmanacRule::BranchIn(&JUNICHI),
+            japanese_name: "重日",
+            romaji: "jūnichi",
+            english_name: "day that doubles whatever is done",
+            auspicious: false,
+            meaning: "good done today is doubled and ill done today is doubled; marriage is \
+                 avoided because it would mean a second one",
+            suppresses_the_rest: false,
+        };
+        /// 復日 — the same doubling, keyed to the stem instead of the branch.
+        pub const FUKUNICHI = Self {
+            id: "fukunichi",
+            rule: AlmanacRule::StemBySolarMonth(&FUKUNICHI),
+            japanese_name: "復日",
+            romaji: "fukunichi",
+            english_name: "day that repeats whatever is done",
+            auspicious: false,
+            meaning: "the same doubling as 重日, and the same avoidance of marriage",
+            suppresses_the_rest: false,
+        };
+        /// 往亡日 — "go and perish"; the taboo on setting out.
+        pub const OMONICHI = Self {
+            id: "omonichi",
+            rule: AlmanacRule::DaysIntoSolarMonth(&OMONICHI),
+            japanese_name: "往亡日",
+            romaji: "ōmōnichi",
+            english_name: "day one goes out and perishes",
+            auspicious: false,
+            meaning: "to go out is to perish; bad for setting out, marching, travel and posting",
+            suppresses_the_rest: false,
+        };
+        /// 凶会日 — the gathering of ills; the two breaths fail to harmonise.
+        ///
+        /// # The one rule this crate had to choose
+        ///
+        /// Sources contradict each other about whether 凶会日 is 節切り or 月切り,
+        /// and the contradiction is inside single documents. Japanese
+        /// Wikipedia's prose says 「宣明暦時代は節切りで、貞享暦以降は月切り（旧
+        /// 暦）による」 but its own table is headed 「注：節切り。」 with rows
+        /// labelled 寅節 through 丑節. こよみる computes it by 旧暦月;
+        /// うまずたゆまず and 歳事暦 by 節月; 精選版日本国語大辞典 phrases it as
+        /// 旧暦正月.
+        ///
+        /// **This crate uses the 節月**, because the table it ships is the one
+        /// Japanese Wikipedia prints and that table is labelled 節切り, and
+        /// because every other 節-or-month rule in this module is 節切り. A
+        /// caller who needs the 月切り reading must build the rule itself from
+        /// [`LowerRegister::rule`]'s table and evaluate it against
+        /// [`DayContext::lunisolar`].
+        pub const KUENICHI = Self {
+            id: "kuenichi",
+            rule: AlmanacRule::SexagenaryBySolarMonth(&KUENICHI),
+            japanese_name: "凶会日",
+            romaji: "kuenichi",
+            english_name: "day the ills gather",
+            auspicious: false,
+            meaning: "the two breaths fail to harmonise and every ill gathers; bad for \
+                 marriage, travel and everything else",
+            suppresses_the_rest: false,
+        };
+        /// 十死日 — also 十死一生日 or 天殺日. Second only to 受死日.
+        pub const JUSHINICHI = Self {
+            id: "jushinichi",
+            rule: AlmanacRule::BranchBySolarMonth(&JUSHINICHI),
+            japanese_name: "十死日",
+            romaji: "jūshinichi",
+            english_name: "day of ten deaths",
+            auspicious: false,
+            meaning: "second only to 受死日, and worse in one respect: unlike 受死日 it \
+                 forbids funerals too",
+            suppresses_the_rest: true,
+        };
+        /// 受死日, also called 黒日 — the worst day of all, printed as a black
+        /// dot. Named `Kurobi` here only because 十死日 and 受死日 romanise to
+        /// almost the same thing and one of them had to take its other name.
+        pub const KUROBI = Self {
+            id: "kurobi",
+            rule: AlmanacRule::BranchBySolarMonth(&JUSHINICHI_BLACK),
+            japanese_name: "受死日",
+            romaji: "jushinichi",
+            english_name: "day of receiving death; the black day",
+            auspicious: false,
+            meaning: "the worst day of the almanac, marked with a black dot; fall ill today \
+                 and you die. Only a funeral is unaffected",
+            suppresses_the_rest: true,
+        };
+        /// 天火日 — a roof raised today burns.
+        pub const TENKANICHI = Self {
+            id: "tenkanichi",
+            rule: AlmanacRule::BranchBySolarMonth(&TENKANICHI),
+            japanese_name: "天火日",
+            romaji: "tenkanichi",
+            english_name: "day of heaven's fire",
+            auspicious: false,
+            meaning: "raise a roof or thatch one today and it will certainly burn; other \
+                 matters are unaffected",
+            suppresses_the_rest: false,
+        };
+        /// 地火日 — the earth is full of fire; do not break it.
+        pub const JIKANICHI = Self {
+            id: "jikanichi",
+            rule: AlmanacRule::BranchBySolarMonth(&JIKANICHI),
+            japanese_name: "地火日",
+            romaji: "jikanichi",
+            english_name: "day of the earth's fire",
+            auspicious: false,
+            meaning: "fire fills the earth; no foundations, no post-setting, no well-digging, \
+                 no sowing, no grave-building",
+            suppresses_the_rest: false,
+        };
+        /// 五墓日 — five graves; five deaths.
+        pub const GOMUNICHI = Self {
+            id: "gomunichi",
+            rule: AlmanacRule::SexagenaryIn(&GOMUNICHI),
+            japanese_name: "五墓日",
+            romaji: "gomunichi",
+            english_name: "day of the five graves",
+            auspicious: false,
+            meaning: "do these things and you pile up five graves; bad for breaking ground, \
+                 funerals, sowing and travel, though not for building a house as such",
+            suppresses_the_rest: false,
+        };
+    }
+}
+
+/// Byte-for-byte equality of two identifiers, usable in `const` context.
+const fn same_id(left: &str, right: &str) -> bool {
+    let (left, right) = (left.as_bytes(), right.as_bytes());
+    if left.len() != right.len() {
+        return false;
+    }
+    let mut index = 0;
+    while index < left.len() {
+        if left[index] != right[index] {
+            return false;
+        }
+        index += 1;
+    }
+    true
 }
 
 impl LowerRegister {
-    /// All twenty-one, in listing order.
-    pub const ALL: [Self; 21] = [
-        Self::Daimyonichi,
-        Self::Tenonnichi,
-        Self::Bosonichi,
-        Self::Tsukitokunichi,
-        Self::Kamiyoshinichi,
-        Self::Kishukunichi,
-        Self::Tenshanichi,
-        Self::Taikanichi,
-        Self::Rojakunichi,
-        Self::Metsumonnichi,
-        Self::Kikonichi,
-        Self::Chiiminichi,
-        Self::Junichi,
-        Self::Fukunichi,
-        Self::Omonichi,
-        Self::Kuenichi,
-        Self::Jushinichi,
-        Self::Kurobi,
-        Self::Tenkanichi,
-        Self::Jikanichi,
-        Self::Gomunichi,
-    ];
+    /// This entry's position in [`LowerRegister::ALL`].
+    ///
+    /// # Panics
+    ///
+    /// If the entry is not in [`LowerRegister::ALL`].
+    #[must_use]
+    pub const fn index(self) -> u8 {
+        let mut index = 0;
+        while index < Self::ALL.len() {
+            if same_id(Self::ALL[index].id, self.id) {
+                return index as u8;
+            }
+            index += 1;
+        }
+        panic!("an entry that is not in ALL has no index")
+    }
 
     /// The three 悪日, which an almanac prints together.
     pub const THREE_EVIL_DAYS: [Self; 3] =
-        [Self::Taikanichi, Self::Rojakunichi, Self::Metsumonnichi];
-
-    /// This annotation's position in [`Self::ALL`].
-    #[must_use]
-    pub const fn index(self) -> u8 {
-        match self {
-            Self::Daimyonichi => 0,
-            Self::Tenonnichi => 1,
-            Self::Bosonichi => 2,
-            Self::Tsukitokunichi => 3,
-            Self::Kamiyoshinichi => 4,
-            Self::Kishukunichi => 5,
-            Self::Tenshanichi => 6,
-            Self::Taikanichi => 7,
-            Self::Rojakunichi => 8,
-            Self::Metsumonnichi => 9,
-            Self::Kikonichi => 10,
-            Self::Chiiminichi => 11,
-            Self::Junichi => 12,
-            Self::Fukunichi => 13,
-            Self::Omonichi => 14,
-            Self::Kuenichi => 15,
-            Self::Jushinichi => 16,
-            Self::Kurobi => 17,
-            Self::Tenkanichi => 18,
-            Self::Jikanichi => 19,
-            Self::Gomunichi => 20,
-        }
-    }
+        [Self::TAIKANICHI, Self::ROJAKUNICHI, Self::METSUMONNICHI];
 
     /// The rule that fixes this day.
     #[must_use]
     pub const fn rule(self) -> AlmanacRule {
-        match self {
-            Self::Daimyonichi => AlmanacRule::SexagenaryIn(&DAIMYONICHI),
-            Self::Tenonnichi => AlmanacRule::SexagenaryIn(&TENONNICHI),
-            Self::Bosonichi => AlmanacRule::BranchBySolarMonth(&BOSONICHI),
-            Self::Tsukitokunichi => AlmanacRule::StemBySolarMonth(&TSUKITOKUNICHI),
-            Self::Kamiyoshinichi => AlmanacRule::SexagenaryIn(&KAMIYOSHINICHI),
-            Self::Kishukunichi => AlmanacRule::Mansion(Mansion::GHOST),
-            Self::Tenshanichi => AlmanacRule::SexagenaryBySolarMonth(&TENSHANICHI),
-            Self::Taikanichi => AlmanacRule::BranchBySolarMonth(&TAIKANICHI),
-            Self::Rojakunichi => AlmanacRule::BranchBySolarMonth(&ROJAKUNICHI),
-            Self::Metsumonnichi => AlmanacRule::BranchBySolarMonth(&METSUMONNICHI),
-            Self::Kikonichi => AlmanacRule::BranchBySolarMonth(&KIKONICHI),
-            Self::Chiiminichi => AlmanacRule::BranchBySolarMonth(&CHIIMINICHI),
-            Self::Junichi => AlmanacRule::BranchIn(&JUNICHI),
-            Self::Fukunichi => AlmanacRule::StemBySolarMonth(&FUKUNICHI),
-            Self::Omonichi => AlmanacRule::DaysIntoSolarMonth(&OMONICHI),
-            Self::Kuenichi => AlmanacRule::SexagenaryBySolarMonth(&KUENICHI),
-            Self::Jushinichi => AlmanacRule::BranchBySolarMonth(&JUSHINICHI),
-            Self::Kurobi => AlmanacRule::BranchBySolarMonth(&JUSHINICHI_BLACK),
-            Self::Tenkanichi => AlmanacRule::BranchBySolarMonth(&TENKANICHI),
-            Self::Jikanichi => AlmanacRule::BranchBySolarMonth(&JIKANICHI),
-            Self::Gomunichi => AlmanacRule::SexagenaryIn(&GOMUNICHI),
-        }
+        self.rule
     }
 
     /// The name in Japanese characters, e.g. `"大明日"`.
     #[must_use]
     pub const fn japanese_name(self) -> &'static str {
-        match self {
-            Self::Daimyonichi => "大明日",
-            Self::Tenonnichi => "天恩日",
-            Self::Bosonichi => "母倉日",
-            Self::Tsukitokunichi => "月徳日",
-            Self::Kamiyoshinichi => "神吉日",
-            Self::Kishukunichi => "鬼宿日",
-            Self::Tenshanichi => "天赦日",
-            Self::Taikanichi => "大禍日",
-            Self::Rojakunichi => "狼藉日",
-            Self::Metsumonnichi => "滅門日",
-            Self::Kikonichi => "帰忌日",
-            Self::Chiiminichi => "血忌日",
-            Self::Junichi => "重日",
-            Self::Fukunichi => "復日",
-            Self::Omonichi => "往亡日",
-            Self::Kuenichi => "凶会日",
-            Self::Jushinichi => "十死日",
-            Self::Kurobi => "受死日",
-            Self::Tenkanichi => "天火日",
-            Self::Jikanichi => "地火日",
-            Self::Gomunichi => "五墓日",
-        }
+        self.japanese_name
     }
 
     /// The reading in Hepburn romaji.
@@ -581,158 +776,25 @@ impl LowerRegister {
     /// given.
     #[must_use]
     pub const fn romaji(self) -> &'static str {
-        match self {
-            Self::Daimyonichi => "daimyōnichi",
-            Self::Tenonnichi => "ten'onnichi",
-            Self::Bosonichi => "bosōnichi",
-            Self::Tsukitokunichi => "tsukitokunichi",
-            Self::Kamiyoshinichi => "kamiyoshinichi",
-            Self::Kishukunichi => "kishukunichi",
-            Self::Tenshanichi => "tenshanichi",
-            Self::Taikanichi => "taikanichi",
-            Self::Rojakunichi => "rōjakunichi",
-            Self::Metsumonnichi => "metsumonnichi",
-            Self::Kikonichi => "kikonichi",
-            Self::Chiiminichi => "chiiminichi",
-            Self::Junichi => "jūnichi",
-            Self::Fukunichi => "fukunichi",
-            Self::Omonichi => "ōmōnichi",
-            Self::Kuenichi => "kuenichi",
-            Self::Jushinichi => "jūshinichi",
-            Self::Kurobi => "jushinichi",
-            Self::Tenkanichi => "tenkanichi",
-            Self::Jikanichi => "jikanichi",
-            Self::Gomunichi => "gomunichi",
-        }
+        self.romaji
     }
 
     /// A one-line English gloss.
     #[must_use]
     pub const fn english_name(self) -> &'static str {
-        match self {
-            Self::Daimyonichi => "day of great brightness",
-            Self::Tenonnichi => "day of heaven's grace",
-            Self::Bosonichi => "day heaven cherishes as a mother",
-            Self::Tsukitokunichi => "day of the month's virtue",
-            Self::Kamiyoshinichi => "day good for the gods",
-            Self::Kishukunichi => "day of the ghost mansion",
-            Self::Tenshanichi => "day heaven pardons everything",
-            Self::Taikanichi => "day of great calamity",
-            Self::Rojakunichi => "day of violence and disorder",
-            Self::Metsumonnichi => "day that destroys a house",
-            Self::Kikonichi => "day one must not go home",
-            Self::Chiiminichi => "day one must not see blood",
-            Self::Junichi => "day that doubles whatever is done",
-            Self::Fukunichi => "day that repeats whatever is done",
-            Self::Omonichi => "day one goes out and perishes",
-            Self::Kuenichi => "day the ills gather",
-            Self::Jushinichi => "day of ten deaths",
-            Self::Kurobi => "day of receiving death; the black day",
-            Self::Tenkanichi => "day of heaven's fire",
-            Self::Jikanichi => "day of the earth's fire",
-            Self::Gomunichi => "day of the five graves",
-        }
+        self.english_name
     }
 
     /// Whether the day is auspicious.
     #[must_use]
     pub const fn is_auspicious(self) -> bool {
-        matches!(
-            self,
-            Self::Daimyonichi
-                | Self::Tenonnichi
-                | Self::Bosonichi
-                | Self::Tsukitokunichi
-                | Self::Kamiyoshinichi
-                | Self::Kishukunichi
-                | Self::Tenshanichi
-        )
+        self.auspicious
     }
 
     /// What the day is held to mean, in one sentence.
     #[must_use]
     pub const fn meaning(self) -> &'static str {
-        match self {
-            Self::Daimyonichi => {
-                "yin and yang are in accord; auspicious in all things, and especially \
-                 for building, moving house and travel"
-            }
-            Self::Tenonnichi => {
-                "heaven's grace descends on all below; use it for celebrations, and \
-                 never for a funeral or any other sorrowful matter"
-            }
-            Self::Bosonichi => {
-                "heaven cherishes mankind as a mother her child; auspicious in all \
-                 things, and greatly so for marriage"
-            }
-            Self::Tsukitokunichi => {
-                "the virtue of the month; good for building, repair and breaking ground"
-            }
-            Self::Kamiyoshinichi => {
-                "good for everything to do with the gods — shrine visits, festivals, \
-                 prayers, ancestral rites — and bad for anything unclean"
-            }
-            Self::Kishukunichi => {
-                "the best of the twenty-eight mansions; the dictionaries add that \
-                 marriage is the one exception"
-            }
-            Self::Tenshanichi => {
-                "the hundred gods assemble in heaven and heaven forgives every offence; \
-                 the almanac prints 万よし against it, and it is the most auspicious day \
-                 in the calendar"
-            }
-            Self::Taikanichi => {
-                "the severest of the three evil days; bad for quarrels, house repair, \
-                 gates, sea voyages and funerals"
-            }
-            Self::Rojakunichi => {
-                "whatever is attempted comes to violence and fails; one of the three \
-                 evil days"
-            }
-            Self::Metsumonnichi => {
-                "a whole house and line is destroyed; one of the three evil days"
-            }
-            Self::Kikonichi => {
-                "the essence of a baleful star blocks the doorway; do not travel, do not \
-                 come home, do not move house or take a wife"
-            }
-            Self::Chiiminichi => {
-                "do nothing that draws blood: no acupuncture, no surgery, no execution, \
-                 no hunting"
-            }
-            Self::Junichi => {
-                "good done today is doubled and ill done today is doubled; marriage is \
-                 avoided because it would mean a second one"
-            }
-            Self::Fukunichi => "the same doubling as 重日, and the same avoidance of marriage",
-            Self::Omonichi => {
-                "to go out is to perish; bad for setting out, marching, travel and posting"
-            }
-            Self::Kuenichi => {
-                "the two breaths fail to harmonise and every ill gathers; bad for \
-                 marriage, travel and everything else"
-            }
-            Self::Jushinichi => {
-                "second only to 受死日, and worse in one respect: unlike 受死日 it \
-                 forbids funerals too"
-            }
-            Self::Kurobi => {
-                "the worst day of the almanac, marked with a black dot; fall ill today \
-                 and you die. Only a funeral is unaffected"
-            }
-            Self::Tenkanichi => {
-                "raise a roof or thatch one today and it will certainly burn; other \
-                 matters are unaffected"
-            }
-            Self::Jikanichi => {
-                "fire fills the earth; no foundations, no post-setting, no well-digging, \
-                 no sowing, no grave-building"
-            }
-            Self::Gomunichi => {
-                "do these things and you pile up five graves; bad for breaking ground, \
-                 funerals, sowing and travel, though not for building a house as such"
-            }
-        }
+        self.meaning
     }
 
     /// Whether this annotation traditionally suppresses every other entry in
@@ -745,7 +807,7 @@ impl LowerRegister {
     /// rendering an almanac page can reproduce the convention.
     #[must_use]
     pub const fn suppresses_the_rest(self) -> bool {
-        matches!(self, Self::Jushinichi | Self::Kurobi)
+        self.suppresses_the_rest
     }
 
     /// Whether this 暦注 holds on the day a context describes.
@@ -799,7 +861,8 @@ impl LowerRegisterSet {
     /// The annotations in the set, in [`LowerRegister::ALL`] order.
     pub fn iter(self) -> impl Iterator<Item = LowerRegister> {
         LowerRegister::ALL
-            .into_iter()
+            .iter()
+            .copied()
             .filter(move |note| self.contains(*note))
     }
 
@@ -807,7 +870,7 @@ impl LowerRegisterSet {
     /// that, because the two suppress everything else.
     #[must_use]
     pub fn as_printed(self) -> Self {
-        for note in LowerRegister::ALL {
+        for note in LowerRegister::ALL.iter().copied() {
             if note.suppresses_the_rest() && self.contains(note) {
                 return Self::EMPTY.with(note);
             }
@@ -820,7 +883,7 @@ impl LowerRegisterSet {
 #[must_use]
 pub fn lower_register_of_context(context: &DayContext) -> LowerRegisterSet {
     let mut set = LowerRegisterSet::EMPTY;
-    for note in LowerRegister::ALL {
+    for note in LowerRegister::ALL.iter().copied() {
         if note.applies_to(context) == Some(true) {
             set = set.with(note);
         }
@@ -864,7 +927,7 @@ mod tests {
 
     #[test]
     fn every_annotation_has_a_name_a_reading_a_gloss_and_a_rule() {
-        for note in LowerRegister::ALL {
+        for note in LowerRegister::ALL.iter().copied() {
             assert!(!note.japanese_name().is_empty());
             assert!(!note.romaji().is_empty());
             assert!(!note.english_name().is_empty());
@@ -880,7 +943,7 @@ mod tests {
         }
         let mut set = LowerRegisterSet::EMPTY;
         assert!(set.is_empty());
-        for note in LowerRegister::ALL {
+        for note in LowerRegister::ALL.iter().copied() {
             assert!(!set.contains(note));
             set = set.with(note);
         }
@@ -905,12 +968,12 @@ mod tests {
         ];
         for (month, day) in expected_2024 {
             assert!(
-                holds(LowerRegister::Tenshanichi, rd_2024(month, day)),
+                holds(LowerRegister::TENSHANICHI, rd_2024(month, day)),
                 "2024-{month:02}-{day:02}"
             );
         }
         let count = (0..366)
-            .filter(|offset| holds(LowerRegister::Tenshanichi, NEW_YEAR_2024 + offset))
+            .filter(|offset| holds(LowerRegister::TENSHANICHI, NEW_YEAR_2024 + offset))
             .count();
         assert_eq!(count, expected_2024.len());
     }
@@ -927,9 +990,9 @@ mod tests {
         assert_eq!(context.sexagenary().index(), 44); // 戊申
         assert_eq!(context.solar_month().number(), 7); // 申月, opened by 立秋
         assert_eq!(context.days_into_solar_month(), 0);
-        assert!(holds(LowerRegister::Tenshanichi, seventh_of_august.0));
+        assert!(holds(LowerRegister::TENSHANICHI, seventh_of_august.0));
         // The day before is still 未月, where the 天赦日 is 甲午 and not 戊申.
-        assert!(!holds(LowerRegister::Tenshanichi, seventh_of_august.0 - 1));
+        assert!(!holds(LowerRegister::TENSHANICHI, seventh_of_august.0 - 1));
     }
 
     /// The published 往亡日 for 2026, all twelve, from the 節気 dates in the
@@ -956,7 +1019,7 @@ mod tests {
         for month in 1..=12usize {
             for day in 1..=DAYS_IN_MONTH[month - 1] {
                 assert_eq!(
-                    holds(LowerRegister::Omonichi, rd_2026(month, day)),
+                    holds(LowerRegister::OMONICHI, rd_2026(month, day)),
                     expected.contains(&(month, day)),
                     "2026-{month:02}-{day:02}"
                 );
@@ -970,36 +1033,36 @@ mod tests {
     #[test]
     fn the_published_2024_lower_register_entries_match() {
         // 2024-01-06 is 己巳 in 節月 十二月: 大明日 and 神吉日.
-        assert!(holds(LowerRegister::Daimyonichi, rd_2024(1, 6)));
-        assert!(holds(LowerRegister::Kamiyoshinichi, rd_2024(1, 6)));
+        assert!(holds(LowerRegister::DAIMYONICHI, rd_2024(1, 6)));
+        assert!(holds(LowerRegister::KAMIYOSHINICHI, rd_2024(1, 6)));
         // 2024-02-21 is 乙卯 in 節月 正月: 神吉日 but *not* 大明日. This is
         // what rules out the circulated 大明日 list that contains 乙卯.
-        assert!(holds(LowerRegister::Kamiyoshinichi, rd_2024(2, 21)));
-        assert!(!holds(LowerRegister::Daimyonichi, rd_2024(2, 21)));
+        assert!(holds(LowerRegister::KAMIYOSHINICHI, rd_2024(2, 21)));
+        assert!(!holds(LowerRegister::DAIMYONICHI, rd_2024(2, 21)));
         // 2024-01-01 is 甲子: 天恩日. 2024-02-15 is 己酉: 天恩日 and 十死日.
-        assert!(holds(LowerRegister::Tenonnichi, rd_2024(1, 1)));
-        assert!(holds(LowerRegister::Tenonnichi, rd_2024(2, 15)));
-        assert!(holds(LowerRegister::Jushinichi, rd_2024(2, 15)));
+        assert!(holds(LowerRegister::TENONNICHI, rd_2024(1, 1)));
+        assert!(holds(LowerRegister::TENONNICHI, rd_2024(2, 15)));
+        assert!(holds(LowerRegister::JUSHINICHI, rd_2024(2, 15)));
         // 2024-01-31 is 甲午: *not* 天恩日. This rules out the circulated
         // third run of 甲午 through 戊戌.
-        assert!(!holds(LowerRegister::Tenonnichi, rd_2024(1, 31)));
+        assert!(!holds(LowerRegister::TENONNICHI, rd_2024(1, 31)));
         // 2024-01-31 is 甲午 in 節月 十二月 (土用): 母倉日, since the 土用
         // months take 巳・午.
-        assert!(holds(LowerRegister::Bosonichi, rd_2024(1, 31)));
+        assert!(holds(LowerRegister::BOSONICHI, rd_2024(1, 31)));
         // 2024-02-06 is 庚子 in 節月 正月: 母倉日 (子), 復日 (庚) and 天火日.
-        assert!(holds(LowerRegister::Bosonichi, rd_2024(2, 6)));
-        assert!(holds(LowerRegister::Fukunichi, rd_2024(2, 6)));
-        assert!(holds(LowerRegister::Tenkanichi, rd_2024(2, 6)));
+        assert!(holds(LowerRegister::BOSONICHI, rd_2024(2, 6)));
+        assert!(holds(LowerRegister::FUKUNICHI, rd_2024(2, 6)));
+        assert!(holds(LowerRegister::TENKANICHI, rd_2024(2, 6)));
         // 2024-02-11 is 乙巳 in 節月 正月: 地火日, and *not* 復日 — the trap
         // in the 復日 rule.
-        assert!(holds(LowerRegister::Jikanichi, rd_2024(2, 11)));
-        assert!(!holds(LowerRegister::Fukunichi, rd_2024(2, 11)));
+        assert!(holds(LowerRegister::JIKANICHI, rd_2024(2, 11)));
+        assert!(!holds(LowerRegister::FUKUNICHI, rd_2024(2, 11)));
         // 2024-02-04 is 戊戌 and 立春: 受死日, since 節月 正月 takes 戌.
-        assert!(holds(LowerRegister::Kurobi, rd_2024(2, 4)));
+        assert!(holds(LowerRegister::KUROBI, rd_2024(2, 4)));
         // 2024-01-29 is 壬辰 in 節月 十二月: 地火日, which takes 辰.
-        assert!(holds(LowerRegister::Jikanichi, rd_2024(1, 29)));
+        assert!(holds(LowerRegister::JIKANICHI, rd_2024(1, 29)));
         // 2024-02-10 is 甲辰, six days past 立春: 往亡日.
-        assert!(holds(LowerRegister::Omonichi, rd_2024(2, 10)));
+        assert!(holds(LowerRegister::OMONICHI, rd_2024(2, 10)));
     }
 
     /// 受死日 proves the 節切り reading on its own: 2024-02-04 is 旧暦十二月
@@ -1012,7 +1075,7 @@ mod tests {
         assert_eq!(context.solar_month().number(), 1);
         assert_eq!(context.lunisolar().month, 12);
         assert_eq!(context.branch_index(), 10); // 戌
-        assert!(holds(LowerRegister::Kurobi, lichun.0));
+        assert!(holds(LowerRegister::KUROBI, lichun.0));
     }
 
     /// Japanese Wikipedia states that 狼藉日 and 天火日 share a table exactly.
@@ -1023,8 +1086,8 @@ mod tests {
         for offset in 0..800 {
             let rd = NEW_YEAR_2024 + offset;
             assert_eq!(
-                holds(LowerRegister::Rojakunichi, rd),
-                holds(LowerRegister::Tenkanichi, rd),
+                holds(LowerRegister::ROJAKUNICHI, rd),
+                holds(LowerRegister::TENKANICHI, rd),
                 "RD {rd}"
             );
         }
@@ -1039,7 +1102,7 @@ mod tests {
         for offset in 0..800 {
             let rd = Rd(NEW_YEAR_2024 + offset);
             assert_eq!(
-                holds(LowerRegister::Jikanichi, rd.0),
+                holds(LowerRegister::JIKANICHI, rd.0),
                 direct_of(rd, JAPAN) == TwelveDirect::Level,
                 "RD {}",
                 rd.0
@@ -1063,7 +1126,7 @@ mod tests {
         for offset in 0..400 {
             let rd = NEW_YEAR_2024 + offset;
             assert!(
-                !(holds(LowerRegister::Taikanichi, rd) && holds(LowerRegister::Metsumonnichi, rd))
+                !(holds(LowerRegister::TAIKANICHI, rd) && holds(LowerRegister::METSUMONNICHI, rd))
             );
         }
     }
@@ -1148,7 +1211,7 @@ mod tests {
     #[test]
     fn the_doubling_day_falls_twice_in_every_twelve() {
         let count = (0..60)
-            .filter(|offset| holds(LowerRegister::Junichi, NEW_YEAR_2024 + offset))
+            .filter(|offset| holds(LowerRegister::JUNICHI, NEW_YEAR_2024 + offset))
             .count();
         assert_eq!(count, 10);
     }
@@ -1159,7 +1222,7 @@ mod tests {
     fn every_day_of_heavens_pardon_is_one_of_four_sexagenary_positions() {
         for offset in 0..1_100 {
             let rd = Rd(NEW_YEAR_2024 + offset);
-            if holds(LowerRegister::Tenshanichi, rd.0) {
+            if holds(LowerRegister::TENSHANICHI, rd.0) {
                 let position = DayContext::new(rd, JAPAN).sexagenary().index();
                 assert!(matches!(position, 0 | 14 | 30 | 44), "RD {}", rd.0);
             }
@@ -1170,19 +1233,19 @@ mod tests {
     /// else does.
     #[test]
     fn only_the_two_death_days_suppress_the_rest_of_the_page() {
-        for note in LowerRegister::ALL {
+        for note in LowerRegister::ALL.iter().copied() {
             assert_eq!(
                 note.suppresses_the_rest(),
-                matches!(note, LowerRegister::Jushinichi | LowerRegister::Kurobi)
+                note == LowerRegister::JUSHINICHI || note == LowerRegister::KUROBI
             );
         }
-        assert!(lower_register(Rd(rd_2024(2, 4)), JAPAN).contains(LowerRegister::Kurobi));
+        assert!(lower_register(Rd(rd_2024(2, 4)), JAPAN).contains(LowerRegister::KUROBI));
         let mut suppressed = 0;
         let mut untouched = 0;
         for offset in 0..400 {
             let set = lower_register(Rd(NEW_YEAR_2024 + offset), JAPAN);
             let has_death =
-                set.contains(LowerRegister::Kurobi) || set.contains(LowerRegister::Jushinichi);
+                set.contains(LowerRegister::KUROBI) || set.contains(LowerRegister::JUSHINICHI);
             let printed = set.as_printed();
             if has_death {
                 assert_eq!(printed.len(), 1, "a death day must print alone");
@@ -1206,7 +1269,7 @@ mod tests {
         for offset in 0..120 {
             let rd = Rd(NEW_YEAR_2024 + offset);
             let set = lower_register(rd, JAPAN);
-            for note in LowerRegister::ALL {
+            for note in LowerRegister::ALL.iter().copied() {
                 assert_eq!(set.contains(note), holds(note, rd.0), "RD {}", rd.0);
             }
         }
@@ -1216,12 +1279,13 @@ mod tests {
     #[test]
     fn seven_of_the_twenty_one_are_auspicious() {
         let auspicious = LowerRegister::ALL
-            .into_iter()
+            .iter()
+            .copied()
             .filter(|note| note.is_auspicious())
             .count();
         assert_eq!(auspicious, 7);
-        assert!(LowerRegister::Tenshanichi.is_auspicious());
-        assert!(!LowerRegister::Kurobi.is_auspicious());
+        assert!(LowerRegister::TENSHANICHI.is_auspicious());
+        assert!(!LowerRegister::KUROBI.is_auspicious());
         assert_eq!(LowerRegister::THREE_EVIL_DAYS.len(), 3);
         for note in LowerRegister::THREE_EVIL_DAYS {
             assert!(!note.is_auspicious());

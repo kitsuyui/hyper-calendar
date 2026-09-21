@@ -14,7 +14,7 @@
 //! // and the day the 九星 count reversed into 陽遁.
 //! let notes = day_notes(Rd(739_606), Meridian::JAPAN);
 //! assert_eq!(notes.sexagenary().index(), 0);
-//! assert!(notes.lower_register().contains(hc_almanac::LowerRegister::Tenshanichi));
+//! assert!(notes.lower_register().contains(hc_almanac::LowerRegister::TENSHANICHI));
 //! ```
 //!
 //! # The combinations, and why they carry a warning
@@ -157,11 +157,11 @@ fn is_taian(rokuyo: Rokuyo) -> bool {
 }
 
 fn has_pardon(lower: LowerRegisterSet) -> bool {
-    lower.contains(LowerRegister::Tenshanichi)
+    lower.contains(LowerRegister::TENSHANICHI)
 }
 
 fn has_grain(selected: SelectedDaySet) -> bool {
-    selected.contains(SelectedDay::IchiryuManbai)
+    selected.contains(SelectedDay::ICHIRYU_MANBAI)
 }
 
 fn pardon_and_grain(_: Rokuyo, lower: LowerRegisterSet, selected: SelectedDaySet) -> bool {
@@ -185,19 +185,19 @@ fn pardon_and_taian(rokuyo: Rokuyo, lower: LowerRegisterSet, _: SelectedDaySet) 
 }
 
 fn tiger_and_taian(rokuyo: Rokuyo, _: LowerRegisterSet, selected: SelectedDaySet) -> bool {
-    is_taian(rokuyo) && selected.contains(SelectedDay::TigerDay)
+    is_taian(rokuyo) && selected.contains(SelectedDay::TIGER_DAY)
 }
 
 fn earth_serpent_and_taian(rokuyo: Rokuyo, _: LowerRegisterSet, selected: SelectedDaySet) -> bool {
-    is_taian(rokuyo) && selected.contains(SelectedDay::TsuchinotoMi)
+    is_taian(rokuyo) && selected.contains(SelectedDay::TSUCHINOTO_MI)
 }
 
 fn grain_and_no_accomplishment(_: Rokuyo, _: LowerRegisterSet, selected: SelectedDaySet) -> bool {
-    has_grain(selected) && selected.contains(SelectedDay::Fujoju)
+    has_grain(selected) && selected.contains(SelectedDay::FUJOJU)
 }
 
 fn grain_and_three_neighbours(_: Rokuyo, _: LowerRegisterSet, selected: SelectedDaySet) -> bool {
-    has_grain(selected) && selected.contains(SelectedDay::Sanrinbo)
+    has_grain(selected) && selected.contains(SelectedDay::SANRINBO)
 }
 
 hc_core::catalogue! {
@@ -495,9 +495,9 @@ mod tests {
         assert_eq!(notes.mansion().japanese_name(), "畢");
         assert_eq!(notes.twelve_direct().japanese_name(), "建");
         assert_eq!(notes.nine_stars().day, NineStar::OneWhite);
-        assert!(notes.lower_register().contains(LowerRegister::Tenonnichi));
-        assert!(notes.lower_register().contains(LowerRegister::Tenshanichi));
-        assert!(notes.selected_days().contains(SelectedDay::Kinoene));
+        assert!(notes.lower_register().contains(LowerRegister::TENONNICHI));
+        assert!(notes.lower_register().contains(LowerRegister::TENSHANICHI));
+        assert!(notes.selected_days().contains(SelectedDay::KINOENE));
         assert_eq!(notes.solar_month().number(), 11);
     }
 
@@ -509,9 +509,9 @@ mod tests {
     fn the_twenty_first_of_december_2025_carries_the_strongest_combination() {
         let notes = day_notes(Rd(739_606), JAPAN);
         assert_eq!(notes.sexagenary().index(), 0);
-        assert!(notes.lower_register().contains(LowerRegister::Tenshanichi));
-        assert!(notes.selected_days().contains(SelectedDay::IchiryuManbai));
-        assert!(notes.selected_days().contains(SelectedDay::Kinoene));
+        assert!(notes.lower_register().contains(LowerRegister::TENSHANICHI));
+        assert!(notes.selected_days().contains(SelectedDay::ICHIRYU_MANBAI));
+        assert!(notes.selected_days().contains(SelectedDay::KINOENE));
         assert!(notes.combinations().contains(Combination::PARDON_AND_GRAIN));
         assert_eq!(notes.rokuyo(), Rokuyo::Shakko);
         assert!(!notes.is_taian());
@@ -531,8 +531,8 @@ mod tests {
         assert_eq!(notes.sexagenary().index(), 5);
         assert_eq!(notes.rokuyo(), Rokuyo::Taian);
         assert!(notes.is_taian());
-        assert!(notes.selected_days().contains(SelectedDay::TsuchinotoMi));
-        assert!(notes.selected_days().contains(SelectedDay::SnakeDay));
+        assert!(notes.selected_days().contains(SelectedDay::TSUCHINOTO_MI));
+        assert!(notes.selected_days().contains(SelectedDay::SNAKE_DAY));
         assert!(
             notes
                 .combinations()
@@ -612,14 +612,14 @@ mod tests {
     #[test]
     fn no_annotation_in_the_two_catalogues_is_undetermined() {
         let context = DayContext::new(Rd(NEW_YEAR_2025), JAPAN);
-        for note in LowerRegister::ALL {
+        for note in LowerRegister::ALL.iter().copied() {
             assert!(
                 note.applies_to(&context).is_some(),
                 "{}",
                 note.japanese_name()
             );
         }
-        for day in SelectedDay::ALL {
+        for day in SelectedDay::ALL.iter().copied() {
             assert!(
                 day.applies_to(&context).is_some(),
                 "{}",
