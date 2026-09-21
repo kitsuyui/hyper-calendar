@@ -306,7 +306,7 @@ pub static THAILAND: FiscalProfile = FiscalProfile {
             local_name: "ปีงบประมาณ",
             kind: SystemKind::Government,
             authority: Authority::Statute,
-            start: YearStart::new(StartCalendar::ThaiBuddhist, 10, 1),
+            start: YearStart::new(StartCalendar::THAI_BUDDHIST, 10, 1),
             label: LabelConvention::LabelledByEndYear,
             valid_from: Some(2505),
             valid_until: None,
@@ -318,7 +318,7 @@ pub static THAILAND: FiscalProfile = FiscalProfile {
             local_name: "ปีงบประมาณ",
             kind: SystemKind::Government,
             authority: Authority::Statute,
-            start: YearStart::new(StartCalendar::ThaiBuddhist, 1, 1),
+            start: YearStart::new(StartCalendar::THAI_BUDDHIST, 1, 1),
             label: LabelConvention::LabelledByStartYear,
             valid_from: Some(2484),
             valid_until: Some(2504),
@@ -909,7 +909,7 @@ pub static SOUTH_AFRICA: FiscalProfile = FiscalProfile {
 /// it *is* the Solar Hijri calendar year, and its Gregorian start moves
 /// between 20 and 21 March. This entry is the crate's proof that the
 /// calendar abstraction carries — the start is expressed as 1 Farvardin in
-/// [`StartCalendar::SolarHijriArithmetic`] and converted by the calendar,
+/// [`StartCalendar::SOLAR_HIJRI_ARITHMETIC`] and converted by the calendar,
 /// not hard-coded as "about 21 March".
 ///
 /// # What is approximated, and by how much
@@ -939,7 +939,7 @@ pub static IRAN: FiscalProfile = FiscalProfile {
         local_name: "سال مالی",
         kind: SystemKind::Government,
         authority: Authority::Statute,
-        start: YearStart::new(StartCalendar::SolarHijriArithmetic, 1, 1),
+        start: YearStart::new(StartCalendar::SOLAR_HIJRI_ARITHMETIC, 1, 1),
         label: LabelConvention::LabelledByStartYear,
         valid_from: Some(1366),
         valid_until: None,
@@ -992,7 +992,7 @@ pub static ETHIOPIA: FiscalProfile = FiscalProfile {
         local_name: "የበጀት ዓመት",
         kind: SystemKind::Government,
         authority: Authority::Statute,
-        start: YearStart::new(StartCalendar::Ethiopic, 11, 1),
+        start: YearStart::new(StartCalendar::ETHIOPIC, 11, 1),
         label: LabelConvention::LabelledByEndYear,
         valid_from: Some(2002),
         valid_until: None,
@@ -1277,7 +1277,7 @@ mod tests {
     #[test]
     fn the_iranian_fiscal_year_is_the_solar_hijri_year_itself() {
         let system = IRAN.government(1403).unwrap();
-        assert_eq!(system.start.calendar, StartCalendar::SolarHijriArithmetic);
+        assert_eq!(system.start.calendar, StartCalendar::SOLAR_HIJRI_ARITHMETIC);
         let span = system.span(1403).unwrap();
         assert_eq!(span.first, persian::to_fixed(1403, 1, 1).unwrap());
         assert_eq!(span.last, Rd(persian::to_fixed(1404, 1, 1).unwrap().0 - 1));
@@ -1323,7 +1323,7 @@ mod tests {
     #[test]
     fn the_ethiopian_fiscal_year_runs_hamle_1_to_sene_30() {
         let system = ETHIOPIA.government(2016).unwrap();
-        assert_eq!(system.start.calendar, StartCalendar::Ethiopic);
+        assert_eq!(system.start.calendar, StartCalendar::ETHIOPIC);
         let span = system.span(2016).unwrap();
         // Hamle 1 of 2015 EC to Sene 30 of 2016 EC.
         assert_eq!(span.first, ethiopic::to_fixed(2015, 11, 1).unwrap());
@@ -1549,7 +1549,7 @@ mod tests {
         // the Thai solar calendar rather than a Gregorian date with 543
         // added after the fact.
         let system = THAILAND.government(2568).unwrap();
-        assert_eq!(system.start.calendar, StartCalendar::ThaiBuddhist);
+        assert_eq!(system.start.calendar, StartCalendar::THAI_BUDDHIST);
         assert_eq!(system.start.calendar.id().as_str(), "buddhist");
         assert_eq!(
             system.span(2568).unwrap().first,

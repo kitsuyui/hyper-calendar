@@ -483,7 +483,7 @@ mod tests {
     #[test]
     fn an_ethiopic_anchored_system_refuses_quarters_but_still_has_a_span() {
         let ethiopia = system(
-            YearStart::new(StartCalendar::Ethiopic, 11, 8),
+            YearStart::new(StartCalendar::ETHIOPIC, 11, 8),
             LabelConvention::LabelledByEndYear,
         );
         let rd = greg(2024, 1, 1);
