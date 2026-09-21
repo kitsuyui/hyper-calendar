@@ -27,13 +27,18 @@
 //! German states, Switzerland — the entry names the province the date
 //! belongs to rather than pretending the state moved at once.
 //!
-//! # What this deliberately does not do
+//! # The start of the year is a separate axis
 //!
-//! It does not model the *start of the year*. England ran the historical year
-//! from 25 March (Lady Day) until 1752, so a document dated "12 February
-//! 1721" usually means what this crate calls 1722-02-12. Recovering that
-//! requires knowing the scribe's convention, not just the country, so this
-//! module always uses 1 January and leaves double dating to the caller.
+//! This module always uses 1 January. England ran the historical year from
+//! 25 March (Lady Day) until 1752, so a document dated "12 February 1721"
+//! usually means what this crate calls 1722-02-12 — and recovering that
+//! needs the scribe's convention, not just the country.
+//!
+//! An earlier version of this note left that to the caller.
+//! [`crate::year_style`] now carries the conventions as named styles, which
+//! is policy §5's answer to exactly this: a finite set the caller selects,
+//! rather than one silent default. The reform date and the year start are
+//! independent, so they stay two separate things to choose.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,

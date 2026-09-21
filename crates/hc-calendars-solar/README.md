@@ -16,6 +16,7 @@ reform:
 | `gregorian` | Proleptic Gregorian | `gregory` |
 | `julian` | Proleptic Julian, with BC/AD eras | `julian` |
 | `julian_gregorian` | Julian before a country's reform, Gregorian after | `julian-gregorian-*` |
+| `year_style` | Where the year began: Lady Day, Annunciation (Florentine, Pisan), Nativity, more veneto, Greek | *(not calendars; a year-number conversion)* |
 | `iso_week` | ISO 8601 week date | `iso8601-week` |
 | `ordinal` | ISO 8601 ordinal date | `iso8601-ordinal` |
 | `julian_day` | Julian Day Number, Modified Julian Date | `julian-day`, `modified-julian-day` |

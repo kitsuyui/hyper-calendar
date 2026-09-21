@@ -79,6 +79,7 @@ pub mod symmetry;
 pub mod symmetry010;
 pub mod symmetry454;
 pub mod world_calendar;
+pub mod year_style;
 
 pub use armenian::{ArmenianCalendar, ArmenianDate};
 pub use armenian_fixed::{ArmenianFixedCalendar, ArmenianFixedDate};
