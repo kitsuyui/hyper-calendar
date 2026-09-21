@@ -56,6 +56,7 @@ pub mod buddhist;
 pub mod byzantine;
 pub mod coptic;
 pub mod cycles;
+pub mod day_counts;
 pub mod egyptian;
 pub mod ethiopic;
 pub mod french_republican;
@@ -132,6 +133,11 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::OrdinalCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::JulianDayCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ModifiedJulianDayCalendar)));
+        for count in crate::day_counts::ALL {
+            registry.insert(Box::new(DynAdapter::new(
+                crate::day_counts::DayCountCalendar(*count),
+            )));
+        }
         registry.insert(Box::new(DynAdapter::new(crate::CopticCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::EthiopicCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::EgyptianCalendar)));
@@ -168,7 +174,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 25;
+const CALENDAR_COUNT: usize = 32;
 
 #[cfg(test)]
 mod tests {

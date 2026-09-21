@@ -133,11 +133,11 @@ pub struct ModifiedJulianDayCalendar;
 impl Calendar for ModifiedJulianDayCalendar {
     type Date = ModifiedJulianDay;
 
-    /// The Modified Julian Date begins at midnight, unlike the Julian Day it
-    /// is derived from — the 0.5 in its definition is exactly that shift. It
-    /// is recorded here because the neighbouring calendar differs. at noon, not midnight. Astronomers count that
-    /// way so that one night's observations carry a single date, and the
-    /// convention has outlived the reason.
+    /// The Modified Julian Date begins at midnight, unlike the Julian Day
+    /// it is derived from — the 0.5 in its definition is exactly that
+    /// shift. It is recorded here because the neighbouring calendar
+    /// differs, and because half the confusion between the two counts is
+    /// about which half of the day they mean.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Midnight
     }
