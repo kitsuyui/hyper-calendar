@@ -61,11 +61,13 @@ pub mod weekday;
 
 #[cfg(feature = "alloc")]
 pub mod registry;
+pub mod shape;
 
 pub use daystart::{DayBoundary, Standing, Usage};
 pub use error::{CalendarError, CalendarResult};
 pub use fields::{DateFields, Month, YearKind};
 pub use fixed::{Rd, moment_to_rd, rd_to_moment};
+pub use shape::{CycleLength, CycleShape};
 pub use time::{CivilDateTime, CivilTime};
 pub use traits::{Calendar, CalendarId, CalendarMeta, DynAdapter, DynCalendar};
 pub use weekday::Weekday;

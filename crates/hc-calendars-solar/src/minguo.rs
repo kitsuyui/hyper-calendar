@@ -140,6 +140,10 @@ pub struct MinguoCalendar;
 impl Calendar for MinguoCalendar {
     type Date = MinguoDate;
 
+    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
+        Some(hc_calendar::shape::SOLAR_TWELVE)
+    }
+
     /// In use from the founding of the Republic on 1 January 1912. The
     /// 民國前 years before it are a back-count, which is what the name says.
     fn usage(&self) -> hc_calendar::Usage {

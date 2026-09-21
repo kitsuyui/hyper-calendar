@@ -607,6 +607,10 @@ fn era_in_force(
 impl Calendar for JapaneseCalendar {
     type Date = JapaneseDate;
 
+    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
+        Some(hc_calendar::shape::LUNISOLAR_TWELVE)
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: self.id(),

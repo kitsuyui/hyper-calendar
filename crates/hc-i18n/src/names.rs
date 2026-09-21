@@ -238,6 +238,19 @@ pub struct EraNames {
     pub codes: &'static [&'static str],
     /// The names themselves.
     pub names: WidthSet,
+    /// Which calendars these eras belong to.
+    ///
+    /// Empty means "the calendars this entry serves", which is the usual
+    /// case. It is set where the entry's cycles are shared more widely than
+    /// its eras: the Gregorian months serve a dozen calendars and BCE/CE
+    /// serve five of them, because the Buddhist calendar counts in BE and
+    /// the Minguo calendar in 民國 while both write the months the same way.
+    ///
+    /// Sharing at the level of the *entry* rather than the cycle is what
+    /// made that indistinguishable, and it is the same mistake in miniature
+    /// that the twelve-or-thirteen assumption was: one shape assumed for
+    /// things that do not share one.
+    pub calendars: &'static [CalendarId],
 }
 
 impl EraNames {
@@ -245,7 +258,20 @@ impl EraNames {
     pub const EMPTY: Self = Self {
         codes: &[],
         names: WidthSet::EMPTY,
+        calendars: &[],
     };
+
+    /// Whether these eras belong to `calendar`, given the entry that holds
+    /// them serves `served`.
+    #[must_use]
+    pub fn belongs_to(&self, calendar: CalendarId, served: &[CalendarId]) -> bool {
+        let scope = if self.calendars.is_empty() {
+            served
+        } else {
+            self.calendars
+        };
+        scope.contains(&calendar)
+    }
 
     /// The index of an era code.
     #[must_use]
@@ -257,10 +283,29 @@ impl EraNames {
 /// The vocabulary of one calendar in one locale.
 #[derive(Debug, Clone, Copy)]
 pub struct CalendarNames {
-    /// The CLDR calendar identifier, for example `gregory` or `islamic`.
-    pub calendar: &'static str,
-    /// Month names, indexed from zero for month 1.
-    pub months: ContextualNames,
+    /// Every calendar this vocabulary serves, by registry identifier.
+    ///
+    /// A list rather than one key, because the registry splits calendars
+    /// that share a vocabulary. All five tabular and observational Hijri
+    /// calendars use the same twelve Arabic month names; the Gregorian
+    /// months serve the Julian, Buddhist, Minguo and Japanese calendars as
+    /// well. One entry, several identifiers.
+    ///
+    /// These are [`CalendarId`]s and not CLDR strings, which is what makes
+    /// a wrong one a test failure: `hyper-calendar`'s vocabulary test
+    /// asserts every identifier here is a calendar the registry answers to.
+    /// Three were not — `persian`, `islamic` and `iso8601` were written,
+    /// tested and unreachable, because the registry calls them
+    /// `persian-arithmetic`, `islamic-civil` and `iso8601-week`.
+    pub calendars: &'static [CalendarId],
+    /// The names of each positional cycle, keyed by the cycle kind the
+    /// calendar declares in [`hc_calendar::Calendar::cycles`].
+    ///
+    /// `month` is the usual one. A calendar with nineteen months has
+    /// nineteen names here and a calendar with a ten-day week has ten;
+    /// nothing in this type knows what a month is or how many there should
+    /// be, which is the point.
+    pub cycles: &'static [CycleNames],
     /// What an intercalary month is prefixed with: 闰 in Chinese, 閏 in
     /// Japanese, `leap ` in English. Empty where the calendar has none.
     pub leap_month_prefix: &'static str,
@@ -270,17 +315,60 @@ pub struct CalendarNames {
     pub quarters: ContextualNames,
 }
 
-impl CalendarNames {
-    /// An entry with nothing but an identifier.
+/// The names of one positional cycle.
+#[derive(Debug, Clone, Copy)]
+pub struct CycleNames {
+    /// Which cycle, matching [`hc_calendar::shape::CycleShape::kind`]:
+    /// `month`, `weekday`, `decade-day`, and so on.
+    pub kind: &'static str,
+    /// The names, position 1 at index 0.
+    pub names: ContextualNames,
+}
+
+impl CycleNames {
+    /// A cycle's names.
     #[must_use]
-    pub const fn empty(calendar: &'static str) -> Self {
+    pub const fn new(kind: &'static str, names: ContextualNames) -> Self {
+        Self { kind, names }
+    }
+}
+
+/// Returned when a calendar has no names for a cycle, so that callers can
+/// take a reference without an `Option` at every step.
+static NO_NAMES: ContextualNames = ContextualNames::EMPTY;
+
+impl CalendarNames {
+    /// An entry with nothing but its identifiers.
+    #[must_use]
+    pub const fn empty(calendars: &'static [CalendarId]) -> Self {
         Self {
-            calendar,
-            months: ContextualNames::EMPTY,
+            calendars,
+            cycles: &[],
             leap_month_prefix: "",
             eras: EraNames::EMPTY,
             quarters: ContextualNames::EMPTY,
         }
+    }
+
+    /// Whether this entry serves `calendar`.
+    #[must_use]
+    pub fn serves(&self, calendar: CalendarId) -> bool {
+        self.calendars.contains(&calendar)
+    }
+
+    /// The names of one cycle, empty when this entry has none.
+    #[must_use]
+    pub fn cycle(&self, kind: &str) -> &ContextualNames {
+        self.cycles
+            .iter()
+            .find(|entry| entry.kind == kind)
+            .map_or(&NO_NAMES, |entry| &entry.names)
+    }
+
+    /// The month names, which is the cycle nearly every caller wants.
+    #[must_use]
+    pub fn months(&self) -> &ContextualNames {
+        self.cycle(hc_calendar::shape::MONTH)
     }
 }
 
@@ -289,7 +377,7 @@ impl CalendarNames {
 /// `hc_calendar::cycle` computes the position; the sixty names are culture,
 /// so they live here.
 #[derive(Debug, Clone, Copy)]
-pub struct CycleNames {
+pub struct SexagenaryNames {
     /// The ten Heavenly Stems.
     pub stems: &'static [&'static str],
     /// The twelve Earthly Branches.
@@ -298,7 +386,7 @@ pub struct CycleNames {
     pub zodiac: &'static [&'static str],
 }
 
-impl CycleNames {
+impl SexagenaryNames {
     /// No cycle names.
     pub const EMPTY: Self = Self {
         stems: &[],
@@ -331,16 +419,55 @@ pub struct LocaleData {
     /// Day-period names: `[am, pm]`.
     pub day_periods: ContextualNames,
     /// Sexagenary cycle names.
-    pub cycle: CycleNames,
+    pub cycle: SexagenaryNames,
     /// Per-calendar vocabulary.
     pub calendars: &'static [CalendarNames],
 }
 
 impl LocaleData {
-    /// The vocabulary of one calendar, if this entry carries it.
+    /// Every entry that serves `id`, in table order.
+    ///
+    /// More than one may: a calendar can take its months from the shared
+    /// Gregorian entry and its eras from an entry of its own. Thai is the
+    /// case — the Buddhist calendar counts years differently and names the
+    /// months identically — and the old code expressed it with a fallback
+    /// from `buddhist` to `gregory`. This is that fallback generalised to
+    /// every cycle instead of only months.
+    pub fn entries_for(&self, id: CalendarId) -> impl Iterator<Item = &CalendarNames> {
+        self.calendars.iter().filter(move |entry| entry.serves(id))
+    }
+
+    /// The first entry serving `id`, if any.
     #[must_use]
-    pub fn calendar(&self, id: &str) -> Option<&CalendarNames> {
-        self.calendars.iter().find(|entry| entry.calendar == id)
+    pub fn calendar(&self, id: CalendarId) -> Option<&CalendarNames> {
+        self.entries_for(id).next()
+    }
+
+    /// The names of one cycle for `id`, from whichever serving entry has
+    /// them.
+    #[must_use]
+    pub fn cycle_for(&self, id: CalendarId, kind: &str) -> Option<&ContextualNames> {
+        self.entries_for(id)
+            .map(|entry| entry.cycle(kind))
+            .find(|names| !names.is_empty())
+    }
+
+    /// The era names for `id`, from whichever serving entry has them.
+    #[must_use]
+    pub fn eras_for(&self, id: CalendarId) -> Option<&EraNames> {
+        self.entries_for(id)
+            .find(|entry| {
+                !entry.eras.codes.is_empty() && entry.eras.belongs_to(id, entry.calendars)
+            })
+            .map(|entry| &entry.eras)
+    }
+
+    /// The quarter names for `id`, from whichever serving entry has them.
+    #[must_use]
+    pub fn quarters_for(&self, id: CalendarId) -> Option<&ContextualNames> {
+        self.entries_for(id)
+            .map(|entry| &entry.quarters)
+            .find(|names| !names.is_empty())
     }
 }
 
@@ -349,19 +476,6 @@ impl LocaleData {
 /// They differ from `gregory` in how they count years, not in what they call
 /// the months, so a data entry only has to state the parts that differ —
 /// Japanese era names, say — and month lookup finds the rest.
-const GREGORIAN_MONTH_CALENDARS: &[&str] = &[
-    "gregory", "iso8601", "julian", "buddhist", "roc", "japanese",
-];
-
-/// The calendar identifier to try after `calendar` itself.
-fn month_alias(calendar: &str) -> Option<&'static str> {
-    if calendar != "gregory" && GREGORIAN_MONTH_CALENDARS.contains(&calendar) {
-        Some("gregory")
-    } else {
-        None
-    }
-}
-
 /// Walk the fallback chain and return the first entry that yields a value.
 ///
 /// The root entry is the floor, so a caller only sees `None` when nothing in
@@ -424,20 +538,18 @@ pub fn month_label(
 ) -> Option<MonthLabel> {
     let index = usize::from(month.ordinal).checked_sub(1)?;
     resolve(locale, |data| {
-        let mut identifiers = [Some(calendar.0), month_alias(calendar.0)].into_iter();
-        identifiers.find_map(|identifier| {
-            let entry = data.calendar(identifier?)?;
-            let names = entry.months.get(width, context);
-            let name = names.get(index).copied()?;
-            Some(MonthLabel {
-                prefix: if month.leap {
-                    entry.leap_month_prefix
-                } else {
-                    ""
-                },
-                name,
-            })
-        })
+        let names = data.cycle_for(calendar, hc_calendar::shape::MONTH)?;
+        let name = names.get(width, context).get(index).copied()?;
+        // The prefix belongs to whichever entry carries the months, since
+        // that is the entry that knows how the calendar writes a leap one.
+        let prefix = if month.leap {
+            data.entries_for(calendar)
+                .find(|entry| !entry.months().is_empty())
+                .map_or("", |entry| entry.leap_month_prefix)
+        } else {
+            ""
+        };
+        Some(MonthLabel { prefix, name })
     })
 }
 
@@ -457,16 +569,14 @@ pub fn month_name(
 #[must_use]
 pub fn month_count(locale: &Locale, calendar: CalendarId, context: NameContext) -> Option<usize> {
     resolve(locale, |data| {
-        let mut identifiers = [Some(calendar.0), month_alias(calendar.0)].into_iter();
-        identifiers.find_map(|identifier| {
-            let entry = data.calendar(identifier?)?;
-            let names = entry.months.get(NameWidth::Wide, context);
-            if names.is_empty() {
-                None
-            } else {
-                Some(names.len())
-            }
-        })
+        let names = data
+            .cycle_for(calendar, hc_calendar::shape::MONTH)?
+            .get(NameWidth::Wide, context);
+        if names.is_empty() {
+            None
+        } else {
+            Some(names.len())
+        }
     })
 }
 
@@ -507,7 +617,7 @@ pub fn era_name(
     width: NameWidth,
 ) -> Option<&'static str> {
     resolve(locale, |data| {
-        data.calendar(calendar.0)?
+        data.calendar(calendar)?
             .eras
             .names
             .get(width)
@@ -525,7 +635,7 @@ pub fn era_name_by_code(
     width: NameWidth,
 ) -> Option<&'static str> {
     resolve(locale, |data| {
-        let eras = &data.calendar(calendar.0)?.eras;
+        let eras = data.eras_for(calendar)?;
         let index = eras.index_of(code)?;
         eras.names.get(width).get(index).copied()
     })
@@ -535,7 +645,7 @@ pub fn era_name_by_code(
 #[must_use]
 pub fn era_codes(locale: &Locale, calendar: CalendarId) -> Option<&'static [&'static str]> {
     resolve(locale, |data| {
-        let codes = data.calendar(calendar.0)?.eras.codes;
+        let codes = data.eras_for(calendar)?.codes;
         if codes.is_empty() { None } else { Some(codes) }
     })
 }
@@ -551,14 +661,10 @@ pub fn quarter_name(
 ) -> Option<&'static str> {
     let index = usize::from(quarter).checked_sub(1)?;
     resolve(locale, |data| {
-        let mut identifiers = [Some(calendar.0), month_alias(calendar.0)].into_iter();
-        identifiers.find_map(|identifier| {
-            data.calendar(identifier?)?
-                .quarters
-                .get(width, context)
-                .get(index)
-                .copied()
-        })
+        data.quarters_for(calendar)?
+            .get(width, context)
+            .get(index)
+            .copied()
     })
 }
 
@@ -910,7 +1016,7 @@ mod tests {
         assert_eq!(
             month_name(
                 &locale("ar"),
-                CalendarId("islamic"),
+                CalendarId("islamic-civil"),
                 Month::regular(9),
                 NameWidth::Wide,
                 NameContext::Format
@@ -920,7 +1026,7 @@ mod tests {
         assert_eq!(
             month_name(
                 &locale("en"),
-                CalendarId("islamic"),
+                CalendarId("islamic-civil"),
                 Month::regular(9),
                 NameWidth::Wide,
                 NameContext::Format
@@ -1067,9 +1173,13 @@ mod tests {
         assert!(WidthSet::EMPTY.get(NameWidth::Wide).is_empty());
         assert!(ContextualNames::EMPTY.is_empty());
         assert!(!ContextualNames::same(set).is_empty());
-        assert!(CalendarNames::empty("gregory").months.is_empty());
+        assert!(
+            CalendarNames::empty(&[CalendarId("gregory")])
+                .months()
+                .is_empty()
+        );
         assert_eq!(EraNames::EMPTY.index_of("ad"), None);
-        assert!(CycleNames::EMPTY.stems.is_empty());
+        assert!(SexagenaryNames::EMPTY.stems.is_empty());
     }
 
     #[test]
@@ -1089,6 +1199,10 @@ mod tests {
             None
         );
         assert_eq!(era_codes(&locale("en"), CalendarId("mayan")), None);
-        assert!(locale_data(&locale("en")).calendar("mayan").is_none());
+        assert!(
+            locale_data(&locale("en"))
+                .calendar(CalendarId("mayan"))
+                .is_none()
+        );
     }
 }

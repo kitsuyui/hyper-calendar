@@ -127,6 +127,10 @@ pub struct BuddhistCalendar;
 impl Calendar for BuddhistCalendar {
     type Date = BuddhistDate;
 
+    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
+        Some(hc_calendar::shape::SOLAR_TWELVE)
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("buddhist"),

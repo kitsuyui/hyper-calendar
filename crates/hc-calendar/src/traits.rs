@@ -7,6 +7,7 @@ use crate::daystart::{DayBoundary, Standing, Usage};
 use crate::error::{CalendarError, CalendarResult};
 use crate::fields::{DateFields, YearKind};
 use crate::fixed::Rd;
+use crate::shape::CycleShape;
 
 /// A stable machine identifier for a calendar.
 ///
@@ -138,6 +139,24 @@ pub trait Calendar {
     /// out of range.
     fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date>;
 
+    /// The positional cycles this calendar runs: months, weekdays, and
+    /// whatever else its dates are built out of.
+    ///
+    /// This is what a vocabulary is keyed to. A calendar that declares
+    /// nineteen months can be given nineteen month names; one that
+    /// declares a ten-day week can be given ten. See [`crate::shape`] for
+    /// why that is a trait method rather than an assumption baked into the
+    /// name tables.
+    ///
+    /// `None` means "this calendar has not said", and `Some(&[])` means
+    /// "this calendar has no named cycles" — a day count has none. The two
+    /// are deliberately distinguishable: silence is reportable, and
+    /// `hyper-calendar`'s vocabulary test reports it, so an undeclared
+    /// calendar stays visible instead of quietly passing for complete.
+    fn cycles(&self) -> Option<&'static [CycleShape]> {
+        None
+    }
+
     /// Where this calendar's day begins.
     ///
     /// Defaults to midnight, which is right for most calendars and for every
@@ -244,6 +263,11 @@ pub trait DynCalendar {
     /// Returns a [`CalendarError`] when the year does not exist.
     fn days_in_year(&self, year: i64) -> CalendarResult<u16>;
 
+    /// The cycles this calendar runs. See [`Calendar::cycles`].
+    fn cycles(&self) -> Option<&'static [CycleShape]> {
+        None
+    }
+
     /// Where this calendar's day begins. See [`Calendar::day_boundary`].
     fn day_boundary(&self) -> DayBoundary {
         DayBoundary::Midnight
@@ -308,6 +332,10 @@ impl<C: Calendar> DynCalendar for DynAdapter<C> {
     fn fixed_to_fields(&self, rd: Rd) -> CalendarResult<DateFields> {
         let date = self.inner.from_fixed(rd)?;
         self.inner.to_fields(date)
+    }
+
+    fn cycles(&self) -> Option<&'static [CycleShape]> {
+        self.inner.cycles()
     }
 
     fn day_boundary(&self) -> DayBoundary {

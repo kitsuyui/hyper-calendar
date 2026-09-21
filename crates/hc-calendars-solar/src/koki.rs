@@ -160,6 +160,10 @@ pub struct KokiCalendar;
 impl Calendar for KokiCalendar {
     type Date = KokiDate;
 
+    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
+        Some(hc_calendar::shape::SOLAR_TWELVE)
+    }
+
     /// Adopted together with the Gregorian calendar, and in official use
     /// until 1945. Earlier dates compute correctly and are back-projections
     /// onto a calendar Japan was not using; the `proleptic` field on the

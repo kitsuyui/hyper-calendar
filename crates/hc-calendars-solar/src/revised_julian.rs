@@ -262,6 +262,10 @@ pub struct RevisedJulianCalendar;
 impl Calendar for RevisedJulianCalendar {
     type Date = RevisedJulianDate;
 
+    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
+        Some(hc_calendar::shape::SOLAR_TWELVE)
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("revised-julian"),
