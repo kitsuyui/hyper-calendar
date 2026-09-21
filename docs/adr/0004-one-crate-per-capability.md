@@ -27,9 +27,11 @@ into [`supported.md`](../supported.md) from the manifest.
 **Good.** Cargo genuinely drops unused code, rather than relying on the linker.
 The `cargo audit` surface per consumer is minimal. Each crate has its own
 README stating its accuracy claims, which is easier to keep honest than one
-enormous document — though five crates still have none, which is a debt
-against this claim rather than evidence for it. The dependency graph is forced to stay a DAG, which catches
-design mistakes early.
+enormous document. The two crates whose readers cannot be assumed to read
+Rust — the C ABI and the WebAssembly surface — have their export tables
+rendered from the source by `crates/hyper-calendar/tests/abi.rs`, for the
+same reason the crate list is generated. The dependency graph is forced to
+stay a DAG, which catches design mistakes early.
 
 **Costs.** A `Cargo.toml` per crate and a feature matrix that has to be kept
 consistent — and which drifted: four features once compiled a crate in and
