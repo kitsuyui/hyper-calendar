@@ -273,7 +273,7 @@ impl Calendar for AztecTonalpohualliCalendar {
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         const SHAPE: &[hc_calendar::shape::CycleShape] = &[
             hc_calendar::shape::CycleShape::fixed("trecena", 13),
-            hc_calendar::shape::CycleShape::fixed("day-sign", 20),
+            hc_calendar::shape::CycleShape::named("day-sign", &DAY_SIGNS),
         ];
         SHAPE
     }
@@ -339,9 +339,9 @@ impl Calendar for AztecXiuhpohualliCalendar {
     /// Eighteen months of twenty days and the five-day Nemontemi, which has
     /// a name and so is a nineteenth position.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        const SHAPE: &[hc_calendar::shape::CycleShape] = &[hc_calendar::shape::CycleShape::fixed(
+        const SHAPE: &[hc_calendar::shape::CycleShape] = &[hc_calendar::shape::CycleShape::named(
             hc_calendar::shape::MONTH,
-            19,
+            &MONTHS,
         )];
         SHAPE
     }

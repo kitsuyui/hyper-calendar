@@ -58,7 +58,7 @@ struct Row {
     /// The cycles the calendar declares, or `None` where it declares none.
     cycles: &'static [hyper_calendar::hc_calendar::shape::CycleShape],
     /// Whether a locale can name this calendar's months in English.
-    named: bool,
+    named: Option<bool>,
 }
 
 /// A fixed day as an ISO 8601 date, or an em dash when unbounded.
@@ -127,7 +127,7 @@ fn calendar_rows() -> Vec<Row> {
                 leap_months: meta.has_leap_months,
                 boundary: boundary_name(calendar.day_boundary()),
                 cycles: calendar.cycles(),
-                named: has_month_names(meta.id),
+                named: month_names_resolve(meta.id, calendar.cycles()),
             });
         }
     }
@@ -135,20 +135,27 @@ fn calendar_rows() -> Vec<Row> {
     rows
 }
 
-/// Whether English can name this calendar's months.
+/// Whether English can name this calendar's months — from the locale or
+/// from the calendar's own names — or `None` when it has no months.
 ///
 /// The column this feeds is the one nothing used to answer. A calendar
 /// could be implemented, tested and registered and still be unnameable in
 /// any language, and the only way to find out was to grep. Two of the
 /// entries that looked like data — `persian` and `islamic` — were keyed to
 /// identifiers no calendar had, so they answered for nothing at all.
-fn has_month_names(id: hyper_calendar::hc_calendar::CalendarId) -> bool {
+fn month_names_resolve(
+    id: hyper_calendar::hc_calendar::CalendarId,
+    cycles: &[hyper_calendar::hc_calendar::shape::CycleShape],
+) -> Option<bool> {
     use hyper_calendar::hc_i18n::Locale;
-    use hyper_calendar::hc_i18n::names::{NameContext, month_count};
+    use hyper_calendar::hc_i18n::names::{NameContext, NameWidth, position_name};
+    let month = cycles
+        .iter()
+        .find(|cycle| cycle.kind == hyper_calendar::hc_calendar::shape::MONTH)?;
     let Ok(english) = "en".parse::<Locale>() else {
-        return false;
+        return Some(false);
     };
-    month_count(&english, id, NameContext::Format).is_some()
+    Some(position_name(&english, id, month, 0, NameWidth::Wide, NameContext::Format).is_some())
 }
 
 /// A calendar's declared shape, as a phrase for the table.
@@ -263,14 +270,17 @@ fn render() -> String {
          registry answers to.\n",
         rows.len()
     );
-    let named = rows.iter().filter(|row| row.named).count();
+    let with_months = rows.iter().filter(|row| row.named.is_some()).count();
+    let named = rows.iter().filter(|row| row.named == Some(true)).count();
     let _ = writeln!(
         out,
         "**Cycles** is what the calendar declares itself to be made of — \
          every calendar declares one, because the trait has no default and a \
          silent calendar does not compile — and **Named** is whether English \
-         can name its months. {named} of {} can be named. That gap is real \
-         and is asserted in `tests/vocabulary.rs`, so it can only move \
+         can name its months, from the locale or from the names the calendar \
+         declares for itself. {with_months} of {} have months and {named} of \
+         those can be named; a dash means the calendar has no months to name. \
+         The gap is asserted in `tests/vocabulary.rs`, so it can only move \
          deliberately: a calendar that is implemented but unnameable is a gap \
          the library should be able to state, not one a reader has to \
          discover.\n",
@@ -296,7 +306,11 @@ fn render() -> String {
             if row.leap_months { "yes" } else { "no" },
             row.boundary,
             shape_of(row),
-            if row.named { "yes" } else { "no" },
+            match row.named {
+                Some(true) => "yes",
+                Some(false) => "no",
+                None => "—",
+            },
         );
     }
 

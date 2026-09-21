@@ -70,17 +70,27 @@ impl CycleLength {
     }
 }
 
-/// A positional cycle a calendar runs, and what it is called.
+/// A positional cycle a calendar runs, what it is called, and what the
+/// calendar itself calls its positions.
 ///
 /// "Cycle" covers everything a date is built out of that repeats and whose
-/// positions have names: months, weekdays, the ten concurrent weeks of the
-/// Pawukon, the sexagenary cycle, the twenty day-signs of the tzolkʼin.
-/// They differ in length and in number, and nothing here assumes otherwise.
+/// positions have names or numbers: months, weekdays, the ten concurrent
+/// weeks of the Pawukon, the stems and branches, the twenty day-signs of
+/// the tzolkʼin. They differ in length and in number, and nothing here
+/// assumes otherwise.
+///
+/// # The month slot
+///
+/// A calendar whose [`DateFields`](crate::DateFields) carry a `month`
+/// declares a cycle of kind [`MONTH`], and one whose fields carry none
+/// declares no such cycle. The Pawukon's *wuku* is its month by that rule,
+/// and the ISO week calendar has none. `hyper-calendar`'s vocabulary test
+/// holds every registered calendar to it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CycleShape {
     /// A stable identifier for the *kind* of cycle, lowercase and
     /// hyphenated: `month`, `weekday`, `decade-day`, `trecena`,
-    /// `day-sign`, `sexagenary`.
+    /// `day-sign`, `stem`.
     ///
     /// Shared across calendars on purpose. Two calendars that both run a
     /// seven-day week name it `weekday`, so a locale's weekday names serve
@@ -88,15 +98,42 @@ pub struct CycleShape {
     pub kind: &'static str,
     /// How many positions.
     pub length: CycleLength,
+    /// The calendar's own names for the positions, position 1 at index 0,
+    /// in the orthography the calendar's sources use.
+    ///
+    /// Empty when the positions are numbered rather than named (the
+    /// tzolkʼin's thirteen, a lunisolar calendar's months), when the count
+    /// varies between years, or when a name is a matter of locale rather
+    /// than of the calendar — a Gregorian month is January to English and
+    /// janvier to French, and this slice is not where either belongs.
+    /// `hc-i18n` consults a locale first and falls back to these.
+    pub names: &'static [&'static str],
 }
 
 impl CycleShape {
-    /// A cycle of a fixed number of positions.
+    /// A cycle of a fixed number of numbered positions.
     #[must_use]
     pub const fn fixed(kind: &'static str, length: u16) -> Self {
         Self {
             kind,
             length: CycleLength::Fixed(length),
+            names: &[],
+        }
+    }
+
+    /// A cycle whose positions the calendar names itself. Its length is the
+    /// number of names, so the two cannot disagree.
+    ///
+    /// # Panics
+    ///
+    /// If there are more than `u16::MAX` names, which no calendar has.
+    #[must_use]
+    pub const fn named(kind: &'static str, names: &'static [&'static str]) -> Self {
+        assert!(names.len() <= u16::MAX as usize);
+        Self {
+            kind,
+            length: CycleLength::Fixed(names.len() as u16),
+            names,
         }
     }
 
@@ -106,6 +143,17 @@ impl CycleShape {
         Self {
             kind,
             length: CycleLength::Intercalary { ordinary, extended },
+            names: &[],
+        }
+    }
+
+    /// The calendar's own name for a zero-based position, if it has one.
+    #[must_use]
+    pub const fn name(&self, index: usize) -> Option<&'static str> {
+        if index < self.names.len() {
+            Some(self.names[index])
+        } else {
+            None
         }
     }
 }
@@ -193,6 +241,17 @@ mod tests {
         for (index, cycle) in pawukon.iter().enumerate() {
             assert!(cycle.length.accepts(index as u16 + 1));
         }
+    }
+
+    #[test]
+    fn a_named_cycle_is_as_long_as_its_names_and_answers_for_each() {
+        const SIGNS: &[&str] = &["Imix", "Ikʼ", "Akʼbʼal"];
+        let cycle = CycleShape::named("day-sign", SIGNS);
+        assert_eq!(cycle.length, CycleLength::Fixed(3));
+        assert_eq!(cycle.name(0), Some("Imix"));
+        assert_eq!(cycle.name(2), Some("Akʼbʼal"));
+        assert_eq!(cycle.name(3), None);
+        assert_eq!(CycleShape::fixed("trecena", 13).name(0), None);
     }
 
     #[test]

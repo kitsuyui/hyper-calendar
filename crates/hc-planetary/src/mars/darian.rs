@@ -358,8 +358,8 @@ impl Calendar for DarianCalendar {
     /// `sol-of-week` rather than `weekday`.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         const SHAPE: &[hc_calendar::shape::CycleShape] = &[
-            hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::MONTH, 24),
-            hc_calendar::shape::CycleShape::fixed("sol-of-week", 7),
+            hc_calendar::shape::CycleShape::named(hc_calendar::shape::MONTH, &MONTH_NAMES),
+            hc_calendar::shape::CycleShape::named("sol-of-week", &WEEKDAY_NAMES),
         ];
         SHAPE
     }

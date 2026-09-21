@@ -92,8 +92,16 @@ pub struct OrdinalCalendar;
 impl Calendar for OrdinalCalendar {
     type Date = OrdinalDate;
 
+    /// The 365 or 366 numbered days of the year, and nothing else: an
+    /// ordinal date has no month and names no weekday.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        hc_calendar::shape::SOLAR_TWELVE
+        const SHAPE: &[hc_calendar::shape::CycleShape] =
+            &[hc_calendar::shape::CycleShape::intercalary(
+                "day-of-year",
+                365,
+                366,
+            )];
+        SHAPE
     }
 
     fn meta(&self) -> CalendarMeta {

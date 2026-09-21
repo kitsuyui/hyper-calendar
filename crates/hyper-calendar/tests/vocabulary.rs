@@ -45,7 +45,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use hyper_calendar::hc_calendar::{CalendarId, CalendarRegistry, shape::CycleShape};
+use hyper_calendar::hc_calendar::shape::{CycleShape, MONTH};
+use hyper_calendar::hc_calendar::{CalendarId, CalendarMeta, CalendarRegistry, Rd};
 use hyper_calendar::hc_i18n::data::LOCALES;
 
 /// Every calendar the enabled features register.
@@ -76,6 +77,7 @@ fn declared_cycles() -> BTreeMap<String, &'static [CycleShape]> {
 }
 
 /// A shape must be well formed: no cycle declared twice, none with no
+/// positions, and a calendar's own names as many as the cycle has
 /// positions. The compiler guarantees a shape exists; this is what it
 /// cannot guarantee about its contents.
 #[test]
@@ -94,7 +96,60 @@ fn every_declared_shape_is_well_formed() {
                 "{id}: declares {} twice",
                 cycle.kind
             );
+            if !cycle.names.is_empty() {
+                let count = u16::try_from(cycle.names.len()).unwrap_or(u16::MAX);
+                assert!(
+                    cycle.length.accepts(count),
+                    "{id}: {} names {count} positions but declares {:?}",
+                    cycle.kind,
+                    cycle.length
+                );
+                for name in cycle.names {
+                    assert!(!name.is_empty(), "{id}: {} has an empty name", cycle.kind);
+                }
+            }
         }
+    }
+}
+
+/// A day inside a calendar's range, for probing how it lays out its fields.
+fn sample_day(meta: &CalendarMeta) -> Rd {
+    let recent = Rd(738_000);
+    if meta.supports(recent) {
+        return recent;
+    }
+    match (meta.earliest, meta.latest) {
+        (Some(first), Some(last)) => Rd(first.0.midpoint(last.0)),
+        (Some(first), None) => Rd(first.0 + 400),
+        (None, Some(last)) => Rd(last.0 - 400),
+        (None, None) => recent,
+    }
+}
+
+/// The `month` field and the `month` cycle are one claim made twice, so
+/// they must agree: a calendar whose dates carry a month declares one, and
+/// a calendar whose dates carry none declares none.
+///
+/// This is what caught the ISO week and ordinal calendars declaring twelve
+/// months while their fields held a week or a day of the year.
+#[test]
+fn a_calendar_declares_a_month_cycle_exactly_when_its_dates_carry_a_month() {
+    let registry = registry();
+    let ids: Vec<CalendarId> = registry.metas().map(|meta| meta.id).collect();
+    for id in ids {
+        let calendar = registry.get(id).expect("registered");
+        let meta = calendar.meta();
+        let day = sample_day(&meta);
+        let fields = calendar
+            .fixed_to_fields(day)
+            .unwrap_or_else(|error| panic!("{}: {day} should be in range: {error}", id.0));
+        let declares_month = calendar.cycles().iter().any(|cycle| cycle.kind == MONTH);
+        assert_eq!(
+            fields.month.is_some(),
+            declares_month,
+            "{}: the month field and the month cycle disagree",
+            id.0
+        );
     }
 }
 
@@ -205,22 +260,49 @@ fn every_name_list_is_as_long_as_the_cycle_it_names() {
     }
 }
 
-/// What is still missing, stated as a number so it can only move on purpose.
+/// What is still missing, stated as numbers so they can only move on
+/// purpose.
 ///
-/// This is the real gap: most registered calendars have no month names
-/// outside the Gregorian family. It was not visible before, because the data
-/// model could not have held the answer.
+/// The gap is the calendars that have months and whose months English
+/// cannot name — neither from the locale nor from the calendar's own
+/// names. It was not visible before, because the data model could not have
+/// held the answer.
 #[test]
 fn the_vocabulary_gap_is_measured_and_not_growing() {
     use hyper_calendar::hc_i18n::Locale;
-    use hyper_calendar::hc_i18n::names::NameContext;
-    use hyper_calendar::hc_i18n::names::month_count;
+    use hyper_calendar::hc_i18n::names::{NameContext, NameWidth, position_name};
 
+    let registry = registry();
     let registered = registered();
     let english: Locale = "en".parse().expect("en is a locale");
 
-    let named = |id: CalendarId| month_count(&english, id, NameContext::Format).is_some();
-    let with_months = registered.iter().copied().filter(|id| named(*id)).count();
+    let month_cycle = |id: CalendarId| {
+        registry
+            .get(id)
+            .and_then(|calendar| calendar.cycles().iter().find(|cycle| cycle.kind == MONTH))
+    };
+    let with_months: Vec<CalendarId> = registered
+        .iter()
+        .copied()
+        .filter(|id| month_cycle(*id).is_some())
+        .collect();
+    let unnamed: Vec<&str> = with_months
+        .iter()
+        .copied()
+        .filter(|id| {
+            let cycle = month_cycle(*id).expect("has a month cycle");
+            position_name(
+                &english,
+                *id,
+                cycle,
+                0,
+                NameWidth::Wide,
+                NameContext::Format,
+            )
+            .is_none()
+        })
+        .map(|id| id.0)
+        .collect();
 
     assert_eq!(
         registered.len(),
@@ -228,7 +310,25 @@ fn the_vocabulary_gap_is_measured_and_not_growing() {
         "the registry changed; update the coverage numbers deliberately"
     );
     assert_eq!(
-        with_months, 27,
-        "calendars with English month names — raise this by adding data"
+        with_months.len(),
+        56,
+        "calendars with a month cycle — changes only when a calendar's shape does"
+    );
+    // The seven that remain have names of their own — Thout, Mäskäräm,
+    // Nawasard, Farvardin, Chaitra — which belong with the calendar, not
+    // with a locale, and want a source before they are written down.
+    assert_eq!(
+        unnamed,
+        [
+            "coptic",
+            "ethiopic",
+            "egyptian",
+            "armenian",
+            "armenian-fixed",
+            "persian-arithmetic",
+            "indian",
+        ],
+        "calendars whose months English cannot name — shrink this by declaring the \
+         calendar's own names with its shape"
     );
 }
