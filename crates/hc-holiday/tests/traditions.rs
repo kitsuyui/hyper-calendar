@@ -5,8 +5,8 @@ use hc_calendars_solar::gregorian;
 use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::rule::{Confidence, Kind, RuleSet};
 use hc_holiday::traditions::{
-    self, BUDDHIST, CHINESE_FOLK, CHRISTIAN_ORTHODOX, CHRISTIAN_WESTERN, ETHIOPIAN_ORTHODOX,
-    ISLAMIC, JEWISH,
+    self, BUDDHIST, CHINESE_FOLK, CHRISTIAN_ORTHODOX, CHRISTIAN_WESTERN, COPTIC_ORTHODOX,
+    ETHIOPIAN_ORTHODOX, ISLAMIC, JEWISH,
 };
 
 /// Panics rather than returning a `Result`, because every date in this file
@@ -87,6 +87,36 @@ fn the_orthodox_fixed_feasts_sit_thirteen_days_after_the_western_ones() {
             (2024, 8, 28, "Dormition of the Theotokos"),
             (2025, 1, 7, "Nativity of Christ"),
             (2025, 9, 21, "Nativity of the Theotokos"),
+        ],
+    );
+}
+
+#[test]
+fn the_coptic_year_is_dated_in_the_coptic_calendar_and_on_the_alexandrian_pascha() {
+    // Coptic 1741 began on 11 September 2024, so the fixed feasts of 2025
+    // sit on their usual Gregorian dates; the cycle is 2025's Pascha, 20
+    // April, with the fasts counted back and the feasts counted on.
+    expect(
+        &COPTIC_ORTHODOX,
+        &[
+            (2024, 9, 11, "Nayrouz (New Year)"),
+            (2024, 9, 27, "Feast of the Cross"),
+            (2025, 1, 7, "Nativity (Christmas)"),
+            (2025, 1, 14, "Circumcision of the Lord"),
+            (2025, 1, 19, "Theophany (Epiphany)"),
+            (2025, 4, 7, "Annunciation"),
+            (2025, 7, 12, "Feast of the Apostles"),
+            (2025, 8, 19, "Transfiguration"),
+            (2025, 8, 22, "Assumption of St Mary"),
+            (2025, 2, 10, "Fast of Nineveh (Jonah) begins"),
+            (2025, 2, 24, "Great Lent begins"),
+            (2025, 4, 13, "Palm Sunday"),
+            (2025, 4, 18, "Good Friday"),
+            (2025, 4, 20, "Easter (Resurrection)"),
+            (2025, 4, 27, "Thomas Sunday"),
+            (2025, 5, 29, "Ascension"),
+            (2025, 6, 8, "Pentecost"),
+            (2024, 5, 5, "Easter (Resurrection)"),
         ],
     );
 }

@@ -304,6 +304,103 @@ pub static ETHIOPIAN_ORTHODOX: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// Coptic Orthodox
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A fixed feast of the Coptic Orthodox Church, dated in the Coptic
+/// calendar it is kept by.
+const fn coptic_feast(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    feast(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::COPTIC, month, day),
+    )
+}
+
+/// The Sunday after Easter, which the Coptic Church keeps for Thomas.
+const THOMAS_SUNDAY: i16 = 7;
+
+static COPTIC_ORTHODOX_RULES: &[HolidayRule] = &[
+    coptic_feast("Nayrouz (New Year)", "عيد النيروز", 1, 1),
+    coptic_feast("Feast of the Cross", "عيد الصليب", 1, 17),
+    coptic_feast("Nativity (Christmas)", "عيد الميلاد المجيد", 4, 29),
+    coptic_feast("Circumcision of the Lord", "عيد الختان", 5, 6),
+    coptic_feast("Theophany (Epiphany)", "عيد الغطاس", 5, 11),
+    coptic_feast("Wedding at Cana", "عرس قانا الجليل", 5, 13),
+    coptic_feast("Dormition of St Mary", "نياحة السيدة العذراء", 5, 21),
+    coptic_feast(
+        "Entry of the Lord into the Temple",
+        "دخول السيد المسيح الهيكل",
+        6,
+        8,
+    ),
+    coptic_feast("Feast of the Cross (second)", "عيد الصليب", 7, 10),
+    coptic_feast("Annunciation", "عيد البشارة", 7, 29),
+    coptic_feast(
+        "Entry of the Holy Family into Egypt",
+        "دخول السيد المسيح أرض مصر",
+        9,
+        24,
+    ),
+    coptic_feast("Feast of the Apostles", "عيد الرسل", 11, 5),
+    coptic_feast("Transfiguration", "عيد التجلي", 12, 13),
+    coptic_feast("Assumption of St Mary", "صعود جسد السيدة العذراء", 12, 16),
+    // The movable cycle: the Coptic Church keeps the Alexandrian computus,
+    // which is the Julian Paschalion's Sunday, and the same tewsak as the
+    // Ethiopian table.
+    feast(
+        "Fast of Nineveh (Jonah) begins",
+        "صوم يونان",
+        Rule::paschal(TSOME_NENEWE),
+    ),
+    feast(
+        "Great Lent begins",
+        "الصوم الكبير",
+        Rule::paschal(ABIY_TSOM),
+    ),
+    feast("Palm Sunday", "أحد الشعانين", Rule::paschal(PALM_SUNDAY)),
+    feast(
+        "Covenant Thursday",
+        "خميس العهد",
+        Rule::paschal(MAUNDY_THURSDAY),
+    ),
+    feast("Good Friday", "الجمعة العظيمة", Rule::paschal(GOOD_FRIDAY)),
+    feast(
+        "Easter (Resurrection)",
+        "عيد القيامة المجيد",
+        Rule::paschal(EASTER_SUNDAY),
+    ),
+    feast("Thomas Sunday", "أحد توما", Rule::paschal(THOMAS_SUNDAY)),
+    feast("Ascension", "عيد الصعود", Rule::paschal(ASCENSION)),
+    feast("Pentecost", "عيد العنصرة", Rule::paschal(PENTECOST)),
+];
+
+/// The feasts of the Coptic Orthodox Church of Alexandria.
+///
+/// The fourteen feasts of the Lord — seven major, seven minor — with Nayrouz,
+/// both Feasts of the Cross, the Apostles and the two feasts of St Mary,
+/// dated in the Coptic calendar the church keeps; and the paschal cycle from
+/// the Fast of Nineveh to Pentecost as offsets from the Julian-computus
+/// Easter, which is the Alexandrian one. This is the second of the calendars
+/// the closed `CalendarSystem` could not name, after the Ethiopian.
+///
+/// The Arabic names are the ones the church's own publications use; the
+/// Coptic-language names of the feasts are not carried.
+pub static COPTIC_ORTHODOX: RuleSet = RuleSet {
+    code: "coptic-orthodox",
+    english_name: "Coptic Orthodox",
+    rules: COPTIC_ORTHODOX_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "The Feasts of the Church, Coptic Orthodox Diocese of Los Angeles \
+              (lacopts.org), retrieved 2026-09-22, for the fixed dates; the \
+              movable cycle as offsets from the Julian-computus Pascha the \
+              church shares",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Islam
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -579,6 +676,7 @@ pub static ALL: &[&RuleSet] = &[
     &CHRISTIAN_WESTERN,
     &CHRISTIAN_ORTHODOX,
     &ETHIOPIAN_ORTHODOX,
+    &COPTIC_ORTHODOX,
     &ISLAMIC,
     &JEWISH,
     &BUDDHIST,
