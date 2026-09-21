@@ -37,6 +37,7 @@ file does not:
 | `roman` | *Ab urbe condita* | `roman-auc` |
 | `french_republican` | French Republican, **arithmetic (Romme)** variant | `french-republican-arithmetic` |
 | `bahai` | Badíʿ, **arithmetic Western** variant | `bahai-arithmetic` |
+| `bahai_kept` | Badíʿ as kept: the arithmetic rule to 171 BE, the Bahá'í World Centre's table for 172–221 BE, nothing after | `bahai` |
 | `symmetry454` | Symmetry454 | `symmetry454` |
 | `symmetry010` | Symmetry010 | `symmetry010` |
 | `revised_julian` | Revised Julian (Milanković) | `revised-julian` |

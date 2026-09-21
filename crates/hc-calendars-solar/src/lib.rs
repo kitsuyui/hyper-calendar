@@ -13,8 +13,12 @@
 //! arithmetic *approximations* of calendars that are astronomically defined,
 //! and [`bahai::ArithmeticBahaiCalendar`] implements the pre-2015 Western
 //! form of a calendar that has since become astronomical. Each of those
-//! modules documents what it is not, and each leaves the unqualified CLDR
-//! identifier free for `hc-astro` to claim.
+//! modules documents what it is not, and the first two leave the unqualified
+//! CLDR identifier free for `hc-astro` to claim. A fourth,
+//! [`bahai_kept::BahaiCalendar`], is a *published table* rather than
+//! astronomy — the Bahá'í World Centre's dates for 172–221 BE, joined to the
+//! arithmetic calendar that was kept before — and stops where the table
+//! does.
 //!
 //! # The shape of the crate
 //!
@@ -24,7 +28,7 @@
 //! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`indian`] |
 //! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`armenian`], [`french_republican`] |
 //! | Day counts | [`julian_day`] |
-//! | Cycle-based | [`persian`], [`bahai`] |
+//! | Cycle-based | [`persian`], [`bahai`], [`bahai_kept`] |
 //! | Proposed reforms | [`symmetry454`], [`world_calendar`] |
 //!
 //! Everything converts through [`hc_calendar::Rd`], so any two of them can
@@ -53,6 +57,7 @@ mod common;
 pub mod armenian;
 pub mod armenian_fixed;
 pub mod bahai;
+pub mod bahai_kept;
 pub mod buddhist;
 pub mod byzantine;
 pub mod coptic;
@@ -84,6 +89,7 @@ pub mod year_style;
 pub use armenian::{ArmenianCalendar, ArmenianDate};
 pub use armenian_fixed::{ArmenianFixedCalendar, ArmenianFixedDate};
 pub use bahai::{ArithmeticBahaiCalendar, BahaiDate};
+pub use bahai_kept::BahaiCalendar;
 pub use buddhist::{BuddhistCalendar, BuddhistDate};
 pub use byzantine::{ByzantineCalendar, ByzantineDate};
 pub use coptic::{CopticCalendar, CopticDate};
@@ -159,6 +165,7 @@ mod registration {
             crate::ArithmeticFrenchRepublicanCalendar,
         )));
         registry.insert(Box::new(DynAdapter::new(crate::ArithmeticBahaiCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::BahaiCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::Symmetry454Calendar)));
         registry.insert(Box::new(DynAdapter::new(crate::Symmetry010Calendar)));
         registry.insert(Box::new(DynAdapter::new(crate::RevisedJulianCalendar)));
@@ -178,7 +185,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 33;
+const CALENDAR_COUNT: usize = 34;
 
 #[cfg(test)]
 mod tests {
@@ -253,6 +260,7 @@ mod tests {
                 RomanCalendar,
                 ArithmeticFrenchRepublicanCalendar,
                 ArithmeticBahaiCalendar,
+                BahaiCalendar,
                 Symmetry454Calendar,
                 WorldCalendar,
                 ReformCalendar::default(),
@@ -275,6 +283,7 @@ mod tests {
             ArithmeticPersianCalendar.meta(),
             IndianCalendar.meta(),
             ArithmeticBahaiCalendar.meta(),
+            BahaiCalendar.meta(),
             ByzantineCalendar.meta(),
             RomanCalendar.meta(),
             ArithmeticFrenchRepublicanCalendar.meta(),
@@ -299,6 +308,7 @@ mod tests {
         assert!(CopticCalendar.from_fixed(Rd(0)).is_err());
         assert!(IndianCalendar.from_fixed(Rd(0)).is_err());
         assert!(ArithmeticBahaiCalendar.from_fixed(Rd(0)).is_err());
+        assert!(BahaiCalendar.from_fixed(Rd(0)).is_err());
     }
 
     #[cfg(feature = "alloc")]
@@ -370,9 +380,9 @@ mod tests {
         for meta in registry.metas() {
             assert!(!meta.id.as_str().is_empty());
             assert!(!meta.english_name.is_empty());
-            // Only the Badíʿ calendar carries an intercalary period in the
+            // Only the Badíʿ calendars carry an intercalary period in the
             // month field, as an intercalary repetition of month 18.
-            assert!(!meta.has_leap_months || meta.id.as_str() == "bahai-arithmetic");
+            assert!(!meta.has_leap_months || meta.id.as_str().starts_with("bahai"));
             // Nothing in this crate depends on an astronomical model; the
             // ones that approximate an astronomically defined calendar say
             // so in their name and their documentation instead.

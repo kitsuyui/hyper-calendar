@@ -377,35 +377,50 @@ fn the_bahai_year_is_dated_in_the_badi_calendar_and_the_twin_birthdays_follow_th
             (2025, 10, 22, "Birth of the Báb"),
             (2064, 11, 10, "Birth of the Báb"),
             (2064, 11, 11, "Birth of Bahá'u'lláh"),
-            // Before 172 BE: the fixed dates of Western practice.
+            // Before 172 BE: the fixed dates of Western practice, in the
+            // arithmetic calendar.
+            (2014, 3, 21, "Naw-Rúz"),
             (2014, 10, 20, "Birth of the Báb"),
             (2014, 11, 12, "Birth of Bahá'u'lláh"),
+            // 182 BE, whose Naw-Rúz the table puts on 20 March: the whole
+            // year sits a day earlier than the arithmetic rule would say, and
+            // its Ayyám-i-Há has five days.
+            (2025, 3, 20, "Naw-Rúz"),
+            (2025, 4, 20, "First day of Riḍván"),
+            (2025, 4, 28, "Ninth day of Riḍván"),
+            (2025, 5, 1, "Twelfth day of Riḍván"),
+            (2025, 5, 23, "Declaration of the Báb"),
+            (2025, 5, 28, "Ascension of Bahá'u'lláh"),
+            (2025, 7, 9, "Martyrdom of the Báb"),
+            (2025, 11, 25, "Day of the Covenant"),
+            (2025, 11, 27, "Ascension of ʻAbdu'l-Bahá"),
+            (2026, 2, 25, "First day of Ayyám-i-Há"),
+            (2026, 3, 2, "First day of the Fast"),
         ],
     );
 }
 
 #[test]
-fn the_bahai_table_flags_its_predictions_and_reports_where_its_table_ends() {
-    // 182 BE: the arithmetic calendar puts Naw-Rúz on 21 March 2025 and it
-    // was kept on the 20th. Every Badíʿ-dated entry is therefore a
-    // prediction; only the tabulated birthdays are exact.
-    let calendar = HolidayCalendar::for_year(&BAHAI, None, 2025);
-    assert!(!calendar.all().is_empty());
-    for holiday in calendar.all() {
-        let expected = match holiday.name {
-            "Birth of the Báb" | "Birth of Bahá'u'lláh" => Confidence::Exact,
-            _ => Confidence::Approximate,
-        };
-        assert_eq!(holiday.confidence, expected, "{}", holiday.name);
-    }
-    for year in [2014, 2015, 2025, 2064] {
+fn the_bahai_table_is_exact_and_reports_where_the_published_table_ends() {
+    // Nothing here is a prediction: the calendar as kept is a published
+    // table from 172 BE, and so are the birthdays.
+    for year in [1900, 2014, 2015, 2025, 2064] {
         let calendar = HolidayCalendar::for_year(&BAHAI, None, year);
+        assert!(!calendar.all().is_empty(), "no Bahá'í dates in {year}");
+        for holiday in calendar.all() {
+            assert_eq!(
+                holiday.confidence,
+                Confidence::Exact,
+                "{year} {}",
+                holiday.name
+            );
+        }
         assert!(calendar.is_complete(), "{year}: {:?}", calendar.gaps());
     }
     let after = HolidayCalendar::for_year(&BAHAI, None, 2065);
     assert!(
         !after.is_complete(),
-        "the birthday table ends with 2064: {:?}",
+        "the table ends with 221 BE: {:?}",
         after.gaps()
     );
 }

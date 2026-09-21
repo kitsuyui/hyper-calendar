@@ -28,6 +28,9 @@
 //! sunset to sunset, so a date here names the fixed day a Badíʿ day *ends*
 //! in, as is conventional when tabulating the calendar.
 //!
+//! The calendar as kept — this one until 171 BE, the Bahá'í World Centre's
+//! published table from 172 BE — is [`crate::bahai_kept`].
+//!
 //! Month names — Bahá, Jalál, Jamál … — belong to `hc-i18n`.
 
 use hc_calendar::{
@@ -69,7 +72,7 @@ pub const MAX_YEAR: i64 = 9_999;
 pub const FIRST_ASTRONOMICAL_YEAR: i64 = 172;
 
 /// The fixed day of Naw-Rúz of `year`, without validation.
-const fn new_year_raw(year: i64) -> i64 {
+pub(crate) const fn new_year_raw(year: i64) -> i64 {
     match gregorian::to_fixed(year + GREGORIAN_YEAR_OFFSET, 3, 21) {
         Ok(rd) => rd.0,
         // Unreachable inside this calendar's year bounds.
@@ -124,10 +127,31 @@ pub const fn days_in_month(year: i64, month: u8) -> Option<u8> {
 
 /// Days elapsed in the year before the first day of `month`.
 const fn days_before_month(year: i64, month: u8) -> i64 {
+    days_before_month_with(if is_leap_year(year) { 5 } else { 4 }, month)
+}
+
+/// Days elapsed before the first day of `month` in a year whose Ayyám-i-Há
+/// has `intercalary` days. The layout every Badíʿ variant shares.
+pub(crate) const fn days_before_month_with(intercalary: i64, month: u8) -> i64 {
     match month {
         AYYAM_I_HA => 18 * NINETEEN,
-        19 => 18 * NINETEEN + if is_leap_year(year) { 5 } else { 4 },
+        19 => 18 * NINETEEN + intercalary,
         _ => (month as i64 - 1) * NINETEEN,
+    }
+}
+
+/// The month and day of the `day_of_year`-th day (counting from zero) of a
+/// year whose Ayyám-i-Há has `intercalary` days.
+pub(crate) const fn split_day_of_year(day_of_year: i64, intercalary: i64) -> (u8, u8) {
+    if day_of_year < 18 * NINETEEN {
+        (
+            (day_of_year.div_euclid(NINETEEN) + 1) as u8,
+            (day_of_year.rem_euclid(NINETEEN) + 1) as u8,
+        )
+    } else if day_of_year < 18 * NINETEEN + intercalary {
+        (AYYAM_I_HA, (day_of_year - 18 * NINETEEN + 1) as u8)
+    } else {
+        (19, (day_of_year - 18 * NINETEEN - intercalary + 1) as u8)
     }
 }
 
@@ -175,17 +199,8 @@ pub fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
     }
     let day_of_year = rd.0 - new_year_raw(year);
     let intercalary = i64::from(days_in_month(year, AYYAM_I_HA).unwrap_or(4));
-    let (month, day) = if day_of_year < 18 * NINETEEN {
-        (
-            (day_of_year.div_euclid(NINETEEN) + 1) as u8,
-            day_of_year.rem_euclid(NINETEEN) + 1,
-        )
-    } else if day_of_year < 18 * NINETEEN + intercalary {
-        (AYYAM_I_HA, day_of_year - 18 * NINETEEN + 1)
-    } else {
-        (19, day_of_year - 18 * NINETEEN - intercalary + 1)
-    };
-    Ok((year, month, day as u8))
+    let (month, day) = split_day_of_year(day_of_year, intercalary);
+    Ok((year, month, day))
 }
 
 /// A Badíʿ date.
@@ -261,8 +276,6 @@ impl Calendar for ArithmeticBahaiCalendar {
     /// asserted twelve or thirteen months, so nineteen was not merely
     /// missing, it was *rejected*.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        use hc_calendar::shape::{CycleShape, MONTH, WEEKDAY};
-        const SHAPE: &[CycleShape] = &[CycleShape::fixed(MONTH, 19), CycleShape::fixed(WEEKDAY, 7)];
         SHAPE
     }
 
@@ -295,35 +308,55 @@ impl Calendar for ArithmeticBahaiCalendar {
     }
 
     fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
-        let (major, cycle, year_of_cycle) = date.cycles();
-        let month = if date.is_intercalary() {
-            Month::leap(18)
-        } else {
-            Month::regular(date.month)
-        };
-        let mut fields = DateFields::ymd(date.year, 1, date.day).with_era(ERA);
-        fields.month = Some(month);
-        fields
-            .with_extra("kull-i-shay", major)?
-            .with_extra("vahid", cycle)?
-            .with_extra("year-of-vahid", year_of_cycle)
+        fields_of(date)
     }
 
     fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
-        if fields.era.is_some_and(|era| era != ERA) {
-            return Err(CalendarError::UnknownEra);
-        }
-        let month = fields.require_month()?;
-        let ordinal = if month.leap {
-            if month.ordinal != 18 {
-                return Err(CalendarError::MonthOutOfRange);
-            }
-            AYYAM_I_HA
-        } else {
-            month.ordinal
-        };
-        BahaiDate::new(fields.year, ordinal, fields.require_day()?)
+        let (year, month, day) = ordinal_from_fields(fields)?;
+        BahaiDate::new(year, month, day)
     }
+}
+
+/// The nineteen-month shape and the seven-day week, which every Badíʿ
+/// variant shares.
+pub(crate) const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+    hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::MONTH, 19),
+    hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
+];
+
+/// The calendar-agnostic fields of a Badíʿ date: Ayyám-i-Há as an
+/// intercalary repetition of month 18, the three cycles as extras.
+pub(crate) fn fields_of(date: BahaiDate) -> CalendarResult<DateFields> {
+    let (major, cycle, year_of_cycle) = date.cycles();
+    let month = if date.is_intercalary() {
+        Month::leap(18)
+    } else {
+        Month::regular(date.month)
+    };
+    let mut fields = DateFields::ymd(date.year, 1, date.day).with_era(ERA);
+    fields.month = Some(month);
+    fields
+        .with_extra("kull-i-shay", major)?
+        .with_extra("vahid", cycle)?
+        .with_extra("year-of-vahid", year_of_cycle)
+}
+
+/// The year, month number and day a set of fields names, unvalidated; each
+/// variant validates against its own year lengths.
+pub(crate) fn ordinal_from_fields(fields: &DateFields) -> CalendarResult<(i64, u8, u8)> {
+    if fields.era.is_some_and(|era| era != ERA) {
+        return Err(CalendarError::UnknownEra);
+    }
+    let month = fields.require_month()?;
+    let ordinal = if month.leap {
+        if month.ordinal != 18 {
+            return Err(CalendarError::MonthOutOfRange);
+        }
+        AYYAM_I_HA
+    } else {
+        month.ordinal
+    };
+    Ok((fields.year, ordinal, fields.require_day()?))
 }
 
 #[cfg(test)]

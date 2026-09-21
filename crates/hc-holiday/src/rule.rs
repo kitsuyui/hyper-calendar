@@ -16,7 +16,7 @@ use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
 use hc_calendars_lunar::tabular::{self, LeapYearRule};
 use hc_calendars_lunar::{ChineseCalendar, DangiCalendar, LunisolarDate, VietnameseCalendar};
-use hc_calendars_solar::{bahai, coptic, ethiopic, gregorian, julian, persian};
+use hc_calendars_solar::{bahai_kept, coptic, ethiopic, gregorian, julian, persian};
 use hc_seasons::solar_terms::term_day;
 use hc_seasons::{Meridian, SolarTerm};
 
@@ -299,11 +299,15 @@ hc_core::catalogue! {
             |rd| persian::from_fixed(rd).ok().map(|(year, _, _)| year),
         );
 
-        /// The Badíʿ calendar, in which the Bahá'í holy days are dated.
+        /// The Badíʿ calendar as kept, in which the Bahá'í holy days are
+        /// dated: the arithmetic Western rule until 171 BE, the Bahá'í World
+        /// Centre's published table for 172–221 BE, and nothing after — so a
+        /// Badíʿ-dated holiday is exact through 19 March 2065 and a reported
+        /// gap beyond.
         pub const BADI = Self::new(
-            CalendarId("bahai-arithmetic"),
-            |year, month, day| bahai::to_fixed(year, month.ordinal, day).ok(),
-            |rd| bahai::from_fixed(rd).ok().map(|(year, _, _)| year),
+            CalendarId("bahai"),
+            |year, month, day| bahai_kept::to_fixed(year, month.ordinal, day).ok(),
+            |rd| bahai_kept::from_fixed(rd).ok().map(|(year, _, _)| year),
         );
     }
 }

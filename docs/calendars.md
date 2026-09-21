@@ -58,7 +58,8 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | Byzantine / Anno Mundi world era | `byzantine` | `hc-calendars-solar` | Done |
 | Roman *ab urbe condita* | `roman-auc` | `hc-calendars-solar` | Done |
 | French Republican, arithmetic (Romme) | `french-republican-arithmetic` | `hc-calendars-solar` | Partial — equinox variant in stage 3 |
-| Bahá'í (Badíʿ), arithmetic portion | `bahai-arithmetic` | `hc-calendars-solar` | Partial — Naw-Rúz is astronomical, stage 3 |
+| Bahá'í (Badíʿ), arithmetic Western rule | `bahai-arithmetic` | `hc-calendars-solar` | Done — the rule kept until 171 BE, continued proleptically |
+| Bahá'í (Badíʿ), as kept | `bahai` | `hc-calendars-solar` | Done through 221 BE (19 March 2065) — the arithmetic rule to 171 BE, the Bahá'í World Centre's published table for 172–221 BE; refuses after, until `hc-astro` extends it |
 | Symmetry454 | `symmetry454` | `hc-calendars-solar` | Done |
 | Symmetry010 | `symmetry010` | `hc-calendars-solar` | Done |
 | Revised Julian (Milanković, 1923) | `revised-julian` | `hc-calendars-solar` | Done |
@@ -98,7 +99,7 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | --- | --- | --- |
 | Solar Hijri, astronomical (Tehran meridian) | `persian-astronomical` | Planned |
 | French Republican, autumn equinox at Paris | `french-republican-equinox` | Planned |
-| Bahá'í, Naw-Rúz from the Tehran equinox | `bahai-astronomical` | Planned |
+| Bahá'í, Naw-Rúz from the Tehran equinox for any year | `bahai-astronomical` | Planned — must reproduce the 172–221 BE table `bahai` carries |
 | Ethiopian Easter-linked movable cycle (Bahire Hasab) | — | Done, in `hc-holiday`; see [observances.md](observances.md) |
 | Coptic Easter-linked movable cycle | — | Done, in `hc-holiday`; see [observances.md](observances.md) |
 

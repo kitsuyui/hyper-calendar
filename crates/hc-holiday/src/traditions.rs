@@ -21,7 +21,7 @@
 //! | Coptic Orthodox | Coptic calendar; the paschal cycle as offsets from the Julian-computus Pascha | exact |
 //! | Islamic | tabular civil Hijri | **approximate** — the observed date is a sighting decision |
 //! | Jewish | arithmetic Hebrew calendar | exact; the day begins at the preceding sunset, which this crate does not model |
-//! | Bahá'í | arithmetic Badíʿ calendar; the Twin Holy Birthdays from the Bahá'í World Centre table | **approximate** for every Badíʿ-dated day, because the calendar kept since 172 BE begins on the Tehran equinox and the arithmetic one on 21 March; exact for the tabulated birthdays, 2015–2064, and a reported gap after |
+//! | Bahá'í | the Badíʿ calendar as kept — arithmetic to 171 BE, the Bahá'í World Centre's table for 172–221 BE; the Twin Holy Birthdays from the same table | exact through 19 March 2065, and a reported gap after, where the table ends |
 //! | Buddhist | approximated from the Chinese lunisolar calendar | **approximate** — see [`BUDDHIST`] |
 //! | Chinese folk | Chinese lunisolar calendar and the solar terms | exact to the astronomical model |
 
@@ -514,16 +514,14 @@ pub static JEWISH: RuleSet = RuleSet {
 // The Bahá'í Faith
 // ─────────────────────────────────────────────────────────────────────────
 
-/// A holy day dated in the Badíʿ calendar: a prediction, because the Badíʿ
-/// calendar this crate has is the arithmetic Western one and the calendar
-/// kept since 172 BE is astronomical. See [`BAHAI`].
+/// A holy day dated in the Badíʿ calendar as kept — see [`BAHAI`] for
+/// what that is and where it ends.
 const fn badi(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
     feast(
         name,
         local,
         Rule::in_calendar(CalendarSystem::BADI, month, day),
     )
-    .approximate()
 }
 
 /// The Birth of the Báb since 172 BE, from the Bahá'í World Centre's table
@@ -632,8 +630,7 @@ static BAHAI_RULES: &[HolidayRule] = &[
         "First day of Ayyám-i-Há",
         "ایام هاء",
         Rule::in_calendar(CalendarSystem::BADI, bahai::AYYAM_I_HA, 1),
-    )
-    .approximate(),
+    ),
     badi("First day of the Fast", "صیام", 19, 1),
 ];
 
@@ -648,20 +645,18 @@ static BAHAI_RULES: &[HolidayRule] = &[
 ///
 /// # What is firm and what is not
 ///
-/// The days are dated in the Badíʿ calendar, and the Badíʿ calendar this
-/// crate has is the arithmetic Western one: Naw-Rúz on 21 March and the
-/// year as long as the Gregorian year. That is the calendar Bahá'ís outside
-/// the Middle East kept until 171 BE. Since Naw-Rúz 172 BE (2015) the
-/// calendar is unified on the Tehran equinox, so Naw-Rúz falls on 20 March
-/// in about half of all years and every date of that year moves with it —
-/// which is why every Badíʿ-dated entry is flagged approximate. The Bahá'í
-/// World Centre's table gives the observed Naw-Rúz through 221 BE, and a
-/// tabulated calendar built on it is the planned repair.
+/// The days are dated in the Badíʿ calendar as kept
+/// (`hc_calendars_solar::bahai_kept`): the arithmetic Western rule, Naw-Rúz
+/// on 21 March, until 171 BE, and from Naw-Rúz 172 BE (2015) the unified
+/// calendar that begins on the day of the Tehran equinox, as the Bahá'í
+/// World Centre published it for 172–221 BE. Every Badíʿ-dated entry is
+/// therefore exact through 19 March 2065 and a reported gap after, where
+/// the table ends and this crate does no astronomy.
 ///
-/// The Twin Holy Birthdays are the exception in both directions. Since
-/// 172 BE they are not a Badíʿ date at all but a lunar rule, and they come
-/// from the same table: exact for 2015–2064, and a reported gap after.
-/// Before 2015 they are the fixed 5 ʻIlm and 9 Qudrat of Western practice.
+/// The Twin Holy Birthdays are not a Badíʿ date since 172 BE but a lunar
+/// rule, and they come from the same table: exact for 2015–2064, and a
+/// reported gap after. Before 2015 they are the fixed 5 ʻIlm and 9 Qudrat
+/// of Western practice.
 ///
 /// A Bahá'í day runs from sunset to sunset, so each observance begins at
 /// sunset on the day before the date given. The hours of the Ascension of

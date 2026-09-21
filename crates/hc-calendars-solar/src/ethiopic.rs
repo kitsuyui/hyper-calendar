@@ -10,7 +10,7 @@
 //!
 //! That one-number difference from the Coptic calendar is the whole point of
 //! the data/algorithm split: the arithmetic lives in
-//! [`crate::common`]-shaped helpers, and each calendar contributes an epoch.
+//! `common`-shaped helpers, and each calendar contributes an epoch.
 //!
 //! The older *Amätä Aläm* (Year of the World) era, still used in liturgical
 //! contexts, runs 5 500 years ahead of the era of the Incarnation and is
