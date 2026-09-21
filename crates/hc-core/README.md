@@ -12,7 +12,7 @@ The time primitives every other crate uses and none may redefine.
 | `unix` | POSIX time (`UnixTime`), UTC with the leap second made explicit (`UtcInstant`), and the conversions between them and TAI under a `LeapPolicy`. |
 | `epoch` | Well-known epochs as TAI readings: Unix, GPS, J2000, MJD, the Julian Day, Rata Die, Windows FILETIME, NTP, Core Foundation, and the TCG/TCB origin. |
 | `math` | The floating-point functions a `no_std` build has to route somewhere. |
-| `catalogue` | The `catalogue!` macro, which declares a table of named entries together with the tests every such table needs. |
+| `catalogue` | The `catalogue!` macro, which declares a table of named entries together with the tests every such table needs, and `catalogue_tests!`, which adds those tests to a table assembled by hand. |
 
 ## The lines it draws
 

@@ -747,3 +747,11 @@ mod tests {
         assert!(kenmu.used_by(Court::Unified));
     }
 }
+
+hc_core::catalogue_tests! {
+    type: Nengo,
+    id: |era| era.id,
+    tests: era_table_tests,
+    all: &ALL,
+    lookup: find,
+}

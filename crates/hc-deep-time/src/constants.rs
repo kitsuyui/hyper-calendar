@@ -364,3 +364,12 @@ mod tests {
         assert_eq!(CODATA_YEAR, 2022);
     }
 }
+
+hc_core::catalogue_tests! {
+    type: PhysicalConstant,
+    id: |constant| constant.symbol,
+    provenance: |constant| constant.source,
+    tests: constant_table_tests,
+    all: ALL,
+    lookup: by_symbol,
+}

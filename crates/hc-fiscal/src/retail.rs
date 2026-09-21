@@ -828,3 +828,18 @@ mod tests {
         }
     }
 }
+
+/// The system with this name.
+#[must_use]
+pub fn by_name(name: &str) -> Option<&'static WeekYearSystem> {
+    ALL.iter().copied().find(|system| system.name == name)
+}
+
+hc_core::catalogue_tests! {
+    type: &'static WeekYearSystem,
+    id: |system| system.name,
+    provenance: |system| system.source,
+    tests: system_table_tests,
+    all: ALL,
+    lookup: by_name,
+}

@@ -185,3 +185,11 @@ mod tests {
         }
     }
 }
+
+crate::catalogue_tests! {
+    type: Epoch,
+    id: |epoch| epoch.id,
+    tests: epoch_table_tests,
+    all: ALL,
+    lookup: by_id,
+}

@@ -1643,3 +1643,13 @@ mod tests {
         }
     }
 }
+
+hc_core::catalogue_tests! {
+    type: &'static FiscalProfile,
+    id: |profile| profile.code,
+    sorted_by: |profile| profile.code,
+    provenance: |profile| profile.sources,
+    tests: profile_table_tests,
+    all: ALL,
+    lookup: by_code,
+}

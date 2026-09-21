@@ -155,7 +155,7 @@ macro_rules! catalogue {
             })
         }
 
-        $crate::__catalogue_tests! {
+        $crate::catalogue_tests! {
             type: $ty,
             id: |$id_arg| $id_expr,
             $(sorted_by: |$sort_arg| $sort_expr,)?
@@ -208,7 +208,7 @@ macro_rules! catalogue {
             }
         }
 
-        $crate::__catalogue_tests! {
+        $crate::catalogue_tests! {
             type: $ty,
             id: |$id_arg| $id_expr,
             $(sorted_by: |$sort_arg| $sort_expr,)?
@@ -220,10 +220,46 @@ macro_rules! catalogue {
     };
 }
 
-/// The tests both forms of [`catalogue!`] generate. Not for direct use.
-#[doc(hidden)]
+/// The tests a catalogue gets, for a table assembled by hand.
+///
+/// [`catalogue!`] declares the entries, the table and the lookup together
+/// and adds these tests. When that is not possible — the entries are
+/// `static`s spread over other modules, as a country table's are, or the
+/// lookup is not an exact match on the identifier, as a case-insensitive
+/// country code is — the table stays hand-written and this macro adds the
+/// same tests to it, so that a table off the macro is not a table off the
+/// guarantees.
+///
+/// `all` is any expression that is the table, a `&'static [T]`; `lookup` is
+/// any function taking `&str` and returning `Option<T>` or `Option<&T>`.
+///
+/// ```
+/// # use hc_core::catalogue_tests;
+/// pub struct Spice {
+///     pub id: &'static str,
+///     pub heat: u8,
+/// }
+/// pub static PAPRIKA: Spice = Spice { id: "paprika", heat: 1 };
+/// pub static CAYENNE: Spice = Spice { id: "cayenne", heat: 9 };
+///
+/// /// Mildest first.
+/// pub static ALL: &[&Spice] = &[&PAPRIKA, &CAYENNE];
+///
+/// pub fn by_id(id: &str) -> Option<&'static Spice> {
+///     ALL.iter().copied().find(|spice| spice.id.eq_ignore_ascii_case(id))
+/// }
+///
+/// catalogue_tests! {
+///     type: &'static Spice,
+///     id: |spice| spice.id,
+///     sorted_by: |spice| spice.heat,
+///     tests: spice_table_tests,
+///     all: ALL,
+///     lookup: by_id,
+/// }
+/// ```
 #[macro_export]
-macro_rules! __catalogue_tests {
+macro_rules! catalogue_tests {
     (
         type: $ty:ty,
         id: |$id_arg:ident| $id_expr:expr,
@@ -240,11 +276,6 @@ macro_rules! __catalogue_tests {
             /// The table under test.
             fn all() -> &'static [$ty] {
                 $all
-            }
-
-            /// The lookup under test.
-            fn find(id: &str) -> Option<$ty> {
-                ($lookup)(id)
             }
 
             /// The identifier of an entry.
@@ -276,20 +307,25 @@ macro_rules! __catalogue_tests {
             #[test]
             fn every_entry_is_findable_by_its_own_identifier() {
                 for entry in all() {
-                    assert_eq!(
-                        find(identity(entry)).as_ref(),
-                        Some(entry),
-                        "{} is in the table but not findable",
-                        identity(entry)
-                    );
+                    let wanted = identity(entry);
+                    let Some(found) = ($lookup)(wanted) else {
+                        panic!("{wanted} is in the table but not findable")
+                    };
+                    // The lookup may return the entry or a reference to it;
+                    // `Borrow` reads either as `&T`.
+                    let got = {
+                        let $id_arg: &$ty = ::core::borrow::Borrow::borrow(&found);
+                        $id_expr
+                    };
+                    assert_eq!(got, wanted, "looking up {wanted} found {got}");
                 }
             }
 
             /// An identifier nothing has must find nothing.
             #[test]
             fn an_unknown_identifier_finds_nothing() {
-                assert!(find("").is_none());
-                assert!(find("no-such-entry-exists-here").is_none());
+                assert!(($lookup)("").is_none());
+                assert!(($lookup)("no-such-entry-exists-here").is_none());
             }
 
             $(
