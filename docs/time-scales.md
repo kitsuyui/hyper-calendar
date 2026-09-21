@@ -127,7 +127,7 @@ as TAI readings so nothing has to rediscover a magic number:
 decomposition so that `−0.5 s` is `(−1, 5×10¹⁷)` and `Ord` agrees with
 arithmetic.
 
-- The `i128` second count spans about 5×10³⁰ times the age of the universe, so
+- The `i128` second count spans about 4×10²⁰ times the age of the universe, so
   nothing overflows in practice.
 - 10⁻¹⁸ s resolves anything an optical clock can measure.
 - Spans shorter than an attosecond — Planck time — are not exact quantities in

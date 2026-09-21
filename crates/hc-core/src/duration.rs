@@ -20,7 +20,7 @@ const ATTOS_PER_SEC_I128: i128 = ATTOS_PER_SEC as i128;
 ///
 /// # Why attoseconds, and why `i128`
 ///
-/// An `i128` count of seconds spans roughly 5·10³⁰ times the age of the
+/// An `i128` count of seconds spans roughly 4·10²⁰ times the age of the
 /// universe, so no calendar or cosmological question runs out of range, while
 /// 10⁻¹⁸ s resolves anything an optical clock can measure. Spans shorter than
 /// an attosecond — Planck time, for instance — are *not* exact quantities in
@@ -162,7 +162,10 @@ impl Duration {
     /// # Errors
     ///
     /// Returns [`TimeError::Overflow`] when the span exceeds ±2¹²⁷ as, which
-    /// is about ±5.4 years.
+    /// is about ±5.4 × 10¹² years — five trillion, roughly four hundred
+    /// times the age of the universe. An earlier version of this line said
+    /// "5.4 years", and three other places repeated it as a reason to avoid
+    /// this method.
     pub const fn total_attos(self) -> TimeResult<i128> {
         match self.secs.checked_mul(ATTOS_PER_SEC_I128) {
             Some(scaled) => match scaled.checked_add(self.attos as i128) {
@@ -483,6 +486,48 @@ impl fmt::Display for Duration {
 #[cfg(test)]
 mod tests {
     use super::*;
+    /// The range claims in this module's doc comment, pinned.
+    ///
+    /// Both were wrong for a while and both were repeated elsewhere as
+    /// reasons to do something: the attosecond limit was given as "5.4
+    /// years" and used to justify avoiding `total_attos` in
+    /// `hc-uncertainty`, and the second count was given as 5·10³⁰ times the
+    /// age of the universe in three places including an ADR. A number that
+    /// justifies a decision should be a test.
+    #[test]
+    fn the_attosecond_total_reaches_trillions_of_years_not_units_of_them() {
+        // The Julian year astronomy counts in.
+        const YEAR: i128 = 31_557_600;
+        // 2^127 attoseconds is 1.70×10^20 s, which is 5.39×10^12 years — so
+        // five trillion fits and six does not.
+        assert!(
+            Duration::from_secs(5_000_000_000_000 * YEAR)
+                .total_attos()
+                .is_ok(),
+            "five trillion years should fit in an attosecond total"
+        );
+        assert!(
+            Duration::from_secs(6_000_000_000_000 * YEAR)
+                .total_attos()
+                .is_err(),
+            "six trillion years should not"
+        );
+        // And a mere million years, which an earlier test called "well past
+        // the range", is nowhere near it.
+        assert!(Duration::from_secs(1_000_000 * YEAR).total_attos().is_ok());
+    }
+
+    /// `i128` seconds against the age of the universe, about 4.35×10^17 s.
+    #[test]
+    fn the_second_count_spans_about_four_hundred_quintillion_universe_ages() {
+        const UNIVERSE_AGE_SECS: i128 = 435_084_600_000_000_000;
+        let ratio = i128::MAX / UNIVERSE_AGE_SECS;
+        assert!(
+            (3 * 10_i128.pow(20)..5 * 10_i128.pow(20)).contains(&ratio),
+            "expected about 4e20, got {ratio}"
+        );
+    }
+
     #[cfg(not(feature = "std"))]
     use alloc::string::ToString as _;
 

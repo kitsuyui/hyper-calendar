@@ -16,7 +16,7 @@ everything it cannot.
   not exact anyway — the Planck time is derived from measured constants and is
   known to about 1 part in 10⁵.
 - The age of the universe is about 13.787 billion years ± 0.020. Storing it as
-  435 156 234 720 000 000 s implies eighteen significant figures where there
+  435 084 600 000 000 000 s implies eighteen significant figures where there
   are five.
 
 So the library splits the problem. Exact things are exact; inexact things say

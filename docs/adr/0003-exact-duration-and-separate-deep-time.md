@@ -22,7 +22,7 @@ significant figures and uncertainty.
 ## Consequences
 
 **Good.** Civil arithmetic is exact and has no floating-point drift. The `i128`
-second count spans about 5×10³⁰ times the age of the universe, so overflow is
+second count spans about 4×10²⁰ times the age of the universe, so overflow is
 theoretical. Values that are not exactly known are *typed* as not exactly
 known, so precision cannot be silently manufactured.
 

@@ -139,9 +139,17 @@ impl DurationInterval {
     /// most.
     ///
     /// The width is halved componentwise rather than through
-    /// [`Duration::checked_div_int`], which would have to express the span in
-    /// attoseconds first and so would overflow beyond about 5.4 years —
-    /// uselessly short for a library that has to talk about centuries.
+    /// [`Duration::checked_div_int`], which would have to express the span
+    /// in attoseconds first and so would overflow beyond about 5.4 × 10¹²
+    /// years.
+    ///
+    /// An earlier version of this note gave that threshold as "about 5.4
+    /// years — uselessly short for a library that has to talk about
+    /// centuries", which is wrong by twelve orders of magnitude and makes
+    /// the choice sound far more necessary than it is. Centuries would have
+    /// been perfectly safe through an attosecond total. The componentwise
+    /// halving earns its place only in deep time, above five trillion
+    /// years — which this crate does reach, because that is what it is for.
     ///
     /// # Errors
     ///
@@ -592,12 +600,21 @@ mod tests {
 
     #[test]
     fn the_midpoint_survives_spans_far_longer_than_an_attosecond_count() {
-        // A million years is well past the range of `total_attos`, so this
-        // would fail if the midpoint went through an attosecond total.
-        let million_years = secs(1_000_000 * 365 * 86_400);
-        let span = DurationInterval::new(Duration::ZERO, million_years).unwrap();
+        // This test used to use a million years and claim it was "well past
+        // the range of `total_attos`". It is not: a million years is about
+        // 3×10³¹ attoseconds and the limit is 1.7×10³⁸, so the test passed
+        // whether or not the midpoint went through an attosecond total.
+        //
+        // Ten trillion years does exceed it, and the assertion below checks
+        // that it does rather than assuming it.
+        let ten_trillion_years = secs(10_000_000_000_000 * 365 * 86_400);
+        assert!(
+            ten_trillion_years.total_attos().is_err(),
+            "the span has to be past the attosecond range for this to test anything"
+        );
+        let span = DurationInterval::new(Duration::ZERO, ten_trillion_years).unwrap();
         let middle = span.midpoint().unwrap();
-        assert_eq!(middle.checked_mul_int(2).unwrap(), million_years);
+        assert_eq!(middle.checked_mul_int(2).unwrap(), ten_trillion_years);
     }
 
     #[test]
