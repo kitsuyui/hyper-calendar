@@ -16,7 +16,8 @@
 //! contexts, runs 5 500 years ahead of the era of the Incarnation and is
 //! reachable through [`ERA_WORLD`].
 //!
-//! Month names belong to `hc-i18n`, not here.
+//! The month names in Geʽez script are [`MONTHS`], declared with the
+//! calendar's shape; transliterations are a locale's and belong to `hc-i18n`.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
@@ -140,11 +141,40 @@ impl EthiopicDate {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct EthiopicCalendar;
 
+/// The thirteen months in Geʽez script, Mäskäräm first. The thirteenth is
+/// Ṗagumen, the five or six epagomenal days.
+///
+/// Source: the months table of Wikipedia, "Ethiopian calendar", retrieved
+/// 2026-09-22, which prints the thirteenth as ጳጐሜን. The transliterations
+/// (Mäskäräm, or Meskerem) are words of a language and live in `hc-i18n`.
+pub const MONTHS: [&str; 13] = [
+    "መስከረም",
+    "ጥቅምት",
+    "ኅዳር",
+    "ታኅሣሥ",
+    "ጥር",
+    "የካቲት",
+    "መጋቢት",
+    "ሚያዝያ",
+    "ግንቦት",
+    "ሰኔ",
+    "ሐምሌ",
+    "ነሐሴ",
+    "ጳጐሜን",
+];
+
+/// Thirteen named months and the seven-day week.
+const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+    hc_calendar::shape::CycleShape::named(hc_calendar::shape::MONTH, &MONTHS),
+    hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
+];
+
 impl Calendar for EthiopicCalendar {
     type Date = EthiopicDate;
 
+    /// Thirteen months, named in Geʽez script, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        hc_calendar::shape::WANDERING_THIRTEEN
+        SHAPE
     }
 
     fn meta(&self) -> CalendarMeta {

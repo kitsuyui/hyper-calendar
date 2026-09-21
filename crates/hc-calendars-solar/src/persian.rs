@@ -29,7 +29,8 @@
 //! # Structure
 //!
 //! Six months of 31 days, five of 30, and a last month of 29 days — 30 in a
-//! leap year. Month names belong to `hc-i18n`.
+//! leap year. The month names in Persian script are [`MONTHS`], declared
+//! with the calendar's shape; romanisations belong to `hc-i18n`.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
@@ -222,12 +223,39 @@ impl PersianDate {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct ArithmeticPersianCalendar;
 
+/// The twelve months in Persian script, Farvardin first.
+///
+/// Source: the months table of Wikipedia, "Solar Hijri calendar",
+/// retrieved 2026-09-22. Mordad and Esfand have the older variants Amordad
+/// and Espand, which are not listed. The romanisations (Farvardin,
+/// Ordibehesht …) are a locale's and live in `hc-i18n`.
+pub const MONTHS: [&str; 12] = [
+    "فروردین",
+    "اردیبهشت",
+    "خرداد",
+    "تیر",
+    "مرداد",
+    "شهریور",
+    "مهر",
+    "آبان",
+    "آذر",
+    "دی",
+    "بهمن",
+    "اسفند",
+];
+
+/// Twelve named months and the seven-day week.
+const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+    hc_calendar::shape::CycleShape::named(hc_calendar::shape::MONTH, &MONTHS),
+    hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
+];
+
 impl Calendar for ArithmeticPersianCalendar {
     type Date = PersianDate;
 
-    /// Twelve months and the seven-day week.
+    /// Twelve months, named in Persian script, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        hc_calendar::shape::SOLAR_TWELVE
+        SHAPE
     }
 
     fn meta(&self) -> CalendarMeta {

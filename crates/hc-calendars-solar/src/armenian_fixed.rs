@@ -220,8 +220,17 @@ pub struct ArmenianFixedCalendar;
 impl Calendar for ArmenianFixedCalendar {
     type Date = ArmenianFixedDate;
 
+    /// The same thirteen months as the wandering calendar, from
+    /// [`crate::armenian::MONTHS`], and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        hc_calendar::shape::WANDERING_THIRTEEN
+        const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+            hc_calendar::shape::CycleShape::named(
+                hc_calendar::shape::MONTH,
+                &crate::armenian::MONTHS,
+            ),
+            hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
+        ];
+        SHAPE
     }
 
     fn meta(&self) -> CalendarMeta {

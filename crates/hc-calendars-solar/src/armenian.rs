@@ -13,7 +13,8 @@
 //! fixed year of 1084 is [`crate::armenian_fixed`], and modern Armenia uses
 //! the Gregorian calendar.
 //!
-//! Month names belong to `hc-i18n`.
+//! The month names in Armenian script are [`MONTHS`], declared with the
+//! calendar's shape; transliterations are a locale's and belong to `hc-i18n`.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
@@ -116,11 +117,41 @@ impl ArmenianDate {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct ArmenianCalendar;
 
+/// The thirteen months in Armenian script and classical orthography,
+/// Nawasard first. The thirteenth is Aweleacʿ, the five epagomenal days.
+///
+/// Source: the months table of Wikipedia, "Armenian calendar", retrieved
+/// 2026-09-22, which prints them in lowercase as here. The
+/// Hübschmann-Meillet-Benveniste transliterations are a locale's and live
+/// in `hc-i18n`. [`crate::armenian_fixed`] shares this table.
+pub const MONTHS: [&str; 13] = [
+    "նաւասարդ",
+    "հոռի",
+    "սահմի",
+    "տրէ",
+    "քաղոց",
+    "արաց",
+    "մեհեկան",
+    "արեգ",
+    "ահեկան",
+    "մարերի",
+    "մարգաց",
+    "հրոտից",
+    "աւելեաց",
+];
+
+/// Thirteen named months and the seven-day week.
+const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+    hc_calendar::shape::CycleShape::named(hc_calendar::shape::MONTH, &MONTHS),
+    hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
+];
+
 impl Calendar for ArmenianCalendar {
     type Date = ArmenianDate;
 
+    /// Thirteen months, named in Armenian script, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        hc_calendar::shape::WANDERING_THIRTEEN
+        SHAPE
     }
 
     fn meta(&self) -> CalendarMeta {

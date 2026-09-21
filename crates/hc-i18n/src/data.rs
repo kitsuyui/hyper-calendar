@@ -154,6 +154,15 @@ const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
 /// names below were written, tested and unreachable.
 const PERSIAN_CALENDARS: &[CalendarId] = &[CalendarId("persian-arithmetic")];
 
+/// The Coptic calendar.
+const COPTIC_CALENDARS: &[CalendarId] = &[CalendarId("coptic")];
+
+/// The Ethiopic calendar.
+const ETHIOPIC_CALENDARS: &[CalendarId] = &[CalendarId("ethiopic")];
+
+/// The two Armenian calendars, which share one set of month names.
+const ARMENIAN_CALENDARS: &[CalendarId] = &[CalendarId("armenian"), CalendarId("armenian-fixed")];
+
 /// The Japanese era calendars, in every court reading and both era
 /// reckonings — they share their month names.
 const JAPANESE_CALENDARS: &[CalendarId] = &[
@@ -325,6 +334,30 @@ const AR_CALENDARS: &[CalendarNames] = &[
         ])],
         &["ah"],
         &["هـ"],
+    ),
+    // The Coptic months as Egyptian Arabic prints them, an override of the
+    // Coptic-script names the calendar declares for itself. Source: the
+    // months table of Wikipedia, "Coptic calendar", retrieved 2026-09-22,
+    // which follows Hinds and Badawi, A Dictionary of Egyptian Arabic.
+    dated(
+        COPTIC_CALENDARS,
+        &[months(&[
+            "توت",
+            "بابه",
+            "هاتور",
+            "كياك",
+            "طوبه",
+            "أمشير",
+            "برمهات",
+            "برموده",
+            "بشنس",
+            "بأونه",
+            "أبيب",
+            "مسرا",
+            "نسيئ",
+        ])],
+        &[],
+        &[],
     ),
 ];
 
@@ -586,6 +619,91 @@ const EN_CALENDARS: &[CalendarNames] = &[
         ])],
         "leap ",
     ),
+    // Four calendars whose own names are in another script, romanised the
+    // way English-language sources print them. Each is an override of the
+    // names the calendar declares for itself: Coptic-derived rather than
+    // Arabic-derived for the Coptic months; the Encyclopaedia Aethiopica
+    // transliteration for the Ethiopic; Hübschmann-Meillet-Benveniste for
+    // the Armenian; the usual romanisation for the Persian.
+    dated(
+        COPTIC_CALENDARS,
+        &[months(&[
+            "Thout",
+            "Paopi",
+            "Hathor",
+            "Koiak",
+            "Tobi",
+            "Meshir",
+            "Paremhat",
+            "Parmouti",
+            "Pashons",
+            "Paoni",
+            "Epip",
+            "Mesori",
+            "Pi Kogi Enavot",
+        ])],
+        &[],
+        &[],
+    ),
+    dated(
+        ETHIOPIC_CALENDARS,
+        &[months(&[
+            "Mäskäräm",
+            "Ṭəqəmt",
+            "Ḫədar",
+            "Taḫśaś",
+            "Ṭərr",
+            "Yäkatit",
+            "Mägabit",
+            "Miyazya",
+            "Gənbot",
+            "Säne",
+            "Ḥamle",
+            "Nähase",
+            "Ṗagumen",
+        ])],
+        &[],
+        &[],
+    ),
+    dated(
+        ARMENIAN_CALENDARS,
+        &[months(&[
+            "Nawasard",
+            "Hoṙi",
+            "Sahmi",
+            "Trē",
+            "Kʿałocʿ",
+            "Aracʿ",
+            "Mehekan",
+            "Areg",
+            "Ahekan",
+            "Mareri",
+            "Margacʿ",
+            "Hroticʿ",
+            "Aweleacʿ",
+        ])],
+        &[],
+        &[],
+    ),
+    dated(
+        PERSIAN_CALENDARS,
+        &[months(&[
+            "Farvardin",
+            "Ordibehesht",
+            "Khordad",
+            "Tir",
+            "Mordad",
+            "Shahrivar",
+            "Mehr",
+            "Aban",
+            "Azar",
+            "Dey",
+            "Bahman",
+            "Esfand",
+        ])],
+        &[],
+        &[],
+    ),
     // The two calendars the old name model could not hold. Badíʿ has
     // nineteen months, which the twelve-or-thirteen assertion rejected; the
     // French Republican week is a ten-day décade, which had nowhere to live
@@ -803,25 +921,9 @@ const FA: LocaleData = LocaleData {
             gregorian_eras(&["قبل از میلاد", "میلادی"], &["ق.م.", "م."], &[]),
             ContextualNames::EMPTY,
         ),
-        dated(
-            PERSIAN_CALENDARS,
-            &[months(&[
-                "فروردین",
-                "اردیبهشت",
-                "خرداد",
-                "تیر",
-                "مرداد",
-                "شهریور",
-                "مهر",
-                "آبان",
-                "آذر",
-                "دی",
-                "بهمن",
-                "اسفند",
-            ])],
-            &["ap"],
-            &["ه.ش."],
-        ),
+        // The month names are the calendar's own, declared with its shape in
+        // `hc-calendars-solar`; only the era is a Persian word.
+        dated(PERSIAN_CALENDARS, &[], &["ap"], &["ه.ش."]),
     ],
 };
 

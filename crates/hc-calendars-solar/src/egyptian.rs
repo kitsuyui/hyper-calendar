@@ -121,11 +121,42 @@ impl EgyptianDate {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct EgyptianCalendar;
 
+/// The thirteen months under the Greek names Egyptology uses, Thoth first.
+/// The thirteenth is the five epagomenal days, *ḥryw rnpt*, "those upon
+/// the year", under their Greek name.
+///
+/// The Egyptian names themselves (Ḏḥwty, Pꜣ-n-Ipt …) are transliterations
+/// of hieroglyphs and are not what any date is written with; the Greek
+/// forms are the convention of the field. Source: the months table of
+/// Wikipedia, "Egyptian calendar", retrieved 2026-09-22.
+pub const MONTHS: [&str; 13] = [
+    "Thoth",
+    "Phaophi",
+    "Athyr",
+    "Choiak",
+    "Tybi",
+    "Mechir",
+    "Phamenoth",
+    "Pharmuthi",
+    "Pachons",
+    "Payni",
+    "Epiphi",
+    "Mesore",
+    "Epagomenai",
+];
+
+/// Thirteen named months and the seven-day week.
+const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+    hc_calendar::shape::CycleShape::named(hc_calendar::shape::MONTH, &MONTHS),
+    hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
+];
+
 impl Calendar for EgyptianCalendar {
     type Date = EgyptianDate;
 
+    /// Thirteen months under their Greek names, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        hc_calendar::shape::WANDERING_THIRTEEN
+        SHAPE
     }
 
     fn meta(&self) -> CalendarMeta {
