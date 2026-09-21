@@ -71,7 +71,10 @@ pub mod koki;
 pub mod minguo;
 pub mod ordinal;
 pub mod persian;
+pub mod revised_julian;
 pub mod roman;
+pub mod symmetry;
+pub mod symmetry010;
 pub mod symmetry454;
 pub mod world_calendar;
 
@@ -97,7 +100,9 @@ pub use koki::{KokiCalendar, KokiDate};
 pub use minguo::{MinguoCalendar, MinguoDate};
 pub use ordinal::{OrdinalCalendar, OrdinalDate};
 pub use persian::{ArithmeticPersianCalendar, PersianDate};
+pub use revised_julian::{RevisedJulianCalendar, RevisedJulianDate};
 pub use roman::{RomanCalendar, RomanDate};
+pub use symmetry010::{Symmetry010Calendar, Symmetry010Date};
 pub use symmetry454::{Symmetry454Calendar, Symmetry454Date};
 pub use world_calendar::{WorldCalendar, WorldCalendarDate};
 
@@ -145,6 +150,8 @@ mod registration {
         )));
         registry.insert(Box::new(DynAdapter::new(crate::ArithmeticBahaiCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::Symmetry454Calendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::Symmetry010Calendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::RevisedJulianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::WorldCalendar)));
 
         for adoption in ADOPTIONS {
@@ -161,7 +168,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 23;
+const CALENDAR_COUNT: usize = 25;
 
 #[cfg(test)]
 mod tests {

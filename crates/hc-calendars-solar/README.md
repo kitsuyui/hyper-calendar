@@ -8,7 +8,7 @@ follows from those.
 
 ## What is in it
 
-Twenty-two calendars, plus twelve national variants of the Julian/Gregorian
+Twenty-five calendars, plus twelve national variants of the Julian/Gregorian
 reform:
 
 | Module | Calendar | Identifier |
@@ -34,6 +34,8 @@ reform:
 | `french_republican` | French Republican, **arithmetic (Romme)** variant | `french-republican-arithmetic` |
 | `bahai` | Badíʿ, **arithmetic Western** variant | `bahai-arithmetic` |
 | `symmetry454` | Symmetry454 | `symmetry454` |
+| `symmetry010` | Symmetry010 | `symmetry010` |
+| `revised-julian` | Revised Julian (Milanković) | `revised_julian` |
 | `world_calendar` | The World Calendar | `world-calendar` |
 
 `register_all(&mut CalendarRegistry)`, behind the `alloc` feature, inserts all
