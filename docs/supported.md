@@ -219,6 +219,22 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `julian-century` | Julian century | 3155760000 | civil | IAU (1976) System of Astronomical Constants |
 | `julian-millennium` | Julian millennium | 31557600000 | civil | IAU (1976) System of Astronomical Constants |
 
+## Readings of the sexagenary cycle
+
+9 readings of the sixty stem-branch names, from `hc_calendar::cycle::readings`. Each holds exactly ten stems and twelve branches; the two columns show the first and the last pair.
+
+| id | Name | 甲子 | 癸亥 | Authority |
+| --- | --- | --- | --- | --- |
+| `han` | Han characters | 甲 子 | 癸 亥 | None of the twenty-two characters was altered by the 1946 Japanese or 1956 Chinese simplifications, so Chinese, Japanese, Korean and Vietnamese sources print one column |
+| `zh-pinyin` | Hanyu Pinyin, toneless | jia zi | gui hai | 汉语拼音方案 (1958), tone marks omitted |
+| `zh-pinyin-toned` | Hanyu Pinyin, with tones | jiǎ zǐ | guǐ hài | 汉语拼音方案 (1958) |
+| `ja-kana` | Japanese kun readings, in kana | きのえ ね | みずのと い | The 訓読み as Japanese almanacs (暦注) print them; each stem is a phase plus 兄 or 弟, which the tests check |
+| `ja-kun` | Japanese kun readings, romanised | kinoe ne | mizunoto i | Hepburn romanisation of the kana reading, which the tests check |
+| `ja-on` | Japanese on readings, romanised | kō shi | ki gai | Hepburn romanisation of the Sino-Japanese readings |
+| `ko-hangul` | Korean, in Hangul | 갑 자 | 계 해 | 표준국어대사전 (National Institute of Korean Language), entries 십간 and 십이지 |
+| `ko-latn` | Korean, Revised Romanization | gap ja | gye hae | 국어의 로마자 표기법 (Revised Romanization of Korean, 2000) applied to the Hangul |
+| `vi` | Vietnamese can chi | Giáp Tý | Quý Hợi | The can chi as Vietnamese almanacs (lịch vạn niên) print them; Mão is the standard form of 卯 and Mẹo the southern one |
+
 ## Facade features
 
 19 capability features, read from `crates/hyper-calendar/Cargo.toml`. Every one that names a crate also re-exports it; `tests/facade.rs` is what makes that true rather than hoped.

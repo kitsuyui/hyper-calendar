@@ -59,7 +59,7 @@
 
 use hc_astro::solar::{seasonal_event, solar_longitude, solar_longitude_after};
 use hc_calendar::Rd;
-use hc_calendar::cycle::EARTHLY_BRANCHES;
+use hc_calendar::cycle::readings;
 use hc_calendar::fixed::Moment;
 use hc_core::math::floor;
 
@@ -71,7 +71,7 @@ use crate::zodiac::{DEGREES_PER_SIGN, SIGNS_PER_ZODIAC, SignPeriod, degrees_into
 /// One of the 十二次.
 ///
 /// Ordering is the traditional one, from 星紀 at 255°, which is also the
-/// order the [`hc_calendar::cycle::EARTHLY_BRANCHES`] run backwards through.
+/// order the Earthly Branches run backwards through.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ChineseStation(u8);
 
@@ -181,7 +181,7 @@ const STATION_NAMES: [StationNames; SIGNS_PER_ZODIAC] = [
 /// The earthly branch of 星紀, from which the rest count backwards.
 ///
 /// 星紀 is 丑 (`"chou"`), branch index 1 in
-/// [`hc_calendar::cycle::EARTHLY_BRANCHES`],
+/// [`hc_calendar::cycle::readings::PINYIN`],
 /// and each following 次 takes the *previous* branch: 玄枵 is 子 (0), 娵訾 is
 /// 亥 (11), and so on.
 const FIRST_STATION_BRANCH_INDEX: u8 = 1;
@@ -333,7 +333,7 @@ impl ChineseStation {
 
     /// The matching earthly branch, romanised, e.g. `"chou"` for 丑.
     ///
-    /// The strings come from [`hc_calendar::cycle::EARTHLY_BRANCHES`] rather
+    /// The strings come from [`hc_calendar::cycle::readings::PINYIN`] rather
     /// than from a copy here, so the two can never disagree about what the
     /// twelve branches are or what order they run in.
     ///
@@ -341,7 +341,7 @@ impl ChineseStation {
     /// a year's animal. See the module documentation.
     #[must_use]
     pub const fn earthly_branch(self) -> &'static str {
-        EARTHLY_BRANCHES[self.earthly_branch_index() as usize]
+        readings::PINYIN.branch_at(self.earthly_branch_index())
     }
 
     /// The Western sign the station is traditionally equated with.
@@ -596,7 +596,7 @@ mod tests {
     #[test]
     fn the_earthly_branches_run_backwards_against_the_stations() {
         // Romanised, because that is the form
-        // `hc_calendar::cycle::EARTHLY_BRANCHES` carries; the characters are
+        // `hc_calendar::cycle::readings::PINYIN` carries; the characters are
         // given beside each for the reader.
         let expected = [
             (ChineseStation::XINGJI, "chou"),   // 丑

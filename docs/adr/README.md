@@ -13,3 +13,4 @@ intent.
 | [0004](0004-one-crate-per-capability.md) | One crate per capability, behind a feature-gated facade | Accepted |
 | [0005](0005-no-external-dependencies.md) | No external dependencies | Accepted |
 | [0006](0006-refuse-to-extrapolate.md) | Refuse to extrapolate observational data | Accepted |
+| [0007](0007-sets-the-world-can-extend-are-data.md) | Sets the world can extend are data; sets we define are enums | Accepted |

@@ -381,6 +381,36 @@ fn render() -> String {
         );
     }
 
+    let readings = hyper_calendar::hc_calendar::cycle::readings::ALL;
+    let _ = writeln!(out, "\n## Readings of the sexagenary cycle\n");
+    let _ = writeln!(
+        out,
+        "{} readings of the sixty stem-branch names, from \
+         `hc_calendar::cycle::readings`. Each holds exactly ten stems and \
+         twelve branches; the two columns show the first and the last pair.\n",
+        readings.len()
+    );
+    out.push_str("| id | Name | 甲子 | 癸亥 | Authority |\n| --- | --- | --- | --- | --- |\n");
+    for reading in readings {
+        let jia_zi = reading.pair(hyper_calendar::hc_calendar::cycle::Sexagenary::from_index(
+            0,
+        ));
+        let gui_hai = reading.pair(hyper_calendar::hc_calendar::cycle::Sexagenary::from_index(
+            59,
+        ));
+        let _ = writeln!(
+            out,
+            "| `{}` | {} | {} {} | {} {} | {} |",
+            reading.id,
+            reading.english_name,
+            jia_zi.0,
+            jia_zi.1,
+            gui_hai.0,
+            gui_hai.1,
+            reading.authority
+        );
+    }
+
     // `std`, `alloc` and `libm` choose the build shape rather than a
     // capability, and their values are twenty propagations each. They are
     // described in a sentence instead of tabulated.

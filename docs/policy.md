@@ -136,6 +136,15 @@ named conventions — an observation meridian, a location, a published
 uncertainty series — a parameter is correct, because there is no finite set of
 names to enumerate.
 
+### Where the list itself is open
+
+A short list of named conventions is still not an `enum` when the world can
+lengthen it without asking: calendars, countries, the readings of a cycle,
+units of time. Those are tables of data, and the guarantees an `enum` would
+have given are asserted by tests instead.
+[ADR 0007](adr/0007-sets-the-world-can-extend-are-data.md) gives the test —
+discovery or decision — and what it costs.
+
 ## 6. Modularity is a compile-time property
 
 Requirement 8 of the original brief: not everything should be compiled into

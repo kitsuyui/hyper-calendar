@@ -31,6 +31,7 @@
 use core::fmt;
 
 use hc_calendar::cycle::Sexagenary;
+use hc_calendar::cycle::readings::Reading;
 use hc_calendar::{CalendarId, Month, Weekday};
 
 use crate::casing::CasingStyle;
@@ -372,26 +373,26 @@ impl CalendarNames {
     }
 }
 
-/// The sexagenary cycle written out in a locale's own script.
+/// How a locale writes the sexagenary cycle.
 ///
-/// `hc_calendar::cycle` computes the position; the sixty names are culture,
-/// so they live here.
+/// The stems and branches are one of the readings `hc_calendar` catalogues:
+/// a locale chooses a reading, it does not spell one. The only names this
+/// crate holds itself are the zodiac animals, which are words of the
+/// language rather than readings of the cycle — 卯 is the rabbit in Chinese
+/// and the cat in Vietnamese.
 #[derive(Debug, Clone, Copy)]
 pub struct SexagenaryNames {
-    /// The ten Heavenly Stems.
-    pub stems: &'static [&'static str],
-    /// The twelve Earthly Branches.
-    pub branches: &'static [&'static str],
+    /// The reading the locale writes the stems and branches in.
+    pub reading: Option<&'static Reading>,
     /// The twelve zodiac animals, in branch order.
-    pub zodiac: &'static [&'static str],
+    pub zodiac: Option<&'static [&'static str; 12]>,
 }
 
 impl SexagenaryNames {
     /// No cycle names.
     pub const EMPTY: Self = Self {
-        stems: &[],
-        branches: &[],
-        zodiac: &[],
+        reading: None,
+        zodiac: None,
     };
 }
 
@@ -668,22 +669,32 @@ pub fn quarter_name(
     })
 }
 
+/// The reading a locale writes the sexagenary cycle in.
+#[must_use]
+pub fn sexagenary_reading(locale: &Locale) -> Option<&'static Reading> {
+    resolve(locale, |data| data.cycle.reading)
+}
+
 /// The name of a Heavenly Stem, indexed from zero.
 #[must_use]
 pub fn stem_name(locale: &Locale, index: usize) -> Option<&'static str> {
-    resolve(locale, |data| data.cycle.stems.get(index).copied())
+    sexagenary_reading(locale).and_then(|reading| reading.stems.get(index).copied())
 }
 
 /// The name of an Earthly Branch, indexed from zero.
 #[must_use]
 pub fn branch_name(locale: &Locale, index: usize) -> Option<&'static str> {
-    resolve(locale, |data| data.cycle.branches.get(index).copied())
+    sexagenary_reading(locale).and_then(|reading| reading.branches.get(index).copied())
 }
 
 /// The name of a zodiac animal, indexed from zero in branch order.
 #[must_use]
 pub fn zodiac_animal_name(locale: &Locale, index: usize) -> Option<&'static str> {
-    resolve(locale, |data| data.cycle.zodiac.get(index).copied())
+    resolve(locale, |data| {
+        data.cycle
+            .zodiac
+            .and_then(|zodiac| zodiac.get(index).copied())
+    })
 }
 
 /// The stem and branch of a sexagenary position, in the locale's script.
@@ -695,9 +706,7 @@ pub fn sexagenary_names(
     locale: &Locale,
     position: Sexagenary,
 ) -> Option<(&'static str, &'static str)> {
-    let stem = stem_name(locale, usize::from(position.stem_index()))?;
-    let branch = branch_name(locale, usize::from(position.branch_index()))?;
-    Some((stem, branch))
+    sexagenary_reading(locale).map(|reading| reading.pair(position))
 }
 
 /// The first day of the week for a locale.
@@ -1133,11 +1142,28 @@ mod tests {
             sexagenary_names(&locale("ko"), position),
             Some(("갑", "자"))
         );
+        assert_eq!(
+            sexagenary_names(&locale("vi"), position),
+            Some(("Giáp", "Tý"))
+        );
+        assert_eq!(
+            sexagenary_names(&locale("en"), position),
+            Some(("jia", "zi"))
+        );
+        assert_eq!(sexagenary_names(&locale("ar"), position), None);
+        assert_eq!(
+            sexagenary_reading(&locale("ja-JP")).map(|reading| reading.id),
+            Some("han")
+        );
         assert_eq!(zodiac_animal_name(&locale("zh-Hans"), 0), Some("鼠"));
         assert_eq!(zodiac_animal_name(&locale("zh-Hant"), 4), Some("龍"));
         assert_eq!(zodiac_animal_name(&locale("ko"), 0), Some("쥐"));
         assert_eq!(zodiac_animal_name(&locale("en"), 0), Some("Rat"));
         assert_eq!(zodiac_animal_name(&locale("en"), 12), None);
+        // Vietnam's fourth animal is the cat, not the rabbit, and its second
+        // the buffalo, not the ox.
+        assert_eq!(zodiac_animal_name(&locale("vi"), 3), Some("Mèo"));
+        assert_eq!(zodiac_animal_name(&locale("vi"), 1), Some("Trâu"));
     }
 
     #[test]
@@ -1179,7 +1205,7 @@ mod tests {
                 .is_empty()
         );
         assert_eq!(EraNames::EMPTY.index_of("ad"), None);
-        assert!(SexagenaryNames::EMPTY.stems.is_empty());
+        assert!(SexagenaryNames::EMPTY.reading.is_none());
     }
 
     #[test]

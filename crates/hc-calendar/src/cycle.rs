@@ -54,15 +54,16 @@
 //!
 //! # Names and scripts
 //!
-//! The tables here are the canonical ones: the characters, which Chinese,
-//! Japanese, Korean and Vietnamese sources share, plus the romanisations and
-//! the Japanese readings, which they do not. `hc-i18n` owns the *locale*
-//! resolution — simplified against traditional characters, Korean 갑자,
-//! per-locale zodiac animals — and reaches these positions through
-//! [`Sexagenary`]. Since `hc-i18n` depends on `hc-calendar`, the data cannot
-//! be re-exported from there into here; what is duplicated between the two is
-//! the stem, branch and animal characters, and `hc-i18n` is the owner of the
-//! locale-tagged copies.
+//! The sixty names are spelled differently in every language that uses
+//! them, and the list of spellings has no end. [`readings`] is the
+//! catalogue: one [`readings::Reading`] per script or romanisation — the
+//! characters, pinyin with and without tones, the Japanese 訓読み and
+//! 音読み, Hangul and its romanisation, Vietnamese — each holding exactly
+//! ten stems and twelve branches. [`Sexagenary`]'s own `stem_name` and
+//! `branch_name` are the toneless pinyin, this library's convention for
+//! English text. `hc-i18n` chooses a reading per locale, and holds the
+//! zodiac animals, which are words of a language rather than readings of
+//! the cycle.
 
 use core::fmt;
 
@@ -70,15 +71,7 @@ use crate::error::{CalendarError, CalendarResult};
 use crate::fixed::Rd;
 use crate::time::{CivilDateTime, CivilTime};
 
-/// The ten Heavenly Stems of the sexagenary cycle, romanised.
-pub const HEAVENLY_STEMS: [&str; 10] = [
-    "jia", "yi", "bing", "ding", "wu", "ji", "geng", "xin", "ren", "gui",
-];
-
-/// The twelve Earthly Branches of the sexagenary cycle, romanised.
-pub const EARTHLY_BRANCHES: [&str; 12] = [
-    "zi", "chou", "yin", "mao", "chen", "si", "wu", "wei", "shen", "you", "xu", "hai",
-];
+pub mod readings;
 
 /// The twelve zodiac animals, in branch order.
 pub const ZODIAC_ANIMALS: [&str; 12] = [
@@ -88,104 +81,6 @@ pub const ZODIAC_ANIMALS: [&str; 12] = [
 
 /// The five phases, in stem-pair order.
 pub const FIVE_PHASES: [&str; 5] = ["wood", "fire", "earth", "metal", "water"];
-
-/// The ten Heavenly Stems (十干) in characters.
-///
-/// One column serves Chinese, Japanese, Korean and Vietnamese: these ten
-/// characters are not among the ones simplified in 1956 or 1946, so the
-/// traditional and simplified forms coincide. `hc-i18n` holds the same ten
-/// per locale, for the locales whose scripts do diverge elsewhere.
-pub const HEAVENLY_STEMS_CJK: [&str; 10] =
-    ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
-
-/// The ten Heavenly Stems in Hanyu Pinyin with tone marks.
-pub const HEAVENLY_STEMS_PINYIN: [&str; 10] = [
-    "jiǎ", "yǐ", "bǐng", "dīng", "wù", "jǐ", "gēng", "xīn", "rén", "guǐ",
-];
-
-/// The ten Heavenly Stems in their Japanese 音読み, Hepburn romanised.
-///
-/// The on-yomi collide where the Mandarin readings do not: 甲 and 庚 are both
-/// *kō*, 己 and 癸 both *ki*. That is precisely why Japanese almanacs print
-/// the 訓読み instead — see [`HEAVENLY_STEMS_JAPANESE_KUN`].
-pub const HEAVENLY_STEMS_JAPANESE_ON: [&str; 10] = [
-    "kō", "otsu", "hei", "tei", "bo", "ki", "kō", "shin", "jin", "ki",
-];
-
-/// The ten Heavenly Stems in their Japanese 訓読み, Hepburn romanised.
-///
-/// These readings are transparent where the on-yomi are opaque: each is
-/// `<phase>-no-<polarity>`, the phase from [`FIVE_PHASES_JAPANESE_KUN`] and
-/// the polarity 兄 (*e*, elder brother, yang) or 弟 (*to*, younger brother,
-/// yin). So 甲 is 木の兄, *ki-no-e*, yang wood, and 癸 is 水の弟,
-/// *mizu-no-to*, yin water. The name of the cycle itself in Japanese, *eto*,
-/// is that 兄弟 pair.
-pub const HEAVENLY_STEMS_JAPANESE_KUN: [&str; 10] = [
-    "kinoe",
-    "kinoto",
-    "hinoe",
-    "hinoto",
-    "tsuchinoe",
-    "tsuchinoto",
-    "kanoe",
-    "kanoto",
-    "mizunoe",
-    "mizunoto",
-];
-
-/// The ten Heavenly Stems in kana, in the 訓読み form almanacs print.
-pub const HEAVENLY_STEMS_KANA: [&str; 10] = [
-    "きのえ",
-    "きのと",
-    "ひのえ",
-    "ひのと",
-    "つちのえ",
-    "つちのと",
-    "かのえ",
-    "かのと",
-    "みずのえ",
-    "みずのと",
-];
-
-/// The twelve Earthly Branches (十二支) in characters.
-pub const EARTHLY_BRANCHES_CJK: [&str; 12] = [
-    "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥",
-];
-
-/// The twelve Earthly Branches in Hanyu Pinyin with tone marks.
-pub const EARTHLY_BRANCHES_PINYIN: [&str; 12] = [
-    "zǐ", "chǒu", "yín", "mǎo", "chén", "sì", "wǔ", "wèi", "shēn", "yǒu", "xū", "hài",
-];
-
-/// The twelve Earthly Branches in their Japanese 音読み, Hepburn romanised.
-pub const EARTHLY_BRANCHES_JAPANESE_ON: [&str; 12] = [
-    "shi", "chū", "in", "bō", "shin", "shi", "go", "bi", "shin", "yū", "jutsu", "gai",
-];
-
-/// The twelve Earthly Branches in their Japanese 訓読み, Hepburn romanised.
-///
-/// The kun readings are the animals: 子 read *ne* is the rat, 丑 read *ushi*
-/// the ox. The branch characters themselves are not the animal characters —
-/// 子 is not 鼠 — which is why the two tables are separate.
-pub const EARTHLY_BRANCHES_JAPANESE_KUN: [&str; 12] = [
-    "ne", "ushi", "tora", "u", "tatsu", "mi", "uma", "hitsuji", "saru", "tori", "inu", "i",
-];
-
-/// The twelve Earthly Branches in kana, in the 訓読み form.
-pub const EARTHLY_BRANCHES_KANA: [&str; 12] = [
-    "ね",
-    "うし",
-    "とら",
-    "う",
-    "たつ",
-    "み",
-    "うま",
-    "ひつじ",
-    "さる",
-    "とり",
-    "いぬ",
-    "い",
-];
 
 /// The twelve zodiac animals in characters, in branch order.
 ///
@@ -218,7 +113,7 @@ pub const FIVE_PHASES_JAPANESE_ON: [&str; 5] = ["moku", "ka", "do", "gon", "sui"
 /// The five phases in their Japanese 訓読み, Hepburn romanised.
 ///
 /// This is the table that builds the stem readings: phase plus 兄 or 弟 gives
-/// [`HEAVENLY_STEMS_JAPANESE_KUN`] exactly.
+/// [`readings::JAPANESE_KUN`] exactly.
 pub const FIVE_PHASES_JAPANESE_KUN: [&str; 5] = ["ki", "hi", "tsuchi", "ka", "mizu"];
 
 /// The classical names of the twelve double-hours (十二時辰), in branch
@@ -370,40 +265,17 @@ impl Sexagenary {
         self.index % 12
     }
 
-    /// The romanised stem name.
+    /// The stem in toneless pinyin, [`readings::PINYIN`]. Every other
+    /// spelling is a [`readings::Reading`].
     #[must_use]
     pub const fn stem_name(self) -> &'static str {
-        HEAVENLY_STEMS[(self.index % 10) as usize]
+        readings::PINYIN.stem(self)
     }
 
-    /// The romanised branch name.
+    /// The branch in toneless pinyin, [`readings::PINYIN`].
     #[must_use]
     pub const fn branch_name(self) -> &'static str {
-        EARTHLY_BRANCHES[(self.index % 12) as usize]
-    }
-
-    /// The stem character, e.g. 甲.
-    #[must_use]
-    pub const fn stem_cjk(self) -> &'static str {
-        HEAVENLY_STEMS_CJK[(self.index % 10) as usize]
-    }
-
-    /// The branch character, e.g. 子.
-    #[must_use]
-    pub const fn branch_cjk(self) -> &'static str {
-        EARTHLY_BRANCHES_CJK[(self.index % 12) as usize]
-    }
-
-    /// The stem's Japanese 訓読み, e.g. *kinoe*.
-    #[must_use]
-    pub const fn stem_japanese_kun(self) -> &'static str {
-        HEAVENLY_STEMS_JAPANESE_KUN[(self.index % 10) as usize]
-    }
-
-    /// The branch's Japanese 訓読み, e.g. *ne*.
-    #[must_use]
-    pub const fn branch_japanese_kun(self) -> &'static str {
-        EARTHLY_BRANCHES_JAPANESE_KUN[(self.index % 12) as usize]
+        readings::PINYIN.branch(self)
     }
 
     /// The zodiac animal associated with the branch.
@@ -550,16 +422,11 @@ impl DoubleHour {
         self.index
     }
 
-    /// The romanised branch name.
+    /// The branch in toneless pinyin, [`readings::PINYIN`]. Every other
+    /// spelling is a [`readings::Reading`], indexed by [`DoubleHour::branch_index`].
     #[must_use]
     pub const fn branch_name(self) -> &'static str {
-        EARTHLY_BRANCHES[self.index as usize]
-    }
-
-    /// The branch character.
-    #[must_use]
-    pub const fn branch_cjk(self) -> &'static str {
-        EARTHLY_BRANCHES_CJK[self.index as usize]
+        readings::PINYIN.branch_at(self.index)
     }
 
     /// The zodiac animal of this double-hour.
@@ -1243,8 +1110,8 @@ mod tests {
         let gui_hai = Sexagenary::from_index(59);
         assert_eq!(gui_hai.polarity(), Polarity::Yin);
         assert_eq!(gui_hai.five_phase(), "water");
-        assert_eq!(gui_hai.stem_cjk(), "癸");
-        assert_eq!(gui_hai.branch_cjk(), "亥");
+        assert_eq!(readings::HAN.stem(gui_hai), "癸");
+        assert_eq!(readings::HAN.branch(gui_hai), "亥");
     }
 
     #[test]
@@ -1258,16 +1125,6 @@ mod tests {
 
     #[test]
     fn every_name_table_has_the_length_its_cycle_needs() {
-        assert_eq!(HEAVENLY_STEMS_CJK.len(), 10);
-        assert_eq!(HEAVENLY_STEMS_PINYIN.len(), 10);
-        assert_eq!(HEAVENLY_STEMS_JAPANESE_ON.len(), 10);
-        assert_eq!(HEAVENLY_STEMS_JAPANESE_KUN.len(), 10);
-        assert_eq!(HEAVENLY_STEMS_KANA.len(), 10);
-        assert_eq!(EARTHLY_BRANCHES_CJK.len(), 12);
-        assert_eq!(EARTHLY_BRANCHES_PINYIN.len(), 12);
-        assert_eq!(EARTHLY_BRANCHES_JAPANESE_ON.len(), 12);
-        assert_eq!(EARTHLY_BRANCHES_JAPANESE_KUN.len(), 12);
-        assert_eq!(EARTHLY_BRANCHES_KANA.len(), 12);
         assert_eq!(ZODIAC_ANIMALS_CJK.len(), 12);
         assert_eq!(ZODIAC_ANIMALS_JAPANESE.len(), 12);
         assert_eq!(FIVE_PHASES_CJK.len(), 5);
@@ -1280,16 +1137,6 @@ mod tests {
     #[test]
     fn no_name_table_has_an_empty_entry() {
         for table in [
-            &HEAVENLY_STEMS_CJK[..],
-            &HEAVENLY_STEMS_PINYIN[..],
-            &HEAVENLY_STEMS_JAPANESE_ON[..],
-            &HEAVENLY_STEMS_JAPANESE_KUN[..],
-            &HEAVENLY_STEMS_KANA[..],
-            &EARTHLY_BRANCHES_CJK[..],
-            &EARTHLY_BRANCHES_PINYIN[..],
-            &EARTHLY_BRANCHES_JAPANESE_ON[..],
-            &EARTHLY_BRANCHES_JAPANESE_KUN[..],
-            &EARTHLY_BRANCHES_KANA[..],
             &ZODIAC_ANIMALS_CJK[..],
             &ZODIAC_ANIMALS_JAPANESE[..],
             &FIVE_PHASES_CJK[..],
@@ -1305,29 +1152,8 @@ mod tests {
     }
 
     #[test]
-    fn the_japanese_kun_readings_spell_out_the_phase_and_the_polarity() {
-        for (index, reading) in HEAVENLY_STEMS_JAPANESE_KUN.iter().enumerate() {
-            let phase = FIVE_PHASES_JAPANESE_KUN[index / 2];
-            let tail = reading
-                .strip_prefix(phase)
-                .expect("a stem reading opens with its phase");
-            // What is left is the genitive の plus 兄 or 弟.
-            assert_eq!(&tail[..2], "no", "{reading}");
-            assert_eq!(
-                &tail[2..],
-                Polarity::of_index(index as u8).japanese_kun(),
-                "{reading}"
-            );
-        }
-    }
-
-    #[test]
-    fn the_characters_line_up_with_the_romanisations() {
+    fn the_first_pair_is_the_wood_rat() {
         let jia_zi = Sexagenary::from_index(0);
-        assert_eq!(jia_zi.stem_cjk(), "甲");
-        assert_eq!(jia_zi.stem_japanese_kun(), "kinoe");
-        assert_eq!(jia_zi.branch_cjk(), "子");
-        assert_eq!(jia_zi.branch_japanese_kun(), "ne");
         assert_eq!(jia_zi.zodiac_animal_cjk(), "鼠");
         assert_eq!(jia_zi.five_phase_cjk(), "木");
         assert_eq!(jia_zi.five_phase_index(), 0);
@@ -1351,7 +1177,7 @@ mod tests {
         let zi = DoubleHour::from_hour_of_day(23).unwrap();
         assert_eq!(zi.index(), 0);
         assert_eq!(zi.branch_name(), "zi");
-        assert_eq!(zi.branch_cjk(), "子");
+        assert_eq!(readings::HAN.branch_at(zi.branch_index()), "子");
         assert_eq!(zi.start_hour(), 23);
         assert_eq!(zi.end_hour(), 1);
         assert!(zi.starts_on_the_previous_civil_day());
@@ -1567,7 +1393,7 @@ mod tests {
             let year = Sexagenary::from_index(year_index);
             let first = month_pillar(year, 1).unwrap();
             assert_eq!(first.branch_name(), "yin");
-            assert_eq!(first.branch_cjk(), "寅");
+            assert_eq!(readings::HAN.branch(first), "寅");
         }
     }
 
@@ -1650,11 +1476,11 @@ mod tests {
         // 2024 is a 甲 year, so 五虎遁 gives 丙寅 for the month that opens at
         // 立春 2024.
         let year = sexagenary_year_from_gregorian_year(2_024);
-        assert_eq!(year.stem_cjk(), "甲");
-        assert_eq!(year.branch_cjk(), "辰");
+        assert_eq!(readings::HAN.stem(year), "甲");
+        assert_eq!(readings::HAN.branch(year), "辰");
         let first = month_pillar(year, 1).unwrap();
-        assert_eq!(first.stem_cjk(), "丙");
-        assert_eq!(first.branch_cjk(), "寅");
+        assert_eq!(readings::HAN.stem(first), "丙");
+        assert_eq!(readings::HAN.branch(first), "寅");
     }
 
     // --- the year pillar and its three boundaries ------------------------
@@ -1762,8 +1588,8 @@ mod tests {
         // The anchor published in almanac tables and used by the classic
         // (JDN + 9) mod 10 / (JDN + 1) mod 12 rule.
         let pillar = sexagenary_day(RD_1900_01_01);
-        assert_eq!(pillar.stem_cjk(), "甲");
-        assert_eq!(pillar.branch_cjk(), "戌");
+        assert_eq!(readings::HAN.stem(pillar), "甲");
+        assert_eq!(readings::HAN.branch(pillar), "戌");
         assert_eq!(pillar.index(), 10);
     }
 
@@ -1815,8 +1641,8 @@ mod tests {
         assert_eq!(RD_2024_02_10.days_since(RD_1900_01_01), 45_330);
         let pillar = sexagenary_day(RD_2024_02_10);
         assert_eq!(pillar.index(), 40);
-        assert_eq!(pillar.stem_cjk(), "甲");
-        assert_eq!(pillar.branch_cjk(), "辰");
+        assert_eq!(readings::HAN.stem(pillar), "甲");
+        assert_eq!(readings::HAN.branch(pillar), "辰");
     }
 
     // --- cycle numbering ---------------------------------------------------
@@ -1891,14 +1717,14 @@ mod tests {
         let day = sexagenary_day(RD_2024_02_10);
         let hour = DoubleHour::containing(CivilTime::NOON);
         let chart = FourPillars::new(year, 1, day, hour).unwrap();
-        assert_eq!(chart.year.stem_cjk(), "甲");
-        assert_eq!(chart.year.branch_cjk(), "辰");
-        assert_eq!(chart.month.stem_cjk(), "丙");
-        assert_eq!(chart.month.branch_cjk(), "寅");
-        assert_eq!(chart.day.stem_cjk(), "甲");
-        assert_eq!(chart.day.branch_cjk(), "辰");
-        assert_eq!(chart.hour.stem_cjk(), "庚");
-        assert_eq!(chart.hour.branch_cjk(), "午");
+        assert_eq!(readings::HAN.stem(chart.year), "甲");
+        assert_eq!(readings::HAN.branch(chart.year), "辰");
+        assert_eq!(readings::HAN.stem(chart.month), "丙");
+        assert_eq!(readings::HAN.branch(chart.month), "寅");
+        assert_eq!(readings::HAN.stem(chart.day), "甲");
+        assert_eq!(readings::HAN.branch(chart.day), "辰");
+        assert_eq!(readings::HAN.stem(chart.hour), "庚");
+        assert_eq!(readings::HAN.branch(chart.hour), "午");
         assert!(chart.is_consistent());
     }
 
@@ -1993,9 +1819,9 @@ mod tests {
         )
         .unwrap();
         assert_eq!(chart.day.stem_name(), "xin");
-        assert_eq!(chart.hour.stem_cjk(), "戊");
-        assert_eq!(chart.hour.branch_cjk(), "子");
-        assert_eq!(chart.month.branch_cjk(), "子");
+        assert_eq!(readings::HAN.stem(chart.hour), "戊");
+        assert_eq!(readings::HAN.branch(chart.hour), "子");
+        assert_eq!(readings::HAN.branch(chart.month), "子");
         assert!(chart.is_consistent());
     }
 }
