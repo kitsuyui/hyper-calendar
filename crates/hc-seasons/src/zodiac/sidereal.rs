@@ -1076,8 +1076,8 @@ mod tests {
             assert_eq!(sign.element(), sign.tropical_counterpart().element());
             assert_eq!(sign.modality(), sign.tropical_counterpart().modality());
         }
-        assert_eq!(SiderealSign::SIMHA.ruling_planet(), RulingPlanet::Sun);
-        assert_eq!(SiderealSign::KARKA.ruling_planet(), RulingPlanet::Moon);
+        assert_eq!(SiderealSign::SIMHA.ruling_planet(), RulingPlanet::SUN);
+        assert_eq!(SiderealSign::KARKA.ruling_planet(), RulingPlanet::MOON);
     }
 
     #[test]
