@@ -65,7 +65,9 @@ Highlights:
   otherwise. No `f32` appears anywhere.
 - `DurationInterval` is exact: bounds are `hc_core::Duration`, and the
   midpoint is halved componentwise rather than through an attosecond total, so
-  it stays correct for spans of millions of years rather than failing past 5.4.
+  it stays correct past the 5.4×10¹² years at which such a total overflows.
+  (An earlier version of this line said "failing past 5.4", which was a
+  transcription of a doc comment that had dropped twelve orders of magnitude.)
 - EDTF dates are placed by counting 86 400-second days from the 1970 epoch on
   TAI. This ignores leap seconds, so a converted date is displaced from true
   TAI by the accumulated offset: under 40 seconds in the leap-second era, zero

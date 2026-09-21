@@ -23,7 +23,7 @@ pub enum DeepTimeError {
     /// The magnitude lies outside the range an exact `Duration` can hold.
     ///
     /// `Duration` counts whole seconds in an `i128`, so it reaches about
-    /// 5×10³⁰ times the age of the universe upwards but stops dead at one
+    /// 4×10²⁰ times the age of the universe upwards but stops dead at one
     /// attosecond downwards. A Planck time is twenty-six decades below that
     /// floor and simply has no exact representation.
     OutOfDurationRange,

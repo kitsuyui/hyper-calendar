@@ -140,7 +140,7 @@ with `--no-default-features`; only the `system` module needs `std`.
 
 ## Tests
 
-106 tests, covering the 2007 United States rule change, the ambiguous and
+Covering the 2007 United States rule change, the ambiguous and
 nonexistent hours at both ends of American and European daylight saving,
 southern-hemisphere rules in Sydney and Auckland, Lord Howe Island's
 half-hour shift, Kathmandu's `+05:45`, Cairo's last-Thursday-at-24:00 rule,

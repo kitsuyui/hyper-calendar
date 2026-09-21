@@ -363,9 +363,10 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
 
 ## Testing
 
-211 unit tests, 13 integration tests and 12 documentation tests. The zodiac
-addition accounts for 85 of the unit tests, the 5 in
-`tests/zodiac_conventional_dates.rs` and 5 of the doc tests.
+Unit tests, integration tests and documentation tests; the zodiac work
+accounts for the largest share. Exact counts are not quoted here, because a
+number in prose drifts away from the code within a release and says nothing
+a reader can use — `cargo test -p hc-seasons` is the authority.
 
 ```
 cargo test -p hc-seasons
