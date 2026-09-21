@@ -10,10 +10,10 @@
 //!
 //! | Module | Calendars |
 //! | --- | --- |
-//! | [`japanese`] | `japanese` — imperial eras (和暦), Gregorian from 1873 and lunisolar before it |
-//! | [`maya`] | `maya-longcount`, `maya-tzolkin`, `maya-haab`, `maya-round` |
+//! | [`japanese`] | `japanese`, `japanese-northern`, `japanese-southern`, `japanese-proclaimed` — imperial eras (和暦), Gregorian from 1873 and lunisolar before it |
+//! | [`maya`] | `maya-longcount`, `maya-longcount-gmt2`, `maya-tzolkin`, `maya-haab`, `maya-round` |
 //! | [`aztec`] | `aztec-tonalpohualli`, `aztec-xiuhpohualli` |
-//! | [`balinese_pawukon`] | `balinese-pawukon` — ten concurrent week cycles over 210 days |
+//! | [`balinese_pawukon`] | `balinese-pawukon` — thirty *wuku* and ten concurrent week cycles over 210 days |
 //! | [`javanese_pasaran`] | `javanese-pasaran` — the five-day market week and the 35-day wetonan |
 //! | [`sexagenary`] | `sexagenary` — 干支 over years, months and days |
 //!
@@ -32,7 +32,7 @@
 //! coarsest unit these calendars count in. Where a calendar has something
 //! more year-like — the Haab's 365 days, the Pawukon's 30 *wuku* — that goes
 //! in the month and day fields, and the concurrent cycles go in
-//! [`hc_calendar::ExtraFields`].
+//! [`hc_calendar::fields::ExtraFields`].
 //!
 //! # What this crate refuses to do
 //!

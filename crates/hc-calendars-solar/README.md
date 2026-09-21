@@ -8,8 +8,9 @@ follows from those.
 
 ## What is in it
 
-Thirty-three calendars, plus twelve national variants of the Julian/Gregorian
-reform:
+The calendars below, plus twelve national variants of the Julian/Gregorian
+reform; [`docs/supported.md`](../../docs/supported.md) counts them, so this
+file does not:
 
 | Module | Calendar | Identifier |
 | --- | --- | --- |
@@ -38,11 +39,12 @@ reform:
 | `bahai` | Badíʿ, **arithmetic Western** variant | `bahai-arithmetic` |
 | `symmetry454` | Symmetry454 | `symmetry454` |
 | `symmetry010` | Symmetry010 | `symmetry010` |
-| `revised-julian` | Revised Julian (Milanković) | `revised_julian` |
+| `revised_julian` | Revised Julian (Milanković) | `revised-julian` |
+| `koki` | Japanese imperial year (皇紀, kōki) | `japanese-imperial` |
 | `world_calendar` | The World Calendar | `world-calendar` |
 
-`register_all(&mut CalendarRegistry)`, behind the `alloc` feature, inserts all
-of them.
+`register_all(&mut CalendarRegistry)`, behind the `alloc` feature, inserts every
+calendar in the table.
 
 ## What it deliberately does not do
 
@@ -73,8 +75,11 @@ calendar before 45 BC and the kalends/nones/ides counting (`roman`); the
 1 April year start Thailand used before 1941 (`buddhist`); the 25 March year
 start England used before 1752 (`julian_gregorian`); the regional lunisolar
 Hindu calendars (`indian`); the Alexandrian and Antiochene world eras
-(`byzantine`); month and weekday *names* everywhere, which are locale data and
-live in `hc-i18n`.
+(`byzantine`); month and weekday names in each *language*, which are locale
+data and live in `hc-i18n`. A calendar whose months have one orthography that
+every language borrows — Coptic, Ethiopic, Egyptian, the two Armenian,
+Persian, Indian, French Republican — declares those names itself, with its
+shape, and `hc-i18n` consults them after the locale.
 
 ## Accuracy
 

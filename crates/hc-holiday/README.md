@@ -30,7 +30,8 @@ SolarTerm { term, meridian }          春分の日, the equinox at UTC+9
 EasterRelative { computus, offset }   Good Friday (−2), Corpus Christi (+60)
 LunarPhase { phase, month, day, mer } the first full moon on or after a date
 Offset { base, days }                 Seollal's eve, 除夕, Tết's first days
-Computed(fn)                          the six that really are bespoke
+Tabulated { function, first, last }   Matariki, gazetted through a stated last year
+Computed(fn)                          the handful that really are bespoke
 ```
 
 Modifiers are data too: `SubstitutionPolicy` (which weekdays move a holiday,
@@ -40,10 +41,12 @@ holidays colliding count), `BridgePolicy` (Japan's 国民の休日),
 `valid_from` / `valid_until` on every rule, `regions` for subdivision scoping,
 and `Kind` for public / bank / religious / observance.
 
-Only **six** rules in the whole crate are `Computed`, and each is a statute
-written as a sentence rather than a pattern: Ireland's St Brigid's Day, the
-Dutch royal day, US Inauguration Day, Mexico's presidential handover, Israel's
-Yom HaAtzmaut and New Zealand's Matariki schedule. Japan needs none.
+Only **five** statutes in the whole crate are `Computed`, each written as a
+sentence rather than a pattern: Ireland's St Brigid's Day, the Dutch royal
+day (under two monarchs), US Inauguration Day, Mexico's presidential handover
+and Israel's Yom HaAtzmaut. New Zealand's Matariki is `Tabulated`, a
+published schedule with its last year stated, so that running past it is a
+reported gap. Japan needs none.
 
 ## Japan is complete and exact
 
@@ -255,6 +258,6 @@ chapter 8.
 * **Everything else: exact as stated in the cited statute**, subject to the
   refusals above.
 
-143 tests: 36 for Japan alone, 44 for the other countries, 16 for business-day
-arithmetic, 15 for the traditions, 31 unit tests for the vocabulary, the
-computus and the evaluator, and one doc example.
+Every table is anchored by tests — Japan amendment by amendment, every other
+country on its cited dates, every tradition on a few years of its cycle — and
+`cargo test -p hc-holiday` lists them; a count written here would only drift.

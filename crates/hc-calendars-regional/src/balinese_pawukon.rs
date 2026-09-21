@@ -384,7 +384,7 @@ impl Calendar for BalinesePawukonCalendar {
     /// Describes the day by *wuku* and seven-day week, with the other
     /// concurrent cycles as extra fields.
     ///
-    /// Eight of the ten fit: [`hc_calendar::ExtraFields`] holds eight, the
+    /// Eight of the ten fit: [`hc_calendar::fields::ExtraFields`] holds eight, the
     /// seven-day week is already the `day` field, and the one-day week is a
     /// parity of the ten-day week rather than a number. Everything is
     /// reconstructible from the `month` and `day` pair alone, so nothing is

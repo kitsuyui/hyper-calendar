@@ -71,7 +71,7 @@ impl Holiday {
 /// used to express that by simply not listing the holiday — so
 /// `holidays_in_year(CHINA, 2151)` returned seven entries instead of
 /// thirteen, with 春節, 端午節 and 中秋節 missing and everything that
-/// remained marked [`Confidence::Exact`](crate::Confidence::Exact).
+/// remained marked [`Confidence::Exact`].
 ///
 /// Policy §4 says the library refuses rather than guesses. Omitting a
 /// holiday silently is a guess — that it did not happen.

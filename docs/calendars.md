@@ -79,7 +79,11 @@ These need the astronomical engine, so they live behind the `lunar` feature.
 | Chinese lunisolar | `chinese` | `hc-calendars-lunar` | Done |
 | Korean (Dangi) | `dangi` | `hc-calendars-lunar` | Done |
 | Vietnamese | `vietnamese` | `hc-calendars-lunar` | Done |
-| Japanese lunisolar (Tenpō, pre-1873) | `japanese-tenpo` | `hc-calendars-lunar` | Done |
+| Japanese lunisolar (Tenpō, 1844–1872) | `japanese-tenpo` | `hc-calendars-lunar` | Done |
+| Japanese lunisolar (Kansei, 1798–1844) | `japanese-kansei` | `hc-calendars-lunar` | Done |
+| Japanese lunisolar (Hōryaku, 1755–1798) | `japanese-horyaku` | `hc-calendars-lunar` | Done |
+| Japanese lunisolar (Jōkyō, 1685–1755) | `japanese-jokyo` | `hc-calendars-lunar` | Done |
+| Japanese lunisolar (Senmyō, 862–1685) | `japanese-senmyo` | `hc-calendars-lunar` | Done |
 | Tibetan (Phugpa) | `tibetan` | `hc-calendars-lunar` | Planned |
 | Hindu lunisolar (Amanta and Purnimanta) | `hindu-lunar` | `hc-calendars-lunar` | Planned |
 | Hindu solar (Sūrya Siddhānta) | `hindu-solar` | `hc-calendars-lunar` | Planned |
@@ -116,7 +120,7 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Maya calendar round | `maya-round` | `hc-calendars-regional` | Done |
 | Aztec Tonalpohualli | `aztec-tonalpohualli` | `hc-calendars-regional` | Done |
 | Aztec Xiuhpohualli | `aztec-xiuhpohualli` | `hc-calendars-regional` | Done |
-| Balinese Pawukon (ten concurrent cycles) | `balinese-pawukon` | `hc-calendars-regional` | Done |
+| Balinese Pawukon (thirty *wuku*, ten concurrent weeks) | `balinese-pawukon` | `hc-calendars-regional` | Done |
 | Javanese Pasaran (five-day market week) | `javanese-pasaran` | `hc-calendars-regional` | Done |
 | Igbo four-day week (Izu) | `igbo` | `hc-calendars-regional` | Planned |
 | Yoruba four-day week | `yoruba` | `hc-calendars-regional` | Researching — regional variants differ |
@@ -186,12 +190,18 @@ Not calendars in their own right, but named subdivisions layered onto one.
 
 ## Adding a calendar
 
-1. Implement `hc_calendar::Calendar` in its own module in the right crate.
+1. Implement `hc_calendar::Calendar` in its own module in the right crate,
+   declaring its shape in `cycles` — the compiler insists — with a `month`
+   cycle exactly when its dates carry a month.
 2. Add it to `register_all` so the registry picks it up.
 3. Round-trip test it across its full supported range in a loop.
 4. Anchor it to at least one published reference date, cited in a comment.
-5. Add its vocabulary to `hc-i18n` if it has month or era names.
-6. Move its row in this table to **Done**.
+5. Name its positions. If its sources use one orthography that other
+   languages borrow, declare the names with the shape (`CycleShape::named`)
+   and cite them; where a language has its own word, add that word to
+   `hc-i18n`. Era names go to `hc-i18n`.
+6. Regenerate `docs/supported.md` and move its row in this table to
+   **Done**.
 
 If step 1 makes you want to add a branch to shared logic, stop — see
 [policy.md](policy.md) §2.

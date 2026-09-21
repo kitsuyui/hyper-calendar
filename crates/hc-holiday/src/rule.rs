@@ -5,10 +5,10 @@
 //! *y*?" — and the modifiers around it are values too. No country and no
 //! tradition contributes code; they contribute tables of these values.
 //!
-//! The vocabulary is the one `docs/observances.md` specifies, plus three
+//! The vocabulary is the one `docs/observances.md` specifies, plus four
 //! shapes that fell out of writing the national tables and that are still
-//! pure data: [`Rule::WeekdayOnOrAfter`], [`Rule::WeekdayOnOrBefore`] and
-//! [`Rule::Offset`].
+//! pure data: [`Rule::WeekdayOnOrAfter`], [`Rule::WeekdayOnOrBefore`],
+//! [`Rule::Offset`] and [`Rule::Tabulated`].
 
 use hc_calendar::Calendar as _;
 use hc_calendar::{CalendarId, Month, Rd, Weekday};
@@ -467,7 +467,7 @@ pub enum Rule {
     /// date, at a stated meridian.
     ///
     /// This is the crude way to date a Buddhist observance, and the crate
-    /// says so: see [`crate::traditions::buddhist`].
+    /// says so: see [`crate::traditions::BUDDHIST`].
     LunarPhase {
         /// Which phase.
         phase: Phase,

@@ -49,9 +49,11 @@ one function.
 2. Add its name to the `LOCALES` array, keeping the array in tag order.
 
 That is all. The consistency test suite will then check the new entry for
-you: 12 or 13 months, 7 weekdays, 2 day periods, 4 quarters, era codes and
-era names the same length, no empty or padded strings, no duplicate calendar
-entries, a numbering system that exists, and a canonical tag.
+you: every cycle's names as many as the calendar declares for that cycle
+(nineteen Badíʿ months, ten décade days — the calendar says, not the test),
+7 weekdays, 2 day periods, 4 quarters, era codes and era names the same
+length, no empty or padded strings, no duplicate calendar entries, a
+numbering system that exists, and a canonical tag.
 
 Leaving a field empty is meaningful: an empty slice means *inherit*, so a
 locale states only what differs from its parent. Japanese never abbreviates
@@ -82,10 +84,14 @@ there. The table is checked for sortedness and uniqueness by a test.
 
 Locales shipped: `ar cs de en es fa fr he hi id it ja ko nl pl pt ru th tr vi
 zh-Hans zh-Hant`, plus the `und` root. Non-Gregorian vocabulary: Hijri months
-(Arabic, English), Hebrew months (Hebrew, English), Persian months (Persian),
-the Chinese lunisolar months in both scripts, their Japanese traditional names
-(睦月 … 師走), Japanese era names, and the stems, branches and zodiac animals
-in Chinese, Japanese, Korean and romanised English.
+(Arabic, English), Hebrew months (Hebrew, English), the numbered lunisolar
+months in both Chinese scripts and in English, their Japanese traditional
+names (睦月 … 師走), Japanese era names, romanisations of the Coptic,
+Ethiopic, Armenian and Persian months (whose own scripts the calendars carry
+themselves), the Egyptian Arabic forms of the Coptic months, and the zodiac
+animals in Chinese, Japanese, Korean, Vietnamese and English. The stems and
+branches are not spelled here: each locale names one of the readings
+`hc_calendar::cycle::readings` catalogues.
 
 Plural languages: `ar cs cy da de en es fi fr ga he hi id it ja ko lt lv nl pl
 pt ro ru sl sv th tr uk vi zh`.

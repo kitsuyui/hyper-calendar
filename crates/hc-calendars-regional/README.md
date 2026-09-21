@@ -1,31 +1,36 @@
 # hc-calendars-regional
 
 Regional, cyclic and era calendars for `hyper-calendar`: Japanese imperial
-eras, the four Maya calendars, the two Aztec ones, the Balinese Pawukon, the
+eras, the Maya calendars, the two Aztec ones, the Balinese Pawukon, the
 Javanese *pasaran*, and the sexagenary cycle.
 
 What they have in common is that **the day has a name before it has a
 number**. A Maya day is *4 Ahau 8 Cumku*; a Balinese day is *Buda Kliwon
-Dungulan*, a position in three of ten concurrent week cycles; a Japanese day
+Dungulan*, a position in two of ten concurrent week cycles and one of thirty
+*wuku*; a Japanese day
 belongs to an era a government proclaimed. None of them is a count of years
 from an epoch with months cut out of it, which is why none of them belongs in
 `hc-calendars-solar` or `hc-calendars-lunar`.
 
 | Identifier | What it is |
 | --- | --- |
-| `japanese` | Imperial era years (和暦); Gregorian from 1873, Tenpō lunisolar before it |
-| `maya-longcount` | `baktun.katun.tun.uinal.kin`, in `DateFields::extra` |
+| `japanese` | Imperial era years (和暦); Gregorian from 1873, the five lunisolar calendars back to 862 before it |
+| `japanese-northern`, `japanese-southern` | The same, with the Northern or the Southern Court's eras during the 南北朝 split |
+| `japanese-proclaimed` | The same, with eras as proclaimed at the time rather than the retroactive official boundaries |
+| `maya-longcount` | `baktun.katun.tun.uinal.kin`, in `DateFields::extra`, under the GMT correlation |
+| `maya-longcount-gmt2` | The same under the GMT+2 correlation |
 | `maya-tzolkin` | 13 numbers × 20 day-names = 260 days |
 | `maya-haab` | 18 months of 20 days plus the 5-day Uayeb |
 | `maya-round` | The 18 980-day Calendar Round |
 | `aztec-tonalpohualli` | 260 days |
 | `aztec-xiuhpohualli` | 365 days |
-| `balinese-pawukon` | Ten concurrent week cycles over 210 days |
+| `balinese-pawukon` | Thirty *wuku* and ten concurrent week cycles over 210 days |
 | `javanese-pasaran` | The 5-day market week and the 35-day *wetonan* |
 | `sexagenary` | 干支 over years, months and days |
 
-`register_all(&mut CalendarRegistry)` inserts all ten, behind the `alloc`
-feature, exactly as `hc-calendars-solar` does.
+`register_all(&mut CalendarRegistry)` inserts every calendar in the table,
+behind the `alloc` feature, exactly as `hc-calendars-solar` does;
+[`docs/supported.md`](../../docs/supported.md) is the generated list.
 
 ## Cycles are not calendars
 
@@ -52,15 +57,14 @@ structure underneath changed on a known day:
 and 明治5年12月3日 does not exist. Running the Gregorian calendar backwards
 through 明治 would invent it.
 
-**The gap is deliberate and it is the main limitation of this crate.**
-Conversion stops at 天保15年1月1日 = 1844-02-18, the first day the Tenpō
-calendar was in force, because Tenpō is the only pre-reform Japanese calendar
-implemented anywhere in this workspace. Japan used Kansei-reki (1798–1844),
-Hōryaku-reki (1755–1798), Jōkyō-reki (1685–1755) and Senmyō-reki (862–1685)
-before it; they differ in their solar theory and their intercalation, so
-running Tenpō backwards would be wrong by a day here and a whole month there
-with no warning. A date such as 元禄15年12月14日 gets `CalendarError::BeforeEpoch`
-instead of a plausible lie.
+**Before 1844 the calendar in force is the one that answers.** Japan used
+Kansei-reki (1798–1844), Hōryaku-reki (1755–1798), Jōkyō-reki (1685–1755)
+and Senmyō-reki (862–1685) before Tenpō, and they differ in their solar
+theory and their intercalation, so running Tenpō backwards would be wrong by
+a day here and a whole month there with no warning. All four are implemented
+in `hc-calendars-lunar`, and `japanese` asks whichever was in force on the
+day, back to 貞観4年1月1日 = 862-02-07. Before that it refuses: a date in
+650 gets `CalendarError::BeforeEpoch` instead of a plausible lie.
 
 The **era table is complete regardless**: all 248 nengō from 大化 (645) to
 令和 live in the `nengo` module, and `nengo::era_at` will name the era in
@@ -83,9 +87,9 @@ which you mean. `Court::Unified` inside that window returns
 
 * **Maya**: Goodman–Martínez–Thompson, **584 283**. `13.0.0.0.0` is
   2012-12-21. The alternative 584 285 would move every Western date two days
-  later; the constant is exported as `maya::GMT_PLUS_TWO_CORRELATION` so the
-  difference is visible in the source, but there is no switch, because a
-  correlation is a claim about history.
+  later, and it is its own registered calendar, `maya-longcount-gmt2`, rather
+  than a switch on the first: a correlation is a claim about history, and two
+  claims get two names (policy §5).
 * **Aztec**: the fall of Tenochtitlan, **13 August 1521 Julian**, dated
   *1 Coatl*, 2 Xocotlhuetzi — Caso's correlation, as tabulated in
   *Calendrical Calculations*. The 365-day year is modelled **without**
@@ -119,9 +123,7 @@ this crate, so no disagreement rate against one is claimed.
 
 ## Deliberate omissions
 
-* No pre-Tenpō Japanese lunisolar calendar, as above.
-* No 改元当時 era table — only the 公式 (retroactive) boundaries, under which
-  an era ends the day before the next begins.
+* No Japanese lunisolar calendar before Senmyō (862), as above.
 * No Javanese calendar proper: the Sultan Agung lunar year, its *windu* and
   its Anno Javanico era are a different calendar and are not here.
 * No Maya "lord of the night" glyph cycle, no Aztec year bearer.
