@@ -31,7 +31,7 @@
 //! 不成就日 is nullified, halved, or simply deferred to is genuinely
 //! disputed between publishers — some list the date with an asterisk, some
 //! drop it. This crate reports the overlap through
-//! [`Combination::GrainAndNoAccomplishment`] and takes no position on what
+//! [`Combination::GRAIN_AND_NO_ACCOMPLISHMENT`] and takes no position on what
 //! it means.
 
 use hc_calendar::Weekday;
@@ -50,95 +50,210 @@ use crate::twelve_directs::{TwelveDirect, direct_of_context};
 
 /// A combination of annotations that modern Japanese commerce cares about.
 ///
-/// None of these is traditional. See the module documentation.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[non_exhaustive]
-pub enum Combination {
-    /// 天赦日 + 一粒万倍日 — marketed as 最強開運日. Three or four a year.
-    PardonAndGrain,
-    /// 天赦日 + 一粒万倍日 + 大安 — 超最強開運日, the strongest of the
-    /// marketing categories.
-    PardonAndGrainAndTaian,
-    /// 大安 + 一粒万倍日 — the common "good day to begin" pairing.
-    TaianAndGrain,
-    /// 天赦日 + 大安.
-    PardonAndTaian,
-    /// 寅の日 + 大安 — pushed for buying a wallet.
-    TigerAndTaian,
-    /// 己巳 + 大安 — pushed for anything to do with money.
-    EarthSerpentAndTaian,
-    /// 一粒万倍日 + 不成就日 — the disputed one.
-    ///
-    /// Publishers differ on whether the 不成就日 cancels the 一粒万倍日,
-    /// halves it, or takes precedence as a 凶日 should. This crate reports
-    /// the overlap and decides nothing.
-    GrainAndNoAccomplishment,
-    /// 一粒万倍日 + 三隣亡 — the same kind of clash, and the same dispute.
-    GrainAndThreeNeighbours,
+/// None of these is traditional. See the module documentation. The set is
+/// invented by publishers and grows when one of them coins a pairing, which
+/// is why it is a table and not an `enum` (ADR 0007): a new pairing is an
+/// entry with its own test, and nothing else has to be edited. Two
+/// combinations are equal when they have the same identifier.
+#[derive(Debug, Clone, Copy)]
+pub struct Combination {
+    /// A short identifier, e.g. `pardon-and-grain`.
+    pub id: &'static str,
+    japanese_name: &'static str,
+    clash: bool,
+    holds: fn(Rokuyo, LowerRegisterSet, SelectedDaySet) -> bool,
+}
+
+impl PartialEq for Combination {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for Combination {}
+
+impl core::hash::Hash for Combination {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
+
+/// Byte-for-byte equality of two identifiers, usable in `const` context.
+const fn same_id(left: &str, right: &str) -> bool {
+    let (left, right) = (left.as_bytes(), right.as_bytes());
+    if left.len() != right.len() {
+        return false;
+    }
+    let mut index = 0;
+    while index < left.len() {
+        if left[index] != right[index] {
+            return false;
+        }
+        index += 1;
+    }
+    true
 }
 
 impl Combination {
-    /// All seven, in listing order.
-    pub const ALL: [Self; 7] = [
-        Self::PardonAndGrain,
-        Self::PardonAndGrainAndTaian,
-        Self::TaianAndGrain,
-        Self::PardonAndTaian,
-        Self::TigerAndTaian,
-        Self::EarthSerpentAndTaian,
-        Self::GrainAndNoAccomplishment,
-    ];
-
-    /// This combination's position in a [`CombinationSet`].
+    /// A combination from its identifier, its Japanese name, whether it is
+    /// a clash, and the test that says whether a day has it.
     #[must_use]
-    pub const fn index(self) -> u8 {
-        match self {
-            Self::PardonAndGrain => 0,
-            Self::PardonAndGrainAndTaian => 1,
-            Self::TaianAndGrain => 2,
-            Self::PardonAndTaian => 3,
-            Self::TigerAndTaian => 4,
-            Self::EarthSerpentAndTaian => 5,
-            Self::GrainAndNoAccomplishment => 6,
-            Self::GrainAndThreeNeighbours => 7,
+    pub const fn new(
+        id: &'static str,
+        japanese_name: &'static str,
+        clash: bool,
+        holds: fn(Rokuyo, LowerRegisterSet, SelectedDaySet) -> bool,
+    ) -> Self {
+        Self {
+            id,
+            japanese_name,
+            clash,
+            holds,
         }
     }
 
-    /// Every combination, including the two clashes.
-    pub const EVERY: [Self; 8] = [
-        Self::PardonAndGrain,
-        Self::PardonAndGrainAndTaian,
-        Self::TaianAndGrain,
-        Self::PardonAndTaian,
-        Self::TigerAndTaian,
-        Self::EarthSerpentAndTaian,
-        Self::GrainAndNoAccomplishment,
-        Self::GrainAndThreeNeighbours,
-    ];
+    /// This combination's position in [`Combination::ALL`], which is its
+    /// bit in a [`CombinationSet`].
+    ///
+    /// # Panics
+    ///
+    /// If the combination is not in [`Combination::ALL`], which a value built
+    /// with [`Combination::new`] outside this module would be; such a value
+    /// can be tested with [`Combination::holds`] but not stored in a set.
+    #[must_use]
+    pub const fn index(self) -> u8 {
+        let mut index = 0;
+        while index < Self::ALL.len() {
+            if same_id(Self::ALL[index].id, self.id) {
+                return index as u8;
+            }
+            index += 1;
+        }
+        panic!("a combination that is not in Combination::ALL has no index")
+    }
 
     /// The name in Japanese characters, e.g. `"天赦日＋一粒万倍日"`.
     #[must_use]
     pub const fn japanese_name(self) -> &'static str {
-        match self {
-            Self::PardonAndGrain => "天赦日＋一粒万倍日",
-            Self::PardonAndGrainAndTaian => "天赦日＋一粒万倍日＋大安",
-            Self::TaianAndGrain => "大安＋一粒万倍日",
-            Self::PardonAndTaian => "天赦日＋大安",
-            Self::TigerAndTaian => "寅の日＋大安",
-            Self::EarthSerpentAndTaian => "己巳＋大安",
-            Self::GrainAndNoAccomplishment => "一粒万倍日＋不成就日",
-            Self::GrainAndThreeNeighbours => "一粒万倍日＋三隣亡",
-        }
+        self.japanese_name
     }
 
     /// Whether this combination is a clash — an auspicious day landing on an
     /// inauspicious one — rather than a reinforcement.
     #[must_use]
     pub const fn is_a_clash(self) -> bool {
-        matches!(
-            self,
-            Self::GrainAndNoAccomplishment | Self::GrainAndThreeNeighbours
-        )
+        self.clash
+    }
+
+    /// Whether a day with these annotations has this combination.
+    #[must_use]
+    pub fn holds(self, rokuyo: Rokuyo, lower: LowerRegisterSet, selected: SelectedDaySet) -> bool {
+        (self.holds)(rokuyo, lower, selected)
+    }
+}
+
+fn is_taian(rokuyo: Rokuyo) -> bool {
+    matches!(rokuyo, Rokuyo::Taian)
+}
+
+fn has_pardon(lower: LowerRegisterSet) -> bool {
+    lower.contains(LowerRegister::Tenshanichi)
+}
+
+fn has_grain(selected: SelectedDaySet) -> bool {
+    selected.contains(SelectedDay::IchiryuManbai)
+}
+
+fn pardon_and_grain(_: Rokuyo, lower: LowerRegisterSet, selected: SelectedDaySet) -> bool {
+    has_pardon(lower) && has_grain(selected)
+}
+
+fn pardon_and_grain_and_taian(
+    rokuyo: Rokuyo,
+    lower: LowerRegisterSet,
+    selected: SelectedDaySet,
+) -> bool {
+    is_taian(rokuyo) && has_pardon(lower) && has_grain(selected)
+}
+
+fn taian_and_grain(rokuyo: Rokuyo, _: LowerRegisterSet, selected: SelectedDaySet) -> bool {
+    is_taian(rokuyo) && has_grain(selected)
+}
+
+fn pardon_and_taian(rokuyo: Rokuyo, lower: LowerRegisterSet, _: SelectedDaySet) -> bool {
+    is_taian(rokuyo) && has_pardon(lower)
+}
+
+fn tiger_and_taian(rokuyo: Rokuyo, _: LowerRegisterSet, selected: SelectedDaySet) -> bool {
+    is_taian(rokuyo) && selected.contains(SelectedDay::TigerDay)
+}
+
+fn earth_serpent_and_taian(rokuyo: Rokuyo, _: LowerRegisterSet, selected: SelectedDaySet) -> bool {
+    is_taian(rokuyo) && selected.contains(SelectedDay::TsuchinotoMi)
+}
+
+fn grain_and_no_accomplishment(_: Rokuyo, _: LowerRegisterSet, selected: SelectedDaySet) -> bool {
+    has_grain(selected) && selected.contains(SelectedDay::Fujoju)
+}
+
+fn grain_and_three_neighbours(_: Rokuyo, _: LowerRegisterSet, selected: SelectedDaySet) -> bool {
+    has_grain(selected) && selected.contains(SelectedDay::Sanrinbo)
+}
+
+hc_core::catalogue! {
+    type: Combination,
+    id: |combination| combination.id,
+    tests: combination_tests,
+    associated;
+
+    /// Every combination, the two clashes included, in listing order. The
+    /// position here is the bit in a [`CombinationSet`].
+    pub const ALL;
+    /// The combination with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// 天赦日 + 一粒万倍日 — marketed as 最強開運日. Three or four a year.
+        pub const PARDON_AND_GRAIN =
+            Self::new("pardon-and-grain", "天赦日＋一粒万倍日", false, pardon_and_grain);
+        /// 天赦日 + 一粒万倍日 + 大安 — 超最強開運日, the strongest of the
+        /// marketing categories.
+        pub const PARDON_AND_GRAIN_AND_TAIAN = Self::new(
+            "pardon-and-grain-and-taian",
+            "天赦日＋一粒万倍日＋大安",
+            false,
+            pardon_and_grain_and_taian,
+        );
+        /// 大安 + 一粒万倍日 — the common "good day to begin" pairing.
+        pub const TAIAN_AND_GRAIN =
+            Self::new("taian-and-grain", "大安＋一粒万倍日", false, taian_and_grain);
+        /// 天赦日 + 大安.
+        pub const PARDON_AND_TAIAN =
+            Self::new("pardon-and-taian", "天赦日＋大安", false, pardon_and_taian);
+        /// 寅の日 + 大安 — pushed for buying a wallet.
+        pub const TIGER_AND_TAIAN =
+            Self::new("tiger-and-taian", "寅の日＋大安", false, tiger_and_taian);
+        /// 己巳 + 大安 — pushed for anything to do with money.
+        pub const EARTH_SERPENT_AND_TAIAN =
+            Self::new("earth-serpent-and-taian", "己巳＋大安", false, earth_serpent_and_taian);
+        /// 一粒万倍日 + 不成就日 — the disputed one.
+        ///
+        /// Publishers differ on whether the 不成就日 cancels the 一粒万倍日,
+        /// halves it, or takes precedence as a 凶日 should. This crate
+        /// reports the overlap and decides nothing.
+        pub const GRAIN_AND_NO_ACCOMPLISHMENT = Self::new(
+            "grain-and-no-accomplishment",
+            "一粒万倍日＋不成就日",
+            true,
+            grain_and_no_accomplishment,
+        );
+        /// 一粒万倍日 + 三隣亡 — the same kind of clash, and the same dispute.
+        pub const GRAIN_AND_THREE_NEIGHBOURS = Self::new(
+            "grain-and-three-neighbours",
+            "一粒万倍日＋三隣亡",
+            true,
+            grain_and_three_neighbours,
+        );
     }
 }
 
@@ -178,10 +293,11 @@ impl CombinationSet {
         self.bits.count_ones()
     }
 
-    /// The combinations in the set, in [`Combination::EVERY`] order.
+    /// The combinations in the set, in [`Combination::ALL`] order.
     pub fn iter(self) -> impl Iterator<Item = Combination> {
-        Combination::EVERY
-            .into_iter()
+        Combination::ALL
+            .iter()
+            .copied()
             .filter(move |combination| self.contains(*combination))
     }
 }
@@ -342,33 +458,11 @@ fn combinations_of(
     lower: LowerRegisterSet,
     selected: SelectedDaySet,
 ) -> CombinationSet {
-    let taian = matches!(rokuyo, Rokuyo::Taian);
-    let pardon = lower.contains(LowerRegister::Tenshanichi);
-    let grain = selected.contains(SelectedDay::IchiryuManbai);
     let mut set = CombinationSet::EMPTY;
-    if pardon && grain {
-        set = set.with(Combination::PardonAndGrain);
-        if taian {
-            set = set.with(Combination::PardonAndGrainAndTaian);
+    for combination in Combination::ALL {
+        if combination.holds(rokuyo, lower, selected) {
+            set = set.with(*combination);
         }
-    }
-    if taian && grain {
-        set = set.with(Combination::TaianAndGrain);
-    }
-    if taian && pardon {
-        set = set.with(Combination::PardonAndTaian);
-    }
-    if taian && selected.contains(SelectedDay::TigerDay) {
-        set = set.with(Combination::TigerAndTaian);
-    }
-    if taian && selected.contains(SelectedDay::TsuchinotoMi) {
-        set = set.with(Combination::EarthSerpentAndTaian);
-    }
-    if grain && selected.contains(SelectedDay::Fujoju) {
-        set = set.with(Combination::GrainAndNoAccomplishment);
-    }
-    if grain && selected.contains(SelectedDay::Sanrinbo) {
-        set = set.with(Combination::GrainAndThreeNeighbours);
     }
     set
 }
@@ -418,13 +512,13 @@ mod tests {
         assert!(notes.lower_register().contains(LowerRegister::Tenshanichi));
         assert!(notes.selected_days().contains(SelectedDay::IchiryuManbai));
         assert!(notes.selected_days().contains(SelectedDay::Kinoene));
-        assert!(notes.combinations().contains(Combination::PardonAndGrain));
+        assert!(notes.combinations().contains(Combination::PARDON_AND_GRAIN));
         assert_eq!(notes.rokuyo(), Rokuyo::Shakko);
         assert!(!notes.is_taian());
         assert!(
             !notes
                 .combinations()
-                .contains(Combination::PardonAndGrainAndTaian)
+                .contains(Combination::PARDON_AND_GRAIN_AND_TAIAN)
         );
         assert_eq!(notes.nine_stars().day, NineStar::OneWhite);
     }
@@ -442,7 +536,7 @@ mod tests {
         assert!(
             notes
                 .combinations()
-                .contains(Combination::EarthSerpentAndTaian)
+                .contains(Combination::EARTH_SERPENT_AND_TAIAN)
         );
     }
 
@@ -455,7 +549,7 @@ mod tests {
         let mut found = 0;
         for offset in 0..365 {
             let notes = day_notes(Rd(NEW_YEAR_2025 + offset), JAPAN);
-            if notes.combinations().contains(Combination::PardonAndGrain) {
+            if notes.combinations().contains(Combination::PARDON_AND_GRAIN) {
                 found += 1;
                 let matched = expected.iter().any(|(month, day)| {
                     NEW_YEAR_2025 + CUMULATIVE[month - 1] + day - 1 == NEW_YEAR_2025 + offset
@@ -538,16 +632,25 @@ mod tests {
     fn the_combination_set_holds_every_combination_distinctly() {
         let mut set = CombinationSet::EMPTY;
         assert!(set.is_empty());
-        for combination in Combination::EVERY {
+        for combination in Combination::ALL.iter().copied() {
             assert!(!set.contains(combination));
             set = set.with(combination);
             assert!(!combination.japanese_name().is_empty());
+            assert_eq!(
+                usize::from(combination.index()),
+                Combination::ALL
+                    .iter()
+                    .position(|c| c == &combination)
+                    .unwrap_or(usize::MAX)
+            );
         }
-        assert_eq!(set.len() as usize, Combination::EVERY.len());
-        assert_eq!(set.iter().count(), Combination::EVERY.len());
-        assert_eq!(Combination::ALL.len(), 7);
-        let clashes = Combination::EVERY
-            .into_iter()
+        assert_eq!(set.len() as usize, Combination::ALL.len());
+        assert_eq!(set.iter().count(), Combination::ALL.len());
+        // Eight, the two clashes included. There used to be two lists, one
+        // of seven and one of eight, and they disagreed.
+        assert_eq!(Combination::ALL.len(), 8);
+        let clashes = Combination::ALL
+            .iter()
             .filter(|combination| combination.is_a_clash())
             .count();
         assert_eq!(clashes, 2);
