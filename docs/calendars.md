@@ -100,7 +100,7 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | French Republican, autumn equinox at Paris | `french-republican-equinox` | Planned |
 | Bahá'í, Naw-Rúz from the Tehran equinox | `bahai-astronomical` | Planned |
 | Ethiopian Easter-linked movable cycle (Bahire Hasab) | — | Done, in `hc-holiday`; see [observances.md](observances.md) |
-| Coptic Easter-linked movable cycle | — | Planned; the same computus, dated in the Coptic calendar |
+| Coptic Easter-linked movable cycle | — | Done, in `hc-holiday`; see [observances.md](observances.md) |
 
 ## Stage 4 — Regional, cyclic and era calendars
 
