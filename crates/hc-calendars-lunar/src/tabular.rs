@@ -376,6 +376,34 @@ impl TabularIslamicCalendar {
     }
 }
 
+/// The Fatimid or Ṭayyibī tabular Hijri calendar — the Bohra *Misri*.
+///
+/// The official calendar of the Ṭayyibī Ismāʿīlī communities, of whom the
+/// Dawoodi Bohras are the largest, and the operative calendar for every
+/// religious date they keep. It is purely calculated and never sighted,
+/// which is the point: the community's own account of it gives the rule as
+/// "divide the Hijri year by 30; if the remainder is 2, 5, 8, 10, 13, 16,
+/// 19, 21, 24, 27 or 29 it is a *kabisa* year", with odd months of 30 days
+/// and even months of 29.
+///
+/// That is [`LeapYearRule::Fatimid`] — the common scheme with three of its
+/// long years delayed by one, the third to 8, the seventh to 19 and the
+/// tenth to 27 — at the Thursday epoch, not the Friday one. The epoch is
+/// fixed here by the community's own published anchor rather than by
+/// assumption: 12 Rabīʿ al-Awwal 1439 fell on 30 November 2017, which the
+/// Thursday epoch gives and the Friday epoch misses by a day. The test says
+/// so.
+///
+/// **Source:** the Dawoodi Bohra community's published description of the
+/// Misri-Hijri calculation (thedawoodibohras.com), which states the
+/// thirty-year *qarn saghir* and its eleven *kabisa* remainders.
+pub const FATIMID: TabularIslamicCalendar = TabularIslamicCalendar::new(
+    CalendarId("islamic-fatimid"),
+    "Hijri (Fatimid, Ṭayyibī Bohra \"Misri\")",
+    ASTRONOMICAL_EPOCH,
+    LeapYearRule::Fatimid,
+);
+
 impl Default for TabularIslamicCalendar {
     fn default() -> Self {
         Self::new(
@@ -389,6 +417,17 @@ impl Default for TabularIslamicCalendar {
 
 impl Calendar for TabularIslamicCalendar {
     type Date = IslamicDate;
+
+    /// The Islamic day begins at sunset, which is also why the month begins
+    /// with a crescent seen after one.
+    ///
+    /// Declared here rather than only on the wrappers in `islamic_civil`
+    /// and `islamic_astronomical`. It used to be only there, so those two
+    /// were right and every other tabular variant a caller built — or that
+    /// this crate registered — silently said midnight.
+    fn day_boundary(&self) -> hc_calendar::DayBoundary {
+        hc_calendar::DayBoundary::Sunset
+    }
 
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
@@ -435,6 +474,67 @@ impl Calendar for TabularIslamicCalendar {
 
 #[cfg(test)]
 mod tests {
+
+    /// The anchor the community publishes itself: 12 Rabīʿ al-Awwal 1439,
+    /// the Mawlid of that year, fell on 30 November 2017.
+    ///
+    /// This is what fixes [`FATIMID`]'s epoch. The Fatimid leap rule at the
+    /// Friday epoch puts that day at 11 Rabīʿ al-Awwal; at the Thursday
+    /// epoch it lands exactly. Without the anchor the choice would have
+    /// been a guess, and a guess of one day is invisible until somebody
+    /// misses a fast.
+    #[test]
+    fn the_bohra_misri_calendar_matches_its_own_published_mawlid() {
+        let day = hc_calendar::gregorian::to_fixed(2017, 11, 30).expect("2017-11-30 exists");
+        let date = FATIMID.from_fixed(day).expect("the date is in range");
+        assert_eq!(date.year, 1439);
+        assert_eq!(date.month, 3);
+        assert_eq!(date.day, 12);
+        assert_eq!(FATIMID.to_fixed(date), Ok(day));
+
+        // The Friday epoch is the near miss that makes the test worth having.
+        let friday = TabularIslamicCalendar::new(
+            CalendarId("test-only"),
+            "test",
+            CIVIL_EPOCH,
+            LeapYearRule::Fatimid,
+        );
+        assert_eq!(friday.from_fixed(day).map(|other| other.day), Ok(11));
+    }
+
+    /// Every tabular Hijri calendar starts its day at sunset, whatever
+    /// epoch and leap rule it carries. This used to be true only of the two
+    /// that had their own wrapper type.
+    #[test]
+    fn a_tabular_hijri_day_begins_at_sunset() {
+        use hc_calendar::DayBoundary;
+        assert_eq!(FATIMID.day_boundary(), DayBoundary::Sunset);
+        assert_eq!(
+            TabularIslamicCalendar::default().day_boundary(),
+            DayBoundary::Sunset
+        );
+        let custom = TabularIslamicCalendar::new(
+            CalendarId("test-only"),
+            "test",
+            CIVIL_EPOCH,
+            LeapYearRule::HabashAlHasib,
+        );
+        assert_eq!(custom.day_boundary(), DayBoundary::Sunset);
+    }
+
+    /// The rule the community states: divide by 30, and these eleven
+    /// remainders are long years.
+    #[test]
+    fn the_kabisa_remainders_are_the_ones_the_community_publishes() {
+        assert_eq!(
+            LeapYearRule::Fatimid.leap_years(),
+            [2, 5, 8, 10, 13, 16, 19, 21, 24, 27, 29]
+        );
+        // 1431 has remainder 21 and is kabisa; 1432 has remainder 22 and is
+        // not — the worked example on the community's own page.
+        assert_eq!(FATIMID.days_in_year(1431), 355);
+        assert_eq!(FATIMID.days_in_year(1432), 354);
+    }
     use super::*;
     use crate::civil;
 

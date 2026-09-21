@@ -15,7 +15,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-61 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+62 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
 | id | Name | Crate | Feature | Earliest | Latest | Astronomical | Leap months | Day begins |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -37,6 +37,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `holocene` | Holocene (Human Era) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999-01-01 | +9999999-12-31 | no | no | midnight |
 | `indian` | Indian national (Śaka) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0079-03-22 | +10078-03-21 | no | no | midnight |
 | `islamic-civil` | Hijri (tabular, civil epoch) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0622-07-19 | +10323-10-21 | no | no | sunset |
+| `islamic-fatimid` | Hijri (Fatimid, Ṭayyibī Bohra "Misri") | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0622-07-18 | +10323-10-20 | no | no | sunset |
 | `islamic-rgsa` | Hijri (observational, predicted) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1900-01-01 | 2100-12-31 | yes | no | sunset |
 | `islamic-tbla` | Hijri (tabular, astronomical epoch) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0622-07-18 | +10323-10-20 | no | no | sunset |
 | `islamic-umalqura` | Hijri (Umm al-Qura) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1882-11-12 | 2174-11-25 | no | no | sunset |

@@ -68,6 +68,7 @@ These need the astronomical engine, so they live behind the `lunar` feature.
 | --- | --- | --- | --- |
 | Tabular Islamic, civil epoch | `islamic-civil` | `hc-calendars-lunar` | Done |
 | Tabular Islamic, astronomical epoch | `islamic-tbla` | `hc-calendars-lunar` | Done |
+| Fatimid / Ṭayyibī Bohra *Misri* | `islamic-fatimid` | `hc-calendars-lunar` | Done |
 | Umm al-Qura (Saudi official) | `islamic-umalqura` | `hc-calendars-lunar` | Done — table-driven, 1300–1600 AH |
 | Observational Hijri | `islamic-rgsa` | `hc-calendars-lunar` | Partial — visibility model is a simplification |
 | Hebrew | `hebrew` | `hc-calendars-lunar` | Done |
