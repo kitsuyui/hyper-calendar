@@ -62,8 +62,9 @@ pub mod worldline;
 mod hyperbolic;
 
 pub use constants::{
-    ASTRONOMICAL_UNIT, Body, GM_EARTH, GM_JUPITER, GM_MARS, GM_MOON, GM_SAGITTARIUS_A_STAR, GM_SUN,
-    GRAVITATIONAL_CONSTANT, JULIAN_YEAR_SECONDS, LIGHT_YEAR, SPEED_OF_LIGHT, STANDARD_GRAVITY,
+    ASTRONOMICAL_UNIT, GM_EARTH, GM_JUPITER, GM_MARS, GM_MOON, GM_SAGITTARIUS_A_STAR, GM_SUN,
+    GRAVITATING_BODIES, GRAVITATIONAL_CONSTANT, GravitatingBody, JULIAN_YEAR_SECONDS, LIGHT_YEAR,
+    SPEED_OF_LIGHT, STANDARD_GRAVITY,
 };
 pub use dilated::{ClockComparison, compare_clocks, dilated_instant};
 pub use error::{RelativityError, RelativityResult};
