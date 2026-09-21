@@ -148,31 +148,25 @@ impl Modality {
 /// These are names in a naming scheme. The actual bodies — their orbits,
 /// rotation periods and clocks — are `hc-planetary`'s subject.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum RulingPlanet {
-    /// The Sun, ruler of Leo.
-    Sun,
-    /// The Moon, ruler of Cancer.
-    Moon,
-    /// Mercury, ruler of Gemini and Virgo.
-    Mercury,
-    /// Venus, ruler of Taurus and Libra.
-    Venus,
-    /// Mars, ruler of Aries and, classically, Scorpio.
-    Mars,
-    /// Jupiter, ruler of Sagittarius and, classically, Pisces.
-    Jupiter,
-    /// Saturn, ruler of Capricorn and, classically, Aquarius.
-    Saturn,
-    /// Uranus, modern ruler of Aquarius. Discovered 1781.
-    Uranus,
-    /// Neptune, modern ruler of Pisces. Discovered 1846.
-    Neptune,
-    /// Pluto, modern ruler of Scorpio. Discovered 1930; no longer a planet
-    /// under the IAU's 2006 definition, and still used in this scheme.
-    Pluto,
+pub struct RulingPlanet {
+    /// A short identifier, the body's English name in lowercase.
+    pub id: &'static str,
+    english_name: &'static str,
+    classical: bool,
 }
 
 impl RulingPlanet {
+    /// A ruler from its identifier, its English name and whether it is one
+    /// of the seven classical bodies.
+    #[must_use]
+    pub const fn new(id: &'static str, english_name: &'static str, classical: bool) -> Self {
+        Self {
+            id,
+            english_name,
+            classical,
+        }
+    }
+
     /// The seven bodies of the classical scheme, in the Chaldean order of
     /// decreasing apparent orbital period: Saturn, Jupiter, Mars, Sun, Venus,
     /// Mercury, Moon.
@@ -180,45 +174,63 @@ impl RulingPlanet {
     /// This is the order the planetary hours and the names of the days of the
     /// week come from, which is why it is worth having as data.
     pub const CHALDEAN_ORDER: [Self; 7] = [
-        Self::Saturn,
-        Self::Jupiter,
-        Self::Mars,
-        Self::Sun,
-        Self::Venus,
-        Self::Mercury,
-        Self::Moon,
+        Self::SATURN,
+        Self::JUPITER,
+        Self::MARS,
+        Self::SUN,
+        Self::VENUS,
+        Self::MERCURY,
+        Self::MOON,
     ];
 
     /// The name in English.
     #[must_use]
     pub const fn english_name(self) -> &'static str {
-        match self {
-            Self::Sun => "Sun",
-            Self::Moon => "Moon",
-            Self::Mercury => "Mercury",
-            Self::Venus => "Venus",
-            Self::Mars => "Mars",
-            Self::Jupiter => "Jupiter",
-            Self::Saturn => "Saturn",
-            Self::Uranus => "Uranus",
-            Self::Neptune => "Neptune",
-            Self::Pluto => "Pluto",
-        }
+        self.english_name
     }
 
     /// Whether this is one of the seven bodies visible to the naked eye.
     #[must_use]
     pub const fn is_classical(self) -> bool {
-        matches!(
-            self,
-            Self::Sun
-                | Self::Moon
-                | Self::Mercury
-                | Self::Venus
-                | Self::Mars
-                | Self::Jupiter
-                | Self::Saturn
-        )
+        self.classical
+    }
+}
+
+hc_core::catalogue! {
+    type: RulingPlanet,
+    id: |planet| planet.id,
+    tests: ruling_planet_tests,
+    associated;
+
+    /// Every body a shipped scheme names as a ruler. A scheme that names
+    /// Ceres or Chiron adds an entry (ADR 0007).
+    pub const ALL;
+    /// The ruler with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// The Sun, ruler of Leo.
+        pub const SUN = Self::new("sun", "Sun", true);
+        /// The Moon, ruler of Cancer.
+        pub const MOON = Self::new("moon", "Moon", true);
+        /// Mercury, ruler of Gemini and Virgo.
+        pub const MERCURY = Self::new("mercury", "Mercury", true);
+        /// Venus, ruler of Taurus and Libra.
+        pub const VENUS = Self::new("venus", "Venus", true);
+        /// Mars, ruler of Aries and, classically, Scorpio.
+        pub const MARS = Self::new("mars", "Mars", true);
+        /// Jupiter, ruler of Sagittarius and, classically, Pisces.
+        pub const JUPITER = Self::new("jupiter", "Jupiter", true);
+        /// Saturn, ruler of Capricorn and, classically, Aquarius.
+        pub const SATURN = Self::new("saturn", "Saturn", true);
+        /// Uranus, modern ruler of Aquarius. Discovered 1781.
+        pub const URANUS = Self::new("uranus", "Uranus", false);
+        /// Neptune, modern ruler of Pisces. Discovered 1846.
+        pub const NEPTUNE = Self::new("neptune", "Neptune", false);
+        /// Pluto, modern ruler of Scorpio. Discovered 1930; no longer a
+        /// planet under the IAU's 2006 definition, and still used in this
+        /// scheme.
+        pub const PLUTO = Self::new("pluto", "Pluto", false);
     }
 }
 
@@ -574,18 +586,18 @@ impl TropicalSign {
     #[must_use]
     pub const fn ruling_planet(self) -> RulingPlanet {
         match self.0 {
-            0 => RulingPlanet::Mars,
-            1 => RulingPlanet::Venus,
-            2 => RulingPlanet::Mercury,
-            3 => RulingPlanet::Moon,
-            4 => RulingPlanet::Sun,
-            5 => RulingPlanet::Mercury,
-            6 => RulingPlanet::Venus,
-            7 => RulingPlanet::Mars,
-            8 => RulingPlanet::Jupiter,
-            9 => RulingPlanet::Saturn,
-            10 => RulingPlanet::Saturn,
-            _ => RulingPlanet::Jupiter,
+            0 => RulingPlanet::MARS,
+            1 => RulingPlanet::VENUS,
+            2 => RulingPlanet::MERCURY,
+            3 => RulingPlanet::MOON,
+            4 => RulingPlanet::SUN,
+            5 => RulingPlanet::MERCURY,
+            6 => RulingPlanet::VENUS,
+            7 => RulingPlanet::MARS,
+            8 => RulingPlanet::JUPITER,
+            9 => RulingPlanet::SATURN,
+            10 => RulingPlanet::SATURN,
+            _ => RulingPlanet::JUPITER,
         }
     }
 
@@ -599,9 +611,9 @@ impl TropicalSign {
     #[must_use]
     pub const fn modern_ruling_planet(self) -> RulingPlanet {
         match self.0 {
-            7 => RulingPlanet::Pluto,
-            10 => RulingPlanet::Uranus,
-            11 => RulingPlanet::Neptune,
+            7 => RulingPlanet::PLUTO,
+            10 => RulingPlanet::URANUS,
+            11 => RulingPlanet::NEPTUNE,
             _ => self.ruling_planet(),
         }
     }
@@ -1060,8 +1072,8 @@ mod tests {
     /// ruler.
     #[test]
     fn the_classical_rulerships_are_symmetric_about_the_two_lights() {
-        assert_eq!(TropicalSign::LEO.ruling_planet(), RulingPlanet::Sun);
-        assert_eq!(TropicalSign::CANCER.ruling_planet(), RulingPlanet::Moon);
+        assert_eq!(TropicalSign::LEO.ruling_planet(), RulingPlanet::SUN);
+        assert_eq!(TropicalSign::CANCER.ruling_planet(), RulingPlanet::MOON);
         for step in 1..=5u8 {
             let after_leo = TropicalSign::at(TropicalSign::LEO.index() + step);
             let before_cancer = TropicalSign::at(TropicalSign::CANCER.index() + 12 - step);
@@ -1097,20 +1109,20 @@ mod tests {
         assert_eq!(changed, 3);
         assert_eq!(
             TropicalSign::SCORPIO.modern_ruling_planet(),
-            RulingPlanet::Pluto
+            RulingPlanet::PLUTO
         );
         assert_eq!(
             TropicalSign::AQUARIUS.modern_ruling_planet(),
-            RulingPlanet::Uranus
+            RulingPlanet::URANUS
         );
         assert_eq!(
             TropicalSign::PISCES.modern_ruling_planet(),
-            RulingPlanet::Neptune
+            RulingPlanet::NEPTUNE
         );
         for planet in [
-            RulingPlanet::Uranus,
-            RulingPlanet::Neptune,
-            RulingPlanet::Pluto,
+            RulingPlanet::URANUS,
+            RulingPlanet::NEPTUNE,
+            RulingPlanet::PLUTO,
         ] {
             assert!(!planet.is_classical());
         }
