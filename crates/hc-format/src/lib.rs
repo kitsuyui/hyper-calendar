@@ -63,6 +63,7 @@ pub mod parse;
 pub mod patterns;
 pub mod rfc2822;
 pub mod rfc3339;
+pub mod roman;
 pub mod value;
 
 mod scan;
@@ -71,6 +72,7 @@ pub use error::{
     ErrorKind, FormatError, FormatResult, ParseError, ParseResult, ValueError, ValueResult,
 };
 pub use iso8601::{Interval, IsoDuration, RepeatingInterval, Strictness};
+pub use roman::{Anchor, BissextileStyle, RomanDayName};
 pub use value::{
     DateParts, DecimalMark, Fraction, IsoDate, IsoDateTime, IsoTime, OffsetDateTime, Style,
     TimeOfDay, YearStyle, ZoneInfo,

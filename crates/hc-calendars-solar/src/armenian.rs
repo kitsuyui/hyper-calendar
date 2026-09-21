@@ -8,10 +8,10 @@
 //!
 //! Because the year is 365 days flat, the calendar wanders against the
 //! seasons exactly as the Egyptian one does, and an Armenian date is a fixed
-//! offset from the Egyptian date with the same year and month number. The
-//! medieval Armenian church eventually adopted a fixed Julian year, and
-//! modern Armenia uses the Gregorian calendar; this module implements the
-//! original wandering form and nothing later.
+//! offset from the Egyptian date with the same year and month number. This
+//! module implements the original wandering form; Yovhannēs Sarkawag's
+//! fixed year of 1084 is [`crate::armenian_fixed`], and modern Armenia uses
+//! the Gregorian calendar.
 //!
 //! Month names belong to `hc-i18n`.
 

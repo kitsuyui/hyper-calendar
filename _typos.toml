@@ -88,3 +88,5 @@ Nam = "Nam"
 # them — a triplet is one. Not a misspelling of "tuple".
 tuplets = "tuplets"
 tuplet = "tuplet"
+# Latin: "stilus nativitatis", the Nativity style of dating. Not the pen.
+stilus = "stilus"

@@ -8,7 +8,7 @@ follows from those.
 
 ## What is in it
 
-Thirty-two calendars, plus twelve national variants of the Julian/Gregorian
+Thirty-three calendars, plus twelve national variants of the Julian/Gregorian
 reform:
 
 | Module | Calendar | Identifier |
@@ -16,6 +16,7 @@ reform:
 | `gregorian` | Proleptic Gregorian | `gregory` |
 | `julian` | Proleptic Julian, with BC/AD eras | `julian` |
 | `julian_gregorian` | Julian before a country's reform, Gregorian after | `julian-gregorian-*` |
+| `year_style` | Where the year began: Lady Day, Annunciation (Florentine, Pisan), Nativity, more veneto, Greek | *(not calendars; a year-number conversion)* |
 | `iso_week` | ISO 8601 week date | `iso8601-week` |
 | `ordinal` | ISO 8601 ordinal date | `iso8601-ordinal` |
 | `julian_day` | Julian Day Number, Modified Julian Date | `julian-day`, `modified-julian-day` |
@@ -24,6 +25,7 @@ reform:
 | `ethiopic` | Ethiopian (Incarnation and World eras) | `ethiopic` |
 | `egyptian` | Ancient Egyptian wandering year | `egyptian` |
 | `armenian` | Ancient Armenian | `armenian` |
+| `armenian_fixed` | Armenian (fixed, Sarkawag 1084) | `armenian-fixed` |
 | `persian` | Solar Hijri, **arithmetic** variant | `persian-arithmetic` |
 | `indian` | Indian national civil (Śaka) | `indian` |
 | `buddhist` | Thai solar | `buddhist` |

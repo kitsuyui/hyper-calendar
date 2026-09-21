@@ -46,7 +46,8 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | Ethiopic (Amete Mihret) | `ethiopic` | `hc-calendars-solar` | Done |
 | Ethiopic (Amete Alem) | — | `hc-calendars-solar` | Partial — an `amete-alem-year` field on `ethiopic`, not a calendar of its own |
 | Ancient Egyptian wandering year | `egyptian` | `hc-calendars-solar` | Done |
-| Armenian | `armenian` | `hc-calendars-solar` | Done |
+| Armenian (wandering) | `armenian` | `hc-calendars-solar` | Done |
+| Armenian (fixed, Sarkawag 1084) | `armenian-fixed` | `hc-calendars-solar` | Done |
 | Solar Hijri (Persian), arithmetic | `persian-arithmetic` | `hc-calendars-solar` | Partial — 33-year cycle; astronomical variant in stage 3 |
 | Indian national civil (Śaka) | `indian` | `hc-calendars-solar` | Done |
 | Thai solar (Buddhist Era) | `buddhist` | `hc-calendars-solar` | Partial — the 1889–1940 April year start is not modelled |
@@ -153,6 +154,8 @@ Not calendars in their own right, but named subdivisions layered onto one.
 | 六曜 — rokuyō (先勝, 友引, 先負, 仏滅, 大安, 赤口) | `hc-seasons` | Done |
 | 十二直 and 二十八宿 (and 二十七宿) | `hc-almanac` | Done |
 | Computus cycles — golden number, dominical letter, epact, solar cycle, indiction, Julian Period | `hc-calendars-solar::cycles` | Done |
+| Medieval year-start styles — Lady Day, Annunciation (Florentine and Pisan), Nativity, *more veneto*, Greek | `hc-calendars-solar::year_style` | Done |
+| Roman day notation — kalends, nones, ides, *pridie*, the doubled bissextile day | `hc-format::roman` | Done |
 | 九星, 七曜, 暦注下段, 選日 | `hc-almanac` | Done |
 | 黄道十二宮 — Western zodiac signs (tropical), with periods | `hc-seasons` | Done |
 | Sidereal signs / rāśi, with the Lahiri and other ayanamsas | `hc-seasons` | Done |
