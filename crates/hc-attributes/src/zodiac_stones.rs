@@ -272,3 +272,18 @@ mod tests {
         }
     }
 }
+
+/// The table whose authority has this identifier.
+#[must_use]
+pub fn by_id(id: &str) -> Option<&'static SignTable> {
+    ALL.iter().copied().find(|table| table.authority().id == id)
+}
+
+hc_core::catalogue_tests! {
+    type: &'static SignTable,
+    id: |table| table.authority().id,
+    provenance: |table| table.authority().source,
+    tests: zodiac_stone_table_tests,
+    all: &ALL,
+    lookup: by_id,
+}
