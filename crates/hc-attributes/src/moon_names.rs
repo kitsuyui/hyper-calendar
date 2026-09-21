@@ -116,7 +116,7 @@ pub static MOON_NAMES_OFA_CURRENT: MonthTable = MonthTable::new(
         id: "moon-names-ofa-current",
         english_name: "full-moon names as the Old Farmer's Almanac now prints them",
         body: Some("The Old Farmer's Almanac"),
-        region: Region::NorthAmerica,
+        region: Region::NORTH_AMERICA,
         established: Some(AttributionDate::year(1964)),
         revised: None,
         validity: Validity::since(1964),
@@ -161,7 +161,7 @@ pub static MOON_NAMES_OFA_1964: MonthTable = MonthTable::new(
         id: "moon-names-ofa-1964",
         english_name: "full-moon names as the Old Farmer's Almanac first published them",
         body: Some("The Old Farmer's Almanac"),
-        region: Region::NorthAmerica,
+        region: Region::NORTH_AMERICA,
         established: Some(AttributionDate::year(1964)),
         revised: None,
         validity: Validity::between(1964, 1964),
@@ -208,7 +208,7 @@ pub static MOON_NAMES_MAINE_1937: MonthTable = MonthTable::new(
         id: "moon-names-maine-1937",
         english_name: "full-moon names of the Maine Farmers' Almanac",
         body: Some("Maine Farmers' Almanac"),
-        region: Region::NorthAmerica,
+        region: Region::NORTH_AMERICA,
         established: Some(AttributionDate::year(1937)),
         revised: None,
         validity: Validity::between(1937, 1937),
@@ -251,7 +251,7 @@ pub static MOON_NAMES_CARVER_1778: MonthTable = MonthTable::new(
         id: "moon-names-carver-1778",
         english_name: "lunar-month names as recorded by Jonathan Carver",
         body: None,
-        region: Region::NorthAmerica,
+        region: Region::NORTH_AMERICA,
         established: Some(AttributionDate::year(1778)),
         revised: None,
         validity: Validity::between(1778, 1778),
@@ -489,7 +489,7 @@ mod tests {
             &MOON_NAMES_CARVER_1778,
         ] {
             let authority = table.authority();
-            assert_eq!(authority.region, Region::NorthAmerica, "{}", authority.id);
+            assert_eq!(authority.region, Region::NORTH_AMERICA, "{}", authority.id);
             for nation in ["Algonquian", "Ojibwe", "Lakota", "Cherokee", "Sioux"] {
                 assert!(
                     !authority.english_name.contains(nation),

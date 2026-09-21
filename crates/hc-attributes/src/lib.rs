@@ -180,7 +180,7 @@ mod tests {
                 "{} has no real source",
                 authority.id
             );
-            assert!(!authority.region.english_name().is_empty());
+            assert!(!authority.region.english_name.is_empty());
             assert!(!authority.provenance.english_description().is_empty());
             checked += 1;
         }

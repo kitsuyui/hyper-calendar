@@ -31,7 +31,7 @@
 //! // month list bloodstone is March's — and Aries begins in March but is
 //! // mostly April. The two are not the same statement.
 //! assert_eq!(stones_for_sign(TropicalSign::ARIES), &["bloodstone"]);
-//! assert_eq!(ZODIAC_STONES_KUNZ.authority().region.english_name(), "unspecified");
+//! assert_eq!(ZODIAC_STONES_KUNZ.authority().region.english_name, "unspecified");
 //! ```
 //!
 //! # Which zodiac
@@ -58,7 +58,7 @@ use crate::authority::{Authority, Provenance, Region, SignTable, Validity};
 /// pp. 345–347. Kunz is reporting the Western lapidary tradition, not
 /// promulgating a list, which is why the [`Provenance`] is
 /// [`Provenance::Recorded`] and the [`Region`] is
-/// [`Region::Unspecified`]: no body adopted this and no country owns it.
+/// [`Region::UNSPECIFIED`]: no body adopted this and no country owns it.
 ///
 /// Index 0 is Aries, matching [`TropicalSign::index`].
 ///
@@ -71,7 +71,7 @@ pub static ZODIAC_STONES_KUNZ: SignTable = SignTable::new(
         id: "zodiac-stones-kunz-1913",
         english_name: "zodiacal stones of the Western lapidary tradition",
         body: None,
-        region: Region::Unspecified,
+        region: Region::UNSPECIFIED,
         established: None,
         revised: None,
         validity: Validity::UNKNOWN,
