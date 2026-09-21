@@ -213,11 +213,42 @@ impl IndianDate {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct IndianCalendar;
 
+/// The twelve months under the names the Government of India publishes
+/// the calendar with, Chaitra first.
+///
+/// The calendar was defined by the Calendar Reform Committee (1955) in
+/// English, so these Latin-script forms are the calendar's own rather than
+/// a transliteration; the Devanagari forms are a locale's. Source: S. K.
+/// Chatterjee, *Indian Calendric System* (Government of India, 1998), as
+/// tabulated in Wikipedia, "Indian national calendar", retrieved
+/// 2026-09-22.
+pub const MONTHS: [&str; 12] = [
+    "Chaitra",
+    "Vaisakha",
+    "Jyaishtha",
+    "Ashadha",
+    "Sravana",
+    "Bhadra",
+    "Asvina",
+    "Kartika",
+    "Agrahayana",
+    "Pausha",
+    "Magha",
+    "Phalguna",
+];
+
+/// Twelve named months and the seven-day week.
+const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+    hc_calendar::shape::CycleShape::named(hc_calendar::shape::MONTH, &MONTHS),
+    hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
+];
+
 impl Calendar for IndianCalendar {
     type Date = IndianDate;
 
+    /// Twelve months under their official names, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        hc_calendar::shape::SOLAR_TWELVE
+        SHAPE
     }
 
     fn meta(&self) -> CalendarMeta {

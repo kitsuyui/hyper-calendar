@@ -16,9 +16,9 @@
 //! move to 12 September in 2100. That drift is a fact about the calendar,
 //! not an error in this implementation.
 //!
-//! Month names are not here. They differ by language and script — Coptic,
-//! Arabic, transliterated — so they belong with the other locale data in
-//! `hc-i18n`, and this module holds only the arithmetic.
+//! The month names in Coptic script are [`MONTHS`], declared with the
+//! calendar's shape; the romanised and Arabic forms are words of a language
+//! and belong to `hc-i18n`, which consults them before these.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
@@ -134,11 +134,41 @@ impl CopticDate {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct CopticCalendar;
 
+/// The thirteen months in Coptic script, Thout first. The thirteenth is
+/// Pi Kogi Enavot, "the little month", the five or six epagomenal days.
+///
+/// Source: the months table of Wikipedia, "Coptic calendar", retrieved
+/// 2026-09-22. The romanised forms (Thout, Paopi …) and the Egyptian
+/// Arabic ones (توت, بابه …) are words of a language and live in
+/// `hc-i18n`.
+pub const MONTHS: [&str; 13] = [
+    "Ⲑⲱⲟⲩⲧ",
+    "Ⲡⲁⲟⲡⲓ",
+    "Ⲁⲑⲱⲣ",
+    "Ⲭⲟⲓⲁⲕ",
+    "Ⲧⲱⲃⲓ",
+    "Ⲙⲉϣⲓⲣ",
+    "Ⲡⲁⲣⲉⲙϩⲁⲧ",
+    "Ⲫⲁⲣⲙⲟⲩⲑⲓ",
+    "Ⲡⲁϣⲟⲛⲥ",
+    "Ⲡⲁⲱⲛⲓ",
+    "Ⲉⲡⲓⲡ",
+    "Ⲙⲉⲥⲱⲣⲓ",
+    "Ⲡⲓⲕⲟⲩϫⲓ ⲛ̀ⲁ̀ⲃⲟⲧ",
+];
+
+/// Thirteen named months and the seven-day week.
+const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+    hc_calendar::shape::CycleShape::named(hc_calendar::shape::MONTH, &MONTHS),
+    hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
+];
+
 impl Calendar for CopticCalendar {
     type Date = CopticDate;
 
+    /// Thirteen months, named in Coptic script, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        hc_calendar::shape::WANDERING_THIRTEEN
+        SHAPE
     }
 
     fn meta(&self) -> CalendarMeta {

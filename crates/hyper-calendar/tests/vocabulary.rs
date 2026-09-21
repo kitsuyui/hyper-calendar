@@ -314,21 +314,9 @@ fn the_vocabulary_gap_is_measured_and_not_growing() {
         56,
         "calendars with a month cycle — changes only when a calendar's shape does"
     );
-    // The seven that remain have names of their own — Thout, Mäskäräm,
-    // Nawasard, Farvardin, Chaitra — which belong with the calendar, not
-    // with a locale, and want a source before they are written down.
-    assert_eq!(
-        unnamed,
-        [
-            "coptic",
-            "ethiopic",
-            "egyptian",
-            "armenian",
-            "armenian-fixed",
-            "persian-arithmetic",
-            "indian",
-        ],
-        "calendars whose months English cannot name — shrink this by declaring the \
-         calendar's own names with its shape"
+    assert!(
+        unnamed.is_empty(),
+        "calendars whose months English cannot name — a calendar with months \
+         declares their names with its shape, or a locale supplies them: {unnamed:?}"
     );
 }
