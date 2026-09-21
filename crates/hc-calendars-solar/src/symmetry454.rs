@@ -18,118 +18,40 @@
 //! itself — and thereafter each year begins on the Monday nearest to the
 //! Gregorian 1 January.
 //!
-//! # What this deliberately does not do
+//! # The other variant
 //!
-//! Symmetry454 was proposed with a companion leap-week rule tied to a
-//! specific mean northward equinoctial year, and Bromberg also defines a
-//! Symmetry010 variant with 30–31–30 months. Neither is here: this is the
-//! 454 arrangement with the published 293-year cycle.
+//! Bromberg also defines Symmetry010, with months of 30, 31 and 30 days
+//! instead of 4, 5 and 4 weeks. It is [`crate::symmetry010`], and it shares
+//! everything but the month layout — the 293-year cycle in
+//! [`crate::symmetry`] is the actual proposal, and the two arrangements are
+//! two ways of spending the same 364 days.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, Weekday,
     YearKind,
 };
 
-use crate::common;
+use crate::symmetry;
 
-/// The number of days in an ordinary year, 52 weeks exactly.
-pub const ORDINARY_YEAR_DAYS: i64 = 364;
+/// The year bounds, the leap rule and the cycle constants, which are the
+/// actual proposal and are shared with [`crate::symmetry010`].
+pub use crate::symmetry::{
+    CYCLE_DAYS, CYCLE_YEARS, EARLIEST, LATEST, LEAP_YEAR_DAYS, LEAPS_PER_CYCLE, MAX_YEAR, MIN_YEAR,
+    ORDINARY_YEAR_DAYS, days_in_year, is_leap_year, new_year,
+};
 
-/// The number of days in a leap year, 53 weeks exactly.
-pub const LEAP_YEAR_DAYS: i64 = 371;
-
-/// The length of the leap cycle in years.
-pub const CYCLE_YEARS: i64 = 293;
-
-/// The number of leap years in one cycle.
-pub const LEAPS_PER_CYCLE: i64 = 52;
-
-/// The length of the leap cycle in days, giving a mean year of
-/// 107 016 / 293 = 365.2423 days.
-pub const CYCLE_DAYS: i64 = CYCLE_YEARS * ORDINARY_YEAR_DAYS + LEAPS_PER_CYCLE * 7;
-
-/// The earliest year this implementation converts.
-pub const MIN_YEAR: i64 = 1;
-
-/// The latest year this implementation converts.
-pub const MAX_YEAR: i64 = 99_999;
-
-/// Month lengths in weeks, quarter by quarter: four, five, four.
-const MONTH_WEEKS: [i64; 12] = [4, 5, 4, 4, 5, 4, 4, 5, 4, 4, 5, 4];
-
-/// Whether `year` is a leap year, with a fifty-third week in December.
-#[must_use]
-pub const fn is_leap_year(year: i64) -> bool {
-    (LEAPS_PER_CYCLE * year + 146).rem_euclid(CYCLE_YEARS) < LEAPS_PER_CYCLE
-}
-
-/// The number of leap years strictly before `year`, counting from year 1.
+/// Month lengths in days: four, five, four weeks per quarter.
 ///
-/// The leap test is equivalent to "this year crosses a multiple of 293", so
-/// counting the crossings is one division rather than a loop.
-const fn leap_years_before(year: i64) -> i64 {
-    (LEAPS_PER_CYCLE * (year - 1) + 146).div_euclid(CYCLE_YEARS)
-}
+/// This is the whole difference from Symmetry010. Because every month is a
+/// whole number of weeks, every month begins on a Monday — which is the
+/// property the variant exists for, and the one Symmetry010 trades away.
+const MONTH_DAYS: [u8; 12] = [28, 35, 28, 28, 35, 28, 28, 35, 28, 28, 35, 28];
 
 /// The number of days in `month` of `year`, or `None` when `month` is not in
 /// `1..=12`.
 #[must_use]
 pub const fn days_in_month(year: i64, month: u8) -> Option<u8> {
-    if month == 0 || month > 12 {
-        return None;
-    }
-    let weeks = MONTH_WEEKS[month as usize - 1]
-        + if month == 12 && is_leap_year(year) {
-            1
-        } else {
-            0
-        };
-    Some((weeks * 7) as u8)
-}
-
-/// The number of days in `year`.
-#[must_use]
-pub const fn days_in_year(year: i64) -> u16 {
-    if is_leap_year(year) {
-        LEAP_YEAR_DAYS as u16
-    } else {
-        ORDINARY_YEAR_DAYS as u16
-    }
-}
-
-/// The fixed day on which `year` begins, without validation.
-const fn new_year_raw(year: i64) -> i64 {
-    1 + ORDINARY_YEAR_DAYS * (year - 1) + 7 * leap_years_before(year)
-}
-
-/// The fixed day on which `year` begins, always a Monday.
-///
-/// # Errors
-///
-/// Returns [`CalendarError::YearOutOfRange`] outside
-/// [`MIN_YEAR`]..=[`MAX_YEAR`].
-pub const fn new_year(year: i64) -> CalendarResult<Rd> {
-    if year < MIN_YEAR || year > MAX_YEAR {
-        return Err(CalendarError::YearOutOfRange);
-    }
-    Ok(Rd(new_year_raw(year)))
-}
-
-/// The earliest fixed day this implementation converts.
-pub const EARLIEST: Rd = Rd(new_year_raw(MIN_YEAR));
-
-/// The latest fixed day this implementation converts.
-pub const LATEST: Rd = Rd(new_year_raw(MAX_YEAR + 1) - 1);
-
-/// Days elapsed in the year before the first of `month`.
-const fn days_before_month(month: u8) -> i64 {
-    let mut weeks = 0;
-    let mut index = 0;
-    while index < month as usize - 1 {
-        weeks += MONTH_WEEKS[index];
-        index += 1;
-    }
-    weeks * 7
+    symmetry::days_in_month(&MONTH_DAYS, year, month)
 }
 
 /// The fixed day of a Symmetry454 date.
@@ -139,16 +61,7 @@ const fn days_before_month(month: u8) -> i64 {
 /// Returns [`CalendarError::YearOutOfRange`],
 /// [`CalendarError::MonthOutOfRange`] or [`CalendarError::DayOutOfRange`].
 pub const fn to_fixed(year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
-    if year < MIN_YEAR || year > MAX_YEAR {
-        return Err(CalendarError::YearOutOfRange);
-    }
-    match common::check_day(day, days_in_month(year, month)) {
-        Err(error) => Err(error),
-        Ok(()) => Ok(Rd(new_year_raw(year)
-            + days_before_month(month)
-            + day as i64
-            - 1)),
-    }
+    symmetry::to_fixed(&MONTH_DAYS, year, month, day)
 }
 
 /// The Symmetry454 year, month and day of a fixed day.
@@ -158,33 +71,7 @@ pub const fn to_fixed(year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
 /// Returns [`CalendarError::BeforeEpoch`] or
 /// [`CalendarError::AfterSupportedRange`] outside [`EARLIEST`]..=[`LATEST`].
 pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
-    if rd.0 < EARLIEST.0 {
-        return Err(CalendarError::BeforeEpoch);
-    }
-    if rd.0 > LATEST.0 {
-        return Err(CalendarError::AfterSupportedRange);
-    }
-    // Dividing by the exact mean year — as the cycle's own ratio, not a
-    // float — lands within one year; the corrections below close the gap.
-    let mut year = (rd.0 - 1) * CYCLE_YEARS / CYCLE_DAYS + 1;
-    while new_year_raw(year) > rd.0 {
-        year -= 1;
-    }
-    while new_year_raw(year + 1) <= rd.0 {
-        year += 1;
-    }
-    let day_of_year = rd.0 - new_year_raw(year);
-    let mut month = 1u8;
-    let mut elapsed = 0;
-    while month < 12 {
-        let length = MONTH_WEEKS[month as usize - 1] * 7;
-        if day_of_year < elapsed + length {
-            break;
-        }
-        elapsed += length;
-        month += 1;
-    }
-    Ok((year, month, (day_of_year - elapsed + 1) as u8))
+    symmetry::from_fixed(&MONTH_DAYS, rd)
 }
 
 /// A Symmetry454 date.
