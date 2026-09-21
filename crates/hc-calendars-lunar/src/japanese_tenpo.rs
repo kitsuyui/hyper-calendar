@@ -143,25 +143,38 @@ pub fn new_year(year: i64) -> CalendarResult<Rd> {
     PARAMETERS.new_year(year)
 }
 
+/// The Tenpō rules with the range bound removed.
+///
+/// Japan abolished this calendar in 1872, so [`PARAMETERS`] stops there and
+/// [`JapaneseTenpoCalendar`] refuses anything later. But the rules did not
+/// stop being computable, and Japanese almanacs have gone on publishing 旧暦
+/// dates ever since by continuing them — which is what 六曜, 十五夜 and the
+/// rest of the 暦注 are keyed to.
+///
+/// So this is not a historical calendar. It is what the Tenpō rules say about
+/// a day nobody dated that way, at the Japanese meridian, and it is the right
+/// source for anything computed from the modern 旧暦. Use
+/// [`JapaneseTenpoCalendar`] when the question is what a document of 1850
+/// said.
+pub static UNBOUNDED_PARAMETERS: LunisolarParameters = LunisolarParameters {
+    id: CalendarId("japanese-tenpo-unbounded"),
+    english_name: "Japanese Tenpō, unbounded",
+    meridians: &MERIDIANS,
+    epoch: CHINESE_EPOCH,
+    year_offset: YEAR_OFFSET,
+    solar_term_mode: SolarTermMode::Apparent,
+    mean_motion: None,
+    earliest: None,
+    latest: None,
+};
+
+/// The unbounded Tenpō engine. See [`UNBOUNDED_PARAMETERS`].
+pub static UNBOUNDED: LunisolarCalendar = LunisolarCalendar::new(&UNBOUNDED_PARAMETERS);
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lunisolar::SolarTermMode;
     use hc_calendar::{CalendarError, Month};
-
-    /// The same parameters without the range bound, used only to look past
-    /// the abolition at what the calendar *would* have said.
-    static UNBOUNDED: LunisolarParameters = LunisolarParameters {
-        id: CalendarId("japanese-tenpo-unbounded"),
-        english_name: "Japanese Tenpō, unbounded",
-        meridians: &MERIDIANS,
-        epoch: CHINESE_EPOCH,
-        year_offset: YEAR_OFFSET,
-        solar_term_mode: SolarTermMode::Apparent,
-        mean_motion: None,
-        earliest: None,
-        latest: None,
-    };
 
     #[test]
     fn the_calendar_took_effect_on_the_eighteenth_of_february_1844() {
@@ -208,10 +221,10 @@ mod tests {
         // The reason usually given for the abruptness of the reform: Meiji 6
         // was due a leap sixth month, and the new government would have owed
         // its officials thirteen months of salary.
-        assert_eq!(UNBOUNDED.months_in_year(1_873), Ok(13));
-        assert_eq!(UNBOUNDED.leap_month(1_873), Ok(Some(6)));
-        assert_eq!(UNBOUNDED.months_in_year(1_872), Ok(12));
-        assert_eq!(UNBOUNDED.leap_month(1_872), Ok(None));
+        assert_eq!(UNBOUNDED_PARAMETERS.months_in_year(1_873), Ok(13));
+        assert_eq!(UNBOUNDED_PARAMETERS.leap_month(1_873), Ok(Some(6)));
+        assert_eq!(UNBOUNDED_PARAMETERS.months_in_year(1_872), Ok(12));
+        assert_eq!(UNBOUNDED_PARAMETERS.leap_month(1_872), Ok(None));
     }
 
     #[test]

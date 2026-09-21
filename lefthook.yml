@@ -40,7 +40,9 @@ pre-push:
     # Not a gate — a reminder. CI runs newer versions than these, so a local
     # pass does not guarantee a CI pass.
     - name: versions
-      run: printf 'local toolchain: '; rustc --version; printf 'local typos:     '; typos --version
+      run: |
+        printf 'local toolchain: '; rustc --version
+        printf 'local typos:     '; typos --version
     - name: fmt
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo fmt --all -- --check
     - name: clippy

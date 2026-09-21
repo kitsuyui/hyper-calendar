@@ -14,10 +14,15 @@ keywords.workspace = true
 
 [features]
 default = ["std"]
-std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-astro/std"]
-alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-astro/alloc"]
+# Route the lunisolar derivation through the real calendars instead of the
+# simplified one in `lunisolar`. Off by default: a caller who wants only the
+# solar terms should not compile thirteen lunisolar calendars to get them.
+lunar = ["dep:hc-calendars-lunar"]
+std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-astro/std", "hc-calendars-lunar?/std"]
+alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-astro/alloc", "hc-calendars-lunar?/alloc"]
 
 [dependencies]
 hc-core = { workspace = true }
 hc-calendar = { workspace = true }
 hc-astro = { workspace = true }
+hc-calendars-lunar = { workspace = true, optional = true }
