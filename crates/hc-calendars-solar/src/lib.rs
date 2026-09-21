@@ -51,6 +51,7 @@ extern crate alloc;
 mod common;
 
 pub mod armenian;
+pub mod armenian_fixed;
 pub mod bahai;
 pub mod buddhist;
 pub mod byzantine;
@@ -80,6 +81,7 @@ pub mod symmetry454;
 pub mod world_calendar;
 
 pub use armenian::{ArmenianCalendar, ArmenianDate};
+pub use armenian_fixed::{ArmenianFixedCalendar, ArmenianFixedDate};
 pub use bahai::{ArithmeticBahaiCalendar, BahaiDate};
 pub use buddhist::{BuddhistCalendar, BuddhistDate};
 pub use byzantine::{ByzantineCalendar, ByzantineDate};
@@ -142,6 +144,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::EthiopicCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::EgyptianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ArmenianCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::ArmenianFixedCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ArithmeticPersianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::IndianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BuddhistCalendar)));
@@ -174,7 +177,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 32;
+const CALENDAR_COUNT: usize = 33;
 
 #[cfg(test)]
 mod tests {

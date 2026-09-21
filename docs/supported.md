@@ -15,12 +15,13 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-72 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+73 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
 | id | Name | Crate | Feature | Earliest | Latest | Astronomical | Leap months | Day begins |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `ansi-date` | ANSI date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight |
 | `armenian` | Armenian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0552-07-13 | +999887-08-03 | no | no | midnight |
+| `armenian-fixed` | Armenian (fixed, Sarkawag 1084) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0552-08-13 | +10551-10-26 | no | no | midnight |
 | `aztec-tonalpohualli` | Aztec tonalpōhualli | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight |
 | `aztec-xiuhpohualli` | Aztec xiuhpōhualli | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight |
 | `bahai-arithmetic` | Badíʿ (arithmetic) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1844-03-21 | +11843-03-20 | no | yes | sunset |

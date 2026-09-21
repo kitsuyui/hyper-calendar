@@ -46,7 +46,8 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | Ethiopic (Amete Mihret) | `ethiopic` | `hc-calendars-solar` | Done |
 | Ethiopic (Amete Alem) | — | `hc-calendars-solar` | Partial — an `amete-alem-year` field on `ethiopic`, not a calendar of its own |
 | Ancient Egyptian wandering year | `egyptian` | `hc-calendars-solar` | Done |
-| Armenian | `armenian` | `hc-calendars-solar` | Done |
+| Armenian (wandering) | `armenian` | `hc-calendars-solar` | Done |
+| Armenian (fixed, Sarkawag 1084) | `armenian-fixed` | `hc-calendars-solar` | Done |
 | Solar Hijri (Persian), arithmetic | `persian-arithmetic` | `hc-calendars-solar` | Partial — 33-year cycle; astronomical variant in stage 3 |
 | Indian national civil (Śaka) | `indian` | `hc-calendars-solar` | Done |
 | Thai solar (Buddhist Era) | `buddhist` | `hc-calendars-solar` | Partial — the 1889–1940 April year start is not modelled |
