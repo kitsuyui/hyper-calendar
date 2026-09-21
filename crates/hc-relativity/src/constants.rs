@@ -12,7 +12,8 @@
 //!   why celestial mechanics quotes `GM` and not `M`.
 //!
 //! Every dilation formula in this crate therefore takes a `GM`, never a mass.
-//! [`Body::gm`] is the way to get one, and [`Body::source`] says where it
+//! [`GravitatingBody::gm`] is the way to get one, and
+//! [`GravitatingBody::source`] says where it
 //! came from.
 
 /// Speed of light in vacuum, in metres per second.
@@ -116,70 +117,118 @@ pub const EARTH_EQUATORIAL_RADIUS: f64 = 6_378_137.0;
 pub const GPS_ORBIT_RADIUS: f64 = 26_561_750.0;
 
 /// A body whose standard gravitational parameter this crate carries.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Body {
-    /// The Sun.
-    Sun,
-    /// The Earth.
-    Earth,
-    /// The Moon.
-    Moon,
-    /// The Mars system.
-    Mars,
-    /// The Jupiter system.
-    Jupiter,
-    /// Sagittarius A\*, the Galactic centre black hole.
-    SagittariusAStar,
+///
+/// # Why this is a struct and not an enum
+///
+/// It was an enum of six, with three parallel matches behind it — `gm`,
+/// `english_name` and `source` — each enumerating the same six bodies.
+/// Adding Venus meant a variant and three match arms, and the variant list
+/// was a claim that these are the bodies there are.
+///
+/// The workspace already disagreed with itself about this.
+/// `hc_planetary::bodies::Body` is a struct with twenty-two entries in a
+/// table, for the same concept, four crates away. Two shapes for one idea
+/// in one workspace is the kind of thing that is invisible until someone
+/// writes them down next to each other.
+///
+/// It is named `GravitatingBody` rather than `Body` because it carries a
+/// different fact from the planetary one — a mass parameter, not a rotation
+/// — and two types called `Body` in one workspace helped nobody.
+#[derive(Debug, Clone, Copy)]
+pub struct GravitatingBody {
+    /// A stable identifier, lowercase and hyphenated.
+    pub id: &'static str,
+    /// The English name.
+    pub english_name: &'static str,
+    /// The standard gravitational parameter `GM`, in m³ s⁻².
+    pub gm: f64,
+    /// Where the value came from, for a footnote or a provenance record.
+    pub source: &'static str,
 }
 
-impl Body {
-    /// Every body in the table.
-    pub const ALL: [Self; 6] = [
-        Self::Sun,
-        Self::Earth,
-        Self::Moon,
-        Self::Mars,
-        Self::Jupiter,
-        Self::SagittariusAStar,
-    ];
-
-    /// The standard gravitational parameter `GM`, in m³ s⁻².
-    #[must_use]
-    pub const fn gm(self) -> f64 {
-        match self {
-            Self::Sun => GM_SUN,
-            Self::Earth => GM_EARTH,
-            Self::Moon => GM_MOON,
-            Self::Mars => GM_MARS,
-            Self::Jupiter => GM_JUPITER,
-            Self::SagittariusAStar => GM_SAGITTARIUS_A_STAR,
-        }
+impl PartialEq for GravitatingBody {
+    /// Two entries are the same body when they carry the same identifier.
+    ///
+    /// Compared by identifier because `gm` is an `f64`, which cannot derive
+    /// `Eq` and does not compare usefully anyway — the identifier is what
+    /// distinguishes one body from another.
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
     }
+}
 
-    /// The English name.
-    #[must_use]
-    pub const fn english_name(self) -> &'static str {
-        match self {
-            Self::Sun => "Sun",
-            Self::Earth => "Earth",
-            Self::Moon => "Moon",
-            Self::Mars => "Mars system",
-            Self::Jupiter => "Jupiter system",
-            Self::SagittariusAStar => "Sagittarius A*",
-        }
+impl Eq for GravitatingBody {}
+
+impl core::hash::Hash for GravitatingBody {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
     }
+}
 
-    /// Where the value came from, for a footnote or a provenance record.
-    #[must_use]
-    pub const fn source(self) -> &'static str {
-        match self {
-            Self::Sun => "IAU 2015 Resolution B3 nominal value (JPL DE430/DE440)",
-            Self::Earth => "IERS Conventions (2010) and WGS 84",
-            Self::Moon => "JPL DE430 lunar ephemeris",
-            Self::Mars => "JPL DE440, Mars system",
-            Self::Jupiter => "JPL DE440, Jupiter system",
-            Self::SagittariusAStar => "GRAVITY Collaboration, A&A 625, L10 (2019)",
-        }
+hc_core::catalogue! {
+    type: GravitatingBody,
+    id: |body| body.id,
+    provenance: |body| body.source,
+    tests: gravitating_body_catalogue,
+
+    /// Every body this crate carries a gravitational parameter for.
+    ///
+    /// Not a claim about which bodies exist. A caller with a mass parameter
+    /// this table has never heard of can write one down and use it, which is
+    /// the whole reason this is a table.
+    pub const GRAVITATING_BODIES;
+
+    /// The body with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// The Sun.
+        pub const SUN = GravitatingBody {
+            id: "sun",
+            english_name: "Sun",
+            gm: GM_SUN,
+            source: "IAU 2015 Resolution B3 nominal value (JPL DE430/DE440)",
+        };
+
+        /// The Earth.
+        pub const EARTH = GravitatingBody {
+            id: "earth",
+            english_name: "Earth",
+            gm: GM_EARTH,
+            source: "IERS Conventions (2010) and WGS 84",
+        };
+
+        /// The Moon.
+        pub const MOON = GravitatingBody {
+            id: "moon",
+            english_name: "Moon",
+            gm: GM_MOON,
+            source: "JPL DE430 lunar ephemeris",
+        };
+
+        /// The Mars system.
+        pub const MARS = GravitatingBody {
+            id: "mars",
+            english_name: "Mars system",
+            gm: GM_MARS,
+            source: "JPL DE440, Mars system",
+        };
+
+        /// The Jupiter system.
+        pub const JUPITER = GravitatingBody {
+            id: "jupiter",
+            english_name: "Jupiter system",
+            gm: GM_JUPITER,
+            source: "JPL DE440, Jupiter system",
+        };
+
+        /// Sagittarius A\*, the Galactic centre black hole.
+        pub const SAGITTARIUS_A_STAR = GravitatingBody {
+            id: "sagittarius-a-star",
+            english_name: "Sagittarius A*",
+            gm: GM_SAGITTARIUS_A_STAR,
+            source: "GRAVITY Collaboration, A&A 625, L10 (2019)",
+        };
     }
 }
 
@@ -221,27 +270,39 @@ mod tests {
         assert!(relative < 1e-3, "relative difference {relative}");
     }
 
+    /// The mass parameter of a body, looked up the way a caller would.
+    ///
+    /// Going through the table rather than naming the constants keeps these
+    /// assertions about the *data*: comparing two `const` values folds to a
+    /// constant that proves nothing, which is what clippy objects to and
+    /// clippy is right.
+    fn gm(id: &str) -> f64 {
+        by_id(id)
+            .unwrap_or_else(|| panic!("{id} should be in the table"))
+            .gm
+    }
+
     #[test]
     fn the_bodies_are_ordered_by_decreasing_mass_apart_from_the_black_hole() {
-        assert!(Body::SagittariusAStar.gm() > Body::Sun.gm());
-        assert!(Body::Sun.gm() > Body::Jupiter.gm());
-        assert!(Body::Jupiter.gm() > Body::Earth.gm());
-        assert!(Body::Earth.gm() > Body::Mars.gm());
-        assert!(Body::Mars.gm() > Body::Moon.gm());
+        assert!(gm("sagittarius-a-star") > gm("sun"));
+        assert!(gm("sun") > gm("jupiter"));
+        assert!(gm("jupiter") > gm("earth"));
+        assert!(gm("earth") > gm("mars"));
+        assert!(gm("mars") > gm("moon"));
     }
 
     #[test]
     fn sagittarius_a_star_is_four_million_solar_masses() {
-        let ratio = Body::SagittariusAStar.gm() / Body::Sun.gm();
+        let ratio = gm("sagittarius-a-star") / gm("sun");
         assert!((ratio - 4.297e6).abs() < 1.0, "got {ratio}");
     }
 
     #[test]
     fn every_body_carries_a_positive_parameter_and_a_source() {
-        for body in Body::ALL {
-            assert!(body.gm() > 0.0, "{} has no GM", body.english_name());
-            assert!(!body.source().is_empty());
-            assert!(!body.english_name().is_empty());
+        for body in GRAVITATING_BODIES {
+            assert!(body.gm > 0.0, "{} has no GM", body.english_name);
+            assert!(!body.source.is_empty());
+            assert!(!body.english_name.is_empty());
         }
     }
 
