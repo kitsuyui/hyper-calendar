@@ -483,6 +483,8 @@ impl fmt::Display for Duration {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(not(feature = "std"))]
+    use alloc::string::ToString as _;
 
     #[test]
     fn normalizes_negative_sub_second_values() {

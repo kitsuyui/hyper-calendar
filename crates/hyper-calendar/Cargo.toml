@@ -59,6 +59,8 @@ alloc = [
     "hc-planetary?/alloc",
     "hc-relativity?/alloc",
 ]
+# Floating-point math for `no_std`. A build with neither `std` nor `libm`
+# is refused at compile time rather than panicking at run time.
 libm = ["hc-core/libm"]
 
 # --- Capability bundles ----------------------------------------------------
