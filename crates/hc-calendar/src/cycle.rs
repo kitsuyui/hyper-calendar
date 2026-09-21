@@ -73,7 +73,14 @@ use crate::time::{CivilDateTime, CivilTime};
 
 pub mod readings;
 
-/// The twelve zodiac animals, in branch order.
+/// The twelve zodiac animals, in branch order, in English.
+///
+/// English only, and deliberately: the animals are words of a language —
+/// 兔 in traditional Chinese, 兎 in Japanese, 토끼 in Korean, and the cat
+/// rather than the rabbit in Vietnamese — so every other spelling is the
+/// locale's and lives in `hc-i18n`. The characters for the stems, branches
+/// and phases are shared by every language that uses them, which is why
+/// those are here and these are not.
 pub const ZODIAC_ANIMALS: [&str; 12] = [
     "rat", "ox", "tiger", "rabbit", "dragon", "snake", "horse", "goat", "monkey", "rooster", "dog",
     "pig",
@@ -81,22 +88,6 @@ pub const ZODIAC_ANIMALS: [&str; 12] = [
 
 /// The five phases, in stem-pair order.
 pub const FIVE_PHASES: [&str; 5] = ["wood", "fire", "earth", "metal", "water"];
-
-/// The twelve zodiac animals in characters, in branch order.
-///
-/// Traditional Chinese forms. The simplified Chinese, Japanese and Korean
-/// columns differ — 兔/兔/兎, 龍/龙/竜, 雞/鸡/鶏, 豬/猪/猪, 猴 against 猿,
-/// 狗 against 犬 — and those belong to `hc-i18n`, which resolves them by
-/// locale. [`ZODIAC_ANIMALS_JAPANESE`] is here only because the four-pillar
-/// vocabulary is so often printed in Japanese alongside the branches.
-pub const ZODIAC_ANIMALS_CJK: [&str; 12] = [
-    "鼠", "牛", "虎", "兔", "龍", "蛇", "馬", "羊", "猴", "雞", "狗", "豬",
-];
-
-/// The twelve zodiac animals in Japanese shinjitai, in branch order.
-pub const ZODIAC_ANIMALS_JAPANESE: [&str; 12] = [
-    "鼠", "牛", "虎", "兎", "竜", "蛇", "馬", "羊", "猿", "鶏", "犬", "猪",
-];
 
 /// The five phases (五行) in characters, in stem-pair order.
 pub const FIVE_PHASES_CJK: [&str; 5] = ["木", "火", "土", "金", "水"];
@@ -122,7 +113,7 @@ pub const FIVE_PHASES_JAPANESE_KUN: [&str; 5] = ["ki", "hi", "tsuchi", "ka", "mi
 /// These are the descriptive names used in Han-period and later texts —
 /// 夜半 "midnight", 雞鳴 "cockcrow", 平旦 "dawn" — rather than the branch
 /// names, and they are what an almanac prints beside the hour. Traditional
-/// characters, to match [`ZODIAC_ANIMALS_CJK`].
+/// characters.
 pub const DOUBLE_HOUR_CLASSICAL_NAMES_CJK: [&str; 12] = [
     "夜半", "雞鳴", "平旦", "日出", "食時", "隅中", "日中", "日昳", "晡時", "日入", "黃昏", "人定",
 ];
@@ -282,12 +273,6 @@ impl Sexagenary {
     #[must_use]
     pub const fn zodiac_animal(self) -> &'static str {
         ZODIAC_ANIMALS[(self.index % 12) as usize]
-    }
-
-    /// The zodiac animal character, in traditional Chinese.
-    #[must_use]
-    pub const fn zodiac_animal_cjk(self) -> &'static str {
-        ZODIAC_ANIMALS_CJK[(self.index % 12) as usize]
     }
 
     /// The five-phase element associated with the stem.
@@ -1125,8 +1110,8 @@ mod tests {
 
     #[test]
     fn every_name_table_has_the_length_its_cycle_needs() {
-        assert_eq!(ZODIAC_ANIMALS_CJK.len(), 12);
-        assert_eq!(ZODIAC_ANIMALS_JAPANESE.len(), 12);
+        assert_eq!(ZODIAC_ANIMALS.len(), 12);
+        assert_eq!(FIVE_PHASES.len(), 5);
         assert_eq!(FIVE_PHASES_CJK.len(), 5);
         assert_eq!(FIVE_PHASES_PINYIN.len(), 5);
         assert_eq!(FIVE_PHASES_JAPANESE_ON.len(), 5);
@@ -1137,8 +1122,8 @@ mod tests {
     #[test]
     fn no_name_table_has_an_empty_entry() {
         for table in [
-            &ZODIAC_ANIMALS_CJK[..],
-            &ZODIAC_ANIMALS_JAPANESE[..],
+            &ZODIAC_ANIMALS[..],
+            &FIVE_PHASES[..],
             &FIVE_PHASES_CJK[..],
             &FIVE_PHASES_PINYIN[..],
             &FIVE_PHASES_JAPANESE_ON[..],
@@ -1154,7 +1139,7 @@ mod tests {
     #[test]
     fn the_first_pair_is_the_wood_rat() {
         let jia_zi = Sexagenary::from_index(0);
-        assert_eq!(jia_zi.zodiac_animal_cjk(), "鼠");
+        assert_eq!(jia_zi.zodiac_animal(), "rat");
         assert_eq!(jia_zi.five_phase_cjk(), "木");
         assert_eq!(jia_zi.five_phase_index(), 0);
         assert_eq!(jia_zi.to_string(), "jia-zi");

@@ -704,12 +704,13 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &[],
         &[],
     ),
-    // The two calendars the old name model could not hold. Badíʿ has
-    // nineteen months, which the twelve-or-thirteen assertion rejected; the
-    // French Republican week is a ten-day décade, which had nowhere to live
-    // because weekday names were keyed to a seven-valued enum. Both are
-    // ordinary data now, and `hyper-calendar`'s vocabulary test checks each
-    // list against the length its calendar declares.
+    // Badíʿ has nineteen months, which the old twelve-or-thirteen assertion
+    // rejected; it is ordinary data now, checked against the length the
+    // calendar declares. Its month names are the Bahá'í transliteration
+    // English-language texts use, which is why they are a locale's and not
+    // the calendar's own. (The French Republican months and décade days,
+    // which once sat beside these, are the calendar's own French and are
+    // declared with its shape in `hc-calendars-solar`.)
     CalendarNames {
         calendars: &[CalendarId("bahai-arithmetic")],
         cycles: &[months(&[
@@ -739,40 +740,6 @@ const EN_CALENDARS: &[CalendarNames] = &[
             names: widths(&["BE"], &[], &[]),
             calendars: &[],
         },
-        quarters: ContextualNames::EMPTY,
-    },
-    CalendarNames {
-        calendars: &[CalendarId("french-republican-arithmetic")],
-        cycles: &[
-            months(&[
-                "Vendémiaire",
-                "Brumaire",
-                "Frimaire",
-                "Nivôse",
-                "Pluviôse",
-                "Ventôse",
-                "Germinal",
-                "Floréal",
-                "Prairial",
-                "Messidor",
-                "Thermidor",
-                "Fructidor",
-                "Sansculottides",
-            ]),
-            CycleNames::new(
-                "decade-day",
-                ContextualNames::same(widths(
-                    &[
-                        "Primidi", "Duodi", "Tridi", "Quartidi", "Quintidi", "Sextidi", "Septidi",
-                        "Octidi", "Nonidi", "Décadi",
-                    ],
-                    &[],
-                    &[],
-                )),
-            ),
-        ],
-        leap_month_prefix: "",
-        eras: EraNames::EMPTY,
         quarters: ContextualNames::EMPTY,
     },
 ];

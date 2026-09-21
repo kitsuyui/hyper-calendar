@@ -26,8 +26,10 @@
 //! needs the equinox variant, which `hc-astro` will supply. This module is
 //! for the arithmetic extension, forwards and backwards, of the *idea*.
 //!
-//! Month names (*Vendémiaire*, *Brumaire*, …) and the day names of the
-//! *décade* belong to `hc-i18n`.
+//! The month names and the day names of the *décade* are [`MONTHS`] and
+//! [`DECADE_DAYS`], declared with the calendar's shape: the calendar was
+//! defined in French and every other language borrows the words, so they
+//! are the calendar's own rather than a locale's.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
@@ -202,6 +204,38 @@ impl FrenchRepublicanDate {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct ArithmeticFrenchRepublicanCalendar;
 
+/// The twelve months and, as a thirteenth position, the complementary
+/// days — named as Fabre d'Églantine proposed and the Convention adopted
+/// on 3 Brumaire An II (24 October 1793), in their modern French
+/// orthography.
+///
+/// The complementary days were the *sansculottides* in the decree of 1793
+/// and the *jours complémentaires* from An III; the earlier name is used
+/// here because the calendar's month numbering in this crate follows the
+/// 1793 form.
+pub const MONTHS: [&str; 13] = [
+    "Vendémiaire",
+    "Brumaire",
+    "Frimaire",
+    "Nivôse",
+    "Pluviôse",
+    "Ventôse",
+    "Germinal",
+    "Floréal",
+    "Prairial",
+    "Messidor",
+    "Thermidor",
+    "Fructidor",
+    "Sansculottides",
+];
+
+/// The ten days of the *décade*, Primidi through Décadi, from the same
+/// decree.
+pub const DECADE_DAYS: [&str; 10] = [
+    "Primidi", "Duodi", "Tridi", "Quartidi", "Quintidi", "Sextidi", "Septidi", "Octidi", "Nonidi",
+    "Décadi",
+];
+
 impl Calendar for ArithmeticFrenchRepublicanCalendar {
     type Date = FrenchRepublicanDate;
 
@@ -215,8 +249,8 @@ impl Calendar for ArithmeticFrenchRepublicanCalendar {
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         use hc_calendar::shape::{CycleShape, MONTH};
         const SHAPE: &[CycleShape] = &[
-            CycleShape::fixed(MONTH, 13),
-            CycleShape::fixed("decade-day", 10),
+            CycleShape::named(MONTH, &MONTHS),
+            CycleShape::named("decade-day", &DECADE_DAYS),
         ];
         SHAPE
     }
