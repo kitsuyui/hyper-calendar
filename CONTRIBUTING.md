@@ -40,6 +40,17 @@ cargo build -p hyper-calendar-ffi --release                            # shared 
 All of these must pass. `unwrap()` and `expect()` are deny-level lints outside
 tests — see [`docs/policy.md`](docs/policy.md) §8.
 
+Two documents are generated and checked by tests, so a change that alters
+what they list fails until they are regenerated and the diff is read:
+
+```sh
+UPDATE_SUPPORTED=1 cargo test -p hyper-calendar --all-features --test supported  # docs/supported.md
+UPDATE_ABI=1 cargo test -p hyper-calendar --test abi                             # the C and WebAssembly README tables
+```
+
+Every crate carries a README stating what it claims and what it refuses
+([ADR 0004](docs/adr/0004-one-crate-per-capability.md)); a new crate needs one.
+
 **Update your tools before pushing.** CI installs the latest stable Rust and
 the latest `typos` on every run, so a local pass with an older toolchain is not
 a guarantee — a newer clippy or a newer dictionary will find things yours does

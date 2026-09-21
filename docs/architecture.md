@@ -75,7 +75,7 @@ the library silently assumes "local time" or "now".
                              │
         ┌────────────────────┼─────────────────┬──────────────┐
         │                    │                 │              │
-  hc-uncertainty        hc-calendar      (nothing else depends on core alone)
+  hc-uncertainty        hc-calendar           hc-units
   (sig figs, fuzzy,   (Rd, CivilTime,
    EDTF, intervals)    Calendar trait,
         │               registry)
@@ -110,6 +110,13 @@ the library silently assumes "local time" or "now".
                             ├── hyper-calendar-ffi   (cdylib / staticlib, C ABI)
                             └── hyper-calendar-wasm  (cdylib, WebAssembly)
 ```
+
+Four crates are left out of the drawing to keep it legible: `hc-units`
+(exact ratios, tempo and media rates; on `hc-core` alone), `hc-attributes`
+(birthstones and the like; on `hc-calendar` and `hc-seasons`), `hc-almanac`
+(暦注; on `hc-seasons`, `hc-astro` and `hc-calendars-lunar`) and `hc-fiscal`
+(fiscal and academic years; on `hc-calendars-solar`). The workspace manifest
+is the list of record.
 
 The graph is a DAG. No crate depends on a crate it does not need, and nothing
 depends on the facade.

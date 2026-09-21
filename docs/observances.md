@@ -25,12 +25,15 @@ EasterRelative { comp, offs } Good Friday (-2), Easter Monday (+1)
                               Ash Wednesday (-46), Pentecost (+49)
 LunarPhase { phase, after }   the first full moon on or after a fixed date
 Offset { base, days }         除夕, Seollal's eve, Tết's first days
+Tabulated { fn, first, last } Matariki, gazetted through a stated last year
 Computed(fn)                  the few that really are bespoke
 ```
 
-`WeekdayOnOrAfter`, `WeekdayOnOrBefore` and `Offset` were added while writing
-the national tables; each is still a pure rule value, and each removed a
-`Computed` that would otherwise have been needed.
+`WeekdayOnOrAfter`, `WeekdayOnOrBefore`, `Offset` and `Tabulated` were added
+while writing the national tables; each is still a pure rule value. The first
+three each removed a `Computed` that would otherwise have been needed, and
+the fourth gives a published table a last year, so that running out of table
+is reported as a gap rather than passing for a year without the holiday.
 
 Rules then pass through **observance modifiers**, which are themselves data:
 
@@ -56,10 +59,11 @@ Rules then pass through **observance modifiers**, which are themselves data:
 Because the rule set is data, a caller can supply their own table — a company
 calendar, a school year, a fictional setting — and get the same engine.
 
-Only **six** rules in the whole crate are `Computed`: Ireland's St Brigid's
-Day, the Dutch royal day, US Inauguration Day, Mexico's presidential handover,
-Israel's Yom HaAtzmaut and New Zealand's statutory Matariki schedule. Japan
-needs none.
+Only **five** statutes in the whole crate are `Computed`: Ireland's St
+Brigid's Day, the Dutch royal day (under two monarchs), US Inauguration Day,
+Mexico's presidential handover and Israel's Yom HaAtzmaut. New Zealand's
+Matariki is `Tabulated`, with the last gazetted year stated. Japan needs
+none.
 
 ## What the engine will not do
 
@@ -68,9 +72,9 @@ needs none.
   library returns the Umm al-Qura or tabular computation and flags it
   `Approximate`. It is a good prediction, not an announcement.
 - **It will not invent substitution rules it cannot cite.** A country's
-  weekend-substitution behaviour is law, and laws differ. Two dozen of the
-  tables below carry no substitution policy at all, because their countries
-  have none in calendar-expressible form.
+  weekend-substitution behaviour is law, and laws differ. Most of the tables
+  below carry no substitution policy at all, because their countries have
+  none in calendar-expressible form; `supported.md` shows which.
 - **It will not guess an annual administrative act.** China's 调休, Taiwan's
   Lunar New Year makeup days, Vietnam's Tết span, Thailand's Songkran makeup
   days and Indonesia's *cuti bersama* are decided year by year by a ministry.

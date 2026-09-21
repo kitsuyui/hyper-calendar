@@ -46,9 +46,10 @@ An `enum` gives three guarantees for free: every member exists, every
 `match` is exhaustive, and an identifier cannot be mistyped. Data gives
 none of them, so they are bought back with tests.
 
-`hc_core::catalogue!` generates the ones every table needs — identifiers
-are unique, every entry is findable by its own identifier, the table is in
-the order it claims, every entry names its source — so that declaring an
+`hc_core::catalogue!` generates, for every table declared with it, the
+ones every table needs — identifiers are unique, every entry is findable by
+its own identifier, the table is in the order it claims, every entry names
+its source — so that declaring an
 entry, listing it and counting it stop being three separate edits. The
 guarantees that are domain knowledge — 甲子 in each reading, a feast on
 its date, an epact against a computus that shares no code with it — cannot

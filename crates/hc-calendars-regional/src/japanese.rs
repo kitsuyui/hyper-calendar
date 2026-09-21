@@ -13,7 +13,11 @@
 //! |---|---|---|
 //! | 1873-01-01 onward | proleptic Gregorian | [`hc_calendars_solar::gregorian`] |
 //! | 1844-02-18 to 1872-12-31 | Tenpō lunisolar, with leap months | [`hc_calendars_lunar::japanese_tenpo`] |
-//! | before 1844-02-18 | *not supported* | — |
+//! | 1798-02-16 to 1844-02-17 | Kansei lunisolar | [`hc_calendars_lunar::japanese_historical::kansei`] |
+//! | 1755-02-11 to 1798-02-15 | Hōryaku lunisolar | [`hc_calendars_lunar::japanese_historical::horyaku`] |
+//! | 1685-02-04 to 1755-02-10 | Jōkyō lunisolar | [`hc_calendars_lunar::japanese_historical::jokyo`] |
+//! | 862-02-07 to 1685-02-03 | Senmyō lunisolar | [`hc_calendars_lunar::japanese_historical::senmyo`] |
+//! | before 862-02-07 | *not supported* | — |
 //!
 //! The Dajōkan decree of 9 November 1872 declared that 明治5年12月3日 would
 //! be 1 January 1873 in the solar calendar. So 明治5年12月2日 is
@@ -28,24 +32,22 @@
 //!
 //! # Where this implementation stops, and why
 //!
-//! Conversion stops at **1844-02-18**, which is 天保15年1月1日 and the first
-//! day the Tenpō calendar was in force. That is not where the *eras* stop —
-//! [`crate::nengo`] carries all 248 of them back to 大化 in 645 — it is
-//! where the *lunisolar arithmetic* stops, because the Tenpō calendar is
-//! the only pre-reform Japanese calendar implemented in this workspace.
+//! Conversion reaches back to **862-02-07**, 貞観4年1月1日, the first day of
+//! the Senmyō calendar. Japan changed lunisolar system four times between
+//! then and 1844, and each system differs from the next in its solar theory
+//! and its intercalation, so a date only means what the system in force on
+//! that day says it means. This module asks the calendar that was in force
+//! — Senmyō, Jōkyō, Hōryaku, Kansei, then Tenpō — for every day, rather
+//! than running the last of them backwards through the other four, which
+//! would be wrong by a day here and a whole month there with no warning.
 //!
-//! Japan used at least five earlier systems: Senmyō-reki (862–1685),
-//! Jōkyō-reki (1685–1755), Hōryaku-reki (1755–1798), Kansei-reki
-//! (1798–1844). They differ from Tenpō in their solar theory and their
-//! intercalation, so running the Tenpō rules backwards would produce dates
-//! that are wrong by a day here and a whole month there, with no warning to
-//! the caller. This module refuses instead, and
-//! [`hc_calendar::CalendarMeta::earliest`] says so, so that a caller asking
-//! for 元禄15年12月14日 gets [`CalendarError::BeforeEpoch`] rather than a
-//! plausible lie.
-//!
-//! [`crate::nengo::era_at`] will still tell you which era was in force on
-//! any day from 645 onward. It just will not tell you the month and day.
+//! Before 862 no calendar is implemented, and the module refuses rather than
+//! guesses: [`hc_calendar::CalendarMeta::earliest`] says so, and a caller
+//! asking for a day before it gets [`CalendarError::BeforeEpoch`]. That is
+//! not where the *eras* stop — [`crate::nengo`] carries all 248 of them back
+//! to 大化 in 645, and [`crate::nengo::era_at`] will name the era in force
+//! on any day from 645 onward. It just will not give the month and day
+//! before 862.
 //!
 //! # Era boundaries
 //!
