@@ -162,29 +162,31 @@ mod tests {
     #[test]
     fn every_hijri_dated_rule_is_flagged_as_a_prediction() {
         use crate::rule::{CalendarSystem, Rule};
+
+        /// Whether a rule bottoms out in a Hijri calendar.
+        ///
+        /// Compared by identifier rather than matched: a `CalendarSystem`
+        /// carries function pointers now, and those cannot appear in a
+        /// pattern. That is the cost of the set being open, and it is a
+        /// small one.
+        fn hijri_dated(rule: &Rule) -> bool {
+            match rule {
+                Rule::FixedInCalendar { system, .. } => {
+                    *system == CalendarSystem::ISLAMIC_CIVIL
+                        || *system == CalendarSystem::ISLAMIC_UMM_AL_QURA
+                }
+                Rule::Offset { base, .. } => hijri_dated(base),
+                _ => false,
+            }
+        }
+
         for country in ALL {
             for rule in country.rules {
-                let hijri = matches!(
-                    rule.rule,
-                    Rule::FixedInCalendar {
-                        system: CalendarSystem::IslamicCivil | CalendarSystem::IslamicUmmAlQura,
-                        ..
-                    }
-                ) || matches!(
-                    rule.rule,
-                    Rule::Offset {
-                        base: Rule::FixedInCalendar {
-                            system: CalendarSystem::IslamicCivil | CalendarSystem::IslamicUmmAlQura,
-                            ..
-                        },
-                        ..
-                    }
-                );
-                if hijri {
+                if hijri_dated(&rule.rule) {
                     assert_eq!(
                         rule.confidence,
                         Confidence::Approximate,
-                        "{} / {} is Hijri-dated but claims to be exact",
+                        "{}: {} is Hijri-dated and must be a prediction",
                         country.code,
                         rule.name
                     );

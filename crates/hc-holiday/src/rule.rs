@@ -11,12 +11,12 @@
 //! [`Rule::Offset`].
 
 use hc_calendar::Calendar as _;
-use hc_calendar::{Month, Rd, Weekday};
+use hc_calendar::{CalendarId, Month, Rd, Weekday};
 use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
 use hc_calendars_lunar::tabular::{self, LeapYearRule};
 use hc_calendars_lunar::{ChineseCalendar, DangiCalendar, LunisolarDate, VietnameseCalendar};
-use hc_calendars_solar::{gregorian, julian};
+use hc_calendars_solar::{bahai, coptic, ethiopic, gregorian, julian, persian};
 use hc_seasons::solar_terms::term_day;
 use hc_seasons::{Meridian, SolarTerm};
 
@@ -119,65 +119,217 @@ impl Default for Days {
 
 /// A calendar a [`Rule::FixedInCalendar`] can name a date in.
 ///
-/// This is deliberately a closed enum rather than a `dyn Calendar`: the whole
-/// point of the crate is that a holiday table is a `static` value, and a
-/// trait object cannot be one without an allocator.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CalendarSystem {
-    /// The proleptic Gregorian calendar.
-    Gregorian,
-    /// The Julian calendar, still used for the fixed feasts of most Orthodox
-    /// churches.
-    Julian,
-    /// The tabular civil Hijri calendar (CLDR `islamic-civil`), the
-    /// arithmetic approximation with the 15-based intercalation.
-    IslamicCivil,
-    /// The Umm al-Qurā calendar of Saudi Arabia (CLDR `islamic-umalqura`),
-    /// which is a published table and therefore refuses years outside
-    /// 1300–1600 AH rather than extrapolating.
-    IslamicUmmAlQura,
-    /// The Hebrew calendar. Months are Tishrei-first, so Nisan is
-    /// `Month::regular(7)` and Adar I in a leap year is `Month::leap(5)`.
-    Hebrew,
-    /// The Chinese lunisolar calendar, computed at the Beijing meridian.
-    Chinese,
-    /// The Korean lunisolar calendar (CLDR `dangi`), computed at the Seoul
-    /// meridian, which puts Seollal a day away from 春節 a few times a
-    /// century.
-    Dangi,
-    /// The Vietnamese lunisolar calendar, computed at UTC+7, which puts Tết a
-    /// day away from 春節 rather more often.
-    Vietnamese,
+/// # Why this is a struct and not an enum
+///
+/// It was an enum, with this justification: "the whole point of the crate
+/// is that a holiday table is a `static` value, and a trait object cannot
+/// be one without an allocator". The first half is right and the second is
+/// true of `dyn Calendar` — but neither requires a *closed set*.
+///
+/// A closed set is a hole generator. A holiday dated in the Ethiopic,
+/// Coptic, Solar Hijri or Badíʿ calendar could not be written down at all,
+/// however much anyone wanted to: the rule vocabulary had no way to say it,
+/// so Ethiopian Christmas had to be approximated in some other calendar or
+/// left out. Adding one meant editing an enum and two match arms in a crate
+/// the person who wanted it does not own.
+///
+/// Two function pointers and an identifier are `Copy`, `const`-constructible
+/// and `static`-safe, exactly as the enum was, and open: a caller with a
+/// calendar this crate has never heard of can build one and date a holiday
+/// in it.
+///
+/// The identifier is a real [`CalendarId`], and
+/// `hyper-calendar/tests/holiday_calendars.rs` asserts that every system
+/// here names a calendar the registry answers to — the same guard the
+/// vocabulary layer gained, for the same reason.
+#[derive(Debug, Clone, Copy)]
+pub struct CalendarSystem {
+    /// The calendar this dates in, as the registry names it.
+    pub id: CalendarId,
+    /// The fixed day of a date, or `None` when it does not exist or falls
+    /// outside the calendar's range.
+    to_fixed: fn(i64, Month, u8) -> Option<Rd>,
+    /// The year containing a fixed day, or `None` outside the range.
+    year_containing: fn(Rd) -> Option<i64>,
+}
+
+impl PartialEq for CalendarSystem {
+    /// Two systems are the same when they name the same calendar.
+    ///
+    /// Function pointers do not compare usefully, and the identifier is the
+    /// thing that actually distinguishes one system from another.
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for CalendarSystem {}
+
+impl core::hash::Hash for CalendarSystem {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }
 
 impl CalendarSystem {
-    /// The fixed day of a date in this calendar, or `None` when that date
-    /// does not exist or falls outside the calendar's supported range.
+    /// A system from its identifier and its two conversions.
     #[must_use]
-    pub fn to_fixed(self, year: i64, month: Month, day: u8) -> Option<Rd> {
-        match self {
-            Self::Gregorian => gregorian::to_fixed(year, month.ordinal, day).ok(),
-            Self::Julian => julian::to_fixed(year, month.ordinal, day).ok(),
-            Self::IslamicCivil => tabular::to_fixed(
+    pub const fn new(
+        id: CalendarId,
+        to_fixed: fn(i64, Month, u8) -> Option<Rd>,
+        year_containing: fn(Rd) -> Option<i64>,
+    ) -> Self {
+        Self {
+            id,
+            to_fixed,
+            year_containing,
+        }
+    }
+
+    /// The proleptic Gregorian calendar.
+    pub const GREGORIAN: Self = Self::new(
+        CalendarId("gregory"),
+        |year, month, day| gregorian::to_fixed(year, month.ordinal, day).ok(),
+        |rd| gregorian::year_from_fixed(rd).ok(),
+    );
+
+    /// The Julian calendar, still used for the fixed feasts of most
+    /// Orthodox churches.
+    pub const JULIAN: Self = Self::new(
+        CalendarId("julian"),
+        |year, month, day| julian::to_fixed(year, month.ordinal, day).ok(),
+        |rd| julian::from_fixed(rd).ok().map(|(year, _, _)| year),
+    );
+
+    /// The tabular civil Hijri calendar, the arithmetic approximation.
+    pub const ISLAMIC_CIVIL: Self = Self::new(
+        CalendarId("islamic-civil"),
+        |year, month, day| {
+            tabular::to_fixed(
                 tabular::CIVIL_EPOCH,
                 LeapYearRule::Civil,
                 year,
                 month.ordinal,
                 day,
             )
-            .ok(),
-            Self::IslamicUmmAlQura => islamic_umalqura::to_fixed(year, month.ordinal, day).ok(),
-            Self::Hebrew => hebrew::to_fixed(year, month, day).ok(),
-            Self::Chinese => ChineseCalendar
+            .ok()
+        },
+        |rd| {
+            tabular::from_fixed(tabular::CIVIL_EPOCH, LeapYearRule::Civil, rd)
+                .ok()
+                .map(|(year, _, _)| year)
+        },
+    );
+
+    /// The Umm al-Qurā calendar of Saudi Arabia, a published table that
+    /// refuses years outside 1300–1600 AH rather than extrapolating.
+    pub const ISLAMIC_UMM_AL_QURA: Self = Self::new(
+        CalendarId("islamic-umalqura"),
+        |year, month, day| islamic_umalqura::to_fixed(year, month.ordinal, day).ok(),
+        |rd| islamic_umalqura::from_fixed(rd).ok().map(|(y, _, _)| y),
+    );
+
+    /// The Hebrew calendar. Months are Tishrei-first, so Nisan is
+    /// `Month::regular(7)` and Adar I in a leap year is `Month::leap(5)`.
+    pub const HEBREW: Self = Self::new(
+        CalendarId("hebrew"),
+        |year, month, day| hebrew::to_fixed(year, month, day).ok(),
+        |rd| hebrew::year_from_fixed(rd).ok(),
+    );
+
+    /// The Chinese lunisolar calendar, computed at the Beijing meridian.
+    pub const CHINESE: Self = Self::new(
+        CalendarId("chinese"),
+        |year, month, day| {
+            ChineseCalendar
                 .to_fixed(LunisolarDate::new(year, month, day))
-                .ok(),
-            Self::Dangi => DangiCalendar
+                .ok()
+        },
+        |rd| ChineseCalendar.from_fixed(rd).ok().map(|date| date.year),
+    );
+
+    /// The Korean lunisolar calendar, computed at the Seoul meridian, which
+    /// puts Seollal a day away from 春節 a few times a century.
+    pub const DANGI: Self = Self::new(
+        CalendarId("dangi"),
+        |year, month, day| {
+            DangiCalendar
                 .to_fixed(LunisolarDate::new(year, month, day))
-                .ok(),
-            Self::Vietnamese => VietnameseCalendar
+                .ok()
+        },
+        |rd| DangiCalendar.from_fixed(rd).ok().map(|date| date.year),
+    );
+
+    /// The Vietnamese lunisolar calendar, computed at UTC+7, which puts Tết
+    /// a day away from 春節 rather more often.
+    pub const VIETNAMESE: Self = Self::new(
+        CalendarId("vietnamese"),
+        |year, month, day| {
+            VietnameseCalendar
                 .to_fixed(LunisolarDate::new(year, month, day))
-                .ok(),
-        }
+                .ok()
+        },
+        |rd| VietnameseCalendar.from_fixed(rd).ok().map(|date| date.year),
+    );
+
+    /// The Ethiopic calendar, in which the Ethiopian Orthodox Tewahedo
+    /// Church dates its fixed feasts and Ethiopia its civil year.
+    ///
+    /// One of the calendars the closed enum could not express. Genna, Timkat
+    /// and Enkutatash are fixed dates in it and were not writable before.
+    pub const ETHIOPIC: Self = Self::new(
+        CalendarId("ethiopic"),
+        |year, month, day| ethiopic::to_fixed(year, month.ordinal, day).ok(),
+        |rd| ethiopic::from_fixed(rd).ok().map(|(year, _, _)| year),
+    );
+
+    /// The Coptic calendar, which the Coptic Orthodox Church of Alexandria
+    /// dates its fixed feasts in.
+    pub const COPTIC: Self = Self::new(
+        CalendarId("coptic"),
+        |year, month, day| coptic::to_fixed(year, month.ordinal, day).ok(),
+        |rd| coptic::from_fixed(rd).ok().map(|(year, _, _)| year),
+    );
+
+    /// The Solar Hijri calendar, in which Iran and Afghanistan date Nowruz
+    /// and their civil holidays.
+    pub const SOLAR_HIJRI: Self = Self::new(
+        CalendarId("persian-arithmetic"),
+        |year, month, day| persian::to_fixed(year, month.ordinal, day).ok(),
+        |rd| persian::from_fixed(rd).ok().map(|(year, _, _)| year),
+    );
+
+    /// The Badíʿ calendar, in which the Bahá'í holy days are dated.
+    pub const BADI: Self = Self::new(
+        CalendarId("bahai-arithmetic"),
+        |year, month, day| bahai::to_fixed(year, month.ordinal, day).ok(),
+        |rd| bahai::from_fixed(rd).ok().map(|(year, _, _)| year),
+    );
+
+    /// Every system this crate defines.
+    ///
+    /// Not exhaustive of what is *possible* — that is the point of the type
+    /// — but exhaustive of what ships, so a test can check them all.
+    pub const ALL: &'static [Self] = &[
+        Self::GREGORIAN,
+        Self::JULIAN,
+        Self::ISLAMIC_CIVIL,
+        Self::ISLAMIC_UMM_AL_QURA,
+        Self::HEBREW,
+        Self::CHINESE,
+        Self::DANGI,
+        Self::VIETNAMESE,
+        Self::ETHIOPIC,
+        Self::COPTIC,
+        Self::SOLAR_HIJRI,
+        Self::BADI,
+    ];
+
+    /// The fixed day of a date in this calendar, or `None` when that date
+    /// does not exist or falls outside the calendar's supported range.
+    #[must_use]
+    pub fn to_fixed(self, year: i64, month: Month, day: u8) -> Option<Rd> {
+        (self.to_fixed)(year, month, day)
     }
 
     /// Whether this calendar can answer for every day of a Gregorian year.
@@ -202,20 +354,7 @@ impl CalendarSystem {
     /// calendar's supported range.
     #[must_use]
     pub fn year_containing(self, rd: Rd) -> Option<i64> {
-        match self {
-            Self::Gregorian => gregorian::year_from_fixed(rd).ok(),
-            Self::Julian => julian::from_fixed(rd).ok().map(|(year, _, _)| year),
-            Self::IslamicCivil => {
-                tabular::from_fixed(tabular::CIVIL_EPOCH, LeapYearRule::Civil, rd)
-                    .ok()
-                    .map(|(year, _, _)| year)
-            }
-            Self::IslamicUmmAlQura => islamic_umalqura::from_fixed(rd).ok().map(|(y, _, _)| y),
-            Self::Hebrew => hebrew::year_from_fixed(rd).ok(),
-            Self::Chinese => ChineseCalendar.from_fixed(rd).ok().map(|date| date.year),
-            Self::Dangi => DangiCalendar.from_fixed(rd).ok().map(|date| date.year),
-            Self::Vietnamese => VietnameseCalendar.from_fixed(rd).ok().map(|date| date.year),
-        }
+        (self.year_containing)(rd)
     }
 }
 
@@ -1062,7 +1201,7 @@ mod tests {
         // 1 Muḥarram fell on 1 January and on 21 December 2008 under the
         // tabular civil reckoning.
         let rule = Rule::FixedInCalendar {
-            system: CalendarSystem::IslamicCivil,
+            system: CalendarSystem::ISLAMIC_CIVIL,
             month: Month::regular(1),
             day: 1,
         };

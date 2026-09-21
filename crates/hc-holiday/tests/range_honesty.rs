@@ -77,7 +77,7 @@ fn the_free_function_is_affected_too_and_the_gap_is_reachable() {
 #[test]
 fn a_rule_says_whether_it_can_be_answered_before_it_is_asked() {
     let spring = Rule::FixedInCalendar {
-        system: CalendarSystem::Chinese,
+        system: CalendarSystem::CHINESE,
         month: hc_calendar::Month::regular(1),
         day: 1,
     };
@@ -96,14 +96,14 @@ fn a_rule_says_whether_it_can_be_answered_before_it_is_asked() {
 #[test]
 fn every_calendar_system_agrees_with_itself_about_its_range() {
     for system in [
-        CalendarSystem::Gregorian,
-        CalendarSystem::Julian,
-        CalendarSystem::IslamicCivil,
-        CalendarSystem::IslamicUmmAlQura,
-        CalendarSystem::Hebrew,
-        CalendarSystem::Chinese,
-        CalendarSystem::Dangi,
-        CalendarSystem::Vietnamese,
+        CalendarSystem::GREGORIAN,
+        CalendarSystem::JULIAN,
+        CalendarSystem::ISLAMIC_CIVIL,
+        CalendarSystem::ISLAMIC_UMM_AL_QURA,
+        CalendarSystem::HEBREW,
+        CalendarSystem::CHINESE,
+        CalendarSystem::DANGI,
+        CalendarSystem::VIETNAMESE,
     ] {
         // Whatever each says about 2024, it must be able to place a date in
         // it if and only if it claims to cover it.
@@ -112,9 +112,9 @@ fn every_calendar_system_agrees_with_itself_about_its_range() {
     }
     // And the lunisolar three agree on where they stop.
     for system in [
-        CalendarSystem::Chinese,
-        CalendarSystem::Dangi,
-        CalendarSystem::Vietnamese,
+        CalendarSystem::CHINESE,
+        CalendarSystem::DANGI,
+        CalendarSystem::VIETNAMESE,
     ] {
         assert!(system.covers_gregorian_year(LAST_LUNISOLAR_YEAR));
         assert!(!system.covers_gregorian_year(LAST_LUNISOLAR_YEAR + 1));

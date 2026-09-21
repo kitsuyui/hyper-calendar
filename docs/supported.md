@@ -147,7 +147,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-6 tables, feature `holiday`.
+7 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
@@ -155,6 +155,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `chinese-folk` | Chinese folk tradition | 11 |
 | `christian-orthodox` | Christianity (Julian computus) | 18 |
 | `christian-western` | Christianity (Western computus) | 30 |
+| `ethiopian-orthodox` | Ethiopian Orthodox Tewahedo (fixed feasts) | 4 |
 | `islamic` | Islam | 10 |
 | `jewish` | Judaism | 19 |
 

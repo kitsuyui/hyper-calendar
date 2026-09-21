@@ -86,6 +86,13 @@ needs none.
 
 ## Stage 1 — Religious and traditional cycles
 
+> A rule can be dated in any calendar, not a fixed list of them.
+> `CalendarSystem` was a closed enum of eight, so a feast kept in the
+> Ethiopic, Coptic, Solar Hijri or Badíʿ calendar could not be expressed —
+> not "was not yet", *could not be*. It is now an open struct keyed to a
+> registry identifier, and the Ethiopian Orthodox table is there to prove
+> it rather than to describe it.
+
 The cross-cutting ones, because national tables depend on them.
 
 | Tradition | Coverage | Status |
