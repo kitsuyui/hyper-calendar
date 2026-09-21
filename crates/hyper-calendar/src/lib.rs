@@ -111,6 +111,19 @@ pub use hc_uncertainty;
 #[cfg(feature = "units")]
 pub use hc_units;
 
+/// The repository README, compiled as doctests and nothing else.
+///
+/// All three of its examples once used API that did not exist — a
+/// `Worldline` constructor, a `LightYears` newtype, two accessors — while
+/// describing a capability the library really has and tests elsewhere.
+/// Nothing caught it because a README is not compiled. This makes it one.
+///
+/// `cfg(doctest)` keeps the text out of the rendered documentation, where it
+/// would duplicate the module header above.
+#[cfg(all(doctest, feature = "alloc", feature = "civil", feature = "relativity"))]
+#[doc = include_str!("../../../README.md")]
+struct ReadmeDoctests;
+
 /// The version of this crate, for FFI callers and bug reports.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 

@@ -15,16 +15,21 @@ It contains no user interface. It computes and it formats; everything else is
 someone else's job.
 
 > **Status: early.** The foundations, the calendar abstraction and the first
-> wave of calendars are implemented and tested. The coverage tables in
-> [`docs/calendars.md`](docs/calendars.md) and
-> [`docs/observances.md`](docs/observances.md) mark exactly what is Done,
-> Partial, Planned and out of scope. Nothing is marked Done that is not tested
-> and anchored to a published reference.
+> wave of calendars are implemented and tested. Nothing is listed as supported
+> that is not tested and anchored to a published reference.
+>
+> **[`docs/supported.md`](docs/supported.md) is the index of everything that
+> exists** — every calendar identifier with its range and day boundary, every
+> holiday table, every unit, every feature. It is generated from the code and
+> a test fails when it drifts, so it is the one list that cannot be out of
+> date. [`docs/calendars.md`](docs/calendars.md) and
+> [`docs/observances.md`](docs/observances.md) are the other half: what is
+> *not* here, what is planned, and what is out of scope with reasons.
 
 ## What it is for
 
 ```rust
-use hyper_calendar::prelude::*;
+use hyper_calendar::{registry, Rd};
 
 // The same day, in several calendars at once.
 let today = Rd::from_unix_days(20_352);
@@ -34,16 +39,44 @@ for (calendar, fields) in registry().describe_day(today) {
 ```
 
 ```rust
+use hyper_calendar::hc_core::unix::{tai_from_utc, LeapPolicy, UtcInstant};
+
 // UTC really does have a 23:59:60, and this library can name it.
+// A leap second carries the POSIX timestamp of the second that *follows* it,
+// so these two differ only in the flag.
 let leap = UtcInstant { unix_seconds: 1_483_228_800, leap_second: true, subsec_attos: 0 };
-let tai = tai_from_utc(leap, LeapPolicy::Strict)?;
+let new_year = UtcInstant { unix_seconds: 1_483_228_800, leap_second: false, subsec_attos: 0 };
+
+let at_leap = tai_from_utc(leap, LeapPolicy::Strict).expect("2016-12-31 had one");
+let at_new_year = tai_from_utc(new_year, LeapPolicy::Strict).unwrap();
+
+// In TAI they are a second apart, because 23:59:60 is a second of its own.
+let gap = at_new_year.since_epoch().whole_seconds() - at_leap.since_epoch().whole_seconds();
+assert_eq!(gap, 1);
+
+// In POSIX time they are the same instant. That loss is what POSIX time is.
+assert_eq!(leap.to_unix_lossy(), new_year.to_unix_lossy());
 ```
 
 ```rust
-// A 1g rocket to Andromeda: 2.5 million years for Earth, about 28 for the crew.
-let voyage = Worldline::constant_proper_acceleration(G_EARTH, LightYears(2_500_000.0));
-println!("{} ship years, {} Earth years", voyage.proper_time_years(), voyage.coordinate_time_years());
+use hyper_calendar::hc_relativity::{
+    constants::{LIGHT_YEAR, STANDARD_GRAVITY},
+    worldline::{flip_and_burn_coordinate_time, flip_and_burn_proper_time},
+};
+
+// A 1g rocket to Andromeda: 2.5 million years for Earth, about 29 for the crew.
+let distance = 2.5e6 * LIGHT_YEAR;
+let year = 31_557_600.0;
+let ship = flip_and_burn_proper_time(STANDARD_GRAVITY, distance).unwrap() / year;
+let home = flip_and_burn_coordinate_time(STANDARD_GRAVITY, distance).unwrap() / year;
+println!("{ship:.1} ship years, {home:.0} Earth years");
+assert!(ship < 29.0 && home > 2.5e6);
 ```
+
+> These three blocks are doctests. The crate includes this file with
+> `#[doc = include_str!]` under `cfg(doctest)`, so a README example that stops
+> compiling fails CI. It was written after all three had quietly rotted into
+> API that never existed.
 
 ## The eight requirements, and where they live
 
@@ -56,7 +89,7 @@ println!("{} ship years, {} Earth years", voyage.proper_time_years(), voyage.coo
 | 5 | i18n, m17n, L10n | [`hc-i18n`](crates/hc-i18n), [`docs/i18n.md`](docs/i18n.md) |
 | 6 | Planck time to cosmology, with significant figures, error bars and vague ranges | [`hc-uncertainty`](crates/hc-uncertainty), [`hc-deep-time`](crates/hc-deep-time), [`docs/scales-beyond-seconds.md`](docs/scales-beyond-seconds.md) |
 | 7 | Mars sols and other bodies, and relativistic time dilation | [`hc-planetary`](crates/hc-planetary), [`hc-relativity`](crates/hc-relativity), [`docs/off-earth.md`](docs/off-earth.md) |
-| 8 | Modular, so only what is needed gets compiled in | The 19-crate workspace and the `hyper-calendar` feature set; [ADR 0004](docs/adr/0004-one-crate-per-capability.md) |
+| 8 | Modular, so only what is needed gets compiled in | One crate per capability, and the `hyper-calendar` feature set — listed in [`docs/supported.md`](docs/supported.md); [ADR 0004](docs/adr/0004-one-crate-per-capability.md) |
 
 ## Design in one paragraph
 

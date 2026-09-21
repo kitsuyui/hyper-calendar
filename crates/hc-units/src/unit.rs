@@ -48,6 +48,22 @@ pub enum Family {
     Scientific,
 }
 
+impl Family {
+    /// The family's name in English, spelled as the field spells it.
+    #[must_use]
+    pub const fn english_name(self) -> &'static str {
+        match self {
+            Self::Si => "SI",
+            Self::Civil => "civil",
+            Self::Horological => "horological",
+            Self::Decimal => "decimal",
+            Self::Hexadecimal => "hexadecimal",
+            Self::Media => "media",
+            Self::Scientific => "scientific",
+        }
+    }
+}
+
 /// A unit of time with an exactly defined length.
 ///
 /// This is a plain struct rather than an enum on purpose. An enum would make
