@@ -19,7 +19,7 @@
 //! on every annotation.
 //!
 //! So this stays, and the difference is measured rather than assumed. With
-//! the `lunar` feature on, [`exact_lunisolar_day`] reads the same day from the
+//! the `lunar` feature on, `exact_lunisolar_day` reads the same day from the
 //! Japanese 旧暦 and the test at the bottom counts how often the two differ.
 //! It is a comparison, not a substitution: nothing routes through it.
 //!

@@ -133,7 +133,7 @@ impl PentadPosition {
 /// One of the 72 pentads.
 ///
 /// Ordering is by apparent solar longitude from 0°, matching
-/// [`SolarTerm`](crate::SolarTerm): pentad 0 is the first 候 of 春分.
+/// [`SolarTerm`]: pentad 0 is the first 候 of 春分.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Pentad(u8);
 

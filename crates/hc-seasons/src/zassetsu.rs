@@ -724,7 +724,8 @@ pub fn setsubun(year: i64, season: Season, meridian: Meridian) -> Rd {
 /// 社日 under the classical rule, for whichever equinox is nearer.
 ///
 /// Exposed separately from [`day_of`] because the tie-breaking matters and
-/// the doc comment on [`nearest_stem_day`] is where it is explained.
+/// the doc comment on the private `nearest_stem_day` is where it is
+/// explained.
 #[must_use]
 pub fn shanichi(year: i64, season: HiganSeason, meridian: Meridian) -> Rd {
     let kind = match season {

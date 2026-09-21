@@ -2,7 +2,7 @@
 //!
 //! # Two things `Rd` deliberately does not say
 //!
-//! [`Rd`](crate::Rd) is a day number and nothing else. Two facts about a
+//! [`Rd`] is a day number and nothing else. Two facts about a
 //! calendar sit just outside it, and both were previously only in prose:
 //!
 //! * **A day does not have to begin at midnight.** The Julian Day begins at
