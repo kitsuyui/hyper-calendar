@@ -27,6 +27,7 @@
 //! reason.
 
 use hc_calendar::Weekday;
+use hc_calendar::shape::Naming;
 
 /// One of the seven luminaries (七曜): the Sun, the Moon and the five
 /// classical planets.
@@ -52,116 +53,164 @@ pub enum Luminary {
     Saturn,
 }
 
-/// The names one luminary's day carries across East Asia.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct LuminaryNames {
-    /// The single character the almanac column uses, e.g. `"水"`.
-    pub character: &'static str,
-    /// The body's own name in Chinese characters, e.g. `"水星"`.
-    pub body: &'static str,
-    /// The Japanese weekday name, e.g. `"水曜日"`.
-    pub japanese: &'static str,
-    /// The Japanese reading in Hepburn romaji, e.g. `"suiyōbi"`.
-    pub romaji: &'static str,
-    /// The classical Chinese seven-luminary weekday name, e.g. `"水曜日"`.
-    ///
-    /// Literary and astrological usage. Not what a mainland Chinese speaker
-    /// says today; see [`LuminaryNames::chinese_modern`].
-    pub chinese_classical: &'static str,
-    /// The modern Mandarin weekday name, e.g. `"星期三"`.
-    pub chinese_modern: &'static str,
-    /// The Korean weekday name in hangul, e.g. `"수요일"`.
-    pub korean: &'static str,
-    /// The Korean weekday name in hanja, e.g. `"水曜日"`.
-    pub korean_hanja: &'static str,
-    /// The English name of the body, e.g. `"Mercury"`.
-    pub english: &'static str,
-}
+/// The ways the 7 positions are named, one entry per language or
+/// convention. See [`hc_calendar::shape::Naming`].
+pub mod namings {
+    use hc_calendar::shape::Naming;
 
-/// The name table, in [`Luminary`] order.
-///
-/// Korean hangul from the Standard Korean Language Dictionary
-/// (표준국어대사전); the modern Mandarin column is the 星期 series, which is
-/// what the People's Republic standardised.
-const NAMES: [LuminaryNames; 7] = [
-    LuminaryNames {
-        character: "日",
-        body: "太陽",
-        japanese: "日曜日",
-        romaji: "nichiyōbi",
-        chinese_classical: "日曜日",
-        chinese_modern: "星期日",
-        korean: "일요일",
-        korean_hanja: "日曜日",
-        english: "Sun",
-    },
-    LuminaryNames {
-        character: "月",
-        body: "太陰",
-        japanese: "月曜日",
-        romaji: "getsuyōbi",
-        chinese_classical: "月曜日",
-        chinese_modern: "星期一",
-        korean: "월요일",
-        korean_hanja: "月曜日",
-        english: "Moon",
-    },
-    LuminaryNames {
-        character: "火",
-        body: "火星",
-        japanese: "火曜日",
-        romaji: "kayōbi",
-        chinese_classical: "火曜日",
-        chinese_modern: "星期二",
-        korean: "화요일",
-        korean_hanja: "火曜日",
-        english: "Mars",
-    },
-    LuminaryNames {
-        character: "水",
-        body: "水星",
-        japanese: "水曜日",
-        romaji: "suiyōbi",
-        chinese_classical: "水曜日",
-        chinese_modern: "星期三",
-        korean: "수요일",
-        korean_hanja: "水曜日",
-        english: "Mercury",
-    },
-    LuminaryNames {
-        character: "木",
-        body: "木星",
-        japanese: "木曜日",
-        romaji: "mokuyōbi",
-        chinese_classical: "木曜日",
-        chinese_modern: "星期四",
-        korean: "목요일",
-        korean_hanja: "木曜日",
-        english: "Jupiter",
-    },
-    LuminaryNames {
-        character: "金",
-        body: "金星",
-        japanese: "金曜日",
-        romaji: "kin'yōbi",
-        chinese_classical: "金曜日",
-        chinese_modern: "星期五",
-        korean: "금요일",
-        korean_hanja: "金曜日",
-        english: "Venus",
-    },
-    LuminaryNames {
-        character: "土",
-        body: "土星",
-        japanese: "土曜日",
-        romaji: "doyōbi",
-        chinese_classical: "土曜日",
-        chinese_modern: "星期六",
-        korean: "토요일",
-        korean_hanja: "土曜日",
-        english: "Saturn",
-    },
-];
+    hc_core::catalogue! {
+        type: Naming<7>,
+        id: |naming| naming.id,
+        provenance: |naming| naming.authority,
+        tests: luminary_naming_tests,
+
+        /// Every naming this crate ships.
+        pub const ALL;
+        /// The naming with this identifier.
+        pub fn by_id;
+
+        entries: {
+            /// The single character the almanac column uses, e.g. `"水"`.
+            pub const CHARACTER = Naming {
+                id: "hani-column",
+                english_name: "Almanac character",
+                names: &[
+                "日",
+                "月",
+                "火",
+                "水",
+                "木",
+                "金",
+                "土",
+                ],
+                authority: "The single character the 七曜 column of a Japanese almanac prints",
+            };
+            /// The body's own name in Chinese characters, e.g. `"水星"`.
+            pub const BODY = Naming {
+                id: "zh-body",
+                english_name: "Body names in characters",
+                names: &[
+                "太陽",
+                "太陰",
+                "火星",
+                "水星",
+                "木星",
+                "金星",
+                "土星",
+                ],
+                authority: "The bodies' own names in Chinese characters",
+            };
+            /// The Japanese weekday name, e.g. `"水曜日"`.
+            pub const JAPANESE = Naming {
+                id: "ja",
+                english_name: "Japanese",
+                names: &[
+                "日曜日",
+                "月曜日",
+                "火曜日",
+                "水曜日",
+                "木曜日",
+                "金曜日",
+                "土曜日",
+                ],
+                authority: "The 曜日 series as Japanese prints it",
+            };
+            /// The Japanese reading in Hepburn romaji, e.g. `"suiyōbi"`.
+            pub const ROMAJI = Naming {
+                id: "ja-latn",
+                english_name: "Japanese, romanised",
+                names: &[
+                "nichiyōbi",
+                "getsuyōbi",
+                "kayōbi",
+                "suiyōbi",
+                "mokuyōbi",
+                "kin'yōbi",
+                "doyōbi",
+                ],
+                authority: "Hepburn romanisation of the Japanese names",
+            };
+            /// The classical Chinese seven-luminary weekday name, e.g. `"水曜日"`.
+            ///
+            /// Literary and astrological usage. Not what a mainland Chinese speaker
+            /// says today; see `namings::CHINESE_MODERN`.
+            pub const CHINESE_CLASSICAL = Naming {
+                id: "zh-classical",
+                english_name: "Classical Chinese",
+                names: &[
+                "日曜日",
+                "月曜日",
+                "火曜日",
+                "水曜日",
+                "木曜日",
+                "金曜日",
+                "土曜日",
+                ],
+                authority: "The seven-luminary weekday names of literary and astrological usage",
+            };
+            /// The modern Mandarin weekday name, e.g. `"星期三"`.
+            pub const CHINESE_MODERN = Naming {
+                id: "zh",
+                english_name: "Modern Mandarin",
+                names: &[
+                "星期日",
+                "星期一",
+                "星期二",
+                "星期三",
+                "星期四",
+                "星期五",
+                "星期六",
+                ],
+                authority: "The 星期 series the People's Republic standardised",
+            };
+            /// The Korean weekday name in hangul, e.g. `"수요일"`.
+            pub const KOREAN = Naming {
+                id: "ko",
+                english_name: "Korean, Hangul",
+                names: &[
+                "일요일",
+                "월요일",
+                "화요일",
+                "수요일",
+                "목요일",
+                "금요일",
+                "토요일",
+                ],
+                authority: "표준국어대사전 (Standard Korean Language Dictionary)",
+            };
+            /// The Korean weekday name in hanja, e.g. `"水曜日"`.
+            pub const KOREAN_HANJA = Naming {
+                id: "ko-hani",
+                english_name: "Korean, hanja",
+                names: &[
+                "日曜日",
+                "月曜日",
+                "火曜日",
+                "水曜日",
+                "木曜日",
+                "金曜日",
+                "土曜日",
+                ],
+                authority: "The same weekday names in hanja",
+            };
+            /// The English name of the body, e.g. `"Mercury"`.
+            pub const ENGLISH = Naming {
+                id: "en",
+                english_name: "English",
+                names: &[
+                "Sun",
+                "Moon",
+                "Mars",
+                "Mercury",
+                "Jupiter",
+                "Venus",
+                "Saturn",
+                ],
+                authority: "The English names of the seven bodies",
+            };
+        }
+    }
+}
 
 impl Luminary {
     /// All seven, Sunday first.
@@ -221,28 +270,29 @@ impl Luminary {
         }
     }
 
-    /// Every name this luminary's day carries.
+    /// The name of this luminary's day in one naming — `namings::KOREAN`,
+    /// `namings::CHINESE_MODERN` and so on.
     #[must_use]
-    pub const fn names(self) -> LuminaryNames {
-        NAMES[self.index() as usize]
+    pub const fn name(self, naming: &Naming<7>) -> &'static str {
+        naming.names[self.index() as usize]
     }
 
     /// The single character the almanac column prints, e.g. `"水"`.
     #[must_use]
     pub const fn character(self) -> &'static str {
-        self.names().character
+        self.name(&namings::CHARACTER)
     }
 
     /// The Japanese weekday name, e.g. `"水曜日"`.
     #[must_use]
     pub const fn japanese_name(self) -> &'static str {
-        self.names().japanese
+        self.name(&namings::JAPANESE)
     }
 
     /// The English name of the body, e.g. `"Mercury"`.
     #[must_use]
     pub const fn english_name(self) -> &'static str {
-        self.names().english
+        self.name(&namings::ENGLISH)
     }
 
     /// The five-phase element the body is identified with, if any.
@@ -320,7 +370,7 @@ mod tests {
         let day = Rd(684_830);
         assert_eq!(Weekday::from_rd(day), Weekday::Saturday);
         assert_eq!(luminary_of(day), Luminary::Saturn);
-        assert_eq!(luminary_of(day).names().korean, "토요일");
+        assert_eq!(luminary_of(day).name(&namings::KOREAN), "토요일");
     }
 
     #[test]
@@ -339,12 +389,16 @@ mod tests {
     #[test]
     fn the_almanac_character_opens_the_japanese_and_korean_names() {
         for luminary in Luminary::ALL {
-            let names = luminary.names();
-            assert!(names.japanese.starts_with(names.character));
-            assert!(names.korean_hanja.starts_with(names.character));
-            assert!(names.chinese_classical.starts_with(names.character));
-            assert_eq!(names.japanese.chars().count(), 3);
-            assert_eq!(names.korean.chars().count(), 3);
+            let character = luminary.name(&namings::CHARACTER);
+            assert!(luminary.name(&namings::JAPANESE).starts_with(character));
+            assert!(luminary.name(&namings::KOREAN_HANJA).starts_with(character));
+            assert!(
+                luminary
+                    .name(&namings::CHINESE_CLASSICAL)
+                    .starts_with(character)
+            );
+            assert_eq!(luminary.name(&namings::JAPANESE).chars().count(), 3);
+            assert_eq!(luminary.name(&namings::KOREAN).chars().count(), 3);
         }
     }
 
@@ -352,8 +406,8 @@ mod tests {
     /// numbers from Monday: 星期一 is Monday, not Sunday.
     #[test]
     fn the_modern_mandarin_names_number_from_monday() {
-        assert_eq!(Luminary::Moon.names().chinese_modern, "星期一");
-        assert_eq!(Luminary::Saturn.names().chinese_modern, "星期六");
-        assert_eq!(Luminary::Sun.names().chinese_modern, "星期日");
+        assert_eq!(Luminary::Moon.name(&namings::CHINESE_MODERN), "星期一");
+        assert_eq!(Luminary::Saturn.name(&namings::CHINESE_MODERN), "星期六");
+        assert_eq!(Luminary::Sun.name(&namings::CHINESE_MODERN), "星期日");
     }
 }
