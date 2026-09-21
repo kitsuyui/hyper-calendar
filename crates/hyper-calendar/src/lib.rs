@@ -19,6 +19,7 @@
 //! | Feature | Brings in | For |
 //! | --- | --- | --- |
 //! | `civil` *(default)* | [`hc_calendar`], [`hc_calendars_solar`] | Gregorian-family dates |
+//! | `units` | [`hc_units`] | Flicks, helakim, decimal time, BPM |
 //! | `format` *(default)* | [`hc_format`] | ISO 8601, RFC 3339, patterns |
 //! | `i18n` *(default)* | [`hc_i18n`] | Locales, plural rules, names |
 //! | `lunar` | [`hc_astro`], [`hc_calendars_lunar`] | Hijri, Hebrew, Chinese, Tenpō |
@@ -98,6 +99,8 @@ pub use hc_seasons;
 pub use hc_tz;
 #[cfg(feature = "uncertainty")]
 pub use hc_uncertainty;
+#[cfg(feature = "units")]
+pub use hc_units;
 
 /// The version of this crate, for FFI callers and bug reports.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -127,6 +130,9 @@ pub mod prelude {
 
     #[cfg(feature = "uncertainty")]
     pub use hc_uncertainty::{FuzzyInstant, Uncertain};
+
+    #[cfg(feature = "units")]
+    pub use hc_units::{Quantity, Ratio, Tempo, Unit};
 }
 
 /// A registry populated with every calendar the enabled features provide.

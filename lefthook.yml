@@ -54,7 +54,7 @@ pre-push:
     # The three build shapes CI checks. They catch a feature combination or a
     # target that the default build never exercises.
     - name: build-no-std
-      run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo build -p hyper-calendar --no-default-features --features alloc
+      run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo build -p hyper-calendar --no-default-features --features alloc,libm
     - name: build-wasm
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown
     - name: build-cdylib

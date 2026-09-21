@@ -61,6 +61,7 @@ pub mod error;
 pub mod future;
 pub mod geologic;
 pub mod magnitude;
+pub mod periods;
 pub mod timeline;
 pub mod universe;
 
@@ -71,6 +72,7 @@ pub use archaeology::{ArchaeologicalPeriod, Bp, Calibration};
 pub use constants::PhysicalConstant;
 pub use future::{FutureEra, FutureEvent, Prediction};
 pub use geologic::{GeologicInterval, GeologicRank};
+pub use periods::{AstronomicalPeriod, GALACTIC_YEAR, Stability};
 pub use timeline::{Placement, place, place_megayears_ago, place_years_ago, span_between};
 pub use universe::{CosmicEpoch, CosmicEvent};
 

@@ -171,6 +171,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "hc-units"
+version = "0.1.0"
+dependencies = [
+ "hc-core",
+]
+
+[[package]]
 name = "hyper-calendar"
 version = "0.1.0"
 dependencies = [
@@ -193,6 +200,7 @@ dependencies = [
  "hc-seasons",
  "hc-tz",
  "hc-uncertainty",
+ "hc-units",
 ]
 
 [[package]]
