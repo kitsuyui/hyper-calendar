@@ -712,7 +712,7 @@ const EN_CALENDARS: &[CalendarNames] = &[
     // which once sat beside these, are the calendar's own French and are
     // declared with its shape in `hc-calendars-solar`.)
     CalendarNames {
-        calendars: &[CalendarId("bahai-arithmetic")],
+        calendars: &[CalendarId("bahai-arithmetic"), CalendarId("bahai")],
         cycles: &[months(&[
             "Bahá",
             "Jalál",
