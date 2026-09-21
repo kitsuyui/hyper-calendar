@@ -41,6 +41,7 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | ISO 8601 ordinal date | `iso8601-ordinal` | `hc-calendars-solar` | Done |
 | Julian Day Number | `julian-day` | `hc-calendars-solar` | Done |
 | Modified Julian Day | `modified-julian-day` | `hc-calendars-solar` | Done |
+| Lilian, ANSI, Dublin, Reduced, Truncated, CNES and CCSDS day counts | `lilian`, `ansi-date`, `dublin-julian-day`, `reduced-julian-day`, `truncated-julian-day`, `cnes-julian-day`, `ccsds-day` | `hc-calendars-solar` | Done |
 | Coptic | `coptic` | `hc-calendars-solar` | Done |
 | Ethiopic (Amete Mihret) | `ethiopic` | `hc-calendars-solar` | Done |
 | Ethiopic (Amete Alem) | — | `hc-calendars-solar` | Partial — an `amete-alem-year` field on `ethiopic`, not a calendar of its own |

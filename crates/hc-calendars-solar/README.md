@@ -8,7 +8,7 @@ follows from those.
 
 ## What is in it
 
-Twenty-five calendars, plus twelve national variants of the Julian/Gregorian
+Thirty-two calendars, plus twelve national variants of the Julian/Gregorian
 reform:
 
 | Module | Calendar | Identifier |
@@ -19,6 +19,7 @@ reform:
 | `iso_week` | ISO 8601 week date | `iso8601-week` |
 | `ordinal` | ISO 8601 ordinal date | `iso8601-ordinal` |
 | `julian_day` | Julian Day Number, Modified Julian Date | `julian-day`, `modified-julian-day` |
+| `day_counts` | Lilian, ANSI, Dublin, Reduced, Truncated, CNES and CCSDS day counts | `lilian`, `ansi-date`, `dublin-julian-day`, `reduced-julian-day`, `truncated-julian-day`, `cnes-julian-day`, `ccsds-day` |
 | `coptic` | Coptic (Era of the Martyrs) | `coptic` |
 | `ethiopic` | Ethiopian (Incarnation and World eras) | `ethiopic` |
 | `egyptian` | Ancient Egyptian wandering year | `egyptian` |

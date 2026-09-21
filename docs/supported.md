@@ -15,10 +15,11 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-65 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+72 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
 | id | Name | Crate | Feature | Earliest | Latest | Astronomical | Leap months | Day begins |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `ansi-date` | ANSI date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight |
 | `armenian` | Armenian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0552-07-13 | +999887-08-03 | no | no | midnight |
 | `aztec-tonalpohualli` | Aztec tonalpōhualli | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight |
 | `aztec-xiuhpohualli` | Aztec xiuhpōhualli | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight |
@@ -26,9 +27,12 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `balinese-pawukon` | Balinese Pawukon | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight |
 | `buddhist` | Thai Buddhist | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -542-01-01 | +9999999-12-31 | no | no | midnight |
 | `byzantine` | Byzantine (Anno Mundi) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -5508-07-19 | +94493-08-06 | no | no | midnight |
+| `ccsds-day` | CCSDS day count | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight |
 | `chinese` | Chinese | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1645-01-01 | 2150-12-31 | yes | yes | midnight |
+| `cnes-julian-day` | CNES Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight |
 | `coptic` | Coptic | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0284-08-29 | +1000304-03-12 | no | no | midnight |
 | `dangi` | Dangi (Korean lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1645-01-01 | 2150-12-31 | yes | yes | midnight |
+| `dublin-julian-day` | Dublin Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | noon |
 | `egyptian` | Egyptian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -746-02-18 | +998589-03-10 | no | no | midnight |
 | `ethiopic` | Ethiopian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0008-08-27 | +1000028-03-09 | no | no | midnight |
 | `french-republican-arithmetic` | French Republican (arithmetic) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1792-09-22 | +11791-09-19 | no | no | midnight |
@@ -69,6 +73,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `julian-gregorian-ro` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight |
 | `julian-gregorian-ru` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight |
 | `julian-gregorian-se` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight |
+| `lilian` | Lilian date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight |
 | `maya-haab` | Maya haab | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight |
 | `maya-longcount` | Maya long count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-11 | 4772-10-12 | no | no | midnight |
 | `maya-longcount-gmt2` | Maya long count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-13 | 4772-10-14 | no | no | midnight |
@@ -76,12 +81,14 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `maya-tzolkin` | Maya tzolk'in | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight |
 | `modified-julian-day` | Modified Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight |
 | `persian-arithmetic` | Solar Hijri (arithmetic) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0622-03-22 | +10621-03-17 | no | no | midnight |
+| `reduced-julian-day` | Reduced Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | noon |
 | `revised-julian` | Revised Julian (Milanković) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999931-06-13 | +9999992-05-24 | no | no | midnight |
 | `roc` | Minguo (Republic of China) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight |
 | `roman-auc` | Roman (ab urbe condita) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -753-12-24 | +99249-01-11 | no | no | midnight |
 | `sexagenary` | Sexagenary cycle (干支) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight |
 | `symmetry010` | Symmetry010 | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0001-01-01 | +99999-12-12 | no | no | midnight |
 | `symmetry454` | Symmetry454 | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0001-01-01 | +99999-12-12 | no | no | midnight |
+| `truncated-julian-day` | Truncated Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight |
 | `vietnamese` | Vietnamese lunisolar | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1645-01-01 | 2150-12-31 | yes | yes | midnight |
 | `world-calendar` | The World Calendar | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight |
 
