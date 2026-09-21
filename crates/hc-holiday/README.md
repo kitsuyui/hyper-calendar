@@ -128,6 +128,43 @@ claims to be complete back to its own founding.
 * **It does not model evenings.** A Jewish holiday begins at sunset on the
   preceding day and a Hijri one likewise; this crate names days, not evenings.
 
+## The years it can answer
+
+Most rules are Gregorian arithmetic and have no end. Some are dated in a
+calendar that does:
+
+| Rules dated in | Answerable over |
+| --- | --- |
+| Chinese, Korean (Dangi), Vietnamese | 1645–2150 |
+| Umm al-Qurā | the published table, 1300–1600 AH |
+| Easter | 1583–4099 Gregorian, 326–4099 Julian |
+| New Zealand's Matariki | 2022–2035, the years this crate's sources publish |
+
+Outside those the holiday has no date, which is **not** the same as not
+occurring — and an evaluated calendar used to express both by leaving it
+out. `holidays_in_year(&countries::CHINA, None, 2151)` returned seven
+entries instead of thirteen, with the Spring Festival, the Dragon Boat
+Festival and the Mid-Autumn Festival missing and everything that survived
+marked `Exact`.
+
+Now the calendar says so:
+
+```rust
+let calendar = HolidayCalendar::for_year(&countries::CHINA, None, 2151);
+assert!(!calendar.is_complete());
+for gap in calendar.gaps() {
+    println!("{} could not be computed for {}", gap.name, gap.year);
+}
+```
+
+`gaps()` is empty for every year inside every referenced calendar's range,
+which is every year a caller is likely to ask about. The holidays that *are*
+returned outside it remain correct; the list is incomplete, not wrong.
+
+One residue, stated because it is small and real: a rule shifted from
+another day — 除夕 is 春節 minus one — can still be missed when its base
+falls in an out-of-range year *and* within the shift of a year boundary.
+
 ## What is approximate, and why
 
 | Entry | Why |

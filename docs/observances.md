@@ -43,8 +43,10 @@ Rules then pass through **observance modifiers**, which are themselves data:
 - `ValidFrom` / `ValidUntil` — a holiday that was created or abolished. Every
   rule carries these, because "is today a holiday in Japan" has a different
   answer in 1990 and 2020 and a library that ignores that is wrong for history.
-- `Region` — subdivision scoping, for German *Länder*, US states, Swiss
-  cantons, Canadian provinces.
+- `Region` — subdivision scoping, used today for German *Länder*, Canadian
+  provinces, Australian states and territories, Spanish autonomous
+  communities and the single US entry `US-DC`. Swiss cantons and US states
+  are *not* modelled: the vocabulary carries them, the tables do not.
 - `Kind` — public holiday, bank holiday, school holiday, observance without a
   day off, religious day of obligation.
 - `WeekendPolicy` — which days are the weekend, over stated years, because
@@ -122,7 +124,7 @@ Ordered by how well the sources can be cited, not by importance.
 | South Korea 🇰🇷 | Keyed to the `dangi` calendar, with all three extensions of the 대체공휴일 and the collision rule |
 | Canada 🇨🇦 | Federal plus the provincial days fixed by statute |
 | Australia 🇦🇺 | National plus all six states and both territories |
-| New Zealand 🇳🇿 | Including mondayisation from 2014 and the statutory Matariki schedule |
+| New Zealand 🇳🇿 | Including mondayisation from 2014, and Matariki over 2022–2035 — the Act schedules to 2052, and a calendar past 2035 reports it as a gap rather than dropping it |
 | Brazil 🇧🇷 | Including Consciência Negra from 2024 |
 | Mexico 🇲🇽 | Including the 2006 Monday reform and the six-yearly presidential handover |
 | Saudi Arabia 🇸🇦 | Umm al-Qura based, with the 2013 weekend change |
