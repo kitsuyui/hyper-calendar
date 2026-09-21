@@ -80,88 +80,305 @@ pub enum ZassetsuRule {
     },
 }
 
+/// Byte-for-byte equality of two identifiers, usable in `const` context.
+const fn same_id(left: &str, right: &str) -> bool {
+    let (left, right) = (left.as_bytes(), right.as_bytes());
+    if left.len() != right.len() {
+        return false;
+    }
+    let mut index = 0;
+    while index < left.len() {
+        if left[index] != right[index] {
+            return false;
+        }
+        index += 1;
+    }
+    true
+}
+
 /// One of the 雑節.
 ///
 /// Each variant is a single day. The multi-day observances — 彼岸 is a week,
 /// 土用 is about eighteen days — appear here as their marked days and are
 /// also available as periods through [`higan`] and [`doyo`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[non_exhaustive]
-pub enum Zassetsu {
-    /// 冬土用入り, the start of the winter 土用, around 17 January.
-    WinterDoyoEntry,
-    /// 節分 before 立春, around 3 February: the one everyone means.
-    SpringSetsubun,
-    /// 彼岸入り in spring, three days before the equinox.
-    SpringHiganEntry,
-    /// 春分, the middle day of the spring 彼岸.
-    SpringHiganMiddle,
-    /// 彼岸明け in spring, three days after the equinox.
-    SpringHiganExit,
-    /// 春社, the 戊 day nearest the spring equinox.
-    SpringShanichi,
-    /// 春土用入り, the start of the spring 土用, around 17 April.
-    SpringDoyoEntry,
-    /// 八十八夜, the eighty-eighth night from 立春, around 2 May.
-    Hachijuhachiya,
-    /// 節分 before 立夏, around 5 May.
-    SummerSetsubun,
-    /// 入梅, the nominal start of the rainy season, around 11 June.
-    Nyubai,
-    /// 半夏生, around 2 July: the day rice planting had to be finished by.
-    Hangesho,
-    /// 夏土用入り, the start of the summer 土用, around 20 July.
-    SummerDoyoEntry,
-    /// 節分 before 立秋, around 6 August.
-    AutumnSetsubun,
-    /// 二百十日, the two hundred and tenth day from 立春, around 1 September.
-    Nihyakutoka,
-    /// 二百二十日, the two hundred and twentieth day, around 11 September.
-    Nihyakuhatsuka,
-    /// 彼岸入り in autumn, three days before the equinox.
-    AutumnHiganEntry,
-    /// 秋分, the middle day of the autumn 彼岸.
-    AutumnHiganMiddle,
-    /// 彼岸明け in autumn, three days after the equinox.
-    AutumnHiganExit,
-    /// 秋社, the 戊 day nearest the autumn equinox.
-    AutumnShanichi,
-    /// 秋土用入り, the start of the autumn 土用, around 20 October.
-    AutumnDoyoEntry,
-    /// 節分 before 立冬, around 7 November.
-    WinterSetsubun,
+#[derive(Debug, Clone, Copy)]
+pub struct Zassetsu {
+    /// A short identifier, the variant name in kebab case.
+    pub id: &'static str,
+    rule: ZassetsuRule,
+    japanese_name: &'static str,
+    romaji: &'static str,
+    english_name: &'static str,
 }
 
-impl Zassetsu {
+impl PartialEq for Zassetsu {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for Zassetsu {}
+
+impl core::hash::Hash for Zassetsu {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
+
+impl PartialOrd for Zassetsu {
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Zassetsu {
+    /// Listing order: the position in [`Zassetsu::ALL`].
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+        self.index().cmp(&other.index())
+    }
+}
+
+hc_core::catalogue! {
+    type: Zassetsu,
+    id: |entry| entry.id,
+    tests: zassetsu_tests,
+    associated;
+
     /// All twenty-one 雑節, in the order they usually fall in a Gregorian
     /// year.
     ///
     /// "Usually" is doing work: 社日 can fall either side of 彼岸入り, so this
     /// is a conventional listing order and not a guarantee about dates. Sort
     /// the days yourself if you need a strict one.
-    pub const ALL: [Self; 21] = [
-        Self::WinterDoyoEntry,
-        Self::SpringSetsubun,
-        Self::SpringHiganEntry,
-        Self::SpringHiganMiddle,
-        Self::SpringHiganExit,
-        Self::SpringShanichi,
-        Self::SpringDoyoEntry,
-        Self::Hachijuhachiya,
-        Self::SummerSetsubun,
-        Self::Nyubai,
-        Self::Hangesho,
-        Self::SummerDoyoEntry,
-        Self::AutumnSetsubun,
-        Self::Nihyakutoka,
-        Self::Nihyakuhatsuka,
-        Self::AutumnHiganEntry,
-        Self::AutumnHiganMiddle,
-        Self::AutumnHiganExit,
-        Self::AutumnShanichi,
-        Self::AutumnDoyoEntry,
-        Self::WinterSetsubun,
-    ];
+    pub const ALL;
+    /// The entry with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// 冬土用入り, the start of the winter 土用, around 17 January.
+        pub const WINTER_DOYO_ENTRY = Self {
+            id: "winter-doyo-entry",
+            rule: ZassetsuRule::SolarLongitude(297.0),
+            japanese_name: "土用の入り",
+            romaji: "doyō no iri",
+            english_name: "start of the winter earth period",
+        };
+        /// 節分 before 立春, around 3 February: the one everyone means.
+        pub const SPRING_SETSUBUN = Self {
+            id: "spring-setsubun",
+            rule: ZassetsuRule::OffsetFromTerm {
+                term: SolarTerm::BEGINNING_OF_SPRING,
+                days: -1,
+            },
+            japanese_name: "節分",
+            romaji: "setsubun",
+            english_name: "eve of the beginning of spring",
+        };
+        /// 彼岸入り in spring, three days before the equinox.
+        pub const SPRING_HIGAN_ENTRY = Self {
+            id: "spring-higan-entry",
+            rule: ZassetsuRule::OffsetFromTerm {
+                term: SolarTerm::SPRING_EQUINOX,
+                days: -3,
+            },
+            japanese_name: "彼岸入り",
+            romaji: "higan-iri",
+            english_name: "first day of the spring equinoctial week",
+        };
+        /// 春分, the middle day of the spring 彼岸.
+        pub const SPRING_HIGAN_MIDDLE = Self {
+            id: "spring-higan-middle",
+            rule: ZassetsuRule::OffsetFromTerm {
+                term: SolarTerm::SPRING_EQUINOX,
+                days: 0,
+            },
+            japanese_name: "彼岸の中日",
+            romaji: "higan no chūnichi",
+            english_name: "middle day of the spring equinoctial week",
+        };
+        /// 彼岸明け in spring, three days after the equinox.
+        pub const SPRING_HIGAN_EXIT = Self {
+            id: "spring-higan-exit",
+            rule: ZassetsuRule::OffsetFromTerm {
+                term: SolarTerm::SPRING_EQUINOX,
+                days: 3,
+            },
+            japanese_name: "彼岸明け",
+            romaji: "higan-ake",
+            english_name: "last day of the spring equinoctial week",
+        };
+        /// 春社, the 戊 day nearest the spring equinox.
+        pub const SPRING_SHANICHI = Self {
+            id: "spring-shanichi",
+            rule: ZassetsuRule::NearestStemDay {
+                term: SolarTerm::SPRING_EQUINOX,
+                stem: STEM_TSUCHINOE,
+            },
+            japanese_name: "春社",
+            romaji: "haru-shanichi",
+            english_name: "spring day of the god of the soil",
+        };
+        /// 春土用入り, the start of the spring 土用, around 17 April.
+        pub const SPRING_DOYO_ENTRY = Self {
+            id: "spring-doyo-entry",
+            rule: ZassetsuRule::SolarLongitude(27.0),
+            japanese_name: "土用の入り",
+            romaji: "doyō no iri",
+            english_name: "start of the spring earth period",
+        };
+        /// 八十八夜, the eighty-eighth night from 立春, around 2 May.
+        pub const HACHIJUHACHIYA = Self {
+            id: "hachijuhachiya",
+            rule: ZassetsuRule::NightsFromBeginningOfSpring(88),
+            japanese_name: "八十八夜",
+            romaji: "hachijūhachiya",
+            english_name: "eighty-eighth night from the beginning of spring",
+        };
+        /// 節分 before 立夏, around 5 May.
+        pub const SUMMER_SETSUBUN = Self {
+            id: "summer-setsubun",
+            rule: ZassetsuRule::OffsetFromTerm {
+                term: SolarTerm::BEGINNING_OF_SUMMER,
+                days: -1,
+            },
+            japanese_name: "節分",
+            romaji: "setsubun",
+            english_name: "eve of the beginning of summer",
+        };
+        /// 入梅, the nominal start of the rainy season, around 11 June.
+        pub const NYUBAI = Self {
+            id: "nyubai",
+            rule: ZassetsuRule::SolarLongitude(80.0),
+            japanese_name: "入梅",
+            romaji: "nyūbai",
+            english_name: "nominal start of the rainy season",
+        };
+        /// 半夏生, around 2 July: the day rice planting had to be finished by.
+        pub const HANGESHO = Self {
+            id: "hangesho",
+            rule: ZassetsuRule::SolarLongitude(100.0),
+            japanese_name: "半夏生",
+            romaji: "hangeshō",
+            english_name: "the crow-dipper sprouts; rice planting must be done",
+        };
+        /// 夏土用入り, the start of the summer 土用, around 20 July.
+        pub const SUMMER_DOYO_ENTRY = Self {
+            id: "summer-doyo-entry",
+            rule: ZassetsuRule::SolarLongitude(117.0),
+            japanese_name: "土用の入り",
+            romaji: "doyō no iri",
+            english_name: "start of the summer earth period",
+        };
+        /// 節分 before 立秋, around 6 August.
+        pub const AUTUMN_SETSUBUN = Self {
+            id: "autumn-setsubun",
+            rule: ZassetsuRule::OffsetFromTerm {
+                term: SolarTerm::BEGINNING_OF_AUTUMN,
+                days: -1,
+            },
+            japanese_name: "節分",
+            romaji: "setsubun",
+            english_name: "eve of the beginning of autumn",
+        };
+        /// 二百十日, the two hundred and tenth day from 立春, around 1 September.
+        pub const NIHYAKUTOKA = Self {
+            id: "nihyakutoka",
+            rule: ZassetsuRule::NightsFromBeginningOfSpring(210),
+            japanese_name: "二百十日",
+            romaji: "nihyakutōka",
+            english_name: "two hundred and tenth day; the typhoon day",
+        };
+        /// 二百二十日, the two hundred and twentieth day, around 11 September.
+        pub const NIHYAKUHATSUKA = Self {
+            id: "nihyakuhatsuka",
+            rule: ZassetsuRule::NightsFromBeginningOfSpring(220),
+            japanese_name: "二百二十日",
+            romaji: "nihyakuhatsuka",
+            english_name: "two hundred and twentieth day",
+        };
+        /// 彼岸入り in autumn, three days before the equinox.
+        pub const AUTUMN_HIGAN_ENTRY = Self {
+            id: "autumn-higan-entry",
+            rule: ZassetsuRule::OffsetFromTerm {
+                term: SolarTerm::AUTUMN_EQUINOX,
+                days: -3,
+            },
+            japanese_name: "彼岸入り",
+            romaji: "higan-iri",
+            english_name: "first day of the autumn equinoctial week",
+        };
+        /// 秋分, the middle day of the autumn 彼岸.
+        pub const AUTUMN_HIGAN_MIDDLE = Self {
+            id: "autumn-higan-middle",
+            rule: ZassetsuRule::OffsetFromTerm {
+                term: SolarTerm::AUTUMN_EQUINOX,
+                days: 0,
+            },
+            japanese_name: "彼岸の中日",
+            romaji: "higan no chūnichi",
+            english_name: "middle day of the autumn equinoctial week",
+        };
+        /// 彼岸明け in autumn, three days after the equinox.
+        pub const AUTUMN_HIGAN_EXIT = Self {
+            id: "autumn-higan-exit",
+            rule: ZassetsuRule::OffsetFromTerm {
+                term: SolarTerm::AUTUMN_EQUINOX,
+                days: 3,
+            },
+            japanese_name: "彼岸明け",
+            romaji: "higan-ake",
+            english_name: "last day of the autumn equinoctial week",
+        };
+        /// 秋社, the 戊 day nearest the autumn equinox.
+        pub const AUTUMN_SHANICHI = Self {
+            id: "autumn-shanichi",
+            rule: ZassetsuRule::NearestStemDay {
+                term: SolarTerm::AUTUMN_EQUINOX,
+                stem: STEM_TSUCHINOE,
+            },
+            japanese_name: "秋社",
+            romaji: "aki-shanichi",
+            english_name: "autumn day of the god of the soil",
+        };
+        /// 秋土用入り, the start of the autumn 土用, around 20 October.
+        pub const AUTUMN_DOYO_ENTRY = Self {
+            id: "autumn-doyo-entry",
+            rule: ZassetsuRule::SolarLongitude(207.0),
+            japanese_name: "土用の入り",
+            romaji: "doyō no iri",
+            english_name: "start of the autumn earth period",
+        };
+        /// 節分 before 立冬, around 7 November.
+        pub const WINTER_SETSUBUN = Self {
+            id: "winter-setsubun",
+            rule: ZassetsuRule::OffsetFromTerm {
+                term: SolarTerm::BEGINNING_OF_WINTER,
+                days: -1,
+            },
+            japanese_name: "節分",
+            romaji: "setsubun",
+            english_name: "eve of the beginning of winter",
+        };
+    }
+}
+
+impl Zassetsu {
+    /// This entry's position in [`Zassetsu::ALL`].
+    ///
+    /// # Panics
+    ///
+    /// If the entry is not in [`Zassetsu::ALL`].
+    #[must_use]
+    pub const fn index(self) -> u8 {
+        let mut index = 0;
+        while index < Self::ALL.len() {
+            if same_id(Self::ALL[index].id, self.id) {
+                return index as u8;
+            }
+            index += 1;
+        }
+        panic!("an entry that is not in ALL has no index")
+    }
 
     /// The rule that fixes this day.
     ///
@@ -170,143 +387,25 @@ impl Zassetsu {
     /// from; the arc is fixed, the number of days is not.
     #[must_use]
     pub const fn rule(self) -> ZassetsuRule {
-        match self {
-            Self::SpringSetsubun => ZassetsuRule::OffsetFromTerm {
-                term: SolarTerm::BEGINNING_OF_SPRING,
-                days: -1,
-            },
-            Self::SummerSetsubun => ZassetsuRule::OffsetFromTerm {
-                term: SolarTerm::BEGINNING_OF_SUMMER,
-                days: -1,
-            },
-            Self::AutumnSetsubun => ZassetsuRule::OffsetFromTerm {
-                term: SolarTerm::BEGINNING_OF_AUTUMN,
-                days: -1,
-            },
-            Self::WinterSetsubun => ZassetsuRule::OffsetFromTerm {
-                term: SolarTerm::BEGINNING_OF_WINTER,
-                days: -1,
-            },
-            Self::SpringHiganEntry => ZassetsuRule::OffsetFromTerm {
-                term: SolarTerm::SPRING_EQUINOX,
-                days: -3,
-            },
-            Self::SpringHiganMiddle => ZassetsuRule::OffsetFromTerm {
-                term: SolarTerm::SPRING_EQUINOX,
-                days: 0,
-            },
-            Self::SpringHiganExit => ZassetsuRule::OffsetFromTerm {
-                term: SolarTerm::SPRING_EQUINOX,
-                days: 3,
-            },
-            Self::AutumnHiganEntry => ZassetsuRule::OffsetFromTerm {
-                term: SolarTerm::AUTUMN_EQUINOX,
-                days: -3,
-            },
-            Self::AutumnHiganMiddle => ZassetsuRule::OffsetFromTerm {
-                term: SolarTerm::AUTUMN_EQUINOX,
-                days: 0,
-            },
-            Self::AutumnHiganExit => ZassetsuRule::OffsetFromTerm {
-                term: SolarTerm::AUTUMN_EQUINOX,
-                days: 3,
-            },
-            Self::SpringShanichi => ZassetsuRule::NearestStemDay {
-                term: SolarTerm::SPRING_EQUINOX,
-                stem: STEM_TSUCHINOE,
-            },
-            Self::AutumnShanichi => ZassetsuRule::NearestStemDay {
-                term: SolarTerm::AUTUMN_EQUINOX,
-                stem: STEM_TSUCHINOE,
-            },
-            Self::Hachijuhachiya => ZassetsuRule::NightsFromBeginningOfSpring(88),
-            Self::Nihyakutoka => ZassetsuRule::NightsFromBeginningOfSpring(210),
-            Self::Nihyakuhatsuka => ZassetsuRule::NightsFromBeginningOfSpring(220),
-            Self::Nyubai => ZassetsuRule::SolarLongitude(80.0),
-            Self::Hangesho => ZassetsuRule::SolarLongitude(100.0),
-            Self::SpringDoyoEntry => ZassetsuRule::SolarLongitude(27.0),
-            Self::SummerDoyoEntry => ZassetsuRule::SolarLongitude(117.0),
-            Self::AutumnDoyoEntry => ZassetsuRule::SolarLongitude(207.0),
-            Self::WinterDoyoEntry => ZassetsuRule::SolarLongitude(297.0),
-        }
+        self.rule
     }
 
     /// The name in Japanese characters, e.g. `"八十八夜"`.
     #[must_use]
     pub const fn japanese_name(self) -> &'static str {
-        match self {
-            Self::SpringSetsubun
-            | Self::SummerSetsubun
-            | Self::AutumnSetsubun
-            | Self::WinterSetsubun => "節分",
-            Self::SpringHiganEntry | Self::AutumnHiganEntry => "彼岸入り",
-            Self::SpringHiganMiddle | Self::AutumnHiganMiddle => "彼岸の中日",
-            Self::SpringHiganExit | Self::AutumnHiganExit => "彼岸明け",
-            Self::SpringShanichi => "春社",
-            Self::AutumnShanichi => "秋社",
-            Self::Hachijuhachiya => "八十八夜",
-            Self::Nyubai => "入梅",
-            Self::Hangesho => "半夏生",
-            Self::SpringDoyoEntry
-            | Self::SummerDoyoEntry
-            | Self::AutumnDoyoEntry
-            | Self::WinterDoyoEntry => "土用の入り",
-            Self::Nihyakutoka => "二百十日",
-            Self::Nihyakuhatsuka => "二百二十日",
-        }
+        self.japanese_name
     }
 
     /// The name in Hepburn romaji, e.g. `"hachijūhachiya"`.
     #[must_use]
     pub const fn romaji(self) -> &'static str {
-        match self {
-            Self::SpringSetsubun
-            | Self::SummerSetsubun
-            | Self::AutumnSetsubun
-            | Self::WinterSetsubun => "setsubun",
-            Self::SpringHiganEntry | Self::AutumnHiganEntry => "higan-iri",
-            Self::SpringHiganMiddle | Self::AutumnHiganMiddle => "higan no chūnichi",
-            Self::SpringHiganExit | Self::AutumnHiganExit => "higan-ake",
-            Self::SpringShanichi => "haru-shanichi",
-            Self::AutumnShanichi => "aki-shanichi",
-            Self::Hachijuhachiya => "hachijūhachiya",
-            Self::Nyubai => "nyūbai",
-            Self::Hangesho => "hangeshō",
-            Self::SpringDoyoEntry
-            | Self::SummerDoyoEntry
-            | Self::AutumnDoyoEntry
-            | Self::WinterDoyoEntry => "doyō no iri",
-            Self::Nihyakutoka => "nihyakutōka",
-            Self::Nihyakuhatsuka => "nihyakuhatsuka",
-        }
+        self.romaji
     }
 
     /// A short English description.
     #[must_use]
     pub const fn english_name(self) -> &'static str {
-        match self {
-            Self::SpringSetsubun => "eve of the beginning of spring",
-            Self::SummerSetsubun => "eve of the beginning of summer",
-            Self::AutumnSetsubun => "eve of the beginning of autumn",
-            Self::WinterSetsubun => "eve of the beginning of winter",
-            Self::SpringHiganEntry => "first day of the spring equinoctial week",
-            Self::SpringHiganMiddle => "middle day of the spring equinoctial week",
-            Self::SpringHiganExit => "last day of the spring equinoctial week",
-            Self::AutumnHiganEntry => "first day of the autumn equinoctial week",
-            Self::AutumnHiganMiddle => "middle day of the autumn equinoctial week",
-            Self::AutumnHiganExit => "last day of the autumn equinoctial week",
-            Self::SpringShanichi => "spring day of the god of the soil",
-            Self::AutumnShanichi => "autumn day of the god of the soil",
-            Self::Hachijuhachiya => "eighty-eighth night from the beginning of spring",
-            Self::Nyubai => "nominal start of the rainy season",
-            Self::Hangesho => "the crow-dipper sprouts; rice planting must be done",
-            Self::SpringDoyoEntry => "start of the spring earth period",
-            Self::SummerDoyoEntry => "start of the summer earth period",
-            Self::AutumnDoyoEntry => "start of the autumn earth period",
-            Self::WinterDoyoEntry => "start of the winter earth period",
-            Self::Nihyakutoka => "two hundred and tenth day; the typhoon day",
-            Self::Nihyakuhatsuka => "two hundred and twentieth day",
-        }
+        self.english_name
     }
 }
 
@@ -317,7 +416,7 @@ impl Zassetsu {
 ///
 /// // 節分 2024 was 3 February, RD 738919.
 /// assert_eq!(
-///     day_of(Zassetsu::SpringSetsubun, 2024, Meridian::JAPAN),
+///     day_of(Zassetsu::SPRING_SETSUBUN, 2024, Meridian::JAPAN),
 ///     hc_calendar::Rd(738_919)
 /// );
 /// ```
@@ -470,10 +569,10 @@ pub fn higan(year: i64, season: HiganSeason, meridian: Meridian) -> HiganPeriod 
 #[must_use]
 pub const fn doyo_entry(season: Season) -> Zassetsu {
     match season {
-        Season::Spring => Zassetsu::SpringDoyoEntry,
-        Season::Summer => Zassetsu::SummerDoyoEntry,
-        Season::Autumn => Zassetsu::AutumnDoyoEntry,
-        Season::Winter => Zassetsu::WinterDoyoEntry,
+        Season::Spring => Zassetsu::SPRING_DOYO_ENTRY,
+        Season::Summer => Zassetsu::SUMMER_DOYO_ENTRY,
+        Season::Autumn => Zassetsu::AUTUMN_DOYO_ENTRY,
+        Season::Winter => Zassetsu::WINTER_DOYO_ENTRY,
     }
 }
 
@@ -488,15 +587,15 @@ pub const fn doyo_closing_term(season: Season) -> SolarTerm {
 
 /// The 節分 that falls on the eve of a season's opening 立 term.
 ///
-/// [`Zassetsu::SpringSetsubun`] is the eve of 立春, so it opens spring; that
+/// [`Zassetsu::SPRING_SETSUBUN`] is the eve of 立春, so it opens spring; that
 /// is the one in February with the roasted soybeans.
 #[must_use]
 pub const fn setsubun_opening(season: Season) -> Zassetsu {
     match season {
-        Season::Spring => Zassetsu::SpringSetsubun,
-        Season::Summer => Zassetsu::SummerSetsubun,
-        Season::Autumn => Zassetsu::AutumnSetsubun,
-        Season::Winter => Zassetsu::WinterSetsubun,
+        Season::Spring => Zassetsu::SPRING_SETSUBUN,
+        Season::Summer => Zassetsu::SUMMER_SETSUBUN,
+        Season::Autumn => Zassetsu::AUTUMN_SETSUBUN,
+        Season::Winter => Zassetsu::WINTER_SETSUBUN,
     }
 }
 
@@ -629,8 +728,8 @@ pub fn setsubun(year: i64, season: Season, meridian: Meridian) -> Rd {
 #[must_use]
 pub fn shanichi(year: i64, season: HiganSeason, meridian: Meridian) -> Rd {
     let kind = match season {
-        HiganSeason::Spring => Zassetsu::SpringShanichi,
-        HiganSeason::Autumn => Zassetsu::AutumnShanichi,
+        HiganSeason::Spring => Zassetsu::SPRING_SHANICHI,
+        HiganSeason::Autumn => Zassetsu::AUTUMN_SHANICHI,
     };
     day_of(kind, year, meridian)
 }
@@ -672,18 +771,18 @@ mod tests {
     #[test]
     fn the_zassetsu_of_2024_fall_where_the_japanese_almanac_puts_them() {
         let expected = [
-            (Zassetsu::SpringSetsubun, (2024, 2, 3)),
-            (Zassetsu::SpringHiganEntry, (2024, 3, 17)),
-            (Zassetsu::SpringHiganMiddle, (2024, 3, 20)),
-            (Zassetsu::SpringHiganExit, (2024, 3, 23)),
-            (Zassetsu::Hachijuhachiya, (2024, 5, 1)),
-            (Zassetsu::Nyubai, (2024, 6, 10)),
-            (Zassetsu::Hangesho, (2024, 7, 1)),
-            (Zassetsu::Nihyakutoka, (2024, 8, 31)),
-            (Zassetsu::Nihyakuhatsuka, (2024, 9, 10)),
-            (Zassetsu::AutumnHiganEntry, (2024, 9, 19)),
-            (Zassetsu::AutumnHiganMiddle, (2024, 9, 22)),
-            (Zassetsu::AutumnHiganExit, (2024, 9, 25)),
+            (Zassetsu::SPRING_SETSUBUN, (2024, 2, 3)),
+            (Zassetsu::SPRING_HIGAN_ENTRY, (2024, 3, 17)),
+            (Zassetsu::SPRING_HIGAN_MIDDLE, (2024, 3, 20)),
+            (Zassetsu::SPRING_HIGAN_EXIT, (2024, 3, 23)),
+            (Zassetsu::HACHIJUHACHIYA, (2024, 5, 1)),
+            (Zassetsu::NYUBAI, (2024, 6, 10)),
+            (Zassetsu::HANGESHO, (2024, 7, 1)),
+            (Zassetsu::NIHYAKUTOKA, (2024, 8, 31)),
+            (Zassetsu::NIHYAKUHATSUKA, (2024, 9, 10)),
+            (Zassetsu::AUTUMN_HIGAN_ENTRY, (2024, 9, 19)),
+            (Zassetsu::AUTUMN_HIGAN_MIDDLE, (2024, 9, 22)),
+            (Zassetsu::AUTUMN_HIGAN_EXIT, (2024, 9, 25)),
         ];
         for (kind, (year, month, day)) in expected {
             assert_eq!(
@@ -702,19 +801,19 @@ mod tests {
     #[test]
     fn the_counted_days_shift_with_the_leap_year() {
         assert_eq!(
-            day_of(Zassetsu::Hachijuhachiya, 2023, JAPAN),
+            day_of(Zassetsu::HACHIJUHACHIYA, 2023, JAPAN),
             from_year_month_day(2023, 5, 2)
         );
         assert_eq!(
-            day_of(Zassetsu::Hachijuhachiya, 2024, JAPAN),
+            day_of(Zassetsu::HACHIJUHACHIYA, 2024, JAPAN),
             from_year_month_day(2024, 5, 1)
         );
         assert_eq!(
-            day_of(Zassetsu::Nihyakutoka, 2023, JAPAN),
+            day_of(Zassetsu::NIHYAKUTOKA, 2023, JAPAN),
             from_year_month_day(2023, 9, 1)
         );
         assert_eq!(
-            day_of(Zassetsu::Nihyakutoka, 2024, JAPAN),
+            day_of(Zassetsu::NIHYAKUTOKA, 2024, JAPAN),
             from_year_month_day(2024, 8, 31)
         );
     }
@@ -724,20 +823,20 @@ mod tests {
         for year in 1950..2050 {
             let risshun = term_day(year, SolarTerm::BEGINNING_OF_SPRING, JAPAN);
             assert_eq!(
-                day_of(Zassetsu::Hachijuhachiya, year, JAPAN).0 - risshun.0,
+                day_of(Zassetsu::HACHIJUHACHIYA, year, JAPAN).0 - risshun.0,
                 87
             );
             assert_eq!(
-                day_of(Zassetsu::Nihyakutoka, year, JAPAN).0 - risshun.0,
+                day_of(Zassetsu::NIHYAKUTOKA, year, JAPAN).0 - risshun.0,
                 209
             );
             assert_eq!(
-                day_of(Zassetsu::Nihyakuhatsuka, year, JAPAN).0 - risshun.0,
+                day_of(Zassetsu::NIHYAKUHATSUKA, year, JAPAN).0 - risshun.0,
                 219
             );
             assert_eq!(
-                day_of(Zassetsu::Nihyakuhatsuka, year, JAPAN).0
-                    - day_of(Zassetsu::Nihyakutoka, year, JAPAN).0,
+                day_of(Zassetsu::NIHYAKUHATSUKA, year, JAPAN).0
+                    - day_of(Zassetsu::NIHYAKUTOKA, year, JAPAN).0,
                 10
             );
         }
@@ -761,15 +860,15 @@ mod tests {
     #[test]
     fn setsubun_was_the_second_of_february_in_2021() {
         assert_eq!(
-            day_of(Zassetsu::SpringSetsubun, 2021, JAPAN),
+            day_of(Zassetsu::SPRING_SETSUBUN, 2021, JAPAN),
             from_year_month_day(2021, 2, 2)
         );
         assert_eq!(
-            day_of(Zassetsu::SpringSetsubun, 2020, JAPAN),
+            day_of(Zassetsu::SPRING_SETSUBUN, 2020, JAPAN),
             from_year_month_day(2020, 2, 3)
         );
         assert_eq!(
-            day_of(Zassetsu::SpringSetsubun, 1984, JAPAN),
+            day_of(Zassetsu::SPRING_SETSUBUN, 1984, JAPAN),
             from_year_month_day(1984, 2, 4)
         );
     }
@@ -1002,7 +1101,7 @@ mod tests {
 
     #[test]
     fn every_zassetsu_has_a_rule_a_name_and_a_gloss() {
-        for kind in Zassetsu::ALL {
+        for kind in Zassetsu::ALL.iter().copied() {
             assert!(!kind.japanese_name().is_empty());
             assert!(!kind.romaji().is_empty());
             assert!(!kind.english_name().is_empty());
@@ -1038,7 +1137,7 @@ mod tests {
         for year in 1950..2050 {
             let classical = classical_nyubai(year, JAPAN);
             assert_eq!(sexagenary_day(classical).stem_index(), STEM_MIZUNOE);
-            if classical != day_of(Zassetsu::Nyubai, year, JAPAN) {
+            if classical != day_of(Zassetsu::NYUBAI, year, JAPAN) {
                 disagreements += 1;
             }
         }
@@ -1056,7 +1155,7 @@ mod tests {
         let mut agreements = 0;
         for year in 1950..2050 {
             let classical = classical_hangesho(year, JAPAN);
-            let modern = day_of(Zassetsu::Hangesho, year, JAPAN);
+            let modern = day_of(Zassetsu::HANGESHO, year, JAPAN);
             assert!(
                 (modern.0 - classical.0).abs() <= 1,
                 "{year}: the two rules were {} days apart",
@@ -1079,7 +1178,7 @@ mod tests {
     fn the_meridian_changes_some_zassetsu_dates() {
         let mut disagreements = 0;
         for year in 1950..2050 {
-            for kind in Zassetsu::ALL {
+            for kind in Zassetsu::ALL.iter().copied() {
                 if day_of(kind, year, Meridian::JAPAN) != day_of(kind, year, Meridian::CHINA) {
                     disagreements += 1;
                 }

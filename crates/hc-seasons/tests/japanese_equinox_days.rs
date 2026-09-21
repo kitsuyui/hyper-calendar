@@ -308,7 +308,7 @@ fn the_holiday_the_higan_and_the_solar_term_all_name_the_same_day() {
         assert_eq!(spring.middle, computed_day(year, true));
         assert_eq!(
             hc_seasons::zassetsu::day_of(
-                hc_seasons::Zassetsu::SpringHiganMiddle,
+                hc_seasons::Zassetsu::SPRING_HIGAN_MIDDLE,
                 year,
                 Meridian::JAPAN
             ),

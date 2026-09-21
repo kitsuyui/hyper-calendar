@@ -78,7 +78,7 @@
 //! assert_eq!(notes.sexagenary().index(), 0);
 //! assert_eq!(notes.twelve_direct().japanese_name(), "建");
 //! assert_eq!(notes.mansion().japanese_name(), "畢");
-//! assert!(notes.lower_register().contains(LowerRegister::Tenshanichi));
+//! assert!(notes.lower_register().contains(LowerRegister::TENSHANICHI));
 //! ```
 
 #![cfg_attr(not(feature = "std"), no_std)]
