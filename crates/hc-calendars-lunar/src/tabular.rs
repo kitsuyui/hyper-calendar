@@ -73,51 +73,95 @@ pub const ASTRONOMICAL_EPOCH: Rd = Rd(227_014);
 
 /// Which eleven years of the thirty-year cycle carry the extra day.
 ///
-/// The four schemes below are the ones the standard surveys of the medieval
-/// *zīj*es tabulate. The attributions are the conventional ones and are given
-/// here to name the variants, not as a claim about who first wrote each table
-/// down; the schemes are much better attested than their authorship.
+/// The four schemes shipped are the ones the standard surveys of the
+/// medieval *zīj*es tabulate. The attributions are the conventional ones and
+/// name the variants rather than claim who first wrote each table down; the
+/// schemes are much better attested than their authorship. A scheme this
+/// crate has not met is an entry, not a variant (ADR 0007): the type holds
+/// eleven positions and nothing else.
 ///
-/// All four agree on years 2, 5, 13, 21 and 24, so they never drift more than
-/// a day or two from one another inside a cycle and they realign exactly
-/// every thirty years.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-pub enum LeapYearRule {
-    /// 2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29 — the common scheme,
-    /// associated with al-Fazārī, al-Khwārizmī and al-Battānī, and the one
-    /// every "tabular Hijri" implementation means unless it says otherwise.
-    ///
-    /// Equivalent to the test `(14 + 11 · year) mod 30 < 11` used by
-    /// Reingold and Dershowitz, *Calendrical Calculations*.
-    #[default]
-    Civil,
-    /// 2, 5, 7, 10, 13, 15, 18, 21, 24, 26, 29 — associated with Kūshyār
-    /// ibn Labbān and with the Fatimid/Ismaili (Ṭayyibī Bohra) reckoning.
-    ///
-    /// It differs from [`LeapYearRule::Civil`] in a single year: the long
-    /// year at 16 moves to 15, so the two calendars run one day apart for
-    /// years 15 to 15 of the cycle and agree again from year 16.
-    KushyarIbnLabban,
-    /// 2, 5, 8, 10, 13, 16, 19, 21, 24, 27, 29.
-    Fatimid,
-    /// 2, 5, 8, 11, 13, 16, 19, 21, 24, 27, 30 — associated with Ḥabash
-    /// al-Ḥāsib, al-Bīrūnī and Elias of Nisibis.
-    ///
-    /// The only scheme whose thirtieth year is long, which means the extra
-    /// day falls at the very end of the cycle rather than one year earlier.
-    HabashAlHasib,
+/// All four agree on years 2, 5, 13, 21 and 24, so they never drift more
+/// than a day or two from one another inside a cycle and they realign
+/// exactly every thirty years.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct LeapYearRule {
+    /// A short identifier: `civil`, `kushyar`, `fatimid`, `habash`.
+    pub id: &'static str,
+    /// The eleven long years of the cycle, ascending.
+    pub long_years: [u8; 11],
+    /// Whose table the scheme is conventionally attributed to.
+    pub attribution: &'static str,
+}
+
+impl Default for LeapYearRule {
+    /// The common scheme, which every "tabular Hijri" implementation means
+    /// unless it says otherwise.
+    fn default() -> Self {
+        Self::CIVIL
+    }
+}
+
+hc_core::catalogue! {
+    type: LeapYearRule,
+    id: |rule| rule.id,
+    provenance: |rule| rule.attribution,
+    tests: leap_year_rule_tests,
+    associated;
+
+    /// Every scheme this crate ships.
+    pub const ALL;
+    /// The scheme with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// 2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29 — the common scheme, and
+        /// the one every "tabular Hijri" implementation means unless it says
+        /// otherwise.
+        ///
+        /// Equivalent to the test `(14 + 11 · year) mod 30 < 11` used by
+        /// Reingold and Dershowitz, *Calendrical Calculations*.
+        pub const CIVIL = Self {
+            id: "civil",
+            long_years: [2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29],
+            attribution: "al-Fazārī, al-Khwārizmī and al-Battānī",
+        };
+        /// 2, 5, 7, 10, 13, 15, 18, 21, 24, 26, 29 — associated with Kūshyār
+        /// ibn Labbān and with the Fatimid/Ismaili (Ṭayyibī Bohra)
+        /// reckoning.
+        ///
+        /// It differs from [`LeapYearRule::CIVIL`] in a single year: the
+        /// long year at 16 moves to 15, so the two calendars run one day
+        /// apart for year 15 of the cycle and agree again from year 16.
+        pub const KUSHYAR_IBN_LABBAN = Self {
+            id: "kushyar",
+            long_years: [2, 5, 7, 10, 13, 15, 18, 21, 24, 26, 29],
+            attribution: "Kūshyār ibn Labbān; the Ṭayyibī Bohra reckoning",
+        };
+        /// 2, 5, 8, 10, 13, 16, 19, 21, 24, 27, 29.
+        pub const FATIMID = Self {
+            id: "fatimid",
+            long_years: [2, 5, 8, 10, 13, 16, 19, 21, 24, 27, 29],
+            attribution: "the Fatimid tables",
+        };
+        /// 2, 5, 8, 11, 13, 16, 19, 21, 24, 27, 30 — associated with Ḥabash
+        /// al-Ḥāsib, al-Bīrūnī and Elias of Nisibis.
+        ///
+        /// The only scheme whose thirtieth year is long, which means the
+        /// extra day falls at the very end of the cycle rather than one year
+        /// earlier.
+        pub const HABASH_AL_HASIB = Self {
+            id: "habash",
+            long_years: [2, 5, 8, 11, 13, 16, 19, 21, 24, 27, 30],
+            attribution: "Ḥabash al-Ḥāsib, al-Bīrūnī and Elias of Nisibis",
+        };
+    }
 }
 
 impl LeapYearRule {
     /// The eleven long years of the cycle, in ascending order.
     #[must_use]
     pub const fn leap_years(self) -> [u8; 11] {
-        match self {
-            Self::Civil => [2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29],
-            Self::KushyarIbnLabban => [2, 5, 7, 10, 13, 15, 18, 21, 24, 26, 29],
-            Self::Fatimid => [2, 5, 8, 10, 13, 16, 19, 21, 24, 27, 29],
-            Self::HabashAlHasib => [2, 5, 8, 11, 13, 16, 19, 21, 24, 27, 30],
-        }
+        self.long_years
     }
 
     /// Whether `position`, a year numbered 1 to 30 within the cycle, is long.
@@ -386,7 +430,7 @@ impl TabularIslamicCalendar {
 /// 19, 21, 24, 27 or 29 it is a *kabisa* year", with odd months of 30 days
 /// and even months of 29.
 ///
-/// That is [`LeapYearRule::Fatimid`] — the common scheme with three of its
+/// That is [`LeapYearRule::FATIMID`] — the common scheme with three of its
 /// long years delayed by one, the third to 8, the seventh to 19 and the
 /// tenth to 27 — at the Thursday epoch, not the Friday one. The epoch is
 /// fixed here by the community's own published anchor rather than by
@@ -401,7 +445,7 @@ pub const FATIMID: TabularIslamicCalendar = TabularIslamicCalendar::new(
     CalendarId("islamic-fatimid"),
     "Hijri (Fatimid, Ṭayyibī Bohra \"Misri\")",
     ASTRONOMICAL_EPOCH,
-    LeapYearRule::Fatimid,
+    LeapYearRule::FATIMID,
 );
 
 impl Default for TabularIslamicCalendar {
@@ -410,7 +454,7 @@ impl Default for TabularIslamicCalendar {
             CalendarId("islamic-civil"),
             "Hijri (tabular, civil epoch)",
             CIVIL_EPOCH,
-            LeapYearRule::Civil,
+            LeapYearRule::CIVIL,
         )
     }
 }
@@ -501,7 +545,7 @@ mod tests {
             CalendarId("test-only"),
             "test",
             CIVIL_EPOCH,
-            LeapYearRule::Fatimid,
+            LeapYearRule::FATIMID,
         );
         assert_eq!(friday.from_fixed(day).map(|other| other.day), Ok(11));
     }
@@ -521,7 +565,7 @@ mod tests {
             CalendarId("test-only"),
             "test",
             CIVIL_EPOCH,
-            LeapYearRule::HabashAlHasib,
+            LeapYearRule::HABASH_AL_HASIB,
         );
         assert_eq!(custom.day_boundary(), DayBoundary::Sunset);
     }
@@ -531,7 +575,7 @@ mod tests {
     #[test]
     fn the_kabisa_remainders_are_the_ones_the_community_publishes() {
         assert_eq!(
-            LeapYearRule::Fatimid.leap_years(),
+            LeapYearRule::FATIMID.leap_years(),
             [2, 5, 8, 10, 13, 16, 19, 21, 24, 27, 29]
         );
         // 1431 has remainder 21 and is kabisa; 1432 has remainder 22 and is
@@ -543,10 +587,10 @@ mod tests {
     use crate::civil;
 
     const ALL_RULES: [LeapYearRule; 4] = [
-        LeapYearRule::Civil,
-        LeapYearRule::KushyarIbnLabban,
-        LeapYearRule::Fatimid,
-        LeapYearRule::HabashAlHasib,
+        LeapYearRule::CIVIL,
+        LeapYearRule::KUSHYAR_IBN_LABBAN,
+        LeapYearRule::FATIMID,
+        LeapYearRule::HABASH_AL_HASIB,
     ];
 
     /// The closed form given by Reingold and Dershowitz, *Calendrical
@@ -570,7 +614,7 @@ mod tests {
         assert_eq!(CIVIL_EPOCH.to_julian_day_number(), 1_948_440);
         assert_eq!(civil::from_rd(CIVIL_EPOCH), (622, 7, 19));
         assert_eq!(
-            to_fixed(CIVIL_EPOCH, LeapYearRule::Civil, 1, 1, 1),
+            to_fixed(CIVIL_EPOCH, LeapYearRule::CIVIL, 1, 1, 1),
             Ok(CIVIL_EPOCH)
         );
     }
@@ -593,14 +637,14 @@ mod tests {
     fn the_table_driven_civil_rule_agrees_with_the_published_closed_form() {
         for year in 1..=3_000i64 {
             assert_eq!(
-                is_leap_year(LeapYearRule::Civil, year),
+                is_leap_year(LeapYearRule::CIVIL, year),
                 (14 + 11 * year).rem_euclid(30) < 11,
                 "year {year}"
             );
             for month in 1..=12u8 {
                 let day = 1;
                 assert_eq!(
-                    to_fixed(CIVIL_EPOCH, LeapYearRule::Civil, year, month, day),
+                    to_fixed(CIVIL_EPOCH, LeapYearRule::CIVIL, year, month, day),
                     Ok(Rd(reingold_dershowitz_to_fixed(year, month, day))),
                     "{year}-{month}-{day}"
                 );
@@ -664,13 +708,13 @@ mod tests {
     fn kushyars_rule_differs_from_the_civil_one_in_exactly_one_year() {
         let differing = (1..=30u8)
             .filter(|position| {
-                LeapYearRule::Civil.is_long_position(*position)
-                    != LeapYearRule::KushyarIbnLabban.is_long_position(*position)
+                LeapYearRule::CIVIL.is_long_position(*position)
+                    != LeapYearRule::KUSHYAR_IBN_LABBAN.is_long_position(*position)
             })
             .count();
         assert_eq!(differing, 2, "15 becomes long and 16 becomes short");
-        assert!(LeapYearRule::KushyarIbnLabban.is_long_position(15));
-        assert!(!LeapYearRule::KushyarIbnLabban.is_long_position(16));
+        assert!(LeapYearRule::KUSHYAR_IBN_LABBAN.is_long_position(15));
+        assert!(!LeapYearRule::KUSHYAR_IBN_LABBAN.is_long_position(16));
     }
 
     #[test]
@@ -716,12 +760,12 @@ mod tests {
         for month in 1..=11u8 {
             let expected = if month % 2 == 1 { 30 } else { 29 };
             assert_eq!(
-                days_in_month(LeapYearRule::Civil, 1_445, month),
+                days_in_month(LeapYearRule::CIVIL, 1_445, month),
                 Some(expected)
             );
         }
-        assert_eq!(days_in_month(LeapYearRule::Civil, 1_445, 13), None);
-        assert_eq!(days_in_month(LeapYearRule::Civil, 1_445, 0), None);
+        assert_eq!(days_in_month(LeapYearRule::CIVIL, 1_445, 13), None);
+        assert_eq!(days_in_month(LeapYearRule::CIVIL, 1_445, 0), None);
     }
 
     #[test]
@@ -743,7 +787,7 @@ mod tests {
 
     #[test]
     fn out_of_range_fields_name_the_field_that_is_wrong() {
-        let rule = LeapYearRule::Civil;
+        let rule = LeapYearRule::CIVIL;
         assert_eq!(
             to_fixed(CIVIL_EPOCH, rule, 0, 1, 1),
             Err(CalendarError::YearOutOfRange)
@@ -787,9 +831,9 @@ mod tests {
     fn the_astronomical_variant_runs_exactly_one_day_ahead_of_the_civil_one() {
         for year in [1i64, 100, 1_000, 1_445, 5_000] {
             for month in 1..=12u8 {
-                let civil_day = to_fixed(CIVIL_EPOCH, LeapYearRule::Civil, year, month, 1);
+                let civil_day = to_fixed(CIVIL_EPOCH, LeapYearRule::CIVIL, year, month, 1);
                 let astronomical =
-                    to_fixed(ASTRONOMICAL_EPOCH, LeapYearRule::Civil, year, month, 1);
+                    to_fixed(ASTRONOMICAL_EPOCH, LeapYearRule::CIVIL, year, month, 1);
                 assert_eq!(
                     astronomical.map(|rd| rd.0 + 1),
                     civil_day.map(|rd| rd.0),

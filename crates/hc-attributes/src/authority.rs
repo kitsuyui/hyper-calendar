@@ -42,57 +42,55 @@ pub const WEEKDAYS: usize = 7;
 /// flower comes from. Tanzanite is Tanzanian and appears in the American
 /// list; that makes the list American, not the stone.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[non_exhaustive]
-pub enum Region {
-    /// The United States.
-    UnitedStates,
-    /// The United Kingdom.
-    UnitedKingdom,
-    /// Japan.
-    Japan,
-    /// Anglo-Saxon England.
-    EarlyEngland,
-    /// The Frankish empire under Charlemagne.
-    Francia,
-    /// Finland.
-    Finland,
-    /// The Czech lands.
-    Czechia,
-    /// Thailand.
-    Thailand,
-    /// The Indian subcontinent.
-    India,
-    /// The Norse and wider Germanic world.
-    Germanic,
-    /// The Roman world and its Latin inheritance.
-    RomanWorld,
-    /// Colonial and later North America, without a narrower attribution
-    /// this crate is willing to make. See [`crate::moon_names`].
-    NorthAmerica,
-    /// No single region: a list circulated across the English-speaking
-    /// world without a promulgating body.
-    Unspecified,
+pub struct Region {
+    /// A short identifier: an ISO 3166-1 alpha-2 code where one fits, a
+    /// hyphenated name where no modern state does.
+    pub id: &'static str,
+    /// The name in English.
+    pub english_name: &'static str,
 }
 
-impl Region {
-    /// The name in English.
-    #[must_use]
-    pub const fn english_name(self) -> &'static str {
-        match self {
-            Self::UnitedStates => "United States",
-            Self::UnitedKingdom => "United Kingdom",
-            Self::Japan => "Japan",
-            Self::EarlyEngland => "Anglo-Saxon England",
-            Self::Francia => "Francia",
-            Self::Finland => "Finland",
-            Self::Czechia => "Czechia",
-            Self::Thailand => "Thailand",
-            Self::India => "India",
-            Self::Germanic => "the Germanic world",
-            Self::RomanWorld => "the Roman world",
-            Self::NorthAmerica => "North America",
-            Self::Unspecified => "unspecified",
-        }
+hc_core::catalogue! {
+    type: Region,
+    id: |region| region.id,
+    tests: region_tests,
+    associated;
+
+    /// Every region a shipped list belongs to. A list from a region not
+    /// here is an entry to add, not a variant to be granted (ADR 0007).
+    pub const ALL;
+    /// The region with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// The United States.
+        pub const UNITED_STATES = Self { id: "us", english_name: "United States" };
+        /// The United Kingdom.
+        pub const UNITED_KINGDOM = Self { id: "gb", english_name: "United Kingdom" };
+        /// Japan.
+        pub const JAPAN = Self { id: "jp", english_name: "Japan" };
+        /// Anglo-Saxon England.
+        pub const EARLY_ENGLAND = Self { id: "early-england", english_name: "Anglo-Saxon England" };
+        /// The Frankish empire under Charlemagne.
+        pub const FRANCIA = Self { id: "francia", english_name: "Francia" };
+        /// Finland.
+        pub const FINLAND = Self { id: "fi", english_name: "Finland" };
+        /// The Czech lands.
+        pub const CZECHIA = Self { id: "cz", english_name: "Czechia" };
+        /// Thailand.
+        pub const THAILAND = Self { id: "th", english_name: "Thailand" };
+        /// The Indian subcontinent.
+        pub const INDIA = Self { id: "in", english_name: "India" };
+        /// The Norse and wider Germanic world.
+        pub const GERMANIC = Self { id: "germanic", english_name: "the Germanic world" };
+        /// The Roman world and its Latin inheritance.
+        pub const ROMAN_WORLD = Self { id: "roman-world", english_name: "the Roman world" };
+        /// Colonial and later North America, without a narrower attribution
+        /// this crate is willing to make. See [`crate::moon_names`].
+        pub const NORTH_AMERICA = Self { id: "north-america", english_name: "North America" };
+        /// No single region: a list circulated across the English-speaking
+        /// world without a promulgating body.
+        pub const UNSPECIFIED = Self { id: "unspecified", english_name: "unspecified" };
     }
 }
 
@@ -525,7 +523,7 @@ mod tests {
         id: "test",
         english_name: "a test list",
         body: None,
-        region: Region::Unspecified,
+        region: Region::UNSPECIFIED,
         established: Some(AttributionDate::year(2000)),
         revised: None,
         validity: Validity::since(2000),

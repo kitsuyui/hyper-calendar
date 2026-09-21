@@ -3,7 +3,7 @@
 //!
 //! This is the arithmetic Hijri calendar in its most common form: the
 //! intercalation scheme of al-Fazārī and al-Khwārizmī
-//! ([`LeapYearRule::Civil`]), counted from Friday 16 July 622 in the Julian
+//! ([`LeapYearRule::CIVIL`]), counted from Friday 16 July 622 in the Julian
 //! calendar. It is the calendar behind `islamic-civil` in CLDR, behind
 //! `IslamicCalendar` in ICU's `CIVIL` mode, and behind most published
 //! conversion tables.
@@ -39,14 +39,14 @@ pub const PARAMETERS: TabularIslamicCalendar = TabularIslamicCalendar::new(
     ID,
     "Hijri (tabular, civil epoch)",
     EPOCH,
-    LeapYearRule::Civil,
+    LeapYearRule::CIVIL,
 );
 
 /// The earliest fixed day this calendar converts.
-pub const EARLIEST: Rd = earliest(EPOCH, LeapYearRule::Civil);
+pub const EARLIEST: Rd = earliest(EPOCH, LeapYearRule::CIVIL);
 
 /// The latest fixed day this calendar converts.
-pub const LATEST: Rd = latest(EPOCH, LeapYearRule::Civil);
+pub const LATEST: Rd = latest(EPOCH, LeapYearRule::CIVIL);
 
 /// The tabular Hijri calendar on the civil epoch.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]

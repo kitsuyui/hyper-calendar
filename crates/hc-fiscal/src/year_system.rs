@@ -29,96 +29,197 @@
 use hc_calendar::{CalendarError, CalendarId, Rd, Weekday};
 use hc_calendars_solar::{buddhist, ethiopic, gregorian, persian};
 
+use hc_calendar::CalendarResult;
+
 use crate::error::{FiscalError, FiscalResult};
 
-/// The calendars a fiscal year's start may be expressed in.
+/// A calendar a fiscal year's start may be expressed in.
 ///
-/// A closed enum rather than a `dyn Calendar`, for the same reason
-/// `hc_holiday::rule::CalendarSystem` is one: a country table has to be a
-/// `static` value, and a trait object cannot be one without an allocator.
+/// A struct of two conversions rather than a `dyn Calendar`, for the same
+/// reason as `hc_holiday::rule::CalendarSystem`: a country table has to be
+/// a `static` value, and a trait object cannot be one without an allocator.
+/// And a struct rather than an `enum` (ADR 0007): a fiscal year dated in a
+/// calendar this crate has not met — Nepal's Bikram Sambat is the standing
+/// example, a [documented gap](crate::countries::GAPS) — is an entry
+/// somebody writes, not a variant this crate has to be taught.
 ///
-/// Three entries cover every fiscal year this crate has found a source for.
-/// A fourth — the Bikram Sambat calendar Nepal's fiscal year is dated in —
-/// is a [documented gap](crate::countries::GAPS), not an omission.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum StartCalendar {
-    /// The proleptic Gregorian calendar.
-    Gregorian,
-    /// The Solar Hijri calendar, *arithmetic* (Birashk) variant — CLDR would
-    /// call the official one `persian`, and this is explicitly not it.
-    ///
-    /// Iran's fiscal year begins at Nowruz, which the Iranian civil code
-    /// defines by the March equinox at the 52.5°E meridian rather than by
-    /// any arithmetic rule. `hc-calendars-solar` ships the 2 820-year cyclic
-    /// approximation under the identifier `persian-arithmetic` and leaves
-    /// `persian` free for the astronomical implementation `hc-astro` will
-    /// eventually supply. This crate uses the approximation and says so:
-    /// see [`crate::countries::IRAN`] for what that costs.
-    SolarHijriArithmetic,
-    /// The Ethiopian calendar (CLDR `ethiopic`).
-    Ethiopic,
-    /// The Thai solar calendar (CLDR `buddhist`): Gregorian months with the
-    /// year number raised by 543.
-    ///
-    /// Thailand's budget year is legislated in Buddhist Era years, so its
-    /// labels are 2505 and 2568 rather than 1962 and 2025. Expressing that
-    /// as a start *in the Thai calendar* rather than as a Gregorian start
-    /// with 543 added afterwards is the difference between data and a
-    /// special case: the same arithmetic then serves Bangkok, Tokyo and
-    /// Tehran.
-    ThaiBuddhist,
+/// Two systems are equal when they name the same calendar; the conversions
+/// are not compared.
+#[derive(Debug, Clone, Copy)]
+pub struct StartCalendar {
+    id: CalendarId,
+    english_name: &'static str,
+    approximate: bool,
+    months_of_equal_standing: Option<u8>,
+    to_fixed: fn(i64, u8, u8) -> CalendarResult<Rd>,
+    from_fixed: fn(Rd) -> CalendarResult<(i64, u8, u8)>,
+}
+
+impl PartialEq for StartCalendar {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for StartCalendar {}
+
+impl core::hash::Hash for StartCalendar {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
+
+hc_core::catalogue! {
+    type: StartCalendar,
+    id: |calendar| calendar.id.0,
+    tests: start_calendar_tests,
+    associated;
+
+    /// Every calendar this crate dates a fiscal year in. Not exhaustive of
+    /// what is possible — that is the point of the type — but of what ships.
+    pub const ALL;
+    /// The calendar with this identifier, as the registry names it.
+    pub fn by_id;
+
+    entries: {
+        /// The proleptic Gregorian calendar.
+        pub const GREGORIAN = Self::new(
+            CalendarId("gregory"),
+            "Gregorian",
+            false,
+            Some(12),
+            gregorian::to_fixed,
+            gregorian::from_fixed,
+        );
+        /// The Solar Hijri calendar, *arithmetic* (Birashk) variant — CLDR
+        /// would call the official one `persian`, and this is explicitly
+        /// not it.
+        ///
+        /// Iran's fiscal year begins at Nowruz, which the Iranian civil code
+        /// defines by the March equinox at the 52.5°E meridian rather than
+        /// by any arithmetic rule. `hc-calendars-solar` ships the
+        /// 2 820-year cyclic approximation under the identifier
+        /// `persian-arithmetic` and leaves `persian` free for the
+        /// astronomical implementation `hc-astro` will eventually supply.
+        /// This crate uses the approximation and says so: see
+        /// [`crate::countries::IRAN`] for what that costs.
+        pub const SOLAR_HIJRI_ARITHMETIC = Self::new(
+            CalendarId("persian-arithmetic"),
+            "Solar Hijri (arithmetic)",
+            true,
+            Some(12),
+            persian::to_fixed,
+            persian::from_fixed,
+        );
+        /// The Ethiopian calendar (CLDR `ethiopic`).
+        ///
+        /// Its year is twelve months of thirty days followed by Pagumen —
+        /// five days, six in a leap year. Pagumen is numbered as month 13
+        /// by the calendar's implementation but it is not a thirteenth month
+        /// in any sense that would let this crate say which quarter it
+        /// belongs to, so it has no months of equal standing and
+        /// [`quarters`](crate::quarters) refuses the question instead of
+        /// answering it.
+        pub const ETHIOPIC = Self::new(
+            CalendarId("ethiopic"),
+            "Ethiopic",
+            false,
+            None,
+            ethiopic::to_fixed,
+            ethiopic::from_fixed,
+        );
+        /// The Thai solar calendar (CLDR `buddhist`): Gregorian months with
+        /// the year number raised by 543.
+        ///
+        /// Thailand's budget year is legislated in Buddhist Era years, so
+        /// its labels are 2505 and 2568 rather than 1962 and 2025.
+        /// Expressing that as a start *in the Thai calendar* rather than as
+        /// a Gregorian start with 543 added afterwards is the difference
+        /// between data and a special case: the same arithmetic then serves
+        /// Bangkok, Tokyo and Tehran.
+        pub const THAI_BUDDHIST = Self::new(
+            CalendarId("buddhist"),
+            "Thai solar (Buddhist Era)",
+            false,
+            Some(12),
+            buddhist::to_fixed,
+            buddhist::from_fixed,
+        );
+    }
 }
 
 impl StartCalendar {
+    /// A calendar from its identifier, its English name, whether it only
+    /// approximates an astronomical rule, how many months of equal standing
+    /// its year has, and its two conversions.
+    #[must_use]
+    pub const fn new(
+        id: CalendarId,
+        english_name: &'static str,
+        approximate: bool,
+        months_of_equal_standing: Option<u8>,
+        to_fixed: fn(i64, u8, u8) -> CalendarResult<Rd>,
+        from_fixed: fn(Rd) -> CalendarResult<(i64, u8, u8)>,
+    ) -> Self {
+        Self {
+            id,
+            english_name,
+            approximate,
+            months_of_equal_standing,
+            to_fixed,
+            from_fixed,
+        }
+    }
+
     /// The CLDR-style identifier of the underlying calendar.
     #[must_use]
     pub const fn id(self) -> CalendarId {
-        match self {
-            Self::Gregorian => CalendarId("gregory"),
-            Self::SolarHijriArithmetic => CalendarId("persian-arithmetic"),
-            Self::Ethiopic => CalendarId("ethiopic"),
-            Self::ThaiBuddhist => CalendarId("buddhist"),
+        self.id
+    }
+
+    /// Whether this is the same calendar as `other`, usable in `const`
+    /// context, where `==` is not.
+    #[must_use]
+    pub const fn is(self, other: Self) -> bool {
+        let (mine, theirs) = (self.id.0.as_bytes(), other.id.0.as_bytes());
+        if mine.len() != theirs.len() {
+            return false;
         }
+        let mut index = 0;
+        while index < mine.len() {
+            if mine[index] != theirs[index] {
+                return false;
+            }
+            index += 1;
+        }
+        true
     }
 
     /// The English name of the underlying calendar.
     #[must_use]
     pub const fn english_name(self) -> &'static str {
-        match self {
-            Self::Gregorian => "Gregorian",
-            Self::SolarHijriArithmetic => "Solar Hijri (arithmetic)",
-            Self::Ethiopic => "Ethiopic",
-            Self::ThaiBuddhist => "Thai solar (Buddhist Era)",
-        }
+        self.english_name
     }
 
     /// Whether the calendar's date depends on an astronomical model that
-    /// this crate only approximates.
+    /// the implementation only approximates.
     ///
-    /// True for [`StartCalendar::SolarHijriArithmetic`] alone. A fiscal year
-    /// anchored to it is a very good prediction of Nowruz, not a
-    /// proclamation of it.
+    /// True for [`StartCalendar::SOLAR_HIJRI_ARITHMETIC`] among the shipped
+    /// entries. A fiscal year anchored to such a calendar is a very good
+    /// prediction of its new year, not a proclamation of it.
     #[must_use]
     pub const fn is_approximate(self) -> bool {
-        matches!(self, Self::SolarHijriArithmetic)
+        self.approximate
     }
 
     /// How many months of equal standing the year divides into, when it
     /// divides into any.
     ///
-    /// `Some(12)` for the Gregorian and Solar Hijri calendars. `None` for
-    /// the Ethiopic calendar, whose year is twelve months of thirty days
-    /// followed by Pagumen — five days, six in a leap year. Pagumen is
-    /// numbered as month 13 by the calendar's implementation but it is not a
-    /// thirteenth month in any sense that would let this crate say which
-    /// quarter it belongs to, so [`quarters`](crate::quarters) refuses the
-    /// question instead of answering it.
+    /// `Some(12)` for the Gregorian, Solar Hijri and Thai calendars; `None`
+    /// for the Ethiopic calendar, whose Pagumen belongs to no quarter.
     #[must_use]
     pub const fn months_of_equal_standing(self) -> Option<u8> {
-        match self {
-            Self::Gregorian | Self::SolarHijriArithmetic | Self::ThaiBuddhist => Some(12),
-            Self::Ethiopic => None,
-        }
+        self.months_of_equal_standing
     }
 
     /// The fixed day of a date in this calendar.
@@ -128,13 +229,7 @@ impl StartCalendar {
     /// Returns [`FiscalError::Calendar`] when the date does not exist or
     /// falls outside the calendar's supported range.
     pub fn to_fixed(self, year: i64, month: u8, day: u8) -> FiscalResult<Rd> {
-        let rd = match self {
-            Self::Gregorian => gregorian::to_fixed(year, month, day),
-            Self::SolarHijriArithmetic => persian::to_fixed(year, month, day),
-            Self::Ethiopic => ethiopic::to_fixed(year, month, day),
-            Self::ThaiBuddhist => buddhist::to_fixed(year, month, day),
-        }?;
-        Ok(rd)
+        Ok((self.to_fixed)(year, month, day)?)
     }
 
     /// The year, month and day this calendar gives to `rd`.
@@ -144,13 +239,7 @@ impl StartCalendar {
     /// Returns [`FiscalError::Calendar`] outside the calendar's supported
     /// range.
     pub fn from_fixed(self, rd: Rd) -> FiscalResult<(i64, u8, u8)> {
-        let parts = match self {
-            Self::Gregorian => gregorian::from_fixed(rd),
-            Self::SolarHijriArithmetic => persian::from_fixed(rd),
-            Self::Ethiopic => ethiopic::from_fixed(rd),
-            Self::ThaiBuddhist => buddhist::from_fixed(rd),
-        }?;
-        Ok(parts)
+        Ok((self.from_fixed)(rd)?)
     }
 
     /// The year of this calendar that contains `rd`.
@@ -160,11 +249,7 @@ impl StartCalendar {
     /// Returns [`FiscalError::Calendar`] outside the calendar's supported
     /// range.
     pub fn year_containing(self, rd: Rd) -> FiscalResult<i64> {
-        match self {
-            Self::Gregorian => Ok(gregorian::year_from_fixed(rd)?),
-            Self::SolarHijriArithmetic => Ok(persian::year_from_fixed(rd)?),
-            Self::Ethiopic | Self::ThaiBuddhist => Ok(self.from_fixed(rd)?.0),
-        }
+        Ok(self.from_fixed(rd)?.0)
     }
 }
 
@@ -197,7 +282,7 @@ impl YearStart {
     /// A Gregorian start date — the common case.
     #[must_use]
     pub const fn gregorian(month: u8, day: u8) -> Self {
-        Self::new(StartCalendar::Gregorian, month, day)
+        Self::new(StartCalendar::GREGORIAN, month, day)
     }
 
     /// Whether this start coincides with the start of its calendar's own
@@ -449,7 +534,7 @@ impl YearSystem {
     /// Gregorian year, so it is this method that answers it.
     #[must_use]
     pub const fn is_gregorian_calendar_year(&self) -> bool {
-        self.is_calendar_year() && matches!(self.start.calendar, StartCalendar::Gregorian)
+        self.is_calendar_year() && self.start.calendar.is(StartCalendar::GREGORIAN)
     }
 
     /// The first day of the year labelled `label`, ignoring the validity
@@ -841,10 +926,10 @@ mod tests {
         // in, or a fiscal-year boundary could land on a day the calendar
         // does not agree exists.
         for calendar in [
-            StartCalendar::Gregorian,
-            StartCalendar::SolarHijriArithmetic,
-            StartCalendar::Ethiopic,
-            StartCalendar::ThaiBuddhist,
+            StartCalendar::GREGORIAN,
+            StartCalendar::SOLAR_HIJRI_ARITHMETIC,
+            StartCalendar::ETHIOPIC,
+            StartCalendar::THAI_BUDDHIST,
         ] {
             for rd in (greg(1800, 1, 1).0..=greg(2200, 1, 1).0).step_by(37) {
                 let (year, month, day) = calendar.from_fixed(Rd(rd)).unwrap();
@@ -857,33 +942,33 @@ mod tests {
     #[test]
     fn a_calendar_new_year_start_is_recognised_in_every_calendar() {
         assert!(YearStart::gregorian(1, 1).is_calendar_new_year());
-        assert!(YearStart::new(StartCalendar::SolarHijriArithmetic, 1, 1).is_calendar_new_year());
+        assert!(YearStart::new(StartCalendar::SOLAR_HIJRI_ARITHMETIC, 1, 1).is_calendar_new_year());
         assert!(!YearStart::gregorian(4, 1).is_calendar_new_year());
     }
 
     #[test]
     fn only_the_solar_hijri_calendar_is_flagged_approximate() {
-        assert!(StartCalendar::SolarHijriArithmetic.is_approximate());
-        assert!(!StartCalendar::Gregorian.is_approximate());
-        assert!(!StartCalendar::Ethiopic.is_approximate());
-        assert!(!StartCalendar::ThaiBuddhist.is_approximate());
+        assert!(StartCalendar::SOLAR_HIJRI_ARITHMETIC.is_approximate());
+        assert!(!StartCalendar::GREGORIAN.is_approximate());
+        assert!(!StartCalendar::ETHIOPIC.is_approximate());
+        assert!(!StartCalendar::THAI_BUDDHIST.is_approximate());
     }
 
     #[test]
     fn the_ethiopic_year_has_no_twelve_months_of_equal_standing() {
         assert_eq!(
-            StartCalendar::Gregorian.months_of_equal_standing(),
+            StartCalendar::GREGORIAN.months_of_equal_standing(),
             Some(12)
         );
         assert_eq!(
-            StartCalendar::SolarHijriArithmetic.months_of_equal_standing(),
+            StartCalendar::SOLAR_HIJRI_ARITHMETIC.months_of_equal_standing(),
             Some(12)
         );
         assert_eq!(
-            StartCalendar::ThaiBuddhist.months_of_equal_standing(),
+            StartCalendar::THAI_BUDDHIST.months_of_equal_standing(),
             Some(12)
         );
-        assert_eq!(StartCalendar::Ethiopic.months_of_equal_standing(), None);
+        assert_eq!(StartCalendar::ETHIOPIC.months_of_equal_standing(), None);
     }
 
     #[test]
@@ -907,13 +992,13 @@ mod tests {
 
     #[test]
     fn the_calendar_identifiers_follow_cldr_where_one_exists() {
-        assert_eq!(StartCalendar::Gregorian.id().as_str(), "gregory");
-        assert_eq!(StartCalendar::Ethiopic.id().as_str(), "ethiopic");
-        assert_eq!(StartCalendar::ThaiBuddhist.id().as_str(), "buddhist");
+        assert_eq!(StartCalendar::GREGORIAN.id().as_str(), "gregory");
+        assert_eq!(StartCalendar::ETHIOPIC.id().as_str(), "ethiopic");
+        assert_eq!(StartCalendar::THAI_BUDDHIST.id().as_str(), "buddhist");
         // Deliberately not "persian": that identifier belongs to the
         // astronomical calendar this crate does not have.
         assert_eq!(
-            StartCalendar::SolarHijriArithmetic.id().as_str(),
+            StartCalendar::SOLAR_HIJRI_ARITHMETIC.id().as_str(),
             "persian-arithmetic"
         );
     }
