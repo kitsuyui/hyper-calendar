@@ -319,29 +319,35 @@ pub struct BalinesePawukonCalendar;
 /// number.
 pub const CYCLE: DayCycle = DayCycle::new(PAWUKON_CYCLE as u16, EPOCH);
 
-/// The thirty *wuku* and the ten concurrent weeks, shortest first.
+/// The thirty *wuku* and the ten concurrent weeks, shortest first, each
+/// with the Balinese names the calendar itself uses.
+///
+/// The *wuku* is declared as the month, because it is what the date's
+/// `month` field carries: the named unit the day sits in, thirty to the
+/// cycle.
 const PAWUKON_SHAPE: &[hc_calendar::shape::CycleShape] = &[
-    hc_calendar::shape::CycleShape::fixed("wuku", 30),
-    hc_calendar::shape::CycleShape::fixed("ekawara", 1),
-    hc_calendar::shape::CycleShape::fixed("dwiwara", 2),
-    hc_calendar::shape::CycleShape::fixed("triwara", 3),
-    hc_calendar::shape::CycleShape::fixed("caturwara", 4),
-    hc_calendar::shape::CycleShape::fixed("pancawara", 5),
-    hc_calendar::shape::CycleShape::fixed("sadwara", 6),
-    hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
-    hc_calendar::shape::CycleShape::fixed("astawara", 8),
-    hc_calendar::shape::CycleShape::fixed("sangawara", 9),
-    hc_calendar::shape::CycleShape::fixed("dasawara", 10),
+    hc_calendar::shape::CycleShape::named(hc_calendar::shape::MONTH, &WUKU),
+    hc_calendar::shape::CycleShape::named("ekawara", &EKAWARA),
+    hc_calendar::shape::CycleShape::named("dwiwara", &DWIWARA),
+    hc_calendar::shape::CycleShape::named("triwara", &TRIWARA),
+    hc_calendar::shape::CycleShape::named("caturwara", &CATURWARA),
+    hc_calendar::shape::CycleShape::named("pancawara", &PANCAWARA),
+    hc_calendar::shape::CycleShape::named("sadwara", &SADWARA),
+    hc_calendar::shape::CycleShape::named(hc_calendar::shape::WEEKDAY, &SAPTAWARA),
+    hc_calendar::shape::CycleShape::named("astawara", &ASTAWARA),
+    hc_calendar::shape::CycleShape::named("sangawara", &SANGAWARA),
+    hc_calendar::shape::CycleShape::named("dasawara", &DASAWARA),
 ];
 
 impl Calendar for BalinesePawukonCalendar {
     type Date = PawukonDate;
 
-    /// The thirty *wuku* and the ten concurrent weeks.
+    /// The thirty *wuku*, as the month, and the ten concurrent weeks.
     ///
     /// The seven-day *saptawara* is the same week as everyone else's, Redite
-    /// being Sunday, so it is declared as `weekday` and a locale's weekday
-    /// names serve it. The other nine keep their Balinese names.
+    /// being Sunday, so it is declared as `weekday`: a locale's weekday
+    /// names serve it, and the Balinese ones are the fallback. The other
+    /// nine have only their Balinese names.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         PAWUKON_SHAPE
     }

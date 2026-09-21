@@ -426,23 +426,24 @@ pub struct MayaCalendarRoundCalendar;
 /// The last day [`MayaLongCountCalendar`] represents, `19.19.19.17.19`.
 pub const LONG_COUNT_LATEST: Rd = Rd(EPOCH.0 + 20 * 144_000 - 1);
 
-/// The tzolkʼin's two cycles: thirteen numbers against twenty day-signs.
+/// The tzolkʼin's two cycles: thirteen numbers against the twenty named
+/// day-signs.
 const TZOLKIN_SHAPE: &[hc_calendar::shape::CycleShape] = &[
     hc_calendar::shape::CycleShape::fixed("trecena", 13),
-    hc_calendar::shape::CycleShape::fixed("day-sign", 20),
+    hc_calendar::shape::CycleShape::named("day-sign", &TZOLKIN_NAMES),
 ];
 
-/// The haabʼ's nineteen month positions.
-const HAAB_SHAPE: &[hc_calendar::shape::CycleShape] = &[hc_calendar::shape::CycleShape::fixed(
+/// The haabʼ's nineteen named months, Uayeb among them.
+const HAAB_SHAPE: &[hc_calendar::shape::CycleShape] = &[hc_calendar::shape::CycleShape::named(
     hc_calendar::shape::MONTH,
-    19,
+    &HAAB_MONTHS,
 )];
 
 /// The calendar round: every cycle of the tzolkʼin and the haabʼ together.
 const ROUND_SHAPE: &[hc_calendar::shape::CycleShape] = &[
     hc_calendar::shape::CycleShape::fixed("trecena", 13),
-    hc_calendar::shape::CycleShape::fixed("day-sign", 20),
-    hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::MONTH, 19),
+    hc_calendar::shape::CycleShape::named("day-sign", &TZOLKIN_NAMES),
+    hc_calendar::shape::CycleShape::named(hc_calendar::shape::MONTH, &HAAB_MONTHS),
 ];
 
 impl Calendar for MayaLongCountCalendar {

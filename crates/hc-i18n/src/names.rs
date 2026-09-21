@@ -32,6 +32,7 @@ use core::fmt;
 
 use hc_calendar::cycle::Sexagenary;
 use hc_calendar::cycle::readings::Reading;
+use hc_calendar::shape::CycleShape;
 use hc_calendar::{CalendarId, Month, Weekday};
 
 use crate::casing::CasingStyle;
@@ -552,6 +553,31 @@ pub fn month_label(
         };
         Some(MonthLabel { prefix, name })
     })
+}
+
+/// The name of a position in one of a calendar's cycles: the locale's
+/// name when it has one, and otherwise the calendar's own.
+///
+/// This is the lookup that lets a haabʼ month or a Pawukon week be named
+/// without any locale having transcribed it: the calendar declares its
+/// names with its shape, and a locale overrides them only where the
+/// language has its own word. `index` is zero-based.
+#[must_use]
+pub fn position_name(
+    locale: &Locale,
+    calendar: CalendarId,
+    cycle: &CycleShape,
+    index: usize,
+    width: NameWidth,
+    context: NameContext,
+) -> Option<&'static str> {
+    resolve(locale, |data| {
+        data.cycle_for(calendar, cycle.kind)?
+            .get(width, context)
+            .get(index)
+            .copied()
+    })
+    .or_else(|| cycle.name(index))
 }
 
 /// The name of a month, without any leap-month prefix.

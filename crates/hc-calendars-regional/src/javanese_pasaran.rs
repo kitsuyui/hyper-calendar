@@ -201,8 +201,8 @@ impl Calendar for JavanesePasaranCalendar {
     /// The five-day *pasaran* and the seven-day week it runs against.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         const SHAPE: &[hc_calendar::shape::CycleShape] = &[
-            hc_calendar::shape::CycleShape::fixed("pasaran", 5),
-            hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
+            hc_calendar::shape::CycleShape::named("pasaran", &PASARAN),
+            hc_calendar::shape::CycleShape::named(hc_calendar::shape::WEEKDAY, &DINA),
         ];
         SHAPE
     }

@@ -149,8 +149,14 @@ pub struct IsoWeekCalendar;
 impl Calendar for IsoWeekCalendar {
     type Date = IsoWeekDate;
 
+    /// Fifty-two or fifty-three numbered weeks and the seven-day week. No
+    /// months: an ISO week date has none, and its fields carry none.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        hc_calendar::shape::SOLAR_TWELVE
+        const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+            hc_calendar::shape::CycleShape::intercalary("week", 52, 53),
+            hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
+        ];
+        SHAPE
     }
 
     fn meta(&self) -> CalendarMeta {

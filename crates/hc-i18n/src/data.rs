@@ -77,8 +77,6 @@ const fn weekday_widths(
 /// registry identifiers at all, so their entries were inert.
 const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("gregory"),
-    CalendarId("iso8601-week"),
-    CalendarId("iso8601-ordinal"),
     CalendarId("julian"),
     CalendarId("revised-julian"),
     CalendarId("buddhist"),
@@ -92,6 +90,21 @@ const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("japanese-proclaimed"),
     CalendarId("roman-auc"),
     CalendarId("byzantine"),
+    CalendarId("symmetry454"),
+    CalendarId("symmetry010"),
+    CalendarId("world-calendar"),
+    CalendarId("julian-gregorian-catholic"),
+    CalendarId("julian-gregorian-fr"),
+    CalendarId("julian-gregorian-nl"),
+    CalendarId("julian-gregorian-de-catholic"),
+    CalendarId("julian-gregorian-hu"),
+    CalendarId("julian-gregorian-de-protestant"),
+    CalendarId("julian-gregorian-gb"),
+    CalendarId("julian-gregorian-se"),
+    CalendarId("julian-gregorian-bg"),
+    CalendarId("julian-gregorian-ru"),
+    CalendarId("julian-gregorian-ro"),
+    CalendarId("julian-gregorian-gr"),
 ];
 
 /// A month cycle from names already shaped into widths and contexts.
@@ -121,11 +134,17 @@ const HEBREW_CALENDARS: &[CalendarId] = &[CalendarId("hebrew")];
 /// for its era, and in [`GREGORIAN_MONTH_CALENDARS`], for its months.
 const BUDDHIST_CALENDARS: &[CalendarId] = &[CalendarId("buddhist")];
 
-/// The lunisolar calendars that share the Chinese month names.
-const CHINESE_CALENDARS: &[CalendarId] = &[
+/// The lunisolar calendars whose months are numbered rather than named, and
+/// so share one set of names: First Month, 正月, 정월.
+const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("chinese"),
     CalendarId("dangi"),
     CalendarId("vietnamese"),
+    CalendarId("japanese-tenpo"),
+    CalendarId("japanese-kansei"),
+    CalendarId("japanese-horyaku"),
+    CalendarId("japanese-jokyo"),
+    CalendarId("japanese-senmyo"),
 ];
 
 /// The Solar Hijri calendar.
@@ -550,7 +569,7 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &["AM"],
     ),
     lunisolar(
-        CHINESE_CALENDARS,
+        NUMBERED_LUNISOLAR_CALENDARS,
         &[months(&[
             "First Month",
             "Second Month",
@@ -1145,7 +1164,7 @@ const JA_CALENDARS: &[CalendarNames] = &[
     // literary dates: 師走 is December in feeling, the twelfth lunar month in
     // fact.
     lunisolar(
-        CHINESE_CALENDARS,
+        NUMBERED_LUNISOLAR_CALENDARS,
         &[months(&[
             "睦月",
             "如月",
@@ -1757,7 +1776,7 @@ const ZH_HANS_CALENDARS: &[CalendarNames] = &[
         )),
     ),
     lunisolar(
-        CHINESE_CALENDARS,
+        NUMBERED_LUNISOLAR_CALENDARS,
         &[months(&[
             "正月",
             "二月",
@@ -1825,7 +1844,7 @@ const ZH_HANT_CALENDARS: &[CalendarNames] = &[
         ContextualNames::same(widths(&["第1季", "第2季", "第3季", "第4季"], &[], &[])),
     ),
     lunisolar(
-        CHINESE_CALENDARS,
+        NUMBERED_LUNISOLAR_CALENDARS,
         &[months(&[
             "正月",
             "二月",
