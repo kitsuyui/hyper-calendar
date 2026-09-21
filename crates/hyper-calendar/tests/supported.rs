@@ -55,6 +55,10 @@ struct Row {
     astronomical: bool,
     leap_months: bool,
     boundary: &'static str,
+    /// The cycles the calendar declares, or `None` where it declares none.
+    cycles: Option<&'static [hyper_calendar::hc_calendar::shape::CycleShape]>,
+    /// Whether a locale can name this calendar's months in English.
+    named: bool,
 }
 
 /// A fixed day as an ISO 8601 date, or an em dash when unbounded.
@@ -122,11 +126,51 @@ fn calendar_rows() -> Vec<Row> {
                 astronomical: meta.is_astronomical,
                 leap_months: meta.has_leap_months,
                 boundary: boundary_name(calendar.day_boundary()),
+                cycles: calendar.cycles(),
+                named: has_month_names(meta.id),
             });
         }
     }
     rows.sort_by(|left, right| left.id.cmp(&right.id));
     rows
+}
+
+/// Whether English can name this calendar's months.
+///
+/// The column this feeds is the one nothing used to answer. A calendar
+/// could be implemented, tested and registered and still be unnameable in
+/// any language, and the only way to find out was to grep. Two of the
+/// entries that looked like data — `persian` and `islamic` — were keyed to
+/// identifiers no calendar had, so they answered for nothing at all.
+fn has_month_names(id: hyper_calendar::hc_calendar::CalendarId) -> bool {
+    use hyper_calendar::hc_i18n::Locale;
+    use hyper_calendar::hc_i18n::names::{NameContext, month_count};
+    let Ok(english) = "en".parse::<Locale>() else {
+        return false;
+    };
+    month_count(&english, id, NameContext::Format).is_some()
+}
+
+/// A calendar's declared shape, as a phrase for the table.
+fn shape_of(row: &Row) -> String {
+    let Some(cycles) = row.cycles else {
+        return "—".to_owned();
+    };
+    if cycles.is_empty() {
+        return "none".to_owned();
+    }
+    cycles
+        .iter()
+        .map(|cycle| match cycle.length {
+            hyper_calendar::hc_calendar::CycleLength::Fixed(length) => {
+                format!("{} ×{length}", cycle.kind)
+            }
+            hyper_calendar::hc_calendar::CycleLength::Intercalary { ordinary, extended } => {
+                format!("{} ×{ordinary}–{extended}", cycle.kind)
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(", ")
 }
 
 /// The day boundary as a word for the table.
@@ -222,15 +266,28 @@ fn render() -> String {
          registry answers to.\n",
         rows.len()
     );
+    let with_shape = rows.iter().filter(|row| row.cycles.is_some()).count();
+    let named = rows.iter().filter(|row| row.named).count();
+    let _ = writeln!(
+        out,
+        "**Cycles** is what the calendar declares itself to be made of, and \
+         **Named** is whether English can name its months. {with_shape} of \
+         {} declare a shape and {named} can be named. Those two gaps are \
+         real and are asserted in `tests/vocabulary.rs`, so they can only \
+         move deliberately — a calendar that is implemented but unnameable \
+         is a gap the library should be able to state, not one a reader has \
+         to discover.\n",
+        rows.len()
+    );
     out.push_str(
         "| id | Name | Crate | Feature | Earliest | Latest | Astronomical | \
-         Leap months | Day begins |\n| --- | --- | --- | --- | --- | --- | \
-         --- | --- | --- |\n",
+         Leap months | Day begins | Cycles | Named |\n| --- | --- | --- | \
+         --- | --- | --- | --- | --- | --- | --- | --- |\n",
     );
     for row in &rows {
         let _ = writeln!(
             out,
-            "| `{}` | {} | [`{}`](../crates/{}) | `{}` | {} | {} | {} | {} | {} |",
+            "| `{}` | {} | [`{}`](../crates/{}) | `{}` | {} | {} | {} | {} | {} | {} | {} |",
             row.id,
             row.english_name,
             row.krate,
@@ -241,6 +298,8 @@ fn render() -> String {
             if row.astronomical { "yes" } else { "no" },
             if row.leap_months { "yes" } else { "no" },
             row.boundary,
+            shape_of(row),
+            if row.named { "yes" } else { "no" },
         );
     }
 

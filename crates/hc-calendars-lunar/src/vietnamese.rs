@@ -112,6 +112,10 @@ pub struct VietnameseCalendar;
 impl Calendar for VietnameseCalendar {
     type Date = VietnameseDate;
 
+    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
+        Some(hc_calendar::shape::LUNISOLAR_TWELVE)
+    }
+
     fn meta(&self) -> CalendarMeta {
         ENGINE.meta()
     }

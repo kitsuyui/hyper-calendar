@@ -231,6 +231,10 @@ pub struct GregorianCalendar;
 impl Calendar for GregorianCalendar {
     type Date = GregorianDate;
 
+    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
+        Some(hc_calendar::shape::SOLAR_TWELVE)
+    }
+
     /// Promulgated by *Inter gravissimas* and first used on 15 October 1582.
     /// The arithmetic runs to either side of that by millions of years, and
     /// every day before it is proleptic — including, for most of the world,

@@ -120,6 +120,10 @@ pub struct JucheCalendar;
 impl Calendar for JucheCalendar {
     type Date = JucheDate;
 
+    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
+        Some(hc_calendar::shape::SOLAR_TWELVE)
+    }
+
     /// Introduced by decree in 1997. Years between 1912 and 1997 are
     /// computed backwards onto an era that did not yet exist.
     fn usage(&self) -> hc_calendar::Usage {

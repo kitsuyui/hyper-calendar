@@ -26,11 +26,13 @@
 //! * The sexagenary stems, branches and zodiac animals are carried in
 //!   Chinese, Japanese, Korean and romanised English.
 
-use hc_calendar::Weekday;
+use hc_calendar::{CalendarId, Weekday};
 
 use crate::casing::CasingStyle;
 use crate::direction::Direction;
-use crate::names::{CalendarNames, ContextualNames, CycleNames, EraNames, LocaleData, WidthSet};
+use crate::names::{
+    CalendarNames, ContextualNames, CycleNames, EraNames, LocaleData, SexagenaryNames, WidthSet,
+};
 
 // --- construction helpers -------------------------------------------------
 //
@@ -63,14 +65,90 @@ const fn weekday_widths(
     }
 }
 
+/// The calendars that share the Gregorian month names.
+///
+/// They differ in how they count years, not in what they call the months,
+/// so one vocabulary entry serves all of them. This replaces the alias
+/// function that used to map identifiers onto `gregory` — and two of the
+/// identifiers that function listed, `iso8601` and `roc`, were not
+/// registry identifiers at all, so their entries were inert.
+const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
+    CalendarId("gregory"),
+    CalendarId("iso8601-week"),
+    CalendarId("iso8601-ordinal"),
+    CalendarId("julian"),
+    CalendarId("revised-julian"),
+    CalendarId("buddhist"),
+    CalendarId("roc"),
+    CalendarId("juche"),
+    CalendarId("holocene"),
+    CalendarId("japanese-imperial"),
+    CalendarId("japanese"),
+    CalendarId("japanese-northern"),
+    CalendarId("japanese-southern"),
+    CalendarId("japanese-proclaimed"),
+    CalendarId("roman-auc"),
+    CalendarId("byzantine"),
+];
+
+/// A month cycle from names already shaped into widths and contexts.
+const fn month_cycle(names: ContextualNames) -> CycleNames {
+    CycleNames::new(hc_calendar::shape::MONTH, names)
+}
+
+/// A month cycle from a plain list of names, the same in every width.
+const fn months(names: &'static [&'static str]) -> CycleNames {
+    month_cycle(ContextualNames::same(widths(names, &[], &[])))
+}
+
+/// The five Hijri calendars, which share one set of Arabic month names.
+const ISLAMIC_CALENDARS: &[CalendarId] = &[
+    CalendarId("islamic-civil"),
+    CalendarId("islamic-tbla"),
+    CalendarId("islamic-umalqura"),
+    CalendarId("islamic-rgsa"),
+    CalendarId("islamic-fatimid"),
+];
+
+/// The Hebrew calendar.
+const HEBREW_CALENDARS: &[CalendarId] = &[CalendarId("hebrew")];
+
+/// The Thai Buddhist calendar, which counts years its own way and names
+/// the months as the Gregorian calendar does — so it appears both here,
+/// for its era, and in [`GREGORIAN_MONTH_CALENDARS`], for its months.
+const BUDDHIST_CALENDARS: &[CalendarId] = &[CalendarId("buddhist")];
+
+/// The lunisolar calendars that share the Chinese month names.
+const CHINESE_CALENDARS: &[CalendarId] = &[
+    CalendarId("chinese"),
+    CalendarId("dangi"),
+    CalendarId("vietnamese"),
+];
+
+/// The Solar Hijri calendar.
+///
+/// The registry calls it `persian-arithmetic`. This data used to key it as
+/// `persian`, a name no calendar answered to, so the twelve Persian month
+/// names below were written, tested and unreachable.
+const PERSIAN_CALENDARS: &[CalendarId] = &[CalendarId("persian-arithmetic")];
+
+/// The Japanese era calendars, in every court reading and both era
+/// reckonings — they share their month names.
+const JAPANESE_CALENDARS: &[CalendarId] = &[
+    CalendarId("japanese"),
+    CalendarId("japanese-northern"),
+    CalendarId("japanese-southern"),
+    CalendarId("japanese-proclaimed"),
+];
+
 const fn gregorian(
-    months: ContextualNames,
+    months: &'static [CycleNames],
     eras: EraNames,
     quarters: ContextualNames,
 ) -> CalendarNames {
     CalendarNames {
-        calendar: "gregory",
-        months,
+        calendars: GREGORIAN_MONTH_CALENDARS,
+        cycles: months,
         leap_month_prefix: "",
         eras,
         quarters,
@@ -78,13 +156,13 @@ const fn gregorian(
 }
 
 const fn lunisolar(
-    calendar: &'static str,
-    months: &'static [&'static str],
+    calendars: &'static [CalendarId],
+    months: &'static [CycleNames],
     leap_month_prefix: &'static str,
 ) -> CalendarNames {
     CalendarNames {
-        calendar,
-        months: ContextualNames::same(widths(months, &[], &[])),
+        calendars,
+        cycles: months,
         leap_month_prefix,
         eras: EraNames::EMPTY,
         quarters: ContextualNames::EMPTY,
@@ -92,22 +170,37 @@ const fn lunisolar(
 }
 
 const fn dated(
-    calendar: &'static str,
-    months: &'static [&'static str],
+    calendars: &'static [CalendarId],
+    months: &'static [CycleNames],
     era_codes: &'static [&'static str],
     era_names: &'static [&'static str],
 ) -> CalendarNames {
     CalendarNames {
-        calendar,
-        months: ContextualNames::same(widths(months, &[], &[])),
+        calendars,
+        cycles: months,
         leap_month_prefix: "",
         eras: EraNames {
             codes: era_codes,
             names: widths(era_names, &[], &[]),
+            calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
     }
 }
+
+/// The calendars that count years in BCE/CE.
+///
+/// A subset of [`GREGORIAN_MONTH_CALENDARS`], because the Buddhist calendar
+/// counts in BE, the Minguo calendar in 民國 and the Japanese imperial one
+/// in 皇紀, while all three write the months exactly as the Gregorian
+/// calendar does.
+const GREGORIAN_ERA_CALENDARS: &[CalendarId] = &[
+    CalendarId("gregory"),
+    CalendarId("iso8601-week"),
+    CalendarId("iso8601-ordinal"),
+    CalendarId("julian"),
+    CalendarId("revised-julian"),
+];
 
 const fn gregorian_eras(
     wide: &'static [&'static str],
@@ -117,6 +210,7 @@ const fn gregorian_eras(
     EraNames {
         codes: &["bc", "ad"],
         names: widths(wide, abbreviated, narrow),
+        calendars: GREGORIAN_ERA_CALENDARS,
     }
 }
 
@@ -150,9 +244,9 @@ pub static ROOT: LocaleData = LocaleData {
         &["M", "T", "W", "T", "F", "S", "S"],
     )),
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &["a", "p"])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10", "M11", "M12",
             ],
@@ -160,7 +254,7 @@ pub static ROOT: LocaleData = LocaleData {
             &[
                 "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
             ],
-        )),
+        )))],
         gregorian_eras(&["BCE", "CE"], &[], &[]),
         ContextualNames::same(widths(&["Q1", "Q2", "Q3", "Q4"], &[], &[])),
     )],
@@ -170,7 +264,7 @@ pub static ROOT: LocaleData = LocaleData {
 
 const AR_CALENDARS: &[CalendarNames] = &[
     gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "يناير",
                 "فبراير",
@@ -187,13 +281,13 @@ const AR_CALENDARS: &[CalendarNames] = &[
             ],
             &[],
             &[],
-        )),
+        )))],
         gregorian_eras(&["قبل الميلاد", "ميلادي"], &["ق.م", "م"], &[]),
         ContextualNames::EMPTY,
     ),
     dated(
-        "islamic",
-        &[
+        ISLAMIC_CALENDARS,
+        &[months(&[
             "محرم",
             "صفر",
             "ربيع الأول",
@@ -206,7 +300,7 @@ const AR_CALENDARS: &[CalendarNames] = &[
             "شوال",
             "ذو القعدة",
             "ذو الحجة",
-        ],
+        ])],
         &["ah"],
         &["هـ"],
     ),
@@ -234,7 +328,7 @@ const AR: LocaleData = LocaleData {
         &["ن", "ث", "ر", "خ", "ج", "س", "ح"],
     )),
     day_periods: ContextualNames::same(widths(&["ص", "م"], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: AR_CALENDARS,
 };
 
@@ -265,9 +359,9 @@ const CS: LocaleData = LocaleData {
         &["P", "Ú", "S", "Č", "P", "S", "N"],
     )),
     day_periods: ContextualNames::same(widths(&["dop.", "odp."], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
-        ContextualNames {
+        &[month_cycle(ContextualNames {
             format: widths(
                 &[
                     "ledna",
@@ -307,7 +401,7 @@ const CS: LocaleData = LocaleData {
                 &[],
                 &[],
             ),
-        },
+        })],
         gregorian_eras(
             &["před naším letopočtem", "našeho letopočtu"],
             &["př. n. l.", "n. l."],
@@ -342,9 +436,9 @@ const DE: LocaleData = LocaleData {
         &["M", "D", "M", "D", "F", "S", "S"],
     )),
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "Januar",
                 "Februar",
@@ -364,7 +458,7 @@ const DE: LocaleData = LocaleData {
                 "Nov.", "Dez.",
             ],
             &["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
-        )),
+        )))],
         gregorian_eras(&["v. Chr.", "n. Chr."], &[], &["v", "n"]),
         ContextualNames::same(widths(
             &["1. Quartal", "2. Quartal", "3. Quartal", "4. Quartal"],
@@ -378,7 +472,7 @@ const DE: LocaleData = LocaleData {
 
 const EN_CALENDARS: &[CalendarNames] = &[
     gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "January",
                 "February",
@@ -397,7 +491,7 @@ const EN_CALENDARS: &[CalendarNames] = &[
                 "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
             ],
             &["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
-        )),
+        )))],
         gregorian_eras(
             &["Before Christ", "Anno Domini"],
             &["BC", "AD"],
@@ -410,8 +504,8 @@ const EN_CALENDARS: &[CalendarNames] = &[
         )),
     ),
     CalendarNames {
-        calendar: "japanese",
-        months: ContextualNames::EMPTY,
+        calendars: JAPANESE_CALENDARS,
+        cycles: &[],
         leap_month_prefix: "",
         eras: EraNames {
             codes: JAPANESE_ERA_CODES,
@@ -420,12 +514,13 @@ const EN_CALENDARS: &[CalendarNames] = &[
                 &[],
                 JAPANESE_ERA_NARROW,
             ),
+            calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
     },
     dated(
-        "islamic",
-        &[
+        ISLAMIC_CALENDARS,
+        &[months(&[
             "Muharram",
             "Safar",
             "Rabi I",
@@ -438,22 +533,22 @@ const EN_CALENDARS: &[CalendarNames] = &[
             "Shawwal",
             "Dhu al-Qi'dah",
             "Dhu al-Hijjah",
-        ],
+        ])],
         &["ah"],
         &["AH"],
     ),
     dated(
-        "hebrew",
-        &[
+        HEBREW_CALENDARS,
+        &[months(&[
             "Tishri", "Heshvan", "Kislev", "Tevet", "Shevat", "Adar I", "Adar", "Nisan", "Iyar",
             "Sivan", "Tamuz", "Av", "Elul",
-        ],
+        ])],
         &["am"],
         &["AM"],
     ),
     lunisolar(
-        "chinese",
-        &[
+        CHINESE_CALENDARS,
+        &[months(&[
             "First Month",
             "Second Month",
             "Third Month",
@@ -466,9 +561,80 @@ const EN_CALENDARS: &[CalendarNames] = &[
             "Tenth Month",
             "Eleventh Month",
             "Twelfth Month",
-        ],
+        ])],
         "leap ",
     ),
+    // The two calendars the old name model could not hold. Badíʿ has
+    // nineteen months, which the twelve-or-thirteen assertion rejected; the
+    // French Republican week is a ten-day décade, which had nowhere to live
+    // because weekday names were keyed to a seven-valued enum. Both are
+    // ordinary data now, and `hyper-calendar`'s vocabulary test checks each
+    // list against the length its calendar declares.
+    CalendarNames {
+        calendars: &[CalendarId("bahai-arithmetic")],
+        cycles: &[months(&[
+            "Bahá",
+            "Jalál",
+            "Jamál",
+            "ʻAẓamat",
+            "Núr",
+            "Raḥmat",
+            "Kalimát",
+            "Kamál",
+            "Asmáʼ",
+            "ʻIzzat",
+            "Mashíyyat",
+            "ʻIlm",
+            "Qudrat",
+            "Qawl",
+            "Masáʼil",
+            "Sharaf",
+            "Sulṭán",
+            "Mulk",
+            "ʻAláʼ",
+        ])],
+        leap_month_prefix: "",
+        eras: EraNames {
+            codes: &["be"],
+            names: widths(&["BE"], &[], &[]),
+            calendars: &[],
+        },
+        quarters: ContextualNames::EMPTY,
+    },
+    CalendarNames {
+        calendars: &[CalendarId("french-republican-arithmetic")],
+        cycles: &[
+            months(&[
+                "Vendémiaire",
+                "Brumaire",
+                "Frimaire",
+                "Nivôse",
+                "Pluviôse",
+                "Ventôse",
+                "Germinal",
+                "Floréal",
+                "Prairial",
+                "Messidor",
+                "Thermidor",
+                "Fructidor",
+                "Sansculottides",
+            ]),
+            CycleNames::new(
+                "decade-day",
+                ContextualNames::same(widths(
+                    &[
+                        "Primidi", "Duodi", "Tridi", "Quartidi", "Quintidi", "Sextidi", "Septidi",
+                        "Octidi", "Nonidi", "Décadi",
+                    ],
+                    &[],
+                    &[],
+                )),
+            ),
+        ],
+        leap_month_prefix: "",
+        eras: EraNames::EMPTY,
+        quarters: ContextualNames::EMPTY,
+    },
 ];
 
 const EN: LocaleData = LocaleData {
@@ -493,7 +659,7 @@ const EN: LocaleData = LocaleData {
         &["M", "T", "W", "T", "F", "S", "S"],
     )),
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &["a", "p"])),
-    cycle: CycleNames {
+    cycle: SexagenaryNames {
         stems: &[
             "Jia", "Yi", "Bing", "Ding", "Wu", "Ji", "Geng", "Xin", "Ren", "Gui",
         ],
@@ -532,9 +698,9 @@ const ES: LocaleData = LocaleData {
         &["L", "M", "X", "J", "V", "S", "D"],
     )),
     day_periods: ContextualNames::same(widths(&["a. m.", "p. m."], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "enero",
                 "febrero",
@@ -553,7 +719,7 @@ const ES: LocaleData = LocaleData {
                 "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct", "nov", "dic",
             ],
             &["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
-        )),
+        )))],
         gregorian_eras(
             &["antes de Cristo", "después de Cristo"],
             &["a. C.", "d. C."],
@@ -596,10 +762,10 @@ const FA: LocaleData = LocaleData {
         &["د", "س", "چ", "پ", "ج", "ش", "ی"],
     )),
     day_periods: ContextualNames::same(widths(&["قبل‌ازظهر", "بعدازظهر"], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[
         gregorian(
-            ContextualNames::same(widths(
+            &[month_cycle(ContextualNames::same(widths(
                 &[
                     "ژانویه",
                     "فوریه",
@@ -616,13 +782,13 @@ const FA: LocaleData = LocaleData {
                 ],
                 &[],
                 &[],
-            )),
+            )))],
             gregorian_eras(&["قبل از میلاد", "میلادی"], &["ق.م.", "م."], &[]),
             ContextualNames::EMPTY,
         ),
         dated(
-            "persian",
-            &[
+            PERSIAN_CALENDARS,
+            &[months(&[
                 "فروردین",
                 "اردیبهشت",
                 "خرداد",
@@ -635,7 +801,7 @@ const FA: LocaleData = LocaleData {
                 "دی",
                 "بهمن",
                 "اسفند",
-            ],
+            ])],
             &["ap"],
             &["ه.ش."],
         ),
@@ -660,9 +826,9 @@ const FR: LocaleData = LocaleData {
         &["L", "M", "M", "J", "V", "S", "D"],
     )),
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "janvier",
                 "février",
@@ -682,7 +848,7 @@ const FR: LocaleData = LocaleData {
                 "nov.", "déc.",
             ],
             &["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
-        )),
+        )))],
         gregorian_eras(
             &["avant Jésus-Christ", "après Jésus-Christ"],
             &["av. J.-C.", "ap. J.-C."],
@@ -705,7 +871,7 @@ const FR: LocaleData = LocaleData {
 
 const HE_CALENDARS: &[CalendarNames] = &[
     gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "ינואר",
                 "פברואר",
@@ -722,13 +888,13 @@ const HE_CALENDARS: &[CalendarNames] = &[
             ],
             &[],
             &[],
-        )),
+        )))],
         gregorian_eras(&["לפני הספירה", "לספירה"], &[], &[]),
         ContextualNames::EMPTY,
     ),
     dated(
-        "hebrew",
-        &[
+        HEBREW_CALENDARS,
+        &[months(&[
             "תשרי",
             "חשוון",
             "כסלו",
@@ -742,7 +908,7 @@ const HE_CALENDARS: &[CalendarNames] = &[
             "תמוז",
             "אב",
             "אלול",
-        ],
+        ])],
         &["am"],
         &["לבריאת העולם"],
     ),
@@ -778,7 +944,7 @@ const HE: LocaleData = LocaleData {
         &["ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳", "א׳"],
     )),
     day_periods: ContextualNames::same(widths(&["לפנה״צ", "אחה״צ"], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: HE_CALENDARS,
 };
 
@@ -806,9 +972,9 @@ const HI: LocaleData = LocaleData {
         &["सो", "मं", "बु", "गु", "शु", "श", "र"],
     )),
     day_periods: ContextualNames::same(widths(&["पूर्वाह्न", "अपराह्न"], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "जनवरी",
                 "फ़रवरी",
@@ -838,7 +1004,7 @@ const HI: LocaleData = LocaleData {
                 "दिस",
             ],
             &[],
-        )),
+        )))],
         gregorian_eras(&["ईसा-पूर्व", "ईसवी"], &[], &[]),
         ContextualNames::EMPTY,
     )],
@@ -862,9 +1028,9 @@ const ID: LocaleData = LocaleData {
         &["S", "S", "R", "K", "J", "S", "M"],
     )),
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "Januari",
                 "Februari",
@@ -883,7 +1049,7 @@ const ID: LocaleData = LocaleData {
                 "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
             ],
             &[],
-        )),
+        )))],
         gregorian_eras(&["Sebelum Masehi", "Masehi"], &["SM", "M"], &[]),
         ContextualNames::EMPTY,
     )],
@@ -913,9 +1079,9 @@ const IT: LocaleData = LocaleData {
         &["L", "M", "M", "G", "V", "S", "D"],
     )),
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "gennaio",
                 "febbraio",
@@ -934,7 +1100,7 @@ const IT: LocaleData = LocaleData {
                 "gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic",
             ],
             &["G", "F", "M", "A", "M", "G", "L", "A", "S", "O", "N", "D"],
-        )),
+        )))],
         gregorian_eras(&["avanti Cristo", "dopo Cristo"], &["a.C.", "d.C."], &[]),
         ContextualNames::EMPTY,
     )],
@@ -948,13 +1114,13 @@ const JA_MONTHS: &[&str] = &[
 
 const JA_CALENDARS: &[CalendarNames] = &[
     gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             JA_MONTHS,
             &[],
             &[
                 "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
             ],
-        )),
+        )))],
         gregorian_eras(&["紀元前", "西暦"], &[], &[]),
         ContextualNames::same(widths(
             &["第1四半期", "第2四半期", "第3四半期", "第4四半期"],
@@ -963,8 +1129,8 @@ const JA_CALENDARS: &[CalendarNames] = &[
         )),
     ),
     CalendarNames {
-        calendar: "japanese",
-        months: ContextualNames::EMPTY,
+        calendars: JAPANESE_CALENDARS,
+        cycles: &[],
         leap_month_prefix: "",
         eras: EraNames {
             codes: JAPANESE_ERA_CODES,
@@ -973,6 +1139,7 @@ const JA_CALENDARS: &[CalendarNames] = &[
                 &[],
                 JAPANESE_ERA_NARROW,
             ),
+            calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
     },
@@ -980,8 +1147,8 @@ const JA_CALENDARS: &[CalendarNames] = &[
     // literary dates: 師走 is December in feeling, the twelfth lunar month in
     // fact.
     lunisolar(
-        "chinese",
-        &[
+        CHINESE_CALENDARS,
+        &[months(&[
             "睦月",
             "如月",
             "弥生",
@@ -994,7 +1161,7 @@ const JA_CALENDARS: &[CalendarNames] = &[
             "神無月",
             "霜月",
             "師走",
-        ],
+        ])],
         "閏",
     ),
 ];
@@ -1021,7 +1188,7 @@ const JA: LocaleData = LocaleData {
         &[],
     )),
     day_periods: ContextualNames::same(widths(&["午前", "午後"], &[], &[])),
-    cycle: CycleNames {
+    cycle: SexagenaryNames {
         stems: &["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"],
         branches: &[
             "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥",
@@ -1057,7 +1224,7 @@ const KO: LocaleData = LocaleData {
         &[],
     )),
     day_periods: ContextualNames::same(widths(&["오전", "오후"], &[], &[])),
-    cycle: CycleNames {
+    cycle: SexagenaryNames {
         stems: &["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"],
         branches: &[
             "자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해",
@@ -1078,14 +1245,14 @@ const KO: LocaleData = LocaleData {
         ],
     },
     calendars: &[gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월",
                 "12월",
             ],
             &[],
             &[],
-        )),
+        )))],
         gregorian_eras(&["기원전", "서기"], &[], &[]),
         ContextualNames::same(widths(
             &["제1분기", "제2분기", "제3분기", "제4분기"],
@@ -1119,9 +1286,9 @@ const NL: LocaleData = LocaleData {
         &["M", "D", "W", "D", "V", "Z", "Z"],
     )),
     day_periods: ContextualNames::same(widths(&["a.m.", "p.m."], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "januari",
                 "februari",
@@ -1140,7 +1307,7 @@ const NL: LocaleData = LocaleData {
                 "jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec",
             ],
             &["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
-        )),
+        )))],
         gregorian_eras(
             &["voor Christus", "na Christus"],
             &["v.Chr.", "n.Chr."],
@@ -1174,9 +1341,9 @@ const PL: LocaleData = LocaleData {
         &["p", "w", "ś", "c", "p", "s", "n"],
     )),
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
-        ContextualNames {
+        &[month_cycle(ContextualNames {
             format: widths(
                 &[
                     "stycznia",
@@ -1216,7 +1383,7 @@ const PL: LocaleData = LocaleData {
                 &[],
                 &[],
             ),
-        },
+        })],
         gregorian_eras(&["przed naszą erą", "naszej ery"], &["p.n.e.", "n.e."], &[]),
         ContextualNames::EMPTY,
     )],
@@ -1246,9 +1413,9 @@ const PT: LocaleData = LocaleData {
         &["S", "T", "Q", "Q", "S", "S", "D"],
     )),
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "janeiro",
                 "fevereiro",
@@ -1268,7 +1435,7 @@ const PT: LocaleData = LocaleData {
                 "nov.", "dez.",
             ],
             &["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
-        )),
+        )))],
         gregorian_eras(
             &["antes de Cristo", "depois de Cristo"],
             &["a.C.", "d.C."],
@@ -1305,9 +1472,9 @@ const RU: LocaleData = LocaleData {
         &["П", "В", "С", "Ч", "П", "С", "В"],
     )),
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
-        ContextualNames {
+        &[month_cycle(ContextualNames {
             format: widths(
                 &[
                     "января",
@@ -1370,7 +1537,7 @@ const RU: LocaleData = LocaleData {
                 ],
                 &[],
             ),
-        },
+        })],
         gregorian_eras(
             &["до Рождества Христова", "от Рождества Христова"],
             &["до н. э.", "н. э."],
@@ -1408,10 +1575,10 @@ const TH: LocaleData = LocaleData {
         &["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"],
     )),
     day_periods: ContextualNames::same(widths(&["ก่อนเที่ยง", "หลังเที่ยง"], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[
         gregorian(
-            ContextualNames::same(widths(
+            &[month_cycle(ContextualNames::same(widths(
                 &[
                     "มกราคม",
                     "กุมภาพันธ์",
@@ -1441,17 +1608,18 @@ const TH: LocaleData = LocaleData {
                     "ธ.ค.",
                 ],
                 &[],
-            )),
+            )))],
             gregorian_eras(&["ปีก่อนคริสต์ศักราช", "คริสต์ศักราช"], &["ก่อน ค.ศ.", "ค.ศ."], &[]),
             ContextualNames::EMPTY,
         ),
         CalendarNames {
-            calendar: "buddhist",
-            months: ContextualNames::EMPTY,
+            calendars: BUDDHIST_CALENDARS,
+            cycles: &[],
             leap_month_prefix: "",
             eras: EraNames {
                 codes: &["be"],
                 names: widths(&["พุทธศักราช"], &["พ.ศ."], &[]),
+                calendars: &[],
             },
             quarters: ContextualNames::EMPTY,
         },
@@ -1483,9 +1651,9 @@ const TR: LocaleData = LocaleData {
         &["P", "S", "Ç", "P", "C", "C", "P"],
     )),
     day_periods: ContextualNames::same(widths(&["ÖÖ", "ÖS"], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül",
                 "Ekim", "Kasım", "Aralık",
@@ -1494,7 +1662,7 @@ const TR: LocaleData = LocaleData {
                 "Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara",
             ],
             &["O", "Ş", "M", "N", "M", "H", "T", "A", "E", "E", "K", "A"],
-        )),
+        )))],
         gregorian_eras(&["Milattan Önce", "Milattan Sonra"], &["MÖ", "MS"], &[]),
         ContextualNames::EMPTY,
     )],
@@ -1524,9 +1692,9 @@ const VI: LocaleData = LocaleData {
         &["T2", "T3", "T4", "T5", "T6", "T7", "CN"],
     )),
     day_periods: ContextualNames::same(widths(&["SA", "CH"], &[], &[])),
-    cycle: CycleNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "tháng 1",
                 "tháng 2",
@@ -1546,7 +1714,7 @@ const VI: LocaleData = LocaleData {
                 "thg 10", "thg 11", "thg 12",
             ],
             &[],
-        )),
+        )))],
         gregorian_eras(
             &["Trước Công Nguyên", "Sau Công Nguyên"],
             &["TCN", "SCN"],
@@ -1560,7 +1728,7 @@ const VI: LocaleData = LocaleData {
 
 const ZH_HANS_CALENDARS: &[CalendarNames] = &[
     gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "一月",
                 "二月",
@@ -1582,7 +1750,7 @@ const ZH_HANS_CALENDARS: &[CalendarNames] = &[
             &[
                 "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
             ],
-        )),
+        )))],
         gregorian_eras(&["公元前", "公元"], &[], &[]),
         ContextualNames::same(widths(
             &["第一季度", "第二季度", "第三季度", "第四季度"],
@@ -1591,8 +1759,8 @@ const ZH_HANS_CALENDARS: &[CalendarNames] = &[
         )),
     ),
     lunisolar(
-        "chinese",
-        &[
+        CHINESE_CALENDARS,
+        &[months(&[
             "正月",
             "二月",
             "三月",
@@ -1605,7 +1773,7 @@ const ZH_HANS_CALENDARS: &[CalendarNames] = &[
             "十月",
             "十一月",
             "腊月",
-        ],
+        ])],
         "闰",
     ),
 ];
@@ -1632,7 +1800,7 @@ const ZH_HANS: LocaleData = LocaleData {
         &["一", "二", "三", "四", "五", "六", "日"],
     )),
     day_periods: ContextualNames::same(widths(&["上午", "下午"], &[], &[])),
-    cycle: CycleNames {
+    cycle: SexagenaryNames {
         stems: &["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"],
         branches: &[
             "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥",
@@ -1648,7 +1816,7 @@ const ZH_HANS: LocaleData = LocaleData {
 
 const ZH_HANT_CALENDARS: &[CalendarNames] = &[
     gregorian(
-        ContextualNames::same(widths(
+        &[month_cycle(ContextualNames::same(widths(
             &[
                 "1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月",
                 "12月",
@@ -1657,13 +1825,13 @@ const ZH_HANT_CALENDARS: &[CalendarNames] = &[
             &[
                 "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
             ],
-        )),
+        )))],
         gregorian_eras(&["西元前", "西元"], &[], &[]),
         ContextualNames::same(widths(&["第1季", "第2季", "第3季", "第4季"], &[], &[])),
     ),
     lunisolar(
-        "chinese",
-        &[
+        CHINESE_CALENDARS,
+        &[months(&[
             "正月",
             "二月",
             "三月",
@@ -1676,7 +1844,7 @@ const ZH_HANT_CALENDARS: &[CalendarNames] = &[
             "十月",
             "十一月",
             "臘月",
-        ],
+        ])],
         "閏",
     ),
 ];
@@ -1703,7 +1871,7 @@ const ZH_HANT: LocaleData = LocaleData {
         &["一", "二", "三", "四", "五", "六", "日"],
     )),
     day_periods: ContextualNames::same(widths(&["上午", "下午"], &[], &[])),
-    cycle: CycleNames {
+    cycle: SexagenaryNames {
         stems: &["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"],
         branches: &[
             "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥",
@@ -1746,8 +1914,10 @@ mod tests {
             ("dayperiods/standalone", &data.day_periods.standalone),
         ];
         for calendar in data.calendars {
-            sets.push(("months/format", &calendar.months.format));
-            sets.push(("months/standalone", &calendar.months.standalone));
+            for cycle in calendar.cycles {
+                sets.push((cycle.kind, &cycle.names.format));
+                sets.push((cycle.kind, &cycle.names.standalone));
+            }
             sets.push(("quarters/format", &calendar.quarters.format));
             sets.push(("quarters/standalone", &calendar.quarters.standalone));
             sets.push(("eras", &calendar.eras.names));
@@ -1831,20 +2001,44 @@ mod tests {
         }
     }
 
+    /// Every width of a cycle must carry the same number of names.
+    ///
+    /// This replaces a test that asserted every month list had twelve or
+    /// thirteen entries. That assertion was not a safety net, it was the
+    /// hole: it made the Badíʿ calendar's nineteen months and the Maya
+    /// Haabʼ's nineteen *rejectable* rather than merely absent, so the data
+    /// could not have been added even by someone willing to write it.
+    ///
+    /// What is actually invariant is internal consistency — a calendar that
+    /// names twelve months wide must name twelve abbreviated — and
+    /// agreement with the calendar's own declared shape, which
+    /// `hyper-calendar`'s vocabulary test checks because only there are the
+    /// registry and the locale data both in scope.
     #[test]
-    fn every_month_list_has_twelve_or_thirteen_entries() {
+    fn every_width_of_a_cycle_has_the_same_number_of_names() {
         for data in every_entry() {
             for calendar in data.calendars {
-                for set in [&calendar.months.format, &calendar.months.standalone] {
-                    for width in NameWidth::ALL {
-                        let names = set.exact(width);
-                        assert!(
-                            names.is_empty() || names.len() == 12 || names.len() == 13,
-                            "{} {}: {} month names",
-                            data.tag,
-                            calendar.calendar,
-                            names.len()
-                        );
+                for cycle in calendar.cycles {
+                    for set in [&cycle.names.format, &cycle.names.standalone] {
+                        let mut expected: Option<usize> = None;
+                        for width in NameWidth::ALL {
+                            let names = set.exact(width);
+                            if names.is_empty() {
+                                continue;
+                            }
+                            match expected {
+                                None => expected = Some(names.len()),
+                                Some(length) => assert_eq!(
+                                    names.len(),
+                                    length,
+                                    "{} {}: {:?} has {} names, another width has {length}",
+                                    data.tag,
+                                    cycle.kind,
+                                    width,
+                                    names.len()
+                                ),
+                            }
+                        }
                     }
                 }
             }
@@ -1869,9 +2063,9 @@ mod tests {
                         let names = set.exact(width);
                         assert!(
                             names.is_empty() || names.len() == 4,
-                            "{} {}: {} quarters",
+                            "{} {:?}: {} quarters",
                             data.tag,
-                            calendar.calendar,
+                            calendar.calendars,
                             names.len()
                         );
                     }
@@ -1889,9 +2083,9 @@ mod tests {
                     let names = eras.names.exact(width);
                     assert!(
                         names.is_empty() || names.len() == eras.codes.len(),
-                        "{} {}: {} era names for {} codes",
+                        "{} {:?}: {} era names for {} codes",
                         data.tag,
-                        calendar.calendar,
+                        calendar.calendars,
                         names.len(),
                         eras.codes.len()
                     );
@@ -1899,27 +2093,48 @@ mod tests {
                 if !eras.codes.is_empty() {
                     assert!(
                         !eras.names.wide.is_empty(),
-                        "{} {}: era codes with no names",
+                        "{} {:?}: era codes with no names",
                         data.tag,
-                        calendar.calendar
+                        calendar.calendars
                     );
                 }
             }
         }
     }
 
+    /// No two entries may carry the *same cycle* for one calendar.
+    ///
+    /// Several entries serving one calendar is deliberate — Thai's
+    /// Buddhist calendar takes its months from the shared Gregorian entry
+    /// and its era from an entry of its own. What must not happen is two
+    /// entries both claiming to name its months, because then the lookup
+    /// silently takes whichever comes first.
     #[test]
-    fn a_locale_never_lists_the_same_calendar_twice() {
+    fn no_calendar_has_one_cycle_named_twice_in_a_locale() {
         for data in every_entry() {
-            for (position, calendar) in data.calendars.iter().enumerate() {
-                assert!(
-                    !data.calendars[..position]
-                        .iter()
-                        .any(|earlier| earlier.calendar == calendar.calendar),
-                    "{}: duplicate calendar {}",
-                    data.tag,
-                    calendar.calendar
-                );
+            for entry in data.calendars {
+                for id in entry.calendars {
+                    for kind in ["month", "weekday", "decade-day"] {
+                        let carriers = data
+                            .entries_for(*id)
+                            .filter(|candidate| !candidate.cycle(kind).is_empty())
+                            .count();
+                        assert!(
+                            carriers <= 1,
+                            "{}: {} has {carriers} entries naming its {kind}s",
+                            data.tag,
+                            id.0
+                        );
+                    }
+                    let eras = data
+                        .entries_for(*id)
+                        .filter(|candidate| {
+                            !candidate.eras.codes.is_empty()
+                                && candidate.eras.belongs_to(*id, candidate.calendars)
+                        })
+                        .count();
+                    assert!(eras <= 1, "{}: {} has {eras} era lists", data.tag, id.0);
+                }
             }
         }
     }
@@ -1965,7 +2180,7 @@ mod tests {
     fn every_locale_states_the_gregorian_calendar() {
         for data in every_entry() {
             assert!(
-                data.calendar("gregory").is_some(),
+                data.calendar(CalendarId("gregory")).is_some(),
                 "{}: no gregorian vocabulary",
                 data.tag
             );
@@ -1978,7 +2193,8 @@ mod tests {
         // the check is on adjacent months, which no language conflates.
         for data in every_entry() {
             for calendar in data.calendars {
-                for set in [&calendar.months.format, &calendar.months.standalone] {
+                let months = calendar.months();
+                for set in [&months.format, &months.standalone] {
                     for width in NameWidth::ALL {
                         let names = set.exact(width);
                         for pair in names.windows(2) {
@@ -1987,8 +2203,8 @@ mod tests {
                             }
                             assert_ne!(
                                 pair[0], pair[1],
-                                "{} {}: adjacent months share a name",
-                                data.tag, calendar.calendar
+                                "{} {:?}: adjacent months share a name",
+                                data.tag, calendar.calendars
                             );
                         }
                     }

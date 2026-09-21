@@ -251,6 +251,21 @@ pub struct ArithmeticBahaiCalendar;
 impl Calendar for ArithmeticBahaiCalendar {
     type Date = BahaiDate;
 
+    /// Nineteen months of nineteen days, and a seven-day week.
+    ///
+    /// Ayyám-i-Há is not a month — it is the four or five intercalary days
+    /// between the eighteenth and the nineteenth — so it is not a position
+    /// in this cycle.
+    ///
+    /// This calendar is why `hc_calendar::shape` exists: the old name model
+    /// asserted twelve or thirteen months, so nineteen was not merely
+    /// missing, it was *rejected*.
+    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
+        use hc_calendar::shape::{CycleShape, MONTH, WEEKDAY};
+        const SHAPE: &[CycleShape] = &[CycleShape::fixed(MONTH, 19), CycleShape::fixed(WEEKDAY, 7)];
+        Some(SHAPE)
+    }
+
     /// The Bahá'í day begins at sunset.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Sunset
