@@ -48,172 +48,183 @@ use crate::zodiac::sidereal::{self, Ayanamsa};
 /// filed it under the sidereal zodiac.
 pub type Rashi = SiderealSign;
 
-/// Which regional naming of the twelve solar months to read.
+/// A tradition that names the twelve sidereal solar months.
 ///
-/// The months are the same twelve intervals in every row; only the names
-/// differ. The traditions also disagree about which month opens the year,
-/// which [`Self::year_opening_month`] gives.
+/// # Why this is a struct and not an enum
+///
+/// It was an enum of four, with a `MonthNames { tamil, bengali, malayalam }`
+/// struct behind it holding twelve rows. Adding Telugu meant a variant, a
+/// field, two match arms, and an edit to every one of those twelve rows —
+/// and the field list was a claim that the Indian solar month traditions are
+/// these and no others, which is not this crate's to make. Telugu, Kannada,
+/// Odia, Assamese and Nepali all name the same twelve intervals.
+///
+/// So the table is transposed. A tradition is one entry carrying its own
+/// twelve names, rather than a column spread across twelve rows, and adding
+/// one is adding one entry.
+///
+/// The months are the same twelve intervals in every tradition; only the
+/// names differ, and which of them opens the year.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum SolarMonthTradition {
-    /// The Sanskrit rāśi names themselves: Meṣa, Vṛṣabha, and so on.
+pub struct SolarMonthTradition {
+    /// A stable identifier, lowercase.
+    pub id: &'static str,
+    /// The name of the tradition in English.
+    pub english_name: &'static str,
+    /// The rāśi whose month opens the year.
+    pub year_opens_at: Rashi,
+    /// The twelve month names, indexed by rāśi.
     ///
-    /// Used as month names in the Odia and, with variations, the Assamese
-    /// reckoning, and as the neutral reference everywhere else.
-    Sanskrit,
-    /// The Tamil months: Chithirai, Vaigasi, Aani, and so on.
-    ///
-    /// The Tamil year opens with Chithirai at the Meṣa saṅkrānti in April —
-    /// the festival of Puthandu.
-    Tamil,
-    /// The Bengali months of the solar Bangabda: Boishakh, Jyoishtho, and so
-    /// on, as romanised in Bangladesh and West Bengal.
-    ///
-    /// The year opens with Boishakh at the Meṣa saṅkrānti — Pohela Boishakh.
-    /// Bangladesh fixed its version of these months to the Gregorian calendar
-    /// by statute in 1966 and again in 2019, so the *Bangladeshi* civil
-    /// months are no longer the sidereal ones; the West Bengal reckoning
-    /// still is, and it is the one described here.
-    Bengali,
-    /// The Malayalam months of the Kollam era: Medam, Edavam, and so on.
-    ///
-    /// The Kollam year opens not at Meṣa but with Chingam, the Siṃha
-    /// saṅkrānti in August, which is why the Malayalam new year (Vishu is the
-    /// Meṣa one, Chingam 1 the calendrical one) is the odd row out here.
-    Malayalam,
+    /// Empty where the tradition uses the Sanskrit rāśi names themselves,
+    /// which [`month_name`] then reads from the sign.
+    pub months: &'static [&'static str],
+    /// Where the month order came from.
+    pub authority: &'static str,
 }
 
 impl SolarMonthTradition {
-    /// All four, Sanskrit first.
-    pub const ALL: [Self; 4] = [Self::Sanskrit, Self::Tamil, Self::Bengali, Self::Malayalam];
-
-    /// The name of the tradition in English.
-    #[must_use]
-    pub const fn english_name(self) -> &'static str {
-        match self {
-            Self::Sanskrit => "Sanskrit",
-            Self::Tamil => "Tamil",
-            Self::Bengali => "Bengali",
-            Self::Malayalam => "Malayalam",
-        }
-    }
-
     /// The rāśi whose month opens the year in this tradition.
     ///
     /// Meṣa for the Sanskrit, Tamil and Bengali reckonings — mid-April — and
     /// Siṃha for the Malayalam one, in mid-August.
     #[must_use]
     pub const fn year_opening_month(self) -> Rashi {
-        // Exhaustive on purpose. A `_` arm here would give a new tradition
-        // Meṣa by default and a wrong month ordinal for all twelve signs,
-        // confidently — which policy §3 rates worse than a refusal. Every
-        // sibling match in this module is exhaustive for the same reason.
-        match self {
-            Self::Sanskrit | Self::Tamil | Self::Bengali => SiderealSign::MESHA,
-            Self::Malayalam => SiderealSign::SIMHA,
-        }
+        self.year_opens_at
     }
 }
 
-/// The month-name table, indexed by rāśi.
-struct MonthNames {
-    tamil: &'static str,
-    bengali: &'static str,
-    malayalam: &'static str,
-}
+hc_core::catalogue! {
+    type: SolarMonthTradition,
+    id: |tradition| tradition.id,
+    provenance: |tradition| tradition.authority,
+    tests: solar_month_tradition_catalogue,
 
-/// The regional month names, in the Latin romanisations these calendars are
-/// usually printed in outside their own scripts.
-///
-/// Sources: the Tamil Nadu government's almanac month order, the West Bengal
-/// Bangabda month order, and the Kerala Kollam-era month order, each of which
-/// is a fixed list that every published panchāṅga agrees about. The Sanskrit
-/// column is not repeated here because it is
-/// [`SiderealSign::sanskrit_name`](super::SiderealSign::sanskrit_name).
-///
-/// Several of the Malayalam names are transparently the Sanskrit rāśi name
-/// with a Malayalam ending — Mithunam, Karkadakam, Thulam, Vrischikam,
-/// Makaram, Kumbham, Meenam — which is the clearest single piece of evidence
-/// that these months *are* the rāśi and not a parallel scheme.
-const MONTH_NAMES: [MonthNames; crate::zodiac::SIGNS_PER_ZODIAC] = [
-    MonthNames {
-        tamil: "Chithirai",
-        bengali: "Boishakh",
-        malayalam: "Medam",
-    },
-    MonthNames {
-        tamil: "Vaigasi",
-        bengali: "Jyoishtho",
-        malayalam: "Edavam",
-    },
-    MonthNames {
-        tamil: "Aani",
-        bengali: "Ashar",
-        malayalam: "Mithunam",
-    },
-    MonthNames {
-        tamil: "Aadi",
-        bengali: "Shrabon",
-        malayalam: "Karkadakam",
-    },
-    MonthNames {
-        tamil: "Aavani",
-        bengali: "Bhadro",
-        malayalam: "Chingam",
-    },
-    MonthNames {
-        tamil: "Purattasi",
-        bengali: "Ashwin",
-        malayalam: "Kanni",
-    },
-    MonthNames {
-        tamil: "Aippasi",
-        bengali: "Kartik",
-        malayalam: "Thulam",
-    },
-    MonthNames {
-        tamil: "Kaarthigai",
-        bengali: "Ogrohayon",
-        malayalam: "Vrischikam",
-    },
-    MonthNames {
-        tamil: "Margazhi",
-        bengali: "Poush",
-        malayalam: "Dhanu",
-    },
-    MonthNames {
-        tamil: "Thai",
-        bengali: "Magh",
-        malayalam: "Makaram",
-    },
-    MonthNames {
-        tamil: "Maasi",
-        bengali: "Falgun",
-        malayalam: "Kumbham",
-    },
-    MonthNames {
-        tamil: "Panguni",
-        bengali: "Choitro",
-        malayalam: "Meenam",
-    },
-];
+    /// Every tradition this crate names the solar months in, Sanskrit first.
+    pub const SOLAR_MONTH_TRADITIONS;
+
+    /// The tradition with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// The Sanskrit rāśi names themselves: Meṣa, Vṛṣabha, and so on.
+        ///
+        /// Used as month names in the Odia and, with variations, the
+        /// Assamese reckoning, and as the neutral reference everywhere else.
+        /// It carries no list of its own because the names are the signs'.
+        pub const SANSKRIT = SolarMonthTradition {
+            id: "sanskrit",
+            english_name: "Sanskrit",
+            year_opens_at: SiderealSign::MESHA,
+            months: &[],
+            authority: "The rāśi names themselves",
+        };
+
+        /// The Tamil months: Chithirai, Vaigasi, Aani, and so on.
+        ///
+        /// The Tamil year opens with Chithirai at the Meṣa saṅkrānti in
+        /// April — the festival of Puthandu.
+        pub const TAMIL = SolarMonthTradition {
+            id: "tamil",
+            english_name: "Tamil",
+            year_opens_at: SiderealSign::MESHA,
+            months: &[
+                "Chithirai",
+                "Vaigasi",
+                "Aani",
+                "Aadi",
+                "Aavani",
+                "Purattasi",
+                "Aippasi",
+                "Kaarthigai",
+                "Margazhi",
+                "Thai",
+                "Maasi",
+                "Panguni",
+            ],
+            authority: "The Tamil Nadu government's almanac month order",
+        };
+
+        /// The Bengali months of the solar Bangabda: Boishakh, Jyoishtho,
+        /// and so on, as romanised in Bangladesh and West Bengal.
+        ///
+        /// The year opens with Boishakh at the Meṣa saṅkrānti — Pohela
+        /// Boishakh. Bangladesh fixed its version of these months to the
+        /// Gregorian calendar by statute in 1966 and again in 2019, so the
+        /// *Bangladeshi* civil months are no longer the sidereal ones; the
+        /// West Bengal reckoning still is, and it is the one here.
+        pub const BENGALI = SolarMonthTradition {
+            id: "bengali",
+            english_name: "Bengali",
+            year_opens_at: SiderealSign::MESHA,
+            months: &[
+                "Boishakh",
+                "Jyoishtho",
+                "Ashar",
+                "Shrabon",
+                "Bhadro",
+                "Ashwin",
+                "Kartik",
+                "Ogrohayon",
+                "Poush",
+                "Magh",
+                "Falgun",
+                "Choitro",
+            ],
+            authority: "The West Bengal Bangabda month order",
+        };
+
+        /// The Malayalam months of the Kollam era: Medam, Edavam, and so on.
+        ///
+        /// The Kollam year opens not at Meṣa but with Chingam, the Siṃha
+        /// saṅkrānti in August, which is why the Malayalam new year (Vishu
+        /// is the Meṣa one, Chingam 1 the calendrical one) is the odd row
+        /// out here.
+        ///
+        /// Several of these names are transparently the Sanskrit rāśi name
+        /// with a Malayalam ending — Mithunam, Karkadakam, Thulam,
+        /// Vrischikam, Makaram, Kumbham, Meenam — which is the clearest
+        /// single piece of evidence that these months *are* the rāśi and not
+        /// a parallel scheme.
+        pub const MALAYALAM = SolarMonthTradition {
+            id: "malayalam",
+            english_name: "Malayalam",
+            year_opens_at: SiderealSign::SIMHA,
+            months: &[
+                "Medam",
+                "Edavam",
+                "Mithunam",
+                "Karkadakam",
+                "Chingam",
+                "Kanni",
+                "Thulam",
+                "Vrischikam",
+                "Dhanu",
+                "Makaram",
+                "Kumbham",
+                "Meenam",
+            ],
+            authority: "The Kerala Kollam-era month order",
+        };
+    }
+}
 
 /// The name of a rāśi as a month in a given tradition.
 ///
 /// ```
-/// use hc_seasons::zodiac::{SiderealSign, SolarMonthTradition, rashi::month_name};
+/// use hc_seasons::zodiac::{BENGALI, SANSKRIT, SiderealSign, TAMIL, rashi::month_name};
 ///
-/// assert_eq!(month_name(SiderealSign::MESHA, SolarMonthTradition::Tamil), "Chithirai");
-/// assert_eq!(month_name(SiderealSign::MESHA, SolarMonthTradition::Bengali), "Boishakh");
-/// assert_eq!(month_name(SiderealSign::MESHA, SolarMonthTradition::Sanskrit), "Meṣa");
+/// assert_eq!(month_name(SiderealSign::MESHA, TAMIL), "Chithirai");
+/// assert_eq!(month_name(SiderealSign::MESHA, BENGALI), "Boishakh");
+/// assert_eq!(month_name(SiderealSign::MESHA, SANSKRIT), "Meṣa");
 /// ```
 #[must_use]
 pub const fn month_name(rashi: Rashi, tradition: SolarMonthTradition) -> &'static str {
     let index = rashi.index() as usize;
-    match tradition {
-        SolarMonthTradition::Sanskrit => rashi.sanskrit_name(),
-        SolarMonthTradition::Tamil => MONTH_NAMES[index].tamil,
-        SolarMonthTradition::Bengali => MONTH_NAMES[index].bengali,
-        SolarMonthTradition::Malayalam => MONTH_NAMES[index].malayalam,
+    if index < tradition.months.len() {
+        tradition.months[index]
+    } else {
+        // A tradition carrying no list of its own uses the rāśi names.
+        rashi.sanskrit_name()
     }
 }
 
@@ -304,19 +315,37 @@ mod tests {
     use super::*;
     use crate::gregorian::year_month_day_from_rd;
 
+    /// The same buy-back as the pentads: `[MonthNames; 12]` could not hold
+    /// eleven, and a slice can, so the length is asserted rather than
+    /// guaranteed by the type.
+    ///
+    /// A tradition with no list of its own is correct and means "the rāśi
+    /// names"; a tradition with a list of the wrong length is not.
+    #[test]
+    fn every_tradition_names_twelve_months_or_none() {
+        for tradition in SOLAR_MONTH_TRADITIONS {
+            let count = tradition.months.len();
+            assert!(
+                count == 0 || count == crate::zodiac::SIGNS_PER_ZODIAC,
+                "{} names {count} months",
+                tradition.english_name
+            );
+        }
+    }
+
     const INDIA: Meridian = Meridian::INDIA;
     const LAHIRI: Ayanamsa = Ayanamsa::LAHIRI;
 
     #[test]
     fn every_rashi_has_a_month_name_in_every_tradition() {
         for rashi in SiderealSign::ALL {
-            for tradition in SolarMonthTradition::ALL {
+            for tradition in SOLAR_MONTH_TRADITIONS.iter().copied() {
                 let name = month_name(rashi, tradition);
                 assert!(
                     !name.is_empty(),
                     "{} has no {} name",
                     rashi.sanskrit_name(),
-                    tradition.english_name()
+                    tradition.english_name
                 );
             }
         }
@@ -324,14 +353,14 @@ mod tests {
 
     #[test]
     fn the_month_names_of_a_tradition_are_all_different() {
-        for tradition in SolarMonthTradition::ALL {
+        for tradition in SOLAR_MONTH_TRADITIONS.iter().copied() {
             for (index, rashi) in SiderealSign::ALL.into_iter().enumerate() {
                 for other in &SiderealSign::ALL[index + 1..] {
                     assert_ne!(
                         month_name(rashi, tradition),
                         month_name(*other, tradition),
                         "{} repeats a name",
-                        tradition.english_name()
+                        tradition.english_name
                     );
                 }
             }
@@ -354,55 +383,31 @@ mod tests {
             SiderealSign::MINA,
         ];
         for rashi in recognisable {
-            let malayalam = month_name(rashi, SolarMonthTradition::Malayalam);
+            let malayalam = month_name(rashi, MALAYALAM);
             assert!(
                 malayalam.ends_with('m') || malayalam.ends_with("am"),
                 "{malayalam} does not look like a Sanskrit borrowing"
             );
         }
-        assert_eq!(
-            month_name(SiderealSign::MAKARA, SolarMonthTradition::Malayalam),
-            "Makaram"
-        );
-        assert_eq!(
-            month_name(SiderealSign::MINA, SolarMonthTradition::Malayalam),
-            "Meenam"
-        );
+        assert_eq!(month_name(SiderealSign::MAKARA, MALAYALAM), "Makaram");
+        assert_eq!(month_name(SiderealSign::MINA, MALAYALAM), "Meenam");
     }
 
     /// Three traditions open the year at Meṣa in April; Kerala opens it at
     /// Siṃha in August, so the same month carries two different numbers.
     #[test]
     fn the_traditions_disagree_about_which_month_opens_the_year() {
-        assert_eq!(
-            SolarMonthTradition::Tamil.year_opening_month(),
-            SiderealSign::MESHA
-        );
-        assert_eq!(
-            SolarMonthTradition::Bengali.year_opening_month(),
-            SiderealSign::MESHA
-        );
-        assert_eq!(
-            SolarMonthTradition::Malayalam.year_opening_month(),
-            SiderealSign::SIMHA
-        );
-        assert_eq!(
-            month_number(SiderealSign::MESHA, SolarMonthTradition::Tamil),
-            1
-        );
-        assert_eq!(
-            month_number(SiderealSign::MESHA, SolarMonthTradition::Malayalam),
-            9
-        );
-        assert_eq!(
-            month_number(SiderealSign::SIMHA, SolarMonthTradition::Malayalam),
-            1
-        );
+        assert_eq!(TAMIL.year_opening_month(), SiderealSign::MESHA);
+        assert_eq!(BENGALI.year_opening_month(), SiderealSign::MESHA);
+        assert_eq!(MALAYALAM.year_opening_month(), SiderealSign::SIMHA);
+        assert_eq!(month_number(SiderealSign::MESHA, TAMIL), 1);
+        assert_eq!(month_number(SiderealSign::MESHA, MALAYALAM), 9);
+        assert_eq!(month_number(SiderealSign::SIMHA, MALAYALAM), 1);
     }
 
     #[test]
     fn every_tradition_numbers_its_months_one_to_twelve_exactly_once() {
-        for tradition in SolarMonthTradition::ALL {
+        for tradition in SOLAR_MONTH_TRADITIONS.iter().copied() {
             let mut seen = [false; 12];
             for rashi in SiderealSign::ALL {
                 let number = month_number(rashi, tradition);
@@ -415,7 +420,7 @@ mod tests {
                 month_number(tradition.year_opening_month(), tradition),
                 1,
                 "{} did not number its own first month 1",
-                tradition.english_name()
+                tradition.english_name
             );
         }
     }
@@ -459,7 +464,7 @@ mod tests {
             assert!(
                 (29..=32).contains(&length),
                 "{} ran {length} days",
-                month_name(period.sign, SolarMonthTradition::Tamil)
+                month_name(period.sign, TAMIL)
             );
             shortest = shortest.min(length);
             longest = longest.max(length);
@@ -507,14 +512,8 @@ mod tests {
         for year in 2015..=2030 {
             let day = mesha_sankranti(year, LAHIRI, INDIA);
             assert_eq!(month_on_day(day, LAHIRI, INDIA), SiderealSign::MESHA);
-            assert_eq!(
-                month_name(SiderealSign::MESHA, SolarMonthTradition::Tamil),
-                "Chithirai"
-            );
-            assert_eq!(
-                month_name(SiderealSign::MESHA, SolarMonthTradition::Bengali),
-                "Boishakh"
-            );
+            assert_eq!(month_name(SiderealSign::MESHA, TAMIL), "Chithirai");
+            assert_eq!(month_name(SiderealSign::MESHA, BENGALI), "Boishakh");
         }
     }
 
@@ -526,10 +525,7 @@ mod tests {
         let (year, month, _) = year_month_day_from_rd(day);
         assert_eq!(year, 2024);
         assert_eq!(month, 8);
-        assert_eq!(
-            month_name(SiderealSign::SIMHA, SolarMonthTradition::Malayalam),
-            "Chingam"
-        );
+        assert_eq!(month_name(SiderealSign::SIMHA, MALAYALAM), "Chingam");
     }
 
     /// A different ayanamsa gives a different calendar: the Raman anchor is

@@ -47,13 +47,34 @@ pub const PENTADS_PER_YEAR: usize = 72;
 /// How many pentads make a solar term.
 pub const PENTADS_PER_TERM: usize = 3;
 
-/// Which of the two name sets to read.
+/// A tradition that names the 72 pentads.
+///
+/// # Why this is a struct and not an enum
+///
+/// It was an enum of two, with a `PentadNames` struct behind it holding
+/// **72 rows of four fields**. Adding a tradition meant two more fields and
+/// an edit to every one of those rows, and the field list was a claim that
+/// the 七十二候 have been named twice and no more — which is not this
+/// crate's to make. The Korean 칠십이후 and several later Japanese
+/// revisions name the same 72 intervals.
+///
+/// So the table is transposed. A tradition is one entry carrying its own 72
+/// names, rather than two columns spread across 72 rows, and adding one is
+/// adding one entry.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PentadTradition {
-    /// The classical Chinese set, as transmitted through the 宣明暦.
-    Chinese,
-    /// The Japanese set of the 1874 略本暦 revision, 本朝七十二候.
-    Japanese,
+pub struct PentadTradition {
+    /// A stable identifier, lowercase.
+    pub id: &'static str,
+    /// The name of the tradition in English.
+    pub english_name: &'static str,
+    /// The 72 names in characters, ordered by solar longitude from 春分.
+    pub names: &'static [&'static str],
+    /// The 72 English glosses, in the same order.
+    ///
+    /// Glosses, not translations, and nothing in this crate depends on them.
+    pub glosses: &'static [&'static str],
+    /// Which text the set comes from.
+    pub authority: &'static str,
 }
 
 /// Where a pentad sits inside its solar term.
@@ -116,478 +137,430 @@ impl PentadPosition {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Pentad(u8);
 
-/// One row of the pentad table: the two traditions' characters and glosses.
-struct PentadNames {
-    chinese: &'static str,
-    chinese_english: &'static str,
-    japanese: &'static str,
-    japanese_english: &'static str,
-}
+hc_core::catalogue! {
+    type: PentadTradition,
+    id: |tradition| tradition.id,
+    provenance: |tradition| tradition.authority,
+    tests: pentad_tradition_catalogue,
 
-/// The pentad table, indexed by longitude / 5 from 春分.
-///
-/// The Chinese column is the classical set of 逸周書·時訓解 as the 宣明暦
-/// transmitted it, in traditional characters. The Japanese column is the
-/// 本朝七十二候 of the 1874 略本暦, in shinjitai. The English columns are
-/// glosses, not translations, and nothing in this crate depends on them.
-const PENTAD_NAMES: [PentadNames; PENTADS_PER_YEAR] = [
-    // 春分 (0°)
-    PentadNames {
-        chinese: "玄鳥至",
-        chinese_english: "the swallows return",
-        japanese: "雀始巣",
-        japanese_english: "the sparrows start to nest",
-    },
-    PentadNames {
-        chinese: "雷乃発声",
-        chinese_english: "thunder begins to sound",
-        japanese: "桜始開",
-        japanese_english: "the first cherry blossoms open",
-    },
-    PentadNames {
-        chinese: "始電",
-        chinese_english: "lightning is first seen",
-        japanese: "雷乃発声",
-        japanese_english: "distant thunder is first heard",
-    },
-    // 清明 (15°)
-    PentadNames {
-        chinese: "桐始華",
-        chinese_english: "the paulownia flowers",
-        japanese: "玄鳥至",
-        japanese_english: "the swallows return",
-    },
-    PentadNames {
-        chinese: "田鼠化為鴽",
-        chinese_english: "the field mice turn into quails",
-        japanese: "鴻雁北",
-        japanese_english: "the wild geese fly north",
-    },
-    PentadNames {
-        chinese: "虹始見",
-        chinese_english: "rainbows are first seen",
-        japanese: "虹始見",
-        japanese_english: "rainbows are first seen",
-    },
-    // 穀雨 (30°)
-    PentadNames {
-        chinese: "萍始生",
-        chinese_english: "the duckweed begins to grow",
-        japanese: "葭始生",
-        japanese_english: "the first reeds sprout",
-    },
-    PentadNames {
-        chinese: "鳴鳩払其羽",
-        chinese_english: "the cooing dove preens its wings",
-        japanese: "霜止出苗",
-        japanese_english: "the frosts end and the rice seedlings come up",
-    },
-    PentadNames {
-        chinese: "戴勝降于桑",
-        chinese_english: "the hoopoe alights on the mulberry",
-        japanese: "牡丹華",
-        japanese_english: "the peonies bloom",
-    },
-    // 立夏 (45°)
-    PentadNames {
-        chinese: "螻蟈鳴",
-        chinese_english: "the mole crickets chirp",
-        japanese: "蛙始鳴",
-        japanese_english: "the frogs start croaking",
-    },
-    PentadNames {
-        chinese: "蚯蚓出",
-        chinese_english: "the earthworms surface",
-        japanese: "蚯蚓出",
-        japanese_english: "the earthworms surface",
-    },
-    PentadNames {
-        chinese: "王瓜生",
-        chinese_english: "the royal gourd puts out shoots",
-        japanese: "竹笋生",
-        japanese_english: "the bamboo shoots come up",
-    },
-    // 小満 (60°)
-    PentadNames {
-        chinese: "苦菜秀",
-        chinese_english: "the sow thistle flowers",
-        japanese: "蚕起食桑",
-        japanese_english: "the silkworms wake and eat mulberry",
-    },
-    PentadNames {
-        chinese: "靡草死",
-        chinese_english: "the tender herbs wither",
-        japanese: "紅花栄",
-        japanese_english: "the safflower blooms in profusion",
-    },
-    PentadNames {
-        chinese: "麦秋至",
-        chinese_english: "the wheat harvest comes",
-        japanese: "麦秋至",
-        japanese_english: "the wheat ripens",
-    },
-    // 芒種 (75°)
-    PentadNames {
-        chinese: "螳螂生",
-        chinese_english: "the mantises hatch",
-        japanese: "螳螂生",
-        japanese_english: "the mantises hatch",
-    },
-    PentadNames {
-        chinese: "鵙始鳴",
-        chinese_english: "the shrike begins to call",
-        japanese: "腐草為蛍",
-        japanese_english: "the rotting grass turns into fireflies",
-    },
-    PentadNames {
-        chinese: "反舌無声",
-        chinese_english: "the mockingbird falls silent",
-        japanese: "梅子黄",
-        japanese_english: "the plums turn yellow",
-    },
-    // 夏至 (90°)
-    PentadNames {
-        chinese: "鹿角解",
-        chinese_english: "the deer shed their antlers",
-        japanese: "乃東枯",
-        japanese_english: "the self-heal withers",
-    },
-    PentadNames {
-        chinese: "蜩始鳴",
-        chinese_english: "the cicadas begin to sing",
-        japanese: "菖蒲華",
-        japanese_english: "the irises bloom",
-    },
-    PentadNames {
-        chinese: "半夏生",
-        chinese_english: "the crow-dipper sprouts",
-        japanese: "半夏生",
-        japanese_english: "the crow-dipper sprouts",
-    },
-    // 小暑 (105°)
-    PentadNames {
-        chinese: "温風至",
-        chinese_english: "the warm wind arrives",
-        japanese: "温風至",
-        japanese_english: "the warm wind arrives",
-    },
-    PentadNames {
-        chinese: "蟋蟀居壁",
-        chinese_english: "the crickets move into the walls",
-        japanese: "蓮始開",
-        japanese_english: "the first lotus blossoms open",
-    },
-    PentadNames {
-        chinese: "鷹乃学習",
-        chinese_english: "the young hawks learn to fly",
-        japanese: "鷹乃学習",
-        japanese_english: "the young hawks learn to fly",
-    },
-    // 大暑 (120°)
-    PentadNames {
-        chinese: "腐草為蛍",
-        chinese_english: "the rotting grass turns into fireflies",
-        japanese: "桐始結花",
-        japanese_english: "the paulownia sets its seed",
-    },
-    PentadNames {
-        chinese: "土潤溽暑",
-        chinese_english: "the soil is damp and the air sultry",
-        japanese: "土潤溽暑",
-        japanese_english: "the soil is damp and the air sultry",
-    },
-    PentadNames {
-        chinese: "大雨時行",
-        chinese_english: "heavy rains fall from time to time",
-        japanese: "大雨時行",
-        japanese_english: "heavy rains fall from time to time",
-    },
-    // 立秋 (135°)
-    PentadNames {
-        chinese: "涼風至",
-        chinese_english: "the cool wind arrives",
-        japanese: "涼風至",
-        japanese_english: "the cool wind arrives",
-    },
-    PentadNames {
-        chinese: "白露降",
-        chinese_english: "the white dew descends",
-        japanese: "寒蝉鳴",
-        japanese_english: "the evening cicadas sing",
-    },
-    PentadNames {
-        chinese: "寒蝉鳴",
-        chinese_english: "the autumn cicadas sing",
-        japanese: "蒙霧升降",
-        japanese_english: "thick fog drifts",
-    },
-    // 処暑 (150°)
-    PentadNames {
-        chinese: "鷹乃祭鳥",
-        chinese_english: "the hawk lays out its prey",
-        japanese: "綿柎開",
-        japanese_english: "the cotton bolls open",
-    },
-    PentadNames {
-        chinese: "天地始粛",
-        chinese_english: "heaven and earth begin to cool",
-        japanese: "天地始粛",
-        japanese_english: "heaven and earth begin to cool",
-    },
-    PentadNames {
-        chinese: "禾乃登",
-        chinese_english: "the grain ripens",
-        japanese: "禾乃登",
-        japanese_english: "the rice ripens",
-    },
-    // 白露 (165°)
-    PentadNames {
-        chinese: "鴻雁来",
-        chinese_english: "the wild geese arrive",
-        japanese: "草露白",
-        japanese_english: "the dew on the grass turns white",
-    },
-    PentadNames {
-        chinese: "玄鳥帰",
-        chinese_english: "the swallows leave",
-        japanese: "鶺鴒鳴",
-        japanese_english: "the wagtails begin to call",
-    },
-    PentadNames {
-        chinese: "群鳥養羞",
-        chinese_english: "the birds lay in their winter store",
-        japanese: "玄鳥去",
-        japanese_english: "the swallows depart",
-    },
-    // 秋分 (180°)
-    PentadNames {
-        chinese: "雷乃収声",
-        chinese_english: "the thunder ceases",
-        japanese: "雷乃収声",
-        japanese_english: "the thunder ceases",
-    },
-    PentadNames {
-        chinese: "蟄虫坏戸",
-        chinese_english: "the hibernating insects seal their burrows",
-        japanese: "蟄虫坏戸",
-        japanese_english: "the hibernating insects seal their burrows",
-    },
-    PentadNames {
-        chinese: "水始涸",
-        chinese_english: "the waters begin to dry",
-        japanese: "水始涸",
-        japanese_english: "the paddy fields are drained",
-    },
-    // 寒露 (195°)
-    PentadNames {
-        chinese: "鴻雁来賓",
-        chinese_english: "the last of the wild geese arrive",
-        japanese: "鴻雁来",
-        japanese_english: "the wild geese arrive",
-    },
-    PentadNames {
-        chinese: "雀入大水為蛤",
-        chinese_english: "the sparrows enter the sea and become clams",
-        japanese: "菊花開",
-        japanese_english: "the chrysanthemums bloom",
-    },
-    PentadNames {
-        chinese: "菊有黄華",
-        chinese_english: "the chrysanthemums show yellow flowers",
-        japanese: "蟋蟀在戸",
-        japanese_english: "the crickets sing by the door",
-    },
-    // 霜降 (210°)
-    PentadNames {
-        chinese: "豺乃祭獣",
-        chinese_english: "the jackal lays out its prey",
-        japanese: "霜始降",
-        japanese_english: "the first frost falls",
-    },
-    PentadNames {
-        chinese: "草木黄落",
-        chinese_english: "the leaves yellow and fall",
-        japanese: "霎時施",
-        japanese_english: "light rains fall now and then",
-    },
-    PentadNames {
-        chinese: "蟄虫咸俯",
-        chinese_english: "every hibernating creature lies down",
-        japanese: "楓蔦黄",
-        japanese_english: "the maples and the ivy turn yellow",
-    },
-    // 立冬 (225°)
-    PentadNames {
-        chinese: "水始氷",
-        chinese_english: "the waters begin to freeze",
-        japanese: "山茶始開",
-        japanese_english: "the sasanqua camellias open",
-    },
-    PentadNames {
-        chinese: "地始凍",
-        chinese_english: "the ground begins to freeze",
-        japanese: "地始凍",
-        japanese_english: "the ground begins to freeze",
-    },
-    PentadNames {
-        chinese: "野鶏入水為蜃",
-        chinese_english: "the pheasants enter the water and become clams",
-        japanese: "金盞香",
-        japanese_english: "the daffodils are fragrant",
-    },
-    // 小雪 (240°)
-    PentadNames {
-        chinese: "虹蔵不見",
-        chinese_english: "the rainbows hide away",
-        japanese: "虹蔵不見",
-        japanese_english: "the rainbows hide away",
-    },
-    PentadNames {
-        chinese: "天気上騰地気下降",
-        chinese_english: "the breath of heaven rises and that of earth sinks",
-        japanese: "朔風払葉",
-        japanese_english: "the north wind strips the leaves",
-    },
-    PentadNames {
-        chinese: "閉塞而成冬",
-        chinese_english: "all is closed up and winter sets in",
-        japanese: "橘始黄",
-        japanese_english: "the tachibana leaves turn yellow",
-    },
-    // 大雪 (255°)
-    PentadNames {
-        chinese: "鶡鴠不鳴",
-        chinese_english: "the snow partridge falls silent",
-        japanese: "閉塞成冬",
-        japanese_english: "the sky is shut and winter sets in",
-    },
-    PentadNames {
-        chinese: "虎始交",
-        chinese_english: "the tigers begin to mate",
-        japanese: "熊蟄穴",
-        japanese_english: "the bears retire to their dens",
-    },
-    PentadNames {
-        chinese: "茘挺出",
-        chinese_english: "the broom sedge puts up shoots",
-        japanese: "鱖魚群",
-        japanese_english: "the salmon gather and swim upstream",
-    },
-    // 冬至 (270°)
-    PentadNames {
-        chinese: "蚯蚓結",
-        chinese_english: "the earthworms knot together",
-        japanese: "乃東生",
-        japanese_english: "the self-heal sprouts",
-    },
-    PentadNames {
-        chinese: "麋角解",
-        chinese_english: "the elk shed their antlers",
-        japanese: "麋角解",
-        japanese_english: "the elk shed their antlers",
-    },
-    PentadNames {
-        chinese: "水泉動",
-        chinese_english: "the springs begin to move",
-        japanese: "雪下出麦",
-        japanese_english: "the wheat sprouts under the snow",
-    },
-    // 小寒 (285°)
-    PentadNames {
-        chinese: "雁北郷",
-        chinese_english: "the geese turn north",
-        japanese: "芹乃栄",
-        japanese_english: "the parsley flourishes",
-    },
-    PentadNames {
-        chinese: "鵲始巣",
-        chinese_english: "the magpies start to nest",
-        japanese: "水泉動",
-        japanese_english: "the springs begin to move",
-    },
-    PentadNames {
-        chinese: "野鶏始雊",
-        chinese_english: "the pheasants begin to call",
-        japanese: "雉始雊",
-        japanese_english: "the pheasants begin to call",
-    },
-    // 大寒 (300°)
-    PentadNames {
-        chinese: "鶏始乳",
-        chinese_english: "the hens begin to lay",
-        japanese: "款冬華",
-        japanese_english: "the butterbur buds open",
-    },
-    PentadNames {
-        chinese: "鷙鳥厲疾",
-        chinese_english: "the birds of prey fly fierce and fast",
-        japanese: "水沢腹堅",
-        japanese_english: "the ice on the marshes is thick and hard",
-    },
-    PentadNames {
-        chinese: "水沢腹堅",
-        chinese_english: "the ice on the waters is thick and hard",
-        japanese: "鶏始乳",
-        japanese_english: "the hens begin to lay",
-    },
-    // 立春 (315°)
-    PentadNames {
-        chinese: "東風解凍",
-        chinese_english: "the east wind melts the ice",
-        japanese: "東風解凍",
-        japanese_english: "the east wind melts the ice",
-    },
-    PentadNames {
-        chinese: "蟄虫始振",
-        chinese_english: "the hibernating creatures begin to stir",
-        japanese: "黄鶯睍睆",
-        japanese_english: "the bush warbler sings in the mountains",
-    },
-    PentadNames {
-        chinese: "魚上氷",
-        chinese_english: "the fish rise to the ice",
-        japanese: "魚上氷",
-        japanese_english: "the fish rise to the cracking ice",
-    },
-    // 雨水 (330°)
-    PentadNames {
-        chinese: "獺祭魚",
-        chinese_english: "the otter lays out its fish",
-        japanese: "土脉潤起",
-        japanese_english: "the rain moistens the soil",
-    },
-    PentadNames {
-        chinese: "候雁北",
-        chinese_english: "the wild geese fly north",
-        japanese: "霞始靆",
-        japanese_english: "the mist begins to linger",
-    },
-    PentadNames {
-        chinese: "草木萌動",
-        chinese_english: "the grasses and trees put out shoots",
-        japanese: "草木萌動",
-        japanese_english: "the grasses and trees put out shoots",
-    },
-    // 啓蟄 (345°)
-    PentadNames {
-        chinese: "桃始華",
-        chinese_english: "the peach trees begin to blossom",
-        japanese: "蟄虫啓戸",
-        japanese_english: "the hibernating creatures open their doors",
-    },
-    PentadNames {
-        chinese: "倉庚鳴",
-        chinese_english: "the orioles sing",
-        japanese: "桃始笑",
-        japanese_english: "the peach trees begin to smile",
-    },
-    PentadNames {
-        chinese: "鷹化為鳩",
-        chinese_english: "the hawk turns into a dove",
-        japanese: "菜虫化蝶",
-        japanese_english: "the caterpillars become butterflies",
-    },
-];
+    /// Every tradition this crate names the pentads in.
+    pub const PENTAD_TRADITIONS;
+
+    /// The tradition with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// The classical Chinese set, as transmitted through the 宣明暦.
+        ///
+        /// The 逸周書·時訓解 list, in traditional characters.
+        pub const CHINESE = PentadTradition {
+            id: "chinese",
+            english_name: "Chinese",
+            names: &[
+                // 春分 (0°)
+                "玄鳥至",
+                "雷乃発声",
+                "始電",
+                // 清明 (15°)
+                "桐始華",
+                "田鼠化為鴽",
+                "虹始見",
+                // 穀雨 (30°)
+                "萍始生",
+                "鳴鳩払其羽",
+                "戴勝降于桑",
+                // 立夏 (45°)
+                "螻蟈鳴",
+                "蚯蚓出",
+                "王瓜生",
+                // 小満 (60°)
+                "苦菜秀",
+                "靡草死",
+                "麦秋至",
+                // 芒種 (75°)
+                "螳螂生",
+                "鵙始鳴",
+                "反舌無声",
+                // 夏至 (90°)
+                "鹿角解",
+                "蜩始鳴",
+                "半夏生",
+                // 小暑 (105°)
+                "温風至",
+                "蟋蟀居壁",
+                "鷹乃学習",
+                // 大暑 (120°)
+                "腐草為蛍",
+                "土潤溽暑",
+                "大雨時行",
+                // 立秋 (135°)
+                "涼風至",
+                "白露降",
+                "寒蝉鳴",
+                // 処暑 (150°)
+                "鷹乃祭鳥",
+                "天地始粛",
+                "禾乃登",
+                // 白露 (165°)
+                "鴻雁来",
+                "玄鳥帰",
+                "群鳥養羞",
+                // 秋分 (180°)
+                "雷乃収声",
+                "蟄虫坏戸",
+                "水始涸",
+                // 寒露 (195°)
+                "鴻雁来賓",
+                "雀入大水為蛤",
+                "菊有黄華",
+                // 霜降 (210°)
+                "豺乃祭獣",
+                "草木黄落",
+                "蟄虫咸俯",
+                // 立冬 (225°)
+                "水始氷",
+                "地始凍",
+                "野鶏入水為蜃",
+                // 小雪 (240°)
+                "虹蔵不見",
+                "天気上騰地気下降",
+                "閉塞而成冬",
+                // 大雪 (255°)
+                "鶡鴠不鳴",
+                "虎始交",
+                "茘挺出",
+                // 冬至 (270°)
+                "蚯蚓結",
+                "麋角解",
+                "水泉動",
+                // 小寒 (285°)
+                "雁北郷",
+                "鵲始巣",
+                "野鶏始雊",
+                // 大寒 (300°)
+                "鶏始乳",
+                "鷙鳥厲疾",
+                "水沢腹堅",
+                // 立春 (315°)
+                "東風解凍",
+                "蟄虫始振",
+                "魚上氷",
+                // 雨水 (330°)
+                "獺祭魚",
+                "候雁北",
+                "草木萌動",
+                // 啓蟄 (345°)
+                "桃始華",
+                "倉庚鳴",
+                "鷹化為鳩",
+            ],
+            glosses: &[
+                // 春分 (0°)
+                "the swallows return",
+                "thunder begins to sound",
+                "lightning is first seen",
+                // 清明 (15°)
+                "the paulownia flowers",
+                "the field mice turn into quails",
+                "rainbows are first seen",
+                // 穀雨 (30°)
+                "the duckweed begins to grow",
+                "the cooing dove preens its wings",
+                "the hoopoe alights on the mulberry",
+                // 立夏 (45°)
+                "the mole crickets chirp",
+                "the earthworms surface",
+                "the royal gourd puts out shoots",
+                // 小満 (60°)
+                "the sow thistle flowers",
+                "the tender herbs wither",
+                "the wheat harvest comes",
+                // 芒種 (75°)
+                "the mantises hatch",
+                "the shrike begins to call",
+                "the mockingbird falls silent",
+                // 夏至 (90°)
+                "the deer shed their antlers",
+                "the cicadas begin to sing",
+                "the crow-dipper sprouts",
+                // 小暑 (105°)
+                "the warm wind arrives",
+                "the crickets move into the walls",
+                "the young hawks learn to fly",
+                // 大暑 (120°)
+                "the rotting grass turns into fireflies",
+                "the soil is damp and the air sultry",
+                "heavy rains fall from time to time",
+                // 立秋 (135°)
+                "the cool wind arrives",
+                "the white dew descends",
+                "the autumn cicadas sing",
+                // 処暑 (150°)
+                "the hawk lays out its prey",
+                "heaven and earth begin to cool",
+                "the grain ripens",
+                // 白露 (165°)
+                "the wild geese arrive",
+                "the swallows leave",
+                "the birds lay in their winter store",
+                // 秋分 (180°)
+                "the thunder ceases",
+                "the hibernating insects seal their burrows",
+                "the waters begin to dry",
+                // 寒露 (195°)
+                "the last of the wild geese arrive",
+                "the sparrows enter the sea and become clams",
+                "the chrysanthemums show yellow flowers",
+                // 霜降 (210°)
+                "the jackal lays out its prey",
+                "the leaves yellow and fall",
+                "every hibernating creature lies down",
+                // 立冬 (225°)
+                "the waters begin to freeze",
+                "the ground begins to freeze",
+                "the pheasants enter the water and become clams",
+                // 小雪 (240°)
+                "the rainbows hide away",
+                "the breath of heaven rises and that of earth sinks",
+                "all is closed up and winter sets in",
+                // 大雪 (255°)
+                "the snow partridge falls silent",
+                "the tigers begin to mate",
+                "the broom sedge puts up shoots",
+                // 冬至 (270°)
+                "the earthworms knot together",
+                "the elk shed their antlers",
+                "the springs begin to move",
+                // 小寒 (285°)
+                "the geese turn north",
+                "the magpies start to nest",
+                "the pheasants begin to call",
+                // 大寒 (300°)
+                "the hens begin to lay",
+                "the birds of prey fly fierce and fast",
+                "the ice on the waters is thick and hard",
+                // 立春 (315°)
+                "the east wind melts the ice",
+                "the hibernating creatures begin to stir",
+                "the fish rise to the ice",
+                // 雨水 (330°)
+                "the otter lays out its fish",
+                "the wild geese fly north",
+                "the grasses and trees put out shoots",
+                // 啓蟄 (345°)
+                "the peach trees begin to blossom",
+                "the orioles sing",
+                "the hawk turns into a dove",
+            ],
+            authority: "逸周書·時訓解, as the 宣明暦 transmitted it",
+        };
+
+        /// The Japanese set of the 1874 略本暦 revision, 本朝七十二候.
+        ///
+        /// In shinjitai.
+        pub const JAPANESE = PentadTradition {
+            id: "japanese",
+            english_name: "Japanese",
+            names: &[
+                // 春分 (0°)
+                "雀始巣",
+                "桜始開",
+                "雷乃発声",
+                // 清明 (15°)
+                "玄鳥至",
+                "鴻雁北",
+                "虹始見",
+                // 穀雨 (30°)
+                "葭始生",
+                "霜止出苗",
+                "牡丹華",
+                // 立夏 (45°)
+                "蛙始鳴",
+                "蚯蚓出",
+                "竹笋生",
+                // 小満 (60°)
+                "蚕起食桑",
+                "紅花栄",
+                "麦秋至",
+                // 芒種 (75°)
+                "螳螂生",
+                "腐草為蛍",
+                "梅子黄",
+                // 夏至 (90°)
+                "乃東枯",
+                "菖蒲華",
+                "半夏生",
+                // 小暑 (105°)
+                "温風至",
+                "蓮始開",
+                "鷹乃学習",
+                // 大暑 (120°)
+                "桐始結花",
+                "土潤溽暑",
+                "大雨時行",
+                // 立秋 (135°)
+                "涼風至",
+                "寒蝉鳴",
+                "蒙霧升降",
+                // 処暑 (150°)
+                "綿柎開",
+                "天地始粛",
+                "禾乃登",
+                // 白露 (165°)
+                "草露白",
+                "鶺鴒鳴",
+                "玄鳥去",
+                // 秋分 (180°)
+                "雷乃収声",
+                "蟄虫坏戸",
+                "水始涸",
+                // 寒露 (195°)
+                "鴻雁来",
+                "菊花開",
+                "蟋蟀在戸",
+                // 霜降 (210°)
+                "霜始降",
+                "霎時施",
+                "楓蔦黄",
+                // 立冬 (225°)
+                "山茶始開",
+                "地始凍",
+                "金盞香",
+                // 小雪 (240°)
+                "虹蔵不見",
+                "朔風払葉",
+                "橘始黄",
+                // 大雪 (255°)
+                "閉塞成冬",
+                "熊蟄穴",
+                "鱖魚群",
+                // 冬至 (270°)
+                "乃東生",
+                "麋角解",
+                "雪下出麦",
+                // 小寒 (285°)
+                "芹乃栄",
+                "水泉動",
+                "雉始雊",
+                // 大寒 (300°)
+                "款冬華",
+                "水沢腹堅",
+                "鶏始乳",
+                // 立春 (315°)
+                "東風解凍",
+                "黄鶯睍睆",
+                "魚上氷",
+                // 雨水 (330°)
+                "土脉潤起",
+                "霞始靆",
+                "草木萌動",
+                // 啓蟄 (345°)
+                "蟄虫啓戸",
+                "桃始笑",
+                "菜虫化蝶",
+            ],
+            glosses: &[
+                // 春分 (0°)
+                "the sparrows start to nest",
+                "the first cherry blossoms open",
+                "distant thunder is first heard",
+                // 清明 (15°)
+                "the swallows return",
+                "the wild geese fly north",
+                "rainbows are first seen",
+                // 穀雨 (30°)
+                "the first reeds sprout",
+                "the frosts end and the rice seedlings come up",
+                "the peonies bloom",
+                // 立夏 (45°)
+                "the frogs start croaking",
+                "the earthworms surface",
+                "the bamboo shoots come up",
+                // 小満 (60°)
+                "the silkworms wake and eat mulberry",
+                "the safflower blooms in profusion",
+                "the wheat ripens",
+                // 芒種 (75°)
+                "the mantises hatch",
+                "the rotting grass turns into fireflies",
+                "the plums turn yellow",
+                // 夏至 (90°)
+                "the self-heal withers",
+                "the irises bloom",
+                "the crow-dipper sprouts",
+                // 小暑 (105°)
+                "the warm wind arrives",
+                "the first lotus blossoms open",
+                "the young hawks learn to fly",
+                // 大暑 (120°)
+                "the paulownia sets its seed",
+                "the soil is damp and the air sultry",
+                "heavy rains fall from time to time",
+                // 立秋 (135°)
+                "the cool wind arrives",
+                "the evening cicadas sing",
+                "thick fog drifts",
+                // 処暑 (150°)
+                "the cotton bolls open",
+                "heaven and earth begin to cool",
+                "the rice ripens",
+                // 白露 (165°)
+                "the dew on the grass turns white",
+                "the wagtails begin to call",
+                "the swallows depart",
+                // 秋分 (180°)
+                "the thunder ceases",
+                "the hibernating insects seal their burrows",
+                "the paddy fields are drained",
+                // 寒露 (195°)
+                "the wild geese arrive",
+                "the chrysanthemums bloom",
+                "the crickets sing by the door",
+                // 霜降 (210°)
+                "the first frost falls",
+                "light rains fall now and then",
+                "the maples and the ivy turn yellow",
+                // 立冬 (225°)
+                "the sasanqua camellias open",
+                "the ground begins to freeze",
+                "the daffodils are fragrant",
+                // 小雪 (240°)
+                "the rainbows hide away",
+                "the north wind strips the leaves",
+                "the tachibana leaves turn yellow",
+                // 大雪 (255°)
+                "the sky is shut and winter sets in",
+                "the bears retire to their dens",
+                "the salmon gather and swim upstream",
+                // 冬至 (270°)
+                "the self-heal sprouts",
+                "the elk shed their antlers",
+                "the wheat sprouts under the snow",
+                // 小寒 (285°)
+                "the parsley flourishes",
+                "the springs begin to move",
+                "the pheasants begin to call",
+                // 大寒 (300°)
+                "the butterbur buds open",
+                "the ice on the marshes is thick and hard",
+                "the hens begin to lay",
+                // 立春 (315°)
+                "the east wind melts the ice",
+                "the bush warbler sings in the mountains",
+                "the fish rise to the cracking ice",
+                // 雨水 (330°)
+                "the rain moistens the soil",
+                "the mist begins to linger",
+                "the grasses and trees put out shoots",
+                // 啓蟄 (345°)
+                "the hibernating creatures open their doors",
+                "the peach trees begin to smile",
+                "the caterpillars become butterflies",
+            ],
+            authority: "本朝七十二候 of the 1874 略本暦",
+        };
+    }
+}
 
 /// The internal index of 立春初候 at 315°, i.e. how far the almanac ordering
 /// is rotated from the longitude ordering.
@@ -651,25 +624,19 @@ impl Pentad {
     /// The pentad's name in characters, in one tradition or the other.
     #[must_use]
     pub const fn name(self, tradition: PentadTradition) -> &'static str {
-        match tradition {
-            PentadTradition::Chinese => PENTAD_NAMES[self.0 as usize].chinese,
-            PentadTradition::Japanese => PENTAD_NAMES[self.0 as usize].japanese,
-        }
+        tradition.names[self.0 as usize]
     }
 
     /// A short English gloss of the pentad's name in that tradition.
     #[must_use]
     pub const fn english_name(self, tradition: PentadTradition) -> &'static str {
-        match tradition {
-            PentadTradition::Chinese => PENTAD_NAMES[self.0 as usize].chinese_english,
-            PentadTradition::Japanese => PENTAD_NAMES[self.0 as usize].japanese_english,
-        }
+        tradition.glosses[self.0 as usize]
     }
 
     /// Whether the two traditions write this pentad the same way.
     #[must_use]
     pub fn is_shared_between_traditions(self) -> bool {
-        self.name(PentadTradition::Chinese) == self.name(PentadTradition::Japanese)
+        self.name(CHINESE) == self.name(JAPANESE)
     }
 
     /// The next pentad, 5° further along the ecliptic, wrapping at 360°.
@@ -845,6 +812,46 @@ mod tests {
     use super::*;
     use crate::gregorian::{from_year_month_day, new_year};
 
+    /// Transposing the table cost a guarantee the old shape gave for free.
+    ///
+    /// `[PentadNames; PENTADS_PER_YEAR]` could not hold 71 rows; a slice
+    /// can. So the length is asserted here instead of by the type, which is
+    /// the price of a tradition being an entry rather than two columns.
+    #[test]
+    fn every_tradition_names_all_seventy_two_pentads() {
+        for tradition in PENTAD_TRADITIONS {
+            assert_eq!(
+                tradition.names.len(),
+                PENTADS_PER_YEAR,
+                "{} names {} pentads",
+                tradition.english_name,
+                tradition.names.len()
+            );
+            assert_eq!(
+                tradition.glosses.len(),
+                PENTADS_PER_YEAR,
+                "{} glosses {} pentads",
+                tradition.english_name,
+                tradition.glosses.len()
+            );
+        }
+    }
+
+    /// No tradition may name two pentads the same, or the name stops
+    /// identifying the pentad.
+    #[test]
+    fn a_traditions_pentad_names_are_distinct() {
+        for tradition in PENTAD_TRADITIONS {
+            for (index, name) in tradition.names.iter().enumerate() {
+                assert!(
+                    !tradition.names[..index].contains(name),
+                    "{} uses {name} twice",
+                    tradition.english_name
+                );
+            }
+        }
+    }
+
     #[test]
     fn seventy_two_pentads_are_three_to_a_term() {
         for term in SolarTerm::all(TermOrder::SpringEquinoxFirst) {
@@ -900,7 +907,7 @@ mod tests {
         let first_of_almanac = Pentad::from_index(TermOrder::BeginningOfSpringFirst, 0).unwrap();
         assert_eq!(first_of_almanac.term(), SolarTerm::BEGINNING_OF_SPRING);
         assert_eq!(first_of_almanac.position(), PentadPosition::First);
-        assert_eq!(first_of_almanac.name(PentadTradition::Japanese), "東風解凍");
+        assert_eq!(first_of_almanac.name(JAPANESE), "東風解凍");
     }
 
     #[test]
@@ -914,7 +921,7 @@ mod tests {
     #[test]
     fn every_pentad_has_a_name_and_a_gloss_in_both_traditions() {
         for pentad in Pentad::all(TermOrder::SpringEquinoxFirst) {
-            for tradition in [PentadTradition::Chinese, PentadTradition::Japanese] {
+            for tradition in [CHINESE, JAPANESE] {
                 assert!(!pentad.name(tradition).is_empty());
                 assert!(!pentad.english_name(tradition).is_empty());
                 assert!(pentad.english_name(tradition).is_ascii());
@@ -938,10 +945,10 @@ mod tests {
         );
         let clams = Pentad::all(TermOrder::SpringEquinoxFirst)
             .iter()
-            .find(|pentad| pentad.name(PentadTradition::Chinese) == "雀入大水為蛤")
+            .find(|pentad| pentad.name(CHINESE) == "雀入大水為蛤")
             .copied();
         let clams = clams.unwrap();
-        assert_eq!(clams.name(PentadTradition::Japanese), "菊花開");
+        assert_eq!(clams.name(JAPANESE), "菊花開");
     }
 
     #[test]
@@ -964,7 +971,7 @@ mod tests {
         let pentads = Pentad::all(TermOrder::SpringEquinoxFirst);
         for (position, pentad) in pentads.iter().enumerate() {
             for other in &pentads[position + 1..] {
-                if pentad.name(PentadTradition::Chinese) == other.name(PentadTradition::Chinese) {
+                if pentad.name(CHINESE) == other.name(CHINESE) {
                     chinese_duplicates += 1;
                 }
             }
@@ -974,7 +981,7 @@ mod tests {
         // longitudes.
         let japanese_springs = pentads
             .iter()
-            .filter(|pentad| pentad.name(PentadTradition::Japanese) == "水泉動")
+            .filter(|pentad| pentad.name(JAPANESE) == "水泉動")
             .count();
         assert_eq!(japanese_springs, 1);
     }

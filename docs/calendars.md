@@ -148,7 +148,7 @@ Not calendars in their own right, but named subdivisions layered onto one.
 | System | Crate | Status |
 | --- | --- | --- |
 | 二十四節気 — the 24 solar terms | `hc-seasons` | Done |
-| 七十二候 — the 72 pentads (Chinese and Japanese variants) | `hc-seasons` | Done |
+| 七十二候 — the 72 pentads (Chinese and Japanese sets; a further set is one entry) | `hc-seasons` | Done |
 | 雑節 — zassetsu (節分, 彼岸, 社日, 八十八夜, 入梅, 半夏生, 土用, 二百十日, 二百二十日) | `hc-seasons` | Done |
 | Moon phases as a calendar layer | `hc-seasons` | Done |
 | 六曜 — rokuyō (先勝, 友引, 先負, 仏滅, 大安, 赤口) | `hc-seasons` | Done |
@@ -159,7 +159,7 @@ Not calendars in their own right, but named subdivisions layered onto one.
 | 九星, 七曜, 暦注下段, 選日 | `hc-almanac` | Done |
 | 黄道十二宮 — Western zodiac signs (tropical), with periods | `hc-seasons` | Done |
 | Sidereal signs / rāśi, with the Lahiri and other ayanamsas | `hc-seasons` | Done |
-| Indian solar months (Sanskrit, Tamil, Bengali, Malayalam) over the rāśi | `hc-seasons` | Done |
+| Indian solar months over the rāśi — Sanskrit, Tamil, Bengali, Malayalam, and any tradition added as an entry | `hc-seasons` | Done |
 | 十二次 — the Chinese twelvefold ecliptic division | `hc-seasons` | Done |
 | Traditional Irish/Gaelic quarter days | `hc-seasons` | Planned |
 

@@ -72,7 +72,9 @@ pub mod sidereal;
 pub mod tropical;
 
 pub use chinese_twelve::ChineseStation;
-pub use rashi::{Rashi, SolarMonthTradition};
+pub use rashi::{
+    BENGALI, MALAYALAM, Rashi, SANSKRIT, SOLAR_MONTH_TRADITIONS, SolarMonthTradition, TAMIL,
+};
 pub use sidereal::{Ayanamsa, SiderealSign};
 pub use tropical::{ConventionalPeriod, Element, Modality, RulingPlanet, TropicalSign};
 
