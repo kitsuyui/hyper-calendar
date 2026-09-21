@@ -682,3 +682,18 @@ mod tests {
         }
     }
 }
+
+/// The table whose authority has this identifier.
+#[must_use]
+pub fn by_id(id: &str) -> Option<&'static MonthTable> {
+    ALL.iter().copied().find(|table| table.authority().id == id)
+}
+
+hc_core::catalogue_tests! {
+    type: &'static MonthTable,
+    id: |table| table.authority().id,
+    provenance: |table| table.authority().source,
+    tests: birthstone_table_tests,
+    all: &ALL,
+    lookup: by_id,
+}
