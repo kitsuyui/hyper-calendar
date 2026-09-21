@@ -206,7 +206,7 @@ different dates **451 times in 1200 sign-years, 37.6 %**.
   published festival dates for 2015–2030.
 * **The 十二次** with the traditional-character and shinjitai columns (they
   differ for 實沈/実沈 and 壽星/寿星), pinyin, the matching 十二辰 branch taken
-  from `hc_calendar::cycle::EARTHLY_BRANCHES` rather than copied, and the
+  from `hc_calendar::cycle::readings::PINYIN` rather than copied, and the
   Ming-dynasty equation of each 次 with a Western sign — which the docs label
   an equation of *names*, since under the 定気 rule the arcs are 15° apart.
 

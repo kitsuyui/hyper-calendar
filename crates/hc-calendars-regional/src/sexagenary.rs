@@ -38,18 +38,14 @@
 //!
 //! # Readings
 //!
-//! `hc-i18n` is not a dependency of this crate, so the readings ship here.
-//! The Japanese ones are the native *kun* readings (甲 = きのえ, "elder
-//! brother of wood"), which is how the stems are read in 暦注 and in
-//! almanacs; the Sino-Japanese *on* readings (こう, おつ) are used too and
-//! are not shipped. The Korean ones are the standard Hangul with Revised
-//! Romanisation.
+//! The sixty names in characters, kana, Hangul, quốc ngữ and the
+//! romanisations are [`hc_calendar::cycle::readings`]; this crate adds
+//! none. [`SexagenaryDayDate`] displays in characters, the one spelling
+//! every language shares.
 
 use core::fmt;
 
-use hc_calendar::cycle::{
-    EARTHLY_BRANCHES, FIVE_PHASES, HEAVENLY_STEMS, Sexagenary, ZODIAC_ANIMALS, sexagenary_day,
-};
+use hc_calendar::cycle::{Sexagenary, readings, sexagenary_day};
 use hc_calendar::fields::ExtraFields;
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
@@ -65,138 +61,6 @@ pub const CYCLE: i64 = 60;
 /// [`hc_calendar::cycle::sexagenary_day`] computes the position as
 /// `index = rd + 14`, so RD 1 is index 15 and index 0 falls on RD -14.
 pub const EPOCH: Rd = Rd(-14);
-
-/// The ten Heavenly Stems in Han characters.
-pub const STEMS_HAN: [&str; 10] = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
-
-/// The twelve Earthly Branches in Han characters.
-pub const BRANCHES_HAN: [&str; 12] = [
-    "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥",
-];
-
-/// The ten Heavenly Stems in their Japanese *kun* readings.
-pub const STEMS_JAPANESE: [&str; 10] = [
-    "きのえ",
-    "きのと",
-    "ひのえ",
-    "ひのと",
-    "つちのえ",
-    "つちのと",
-    "かのえ",
-    "かのと",
-    "みずのえ",
-    "みずのと",
-];
-
-/// The ten Heavenly Stems in Japanese, romanised.
-pub const STEMS_JAPANESE_ROMAJI: [&str; 10] = [
-    "kinoe",
-    "kinoto",
-    "hinoe",
-    "hinoto",
-    "tsuchinoe",
-    "tsuchinoto",
-    "kanoe",
-    "kanoto",
-    "mizunoe",
-    "mizunoto",
-];
-
-/// The twelve Earthly Branches in their Japanese readings.
-pub const BRANCHES_JAPANESE: [&str; 12] = [
-    "ね",
-    "うし",
-    "とら",
-    "う",
-    "たつ",
-    "み",
-    "うま",
-    "ひつじ",
-    "さる",
-    "とり",
-    "いぬ",
-    "い",
-];
-
-/// The twelve Earthly Branches in Japanese, romanised.
-pub const BRANCHES_JAPANESE_ROMAJI: [&str; 12] = [
-    "ne", "ushi", "tora", "u", "tatsu", "mi", "uma", "hitsuji", "saru", "tori", "inu", "i",
-];
-
-/// The ten Heavenly Stems in Korean Hangul.
-pub const STEMS_KOREAN: [&str; 10] = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
-
-/// The ten Heavenly Stems in Korean, Revised Romanisation.
-pub const STEMS_KOREAN_ROMAJA: [&str; 10] = [
-    "gap", "eul", "byeong", "jeong", "mu", "gi", "gyeong", "sin", "im", "gye",
-];
-
-/// The twelve Earthly Branches in Korean Hangul.
-pub const BRANCHES_KOREAN: [&str; 12] = [
-    "자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해",
-];
-
-/// The twelve Earthly Branches in Korean, Revised Romanisation.
-pub const BRANCHES_KOREAN_ROMAJA: [&str; 12] = [
-    "ja", "chuk", "in", "myo", "jin", "sa", "o", "mi", "sin", "yu", "sul", "hae",
-];
-
-/// Which spelling of the sixty names to use.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Script {
-    /// Han characters, shared by all three languages.
-    Han,
-    /// Mandarin pinyin, without tone marks.
-    Pinyin,
-    /// Japanese *kun* readings in hiragana.
-    Japanese,
-    /// Japanese *kun* readings, romanised.
-    JapaneseRomaji,
-    /// Korean Hangul.
-    Korean,
-    /// Korean, in Revised Romanisation.
-    KoreanRomaja,
-}
-
-/// The Heavenly Stem of a cycle position, in the given script.
-#[must_use]
-pub fn stem_name(position: Sexagenary, script: Script) -> &'static str {
-    let index = position.stem_index() as usize;
-    match script {
-        Script::Han => STEMS_HAN[index],
-        Script::Pinyin => HEAVENLY_STEMS[index],
-        Script::Japanese => STEMS_JAPANESE[index],
-        Script::JapaneseRomaji => STEMS_JAPANESE_ROMAJI[index],
-        Script::Korean => STEMS_KOREAN[index],
-        Script::KoreanRomaja => STEMS_KOREAN_ROMAJA[index],
-    }
-}
-
-/// The Earthly Branch of a cycle position, in the given script.
-#[must_use]
-pub fn branch_name(position: Sexagenary, script: Script) -> &'static str {
-    let index = position.branch_index() as usize;
-    match script {
-        Script::Han => BRANCHES_HAN[index],
-        Script::Pinyin => EARTHLY_BRANCHES[index],
-        Script::Japanese => BRANCHES_JAPANESE[index],
-        Script::JapaneseRomaji => BRANCHES_JAPANESE_ROMAJI[index],
-        Script::Korean => BRANCHES_KOREAN[index],
-        Script::KoreanRomaja => BRANCHES_KOREAN_ROMAJA[index],
-    }
-}
-
-/// The zodiac animal of a cycle position, in English.
-#[must_use]
-pub fn zodiac_animal(position: Sexagenary) -> &'static str {
-    ZODIAC_ANIMALS[position.branch_index() as usize]
-}
-
-/// The five-phase element of a cycle position, in English.
-#[must_use]
-pub fn five_phase(position: Sexagenary) -> &'static str {
-    FIVE_PHASES[(position.stem_index() / 2) as usize]
-}
 
 /// A day named by the sexagenary cycle, plus the cycle it falls in.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -218,8 +82,8 @@ impl SexagenaryDayDate {
 impl fmt::Display for SexagenaryDayDate {
     /// Writes the pair in Han characters, as in `甲子`.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(stem_name(self.position, Script::Han))?;
-        f.write_str(branch_name(self.position, Script::Han))
+        f.write_str(readings::HAN.stem(self.position))?;
+        f.write_str(readings::HAN.branch(self.position))
     }
 }
 
@@ -345,8 +209,8 @@ mod tests {
         assert_eq!(date.position.index(), 0);
         assert_eq!(date.cycle, 0);
         assert_eq!(date.to_string(), "甲子");
-        assert_eq!(stem_name(date.position, Script::Pinyin), "jia");
-        assert_eq!(branch_name(date.position, Script::Pinyin), "zi");
+        assert_eq!(readings::PINYIN.stem(date.position), "jia");
+        assert_eq!(readings::PINYIN.branch(date.position), "zi");
     }
 
     #[test]
@@ -355,8 +219,8 @@ mod tests {
         // proleptic Gregorian — is index 15, the sixteenth pair, 己卯.
         assert_eq!(day_pillar(Rd(1)).index(), 15);
         assert_eq!(day_pillar(Rd(1)).ordinal(), 16);
-        assert_eq!(stem_name(day_pillar(Rd(1)), Script::Han), "己");
-        assert_eq!(branch_name(day_pillar(Rd(1)), Script::Han), "卯");
+        assert_eq!(readings::HAN.stem(day_pillar(Rd(1))), "己");
+        assert_eq!(readings::HAN.branch(day_pillar(Rd(1))), "卯");
         assert_eq!(day_pillar(EPOCH).index(), 0);
         for offset in -200i64..200 {
             let rd = Rd(offset);
@@ -392,73 +256,15 @@ mod tests {
     }
 
     #[test]
-    fn the_readings_are_complete_and_aligned() {
-        assert_eq!(STEMS_HAN.len(), 10);
-        assert_eq!(STEMS_JAPANESE.len(), 10);
-        assert_eq!(STEMS_JAPANESE_ROMAJI.len(), 10);
-        assert_eq!(STEMS_KOREAN.len(), 10);
-        assert_eq!(STEMS_KOREAN_ROMAJA.len(), 10);
-        assert_eq!(BRANCHES_HAN.len(), 12);
-        assert_eq!(BRANCHES_JAPANESE.len(), 12);
-        assert_eq!(BRANCHES_JAPANESE_ROMAJI.len(), 12);
-        assert_eq!(BRANCHES_KOREAN.len(), 12);
-        assert_eq!(BRANCHES_KOREAN_ROMAJA.len(), 12);
-        for script in [
-            Script::Han,
-            Script::Pinyin,
-            Script::Japanese,
-            Script::JapaneseRomaji,
-            Script::Korean,
-            Script::KoreanRomaja,
-        ] {
-            for index in 0..60 {
-                let position = Sexagenary::from_index(index);
-                assert!(!stem_name(position, script).is_empty());
-                assert!(!branch_name(position, script).is_empty());
-            }
-        }
-    }
-
-    #[test]
-    fn the_first_pair_reads_the_same_in_all_three_languages() {
-        let jiazi = Sexagenary::from_index(0);
-        assert_eq!(stem_name(jiazi, Script::Han), "甲");
-        assert_eq!(branch_name(jiazi, Script::Han), "子");
-        assert_eq!(stem_name(jiazi, Script::Pinyin), "jia");
-        assert_eq!(stem_name(jiazi, Script::Japanese), "きのえ");
-        assert_eq!(stem_name(jiazi, Script::JapaneseRomaji), "kinoe");
-        assert_eq!(branch_name(jiazi, Script::Japanese), "ね");
-        assert_eq!(branch_name(jiazi, Script::JapaneseRomaji), "ne");
-        assert_eq!(stem_name(jiazi, Script::Korean), "갑");
-        assert_eq!(stem_name(jiazi, Script::KoreanRomaja), "gap");
-        assert_eq!(branch_name(jiazi, Script::Korean), "자");
-        assert_eq!(branch_name(jiazi, Script::KoreanRomaja), "ja");
-        assert_eq!(zodiac_animal(jiazi), "rat");
-        assert_eq!(five_phase(jiazi), "wood");
-    }
-
-    #[test]
-    fn the_stems_pair_up_into_the_five_phases() {
-        // 甲乙 wood, 丙丁 fire, 戊己 earth, 庚辛 metal, 壬癸 water.
-        for index in 0..60i64 {
-            let position = Sexagenary::from_index(index);
-            assert_eq!(five_phase(position), position.five_phase());
-            assert_eq!(zodiac_animal(position), position.zodiac_animal());
-        }
-        assert_eq!(five_phase(Sexagenary::from_index(2)), "fire");
-        assert_eq!(five_phase(Sexagenary::from_index(9)), "water");
-    }
-
-    #[test]
     fn the_year_of_the_wood_dragon_began_in_2024() {
         // Chinese year 4661 is jia-chen, the Wood Dragon; its new year was
         // 2024-02-10.
         let new_year = greg(2024, 2, 10);
         let pillars = pillars(new_year).expect("in range");
-        assert_eq!(stem_name(pillars.year, Script::Pinyin), "jia");
-        assert_eq!(branch_name(pillars.year, Script::Pinyin), "chen");
-        assert_eq!(zodiac_animal(pillars.year), "dragon");
-        assert_eq!(five_phase(pillars.year), "wood");
+        assert_eq!(readings::PINYIN.stem(pillars.year), "jia");
+        assert_eq!(readings::PINYIN.branch(pillars.year), "chen");
+        assert_eq!(pillars.year.zodiac_animal(), "dragon");
+        assert_eq!(pillars.year.five_phase(), "wood");
     }
 
     #[test]
@@ -466,10 +272,10 @@ mod tests {
         // 甲己之年丙作首, the traditional mnemonic.
         let new_year = greg(2024, 2, 10);
         let pillars = pillars(new_year).expect("in range");
-        assert_eq!(stem_name(pillars.month, Script::Pinyin), "bing");
-        assert_eq!(branch_name(pillars.month, Script::Pinyin), "yin");
-        assert_eq!(stem_name(pillars.month, Script::Han), "丙");
-        assert_eq!(branch_name(pillars.month, Script::Han), "寅");
+        assert_eq!(readings::PINYIN.stem(pillars.month), "bing");
+        assert_eq!(readings::PINYIN.branch(pillars.month), "yin");
+        assert_eq!(readings::HAN.stem(pillars.month), "丙");
+        assert_eq!(readings::HAN.branch(pillars.month), "寅");
     }
 
     #[test]

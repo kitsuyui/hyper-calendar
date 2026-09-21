@@ -23,9 +23,12 @@
 //!   genuinely differ: Hijri months in Arabic and English, Hebrew months in
 //!   Hebrew and English, the Chinese lunisolar months in both Chinese
 //!   scripts, their Japanese traditional names, and the Japanese era names.
-//! * The sexagenary stems, branches and zodiac animals are carried in
-//!   Chinese, Japanese, Korean and romanised English.
+//! * The sexagenary cycle is written in whichever of the readings
+//!   `hc_calendar::cycle::readings` catalogues the locale uses; only the
+//!   zodiac animals are spelled here, for Chinese in both scripts, Japanese,
+//!   Korean, Vietnamese and English.
 
+use hc_calendar::cycle::readings;
 use hc_calendar::{CalendarId, Weekday};
 
 use crate::casing::CasingStyle;
@@ -660,16 +663,11 @@ const EN: LocaleData = LocaleData {
     )),
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &["a", "p"])),
     cycle: SexagenaryNames {
-        stems: &[
-            "Jia", "Yi", "Bing", "Ding", "Wu", "Ji", "Geng", "Xin", "Ren", "Gui",
-        ],
-        branches: &[
-            "Zi", "Chou", "Yin", "Mao", "Chen", "Si", "Wu", "Wei", "Shen", "You", "Xu", "Hai",
-        ],
-        zodiac: &[
+        reading: Some(&readings::PINYIN),
+        zodiac: Some(&[
             "Rat", "Ox", "Tiger", "Rabbit", "Dragon", "Snake", "Horse", "Goat", "Monkey",
             "Rooster", "Dog", "Pig",
-        ],
+        ]),
     },
     calendars: EN_CALENDARS,
 };
@@ -1189,13 +1187,10 @@ const JA: LocaleData = LocaleData {
     )),
     day_periods: ContextualNames::same(widths(&["午前", "午後"], &[], &[])),
     cycle: SexagenaryNames {
-        stems: &["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"],
-        branches: &[
-            "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥",
-        ],
-        zodiac: &[
+        reading: Some(&readings::HAN),
+        zodiac: Some(&[
             "鼠", "牛", "虎", "兎", "竜", "蛇", "馬", "羊", "猿", "鶏", "犬", "猪",
-        ],
+        ]),
     },
     calendars: JA_CALENDARS,
 };
@@ -1225,11 +1220,8 @@ const KO: LocaleData = LocaleData {
     )),
     day_periods: ContextualNames::same(widths(&["오전", "오후"], &[], &[])),
     cycle: SexagenaryNames {
-        stems: &["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"],
-        branches: &[
-            "자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해",
-        ],
-        zodiac: &[
+        reading: Some(&readings::HANGUL),
+        zodiac: Some(&[
             "쥐",
             "소",
             "호랑이",
@@ -1242,7 +1234,7 @@ const KO: LocaleData = LocaleData {
             "닭",
             "개",
             "돼지",
-        ],
+        ]),
     },
     calendars: &[gregorian(
         &[month_cycle(ContextualNames::same(widths(
@@ -1692,7 +1684,13 @@ const VI: LocaleData = LocaleData {
         &["T2", "T3", "T4", "T5", "T6", "T7", "CN"],
     )),
     day_periods: ContextualNames::same(widths(&["SA", "CH"], &[], &[])),
-    cycle: SexagenaryNames::EMPTY,
+    cycle: SexagenaryNames {
+        reading: Some(&readings::VIETNAMESE),
+        // Not the Chinese animals: 丑 is the buffalo and 卯 the cat.
+        zodiac: Some(&[
+            "Chuột", "Trâu", "Hổ", "Mèo", "Rồng", "Rắn", "Ngựa", "Dê", "Khỉ", "Gà", "Chó", "Lợn",
+        ]),
+    },
     calendars: &[gregorian(
         &[month_cycle(ContextualNames::same(widths(
             &[
@@ -1801,13 +1799,10 @@ const ZH_HANS: LocaleData = LocaleData {
     )),
     day_periods: ContextualNames::same(widths(&["上午", "下午"], &[], &[])),
     cycle: SexagenaryNames {
-        stems: &["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"],
-        branches: &[
-            "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥",
-        ],
-        zodiac: &[
+        reading: Some(&readings::HAN),
+        zodiac: Some(&[
             "鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊", "猴", "鸡", "狗", "猪",
-        ],
+        ]),
     },
     calendars: ZH_HANS_CALENDARS,
 };
@@ -1872,13 +1867,10 @@ const ZH_HANT: LocaleData = LocaleData {
     )),
     day_periods: ContextualNames::same(widths(&["上午", "下午"], &[], &[])),
     cycle: SexagenaryNames {
-        stems: &["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"],
-        branches: &[
-            "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥",
-        ],
-        zodiac: &[
+        reading: Some(&readings::HAN),
+        zodiac: Some(&[
             "鼠", "牛", "虎", "兔", "龍", "蛇", "馬", "羊", "猴", "雞", "狗", "豬",
-        ],
+        ]),
     },
     calendars: ZH_HANT_CALENDARS,
 };
@@ -1963,14 +1955,10 @@ mod tests {
                     }
                 }
             }
-            for name in data
-                .cycle
-                .stems
-                .iter()
-                .chain(data.cycle.branches)
-                .chain(data.cycle.zodiac)
-            {
-                assert!(!name.is_empty(), "{}: empty cycle name", data.tag);
+            // The stems and branches are a reading `hc-calendar` owns and
+            // checks; only the animals are this crate's.
+            for name in data.cycle.zodiac.into_iter().flatten() {
+                assert!(!name.is_empty(), "{}: empty zodiac name", data.tag);
             }
         }
     }
@@ -2140,26 +2128,15 @@ mod tests {
     }
 
     #[test]
-    fn cycle_name_lists_are_complete_or_absent() {
+    fn a_locale_that_writes_the_cycle_also_names_its_animals() {
+        // Ten stems and twelve animals are the types' business now; what is
+        // left to check is that no locale can say 甲辰 and not "dragon".
         for data in every_entry() {
-            let cycle = data.cycle;
-            assert!(
-                cycle.stems.is_empty() || cycle.stems.len() == 10,
-                "{}: {} stems",
-                data.tag,
-                cycle.stems.len()
-            );
-            assert!(
-                cycle.branches.is_empty() || cycle.branches.len() == 12,
-                "{}: {} branches",
-                data.tag,
-                cycle.branches.len()
-            );
-            assert!(
-                cycle.zodiac.is_empty() || cycle.zodiac.len() == 12,
-                "{}: {} zodiac animals",
-                data.tag,
-                cycle.zodiac.len()
+            assert_eq!(
+                data.cycle.reading.is_some(),
+                data.cycle.zodiac.is_some(),
+                "{}: a reading without animals, or animals without a reading",
+                data.tag
             );
         }
     }
