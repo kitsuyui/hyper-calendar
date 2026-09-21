@@ -5,9 +5,9 @@
 //!
 //! | Definition | Northern summer begins | Because |
 //! | --- | --- | --- |
-//! | [`SeasonDefinition::Astronomical`] | ~21 June | the solstice |
-//! | [`SeasonDefinition::Meteorological`] | 1 June | whole months group best for statistics |
-//! | [`SeasonDefinition::EastAsian`] | ~6 May | 立夏, the solstice is *mid*-summer |
+//! | [`SeasonDefinition::ASTRONOMICAL`] | ~21 June | the solstice |
+//! | [`SeasonDefinition::METEOROLOGICAL`] | 1 June | whole months group best for statistics |
+//! | [`SeasonDefinition::EAST_ASIAN`] | ~6 May | 立夏, the solstice is *mid*-summer |
 //!
 //! The East Asian one is not a shifted version of the astronomical one: it
 //! treats the solstices and equinoxes as the *middles* of their seasons,
@@ -30,7 +30,6 @@
 
 use hc_calendar::Rd;
 
-use crate::gregorian::month_from_rd;
 use crate::meridian::Meridian;
 use crate::solar_terms::{SolarTerm, term_day};
 
@@ -146,27 +145,105 @@ impl Season {
     }
 }
 
-/// Which of the three season definitions to use.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum SeasonDefinition {
-    /// Solstitial: each season runs from an equinox or solstice to the next.
-    ///
-    /// This is the one almanacs and school textbooks in Europe and North
-    /// America use. Its seasons are unequal — northern spring is four days
-    /// longer than northern autumn — because the Earth's orbit is an ellipse.
-    Astronomical,
-    /// Whole calendar months: spring is March to May, and so on.
-    ///
-    /// This is the one meteorological services use, because a climate record
-    /// wants equal, whole-month buckets that do not drift against the
-    /// calendar from year to year.
-    Meteorological,
-    /// The 立 terms: each season runs from 立春, 立夏, 立秋 or 立冬 to the
-    /// next.
-    ///
-    /// The solstices and equinoxes are the *middles* of these seasons, which
-    /// is why 夏至 is midsummer and not the first day of summer.
-    EastAsian,
+/// A way of deciding when a season begins.
+///
+/// Three ship, and they are the three most calendars print. A fourth — the
+/// Irish reckoning that opens summer at Bealtaine, the six-season Indian
+/// ṛtu — is an entry with its own opening rule, not a variant this crate
+/// has to be taught (ADR 0007).
+///
+/// Two definitions are equal when they have the same identifier.
+#[derive(Debug, Clone, Copy)]
+pub struct SeasonDefinition {
+    /// A short identifier: `astronomical`, `meteorological`, `east-asian`.
+    pub id: &'static str,
+    /// The name in English.
+    pub english_name: &'static str,
+    /// The first day of a season, on the northern reckoning, in a Gregorian
+    /// year, at a meridian.
+    opening: fn(i64, Season, Meridian) -> Rd,
+}
+
+impl PartialEq for SeasonDefinition {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for SeasonDefinition {}
+
+impl core::hash::Hash for SeasonDefinition {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
+
+impl SeasonDefinition {
+    /// A definition from its identifier, its English name and its opening
+    /// rule.
+    #[must_use]
+    pub const fn new(
+        id: &'static str,
+        english_name: &'static str,
+        opening: fn(i64, Season, Meridian) -> Rd,
+    ) -> Self {
+        Self {
+            id,
+            english_name,
+            opening,
+        }
+    }
+}
+
+/// Solstitial: each season runs from an equinox or solstice to the next.
+fn astronomical_opening(year: i64, northern: Season, meridian: Meridian) -> Rd {
+    term_day(year, northern.cardinal_term(), meridian)
+}
+
+/// Whole calendar months: spring is March to May, and so on.
+fn meteorological_opening(year: i64, northern: Season, _: Meridian) -> Rd {
+    crate::gregorian::from_year_month_day(year, northern.meteorological_first_month(), 1)
+}
+
+/// The 立 terms: each season runs from 立春, 立夏, 立秋 or 立冬 to the next.
+fn east_asian_opening(year: i64, northern: Season, meridian: Meridian) -> Rd {
+    term_day(year, northern.east_asian_opening_term(), meridian)
+}
+
+hc_core::catalogue! {
+    type: SeasonDefinition,
+    id: |definition| definition.id,
+    tests: season_definition_tests,
+    associated;
+
+    /// Every definition this crate ships.
+    pub const ALL;
+    /// The definition with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// Solstitial: each season runs from an equinox or solstice to the
+        /// next.
+        ///
+        /// This is the one almanacs and school textbooks in Europe and North
+        /// America use. Its seasons are unequal — northern spring is four
+        /// days longer than northern autumn — because the Earth's orbit is
+        /// an ellipse.
+        pub const ASTRONOMICAL = Self::new("astronomical", "astronomical", astronomical_opening);
+        /// Whole calendar months: spring is March to May, and so on.
+        ///
+        /// This is the one meteorological services use, because a climate
+        /// record wants equal, whole-month buckets that do not drift against
+        /// the calendar from year to year.
+        pub const METEOROLOGICAL =
+            Self::new("meteorological", "meteorological", meteorological_opening);
+        /// The 立 terms: each season runs from 立春, 立夏, 立秋 or 立冬 to
+        /// the next.
+        ///
+        /// The solstices and equinoxes are the *middles* of these seasons,
+        /// which is why 夏至 is midsummer and not the first day of summer.
+        pub const EAST_ASIAN = Self::new("east-asian", "East Asian", east_asian_opening);
+    }
 }
 
 /// Which side of the equator the question is being asked from.
@@ -206,13 +283,7 @@ pub fn season_start(
     // Internally everything is computed on the northern rule; the southern
     // hemisphere simply asks about the opposite season.
     let northern = hemisphere.read(season);
-    match definition {
-        SeasonDefinition::Astronomical => term_day(year, northern.cardinal_term(), meridian),
-        SeasonDefinition::EastAsian => term_day(year, northern.east_asian_opening_term(), meridian),
-        SeasonDefinition::Meteorological => {
-            crate::gregorian::from_year_month_day(year, northern.meteorological_first_month(), 1)
-        }
-    }
+    (definition.opening)(year, northern, meridian)
 }
 
 /// The season a day falls in, under a given definition.
@@ -227,15 +298,15 @@ pub fn season_start(
 /// let north = Hemisphere::Northern;
 /// let japan = Meridian::JAPAN;
 /// assert_eq!(
-///     season_of(day, SeasonDefinition::Meteorological, north, japan),
+///     season_of(day, SeasonDefinition::METEOROLOGICAL, north, japan),
 ///     Season::Spring
 /// );
 /// assert_eq!(
-///     season_of(day, SeasonDefinition::Astronomical, north, japan),
+///     season_of(day, SeasonDefinition::ASTRONOMICAL, north, japan),
 ///     Season::Spring
 /// );
 /// assert_eq!(
-///     season_of(day, SeasonDefinition::EastAsian, north, japan),
+///     season_of(day, SeasonDefinition::EAST_ASIAN, north, japan),
 ///     Season::Summer
 /// );
 /// ```
@@ -246,45 +317,35 @@ pub fn season_of(
     hemisphere: Hemisphere,
     meridian: Meridian,
 ) -> Season {
-    let northern = match definition {
-        SeasonDefinition::Meteorological => match month_from_rd(day) {
-            3..=5 => Season::Spring,
-            6..=8 => Season::Summer,
-            9..=11 => Season::Autumn,
-            _ => Season::Winter,
-        },
-        SeasonDefinition::Astronomical | SeasonDefinition::EastAsian => {
-            season_from_solar_term(day, definition, meridian)
-        }
-    };
-    hemisphere.read(northern)
+    let year = hc_calendar::gregorian::year_from_fixed(day);
+    hemisphere.read(northern_season_of(day, definition, year, meridian))
 }
 
-/// The northern season of a day, for the two definitions that are keyed to
-/// solar longitude.
+/// The northern season a day falls in: the one whose opening, under the
+/// definition, is the latest not after the day.
 ///
-/// Both reduce to "which quadrant of the ecliptic is the Sun in", offset by
-/// nothing for the astronomical rule and by 45° for the East Asian one. The
-/// work goes through [`crate::solar_terms::term_on_day`] rather than the raw
-/// longitude so that the answer agrees, day for day, with the term the same
-/// meridian would print.
-fn season_from_solar_term(day: Rd, definition: SeasonDefinition, meridian: Meridian) -> Season {
-    let term = crate::solar_terms::term_on_day(day, meridian);
-    let degrees = term.solar_longitude_degrees() as i64;
-    let offset = match definition {
-        // Astronomical: spring starts at 0°, so the quadrants are
-        // 0–90, 90–180, 180–270, 270–360.
-        SeasonDefinition::Astronomical => 0,
-        // East Asian: spring starts at 315°, so the quadrants are shifted
-        // back by 45°.
-        _ => 45,
-    };
-    match ((degrees + offset) % 360) / 90 {
-        0 => Season::Spring,
-        1 => Season::Summer,
-        2 => Season::Autumn,
-        _ => Season::Winter,
+/// Every season opens once a year and the openings are in order, so this is
+/// one rule for every definition, and it agrees day for day with the
+/// openings the same definition prints. Winter of the previous year runs
+/// into the new one, which is why the search starts there.
+fn northern_season_of(
+    day: Rd,
+    definition: SeasonDefinition,
+    year: i64,
+    meridian: Meridian,
+) -> Season {
+    let mut current = Season::Winter;
+    for season in [
+        Season::Spring,
+        Season::Summer,
+        Season::Autumn,
+        Season::Winter,
+    ] {
+        if (definition.opening)(year, season, meridian) <= day {
+            current = season;
+        }
     }
+    current
 }
 
 /// The interval a season occupies.
@@ -369,21 +430,21 @@ mod tests {
         let astronomical = season_start(
             2024,
             Season::Summer,
-            SeasonDefinition::Astronomical,
+            SeasonDefinition::ASTRONOMICAL,
             NORTH,
             JAPAN,
         );
         let meteorological = season_start(
             2024,
             Season::Summer,
-            SeasonDefinition::Meteorological,
+            SeasonDefinition::METEOROLOGICAL,
             NORTH,
             JAPAN,
         );
         let east_asian = season_start(
             2024,
             Season::Summer,
-            SeasonDefinition::EastAsian,
+            SeasonDefinition::EAST_ASIAN,
             NORTH,
             JAPAN,
         );
@@ -399,7 +460,8 @@ mod tests {
     fn the_east_asian_seasons_are_centred_on_the_cardinal_points() {
         for year in 1990..2030 {
             for season in Season::ALL {
-                let period = season_period(year, season, SeasonDefinition::EastAsian, NORTH, JAPAN);
+                let period =
+                    season_period(year, season, SeasonDefinition::EAST_ASIAN, NORTH, JAPAN);
                 let cardinal = term_day(year, season.cardinal_term(), JAPAN);
                 // The solstice or equinox sits within a few days of the
                 // middle of the East Asian season, never at its edge.
@@ -418,7 +480,7 @@ mod tests {
         for year in 1990..2030 {
             for season in Season::ALL {
                 assert_eq!(
-                    season_start(year, season, SeasonDefinition::Astronomical, NORTH, JAPAN),
+                    season_start(year, season, SeasonDefinition::ASTRONOMICAL, NORTH, JAPAN),
                     term_day(year, season.cardinal_term(), JAPAN)
                 );
             }
@@ -430,7 +492,7 @@ mod tests {
         for year in 1900..2100 {
             for season in Season::ALL {
                 let start =
-                    season_start(year, season, SeasonDefinition::Meteorological, NORTH, JAPAN);
+                    season_start(year, season, SeasonDefinition::METEOROLOGICAL, NORTH, JAPAN);
                 assert_eq!(
                     crate::gregorian::year_month_day_from_rd(start).2,
                     1,
@@ -449,9 +511,9 @@ mod tests {
     fn every_day_of_a_year_has_a_season_under_every_definition() {
         let start = from_year_month_day(2024, 1, 1);
         for definition in [
-            SeasonDefinition::Astronomical,
-            SeasonDefinition::Meteorological,
-            SeasonDefinition::EastAsian,
+            SeasonDefinition::ASTRONOMICAL,
+            SeasonDefinition::METEOROLOGICAL,
+            SeasonDefinition::EAST_ASIAN,
         ] {
             let mut counts = [0i64; 4];
             for offset in 0..366 {
@@ -473,9 +535,9 @@ mod tests {
     fn the_southern_hemisphere_is_always_in_the_opposite_season() {
         let start = from_year_month_day(2024, 1, 1);
         for definition in [
-            SeasonDefinition::Astronomical,
-            SeasonDefinition::Meteorological,
-            SeasonDefinition::EastAsian,
+            SeasonDefinition::ASTRONOMICAL,
+            SeasonDefinition::METEOROLOGICAL,
+            SeasonDefinition::EAST_ASIAN,
         ] {
             for offset in (0..366).step_by(7) {
                 let day = Rd(start.0 + offset);
@@ -490,9 +552,9 @@ mod tests {
     #[test]
     fn a_season_contains_its_own_first_and_last_day_and_nothing_beyond() {
         for definition in [
-            SeasonDefinition::Astronomical,
-            SeasonDefinition::Meteorological,
-            SeasonDefinition::EastAsian,
+            SeasonDefinition::ASTRONOMICAL,
+            SeasonDefinition::METEOROLOGICAL,
+            SeasonDefinition::EAST_ASIAN,
         ] {
             for season in Season::ALL {
                 let period = season_period(2024, season, definition, NORTH, JAPAN);
@@ -520,9 +582,9 @@ mod tests {
     #[test]
     fn the_four_seasons_of_a_year_tile_it_without_a_gap() {
         for definition in [
-            SeasonDefinition::Astronomical,
-            SeasonDefinition::Meteorological,
-            SeasonDefinition::EastAsian,
+            SeasonDefinition::ASTRONOMICAL,
+            SeasonDefinition::METEOROLOGICAL,
+            SeasonDefinition::EAST_ASIAN,
         ] {
             for year in 2000..2030 {
                 for season in Season::ALL {
@@ -556,7 +618,7 @@ mod tests {
     #[test]
     fn the_astronomical_seasons_are_not_of_equal_length() {
         let lengths = Season::ALL.map(|season| {
-            season_period(2024, season, SeasonDefinition::Astronomical, NORTH, JAPAN).length_days()
+            season_period(2024, season, SeasonDefinition::ASTRONOMICAL, NORTH, JAPAN).length_days()
         });
         let [spring, summer, autumn, winter] = lengths;
         // Summer and spring differ by less than a day, so in whole days they
@@ -593,7 +655,7 @@ mod tests {
         assert!(instant_length(Season::Winter) < instant_length(Season::Autumn));
 
         let meteorological = Season::ALL.map(|season| {
-            season_period(2024, season, SeasonDefinition::Meteorological, NORTH, JAPAN)
+            season_period(2024, season, SeasonDefinition::METEOROLOGICAL, NORTH, JAPAN)
                 .length_days()
         });
         let spread = meteorological.iter().copied().max().unwrap_or(0)
@@ -614,8 +676,8 @@ mod tests {
         let mut disagreements = 0;
         for offset in 0..366 {
             let day = Rd(start.0 + offset);
-            if season_of(day, SeasonDefinition::Astronomical, NORTH, JAPAN)
-                != season_of(day, SeasonDefinition::EastAsian, NORTH, JAPAN)
+            if season_of(day, SeasonDefinition::ASTRONOMICAL, NORTH, JAPAN)
+                != season_of(day, SeasonDefinition::EAST_ASIAN, NORTH, JAPAN)
             {
                 disagreements += 1;
             }
@@ -631,9 +693,9 @@ mod tests {
     #[test]
     fn the_season_of_a_day_agrees_with_the_period_that_contains_it() {
         for definition in [
-            SeasonDefinition::Astronomical,
-            SeasonDefinition::Meteorological,
-            SeasonDefinition::EastAsian,
+            SeasonDefinition::ASTRONOMICAL,
+            SeasonDefinition::METEOROLOGICAL,
+            SeasonDefinition::EAST_ASIAN,
         ] {
             let start = from_year_month_day(2024, 4, 1);
             for offset in 0..200 {
