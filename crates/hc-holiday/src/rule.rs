@@ -171,6 +171,143 @@ impl core::hash::Hash for CalendarSystem {
     }
 }
 
+hc_core::catalogue! {
+    type: CalendarSystem,
+    id: |system| system.id.0,
+    tests: calendar_system_catalogue_tests,
+    associated;
+
+    /// Every system this crate defines.
+    ///
+    /// Not exhaustive of what is *possible* — that is the point of the type
+    /// — but exhaustive of what ships, so a test can check them all.
+    pub const ALL;
+    /// The system whose identifier this is, as the registry names it.
+    pub fn by_id;
+
+    entries: {
+        /// The proleptic Gregorian calendar.
+        pub const GREGORIAN = Self::new(
+            CalendarId("gregory"),
+            |year, month, day| gregorian::to_fixed(year, month.ordinal, day).ok(),
+            |rd| gregorian::year_from_fixed(rd).ok(),
+        );
+
+        /// The Julian calendar, still used for the fixed feasts of most
+        /// Orthodox churches.
+        pub const JULIAN = Self::new(
+            CalendarId("julian"),
+            |year, month, day| julian::to_fixed(year, month.ordinal, day).ok(),
+            |rd| julian::from_fixed(rd).ok().map(|(year, _, _)| year),
+        );
+
+        /// The tabular civil Hijri calendar, the arithmetic approximation.
+        pub const ISLAMIC_CIVIL = Self::new(
+            CalendarId("islamic-civil"),
+            |year, month, day| {
+                tabular::to_fixed(
+                    tabular::CIVIL_EPOCH,
+                    LeapYearRule::Civil,
+                    year,
+                    month.ordinal,
+                    day,
+                )
+                .ok()
+            },
+            |rd| {
+                tabular::from_fixed(tabular::CIVIL_EPOCH, LeapYearRule::Civil, rd)
+                    .ok()
+                    .map(|(year, _, _)| year)
+            },
+        );
+
+        /// The Umm al-Qurā calendar of Saudi Arabia, a published table that
+        /// refuses years outside 1300–1600 AH rather than extrapolating.
+        pub const ISLAMIC_UMM_AL_QURA = Self::new(
+            CalendarId("islamic-umalqura"),
+            |year, month, day| islamic_umalqura::to_fixed(year, month.ordinal, day).ok(),
+            |rd| islamic_umalqura::from_fixed(rd).ok().map(|(y, _, _)| y),
+        );
+
+        /// The Hebrew calendar. Months are Tishrei-first, so Nisan is
+        /// `Month::regular(7)` and Adar I in a leap year is `Month::leap(5)`.
+        pub const HEBREW = Self::new(
+            CalendarId("hebrew"),
+            |year, month, day| hebrew::to_fixed(year, month, day).ok(),
+            |rd| hebrew::year_from_fixed(rd).ok(),
+        );
+
+        /// The Chinese lunisolar calendar, computed at the Beijing meridian.
+        pub const CHINESE = Self::new(
+            CalendarId("chinese"),
+            |year, month, day| {
+                ChineseCalendar
+                    .to_fixed(LunisolarDate::new(year, month, day))
+                    .ok()
+            },
+            |rd| ChineseCalendar.from_fixed(rd).ok().map(|date| date.year),
+        );
+
+        /// The Korean lunisolar calendar, computed at the Seoul meridian, which
+        /// puts Seollal a day away from 春節 a few times a century.
+        pub const DANGI = Self::new(
+            CalendarId("dangi"),
+            |year, month, day| {
+                DangiCalendar
+                    .to_fixed(LunisolarDate::new(year, month, day))
+                    .ok()
+            },
+            |rd| DangiCalendar.from_fixed(rd).ok().map(|date| date.year),
+        );
+
+        /// The Vietnamese lunisolar calendar, computed at UTC+7, which puts Tết
+        /// a day away from 春節 rather more often.
+        pub const VIETNAMESE = Self::new(
+            CalendarId("vietnamese"),
+            |year, month, day| {
+                VietnameseCalendar
+                    .to_fixed(LunisolarDate::new(year, month, day))
+                    .ok()
+            },
+            |rd| VietnameseCalendar.from_fixed(rd).ok().map(|date| date.year),
+        );
+
+        /// The Ethiopic calendar, in which the Ethiopian Orthodox Tewahedo
+        /// Church dates its fixed feasts and Ethiopia its civil year.
+        ///
+        /// One of the calendars the closed enum could not express. Genna, Timkat
+        /// and Enkutatash are fixed dates in it and were not writable before.
+        pub const ETHIOPIC = Self::new(
+            CalendarId("ethiopic"),
+            |year, month, day| ethiopic::to_fixed(year, month.ordinal, day).ok(),
+            |rd| ethiopic::from_fixed(rd).ok().map(|(year, _, _)| year),
+        );
+
+        /// The Coptic calendar, which the Coptic Orthodox Church of Alexandria
+        /// dates its fixed feasts in.
+        pub const COPTIC = Self::new(
+            CalendarId("coptic"),
+            |year, month, day| coptic::to_fixed(year, month.ordinal, day).ok(),
+            |rd| coptic::from_fixed(rd).ok().map(|(year, _, _)| year),
+        );
+
+        /// The Solar Hijri calendar, in which Iran and Afghanistan date Nowruz
+        /// and their civil holidays.
+        pub const SOLAR_HIJRI = Self::new(
+            CalendarId("persian-arithmetic"),
+            |year, month, day| persian::to_fixed(year, month.ordinal, day).ok(),
+            |rd| persian::from_fixed(rd).ok().map(|(year, _, _)| year),
+        );
+
+        /// The Badíʿ calendar, in which the Bahá'í holy days are dated.
+        pub const BADI = Self::new(
+            CalendarId("bahai-arithmetic"),
+            |year, month, day| bahai::to_fixed(year, month.ordinal, day).ok(),
+            |rd| bahai::from_fixed(rd).ok().map(|(year, _, _)| year),
+        );
+    }
+}
+
 impl CalendarSystem {
     /// A system from its identifier and its two conversions.
     #[must_use]
@@ -185,145 +322,6 @@ impl CalendarSystem {
             year_containing,
         }
     }
-
-    /// The proleptic Gregorian calendar.
-    pub const GREGORIAN: Self = Self::new(
-        CalendarId("gregory"),
-        |year, month, day| gregorian::to_fixed(year, month.ordinal, day).ok(),
-        |rd| gregorian::year_from_fixed(rd).ok(),
-    );
-
-    /// The Julian calendar, still used for the fixed feasts of most
-    /// Orthodox churches.
-    pub const JULIAN: Self = Self::new(
-        CalendarId("julian"),
-        |year, month, day| julian::to_fixed(year, month.ordinal, day).ok(),
-        |rd| julian::from_fixed(rd).ok().map(|(year, _, _)| year),
-    );
-
-    /// The tabular civil Hijri calendar, the arithmetic approximation.
-    pub const ISLAMIC_CIVIL: Self = Self::new(
-        CalendarId("islamic-civil"),
-        |year, month, day| {
-            tabular::to_fixed(
-                tabular::CIVIL_EPOCH,
-                LeapYearRule::Civil,
-                year,
-                month.ordinal,
-                day,
-            )
-            .ok()
-        },
-        |rd| {
-            tabular::from_fixed(tabular::CIVIL_EPOCH, LeapYearRule::Civil, rd)
-                .ok()
-                .map(|(year, _, _)| year)
-        },
-    );
-
-    /// The Umm al-Qurā calendar of Saudi Arabia, a published table that
-    /// refuses years outside 1300–1600 AH rather than extrapolating.
-    pub const ISLAMIC_UMM_AL_QURA: Self = Self::new(
-        CalendarId("islamic-umalqura"),
-        |year, month, day| islamic_umalqura::to_fixed(year, month.ordinal, day).ok(),
-        |rd| islamic_umalqura::from_fixed(rd).ok().map(|(y, _, _)| y),
-    );
-
-    /// The Hebrew calendar. Months are Tishrei-first, so Nisan is
-    /// `Month::regular(7)` and Adar I in a leap year is `Month::leap(5)`.
-    pub const HEBREW: Self = Self::new(
-        CalendarId("hebrew"),
-        |year, month, day| hebrew::to_fixed(year, month, day).ok(),
-        |rd| hebrew::year_from_fixed(rd).ok(),
-    );
-
-    /// The Chinese lunisolar calendar, computed at the Beijing meridian.
-    pub const CHINESE: Self = Self::new(
-        CalendarId("chinese"),
-        |year, month, day| {
-            ChineseCalendar
-                .to_fixed(LunisolarDate::new(year, month, day))
-                .ok()
-        },
-        |rd| ChineseCalendar.from_fixed(rd).ok().map(|date| date.year),
-    );
-
-    /// The Korean lunisolar calendar, computed at the Seoul meridian, which
-    /// puts Seollal a day away from 春節 a few times a century.
-    pub const DANGI: Self = Self::new(
-        CalendarId("dangi"),
-        |year, month, day| {
-            DangiCalendar
-                .to_fixed(LunisolarDate::new(year, month, day))
-                .ok()
-        },
-        |rd| DangiCalendar.from_fixed(rd).ok().map(|date| date.year),
-    );
-
-    /// The Vietnamese lunisolar calendar, computed at UTC+7, which puts Tết
-    /// a day away from 春節 rather more often.
-    pub const VIETNAMESE: Self = Self::new(
-        CalendarId("vietnamese"),
-        |year, month, day| {
-            VietnameseCalendar
-                .to_fixed(LunisolarDate::new(year, month, day))
-                .ok()
-        },
-        |rd| VietnameseCalendar.from_fixed(rd).ok().map(|date| date.year),
-    );
-
-    /// The Ethiopic calendar, in which the Ethiopian Orthodox Tewahedo
-    /// Church dates its fixed feasts and Ethiopia its civil year.
-    ///
-    /// One of the calendars the closed enum could not express. Genna, Timkat
-    /// and Enkutatash are fixed dates in it and were not writable before.
-    pub const ETHIOPIC: Self = Self::new(
-        CalendarId("ethiopic"),
-        |year, month, day| ethiopic::to_fixed(year, month.ordinal, day).ok(),
-        |rd| ethiopic::from_fixed(rd).ok().map(|(year, _, _)| year),
-    );
-
-    /// The Coptic calendar, which the Coptic Orthodox Church of Alexandria
-    /// dates its fixed feasts in.
-    pub const COPTIC: Self = Self::new(
-        CalendarId("coptic"),
-        |year, month, day| coptic::to_fixed(year, month.ordinal, day).ok(),
-        |rd| coptic::from_fixed(rd).ok().map(|(year, _, _)| year),
-    );
-
-    /// The Solar Hijri calendar, in which Iran and Afghanistan date Nowruz
-    /// and their civil holidays.
-    pub const SOLAR_HIJRI: Self = Self::new(
-        CalendarId("persian-arithmetic"),
-        |year, month, day| persian::to_fixed(year, month.ordinal, day).ok(),
-        |rd| persian::from_fixed(rd).ok().map(|(year, _, _)| year),
-    );
-
-    /// The Badíʿ calendar, in which the Bahá'í holy days are dated.
-    pub const BADI: Self = Self::new(
-        CalendarId("bahai-arithmetic"),
-        |year, month, day| bahai::to_fixed(year, month.ordinal, day).ok(),
-        |rd| bahai::from_fixed(rd).ok().map(|(year, _, _)| year),
-    );
-
-    /// Every system this crate defines.
-    ///
-    /// Not exhaustive of what is *possible* — that is the point of the type
-    /// — but exhaustive of what ships, so a test can check them all.
-    pub const ALL: &'static [Self] = &[
-        Self::GREGORIAN,
-        Self::JULIAN,
-        Self::ISLAMIC_CIVIL,
-        Self::ISLAMIC_UMM_AL_QURA,
-        Self::HEBREW,
-        Self::CHINESE,
-        Self::DANGI,
-        Self::VIETNAMESE,
-        Self::ETHIOPIC,
-        Self::COPTIC,
-        Self::SOLAR_HIJRI,
-        Self::BADI,
-    ];
 
     /// The fixed day of a date in this calendar, or `None` when that date
     /// does not exist or falls outside the calendar's supported range.
