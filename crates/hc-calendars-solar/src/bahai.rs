@@ -260,10 +260,10 @@ impl Calendar for ArithmeticBahaiCalendar {
     /// This calendar is why `hc_calendar::shape` exists: the old name model
     /// asserted twelve or thirteen months, so nineteen was not merely
     /// missing, it was *rejected*.
-    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         use hc_calendar::shape::{CycleShape, MONTH, WEEKDAY};
         const SHAPE: &[CycleShape] = &[CycleShape::fixed(MONTH, 19), CycleShape::fixed(WEEKDAY, 7)];
-        Some(SHAPE)
+        SHAPE
     }
 
     /// The Bahá'í day begins at sunset.

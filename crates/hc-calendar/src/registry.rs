@@ -157,6 +157,10 @@ mod tests {
         fn is_leap_year(&self, _year: i64) -> CalendarResult<bool> {
             Ok(false)
         }
+
+        fn cycles(&self) -> &'static [crate::shape::CycleShape] {
+            &[]
+        }
     }
 
     fn registry() -> CalendarRegistry {

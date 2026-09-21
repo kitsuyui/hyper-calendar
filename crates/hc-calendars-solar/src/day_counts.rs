@@ -246,6 +246,11 @@ pub struct DayCountCalendar(pub DayCount);
 impl Calendar for DayCountCalendar {
     type Date = DayNumber;
 
+    /// A day count names nothing: it has no months and no week, only a number.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        &[]
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: self.0.id,

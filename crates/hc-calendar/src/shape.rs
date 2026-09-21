@@ -21,13 +21,15 @@
 //! be given nineteen names; one that declares a ten-day week can be given
 //! ten. Nothing has to be special-cased, because nothing is assumed.
 //!
-//! # Why this is a trait method and not a `CalendarMeta` field
+//! # Why every calendar must declare one
 //!
-//! The same reason as [`crate::DayBoundary`]: a `CalendarMeta` is a struct
-//! literal in every calendar in the workspace, and a new field breaks all
-//! of them at once. A defaulted trait method lets a calendar declare its
-//! shape when it has one and stay silent when it has not — and silence is
-//! itself reportable, which is how the gap stays visible.
+//! [`crate::Calendar::cycles`] has no default. It began as a defaulted
+//! method, so that a calendar could declare its shape when it had one and
+//! stay silent otherwise, with the silence reported by a test. Half the
+//! registry stayed silent. A gap a test can only report is a gap that
+//! persists; a gap the compiler refuses cannot. So a calendar with no named
+//! cycles — a day count — says so with an empty slice, and a calendar that
+//! says nothing does not build.
 
 /// How many positions a cycle has.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -174,7 +176,8 @@ mod tests {
         assert!(republican[1].length.accepts(10));
         assert!(!republican[1].length.accepts(7));
 
-        // The Pawukon runs ten concurrent cycles at once.
+        // The Pawukon runs ten concurrent cycles at once. Its seven-day
+        // saptawara is the ordinary week, so it takes the shared kind.
         let pawukon: [CycleShape; 10] = [
             CycleShape::fixed("ekawara", 1),
             CycleShape::fixed("dwiwara", 2),
@@ -182,7 +185,7 @@ mod tests {
             CycleShape::fixed("caturwara", 4),
             CycleShape::fixed("pancawara", 5),
             CycleShape::fixed("sadwara", 6),
-            CycleShape::fixed("saptawara", 7),
+            CycleShape::fixed(WEEKDAY, 7),
             CycleShape::fixed("astawara", 8),
             CycleShape::fixed("sangawara", 9),
             CycleShape::fixed("dasawara", 10),

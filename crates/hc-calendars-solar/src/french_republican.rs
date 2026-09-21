@@ -212,13 +212,13 @@ impl Calendar for ArithmeticFrenchRepublicanCalendar {
     /// Weekday names used to be stored against the seven-valued
     /// `hc_calendar::Weekday`, so Primidi through Décadi had nowhere to
     /// live even though this calendar was implemented and tested.
-    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         use hc_calendar::shape::{CycleShape, MONTH};
         const SHAPE: &[CycleShape] = &[
             CycleShape::fixed(MONTH, 13),
             CycleShape::fixed("decade-day", 10),
         ];
-        Some(SHAPE)
+        SHAPE
     }
 
     /// In force from the decree of 1793 until Napoleon abolished it at the

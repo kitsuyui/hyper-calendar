@@ -98,8 +98,8 @@ pub struct DangiCalendar;
 impl Calendar for DangiCalendar {
     type Date = DangiDate;
 
-    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
-        Some(hc_calendar::shape::LUNISOLAR_TWELVE)
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        hc_calendar::shape::LUNISOLAR_TWELVE
     }
 
     fn meta(&self) -> CalendarMeta {

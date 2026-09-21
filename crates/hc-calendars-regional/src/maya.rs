@@ -426,8 +426,33 @@ pub struct MayaCalendarRoundCalendar;
 /// The last day [`MayaLongCountCalendar`] represents, `19.19.19.17.19`.
 pub const LONG_COUNT_LATEST: Rd = Rd(EPOCH.0 + 20 * 144_000 - 1);
 
+/// The tzolkʼin's two cycles: thirteen numbers against twenty day-signs.
+const TZOLKIN_SHAPE: &[hc_calendar::shape::CycleShape] = &[
+    hc_calendar::shape::CycleShape::fixed("trecena", 13),
+    hc_calendar::shape::CycleShape::fixed("day-sign", 20),
+];
+
+/// The haabʼ's nineteen month positions.
+const HAAB_SHAPE: &[hc_calendar::shape::CycleShape] = &[hc_calendar::shape::CycleShape::fixed(
+    hc_calendar::shape::MONTH,
+    19,
+)];
+
+/// The calendar round: every cycle of the tzolkʼin and the haabʼ together.
+const ROUND_SHAPE: &[hc_calendar::shape::CycleShape] = &[
+    hc_calendar::shape::CycleShape::fixed("trecena", 13),
+    hc_calendar::shape::CycleShape::fixed("day-sign", 20),
+    hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::MONTH, 19),
+];
+
 impl Calendar for MayaLongCountCalendar {
     type Date = MayaLongCountDate;
+
+    /// A long count is a place-value number; none of its places is a named
+    /// position.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        &[]
+    }
 
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
@@ -488,6 +513,11 @@ fn small(value: i64) -> CalendarResult<u8> {
 impl Calendar for MayaTzolkinCalendar {
     type Date = MayaTzolkinDate;
 
+    /// The thirteen numbers and the twenty day-signs.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        TZOLKIN_SHAPE
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("maya-tzolkin"),
@@ -541,6 +571,12 @@ impl Calendar for MayaTzolkinCalendar {
 
 impl Calendar for MayaHaabCalendar {
     type Date = MayaHaabDate;
+
+    /// Eighteen months of twenty days and the five-day Uayeb, which has a
+    /// name and so is a nineteenth position.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        HAAB_SHAPE
+    }
 
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
@@ -638,6 +674,11 @@ pub const CALENDAR_ROUND_LATEST: Rd = Rd(EPOCH.0 + 20 * 144_000 - 1);
 
 impl Calendar for MayaCalendarRoundCalendar {
     type Date = MayaCalendarRoundDate;
+
+    /// Both cycles of the round: the tzolkʼin's two and the haabʼ's one.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        ROUND_SHAPE
+    }
 
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {

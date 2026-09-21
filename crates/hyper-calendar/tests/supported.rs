@@ -56,7 +56,7 @@ struct Row {
     leap_months: bool,
     boundary: &'static str,
     /// The cycles the calendar declares, or `None` where it declares none.
-    cycles: Option<&'static [hyper_calendar::hc_calendar::shape::CycleShape]>,
+    cycles: &'static [hyper_calendar::hc_calendar::shape::CycleShape],
     /// Whether a locale can name this calendar's months in English.
     named: bool,
 }
@@ -153,13 +153,10 @@ fn has_month_names(id: hyper_calendar::hc_calendar::CalendarId) -> bool {
 
 /// A calendar's declared shape, as a phrase for the table.
 fn shape_of(row: &Row) -> String {
-    let Some(cycles) = row.cycles else {
-        return "—".to_owned();
-    };
-    if cycles.is_empty() {
+    if row.cycles.is_empty() {
         return "none".to_owned();
     }
-    cycles
+    row.cycles
         .iter()
         .map(|cycle| match cycle.length {
             hyper_calendar::hc_calendar::CycleLength::Fixed(length) => {
@@ -266,17 +263,17 @@ fn render() -> String {
          registry answers to.\n",
         rows.len()
     );
-    let with_shape = rows.iter().filter(|row| row.cycles.is_some()).count();
     let named = rows.iter().filter(|row| row.named).count();
     let _ = writeln!(
         out,
-        "**Cycles** is what the calendar declares itself to be made of, and \
-         **Named** is whether English can name its months. {with_shape} of \
-         {} declare a shape and {named} can be named. Those two gaps are \
-         real and are asserted in `tests/vocabulary.rs`, so they can only \
-         move deliberately — a calendar that is implemented but unnameable \
-         is a gap the library should be able to state, not one a reader has \
-         to discover.\n",
+        "**Cycles** is what the calendar declares itself to be made of — \
+         every calendar declares one, because the trait has no default and a \
+         silent calendar does not compile — and **Named** is whether English \
+         can name its months. {named} of {} can be named. That gap is real \
+         and is asserted in `tests/vocabulary.rs`, so it can only move \
+         deliberately: a calendar that is implemented but unnameable is a gap \
+         the library should be able to state, not one a reader has to \
+         discover.\n",
         rows.len()
     );
     out.push_str(

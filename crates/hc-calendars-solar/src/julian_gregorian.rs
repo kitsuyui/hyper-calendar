@@ -294,6 +294,11 @@ impl Default for ReformCalendar {
 impl Calendar for ReformCalendar {
     type Date = ReformDate;
 
+    /// Twelve months and the seven-day week on both sides of the reform.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        hc_calendar::shape::SOLAR_TWELVE
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId(self.id),

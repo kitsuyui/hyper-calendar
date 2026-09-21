@@ -220,8 +220,8 @@ pub struct ArmenianFixedCalendar;
 impl Calendar for ArmenianFixedCalendar {
     type Date = ArmenianFixedDate;
 
-    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
-        Some(hc_calendar::shape::WANDERING_THIRTEEN)
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        hc_calendar::shape::WANDERING_THIRTEEN
     }
 
     fn meta(&self) -> CalendarMeta {

@@ -145,17 +145,15 @@ pub trait Calendar {
     /// This is what a vocabulary is keyed to. A calendar that declares
     /// nineteen months can be given nineteen month names; one that
     /// declares a ten-day week can be given ten. See [`crate::shape`] for
-    /// why that is a trait method rather than an assumption baked into the
-    /// name tables.
+    /// why the shape is the calendar's to state rather than an assumption
+    /// baked into the name tables.
     ///
-    /// `None` means "this calendar has not said", and `Some(&[])` means
-    /// "this calendar has no named cycles" — a day count has none. The two
-    /// are deliberately distinguishable: silence is reportable, and
-    /// `hyper-calendar`'s vocabulary test reports it, so an undeclared
-    /// calendar stays visible instead of quietly passing for complete.
-    fn cycles(&self) -> Option<&'static [CycleShape]> {
-        None
-    }
+    /// There is no default. A calendar that has no named cycles — a day
+    /// count — says so with an empty slice; a calendar that says nothing
+    /// does not compile. Half the registry once stayed silent under a
+    /// defaulted method, and a gap that a test can only report is still a
+    /// gap.
+    fn cycles(&self) -> &'static [CycleShape];
 
     /// Where this calendar's day begins.
     ///
@@ -264,9 +262,7 @@ pub trait DynCalendar {
     fn days_in_year(&self, year: i64) -> CalendarResult<u16>;
 
     /// The cycles this calendar runs. See [`Calendar::cycles`].
-    fn cycles(&self) -> Option<&'static [CycleShape]> {
-        None
-    }
+    fn cycles(&self) -> &'static [CycleShape];
 
     /// Where this calendar's day begins. See [`Calendar::day_boundary`].
     fn day_boundary(&self) -> DayBoundary {
@@ -334,7 +330,7 @@ impl<C: Calendar> DynCalendar for DynAdapter<C> {
         self.inner.to_fields(date)
     }
 
-    fn cycles(&self) -> Option<&'static [CycleShape]> {
+    fn cycles(&self) -> &'static [CycleShape] {
         self.inner.cycles()
     }
 
@@ -383,6 +379,14 @@ mod tests {
 
     impl Calendar for Decimal {
         type Date = (i64, u8, u8);
+
+        fn cycles(&self) -> &'static [CycleShape] {
+            const SHAPE: &[CycleShape] = &[
+                CycleShape::fixed(crate::shape::MONTH, 10),
+                CycleShape::fixed("decimal-day", 10),
+            ];
+            SHAPE
+        }
 
         fn meta(&self) -> CalendarMeta {
             CalendarMeta {

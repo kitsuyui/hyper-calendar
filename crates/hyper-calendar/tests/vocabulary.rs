@@ -21,18 +21,19 @@
 //!   and weekday names were stored against a seven-valued enum, so Primidi
 //!   through Décadi had nowhere to live either.
 //!
-//! Both are now structural. A calendar declares its own cycles
-//! (`hc_calendar::shape`), the vocabulary is keyed to real
-//! [`CalendarId`]s and to those cycles by name, and the three assertions
-//! below make any disagreement a test failure rather than a discovery.
+//! Both are now structural. Every calendar declares its own cycles
+//! (`hc_calendar::shape` — the trait method has no default, so a calendar
+//! that does not declare does not compile), the vocabulary is keyed to real
+//! [`CalendarId`]s and to those cycles by name, and the assertions below
+//! make any disagreement a test failure rather than a discovery.
 //!
-//! # Why the coverage numbers are asserted
+//! # Why the coverage number is asserted
 //!
-//! The last test states how many registered calendars have declared a shape
-//! and how many have month names in English. Those are gaps, and asserting
-//! them means they can only change deliberately — downward when someone
-//! adds data, and never upward by accident. A gap nobody can see is the
-//! thing this whole file exists to prevent.
+//! The last test states how many registered calendars have month names in
+//! English. That is a gap, and asserting it means it can only change
+//! deliberately — downward when someone adds data, and never upward by
+//! accident. A gap nobody can see is the thing this whole file exists to
+//! prevent.
 
 #![cfg(all(
     feature = "alloc",
@@ -60,7 +61,7 @@ fn registered() -> Vec<CalendarId> {
     registry().metas().map(|meta| meta.id).collect()
 }
 
-/// The cycles each registered calendar declares, where it declares any.
+/// The cycles each registered calendar declares.
 fn declared_cycles() -> BTreeMap<String, &'static [CycleShape]> {
     let registry = registry();
     let ids: Vec<String> = registry.metas().map(|meta| meta.id.to_string()).collect();
@@ -69,11 +70,32 @@ fn declared_cycles() -> BTreeMap<String, &'static [CycleShape]> {
         let Some(calendar) = registry.get_by_name(&id) else {
             continue;
         };
-        if let Some(cycles) = calendar.cycles() {
-            out.insert(id, cycles);
-        }
+        out.insert(id, calendar.cycles());
     }
     out
+}
+
+/// A shape must be well formed: no cycle declared twice, none with no
+/// positions. The compiler guarantees a shape exists; this is what it
+/// cannot guarantee about its contents.
+#[test]
+fn every_declared_shape_is_well_formed() {
+    for (id, shapes) in declared_cycles() {
+        for (index, cycle) in shapes.iter().enumerate() {
+            assert!(
+                cycle.length.maximum() > 0,
+                "{id}: {} has no positions",
+                cycle.kind
+            );
+            assert!(
+                !shapes[index + 1..]
+                    .iter()
+                    .any(|other| other.kind == cycle.kind),
+                "{id}: declares {} twice",
+                cycle.kind
+            );
+        }
+    }
 }
 
 /// No vocabulary may name a calendar the registry does not have.
@@ -115,8 +137,8 @@ fn every_named_cycle_is_one_the_calendar_declares() {
             for cycle in entry.cycles {
                 for id in entry.calendars {
                     let Some(shapes) = declared.get(id.0) else {
-                        // The calendar has not declared a shape; the
-                        // coverage test below reports that separately.
+                        // Not registered under the enabled features; the
+                        // first test reports that.
                         continue;
                     };
                     if !shapes.iter().any(|shape| shape.kind == cycle.kind) {
@@ -183,12 +205,11 @@ fn every_name_list_is_as_long_as_the_cycle_it_names() {
     }
 }
 
-/// What is still missing, stated as numbers so it can only move on purpose.
+/// What is still missing, stated as a number so it can only move on purpose.
 ///
-/// These are the real gaps: most registered calendars have not declared a
-/// shape, and almost none have month names outside the Gregorian family.
-/// Neither was visible before — the first because nothing asked, the second
-/// because the data model could not have held the answer.
+/// This is the real gap: most registered calendars have no month names
+/// outside the Gregorian family. It was not visible before, because the data
+/// model could not have held the answer.
 #[test]
 fn the_vocabulary_gap_is_measured_and_not_growing() {
     use hyper_calendar::hc_i18n::Locale;
@@ -196,34 +217,15 @@ fn the_vocabulary_gap_is_measured_and_not_growing() {
     use hyper_calendar::hc_i18n::names::month_count;
 
     let registered = registered();
-    let declared = declared_cycles();
     let english: Locale = "en".parse().expect("en is a locale");
 
-    let with_shape = declared.len();
     let named = |id: CalendarId| month_count(&english, id, NameContext::Format).is_some();
     let with_months = registered.iter().copied().filter(|id| named(*id)).count();
-
-    // A calendar with month names must have declared a shape, because
-    // otherwise nothing checks the names against anything at all.
-    for id in &registered {
-        if named(*id) {
-            assert!(
-                declared.contains_key(id.0),
-                "{} has month names but has not declared its cycles, so nothing checks them",
-                id.0
-            );
-        }
-    }
 
     assert_eq!(
         registered.len(),
         73,
         "the registry changed; update the coverage numbers deliberately"
-    );
-    assert_eq!(
-        with_shape, 36,
-        "calendars declaring a shape — raise this by declaring more, and never \
-         lower it, because a calendar that stops declaring stops being checked"
     );
     assert_eq!(
         with_months, 27,

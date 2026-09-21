@@ -351,6 +351,19 @@ impl DarianCalendar {
 impl Calendar for DarianCalendar {
     type Date = DarianDate;
 
+    /// Twenty-four months and the seven-sol week.
+    ///
+    /// The week is not Earth's: its sols are named Sol Solis through Sol
+    /// Saturni and no terrestrial weekday name applies, so its kind is
+    /// `sol-of-week` rather than `weekday`.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+            hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::MONTH, 24),
+            hc_calendar::shape::CycleShape::fixed("sol-of-week", 7),
+        ];
+        SHAPE
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("darian"),
