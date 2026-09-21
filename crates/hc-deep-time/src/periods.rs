@@ -98,42 +98,49 @@ impl AstronomicalPeriod {
     }
 }
 
-/// The Sun's orbital period about the Galactic centre: one galactic year.
-///
-/// The spread here is half the published 225–250 Myr range, widened rather
-/// than narrowed because Gaia-era parameters favour the low end. The Earth
-/// is about twenty galactic years old; the Sun has made roughly the same
-/// number of laps since it formed.
-pub const GALACTIC_YEAR: AstronomicalPeriod = AstronomicalPeriod {
-    id: "galactic-year",
-    name: "galactic year",
-    julian_years: 230e6,
-    spread_julian_years: 15e6,
-    stability: Stability::Drifting,
-    source: "Literature range 225–250 Myr; cf. Bland-Hawthorn & Gerhard, ARA&A 54 (2016) 529",
-};
+hc_core::catalogue! {
+    type: AstronomicalPeriod,
+    id: |entry| entry.id,
+    sorted_by: |entry| entry.julian_years,
+    provenance: |entry| entry.source,
+    tests: period_catalogue,
 
-/// The precession of the equinoxes: the Great Year of classical astronomy.
-///
-/// Hipparchus found it; the modern value is about 25 772 years. It drifts:
-/// the precession rate is itself changing, so a count of cycles over
-/// millions of years is not this number times that span.
-pub const PRECESSION_OF_THE_EQUINOXES: AstronomicalPeriod = AstronomicalPeriod {
-    id: "precession-of-the-equinoxes",
-    name: "precession of the equinoxes",
-    julian_years: 25_772.0,
-    spread_julian_years: 2.0,
-    stability: Stability::Drifting,
-    source: "IAU 2006 precession model (Capitaine, Wallace & Chapront 2003)",
-};
+    /// Every period in this module, shortest first.
+    pub const ALL;
 
-/// Every period in this module, shortest first.
-pub const ALL: &[AstronomicalPeriod] = &[PRECESSION_OF_THE_EQUINOXES, GALACTIC_YEAR];
+    /// The period with this id, if this module has one.
+    pub fn by_id;
 
-/// The period with this id, if this module has one.
-#[must_use]
-pub fn by_id(id: &str) -> Option<AstronomicalPeriod> {
-    ALL.iter().copied().find(|period| period.id == id)
+    entries: {
+    /// The precession of the equinoxes: the Great Year of classical astronomy.
+    ///
+    /// Hipparchus found it; the modern value is about 25 772 years. It drifts:
+    /// the precession rate is itself changing, so a count of cycles over
+    /// millions of years is not this number times that span.
+    pub const PRECESSION_OF_THE_EQUINOXES = AstronomicalPeriod {
+        id: "precession-of-the-equinoxes",
+        name: "precession of the equinoxes",
+        julian_years: 25_772.0,
+        spread_julian_years: 2.0,
+        stability: Stability::Drifting,
+        source: "IAU 2006 precession model (Capitaine, Wallace & Chapront 2003)",
+    };
+
+    /// The Sun's orbital period about the Galactic centre: one galactic year.
+    ///
+    /// The spread here is half the published 225–250 Myr range, widened rather
+    /// than narrowed because Gaia-era parameters favour the low end. The Earth
+    /// is about twenty galactic years old; the Sun has made roughly the same
+    /// number of laps since it formed.
+    pub const GALACTIC_YEAR = AstronomicalPeriod {
+        id: "galactic-year",
+        name: "galactic year",
+        julian_years: 230e6,
+        spread_julian_years: 15e6,
+        stability: Stability::Drifting,
+        source: "Literature range 225–250 Myr; cf. Bland-Hawthorn & Gerhard, ARA&A 54 (2016) 529",
+    };
+    }
 }
 
 #[cfg(test)]
@@ -152,6 +159,17 @@ mod tests {
         assert!(relative > 0.06, "the galactic year's spread is not small");
     }
 
+    /// Both periods drift, and both carry a spread. A period stated
+    /// without one is a decoration, which is what the module header says
+    /// and what this keeps true.
+    #[test]
+    fn every_period_states_a_spread_and_whether_it_drifts() {
+        for period in ALL {
+            assert!(period.spread_julian_years > 0.0, "{} is exact?", period.id);
+            assert_eq!(period.stability, Stability::Drifting, "{}", period.id);
+        }
+    }
+
     #[test]
     fn the_earth_is_about_twenty_galactic_years_old() {
         let age = hc_uncertainty::Uncertain::new(4.567e9, 0.001e9).expect("the age is finite");
@@ -166,21 +184,5 @@ mod tests {
         // And the answer inherits the period's uncertainty rather than
         // pretending the age's five figures carried through.
         assert!(laps.std_dev > 1.0);
-    }
-
-    #[test]
-    fn every_period_says_whether_it_drifts_and_where_it_came_from() {
-        for period in ALL {
-            assert!(!period.source.is_empty(), "{} has no source", period.id);
-            assert!(period.spread_julian_years > 0.0, "{} is exact?", period.id);
-            assert_eq!(by_id(period.id), Some(*period));
-        }
-    }
-
-    #[test]
-    fn the_periods_are_listed_shortest_first() {
-        for pair in ALL.windows(2) {
-            assert!(pair[0].julian_years <= pair[1].julian_years);
-        }
     }
 }

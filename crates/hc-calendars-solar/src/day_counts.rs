@@ -88,6 +88,12 @@ impl DayCount {
         }
     }
 
+    /// This count's identifier.
+    #[must_use]
+    pub const fn id(self) -> CalendarId {
+        self.id
+    }
+
     /// The fixed day this count's epoch falls on.
     #[must_use]
     pub const fn epoch(self) -> Rd {
@@ -119,103 +125,119 @@ impl DayCount {
     }
 }
 
-/// The Lilian date: day 1 is 15 October 1582, the first day of the
-/// Gregorian calendar.
-///
-/// Named for Aloysius Lilius, who designed the reform. IBM defined the
-/// count in 1986 and uses it in `INTDATE(LILIAN)`.
-pub const LILIAN: DayCount = DayCount::from_gregorian(
-    "lilian",
-    "Lilian date",
-    (1582, 10, 15),
-    1,
-    DayBoundary::Midnight,
-    "Bruce G. Ohms, IBM Systems Journal 25(2) (1986)",
-);
+hc_core::catalogue! {
+    type: DayCount,
+    id: |count| count.id.0,
+    provenance: |count| count.authority,
+    tests: day_count_catalogue,
 
-/// The ANSI date: day 1 is 1 January 1601.
-///
-/// The other IBM count, `INTDATE(ANSI)`. The epoch is the start of the
-/// Gregorian 400-year cycle containing the reform, which is also why
-/// Windows `FILETIME` counts from the same day.
-pub const ANSI: DayCount = DayCount::from_gregorian(
-    "ansi-date",
-    "ANSI date",
-    (1601, 1, 1),
-    1,
-    DayBoundary::Midnight,
-    "IBM, INTDATE(ANSI)",
-);
+    /// Every count in this module.
+    ///
+    /// Generated together with the entries above, so a count cannot be
+    /// defined and left off the list — which is the mistake that used to
+    /// need a separate edit to avoid.
+    pub const ALL;
 
-/// The Dublin Julian Date: day 0 begins at noon on 31 December 1899.
-///
-/// Adopted by the IAU in 1955, with its epoch written "1900 January 0.5" —
-/// which is the trap. January 0 is 31 December of the year before, and the
-/// .5 is the Julian Day's noon. Writing the epoch as 1 January 1900 puts
-/// every Dublin date a day out, which is what the offset test below caught.
-pub const DUBLIN: DayCount = DayCount::from_gregorian(
-    "dublin-julian-day",
-    "Dublin Julian Date",
-    (1899, 12, 31),
-    0,
-    DayBoundary::Noon,
-    "IAU General Assembly, Dublin (1955)",
-);
+    /// The count with this identifier.
+    pub fn by_id;
 
-/// The Reduced Julian Date: day 0 begins at noon on 16 November 1858.
-///
-/// JD − 2 400 000, so it keeps the Julian Day's noon and differs from the
-/// Modified Julian Date by exactly half a day — which is the whole reason
-/// the two are confused.
-pub const REDUCED: DayCount = DayCount::from_gregorian(
-    "reduced-julian-day",
-    "Reduced Julian Date",
-    (1858, 11, 16),
-    0,
-    DayBoundary::Noon,
-    "Astronomical usage; JD − 2 400 000",
-);
+    entries: {
+    /// The Lilian date: day 1 is 15 October 1582, the first day of the
+    /// Gregorian calendar.
+    ///
+    /// Named for Aloysius Lilius, who designed the reform. IBM defined the
+    /// count in 1986 and uses it in `INTDATE(LILIAN)`.
+    pub const LILIAN = DayCount::from_gregorian(
+        "lilian",
+        "Lilian date",
+        (1582, 10, 15),
+        1,
+        DayBoundary::Midnight,
+        "Bruce G. Ohms, IBM Systems Journal 25(2) (1986)",
+    );
 
-/// The Truncated Julian Date: day 0 is 24 May 1968.
-///
-/// NASA defined it in 1979 for spacecraft telemetry, where four digits were
-/// all that fit.
-pub const TRUNCATED: DayCount = DayCount::from_gregorian(
-    "truncated-julian-day",
-    "Truncated Julian Date",
-    (1968, 5, 24),
-    0,
-    DayBoundary::Midnight,
-    "NASA (1979)",
-);
+    /// The ANSI date: day 1 is 1 January 1601.
+    ///
+    /// The other IBM count, `INTDATE(ANSI)`. The epoch is the start of the
+    /// Gregorian 400-year cycle containing the reform, which is also why
+    /// Windows `FILETIME` counts from the same day.
+    pub const ANSI = DayCount::from_gregorian(
+        "ansi-date",
+        "ANSI date",
+        (1601, 1, 1),
+        1,
+        DayBoundary::Midnight,
+        "IBM, INTDATE(ANSI)",
+    );
 
-/// The CNES Julian Date: day 0 is 1 January 1950.
-///
-/// The French space agency's count, used throughout its mission products.
-pub const CNES: DayCount = DayCount::from_gregorian(
-    "cnes-julian-day",
-    "CNES Julian Date",
-    (1950, 1, 1),
-    0,
-    DayBoundary::Midnight,
-    "Centre national d'études spatiales",
-);
+    /// The Dublin Julian Date: day 0 begins at noon on 31 December 1899.
+    ///
+    /// Adopted by the IAU in 1955, with its epoch written "1900 January 0.5" —
+    /// which is the trap. January 0 is 31 December of the year before, and the
+    /// .5 is the Julian Day's noon. Writing the epoch as 1 January 1900 puts
+    /// every Dublin date a day out, which is what the offset test below caught.
+    pub const DUBLIN = DayCount::from_gregorian(
+        "dublin-julian-day",
+        "Dublin Julian Date",
+        (1899, 12, 31),
+        0,
+        DayBoundary::Noon,
+        "IAU General Assembly, Dublin (1955)",
+    );
 
-/// The CCSDS day count: day 0 is 1 January 1958.
-///
-/// The epoch of CCSDS Day Segmented time codes, and also the epoch TAI was
-/// aligned to UT2 at.
-pub const CCSDS: DayCount = DayCount::from_gregorian(
-    "ccsds-day",
-    "CCSDS day count",
-    (1958, 1, 1),
-    0,
-    DayBoundary::Midnight,
-    "CCSDS 301.0-B, Time Code Formats",
-);
+    /// The Reduced Julian Date: day 0 begins at noon on 16 November 1858.
+    ///
+    /// JD − 2 400 000, so it keeps the Julian Day's noon and differs from the
+    /// Modified Julian Date by exactly half a day — which is the whole reason
+    /// the two are confused.
+    pub const REDUCED = DayCount::from_gregorian(
+        "reduced-julian-day",
+        "Reduced Julian Date",
+        (1858, 11, 16),
+        0,
+        DayBoundary::Noon,
+        "Astronomical usage; JD − 2 400 000",
+    );
 
-/// Every count in this module.
-pub const ALL: &[DayCount] = &[LILIAN, ANSI, DUBLIN, REDUCED, TRUNCATED, CNES, CCSDS];
+    /// The Truncated Julian Date: day 0 is 24 May 1968.
+    ///
+    /// NASA defined it in 1979 for spacecraft telemetry, where four digits were
+    /// all that fit.
+    pub const TRUNCATED = DayCount::from_gregorian(
+        "truncated-julian-day",
+        "Truncated Julian Date",
+        (1968, 5, 24),
+        0,
+        DayBoundary::Midnight,
+        "NASA (1979)",
+    );
+
+    /// The CNES Julian Date: day 0 is 1 January 1950.
+    ///
+    /// The French space agency's count, used throughout its mission products.
+    pub const CNES = DayCount::from_gregorian(
+        "cnes-julian-day",
+        "CNES Julian Date",
+        (1950, 1, 1),
+        0,
+        DayBoundary::Midnight,
+        "Centre national d'études spatiales",
+    );
+
+    /// The CCSDS day count: day 0 is 1 January 1958.
+    ///
+    /// The epoch of CCSDS Day Segmented time codes, and also the epoch TAI was
+    /// aligned to UT2 at.
+    pub const CCSDS = DayCount::from_gregorian(
+        "ccsds-day",
+        "CCSDS day count",
+        (1958, 1, 1),
+        0,
+        DayBoundary::Midnight,
+        "CCSDS 301.0-B, Time Code Formats",
+    );
+    }
+}
 
 /// A calendar over one of the counts.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -276,6 +298,10 @@ mod tests {
 
     /// Each count's epoch carries the number its defining document says it
     /// does. This is the definition, so it is the first test.
+    ///
+    /// Identifier uniqueness and the presence of an authority used to be
+    /// asserted here too; both are generated by `hc_core::catalogue!` now,
+    /// along with findability, which nothing checked before.
     #[test]
     fn every_epoch_carries_its_stated_number() {
         for count in ALL {
@@ -286,7 +312,6 @@ mod tests {
                 count.english_name
             );
             assert_eq!(count.day_of(DayNumber(count.first_number())), count.epoch());
-            assert!(!count.authority().is_empty(), "{}", count.english_name);
         }
     }
 
@@ -381,14 +406,5 @@ mod tests {
             calendar.from_fields(&fields),
             Err(CalendarError::UnsupportedField("day"))
         );
-    }
-
-    #[test]
-    fn the_identifiers_are_distinct() {
-        for (index, count) in ALL.iter().enumerate() {
-            for other in &ALL[index + 1..] {
-                assert_ne!(count.id, other.id);
-            }
-        }
     }
 }

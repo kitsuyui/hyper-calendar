@@ -27,6 +27,7 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+pub mod catalogue;
 pub mod duration;
 pub mod epoch;
 pub mod error;
