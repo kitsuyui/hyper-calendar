@@ -15,7 +15,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-62 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+63 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
 | id | Name | Crate | Feature | Earliest | Latest | Astronomical | Leap months | Day begins |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -49,6 +49,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `japanese-jokyo` | Japanese Jōkyō (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1685-02-04 | 1755-02-10 | yes | yes | midnight |
 | `japanese-kansei` | Japanese Kansei (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1798-02-16 | 1844-02-17 | yes | yes | midnight |
 | `japanese-northern` | Japanese (imperial eras, Northern Court) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0862-02-07 | 9999-12-31 | yes | yes | midnight |
+| `japanese-proclaimed` | Japanese (imperial eras, as proclaimed) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0862-02-07 | 9999-12-31 | yes | yes | midnight |
 | `japanese-senmyo` | Japanese Senmyō (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0862-02-07 | 1685-02-03 | yes | yes | midnight |
 | `japanese-southern` | Japanese (imperial eras, Southern Court) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0862-02-07 | 9999-12-31 | yes | yes | midnight |
 | `japanese-tenpo` | Japanese Tenpō (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1844-02-18 | 1872-12-31 | yes | yes | midnight |

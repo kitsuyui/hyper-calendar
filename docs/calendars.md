@@ -100,6 +100,7 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Japanese imperial eras (和暦, 大化 → 令和) | `japanese` | `hc-calendars-regional` | Done — 248 nengō |
 | Japanese eras, Northern Court (北朝) | `japanese-northern` | `hc-calendars-regional` | Done |
 | Japanese eras, Southern Court (南朝) | `japanese-southern` | `hc-calendars-regional` | Done |
+| Japanese eras, as proclaimed (改元当時) | `japanese-proclaimed` | `hc-calendars-regional` | Done |
 | Chinese sexagenary cycle (干支), incl. the four pillars (四柱/八字) | `sexagenary` | `hc-calendars-regional` (arithmetic in `hc-calendar::cycle`) | Done |
 | Chinese regnal eras (年号) | `chinese-regnal` | `hc-calendars-regional` | Planned |
 | Korean regnal eras | `korean-regnal` | `hc-calendars-regional` | Planned |
