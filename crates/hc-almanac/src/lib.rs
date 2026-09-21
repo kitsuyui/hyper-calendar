@@ -17,13 +17,13 @@
 //! | Module | 暦注 | Cycle it is a rule over |
 //! |---|---|---|
 //! | [`mansions`] | 二十八宿, 二十七宿 | a free-running 28-day cycle; a lunisolar reset |
-//! | [`nine_stars`] | 九星 | nine, per year, per 節月 and per day |
+//! | [`mod@nine_stars`] | 九星 | nine, per year, per 節月 and per day |
 //! | [`twelve_directs`] | 十二直 | the day branch, re-anchored at every 節気 |
-//! | [`lower_register`] | 暦注下段 | the sexagenary day, the 節月, the mansion |
-//! | [`selected_days`] | 選日 | the sexagenary day, the 節月, the Moon |
+//! | [`mod@lower_register`] | 暦注下段 | the sexagenary day, the 節月, the mansion |
+//! | [`mod@selected_days`] | 選日 | the sexagenary day, the 節月, the Moon |
 //! | [`seven_luminaries`] | 七曜 | the seven-day week |
 //! | [`rokuyo`] | 六曜 | the lunisolar date — re-exported from `hc-seasons` |
-//! | [`day_notes`] | the whole page | all of the above at once |
+//! | [`mod@day_notes`] | the whole page | all of the above at once |
 //!
 //! # These are traditional rules, and traditions disagree
 //!

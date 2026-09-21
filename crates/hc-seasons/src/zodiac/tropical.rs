@@ -250,14 +250,105 @@ pub struct ConventionalPeriod {
     pub end_day: u8,
 }
 
-/// One row of the sign table.
-struct SignNames {
-    english: &'static str,
-    latin: &'static str,
-    emblem: &'static str,
-    japanese: &'static str,
-    symbol: char,
-    conventional: ConventionalPeriod,
+/// The ways the 12 positions are named, one entry per language or
+/// convention. See [`hc_calendar::shape::Naming`].
+pub mod namings {
+    use hc_calendar::shape::Naming;
+
+    hc_core::catalogue! {
+        type: Naming<12>,
+        id: |naming| naming.id,
+        provenance: |naming| naming.authority,
+        tests: sign_naming_tests,
+
+        /// Every naming this crate ships.
+        pub const ALL;
+        /// The naming with this identifier.
+        pub fn by_id;
+
+        entries: {
+            /// The `english` column.
+            pub const ENGLISH = Naming {
+                id: "en",
+                english_name: "English",
+                names: &[
+                "Aries",
+                "Taurus",
+                "Gemini",
+                "Cancer",
+                "Leo",
+                "Virgo",
+                "Libra",
+                "Scorpio",
+                "Sagittarius",
+                "Capricorn",
+                "Aquarius",
+                "Pisces",
+                ],
+                authority: "The conventional English names, Scorpius and Capricornus anglicised",
+            };
+            /// The `latin` column.
+            pub const LATIN = Naming {
+                id: "la",
+                english_name: "Latin",
+                names: &[
+                "Aries",
+                "Taurus",
+                "Gemini",
+                "Cancer",
+                "Leo",
+                "Virgo",
+                "Libra",
+                "Scorpius",
+                "Sagittarius",
+                "Capricornus",
+                "Aquarius",
+                "Pisces",
+                ],
+                authority: "The Latin names, which are also the IAU constellation names",
+            };
+            /// The `emblem` column.
+            pub const EMBLEM = Naming {
+                id: "en-emblem",
+                english_name: "English emblems",
+                names: &[
+                "the Ram",
+                "the Bull",
+                "the Twins",
+                "the Crab",
+                "the Lion",
+                "the Maiden",
+                "the Scales",
+                "the Scorpion",
+                "the Archer",
+                "the Sea-goat",
+                "the Water-bearer",
+                "the Fishes",
+                ],
+                authority: "The emblems in English, as an ephemeris glosses them",
+            };
+            /// The `japanese` column.
+            pub const JAPANESE = Naming {
+                id: "ja",
+                english_name: "Japanese",
+                names: &[
+                "白羊宮",
+                "金牛宮",
+                "双子宮",
+                "巨蟹宮",
+                "獅子宮",
+                "処女宮",
+                "天秤宮",
+                "天蠍宮",
+                "人馬宮",
+                "磨羯宮",
+                "宝瓶宮",
+                "双魚宮",
+                ],
+                authority: "黄道十二宮, as Japanese almanacs and dictionaries print them",
+            };
+        }
+    }
 }
 
 /// A shorthand for a row's conventional dates.
@@ -268,6 +359,12 @@ const fn dates(start_month: u8, start_day: u8, end_month: u8, end_day: u8) -> Co
         end_month,
         end_day,
     }
+}
+
+/// One row of the sign table.
+struct SignNamesFacts {
+    symbol: char,
+    conventional: ConventionalPeriod,
 }
 
 /// The sign table, indexed by longitude / 30 from the March equinox.
@@ -285,100 +382,52 @@ const fn dates(start_month: u8, start_day: u8, end_month: u8, end_day: u8) -> Co
 /// The conventional dates are the set English-language newspaper columns
 /// settled on in the early twentieth century; they are data to be compared
 /// against, not an authority.
-const SIGN_NAMES: [SignNames; SIGNS_PER_ZODIAC] = [
-    SignNames {
-        english: "Aries",
-        latin: "Aries",
-        emblem: "the Ram",
-        japanese: "白羊宮",
+const SIGN_FACTS: [SignNamesFacts; 12] = [
+    SignNamesFacts {
         symbol: '\u{2648}',
         conventional: dates(3, 21, 4, 19),
     },
-    SignNames {
-        english: "Taurus",
-        latin: "Taurus",
-        emblem: "the Bull",
-        japanese: "金牛宮",
+    SignNamesFacts {
         symbol: '\u{2649}',
         conventional: dates(4, 20, 5, 20),
     },
-    SignNames {
-        english: "Gemini",
-        latin: "Gemini",
-        emblem: "the Twins",
-        japanese: "双子宮",
+    SignNamesFacts {
         symbol: '\u{264A}',
         conventional: dates(5, 21, 6, 20),
     },
-    SignNames {
-        english: "Cancer",
-        latin: "Cancer",
-        emblem: "the Crab",
-        japanese: "巨蟹宮",
+    SignNamesFacts {
         symbol: '\u{264B}',
         conventional: dates(6, 21, 7, 22),
     },
-    SignNames {
-        english: "Leo",
-        latin: "Leo",
-        emblem: "the Lion",
-        japanese: "獅子宮",
+    SignNamesFacts {
         symbol: '\u{264C}',
         conventional: dates(7, 23, 8, 22),
     },
-    SignNames {
-        english: "Virgo",
-        latin: "Virgo",
-        emblem: "the Maiden",
-        japanese: "処女宮",
+    SignNamesFacts {
         symbol: '\u{264D}',
         conventional: dates(8, 23, 9, 22),
     },
-    SignNames {
-        english: "Libra",
-        latin: "Libra",
-        emblem: "the Scales",
-        japanese: "天秤宮",
+    SignNamesFacts {
         symbol: '\u{264E}',
         conventional: dates(9, 23, 10, 22),
     },
-    SignNames {
-        english: "Scorpio",
-        latin: "Scorpius",
-        emblem: "the Scorpion",
-        japanese: "天蠍宮",
+    SignNamesFacts {
         symbol: '\u{264F}',
         conventional: dates(10, 23, 11, 21),
     },
-    SignNames {
-        english: "Sagittarius",
-        latin: "Sagittarius",
-        emblem: "the Archer",
-        japanese: "人馬宮",
+    SignNamesFacts {
         symbol: '\u{2650}',
         conventional: dates(11, 22, 12, 21),
     },
-    SignNames {
-        english: "Capricorn",
-        latin: "Capricornus",
-        emblem: "the Sea-goat",
-        japanese: "磨羯宮",
+    SignNamesFacts {
         symbol: '\u{2651}',
         conventional: dates(12, 22, 1, 19),
     },
-    SignNames {
-        english: "Aquarius",
-        latin: "Aquarius",
-        emblem: "the Water-bearer",
-        japanese: "宝瓶宮",
+    SignNamesFacts {
         symbol: '\u{2652}',
         conventional: dates(1, 20, 2, 18),
     },
-    SignNames {
-        english: "Pisces",
-        latin: "Pisces",
-        emblem: "the Fishes",
-        japanese: "双魚宮",
+    SignNamesFacts {
         symbol: '\u{2653}',
         conventional: dates(2, 19, 3, 20),
     },
@@ -526,7 +575,7 @@ impl TropicalSign {
     /// The name in English, e.g. `"Capricorn"`.
     #[must_use]
     pub const fn english_name(self) -> &'static str {
-        SIGN_NAMES[self.0 as usize].english
+        namings::ENGLISH.names[self.0 as usize]
     }
 
     /// The name in Latin, e.g. `"Capricornus"`.
@@ -535,25 +584,25 @@ impl TropicalSign {
     /// and Capricornus, which English has clipped.
     #[must_use]
     pub const fn latin_name(self) -> &'static str {
-        SIGN_NAMES[self.0 as usize].latin
+        namings::LATIN.names[self.0 as usize]
     }
 
     /// What the sign depicts, in English, e.g. `"the Sea-goat"`.
     #[must_use]
     pub const fn emblem(self) -> &'static str {
-        SIGN_NAMES[self.0 as usize].emblem
+        namings::EMBLEM.names[self.0 as usize]
     }
 
     /// The 黄道十二宮 name in Japanese characters, e.g. `"磨羯宮"`.
     #[must_use]
     pub const fn japanese_name(self) -> &'static str {
-        SIGN_NAMES[self.0 as usize].japanese
+        namings::JAPANESE.names[self.0 as usize]
     }
 
     /// The astrological symbol, U+2648 ♈ through U+2653 ♓.
     #[must_use]
     pub const fn symbol(self) -> char {
-        SIGN_NAMES[self.0 as usize].symbol
+        SIGN_FACTS[self.0 as usize].symbol
     }
 
     /// The element the sign is assigned to.
@@ -626,7 +675,7 @@ impl TropicalSign {
     /// `zodiac_conventional_dates` does exactly that and reports the number.
     #[must_use]
     pub const fn conventional_period(self) -> ConventionalPeriod {
-        SIGN_NAMES[self.0 as usize].conventional
+        SIGN_FACTS[self.0 as usize].conventional
     }
 
     /// The next sign, 30° further along the ecliptic, wrapping at 360°.

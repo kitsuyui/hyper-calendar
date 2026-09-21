@@ -53,6 +53,7 @@
 //! as えきへぼし and 鬼 as たまをのぼし in historical orthography.
 
 use hc_calendar::Rd;
+use hc_calendar::shape::Naming;
 use hc_seasons::Meridian;
 use hc_seasons::lunisolar::lunisolar_day;
 
@@ -159,223 +160,206 @@ impl Fortune {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Mansion(u8);
 
-/// One mansion's names and attributions.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct MansionNames {
-    /// The single character, e.g. `"角"`.
-    pub character: &'static str,
-    /// The Japanese star name in kana, e.g. `"すぼし"`.
-    pub kana: &'static str,
-    /// That name in Hepburn romaji, e.g. `"suboshi"`.
-    pub romaji: &'static str,
-    /// The Sino-Japanese reading of the mansion name, e.g. `"kaku"`.
-    pub on_reading: &'static str,
-    /// The conventional English name of the asterism, e.g. `"Horn"`.
-    pub english: &'static str,
-}
+/// The ways the 28 positions are named, one entry per language or
+/// convention. See [`hc_calendar::shape::Naming`].
+pub mod namings {
+    use hc_calendar::shape::Naming;
 
-/// The mansion table, in cycle order.
-///
-/// The Japanese star names (和名) are the ones the 具注暦 and later printed
-/// almanacs give; several have variant readings and the commonest is used.
-const NAMES: [MansionNames; 28] = [
-    MansionNames {
-        character: "角",
-        kana: "すぼし",
-        romaji: "suboshi",
-        on_reading: "kaku",
-        english: "Horn",
-    },
-    MansionNames {
-        character: "亢",
-        kana: "あみぼし",
-        romaji: "amiboshi",
-        on_reading: "kō",
-        english: "Neck",
-    },
-    MansionNames {
-        character: "氐",
-        kana: "ともぼし",
-        romaji: "tomoboshi",
-        on_reading: "tei",
-        english: "Root",
-    },
-    MansionNames {
-        character: "房",
-        kana: "そいぼし",
-        romaji: "soiboshi",
-        on_reading: "bō",
-        english: "Room",
-    },
-    MansionNames {
-        character: "心",
-        kana: "なかごぼし",
-        romaji: "nakagoboshi",
-        on_reading: "shin",
-        english: "Heart",
-    },
-    MansionNames {
-        character: "尾",
-        kana: "あしたれぼし",
-        romaji: "ashitareboshi",
-        on_reading: "bi",
-        english: "Tail",
-    },
-    MansionNames {
-        character: "箕",
-        kana: "みぼし",
-        romaji: "miboshi",
-        on_reading: "ki",
-        english: "Winnowing Basket",
-    },
-    MansionNames {
-        character: "斗",
-        kana: "ひきつぼし",
-        romaji: "hikitsuboshi",
-        on_reading: "to",
-        english: "Dipper",
-    },
-    MansionNames {
-        character: "牛",
-        kana: "いなみぼし",
-        romaji: "inamiboshi",
-        on_reading: "gyū",
-        english: "Ox",
-    },
-    MansionNames {
-        character: "女",
-        kana: "うるきぼし",
-        romaji: "urukiboshi",
-        on_reading: "jo",
-        english: "Girl",
-    },
-    MansionNames {
-        character: "虚",
-        kana: "とみてぼし",
-        romaji: "tomiteboshi",
-        on_reading: "kyo",
-        english: "Emptiness",
-    },
-    MansionNames {
-        character: "危",
-        kana: "うみやめぼし",
-        romaji: "umiyameboshi",
-        on_reading: "ki",
-        english: "Rooftop",
-    },
-    MansionNames {
-        character: "室",
-        kana: "はついぼし",
-        romaji: "hatsuiboshi",
-        on_reading: "shitsu",
-        english: "Encampment",
-    },
-    MansionNames {
-        character: "壁",
-        kana: "なまめぼし",
-        romaji: "namameboshi",
-        on_reading: "heki",
-        english: "Wall",
-    },
-    MansionNames {
-        character: "奎",
-        kana: "とかきぼし",
-        romaji: "tokakiboshi",
-        on_reading: "kei",
-        english: "Legs",
-    },
-    MansionNames {
-        character: "婁",
-        kana: "たたらぼし",
-        romaji: "tataraboshi",
-        on_reading: "rō",
-        english: "Bond",
-    },
-    MansionNames {
-        character: "胃",
-        kana: "えきえぼし",
-        romaji: "ekieboshi",
-        on_reading: "i",
-        english: "Stomach",
-    },
-    MansionNames {
-        character: "昴",
-        kana: "すばるぼし",
-        romaji: "subaruboshi",
-        on_reading: "bō",
-        english: "Hairy Head",
-    },
-    MansionNames {
-        character: "畢",
-        kana: "あめふりぼし",
-        romaji: "amefuriboshi",
-        on_reading: "hitsu",
-        english: "Net",
-    },
-    MansionNames {
-        character: "觜",
-        kana: "とろきぼし",
-        romaji: "torokiboshi",
-        on_reading: "shi",
-        english: "Turtle Beak",
-    },
-    MansionNames {
-        character: "参",
-        kana: "からすきぼし",
-        romaji: "karasukiboshi",
-        on_reading: "shin",
-        english: "Three Stars",
-    },
-    MansionNames {
-        character: "井",
-        kana: "ちちりぼし",
-        romaji: "chichiriboshi",
-        on_reading: "sei",
-        english: "Well",
-    },
-    MansionNames {
-        character: "鬼",
-        kana: "たまおのぼし",
-        romaji: "tamaonoboshi",
-        on_reading: "ki",
-        english: "Ghost",
-    },
-    MansionNames {
-        character: "柳",
-        kana: "ぬりこぼし",
-        romaji: "nurikoboshi",
-        on_reading: "ryū",
-        english: "Willow",
-    },
-    MansionNames {
-        character: "星",
-        kana: "ほとおりぼし",
-        romaji: "hotooriboshi",
-        on_reading: "sei",
-        english: "Star",
-    },
-    MansionNames {
-        character: "張",
-        kana: "ちりこぼし",
-        romaji: "chirikoboshi",
-        on_reading: "chō",
-        english: "Extended Net",
-    },
-    MansionNames {
-        character: "翼",
-        kana: "たすきぼし",
-        romaji: "tasukiboshi",
-        on_reading: "yoku",
-        english: "Wings",
-    },
-    MansionNames {
-        character: "軫",
-        kana: "みつかけぼし",
-        romaji: "mitsukakeboshi",
-        on_reading: "shin",
-        english: "Chariot",
-    },
-];
+    hc_core::catalogue! {
+        type: Naming<28>,
+        id: |naming| naming.id,
+        provenance: |naming| naming.authority,
+        tests: mansion_naming_tests,
+
+        /// Every naming this crate ships.
+        pub const ALL;
+        /// The naming with this identifier.
+        pub fn by_id;
+
+        entries: {
+            /// The single character, e.g. `"角"`.
+            pub const CHARACTER = Naming {
+                id: "hani",
+                english_name: "Character",
+                names: &[
+                "角",
+                "亢",
+                "氐",
+                "房",
+                "心",
+                "尾",
+                "箕",
+                "斗",
+                "牛",
+                "女",
+                "虚",
+                "危",
+                "室",
+                "壁",
+                "奎",
+                "婁",
+                "胃",
+                "昴",
+                "畢",
+                "觜",
+                "参",
+                "井",
+                "鬼",
+                "柳",
+                "星",
+                "張",
+                "翼",
+                "軫",
+                ],
+                authority: "The single character of each 宿, common to Chinese, Japanese and Korean",
+            };
+            /// The Japanese star name in kana, e.g. `"すぼし"`.
+            pub const KANA = Naming {
+                id: "ja-kana",
+                english_name: "Japanese star names, in kana",
+                names: &[
+                "すぼし",
+                "あみぼし",
+                "ともぼし",
+                "そいぼし",
+                "なかごぼし",
+                "あしたれぼし",
+                "みぼし",
+                "ひきつぼし",
+                "いなみぼし",
+                "うるきぼし",
+                "とみてぼし",
+                "うみやめぼし",
+                "はついぼし",
+                "なまめぼし",
+                "とかきぼし",
+                "たたらぼし",
+                "えきえぼし",
+                "すばるぼし",
+                "あめふりぼし",
+                "とろきぼし",
+                "からすきぼし",
+                "ちちりぼし",
+                "たまおのぼし",
+                "ぬりこぼし",
+                "ほとおりぼし",
+                "ちりこぼし",
+                "たすきぼし",
+                "みつかけぼし",
+                ],
+                authority: "The 和名 the 具注暦 and later printed almanacs give; where readings vary the commonest is used",
+            };
+            /// That name in Hepburn romaji, e.g. `"suboshi"`.
+            pub const ROMAJI = Naming {
+                id: "ja-latn",
+                english_name: "Japanese star names, romanised",
+                names: &[
+                "suboshi",
+                "amiboshi",
+                "tomoboshi",
+                "soiboshi",
+                "nakagoboshi",
+                "ashitareboshi",
+                "miboshi",
+                "hikitsuboshi",
+                "inamiboshi",
+                "urukiboshi",
+                "tomiteboshi",
+                "umiyameboshi",
+                "hatsuiboshi",
+                "namameboshi",
+                "tokakiboshi",
+                "tataraboshi",
+                "ekieboshi",
+                "subaruboshi",
+                "amefuriboshi",
+                "torokiboshi",
+                "karasukiboshi",
+                "chichiriboshi",
+                "tamaonoboshi",
+                "nurikoboshi",
+                "hotooriboshi",
+                "chirikoboshi",
+                "tasukiboshi",
+                "mitsukakeboshi",
+                ],
+                authority: "Hepburn romanisation of the kana",
+            };
+            /// The Sino-Japanese reading of the mansion name, e.g. `"kaku"`.
+            pub const ON_READING = Naming {
+                id: "ja-on",
+                english_name: "Sino-Japanese readings",
+                names: &[
+                "kaku",
+                "kō",
+                "tei",
+                "bō",
+                "shin",
+                "bi",
+                "ki",
+                "to",
+                "gyū",
+                "jo",
+                "kyo",
+                "ki",
+                "shitsu",
+                "heki",
+                "kei",
+                "rō",
+                "i",
+                "bō",
+                "hitsu",
+                "shi",
+                "shin",
+                "sei",
+                "ki",
+                "ryū",
+                "sei",
+                "chō",
+                "yoku",
+                "shin",
+                ],
+                authority: "The 音読み of the mansion characters, Hepburn-romanised",
+            };
+            /// The conventional English name of the asterism, e.g. `"Horn"`.
+            pub const ENGLISH = Naming {
+                id: "en",
+                english_name: "English",
+                names: &[
+                "Horn",
+                "Neck",
+                "Root",
+                "Room",
+                "Heart",
+                "Tail",
+                "Winnowing Basket",
+                "Dipper",
+                "Ox",
+                "Girl",
+                "Emptiness",
+                "Rooftop",
+                "Encampment",
+                "Wall",
+                "Legs",
+                "Bond",
+                "Stomach",
+                "Hairy Head",
+                "Net",
+                "Turtle Beak",
+                "Three Stars",
+                "Well",
+                "Ghost",
+                "Willow",
+                "Star",
+                "Extended Net",
+                "Wings",
+                "Chariot",
+                ],
+                authority: "The conventional English names of the asterisms",
+            };
+        }
+    }
+}
 
 impl Mansion {
     /// 角宿, the first of the cycle and the first of the azure dragon.
@@ -416,28 +400,29 @@ impl Mansion {
         mansions
     }
 
-    /// Every name this mansion carries.
+    /// The name of this mansion in one naming — `namings::KANA`,
+    /// `namings::ENGLISH` and so on.
     #[must_use]
-    pub const fn names(self) -> MansionNames {
-        NAMES[self.0 as usize]
+    pub const fn name(self, naming: &Naming<28>) -> &'static str {
+        naming.names[self.0 as usize]
     }
 
     /// The single character, e.g. `"角"`.
     #[must_use]
     pub const fn japanese_name(self) -> &'static str {
-        self.names().character
+        self.name(&namings::CHARACTER)
     }
 
     /// The Japanese star name in kana, e.g. `"すぼし"`.
     #[must_use]
     pub const fn kana(self) -> &'static str {
-        self.names().kana
+        self.name(&namings::KANA)
     }
 
     /// The conventional English name of the asterism, e.g. `"Horn"`.
     #[must_use]
     pub const fn english_name(self) -> &'static str {
-        self.names().english
+        self.name(&namings::ENGLISH)
     }
 
     /// The 象 this mansion belongs to.
@@ -597,16 +582,16 @@ impl Mansion27 {
         }
     }
 
-    /// Every name this mansion carries, from the shared table.
+    /// The name of this mansion in one naming, from the shared table.
     #[must_use]
-    pub const fn names(self) -> MansionNames {
-        self.to_twenty_eight().names()
+    pub const fn name(self, naming: &Naming<28>) -> &'static str {
+        self.to_twenty_eight().name(naming)
     }
 
     /// The single character, e.g. `"角"`.
     #[must_use]
     pub const fn japanese_name(self) -> &'static str {
-        self.names().character
+        self.name(&namings::CHARACTER)
     }
 }
 
@@ -805,12 +790,11 @@ mod tests {
     #[test]
     fn every_mansion_carries_a_character_a_star_name_and_a_reading() {
         for mansion in Mansion::all() {
-            let names = mansion.names();
-            assert_eq!(names.character.chars().count(), 1);
-            assert!(names.kana.ends_with("ぼし"));
-            assert!(names.romaji.ends_with("boshi"));
-            assert!(!names.english.is_empty());
-            assert!(!names.on_reading.is_empty());
+            assert_eq!(mansion.name(&namings::CHARACTER).chars().count(), 1);
+            assert!(mansion.name(&namings::KANA).ends_with("ぼし"));
+            assert!(mansion.name(&namings::ROMAJI).ends_with("boshi"));
+            assert!(!mansion.name(&namings::ENGLISH).is_empty());
+            assert!(!mansion.name(&namings::ON_READING).is_empty());
         }
     }
 

@@ -1,7 +1,7 @@
 //! राशि — the rāśi as a *month*, and the Indian solar calendars that count
 //! months that way.
 //!
-//! A [`SiderealSign`](super::SiderealSign) is not only a sign; it is a month.
+//! A [`SiderealSign`] is not only a sign; it is a month.
 //! The solar calendars of Tamil Nadu, Bengal, Assam, Odisha and Kerala define
 //! a month as the interval the Sun spends in one rāśi, so their months begin
 //! at a **saṅkrānti** and are 29 to 32 days long — unequal, because a 30° arc
@@ -9,7 +9,7 @@
 //! else regional is naming and where the year is taken to start.
 //!
 //! So this module adds no arithmetic. [`Rashi`] is a type alias for
-//! [`SiderealSign`](super::SiderealSign), the boundaries are
+//! [`SiderealSign`], the boundaries are
 //! [`super::sidereal`]'s, and what is here is the month names in four
 //! traditions and the two saṅkrānti that are national festivals.
 //!

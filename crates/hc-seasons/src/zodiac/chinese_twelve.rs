@@ -83,100 +83,106 @@ pub struct ChineseStation(u8);
 /// reckoned from.
 pub const FIRST_STATION_START_DEGREES: f64 = 255.0;
 
-/// One row of the station table.
-struct StationNames {
-    chinese: &'static str,
-    japanese: &'static str,
-    pinyin: &'static str,
-    english: &'static str,
-}
+/// The ways the 12 positions are named, one entry per language or
+/// convention. See [`hc_calendar::shape::Naming`].
+pub mod namings {
+    use hc_calendar::shape::Naming;
 
-/// The station table, in the traditional order from 星紀.
-///
-/// The Chinese column is in traditional characters and the Japanese one in
-/// post-1946 shinjitai; they differ for 實沈/実沈 and 壽星/寿星, which is why
-/// they are two columns and not one, exactly as in
-/// [`crate::solar_terms`]. Pinyin is the Mandarin reading with tone marks.
-///
-/// The English column is a gloss of the characters, not a translation of a
-/// meaning: 鶉首, 鶉火 and 鶉尾 are the head, fire and tail of the Vermilion
-/// Bird — 朱雀, the quail-like southern constellation — and 大火 is the star
-/// Antares, which Chinese astronomy called the Great Fire and used as a
-/// seasonal marker long before the 次 were formalised.
-const STATION_NAMES: [StationNames; SIGNS_PER_ZODIAC] = [
-    StationNames {
-        chinese: "星紀",
-        japanese: "星紀",
-        pinyin: "Xīngjì",
-        english: "star record",
-    },
-    StationNames {
-        chinese: "玄枵",
-        japanese: "玄枵",
-        pinyin: "Xuánxiāo",
-        english: "dark emptiness",
-    },
-    StationNames {
-        chinese: "娵訾",
-        japanese: "娵訾",
-        pinyin: "Jūzī",
-        english: "the lodge Shi",
-    },
-    StationNames {
-        chinese: "降婁",
-        japanese: "降婁",
-        pinyin: "Jiànglóu",
-        english: "descending Lou",
-    },
-    StationNames {
-        chinese: "大梁",
-        japanese: "大梁",
-        pinyin: "Dàliáng",
-        english: "great beam",
-    },
-    StationNames {
-        chinese: "實沈",
-        japanese: "実沈",
-        pinyin: "Shíchén",
-        english: "deep sinking",
-    },
-    StationNames {
-        chinese: "鶉首",
-        japanese: "鶉首",
-        pinyin: "Chúnshǒu",
-        english: "the bird's head",
-    },
-    StationNames {
-        chinese: "鶉火",
-        japanese: "鶉火",
-        pinyin: "Chúnhuǒ",
-        english: "the bird's fire",
-    },
-    StationNames {
-        chinese: "鶉尾",
-        japanese: "鶉尾",
-        pinyin: "Chúnwěi",
-        english: "the bird's tail",
-    },
-    StationNames {
-        chinese: "壽星",
-        japanese: "寿星",
-        pinyin: "Shòuxīng",
-        english: "star of longevity",
-    },
-    StationNames {
-        chinese: "大火",
-        japanese: "大火",
-        pinyin: "Dàhuǒ",
-        english: "the great fire",
-    },
-    StationNames {
-        chinese: "析木",
-        japanese: "析木",
-        pinyin: "Xīmù",
-        english: "split wood",
-    },
-];
+    hc_core::catalogue! {
+        type: Naming<12>,
+        id: |naming| naming.id,
+        provenance: |naming| naming.authority,
+        tests: station_naming_tests,
+
+        /// Every naming this crate ships.
+        pub const ALL;
+        /// The naming with this identifier.
+        pub fn by_id;
+
+        entries: {
+            /// The `chinese` column.
+            pub const TRADITIONAL_CHINESE = Naming {
+                id: "zh-hant",
+                english_name: "Traditional Chinese",
+                names: &[
+                "星紀",
+                "玄枵",
+                "娵訾",
+                "降婁",
+                "大梁",
+                "實沈",
+                "鶉首",
+                "鶉火",
+                "鶉尾",
+                "壽星",
+                "大火",
+                "析木",
+                ],
+                authority: "Traditional characters, the form of the classical sources and of Taiwanese references",
+            };
+            /// The `japanese` column.
+            pub const JAPANESE = Naming {
+                id: "ja",
+                english_name: "Japanese",
+                names: &[
+                "星紀",
+                "玄枵",
+                "娵訾",
+                "降婁",
+                "大梁",
+                "実沈",
+                "鶉首",
+                "鶉火",
+                "鶉尾",
+                "寿星",
+                "大火",
+                "析木",
+                ],
+                authority: "Post-1946 shinjitai, as Japanese dictionaries print them",
+            };
+            /// The `pinyin` column.
+            pub const PINYIN = Naming {
+                id: "zh-pinyin-toned",
+                english_name: "Hanyu Pinyin",
+                names: &[
+                "Xīngjì",
+                "Xuánxiāo",
+                "Jūzī",
+                "Jiànglóu",
+                "Dàliáng",
+                "Shíchén",
+                "Chúnshǒu",
+                "Chúnhuǒ",
+                "Chúnwěi",
+                "Shòuxīng",
+                "Dàhuǒ",
+                "Xīmù",
+                ],
+                authority: "汉语拼音方案 (1958), with tone marks",
+            };
+            /// The `english` column.
+            pub const ENGLISH = Naming {
+                id: "en",
+                english_name: "English glosses",
+                names: &[
+                "star record",
+                "dark emptiness",
+                "the lodge Shi",
+                "descending Lou",
+                "great beam",
+                "deep sinking",
+                "the bird's head",
+                "the bird's fire",
+                "the bird's tail",
+                "star of longevity",
+                "the great fire",
+                "split wood",
+                ],
+                authority: "This crate's glosses of the characters; nothing depends on them",
+            };
+        }
+    }
+}
 
 /// The earthly branch of 星紀, from which the rest count backwards.
 ///
@@ -297,7 +303,7 @@ impl ChineseStation {
     /// The name in traditional Chinese characters, e.g. `"實沈"`.
     #[must_use]
     pub const fn chinese_name(self) -> &'static str {
-        STATION_NAMES[self.0 as usize].chinese
+        namings::TRADITIONAL_CHINESE.names[self.0 as usize]
     }
 
     /// The name in Japanese shinjitai, e.g. `"実沈"`.
@@ -305,13 +311,13 @@ impl ChineseStation {
     /// Identical to [`Self::chinese_name`] for ten of the twelve.
     #[must_use]
     pub const fn japanese_name(self) -> &'static str {
-        STATION_NAMES[self.0 as usize].japanese
+        namings::JAPANESE.names[self.0 as usize]
     }
 
     /// The Mandarin reading in pinyin with tone marks, e.g. `"Shíchén"`.
     #[must_use]
     pub const fn pinyin(self) -> &'static str {
-        STATION_NAMES[self.0 as usize].pinyin
+        namings::PINYIN.names[self.0 as usize]
     }
 
     /// A short English gloss of the characters, e.g. `"deep sinking"`.
@@ -320,7 +326,7 @@ impl ChineseStation {
     /// whose literal sense was already obscure in antiquity.
     #[must_use]
     pub const fn english_name(self) -> &'static str {
-        STATION_NAMES[self.0 as usize].english
+        namings::ENGLISH.names[self.0 as usize]
     }
 
     /// The index of the matching 十二辰 earthly branch, 0 (子) to 11 (亥).

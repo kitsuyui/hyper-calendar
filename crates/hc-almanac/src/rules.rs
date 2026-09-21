@@ -1,7 +1,7 @@
 //! One rule value, one evaluator.
 //!
-//! There are roughly forty annotations in [`crate::lower_register`] and
-//! [`crate::selected_days`], and a naive implementation would be forty
+//! There are roughly forty annotations in [`mod@crate::lower_register`] and
+//! [`mod@crate::selected_days`], and a naive implementation would be forty
 //! functions. It would also be forty places to get the 節月 boundary wrong.
 //!
 //! In fact they have only a handful of *shapes*. 大明日 is a list of
