@@ -225,6 +225,11 @@ pub struct ArithmeticPersianCalendar;
 impl Calendar for ArithmeticPersianCalendar {
     type Date = PersianDate;
 
+    /// Twelve months and the seven-day week.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        hc_calendar::shape::SOLAR_TWELVE
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("persian-arithmetic"),

@@ -125,8 +125,8 @@ pub struct HoloceneCalendar;
 impl Calendar for HoloceneCalendar {
     type Date = HoloceneDate;
 
-    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
-        Some(hc_calendar::shape::SOLAR_TWELVE)
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        hc_calendar::shape::SOLAR_TWELVE
     }
 
     fn meta(&self) -> CalendarMeta {

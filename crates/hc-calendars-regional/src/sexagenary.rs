@@ -133,6 +133,18 @@ pub struct SexagenaryCalendar;
 impl Calendar for SexagenaryCalendar {
     type Date = SexagenaryDayDate;
 
+    /// The ten stems and the twelve branches.
+    ///
+    /// The sixty pairs are not a third cycle: a pair's name is its stem's
+    /// name followed by its branch's, and [`readings`] spells both.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+            hc_calendar::shape::CycleShape::fixed("stem", 10),
+            hc_calendar::shape::CycleShape::fixed("branch", 12),
+        ];
+        SHAPE
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("sexagenary"),

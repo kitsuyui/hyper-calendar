@@ -122,8 +122,8 @@ pub struct Symmetry454Calendar;
 impl Calendar for Symmetry454Calendar {
     type Date = Symmetry454Date;
 
-    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
-        Some(hc_calendar::shape::SOLAR_TWELVE)
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        hc_calendar::shape::SOLAR_TWELVE
     }
 
     fn meta(&self) -> CalendarMeta {

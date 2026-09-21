@@ -198,6 +198,15 @@ pub const fn pasaran_of(rd: Rd) -> u8 {
 impl Calendar for JavanesePasaranCalendar {
     type Date = WetonDate;
 
+    /// The five-day *pasaran* and the seven-day week it runs against.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+            hc_calendar::shape::CycleShape::fixed("pasaran", 5),
+            hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
+        ];
+        SHAPE
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("javanese-pasaran"),

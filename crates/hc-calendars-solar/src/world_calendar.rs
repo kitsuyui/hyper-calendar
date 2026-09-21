@@ -268,6 +268,15 @@ pub struct WorldCalendar;
 impl Calendar for WorldCalendar {
     type Date = WorldCalendarDate;
 
+    /// Twelve months and the seven-day week.
+    ///
+    /// Worldsday and Leapyear Day sit outside the week, and `to_fields`
+    /// flags them `outside-the-week`, but the week's positions are still
+    /// the seven.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        hc_calendar::shape::SOLAR_TWELVE
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("world-calendar"),

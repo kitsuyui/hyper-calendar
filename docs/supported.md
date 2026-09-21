@@ -17,25 +17,25 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 73 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of, and **Named** is whether English can name its months. 36 of 73 declare a shape and 27 can be named. Those two gaps are real and are asserted in `tests/vocabulary.rs`, so they can only move deliberately — a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months. 27 of 73 can be named. That gap is real and is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 | id | Name | Crate | Feature | Earliest | Latest | Astronomical | Leap months | Day begins | Cycles | Named |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `ansi-date` | ANSI date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | no |
+| `ansi-date` | ANSI date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | none | no |
 | `armenian` | Armenian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0552-07-13 | +999887-08-03 | no | no | midnight | month ×13, weekday ×7 | no |
 | `armenian-fixed` | Armenian (fixed, Sarkawag 1084) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0552-08-13 | +10551-10-26 | no | no | midnight | month ×13, weekday ×7 | no |
-| `aztec-tonalpohualli` | Aztec tonalpōhualli | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | no |
-| `aztec-xiuhpohualli` | Aztec xiuhpōhualli | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | no |
+| `aztec-tonalpohualli` | Aztec tonalpōhualli | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | trecena ×13, day-sign ×20 | no |
+| `aztec-xiuhpohualli` | Aztec xiuhpōhualli | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | month ×19 | no |
 | `bahai-arithmetic` | Badíʿ (arithmetic) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1844-03-21 | +11843-03-20 | no | yes | sunset | month ×19, weekday ×7 | yes |
-| `balinese-pawukon` | Balinese Pawukon | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | no |
+| `balinese-pawukon` | Balinese Pawukon | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | wuku ×30, ekawara ×1, dwiwara ×2, triwara ×3, caturwara ×4, pancawara ×5, sadwara ×6, weekday ×7, astawara ×8, sangawara ×9, dasawara ×10 | no |
 | `buddhist` | Thai Buddhist | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -542-01-01 | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `byzantine` | Byzantine (Anno Mundi) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -5508-07-19 | +94493-08-06 | no | no | midnight | month ×12, weekday ×7 | yes |
-| `ccsds-day` | CCSDS day count | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | no |
+| `ccsds-day` | CCSDS day count | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | none | no |
 | `chinese` | Chinese | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1645-01-01 | 2150-12-31 | yes | yes | midnight | month ×12–13, weekday ×7 | yes |
-| `cnes-julian-day` | CNES Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | no |
+| `cnes-julian-day` | CNES Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | none | no |
 | `coptic` | Coptic | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0284-08-29 | +1000304-03-12 | no | no | midnight | month ×13, weekday ×7 | no |
 | `dangi` | Dangi (Korean lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1645-01-01 | 2150-12-31 | yes | yes | midnight | month ×12–13, weekday ×7 | yes |
-| `dublin-julian-day` | Dublin Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | noon | — | no |
+| `dublin-julian-day` | Dublin Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | noon | none | no |
 | `egyptian` | Egyptian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -746-02-18 | +998589-03-10 | no | no | midnight | month ×13, weekday ×7 | no |
 | `ethiopic` | Ethiopian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0008-08-27 | +1000028-03-09 | no | no | midnight | month ×13, weekday ×7 | no |
 | `french-republican-arithmetic` | French Republican (arithmetic) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1792-09-22 | +11791-09-19 | no | no | midnight | month ×13, decade-day ×10 | yes |
@@ -51,49 +51,49 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `iso8601-ordinal` | ISO 8601 ordinal date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `iso8601-week` | ISO 8601 week date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999998-02-05 | +9999998-11-26 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `japanese` | Japanese (imperial eras) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0862-02-07 | 9999-12-31 | yes | yes | midnight | month ×12–13, weekday ×7 | yes |
-| `japanese-horyaku` | Japanese Hōryaku (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1755-02-11 | 1798-02-15 | yes | yes | midnight | — | no |
+| `japanese-horyaku` | Japanese Hōryaku (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1755-02-11 | 1798-02-15 | yes | yes | midnight | month ×12–13, weekday ×7 | no |
 | `japanese-imperial` | Japanese imperial year (kōki) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -659-01-01 | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | yes |
-| `japanese-jokyo` | Japanese Jōkyō (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1685-02-04 | 1755-02-10 | yes | yes | midnight | — | no |
-| `japanese-kansei` | Japanese Kansei (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1798-02-16 | 1844-02-17 | yes | yes | midnight | — | no |
+| `japanese-jokyo` | Japanese Jōkyō (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1685-02-04 | 1755-02-10 | yes | yes | midnight | month ×12–13, weekday ×7 | no |
+| `japanese-kansei` | Japanese Kansei (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1798-02-16 | 1844-02-17 | yes | yes | midnight | month ×12–13, weekday ×7 | no |
 | `japanese-northern` | Japanese (imperial eras, Northern Court) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0862-02-07 | 9999-12-31 | yes | yes | midnight | month ×12–13, weekday ×7 | yes |
 | `japanese-proclaimed` | Japanese (imperial eras, as proclaimed) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0862-02-07 | 9999-12-31 | yes | yes | midnight | month ×12–13, weekday ×7 | yes |
-| `japanese-senmyo` | Japanese Senmyō (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0862-02-07 | 1685-02-03 | yes | yes | midnight | — | no |
+| `japanese-senmyo` | Japanese Senmyō (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0862-02-07 | 1685-02-03 | yes | yes | midnight | month ×12–13, weekday ×7 | no |
 | `japanese-southern` | Japanese (imperial eras, Southern Court) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0862-02-07 | 9999-12-31 | yes | yes | midnight | month ×12–13, weekday ×7 | yes |
 | `japanese-tenpo` | Japanese Tenpō (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1844-02-18 | 1872-12-31 | yes | yes | midnight | month ×12–13, weekday ×7 | no |
-| `javanese-pasaran` | Javanese pasaran (wetonan cycle) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | no |
+| `javanese-pasaran` | Javanese pasaran (wetonan cycle) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | pasaran ×5, weekday ×7 | no |
 | `juche` | Juche | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1912-01-01 | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `julian` | Julian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | Rd(3652499632) | no | no | midnight | month ×12, weekday ×7 | yes |
-| `julian-day` | Julian Day Number | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | noon | — | no |
-| `julian-gregorian-bg` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | no |
-| `julian-gregorian-catholic` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | no |
-| `julian-gregorian-de-catholic` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | no |
-| `julian-gregorian-de-protestant` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | no |
-| `julian-gregorian-fr` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | no |
-| `julian-gregorian-gb` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | no |
-| `julian-gregorian-gr` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | no |
-| `julian-gregorian-hu` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | no |
-| `julian-gregorian-nl` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | no |
-| `julian-gregorian-ro` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | no |
-| `julian-gregorian-ru` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | no |
-| `julian-gregorian-se` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | no |
-| `lilian` | Lilian date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | no |
-| `maya-haab` | Maya haab | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | no |
-| `maya-longcount` | Maya long count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-11 | 4772-10-12 | no | no | midnight | — | no |
-| `maya-longcount-gmt2` | Maya long count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-13 | 4772-10-14 | no | no | midnight | — | no |
-| `maya-round` | Maya Calendar Round | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-11 | 4772-10-12 | no | no | midnight | — | no |
-| `maya-tzolkin` | Maya tzolk'in | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | no |
-| `modified-julian-day` | Modified Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | no |
-| `persian-arithmetic` | Solar Hijri (arithmetic) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0622-03-22 | +10621-03-17 | no | no | midnight | — | no |
-| `reduced-julian-day` | Reduced Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | noon | — | no |
+| `julian-day` | Julian Day Number | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | noon | none | no |
+| `julian-gregorian-bg` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | no |
+| `julian-gregorian-catholic` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | no |
+| `julian-gregorian-de-catholic` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | no |
+| `julian-gregorian-de-protestant` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | no |
+| `julian-gregorian-fr` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | no |
+| `julian-gregorian-gb` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | no |
+| `julian-gregorian-gr` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | no |
+| `julian-gregorian-hu` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | no |
+| `julian-gregorian-nl` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | no |
+| `julian-gregorian-ro` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | no |
+| `julian-gregorian-ru` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | no |
+| `julian-gregorian-se` | Julian/Gregorian reform | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | no |
+| `lilian` | Lilian date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | none | no |
+| `maya-haab` | Maya haab | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | month ×19 | no |
+| `maya-longcount` | Maya long count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-11 | 4772-10-12 | no | no | midnight | none | no |
+| `maya-longcount-gmt2` | Maya long count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-13 | 4772-10-14 | no | no | midnight | none | no |
+| `maya-round` | Maya Calendar Round | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-11 | 4772-10-12 | no | no | midnight | trecena ×13, day-sign ×20, month ×19 | no |
+| `maya-tzolkin` | Maya tzolk'in | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | trecena ×13, day-sign ×20 | no |
+| `modified-julian-day` | Modified Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | none | no |
+| `persian-arithmetic` | Solar Hijri (arithmetic) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0622-03-22 | +10621-03-17 | no | no | midnight | month ×12, weekday ×7 | no |
+| `reduced-julian-day` | Reduced Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | noon | none | no |
 | `revised-julian` | Revised Julian (Milanković) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999931-06-13 | +9999992-05-24 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `roc` | Minguo (Republic of China) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `roman-auc` | Roman (ab urbe condita) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -753-12-24 | +99249-01-11 | no | no | midnight | month ×12, weekday ×7 | yes |
-| `sexagenary` | Sexagenary cycle (干支) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | no |
+| `sexagenary` | Sexagenary cycle (干支) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | stem ×10, branch ×12 | no |
 | `symmetry010` | Symmetry010 | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0001-01-01 | +99999-12-12 | no | no | midnight | month ×12, weekday ×7 | no |
 | `symmetry454` | Symmetry454 | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0001-01-01 | +99999-12-12 | no | no | midnight | month ×12, weekday ×7 | no |
-| `truncated-julian-day` | Truncated Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | no |
+| `truncated-julian-day` | Truncated Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | none | no |
 | `vietnamese` | Vietnamese lunisolar | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1645-01-01 | 2150-12-31 | yes | yes | midnight | month ×12–13, weekday ×7 | yes |
-| `world-calendar` | The World Calendar | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | — | no |
+| `world-calendar` | The World Calendar | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | no |
 
 ## Holidays by country
 

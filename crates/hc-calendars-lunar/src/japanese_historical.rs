@@ -187,6 +187,10 @@ macro_rules! delegating_calendar {
                 ENGINE.meta()
             }
 
+            fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+                ENGINE.cycles()
+            }
+
             fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
                 ENGINE.to_fixed(date)
             }

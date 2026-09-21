@@ -202,8 +202,8 @@ pub struct JulianCalendar;
 impl Calendar for JulianCalendar {
     type Date = JulianDate;
 
-    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
-        Some(hc_calendar::shape::SOLAR_TWELVE)
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        hc_calendar::shape::SOLAR_TWELVE
     }
 
     fn meta(&self) -> CalendarMeta {

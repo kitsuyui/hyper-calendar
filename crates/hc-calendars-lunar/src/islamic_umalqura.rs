@@ -276,8 +276,8 @@ pub struct IslamicUmmAlQuraCalendar;
 impl Calendar for IslamicUmmAlQuraCalendar {
     type Date = IslamicDate;
 
-    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
-        Some(hc_calendar::shape::SOLAR_TWELVE)
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        hc_calendar::shape::SOLAR_TWELVE
     }
 
     /// The Islamic day begins at sunset, which is also why the month begins

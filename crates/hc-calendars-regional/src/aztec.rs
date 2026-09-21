@@ -269,6 +269,15 @@ pub struct AztecXiuhpohualliCalendar;
 impl Calendar for AztecTonalpohualliCalendar {
     type Date = AztecTonalpohualliDate;
 
+    /// The thirteen numbers and the twenty day-signs.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+            hc_calendar::shape::CycleShape::fixed("trecena", 13),
+            hc_calendar::shape::CycleShape::fixed("day-sign", 20),
+        ];
+        SHAPE
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("aztec-tonalpohualli"),
@@ -326,6 +335,16 @@ fn byte(value: i64) -> CalendarResult<u8> {
 
 impl Calendar for AztecXiuhpohualliCalendar {
     type Date = AztecXiuhpohualliDate;
+
+    /// Eighteen months of twenty days and the five-day Nemontemi, which has
+    /// a name and so is a nineteenth position.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        const SHAPE: &[hc_calendar::shape::CycleShape] = &[hc_calendar::shape::CycleShape::fixed(
+            hc_calendar::shape::MONTH,
+            19,
+        )];
+        SHAPE
+    }
 
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {

@@ -565,8 +565,8 @@ pub struct HebrewCalendar;
 impl Calendar for HebrewCalendar {
     type Date = HebrewDate;
 
-    fn cycles(&self) -> Option<&'static [hc_calendar::shape::CycleShape]> {
-        Some(hc_calendar::shape::LUNISOLAR_TWELVE)
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        hc_calendar::shape::LUNISOLAR_TWELVE
     }
 
     /// The Hebrew day begins at sunset, so a Hebrew date covers the second

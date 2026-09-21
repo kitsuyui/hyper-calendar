@@ -91,6 +91,11 @@ pub struct JulianDayCalendar;
 impl Calendar for JulianDayCalendar {
     type Date = JulianDayNumber;
 
+    /// A day count names nothing: it has no months and no week, only a number.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        &[]
+    }
+
     /// The Julian Day begins at noon, not midnight. Astronomers count that
     /// way so that one night's observations carry a single date, and the
     /// convention has outlived the reason.
@@ -132,6 +137,11 @@ pub struct ModifiedJulianDayCalendar;
 
 impl Calendar for ModifiedJulianDayCalendar {
     type Date = ModifiedJulianDay;
+
+    /// A day count names nothing: it has no months and no week, only a number.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        &[]
+    }
 
     /// The Modified Julian Date begins at midnight, unlike the Julian Day
     /// it is derived from — the 0.5 in its definition is exactly that

@@ -319,8 +319,32 @@ pub struct BalinesePawukonCalendar;
 /// number.
 pub const CYCLE: DayCycle = DayCycle::new(PAWUKON_CYCLE as u16, EPOCH);
 
+/// The thirty *wuku* and the ten concurrent weeks, shortest first.
+const PAWUKON_SHAPE: &[hc_calendar::shape::CycleShape] = &[
+    hc_calendar::shape::CycleShape::fixed("wuku", 30),
+    hc_calendar::shape::CycleShape::fixed("ekawara", 1),
+    hc_calendar::shape::CycleShape::fixed("dwiwara", 2),
+    hc_calendar::shape::CycleShape::fixed("triwara", 3),
+    hc_calendar::shape::CycleShape::fixed("caturwara", 4),
+    hc_calendar::shape::CycleShape::fixed("pancawara", 5),
+    hc_calendar::shape::CycleShape::fixed("sadwara", 6),
+    hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
+    hc_calendar::shape::CycleShape::fixed("astawara", 8),
+    hc_calendar::shape::CycleShape::fixed("sangawara", 9),
+    hc_calendar::shape::CycleShape::fixed("dasawara", 10),
+];
+
 impl Calendar for BalinesePawukonCalendar {
     type Date = PawukonDate;
+
+    /// The thirty *wuku* and the ten concurrent weeks.
+    ///
+    /// The seven-day *saptawara* is the same week as everyone else's, Redite
+    /// being Sunday, so it is declared as `weekday` and a locale's weekday
+    /// names serve it. The other nine keep their Balinese names.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        PAWUKON_SHAPE
+    }
 
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
