@@ -379,6 +379,7 @@ impl Calendar for BalinesePawukonCalendar {
             year: date.round,
             month: Some(Month::regular(date.wuku())),
             day: Some(date.saptawara()),
+            leap_day: false,
             extra,
         })
     }

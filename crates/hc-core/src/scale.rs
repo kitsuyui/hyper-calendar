@@ -476,6 +476,8 @@ impl Ut1Offsets<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(not(feature = "std"))]
+    use alloc::string::ToString as _;
 
     #[test]
     fn tt_is_tai_plus_the_defined_offset() {

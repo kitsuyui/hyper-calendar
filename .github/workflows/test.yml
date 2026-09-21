@@ -35,13 +35,18 @@ jobs:
       - run: cargo test --workspace --all-features
 
   no-std:
-    name: Build without std
+    name: Test without std
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
       - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
-      - run: cargo build -p hyper-calendar --no-default-features --features alloc
+      # `libm` as well as `alloc`: without one of `std` or `libm` there is no
+      # floating-point math and the build is now refused outright. This job
+      # runs the tests rather than only building, because a `no_std` build that
+      # compiles and then fails at run time is exactly the bug this replaced.
+      - run: cargo test -p hc-core --no-default-features --features alloc,libm
+      - run: cargo build -p hyper-calendar --no-default-features --features alloc,libm
 
   wasm:
     name: Build for WebAssembly

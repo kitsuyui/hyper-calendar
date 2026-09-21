@@ -120,6 +120,15 @@ pub struct JucheCalendar;
 impl Calendar for JucheCalendar {
     type Date = JucheDate;
 
+    /// Introduced by decree in 1997. Years between 1912 and 1997 are
+    /// computed backwards onto an era that did not yet exist.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(match gregorian::to_fixed(1997, 9, 9) {
+            Ok(rd) => rd,
+            Err(_) => EARLIEST,
+        })
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("juche"),

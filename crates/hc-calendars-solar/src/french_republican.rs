@@ -205,6 +205,21 @@ pub struct ArithmeticFrenchRepublicanCalendar;
 impl Calendar for ArithmeticFrenchRepublicanCalendar {
     type Date = FrenchRepublicanDate;
 
+    /// In force from the decree of 1793 until Napoleon abolished it at the
+    /// end of An XIV, 31 December 1805. The Paris Commune revived it for
+    /// eighteen days in 1871, which this does not model. Everything outside
+    /// those twelve years is the arithmetic extension of an idea, which is
+    /// what this module is for.
+    fn usage(&self) -> hc_calendar::Usage {
+        match (
+            gregorian::to_fixed(1793, 10, 24),
+            gregorian::to_fixed(1805, 12, 31),
+        ) {
+            (Ok(from), Ok(until)) => hc_calendar::Usage::between(from, until),
+            _ => hc_calendar::Usage::UNRECORDED,
+        }
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("french-republican-arithmetic"),

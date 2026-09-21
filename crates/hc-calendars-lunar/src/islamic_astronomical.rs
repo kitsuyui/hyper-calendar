@@ -45,6 +45,12 @@ pub struct IslamicAstronomicalCalendar;
 impl Calendar for IslamicAstronomicalCalendar {
     type Date = IslamicDate;
 
+    /// The Islamic day begins at sunset, which is also why the month begins
+    /// with a crescent seen after one.
+    fn day_boundary(&self) -> hc_calendar::DayBoundary {
+        hc_calendar::DayBoundary::Sunset
+    }
+
     fn meta(&self) -> CalendarMeta {
         PARAMETERS.meta()
     }

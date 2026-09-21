@@ -160,6 +160,20 @@ pub struct KokiCalendar;
 impl Calendar for KokiCalendar {
     type Date = KokiDate;
 
+    /// Adopted together with the Gregorian calendar, and in official use
+    /// until 1945. Earlier dates compute correctly and are back-projections
+    /// onto a calendar Japan was not using; the `proleptic` field on the
+    /// date fields says the same thing per date.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(
+            PROLEPTIC_BEFORE,
+            match gregorian::to_fixed(1945, 12, 31) {
+                Ok(rd) => rd,
+                Err(_) => PROLEPTIC_BEFORE,
+            },
+        )
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("japanese-imperial"),
@@ -307,5 +321,40 @@ mod tests {
             calendar.from_fields(&DateFields::ymd(2_686, 1, 1).with_era("juche")),
             Err(CalendarError::UnknownEra)
         );
+    }
+}
+
+#[cfg(test)]
+mod standing_tests {
+    use super::*;
+    use hc_calendar::{Calendar, DayBoundary, Standing};
+
+    #[test]
+    fn the_imperial_year_was_only_in_use_from_1873_to_1945() {
+        let calendar = KokiCalendar;
+        // Kaei 3, the year this library's own example converts: computable,
+        // and not what anyone wrote at the time.
+        let kaei3 = gregorian::to_fixed(1850, 2, 12).unwrap();
+        assert_eq!(calendar.standing(kaei3), Standing::Proleptic);
+        assert!(!calendar.standing(kaei3).is_historical());
+
+        // The war years, when it was on every official document.
+        let wartime = gregorian::to_fixed(1940, 1, 1).unwrap();
+        assert_eq!(calendar.standing(wartime), Standing::InUse);
+        assert!(calendar.standing(wartime).is_historical());
+
+        // Today: the arithmetic answers, and nobody uses it.
+        let today = gregorian::to_fixed(2026, 9, 21).unwrap();
+        assert_eq!(calendar.standing(today), Standing::Extended);
+        assert!(
+            calendar
+                .to_fixed(KokiDate::new(2_686, 9, 21).unwrap())
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn the_day_boundary_is_the_ordinary_one() {
+        assert_eq!(KokiCalendar.day_boundary(), DayBoundary::Midnight);
     }
 }

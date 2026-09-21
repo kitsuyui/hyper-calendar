@@ -3,6 +3,7 @@
 use core::fmt;
 use core::marker::PhantomData;
 
+use crate::daystart::{DayBoundary, Standing, Usage};
 use crate::error::{CalendarError, CalendarResult};
 use crate::fields::{DateFields, YearKind};
 use crate::fixed::Rd;
@@ -137,6 +138,44 @@ pub trait Calendar {
     /// out of range.
     fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date>;
 
+    /// Where this calendar's day begins.
+    ///
+    /// Defaults to midnight, which is right for most calendars and for every
+    /// purely arithmetic one. Override it where it is not: the Julian Day
+    /// begins at noon, the Hebrew and Islamic days at sunset, the traditional
+    /// Chinese day at 23:00.
+    ///
+    /// This names the convention. Resolving a solar boundary to an instant
+    /// needs a location and an ephemeris, which is `hc-astro`'s job — see
+    /// [`DayBoundary::needs_observation`].
+    fn day_boundary(&self) -> DayBoundary {
+        DayBoundary::Midnight
+    }
+
+    /// When this calendar was actually in use.
+    ///
+    /// Distinct from [`CalendarMeta::earliest`] and
+    /// [`CalendarMeta::latest`], which bound where the *arithmetic* is
+    /// defined. The two are rarely the same: the Gregorian calendar computes
+    /// happily for the year 3000 BC and nobody used it before 1582.
+    ///
+    /// Defaults to [`Usage::UNRECORDED`], which is honest for a proposed
+    /// calendar or a pure day count and wrong for a historical one — so a
+    /// historical calendar should override it.
+    fn usage(&self) -> Usage {
+        Usage::UNRECORDED
+    }
+
+    /// Whether a day falls inside the period this calendar was used in.
+    ///
+    /// The arithmetic will answer for any day in range; this says whether the
+    /// answer is a historical reading or a projection. Today in the Shōwa era
+    /// is [`Standing::Extended`]: perfectly computable, and not what anyone
+    /// writes.
+    fn standing(&self, rd: Rd) -> Standing {
+        self.usage().standing(rd)
+    }
+
     /// Convert a date straight into another calendar.
     ///
     /// # Errors
@@ -205,6 +244,21 @@ pub trait DynCalendar {
     /// Returns a [`CalendarError`] when the year does not exist.
     fn days_in_year(&self, year: i64) -> CalendarResult<u16>;
 
+    /// Where this calendar's day begins. See [`Calendar::day_boundary`].
+    fn day_boundary(&self) -> DayBoundary {
+        DayBoundary::Midnight
+    }
+
+    /// When this calendar was actually in use. See [`Calendar::usage`].
+    fn usage(&self) -> Usage {
+        Usage::UNRECORDED
+    }
+
+    /// How a day relates to that period. See [`Calendar::standing`].
+    fn standing(&self, rd: Rd) -> Standing {
+        self.usage().standing(rd)
+    }
+
     /// Whether the given year is longer than an ordinary one.
     ///
     /// # Errors
@@ -254,6 +308,14 @@ impl<C: Calendar> DynCalendar for DynAdapter<C> {
     fn fixed_to_fields(&self, rd: Rd) -> CalendarResult<DateFields> {
         let date = self.inner.from_fixed(rd)?;
         self.inner.to_fields(date)
+    }
+
+    fn day_boundary(&self) -> DayBoundary {
+        self.inner.day_boundary()
+    }
+
+    fn usage(&self) -> Usage {
+        self.inner.usage()
     }
 
     fn days_in_year(&self, year: i64) -> CalendarResult<u16> {

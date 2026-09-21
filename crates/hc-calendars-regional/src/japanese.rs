@@ -474,6 +474,7 @@ impl Calendar for JapaneseCalendar {
             year: date.year,
             month: Some(date.month),
             day: Some(date.day),
+            leap_day: false,
             extra: hc_calendar::fields::ExtraFields::new(),
         })
     }

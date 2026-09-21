@@ -565,6 +565,12 @@ pub struct HebrewCalendar;
 impl Calendar for HebrewCalendar {
     type Date = HebrewDate;
 
+    /// The Hebrew day begins at sunset, so a Hebrew date covers the second
+    /// half of one civil day and the first half of the next.
+    fn day_boundary(&self) -> hc_calendar::DayBoundary {
+        hc_calendar::DayBoundary::Sunset
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: ID,

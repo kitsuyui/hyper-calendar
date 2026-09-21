@@ -5,8 +5,30 @@
 //! implementations; enabling `libm` uses the portable software ones. The rest
 //! of the workspace calls these wrappers and never `f64::sin` directly, so a
 //! `no_std` port never has to be re-audited function by function.
+//!
+//! # A `no_std` build must enable `libm`
+//!
+//! Enabling neither is a **compile error**, and that is the point of the
+//! guard below. It used to be a `panic!` in each function body, which meant a
+//! build with neither feature compiled cleanly and then panicked the first
+//! time anything asked for a sine — so `cargo build` passed, CI passed, and
+//! `cargo test` failed at run time in a configuration nobody had exercised.
+//!
+//! A missing feature is a fact about the build, not about the input, so it
+//! belongs at compile time where the person choosing the features will see
+//! it.
+//!
+//! The rounding helpers — [`floor`], [`ceil`], [`trunc`], [`round`] and
+//! [`abs`] — are implemented here in plain arithmetic and need neither
+//! feature. Only the transcendentals do.
 
 #![allow(missing_docs)]
+
+#[cfg(all(not(feature = "std"), not(feature = "libm")))]
+compile_error!(
+    "hyper-calendar needs floating-point math: enable the `std` feature (the \
+     default) or, for a `no_std` build, the `libm` feature."
+);
 
 macro_rules! unary {
     ($($name:ident),* $(,)?) => {
@@ -25,9 +47,51 @@ macro_rules! unary {
     };
 }
 
-unary!(
-    sin, cos, tan, asin, acos, atan, sqrt, exp, floor, ceil, trunc, cbrt
-);
+unary!(sin, cos, tan, asin, acos, atan, sqrt, exp, cbrt);
+
+/// Round towards negative infinity.
+///
+/// Plain arithmetic, so it needs neither `std` nor `libm`. Values beyond
+/// `i64`'s range are already integral in `f64`, so they are returned as they
+/// are.
+#[inline]
+#[must_use]
+pub fn floor(x: f64) -> f64 {
+    if !x.is_finite() || x.abs() >= 9.223_372_036_854_776e18 {
+        return x;
+    }
+    let truncated = trunc(x);
+    if x < 0.0 && truncated != x {
+        truncated - 1.0
+    } else {
+        truncated
+    }
+}
+
+/// Round towards positive infinity.
+#[inline]
+#[must_use]
+pub fn ceil(x: f64) -> f64 {
+    if !x.is_finite() || x.abs() >= 9.223_372_036_854_776e18 {
+        return x;
+    }
+    let truncated = trunc(x);
+    if x > 0.0 && truncated != x {
+        truncated + 1.0
+    } else {
+        truncated
+    }
+}
+
+/// Discard the fractional part, rounding towards zero.
+#[inline]
+#[must_use]
+pub fn trunc(x: f64) -> f64 {
+    if !x.is_finite() || x.abs() >= 9.223_372_036_854_776e18 {
+        return x;
+    }
+    x as i64 as f64
+}
 
 #[inline]
 #[must_use]
@@ -101,21 +165,19 @@ pub fn powf(x: f64, y: f64) -> f64 {
     }
 }
 
+/// Round half away from zero.
+///
+/// Plain arithmetic, so it needs neither `std` nor `libm`.
 #[inline]
 #[must_use]
 pub fn round(x: f64) -> f64 {
-    #[cfg(feature = "std")]
-    {
-        f64::round(x)
+    if !x.is_finite() || x.abs() >= 9.223_372_036_854_776e18 {
+        return x;
     }
-    #[cfg(all(not(feature = "std"), feature = "libm"))]
-    {
-        libm::round(x)
-    }
-    #[cfg(all(not(feature = "std"), not(feature = "libm")))]
-    {
-        let _ = x;
-        panic!("hc-core::math::round requires the `std` or `libm` feature")
+    if x < 0.0 {
+        -floor(-x + 0.5)
+    } else {
+        floor(x + 0.5)
     }
 }
 

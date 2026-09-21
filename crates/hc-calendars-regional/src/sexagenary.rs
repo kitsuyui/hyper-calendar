@@ -312,6 +312,7 @@ impl Calendar for SexagenaryCalendar {
             year: date.cycle,
             month: None,
             day: Some(date.position.ordinal()),
+            leap_day: false,
             extra,
         })
     }

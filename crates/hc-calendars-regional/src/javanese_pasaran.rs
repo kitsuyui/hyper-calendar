@@ -242,6 +242,7 @@ impl Calendar for JavanesePasaranCalendar {
             year: date.round,
             month: None,
             day: Some(u8::try_from(date.ordinal()? + 1).unwrap_or(1)),
+            leap_day: false,
             extra,
         })
     }

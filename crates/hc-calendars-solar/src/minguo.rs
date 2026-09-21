@@ -140,6 +140,15 @@ pub struct MinguoCalendar;
 impl Calendar for MinguoCalendar {
     type Date = MinguoDate;
 
+    /// In use from the founding of the Republic on 1 January 1912. The
+    /// 民國前 years before it are a back-count, which is what the name says.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(match gregorian::to_fixed(1912, 1, 1) {
+            Ok(rd) => rd,
+            Err(_) => Rd(0),
+        })
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("roc"),

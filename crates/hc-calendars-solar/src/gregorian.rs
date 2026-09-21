@@ -233,6 +233,18 @@ pub struct GregorianCalendar;
 impl Calendar for GregorianCalendar {
     type Date = GregorianDate;
 
+    /// Promulgated by *Inter gravissimas* and first used on 15 October 1582.
+    /// The arithmetic runs to either side of that by millions of years, and
+    /// every day before it is proleptic — including, for most of the world,
+    /// a good deal of time *after* it, since adoption took until 1923. Use
+    /// [`crate::julian_gregorian`] when the country matters.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(match to_fixed(1582, 10, 15) {
+            Ok(rd) => rd,
+            Err(_) => Rd(0),
+        })
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("gregory"),
