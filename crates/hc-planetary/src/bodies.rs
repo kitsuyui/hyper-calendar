@@ -905,3 +905,12 @@ mod tests {
         assert!(body("Triton").solar_day_days().unwrap() > 0.0);
     }
 }
+
+hc_core::catalogue_tests! {
+    type: Body,
+    id: |body| body.name,
+    provenance: |body| body.source,
+    tests: body_table_tests,
+    all: ALL,
+    lookup: by_name,
+}

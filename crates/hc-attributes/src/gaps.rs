@@ -312,3 +312,12 @@ mod tests {
         }
     }
 }
+
+hc_core::catalogue_tests! {
+    type: Gap,
+    id: |gap| gap.id,
+    provenance: |gap| gap.sources,
+    tests: gap_table_tests,
+    all: &ALL,
+    lookup: by_id,
+}

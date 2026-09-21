@@ -565,3 +565,13 @@ mod tests {
         }
     }
 }
+
+hc_core::catalogue_tests! {
+    type: &'static AcademicProfile,
+    id: |profile| profile.code,
+    sorted_by: |profile| profile.code,
+    provenance: |profile| profile.sources,
+    tests: profile_table_tests,
+    all: ALL,
+    lookup: by_code,
+}

@@ -752,3 +752,12 @@ mod tests {
         assert!(!NumberingSystem::from_id("latn").unwrap().is_algorithmic());
     }
 }
+
+hc_core::catalogue_tests! {
+    type: NumberingSystem,
+    id: |system| system.id,
+    sorted_by: |system| system.id,
+    tests: system_table_tests,
+    all: ALL,
+    lookup: NumberingSystem::from_id,
+}

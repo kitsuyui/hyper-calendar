@@ -57,6 +57,7 @@ pub type CountryRules = RuleSet;
 
 /// Every country table in the crate, in ISO 3166-1 alpha-2 order.
 pub static ALL: &[&CountryRules] = &[
+    &UNITED_ARAB_EMIRATES,
     &AUSTRIA,
     &AUSTRALIA,
     &BELGIUM,
@@ -96,7 +97,6 @@ pub static ALL: &[&CountryRules] = &[
     &THAILAND,
     &TURKEY,
     &TAIWAN,
-    &UNITED_ARAB_EMIRATES,
     &UNITED_STATES,
     &VIETNAM,
     &SOUTH_AFRICA,
@@ -110,19 +110,23 @@ pub fn by_code(code: &str) -> Option<&'static CountryRules> {
         .find(|country| code.len() == country.code.len() && code.eq_ignore_ascii_case(country.code))
 }
 
+hc_core::catalogue_tests! {
+    type: &'static CountryRules,
+    id: |country| country.code,
+    sorted_by: |country| country.code,
+    provenance: |country| country.sources,
+    tests: country_table_tests,
+    all: ALL,
+    lookup: by_code,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::rule::Confidence;
 
     #[test]
-    fn every_country_is_reachable_by_its_code() {
-        for country in ALL {
-            assert_eq!(
-                by_code(country.code).map(|found| found.code),
-                Some(country.code)
-            );
-        }
+    fn a_code_is_found_whatever_its_case() {
         assert_eq!(by_code("jp").map(|found| found.code), Some("JP"));
         assert!(by_code("ZZ").is_none());
     }
@@ -135,22 +139,8 @@ mod tests {
     }
 
     #[test]
-    fn no_country_code_is_registered_twice() {
-        for (index, country) in ALL.iter().enumerate() {
-            for other in &ALL[index + 1..] {
-                assert_ne!(country.code, other.code, "duplicate {}", country.code);
-            }
-        }
-    }
-
-    #[test]
-    fn every_table_names_its_sources_and_when_they_were_checked() {
+    fn every_table_says_when_its_sources_were_checked() {
         for country in ALL {
-            assert!(
-                !country.sources.is_empty(),
-                "{} has no cited source",
-                country.code
-            );
             assert!(
                 country.sources_checked.year >= 2026,
                 "{} was checked before this crate existed",

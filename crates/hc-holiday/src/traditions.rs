@@ -590,3 +590,12 @@ pub static ALL: &[&RuleSet] = &[
 pub fn by_code(code: &str) -> Option<&'static RuleSet> {
     ALL.iter().copied().find(|set| set.code == code)
 }
+
+hc_core::catalogue_tests! {
+    type: &'static RuleSet,
+    id: |set| set.code,
+    provenance: |set| set.sources,
+    tests: tradition_table_tests,
+    all: ALL,
+    lookup: by_code,
+}
