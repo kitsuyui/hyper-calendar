@@ -55,6 +55,7 @@ pub mod bahai;
 pub mod buddhist;
 pub mod byzantine;
 pub mod coptic;
+pub mod cycles;
 pub mod day_counts;
 pub mod egyptian;
 pub mod ethiopic;
