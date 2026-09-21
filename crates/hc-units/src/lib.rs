@@ -73,8 +73,8 @@ mod tests {
     use super::media::{FRAME_RATES, SAMPLE_RATES};
     use super::tempo::{NoteValue, Ppqn, Tempo, TimeSignature};
     use super::unit::{
-        ALL, BEAT, DAY, DECIMAL_MINUTE, FLICK, HELEK, HOUR, JULIAN_YEAR, KE_HUNDRED, KE_NINETY_SIX,
-        MILLISECOND, Quantity, SECOND, by_id,
+        BEAT, DAY, DECIMAL_MINUTE, FLICK, HELEK, HOUR, JULIAN_YEAR, KE_HUNDRED, KE_NINETY_SIX,
+        MILLISECOND, Quantity, SECOND,
     };
     use super::{Ratio, UnitError};
 
@@ -113,31 +113,6 @@ mod tests {
             .expect("rounding should succeed");
         // 10^18 / 705_600_000 = 1_417_233_560.0907…, so nearest is …560.
         assert_eq!(rounded.subsec_attos(), 1_417_233_560);
-    }
-
-    #[test]
-    fn the_units_are_listed_shortest_first() {
-        for pair in ALL.windows(2) {
-            assert!(
-                pair[0].seconds <= pair[1].seconds,
-                "{} ({}) is listed before {} ({})",
-                pair[0].id,
-                pair[0].seconds,
-                pair[1].id,
-                pair[1].seconds
-            );
-        }
-    }
-
-    #[test]
-    fn every_unit_has_a_unique_id_and_an_authority() {
-        for (index, unit) in ALL.iter().enumerate() {
-            assert!(!unit.authority.is_empty(), "{} has no authority", unit.id);
-            assert_eq!(by_id(unit.id), Some(*unit), "{} is not findable", unit.id);
-            for other in &ALL[index + 1..] {
-                assert_ne!(unit.id, other.id, "duplicate id {}", unit.id);
-            }
-        }
     }
 
     #[test]

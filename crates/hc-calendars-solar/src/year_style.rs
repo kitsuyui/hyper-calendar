@@ -123,121 +123,119 @@ impl YearStyle {
     }
 }
 
-/// The modern style: the year begins on 1 January and is numbered as we
-/// number it.
-///
-/// Present so that "no style" is a style with a name, and so that a caller
-/// switching between conventions has something to switch *from*.
-pub const CIRCUMCISION: YearStyle = YearStyle {
-    id: "circumcision",
-    english_name: "Circumcision style (1 January)",
-    start_month: 1,
-    start_day: 1,
-    offset_from_start: 0,
-    offset_before_start: 0,
-    authority: "Modern reckoning; the Feast of the Circumcision",
-};
+hc_core::catalogue! {
+    type: YearStyle,
+    id: |entry| entry.id,
+    provenance: |entry| entry.authority,
+    tests: year_style_catalogue,
 
-/// The Annunciation style as Florence used it: the year begins on 25 March
-/// and runs a year *behind* the modern one until then.
-///
-/// So 1 February 1200 Florentine is 1 February 1201 modern.
-pub const ANNUNCIATION_FLORENTINE: YearStyle = YearStyle {
-    id: "annunciation-florentine",
-    english_name: "Annunciation style, Florentine (25 March, behind)",
-    start_month: 3,
-    start_day: 25,
-    offset_from_start: 0,
-    offset_before_start: -1,
-    authority: "Cappelli, Cronologia; the Florentine stile dell'Incarnazione",
-};
+    /// Every style in this module.
+    pub const ALL;
 
-/// The Annunciation style as Pisa used it: the year begins on 25 March and
-/// runs a year *ahead* of the modern one from then.
-///
-/// So 1 April 1200 modern is 1 April 1201 Pisan. Pisa and Florence are
-/// forty miles apart and their datelines differ by a year for most of it.
-pub const ANNUNCIATION_PISAN: YearStyle = YearStyle {
-    id: "annunciation-pisan",
-    english_name: "Annunciation style, Pisan (25 March, ahead)",
-    start_month: 3,
-    start_day: 25,
-    offset_from_start: 1,
-    offset_before_start: 0,
-    authority: "Cappelli, Cronologia; the Pisan stile dell'Incarnazione",
-};
+    /// The style with this id, if this module has one.
+    pub fn by_id;
 
-/// The English legal year, which began on 25 March until 1752.
-///
-/// The same arithmetic as the Florentine style, under the name English
-/// records use. A document dated 12 February 1721 means 1722.
-pub const LADY_DAY: YearStyle = YearStyle {
-    id: "lady-day",
-    english_name: "Lady Day style (25 March, behind)",
-    start_month: 3,
-    start_day: 25,
-    offset_from_start: 0,
-    offset_before_start: -1,
-    authority: "Cheney, Handbook of Dates; the English legal year to 1752",
-};
+    entries: {
+    /// The modern style: the year begins on 1 January and is numbered as we
+    /// number it.
+    ///
+    /// Present so that "no style" is a style with a name, and so that a caller
+    /// switching between conventions has something to switch *from*.
+    pub const CIRCUMCISION = YearStyle {
+        id: "circumcision",
+        english_name: "Circumcision style (1 January)",
+        start_month: 1,
+        start_day: 1,
+        offset_from_start: 0,
+        offset_before_start: 0,
+        authority: "Modern reckoning; the Feast of the Circumcision",
+    };
 
-/// The Nativity style: the year begins on 25 December, a week early.
-///
-/// Used by the papal chancery for long stretches and widely in Germany. So
-/// 28 December 1200 modern is 28 December 1201 in this style.
-pub const NATIVITY: YearStyle = YearStyle {
-    id: "nativity",
-    english_name: "Nativity style (25 December)",
-    start_month: 12,
-    start_day: 25,
-    offset_from_start: 1,
-    offset_before_start: 0,
-    authority: "Grotefend, Zeitrechnung; the stilus nativitatis",
-};
+    /// The Annunciation style as Florence used it: the year begins on 25 March
+    /// and runs a year *behind* the modern one until then.
+    ///
+    /// So 1 February 1200 Florentine is 1 February 1201 modern.
+    pub const ANNUNCIATION_FLORENTINE = YearStyle {
+        id: "annunciation-florentine",
+        english_name: "Annunciation style, Florentine (25 March, behind)",
+        start_month: 3,
+        start_day: 25,
+        offset_from_start: 0,
+        offset_before_start: -1,
+        authority: "Cappelli, Cronologia; the Florentine stile dell'Incarnazione",
+    };
 
-/// The Venetian *more veneto*: the year begins on 1 March.
-///
-/// January and February belong to the year before, so 1 February 1500
-/// *more veneto* is 1 February 1501 modern.
-pub const MORE_VENETO: YearStyle = YearStyle {
-    id: "more-veneto",
-    english_name: "More veneto (1 March)",
-    start_month: 3,
-    start_day: 1,
-    offset_from_start: 0,
-    offset_before_start: -1,
-    authority: "Cappelli, Cronologia; the Venetian chancery",
-};
+    /// The Annunciation style as Pisa used it: the year begins on 25 March and
+    /// runs a year *ahead* of the modern one from then.
+    ///
+    /// So 1 April 1200 modern is 1 April 1201 Pisan. Pisa and Florence are
+    /// forty miles apart and their datelines differ by a year for most of it.
+    pub const ANNUNCIATION_PISAN = YearStyle {
+        id: "annunciation-pisan",
+        english_name: "Annunciation style, Pisan (25 March, ahead)",
+        start_month: 3,
+        start_day: 25,
+        offset_from_start: 1,
+        offset_before_start: 0,
+        authority: "Cappelli, Cronologia; the Pisan stile dell'Incarnazione",
+    };
 
-/// The Greek or Constantinopolitan style: the year begins on 1 September.
-///
-/// The Byzantine civil year, and the one the indiction turns on. September
-/// to December carry the next year's number.
-pub const SEPTEMBER: YearStyle = YearStyle {
-    id: "september",
-    english_name: "Greek style (1 September)",
-    start_month: 9,
-    start_day: 1,
-    offset_from_start: 1,
-    offset_before_start: 0,
-    authority: "Grumel, La chronologie; the Byzantine civil year",
-};
+    /// The English legal year, which began on 25 March until 1752.
+    ///
+    /// The same arithmetic as the Florentine style, under the name English
+    /// records use. A document dated 12 February 1721 means 1722.
+    pub const LADY_DAY = YearStyle {
+        id: "lady-day",
+        english_name: "Lady Day style (25 March, behind)",
+        start_month: 3,
+        start_day: 25,
+        offset_from_start: 0,
+        offset_before_start: -1,
+        authority: "Cheney, Handbook of Dates; the English legal year to 1752",
+    };
 
-/// Every style in this module.
-pub const ALL: &[YearStyle] = &[
-    CIRCUMCISION,
-    ANNUNCIATION_FLORENTINE,
-    ANNUNCIATION_PISAN,
-    LADY_DAY,
-    NATIVITY,
-    MORE_VENETO,
-    SEPTEMBER,
-];
+    /// The Nativity style: the year begins on 25 December, a week early.
+    ///
+    /// Used by the papal chancery for long stretches and widely in Germany. So
+    /// 28 December 1200 modern is 28 December 1201 in this style.
+    pub const NATIVITY = YearStyle {
+        id: "nativity",
+        english_name: "Nativity style (25 December)",
+        start_month: 12,
+        start_day: 25,
+        offset_from_start: 1,
+        offset_before_start: 0,
+        authority: "Grotefend, Zeitrechnung; the stilus nativitatis",
+    };
 
-/// The style with this id, if this module has one.
-#[must_use]
-pub fn by_id(id: &str) -> Option<YearStyle> {
-    ALL.iter().copied().find(|style| style.id == id)
+    /// The Venetian *more veneto*: the year begins on 1 March.
+    ///
+    /// January and February belong to the year before, so 1 February 1500
+    /// *more veneto* is 1 February 1501 modern.
+    pub const MORE_VENETO = YearStyle {
+        id: "more-veneto",
+        english_name: "More veneto (1 March)",
+        start_month: 3,
+        start_day: 1,
+        offset_from_start: 0,
+        offset_before_start: -1,
+        authority: "Cappelli, Cronologia; the Venetian chancery",
+    };
+
+    /// The Greek or Constantinopolitan style: the year begins on 1 September.
+    ///
+    /// The Byzantine civil year, and the one the indiction turns on. September
+    /// to December carry the next year's number.
+    pub const SEPTEMBER = YearStyle {
+        id: "september",
+        english_name: "Greek style (1 September)",
+        start_month: 9,
+        start_day: 1,
+        offset_from_start: 1,
+        offset_before_start: 0,
+        authority: "Grumel, La chronologie; the Byzantine civil year",
+    };
+    }
 }
 
 #[cfg(test)]
@@ -360,17 +358,6 @@ mod tests {
         let summer = julian::to_fixed(1250, 7, 1).expect("a real date");
         assert_eq!(ANNUNCIATION_PISAN.agrees_with_modern(summer), Ok(false));
         assert_eq!(ANNUNCIATION_FLORENTINE.agrees_with_modern(summer), Ok(true));
-    }
-
-    #[test]
-    fn every_style_has_a_unique_id_and_an_authority() {
-        for (index, style) in ALL.iter().enumerate() {
-            assert!(!style.authority.is_empty(), "{}", style.id);
-            assert_eq!(by_id(style.id), Some(*style));
-            for other in &ALL[index + 1..] {
-                assert_ne!(style.id, other.id);
-            }
-        }
     }
 
     #[test]
