@@ -50,6 +50,7 @@
 extern crate alloc;
 
 pub mod cycle;
+pub mod daystart;
 pub mod error;
 pub mod fields;
 pub mod fixed;
@@ -60,6 +61,7 @@ pub mod weekday;
 #[cfg(feature = "alloc")]
 pub mod registry;
 
+pub use daystart::{DayBoundary, Standing, Usage};
 pub use error::{CalendarError, CalendarResult};
 pub use fields::{DateFields, Month, YearKind};
 pub use fixed::{Rd, moment_to_rd, rd_to_moment};

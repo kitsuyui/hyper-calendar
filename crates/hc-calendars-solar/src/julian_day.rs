@@ -91,6 +91,13 @@ pub struct JulianDayCalendar;
 impl Calendar for JulianDayCalendar {
     type Date = JulianDayNumber;
 
+    /// The Julian Day begins at noon, not midnight. Astronomers count that
+    /// way so that one night's observations carry a single date, and the
+    /// convention has outlived the reason.
+    fn day_boundary(&self) -> hc_calendar::DayBoundary {
+        hc_calendar::DayBoundary::Noon
+    }
+
     fn meta(&self) -> CalendarMeta {
         day_count_meta("julian-day", "Julian Day Number")
     }
@@ -125,6 +132,15 @@ pub struct ModifiedJulianDayCalendar;
 
 impl Calendar for ModifiedJulianDayCalendar {
     type Date = ModifiedJulianDay;
+
+    /// The Modified Julian Date begins at midnight, unlike the Julian Day it
+    /// is derived from — the 0.5 in its definition is exactly that shift. It
+    /// is recorded here because the neighbouring calendar differs. at noon, not midnight. Astronomers count that
+    /// way so that one night's observations carry a single date, and the
+    /// convention has outlived the reason.
+    fn day_boundary(&self) -> hc_calendar::DayBoundary {
+        hc_calendar::DayBoundary::Midnight
+    }
 
     fn meta(&self) -> CalendarMeta {
         day_count_meta("modified-julian-day", "Modified Julian Date")

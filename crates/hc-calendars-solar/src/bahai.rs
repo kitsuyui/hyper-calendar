@@ -251,6 +251,11 @@ pub struct ArithmeticBahaiCalendar;
 impl Calendar for ArithmeticBahaiCalendar {
     type Date = BahaiDate;
 
+    /// The Bahá'í day begins at sunset.
+    fn day_boundary(&self) -> hc_calendar::DayBoundary {
+        hc_calendar::DayBoundary::Sunset
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("bahai-arithmetic"),
