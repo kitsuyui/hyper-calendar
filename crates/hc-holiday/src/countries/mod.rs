@@ -37,9 +37,9 @@ pub mod japan;
 pub mod oceania;
 
 pub use africa_middle_east::{
-    BAHRAIN, EGYPT, ETHIOPIA, GHANA, IRAN, ISRAEL, JORDAN, KENYA, KUWAIT, LEBANON, MOROCCO,
-    NIGERIA, SAUDI_ARABIA, SOUTH_AFRICA, TANZANIA, TURKEY, UGANDA, UNITED_ARAB_EMIRATES, ZAMBIA,
-    ZIMBABWE,
+    ALGERIA, BAHRAIN, COTE_D_IVOIRE, EGYPT, ETHIOPIA, GHANA, IRAN, ISRAEL, JORDAN, KENYA, KUWAIT,
+    LEBANON, MOROCCO, NIGERIA, SAUDI_ARABIA, SENEGAL, SOUTH_AFRICA, TANZANIA, TUNISIA, TURKEY,
+    UGANDA, UNITED_ARAB_EMIRATES, ZAMBIA, ZIMBABWE,
 };
 pub use americas::{
     ARGENTINA, BAHAMAS, BARBADOS, BOLIVIA, BRAZIL, CANADA, CHILE, COLOMBIA, COSTA_RICA,
@@ -84,6 +84,7 @@ pub static ALL: &[&CountryRules] = &[
     &BELARUS,
     &CANADA,
     &SWITZERLAND,
+    &COTE_D_IVOIRE,
     &CHILE,
     &CHINA,
     &COLOMBIA,
@@ -93,6 +94,7 @@ pub static ALL: &[&CountryRules] = &[
     &GERMANY,
     &DENMARK,
     &DOMINICAN_REPUBLIC,
+    &ALGERIA,
     &ECUADOR,
     &ESTONIA,
     &EGYPT,
@@ -155,9 +157,11 @@ pub static ALL: &[&CountryRules] = &[
     &SINGAPORE,
     &SLOVENIA,
     &SLOVAKIA,
+    &SENEGAL,
     &THAILAND,
     &TAJIKISTAN,
     &TURKMENISTAN,
+    &TUNISIA,
     &TURKEY,
     &TRINIDAD_AND_TOBAGO,
     &TAIWAN,
@@ -206,7 +210,7 @@ mod tests {
     fn the_registry_holds_the_number_of_countries_the_readme_claims() {
         // `README.md` and `docs/observances.md` both state this figure, and a
         // documented count that drifts is a documented lie.
-        assert_eq!(ALL.len(), 104);
+        assert_eq!(ALL.len(), 108);
     }
 
     #[test]

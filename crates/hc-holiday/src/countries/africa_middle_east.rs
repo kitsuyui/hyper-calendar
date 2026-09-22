@@ -11,7 +11,8 @@
 use hc_calendar::{Month, Rd, Weekday};
 
 use crate::computus::offsets::{
-    EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, PALM_SUNDAY,
+    ASCENSION, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, PALM_SUNDAY, PENTECOST,
+    WHIT_MONDAY,
 };
 use crate::hindu::DIWALI;
 use crate::rule::{
@@ -1659,4 +1660,386 @@ pub static ZIMBABWE: RuleSet = RuleSet {
               Zimbabwe, retrieved 2026-09-22, for the 2026 list; ZimLII and Veritas \
               Zimbabwe for section 2's Sunday proviso; Wikipedia, \"Robert Gabriel \
               Mugabe National Youth Day\", retrieved the same day, for 2018",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Algeria
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Saturday–Sunday until the ordinances of 1976 made it Thursday–Friday,
+/// and Friday–Saturday from 14 August 2009.
+static DZ_WEEKEND: &[WeekendPolicy] = &[
+    WeekendPolicy {
+        days: &[Weekday::Saturday, Weekday::Sunday],
+        valid_from: None,
+        valid_until: Some(1975),
+    },
+    WeekendPolicy {
+        days: &[Weekday::Thursday, Weekday::Friday],
+        valid_from: Some(1976),
+        valid_until: Some(2008),
+    },
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday],
+        valid_from: Some(2009),
+        valid_until: None,
+    },
+];
+
+/// A day article 3 or 4 of the law grants to the Christian or the Jewish
+/// community: a religious day, not a day off for everyone.
+const fn dz_community(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::observance(name, local, rule).of_kind(Kind::Religious)
+}
+
+static DZ_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("Yennayer", "Yennayer", Rule::gregorian(1, 12))
+        .years(Some(2018), None),
+    HolidayRule::fixed_public("Labour Day", "Fête des travailleurs", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Fête de l'indépendance",
+        Rule::gregorian(7, 5),
+    )
+    .years(Some(1962), None),
+    HolidayRule::fixed_public(
+        "Revolution Day",
+        "Fête de la Révolution",
+        Rule::gregorian(11, 1),
+    ),
+    hijri("Islamic New Year", "Awal Mouharram", 1, 1),
+    hijri("Ashura", "Achoura", 1, 10),
+    hijri("Mawlid", "Mouloud", 3, 12),
+    hijri("Eid al-Fitr", "Aïd el-Fitr", 10, 1),
+    hijri("Eid al-Fitr", "Aïd el-Fitr", 10, 2),
+    hijri("Eid al-Fitr", "Aïd el-Fitr", 10, 3).years(Some(2023), None),
+    hijri("Eid al-Adha", "Aïd el-Adha", 12, 10),
+    hijri("Eid al-Adha", "Aïd el-Adha", 12, 11),
+    hijri("Eid al-Adha", "Aïd el-Adha", 12, 12).years(Some(2023), None),
+    dz_community(
+        "Easter Monday",
+        "Lundi de Pâques",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    dz_community("Ascension", "Ascension", Rule::easter(ASCENSION)),
+    dz_community(
+        "Whit Monday",
+        "Lundi de Pentecôte",
+        Rule::easter(WHIT_MONDAY),
+    ),
+    dz_community("Assumption", "Assomption", Rule::gregorian(8, 15)),
+    dz_community("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    dz_community(
+        "Rosh Hashanah",
+        "Roch Hachana",
+        Rule::in_calendar(CalendarSystem::HEBREW, 1, 1),
+    ),
+    dz_community(
+        "Yom Kippur",
+        "Yom Kippour",
+        Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
+    ),
+    dz_community(
+        "Passover",
+        "Pessah",
+        Rule::in_calendar(CalendarSystem::HEBREW, 7, 15),
+    ),
+];
+
+/// Algeria.
+///
+/// Law 63-278 of 26 July 1963 fixing the list of legal holidays, as
+/// amended: five civil days and, on the tabular Hijri calendar as
+/// approximations of the sighted dates, Awal Mouharram, Achoura, Mouloud
+/// and the two Eids — two days each until 2022, as the Government's
+/// notices for 2019 and 2022 gave them, and "trois (3) jours" each by
+/// law 23-10 of 26 June 2023, first kept for the Aïd el-Adha of that
+/// month. Yennayer, the Amazigh new year, was added by law 18-12 of
+/// 2 July 2018 and first kept on 12 January 2018. Articles 3 and 4 grant
+/// the Christian community Easter Monday, Ascension, Whit Monday, the
+/// Assumption and Christmas, and the Jewish community Rosh Hashanah, Yom
+/// Kippur and Passover; those are religious days here, not days off for
+/// all. The weekend was Saturday–Sunday until 1976, Thursday–Friday to
+/// 2009 and Friday–Saturday from 14 August 2009. The law has no rule for
+/// a holiday on the weekend, and nothing moves.
+pub static ALGERIA: RuleSet = RuleSet {
+    code: "DZ",
+    english_name: "Algeria",
+    rules: DZ_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: DZ_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Law 23-10 of 26 June 2023 amending law 63-278 of 26 July 1963 fixing the list \
+              of legal holidays, Journal officiel no. 43 of 27 June 2023; legal-doctrine.com, \
+              \"Les jours fériés en Algérie\", for articles 1, 3 and 4 of law 63-278 and \
+              law 18-12 of 2 July 2018; APS and algerie-eco.com on the two Aïd el-Adha \
+              days of 2019 and 2022; Wikipedia (fr), \"Fêtes et jours fériés en Algérie\" \
+              and \"Yennayer\", and France 24 (22 July 2009) for the weekend",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Tunisia
+// ─────────────────────────────────────────────────────────────────────────
+
+static TN_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "New Year's Day",
+        "رأس السنة الميلادية",
+        Rule::gregorian(1, 1),
+    )
+    .years(Some(1961), None),
+    HolidayRule::fixed_public(
+        "Revolution and Youth Day",
+        "عيد الثورة والشباب",
+        Rule::gregorian(1, 14),
+    )
+    .years(Some(2012), Some(2021)),
+    HolidayRule::fixed_public("Revolution Day", "عيد الثورة", Rule::gregorian(1, 18))
+        .years(Some(1961), Some(1987)),
+    HolidayRule::fixed_public("Independence Day", "عيد الإستقلال", Rule::gregorian(3, 20))
+        .years(Some(1961), None),
+    HolidayRule::fixed_public("Youth Day", "عيد الشباب", Rule::gregorian(3, 21))
+        .years(Some(1988), Some(2010)),
+    HolidayRule::fixed_public("Martyrs' Day", "عيد الشهداء", Rule::gregorian(4, 9))
+        .years(Some(1961), None),
+    HolidayRule::fixed_public("Labour Day", "عيد الشغل", Rule::gregorian(5, 1))
+        .years(Some(1961), None),
+    HolidayRule::fixed_public("Victory Day", "عيد النصر", Rule::gregorian(6, 1))
+        .years(Some(1961), Some(1987)),
+    HolidayRule::fixed_public("Republic Day", "عيد الجمهورية", Rule::gregorian(7, 25))
+        .years(Some(1961), None),
+    HolidayRule::fixed_public(
+        "President Bourguiba's Birthday",
+        "عيد الزعيم",
+        Rule::gregorian(8, 3),
+    )
+    .years(Some(1961), Some(1987)),
+    HolidayRule::fixed_public("Women's Day", "عيد المرأة", Rule::gregorian(8, 13))
+        .years(Some(1966), None),
+    HolidayRule::fixed_public(
+        "Commemoration of 3 September 1934",
+        "",
+        Rule::gregorian(9, 3),
+    )
+    .years(Some(1965), Some(1987)),
+    HolidayRule::fixed_public("Evacuation Day", "عيد الجلاء", Rule::gregorian(10, 15))
+        .years(Some(1964), None),
+    HolidayRule::fixed_public(
+        "Commemoration of 7 November 1987",
+        "عيد التحول المبارك",
+        Rule::gregorian(11, 7),
+    )
+    .years(Some(1990), Some(2010)),
+    HolidayRule::fixed_public("Revolution Day", "عيد الثورة", Rule::gregorian(12, 17))
+        .years(Some(2021), None),
+    hijri("Islamic New Year", "رأس العام الهجري", 1, 1).years(Some(1961), None),
+    hijri("Ashura", "عاشوراء", 1, 10).years(Some(1961), Some(1965)),
+    hijri("Mouled", "المولد", 3, 12).years(Some(1961), None),
+    hijri("Eid al-Fitr", "العيد الصغير", 10, 1).years(Some(1961), None),
+    hijri("Eid al-Fitr", "العيد الصغير", 10, 2).years(Some(1961), None),
+    hijri("Eid al-Fitr", "العيد الصغير", 10, 3).years(Some(1961), None),
+    hijri("Eid al-Adha", "العيد الكبير", 12, 10).years(Some(1961), None),
+    hijri("Eid al-Adha", "العيد الكبير", 12, 11).years(Some(1961), None),
+];
+
+/// Tunisia.
+///
+/// Presidential decree 2021-223 of 7 December 2021 fixing the holidays
+/// that give leave to the personnel of the State, local authorities and
+/// administrative public establishments, article 1: eight civil days of
+/// one day each, the Hijri new year and the Mouled of one day, "Aïd el
+/// fitr : trois jours" and "Aïd el idha : deux jours", the Hijri ones on
+/// the tabular calendar as approximations. The private sector's holidays
+/// are the Labour Code's and the collective agreements', not read here.
+/// The chronology is Wikipedia's from the decrees it cites: the list of
+/// 30 March 1961, with Achoura until 1965 and 18 January, 1 June and
+/// 3 August until 1987; Evacuation Day from 1964; Women's Day from 1966
+/// and 3 September over 1965–1987 by the decree of 30 August 1965; Youth
+/// Day on 21 March from 1988 and 7 November from 1990, both last kept in
+/// 2010; 14 January from 2012 to 2021; and 17 December from 2021. The
+/// three Aïd el-Fitr days are the 2021 decree's and carry no first year.
+/// No decree read says anything of a holiday on the weekend.
+pub static TUNISIA: RuleSet = RuleSet {
+    code: "TN",
+    english_name: "Tunisia",
+    rules: TN_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Décret présidentiel n° 2021-223 du 7 décembre 2021 (JORT 2021-113), article 1, \
+              as legislation-securite.tn and jurisitetunisie.com publish it, retrieved \
+              2026-09-22; Wikipedia (fr), \"Fêtes et jours fériés en Tunisie\", for the \
+              Arabic names and the chronology of decrees 61-144, 64-13, 65-410, 87-1447, \
+              90-1826 and 2011-317; Kapitalis on the 2021 decree",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Senegal
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 2 of law 74-52: "when Korité and Tabaski fall on a Sunday, the
+/// following Monday is a holiday". Only those two rules substitute.
+static SN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: false,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static SN_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Fête de l'Indépendance",
+        Rule::gregorian(4, 4),
+    ),
+    HolidayRule::fixed_public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Easter Sunday", "Pâques", Rule::easter(EASTER_SUNDAY)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Lundi de Pâques",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public("Ascension", "Jeudi de l'Ascension", Rule::easter(ASCENSION)),
+    HolidayRule::fixed_public("Pentecost", "Pentecôte", Rule::easter(PENTECOST)),
+    HolidayRule::fixed_public(
+        "Whit Monday",
+        "Lundi de Pentecôte",
+        Rule::easter(WHIT_MONDAY),
+    ),
+    HolidayRule::fixed_public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+    HolidayRule::fixed_public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
+    HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    hijri("Tamkharit", "Tamxarit", 1, 10),
+    hijri("Grand Magal of Touba", "Grand Magal de Touba", 2, 18).years(Some(2012), None),
+    hijri("Maouloud", "Maouloud", 3, 12),
+    hijri_public("Korité", "Korité", 10, 1),
+    hijri_public("Tabaski", "Tabaski", 12, 10),
+];
+
+/// Senegal.
+///
+/// Law 74-52 of 4 November 1974 on the national holiday and the legal
+/// holidays, as amended in 1983 and 1989, from the Ministry of Labour's
+/// collection: 4 April as the national holiday; "besides the feasts of
+/// Easter and Pentecost falling on a Sunday", which are carried on their
+/// Sundays, twelve legal holidays; and "when Korité and Tabaski fall on a
+/// Sunday, the following Monday is a holiday", which only those two rules
+/// do. The Grand Magal of Touba, on 18 Safar, was made a paid day off by
+/// President Wade's decree and first kept on 12 January 2012, and written
+/// into the law by law 2013-06 of 11 December 2013; the Monday after a
+/// Sunday Magal is a decree each time, as in 2021, and is not carried.
+/// The Hijri days are on the tabular calendar as approximations of the
+/// sighted dates. Article 4's distinction of the days that are paid as
+/// well as off — the national holiday, Tamkharit and 1 May — is not
+/// carried.
+pub static SENEGAL: RuleSet = RuleSet {
+    code: "SN",
+    english_name: "Senegal",
+    rules: SN_RULES,
+    substitution: SN_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Loi n° 74-52 du 4 novembre 1974 relative à la fête nationale et aux fêtes \
+              légales, as amended by laws 83-54 and 89-41, from \"Le manuel du \
+              travailleur\" on NATLEX (SEN-97260), retrieved 2026-09-22; NATLEX on loi \
+              n° 2013-06 du 11 décembre 2013; mourides.com (18 December 2011) and \
+              Seneweb on the Magal decree and its first application; Wikipedia, \
+              \"Public holidays in Senegal\", for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Côte d'Ivoire
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Decree 2011-371, article 2 (new), items 13 to 16: "the day after" the
+/// national holiday, Labour Day, Aïd el-Fitr, Christmas and Tabaski
+/// "whenever the said feast falls on a Sunday".
+static CI_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: false,
+    on_collision: false,
+    valid_from: Some(2011),
+    valid_until: None,
+}];
+
+static CI_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Lundi de Pâques",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::public("Labour Day", "Fête du travail", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Ascension", "Ascension", Rule::easter(ASCENSION)),
+    HolidayRule::fixed_public(
+        "Whit Monday",
+        "Lundi de Pentecôte",
+        Rule::easter(WHIT_MONDAY),
+    ),
+    HolidayRule::public(
+        "Independence Day",
+        "Fête de l'Indépendance",
+        Rule::gregorian(8, 7),
+    ),
+    HolidayRule::fixed_public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+    HolidayRule::fixed_public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
+    HolidayRule::fixed_public(
+        "National Peace Day",
+        "Journée nationale de la Paix",
+        Rule::gregorian(11, 15),
+    )
+    .years(Some(1996), None),
+    HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    hijri(
+        "Day after the Prophet's Birthday",
+        "Lendemain du Maouloud",
+        3,
+        12,
+    ),
+    hijri(
+        "Day after the Night of Destiny",
+        "Lendemain de la Nuit du Destin",
+        9,
+        27,
+    ),
+    hijri_public("Eid al-Fitr", "Aïd el-Fitr", 10, 1),
+    hijri_public("Tabaski", "Tabaski", 12, 10),
+];
+
+/// Côte d'Ivoire.
+///
+/// Decree 96-205 of 7 March 1996 determining the list and regime of
+/// holidays, article 2 as rewritten by decree 2011-371 of 4 November
+/// 2011: twelve days off, and "the day after" the national holiday,
+/// Labour Day, Aïd el-Fitr, Christmas and Tabaski "whenever the said
+/// feast falls on a Sunday", which those five rules do from 2011, the
+/// 1996 wording not having been read. The national holiday of 7 August
+/// and Labour Day are the decree's by reference. The Maouloud day is
+/// "the day after the anniversary of the Prophet's birth" and the Night
+/// of Destiny's "the day after" the night of 26 to 27 Ramadan, carried
+/// as 12 Rabi al-awwal and 27 Ramadan on the tabular Hijri calendar, as
+/// approximations of the dates the imams' councils announce and the
+/// Ministry then decrees. National Peace Day is the 1996 decree's.
+pub static COTE_D_IVOIRE: RuleSet = RuleSet {
+    code: "CI",
+    english_name: "Côte d'Ivoire",
+    rules: CI_RULES,
+    substitution: CI_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Décret n° 2011-371 du 4 novembre 2011 modifiant et complétant l'article 2 du \
+              décret n° 96-205 du 7 mars 1996 déterminant la liste et le régime des jours \
+              fériés, as loidici.biz reproduces it, retrieved 2026-09-22; Wikipedia (fr), \
+              \"Fêtes et jours fériés en Côte d'Ivoire\", for the two lendemain days and \
+              the sighting practice, and Wikipedia, \"Public holidays in Ivory Coast\", \
+              for 1996",
 };

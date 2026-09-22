@@ -3398,6 +3398,195 @@ fn turkmenistan_moves_a_sunday_holiday_only_and_moved_two_days_in_2018() {
 }
 
 #[test]
+fn algeria_keeps_two_eid_days_until_2022_and_three_since_with_community_days_religious() {
+    expect(
+        "DZ",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 12, "Yennayer"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 3, 22, "Eid al-Fitr"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 5, 29, "Eid al-Adha"),
+            (2026, 6, 17, "Islamic New Year"),
+            (2026, 6, 26, "Ashura"),
+            (2026, 7, 5, "Independence Day"),
+            (2026, 8, 26, "Mawlid"),
+            (2026, 11, 1, "Revolution Day"),
+            // 2022 on the tabular calendar, a day behind the notice's 9 and
+            // 10 July: two days, not three.
+            (2022, 7, 10, "Eid al-Adha"),
+            (2022, 7, 11, "Eid al-Adha"),
+            (2022, 5, 3, "Eid al-Fitr"),
+            (2022, 5, 4, "Eid al-Fitr"),
+            (2018, 1, 12, "Yennayer"),
+        ],
+    );
+    expect_working(
+        "DZ",
+        None,
+        &[(2022, 7, 12), (2022, 5, 5), (2017, 1, 12), (2026, 12, 25)],
+    );
+    let calendar = HolidayCalendar::for_year(table("DZ"), None, 2026);
+    let community: Vec<(&str, Kind)> = [ymd(2026, 4, 6), ymd(2026, 9, 21), ymd(2026, 12, 25)]
+        .iter()
+        .flat_map(|day| calendar.on(*day))
+        .map(|holiday| (holiday.name, holiday.kind))
+        .collect();
+    assert_eq!(
+        community,
+        [
+            ("Easter Monday", Kind::Religious),
+            ("Yom Kippur", Kind::Religious),
+            ("Christmas Day", Kind::Religious),
+        ]
+    );
+}
+
+#[test]
+fn tunisia_follows_the_decrees_from_1961_to_2021() {
+    expect(
+        "TN",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 20, "Independence Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 3, 22, "Eid al-Fitr"),
+            (2026, 4, 9, "Martyrs' Day"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 5, 28, "Eid al-Adha"),
+            (2026, 6, 17, "Islamic New Year"),
+            (2026, 7, 25, "Republic Day"),
+            (2026, 8, 13, "Women's Day"),
+            (2026, 8, 26, "Mouled"),
+            (2026, 10, 15, "Evacuation Day"),
+            (2026, 12, 17, "Revolution Day"),
+            (2021, 1, 14, "Revolution and Youth Day"),
+            (2021, 12, 17, "Revolution Day"),
+            (2012, 1, 14, "Revolution and Youth Day"),
+            (2010, 3, 21, "Youth Day"),
+            (2010, 11, 7, "Commemoration of 7 November 1987"),
+            (1990, 11, 7, "Commemoration of 7 November 1987"),
+            (1988, 3, 21, "Youth Day"),
+            (1987, 1, 18, "Revolution Day"),
+            (1987, 6, 1, "Victory Day"),
+            (1987, 8, 3, "President Bourguiba's Birthday"),
+            (1987, 9, 3, "Commemoration of 3 September 1934"),
+            (1966, 8, 13, "Women's Day"),
+            (1964, 10, 15, "Evacuation Day"),
+        ],
+    );
+    expect_working(
+        "TN",
+        None,
+        &[
+            (2026, 1, 14),
+            (2025, 3, 21),
+            (2026, 11, 7),
+            (2026, 5, 29),
+            (2020, 12, 17),
+            (2011, 1, 14),
+            (2011, 3, 21),
+            (2012, 11, 7),
+            (1989, 11, 7),
+            (1988, 1, 18),
+            (1988, 6, 1),
+            (1987, 3, 21),
+            (1965, 8, 13),
+            (1963, 10, 15),
+        ],
+    );
+}
+
+#[test]
+fn senegal_gives_the_monday_after_a_sunday_korite_or_tabaski_only() {
+    expect(
+        "SN",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 20, "Korité"),
+            (2026, 4, 4, "Independence Day"),
+            (2026, 4, 5, "Easter Sunday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 14, "Ascension"),
+            (2026, 5, 24, "Pentecost"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 5, 27, "Tabaski"),
+            (2026, 6, 26, "Tamkharit"),
+            // The tabular 18 Safar; Senegal saw the moon a day earlier.
+            (2026, 8, 3, "Grand Magal of Touba"),
+            (2026, 8, 15, "Assumption"),
+            (2026, 8, 26, "Maouloud"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2025, 8, 13, "Grand Magal of Touba"),
+            // The first Magal kept as a day off, 12 January 2012, on the tabular
+            // calendar a day later.
+            (2012, 1, 13, "Grand Magal of Touba"),
+        ],
+    );
+    // A Sunday Tamkharit, All Saints' Day or Independence Day stays.
+    expect_working(
+        "SN",
+        None,
+        &[(2025, 7, 7), (2026, 11, 2), (2027, 4, 5), (2011, 1, 24)],
+    );
+    // On the tabular calendar Korité fell on Sunday 24 May 2020 and Tabaski
+    // on Sunday 10 July 2022; each gave the Monday.
+    expect_substitute("SN", None, 2020, (5, 24), (5, 25));
+    expect_substitute("SN", None, 2022, (7, 10), (7, 11));
+}
+
+#[test]
+fn cote_d_ivoire_gives_the_day_after_five_sunday_feasts_since_2011() {
+    expect(
+        "CI",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 16, "Day after the Night of Destiny"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 14, "Ascension"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 5, 27, "Tabaski"),
+            (2026, 8, 7, "Independence Day"),
+            (2026, 8, 15, "Assumption"),
+            (2026, 8, 26, "Day after the Prophet's Birthday"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 11, 15, "National Peace Day"),
+            (2026, 12, 25, "Christmas Day"),
+            // 2011, the decree's year: a Sunday Labour Day, Independence Day
+            // and Christmas each gave the Monday.
+            (2011, 5, 2, "Labour Day"),
+            (2011, 8, 8, "Independence Day"),
+            (2011, 12, 26, "Christmas Day"),
+            (1996, 11, 15, "National Peace Day"),
+        ],
+    );
+    // A Sunday All Saints' Day or Assumption stays; before 2011 nothing moved.
+    expect_working(
+        "CI",
+        None,
+        &[
+            (2026, 11, 2),
+            (2026, 11, 16),
+            (2010, 8, 16),
+            (2010, 12, 27),
+            (1995, 11, 15),
+        ],
+    );
+    expect_substitute("CI", None, 2011, (12, 25), (12, 26));
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",
