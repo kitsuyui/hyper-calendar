@@ -26,6 +26,7 @@ from an epoch with months cut out of it, which is why none of them belongs in
 | `aztec-xiuhpohualli` | 365 days |
 | `balinese-pawukon` | Thirty *wuku* and ten concurrent week cycles over 210 days |
 | `javanese-pasaran` | The 5-day market week and the 35-day *wetonan* |
+| `akan` | The Akan 6-day week and the 42-day *Adaduanan*, with the four *dabɔne* |
 | `sexagenary` | 干支 over years, months and days |
 
 `register_all(&mut CalendarRegistry)` inserts every calendar in the table,

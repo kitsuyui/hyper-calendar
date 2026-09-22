@@ -16,6 +16,8 @@
 extend-exclude = ["Cargo.lock"]
 
 [default.extend-words]
+# Fo, the first day of the Akan six-day week.
+Fo = "Fo"
 # German and Dutch month names.
 Januar = "Januar"
 Februar = "Februar"

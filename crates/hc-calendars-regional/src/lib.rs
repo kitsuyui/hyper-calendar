@@ -15,6 +15,7 @@
 //! | [`aztec`] | `aztec-tonalpohualli`, `aztec-xiuhpohualli` |
 //! | [`balinese_pawukon`] | `balinese-pawukon` — thirty *wuku* and ten concurrent week cycles over 210 days |
 //! | [`javanese_pasaran`] | `javanese-pasaran` — the five-day market week and the 35-day wetonan |
+//! | [`akan`] | `akan` — the Akan six-day week and the 42-day Adaduanan it makes with the seven-day one |
 //! | [`sexagenary`] | `sexagenary` — 干支 over years, months and days |
 //!
 //! # Cyclic calendars and the round-trip contract
@@ -69,6 +70,7 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+pub mod akan;
 pub mod aztec;
 pub mod balinese_pawukon;
 pub mod japanese;
@@ -77,6 +79,7 @@ pub mod maya;
 pub mod nengo;
 pub mod sexagenary;
 
+pub use akan::{AkanCalendar, AkanDate};
 pub use aztec::{
     AztecTonalpohualliCalendar, AztecTonalpohualliDate, AztecXiuhpohualliCalendar,
     AztecXiuhpohualliDate,
@@ -129,6 +132,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::AztecXiuhpohualliCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BalinesePawukonCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::JavanesePasaranCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::AkanCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::SexagenaryCalendar)));
     }
 }
@@ -138,7 +142,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 14;
+const CALENDAR_COUNT: usize = 15;
 
 #[cfg(test)]
 mod tests {
@@ -202,6 +206,7 @@ mod tests {
                 AztecXiuhpohualliCalendar,
                 BalinesePawukonCalendar,
                 JavanesePasaranCalendar,
+                AkanCalendar,
                 SexagenaryCalendar,
             );
         }
