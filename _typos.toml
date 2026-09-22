@@ -29,6 +29,8 @@ Oficial = "Oficial"
 # Spanish "Día Internacional del Trabajo" and "Símbolos Patrios".
 Internacional = "Internacional"
 Patrios = "Patrios"
+# Romanian "pe stil vechi", the old style, in Moldova's Christmas.
+stil = "stil"
 # Fo, the first day of the Akan six-day week.
 Fo = "Fo"
 # German and Dutch month names.
