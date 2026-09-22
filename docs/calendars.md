@@ -51,6 +51,7 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | Zoroastrian (Qadimi / Shahanshahi / Fasli) | `zoroastrian-qadimi`, `zoroastrian-shahanshahi`, `zoroastrian-fasli` | `hc-calendars-solar` | Done — the two wandering years from the Yazdegerdi epoch, thirty days apart since the Parsi intercalation of the 1120s, and the Fasli on 21 March with the Gregorian leap day; the Iranian *Bastani* observance is `persian` |
 | Solar Hijri (Persian), arithmetic | `persian-arithmetic` | `hc-calendars-solar` | Done — Birashk's 2 820-year cycle; the astronomical calendar is `persian`, stage 3 |
 | Indian national civil (Śaka) | `indian` | `hc-calendars-solar` | Done |
+| Nanakshahi (Sikh, 2003) | `nanakshahi` | `hc-calendars-solar` | Done — the 2003 calendar of fixed Gregorian month starts, year 1 in 1469; the SGPC's 2010 and 2014 revisions are the Bikrami calendar under the same name and are `hindu-solar-vikrami` and `hindu-lunar` |
 | Thai solar (Buddhist Era) | `buddhist` | `hc-calendars-solar` | Partial — the 1889–1940 April year start is not modelled |
 | Minguo (Republic of China) | `roc` | `hc-calendars-solar` | Done |
 | Juche (DPRK) | `juche` | `hc-calendars-solar` | Done |

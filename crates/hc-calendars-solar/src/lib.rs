@@ -26,7 +26,7 @@
 //! | Family | Calendars |
 //! | --- | --- |
 //! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`byzantine`], [`roman`] |
-//! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`indian`] |
+//! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`indian`], [`nanakshahi`] |
 //! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`armenian`], [`french_republican`], [`zoroastrian`] |
 //! | Day counts | [`julian_day`] |
 //! | Cycle-based | [`persian`], [`bahai`], [`bahai_kept`] |
@@ -77,6 +77,7 @@ pub mod julian_day;
 pub mod julian_gregorian;
 pub mod koki;
 pub mod minguo;
+pub mod nanakshahi;
 pub mod ordinal;
 pub mod persian;
 pub mod revised_julian;
@@ -110,6 +111,7 @@ pub use julian_day::{
 pub use julian_gregorian::{Adoption, ReformCalendar, ReformDate};
 pub use koki::{KokiCalendar, KokiDate};
 pub use minguo::{MinguoCalendar, MinguoDate};
+pub use nanakshahi::{NanakshahiCalendar, NanakshahiDate};
 pub use ordinal::{OrdinalCalendar, OrdinalDate};
 pub use persian::{ArithmeticPersianCalendar, PersianDate};
 pub use revised_julian::{RevisedJulianCalendar, RevisedJulianDate};
@@ -157,6 +159,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::ArmenianFixedCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ArithmeticPersianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::IndianCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::NanakshahiCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BuddhistCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::MinguoCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::JucheCalendar)));
@@ -191,7 +194,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 37;
+const CALENDAR_COUNT: usize = 38;
 
 #[cfg(test)]
 mod tests {
@@ -258,6 +261,7 @@ mod tests {
                 ArmenianCalendar,
                 ArithmeticPersianCalendar,
                 IndianCalendar,
+                NanakshahiCalendar,
                 BuddhistCalendar,
                 MinguoCalendar,
                 JucheCalendar,

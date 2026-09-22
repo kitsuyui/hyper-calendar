@@ -6,7 +6,7 @@ use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::rule::{Confidence, Kind, RuleSet};
 use hc_holiday::traditions::{
     self, BAHAI, BUDDHIST, CHINESE_FOLK, CHRISTIAN_ORTHODOX, CHRISTIAN_WESTERN, COPTIC_ORTHODOX,
-    ETHIOPIAN_ORTHODOX, HINDU, ISLAMIC, JEWISH, WHEEL_OF_THE_YEAR, WHEEL_OF_THE_YEAR_SOUTH,
+    ETHIOPIAN_ORTHODOX, HINDU, ISLAMIC, JEWISH, SIKH, WHEEL_OF_THE_YEAR, WHEEL_OF_THE_YEAR_SOUTH,
     ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI, ZOROASTRIAN_SHAHANSHAHI,
 };
 
@@ -712,5 +712,60 @@ fn the_three_zoroastrian_tables_are_one_schedule() {
             .filter(|rule| rule.name == "Muktad")
             .count();
         assert_eq!(muktad, 10, "{}", set.code);
+    }
+}
+
+#[test]
+fn the_sikh_gurpurabs_fall_on_the_nanakshahi_tables_fixed_dates() {
+    expect(
+        &SIKH,
+        &[
+            (2019, 1, 5, "Parkash of Guru Gobind Singh"),
+            (2019, 1, 31, "Parkash of Guru Har Rai"),
+            (2019, 3, 14, "Nanakshahi New Year"),
+            (2019, 3, 14, "Gurgaddi of Guru Har Rai"),
+            (2019, 4, 14, "Vaisakhi"),
+            (2019, 4, 16, "Gurgaddi of Guru Tegh Bahadur"),
+            (2019, 4, 18, "Parkash of Guru Angad"),
+            (2019, 5, 2, "Parkash of Guru Arjan"),
+            (2019, 6, 16, "Shaheedi of Guru Arjan"),
+            (2019, 7, 5, "Parkash of Guru Hargobind"),
+            (2019, 7, 23, "Parkash of Guru Harkrishan"),
+            (2019, 9, 1, "First Parkash of the Guru Granth Sahib"),
+            (2019, 9, 22, "Joti Jot of Guru Nanak"),
+            (2019, 10, 9, "Parkash of Guru Ram Das"),
+            (2019, 10, 20, "Gurgaddi of the Guru Granth Sahib"),
+            (2019, 10, 21, "Joti Jot of Guru Gobind Singh"),
+            (2019, 11, 24, "Shaheedi of Guru Tegh Bahadur"),
+            (2019, 12, 21, "Shaheedi of the Elder Sahibzadas"),
+            (2019, 12, 26, "Shaheedi of the Younger Sahibzadas"),
+            // A leap year moves nothing: the fixed dates are Gregorian.
+            (2024, 1, 5, "Parkash of Guru Gobind Singh"),
+            (2024, 3, 14, "Nanakshahi New Year"),
+            (2024, 4, 14, "Vaisakhi"),
+        ],
+    );
+}
+
+#[test]
+fn the_three_lunar_sikh_days_match_the_sgpc_list() {
+    // The article's table of movable dates, 2018 to 2020.
+    expect(
+        &SIKH,
+        &[
+            (2018, 3, 2, "Hola Mohalla"),
+            (2018, 11, 7, "Bandi Chhor Divas"),
+            (2018, 11, 23, "Parkash of Guru Nanak"),
+            (2019, 3, 21, "Hola Mohalla"),
+            (2019, 10, 27, "Bandi Chhor Divas"),
+            (2019, 11, 12, "Parkash of Guru Nanak"),
+            (2020, 3, 10, "Hola Mohalla"),
+            (2020, 11, 14, "Bandi Chhor Divas"),
+            (2020, 11, 30, "Parkash of Guru Nanak"),
+        ],
+    );
+    for rule in SIKH.rules {
+        assert_eq!(rule.kind, Kind::Religious, "{}", rule.name);
+        assert_eq!(rule.confidence, Confidence::Exact, "{}", rule.name);
     }
 }

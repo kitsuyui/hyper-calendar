@@ -30,6 +30,7 @@ file does not:
 | `zoroastrian` | Zoroastrian: the Qadimi and Shahanshahi wandering years, and the Fasli with its leap day | `zoroastrian-qadimi`, `zoroastrian-shahanshahi`, `zoroastrian-fasli` |
 | `persian` | Solar Hijri, **arithmetic** variant | `persian-arithmetic` |
 | `indian` | Indian national civil (Śaka) | `indian` |
+| `nanakshahi` | Nanakshahi, the Sikh solar calendar of 2003 | `nanakshahi` |
 | `buddhist` | Thai solar | `buddhist` |
 | `minguo` | Minguo, with 民國前 | `roc` |
 | `juche` | Juche | `juche` |
