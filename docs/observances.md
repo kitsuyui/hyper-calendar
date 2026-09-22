@@ -155,6 +155,10 @@ Ordered by how well the sources can be cited, not by importance.
 | Montenegro 🇲🇪 | The 2007 law's two-day holidays with Njegoš Day from 2021, the Sunday rule, and each community's religious days as `Kind::Religious` |
 | North Macedonia 🇲🇰 | The 1998 law as amended in 2007, the Sunday rule, the religious and ethnic communities' days off, Duhovden as the Friday before Pentecost |
 | Serbia 🇷🇸 | The 2001 law with its 2007 and 2011 amendments: state holidays with the Sunday rule, the Orthodox days fixed, the working holidays as observances, the other confessions' days as `Kind::Religious` |
+| Belarus 🇧🇾 | Decree 157's ten non-working days with Radunitsa on the ninth day after the Orthodox Easter and the years of 2 January and 3 July; the working state holidays as observances |
+| Luxembourg 🇱🇺 | The eleven legal holidays with Europe Day from 2019 and Good Friday as the banks' alone; the compensatory day not carried |
+| Malta 🇲🇹 | Cap. 252's five national and nine public holidays; nothing moves |
+| Moldova 🇲🇩 | Art. 111 with the two Christmases, the Orthodox Easter and the Easter of the Blajini, Europe Day from 2017, Children's Day from 2024, and Chișinău's feast as `MD-CU` |
 | Bulgaria 🇧🇬 | Labour Code art. 154: the list, the Orthodox Easter, 1 November for schools, and the weekend rule of 2017 that excepts the Easter days |
 | Cyprus 🇨🇾 | The Republic's list with the Orthodox Easter and Easter Tuesday as a bank holiday; no substitution |
 | Estonia 🇪🇪 | The act of 1998: national holiday, public holidays and the days of national importance as observances, with the act's own amendment years; no substitution |

@@ -2560,6 +2560,141 @@ fn panama_moves_two_holidays_by_ley_70_and_the_rest_off_sunday_only() {
 }
 
 #[test]
+fn belarus_keeps_radunitsa_nine_days_after_the_orthodox_easter() {
+    // Orthodox Easter 2026 on 12 April.
+    expect(
+        "BY",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 2, "New Year's Day"),
+            (2026, 1, 7, "Orthodox Christmas"),
+            (2026, 3, 8, "International Women's Day"),
+            (2026, 4, 21, "Radunitsa"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 9, "Victory Day"),
+            (2026, 7, 3, "Independence Day"),
+            (2026, 11, 7, "October Revolution Day"),
+            (2026, 12, 25, "Catholic Christmas"),
+            (2020, 1, 2, "New Year's Day"),
+            (1996, 7, 27, "Independence Day"),
+            (1997, 7, 3, "Independence Day"),
+        ],
+    );
+    expect_working(
+        "BY",
+        None,
+        &[(2019, 1, 2), (1996, 7, 3), (1997, 7, 27), (2026, 9, 17)],
+    );
+    let calendar = HolidayCalendar::for_year(table("BY"), None, 2026);
+    let kinds: Vec<Kind> = calendar
+        .on(ymd(2026, 9, 17))
+        .iter()
+        .map(|holiday| holiday.kind)
+        .collect();
+    assert_eq!(kinds, [Kind::Observance]);
+}
+
+#[test]
+fn luxembourg_has_eleven_legal_holidays_and_a_bank_holiday() {
+    expect(
+        "LU",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 9, "Europe Day"),
+            (2026, 5, 14, "Ascension Day"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 6, 23, "National Day"),
+            (2026, 8, 15, "Assumption Day"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Saint Stephen's Day"),
+            (2019, 5, 9, "Europe Day"),
+        ],
+    );
+    expect_working("LU", None, &[(2018, 5, 9), (2026, 11, 2)]);
+    let calendar = HolidayCalendar::for_year(table("LU"), None, 2026);
+    let kinds: Vec<Kind> = calendar
+        .on(ymd(2026, 4, 3))
+        .iter()
+        .map(|holiday| holiday.kind)
+        .collect();
+    assert_eq!(kinds, [Kind::Bank]);
+}
+
+#[test]
+fn malta_has_fourteen_fixed_holidays_that_never_move() {
+    expect(
+        "MT",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 2, 10, "Feast of Saint Paul's Shipwreck"),
+            (2026, 3, 19, "Feast of Saint Joseph"),
+            (2026, 3, 31, "Freedom Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 5, 1, "Workers' Day"),
+            (2026, 6, 7, "Sette Giugno"),
+            (2026, 6, 29, "Feast of Saint Peter and Saint Paul"),
+            (2026, 8, 15, "Feast of the Assumption"),
+            (2026, 9, 8, "Victory Day"),
+            (2026, 9, 21, "Independence Day"),
+            (2026, 12, 8, "Feast of the Immaculate Conception"),
+            (2026, 12, 13, "Republic Day"),
+            (2026, 12, 25, "Christmas Day"),
+        ],
+    );
+    // 7 June and 15 August 2026 fall on the weekend and stay there.
+    expect_working("MT", None, &[(2026, 6, 8), (2026, 8, 17)]);
+}
+
+#[test]
+fn moldova_keeps_two_easters_and_shares_9_may_between_two_names() {
+    // Orthodox Easter 2026 on 12 April, the Blajini's Monday on the 20th.
+    expect(
+        "MD",
+        None,
+        &[
+            (2026, 1, 7, "Orthodox Christmas"),
+            (2026, 1, 8, "Orthodox Christmas"),
+            (2026, 3, 8, "International Women's Day"),
+            (2026, 4, 12, "Easter Sunday"),
+            (2026, 4, 13, "Easter Monday"),
+            (2026, 4, 20, "Easter of the Blajini"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 9, "Victory Day"),
+            (2026, 5, 9, "Europe Day"),
+            (2026, 6, 1, "Children's Day"),
+            (2026, 8, 27, "Independence Day"),
+            (2026, 8, 31, "Romanian Language Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2024, 6, 1, "Children's Day"),
+            (2017, 5, 9, "Europe Day"),
+            (2009, 12, 25, "Christmas Day"),
+        ],
+    );
+    expect("MD", Some("MD-CU"), &[(2026, 10, 14, "Feast of Chișinău")]);
+    expect_working(
+        "MD",
+        None,
+        &[(2023, 6, 1), (2008, 12, 25), (2026, 10, 14), (2026, 4, 21)],
+    );
+    // Before 2017, 9 May was Victory Day alone: 2015, when the Blajini's
+    // Monday fell elsewhere.
+    let calendar = HolidayCalendar::for_year(table("MD"), None, 2015);
+    let names: Vec<&str> = calendar
+        .on(ymd(2015, 5, 9))
+        .iter()
+        .map(|holiday| holiday.name)
+        .collect();
+    assert_eq!(names, ["Victory Day"]);
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",

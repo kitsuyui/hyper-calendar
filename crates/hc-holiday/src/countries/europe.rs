@@ -3264,3 +3264,328 @@ pub static SERBIA: RuleSet = RuleSet {
               retrieved the same day, for the names, the 2012 start of Armistice \
               Day and the 2020 start of 15 September",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Belarus
+// ─────────────────────────────────────────────────────────────────────────
+
+static BY_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Новы год", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("New Year's Day", "Новы год", Rule::gregorian(1, 2))
+        .years(Some(2020), None),
+    HolidayRule::fixed_public(
+        "Orthodox Christmas",
+        "Каляды праваслаўныя",
+        Rule::gregorian(1, 7),
+    ),
+    HolidayRule::fixed_public(
+        "International Women's Day",
+        "Міжнародны жаночы дзень",
+        Rule::gregorian(3, 8),
+    ),
+    // The ninth day after Orthodox Easter.
+    HolidayRule::fixed_public("Radunitsa", "Радаўніца", Rule::paschal(EASTER_SUNDAY + 9))
+        .years(Some(1992), None),
+    HolidayRule::fixed_public("Labour Day", "Дзень працы", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Victory Day", "Дзень Перамогі", Rule::gregorian(5, 9)),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Дзень Незалежнасці",
+        Rule::gregorian(7, 27),
+    )
+    .years(Some(1991), Some(1996)),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Дзень Незалежнасці",
+        Rule::gregorian(7, 3),
+    )
+    .years(Some(1997), None),
+    HolidayRule::fixed_public(
+        "October Revolution Day",
+        "Дзень Кастрычніцкай рэвалюцыі",
+        Rule::gregorian(11, 7),
+    ),
+    HolidayRule::fixed_public(
+        "Catholic Christmas",
+        "Каляды каталіцкія",
+        Rule::gregorian(12, 25),
+    ),
+    // The state holidays that are working days.
+    HolidayRule::observance(
+        "Defender of the Fatherland and Armed Forces Day",
+        "Дзень абаронцы Айчыны і Дзень Узброеных Сіл",
+        Rule::gregorian(2, 23),
+    ),
+    HolidayRule::observance(
+        "Constitution Day",
+        "Дзень Канстытуцыі",
+        Rule::gregorian(3, 15),
+    )
+    .years(Some(1994), None),
+    HolidayRule::observance(
+        "Day of Unity of the Peoples of Belarus and Russia",
+        "Дзень яднання народаў Беларусі і Расіі",
+        Rule::gregorian(4, 2),
+    ),
+    HolidayRule::observance(
+        "State Flag and State Emblem Day",
+        "Дзень Дзяржаўнага Сцяга і Дзяржаўнага Герба",
+        Rule::nth(5, 2, Weekday::Sunday),
+    ),
+    HolidayRule::observance(
+        "National Unity Day",
+        "Дзень народнага адзінства",
+        Rule::gregorian(9, 17),
+    )
+    .years(Some(2021), None),
+];
+
+/// Belarus.
+///
+/// Presidential Decree 157 of 26 March 1998 as amended: the ten
+/// non-working days — New Year's second day from 2020, Radunitsa on the
+/// ninth day after the Orthodox Easter and non-working since 1992,
+/// Independence Day on 3 July from 1997 after 27 July from 1991 to 1996 —
+/// and the state holidays that are working days as observances. No fixed
+/// rule moves a holiday off a weekend; the Government swaps working days
+/// around holidays by yearly decree, which is not carried.
+pub static BELARUS: RuleSet = RuleSet {
+    code: "BY",
+    english_name: "Belarus",
+    rules: BY_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "The President of the Republic of Belarus, \"Государственные праздники \
+              Беларуси\", president.gov.by, retrieved 2026-09-22, for Decree 157's \
+              list; the Russian Wikipedia, \"Праздники Белоруссии\", retrieved the \
+              same day, for the years of 2 January, Radunitsa and Independence Day \
+              and the Radunitsa dates; Wikipedia, \"Public holidays in Belarus\", \
+              for the Belarusian names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Luxembourg
+// ─────────────────────────────────────────────────────────────────────────
+
+static LU_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Neijoerschdag", Rule::gregorian(1, 1)),
+    // A bank holiday alone.
+    HolidayRule::fixed_public("Good Friday", "Karfreideg", Rule::easter(GOOD_FRIDAY))
+        .of_kind(Kind::Bank),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Ouschterméindeg",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public("Labour Day", "Dag vun der Aarbecht", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Europe Day", "Europadag", Rule::gregorian(5, 9))
+        .years(Some(2019), None),
+    HolidayRule::fixed_public(
+        "Ascension Day",
+        "Christi Himmelfaart",
+        Rule::easter(ASCENSION),
+    ),
+    HolidayRule::fixed_public("Whit Monday", "Péngschtméindeg", Rule::easter(WHIT_MONDAY)),
+    HolidayRule::fixed_public("National Day", "Nationalfeierdag", Rule::gregorian(6, 23)),
+    HolidayRule::fixed_public(
+        "Assumption Day",
+        "Mariä Himmelfaart",
+        Rule::gregorian(8, 15),
+    ),
+    HolidayRule::fixed_public("All Saints' Day", "Allerhellgen", Rule::gregorian(11, 1)),
+    HolidayRule::fixed_public("Christmas Day", "Chrëschtdag", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public("Saint Stephen's Day", "Stiefesdag", Rule::gregorian(12, 26)),
+];
+
+/// Luxembourg.
+///
+/// The eleven legal holidays of article L. 232-2 of the Code du travail,
+/// Europe Day among them from the law of 25 April 2019, and Good Friday as
+/// the banks' holiday alone, [`Kind::Bank`]. A legal holiday on a Sunday
+/// or a non-working day gives a compensatory day to be taken within three
+/// months, at no fixed date, and is not carried; nor are the civil
+/// service's half days on Whit Tuesday and Christmas Eve, nor the local
+/// days of the capital.
+pub static LUXEMBOURG: RuleSet = RuleSet {
+    code: "LU",
+    english_name: "Luxembourg",
+    rules: LU_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Inspection du travail et des mines, \"Jours fériés légaux\", itm.public.lu, \
+              retrieved 2026-09-22, for article L. 232-2 and the law of 25 April \
+              2019; the French Wikipedia, \"Jours fériés au Luxembourg\", and \
+              Wikipedia, \"Public holidays in Luxembourg\", both retrieved the same \
+              day, for the names, Good Friday and the compensatory day",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Malta
+// ─────────────────────────────────────────────────────────────────────────
+
+static MT_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "L-Ewwel tas-Sena", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Feast of Saint Paul's Shipwreck",
+        "Nawfraġju ta' San Pawl",
+        Rule::gregorian(2, 10),
+    ),
+    HolidayRule::fixed_public(
+        "Feast of Saint Joseph",
+        "San Ġużepp",
+        Rule::gregorian(3, 19),
+    ),
+    HolidayRule::fixed_public("Freedom Day", "Jum il-Ħelsien", Rule::gregorian(3, 31)),
+    HolidayRule::fixed_public(
+        "Good Friday",
+        "Il-Ġimgħa l-Kbira",
+        Rule::easter(GOOD_FRIDAY),
+    ),
+    HolidayRule::fixed_public("Workers' Day", "Jum il-Ħaddiem", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Sette Giugno", "Sette Giugno", Rule::gregorian(6, 7)),
+    HolidayRule::fixed_public(
+        "Feast of Saint Peter and Saint Paul",
+        "L-Imnarja",
+        Rule::gregorian(6, 29),
+    ),
+    HolidayRule::fixed_public(
+        "Feast of the Assumption",
+        "Santa Marija",
+        Rule::gregorian(8, 15),
+    ),
+    HolidayRule::fixed_public("Victory Day", "Jum il-Vitorja", Rule::gregorian(9, 8)),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Jum l-Indipendenza",
+        Rule::gregorian(9, 21),
+    ),
+    HolidayRule::fixed_public(
+        "Feast of the Immaculate Conception",
+        "Il-Kunċizzjoni",
+        Rule::gregorian(12, 8),
+    ),
+    HolidayRule::fixed_public("Republic Day", "Jum ir-Repubblika", Rule::gregorian(12, 13)),
+    HolidayRule::fixed_public("Christmas Day", "Il-Milied", Rule::gregorian(12, 25)),
+];
+
+/// Malta.
+///
+/// The National Holidays and Other Public Holidays Act (Cap. 252) of
+/// 1975 as amended: the five national holidays and the nine public
+/// holidays, all days off and carried alike. A holiday on a weekend stays
+/// there; what the Act does with it is a matter of leave, not of the
+/// calendar. The years the Act added and restored feasts are not carried.
+pub static MALTA: RuleSet = RuleSet {
+    code: "MT",
+    english_name: "Malta",
+    rules: MT_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "National Holidays and Other Public Holidays Act, Cap. 252, legislation.mt, \
+              retrieved 2026-09-22, for the Act and its amendments; Wikipedia, \
+              \"Public holidays in Malta\", retrieved the same day, for the two lists \
+              and the Maltese names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Moldova
+// ─────────────────────────────────────────────────────────────────────────
+
+static MD_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Anul Nou", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Orthodox Christmas",
+        "Nașterea lui Isus Hristos (Crăciunul pe stil vechi)",
+        Rule::gregorian(1, 7),
+    ),
+    HolidayRule::fixed_public(
+        "Orthodox Christmas",
+        "Nașterea lui Isus Hristos (Crăciunul pe stil vechi)",
+        Rule::gregorian(1, 8),
+    ),
+    HolidayRule::fixed_public(
+        "International Women's Day",
+        "Ziua Internațională a Femeii",
+        Rule::gregorian(3, 8),
+    ),
+    HolidayRule::fixed_public("Easter Sunday", "Paștele", Rule::paschal(EASTER_SUNDAY)),
+    HolidayRule::fixed_public("Easter Monday", "Paștele", Rule::paschal(EASTER_MONDAY)),
+    // The Monday a week after Easter.
+    HolidayRule::fixed_public(
+        "Easter of the Blajini",
+        "Paștele Blajinilor",
+        Rule::paschal(EASTER_SUNDAY + 8),
+    ),
+    HolidayRule::fixed_public(
+        "Labour Day",
+        "Ziua internațională a solidarității oamenilor muncii",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Victory Day",
+        "Ziua Victoriei și a comemorării eroilor căzuți pentru independența Patriei",
+        Rule::gregorian(5, 9),
+    ),
+    HolidayRule::fixed_public("Europe Day", "Ziua Europei", Rule::gregorian(5, 9))
+        .years(Some(2017), None),
+    HolidayRule::fixed_public(
+        "Children's Day",
+        "Ziua Internațională a Copilului",
+        Rule::gregorian(6, 1),
+    )
+    .years(Some(2024), None),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Ziua Independenței",
+        Rule::gregorian(8, 27),
+    ),
+    HolidayRule::fixed_public(
+        "Romanian Language Day",
+        "Ziua Limbii Române",
+        Rule::gregorian(8, 31),
+    ),
+    HolidayRule::fixed_public(
+        "Feast of Chișinău",
+        "Hramul Chișinăului",
+        Rule::gregorian(10, 14),
+    )
+    .in_regions(&["MD-CU"]),
+    HolidayRule::fixed_public(
+        "Christmas Day",
+        "Nașterea lui Isus Hristos (Crăciunul pe stil nou)",
+        Rule::gregorian(12, 25),
+    )
+    .years(Some(2009), None),
+];
+
+/// Moldova.
+///
+/// Article 111 of the Codul muncii: the non-working holidays, with the
+/// Orthodox Christmas on two days, the Easter by the Julian computus on
+/// its Sunday and Monday and the Easter of the Blajini on the Monday a
+/// week after, Europe Day sharing 9 May with Victory Day from 2017,
+/// Children's Day from 2024, Christmas by the new style from 2009, and the
+/// feast of Chișinău as the capital's alone, `MD-CU`. A holiday on a
+/// weekend is not moved by law; the Government's yearly transfers of
+/// working days, and the patron-saint day each locality may keep, are not
+/// carried.
+pub static MOLDOVA: RuleSet = RuleSet {
+    code: "MD",
+    english_name: "Moldova",
+    rules: MD_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Codul muncii al Republicii Moldova, art. 111, as listed by zilelibere.md, \
+              retrieved 2026-09-22; contabilitate.md for 1 June from 2024; Radio \
+              Moldova and Timpul for Europe Day from 2017; Wikipedia, \"Public \
+              holidays in Moldova\", retrieved the same day, for Christmas by the new \
+              style from 2009 and the English names",
+};

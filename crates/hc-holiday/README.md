@@ -16,7 +16,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
 | `international` | the United Nations international days, each citing its resolution |
-| `countries` | 84 national tables |
+| `countries` | 88 national tables |
 
 ## The vocabulary
 
@@ -84,20 +84,20 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**84 countries.** Albania, Argentina, Armenia, Australia (eight states and
-territories), Austria, Azerbaijan, Belgium, Bolivia, Brazil, Bulgaria, Canada
-(federal plus the provincial days fixed by statute), Chile, China, Colombia,
-Costa Rica, Croatia, Cyprus, Czechia, Denmark, the Dominican Republic, Ecuador,
-Egypt, Estonia, Ethiopia, Finland, France (métropole plus Alsace-Moselle),
-Georgia, Germany (all 16 *Länder*), Ghana, Greece, Guatemala, Hong Kong,
-Hungary, Iceland, India, Indonesia, Iran, Ireland, Israel, Italy, Japan,
-Kazakhstan, Kenya, Latvia, Lithuania, Macau, Malaysia, Mexico, Montenegro,
-Morocco, Myanmar, Nepal, the Netherlands, New Zealand, Nigeria, North Macedonia,
-Norway, Pakistan, Panama, Peru, the Philippines, Poland, Portugal, Romania,
-Russia, Saudi Arabia, Serbia, Singapore, Slovakia, Slovenia, South Africa, South
-Korea, Spain, Sweden, Switzerland, Taiwan, Thailand, Türkiye, Ukraine, the
-United Arab Emirates, the United Kingdom (three bank-holiday jurisdictions), the
-United States, Uruguay, Vietnam.
+**88 countries.** Albania, Argentina, Armenia, Australia (eight states and
+territories), Austria, Azerbaijan, Belarus, Belgium, Bolivia, Brazil, Bulgaria,
+Canada (federal plus the provincial days fixed by statute), Chile, China,
+Colombia, Costa Rica, Croatia, Cyprus, Czechia, Denmark, the Dominican Republic,
+Ecuador, Egypt, Estonia, Ethiopia, Finland, France (métropole plus
+Alsace-Moselle), Georgia, Germany (all 16 *Länder*), Ghana, Greece, Guatemala,
+Hong Kong, Hungary, Iceland, India, Indonesia, Iran, Ireland, Israel, Italy,
+Japan, Kazakhstan, Kenya, Latvia, Lithuania, Luxembourg, Macau, Malaysia, Malta,
+Mexico, Moldova, Montenegro, Morocco, Myanmar, Nepal, the Netherlands, New
+Zealand, Nigeria, North Macedonia, Norway, Pakistan, Panama, Peru, the
+Philippines, Poland, Portugal, Romania, Russia, Saudi Arabia, Serbia, Singapore,
+Slovakia, Slovenia, South Africa, South Korea, Spain, Sweden, Switzerland,
+Taiwan, Thailand, Türkiye, Ukraine, the United Arab Emirates, the United Kingdom
+(three bank-holiday jurisdictions), the United States, Uruguay, Vietnam.
 
 **Nineteen traditions.** Christianity under both computations, the
 Ethiopian Orthodox Tewahedo and the Coptic Orthodox Churches, Islam,

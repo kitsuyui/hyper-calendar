@@ -118,7 +118,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Holidays by country
 
-84 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
+88 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
 
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
@@ -133,6 +133,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `BG` | Bulgaria | 15 | yes | stated | 2026-09-22 |
 | `BO` | Bolivia | 11 | yes | stated | 2026-09-22 |
 | `BR` | Brazil | 14 | none | stated | 2026-09-21 |
+| `BY` | Belarus | 16 | none | stated | 2026-09-22 |
 | `CA` | Canada | 19 | yes | stated | 2026-09-21 |
 | `CH` | Switzerland | 8 | none | stated | 2026-09-21 |
 | `CL` | Chile | 28 | none | stated | 2026-09-22 |
@@ -171,12 +172,15 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `KR` | South Korea | 17 | yes | stated | 2026-09-21 |
 | `KZ` | Kazakhstan | 20 | yes | stated | 2026-09-22 |
 | `LT` | Lithuania | 16 | none | stated | 2026-09-22 |
+| `LU` | Luxembourg | 12 | none | stated | 2026-09-22 |
 | `LV` | Latvia | 51 | yes | stated | 2026-09-22 |
 | `MA` | Morocco | 18 | none | stated | 2026-09-22 |
+| `MD` | Moldova | 15 | none | stated | 2026-09-22 |
 | `ME` | Montenegro | 31 | yes | stated | 2026-09-22 |
 | `MK` | North Macedonia | 29 | yes | stated | 2026-09-22 |
 | `MM` | Myanmar | 26 | none | stated | 2026-09-22 |
 | `MO` | Macau | 22 | yes | stated | 2026-09-22 |
+| `MT` | Malta | 14 | none | stated | 2026-09-22 |
 | `MX` | Mexico | 11 | none | stated | 2026-09-21 |
 | `MY` | Malaysia | 14 | yes | stated | 2026-09-21 |
 | `NG` | Nigeria | 14 | yes | stated | 2026-09-21 |
