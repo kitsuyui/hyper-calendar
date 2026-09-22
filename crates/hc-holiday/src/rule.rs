@@ -12,6 +12,7 @@
 
 use hc_calendar::Calendar as _;
 use hc_calendar::{CalendarId, Month, Rd, Weekday};
+use hc_calendars_equinox::persian as solar_hijri;
 use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
 use hc_calendars_lunar::tabular::{self, LeapYearRule};
@@ -291,9 +292,20 @@ hc_core::catalogue! {
             |rd| coptic::from_fixed(rd).ok().map(|(year, _, _)| year),
         );
 
-        /// The Solar Hijri calendar, in which Iran and Afghanistan date Nowruz
-        /// and their civil holidays.
+        /// The Solar Hijri calendar as Iran keeps it — Nowruz on the day of
+        /// the March equinox when the equinox falls before noon, Iran
+        /// Standard Time, and the day after otherwise — in which Iran dates
+        /// Nowruz and its civil holidays.
         pub const SOLAR_HIJRI = Self::new(
+            CalendarId("persian"),
+            |year, month, day| solar_hijri::to_fixed(year, month.ordinal, day).ok(),
+            |rd| solar_hijri::from_fixed(rd).ok().map(|(year, _, _)| year),
+        );
+
+        /// The arithmetic Solar Hijri calendar, Birashk's 2 820-year cycle,
+        /// for a table that wants the rule rather than the sky. It puts
+        /// Nowruz 1404 a day before Iran did.
+        pub const SOLAR_HIJRI_ARITHMETIC = Self::new(
             CalendarId("persian-arithmetic"),
             |year, month, day| persian::to_fixed(year, month.ordinal, day).ok(),
             |rd| persian::from_fixed(rd).ok().map(|(year, _, _)| year),

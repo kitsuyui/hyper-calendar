@@ -15,7 +15,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `computus` | Easter, Gregorian and Julian, and the offsets keyed to it |
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
-| `countries` | 43 national tables |
+| `countries` | 44 national tables |
 
 ## The vocabulary
 
@@ -83,11 +83,12 @@ minutes.
 
 ## Coverage
 
-**43 countries.** Australia (eight states and territories), Austria,
+**44 countries.** Australia (eight states and territories), Austria,
 Belgium, Brazil, Canada (federal plus the provincial days fixed by statute),
 China, Czechia, Denmark, Egypt, Finland, France (métropole plus
-Alsace-Moselle), Germany (all 16 *Länder*), Greece, India, Indonesia, Ireland,
-Israel, Italy, Japan, Malaysia, Mexico, Nepal, the Netherlands, New Zealand,
+Alsace-Moselle), Germany (all 16 *Länder*), Greece, India, Indonesia, Iran,
+Ireland, Israel, Italy, Japan, Malaysia, Mexico, Nepal, the Netherlands, New
+Zealand,
 Nigeria, Norway, the Philippines, Poland, Portugal, Saudi Arabia, Singapore,
 South Africa, South Korea, Spain, Sweden, Switzerland, Taiwan, Thailand,
 Türkiye, the United Arab Emirates, the United Kingdom (three bank-holiday

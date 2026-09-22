@@ -151,6 +151,136 @@ pub static ISRAEL: RuleSet = RuleSet {
 // Saudi Arabia
 // ─────────────────────────────────────────────────────────────────────────
 
+/// Iran's weekly holiday is Friday, under article 17 of the Constitution;
+/// Thursday is a half-day in most offices and is not a weekend day.
+static IR_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Friday],
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// A civil holiday dated in the Solar Hijri calendar as Iran keeps it —
+/// exact, because the calendar is the astronomical one.
+const fn ir_solar(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::SOLAR_HIJRI, month, day),
+    )
+}
+
+/// A religious holiday dated in the lunar Hijri calendar: a prediction,
+/// because Iran declares each month on its own sighting and the tabular
+/// calendar here is an approximation of that.
+const fn ir_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, month, day),
+    )
+    .approximate()
+}
+
+/// 1 Rabíʿ al-awwal, the base of the last day of Safar.
+static IR_RABI_AL_AWWAL: Rule = Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 3, 1);
+
+static IR_RULES: &[HolidayRule] = &[
+    ir_solar("Nowruz", "نوروز", 1, 1),
+    ir_solar("Nowruz", "نوروز", 1, 2),
+    ir_solar("Nowruz", "نوروز", 1, 3),
+    ir_solar("Nowruz", "نوروز", 1, 4),
+    ir_solar("Islamic Republic Day", "روز جمهوری اسلامی", 1, 12),
+    ir_solar("Nature Day (Sizdah Bedar)", "روز طبیعت", 1, 13),
+    ir_solar("Demise of Imam Khomeini", "رحلت امام خمینی", 3, 14),
+    ir_solar("15 Khordad Uprising", "قیام ۱۵ خرداد", 3, 15),
+    ir_solar(
+        "Victory of the Islamic Revolution",
+        "پیروزی انقلاب اسلامی",
+        11,
+        22,
+    ),
+    ir_solar(
+        "Nationalisation of the Oil Industry",
+        "ملی‌شدن صنعت نفت",
+        12,
+        29,
+    ),
+    ir_hijri("Tasu'a", "تاسوعای حسینی", 1, 9),
+    ir_hijri("Ashura", "عاشورای حسینی", 1, 10),
+    ir_hijri("Arba'een", "اربعین حسینی", 2, 20),
+    ir_hijri(
+        "Demise of the Prophet and Martyrdom of Imam Hasan",
+        "رحلت رسول اکرم و شهادت امام حسن مجتبی",
+        2,
+        28,
+    ),
+    // The last day of Safar, which the tabular calendar gives 29 days and
+    // a sighted one sometimes 30.
+    HolidayRule::fixed_public(
+        "Martyrdom of Imam Reza",
+        "شهادت امام رضا",
+        Rule::Offset {
+            base: &IR_RABI_AL_AWWAL,
+            days: -1,
+        },
+    )
+    .approximate(),
+    ir_hijri(
+        "Martyrdom of Imam Hasan al-Askari",
+        "شهادت امام حسن عسکری",
+        3,
+        8,
+    ),
+    ir_hijri(
+        "Birth of the Prophet and Imam Ja'far al-Sadiq",
+        "ولادت رسول اکرم و امام جعفر صادق",
+        3,
+        17,
+    ),
+    ir_hijri("Martyrdom of Fatima", "شهادت حضرت فاطمه زهرا", 6, 3),
+    ir_hijri("Birth of Imam Ali", "ولادت امام علی", 7, 13),
+    ir_hijri("Mab'ath", "مبعث رسول اکرم", 7, 27),
+    ir_hijri("Birth of Imam Mahdi", "ولادت حضرت قائم", 8, 15),
+    ir_hijri("Martyrdom of Imam Ali", "شهادت امام علی", 9, 21),
+    ir_hijri("Eid al-Fitr", "عید سعید فطر", 10, 1),
+    ir_hijri("Eid al-Fitr", "عید سعید فطر", 10, 2),
+    ir_hijri(
+        "Martyrdom of Imam Ja'far al-Sadiq",
+        "شهادت امام جعفر صادق",
+        10,
+        25,
+    ),
+    ir_hijri("Eid al-Adha", "عید سعید قربان", 12, 10),
+    ir_hijri("Eid al-Ghadir", "عید سعید غدیر خم", 12, 18),
+];
+
+/// Iran.
+///
+/// Two calendars, and the crate can now be honest about both. The civil
+/// holidays are dated in the Solar Hijri calendar as Iran keeps it — the
+/// astronomical `persian`, Nowruz on the equinox day or the day after
+/// depending on noon in Tehran — so they are exact; the arithmetic cycle
+/// would have put Nowruz 1404 a day early. The religious holidays are
+/// dated in the lunar Hijri calendar, which Iran declares month by month on
+/// its own sighting, so every one of them is flagged approximate.
+///
+/// No substitution: a holiday that falls on a Friday is simply a Friday.
+pub static IRAN: RuleSet = RuleSet {
+    code: "IR",
+    english_name: "Iran",
+    rules: IR_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: IR_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia, \"Public holidays in Iran\" and \"تعطیلات رسمی \
+              ایران\", retrieved 2026-09-22, for the list; the Constitution \
+              of the Islamic Republic, article 17, for Friday; the Persian \
+              names as the official calendar prints them. APPROXIMATE BY \
+              NATURE for the lunar dates: Iran declares them on its own \
+              sighting, and the tabular civil calendar here is a prediction",
+};
+
 /// Saudi Arabia moved its weekend from Thursday–Friday to Friday–Saturday
 /// by royal decree in June 2013, to lose one fewer working day of overlap
 /// with the rest of the world.
