@@ -145,6 +145,11 @@ Ordered by how well the sources can be cited, not by importance.
 | United Arab Emirates 🇦🇪 | With the 2022 move to a Saturday–Sunday weekend |
 | Israel 🇮🇱 | Hebrew-dated and therefore exact, with Yom HaAtzmaut's Sabbath-avoidance rule |
 | Iran 🇮🇷 | Civil holidays on the astronomical `persian` calendar, so exact — Nowruz 1404 on 21 March 2025, where the arithmetic cycle says the 20th; the lunar Hijri days flagged `Approximate`, since Iran declares them on its own sighting; Friday weekend |
+| Bulgaria 🇧🇬 | Labour Code art. 154: the list, the Orthodox Easter, 1 November for schools, and the weekend rule of 2017 that excepts the Easter days |
+| Cyprus 🇨🇾 | The Republic's list with the Orthodox Easter and Easter Tuesday as a bank holiday; no substitution |
+| Estonia 🇪🇪 | The act of 1998: national holiday, public holidays and the days of national importance as observances, with the act's own amendment years; no substitution |
+| Latvia 🇱🇻 | The law as in force from 2025: holidays, the two one-off days, the remembrance days as observances, and the weekend rule that reaches three holidays only |
+| Lithuania 🇱🇹 | Labour Code art. 123 with the years each day became a day off; no substitution |
 | Croatia 🇭🇷 | The Act with the 2020 change: Statehood Day on 30 May, 25 June and 8 October demoted, Remembrance Day new; no substitution |
 | Slovakia 🇸🇰 | The state holidays, each carried as a day off to its last year as one and an observance after; no substitution |
 | Slovenia 🇸🇮 | The work-free days with the years the source gives, 2 January by its two spans; no substitution |

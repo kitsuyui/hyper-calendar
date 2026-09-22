@@ -7,9 +7,11 @@
 
 use hc_calendar::Weekday;
 
+use hc_calendars_solar::gregorian;
+
 use crate::computus::offsets::{
     ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY,
-    MAUNDY_THURSDAY, PENTECOST, SHROVE_TUESDAY, WHIT_MONDAY,
+    HOLY_SATURDAY, MAUNDY_THURSDAY, PENTECOST, SHROVE_TUESDAY, WHIT_MONDAY,
 };
 use crate::rule::{
     Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, SubstituteDirection,
@@ -1982,4 +1984,701 @@ pub static ICELAND: RuleSet = RuleSet {
     sources: "Wikipedia, \"Public holidays in Iceland\", retrieved 2026-09-22, for \
               the list and the half days, and \"First day of summer (Iceland)\", \
               retrieved the same day, for the Thursday rule",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Bulgaria
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Labour Code art. 154(2), in force from 1 January 2017: a holiday on a
+/// Saturday or Sunday makes the first working day after it, or the first
+/// two, days off. The Easter days are excepted by the article itself and
+/// are `fixed_public` below.
+static BG_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: Some(2017),
+    valid_until: None,
+}];
+
+static BG_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Нова година", Rule::gregorian(1, 1)),
+    HolidayRule::public(
+        "Liberation Day",
+        "Ден на Освобождението на България от османско владичество",
+        Rule::gregorian(3, 3),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Велики петък", Rule::paschal(GOOD_FRIDAY)),
+    HolidayRule::fixed_public(
+        "Holy Saturday",
+        "Велика събота",
+        Rule::paschal(HOLY_SATURDAY),
+    ),
+    HolidayRule::fixed_public("Easter Sunday", "Великден", Rule::paschal(EASTER_SUNDAY)),
+    HolidayRule::fixed_public("Easter Monday", "Великден", Rule::paschal(EASTER_MONDAY)),
+    HolidayRule::public(
+        "Labour Day",
+        "Ден на труда и на международната работническа солидарност",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::public(
+        "Saint George's Day, Day of Valour and of the Bulgarian Army",
+        "Гергьовден, Ден на храбростта и празник на Българската армия",
+        Rule::gregorian(5, 6),
+    ),
+    HolidayRule::public(
+        "Day of the Saints Cyril and Methodius, of the Bulgarian Alphabet, Education and Culture and of Slavic Literature",
+        "Ден на светите братя Кирил и Методий, на българската азбука, просвета и култура и на славянската книжовност",
+        Rule::gregorian(5, 24),
+    ),
+    HolidayRule::public(
+        "Unification Day",
+        "Ден на Съединението",
+        Rule::gregorian(9, 6),
+    ),
+    HolidayRule::public(
+        "Independence Day",
+        "Ден на Независимостта на България",
+        Rule::gregorian(9, 22),
+    ),
+    // A day off for schools only.
+    HolidayRule::observance(
+        "Day of the National Awakeners",
+        "Ден на народните будители",
+        Rule::gregorian(11, 1),
+    )
+    .of_kind(Kind::School),
+    HolidayRule::public("Christmas Eve", "Бъдни вечер", Rule::gregorian(12, 24)),
+    HolidayRule::public(
+        "Christmas Day",
+        "Рождество Христово",
+        Rule::gregorian(12, 25),
+    ),
+    HolidayRule::public(
+        "Second Day of Christmas",
+        "Рождество Христово",
+        Rule::gregorian(12, 26),
+    ),
+];
+
+/// Bulgaria.
+///
+/// Labour Code art. 154(1): the fixed days, the Orthodox Easter from Good
+/// Friday to Easter Monday by the Julian computus, and 1 November, a day
+/// off for schools alone and carried as [`Kind::School`]. Art. 154(2),
+/// from 2017, moves a weekend holiday to the working day after, except the
+/// Easter days, which it names. The one-off days off the Council of
+/// Ministers may declare under art. 154(3), and the working Saturdays that
+/// paid for long weekends before 2017, are not carried; nor are the years
+/// the fixed days were introduced, which the sources do not give.
+pub static BULGARIA: RuleSet = RuleSet {
+    code: "BG",
+    english_name: "Bulgaria",
+    rules: BG_RULES,
+    substitution: BG_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Council of Ministers of the Republic of Bulgaria, \"Bulgarian public \
+              holidays\", gov.bg, retrieved 2026-09-22, for the list and the \
+              weekend rule; the Bulgarian Wikipedia, \"Официални празници в \
+              България\", retrieved the same day, for Labour Code art. 154(2) as \
+              amended by SG 105/2016, in force 1 January 2017, and the names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Cyprus
+// ─────────────────────────────────────────────────────────────────────────
+
+static CY_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Πρωτοχρονιά", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("Epiphany", "Θεοφάνια", Rule::gregorian(1, 6)),
+    HolidayRule::fixed_public(
+        "Green Monday",
+        "Καθαρά Δευτέρα",
+        Rule::paschal(ASH_WEDNESDAY - 2),
+    ),
+    HolidayRule::fixed_public(
+        "Greek Independence Day",
+        "Ημέρα της Ελληνικής Ανεξαρτησίας",
+        Rule::gregorian(3, 25),
+    ),
+    HolidayRule::fixed_public(
+        "Cyprus National Day",
+        "Εθνική Ημέρα Κύπρου",
+        Rule::gregorian(4, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Good Friday",
+        "Μεγάλη Παρασκευή",
+        Rule::paschal(GOOD_FRIDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Holy Saturday",
+        "Μεγάλο Σάββατο",
+        Rule::paschal(HOLY_SATURDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Easter Sunday",
+        "Κυριακή του Πάσχα",
+        Rule::paschal(EASTER_SUNDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Δευτέρα του Πάσχα",
+        Rule::paschal(EASTER_MONDAY),
+    ),
+    // Banks only.
+    HolidayRule::fixed_public(
+        "Easter Tuesday",
+        "Τρίτη του Πάσχα",
+        Rule::paschal(EASTER_MONDAY + 1),
+    )
+    .of_kind(Kind::Bank),
+    HolidayRule::fixed_public("Labour Day", "Ημέρα Εργασίας", Rule::gregorian(5, 1)),
+    // Kataklysmos, the Monday of the Holy Spirit.
+    HolidayRule::fixed_public(
+        "Pentecost Monday",
+        "Πεντηκοστή Δευτέρα",
+        Rule::paschal(WHIT_MONDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Dormition of the Theotokos",
+        "Κοίμηση της Θεοτόκου",
+        Rule::gregorian(8, 15),
+    ),
+    HolidayRule::fixed_public(
+        "Cyprus Independence Day",
+        "Ημέρα Ανεξαρτησίας της Κύπρου",
+        Rule::gregorian(10, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Greek National Day",
+        "Επέτειος του Όχι",
+        Rule::gregorian(10, 28),
+    ),
+    HolidayRule::fixed_public(
+        "Christmas Day",
+        "Ημέρα των Χριστουγέννων",
+        Rule::gregorian(12, 25),
+    ),
+    HolidayRule::fixed_public(
+        "Boxing Day",
+        "Δεύτερη μέρα των Χριστουγέννων",
+        Rule::gregorian(12, 26),
+    ),
+];
+
+/// Cyprus, the Republic.
+///
+/// The public holidays as the Greek Wikipedia lists them, with the
+/// Orthodox Easter by the Julian computus from Green Monday to Pentecost
+/// Monday, and Easter Tuesday, which the Central Bank's list of bank
+/// holidays carries and the public list does not, as [`Kind::Bank`]. No
+/// substitution: the bank's 2026 list notes that the Dormition and Boxing
+/// Day fall on Saturdays and moves nothing. The north of the island is not
+/// carried.
+pub static CYPRUS: RuleSet = RuleSet {
+    code: "CY",
+    english_name: "Cyprus",
+    rules: CY_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "The Greek Wikipedia, \"Δημόσιες αργίες στην Κύπρο\", retrieved \
+              2026-09-22, for the list and the names; Central Bank of Cyprus, \
+              \"Bank holidays to be observed in Cyprus during 2026\", dated \
+              7 June 2024, for Easter Tuesday and the 2026 dates",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Estonia
+// ─────────────────────────────────────────────────────────────────────────
+
+static EE_RULES: &[HolidayRule] = &[
+    // § 1: the national holiday, a day off.
+    HolidayRule::fixed_public("Independence Day", "iseseisvuspäev", Rule::gregorian(2, 24)),
+    // § 2: the public holidays.
+    HolidayRule::fixed_public("New Year's Day", "uusaasta", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("Good Friday", "suur reede", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public(
+        "Easter Sunday",
+        "ülestõusmispühade 1. püha",
+        Rule::easter(EASTER_SUNDAY),
+    ),
+    HolidayRule::fixed_public("Spring Day", "kevadpüha", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Whit Sunday", "nelipühade 1. püha", Rule::easter(PENTECOST)),
+    HolidayRule::fixed_public("Victory Day", "võidupüha", Rule::gregorian(6, 23)),
+    HolidayRule::fixed_public("Midsummer Day", "jaanipäev", Rule::gregorian(6, 24)),
+    // A day of national importance under the 1994 act, a public holiday
+    // under the 1998 one.
+    HolidayRule::observance(
+        "Day of Restoration of Independence",
+        "taasiseseisvumispäev",
+        Rule::gregorian(8, 20),
+    )
+    .years(Some(1994), Some(1997)),
+    HolidayRule::fixed_public(
+        "Day of Restoration of Independence",
+        "taasiseseisvumispäev",
+        Rule::gregorian(8, 20),
+    )
+    .years(Some(1998), None),
+    HolidayRule::fixed_public("Christmas Eve", "jõululaupäev", Rule::gregorian(12, 24))
+        .years(Some(2005), None),
+    HolidayRule::fixed_public(
+        "Christmas Day",
+        "esimene jõulupüha",
+        Rule::gregorian(12, 25),
+    ),
+    HolidayRule::fixed_public("Boxing Day", "teine jõulupüha", Rule::gregorian(12, 26)),
+    // § 3: the days of national importance, working days.
+    HolidayRule::observance("Epiphany", "kolmekuningapäev", Rule::gregorian(1, 6)),
+    HolidayRule::observance(
+        "Anniversary of the Tartu Peace Treaty",
+        "Tartu rahulepingu aastapäev",
+        Rule::gregorian(2, 2),
+    ),
+    HolidayRule::observance("Mother Tongue Day", "emakeelepäev", Rule::gregorian(3, 14))
+        .years(Some(1999), None),
+    HolidayRule::observance(
+        "Mother's Day",
+        "emadepäev",
+        Rule::nth(5, 2, Weekday::Sunday),
+    ),
+    HolidayRule::observance(
+        "Estonian Flag Day",
+        "Eesti lipu päev",
+        Rule::gregorian(6, 4),
+    )
+    .years(Some(2004), None),
+    HolidayRule::observance("Day of Mourning", "leinapäev", Rule::gregorian(6, 14)),
+    HolidayRule::observance(
+        "Day of Remembrance for the Victims of Communism and Nazism",
+        "kommunismi ja natsismi ohvrite mälestuspäev",
+        Rule::gregorian(8, 23),
+    )
+    .years(Some(2009), None),
+    HolidayRule::observance(
+        "Grandparents' Day",
+        "vanavanemate päev",
+        Rule::nth(9, 2, Weekday::Sunday),
+    )
+    .years(Some(2010), None),
+    HolidayRule::observance(
+        "Resistance Day",
+        "vastupanuvõitluse päev",
+        Rule::gregorian(9, 22),
+    )
+    .years(Some(2010), None),
+    HolidayRule::observance(
+        "Finno-Ugric Day",
+        "hõimupäev",
+        Rule::nth(10, 3, Weekday::Saturday),
+    )
+    .years(Some(2011), None),
+    HolidayRule::observance("All Souls' Day", "hingedepäev", Rule::gregorian(11, 2)),
+    HolidayRule::observance(
+        "Father's Day",
+        "isadepäev",
+        Rule::nth(11, 2, Weekday::Sunday),
+    ),
+    HolidayRule::observance("Day of Rebirth", "taassünni päev", Rule::gregorian(11, 16)),
+];
+
+/// Estonia.
+///
+/// The Public Holidays and Days of National Importance Act of 27 January
+/// 1998, in force from 23 February 1998: the national holiday of § 1 and
+/// the public holidays of § 2, days off, and the days of national
+/// importance of § 3, working days carried as observances. The years are
+/// the act's own amendment marks: 20 August a public holiday from the 1998
+/// act, having been a day of national importance under the act of 1994,
+/// Christmas Eve from 2005, and the six § 3 days added between 1999 and
+/// 2011. The days without marks were in the 1994 act and are not dated.
+/// No substitution; the three-hour shortening of the working day before
+/// some of these, which the Employment Contracts Act sets, is not carried.
+pub static ESTONIA: RuleSet = RuleSet {
+    code: "EE",
+    english_name: "Estonia",
+    rules: EE_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Pühade ja tähtpäevade seadus, adopted 27 January 1998, and the act of \
+              8 February 1994 it replaced, as reproduced with their amendment \
+              marks by the Estonian Wikipedia, \"Pühade ja tähtpäevade seadus\", \
+              retrieved 2026-09-22; Wikipedia, \"Public holidays in Estonia\", \
+              retrieved the same day, for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Latvia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Section 1 of the law: 4 May, the closing day of the Song and Dance
+/// Celebration and 18 November, falling on a Saturday or Sunday, make the
+/// next working day a day off. Only those three are `public` below; the
+/// rest are `fixed_public` and the policy never reaches them.
+static LV_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// The closing day of the Nationwide Latvian Song and Dance Celebration,
+/// held every five years on dates the organisers set: 8 July 2018 and
+/// 9 July 2023. The table starts in 2018 because in 2013 the Monday after
+/// the closing day was a day off for the participants alone, under the
+/// Song and Dance Celebration Law rather than this one. The next
+/// celebration is planned for 2028 and its date is not yet set.
+fn lv_song_and_dance_celebration(year: i64) -> Days {
+    let (month, day) = match year {
+        2018 => (7u8, 8u8),
+        2023 => (7, 9),
+        _ => return Days::new(),
+    };
+    gregorian::to_fixed(year, month, day).map_or_else(|_| Days::new(), Days::one)
+}
+
+static LV_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Jaungada diena", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("Good Friday", "Lielā Piektdiena", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Sunday", "Pirmās Lieldienas", Rule::easter(EASTER_SUNDAY)),
+    HolidayRule::fixed_public("Easter Monday", "Otrās Lieldienas", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::fixed_public(
+        "Labour Day",
+        "Darba svētki, Latvijas Republikas Satversmes sapulces sasaukšanas diena",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::public(
+        "Restoration of Independence Day",
+        "Latvijas Republikas Neatkarības atjaunošanas diena",
+        Rule::gregorian(5, 4),
+    ),
+    HolidayRule::fixed_public("Mother's Day", "Mātes diena", Rule::nth(5, 2, Weekday::Sunday)),
+    HolidayRule::fixed_public("Pentecost", "Vasarsvētki", Rule::easter(PENTECOST))
+        .years(Some(1995), None),
+    HolidayRule::fixed_public("Līgo Day", "Līgo diena", Rule::gregorian(6, 23)),
+    HolidayRule::fixed_public("Midsummer Day", "Jāņu diena", Rule::gregorian(6, 24)),
+    HolidayRule::public(
+        "Closing Day of the Nationwide Latvian Song and Dance Celebration",
+        "Vispārējo latviešu Dziesmu un deju svētku noslēguma diena",
+        Rule::Tabulated {
+            function: lv_song_and_dance_celebration,
+            first_year: 2018,
+            last_year: 2023,
+        },
+    )
+    .years(Some(2018), None),
+    HolidayRule::public(
+        "Proclamation Day of the Republic of Latvia",
+        "Latvijas Republikas Proklamēšanas diena",
+        Rule::gregorian(11, 18),
+    ),
+    HolidayRule::fixed_public("Christmas Eve", "Ziemassvētku vakars", Rule::gregorian(12, 24)),
+    HolidayRule::fixed_public("Christmas Day", "Pirmie Ziemassvētki", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public(
+        "Second Day of Christmas",
+        "Otrie Ziemassvētki",
+        Rule::gregorian(12, 26),
+    ),
+    HolidayRule::fixed_public("New Year's Eve", "Vecgada diena", Rule::gregorian(12, 31)),
+    // The two one-off holidays the law names by date.
+    HolidayRule::fixed_public(
+        "Pastoral Visit of Pope Francis to Latvia",
+        "Viņa Svētības pāvesta Franciska pastorālās vizītes Latvijā diena",
+        Rule::gregorian(9, 24),
+    )
+    .years(Some(2018), Some(2018)),
+    HolidayRule::fixed_public(
+        "Bronze Medal of the Latvian Ice Hockey Team at the 2023 World Championship",
+        "diena, kad Latvijas hokeja komanda ieguva bronzas medaļu 2023. gada Pasaules hokeja čempionātā",
+        Rule::gregorian(5, 29),
+    )
+    .years(Some(2023), Some(2023)),
+    // Section 2: the remembrance and celebration days, working days.
+    HolidayRule::observance(
+        "Remembrance Day of the Defenders of the Barricades of 1991",
+        "1991. gada barikāžu aizstāvju atceres diena",
+        Rule::gregorian(1, 20),
+    )
+    .years(Some(1997), None),
+    HolidayRule::observance(
+        "International Recognition Day of the Republic of Latvia",
+        "Latvijas Republikas starptautiskās (de jure) atzīšanas diena",
+        Rule::gregorian(1, 26),
+    )
+    .years(Some(1995), None),
+    HolidayRule::observance(
+        "International Day of Non-Governmental Organisations",
+        "Starptautiskā nevalstisko organizāciju diena",
+        Rule::gregorian(2, 27),
+    )
+    .years(Some(2025), None),
+    HolidayRule::observance(
+        "Remembrance Day of the Armed Resistance of the National Partisans",
+        "Nacionālo partizānu bruņotās pretošanās atceres diena",
+        Rule::gregorian(3, 2),
+    ),
+    HolidayRule::observance(
+        "International Women's Day",
+        "Starptautiskā sieviešu diena",
+        Rule::gregorian(3, 8),
+    )
+    .years(Some(2007), None),
+    HolidayRule::observance(
+        "Remembrance Day of the National Resistance Movement",
+        "Nacionālās pretošanās kustības piemiņas diena",
+        Rule::gregorian(3, 17),
+    ),
+    HolidayRule::observance(
+        "Remembrance Day of the Victims of Communist Genocide",
+        "Komunistiskā genocīda upuru piemiņas diena",
+        Rule::gregorian(3, 25),
+    ),
+    HolidayRule::observance("Latgale Congress Day", "Latgales kongresa diena", Rule::gregorian(4, 27)),
+    HolidayRule::observance(
+        "Day of the Defeat of Nazism and Remembrance of the Victims of the Second World War",
+        "Nacisma sagrāves diena un Otrā pasaules kara upuru piemiņas diena",
+        Rule::gregorian(5, 8),
+    )
+    .years(Some(1995), None),
+    HolidayRule::observance("Europe Day", "Eiropas diena", Rule::gregorian(5, 9))
+        .years(Some(1997), None),
+    HolidayRule::observance(
+        "International Day of Families",
+        "Starptautiskā ģimenes diena",
+        Rule::gregorian(5, 15),
+    )
+    .years(Some(2007), None),
+    HolidayRule::observance(
+        "Firefighters' and Rescuers' Day",
+        "Ugunsdzēsēju un glābēju diena",
+        Rule::gregorian(5, 17),
+    ),
+    HolidayRule::observance(
+        "International Children's Day",
+        "Starptautiskā bērnu aizsardzības diena",
+        Rule::gregorian(6, 1),
+    )
+    .years(Some(2007), None),
+    HolidayRule::observance(
+        "Remembrance Day of the Victims of Communist Genocide",
+        "Komunistiskā genocīda upuru piemiņas diena",
+        Rule::gregorian(6, 14),
+    ),
+    HolidayRule::observance(
+        "Day of the Occupation of the Republic of Latvia",
+        "Latvijas Republikas okupācijas diena",
+        Rule::gregorian(6, 17),
+    )
+    .years(Some(2000), None),
+    HolidayRule::observance(
+        "Medical Workers' Day",
+        "Medicīnas darbinieku diena",
+        Rule::nth(6, 3, Weekday::Sunday),
+    ),
+    HolidayRule::observance(
+        "Heroes' Remembrance Day",
+        "Varoņu piemiņas diena (Cēsu kaujas atceres diena)",
+        Rule::gregorian(6, 22),
+    )
+    .years(Some(1995), None),
+    HolidayRule::observance(
+        "Remembrance Day of the Victims of the Genocide of the Jewish People",
+        "Ebreju tautas genocīda upuru piemiņas diena",
+        Rule::gregorian(7, 4),
+    ),
+    HolidayRule::observance(
+        "Sea Festival Day",
+        "Jūras svētku diena",
+        Rule::nth(7, 2, Weekday::Saturday),
+    )
+    .years(Some(2007), None),
+    HolidayRule::observance(
+        "Remembrance Day of the Latvian Freedom Fighters",
+        "Latvijas brīvības cīnītāju piemiņas diena",
+        Rule::gregorian(8, 11),
+    )
+    .years(Some(1995), None),
+    HolidayRule::observance(
+        "Day of the Adoption of the Constitutional Law on the Statehood of the Republic of Latvia",
+        "Konstitucionālā likuma “Par Latvijas Republikas valstisko statusu” pieņemšanas diena",
+        Rule::gregorian(8, 21),
+    )
+    .years(Some(2002), None),
+    HolidayRule::observance(
+        "Remembrance Day of the Victims of Stalinism and Nazism",
+        "staļinisma un nacisma upuru atceres diena",
+        Rule::gregorian(8, 23),
+    )
+    .years(Some(2009), None),
+    HolidayRule::observance("Knowledge Day", "Zinību diena", Rule::gregorian(9, 1))
+        .years(Some(2002), None),
+    HolidayRule::observance("Father's Day", "Tēva diena", Rule::nth(9, 2, Weekday::Sunday))
+        .years(Some(2008), None),
+    HolidayRule::observance("Baltic Unity Day", "Baltu vienības diena", Rule::gregorian(9, 22))
+        .years(Some(2000), None),
+    HolidayRule::observance(
+        "International Day of Older Persons",
+        "Starptautiskā senioru diena",
+        Rule::gregorian(10, 1),
+    ),
+    HolidayRule::observance("Teachers' Day", "Skolotāju diena", Rule::gregorian(10, 5)),
+    HolidayRule::observance("State Language Day", "Valsts valodas diena", Rule::gregorian(10, 15)),
+    HolidayRule::observance("Border Guards' Day", "Robežsargu diena", Rule::gregorian(11, 7)),
+    HolidayRule::observance("Lāčplēsis Day", "Lāčplēša diena", Rule::gregorian(11, 11)),
+    HolidayRule::observance(
+        "Remembrance Day of the Tragedy of 21 November 2013",
+        "2013. gada 21. novembra traģēdijas atceres diena",
+        Rule::gregorian(11, 21),
+    )
+    .years(Some(2014), None),
+    HolidayRule::observance("Police Officers' Day", "Policijas darbinieku diena", Rule::gregorian(12, 5)),
+    HolidayRule::observance(
+        "Remembrance Day of the Victims of the Genocide of the Totalitarian Communist Regime against the Latvian People",
+        "pret latviešu tautu vērstā totalitārā komunistiskā režīma genocīda upuru piemiņas diena",
+        Rule::nth(12, 1, Weekday::Sunday),
+    )
+    .years(Some(1998), None),
+];
+
+/// Latvia.
+///
+/// The law "On Holidays, Remembrance Days and Days to be Celebrated" of
+/// 1990 as in force from 18 March 2025: the holidays of section 1, days
+/// off, with the two one-off days it names by date, and the remembrance
+/// and celebration days of section 2, working days carried as observances.
+/// Section 1 moves three holidays, and only three, off a weekend: 4 May,
+/// the closing day of the Song and Dance Celebration and 18 November; the
+/// year that clause began is not carried. The closing day is a table of
+/// the dates the organisers set, 2018 and 2023, and the doc on the
+/// function says why it starts in 2018. The years are those the Latvian
+/// Wikipedia gives from the amending laws, Pentecost from 1995 and the
+/// remembrance days it dates; the rest are not dated. The right of the
+/// Orthodox and Old Believers to keep Easter, Pentecost and Christmas by
+/// their own calendars is personal and not carried.
+pub static LATVIA: RuleSet = RuleSet {
+    code: "LV",
+    english_name: "Latvia",
+    rules: LV_RULES,
+    substitution: LV_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Likums \"Par svētku, atceres un atzīmējamām dienām\", consolidated text \
+              in force from 18 March 2025, likumi.lv, retrieved 2026-09-22; the \
+              Latvian Wikipedia, \"Latvijas svētku, atceres un atzīmējamās \
+              dienas\", retrieved the same day, for the years, and \"Vispārējie \
+              latviešu Dziesmu un Deju svētki\" for the closing dates of 2018 \
+              and 2023; Wikipedia, \"Public holidays in Latvia\", for the \
+              English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Lithuania
+// ─────────────────────────────────────────────────────────────────────────
+
+static LT_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Naujieji metai", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Day of Restoration of the State of Lithuania",
+        "Lietuvos valstybės atkūrimo diena",
+        Rule::gregorian(2, 16),
+    )
+    .years(Some(1990), None),
+    HolidayRule::fixed_public(
+        "Day of Restoration of Independence of Lithuania",
+        "Lietuvos nepriklausomybės atkūrimo diena",
+        Rule::gregorian(3, 11),
+    )
+    .years(Some(1990), None),
+    HolidayRule::fixed_public("Easter Sunday", "Velykos", Rule::easter(EASTER_SUNDAY)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "antroji Velykų diena",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public(
+        "International Workers' Day",
+        "Tarptautinė darbo diena",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Mother's Day",
+        "Motinos diena",
+        Rule::nth(5, 1, Weekday::Sunday),
+    ),
+    HolidayRule::fixed_public(
+        "Father's Day",
+        "Tėvo diena",
+        Rule::nth(6, 1, Weekday::Sunday),
+    )
+    .years(Some(2009), None),
+    HolidayRule::fixed_public("Midsummer Day", "Rasos (Joninės)", Rule::gregorian(6, 24))
+        .years(Some(2003), None),
+    HolidayRule::fixed_public(
+        "Statehood Day",
+        "Valstybės (Lietuvos karaliaus Mindaugo karūnavimo) diena",
+        Rule::gregorian(7, 6),
+    )
+    .years(Some(1991), None),
+    HolidayRule::fixed_public(
+        "Assumption Day",
+        "Žolinė (Švč. Mergelės Marijos ėmimo į dangų diena)",
+        Rule::gregorian(8, 15),
+    )
+    .years(Some(1991), None),
+    HolidayRule::fixed_public(
+        "All Saints' Day",
+        "Visų šventųjų diena",
+        Rule::gregorian(11, 1),
+    ),
+    HolidayRule::fixed_public("All Souls' Day", "Vėlinės", Rule::gregorian(11, 2))
+        .years(Some(2020), None),
+    HolidayRule::fixed_public("Christmas Eve", "Kūčios", Rule::gregorian(12, 24))
+        .years(Some(2011), None),
+    HolidayRule::fixed_public("Christmas Day", "Kalėdos", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public(
+        "Second Day of Christmas",
+        "Kalėdos",
+        Rule::gregorian(12, 26),
+    ),
+];
+
+/// Lithuania.
+///
+/// Article 123 of the Labour Code, the public holidays on which work
+/// stops, as the Lithuanian Wikipedia's list reproduces it. The years:
+/// 16 February and 11 March from the Law on Holidays of 1990, Statehood
+/// Day and the Assumption from 1991, Midsummer from 2003, Father's Day
+/// from the Seimas decision of 2009, All Souls' Day from 2020, and
+/// Christmas Eve from 2011, the year after the Seimas vote of 9 December
+/// 2010 that the source reports as taking effect the next year. Mother's
+/// Day, All Saints' Day and the rest are not dated. No substitution: a
+/// holiday on a weekend stays there. The seventy-odd memorable days of the
+/// separate Law on Memorable Days are not carried.
+pub static LITHUANIA: RuleSet = RuleSet {
+    code: "LT",
+    english_name: "Lithuania",
+    rules: LT_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Lietuvos Respublikos darbo kodeksas, 123 straipsnis, as listed by the \
+              Lithuanian Wikipedia, \"Sąrašas:Lietuvos šventės\", and Wikipedia, \
+              \"Public holidays in Lithuania\", both retrieved 2026-09-22; \
+              sventinesdienos.lt, retrieved the same day, for 24 June (2003), \
+              6 July and 15 August (1991) and 2 November (2020); \
+              nedarbodienos.lt for Father's Day (2009); 15min.lt, 9 December \
+              2010, for Christmas Eve",
 };
