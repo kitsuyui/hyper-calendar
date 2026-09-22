@@ -40,7 +40,10 @@ pub use africa_middle_east::{
     EGYPT, ETHIOPIA, GHANA, IRAN, ISRAEL, KENYA, MOROCCO, NIGERIA, SAUDI_ARABIA, SOUTH_AFRICA,
     TURKEY, UNITED_ARAB_EMIRATES,
 };
-pub use americas::{ARGENTINA, BRAZIL, CANADA, COLOMBIA, MEXICO, PERU, UNITED_STATES};
+pub use americas::{
+    ARGENTINA, BOLIVIA, BRAZIL, CANADA, CHILE, COLOMBIA, ECUADOR, MEXICO, PERU, UNITED_STATES,
+    URUGUAY,
+};
 pub use asia::{
     CHINA, HONG_KONG, INDIA, INDONESIA, MACAU, MALAYSIA, MYANMAR, NEPAL, PAKISTAN, PHILIPPINES,
     SINGAPORE, SOUTH_KOREA, TAIWAN, THAILAND, VIETNAM,
@@ -66,15 +69,18 @@ pub static ALL: &[&CountryRules] = &[
     &AUSTRALIA,
     &BELGIUM,
     &BULGARIA,
+    &BOLIVIA,
     &BRAZIL,
     &CANADA,
     &SWITZERLAND,
+    &CHILE,
     &CHINA,
     &COLOMBIA,
     &CYPRUS,
     &CZECHIA,
     &GERMANY,
     &DENMARK,
+    &ECUADOR,
     &ESTONIA,
     &EGYPT,
     &SPAIN,
@@ -126,6 +132,7 @@ pub static ALL: &[&CountryRules] = &[
     &TAIWAN,
     &UKRAINE,
     &UNITED_STATES,
+    &URUGUAY,
     &VIETNAM,
     &SOUTH_AFRICA,
 ];
@@ -163,7 +170,7 @@ mod tests {
     fn the_registry_holds_the_number_of_countries_the_readme_claims() {
         // `README.md` and `docs/observances.md` both state this figure, and a
         // documented count that drifts is a documented lie.
-        assert_eq!(ALL.len(), 68);
+        assert_eq!(ALL.len(), 72);
     }
 
     #[test]

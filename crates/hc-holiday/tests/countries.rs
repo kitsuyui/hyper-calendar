@@ -1798,6 +1798,221 @@ fn macau_gives_the_public_administration_compensatory_rest_days_from_2019() {
 }
 
 #[test]
+fn bolivia_moves_sunday_holidays_to_monday_except_the_four_the_decree_names() {
+    expect(
+        "BO",
+        None,
+        &[
+            (2026, 1, 22, "Plurinational State Foundation Day"),
+            (2026, 2, 16, "Carnival Monday"),
+            (2026, 2, 17, "Carnival Tuesday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 6, 4, "Corpus Christi"),
+            (2026, 6, 21, "Aymara Amazonian New Year"),
+            (2026, 8, 6, "Independence Day"),
+            (2026, 11, 2, "All Souls' Day"),
+            (2010, 1, 22, "Plurinational State Foundation Day"),
+            (2009, 6, 21, "Aymara Amazonian New Year"),
+        ],
+    );
+    // 21 June 2026, 1 January 2023 and 22 January 2017 are Sundays.
+    expect_substitute("BO", None, 2026, (6, 21), (6, 22));
+    expect_substitute("BO", None, 2023, (1, 1), (1, 2));
+    expect_substitute("BO", None, 2017, (1, 22), (1, 23));
+    // 2 November 2025 is a Sunday and is one of the four exceptions.
+    expect_working("BO", None, &[(2025, 11, 3), (2009, 1, 22), (2008, 6, 21)]);
+}
+
+#[test]
+fn chile_moves_each_holiday_by_its_own_law() {
+    expect(
+        "CL",
+        None,
+        &[
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 4, "Holy Saturday"),
+            (2026, 5, 21, "Navy Day"),
+            (2026, 6, 21, "National Indigenous Peoples' Day"),
+            (2026, 6, 29, "Saints Peter and Paul"),
+            (2026, 7, 16, "Our Lady of Mount Carmel"),
+            (2026, 8, 15, "Assumption of Mary"),
+            (2026, 9, 18, "Independence Day"),
+            (2026, 9, 19, "Army Day"),
+            (2026, 10, 12, "Meeting of Two Worlds Day"),
+            (
+                2026,
+                10,
+                31,
+                "National Day of the Evangelical and Protestant Churches",
+            ),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 12, 8, "Immaculate Conception"),
+            // Ley 19.668: Thursdays back to Monday in 2023, Wednesdays in
+            // 2022, a Tuesday in 2021; Ley 20.299: a Tuesday 31 October to
+            // the Friday before, a Wednesday to the Friday after.
+            (2023, 6, 26, "Saints Peter and Paul"),
+            (2023, 10, 9, "Meeting of Two Worlds Day"),
+            (
+                2023,
+                10,
+                27,
+                "National Day of the Evangelical and Protestant Churches",
+            ),
+            (2022, 6, 27, "Saints Peter and Paul"),
+            (2022, 10, 10, "Meeting of Two Worlds Day"),
+            (2021, 6, 28, "Saints Peter and Paul"),
+            (
+                2018,
+                11,
+                2,
+                "National Day of the Evangelical and Protestant Churches",
+            ),
+            (
+                2024,
+                10,
+                31,
+                "National Day of the Evangelical and Protestant Churches",
+            ),
+            // Ley 21.357: 21 June 2021 by the transitional article, then
+            // the solstice at Chile's meridian.
+            (2021, 6, 21, "National Indigenous Peoples' Day"),
+            (2024, 6, 20, "National Indigenous Peoples' Day"),
+            (2025, 6, 20, "National Indigenous Peoples' Day"),
+            // Leyes 20.215 and 20.983.
+            (2007, 9, 17, "Monday 17 September"),
+            (2018, 9, 17, "Monday 17 September"),
+            (2021, 9, 17, "Friday 17 September"),
+            (2019, 9, 20, "Friday 20 September"),
+            (2017, 1, 2, "Monday after New Year's Day"),
+            (2023, 1, 2, "Monday after New Year's Day"),
+            // Corpus Christi, fixed then moved then gone; the older names.
+            (1999, 6, 3, "Corpus Christi"),
+            (2006, 6, 12, "Corpus Christi"),
+            (1999, 10, 12, "Discovery of America Anniversary"),
+            (2000, 9, 4, "National Unity Day"),
+            (1998, 9, 11, "Day of National Liberation"),
+        ],
+    );
+    expect("CL", Some("CL-AP"), &[(2026, 6, 7, "Battle of Arica Day")]);
+    expect_working(
+        "CL",
+        None,
+        &[
+            (2023, 6, 29),
+            (2023, 10, 12),
+            (2023, 10, 31),
+            (2024, 6, 21),
+            (2010, 9, 17),
+            (2012, 1, 2),
+            (2026, 9, 17),
+            (2007, 6, 7),
+            (2026, 6, 7),
+        ],
+    );
+}
+
+#[test]
+fn ecuador_moves_holidays_off_midweek_and_off_the_weekend_and_resolves_november() {
+    expect(
+        "EC",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 2, 16, "Carnival Monday"),
+            (2026, 2, 17, "Carnival Tuesday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 25, "Battle of Pichincha"),
+            (2026, 8, 10, "First Cry of Independence"),
+            (2026, 10, 9, "Independence of Guayaquil"),
+            (2026, 11, 2, "Day of the Dead"),
+            (2026, 11, 3, "Independence of Cuenca"),
+            (2026, 12, 25, "Christmas Day"),
+            (2025, 5, 23, "Battle of Pichincha"),
+            (2025, 8, 11, "First Cry of Independence"),
+            (2025, 10, 10, "Independence of Guayaquil"),
+            (2025, 11, 3, "Independence of Cuenca"),
+            (2025, 11, 4, "Day of the Dead"),
+            (2024, 5, 3, "Labour Day"),
+            (2024, 8, 9, "First Cry of Independence"),
+            (2024, 10, 11, "Independence of Guayaquil"),
+            (2024, 11, 1, "Day of the Dead"),
+            (2024, 11, 4, "Independence of Cuenca"),
+            (2023, 11, 2, "Day of the Dead"),
+            (2023, 11, 3, "Independence of Cuenca"),
+            (2022, 11, 3, "Day of the Dead"),
+            (2022, 11, 4, "Independence of Cuenca"),
+            (2018, 11, 1, "Independence of Cuenca"),
+            (2018, 11, 2, "Day of the Dead"),
+            // A Saturday Christmas and New Year's Day go to the Friday before,
+            // the second across the New Year.
+            (2021, 12, 24, "Christmas Day"),
+            (2021, 12, 31, "New Year's Day"),
+            (2016, 5, 24, "Battle of Pichincha"),
+        ],
+    );
+    expect_working(
+        "EC",
+        None,
+        &[
+            (2026, 5, 24),
+            (2025, 11, 2),
+            (2022, 1, 1),
+            (2022, 11, 2),
+            (2022, 12, 25),
+        ],
+    );
+}
+
+#[test]
+fn uruguay_moves_three_holidays_to_the_adjacent_monday_and_keeps_the_rest() {
+    expect(
+        "UY",
+        None,
+        &[
+            (2026, 1, 6, "Children's Day"),
+            (2026, 2, 16, "Carnival Monday"),
+            (2026, 2, 17, "Carnival Tuesday"),
+            (2026, 3, 30, "Tourism Week"),
+            (2026, 4, 4, "Tourism Week"),
+            (2026, 4, 19, "Landing of the Thirty-Three Orientals"),
+            (2026, 5, 18, "Battle of Las Piedras"),
+            (2026, 6, 19, "Birth of Artigas"),
+            (2026, 7, 18, "Constitution Day"),
+            (2026, 8, 25, "Independence Day"),
+            (2026, 10, 12, "Day of the Race"),
+            (2026, 11, 2, "All Souls' Day"),
+            (2026, 12, 25, "Family Day"),
+            (2024, 4, 22, "Landing of the Thirty-Three Orientals"),
+            (2023, 4, 17, "Landing of the Thirty-Three Orientals"),
+            (2023, 5, 22, "Battle of Las Piedras"),
+            (2023, 10, 16, "Day of the Race"),
+            (2022, 4, 18, "Landing of the Thirty-Three Orientals"),
+            (2022, 5, 16, "Battle of Las Piedras"),
+            (2022, 10, 10, "Day of the Race"),
+        ],
+    );
+    expect_working(
+        "UY",
+        None,
+        &[(2023, 4, 19), (2023, 5, 18), (2023, 10, 12), (2026, 4, 20)],
+    );
+    let calendar = HolidayCalendar::for_year(table("UY"), None, 2026);
+    for (month, day, kind) in [
+        (5, 1, Kind::Public),
+        (1, 6, Kind::Bank),
+        (11, 2, Kind::Bank),
+    ] {
+        let kinds: Vec<Kind> = calendar
+            .on(ymd(2026, month, day))
+            .iter()
+            .map(|holiday| holiday.kind)
+            .collect();
+        assert_eq!(kinds, [kind], "{month}-{day}");
+    }
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",
