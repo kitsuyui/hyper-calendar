@@ -11,8 +11,9 @@
 use hc_calendar::{Month, Rd, Weekday};
 
 use crate::computus::offsets::{EASTER_MONDAY, GOOD_FRIDAY};
+use crate::hindu::DIWALI;
 use crate::rule::{
-    CalendarSystem, Days, HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
+    CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
     SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
 };
 
@@ -729,4 +730,163 @@ pub static SOUTH_AFRICA: RuleSet = RuleSet {
               rule. Days declared under section 2A — election days and the \
               occasional national day of mourning — are one-offs by \
               proclamation and are not modelled",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Kenya
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Section 4 of the Public Holidays Act: a Part I holiday on a Sunday
+/// moves to "the first succeeding day, not being a public holiday", and the
+/// Sunday ceases to be one.
+static KE_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static KE_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+    HolidayRule::public("Madaraka Day", "", Rule::gregorian(6, 1)),
+    HolidayRule::public("Idd-ul-Fitr", "", EID_AL_FITR).approximate(),
+    // Utamaduni Day in the Act's 2022 text, Huduma Day and Moi Day before
+    // that, and Mazingira Day in the source's current table; the renamings
+    // are not dated by the sources and are not carried.
+    HolidayRule::public("Mazingira Day", "", Rule::gregorian(10, 10)),
+    HolidayRule::public("Mashujaa Day", "", Rule::gregorian(10, 20)),
+    HolidayRule::public("Jamhuri Day", "", Rule::gregorian(12, 12)),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    // Parts II and III of the Schedule: public holidays for all persons of
+    // the Islamic and Hindu faiths respectively, and not for others.
+    HolidayRule::observance("Idd-ul-Azha", "", EID_AL_ADHA)
+        .of_kind(Kind::Religious)
+        .approximate(),
+    HolidayRule::observance("Diwali", "", DIWALI)
+        .of_kind(Kind::Religious)
+        .approximate(),
+];
+
+/// Kenya.
+///
+/// The Public Holidays Act (Cap. 110): Part I of its Schedule for everyone,
+/// with section 4 moving a Sunday holiday to the next day that is not one;
+/// Part II, Idd-ul-Azha, for all persons of the Islamic faith and Part III,
+/// Diwali, for all of the Hindu faith, which are carried as religious
+/// observances rather than days off for all. The two Idd days are "dates
+/// depending upon the appearance of the moon" and are approximate; Diwali
+/// is computed on the Hindu lunisolar calendar and flagged likewise, since
+/// the Act says the moon decides. The election day and the swearing-in of
+/// a President-elect, which section 2 makes holidays, and the Cabinet
+/// Secretary's gazetted additions under section 3 are not carried.
+pub static KENYA: RuleSet = RuleSet {
+    code: "KE",
+    english_name: "Kenya",
+    rules: KE_RULES,
+    substitution: KE_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "The Public Holidays Act (Cap. 110), Revised Edition 2022, National \
+              Council for Law Reporting (new.kenyalaw.org, retrieved 2026-09-22), \
+              sections 2 to 4 and the Schedule; Wikipedia, \"Public holidays in \
+              Kenya\", retrieved 2026-09-22, for the present name of the \
+              10 October holiday",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Morocco
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A religious feast of two days, as the decrees give the three great
+/// feasts: the day and the day after.
+const fn ma_two_days(
+    name: &'static str,
+    local: &'static str,
+    base: &'static Rule,
+) -> [HolidayRule; 2] {
+    [
+        HolidayRule::fixed_public(name, local, *base).approximate(),
+        HolidayRule::fixed_public(name, local, Rule::Offset { base, days: 1 }).approximate(),
+    ]
+}
+
+static MA_EID_AL_FITR: Rule = EID_AL_FITR;
+static MA_EID_AL_ADHA: Rule = EID_AL_ADHA;
+static MA_MAWLID: Rule = MAWLID;
+
+static MA_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Nouvel An", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Proclamation of Independence Day",
+        "Manifeste de l'indépendance",
+        Rule::gregorian(1, 11),
+    ),
+    // Declared a national holiday on 3 May 2023, so kept from 2024.
+    HolidayRule::fixed_public(
+        "Amazigh New Year",
+        "Nouvel An Amazigh",
+        Rule::gregorian(1, 14),
+    )
+    .years(Some(2024), None),
+    HolidayRule::fixed_public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Throne Day", "Fête du Trône", Rule::gregorian(7, 30)),
+    HolidayRule::fixed_public(
+        "Oued Ed-Dahab Allegiance Day",
+        "Allégeance Oued Eddahab",
+        Rule::gregorian(8, 14),
+    ),
+    HolidayRule::fixed_public(
+        "Revolution of the King and the People",
+        "Révolution du Roi et du Peuple",
+        Rule::gregorian(8, 20),
+    ),
+    HolidayRule::fixed_public("Youth Day", "Fête de la Jeunesse", Rule::gregorian(8, 21)),
+    // Established on 4 November 2025, so first kept in 2026.
+    HolidayRule::fixed_public("Unity Day", "Fête de l'Unité", Rule::gregorian(10, 31))
+        .years(Some(2026), None),
+    HolidayRule::fixed_public("Green March Day", "Marche verte", Rule::gregorian(11, 6)),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Fête de l'indépendance",
+        Rule::gregorian(11, 18),
+    ),
+    HolidayRule::fixed_public("Islamic New Year", "1er Moharram", HIJRI_NEW_YEAR).approximate(),
+    ma_two_days("Mawlid", "Aïd al-Mawlid", &MA_MAWLID)[0],
+    ma_two_days("Mawlid", "Aïd al-Mawlid", &MA_MAWLID)[1],
+    ma_two_days("Eid al-Fitr", "Aïd al-Fitr", &MA_EID_AL_FITR)[0],
+    ma_two_days("Eid al-Fitr", "Aïd al-Fitr", &MA_EID_AL_FITR)[1],
+    ma_two_days("Eid al-Adha", "Aïd al-Adha", &MA_EID_AL_ADHA)[0],
+    ma_two_days("Eid al-Adha", "Aïd al-Adha", &MA_EID_AL_ADHA)[1],
+];
+
+/// Morocco.
+///
+/// The eleven fixed days of the decrees on paid holidays and the four
+/// religious feasts, three of them of two days — "les fêtes religieuses
+/// donnent lieu à 2 jours fériés" — on the tabular Hijri calendar and
+/// therefore approximate, since Morocco announces each on the sighting of
+/// the moon. The Amazigh New Year is kept from 2024, having been declared
+/// on 3 May 2023, and Unity Day from 2026, having been established on
+/// 4 November 2025. The source says nothing of a holiday on the weekend,
+/// and nothing is done with one.
+pub static MOROCCO: RuleSet = RuleSet {
+    code: "MA",
+    english_name: "Morocco",
+    rules: MA_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Décret n° 2-04-426 and décret n° 2-00-166 of 10 May 2000 amending \
+              décret n° 2-77-169 of 28 February 1977, as cited by Wikipedia (fr), \
+              \"Fêtes et jours fériés au Maroc\", retrieved 2026-09-22, which also \
+              gives the royal decisions of 3 May 2023 (Yennayer) and 4 November \
+              2025 (Fête de l'Unité)",
 };
