@@ -142,6 +142,7 @@ pub static UNITED_KINGDOM: RuleSet = RuleSet {
     rules: UK_RULES,
     substitution: BRITISH_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Banking and Financial Dealings Act 1971, schedule 1, together \
@@ -209,6 +210,7 @@ pub static IRELAND: RuleSet = RuleSet {
     rules: IE_RULES,
     substitution: BRITISH_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Organisation of Working Time Act 1997, second schedule, as \
@@ -274,6 +276,7 @@ pub static FRANCE: RuleSet = RuleSet {
     // rather than law.
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Code du travail, article L3133-1; loi du 2 octobre 1981 for 8 \
@@ -406,6 +409,7 @@ pub static GERMANY: RuleSet = RuleSet {
     rules: DE_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Feiertagsgesetze of the sixteen Länder; \
@@ -468,6 +472,7 @@ pub static ITALY: RuleSet = RuleSet {
     rules: IT_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Legge 27 maggio 1949 n. 260 and its amendments; legge 20 \
@@ -520,6 +525,7 @@ pub static SPAIN: RuleSet = RuleSet {
     rules: ES_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Estatuto de los Trabajadores art. 37.2 and the annual \
@@ -605,6 +611,7 @@ pub static PORTUGAL: RuleSet = RuleSet {
     rules: PT_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Código do Trabalho art. 234; lei 23/2012 for the suspension \
@@ -676,6 +683,7 @@ pub static NETHERLANDS: RuleSet = RuleSet {
     rules: NL_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Algemene termijnenwet art. 3; Wet van 2013 for Koningsdag. \
@@ -717,6 +725,7 @@ pub static BELGIUM: RuleSet = RuleSet {
     // encode and this crate declines to invent one.
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Koninklijk besluit van 18 april 1974 / arrêté royal du 18 \
@@ -742,6 +751,7 @@ pub static SWITZERLAND: RuleSet = RuleSet {
     rules: CH_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Bundesverfassung Art. 110 Abs. 3 makes 1 August the only \
@@ -783,6 +793,7 @@ pub static AUSTRIA: RuleSet = RuleSet {
     rules: AT_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Arbeitsruhegesetz § 7 Abs. 2; Bundesgesetz BGBl. 263/1967 for \
@@ -861,6 +872,7 @@ pub static SWEDEN: RuleSet = RuleSet {
     rules: SE_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Lag (1989:253) om allmänna helgdagar; lag 2004:1042 traded \
@@ -907,6 +919,7 @@ pub static NORWAY: RuleSet = RuleSet {
     rules: NO_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Lov om helligdager og helligdagsfred (1995-02-24 nr. 12) § 2; \
@@ -952,6 +965,7 @@ pub static DENMARK: RuleSet = RuleSet {
     rules: DK_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Lov om helligdage; lov nr. 214 af 28. februar 2023 abolishing \
@@ -1022,6 +1036,7 @@ pub static FINLAND: RuleSet = RuleSet {
     rules: FI_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Laki juhlapäivistä (1937/205) and laki itsenäisyyspäivän \
@@ -1090,6 +1105,7 @@ pub static POLAND: RuleSet = RuleSet {
     // calendar rule.
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Ustawa z dnia 18 stycznia 1951 r. o dniach wolnych od pracy, \
@@ -1153,6 +1169,7 @@ pub static CZECHIA: RuleSet = RuleSet {
     rules: CZ_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Zákon č. 245/2000 Sb. o státních svátcích, as amended by zákon \
@@ -1212,6 +1229,7 @@ pub static GREECE: RuleSet = RuleSet {
     rules: GR_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Νόμος 4808/2021 art. 60 and the ΥΑ setting the yearly list; \
@@ -1266,6 +1284,7 @@ pub static HUNGARY: RuleSet = RuleSet {
     rules: HU_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "2012. évi I. törvény a munka törvénykönyvéről, § 102, as amended \
@@ -1356,6 +1375,7 @@ pub static ROMANIA: RuleSet = RuleSet {
     rules: RO_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Codul muncii (Legea 53/2003) art. 139, as amended by Legea \
@@ -1477,6 +1497,7 @@ pub static RUSSIA: RuleSet = RuleSet {
     rules: RU_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Трудовой кодекс Российской Федерации, статья 112, as amended \
@@ -1578,6 +1599,7 @@ pub static UKRAINE: RuleSet = RuleSet {
     // British bank-holiday shift.
     substitution: BRITISH_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Кодекс законів про працю України, статті 67 and 73, as amended \
@@ -1660,6 +1682,7 @@ pub static CROATIA: RuleSet = RuleSet {
     rules: HR_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Zakon o blagdanima, spomendanima i neradnim danima, as summarised by \
@@ -1809,6 +1832,7 @@ pub static SLOVAKIA: RuleSet = RuleSet {
     rules: SK_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia, \"Public holidays in Slovakia\", retrieved 2026-09-22, for \
@@ -1886,6 +1910,7 @@ pub static SLOVENIA: RuleSet = RuleSet {
     rules: SI_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia, \"Public holidays in Slovenia\", retrieved 2026-09-22, \
@@ -1979,6 +2004,7 @@ pub static ICELAND: RuleSet = RuleSet {
     rules: IS_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia, \"Public holidays in Iceland\", retrieved 2026-09-22, for \
@@ -2079,6 +2105,7 @@ pub static BULGARIA: RuleSet = RuleSet {
     rules: BG_RULES,
     substitution: BG_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Council of Ministers of the Republic of Bulgaria, \"Bulgarian public \
@@ -2186,6 +2213,7 @@ pub static CYPRUS: RuleSet = RuleSet {
     rules: CY_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The Greek Wikipedia, \"Δημόσιες αργίες στην Κύπρο\", retrieved \
@@ -2307,6 +2335,7 @@ pub static ESTONIA: RuleSet = RuleSet {
     rules: EE_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Pühade ja tähtpäevade seadus, adopted 27 January 1998, and the act of \
@@ -2572,6 +2601,7 @@ pub static LATVIA: RuleSet = RuleSet {
     rules: LV_RULES,
     substitution: LV_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Likums \"Par svētku, atceres un atzīmējamām dienām\", consolidated text \
@@ -2672,6 +2702,7 @@ pub static LITHUANIA: RuleSet = RuleSet {
     rules: LT_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Lietuvos Respublikos darbo kodeksas, 123 straipsnis, as listed by the \
@@ -2779,6 +2810,7 @@ pub static ALBANIA: RuleSet = RuleSet {
     rules: AL_RULES,
     substitution: AL_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The Albanian Wikipedia, \"Lista e festave në Shqipëri\", and Wikipedia, \
@@ -2942,6 +2974,7 @@ pub static MONTENEGRO: RuleSet = RuleSet {
     rules: ME_RULES,
     substitution: ME_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Zakon o državnim i drugim praznicima, as reproduced by paragraf.me, \
@@ -3104,6 +3137,7 @@ pub static NORTH_MACEDONIA: RuleSet = RuleSet {
     rules: MK_RULES,
     substitution: MK_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Закон за празниците на Република Македонија, as reproduced on the \
@@ -3255,6 +3289,7 @@ pub static SERBIA: RuleSet = RuleSet {
     rules: RS_RULES,
     substitution: RS_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Zakon o državnim i drugim praznicima u Republici Srbiji, as reproduced \
@@ -3355,6 +3390,7 @@ pub static BELARUS: RuleSet = RuleSet {
     rules: BY_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The President of the Republic of Belarus, \"Государственные праздники \
@@ -3414,6 +3450,7 @@ pub static LUXEMBOURG: RuleSet = RuleSet {
     rules: LU_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Inspection du travail et des mines, \"Jours fériés légaux\", itm.public.lu, \
@@ -3485,6 +3522,7 @@ pub static MALTA: RuleSet = RuleSet {
     rules: MT_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "National Holidays and Other Public Holidays Act, Cap. 252, legislation.mt, \
@@ -3581,6 +3619,7 @@ pub static MOLDOVA: RuleSet = RuleSet {
     rules: MD_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Codul muncii al Republicii Moldova, art. 111, as listed by zilelibere.md, \
@@ -3657,6 +3696,7 @@ pub static LIECHTENSTEIN: RuleSet = RuleSet {
     rules: LI_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Gesetz über die Arbeit in Industrie, Gewerbe und Handel (Arbeitsgesetz), \
@@ -3736,6 +3776,7 @@ pub static MONACO: RuleSet = RuleSet {
     rules: MC_RULES,
     substitution: MC_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Loi n° 798 du 18 février 1966 portant fixation des jours fériés légaux, \
@@ -3838,6 +3879,7 @@ pub static SAN_MARINO: RuleSet = RuleSet {
     rules: SM_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Legge 30 ottobre 2013 n. 152 replacing article 2 of Legge 18 dicembre 1990 \
@@ -3912,6 +3954,7 @@ pub static ANDORRA: RuleSet = RuleSet {
     rules: AD_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Llei 31/2018, del 6 de desembre, de relacions laborals, article 62, from the \

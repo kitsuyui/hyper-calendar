@@ -100,6 +100,7 @@ pub static AUSTRALIA: RuleSet = RuleSet {
     rules: AU_RULES,
     substitution: AU_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "State and territory public holiday acts and the annual \
@@ -194,6 +195,7 @@ pub static NEW_ZEALAND: RuleSet = RuleSet {
     rules: NZ_RULES,
     substitution: NZ_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Holidays Act 2003, sections 44 and 45 for mondayisation; \

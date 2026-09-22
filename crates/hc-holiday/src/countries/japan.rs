@@ -392,6 +392,7 @@ pub static JAPAN: RuleSet = RuleSet {
     rules: RULES,
     substitution: SUBSTITUTION,
     bridges: BRIDGES,
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "国民の祝日に関する法律 (昭和23年法律第178号) and every amending \

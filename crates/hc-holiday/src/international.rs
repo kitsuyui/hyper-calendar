@@ -1123,6 +1123,7 @@ pub static UNITED_NATIONS: RuleSet = RuleSet {
     rules: UNITED_NATIONS_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "United Nations, \"International Days and Weeks\", \

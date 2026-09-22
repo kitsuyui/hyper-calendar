@@ -128,7 +128,7 @@ impl<'a> HolidayCalendar<'a> {
         let (holidays, gaps) = if first_year > last_year {
             (Vec::new(), Vec::new())
         } else {
-            evaluate(rules, region, first_year, last_year)
+            evaluate_with_includes(rules, region, first_year, last_year, 0)
         };
         Self {
             rules,
@@ -369,6 +369,34 @@ struct Occurrence {
 
 /// Evaluate a rule set, apply every modifier, and clip to the requested
 /// years.
+/// How many levels of [`RuleSet::includes`] the engine follows.
+const INCLUDE_DEPTH: u8 = 8;
+
+/// A set's own holidays and gaps, with those of every set it includes,
+/// each evaluated under its own policies, merged in date order.
+fn evaluate_with_includes(
+    rules: &RuleSet,
+    region: Option<&str>,
+    first_year: i64,
+    last_year: i64,
+    depth: u8,
+) -> (Vec<Holiday>, Vec<Gap>) {
+    let (mut holidays, mut gaps) = evaluate(rules, region, first_year, last_year);
+    if depth >= INCLUDE_DEPTH {
+        return (holidays, gaps);
+    }
+    for included in rules.includes {
+        let (more, more_gaps) =
+            evaluate_with_includes(included, region, first_year, last_year, depth + 1);
+        holidays.extend(more);
+        gaps.extend(more_gaps);
+    }
+    if !rules.includes.is_empty() {
+        holidays.sort_by_key(|holiday| holiday.date);
+    }
+    (holidays, gaps)
+}
+
 fn evaluate(
     rules: &RuleSet,
     region: Option<&str>,
@@ -633,6 +661,7 @@ mod tests {
         rules: &SIMPLE_RULES,
         substitution: &FORWARD,
         bridges: &[],
+        includes: &[],
         weekend: crate::rule::SATURDAY_SUNDAY,
         sources_checked: SourceDate::new(2026, 9, 21),
         sources: "invented for the test suite",

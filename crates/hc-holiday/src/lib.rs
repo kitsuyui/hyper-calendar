@@ -70,7 +70,6 @@
 extern crate alloc;
 
 pub mod computus;
-pub mod exchanges;
 pub mod hindu;
 pub mod international;
 pub mod rule;
@@ -79,6 +78,8 @@ pub mod rule;
 pub mod countries;
 #[cfg(feature = "alloc")]
 pub mod engine;
+#[cfg(feature = "alloc")]
+pub mod exchanges;
 #[cfg(feature = "alloc")]
 pub mod traditions;
 

@@ -135,6 +135,7 @@ pub static CHINA: RuleSet = RuleSet {
     // administrative act, not a rule, and this crate will not guess it.
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "《全国年节及纪念日放假办法》(国务院令第270号), as revised in \
@@ -229,6 +230,7 @@ pub static TAIWAN: RuleSet = RuleSet {
     rules: TW_RULES,
     substitution: TW_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "紀念日及節日實施條例 (2024) and the 紀念日及節日實施辦法 it \
@@ -369,6 +371,7 @@ pub static SOUTH_KOREA: RuleSet = RuleSet {
     rules: KR_RULES,
     substitution: KR_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "관공서의 공휴일에 관한 규정 (대통령령), including the 2013 \
@@ -421,6 +424,7 @@ pub static INDIA: RuleSet = RuleSet {
     rules: IN_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Department of Personnel and Training, \"List of Holidays\", \
@@ -523,6 +527,7 @@ pub static THAILAND: RuleSet = RuleSet {
     rules: TH_RULES,
     substitution: TH_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Bank of Thailand's annual list of financial-institution \
@@ -604,6 +609,7 @@ pub static VIETNAM: RuleSet = RuleSet {
     rules: VN_RULES,
     substitution: VN_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Bộ luật Lao động 2019, điều 112. Tết is five statutory days; \
@@ -677,6 +683,7 @@ pub static INDONESIA: RuleSet = RuleSet {
     rules: ID_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Surat Keputusan Bersama of the three ministries, issued \
@@ -736,6 +743,7 @@ pub static SINGAPORE: RuleSet = RuleSet {
     rules: SG_RULES,
     substitution: SG_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Holidays Act 1998, schedule; Ministry of Manpower's annual \
@@ -804,6 +812,7 @@ pub static MALAYSIA: RuleSet = RuleSet {
     rules: MY_RULES,
     substitution: MY_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Holidays Act 1951, schedule; the federal gazette's annual \
@@ -877,6 +886,7 @@ pub static PHILIPPINES: RuleSet = RuleSet {
     // so there is no rule to encode.
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Administrative Code of 1987 as amended by Republic Act 9492 \
@@ -938,6 +948,7 @@ pub static NEPAL: RuleSet = RuleSet {
     rules: NP_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: NP_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Government of Nepal, Ministry of Home Affairs, annual public \
@@ -1003,6 +1014,7 @@ pub static PAKISTAN: RuleSet = RuleSet {
     rules: PK_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia, \"Public holidays in Pakistan\", retrieved 2026-09-22, for \
@@ -1133,6 +1145,7 @@ pub static MYANMAR: RuleSet = RuleSet {
     rules: MM_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia, \"Public holidays in Myanmar\", retrieved 2026-09-22, for \
@@ -1367,6 +1380,7 @@ pub static HONG_KONG: RuleSet = RuleSet {
     rules: HK_RULES,
     substitution: HK_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "GovHK, \"General holidays for 2022\", \"2026\" and \"2027\", retrieved \
@@ -1527,6 +1541,7 @@ pub static MACAU: RuleSet = RuleSet {
     rules: MO_RULES,
     substitution: MO_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Government of the Macao SAR, \"Public holidays\", \"2026\" and \"2027\", \
@@ -1707,6 +1722,7 @@ pub static ARMENIA: RuleSet = RuleSet {
     rules: AM_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The Armenian Wikipedia, \"Հայաստանի տոների և հիշատակի օրերի ցանկ\", and \
@@ -1861,6 +1877,7 @@ pub static AZERBAIJAN: RuleSet = RuleSet {
     rules: AZ_RULES,
     substitution: AZ_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Cabinet of Ministers of the Republic of Azerbaijan, \"Holidays\", \
@@ -1950,6 +1967,7 @@ pub static GEORGIA: RuleSet = RuleSet {
     rules: GE_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Organic Law of Georgia, Labour Code of Georgia, art. 30, as published in \
@@ -2078,6 +2096,7 @@ pub static KAZAKHSTAN: RuleSet = RuleSet {
     rules: KZ_RULES,
     substitution: KZ_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Закон Республики Казахстан от 13 декабря 2001 года № 267 «О праздниках в \
@@ -2166,6 +2185,7 @@ pub static UZBEKISTAN: RuleSet = RuleSet {
     rules: UZ_RULES,
     substitution: UZ_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Labour Code of the Republic of Uzbekistan (Law ЗРУ-798 of 28 October 2022), \
@@ -2333,6 +2353,7 @@ pub static KYRGYZSTAN: RuleSet = RuleSet {
     rules: KG_RULES,
     substitution: KG_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Labour Code of the Kyrgyz Republic (No. 23 of 23 January 2025), article 66, \
@@ -2420,6 +2441,7 @@ pub static TAJIKISTAN: RuleSet = RuleSet {
     rules: TJ_RULES,
     substitution: TJ_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Law of the Republic of Tajikistan on Holidays (No. 753 of 2 August 2011) as \
@@ -2535,6 +2557,7 @@ pub static TURKMENISTAN: RuleSet = RuleSet {
     rules: TM_RULES,
     substitution: TM_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Labour Code of Turkmenistan (18 April 2009, as amended), article 81, from the \

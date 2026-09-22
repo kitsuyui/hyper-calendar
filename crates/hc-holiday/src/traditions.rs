@@ -125,6 +125,7 @@ pub static CHRISTIAN_WESTERN: RuleSet = RuleSet {
     rules: CHRISTIAN_WESTERN_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "General Roman Calendar (1969, as revised); the movable feasts \
@@ -210,6 +211,7 @@ pub static CHRISTIAN_ORTHODOX: RuleSet = RuleSet {
     rules: CHRISTIAN_ORTHODOX_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "The Menaion and Pentecostarion as kept on the Julian calendar; \
@@ -314,6 +316,7 @@ pub static ETHIOPIAN_ORTHODOX: RuleSet = RuleSet {
     rules: ETHIOPIAN_ORTHODOX_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The fixed feasts of the Ethiopian Orthodox Tewahedo Church as \
@@ -411,6 +414,7 @@ pub static COPTIC_ORTHODOX: RuleSet = RuleSet {
     rules: COPTIC_ORTHODOX_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The Feasts of the Church, Coptic Orthodox Diocese of Los Angeles \
@@ -460,6 +464,7 @@ pub static ISLAMIC: RuleSet = RuleSet {
     rules: ISLAMIC_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "The tabular civil Hijri calendar, CLDR `islamic-civil`. These \
@@ -516,6 +521,7 @@ pub static JEWISH: RuleSet = RuleSet {
     rules: JEWISH_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "The arithmetic Hebrew calendar as `hc-calendars-lunar` \
@@ -684,6 +690,7 @@ pub static BAHAI: RuleSet = RuleSet {
     rules: BAHAI_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Badíʿ dates 172 to 221 BE, prepared by an ad hoc committee at the \
@@ -742,6 +749,7 @@ pub static HINDU: RuleSet = RuleSet {
     rules: HINDU_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The Rashtriya Panchang, Positional Astronomy Centre, India \
@@ -815,6 +823,7 @@ pub static WHEEL_OF_THE_YEAR: RuleSet = RuleSet {
     rules: WHEEL_OF_THE_YEAR_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia, \"Wheel of the Year\", retrieved 2026-09-22, for the eight \
@@ -831,6 +840,7 @@ pub static WHEEL_OF_THE_YEAR_SOUTH: RuleSet = RuleSet {
     rules: WHEEL_OF_THE_YEAR_SOUTH_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia, \"Wheel of the Year\", retrieved 2026-09-22, southern-hemisphere \
@@ -907,6 +917,7 @@ pub static BUDDHIST: RuleSet = RuleSet {
     rules: BUDDHIST_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Thai and Japanese Buddhist calendars. PARTIAL: the Theravada \
@@ -995,6 +1006,7 @@ pub static CHINESE_FOLK: RuleSet = RuleSet {
     rules: CHINESE_FOLK_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "The Chinese lunisolar calendar and the 24 solar terms, both \
@@ -1096,6 +1108,7 @@ pub static JAIN: RuleSet = RuleSet {
     rules: JAIN_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia, \"Paryushana\", retrieved 2026-09-22, for the eight \
@@ -1155,6 +1168,7 @@ pub static SHINTO: RuleSet = RuleSet {
     rules: SHINTO_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia (ja), \"節分\", retrieved 2026-09-22, for the rule — the \
@@ -1264,6 +1278,7 @@ pub static KYUCHU_SAISHI: RuleSet = RuleSet {
     rules: KYUCHU_SAISHI_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia (ja), \"宮中祭祀\", retrieved 2026-09-22, for the table \
@@ -1358,6 +1373,7 @@ pub static SIKH: RuleSet = RuleSet {
     rules: SIKH_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia, \"Nanakshahi calendar\", retrieved 2026-09-22: the table \
@@ -1494,6 +1510,7 @@ pub static ZOROASTRIAN_FASLI: RuleSet = RuleSet {
     rules: ZOROASTRIAN_FASLI_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: ZOROASTRIAN_SOURCES,
@@ -1509,6 +1526,7 @@ pub static ZOROASTRIAN_SHAHANSHAHI: RuleSet = RuleSet {
     rules: ZOROASTRIAN_SHAHANSHAHI_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: ZOROASTRIAN_SOURCES,
@@ -1523,6 +1541,7 @@ pub static ZOROASTRIAN_QADIMI: RuleSet = RuleSet {
     rules: ZOROASTRIAN_QADIMI_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: ZOROASTRIAN_SOURCES,

@@ -145,6 +145,7 @@ pub static ISRAEL: RuleSet = RuleSet {
     rules: IL_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: FRIDAY_SATURDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "חוק יום העצמאות, התש\"ט-1949 and its 2004 amendment; \
@@ -279,6 +280,7 @@ pub static IRAN: RuleSet = RuleSet {
     rules: IR_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: IR_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia, \"Public holidays in Iran\" and \"تعطیلات رسمی \
@@ -370,6 +372,7 @@ pub static SAUDI_ARABIA: RuleSet = RuleSet {
     rules: SA_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SA_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Royal decrees; Umm al-Qura gazette; the June 2013 royal order \
@@ -470,6 +473,7 @@ pub static UNITED_ARAB_EMIRATES: RuleSet = RuleSet {
     rules: AE_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: AE_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Cabinet Resolution 4-3 of 2019 and the yearly Cabinet circular \
@@ -556,6 +560,7 @@ pub static TURKEY: RuleSet = RuleSet {
     rules: TR_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "2429 sayılı Ulusal Bayram ve Genel Tatiller Hakkında Kanun. \
@@ -645,6 +650,7 @@ pub static EGYPT: RuleSet = RuleSet {
     rules: EG_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: FRIDAY_SATURDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Labour Law 12 of 2003 and the Cabinet's annual holiday \
@@ -700,6 +706,7 @@ pub static NIGERIA: RuleSet = RuleSet {
     rules: NG_RULES,
     substitution: SUNDAY_FORWARD,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Public Holidays Act, Cap. P40, Laws of the Federation of \
@@ -731,6 +738,7 @@ pub static SOUTH_AFRICA: RuleSet = RuleSet {
     rules: ZA_RULES,
     substitution: SUNDAY_FORWARD,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Public Holidays Act 36 of 1994, section 2(1) for the Sunday \
@@ -798,6 +806,7 @@ pub static KENYA: RuleSet = RuleSet {
     rules: KE_RULES,
     substitution: KE_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The Public Holidays Act (Cap. 110), Revised Edition 2022, National \
@@ -889,6 +898,7 @@ pub static MOROCCO: RuleSet = RuleSet {
     rules: MA_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Décret n° 2-04-426 and décret n° 2-00-166 of 10 May 2000 amending \
@@ -958,6 +968,7 @@ pub static ETHIOPIA: RuleSet = RuleSet {
     rules: ET_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia, \"Public holidays in Ethiopia\", retrieved 2026-09-22, for the \
@@ -1036,6 +1047,7 @@ pub static GHANA: RuleSet = RuleSet {
     rules: GH_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia, \"Public holidays in Ghana\", retrieved 2026-09-22, for the \
@@ -1100,6 +1112,7 @@ pub static BAHRAIN: RuleSet = RuleSet {
     rules: BH_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: FRIDAY_SATURDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Law 36 of 2012, Labour Law for the Private Sector, art. 64, per the Labour \
@@ -1207,6 +1220,7 @@ pub static JORDAN: RuleSet = RuleSet {
     rules: JO_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: FRIDAY_SATURDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The Arabic Wikipedia, \"العطل الرسمية في الأردن\", retrieved 2026-09-22, for \
@@ -1255,6 +1269,7 @@ pub static KUWAIT: RuleSet = RuleSet {
     rules: KW_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: FRIDAY_SATURDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Law 6 of 2010, the Private Sector Labour Law, art. 68, as published in \
@@ -1383,6 +1398,7 @@ pub static LEBANON: RuleSet = RuleSet {
     rules: LB_RULES,
     substitution: LB_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Presidency of the Council of Ministers, \"الأعياد والعطل الرسمية\", \
@@ -1476,6 +1492,7 @@ pub static TANZANIA: RuleSet = RuleSet {
     rules: TZ_RULES,
     substitution: TZ_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Public Holidays Act, Cap. 35, sections 2 to 4 and the Schedule, as \
@@ -1522,6 +1539,7 @@ pub static UGANDA: RuleSet = RuleSet {
     rules: UG_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Consulate of the Republic of Uganda in Arusha, \"Public Holidays\", \
@@ -1586,6 +1604,7 @@ pub static ZAMBIA: RuleSet = RuleSet {
     rules: ZM_RULES,
     substitution: ZM_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Public Holidays Act, Cap. 272, and its subsidiary legislation as \
@@ -1657,6 +1676,7 @@ pub static ZIMBABWE: RuleSet = RuleSet {
     rules: ZW_RULES,
     substitution: ZW_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "General Notice 1361 of 2025 under the Public Holidays and Prohibition of \
@@ -1773,6 +1793,7 @@ pub static ALGERIA: RuleSet = RuleSet {
     rules: DZ_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: DZ_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Law 23-10 of 26 June 2023 amending law 63-278 of 26 July 1963 fixing the list \
@@ -1871,6 +1892,7 @@ pub static TUNISIA: RuleSet = RuleSet {
     rules: TN_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Décret présidentiel n° 2021-223 du 7 décembre 2021 (JORT 2021-113), article 1, \
@@ -1948,6 +1970,7 @@ pub static SENEGAL: RuleSet = RuleSet {
     rules: SN_RULES,
     substitution: SN_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Loi n° 74-52 du 4 novembre 1974 relative à la fête nationale et aux fêtes \
@@ -2038,6 +2061,7 @@ pub static COTE_D_IVOIRE: RuleSet = RuleSet {
     rules: CI_RULES,
     substitution: CI_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Décret n° 2011-371 du 4 novembre 2011 modifiant et complétant l'article 2 du \
@@ -2204,6 +2228,7 @@ pub static OMAN: RuleSet = RuleSet {
     rules: OM_RULES,
     substitution: OM_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: OM_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Royal Decree 88/2022 Determining the Official Holidays and Royal Decree \
@@ -2284,6 +2309,7 @@ pub static QATAR: RuleSet = RuleSet {
     rules: QA_RULES,
     substitution: &[],
     bridges: QA_BRIDGES,
+    includes: &[],
     weekend: FRIDAY_SATURDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Emiri Decision No. 57 of 2025 determining the working days, occasions and \
@@ -2422,6 +2448,7 @@ pub static IRAQ: RuleSet = RuleSet {
     rules: IQ_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: FRIDAY_SATURDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Official Holidays Law No. 12 of 2024, Al-Waqa'i' al-Iraqiya no. 4777 of \
@@ -2513,6 +2540,7 @@ pub static BOTSWANA: RuleSet = RuleSet {
     rules: BW_RULES,
     substitution: BW_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Public Holidays Act, Cap. 03:07 (Act 17 of 2006), sections 2 and 3 and the \
@@ -2583,6 +2611,7 @@ pub static NAMIBIA: RuleSet = RuleSet {
     rules: NA_RULES,
     substitution: NA_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Public Holidays Act 26 of 1990, as amended by Act 16 of 2004, in the Legal \
@@ -2693,6 +2722,7 @@ pub static MAURITIUS: RuleSet = RuleSet {
     rules: MU_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Public Holidays Act (Act 22 of 1968) as amended to Act 22 of 2019, from \
@@ -2760,6 +2790,7 @@ pub static MALAWI: RuleSet = RuleSet {
     rules: MW_RULES,
     substitution: MW_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Public Holidays Act, Cap. 18:05, sections 2 to 4 and the Schedule, from the \
