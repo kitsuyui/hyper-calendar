@@ -488,6 +488,16 @@ fn the_hindu_festivals_fall_where_the_rashtriya_panchang_lists_them() {
 }
 
 #[test]
+fn a_first_tithi_that_no_sunrise_carries_still_opens_the_year() {
+    // Chaitra śukla pratipadā of Śaka 1948 begins at 06:52 IST on 19 March
+    // 2026, after that morning's sunrise, and ends at 04:52 on the 20th,
+    // before the next: no sunrise carries it, the month's first day by
+    // sunrise is the 20th with the second tithi, and Ugadi is the 19th,
+    // the day the tithi begins in.
+    expect(&HINDU, &[(2026, 3, 19, "Ugadi")]);
+}
+
+#[test]
 fn every_hindu_date_is_exact_and_religious() {
     for year in [1950, 2000, 2024, 2100] {
         let calendar = HolidayCalendar::for_year(&HINDU, None, year);

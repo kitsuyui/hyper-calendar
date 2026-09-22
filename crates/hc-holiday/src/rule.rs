@@ -13,7 +13,7 @@
 use hc_calendar::Calendar as _;
 use hc_calendar::{CalendarId, Month, Rd, Weekday};
 use hc_calendars_equinox::persian as solar_hijri;
-use hc_calendars_indic::tithi::tithi_of_day;
+use hc_calendars_indic::tithi::{TITHIS_PER_MONTH, tithi_of_day};
 use hc_calendars_indic::{HinduLunarCalendar, Prevalence, hindu_lunar};
 use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
@@ -987,9 +987,13 @@ fn tithi_days(
         let location = calendar.location;
         // Tithis run from 0.9 to 1.1 days, so the `tithi`-th cannot drift
         // more than three days from the day numbered `tithi`; only that
-        // window is read, which is what keeps a year's festivals cheap.
+        // window is read, which is what keeps a year's festivals cheap. The
+        // first tithi begins at the new moon, which can fall after the
+        // sunrise of the day before the month's first: the window opens
+        // there, so that a pratipadā that holds only that afternoon, or
+        // that no sunrise carries at all, is still found.
         let centre = first.0 + i64::from(tithi) - 1;
-        let low = Rd(centre.saturating_sub(3).max(first.0));
+        let low = Rd(centre.saturating_sub(3).max(first.0 - 1));
         let high = Rd((centre + 4).min(end.0));
         let mut qualifying: [Option<Rd>; 2] = [None, None];
         let mut found = 0;
@@ -1017,8 +1021,10 @@ fn tithi_days(
                         fallback = Some(day);
                         break;
                     }
-                    if at_sunrise + 1 == tithi && tithi_of_day(Rd(day.0 + 1), location) == tithi + 1
-                    {
+                    // The thirtieth tithi is followed by the first.
+                    let following = at_sunrise % TITHIS_PER_MONTH + 1;
+                    let after_it = tithi % TITHIS_PER_MONTH + 1;
+                    if following == tithi && tithi_of_day(Rd(day.0 + 1), location) == after_it {
                         fallback = Some(day);
                         break;
                     }
