@@ -25,7 +25,7 @@
 //!
 //! | Family | Calendars |
 //! | --- | --- |
-//! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`byzantine`], [`roman`] |
+//! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`byzantine`], [`roman`], [`rumi`] |
 //! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`indian`], [`nanakshahi`], [`discordian`] |
 //! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`armenian`], [`french_republican`], [`zoroastrian`] |
 //! | Day counts | [`julian_day`] |
@@ -83,6 +83,7 @@ pub mod ordinal;
 pub mod persian;
 pub mod revised_julian;
 pub mod roman;
+pub mod rumi;
 pub mod symmetry;
 pub mod symmetry010;
 pub mod symmetry454;
@@ -118,6 +119,7 @@ pub use ordinal::{OrdinalCalendar, OrdinalDate};
 pub use persian::{ArithmeticPersianCalendar, PersianDate};
 pub use revised_julian::{RevisedJulianCalendar, RevisedJulianDate};
 pub use roman::{RomanCalendar, RomanDate};
+pub use rumi::{RumiCalendar, RumiDate};
 pub use symmetry010::{Symmetry010Calendar, Symmetry010Date};
 pub use symmetry454::{Symmetry454Calendar, Symmetry454Date};
 pub use world_calendar::{WorldCalendar, WorldCalendarDate};
@@ -170,6 +172,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::HoloceneCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ByzantineCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::RomanCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::RumiCalendar)));
         registry.insert(Box::new(DynAdapter::new(
             crate::ArithmeticFrenchRepublicanCalendar,
         )));
@@ -197,7 +200,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 39;
+const CALENDAR_COUNT: usize = 40;
 
 #[cfg(test)]
 mod tests {
@@ -272,6 +275,7 @@ mod tests {
                 HoloceneCalendar,
                 ByzantineCalendar,
                 RomanCalendar,
+                RumiCalendar,
                 ArithmeticFrenchRepublicanCalendar,
                 ArithmeticBahaiCalendar,
                 BahaiCalendar,
@@ -370,7 +374,16 @@ mod tests {
 
         let rd = gregorian::to_fixed(2026, 9, 21).unwrap();
         let rendered = registry.describe_day(rd);
-        assert_eq!(rendered.len(), registry.len());
+        // Every calendar that claims the day renders it; the one that does
+        // not claim it is the Rumi calendar, kept only from 1840 to 1925.
+        let supporting = registry.metas().filter(|meta| meta.supports(rd)).count();
+        assert_eq!(rendered.len(), supporting);
+        let unsupporting: Vec<&str> = registry
+            .metas()
+            .filter(|meta| !meta.supports(rd))
+            .map(|meta| meta.id.0)
+            .collect();
+        assert_eq!(unsupporting, ["rumi"]);
 
         let gregorian_fields = registry
             .get(CalendarId("gregory"))

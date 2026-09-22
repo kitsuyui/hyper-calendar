@@ -160,6 +160,9 @@ const COPTIC_CALENDARS: &[CalendarId] = &[CalendarId("coptic")];
 /// The Ethiopic calendar.
 const ETHIOPIC_CALENDARS: &[CalendarId] = &[CalendarId("ethiopic")];
 
+/// The Rumi calendar.
+const RUMI_CALENDARS: &[CalendarId] = &[CalendarId("rumi")];
+
 /// The Nanakshahi calendar.
 const NANAKSHAHI_CALENDARS: &[CalendarId] = &[CalendarId("nanakshahi")];
 
@@ -664,6 +667,25 @@ const EN_CALENDARS: &[CalendarNames] = &[
             "Ḥamle",
             "Nähase",
             "Ṗagumen",
+        ])],
+        &[],
+        &[],
+    ),
+    dated(
+        RUMI_CALENDARS,
+        &[months(&[
+            "Kânûn-ı Sânî",
+            "Şubat",
+            "Mart",
+            "Nisan",
+            "Mayıs",
+            "Haziran",
+            "Temmuz",
+            "Ağustos",
+            "Eylül",
+            "Teşrin-i Evvel",
+            "Teşrin-i Sânî",
+            "Kânûn-ı Evvel",
         ])],
         &[],
         &[],
