@@ -1585,3 +1585,401 @@ pub static UKRAINE: RuleSet = RuleSet {
               2026-09-22. Under martial law since 2022 holidays are not days \
               off, which the table does not model",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Croatia
+// ─────────────────────────────────────────────────────────────────────────
+
+static HR_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Nova godina", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("Epiphany", "Sveta tri kralja", Rule::gregorian(1, 6)),
+    HolidayRule::fixed_public("Easter Sunday", "Uskrs", Rule::easter(EASTER_SUNDAY)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Uskrsni ponedjeljak",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public("Labour Day", "Praznik rada", Rule::gregorian(5, 1)),
+    // 30 May from 1991 to 2001 and again from 2020; 25 June in between.
+    HolidayRule::fixed_public("Statehood Day", "Dan državnosti", Rule::gregorian(5, 30))
+        .years(Some(1991), Some(2001)),
+    HolidayRule::fixed_public("Statehood Day", "Dan državnosti", Rule::gregorian(5, 30))
+        .years(Some(2020), None),
+    HolidayRule::fixed_public("Statehood Day", "Dan državnosti", Rule::gregorian(6, 25))
+        .years(Some(2002), Some(2019)),
+    HolidayRule::fixed_public("Corpus Christi", "Tijelovo", Rule::easter(CORPUS_CHRISTI)),
+    HolidayRule::fixed_public(
+        "Anti-Fascist Struggle Day",
+        "Dan antifašističke borbe",
+        Rule::gregorian(6, 22),
+    ),
+    HolidayRule::fixed_public(
+        "Victory and Homeland Thanksgiving Day",
+        "Dan pobjede i domovinske zahvalnosti",
+        Rule::gregorian(8, 5),
+    ),
+    HolidayRule::fixed_public("Assumption Day", "Velika Gospa", Rule::gregorian(8, 15)),
+    // Independence Day, a holiday from 2002 to 2019, a memorial day since.
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Dan neovisnosti",
+        Rule::gregorian(10, 8),
+    )
+    .years(Some(2002), Some(2019)),
+    HolidayRule::fixed_public("All Saints' Day", "Dan svih svetih", Rule::gregorian(11, 1)),
+    HolidayRule::fixed_public(
+        "Remembrance Day for the Victims of the Homeland War",
+        "Dan sjećanja na žrtve Domovinskog rata",
+        Rule::gregorian(11, 18),
+    )
+    .years(Some(2020), None),
+    HolidayRule::fixed_public("Christmas Day", "Božić", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public(
+        "Saint Stephen's Day",
+        "Sveti Stjepan",
+        Rule::gregorian(12, 26),
+    ),
+];
+
+/// Croatia.
+///
+/// The Holidays, Memorial Days and Non-Working Days Act, with the change
+/// of 2020: Statehood Day back on 30 May, where it had been from 1991 to
+/// 2001, and Remembrance Day on 18 November new, while 25 June and
+/// 8 October, Statehood Day and Independence Day from 2002 to 2019, became
+/// memorial days and working days. The source dates the 2020 change and
+/// 30 May's earlier span; that 25 June and 8 October began in 2002 is what
+/// the gap in 30 May's years implies, and is carried as such. The right of
+/// those who keep other religious calendars not to work on their own
+/// feasts is personal and not carried. No substitution.
+pub static CROATIA: RuleSet = RuleSet {
+    code: "HR",
+    english_name: "Croatia",
+    rules: HR_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Zakon o blagdanima, spomendanima i neradnim danima, as summarised by \
+              Wikipedia, \"Public holidays in Croatia\", retrieved 2026-09-22, \
+              with its note on the 2020 change",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Slovakia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A state holiday that stopped being a day off: a holiday to `last`, an
+/// observance after.
+const fn sk_demoted(
+    name: &'static str,
+    local: &'static str,
+    month: u8,
+    day: u8,
+    last: i32,
+) -> [HolidayRule; 2] {
+    [
+        HolidayRule::fixed_public(name, local, Rule::gregorian(month, day)).years(None, Some(last)),
+        HolidayRule::observance(name, local, Rule::gregorian(month, day))
+            .years(Some(last + 1), None),
+    ]
+}
+
+static SK_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "Day of the Establishment of the Slovak Republic",
+        "Deň vzniku Slovenskej republiky",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public("Epiphany", "Zjavenie Pána", Rule::gregorian(1, 6)),
+    HolidayRule::fixed_public(
+        "Good Friday",
+        "Veľkonočný piatok",
+        Rule::easter(GOOD_FRIDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Veľkonočný pondelok",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public("Labour Day", "Sviatok práce", Rule::gregorian(5, 1)),
+    sk_demoted(
+        "Day of Victory over Fascism",
+        "Deň víťazstva nad fašizmom",
+        5,
+        8,
+        2025,
+    )[0],
+    sk_demoted(
+        "Day of Victory over Fascism",
+        "Deň víťazstva nad fašizmom",
+        5,
+        8,
+        2025,
+    )[1],
+    HolidayRule::fixed_public(
+        "Saints Cyril and Methodius Day",
+        "Sviatok svätého Cyrila a Metoda",
+        Rule::gregorian(7, 5),
+    ),
+    HolidayRule::fixed_public(
+        "Slovak National Uprising Anniversary",
+        "Výročie Slovenského národného povstania",
+        Rule::gregorian(8, 29),
+    ),
+    sk_demoted(
+        "Constitution Day",
+        "Deň Ústavy Slovenskej republiky",
+        9,
+        1,
+        2023,
+    )[0],
+    sk_demoted(
+        "Constitution Day",
+        "Deň Ústavy Slovenskej republiky",
+        9,
+        1,
+        2023,
+    )[1],
+    sk_demoted(
+        "Our Lady of the Seven Sorrows",
+        "Sviatok Panny Márie Sedembolestnej",
+        9,
+        15,
+        2025,
+    )[0],
+    sk_demoted(
+        "Our Lady of the Seven Sorrows",
+        "Sviatok Panny Márie Sedembolestnej",
+        9,
+        15,
+        2025,
+    )[1],
+    // A state holiday since 2021, and a working day.
+    HolidayRule::observance(
+        "Day of the Establishment of an Independent Czecho-Slovak State",
+        "Deň vzniku samostatného česko-slovenského štátu",
+        Rule::gregorian(10, 28),
+    )
+    .years(Some(2021), None),
+    HolidayRule::fixed_public(
+        "All Saints' Day",
+        "Sviatok všetkých svätých",
+        Rule::gregorian(11, 1),
+    ),
+    sk_demoted(
+        "Struggle for Freedom and Democracy Day",
+        "Deň boja za slobodu a demokraciu",
+        11,
+        17,
+        2024,
+    )[0],
+    sk_demoted(
+        "Struggle for Freedom and Democracy Day",
+        "Deň boja za slobodu a demokraciu",
+        11,
+        17,
+        2024,
+    )[1],
+    HolidayRule::fixed_public("Christmas Eve", "Štedrý deň", Rule::gregorian(12, 24)),
+    HolidayRule::fixed_public(
+        "Christmas Day",
+        "Prvý sviatok vianočný",
+        Rule::gregorian(12, 25),
+    ),
+    HolidayRule::fixed_public(
+        "Second Day of Christmas",
+        "Druhý sviatok vianočný",
+        Rule::gregorian(12, 26),
+    ),
+];
+
+/// Slovakia.
+///
+/// The state holidays and the days off, which have parted company: since
+/// 2024 Constitution Day, since 2025 17 November, and since 2026 8 May and
+/// 15 September are state holidays on which work goes on, and 28 October
+/// has been one since 2021. Each is carried as a day off to its last year
+/// as one and an observance after. No substitution.
+pub static SLOVAKIA: RuleSet = RuleSet {
+    code: "SK",
+    english_name: "Slovakia",
+    rules: SK_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia, \"Public holidays in Slovakia\", retrieved 2026-09-22, for \
+              the list, and for the years each state holiday became a working day",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Slovenia
+// ─────────────────────────────────────────────────────────────────────────
+
+static SI_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "novo leto", Rule::gregorian(1, 1)),
+    // Work-free to 2012, and again from 2017.
+    HolidayRule::fixed_public("New Year's Day", "novo leto", Rule::gregorian(1, 2))
+        .years(None, Some(2012)),
+    HolidayRule::fixed_public("New Year's Day", "novo leto", Rule::gregorian(1, 2))
+        .years(Some(2017), None),
+    HolidayRule::fixed_public("Prešeren Day", "Prešernov dan", Rule::gregorian(2, 8))
+        .years(Some(1991), None),
+    HolidayRule::fixed_public(
+        "Easter Sunday",
+        "velikonočna nedelja",
+        Rule::easter(EASTER_SUNDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "velikonočni ponedeljek",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Day of Uprising Against Occupation",
+        "dan upora proti okupatorju",
+        Rule::gregorian(4, 27),
+    ),
+    HolidayRule::fixed_public("May Day", "praznik dela", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("May Day", "praznik dela", Rule::gregorian(5, 2)),
+    HolidayRule::fixed_public("Whit Sunday", "binkoštna nedelja", Rule::easter(PENTECOST)),
+    HolidayRule::fixed_public("Statehood Day", "dan državnosti", Rule::gregorian(6, 25)),
+    HolidayRule::fixed_public(
+        "Assumption Day",
+        "Marijino vnebovzetje",
+        Rule::gregorian(8, 15),
+    )
+    .years(Some(1992), None),
+    HolidayRule::fixed_public(
+        "Reformation Day",
+        "dan reformacije",
+        Rule::gregorian(10, 31),
+    )
+    .years(Some(1992), None),
+    HolidayRule::fixed_public(
+        "All Saints' Day",
+        "dan spomina na mrtve",
+        Rule::gregorian(11, 1),
+    ),
+    HolidayRule::fixed_public("Christmas Day", "božič", Rule::gregorian(12, 25))
+        .years(Some(1991), None),
+    HolidayRule::fixed_public(
+        "Independence and Unity Day",
+        "dan samostojnosti in enotnosti",
+        Rule::gregorian(12, 26),
+    ),
+];
+
+/// Slovenia.
+///
+/// The work-free days, state holidays and religious days alike, with the
+/// years the source gives: 2 January work-free to 2012 and again from
+/// 2017, Prešeren Day and Christmas from 1991, the Assumption and
+/// Reformation Day from 1992. The five state holidays that are working
+/// days are not carried, nor the pre-1991 names. No substitution.
+pub static SLOVENIA: RuleSet = RuleSet {
+    code: "SI",
+    english_name: "Slovenia",
+    rules: SI_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia, \"Public holidays in Slovenia\", retrieved 2026-09-22, \
+              summarising the Holidays and Days off in the Republic of Slovenia \
+              Act, with the years each day became work-free and the 2012 and \
+              2017 changes to 2 January",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Iceland
+// ─────────────────────────────────────────────────────────────────────────
+
+static IS_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Nýársdagur", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Maundy Thursday",
+        "Skírdagur",
+        Rule::easter(MAUNDY_THURSDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Good Friday",
+        "Föstudagurinn langi",
+        Rule::easter(GOOD_FRIDAY),
+    ),
+    HolidayRule::fixed_public("Easter Sunday", "Páskadagur", Rule::easter(EASTER_SUNDAY)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Annar í páskum",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    // The first Thursday after 18 April, so 19 to 25 April.
+    HolidayRule::fixed_public(
+        "First Day of Summer",
+        "Sumardagurinn fyrsti",
+        Rule::WeekdayOnOrAfter {
+            month: 4,
+            day: 19,
+            weekday: Weekday::Thursday,
+        },
+    ),
+    HolidayRule::fixed_public("May Day", "Verkalýðsdagurinn", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public(
+        "Ascension Day",
+        "Uppstigningardagur",
+        Rule::easter(ASCENSION),
+    ),
+    HolidayRule::fixed_public("Whit Sunday", "Hvítasunnudagur", Rule::easter(PENTECOST)),
+    HolidayRule::fixed_public(
+        "Whit Monday",
+        "Annar í hvítasunnu",
+        Rule::easter(WHIT_MONDAY),
+    ),
+    HolidayRule::fixed_public(
+        "National Day",
+        "Þjóðhátíðardagurinn",
+        Rule::gregorian(6, 17),
+    ),
+    HolidayRule::fixed_public(
+        "Commerce Day",
+        "Frídagur verslunarmanna",
+        Rule::NthWeekday {
+            month: 8,
+            n: 1,
+            weekday: Weekday::Monday,
+        },
+    ),
+    // Holidays from 13:00; half days, as in Sweden and Denmark.
+    HolidayRule::fixed_public("Christmas Eve", "Aðfangadagur", Rule::gregorian(12, 24))
+        .of_kind(Kind::Bank),
+    HolidayRule::fixed_public("Christmas Day", "Jóladagur", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public(
+        "Second Day of Christmas",
+        "Annar í jólum",
+        Rule::gregorian(12, 26),
+    ),
+    HolidayRule::fixed_public("New Year's Eve", "Gamlársdagur", Rule::gregorian(12, 31))
+        .of_kind(Kind::Bank),
+];
+
+/// Iceland.
+///
+/// The public holidays the parliament's act establishes: the Easter and
+/// Whitsun cycle from Maundy Thursday, the First Day of Summer on the
+/// first Thursday after 18 April, Commerce Day on the first Monday of
+/// August, and Christmas Eve and New Year's Eve, holidays from 13:00 and
+/// carried as `Kind::Bank` half days as Sweden's and Denmark's are. The
+/// flag days are not carried. No substitution.
+pub static ICELAND: RuleSet = RuleSet {
+    code: "IS",
+    english_name: "Iceland",
+    rules: IS_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia, \"Public holidays in Iceland\", retrieved 2026-09-22, for \
+              the list and the half days, and \"First day of summer (Iceland)\", \
+              retrieved the same day, for the Thursday rule",
+};
