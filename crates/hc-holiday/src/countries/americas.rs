@@ -1,11 +1,12 @@
 //! Tables for the Americas.
 
-use hc_calendar::Weekday;
+use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
+use hc_seasons::{Meridian, SolarTerm};
 
 use crate::computus::offsets::{
-    ASCENSION, CORPUS_CHRISTI, EASTER_SUNDAY, GOOD_FRIDAY, MAUNDY_THURSDAY, SACRED_HEART,
-    SHROVE_MONDAY, SHROVE_TUESDAY,
+    ASCENSION, CORPUS_CHRISTI, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY,
+    SACRED_HEART, SHROVE_MONDAY, SHROVE_TUESDAY,
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
@@ -824,4 +825,649 @@ pub static PERU: RuleSet = RuleSet {
     sources: "Wikipedia (es), \"Anexo:Días festivos en Perú\", retrieved 2026-09-22, \
               which tabulates the 2026 holidays under Decreto Legislativo 713 \
               and marks the irrenunciable ones",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Bolivia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Decreto Supremo 2750 (2016), art. 3: the Monday after a national
+/// holiday that falls on a Sunday is a holiday, except for the Carnival
+/// days, Good Friday, Corpus Christi and All Souls' Day, which the article
+/// names and which are `fixed_public` below.
+static BO_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: Some(2016),
+    valid_until: None,
+}];
+
+static BO_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    HolidayRule::public(
+        "Plurinational State Foundation Day",
+        "Día de la Creación del Estado Plurinacional de Bolivia",
+        Rule::gregorian(1, 22),
+    )
+    .years(Some(2010), None),
+    HolidayRule::fixed_public(
+        "Carnival Monday",
+        "Lunes de Carnaval",
+        Rule::easter(SHROVE_MONDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Carnival Tuesday",
+        "Martes de Carnaval",
+        Rule::easter(SHROVE_TUESDAY),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public(
+        "Corpus Christi",
+        "Corpus Christi",
+        Rule::easter(CORPUS_CHRISTI),
+    ),
+    HolidayRule::public(
+        "Aymara Amazonian New Year",
+        "Año Nuevo Aymara Amazónico",
+        Rule::gregorian(6, 21),
+    )
+    .years(Some(2009), None),
+    HolidayRule::public(
+        "Independence Day",
+        "Día de la Independencia de Bolivia",
+        Rule::gregorian(8, 6),
+    ),
+    HolidayRule::fixed_public(
+        "All Souls' Day",
+        "Día de Todos los Difuntos",
+        Rule::gregorian(11, 2),
+    ),
+    HolidayRule::public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+];
+
+/// Bolivia.
+///
+/// The national holidays of Decreto Supremo 2750 of 1 May 2016, with
+/// 22 January from Decreto Supremo 405 of 2010 and 21 June from Decreto
+/// Supremo 173 of 2009, and the decree's Sunday rule, which the four
+/// holidays it names sit outside. The departmental holidays, to which
+/// Decreto Supremo 5019 of 2023 extended the Sunday rule, are not carried;
+/// nor are the bridges and moves the Government decrees year by year, such
+/// as 2026's Friday 23 January. The Sunday rule is carried from the 2016
+/// decree, and whatever earlier decrees did is not.
+pub static BOLIVIA: RuleSet = RuleSet {
+    code: "BO",
+    english_name: "Bolivia",
+    rules: BO_RULES,
+    substitution: BO_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Decreto Supremo 2750 of 1 May 2016, arts. 2 and 3, and Decreto Supremo \
+              5019 of 13 September 2023, lexivox.org, retrieved 2026-09-22; Decreto \
+              Supremo 173 of 17 June 2009 for 21 June, lexivox.org; Decreto Supremo \
+              405 of 20 January 2010 for 22 January, as reported by the Ministry of \
+              Labour; Wikipedia, \"Public holidays in Bolivia\", retrieved the same \
+              day, for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Chile
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Chile's standard time, UTC−4, at which the June solstice is dated.
+const CHILE_STANDARD_TIME: Meridian = Meridian::from_seconds(-4 * 3_600);
+
+/// Ley 19.668 (2000): a Tuesday, Wednesday or Thursday holiday goes to the
+/// Monday before, a Friday one to the Monday after.
+const CL_TO_MONDAY: &[(Weekday, i16)] = &[
+    (Weekday::Tuesday, -1),
+    (Weekday::Wednesday, -2),
+    (Weekday::Thursday, -3),
+    (Weekday::Friday, 3),
+];
+
+/// Ley 20.299 (2008): 31 October goes to the Friday before when a Tuesday
+/// and to the Friday after when a Wednesday.
+const CL_TO_FRIDAY: &[(Weekday, i16)] = &[(Weekday::Tuesday, -4), (Weekday::Wednesday, 2)];
+
+static CL_JUNE_29: Rule = Rule::gregorian(6, 29);
+static CL_OCTOBER_12: Rule = Rule::gregorian(10, 12);
+static CL_OCTOBER_31: Rule = Rule::gregorian(10, 31);
+static CL_CORPUS_CHRISTI: Rule = Rule::easter(CORPUS_CHRISTI);
+
+/// A fixed date that is a holiday only in the years it falls on `weekday`.
+fn cl_when(year: i64, month: u8, day: u8, weekday: Weekday) -> Days {
+    match gregorian::to_fixed(year, month, day) {
+        Ok(rd) if Weekday::from_rd(rd) == weekday => Days::one(rd),
+        _ => Days::new(),
+    }
+}
+
+fn cl_january_2_monday(year: i64) -> Days {
+    cl_when(year, 1, 2, Weekday::Monday)
+}
+
+fn cl_september_17_monday(year: i64) -> Days {
+    cl_when(year, 9, 17, Weekday::Monday)
+}
+
+fn cl_september_17_friday(year: i64) -> Days {
+    cl_when(year, 9, 17, Weekday::Friday)
+}
+
+fn cl_september_20_friday(year: i64) -> Days {
+    cl_when(year, 9, 20, Weekday::Friday)
+}
+
+static CL_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    // Ley 20.983: a Monday 2 January is a holiday.
+    HolidayRule::fixed_public(
+        "Monday after New Year's Day",
+        "Lunes 2 de enero",
+        Rule::Computed(cl_january_2_monday),
+    )
+    .years(Some(2017), None),
+    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Holy Saturday", "Sábado Santo", Rule::easter(HOLY_SATURDAY)),
+    HolidayRule::fixed_public(
+        "Labour Day",
+        "Día Nacional del Trabajo",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Navy Day",
+        "Día de las Glorias Navales",
+        Rule::gregorian(5, 21),
+    ),
+    HolidayRule::fixed_public(
+        "Battle of Arica Day",
+        "Asalto y Toma del Morro de Arica",
+        Rule::gregorian(6, 7),
+    )
+    .in_regions(&["CL-AP"])
+    .years(Some(2013), None),
+    // Ley 21.357: the day of the June solstice, and 21 June in 2021 by its
+    // transitional article.
+    HolidayRule::fixed_public(
+        "National Indigenous Peoples' Day",
+        "Día Nacional de los Pueblos Indígenas",
+        Rule::gregorian(6, 21),
+    )
+    .years(Some(2021), Some(2021)),
+    HolidayRule::fixed_public(
+        "National Indigenous Peoples' Day",
+        "Día Nacional de los Pueblos Indígenas",
+        Rule::SolarTerm {
+            term: SolarTerm::SUMMER_SOLSTICE,
+            meridian: CHILE_STANDARD_TIME,
+        },
+    )
+    .years(Some(2022), None),
+    // Saints Peter and Paul: abolished in 1968, back from 1986, moved to a
+    // Monday from 2000.
+    HolidayRule::fixed_public(
+        "Saints Peter and Paul",
+        "San Pedro y San Pablo",
+        Rule::gregorian(6, 29),
+    )
+    .years(Some(1986), Some(1999)),
+    HolidayRule::fixed_public(
+        "Saints Peter and Paul",
+        "San Pedro y San Pablo",
+        Rule::moved_by_weekday(&CL_JUNE_29, CL_TO_MONDAY),
+    )
+    .years(Some(2000), None),
+    // Corpus Christi: back from 1987, moved to the Monday before from 2000,
+    // replaced by Our Lady of Mount Carmel from 2007.
+    HolidayRule::fixed_public(
+        "Corpus Christi",
+        "Corpus Christi",
+        Rule::easter(CORPUS_CHRISTI),
+    )
+    .years(Some(1987), Some(1999)),
+    HolidayRule::fixed_public(
+        "Corpus Christi",
+        "Corpus Christi",
+        Rule::moved_by_weekday(&CL_CORPUS_CHRISTI, CL_TO_MONDAY),
+    )
+    .years(Some(2000), Some(2006)),
+    HolidayRule::fixed_public(
+        "Our Lady of Mount Carmel",
+        "Virgen del Carmen",
+        Rule::gregorian(7, 16),
+    )
+    .years(Some(2007), None),
+    HolidayRule::fixed_public(
+        "Assumption of Mary",
+        "Asunción de la Virgen",
+        Rule::gregorian(8, 15),
+    ),
+    HolidayRule::fixed_public(
+        "Day of National Liberation",
+        "Día de la Liberación Nacional",
+        Rule::gregorian(9, 11),
+    )
+    .years(Some(1981), Some(1998)),
+    HolidayRule::fixed_public(
+        "National Unity Day",
+        "Día de la Unidad Nacional",
+        Rule::nth(9, 1, Weekday::Monday),
+    )
+    .years(Some(1999), Some(2001)),
+    // Leyes 20.215 and 20.983: a Monday or Friday 17 September and a Friday
+    // 20 September are holidays.
+    HolidayRule::fixed_public(
+        "Monday 17 September",
+        "Lunes 17 de septiembre",
+        Rule::Computed(cl_september_17_monday),
+    )
+    .years(Some(2007), None),
+    HolidayRule::fixed_public(
+        "Friday 17 September",
+        "Viernes 17 de septiembre",
+        Rule::Computed(cl_september_17_friday),
+    )
+    .years(Some(2017), None),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Día de la Independencia Nacional",
+        Rule::gregorian(9, 18),
+    ),
+    HolidayRule::fixed_public(
+        "Army Day",
+        "Día de las Glorias del Ejército",
+        Rule::gregorian(9, 19),
+    ),
+    HolidayRule::fixed_public(
+        "Friday 20 September",
+        "Viernes 20 de septiembre",
+        Rule::Computed(cl_september_20_friday),
+    )
+    .years(Some(2007), None),
+    // 12 October: a holiday from 1922, moved to a Monday and renamed from 2000.
+    HolidayRule::fixed_public(
+        "Discovery of America Anniversary",
+        "Aniversario del Descubrimiento de América",
+        Rule::gregorian(10, 12),
+    )
+    .years(Some(1922), Some(1999)),
+    HolidayRule::fixed_public(
+        "Meeting of Two Worlds Day",
+        "Día del Encuentro de Dos Mundos",
+        Rule::moved_by_weekday(&CL_OCTOBER_12, CL_TO_MONDAY),
+    )
+    .years(Some(2000), None),
+    HolidayRule::fixed_public(
+        "National Day of the Evangelical and Protestant Churches",
+        "Día Nacional de las Iglesias Evangélicas y Protestantes",
+        Rule::moved_by_weekday(&CL_OCTOBER_31, CL_TO_FRIDAY),
+    )
+    .years(Some(2008), None),
+    HolidayRule::fixed_public(
+        "All Saints' Day",
+        "Día de Todos los Santos",
+        Rule::gregorian(11, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Immaculate Conception",
+        "Inmaculada Concepción",
+        Rule::gregorian(12, 8),
+    ),
+    HolidayRule::fixed_public(
+        "Christmas Day",
+        "Natividad del Señor",
+        Rule::gregorian(12, 25),
+    ),
+];
+
+/// Chile.
+///
+/// The national holidays as the laws set them, each move a rule of its
+/// own rather than a substitution policy: Ley 19.668 of 2000 sends Saints
+/// Peter and Paul and 12 October, and until 2006 Corpus Christi, to the
+/// Monday before from a Tuesday, Wednesday or Thursday and the Monday
+/// after from a Friday; Ley 20.299 of 2008 sends 31 October to the Friday
+/// before from a Tuesday and the Friday after from a Wednesday; and
+/// Leyes 20.215 and 20.983 make a Monday or Friday 17 September, a Friday
+/// 20 September and a Monday 2 January holidays in the years they occur,
+/// which four computed rules carry. Ley 21.357 of 2021 puts the National
+/// Indigenous Peoples' Day on the June solstice, dated at Chile's standard
+/// time, and on 21 June in 2021 by its transitional article. The Battle of
+/// Arica is the Arica and Parinacota Region's alone, `CL-AP`. The changes
+/// the sources date are carried as years: the Day of National Liberation
+/// from 1981 to 1998 and the National Unity Day from 1999 to 2001, Corpus
+/// Christi from 1987 to 2006 and Our Lady of Mount Carmel from 2007. Not
+/// carried: election and census days, which each law or decree sets, and
+/// the commune-level holiday of Chillán and Chillán Viejo. New Year's Day,
+/// Labour Day, 18 and 19 September and Christmas are irrenunciable under
+/// Leyes 19.973 and 20.215, which the crate has no field for.
+pub static CHILE: RuleSet = RuleSet {
+    code: "CL",
+    english_name: "Chile",
+    rules: CL_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia, \"Public holidays in Chile\", and the Spanish Wikipedia, \
+              \"Anexo:Días feriados en Chile\", both retrieved 2026-09-22, for the \
+              list and the laws with their dates; feriadoschilenos.cl, retrieved the \
+              same day, for the law behind each holiday; Ley 21.357 of 19 June 2021, \
+              artículo único and artículo transitorio, as published at vlex.cl",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Ecuador
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The 2016 law's moves: a Tuesday holiday to the Monday before, a
+/// Wednesday or Thursday one to the Friday of its week, a Saturday one to
+/// the Friday before and a Sunday one to the Monday after.
+const EC_MOVES: &[(Weekday, i16)] = &[
+    (Weekday::Tuesday, -1),
+    (Weekday::Wednesday, 2),
+    (Weekday::Thursday, 1),
+    (Weekday::Saturday, -1),
+    (Weekday::Sunday, 1),
+];
+
+/// The same for the three days the law excepts from the weekday moves but
+/// not from the weekend ones.
+const EC_WEEKEND_MOVES: &[(Weekday, i16)] = &[(Weekday::Saturday, -1), (Weekday::Sunday, 1)];
+
+static EC_JANUARY_1: Rule = Rule::gregorian(1, 1);
+static EC_MAY_1: Rule = Rule::gregorian(5, 1);
+static EC_MAY_24: Rule = Rule::gregorian(5, 24);
+static EC_AUGUST_10: Rule = Rule::gregorian(8, 10);
+static EC_OCTOBER_9: Rule = Rule::gregorian(10, 9);
+static EC_DECEMBER_25: Rule = Rule::gregorian(12, 25);
+
+/// Where a fixed date lands under `EC_MOVES`.
+fn ec_moved(year: i64, month: u8, day: u8) -> Option<(Rd, Rd)> {
+    let rd = gregorian::to_fixed(year, month, day).ok()?;
+    let shift = EC_MOVES
+        .iter()
+        .find(|(trigger, _)| *trigger == Weekday::from_rd(rd))
+        .map_or(0, |(_, days)| i64::from(*days));
+    Some((rd, Rd(rd.0 + shift)))
+}
+
+/// 2 and 3 November, which the law moves like any other day and which
+/// therefore sometimes land on each other, or one on the other's own day.
+/// The law is silent; the Government's calendars have resolved it the
+/// same way each time, and this does what they did. The unmoved one keeps
+/// its day, and when both move 3 November keeps its target; the blocked
+/// one takes the free day beside the target on the working side of the
+/// weekend, the Thursday before a Friday or the Tuesday after a Monday:
+/// Thursday 1 November 2018, Thursday 3 and Friday 4 November 2022,
+/// Thursday 2 and Friday 3 November 2023, Monday 3 and Tuesday 4 November
+/// 2025, and Monday 2 and Tuesday 3 November 2026.
+fn ec_november_pair(year: i64) -> Option<(Rd, Rd)> {
+    let (second, second_moved) = ec_moved(year, 11, 2)?;
+    let (_, third_moved) = ec_moved(year, 11, 3)?;
+    if second_moved != third_moved {
+        return Some((second_moved, third_moved));
+    }
+    let beside = |target: Rd| {
+        if Weekday::from_rd(target) == Weekday::Friday {
+            Rd(target.0 - 1)
+        } else {
+            Rd(target.0 + 1)
+        }
+    };
+    if second_moved == second {
+        Some((second, beside(third_moved)))
+    } else {
+        Some((beside(second_moved), third_moved))
+    }
+}
+
+fn ec_november_2(year: i64) -> Days {
+    ec_november_pair(year).map_or_else(Days::new, |(day, _)| Days::one(day))
+}
+
+fn ec_november_3(year: i64) -> Days {
+    ec_november_pair(year).map_or_else(Days::new, |(_, day)| Days::one(day))
+}
+
+static EC_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1))
+        .years(None, Some(2016)),
+    HolidayRule::fixed_public(
+        "New Year's Day",
+        "Año Nuevo",
+        Rule::moved_by_weekday(&EC_JANUARY_1, EC_WEEKEND_MOVES),
+    )
+    .years(Some(2017), None),
+    HolidayRule::fixed_public(
+        "Carnival Monday",
+        "Lunes de Carnaval",
+        Rule::easter(SHROVE_MONDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Carnival Tuesday",
+        "Martes de Carnaval",
+        Rule::easter(SHROVE_TUESDAY),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1))
+        .years(None, Some(2016)),
+    HolidayRule::fixed_public(
+        "Labour Day",
+        "Día del Trabajo",
+        Rule::moved_by_weekday(&EC_MAY_1, EC_MOVES),
+    )
+    .years(Some(2017), None),
+    HolidayRule::fixed_public(
+        "Battle of Pichincha",
+        "Batalla de Pichincha",
+        Rule::gregorian(5, 24),
+    )
+    .years(None, Some(2016)),
+    HolidayRule::fixed_public(
+        "Battle of Pichincha",
+        "Batalla de Pichincha",
+        Rule::moved_by_weekday(&EC_MAY_24, EC_MOVES),
+    )
+    .years(Some(2017), None),
+    HolidayRule::fixed_public(
+        "First Cry of Independence",
+        "Primer Grito de Independencia",
+        Rule::gregorian(8, 10),
+    )
+    .years(None, Some(2016)),
+    HolidayRule::fixed_public(
+        "First Cry of Independence",
+        "Primer Grito de Independencia",
+        Rule::moved_by_weekday(&EC_AUGUST_10, EC_MOVES),
+    )
+    .years(Some(2017), None),
+    HolidayRule::fixed_public(
+        "Independence of Guayaquil",
+        "Independencia de Guayaquil",
+        Rule::gregorian(10, 9),
+    )
+    .years(None, Some(2016)),
+    HolidayRule::fixed_public(
+        "Independence of Guayaquil",
+        "Independencia de Guayaquil",
+        Rule::moved_by_weekday(&EC_OCTOBER_9, EC_MOVES),
+    )
+    .years(Some(2017), None),
+    HolidayRule::fixed_public(
+        "Day of the Dead",
+        "Día de los Difuntos",
+        Rule::gregorian(11, 2),
+    )
+    .years(None, Some(2016)),
+    HolidayRule::fixed_public(
+        "Day of the Dead",
+        "Día de los Difuntos",
+        Rule::Computed(ec_november_2),
+    )
+    .years(Some(2017), None),
+    HolidayRule::fixed_public(
+        "Independence of Cuenca",
+        "Independencia de Cuenca",
+        Rule::gregorian(11, 3),
+    )
+    .years(None, Some(2016)),
+    HolidayRule::fixed_public(
+        "Independence of Cuenca",
+        "Independencia de Cuenca",
+        Rule::Computed(ec_november_3),
+    )
+    .years(Some(2017), None),
+    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25))
+        .years(None, Some(2016)),
+    HolidayRule::fixed_public(
+        "Christmas Day",
+        "Navidad",
+        Rule::moved_by_weekday(&EC_DECEMBER_25, EC_WEEKEND_MOVES),
+    )
+    .years(Some(2017), None),
+];
+
+/// Ecuador.
+///
+/// Article 65 of the Código del Trabajo as reformed by the law of
+/// Registro Oficial 906 of 20 December 2016: the days of obligatory rest,
+/// and the moves the law makes to them, each a rule of its own. A Tuesday
+/// holiday goes to the Monday before, a Wednesday or Thursday one to the
+/// Friday of its week, a Saturday one to the Friday before and a Sunday
+/// one to the Monday after; New Year's Day, Christmas and Carnival Tuesday
+/// are excepted from the weekday moves but not from the weekend ones, so
+/// that a Saturday 1 January is kept on the Friday before, across the New
+/// Year. The law is silent on 2 and 3 November landing on each other, and
+/// the pair's computed rules do what the Government's calendars of 2023,
+/// 2025 and 2026 did. The table is complete from 2017; before, the dates
+/// are carried fixed and the bridges the Government decreed are not. The
+/// local holidays of cantons and provinces are not carried.
+pub static ECUADOR: RuleSet = RuleSet {
+    code: "EC",
+    english_name: "Ecuador",
+    rules: EC_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Ley Orgánica Reformatoria a la Ley Orgánica del Servicio Público y al \
+              Código del Trabajo, Registro Oficial 906 of 20 December 2016, as \
+              published by the Municipality of Santo Domingo, for the moves and \
+              the exceptions; El Universo, 20 December 2016, for the list and the \
+              2017 dates; the Spanish Wikipedia, \"Anexo:Días festivos en \
+              Ecuador\", retrieved 2026-09-22, for the moved dates of 2023 to 2025; \
+              El Universo's official 2026 calendar for 2 and 3 November 2026",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Uruguay
+// ─────────────────────────────────────────────────────────────────────────
+
+static UY_APRIL_19: Rule = Rule::gregorian(4, 19);
+static UY_MAY_18: Rule = Rule::gregorian(5, 18);
+static UY_OCTOBER_12: Rule = Rule::gregorian(10, 12);
+
+/// A feriado común: banks and public offices close, private employers may
+/// require work.
+const fn uy_common(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, rule).of_kind(Kind::Bank)
+}
+
+static UY_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    uy_common("Children's Day", "Día de los Niños", Rule::gregorian(1, 6)),
+    uy_common(
+        "Carnival Monday",
+        "Lunes de Carnaval",
+        Rule::easter(SHROVE_MONDAY),
+    ),
+    uy_common(
+        "Carnival Tuesday",
+        "Martes de Carnaval",
+        Rule::easter(SHROVE_TUESDAY),
+    ),
+    uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-6)),
+    uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-5)),
+    uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-4)),
+    uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-3)),
+    uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-2)),
+    uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-1)),
+    uy_common(
+        "Landing of the Thirty-Three Orientals",
+        "Desembarco de los Treinta y Tres Orientales",
+        Rule::moved_by_weekday(&UY_APRIL_19, TO_ADJACENT_MONDAY),
+    )
+    .years(Some(2002), None),
+    HolidayRule::fixed_public(
+        "Workers' Day",
+        "Día de los Trabajadores",
+        Rule::gregorian(5, 1),
+    ),
+    uy_common(
+        "Battle of Las Piedras",
+        "Batalla de Las Piedras",
+        Rule::moved_by_weekday(&UY_MAY_18, TO_ADJACENT_MONDAY),
+    )
+    .years(Some(2002), None),
+    uy_common(
+        "Birth of Artigas",
+        "Natalicio de Artigas",
+        Rule::gregorian(6, 19),
+    ),
+    HolidayRule::fixed_public(
+        "Constitution Day",
+        "Jura de la Constitución",
+        Rule::gregorian(7, 18),
+    ),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Declaratoria de la Independencia",
+        Rule::gregorian(8, 25),
+    ),
+    uy_common(
+        "Day of the Race",
+        "Día de la Raza",
+        Rule::moved_by_weekday(&UY_OCTOBER_12, TO_ADJACENT_MONDAY),
+    )
+    .years(Some(2002), None),
+    uy_common(
+        "All Souls' Day",
+        "Día de los Difuntos",
+        Rule::gregorian(11, 2),
+    ),
+    HolidayRule::fixed_public("Family Day", "Día de la Familia", Rule::gregorian(12, 25)),
+];
+
+/// Uruguay.
+///
+/// Ley 16.805 of 24 December 1996 as amended by Ley 17.414 of 8 November
+/// 2001: the five paid holidays on which work stops, `Kind::Public`, and
+/// the common holidays, `Kind::Bank`, on which banks and public offices
+/// close and a private employer may require work — the six days of
+/// Tourism Week among them. Three holidays move: 19 April, 18 May and
+/// 12 October go to the Monday before from a Tuesday or Wednesday and the
+/// Monday after from a Thursday or Friday, the same table Argentina uses;
+/// the rest the amended law names as immovable. The three moved rules
+/// start in 2002, the first year under the amendment; what the 1996 law
+/// moved before it is not carried, and the sector holidays and the
+/// one-off days are not carried either.
+pub static URUGUAY: RuleSet = RuleSet {
+    code: "UY",
+    english_name: "Uruguay",
+    rules: UY_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "The Spanish Wikipedia, \"Días feriados de Uruguay\", retrieved 2026-09-22, \
+              for Ley 16.805 and Ley 17.414, the paid and common holidays, the \
+              moved and immovable ones and the days of Tourism Week; Wikipedia, \
+              \"Public holidays in Uruguay\", retrieved the same day, for the \
+              English names",
 };

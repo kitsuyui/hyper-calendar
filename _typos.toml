@@ -20,6 +20,12 @@ extend-exclude = ["Cargo.lock"]
 Legislativo = "Legislativo"
 # The Macao Government's English spelling of the Tung Ng Festival.
 Tung = "Tung"
+# Arica, the Chilean city and region.
+Arica = "Arica"
+# Spanish "Protestantes" in the name of a Chilean holiday.
+Protestantes = "Protestantes"
+# Spanish "Registro Oficial", Ecuador's official gazette.
+Oficial = "Oficial"
 # Fo, the first day of the Akan six-day week.
 Fo = "Fo"
 # German and Dutch month names.

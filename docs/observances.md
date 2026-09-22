@@ -159,6 +159,10 @@ Ordered by how well the sources can be cited, not by importance.
 | Hungary 🇭🇺 | With Good Friday from 2017; the annual rearrangement of working days by decree is not carried |
 | Romania 🇷🇴 | Orthodox Easter and Pentecost by the Julian computus; the additions of the last decade by year, Epiphany and Saint John from 2024 |
 | Russia 🇷🇺 | The New Year holidays as they grew to 1–8 January; no substitution, because the Government transfers days off by decree every year and the statutory default almost never applies |
+| Bolivia 🇧🇴 | Decreto Supremo 2750 with the Sunday rule and the four days it excepts; departmental holidays and yearly bridges not carried |
+| Chile 🇨🇱 | Every move a rule of its own: Ley 19.668's Mondays, Ley 20.299's Fridays, the computed 2 January and 17/20 September days, the solstice at Chile's meridian; Arica's day as `CL-AP` |
+| Ecuador 🇪🇨 | Art. 65 as reformed in 2016: the moves per holiday, the weekend-only moves of the three excepted days, and the 2/3 November pair as the Government resolved it |
+| Uruguay 🇺🇾 | Ley 16.805 as amended in 2001: paid holidays public, common ones bank, Tourism Week's six days, three holidays to the adjacent Monday |
 | Argentina 🇦🇷 | From Decreto 1584/2010 in 2011: the *inamovibles* where they fall, the *trasladables* on the decree's Mondays to 2016 and by the weekday rule of Ley 27.399 from 2018; the annual tourist holidays not carried; Holy Thursday and the days of the Jewish and Islamic faiths as observances |
 | Colombia 🇨🇴 | Ley 51 de 1983 from 1984: ten holidays to the following Monday, eight where they fall |
 | Ethiopia 🇪🇹 | The national and Orthodox holidays on the Ethiopian calendar (`ethiopic`), where they are kept; Fasika by the Julian computus; the Islamic days approximate |
