@@ -19,6 +19,7 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 [features]
 default = ["civil"]
 civil = ["hc/civil"]
+holiday = ["hc/holiday"]
 full = ["hc/full"]
 
 [dependencies]
