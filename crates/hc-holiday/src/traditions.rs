@@ -26,6 +26,7 @@
 //! | Chinese folk | Chinese lunisolar calendar and the solar terms | exact to the astronomical model |
 //! | Hindu | the amānta Hindu lunisolar calendar at the national almanac's sunrise; each festival on the part of the day its tithi must hold | exact to the astronomical model, and to the conventions [`crate::hindu`] states — a regional almanac may keep a day differently |
 //! | Wheel of the Year | the solstices and equinoxes on their Universal Time day; the cross-quarter days on their fixed Gregorian dates | exact as stated; a group may keep a quarter day on its local date or the nearest weekend, and the eve convention for Samhain is not modelled |
+//! | Jain | the amānta Hindu lunisolar calendar at the national almanac's sunrise; Paryuṣaṇa and Daśa Lakṣaṇa counted back from their last days | **approximate** — Jain almanacs differ from the national one by a day in some years, as the source says |
 //! | Sikh | the Nanakshahi calendar of 2003 for the gurpurabs; the amānta Hindu lunisolar calendar for the three the 2003 calendar left on the Bikrami | exact: the Nanakshahi dates are fixed Gregorian dates, and the lunar three follow the same model as the Hindu table; the SGPC's post-2010 dates are not carried |
 //! | Zoroastrian | the Parsi schedule of feasts on each of the three reckonings — Fasli, Shahanshahi, Qadimi — as three tables | exact: every feast is a fixed day of a fixed month, and each reckoning is arithmetic; the Iranian community's dates on the civil calendar are not carried |
 
@@ -39,10 +40,10 @@ use crate::computus::offsets::{
     TRINITY_SUNDAY, WHIT_MONDAY,
 };
 use crate::hindu::{
-    AKSHAYA_TRITIYA, BUDDHA_PURNIMA, DIWALI, DURGA_ASHTAMI, GANESH_CHATURTHI, GURU_NANAK_JAYANTI,
-    GURU_PURNIMA, HOLI, HOLIKA_DAHAN, JANMASHTAMI, MAHA_SHIVARATRI, MAHAVIR_JAYANTI,
-    MAKAR_SANKRANTI, MESHA_SANKRANTI, NAVARATRI, RAKSHA_BANDHAN, RAMA_NAVAMI, UGADI,
-    VIJAYA_DASHAMI,
+    AKSHAYA_TRITIYA, ANANT_CHATURDASHI, BUDDHA_PURNIMA, DIWALI, DURGA_ASHTAMI, GANESH_CHATURTHI,
+    GURU_NANAK_JAYANTI, GURU_PURNIMA, HOLI, HOLIKA_DAHAN, JANMASHTAMI, MAHA_SHIVARATRI,
+    MAHAVIR_JAYANTI, MAKAR_SANKRANTI, MESHA_SANKRANTI, NAVARATRI, RAKSHA_BANDHAN, RAMA_NAVAMI,
+    SAMVATSARI, UGADI, VIJAYA_DASHAMI,
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
@@ -1002,6 +1003,110 @@ pub static CHINESE_FOLK: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 // ─────────────────────────────────────────────────────────────────────────
+// Jainism
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A Jain day: religious, and approximate, since the sects' almanacs can
+/// differ from the national one by a day.
+const fn jain(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    feast(name, local, rule).approximate()
+}
+
+/// One of the days of a festival counted back from its last day.
+const fn jain_day(
+    name: &'static str,
+    local: &'static str,
+    last: &'static Rule,
+    days_before: i16,
+) -> HolidayRule {
+    jain(
+        name,
+        local,
+        Rule::Offset {
+            base: last,
+            days: -days_before,
+        },
+    )
+}
+
+static JAIN_RULES: &[HolidayRule] = &[
+    jain("Mahavir Jayanti", "महावीर जयंती", MAHAVIR_JAYANTI),
+    jain("Akshaya Tritiya", "अक्षय तृतीया", AKSHAYA_TRITIYA),
+    // The Śvetāmbara Paryuṣaṇa: eight days ending with Saṃvatsarī.
+    jain_day("Paryushana", "पर्युषण", &SAMVATSARI, 7),
+    jain_day("Paryushana", "पर्युषण", &SAMVATSARI, 6),
+    jain_day("Paryushana", "पर्युषण", &SAMVATSARI, 5),
+    jain_day("Paryushana", "पर्युषण", &SAMVATSARI, 4),
+    jain_day("Paryushana", "पर्युषण", &SAMVATSARI, 3),
+    jain_day("Paryushana", "पर्युषण", &SAMVATSARI, 2),
+    jain_day("Paryushana", "पर्युषण", &SAMVATSARI, 1),
+    jain_day("Paryushana", "पर्युषण", &SAMVATSARI, 0),
+    jain(
+        "Samvatsari",
+        "संवत्सरी",
+        Rule::Offset {
+            base: &SAMVATSARI,
+            days: 0,
+        },
+    ),
+    // The Digambara Daśa Lakṣaṇa: ten days from the day after, ending with
+    // Ananta Caturdaśī.
+    jain_day("Das Lakshana", "दशलक्षण", &ANANT_CHATURDASHI, 9),
+    jain_day("Das Lakshana", "दशलक्षण", &ANANT_CHATURDASHI, 8),
+    jain_day("Das Lakshana", "दशलक्षण", &ANANT_CHATURDASHI, 7),
+    jain_day("Das Lakshana", "दशलक्षण", &ANANT_CHATURDASHI, 6),
+    jain_day("Das Lakshana", "दशलक्षण", &ANANT_CHATURDASHI, 5),
+    jain_day("Das Lakshana", "दशलक्षण", &ANANT_CHATURDASHI, 4),
+    jain_day("Das Lakshana", "दशलक्षण", &ANANT_CHATURDASHI, 3),
+    jain_day("Das Lakshana", "दशलक्षण", &ANANT_CHATURDASHI, 2),
+    jain_day("Das Lakshana", "दशलक्षण", &ANANT_CHATURDASHI, 1),
+    jain_day("Das Lakshana", "दशलक्षण", &ANANT_CHATURDASHI, 0),
+    jain(
+        "Anant Chaturdashi",
+        "अनंत चतुर्दशी",
+        Rule::Offset {
+            base: &ANANT_CHATURDASHI,
+            days: 0,
+        },
+    ),
+    jain("Diwali", "दीपावली", DIWALI),
+];
+
+/// Jainism.
+///
+/// The two sects' great festival as one table: the Śvetāmbara Paryuṣaṇa,
+/// eight days ending with Saṃvatsarī on Bhādrapada śukla 4, and the
+/// Digambara Daśa Lakṣaṇa, ten days beginning the day after and ending
+/// with Ananta Caturdaśī on śukla 14 — each counted back from its last
+/// day, which is the day the sect fixes. Mahāvīra Jayantī and Akṣaya
+/// Tṛtīyā on the rules the Hindu table shares, and Diwali, which Jains keep
+/// as the day of Mahāvīra's nirvāṇa.
+///
+/// **Every entry is approximate.** The rules read the national almanac's
+/// sunrise; a Jain almanac can put a tithi a day away in some years, and
+/// the source says so. Kṣamāvaṇī, the Digambara day of forgiveness, is
+/// not carried: its source states it on Āśvina kṛṣṇa 1 and dates it on
+/// Ananta Caturdaśī in two of its three example years, and the table does
+/// not choose.
+pub static JAIN: RuleSet = RuleSet {
+    code: "jain",
+    english_name: "Jainism",
+    rules: JAIN_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia, \"Paryushana\", retrieved 2026-09-22, for the eight \
+              Śvetāmbara days ending with Saṃvatsarī on Bhadrapada śukla 4, the \
+              ten Digambara days that start right after, and the sects' \
+              computational differences; Wikipedia, \"Kshamavani\", retrieved \
+              2026-09-22, for the day not carried; Wikipedia, \"Diwali\", \
+              retrieved 2026-09-22, for the Jain observance; the Rashtriya \
+              Panchang for Mahāvīra Jayantī and Akṣaya Tṛtīyā, as `hindu` \
+              states",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Sikhism
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -1272,6 +1377,7 @@ pub static ALL: &[&RuleSet] = &[
     &CHINESE_FOLK,
     &WHEEL_OF_THE_YEAR,
     &WHEEL_OF_THE_YEAR_SOUTH,
+    &JAIN,
     &SIKH,
     &ZOROASTRIAN_FASLI,
     &ZOROASTRIAN_SHAHANSHAHI,

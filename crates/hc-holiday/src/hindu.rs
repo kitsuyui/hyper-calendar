@@ -115,3 +115,36 @@ pub const MESHA_SANKRANTI: Rule = Rule::Sankranti {
     ayanamsa: Ayanamsa::LAHIRI,
     meridian: Meridian::INDIA,
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// The Jain days
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Saṃvatsarī, the last day of the Śvetāmbara Paryuṣaṇa: Bhādrapada
+/// śukla 4, the day that carries it at sunrise.
+///
+/// Jain almanacs are not the *Rashtriya Panchang*, and the source says
+/// that "due to computational and other differences, there can be some
+/// minor differences among various sects"; the Jain rules are therefore
+/// flagged approximate where they are used.
+pub static SAMVATSARI: Rule = tithi(6, 4, Prevalence::Sunrise, WhenTwice::Earlier);
+
+/// The first of the eight days of the Śvetāmbara Paryuṣaṇa, counted back
+/// from Saṃvatsarī: Śrāvaṇa kṛṣṇa 12 in the amānta reckoning, when no
+/// tithi is skipped or repeated in between.
+pub const PARYUSHANA_FIRST_DAY: Rule = Rule::Offset {
+    base: &SAMVATSARI,
+    days: -7,
+};
+
+/// Ananta Caturdaśī, the last day of the Digambara Daśa Lakṣaṇa:
+/// Bhādrapada śukla 14 at sunrise.
+pub static ANANT_CHATURDASHI: Rule = tithi(6, 14, Prevalence::Sunrise, WhenTwice::Earlier);
+
+/// The first of the ten days of the Digambara Daśa Lakṣaṇa, counted back
+/// from Ananta Caturdaśī: Bhādrapada śukla 5, the day after the Śvetāmbara
+/// festival ends, when no tithi is skipped or repeated in between.
+pub const DAS_LAKSHANA_FIRST_DAY: Rule = Rule::Offset {
+    base: &ANANT_CHATURDASHI,
+    days: -9,
+};
