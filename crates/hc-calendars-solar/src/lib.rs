@@ -13,8 +13,9 @@
 //! arithmetic *approximations* of calendars that are astronomically defined,
 //! and [`bahai::ArithmeticBahaiCalendar`] implements the pre-2015 Western
 //! form of a calendar that has since become astronomical. Each of those
-//! modules documents what it is not, and the first two leave the unqualified
-//! CLDR identifier free for `hc-astro` to claim. A fourth,
+//! modules documents what it is not, and the astronomical calendars they
+//! approximate are in `hc-calendars-equinox`, under `persian`,
+//! `bahai-astronomical` and `french-republican-equinox`. A fourth,
 //! [`bahai_kept::BahaiCalendar`], is a *published table* rather than
 //! astronomy — the Bahá'í World Centre's dates for 172–221 BE, joined to the
 //! arithmetic calendar that was kept before — and stops where the table

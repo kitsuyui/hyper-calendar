@@ -48,7 +48,7 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | Ancient Egyptian wandering year | `egyptian` | `hc-calendars-solar` | Done |
 | Armenian (wandering) | `armenian` | `hc-calendars-solar` | Done |
 | Armenian (fixed, Sarkawag 1084) | `armenian-fixed` | `hc-calendars-solar` | Done |
-| Solar Hijri (Persian), arithmetic | `persian-arithmetic` | `hc-calendars-solar` | Partial — 33-year cycle; astronomical variant in stage 3 |
+| Solar Hijri (Persian), arithmetic | `persian-arithmetic` | `hc-calendars-solar` | Done — Birashk's 2 820-year cycle; the astronomical calendar is `persian`, stage 3 |
 | Indian national civil (Śaka) | `indian` | `hc-calendars-solar` | Done |
 | Thai solar (Buddhist Era) | `buddhist` | `hc-calendars-solar` | Partial — the 1889–1940 April year start is not modelled |
 | Minguo (Republic of China) | `roc` | `hc-calendars-solar` | Done |
@@ -57,7 +57,7 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | Japanese imperial year (皇紀) | `japanese-imperial` | `hc-calendars-solar` | Done — proleptic before the 1873 adoption |
 | Byzantine / Anno Mundi world era | `byzantine` | `hc-calendars-solar` | Done |
 | Roman *ab urbe condita* | `roman-auc` | `hc-calendars-solar` | Done |
-| French Republican, arithmetic (Romme) | `french-republican-arithmetic` | `hc-calendars-solar` | Partial — equinox variant in stage 3 |
+| French Republican, arithmetic (Romme) | `french-republican-arithmetic` | `hc-calendars-solar` | Done — Romme's proposal; the decree's rule is `french-republican-equinox`, stage 3 |
 | Bahá'í (Badíʿ), arithmetic Western rule | `bahai-arithmetic` | `hc-calendars-solar` | Done — the rule kept until 171 BE, continued proleptically |
 | Bahá'í (Badíʿ), as kept | `bahai` | `hc-calendars-solar` | Done through 221 BE (19 March 2065) — the arithmetic rule to 171 BE, the Bahá'í World Centre's published table for 172–221 BE; refuses after, until `hc-astro` extends it |
 | Symmetry454 | `symmetry454` | `hc-calendars-solar` | Done |
@@ -97,9 +97,9 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 
 | Calendar | Id | Status |
 | --- | --- | --- |
-| Solar Hijri, astronomical (Tehran meridian) | `persian-astronomical` | Planned |
-| French Republican, autumn equinox at Paris | `french-republican-equinox` | Planned |
-| Bahá'í, Naw-Rúz from the Tehran equinox for any year | `bahai-astronomical` | Planned — must reproduce the 172–221 BE table `bahai` carries |
+| Solar Hijri, astronomical (noon, Iran Standard Time) | `persian` | Done, in `hc-calendars-equinox` — Nowruz 1404 on 21 March 2025, where Birashk's cycle says the 20th |
+| French Republican, autumn equinox at Paris | `french-republican-equinox` | Done, in `hc-calendars-equinox` — the fourteen new years France kept |
+| Bahá'í, Naw-Rúz from the Tehran equinox for any year | `bahai-astronomical` | Done, in `hc-calendars-equinox` — reproduces every row of the 172–221 BE table `bahai` carries, Twin Holy Birthdays included |
 | Ethiopian Easter-linked movable cycle (Bahire Hasab) | — | Done, in `hc-holiday`; see [observances.md](observances.md) |
 | Coptic Easter-linked movable cycle | — | Done, in `hc-holiday`; see [observances.md](observances.md) |
 
