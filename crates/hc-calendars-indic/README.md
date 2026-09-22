@@ -10,6 +10,7 @@ the Government of India's *Rashtriya Panchang* computes it.
 | Module | Identifier | What it is | Range |
 |---|---|---|---|
 | `hindu_lunar` | `hindu-lunar` | months new moon to new moon, named for the saṅkrānti they contain; the day is the tithi at sunrise; Śaka years | Gregorian 1700–2299 |
+| `hindu_purnimanta` | `hindu-lunar-purnimanta` | the same tithis under the north's names: the dark fortnight first, named for the bright one that follows; the intercalary month inserted whole | Gregorian 1700–2299 |
 | `hindu_solar` | `hindu-solar-tamil` | the Sun's stay in each sidereal sign; the month begins on the saṅkrānti's day unless it fell after sunset; Tiruvaḷḷuvar years | Gregorian 1700–2299 |
 | | `hindu-solar-malayalam` | the same months from Chingam; the month begins on the saṅkrānti's day unless it fell after three fifths of the daylight; Kollam era | |
 | | `hindu-solar-bengali` | the same months from Boishakh; the month begins the day after the saṅkrānti's; Bengali San | |
@@ -38,11 +39,9 @@ which the four rules were read rather than assumed.
 
 ## What is not here yet
 
-The *pūrṇimānta* reckoning of northern India, which counts the dark
-fortnight first under the next month's name; the Nepali Bikram Sambat as
-its committee publishes it, which follows the Vikrami rule and has not yet
-been compared against it; the Odia year counts and the Tamil sixty-year
-names. `docs/calendars.md` tracks each.
+The Nepali Bikram Sambat as its committee publishes it, which follows the
+Vikrami rule and has not yet been compared against it; the Odia year counts
+and the Tamil sixty-year names. `docs/calendars.md` tracks each.
 
 ## Features
 

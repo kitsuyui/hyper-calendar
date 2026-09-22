@@ -246,6 +246,14 @@ impl HinduLunarCalendar {
         }
     }
 
+    /// The label — month number and intercalary flag — of the month after
+    /// the one containing `day`, for the pūrṇimānta renaming.
+    pub(crate) fn next_month_label(&self, day: Rd) -> (u8, bool) {
+        let current = self.month_containing(sunrise_of(day, self.location));
+        let next = self.month_from(current.end);
+        (next.month, next.leap)
+    }
+
     /// The first day of a month: the first day whose sunrise follows the
     /// conjunction the month begins after.
     fn first_day_of(&self, month: LunarMonth) -> Rd {
