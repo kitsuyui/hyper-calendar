@@ -971,6 +971,106 @@ fn iran_flags_every_lunar_date_and_keeps_a_friday_weekend() {
 }
 
 #[test]
+fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
+    expect(
+        "HU",
+        None,
+        &[
+            (2024, 1, 1, "New Year's Day"),
+            (2024, 3, 15, "1848 Revolution Memorial Day"),
+            (2024, 3, 29, "Good Friday"),
+            (2024, 4, 1, "Easter Monday"),
+            (2024, 5, 20, "Whit Monday"),
+            (2024, 8, 20, "Saint Stephen's Day"),
+            (2024, 10, 23, "1956 Revolution Memorial Day"),
+            (2024, 12, 26, "Second Day of Christmas"),
+            (2025, 3, 15, "1848 Revolution Memorial Day"),
+        ],
+    );
+    // 15 March 2025 was a Saturday and stayed one; 25 March 2016, a Good
+    // Friday, was a working day.
+    expect_working("HU", None, &[(2025, 3, 17), (2016, 3, 25)]);
+}
+
+#[test]
+fn romania_keeps_orthodox_easter_and_its_recent_additions_by_year() {
+    // Orthodox Easter 2024 was 5 May, Pentecost 23 June.
+    expect(
+        "RO",
+        None,
+        &[
+            (2024, 1, 2, "Day after New Year's Day"),
+            (2024, 1, 6, "Epiphany"),
+            (2024, 1, 7, "Saint John the Baptist"),
+            (2024, 1, 24, "Union of the Romanian Principalities"),
+            (2024, 5, 3, "Good Friday"),
+            (2024, 5, 6, "Easter Monday"),
+            (2024, 6, 1, "Children's Day"),
+            (2024, 6, 24, "Whit Monday"),
+            (2024, 8, 15, "Dormition of the Mother of God"),
+            (2024, 11, 30, "Saint Andrew's Day"),
+            (2024, 12, 1, "National Day"),
+        ],
+    );
+    // Before their laws: Epiphany 2023, Children's Day 2016, Good Friday 2017.
+    expect_working("RO", None, &[(2023, 1, 6), (2016, 6, 1), (2017, 4, 14)]);
+}
+
+#[test]
+fn russia_grew_its_new_year_holidays_and_carries_no_transfers() {
+    expect(
+        "RU",
+        None,
+        &[
+            (2024, 1, 1, "New Year Holidays"),
+            (2024, 1, 6, "New Year Holidays"),
+            (2024, 1, 7, "Orthodox Christmas"),
+            (2024, 1, 8, "New Year Holidays"),
+            (2024, 2, 23, "Defender of the Fatherland Day"),
+            (2024, 3, 8, "International Women's Day"),
+            (2024, 5, 9, "Victory Day"),
+            (2024, 6, 12, "Russia Day"),
+            (2024, 11, 4, "Unity Day"),
+            (2004, 11, 7, "Day of Accord and Reconciliation"),
+            (2004, 5, 2, "Spring and Labour Day"),
+        ],
+    );
+    // 6 January was a working day until 2013, 7 November after 2004, and a
+    // Saturday 8 March (2025) is not moved by this table.
+    expect_working("RU", None, &[(2012, 1, 6), (2005, 11, 7), (2025, 3, 10)]);
+}
+
+#[test]
+fn ukraine_moves_a_weekend_holiday_forward_and_changed_its_list_in_2023() {
+    // 2021: Labour Day on Saturday 1 May took Monday the 3rd, so Orthodox
+    // Easter on Sunday the 2nd took Tuesday the 4th; Trinity on Sunday
+    // 20 June gave the 21st, Victory Day on Sunday 9 May the 10th, and
+    // Christmas on Saturday 25 December the 27th.
+    expect(
+        "UA",
+        None,
+        &[
+            (2021, 1, 7, "Orthodox Christmas"),
+            (2021, 5, 3, "Labour Day"),
+            (2021, 5, 4, "Easter"),
+            (2021, 5, 10, "Victory Day"),
+            (2021, 6, 21, "Trinity"),
+            (2021, 6, 28, "Constitution Day"),
+            (2021, 8, 24, "Independence Day"),
+            (2021, 10, 14, "Defenders of Ukraine Day"),
+            (2021, 12, 27, "Christmas"),
+            (2024, 5, 8, "Day of Remembrance and Victory over Nazism"),
+            (2024, 7, 15, "Statehood Day"),
+            (2024, 10, 1, "Defenders of Ukraine Day"),
+            (2024, 12, 25, "Christmas"),
+        ],
+    );
+    expect_substitute("UA", None, 2021, (5, 2), (5, 4));
+    expect_substitute("UA", None, 2021, (12, 25), (12, 27));
+    expect_working("UA", None, &[(2024, 1, 7), (2024, 5, 9), (2024, 10, 14)]);
+}
+
+#[test]
 fn saudi_arabia_changed_its_weekend_in_2013() {
     let country = table("SA");
     let before = HolidayCalendar::for_year(country, None, 2012);
