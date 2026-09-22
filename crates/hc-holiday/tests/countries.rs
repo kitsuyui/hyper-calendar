@@ -4147,9 +4147,10 @@ fn namibia_adds_a_monday_to_a_sunday_unless_the_monday_is_taken() {
 #[test]
 fn mauritius_alternates_the_assumption_and_all_saints_from_2016() {
     // The Prime Minister's Office's dates for 2025 and 2026 where the
-    // crate's rules land on them; Cavadee where the Thai full moon is the
-    // Pusam day; the two days kept from 2001; and All Saints every year to
-    // 2015, then in odd years, the Assumption in even ones.
+    // crate's rules land on them; every Cavadee kept from 2020 to 2026,
+    // 2023's a day before Malaysia's; the two days kept from 2001; and All
+    // Saints every year to 2015, then in odd years, the Assumption in even
+    // ones.
     expect(
         "MU",
         None,
@@ -4167,8 +4168,13 @@ fn mauritius_alternates_the_assumption_and_all_saints_from_2016() {
             (2025, 8, 27, "Ganesh Chaturthi"),
             (2025, 10, 20, "Divali"),
             (2025, 11, 1, "All Saints' Day"),
+            (2026, 2, 1, "Thaipoosam Cavadee"),
+            (2025, 2, 11, "Thaipoosam Cavadee"),
             (2024, 1, 25, "Thaipoosam Cavadee"),
+            (2023, 2, 4, "Thaipoosam Cavadee"),
             (2022, 1, 18, "Thaipoosam Cavadee"),
+            (2021, 1, 28, "Thaipoosam Cavadee"),
+            (2020, 2, 8, "Thaipoosam Cavadee"),
             (2001, 2, 1, "Abolition of Slavery"),
             (2001, 11, 2, "Arrival of Indentured Labourers"),
             (2014, 11, 1, "All Saints' Day"),

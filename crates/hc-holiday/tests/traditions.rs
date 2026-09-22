@@ -1,15 +1,19 @@
 //! The cross-cutting religious cycles.
 
 use hc_calendar::Rd;
+use hc_calendars_indic::nakshatra::PUSHYA;
 use hc_calendars_solar::gregorian;
 use hc_holiday::engine::HolidayCalendar;
-use hc_holiday::rule::{Confidence, Kind, RuleSet};
+use hc_holiday::hindu::THAIPUSAM;
+use hc_holiday::rule::{Confidence, Kind, Rule, RuleSet};
 use hc_holiday::traditions::{
     self, BAHAI, BUDDHIST, CHINESE_FOLK, CHRISTIAN_ORTHODOX, CHRISTIAN_WESTERN, COPTIC_ORTHODOX,
     ETHIOPIAN_ORTHODOX, HINDU, ISLAMIC, JAIN, JEWISH, KYUCHU_SAISHI, SHINTO, SIKH,
     WHEEL_OF_THE_YEAR, WHEEL_OF_THE_YEAR_SOUTH, ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI,
     ZOROASTRIAN_SHAHANSHAHI,
 };
+use hc_seasons::Meridian;
+use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
 /// Panics rather than returning a `Result`, because every date in this file
 /// is a literal the author typed and a bad one is a bug in the test.
@@ -495,6 +499,65 @@ fn a_first_tithi_that_no_sunrise_carries_still_opens_the_year() {
     // sunrise is the 20th with the second tithi, and Ugadi is the 19th,
     // the day the tithi begins in.
     expect(&HINDU, &[(2026, 3, 19, "Ugadi")]);
+}
+
+#[test]
+fn thaipusam_falls_where_malaysia_and_mauritius_gazette_it() {
+    // Malaysia and Mauritius, 2020 to 2026, as Office Holidays records the
+    // gazetted days: the same day every year but 2023, when Puṣya ran from
+    // the morning of 4 February to the afternoon of the 5th and each
+    // country's midnight cut it on its own side. India's meridian gives
+    // Mauritius's day.
+    let mauritius = Meridian::from_seconds(4 * 3_600);
+    let malaysia = Meridian::from_seconds(8 * 3_600);
+    let at = |meridian| Rule::Nakshatra {
+        nakshatra: PUSHYA,
+        sign: SiderealSign::MAKARA,
+        with_tithi: Some(15),
+        ayanamsa: Ayanamsa::LAHIRI,
+        meridian,
+    };
+    for (year, month, day) in [
+        (2020, 2, 8),
+        (2021, 1, 28),
+        (2022, 1, 18),
+        (2023, 2, 4),
+        (2024, 1, 25),
+        (2025, 2, 11),
+        (2026, 2, 1),
+    ] {
+        let expected = [ymd(year, month, day)];
+        assert_eq!(
+            THAIPUSAM.days_in_year(year).as_slice(),
+            expected,
+            "{year} at India"
+        );
+        assert_eq!(
+            at(mauritius).days_in_year(year).as_slice(),
+            expected,
+            "{year} at Mauritius"
+        );
+        if year != 2023 {
+            assert_eq!(
+                at(malaysia).days_in_year(year).as_slice(),
+                expected,
+                "{year} at Malaysia"
+            );
+        }
+    }
+    assert_eq!(
+        at(malaysia).days_in_year(2023).as_slice(),
+        [ymd(2023, 2, 5)]
+    );
+    // Drik Panchang's computed days for Kuala Lumpur, 2027 and 2028.
+    assert_eq!(
+        at(malaysia).days_in_year(2027).as_slice(),
+        [ymd(2027, 1, 22)]
+    );
+    assert_eq!(
+        at(malaysia).days_in_year(2028).as_slice(),
+        [ymd(2028, 2, 9)]
+    );
 }
 
 #[test]

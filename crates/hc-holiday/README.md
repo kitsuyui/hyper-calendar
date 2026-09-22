@@ -30,6 +30,9 @@ FixedInCalendar { system, month, day} Eid al-Fiṭr, 1 Shawwāl; Rosh Hashanah, 
 SolarTerm { term, meridian }          春分の日, the equinox at UTC+9
 EasterRelative { computus, offset }   Good Friday (−2), Corpus Christi (+60)
 LunarPhase { phase, month, day, mer } the first full moon on or after a date
+Tithi { month, tithi, prevails, wt }  Rāma Navamī, Chaitra śukla 9 at midday
+Sankranti { sign, ayanamsa, mer }     Makar Sankranti, the Sun's entry into Makara
+Nakshatra { n, sign, tithi, ay, mer } Thaipusam, Puṣya in Thai
 Offset { base, days }                 Seollal's eve, 除夕, Tết's first days
 MovedByWeekday { base, moves }        Argentina's feriados trasladables, Colombia's Ley Emiliani
 Tabulated { function, first, last }   Matariki, gazetted through a stated last year
