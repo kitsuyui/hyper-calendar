@@ -16,7 +16,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
 | `international` | the United Nations international days, each citing its resolution |
-| `countries` | 55 national tables |
+| `countries` | 57 national tables |
 
 ## The vocabulary
 
@@ -84,10 +84,10 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**55 countries.** Argentina, Australia (eight states and territories),
+**57 countries.** Argentina, Australia (eight states and territories),
 Austria, Belgium, Brazil, Canada (federal plus the provincial days fixed by
-statute), China, Colombia, Czechia, Denmark, Egypt, Finland, France
-(métropole plus Alsace-Moselle), Germany (all 16 *Länder*), Greece,
+statute), China, Colombia, Czechia, Denmark, Egypt, Ethiopia, Finland, France (métropole plus Alsace-Moselle),
+Germany (all 16 *Länder*), Ghana, Greece,
 Hungary, India, Indonesia, Iran, Ireland, Israel, Italy, Japan, Kenya,
 Malaysia, Mexico, Morocco, Myanmar, Nepal, the Netherlands, New Zealand, Nigeria,
 Norway, Pakistan, Peru, the Philippines, Poland, Portugal, Romania, Russia,
@@ -189,7 +189,7 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 
 | Entry | Why |
 | --- | --- |
-| Every Hijri-dated holiday, in sixteen countries and the Islamic tradition table | the observed date is a sighting decision, per country |
+| Every Hijri-dated holiday, in eighteen countries and the Islamic tradition table | the observed date is a sighting decision, per country |
 | Vesak, Makha Bucha, Asalha Bucha, Khao Phansa (Thailand, Indonesia, Singapore, Malaysia, the Buddhist table) | dated by the Thai lunar calendar, which this crate does not have; approximated as the full moon of Chinese lunar month *n* − 2. Right in 2022, 2024 and 2025; a day out in 2023; a month out in a Thai intercalary year |
 | Nepal's Gregorian-looking national days | they are Bikram Sambat dates whose Gregorian equivalent moves by a day |
 
