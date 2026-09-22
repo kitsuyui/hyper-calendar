@@ -1079,6 +1079,12 @@ pub struct HolidayRule {
     /// when it fell on a Sunday, while Children's Day moved from a Saturday
     /// too.
     pub substitute_trigger: Option<&'static [Weekday]>,
+    /// The instrument that established this entry — a statute, a decree, a
+    /// General Assembly resolution — or `""` when the table's `sources`
+    /// speaks for it. The United Nations days cite their resolutions here,
+    /// one by one, because "each entry cites its resolution" is a promise
+    /// the docs make.
+    pub source: &'static str,
 }
 
 impl HolidayRule {
@@ -1096,7 +1102,14 @@ impl HolidayRule {
             regions: &[],
             substitute_from: Some(i32::MIN),
             substitute_trigger: None,
+            source: "",
         }
+    }
+
+    /// The same rule, citing the instrument that established it.
+    #[must_use]
+    pub const fn cited(self, source: &'static str) -> Self {
+        Self { source, ..self }
     }
 
     /// The same, but never substituted when it falls on a weekend.

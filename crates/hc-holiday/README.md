@@ -15,6 +15,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `computus` | Easter, Gregorian and Julian, and the offsets keyed to it |
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
+| `international` | the United Nations international days, each citing its resolution |
 | `countries` | 44 national tables |
 
 ## The vocabulary

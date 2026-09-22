@@ -28,6 +28,8 @@ juli = "juli"
 oktober = "oktober"
 # Polish "sierpień", abbreviated.
 sie = "sie"
+# The World Health Assembly, cited by its resolutions.
+WHA = "WHA"
 # Vietnamese "Thứ Ba", Tuesday.
 Ba = "Ba"
 # The CLDR identifier of the Bengali numbering system.

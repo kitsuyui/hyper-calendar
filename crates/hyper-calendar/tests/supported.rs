@@ -378,6 +378,25 @@ fn render() -> String {
         );
     }
 
+    let international = hyper_calendar::hc_holiday::international::ALL;
+    let _ = writeln!(out, "\n## International observances\n");
+    let _ = writeln!(
+        out,
+        "{} table{}, feature `holiday`. Every entry cites its resolution or designating body.\n",
+        international.len(),
+        if international.len() == 1 { "" } else { "s" }
+    );
+    out.push_str("| Code | Set | Observances |\n| --- | --- | --- |\n");
+    for set in international {
+        let _ = writeln!(
+            out,
+            "| `{}` | {} | {} |",
+            set.code,
+            set.english_name,
+            set.rules.len()
+        );
+    }
+
     let units = hyper_calendar::hc_units::unit::ALL;
     let _ = writeln!(out, "\n## Exactly defined units of time\n");
     let _ = writeln!(
