@@ -893,6 +893,72 @@ fn israel_keeps_a_friday_saturday_weekend() {
 }
 
 #[test]
+fn iran_dates_its_civil_holidays_in_the_solar_hijri_calendar_as_kept() {
+    // 1403 began on 20 March 2024 and 1404 on 21 March 2025 — the year
+    // Birashk's cycle would have started a day early.
+    expect(
+        "IR",
+        None,
+        &[
+            (2024, 3, 20, "Nowruz"),
+            (2024, 3, 23, "Nowruz"),
+            (2024, 3, 31, "Islamic Republic Day"),
+            (2024, 4, 1, "Nature Day (Sizdah Bedar)"),
+            (2024, 6, 3, "Demise of Imam Khomeini"),
+            (2024, 6, 4, "15 Khordad Uprising"),
+            (2025, 2, 10, "Victory of the Islamic Revolution"),
+            // 1403 was a leap year, so 29 Esfand is the 19th and 30 Esfand the 20th.
+            (2025, 3, 19, "Nationalisation of the Oil Industry"),
+            (2025, 3, 21, "Nowruz"),
+            (2025, 3, 24, "Nowruz"),
+            (2025, 4, 1, "Islamic Republic Day"),
+            (2025, 4, 2, "Nature Day (Sizdah Bedar)"),
+            (2025, 6, 4, "Demise of Imam Khomeini"),
+            (2025, 6, 5, "15 Khordad Uprising"),
+            (2026, 2, 11, "Victory of the Islamic Revolution"),
+            (2026, 3, 20, "Nationalisation of the Oil Industry"),
+            (2026, 3, 21, "Nowruz"),
+        ],
+    );
+    // 20 March 2025 is 30 Esfand 1403, a leap day, and not a holiday.
+    let calendar = HolidayCalendar::for_year(table("IR"), None, 2025);
+    assert!(calendar.on(ymd(2025, 3, 20)).is_empty());
+}
+
+#[test]
+fn iran_flags_every_lunar_date_and_keeps_a_friday_weekend() {
+    let calendar = HolidayCalendar::for_year(table("IR"), None, 2025);
+    let mut lunar = 0;
+    for holiday in calendar.all() {
+        let exact = matches!(
+            holiday.name,
+            "Nowruz"
+                | "Islamic Republic Day"
+                | "Nature Day (Sizdah Bedar)"
+                | "Demise of Imam Khomeini"
+                | "15 Khordad Uprising"
+                | "Victory of the Islamic Revolution"
+                | "Nationalisation of the Oil Industry"
+        );
+        let expected = if exact {
+            hc_holiday::rule::Confidence::Exact
+        } else {
+            lunar += 1;
+            hc_holiday::rule::Confidence::Approximate
+        };
+        assert_eq!(holiday.confidence, expected, "{}", holiday.name);
+    }
+    // Seventeen lunar entries a year, plus whichever of them the Hijri year
+    // repeats inside a Gregorian one.
+    assert!(lunar >= 17, "{lunar} lunar entries");
+    // 2025-03-14 was a Friday; the Thursday before and the Saturday after
+    // are working days.
+    assert!(!calendar.is_weekend(ymd(2025, 3, 13)));
+    assert!(calendar.is_weekend(ymd(2025, 3, 14)));
+    assert!(!calendar.is_weekend(ymd(2025, 3, 15)));
+}
+
+#[test]
 fn saudi_arabia_changed_its_weekend_in_2013() {
     let country = table("SA");
     let before = HolidayCalendar::for_year(country, None, 2012);

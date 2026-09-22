@@ -143,6 +143,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Saudi Arabia 🇸🇦 | Umm al-Qura based, with the 2013 weekend change |
 | United Arab Emirates 🇦🇪 | With the 2022 move to a Saturday–Sunday weekend |
 | Israel 🇮🇱 | Hebrew-dated and therefore exact, with Yom HaAtzmaut's Sabbath-avoidance rule |
+| Iran 🇮🇷 | Civil holidays on the astronomical `persian` calendar, so exact — Nowruz 1404 on 21 March 2025, where the arithmetic cycle says the 20th; the lunar Hijri days flagged `Approximate`, since Iran declares them on its own sighting; Friday weekend |
 | Thailand 🇹🇭 | Including the Buddhist lunar holidays, flagged `Approximate` |
 | Vietnam 🇻🇳 | Keyed to the `vietnamese` calendar |
 | Indonesia 🇮🇩 | |

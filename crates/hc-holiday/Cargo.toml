@@ -14,13 +14,14 @@ keywords.workspace = true
 
 [features]
 default = ["std"]
-std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-calendars-solar/std", "hc-calendars-lunar/std", "hc-astro/std", "hc-seasons/std"]
-alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-calendars-solar/alloc", "hc-calendars-lunar/alloc", "hc-astro/alloc", "hc-seasons/alloc"]
+std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-calendars-solar/std", "hc-calendars-lunar/std", "hc-calendars-equinox/std", "hc-astro/std", "hc-seasons/std"]
+alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-calendars-solar/alloc", "hc-calendars-lunar/alloc", "hc-calendars-equinox/alloc", "hc-astro/alloc", "hc-seasons/alloc"]
 
 [dependencies]
 hc-core = { workspace = true }
 hc-calendar = { workspace = true }
 hc-calendars-solar = { workspace = true }
 hc-calendars-lunar = { workspace = true }
+hc-calendars-equinox = { workspace = true }
 hc-astro = { workspace = true }
 hc-seasons = { workspace = true }
