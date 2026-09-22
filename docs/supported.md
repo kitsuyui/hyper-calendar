@@ -118,7 +118,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Holidays by country
 
-96 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
+100 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
 
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
@@ -129,11 +129,13 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `AT` | Austria | 13 | none | stated | 2026-09-21 |
 | `AU` | Australia | 24 | yes | stated | 2026-09-21 |
 | `AZ` | Azerbaijan | 25 | yes | stated | 2026-09-22 |
+| `BB` | Barbados | 12 | yes | stated | 2026-09-22 |
 | `BE` | Belgium | 12 | none | stated | 2026-09-21 |
 | `BG` | Bulgaria | 15 | yes | stated | 2026-09-22 |
 | `BH` | Bahrain | 14 | none | stated | 2026-09-22 |
 | `BO` | Bolivia | 11 | yes | stated | 2026-09-22 |
 | `BR` | Brazil | 14 | none | stated | 2026-09-21 |
+| `BS` | Bahamas | 13 | yes | stated | 2026-09-22 |
 | `BY` | Belarus | 16 | none | stated | 2026-09-22 |
 | `CA` | Canada | 19 | yes | stated | 2026-09-21 |
 | `CH` | Switzerland | 8 | none | stated | 2026-09-21 |
@@ -168,6 +170,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `IR` | Iran | 27 | none | stated | 2026-09-22 |
 | `IS` | Iceland | 16 | none | stated | 2026-09-22 |
 | `IT` | Italy | 13 | none | stated | 2026-09-21 |
+| `JM` | Jamaica | 11 | yes | stated | 2026-09-22 |
 | `JO` | Jordan | 25 | none | stated | 2026-09-22 |
 | `JP` | Japan | 38 | yes | stated | 2026-09-21 |
 | `KE` | Kenya | 13 | yes | stated | 2026-09-22 |
@@ -208,6 +211,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `SK` | Slovakia | 20 | none | stated | 2026-09-22 |
 | `TH` | Thailand | 19 | yes | stated | 2026-09-21 |
 | `TR` | Türkiye | 14 | none | stated | 2026-09-21 |
+| `TT` | Trinidad and Tobago | 17 | yes | stated | 2026-09-22 |
 | `TW` | Taiwan | 15 | yes | stated | 2026-09-21 |
 | `TZ` | Tanzania | 17 | yes | stated | 2026-09-22 |
 | `UA` | Ukraine | 16 | yes | stated | 2026-09-22 |

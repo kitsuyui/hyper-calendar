@@ -5,9 +5,10 @@ use hc_calendars_solar::gregorian;
 use hc_seasons::{Meridian, SolarTerm};
 
 use crate::computus::offsets::{
-    ASCENSION, CORPUS_CHRISTI, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY,
-    SACRED_HEART, SHROVE_MONDAY, SHROVE_TUESDAY,
+    ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY,
+    HOLY_SATURDAY, MAUNDY_THURSDAY, SACRED_HEART, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
 };
+use crate::hindu::DIWALI;
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
     SubstituteDirection, SubstitutionPolicy, TO_ADJACENT_MONDAY, TO_FOLLOWING_MONDAY,
@@ -1963,4 +1964,308 @@ pub static PANAMA: RuleSet = RuleSet {
               14 February 2000 on article 47; Ley 291 of 2022 for 20 December, per \
               the Ministry of Labour and TVN; Wikipedia, \"Public holidays in \
               Panama\", retrieved 2026-09-22, for the list and the names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Jamaica
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The Schedule's Sunday moves: New Year's Day, Emancipation Day and
+/// Independence Day to the Monday, a Sunday Christmas to the 26th and
+/// 27th, which the forward search past Boxing Day produces.
+static JM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static JM_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("Ash Wednesday", "", Rule::easter(ASH_WEDNESDAY)),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 23))
+        .substitute_on(&[Weekday::Saturday, Weekday::Sunday])
+        .years(Some(1961), None),
+    HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1)).years(Some(1997), None),
+    HolidayRule::fixed_public("Independence Day", "", Rule::nth(8, 1, Weekday::Monday))
+        .years(Some(1962), Some(1996)),
+    HolidayRule::public("Independence Day", "", Rule::gregorian(8, 6)).years(Some(1997), None),
+    HolidayRule::fixed_public(
+        "National Heroes' Day",
+        "",
+        Rule::nth(10, 3, Weekday::Monday),
+    )
+    .years(Some(1969), None),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)).substituted_from(2021),
+];
+
+/// Jamaica.
+///
+/// The Holidays (Public General) Act, read from the Ministry of Labour's
+/// copy of its Schedule: New Year's Day, with the day after when it is a
+/// Sunday; Ash Wednesday; Easter Monday; National Labour Day on 23 May,
+/// or the Monday after a Saturday or Sunday; Emancipation Day and
+/// Independence Day on 1 and 6 August, each to the Monday after a Sunday;
+/// National Heroes' Day on the third Monday of October; and "the day
+/// after Christmas Day, or when Christmas Day falls on a Sunday, then the
+/// 26th and 27th of December". Good Friday and Christmas Day are not in
+/// the Schedule — the Act descends from the English one that took them
+/// as holidays already — and every yearly list carries them, so they are
+/// here. The Sunday moves are one policy and the Saturday one is Labour
+/// Day's own trigger; the Ministry's 2026 notice that a Saturday
+/// Emancipation Day "will be observed on that date" is why nothing else
+/// moves off a Saturday. A Sunday Boxing Day has no rule of its own; the
+/// Minister appointed the Monday in 2021 under section 7, and the table
+/// substitutes it from that year and not before. A Sunday Christmas gives
+/// the 26th to Boxing Day and the 27th to Christmas, the same two days the
+/// Ministry names the other way round. Labour Day replaced Empire Day in
+/// 1961 and National Heroes' Day began in 1969; Emancipation Day was
+/// restored in 1997, when Independence Day returned from the first Monday
+/// of August, where it had sat since 1962, to 6 August. The special days
+/// the Minister appoints under section 7 are not carried.
+pub static JAMAICA: RuleSet = RuleSet {
+    code: "JM",
+    english_name: "Jamaica",
+    rules: JM_RULES,
+    substitution: JM_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "The Holidays (Public General) Act as the Ministry of Labour and Social \
+              Security publishes it (mlss.gov.jm), retrieved 2026-09-22, for sections \
+              2, 6 and 7 and the Schedule; JIS, \"Emancipation Day to be Observed on \
+              Saturday, August 1, 2026\" and \"Christmas Day to be Celebrated on \
+              Monday, December 26\" (2022), and the Ministry's 2021 Boxing Day notice \
+              as the Jamaica Observer reported it; the Gleaner, \"The fight for \
+              Emancipation Day holiday in Jamaica\" (2023) and \"Legal Scoop: When a \
+              public holiday falls on a Saturday\" (2020); Wikipedia, \"Labour Day\", \
+              \"Heroes' Day\" and \"Public holidays in Jamaica\"",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Trinidad and Tobago
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Section 3(2): a Sunday, or two holidays on one day, gives "the next
+/// following day that (apart from this subsection) is not a public
+/// holiday".
+static TT_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: true,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static TT_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::observance("Carnival Monday", "", Rule::easter(SHROVE_MONDAY)),
+    HolidayRule::observance("Carnival Tuesday", "", Rule::easter(SHROVE_TUESDAY)),
+    HolidayRule::public(
+        "Spiritual Baptist Liberation Shouter Day",
+        "",
+        Rule::gregorian(3, 30),
+    )
+    .years(Some(1996), None),
+    HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::public("Indian Arrival Day", "", Rule::gregorian(5, 30)).years(Some(1995), None),
+    HolidayRule::public("Corpus Christi", "", Rule::easter(CORPUS_CHRISTI)),
+    HolidayRule::public("Labour Day", "", Rule::gregorian(6, 19)),
+    HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1))
+        .years(Some(1985), Some(2023)),
+    HolidayRule::public("African Emancipation Day", "", Rule::gregorian(8, 1))
+        .years(Some(2024), None),
+    HolidayRule::public("Independence Day", "", Rule::gregorian(8, 31)).years(Some(1962), None),
+    HolidayRule::public("Republic Day", "", Rule::gregorian(9, 24)),
+    HolidayRule::public(
+        "Eid-ul-Fitr",
+        "",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+    )
+    .approximate(),
+    HolidayRule::public("Divali", "", DIWALI).approximate(),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+];
+
+/// Trinidad and Tobago.
+///
+/// The Public Holidays and Festivals Act (Chap. 19:05, updated to
+/// 31 December 2016) from its Schedule and section 3(2): fourteen days,
+/// and "where a public holiday falls on a Sunday or where two public
+/// holidays fall on the same day, the next following day that (apart from
+/// this subsection) is not a public holiday shall be a public holiday" —
+/// the Friday after Thursday 30 May 2024, which was Corpus Christi and
+/// Indian Arrival Day at once. Only a Sunday or a coincidence moves; a
+/// Saturday holiday stays. The Act names no holiday for the extra day,
+/// and the table gives it to the later of the two in name order, with the
+/// shared day as the one it is for. Eid-ul-Fitr and Divali are "date to
+/// be appointed" by the President's Notification, carried on the tabular
+/// Hijri calendar and the crate's Lakṣmī Pūjā rule as approximations.
+/// Carnival Monday and Tuesday are festivals under section 5 and not
+/// public holidays, though the Office of the President notes most
+/// businesses close; they are observances. Emancipation Day came in 1985
+/// and became African Emancipation Day by the 2024 Order; Indian Arrival
+/// Day in 1995 and the Spiritual Baptist day, under the Schedule's own
+/// order of its words, in 1996. Labour Day and Republic Day carry no
+/// first year, and Whit Monday and Discovery Day, which the newer days
+/// replaced, are not carried.
+pub static TRINIDAD_AND_TOBAGO: RuleSet = RuleSet {
+    code: "TT",
+    english_name: "Trinidad and Tobago",
+    rules: TT_RULES,
+    substitution: TT_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Public Holidays and Festivals Act, Chap. 19:05, as laws.gov.tt publishes it \
+              (updated to 31 December 2016), retrieved 2026-09-22, for sections 3 to 5 \
+              and the Schedule; Legal Notice No. 68 of 2024, the Public Holidays and \
+              Festivals (Amendment to Schedule) Order, 2024 (printery.gov.tt), for \
+              African Emancipation Day; the Office of the President, \"National \
+              Holidays and Festivals\" (otp.tt), for Carnival; the Trinidad Guardian on \
+              Friday 31 May 2024 under section 3(2); Wikipedia, \"Emancipation Day\", \
+              \"Indian Arrival Day\" and \"Spiritual Baptist\", for 1985, 1995 and 1996",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Barbados
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The paragraph after the First Schedule: a Sunday gives the Monday, or
+/// the Tuesday when the Monday is already Boxing Day or the first-Monday
+/// holiday; Emancipation Day's own trigger adds its Monday case.
+static BB_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static BB_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::public("Errol Barrow Day", "", Rule::gregorian(1, 21)).years(Some(1989), None),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::public("National Heroes Day", "", Rule::gregorian(4, 28)).years(Some(1998), None),
+    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
+    HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1))
+        .substitute_on(&[Weekday::Sunday, Weekday::Monday]),
+    HolidayRule::fixed_public("Kadooment Day", "", Rule::nth(8, 1, Weekday::Monday)),
+    HolidayRule::public("Independence Day", "", Rule::gregorian(11, 30)),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+];
+
+/// Barbados.
+///
+/// The Public Holidays Act (Cap. 352, L.R.O. 1998) from its First
+/// Schedule and the paragraph after it: twelve days, of which New Year's
+/// Day, Errol Barrow Day, National Heroes Day, Labour Day, Independence
+/// Day and Boxing Day give the Monday after a Sunday; Emancipation Day
+/// the Tuesday after a Sunday or a Monday, the Monday being the first
+/// Monday of August, which the Government's calendar calls Kadooment Day;
+/// and Christmas the Tuesday after a Sunday, the Monday being Boxing Day.
+/// The Schedule's "if a week day" makes the Sunday itself no holiday; the
+/// table keeps it as the day the substitute is for, as the Government's
+/// calendar does. Errol Barrow Day began in 1989 and National Heroes Day
+/// in 1998; the Act's notes cite amendments of 1974, 1978, 1983, 1997 and
+/// 1998 without saying which entry each made, so Emancipation Day and
+/// Kadooment Day carry no first year.
+pub static BARBADOS: RuleSet = RuleSet {
+    code: "BB",
+    english_name: "Barbados",
+    rules: BB_RULES,
+    substitution: BB_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Public Holidays Act, Cap. 352 (L.R.O. 1998), as barbadoslawcourts.gov.bb \
+              publishes it, retrieved 2026-09-22, for section 3 and the First Schedule; \
+              the Government of Barbados bank-holiday calendar (alpha.gov.bb) for 2021, \
+              2022 and 2026, retrieved 2026-09-22, for the observed days and Kadooment \
+              Day's name; Wikipedia, \"Errol Barrow Day\" and \"Order of National \
+              Heroes\" (Barbados), for 1989 and 1998",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// The Bahamas
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Section 3's proviso for a Sunday, and the Government's practice for a
+/// Saturday, both to the next free weekday.
+static BS_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static BS_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::public("Majority Rule Day", "", Rule::gregorian(1, 10)).years(Some(2014), None),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
+    HolidayRule::fixed_public("Labour Day", "", Rule::nth(6, 1, Weekday::Friday))
+        .years(None, Some(2013)),
+    HolidayRule::fixed_public(
+        "Randol Fawkes Labour Day",
+        "",
+        Rule::nth(6, 1, Weekday::Friday),
+    )
+    .years(Some(2014), None),
+    HolidayRule::public("Independence Day", "", Rule::gregorian(7, 10)).years(Some(1973), None),
+    HolidayRule::fixed_public("Emancipation Day", "", Rule::nth(8, 1, Weekday::Monday)),
+    HolidayRule::public("Discovery Day", "", Rule::gregorian(10, 12)).years(None, Some(2012)),
+    HolidayRule::fixed_public("National Heroes Day", "", Rule::nth(10, 2, Weekday::Monday))
+        .years(Some(2013), None),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+];
+
+/// The Bahamas.
+///
+/// The Public Holidays Act (Ch. 36, L.R.O. 1/2017) from its First
+/// Schedule and section 3's proviso that a holiday on a Sunday is observed
+/// the day after. The Saturday move is the Government's practice, Majority
+/// Rule Day 2026 kept on Monday 12 January; a Saturday Christmas gives the
+/// Monday and its Sunday Boxing Day the Tuesday. Majority Rule Day came
+/// with the 2013 Act and was first kept in 2014; the National Heroes Act,
+/// assented to in October 2013, put National Heroes Day on the second
+/// Monday of October in place of Discovery Day on the 12th, which the
+/// revised Schedule still prints and the table ends in 2012; Labour Day
+/// became Randol Fawkes Labour Day by the 2013 amendment, carried from
+/// 2014. The revised Act has no rule for a holiday on a Tuesday,
+/// Wednesday or Thursday, and the Governor-General's 2024 notice took
+/// Wednesday 10 January as "the day celebrated as Majority Rule Day in
+/// 2024", so none is carried, whatever some lists say of Fridays. The
+/// special days of section 4 are not carried.
+pub static BAHAMAS: RuleSet = RuleSet {
+    code: "BS",
+    english_name: "Bahamas",
+    rules: BS_RULES,
+    substitution: BS_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Public Holidays Act, Ch. 36 (Statute Law of The Bahamas, L.R.O. 1/2017), as \
+              laws.bahamas.gov.bs publishes it, retrieved 2026-09-22, for sections 3 and \
+              4 and the First Schedule; S.I. No. 2 of 2024, the Public Holidays (Majority \
+              Rule Day, 2024) (Opening of Shops) Notice; the Securities Commission of The \
+              Bahamas on Monday 12 January 2026; the Tribune, \"National Heroes Day \
+              formally established\" (12 October 2013); Wikipedia, \"Public holidays in \
+              the Bahamas\" and \"Discovery Day\"",
 };
