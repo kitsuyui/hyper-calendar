@@ -83,6 +83,7 @@ const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("roc"),
     CalendarId("juche"),
     CalendarId("holocene"),
+    CalendarId("korean-regnal"),
     CalendarId("japanese-imperial"),
     CalendarId("japanese"),
     CalendarId("japanese-northern"),

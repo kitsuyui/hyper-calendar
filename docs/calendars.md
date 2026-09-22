@@ -121,7 +121,7 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Japanese eras, as proclaimed (改元当時) | `japanese-proclaimed` | `hc-calendars-regional` | Done |
 | Chinese sexagenary cycle (干支), incl. the four pillars (四柱/八字) | `sexagenary` | `hc-calendars-regional` (arithmetic in `hc-calendar::cycle`) | Done |
 | Chinese regnal eras (年号) | `chinese-regnal` | `hc-calendars-regional` | Planned |
-| Korean regnal eras | `korean-regnal` | `hc-calendars-regional` | Planned |
+| Korean regnal eras | `korean-regnal` | `hc-calendars-regional` | Partial — the Korean Empire's 建陽, 光武 and 隆熙 on their proclamation days, 1896–1910; Joseon's use of the Chinese eras waits on `chinese-regnal`, and the 開國 count is a helper |
 | Maya long count (GMT 584283) | `maya-longcount` | `hc-calendars-regional` | Done |
 | Maya long count (GMT+2, 584285) | `maya-longcount-gmt2` | `hc-calendars-regional` | Done |
 | Maya Tzolkʼin (260 days) | `maya-tzolkin` | `hc-calendars-regional` | Done |
