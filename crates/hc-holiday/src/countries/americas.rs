@@ -4,11 +4,12 @@ use hc_calendar::Weekday;
 use hc_calendars_solar::gregorian;
 
 use crate::computus::offsets::{
-    CORPUS_CHRISTI, EASTER_SUNDAY, GOOD_FRIDAY, SHROVE_MONDAY, SHROVE_TUESDAY,
+    ASCENSION, CORPUS_CHRISTI, EASTER_SUNDAY, GOOD_FRIDAY, MAUNDY_THURSDAY, SACRED_HEART,
+    SHROVE_MONDAY, SHROVE_TUESDAY,
 };
 use crate::rule::{
-    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, SubstituteDirection,
-    SubstitutionPolicy,
+    CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
+    SubstituteDirection, SubstitutionPolicy, TO_ADJACENT_MONDAY, TO_FOLLOWING_MONDAY,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -392,4 +393,344 @@ pub static BRAZIL: RuleSet = RuleSet {
               Senhora Aparecida; lei 14.759/2023 making Consciência Negra a \
               national holiday from 2024. Carnival and Corpus Christi are \
               pontos facultativos, recorded here as bank holidays",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Argentina
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A *feriado trasladable* under article 6 of Ley 27.399: a Tuesday or
+/// Wednesday pulled to the Monday before, a Thursday or Friday pushed to
+/// the Monday after, a weekend left alone.
+const fn ar_trasladable(
+    name: &'static str,
+    local: &'static str,
+    base: &'static Rule,
+) -> HolidayRule {
+    HolidayRule::public(
+        name,
+        local,
+        Rule::moved_by_weekday(base, TO_ADJACENT_MONDAY),
+    )
+}
+
+/// A day the observant of a faith may take off, under article 4 of Ley
+/// 27.399 and article 5 of Decreto 1584/2010: not a holiday, and stated as
+/// an observance.
+const fn ar_religious(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::observance(name, local, rule).years(Some(2011), None)
+}
+
+static AR_GUEMES: Rule = Rule::gregorian(6, 17);
+static AR_SAN_MARTIN: Rule = Rule::gregorian(8, 17);
+static AR_DIVERSIDAD: Rule = Rule::gregorian(10, 12);
+static AR_SOBERANIA: Rule = Rule::gregorian(11, 20);
+
+static AR_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1))
+        .years(Some(2011), None),
+    HolidayRule::fixed_public(
+        "Carnival Monday",
+        "Lunes de Carnaval",
+        Rule::easter(SHROVE_MONDAY),
+    )
+    .years(Some(2011), None),
+    HolidayRule::fixed_public(
+        "Carnival Tuesday",
+        "Martes de Carnaval",
+        Rule::easter(SHROVE_TUESDAY),
+    )
+    .years(Some(2011), None),
+    HolidayRule::fixed_public(
+        "Day of Remembrance for Truth and Justice",
+        "Día Nacional de la Memoria por la Verdad y la Justicia",
+        Rule::gregorian(3, 24),
+    )
+    .years(Some(2011), None),
+    HolidayRule::fixed_public(
+        "Day of the Veterans and Fallen of the Malvinas War",
+        "Día del Veterano y de los Caídos en la Guerra de Malvinas",
+        Rule::gregorian(4, 2),
+    )
+    .years(Some(2011), None),
+    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY))
+        .years(Some(2011), None),
+    HolidayRule::observance(
+        "Holy Thursday",
+        "Jueves Santo",
+        Rule::easter(MAUNDY_THURSDAY),
+    )
+    .years(Some(2011), None),
+    HolidayRule::fixed_public("Labour Day", "Día del Trabajador", Rule::gregorian(5, 1))
+        .years(Some(2011), None),
+    HolidayRule::fixed_public(
+        "May Revolution Day",
+        "Día de la Revolución de Mayo",
+        Rule::gregorian(5, 25),
+    )
+    .years(Some(2011), None),
+    // Güemes: a holiday from 2016 by Ley 27.258, carried from 2018, the
+    // first year its rule can be stated from a text the author read.
+    ar_trasladable(
+        "Anniversary of the Passing of General Güemes",
+        "Paso a la Inmortalidad del General Martín Miguel de Güemes",
+        &AR_GUEMES,
+    )
+    .years(Some(2018), None),
+    HolidayRule::fixed_public(
+        "Anniversary of the Passing of General Belgrano",
+        "Paso a la Inmortalidad del General Manuel Belgrano",
+        Rule::gregorian(6, 20),
+    )
+    .years(Some(2011), None),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Día de la Independencia",
+        Rule::gregorian(7, 9),
+    )
+    .years(Some(2011), None),
+    // The three of Decreto 1584/2010, article 2: the third Monday of
+    // August, the second of October and the fourth of November, 2011–2016;
+    // then the weekday rule of Ley 27.399 from 2018.
+    HolidayRule::public(
+        "Anniversary of the Passing of General San Martín",
+        "Paso a la Inmortalidad del General José de San Martín",
+        Rule::nth(8, 3, Weekday::Monday),
+    )
+    .years(Some(2011), Some(2016)),
+    ar_trasladable(
+        "Anniversary of the Passing of General San Martín",
+        "Paso a la Inmortalidad del General José de San Martín",
+        &AR_SAN_MARTIN,
+    )
+    .years(Some(2018), None),
+    HolidayRule::public(
+        "Day of Respect for Cultural Diversity",
+        "Día del Respeto a la Diversidad Cultural",
+        Rule::nth(10, 2, Weekday::Monday),
+    )
+    .years(Some(2011), Some(2016)),
+    ar_trasladable(
+        "Day of Respect for Cultural Diversity",
+        "Día del Respeto a la Diversidad Cultural",
+        &AR_DIVERSIDAD,
+    )
+    .years(Some(2018), None),
+    HolidayRule::public(
+        "National Sovereignty Day",
+        "Día de la Soberanía Nacional",
+        Rule::nth(11, 4, Weekday::Monday),
+    )
+    .years(Some(2011), Some(2016)),
+    ar_trasladable(
+        "National Sovereignty Day",
+        "Día de la Soberanía Nacional",
+        &AR_SOBERANIA,
+    )
+    .years(Some(2018), None),
+    HolidayRule::fixed_public(
+        "Immaculate Conception",
+        "Inmaculada Concepción de María",
+        Rule::gregorian(12, 8),
+    )
+    .years(Some(2011), None),
+    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25))
+        .years(Some(2011), None),
+    // Days the observant may take off: Rosh Hashanah's two days, Yom
+    // Kippur, the first two and last two days of Pesach; the Islamic New
+    // Year, Eid al-Fitr and Eid al-Adha, which Argentina keeps on the
+    // community's announcement and are therefore approximate.
+    ar_religious(
+        "Rosh Hashanah",
+        "Año Nuevo Judío",
+        Rule::in_calendar(CalendarSystem::HEBREW, 1, 1),
+    ),
+    ar_religious(
+        "Rosh Hashanah",
+        "Año Nuevo Judío",
+        Rule::in_calendar(CalendarSystem::HEBREW, 1, 2),
+    ),
+    ar_religious(
+        "Yom Kippur",
+        "Día del Perdón",
+        Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
+    ),
+    ar_religious(
+        "Passover",
+        "Pascua Judía",
+        Rule::in_calendar(CalendarSystem::HEBREW, 7, 15),
+    ),
+    ar_religious(
+        "Passover",
+        "Pascua Judía",
+        Rule::in_calendar(CalendarSystem::HEBREW, 7, 16),
+    ),
+    ar_religious(
+        "Passover",
+        "Pascua Judía",
+        Rule::in_calendar(CalendarSystem::HEBREW, 7, 21),
+    ),
+    ar_religious(
+        "Passover",
+        "Pascua Judía",
+        Rule::in_calendar(CalendarSystem::HEBREW, 7, 22),
+    ),
+    ar_religious(
+        "Islamic New Year",
+        "Año Nuevo Musulmán",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 1, 1),
+    )
+    .approximate(),
+    ar_religious(
+        "Eid al-Fitr",
+        "Culminación del Ayuno",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+    )
+    .approximate(),
+    ar_religious(
+        "Eid al-Adha",
+        "Fiesta del Sacrificio",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+    )
+    .approximate(),
+];
+
+/// Argentina.
+///
+/// The table begins with Decreto 1584/2010, in force from 2011, and states
+/// nothing before: the earlier arrangement, in which Ley 24.445 (1995) put
+/// 20 June, 17 August and 12 October on Mondays, is not carried, nor are
+/// the years the fixed days were created (24 March by Ley 26.085 of 2006,
+/// 2 April by Ley 25.370 of 2000). From 2011 the *inamovibles* stay where
+/// they fall, weekend included, and the *trasladables* move: under the
+/// decree, to the third Monday of August, the second of October and the
+/// fourth of November, and under Ley 27.399 (2017) by the weekday rule of
+/// its article 6 — Tuesday and Wednesday to the Monday before, Thursday and
+/// Friday to the Monday after — which the table carries from 2018. The
+/// 2017 dates, set by Decreto 52/2017, and Güemes's day in 2016 and 2017
+/// are left unstated, since the author read neither text.
+///
+/// The *feriados con fines turísticos* — up to three a year, set by the
+/// Executive fifty days ahead on a Monday or Friday — are annual and not
+/// carried. Holy Thursday is a *día no laborable*, an optional day off,
+/// and is stated as an observance, as are the days the observant of the
+/// Jewish and Islamic faiths may take.
+pub static ARGENTINA: RuleSet = RuleSet {
+    code: "AR",
+    english_name: "Argentina",
+    rules: AR_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Decreto 1584/2010 (servicios.infoleg.gob.ar, retrieved \
+              2026-09-22), articles 1, 2 and 5, for the 2011 list, the Monday \
+              rules to 2016 and the days of the faiths; Ley 27.399 (2017), \
+              articles 1, 2, 4, 6 and 7, for the list, the weekday rule and \
+              the tourist holidays; Wikipedia (es), \"Día del Veterano y de \
+              los Caídos en la Guerra de Malvinas\" and \"Martín Miguel de \
+              Güemes\", retrieved 2026-09-22, for Ley 25.370 and Ley 27.258",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Colombia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A holiday under article 1, paragraph 2 of Ley 51 de 1983: moved to the
+/// following Monday whenever it does not fall on one.
+const fn emiliani(name: &'static str, local: &'static str, base: &'static Rule) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::moved_by_weekday(base, TO_FOLLOWING_MONDAY),
+    )
+    .years(Some(1984), None)
+}
+
+/// A holiday under article 1 that stays on its date.
+const fn co_fixed(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, rule).years(Some(1984), None)
+}
+
+static CO_EPIPHANY: Rule = Rule::gregorian(1, 6);
+static CO_SAINT_JOSEPH: Rule = Rule::gregorian(3, 19);
+static CO_ASCENSION: Rule = Rule::easter(ASCENSION);
+static CO_CORPUS_CHRISTI: Rule = Rule::easter(CORPUS_CHRISTI);
+static CO_SACRED_HEART: Rule = Rule::easter(SACRED_HEART);
+static CO_PETER_AND_PAUL: Rule = Rule::gregorian(6, 29);
+static CO_ASSUMPTION: Rule = Rule::gregorian(8, 15);
+static CO_COLUMBUS: Rule = Rule::gregorian(10, 12);
+static CO_ALL_SAINTS: Rule = Rule::gregorian(11, 1);
+static CO_CARTAGENA: Rule = Rule::gregorian(11, 11);
+
+static CO_RULES: &[HolidayRule] = &[
+    co_fixed("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    emiliani("Epiphany", "Día de los Reyes Magos", &CO_EPIPHANY),
+    emiliani("Saint Joseph's Day", "Día de San José", &CO_SAINT_JOSEPH),
+    co_fixed(
+        "Maundy Thursday",
+        "Jueves Santo",
+        Rule::easter(MAUNDY_THURSDAY),
+    ),
+    co_fixed("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    co_fixed("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+    emiliani("Ascension Day", "Ascensión del Señor", &CO_ASCENSION),
+    emiliani("Corpus Christi", "Corpus Christi", &CO_CORPUS_CHRISTI),
+    emiliani("Sacred Heart", "Sagrado Corazón de Jesús", &CO_SACRED_HEART),
+    emiliani(
+        "Saints Peter and Paul",
+        "San Pedro y San Pablo",
+        &CO_PETER_AND_PAUL,
+    ),
+    co_fixed(
+        "Independence Day",
+        "Día de la Independencia",
+        Rule::gregorian(7, 20),
+    ),
+    co_fixed(
+        "Battle of Boyacá",
+        "Batalla de Boyacá",
+        Rule::gregorian(8, 7),
+    ),
+    emiliani(
+        "Assumption of Mary",
+        "Asunción de la Virgen",
+        &CO_ASSUMPTION,
+    ),
+    emiliani("Columbus Day", "Día de la Raza", &CO_COLUMBUS),
+    emiliani("All Saints' Day", "Día de Todos los Santos", &CO_ALL_SAINTS),
+    emiliani(
+        "Independence of Cartagena",
+        "Independencia de Cartagena",
+        &CO_CARTAGENA,
+    ),
+    co_fixed(
+        "Immaculate Conception",
+        "Inmaculada Concepción",
+        Rule::gregorian(12, 8),
+    ),
+    co_fixed("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+];
+
+/// Colombia.
+///
+/// Ley 51 de 1983, the *Ley Emiliani*: eighteen days of paid rest, ten of
+/// which — Epiphany, Saint Joseph, Ascension, Corpus Christi, the Sacred
+/// Heart, Saints Peter and Paul, the Assumption, 12 October, All Saints
+/// and the Independence of Cartagena — "cuando no caigan en día lunes se
+/// trasladarán al lunes siguiente", a Sunday included. The other eight stay
+/// where they fall. The table begins with the law's first full year, 1984,
+/// and states nothing before.
+pub static COLOMBIA: RuleSet = RuleSet {
+    code: "CO",
+    english_name: "Colombia",
+    rules: CO_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Ley 51 de 1983, article 1 (funcionpublica.gov.co, gestor \
+              normativo, retrieved 2026-09-22), for the list and the Monday \
+              rule; Wikipedia (es), \"Anexo:Días festivos en Colombia\", \
+              retrieved 2026-09-22, for the 2026 dates the tests check",
 };

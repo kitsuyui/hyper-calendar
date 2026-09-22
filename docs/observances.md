@@ -25,6 +25,7 @@ EasterRelative { comp, offs } Good Friday (-2), Easter Monday (+1)
                               Ash Wednesday (-46), Pentecost (+49)
 LunarPhase { phase, after }   the first full moon on or after a fixed date
 Offset { base, days }         除夕, Seollal's eve, Tết's first days
+MovedByWeekday { base, moves } a Monday-holiday law: Argentina's trasladables, Colombia's Ley Emiliani
 Tabulated { fn, first, last } Matariki, gazetted through a stated last year
 Computed(fn)                  the few that really are bespoke
 ```
@@ -147,6 +148,8 @@ Ordered by how well the sources can be cited, not by importance.
 | Hungary 🇭🇺 | With Good Friday from 2017; the annual rearrangement of working days by decree is not carried |
 | Romania 🇷🇴 | Orthodox Easter and Pentecost by the Julian computus; the additions of the last decade by year, Epiphany and Saint John from 2024 |
 | Russia 🇷🇺 | The New Year holidays as they grew to 1–8 January; no substitution, because the Government transfers days off by decree every year and the statutory default almost never applies |
+| Argentina 🇦🇷 | From Decreto 1584/2010 in 2011: the *inamovibles* where they fall, the *trasladables* on the decree's Mondays to 2016 and by the weekday rule of Ley 27.399 from 2018; the annual tourist holidays not carried; Holy Thursday and the days of the Jewish and Islamic faiths as observances |
+| Colombia 🇨🇴 | Ley 51 de 1983 from 1984: ten holidays to the following Monday, eight where they fall |
 | Ukraine 🇺🇦 | The 2023 list — 8 May, 15 July, 1 October, Christmas on 25 December alone — with the earlier dates by year; the next-working-day rule of article 67; the martial-law suspension of days off is noted, not modelled |
 | Thailand 🇹🇭 | Including the Buddhist lunar holidays, flagged `Approximate` |
 | Vietnam 🇻🇳 | Keyed to the `vietnamese` calendar |
@@ -160,13 +163,9 @@ Ordered by how well the sources can be cited, not by importance.
 | India 🇮🇳 | The three national holidays and the gazetted list — Holi, Ram Navami, Mahavir Jayanti, Buddha Purnima, Janmashtami, Dussehra, Diwali and Guru Nanak's Birthday now computed on `hindu-lunar`, the Hijri days approximate |
 | Nepal 🇳🇵 | Only the days whose Bikram Sambat date maps to a near-fixed Gregorian one, each flagged `Approximate`. The table exists chiefly for the one-day weekend, which ran until April 2026 |
 
-**Planned** — Argentina 🇦🇷
-first, then every remaining UN member state and observer, plus the
+**Planned** — every remaining UN member state and observer, plus the
 subdivisions that have their own legal holidays. Tracked as one issue per
-country so that each lands with a citable source. Argentina waits on a rule
-shape for Decreto 1584/2010, which moves a holiday to the Monday before or
-after depending on the weekday it falls on; Russia and Ukraine wait on a
-source the author could read in the original.
+country so that each lands with a citable source.
 
 **Researching** — countries whose holiday dates are announced annually by
 decree rather than fixed in law (much of the Gulf, parts of South Asia). These

@@ -39,7 +39,7 @@ pub mod oceania;
 pub use africa_middle_east::{
     EGYPT, IRAN, ISRAEL, NIGERIA, SAUDI_ARABIA, SOUTH_AFRICA, TURKEY, UNITED_ARAB_EMIRATES,
 };
-pub use americas::{BRAZIL, CANADA, MEXICO, UNITED_STATES};
+pub use americas::{ARGENTINA, BRAZIL, CANADA, COLOMBIA, MEXICO, UNITED_STATES};
 pub use asia::{
     CHINA, INDIA, INDONESIA, MALAYSIA, NEPAL, PHILIPPINES, SINGAPORE, SOUTH_KOREA, TAIWAN,
     THAILAND, VIETNAM,
@@ -59,6 +59,7 @@ pub type CountryRules = RuleSet;
 /// Every country table in the crate, in ISO 3166-1 alpha-2 order.
 pub static ALL: &[&CountryRules] = &[
     &UNITED_ARAB_EMIRATES,
+    &ARGENTINA,
     &AUSTRIA,
     &AUSTRALIA,
     &BELGIUM,
@@ -66,6 +67,7 @@ pub static ALL: &[&CountryRules] = &[
     &CANADA,
     &SWITZERLAND,
     &CHINA,
+    &COLOMBIA,
     &CZECHIA,
     &GERMANY,
     &DENMARK,
@@ -141,7 +143,7 @@ mod tests {
     fn the_registry_holds_the_number_of_countries_the_readme_claims() {
         // `README.md` and `docs/observances.md` both state this figure, and a
         // documented count that drifts is a documented lie.
-        assert_eq!(ALL.len(), 48);
+        assert_eq!(ALL.len(), 50);
     }
 
     #[test]

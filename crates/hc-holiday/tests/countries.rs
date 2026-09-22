@@ -971,6 +971,134 @@ fn iran_flags_every_lunar_date_and_keeps_a_friday_weekend() {
 }
 
 #[test]
+fn argentina_moves_its_trasladables_by_the_weekday_rule_since_2018() {
+    // 2026: Güemes on a Wednesday pulled to Monday the 15th, Sovereignty
+    // Day on a Friday pushed to Monday the 23rd, San Martín and 12 October
+    // already Mondays, Belgrano and 2 April inamovible where they fall.
+    expect(
+        "AR",
+        None,
+        &[
+            (2026, 2, 16, "Carnival Monday"),
+            (2026, 2, 17, "Carnival Tuesday"),
+            (2026, 3, 24, "Day of Remembrance for Truth and Justice"),
+            (
+                2026,
+                4,
+                2,
+                "Day of the Veterans and Fallen of the Malvinas War",
+            ),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 6, 15, "Anniversary of the Passing of General Güemes"),
+            (
+                2026,
+                6,
+                20,
+                "Anniversary of the Passing of General Belgrano",
+            ),
+            (2026, 7, 9, "Independence Day"),
+            (
+                2026,
+                8,
+                17,
+                "Anniversary of the Passing of General San Martín",
+            ),
+            (2026, 10, 12, "Day of Respect for Cultural Diversity"),
+            (2026, 11, 23, "National Sovereignty Day"),
+            (2026, 12, 8, "Immaculate Conception"),
+            // 2025: a Tuesday pulled back, two Sundays left alone, a Thursday
+            // pushed on.
+            (2025, 6, 16, "Anniversary of the Passing of General Güemes"),
+            (
+                2025,
+                8,
+                17,
+                "Anniversary of the Passing of General San Martín",
+            ),
+            (2025, 10, 12, "Day of Respect for Cultural Diversity"),
+            (2025, 11, 24, "National Sovereignty Day"),
+            // 2016: the decree's Mondays — the third of August, the second
+            // of October, the fourth of November.
+            (
+                2016,
+                8,
+                15,
+                "Anniversary of the Passing of General San Martín",
+            ),
+            (2016, 10, 10, "Day of Respect for Cultural Diversity"),
+            (2016, 11, 28, "National Sovereignty Day"),
+        ],
+    );
+    expect_working(
+        "AR",
+        None,
+        &[(2026, 6, 17), (2026, 11, 20), (2016, 8, 17), (2025, 11, 20)],
+    );
+    // Holy Thursday and the days of the faiths are observances, not days
+    // off: 2 April 2026 is Malvinas Day, Holy Thursday and the first day of
+    // Passover at once, and only the first is a day off.
+    let calendar = HolidayCalendar::for_year(table("AR"), None, 2026);
+    let on_the_day = calendar.on(ymd(2026, 4, 2));
+    let days_off: Vec<&str> = on_the_day
+        .iter()
+        .filter(|holiday| holiday.is_day_off())
+        .map(|holiday| holiday.name)
+        .collect();
+    let observances: Vec<&str> = on_the_day
+        .iter()
+        .filter(|holiday| !holiday.is_day_off())
+        .map(|holiday| holiday.name)
+        .collect();
+    assert_eq!(
+        days_off,
+        ["Day of the Veterans and Fallen of the Malvinas War"]
+    );
+    assert!(observances.contains(&"Holy Thursday"), "{observances:?}");
+    assert!(observances.contains(&"Passover"), "{observances:?}");
+}
+
+#[test]
+fn colombia_sends_ten_holidays_to_the_following_monday() {
+    // The 2026 calendar: Epiphany from Tuesday the 6th, Saint Joseph from
+    // Thursday the 19th, Ascension from Thursday 14 May, Corpus Christi
+    // from Thursday 4 June, the Sacred Heart from Friday 12 June, the
+    // Assumption from Saturday the 15th, All Saints from Sunday the 1st,
+    // Cartagena from Wednesday the 11th; Saints Peter and Paul and
+    // 12 October already Mondays.
+    expect(
+        "CO",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 12, "Epiphany"),
+            (2026, 3, 23, "Saint Joseph's Day"),
+            (2026, 4, 2, "Maundy Thursday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 18, "Ascension Day"),
+            (2026, 6, 8, "Corpus Christi"),
+            (2026, 6, 15, "Sacred Heart"),
+            (2026, 6, 29, "Saints Peter and Paul"),
+            (2026, 7, 20, "Independence Day"),
+            (2026, 8, 7, "Battle of Boyacá"),
+            (2026, 8, 17, "Assumption of Mary"),
+            (2026, 10, 12, "Columbus Day"),
+            (2026, 11, 2, "All Saints' Day"),
+            (2026, 11, 16, "Independence of Cartagena"),
+            (2026, 12, 8, "Immaculate Conception"),
+            (2026, 12, 25, "Christmas Day"),
+            // A fixed day on a weekend stays: 20 July 2025 was a Sunday.
+            (2025, 7, 20, "Independence Day"),
+        ],
+    );
+    expect_working(
+        "CO",
+        None,
+        &[(2026, 1, 6), (2026, 8, 15), (2026, 11, 1), (2026, 11, 11)],
+    );
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",

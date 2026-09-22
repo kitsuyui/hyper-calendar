@@ -569,6 +569,25 @@ pub enum Rule {
         /// The shift, in days.
         days: i16,
     },
+    /// Another rule, moved by the weekday it falls on: the day the base
+    /// rule gives, plus the days its weekday is listed with in `moves`, or
+    /// the day itself when its weekday is not listed.
+    ///
+    /// This is the shape of a *Monday holiday* law that keeps the date and
+    /// moves the day off: Argentina's *feriados trasladables*, which a
+    /// Tuesday or Wednesday pulls to the Monday before and a Thursday or
+    /// Friday pushes to the Monday after, and Colombia's Ley Emiliani, which
+    /// sends any day but a Monday to the next one. It differs from a
+    /// [`SubstitutionPolicy`] in that the move is the holiday's own rule,
+    /// not a country's response to a weekend, and the original date is not
+    /// a holiday at all.
+    MovedByWeekday {
+        /// The rule being moved.
+        base: &'static Rule,
+        /// For each weekday that moves, how many days to add — negative to
+        /// move earlier. A weekday not listed stays.
+        moves: &'static [(Weekday, i16)],
+    },
     /// A tithi of a month of the amānta Hindu lunisolar calendar, kept on
     /// the day the tithi is in progress at a stated part of the day —
     /// sunrise, midday, afternoon, evening or midnight — which is how the
@@ -674,6 +693,13 @@ impl Rule {
         }
     }
 
+    /// Another rule, moved by the weekday it falls on; see
+    /// [`Rule::MovedByWeekday`].
+    #[must_use]
+    pub const fn moved_by_weekday(base: &'static Rule, moves: &'static [(Weekday, i16)]) -> Self {
+        Self::MovedByWeekday { base, moves }
+    }
+
     /// Whether this rule can be answered at all for Gregorian `year`.
     ///
     /// False when the rule is dated in a calendar whose supported range
@@ -710,7 +736,9 @@ impl Rule {
             Self::Tithi { .. } => (hindu_lunar::MIN_YEAR + hindu_lunar::GREGORIAN_YEAR_OFFSET + 1
                 ..hindu_lunar::MAX_YEAR + hindu_lunar::GREGORIAN_YEAR_OFFSET)
                 .contains(&year),
-            Self::Offset { base, .. } => base.is_resolvable_in(year),
+            Self::Offset { base, .. } | Self::MovedByWeekday { base, .. } => {
+                base.is_resolvable_in(year)
+            }
             // Everything else is Gregorian arithmetic, astronomy or a
             // closure, none of which has a calendar range to fall outside.
             // The solar terms and the computus do have accuracy limits, but
@@ -818,11 +846,51 @@ impl Rule {
                 }
                 out
             }
+            Self::MovedByWeekday { base, moves } => {
+                // As for a shifted rule: a move can cross the New Year, so
+                // the neighbouring years are searched and the result clamped.
+                let mut out = Days::new();
+                for probe in [year - 1, year, year + 1] {
+                    for day in base.days_in_year(probe).as_slice() {
+                        let weekday = Weekday::from_rd(*day);
+                        let shift = moves
+                            .iter()
+                            .find(|(trigger, _)| *trigger == weekday)
+                            .map_or(0, |(_, days)| i64::from(*days));
+                        let moved = Rd(day.0 + shift);
+                        if moved >= first && moved <= last && !out.as_slice().contains(&moved) {
+                            out.push(moved);
+                        }
+                    }
+                }
+                out
+            }
             Self::Computed(function) => function(year).clamped(first, last),
             Self::Tabulated { function, .. } => function(year).clamped(first, last),
         }
     }
 }
+
+/// The moves of a law that sends a holiday to the following Monday whenever
+/// it does not fall on one — Colombia's Ley Emiliani.
+pub const TO_FOLLOWING_MONDAY: &[(Weekday, i16)] = &[
+    (Weekday::Tuesday, 6),
+    (Weekday::Wednesday, 5),
+    (Weekday::Thursday, 4),
+    (Weekday::Friday, 3),
+    (Weekday::Saturday, 2),
+    (Weekday::Sunday, 1),
+];
+
+/// The moves of a law that pulls a Tuesday or Wednesday holiday to the
+/// Monday before and pushes a Thursday or Friday one to the Monday after,
+/// leaving the weekend where it is — Argentina's Ley 27.399, article 6.
+pub const TO_ADJACENT_MONDAY: &[(Weekday, i16)] = &[
+    (Weekday::Tuesday, -1),
+    (Weekday::Wednesday, -2),
+    (Weekday::Thursday, 4),
+    (Weekday::Friday, 3),
+];
 
 /// The first and last fixed day of a Gregorian month.
 fn gregorian_month_span(year: i64, month: u8) -> Option<(Rd, Rd)> {
@@ -1425,6 +1493,33 @@ mod tests {
         };
         assert_eq!(rule.days_in_year(2024).as_slice(), &[ymd(2024, 6, 22)]);
         assert_eq!(rule.days_in_year(2025).as_slice(), &[ymd(2025, 6, 21)]);
+    }
+
+    #[test]
+    fn a_rule_moved_by_weekday_lands_on_the_monday_its_table_says() {
+        // San Martín, 17 August, under Argentina's article 6: a Monday
+        // (2026) stays, a Tuesday (2027) pulls back, a Thursday (2028)
+        // pushes on, a Sunday (2025) is not listed and stays.
+        static SAN_MARTIN: Rule = Rule::gregorian(8, 17);
+        let argentina = Rule::moved_by_weekday(&SAN_MARTIN, TO_ADJACENT_MONDAY);
+        assert_eq!(argentina.days_in_year(2026).as_slice(), &[ymd(2026, 8, 17)]);
+        assert_eq!(argentina.days_in_year(2027).as_slice(), &[ymd(2027, 8, 16)]);
+        assert_eq!(argentina.days_in_year(2028).as_slice(), &[ymd(2028, 8, 21)]);
+        assert_eq!(argentina.days_in_year(2025).as_slice(), &[ymd(2025, 8, 17)]);
+        // Epiphany under Colombia's Ley Emiliani: a Monday (2025) stays, a
+        // Tuesday (2026) and a Saturday (2024) go to the Monday after.
+        static EPIPHANY: Rule = Rule::gregorian(1, 6);
+        let colombia = Rule::moved_by_weekday(&EPIPHANY, TO_FOLLOWING_MONDAY);
+        assert_eq!(colombia.days_in_year(2025).as_slice(), &[ymd(2025, 1, 6)]);
+        assert_eq!(colombia.days_in_year(2026).as_slice(), &[ymd(2026, 1, 12)]);
+        assert_eq!(colombia.days_in_year(2024).as_slice(), &[ymd(2024, 1, 8)]);
+        // A move never leaves the year it is asked about with a duplicate,
+        // and a base in the neighbouring year is found: 31 December on a
+        // Tuesday (2024) becomes Monday 30 December.
+        static YEARS_END: Rule = Rule::gregorian(12, 31);
+        let moved = Rule::moved_by_weekday(&YEARS_END, TO_ADJACENT_MONDAY);
+        assert_eq!(moved.days_in_year(2024).as_slice(), &[ymd(2024, 12, 30)]);
+        assert!(moved.is_resolvable_in(2024));
     }
 
     #[test]
