@@ -179,6 +179,10 @@ Ordered by how well the sources can be cited, not by importance.
 | Dominican Republic 🇩🇴 | Ley 139-97 from its text: adjacent-Monday moves, the excluded days, Restoration Day fixed in inauguration years, a Sunday 1 May to Monday |
 | Guatemala 🇬🇹 | Art. 127 with two half days and Guatemala City's Assumption as `GT-GU`; the tourism law's Monday moves for Army Day, and for 1 May and 20 October only until the 2020 ruling |
 | Panama 🇵🇦 | Arts. 46 and 47: the Sunday rule, Ley 70's adjacent-Monday moves for 9 January and 28 November, 20 December from 2022, Flag Day as the public sector's |
+| Cuba 🇨🇺 | Ley 116 arts. 94, 97 and 100: the four commemorations and five holidays, Good Friday from 2012, Christmas from 1998, the Sunday rest moved only for 1 May and 10 October; Sunday as the weekend |
+| Belize 🇧🇿 | The Government's yearly notices under Chapter 289, the Act itself unread: Sunday to Monday, the Second Schedule's two days to the nearest Monday, the Tuesday and Wednesday moves the notices show |
+| Guyana 🇬🇾 | Chapter 19:07 s. 3 with "if that day is a Sunday, the following day" and the section 6 days by the yearly lists; Phagwah, Deepavali and the two Islamic days approximate |
+| Haiti 🇭🇹 | Art. 275-1's five national days, the 1984 code's list to 1988, the 1989 decree's seven from 1989, and the December 2024 decree's additions from 2025, Carnival Monday from noon as bank |
 | Bolivia 🇧🇴 | Decreto Supremo 2750 with the Sunday rule and the four days it excepts; departmental holidays and yearly bridges not carried |
 | Chile 🇨🇱 | Every move a rule of its own: Ley 19.668's Mondays, Ley 20.299's Fridays, the computed 2 January and 17/20 September days, the solstice at Chile's meridian; Arica's day as `CL-AP` |
 | Ecuador 🇪🇨 | Art. 65 as reformed in 2016: the moves per holiday, the weekend-only moves of the three excepted days, and the 2/3 November pair as the Government resolved it |
