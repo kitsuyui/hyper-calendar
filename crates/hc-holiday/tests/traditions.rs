@@ -6,8 +6,8 @@ use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::rule::{Confidence, Kind, RuleSet};
 use hc_holiday::traditions::{
     self, BAHAI, BUDDHIST, CHINESE_FOLK, CHRISTIAN_ORTHODOX, CHRISTIAN_WESTERN, COPTIC_ORTHODOX,
-    ETHIOPIAN_ORTHODOX, HINDU, ISLAMIC, JEWISH, SIKH, WHEEL_OF_THE_YEAR, WHEEL_OF_THE_YEAR_SOUTH,
-    ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI, ZOROASTRIAN_SHAHANSHAHI,
+    ETHIOPIAN_ORTHODOX, HINDU, ISLAMIC, JAIN, JEWISH, SIKH, WHEEL_OF_THE_YEAR,
+    WHEEL_OF_THE_YEAR_SOUTH, ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI, ZOROASTRIAN_SHAHANSHAHI,
 };
 
 /// Panics rather than returning a `Result`, because every date in this file
@@ -767,5 +767,42 @@ fn the_three_lunar_sikh_days_match_the_sgpc_list() {
     for rule in SIKH.rules {
         assert_eq!(rule.kind, Kind::Religious, "{}", rule.name);
         assert_eq!(rule.confidence, Confidence::Exact, "{}", rule.name);
+    }
+}
+
+#[test]
+fn the_jain_festivals_of_2024_are_counted_back_from_their_last_days() {
+    // Saṃvatsarī on 7 September 2024, so Paryuṣaṇa from 31 August; Ananta
+    // Caturdaśī on 17 September, so Daśa Lakṣaṇa from the 8th.
+    expect(
+        &JAIN,
+        &[
+            (2024, 8, 31, "Paryushana"),
+            (2024, 9, 7, "Paryushana"),
+            (2024, 9, 7, "Samvatsari"),
+            (2024, 9, 8, "Das Lakshana"),
+            (2024, 9, 17, "Das Lakshana"),
+            (2024, 9, 17, "Anant Chaturdashi"),
+            (2024, 4, 21, "Mahavir Jayanti"),
+            (2024, 10, 31, "Diwali"),
+        ],
+    );
+    let calendar = HolidayCalendar::for_year(&JAIN, None, 2024);
+    let paryushana = (1..=366)
+        .filter_map(|day| {
+            let date = Rd(ymd(2024, 1, 1).0 + day - 1);
+            calendar
+                .on(date)
+                .iter()
+                .any(|holiday| holiday.name == "Paryushana")
+                .then_some(date)
+        })
+        .count();
+    assert_eq!(paryushana, 8);
+    assert!(calendar.on(ymd(2024, 8, 30)).is_empty());
+    assert!(calendar.on(ymd(2024, 9, 18)).is_empty());
+    for rule in JAIN.rules {
+        assert_eq!(rule.kind, Kind::Religious, "{}", rule.name);
+        assert_eq!(rule.confidence, Confidence::Approximate, "{}", rule.name);
     }
 }

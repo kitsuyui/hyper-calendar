@@ -168,7 +168,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-16 tables, feature `holiday`.
+17 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
@@ -181,6 +181,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `ethiopian-orthodox` | Ethiopian Orthodox Tewahedo | 14 |
 | `hindu` | Hinduism | 19 |
 | `islamic` | Islam | 10 |
+| `jain` | Jainism | 23 |
 | `jewish` | Judaism | 19 |
 | `sikh` | Sikhism | 39 |
 | `wheel-of-the-year` | Wheel of the Year | 8 |
