@@ -87,7 +87,7 @@ These need the astronomical engine, so they live behind the `lunar` feature.
 | Japanese lunisolar (Senmyō, 862–1685) | `japanese-senmyo` | `hc-calendars-lunar` | Done |
 | Tibetan (Phugpa) | `tibetan` | `hc-calendars-lunar` | Planned |
 | Hindu lunisolar, amānta | `hindu-lunar` | `hc-calendars-indic` | Done — true Sun and Moon, Lahiri ayanamsa, the day read at the Central Station's sunrise as the *Rashtriya Panchang* does; tested against two years of its month tables |
-| Hindu lunisolar, pūrṇimānta | `hindu-lunar-purnimanta` | `hc-calendars-indic` | Planned — the same fortnights, the dark one counted first |
+| Hindu lunisolar, pūrṇimānta | `hindu-lunar-purnimanta` | `hc-calendars-indic` | Done — the amānta tithis under the north's month names, the intercalary month inserted whole, as the *Rashtriya Panchang*'s vadi column labels them |
 | Hindu solar, Tamil | `hindu-solar-tamil` | `hc-calendars-indic` | Done — the month begins on the saṅkrānti's day unless it fell after sunset; the *Rashtriya Panchang*'s regional tables for 2023–2025 |
 | Hindu solar, Malayalam (Kollam era) | `hindu-solar-malayalam` | `hc-calendars-indic` | Done — unless it fell after three fifths of the daylight |
 | Hindu solar, Bengali (Bangabda) | `hindu-solar-bengali` | `hc-calendars-indic` | Done — the day after the saṅkrānti's |

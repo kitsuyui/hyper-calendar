@@ -716,7 +716,10 @@ const EN_CALENDARS: &[CalendarNames] = &[
     // calendar's own names are Devanagari, declared in `hc-calendars-indic`.
     // An intercalary month is "Adhika Śrāvaṇa", so the prefix is "Adhika ".
     CalendarNames {
-        calendars: &[CalendarId("hindu-lunar")],
+        calendars: &[
+            CalendarId("hindu-lunar"),
+            CalendarId("hindu-lunar-purnimanta"),
+        ],
         cycles: &[months(&[
             "Chaitra",
             "Vaisakha",
