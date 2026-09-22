@@ -27,6 +27,8 @@
 //! | Hindu | the amānta Hindu lunisolar calendar at the national almanac's sunrise; each festival on the part of the day its tithi must hold | exact to the astronomical model, and to the conventions [`crate::hindu`] states — a regional almanac may keep a day differently |
 //! | Wheel of the Year | the solstices and equinoxes on their Universal Time day; the cross-quarter days on their fixed Gregorian dates | exact as stated; a group may keep a quarter day on its local date or the nearest weekend, and the eve convention for Samhain is not modelled |
 //! | Jain | the amānta Hindu lunisolar calendar at the national almanac's sunrise; Paryuṣaṇa and Daśa Lakṣaṇa counted back from their last days | **approximate** — Jain almanacs differ from the national one by a day in some years, as the source says |
+//! | Shinto | fixed Gregorian dates, and 節分 as the day before 立春 at the Japanese meridian | exact; a shrine's own festival dates are not carried |
+//! | Imperial court rites (宮中祭祀) | fixed Gregorian dates and the two equinox days at the Japanese meridian | exact for the Reiwa-era schedule the source gives; the rites tied to a reign change with it |
 //! | Sikh | the Nanakshahi calendar of 2003 for the gurpurabs; the amānta Hindu lunisolar calendar for the three the 2003 calendar left on the Bikrami | exact: the Nanakshahi dates are fixed Gregorian dates, and the lunar three follow the same model as the Hindu table; the SGPC's post-2010 dates are not carried |
 //! | Zoroastrian | the Parsi schedule of feasts on each of the three reckonings — Fasli, Shahanshahi, Qadimi — as three tables | exact: every feast is a fixed day of a fixed month, and each reckoning is arithmetic; the Iranian community's dates on the civil calendar are not carried |
 
@@ -1107,6 +1109,169 @@ pub static JAIN: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// Shinto
+// ─────────────────────────────────────────────────────────────────────────
+
+/// 立春 at the Japanese meridian, the day 節分 precedes.
+static RISSHUN: Rule = Rule::SolarTerm {
+    term: SolarTerm::BEGINNING_OF_SPRING,
+    meridian: Meridian::JAPAN,
+};
+
+static SHINTO_RULES: &[HolidayRule] = &[
+    HolidayRule::observance("Hatsumōde", "初詣", Rule::gregorian(1, 1)),
+    HolidayRule::observance(
+        "Setsubun",
+        "節分",
+        Rule::Offset {
+            base: &RISSHUN,
+            days: -1,
+        },
+    ),
+    feast("Nagoshi no Ōharae", "夏越の大祓", Rule::gregorian(6, 30)),
+    HolidayRule::observance("Shichi-Go-San", "七五三", Rule::gregorian(11, 15)),
+    feast(
+        "Toshikoshi no Ōharae",
+        "年越の大祓",
+        Rule::gregorian(12, 31),
+    ),
+];
+
+/// Shinto, as the year is kept at a shrine and at home: the New Year
+/// visit, 節分 on the eve of 立春, the two 大祓 purifications at the half
+/// and the end of the year, and 七五三 on 15 November, the date it has had
+/// since the Meiji calendar reform.
+///
+/// 節分 is the day before 立春 at the Japanese meridian, which is why it
+/// was 4 February in the leap years to 1984, 3 February from 1985 to 2020,
+/// and 2 February in the years after a leap year from 2021 — the source
+/// states the pattern and the rule reproduces it. A shrine's own festival
+/// days, and the many observances kept on a weekend near the date, are
+/// not carried; the imperial rites have a table of their own,
+/// [`KYUCHU_SAISHI`].
+pub static SHINTO: RuleSet = RuleSet {
+    code: "shinto",
+    english_name: "Shinto",
+    rules: SHINTO_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia (ja), \"節分\", retrieved 2026-09-22, for the rule — the \
+              day before 立春, the Sun at longitude 315° — and its dates by \
+              period; \"七五三\", for 15 November since the Meiji reform; \
+              \"初詣\", for the New Year visit; \"宮中祭祀\", for 大祓 on \
+              30 June and 31 December",
+};
+
+/// A rite of the imperial court on a fixed Gregorian date.
+const fn rite(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    feast(name, local, Rule::gregorian(month, day))
+}
+
+/// A rite on an equinox day at the Japanese meridian.
+const fn equinox_rite(name: &'static str, local: &'static str, term: SolarTerm) -> HolidayRule {
+    feast(
+        name,
+        local,
+        Rule::SolarTerm {
+            term,
+            meridian: Meridian::JAPAN,
+        },
+    )
+}
+
+static KYUCHU_SAISHI_RULES: &[HolidayRule] = &[
+    rite("Shihōhai", "四方拝", 1, 1),
+    rite("Saitansai", "歳旦祭", 1, 1),
+    rite("Genshisai", "元始祭", 1, 3),
+    rite("Sōjihajime", "奏事始", 1, 4),
+    rite("Shōwa Tennō-sai", "昭和天皇祭", 1, 7),
+    rite("Kōmei Tennō reisai", "孝明天皇例祭", 1, 30),
+    // 紀元節祭 until 1948; the 三殿御拝 since.
+    rite("Sanden gohai", "三殿御拝", 2, 11).years(Some(1949), None),
+    rite("Kinensai", "祈年祭", 2, 17),
+    // The present Emperor's birthday, a Tenchōsai from 2020.
+    rite("Tenchōsai", "天長祭", 2, 23).years(Some(2020), None),
+    equinox_rite("Shunki Kōreisai", "春季皇霊祭", SolarTerm::SPRING_EQUINOX),
+    equinox_rite("Shunki Shindensai", "春季神殿祭", SolarTerm::SPRING_EQUINOX),
+    rite("Jinmu Tennō-sai", "神武天皇祭", 4, 3),
+    rite("Kōreiden Mikagura", "皇霊殿御神楽", 4, 3),
+    rite("Kōjun Kōgō reisai", "香淳皇后例祭", 6, 16),
+    rite("Yoori", "節折", 6, 30),
+    rite("Ōharai", "大祓", 6, 30),
+    rite("Meiji Tennō reisai", "明治天皇例祭", 7, 30),
+    equinox_rite("Shūki Kōreisai", "秋季皇霊祭", SolarTerm::AUTUMN_EQUINOX),
+    equinox_rite("Shūki Shindensai", "秋季神殿祭", SolarTerm::AUTUMN_EQUINOX),
+    rite("Kannamesai", "神嘗祭", 10, 17),
+    rite("Niinamesai", "新嘗祭", 11, 23),
+    rite("Taishō Tennō reisai", "大正天皇例祭", 12, 25),
+    rite("Yoori", "節折", 12, 31),
+    rite("Ōharai", "大祓", 12, 31),
+    // The 旬祭 on the first, eleventh and twenty-first of every month.
+    rite("Shunsai", "旬祭", 1, 1),
+    rite("Shunsai", "旬祭", 1, 11),
+    rite("Shunsai", "旬祭", 1, 21),
+    rite("Shunsai", "旬祭", 2, 1),
+    rite("Shunsai", "旬祭", 2, 11),
+    rite("Shunsai", "旬祭", 2, 21),
+    rite("Shunsai", "旬祭", 3, 1),
+    rite("Shunsai", "旬祭", 3, 11),
+    rite("Shunsai", "旬祭", 3, 21),
+    rite("Shunsai", "旬祭", 4, 1),
+    rite("Shunsai", "旬祭", 4, 11),
+    rite("Shunsai", "旬祭", 4, 21),
+    rite("Shunsai", "旬祭", 5, 1),
+    rite("Shunsai", "旬祭", 5, 11),
+    rite("Shunsai", "旬祭", 5, 21),
+    rite("Shunsai", "旬祭", 6, 1),
+    rite("Shunsai", "旬祭", 6, 11),
+    rite("Shunsai", "旬祭", 6, 21),
+    rite("Shunsai", "旬祭", 7, 1),
+    rite("Shunsai", "旬祭", 7, 11),
+    rite("Shunsai", "旬祭", 7, 21),
+    rite("Shunsai", "旬祭", 8, 1),
+    rite("Shunsai", "旬祭", 8, 11),
+    rite("Shunsai", "旬祭", 8, 21),
+    rite("Shunsai", "旬祭", 9, 1),
+    rite("Shunsai", "旬祭", 9, 11),
+    rite("Shunsai", "旬祭", 9, 21),
+    rite("Shunsai", "旬祭", 10, 1),
+    rite("Shunsai", "旬祭", 10, 11),
+    rite("Shunsai", "旬祭", 10, 21),
+    rite("Shunsai", "旬祭", 11, 1),
+    rite("Shunsai", "旬祭", 11, 11),
+    rite("Shunsai", "旬祭", 11, 21),
+    rite("Shunsai", "旬祭", 12, 1),
+    rite("Shunsai", "旬祭", 12, 11),
+    rite("Shunsai", "旬祭", 12, 21),
+];
+
+/// The rites of the imperial court, 宮中祭祀, on the schedule the source
+/// gives for the Reiwa era: the 大祭 and 小祭 of the year, the 旬祭 three
+/// times a month, and the two equinox rites on 春分の日 and 秋分の日 at
+/// the Japanese meridian.
+///
+/// The rites tied to a reign change with it. 天長祭 is the reigning
+/// Emperor's birthday, 23 February since 2020, and is bounded so; the
+/// 先帝祭 — 昭和天皇祭 — and the 例祭 of the three emperors before him and
+/// of the late Empress are the present reign's, stated without a start.
+/// 賢所御神楽, "mid-December", has no fixed date and is not carried; the
+/// 式年祭 of set anniversaries are not either.
+pub static KYUCHU_SAISHI: RuleSet = RuleSet {
+    code: "kyuchu-saishi",
+    english_name: "Imperial court rites (宮中祭祀)",
+    rules: KYUCHU_SAISHI_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia (ja), \"宮中祭祀\", retrieved 2026-09-22, for the table \
+              of 恒例祭 and the 旬祭; \"天皇誕生日\", retrieved 2026-09-22, for \
+              23 February from 2020",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Sikhism
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -1378,6 +1543,8 @@ pub static ALL: &[&RuleSet] = &[
     &WHEEL_OF_THE_YEAR,
     &WHEEL_OF_THE_YEAR_SOUTH,
     &JAIN,
+    &SHINTO,
+    &KYUCHU_SAISHI,
     &SIKH,
     &ZOROASTRIAN_FASLI,
     &ZOROASTRIAN_SHAHANSHAHI,

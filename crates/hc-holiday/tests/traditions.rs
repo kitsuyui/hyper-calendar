@@ -6,8 +6,9 @@ use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::rule::{Confidence, Kind, RuleSet};
 use hc_holiday::traditions::{
     self, BAHAI, BUDDHIST, CHINESE_FOLK, CHRISTIAN_ORTHODOX, CHRISTIAN_WESTERN, COPTIC_ORTHODOX,
-    ETHIOPIAN_ORTHODOX, HINDU, ISLAMIC, JAIN, JEWISH, SIKH, WHEEL_OF_THE_YEAR,
-    WHEEL_OF_THE_YEAR_SOUTH, ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI, ZOROASTRIAN_SHAHANSHAHI,
+    ETHIOPIAN_ORTHODOX, HINDU, ISLAMIC, JAIN, JEWISH, KYUCHU_SAISHI, SHINTO, SIKH,
+    WHEEL_OF_THE_YEAR, WHEEL_OF_THE_YEAR_SOUTH, ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI,
+    ZOROASTRIAN_SHAHANSHAHI,
 };
 
 /// Panics rather than returning a `Result`, because every date in this file
@@ -804,5 +805,104 @@ fn the_jain_festivals_of_2024_are_counted_back_from_their_last_days() {
     for rule in JAIN.rules {
         assert_eq!(rule.kind, Kind::Religious, "{}", rule.name);
         assert_eq!(rule.confidence, Confidence::Approximate, "{}", rule.name);
+    }
+}
+
+#[test]
+fn setsubun_is_the_eve_of_risshun_and_moves_as_the_source_says() {
+    // 4 February in the leap years to 1984, 3 February from 1985 to 2020,
+    // 2 February in the year after a leap year from 2021.
+    expect(
+        &SHINTO,
+        &[
+            (1984, 2, 4, "Setsubun"),
+            (1985, 2, 3, "Setsubun"),
+            (2020, 2, 3, "Setsubun"),
+            (2021, 2, 2, "Setsubun"),
+            (2024, 2, 3, "Setsubun"),
+            (2025, 2, 2, "Setsubun"),
+            (2026, 2, 3, "Setsubun"),
+            (2026, 1, 1, "Hatsumōde"),
+            (2026, 6, 30, "Nagoshi no Ōharae"),
+            (2026, 11, 15, "Shichi-Go-San"),
+            (2026, 12, 31, "Toshikoshi no Ōharae"),
+        ],
+    );
+    for year in [1984, 2021, 2026] {
+        let calendar = HolidayCalendar::for_year(&SHINTO, None, year);
+        let setsubun = (1..=60)
+            .filter(|day| {
+                calendar
+                    .on(Rd(ymd(year, 1, 1).0 + day - 1))
+                    .iter()
+                    .any(|holiday| holiday.name == "Setsubun")
+            })
+            .count();
+        assert_eq!(setsubun, 1, "{year}");
+    }
+}
+
+#[test]
+fn the_imperial_rites_fall_on_the_sources_schedule() {
+    // 春分の日 2026 is 20 March and 秋分の日 23 September.
+    expect(
+        &KYUCHU_SAISHI,
+        &[
+            (2026, 1, 1, "Shihōhai"),
+            (2026, 1, 1, "Saitansai"),
+            (2026, 1, 1, "Shunsai"),
+            (2026, 1, 3, "Genshisai"),
+            (2026, 1, 7, "Shōwa Tennō-sai"),
+            (2026, 1, 11, "Shunsai"),
+            (2026, 1, 21, "Shunsai"),
+            (2026, 2, 11, "Sanden gohai"),
+            (2026, 2, 17, "Kinensai"),
+            (2026, 2, 23, "Tenchōsai"),
+            (2026, 3, 20, "Shunki Kōreisai"),
+            (2026, 3, 20, "Shunki Shindensai"),
+            (2026, 4, 3, "Jinmu Tennō-sai"),
+            (2026, 6, 30, "Ōharai"),
+            (2026, 9, 23, "Shūki Kōreisai"),
+            (2026, 10, 17, "Kannamesai"),
+            (2026, 11, 23, "Niinamesai"),
+            (2026, 12, 25, "Taishō Tennō reisai"),
+            (2026, 12, 21, "Shunsai"),
+            (2026, 12, 31, "Yoori"),
+        ],
+    );
+    // 天長祭 on 23 February only from 2020; 三殿御拝 only from 1949.
+    let year_2019 = HolidayCalendar::for_year(&KYUCHU_SAISHI, None, 2019);
+    assert!(
+        year_2019
+            .on(ymd(2019, 2, 23))
+            .iter()
+            .all(|holiday| holiday.name != "Tenchōsai")
+    );
+    let year_1948 = HolidayCalendar::for_year(&KYUCHU_SAISHI, None, 1948);
+    // 11 February 1948 still had its 旬祭, but no 三殿御拝.
+    assert!(
+        year_1948
+            .on(ymd(1948, 2, 11))
+            .iter()
+            .all(|holiday| holiday.name == "Shunsai")
+    );
+    assert_eq!(
+        KYUCHU_SAISHI
+            .rules
+            .iter()
+            .filter(|rule| rule.name == "Shunsai")
+            .count(),
+        36
+    );
+    for set in [&SHINTO, &KYUCHU_SAISHI] {
+        for rule in set.rules {
+            assert_eq!(
+                rule.confidence,
+                Confidence::Exact,
+                "{} {}",
+                set.code,
+                rule.name
+            );
+        }
     }
 }
