@@ -4,8 +4,9 @@ use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::exchanges::{
-    self, AUSTRALIAN_SECURITIES_EXCHANGE, FRANKFURT_STOCK_EXCHANGE, NEW_YORK_STOCK_EXCHANGE,
-    TORONTO_STOCK_EXCHANGE,
+    self, AUSTRALIAN_SECURITIES_EXCHANGE, EURONEXT_AMSTERDAM, EURONEXT_BRUSSELS, EURONEXT_DUBLIN,
+    EURONEXT_LISBON, EURONEXT_MILAN, EURONEXT_OSLO, EURONEXT_PARIS, FRANKFURT_STOCK_EXCHANGE,
+    NEW_YORK_STOCK_EXCHANGE, TORONTO_STOCK_EXCHANGE,
 };
 use hc_holiday::rule::RuleSet;
 use hc_holiday::rule::{Confidence, Kind};
@@ -46,10 +47,22 @@ fn year_of(exchange: &RuleSet, year: i64) -> (Closures, EarlyCloses) {
             continue;
         }
         if holiday.is_day_off() {
+            // Two names on one day — Dublin's 1 May 2023 — are one closure.
+            if closed
+                .last()
+                .is_some_and(|(m, d, _)| (*m, *d) == (month, day))
+            {
+                continue;
+            }
             closed.push((month, day, holiday.name));
         } else {
             assert_eq!(holiday.kind, Kind::Observance, "{}", holiday.name);
-            assert!(holiday.name.starts_with("Early close"), "{}", holiday.name);
+            assert!(
+                holiday.name.starts_with("Early close")
+                    || holiday.name.starts_with("Half trading day"),
+                "{}",
+                holiday.name
+            );
             early.push((month, day));
         }
     }
@@ -296,11 +309,192 @@ fn the_tsx_closes_on_the_days_its_calendar_lists() {
 }
 
 #[test]
+fn the_four_euronext_markets_with_one_calendar_close_on_its_days() {
+    for market in [
+        &EURONEXT_AMSTERDAM,
+        &EURONEXT_BRUSSELS,
+        &EURONEXT_LISBON,
+        &EURONEXT_PARIS,
+    ] {
+        // 2022: New Year's Day, 1 May and Christmas on the weekend, none
+        // moved, and no half day for a Saturday Christmas Eve.
+        let (closed, early) = year_of(market, 2022);
+        assert_eq!(
+            days(&closed),
+            [(4, 15), (4, 18), (12, 26)],
+            "{}",
+            market.code
+        );
+        assert!(early.is_empty(), "{}", market.code);
+        let (closed, early) = year_of(market, 2023);
+        assert_eq!(
+            days(&closed),
+            [(4, 7), (4, 10), (5, 1), (12, 25), (12, 26)],
+            "{}",
+            market.code
+        );
+        assert!(early.is_empty(), "{}", market.code);
+        let (closed, early) = year_of(market, 2024);
+        assert_eq!(
+            days(&closed),
+            [(1, 1), (3, 29), (4, 1), (5, 1), (12, 25), (12, 26)],
+            "{}",
+            market.code
+        );
+        assert_eq!(early, [(12, 24), (12, 31)], "{}", market.code);
+        let (closed, early) = year_of(market, 2025);
+        assert_eq!(
+            days(&closed),
+            [(1, 1), (4, 18), (4, 21), (5, 1), (12, 25), (12, 26)],
+            "{}",
+            market.code
+        );
+        assert_eq!(early, [(12, 24), (12, 31)], "{}", market.code);
+        let (closed, early) = year_of(market, 2026);
+        assert_eq!(
+            days(&closed),
+            [(1, 1), (4, 3), (4, 6), (5, 1), (12, 25)],
+            "{}",
+            market.code
+        );
+        assert_eq!(early, [(12, 24), (12, 31)], "{}", market.code);
+        let calendar = HolidayCalendar::for_year(market, None, 2026);
+        assert!(!calendar.is_holiday(ymd(2026, 12, 28)), "{}", market.code);
+    }
+}
+
+#[test]
+fn dublin_moves_its_weekend_holidays_and_halves_the_last_day_before() {
+    let (closed, early) = year_of(&EURONEXT_DUBLIN, 2021);
+    assert_eq!(
+        days(&closed),
+        [(1, 1), (4, 2), (4, 5), (5, 3), (12, 27), (12, 28)]
+    );
+    assert_eq!(early, [(12, 24), (12, 31)]);
+    let (closed, early) = year_of(&EURONEXT_DUBLIN, 2022);
+    assert_eq!(
+        days(&closed),
+        [(1, 3), (4, 15), (4, 18), (5, 2), (12, 26), (12, 27)]
+    );
+    assert_eq!(early, [(12, 23), (12, 30)]);
+    let (closed, early) = year_of(&EURONEXT_DUBLIN, 2023);
+    assert_eq!(
+        days(&closed),
+        [(1, 2), (4, 7), (4, 10), (5, 1), (12, 25), (12, 26)]
+    );
+    assert_eq!(early, [(12, 22), (12, 29)]);
+    let (closed, early) = year_of(&EURONEXT_DUBLIN, 2026);
+    assert_eq!(
+        days(&closed),
+        [(1, 1), (4, 3), (4, 6), (5, 1), (5, 4), (12, 25), (12, 28)]
+    );
+    assert_eq!(early, [(12, 24), (12, 31)]);
+}
+
+#[test]
+fn milan_closes_on_ferragosto_and_both_eves() {
+    let (closed, early) = year_of(&EURONEXT_MILAN, 2024);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (3, 29),
+            (4, 1),
+            (5, 1),
+            (8, 15),
+            (12, 24),
+            (12, 25),
+            (12, 26),
+            (12, 31)
+        ]
+    );
+    assert!(early.is_empty());
+    let (closed, early) = year_of(&EURONEXT_MILAN, 2025);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (4, 18),
+            (4, 21),
+            (5, 1),
+            (8, 15),
+            (12, 24),
+            (12, 25),
+            (12, 26),
+            (12, 31)
+        ]
+    );
+    assert!(early.is_empty());
+    let (closed, early) = year_of(&EURONEXT_MILAN, 2026);
+    assert_eq!(
+        days(&closed),
+        [(1, 1), (4, 3), (4, 6), (5, 1), (12, 24), (12, 25), (12, 31)]
+    );
+    assert!(early.is_empty());
+}
+
+#[test]
+fn oslo_keeps_the_norwegian_days_and_halves_the_wednesday_before_easter() {
+    let (closed, early) = year_of(&EURONEXT_OSLO, 2021);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (4, 1),
+            (4, 2),
+            (4, 5),
+            (5, 13),
+            (5, 17),
+            (5, 24),
+            (12, 24),
+            (12, 31)
+        ]
+    );
+    assert_eq!(early, [(3, 31)]);
+    let (closed, early) = year_of(&EURONEXT_OSLO, 2024);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (3, 28),
+            (3, 29),
+            (4, 1),
+            (5, 1),
+            (5, 9),
+            (5, 17),
+            (5, 20),
+            (12, 24),
+            (12, 25),
+            (12, 26),
+            (12, 31)
+        ]
+    );
+    assert_eq!(early, [(3, 27)]);
+    let (closed, early) = year_of(&EURONEXT_OSLO, 2026);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (4, 2),
+            (4, 3),
+            (4, 6),
+            (5, 1),
+            (5, 14),
+            (5, 25),
+            (12, 24),
+            (12, 25),
+            (12, 31)
+        ]
+    );
+    assert_eq!(early, [(4, 1)]);
+}
+
+#[test]
 fn the_catalogue_is_keyed_by_market_identifier_code() {
     assert_eq!(
         exchanges::by_code("xnys").map(|e| e.english_name),
         Some("New York Stock Exchange")
     );
     assert!(exchanges::ALL.iter().all(|e| e.code.len() == 4));
-    assert_eq!(exchanges::ALL.len(), 4);
+    assert_eq!(exchanges::ALL.len(), 11);
 }

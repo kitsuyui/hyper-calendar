@@ -16,7 +16,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
 | `international` | the United Nations international days, each citing its resolution |
-| `exchanges` | 4 exchange calendars: New York, Toronto, Frankfurt, Sydney |
+| `exchanges` | 11 exchange calendars: New York, Toronto, Frankfurt, Sydney and Euronext's seven markets |
 | `countries` | 123 national tables |
 
 ## The vocabulary
@@ -138,8 +138,8 @@ claims to be complete back to its own founding.
 `exchanges` carries the trading calendars of stock exchanges as rule sets
 keyed by ISO 10383 Market Identifier Code: the days an exchange is closed, as
 public-kind entries that stop business-day arithmetic, and the days it closes
-early, as observances that do not. Four so far, each from the exchange's own
-published calendar: the New York Stock Exchange (`XNYS`), which closes on
+early, as observances that do not. Eleven so far, each from the exchange's
+own published calendar: the New York Stock Exchange (`XNYS`), which closes on
 Good Friday, which no statute makes a holiday, trades on Columbus Day and
 Veterans Day, moves a Saturday holiday to the Friday before except a New
 Year's Day, whose Friday is the last day of the year, and closes at 1:00 p.m.
@@ -147,8 +147,12 @@ the day after Thanksgiving and on 3 July and Christmas Eve when those fall on
 a Monday to Thursday; the Toronto Stock Exchange (`XTSE`); the Frankfurt
 Stock Exchange on Xetra (`XETR`), which closes on Christmas Eve and New Year's
 Eve, trades on Ascension Day and Corpus Christi and moves nothing off a
-weekend; and the Australian Securities Exchange (`XASX`), which trades on the
-states' Monday for a Sunday Anzac Day. The unscheduled closures a read source
+weekend; the Australian Securities Exchange (`XASX`), which trades on the
+states' Monday for a Sunday Anzac Day; and Euronext's seven markets, four of
+them — Amsterdam, Brussels, Lisbon, Paris — on one calendar of six closed days
+and two half days, Dublin moving a weekend holiday where the others leave it,
+Milan closing on Ferragosto and both eves, Oslo keeping the Norwegian days and
+halving the Wednesday before Easter. The unscheduled closures a read source
 records — the September 2001 attacks, Hurricane Sandy, the day of mourning
 for President George H. W. Bush — are data in the New York table; those no
 source read here gives are not, and the table says which.

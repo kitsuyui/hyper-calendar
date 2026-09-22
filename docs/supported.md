@@ -282,13 +282,20 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Exchange calendars
 
-4 tables, feature `holiday`, keyed by ISO 10383 Market Identifier Code. A closed day is a public-kind entry; an early close is an observance.
+11 tables, feature `holiday`, keyed by ISO 10383 Market Identifier Code. A closed day is a public-kind entry; an early close is an observance.
 
 | MIC | Exchange | Entries |
 | --- | --- | --- |
+| `XAMS` | Euronext Amsterdam | 8 |
 | `XASX` | Australian Securities Exchange | 11 |
+| `XBRU` | Euronext Brussels | 8 |
+| `XDUB` | Euronext Dublin | 9 |
 | `XETR` | Frankfurt Stock Exchange (Xetra) | 8 |
+| `XLIS` | Euronext Lisbon | 8 |
+| `XMIL` | Euronext Milan (Borsa Italiana) | 9 |
 | `XNYS` | New York Stock Exchange | 20 |
+| `XOSL` | Euronext Oslo (Oslo Børs) | 13 |
+| `XPAR` | Euronext Paris | 8 |
 | `XTSE` | Toronto Stock Exchange | 11 |
 
 ## Exactly defined units of time
