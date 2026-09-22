@@ -7,10 +7,11 @@
 //! its own calendar rather than borrowing China's.
 
 use hc_calendar::{Rd, Weekday};
+use hc_calendars_solar::gregorian;
 use hc_seasons::SolarTerm;
 
 use crate::computus::offsets::{
-    ASCENSION, EASTER_MONDAY, GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY,
+    ASCENSION, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY,
 };
 use crate::hindu::{
     BUDDHA_PURNIMA, DIWALI, GURU_NANAK_JAYANTI, HOLI, JANMASHTAMI, MAHAVIR_JAYANTI, RAMA_NAVAMI,
@@ -1529,4 +1530,555 @@ pub static MACAU: RuleSet = RuleSet {
               and the dates; the Chinese Wikipedia, \"澳門政府假期\", retrieved the \
               same day, for the 1999 and 2000 additions, the 2019 start of the \
               compensatory days and the eves",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Armenia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The Day of the Citizen: the last Saturday of April, or the last Sunday
+/// when that Saturday is 24 April, the Genocide Remembrance Day.
+fn am_citizens_day(year: i64) -> Days {
+    let days = Rule::nth(4, -1, Weekday::Saturday).days_in_year(year);
+    let Some(&saturday) = days.as_slice().first() else {
+        return Days::new();
+    };
+    if gregorian::to_fixed(year, 4, 24).ok() == Some(saturday) {
+        Days::one(Rd(saturday.0 + 1))
+    } else {
+        Days::one(saturday)
+    }
+}
+
+static AM_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Eve", "Ամանոր", Rule::gregorian(12, 31)),
+    HolidayRule::fixed_public("New Year's Day", "Ամանոր", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("New Year's Day", "Ամանոր", Rule::gregorian(1, 2)),
+    HolidayRule::fixed_public(
+        "Christmas and Epiphany",
+        "Սուրբ Ծնունդ և Հայտնություն",
+        Rule::gregorian(1, 6),
+    ),
+    HolidayRule::observance(
+        "Memorial Day after Christmas",
+        "Մեռելոց",
+        Rule::gregorian(1, 7),
+    ),
+    HolidayRule::fixed_public(
+        "Day of Remembrance and Reverence",
+        "Հիշատակի և խոնարհումի օր",
+        Rule::gregorian(1, 27),
+    )
+    .years(Some(2026), None),
+    HolidayRule::fixed_public("Army Day", "Բանակի օր", Rule::gregorian(1, 28)),
+    HolidayRule::fixed_public("Women's Day", "Կանանց միջազգային օր", Rule::gregorian(3, 8)),
+    HolidayRule::fixed_public(
+        "Armenian Genocide Remembrance Day",
+        "Հայոց ցեղասպանության զոհերի հիշատակի օր",
+        Rule::gregorian(4, 24),
+    ),
+    HolidayRule::fixed_public("Labour Day", "Աշխատանքի օր", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public(
+        "Victory and Peace Day",
+        "Հաղթանակի և խաղաղության տոն",
+        Rule::gregorian(5, 9),
+    ),
+    HolidayRule::fixed_public("Republic Day", "Հանրապետության տոն", Rule::gregorian(5, 28)),
+    HolidayRule::fixed_public(
+        "Constitution Day",
+        "Սահմանադրության օր, պետական խորհրդանիշների օր",
+        Rule::gregorian(7, 5),
+    ),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Անկախության տոն",
+        Rule::gregorian(9, 21),
+    ),
+    // The holidays and remembrance days the law keeps as working days.
+    HolidayRule::observance(
+        "Book Giving Day",
+        "Գիրք նվիրելու օր",
+        Rule::gregorian(2, 19),
+    ),
+    HolidayRule::observance(
+        "Mother Language Day",
+        "Մայրենի լեզվի օր",
+        Rule::gregorian(2, 21),
+    ),
+    HolidayRule::observance(
+        "Day of Remembrance of the Victims of the Massacres in the Azerbaijan SSR",
+        "Ադրբեջանական ԽՍՀ-ում կազմակերպված ջարդերի զոհերի հիշատակի օր",
+        Rule::gregorian(2, 28),
+    ),
+    HolidayRule::observance(
+        "Motherhood and Beauty Day",
+        "Մայրության և գեղեցկության տոն",
+        Rule::gregorian(4, 7),
+    ),
+    HolidayRule::observance(
+        "Day of Armenian Cinema",
+        "Հայ կինոյի օր",
+        Rule::gregorian(4, 16),
+    ),
+    HolidayRule::observance(
+        "Day of the Citizen",
+        "Հայաստանի քաղաքացու օր",
+        Rule::Computed(am_citizens_day),
+    ),
+    HolidayRule::observance("Yerkrapah Day", "Երկրապահի օր", Rule::gregorian(5, 8)),
+    HolidayRule::observance("Family Day", "Ընտանիքի օր", Rule::gregorian(5, 15)),
+    HolidayRule::observance(
+        "Students' and Youth Day",
+        "Ուսանողների և երիտասարդների օր",
+        Rule::gregorian(5, 16),
+    ),
+    HolidayRule::observance(
+        "Children's Rights Protection Day",
+        "Երեխաների իրավունքների պաշտպանության օր",
+        Rule::gregorian(6, 1),
+    ),
+    HolidayRule::observance(
+        "Day of Remembrance of the Repressed",
+        "Բռնադատվածների հիշատակի օր",
+        Rule::gregorian(6, 14),
+    ),
+    HolidayRule::observance(
+        "Knowledge and School Day",
+        "Գիտելիքի և դպրության օր",
+        Rule::gregorian(9, 1),
+    ),
+    HolidayRule::observance("Sparapet Day", "Սպարապետի օր", Rule::gregorian(9, 12)),
+    HolidayRule::observance("Teachers' Day", "Ուսուցչի օր", Rule::gregorian(10, 5)),
+    HolidayRule::observance(
+        "Holy Translators' Day",
+        "Թարգմանչաց տոն",
+        Rule::nth(10, 2, Weekday::Saturday),
+    ),
+    HolidayRule::observance(
+        "Local Self-Government Day",
+        "Տեղական ինքնակառավարման օր",
+        Rule::gregorian(11, 10),
+    ),
+    HolidayRule::observance(
+        "Day of Remembrance of the Earthquake Victims",
+        "Երկրաշարժի զոհերի հիշատակի և աղետների դիմակայունության օր",
+        Rule::gregorian(12, 7),
+    ),
+    HolidayRule::observance(
+        "Day of Condemnation and Prevention of Genocides",
+        "Ցեղասպանությունների դատապարտման և կանխարգելման օր",
+        Rule::gregorian(12, 9),
+    ),
+    // The Thursday eight weeks before Easter, and the Sunday nine weeks after.
+    HolidayRule::observance(
+        "Saint Vardanants Day",
+        "Սուրբ Վարդանանց տոն",
+        Rule::easter(-59),
+    ),
+    HolidayRule::observance(
+        "Feast of Holy Etchmiadzin",
+        "Սուրբ Էջմիածնի տոն",
+        Rule::easter(63),
+    ),
+];
+
+/// Armenia.
+///
+/// The Law on Holidays and Remembrance Days of 24 June 2001 as it stands:
+/// the thirteen non-working days, and the holidays and remembrance days it
+/// keeps as working days as observances, the Day of the Citizen with its
+/// rule for a 24 April Saturday and the two church days by their Easter
+/// offsets. The Day of Remembrance and Reverence on 27 January dates from
+/// the amendment of January 2026. Not carried: the longer New Year break
+/// of the years before 2022, whose start the sources do not give; the
+/// Merelots after Easter and the other feasts, which the Government
+/// declares non-working by decision rather than by law; and the
+/// Government's swapping of working days around a holiday. No
+/// substitution.
+pub static ARMENIA: RuleSet = RuleSet {
+    code: "AM",
+    english_name: "Armenia",
+    rules: AM_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "The Armenian Wikipedia, \"Հայաստանի տոների և հիշատակի օրերի ցանկ\", and \
+              Wikipedia, \"Public holidays in Armenia\", both retrieved 2026-09-22, \
+              reproducing the Law on Holidays and Remembrance Days; the Armenian \
+              Weekly, 28 January 2026, and OC Media for the 27 January amendment; \
+              yerevan.am, \"Holidays and memorial days\", for the law's title",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Azerbaijan
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Labour Code art. 105(5) and (6), as applied from 2006: a rest day that
+/// coincides with a non-working holiday moves to the working day after
+/// the holiday, and a Qurban or Ramazan day that coincides with another
+/// non-working holiday gives the next working day off. Together they made
+/// 25, 26, 27 and 30 March 2026 days off after a Novruz and a Ramazan that
+/// shared a weekend.
+static AZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: true,
+    valid_from: Some(2006),
+    valid_until: None,
+}];
+
+static AZ_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Yeni il bayramı", Rule::gregorian(1, 1)),
+    HolidayRule::public("New Year's Day", "Yeni il bayramı", Rule::gregorian(1, 2)),
+    HolidayRule::public(
+        "National Mourning Day",
+        "Ümumxalq Hüzn Günü",
+        Rule::gregorian(1, 20),
+    ),
+    HolidayRule::public("Women's Day", "Qadınlar günü", Rule::gregorian(3, 8)),
+    HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 20)).years(Some(2007), None),
+    HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 21)).years(Some(2007), None),
+    HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 22)).years(Some(2007), None),
+    HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 23)).years(Some(2007), None),
+    HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 24)).years(Some(2007), None),
+    HolidayRule::public(
+        "Victory over Fascism Day",
+        "Faşizm üzərində qələbə günü",
+        Rule::gregorian(5, 9),
+    ),
+    HolidayRule::public(
+        "Independence Day",
+        "Müstəqillik Günü",
+        Rule::gregorian(5, 28),
+    ),
+    HolidayRule::public(
+        "National Salvation Day",
+        "Azərbaycan xalqının milli qurtuluş günü",
+        Rule::gregorian(6, 15),
+    )
+    .years(Some(1998), None),
+    HolidayRule::public(
+        "Armed Forces Day",
+        "Azərbaycan Respublikasının Silahlı Qüvvələri günü",
+        Rule::gregorian(6, 26),
+    )
+    .years(Some(1998), None),
+    HolidayRule::public("Victory Day", "Zəfər Günü", Rule::gregorian(11, 8))
+        .years(Some(2021), None),
+    HolidayRule::public(
+        "State Flag Day",
+        "Dövlət Bayrağı Günü",
+        Rule::gregorian(11, 9),
+    )
+    .years(Some(2010), None),
+    HolidayRule::public(
+        "Solidarity Day of World Azerbaijanis",
+        "Dünya azərbaycanlılarının həmrəyliyi günü",
+        Rule::gregorian(12, 31),
+    ),
+    // Two days each, on dates the Caucasus Muslim Board announces; the
+    // tabular calendar approximates them.
+    HolidayRule::public(
+        "Ramazan Bayramı",
+        "Ramazan bayramı",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+    )
+    .approximate()
+    .years(Some(1993), None),
+    HolidayRule::public(
+        "Ramazan Bayramı",
+        "Ramazan bayramı",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
+    )
+    .approximate()
+    .years(Some(1993), None),
+    HolidayRule::public(
+        "Qurban Bayramı",
+        "Qurban bayramı",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+    )
+    .approximate()
+    .years(Some(1993), None),
+    HolidayRule::public(
+        "Qurban Bayramı",
+        "Qurban bayramı",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
+    )
+    .approximate()
+    .years(Some(1993), None),
+    // The holidays art. 105 keeps as working days.
+    HolidayRule::observance(
+        "State Sovereignty Day",
+        "Dövlət Suverenliyi Günü",
+        Rule::gregorian(9, 20),
+    )
+    .years(Some(2024), None),
+    HolidayRule::observance("Remembrance Day", "Anım Günü", Rule::gregorian(9, 27))
+        .years(Some(2021), None),
+    HolidayRule::observance(
+        "Restoration of Independence Day",
+        "Müstəqilliyin Bərpası Günü",
+        Rule::gregorian(10, 18),
+    ),
+    HolidayRule::observance(
+        "Constitution Day",
+        "Konstitusiya günü",
+        Rule::gregorian(11, 12),
+    ),
+    HolidayRule::observance(
+        "National Revival Day",
+        "Milli Dirçəliş günü",
+        Rule::gregorian(11, 17),
+    ),
+];
+
+/// Azerbaijan.
+///
+/// Article 105 of the Labour Code: the holidays that are non-working days
+/// as [`Kind::Public`], and the four the article keeps as working days as
+/// observances. Novruz is five days from the amendment of 8 December 2006,
+/// and its earlier form is not carried; Ramazan and Qurban are two days
+/// each from 1993 on dates the Caucasus Muslim Board announces, which the
+/// tabular calendar approximates. National Salvation Day and Armed Forces
+/// Day date from 1998, the State Flag Day from 2010 and Victory Day from
+/// 2021. From 2006 a rest day that coincides with a holiday moves to the
+/// working day after it, and a Qurban or Ramazan day that coincides with
+/// another holiday gives the next working day off, which a forward policy
+/// with collisions carries and 2026's March reproduces. The Ministry's
+/// swapping of working and rest days around a holiday, art. 105(7), is
+/// not carried.
+pub static AZERBAIJAN: RuleSet = RuleSet {
+    code: "AZ",
+    english_name: "Azerbaijan",
+    rules: AZ_RULES,
+    substitution: AZ_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Cabinet of Ministers of the Republic of Azerbaijan, \"Holidays\", \
+              nk.gov.az, retrieved 2026-09-22, for art. 105 and the rest-day rule; \
+              the Azerbaijani Wikipedia, \"Azərbaycanın dövlət bayramları və xüsusi \
+              günləri\", retrieved the same day, for the article's text, the 2006 \
+              amendment and the years; Wikipedia, \"Public holidays in Azerbaijan\", \
+              for the English names; APA and Modern.az, for the non-working days of \
+              March 2026",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Georgia
+// ─────────────────────────────────────────────────────────────────────────
+
+static GE_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "ახალი წელი", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("New Year's Day", "ახალი წელი", Rule::gregorian(1, 2)),
+    HolidayRule::fixed_public("Orthodox Christmas", "ქრისტეშობა", Rule::gregorian(1, 7)),
+    HolidayRule::fixed_public("Orthodox Epiphany", "ნათლისღება", Rule::gregorian(1, 19)),
+    HolidayRule::fixed_public("Mother's Day", "დედის დღე", Rule::gregorian(3, 3)),
+    HolidayRule::fixed_public(
+        "International Women's Day",
+        "ქალთა საერთაშორისო დღე",
+        Rule::gregorian(3, 8),
+    ),
+    HolidayRule::fixed_public(
+        "National Unity Day",
+        "ეროვნული ერთიანობის დღე",
+        Rule::gregorian(4, 9),
+    ),
+    HolidayRule::fixed_public(
+        "Good Friday",
+        "წითელი პარასკევი",
+        Rule::paschal(GOOD_FRIDAY),
+    ),
+    HolidayRule::fixed_public("Holy Saturday", "დიდი შაბათი", Rule::paschal(HOLY_SATURDAY)),
+    HolidayRule::fixed_public(
+        "Easter Sunday",
+        "ბრწყინვალე აღდგომა",
+        Rule::paschal(EASTER_SUNDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "აღდგომის ორშაბათი",
+        Rule::paschal(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Day of Victory over Fascism",
+        "ფაშიზმზე გამარჯვების დღე",
+        Rule::gregorian(5, 9),
+    ),
+    HolidayRule::fixed_public(
+        "Saint Andrew the First-Called Day",
+        "წმინდა ანდრია პირველწოდებულის ხსენების დღე",
+        Rule::gregorian(5, 12),
+    ),
+    HolidayRule::fixed_public(
+        "Day of Family Purity and Respect for Parents",
+        "ოჯახის სიწმინდისა და მშობლების პატივისცემის დღე",
+        Rule::gregorian(5, 17),
+    ),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "დამოუკიდებლობის დღე",
+        Rule::gregorian(5, 26),
+    ),
+    HolidayRule::fixed_public(
+        "Dormition of the Mother of God",
+        "მარიამობა",
+        Rule::gregorian(8, 28),
+    ),
+    HolidayRule::fixed_public("Svetitskhovloba", "სვეტიცხოვლობა", Rule::gregorian(10, 14)),
+    HolidayRule::fixed_public("Saint George's Day", "გიორგობა", Rule::gregorian(11, 23)),
+];
+
+/// Georgia.
+///
+/// Article 30 of the Organic Law "Labour Code of Georgia": thirteen fixed
+/// days and the Orthodox Easter from Good Friday to Easter Monday by the
+/// Julian computus. The article says nothing about a holiday on a weekend,
+/// and nothing moves. The years the days were added are not carried, the
+/// source giving none.
+pub static GEORGIA: RuleSet = RuleSet {
+    code: "GE",
+    english_name: "Georgia",
+    rules: GE_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Organic Law of Georgia, Labour Code of Georgia, art. 30, as published in \
+              English by the Legislative Herald of Georgia, matsne.gov.ge, retrieved \
+              2026-09-22; Wikipedia, \"Public holidays in Georgia (country)\", \
+              retrieved the same day, for the Georgian names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Kazakhstan
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 5 of the Law on Holidays: when a rest day coincides with a
+/// holiday, the working day after the holiday is the rest day.
+static KZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static KZ_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Жаңа жыл", Rule::gregorian(1, 1)),
+    HolidayRule::public("New Year's Day", "Жаңа жыл", Rule::gregorian(1, 2)),
+    // A day off under the amendment of 30 December 2005, with Kurban Ait.
+    HolidayRule::public(
+        "Orthodox Christmas",
+        "Православиелік Рождество",
+        Rule::gregorian(1, 7),
+    )
+    .years(Some(2006), None),
+    HolidayRule::public(
+        "International Women's Day",
+        "Халықаралық әйелдер күні",
+        Rule::gregorian(3, 8),
+    ),
+    // The Constitution of 15 March 2026 moved its day from 30 August by
+    // the law of 11 June 2026, in force from 1 July: 30 August 2026 was
+    // not a day off and 15 March is one from 2027.
+    HolidayRule::public(
+        "Constitution Day",
+        "Конституция күні",
+        Rule::gregorian(3, 15),
+    )
+    .years(Some(2027), None),
+    HolidayRule::public("Nauryz Meyramy", "Наурыз мейрамы", Rule::gregorian(3, 22))
+        .years(None, Some(2008)),
+    HolidayRule::public("Nauryz Meyramy", "Наурыз мейрамы", Rule::gregorian(3, 21))
+        .years(Some(2009), None),
+    HolidayRule::public("Nauryz Meyramy", "Наурыз мейрамы", Rule::gregorian(3, 22))
+        .years(Some(2009), None),
+    HolidayRule::public("Nauryz Meyramy", "Наурыз мейрамы", Rule::gregorian(3, 23))
+        .years(Some(2009), None),
+    HolidayRule::public(
+        "Kazakhstan People's Unity Day",
+        "Қазақстан халқының бірлігі мерекесі",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::public(
+        "Defender of the Fatherland Day",
+        "Отан қорғаушы күні",
+        Rule::gregorian(5, 7),
+    )
+    .years(Some(2013), None),
+    HolidayRule::public("Victory Day", "Жеңіс күні", Rule::gregorian(5, 9)),
+    HolidayRule::public("Capital City Day", "Астана күні", Rule::gregorian(7, 6))
+        .years(Some(2008), None),
+    HolidayRule::public(
+        "Constitution Day",
+        "Конституция күні",
+        Rule::gregorian(8, 30),
+    )
+    .years(None, Some(2025)),
+    HolidayRule::public("Republic Day", "Республика күні", Rule::gregorian(10, 25))
+        .years(Some(1995), Some(2008)),
+    HolidayRule::public("Republic Day", "Республика күні", Rule::gregorian(10, 25))
+        .years(Some(2022), None),
+    HolidayRule::public(
+        "First President Day",
+        "Қазақстан Республикасының Тұңғыш Президенті күні",
+        Rule::gregorian(12, 1),
+    )
+    .years(Some(2012), Some(2021)),
+    HolidayRule::public(
+        "Independence Day",
+        "Тәуелсіздік күні",
+        Rule::gregorian(12, 16),
+    ),
+    HolidayRule::public(
+        "Independence Day",
+        "Тәуелсіздік күні",
+        Rule::gregorian(12, 17),
+    )
+    .years(None, Some(2021)),
+    HolidayRule::public(
+        "Kurban Ait",
+        "Құрбан айт",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+    )
+    .approximate()
+    .years(Some(2006), None),
+];
+
+/// Kazakhstan.
+///
+/// The Law on Holidays of 13 December 2001 as amended: the national and
+/// state holidays, and the two days off the amendment of 30 December 2005
+/// added, Orthodox Christmas and the first day of Kurban Ait, the latter
+/// on a date the Muslim Board announces and the tabular calendar
+/// approximates. The changes the sources date are years: Nauryz one day
+/// on 22 March until 2008 and three from 2009; Republic Day a holiday from
+/// 1995 until the amendment of April 2009 and again, as the national
+/// holiday, from 2022; Capital City Day from 2008; Defender of the
+/// Fatherland Day from 2013; First President Day from 2012 to 2021 and
+/// 17 December to 2021, both dropped by the amendment of 29 September
+/// 2022; and Constitution Day on 30 August until 2025 and on 15 March from
+/// 2027, moved by the law of 11 June 2026 after the Constitution of
+/// 15 March 2026. Article 5 moves a holiday on a rest day to the working
+/// day after. The table is complete from the 2001 law; the Government's
+/// yearly bridges are not carried.
+pub static KAZAKHSTAN: RuleSet = RuleSet {
+    code: "KZ",
+    english_name: "Kazakhstan",
+    rules: KZ_RULES,
+    substitution: KZ_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Закон Республики Казахстан от 13 декабря 2001 года № 267 «О праздниках в \
+              Республике Казахстан», as consolidated by Параграф (prg.kz) to the law \
+              of 11 June 2026, retrieved 2026-09-22; the Russian Wikipedia, \
+              \"Праздники Казахстана\", retrieved the same day, for the dates of the \
+              amendments; Wikipedia, \"Public holidays in Kazakhstan\", for the Kazakh \
+              names; pro1c.kz and Tengrinews for the 2022 and 2026 changes; \
+              Inform.kz for Republic Day's removal in April 2009",
 };

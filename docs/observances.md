@@ -133,6 +133,10 @@ Ordered by how well the sources can be cited, not by importance.
 | Ireland 🇮🇪 | Including St Brigid's Day and its conditional rule |
 | Germany 🇩🇪 | Federal plus all 16 *Länder*, including Buß- und Bettag before and after 1995 |
 | France 🇫🇷 | Métropole plus Alsace-Moselle, with 8 May's 1959–81 absence |
+| Armenia 🇦🇲 | The 2001 law's thirteen non-working days with 27 January from 2026, its working holidays as observances; the Government's Merelots decisions not carried |
+| Azerbaijan 🇦🇿 | Labour Code art. 105: Novruz's five days, two-day Eids approximate, the 2006 rest-day rule with Eid collisions that reproduces March 2026 |
+| Georgia 🇬🇪 | Labour Code art. 30 with the Orthodox Easter; nothing moves |
+| Kazakhstan 🇰🇿 | The 2001 law through the June 2026 move of Constitution Day to 15 March, with Nauryz, Republic Day, First President Day and 17 December by their years; art. 5's rest-day rule |
 | Hong Kong 🇭🇰 | The seventeen general holidays with the statutory subset as `Kind::Public` and the 2021 phasing-in as years; Sunday and coincidence made up on the next free day, the 1983–2011 eve rule computed; complete from 1997 |
 | Macau 🇲🇴 | Executive Order 60/2000 with the ten obligatory holidays of Law 7/2008 as `Kind::Public`; the public administration's compensatory rest days from 2019; the eves as observances |
 | China 🇨🇳 | Statutory holidays keyed to the `chinese` calendar, across the 1999, 2007 and 2024 revisions |

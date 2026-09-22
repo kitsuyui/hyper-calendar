@@ -118,14 +118,16 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Holidays by country
 
-72 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
+76 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
 
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
 | `AE` | United Arab Emirates | 16 | none | stated | 2026-09-21 |
+| `AM` | Armenia | 34 | none | stated | 2026-09-22 |
 | `AR` | Argentina | 30 | none | stated | 2026-09-22 |
 | `AT` | Austria | 13 | none | stated | 2026-09-21 |
 | `AU` | Australia | 24 | yes | stated | 2026-09-21 |
+| `AZ` | Azerbaijan | 25 | yes | stated | 2026-09-22 |
 | `BE` | Belgium | 12 | none | stated | 2026-09-21 |
 | `BG` | Bulgaria | 15 | yes | stated | 2026-09-22 |
 | `BO` | Bolivia | 11 | yes | stated | 2026-09-22 |
@@ -147,6 +149,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `FI` | Finland | 15 | none | stated | 2026-09-21 |
 | `FR` | France | 14 | none | stated | 2026-09-21 |
 | `GB` | United Kingdom | 32 | yes | stated | 2026-09-21 |
+| `GE` | Georgia | 18 | none | stated | 2026-09-22 |
 | `GH` | Ghana | 16 | none | stated | 2026-09-22 |
 | `GR` | Greece | 13 | none | stated | 2026-09-21 |
 | `HK` | Hong Kong | 37 | yes | stated | 2026-09-22 |
@@ -162,6 +165,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `JP` | Japan | 38 | yes | stated | 2026-09-21 |
 | `KE` | Kenya | 13 | yes | stated | 2026-09-22 |
 | `KR` | South Korea | 17 | yes | stated | 2026-09-21 |
+| `KZ` | Kazakhstan | 20 | yes | stated | 2026-09-22 |
 | `LT` | Lithuania | 16 | none | stated | 2026-09-22 |
 | `LV` | Latvia | 51 | yes | stated | 2026-09-22 |
 | `MA` | Morocco | 18 | none | stated | 2026-09-22 |

@@ -45,8 +45,8 @@ pub use americas::{
     URUGUAY,
 };
 pub use asia::{
-    CHINA, HONG_KONG, INDIA, INDONESIA, MACAU, MALAYSIA, MYANMAR, NEPAL, PAKISTAN, PHILIPPINES,
-    SINGAPORE, SOUTH_KOREA, TAIWAN, THAILAND, VIETNAM,
+    ARMENIA, AZERBAIJAN, CHINA, GEORGIA, HONG_KONG, INDIA, INDONESIA, KAZAKHSTAN, MACAU, MALAYSIA,
+    MYANMAR, NEPAL, PAKISTAN, PHILIPPINES, SINGAPORE, SOUTH_KOREA, TAIWAN, THAILAND, VIETNAM,
 };
 pub use europe::{
     AUSTRIA, BELGIUM, BULGARIA, CROATIA, CYPRUS, CZECHIA, DENMARK, ESTONIA, FINLAND, FRANCE,
@@ -64,9 +64,11 @@ pub type CountryRules = RuleSet;
 /// Every country table in the crate, in ISO 3166-1 alpha-2 order.
 pub static ALL: &[&CountryRules] = &[
     &UNITED_ARAB_EMIRATES,
+    &ARMENIA,
     &ARGENTINA,
     &AUSTRIA,
     &AUSTRALIA,
+    &AZERBAIJAN,
     &BELGIUM,
     &BULGARIA,
     &BOLIVIA,
@@ -88,6 +90,7 @@ pub static ALL: &[&CountryRules] = &[
     &FINLAND,
     &FRANCE,
     &UNITED_KINGDOM,
+    &GEORGIA,
     &GHANA,
     &GREECE,
     &HONG_KONG,
@@ -103,6 +106,7 @@ pub static ALL: &[&CountryRules] = &[
     &JAPAN,
     &KENYA,
     &SOUTH_KOREA,
+    &KAZAKHSTAN,
     &LITHUANIA,
     &LATVIA,
     &MOROCCO,
@@ -170,7 +174,7 @@ mod tests {
     fn the_registry_holds_the_number_of_countries_the_readme_claims() {
         // `README.md` and `docs/observances.md` both state this figure, and a
         // documented count that drifts is a documented lie.
-        assert_eq!(ALL.len(), 72);
+        assert_eq!(ALL.len(), 76);
     }
 
     #[test]

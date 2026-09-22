@@ -2013,6 +2013,171 @@ fn uruguay_moves_three_holidays_to_the_adjacent_monday_and_keeps_the_rest() {
 }
 
 #[test]
+fn armenia_has_thirteen_non_working_days_and_a_citizens_day_that_dodges_24_april() {
+    expect(
+        "AM",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 2, "New Year's Day"),
+            (2026, 1, 6, "Christmas and Epiphany"),
+            (2026, 1, 27, "Day of Remembrance and Reverence"),
+            (2026, 1, 28, "Army Day"),
+            (2026, 3, 8, "Women's Day"),
+            (2026, 4, 24, "Armenian Genocide Remembrance Day"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 9, "Victory and Peace Day"),
+            (2026, 5, 28, "Republic Day"),
+            (2026, 7, 5, "Constitution Day"),
+            (2026, 9, 21, "Independence Day"),
+            (2026, 12, 31, "New Year's Eve"),
+        ],
+    );
+    expect_working("AM", None, &[(2025, 1, 27), (2026, 1, 7), (2026, 1, 3)]);
+    // Easter 2026 on 5 April: Vardanants on Thursday 5 February, Holy
+    // Etchmiadzin on Sunday 7 June; the Citizen's Day on Saturday 25 April
+    // 2026 and, the last Saturday of April 2021 being the 24th, on Sunday
+    // 25 April 2021.
+    for (year, month, day, name) in [
+        (2026, 2, 5, "Saint Vardanants Day"),
+        (2026, 6, 7, "Feast of Holy Etchmiadzin"),
+        (2026, 4, 25, "Day of the Citizen"),
+        (2021, 4, 25, "Day of the Citizen"),
+        (2026, 10, 10, "Holy Translators' Day"),
+    ] {
+        let calendar = HolidayCalendar::for_year(table("AM"), None, year);
+        let found: Vec<(&str, Kind)> = calendar
+            .on(ymd(year, month, day))
+            .iter()
+            .map(|holiday| (holiday.name, holiday.kind))
+            .collect();
+        assert_eq!(found, [(name, Kind::Observance)], "{year}-{month}-{day}");
+    }
+}
+
+#[test]
+fn azerbaijan_reproduces_the_march_2026_that_novruz_and_ramazan_shared() {
+    expect(
+        "AZ",
+        None,
+        &[
+            (2026, 1, 20, "National Mourning Day"),
+            (2026, 3, 20, "Novruz"),
+            (2026, 3, 24, "Novruz"),
+            (2026, 3, 20, "Ramazan Bayramı"),
+            (2026, 5, 27, "Qurban Bayramı"),
+            (2026, 5, 28, "Independence Day"),
+            (2026, 6, 15, "National Salvation Day"),
+            (2026, 6, 26, "Armed Forces Day"),
+            (2026, 11, 8, "Victory Day"),
+            (2026, 11, 9, "State Flag Day"),
+            (2026, 12, 31, "Solidarity Day of World Azerbaijanis"),
+            (2010, 11, 9, "State Flag Day"),
+            (2021, 11, 8, "Victory Day"),
+        ],
+    );
+    // 8 March 2026 was a Sunday; Novruz's Saturday and Sunday and the two
+    // Ramazan days that coincided with it gave 25, 26, 27 and 30 March.
+    expect_substitute("AZ", None, 2026, (3, 8), (3, 9));
+    let calendar = HolidayCalendar::for_year(table("AZ"), None, 2026);
+    for day in [25, 26, 27, 30] {
+        assert!(calendar.is_holiday(ymd(2026, 3, day)), "2026-03-{day}");
+    }
+    expect_working(
+        "AZ",
+        None,
+        &[
+            (2026, 3, 31),
+            (2026, 4, 1),
+            (2026, 10, 18),
+            (2026, 11, 12),
+            (2009, 11, 9),
+            (2020, 11, 8),
+        ],
+    );
+    let kinds: Vec<Kind> = calendar
+        .on(ymd(2026, 11, 17))
+        .iter()
+        .map(|holiday| holiday.kind)
+        .collect();
+    assert_eq!(kinds, [Kind::Observance]);
+}
+
+#[test]
+fn georgia_keeps_its_orthodox_easter_and_moves_nothing() {
+    // Orthodox Easter 2026 on 12 April.
+    expect(
+        "GE",
+        None,
+        &[
+            (2026, 1, 7, "Orthodox Christmas"),
+            (2026, 1, 19, "Orthodox Epiphany"),
+            (2026, 3, 3, "Mother's Day"),
+            (2026, 4, 9, "National Unity Day"),
+            (2026, 4, 10, "Good Friday"),
+            (2026, 4, 11, "Holy Saturday"),
+            (2026, 4, 12, "Easter Sunday"),
+            (2026, 4, 13, "Easter Monday"),
+            (2026, 5, 12, "Saint Andrew the First-Called Day"),
+            (2026, 5, 17, "Day of Family Purity and Respect for Parents"),
+            (2026, 5, 26, "Independence Day"),
+            (2026, 8, 28, "Dormition of the Mother of God"),
+            (2026, 10, 14, "Svetitskhovloba"),
+            (2026, 11, 23, "Saint George's Day"),
+        ],
+    );
+    // 2 January 2027 and 17 May 2026 fall on the weekend and stay there.
+    expect_working("GE", None, &[(2027, 1, 4), (2026, 5, 18)]);
+}
+
+#[test]
+fn kazakhstan_carries_every_amendment_by_its_year() {
+    expect(
+        "KZ",
+        None,
+        &[
+            (2026, 1, 7, "Orthodox Christmas"),
+            (2026, 3, 21, "Nauryz Meyramy"),
+            (2026, 3, 23, "Nauryz Meyramy"),
+            (2026, 5, 1, "Kazakhstan People's Unity Day"),
+            (2026, 5, 7, "Defender of the Fatherland Day"),
+            (2026, 7, 6, "Capital City Day"),
+            (2026, 10, 25, "Republic Day"),
+            (2026, 12, 16, "Independence Day"),
+            (2025, 8, 30, "Constitution Day"),
+            (2027, 3, 15, "Constitution Day"),
+            (2008, 3, 22, "Nauryz Meyramy"),
+            (2009, 3, 21, "Nauryz Meyramy"),
+            (2006, 1, 7, "Orthodox Christmas"),
+            (2012, 12, 1, "First President Day"),
+            (2021, 12, 17, "Independence Day"),
+            (2008, 10, 25, "Republic Day"),
+            (2022, 10, 25, "Republic Day"),
+            (2013, 5, 7, "Defender of the Fatherland Day"),
+        ],
+    );
+    expect_working(
+        "KZ",
+        None,
+        &[
+            (2026, 8, 31),
+            (2026, 3, 16),
+            (2008, 3, 21),
+            (2005, 1, 7),
+            (2022, 12, 1),
+            (2022, 12, 19),
+            (2009, 10, 25),
+            (2012, 5, 7),
+        ],
+    );
+    // 8 March, 21 and 22 March and 25 October 2026 fall on the weekend.
+    expect_substitute("KZ", None, 2026, (3, 8), (3, 9));
+    expect_substitute("KZ", None, 2026, (3, 21), (3, 24));
+    expect_substitute("KZ", None, 2026, (3, 22), (3, 25));
+    expect_substitute("KZ", None, 2026, (10, 25), (10, 26));
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",
