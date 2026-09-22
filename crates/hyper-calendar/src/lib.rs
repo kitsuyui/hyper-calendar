@@ -84,6 +84,8 @@ pub use hc_astro;
 pub use hc_attributes;
 #[cfg(feature = "equinox")]
 pub use hc_calendars_equinox;
+#[cfg(feature = "indic")]
+pub use hc_calendars_indic;
 #[cfg(feature = "lunar")]
 pub use hc_calendars_lunar;
 #[cfg(feature = "regional")]
@@ -174,6 +176,8 @@ pub fn registry() -> hc_calendar::CalendarRegistry {
     hc_calendars_lunar::register_all(&mut registry);
     #[cfg(feature = "equinox")]
     hc_calendars_equinox::register_all(&mut registry);
+    #[cfg(feature = "indic")]
+    hc_calendars_indic::register_all(&mut registry);
     #[cfg(feature = "regional")]
     hc_calendars_regional::register_all(&mut registry);
     registry

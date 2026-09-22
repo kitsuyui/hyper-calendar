@@ -711,6 +711,34 @@ const EN_CALENDARS: &[CalendarNames] = &[
     // the calendar's own. (The French Republican months and décade days,
     // which once sat beside these, are the calendar's own French and are
     // declared with its shape in `hc-calendars-solar`.)
+    // The Hindu lunisolar months, Chaitra first, in the English
+    // transliteration the Rashtriya Panchang's English edition uses; the
+    // calendar's own names are Devanagari, declared in `hc-calendars-indic`.
+    // An intercalary month is "Adhika Śrāvaṇa", so the prefix is "Adhika ".
+    CalendarNames {
+        calendars: &[CalendarId("hindu-lunar")],
+        cycles: &[months(&[
+            "Chaitra",
+            "Vaisakha",
+            "Jyaishtha",
+            "Ashadha",
+            "Sravana",
+            "Bhadra",
+            "Asvina",
+            "Kartika",
+            "Agrahayana",
+            "Pausha",
+            "Magha",
+            "Phalguna",
+        ])],
+        leap_month_prefix: "Adhika ",
+        eras: EraNames {
+            codes: &["saka"],
+            names: widths(&["Saka"], &[], &[]),
+            calendars: &[],
+        },
+        quarters: ContextualNames::EMPTY,
+    },
     CalendarNames {
         calendars: &[
             CalendarId("bahai-arithmetic"),
