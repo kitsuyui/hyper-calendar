@@ -16,6 +16,7 @@
 //! | [`balinese_pawukon`] | `balinese-pawukon` — thirty *wuku* and ten concurrent week cycles over 210 days |
 //! | [`javanese_pasaran`] | `javanese-pasaran` — the five-day market week and the 35-day wetonan |
 //! | [`akan`] | `akan` — the Akan six-day week and the 42-day Adaduanan it makes with the seven-day one |
+//! | [`korean_regnal`] | `korean-regnal` — the three eras of the Korean Empire, 建陽, 光武 and 隆熙, on the Gregorian days of 1896–1910 |
 //! | [`sexagenary`] | `sexagenary` — 干支 over years, months and days |
 //!
 //! # Cyclic calendars and the round-trip contract
@@ -75,6 +76,7 @@ pub mod aztec;
 pub mod balinese_pawukon;
 pub mod japanese;
 pub mod javanese_pasaran;
+pub mod korean_regnal;
 pub mod maya;
 pub mod nengo;
 pub mod sexagenary;
@@ -87,6 +89,7 @@ pub use aztec::{
 pub use balinese_pawukon::{BalinesePawukonCalendar, PawukonDate};
 pub use japanese::{JapaneseCalendar, JapaneseDate};
 pub use javanese_pasaran::{JavanesePasaranCalendar, WetonDate};
+pub use korean_regnal::{KoreanEra, KoreanRegnalCalendar, KoreanRegnalDate};
 pub use maya::{
     MayaCalendarRoundCalendar, MayaCalendarRoundDate, MayaHaabCalendar, MayaHaabDate,
     MayaLongCountCalendar, MayaLongCountDate, MayaTzolkinCalendar, MayaTzolkinDate,
@@ -133,6 +136,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::BalinesePawukonCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::JavanesePasaranCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::AkanCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::KoreanRegnalCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::SexagenaryCalendar)));
     }
 }
@@ -142,7 +146,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 15;
+const CALENDAR_COUNT: usize = 16;
 
 #[cfg(test)]
 mod tests {
@@ -207,6 +211,7 @@ mod tests {
                 BalinesePawukonCalendar,
                 JavanesePasaranCalendar,
                 AkanCalendar,
+                KoreanRegnalCalendar,
                 SexagenaryCalendar,
             );
         }
@@ -356,7 +361,16 @@ mod tests {
 
         let rd = gregorian::to_fixed(2026, 9, 21).expect("in range");
         let rendered = registry.describe_day(rd);
-        assert_eq!(rendered.len(), registry.len());
+        // Every calendar that claims the day renders it; the one that does
+        // not claim it is the Korean Empire's, kept only from 1896 to 1910.
+        let supporting = registry.metas().filter(|meta| meta.supports(rd)).count();
+        assert_eq!(rendered.len(), supporting);
+        let unsupporting: Vec<&str> = registry
+            .metas()
+            .filter(|meta| !meta.supports(rd))
+            .map(|meta| meta.id.0)
+            .collect();
+        assert_eq!(unsupporting, ["korean-regnal"]);
 
         let japanese = registry
             .get(CalendarId("japanese"))
