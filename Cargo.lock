@@ -129,6 +129,7 @@ dependencies = [
  "hc-calendars-equinox",
  "hc-calendars-indic",
  "hc-calendars-lunar",
+ "hc-calendars-regional",
  "hc-calendars-solar",
  "hc-core",
  "hc-seasons",
