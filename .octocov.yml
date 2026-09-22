@@ -28,7 +28,16 @@ testExecutionTime:
   # sweep now targets the seams instead and takes thirteen seconds rather than
   # six minutes, so the ceiling comes back down. Raising a limit to fit a test
   # that should not have been that slow is the wrong way round.
-  acceptable: 15min
+  #
+  # Thirty minutes since September 2026, after that check was made and nothing
+  # had grown. The plain `Test` job held between five and six and a half
+  # minutes across twenty consecutive runs, while the instrumented time of the
+  # same suite ranged from eight to twenty-three — one commit measured ten
+  # minutes on one runner and twenty-two on another — and crossed fifteen on
+  # three pull requests in a row. The limit sat inside a shared runner's
+  # variance, so it now sits above it, and the job's own `timeout-minutes`
+  # is the guard against a hang.
+  acceptable: 30min
 diff:
   datastores:
     - artifact://${GITHUB_REPOSITORY}
