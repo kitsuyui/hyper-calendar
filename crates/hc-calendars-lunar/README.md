@@ -18,6 +18,7 @@ others exist.
 | `islamic_umalqura` | `islamic-umalqura` | published table | **1300–1600 AH only** |
 | `islamic_observational` | `islamic-rgsa` | prediction | 1900–2100 CE |
 | `hebrew` | `hebrew` | arithmetic | AM 1–9999 |
+| `tibetan` | `tibetan` | arithmetic (Phugpa) | 1000–3000 |
 | `chinese` | `chinese` | astronomical | 1645–2150 CE |
 | `dangi` | `dangi` | astronomical | 1645–2150 CE |
 | `vietnamese` | `vietnamese` | astronomical | 1645–2150 CE |

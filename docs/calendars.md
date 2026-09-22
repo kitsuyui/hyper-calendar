@@ -89,7 +89,7 @@ These need the astronomical engine, so they live behind the `lunar` feature.
 | Japanese lunisolar (Hōryaku, 1755–1798) | `japanese-horyaku` | `hc-calendars-lunar` | Done |
 | Japanese lunisolar (Jōkyō, 1685–1755) | `japanese-jokyo` | `hc-calendars-lunar` | Done |
 | Japanese lunisolar (Senmyō, 862–1685) | `japanese-senmyo` | `hc-calendars-lunar` | Done |
-| Tibetan (Phugpa) | `tibetan` | `hc-calendars-lunar` | Planned |
+| Tibetan (Phugpa) | `tibetan` | `hc-calendars-lunar` | Done — Janson's statement of the Phugpa arithmetic with exact rational constants, skipped and extra days, the sixty-year names; the Tsurphu and other traditions not carried |
 | Hindu lunisolar, amānta | `hindu-lunar` | `hc-calendars-indic` | Done — true Sun and Moon, Lahiri ayanamsa, the day read at the Central Station's sunrise as the *Rashtriya Panchang* does; tested against two years of its month tables |
 | Hindu lunisolar, pūrṇimānta | `hindu-lunar-purnimanta` | `hc-calendars-indic` | Done — the amānta tithis under the north's month names, the intercalary month inserted whole, as the *Rashtriya Panchang*'s vadi column labels them |
 | Hindu solar, Tamil | `hindu-solar-tamil` | `hc-calendars-indic` | Done — the month begins on the saṅkrānti's day unless it fell after sunset; the *Rashtriya Panchang*'s regional tables for 2023–2025 |
