@@ -2360,6 +2360,206 @@ fn serbia_moves_state_holidays_off_sunday_and_leaves_the_church_days_alone() {
 }
 
 #[test]
+fn costa_rica_kept_the_mondays_ley_9875_named_and_no_others() {
+    expect(
+        "CR",
+        None,
+        &[
+            (2026, 4, 2, "Maundy Thursday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 11, "Juan Santamaría Day"),
+            (2026, 7, 25, "Annexation of the Party of Nicoya"),
+            (2026, 8, 2, "Feast of Our Lady of the Angels"),
+            (2026, 8, 15, "Mother's Day"),
+            (
+                2026,
+                8,
+                31,
+                "Day of the Black Person and Afro-Costa Rican Culture",
+            ),
+            (2026, 9, 15, "Independence Day"),
+            (2026, 12, 1, "Army Abolition Day"),
+            // The provision's Mondays.
+            (2020, 7, 27, "Annexation of the Party of Nicoya"),
+            (2020, 8, 17, "Mother's Day"),
+            (2020, 9, 14, "Independence Day"),
+            (2020, 11, 30, "Army Abolition Day"),
+            (2021, 5, 3, "Labour Day"),
+            (2021, 7, 26, "Annexation of the Party of Nicoya"),
+            (2021, 9, 13, "Independence Day"),
+            (2021, 11, 29, "Army Abolition Day"),
+            (2022, 9, 19, "Independence Day"),
+            (2022, 12, 5, "Army Abolition Day"),
+            (2023, 4, 10, "Juan Santamaría Day"),
+            (2023, 7, 24, "Annexation of the Party of Nicoya"),
+            (2023, 8, 14, "Mother's Day"),
+            (2024, 4, 15, "Juan Santamaría Day"),
+            (2024, 7, 29, "Annexation of the Party of Nicoya"),
+            (2024, 8, 15, "Mother's Day"),
+            (2019, 10, 12, "Day of the Cultures"),
+            (
+                2022,
+                8,
+                31,
+                "Day of the Black Person and Afro-Costa Rican Culture",
+            ),
+        ],
+    );
+    expect_working(
+        "CR",
+        None,
+        &[
+            (2020, 9, 15),
+            (2023, 4, 11),
+            (2024, 4, 11),
+            (2024, 8, 12),
+            (2020, 10, 12),
+            (2019, 12, 2),
+            (2021, 8, 31),
+            (2026, 9, 14),
+        ],
+    );
+}
+
+#[test]
+fn dominican_republic_moves_by_ley_139_97_and_keeps_restoration_day_in_inauguration_years() {
+    expect(
+        "DO",
+        None,
+        &[
+            (2026, 1, 5, "Epiphany"),
+            (2026, 1, 21, "Our Lady of Altagracia"),
+            (2026, 1, 26, "Duarte Day"),
+            (2026, 2, 27, "Independence Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 5, 4, "Labour Day"),
+            (2026, 6, 4, "Corpus Christi"),
+            (2026, 8, 16, "Restoration Day"),
+            (2026, 9, 24, "Our Lady of Mercy"),
+            (2026, 11, 9, "Constitution Day"),
+            (2026, 12, 25, "Christmas Day"),
+            // 2024 as the Ministry listed it, a Friday 16 August that opened a
+            // constitutional period staying put; 2023's Wednesday moved.
+            (2024, 1, 29, "Duarte Day"),
+            (2024, 4, 29, "Labour Day"),
+            (2024, 8, 16, "Restoration Day"),
+            (2024, 11, 4, "Constitution Day"),
+            (2023, 8, 14, "Restoration Day"),
+            // A Sunday 1 May gives the Monday; before the law the dates were fixed.
+            (2022, 5, 2, "Labour Day"),
+            (1996, 5, 1, "Labour Day"),
+        ],
+    );
+    expect_working(
+        "DO",
+        None,
+        &[
+            (2026, 1, 6),
+            (2026, 5, 1),
+            (2026, 11, 6),
+            (2024, 8, 19),
+            (2023, 8, 16),
+            (1996, 4, 29),
+            (2022, 5, 1),
+        ],
+    );
+}
+
+#[test]
+fn guatemala_moves_army_day_to_a_monday_and_moved_two_more_only_until_the_court_ruled() {
+    expect(
+        "GT",
+        None,
+        &[
+            (2026, 4, 2, "Maundy Thursday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 4, "Holy Saturday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 6, 29, "Army Day"),
+            (2026, 9, 15, "Independence Day"),
+            (2026, 10, 20, "Revolution Day"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 12, 24, "Christmas Eve"),
+            (2026, 12, 31, "New Year's Eve"),
+            (2019, 4, 29, "Labour Day"),
+            (2019, 7, 1, "Army Day"),
+            (2019, 10, 21, "Revolution Day"),
+            (2018, 10, 22, "Revolution Day"),
+            (2021, 6, 28, "Army Day"),
+            (2018, 6, 30, "Army Day"),
+        ],
+    );
+    expect("GT", Some("GT-GU"), &[(2026, 8, 15, "Assumption Day")]);
+    expect_working(
+        "GT",
+        None,
+        &[
+            (2026, 6, 30),
+            (2018, 7, 2),
+            (2020, 4, 27),
+            (2026, 8, 15),
+            (2026, 8, 17),
+        ],
+    );
+    let calendar = HolidayCalendar::for_year(table("GT"), None, 2026);
+    let kinds: Vec<Kind> = calendar
+        .on(ymd(2026, 12, 24))
+        .iter()
+        .map(|holiday| holiday.kind)
+        .collect();
+    assert_eq!(kinds, [Kind::Bank]);
+}
+
+#[test]
+fn panama_moves_two_holidays_by_ley_70_and_the_rest_off_sunday_only() {
+    expect(
+        "PA",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 12, "Martyrs' Day"),
+            (2026, 2, 17, "Carnival Tuesday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 11, 3, "Separation Day"),
+            (2026, 11, 5, "Colón Day"),
+            (2026, 11, 10, "First Cry of Independence"),
+            (2026, 11, 28, "Independence Day"),
+            (2026, 12, 8, "Mother's Day"),
+            (2026, 12, 20, "National Mourning Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2025, 1, 13, "Martyrs' Day"),
+            (2025, 12, 1, "Independence Day"),
+            (2024, 1, 8, "Martyrs' Day"),
+            (2024, 12, 2, "Independence Day"),
+            (2007, 1, 9, "Martyrs' Day"),
+        ],
+    );
+    // Sundays: 20 December 2026, 3 November 2024, 1 May 2022.
+    expect_substitute("PA", None, 2026, (12, 20), (12, 21));
+    expect_substitute("PA", None, 2024, (11, 3), (11, 4));
+    expect_substitute("PA", None, 2022, (5, 1), (5, 2));
+    expect_working(
+        "PA",
+        None,
+        &[
+            (2026, 1, 9),
+            (2025, 11, 28),
+            (2021, 12, 20),
+            (2026, 11, 4),
+            (2026, 11, 30),
+        ],
+    );
+    let calendar = HolidayCalendar::for_year(table("PA"), None, 2026);
+    let kinds: Vec<Kind> = calendar
+        .on(ymd(2026, 11, 4))
+        .iter()
+        .map(|holiday| holiday.kind)
+        .collect();
+    assert_eq!(kinds, [Kind::Observance]);
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",

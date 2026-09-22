@@ -26,6 +26,9 @@ Arica = "Arica"
 Protestantes = "Protestantes"
 # Spanish "Registro Oficial", Ecuador's official gazette.
 Oficial = "Oficial"
+# Spanish "Día Internacional del Trabajo" and "Símbolos Patrios".
+Internacional = "Internacional"
+Patrios = "Patrios"
 # Fo, the first day of the Akan six-day week.
 Fo = "Fo"
 # German and Dutch month names.
