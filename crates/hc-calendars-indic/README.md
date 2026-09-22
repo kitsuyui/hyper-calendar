@@ -17,6 +17,8 @@ the Government of India's *Rashtriya Panchang* computes it.
 | | `hindu-solar-vikrami` | the same months from Vaiśākha; the month begins on the sunrise-to-sunrise day of the saṅkrānti; Vikrama Saṃvat — Punjab, Odisha, and the Nepali reckoning | |
 | `tithi` | — | the lunar day: which tithi is in progress at a moment, and which a civil day carries | |
 | `nakshatra` | — | the Moon's station among the twenty-seven: which is in progress at a moment, and when the Moon enters and leaves one | |
+| `hindu_old` | `hindu-old-solar` | the *Ārya Siddhānta*'s mean Sun: twelve months of a twelfth of a 365.258 68-day year, named for the signs; Kali Yuga years | Kali Yuga 0–10000 |
+| | `hindu-old-lunar` | its mean Moon: 29.530 58-day months named for the solar month that begins within them, the intercalary one being the month no solar month begins in, thirty mean tithis a month; Kali Yuga years | Kali Yuga 0–10000 |
 | `places` | — | the Central Station of the national calendar (82°30′ E), Ujjain, New Delhi | |
 
 The calendar is judged at a place — a tithi that ends within an hour of
@@ -37,6 +39,16 @@ festival dates it lists where those are the tithi at sunrise — and, for
 the solar reckonings, its "Regional Calendars" tables: the first day of
 every month of every reckoning for both years, ninety-six dates, from
 which the four rules were read rather than assumed.
+
+The two Old Hindu calendars have no such table — the *Panchang* tabulates
+the true calendars, not the mean ones they replaced — so they are held to
+what an arithmetic calendar must do instead: every one of the 3 652 952
+days in their range converts and converts back, months and years have the
+lengths the mean motions allow, an intercalary month falls seven years in
+nineteen and precedes the month it is named for, both calendars place the
+Kali Yuga epoch on the same day as the sources, and the mean months of
+2024–2025 are checked against the true ones above, which they run within
+two days of.
 
 ## What is not here yet
 

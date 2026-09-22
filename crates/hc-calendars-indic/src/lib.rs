@@ -18,6 +18,9 @@
 //!   moment, and which a civil day carries.
 //! * [`nakshatra`] — the Moon's station among the twenty-seven: which is
 //!   in progress at a moment, and when the Moon enters and leaves one.
+//! * [`hindu_old`] — the mean-motion solar and lunisolar calendars of the
+//!   *Ārya Siddhānta*, counted in the Kali Yuga: the arithmetic the true
+//!   calendars replaced. `hindu-old-solar`, `hindu-old-lunar`.
 //! * [`places`] — the sunrise that reads the day: the Central Station of
 //!   the national calendar, Ujjain of the classical almanacs, New Delhi.
 //!
@@ -47,6 +50,7 @@
 extern crate alloc;
 
 pub mod hindu_lunar;
+pub mod hindu_old;
 pub mod hindu_purnimanta;
 pub mod hindu_solar;
 pub mod nakshatra;
@@ -54,6 +58,9 @@ pub mod places;
 pub mod tithi;
 
 pub use hindu_lunar::{HinduLunarCalendar, HinduLunarDate};
+pub use hindu_old::{
+    OldHinduLunarCalendar, OldHinduLunarDate, OldHinduSolarCalendar, OldHinduSolarDate,
+};
 pub use hindu_purnimanta::HinduPurnimantaCalendar;
 pub use hindu_solar::{HinduSolarCalendar, HinduSolarDate, SankrantiRule};
 pub use tithi::{Paksha, Prevalence};
@@ -79,6 +86,8 @@ mod registration {
         for calendar in crate::hindu_solar::ALL {
             registry.insert(Box::new(DynAdapter::new(*calendar)));
         }
+        registry.insert(Box::new(DynAdapter::new(crate::OldHinduSolarCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::OldHinduLunarCalendar)));
     }
 }
 
@@ -92,20 +101,42 @@ mod tests {
     use super::*;
 
     /// The number of calendars this crate registers.
-    const CALENDAR_COUNT: usize = 6;
+    const CALENDAR_COUNT: usize = 8;
 
-    #[test]
-    fn every_calendar_here_is_astronomical_and_bounded() {
+    /// Every calendar the crate registers, so that neither list can drift
+    /// from the registry unnoticed.
+    #[cfg(feature = "alloc")]
+    fn all_metas() -> alloc::vec::Vec<hc_calendar::CalendarMeta> {
         let mut metas = alloc::vec![
             HinduLunarCalendar::RASHTRIYA.meta(),
             HinduPurnimantaCalendar::RASHTRIYA.meta(),
+            OldHinduSolarCalendar.meta(),
+            OldHinduLunarCalendar.meta(),
         ];
         metas.extend(crate::hindu_solar::ALL.iter().map(Calendar::meta));
+        metas
+    }
+
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn every_registered_calendar_is_bounded() {
+        let metas = all_metas();
+        assert_eq!(metas.len(), CALENDAR_COUNT);
         for meta in metas {
-            assert!(meta.is_astronomical, "{}", meta.id);
             let first = meta.earliest.expect("bounded below");
             let last = meta.latest.expect("bounded above");
             assert!(first < last, "{} has an empty range", meta.id);
+        }
+    }
+
+    /// The true calendars read the Sun and Moon; the two Old Hindu ones
+    /// are arithmetic, which is the whole difference between them.
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn only_the_mean_calendars_are_arithmetic() {
+        for meta in all_metas() {
+            let mean = meta.id.0.starts_with("hindu-old");
+            assert_eq!(meta.is_astronomical, !mean, "{}", meta.id);
         }
     }
 
@@ -123,6 +154,8 @@ mod tests {
         assert!(registry.get_by_name("hindu-solar-malayalam").is_some());
         assert!(registry.get_by_name("hindu-solar-bengali").is_some());
         assert!(registry.get_by_name("hindu-solar-vikrami").is_some());
+        assert!(registry.get_by_name("hindu-old-solar").is_some());
+        assert!(registry.get_by_name("hindu-old-lunar").is_some());
         register_all(&mut registry);
         assert_eq!(registry.len(), CALENDAR_COUNT);
     }

@@ -801,6 +801,37 @@ const EN_CALENDARS: &[CalendarNames] = &[
         },
         quarters: ContextualNames::EMPTY,
     },
+    // The Old Hindu lunisolar calendar's months are those same twelve, and
+    // its intercalary month is likewise "Adhika X"; it declares none of its
+    // own, because the mean-motion calendar is arithmetic and its months are
+    // named for the solar month that begins within them. The Old Hindu solar
+    // calendar is not here: its months are the sidereal signs, and it
+    // declares their Sanskrit names with its shape. Both count in the Kali
+    // Yuga, so the era serves the two of them.
+    CalendarNames {
+        calendars: &[CalendarId("hindu-old-lunar")],
+        cycles: &[months(&[
+            "Chaitra",
+            "Vaisakha",
+            "Jyaishtha",
+            "Ashadha",
+            "Sravana",
+            "Bhadra",
+            "Asvina",
+            "Kartika",
+            "Agrahayana",
+            "Pausha",
+            "Magha",
+            "Phalguna",
+        ])],
+        leap_month_prefix: "Adhika ",
+        eras: EraNames {
+            codes: &["kali-yuga"],
+            names: widths(&["Kali Yuga"], &[], &[]),
+            calendars: &[CalendarId("hindu-old-lunar"), CalendarId("hindu-old-solar")],
+        },
+        quarters: ContextualNames::EMPTY,
+    },
     CalendarNames {
         calendars: &[
             CalendarId("bahai-arithmetic"),
