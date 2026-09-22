@@ -3794,6 +3794,147 @@ fn haiti_has_the_constitutions_five_days_and_the_decrees_of_1989_and_2024() {
 }
 
 #[test]
+fn oman_compensates_weekend_days_as_the_2022_decree_says() {
+    expect(
+        "OM",
+        None,
+        &[
+            (2026, 1, 11, "Accession Day"),
+            // A Friday Isra and Mi'raj compensated on the Sunday.
+            (2026, 1, 16, "Isra and Mi'raj"),
+            (2026, 1, 18, "Isra and Mi'raj"),
+            (2026, 3, 18, "Eid al-Fitr"),
+            (2026, 3, 22, "Eid al-Fitr"),
+            (2026, 5, 26, "Eid al-Adha"),
+            (2026, 5, 29, "Eid al-Adha"),
+            (2026, 6, 17, "Islamic New Year"),
+            (2026, 8, 26, "Prophet's Birthday"),
+            // 2026's National Day falls on the weekend: one day, the Sunday.
+            (2026, 11, 20, "National Day"),
+            (2026, 11, 21, "National Day"),
+            (2026, 11, 22, "National Day"),
+            // 2025: a Saturday Accession Day, a Friday-starting Eid al-Adha
+            // with its compensation after the four days, a Friday 21 November.
+            (2025, 1, 12, "Accession Day"),
+            (2025, 6, 6, "Eid al-Adha"),
+            (2025, 6, 10, "Eid Compensation Day"),
+            (2025, 11, 23, "National Day"),
+            (2021, 1, 11, "Accession Day"),
+            (2021, 11, 19, "National Day"),
+            (2021, 11, 21, "National Day"),
+            (2019, 7, 23, "Renaissance Day"),
+            (2019, 11, 18, "National Day"),
+        ],
+    );
+    expect_working(
+        "OM",
+        None,
+        &[
+            (2026, 11, 23),
+            (2026, 3, 23),
+            (2025, 1, 13),
+            (2020, 7, 23),
+            (2020, 1, 11),
+            (2019, 11, 19),
+        ],
+    );
+    expect_substitute("OM", None, 2026, (1, 16), (1, 18));
+    expect_substitute("OM", None, 2025, (1, 11), (1, 12));
+}
+
+#[test]
+fn qatar_keeps_the_two_eid_spans_of_the_2025_decision_and_the_bank_days() {
+    expect(
+        "QA",
+        None,
+        &[
+            (2026, 2, 10, "National Sport Day"),
+            (2026, 3, 17, "Eid al-Fitr"),
+            (2026, 3, 23, "Eid al-Fitr"),
+            (2026, 5, 26, "Eid al-Adha"),
+            (2026, 5, 30, "Eid al-Adha"),
+            (2026, 12, 18, "National Day"),
+            (2025, 2, 11, "National Sport Day"),
+            (2025, 3, 28, "Eid al-Fitr"),
+            (2025, 4, 3, "Eid al-Fitr"),
+            (2025, 6, 6, "Eid al-Adha"),
+            (2025, 6, 10, "Eid al-Adha"),
+            (2012, 2, 14, "National Sport Day"),
+            (2007, 12, 18, "National Day"),
+        ],
+    );
+    expect_working(
+        "QA",
+        None,
+        &[(2026, 3, 24), (2026, 5, 31), (2011, 2, 8), (2006, 12, 18)],
+    );
+    let calendar = HolidayCalendar::for_year(table("QA"), None, 2026);
+    let banks: Vec<(&str, Kind)> = [ymd(2026, 1, 1), ymd(2026, 3, 1)]
+        .iter()
+        .flat_map(|day| calendar.on(*day))
+        .map(|holiday| (holiday.name, holiday.kind))
+        .collect();
+    assert_eq!(
+        banks,
+        [("Bank Holiday", Kind::Bank), ("Bank Day", Kind::Bank)]
+    );
+}
+
+#[test]
+fn iraq_follows_law_12_of_2024_with_its_community_days_religious() {
+    expect(
+        "IQ",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 6, "Army Day"),
+            (2026, 3, 16, "Remembrance of the Ba'ath Crimes"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 3, 21, "Nowruz"),
+            (2026, 3, 22, "Eid al-Fitr"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 5, 30, "Eid al-Adha"),
+            (2026, 6, 4, "Eid al-Ghadir"),
+            (2026, 6, 17, "Islamic New Year"),
+            (2026, 6, 26, "Ashura"),
+            (2026, 8, 26, "Prophet's Birthday"),
+            (2023, 12, 25, "Christmas Day"),
+            (2020, 12, 25, "Christmas Day"),
+        ],
+    );
+    // Christmas is the Christians' day from 2024, and Ghadir and 16 March
+    // did not exist before the law.
+    expect_working(
+        "IQ",
+        None,
+        &[(2026, 12, 25), (2023, 3, 16), (2023, 7, 16), (2019, 12, 25)],
+    );
+    let calendar = HolidayCalendar::for_year(table("IQ"), None, 2025);
+    let community: Vec<(&str, Kind)> = [
+        ymd(2025, 4, 16),
+        ymd(2025, 4, 20),
+        ymd(2025, 10, 6),
+        ymd(2025, 12, 19),
+        ymd(2025, 12, 25),
+    ]
+    .iter()
+    .flat_map(|day| calendar.on(*day))
+    .map(|holiday| (holiday.name, holiday.kind))
+    .collect();
+    assert_eq!(
+        community,
+        [
+            ("Yazidi New Year", Kind::Religious),
+            ("Easter Sunday", Kind::Religious),
+            ("Feast of the Assembly", Kind::Religious),
+            ("Yazidi Feast of the Fast", Kind::Religious),
+            ("Christmas Day", Kind::Religious),
+        ]
+    );
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",
