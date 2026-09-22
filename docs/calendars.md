@@ -51,6 +51,7 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | Zoroastrian (Qadimi / Shahanshahi / Fasli) | `zoroastrian-qadimi`, `zoroastrian-shahanshahi`, `zoroastrian-fasli` | `hc-calendars-solar` | Done — the two wandering years from the Yazdegerdi epoch, thirty days apart since the Parsi intercalation of the 1120s, and the Fasli on 21 March with the Gregorian leap day; the Iranian *Bastani* observance is `persian` |
 | Solar Hijri (Persian), arithmetic | `persian-arithmetic` | `hc-calendars-solar` | Done — Birashk's 2 820-year cycle; the astronomical calendar is `persian`, stage 3 |
 | Indian national civil (Śaka) | `indian` | `hc-calendars-solar` | Done |
+| Discordian | `discordian` | `hc-calendars-solar` | Done — the five seasons, the Erisian week and St. Tib's Day of the *Principia Discordia*, on the Gregorian leap rule; the eleven named holydays |
 | Nanakshahi (Sikh, 2003) | `nanakshahi` | `hc-calendars-solar` | Done — the 2003 calendar of fixed Gregorian month starts, year 1 in 1469; the SGPC's 2010 and 2014 revisions are the Bikrami calendar under the same name and are `hindu-solar-vikrami` and `hindu-lunar` |
 | Thai solar (Buddhist Era) | `buddhist` | `hc-calendars-solar` | Partial — the 1889–1940 April year start is not modelled |
 | Minguo (Republic of China) | `roc` | `hc-calendars-solar` | Done |
@@ -142,7 +143,6 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Ancient Roman pre-Julian | `roman-republican` | `hc-calendars-regional` | Researching — intercalation was discretionary |
 | Celtic Coligny | `coligny` | `hc-calendars-regional` | Researching — reconstruction |
 | Inca | `inca` | `hc-calendars-regional` | Researching — no surviving written record |
-| Discordian | `discordian` | `hc-calendars-regional` | Planned |
 
 The sexagenary cycle covers the year, month, day and hour pillars, the twelve
 double-hours (十二時辰) beginning at 23:00, and the 五虎遁 and 五鼠遁 rules
