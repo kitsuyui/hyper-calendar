@@ -48,6 +48,7 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | Ancient Egyptian wandering year | `egyptian` | `hc-calendars-solar` | Done |
 | Armenian (wandering) | `armenian` | `hc-calendars-solar` | Done |
 | Armenian (fixed, Sarkawag 1084) | `armenian-fixed` | `hc-calendars-solar` | Done |
+| Zoroastrian (Qadimi / Shahanshahi / Fasli) | `zoroastrian-qadimi`, `zoroastrian-shahanshahi`, `zoroastrian-fasli` | `hc-calendars-solar` | Done — the two wandering years from the Yazdegerdi epoch, thirty days apart since the Parsi intercalation of the 1120s, and the Fasli on 21 March with the Gregorian leap day; the Iranian *Bastani* observance is `persian` |
 | Solar Hijri (Persian), arithmetic | `persian-arithmetic` | `hc-calendars-solar` | Done — Birashk's 2 820-year cycle; the astronomical calendar is `persian`, stage 3 |
 | Indian national civil (Śaka) | `indian` | `hc-calendars-solar` | Done |
 | Thai solar (Buddhist Era) | `buddhist` | `hc-calendars-solar` | Partial — the 1889–1940 April year start is not modelled |
@@ -134,7 +135,6 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Nepal Sambat | `nepal-sambat` | `hc-calendars-regional` | Planned |
 | Burmese | `burmese` | `hc-calendars-regional` | Planned |
 | Thai lunar (Chulasakarat) | `thai-lunar` | `hc-calendars-regional` | Planned |
-| Zoroastrian (Qadimi / Shahanshahi / Fasli) | `zoroastrian` | `hc-calendars-regional` | Planned |
 | Rumi (late Ottoman fiscal) | `rumi` | `hc-calendars-regional` | Planned |
 | Attic (Athenian) | `attic` | `hc-calendars-regional` | Researching — reconstruction, sources conflict |
 | Babylonian | `babylonian` | `hc-calendars-regional` | Researching — regnal anchoring is uncertain |

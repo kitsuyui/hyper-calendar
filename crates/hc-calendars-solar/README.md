@@ -27,6 +27,7 @@ file does not:
 | `egyptian` | Ancient Egyptian wandering year | `egyptian` |
 | `armenian` | Ancient Armenian | `armenian` |
 | `armenian_fixed` | Armenian (fixed, Sarkawag 1084) | `armenian-fixed` |
+| `zoroastrian` | Zoroastrian: the Qadimi and Shahanshahi wandering years, and the Fasli with its leap day | `zoroastrian-qadimi`, `zoroastrian-shahanshahi`, `zoroastrian-fasli` |
 | `persian` | Solar Hijri, **arithmetic** variant | `persian-arithmetic` |
 | `indian` | Indian national civil (Śaka) | `indian` |
 | `buddhist` | Thai solar | `buddhist` |
