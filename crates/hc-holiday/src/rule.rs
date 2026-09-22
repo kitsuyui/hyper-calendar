@@ -11,9 +11,11 @@
 //! [`Rule::Offset`] and [`Rule::Tabulated`].
 
 use hc_calendar::Calendar as _;
+use hc_calendar::fixed::Moment;
 use hc_calendar::{CalendarId, Month, Rd, Weekday};
 use hc_calendars_equinox::persian as solar_hijri;
-use hc_calendars_indic::tithi::{TITHIS_PER_MONTH, tithi_of_day};
+use hc_calendars_indic::nakshatra::nakshatra_span;
+use hc_calendars_indic::tithi::{DEGREES_PER_TITHI, TITHIS_PER_MONTH, tithi_of_day};
 use hc_calendars_indic::{HinduLunarCalendar, Prevalence, hindu_lunar};
 use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
@@ -23,6 +25,7 @@ use hc_calendars_regional::burmese;
 use hc_calendars_solar::{
     bahai_kept, coptic, ethiopic, gregorian, julian, nanakshahi, persian, zoroastrian,
 };
+use hc_core::math::normalize_degrees;
 use hc_seasons::solar_terms::term_day;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 use hc_seasons::{Meridian, SolarTerm};
@@ -647,6 +650,33 @@ pub enum Rule {
         /// The meridian whose local midnight cuts the day.
         meridian: Meridian,
     },
+    /// A nakṣatra in a solar month: the civil day at the meridian that holds
+    /// the greater part of the Moon's stay in the nakṣatra while the Sun is
+    /// in the sign. The Moon returns to a nakṣatra every 27.3 days and the
+    /// Sun stays in a sign for 29 to 32, so a month can hold two stays;
+    /// then `with_tithi` names the tithi the wanted stay lies nearest — the
+    /// full-moon tithi for Thaipusam, so that of two Puṣyas the one at the
+    /// full moon is taken — judged by the Moon's elongation from the Sun
+    /// at the middle of each stay. With no tithi named, the first stay.
+    ///
+    /// The almanacs state such a festival as a nakṣatra in a month and no
+    /// more; this reading of the day reproduces the dates Malaysia and
+    /// Mauritius gazetted for Thaipusam from 2020 to 2026. See
+    /// [`crate::hindu::THAIPUSAM`].
+    Nakshatra {
+        /// The nakṣatra, 1 for Aśvinī through 27 for Revatī, as
+        /// [`hc_calendars_indic::nakshatra`] numbers them.
+        nakshatra: u8,
+        /// The sidereal sign the Sun must be in: the solar month.
+        sign: SiderealSign,
+        /// The tithi the stay must lie nearest, which picks between two
+        /// stays in the month.
+        with_tithi: Option<u8>,
+        /// The ayanamsa that fixes the sidereal zero point.
+        ayanamsa: Ayanamsa,
+        /// The meridian whose local midnight cuts the day.
+        meridian: Meridian,
+    },
     /// The genuine handful that resist everything else — a one-off statute,
     /// a rule stated as a sentence and not as a pattern.
     ///
@@ -844,6 +874,13 @@ impl Rule {
             } => Days::one(hc_seasons::zodiac::sidereal::ingress_day(
                 year, *sign, *ayanamsa, *meridian,
             )),
+            Self::Nakshatra {
+                nakshatra,
+                sign,
+                with_tithi,
+                ayanamsa,
+                meridian,
+            } => nakshatra_days(year, *nakshatra, *sign, *with_tithi, *ayanamsa, *meridian),
             Self::EasterRelative { computus, offset } => easter(*computus, year)
                 .map_or_else(Days::new, |day| Days::one(Rd(day.0 + i64::from(*offset)))),
             Self::LunarPhase {
@@ -1038,6 +1075,69 @@ fn tithi_days(
         }
     }
     out
+}
+
+/// The day of a nakṣatra in a solar month: see [`Rule::Nakshatra`].
+fn nakshatra_days(
+    year: i64,
+    nakshatra: u8,
+    sign: SiderealSign,
+    with_tithi: Option<u8>,
+    ayanamsa: Ayanamsa,
+    meridian: Meridian,
+) -> Days {
+    use hc_seasons::zodiac::sidereal::{ingress_after, ingress_moment};
+    let start = ingress_moment(year, sign, ayanamsa);
+    let following = SiderealSign::from_index((sign.index() + 1) % 12).unwrap_or(sign);
+    let end = ingress_after(following, ayanamsa, Moment(start.0 + 1.0));
+    // The Moon's stays in the nakṣatra that fall in the month, clipped to
+    // it: one, or two.
+    let mut stays: [Option<(Moment, Moment)>; 2] = [None, None];
+    let mut cursor = start;
+    for slot in &mut stays {
+        let (entry, exit) = nakshatra_span(nakshatra, cursor, ayanamsa);
+        if entry.0 >= end.0 {
+            break;
+        }
+        *slot = Some((Moment(entry.0.max(start.0)), Moment(exit.0.min(end.0))));
+        cursor = Moment(exit.0 + 0.5);
+    }
+    let chosen = match (stays, with_tithi) {
+        ([Some(first), Some(second)], Some(tithi))
+            if degrees_from_tithi(second, tithi) < degrees_from_tithi(first, tithi) =>
+        {
+            second
+        }
+        ([Some(first), _], _) => first,
+        ([None, _], _) => return Days::new(),
+    };
+    Days::one(day_holding_most_of(meridian, chosen))
+}
+
+/// How far, in degrees of elongation, the Moon stands from the middle of
+/// a tithi's arc at the middle of a stay.
+fn degrees_from_tithi((entry, exit): (Moment, Moment), tithi: u8) -> f64 {
+    let middle = Moment(f64::midpoint(entry.0, exit.0));
+    let centre = (f64::from(tithi.clamp(1, TITHIS_PER_MONTH)) - 0.5) * DEGREES_PER_TITHI;
+    let away = normalize_degrees(hc_astro::lunar_phase(middle) - centre);
+    away.min(360.0 - away)
+}
+
+/// The civil day at a meridian that holds the greater part of a span, the
+/// earlier of two that hold the same.
+fn day_holding_most_of(meridian: Meridian, (from, to): (Moment, Moment)) -> Rd {
+    let mut day = meridian.day_of(from);
+    let last = meridian.day_of(to);
+    let mut best = (day, f64::NEG_INFINITY);
+    while day.0 <= last.0 {
+        let begins = meridian.midnight(day).0.max(from.0);
+        let ends = meridian.midnight(Rd(day.0 + 1)).0.min(to.0);
+        if ends - begins > best.1 {
+            best = (day, ends - begins);
+        }
+        day = Rd(day.0 + 1);
+    }
+    best.0
 }
 
 fn lunar_phase_day(phase: Phase, year: i64, month: u8, day: u8, meridian: Meridian) -> Days {

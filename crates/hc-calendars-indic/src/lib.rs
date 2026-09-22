@@ -16,6 +16,8 @@
 //!   `hindu-solar-bengali`, `hindu-solar-vikrami`.
 //! * [`tithi`] — the lunar day itself: which tithi is in progress at a
 //!   moment, and which a civil day carries.
+//! * [`nakshatra`] — the Moon's station among the twenty-seven: which is
+//!   in progress at a moment, and when the Moon enters and leaves one.
 //! * [`places`] — the sunrise that reads the day: the Central Station of
 //!   the national calendar, Ujjain of the classical almanacs, New Delhi.
 //!
@@ -47,6 +49,7 @@ extern crate alloc;
 pub mod hindu_lunar;
 pub mod hindu_purnimanta;
 pub mod hindu_solar;
+pub mod nakshatra;
 pub mod places;
 pub mod tithi;
 

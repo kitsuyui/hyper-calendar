@@ -9,13 +9,16 @@
 //! therefore one of the crate's handful of [`Rule::Computed`] rules.
 
 use hc_calendar::{Month, Rd, Weekday};
+use hc_calendars_indic::nakshatra::PUSHYA;
 use hc_calendars_solar::gregorian;
+use hc_seasons::Meridian;
+use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
 use crate::computus::offsets::{
     ASCENSION, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, PALM_SUNDAY, PENTECOST,
     WHIT_MONDAY,
 };
-use crate::hindu::{DIWALI, GANESH_CHATURTHI, MAHA_SHIVARATRI, THAIPUSAM, UGADI};
+use crate::hindu::{DIWALI, GANESH_CHATURTHI, MAHA_SHIVARATRI, UGADI};
 use crate::rule::{
     BridgePolicy, CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY,
     SourceDate, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
@@ -2617,12 +2620,23 @@ fn mu_all_saints(year: i64) -> Days {
     out
 }
 
+/// Thaipoosam Cavadee: the Pusam rule of [`crate::hindu::THAIPUSAM`] at
+/// the island's own meridian, which in 2023 cut the Moon's stay in Pusam
+/// a day earlier than Malaysia's did.
+const MU_CAVADEE: Rule = Rule::Nakshatra {
+    nakshatra: PUSHYA,
+    sign: SiderealSign::MAKARA,
+    with_tithi: Some(15),
+    ayanamsa: Ayanamsa::LAHIRI,
+    meridian: Meridian::from_seconds(4 * 3_600),
+};
+
 static MU_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("New Year's Day", "", Rule::gregorian(1, 1)),
     HolidayRule::fixed_public("New Year Holiday", "", Rule::gregorian(1, 2)),
     HolidayRule::fixed_public("Abolition of Slavery", "", Rule::gregorian(2, 1))
         .years(Some(2001), None),
-    HolidayRule::fixed_public("Thaipoosam Cavadee", "", THAIPUSAM).approximate(),
+    HolidayRule::fixed_public("Thaipoosam Cavadee", "", MU_CAVADEE).approximate(),
     HolidayRule::fixed_public("Maha Shivaratree", "", MAHA_SHIVARATRI).approximate(),
     HolidayRule::fixed_public(
         "Chinese Spring Festival",
@@ -2666,7 +2680,8 @@ static MU_RULES: &[HolidayRule] = &[
 /// Schedule's Assumption or All Saints "on an alternate basis", the
 /// Assumption in 2016 and so in even years. The notified feasts are on
 /// the crate's Chinese, tabular Hijri and Hindu rules as approximations,
-/// Cavadee as the full moon of Thai. Abolition of Slavery and the Arrival
+/// Cavadee on the Pusam rule at the island's meridian, which gives the
+/// days kept from 2020 to 2026. Abolition of Slavery and the Arrival
 /// of Indentured Labourers were declared for each year from 2001 until
 /// the 2015 Act put them in the Schedule, and run from 2001 here; the
 /// alternation of Cavadee with Tamizh Puttaandu that the 2015 Bill
@@ -2687,8 +2702,9 @@ pub static MAURITIUS: RuleSet = RuleSet {
               Office's General Notices No. 989 of 2024 and No. 1195 of 2025 for the 2025 \
               and 2026 dates; L'Express (lexpress.mu), \"Le 1er février 2001: un jour férié \
               pour commémorer l'abolition de l'esclavage\" and \"2-novembre: se souvenir de \
-              l'arrivée des travailleurs engagés\", for the two days kept from 2001; \
-              Wikipedia, \"Culture of Mauritius\"",
+              l'arrivée des travailleurs engagés\", for the two days kept from 2001; Office \
+              Holidays, Mauritius 2020 to 2023, for the Cavadee days kept; Wikipedia, \
+              \"Culture of Mauritius\"",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

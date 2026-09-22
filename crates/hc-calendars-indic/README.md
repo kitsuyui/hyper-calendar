@@ -16,6 +16,7 @@ the Government of India's *Rashtriya Panchang* computes it.
 | | `hindu-solar-bengali` | the same months from Boishakh; the month begins the day after the saṅkrānti's; Bengali San | |
 | | `hindu-solar-vikrami` | the same months from Vaiśākha; the month begins on the sunrise-to-sunrise day of the saṅkrānti; Vikrama Saṃvat — Punjab, Odisha, and the Nepali reckoning | |
 | `tithi` | — | the lunar day: which tithi is in progress at a moment, and which a civil day carries | |
+| `nakshatra` | — | the Moon's station among the twenty-seven: which is in progress at a moment, and when the Moon enters and leaves one | |
 | `places` | — | the Central Station of the national calendar (82°30′ E), Ujjain, New Delhi | |
 
 The calendar is judged at a place — a tithi that ends within an hour of
