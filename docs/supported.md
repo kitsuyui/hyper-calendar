@@ -165,7 +165,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-12 tables, feature `holiday`.
+15 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
@@ -181,6 +181,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `jewish` | Judaism | 19 |
 | `wheel-of-the-year` | Wheel of the Year | 8 |
 | `wheel-of-the-year-south` | Wheel of the Year (southern hemisphere) | 8 |
+| `zoroastrian-fasli` | Zoroastrian (Fasli) | 62 |
+| `zoroastrian-qadimi` | Zoroastrian (Qadimi) | 62 |
+| `zoroastrian-shahanshahi` | Zoroastrian (Shahanshahi) | 62 |
 
 ## International observances
 

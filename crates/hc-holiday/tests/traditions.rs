@@ -7,6 +7,7 @@ use hc_holiday::rule::{Confidence, Kind, RuleSet};
 use hc_holiday::traditions::{
     self, BAHAI, BUDDHIST, CHINESE_FOLK, CHRISTIAN_ORTHODOX, CHRISTIAN_WESTERN, COPTIC_ORTHODOX,
     ETHIOPIAN_ORTHODOX, HINDU, ISLAMIC, JEWISH, WHEEL_OF_THE_YEAR, WHEEL_OF_THE_YEAR_SOUTH,
+    ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI, ZOROASTRIAN_SHAHANSHAHI,
 };
 
 /// Panics rather than returning a `Result`, because every date in this file
@@ -589,4 +590,127 @@ fn every_tradition_is_reachable_by_its_code_and_names_its_sources() {
         assert!(!set.sources.is_empty(), "{} has no cited source", set.code);
     }
     assert!(traditions::by_code("zoroastrian").is_none());
+}
+
+#[test]
+fn the_fasli_feasts_are_the_compendium_tables_of_1379_and_1381() {
+    // 1379 A.Y., 21 March 2009 to 20 March 2010, a common year.
+    expect(
+        &ZOROASTRIAN_FASLI,
+        &[
+            (2009, 3, 21, "Nowruz"),
+            (2009, 3, 23, "Rapithwin Jashan"),
+            (2009, 3, 26, "Khordad Sal"),
+            (2009, 4, 8, "Farvardin Month Jashan"),
+            (2009, 4, 30, "Maidyozarem Gahambar"),
+            (2009, 5, 4, "Maidyozarem Gahambar"),
+            (2009, 6, 29, "Maidyoshahem Gahambar"),
+            (2009, 7, 1, "Tiragan"),
+            (2009, 7, 1, "Maidyoshahem Gahambar"),
+            (2009, 9, 12, "Paitishahem Gahambar"),
+            (2009, 10, 2, "Mehregan"),
+            (2009, 10, 12, "Ayathrem Gahambar"),
+            (2009, 10, 16, "Ayathrem Gahambar"),
+            (2009, 11, 24, "Adar Month Jashan"),
+            (2009, 12, 16, "Dae Month Jashan"),
+            (2009, 12, 26, "Zartosht No-Diso"),
+            (2009, 12, 31, "Maidyarem Gahambar"),
+            (2010, 1, 4, "Maidyarem Gahambar"),
+            (2010, 2, 18, "Aspandard Month Jashan"),
+            (2010, 2, 20, "Avardad Sal Gah Jashan"),
+            (2010, 3, 11, "Muktad"),
+            (2010, 3, 14, "Mareshpand Jashan"),
+            (2010, 3, 16, "Hamaspathmaidyem Gahambar"),
+            (2010, 3, 20, "Muktad"),
+            (2010, 3, 20, "Hamaspathmaidyem Gahambar"),
+            (2010, 3, 21, "Nowruz"),
+        ],
+    );
+    // 1381 A.Y. has the leap day on 20 March 2012, so its last twenty-one
+    // days are a day earlier: Muktad 10–19 March, Mareshpand Jashan on the
+    // 13th, the Gatha days 15–19 March, and nothing on the 20th.
+    expect(
+        &ZOROASTRIAN_FASLI,
+        &[
+            (2012, 3, 10, "Muktad"),
+            (2012, 3, 13, "Mareshpand Jashan"),
+            (2012, 3, 15, "Hamaspathmaidyem Gahambar"),
+            (2012, 3, 19, "Muktad"),
+            (2012, 3, 21, "Nowruz"),
+        ],
+    );
+    let leap_day = HolidayCalendar::for_year(&ZOROASTRIAN_FASLI, None, 2012);
+    assert!(leap_day.on(ymd(2012, 3, 20)).is_empty());
+}
+
+#[test]
+fn the_wandering_reckonings_keep_the_same_schedule_a_month_apart() {
+    // 1395 Y.Z. by the Shahanshahi reckoning began on 15 August 2025;
+    // Wikipedia, "Zoroastrian festivals", gives Zartosht No-Diso as
+    // 22 May 2026 in that calendar. Muktad ran to 14 August 2026, the eve
+    // of the next Nowruz.
+    expect(
+        &ZOROASTRIAN_SHAHANSHAHI,
+        &[
+            (2025, 8, 15, "Nowruz"),
+            (2025, 8, 20, "Khordad Sal"),
+            (2025, 9, 24, "Maidyozarem Gahambar"),
+            (2026, 2, 26, "Mehregan"),
+            (2026, 5, 22, "Zartosht No-Diso"),
+            (2026, 8, 5, "Muktad"),
+            (2026, 8, 10, "Hamaspathmaidyem Gahambar"),
+            (2026, 8, 14, "Muktad"),
+            (2026, 8, 15, "Nowruz"),
+            (2000, 8, 21, "Nowruz"),
+        ],
+    );
+    // The Qadimi is thirty days ahead: Nowruz of 1395 on 16 July 2025.
+    expect(
+        &ZOROASTRIAN_QADIMI,
+        &[
+            (2025, 7, 16, "Nowruz"),
+            (2025, 7, 21, "Khordad Sal"),
+            (2026, 1, 27, "Mehregan"),
+            (2026, 4, 22, "Zartosht No-Diso"),
+            (2026, 7, 15, "Muktad"),
+            (2026, 7, 16, "Nowruz"),
+            (2000, 7, 22, "Nowruz"),
+        ],
+    );
+}
+
+#[test]
+fn the_three_zoroastrian_tables_are_one_schedule() {
+    let names = |set: &RuleSet| -> Vec<&str> { set.rules.iter().map(|rule| rule.name).collect() };
+    assert_eq!(names(&ZOROASTRIAN_FASLI), names(&ZOROASTRIAN_SHAHANSHAHI));
+    assert_eq!(names(&ZOROASTRIAN_FASLI), names(&ZOROASTRIAN_QADIMI));
+    for set in [
+        &ZOROASTRIAN_FASLI,
+        &ZOROASTRIAN_SHAHANSHAHI,
+        &ZOROASTRIAN_QADIMI,
+    ] {
+        for rule in set.rules {
+            assert_eq!(rule.kind, Kind::Religious, "{} {}", set.code, rule.name);
+            assert_eq!(
+                rule.confidence,
+                Confidence::Exact,
+                "{} {}",
+                set.code,
+                rule.name
+            );
+        }
+        // Six Gahambars of five days and ten days of Muktad.
+        let gahambar_days = set
+            .rules
+            .iter()
+            .filter(|rule| rule.name.ends_with("Gahambar"))
+            .count();
+        assert_eq!(gahambar_days, 30, "{}", set.code);
+        let muktad = set
+            .rules
+            .iter()
+            .filter(|rule| rule.name == "Muktad")
+            .count();
+        assert_eq!(muktad, 10, "{}", set.code);
+    }
 }

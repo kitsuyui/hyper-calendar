@@ -94,11 +94,12 @@ Sweden, Switzerland, Taiwan, Thailand, Türkiye, Ukraine, the United Arab
 Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
 States, Vietnam.
 
-**Twelve traditions.** Christianity under both computations, the Ethiopian
+**Fifteen traditions.** Christianity under both computations, the Ethiopian
 Orthodox Tewahedo and the Coptic Orthodox Churches, Islam, Judaism, the
 Bahá'í Faith, Hinduism (with the Jain and Sikh days beside it), Buddhism
-(partial), Chinese folk tradition, and the Wheel of the Year in both
-hemispheres.
+(partial), Chinese folk tradition, the Wheel of the Year in both
+hemispheres, and the Zoroastrian schedule of feasts on each of its three
+reckonings.
 
 The Ethiopian entry is worth a word. Its fixed feasts are ordinary dates —
 29 Tahsas, 11 Tirr — in the Ethiopic calendar, and until `CalendarSystem`

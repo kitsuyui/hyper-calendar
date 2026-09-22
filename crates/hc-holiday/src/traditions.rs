@@ -26,6 +26,7 @@
 //! | Chinese folk | Chinese lunisolar calendar and the solar terms | exact to the astronomical model |
 //! | Hindu | the amānta Hindu lunisolar calendar at the national almanac's sunrise; each festival on the part of the day its tithi must hold | exact to the astronomical model, and to the conventions [`crate::hindu`] states — a regional almanac may keep a day differently |
 //! | Wheel of the Year | the solstices and equinoxes on their Universal Time day; the cross-quarter days on their fixed Gregorian dates | exact as stated; a group may keep a quarter day on its local date or the nearest weekend, and the eve convention for Samhain is not modelled |
+//! | Zoroastrian | the Parsi schedule of feasts on each of the three reckonings — Fasli, Shahanshahi, Qadimi — as three tables | exact: every feast is a fixed day of a fixed month, and each reckoning is arithmetic; the Iranian community's dates on the civil calendar are not carried |
 
 use hc_calendar::Weekday;
 use hc_calendars_solar::{bahai, gregorian};
@@ -999,6 +1000,168 @@ pub static CHINESE_FOLK: RuleSet = RuleSet {
 
 // ─────────────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────
+// Zoroastrianism
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A feast on a day of a month of the Zoroastrian year, in one reckoning.
+const fn roz(system: CalendarSystem, name: &'static str, month: u8, day: u8) -> HolidayRule {
+    feast(name, "", Rule::in_calendar(system, month, day))
+}
+
+/// The Parsi schedule of feasts, written once and dated in each of the
+/// three reckonings — the same day of the same month in all three, which
+/// is exactly why a Zoroastrian date needs its reckoning named.
+///
+/// The schedule is chapter 3 of the *Compendium of Fasli Zoroastrian
+/// Calendars*: the name-day *jashan* of each month, the day whose name is
+/// its month's (Meher 16, Mehregan); the six Gahambars of five days; Nowruz,
+/// Rapithwin, Khordad Sal, Zartosht No-Diso and Avardad Sal Gah; the ten
+/// days of Muktad at the year's end, the last five of them the Gatha days
+/// and Hamaspathmaidyem. Where a feast has a name the wider literature
+/// uses — Nowruz, Tiragan, Mehregan, Zartosht No-Diso — that name is
+/// carried and the compendium's "Tir Month Jashan" is in the doc; the rest
+/// are as the compendium heads them.
+macro_rules! zoroastrian_schedule {
+    ($system:expr) => {
+        &[
+            roz($system, "Nowruz", 1, 1),
+            roz($system, "Rapithwin Jashan", 1, 3),
+            roz($system, "Khordad Sal", 1, 6),
+            roz($system, "Farvardin Month Jashan", 1, 19),
+            roz($system, "Ardibehesht Month Jashan", 2, 3),
+            roz($system, "Maidyozarem Gahambar", 2, 11),
+            roz($system, "Maidyozarem Gahambar", 2, 12),
+            roz($system, "Maidyozarem Gahambar", 2, 13),
+            roz($system, "Maidyozarem Gahambar", 2, 14),
+            roz($system, "Maidyozarem Gahambar", 2, 15),
+            roz($system, "Khordad Month Jashan", 3, 6),
+            roz($system, "Maidyoshahem Gahambar", 4, 11),
+            roz($system, "Maidyoshahem Gahambar", 4, 12),
+            // Tir 13 is both the third day of the Gahambar and Tiragan, the
+            // name-day of Tir; the compendium prints both on the row.
+            roz($system, "Maidyoshahem Gahambar", 4, 13),
+            roz($system, "Tiragan", 4, 13),
+            roz($system, "Maidyoshahem Gahambar", 4, 14),
+            roz($system, "Maidyoshahem Gahambar", 4, 15),
+            roz($system, "Amardad Month Jashan", 5, 7),
+            roz($system, "Shahrewar Month Jashan", 6, 4),
+            roz($system, "Paitishahem Gahambar", 6, 26),
+            roz($system, "Paitishahem Gahambar", 6, 27),
+            roz($system, "Paitishahem Gahambar", 6, 28),
+            roz($system, "Paitishahem Gahambar", 6, 29),
+            roz($system, "Paitishahem Gahambar", 6, 30),
+            roz($system, "Mehregan", 7, 16),
+            roz($system, "Ayathrem Gahambar", 7, 26),
+            roz($system, "Ayathrem Gahambar", 7, 27),
+            roz($system, "Ayathrem Gahambar", 7, 28),
+            roz($system, "Ayathrem Gahambar", 7, 29),
+            roz($system, "Ayathrem Gahambar", 7, 30),
+            roz($system, "Avan Month Jashan", 8, 10),
+            roz($system, "Adar Month Jashan", 9, 9),
+            roz($system, "Fravardegan Jashan", 9, 19),
+            // The Creator's four days in the Creator's month.
+            roz($system, "Dae Month Jashan", 10, 1),
+            roz($system, "Dae Month Jashan", 10, 8),
+            roz($system, "Zartosht No-Diso", 10, 11),
+            roz($system, "Dae Month Jashan", 10, 15),
+            roz($system, "Maidyarem Gahambar", 10, 16),
+            roz($system, "Maidyarem Gahambar", 10, 17),
+            roz($system, "Maidyarem Gahambar", 10, 18),
+            roz($system, "Maidyarem Gahambar", 10, 19),
+            roz($system, "Maidyarem Gahambar", 10, 20),
+            roz($system, "Dae Month Jashan", 10, 23),
+            roz($system, "Bahman Month Jashan", 11, 2),
+            roz($system, "Aspandard Month Jashan", 12, 5),
+            // The jashan the wandering reckonings keep on the day the leap
+            // day would have gone, and the Fasli keeps as well.
+            roz($system, "Avardad Sal Gah Jashan", 12, 7),
+            roz($system, "Muktad", 12, 26),
+            roz($system, "Muktad", 12, 27),
+            roz($system, "Muktad", 12, 28),
+            roz($system, "Muktad", 12, 29),
+            roz($system, "Mareshpand Jashan", 12, 29),
+            roz($system, "Muktad", 12, 30),
+            roz($system, "Muktad", 13, 1),
+            roz($system, "Hamaspathmaidyem Gahambar", 13, 1),
+            roz($system, "Muktad", 13, 2),
+            roz($system, "Hamaspathmaidyem Gahambar", 13, 2),
+            roz($system, "Muktad", 13, 3),
+            roz($system, "Hamaspathmaidyem Gahambar", 13, 3),
+            roz($system, "Muktad", 13, 4),
+            roz($system, "Hamaspathmaidyem Gahambar", 13, 4),
+            roz($system, "Muktad", 13, 5),
+            roz($system, "Hamaspathmaidyem Gahambar", 13, 5),
+        ]
+    };
+}
+
+static ZOROASTRIAN_FASLI_RULES: &[HolidayRule] =
+    zoroastrian_schedule!(CalendarSystem::ZOROASTRIAN_FASLI);
+static ZOROASTRIAN_SHAHANSHAHI_RULES: &[HolidayRule] =
+    zoroastrian_schedule!(CalendarSystem::ZOROASTRIAN_SHAHANSHAHI);
+static ZOROASTRIAN_QADIMI_RULES: &[HolidayRule] =
+    zoroastrian_schedule!(CalendarSystem::ZOROASTRIAN_QADIMI);
+
+/// The sources every Zoroastrian table cites: the schedule is one document
+/// and the reckonings are one article.
+const ZOROASTRIAN_SOURCES: &str = "Rohinton Erach Kadva, Compendium of Fasli Zoroastrian Calendars 1379 AY \
+     through 1400 AY, Bangalore, 2009, chapter 3, Schedule of Festivals \
+     (zoroastrian.ru/files/eng/zoroastrian-calendars-1379-ay-1400-ay-fasli.pdf, \
+     retrieved 2026-09-22), for every feast and its day of the month; \
+     Wikipedia, \"Zoroastrian calendar\", retrieved 2026-09-22, for the \
+     reckonings, which are hc-calendars-solar's zoroastrian module";
+
+/// The Zoroastrian feasts as the Fasli Parsis keep them: the schedule on the
+/// seasonal reckoning, so that Nowruz is 21 March, Mehregan 2 October,
+/// Zartosht No-Diso 26 December and Muktad the ten days to 20 March — a day
+/// earlier for the last twenty-one days of a Fasli leap year.
+///
+/// The Iranian community keeps the same feasts on the civil Solar Hijri
+/// calendar under the name *Bastani*, and where that calendar's 31-day
+/// months put a feast — Tiragan on 10 or 13 Tir, Mehregan on 10 or 16 Mehr —
+/// its sources disagree; those dates, and Sadeh and Yalda, which are
+/// Iranian festivals rather than days of this schedule, are not carried.
+pub static ZOROASTRIAN_FASLI: RuleSet = RuleSet {
+    code: "zoroastrian-fasli",
+    english_name: "Zoroastrian (Fasli)",
+    rules: ZOROASTRIAN_FASLI_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: ZOROASTRIAN_SOURCES,
+};
+
+/// The Zoroastrian feasts as the Shahanshahi Parsis, the majority, keep
+/// them: the same schedule on the wandering reckoning, so that in 1395 Y.Z.
+/// Nowruz was 15 August 2025 and Zartosht No-Diso 22 May 2026, and every
+/// feast comes a day earlier after each Gregorian leap day.
+pub static ZOROASTRIAN_SHAHANSHAHI: RuleSet = RuleSet {
+    code: "zoroastrian-shahanshahi",
+    english_name: "Zoroastrian (Shahanshahi)",
+    rules: ZOROASTRIAN_SHAHANSHAHI_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: ZOROASTRIAN_SOURCES,
+};
+
+/// The Zoroastrian feasts as the Kadmi Parsis and the Zoroastrians of Yazd
+/// keep them: the same schedule on the Qadimi reckoning, thirty days ahead
+/// of the Shahanshahi — Nowruz of 1395 Y.Z. on 16 July 2025.
+pub static ZOROASTRIAN_QADIMI: RuleSet = RuleSet {
+    code: "zoroastrian-qadimi",
+    english_name: "Zoroastrian (Qadimi)",
+    rules: ZOROASTRIAN_QADIMI_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: ZOROASTRIAN_SOURCES,
+};
+
 /// Every tradition table in the crate.
 pub static ALL: &[&RuleSet] = &[
     &CHRISTIAN_WESTERN,
@@ -1013,6 +1176,9 @@ pub static ALL: &[&RuleSet] = &[
     &CHINESE_FOLK,
     &WHEEL_OF_THE_YEAR,
     &WHEEL_OF_THE_YEAR_SOUTH,
+    &ZOROASTRIAN_FASLI,
+    &ZOROASTRIAN_SHAHANSHAHI,
+    &ZOROASTRIAN_QADIMI,
 ];
 
 /// The table for a tradition's identifier.
