@@ -17,6 +17,7 @@
 //! | [`javanese_pasaran`] | `javanese-pasaran` — the five-day market week and the 35-day wetonan |
 //! | [`akan`] | `akan` — the Akan six-day week and the 42-day Adaduanan it makes with the seven-day one |
 //! | [`korean_regnal`] | `korean-regnal` — the three eras of the Korean Empire, 建陽, 光武 and 隆熙, on the Gregorian days of 1896–1910 |
+//! | [`chinese_regnal`] | `chinese-regnal` — the Qing eras over the Chinese lunisolar calendar, 1645 to the abdication of 1912, with the Ming and Qing era table as data |
 //! | [`sexagenary`] | `sexagenary` — 干支 over years, months and days |
 //!
 //! # Cyclic calendars and the round-trip contract
@@ -74,6 +75,7 @@ extern crate alloc;
 pub mod akan;
 pub mod aztec;
 pub mod balinese_pawukon;
+pub mod chinese_regnal;
 pub mod japanese;
 pub mod javanese_pasaran;
 pub mod korean_regnal;
@@ -87,6 +89,7 @@ pub use aztec::{
     AztecXiuhpohualliDate,
 };
 pub use balinese_pawukon::{BalinesePawukonCalendar, PawukonDate};
+pub use chinese_regnal::{ChineseEra, ChineseRegnalCalendar, ChineseRegnalDate, Dynasty};
 pub use japanese::{JapaneseCalendar, JapaneseDate};
 pub use javanese_pasaran::{JavanesePasaranCalendar, WetonDate};
 pub use korean_regnal::{KoreanEra, KoreanRegnalCalendar, KoreanRegnalDate};
@@ -137,6 +140,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::JavanesePasaranCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::AkanCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::KoreanRegnalCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::ChineseRegnalCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::SexagenaryCalendar)));
     }
 }
@@ -146,7 +150,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 16;
+const CALENDAR_COUNT: usize = 17;
 
 #[cfg(test)]
 mod tests {
@@ -212,6 +216,7 @@ mod tests {
                 JavanesePasaranCalendar,
                 AkanCalendar,
                 KoreanRegnalCalendar,
+                ChineseRegnalCalendar,
                 SexagenaryCalendar,
             );
         }
@@ -370,7 +375,7 @@ mod tests {
             .filter(|meta| !meta.supports(rd))
             .map(|meta| meta.id.0)
             .collect();
-        assert_eq!(unsupporting, ["korean-regnal"]);
+        assert_eq!(unsupporting, ["korean-regnal", "chinese-regnal"]);
 
         let japanese = registry
             .get(CalendarId("japanese"))
@@ -391,9 +396,14 @@ mod tests {
         for meta in registry.metas() {
             assert!(!meta.id.as_str().is_empty());
             assert!(!meta.english_name.is_empty());
-            // Only the Japanese calendar carries intercalary months, and
-            // only in the lunisolar half of its range.
-            assert!(!meta.has_leap_months || meta.id.as_str().starts_with("japanese"));
+            // Only the era calendars over a lunisolar year carry intercalary
+            // months: the Japanese, in the lunisolar half of its range, and
+            // the Qing eras over the Chinese calendar.
+            assert!(
+                !meta.has_leap_months
+                    || meta.id.as_str().starts_with("japanese")
+                    || meta.id.as_str() == "chinese-regnal"
+            );
             if let (Some(first), Some(last)) = (meta.earliest, meta.latest) {
                 assert!(first < last, "{} has an empty range", meta.id);
             }
