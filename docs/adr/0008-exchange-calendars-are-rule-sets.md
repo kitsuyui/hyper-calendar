@@ -38,8 +38,14 @@ closure only where a read source records it.
 - No new engine. An exchange calendar drives the same `HolidayCalendar` and
   the same business-day functions as a country, and gains every rule kind the
   engine grows.
-- An early close has no kind of its own, and a caller that wants the closing
-  time reads the name. If a second kind of partial day arrives — a late open,
-  a lunch-hour close — `Kind` grows, and this record is revisited.
+- A partial day has no kind of its own, and a caller that wants the hours
+  reads the name. This record first said that a second kind of partial day
+  — a late open, a lunch-hour close — would make `Kind` grow; the second
+  kind arrived with B3's Ash Wednesday, which opens at 1:00 p.m., and it
+  did not need to. An early close and a late open are alike a day the
+  exchange trades on and business-day arithmetic must count, and the name
+  already says which; a kind would say nothing the name does not. Every
+  partial day is an observance whose name begins "Early close", "Half
+  trading day" or "Late open", and the tests check that convention.
 - The code is the MIC and not a country: an exchange is not its country's
   calendar, and a country has more than one exchange.

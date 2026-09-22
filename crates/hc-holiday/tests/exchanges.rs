@@ -4,9 +4,9 @@ use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::exchanges::{
-    self, AUSTRALIAN_SECURITIES_EXCHANGE, EURONEXT_AMSTERDAM, EURONEXT_BRUSSELS, EURONEXT_DUBLIN,
-    EURONEXT_LISBON, EURONEXT_MILAN, EURONEXT_OSLO, EURONEXT_PARIS, FRANKFURT_STOCK_EXCHANGE,
-    NEW_YORK_STOCK_EXCHANGE, TORONTO_STOCK_EXCHANGE,
+    self, AUSTRALIAN_SECURITIES_EXCHANGE, B3, EURONEXT_AMSTERDAM, EURONEXT_BRUSSELS,
+    EURONEXT_DUBLIN, EURONEXT_LISBON, EURONEXT_MILAN, EURONEXT_OSLO, EURONEXT_PARIS,
+    FRANKFURT_STOCK_EXCHANGE, NEW_YORK_STOCK_EXCHANGE, TORONTO_STOCK_EXCHANGE,
 };
 use hc_holiday::rule::RuleSet;
 use hc_holiday::rule::{Confidence, Kind};
@@ -59,7 +59,8 @@ fn year_of(exchange: &RuleSet, year: i64) -> (Closures, EarlyCloses) {
             assert_eq!(holiday.kind, Kind::Observance, "{}", holiday.name);
             assert!(
                 holiday.name.starts_with("Early close")
-                    || holiday.name.starts_with("Half trading day"),
+                    || holiday.name.starts_with("Half trading day")
+                    || holiday.name.starts_with("Late open"),
                 "{}",
                 holiday.name
             );
@@ -490,11 +491,99 @@ fn oslo_keeps_the_norwegian_days_and_halves_the_wednesday_before_easter() {
 }
 
 #[test]
+fn b3_closes_on_the_days_its_calendar_lists() {
+    // 2022: New Year's Day a Saturday and Christmas a Sunday, neither
+    // moved; the last weekday of the year is Friday the 30th.
+    let (closed, early) = year_of(&B3, 2022);
+    assert_eq!(
+        days(&closed),
+        [
+            (2, 28),
+            (3, 1),
+            (4, 15),
+            (4, 21),
+            (6, 16),
+            (9, 7),
+            (10, 12),
+            (11, 2),
+            (11, 15),
+            (12, 30)
+        ]
+    );
+    assert_eq!(early, [(3, 2)]);
+    // 2023: no Black Consciousness Day yet; the last weekday is the 29th.
+    let (closed, early) = year_of(&B3, 2023);
+    assert_eq!(
+        days(&closed),
+        [
+            (2, 20),
+            (2, 21),
+            (4, 7),
+            (4, 21),
+            (5, 1),
+            (6, 8),
+            (9, 7),
+            (10, 12),
+            (11, 2),
+            (11, 15),
+            (12, 25),
+            (12, 29)
+        ]
+    );
+    assert_eq!(early, [(2, 22)]);
+    let (closed, early) = year_of(&B3, 2024);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (2, 12),
+            (2, 13),
+            (3, 29),
+            (5, 1),
+            (5, 30),
+            (11, 15),
+            (11, 20),
+            (12, 24),
+            (12, 25),
+            (12, 31)
+        ]
+    );
+    assert_eq!(early, [(2, 14)]);
+    let (closed, early) = year_of(&B3, 2026);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (2, 16),
+            (2, 17),
+            (4, 3),
+            (4, 21),
+            (5, 1),
+            (6, 4),
+            (9, 7),
+            (10, 12),
+            (11, 2),
+            (11, 20),
+            (12, 24),
+            (12, 25),
+            (12, 31)
+        ]
+    );
+    assert_eq!(early, [(2, 18)]);
+    // Ash Wednesday is a trading day; São Paulo's own days are too.
+    let calendar = HolidayCalendar::for_year(&B3, None, 2026);
+    assert!(!calendar.is_holiday(ymd(2026, 2, 18)));
+    assert!(!calendar.is_holiday(ymd(2026, 7, 9)));
+    let calendar = HolidayCalendar::for_year(&B3, None, 2024);
+    assert!(!calendar.is_holiday(ymd(2024, 1, 25)));
+}
+
+#[test]
 fn the_catalogue_is_keyed_by_market_identifier_code() {
     assert_eq!(
         exchanges::by_code("xnys").map(|e| e.english_name),
         Some("New York Stock Exchange")
     );
     assert!(exchanges::ALL.iter().all(|e| e.code.len() == 4));
-    assert_eq!(exchanges::ALL.len(), 11);
+    assert_eq!(exchanges::ALL.len(), 12);
 }

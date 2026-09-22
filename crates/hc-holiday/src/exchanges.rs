@@ -8,8 +8,9 @@
 //! [`HolidayCalendar::is_holiday`](crate::engine::HolidayCalendar::is_holiday)
 //! and business-day arithmetic count it; an early close is a
 //! [`Kind::Observance`](crate::rule::Kind::Observance), a day the exchange notes and trades on, so that they
-//! do not. The name of an early close says what it is: "Early close, …" or
-//! "Half trading day, …", as the exchange's own calendar has it.
+//! do not. The name of a partial day says what it is — "Early close, …",
+//! "Half trading day, …", "Late open, …" — as the exchange's own calendar
+//! has it.
 //!
 //! # Why not the country's table
 //!
@@ -37,7 +38,8 @@ use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 
 use crate::computus::offsets::{
-    ASCENSION, EASTER_MONDAY, GOOD_FRIDAY, HOLY_WEDNESDAY, MAUNDY_THURSDAY, WHIT_MONDAY,
+    ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_MONDAY, GOOD_FRIDAY, HOLY_WEDNESDAY,
+    MAUNDY_THURSDAY, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
 };
 use crate::rule::{
     Days, HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, SubstituteDirection,
@@ -626,8 +628,101 @@ pub static EURONEXT_OSLO: RuleSet = RuleSet {
     sources: EURONEXT_SOURCES,
 };
 
+// ─────────────────────────────────────────────────────────────────────────
+// B3, São Paulo
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The last weekday of the year, when the banks are closed to the public
+/// and the exchange does not trade: 31 December, or the Friday before a
+/// weekend one.
+fn bvmf_last_business_day(year: i64) -> Days {
+    last_weekday_on_or_before(year, 12, 31)
+}
+
+static BVMF_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "New Year's Day",
+        "Confraternização Universal",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public("Carnival Monday", "Carnaval", Rule::easter(SHROVE_MONDAY)),
+    HolidayRule::fixed_public("Carnival Tuesday", "Carnaval", Rule::easter(SHROVE_TUESDAY)),
+    HolidayRule::observance(
+        "Late open, Ash Wednesday (trading from 1:00 p.m.)",
+        "Quarta-feira de Cinzas",
+        Rule::easter(ASH_WEDNESDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Good Friday",
+        "Sexta-feira Santa",
+        Rule::easter(GOOD_FRIDAY),
+    ),
+    HolidayRule::fixed_public("Tiradentes Day", "Tiradentes", Rule::gregorian(4, 21)),
+    HolidayRule::fixed_public("Labour Day", "Dia do Trabalho", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public(
+        "Corpus Christi",
+        "Corpus Christi",
+        Rule::easter(CORPUS_CHRISTI),
+    ),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Independência do Brasil",
+        Rule::gregorian(9, 7),
+    ),
+    HolidayRule::fixed_public(
+        "Our Lady of Aparecida",
+        "Nossa Senhora Aparecida",
+        Rule::gregorian(10, 12),
+    ),
+    HolidayRule::fixed_public("All Souls' Day", "Finados", Rule::gregorian(11, 2)),
+    HolidayRule::fixed_public(
+        "Proclamation of the Republic",
+        "Proclamação da República",
+        Rule::gregorian(11, 15),
+    ),
+    HolidayRule::fixed_public(
+        "Black Consciousness Day",
+        "Dia Nacional de Zumbi e da Consciência Negra",
+        Rule::gregorian(11, 20),
+    )
+    .years(Some(2024), None),
+    HolidayRule::fixed_public("Christmas Eve", "Véspera de Natal", Rule::gregorian(12, 24)),
+    HolidayRule::fixed_public("Christmas Day", "Natal", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public(
+        "Last business day of the year",
+        "Último dia útil do ano",
+        Rule::Computed(bvmf_last_business_day),
+    ),
+];
+
+/// B3, the São Paulo exchange.
+///
+/// B3's own market calendar for 2021 to 2026: the days on which "there
+/// will be no trading on the equity, private fixed income, fixed income
+/// ETF or listed derivatives markets" — the national holidays, Carnival
+/// Monday and Tuesday, Christmas Eve, and the last weekday of the year,
+/// Friday 30 December in 2022 and Friday 29 December in 2023 — with
+/// Black Consciousness Day from 2024, its first year as a national
+/// holiday, and no day moved off a weekend: a Saturday Tiradentes Day
+/// or Sunday New Year's Day simply passes. Ash Wednesday opens trading at
+/// 1:00 p.m. and is carried as an observance, a trading day whose name
+/// says what it is. São Paulo's own days, 25 January and 9 July, are
+/// trading days and are not here.
+pub static B3: RuleSet = RuleSet {
+    code: "BVMF",
+    english_name: "B3 (São Paulo)",
+    rules: BVMF_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "B3, \"Trading calendar — Holidays\" (b3.com.br/en_us/solutions/platforms/puma-trading-system/for-members-and-traders/trading-calendar/holidays/), \
+              retrieved 2026-09-23, the market calendars for 2021 to 2026",
+};
+
 /// Every exchange calendar, in Market Identifier Code order.
 pub static ALL: &[&RuleSet] = &[
+    &B3,
     &EURONEXT_AMSTERDAM,
     &AUSTRALIAN_SECURITIES_EXCHANGE,
     &EURONEXT_BRUSSELS,
@@ -667,8 +762,9 @@ mod tests {
     #[test]
     fn a_closed_day_stops_work_and_an_early_close_does_not() {
         for rule in ALL.iter().flat_map(|exchange| exchange.rules) {
-            let early =
-                rule.name.starts_with("Early close") || rule.name.starts_with("Half trading day");
+            let early = rule.name.starts_with("Early close")
+                || rule.name.starts_with("Half trading day")
+                || rule.name.starts_with("Late open");
             assert_eq!(rule.kind == Kind::Observance, early, "{}", rule.name);
             assert_eq!(rule.kind.is_day_off(), !early, "{}", rule.name);
         }
