@@ -38,7 +38,8 @@ pub mod oceania;
 
 pub use africa_middle_east::{
     BAHRAIN, EGYPT, ETHIOPIA, GHANA, IRAN, ISRAEL, JORDAN, KENYA, KUWAIT, LEBANON, MOROCCO,
-    NIGERIA, SAUDI_ARABIA, SOUTH_AFRICA, TURKEY, UNITED_ARAB_EMIRATES,
+    NIGERIA, SAUDI_ARABIA, SOUTH_AFRICA, TANZANIA, TURKEY, UGANDA, UNITED_ARAB_EMIRATES, ZAMBIA,
+    ZIMBABWE,
 };
 pub use americas::{
     ARGENTINA, BOLIVIA, BRAZIL, CANADA, CHILE, COLOMBIA, COSTA_RICA, DOMINICAN_REPUBLIC, ECUADOR,
@@ -151,11 +152,15 @@ pub static ALL: &[&CountryRules] = &[
     &THAILAND,
     &TURKEY,
     &TAIWAN,
+    &TANZANIA,
     &UKRAINE,
+    &UGANDA,
     &UNITED_STATES,
     &URUGUAY,
     &VIETNAM,
     &SOUTH_AFRICA,
+    &ZAMBIA,
+    &ZIMBABWE,
 ];
 
 /// The table for an ISO 3166-1 alpha-2 country code, case-insensitively.
@@ -191,7 +196,7 @@ mod tests {
     fn the_registry_holds_the_number_of_countries_the_readme_claims() {
         // `README.md` and `docs/observances.md` both state this figure, and a
         // documented count that drifts is a documented lie.
-        assert_eq!(ALL.len(), 92);
+        assert_eq!(ALL.len(), 96);
     }
 
     #[test]

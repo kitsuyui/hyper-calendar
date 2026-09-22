@@ -10,7 +10,9 @@
 
 use hc_calendar::{Month, Rd, Weekday};
 
-use crate::computus::offsets::{EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, PALM_SUNDAY};
+use crate::computus::offsets::{
+    EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, PALM_SUNDAY,
+};
 use crate::hindu::DIWALI;
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
@@ -1384,4 +1386,277 @@ pub static LEBANON: RuleSet = RuleSet {
               Poland's 2026 list, retrieved the same day; Wikipedia, \"Public \
               holidays in Lebanon\", for the English names and Armenian \
               Christmas's 2003 start",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Tanzania
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Section 4 of the Public Holidays Act: a holiday on a Saturday or a
+/// Sunday makes the next following day that is not itself a holiday a
+/// holiday in its stead.
+static TZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// A Hijri-dated holiday under a substitution policy.
+const fn hijri_public(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::public(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, month, day),
+    )
+    .approximate()
+}
+
+static TZ_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Mwaka Mpya", Rule::gregorian(1, 1)),
+    HolidayRule::public(
+        "Zanzibar Revolution Day",
+        "Sikukuu ya Mapinduzi ya Zanzibar",
+        Rule::gregorian(1, 12),
+    ),
+    hijri_public("Eid al-Fitr", "Idd el Fitri", 10, 1),
+    hijri_public("Eid al-Fitr", "Idd el Fitri", 10, 2),
+    HolidayRule::public("Good Friday", "Ijumaa Kuu", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::public(
+        "Easter Monday",
+        "Jumatatu ya Pasaka",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    // Declared by the President under section 3 each year, and kept every year.
+    HolidayRule::public("Karume Day", "Siku ya Karume", Rule::gregorian(4, 7)),
+    HolidayRule::public("Union Day", "Sikukuu ya Muungano", Rule::gregorian(4, 26)),
+    HolidayRule::public(
+        "International Workers' Day",
+        "Sikukuu ya Wafanyakazi",
+        Rule::gregorian(5, 1),
+    ),
+    hijri_public("Eid al-Adha", "Idd el Haji", 12, 10),
+    HolidayRule::public("Saba Saba Day", "Saba Saba", Rule::gregorian(7, 7)),
+    HolidayRule::public("Nane Nane Day", "Nane Nane", Rule::gregorian(8, 8)),
+    hijri_public("Maulid", "Maulidi", 3, 12),
+    HolidayRule::public("Nyerere Day", "Siku ya Nyerere", Rule::gregorian(10, 14)),
+    HolidayRule::public(
+        "Independence and Republic Day",
+        "Siku ya Uhuru",
+        Rule::gregorian(12, 9),
+    ),
+    HolidayRule::public("Christmas Day", "Krismasi", Rule::gregorian(12, 25)),
+    HolidayRule::public(
+        "Boxing Day",
+        "Siku ya Kufungua Zawadi",
+        Rule::gregorian(12, 26),
+    ),
+];
+
+/// Tanzania.
+///
+/// The Public Holidays Act (Cap. 35) as revised: the Schedule's days,
+/// two of Eid al-Fitr and one each of Eid al-Adha and Maulid on the
+/// tabular calendar as an approximation of the sighting, and section 4,
+/// which makes the next free day a holiday when one falls on a Saturday
+/// or a Sunday, as a forward policy. Karume Day and Saba Saba are not in
+/// the Schedule; the President declares them under section 3 every year,
+/// and they are carried on that footing. The Peasants' Day of the
+/// Schedule goes by its everyday name, Nane Nane.
+pub static TANZANIA: RuleSet = RuleSet {
+    code: "TZ",
+    english_name: "Tanzania",
+    rules: TZ_RULES,
+    substitution: TZ_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Public Holidays Act, Cap. 35, sections 2 to 4 and the Schedule, as \
+              reproduced by tanzanialaws.com, retrieved 2026-09-22; Wikipedia, \
+              \"Public holidays in Tanzania\", retrieved the same day, for the Swahili \
+              names and the presidential days; sikukuu.co.tz for the 2026 list",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Uganda
+// ─────────────────────────────────────────────────────────────────────────
+
+static UG_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("NRM Liberation Day", "", Rule::gregorian(1, 26)),
+    HolidayRule::fixed_public("Archbishop Janani Luwum Day", "", Rule::gregorian(2, 16))
+        .years(Some(2016), None),
+    HolidayRule::fixed_public("International Women's Day", "", Rule::gregorian(3, 8)),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::fixed_public("Labour Day", "", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Uganda Martyrs' Day", "", Rule::gregorian(6, 3)),
+    HolidayRule::fixed_public("National Heroes' Day", "", Rule::gregorian(6, 9))
+        .years(Some(2001), None),
+    HolidayRule::fixed_public("Independence Day", "", Rule::gregorian(10, 9)),
+    HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public("Boxing Day", "", Rule::gregorian(12, 26)),
+    hijri("Eid al-Fitr", "Idd el Fitr", 10, 1),
+    hijri("Eid al-Adha", "Idd Adhuha", 12, 10),
+];
+
+/// Uganda.
+///
+/// The Public Holidays Act (Cap. 255) as the consulate's 2026 list and
+/// Wikipedia reproduce it: twelve fixed and Easter days, Archbishop
+/// Janani Luwum Day from 2016 and National Heroes' Day from 2001, and one
+/// day of each Eid on the tabular calendar as an approximation of the
+/// Uganda Muslim Supreme Council's sighting. A holiday on a weekend gets
+/// whatever substitute the Office of the President designates, which is
+/// no rule and is not carried; nor are the election days it declares.
+pub static UGANDA: RuleSet = RuleSet {
+    code: "UG",
+    english_name: "Uganda",
+    rules: UG_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Consulate of the Republic of Uganda in Arusha, \"Public Holidays\", \
+              retrieved 2026-09-22, for the 2026 list and the Eids' single days; \
+              Wikipedia, \"Public holidays in Uganda\" and \"Archbishop Janani Luwum \
+              Day\", retrieved the same day, for the list and the years",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Zambia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The Public Holidays Act (Cap. 272): a holiday on a Sunday is observed
+/// on the following Monday.
+static ZM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static ZM_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::public("International Women's Day", "", Rule::gregorian(3, 8))
+        .years(Some(2008), None),
+    HolidayRule::public("Youth Day", "", Rule::gregorian(3, 12)),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::public("Kenneth Kaunda Day", "", Rule::gregorian(4, 28)).years(Some(2022), None),
+    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+    HolidayRule::public("African Freedom Day", "", Rule::gregorian(5, 25)),
+    HolidayRule::fixed_public("Heroes' Day", "", Rule::nth(7, 1, Weekday::Monday)),
+    HolidayRule::fixed_public("Unity Day", "", Rule::nth(7, 1, Weekday::Tuesday)),
+    HolidayRule::fixed_public("Farmers' Day", "", Rule::nth(8, 1, Weekday::Monday)),
+    HolidayRule::public(
+        "National Day of Prayer, Fasting, Repentance and Reconciliation",
+        "",
+        Rule::gregorian(10, 18),
+    )
+    .years(Some(2015), None),
+    HolidayRule::public("Independence Day", "", Rule::gregorian(10, 24)),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+];
+
+/// Zambia.
+///
+/// The Public Holidays Act (Cap. 272) of 1964 with the days declared
+/// under it: International Women's Day from 2008 (Statutory Instrument 33
+/// of 2007), the National Day of Prayer from 2015 (Statutory Instrument
+/// 78 of 2015) and Kenneth Kaunda Day from 2022. Heroes' Day is the first
+/// Monday of July and Unity Day the Tuesday after it, Farmers' Day the
+/// first Monday of August. The Act moves a Sunday holiday to the Monday
+/// after, a forward policy that the weekday-fixed days and the Easter days
+/// never need. Easter Monday is on every official list and is carried;
+/// Easter Sunday, being a Sunday, is not. A Saturday holiday stays put.
+pub static ZAMBIA: RuleSet = RuleSet {
+    code: "ZM",
+    english_name: "Zambia",
+    rules: ZM_RULES,
+    substitution: ZM_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Public Holidays Act, Cap. 272, and its subsidiary legislation as \
+              summarised by zambialaws.com and ZambiaLII, retrieved 2026-09-22; \
+              Wikipedia, \"Public holidays in Zambia\" and \"National Day of Prayer, \
+              Fasting, Repentance and Reconciliation (Zambia)\", retrieved the same \
+              day; Lusaka Times, 28 April 2022, for Kenneth Kaunda Day's first \
+              observance; HONO's 2026 list for the in-lieu Mondays",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Zimbabwe
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Section 2 of the Public Holidays and Prohibition of Business Act
+/// (Chapter 10:21): a public holiday on a Sunday makes the Monday
+/// following a public holiday, past one already taken — Christmas 2022's
+/// Tuesday.
+static ZW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static ZW_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::public(
+        "Robert Gabriel Mugabe National Youth Day",
+        "",
+        Rule::gregorian(2, 21),
+    )
+    .years(Some(2018), None),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Saturday", "", Rule::easter(HOLY_SATURDAY)),
+    HolidayRule::fixed_public("Easter Sunday", "", Rule::easter(EASTER_SUNDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::public("Independence Day", "", Rule::gregorian(4, 18)),
+    HolidayRule::public("Workers' Day", "", Rule::gregorian(5, 1)),
+    HolidayRule::public("Africa Day", "", Rule::gregorian(5, 25)),
+    HolidayRule::fixed_public("Heroes' Day", "", Rule::nth(8, 2, Weekday::Monday)),
+    HolidayRule::fixed_public(
+        "Defence Forces National Day",
+        "",
+        Rule::nth(8, 2, Weekday::Tuesday),
+    ),
+    HolidayRule::public("National Unity Day", "", Rule::gregorian(12, 22)),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+];
+
+/// Zimbabwe.
+///
+/// The Public Holidays and Prohibition of Business Act (Chapter 10:21) as
+/// General Notice 1361 of 2025 lists it for 2026: fourteen days, the four
+/// Easter days as a block, Heroes' Day on the second Monday of August and
+/// the Defence Forces on the Tuesday after, and Robert Gabriel Mugabe
+/// National Youth Day from 2018 by the statutory instrument of November
+/// 2017. Section 2's proviso moves a Sunday holiday to the Monday after,
+/// a forward policy that skips a Monday already taken; the Easter days
+/// are `fixed_public` so that Easter Sunday claims no Tuesday. Wikipedia's
+/// Munhumutapa Day is not in the 2026 notice and is not carried; the
+/// President's extra days under section 2(2) are not either.
+pub static ZIMBABWE: RuleSet = RuleSet {
+    code: "ZW",
+    english_name: "Zimbabwe",
+    rules: ZW_RULES,
+    substitution: ZW_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "General Notice 1361 of 2025 under the Public Holidays and Prohibition of \
+              Business Act, Chapter 10:21, as reproduced by SmartHR Solutions \
+              Zimbabwe, retrieved 2026-09-22, for the 2026 list; ZimLII and Veritas \
+              Zimbabwe for section 2's Sunday proviso; Wikipedia, \"Robert Gabriel \
+              Mugabe National Youth Day\", retrieved the same day, for 2018",
 };

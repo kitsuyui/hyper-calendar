@@ -33,14 +33,14 @@ fn hijri_dates_appear_in_the_number_of_countries_the_readme_states() {
         .collect();
     assert_eq!(
         countries_with_hijri.len(),
-        28,
+        30,
         "got {countries_with_hijri:?}"
     );
     // Named, so that a country losing its Hijri holidays is visible rather
     // than merely a smaller number.
     for expected in [
         "AE", "AL", "AR", "AZ", "BH", "EG", "ET", "GH", "ID", "IN", "IR", "JO", "KE", "KW", "KZ",
-        "LB", "MA", "ME", "MK", "MM", "MY", "NG", "PH", "PK", "RS", "SA", "SG", "TR",
+        "LB", "MA", "ME", "MK", "MM", "MY", "NG", "PH", "PK", "RS", "SA", "SG", "TR", "TZ", "UG",
     ] {
         assert!(
             countries_with_hijri.contains(&expected),
