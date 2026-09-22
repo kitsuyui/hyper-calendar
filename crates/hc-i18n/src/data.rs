@@ -139,6 +139,7 @@ const BUDDHIST_CALENDARS: &[CalendarId] = &[CalendarId("buddhist")];
 /// so share one set of names: First Month, 正月, 정월.
 const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("chinese"),
+    CalendarId("chinese-regnal"),
     CalendarId("dangi"),
     CalendarId("vietnamese"),
     CalendarId("japanese-tenpo"),

@@ -28,6 +28,7 @@ from an epoch with months cut out of it, which is why none of them belongs in
 | `javanese-pasaran` | The 5-day market week and the 35-day *wetonan* |
 | `akan` | The Akan 6-day week and the 42-day *Adaduanan*, with the four *dabɔne* |
 | `korean-regnal` | The Korean Empire's eras 建陽, 光武, 隆熙 on the Gregorian days of 1896–1910 |
+| `chinese-regnal` | The Qing eras over the lunisolar calendar, 1645–1912; the Ming and Qing era table as data |
 | `sexagenary` | 干支 over years, months and days |
 
 `register_all(&mut CalendarRegistry)` inserts every calendar in the table,

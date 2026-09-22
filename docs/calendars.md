@@ -120,7 +120,7 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Japanese eras, Southern Court (南朝) | `japanese-southern` | `hc-calendars-regional` | Done |
 | Japanese eras, as proclaimed (改元当時) | `japanese-proclaimed` | `hc-calendars-regional` | Done |
 | Chinese sexagenary cycle (干支), incl. the four pillars (四柱/八字) | `sexagenary` | `hc-calendars-regional` (arithmetic in `hc-calendar::cycle`) | Done |
-| Chinese regnal eras (年号) | `chinese-regnal` | `hc-calendars-regional` | Planned |
+| Chinese regnal eras (年号) | `chinese-regnal` | `hc-calendars-regional` | Partial — the Qing eras day by day over `chinese` from 1645 to the abdication of 1912, and the Ming, Southern Ming, Shun and Qing eras as year data with the backdated reading; the eras before the Ming wait on a source that dates them |
 | Korean regnal eras | `korean-regnal` | `hc-calendars-regional` | Partial — the Korean Empire's 建陽, 光武 and 隆熙 on their proclamation days, 1896–1910; Joseon's use of the Chinese eras waits on `chinese-regnal`, and the 開國 count is a helper |
 | Maya long count (GMT 584283) | `maya-longcount` | `hc-calendars-regional` | Done |
 | Maya long count (GMT+2, 584285) | `maya-longcount-gmt2` | `hc-calendars-regional` | Done |
