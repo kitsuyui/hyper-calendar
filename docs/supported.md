@@ -203,7 +203,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `MU` | Mauritius | 16 | none | stated | 2026-09-22 |
 | `MW` | Malawi | 13 | yes | stated | 2026-09-22 |
 | `MX` | Mexico | 11 | none | stated | 2026-09-21 |
-| `MY` | Malaysia | 14 | yes | stated | 2026-09-21 |
+| `MY` | Malaysia | 15 | yes | stated | 2026-09-21 |
 | `NA` | Namibia | 14 | yes | stated | 2026-09-22 |
 | `NG` | Nigeria | 14 | yes | stated | 2026-09-21 |
 | `NL` | Netherlands | 12 | none | stated | 2026-09-21 |
@@ -223,7 +223,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `RU` | Russia | 16 | none | stated | 2026-09-22 |
 | `SA` | Saudi Arabia | 10 | none | stated | 2026-09-21 |
 | `SE` | Sweden | 17 | none | stated | 2026-09-21 |
-| `SG` | Singapore | 10 | yes | stated | 2026-09-21 |
+| `SG` | Singapore | 11 | yes | stated | 2026-09-21 |
 | `SI` | Slovenia | 16 | none | stated | 2026-09-22 |
 | `SK` | Slovakia | 20 | none | stated | 2026-09-22 |
 | `SM` | San Marino | 20 | none | stated | 2026-09-22 |
