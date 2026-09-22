@@ -27,9 +27,10 @@
 
 use hc_calendars_indic::{HinduLunarCalendar, Prevalence};
 use hc_seasons::Meridian;
+use hc_seasons::zodiac::sidereal::ingress_moment;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
-use crate::rule::{Rule, WhenTwice};
+use crate::rule::{Days, Rule, WhenTwice};
 
 /// The calendar every rule here is dated in: the national almanac's.
 pub const CALENDAR: HinduLunarCalendar = HinduLunarCalendar::RASHTRIYA;
@@ -89,6 +90,19 @@ pub const GURU_NANAK_JAYANTI: Rule = tithi(8, 15, Prevalence::Midday, WhenTwice:
 
 /// Mahā Śivarātri: Māgha kṛṣṇa 14 at midnight.
 pub const MAHA_SHIVARATRI: Rule = tithi(11, 29, Prevalence::Midnight, WhenTwice::Earlier);
+
+/// Thaipusam: the Pusam (Puṣya) nakṣatra in the Tamil month of Thai, the
+/// Sun in sidereal Makara, which is the day of that month's full moon or
+/// the day before it. The crate has no nakṣatra rule yet, so this is the
+/// full moon: the first at or after the Makara saṅkrānti, as a day in
+/// Indian time. A table carries it approximate.
+pub const THAIPUSAM: Rule = Rule::Computed(thai_full_moon);
+
+fn thai_full_moon(year: i64) -> Days {
+    let sankranti = ingress_moment(year, SiderealSign::MAKARA, Ayanamsa::LAHIRI);
+    let full_moon = hc_astro::moon_phase_at_or_after(180.0, sankranti);
+    Days::one(Meridian::INDIA.day_of(full_moon))
+}
 
 /// Holikā Dahana: the full moon of Phālguna, in the evening.
 pub static HOLIKA_DAHAN: Rule = tithi(12, 15, Prevalence::Evening, WhenTwice::Earlier);

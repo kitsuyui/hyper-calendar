@@ -212,6 +212,10 @@ Ordered by how well the sources can be cited, not by importance.
 | Zimbabwe 🇿🇼 | Chapter 10:21 as gazetted for 2026, Youth Day from 2018, the Easter block fixed, the Sunday proviso past a taken Monday |
 | Kenya 🇰🇪 | The Public Holidays Act's Part I with the Sunday rule of section 4; Idd-ul-Azha and Diwali as the religious days Parts II and III make them, not days off for all; the Idd days approximate |
 | Morocco 🇲🇦 | The decrees' eleven fixed days and the four feasts, three of them two days, approximate; Yennayer from 2024 and Unity Day from 2026 by year |
+| Botswana 🇧🇼 | Cap. 03:07's fourteen days with section 2's three provisos: Sunday to Monday, the three second days from a Monday to the Tuesday, a Saturday Botswana Day to the Monday |
+| Namibia 🇳🇦 | Act 26 of 1990's twelve days, the 2004 renaming, Genocide Remembrance Day from 2025 by proclamation, and a Sunday's Monday "unless that Monday is a public holiday" |
+| Mauritius 🇲🇺 | The Act as amended in 2015 and 2019: the First Schedule's fixed and notified days, the latter approximate on the Chinese, Hijri and Hindu rules, and the Assumption or All Saints alternating from 2016 as computed rules |
+| Malawi 🇲🇼 | Cap. 18:05's Schedule with Boxing Day from the yearly lists, and section 4's next free day for a Saturday or Sunday, the Saturday after Good Friday excepted |
 | Algeria 🇩🇿 | Law 63-278 as amended: the five civil days, Yennayer from 2018, the Eids two days until 2022 and three from law 23-10 of 2023, approximate; the Christian and Jewish community days as religious; the weekend by its three eras |
 | Tunisia 🇹🇳 | Decree 2021-223's list for the public service, Aïd el-Fitr three days and Aïd el-Idha two, approximate; the decrees of 1961 to 2021 by their years |
 | Senegal 🇸🇳 | Law 74-52 with Easter and Pentecost on their Sundays, the Monday after a Sunday Korité or Tabaski only, and the Grand Magal from 2012 |
