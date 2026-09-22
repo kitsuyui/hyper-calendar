@@ -282,6 +282,205 @@ pub unsafe extern "C" fn hc_parse_iso_date(buffer: *const u8, len: usize) -> i64
     }
 }
 
+/// The holiday tables, behind the `holiday` feature: every country,
+/// exchange, tradition and international set of `hc-holiday`, looked up by
+/// identifier and rendered as tab-separated lines.
+#[cfg(feature = "holiday")]
+mod holiday {
+    use super::{HC_ERR_BUFFER_TOO_SMALL, HC_ERR_NO_DATA, HC_ERR_OUT_OF_RANGE, emit};
+    use hc::hc_calendar::Rd;
+    use hc::hc_holiday::engine::HolidayCalendar;
+    use hc::hc_holiday::hc_calendars_solar::gregorian;
+    use hc::hc_holiday::rule::{Confidence, Kind, RuleSet};
+    use hc::hc_holiday::{countries, exchanges, international, traditions};
+
+    /// The table an identifier names: a country's ISO 3166-1 alpha-2 code,
+    /// an exchange's ISO 10383 Market Identifier Code, a tradition's slug or
+    /// `un-days`, tried in that order.
+    fn table(code: &str) -> Option<&'static RuleSet> {
+        countries::by_code(code)
+            .or_else(|| exchanges::by_code(code))
+            .or_else(|| traditions::by_code(code))
+            .or_else(|| international::by_code(code))
+    }
+
+    /// UTF-8 text from linear memory; a null pointer with zero length is
+    /// the empty string.
+    ///
+    /// # Safety
+    ///
+    /// `pointer` must be readable for `len` bytes unless it is null.
+    unsafe fn text<'a>(pointer: *const u8, len: usize) -> Option<&'a str> {
+        if pointer.is_null() {
+            return (len == 0).then_some("");
+        }
+        // SAFETY: the caller guarantees `pointer` is readable for `len` bytes.
+        let bytes = unsafe { core::slice::from_raw_parts(pointer, len) };
+        core::str::from_utf8(bytes).ok()
+    }
+
+    /// Every table's identifier, one per line.
+    pub(super) fn codes() -> String {
+        let mut out = String::new();
+        for set in countries::ALL
+            .iter()
+            .chain(exchanges::ALL)
+            .chain(traditions::ALL)
+            .chain(international::ALL)
+        {
+            out.push_str(set.code);
+            out.push('\n');
+        }
+        out
+    }
+
+    /// The holidays of a year as lines: the ISO date, the name, the local
+    /// name, the kind, the confidence, `1` for a substitute day and the date
+    /// it stands in for, tab-separated.
+    pub(super) fn lines(table: &RuleSet, region: Option<&str>, year: i64) -> String {
+        use core::fmt::Write;
+        let calendar = HolidayCalendar::for_year(table, region, year);
+        let mut out = String::new();
+        for holiday in calendar.all() {
+            let kind = match holiday.kind {
+                Kind::Public => "public",
+                Kind::Bank => "bank",
+                Kind::Religious => "religious",
+                Kind::Observance => "observance",
+                Kind::School => "school",
+            };
+            let confidence = match holiday.confidence {
+                Confidence::Exact => "exact",
+                Confidence::Approximate => "approximate",
+            };
+            let _ = write!(
+                out,
+                "{}\t{}\t{}\t{kind}\t{confidence}\t{}\t",
+                iso(holiday.date),
+                holiday.name,
+                holiday.local_name,
+                u8::from(holiday.is_substitute())
+            );
+            if let Some(day) = holiday.observed_for {
+                out.push_str(&iso(day));
+            }
+            out.push('\n');
+        }
+        out
+    }
+
+    fn iso(day: Rd) -> String {
+        hc::civil::Date::from_ordinal(day.0)
+            .map_or_else(|_| String::from("?"), |date| date.to_string())
+    }
+
+    /// Whether a fixed day is a day off in a holiday table: 1, 0, or an
+    /// error sentinel.
+    ///
+    /// `code` names the table — a country's ISO 3166-1 alpha-2 code, an
+    /// exchange's ISO 10383 Market Identifier Code, a tradition's slug or
+    /// `un-days` — and `region`, which may be empty, a subdivision's ISO
+    /// 3166-2 code. `HC_ERR_NO_DATA` names a table that does not exist.
+    ///
+    /// # Safety
+    ///
+    /// `code` must be readable for `code_len` bytes and `region` for
+    /// `region_len`, unless null with a zero length.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_holiday_is_day_off(
+        code: *const u8,
+        code_len: usize,
+        region: *const u8,
+        region_len: usize,
+        fixed: i64,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let (Some(code), Some(region)) = (unsafe { text(code, code_len) }, unsafe {
+            text(region, region_len)
+        }) else {
+            return HC_ERR_NO_DATA;
+        };
+        let Some(table) = table(code) else {
+            return HC_ERR_NO_DATA;
+        };
+        let day = Rd(fixed);
+        let Ok(year) = gregorian::year_from_fixed(day) else {
+            return HC_ERR_OUT_OF_RANGE;
+        };
+        let region = (!region.is_empty()).then_some(region);
+        i64::from(HolidayCalendar::for_year(table, region, year).is_holiday(day))
+    }
+
+    /// The holidays of a Gregorian year in a table, as UTF-8 lines,
+    /// returning the byte length written.
+    ///
+    /// One line per entry, tab-separated: the ISO 8601 date, the name, the
+    /// local name, the kind (`public`, `bank`, `religious`, `observance`
+    /// or `school`), the confidence (`exact` or `approximate`), `1` for a
+    /// substitute day and `0` otherwise, and the date the substitute
+    /// stands in for or nothing. A null `buffer` returns the length the
+    /// text needs, so a caller can allocate exactly. `HC_ERR_NO_DATA` names
+    /// a table that does not exist.
+    ///
+    /// # Safety
+    ///
+    /// `code` and `region` as for `hc_holiday_is_day_off`; `buffer` must be
+    /// writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_holidays_in_year(
+        code: *const u8,
+        code_len: usize,
+        region: *const u8,
+        region_len: usize,
+        year: i64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let (Some(code), Some(region)) = (unsafe { text(code, code_len) }, unsafe {
+            text(region, region_len)
+        }) else {
+            return HC_ERR_NO_DATA;
+        };
+        let Some(table) = table(code) else {
+            return HC_ERR_NO_DATA;
+        };
+        let region = (!region.is_empty()).then_some(region);
+        let text = lines(table, region, year);
+        if buffer.is_null() {
+            return text.len() as i64;
+        }
+        if capacity < text.len() {
+            return HC_ERR_BUFFER_TOO_SMALL;
+        }
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit(&text, buffer, capacity) }
+    }
+
+    /// The identifier of every holiday table, one per line, returning the
+    /// byte length written.
+    ///
+    /// Countries first, then exchanges, traditions and the international
+    /// sets, each as `hc_holiday_is_day_off` accepts it. A null `buffer`
+    /// returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_holiday_codes(buffer: *mut u8, capacity: usize) -> i64 {
+        let text = codes();
+        if buffer.is_null() {
+            return text.len() as i64;
+        }
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit(&text, buffer, capacity) }
+    }
+}
+
+#[cfg(feature = "holiday")]
+pub use holiday::{hc_holiday_codes, hc_holiday_is_day_off, hc_holidays_in_year};
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -393,5 +592,76 @@ mod tests {
         let common = hc_gregorian_to_fixed(2023, 12, 31);
         assert_eq!(hc_day_of_year(common), 365);
         assert_eq!(hc_is_leap_year(common), 0);
+    }
+
+    #[cfg(feature = "holiday")]
+    #[test]
+    fn holiday_tables_answer_by_identifier() {
+        let jp = b"JP";
+        let day = hc_gregorian_to_fixed(2026, 1, 1);
+        assert_eq!(
+            unsafe { hc_holiday_is_day_off(jp.as_ptr(), 2, core::ptr::null(), 0, day) },
+            1
+        );
+        let xnys = b"XNYS";
+        let good_friday = hc_gregorian_to_fixed(2026, 4, 3);
+        assert_eq!(
+            unsafe { hc_holiday_is_day_off(xnys.as_ptr(), 4, core::ptr::null(), 0, good_friday) },
+            1
+        );
+        let us = b"US";
+        assert_eq!(
+            unsafe { hc_holiday_is_day_off(us.as_ptr(), 2, core::ptr::null(), 0, good_friday) },
+            0
+        );
+        let zz = b"ZZ";
+        assert_eq!(
+            unsafe { hc_holiday_is_day_off(zz.as_ptr(), 2, core::ptr::null(), 0, day) },
+            HC_ERR_NO_DATA
+        );
+        // A null buffer measures; a sized one receives the lines.
+        let needed = unsafe {
+            hc_holidays_in_year(
+                jp.as_ptr(),
+                2,
+                core::ptr::null(),
+                0,
+                2026,
+                core::ptr::null_mut(),
+                0,
+            )
+        };
+        assert!(needed > 0);
+        let capacity = needed as usize;
+        let pointer = hc_alloc(capacity);
+        let written = unsafe {
+            hc_holidays_in_year(
+                jp.as_ptr(),
+                2,
+                core::ptr::null(),
+                0,
+                2026,
+                pointer,
+                capacity,
+            )
+        };
+        assert_eq!(written, needed);
+        let text = unsafe { core::str::from_utf8(core::slice::from_raw_parts(pointer, capacity)) }
+            .expect("UTF-8");
+        assert!(
+            text.starts_with("2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\n"),
+            "{text}"
+        );
+        assert!(text.contains("\t1\t2026-05-03\n"), "{text}");
+        unsafe { hc_free(pointer, capacity) };
+        let codes_len = unsafe { hc_holiday_codes(core::ptr::null_mut(), 0) };
+        assert!(codes_len > 0);
+        let capacity = codes_len as usize;
+        let pointer = hc_alloc(capacity);
+        assert_eq!(unsafe { hc_holiday_codes(pointer, capacity) }, codes_len);
+        let text = unsafe { core::str::from_utf8(core::slice::from_raw_parts(pointer, capacity)) }
+            .expect("UTF-8");
+        assert!(text.contains("\nJP\n") && text.contains("\nXNYS\n") && text.contains("un-days\n"));
+        unsafe { hc_free(pointer, capacity) };
     }
 }
