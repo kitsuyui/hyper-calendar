@@ -81,10 +81,10 @@ loudly enough that nobody should read a birth animal out of this module.
 
 ## Accuracy, and the measurement that proves it
 
-`hc-astro`'s apparent solar longitude is Meeus's low-precision series, good to
-about 0.01° — roughly a quarter of an hour of solar motion — with a measured
-systematic bias of about **−4.5 minutes**. An event within about ten minutes
-of local midnight can therefore be assigned the wrong *day*.
+`hc-astro`'s apparent solar longitude is VSOP87, good to about 1″ — under
+half a minute of solar motion — and its seasonal events land within the
+minute the almanacs round to, with no measured bias. An event within about a
+minute of local midnight can therefore still be assigned the wrong *day*.
 
 Japan's 春分の日 and 秋分の日 are the sharpest available test of that, because
 the law defines them as "the day of the equinox" and the National
@@ -100,10 +100,10 @@ the Observatory disagree, one of them is wrong about a public holiday.
 | 1980–2099 | 240 | **0** | **0.00 %** |
 
 Zero, not "about right". The reason is that over this span no equinox happens
-to fall inside the window where a −4.5-minute bias could move the date: the
-tightest case in the modern record is the autumn equinox of 2012 at 23:49
-JST, eleven minutes clear. The tests still measure and print the rate rather
-than asserting zero, because the margin is eleven minutes and not a principle;
+to fall inside the minute where the model could move the date: the tightest
+case in the modern record is the autumn equinox of 2012 at 23:49 JST, eleven
+minutes clear. The tests still measure and print the rate rather than
+asserting zero, because the margin is eleven minutes and not a principle;
 a companion test asserts that any future disagreement must be a case within
 half an hour of midnight JST, so a real regression cannot hide behind the
 documented bias. Computing the same holiday in Universal Time instead of JST
@@ -112,9 +112,9 @@ argument exists to prevent.
 
 Other accuracy notes:
 
-* Solar term dates inherit the same −4.5-minute bias. Terms are 15 days
-  apart, so the *term* is never wrong; only its day, and only at a midnight
-  boundary.
+* Solar term dates inherit the same accuracy. Terms are 15 days apart, so
+  the *term* is never wrong; only its day, and only when its instant falls
+  within a minute of a midnight boundary.
 * Lunar conjunctions land within about a minute, so month boundaries, phase
   dates, 十五夜 and 六曜 are firmer than the solar-term dates.
 * 月齢 and the illuminated fraction are quoted for **local noon**. NAOJ quotes
@@ -124,8 +124,9 @@ Other accuracy notes:
   within about ten minutes of local midnight. The sidereal boundaries carry a
   second, independent uncertainty on top: published values for a named
   ayanamsa disagree among themselves by a few tens of arcseconds, and 20″ of
-  solar longitude is about **eight minutes** of time — the same order as the
-  −4.5-minute bias. A saṅkrānti near midnight can move for either reason.
+  solar longitude is about **eight minutes** of time — many times the
+  series' own error. A saṅkrānti near midnight moves for that reason before
+  any other.
 
 ### The zodiac dates every newspaper prints, measured
 

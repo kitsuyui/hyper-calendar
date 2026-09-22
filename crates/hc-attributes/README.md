@@ -167,8 +167,8 @@ stones the British list has that no American list does, the three names the Old
 Farmer's Almanac changed after 1964.
 
 The Harvest Moon inherits `hc-seasons`' accuracy: lunar phases within about a
-minute, the September equinox with a measured systematic bias of about −4.5
-minutes. The rule compares two intervals of roughly a fortnight, so neither
+minute, the September equinox within the minute the almanacs round to. The
+rule compares two intervals of roughly a fortnight, so neither
 error can change which month the answer falls in for any year tested (1900–2100).
 
 ## Where the data came from

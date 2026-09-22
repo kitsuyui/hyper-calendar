@@ -99,8 +99,8 @@
 //! The tables are exact: they are transcriptions, and the tests check them
 //! against the published lists. The only thing that can be wrong by a day is
 //! the Harvest Moon, which inherits `hc-seasons`' accuracy — lunar phases
-//! within about a minute, the equinox with a systematic bias of about −4.5
-//! minutes. Since the rule compares intervals of roughly a fortnight,
+//! and the equinox within about a minute. Since the rule compares intervals
+//! of roughly a fortnight,
 //! neither error can change which month the answer falls in for any year
 //! this crate is tested over.
 //!

@@ -82,8 +82,8 @@
 //! # Accuracy
 //!
 //! The lunar phase instants come from `hc-astro` through `hc-seasons` and
-//! land within about a minute of the published ones; the equinox instant
-//! carries that crate's measured systematic bias of about −4.5 minutes. The
+//! land within about a minute of the published ones, and so does the
+//! equinox instant. The
 //! Harvest Moon rule compares two intervals of roughly a fortnight, so
 //! neither error can change the answer except in a year where two full moons
 //! are almost exactly equidistant from the equinox — which requires them to

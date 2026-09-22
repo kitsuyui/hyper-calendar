@@ -107,12 +107,12 @@ can. Three circulated tables were caught that way and corrected:
 | Class | Annotations | Exactness |
 |---|---|---|
 | Pure day count | all 干支 rules, 七曜, 二十八宿 | exact for ever |
-| 節月-keyed | 十二直, 九星, most of 下段 and 選日 | `hc-astro`'s 0.01° solar series |
+| 節月-keyed | 十二直, 九星, most of 下段 and 選日 | `hc-astro`'s VSOP87 solar series, good to about 1″ |
 | Lunisolar | 六曜, 不成就日, 二十七宿 | `hc-seasons`' minimal 定気 derivation |
 
-The solar series carries a systematic bias of about −4.5 minutes, so a term
-instant within roughly ten minutes of local midnight can be assigned the wrong
-*day*, which moves a 節月 boundary and with it every annotation keyed to one. The
+A term instant within about a minute of local midnight can still be assigned
+the wrong *day*, which moves a 節月 boundary and with it every annotation
+keyed to one. The
 sharpest real case the crate tests is 立秋 2025, which fell at 22:52 JST on 7
 August: the whole of that day is 申月, which is what makes it the autumn 天赦日.
 

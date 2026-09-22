@@ -39,10 +39,10 @@
 //! # Accuracy, and what it refuses to claim
 //!
 //! The conjunctions come from `hc-astro` and land within about a minute of
-//! the truth, which is far inside a day. The solar longitude is the Meeus
-//! low-precision series, good to about 0.01°, and its solstice instants run
-//! systematically about four and a half minutes early. **When a solstice or a
-//! conjunction falls within ten minutes of local midnight, the day this
+//! the truth, which is far inside a day. The solar longitude is the VSOP87
+//! series, good to about 1″, and its solstice instants land within the
+//! minute the almanacs round to. **When a solstice or a conjunction falls
+//! within about a minute of local midnight, the day this
 //! module assigns can be wrong by one**, and a wrong day for the solstice or
 //! for a zhōngqì can move a leap month by a whole month.
 //!

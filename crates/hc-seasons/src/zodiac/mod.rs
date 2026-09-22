@@ -45,12 +45,11 @@
 //!
 //! # Accuracy: a boundary near midnight can land on the wrong day
 //!
-//! Every instant here comes from `hc-astro`'s Meeus low-precision solar
-//! longitude, good to about 0.01° — roughly a quarter of an hour of the
-//! Sun's motion — with a measured systematic bias of about **−4.5 minutes**.
-//! A sign boundary falling within about ten minutes of local midnight can
-//! therefore be given the wrong *day*. That is a property of the series, not
-//! a bug, and it is the same caveat the solar terms carry.
+//! Every instant here comes from `hc-astro`'s VSOP87 solar longitude, good
+//! to about 1″ — under half a minute of the Sun's motion. A sign boundary
+//! falling within about a minute of local midnight can therefore still be
+//! given the wrong *day*. That is a property of any series, not a bug, and
+//! it is the same caveat the solar terms carry.
 //!
 //! The sidereal boundaries carry one more term of uncertainty on top: the
 //! published Lahiri ayanamsa values disagree among themselves by a few tens

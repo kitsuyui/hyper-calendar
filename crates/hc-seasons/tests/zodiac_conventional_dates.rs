@@ -41,10 +41,9 @@
 //!
 //! # The accuracy caveat that applies to every number below
 //!
-//! `hc-astro`'s solar longitude is Meeus's low-precision series, good to
-//! about 0.01° with a measured systematic bias of about −4.5 minutes. An
-//! ingress falling within roughly ten minutes of local midnight can be
-//! assigned the wrong day, so a handful of the disagreements counted here
+//! `hc-astro`'s solar longitude is the VSOP87 series, good to about 1″. An
+//! ingress falling within about a minute of local midnight can still be
+//! assigned the wrong day, so one or two of the disagreements counted here
 //! may be the model's and not the almanac's. The test therefore checks the
 //! *shape* of the disagreement — its size in days and how it changes across
 //! a century — rather than an exact count, and prints the counts for a human

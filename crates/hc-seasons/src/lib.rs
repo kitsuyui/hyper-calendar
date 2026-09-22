@@ -53,10 +53,10 @@
 //!
 //! # Accuracy
 //!
-//! The underlying solar longitude is `hc-astro`'s Meeus low-precision series,
-//! good to about 0.01° with a systematic bias of roughly −4.5 minutes. An
-//! event within about ten minutes of local midnight can therefore be given
-//! the wrong *day*. That is measured rather than asserted: the integration
+//! The underlying solar longitude is `hc-astro`'s VSOP87 series, good to
+//! about 1″, and its seasonal events land within the minute the almanacs
+//! round to. An event within about a minute of local midnight can therefore
+//! still be given the wrong *day*. That is measured rather than asserted: the integration
 //! tests compare against the 240 equinox days Japan published for 1980–2099,
 //! and the README states the rate.
 //!
