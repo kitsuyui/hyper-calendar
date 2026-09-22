@@ -115,7 +115,7 @@ The cross-cutting ones, because national tables depend on them.
 | Bahá'í | The nine holy days — Naw-Rúz, the three days of Riḍván, the Declaration of the Báb, the Ascension of Bahá'u'lláh, the Martyrdom of the Báb, the Twin Holy Birthdays — with the Day of the Covenant and the Ascension of ʻAbdu'l-Bahá, and the first days of Ayyám-i-Há and of the Fast | Done — dated in the Badíʿ calendar as kept (`bahai`, see [calendars.md](calendars.md)), so exact through 19 March 2065 and a reported gap after, where the Bahá'í World Centre's table ends; the Twin Holy Birthdays follow the same table, 2015–2064 |
 | Zoroastrian | Nowruz, Mehregan, Yalda, Sadeh, the Gahambars | Planned |
 | Shinto | 初詣, 節分, 七五三, and the major 祭 with fixed dates | Planned — 節分 and the other 雑節 are in `hc-seasons`, but no Shinto rule table exists yet |
-| Pagan / Wheel of the Year | Samhain, Yule, Imbolc, Ostara, Beltane, Litha, Lughnasadh, Mabon | Planned |
+| Pagan / Wheel of the Year | Samhain, Yule, Imbolc, Ostara, Beltane, Litha, Lughnasadh, Mabon | Done — two tables, northern and southern hemisphere; the quarter days on their Universal Time day, the cross-quarter days on their fixed dates; eve and nearest-weekend conventions not modelled |
 | Secular international | UN observance days established by General Assembly resolution, and UNESCO international days | Planned — each entry cites its resolution |
 
 ## Stage 2 — National public holidays

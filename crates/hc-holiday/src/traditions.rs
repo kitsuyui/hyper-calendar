@@ -25,6 +25,7 @@
 //! | Buddhist | approximated from the Chinese lunisolar calendar | **approximate** — see [`BUDDHIST`] |
 //! | Chinese folk | Chinese lunisolar calendar and the solar terms | exact to the astronomical model |
 //! | Hindu | the amānta Hindu lunisolar calendar at the national almanac's sunrise; each festival on the part of the day its tithi must hold | exact to the astronomical model, and to the conventions [`crate::hindu`] states — a regional almanac may keep a day differently |
+//! | Wheel of the Year | the solstices and equinoxes on their Universal Time day; the cross-quarter days on their fixed Gregorian dates | exact as stated; a group may keep a quarter day on its local date or the nearest weekend, and the eve convention for Samhain is not modelled |
 
 use hc_calendar::Weekday;
 use hc_calendars_solar::{bahai, gregorian};
@@ -746,6 +747,92 @@ pub static HINDU: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// The Wheel of the Year
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A quarter day: a solstice or equinox on its Universal Time day.
+const fn quarter_day(name: &'static str, term: SolarTerm) -> HolidayRule {
+    feast(
+        name,
+        "",
+        Rule::SolarTerm {
+            term,
+            meridian: Meridian::UNIVERSAL,
+        },
+    )
+}
+
+/// A cross-quarter day, on its fixed Gregorian date.
+const fn cross_quarter_day(name: &'static str, month: u8, day: u8) -> HolidayRule {
+    feast(name, "", Rule::gregorian(month, day))
+}
+
+static WHEEL_OF_THE_YEAR_RULES: &[HolidayRule] = &[
+    cross_quarter_day("Imbolc", 2, 1),
+    quarter_day("Ostara", SolarTerm::SPRING_EQUINOX),
+    cross_quarter_day("Beltane", 5, 1),
+    quarter_day("Litha", SolarTerm::SUMMER_SOLSTICE),
+    cross_quarter_day("Lughnasadh", 8, 1),
+    quarter_day("Mabon", SolarTerm::AUTUMN_EQUINOX),
+    cross_quarter_day("Samhain", 11, 1),
+    quarter_day("Yule", SolarTerm::WINTER_SOLSTICE),
+];
+
+static WHEEL_OF_THE_YEAR_SOUTH_RULES: &[HolidayRule] = &[
+    cross_quarter_day("Lughnasadh", 2, 1),
+    quarter_day("Mabon", SolarTerm::SPRING_EQUINOX),
+    cross_quarter_day("Samhain", 5, 1),
+    quarter_day("Yule", SolarTerm::SUMMER_SOLSTICE),
+    cross_quarter_day("Imbolc", 8, 1),
+    quarter_day("Ostara", SolarTerm::AUTUMN_EQUINOX),
+    cross_quarter_day("Beltane", 11, 1),
+    quarter_day("Litha", SolarTerm::WINTER_SOLSTICE),
+];
+
+/// The Wheel of the Year, as kept in the northern hemisphere.
+///
+/// The eight festivals of modern paganism: the four quarter days — the
+/// solstices and equinoxes, Yule, Ostara, Litha and Mabon — and the four
+/// cross-quarter days between them, Imbolc, Beltane, Lughnasadh and
+/// Samhain, which British neopagans joined into one cycle in the middle of
+/// the twentieth century from the solar festivals of many European peoples
+/// and the four fire festivals of the Insular Celts.
+///
+/// A quarter day is the day of its solstice or equinox in Universal Time;
+/// a cross-quarter day is its conventional Gregorian date, Samhain on
+/// 1 November rather than the eve. Groups that keep a quarter day on its
+/// local date, on the astronomical midpoint of a cross-quarter, or on the
+/// nearest weekend do so by their own rule, which this table does not
+/// carry.
+pub static WHEEL_OF_THE_YEAR: RuleSet = RuleSet {
+    code: "wheel-of-the-year",
+    english_name: "Wheel of the Year",
+    rules: WHEEL_OF_THE_YEAR_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia, \"Wheel of the Year\", retrieved 2026-09-22, for the eight \
+              festivals, their dates in each hemisphere and the cycle's \
+              mid-twentieth-century origin",
+};
+
+/// The Wheel of the Year, as kept in the southern hemisphere: the same
+/// eight festivals half a year round, so that Yule falls at the June
+/// solstice and Samhain on 1 May.
+pub static WHEEL_OF_THE_YEAR_SOUTH: RuleSet = RuleSet {
+    code: "wheel-of-the-year-south",
+    english_name: "Wheel of the Year (southern hemisphere)",
+    rules: WHEEL_OF_THE_YEAR_SOUTH_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia, \"Wheel of the Year\", retrieved 2026-09-22, southern-hemisphere \
+              column",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Buddhism
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -924,6 +1011,8 @@ pub static ALL: &[&RuleSet] = &[
     &HINDU,
     &BUDDHIST,
     &CHINESE_FOLK,
+    &WHEEL_OF_THE_YEAR,
+    &WHEEL_OF_THE_YEAR_SOUTH,
 ];
 
 /// The table for a tradition's identifier.
