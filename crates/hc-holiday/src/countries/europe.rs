@@ -14,8 +14,8 @@ use crate::computus::offsets::{
     HOLY_SATURDAY, MAUNDY_THURSDAY, PENTECOST, SHROVE_TUESDAY, WHIT_MONDAY,
 };
 use crate::rule::{
-    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, SubstituteDirection,
-    SubstitutionPolicy,
+    CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
+    SubstituteDirection, SubstitutionPolicy,
 };
 
 /// The British and Irish shift: a bank holiday on a weekend is kept on the
@@ -2681,4 +2681,586 @@ pub static LITHUANIA: RuleSet = RuleSet {
               6 July and 15 August (1991) and 2 November (2020); \
               nedarbodienos.lt for Father's Day (2009); 15min.lt, 9 December \
               2010, for Christmas Eve",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Albania
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Law 7651 of 1992: a holiday on a Saturday or Sunday gives the first
+/// working day after it, each holiday its own, so that a Saturday
+/// 28 November and a Sunday 29 November give the Monday and the Tuesday.
+static AL_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static AL_RULES: &[HolidayRule] = &[
+    HolidayRule::public(
+        "New Year's Day",
+        "Festat e Vitit të Ri",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::public(
+        "New Year's Day",
+        "Festat e Vitit të Ri",
+        Rule::gregorian(1, 2),
+    ),
+    HolidayRule::public("Summer Day", "Dita e Verës", Rule::gregorian(3, 14))
+        .years(Some(2004), None),
+    HolidayRule::public("Nevruz Day", "Dita e Nevruzit", Rule::gregorian(3, 22)),
+    // Both Easters are Sundays, and the weekend rule gives their Mondays.
+    HolidayRule::public(
+        "Catholic Easter",
+        "Pashkët Katolike",
+        Rule::easter(EASTER_SUNDAY),
+    ),
+    HolidayRule::public(
+        "Orthodox Easter",
+        "Pashkët Ortodokse",
+        Rule::paschal(EASTER_SUNDAY),
+    ),
+    HolidayRule::public(
+        "International Workers' Day",
+        "Dita Ndërkombëtare e Punonjësve",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::public(
+        "Eid al-Fitr",
+        "Dita e Fitër Bajramit",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+    )
+    .approximate(),
+    HolidayRule::public(
+        "Eid al-Adha",
+        "Dita e Kurban Bajramit",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+    )
+    .approximate(),
+    HolidayRule::public(
+        "Mother Teresa Day",
+        "Dita e Nënë Terezës",
+        Rule::gregorian(9, 5),
+    ),
+    HolidayRule::public("Alphabet Day", "Dita e Alfabetit", Rule::gregorian(11, 22))
+        .years(Some(2024), None),
+    HolidayRule::public(
+        "Independence Day",
+        "Dita e Pavarësisë",
+        Rule::gregorian(11, 28),
+    ),
+    HolidayRule::public("Liberation Day", "Dita e Çlirimit", Rule::gregorian(11, 29)),
+    HolidayRule::public(
+        "National Youth Day",
+        "Dita Kombëtare e Rinisë",
+        Rule::gregorian(12, 8),
+    )
+    .years(Some(2010), None),
+    HolidayRule::public("Christmas Day", "Krishtlindjet", Rule::gregorian(12, 25)),
+];
+
+/// Albania.
+///
+/// Law 7651 of 21 December 1992 on official holidays as amended: the
+/// fifteen holidays, with the two Easters on their Sundays, the two Eids
+/// on dates the Muslim Community announces and the tabular calendar
+/// approximates, and a holiday on a weekend giving the first working day
+/// after it. The years the sources give are carried: Summer Day from 2004,
+/// National Youth Day from 2010 and Alphabet Day from the Government
+/// decision of 11 January 2024; the rest are not dated. The extra days
+/// the Council of Ministers declares around a holiday are not carried.
+pub static ALBANIA: RuleSet = RuleSet {
+    code: "AL",
+    english_name: "Albania",
+    rules: AL_RULES,
+    substitution: AL_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "The Albanian Wikipedia, \"Lista e festave në Shqipëri\", and Wikipedia, \
+              \"Public holidays in Albania\", both retrieved 2026-09-22, for the list, \
+              the weekend rule and the years of Summer Day and Youth Day; \
+              festazyrtare.al, retrieved the same day, for Law 7651 of 21 December \
+              1992 and the 2026 dates; Shqiptarja.com, 11 January 2024, for \
+              Alphabet Day",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Montenegro
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The law's Sunday rule: a holiday's first day on a Sunday makes the two
+/// days after it non-working, and its second day on a Sunday makes the
+/// working day after non-working. A Sunday-only forward policy that skips
+/// occupied days does both.
+static ME_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// A religious holiday that is a day off for the members of its
+/// community alone.
+const fn me_religious(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::observance(name, local, rule).of_kind(Kind::Religious)
+}
+
+static ME_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 1)),
+    HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 2)),
+    HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 1)),
+    HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 2)),
+    HolidayRule::public(
+        "Independence Day",
+        "Dan nezavisnosti",
+        Rule::gregorian(5, 21),
+    )
+    .years(Some(2007), None),
+    HolidayRule::public(
+        "Independence Day",
+        "Dan nezavisnosti",
+        Rule::gregorian(5, 22),
+    )
+    .years(Some(2007), None),
+    HolidayRule::public("Statehood Day", "Dan državnosti", Rule::gregorian(7, 13)),
+    HolidayRule::public("Statehood Day", "Dan državnosti", Rule::gregorian(7, 14)),
+    HolidayRule::public("Njegoš Day", "Njegošev dan", Rule::gregorian(11, 13))
+        .years(Some(2022), None),
+    HolidayRule::public("Njegoš Day", "Njegošev dan", Rule::gregorian(11, 14))
+        .years(Some(2022), None),
+    // Orthodox believers.
+    me_religious(
+        "Orthodox Christmas Eve",
+        "Badnji dan",
+        Rule::gregorian(1, 6),
+    ),
+    me_religious("Orthodox Christmas", "Božić", Rule::gregorian(1, 7)),
+    me_religious("Orthodox Christmas", "Božić", Rule::gregorian(1, 8)),
+    me_religious(
+        "Orthodox Good Friday",
+        "Veliki petak",
+        Rule::paschal(GOOD_FRIDAY),
+    ),
+    me_religious(
+        "Orthodox Easter Monday",
+        "Vaskršnji ponedjeljak",
+        Rule::paschal(EASTER_MONDAY),
+    ),
+    // Catholics.
+    me_religious("Christmas Eve", "Badnji dan", Rule::gregorian(12, 24)),
+    me_religious("Christmas Day", "Božić", Rule::gregorian(12, 25)),
+    me_religious("Christmas Day", "Božić", Rule::gregorian(12, 26)),
+    me_religious("Good Friday", "Veliki petak", Rule::easter(GOOD_FRIDAY)),
+    me_religious(
+        "Easter Monday",
+        "Uskršnji ponedjeljak",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    me_religious("All Saints' Day", "Svi Sveti", Rule::gregorian(11, 1)),
+    // Muslims: three days of each Bajram.
+    me_religious(
+        "Eid al-Fitr",
+        "Ramazanski bajram",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+    )
+    .approximate(),
+    me_religious(
+        "Eid al-Fitr",
+        "Ramazanski bajram",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
+    )
+    .approximate(),
+    me_religious(
+        "Eid al-Fitr",
+        "Ramazanski bajram",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 3),
+    )
+    .approximate(),
+    me_religious(
+        "Eid al-Adha",
+        "Kurbanski bajram",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+    )
+    .approximate(),
+    me_religious(
+        "Eid al-Adha",
+        "Kurbanski bajram",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
+    )
+    .approximate(),
+    me_religious(
+        "Eid al-Adha",
+        "Kurbanski bajram",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 12),
+    )
+    .approximate(),
+    // Jews: two days each.
+    me_religious(
+        "Passover",
+        "Pasha",
+        Rule::in_calendar(CalendarSystem::HEBREW, 7, 15),
+    ),
+    me_religious(
+        "Passover",
+        "Pasha",
+        Rule::in_calendar(CalendarSystem::HEBREW, 7, 16),
+    ),
+    me_religious(
+        "Yom Kippur",
+        "Jom Kipur",
+        Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
+    ),
+    me_religious(
+        "Yom Kippur",
+        "Jom Kipur",
+        Rule::in_calendar(CalendarSystem::HEBREW, 1, 11),
+    ),
+];
+
+/// Montenegro.
+///
+/// The Law on State and Other Holidays of 2007: the state holidays,
+/// Independence Day and Statehood Day, and the other holidays, New Year
+/// and Labour Day, each two days, and Njegoš Day from 2022, voted in
+/// December 2021, with the
+/// Sunday rule as a forward policy. The religious holidays the law gives
+/// the believers of each community — the Orthodox, Catholic, Muslim and
+/// Jewish days, three of each Bajram and two of Passover and Yom Kippur —
+/// are [`Kind::Religious`]: days off for those believers, not for all.
+/// The Orthodox Krsna slava, a family's own day, is not carried, nor are
+/// the years the older holidays were set.
+pub static MONTENEGRO: RuleSet = RuleSet {
+    code: "ME",
+    english_name: "Montenegro",
+    rules: ME_RULES,
+    substitution: ME_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Zakon o državnim i drugim praznicima, as reproduced by paragraf.me, \
+              retrieved 2026-09-22, for the state and other holidays, the two-day \
+              rule and the Sunday rule; Wikipedia, \"Public holidays in \
+              Montenegro\", retrieved the same day, for the religious holidays and \
+              the names; Danas, 29 December 2021, for Njegoš Day's vote, and CdM \
+              for its two days",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// North Macedonia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 3 of the Law on Holidays: a holiday of article 2 on a Sunday
+/// makes the next day non-working.
+static MK_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// A day off for the members of a religious community alone.
+const fn mk_religious(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::observance(name, local, rule).of_kind(Kind::Religious)
+}
+
+static MK_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Нова Година", Rule::gregorian(1, 1)),
+    HolidayRule::public("Orthodox Christmas", "Прв ден Божик", Rule::gregorian(1, 7)),
+    HolidayRule::public(
+        "Orthodox Easter Monday",
+        "Втор ден Велигден",
+        Rule::paschal(EASTER_MONDAY),
+    ),
+    HolidayRule::public("Labour Day", "Ден на трудот", Rule::gregorian(5, 1)),
+    HolidayRule::public(
+        "Saints Cyril and Methodius Day",
+        "Св. Кирил и Методиј, Ден на сесловенските просветители",
+        Rule::gregorian(5, 24),
+    ),
+    HolidayRule::public("Republic Day", "Ден на Републиката", Rule::gregorian(8, 2)),
+    HolidayRule::public(
+        "Independence Day",
+        "Ден на независноста",
+        Rule::gregorian(9, 8),
+    ),
+    HolidayRule::public(
+        "Day of the People's Uprising",
+        "Ден на народното востание",
+        Rule::gregorian(10, 11),
+    ),
+    HolidayRule::public(
+        "Day of the Macedonian Revolutionary Struggle",
+        "Ден на македонската револуционерна борба",
+        Rule::gregorian(10, 23),
+    )
+    .years(Some(2007), None),
+    HolidayRule::public(
+        "Saint Clement of Ohrid Day",
+        "Св. Климент Охридски",
+        Rule::gregorian(12, 8),
+    )
+    .years(Some(2007), None),
+    HolidayRule::public(
+        "Eid al-Fitr",
+        "Рамазан Бајрам",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+    )
+    .approximate()
+    .years(Some(2007), None),
+    // Days off for the members of the religious communities.
+    mk_religious("Orthodox Christmas Eve", "Бадник", Rule::gregorian(1, 6)),
+    mk_religious("Orthodox Epiphany", "Водици", Rule::gregorian(1, 19)),
+    mk_religious(
+        "Orthodox Good Friday",
+        "Велики Петок",
+        Rule::paschal(GOOD_FRIDAY),
+    ),
+    // The Friday before Pentecost.
+    mk_religious("Duhovden", "Духовден", Rule::paschal(PENTECOST - 2)),
+    mk_religious(
+        "Dormition of the Theotokos",
+        "Успение на Пресвета Богородица",
+        Rule::gregorian(8, 28),
+    ),
+    mk_religious(
+        "Catholic Easter Monday",
+        "Втор ден Велигден (католички)",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    mk_religious("All Saints' Day", "Сите Светци", Rule::gregorian(11, 1)),
+    mk_religious("Catholic Christmas", "Божиќ", Rule::gregorian(12, 25)),
+    mk_religious(
+        "Eid al-Adha",
+        "Курбан Бајрам",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+    )
+    .approximate(),
+    mk_religious(
+        "Yom Kippur",
+        "Јом Кипур",
+        Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
+    ),
+    // Days off for the members of the ethnic communities, and the working
+    // holidays.
+    HolidayRule::observance("Saint Sava Day", "Свети Сава", Rule::gregorian(1, 27)),
+    HolidayRule::observance(
+        "International Romani Day",
+        "Меѓународен ден на Ромите",
+        Rule::gregorian(4, 8),
+    ),
+    HolidayRule::observance(
+        "Macedonian Language Day",
+        "Ден на македонскиот јазик",
+        Rule::gregorian(5, 5),
+    )
+    .years(Some(2019), None),
+    HolidayRule::observance(
+        "Aromanian National Day",
+        "Национален ден на Власите",
+        Rule::gregorian(5, 23),
+    ),
+    HolidayRule::observance("Army Day", "Ден на Армијата", Rule::gregorian(8, 18)),
+    HolidayRule::observance(
+        "International Bosniaks Day",
+        "Меѓународен ден на Бошњаците",
+        Rule::gregorian(9, 28),
+    ),
+    HolidayRule::observance(
+        "Albanian Alphabet Day",
+        "Ден на албанската азбука",
+        Rule::gregorian(11, 22),
+    ),
+    HolidayRule::observance(
+        "Turkish Language Education Day",
+        "Ден на настава на турски јазик",
+        Rule::gregorian(12, 21),
+    ),
+];
+
+/// North Macedonia.
+///
+/// The Law on Holidays of 1998 as amended in 2007: the holidays of
+/// article 2, non-working for all, with the Day of the Macedonian
+/// Revolutionary Struggle, Saint Clement's Day and the first day of
+/// Ramazan Bajram from the 2007 amendment, and article 3's Sunday rule as
+/// a forward policy. The days the law gives the members of the religious
+/// communities are [`Kind::Religious`] and those it gives the ethnic
+/// communities are observances: both are days off for members alone, and
+/// the crate has no kind that says so. Duhovden is the Friday before
+/// Pentecost, as the law defines it. Macedonian Language Day and Army Day
+/// are working holidays.
+pub static NORTH_MACEDONIA: RuleSet = RuleSet {
+    code: "MK",
+    english_name: "North Macedonia",
+    rules: MK_RULES,
+    substitution: MK_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Закон за празниците на Република Македонија, as reproduced on the \
+              Macedonian Wikisource, retrieved 2026-09-22, for articles 2 and 3 and \
+              the definition of Духовден; Wikipedia, \"Public holidays in North \
+              Macedonia\", retrieved the same day, for the community days, the \
+              2007 additions and the names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Serbia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 3a: a state holiday on a Sunday makes the first working day
+/// after it non-working. The religious holidays of article 2 are
+/// `fixed_public` and the policy never reaches them.
+static RS_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// Article 4: a day the employees of another confession have the right
+/// not to work.
+const fn rs_religious(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::observance(name, local, rule).of_kind(Kind::Religious)
+}
+
+static RS_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Нова година", Rule::gregorian(1, 1)),
+    HolidayRule::public("New Year's Day", "Нова година", Rule::gregorian(1, 2)),
+    HolidayRule::fixed_public("Christmas Day", "Божић", Rule::gregorian(1, 7)),
+    HolidayRule::public(
+        "Statehood Day",
+        "Дан државности Србије",
+        Rule::gregorian(2, 15),
+    )
+    .years(Some(2002), None),
+    HolidayRule::public(
+        "Statehood Day",
+        "Дан државности Србије",
+        Rule::gregorian(2, 16),
+    )
+    .years(Some(2002), None),
+    HolidayRule::fixed_public("Good Friday", "Велики петак", Rule::paschal(GOOD_FRIDAY)),
+    HolidayRule::fixed_public(
+        "Holy Saturday",
+        "Велика субота",
+        Rule::paschal(HOLY_SATURDAY),
+    ),
+    HolidayRule::fixed_public("Easter Sunday", "Васкрс", Rule::paschal(EASTER_SUNDAY)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Васкрсни понедељак",
+        Rule::paschal(EASTER_MONDAY),
+    ),
+    HolidayRule::public("Labour Day", "Празник рада", Rule::gregorian(5, 1)),
+    HolidayRule::public("Labour Day", "Празник рада", Rule::gregorian(5, 2)),
+    HolidayRule::public(
+        "Armistice Day",
+        "Дан примирја у Првом светском рату",
+        Rule::gregorian(11, 11),
+    )
+    .years(Some(2012), None),
+    // The state holidays article 3 keeps as working days.
+    HolidayRule::observance("Saint Sava Day", "Савиндан", Rule::gregorian(1, 27)),
+    HolidayRule::observance(
+        "Holocaust Remembrance Day",
+        "Дан сећања на жртве холокауста, геноцида и других жртава фашизма у Другом светском рату",
+        Rule::gregorian(4, 22),
+    ),
+    HolidayRule::observance("Victory Day", "Дан победе", Rule::gregorian(5, 9)),
+    HolidayRule::observance(
+        "Saints Cyril and Methodius Day",
+        "Дан Ћирила и Методија",
+        Rule::gregorian(5, 24),
+    ),
+    HolidayRule::observance("Vidovdan", "Видовдан", Rule::gregorian(6, 28)),
+    HolidayRule::observance(
+        "Day of Serbian Unity, Freedom and the National Flag",
+        "Дан српског јединства, слободе и националне заставе",
+        Rule::gregorian(9, 15),
+    )
+    .years(Some(2020), None),
+    HolidayRule::observance(
+        "Serbian Victims of the Second World War Remembrance Day",
+        "Дан сећања на српске жртве у Другом светском рату",
+        Rule::gregorian(10, 21),
+    ),
+    // Article 4: the other confessions.
+    rs_religious(
+        "Catholic Christmas",
+        "Католички Божић",
+        Rule::gregorian(12, 25),
+    ),
+    rs_religious(
+        "Catholic Good Friday",
+        "Велики петак (католички)",
+        Rule::easter(GOOD_FRIDAY),
+    ),
+    rs_religious(
+        "Catholic Easter Sunday",
+        "Ускрс",
+        Rule::easter(EASTER_SUNDAY),
+    ),
+    rs_religious(
+        "Catholic Easter Monday",
+        "Ускршњи понедељак",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    rs_religious(
+        "Eid al-Fitr",
+        "Рамазански Бајрам",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+    )
+    .approximate(),
+    rs_religious(
+        "Eid al-Adha",
+        "Курбански Бајрам",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+    )
+    .approximate(),
+    rs_religious(
+        "Yom Kippur",
+        "Јом Кипур",
+        Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
+    ),
+];
+
+/// Serbia.
+///
+/// The Law on State and Other Holidays (Official Gazette 43/2001, 101/2007
+/// and 92/2011): the state holidays of article 1, non-working, with
+/// Statehood Day from 2002 and Armistice Day non-working from 2012; the
+/// religious holidays of article 2, Christmas and the Easter days from
+/// Good Friday to Easter Monday by the Julian computus, non-working for
+/// all; article 3's state holidays that are working days as observances;
+/// and the days article 4 gives the employees of the other confessions
+/// the right not to work as [`Kind::Religious`]. Article 3a moves a state
+/// holiday on a Sunday to the first working day after, and it reaches the
+/// religious days of article 2 not at all. The Orthodox Krsna slava, a
+/// family's own day, is not carried.
+pub static SERBIA: RuleSet = RuleSet {
+    code: "RS",
+    english_name: "Serbia",
+    rules: RS_RULES,
+    substitution: RS_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Zakon o državnim i drugim praznicima u Republici Srbiji, as reproduced \
+              by paragraf.rs, retrieved 2026-09-22, for the articles and the \
+              gazette numbers; the Serbian Wikipedia, \"Државни и верски празници \
+              у Србији\", and Wikipedia, \"Public holidays in Serbia\", both \
+              retrieved the same day, for the names, the 2012 start of Armistice \
+              Day and the 2020 start of 15 September",
 };
