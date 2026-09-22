@@ -6,6 +6,11 @@
 //!   *Rashtriya Panchang* computes it. Months run new moon to new moon and
 //!   are named for the saṅkrānti they contain, a month without one is
 //!   intercalary, and the day is the tithi at sunrise. `hindu-lunar`.
+//! * [`hindu_solar`] — the solar reckonings of Tamil Nadu, Kerala, Bengal
+//!   and the Vikrami regions (Punjab, Odisha, Nepal): a month is the Sun's
+//!   stay in a sidereal sign, and each region has its own rule for the day
+//!   the month begins. `hindu-solar-tamil`, `hindu-solar-malayalam`,
+//!   `hindu-solar-bengali`, `hindu-solar-vikrami`.
 //! * [`tithi`] — the lunar day itself: which tithi is in progress at a
 //!   moment, and which a civil day carries.
 //! * [`places`] — the sunrise that reads the day: the Central Station of
@@ -14,11 +19,11 @@
 //! # What is here and what is not yet
 //!
 //! The amānta lunisolar calendar is the one festival dates are stated in
-//! across most of India and the one the national almanac carries. The
-//! *pūrṇimānta* form of the north — the same fortnights, the dark one
-//! counted first — and the solar calendars of the south and east (Tamil,
-//! Malayalam, Bengali, Odia) that `hc-seasons` already names the months of
-//! are the next two calendars, and `docs/calendars.md` says so.
+//! across most of India and the one the national almanac carries; the four
+//! solar reckonings are the civil calendars of the south, the east and the
+//! north-west. The *pūrṇimānta* form of the lunisolar calendar — the same
+//! fortnights, the dark one counted first — is the next, and
+//! `docs/calendars.md` says so.
 //!
 //! # Why a crate of its own
 //!
@@ -36,10 +41,12 @@
 extern crate alloc;
 
 pub mod hindu_lunar;
+pub mod hindu_solar;
 pub mod places;
 pub mod tithi;
 
 pub use hindu_lunar::{HinduLunarCalendar, HinduLunarDate};
+pub use hindu_solar::{HinduSolarCalendar, HinduSolarDate, SankrantiRule};
 pub use tithi::{Paksha, Prevalence};
 
 #[cfg(feature = "alloc")]
@@ -57,6 +64,9 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(
             crate::HinduLunarCalendar::RASHTRIYA,
         )));
+        for calendar in crate::hindu_solar::ALL {
+            registry.insert(Box::new(DynAdapter::new(*calendar)));
+        }
     }
 }
 
@@ -70,16 +80,18 @@ mod tests {
     use super::*;
 
     /// The number of calendars this crate registers.
-    const CALENDAR_COUNT: usize = 1;
+    const CALENDAR_COUNT: usize = 5;
 
     #[test]
     fn every_calendar_here_is_astronomical_and_bounded() {
-        let meta = HinduLunarCalendar::RASHTRIYA.meta();
-        assert!(meta.is_astronomical, "{}", meta.id);
-        assert!(meta.has_leap_months, "{}", meta.id);
-        let first = meta.earliest.expect("bounded below");
-        let last = meta.latest.expect("bounded above");
-        assert!(first < last, "{} has an empty range", meta.id);
+        let mut metas = alloc::vec![HinduLunarCalendar::RASHTRIYA.meta()];
+        metas.extend(crate::hindu_solar::ALL.iter().map(Calendar::meta));
+        for meta in metas {
+            assert!(meta.is_astronomical, "{}", meta.id);
+            let first = meta.earliest.expect("bounded below");
+            let last = meta.latest.expect("bounded above");
+            assert!(first < last, "{} has an empty range", meta.id);
+        }
     }
 
     #[cfg(feature = "alloc")]
@@ -91,6 +103,10 @@ mod tests {
         register_all(&mut registry);
         assert_eq!(registry.len(), CALENDAR_COUNT);
         assert!(registry.get_by_name("hindu-lunar").is_some());
+        assert!(registry.get_by_name("hindu-solar-tamil").is_some());
+        assert!(registry.get_by_name("hindu-solar-malayalam").is_some());
+        assert!(registry.get_by_name("hindu-solar-bengali").is_some());
+        assert!(registry.get_by_name("hindu-solar-vikrami").is_some());
         register_all(&mut registry);
         assert_eq!(registry.len(), CALENDAR_COUNT);
     }

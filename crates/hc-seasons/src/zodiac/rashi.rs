@@ -205,6 +205,30 @@ hc_core::catalogue! {
             ],
             authority: "The Kerala Kollam-era month order",
         };
+
+        /// The Vikrami solar months of Punjab, Haryana and Odisha, and of
+        /// the Nepali reckoning: the Sanskrit lunar-month names applied to
+        /// the solar months, Vaiśākha at the Meṣa saṅkrānti.
+        pub const VIKRAMI = SolarMonthTradition {
+            id: "vikrami",
+            english_name: "Vikrami",
+            year_opens_at: SiderealSign::MESHA,
+            months: &[
+                "Vaisakha",
+                "Jyaishtha",
+                "Ashadha",
+                "Sravana",
+                "Bhadra",
+                "Asvina",
+                "Kartika",
+                "Agrahayana",
+                "Pausha",
+                "Magha",
+                "Phalguna",
+                "Chaitra",
+            ],
+            authority: "The Rashtriya Panchang's Punjab, Haryana and Odisha column, English edition",
+        };
     }
 }
 
