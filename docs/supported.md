@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-77 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+78 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 60 of 77 have months and 60 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 61 of 78 have months and 61 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 | id | Name | Crate | Feature | Earliest | Latest | Astronomical | Leap months | Day begins | Cycles | Named |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -44,6 +44,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `french-republican-equinox` | French Republican (equinox) | [`hc-calendars-equinox`](../crates/hc-calendars-equinox) | `equinox` | 1792-09-22 | 3001-09-21 | yes | no | midnight | month ×13, decade-day ×10 | yes |
 | `gregory` | Gregorian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `hebrew` | Hebrew | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | -3760-09-07 | 6239-09-25 | no | yes | sunset | month ×12–13, weekday ×7 | yes |
+| `hindu-lunar` | Hindu lunisolar (amanta) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | month ×12–13, weekday ×7 | yes |
 | `holocene` | Holocene (Human Era) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999-01-01 | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `indian` | Indian national (Śaka) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0079-03-22 | +10078-03-21 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `islamic-civil` | Hijri (tabular, civil epoch) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0622-07-19 | +10323-10-21 | no | no | sunset | month ×12, weekday ×7 | yes |
@@ -244,7 +245,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Facade features
 
-20 capability features, read from `crates/hyper-calendar/Cargo.toml`. Every one that names a crate also re-exports it; `tests/facade.rs` is what makes that true rather than hoped.
+21 capability features, read from `crates/hyper-calendar/Cargo.toml`. Every one that names a crate also re-exports it; `tests/facade.rs` is what makes that true rather than hoped.
 
 Besides these, `std` (on by default) chooses the build shape: turn it off for `no_std`, add `alloc` for the parts that need an allocator, and `libm` for floating-point math on targets without it. A build with neither `std` nor `libm` is refused at compile time.
 
@@ -254,6 +255,7 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `civil` | hc-calendar, hc-calendars-solar |
 | `lunar` | civil, hc-astro, hc-calendars-lunar |
 | `equinox` | astro, hc-calendars-equinox |
+| `indic` | seasons, hc-calendars-indic |
 | `regional` | lunar, hc-calendars-regional |
 | `astro` | civil, hc-astro |
 | `seasons` | astro, hc-seasons |
@@ -269,4 +271,4 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `deep-time` | uncertainty, hc-deep-time |
 | `planetary` | astro, hc-planetary |
 | `relativity` | uncertainty, hc-relativity |
-| `full` | units, civil, lunar, equinox, regional, astro, seasons, almanac, fiscal, attributes, tz, format, i18n, humanize, holiday, uncertainty, deep-time, planetary, relativity |
+| `full` | units, civil, lunar, equinox, indic, regional, astro, seasons, almanac, fiscal, attributes, tz, format, i18n, humanize, holiday, uncertainty, deep-time, planetary, relativity |

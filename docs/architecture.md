@@ -160,6 +160,7 @@ everything else.
 | Calendar reform | `hc-calendars-solar` | Parameterised by adoption date, with a national table |
 | Lunisolar rules | `hc-astro` + `hc-calendars-lunar` | Astronomy is a separate crate so the arithmetic calendars do not pay for it |
 | Equinox rules | `hc-astro` + `hc-calendars-equinox` | Solar calendars judged by a clock at a place — Solar Hijri, Badíʿ, French Republican — beside their arithmetic siblings |
+| Indian reckonings | `hc-astro` + `hc-seasons` + `hc-calendars-indic` | The tithi at sunrise and the month named by its saṅkrānti, downstream of the sidereal zodiac |
 | Uncertainty | `hc-uncertainty` | EDTF, Allen interval relations, significant figures |
 | Scale beyond seconds | `hc-deep-time` | Logarithmic magnitudes for Planck time and cosmology |
 | Off-Earth clocks | `hc-planetary` | Mars sols, MSD, MTC, Darian |

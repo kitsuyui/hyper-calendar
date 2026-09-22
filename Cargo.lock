@@ -48,6 +48,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "hc-calendars-indic"
+version = "0.1.0"
+dependencies = [
+ "hc-astro",
+ "hc-calendar",
+ "hc-calendars-solar",
+ "hc-core",
+ "hc-seasons",
+]
+
+[[package]]
 name = "hc-calendars-lunar"
 version = "0.1.0"
 dependencies = [
@@ -198,6 +209,7 @@ dependencies = [
  "hc-attributes",
  "hc-calendar",
  "hc-calendars-equinox",
+ "hc-calendars-indic",
  "hc-calendars-lunar",
  "hc-calendars-regional",
  "hc-calendars-solar",

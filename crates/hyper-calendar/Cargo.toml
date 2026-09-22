@@ -24,6 +24,7 @@ std = [
     "hc-calendars-solar?/std",
     "hc-calendars-lunar?/std",
     "hc-calendars-equinox?/std",
+    "hc-calendars-indic?/std",
     "hc-calendars-regional?/std",
     "hc-astro?/std",
     "hc-seasons?/std",
@@ -47,6 +48,7 @@ alloc = [
     "hc-calendars-solar?/alloc",
     "hc-calendars-lunar?/alloc",
     "hc-calendars-equinox?/alloc",
+    "hc-calendars-indic?/alloc",
     "hc-calendars-regional?/alloc",
     "hc-astro?/alloc",
     "hc-seasons?/alloc",
@@ -78,6 +80,9 @@ lunar = ["civil", "dep:hc-astro", "dep:hc-calendars-lunar"]
 # Solar calendars judged by an equinox at a place: Solar Hijri, Badíʿ and
 # French Republican computed astronomically.
 equinox = ["astro", "dep:hc-calendars-equinox"]
+# The calendars of the Indian subcontinent: the Hindu lunisolar calendar,
+# computed with the sidereal zodiac of hc-seasons.
+indic = ["seasons", "dep:hc-calendars-indic"]
 # Regional and cyclic calendars.
 regional = ["lunar", "dep:hc-calendars-regional"]
 # Astronomy on its own, for solar longitude and phases.
@@ -115,6 +120,7 @@ full = [
     "civil",
     "lunar",
     "equinox",
+    "indic",
     "regional",
     "astro",
     "seasons",
@@ -139,6 +145,7 @@ hc-calendar = { workspace = true, optional = true }
 hc-calendars-solar = { workspace = true, optional = true }
 hc-calendars-lunar = { workspace = true, optional = true }
 hc-calendars-equinox = { workspace = true, optional = true }
+hc-calendars-indic = { workspace = true, optional = true }
 hc-calendars-regional = { workspace = true, optional = true }
 hc-astro = { workspace = true, optional = true }
 hc-seasons = { workspace = true, optional = true }

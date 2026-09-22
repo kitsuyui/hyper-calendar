@@ -86,7 +86,8 @@ These need the astronomical engine, so they live behind the `lunar` feature.
 | Japanese lunisolar (Jōkyō, 1685–1755) | `japanese-jokyo` | `hc-calendars-lunar` | Done |
 | Japanese lunisolar (Senmyō, 862–1685) | `japanese-senmyo` | `hc-calendars-lunar` | Done |
 | Tibetan (Phugpa) | `tibetan` | `hc-calendars-lunar` | Planned |
-| Hindu lunisolar (Amanta and Purnimanta) | `hindu-lunar` | `hc-calendars-lunar` | Planned |
+| Hindu lunisolar, amānta | `hindu-lunar` | `hc-calendars-indic` | Done — true Sun and Moon, Lahiri ayanamsa, the day read at the Central Station's sunrise as the *Rashtriya Panchang* does; tested against two years of its month tables |
+| Hindu lunisolar, pūrṇimānta | `hindu-lunar-purnimanta` | `hc-calendars-indic` | Planned — the same fortnights, the dark one counted first |
 | Hindu solar (Sūrya Siddhānta) | `hindu-solar` | `hc-calendars-lunar` | Planned |
 | Old Hindu (mean) lunisolar and solar | `hindu-old` | `hc-calendars-lunar` | Planned |
 
