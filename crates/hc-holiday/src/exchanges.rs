@@ -18,7 +18,11 @@
 //! it moves a Saturday holiday to the Friday before, as the federal rule
 //! does, but not a Saturday New Year's Day, whose Friday is the last day of
 //! the year; and it closes for a hurricane or a day of mourning that no
-//! statute foresaw. What the exchange publishes is what is carried, and the
+//! statute foresaw. The Australian Securities Exchange trades on the
+//! states' Monday for a Sunday Anzac Day; the Frankfurt Stock Exchange
+//! trades on Ascension Day and Corpus Christi and closes on Christmas Eve
+//! and New Year's Eve, which Hesse does not. What the exchange publishes
+//! is what is carried, and the
 //! unscheduled closures a source records are data in the table, as
 //! [ADR 0007](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/adr/0007-sets-the-world-can-extend-are-data.md)
 //! has it.
@@ -30,7 +34,7 @@
 use hc_calendar::Weekday;
 use hc_calendars_solar::gregorian;
 
-use crate::computus::offsets::GOOD_FRIDAY;
+use crate::computus::offsets::{EASTER_MONDAY, GOOD_FRIDAY};
 use crate::rule::{
     Days, HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, SubstituteDirection,
     SubstitutionPolicy,
@@ -65,6 +69,18 @@ fn if_monday_to_thursday(year: i64, month: u8, day: u8) -> Days {
         Weekday::from_rd(day),
         Weekday::Monday | Weekday::Tuesday | Weekday::Wednesday | Weekday::Thursday
     ) {
+        out.push(day);
+    }
+    out
+}
+
+/// The day, if it is a Monday to Friday: a trading day at all.
+fn if_weekday(year: i64, month: u8, day: u8) -> Days {
+    let mut out = Days::new();
+    let Ok(day) = gregorian::to_fixed(year, month, day) else {
+        return out;
+    };
+    if !matches!(Weekday::from_rd(day), Weekday::Saturday | Weekday::Sunday) {
         out.push(day);
     }
     out
@@ -181,8 +197,199 @@ pub static NEW_YORK_STOCK_EXCHANGE: RuleSet = RuleSet {
               observance as a market holiday on 20 June 2022",
 };
 
+// ─────────────────────────────────────────────────────────────────────────
+// Australian Securities Exchange
+// ─────────────────────────────────────────────────────────────────────────
+
+/// "When public holidays fall on weekends, ASX observes substitute days
+/// on the following business day" — Anzac Day excepted, which its rule
+/// says.
+static XASX_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// 24 December, when the market closes at 14:10 Sydney time.
+fn xasx_christmas_eve(year: i64) -> Days {
+    if_weekday(year, 12, 24)
+}
+
+/// 31 December, when the market closes at 14:10 Sydney time.
+fn xasx_new_years_eve(year: i64) -> Days {
+    if_weekday(year, 12, 31)
+}
+
+static XASX_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::public("Australia Day", "", Rule::gregorian(1, 26)),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    // Not substituted: in 2027 the market trades on Monday 26 April, the
+    // states' substitute for the Sunday.
+    HolidayRule::fixed_public("Anzac Day", "", Rule::gregorian(4, 25)),
+    HolidayRule::fixed_public("Queen's Birthday", "", Rule::nth(6, 2, Weekday::Monday))
+        .years(None, Some(2022)),
+    HolidayRule::fixed_public("King's Birthday", "", Rule::nth(6, 2, Weekday::Monday))
+        .years(Some(2023), None),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    HolidayRule::observance(
+        "Early close, Christmas Eve",
+        "",
+        Rule::Computed(xasx_christmas_eve),
+    ),
+    HolidayRule::observance(
+        "Early close, New Year's Eve",
+        "",
+        Rule::Computed(xasx_new_years_eve),
+    ),
+];
+
+/// The Australian Securities Exchange.
+///
+/// The exchange's own trading calendar for 2026 and 2027: New Year's Day,
+/// Australia Day, Good Friday, Easter Monday, Anzac Day, the King's
+/// Birthday on the second Monday of June, Christmas and Boxing Day, with a
+/// weekend holiday observed "on the following business day" — Christmas
+/// 2027, a Saturday, on the Monday and Boxing Day on the Tuesday — except
+/// Anzac Day, which the calendar shows the market open for on Monday
+/// 26 April 2027, the states' substitute for the Sunday, and closed for on
+/// Saturday 25 April 2026, a day it would not have traded anyway. The
+/// market closes at 14:10 Sydney time on 24 and 31 December when those
+/// are trading days. The sovereign's birthday takes the sovereign's name,
+/// the Queen's to 2022 and the King's from 2023.
+pub static AUSTRALIAN_SECURITIES_EXCHANGE: RuleSet = RuleSet {
+    code: "XASX",
+    english_name: "Australian Securities Exchange",
+    rules: XASX_RULES,
+    substitution: XASX_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "ASX, \"ASX Trade trading calendar\" (asx.com.au/markets/market-resources/trading-hours-calendar/cash-market-trading-hours/trading-calendar), \
+              retrieved 2026-09-23, for the closed days, the early closes and the weekend rule \
+              of 2026 and 2027",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Frankfurt Stock Exchange (Xetra)
+// ─────────────────────────────────────────────────────────────────────────
+
+static XETR_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Neujahr", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::fixed_public("Labour Day", "Tag der Arbeit", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Christmas Eve", "Heiligabend", Rule::gregorian(12, 24)),
+    HolidayRule::fixed_public("Christmas Day", "1. Weihnachtstag", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public("Boxing Day", "2. Weihnachtstag", Rule::gregorian(12, 26)),
+    HolidayRule::fixed_public("New Year's Eve", "Silvester", Rule::gregorian(12, 31)),
+];
+
+/// The Frankfurt Stock Exchange, on Xetra.
+///
+/// Deutsche Börse's trading calendar, published to 2032: no trading on
+/// New Year's Day, Good Friday, Easter Monday, 1 May, Christmas Eve,
+/// Christmas Day, Boxing Day and New Year's Eve, every year, and no day
+/// moved when one of them falls on a weekend; "regular stock exchange
+/// trading takes place" on Ascension Day, Whit Monday and Corpus Christi,
+/// public holidays in Hesse. No early closes.
+pub static FRANKFURT_STOCK_EXCHANGE: RuleSet = RuleSet {
+    code: "XETR",
+    english_name: "Frankfurt Stock Exchange (Xetra)",
+    rules: XETR_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Deutsche Börse, \"Trading calendar and trading hours\" \
+              (cashmarket.deutsche-boerse.com/cash-en/trading/trading-calendar-and-trading-hours), \
+              retrieved 2026-09-23, for the non-trading days to 2032 and the public holidays \
+              traded on",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Toronto Stock Exchange
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A weekend holiday closes the next business day: Boxing Day 2026, a
+/// Saturday after a Friday Christmas, closes Monday the 28th "in lieu".
+static XTSE_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// Christmas Eve, when the exchange closes at 1:00 p.m.
+fn xtse_christmas_eve(year: i64) -> Days {
+    if_weekday(year, 12, 24)
+}
+
+static XTSE_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("Family Day", "", Rule::nth(2, 3, Weekday::Monday))
+        .years(Some(2008), None),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public(
+        "Victoria Day",
+        "",
+        Rule::WeekdayOnOrBefore {
+            month: 5,
+            day: 24,
+            weekday: Weekday::Monday,
+        },
+    ),
+    HolidayRule::public("Canada Day", "", Rule::gregorian(7, 1)),
+    HolidayRule::fixed_public("Civic Holiday", "", Rule::nth(8, 1, Weekday::Monday)),
+    HolidayRule::fixed_public("Labour Day", "", Rule::nth(9, 1, Weekday::Monday)),
+    HolidayRule::fixed_public("Thanksgiving Day", "", Rule::nth(10, 2, Weekday::Monday)),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    HolidayRule::observance(
+        "Early close, Christmas Eve",
+        "",
+        Rule::Computed(xtse_christmas_eve),
+    ),
+];
+
+/// The Toronto Stock Exchange.
+///
+/// The exchange's own calendar for 2025 and 2026: New Year's Day, Family
+/// Day on the third Monday of February, Good Friday, Victoria Day on the
+/// Monday before 25 May, Canada Day, the Civic Holiday on the first Monday
+/// of August, Labour Day, Thanksgiving on the second Monday of October,
+/// Christmas and Boxing Day, with a weekend holiday closing the next
+/// business day, as Boxing Day 2026 does on Monday the 28th; and the
+/// 1:00 p.m. close on Christmas Eve when that is a trading day. Family
+/// Day is carried from 2008, Ontario's first. The United States holidays
+/// the calendar lists for settlement are trading days and are not here.
+pub static TORONTO_STOCK_EXCHANGE: RuleSet = RuleSet {
+    code: "XTSE",
+    english_name: "Toronto Stock Exchange",
+    rules: XTSE_RULES,
+    substitution: XTSE_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "TMX Group, \"Calendar\" (tsx.com/en/trading/calendars-and-trading-hours/calendar), \
+              retrieved 2026-09-23, for the closed days and the Christmas Eve close of 2025 \
+              and 2026",
+};
+
 /// Every exchange calendar, in Market Identifier Code order.
-pub static ALL: &[&RuleSet] = &[&NEW_YORK_STOCK_EXCHANGE];
+pub static ALL: &[&RuleSet] = &[
+    &AUSTRALIAN_SECURITIES_EXCHANGE,
+    &FRANKFURT_STOCK_EXCHANGE,
+    &NEW_YORK_STOCK_EXCHANGE,
+    &TORONTO_STOCK_EXCHANGE,
+];
 
 /// The table for an ISO 10383 Market Identifier Code, case-insensitively.
 #[must_use]
@@ -209,7 +416,7 @@ mod tests {
 
     #[test]
     fn a_closed_day_stops_work_and_an_early_close_does_not() {
-        for rule in XNYS_RULES {
+        for rule in ALL.iter().flat_map(|exchange| exchange.rules) {
             let early = rule.name.starts_with("Early close");
             assert_eq!(rule.kind == Kind::Observance, early, "{}", rule.name);
             assert_eq!(rule.kind.is_day_off(), !early, "{}", rule.name);
@@ -220,6 +427,7 @@ mod tests {
     fn the_lookup_takes_the_code_in_either_case() {
         assert!(by_code("xnys").is_some());
         assert!(by_code("XNYS").is_some());
+        assert!(by_code("xtse").is_some());
         assert!(by_code("XNAS").is_none());
     }
 }
