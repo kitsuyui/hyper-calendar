@@ -16,7 +16,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
 | `international` | the United Nations international days, each citing its resolution |
-| `countries` | 48 national tables |
+| `countries` | 50 national tables |
 
 ## The vocabulary
 
@@ -31,6 +31,7 @@ SolarTerm { term, meridian }          春分の日, the equinox at UTC+9
 EasterRelative { computus, offset }   Good Friday (−2), Corpus Christi (+60)
 LunarPhase { phase, month, day, mer } the first full moon on or after a date
 Offset { base, days }                 Seollal's eve, 除夕, Tết's first days
+MovedByWeekday { base, moves }        Argentina's feriados trasladables, Colombia's Ley Emiliani
 Tabulated { function, first, last }   Matariki, gazetted through a stated last year
 Computed(fn)                          the handful that really are bespoke
 ```
@@ -83,9 +84,9 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**48 countries.** Australia (eight states and territories), Austria,
-Belgium, Brazil, Canada (federal plus the provincial days fixed by statute),
-China, Czechia, Denmark, Egypt, Finland, France (métropole plus
+**50 countries.** Argentina, Australia (eight states and territories),
+Austria, Belgium, Brazil, Canada (federal plus the provincial days fixed by
+statute), China, Colombia, Czechia, Denmark, Egypt, Finland, France (métropole plus
 Alsace-Moselle), Germany (all 16 *Länder*), Greece, Hungary, India,
 Indonesia, Iran, Ireland, Israel, Italy, Japan, Malaysia, Mexico, Nepal, the
 Netherlands, New Zealand, Nigeria, Norway, the Philippines, Poland, Portugal,
@@ -186,7 +187,7 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 
 | Entry | Why |
 | --- | --- |
-| Every Hijri-dated holiday, in ten countries and the Islamic tradition table | the observed date is a sighting decision, per country |
+| Every Hijri-dated holiday, in twelve countries and the Islamic tradition table | the observed date is a sighting decision, per country |
 | Vesak, Makha Bucha, Asalha Bucha, Khao Phansa (Thailand, Indonesia, Singapore, Malaysia, the Buddhist table) | dated by the Thai lunar calendar, which this crate does not have; approximated as the full moon of Chinese lunar month *n* − 2. Right in 2022, 2024 and 2025; a day out in 2023; a month out in a Thai intercalary year |
 | Nepal's Gregorian-looking national days | they are Bikram Sambat dates whose Gregorian equivalent moves by a day |
 

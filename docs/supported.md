@@ -111,11 +111,12 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Holidays by country
 
-48 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
+50 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
 
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
 | `AE` | United Arab Emirates | 16 | none | stated | 2026-09-21 |
+| `AR` | Argentina | 30 | none | stated | 2026-09-22 |
 | `AT` | Austria | 13 | none | stated | 2026-09-21 |
 | `AU` | Australia | 24 | yes | stated | 2026-09-21 |
 | `BE` | Belgium | 12 | none | stated | 2026-09-21 |
@@ -123,6 +124,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `CA` | Canada | 19 | yes | stated | 2026-09-21 |
 | `CH` | Switzerland | 8 | none | stated | 2026-09-21 |
 | `CN` | China | 17 | none | stated | 2026-09-21 |
+| `CO` | Colombia | 18 | none | stated | 2026-09-22 |
 | `CZ` | Czechia | 13 | none | stated | 2026-09-21 |
 | `DE` | Germany | 22 | none | stated | 2026-09-21 |
 | `DK` | Denmark | 13 | none | stated | 2026-09-21 |
