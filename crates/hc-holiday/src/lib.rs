@@ -15,6 +15,7 @@
 //! | [`engine`] | evaluation, and business-day arithmetic |
 //! | [`traditions`] | the cross-cutting religious cycles |
 //! | [`countries`] | the national tables |
+//! | [`exchanges`] | the trading calendars of stock exchanges |
 //!
 //! # What the engine will not do
 //!
@@ -69,6 +70,7 @@
 extern crate alloc;
 
 pub mod computus;
+pub mod exchanges;
 pub mod hindu;
 pub mod international;
 pub mod rule;
