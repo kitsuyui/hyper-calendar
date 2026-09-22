@@ -2178,6 +2178,188 @@ fn kazakhstan_carries_every_amendment_by_its_year() {
 }
 
 #[test]
+fn albania_gives_each_weekend_holiday_the_first_working_day_after() {
+    expect(
+        "AL",
+        None,
+        &[
+            (2026, 1, 2, "New Year's Day"),
+            (2026, 3, 14, "Summer Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 3, 22, "Nevruz Day"),
+            (2026, 4, 5, "Catholic Easter"),
+            (2026, 4, 12, "Orthodox Easter"),
+            (2026, 5, 1, "International Workers' Day"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 9, 5, "Mother Teresa Day"),
+            (2026, 11, 22, "Alphabet Day"),
+            (2026, 11, 28, "Independence Day"),
+            (2026, 11, 29, "Liberation Day"),
+            (2026, 12, 8, "National Youth Day"),
+            (2026, 12, 25, "Christmas Day"),
+        ],
+    );
+    // Summer Day on a Saturday, Nevruz, both Easters and Alphabet Day on
+    // Sundays in 2026.
+    expect_substitute("AL", None, 2026, (3, 14), (3, 16));
+    expect_substitute("AL", None, 2026, (3, 22), (3, 23));
+    expect_substitute("AL", None, 2026, (4, 5), (4, 6));
+    expect_substitute("AL", None, 2026, (4, 12), (4, 13));
+    expect_substitute("AL", None, 2026, (11, 22), (11, 23));
+    // 28 and 29 November 2020, a Saturday and a Sunday, gave the Monday
+    // and the Tuesday.
+    expect_substitute("AL", None, 2020, (11, 28), (11, 30));
+    expect_substitute("AL", None, 2020, (11, 29), (12, 1));
+    expect_working(
+        "AL",
+        None,
+        &[(2023, 11, 22), (2009, 12, 8), (2003, 3, 14), (2026, 3, 17)],
+    );
+}
+
+#[test]
+fn montenegro_keeps_two_days_and_pushes_a_sunday_first_day_to_tuesday() {
+    expect(
+        "ME",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 2, "New Year's Day"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 2, "Labour Day"),
+            (2026, 5, 21, "Independence Day"),
+            (2026, 5, 22, "Independence Day"),
+            (2026, 7, 13, "Statehood Day"),
+            (2026, 7, 14, "Statehood Day"),
+            (2026, 11, 13, "Njegoš Day"),
+            (2026, 11, 14, "Njegoš Day"),
+            (2022, 11, 13, "Njegoš Day"),
+        ],
+    );
+    // 21 May 2023 and 13 July 2025, first days on Sundays, gave the
+    // Tuesdays; 14 July 2024, a second day on a Sunday, gave the Monday.
+    expect_substitute("ME", None, 2023, (5, 21), (5, 23));
+    expect_substitute("ME", None, 2025, (7, 13), (7, 15));
+    expect_substitute("ME", None, 2024, (7, 14), (7, 15));
+    expect_working("ME", None, &[(2021, 11, 15), (2006, 5, 22), (2026, 1, 7)]);
+    let calendar = HolidayCalendar::for_year(table("ME"), None, 2026);
+    for (month, day, name) in [
+        (1, 7, "Orthodox Christmas"),
+        (4, 10, "Orthodox Good Friday"),
+        (12, 25, "Christmas Day"),
+    ] {
+        let found: Vec<(&str, Kind)> = calendar
+            .on(ymd(2026, month, day))
+            .iter()
+            .map(|holiday| (holiday.name, holiday.kind))
+            .collect();
+        assert_eq!(found, [(name, Kind::Religious)], "{month}-{day}");
+    }
+}
+
+#[test]
+fn north_macedonia_moves_a_sunday_holiday_to_monday_and_keeps_duhovden_on_a_friday() {
+    expect(
+        "MK",
+        None,
+        &[
+            (2026, 1, 7, "Orthodox Christmas"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 4, 13, "Orthodox Easter Monday"),
+            (2026, 5, 24, "Saints Cyril and Methodius Day"),
+            (2026, 8, 2, "Republic Day"),
+            (2026, 9, 8, "Independence Day"),
+            (2026, 10, 11, "Day of the People's Uprising"),
+            (2026, 10, 23, "Day of the Macedonian Revolutionary Struggle"),
+            (2026, 12, 8, "Saint Clement of Ohrid Day"),
+        ],
+    );
+    // 24 May, 2 August and 11 October 2026 are Sundays.
+    expect_substitute("MK", None, 2026, (5, 24), (5, 25));
+    expect_substitute("MK", None, 2026, (8, 2), (8, 3));
+    expect_substitute("MK", None, 2026, (10, 11), (10, 12));
+    expect_working(
+        "MK",
+        None,
+        &[(2006, 10, 23), (2006, 12, 8), (2026, 1, 19), (2026, 5, 29)],
+    );
+    // Orthodox Pentecost 2026 on 31 May: Duhovden on Friday 29 May.
+    let calendar = HolidayCalendar::for_year(table("MK"), None, 2026);
+    for (month, day, name, kind) in [
+        (1, 19, "Orthodox Epiphany", Kind::Religious),
+        (5, 29, "Duhovden", Kind::Religious),
+        (11, 22, "Albanian Alphabet Day", Kind::Observance),
+    ] {
+        let found: Vec<(&str, Kind)> = calendar
+            .on(ymd(2026, month, day))
+            .iter()
+            .map(|holiday| (holiday.name, holiday.kind))
+            .collect();
+        assert_eq!(found, [(name, kind)], "{month}-{day}");
+    }
+}
+
+#[test]
+fn serbia_moves_state_holidays_off_sunday_and_leaves_the_church_days_alone() {
+    // Orthodox Easter 2026 on 12 April.
+    expect(
+        "RS",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 2, "New Year's Day"),
+            (2026, 1, 7, "Christmas Day"),
+            (2026, 2, 15, "Statehood Day"),
+            (2026, 2, 16, "Statehood Day"),
+            (2026, 4, 10, "Good Friday"),
+            (2026, 4, 11, "Holy Saturday"),
+            (2026, 4, 12, "Easter Sunday"),
+            (2026, 4, 13, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 2, "Labour Day"),
+            (2026, 11, 11, "Armistice Day"),
+            (2012, 11, 11, "Armistice Day"),
+            (2002, 2, 15, "Statehood Day"),
+        ],
+    );
+    // 15 February 2026 on a Sunday, its Monday taken by the second day;
+    // 2 May 2027 on a Sunday that is also Orthodox Easter, its Monday taken
+    // by Easter Monday; Christmas 2024 on a Sunday moved nothing.
+    expect_substitute("RS", None, 2026, (2, 15), (2, 17));
+    expect_substitute("RS", None, 2027, (5, 2), (5, 4));
+    expect_working(
+        "RS",
+        None,
+        &[
+            (2024, 1, 8),
+            (2011, 11, 11),
+            (2001, 2, 15),
+            (2026, 1, 27),
+            (2026, 12, 25),
+        ],
+    );
+    let calendar = HolidayCalendar::for_year(table("RS"), None, 2026);
+    for (month, day, name, kind) in [
+        (1, 27, "Saint Sava Day", Kind::Observance),
+        (
+            9,
+            15,
+            "Day of Serbian Unity, Freedom and the National Flag",
+            Kind::Observance,
+        ),
+        (12, 25, "Catholic Christmas", Kind::Religious),
+        (9, 21, "Yom Kippur", Kind::Religious),
+    ] {
+        let found: Vec<(&str, Kind)> = calendar
+            .on(ymd(2026, month, day))
+            .iter()
+            .map(|holiday| (holiday.name, holiday.kind))
+            .collect();
+        assert_eq!(found, [(name, kind)], "{month}-{day}");
+    }
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",
