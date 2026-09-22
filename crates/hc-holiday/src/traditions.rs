@@ -24,6 +24,7 @@
 //! | Bahá'í | the Badíʿ calendar as kept — arithmetic to 171 BE, the Bahá'í World Centre's table for 172–221 BE; the Twin Holy Birthdays from the same table | exact through 19 March 2065, and a reported gap after, where the table ends |
 //! | Buddhist | approximated from the Chinese lunisolar calendar | **approximate** — see [`BUDDHIST`] |
 //! | Chinese folk | Chinese lunisolar calendar and the solar terms | exact to the astronomical model |
+//! | Hindu | the amānta Hindu lunisolar calendar at the national almanac's sunrise; each festival on the part of the day its tithi must hold | exact to the astronomical model, and to the conventions [`crate::hindu`] states — a regional almanac may keep a day differently |
 
 use hc_calendar::Weekday;
 use hc_calendars_solar::{bahai, gregorian};
@@ -33,6 +34,12 @@ use crate::computus::offsets::{
     ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, DIVINE_MERCY_SUNDAY, EASTER_MONDAY, EASTER_SUNDAY,
     GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY, PALM_SUNDAY, PENTECOST, SACRED_HEART,
     TRINITY_SUNDAY, WHIT_MONDAY,
+};
+use crate::hindu::{
+    AKSHAYA_TRITIYA, BUDDHA_PURNIMA, DIWALI, DURGA_ASHTAMI, GANESH_CHATURTHI, GURU_NANAK_JAYANTI,
+    GURU_PURNIMA, HOLI, HOLIKA_DAHAN, JANMASHTAMI, MAHA_SHIVARATRI, MAHAVIR_JAYANTI,
+    MAKAR_SANKRANTI, MESHA_SANKRANTI, NAVARATRI, RAKSHA_BANDHAN, RAMA_NAVAMI, UGADI,
+    VIJAYA_DASHAMI,
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
@@ -684,6 +691,61 @@ pub static BAHAI: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// Hinduism
+// ─────────────────────────────────────────────────────────────────────────
+
+static HINDU_RULES: &[HolidayRule] = &[
+    feast("Makar Sankranti", "मकर संक्रांति", MAKAR_SANKRANTI),
+    feast("Maha Shivaratri", "महाशिवरात्रि", MAHA_SHIVARATRI),
+    feast("Holika Dahan", "होलिका दहन", HOLIKA_DAHAN),
+    feast("Holi", "होली", HOLI),
+    feast("Ugadi", "उगादि", UGADI),
+    feast("Rama Navami", "राम नवमी", RAMA_NAVAMI),
+    feast("Mahavir Jayanti", "महावीर जयंती", MAHAVIR_JAYANTI),
+    feast("Mesha Sankranti", "मेष संक्रांति", MESHA_SANKRANTI),
+    feast("Akshaya Tritiya", "अक्षय तृतीया", AKSHAYA_TRITIYA),
+    feast("Buddha Purnima", "बुद्ध पूर्णिमा", BUDDHA_PURNIMA),
+    feast("Guru Purnima", "गुरु पूर्णिमा", GURU_PURNIMA),
+    feast("Raksha Bandhan", "रक्षा बंधन", RAKSHA_BANDHAN),
+    feast("Krishna Janmashtami", "कृष्ण जन्माष्टमी", JANMASHTAMI),
+    feast("Ganesh Chaturthi", "गणेश चतुर्थी", GANESH_CHATURTHI),
+    feast("Navaratri", "शारदीय नवरात्रि", NAVARATRI),
+    feast("Durga Ashtami", "दुर्गा अष्टमी", DURGA_ASHTAMI),
+    feast("Vijaya Dashami", "विजयादशमी", VIJAYA_DASHAMI),
+    feast("Diwali", "दीपावली", DIWALI),
+    feast("Guru Nanak Jayanti", "गुरु नानक जयंती", GURU_NANAK_JAYANTI),
+];
+
+/// Hinduism, with the Jain and Sikh days the national almanac lists beside
+/// it.
+///
+/// Every entry is a [`Rule::Tithi`] or a [`Rule::Sankranti`] from
+/// [`crate::hindu`], dated in the amānta lunisolar calendar at the sunrise
+/// of the national almanac's Central Station and kept on the part of the
+/// day its convention names. The dates are exact to the astronomical model
+/// and to those conventions; a regional almanac that follows a local
+/// sunrise, or the Vaiṣṇava rather than the Smārta Janmāṣṭamī, may keep a
+/// day differently, and can build the same rules with its own calendar.
+///
+/// Makara Saṅkrānti is the day of the Sun's entry into Makara at the Indian
+/// meridian; northern India keeps it the day before when the entry falls
+/// after sunset, which is not modelled.
+pub static HINDU: RuleSet = RuleSet {
+    code: "hindu",
+    english_name: "Hinduism",
+    rules: HINDU_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "The Rashtriya Panchang, Positional Astronomy Centre, India \
+              Meteorological Department, Śaka 1945 and 1946 (2023–2025), \
+              English editions: the \"Principal Festivals and Anniversaries\" \
+              list, which every rule here reproduces, and the prevalence \
+              conventions as `hindu` states them",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Buddhism
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -859,6 +921,7 @@ pub static ALL: &[&RuleSet] = &[
     &ISLAMIC,
     &JEWISH,
     &BAHAI,
+    &HINDU,
     &BUDDHIST,
     &CHINESE_FOLK,
 ];

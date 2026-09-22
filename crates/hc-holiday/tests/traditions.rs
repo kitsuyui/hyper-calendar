@@ -6,7 +6,7 @@ use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::rule::{Confidence, Kind, RuleSet};
 use hc_holiday::traditions::{
     self, BAHAI, BUDDHIST, CHINESE_FOLK, CHRISTIAN_ORTHODOX, CHRISTIAN_WESTERN, COPTIC_ORTHODOX,
-    ETHIOPIAN_ORTHODOX, ISLAMIC, JEWISH,
+    ETHIOPIAN_ORTHODOX, HINDU, ISLAMIC, JEWISH,
 };
 
 /// Panics rather than returning a `Result`, because every date in this file
@@ -423,6 +423,89 @@ fn the_bahai_table_is_exact_and_reports_where_the_published_table_ends() {
         "the table ends with 221 BE: {:?}",
         after.gaps()
     );
+}
+
+#[test]
+fn the_hindu_festivals_fall_where_the_rashtriya_panchang_lists_them() {
+    // The "Principal Festivals and Anniversaries" lists of the Śaka 1945
+    // and 1946 editions (2023–2025), Positional Astronomy Centre, India
+    // Meteorological Department.
+    let mut mismatches = Vec::new();
+    for (year, month, day, name) in [
+        (2023, 3, 22, "Ugadi"),
+        (2023, 3, 30, "Rama Navami"),
+        (2023, 4, 4, "Mahavir Jayanti"),
+        (2023, 4, 22, "Akshaya Tritiya"),
+        (2023, 5, 5, "Buddha Purnima"),
+        (2023, 8, 30, "Raksha Bandhan"),
+        (2023, 9, 6, "Krishna Janmashtami"),
+        (2023, 9, 19, "Ganesh Chaturthi"),
+        (2023, 10, 24, "Vijaya Dashami"),
+        (2023, 11, 12, "Diwali"),
+        (2023, 11, 27, "Guru Nanak Jayanti"),
+        (2024, 1, 15, "Makar Sankranti"),
+        (2024, 3, 24, "Holika Dahan"),
+        (2024, 3, 25, "Holi"),
+        (2024, 4, 9, "Ugadi"),
+        (2024, 4, 17, "Rama Navami"),
+        (2024, 4, 21, "Mahavir Jayanti"),
+        (2024, 5, 10, "Akshaya Tritiya"),
+        (2024, 5, 23, "Buddha Purnima"),
+        (2024, 8, 19, "Raksha Bandhan"),
+        (2024, 8, 26, "Krishna Janmashtami"),
+        (2024, 9, 7, "Ganesh Chaturthi"),
+        (2024, 10, 12, "Vijaya Dashami"),
+        (2024, 10, 31, "Diwali"),
+        (2024, 11, 15, "Guru Nanak Jayanti"),
+        (2025, 1, 14, "Makar Sankranti"),
+        (2025, 2, 26, "Maha Shivaratri"),
+        (2025, 3, 13, "Holika Dahan"),
+        (2025, 3, 14, "Holi"),
+        (2025, 3, 30, "Ugadi"),
+        (2025, 4, 6, "Rama Navami"),
+        (2025, 4, 10, "Mahavir Jayanti"),
+    ] {
+        let calendar = HolidayCalendar::for_year(&HINDU, None, year);
+        let on: Vec<&str> = calendar
+            .on(ymd(year, month, day))
+            .iter()
+            .map(|h| h.name)
+            .collect();
+        if !on.contains(&name) {
+            // Where did the rule put it instead?
+            let placed: Vec<(i64, u8, u8)> = calendar
+                .all()
+                .iter()
+                .filter(|h| h.name == name)
+                .filter_map(|h| gregorian::from_fixed(h.date).ok())
+                .collect();
+            mismatches.push(format!("{name} {year}-{month:02}-{day:02}: that day has {on:?}; the rule put it on {placed:?}"));
+        }
+    }
+    assert!(mismatches.is_empty(), "{mismatches:#?}");
+}
+
+#[test]
+fn every_hindu_date_is_exact_and_religious() {
+    for year in [1950, 2000, 2024, 2100] {
+        let calendar = HolidayCalendar::for_year(&HINDU, None, year);
+        assert!(
+            calendar.all().len() >= 19,
+            "{year}: {}",
+            calendar.all().len()
+        );
+        assert!(calendar.is_complete(), "{year}: {:?}", calendar.gaps());
+        for holiday in calendar.all() {
+            assert_eq!(
+                holiday.confidence,
+                Confidence::Exact,
+                "{year} {}",
+                holiday.name
+            );
+            assert_eq!(holiday.kind, Kind::Religious, "{year} {}", holiday.name);
+        }
+    }
+    assert!(!HolidayCalendar::for_year(&HINDU, None, 1700).is_complete());
 }
 
 #[test]

@@ -40,7 +40,7 @@ pub mod places;
 pub mod tithi;
 
 pub use hindu_lunar::{HinduLunarCalendar, HinduLunarDate};
-pub use tithi::Paksha;
+pub use tithi::{Paksha, Prevalence};
 
 #[cfg(feature = "alloc")]
 mod registration {

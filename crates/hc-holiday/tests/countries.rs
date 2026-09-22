@@ -706,6 +706,18 @@ fn india_central_government_holidays() {
             (2024, 12, 25, "Christmas Day"),
             (2025, 1, 26, "Republic Day"),
             (2025, 4, 18, "Good Friday"),
+            // The Hindu, Jain, Buddhist and Sikh gazetted days, as the
+            // Rashtriya Panchang lists them.
+            (2024, 3, 25, "Holi"),
+            (2024, 4, 17, "Ram Navami"),
+            (2024, 4, 21, "Mahavir Jayanti"),
+            (2024, 5, 23, "Buddha Purnima"),
+            (2024, 8, 26, "Janmashtami"),
+            (2024, 10, 12, "Dussehra"),
+            (2024, 10, 31, "Diwali"),
+            (2024, 11, 15, "Guru Nanak's Birthday"),
+            (2025, 3, 14, "Holi"),
+            (2025, 4, 6, "Ram Navami"),
         ],
     );
     // India has no observed-day rule: 26 January 2025 was a Sunday.

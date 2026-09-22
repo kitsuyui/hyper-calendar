@@ -10,6 +10,10 @@ use hc_calendar::Weekday;
 use hc_seasons::SolarTerm;
 
 use crate::computus::offsets::{ASCENSION, GOOD_FRIDAY, MAUNDY_THURSDAY};
+use crate::hindu::{
+    BUDDHA_PURNIMA, DIWALI, GURU_NANAK_JAYANTI, HOLI, JANMASHTAMI, MAHAVIR_JAYANTI, RAMA_NAVAMI,
+    VIJAYA_DASHAMI,
+};
 use crate::rule::{
     CalendarSystem, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
     SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
@@ -394,10 +398,20 @@ static IN_RULES: &[HolidayRule] = &[
     )
     .approximate(),
     HolidayRule::fixed_public("Milad-un-Nabi", "ईद मिलाद उन-नबी", MAWLID).approximate(),
+    // The gazetted Hindu, Jain, Buddhist and Sikh days, on the Hindu
+    // lunisolar calendar as the Rashtriya Panchang keeps it.
+    HolidayRule::fixed_public("Holi", "होली", HOLI),
+    HolidayRule::fixed_public("Ram Navami", "राम नवमी", RAMA_NAVAMI),
+    HolidayRule::fixed_public("Mahavir Jayanti", "महावीर जयंती", MAHAVIR_JAYANTI),
+    HolidayRule::fixed_public("Buddha Purnima", "बुद्ध पूर्णिमा", BUDDHA_PURNIMA),
+    HolidayRule::fixed_public("Janmashtami", "जन्माष्टमी", JANMASHTAMI),
+    HolidayRule::fixed_public("Dussehra", "दशहरा", VIJAYA_DASHAMI),
+    HolidayRule::fixed_public("Diwali", "दीपावली", DIWALI),
+    HolidayRule::fixed_public("Guru Nanak's Birthday", "गुरु नानक जयंती", GURU_NANAK_JAYANTI),
 ];
 
-/// India: the three national holidays plus the gazetted days this crate can
-/// actually compute.
+/// India: the three national holidays and the gazetted days of the central
+/// government's list — Christian, Muslim, Hindu, Jain, Buddhist and Sikh.
 pub static INDIA: RuleSet = RuleSet {
     code: "IN",
     english_name: "India",
@@ -407,11 +421,10 @@ pub static INDIA: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Department of Personnel and Training, \"List of Holidays\", \
-              issued annually. INCOMPLETE BY DESIGN: the Hindu, Sikh and \
-              Jain gazetted holidays — Holi, Diwali, Dussehra, Janmashtami, \
-              Mahavir Jayanti, Guru Nanak's Birthday and the rest — need a \
-              `hindu-lunar` calendar that `hc-calendars-lunar` does not yet \
-              have, and this crate will not tabulate what it cannot compute",
+              issued annually, for the list; the Rashtriya Panchang for the \
+              Hindu, Jain, Buddhist and Sikh dates, computed on the \
+              `hindu-lunar` calendar as it keeps them. The Hijri-dated days \
+              are approximate, as everywhere",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

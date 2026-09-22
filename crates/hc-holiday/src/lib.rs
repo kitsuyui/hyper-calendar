@@ -69,6 +69,7 @@
 extern crate alloc;
 
 pub mod computus;
+pub mod hindu;
 pub mod rule;
 
 #[cfg(feature = "alloc")]

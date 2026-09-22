@@ -127,6 +127,7 @@ dependencies = [
  "hc-astro",
  "hc-calendar",
  "hc-calendars-equinox",
+ "hc-calendars-indic",
  "hc-calendars-lunar",
  "hc-calendars-solar",
  "hc-core",

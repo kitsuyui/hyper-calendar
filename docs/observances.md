@@ -109,9 +109,9 @@ The cross-cutting ones, because national tables depend on them.
 | Jewish | Rosh Hashanah, Fast of Gedaliah, Yom Kippur, Sukkot, Hoshana Rabbah, Shemini Atzeret, Simchat Torah, Hanukkah, Tenth of Tevet, Tu BiShvat, Purim, Shushan Purim, Passover, Lag BaOmer, Shavuot, Seventeenth of Tammuz, Tisha B'Av | Done — the Omer count itself lives in `hc-calendars-lunar::hebrew`; the Sabbath postponements of the minor fasts are not modelled |
 | Buddhist | Vesak, Magha Puja, Asalha Puja, Vassa, Pavarana, Bodhi Day, Nirvana Day, Buddha's Birthday in both reckonings | Partial — the Theravada full moons are approximated from the Chinese lunisolar calendar and flagged `Approximate`; the Mahayana dates are exact |
 | Chinese folk | 除夕, 春節, 元宵, 清明, 端午, 七夕, 中元, 中秋, 重陽, 臘八, 冬至 | Done |
-| Hindu | Diwali, Holi, Navaratri, Dussehra, Ganesh Chaturthi, Janmashtami, Maha Shivaratri, Raksha Bandhan, Makar Sankranti, Ram Navami | Planned — needs `hindu-lunar` |
-| Sikh | Vaisakhi, Guru Nanak Gurpurab, Hola Mohalla, Bandi Chhor Divas | Planned |
-| Jain | Mahavir Jayanti, Paryushana, Diwali | Planned |
+| Hindu | Makar Sankranti, Maha Shivaratri, Holika Dahan and Holi, Ugadi, Rama Navami, Mahavir Jayanti, Mesha Sankranti, Akshaya Tritiya, Buddha Purnima, Guru Purnima, Raksha Bandhan, Krishna Janmashtami, Ganesh Chaturthi, Navaratri, Durga Ashtami, Vijaya Dashami, Diwali, Guru Nanak Jayanti | Done — each on the part of the day its tithi must hold, at the national almanac's sunrise; reproduces the Rashtriya Panchang's festival lists for 2023–2025 |
+| Sikh | Vaisakhi, Guru Nanak Gurpurab, Hola Mohalla, Bandi Chhor Divas | Partial — Guru Nanak Jayanti and Vaisakhi (Mesha Sankranti) are in the Hindu table's vocabulary; a Sikh table on the Nanakshahi calendar is planned |
+| Jain | Mahavir Jayanti, Paryushana, Diwali | Partial — Mahavir Jayanti and Diwali are in the Hindu table's vocabulary; Paryushana is planned |
 | Bahá'í | The nine holy days — Naw-Rúz, the three days of Riḍván, the Declaration of the Báb, the Ascension of Bahá'u'lláh, the Martyrdom of the Báb, the Twin Holy Birthdays — with the Day of the Covenant and the Ascension of ʻAbdu'l-Bahá, and the first days of Ayyám-i-Há and of the Fast | Done — dated in the Badíʿ calendar as kept (`bahai`, see [calendars.md](calendars.md)), so exact through 19 March 2065 and a reported gap after, where the Bahá'í World Centre's table ends; the Twin Holy Birthdays follow the same table, 2015–2064 |
 | Zoroastrian | Nowruz, Mehregan, Yalda, Sadeh, the Gahambars | Planned |
 | Shinto | 初詣, 節分, 七五三, and the major 祭 with fixed dates | Planned — 節分 and the other 雑節 are in `hc-seasons`, but no Shinto rule table exists yet |
@@ -153,7 +153,7 @@ Ordered by how well the sources can be cited, not by importance.
 
 | Country | Note |
 | --- | --- |
-| India 🇮🇳 | The three national holidays plus the gazetted days this crate can compute. Holi, Diwali, Dussehra, Janmashtami, Mahavir Jayanti and Guru Nanak's Birthday await `hindu-lunar` |
+| India 🇮🇳 | The three national holidays and the gazetted list — Holi, Ram Navami, Mahavir Jayanti, Buddha Purnima, Janmashtami, Dussehra, Diwali and Guru Nanak's Birthday now computed on `hindu-lunar`, the Hijri days approximate |
 | Nepal 🇳🇵 | Only the days whose Bikram Sambat date maps to a near-fixed Gregorian one, each flagged `Approximate`. The table exists chiefly for the one-day weekend, which ran until April 2026 |
 
 **Planned** — Russia 🇷🇺, Ukraine 🇺🇦, Hungary 🇭🇺, Romania 🇷🇴 and Argentina 🇦🇷

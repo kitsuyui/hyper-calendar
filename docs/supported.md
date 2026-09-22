@@ -126,7 +126,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `ID` | Indonesia | 15 | none | stated | 2026-09-21 |
 | `IE` | Ireland | 11 | yes | stated | 2026-09-21 |
 | `IL` | Israel | 13 | none | stated | 2026-09-21 |
-| `IN` | India | 9 | none | stated | 2026-09-21 |
+| `IN` | India | 17 | none | stated | 2026-09-21 |
 | `IR` | Iran | 27 | none | stated | 2026-09-22 |
 | `IT` | Italy | 13 | none | stated | 2026-09-21 |
 | `JP` | Japan | 38 | yes | stated | 2026-09-21 |
@@ -153,7 +153,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-9 tables, feature `holiday`.
+10 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
@@ -164,6 +164,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `christian-western` | Christianity (Western computus) | 30 |
 | `coptic-orthodox` | Coptic Orthodox | 23 |
 | `ethiopian-orthodox` | Ethiopian Orthodox Tewahedo | 14 |
+| `hindu` | Hinduism | 19 |
 | `islamic` | Islam | 10 |
 | `jewish` | Judaism | 19 |
 
@@ -266,7 +267,7 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `format` | civil, hc-format |
 | `i18n` | civil, hc-i18n |
 | `humanize` | i18n, hc-humanize |
-| `holiday` | regional, seasons, equinox, hc-holiday |
+| `holiday` | regional, seasons, equinox, indic, hc-holiday |
 | `uncertainty` | hc-uncertainty |
 | `deep-time` | uncertainty, hc-deep-time |
 | `planetary` | astro, hc-planetary |

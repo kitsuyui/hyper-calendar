@@ -104,7 +104,7 @@ i18n = ["civil", "dep:hc-i18n"]
 # Human-readable relative times.
 humanize = ["i18n", "dep:hc-humanize"]
 # Holidays and religious observances.
-holiday = ["regional", "seasons", "equinox", "dep:hc-holiday"]
+holiday = ["regional", "seasons", "equinox", "indic", "dep:hc-holiday"]
 # Significant figures, error bars and fuzzy intervals.
 uncertainty = ["dep:hc-uncertainty"]
 # Planck time to cosmology.

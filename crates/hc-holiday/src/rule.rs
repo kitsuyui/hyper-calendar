@@ -13,12 +13,15 @@
 use hc_calendar::Calendar as _;
 use hc_calendar::{CalendarId, Month, Rd, Weekday};
 use hc_calendars_equinox::persian as solar_hijri;
+use hc_calendars_indic::tithi::tithi_of_day;
+use hc_calendars_indic::{HinduLunarCalendar, Prevalence, hindu_lunar};
 use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
 use hc_calendars_lunar::tabular::{self, LeapYearRule};
 use hc_calendars_lunar::{ChineseCalendar, DangiCalendar, LunisolarDate, VietnameseCalendar};
 use hc_calendars_solar::{bahai_kept, coptic, ethiopic, gregorian, julian, persian};
 use hc_seasons::solar_terms::term_day;
+use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 use hc_seasons::{Meridian, SolarTerm};
 
 use crate::computus::{Computus, easter};
@@ -500,6 +503,39 @@ pub enum Rule {
         /// The shift, in days.
         days: i16,
     },
+    /// A tithi of a month of the amānta Hindu lunisolar calendar, kept on
+    /// the day the tithi is in progress at a stated part of the day —
+    /// sunrise, midday, afternoon, evening or midnight — which is how the
+    /// Hindu festivals are dated. See [`crate::hindu`] for the festivals and
+    /// their conventions.
+    ///
+    /// When the year repeats the month, the ordinary month is meant; when
+    /// the tithi holds the stated part of two consecutive days, `when_twice`
+    /// decides; when it holds neither day's, the day that carries the tithi
+    /// at sunrise is taken, or, for a tithi that holds no sunrise, the day
+    /// it begins and ends within.
+    Tithi {
+        /// The amānta month, 1 for Chaitra through 12 for Phālguna.
+        month: u8,
+        /// The tithi, 1 through 30.
+        tithi: u8,
+        /// The part of the day the tithi must hold.
+        prevails: Prevalence,
+        /// Which of two consecutive qualifying days is the festival's.
+        when_twice: WhenTwice,
+        /// The calendar — its sunrise and its ayanamsa — the tithi is read in.
+        calendar: HinduLunarCalendar,
+    },
+    /// The Sun's entry into a sidereal sign — a saṅkrānti — as a day at a
+    /// meridian: Makara Saṅkrānti, the solar new year of Meṣa.
+    Sankranti {
+        /// The sign entered.
+        sign: SiderealSign,
+        /// The ayanamsa that fixes the sidereal zero point.
+        ayanamsa: Ayanamsa,
+        /// The meridian whose local midnight cuts the day.
+        meridian: Meridian,
+    },
     /// The genuine handful that resist everything else — a one-off statute,
     /// a rule stated as a sentence and not as a pattern.
     ///
@@ -602,6 +638,12 @@ impl Rule {
             // The residue is exact and small: a shifted holiday can still
             // be missed when its base lies in an out-of-range year *and*
             // falls within `days` of the year boundary.
+            // The Hindu calendar converts a stated span of years, and a
+            // festival needs the month it falls in, so the edge years are
+            // left out as well.
+            Self::Tithi { .. } => (hindu_lunar::MIN_YEAR + hindu_lunar::GREGORIAN_YEAR_OFFSET + 1
+                ..hindu_lunar::MAX_YEAR + hindu_lunar::GREGORIAN_YEAR_OFFSET)
+                .contains(&year),
             Self::Offset { base, .. } => base.is_resolvable_in(year),
             // Everything else is Gregorian arithmetic, astronomy or a
             // closure, none of which has a calendar range to fall outside.
@@ -667,6 +709,21 @@ impl Rule {
                 fixed_in_calendar(*system, *month, *day, first, last)
             }
             Self::SolarTerm { term, meridian } => Days::one(term_day(year, *term, *meridian)),
+            Self::Tithi {
+                month,
+                tithi,
+                prevails,
+                when_twice,
+                calendar,
+            } => tithi_days(year, *month, *tithi, *prevails, *when_twice, *calendar)
+                .clamped(first, last),
+            Self::Sankranti {
+                sign,
+                ayanamsa,
+                meridian,
+            } => Days::one(hc_seasons::zodiac::sidereal::ingress_day(
+                year, *sign, *ayanamsa, *meridian,
+            )),
             Self::EasterRelative { computus, offset } => easter(*computus, year)
                 .map_or_else(Days::new, |day| Days::one(Rd(day.0 + i64::from(*offset)))),
             Self::LunarPhase {
@@ -736,6 +793,87 @@ fn fixed_in_calendar(system: CalendarSystem, month: Month, day: u8, first: Rd, l
 }
 
 /// The first `phase` at or after a fixed Gregorian date, as a local day.
+/// Which of two consecutive days a tithi rule takes when the tithi holds the
+/// stated part of both.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum WhenTwice {
+    /// The earlier day — the *pūrva-viddha* convention.
+    Earlier,
+    /// The later day — the *para-viddha* convention, as for Dīpāvalī and
+    /// Janmāṣṭamī.
+    Later,
+}
+
+/// The days in Gregorian `year` on which `tithi` of amānta `month` holds
+/// the stated part of the day, in the ordinary month of that name.
+fn tithi_days(
+    year: i64,
+    month: u8,
+    tithi: u8,
+    prevails: Prevalence,
+    when_twice: WhenTwice,
+    calendar: HinduLunarCalendar,
+) -> Days {
+    let mut out = Days::new();
+    // The month falls in one of the two Śaka years that overlap the
+    // Gregorian one.
+    for saka in [
+        year - hindu_lunar::GREGORIAN_YEAR_OFFSET - 1,
+        year - hindu_lunar::GREGORIAN_YEAR_OFFSET,
+    ] {
+        let Ok((first, end)) = calendar.month_span(saka, month, false) else {
+            continue;
+        };
+        let location = calendar.location;
+        // Tithis run from 0.9 to 1.1 days, so the `tithi`-th cannot drift
+        // more than three days from the day numbered `tithi`; only that
+        // window is read, which is what keeps a year's festivals cheap.
+        let centre = first.0 + i64::from(tithi) - 1;
+        let low = Rd(centre.saturating_sub(3).max(first.0));
+        let high = Rd((centre + 4).min(end.0));
+        let mut qualifying: [Option<Rd>; 2] = [None, None];
+        let mut found = 0;
+        let mut day = low;
+        while day < high {
+            if prevails.tithi_on(day, location) == tithi {
+                if found < 2 {
+                    qualifying[found] = Some(day);
+                }
+                found += 1;
+            }
+            day = Rd(day.0 + 1);
+        }
+        let chosen = match (qualifying, when_twice) {
+            ([Some(_), Some(later)], WhenTwice::Later) => Some(later),
+            ([Some(earlier), _], _) => Some(earlier),
+            ([None, _], _) => {
+                // The tithi holds the stated part of no day: take the day it
+                // holds at sunrise, or the day a skipped tithi begins in.
+                let mut day = low;
+                let mut fallback = None;
+                while day < high {
+                    let at_sunrise = tithi_of_day(day, location);
+                    if at_sunrise == tithi {
+                        fallback = Some(day);
+                        break;
+                    }
+                    if at_sunrise + 1 == tithi && tithi_of_day(Rd(day.0 + 1), location) == tithi + 1
+                    {
+                        fallback = Some(day);
+                        break;
+                    }
+                    day = Rd(day.0 + 1);
+                }
+                fallback
+            }
+        };
+        if let Some(day) = chosen {
+            out.push(day);
+        }
+    }
+    out
+}
+
 fn lunar_phase_day(phase: Phase, year: i64, month: u8, day: u8, meridian: Meridian) -> Days {
     let Ok(anchor) = gregorian::to_fixed(year, month, day) else {
         return Days::new();
