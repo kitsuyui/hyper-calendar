@@ -19,6 +19,7 @@ use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
 use hc_calendars_lunar::tabular::{self, LeapYearRule};
 use hc_calendars_lunar::{ChineseCalendar, DangiCalendar, LunisolarDate, VietnameseCalendar};
+use hc_calendars_regional::burmese;
 use hc_calendars_solar::{
     bahai_kept, coptic, ethiopic, gregorian, julian, nanakshahi, persian, zoroastrian,
 };
@@ -334,6 +335,31 @@ hc_core::catalogue! {
             CalendarId("nanakshahi"),
             |year, month, day| nanakshahi::to_fixed(year, month.ordinal, day).ok(),
             |rd| nanakshahi::from_fixed(rd).ok().map(|(year, _, _)| year),
+        );
+
+        /// The Burmese calendar, in which Myanmar dates its full-moon
+        /// holidays. Tagu and Kason are split by the solar New Year, so a
+        /// day of them is the early half's when the year has it there and
+        /// the late half's otherwise — either way the one day of that name
+        /// the year holds.
+        pub const BURMESE = Self::new(
+            CalendarId("burmese"),
+            |year, month, day| {
+                let early = burmese::BurmeseDate {
+                    year,
+                    month,
+                    late: false,
+                    day,
+                };
+                burmese::to_fixed(early).ok().or_else(|| {
+                    burmese::to_fixed(burmese::BurmeseDate {
+                        late: true,
+                        ..early
+                    })
+                    .ok()
+                })
+            },
+            |rd| burmese::from_fixed(rd).ok().map(|date| date.year),
         );
 
         /// The Zoroastrian calendar by the Qadimi reckoning: the 365-day

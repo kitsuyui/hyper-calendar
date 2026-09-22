@@ -329,6 +329,46 @@ pub fn year_of_jdn(jdn: i64) -> i64 {
     floor((jdn as f64 - 0.5 - EPOCH_JULIAN_DATE) / SOLAR_YEAR) as i64
 }
 
+/// The days of Thingyan, the New Year festival, for a Myanmar year: the
+/// *akyo* eve, the *akya* day on which the festival begins, the one or two
+/// *akyat* days between, the *atat* day on which the old year ends, and
+/// the New Year's day after it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Thingyan {
+    /// The eve, the day before *akya*.
+    pub akyo: Rd,
+    /// The first day of the festival.
+    pub akya: Rd,
+    /// The last day between *akya* and *atat*, one or two days after *akya*.
+    pub last_akyat: Rd,
+    /// The day the old year ends.
+    pub atat: Rd,
+    /// The New Year's day.
+    pub new_year: Rd,
+}
+
+/// The Thingyan of `year`: the *atat* moment is the start of the solar
+/// year, and the *akya* moment is 2.169918982 days before it since 1312 ME
+/// and 2.1675 days before it in the years of the kings.
+#[must_use]
+pub fn thingyan(year: i64) -> Thingyan {
+    let atat_time = SOLAR_YEAR * year as f64 + EPOCH_JULIAN_DATE;
+    let akya_time = if year >= 1312 {
+        atat_time - 2.169_918_982
+    } else {
+        atat_time - 2.1675
+    };
+    let atat = round(atat_time) as i64;
+    let akya = round(akya_time) as i64;
+    Thingyan {
+        akyo: jdn_to_rd(akya - 1),
+        akya: jdn_to_rd(akya),
+        last_akyat: jdn_to_rd(atat - 1),
+        atat: jdn_to_rd(atat),
+        new_year: jdn_to_rd(atat + 1),
+    }
+}
+
 const fn jdn_to_rd(jdn: i64) -> Rd {
     Rd(jdn - 1_721_425)
 }
@@ -787,5 +827,16 @@ mod tests {
             from_fixed(Rd(latest().0 + 1)),
             Err(CalendarError::AfterSupportedRange)
         );
+    }
+
+    #[test]
+    fn the_thingyan_of_1386_me_ran_from_13_to_17_april_2024() {
+        let festival = thingyan(1386);
+        assert_eq!(festival.akyo, greg(2024, 4, 13));
+        assert_eq!(festival.akya, greg(2024, 4, 14));
+        assert_eq!(festival.last_akyat, greg(2024, 4, 15));
+        assert_eq!(festival.atat, greg(2024, 4, 16));
+        assert_eq!(festival.new_year, greg(2024, 4, 17));
+        assert_eq!(festival.new_year, jdn_to_rd(new_year_day(1386)));
     }
 }

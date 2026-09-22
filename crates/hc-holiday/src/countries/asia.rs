@@ -15,7 +15,7 @@ use crate::hindu::{
     VIJAYA_DASHAMI,
 };
 use crate::rule::{
-    CalendarSystem, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
+    CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
     SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
 };
 
@@ -1000,4 +1000,134 @@ pub static PAKISTAN: RuleSet = RuleSet {
               the state holidays and their Urdu names; Wikipedia, \"Iqbal Day\", \
               retrieved 2026-09-22, for the withdrawal of 2015 and the \
               restoration of 2022",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Myanmar
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A holiday on a day of the Burmese calendar.
+const fn mm_burmese(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::BURMESE, month, day),
+    )
+}
+
+/// The Myanmar year whose Thingyan falls in Gregorian `year`: the era's
+/// year 0 began in 638.
+const fn mm_year_of_thingyan(year: i64) -> i64 {
+    year - 638
+}
+
+fn thingyan_akyo(year: i64) -> Days {
+    Days::one(hc_calendars_regional::burmese::thingyan(mm_year_of_thingyan(year)).akyo)
+}
+
+fn thingyan_akya(year: i64) -> Days {
+    Days::one(hc_calendars_regional::burmese::thingyan(mm_year_of_thingyan(year)).akya)
+}
+
+/// The one or two *akyat* days between *akya* and *atat*.
+fn thingyan_akyat(year: i64) -> Days {
+    let festival = hc_calendars_regional::burmese::thingyan(mm_year_of_thingyan(year));
+    let mut out = Days::new();
+    let mut day = festival.akya.0 + 1;
+    while day <= festival.last_akyat.0 {
+        out.push(hc_calendar::Rd(day));
+        day += 1;
+    }
+    out
+}
+
+fn thingyan_atat(year: i64) -> Days {
+    Days::one(hc_calendars_regional::burmese::thingyan(mm_year_of_thingyan(year)).atat)
+}
+
+fn myanmar_new_year(year: i64) -> Days {
+    Days::one(hc_calendars_regional::burmese::thingyan(mm_year_of_thingyan(year)).new_year)
+}
+
+static MM_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("Independence Day", "လွတ်လပ်ရေးနေ့", Rule::gregorian(1, 4)),
+    HolidayRule::fixed_public(
+        "Chinese New Year",
+        "",
+        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
+    ),
+    HolidayRule::fixed_public("Union Day", "ပြည်ထောင်စုနေ့", Rule::gregorian(2, 12)),
+    HolidayRule::fixed_public("Peasants' Day", "တောင်သူလယ်သမားနေ့", Rule::gregorian(3, 2)),
+    mm_burmese("Full Moon Day of Tabaung", "တပေါင်းလပြည့်နေ့", 12, 15),
+    HolidayRule::fixed_public("Armed Forces Day", "တပ်မတော်နေ့", Rule::gregorian(3, 27)),
+    // Thingyan: the eve, the first day, the one or two days between, the
+    // day the old year ends, and the New Year's day, from the calendar's
+    // own moments.
+    HolidayRule::fixed_public("Thingyan Eve", "သင်္ကြန်အကြိုနေ့", Rule::Computed(thingyan_akyo)),
+    HolidayRule::fixed_public(
+        "Thingyan Akya Day",
+        "သင်္ကြန်အကျနေ့",
+        Rule::Computed(thingyan_akya),
+    ),
+    HolidayRule::fixed_public(
+        "Thingyan Akyat Day",
+        "သင်္ကြန်အကြတ်နေ့",
+        Rule::Computed(thingyan_akyat),
+    ),
+    HolidayRule::fixed_public(
+        "Thingyan Atat Day",
+        "သင်္ကြန်အတက်နေ့",
+        Rule::Computed(thingyan_atat),
+    ),
+    HolidayRule::fixed_public(
+        "Myanmar New Year's Day",
+        "နှစ်ဆန်းတစ်ရက်နေ့",
+        Rule::Computed(myanmar_new_year),
+    ),
+    HolidayRule::fixed_public("Labour Day", "အလုပ်သမားနေ့", Rule::gregorian(5, 1)),
+    mm_burmese("Full Moon Day of Kason", "ကဆုန်လပြည့်နေ့", 2, 15),
+    HolidayRule::fixed_public("Martyrs' Day", "အာဇာနည်နေ့", Rule::gregorian(7, 19)),
+    mm_burmese("Full Moon Day of Waso", "ဝါဆိုလပြည့်နေ့", 4, 15),
+    mm_burmese("Thadingyut Holiday", "သီတင်းကျွတ်", 7, 14),
+    mm_burmese("Full Moon Day of Thadingyut", "သီတင်းကျွတ်လပြည့်နေ့", 7, 15),
+    mm_burmese("Thadingyut Holiday", "သီတင်းကျွတ်", 7, 16),
+    mm_burmese("Tazaungdaing Holiday", "တန်ဆောင်တိုင်", 8, 14),
+    mm_burmese("Full Moon Day of Tazaungmon", "တန်ဆောင်မုန်းလပြည့်နေ့", 8, 15),
+    // The tenth waning day of Tazaungmon.
+    mm_burmese("National Day", "အမျိုးသားနေ့", 8, 25),
+    HolidayRule::fixed_public("Christmas Day", "ခရစ္စမတ်နေ့", Rule::gregorian(12, 25)),
+    // The first waxing day of Pyatho.
+    mm_burmese("Kayin New Year", "ကရင်နှစ်သစ်ကူး", 10, 1),
+    HolidayRule::fixed_public("Eid al-Adha", "", EID_AL_ADHA).approximate(),
+    // As the source states it: "based on the traditional Burmese calendar
+    // (1st waxing day of Tazaungmon)".
+    mm_burmese("Deepavali", "ဒီပါဝလီ", 8, 1),
+];
+
+/// Myanmar.
+///
+/// The public holidays as the source lists them, dated on the Burmese
+/// calendar where the source dates them there: the full moons of Tabaung,
+/// Kason, Waso, Thadingyut and Tazaungmon, National Day on the tenth waning
+/// of Tazaungmon, the Kayin New Year on the first waxing of Pyatho, and
+/// Deepavali on the first waxing of Tazaungmon, which is how the source
+/// says Myanmar fixes it. Thingyan is five days from the calendar's own
+/// *akya* and *atat* moments: the eve, the first day, the day or two
+/// between, the last day of the old year, and the New Year's day. The
+/// gazette extends several of these — nine days for Thadingyut in recent
+/// years, a longer Thingyan block — and the extensions are annual and not
+/// carried. Eid al-Adha is on the tabular Hijri calendar and approximate.
+pub static MYANMAR: RuleSet = RuleSet {
+    code: "MM",
+    english_name: "Myanmar",
+    rules: MM_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia, \"Public holidays in Myanmar\", retrieved 2026-09-22, for \
+              the list and the Burmese dates it gives; the Thingyan moments from \
+              Yan Naing Aye's arithmetic as `hc-calendars-regional::burmese` \
+              carries it",
 };

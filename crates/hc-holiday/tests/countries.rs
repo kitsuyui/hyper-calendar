@@ -1198,6 +1198,39 @@ fn peru_keeps_its_sixteen_days_where_they_fall() {
 }
 
 #[test]
+fn myanmar_dates_its_full_moons_and_thingyan_on_the_burmese_calendar() {
+    // 1386 ME: Thingyan from 13 to 16 April 2024 and the New Year on the
+    // 17th; the full moons of Kason, Waso, Thadingyut and Tazaungmon on
+    // 22 May, 20 July, 17 October and 15 November; National Day ten days
+    // after the last, 25 November.
+    expect(
+        "MM",
+        None,
+        &[
+            (2024, 1, 4, "Independence Day"),
+            (2024, 2, 12, "Union Day"),
+            (2024, 3, 27, "Armed Forces Day"),
+            (2024, 4, 13, "Thingyan Eve"),
+            (2024, 4, 14, "Thingyan Akya Day"),
+            (2024, 4, 15, "Thingyan Akyat Day"),
+            (2024, 4, 16, "Thingyan Atat Day"),
+            (2024, 4, 17, "Myanmar New Year's Day"),
+            (2024, 5, 22, "Full Moon Day of Kason"),
+            (2024, 7, 19, "Martyrs' Day"),
+            (2024, 7, 20, "Full Moon Day of Waso"),
+            (2024, 10, 16, "Thadingyut Holiday"),
+            (2024, 10, 17, "Full Moon Day of Thadingyut"),
+            (2024, 10, 18, "Thadingyut Holiday"),
+            (2024, 11, 14, "Tazaungdaing Holiday"),
+            (2024, 11, 15, "Full Moon Day of Tazaungmon"),
+            (2024, 11, 25, "National Day"),
+            (2024, 12, 25, "Christmas Day"),
+        ],
+    );
+    expect_working("MM", None, &[(2024, 4, 12), (2024, 4, 18)]);
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",

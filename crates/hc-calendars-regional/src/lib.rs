@@ -91,7 +91,7 @@ pub use aztec::{
     AztecXiuhpohualliDate,
 };
 pub use balinese_pawukon::{BalinesePawukonCalendar, PawukonDate};
-pub use burmese::{BurmeseCalendar, BurmeseDate, MoonPhase, YearType};
+pub use burmese::{BurmeseCalendar, BurmeseDate, MoonPhase, Thingyan, YearType};
 pub use chinese_regnal::{ChineseEra, ChineseRegnalCalendar, ChineseRegnalDate, Dynasty};
 pub use japanese::{JapaneseCalendar, JapaneseDate};
 pub use javanese_pasaran::{JavanesePasaranCalendar, WetonDate};
