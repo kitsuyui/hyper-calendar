@@ -16,7 +16,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
 | `international` | the United Nations international days, each citing its resolution |
-| `countries` | 115 national tables |
+| `countries` | 119 national tables |
 
 ## The vocabulary
 
@@ -84,24 +84,24 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**115 countries.** Albania, Algeria, Argentina, Armenia, Australia (eight states
-and territories), Austria, Azerbaijan, the Bahamas, Bahrain, Barbados, Belarus,
-Belgium, Belize, Bolivia, Brazil, Bulgaria, Canada (federal plus the provincial
-days fixed by statute), Chile, China, Colombia, Costa Rica, Côte d'Ivoire,
-Croatia, Cuba, Cyprus, Czechia, Denmark, the Dominican Republic, Ecuador, Egypt,
-Estonia, Ethiopia, Finland, France (métropole plus Alsace-Moselle), Georgia,
-Germany (all 16 *Länder*), Ghana, Greece, Guatemala, Guyana, Haiti, Hong Kong,
-Hungary, Iceland, India, Indonesia, Iran, Iraq, Ireland, Israel, Italy, Jamaica,
-Japan, Jordan, Kazakhstan, Kenya, Kuwait, Kyrgyzstan, Latvia, Lebanon,
-Lithuania, Luxembourg, Macau, Malaysia, Malta, Mexico, Moldova, Montenegro,
-Morocco, Myanmar, Nepal, the Netherlands, New Zealand, Nigeria, North Macedonia,
-Norway, Oman, Pakistan, Panama, Peru, the Philippines, Poland, Portugal, Qatar,
-Romania, Russia, Saudi Arabia, Senegal, Serbia, Singapore, Slovakia, Slovenia,
-South Africa, South Korea, Spain, Sweden, Switzerland, Taiwan, Tajikistan,
-Tanzania, Thailand, Trinidad and Tobago, Tunisia, Türkiye, Turkmenistan, Uganda,
-Ukraine, the United Arab Emirates, the United Kingdom (three bank-holiday
-jurisdictions), the United States, Uruguay, Uzbekistan, Vietnam, Zambia,
-Zimbabwe.
+**119 countries.** Albania, Algeria, Andorra, Argentina, Armenia, Australia
+(eight states and territories), Austria, Azerbaijan, the Bahamas, Bahrain,
+Barbados, Belarus, Belgium, Belize, Bolivia, Brazil, Bulgaria, Canada (federal
+plus the provincial days fixed by statute), Chile, China, Colombia, Costa Rica,
+Côte d'Ivoire, Croatia, Cuba, Cyprus, Czechia, Denmark, the Dominican Republic,
+Ecuador, Egypt, Estonia, Ethiopia, Finland, France (métropole plus
+Alsace-Moselle), Georgia, Germany (all 16 *Länder*), Ghana, Greece, Guatemala,
+Guyana, Haiti, Hong Kong, Hungary, Iceland, India, Indonesia, Iran, Iraq,
+Ireland, Israel, Italy, Jamaica, Japan, Jordan, Kazakhstan, Kenya, Kuwait,
+Kyrgyzstan, Latvia, Lebanon, Liechtenstein, Lithuania, Luxembourg, Macau,
+Malaysia, Malta, Mexico, Moldova, Monaco, Montenegro, Morocco, Myanmar, Nepal,
+the Netherlands, New Zealand, Nigeria, North Macedonia, Norway, Oman, Pakistan,
+Panama, Peru, the Philippines, Poland, Portugal, Qatar, Romania, Russia, San
+Marino, Saudi Arabia, Senegal, Serbia, Singapore, Slovakia, Slovenia, South
+Africa, South Korea, Spain, Sweden, Switzerland, Taiwan, Tajikistan, Tanzania,
+Thailand, Trinidad and Tobago, Tunisia, Türkiye, Turkmenistan, Uganda, Ukraine,
+the United Arab Emirates, the United Kingdom (three bank-holiday jurisdictions),
+the United States, Uruguay, Uzbekistan, Vietnam, Zambia, Zimbabwe.
 
 **Nineteen traditions.** Christianity under both computations, the
 Ethiopian Orthodox Tewahedo and the Coptic Orthodox Churches, Islam,

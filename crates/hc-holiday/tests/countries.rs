@@ -3935,6 +3935,155 @@ fn iraq_follows_law_12_of_2024_with_its_community_days_religious() {
 }
 
 #[test]
+fn liechtenstein_has_thirteen_legal_holidays_and_five_bank_days() {
+    expect(
+        "LI",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 2, "Berchtold's Day"),
+            (2026, 1, 6, "Epiphany"),
+            (2026, 2, 17, "Shrove Tuesday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 14, "Ascension"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 6, 4, "Corpus Christi"),
+            (2026, 8, 15, "National Day"),
+            (2026, 9, 8, "Nativity of Mary"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 12, 8, "Immaculate Conception"),
+            (2026, 12, 24, "Christmas Eve"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Saint Stephen's Day"),
+            (2026, 12, 31, "New Year's Eve"),
+        ],
+    );
+    // Candlemas and Saint Joseph are observances, and a Sunday All Saints
+    // gives nothing.
+    expect_working("LI", None, &[(2026, 2, 2), (2026, 3, 19), (2026, 11, 2)]);
+    let calendar = HolidayCalendar::for_year(table("LI"), None, 2026);
+    let kinds: Vec<(&str, Kind)> = [ymd(2026, 1, 2), ymd(2026, 2, 2), ymd(2026, 4, 3)]
+        .iter()
+        .flat_map(|day| calendar.on(*day))
+        .map(|holiday| (holiday.name, holiday.kind))
+        .collect();
+    assert_eq!(
+        kinds,
+        [
+            ("Berchtold's Day", Kind::Bank),
+            ("Candlemas", Kind::Observance),
+            ("Good Friday", Kind::Bank),
+        ]
+    );
+}
+
+#[test]
+fn monaco_gives_the_monday_after_a_sunday_for_six_of_its_twelve_days() {
+    expect(
+        "MC",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 27, "Saint Devota's Day"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 14, "Ascension"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 6, 4, "Corpus Christi"),
+            (2026, 8, 15, "Assumption"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 11, 2, "All Saints' Day"),
+            (2026, 11, 19, "Sovereign Prince's Day"),
+            (2026, 12, 8, "Immaculate Conception"),
+            (2026, 12, 25, "Christmas Day"),
+            (2027, 8, 16, "Assumption"),
+            (1952, 11, 19, "Sovereign Prince's Day"),
+        ],
+    );
+    // A Sunday Immaculate Conception (2024) or Saint Devota's Day (2030)
+    // is not in the article's list of six.
+    expect_working("MC", None, &[(2024, 12, 9), (2030, 1, 28), (1951, 11, 19)]);
+    expect_substitute("MC", None, 2026, (11, 1), (11, 2));
+    expect_substitute("MC", None, 2027, (8, 15), (8, 16));
+}
+
+#[test]
+fn san_marino_keeps_the_captains_regent_days_and_closes_the_banks_on_the_eves() {
+    expect(
+        "SM",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 6, "Epiphany"),
+            (2026, 2, 5, "Feast of Saint Agatha"),
+            (2026, 3, 25, "Anniversary of the Arengo"),
+            (2026, 4, 1, "Investiture of the Captains Regent"),
+            (2026, 4, 5, "Easter Sunday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 6, 4, "Corpus Christi"),
+            (2026, 7, 28, "Anniversary of the Fall of Fascism"),
+            (2026, 8, 15, "Assumption"),
+            (2026, 9, 3, "Feast of Saint Marinus and the Republic"),
+            (2026, 10, 1, "Investiture of the Captains Regent"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 11, 2, "All Souls' Day"),
+            (2026, 12, 8, "Immaculate Conception"),
+            (2026, 12, 24, "Christmas Eve"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Saint Stephen's Day"),
+            (2026, 12, 31, "New Year's Eve"),
+        ],
+    );
+    expect_working(
+        "SM",
+        None,
+        &[(2026, 3, 19), (2026, 6, 29), (2026, 8, 14), (2026, 8, 16)],
+    );
+    let calendar = HolidayCalendar::for_year(table("SM"), None, 2026);
+    let kinds: Vec<Kind> = [ymd(2026, 12, 24), ymd(2026, 12, 31)]
+        .iter()
+        .flat_map(|day| calendar.on(*day))
+        .map(|holiday| holiday.kind)
+        .collect();
+    assert_eq!(kinds, [Kind::Bank, Kind::Bank]);
+}
+
+#[test]
+fn andorra_has_the_fourteen_national_days_with_carnival_on_its_monday() {
+    expect(
+        "AD",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 6, "Epiphany"),
+            (2026, 2, 16, "Carnival"),
+            (2026, 3, 14, "Constitution Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 8, 15, "Assumption"),
+            (2026, 9, 8, "Our Lady of Meritxell"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 12, 8, "Immaculate Conception"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Saint Stephen's Day"),
+            (2025, 3, 3, "Carnival"),
+            (2024, 2, 12, "Carnival"),
+        ],
+    );
+    // Shrove Tuesday is not the day, and a Sunday gives nothing.
+    expect_working(
+        "AD",
+        None,
+        &[(2026, 2, 17), (2025, 3, 4), (2026, 11, 2), (2024, 9, 9)],
+    );
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",

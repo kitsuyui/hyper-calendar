@@ -11,7 +11,7 @@ use hc_calendars_solar::gregorian;
 
 use crate::computus::offsets::{
     ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY,
-    HOLY_SATURDAY, MAUNDY_THURSDAY, PENTECOST, SHROVE_TUESDAY, WHIT_MONDAY,
+    HOLY_SATURDAY, MAUNDY_THURSDAY, PENTECOST, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
@@ -3588,4 +3588,336 @@ pub static MOLDOVA: RuleSet = RuleSet {
               Moldova and Timpul for Europe Day from 2017; Wikipedia, \"Public \
               holidays in Moldova\", retrieved the same day, for Christmas by the new \
               style from 2009 and the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Liechtenstein
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A day the banks close on that the Labour Act does not name.
+const fn li_bank(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, rule).of_kind(Kind::Bank)
+}
+
+static LI_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Neujahr", Rule::gregorian(1, 1)),
+    li_bank("Berchtold's Day", "Berchtoldstag", Rule::gregorian(1, 2)),
+    HolidayRule::fixed_public("Epiphany", "Heilige Drei Könige", Rule::gregorian(1, 6)),
+    HolidayRule::observance("Candlemas", "Lichtmess", Rule::gregorian(2, 2)),
+    li_bank(
+        "Shrove Tuesday",
+        "Fasnachtsdienstag",
+        Rule::easter(SHROVE_TUESDAY),
+    ),
+    HolidayRule::observance("Saint Joseph's Day", "Josefstag", Rule::gregorian(3, 19)),
+    li_bank("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::fixed_public("Labour Day", "Tag der Arbeit", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Ascension", "Auffahrt", Rule::easter(ASCENSION)),
+    HolidayRule::fixed_public("Whit Monday", "Pfingstmontag", Rule::easter(WHIT_MONDAY)),
+    HolidayRule::fixed_public(
+        "Corpus Christi",
+        "Fronleichnam",
+        Rule::easter(CORPUS_CHRISTI),
+    ),
+    HolidayRule::fixed_public("National Day", "Staatsfeiertag", Rule::gregorian(8, 15)),
+    HolidayRule::fixed_public("Nativity of Mary", "Mariä Geburt", Rule::gregorian(9, 8)),
+    HolidayRule::fixed_public("All Saints' Day", "Allerheiligen", Rule::gregorian(11, 1)),
+    HolidayRule::fixed_public(
+        "Immaculate Conception",
+        "Mariä Empfängnis",
+        Rule::gregorian(12, 8),
+    ),
+    li_bank("Christmas Eve", "Heiligabend", Rule::gregorian(12, 24)),
+    HolidayRule::fixed_public("Christmas Day", "Weihnachten", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public(
+        "Saint Stephen's Day",
+        "Stephanstag",
+        Rule::gregorian(12, 26),
+    ),
+    li_bank("New Year's Eve", "Silvester", Rule::gregorian(12, 31)),
+];
+
+/// Liechtenstein.
+///
+/// The Labour Act (Gesetz über die Arbeit in Industrie, Gewerbe und
+/// Handel), article 18(2) as amended in 1986: thirteen "legal holidays
+/// equal to Sundays" — New Year's Day, Epiphany, Easter Monday, 1 May,
+/// Ascension, Whit Monday, Corpus Christi, the Assumption as the National
+/// Day, the Nativity of Mary, All Saints, the Immaculate Conception,
+/// Christmas and St. Stephen's Day. The five days on which the banks
+/// also close, Berchtold's Day, Shrove Tuesday, Good Friday, Christmas
+/// Eve and New Year's Eve, are bank days here, and Candlemas and Saint
+/// Joseph's Day, which collective agreements make paid days in some
+/// trades, are observances. A holiday on a Sunday is a Sunday; nothing
+/// moves.
+pub static LIECHTENSTEIN: RuleSet = RuleSet {
+    code: "LI",
+    english_name: "Liechtenstein",
+    rules: LI_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Gesetz über die Arbeit in Industrie, Gewerbe und Handel (Arbeitsgesetz), \
+              LGBl. 1967 Nr. 6, article 18(2) as amended by LGBl. 1986 Nr. 85, from \
+              gesetze.li (konso/1967.006), retrieved 2026-09-22; Wikipedia (de), \
+              \"Feiertage in Liechtenstein\", for the bank days and the two \
+              collective-agreement days, and Wikipedia, \"Public holidays in \
+              Liechtenstein\", for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Monaco
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 1 of law 798: when six of the twelve days "fall on a Sunday,
+/// the Monday that follows is a legal holiday".
+static MC_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: false,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static MC_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Saint Devota's Day",
+        "Sainte-Dévote",
+        Rule::gregorian(1, 27),
+    ),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Lundi de Pâques",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Ascension", "Ascension", Rule::easter(ASCENSION)),
+    HolidayRule::fixed_public(
+        "Whit Monday",
+        "Lundi de Pentecôte",
+        Rule::easter(WHIT_MONDAY),
+    ),
+    HolidayRule::fixed_public("Corpus Christi", "Fête-Dieu", Rule::easter(CORPUS_CHRISTI)),
+    HolidayRule::public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+    HolidayRule::public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
+    HolidayRule::public(
+        "Sovereign Prince's Day",
+        "Fête du Prince",
+        Rule::gregorian(11, 19),
+    )
+    .years(Some(1952), None),
+    HolidayRule::fixed_public(
+        "Immaculate Conception",
+        "Immaculée Conception",
+        Rule::gregorian(12, 8),
+    ),
+    HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+];
+
+/// Monaco.
+///
+/// Law 798 of 18 February 1966 fixing the legal holidays, article 1, from
+/// Legimonaco: the Sovereign Prince's Day, New Year's Day, Saint Devota's
+/// Day, Easter Monday, 1 May, Ascension, Whit Monday, Corpus Christi, the
+/// Assumption, All Saints, the Immaculate Conception and Christmas; and
+/// "when the Sovereign Prince's Day, New Year's Day, 1 May, the
+/// Assumption, All Saints and Christmas fall on a Sunday, the Monday that
+/// follows is a legal holiday", which those six rules do and the other
+/// six do not. The Prince's Day is the day the reigning Prince chooses,
+/// 19 November since 1952 under Rainier III and kept by Albert II. The
+/// days the Prince declares for an occasion are not carried.
+pub static MONACO: RuleSet = RuleSet {
+    code: "MC",
+    english_name: "Monaco",
+    rules: MC_RULES,
+    substitution: MC_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Loi n° 798 du 18 février 1966 portant fixation des jours fériés légaux, \
+              article 1, as Legimonaco publishes it, retrieved 2026-09-22; the Prince's \
+              Government (gouv.mc) and the Prince's Palace on the Fête du Prince of \
+              19 November since 1952; Wikipedia, \"Public holidays in Monaco\", for the \
+              English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// San Marino
+// ─────────────────────────────────────────────────────────────────────────
+
+static SM_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Capodanno", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("Epiphany", "Epifania", Rule::gregorian(1, 6)),
+    HolidayRule::fixed_public("Feast of Saint Agatha", "Sant'Agata", Rule::gregorian(2, 5)),
+    HolidayRule::fixed_public(
+        "Anniversary of the Arengo",
+        "Anniversario dell'Arengo",
+        Rule::gregorian(3, 25),
+    ),
+    HolidayRule::fixed_public(
+        "Investiture of the Captains Regent",
+        "Ingresso dei Capitani Reggenti",
+        Rule::gregorian(4, 1),
+    ),
+    HolidayRule::fixed_public("Easter Sunday", "Pasqua", Rule::easter(EASTER_SUNDAY)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Lunedì dell'Angelo",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public("Labour Day", "Festa del Lavoro", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public(
+        "Corpus Christi",
+        "Corpus Domini",
+        Rule::easter(CORPUS_CHRISTI),
+    ),
+    HolidayRule::fixed_public(
+        "Anniversary of the Fall of Fascism",
+        "Anniversario della Caduta del Fascismo e Festa della Libertà",
+        Rule::gregorian(7, 28),
+    ),
+    HolidayRule::fixed_public("Assumption", "Assunzione", Rule::gregorian(8, 15)),
+    HolidayRule::fixed_public(
+        "Feast of Saint Marinus and the Republic",
+        "Festa di San Marino e di Fondazione della Repubblica",
+        Rule::gregorian(9, 3),
+    ),
+    HolidayRule::fixed_public(
+        "Investiture of the Captains Regent",
+        "Ingresso dei Capitani Reggenti",
+        Rule::gregorian(10, 1),
+    ),
+    HolidayRule::fixed_public("All Saints' Day", "Ognissanti", Rule::gregorian(11, 1)),
+    HolidayRule::fixed_public(
+        "All Souls' Day",
+        "Commemorazione dei Defunti",
+        Rule::gregorian(11, 2),
+    ),
+    HolidayRule::fixed_public(
+        "Immaculate Conception",
+        "Immacolata Concezione",
+        Rule::gregorian(12, 8),
+    ),
+    HolidayRule::fixed_public(
+        "Christmas Eve",
+        "Vigilia di Natale",
+        Rule::gregorian(12, 24),
+    )
+    .of_kind(Kind::Bank),
+    HolidayRule::fixed_public("Christmas Day", "Natale", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public(
+        "Saint Stephen's Day",
+        "Santo Stefano",
+        Rule::gregorian(12, 26),
+    ),
+    HolidayRule::fixed_public("New Year's Eve", "San Silvestro", Rule::gregorian(12, 31))
+        .of_kind(Kind::Bank),
+];
+
+/// San Marino.
+///
+/// Law 152 of 18 December 1990, the Calendar of Festivities, as its
+/// article 2 was rewritten by law 152 of 30 October 2013: the civil
+/// holidays Easter Monday and 26 December, and the civil and national
+/// ones of 25 March, 1 April and 1 October for the Captains Regent,
+/// 1 May and 28 July. Article 1's religious days were not read; they are
+/// carried as the Central Bank's calendars of the days the national
+/// payments system closes give them, New Year's Day, Epiphany, Saint
+/// Agatha, Easter, Corpus Christi, the Assumption, Saint Marinus, All
+/// Saints, All Souls, the Immaculate Conception and Christmas. The same
+/// calendars close 24 and 31 December, which the 1990 law dropped from
+/// the holidays; those two are bank days here. Nothing moves off a
+/// Sunday.
+pub static SAN_MARINO: RuleSet = RuleSet {
+    code: "SM",
+    english_name: "San Marino",
+    rules: SM_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Legge 30 ottobre 2013 n. 152 replacing article 2 of Legge 18 dicembre 1990 \
+              n. 152, Calendario delle Festività, from the Consiglio Grande e Generale's \
+              archive, retrieved 2026-09-22; the Central Bank of San Marino's bank-holiday \
+              calendars for 2025 and 2026 (bcsm.sm); San Marino RTV (4 June 2026) on the \
+              days the 1990 law dropped; Wikipedia, \"Public holidays in San Marino\", \
+              for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Andorra
+// ─────────────────────────────────────────────────────────────────────────
+
+static AD_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Cap d'Any", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("Epiphany", "Reis", Rule::gregorian(1, 6)),
+    HolidayRule::fixed_public("Carnival", "Carnaval", Rule::easter(SHROVE_MONDAY)),
+    HolidayRule::fixed_public(
+        "Constitution Day",
+        "Dia de la Constitució",
+        Rule::gregorian(3, 14),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Divendres Sant", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Dilluns de Pasqua",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public("Labour Day", "Festa del Treball", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public(
+        "Whit Monday",
+        "Dilluns de Pentecosta",
+        Rule::easter(WHIT_MONDAY),
+    ),
+    HolidayRule::fixed_public("Assumption", "Assumpció", Rule::gregorian(8, 15)),
+    HolidayRule::fixed_public(
+        "Our Lady of Meritxell",
+        "Mare de Déu de Meritxell",
+        Rule::gregorian(9, 8),
+    ),
+    HolidayRule::fixed_public("All Saints' Day", "Tots Sants", Rule::gregorian(11, 1)),
+    HolidayRule::fixed_public(
+        "Immaculate Conception",
+        "Immaculada Concepció",
+        Rule::gregorian(12, 8),
+    ),
+    HolidayRule::fixed_public("Christmas Day", "Nadal", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public(
+        "Saint Stephen's Day",
+        "Sant Esteve",
+        Rule::gregorian(12, 26),
+    ),
+];
+
+/// Andorra.
+///
+/// Law 31/2018 on labour relations, article 62, gives the right to the
+/// holidays "of the work calendar", which the Government decrees each
+/// year; the table carries the fourteen national days of the 2026
+/// calendar (Decree 340/2025), the same the calendars of 2024 and 2025
+/// carried: New Year's Day, Epiphany, Carnival on the Monday before
+/// Lent, Constitution Day, Good Friday, Easter Monday, 1 May, Whit
+/// Monday, the Assumption, Our Lady of Meritxell, All Saints, the
+/// Immaculate Conception, Christmas and Saint Stephen. The up to four
+/// days each parish adds, and the tourism sector's leave to move all but
+/// four of the days by agreement, are not carried. Nothing moves off a
+/// Sunday.
+pub static ANDORRA: RuleSet = RuleSet {
+    code: "AD",
+    english_name: "Andorra",
+    rules: AD_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Llei 31/2018, del 6 de desembre, de relacions laborals, article 62, from the \
+              Cambra de Comerç's copy (ccis.ad), retrieved 2026-09-22; the Government's \
+              notice of Decret 340/2025 approving the 2026 work calendar (govern.ad) and \
+              La Vall Associats' reproduction of its list; Wikipedia, \"2024 in \
+              Andorra\", \"2025 in Andorra\" and \"2026 in Andorra\", for the yearly \
+              dates, and \"Public holidays in Andorra\" for the names",
 };

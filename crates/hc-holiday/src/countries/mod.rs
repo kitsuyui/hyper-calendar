@@ -52,11 +52,11 @@ pub use asia::{
     TAJIKISTAN, THAILAND, TURKMENISTAN, UZBEKISTAN, VIETNAM,
 };
 pub use europe::{
-    ALBANIA, AUSTRIA, BELARUS, BELGIUM, BULGARIA, CROATIA, CYPRUS, CZECHIA, DENMARK, ESTONIA,
-    FINLAND, FRANCE, GERMANY, GREECE, HUNGARY, ICELAND, IRELAND, ITALY, LATVIA, LITHUANIA,
-    LUXEMBOURG, MALTA, MOLDOVA, MONTENEGRO, NETHERLANDS, NORTH_MACEDONIA, NORWAY, POLAND, PORTUGAL,
-    ROMANIA, RUSSIA, SERBIA, SLOVAKIA, SLOVENIA, SPAIN, SWEDEN, SWITZERLAND, UKRAINE,
-    UNITED_KINGDOM,
+    ALBANIA, ANDORRA, AUSTRIA, BELARUS, BELGIUM, BULGARIA, CROATIA, CYPRUS, CZECHIA, DENMARK,
+    ESTONIA, FINLAND, FRANCE, GERMANY, GREECE, HUNGARY, ICELAND, IRELAND, ITALY, LATVIA,
+    LIECHTENSTEIN, LITHUANIA, LUXEMBOURG, MALTA, MOLDOVA, MONACO, MONTENEGRO, NETHERLANDS,
+    NORTH_MACEDONIA, NORWAY, POLAND, PORTUGAL, ROMANIA, RUSSIA, SAN_MARINO, SERBIA, SLOVAKIA,
+    SLOVENIA, SPAIN, SWEDEN, SWITZERLAND, UKRAINE, UNITED_KINGDOM,
 };
 pub use japan::JAPAN;
 pub use oceania::{AUSTRALIA, NEW_ZEALAND};
@@ -67,6 +67,7 @@ pub type CountryRules = RuleSet;
 
 /// Every country table in the crate, in ISO 3166-1 alpha-2 order.
 pub static ALL: &[&CountryRules] = &[
+    &ANDORRA,
     &UNITED_ARAB_EMIRATES,
     &ALBANIA,
     &ARMENIA,
@@ -131,10 +132,12 @@ pub static ALL: &[&CountryRules] = &[
     &KUWAIT,
     &KAZAKHSTAN,
     &LEBANON,
+    &LIECHTENSTEIN,
     &LITHUANIA,
     &LUXEMBOURG,
     &LATVIA,
     &MOROCCO,
+    &MONACO,
     &MOLDOVA,
     &MONTENEGRO,
     &NORTH_MACEDONIA,
@@ -164,6 +167,7 @@ pub static ALL: &[&CountryRules] = &[
     &SINGAPORE,
     &SLOVENIA,
     &SLOVAKIA,
+    &SAN_MARINO,
     &SENEGAL,
     &THAILAND,
     &TAJIKISTAN,
@@ -217,7 +221,7 @@ mod tests {
     fn the_registry_holds_the_number_of_countries_the_readme_claims() {
         // `README.md` and `docs/observances.md` both state this figure, and a
         // documented count that drifts is a documented lie.
-        assert_eq!(ALL.len(), 115);
+        assert_eq!(ALL.len(), 119);
     }
 
     #[test]

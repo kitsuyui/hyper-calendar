@@ -113,3 +113,7 @@ tuplet = "tuplet"
 stilus = "stilus"
 # ACI Prensa, the Catholic news agency cited for Cuba's Good Fridays.
 ACI = "ACI"
+# German "Handel", trade, in the title of Liechtenstein's Labour Act.
+Handel = "Handel"
+# Catalan "Associats" in the name of an Andorran firm cited as a source.
+Associats = "Associats"

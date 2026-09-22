@@ -162,6 +162,10 @@ Ordered by how well the sources can be cited, not by importance.
 | Belarus 🇧🇾 | Decree 157's ten non-working days with Radunitsa on the ninth day after the Orthodox Easter and the years of 2 January and 3 July; the working state holidays as observances |
 | Luxembourg 🇱🇺 | The eleven legal holidays with Europe Day from 2019 and Good Friday as the banks' alone; the compensatory day not carried |
 | Malta 🇲🇹 | Cap. 252's five national and nine public holidays; nothing moves |
+| Liechtenstein 🇱🇮 | The Labour Act's thirteen days equal to Sundays; the five bank days and the two collective-agreement days as bank and observance |
+| Monaco 🇲🇨 | Law 798's twelve days, six of them to the Monday after a Sunday; the Prince's Day on 19 November since 1952 |
+| San Marino 🇸🇲 | The 2013 rewriting of the 1990 calendar's civil days, the religious days as the Central Bank's calendars give them, 24 and 31 December as bank days |
+| Andorra 🇦🇩 | Law 31/2018 art. 62 and the yearly decree's fourteen national days, Carnival on its Monday; parish days not carried |
 | Moldova 🇲🇩 | Art. 111 with the two Christmases, the Orthodox Easter and the Easter of the Blajini, Europe Day from 2017, Children's Day from 2024, and Chișinău's feast as `MD-CU` |
 | Bulgaria 🇧🇬 | Labour Code art. 154: the list, the Orthodox Easter, 1 November for schools, and the weekend rule of 2017 that excepts the Easter days |
 | Cyprus 🇨🇾 | The Republic's list with the Orthodox Easter and Easter Tuesday as a bank holiday; no substitution |
