@@ -2992,6 +2992,225 @@ fn zimbabwe_keeps_the_easter_block_and_moves_a_sunday_holiday_past_a_taken_monda
 }
 
 #[test]
+fn jamaica_moves_sundays_by_the_schedule_and_labour_day_off_a_saturday_too() {
+    expect(
+        "JM",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 2, 18, "Ash Wednesday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            // A Saturday 23 May gives the Monday; a Saturday 1 August stays,
+            // as the Ministry's 2026 notice said.
+            (2026, 5, 25, "Labour Day"),
+            (2026, 8, 1, "Emancipation Day"),
+            (2026, 8, 6, "Independence Day"),
+            (2026, 10, 19, "National Heroes' Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Boxing Day"),
+            (2023, 1, 2, "New Year's Day"),
+            (2023, 8, 7, "Independence Day"),
+            // A Sunday Christmas: "the 26th and 27th of December".
+            (2022, 12, 26, "Boxing Day"),
+            (2022, 12, 27, "Christmas Day"),
+            (2021, 5, 24, "Labour Day"),
+            // The Minister's 2021 appointment of the Monday after a Sunday
+            // Boxing Day.
+            (2021, 12, 27, "Boxing Day"),
+            // 1997: Emancipation Day restored and Independence Day back on
+            // 6 August; 1996's first Monday of August.
+            (1997, 8, 1, "Emancipation Day"),
+            (1997, 8, 6, "Independence Day"),
+            (1996, 8, 5, "Independence Day"),
+            (1969, 10, 20, "National Heroes' Day"),
+            (1961, 5, 23, "Labour Day"),
+        ],
+    );
+    expect_working(
+        "JM",
+        None,
+        &[
+            (2026, 8, 3),
+            (2022, 8, 8),
+            (2015, 12, 28),
+            (2010, 12, 27),
+            (1996, 8, 1),
+            (1996, 8, 6),
+            (1968, 10, 21),
+            (1960, 5, 23),
+        ],
+    );
+    expect_substitute("JM", None, 2021, (5, 23), (5, 24));
+    expect_substitute("JM", None, 2022, (12, 25), (12, 27));
+}
+
+#[test]
+fn trinidad_and_tobago_gives_the_next_free_day_for_a_sunday_or_a_coincidence() {
+    expect(
+        "TT",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 20, "Eid-ul-Fitr"),
+            (2026, 3, 30, "Spiritual Baptist Liberation Shouter Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 30, "Indian Arrival Day"),
+            (2026, 6, 4, "Corpus Christi"),
+            (2026, 6, 19, "Labour Day"),
+            (2026, 8, 1, "African Emancipation Day"),
+            (2026, 8, 31, "Independence Day"),
+            (2026, 9, 24, "Republic Day"),
+            (2026, 11, 8, "Divali"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Boxing Day"),
+            // 2025 as announced: Eid on Monday 31 March and the Sunday
+            // Spiritual Baptist day on the Tuesday after it; Labour Day and
+            // Corpus Christi on one Thursday give the Friday.
+            (2025, 3, 31, "Eid-ul-Fitr"),
+            (2025, 4, 1, "Spiritual Baptist Liberation Shouter Day"),
+            (2025, 6, 20, "Labour Day"),
+            (2025, 9, 1, "Independence Day"),
+            (2025, 10, 20, "Divali"),
+            // Friday 31 May 2024, under section 3(2).
+            (2024, 4, 10, "Eid-ul-Fitr"),
+            (2024, 5, 31, "Indian Arrival Day"),
+            (2024, 8, 1, "African Emancipation Day"),
+            (2024, 10, 31, "Divali"),
+            (2023, 8, 1, "Emancipation Day"),
+            (2023, 9, 25, "Republic Day"),
+            (2023, 11, 13, "Divali"),
+            (1996, 3, 30, "Spiritual Baptist Liberation Shouter Day"),
+            (1995, 5, 30, "Indian Arrival Day"),
+            (1985, 8, 1, "Emancipation Day"),
+        ],
+    );
+    // A Saturday holiday stays where it is; Carnival is no day off.
+    expect_working(
+        "TT",
+        None,
+        &[
+            (2026, 6, 1),
+            (2026, 2, 16),
+            (2026, 2, 17),
+            (2015, 6, 1),
+            (1995, 3, 30),
+            (1994, 5, 30),
+            (1984, 8, 1),
+        ],
+    );
+    expect_substitute("TT", None, 2024, (5, 30), (5, 31));
+    expect_substitute("TT", None, 2025, (3, 30), (4, 1));
+    let calendar = HolidayCalendar::for_year(table("TT"), None, 2026);
+    let carnival: Vec<(&str, Kind)> = calendar
+        .on(ymd(2026, 2, 16))
+        .iter()
+        .map(|holiday| (holiday.name, holiday.kind))
+        .collect();
+    assert_eq!(carnival, [("Carnival Monday", Kind::Observance)]);
+}
+
+#[test]
+fn barbados_gives_the_tuesday_when_the_monday_is_taken() {
+    expect(
+        "BB",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 21, "Errol Barrow Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 4, 28, "National Heroes Day"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 8, 1, "Emancipation Day"),
+            (2026, 8, 3, "Kadooment Day"),
+            (2026, 11, 30, "Independence Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Boxing Day"),
+            // 2022 as the Government's calendar had it: a Monday 1 August
+            // shared with Kadooment Day and observed on the Tuesday, a
+            // Sunday Christmas observed on the Tuesday after Boxing Day.
+            (2022, 5, 2, "Labour Day"),
+            (2022, 8, 1, "Emancipation Day"),
+            (2022, 8, 1, "Kadooment Day"),
+            (2022, 8, 2, "Emancipation Day"),
+            (2022, 12, 26, "Boxing Day"),
+            (2022, 12, 27, "Christmas Day"),
+            // 2021: a Sunday 1 August, past Kadooment Day, to the Tuesday.
+            (2021, 8, 2, "Kadooment Day"),
+            (2021, 8, 3, "Emancipation Day"),
+            (2021, 12, 27, "Boxing Day"),
+            (1998, 4, 28, "National Heroes Day"),
+            (1989, 1, 21, "Errol Barrow Day"),
+        ],
+    );
+    expect_working(
+        "BB",
+        None,
+        &[
+            (2026, 8, 4),
+            (2022, 8, 3),
+            (2021, 12, 28),
+            (1997, 4, 28),
+            (1988, 1, 21),
+        ],
+    );
+    expect_substitute("BB", None, 2022, (8, 1), (8, 2));
+    expect_substitute("BB", None, 2021, (8, 1), (8, 3));
+    expect_substitute("BB", None, 2022, (12, 25), (12, 27));
+}
+
+#[test]
+fn bahamas_moves_weekend_holidays_to_the_next_free_weekday_and_nothing_else() {
+    expect(
+        "BS",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            // Saturday 10 January 2026, kept on the Monday.
+            (2026, 1, 12, "Majority Rule Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 6, 5, "Randol Fawkes Labour Day"),
+            (2026, 7, 10, "Independence Day"),
+            (2026, 8, 3, "Emancipation Day"),
+            (2026, 10, 12, "National Heroes Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 28, "Boxing Day"),
+            // Wednesday 10 January 2024 was "the day celebrated as Majority
+            // Rule Day in 2024" in the Governor-General's notice.
+            (2024, 1, 10, "Majority Rule Day"),
+            (2022, 1, 3, "New Year's Day"),
+            (2022, 12, 27, "Christmas Day"),
+            (2021, 7, 12, "Independence Day"),
+            (2021, 12, 27, "Christmas Day"),
+            (2021, 12, 28, "Boxing Day"),
+            (2014, 1, 10, "Majority Rule Day"),
+            (2014, 6, 6, "Randol Fawkes Labour Day"),
+            (2013, 6, 7, "Labour Day"),
+            (2013, 10, 14, "National Heroes Day"),
+            (2012, 10, 12, "Discovery Day"),
+        ],
+    );
+    expect_working(
+        "BS",
+        None,
+        &[
+            (2024, 1, 12),
+            (2018, 7, 9),
+            (2013, 1, 10),
+            (2013, 10, 12),
+            (2012, 10, 8),
+        ],
+    );
+    expect_substitute("BS", None, 2026, (1, 10), (1, 12));
+    expect_substitute("BS", None, 2021, (12, 26), (12, 28));
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",

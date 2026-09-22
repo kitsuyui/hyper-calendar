@@ -179,6 +179,10 @@ Ordered by how well the sources can be cited, not by importance.
 | Chile 🇨🇱 | Every move a rule of its own: Ley 19.668's Mondays, Ley 20.299's Fridays, the computed 2 January and 17/20 September days, the solstice at Chile's meridian; Arica's day as `CL-AP` |
 | Ecuador 🇪🇨 | Art. 65 as reformed in 2016: the moves per holiday, the weekend-only moves of the three excepted days, and the 2/3 November pair as the Government resolved it |
 | Uruguay 🇺🇾 | Ley 16.805 as amended in 2001: paid holidays public, common ones bank, Tourism Week's six days, three holidays to the adjacent Monday |
+| Jamaica 🇯🇲 | The Holidays (Public General) Act's Schedule: Sunday moves, Labour Day off a Saturday too, a Sunday Christmas giving the 26th and 27th; a Sunday Boxing Day's Monday only from the Minister's 2021 appointment |
+| Trinidad and Tobago 🇹🇹 | Chap. 19:05 with section 3(2)'s next free day for a Sunday or for two holidays at once; Eid-ul-Fitr and Divali approximate; Carnival Monday and Tuesday as observances; African Emancipation Day from 2024 |
+| Barbados 🇧🇧 | Cap. 352's First Schedule: the Monday after a Sunday, and the Tuesday for Emancipation Day off a Sunday or a Monday and for Christmas off a Sunday |
+| Bahamas 🇧🇸 | Ch. 36's Sunday proviso and the Saturday practice, both to the next free weekday; Majority Rule Day from 2014 and National Heroes Day from 2013; no Tuesday-to-Thursday moves, which the Act does not have |
 | Argentina 🇦🇷 | From Decreto 1584/2010 in 2011: the *inamovibles* where they fall, the *trasladables* on the decree's Mondays to 2016 and by the weekday rule of Ley 27.399 from 2018; the annual tourist holidays not carried; Holy Thursday and the days of the Jewish and Islamic faiths as observances |
 | Colombia 🇨🇴 | Ley 51 de 1983 from 1984: ten holidays to the following Monday, eight where they fall |
 | Ethiopia 🇪🇹 | The national and Orthodox holidays on the Ethiopian calendar (`ethiopic`), where they are kept; Fasika by the Julian computus; the Islamic days approximate |
