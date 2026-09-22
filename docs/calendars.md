@@ -96,7 +96,7 @@ These need the astronomical engine, so they live behind the `lunar` feature.
 | Hindu solar, Malayalam (Kollam era) | `hindu-solar-malayalam` | `hc-calendars-indic` | Done — unless it fell after three fifths of the daylight |
 | Hindu solar, Bengali (Bangabda) | `hindu-solar-bengali` | `hc-calendars-indic` | Done — the day after the saṅkrānti's |
 | Hindu solar, Vikrami (Punjab, Odisha; the Nepali reckoning) | `hindu-solar-vikrami` | `hc-calendars-indic` | Done — the sunrise-to-sunrise day of the saṅkrānti |
-| Old Hindu (mean) lunisolar and solar | `hindu-old` | `hc-calendars-lunar` | Planned |
+| Old Hindu (mean) solar and lunisolar | `hindu-old-solar`, `hindu-old-lunar` | `hc-calendars-indic` | Done — the *Ārya Siddhānta*'s mean Sun and Moon from the Kali Yuga epoch, as Reingold and Dershowitz give the arithmetic; tested for what a mean calendar must do, since no almanac prints it for a modern year |
 
 ## Stage 3 — Astronomical variants of stage 1 calendars
 

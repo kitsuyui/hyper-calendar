@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-94 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+96 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 76 of 94 have months and 76 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 78 of 96 have months and 78 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 | id | Name | Crate | Feature | Earliest | Latest | Astronomical | Leap months | Day begins | Cycles | Named |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -50,6 +50,8 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `hebrew` | Hebrew | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | -3760-09-07 | 6239-09-25 | no | yes | sunset | month ×12–13, weekday ×7 | yes |
 | `hindu-lunar` | Hindu lunisolar (amanta) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | month ×12–13, weekday ×7 | yes |
 | `hindu-lunar-purnimanta` | Hindu lunisolar (purnimanta) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | month ×12–13, weekday ×7 | yes |
+| `hindu-old-lunar` | Old Hindu lunisolar (mean) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | -3101-01-23 | 6900-06-14 | no | yes | sunrise | month ×12–13, weekday ×7 | yes |
+| `hindu-old-solar` | Old Hindu solar (mean) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | -3101-01-23 | 6900-07-03 | no | no | sunrise | month ×12, weekday ×7 | yes |
 | `hindu-solar-bengali` | Bengali solar (Bangabda) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-04-10 | 2300-04-18 | yes | no | sunrise | month ×12, weekday ×7 | yes |
 | `hindu-solar-malayalam` | Malayalam (Kollam era) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-08-13 | 2300-08-20 | yes | no | sunrise | month ×12, weekday ×7 | yes |
 | `hindu-solar-tamil` | Tamil solar | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-04-10 | 2300-04-17 | yes | no | sunrise | month ×12, weekday ×7 | yes |
