@@ -15,12 +15,13 @@
 //! and `hc-calendars-solar`'s `bahai` carries that table as the calendar
 //! as kept. This module reproduces every row of it — Naw-Rúz, the length of
 //! Ayyám-i-Há and both birthdays — save the two Naw-Rúzes that fell within
-//! the model's tolerance of Tehran's sunset. One of them, 183 BE, the model
-//! gets wrong: the equinox of 2026 fell within a minute of sunset, and the
-//! row is decided by the committee's ephemeris and its definition of
-//! sunset, neither of which a model reproduces to that precision. The test
-//! says exactly that, and it is the check on the astronomy underneath, not
-//! only on this module. Past
+//! [`TOLERANCE_MINUTES`] of Tehran's sunset, which the test names rather
+//! than claims. One of them, 183 BE, is the sharpest edge in the table: on
+//! 20 March 2026 the equinox and the sunset fall within seconds of each
+//! other, and the row is decided by the committee's ephemeris and its
+//! definition of sunset, which no model reproduces to that precision. The
+//! test says exactly that, and it is the check on the astronomy
+//! underneath, not only on this module. Past
 //! 221 BE this calendar continues where the table stops, and that is what
 //! it is for.
 //!
@@ -29,11 +30,9 @@
 //! Not the calendar as kept before 172 BE, when Naw-Rúz was 21 March by
 //! rule in the West and the Iranian equinox day in the East; this module
 //! applies the 2015 rule to those years too, so use `bahai` for a date in
-//! them. Not exact beyond the astronomy either: the equinox is placed to
-//! within about a quarter of an hour, and a year whose equinox falls within
-//! that much of Tehran's sunset is decided here by a model.
-//! [`new_year_margin`] says how close the call was, and
-//! [`crate::EQUINOX_TOLERANCE_MINUTES`] how close is too close.
+//! them. Not exact beyond the astronomy either: a year whose equinox falls
+//! within [`TOLERANCE_MINUTES`] of Tehran's sunset is decided here by a
+//! model. [`new_year_margin`] says how close the call was.
 //!
 //! A date here names the fixed day the Badíʿ day *ends* in, as the table
 //! does; the day began at the previous sunset.
@@ -63,6 +62,13 @@ pub const MAX_YEAR: i64 = 3_000 - GREGORIAN_YEAR_OFFSET;
 /// The number of new moons after Naw-Rúz that fixes the Twin Holy
 /// Birthdays.
 pub const TWIN_BIRTHDAYS_NEW_MOON: u8 = 8;
+
+/// How close, in minutes, an equinox may fall to Tehran's sunset before
+/// this calendar is deciding by a model rather than by the sky: the
+/// equinox is placed to seconds, but a sunset is good to a minute or two
+/// of its own geometry and depends on the horizon assumed — see
+/// [`crate::places::TEHRAN`].
+pub const TOLERANCE_MINUTES: f64 = 3.0;
 
 /// The Badíʿ day containing `moment`, named by the fixed day it ends in:
 /// the first day whose sunset at Tehran is after the moment.
@@ -360,7 +366,7 @@ mod tests {
     /// Whether the model can claim the Naw-Rúz of `year`: whether the
     /// equinox fell farther from Tehran's sunset than the model is good to.
     fn decidable(year: i64) -> bool {
-        new_year_margin(year).is_ok_and(|margin| margin.abs() >= crate::EQUINOX_TOLERANCE_MINUTES)
+        new_year_margin(year).is_ok_and(|margin| margin.abs() >= TOLERANCE_MINUTES)
     }
 
     #[test]
@@ -386,11 +392,11 @@ mod tests {
             }
         }
         // Two of the fifty fall inside the tolerance. 183 BE (2026): the
-        // equinox at 14:46 UT and Tehran's sunset within a minute of it; the
-        // table says 21 March, and the model, placing the equinox some ten
-        // minutes early, says the 20th. 216 BE (2059): nine minutes before
-        // sunset by the model, which happens to agree with the table.
-        // Neither is a row a model gets to decide, so neither is claimed.
+        // equinox at 14:45.8 UT and Tehran's sea-level sunset within seconds
+        // of it; the table says 21 March, the model — equinox first, by less
+        // than a second — the 20th. 216 BE (2059): about two minutes before
+        // sunset by the model, which agrees with the table. Neither is a row
+        // a model gets to decide, so neither is claimed.
         assert_eq!(undecidable, [183, 216], "the marginal years changed");
         assert_eq!(kept::new_year(183), gregorian::to_fixed(2026, 3, 21));
         assert_eq!(new_year(183), gregorian::to_fixed(2026, 3, 20));

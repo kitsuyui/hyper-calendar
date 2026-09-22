@@ -30,21 +30,21 @@
 //! the world in the years the rule and the sky disagree: Birashk's cycle
 //! puts Nowruz 1404 a day early, the arithmetic Badíʿ calendar puts
 //! Naw-Rúz 173 a day late. These calendars are right about the world to
-//! the extent that `hc-astro` places an equinox, which is within about a
-//! quarter of an hour ([`EQUINOX_TOLERANCE_MINUTES`]) — so a year whose
-//! equinox falls that close to the deciding noon, sunset or midnight is a
-//! year decided here by a model where the country or the community decided
-//! by an ephemeris. Each module exposes a `new_year_margin` that says how
-//! close the call was, so a caller can tell a confident year from a
-//! marginal one.
+//! the extent that `hc-astro` places an equinox — within seconds, since it
+//! carries VSOP87 — and the deciding clock can be placed: a noon in
+//! standard time exactly, an apparent midnight to seconds, a sunset to a
+//! minute or two and to whatever horizon the almanac assumed. Each module
+//! states its `TOLERANCE_MINUTES` from those parts and exposes a
+//! `new_year_margin`, how far the equinox fell from the deciding instant,
+//! so a caller can tell a confident year from a marginal one.
 //!
 //! The tests are the published record: the fourteen new years France
 //! actually kept, the leap years Iran actually had, and every row of the
 //! Bahá'í World Centre's fifty-year table — every row the model can claim,
-//! which is all but the two Naw-Rúzes that fell within the tolerance of
-//! Tehran's sunset. One of those, 183 BE, fell within a minute of it and
-//! the model gets it wrong; the test names it, because a row like that is
-//! the table's to decide, not a model's.
+//! which is all but the two Naw-Rúzes within a sunset's tolerance, one of
+//! them, 183 BE, an equinox within seconds of Tehran's sunset. The test
+//! names them, because a row like that is the table's to decide, not a
+//! model's.
 //!
 //! # Why a crate of its own
 //!
@@ -65,14 +65,6 @@ pub mod bahai;
 pub mod french_republican;
 pub mod persian;
 pub mod places;
-
-/// How far, in minutes, the equinox instants behind these calendars can be
-/// trusted: `hc-astro` places a seasonal event to within about twelve
-/// minutes of the almanacs, and a sunset to within a minute or two of its
-/// own geometry. A year whose `new_year_margin` is smaller than this is a
-/// year the calendar decides by a model, and the tests in each module do
-/// not claim it.
-pub const EQUINOX_TOLERANCE_MINUTES: f64 = 15.0;
 
 pub use bahai::AstronomicalBahaiCalendar;
 pub use french_republican::EquinoxFrenchRepublicanCalendar;

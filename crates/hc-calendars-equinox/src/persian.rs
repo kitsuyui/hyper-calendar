@@ -33,11 +33,10 @@
 //! that divergence rather than hide it.
 //!
 //! Not exact beyond the astronomy either. The equinox instant comes from
-//! `hc-astro` to within about a quarter of an hour, so a year whose equinox
-//! falls within that much of noon is a year this calendar decides by a
-//! model where the country decided by an ephemeris. [`new_year_margin`]
-//! says how close the call was, and [`crate::EQUINOX_TOLERANCE_MINUTES`]
-//! how close is too close.
+//! `hc-astro` to within seconds, so a year whose equinox falls within
+//! [`TOLERANCE_MINUTES`] of noon is a year this calendar decides by a model
+//! where the country decided by an ephemeris. [`new_year_margin`] says how
+//! close the call was.
 //!
 //! The month names in Persian script are the ones the arithmetic module
 //! declares, [`hc_calendars_solar::persian::MONTHS`], and the date type is
@@ -66,6 +65,12 @@ pub const MIN_YEAR: i64 = 1;
 /// The latest year this calendar converts, whose Nowruz falls in Gregorian
 /// 3000 — as far as the astronomy behind it is worth asking.
 pub const MAX_YEAR: i64 = 3_000 - GREGORIAN_YEAR_OFFSET;
+
+/// How close, in minutes, an equinox may fall to noon before this calendar
+/// is deciding by a model rather than by the sky. The noon is a clock time
+/// and exact; the equinox is placed to seconds; what is left is ΔT and the
+/// truncation of the solar series, and a minute covers them many times over.
+pub const TOLERANCE_MINUTES: f64 = 1.0;
 
 /// The fraction of a Universal Time day at which noon, Iran Standard Time,
 /// falls: 08:30 UT.
@@ -328,7 +333,7 @@ mod tests {
             );
             let margin = new_year_margin(year).unwrap();
             assert!(
-                margin.abs() >= crate::EQUINOX_TOLERANCE_MINUTES,
+                margin.abs() >= TOLERANCE_MINUTES,
                 "{year} is decided within the model's tolerance: {margin} minutes"
             );
         }
