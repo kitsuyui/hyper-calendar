@@ -8,7 +8,8 @@
 //! [`HolidayCalendar::is_holiday`](crate::engine::HolidayCalendar::is_holiday)
 //! and business-day arithmetic count it; an early close is a
 //! [`Kind::Observance`](crate::rule::Kind::Observance), a day the exchange notes and trades on, so that they
-//! do not. The name of an early close says what it is.
+//! do not. The name of an early close says what it is: "Early close, …" or
+//! "Half trading day, …", as the exchange's own calendar has it.
 //!
 //! # Why not the country's table
 //!
@@ -21,8 +22,9 @@
 //! statute foresaw. The Australian Securities Exchange trades on the
 //! states' Monday for a Sunday Anzac Day; the Frankfurt Stock Exchange
 //! trades on Ascension Day and Corpus Christi and closes on Christmas Eve
-//! and New Year's Eve, which Hesse does not. What the exchange publishes
-//! is what is carried, and the
+//! and New Year's Eve, which Hesse does not; and of Euronext's seven
+//! markets, six leave a weekend holiday where it fell and Dublin moves
+//! it. What the exchange publishes is what is carried, and the
 //! unscheduled closures a source records are data in the table, as
 //! [ADR 0007](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/adr/0007-sets-the-world-can-extend-are-data.md)
 //! has it.
@@ -31,10 +33,12 @@
 //!
 //! Each table names its own, in `sources`, with the date they were read.
 
-use hc_calendar::Weekday;
+use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 
-use crate::computus::offsets::{EASTER_MONDAY, GOOD_FRIDAY};
+use crate::computus::offsets::{
+    ASCENSION, EASTER_MONDAY, GOOD_FRIDAY, HOLY_WEDNESDAY, MAUNDY_THURSDAY, WHIT_MONDAY,
+};
 use crate::rule::{
     Days, HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, SubstituteDirection,
     SubstitutionPolicy,
@@ -383,11 +387,257 @@ pub static TORONTO_STOCK_EXCHANGE: RuleSet = RuleSet {
               and 2026",
 };
 
+// ─────────────────────────────────────────────────────────────────────────
+// Euronext: Amsterdam, Brussels, Dublin, Lisbon, Milan, Oslo, Paris
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The last weekday on or before a date: the day itself, or the Friday
+/// before a Saturday or Sunday.
+fn last_weekday_on_or_before(year: i64, month: u8, day: u8) -> Days {
+    let mut out = Days::new();
+    let Ok(day) = gregorian::to_fixed(year, month, day) else {
+        return out;
+    };
+    let back = match Weekday::from_rd(day) {
+        Weekday::Saturday => 1,
+        Weekday::Sunday => 2,
+        _ => 0,
+    };
+    out.push(Rd(day.0 - back));
+    out
+}
+
+/// Christmas Eve, a half trading day when it is a weekday.
+fn euronext_christmas_eve(year: i64) -> Days {
+    if_weekday(year, 12, 24)
+}
+
+/// New Year's Eve, a half trading day when it is a weekday.
+fn euronext_new_years_eve(year: i64) -> Days {
+    if_weekday(year, 12, 31)
+}
+
+/// Dublin's half day before Christmas: Christmas Eve, or the Friday
+/// before a weekend one.
+fn xdub_before_christmas(year: i64) -> Days {
+    last_weekday_on_or_before(year, 12, 24)
+}
+
+/// Dublin's half day before the New Year: New Year's Eve, or the Friday
+/// before a weekend one.
+fn xdub_before_new_year(year: i64) -> Days {
+    last_weekday_on_or_before(year, 12, 31)
+}
+
+const EURONEXT_NEW_YEARS_DAY: HolidayRule =
+    HolidayRule::fixed_public("New Year's Day", "", Rule::gregorian(1, 1));
+const EURONEXT_GOOD_FRIDAY: HolidayRule =
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY));
+const EURONEXT_EASTER_MONDAY: HolidayRule =
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY));
+const EURONEXT_LABOUR_DAY: HolidayRule =
+    HolidayRule::fixed_public("Labour Day", "", Rule::gregorian(5, 1));
+const EURONEXT_CHRISTMAS: HolidayRule =
+    HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25));
+const EURONEXT_BOXING_DAY: HolidayRule =
+    HolidayRule::fixed_public("Boxing Day", "", Rule::gregorian(12, 26));
+const EURONEXT_CHRISTMAS_EVE_HALF: HolidayRule = HolidayRule::observance(
+    "Half trading day, Christmas Eve",
+    "",
+    Rule::Computed(euronext_christmas_eve),
+);
+const EURONEXT_NEW_YEARS_EVE_HALF: HolidayRule = HolidayRule::observance(
+    "Half trading day, New Year's Eve",
+    "",
+    Rule::Computed(euronext_new_years_eve),
+);
+
+/// The calendar Amsterdam, Brussels, Lisbon and Paris share: six closed
+/// days, none moved off a weekend, and the two half days when they are
+/// weekdays.
+static EURONEXT_CORE_RULES: &[HolidayRule] = &[
+    EURONEXT_NEW_YEARS_DAY,
+    EURONEXT_GOOD_FRIDAY,
+    EURONEXT_EASTER_MONDAY,
+    EURONEXT_LABOUR_DAY,
+    EURONEXT_CHRISTMAS,
+    EURONEXT_BOXING_DAY,
+    EURONEXT_CHRISTMAS_EVE_HALF,
+    EURONEXT_NEW_YEARS_EVE_HALF,
+];
+
+const EURONEXT_SOURCES: &str = "Euronext, \"Trading hours & holidays\" \
+    (euronext.com/en/trade/trading-hours-holidays), retrieved 2026-09-23, the tables for \
+    2021 to 2026";
+
+/// A market on the calendar the four share.
+const fn euronext_core(code: &'static str, english_name: &'static str) -> RuleSet {
+    RuleSet {
+        code,
+        english_name,
+        rules: EURONEXT_CORE_RULES,
+        substitution: &[],
+        bridges: &[],
+        weekend: SATURDAY_SUNDAY,
+        sources_checked: SourceDate::new(2026, 9, 23),
+        sources: EURONEXT_SOURCES,
+    }
+}
+
+/// Euronext Amsterdam, on the calendar Amsterdam, Brussels, Lisbon and Paris share:
+/// New Year's Day, Good Friday, Easter Monday, 1 May, Christmas and Boxing
+/// Day, closed when they fall on a weekday and not moved when they do not
+/// — Monday 3 January 2022 and Monday 28 December 2026 are full trading
+/// days — and half trading days on Christmas Eve and New Year's Eve when
+/// those are weekdays, which in 2022 and 2023 they were not.
+pub static EURONEXT_AMSTERDAM: RuleSet = euronext_core("XAMS", "Euronext Amsterdam");
+/// Euronext Brussels, on the calendar Amsterdam, Brussels, Lisbon and Paris share:
+/// New Year's Day, Good Friday, Easter Monday, 1 May, Christmas and Boxing
+/// Day, closed when they fall on a weekday and not moved when they do not
+/// — Monday 3 January 2022 and Monday 28 December 2026 are full trading
+/// days — and half trading days on Christmas Eve and New Year's Eve when
+/// those are weekdays, which in 2022 and 2023 they were not.
+pub static EURONEXT_BRUSSELS: RuleSet = euronext_core("XBRU", "Euronext Brussels");
+/// Euronext Lisbon, on the calendar Amsterdam, Brussels, Lisbon and Paris share:
+/// New Year's Day, Good Friday, Easter Monday, 1 May, Christmas and Boxing
+/// Day, closed when they fall on a weekday and not moved when they do not
+/// — Monday 3 January 2022 and Monday 28 December 2026 are full trading
+/// days — and half trading days on Christmas Eve and New Year's Eve when
+/// those are weekdays, which in 2022 and 2023 they were not.
+pub static EURONEXT_LISBON: RuleSet = euronext_core("XLIS", "Euronext Lisbon");
+/// Euronext Paris, on the calendar Amsterdam, Brussels, Lisbon and Paris share:
+/// New Year's Day, Good Friday, Easter Monday, 1 May, Christmas and Boxing
+/// Day, closed when they fall on a weekday and not moved when they do not
+/// — Monday 3 January 2022 and Monday 28 December 2026 are full trading
+/// days — and half trading days on Christmas Eve and New Year's Eve when
+/// those are weekdays, which in 2022 and 2023 they were not.
+pub static EURONEXT_PARIS: RuleSet = euronext_core("XPAR", "Euronext Paris");
+
+/// Dublin alone among the Euronext markets moves a weekend holiday to
+/// the next business day: Monday 3 January 2022, Tuesday 27 December 2022
+/// after a Monday Boxing Day, Monday 28 December 2026.
+static XDUB_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static XDUB_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    EURONEXT_GOOD_FRIDAY,
+    EURONEXT_EASTER_MONDAY,
+    EURONEXT_LABOUR_DAY,
+    HolidayRule::fixed_public(
+        "Irish May Bank Holiday",
+        "",
+        Rule::nth(5, 1, Weekday::Monday),
+    ),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("St Stephen's Day", "", Rule::gregorian(12, 26)),
+    HolidayRule::observance(
+        "Half trading day, before Christmas",
+        "",
+        Rule::Computed(xdub_before_christmas),
+    ),
+    HolidayRule::observance(
+        "Half trading day, before the New Year",
+        "",
+        Rule::Computed(xdub_before_new_year),
+    ),
+];
+
+/// Euronext Dublin: the shared six days and the Irish May Bank Holiday,
+/// a weekend holiday moved to the next business day, and the half days
+/// on the last trading day before Christmas and before the New Year —
+/// Friday 23 and 30 December 2022, Friday 22 and 29 December 2023.
+pub static EURONEXT_DUBLIN: RuleSet = RuleSet {
+    code: "XDUB",
+    english_name: "Euronext Dublin",
+    rules: XDUB_RULES,
+    substitution: XDUB_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: EURONEXT_SOURCES,
+};
+
+static XMIL_RULES: &[HolidayRule] = &[
+    EURONEXT_NEW_YEARS_DAY,
+    EURONEXT_GOOD_FRIDAY,
+    EURONEXT_EASTER_MONDAY,
+    EURONEXT_LABOUR_DAY,
+    HolidayRule::fixed_public("Ferragosto", "", Rule::gregorian(8, 15)),
+    HolidayRule::fixed_public("Christmas Eve", "", Rule::gregorian(12, 24)),
+    EURONEXT_CHRISTMAS,
+    HolidayRule::fixed_public("St Stephen's Day", "", Rule::gregorian(12, 26)),
+    HolidayRule::fixed_public("New Year's Eve", "", Rule::gregorian(12, 31)),
+];
+
+/// Euronext Milan, Borsa Italiana, in the tables from 2023: the shared
+/// six days and Ferragosto, and Christmas Eve and New Year's Eve closed
+/// rather than halved; nothing moved off a weekend, and no half days.
+pub static EURONEXT_MILAN: RuleSet = RuleSet {
+    code: "XMIL",
+    english_name: "Euronext Milan (Borsa Italiana)",
+    rules: XMIL_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: EURONEXT_SOURCES,
+};
+
+static XOSL_RULES: &[HolidayRule] = &[
+    EURONEXT_NEW_YEARS_DAY,
+    HolidayRule::observance(
+        "Half trading day, the Wednesday before Easter",
+        "",
+        Rule::easter(HOLY_WEDNESDAY),
+    ),
+    HolidayRule::fixed_public("Maundy Thursday", "", Rule::easter(MAUNDY_THURSDAY)),
+    EURONEXT_GOOD_FRIDAY,
+    EURONEXT_EASTER_MONDAY,
+    EURONEXT_LABOUR_DAY,
+    HolidayRule::fixed_public("Constitution Day", "", Rule::gregorian(5, 17)),
+    HolidayRule::fixed_public("Ascension Day", "", Rule::easter(ASCENSION)),
+    HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
+    HolidayRule::fixed_public("Christmas Eve", "", Rule::gregorian(12, 24)),
+    EURONEXT_CHRISTMAS,
+    EURONEXT_BOXING_DAY,
+    HolidayRule::fixed_public("New Year's Eve", "", Rule::gregorian(12, 31)),
+];
+
+/// Euronext Oslo, Oslo Børs: the Norwegian days — Maundy Thursday,
+/// Constitution Day on 17 May, Ascension Day and Whit Monday besides the
+/// shared six — with Christmas Eve and New Year's Eve closed, nothing
+/// moved off a weekend, and the one half day on the Wednesday before
+/// Easter.
+pub static EURONEXT_OSLO: RuleSet = RuleSet {
+    code: "XOSL",
+    english_name: "Euronext Oslo (Oslo Børs)",
+    rules: XOSL_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: EURONEXT_SOURCES,
+};
+
 /// Every exchange calendar, in Market Identifier Code order.
 pub static ALL: &[&RuleSet] = &[
+    &EURONEXT_AMSTERDAM,
     &AUSTRALIAN_SECURITIES_EXCHANGE,
+    &EURONEXT_BRUSSELS,
+    &EURONEXT_DUBLIN,
     &FRANKFURT_STOCK_EXCHANGE,
+    &EURONEXT_LISBON,
+    &EURONEXT_MILAN,
     &NEW_YORK_STOCK_EXCHANGE,
+    &EURONEXT_OSLO,
+    &EURONEXT_PARIS,
     &TORONTO_STOCK_EXCHANGE,
 ];
 
@@ -417,7 +667,8 @@ mod tests {
     #[test]
     fn a_closed_day_stops_work_and_an_early_close_does_not() {
         for rule in ALL.iter().flat_map(|exchange| exchange.rules) {
-            let early = rule.name.starts_with("Early close");
+            let early =
+                rule.name.starts_with("Early close") || rule.name.starts_with("Half trading day");
             assert_eq!(rule.kind == Kind::Observance, early, "{}", rule.name);
             assert_eq!(rule.kind.is_day_off(), !early, "{}", rule.name);
         }
