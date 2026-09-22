@@ -201,6 +201,10 @@ Ordered by how well the sources can be cited, not by importance.
 | Zimbabwe 🇿🇼 | Chapter 10:21 as gazetted for 2026, Youth Day from 2018, the Easter block fixed, the Sunday proviso past a taken Monday |
 | Kenya 🇰🇪 | The Public Holidays Act's Part I with the Sunday rule of section 4; Idd-ul-Azha and Diwali as the religious days Parts II and III make them, not days off for all; the Idd days approximate |
 | Morocco 🇲🇦 | The decrees' eleven fixed days and the four feasts, three of them two days, approximate; Yennayer from 2024 and Unity Day from 2026 by year |
+| Algeria 🇩🇿 | Law 63-278 as amended: the five civil days, Yennayer from 2018, the Eids two days until 2022 and three from law 23-10 of 2023, approximate; the Christian and Jewish community days as religious; the weekend by its three eras |
+| Tunisia 🇹🇳 | Decree 2021-223's list for the public service, Aïd el-Fitr three days and Aïd el-Idha two, approximate; the decrees of 1961 to 2021 by their years |
+| Senegal 🇸🇳 | Law 74-52 with Easter and Pentecost on their Sundays, the Monday after a Sunday Korité or Tabaski only, and the Grand Magal from 2012 |
+| Côte d'Ivoire 🇨🇮 | Decree 96-205 as rewritten in 2011: twelve days and the day after a Sunday national holiday, Labour Day, Aïd el-Fitr, Christmas or Tabaski, from 2011; the two lendemain days approximate |
 | Pakistan 🇵🇰 | The state holidays, the Hijri ones approximate; Iqbal Day only in the years it was a holiday; the notification's extra Eid days not carried |
 | Peru 🇵🇪 | The sixteen days of the 2026 list from 2024, where they fall; the laws of the four recent additions not read, so nothing before is stated |
 | Ukraine 🇺🇦 | The 2023 list — 8 May, 15 July, 1 October, Christmas on 25 December alone — with the earlier dates by year; the next-working-day rule of article 67; the martial-law suspension of days off is noted, not modelled |

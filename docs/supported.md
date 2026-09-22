@@ -118,7 +118,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Holidays by country
 
-104 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
+108 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
 
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
@@ -139,6 +139,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `BY` | Belarus | 16 | none | stated | 2026-09-22 |
 | `CA` | Canada | 19 | yes | stated | 2026-09-21 |
 | `CH` | Switzerland | 8 | none | stated | 2026-09-21 |
+| `CI` | Côte d'Ivoire | 14 | yes | stated | 2026-09-22 |
 | `CL` | Chile | 28 | none | stated | 2026-09-22 |
 | `CN` | China | 17 | none | stated | 2026-09-21 |
 | `CO` | Colombia | 18 | none | stated | 2026-09-22 |
@@ -148,6 +149,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `DE` | Germany | 22 | none | stated | 2026-09-21 |
 | `DK` | Denmark | 13 | none | stated | 2026-09-21 |
 | `DO` | Dominican Republic | 17 | none | stated | 2026-09-22 |
+| `DZ` | Algeria | 22 | none | stated | 2026-09-22 |
 | `EC` | Ecuador | 19 | none | stated | 2026-09-22 |
 | `EE` | Estonia | 26 | none | stated | 2026-09-22 |
 | `EG` | Egypt | 16 | none | stated | 2026-09-21 |
@@ -210,9 +212,11 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `SG` | Singapore | 10 | yes | stated | 2026-09-21 |
 | `SI` | Slovenia | 16 | none | stated | 2026-09-22 |
 | `SK` | Slovakia | 20 | none | stated | 2026-09-22 |
+| `SN` | Senegal | 16 | yes | stated | 2026-09-22 |
 | `TH` | Thailand | 19 | yes | stated | 2026-09-21 |
 | `TJ` | Tajikistan | 13 | yes | stated | 2026-09-22 |
 | `TM` | Turkmenistan | 15 | yes | stated | 2026-09-22 |
+| `TN` | Tunisia | 23 | none | stated | 2026-09-22 |
 | `TR` | Türkiye | 14 | none | stated | 2026-09-21 |
 | `TT` | Trinidad and Tobago | 17 | yes | stated | 2026-09-22 |
 | `TW` | Taiwan | 15 | yes | stated | 2026-09-21 |
