@@ -158,7 +158,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-10 tables, feature `holiday`.
+12 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
@@ -172,6 +172,8 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `hindu` | Hinduism | 19 |
 | `islamic` | Islam | 10 |
 | `jewish` | Judaism | 19 |
+| `wheel-of-the-year` | Wheel of the Year | 8 |
+| `wheel-of-the-year-south` | Wheel of the Year (southern hemisphere) | 8 |
 
 ## Exactly defined units of time
 

@@ -6,7 +6,7 @@ use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::rule::{Confidence, Kind, RuleSet};
 use hc_holiday::traditions::{
     self, BAHAI, BUDDHIST, CHINESE_FOLK, CHRISTIAN_ORTHODOX, CHRISTIAN_WESTERN, COPTIC_ORTHODOX,
-    ETHIOPIAN_ORTHODOX, HINDU, ISLAMIC, JEWISH,
+    ETHIOPIAN_ORTHODOX, HINDU, ISLAMIC, JEWISH, WHEEL_OF_THE_YEAR, WHEEL_OF_THE_YEAR_SOUTH,
 };
 
 /// Panics rather than returning a `Result`, because every date in this file
@@ -506,6 +506,47 @@ fn every_hindu_date_is_exact_and_religious() {
         }
     }
     assert!(!HolidayCalendar::for_year(&HINDU, None, 1700).is_complete());
+}
+
+#[test]
+fn the_wheel_turns_on_the_quarter_days_and_the_fixed_cross_quarters() {
+    // 2024: the March equinox on the 20th (03:06 UT), the June solstice on
+    // the 20th (20:51 UT), the September equinox on the 22nd, the December
+    // solstice on the 21st.
+    expect(
+        &WHEEL_OF_THE_YEAR,
+        &[
+            (2024, 2, 1, "Imbolc"),
+            (2024, 3, 20, "Ostara"),
+            (2024, 5, 1, "Beltane"),
+            (2024, 6, 20, "Litha"),
+            (2024, 8, 1, "Lughnasadh"),
+            (2024, 9, 22, "Mabon"),
+            (2024, 11, 1, "Samhain"),
+            (2024, 12, 21, "Yule"),
+        ],
+    );
+    expect(
+        &WHEEL_OF_THE_YEAR_SOUTH,
+        &[
+            (2024, 2, 1, "Lughnasadh"),
+            (2024, 3, 20, "Mabon"),
+            (2024, 5, 1, "Samhain"),
+            (2024, 6, 20, "Yule"),
+            (2024, 8, 1, "Imbolc"),
+            (2024, 9, 22, "Ostara"),
+            (2024, 11, 1, "Beltane"),
+            (2024, 12, 21, "Litha"),
+        ],
+    );
+    for set in [&WHEEL_OF_THE_YEAR, &WHEEL_OF_THE_YEAR_SOUTH] {
+        let calendar = HolidayCalendar::for_year(set, None, 2024);
+        assert_eq!(calendar.all().len(), 8, "{}", set.code);
+        for holiday in calendar.all() {
+            assert_eq!(holiday.confidence, Confidence::Exact, "{}", holiday.name);
+            assert_eq!(holiday.kind, Kind::Religious, "{}", holiday.name);
+        }
+    }
 }
 
 #[test]
