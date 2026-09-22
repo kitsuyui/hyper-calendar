@@ -26,6 +26,7 @@
 //! | Chinese folk | Chinese lunisolar calendar and the solar terms | exact to the astronomical model |
 //! | Hindu | the amānta Hindu lunisolar calendar at the national almanac's sunrise; each festival on the part of the day its tithi must hold | exact to the astronomical model, and to the conventions [`crate::hindu`] states — a regional almanac may keep a day differently |
 //! | Wheel of the Year | the solstices and equinoxes on their Universal Time day; the cross-quarter days on their fixed Gregorian dates | exact as stated; a group may keep a quarter day on its local date or the nearest weekend, and the eve convention for Samhain is not modelled |
+//! | Sikh | the Nanakshahi calendar of 2003 for the gurpurabs; the amānta Hindu lunisolar calendar for the three the 2003 calendar left on the Bikrami | exact: the Nanakshahi dates are fixed Gregorian dates, and the lunar three follow the same model as the Hindu table; the SGPC's post-2010 dates are not carried |
 //! | Zoroastrian | the Parsi schedule of feasts on each of the three reckonings — Fasli, Shahanshahi, Qadimi — as three tables | exact: every feast is a fixed day of a fixed month, and each reckoning is arithmetic; the Iranian community's dates on the civil calendar are not carried |
 
 use hc_calendar::Weekday;
@@ -1001,6 +1002,101 @@ pub static CHINESE_FOLK: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 // ─────────────────────────────────────────────────────────────────────────
+// Sikhism
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A gurpurab on a fixed day of the Nanakshahi calendar.
+const fn nanakshahi(name: &'static str, month: u8, day: u8) -> HolidayRule {
+    feast(
+        name,
+        "",
+        Rule::in_calendar(CalendarSystem::NANAKSHAHI, month, day),
+    )
+}
+
+/// The observances of the Nanakshahi calendar of 2003, as its table gives
+/// them, under the Sikh terms: *Parkash* for a Guru's birth, *Gurgaddi* for
+/// his accession, *Joti Jot* for his passing, *Shaheedi* for a martyrdom.
+static SIKH_RULES: &[HolidayRule] = &[
+    nanakshahi("Nanakshahi New Year", 1, 1),
+    nanakshahi("Gurgaddi of Guru Har Rai", 1, 1),
+    nanakshahi("Joti Jot of Guru Hargobind", 1, 6),
+    // The Khalsa's ordination, 1 Vaisakh; the calendar's fixed 14 April,
+    // where the SGPC has kept the Bikrami saṅkrānti of 13 or 14 April
+    // since 2010.
+    nanakshahi("Vaisakhi", 2, 1),
+    nanakshahi("Joti Jot of Guru Angad", 2, 3),
+    nanakshahi("Gurgaddi of Guru Amar Das", 2, 3),
+    nanakshahi("Joti Jot of Guru Harkrishan", 2, 3),
+    nanakshahi("Gurgaddi of Guru Tegh Bahadur", 2, 3),
+    nanakshahi("Parkash of Guru Angad", 2, 5),
+    nanakshahi("Parkash of Guru Tegh Bahadur", 2, 5),
+    nanakshahi("Parkash of Guru Arjan", 2, 19),
+    nanakshahi("Parkash of Guru Amar Das", 3, 9),
+    nanakshahi("Gurgaddi of Guru Hargobind", 3, 28),
+    nanakshahi("Shaheedi of Guru Arjan", 4, 2),
+    nanakshahi("Parkash of Guru Hargobind", 4, 21),
+    nanakshahi("Miri Piri Divas", 5, 6),
+    nanakshahi("Parkash of Guru Harkrishan", 5, 8),
+    nanakshahi("Completion of the Guru Granth Sahib", 6, 15),
+    nanakshahi("First Parkash of the Guru Granth Sahib", 6, 17),
+    nanakshahi("Joti Jot of Guru Amar Das", 7, 2),
+    nanakshahi("Gurgaddi of Guru Ram Das", 7, 2),
+    nanakshahi("Joti Jot of Guru Ram Das", 7, 2),
+    nanakshahi("Gurgaddi of Guru Arjan", 7, 2),
+    nanakshahi("Gurgaddi of Guru Angad", 7, 4),
+    nanakshahi("Joti Jot of Guru Nanak", 7, 8),
+    nanakshahi("Parkash of Guru Ram Das", 7, 25),
+    nanakshahi("Joti Jot of Guru Har Rai", 8, 6),
+    nanakshahi("Gurgaddi of Guru Harkrishan", 8, 6),
+    nanakshahi("Gurgaddi of the Guru Granth Sahib", 8, 6),
+    nanakshahi("Joti Jot of Guru Gobind Singh", 8, 7),
+    nanakshahi("Gurgaddi of Guru Gobind Singh", 9, 11),
+    nanakshahi("Shaheedi of Guru Tegh Bahadur", 9, 11),
+    nanakshahi("Shaheedi of the Elder Sahibzadas", 10, 8),
+    nanakshahi("Shaheedi of the Younger Sahibzadas", 10, 13),
+    nanakshahi("Parkash of Guru Gobind Singh", 10, 23),
+    nanakshahi("Parkash of Guru Har Rai", 11, 19),
+    // The three the 2003 calendar left on the Bikrami lunar calendar, "as
+    // a compromise": Hola Mohalla on the day of Holi, Bandi Chhor Divas on
+    // Diwali, and Guru Nanak's Parkash on the full moon of Kārttika.
+    feast("Hola Mohalla", "", HOLI),
+    feast("Bandi Chhor Divas", "", DIWALI),
+    feast("Parkash of Guru Nanak", "", GURU_NANAK_JAYANTI),
+];
+
+/// Sikhism, on the Nanakshahi calendar of 2003.
+///
+/// The gurpurabs on the fixed dates that calendar gave them — Guru Gobind
+/// Singh's Parkash on 23 Poh, 5 January; Guru Arjan's Shaheedi on 2 Harh,
+/// 16 June; Guru Tegh Bahadur's on 11 Maghar, 24 November — and the three
+/// observances it kept lunar: Hola Mohalla, Bandi Chhor Divas and the
+/// Parkash of Guru Nanak, on the same rules as Holi, Diwali and Kartik
+/// Purnima in the Hindu table, whose dates the SGPC's own 2003–2020 list
+/// matches.
+///
+/// **This is the 2003 calendar, the *Mool* Nanakshahi.** The SGPC's 2010
+/// amendments returned several gurpurabs to lunar dates and its 2014
+/// calendar is the Bikrami calendar under the Nanakshahi name; the dates it
+/// publishes since are not carried, and the 2017 resolution of the Mool
+/// calendar's supporters to fix the three lunar days as well is not either.
+/// The Akal Takht's foundation day is omitted: the source's row gives
+/// 18 Harh against 16 June, which is 2 Harh, and the table does not guess.
+pub static SIKH: RuleSet = RuleSet {
+    code: "sikh",
+    english_name: "Sikhism",
+    rules: SIKH_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia, \"Nanakshahi calendar\", retrieved 2026-09-22: the table \
+              of festivals and events of the 2003 version for every fixed \
+              date, and its table of the movable dates 2003–2020 for the three \
+              lunar observances",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Zoroastrianism
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -1176,6 +1272,7 @@ pub static ALL: &[&RuleSet] = &[
     &CHINESE_FOLK,
     &WHEEL_OF_THE_YEAR,
     &WHEEL_OF_THE_YEAR_SOUTH,
+    &SIKH,
     &ZOROASTRIAN_FASLI,
     &ZOROASTRIAN_SHAHANSHAHI,
     &ZOROASTRIAN_QADIMI,

@@ -160,6 +160,9 @@ const COPTIC_CALENDARS: &[CalendarId] = &[CalendarId("coptic")];
 /// The Ethiopic calendar.
 const ETHIOPIC_CALENDARS: &[CalendarId] = &[CalendarId("ethiopic")];
 
+/// The Nanakshahi calendar.
+const NANAKSHAHI_CALENDARS: &[CalendarId] = &[CalendarId("nanakshahi")];
+
 /// The two Armenian calendars, which share one set of month names.
 const ARMENIAN_CALENDARS: &[CalendarId] = &[CalendarId("armenian"), CalendarId("armenian-fixed")];
 
@@ -661,6 +664,15 @@ const EN_CALENDARS: &[CalendarNames] = &[
             "Ḥamle",
             "Nähase",
             "Ṗagumen",
+        ])],
+        &[],
+        &[],
+    ),
+    dated(
+        NANAKSHAHI_CALENDARS,
+        &[months(&[
+            "Chet", "Vaisakh", "Jeth", "Harh", "Sawan", "Bhadon", "Assu", "Kattak", "Maghar",
+            "Poh", "Magh", "Phaggan",
         ])],
         &[],
         &[],

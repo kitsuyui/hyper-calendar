@@ -19,7 +19,9 @@ use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
 use hc_calendars_lunar::tabular::{self, LeapYearRule};
 use hc_calendars_lunar::{ChineseCalendar, DangiCalendar, LunisolarDate, VietnameseCalendar};
-use hc_calendars_solar::{bahai_kept, coptic, ethiopic, gregorian, julian, persian, zoroastrian};
+use hc_calendars_solar::{
+    bahai_kept, coptic, ethiopic, gregorian, julian, nanakshahi, persian, zoroastrian,
+};
 use hc_seasons::solar_terms::term_day;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 use hc_seasons::{Meridian, SolarTerm};
@@ -323,6 +325,15 @@ hc_core::catalogue! {
             CalendarId("bahai"),
             |year, month, day| bahai_kept::to_fixed(year, month.ordinal, day).ok(),
             |rd| bahai_kept::from_fixed(rd).ok().map(|(year, _, _)| year),
+        );
+
+        /// The Nanakshahi calendar of 2003, in which the Sikh gurpurabs are
+        /// dated: a naming of the Gregorian day, so every date is a fixed
+        /// Gregorian one.
+        pub const NANAKSHAHI = Self::new(
+            CalendarId("nanakshahi"),
+            |year, month, day| nanakshahi::to_fixed(year, month.ordinal, day).ok(),
+            |rd| nanakshahi::from_fixed(rd).ok().map(|(year, _, _)| year),
         );
 
         /// The Zoroastrian calendar by the Qadimi reckoning: the 365-day
