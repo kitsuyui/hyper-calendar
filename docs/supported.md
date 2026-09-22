@@ -118,7 +118,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Holidays by country
 
-92 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
+96 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
 
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
@@ -209,11 +209,15 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `TH` | Thailand | 19 | yes | stated | 2026-09-21 |
 | `TR` | Türkiye | 14 | none | stated | 2026-09-21 |
 | `TW` | Taiwan | 15 | yes | stated | 2026-09-21 |
+| `TZ` | Tanzania | 17 | yes | stated | 2026-09-22 |
 | `UA` | Ukraine | 16 | yes | stated | 2026-09-22 |
+| `UG` | Uganda | 14 | none | stated | 2026-09-22 |
 | `US` | United States | 18 | yes | stated | 2026-09-21 |
 | `UY` | Uruguay | 19 | none | stated | 2026-09-22 |
 | `VN` | Vietnam | 11 | yes | stated | 2026-09-21 |
 | `ZA` | South Africa | 12 | yes | stated | 2026-09-21 |
+| `ZM` | Zambia | 15 | yes | stated | 2026-09-22 |
+| `ZW` | Zimbabwe | 14 | yes | stated | 2026-09-22 |
 
 ## Religious and cultural traditions
 

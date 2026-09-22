@@ -2855,6 +2855,143 @@ fn lebanon_closes_by_decree_15215_and_moves_labour_day_alone() {
 }
 
 #[test]
+fn tanzania_moves_saturday_and_sunday_holidays_to_the_next_free_day() {
+    expect(
+        "TZ",
+        None,
+        &[
+            (2026, 1, 12, "Zanzibar Revolution Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 3, 21, "Eid al-Fitr"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 4, 7, "Karume Day"),
+            (2026, 4, 26, "Union Day"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 7, 7, "Saba Saba Day"),
+            (2026, 8, 8, "Nane Nane Day"),
+            (2026, 8, 26, "Maulid"),
+            (2026, 10, 14, "Nyerere Day"),
+            (2026, 12, 9, "Independence and Republic Day"),
+            (2026, 12, 26, "Boxing Day"),
+        ],
+    );
+    // A Saturday second day of Eid, a Sunday Union Day, a Saturday Nane
+    // Nane and a Saturday Boxing Day in 2026.
+    expect_substitute("TZ", None, 2026, (3, 21), (3, 23));
+    expect_substitute("TZ", None, 2026, (4, 26), (4, 27));
+    expect_substitute("TZ", None, 2026, (8, 8), (8, 10));
+    expect_substitute("TZ", None, 2026, (12, 26), (12, 28));
+}
+
+#[test]
+fn uganda_lists_its_days_and_designates_no_substitute_by_rule() {
+    expect(
+        "UG",
+        None,
+        &[
+            (2026, 1, 26, "NRM Liberation Day"),
+            (2026, 2, 16, "Archbishop Janani Luwum Day"),
+            (2026, 3, 8, "International Women's Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 6, 3, "Uganda Martyrs' Day"),
+            (2026, 6, 9, "National Heroes' Day"),
+            (2026, 10, 9, "Independence Day"),
+            (2026, 12, 26, "Boxing Day"),
+            (2016, 2, 16, "Archbishop Janani Luwum Day"),
+            (2001, 6, 9, "National Heroes' Day"),
+        ],
+    );
+    expect_working(
+        "UG",
+        None,
+        &[(2015, 2, 16), (2000, 6, 9), (2026, 3, 9), (2026, 3, 21)],
+    );
+}
+
+#[test]
+fn zambia_moves_a_sunday_holiday_to_monday_and_dates_its_declared_days() {
+    expect(
+        "ZM",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 8, "International Women's Day"),
+            (2026, 3, 12, "Youth Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 4, "Holy Saturday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 4, 28, "Kenneth Kaunda Day"),
+            (2026, 5, 25, "African Freedom Day"),
+            (2026, 7, 6, "Heroes' Day"),
+            (2026, 7, 7, "Unity Day"),
+            (2026, 8, 3, "Farmers' Day"),
+            (
+                2026,
+                10,
+                18,
+                "National Day of Prayer, Fasting, Repentance and Reconciliation",
+            ),
+            (2026, 10, 24, "Independence Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2008, 3, 8, "International Women's Day"),
+            (
+                2015,
+                10,
+                18,
+                "National Day of Prayer, Fasting, Repentance and Reconciliation",
+            ),
+            (2022, 4, 28, "Kenneth Kaunda Day"),
+        ],
+    );
+    // Women's Day and the Day of Prayer fall on Sundays in 2026; a
+    // Saturday Independence Day stays.
+    expect_substitute("ZM", None, 2026, (3, 8), (3, 9));
+    expect_substitute("ZM", None, 2026, (10, 18), (10, 19));
+    expect_working(
+        "ZM",
+        None,
+        &[(2026, 10, 26), (2021, 4, 28), (2014, 10, 18), (2007, 3, 8)],
+    );
+}
+
+#[test]
+fn zimbabwe_keeps_the_easter_block_and_moves_a_sunday_holiday_past_a_taken_monday() {
+    expect(
+        "ZW",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 2, 21, "Robert Gabriel Mugabe National Youth Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 4, "Easter Saturday"),
+            (2026, 4, 5, "Easter Sunday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 4, 18, "Independence Day"),
+            (2026, 5, 1, "Workers' Day"),
+            (2026, 5, 25, "Africa Day"),
+            (2026, 8, 10, "Heroes' Day"),
+            (2026, 8, 11, "Defence Forces National Day"),
+            (2026, 12, 22, "National Unity Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Boxing Day"),
+            (2018, 2, 21, "Robert Gabriel Mugabe National Youth Day"),
+        ],
+    );
+    // Christmas 2022 on a Sunday went past Boxing Day to the Tuesday;
+    // Saturdays and Easter Sunday claim nothing.
+    expect_substitute("ZW", None, 2022, (12, 25), (12, 27));
+    expect_working(
+        "ZW",
+        None,
+        &[(2017, 2, 21), (2026, 2, 23), (2026, 4, 7), (2026, 4, 20)],
+    );
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",

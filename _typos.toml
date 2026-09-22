@@ -31,6 +31,8 @@ Internacional = "Internacional"
 Patrios = "Patrios"
 # Romanian "pe stil vechi", the old style, in Moldova's Christmas.
 stil = "stil"
+# Swahili "Nane Nane", the eighth of the eighth, Tanzania's farmers' day.
+Nane = "Nane"
 # Fo, the first day of the Akan six-day week.
 Fo = "Fo"
 # German and Dutch month names.
