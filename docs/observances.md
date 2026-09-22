@@ -145,6 +145,10 @@ Ordered by how well the sources can be cited, not by importance.
 | United Arab Emirates 🇦🇪 | With the 2022 move to a Saturday–Sunday weekend |
 | Israel 🇮🇱 | Hebrew-dated and therefore exact, with Yom HaAtzmaut's Sabbath-avoidance rule |
 | Iran 🇮🇷 | Civil holidays on the astronomical `persian` calendar, so exact — Nowruz 1404 on 21 March 2025, where the arithmetic cycle says the 20th; the lunar Hijri days flagged `Approximate`, since Iran declares them on its own sighting; Friday weekend |
+| Croatia 🇭🇷 | The Act with the 2020 change: Statehood Day on 30 May, 25 June and 8 October demoted, Remembrance Day new; no substitution |
+| Slovakia 🇸🇰 | The state holidays, each carried as a day off to its last year as one and an observance after; no substitution |
+| Slovenia 🇸🇮 | The work-free days with the years the source gives, 2 January by its two spans; no substitution |
+| Iceland 🇮🇸 | The act's list with the First Day of Summer and Commerce Day by their weekday rules, the two eves as half days; no substitution |
 | Hungary 🇭🇺 | With Good Friday from 2017; the annual rearrangement of working days by decree is not carried |
 | Romania 🇷🇴 | Orthodox Easter and Pentecost by the Julian computus; the additions of the last decade by year, Epiphany and Saint John from 2024 |
 | Russia 🇷🇺 | The New Year holidays as they grew to 1–8 January; no substitution, because the Government transfers days off by decree every year and the statutory default almost never applies |

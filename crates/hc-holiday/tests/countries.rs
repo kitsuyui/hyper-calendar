@@ -9,6 +9,7 @@ use hc_calendar::Rd;
 use hc_calendars_solar::gregorian;
 use hc_holiday::countries::{self, CountryRules};
 use hc_holiday::engine::{Holiday, HolidayCalendar};
+use hc_holiday::rule::Kind;
 
 /// Panics rather than returning a `Result`, because every date in this file
 /// is a literal the author typed and a bad one is a bug in the test.
@@ -1288,6 +1289,136 @@ fn ghana_carries_the_2019_and_2025_arrangements_by_year() {
     };
     assert!(names_in(2026).contains(&"Shaqq Day"));
     assert!(!names_in(2025).contains(&"Shaqq Day"));
+}
+
+#[test]
+fn croatia_moved_statehood_day_twice_and_demoted_two_days_in_2020() {
+    expect(
+        "HR",
+        None,
+        &[
+            (2026, 1, 6, "Epiphany"),
+            (2026, 4, 5, "Easter Sunday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 30, "Statehood Day"),
+            (2026, 6, 4, "Corpus Christi"),
+            (2026, 6, 22, "Anti-Fascist Struggle Day"),
+            (2026, 8, 5, "Victory and Homeland Thanksgiving Day"),
+            (
+                2026,
+                11,
+                18,
+                "Remembrance Day for the Victims of the Homeland War",
+            ),
+            (2026, 12, 26, "Saint Stephen's Day"),
+            (2019, 6, 25, "Statehood Day"),
+            (2019, 10, 8, "Independence Day"),
+            (1995, 5, 30, "Statehood Day"),
+        ],
+    );
+    expect_working(
+        "HR",
+        None,
+        &[(2019, 5, 30), (2019, 11, 18), (2026, 6, 25), (2026, 10, 8)],
+    );
+}
+
+#[test]
+fn slovakia_keeps_its_state_holidays_as_observances_once_they_stop_being_days_off() {
+    expect(
+        "SK",
+        None,
+        &[
+            (2026, 1, 6, "Epiphany"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 7, 5, "Saints Cyril and Methodius Day"),
+            (2026, 8, 29, "Slovak National Uprising Anniversary"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 12, 24, "Christmas Eve"),
+            (2025, 5, 8, "Day of Victory over Fascism"),
+            (2025, 9, 15, "Our Lady of the Seven Sorrows"),
+            (2023, 9, 1, "Constitution Day"),
+            (2024, 11, 17, "Struggle for Freedom and Democracy Day"),
+        ],
+    );
+    expect_working(
+        "SK",
+        None,
+        &[
+            (2026, 5, 8),
+            (2024, 9, 1),
+            (2026, 9, 15),
+            (2025, 11, 17),
+            (2026, 10, 28),
+        ],
+    );
+    let calendar = HolidayCalendar::for_year(table("SK"), None, 2026);
+    let observed: Vec<&str> = calendar
+        .on(ymd(2026, 10, 28))
+        .iter()
+        .map(|holiday| holiday.name)
+        .collect();
+    assert_eq!(
+        observed,
+        ["Day of the Establishment of an Independent Czecho-Slovak State"]
+    );
+}
+
+#[test]
+fn slovenia_took_2_january_back_in_2017() {
+    // Easter 2026 on 5 April, Whit Sunday on 24 May.
+    expect(
+        "SI",
+        None,
+        &[
+            (2026, 1, 2, "New Year's Day"),
+            (2026, 2, 8, "Prešeren Day"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 4, 27, "Day of Uprising Against Occupation"),
+            (2026, 5, 2, "May Day"),
+            (2026, 5, 24, "Whit Sunday"),
+            (2026, 6, 25, "Statehood Day"),
+            (2026, 8, 15, "Assumption Day"),
+            (2026, 10, 31, "Reformation Day"),
+            (2026, 12, 26, "Independence and Unity Day"),
+            (2012, 1, 2, "New Year's Day"),
+        ],
+    );
+    expect_working("SI", None, &[(2014, 1, 2), (2016, 1, 2)]);
+}
+
+#[test]
+fn iceland_first_day_of_summer_is_the_first_thursday_after_18_april() {
+    // Easter 2026 on 5 April; the First Day of Summer on 23 April 2026,
+    // 24 April 2025 and 20 April 2028 as its own page gives them.
+    expect(
+        "IS",
+        None,
+        &[
+            (2026, 4, 2, "Maundy Thursday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 4, 23, "First Day of Summer"),
+            (2025, 4, 24, "First Day of Summer"),
+            (2028, 4, 20, "First Day of Summer"),
+            (2026, 5, 14, "Ascension Day"),
+            (2026, 5, 24, "Whit Sunday"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 6, 17, "National Day"),
+            (2026, 8, 3, "Commerce Day"),
+            (2026, 12, 26, "Second Day of Christmas"),
+        ],
+    );
+    let calendar = HolidayCalendar::for_year(table("IS"), None, 2026);
+    for (month, day) in [(12, 24), (12, 31)] {
+        let kinds: Vec<Kind> = calendar
+            .on(ymd(2026, month, day))
+            .iter()
+            .map(|holiday| holiday.kind)
+            .collect();
+        assert_eq!(kinds, [Kind::Bank], "{month}-{day}");
+    }
 }
 
 #[test]
