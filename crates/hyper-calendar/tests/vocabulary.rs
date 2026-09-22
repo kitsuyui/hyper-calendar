@@ -306,7 +306,7 @@ fn the_vocabulary_gap_is_measured_and_not_growing() {
 
     assert_eq!(
         registered.len(),
-        89,
+        90,
         "the registry changed; update the coverage numbers deliberately"
     );
     assert_eq!(

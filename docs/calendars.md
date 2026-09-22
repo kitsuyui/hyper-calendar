@@ -131,9 +131,9 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Aztec Xiuhpohualli | `aztec-xiuhpohualli` | `hc-calendars-regional` | Done |
 | Balinese Pawukon (thirty *wuku*, ten concurrent weeks) | `balinese-pawukon` | `hc-calendars-regional` | Done |
 | Javanese Pasaran (five-day market week) | `javanese-pasaran` | `hc-calendars-regional` | Done |
-| Igbo four-day week (Izu) | `igbo` | `hc-calendars-regional` | Planned |
+| Igbo four-day week (Izu) | `igbo` | `hc-calendars-regional` | Researching — the source says the calendar is "neither universal nor synchronized" between communities and dates no market day, so there is no anchor to carry |
 | Yoruba four-day week | `yoruba` | `hc-calendars-regional` | Researching — regional variants differ |
-| Akan Adaduanan (42-day cycle) | `akan` | `hc-calendars-regional` | Planned |
+| Akan Adaduanan (42-day cycle) | `akan` | `hc-calendars-regional` | Done — the six-day and seven-day weeks against each other, anchored on the Fɔdwo of 23 January 1978 the source dates; the four dabɔne named |
 | Nepali Bikram Sambat | `bikram-sambat` | `hc-calendars-regional` | Planned — the Vikrami solar rule and era are `hindu-solar-vikrami`; what remains is comparing the committee's published calendar against it |
 | Nepal Sambat | `nepal-sambat` | `hc-calendars-regional` | Planned |
 | Burmese | `burmese` | `hc-calendars-regional` | Planned |
