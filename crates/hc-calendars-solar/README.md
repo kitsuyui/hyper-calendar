@@ -31,6 +31,7 @@ file does not:
 | `persian` | Solar Hijri, **arithmetic** variant | `persian-arithmetic` |
 | `indian` | Indian national civil (Śaka) | `indian` |
 | `nanakshahi` | Nanakshahi, the Sikh solar calendar of 2003 | `nanakshahi` |
+| `discordian` | Discordian: five seasons of 73 days, the five-day week, St. Tib's Day | `discordian` |
 | `buddhist` | Thai solar | `buddhist` |
 | `minguo` | Minguo, with 民國前 | `roc` |
 | `juche` | Juche | `juche` |
