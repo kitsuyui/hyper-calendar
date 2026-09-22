@@ -47,6 +47,9 @@ pub struct Holiday {
     pub observed_for: Option<Rd>,
     /// Whether this entry was produced by a bridge policy.
     pub bridged: bool,
+    /// The instrument that established the entry, when the rule cites one;
+    /// see [`HolidayRule::source`](crate::rule::HolidayRule::source).
+    pub source: &'static str,
 }
 
 impl Holiday {
@@ -414,6 +417,7 @@ fn evaluate(
             regions: occurrence.rule.regions,
             observed_for: None,
             bridged: false,
+            source: occurrence.rule.source,
         })
         .collect();
 
@@ -467,6 +471,7 @@ fn evaluate(
             regions: occurrence.rule.regions,
             observed_for: Some(occurrence.date),
             bridged: false,
+            source: occurrence.rule.source,
         });
     }
 
@@ -520,6 +525,7 @@ fn evaluate(
                         regions: &[],
                         observed_for: None,
                         bridged: true,
+                        source: "",
                     });
                 }
             }

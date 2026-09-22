@@ -116,7 +116,7 @@ The cross-cutting ones, because national tables depend on them.
 | Zoroastrian | Nowruz, Mehregan, Yalda, Sadeh, the Gahambars | Planned |
 | Shinto | 初詣, 節分, 七五三, and the major 祭 with fixed dates | Planned — 節分 and the other 雑節 are in `hc-seasons`, but no Shinto rule table exists yet |
 | Pagan / Wheel of the Year | Samhain, Yule, Imbolc, Ostara, Beltane, Litha, Lughnasadh, Mabon | Done — two tables, northern and southern hemisphere; the quarter days on their Universal Time day, the cross-quarter days on their fixed dates; eve and nearest-weekend conventions not modelled |
-| Secular international | UN observance days established by General Assembly resolution, and UNESCO international days | Planned — each entry cites its resolution |
+| Secular international | The United Nations' international days — those of the General Assembly and of UNESCO, WHO, FAO and the other agencies on its list | Done — `international::UNITED_NATIONS`, every entry citing its resolution or designating body in `HolidayRule::source`; the seven rule-based days carry their rules; the weeks are not carried |
 
 ## Stage 2 — National public holidays
 

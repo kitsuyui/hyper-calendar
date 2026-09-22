@@ -175,6 +175,14 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `wheel-of-the-year` | Wheel of the Year | 8 |
 | `wheel-of-the-year-south` | Wheel of the Year (southern hemisphere) | 8 |
 
+## International observances
+
+1 table, feature `holiday`. Every entry cites its resolution or designating body.
+
+| Code | Set | Observances |
+| --- | --- | --- |
+| `un-days` | United Nations international days | 236 |
+
 ## Exactly defined units of time
 
 53 units, feature `units`, shortest first. Each is an exact rational number of seconds, because each was *defined* as one. A unit somebody measured — the sidereal day, the tropical year, the galactic year — is not here; it lives with the model that measured it, with its error bar attached.
