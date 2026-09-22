@@ -162,6 +162,9 @@ const COPTIC_CALENDARS: &[CalendarId] = &[CalendarId("coptic")];
 /// The Ethiopic calendar.
 const ETHIOPIC_CALENDARS: &[CalendarId] = &[CalendarId("ethiopic")];
 
+/// The Burmese calendar.
+const BURMESE_CALENDARS: &[CalendarId] = &[CalendarId("burmese")];
+
 /// The Rumi calendar.
 const RUMI_CALENDARS: &[CalendarId] = &[CalendarId("rumi")];
 
@@ -669,6 +672,25 @@ const EN_CALENDARS: &[CalendarNames] = &[
             "Ḥamle",
             "Nähase",
             "Ṗagumen",
+        ])],
+        &[],
+        &[],
+    ),
+    dated(
+        BURMESE_CALENDARS,
+        &[months(&[
+            "Tagu",
+            "Kason",
+            "Nayon",
+            "Waso",
+            "Wagaung",
+            "Tawthalin",
+            "Thadingyut",
+            "Tazaungmon",
+            "Nadaw",
+            "Pyatho",
+            "Tabodwe",
+            "Tabaung",
         ])],
         &[],
         &[],
