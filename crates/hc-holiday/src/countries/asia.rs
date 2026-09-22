@@ -714,6 +714,7 @@ static SG_RULES: &[HolidayRule] = &[
     .approximate(),
     HolidayRule::public("Hari Raya Haji", "", EID_AL_ADHA).approximate(),
     HolidayRule::public("National Day", "", Rule::gregorian(8, 9)).years(Some(1965), None),
+    HolidayRule::public("Deepavali", "", DIWALI).approximate(),
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
 ];
 
@@ -738,8 +739,9 @@ pub static SINGAPORE: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Holidays Act 1998, schedule; Ministry of Manpower's annual \
-              list. Deepavali is a public holiday and is absent because it \
-              needs a Hindu calendar; the two Islamic days are the tabular \
+              list (mom.gov.sg), whose Deepavali for 2020 to 2026 the crate's \
+              Dīpāvalī rule gives, carried approximate as the Ministry \
+              announces the day; the two Islamic days are the tabular \
               computation and not the MUIS announcement",
 };
 
@@ -782,6 +784,7 @@ static MY_RULES: &[HolidayRule] = &[
     HolidayRule::public("Malaysia Day", "Hari Malaysia", Rule::gregorian(9, 16))
         .years(Some(2010), None),
     HolidayRule::public("Mawlid", "Maulidur Rasul", MAWLID).approximate(),
+    HolidayRule::public("Deepavali", "Hari Deepavali", DIWALI).approximate(),
     HolidayRule::public("Christmas Day", "Hari Krismas", Rule::gregorian(12, 25)),
 ];
 
@@ -804,10 +807,13 @@ pub static MALAYSIA: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Holidays Act 1951, schedule; the federal gazette's annual \
-              list. State holidays are not modelled, and neither is the \
-              Friday–Saturday weekend of Johor, Kedah, Kelantan and \
-              Terengganu. Deepavali and Thaipusam need a Hindu calendar and \
-              are absent",
+              list, with Office Holidays' copies of it for 2023 to 2025. \
+              Deepavali, which the schedule keeps everywhere but Sarawak, is \
+              the crate's Dīpāvalī rule, carried approximate as the gazette \
+              announces the day. State holidays are not modelled — Thaipusam \
+              among them, though the crate now has its rule — and neither is \
+              the Friday–Saturday weekend of Johor, Kedah, Kelantan and \
+              Terengganu",
 };
 
 static PH_RULES: &[HolidayRule] = &[

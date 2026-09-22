@@ -203,12 +203,13 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 
 ## Deliberate gaps
 
-* **India** carries only the three national holidays plus the days this crate
-  can compute. Holi, Diwali, Dussehra, Janmashtami, Mahavir Jayanti and Guru
-  Nanak's Birthday need a `hindu-lunar` calendar that `hc-calendars-lunar` does
-  not yet have, and the crate will not tabulate what it cannot compute. The
-  same is why Deepavali is missing from Singapore and Malaysia, and Nyepi from
-  Indonesia.
+* **India** carries the three national holidays and the gazetted list, with
+  Holi, Ram Navami, Mahavir Jayanti, Buddha Purnima, Janmashtami, Dussehra,
+  Diwali and Guru Nanak's Birthday computed on `hindu-lunar`; the states' own
+  days are not carried. Singapore's and Malaysia's Deepavali is the same
+  Dīpāvalī rule. Nyepi is still missing from Indonesia: the Balinese Saka
+  calendar that dates it is not in the crate, and the crate will not tabulate
+  what it cannot compute.
 * **Nepal** is deliberately thin: its calendar is Bikram Sambat and its
   holidays are Hindu and Buddhist festivals. Its table exists chiefly to carry
   the one-day weekend.

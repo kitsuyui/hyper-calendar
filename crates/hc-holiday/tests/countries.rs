@@ -796,11 +796,21 @@ fn singapore_and_malaysia() {
             (2024, 8, 9, "National Day"),
             (2025, 1, 29, "Chinese New Year"),
             (2025, 5, 1, "Labour Day"),
+            // The Ministry of Manpower's Deepavali, 2020 to 2026.
+            (2020, 11, 14, "Deepavali"),
+            (2021, 11, 4, "Deepavali"),
+            (2022, 10, 24, "Deepavali"),
+            (2023, 11, 12, "Deepavali"),
+            (2024, 10, 31, "Deepavali"),
+            (2025, 10, 20, "Deepavali"),
+            (2026, 11, 8, "Deepavali"),
         ],
     );
     // Singapore moves a Sunday holiday to the Monday and leaves a Saturday
-    // one alone: Chinese New Year 2024 ran Saturday and Sunday.
+    // one alone: Chinese New Year 2024 ran Saturday and Sunday; Deepavali
+    // 2026 is a Sunday.
     expect_substitute("SG", None, 2024, (2, 11), (2, 12));
+    expect_substitute("SG", None, 2026, (11, 8), (11, 9));
     expect_working("SG", None, &[(2025, 8, 11)]);
     expect(
         "MY",
@@ -811,6 +821,10 @@ fn singapore_and_malaysia() {
             (2024, 8, 31, "National Day"),
             (2024, 9, 16, "Malaysia Day"),
             (2025, 6, 2, "Agong's Birthday"),
+            // The gazetted Deepavali, 2023 to 2025.
+            (2023, 11, 12, "Deepavali"),
+            (2024, 10, 31, "Deepavali"),
+            (2025, 10, 20, "Deepavali"),
         ],
     );
     // 31 August 2025 was a Sunday, so 1 September was the substitute.

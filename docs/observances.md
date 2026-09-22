@@ -80,10 +80,11 @@ none.
   Lunar New Year makeup days, Vietnam's Tết span, Thailand's Songkran makeup
   days and Indonesia's *cuti bersama* are decided year by year by a ministry.
   The statutory days are listed; the bridging days are not.
-- **It will not tabulate what it cannot compute.** India's Hindu, Sikh and
-  Jain gazetted holidays, Singapore's and Malaysia's Deepavali and Indonesia's
-  Nyepi are absent because the calendars they are dated in do not exist in
-  `hc-calendars-lunar` yet.
+- **It will not tabulate what it cannot compute.** Indonesia's Nyepi is
+  absent because the Balinese Saka calendar it is dated in does not exist in
+  the crate yet. India's Hindu, Sikh and Jain gazetted holidays and
+  Singapore's and Malaysia's Deepavali were absent for the same reason until
+  `hindu-lunar` and `nanakshahi` arrived, and are computed now.
 - **It will not pretend a holiday list is current.** Every country table
   carries the date its sources were checked.
 - **It will not answer outside the span it evaluated.** Business-day
