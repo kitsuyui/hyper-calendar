@@ -116,7 +116,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Holidays by country
 
-50 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
+54 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
 
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
@@ -147,7 +147,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `IR` | Iran | 27 | none | stated | 2026-09-22 |
 | `IT` | Italy | 13 | none | stated | 2026-09-21 |
 | `JP` | Japan | 38 | yes | stated | 2026-09-21 |
+| `KE` | Kenya | 13 | yes | stated | 2026-09-22 |
 | `KR` | South Korea | 17 | yes | stated | 2026-09-21 |
+| `MA` | Morocco | 18 | none | stated | 2026-09-22 |
 | `MX` | Mexico | 11 | none | stated | 2026-09-21 |
 | `MY` | Malaysia | 14 | yes | stated | 2026-09-21 |
 | `NG` | Nigeria | 14 | yes | stated | 2026-09-21 |
@@ -155,7 +157,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `NO` | Norway | 12 | none | stated | 2026-09-21 |
 | `NP` | Nepal | 7 | none | stated | 2026-09-21 |
 | `NZ` | New Zealand | 13 | yes | stated | 2026-09-21 |
+| `PE` | Peru | 16 | none | stated | 2026-09-22 |
 | `PH` | Philippines | 18 | none | stated | 2026-09-21 |
+| `PK` | Pakistan | 13 | none | stated | 2026-09-22 |
 | `PL` | Poland | 15 | none | stated | 2026-09-21 |
 | `PT` | Portugal | 18 | none | stated | 2026-09-21 |
 | `RO` | Romania | 17 | none | stated | 2026-09-22 |

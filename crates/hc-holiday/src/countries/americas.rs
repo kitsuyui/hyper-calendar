@@ -734,3 +734,94 @@ pub static COLOMBIA: RuleSet = RuleSet {
               rule; Wikipedia (es), \"Anexo:Días festivos en Colombia\", \
               retrieved 2026-09-22, for the 2026 dates the tests check",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Peru
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A national holiday as the source lists it for 2026, carried from 2024.
+const fn pe(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, rule).years(Some(2024), None)
+}
+
+static PE_RULES: &[HolidayRule] = &[
+    pe("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    pe(
+        "Maundy Thursday",
+        "Jueves Santo",
+        Rule::easter(MAUNDY_THURSDAY),
+    ),
+    pe("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    pe("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+    pe("Flag Day", "Día de la Bandera", Rule::gregorian(6, 7)),
+    pe(
+        "Saints Peter and Paul",
+        "San Pedro y San Pablo",
+        Rule::gregorian(6, 29),
+    ),
+    pe(
+        "Air Force Day",
+        "Día de la Fuerza Aérea",
+        Rule::gregorian(7, 23),
+    ),
+    pe(
+        "Independence Day",
+        "Fiestas Patrias",
+        Rule::gregorian(7, 28),
+    ),
+    pe(
+        "Independence Day",
+        "Fiestas Patrias",
+        Rule::gregorian(7, 29),
+    ),
+    pe("Battle of Junín", "Batalla de Junín", Rule::gregorian(8, 6)),
+    pe(
+        "Saint Rose of Lima",
+        "Santa Rosa de Lima",
+        Rule::gregorian(8, 30),
+    ),
+    pe(
+        "Battle of Angamos",
+        "Combate de Angamos",
+        Rule::gregorian(10, 8),
+    ),
+    pe(
+        "All Saints' Day",
+        "Día de Todos los Santos",
+        Rule::gregorian(11, 1),
+    ),
+    pe(
+        "Immaculate Conception",
+        "Inmaculada Concepción",
+        Rule::gregorian(12, 8),
+    ),
+    pe(
+        "Battle of Ayacucho",
+        "Batalla de Ayacucho",
+        Rule::gregorian(12, 9),
+    ),
+    pe("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+];
+
+/// Peru.
+///
+/// The national holidays of Decreto Legislativo 713 as the source lists
+/// them for 2026, sixteen days including the two of Fiestas Patrias. Four
+/// of them are additions of the 2020s — Flag Day, Air Force Day, the
+/// Battle of Junín and the Battle of Ayacucho — under laws the author could
+/// not read, so the table begins in 2024, the first year all sixteen were
+/// kept, and states nothing before. A holiday on a weekend stays there, and
+/// the *días no laborables* the government declares each year by decree
+/// are not carried.
+pub static PERU: RuleSet = RuleSet {
+    code: "PE",
+    english_name: "Peru",
+    rules: PE_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia (es), \"Anexo:Días festivos en Perú\", retrieved 2026-09-22, \
+              which tabulates the 2026 holidays under Decreto Legislativo 713 \
+              and marks the irrenunciable ones",
+};

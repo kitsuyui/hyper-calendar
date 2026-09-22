@@ -150,6 +150,10 @@ Ordered by how well the sources can be cited, not by importance.
 | Russia 🇷🇺 | The New Year holidays as they grew to 1–8 January; no substitution, because the Government transfers days off by decree every year and the statutory default almost never applies |
 | Argentina 🇦🇷 | From Decreto 1584/2010 in 2011: the *inamovibles* where they fall, the *trasladables* on the decree's Mondays to 2016 and by the weekday rule of Ley 27.399 from 2018; the annual tourist holidays not carried; Holy Thursday and the days of the Jewish and Islamic faiths as observances |
 | Colombia 🇨🇴 | Ley 51 de 1983 from 1984: ten holidays to the following Monday, eight where they fall |
+| Kenya 🇰🇪 | The Public Holidays Act's Part I with the Sunday rule of section 4; Idd-ul-Azha and Diwali as the religious days Parts II and III make them, not days off for all; the Idd days approximate |
+| Morocco 🇲🇦 | The decrees' eleven fixed days and the four feasts, three of them two days, approximate; Yennayer from 2024 and Unity Day from 2026 by year |
+| Pakistan 🇵🇰 | The state holidays, the Hijri ones approximate; Iqbal Day only in the years it was a holiday; the notification's extra Eid days not carried |
+| Peru 🇵🇪 | The sixteen days of the 2026 list from 2024, where they fall; the laws of the four recent additions not read, so nothing before is stated |
 | Ukraine 🇺🇦 | The 2023 list — 8 May, 15 July, 1 October, Christmas on 25 December alone — with the earlier dates by year; the next-working-day rule of article 67; the martial-law suspension of days off is noted, not modelled |
 | Thailand 🇹🇭 | Including the Buddhist lunar holidays, flagged `Approximate` |
 | Vietnam 🇻🇳 | Keyed to the `vietnamese` calendar |

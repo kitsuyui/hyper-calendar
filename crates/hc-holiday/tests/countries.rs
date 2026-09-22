@@ -1099,6 +1099,105 @@ fn colombia_sends_ten_holidays_to_the_following_monday() {
 }
 
 #[test]
+fn kenya_moves_a_sunday_holiday_to_the_next_free_day() {
+    expect(
+        "KE",
+        None,
+        &[
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 6, 1, "Madaraka Day"),
+            (2026, 10, 10, "Mazingira Day"),
+            (2026, 10, 20, "Mashujaa Day"),
+            (2026, 12, 12, "Jamhuri Day"),
+            (2026, 12, 26, "Boxing Day"),
+            // 1 June 2025 was a Sunday.
+            (2025, 6, 2, "Madaraka Day"),
+        ],
+    );
+    expect_substitute("KE", None, 2025, (6, 1), (6, 2));
+    // Idd-ul-Azha and Diwali are for the faithful, not days off for all.
+    let calendar = HolidayCalendar::for_year(table("KE"), None, 2026);
+    let religious: Vec<&str> = (1..=365)
+        .flat_map(|day| calendar.on(Rd(ymd(2026, 1, 1).0 + day - 1)))
+        .filter(|holiday| !holiday.is_day_off())
+        .map(|holiday| holiday.name)
+        .collect();
+    assert!(religious.contains(&"Idd-ul-Azha"), "{religious:?}");
+    assert!(religious.contains(&"Diwali"), "{religious:?}");
+}
+
+#[test]
+fn morocco_keeps_its_fixed_days_and_the_two_recent_additions_by_year() {
+    expect(
+        "MA",
+        None,
+        &[
+            (2026, 1, 11, "Proclamation of Independence Day"),
+            (2026, 1, 14, "Amazigh New Year"),
+            (2026, 7, 30, "Throne Day"),
+            (2026, 8, 14, "Oued Ed-Dahab Allegiance Day"),
+            (2026, 8, 20, "Revolution of the King and the People"),
+            (2026, 8, 21, "Youth Day"),
+            (2026, 10, 31, "Unity Day"),
+            (2026, 11, 6, "Green March Day"),
+            (2026, 11, 18, "Independence Day"),
+        ],
+    );
+    expect_working("MA", None, &[(2023, 1, 14), (2025, 10, 31)]);
+    // Each of the three great feasts is two days.
+    let eid = table("MA")
+        .rules
+        .iter()
+        .filter(|rule| rule.name == "Eid al-Fitr")
+        .count();
+    assert_eq!(eid, 2);
+}
+
+#[test]
+fn pakistan_carries_iqbal_day_only_in_the_years_it_was_a_holiday() {
+    expect(
+        "PK",
+        None,
+        &[
+            (2026, 2, 5, "Kashmir Day"),
+            (2026, 3, 23, "Pakistan Day"),
+            (2026, 5, 28, "Youm-e-Takbeer"),
+            (2026, 8, 14, "Independence Day"),
+            (2026, 11, 9, "Iqbal Day"),
+            (2026, 12, 25, "Quaid-e-Azam Day"),
+            (2014, 11, 9, "Iqbal Day"),
+        ],
+    );
+    expect_working("PK", None, &[(2018, 11, 9), (2023, 5, 28)]);
+}
+
+#[test]
+fn peru_keeps_its_sixteen_days_where_they_fall() {
+    expect(
+        "PE",
+        None,
+        &[
+            (2026, 4, 2, "Maundy Thursday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 6, 7, "Flag Day"),
+            (2026, 6, 29, "Saints Peter and Paul"),
+            (2026, 7, 23, "Air Force Day"),
+            (2026, 7, 28, "Independence Day"),
+            (2026, 7, 29, "Independence Day"),
+            (2026, 8, 6, "Battle of Junín"),
+            (2026, 8, 30, "Saint Rose of Lima"),
+            (2026, 10, 8, "Battle of Angamos"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 12, 8, "Immaculate Conception"),
+            (2026, 12, 9, "Battle of Ayacucho"),
+        ],
+    );
+    // 7 June 2026 is a Sunday and stays one; nothing before 2024 is stated.
+    expect_working("PE", None, &[(2026, 6, 8), (2023, 6, 7)]);
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",

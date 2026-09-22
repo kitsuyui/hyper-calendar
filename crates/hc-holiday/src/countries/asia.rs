@@ -940,3 +940,64 @@ pub static NEPAL: RuleSet = RuleSet {
               mapping moves by a day. The table exists chiefly for the \
               one-day weekend",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Pakistan
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A Hijri-dated holiday, which Pakistan keeps on the Ruet-e-Hilal
+/// Committee's sighting and which is therefore approximate.
+const fn pk_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, month, day),
+    )
+    .approximate()
+}
+
+static PK_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("Kashmir Day", "یومِ یکجہتیِ کشمیر", Rule::gregorian(2, 5)),
+    HolidayRule::fixed_public("Pakistan Day", "یومِ پاکستان", Rule::gregorian(3, 23)),
+    HolidayRule::fixed_public("Labour Day", "یومِ مزدور", Rule::gregorian(5, 1)),
+    // In the source's table of state holidays; first gazetted as a day
+    // off for 2024, a year the author knows and the source does not state.
+    HolidayRule::fixed_public("Youm-e-Takbeer", "یومِ تکبیر", Rule::gregorian(5, 28))
+        .years(Some(2024), None),
+    HolidayRule::fixed_public("Independence Day", "یومِ آزادی", Rule::gregorian(8, 14)),
+    // Withdrawn in 2015 and restored in 2022.
+    HolidayRule::fixed_public("Iqbal Day", "یومِ اقبال", Rule::gregorian(11, 9))
+        .years(None, Some(2014)),
+    HolidayRule::fixed_public("Iqbal Day", "یومِ اقبال", Rule::gregorian(11, 9))
+        .years(Some(2022), None),
+    HolidayRule::fixed_public("Quaid-e-Azam Day", "یومِ قائدِاعظم", Rule::gregorian(12, 25)),
+    pk_hijri("Ashura", "عاشورہ", 1, 9),
+    pk_hijri("Ashura", "عاشورہ", 1, 10),
+    pk_hijri("Eid Milad-un-Nabi", "عید میلاد النبی", 3, 12),
+    pk_hijri("Eid-ul-Fitr", "عيد الفطر", 10, 1),
+    pk_hijri("Eid-ul-Adha", "عید الاضحٰی", 12, 10),
+];
+
+/// Pakistan.
+///
+/// The state holidays as the source tabulates them: the civil days on the
+/// Gregorian calendar and the religious ones on the Hijri, the latter kept
+/// on the Ruet-e-Hilal Committee's sighting and so approximate. Iqbal Day
+/// is carried to 2014 and from 2022, the years its holiday status was
+/// withdrawn and restored. The extra days the annual notification adds to
+/// the two Eids, and the optional holidays of the religious minorities, are
+/// not carried; the source says nothing of a holiday on the weekend, and
+/// nothing is done with one.
+pub static PAKISTAN: RuleSet = RuleSet {
+    code: "PK",
+    english_name: "Pakistan",
+    rules: PK_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia, \"Public holidays in Pakistan\", retrieved 2026-09-22, for \
+              the state holidays and their Urdu names; Wikipedia, \"Iqbal Day\", \
+              retrieved 2026-09-22, for the withdrawal of 2015 and the \
+              restoration of 2022",
+};
