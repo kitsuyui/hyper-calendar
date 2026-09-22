@@ -27,7 +27,7 @@
 //! | --- | --- |
 //! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`byzantine`], [`roman`] |
 //! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`indian`] |
-//! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`armenian`], [`french_republican`] |
+//! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`armenian`], [`french_republican`], [`zoroastrian`] |
 //! | Day counts | [`julian_day`] |
 //! | Cycle-based | [`persian`], [`bahai`], [`bahai_kept`] |
 //! | Proposed reforms | [`symmetry454`], [`world_calendar`] |
@@ -86,6 +86,7 @@ pub mod symmetry010;
 pub mod symmetry454;
 pub mod world_calendar;
 pub mod year_style;
+pub mod zoroastrian;
 
 pub use armenian::{ArmenianCalendar, ArmenianDate};
 pub use armenian_fixed::{ArmenianFixedCalendar, ArmenianFixedDate};
@@ -116,6 +117,7 @@ pub use roman::{RomanCalendar, RomanDate};
 pub use symmetry010::{Symmetry010Calendar, Symmetry010Date};
 pub use symmetry454::{Symmetry454Calendar, Symmetry454Date};
 pub use world_calendar::{WorldCalendar, WorldCalendarDate};
+pub use zoroastrian::{Reckoning, ZoroastrianCalendar, ZoroastrianDate};
 
 #[cfg(feature = "alloc")]
 mod registration {
@@ -171,6 +173,9 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::Symmetry010Calendar)));
         registry.insert(Box::new(DynAdapter::new(crate::RevisedJulianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::WorldCalendar)));
+        for zoroastrian in crate::ZoroastrianCalendar::ALL {
+            registry.insert(Box::new(DynAdapter::new(zoroastrian)));
+        }
 
         for adoption in ADOPTIONS {
             if let Ok(reform) = ReformCalendar::new(adoption) {
@@ -186,7 +191,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 34;
+const CALENDAR_COUNT: usize = 37;
 
 #[cfg(test)]
 mod tests {
@@ -264,6 +269,9 @@ mod tests {
                 BahaiCalendar,
                 Symmetry454Calendar,
                 WorldCalendar,
+                ZoroastrianCalendar::QADIMI,
+                ZoroastrianCalendar::SHAHANSHAHI,
+                ZoroastrianCalendar::FASLI,
                 ReformCalendar::default(),
             );
             assert!(checked > 0, "no calendar covered rd {rd}");
