@@ -18,6 +18,8 @@ extend-exclude = ["Cargo.lock"]
 [default.extend-words]
 # Spanish "Decreto Legislativo", Peru's legislative decree.
 Legislativo = "Legislativo"
+# The Macao Government's English spelling of the Tung Ng Festival.
+Tung = "Tung"
 # Fo, the first day of the Akan six-day week.
 Fo = "Fo"
 # German and Dutch month names.
