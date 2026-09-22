@@ -2695,6 +2695,166 @@ fn moldova_keeps_two_easters_and_shares_9_may_between_two_names() {
 }
 
 #[test]
+fn bahrain_keeps_three_days_of_each_eid_and_two_of_ashura() {
+    // By the tabular calendar: 1 Shawwal 1447 on 20 March 2026 and 10 Dhu
+    // al-Hijjah on 27 May, as the sightings gave; 1 Muharram 1448 on 17 June,
+    // Ashura on 26 June and 12 Rabi' al-Awwal on 26 August, a day after the
+    // sightings, which is what `approximate` means.
+    expect(
+        "BH",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 3, 22, "Eid al-Fitr"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 5, 29, "Eid al-Adha"),
+            (2026, 6, 17, "Hijri New Year"),
+            (2026, 6, 25, "Ashura"),
+            (2026, 6, 26, "Ashura"),
+            (2026, 8, 26, "Prophet's Birthday"),
+            (2026, 12, 16, "National Day"),
+            (2026, 12, 17, "National Day"),
+        ],
+    );
+    // No Arafat Day, and no fourth day of either Eid.
+    expect_working("BH", None, &[(2026, 5, 26), (2026, 5, 30), (2026, 3, 23)]);
+}
+
+#[test]
+fn jordan_gives_four_days_of_fitr_and_five_from_arafat_and_christmas_to_all() {
+    expect(
+        "JO",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 3, 23, "Eid al-Fitr"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 25, "Independence Day"),
+            (2026, 5, 26, "Eid al-Adha"),
+            (2026, 5, 30, "Eid al-Adha"),
+            (2026, 6, 17, "Hijri New Year"),
+            (2026, 8, 26, "Prophet's Birthday"),
+            (2026, 12, 25, "Christmas Day"),
+        ],
+    );
+    expect_working(
+        "JO",
+        None,
+        &[(2026, 3, 24), (2026, 5, 31), (2026, 12, 26), (2026, 4, 13)],
+    );
+    // Orthodox Easter 2026 on 12 April: the Christian employees' days.
+    let calendar = HolidayCalendar::for_year(table("JO"), None, 2026);
+    for (month, day, name, kind) in [
+        (4, 5, "Palm Sunday", Kind::Religious),
+        (4, 13, "Easter Monday", Kind::Religious),
+        (12, 26, "Christmas Day", Kind::Religious),
+        (1, 30, "King Abdullah II's Birthday", Kind::Observance),
+    ] {
+        let found: Vec<(&str, Kind)> = calendar
+            .on(ymd(2026, month, day))
+            .iter()
+            .map(|holiday| (holiday.name, holiday.kind))
+            .collect();
+        assert_eq!(found, [(name, kind)], "{month}-{day}");
+    }
+}
+
+#[test]
+fn kuwait_carries_article_68_with_arafat_and_isra_and_miraj() {
+    expect(
+        "KW",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 2, 25, "National Day"),
+            (2026, 2, 26, "Liberation Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 3, 22, "Eid al-Fitr"),
+            (2026, 5, 26, "Day of Arafat"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 5, 29, "Eid al-Adha"),
+            (2026, 6, 17, "Hijri New Year"),
+            (2026, 8, 26, "Prophet's Birthday"),
+        ],
+    );
+    expect_working("KW", None, &[(2026, 5, 30), (2026, 3, 23), (2026, 5, 1)]);
+    let calendar = HolidayCalendar::for_year(table("KW"), None, 2026);
+    let isra: Vec<&str> = calendar
+        .all()
+        .iter()
+        .filter(|holiday| holiday.name == "Isra and Mi'raj")
+        .map(|holiday| holiday.name)
+        .collect();
+    assert_eq!(isra, ["Isra and Mi'raj"]);
+}
+
+#[test]
+fn lebanon_closes_by_decree_15215_and_moves_labour_day_alone() {
+    // Easter 2026 on 5 April, the Orthodox Easter on 12 April.
+    expect(
+        "LB",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 6, "Armenian Orthodox Christmas"),
+            (2026, 2, 9, "Saint Maron's Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 3, 21, "Eid al-Fitr"),
+            (2026, 3, 25, "Annunciation"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 10, "Orthodox Good Friday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 5, 28, "Eid al-Adha"),
+            (2026, 6, 17, "Hijri New Year"),
+            (2026, 6, 26, "Ashura"),
+            (2026, 8, 15, "Assumption"),
+            (2026, 8, 26, "Prophet's Birthday"),
+            (2026, 11, 22, "Independence Day"),
+            (2026, 12, 25, "Christmas Day"),
+            // 2025: both Easters on 20 April, so Saturday 19 April closed.
+            (2025, 4, 18, "Good Friday"),
+            (2025, 4, 19, "Holy Saturday"),
+        ],
+    );
+    // A Sunday Labour Day gives the Monday (2022); a Sunday Independence
+    // Day (2026) gives nothing; no Easter Monday, no third Eid day, and
+    // Armenian Christmas from 2003.
+    expect_substitute("LB", None, 2022, (5, 1), (5, 2));
+    expect_working(
+        "LB",
+        None,
+        &[
+            (2026, 11, 23),
+            (2026, 4, 6),
+            (2026, 4, 13),
+            (2026, 3, 22),
+            (2026, 5, 29),
+            (2002, 1, 6),
+            (2026, 4, 4),
+            (2026, 5, 6),
+            (2026, 5, 25),
+        ],
+    );
+    let calendar = HolidayCalendar::for_year(table("LB"), None, 2026);
+    for (month, day, name) in [
+        (5, 3, "Martyrs' Day"),
+        (5, 10, "Resistance and Liberation Day"),
+        (2, 14, "Rafic Hariri Memorial Day"),
+    ] {
+        let found: Vec<(&str, Kind)> = calendar
+            .on(ymd(2026, month, day))
+            .iter()
+            .map(|holiday| (holiday.name, holiday.kind))
+            .collect();
+        assert_eq!(found, [(name, Kind::Observance)], "{month}-{day}");
+    }
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",
