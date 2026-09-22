@@ -10,7 +10,7 @@
 
 use hc_calendar::{Month, Rd, Weekday};
 
-use crate::computus::offsets::{EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY};
+use crate::computus::offsets::{EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, PALM_SUNDAY};
 use crate::hindu::DIWALI;
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
@@ -1038,4 +1038,350 @@ pub static GHANA: RuleSet = RuleSet {
               2025 (gna.org.gh, retrieved 2026-09-22), for the 2019 list and the \
               2025 changes; Ghanaian Times, on Parliament's passage of the \
               amendment on 25 June 2025",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Bahrain
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A Hijri-dated holiday: the tabular calendar approximates the date the
+/// sighting fixes.
+const fn hijri(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, month, day),
+    )
+    .approximate()
+}
+
+static BH_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "New Year's Day",
+        "رأس السنة الميلادية",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 16)),
+    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 17)),
+    hijri("Hijri New Year", "رأس السنة الهجرية", 1, 1),
+    hijri("Ashura", "عاشوراء", 1, 9),
+    hijri("Ashura", "عاشوراء", 1, 10),
+    hijri("Prophet's Birthday", "المولد النبوي", 3, 12),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
+];
+
+/// Bahrain.
+///
+/// The official holidays the Council of Ministers determines under
+/// article 64 of the Labour Law for the Private Sector (Law 36 of 2012):
+/// four national days and ten Hijri-dated ones, three of each Eid, the
+/// two days of Ashura, the Hijri New Year and the Prophet's Birthday, the
+/// Hijri dates on the tabular calendar as an approximation of the
+/// sighting. Wikipedia's table adds Arafat Day; the 2026 list does not,
+/// and it is not carried. The weekend is Friday and Saturday, and what a
+/// holiday on it gives is the year's circular, not a rule, so nothing
+/// moves; the Cabinet's Sports Day is not carried.
+pub static BAHRAIN: RuleSet = RuleSet {
+    code: "BH",
+    english_name: "Bahrain",
+    rules: BH_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: FRIDAY_SATURDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Law 36 of 2012, Labour Law for the Private Sector, art. 64, per the Labour \
+              Market Regulatory Authority; HONO's 2026 list of Bahrain's fourteen public \
+              holidays, retrieved 2026-09-22; Wikipedia and the Arabic Wikipedia, \
+              \"Public holidays in Bahrain\" and \"قائمة العطل الرسمية في البحرين\", \
+              retrieved the same day, for the names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Jordan
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A day the decision of the committee on unifying the Christian feasts
+/// gives Christian employees off.
+const fn jo_christian(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::observance(name, local, rule).of_kind(Kind::Religious)
+}
+
+static JO_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "New Year's Day",
+        "رأس السنة الميلادية",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public("Labour Day", "عيد العمال العالمي", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "عيد استقلال المملكة",
+        Rule::gregorian(5, 25),
+    ),
+    HolidayRule::fixed_public(
+        "Christmas Day",
+        "عيد الميلاد المجيد",
+        Rule::gregorian(12, 25),
+    ),
+    hijri("Hijri New Year", "رأس السنة الهجرية", 1, 1),
+    hijri("Prophet's Birthday", "المولد النبوي الشريف", 3, 12),
+    // Four days from 1 Shawwal, and five from the Day of Arafat.
+    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 1),
+    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 2),
+    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 3),
+    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 4),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 9),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 13),
+    // Christian employees, by the Eastern computus.
+    jo_christian(
+        "Christmas Day",
+        "عيد الميلاد المجيد",
+        Rule::gregorian(12, 26),
+    ),
+    jo_christian("Palm Sunday", "أحد الشعانين", Rule::paschal(PALM_SUNDAY)),
+    jo_christian("Easter Sunday", "عيد الفصح", Rule::paschal(EASTER_SUNDAY)),
+    jo_christian("Easter Monday", "عيد الفصح", Rule::paschal(EASTER_MONDAY)),
+    // Working commemorations.
+    HolidayRule::observance(
+        "Isra and Mi'raj",
+        "ذكرى الإسراء والمعراج",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 7, 27),
+    )
+    .approximate(),
+    HolidayRule::observance(
+        "King Abdullah II's Birthday",
+        "ذكرى ميلاد الملك عبد الله الثاني",
+        Rule::gregorian(1, 30),
+    ),
+    HolidayRule::observance(
+        "Accession Day",
+        "ذكرى جلوس الملك عبد الله الثاني",
+        Rule::gregorian(6, 9),
+    ),
+    HolidayRule::observance(
+        "Great Arab Revolt Day",
+        "يوم الثورة العربية الكبرى",
+        Rule::gregorian(6, 10),
+    ),
+    HolidayRule::observance("Army Day", "يوم الجيش", Rule::gregorian(6, 10)),
+    HolidayRule::observance(
+        "King Hussein's Birthday",
+        "ذكرى ميلاد الملك الحسين بن طلال",
+        Rule::gregorian(11, 14),
+    ),
+];
+
+/// Jordan.
+///
+/// The official holidays as the Arabic Wikipedia lists them and the
+/// Securities Depository Center's 2026 calendar confirms: four fixed
+/// days, Christmas among them for all, and the Hijri-dated days on the
+/// tabular calendar as an approximation of the sighting — Eid al-Fitr
+/// four days from 1 Shawwal and Eid al-Adha five from the Day of Arafat,
+/// as 2026's 20–23 March and 26–30 May show. The days the committee on
+/// unifying the Christian feasts gives Christian employees, 26 December
+/// and Palm Sunday, Easter Sunday and Easter Monday by the Eastern
+/// computus, are [`Kind::Religious`]; the commemorations kept at work are
+/// observances. The weekend is Friday and Saturday. The Government's
+/// habit of moving a holiday to lengthen a weekend — 2026's Labour Day on
+/// Thursday 30 April — is not carried.
+pub static JORDAN: RuleSet = RuleSet {
+    code: "JO",
+    english_name: "Jordan",
+    rules: JO_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: FRIDAY_SATURDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "The Arabic Wikipedia, \"العطل الرسمية في الأردن\", retrieved 2026-09-22, for \
+              the list, the day counts, the working commemorations and the \
+              Christian employees' days; the Securities Depository Center, \"أيام \
+              العطل 2026\", retrieved the same day, for the 2026 dates; Wikipedia, \
+              \"Public holidays in Jordan\", for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Kuwait
+// ─────────────────────────────────────────────────────────────────────────
+
+static KW_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "New Year's Day",
+        "رأس السنة الميلادية",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(2, 25)),
+    HolidayRule::fixed_public("Liberation Day", "عيد التحرير", Rule::gregorian(2, 26)),
+    hijri("Hijri New Year", "رأس السنة الهجرية", 1, 1),
+    hijri("Prophet's Birthday", "المولد النبوي", 3, 12),
+    hijri("Isra and Mi'raj", "الإسراء والمعراج", 7, 27),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
+    hijri("Day of Arafat", "يوم الوقوف بعرفة", 12, 9),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
+];
+
+/// Kuwait.
+///
+/// Article 68 of the Private Sector Labour Law (Law 6 of 2010): the
+/// thirteen paid official holidays, three of each Eid, the Day of Arafat,
+/// Isra and Mi'raj, the Hijri New Year and the Prophet's Birthday on the
+/// tabular calendar as an approximation of the sighting, and three fixed
+/// days. The weekend is Friday and Saturday; the article compensates work
+/// on a holiday, and the Civil Service Commission's extra days for the
+/// public sector are not carried.
+pub static KUWAIT: RuleSet = RuleSet {
+    code: "KW",
+    english_name: "Kuwait",
+    rules: KW_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: FRIDAY_SATURDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Law 6 of 2010, the Private Sector Labour Law, art. 68, as published in \
+              English by the Public Authority of Manpower and summarised by Kuwait \
+              Up To Date, retrieved 2026-09-22; the Arabic Wikipedia, \"قائمة العطل \
+              الرسمية في الكويت\", retrieved the same day, for the names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Lebanon
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Decree 15215's rule for Labour Day alone: on a Sunday or another
+/// holiday, the private sector closes the day after. Every other holiday
+/// on a Sunday is not replaced, and is `fixed_public`.
+static LB_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: true,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static LB_GOOD_FRIDAY: Rule = Rule::easter(GOOD_FRIDAY);
+static LB_ORTHODOX_GOOD_FRIDAY: Rule = Rule::paschal(GOOD_FRIDAY);
+
+/// When the Catholic and the Orthodox Good Fridays fall on the same day,
+/// the decree closes that Friday and the Saturday after it.
+fn lb_holy_saturday(year: i64) -> Days {
+    let catholic = LB_GOOD_FRIDAY.days_in_year(year);
+    let orthodox = LB_ORTHODOX_GOOD_FRIDAY.days_in_year(year);
+    match (catholic.as_slice().first(), orthodox.as_slice().first()) {
+        (Some(a), Some(b)) if a == b => Days::one(Rd(a.0 + 1)),
+        _ => Days::new(),
+    }
+}
+
+static LB_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "New Year's Day",
+        "رأس السنة الميلادية",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Armenian Orthodox Christmas",
+        "عيد الميلاد عند الطوائف الأرمنية الأرثوذكسية",
+        Rule::gregorian(1, 6),
+    )
+    .years(Some(2003), None),
+    HolidayRule::fixed_public("Saint Maron's Day", "عيد مار مارون", Rule::gregorian(2, 9)),
+    HolidayRule::fixed_public(
+        "Annunciation",
+        "عيد بشارة السيدة مريم العذراء",
+        Rule::gregorian(3, 25),
+    ),
+    HolidayRule::fixed_public(
+        "Good Friday",
+        "الجمعة العظيمة عند الطوائف الكاثوليكية",
+        Rule::easter(GOOD_FRIDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Orthodox Good Friday",
+        "الجمعة العظيمة عند الطوائف الأرثوذكسية",
+        Rule::paschal(GOOD_FRIDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Holy Saturday",
+        "سبت النور",
+        Rule::Computed(lb_holy_saturday),
+    ),
+    HolidayRule::public("Labour Day", "عيد العمل", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public(
+        "Assumption",
+        "عيد انتقال السيدة العذراء",
+        Rule::gregorian(8, 15),
+    ),
+    HolidayRule::fixed_public("Independence Day", "عيد الاستقلال", Rule::gregorian(11, 22)),
+    HolidayRule::fixed_public("Christmas Day", "عيد الميلاد", Rule::gregorian(12, 25)),
+    hijri("Hijri New Year", "رأس السنة الهجرية", 1, 1),
+    hijri("Ashura", "ذكرى عاشوراء", 1, 10),
+    hijri("Prophet's Birthday", "ذكرى المولد النبوي", 3, 12),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
+    // Commemorated on Sundays by the decree, and so no days off; and the
+    // day the Council of Ministers declares year by year.
+    HolidayRule::observance(
+        "Martyrs' Day",
+        "ذكرى الشهداء",
+        Rule::nth(5, 1, Weekday::Sunday),
+    ),
+    HolidayRule::observance(
+        "Resistance and Liberation Day",
+        "عيد المقاومة والتحرير",
+        Rule::nth(5, 2, Weekday::Sunday),
+    ),
+    HolidayRule::observance(
+        "Rafic Hariri Memorial Day",
+        "ذكرى استشهاد الرئيس رفيق الحريري",
+        Rule::gregorian(2, 14),
+    ),
+];
+
+/// Lebanon.
+///
+/// Decree 15215 of 27 September 2005 as amended, read from the Presidency
+/// of the Council of Ministers' own table: the days on which the public
+/// administration, the municipalities and the private sector close —
+/// Good Friday by both the Gregorian and the Julian computus, Armenian
+/// Christmas from 2003, and the Hijri-dated days on the tabular calendar
+/// as an approximation of the sighting, two days of each Eid. The decree
+/// replaces no holiday that falls on a Sunday, with two exceptions it
+/// names and this table carries: Labour Day on a Sunday or another holiday
+/// closes the private sector the day after, a forward policy that reaches
+/// that rule alone, and the two Good Fridays on one day close the Saturday
+/// after, a computed rule. Martyrs' Day and the Resistance and Liberation
+/// Day are commemorated on the first and second Sundays of May and give no
+/// day off; Rafic Hariri's day is declared year by year; all three are
+/// observances. Easter Sundays are Sundays and the decree names the
+/// Fridays.
+pub static LEBANON: RuleSet = RuleSet {
+    code: "LB",
+    english_name: "Lebanon",
+    rules: LB_RULES,
+    substitution: LB_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Presidency of the Council of Ministers, \"الأعياد والعطل الرسمية\", \
+              pcm.gov.lb, retrieved 2026-09-22, reproducing Decree 15215 of \
+              27 September 2005 and its amendments; the Embassy of Lebanon in \
+              Poland's 2026 list, retrieved the same day; Wikipedia, \"Public \
+              holidays in Lebanon\", for the English names and Armenian \
+              Christmas's 2003 start",
 };

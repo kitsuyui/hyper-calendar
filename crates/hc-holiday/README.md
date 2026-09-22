@@ -16,7 +16,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
 | `international` | the United Nations international days, each citing its resolution |
-| `countries` | 88 national tables |
+| `countries` | 92 national tables |
 
 ## The vocabulary
 
@@ -84,20 +84,21 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**88 countries.** Albania, Argentina, Armenia, Australia (eight states and
-territories), Austria, Azerbaijan, Belarus, Belgium, Bolivia, Brazil, Bulgaria,
-Canada (federal plus the provincial days fixed by statute), Chile, China,
-Colombia, Costa Rica, Croatia, Cyprus, Czechia, Denmark, the Dominican Republic,
-Ecuador, Egypt, Estonia, Ethiopia, Finland, France (métropole plus
+**92 countries.** Albania, Argentina, Armenia, Australia (eight states and
+territories), Austria, Azerbaijan, Bahrain, Belarus, Belgium, Bolivia, Brazil,
+Bulgaria, Canada (federal plus the provincial days fixed by statute), Chile,
+China, Colombia, Costa Rica, Croatia, Cyprus, Czechia, Denmark, the Dominican
+Republic, Ecuador, Egypt, Estonia, Ethiopia, Finland, France (métropole plus
 Alsace-Moselle), Georgia, Germany (all 16 *Länder*), Ghana, Greece, Guatemala,
 Hong Kong, Hungary, Iceland, India, Indonesia, Iran, Ireland, Israel, Italy,
-Japan, Kazakhstan, Kenya, Latvia, Lithuania, Luxembourg, Macau, Malaysia, Malta,
-Mexico, Moldova, Montenegro, Morocco, Myanmar, Nepal, the Netherlands, New
-Zealand, Nigeria, North Macedonia, Norway, Pakistan, Panama, Peru, the
-Philippines, Poland, Portugal, Romania, Russia, Saudi Arabia, Serbia, Singapore,
-Slovakia, Slovenia, South Africa, South Korea, Spain, Sweden, Switzerland,
-Taiwan, Thailand, Türkiye, Ukraine, the United Arab Emirates, the United Kingdom
-(three bank-holiday jurisdictions), the United States, Uruguay, Vietnam.
+Japan, Jordan, Kazakhstan, Kenya, Kuwait, Latvia, Lebanon, Lithuania,
+Luxembourg, Macau, Malaysia, Malta, Mexico, Moldova, Montenegro, Morocco,
+Myanmar, Nepal, the Netherlands, New Zealand, Nigeria, North Macedonia, Norway,
+Pakistan, Panama, Peru, the Philippines, Poland, Portugal, Romania, Russia,
+Saudi Arabia, Serbia, Singapore, Slovakia, Slovenia, South Africa, South Korea,
+Spain, Sweden, Switzerland, Taiwan, Thailand, Türkiye, Ukraine, the United Arab
+Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
+States, Uruguay, Vietnam.
 
 **Nineteen traditions.** Christianity under both computations, the
 Ethiopian Orthodox Tewahedo and the Coptic Orthodox Churches, Islam,
@@ -192,7 +193,7 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 
 | Entry | Why |
 | --- | --- |
-| Every Hijri-dated holiday, in twenty-four countries and the Islamic tradition table | the observed date is a sighting decision, per country |
+| Every Hijri-dated holiday, in twenty-eight countries and the Islamic tradition table | the observed date is a sighting decision, per country |
 | Vesak, Makha Bucha, Asalha Bucha, Khao Phansa (Thailand, Indonesia, Singapore, Malaysia, the Buddhist table) | dated by the Thai lunar calendar, which this crate does not have; approximated as the full moon of Chinese lunar month *n* − 2. Right in 2022, 2024 and 2025; a day out in 2023; a month out in a Thai intercalary year |
 | Nepal's Gregorian-looking national days | they are Bikram Sambat dates whose Gregorian equivalent moves by a day |
 
