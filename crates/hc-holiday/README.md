@@ -16,6 +16,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
 | `international` | the United Nations international days, each citing its resolution |
+| `exchanges` | 1 exchange calendar, the New York Stock Exchange |
 | `countries` | 123 national tables |
 
 ## The vocabulary
@@ -131,6 +132,22 @@ French suspension of 8 May, Italy's 1977–2000 Republic Day, Portugal's
 2013–2015 austerity suspensions, Denmark's abolition of Store bededag in 2024,
 Korea's three successive extensions of the 대체공휴일, and so on. None of them
 claims to be complete back to its own founding.
+
+## Exchange calendars
+
+`exchanges` carries the trading calendars of stock exchanges as rule sets
+keyed by ISO 10383 Market Identifier Code: the days an exchange is closed, as
+public-kind entries that stop business-day arithmetic, and the days it closes
+early, as observances that do not. One so far, the New York Stock Exchange
+(`XNYS`), from the exchange's own published calendar — it closes on Good
+Friday, which no statute makes a holiday, trades on Columbus Day and Veterans
+Day, moves a Saturday holiday to the Friday before except a New Year's Day,
+whose Friday is the last day of the year, and closes at 1:00 p.m. the day
+after Thanksgiving and on 3 July and Christmas Eve when those fall on a Monday
+to Thursday. The unscheduled closures a read source records — the September
+2001 attacks, Hurricane Sandy, the day of mourning for President George H. W.
+Bush — are data in the table; those no source read here gives are not, and
+the table says which.
 
 ## What this crate will not do
 

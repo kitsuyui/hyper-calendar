@@ -280,6 +280,14 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | --- | --- | --- |
 | `un-days` | United Nations international days | 236 |
 
+## Exchange calendars
+
+1 table, feature `holiday`, keyed by ISO 10383 Market Identifier Code. A closed day is a public-kind entry; an early close is an observance.
+
+| MIC | Exchange | Entries |
+| --- | --- | --- |
+| `XNYS` | New York Stock Exchange | 20 |
+
 ## Exactly defined units of time
 
 53 units, feature `units`, shortest first. Each is an exact rational number of seconds, because each was *defined* as one. A unit somebody measured — the sidereal day, the tropical year, the galactic year — is not here; it lives with the model that measured it, with its error bar attached.

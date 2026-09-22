@@ -397,6 +397,25 @@ fn render() -> String {
         );
     }
 
+    let exchanges = hyper_calendar::hc_holiday::exchanges::ALL;
+    let _ = writeln!(out, "\n## Exchange calendars\n");
+    let _ = writeln!(
+        out,
+        "{} table{}, feature `holiday`, keyed by ISO 10383 Market Identifier Code. A closed day is a public-kind entry; an early close is an observance.\n",
+        exchanges.len(),
+        if exchanges.len() == 1 { "" } else { "s" }
+    );
+    out.push_str("| MIC | Exchange | Entries |\n| --- | --- | --- |\n");
+    for set in exchanges {
+        let _ = writeln!(
+            out,
+            "| `{}` | {} | {} |",
+            set.code,
+            set.english_name,
+            set.rules.len()
+        );
+    }
+
     let units = hyper_calendar::hc_units::unit::ALL;
     let _ = writeln!(out, "\n## Exactly defined units of time\n");
     let _ = writeln!(
