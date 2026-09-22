@@ -133,6 +133,8 @@ Ordered by how well the sources can be cited, not by importance.
 | Ireland 🇮🇪 | Including St Brigid's Day and its conditional rule |
 | Germany 🇩🇪 | Federal plus all 16 *Länder*, including Buß- und Bettag before and after 1995 |
 | France 🇫🇷 | Métropole plus Alsace-Moselle, with 8 May's 1959–81 absence |
+| Hong Kong 🇭🇰 | The seventeen general holidays with the statutory subset as `Kind::Public` and the 2021 phasing-in as years; Sunday and coincidence made up on the next free day, the 1983–2011 eve rule computed; complete from 1997 |
+| Macau 🇲🇴 | Executive Order 60/2000 with the ten obligatory holidays of Law 7/2008 as `Kind::Public`; the public administration's compensatory rest days from 2019; the eves as observances |
 | China 🇨🇳 | Statutory holidays keyed to the `chinese` calendar, across the 1999, 2007 and 2024 revisions |
 | Taiwan 🇹🇼 | Including the 2025 restoration of three commemorative holidays |
 | South Korea 🇰🇷 | Keyed to the `dangi` calendar, with all three extensions of the 대체공휴일 and the collision rule |

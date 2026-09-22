@@ -6,10 +6,12 @@
 //! New Year, Seollal and Tết are not always the same day. Each table names
 //! its own calendar rather than borrowing China's.
 
-use hc_calendar::Weekday;
+use hc_calendar::{Rd, Weekday};
 use hc_seasons::SolarTerm;
 
-use crate::computus::offsets::{ASCENSION, GOOD_FRIDAY, MAUNDY_THURSDAY};
+use crate::computus::offsets::{
+    ASCENSION, EASTER_MONDAY, GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY,
+};
 use crate::hindu::{
     BUDDHA_PURNIMA, DIWALI, GURU_NANAK_JAYANTI, HOLI, JANMASHTAMI, MAHAVIR_JAYANTI, RAMA_NAVAMI,
     VIJAYA_DASHAMI,
@@ -1130,4 +1132,401 @@ pub static MYANMAR: RuleSet = RuleSet {
               the list and the Burmese dates it gives; the Thingyan moments from \
               Yan Naing Aye's arithmetic as `hc-calendars-regional::burmese` \
               carries it",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Hong Kong
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The General Holidays Ordinance as gazetted year by year: a general
+/// holiday on a Sunday, or on the same day as another general holiday, is
+/// observed on the next day that is not itself one. A Saturday moves
+/// nothing. The three Lunar New Year days and the day following the
+/// Mid-Autumn Festival were the exception from 1983 to 2011 and are
+/// `fixed_public` for those years, with their own eve-of rules below.
+static HK_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: true,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static HK_LUNAR_NEW_YEAR: Rule = Rule::in_calendar(CalendarSystem::CHINESE, 1, 1);
+static HK_MID_AUTUMN_FOLLOWING: Rule = Rule::in_calendar(CalendarSystem::CHINESE, 8, 16);
+static HK_DECEMBER_26: Rule = Rule::gregorian(12, 26);
+
+/// From 1983 to 2011 a Lunar New Year day on a Sunday was made up on the
+/// day before Lunar New Year's Day, so that the eve rather than the fourth
+/// day was the day off — 17 February 2007 and 13 February 2010 among
+/// them. The make-up ran forward before 1983 and again from the amendment
+/// of 14 December 2011, which first bit on 13 February 2013.
+fn hk_lunar_new_year_eve(year: i64) -> Days {
+    let days = HK_LUNAR_NEW_YEAR.days_in_year(year);
+    let Some(&first) = days.as_slice().first() else {
+        return Days::new();
+    };
+    let on_sunday = (0..3).any(|offset| Weekday::from_rd(Rd(first.0 + offset)) == Weekday::Sunday);
+    if on_sunday {
+        Days::one(Rd(first.0 - 1))
+    } else {
+        Days::new()
+    }
+}
+
+/// The same for the day following the Mid-Autumn Festival: on a Sunday,
+/// the festival day itself, a Saturday, was the day off from 1983 to 2011,
+/// 3 October 2009 the last time.
+fn hk_mid_autumn_day(year: i64) -> Days {
+    let days = HK_MID_AUTUMN_FOLLOWING.days_in_year(year);
+    let Some(&following) = days.as_slice().first() else {
+        return Days::new();
+    };
+    if Weekday::from_rd(following) == Weekday::Sunday {
+        Days::one(Rd(following.0 - 1))
+    } else {
+        Days::new()
+    }
+}
+
+static HK_RULES: &[HolidayRule] = &[
+    HolidayRule::public("The first day of January", "一月一日", Rule::gregorian(1, 1)),
+    // Lunar New Year: made up after the third day, except from 1983 to
+    // 2011, when the eve stood in.
+    HolidayRule::public("Lunar New Year's Day", "農曆年初一", Rule::in_calendar(CalendarSystem::CHINESE, 1, 1))
+        .years(None, Some(1982)),
+    HolidayRule::fixed_public("Lunar New Year's Day", "農曆年初一", Rule::in_calendar(CalendarSystem::CHINESE, 1, 1))
+        .years(Some(1983), Some(2011)),
+    HolidayRule::public("Lunar New Year's Day", "農曆年初一", Rule::in_calendar(CalendarSystem::CHINESE, 1, 1))
+        .years(Some(2012), None),
+    HolidayRule::public("The second day of Lunar New Year", "農曆年初二", Rule::in_calendar(CalendarSystem::CHINESE, 1, 2))
+        .years(None, Some(1982)),
+    HolidayRule::fixed_public("The second day of Lunar New Year", "農曆年初二", Rule::in_calendar(CalendarSystem::CHINESE, 1, 2))
+        .years(Some(1983), Some(2011)),
+    HolidayRule::public("The second day of Lunar New Year", "農曆年初二", Rule::in_calendar(CalendarSystem::CHINESE, 1, 2))
+        .years(Some(2012), None),
+    HolidayRule::public("The third day of Lunar New Year", "農曆年初三", Rule::in_calendar(CalendarSystem::CHINESE, 1, 3))
+        .years(Some(1968), Some(1982)),
+    HolidayRule::fixed_public("The third day of Lunar New Year", "農曆年初三", Rule::in_calendar(CalendarSystem::CHINESE, 1, 3))
+        .years(Some(1983), Some(2011)),
+    HolidayRule::public("The third day of Lunar New Year", "農曆年初三", Rule::in_calendar(CalendarSystem::CHINESE, 1, 3))
+        .years(Some(2012), None),
+    HolidayRule::fixed_public("Lunar New Year's Eve", "農曆年初一前一日", Rule::Computed(hk_lunar_new_year_eve))
+        .years(Some(1983), Some(2011)),
+    HolidayRule::public(
+        "Ching Ming Festival",
+        "清明節",
+        Rule::SolarTerm {
+            term: QINGMING,
+            meridian: hc_seasons::Meridian::CHINA,
+        },
+    )
+    .years(Some(1968), None),
+    // The Easter days are general holidays that the Employment Ordinance
+    // reaches only as its 2021 amendment phases them in.
+    HolidayRule::public("Good Friday", "耶穌受難節", Rule::easter(GOOD_FRIDAY))
+        .years(None, Some(2027))
+        .of_kind(Kind::Bank),
+    HolidayRule::public("Good Friday", "耶穌受難節", Rule::easter(GOOD_FRIDAY)).years(Some(2028), None),
+    HolidayRule::public("The day following Good Friday", "耶穌受難節翌日", Rule::easter(HOLY_SATURDAY))
+        .years(None, Some(2029))
+        .of_kind(Kind::Bank),
+    HolidayRule::public("The day following Good Friday", "耶穌受難節翌日", Rule::easter(HOLY_SATURDAY))
+        .years(Some(2030), None),
+    HolidayRule::public("Easter Monday", "復活節星期一", Rule::easter(EASTER_MONDAY))
+        .years(None, Some(2025))
+        .of_kind(Kind::Bank),
+    HolidayRule::public("Easter Monday", "復活節星期一", Rule::easter(EASTER_MONDAY)).years(Some(2026), None),
+    HolidayRule::public("Labour Day", "勞動節", Rule::gregorian(5, 1)).years(Some(1999), None),
+    HolidayRule::public("The Birthday of the Buddha", "佛誕", Rule::in_calendar(CalendarSystem::CHINESE, 4, 8))
+        .years(Some(1999), Some(2021))
+        .of_kind(Kind::Bank),
+    HolidayRule::public("The Birthday of the Buddha", "佛誕", Rule::in_calendar(CalendarSystem::CHINESE, 4, 8))
+        .years(Some(2022), None),
+    HolidayRule::public("Tuen Ng Festival", "端午節", Rule::in_calendar(CalendarSystem::CHINESE, 5, 5))
+        .years(Some(1968), None),
+    HolidayRule::public(
+        "Hong Kong Special Administrative Region Establishment Day",
+        "香港特別行政區成立紀念日",
+        Rule::gregorian(7, 1),
+    )
+    .years(Some(1997), None),
+    HolidayRule::fixed_public(
+        "The day following Hong Kong Special Administrative Region Establishment Day",
+        "香港特別行政區成立紀念日翌日",
+        Rule::gregorian(7, 2),
+    )
+    .years(Some(1997), Some(1997)),
+    HolidayRule::public(
+        "Sino-Japanese War Victory Day",
+        "抗日戰爭勝利紀念日",
+        Rule::nth(8, 3, Weekday::Monday),
+    )
+    .years(Some(1997), Some(1998))
+    .of_kind(Kind::Bank),
+    HolidayRule::public(
+        "The day following the Chinese Mid-Autumn Festival",
+        "中秋節翌日",
+        Rule::in_calendar(CalendarSystem::CHINESE, 8, 16),
+    )
+    .years(Some(1968), Some(1982)),
+    HolidayRule::fixed_public(
+        "The day following the Chinese Mid-Autumn Festival",
+        "中秋節翌日",
+        Rule::in_calendar(CalendarSystem::CHINESE, 8, 16),
+    )
+    .years(Some(1983), Some(2011)),
+    HolidayRule::public(
+        "The day following the Chinese Mid-Autumn Festival",
+        "中秋節翌日",
+        Rule::in_calendar(CalendarSystem::CHINESE, 8, 16),
+    )
+    .years(Some(2012), None),
+    HolidayRule::fixed_public("Chinese Mid-Autumn Festival", "中秋節", Rule::Computed(hk_mid_autumn_day))
+        .years(Some(1983), Some(2011)),
+    HolidayRule::public("National Day", "國慶日", Rule::gregorian(10, 1)).years(Some(1997), None),
+    HolidayRule::public("The day following National Day", "國慶日翌日", Rule::gregorian(10, 2))
+        .years(Some(1997), Some(1998))
+        .of_kind(Kind::Bank),
+    HolidayRule::public("Chung Yeung Festival", "重陽節", Rule::in_calendar(CalendarSystem::CHINESE, 9, 9))
+        .years(Some(1968), None),
+    HolidayRule::public("Christmas Day", "聖誕節", Rule::gregorian(12, 25)),
+    // 26 December, or 27 December when the 26th is a Sunday: the rule
+    // moves the holiday itself, so it never needs a substitute.
+    HolidayRule::fixed_public(
+        "The first weekday after Christmas Day",
+        "聖誕節後第一個周日",
+        Rule::moved_by_weekday(&HK_DECEMBER_26, &[(Weekday::Sunday, 1)]),
+    )
+    .years(None, Some(2023))
+    .of_kind(Kind::Bank),
+    HolidayRule::fixed_public(
+        "The first weekday after Christmas Day",
+        "聖誕節後第一個周日",
+        Rule::moved_by_weekday(&HK_DECEMBER_26, &[(Weekday::Sunday, 1)]),
+    )
+    .years(Some(2024), None),
+    // The one-off of 2015, a general and a statutory holiday.
+    HolidayRule::fixed_public(
+        "The 70th anniversary day of the victory of the Chinese people's war of resistance against Japanese aggression",
+        "中國人民抗日戰爭勝利70周年紀念日",
+        Rule::gregorian(9, 3),
+    )
+    .years(Some(2015), Some(2015)),
+    // The Employment Ordinance lets an employer give this instead of
+    // Christmas Day; it is not a general holiday.
+    HolidayRule::observance(
+        "Chinese Winter Solstice Festival",
+        "冬節",
+        Rule::SolarTerm {
+            term: SolarTerm::WINTER_SOLSTICE,
+            meridian: hc_seasons::Meridian::CHINA,
+        },
+    ),
+];
+
+/// Hong Kong.
+///
+/// The seventeen general holidays of the General Holidays Ordinance
+/// (Cap. 149), which banks, schools, public offices and the Government
+/// keep, and within them the statutory holidays of the Employment
+/// Ordinance (Cap. 57), which every employer must give. A general holiday
+/// that is not statutory is [`Kind::Bank`], and the 2021 amendment's
+/// phasing-in is carried as years: the Birthday of the Buddha statutory
+/// from 2022, the first weekday after Christmas Day from 2024, Easter
+/// Monday from 2026, Good Friday from 2028 and the day following it from
+/// 2030, when the two lists meet. A Sunday, or a coincidence of two
+/// general holidays, is made up on the next free day, which is how a
+/// Sunday Lunar New Year day yields the fourth day and a Sunday Ching Ming
+/// on Easter Monday yields the Tuesday; from 1983 to 2011 the Lunar New
+/// Year days and the day following the Mid-Autumn Festival were made up on
+/// their eves instead, and the two computed rules carry that. Saturdays
+/// move nothing.
+///
+/// The table is complete from the Special Administrative Region's first
+/// day, 1 July 1997, with that year's 2 July, the two years of the Victory
+/// Day and the day following National Day, and the one-off 3 September
+/// 2015. The holidays that predate 1997 carry their real years — the Ching
+/// Ming, Tuen Ng and Chung Yeung Festivals and the third Lunar New Year
+/// day from 1968 — but the colonial holidays they sat beside, the Queen's
+/// Birthday and Liberation Day among them, are not carried, so a year
+/// before 1997 is answered incompletely. The Chinese Winter Solstice
+/// Festival is an observance because an employer may give it in place of
+/// Christmas Day.
+pub static HONG_KONG: RuleSet = RuleSet {
+    code: "HK",
+    english_name: "Hong Kong",
+    rules: HK_RULES,
+    substitution: HK_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "GovHK, \"General holidays for 2022\", \"2026\" and \"2027\", retrieved \
+              2026-09-22, for the gazetted lists and the Government's stated \
+              substitution reasoning; the Chinese Wikipedia, \"香港節日與公眾假期\", \
+              retrieved the same day, for the 1968, 1983, 1997, 1999 and 2011 \
+              changes and the 1983–2011 eve rule; Labour Department, \"Statutory \
+              holidays\" FAQ and \"Increase of statutory holidays\", for the \
+              Employment Ordinance's list, its phasing-in and the Winter \
+              Solstice option",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Macau
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 79(4) of the Public Administration Staff Statute, as amended
+/// by Law 18/2018 and applied from 2019: a public holiday on a Saturday or
+/// Sunday, or on another holiday, gives the public administration the
+/// next working day off. The Government's yearly list names those days
+/// as compensatory rest days.
+static MO_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: true,
+    valid_from: Some(2019),
+    valid_until: None,
+}];
+
+static MO_LUNAR_NEW_YEAR: Rule = Rule::in_calendar(CalendarSystem::CHINESE, 1, 1);
+
+static MO_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "元旦", Rule::gregorian(1, 1)),
+    HolidayRule::public(
+        "Lunar New Year's Day",
+        "農曆正月初一",
+        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
+    ),
+    HolidayRule::public(
+        "The second day of Lunar New Year",
+        "農曆正月初二",
+        Rule::in_calendar(CalendarSystem::CHINESE, 1, 2),
+    ),
+    HolidayRule::public(
+        "The third day of Lunar New Year",
+        "農曆正月初三",
+        Rule::in_calendar(CalendarSystem::CHINESE, 1, 3),
+    ),
+    HolidayRule::public(
+        "Cheng Ming Festival",
+        "清明節",
+        Rule::SolarTerm {
+            term: QINGMING,
+            meridian: hc_seasons::Meridian::CHINA,
+        },
+    ),
+    HolidayRule::public("Good Friday", "耶穌受難日", Rule::easter(GOOD_FRIDAY)).of_kind(Kind::Bank),
+    HolidayRule::public(
+        "The day before Easter",
+        "復活節前日",
+        Rule::easter(HOLY_SATURDAY),
+    )
+    .of_kind(Kind::Bank),
+    HolidayRule::public("Labour Day", "勞動節", Rule::gregorian(5, 1)),
+    HolidayRule::public(
+        "The Buddha's Birthday",
+        "佛誕節",
+        Rule::in_calendar(CalendarSystem::CHINESE, 4, 8),
+    )
+    .years(Some(2000), None)
+    .of_kind(Kind::Bank),
+    HolidayRule::public(
+        "Tung Ng Festival",
+        "端午節",
+        Rule::in_calendar(CalendarSystem::CHINESE, 5, 5),
+    )
+    .of_kind(Kind::Bank),
+    HolidayRule::public(
+        "The day following Mid-Autumn Festival",
+        "中秋節翌日",
+        Rule::in_calendar(CalendarSystem::CHINESE, 8, 16),
+    ),
+    HolidayRule::public(
+        "National Day of the People's Republic of China",
+        "中華人民共和國國慶日",
+        Rule::gregorian(10, 1),
+    ),
+    HolidayRule::public(
+        "The day following National Day",
+        "中華人民共和國國慶日翌日",
+        Rule::gregorian(10, 2),
+    )
+    .years(Some(2000), None)
+    .of_kind(Kind::Bank),
+    HolidayRule::public(
+        "Chong Yeung Festival",
+        "重陽節",
+        Rule::in_calendar(CalendarSystem::CHINESE, 9, 9),
+    ),
+    HolidayRule::public("All Souls' Day", "追思節", Rule::gregorian(11, 2)).of_kind(Kind::Bank),
+    HolidayRule::public(
+        "Feast of the Immaculate Conception",
+        "聖母無原罪瞻禮",
+        Rule::gregorian(12, 8),
+    )
+    .of_kind(Kind::Bank),
+    HolidayRule::public(
+        "Macao Special Administrative Region Establishment Day",
+        "澳門特別行政區成立紀念日",
+        Rule::gregorian(12, 20),
+    )
+    .years(Some(1999), None),
+    HolidayRule::public(
+        "Winter Solstice",
+        "冬至",
+        Rule::SolarTerm {
+            term: SolarTerm::WINTER_SOLSTICE,
+            meridian: hc_seasons::Meridian::CHINA,
+        },
+    )
+    .of_kind(Kind::Bank),
+    HolidayRule::public("Christmas Eve", "聖誕節前日", Rule::gregorian(12, 24)).of_kind(Kind::Bank),
+    HolidayRule::public("Christmas Day", "聖誕節", Rule::gregorian(12, 25)).of_kind(Kind::Bank),
+    // The two eves: afternoons the public administration is usually
+    // exempted from work by the Chief Executive's yearly dispatch, not
+    // public holidays.
+    HolidayRule::observance(
+        "Lunar New Year's Eve",
+        "農曆除夕",
+        Rule::Offset {
+            base: &MO_LUNAR_NEW_YEAR,
+            days: -1,
+        },
+    ),
+    HolidayRule::observance("New Year's Eve", "公曆除夕", Rule::gregorian(12, 31)),
+];
+
+/// Macau.
+///
+/// The public holidays of Executive Order 60/2000, which the public
+/// administration keeps, and within them the ten obligatory holidays of
+/// art. 44 of the Labour Relations Law (Law 7/2008), which every employer
+/// must give: those ten are [`Kind::Public`] and the rest [`Kind::Bank`],
+/// a split that follows the 2008 law and is not carried further back. The
+/// Buddha's Birthday and the day following National Day date from the
+/// 2000 order, Establishment Day from 1999; the rest predate the order,
+/// and a year before 2000 is answered with the order's list alone. From
+/// 2019 a holiday on a Saturday, a Sunday or another holiday gives the
+/// public administration the next working day as a compensatory rest day,
+/// which is how the day before Easter, always a Saturday, yields the
+/// Monday after Easter every year; nothing was made up from 1927 to 2018.
+/// The two eves are afternoons the public administration is usually
+/// exempted from work by yearly dispatch and are observances.
+pub static MACAU: RuleSet = RuleSet {
+    code: "MO",
+    english_name: "Macau",
+    rules: MO_RULES,
+    substitution: MO_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Government of the Macao SAR, \"Public holidays\", \"2026\" and \"2027\", \
+              gov.mo, retrieved 2026-09-22, for Executive Order 60/2000, the \
+              obligatory holidays of art. 44 of Law 7/2008, the compensatory \
+              rest days of art. 79(4) of the Public Administration Staff Statute \
+              and the dates; the Chinese Wikipedia, \"澳門政府假期\", retrieved the \
+              same day, for the 1999 and 2000 additions, the 2019 start of the \
+              compensatory days and the eves",
 };

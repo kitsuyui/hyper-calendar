@@ -1629,6 +1629,175 @@ fn lithuania_dates_each_day_off_and_keeps_weekend_holidays_where_they_fall() {
 }
 
 #[test]
+fn hong_kong_makes_up_sundays_and_coincidences_on_the_next_free_day() {
+    // The gazetted lists for 2026 and 2027.
+    expect(
+        "HK",
+        None,
+        &[
+            (2026, 2, 17, "Lunar New Year's Day"),
+            (2026, 2, 18, "The second day of Lunar New Year"),
+            (2026, 2, 19, "The third day of Lunar New Year"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 4, "The day following Good Friday"),
+            (2026, 4, 5, "Ching Ming Festival"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 24, "The Birthday of the Buddha"),
+            (2026, 6, 19, "Tuen Ng Festival"),
+            (
+                2026,
+                7,
+                1,
+                "Hong Kong Special Administrative Region Establishment Day",
+            ),
+            (
+                2026,
+                9,
+                26,
+                "The day following the Chinese Mid-Autumn Festival",
+            ),
+            (2026, 10, 18, "Chung Yeung Festival"),
+            (2026, 12, 26, "The first weekday after Christmas Day"),
+            (2027, 2, 6, "Lunar New Year's Day"),
+            (2027, 4, 5, "Ching Ming Festival"),
+            (2027, 5, 13, "The Birthday of the Buddha"),
+            (2027, 6, 9, "Tuen Ng Festival"),
+            (
+                2027,
+                9,
+                16,
+                "The day following the Chinese Mid-Autumn Festival",
+            ),
+            (2027, 10, 8, "Chung Yeung Festival"),
+            (2027, 12, 27, "The first weekday after Christmas Day"),
+            (2022, 12, 26, "The first weekday after Christmas Day"),
+        ],
+    );
+    // 2026: Ching Ming on Easter Sunday is made up past Easter Monday, the
+    // Buddha and Chung Yeung fall on Sundays, and Saturdays stay put.
+    expect_substitute("HK", None, 2026, (4, 5), (4, 7));
+    expect_substitute("HK", None, 2026, (5, 24), (5, 25));
+    expect_substitute("HK", None, 2026, (10, 18), (10, 19));
+    expect_working(
+        "HK",
+        None,
+        &[(2026, 9, 28), (2026, 12, 28), (2027, 12, 28), (2022, 1, 3)],
+    );
+    // 2027: the second day of Lunar New Year on a Sunday yields the fourth.
+    expect_substitute("HK", None, 2027, (2, 7), (2, 9));
+    // 2022: Labour Day, the Buddha and the day following Mid-Autumn on
+    // Sundays, and Christmas on a Sunday pushed past the first weekday after.
+    expect_substitute("HK", None, 2022, (5, 1), (5, 2));
+    expect_substitute("HK", None, 2022, (5, 8), (5, 9));
+    expect_substitute("HK", None, 2022, (9, 11), (9, 12));
+    expect_substitute("HK", None, 2022, (12, 25), (12, 27));
+}
+
+#[test]
+fn hong_kong_made_up_lunar_new_year_and_mid_autumn_on_their_eves_from_1983_to_2011() {
+    // 18 February 2007 and 14 February 2010, Sundays, gave the Saturday
+    // before; 4 October 2009 gave the Mid-Autumn Festival day itself; and
+    // 10 February 2013, the first case after the amendment, gave the
+    // fourth day.
+    expect(
+        "HK",
+        None,
+        &[
+            (2007, 2, 17, "Lunar New Year's Eve"),
+            (2010, 2, 13, "Lunar New Year's Eve"),
+            (2009, 10, 3, "Chinese Mid-Autumn Festival"),
+        ],
+    );
+    expect_working("HK", None, &[(2007, 2, 21), (2010, 2, 17), (2013, 2, 9)]);
+    expect_substitute("HK", None, 2013, (2, 10), (2, 13));
+}
+
+#[test]
+fn hong_kong_phases_the_general_holidays_into_the_statutory_list() {
+    for (year, month, day, kind) in [
+        (2026, 4, 3, Kind::Bank),
+        (2028, 4, 14, Kind::Public),
+        (2025, 4, 21, Kind::Bank),
+        (2026, 4, 6, Kind::Public),
+        (2021, 5, 19, Kind::Bank),
+        (2022, 5, 8, Kind::Public),
+        (2023, 12, 26, Kind::Bank),
+        (2024, 12, 26, Kind::Public),
+    ] {
+        let calendar = HolidayCalendar::for_year(table("HK"), None, year);
+        let kinds: Vec<Kind> = calendar
+            .on(ymd(year, month, day))
+            .iter()
+            .map(|holiday| holiday.kind)
+            .collect();
+        assert_eq!(kinds, [kind], "{year}-{month}-{day}");
+    }
+}
+
+#[test]
+fn macau_gives_the_public_administration_compensatory_rest_days_from_2019() {
+    expect(
+        "MO",
+        None,
+        &[
+            (2026, 2, 17, "Lunar New Year's Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 4, "The day before Easter"),
+            (2026, 4, 5, "Cheng Ming Festival"),
+            (2026, 5, 24, "The Buddha's Birthday"),
+            (2026, 6, 19, "Tung Ng Festival"),
+            (2026, 9, 26, "The day following Mid-Autumn Festival"),
+            (2026, 10, 2, "The day following National Day"),
+            (2026, 10, 18, "Chong Yeung Festival"),
+            (2026, 11, 2, "All Souls' Day"),
+            (2026, 12, 8, "Feast of the Immaculate Conception"),
+            (
+                2026,
+                12,
+                20,
+                "Macao Special Administrative Region Establishment Day",
+            ),
+            (2026, 12, 22, "Winter Solstice"),
+            (2026, 12, 24, "Christmas Eve"),
+            (2027, 2, 6, "Lunar New Year's Day"),
+            (2027, 4, 5, "Cheng Ming Festival"),
+            (2027, 5, 13, "The Buddha's Birthday"),
+            (2027, 10, 8, "Chong Yeung Festival"),
+            (2027, 12, 22, "Winter Solstice"),
+        ],
+    );
+    // 2026 and 2027 as the Government lists them.
+    expect_substitute("MO", None, 2026, (4, 4), (4, 6));
+    expect_substitute("MO", None, 2026, (4, 5), (4, 7));
+    expect_substitute("MO", None, 2026, (5, 24), (5, 25));
+    expect_substitute("MO", None, 2026, (9, 26), (9, 28));
+    expect_substitute("MO", None, 2026, (10, 18), (10, 19));
+    expect_substitute("MO", None, 2026, (12, 20), (12, 21));
+    expect_substitute("MO", None, 2027, (2, 6), (2, 9));
+    expect_substitute("MO", None, 2027, (2, 7), (2, 10));
+    expect_substitute("MO", None, 2027, (3, 27), (3, 29));
+    expect_substitute("MO", None, 2027, (5, 1), (5, 3));
+    expect_substitute("MO", None, 2027, (10, 2), (10, 4));
+    expect_substitute("MO", None, 2027, (12, 25), (12, 27));
+    // Nothing was made up before 2019: 8 December 2018 was a Saturday.
+    expect_working("MO", None, &[(2018, 12, 10)]);
+    let calendar = HolidayCalendar::for_year(table("MO"), None, 2026);
+    for (month, day, name, kind) in [
+        (1, 1, "New Year's Day", Kind::Public),
+        (4, 3, "Good Friday", Kind::Bank),
+        (2, 16, "Lunar New Year's Eve", Kind::Observance),
+        (12, 31, "New Year's Eve", Kind::Observance),
+    ] {
+        let found: Vec<(&str, Kind)> = calendar
+            .on(ymd(2026, month, day))
+            .iter()
+            .map(|holiday| (holiday.name, holiday.kind))
+            .collect();
+        assert_eq!(found, [(name, kind)], "{month}-{day}");
+    }
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",
