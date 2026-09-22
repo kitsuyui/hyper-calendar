@@ -282,7 +282,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Exchange calendars
 
-14 tables, feature `holiday`, keyed by ISO 10383 Market Identifier Code. A closed day is a public-kind entry; an early close is an observance.
+15 tables, feature `holiday`, keyed by ISO 10383 Market Identifier Code. A closed day is a public-kind entry; an early close is an observance.
 
 | MIC | Exchange | Entries |
 | --- | --- | --- |
@@ -296,6 +296,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `XJPX` | Tokyo Stock Exchange (JPX) | 3 |
 | `XLIS` | Euronext Lisbon | 8 |
 | `XMIL` | Euronext Milan (Borsa Italiana) | 9 |
+| `XNAS` | Nasdaq | 20 |
 | `XNYS` | New York Stock Exchange | 20 |
 | `XOSL` | Euronext Oslo (Oslo Børs) | 13 |
 | `XPAR` | Euronext Paris | 8 |

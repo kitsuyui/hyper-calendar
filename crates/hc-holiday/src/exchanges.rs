@@ -214,6 +214,32 @@ pub static NEW_YORK_STOCK_EXCHANGE: RuleSet = RuleSet {
               observance as a market holiday on 20 June 2022",
 };
 
+/// Nasdaq.
+///
+/// The same calendar as the New York Stock Exchange, day for day, on the
+/// same rules: Nasdaq's own trading calendar for 2026 lists the ten
+/// closed days and the two early closes the NYSE's does, and the
+/// unscheduled closures — 11 to 14 September 2001, 29 and 30 October
+/// 2012, 5 December 2018 — are recorded for Nasdaq by the sources named.
+/// The rule slice is shared, so the two cannot drift apart unnoticed; a
+/// day on which they differ would need a slice of its own.
+pub static NASDAQ: RuleSet = RuleSet {
+    code: "XNAS",
+    english_name: "Nasdaq",
+    rules: XNYS_RULES,
+    substitution: XNYS_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Nasdaq Trader, \"Trading Calendar\" (nasdaqtrader.com/trader.aspx?id=calendar), \
+              retrieved 2026-09-23, for 2026; Wikipedia, \"Economic effects of the September 11 \
+              attacks\", for the closure to 17 September 2001 (\"the Nasdaq also canceled \
+              trading\"); Wikipedia, \"Effects of Hurricane Sandy in New York\", for 29 and \
+              30 October 2012 (\"U.S. stock trading was suspended\"); Wikipedia, \"Death and \
+              state funeral of George H. W. Bush\", for 5 December 2018",
+};
+
 // ─────────────────────────────────────────────────────────────────────────
 // Australian Securities Exchange
 // ─────────────────────────────────────────────────────────────────────────
@@ -850,6 +876,7 @@ pub static ALL: &[&RuleSet] = &[
     &TOKYO_STOCK_EXCHANGE,
     &EURONEXT_LISBON,
     &EURONEXT_MILAN,
+    &NASDAQ,
     &NEW_YORK_STOCK_EXCHANGE,
     &EURONEXT_OSLO,
     &EURONEXT_PARIS,
@@ -895,6 +922,6 @@ mod tests {
         assert!(by_code("xnys").is_some());
         assert!(by_code("XNYS").is_some());
         assert!(by_code("xtse").is_some());
-        assert!(by_code("XNAS").is_none());
+        assert!(by_code("XNAS").is_some());
     }
 }

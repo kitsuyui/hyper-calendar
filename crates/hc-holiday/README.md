@@ -16,7 +16,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
 | `international` | the United Nations international days, each citing its resolution |
-| `exchanges` | 14 exchange calendars: New York, Toronto, São Paulo, Frankfurt, Euronext's seven markets, Tokyo, Hong Kong, Sydney |
+| `exchanges` | 15 exchange calendars: New York, Nasdaq, Toronto, São Paulo, Frankfurt, Euronext's seven markets, Tokyo, Hong Kong, Sydney |
 | `countries` | 123 national tables |
 
 ## The vocabulary
@@ -140,9 +140,9 @@ claims to be complete back to its own founding.
 `exchanges` carries the trading calendars of stock exchanges as rule sets
 keyed by ISO 10383 Market Identifier Code: the days an exchange is closed, as
 public-kind entries that stop business-day arithmetic, and the days it closes
-early or opens late, as observances that do not. Fourteen so far, each from
-the exchange's own published calendar: the New York Stock Exchange (`XNYS`),
-which closes on
+early or opens late, as observances that do not. Fifteen so far, each from
+the exchange's own published calendar: the New York Stock Exchange (`XNYS`)
+and Nasdaq (`XNAS`) on one calendar, which closes on
 Good Friday, which no statute makes a holiday, trades on Columbus Day and
 Veterans Day, moves a Saturday holiday to the Friday before except a New
 Year's Day, whose Friday is the last day of the year, and closes at 1:00 p.m.

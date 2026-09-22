@@ -6,8 +6,8 @@ use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::exchanges::{
     self, AUSTRALIAN_SECURITIES_EXCHANGE, B3, EURONEXT_AMSTERDAM, EURONEXT_BRUSSELS,
     EURONEXT_DUBLIN, EURONEXT_LISBON, EURONEXT_MILAN, EURONEXT_OSLO, EURONEXT_PARIS,
-    FRANKFURT_STOCK_EXCHANGE, HONG_KONG_EXCHANGES, NEW_YORK_STOCK_EXCHANGE, TOKYO_STOCK_EXCHANGE,
-    TORONTO_STOCK_EXCHANGE,
+    FRANKFURT_STOCK_EXCHANGE, HONG_KONG_EXCHANGES, NASDAQ, NEW_YORK_STOCK_EXCHANGE,
+    TOKYO_STOCK_EXCHANGE, TORONTO_STOCK_EXCHANGE,
 };
 use hc_holiday::rule::RuleSet;
 use hc_holiday::rule::{Confidence, Kind};
@@ -694,11 +694,46 @@ fn hong_kong_closes_on_the_general_holidays_and_halves_three_eves() {
 }
 
 #[test]
+fn nasdaq_keeps_the_nyse_calendar_day_for_day() {
+    // Nasdaq's own 2026 calendar: the same ten closed days and two early
+    // closes; and the same three unscheduled closures.
+    let (closed, early) = year_of(&NASDAQ, 2026);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (1, 19),
+            (2, 16),
+            (4, 3),
+            (5, 25),
+            (6, 19),
+            (7, 3),
+            (9, 7),
+            (11, 26),
+            (12, 25)
+        ]
+    );
+    assert_eq!(early, [(11, 27), (12, 24)]);
+    for year in [2001, 2012, 2018, 2027, 2028] {
+        let nyse = HolidayCalendar::for_year(&NEW_YORK_STOCK_EXCHANGE, None, year);
+        let nasdaq = HolidayCalendar::for_year(&NASDAQ, None, year);
+        let dates = |calendar: &HolidayCalendar| -> Vec<(Rd, &str)> {
+            calendar
+                .all()
+                .iter()
+                .map(|holiday| (holiday.date, holiday.name))
+                .collect()
+        };
+        assert_eq!(dates(&nyse), dates(&nasdaq), "{year}");
+    }
+}
+
+#[test]
 fn the_catalogue_is_keyed_by_market_identifier_code() {
     assert_eq!(
         exchanges::by_code("xnys").map(|e| e.english_name),
         Some("New York Stock Exchange")
     );
     assert!(exchanges::ALL.iter().all(|e| e.code.len() == 4));
-    assert_eq!(exchanges::ALL.len(), 14);
+    assert_eq!(exchanges::ALL.len(), 15);
 }
