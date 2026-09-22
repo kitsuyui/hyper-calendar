@@ -30,6 +30,15 @@
 //! [ADR 0007](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/adr/0007-sets-the-world-can-extend-are-data.md)
 //! has it.
 //!
+//! # An exchange on its country's calendar
+//!
+//! Where an exchange closes on every public holiday and adds a few days of
+//! its own — Tokyo on 2 and 3 January and 31 December, Hong Kong on none,
+//! with three half days — its table includes the country's through
+//! [`RuleSet::includes`] and lists only what is its own, so that the
+//! country's substitute and bridge holidays come along under the country's
+//! policies and are never copied.
+//!
 //! # Sources
 //!
 //! Each table names its own, in `sources`, with the date they were read.
@@ -41,9 +50,10 @@ use crate::computus::offsets::{
     ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_MONDAY, GOOD_FRIDAY, HOLY_WEDNESDAY,
     MAUNDY_THURSDAY, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
 };
+use crate::countries::{HONG_KONG, JAPAN};
 use crate::rule::{
-    Days, HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, SubstituteDirection,
-    SubstitutionPolicy,
+    CalendarSystem, Days, HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
+    SubstituteDirection, SubstitutionPolicy,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -192,6 +202,7 @@ pub static NEW_YORK_STOCK_EXCHANGE: RuleSet = RuleSet {
     rules: XNYS_RULES,
     substitution: XNYS_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "NYSE, \"Holidays & Trading Hours\" (nyse.com/markets/hours-calendars), retrieved \
@@ -274,6 +285,7 @@ pub static AUSTRALIAN_SECURITIES_EXCHANGE: RuleSet = RuleSet {
     rules: XASX_RULES,
     substitution: XASX_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "ASX, \"ASX Trade trading calendar\" (asx.com.au/markets/market-resources/trading-hours-calendar/cash-market-trading-hours/trading-calendar), \
@@ -310,6 +322,7 @@ pub static FRANKFURT_STOCK_EXCHANGE: RuleSet = RuleSet {
     rules: XETR_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Deutsche Börse, \"Trading calendar and trading hours\" \
@@ -382,6 +395,7 @@ pub static TORONTO_STOCK_EXCHANGE: RuleSet = RuleSet {
     rules: XTSE_RULES,
     substitution: XTSE_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "TMX Group, \"Calendar\" (tsx.com/en/trading/calendars-and-trading-hours/calendar), \
@@ -480,6 +494,7 @@ const fn euronext_core(code: &'static str, english_name: &'static str) -> RuleSe
         rules: EURONEXT_CORE_RULES,
         substitution: &[],
         bridges: &[],
+        includes: &[],
         weekend: SATURDAY_SUNDAY,
         sources_checked: SourceDate::new(2026, 9, 23),
         sources: EURONEXT_SOURCES,
@@ -561,6 +576,7 @@ pub static EURONEXT_DUBLIN: RuleSet = RuleSet {
     rules: XDUB_RULES,
     substitution: XDUB_SUBSTITUTION,
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: EURONEXT_SOURCES,
@@ -587,6 +603,7 @@ pub static EURONEXT_MILAN: RuleSet = RuleSet {
     rules: XMIL_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: EURONEXT_SOURCES,
@@ -623,6 +640,7 @@ pub static EURONEXT_OSLO: RuleSet = RuleSet {
     rules: XOSL_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: EURONEXT_SOURCES,
@@ -714,10 +732,110 @@ pub static B3: RuleSet = RuleSet {
     rules: BVMF_RULES,
     substitution: &[],
     bridges: &[],
+    includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "B3, \"Trading calendar — Holidays\" (b3.com.br/en_us/solutions/platforms/puma-trading-system/for-members-and-traders/trading-calendar/holidays/), \
               retrieved 2026-09-23, the market calendars for 2021 to 2026",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Hong Kong Exchanges
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Lunar New Year's Eve, a half day when it is a weekday.
+fn xhkg_lunar_new_years_eve(year: i64) -> Days {
+    let mut out = Days::new();
+    for new_year in Rule::in_calendar(CalendarSystem::CHINESE, 1, 1)
+        .days_in_year(year)
+        .as_slice()
+    {
+        let eve = Rd(new_year.0 - 1);
+        if !matches!(Weekday::from_rd(eve), Weekday::Saturday | Weekday::Sunday) {
+            out.push(eve);
+        }
+    }
+    out
+}
+
+/// Christmas Eve, a half day when it is a weekday.
+fn xhkg_christmas_eve(year: i64) -> Days {
+    if_weekday(year, 12, 24)
+}
+
+/// New Year's Eve, a half day when it is a weekday.
+fn xhkg_new_years_eve(year: i64) -> Days {
+    if_weekday(year, 12, 31)
+}
+
+static XHKG_RULES: &[HolidayRule] = &[
+    HolidayRule::observance(
+        "Half trading day, Lunar New Year's Eve",
+        "",
+        Rule::Computed(xhkg_lunar_new_years_eve),
+    ),
+    HolidayRule::observance(
+        "Half trading day, Christmas Eve",
+        "",
+        Rule::Computed(xhkg_christmas_eve),
+    ),
+    HolidayRule::observance(
+        "Half trading day, New Year's Eve",
+        "",
+        Rule::Computed(xhkg_new_years_eve),
+    ),
+];
+
+/// The Stock Exchange of Hong Kong, of HKEX.
+///
+/// HKEX's calendar feed, read from October 2025 to October 2027: the
+/// market is closed on every general holiday of Hong Kong — the feed's
+/// "Hong Kong Market is closed" entries are the [`HONG_KONG`] table's
+/// days, which this set includes and does not repeat — and trades a
+/// half day, the afternoon session closed, on Lunar New Year's Eve,
+/// Christmas Eve and New Year's Eve when those are weekdays.
+pub static HONG_KONG_EXCHANGES: RuleSet = RuleSet {
+    code: "XHKG",
+    english_name: "Stock Exchange of Hong Kong (HKEX)",
+    rules: XHKG_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[&HONG_KONG],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "HKEX, \"HKEX Calendar\" (hkex.com.hk/News/HKEX-Calendar), retrieved 2026-09-23: \
+              the calendar feed's \"Hong Kong Market is closed\" and \"Half-Day Trading Day\" \
+              entries from October 2025 to October 2027",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Japan Exchange Group
+// ─────────────────────────────────────────────────────────────────────────
+
+static XJPX_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("Market holiday", "休業日", Rule::gregorian(1, 2)),
+    HolidayRule::fixed_public("Market holiday", "休業日", Rule::gregorian(1, 3)),
+    HolidayRule::fixed_public("Market holiday", "休業日", Rule::gregorian(12, 31)),
+];
+
+/// The Tokyo Stock Exchange, of the Japan Exchange Group.
+///
+/// JPX's trading calendar for 2026 and 2027: the exchange is closed on
+/// Saturdays, Sundays, the national holidays — the [`JAPAN`] table's
+/// days, with its substitute and bridge holidays, which this set includes
+/// and does not repeat — and on 2 and 3 January and 31 December, the
+/// market holidays that are its own. No early closes.
+pub static TOKYO_STOCK_EXCHANGE: RuleSet = RuleSet {
+    code: "XJPX",
+    english_name: "Tokyo Stock Exchange (JPX)",
+    rules: XJPX_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[&JAPAN],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "JPX, \"Trading calendar\" (jpx.co.jp/english/corporate/about-jpx/calendar/index.html), \
+              retrieved 2026-09-23, the non-business days of 2026 and 2027",
 };
 
 /// Every exchange calendar, in Market Identifier Code order.
@@ -728,6 +846,8 @@ pub static ALL: &[&RuleSet] = &[
     &EURONEXT_BRUSSELS,
     &EURONEXT_DUBLIN,
     &FRANKFURT_STOCK_EXCHANGE,
+    &HONG_KONG_EXCHANGES,
+    &TOKYO_STOCK_EXCHANGE,
     &EURONEXT_LISBON,
     &EURONEXT_MILAN,
     &NEW_YORK_STOCK_EXCHANGE,

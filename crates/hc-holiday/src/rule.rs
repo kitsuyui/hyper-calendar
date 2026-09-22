@@ -1518,6 +1518,12 @@ pub struct RuleSet {
     pub substitution: &'static [SubstitutionPolicy],
     /// Bridge policies, such as Japan's 国民の休日.
     pub bridges: &'static [BridgePolicy],
+    /// Other rule sets whose holidays this one keeps as well, each
+    /// evaluated under its own policies and merged in: an exchange that
+    /// closes on its country's holidays includes the country's table and
+    /// lists only its own days. A set may include a set that includes
+    /// another; the engine follows eight levels and no further.
+    pub includes: &'static [&'static RuleSet],
     /// Which days are the weekend, over stated years.
     pub weekend: &'static [WeekendPolicy],
     /// When the sources behind this table were last checked.

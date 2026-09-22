@@ -6,7 +6,8 @@ use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::exchanges::{
     self, AUSTRALIAN_SECURITIES_EXCHANGE, B3, EURONEXT_AMSTERDAM, EURONEXT_BRUSSELS,
     EURONEXT_DUBLIN, EURONEXT_LISBON, EURONEXT_MILAN, EURONEXT_OSLO, EURONEXT_PARIS,
-    FRANKFURT_STOCK_EXCHANGE, NEW_YORK_STOCK_EXCHANGE, TORONTO_STOCK_EXCHANGE,
+    FRANKFURT_STOCK_EXCHANGE, HONG_KONG_EXCHANGES, NEW_YORK_STOCK_EXCHANGE, TOKYO_STOCK_EXCHANGE,
+    TORONTO_STOCK_EXCHANGE,
 };
 use hc_holiday::rule::RuleSet;
 use hc_holiday::rule::{Confidence, Kind};
@@ -55,16 +56,16 @@ fn year_of(exchange: &RuleSet, year: i64) -> (Closures, EarlyCloses) {
                 continue;
             }
             closed.push((month, day, holiday.name));
-        } else {
+        } else if holiday.name.starts_with("Early close")
+            || holiday.name.starts_with("Half trading day")
+            || holiday.name.starts_with("Late open")
+        {
             assert_eq!(holiday.kind, Kind::Observance, "{}", holiday.name);
-            assert!(
-                holiday.name.starts_with("Early close")
-                    || holiday.name.starts_with("Half trading day")
-                    || holiday.name.starts_with("Late open"),
-                "{}",
-                holiday.name
-            );
             early.push((month, day));
+        } else {
+            // An included country's own observances — Hong Kong's Winter
+            // Solstice — come along and are neither closure nor partial day.
+            assert_eq!(holiday.kind, Kind::Observance, "{}", holiday.name);
         }
     }
     (closed, early)
@@ -579,11 +580,125 @@ fn b3_closes_on_the_days_its_calendar_lists() {
 }
 
 #[test]
+fn tokyo_closes_on_japans_holidays_and_its_three_market_holidays() {
+    // JPX's 2026 and 2027 calendars: Japan's days, with the substitute of
+    // Wednesday 6 May 2026 and Monday 22 March 2027 and the bridge of
+    // Tuesday 22 September 2026 under Japan's own law, and 2 and 3 January
+    // and 31 December as the exchange's own.
+    let (closed, early) = year_of(&TOKYO_STOCK_EXCHANGE, 2026);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (1, 2),
+            (1, 12),
+            (2, 11),
+            (2, 23),
+            (3, 20),
+            (4, 29),
+            (5, 4),
+            (5, 5),
+            (5, 6),
+            (7, 20),
+            (8, 11),
+            (9, 21),
+            (9, 22),
+            (9, 23),
+            (10, 12),
+            (11, 3),
+            (11, 23),
+            (12, 31)
+        ]
+    );
+    assert!(early.is_empty());
+    let (closed, early) = year_of(&TOKYO_STOCK_EXCHANGE, 2027);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (1, 11),
+            (2, 11),
+            (2, 23),
+            (3, 22),
+            (4, 29),
+            (5, 3),
+            (5, 4),
+            (5, 5),
+            (7, 19),
+            (8, 11),
+            (9, 20),
+            (9, 23),
+            (10, 11),
+            (11, 3),
+            (11, 23),
+            (12, 31)
+        ]
+    );
+    assert!(early.is_empty());
+    // The included table's days are not repeated: one entry a day.
+    let calendar = HolidayCalendar::for_year(&TOKYO_STOCK_EXCHANGE, None, 2026);
+    assert_eq!(calendar.on(ymd(2026, 5, 6)).len(), 1);
+    assert_eq!(calendar.on(ymd(2026, 1, 2)).len(), 1);
+    assert!(calendar.is_complete());
+}
+
+#[test]
+fn hong_kong_closes_on_the_general_holidays_and_halves_three_eves() {
+    // HKEX's calendar feed for 2026: every "Hong Kong Market is closed"
+    // entry, and the three half days.
+    let (closed, early) = year_of(&HONG_KONG_EXCHANGES, 2026);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (2, 17),
+            (2, 18),
+            (2, 19),
+            (4, 3),
+            (4, 6),
+            (4, 7),
+            (5, 1),
+            (5, 25),
+            (6, 19),
+            (7, 1),
+            (10, 1),
+            (10, 19),
+            (12, 25)
+        ]
+    );
+    assert_eq!(early, [(2, 16), (12, 24), (12, 31)]);
+    // The feed's 2027 entries run to 3 October: a Saturday Lunar New Year's
+    // Day gives the third and fourth days, and the eve is Friday 5 February.
+    let (closed, early) = year_of(&HONG_KONG_EXCHANGES, 2027);
+    let to_october: Vec<(u8, u8)> = days(&closed)
+        .into_iter()
+        .filter(|(m, d)| (*m, *d) <= (10, 3))
+        .collect();
+    assert_eq!(
+        to_october,
+        [
+            (1, 1),
+            (2, 8),
+            (2, 9),
+            (3, 26),
+            (3, 29),
+            (4, 5),
+            (5, 13),
+            (6, 9),
+            (7, 1),
+            (9, 16),
+            (10, 1)
+        ]
+    );
+    assert!(early.contains(&(2, 5)));
+}
+
+#[test]
 fn the_catalogue_is_keyed_by_market_identifier_code() {
     assert_eq!(
         exchanges::by_code("xnys").map(|e| e.english_name),
         Some("New York Stock Exchange")
     );
     assert!(exchanges::ALL.iter().all(|e| e.code.len() == 4));
-    assert_eq!(exchanges::ALL.len(), 12);
+    assert_eq!(exchanges::ALL.len(), 14);
 }

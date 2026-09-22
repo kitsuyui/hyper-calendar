@@ -16,7 +16,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
 | `international` | the United Nations international days, each citing its resolution |
-| `exchanges` | 12 exchange calendars: New York, Toronto, São Paulo, Frankfurt, Sydney and Euronext's seven markets |
+| `exchanges` | 14 exchange calendars: New York, Toronto, São Paulo, Frankfurt, Euronext's seven markets, Tokyo, Hong Kong, Sydney |
 | `countries` | 123 national tables |
 
 ## The vocabulary
@@ -45,7 +45,9 @@ which way, whether the search steps past a day already taken, and whether two
 holidays colliding count), `BridgePolicy` (Japan's 国民の休日),
 `WeekendPolicy` (which days are the weekend, over stated years),
 `valid_from` / `valid_until` on every rule, `regions` for subdivision scoping,
-and `Kind` for public / bank / religious / observance.
+and `Kind` for public / bank / religious / observance. A set can also
+`include` other sets — an exchange on its country's calendar — each evaluated
+under its own policies and merged in.
 
 Only **five** statutes in the whole crate are `Computed`, each written as a
 sentence rather than a pattern: Ireland's St Brigid's Day, the Dutch royal
@@ -138,7 +140,7 @@ claims to be complete back to its own founding.
 `exchanges` carries the trading calendars of stock exchanges as rule sets
 keyed by ISO 10383 Market Identifier Code: the days an exchange is closed, as
 public-kind entries that stop business-day arithmetic, and the days it closes
-early or opens late, as observances that do not. Twelve so far, each from
+early or opens late, as observances that do not. Fourteen so far, each from
 the exchange's own published calendar: the New York Stock Exchange (`XNYS`),
 which closes on
 Good Friday, which no statute makes a holiday, trades on Columbus Day and
@@ -155,8 +157,11 @@ and two half days, Dublin moving a weekend holiday where the others leave it,
 Milan closing on Ferragosto and both eves, Oslo keeping the Norwegian days and
 halving the Wednesday before Easter; and B3 in São Paulo (`BVMF`), closed
 on Carnival Monday and Tuesday, Christmas Eve and the last weekday of the
-year, and open from 1:00 p.m. on Ash Wednesday. The unscheduled closures a
-read source
+year, and open from 1:00 p.m. on Ash Wednesday; and Tokyo (`XJPX`) and Hong
+Kong (`XHKG`), which close on every national or general holiday and add days
+of their own — Tokyo 2 and 3 January and 31 December, Hong Kong three half
+days — and so include their countries' tables through `includes` rather than
+copy them. The unscheduled closures a read source
 records — the September 2001 attacks, Hurricane Sandy, the day of mourning
 for President George H. W. Bush — are data in the New York table; those no
 source read here gives are not, and the table says which.
