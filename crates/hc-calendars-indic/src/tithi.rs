@@ -15,7 +15,7 @@
 //! the tithi its day began with, and whether it is the second such day.
 
 use hc_astro::lunar::lunar_longitude;
-use hc_astro::riseset::{Location, sunrise};
+use hc_astro::riseset::{Location, sunrise, sunset};
 use hc_astro::solar::solar_longitude;
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
@@ -85,6 +85,67 @@ pub fn tithi_of_day(day: Rd, location: Location) -> u8 {
     tithi_number_at(sunrise_of(day, location))
 }
 
+/// Sunset on a day at a location, in Universal Time, with the same
+/// stand-in as [`sunrise_of`] for a place that has none.
+#[must_use]
+pub fn sunset_of(day: Rd, location: Location) -> Moment {
+    sunset(day, location).unwrap_or(Moment(
+        day.0 as f64 + 0.75 - location.longitude_degrees / 360.0,
+    ))
+}
+
+/// When in the day a tithi must be in progress for a festival to fall on
+/// that day.
+///
+/// A civil date carries the tithi at sunrise, but a festival is kept on
+/// the day its tithi holds the part of the day the rite belongs to: Rāma
+/// Navamī at midday, Vijayā Daśamī in the afternoon, Dīpāvalī in the
+/// evening, Janmāṣṭamī and Śivarātri at midnight. Each variant names the
+/// instant it probes, in the day's own sunrise-to-sunrise terms.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Prevalence {
+    /// At sunrise: the tithi the civil day carries.
+    Sunrise,
+    /// At midday, *madhyāhna*: the middle of the daylight.
+    Midday,
+    /// In the afternoon, *aparāhṇa*: the fourth fifth of the daylight,
+    /// probed at its middle — seven tenths of the way from sunrise to
+    /// sunset.
+    Afternoon,
+    /// In the evening, *pradoṣa*: the first two *muhūrta*s after sunset,
+    /// probed one hour after it.
+    Evening,
+    /// At midnight, *niśīta*: the middle of the night that follows the
+    /// day.
+    Midnight,
+}
+
+impl Prevalence {
+    /// The instant this prevalence probes on a day at a location, in
+    /// Universal Time.
+    #[must_use]
+    pub fn moment_of(self, day: Rd, location: Location) -> Moment {
+        let rise = sunrise_of(day, location).0;
+        let set = sunset_of(day, location).0;
+        Moment(match self {
+            Self::Sunrise => rise,
+            Self::Midday => rise + (set - rise) / 2.0,
+            Self::Afternoon => rise + (set - rise) * 0.7,
+            Self::Evening => set + 1.0 / 24.0,
+            Self::Midnight => {
+                let next_rise = sunrise_of(Rd(day.0 + 1), location).0;
+                set + (next_rise - set) / 2.0
+            }
+        })
+    }
+
+    /// The tithi in progress at this prevalence's instant on a day.
+    #[must_use]
+    pub fn tithi_on(self, day: Rd, location: Location) -> u8 {
+        tithi_number_at(self.moment_of(day, location))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -127,6 +188,22 @@ mod tests {
             previous = current;
         }
         assert!(skips + repeats <= 2, "{skips} skips and {repeats} repeats");
+    }
+
+    #[test]
+    fn the_prevalences_run_through_the_day_in_order() {
+        let day = Rd(738_800.0 as i64);
+        let rise = Prevalence::Sunrise.moment_of(day, UJJAIN).0;
+        let midday = Prevalence::Midday.moment_of(day, UJJAIN).0;
+        let afternoon = Prevalence::Afternoon.moment_of(day, UJJAIN).0;
+        let evening = Prevalence::Evening.moment_of(day, UJJAIN).0;
+        let midnight = Prevalence::Midnight.moment_of(day, UJJAIN).0;
+        assert!(rise < midday && midday < afternoon && afternoon < evening && evening < midnight);
+        assert!(midnight < Prevalence::Sunrise.moment_of(Rd(day.0 + 1), UJJAIN).0);
+        // Ujjain's midday is about 06:57 UT (12:27 local mean time), so the
+        // fraction of the UT day is a little under 0.3.
+        let fraction = midday - day.0 as f64;
+        assert!((0.25..0.32).contains(&fraction), "{fraction}");
     }
 
     #[test]

@@ -286,6 +286,14 @@ impl HinduLunarCalendar {
     }
 
     /// The month of `year` numbered `month`, intercalary or not.
+    ///
+    /// The ordinary month is the one holding the saṅkrānti that names it —
+    /// Meṣa's for Chaitra — which falls in the Gregorian year the Śaka year
+    /// begins in for Chaitra through Mārgaśīrṣa and in the next for Pauṣa
+    /// through Phālguna; the intercalary month of the same name is the one
+    /// before it, when that one has no saṅkrānti. A kṣaya month is the one
+    /// case the saṅkrānti does not land in a month of its own name, and it
+    /// is reported as the name not existing.
     fn find_month(&self, year: i64, month: u8, leap: bool) -> CalendarResult<LunarMonth> {
         if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
             return Err(CalendarError::YearOutOfRange);
@@ -293,9 +301,28 @@ impl HinduLunarCalendar {
         if month == 0 || month > MONTHS_IN_YEAR {
             return Err(CalendarError::MonthOutOfRange);
         }
-        self.months_of_year(year)
-            .find(|candidate| candidate.month == month && candidate.leap == leap)
-            .ok_or(CalendarError::MonthOutOfRange)
+        let Some(sign) = SiderealSign::from_index(month - 1) else {
+            return Err(CalendarError::MonthOutOfRange);
+        };
+        let gregorian_year = year + GREGORIAN_YEAR_OFFSET + i64::from(month >= 10);
+        let sankranti = ingress_after(
+            sign,
+            self.ayanamsa,
+            Moment(hc_astro::time::gregorian_new_year(gregorian_year).0 as f64),
+        );
+        let ordinary = self.month_containing(sankranti);
+        if ordinary.month != month || ordinary.year != year {
+            return Err(CalendarError::MonthOutOfRange);
+        }
+        if !leap {
+            return Ok(ordinary);
+        }
+        let before = self.month_from(new_moon_before(Moment(ordinary.start.0 - 1.0)));
+        if before.month == month && before.leap && before.year == year {
+            Ok(before)
+        } else {
+            Err(CalendarError::MonthOutOfRange)
+        }
     }
 
     /// The day of a month carrying tithi `day` at sunrise — the second such
@@ -376,6 +403,20 @@ impl HinduLunarCalendar {
             day,
             leap_day,
         })
+    }
+
+    /// The days of a month: its first day, and the day after its last.
+    ///
+    /// # Errors
+    ///
+    /// As [`HinduLunarCalendar::to_fixed`]: the year out of range, the month
+    /// number outside 1–12, an intercalary month the year does not have, or
+    /// a name a kṣaya month lost.
+    pub fn month_span(&self, year: i64, month: u8, leap: bool) -> CalendarResult<(Rd, Rd)> {
+        let found = self.find_month(year, month, leap)?;
+        let first = self.first_day_of(found);
+        let next = self.first_day_of(self.month_from(found.end));
+        Ok((first, next))
     }
 
     /// The first day of Chaitra — Chaitra śukla pratipadā, the new year —
@@ -662,6 +703,20 @@ mod tests {
         assert_eq!(RASHTRIYA.new_year(1947), Ok(ymd(2025, 3, 30)));
         assert_eq!(RASHTRIYA.days_in_year(1945), Ok(384));
         assert_eq!(RASHTRIYA.days_in_year(1946), Ok(355));
+    }
+
+    #[test]
+    fn a_month_span_runs_from_sukla_1_to_the_next_sukla_1() {
+        // Ordinary Śrāvaṇa 1945: 17 August to 15 September 2023, the day
+        // before Bhādrapada śukla 1 on the 16th.
+        assert_eq!(
+            RASHTRIYA.month_span(1945, 5, false),
+            Ok((ymd(2023, 8, 17), ymd(2023, 9, 16)))
+        );
+        assert_eq!(
+            RASHTRIYA.month_span(1945, 5, true),
+            Ok((ymd(2023, 7, 18), ymd(2023, 8, 17)))
+        );
     }
 
     #[test]
