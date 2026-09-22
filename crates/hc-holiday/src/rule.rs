@@ -19,7 +19,7 @@ use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
 use hc_calendars_lunar::tabular::{self, LeapYearRule};
 use hc_calendars_lunar::{ChineseCalendar, DangiCalendar, LunisolarDate, VietnameseCalendar};
-use hc_calendars_solar::{bahai_kept, coptic, ethiopic, gregorian, julian, persian};
+use hc_calendars_solar::{bahai_kept, coptic, ethiopic, gregorian, julian, persian, zoroastrian};
 use hc_seasons::solar_terms::term_day;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 use hc_seasons::{Meridian, SolarTerm};
@@ -323,6 +323,61 @@ hc_core::catalogue! {
             CalendarId("bahai"),
             |year, month, day| bahai_kept::to_fixed(year, month.ordinal, day).ok(),
             |rd| bahai_kept::from_fixed(rd).ok().map(|(year, _, _)| year),
+        );
+
+        /// The Zoroastrian calendar by the Qadimi reckoning: the 365-day
+        /// year from the accession of Yazdegerd III, drifting a day every
+        /// four years, in which the Kadmi Parsis and the Zoroastrians of
+        /// Yazd date their feasts.
+        pub const ZOROASTRIAN_QADIMI = Self::new(
+            CalendarId("zoroastrian-qadimi"),
+            |year, month, day| {
+                zoroastrian::Reckoning::Qadimi
+                    .to_fixed(year, month.ordinal, day)
+                    .ok()
+            },
+            |rd| {
+                zoroastrian::Reckoning::Qadimi
+                    .from_fixed(rd)
+                    .ok()
+                    .map(|(year, _, _)| year)
+            },
+        );
+
+        /// The Zoroastrian calendar by the Shahanshahi reckoning, thirty
+        /// days behind the Qadimi since the 1120s and stated from 498 Y.Z.,
+        /// in which the Parsi majority dates its feasts.
+        pub const ZOROASTRIAN_SHAHANSHAHI = Self::new(
+            CalendarId("zoroastrian-shahanshahi"),
+            |year, month, day| {
+                zoroastrian::Reckoning::Shahanshahi
+                    .to_fixed(year, month.ordinal, day)
+                    .ok()
+            },
+            |rd| {
+                zoroastrian::Reckoning::Shahanshahi
+                    .from_fixed(rd)
+                    .ok()
+                    .map(|(year, _, _)| year)
+            },
+        );
+
+        /// The Zoroastrian calendar by the Fasli reckoning: 1 Fravardin on
+        /// 21 March and a leap day with the Gregorian calendar, in which the
+        /// Fasli Parsis date their feasts.
+        pub const ZOROASTRIAN_FASLI = Self::new(
+            CalendarId("zoroastrian-fasli"),
+            |year, month, day| {
+                zoroastrian::Reckoning::Fasli
+                    .to_fixed(year, month.ordinal, day)
+                    .ok()
+            },
+            |rd| {
+                zoroastrian::Reckoning::Fasli
+                    .from_fixed(rd)
+                    .ok()
+                    .map(|(year, _, _)| year)
+            },
         );
     }
 }
