@@ -14,6 +14,8 @@
 //! * [`zassetsu`] — 雑節: 節分, 彼岸, 社日, 八十八夜, 入梅, 半夏生, 土用 with
 //!   its 丑の日, 二百十日 and 二百二十日, each with its rule as data.
 //! * [`rokuyo`] — 六曜, the six-day cycle Japanese calendars print.
+//! * [`quarter_days`] — the quarter days and term days of England and
+//!   Wales, Ireland and Scotland, each tradition's four fixed dates.
 //! * [`moon_calendar`] — phase names, 月齢, illuminated fraction, the four
 //!   principal phases of a month, 十五夜 and 十三夜.
 //! * [`seasons`] — the four seasons, astronomical, meteorological and East
@@ -72,6 +74,7 @@ pub mod lunisolar;
 pub mod meridian;
 pub mod moon_calendar;
 pub mod pentads;
+pub mod quarter_days;
 pub mod rokuyo;
 pub mod seasons;
 pub mod solar_terms;
@@ -84,6 +87,7 @@ pub use lunisolar::LunisolarDay;
 pub use meridian::Meridian;
 pub use moon_calendar::PhaseName;
 pub use pentads::{Pentad, PentadPosition, PentadTradition};
+pub use quarter_days::{QuarterDay, QuarterDayTradition};
 pub use rokuyo::Rokuyo;
 pub use seasons::{Hemisphere, Season, SeasonDefinition};
 pub use solar_terms::{SolarTerm, TermKind, TermOrder};

@@ -14,6 +14,7 @@ It contains no calendar.
 | `pentads` | 七十二候, both the Chinese and the Japanese name sets |
 | `zassetsu` | 節分, 彼岸, 社日, 八十八夜, 入梅, 半夏生, 土用 + 丑の日, 二百十日, 二百二十日 |
 | `rokuyo` | 六曜: 先勝 友引 先負 仏滅 大安 赤口 |
+| `quarter_days` | the quarter days and term days of England and Wales, Ireland and Scotland, traditional and under the 1990 Act |
 | `moon_calendar` | phase names, 月齢, illuminated fraction, a month's four principal phases, 十五夜, 十三夜 |
 | `seasons` | astronomical, meteorological and East Asian seasons |
 | `zodiac` | 黄道十二宮: the tropical Western signs, the sidereal rāśi with the ayanamsa, the Indian solar months, and the Chinese 十二次 |
