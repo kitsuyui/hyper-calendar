@@ -137,6 +137,10 @@ Ordered by how well the sources can be cited, not by importance.
 | Azerbaijan 🇦🇿 | Labour Code art. 105: Novruz's five days, two-day Eids approximate, the 2006 rest-day rule with Eid collisions that reproduces March 2026 |
 | Georgia 🇬🇪 | Labour Code art. 30 with the Orthodox Easter; nothing moves |
 | Kazakhstan 🇰🇿 | The 2001 law through the June 2026 move of Constitution Day to 15 March, with Nauryz, Republic Day, First President Day and 17 December by their years; art. 5's rest-day rule |
+| Uzbekistan 🇺🇿 | Labour Code art. 208: the seven fixed days and the first day of each Hayit, approximate; a weekend holiday's day off to the next working day; the yearly decreed extras not carried |
+| Kyrgyzstan 🇰🇬 | The 2004 code's art. 113 through 2024 with its transfer rule, 7 April from 2016 and 7–8 November from 2018; the 2025 code's art. 66 with the New Year and May holidays, the demoted state holidays as observances, and no transfer |
+| Tajikistan 🇹🇯 | The Law on Holidays art. 3 with Navruz's four days and 1 May until 2016; Labour Code art. 89(5)'s transfer to the next working day |
+| Turkmenistan 🇹🇲 | Labour Code art. 81: the nine days with Kurban Bayram's three, approximate; art. 81(2)'s Sunday rule; 2018's move of Independence Day and merger of Flag Day |
 | Hong Kong 🇭🇰 | The seventeen general holidays with the statutory subset as `Kind::Public` and the 2021 phasing-in as years; Sunday and coincidence made up on the next free day, the 1983–2011 eve rule computed; complete from 1997 |
 | Macau 🇲🇴 | Executive Order 60/2000 with the ten obligatory holidays of Law 7/2008 as `Kind::Public`; the public administration's compensatory rest days from 2019; the eves as observances |
 | China 🇨🇳 | Statutory holidays keyed to the `chinese` calendar, across the 1999, 2007 and 2024 revisions |

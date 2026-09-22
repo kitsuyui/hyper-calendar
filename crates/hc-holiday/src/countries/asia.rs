@@ -2082,3 +2082,461 @@ pub static KAZAKHSTAN: RuleSet = RuleSet {
               names; pro1c.kz and Tengrinews for the 2022 and 2026 changes; \
               Inform.kz for Republic Day's removal in April 2009",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Uzbekistan
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 208: "when a day off coincides with a holiday, the day off is
+/// transferred to the working day following the holiday".
+static UZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static UZ_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Yangi yil", Rule::gregorian(1, 1)),
+    HolidayRule::public("Women's Day", "Xotin-qizlar kuni", Rule::gregorian(3, 8)),
+    HolidayRule::public("Navruz", "Navroʻz bayrami", Rule::gregorian(3, 21)),
+    HolidayRule::public("Victory Day", "Gʻalaba kuni", Rule::gregorian(5, 9))
+        .years(None, Some(1998)),
+    HolidayRule::public(
+        "Day of Remembrance and Honour",
+        "Xotira va qadrlash kuni",
+        Rule::gregorian(5, 9),
+    )
+    .years(Some(1999), None),
+    HolidayRule::public(
+        "Independence Day",
+        "Mustaqillik kuni",
+        Rule::gregorian(9, 1),
+    )
+    .years(Some(1991), None),
+    HolidayRule::public(
+        "Teachers' and Mentors' Day",
+        "Oʻqituvchi va murabbiylar kuni",
+        Rule::gregorian(10, 1),
+    )
+    .years(Some(1997), None),
+    HolidayRule::public(
+        "Constitution Day",
+        "Konstitutsiya kuni",
+        Rule::gregorian(12, 8),
+    ),
+    HolidayRule::public(
+        "Ruza Hayit",
+        "Roʻza hayiti",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+    )
+    .approximate(),
+    HolidayRule::public(
+        "Kurban Hayit",
+        "Qurbon hayiti",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+    )
+    .approximate(),
+];
+
+/// Uzbekistan.
+///
+/// The Labour Code of 28 October 2022 (ЗРУ-798), in force from 30 April
+/// 2023, article 208: seven fixed days and the first day of each of Ruza
+/// Hayit and Kurban Hayit, the two on the tabular Hijri calendar as an
+/// approximation of the dates the Government announces; and "when a day
+/// off coincides with a holiday, the day off is transferred to the working
+/// day following the holiday", which is the Saturday-and-Sunday policy —
+/// Saturday 21 March 2026 gave Monday the 23rd. The additional days off
+/// and the transfers the President decrees each year under the same
+/// article are not carried. 9 May was Victory Day until 1998 and the Day
+/// of Remembrance and Honour from 1999; Teachers' and Mentors' Day began
+/// in 1997.
+pub static UZBEKISTAN: RuleSet = RuleSet {
+    code: "UZ",
+    english_name: "Uzbekistan",
+    rules: UZ_RULES,
+    substitution: UZ_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Labour Code of the Republic of Uzbekistan (Law ЗРУ-798 of 28 October 2022), \
+              article 208, as lex.uz publishes it, retrieved 2026-09-22; gazeta.uz on the \
+              2026 Navruz transfer under Presidential Decree No. 106 of 17 March 2026; \
+              Wikipedia (ru), \"Праздники Узбекистана\", for the Uzbek names and 1997, and \
+              Wikipedia, \"Victory Day (9 May)\", for 1999",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Kyrgyzstan
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 113 of the 2004 code: "when a day off coincides with a
+/// non-working holiday, the day off is transferred to the working day
+/// following the holiday". The 2025 code has no such rule.
+static KG_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: Some(2024),
+}];
+
+/// A state holiday that the 2025 code keeps as a holiday but makes a
+/// working day: public through 2024, an observance from 2025.
+const fn kg_demoted(
+    name: &'static str,
+    local: &'static str,
+    month: u8,
+    day: u8,
+) -> [HolidayRule; 2] {
+    [
+        HolidayRule::public(name, local, Rule::gregorian(month, day)).years(None, Some(2024)),
+        HolidayRule::observance(name, local, Rule::gregorian(month, day)).years(Some(2025), None),
+    ]
+}
+
+const KG_DEFENDER: [HolidayRule; 2] = kg_demoted(
+    "Defender of the Fatherland Day",
+    "Мекенди коргоочунун күнү",
+    2,
+    23,
+);
+const KG_APRIL_7: [HolidayRule; 2] = kg_demoted(
+    "Day of the People's April Revolution",
+    "Элдик Апрель революциясы күнү",
+    4,
+    7,
+);
+const KG_NOVEMBER_7: [HolidayRule; 2] =
+    kg_demoted("Days of History and Commemoration of Ancestors", "", 11, 7);
+const KG_NOVEMBER_8: [HolidayRule; 2] =
+    kg_demoted("Days of History and Commemoration of Ancestors", "", 11, 8);
+
+static KG_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Жаңы жыл", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 2))
+        .years(Some(2026), None),
+    HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 3))
+        .years(Some(2026), None),
+    HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 4))
+        .years(Some(2026), None),
+    HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 5))
+        .years(Some(2026), None),
+    HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 6))
+        .years(Some(2026), None),
+    HolidayRule::public(
+        "Orthodox Christmas",
+        "Төрөлүү майрамы",
+        Rule::gregorian(1, 7),
+    ),
+    KG_DEFENDER[0],
+    KG_DEFENDER[1],
+    HolidayRule::public(
+        "International Women's Day",
+        "Эл аралык аялдар күнү",
+        Rule::gregorian(3, 8),
+    ),
+    HolidayRule::public("Nooruz", "Нооруз", Rule::gregorian(3, 21)),
+    HolidayRule::public(
+        "Day of the People's April Revolution",
+        "Элдик Апрель революциясы күнү",
+        Rule::gregorian(4, 7),
+    )
+    .years(Some(2016), Some(2024)),
+    KG_APRIL_7[1],
+    HolidayRule::public("Labour Day", "Эмгек күнү", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 2)).years(Some(2025), None),
+    HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 3)).years(Some(2025), None),
+    HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 4)).years(Some(2025), None),
+    HolidayRule::public(
+        "Constitution Day",
+        "Кыргыз Республикасынын Конституция күнү",
+        Rule::gregorian(5, 5),
+    ),
+    HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 6)).years(Some(2025), None),
+    HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 7)).years(Some(2025), None),
+    HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 8)).years(Some(2025), None),
+    HolidayRule::public("Victory Day", "Жеңиш күнү", Rule::gregorian(5, 9)),
+    HolidayRule::public(
+        "Independence Day",
+        "Кыргыз Республикасынын Эгемендүүлүк күнү",
+        Rule::gregorian(8, 31),
+    ),
+    HolidayRule::public(
+        "Day of the Great October Socialist Revolution",
+        "",
+        Rule::gregorian(11, 7),
+    )
+    .years(None, Some(2017)),
+    HolidayRule::public(
+        "Days of History and Commemoration of Ancestors",
+        "",
+        Rule::gregorian(11, 7),
+    )
+    .years(Some(2018), Some(2024)),
+    HolidayRule::public(
+        "Days of History and Commemoration of Ancestors",
+        "",
+        Rule::gregorian(11, 8),
+    )
+    .years(Some(2018), Some(2024)),
+    KG_NOVEMBER_7[1],
+    KG_NOVEMBER_8[1],
+    HolidayRule::public(
+        "Orozo Ait",
+        "Орозо айт",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+    )
+    .approximate(),
+    HolidayRule::public(
+        "Kurman Ait",
+        "Курман айт",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+    )
+    .approximate(),
+];
+
+/// Kyrgyzstan.
+///
+/// Two codes. The Labour Code of 4 August 2004 (No. 106), article 113 as
+/// last amended: twelve fixed days, Orozo Ait and Kurman Ait "by the
+/// lunar calendar", and "when a day off coincides with a non-working
+/// holiday, the day off is transferred to the working day following the
+/// holiday", the Saturday-and-Sunday policy, which ends with the code in
+/// 2024. The Day of the People's April Revolution joined the list by the
+/// law of 6 April 2016; the Days of History and Commemoration of
+/// Ancestors replaced the Day of the Great October Socialist Revolution
+/// by the law of 22 November 2017, from 2018. The Labour Code of
+/// 23 January 2025 (No. 23), article 66, keeps the state holidays but
+/// makes only some of them days off: New Year holidays on 1 to 6 January,
+/// carried from 2026 as the first January under it; 8 and 21 March; May
+/// holidays on 1 to 4 and 6 to 8 May around Constitution Day and Victory
+/// Day; 31 August; Orthodox Christmas; and the two Muslim holidays, on
+/// the tabular Hijri calendar as approximations. Defender of the
+/// Fatherland Day, 7 April and 7–8 November stay state holidays on
+/// working days, and are observances from 2025; the code has no transfer
+/// rule, which the Ministry of Labour's summary calls its removal. The
+/// days the Cabinet moves each year are not carried.
+pub static KYRGYZSTAN: RuleSet = RuleSet {
+    code: "KG",
+    english_name: "Kyrgyzstan",
+    rules: KG_RULES,
+    substitution: KG_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Labour Code of the Kyrgyz Republic (No. 23 of 23 January 2025), article 66, \
+              from the copy on isito.kg, retrieved 2026-09-22; Labour Code of the Kyrgyz \
+              Republic (No. 106 of 4 August 2004), article 113 as last amended, as \
+              continent-online.com publishes it; the Ministry of Labour's summaries of \
+              17 April 2024 and 8 April 2025 (mlsp.gov.kg); K-News on the law of \
+              22 November 2017 and Kaktus on the law of 6 April 2016; Wikipedia, \"Public \
+              holidays in Kyrgyzstan\", for the Kyrgyz names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Tajikistan
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Labour Code article 89(5): "when a day off coincides with a
+/// non-working holiday, the day off is transferred to the working day
+/// following the non-working holiday".
+static TJ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static TJ_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Соли нав", Rule::gregorian(1, 1)),
+    HolidayRule::public("Mother's Day", "Рӯзи модар", Rule::gregorian(3, 8)),
+    HolidayRule::public("Navruz", "Наврӯз", Rule::gregorian(3, 21)),
+    HolidayRule::public("Navruz", "Наврӯз", Rule::gregorian(3, 22)),
+    HolidayRule::public("Navruz", "Наврӯз", Rule::gregorian(3, 23)),
+    HolidayRule::public("Navruz", "Наврӯз", Rule::gregorian(3, 24)),
+    HolidayRule::public("Labour Day", "Рӯзи меҳнат", Rule::gregorian(5, 1)).years(None, Some(2016)),
+    HolidayRule::public("Victory Day", "Рӯзи Ғалаба", Rule::gregorian(5, 9)),
+    HolidayRule::public(
+        "National Unity Day",
+        "Рӯзи Ваҳдати миллӣ",
+        Rule::gregorian(6, 27),
+    ),
+    HolidayRule::public(
+        "Independence Day",
+        "Рӯзи Истиқлолияти давлатии Ҷумҳурии Тоҷикистон",
+        Rule::gregorian(9, 9),
+    ),
+    HolidayRule::public(
+        "Constitution Day",
+        "Рӯзи Конститутсияи Ҷумҳурии Тоҷикистон",
+        Rule::gregorian(11, 6),
+    ),
+    HolidayRule::public(
+        "Idi Ramazon",
+        "Иди Рамазон",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+    )
+    .approximate(),
+    HolidayRule::public(
+        "Idi Kurbon",
+        "Иди Қурбон",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+    )
+    .approximate(),
+];
+
+/// Tajikistan.
+///
+/// The Law on Holidays of 2 August 2011 (No. 753) as amended, article 3,
+/// from the National Centre of Legislation's text: New Year's Day,
+/// Mother's Day, the four days of Navruz, Victory Day, National Unity
+/// Day, Independence Day, Constitution Day, and one day each of Ramazon
+/// and Kurbon "set annually by the authorised state body for religion",
+/// carried on the tabular Hijri calendar as approximations. 1 May was
+/// struck from the article by the law of 24 February 2017 and ends in
+/// 2016. The Labour Code of 23 July 2016 (No. 1329), article 89(5): "when
+/// a day off coincides with a non-working holiday, the day off is
+/// transferred to the working day following the non-working holiday",
+/// the Saturday-and-Sunday policy, which after a weekend Navruz runs two
+/// days past the 24th; the transfers the Government makes under
+/// article 89(4) beyond that are not carried, nor are the working
+/// holidays of article 2, from Armed Forces Day to Flag Day.
+pub static TAJIKISTAN: RuleSet = RuleSet {
+    code: "TJ",
+    english_name: "Tajikistan",
+    rules: TJ_RULES,
+    substitution: TJ_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Law of the Republic of Tajikistan on Holidays (No. 753 of 2 August 2011) as \
+              amended, articles 2 and 3, as the National Centre of Legislation publishes it \
+              (ncz.tj), retrieved 2026-09-22; Labour Code of the Republic of Tajikistan \
+              (No. 1329 of 23 July 2016), article 89, from the Tax Committee's copy \
+              (andoz.tj); Vecherka on the 2017 removal of 1 May; Wikipedia (ru), \
+              \"Праздники Таджикистана\", for the Tajik names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Turkmenistan
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 81(2): "when a non-working holiday or memorial day coincides
+/// with the day off (Sunday), the day off is the working day following
+/// it".
+static TM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// Kurban Bayram on the three days the President's decrees have given it,
+/// 6–8 June 2025 and 27–29 May 2026.
+const fn tm_kurban(day: u8) -> HolidayRule {
+    HolidayRule::public(
+        "Kurban Bayram",
+        "Gurban baýramy",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, day),
+    )
+    .approximate()
+}
+
+static TM_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Täze ýyl", Rule::gregorian(1, 1)),
+    HolidayRule::public(
+        "State Flag Day",
+        "Türkmenistanyň Döwlet baýdagynyň güni",
+        Rule::gregorian(2, 19),
+    )
+    .years(Some(1995), Some(2017)),
+    HolidayRule::public(
+        "International Women's Day",
+        "Halkara zenanlar güni",
+        Rule::gregorian(3, 8),
+    ),
+    HolidayRule::public("Nowruz", "Milli bahar baýramy", Rule::gregorian(3, 21)),
+    HolidayRule::public("Nowruz", "Milli bahar baýramy", Rule::gregorian(3, 22)),
+    HolidayRule::public(
+        "Constitution Day",
+        "Türkmenistanyň Konstitusiýasynyň güni",
+        Rule::gregorian(5, 18),
+    )
+    .years(None, Some(2017)),
+    HolidayRule::public(
+        "Constitution and State Flag Day",
+        "Türkmenistanyň Konstitusiýasynyň we Döwlet baýdagynyň güni",
+        Rule::gregorian(5, 18),
+    )
+    .years(Some(2018), None),
+    HolidayRule::public(
+        "Independence Day",
+        "Türkmenistanyň Garaşsyzlyk güni",
+        Rule::gregorian(10, 27),
+    )
+    .years(Some(1991), Some(2017)),
+    HolidayRule::public(
+        "Independence Day",
+        "Türkmenistanyň Garaşsyzlyk güni",
+        Rule::gregorian(9, 27),
+    )
+    .years(Some(2018), None),
+    HolidayRule::public("Day of Remembrance", "Hatyra güni", Rule::gregorian(10, 6)),
+    HolidayRule::public(
+        "Neutrality Day",
+        "Halkara Bitaraplyk güni",
+        Rule::gregorian(12, 12),
+    ),
+    HolidayRule::public(
+        "Oraza Bayram",
+        "Oraza baýramy",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+    )
+    .approximate(),
+    tm_kurban(10),
+    tm_kurban(11),
+    tm_kurban(12),
+];
+
+/// Turkmenistan.
+///
+/// The Labour Code of 18 April 2009, article 81, as the Ombudsman's copy
+/// prints it: work stops on New Year's Day, International Women's Day, the
+/// two days of the National Spring Holiday, Constitution and State Flag
+/// Day, Independence Day, the Day of Remembrance, Neutrality Day, and
+/// Kurban and Oraza Bayram on dates the President decrees — three days
+/// and one in 2025 and 2026, carried on the tabular Hijri calendar as
+/// approximations; and "when a non-working holiday or memorial day
+/// coincides with the day off (Sunday), the day off is the working day
+/// following it", the Sunday policy, which the decree of 16 March 2026
+/// applied to Sunday 22 March. The memorial days without days off, and
+/// the days the Cabinet moves under paragraph 3, are not carried. The law
+/// of 9 October 2017, in force from 2018, moved Independence Day from
+/// 27 October to 27 September and merged State Flag Day, a day off on
+/// 19 February since 1995, into Constitution Day on 18 May.
+pub static TURKMENISTAN: RuleSet = RuleSet {
+    code: "TM",
+    english_name: "Turkmenistan",
+    rules: TM_RULES,
+    substitution: TM_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Labour Code of Turkmenistan (18 April 2009, as amended), article 81, from the \
+              Ombudsman's copy (ombudsman.gov.tm), retrieved 2026-09-22; the Embassy of \
+              Turkmenistan in Bishkek's list of holidays and memorial dates \
+              (tmembassy.gov.tm) for the Turkmen names; the Presidential Decrees on Oraza \
+              Bayram and the 22 March transfer (16 March 2026) and on Kurban Bayram \
+              (22 May 2026) on turkmenistan.gov.tm, and oilgas.gov.tm's 2025 list; \
+              Wikipedia, \"State Flag and Constitution Day (Turkmenistan)\", and Wikipedia \
+              (ru), \"День независимости Туркменистана\", for 1995, 2017 and 2018",
+};

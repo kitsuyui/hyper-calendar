@@ -3211,6 +3211,193 @@ fn bahamas_moves_weekend_holidays_to_the_next_free_weekday_and_nothing_else() {
 }
 
 #[test]
+fn uzbekistan_moves_a_weekend_holiday_to_the_next_working_day() {
+    expect(
+        "UZ",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            // A Sunday 8 March and a Saturday 21 March each give the Monday,
+            // the latter as Decree No. 106 of 17 March 2026 announced.
+            (2026, 3, 8, "Women's Day"),
+            (2026, 3, 9, "Women's Day"),
+            (2026, 3, 20, "Ruza Hayit"),
+            (2026, 3, 21, "Navruz"),
+            (2026, 3, 23, "Navruz"),
+            (2026, 5, 11, "Day of Remembrance and Honour"),
+            (2026, 5, 27, "Kurban Hayit"),
+            (2026, 9, 1, "Independence Day"),
+            (2026, 10, 1, "Teachers' and Mentors' Day"),
+            (2026, 12, 8, "Constitution Day"),
+            (1999, 5, 9, "Day of Remembrance and Honour"),
+            (1998, 5, 9, "Victory Day"),
+            (1997, 10, 1, "Teachers' and Mentors' Day"),
+        ],
+    );
+    expect_working("UZ", None, &[(2026, 3, 24), (2026, 5, 12), (1996, 10, 1)]);
+    expect_substitute("UZ", None, 2026, (3, 21), (3, 23));
+    expect_substitute("UZ", None, 2026, (5, 9), (5, 11));
+}
+
+#[test]
+fn kyrgyzstan_transferred_weekend_holidays_until_2024_and_keeps_two_holiday_weeks_since() {
+    expect(
+        "KG",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 2, "New Year Holidays"),
+            (2026, 1, 6, "New Year Holidays"),
+            (2026, 1, 7, "Orthodox Christmas"),
+            (2026, 3, 8, "International Women's Day"),
+            (2026, 3, 20, "Orozo Ait"),
+            (2026, 3, 21, "Nooruz"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 2, "May Holidays"),
+            (2026, 5, 5, "Constitution Day"),
+            (2026, 5, 8, "May Holidays"),
+            (2026, 5, 9, "Victory Day"),
+            (2026, 5, 27, "Kurman Ait"),
+            (2026, 8, 31, "Independence Day"),
+            // The May holidays came with the 2025 code; the New Year ones
+            // wait for 2026.
+            (2025, 5, 2, "May Holidays"),
+            // Under the 2004 code a Sunday 7 April and a Saturday 31 August
+            // gave the Monday.
+            (2024, 2, 23, "Defender of the Fatherland Day"),
+            (2024, 4, 8, "Day of the People's April Revolution"),
+            (2024, 9, 2, "Independence Day"),
+            (
+                2024,
+                11,
+                7,
+                "Days of History and Commemoration of Ancestors",
+            ),
+            (
+                2024,
+                11,
+                8,
+                "Days of History and Commemoration of Ancestors",
+            ),
+            (
+                2018,
+                11,
+                7,
+                "Days of History and Commemoration of Ancestors",
+            ),
+            (2017, 11, 7, "Day of the Great October Socialist Revolution"),
+            (2016, 4, 7, "Day of the People's April Revolution"),
+        ],
+    );
+    // No transfer since 2025: a Sunday 8 March and a Saturday Nooruz stay
+    // put; the demoted state holidays are working days.
+    expect_working(
+        "KG",
+        None,
+        &[
+            (2026, 3, 9),
+            (2026, 3, 23),
+            (2026, 2, 23),
+            (2026, 4, 7),
+            (2025, 1, 2),
+            (2025, 2, 24),
+            (2025, 4, 7),
+            (2025, 11, 7),
+            (2024, 1, 2),
+            (2024, 5, 2),
+            (2017, 11, 8),
+            (2015, 4, 7),
+        ],
+    );
+    expect_substitute("KG", None, 2024, (4, 7), (4, 8));
+    expect_substitute("KG", None, 2024, (8, 31), (9, 2));
+    let calendar = HolidayCalendar::for_year(table("KG"), None, 2026);
+    let kinds: Vec<Kind> = calendar
+        .on(ymd(2026, 2, 23))
+        .iter()
+        .map(|holiday| holiday.kind)
+        .collect();
+    assert_eq!(kinds, [Kind::Observance]);
+}
+
+#[test]
+fn tajikistan_runs_a_weekend_navruz_past_the_24th_and_dropped_1_may_in_2017() {
+    expect(
+        "TJ",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 9, "Mother's Day"),
+            (2026, 3, 20, "Idi Ramazon"),
+            (2026, 3, 21, "Navruz"),
+            (2026, 3, 24, "Navruz"),
+            // Saturday and Sunday the 21st and 22nd give the 25th and 26th.
+            (2026, 3, 25, "Navruz"),
+            (2026, 3, 26, "Navruz"),
+            (2026, 5, 11, "Victory Day"),
+            (2026, 5, 27, "Idi Kurbon"),
+            (2026, 6, 29, "National Unity Day"),
+            (2026, 9, 9, "Independence Day"),
+            (2026, 11, 6, "Constitution Day"),
+            (2017, 9, 11, "Independence Day"),
+            (2016, 5, 2, "Labour Day"),
+        ],
+    );
+    expect_working(
+        "TJ",
+        None,
+        &[(2026, 3, 27), (2026, 3, 10), (2017, 5, 1), (2017, 5, 2)],
+    );
+    expect_substitute("TJ", None, 2026, (3, 22), (3, 26));
+    expect_substitute("TJ", None, 2026, (6, 27), (6, 29));
+}
+
+#[test]
+fn turkmenistan_moves_a_sunday_holiday_only_and_moved_two_days_in_2018() {
+    expect(
+        "TM",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 9, "International Women's Day"),
+            // The decree of 16 March 2026: Oraza Bayram on the 20th and the
+            // Sunday 22 March given Monday the 23rd.
+            (2026, 3, 20, "Oraza Bayram"),
+            (2026, 3, 21, "Nowruz"),
+            (2026, 3, 22, "Nowruz"),
+            (2026, 3, 23, "Nowruz"),
+            (2026, 5, 18, "Constitution and State Flag Day"),
+            // The decree of 22 May 2026: 27–29 May.
+            (2026, 5, 27, "Kurban Bayram"),
+            (2026, 5, 28, "Kurban Bayram"),
+            (2026, 5, 29, "Kurban Bayram"),
+            (2026, 9, 27, "Independence Day"),
+            (2026, 9, 28, "Independence Day"),
+            (2026, 10, 6, "Day of Remembrance"),
+            (2026, 12, 12, "Neutrality Day"),
+            // 2025 on the tabular calendar, a day behind the decrees' 30 March
+            // and 6–8 June.
+            (2025, 3, 31, "Oraza Bayram"),
+            (2025, 6, 7, "Kurban Bayram"),
+            (2025, 6, 9, "Kurban Bayram"),
+            (2018, 5, 18, "Constitution and State Flag Day"),
+            (2018, 9, 27, "Independence Day"),
+            (2017, 2, 20, "State Flag Day"),
+            (2017, 5, 18, "Constitution Day"),
+            (2017, 10, 27, "Independence Day"),
+        ],
+    );
+    // A Saturday holiday stays where it is.
+    expect_working(
+        "TM",
+        None,
+        &[(2026, 12, 14), (2026, 3, 24), (2018, 2, 19), (2017, 9, 27)],
+    );
+    expect_substitute("TM", None, 2026, (3, 22), (3, 23));
+    expect_substitute("TM", None, 2026, (9, 27), (9, 28));
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",
