@@ -33,17 +33,20 @@ The published record, not the model checking itself:
 * every row of the Bahá'í World Centre's *Badíʿ dates 172 to 221 BE* that
   the model can claim: fifty pairs of Twin Holy Birthdays from the eighth
   new moon, and forty-eight of the fifty Naw-Rúzes. The two others fell
-  within the tolerance of Tehran's sunset; one of them, 2026, within a
-  minute of it, and the model gets that one wrong. The test says so by
-  name, because a row like that is the table's to decide.
+  within a sunset's tolerance — one of them, 2026, is an equinox within
+  seconds of Tehran's sunset — and the test names them rather than claims
+  them, because a row like that is the table's to decide.
 
 ## What it is not
 
-Exact beyond the astronomy. `hc-astro` places an equinox to within about a
-quarter of an hour (`EQUINOX_TOLERANCE_MINUTES`), so a year whose equinox
-falls that close to the deciding noon, sunset or midnight is decided here
-by a model where the country or the community decided by an ephemeris. Each
-module's `new_year_margin` says how close the call was.
+Exact beyond the astronomy. `hc-astro` places an equinox to within seconds,
+and the deciding clock to what it can be placed to — a standard-time noon
+exactly, an apparent midnight to seconds, a sunset to a minute or two and
+to the horizon the almanac assumed. Each module states its
+`TOLERANCE_MINUTES` from those parts, and a year whose equinox falls that
+close to its deciding instant is decided here by a model where the country
+or the community decided by an ephemeris. Each module's `new_year_margin`
+says how close the call was.
 
 ## Features
 

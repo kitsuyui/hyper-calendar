@@ -10,6 +10,8 @@
 //!
 //! * [`time`] — Universal Time to Terrestrial Time, and ΔT.
 //! * [`earth`] — obliquity, nutation, sidereal time.
+//! * [`vsop87`] — the Earth's heliocentric position from VSOP87, truncated
+//!   to a measured quarter of a second of arc.
 //! * [`solar`] — the Sun's apparent longitude, the search that solar terms
 //!   are built on, and the equinoxes and solstices.
 //! * [`lunar`] — the Moon's longitude, its phase, and the conjunction search.
@@ -29,7 +31,7 @@
 //!
 //! # Time scales
 //!
-//! Every public function that takes a [`Moment`](hc_calendar::fixed::Moment)
+//! Every public function that takes a [`hc_calendar::fixed::Moment`]
 //! takes it in **Universal Time**, and every one that returns a `Moment`
 //! returns Universal Time. The conversion to Terrestrial Time, which is what
 //! the series are actually stated in, happens inside. Published worked
@@ -52,6 +54,7 @@ pub mod lunar;
 pub mod riseset;
 pub mod solar;
 pub mod time;
+pub mod vsop87;
 
 mod search;
 mod util;

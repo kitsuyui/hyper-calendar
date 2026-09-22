@@ -1,18 +1,18 @@
 //! The Sun: apparent longitude, the search that solar terms are built on,
 //! and the equinoxes and solstices.
 //!
-//! The series is Meeus, *Astronomical Algorithms*, 2nd ed., chapter 25, in
-//! its low-accuracy form: mean longitude, mean anomaly, the equation of the
-//! centre truncated after `sin 3M`, then nutation in longitude and annual
-//! aberration. Meeus states that combination as accurate to about 0.01° in
-//! apparent longitude, which is 36″, or about 15 minutes of time in the
-//! Sun's motion along the ecliptic.
+//! The position is the Earth's from VSOP87 ([`crate::vsop87`]) turned
+//! around, brought to the FK5 frame, then given nutation in longitude and
+//! annual aberration — Meeus, *Astronomical Algorithms*, 2nd ed., chapter
+//! 25, in its higher-accuracy form. The truncation of the series costs
+//! under a quarter of a second of arc, so the apparent longitude is good to
+//! about 1″ and a seasonal event to well under a minute of time; what
+//! remains is ΔT.
 //!
-//! That is deliberately *not* the VSOP87 truncation of Meeus's Appendix III.
-//! A calendar asks "which day did the Sun cross 315°", and 0.01° moves that
-//! answer by a quarter of an hour — enough to matter only for a solar term
-//! that falls within minutes of local midnight, which is a case this crate
-//! documents rather than pretends away.
+//! It was the chapter's low-accuracy series until the equinox calendars
+//! asked which side of a sunset an equinox fell on. That series is good to
+//! 0.01°, a quarter of an hour of the Sun's motion, and a calendar decided
+//! by a noon, a sunset or a midnight is decided at the minute.
 
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
@@ -42,49 +42,44 @@ pub fn solar_mean_longitude_at_centuries(centuries: f64) -> f64 {
     normalize_degrees(poly(centuries, &[280.466_46, 36_000.769_83, 0.000_303_2]))
 }
 
-/// The Sun's mean anomaly in degrees. Meeus (25.3).
+/// The Sun's geometric ecliptic longitude and latitude in degrees, referred
+/// to the mean equinox of the date in the FK5 frame, and its distance in
+/// astronomical units: the Earth's heliocentric VSOP87 position turned
+/// around. Meeus (25.9).
 #[must_use]
-pub fn solar_mean_anomaly_at_centuries(centuries: f64) -> f64 {
-    normalize_degrees(poly(centuries, &[357.529_11, 35_999.050_29, -0.000_153_7]))
-}
-
-/// The eccentricity of the Earth's orbit. Meeus (25.4).
-#[must_use]
-pub fn earth_orbit_eccentricity_at_centuries(centuries: f64) -> f64 {
-    poly(
-        centuries,
-        &[0.016_708_634, -0.000_042_037, -0.000_000_126_7],
-    )
-}
-
-/// The equation of the centre in degrees: the difference between the Sun's
-/// true and mean longitudes. Meeus, chapter 25.
-#[must_use]
-pub fn solar_equation_of_centre_at_centuries(centuries: f64) -> f64 {
-    let anomaly = solar_mean_anomaly_at_centuries(centuries);
-    poly(centuries, &[1.914_602, -0.004_817, -0.000_014]) * sin_deg(anomaly)
-        + poly(centuries, &[0.019_993, -0.000_101]) * sin_deg(2.0 * anomaly)
-        + 0.000_289 * sin_deg(3.0 * anomaly)
+pub fn geometric_solar_ecliptic_at_centuries(centuries: f64) -> (f64, f64, f64) {
+    let (earth_longitude, earth_latitude, radius) =
+        crate::vsop87::earth_heliocentric(centuries / 10.0);
+    let longitude = normalize_degrees(earth_longitude * RAD_TO_DEG + 180.0);
+    let latitude = -earth_latitude * RAD_TO_DEG;
+    // From VSOP87's dynamical ecliptic to the FK5 frame: a constant shift in
+    // longitude and a small periodic one in latitude.
+    let lambda_prime = longitude - 1.397 * centuries - 0.000_31 * centuries * centuries;
+    let fk5_longitude = normalize_degrees(longitude - 0.090_33 / 3_600.0);
+    let fk5_latitude =
+        latitude + 0.039_16 / 3_600.0 * (cos_deg(lambda_prime) - sin_deg(lambda_prime));
+    (fk5_longitude, fk5_latitude, radius)
 }
 
 /// The Sun's true geometric longitude in degrees, referred to the mean
 /// equinox of the date — no nutation, no aberration.
 #[must_use]
 pub fn geometric_solar_longitude_at_centuries(centuries: f64) -> f64 {
-    normalize_degrees(
-        solar_mean_longitude_at_centuries(centuries)
-            + solar_equation_of_centre_at_centuries(centuries),
-    )
+    geometric_solar_ecliptic_at_centuries(centuries).0
 }
 
-/// The Earth–Sun distance in astronomical units. Meeus (25.5).
+/// The Sun's geometric ecliptic latitude in degrees: never more than about
+/// 1.2″ from zero, and the reason "the Sun is on the ecliptic" is only
+/// nearly true.
+#[must_use]
+pub fn solar_latitude_at_centuries(centuries: f64) -> f64 {
+    geometric_solar_ecliptic_at_centuries(centuries).1
+}
+
+/// The Earth–Sun distance in astronomical units.
 #[must_use]
 pub fn solar_radius_vector_at_centuries(centuries: f64) -> f64 {
-    let eccentricity = earth_orbit_eccentricity_at_centuries(centuries);
-    let true_anomaly = solar_mean_anomaly_at_centuries(centuries)
-        + solar_equation_of_centre_at_centuries(centuries);
-    1.000_001_018 * (1.0 - eccentricity * eccentricity)
-        / (1.0 + eccentricity * cos_deg(true_anomaly))
+    geometric_solar_ecliptic_at_centuries(centuries).2
 }
 
 /// The Earth–Sun distance in astronomical units at a Universal Time moment.
@@ -97,13 +92,13 @@ pub fn solar_radius_vector(moment: Moment) -> f64 {
 /// equinox of the date: true longitude plus nutation in longitude, minus
 /// annual aberration.
 ///
-/// Accurate to about 0.01° over the era this crate claims; see the crate
+/// Accurate to about 1″ over the era this crate claims; see the crate
 /// README.
 #[must_use]
 pub fn solar_longitude_at_centuries(centuries: f64) -> f64 {
-    let geometric = geometric_solar_longitude_at_centuries(centuries);
+    let (geometric, _, radius) = geometric_solar_ecliptic_at_centuries(centuries);
     let nutation = crate::earth::nutation_at_centuries(centuries).longitude_degrees;
-    let aberration = -ABERRATION_ARCSECONDS / 3600.0 / solar_radius_vector_at_centuries(centuries);
+    let aberration = -ABERRATION_ARCSECONDS / 3600.0 / radius;
     normalize_degrees(geometric + nutation + aberration)
 }
 
@@ -133,7 +128,7 @@ pub fn solar_position(moment: Moment) -> Equatorial {
     let centuries = julian_centuries(moment);
     equatorial_from_ecliptic(
         solar_longitude_at_centuries(centuries),
-        0.0,
+        solar_latitude_at_centuries(centuries),
         true_obliquity_at_centuries(centuries),
     )
 }
@@ -166,7 +161,7 @@ pub fn equation_of_time(moment: Moment) -> f64 {
 /// than about two days out because the equation of the centre is bounded by
 /// 1.92°, then brackets ±5 days around that seed and bisects. The answer is
 /// good to a few milliseconds *of the model*; the model itself is good to
-/// about 0.01° of longitude, which is roughly a quarter of an hour of time.
+/// about 1″ of longitude, which is under half a minute of time.
 ///
 /// If `moment` is itself the answer to within floating-point noise, the
 /// search may step a whole year forward; callers who need "on or before"
@@ -263,96 +258,78 @@ mod tests {
         universal_from_dynamical_julian_date,
     };
 
-    /// Meeus, example 25.a: 1992 October 13.0 TD, JDE 2448908.5.
-    const EXAMPLE_25A_JDE: f64 = 2_448_908.5;
+    /// Meeus, examples 25.a and 25.b: 1992 October 13.0 TD, JDE 2448908.5.
+    const EXAMPLE_25_JDE: f64 = 2_448_908.5;
 
-    fn example_25a_centuries() -> f64 {
-        centuries_from_dynamical_julian_date(EXAMPLE_25A_JDE)
+    fn example_25_centuries() -> f64 {
+        centuries_from_dynamical_julian_date(EXAMPLE_25_JDE)
     }
 
     #[test]
-    fn meeus_example_25a_has_the_stated_julian_centuries() {
+    fn meeus_example_25_has_the_stated_julian_centuries() {
         assert!(
-            (example_25a_centuries() + 0.072_183_436).abs() < 1e-9,
+            (example_25_centuries() + 0.072_183_436).abs() < 1e-9,
             "centuries {}",
-            example_25a_centuries()
+            example_25_centuries()
         );
     }
 
     #[test]
     fn the_solar_mean_longitude_matches_meeus_example_25a() {
-        let value = solar_mean_longitude_at_centuries(example_25a_centuries());
+        let value = solar_mean_longitude_at_centuries(example_25_centuries());
         assert!((value - 201.807_20).abs() < 1e-4, "L0 was {value}");
     }
 
+    /// Meeus, example 25.b, from his truncation of VSOP87: L = 19.907372°,
+    /// so Θ = 199.907372°, then −0.09033″ to FK5; apparent longitude
+    /// λ = 199°54′21.56″; R = 0.99760853 AU.
     #[test]
-    fn the_solar_mean_anomaly_matches_meeus_example_25a() {
-        let value = solar_mean_anomaly_at_centuries(example_25a_centuries());
-        assert!((value - 278.993_97).abs() < 1e-4, "M was {value}");
-    }
-
-    #[test]
-    fn the_equation_of_the_centre_matches_meeus_example_25a() {
-        let value = solar_equation_of_centre_at_centuries(example_25a_centuries());
-        assert!((value + 1.897_32).abs() < 1e-4, "C was {value}");
-    }
-
-    #[test]
-    fn the_geometric_solar_longitude_matches_meeus_example_25a() {
-        let value = geometric_solar_longitude_at_centuries(example_25a_centuries());
-        assert!((value - 199.909_88).abs() < 1e-4, "true longitude {value}");
-    }
-
-    /// Meeus, example 25.b, gives the Earth–Sun distance for this instant as
-    /// 0.99760775 AU from VSOP87. The two-body formula (25.5) used here
-    /// ignores the offset between the Earth and the Earth–Moon barycentre,
-    /// which is up to 4700 km, so the two can differ by some 10⁻⁵ AU.
-    #[test]
-    fn the_solar_radius_vector_matches_meeus_example_25a() {
-        let value = solar_radius_vector_at_centuries(example_25a_centuries());
-        assert!((value - 0.997_607_75).abs() < 1e-4, "R was {value}");
-        assert!((0.98..1.02).contains(&value), "R was {value}");
-    }
-
-    /// Meeus, example 25.a gives an apparent longitude of 199.90895° from the
-    /// low-accuracy recipe; example 25.b gives 199.90598° from VSOP87. The
-    /// gap between them is the 0.01° this crate claims and no better.
-    #[test]
-    fn the_apparent_solar_longitude_matches_meeus_example_25a() {
-        let value = solar_longitude_at_centuries(example_25a_centuries());
+    fn the_geometric_solar_position_matches_meeus_example_25b() {
+        let (longitude, latitude, radius) =
+            geometric_solar_ecliptic_at_centuries(example_25_centuries());
+        // His tables and ours keep different small terms; the spread is a
+        // fraction of a second of arc.
         assert!(
-            (value - 199.908_95).abs() < 0.002,
-            "apparent longitude {value}"
+            (longitude - 199.907_347).abs() < 0.000_15,
+            "geometric longitude {longitude}"
         );
         assert!(
-            (value - 199.905_98).abs() < 0.01,
-            "apparent longitude {value} is further than the claimed 0.01 degrees from VSOP87"
+            (0.0..0.000_35).contains(&latitude),
+            "geometric latitude {latitude}"
+        );
+        assert!(
+            (radius - 0.997_608_53).abs() < 0.000_000_5,
+            "R was {radius}"
         );
     }
 
-    /// Meeus, example 25.a: apparent α = 198.38083°, δ = −7.78507°.
     #[test]
-    fn the_solar_position_matches_meeus_example_25a() {
-        let moment = universal_from_dynamical_julian_date(EXAMPLE_25A_JDE);
+    fn the_apparent_solar_longitude_matches_meeus_example_25b() {
+        let value = solar_longitude_at_centuries(example_25_centuries());
+        let expected = 199.0 + 54.0 / 60.0 + 21.56 / 3_600.0;
+        assert!(
+            (value - expected).abs() < 0.000_15,
+            "apparent longitude {value}, expected {expected}"
+        );
+    }
+
+    /// Meeus, example 25.b: apparent α = 13h13m30.749s, δ = −7°47′01.74″.
+    #[test]
+    fn the_solar_position_matches_meeus_example_25b() {
+        let moment = universal_from_dynamical_julian_date(EXAMPLE_25_JDE);
         let position = solar_position(moment);
+        let alpha = (13.0 + 13.0 / 60.0 + 30.749 / 3_600.0) * 15.0;
+        let delta = -(7.0 + 47.0 / 60.0 + 1.74 / 3_600.0);
         assert!(
-            (position.right_ascension_degrees - 198.380_83).abs() < 0.01,
-            "right ascension {}",
+            (position.right_ascension_degrees - alpha).abs() < 0.000_3,
+            "α = {}",
             position.right_ascension_degrees
         );
         assert!(
-            (position.declination_degrees + 7.785_07).abs() < 0.01,
-            "declination {}",
+            (position.declination_degrees - delta).abs() < 0.000_3,
+            "δ = {}",
             position.declination_degrees
         );
-    }
-
-    #[test]
-    fn the_earths_orbit_is_very_nearly_circular() {
-        let now = earth_orbit_eccentricity_at_centuries(0.0);
-        assert!((now - 0.016_708_6).abs() < 1e-6, "eccentricity {now}");
-        // The orbit has been slowly rounding off for millennia.
-        assert!(earth_orbit_eccentricity_at_centuries(-20.0) > now);
     }
 
     #[test]
@@ -468,16 +445,11 @@ mod tests {
         (739_241, 9.0, 21.0, 270.0),  // 2024-12-21
     ];
 
-    /// The tolerance the low-accuracy series earns, in minutes of time.
+    /// The tolerance the series earns, in minutes of time.
     ///
-    /// Meeus's chapter 25 series is good to about 0.01° in apparent
-    /// longitude, and the Sun covers 0.01° in a little under 15 minutes. So
-    /// no test here may demand better than that of it, and the observed
-    /// spread against the published tables — a few minutes early on average,
-    /// ten at worst — is the model working as specified, not a defect. A
-    /// caller who needs the equinox to the second wants Meeus chapter 27's
-    /// dedicated series or a real ephemeris; see the crate README.
-    const SEASONAL_TOLERANCE_MINUTES: f64 = 12.0;
+    /// The published tables give the minute, so half a minute of the
+    /// spread is theirs; the rest is the truncation, a few seconds, and ΔT.
+    const SEASONAL_TOLERANCE_MINUTES: f64 = 1.0;
 
     /// The March equinox of 2000 was 2000-03-20 07:35 UT.
     #[test]
@@ -530,36 +502,11 @@ mod tests {
                 worst = error_minutes.abs();
             }
         }
-        // The residual is a bias, not noise: the truncated equation of the
-        // centre leaves the apparent longitude a few thousandths of a degree
-        // too large, so every event is found slightly early.
+        // No bias is left to speak of: the mean residual is inside the
+        // rounding of the tables themselves.
         let mean_error = total_error / PUBLISHED_SEASONAL_EVENTS.len() as f64;
-        assert!(
-            mean_error < 0.0,
-            "the bias should be early, was {mean_error}"
-        );
-        assert!(mean_error > -8.0, "the bias grew to {mean_error} minutes");
+        assert!(mean_error.abs() < 0.5, "a bias of {mean_error} minutes");
         assert!(worst < SEASONAL_TOLERANCE_MINUTES, "worst case {worst}");
-    }
-
-    /// The residual against the published tables is the same quantity Meeus
-    /// himself exposes by working one instant twice: example 25.a's
-    /// low-accuracy longitude is 199.90895° and example 25.b's VSOP87 one is
-    /// 199.90598°. That 0.003° is 4.3 minutes of the Sun's motion, which is
-    /// the size of the equinox offsets above.
-    #[test]
-    fn the_seasonal_offset_is_the_series_own_documented_bias() {
-        let low_accuracy = solar_longitude_at_centuries(example_25a_centuries());
-        let bias_degrees = low_accuracy - 199.905_98;
-        assert!(
-            (0.002..0.005).contains(&bias_degrees),
-            "the bias against VSOP87 was {bias_degrees} degrees"
-        );
-        let bias_minutes = bias_degrees / 0.985_6 * 24.0 * 60.0;
-        assert!(
-            (3.0..7.0).contains(&bias_minutes),
-            "which is {bias_minutes} minutes of time"
-        );
     }
 
     #[test]
@@ -658,10 +605,10 @@ mod tests {
 
     #[test]
     fn dynamical_and_universal_bridges_agree_with_each_other() {
-        let tt = Moment::from_julian_date(EXAMPLE_25A_JDE);
-        let ut = universal_from_dynamical_julian_date(EXAMPLE_25A_JDE);
+        let tt = Moment::from_julian_date(EXAMPLE_25_JDE);
+        let ut = universal_from_dynamical_julian_date(EXAMPLE_25_JDE);
         assert!((dynamical_time(ut).0 - tt.0).abs() < 1e-8);
-        assert!((dynamical_from_julian_centuries(example_25a_centuries()).0 - tt.0).abs() < 1e-8);
+        assert!((dynamical_from_julian_centuries(example_25_centuries()).0 - tt.0).abs() < 1e-8);
     }
 
     #[test]

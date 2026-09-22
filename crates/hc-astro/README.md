@@ -29,8 +29,8 @@ to within a couple of tenths of a second, which this crate does not smooth.
 
 | Quantity | Claimed | Verified against |
 | --- | --- | --- |
-| Apparent solar longitude | **0.01°** (36″) | Meeus example 25.a; VSOP87 via example 25.b |
-| Equinox / solstice times | **±12 minutes**, typically 1–10 minutes early | USNO and IMCCE published tables, nine events 2000–2024 |
+| Apparent solar longitude | **~1″** | Meeus example 25.b; the VSOP87 truncation measured against the full series at 0.23″ |
+| Equinox / solstice times | **under a minute** | USNO and IMCCE published tables, nine events 2000–2024, which give the minute |
 | Apparent lunar longitude | **~10″** | the Σl, Σb and Σr sums of Meeus example 47.a |
 | Lunar distance | **~0.2 km** on 368 000 | Meeus example 47.a |
 | New moon / quarter times | **~2 s of the published series** | Meeus examples 49.a and 49.b |
@@ -46,25 +46,25 @@ computed for the Warring States period is a plausible reconstruction, not a
 fact. `time::is_fitted_year` reports whether a year is inside the span ΔT was
 fitted to at all.
 
-### The equinox residual is the model, not a bug
+### The Sun is VSOP87, cut where it was measured
 
-`solar_longitude` is Meeus's chapter 25 *low-accuracy* series, and Meeus
-himself shows what that costs: for 1992 October 13.0 TD, example 25.a gives
-199.90895° and example 25.b gives 199.90598° from VSOP87. Those 0.003° are
-4.3 minutes of the Sun's motion, and that is exactly the size of the offsets
-this crate shows against published equinox tables. The residual is a bias —
-events come out a few minutes early — not random error, and it is tested as
-such. A caller who needs an equinox to the second wants Meeus chapter 27's
-dedicated series or a real ephemeris.
+`solar_longitude` is the Earth's heliocentric position from VSOP87 turned
+around — Meeus's chapter 25 in its higher-accuracy form — with the series
+truncated at an amplitude of 10⁻⁷ and the cost of the cut measured against
+the full theory: 0.23″ in longitude over 1000–3000, which is under six
+seconds of the Sun's motion. What is left in an equinox time is ΔT and the
+half-minute the published tables round to. It used to be the chapter's
+low-accuracy series, good to 0.01° and a quarter of an hour, until the
+equinox calendars asked which side of a sunset an equinox fell on.
 
-For a solar term that falls within ten minutes of local midnight, the *day*
-this crate assigns it may therefore be wrong. Lunisolar calendars built on
-top of this should say so too.
+For a solar term that falls within a minute of local midnight, the *day*
+this crate assigns it is still decided by ΔT and the truncation rather than
+by the sky, and the calendars built on top of this say so where it matters.
 
 ## What this crate deliberately does not do
 
-* **No ephemeris.** No planets, no eclipse circumstances, no VSOP87, no
-  ELP-2000 beyond Meeus's sixty-term truncation.
+* **No ephemeris.** No planets, no eclipse circumstances, no VSOP87 beyond
+  the Earth's own series, no ELP-2000 beyond Meeus's sixty-term truncation.
 * **No atmosphere.** Refraction at the horizon is the conventional 34′, full
   stop. Real refraction depends on temperature and pressure and can move an
   observed sunrise by more than a minute — a larger error than any of the

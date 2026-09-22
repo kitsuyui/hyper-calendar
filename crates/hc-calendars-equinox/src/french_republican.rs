@@ -23,13 +23,11 @@
 //! begin a day apart.
 //!
 //! Past An XIV it is the decree's rule continued, which is what a
-//! proleptic calendar is. Not exact beyond the astronomy: the equinox is
-//! placed to within about a quarter of an hour, and a year whose equinox
-//! falls that close to Paris midnight is decided here by a model where the
-//! Bureau des longitudes decided by its own tables — the objection Romme
-//! raised against the rule in the first place. [`new_year_margin`] says how
-//! close the call was, and [`crate::EQUINOX_TOLERANCE_MINUTES`] how close is
-//! too close.
+//! proleptic calendar is. Not exact beyond the astronomy: a year whose
+//! equinox falls within [`TOLERANCE_MINUTES`] of Paris midnight is decided
+//! here by a model where the Bureau des longitudes decided by its own
+//! tables — the objection Romme raised against the rule in the first
+//! place. [`new_year_margin`] says how close the call was.
 //!
 //! The month and *décade*-day names are the arithmetic module's own,
 //! [`hc_calendars_solar::french_republican::MONTHS`] and
@@ -60,6 +58,12 @@ pub const MIN_YEAR: i64 = 1;
 /// The latest year this calendar converts, whose 1 Vendémiaire falls in
 /// Gregorian 3000 — as far as the astronomy behind it is worth asking.
 pub const MAX_YEAR: i64 = 3_000 - GREGORIAN_YEAR_OFFSET;
+
+/// How close, in minutes, an equinox may fall to Paris's apparent midnight
+/// before this calendar is deciding by a model rather than by the sky. Both
+/// instants are placed to seconds; a minute covers ΔT and the truncation of
+/// the solar series many times over.
+pub const TOLERANCE_MINUTES: f64 = 1.0;
 
 /// The instant of the September equinox that begins `year`, in Universal
 /// Time.
@@ -335,7 +339,7 @@ mod tests {
             );
             let margin = new_year_margin(year).unwrap();
             assert!(
-                margin >= crate::EQUINOX_TOLERANCE_MINUTES,
+                margin >= TOLERANCE_MINUTES,
                 "An {year} is decided within the model's tolerance: {margin} minutes"
             );
         }
