@@ -140,6 +140,7 @@ const BUDDHIST_CALENDARS: &[CalendarId] = &[CalendarId("buddhist")];
 const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("chinese"),
     CalendarId("chinese-regnal"),
+    CalendarId("tibetan"),
     CalendarId("dangi"),
     CalendarId("vietnamese"),
     CalendarId("japanese-tenpo"),

@@ -8,7 +8,7 @@
 //!
 //! | | Calendar | Rule comes from |
 //! |---|---|---|
-//! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], [`hebrew`] | a counting rule, exact by definition |
+//! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], [`hebrew`], [`tibetan`] | a counting rule, exact by definition |
 //! | Tabulated | [`islamic_umalqura`] | a published table, exact where the table reaches |
 //! | Computed | [`chinese`], [`dangi`], [`vietnamese`], [`japanese_tenpo`], [`islamic_observational`] | an astronomical model, exact only to the model |
 //! | Historical | [`japanese_historical`] | the system's *own* period constants, exact to the bureau that published it |
@@ -96,6 +96,7 @@ pub mod japanese_historical;
 pub mod japanese_tenpo;
 pub mod lunisolar;
 pub mod tabular;
+pub mod tibetan;
 pub mod vietnamese;
 
 pub use chinese::{ChineseCalendar, ChineseDate};
@@ -117,6 +118,7 @@ pub use lunisolar::{
     MeridianEra, SolarTermMode,
 };
 pub use tabular::{IslamicDate, LeapYearRule, TabularIslamicCalendar};
+pub use tibetan::{TibetanCalendar, TibetanDate};
 pub use vietnamese::{VietnameseCalendar, VietnameseDate};
 
 pub use hc_astro;
@@ -170,6 +172,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::SenmyoCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::tabular::FATIMID)));
         registry.insert(Box::new(DynAdapter::new(crate::HebrewCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::TibetanCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::IslamicCivilCalendar)));
         registry.insert(Box::new(DynAdapter::new(
             crate::IslamicAstronomicalCalendar,
@@ -192,7 +195,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 14);
+        assert_eq!(registry.len(), 15);
     }
 
     #[test]
