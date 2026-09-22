@@ -45,8 +45,9 @@ pub use asia::{
     THAILAND, VIETNAM,
 };
 pub use europe::{
-    AUSTRIA, BELGIUM, CZECHIA, DENMARK, FINLAND, FRANCE, GERMANY, GREECE, IRELAND, ITALY,
-    NETHERLANDS, NORWAY, POLAND, PORTUGAL, SPAIN, SWEDEN, SWITZERLAND, UNITED_KINGDOM,
+    AUSTRIA, BELGIUM, CZECHIA, DENMARK, FINLAND, FRANCE, GERMANY, GREECE, HUNGARY, IRELAND, ITALY,
+    NETHERLANDS, NORWAY, POLAND, PORTUGAL, ROMANIA, RUSSIA, SPAIN, SWEDEN, SWITZERLAND, UKRAINE,
+    UNITED_KINGDOM,
 };
 pub use japan::JAPAN;
 pub use oceania::{AUSTRALIA, NEW_ZEALAND};
@@ -74,6 +75,7 @@ pub static ALL: &[&CountryRules] = &[
     &FRANCE,
     &UNITED_KINGDOM,
     &GREECE,
+    &HUNGARY,
     &INDONESIA,
     &IRELAND,
     &ISRAEL,
@@ -92,12 +94,15 @@ pub static ALL: &[&CountryRules] = &[
     &PHILIPPINES,
     &POLAND,
     &PORTUGAL,
+    &ROMANIA,
+    &RUSSIA,
     &SAUDI_ARABIA,
     &SWEDEN,
     &SINGAPORE,
     &THAILAND,
     &TURKEY,
     &TAIWAN,
+    &UKRAINE,
     &UNITED_STATES,
     &VIETNAM,
     &SOUTH_AFRICA,
@@ -136,7 +141,7 @@ mod tests {
     fn the_registry_holds_the_number_of_countries_the_readme_claims() {
         // `README.md` and `docs/observances.md` both state this figure, and a
         // documented count that drifts is a documented lie.
-        assert_eq!(ALL.len(), 44);
+        assert_eq!(ALL.len(), 48);
     }
 
     #[test]

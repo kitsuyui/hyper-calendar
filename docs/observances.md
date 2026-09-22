@@ -144,6 +144,10 @@ Ordered by how well the sources can be cited, not by importance.
 | United Arab Emirates 🇦🇪 | With the 2022 move to a Saturday–Sunday weekend |
 | Israel 🇮🇱 | Hebrew-dated and therefore exact, with Yom HaAtzmaut's Sabbath-avoidance rule |
 | Iran 🇮🇷 | Civil holidays on the astronomical `persian` calendar, so exact — Nowruz 1404 on 21 March 2025, where the arithmetic cycle says the 20th; the lunar Hijri days flagged `Approximate`, since Iran declares them on its own sighting; Friday weekend |
+| Hungary 🇭🇺 | With Good Friday from 2017; the annual rearrangement of working days by decree is not carried |
+| Romania 🇷🇴 | Orthodox Easter and Pentecost by the Julian computus; the additions of the last decade by year, Epiphany and Saint John from 2024 |
+| Russia 🇷🇺 | The New Year holidays as they grew to 1–8 January; no substitution, because the Government transfers days off by decree every year and the statutory default almost never applies |
+| Ukraine 🇺🇦 | The 2023 list — 8 May, 15 July, 1 October, Christmas on 25 December alone — with the earlier dates by year; the next-working-day rule of article 67; the martial-law suspension of days off is noted, not modelled |
 | Thailand 🇹🇭 | Including the Buddhist lunar holidays, flagged `Approximate` |
 | Vietnam 🇻🇳 | Keyed to the `vietnamese` calendar |
 | Indonesia 🇮🇩 | |
@@ -156,7 +160,7 @@ Ordered by how well the sources can be cited, not by importance.
 | India 🇮🇳 | The three national holidays and the gazetted list — Holi, Ram Navami, Mahavir Jayanti, Buddha Purnima, Janmashtami, Dussehra, Diwali and Guru Nanak's Birthday now computed on `hindu-lunar`, the Hijri days approximate |
 | Nepal 🇳🇵 | Only the days whose Bikram Sambat date maps to a near-fixed Gregorian one, each flagged `Approximate`. The table exists chiefly for the one-day weekend, which ran until April 2026 |
 
-**Planned** — Russia 🇷🇺, Ukraine 🇺🇦, Hungary 🇭🇺, Romania 🇷🇴 and Argentina 🇦🇷
+**Planned** — Argentina 🇦🇷
 first, then every remaining UN member state and observer, plus the
 subdivisions that have their own legal holidays. Tracked as one issue per
 country so that each lands with a citable source. Argentina waits on a rule

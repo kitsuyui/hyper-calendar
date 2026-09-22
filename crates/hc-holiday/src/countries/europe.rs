@@ -1216,3 +1216,372 @@ pub static GREECE: RuleSet = RuleSet {
               Easter follows the Julian computus, the fixed feasts the civil \
               calendar",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Hungary
+// ─────────────────────────────────────────────────────────────────────────
+
+static HU_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Újév", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "1848 Revolution Memorial Day",
+        "Az 1848-as forradalom ünnepe",
+        Rule::gregorian(3, 15),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Nagypéntek", Rule::easter(GOOD_FRIDAY))
+        .years(Some(2017), None),
+    HolidayRule::fixed_public("Easter Monday", "Húsvéthétfő", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::fixed_public("Labour Day", "A munka ünnepe", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Whit Monday", "Pünkösdhétfő", Rule::easter(WHIT_MONDAY)),
+    HolidayRule::fixed_public(
+        "Saint Stephen's Day",
+        "Az államalapítás ünnepe",
+        Rule::gregorian(8, 20),
+    ),
+    HolidayRule::fixed_public(
+        "1956 Revolution Memorial Day",
+        "Az 1956-os forradalom ünnepe",
+        Rule::gregorian(10, 23),
+    ),
+    HolidayRule::fixed_public("All Saints' Day", "Mindenszentek", Rule::gregorian(11, 1)),
+    HolidayRule::fixed_public("Christmas Day", "Karácsony", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public(
+        "Second Day of Christmas",
+        "Karácsony másnapja",
+        Rule::gregorian(12, 26),
+    ),
+];
+
+/// Hungary.
+///
+/// No substitution: a holiday on a weekend stays there. What Hungary does
+/// instead is rearrange working days by decree each year — a Thursday
+/// holiday's Friday becomes a day off and a Saturday a working day — and
+/// those *áthelyezett munkanapok* are set annually and are not carried.
+pub static HUNGARY: RuleSet = RuleSet {
+    code: "HU",
+    english_name: "Hungary",
+    rules: HU_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "2012. évi I. törvény a munka törvénykönyvéről, § 102, as amended \
+              in 2016 to add Good Friday from 2017; Wikipedia, \"Public \
+              holidays in Hungary\", retrieved 2026-09-22. The annual \
+              rearrangement of working days around holidays is by decree and \
+              is not carried",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Romania
+// ─────────────────────────────────────────────────────────────────────────
+
+static RO_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Anul Nou", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Day after New Year's Day",
+        "Anul Nou",
+        Rule::gregorian(1, 2),
+    ),
+    HolidayRule::fixed_public("Epiphany", "Boboteaza", Rule::gregorian(1, 6))
+        .years(Some(2024), None),
+    HolidayRule::fixed_public(
+        "Saint John the Baptist",
+        "Sfântul Ioan Botezătorul",
+        Rule::gregorian(1, 7),
+    )
+    .years(Some(2024), None),
+    HolidayRule::fixed_public(
+        "Union of the Romanian Principalities",
+        "Ziua Unirii Principatelor Române",
+        Rule::gregorian(1, 24),
+    )
+    .years(Some(2017), None),
+    // The Romanian Orthodox Church keeps the fixed feasts on the civil
+    // calendar and Easter by the Julian computus.
+    HolidayRule::fixed_public("Good Friday", "Vinerea Mare", Rule::paschal(GOOD_FRIDAY))
+        .years(Some(2018), None),
+    HolidayRule::fixed_public("Easter Sunday", "Paștele", Rule::paschal(EASTER_SUNDAY)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "A doua zi de Paște",
+        Rule::paschal(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public("Labour Day", "Ziua Muncii", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Children's Day", "Ziua Copilului", Rule::gregorian(6, 1))
+        .years(Some(2017), None),
+    HolidayRule::fixed_public("Pentecost", "Rusaliile", Rule::paschal(PENTECOST)),
+    HolidayRule::fixed_public(
+        "Whit Monday",
+        "A doua zi de Rusalii",
+        Rule::paschal(WHIT_MONDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Dormition of the Mother of God",
+        "Adormirea Maicii Domnului",
+        Rule::gregorian(8, 15),
+    ),
+    HolidayRule::fixed_public(
+        "Saint Andrew's Day",
+        "Sfântul Andrei",
+        Rule::gregorian(11, 30),
+    )
+    .years(Some(2012), None),
+    HolidayRule::fixed_public(
+        "National Day",
+        "Ziua Națională a României",
+        Rule::gregorian(12, 1),
+    ),
+    HolidayRule::fixed_public("Christmas Day", "Crăciunul", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public(
+        "Second Day of Christmas",
+        "A doua zi de Crăciun",
+        Rule::gregorian(12, 26),
+    ),
+];
+
+/// Romania.
+///
+/// The Orthodox movable feasts by the Julian computus, the fixed ones on
+/// the civil calendar, and the additions of the last decade with their
+/// years: Saint Andrew from 2012, 24 January and Children's Day from 2017,
+/// Good Friday from 2018, Epiphany and Saint John from 2024. No
+/// substitution.
+pub static ROMANIA: RuleSet = RuleSet {
+    code: "RO",
+    english_name: "Romania",
+    rules: RO_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Codul muncii (Legea 53/2003) art. 139, as amended by Legea \
+              147/2012 (Saint Andrew), Legea 171/2016 (24 January), Legea \
+              220/2016 (Children's Day), Legea 88/2018 (Good Friday) and the \
+              2023 amendment adding Epiphany and Saint John from 2024; \
+              Wikipedia, \"Public holidays in Romania\", retrieved 2026-09-22",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Russia
+// ─────────────────────────────────────────────────────────────────────────
+
+static RU_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "New Year Holidays",
+        "Новогодние каникулы",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public(
+        "New Year Holidays",
+        "Новогодние каникулы",
+        Rule::gregorian(1, 2),
+    )
+    .years(Some(1993), None),
+    HolidayRule::fixed_public(
+        "New Year Holidays",
+        "Новогодние каникулы",
+        Rule::gregorian(1, 3),
+    )
+    .years(Some(2005), None),
+    HolidayRule::fixed_public(
+        "New Year Holidays",
+        "Новогодние каникулы",
+        Rule::gregorian(1, 4),
+    )
+    .years(Some(2005), None),
+    HolidayRule::fixed_public(
+        "New Year Holidays",
+        "Новогодние каникулы",
+        Rule::gregorian(1, 5),
+    )
+    .years(Some(2005), None),
+    HolidayRule::fixed_public(
+        "New Year Holidays",
+        "Новогодние каникулы",
+        Rule::gregorian(1, 6),
+    )
+    .years(Some(2013), None),
+    HolidayRule::fixed_public(
+        "Orthodox Christmas",
+        "Рождество Христово",
+        Rule::gregorian(1, 7),
+    )
+    .years(Some(1991), None),
+    HolidayRule::fixed_public(
+        "New Year Holidays",
+        "Новогодние каникулы",
+        Rule::gregorian(1, 8),
+    )
+    .years(Some(2013), None),
+    HolidayRule::fixed_public(
+        "Defender of the Fatherland Day",
+        "День защитника Отечества",
+        Rule::gregorian(2, 23),
+    )
+    .years(Some(2002), None),
+    HolidayRule::fixed_public(
+        "International Women's Day",
+        "Международный женский день",
+        Rule::gregorian(3, 8),
+    ),
+    HolidayRule::fixed_public(
+        "Spring and Labour Day",
+        "Праздник Весны и Труда",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Spring and Labour Day",
+        "Праздник Весны и Труда",
+        Rule::gregorian(5, 2),
+    )
+    .years(None, Some(2004)),
+    HolidayRule::fixed_public("Victory Day", "День Победы", Rule::gregorian(5, 9)),
+    HolidayRule::fixed_public("Russia Day", "День России", Rule::gregorian(6, 12))
+        .years(Some(1992), None),
+    HolidayRule::fixed_public(
+        "Day of Accord and Reconciliation",
+        "День согласия и примирения",
+        Rule::gregorian(11, 7),
+    )
+    .years(Some(1996), Some(2004)),
+    HolidayRule::fixed_public(
+        "Unity Day",
+        "День народного единства",
+        Rule::gregorian(11, 4),
+    )
+    .years(Some(2005), None),
+];
+
+/// Russia.
+///
+/// The non-working holidays of article 112 of the Labour Code, with the
+/// growth of the New Year holidays — 1 and 2 January, then 1 to 5 from
+/// 2005, then 1 to 8 from 2013 — and the two replacements: Unity Day on
+/// 4 November from 2005 in place of 7 November, and 2 May dropped after
+/// 2004.
+///
+/// **No substitution is carried, deliberately.** Article 112 says a holiday
+/// on a weekend moves to the next working day, but it also lets the
+/// Government transfer days off, and the Government does so by decree every
+/// year — a Saturday 8 March becomes a Friday in June, a Sunday in January
+/// a day in May — so the statutory default is the one thing that almost
+/// never happens. A table that computed it would be wrong most years;
+/// this one says the holidays and stops.
+pub static RUSSIA: RuleSet = RuleSet {
+    code: "RU",
+    english_name: "Russia",
+    rules: RU_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Трудовой кодекс Российской Федерации, статья 112, as amended \
+              (Federal Law 201-ФЗ of 2004 for the 2005 list, 35-ФЗ of 2012 \
+              for 6 and 8 January); Wikipedia, \"Public holidays in Russia\", \
+              retrieved 2026-09-22. The annual transfers of days off by \
+              Government decree are not carried",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Ukraine
+// ─────────────────────────────────────────────────────────────────────────
+
+static UA_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Новий рік", Rule::gregorian(1, 1)),
+    HolidayRule::public(
+        "Orthodox Christmas",
+        "Різдво Христове",
+        Rule::gregorian(1, 7),
+    )
+    .years(Some(1991), Some(2022)),
+    HolidayRule::public(
+        "International Women's Day",
+        "Міжнародний жіночий день",
+        Rule::gregorian(3, 8),
+    ),
+    // The Orthodox Church of Ukraine keeps the Julian computus for Easter
+    // even after moving its fixed feasts to the Revised Julian calendar.
+    HolidayRule::public("Easter", "Великдень", Rule::paschal(EASTER_SUNDAY)),
+    HolidayRule::public("Labour Day", "День праці", Rule::gregorian(5, 1)),
+    HolidayRule::public("Labour Day", "День праці", Rule::gregorian(5, 2)).years(None, Some(2017)),
+    HolidayRule::public(
+        "Day of Remembrance and Victory over Nazism",
+        "День пам'яті та перемоги над нацизмом у Другій світовій війні",
+        Rule::gregorian(5, 8),
+    )
+    .years(Some(2023), None),
+    HolidayRule::public("Victory Day", "День перемоги", Rule::gregorian(5, 9))
+        .years(None, Some(2022)),
+    HolidayRule::public("Trinity", "Трійця", Rule::paschal(PENTECOST)),
+    HolidayRule::public(
+        "Constitution Day",
+        "День Конституції",
+        Rule::gregorian(6, 28),
+    )
+    .years(Some(1997), None),
+    HolidayRule::public(
+        "Statehood Day",
+        "День Української Державності",
+        Rule::gregorian(7, 28),
+    )
+    .years(Some(2022), Some(2023)),
+    HolidayRule::public(
+        "Statehood Day",
+        "День Української Державності",
+        Rule::gregorian(7, 15),
+    )
+    .years(Some(2024), None),
+    HolidayRule::public(
+        "Independence Day",
+        "День Незалежності",
+        Rule::gregorian(8, 24),
+    )
+    .years(Some(1992), None),
+    HolidayRule::public(
+        "Defenders of Ukraine Day",
+        "День захисників і захисниць України",
+        Rule::gregorian(10, 14),
+    )
+    .years(Some(2015), Some(2022)),
+    HolidayRule::public(
+        "Defenders of Ukraine Day",
+        "День захисників і захисниць України",
+        Rule::gregorian(10, 1),
+    )
+    .years(Some(2023), None),
+    HolidayRule::public("Christmas", "Різдво Христове", Rule::gregorian(12, 25))
+        .years(Some(2017), None),
+];
+
+/// Ukraine.
+///
+/// The holidays of article 73 of the Labour Code, with the changes of the
+/// last decade by year: Defenders Day from 2015 on 14 October and from
+/// 2023 on 1 October, Christmas on 25 December from 2017 beside 7 January
+/// and alone from 2023, 2 May dropped after 2017, Statehood Day from 2022
+/// on 28 July and from 2024 on 15 July, 8 May in place of 9 May from 2023.
+/// Easter and Trinity follow the Julian computus.
+///
+/// Article 67 moves a holiday that falls on a weekend to the next working
+/// day, and that is carried. **Under martial law, in force since
+/// 24 February 2022, no holiday is a day off**; the table states the law
+/// and not the suspension, which has no end date to state.
+pub static UKRAINE: RuleSet = RuleSet {
+    code: "UA",
+    english_name: "Ukraine",
+    rules: UA_RULES,
+    // The next working day, as article 67 says: the same policy as the
+    // British bank-holiday shift.
+    substitution: BRITISH_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Кодекс законів про працю України, статті 67 and 73, as amended \
+              by the laws of 2015 (Defenders Day), 2017 (25 December), 2021 \
+              (Statehood Day) and 2023 (8 May, 15 July, 1 October, 7 January \
+              removed); Wikipedia, \"Public holidays in Ukraine\", retrieved \
+              2026-09-22. Under martial law since 2022 holidays are not days \
+              off, which the table does not model",
+};

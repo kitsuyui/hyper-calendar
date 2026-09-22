@@ -16,7 +16,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
 | `international` | the United Nations international days, each citing its resolution |
-| `countries` | 44 national tables |
+| `countries` | 48 national tables |
 
 ## The vocabulary
 
@@ -83,16 +83,16 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**44 countries.** Australia (eight states and territories), Austria,
+**48 countries.** Australia (eight states and territories), Austria,
 Belgium, Brazil, Canada (federal plus the provincial days fixed by statute),
 China, Czechia, Denmark, Egypt, Finland, France (métropole plus
-Alsace-Moselle), Germany (all 16 *Länder*), Greece, India, Indonesia, Iran,
-Ireland, Israel, Italy, Japan, Malaysia, Mexico, Nepal, the Netherlands, New
-Zealand,
-Nigeria, Norway, the Philippines, Poland, Portugal, Saudi Arabia, Singapore,
-South Africa, South Korea, Spain, Sweden, Switzerland, Taiwan, Thailand,
-Türkiye, the United Arab Emirates, the United Kingdom (three bank-holiday
-jurisdictions), the United States, Vietnam.
+Alsace-Moselle), Germany (all 16 *Länder*), Greece, Hungary, India,
+Indonesia, Iran, Ireland, Israel, Italy, Japan, Malaysia, Mexico, Nepal, the
+Netherlands, New Zealand, Nigeria, Norway, the Philippines, Poland, Portugal,
+Romania, Russia, Saudi Arabia, Singapore, South Africa, South Korea, Spain,
+Sweden, Switzerland, Taiwan, Thailand, Türkiye, Ukraine, the United Arab
+Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
+States, Vietnam.
 
 **Twelve traditions.** Christianity under both computations, the Ethiopian
 Orthodox Tewahedo and the Coptic Orthodox Churches, Islam, Judaism, the
