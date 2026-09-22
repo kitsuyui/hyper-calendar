@@ -6,7 +6,8 @@ use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::exchanges::{
     self, AUSTRALIAN_SECURITIES_EXCHANGE, B3, EURONEXT_AMSTERDAM, EURONEXT_BRUSSELS,
     EURONEXT_DUBLIN, EURONEXT_LISBON, EURONEXT_MILAN, EURONEXT_OSLO, EURONEXT_PARIS,
-    FRANKFURT_STOCK_EXCHANGE, HONG_KONG_EXCHANGES, NEW_YORK_STOCK_EXCHANGE, TOKYO_STOCK_EXCHANGE,
+    FRANKFURT_STOCK_EXCHANGE, HONG_KONG_EXCHANGES, NASDAQ, NASDAQ_COPENHAGEN, NASDAQ_HELSINKI,
+    NASDAQ_ICELAND, NASDAQ_STOCKHOLM, NEW_YORK_STOCK_EXCHANGE, TOKYO_STOCK_EXCHANGE,
     TORONTO_STOCK_EXCHANGE,
 };
 use hc_holiday::rule::RuleSet;
@@ -694,11 +695,230 @@ fn hong_kong_closes_on_the_general_holidays_and_halves_three_eves() {
 }
 
 #[test]
+fn nasdaq_keeps_the_nyse_calendar_day_for_day() {
+    // Nasdaq's own 2026 calendar: the same ten closed days and two early
+    // closes; and the same three unscheduled closures.
+    let (closed, early) = year_of(&NASDAQ, 2026);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (1, 19),
+            (2, 16),
+            (4, 3),
+            (5, 25),
+            (6, 19),
+            (7, 3),
+            (9, 7),
+            (11, 26),
+            (12, 25)
+        ]
+    );
+    assert_eq!(early, [(11, 27), (12, 24)]);
+    for year in [2001, 2012, 2018, 2027, 2028] {
+        let nyse = HolidayCalendar::for_year(&NEW_YORK_STOCK_EXCHANGE, None, year);
+        let nasdaq = HolidayCalendar::for_year(&NASDAQ, None, year);
+        let dates = |calendar: &HolidayCalendar| -> Vec<(Rd, &str)> {
+            calendar
+                .all()
+                .iter()
+                .map(|holiday| (holiday.date, holiday.name))
+                .collect()
+        };
+        assert_eq!(dates(&nyse), dates(&nasdaq), "{year}");
+    }
+}
+
+#[test]
+fn the_nordic_exchanges_close_on_the_days_nasdaqs_calendar_lists() {
+    // Copenhagen: the Friday after Ascension, Constitution Day, no Great
+    // Prayer Day.
+    let (closed, early) = year_of(&NASDAQ_COPENHAGEN, 2025);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (4, 17),
+            (4, 18),
+            (4, 21),
+            (5, 29),
+            (5, 30),
+            (6, 5),
+            (6, 9),
+            (12, 24),
+            (12, 25),
+            (12, 26),
+            (12, 31)
+        ]
+    );
+    assert!(early.is_empty());
+    let (closed, _) = year_of(&NASDAQ_COPENHAGEN, 2027);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (3, 25),
+            (3, 26),
+            (3, 29),
+            (5, 6),
+            (5, 7),
+            (5, 17),
+            (12, 24),
+            (12, 31)
+        ]
+    );
+    // Stockholm: Epiphany, National Day, Midsummer Eve, and five half days.
+    let (closed, early) = year_of(&NASDAQ_STOCKHOLM, 2025);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (1, 6),
+            (4, 18),
+            (4, 21),
+            (5, 1),
+            (5, 29),
+            (6, 6),
+            (6, 20),
+            (12, 24),
+            (12, 25),
+            (12, 26),
+            (12, 31)
+        ]
+    );
+    assert_eq!(early, [(4, 17), (4, 30), (5, 28), (10, 31)]);
+    let (closed, early) = year_of(&NASDAQ_STOCKHOLM, 2026);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (1, 6),
+            (4, 3),
+            (4, 6),
+            (5, 1),
+            (5, 14),
+            (6, 19),
+            (12, 24),
+            (12, 25),
+            (12, 31)
+        ]
+    );
+    assert_eq!(early, [(1, 5), (4, 2), (4, 30), (5, 13), (10, 30)]);
+    let (closed, early) = year_of(&NASDAQ_STOCKHOLM, 2027);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (1, 6),
+            (3, 26),
+            (3, 29),
+            (5, 6),
+            (6, 25),
+            (12, 24),
+            (12, 31)
+        ]
+    );
+    assert_eq!(early, [(1, 5), (3, 25), (4, 30), (5, 5), (11, 5)]);
+    // Helsinki: Independence Day on 6 December, a weekday only in 2027.
+    let (closed, early) = year_of(&NASDAQ_HELSINKI, 2025);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (1, 6),
+            (4, 18),
+            (4, 21),
+            (5, 1),
+            (5, 29),
+            (6, 20),
+            (12, 24),
+            (12, 25),
+            (12, 26),
+            (12, 31)
+        ]
+    );
+    assert!(early.is_empty());
+    let (closed, _) = year_of(&NASDAQ_HELSINKI, 2027);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (1, 6),
+            (3, 26),
+            (3, 29),
+            (5, 6),
+            (6, 25),
+            (12, 6),
+            (12, 24),
+            (12, 31)
+        ]
+    );
+    // Iceland: the First Day of Summer, National Day, Commerce Day.
+    let (closed, early) = year_of(&NASDAQ_ICELAND, 2025);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (4, 17),
+            (4, 18),
+            (4, 21),
+            (4, 24),
+            (5, 1),
+            (5, 29),
+            (6, 9),
+            (6, 17),
+            (8, 4),
+            (12, 24),
+            (12, 25),
+            (12, 26),
+            (12, 31)
+        ]
+    );
+    assert!(early.is_empty());
+    let (closed, _) = year_of(&NASDAQ_ICELAND, 2026);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (4, 2),
+            (4, 3),
+            (4, 6),
+            (4, 23),
+            (5, 1),
+            (5, 14),
+            (5, 25),
+            (6, 17),
+            (8, 3),
+            (12, 24),
+            (12, 25),
+            (12, 31)
+        ]
+    );
+    let (closed, _) = year_of(&NASDAQ_ICELAND, 2027);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (3, 25),
+            (3, 26),
+            (3, 29),
+            (4, 22),
+            (5, 6),
+            (5, 17),
+            (6, 17),
+            (8, 2),
+            (12, 24),
+            (12, 31)
+        ]
+    );
+}
+
+#[test]
 fn the_catalogue_is_keyed_by_market_identifier_code() {
     assert_eq!(
         exchanges::by_code("xnys").map(|e| e.english_name),
         Some("New York Stock Exchange")
     );
     assert!(exchanges::ALL.iter().all(|e| e.code.len() == 4));
-    assert_eq!(exchanges::ALL.len(), 14);
+    assert_eq!(exchanges::ALL.len(), 19);
 }
