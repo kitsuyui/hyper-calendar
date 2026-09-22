@@ -34,7 +34,7 @@
 //! called **Adar I**. The ordinary month 6 is then **Adar II**, the one that
 //! carries Purim and the one the Talmud treats as "the" Adar. Writing Adar I
 //! as the intercalary repetition of Shevaṭ rather than of Adar is what keeps
-//! a single [`Month`](hc_calendar::Month) type usable for this calendar and
+//! a single [`hc_calendar::Month`] type usable for this calendar and
 //! for the Chinese one, where the leap month likewise follows the month it
 //! is named after.
 //!
@@ -162,8 +162,8 @@ const fn new_year_delay(year: i64) -> i64 {
 
 /// The fixed day of Rosh Hashanah, 1 Tishrei of `year`.
 ///
-/// All four dehiyyot are applied here: two inside [`elapsed_days`] and two
-/// inside [`new_year_delay`].
+/// All four dehiyyot are applied here: two inside `elapsed_days` and two
+/// inside `new_year_delay`.
 #[must_use]
 pub const fn new_year(year: i64) -> Rd {
     Rd(EPOCH.0 + elapsed_days(year) + new_year_delay(year))

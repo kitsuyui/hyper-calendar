@@ -75,11 +75,10 @@ computes the instant in JST and the Cabinet Office prints the resulting date
 in the 官報 a year ahead. So this crate carries `Rule::SolarTerm` at
 `Meridian::JAPAN` and lets `hc-seasons` answer. Over 1980–2099 that agrees
 with all 240 dates the Observatory has published. The underlying solar
-longitude is Meeus's low-precision series, good to about 0.01° with a measured
-bias near −4.5 minutes, so an equinox landing within about ten minutes of JST
-midnight could still be given the wrong *day*; the tightest case in the modern
-record, the autumn equinox of 2012 at 23:49 JST, clears that window by eleven
-minutes.
+longitude is VSOP87, good to about 1″, so an equinox lands within the minute
+the almanacs round to; only an equinox within about a minute of JST midnight
+could still be given the wrong *day*, and the tightest case in the modern
+record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 

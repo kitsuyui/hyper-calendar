@@ -22,7 +22,7 @@
 //!
 //! It is not an ephemeris. Every series here is a truncation chosen for the
 //! question a calendar asks, which is always "on which *day* did this
-//! happen": the Sun's longitude to about 0.01°, the Moon's to about 10″, a
+//! happen": the Sun's longitude to about 1″, the Moon's to about 10″, a
 //! conjunction to under a minute, a sunrise to under a minute of the model's
 //! own geometry. If you need arcsecond positions, planetary positions or
 //! eclipse circumstances, use a real ephemeris and convert.

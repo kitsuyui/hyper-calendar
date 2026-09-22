@@ -103,10 +103,11 @@ which you mean. `Court::Unified` inside that window returns
 Everything except the pre-1873 half of `japanese` is exact integer
 arithmetic: no floating point, no astronomy, no approximation. The lunisolar
 half of `japanese` inherits the Tenpō calendar's model, where new moons are
-good to about a minute but apparent solar longitude only to about 0.01°, so a
-computed month boundary can differ by a day from what the Japanese calendar
-bureau actually promulgated. No table of promulgated Tenpō months ships with
-this crate, so no disagreement rate against one is claimed.
+good to about a minute and the apparent solar longitude to about 1″; a
+computed month boundary can still differ by a day from what the Japanese
+calendar bureau actually promulgated, because the bureau computed from its
+own tables rather than from modern astronomy. No table of promulgated Tenpō
+months ships with this crate, so no disagreement rate against one is claimed.
 
 ## Sources
 

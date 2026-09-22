@@ -123,9 +123,9 @@ impl Meridian {
     /// The local day on which a Universal Time instant falls.
     ///
     /// This is the single place where a seasonal instant becomes a calendar
-    /// date, and therefore the single place where `hc-astro`'s roughly
-    /// −4.5-minute bias in solar longitude can change an answer. See the
-    /// crate README.
+    /// date, and therefore the single place where the last seconds of
+    /// `hc-astro`'s solar longitude can change an answer. See the crate
+    /// README.
     #[must_use]
     pub fn day_of(self, universal: Moment) -> Rd {
         self.local(universal).day()

@@ -181,9 +181,9 @@ below.
 
 **Astronomical calendars — good to a day, usually.** Conjunctions come from
 `hc-astro` and land within about a minute. Solar longitude comes from the
-Meeus low-precision series, good to about 0.01°, whose solstice instants run
-systematically some four and a half minutes early. When a conjunction or a
-solstice falls within roughly ten minutes of local midnight, the day assigned
+VSOP87 series, good to about 1″, whose solstice instants land within the
+minute the almanacs round to. When a conjunction or a solstice falls within
+about a minute of local midnight, the day assigned
 can be wrong by one — and a wrong day for a zhōngqì can move a leap month by a
 whole month. The crate tests the published new years it can check (Chinese New
 Year 1900, 2000, 2020–2026; Seollal 1988 and 2024; Tết 1968, 1985 and 2024;

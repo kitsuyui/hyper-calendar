@@ -36,9 +36,9 @@
 //! around the 1920s. `tests/zodiac_conventional_dates.rs` measures how far
 //! apart the two have drifted rather than asserting that either is right.
 //!
-//! Accuracy: the underlying solar longitude carries a systematic bias of
-//! about −4.5 minutes, so an ingress within roughly ten minutes of local
-//! midnight can be assigned the wrong day. See the crate README.
+//! Accuracy: the underlying solar longitude is good to about 1″, so only an
+//! ingress within about a minute of local midnight can be assigned the wrong
+//! day. See the crate README.
 
 use hc_astro::solar::{seasonal_event, solar_longitude, solar_longitude_after};
 use hc_calendar::Rd;

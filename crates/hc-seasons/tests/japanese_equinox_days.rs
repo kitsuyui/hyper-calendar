@@ -30,10 +30,10 @@
 //!
 //! # What is expected to disagree
 //!
-//! `hc-astro`'s solar longitude is the Meeus low-precision series, good to
-//! about 0.01°, with a measured systematic bias of about −4.5 minutes. An
-//! equinox falling within roughly ten minutes of midnight JST can therefore
-//! be assigned the wrong day. 2012's autumn equinox, at 23:49 JST, is the
+//! `hc-astro`'s solar longitude is the VSOP87 series, good to about 1″, and
+//! its equinoxes land within the minute the almanacs round to. An equinox
+//! falling within about a minute of midnight JST could therefore still be
+//! assigned the wrong day. 2012's autumn equinox, at 23:49 JST, is the
 //! tightest case in the modern record. The tests measure the disagreement
 //! rate and print it; they do not hide it.
 
@@ -207,7 +207,7 @@ fn the_published_equinox_days_of_1980_to_2030_are_reproduced() {
     assert!(
         disagreements <= 2,
         "{disagreements} of {comparisons} published equinox days disagree ({rate:.2}%), \
-         which is more than the low-precision solar series can explain"
+         which is more than a series good to a minute can explain"
     );
 }
 
@@ -221,8 +221,8 @@ fn the_published_equinox_days_of_1980_to_2099_are_reproduced() {
     println!("1980-2099: {disagreements} of {comparisons} disagree ({rate:.2}%)");
     assert!(
         rate < 2.0,
-        "{disagreements} of {comparisons} disagree ({rate:.2}%), which is over the \
-         few percent the −4.5-minute bias in the solar series can account for"
+        "{disagreements} of {comparisons} disagree ({rate:.2}%), which is more than \
+         a series good to a minute can account for"
     );
 }
 
@@ -245,8 +245,9 @@ fn no_computed_equinox_day_is_more_than_a_day_from_the_published_one() {
 }
 
 /// Where the crate and the gazette *do* disagree, the equinox must be within
-/// half an hour of midnight JST. Anywhere else, a −4.5-minute bias cannot
-/// move a date, so a disagreement would mean something else was broken.
+/// half an hour of midnight JST. Anywhere else, a series good to a minute
+/// cannot move a date, so a disagreement would mean something else was
+/// broken.
 #[test]
 fn every_disagreement_is_a_near_midnight_case() {
     for year in FIRST_TABLE_YEAR..=LAST_FORMULA_YEAR {

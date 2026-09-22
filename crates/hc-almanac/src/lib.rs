@@ -60,10 +60,10 @@
 //! | Class | Annotations | Exactness |
 //! |---|---|---|
 //! | Pure day count | 干支 rules, 七曜, 二十八宿 | exact |
-//! | 節月-keyed | 十二直, 九星, most of 下段 and 選日 | `hc-astro`'s 0.01° solar series |
+//! | 節月-keyed | 十二直, 九星, most of 下段 and 選日 | `hc-astro`'s VSOP87 solar series, good to about 1″ |
 //! | Lunisolar | 六曜, 不成就日, 二十七宿 | `hc-seasons`' minimal 定気 derivation |
 //!
-//! A solar-term instant within roughly ten minutes of local midnight can be
+//! A solar-term instant within about a minute of local midnight can be
 //! assigned the wrong day, which moves a 節月 boundary and with it every
 //! annotation keyed to one. See the crate README.
 //!

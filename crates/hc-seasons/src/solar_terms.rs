@@ -29,10 +29,10 @@
 //! Every function here that returns an [`Rd`] therefore takes a
 //! [`Meridian`], and none of them guesses.
 //!
-//! Accuracy: `hc-astro`'s solar longitude is good to about 0.01°, which is
-//! roughly a quarter of an hour of solar motion, with a systematic bias of
-//! about −4.5 minutes. A term whose instant falls within ten minutes of local
-//! midnight may therefore be assigned the wrong *day*. The crate README
+//! Accuracy: `hc-astro`'s solar longitude is good to about 1″, which is
+//! under half a minute of solar motion. A term whose instant falls within
+//! about a minute of local midnight may therefore be assigned the wrong
+//! *day*. The crate README
 //! reports the measured disagreement rate against Japan's published
 //! equinox-day table.
 

@@ -37,11 +37,11 @@
 //! That is right in principle and, measured, right in practice:
 //! `hc-seasons`'s own test suite compares its equinox days against the 240
 //! the Observatory has published for 1980–2099 and finds no disagreement.
-//! The underlying solar longitude is good to about 0.01° with a systematic
-//! bias near −4.5 minutes, so an equinox landing within about ten minutes of
-//! JST midnight could still be given the wrong day; the closest case in the
-//! modern record, the autumn equinox of 2012 at 23:49 JST, clears that
-//! window by eleven minutes.
+//! The underlying solar longitude is VSOP87, good to about 1″, so an equinox
+//! lands within the minute the almanacs round to; only an equinox within
+//! about a minute of JST midnight could still be given the wrong day, and
+//! the closest case in the modern record, the autumn equinox of 2012 at
+//! 23:49 JST, is eleven minutes clear.
 //!
 //! # 1948 is a half year
 //!

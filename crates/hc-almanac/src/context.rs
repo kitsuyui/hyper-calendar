@@ -151,9 +151,9 @@ const fn sectional_term(offset: u8) -> SolarTerm {
 /// even when that instant is at a minute to midnight — that is how an
 /// almanac prints it, and it is why this function needs a [`Meridian`].
 ///
-/// The astronomy is `hc-astro`'s Meeus low-precision solar series, good to
-/// about 0.01°. An instant within roughly ten minutes of local midnight can
-/// therefore be assigned the wrong day, which moves the 節月 boundary by one
+/// The astronomy is `hc-astro`'s VSOP87 solar series, good to about 1″. An
+/// instant within about a minute of local midnight can therefore still be
+/// assigned the wrong day, which moves the 節月 boundary by one
 /// day and, through it, every annotation keyed to the 節月. See the crate
 /// README for the measured rate.
 #[must_use]
