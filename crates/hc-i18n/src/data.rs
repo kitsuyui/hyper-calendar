@@ -152,7 +152,7 @@ const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
 /// The registry calls it `persian-arithmetic`. This data used to key it as
 /// `persian`, a name no calendar answered to, so the twelve Persian month
 /// names below were written, tested and unreachable.
-const PERSIAN_CALENDARS: &[CalendarId] = &[CalendarId("persian-arithmetic")];
+const PERSIAN_CALENDARS: &[CalendarId] = &[CalendarId("persian-arithmetic"), CalendarId("persian")];
 
 /// The Coptic calendar.
 const COPTIC_CALENDARS: &[CalendarId] = &[CalendarId("coptic")];
@@ -712,7 +712,11 @@ const EN_CALENDARS: &[CalendarNames] = &[
     // which once sat beside these, are the calendar's own French and are
     // declared with its shape in `hc-calendars-solar`.)
     CalendarNames {
-        calendars: &[CalendarId("bahai-arithmetic"), CalendarId("bahai")],
+        calendars: &[
+            CalendarId("bahai-arithmetic"),
+            CalendarId("bahai"),
+            CalendarId("bahai-astronomical"),
+        ],
         cycles: &[months(&[
             "Bahá",
             "Jalál",

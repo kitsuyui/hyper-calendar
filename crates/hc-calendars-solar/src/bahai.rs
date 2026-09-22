@@ -12,10 +12,10 @@
 //! **astronomical** rules: the year begins on the day whose sunset follows
 //! the March equinox as measured at Tehran, and the length of Ayyám-i-Há
 //! follows from where the next Naw-Rúz lands. That determination needs the
-//! apparent solar longitude and a sunset time for a specific meridian.
-//! **It is a documented gap in this crate**: `hc-astro` will supply it, and
-//! until then no arithmetic here can claim to be the Badíʿ calendar as
-//! currently observed.
+//! apparent solar longitude and a sunset time for a specific place, and it
+//! is what `hc-calendars-equinox` computes under `bahai-astronomical`; no
+//! arithmetic here can claim to be the Badíʿ calendar as currently
+//! observed.
 //!
 //! What this module implements is the calendar as it was kept in the West
 //! before 2015: Naw-Rúz pinned to 21 March in the Gregorian calendar, and
@@ -131,8 +131,9 @@ const fn days_before_month(year: i64, month: u8) -> i64 {
 }
 
 /// Days elapsed before the first day of `month` in a year whose Ayyám-i-Há
-/// has `intercalary` days. The layout every Badíʿ variant shares.
-pub(crate) const fn days_before_month_with(intercalary: i64, month: u8) -> i64 {
+/// has `intercalary` days. The layout every Badíʿ variant shares — the
+/// as-kept calendar here and the astronomical one in `hc-calendars-equinox`.
+pub const fn days_before_month_with(intercalary: i64, month: u8) -> i64 {
     match month {
         AYYAM_I_HA => 18 * NINETEEN,
         19 => 18 * NINETEEN + intercalary,
@@ -142,7 +143,7 @@ pub(crate) const fn days_before_month_with(intercalary: i64, month: u8) -> i64 {
 
 /// The month and day of the `day_of_year`-th day (counting from zero) of a
 /// year whose Ayyám-i-Há has `intercalary` days.
-pub(crate) const fn split_day_of_year(day_of_year: i64, intercalary: i64) -> (u8, u8) {
+pub const fn split_day_of_year(day_of_year: i64, intercalary: i64) -> (u8, u8) {
     if day_of_year < 18 * NINETEEN {
         (
             (day_of_year.div_euclid(NINETEEN) + 1) as u8,
@@ -319,14 +320,14 @@ impl Calendar for ArithmeticBahaiCalendar {
 
 /// The nineteen-month shape and the seven-day week, which every Badíʿ
 /// variant shares.
-pub(crate) const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+pub const SHAPE: &[hc_calendar::shape::CycleShape] = &[
     hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::MONTH, 19),
     hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
 ];
 
 /// The calendar-agnostic fields of a Badíʿ date: Ayyám-i-Há as an
 /// intercalary repetition of month 18, the three cycles as extras.
-pub(crate) fn fields_of(date: BahaiDate) -> CalendarResult<DateFields> {
+pub fn fields_of(date: BahaiDate) -> CalendarResult<DateFields> {
     let (major, cycle, year_of_cycle) = date.cycles();
     let month = if date.is_intercalary() {
         Month::leap(18)
@@ -343,7 +344,7 @@ pub(crate) fn fields_of(date: BahaiDate) -> CalendarResult<DateFields> {
 
 /// The year, month number and day a set of fields names, unvalidated; each
 /// variant validates against its own year lengths.
-pub(crate) fn ordinal_from_fields(fields: &DateFields) -> CalendarResult<(i64, u8, u8)> {
+pub fn ordinal_from_fields(fields: &DateFields) -> CalendarResult<(i64, u8, u8)> {
     if fields.era.is_some_and(|era| era != ERA) {
         return Err(CalendarError::UnknownEra);
     }

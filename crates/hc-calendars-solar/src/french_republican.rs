@@ -23,8 +23,9 @@
 //! practice and on 22 September 1795 here, and the calendars stay one day
 //! apart until they resynchronise. Anyone converting a dated document from
 //! the twelve years the calendar was actually in force — 1793 to 1805 —
-//! needs the equinox variant, which `hc-astro` will supply. This module is
-//! for the arithmetic extension, forwards and backwards, of the *idea*.
+//! needs the equinox variant, `french-republican-equinox` in
+//! `hc-calendars-equinox`. This module is for the arithmetic extension,
+//! forwards and backwards, of the *idea*.
 //!
 //! The month names and the day names of the *décade* are [`MONTHS`] and
 //! [`DECADE_DAYS`], declared with the calendar's shape: the calendar was

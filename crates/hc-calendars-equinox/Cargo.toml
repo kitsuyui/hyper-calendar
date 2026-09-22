@@ -1,0 +1,35 @@
+[package]
+name = "hc-calendars-equinox"
+description = "Solar calendars defined by an equinox observed at a place, for hyper-calendar: the Solar Hijri, Badíʿ and French Republican calendars computed astronomically."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[features]
+default = ["std"]
+std = [
+    "alloc",
+    "hc-core/std",
+    "hc-calendar/std",
+    "hc-calendars-solar/std",
+    "hc-astro/std",
+]
+alloc = [
+    "hc-core/alloc",
+    "hc-calendar/alloc",
+    "hc-calendars-solar/alloc",
+    "hc-astro/alloc",
+]
+
+[dependencies]
+hc-core = { workspace = true }
+hc-calendar = { workspace = true }
+hc-calendars-solar = { workspace = true }
+hc-astro = { workspace = true }

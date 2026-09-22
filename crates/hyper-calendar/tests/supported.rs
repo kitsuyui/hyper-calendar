@@ -88,7 +88,7 @@ fn iso(rd: Option<Rd>) -> String {
 /// crate.
 fn calendar_rows() -> Vec<Row> {
     type Register = fn(&mut CalendarRegistry);
-    let sources: [(&'static str, &'static str, Register); 3] = [
+    let sources: [(&'static str, &'static str, Register); 4] = [
         (
             "hc-calendars-solar",
             "civil",
@@ -98,6 +98,11 @@ fn calendar_rows() -> Vec<Row> {
             "hc-calendars-lunar",
             "lunar",
             hyper_calendar::hc_calendars_lunar::register_all,
+        ),
+        (
+            "hc-calendars-equinox",
+            "equinox",
+            hyper_calendar::hc_calendars_equinox::register_all,
         ),
         (
             "hc-calendars-regional",

@@ -21,10 +21,9 @@
 //! exceptions). Nowruz is an observation, not a formula.
 //!
 //! For that reason this calendar takes the identifier `persian-arithmetic`
-//! and leaves the CLDR identifier `persian` free for the astronomical
-//! implementation that `hc-astro` will supply once it can compute the
-//! apparent solar longitude. **That astronomical variant is a documented
-//! gap in this crate, not an oversight.**
+//! and leaves the CLDR identifier `persian` to the astronomical
+//! implementation, which is `hc-calendars-equinox`'s and has the published
+//! Nowruz 1404 this cycle misses.
 //!
 //! # Structure
 //!
@@ -314,8 +313,10 @@ mod tests {
 
     #[test]
     fn nowruz_falls_on_the_twentieth_or_twenty_first_of_march() {
-        // Published Nowruz dates: 1 Farvardin 1399 was 20 March 2020,
-        // 1400 was 21 March 2021 and 1404 was 20 March 2025.
+        // 1 Farvardin 1399 was 20 March 2020 and 1400 was 21 March 2021, as
+        // published. 1404 is where the cycle parts from the record: Iran kept
+        // it on 21 March 2025, and the cycle says the 20th — the astronomical
+        // calendar in `hc-calendars-equinox` has the published date.
         for (persian_year, expected) in [
             (1399, (2020, 3, 20)),
             (1400, (2021, 3, 21)),
