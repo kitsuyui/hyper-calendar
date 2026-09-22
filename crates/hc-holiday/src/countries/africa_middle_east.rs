@@ -9,6 +9,7 @@
 //! therefore one of the crate's handful of [`Rule::Computed`] rules.
 
 use hc_calendar::{Month, Rd, Weekday};
+use hc_calendars_solar::gregorian;
 
 use crate::computus::offsets::{
     ASCENSION, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, PALM_SUNDAY, PENTECOST,
@@ -16,8 +17,8 @@ use crate::computus::offsets::{
 };
 use crate::hindu::DIWALI;
 use crate::rule::{
-    CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
+    BridgePolicy, CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY,
+    SourceDate, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
 };
 
 /// The Friday–Saturday weekend, as most of the Arab world keeps it.
@@ -2042,4 +2043,387 @@ pub static COTE_D_IVOIRE: RuleSet = RuleSet {
               \"Fêtes et jours fériés en Côte d'Ivoire\", for the two lendemain days and \
               the sighting practice, and Wikipedia, \"Public holidays in Ivory Coast\", \
               for 1996",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Oman
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Thursday–Friday until 30 April 2013, Friday–Saturday from 1 May 2013.
+static OM_WEEKEND: &[WeekendPolicy] = &[
+    WeekendPolicy {
+        days: &[Weekday::Thursday, Weekday::Friday],
+        valid_from: None,
+        valid_until: Some(2012),
+    },
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday],
+        valid_from: Some(2013),
+        valid_until: None,
+    },
+];
+
+/// Royal Decree 88/2022, article I, first: a weekend day inside one of the
+/// single-day holidays "is compensated by one day", carried as the next
+/// free weekday; the National Day pair and the Eids have their own rules.
+static OM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Friday, Weekday::Saturday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: Some(2020),
+    valid_until: None,
+}];
+
+/// Whether `day` is on Oman's weekend in `year`.
+fn om_is_weekend(year: i64, day: Rd) -> bool {
+    let weekday = Weekday::from_rd(day);
+    if year >= 2013 {
+        matches!(weekday, Weekday::Friday | Weekday::Saturday)
+    } else {
+        matches!(weekday, Weekday::Thursday | Weekday::Friday)
+    }
+}
+
+/// The first day after `last` that is not on the weekend.
+fn om_next_weekday(year: i64, last: Rd) -> Rd {
+    let mut cursor = Rd(last.0 + 1);
+    while om_is_weekend(year, cursor) {
+        cursor = Rd(cursor.0 + 1);
+    }
+    cursor
+}
+
+/// "If one or both days of the weekend fall within" the two National Day
+/// days, "they are compensated by one day": the next weekday after the
+/// pair, from the 2020 decree that first said so.
+fn om_national_day_compensation(year: i64) -> Days {
+    let mut out = Days::new();
+    if year < 2020 {
+        return out;
+    }
+    let first = if year >= 2025 { 20 } else { 18 };
+    let Ok(a) = gregorian::to_fixed(year, 11, first) else {
+        return out;
+    };
+    let b = Rd(a.0 + 1);
+    if om_is_weekend(year, a) || om_is_weekend(year, b) {
+        out.push(om_next_weekday(year, b));
+    }
+    out
+}
+
+/// "Friday is compensated if it falls on the first day of either Eid":
+/// the next weekday after the holiday, read as the first day of each
+/// holiday period, 29 Ramadan and 9 Dhu al-Hijja, on the tabular
+/// calendar.
+fn om_eid_compensation(year: i64) -> Days {
+    let mut out = Days::new();
+    if year < 2020 {
+        return out;
+    }
+    for (month, day, span) in [(9, 29, 4), (12, 9, 3)] {
+        let starts =
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, month, day).days_in_year(year);
+        for start in starts.as_slice() {
+            if Weekday::from_rd(*start) == Weekday::Friday {
+                out.push(om_next_weekday(year, Rd(start.0 + span)));
+            }
+        }
+    }
+    out
+}
+
+static OM_RULES: &[HolidayRule] = &[
+    HolidayRule::public(
+        "Accession Day",
+        "يوم تولي جلالة السلطان مقاليد الحكم",
+        Rule::gregorian(1, 11),
+    )
+    .years(Some(2021), None),
+    HolidayRule::fixed_public("Renaissance Day", "يوم النهضة", Rule::gregorian(7, 23))
+        .years(None, Some(2019)),
+    HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 18))
+        .years(None, Some(2024)),
+    HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 19))
+        .years(Some(2020), Some(2024)),
+    HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 20))
+        .years(Some(2025), None),
+    HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 21))
+        .years(Some(2025), None),
+    HolidayRule::fixed_public(
+        "National Day",
+        "العيد الوطني",
+        Rule::Computed(om_national_day_compensation),
+    ),
+    hijri_public("Islamic New Year", "رأس السنة الهجرية", 1, 1),
+    hijri_public("Prophet's Birthday", "المولد النبوي الشريف", 3, 12),
+    hijri_public("Isra and Mi'raj", "الإسراء والمعراج", 7, 27),
+    hijri("Eid al-Fitr", "عيد الفطر", 9, 29),
+    hijri("Eid al-Fitr", "عيد الفطر", 9, 30),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 9),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
+    HolidayRule::fixed_public(
+        "Eid Compensation Day",
+        "يوم تعويض",
+        Rule::Computed(om_eid_compensation),
+    )
+    .approximate(),
+];
+
+/// Oman.
+///
+/// Royal Decree 88/2022 determining the official holidays, in Decree's
+/// translation, as amended by Royal Decree 15/2025: the Hijri New Year,
+/// the Prophet's Birthday, Isra and Mi'raj, Accession Day on 11 January
+/// and National Day, on 18 and 19 November until Royal Decree 15/2025
+/// made it 20 and 21 from 2025; "if one or both days of the weekend fall
+/// within the aforementioned holidays, they are compensated by one day",
+/// which is the Friday–Saturday policy for the single days and a
+/// computed day after the National Day pair; Eid al-Fitr "starting from
+/// 29 Ramadan until 3 Shawwal" and Eid al-Adha "from 9 Dhu Al-Hijja
+/// until 12 Dhu Al-Hijja", on the tabular calendar, which always gives
+/// 30 Ramadan and so five days, and "Friday is compensated if it falls on
+/// the first day of either Eid", read as the first day of the holiday
+/// and computed. Royal Decree 56/2020, which the 2022 decree replaced,
+/// carried the same terms, and the compensations run from 2020; its
+/// predecessor 76/96 was not read. Renaissance Day on 23 July ended with
+/// the 2020 decree and Accession Day was first kept in 2021. The weekend
+/// was Thursday–Friday until 1 May 2013.
+pub static OMAN: RuleSet = RuleSet {
+    code: "OM",
+    english_name: "Oman",
+    rules: OM_RULES,
+    substitution: OM_SUBSTITUTION,
+    bridges: &[],
+    weekend: OM_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Royal Decree 88/2022 Determining the Official Holidays and Royal Decree \
+              15/2025 amending it, in Decree's translations (decree.om), retrieved \
+              2026-09-22; Royal Decree 56/2020 on the same site; the Arabian Stories \
+              (20 April 2020) on Renaissance Day's end; Arab News and Gulf News \
+              (April 2013) on the weekend; Wikipedia, \"Public holidays in Oman\"",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Qatar
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Emiri Decision 57/2025, article 2: "if the interval between two
+/// holidays is a single working day, it is a holiday within the two".
+static QA_BRIDGES: &[BridgePolicy] = &[BridgePolicy {
+    name: "Bridge Day",
+    local_name: "يوم فاصل",
+    max_gap: 1,
+    exclude_weekdays: &[Weekday::Friday, Weekday::Saturday],
+    valid_from: Some(2025),
+    valid_until: None,
+}];
+
+static QA_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 18))
+        .years(Some(2007), None),
+    HolidayRule::fixed_public(
+        "National Sport Day",
+        "اليوم الرياضي",
+        Rule::nth(2, 2, Weekday::Tuesday),
+    )
+    .years(Some(2012), None),
+    hijri("Eid al-Fitr", "عيد الفطر", 9, 28),
+    hijri("Eid al-Fitr", "عيد الفطر", 9, 29),
+    hijri("Eid al-Fitr", "عيد الفطر", 9, 30),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 4),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 9),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 13),
+    HolidayRule::fixed_public(
+        "Bank Holiday",
+        "عطلة اليوم الأول من شهر يناير",
+        Rule::gregorian(1, 1),
+    )
+    .of_kind(Kind::Bank),
+    HolidayRule::fixed_public("Bank Day", "يوم البنوك", Rule::nth(3, 1, Weekday::Sunday))
+        .of_kind(Kind::Bank)
+        .years(Some(2009), None),
+];
+
+/// Qatar.
+///
+/// Emiri Decision 57/2025 determining the working days, occasions and
+/// official holidays of the State, from Al Meezan: Sunday to Thursday
+/// with Friday and Saturday the weekend; National Day on 18 December;
+/// National Sport Day on the second Tuesday of February; Eid al-Fitr
+/// "from the twenty-eighth of Ramadan to the end of the fourth of
+/// Shawwal" and Eid al-Adha "from the ninth to the end of the thirteenth
+/// of Dhu al-Hijja", on the tabular calendar as approximations of the
+/// sighted dates, which the Amiri Diwan announces; and "if the interval
+/// between two holidays is a single working day, it is a holiday",
+/// carried as a bridge from 2025, the year the Cabinet's decision
+/// 18/2025 first put the same words into the decision of 2008, whose
+/// original text was not read. Article 4's days for the Central Bank and
+/// the financial sector, 1 January and the first Sunday of March, are
+/// bank days. National Day dates from 2007 and Sport Day from 2012,
+/// under Emiri Resolution 80/2011. The private sector's holidays are the
+/// Labour Law's, which gives three days for each Eid, and are not carried.
+pub static QATAR: RuleSet = RuleSet {
+    code: "QA",
+    english_name: "Qatar",
+    rules: QA_RULES,
+    substitution: &[],
+    bridges: QA_BRIDGES,
+    weekend: FRIDAY_SATURDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Emiri Decision No. 57 of 2025 determining the working days, occasions and \
+              official holidays in the State, and Cabinet Decision No. 18 of 2025 amending \
+              Cabinet Decision No. 6 of 2008, as Al Meezan publishes them (almeezan.qa), \
+              retrieved 2026-09-22; Al Meezan on Emiri Resolution No. 80 of 2011 on Sports \
+              Day; Wikipedia, \"National Day (Qatar)\" and \"Public holidays in Qatar\", \
+              for 2007 and 2009",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Iraq
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A day article 2 of the 2024 law gives to one community: a religious
+/// day, not a day off for everyone.
+const fn iq_community(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::observance(name, local, rule).of_kind(Kind::Religious)
+}
+
+/// The Yazidi Feast of the Assembly, 23 to 30 September in the Julian
+/// calendar the law calls "eastern".
+const fn iq_jama(day: u8) -> HolidayRule {
+    iq_community(
+        "Feast of the Assembly",
+        "عيد الجما",
+        Rule::in_calendar(CalendarSystem::JULIAN, 9, day),
+    )
+    .years(Some(2024), None)
+}
+
+static IQ_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "New Year's Day",
+        "رأس السنة الميلادية",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public("Army Day", "عيد الجيش العراقي", Rule::gregorian(1, 6)),
+    HolidayRule::fixed_public(
+        "Remembrance of the Ba'ath Crimes",
+        "ذكرى جرائم البعث الصدامي بحق الشعب العراقي",
+        Rule::gregorian(3, 16),
+    )
+    .years(Some(2024), None),
+    HolidayRule::fixed_public("Nowruz", "عيد نوروز", Rule::gregorian(3, 21)),
+    HolidayRule::fixed_public("Labour Day", "عيد العمال العالمي", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Christmas Day", "عيد الميلاد", Rule::gregorian(12, 25))
+        .years(Some(2020), Some(2023)),
+    hijri("Islamic New Year", "رأس السنة الهجرية", 1, 1),
+    hijri("Ashura", "عاشوراء", 1, 10),
+    hijri("Prophet's Birthday", "المولد النبوي الشريف", 3, 12),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 13),
+    hijri("Eid al-Ghadir", "عيد الغدير", 12, 18).years(Some(2024), None),
+    iq_community(
+        "Christmas Day",
+        "ميلاد السيد المسيح",
+        Rule::gregorian(12, 25),
+    )
+    .years(Some(2024), None),
+    iq_community("Easter Sunday", "العيد الكبير", Rule::easter(EASTER_SUNDAY))
+        .years(Some(2024), None),
+    iq_community("Easter Monday", "العيد الكبير", Rule::easter(EASTER_MONDAY))
+        .years(Some(2024), None),
+    iq_community(
+        "Yazidi New Year",
+        "عيد رأس السنة الإيزيدية",
+        Rule::WeekdayOnOrAfter {
+            month: 4,
+            day: 14,
+            weekday: Weekday::Wednesday,
+        },
+    )
+    .years(Some(2024), None),
+    iq_community(
+        "Feast of the Forty Days of Summer",
+        "عيد أربعينية الصيف",
+        Rule::gregorian(7, 20),
+    )
+    .years(Some(2024), None),
+    iq_community(
+        "Feast of the Forty Days of Summer",
+        "عيد أربعينية الصيف",
+        Rule::gregorian(7, 21),
+    )
+    .years(Some(2024), None),
+    iq_jama(23),
+    iq_jama(24),
+    iq_jama(25),
+    iq_jama(26),
+    iq_jama(27),
+    iq_jama(28),
+    iq_jama(29),
+    iq_jama(30),
+    iq_community(
+        "Yazidi Feast of the Fast",
+        "عيد الصيام",
+        Rule::WeekdayOnOrAfter {
+            month: 12,
+            day: 14,
+            weekday: Weekday::Friday,
+        },
+    )
+    .years(Some(2024), None),
+];
+
+/// Iraq.
+///
+/// The Official Holidays Law No. 12 of 2024, from the Official Gazette
+/// of 27 May 2024, article 1: Friday and Saturday each week; 1 and
+/// 10 Muharram, 12 Rabi al-Awwal, 1 to 3 Shawwal, 10 to 13 Dhu al-Hijja
+/// and, new in the law, 18 Dhu al-Hijja for Ghadir, on the tabular
+/// calendar as approximations of the dates the Shia and Sunni endowments
+/// announce; 1 and 6 January, 21 March, 1 May, and, new, 16 March for the
+/// crimes of the Ba'ath. The 3 October and 10 December the Government
+/// had kept by decision are not in the law and not carried, nor are the
+/// temporary holidays of article 3 or the days the holy-city governorates
+/// may add. Christmas was a holiday for all by the 2020 amendment of the
+/// 1972 law, carried over 2020–2023; the 2024 law's article 2 gives it,
+/// with two days of Easter, to Christians, and gives the Yazidis the
+/// first Wednesday of "eastern" April, the Feast of the Assembly on 23 to
+/// 30 eastern September, 20 and 21 July, and the first Friday of eastern
+/// December — the Julian calendar, its first days carried as the
+/// Gregorian 14th within this century — all religious days here; the
+/// Mandaean feasts are in a calendar the crate lacks and are not
+/// carried. The 1972 law was not read, so nothing before 2024 is dated
+/// beyond Christmas. The Kurdistan Region's own holidays are not carried.
+pub static IRAQ: RuleSet = RuleSet {
+    code: "IQ",
+    english_name: "Iraq",
+    rules: IQ_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: FRIDAY_SATURDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Official Holidays Law No. 12 of 2024, Al-Waqa'i' al-Iraqiya no. 4777 of \
+              27 May 2024, from the Ministry of Justice's copy (moj.gov.iq), retrieved \
+              2026-09-22; Shafaq News (May 2024) on the vote; Vatican News (December 2020) \
+              and Channel 8 (December 2024) on Christmas; Wikipedia, \"Public holidays in \
+              Iraq\", for the English names",
 };

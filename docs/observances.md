@@ -198,6 +198,9 @@ Ordered by how well the sources can be cited, not by importance.
 | Bahrain 🇧🇭 | The Council of Ministers' fourteen days under art. 64 of Law 36/2012: three of each Eid, two of Ashura, Hijri dates approximate; nothing moves |
 | Jordan 🇯🇴 | The list with four days of Eid al-Fitr and five from Arafat, Christmas for all, the Christian employees' Eastern Easter days as `Kind::Religious`, the working commemorations as observances |
 | Kuwait 🇰🇼 | Art. 68 of Law 6/2010's thirteen paid holidays with Arafat and Isra and Mi'raj, Hijri dates approximate |
+| Oman 🇴🇲 | Royal Decree 88/2022 as amended in 2025: the single days with a weekend day compensated, the National Day pair's one computed day, the two Eid spans with a Friday start compensated, approximate; the 2013 weekend change |
+| Qatar 🇶🇦 | Emiri Decision 57/2025: the two Eid spans approximate, National Day, Sport Day, the one-day bridge from 2025, the bank days of article 4 |
+| Iraq 🇮🇶 | Law 12 of 2024 from the Gazette: eleven days with Ghadir and 16 March new, Christmas for all over 2020–2023, and article 2's Christian and Yazidi days as religious, the Julian-dated ones on the Julian calendar |
 | Lebanon 🇱🇧 | Decree 15215 of 2005 from the Council of Ministers' own table: both Good Fridays and the Saturday they share, two-day Eids approximate, Labour Day alone moved off a Sunday, the May commemorations on their Sundays |
 | Tanzania 🇹🇿 | Cap. 35's Schedule with two days of Eid al-Fitr, section 4's Saturday-and-Sunday rule, and the two presidential days kept every year |
 | Uganda 🇺🇬 | Cap. 255's list with Luwum Day from 2016 and Heroes' Day from 2001, one day of each Eid; substitutes by designation not carried |
