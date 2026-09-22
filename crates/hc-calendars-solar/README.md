@@ -38,6 +38,7 @@ file does not:
 | `holocene` | Human Era | `holocene` |
 | `byzantine` | Byzantine *Anno Mundi*, September new year | `byzantine` |
 | `roman` | *Ab urbe condita* | `roman-auc` |
+| `rumi` | Rumi, the Ottoman civil calendar of 1840–1925: Julian days to 1917, Gregorian after, the year less 584 | `rumi` |
 | `french_republican` | French Republican, **arithmetic (Romme)** variant | `french-republican-arithmetic` |
 | `bahai` | Badíʿ, **arithmetic Western** variant | `bahai-arithmetic` |
 | `bahai_kept` | Badíʿ as kept: the arithmetic rule to 171 BE, the Bahá'í World Centre's table for 172–221 BE, nothing after | `bahai` |

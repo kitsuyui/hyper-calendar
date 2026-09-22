@@ -58,6 +58,7 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | Juche (DPRK) | `juche` | `hc-calendars-solar` | Done |
 | Holocene / Human Era (人類紀元) | `holocene` | `hc-calendars-solar` | Done |
 | Japanese imperial year (皇紀) | `japanese-imperial` | `hc-calendars-solar` | Done — proleptic before the 1873 adoption |
+| Rumi (Ottoman civil, 1840–1925) | `rumi` | `hc-calendars-solar` | Done — Julian days with the year on 1 Mart to 15 Şubat 1332, Gregorian days from 1 Mart 1333 (1 March 1917), the year less 584 throughout; bounded to the years it was kept |
 | Byzantine / Anno Mundi world era | `byzantine` | `hc-calendars-solar` | Done |
 | Roman *ab urbe condita* | `roman-auc` | `hc-calendars-solar` | Done |
 | French Republican, arithmetic (Romme) | `french-republican-arithmetic` | `hc-calendars-solar` | Done — Romme's proposal; the decree's rule is `french-republican-equinox`, stage 3 |
@@ -137,7 +138,6 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Nepal Sambat | `nepal-sambat` | `hc-calendars-regional` | Planned |
 | Burmese | `burmese` | `hc-calendars-regional` | Planned |
 | Thai lunar (Chulasakarat) | `thai-lunar` | `hc-calendars-regional` | Planned |
-| Rumi (late Ottoman fiscal) | `rumi` | `hc-calendars-regional` | Planned |
 | Attic (Athenian) | `attic` | `hc-calendars-regional` | Researching — reconstruction, sources conflict |
 | Babylonian | `babylonian` | `hc-calendars-regional` | Researching — regnal anchoring is uncertain |
 | Ancient Roman pre-Julian | `roman-republican` | `hc-calendars-regional` | Researching — intercalation was discretionary |
