@@ -10,7 +10,7 @@
 
 use hc_calendar::{Month, Rd, Weekday};
 
-use crate::computus::offsets::{EASTER_MONDAY, GOOD_FRIDAY};
+use crate::computus::offsets::{EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY};
 use crate::hindu::DIWALI;
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
@@ -889,4 +889,153 @@ pub static MOROCCO: RuleSet = RuleSet {
               \"Fêtes et jours fériés au Maroc\", retrieved 2026-09-22, which also \
               gives the royal decisions of 3 May 2023 (Yennayer) and 4 November \
               2025 (Fête de l'Unité)",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Ethiopia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A holiday on a day of the Ethiopian calendar, which is where Ethiopia
+/// keeps it: the Gregorian date the source prints moves by a day around
+/// the six-day Pagumen, and the Ethiopian date does not.
+const fn et_ethiopic(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::ETHIOPIC, month, day),
+    )
+}
+
+static ET_RULES: &[HolidayRule] = &[
+    // Tahsas 29: 7 January, and 8 January in a Gregorian leap year.
+    et_ethiopic("Genna", "ገና", 4, 29),
+    // Tirr 11: 19 January, and 20 January in a Gregorian leap year.
+    et_ethiopic("Timkat", "ጥምቀት", 5, 11),
+    // Yekatit 23: 2 March.
+    et_ethiopic("Adwa Victory Day", "የዓድዋ ድል በዓል", 6, 23),
+    HolidayRule::fixed_public("Good Friday", "ስቅለት", Rule::paschal(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Fasika", "ፋሲካ", Rule::paschal(EASTER_SUNDAY)),
+    HolidayRule::fixed_public(
+        "International Workers' Day",
+        "ዓለም አቀፍ የሠራተኞች ቀን",
+        Rule::gregorian(5, 1),
+    ),
+    // Miyazya 27: 5 May.
+    et_ethiopic("Patriots' Victory Day", "የአርበኞች ቀን", 8, 27),
+    // Ginbot 20: 28 May.
+    et_ethiopic("Downfall of the Derg", "ደርግ የወደቀበት ቀን", 9, 20),
+    // Mäskäräm 1: 11 September, and 12 September before a Gregorian leap
+    // year.
+    et_ethiopic("Enkutatash", "እንቁጣጣሽ", 1, 1),
+    // Mäskäräm 17: 27 September, and 28 September before a Gregorian leap
+    // year.
+    et_ethiopic("Meskel", "መስቀል", 1, 17),
+    HolidayRule::fixed_public("Mawlid", "", MAWLID).approximate(),
+    HolidayRule::fixed_public("Eid al-Fitr", "", EID_AL_FITR).approximate(),
+    HolidayRule::fixed_public("Eid al-Adha", "", EID_AL_ADHA).approximate(),
+];
+
+/// Ethiopia.
+///
+/// The national and Orthodox holidays on the Ethiopian calendar, which is
+/// where they are kept: the source prints their Gregorian dates with the
+/// leap-year alternatives, and the Ethiopian date is the one thing that
+/// does not move. Good Friday and Fasika follow the Julian computus, as
+/// the Ethiopian Orthodox Tewahedo Church does; the three Islamic holidays
+/// are on the tabular Hijri calendar and approximate, Mawlid on 12 Rabi'
+/// al-Awwal, the Sunni date the source gives first. The source says
+/// nothing of a holiday on the weekend, and nothing is done with one.
+pub static ETHIOPIA: RuleSet = RuleSet {
+    code: "ET",
+    english_name: "Ethiopia",
+    rules: ET_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia, \"Public holidays in Ethiopia\", retrieved 2026-09-22, for the \
+              list, the Amharic names and the Gregorian dates with their leap-year \
+              alternatives, which the Ethiopian dates here reproduce",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Ghana
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A holiday of the Public Holidays and Commemorative Days Act as it has
+/// stood since the 2019 amendment, from which the table begins.
+const fn gh(name: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::fixed_public(name, "", rule).years(Some(2019), None)
+}
+
+static GH_EID_AL_FITR: Rule = EID_AL_FITR;
+
+static GH_RULES: &[HolidayRule] = &[
+    gh("New Year's Day", Rule::gregorian(1, 1)),
+    // First observed on 7 January 2019.
+    gh("Constitution Day", Rule::gregorian(1, 7)),
+    gh("Independence Day", Rule::gregorian(3, 6)),
+    gh("Good Friday", Rule::easter(GOOD_FRIDAY)),
+    gh("Easter Monday", Rule::easter(EASTER_MONDAY)),
+    gh("May Day", Rule::gregorian(5, 1)),
+    gh("Eid al-Fitr", EID_AL_FITR).approximate(),
+    // The day after Eid al-Fitr, added by the 2025 amendment after that
+    // year's Eid had passed, so first kept in 2026.
+    gh(
+        "Shaqq Day",
+        Rule::Offset {
+            base: &GH_EID_AL_FITR,
+            days: 1,
+        },
+    )
+    .approximate()
+    .years(Some(2026), None),
+    gh("Eid al-Adha", EID_AL_ADHA).approximate(),
+    // A commemorative day, not a holiday, from 2019 to 2024; restored as a
+    // holiday by the 2025 amendment, passed on 25 June 2025.
+    gh("Republic Day", Rule::gregorian(7, 1)).years(Some(2025), None),
+    // The 2019 amendment's Founders' Day, repealed in 2025.
+    gh("Founders' Day", Rule::gregorian(8, 4)).years(Some(2019), Some(2024)),
+    // 21 September: Kwame Nkrumah Memorial Day under the 2019 amendment,
+    // Founders' Day again from 2025.
+    gh("Kwame Nkrumah Memorial Day", Rule::gregorian(9, 21)).years(Some(2019), Some(2024)),
+    gh("Founders' Day", Rule::gregorian(9, 21)).years(Some(2025), None),
+    // The first Friday of December, since 1988.
+    gh("Farmers' Day", Rule::nth(12, 1, Weekday::Friday)),
+    gh("Christmas Day", Rule::gregorian(12, 25)),
+    gh("Boxing Day", Rule::gregorian(12, 26)),
+];
+
+/// Ghana.
+///
+/// The Public Holidays and Commemorative Days Act as amended in 2019 and
+/// 2025, from 2019, the first year the sources state: Constitution Day
+/// from that year; Founders' Day on 4 August and Kwame Nkrumah Memorial
+/// Day on 21 September from 2019 to 2024, with Republic Day a
+/// commemorative day only; and from the amendment Parliament passed on
+/// 25 June 2025, Republic Day a holiday again, 21 September Founders' Day
+/// again, 4 August gone, and Shaqq Day, the day after Eid al-Fitr, new.
+/// The Hijri days are on the tabular calendar and approximate. Nothing
+/// before 2019 is stated.
+///
+/// A holiday on the weekend is not moved by the table: the source says
+/// the following Monday "tends to be declared" one, and the 2025 amendment
+/// lets the President move a Tuesday, Wednesday or Thursday holiday to the
+/// Friday or the Monday — both declarations, made year by year, and not
+/// carried.
+pub static GHANA: RuleSet = RuleSet {
+    code: "GH",
+    english_name: "Ghana",
+    rules: GH_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia, \"Public holidays in Ghana\", retrieved 2026-09-22, for the \
+              list, Constitution Day's first observance on 7 January 2019 and \
+              Farmers' Day on the first Friday of December since 1988; Ghana News \
+              Agency, \"Government proposes changes to public holidays\", June \
+              2025 (gna.org.gh, retrieved 2026-09-22), for the 2019 list and the \
+              2025 changes; Ghanaian Times, on Parliament's passage of the \
+              amendment on 25 June 2025",
 };

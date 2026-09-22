@@ -150,6 +150,8 @@ Ordered by how well the sources can be cited, not by importance.
 | Russia 🇷🇺 | The New Year holidays as they grew to 1–8 January; no substitution, because the Government transfers days off by decree every year and the statutory default almost never applies |
 | Argentina 🇦🇷 | From Decreto 1584/2010 in 2011: the *inamovibles* where they fall, the *trasladables* on the decree's Mondays to 2016 and by the weekday rule of Ley 27.399 from 2018; the annual tourist holidays not carried; Holy Thursday and the days of the Jewish and Islamic faiths as observances |
 | Colombia 🇨🇴 | Ley 51 de 1983 from 1984: ten holidays to the following Monday, eight where they fall |
+| Ethiopia 🇪🇹 | The national and Orthodox holidays on the Ethiopian calendar (`ethiopic`), where they are kept; Fasika by the Julian computus; the Islamic days approximate |
+| Ghana 🇬🇭 | The Act as amended in 2019 and 2025, from 2019: Founders' Day and Kwame Nkrumah Memorial Day by their years, Republic Day back from 2025, Shaqq Day from 2026; the year-by-year Monday declarations not carried |
 | Kenya 🇰🇪 | The Public Holidays Act's Part I with the Sunday rule of section 4; Idd-ul-Azha and Diwali as the religious days Parts II and III make them, not days off for all; the Idd days approximate |
 | Morocco 🇲🇦 | The decrees' eleven fixed days and the four feasts, three of them two days, approximate; Yennayer from 2024 and Unity Day from 2026 by year |
 | Pakistan 🇵🇰 | The state holidays, the Hijri ones approximate; Iqbal Day only in the years it was a holiday; the notification's extra Eid days not carried |

@@ -1231,6 +1231,66 @@ fn myanmar_dates_its_full_moons_and_thingyan_on_the_burmese_calendar() {
 }
 
 #[test]
+fn ethiopia_keeps_its_days_on_the_ethiopian_calendar() {
+    // 2026: the Gregorian dates the source prints; Orthodox Easter on
+    // 12 April. 2024, a Gregorian leap year: Genna and Timkat a day later;
+    // 2027, before a Gregorian leap year: Enkutatash and Meskel a day
+    // later.
+    expect(
+        "ET",
+        None,
+        &[
+            (2026, 1, 7, "Genna"),
+            (2026, 1, 19, "Timkat"),
+            (2026, 3, 2, "Adwa Victory Day"),
+            (2026, 4, 10, "Good Friday"),
+            (2026, 4, 12, "Fasika"),
+            (2026, 5, 5, "Patriots' Victory Day"),
+            (2026, 5, 28, "Downfall of the Derg"),
+            (2026, 9, 11, "Enkutatash"),
+            (2026, 9, 27, "Meskel"),
+            (2024, 1, 8, "Genna"),
+            (2024, 1, 20, "Timkat"),
+            (2027, 9, 12, "Enkutatash"),
+            (2027, 9, 28, "Meskel"),
+        ],
+    );
+    expect_working("ET", None, &[(2024, 1, 7), (2027, 9, 11)]);
+}
+
+#[test]
+fn ghana_carries_the_2019_and_2025_arrangements_by_year() {
+    expect(
+        "GH",
+        None,
+        &[
+            (2026, 1, 7, "Constitution Day"),
+            (2026, 3, 6, "Independence Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 7, 1, "Republic Day"),
+            (2026, 9, 21, "Founders' Day"),
+            (2026, 12, 4, "Farmers' Day"),
+            (2026, 12, 26, "Boxing Day"),
+            (2024, 8, 4, "Founders' Day"),
+            (2024, 9, 21, "Kwame Nkrumah Memorial Day"),
+            (2019, 1, 7, "Constitution Day"),
+        ],
+    );
+    expect_working("GH", None, &[(2024, 7, 1), (2026, 8, 4), (2018, 1, 7)]);
+    // Shaqq Day follows Eid al-Fitr from 2026 and not before.
+    let names_in = |year: i64| -> Vec<&'static str> {
+        let calendar = HolidayCalendar::for_year(table("GH"), None, year);
+        (1..=365)
+            .flat_map(|day| calendar.on(Rd(ymd(year, 1, 1).0 + day - 1)))
+            .map(|holiday| holiday.name)
+            .collect()
+    };
+    assert!(names_in(2026).contains(&"Shaqq Day"));
+    assert!(!names_in(2025).contains(&"Shaqq Day"));
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",
