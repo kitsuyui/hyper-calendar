@@ -255,7 +255,7 @@ which the engine takes on the same terms as its own.
 | Category | Status |
 | --- | --- |
 | Business-day calculation (weekend rules by country, including Friday–Saturday, Thursday–Friday and one-day weekends) | Done |
-| Trading-day calendars for major exchanges | In progress — the New York Stock Exchange (`XNYS`) as `hc_holiday::exchanges`, a rule set keyed by Market Identifier Code from the exchange's own published calendar ([ADR 0008](adr/0008-exchange-calendars-are-rule-sets.md)); other exchanges as their calendars are read |
+| Trading-day calendars for major exchanges | In progress — `hc_holiday::exchanges`, rule sets keyed by Market Identifier Code from each exchange's own published calendar ([ADR 0008](adr/0008-exchange-calendars-are-rule-sets.md)): New York (`XNYS`), Toronto (`XTSE`), Frankfurt on Xetra (`XETR`), Sydney (`XASX`); London, Tokyo, Hong Kong and Euronext as their calendars are read — the pages read so far are scripted or refuse the reader |
 | School terms | Out of scope — too local and too volatile |
 | Name days and the sanctorale | Planned — as named authorities rather than one list, since the Roman calendar was recast in 1969 and the Swedish *namnsdagslängd* was revised in 1901, 1993 and 2001 ([policy.md](policy.md) §5) |
 | Anniversaries and commemorations without a day off | Partial — `Kind::Observance` exists and a handful of tables use it. A general commemoration list is **out of scope** under [policy.md](policy.md) §10: no authority defines which commemorations belong, so its coverage could never be stated. Individual ones enter through whichever authority proclaims them |
