@@ -88,7 +88,10 @@ These need the astronomical engine, so they live behind the `lunar` feature.
 | Tibetan (Phugpa) | `tibetan` | `hc-calendars-lunar` | Planned |
 | Hindu lunisolar, amānta | `hindu-lunar` | `hc-calendars-indic` | Done — true Sun and Moon, Lahiri ayanamsa, the day read at the Central Station's sunrise as the *Rashtriya Panchang* does; tested against two years of its month tables |
 | Hindu lunisolar, pūrṇimānta | `hindu-lunar-purnimanta` | `hc-calendars-indic` | Planned — the same fortnights, the dark one counted first |
-| Hindu solar (Sūrya Siddhānta) | `hindu-solar` | `hc-calendars-lunar` | Planned |
+| Hindu solar, Tamil | `hindu-solar-tamil` | `hc-calendars-indic` | Done — the month begins on the saṅkrānti's day unless it fell after sunset; the *Rashtriya Panchang*'s regional tables for 2023–2025 |
+| Hindu solar, Malayalam (Kollam era) | `hindu-solar-malayalam` | `hc-calendars-indic` | Done — unless it fell after three fifths of the daylight |
+| Hindu solar, Bengali (Bangabda) | `hindu-solar-bengali` | `hc-calendars-indic` | Done — the day after the saṅkrānti's |
+| Hindu solar, Vikrami (Punjab, Odisha; the Nepali reckoning) | `hindu-solar-vikrami` | `hc-calendars-indic` | Done — the sunrise-to-sunrise day of the saṅkrānti |
 | Old Hindu (mean) lunisolar and solar | `hindu-old` | `hc-calendars-lunar` | Planned |
 
 ## Stage 3 — Astronomical variants of stage 1 calendars
@@ -127,7 +130,7 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Igbo four-day week (Izu) | `igbo` | `hc-calendars-regional` | Planned |
 | Yoruba four-day week | `yoruba` | `hc-calendars-regional` | Researching — regional variants differ |
 | Akan Adaduanan (42-day cycle) | `akan` | `hc-calendars-regional` | Planned |
-| Nepali Bikram Sambat | `bikram-sambat` | `hc-calendars-regional` | Planned |
+| Nepali Bikram Sambat | `bikram-sambat` | `hc-calendars-regional` | Planned — the Vikrami solar rule and era are `hindu-solar-vikrami`; what remains is comparing the committee's published calendar against it |
 | Nepal Sambat | `nepal-sambat` | `hc-calendars-regional` | Planned |
 | Burmese | `burmese` | `hc-calendars-regional` | Planned |
 | Thai lunar (Chulasakarat) | `thai-lunar` | `hc-calendars-regional` | Planned |
