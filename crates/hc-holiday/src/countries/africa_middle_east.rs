@@ -15,7 +15,7 @@ use crate::computus::offsets::{
     ASCENSION, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, PALM_SUNDAY, PENTECOST,
     WHIT_MONDAY,
 };
-use crate::hindu::DIWALI;
+use crate::hindu::{DIWALI, GANESH_CHATURTHI, MAHA_SHIVARATRI, THAIPUSAM, UGADI};
 use crate::rule::{
     BridgePolicy, CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY,
     SourceDate, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
@@ -2426,4 +2426,327 @@ pub static IRAQ: RuleSet = RuleSet {
               2026-09-22; Shafaq News (May 2024) on the vote; Vatican News (December 2020) \
               and Channel 8 (December 2024) on Christmas; Wikipedia, \"Public holidays in \
               Iraq\", for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Botswana
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Section 2(1)(i): a Sunday gives the following Monday, and nothing
+/// when that Monday is already a holiday.
+static BW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: false,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// Section 2(1)(ii): "if 2nd January, 1st October or Boxing Day falls on
+/// a Monday, the following Tuesday shall be observed".
+const BW_MONDAY_TO_TUESDAY: &[(Weekday, i16)] = &[(Weekday::Monday, 1)];
+
+static BW_JANUARY_2: Rule = Rule::gregorian(1, 2);
+static BW_OCTOBER_1: Rule = Rule::gregorian(10, 1);
+static BW_DECEMBER_26: Rule = Rule::gregorian(12, 26);
+static BW_PRESIDENTS_DAY: Rule = Rule::nth(7, 3, Weekday::Monday);
+
+static BW_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::public(
+        "New Year Holiday",
+        "",
+        Rule::moved_by_weekday(&BW_JANUARY_2, BW_MONDAY_TO_TUESDAY),
+    ),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::fixed_public("Ascension Day", "", Rule::easter(ASCENSION)),
+    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+    HolidayRule::public("Sir Seretse Khama Day", "", Rule::gregorian(7, 1)),
+    HolidayRule::fixed_public("President's Day", "", Rule::nth(7, 3, Weekday::Monday)),
+    HolidayRule::fixed_public(
+        "President's Day Holiday",
+        "",
+        Rule::Offset {
+            base: &BW_PRESIDENTS_DAY,
+            days: 1,
+        },
+    ),
+    HolidayRule::public("Botswana Day", "", Rule::gregorian(9, 30))
+        .substitute_on(&[Weekday::Saturday, Weekday::Sunday]),
+    HolidayRule::public(
+        "Botswana Day Holiday",
+        "",
+        Rule::moved_by_weekday(&BW_OCTOBER_1, BW_MONDAY_TO_TUESDAY),
+    ),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public(
+        "Boxing Day",
+        "",
+        Rule::moved_by_weekday(&BW_DECEMBER_26, BW_MONDAY_TO_TUESDAY),
+    ),
+];
+
+/// Botswana.
+///
+/// The Public Holidays Act (Cap. 03:07, re-enacted by Act 17 of 2006),
+/// from the NATLEX copy: the Schedule's fourteen days, and section 2(1)'s
+/// three provisos — a Sunday gives the following Monday; "if 2nd
+/// January, 1st October or Boxing Day falls on a Monday, the following
+/// Tuesday shall be observed", which those three rules do by themselves,
+/// so that a Sunday New Year's Day, Botswana Day or Christmas takes the
+/// Monday and its second day the Tuesday; and a Saturday Botswana Day
+/// gives the Monday. When that Saturday puts Botswana Day and a Sunday
+/// 1 October on the same Monday, as in 2023, the Act gives no Tuesday,
+/// and the published calendar for 2023 kept none. The second days are
+/// named here for the days they follow, the Schedule giving them only
+/// their dates. Section 2(2)'s three-day mining calendar and the days the
+/// President appoints under section 3 are not carried.
+pub static BOTSWANA: RuleSet = RuleSet {
+    code: "BW",
+    english_name: "Botswana",
+    rules: BW_RULES,
+    substitution: BW_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Public Holidays Act, Cap. 03:07 (Act 17 of 2006), sections 2 and 3 and the \
+              Schedule, from the NATLEX copy (BWA76156), retrieved 2026-09-22; Wikipedia, \
+              \"Public holidays in Botswana\", for the names; Office Holidays, \"National \
+              Holidays in Botswana in 2023\", for the days kept in 2023",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Namibia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Section 1(2): "when a public holiday falls on a Sunday the following
+/// Monday shall also be a public holiday, unless that Monday is a public
+/// holiday" — so the search does not go past a taken Monday.
+static NA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: false,
+    on_collision: false,
+    valid_from: Some(1991),
+    valid_until: None,
+}];
+
+static NA_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::public("Independence Day", "", Rule::gregorian(3, 21)).years(Some(1990), None),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::public("Workers' Day", "", Rule::gregorian(5, 1)),
+    HolidayRule::public("Cassinga Day", "", Rule::gregorian(5, 4)),
+    HolidayRule::fixed_public("Ascension Day", "", Rule::easter(ASCENSION)),
+    HolidayRule::public("Africa Day", "", Rule::gregorian(5, 25)),
+    HolidayRule::public("Genocide Remembrance Day", "", Rule::gregorian(5, 28))
+        .years(Some(2025), None),
+    HolidayRule::public("Heroes' Day", "", Rule::gregorian(8, 26)),
+    HolidayRule::public(
+        "International Human Rights Day",
+        "",
+        Rule::gregorian(12, 10),
+    )
+    .years(None, Some(2004)),
+    HolidayRule::public(
+        "Day of the Namibian Women and International Human Rights Day",
+        "",
+        Rule::gregorian(12, 10),
+    )
+    .years(Some(2005), None),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("Family Day", "", Rule::gregorian(12, 26)),
+];
+
+/// Namibia.
+///
+/// The Public Holidays Act 26 of 1990, in force from 1 February 1991,
+/// from the Legal Assistance Centre's annotated text: the Schedule's
+/// twelve days, 10 December renamed by the amendment of 2004, and
+/// section 1(2), "when a public holiday falls on a Sunday the following
+/// Monday shall also be a public holiday, unless that Monday is a public
+/// holiday" — a Sunday Christmas therefore adds nothing to Family Day.
+/// Genocide Remembrance Day on 28 May is Proclamation 19 of 2024 under
+/// section 1(3), "with effect from 28 May 2025". Independence Day is
+/// carried from 1990 itself; the other days the President proclaims for
+/// a year are not carried.
+pub static NAMIBIA: RuleSet = RuleSet {
+    code: "NA",
+    english_name: "Namibia",
+    rules: NA_RULES,
+    substitution: NA_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Public Holidays Act 26 of 1990, as amended by Act 16 of 2004, in the Legal \
+              Assistance Centre's annotated statutes (lac.org.na), retrieved 2026-09-22; \
+              Government Gazette No. 8373 of 28 May 2024, Proclamation No. 19; Wikipedia, \
+              \"Public holidays in Namibia\"",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Mauritius
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The Second Schedule's alternation from 2016, the Assumption first: the
+/// Assumption in even years.
+fn mu_assumption(year: i64) -> Days {
+    let mut out = Days::new();
+    if year < 2016 || year % 2 != 0 {
+        return out;
+    }
+    if let Ok(day) = gregorian::to_fixed(year, 8, 15) {
+        out.push(day);
+    }
+    out
+}
+
+/// All Saints' Day every year until 2015 and in odd years since.
+fn mu_all_saints(year: i64) -> Days {
+    let mut out = Days::new();
+    if year > 2015 && year % 2 == 0 {
+        return out;
+    }
+    if let Ok(day) = gregorian::to_fixed(year, 11, 1) {
+        out.push(day);
+    }
+    out
+}
+
+static MU_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("New Year Holiday", "", Rule::gregorian(1, 2)),
+    HolidayRule::fixed_public("Abolition of Slavery", "", Rule::gregorian(2, 1))
+        .years(Some(2001), None),
+    HolidayRule::fixed_public("Thaipoosam Cavadee", "", THAIPUSAM).approximate(),
+    HolidayRule::fixed_public("Maha Shivaratree", "", MAHA_SHIVARATRI).approximate(),
+    HolidayRule::fixed_public(
+        "Chinese Spring Festival",
+        "",
+        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Independence Day and Republic Day",
+        "",
+        Rule::gregorian(3, 12),
+    ),
+    HolidayRule::fixed_public("Ougadi", "", UGADI).approximate(),
+    hijri("Eid-Ul-Fitr", "", 10, 1),
+    HolidayRule::fixed_public("Labour Day", "", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public(
+        "Assumption of the Blessed Virgin Mary",
+        "",
+        Rule::Computed(mu_assumption),
+    ),
+    HolidayRule::fixed_public("Ganesh Chaturthi", "", GANESH_CHATURTHI).approximate(),
+    HolidayRule::fixed_public("All Saints' Day", "", Rule::Computed(mu_all_saints)),
+    HolidayRule::fixed_public(
+        "Arrival of Indentured Labourers",
+        "",
+        Rule::gregorian(11, 2),
+    )
+    .years(Some(2001), None),
+    HolidayRule::fixed_public("Divali", "", DIWALI).approximate(),
+    HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
+];
+
+/// Mauritius.
+///
+/// The Public Holidays Act (Act 22 of 1968) as amended by Act 28 of 2015
+/// from 1 January 2016 and Act 22 of 2019, from the Government's laws
+/// portal: the First Schedule's days "observed as public holidays every
+/// year" — 1 and 2 January, 1 February, 12 March, 1 May, 2 November,
+/// Christmas, and the Chinese Spring Festival, Divali, Eid-Ul-Fitr,
+/// Ganesh Chaturthi, Maha Shivaratree, Ougadi and Thaipoosam Cavadee on
+/// the days the Prime Minister's Office notifies — and the Second
+/// Schedule's Assumption or All Saints "on an alternate basis", the
+/// Assumption in 2016 and so in even years. The notified feasts are on
+/// the crate's Chinese, tabular Hijri and Hindu rules as approximations,
+/// Cavadee as the full moon of Thai. Abolition of Slavery and the Arrival
+/// of Indentured Labourers were declared for each year from 2001 until
+/// the 2015 Act put them in the Schedule, and run from 2001 here; the
+/// alternation of Cavadee with Tamizh Puttaandu that the 2015 Bill
+/// proposed was not read in the Act and is not carried. Sundays are in
+/// the Schedule, and nothing moves off one.
+pub static MAURITIUS: RuleSet = RuleSet {
+    code: "MU",
+    english_name: "Mauritius",
+    rules: MU_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Public Holidays Act (Act 22 of 1968) as amended to Act 22 of 2019, from \
+              lawsofmauritius.govmu.org, retrieved 2026-09-22, for section 3 and the two \
+              Schedules; the Public Holidays (Amendment) Bill (No. XIV of 2015) and its \
+              explanatory memorandum (mauritiusassembly.govmu.org); the Prime Minister's \
+              Office's General Notices No. 989 of 2024 and No. 1195 of 2025 for the 2025 \
+              and 2026 dates; L'Express (lexpress.mu), \"Le 1er février 2001: un jour férié \
+              pour commémorer l'abolition de l'esclavage\" and \"2-novembre: se souvenir de \
+              l'arrivée des travailleurs engagés\", for the two days kept from 2001; \
+              Wikipedia, \"Culture of Mauritius\"",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Malawi
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Section 4: a Schedule day "other than the Saturday following Good
+/// Friday" on a Saturday or Sunday gives "the next succeeding day, not
+/// being itself a Sunday or public holiday", and itself ceases to be one.
+static MW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: Some(1983),
+    valid_until: None,
+}];
+
+static MW_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::public("John Chilembwe Day", "", Rule::gregorian(1, 15)),
+    HolidayRule::public("Martyrs' Day", "", Rule::gregorian(3, 3)),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+    HolidayRule::public("Kamuzu Day", "", Rule::gregorian(5, 14)),
+    HolidayRule::public("Independence Day", "", Rule::gregorian(7, 6)).years(Some(1964), None),
+    HolidayRule::public("Mothers' Day", "", Rule::gregorian(10, 15)),
+    hijri_public("Eid al-Fitr", "Eid al Fitri", 10, 1),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+];
+
+/// Malawi.
+///
+/// The Public Holidays Act (Cap. 18:05), from the NATLEX copy: the
+/// Schedule as the Government Notices to 41 of 2007 left it — New Year's
+/// Day, John Chilembwe Day, Martyrs' Day, Good Friday, the Saturday
+/// following, Easter Monday, Labour Day, Kamuzu Day, Independence Day,
+/// Mothers' Day, Eid al Fitri and Christmas — and section 4, from the
+/// 1983 amendment: a Schedule day "other than the Saturday following
+/// Good Friday" that falls on a Saturday or Sunday gives "the next
+/// succeeding day, not being itself a Sunday or public holiday" and
+/// ceases to be a holiday itself; the table keeps it as the day the
+/// substitute is for. Boxing Day is not in the copy read and is kept in
+/// the Government's yearly lists; it is carried without a first year.
+/// Eid on the tabular calendar approximates the sighting. The days the
+/// Minister adds or substitutes by order are not carried.
+pub static MALAWI: RuleSet = RuleSet {
+    code: "MW",
+    english_name: "Malawi",
+    rules: MW_RULES,
+    substitution: MW_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Public Holidays Act, Cap. 18:05, sections 2 to 4 and the Schedule, from the \
+              NATLEX copy (MWI90377), retrieved 2026-09-22; Nyasa Times on the Christmas, \
+              Boxing and New Year's holidays; Wikipedia, \"Public holidays in Malawi\"",
 };

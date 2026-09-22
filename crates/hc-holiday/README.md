@@ -16,7 +16,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
 | `international` | the United Nations international days, each citing its resolution |
-| `countries` | 119 national tables |
+| `countries` | 123 national tables |
 
 ## The vocabulary
 
@@ -84,24 +84,25 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**119 countries.** Albania, Algeria, Andorra, Argentina, Armenia, Australia
+**123 countries.** Albania, Algeria, Andorra, Argentina, Armenia, Australia
 (eight states and territories), Austria, Azerbaijan, the Bahamas, Bahrain,
-Barbados, Belarus, Belgium, Belize, Bolivia, Brazil, Bulgaria, Canada (federal
-plus the provincial days fixed by statute), Chile, China, Colombia, Costa Rica,
-Côte d'Ivoire, Croatia, Cuba, Cyprus, Czechia, Denmark, the Dominican Republic,
-Ecuador, Egypt, Estonia, Ethiopia, Finland, France (métropole plus
-Alsace-Moselle), Georgia, Germany (all 16 *Länder*), Ghana, Greece, Guatemala,
-Guyana, Haiti, Hong Kong, Hungary, Iceland, India, Indonesia, Iran, Iraq,
-Ireland, Israel, Italy, Jamaica, Japan, Jordan, Kazakhstan, Kenya, Kuwait,
-Kyrgyzstan, Latvia, Lebanon, Liechtenstein, Lithuania, Luxembourg, Macau,
-Malaysia, Malta, Mexico, Moldova, Monaco, Montenegro, Morocco, Myanmar, Nepal,
-the Netherlands, New Zealand, Nigeria, North Macedonia, Norway, Oman, Pakistan,
-Panama, Peru, the Philippines, Poland, Portugal, Qatar, Romania, Russia, San
-Marino, Saudi Arabia, Senegal, Serbia, Singapore, Slovakia, Slovenia, South
-Africa, South Korea, Spain, Sweden, Switzerland, Taiwan, Tajikistan, Tanzania,
-Thailand, Trinidad and Tobago, Tunisia, Türkiye, Turkmenistan, Uganda, Ukraine,
-the United Arab Emirates, the United Kingdom (three bank-holiday jurisdictions),
-the United States, Uruguay, Uzbekistan, Vietnam, Zambia, Zimbabwe.
+Barbados, Belarus, Belgium, Belize, Bolivia, Botswana, Brazil, Bulgaria, Canada
+(federal plus the provincial days fixed by statute), Chile, China, Colombia,
+Costa Rica, Côte d'Ivoire, Croatia, Cuba, Cyprus, Czechia, Denmark, the
+Dominican Republic, Ecuador, Egypt, Estonia, Ethiopia, Finland, France
+(métropole plus Alsace-Moselle), Georgia, Germany (all 16 *Länder*), Ghana,
+Greece, Guatemala, Guyana, Haiti, Hong Kong, Hungary, Iceland, India, Indonesia,
+Iran, Iraq, Ireland, Israel, Italy, Jamaica, Japan, Jordan, Kazakhstan, Kenya,
+Kuwait, Kyrgyzstan, Latvia, Lebanon, Liechtenstein, Lithuania, Luxembourg,
+Macau, Malawi, Malaysia, Malta, Mauritius, Mexico, Moldova, Monaco, Montenegro,
+Morocco, Myanmar, Namibia, Nepal, the Netherlands, New Zealand, Nigeria, North
+Macedonia, Norway, Oman, Pakistan, Panama, Peru, the Philippines, Poland,
+Portugal, Qatar, Romania, Russia, San Marino, Saudi Arabia, Senegal, Serbia,
+Singapore, Slovakia, Slovenia, South Africa, South Korea, Spain, Sweden,
+Switzerland, Taiwan, Tajikistan, Tanzania, Thailand, Trinidad and Tobago,
+Tunisia, Türkiye, Turkmenistan, Uganda, Ukraine, the United Arab Emirates, the
+United Kingdom (three bank-holiday jurisdictions), the United States, Uruguay,
+Uzbekistan, Vietnam, Zambia, Zimbabwe.
 
 **Nineteen traditions.** Christianity under both computations, the
 Ethiopian Orthodox Tewahedo and the Coptic Orthodox Churches, Islam,
@@ -196,7 +197,7 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 
 | Entry | Why |
 | --- | --- |
-| Every Hijri-dated holiday, in forty-three countries and the Islamic tradition table | the observed date is a sighting decision, per country |
+| Every Hijri-dated holiday, in forty-five countries and the Islamic tradition table | the observed date is a sighting decision, per country |
 | Vesak, Makha Bucha, Asalha Bucha, Khao Phansa (Thailand, Indonesia, Singapore, Malaysia, the Buddhist table) | dated by the Thai lunar calendar, which this crate does not have; approximated as the full moon of Chinese lunar month *n* − 2. Right in 2022, 2024 and 2025; a day out in 2023; a month out in a Thai intercalary year |
 | Nepal's Gregorian-looking national days | they are Bikram Sambat dates whose Gregorian equivalent moves by a day |
 

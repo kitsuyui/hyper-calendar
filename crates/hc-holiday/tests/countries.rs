@@ -4084,6 +4084,137 @@ fn andorra_has_the_fourteen_national_days_with_carnival_on_its_monday() {
 }
 
 #[test]
+fn botswana_moves_a_sunday_to_monday_and_the_second_days_past_a_monday() {
+    // 2023: New Year's Day on a Sunday takes the Monday and 2 January,
+    // now on a Monday, the Tuesday; Botswana Day on a Saturday takes the
+    // Monday, which is where a Sunday 1 October would have gone, and the
+    // Act gives no Tuesday. 2022: Christmas on a Sunday takes the Monday
+    // and Boxing Day the Tuesday. 2029: Botswana Day on a Sunday takes
+    // Monday 1 October, and the holiday of 1 October the Tuesday.
+    expect(
+        "BW",
+        None,
+        &[
+            (2023, 1, 1, "New Year's Day"),
+            (2023, 1, 3, "New Year Holiday"),
+            (2023, 4, 8, "Holy Saturday"),
+            (2023, 7, 17, "President's Day"),
+            (2023, 7, 18, "President's Day Holiday"),
+            (2022, 12, 27, "Boxing Day"),
+            (2029, 10, 2, "Botswana Day Holiday"),
+            (2026, 5, 14, "Ascension Day"),
+            (2026, 7, 1, "Sir Seretse Khama Day"),
+        ],
+    );
+    expect_substitute("BW", None, 2023, (1, 1), (1, 2));
+    expect_substitute("BW", None, 2023, (9, 30), (10, 2));
+    expect_substitute("BW", None, 2022, (12, 25), (12, 26));
+    expect_substitute("BW", None, 2029, (9, 30), (10, 1));
+    // No Tuesday in 2023; a Saturday Sir Seretse Khama Day or Boxing Day
+    // gives nothing.
+    expect_working("BW", None, &[(2023, 10, 3), (2023, 7, 3), (2026, 12, 28)]);
+}
+
+#[test]
+fn namibia_adds_a_monday_to_a_sunday_unless_the_monday_is_taken() {
+    // 2025: Cassinga Day and Africa Day on Sundays, their Mondays added;
+    // Genocide Remembrance Day's first year. 2022: Christmas on a Sunday,
+    // the Monday already Family Day, no Tuesday. 10 December carried its
+    // old name until the 2004 amendment came into force that 17 December.
+    expect(
+        "NA",
+        None,
+        &[
+            (2025, 5, 5, "Cassinga Day"),
+            (2025, 5, 26, "Africa Day"),
+            (2025, 5, 28, "Genocide Remembrance Day"),
+            (2025, 5, 29, "Ascension Day"),
+            (2022, 12, 26, "Family Day"),
+            (2004, 12, 10, "International Human Rights Day"),
+            (
+                2026,
+                12,
+                10,
+                "Day of the Namibian Women and International Human Rights Day",
+            ),
+        ],
+    );
+    expect_substitute("NA", None, 2025, (5, 4), (5, 5));
+    expect_substitute("NA", None, 2025, (5, 25), (5, 26));
+    expect_working("NA", None, &[(2022, 12, 27), (2026, 3, 23), (2024, 5, 28)]);
+}
+
+#[test]
+fn mauritius_alternates_the_assumption_and_all_saints_from_2016() {
+    // The Prime Minister's Office's dates for 2025 and 2026 where the
+    // crate's rules land on them; Cavadee where the Thai full moon is the
+    // Pusam day; the two days kept from 2001; and All Saints every year to
+    // 2015, then in odd years, the Assumption in even ones.
+    expect(
+        "MU",
+        None,
+        &[
+            (2026, 1, 2, "New Year Holiday"),
+            (2026, 2, 15, "Maha Shivaratree"),
+            (2026, 2, 17, "Chinese Spring Festival"),
+            (2026, 3, 19, "Ougadi"),
+            (2026, 8, 15, "Assumption of the Blessed Virgin Mary"),
+            (2026, 11, 2, "Arrival of Indentured Labourers"),
+            (2026, 11, 8, "Divali"),
+            (2025, 2, 26, "Maha Shivaratree"),
+            (2025, 3, 30, "Ougadi"),
+            (2025, 3, 31, "Eid-Ul-Fitr"),
+            (2025, 8, 27, "Ganesh Chaturthi"),
+            (2025, 10, 20, "Divali"),
+            (2025, 11, 1, "All Saints' Day"),
+            (2024, 1, 25, "Thaipoosam Cavadee"),
+            (2022, 1, 18, "Thaipoosam Cavadee"),
+            (2001, 2, 1, "Abolition of Slavery"),
+            (2001, 11, 2, "Arrival of Indentured Labourers"),
+            (2014, 11, 1, "All Saints' Day"),
+        ],
+    );
+    expect_working(
+        "MU",
+        None,
+        &[
+            (2029, 8, 15),
+            (2028, 11, 1),
+            (2014, 8, 15),
+            (2000, 2, 1),
+            (2000, 11, 2),
+        ],
+    );
+}
+
+#[test]
+fn malawi_moves_a_saturday_or_sunday_to_the_next_free_day() {
+    // 2022: New Year's Day, John Chilembwe Day, Kamuzu Day and Mothers'
+    // Day on Saturdays and Labour Day on a Sunday, each to its Monday;
+    // Christmas on a Sunday past Boxing Day to the Tuesday. The Saturday
+    // after Good Friday is the one Schedule day that never moves.
+    expect(
+        "MW",
+        None,
+        &[
+            (2022, 1, 3, "New Year's Day"),
+            (2022, 1, 17, "John Chilembwe Day"),
+            (2022, 5, 16, "Kamuzu Day"),
+            (2022, 10, 17, "Mothers' Day"),
+            (2022, 12, 26, "Boxing Day"),
+            (2022, 12, 27, "Christmas Day"),
+            (2026, 3, 3, "Martyrs' Day"),
+            (2026, 4, 4, "Holy Saturday"),
+            (2026, 7, 6, "Independence Day"),
+        ],
+    );
+    expect_substitute("MW", None, 2022, (1, 15), (1, 17));
+    expect_substitute("MW", None, 2022, (5, 1), (5, 2));
+    expect_substitute("MW", None, 2022, (12, 25), (12, 27));
+    expect_working("MW", None, &[(2026, 4, 7), (2022, 12, 28)]);
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",
