@@ -1422,6 +1422,213 @@ fn iceland_first_day_of_summer_is_the_first_thursday_after_18_april() {
 }
 
 #[test]
+fn bulgaria_moves_weekend_holidays_forward_from_2017_but_never_easter() {
+    // Orthodox Easter 2026 on 12 April.
+    expect(
+        "BG",
+        None,
+        &[
+            (2026, 3, 3, "Liberation Day"),
+            (2026, 4, 10, "Good Friday"),
+            (2026, 4, 11, "Holy Saturday"),
+            (2026, 4, 12, "Easter Sunday"),
+            (2026, 4, 13, "Easter Monday"),
+            (
+                2026,
+                5,
+                6,
+                "Saint George's Day, Day of Valour and of the Bulgarian Army",
+            ),
+            (2026, 9, 22, "Independence Day"),
+            (2026, 12, 24, "Christmas Eve"),
+        ],
+    );
+    // 24 May and 6 September 2026 are Sundays, 26 December a Saturday.
+    expect_substitute("BG", None, 2026, (5, 24), (5, 25));
+    expect_substitute("BG", None, 2026, (9, 6), (9, 7));
+    expect_substitute("BG", None, 2026, (12, 26), (12, 28));
+    // Holy Saturday and Easter Sunday move nothing. The rule's first use was
+    // 1 January 2017, a Sunday; Christmas 2016, on a weekend, moved nothing.
+    expect_substitute("BG", None, 2017, (1, 1), (1, 2));
+    expect_working(
+        "BG",
+        None,
+        &[(2026, 4, 14), (2026, 4, 15), (2016, 12, 27), (2016, 12, 28)],
+    );
+    let calendar = HolidayCalendar::for_year(table("BG"), None, 2026);
+    let kinds: Vec<Kind> = calendar
+        .on(ymd(2026, 11, 1))
+        .iter()
+        .map(|holiday| holiday.kind)
+        .collect();
+    assert_eq!(kinds, [Kind::School]);
+}
+
+#[test]
+fn cyprus_keeps_easter_tuesday_for_the_banks_and_moves_nothing() {
+    expect(
+        "CY",
+        None,
+        &[
+            (2026, 1, 6, "Epiphany"),
+            (2026, 2, 23, "Green Monday"),
+            (2026, 3, 25, "Greek Independence Day"),
+            (2026, 4, 1, "Cyprus National Day"),
+            (2026, 4, 10, "Good Friday"),
+            (2026, 4, 11, "Holy Saturday"),
+            (2026, 4, 12, "Easter Sunday"),
+            (2026, 4, 13, "Easter Monday"),
+            (2026, 4, 14, "Easter Tuesday"),
+            (2026, 6, 1, "Pentecost Monday"),
+            (2026, 8, 15, "Dormition of the Theotokos"),
+            (2026, 10, 1, "Cyprus Independence Day"),
+            (2026, 10, 28, "Greek National Day"),
+        ],
+    );
+    // 15 August and 26 December 2026 are Saturdays and stay there.
+    expect_working("CY", None, &[(2026, 8, 17), (2026, 12, 28)]);
+    let calendar = HolidayCalendar::for_year(table("CY"), None, 2026);
+    let kinds: Vec<Kind> = calendar
+        .on(ymd(2026, 4, 14))
+        .iter()
+        .map(|holiday| holiday.kind)
+        .collect();
+    assert_eq!(kinds, [Kind::Bank]);
+}
+
+#[test]
+fn estonia_dates_its_days_off_by_the_act_and_carries_the_flag_days_as_observances() {
+    expect(
+        "EE",
+        None,
+        &[
+            (2026, 2, 24, "Independence Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 5, "Easter Sunday"),
+            (2026, 5, 24, "Whit Sunday"),
+            (2026, 6, 23, "Victory Day"),
+            (2026, 6, 24, "Midsummer Day"),
+            (2026, 8, 20, "Day of Restoration of Independence"),
+            (2026, 12, 24, "Christmas Eve"),
+            (1998, 8, 20, "Day of Restoration of Independence"),
+            (2005, 12, 24, "Christmas Eve"),
+        ],
+    );
+    expect_working("EE", None, &[(2004, 12, 24), (1997, 8, 20)]);
+    let calendar = HolidayCalendar::for_year(table("EE"), None, 2026);
+    for (month, day, name) in [
+        (3, 14, "Mother Tongue Day"),
+        (10, 17, "Finno-Ugric Day"),
+        (11, 8, "Father's Day"),
+    ] {
+        let found: Vec<(&str, Kind)> = calendar
+            .on(ymd(2026, month, day))
+            .iter()
+            .map(|holiday| (holiday.name, holiday.kind))
+            .collect();
+        assert_eq!(found, [(name, Kind::Observance)], "{month}-{day}");
+    }
+}
+
+#[test]
+fn latvia_moves_three_holidays_off_the_weekend_and_no_others() {
+    expect(
+        "LV",
+        None,
+        &[
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 4, "Restoration of Independence Day"),
+            (2026, 5, 10, "Mother's Day"),
+            (2026, 5, 24, "Pentecost"),
+            (2026, 6, 23, "Līgo Day"),
+            (2026, 6, 24, "Midsummer Day"),
+            (2026, 11, 18, "Proclamation Day of the Republic of Latvia"),
+            (2026, 12, 31, "New Year's Eve"),
+            (
+                2023,
+                7,
+                9,
+                "Closing Day of the Nationwide Latvian Song and Dance Celebration",
+            ),
+            (2018, 9, 24, "Pastoral Visit of Pope Francis to Latvia"),
+            (
+                2023,
+                5,
+                29,
+                "Bronze Medal of the Latvian Ice Hockey Team at the 2023 World Championship",
+            ),
+        ],
+    );
+    // 4 May 2025 a Sunday, 4 May 2024 a Saturday, 18 November 2023 a
+    // Saturday, and the celebration closed on Sundays in 2018 and 2023.
+    expect_substitute("LV", None, 2025, (5, 4), (5, 5));
+    expect_substitute("LV", None, 2024, (5, 4), (5, 6));
+    expect_substitute("LV", None, 2023, (11, 18), (11, 20));
+    expect_substitute("LV", None, 2018, (7, 8), (7, 9));
+    expect_substitute("LV", None, 2023, (7, 9), (7, 10));
+    // Christmas 2027 and New Year 2028 fall on weekends and stay there; the
+    // papal visit was 2018 alone, and 2013's closing day was no holiday.
+    expect_working(
+        "LV",
+        None,
+        &[(2027, 12, 27), (2028, 1, 3), (2019, 9, 24), (2013, 7, 8)],
+    );
+    let calendar = HolidayCalendar::for_year(table("LV"), None, 2026);
+    for (month, day, name) in [
+        (7, 11, "Sea Festival Day"),
+        (9, 13, "Father's Day"),
+        (11, 11, "Lāčplēsis Day"),
+    ] {
+        let found: Vec<(&str, Kind)> = calendar
+            .on(ymd(2026, month, day))
+            .iter()
+            .map(|holiday| (holiday.name, holiday.kind))
+            .collect();
+        assert_eq!(found, [(name, Kind::Observance)], "{month}-{day}");
+    }
+}
+
+#[test]
+fn lithuania_dates_each_day_off_and_keeps_weekend_holidays_where_they_fall() {
+    expect(
+        "LT",
+        None,
+        &[
+            (2026, 2, 16, "Day of Restoration of the State of Lithuania"),
+            (
+                2026,
+                3,
+                11,
+                "Day of Restoration of Independence of Lithuania",
+            ),
+            (2026, 4, 5, "Easter Sunday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 3, "Mother's Day"),
+            (2026, 6, 7, "Father's Day"),
+            (2026, 6, 24, "Midsummer Day"),
+            (2026, 7, 6, "Statehood Day"),
+            (2026, 8, 15, "Assumption Day"),
+            (2026, 11, 2, "All Souls' Day"),
+            (2026, 12, 24, "Christmas Eve"),
+            (2011, 12, 24, "Christmas Eve"),
+        ],
+    );
+    // 26 December 2026 is a Saturday and stays there.
+    expect_working(
+        "LT",
+        None,
+        &[
+            (2026, 12, 28),
+            (2010, 12, 24),
+            (2019, 11, 2),
+            (2002, 6, 24),
+            (2008, 6, 1),
+        ],
+    );
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",

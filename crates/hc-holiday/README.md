@@ -16,7 +16,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
 | `international` | the United Nations international days, each citing its resolution |
-| `countries` | 61 national tables |
+| `countries` | 66 national tables |
 
 ## The vocabulary
 
@@ -84,17 +84,17 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**61 countries.** Argentina, Australia (eight states and territories), Austria,
-Belgium, Brazil, Canada (federal plus the provincial days fixed by statute),
-China, Colombia, Croatia, Czechia, Denmark, Egypt, Ethiopia, Finland, France
-(métropole plus Alsace-Moselle), Germany (all 16 *Länder*), Ghana, Greece,
-Hungary, Iceland, India, Indonesia, Iran, Ireland, Israel, Italy, Japan, Kenya,
-Malaysia, Mexico, Morocco, Myanmar, Nepal, the Netherlands, New Zealand,
-Nigeria, Norway, Pakistan, Peru, the Philippines, Poland, Portugal, Romania,
-Russia, Saudi Arabia, Singapore, Slovakia, Slovenia, South Africa, South Korea,
-Spain, Sweden, Switzerland, Taiwan, Thailand, Türkiye, Ukraine, the United Arab
-Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
-States, Vietnam.
+**66 countries.** Argentina, Australia (eight states and territories), Austria,
+Belgium, Brazil, Bulgaria, Canada (federal plus the provincial days fixed by
+statute), China, Colombia, Croatia, Cyprus, Czechia, Denmark, Egypt, Estonia,
+Ethiopia, Finland, France (métropole plus Alsace-Moselle), Germany (all 16
+*Länder*), Ghana, Greece, Hungary, Iceland, India, Indonesia, Iran, Ireland,
+Israel, Italy, Japan, Kenya, Latvia, Lithuania, Malaysia, Mexico, Morocco,
+Myanmar, Nepal, the Netherlands, New Zealand, Nigeria, Norway, Pakistan, Peru,
+the Philippines, Poland, Portugal, Romania, Russia, Saudi Arabia, Singapore,
+Slovakia, Slovenia, South Africa, South Korea, Spain, Sweden, Switzerland,
+Taiwan, Thailand, Türkiye, Ukraine, the United Arab Emirates, the United Kingdom
+(three bank-holiday jurisdictions), the United States, Vietnam.
 
 **Nineteen traditions.** Christianity under both computations, the
 Ethiopian Orthodox Tewahedo and the Coptic Orthodox Churches, Islam,
