@@ -172,7 +172,7 @@ Not calendars in their own right, but named subdivisions layered onto one.
 | Sidereal signs / rāśi, with the Lahiri and other ayanamsas | `hc-seasons` | Done |
 | Indian solar months over the rāśi — Sanskrit, Tamil, Bengali, Malayalam, and any tradition added as an entry | `hc-seasons` | Done |
 | 十二次 — the Chinese twelvefold ecliptic division | `hc-seasons` | Done |
-| Traditional Irish/Gaelic quarter days | `hc-seasons` | Planned |
+| Quarter days and term days — England and Wales, the English cross-quarter days, Ireland, Scotland traditional and under the 1990 Act | `hc-seasons` | Done |
 
 ## Stage 6 — Non-terrestrial
 
