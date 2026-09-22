@@ -1471,3 +1471,496 @@ pub static URUGUAY: RuleSet = RuleSet {
               \"Public holidays in Uruguay\", retrieved the same day, for the \
               English names",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Costa Rica
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A fixed holiday under the transitional provision Ley 9875 added to
+/// article 148: on the Monday the provision names in the years it names,
+/// and on its own date otherwise.
+fn cr_scheduled(year: i64, month: u8, day: u8, schedule: &[(i64, u8, u8)]) -> Days {
+    let (m, d) = schedule
+        .iter()
+        .find(|(scheduled_year, _, _)| *scheduled_year == year)
+        .map_or((month, day), |(_, m, d)| (*m, *d));
+    gregorian::to_fixed(year, m, d).map_or_else(|_| Days::new(), Days::one)
+}
+
+fn cr_juan_santamaria(year: i64) -> Days {
+    cr_scheduled(year, 4, 11, &[(2023, 4, 10), (2024, 4, 15)])
+}
+
+fn cr_labour_day(year: i64) -> Days {
+    cr_scheduled(year, 5, 1, &[(2021, 5, 3)])
+}
+
+fn cr_nicoya(year: i64) -> Days {
+    cr_scheduled(
+        year,
+        7,
+        25,
+        &[(2020, 7, 27), (2021, 7, 26), (2023, 7, 24), (2024, 7, 29)],
+    )
+}
+
+fn cr_mothers_day(year: i64) -> Days {
+    cr_scheduled(year, 8, 15, &[(2020, 8, 17), (2023, 8, 14)])
+}
+
+fn cr_independence_day(year: i64) -> Days {
+    cr_scheduled(year, 9, 15, &[(2020, 9, 14), (2021, 9, 13), (2022, 9, 19)])
+}
+
+fn cr_army_abolition_day(year: i64) -> Days {
+    cr_scheduled(
+        year,
+        12,
+        1,
+        &[(2020, 11, 30), (2021, 11, 29), (2022, 12, 5)],
+    )
+}
+
+static CR_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Maundy Thursday",
+        "Jueves Santo",
+        Rule::easter(MAUNDY_THURSDAY),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public(
+        "Juan Santamaría Day",
+        "Día de Juan Santamaría",
+        Rule::Computed(cr_juan_santamaria),
+    ),
+    HolidayRule::fixed_public(
+        "Labour Day",
+        "Día Internacional del Trabajo",
+        Rule::Computed(cr_labour_day),
+    ),
+    HolidayRule::fixed_public(
+        "Annexation of the Party of Nicoya",
+        "Anexión del Partido de Nicoya a Costa Rica",
+        Rule::Computed(cr_nicoya),
+    ),
+    // Unpaid: article 148 makes the day off obligatory and its pay not.
+    HolidayRule::fixed_public(
+        "Feast of Our Lady of the Angels",
+        "Día de la Virgen de los Ángeles",
+        Rule::gregorian(8, 2),
+    ),
+    HolidayRule::fixed_public(
+        "Mother's Day",
+        "Día de la Madre",
+        Rule::Computed(cr_mothers_day),
+    ),
+    HolidayRule::fixed_public(
+        "Day of the Black Person and Afro-Costa Rican Culture",
+        "Día de la Persona Negra y la Cultura Afrocostarricense",
+        Rule::gregorian(8, 31),
+    )
+    .years(Some(2022), None),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Día de la Independencia",
+        Rule::Computed(cr_independence_day),
+    ),
+    HolidayRule::fixed_public(
+        "Day of the Cultures",
+        "Día de las Culturas",
+        Rule::gregorian(10, 12),
+    )
+    .years(None, Some(2019)),
+    HolidayRule::fixed_public(
+        "Army Abolition Day",
+        "Día de la Abolición del Ejército",
+        Rule::Computed(cr_army_abolition_day),
+    )
+    .years(Some(2020), None),
+    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+];
+
+/// Costa Rica.
+///
+/// Article 148 of the Código de Trabajo: the paid holidays, and the three
+/// whose pay the article does not oblige — 2 August, 31 August from 2022
+/// under Ley 10050, and 1 December from 2020 under Ley 9803, which took
+/// 12 October's place. The transitional provision of Ley 9875, amended by
+/// Leyes 10050 and 10396, moved named holidays to named Mondays from 2020
+/// to 2024 to help tourism, and the six holidays it touched are computed
+/// rules that give the provision's Monday in those years and their own
+/// date in every other: Mother's Day stayed on Thursday 15 August 2024 by
+/// Ley 10396, and nothing moves from 2025. A holiday on a weekend stays
+/// there.
+pub static COSTA_RICA: RuleSet = RuleSet {
+    code: "CR",
+    english_name: "Costa Rica",
+    rules: CR_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Código de Trabajo art. 148 as reformed by Ley 9803 (2020) and Ley 10050 \
+              (2021), per the Ministry of Labour's communiqués of October 2020 and \
+              August 2022; Ley 9875 (2020) with its reforms, as reported by La \
+              Nación on the 2020 and 2021 Mondays and by Wikipedia, \"Public \
+              holidays in Costa Rica\", retrieved 2026-09-22, for every year's \
+              moved dates; Ley 10396 (2023) for 15 August 2024",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Dominican Republic
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Ley 139-97, article 4's paragraph: a Sunday 1 May gives the Monday, on
+/// top of article 1's moves.
+const DO_LABOUR_MOVES: &[(Weekday, i16)] = &[
+    (Weekday::Tuesday, -1),
+    (Weekday::Wednesday, -2),
+    (Weekday::Thursday, 4),
+    (Weekday::Friday, 3),
+    (Weekday::Sunday, 1),
+];
+
+static DO_JANUARY_6: Rule = Rule::gregorian(1, 6);
+static DO_JANUARY_26: Rule = Rule::gregorian(1, 26);
+static DO_MAY_1: Rule = Rule::gregorian(5, 1);
+static DO_AUGUST_16: Rule = Rule::gregorian(8, 16);
+static DO_NOVEMBER_6: Rule = Rule::gregorian(11, 6);
+static DO_AUGUST_16_MOVED: Rule = Rule::moved_by_weekday(&DO_AUGUST_16, TO_ADJACENT_MONDAY);
+
+/// Restoration Day, moved like the others except when 16 August opens a
+/// constitutional period, which it does every fourth year.
+fn do_restoration_day(year: i64) -> Days {
+    if year % 4 == 0 {
+        DO_AUGUST_16.days_in_year(year)
+    } else {
+        DO_AUGUST_16_MOVED.days_in_year(year)
+    }
+}
+
+static DO_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("Epiphany", "Día de los Santos Reyes", Rule::gregorian(1, 6))
+        .years(None, Some(1997)),
+    HolidayRule::fixed_public(
+        "Epiphany",
+        "Día de los Santos Reyes",
+        Rule::moved_by_weekday(&DO_JANUARY_6, TO_ADJACENT_MONDAY),
+    )
+    .years(Some(1998), None),
+    HolidayRule::fixed_public(
+        "Our Lady of Altagracia",
+        "Día de Nuestra Señora de la Altagracia",
+        Rule::gregorian(1, 21),
+    ),
+    HolidayRule::fixed_public("Duarte Day", "Día de Duarte", Rule::gregorian(1, 26))
+        .years(None, Some(1997)),
+    HolidayRule::fixed_public(
+        "Duarte Day",
+        "Día de Duarte",
+        Rule::moved_by_weekday(&DO_JANUARY_26, TO_ADJACENT_MONDAY),
+    )
+    .years(Some(1998), None),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Día de la Independencia Nacional",
+        Rule::gregorian(2, 27),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1))
+        .years(None, Some(1997)),
+    HolidayRule::fixed_public(
+        "Labour Day",
+        "Día del Trabajo",
+        Rule::moved_by_weekday(&DO_MAY_1, DO_LABOUR_MOVES),
+    )
+    .years(Some(1998), None),
+    HolidayRule::fixed_public(
+        "Corpus Christi",
+        "Corpus Christi",
+        Rule::easter(CORPUS_CHRISTI),
+    ),
+    HolidayRule::fixed_public(
+        "Restoration Day",
+        "Día de la Restauración",
+        Rule::gregorian(8, 16),
+    )
+    .years(None, Some(1996)),
+    HolidayRule::fixed_public(
+        "Restoration Day",
+        "Día de la Restauración",
+        Rule::Computed(do_restoration_day),
+    )
+    .years(Some(1997), None),
+    HolidayRule::fixed_public(
+        "Our Lady of Mercy",
+        "Día de Nuestra Señora de las Mercedes",
+        Rule::gregorian(9, 24),
+    ),
+    HolidayRule::fixed_public(
+        "Constitution Day",
+        "Día de la Constitución",
+        Rule::gregorian(11, 6),
+    )
+    .years(None, Some(1996)),
+    HolidayRule::fixed_public(
+        "Constitution Day",
+        "Día de la Constitución",
+        Rule::moved_by_weekday(&DO_NOVEMBER_6, TO_ADJACENT_MONDAY),
+    )
+    .years(Some(1997), None),
+    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+];
+
+/// Dominican Republic.
+///
+/// Ley 139-97 of 19 June 1997, in force from the 27th, read from its own
+/// text: a holiday on a Tuesday or Wednesday is kept on the Monday before
+/// and one on a Thursday or Friday on the Monday after, except New Year's
+/// Day, Our Lady of Altagracia, Independence Day, Our Lady of Mercy,
+/// Christmas, the two feasts fixed by their weekday, and Restoration Day
+/// in a year that opens a constitutional period, which every fourth year
+/// does — 2024's Friday 16 August stayed, as the Ministry's list said. A
+/// Sunday 1 May gives the Monday under article 4. The moved rules start
+/// with the law, 16 August and 6 November in 1997 and the rest in 1998,
+/// their dates fixed before. Holy Thursday, which article 3 names among
+/// the weekday feasts, is not on the Ministry's lists and is not carried.
+pub static DOMINICAN_REPUBLIC: RuleSet = RuleSet {
+    code: "DO",
+    english_name: "Dominican Republic",
+    rules: DO_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Ley 139-97 of 19 June 1997, as published by the Suprema Corte de Justicia \
+              (justia.com), for articles 1 to 4; the Ministry of Labour's lists for \
+              2024 and 2026 on presidencia.gob.do, retrieved 2026-09-22, for the \
+              observed dates and the 2024 exception; Wikipedia, \"Public holidays in \
+              the Dominican Republic\", for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Guatemala
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The Law Promoting Internal Tourism (Decreto 42-2010 as reformed by
+/// Decreto 19-2018): a holiday on a Tuesday or Wednesday to the Monday
+/// before, on a Thursday, Friday, Saturday or Sunday to the Monday after.
+const GT_TO_MONDAY: &[(Weekday, i16)] = &[
+    (Weekday::Tuesday, -1),
+    (Weekday::Wednesday, -2),
+    (Weekday::Thursday, 4),
+    (Weekday::Friday, 3),
+    (Weekday::Saturday, 2),
+    (Weekday::Sunday, 1),
+];
+
+static GT_MAY_1: Rule = Rule::gregorian(5, 1);
+static GT_JUNE_30: Rule = Rule::gregorian(6, 30);
+static GT_OCTOBER_20: Rule = Rule::gregorian(10, 20);
+
+static GT_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Maundy Thursday",
+        "Jueves Santo",
+        Rule::easter(MAUNDY_THURSDAY),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Holy Saturday", "Sábado Santo", Rule::easter(HOLY_SATURDAY)),
+    // Labour Day and Revolution Day were moved under the 2018 reform until
+    // the Constitutional Court struck them from it in 2020.
+    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1))
+        .years(None, Some(2018)),
+    HolidayRule::fixed_public(
+        "Labour Day",
+        "Día del Trabajo",
+        Rule::moved_by_weekday(&GT_MAY_1, GT_TO_MONDAY),
+    )
+    .years(Some(2019), Some(2019)),
+    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1))
+        .years(Some(2020), None),
+    HolidayRule::fixed_public("Army Day", "Día del Ejército", Rule::gregorian(6, 30))
+        .years(None, Some(2018)),
+    HolidayRule::fixed_public(
+        "Army Day",
+        "Día del Ejército",
+        Rule::moved_by_weekday(&GT_JUNE_30, GT_TO_MONDAY),
+    )
+    .years(Some(2019), None),
+    // The festivity of the locality: Guatemala City's is the Assumption.
+    HolidayRule::fixed_public(
+        "Assumption Day",
+        "Día de la Asunción",
+        Rule::gregorian(8, 15),
+    )
+    .in_regions(&["GT-GU"]),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Día de la Independencia",
+        Rule::gregorian(9, 15),
+    ),
+    HolidayRule::fixed_public(
+        "Revolution Day",
+        "Día de la Revolución",
+        Rule::gregorian(10, 20),
+    )
+    .years(None, Some(2017)),
+    HolidayRule::fixed_public(
+        "Revolution Day",
+        "Día de la Revolución",
+        Rule::moved_by_weekday(&GT_OCTOBER_20, GT_TO_MONDAY),
+    )
+    .years(Some(2018), Some(2019)),
+    HolidayRule::fixed_public(
+        "Revolution Day",
+        "Día de la Revolución",
+        Rule::gregorian(10, 20),
+    )
+    .years(Some(2020), None),
+    HolidayRule::fixed_public(
+        "All Saints' Day",
+        "Día de Todos los Santos",
+        Rule::gregorian(11, 1),
+    ),
+    // From noon.
+    HolidayRule::fixed_public("Christmas Eve", "Nochebuena", Rule::gregorian(12, 24))
+        .of_kind(Kind::Bank),
+    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public("New Year's Eve", "Fin de Año", Rule::gregorian(12, 31))
+        .of_kind(Kind::Bank),
+];
+
+/// Guatemala.
+///
+/// Article 127 of the Código de Trabajo: the days of paid rest, with
+/// Christmas Eve and New Year's Eve from noon as [`Kind::Bank`] half days
+/// and the Assumption as Guatemala City's own festivity, `GT-GU`. The Law
+/// Promoting Internal Tourism as reformed by Decreto 19-2018, in force
+/// from 18 October 2018, moves Army Day to the Monday before from a
+/// Tuesday or Wednesday and the Monday after from any later day, and did
+/// the same to Revolution Day in 2018 and 2019 and Labour Day in 2019
+/// until the Constitutional Court's ruling of 17 March 2020 struck those
+/// two from it; the festivity of the locality it excludes. The 2010 law's
+/// own moves before the 2018 reform are not carried, and the dates before
+/// 2018 are fixed. Nothing else moves.
+pub static GUATEMALA: RuleSet = RuleSet {
+    code: "GT",
+    english_name: "Guatemala",
+    rules: GT_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Wikipedia, \"Public holidays in Guatemala\", retrieved 2026-09-22, for \
+              article 127's list; Decreto 19-2018, Diario de Centro América of \
+              10 October 2018, and Lexology and Prensa Libre on the Constitutional \
+              Court's ruling of 17 March 2020, for the moves and their years; Prensa \
+              Libre, 13 August 2026, for the Assumption as Guatemala City's \
+              festivity outside the law",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Panama
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 47 of the Código de Trabajo: a national holiday or day of
+/// mourning on a Sunday makes the Monday after the obligatory rest day.
+static PA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static PA_JANUARY_9: Rule = Rule::gregorian(1, 9);
+static PA_NOVEMBER_28: Rule = Rule::gregorian(11, 28);
+
+static PA_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    // Ley 70 of 2007: Martyrs' Day and Independence Day to the adjacent
+    // Monday from a Tuesday to a Friday.
+    HolidayRule::public("Martyrs' Day", "Día de los Mártires", Rule::gregorian(1, 9))
+        .years(None, Some(2007)),
+    HolidayRule::public(
+        "Martyrs' Day",
+        "Día de los Mártires",
+        Rule::moved_by_weekday(&PA_JANUARY_9, TO_ADJACENT_MONDAY),
+    )
+    .years(Some(2008), None),
+    HolidayRule::public(
+        "Carnival Tuesday",
+        "Martes de Carnaval",
+        Rule::easter(SHROVE_TUESDAY),
+    ),
+    HolidayRule::public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+    HolidayRule::public(
+        "Separation Day",
+        "Separación de Panamá de Colombia",
+        Rule::gregorian(11, 3),
+    ),
+    // A day off for public offices and schools, not a fiesta nacional.
+    HolidayRule::observance(
+        "Flag Day",
+        "Día de los Símbolos Patrios",
+        Rule::gregorian(11, 4),
+    ),
+    HolidayRule::public("Colón Day", "Día de Colón", Rule::gregorian(11, 5)),
+    HolidayRule::public(
+        "First Cry of Independence",
+        "Primer Grito de Independencia de la Villa de Los Santos",
+        Rule::gregorian(11, 10),
+    ),
+    HolidayRule::public(
+        "Independence Day",
+        "Independencia de Panamá de España",
+        Rule::gregorian(11, 28),
+    )
+    .years(None, Some(2007)),
+    HolidayRule::public(
+        "Independence Day",
+        "Independencia de Panamá de España",
+        Rule::moved_by_weekday(&PA_NOVEMBER_28, TO_ADJACENT_MONDAY),
+    )
+    .years(Some(2008), None),
+    HolidayRule::public("Mother's Day", "Día de la Madre", Rule::gregorian(12, 8)),
+    HolidayRule::public(
+        "National Mourning Day",
+        "Día de Duelo Nacional",
+        Rule::gregorian(12, 20),
+    )
+    .years(Some(2022), None),
+    HolidayRule::public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+];
+
+/// Panama.
+///
+/// Article 46 of the Código de Trabajo: the national holidays and days of
+/// mourning, with 20 December from Ley 291 of 2022, and article 47's
+/// Sunday rule as a forward policy. Ley 70 of 28 December 2007 keeps
+/// Martyrs' Day and Independence Day on the Monday before from a Tuesday
+/// or Wednesday and the Monday after from a Thursday or Friday, the same
+/// table Argentina and Uruguay use, from 2008. Flag Day is a day off for
+/// public offices and schools and not a holiday of the article, and is an
+/// observance; the Carnival Monday and the bridges the Government decrees
+/// are not carried.
+pub static PANAMA: RuleSet = RuleSet {
+    code: "PA",
+    english_name: "Panama",
+    rules: PA_RULES,
+    substitution: PA_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Código de Trabajo arts. 46 and 47 as amended by Ley 70 of 28 December \
+              2007, per the Gaceta Oficial and the Ministry of Labour's consulta of \
+              14 February 2000 on article 47; Ley 291 of 2022 for 20 December, per \
+              the Ministry of Labour and TVN; Wikipedia, \"Public holidays in \
+              Panama\", retrieved 2026-09-22, for the list and the names",
+};

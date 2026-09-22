@@ -118,7 +118,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Holidays by country
 
-80 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
+84 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
 
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
@@ -138,10 +138,12 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `CL` | Chile | 28 | none | stated | 2026-09-22 |
 | `CN` | China | 17 | none | stated | 2026-09-21 |
 | `CO` | Colombia | 18 | none | stated | 2026-09-22 |
+| `CR` | Costa Rica | 13 | none | stated | 2026-09-22 |
 | `CY` | Cyprus | 17 | none | stated | 2026-09-22 |
 | `CZ` | Czechia | 13 | none | stated | 2026-09-21 |
 | `DE` | Germany | 22 | none | stated | 2026-09-21 |
 | `DK` | Denmark | 13 | none | stated | 2026-09-21 |
+| `DO` | Dominican Republic | 17 | none | stated | 2026-09-22 |
 | `EC` | Ecuador | 19 | none | stated | 2026-09-22 |
 | `EE` | Estonia | 26 | none | stated | 2026-09-22 |
 | `EG` | Egypt | 16 | none | stated | 2026-09-21 |
@@ -153,6 +155,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `GE` | Georgia | 18 | none | stated | 2026-09-22 |
 | `GH` | Ghana | 16 | none | stated | 2026-09-22 |
 | `GR` | Greece | 13 | none | stated | 2026-09-21 |
+| `GT` | Guatemala | 18 | none | stated | 2026-09-22 |
 | `HK` | Hong Kong | 37 | yes | stated | 2026-09-22 |
 | `HR` | Croatia | 17 | none | stated | 2026-09-22 |
 | `HU` | Hungary | 11 | none | stated | 2026-09-22 |
@@ -181,6 +184,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `NO` | Norway | 12 | none | stated | 2026-09-21 |
 | `NP` | Nepal | 7 | none | stated | 2026-09-21 |
 | `NZ` | New Zealand | 13 | yes | stated | 2026-09-21 |
+| `PA` | Panama | 15 | yes | stated | 2026-09-22 |
 | `PE` | Peru | 16 | none | stated | 2026-09-22 |
 | `PH` | Philippines | 18 | none | stated | 2026-09-21 |
 | `PK` | Pakistan | 13 | none | stated | 2026-09-22 |
