@@ -864,15 +864,254 @@ pub static TOKYO_STOCK_EXCHANGE: RuleSet = RuleSet {
               retrieved 2026-09-23, the non-business days of 2026 and 2027",
 };
 
+// ─────────────────────────────────────────────────────────────────────────
+// Nasdaq Nordic: Copenhagen, Stockholm, Helsinki, Iceland
+// ─────────────────────────────────────────────────────────────────────────
+
+const NORDIC_SOURCES: &str = "Nasdaq, \"European Markets Trading Hours\" \
+    (nasdaqomxnordic.com/tradinghours), retrieved 2026-09-23, the trading calendars for \
+    2025 to 2027";
+
+const NORDIC_MAUNDY_THURSDAY: HolidayRule =
+    HolidayRule::fixed_public("Maundy Thursday", "", Rule::easter(MAUNDY_THURSDAY));
+const NORDIC_ASCENSION: HolidayRule =
+    HolidayRule::fixed_public("Ascension Day", "", Rule::easter(ASCENSION));
+const NORDIC_WHIT_MONDAY: HolidayRule =
+    HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY));
+const NORDIC_EPIPHANY: HolidayRule =
+    HolidayRule::fixed_public("Epiphany", "", Rule::gregorian(1, 6));
+const NORDIC_CHRISTMAS_EVE: HolidayRule =
+    HolidayRule::fixed_public("Christmas Eve", "", Rule::gregorian(12, 24));
+const NORDIC_NEW_YEARS_EVE: HolidayRule =
+    HolidayRule::fixed_public("New Year's Eve", "", Rule::gregorian(12, 31));
+/// Midsummer Eve, the Friday between 19 and 25 June, in Sweden and Finland.
+const NORDIC_MIDSUMMER_EVE: HolidayRule = HolidayRule::fixed_public(
+    "Midsummer Eve",
+    "",
+    Rule::WeekdayOnOrAfter {
+        month: 6,
+        day: 19,
+        weekday: Weekday::Friday,
+    },
+);
+
+static XCSE_RULES: &[HolidayRule] = &[
+    EURONEXT_NEW_YEARS_DAY,
+    NORDIC_MAUNDY_THURSDAY,
+    EURONEXT_GOOD_FRIDAY,
+    EURONEXT_EASTER_MONDAY,
+    NORDIC_ASCENSION,
+    HolidayRule::fixed_public("Day after Ascension Day", "", Rule::easter(ASCENSION + 1)),
+    HolidayRule::fixed_public("Constitution Day", "Grundlovsdag", Rule::gregorian(6, 5)),
+    NORDIC_WHIT_MONDAY,
+    NORDIC_CHRISTMAS_EVE,
+    EURONEXT_CHRISTMAS,
+    EURONEXT_BOXING_DAY,
+    NORDIC_NEW_YEARS_EVE,
+];
+
+/// Nasdaq Copenhagen.
+///
+/// The Danish days as Nasdaq's Nordic calendar has them for 2025 to
+/// 2027: New Year's Day, Maundy Thursday, Good Friday, Easter Monday,
+/// Ascension Day and the Friday after it, Constitution Day on 5 June,
+/// Whit Monday, and Christmas Eve to New Year's Eve; no Great Prayer Day
+/// since its abolition; nothing moved off a weekend; no half days.
+pub static NASDAQ_COPENHAGEN: RuleSet = RuleSet {
+    code: "XCSE",
+    english_name: "Nasdaq Copenhagen",
+    rules: XCSE_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: NORDIC_SOURCES,
+};
+
+/// 5 January, a half day in Stockholm when it is a weekday.
+fn xsto_epiphany_eve(year: i64) -> Days {
+    if_weekday(year, 1, 5)
+}
+
+/// Walpurgis Night, 30 April, a half day in Stockholm when a weekday.
+fn xsto_walpurgis(year: i64) -> Days {
+    if_weekday(year, 4, 30)
+}
+
+static XSTO_RULES: &[HolidayRule] = &[
+    EURONEXT_NEW_YEARS_DAY,
+    HolidayRule::observance(
+        "Half trading day, Epiphany Eve",
+        "",
+        Rule::Computed(xsto_epiphany_eve),
+    ),
+    NORDIC_EPIPHANY,
+    HolidayRule::observance(
+        "Half trading day, Maundy Thursday",
+        "",
+        Rule::easter(MAUNDY_THURSDAY),
+    ),
+    EURONEXT_GOOD_FRIDAY,
+    EURONEXT_EASTER_MONDAY,
+    HolidayRule::observance(
+        "Half trading day, Walpurgis Night",
+        "",
+        Rule::Computed(xsto_walpurgis),
+    ),
+    EURONEXT_LABOUR_DAY,
+    HolidayRule::observance(
+        "Half trading day, the day before Ascension Day",
+        "",
+        Rule::easter(ASCENSION - 1),
+    ),
+    NORDIC_ASCENSION,
+    HolidayRule::fixed_public(
+        "National Day",
+        "Sveriges nationaldag",
+        Rule::gregorian(6, 6),
+    ),
+    NORDIC_MIDSUMMER_EVE,
+    HolidayRule::observance(
+        "Half trading day, All Saints' Eve",
+        "",
+        Rule::WeekdayOnOrAfter {
+            month: 10,
+            day: 30,
+            weekday: Weekday::Friday,
+        },
+    ),
+    NORDIC_CHRISTMAS_EVE,
+    EURONEXT_CHRISTMAS,
+    EURONEXT_BOXING_DAY,
+    NORDIC_NEW_YEARS_EVE,
+];
+
+/// Nasdaq Stockholm.
+///
+/// The Swedish days as Nasdaq's Nordic calendar has them for 2025 to
+/// 2027: New Year's Day, Epiphany, Good Friday, Easter Monday, 1 May,
+/// Ascension Day, National Day on 6 June, Midsummer Eve on the Friday
+/// between 19 and 25 June, and Christmas Eve to New Year's Eve — and the
+/// half days the calendar lists: 5 January, Maundy Thursday, Walpurgis
+/// Night on 30 April, the day before Ascension Day, and All Saints' Eve,
+/// the Friday between 30 October and 5 November. Nothing moved off a
+/// weekend.
+pub static NASDAQ_STOCKHOLM: RuleSet = RuleSet {
+    code: "XSTO",
+    english_name: "Nasdaq Stockholm",
+    rules: XSTO_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: NORDIC_SOURCES,
+};
+
+static XHEL_RULES: &[HolidayRule] = &[
+    EURONEXT_NEW_YEARS_DAY,
+    NORDIC_EPIPHANY,
+    EURONEXT_GOOD_FRIDAY,
+    EURONEXT_EASTER_MONDAY,
+    EURONEXT_LABOUR_DAY,
+    NORDIC_ASCENSION,
+    NORDIC_MIDSUMMER_EVE,
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Itsenäisyyspäivä",
+        Rule::gregorian(12, 6),
+    ),
+    NORDIC_CHRISTMAS_EVE,
+    EURONEXT_CHRISTMAS,
+    EURONEXT_BOXING_DAY,
+    NORDIC_NEW_YEARS_EVE,
+];
+
+/// Nasdaq Helsinki.
+///
+/// The Finnish days as Nasdaq's Nordic calendar has them for 2025 to
+/// 2027: New Year's Day, Epiphany, Good Friday, Easter Monday, 1 May,
+/// Ascension Day, Midsummer Eve on the Friday between 19 and 25 June,
+/// Independence Day on 6 December, and Christmas Eve to New Year's Eve;
+/// nothing moved off a weekend; no half days.
+pub static NASDAQ_HELSINKI: RuleSet = RuleSet {
+    code: "XHEL",
+    english_name: "Nasdaq Helsinki",
+    rules: XHEL_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: NORDIC_SOURCES,
+};
+
+static XICE_RULES: &[HolidayRule] = &[
+    EURONEXT_NEW_YEARS_DAY,
+    NORDIC_MAUNDY_THURSDAY,
+    EURONEXT_GOOD_FRIDAY,
+    EURONEXT_EASTER_MONDAY,
+    HolidayRule::fixed_public(
+        "First Day of Summer",
+        "Sumardagurinn fyrsti",
+        Rule::WeekdayOnOrAfter {
+            month: 4,
+            day: 19,
+            weekday: Weekday::Thursday,
+        },
+    ),
+    EURONEXT_LABOUR_DAY,
+    NORDIC_ASCENSION,
+    NORDIC_WHIT_MONDAY,
+    HolidayRule::fixed_public(
+        "National Day",
+        "Þjóðhátíðardagurinn",
+        Rule::gregorian(6, 17),
+    ),
+    HolidayRule::fixed_public(
+        "Commerce Day",
+        "Frídagur verslunarmanna",
+        Rule::nth(8, 1, Weekday::Monday),
+    ),
+    NORDIC_CHRISTMAS_EVE,
+    EURONEXT_CHRISTMAS,
+    EURONEXT_BOXING_DAY,
+    NORDIC_NEW_YEARS_EVE,
+];
+
+/// Nasdaq Iceland.
+///
+/// The Icelandic days as Nasdaq's Nordic calendar has them for 2025 to
+/// 2027: New Year's Day, Maundy Thursday, Good Friday, Easter Monday,
+/// the First Day of Summer on the Thursday between 19 and 25 April, 1 May,
+/// Ascension Day, Whit Monday, National Day on 17 June, Commerce Day on
+/// the first Monday of August, and Christmas Eve to New Year's Eve;
+/// nothing moved off a weekend; no half days.
+pub static NASDAQ_ICELAND: RuleSet = RuleSet {
+    code: "XICE",
+    english_name: "Nasdaq Iceland",
+    rules: XICE_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: NORDIC_SOURCES,
+};
+
 /// Every exchange calendar, in Market Identifier Code order.
 pub static ALL: &[&RuleSet] = &[
     &B3,
     &EURONEXT_AMSTERDAM,
     &AUSTRALIAN_SECURITIES_EXCHANGE,
     &EURONEXT_BRUSSELS,
+    &NASDAQ_COPENHAGEN,
     &EURONEXT_DUBLIN,
     &FRANKFURT_STOCK_EXCHANGE,
+    &NASDAQ_HELSINKI,
     &HONG_KONG_EXCHANGES,
+    &NASDAQ_ICELAND,
     &TOKYO_STOCK_EXCHANGE,
     &EURONEXT_LISBON,
     &EURONEXT_MILAN,
@@ -880,6 +1119,7 @@ pub static ALL: &[&RuleSet] = &[
     &NEW_YORK_STOCK_EXCHANGE,
     &EURONEXT_OSLO,
     &EURONEXT_PARIS,
+    &NASDAQ_STOCKHOLM,
     &TORONTO_STOCK_EXCHANGE,
 ];
 
