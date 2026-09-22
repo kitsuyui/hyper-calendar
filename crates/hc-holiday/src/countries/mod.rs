@@ -42,9 +42,9 @@ pub use africa_middle_east::{
     UGANDA, UNITED_ARAB_EMIRATES, ZAMBIA, ZIMBABWE,
 };
 pub use americas::{
-    ARGENTINA, BAHAMAS, BARBADOS, BOLIVIA, BRAZIL, CANADA, CHILE, COLOMBIA, COSTA_RICA,
-    DOMINICAN_REPUBLIC, ECUADOR, GUATEMALA, JAMAICA, MEXICO, PANAMA, PERU, TRINIDAD_AND_TOBAGO,
-    UNITED_STATES, URUGUAY,
+    ARGENTINA, BAHAMAS, BARBADOS, BELIZE, BOLIVIA, BRAZIL, CANADA, CHILE, COLOMBIA, COSTA_RICA,
+    CUBA, DOMINICAN_REPUBLIC, ECUADOR, GUATEMALA, GUYANA, HAITI, JAMAICA, MEXICO, PANAMA, PERU,
+    TRINIDAD_AND_TOBAGO, UNITED_STATES, URUGUAY,
 };
 pub use asia::{
     ARMENIA, AZERBAIJAN, CHINA, GEORGIA, HONG_KONG, INDIA, INDONESIA, KAZAKHSTAN, KYRGYZSTAN,
@@ -82,6 +82,7 @@ pub static ALL: &[&CountryRules] = &[
     &BRAZIL,
     &BAHAMAS,
     &BELARUS,
+    &BELIZE,
     &CANADA,
     &SWITZERLAND,
     &COTE_D_IVOIRE,
@@ -89,6 +90,7 @@ pub static ALL: &[&CountryRules] = &[
     &CHINA,
     &COLOMBIA,
     &COSTA_RICA,
+    &CUBA,
     &CYPRUS,
     &CZECHIA,
     &GERMANY,
@@ -107,8 +109,10 @@ pub static ALL: &[&CountryRules] = &[
     &GHANA,
     &GREECE,
     &GUATEMALA,
+    &GUYANA,
     &HONG_KONG,
     &CROATIA,
+    &HAITI,
     &HUNGARY,
     &INDONESIA,
     &IRELAND,
@@ -210,7 +214,7 @@ mod tests {
     fn the_registry_holds_the_number_of_countries_the_readme_claims() {
         // `README.md` and `docs/observances.md` both state this figure, and a
         // documented count that drifts is a documented lie.
-        assert_eq!(ALL.len(), 108);
+        assert_eq!(ALL.len(), 112);
     }
 
     #[test]

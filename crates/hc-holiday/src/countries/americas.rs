@@ -8,10 +8,11 @@ use crate::computus::offsets::{
     ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY,
     HOLY_SATURDAY, MAUNDY_THURSDAY, SACRED_HEART, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
 };
-use crate::hindu::DIWALI;
+use crate::hindu::{DIWALI, HOLI};
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
     SubstituteDirection, SubstitutionPolicy, TO_ADJACENT_MONDAY, TO_FOLLOWING_MONDAY,
+    WeekendPolicy,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2268,4 +2269,402 @@ pub static BAHAMAS: RuleSet = RuleSet {
               Bahamas on Monday 12 January 2026; the Tribune, \"National Heroes Day \
               formally established\" (12 October 2013); Wikipedia, \"Public holidays in \
               the Bahamas\" and \"Discovery Day\"",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Cuba
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 82 of the Labour Code rests the week on Sunday, the "descanso
+/// dominical" that article 97 moves.
+static CU_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Sunday],
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// Article 97: a Sunday 1 May or 10 October moves the Sunday rest to the
+/// Monday; a Sunday 1 January or 26 July does not, "being preceded and
+/// followed by holidays".
+static CU_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: false,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static CU_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "Triumph of the Revolution",
+        "Aniversario de la Revolución",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public("Victory Day", "Día de la Victoria", Rule::gregorian(1, 2)),
+    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY))
+        .years(Some(2012), None),
+    HolidayRule::public(
+        "International Workers' Day",
+        "Día Internacional de los Trabajadores",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Day before National Rebellion Day",
+        "Víspera del Día de la Rebeldía Nacional",
+        Rule::gregorian(7, 25),
+    ),
+    HolidayRule::fixed_public(
+        "National Rebellion Day",
+        "Día de la Rebeldía Nacional",
+        Rule::gregorian(7, 26),
+    ),
+    HolidayRule::fixed_public(
+        "Day after National Rebellion Day",
+        "Día siguiente al Día de la Rebeldía Nacional",
+        Rule::gregorian(7, 27),
+    ),
+    HolidayRule::public(
+        "Beginning of the Wars of Independence",
+        "Inicio de las Guerras de Independencia",
+        Rule::gregorian(10, 10),
+    ),
+    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25))
+        .years(Some(1998), None),
+    HolidayRule::fixed_public("New Year's Eve", "Fin de Año", Rule::gregorian(12, 31)),
+];
+
+/// Cuba.
+///
+/// Law 116 of 20 December 2013, the Labour Code, in force from 17 June
+/// 2014, from the Ministry of Justice's edition: article 94's four days of
+/// national commemoration — 1 January, 1 May, 26 July and 10 October —
+/// and its five holidays, 2 January, 25 and 27 July, 25 and 31 December;
+/// article 100's Good Friday as a day of rest with pay, which the
+/// Government had already granted in 2012 at Pope Benedict XVI's request
+/// and in 2013, so it runs from 2012; and article 97, by which a Sunday
+/// 1 May or 10 October moves the Sunday rest to the Monday while a Sunday
+/// 1 January or 26 July does not, "being preceded and followed by
+/// holidays" — only those two rules substitute. Christmas was a working
+/// day from 1969 and a holiday again from 1998 after Pope John Paul II's
+/// visit. The Code's weekly rest is the Sunday, which is the weekend
+/// here. Article 98's fifteen official commemorations are working days
+/// and are not carried; nor are the days the Government declares under
+/// article 100.
+pub static CUBA: RuleSet = RuleSet {
+    code: "CU",
+    english_name: "Cuba",
+    rules: CU_RULES,
+    substitution: CU_SUBSTITUTION,
+    bridges: &[],
+    weekend: CU_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Ley No. 116, Código de Trabajo, articles 94 to 100, in the Ministry of \
+              Justice's 2014 edition (minjus.gob.cu), retrieved 2026-09-22; ACI Prensa on \
+              the Good Fridays of 2012 and 2013; Wikipedia, \"Public holidays in Cuba\", \
+              for the English names and 1998",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Belize
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The Second Schedule's days as the Government's notices place them: a
+/// Tuesday, Wednesday or Thursday to the Monday before, a Friday,
+/// Saturday or Sunday to the Monday after.
+const BZ_TO_MONDAY: &[(Weekday, i16)] = &[
+    (Weekday::Tuesday, -1),
+    (Weekday::Wednesday, -2),
+    (Weekday::Thursday, -3),
+    (Weekday::Friday, 3),
+    (Weekday::Saturday, 2),
+    (Weekday::Sunday, 1),
+];
+
+/// A Tuesday to the Monday before, as the notices did for Emancipation
+/// Day in 2023 and St. George's Caye Day in 2024.
+const BZ_TUESDAY_BACK: &[(Weekday, i16)] = &[(Weekday::Tuesday, -1)];
+
+/// A Tuesday or Wednesday to the Monday before, as the notice did for
+/// Labour Day in 2024.
+const BZ_TUESDAY_WEDNESDAY_BACK: &[(Weekday, i16)] =
+    &[(Weekday::Tuesday, -1), (Weekday::Wednesday, -2)];
+
+static BZ_MARCH_9: Rule = Rule::gregorian(3, 9);
+static BZ_MAY_1: Rule = Rule::gregorian(5, 1);
+static BZ_AUGUST_1: Rule = Rule::gregorian(8, 1);
+static BZ_SEPTEMBER_10: Rule = Rule::gregorian(9, 10);
+static BZ_OCTOBER_12: Rule = Rule::gregorian(10, 12);
+
+/// A Sunday to the Monday after, for the First Schedule's days.
+static BZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: false,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static BZ_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::public("George Price Day", "", Rule::gregorian(1, 15)).years(Some(2021), None),
+    HolidayRule::fixed_public(
+        "National Heroes and Benefactors Day",
+        "",
+        Rule::moved_by_weekday(&BZ_MARCH_9, BZ_TO_MONDAY),
+    ),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::public(
+        "Labour Day",
+        "",
+        Rule::moved_by_weekday(&BZ_MAY_1, BZ_TUESDAY_WEDNESDAY_BACK),
+    ),
+    HolidayRule::public("Commonwealth Day", "", Rule::gregorian(5, 24)).years(None, Some(2021)),
+    HolidayRule::public(
+        "Emancipation Day",
+        "",
+        Rule::moved_by_weekday(&BZ_AUGUST_1, BZ_TUESDAY_BACK),
+    )
+    .years(Some(2021), None),
+    HolidayRule::public(
+        "St. George's Caye Day",
+        "",
+        Rule::moved_by_weekday(&BZ_SEPTEMBER_10, BZ_TUESDAY_BACK),
+    ),
+    HolidayRule::public("Independence Day", "", Rule::gregorian(9, 21)).years(Some(1981), None),
+    HolidayRule::fixed_public(
+        "Pan American Day",
+        "",
+        Rule::moved_by_weekday(&BZ_OCTOBER_12, BZ_TO_MONDAY),
+    )
+    .years(None, Some(2021)),
+    HolidayRule::fixed_public(
+        "Indigenous Peoples' Resistance Day",
+        "",
+        Rule::moved_by_weekday(&BZ_OCTOBER_12, BZ_TO_MONDAY),
+    )
+    .years(Some(2022), None),
+    HolidayRule::public("Garifuna Settlement Day", "", Rule::gregorian(11, 19)),
+    HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+];
+
+/// Belize.
+///
+/// The Holidays Act, Chapter 289, could not be read; what is carried is
+/// the Government's yearly notices of the days its First and Second
+/// Schedules give, from 2020 to 2026, and Wikipedia's account of the
+/// Act. The Second Schedule's two days, National Heroes and Benefactors
+/// Day on 9 March and the 12 October day, go to the Monday before from a
+/// Tuesday, Wednesday or Thursday and the Monday after from a Saturday or
+/// Sunday, as every notice from 2021 shows, and from a Friday by
+/// Wikipedia's reading. The First Schedule's days go to the Monday after
+/// a Sunday and stay on a Saturday; three of them also leave a Tuesday
+/// for the Monday before — Emancipation Day in 2023, St. George's Caye
+/// Day in 2024 — and Labour Day left a Wednesday too, in 2024, where
+/// St. George's Caye Day kept its Wednesday in 2025; the table follows
+/// the notices in each case. A Sunday Christmas got no Monday in 2022,
+/// and Christmas does not move. George Price Day and Emancipation Day
+/// began in 2021, when Commonwealth Day ended; Pan American Day became
+/// Indigenous Peoples' Resistance Day in 2022.
+pub static BELIZE: RuleSet = RuleSet {
+    code: "BZ",
+    english_name: "Belize",
+    rules: BZ_RULES,
+    substitution: BZ_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Government of Belize Press Office, \"Public and Bank Holidays\" for 2020, \
+              2022, 2023, 2024, 2025 and 2026 (pressoffice.gov.bz), each citing section 3 \
+              and the First and Second Schedules of the Holidays Act, Chapter 289, \
+              retrieved 2026-09-22; the San Pedro Sun (4 January 2021) on the 2021 list; \
+              Wikipedia, \"Public holidays in Belize\", for the Act's rules",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Guyana
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Section 3(1): each day "or, if that day is a Sunday, the following
+/// day", and Boxing Day the Tuesday when Christmas Day is the Sunday.
+static GY_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static GY_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::public("Republic Day", "", Rule::gregorian(2, 23)).years(Some(1970), None),
+    HolidayRule::public("Phagwah", "", HOLI).approximate(),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+    HolidayRule::public("Arrival Day", "", Rule::gregorian(5, 5)).years(Some(2004), None),
+    HolidayRule::public("Independence Day", "", Rule::gregorian(5, 26)).years(Some(1966), None),
+    HolidayRule::fixed_public("CARICOM Day", "", Rule::nth(7, 1, Weekday::Monday)),
+    HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1)),
+    HolidayRule::public(
+        "Youman Nabi",
+        "",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 3, 12),
+    )
+    .approximate(),
+    HolidayRule::public(
+        "Eid-ul-Azha",
+        "",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+    )
+    .approximate(),
+    HolidayRule::public("Deepavali", "", DIWALI).approximate(),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+];
+
+/// Guyana.
+///
+/// The Public Holidays Act, Chapter 19:07 (L.R.O. 1/2012), section 3(1):
+/// "the first week-day of January", Republic Day as the Minister
+/// gazettes it, Good Friday, Easter Monday, Labour Day, Christmas and
+/// Boxing Day, and Phagwah, Deepavali, Eid-ul-Azha and Youman Nabi as
+/// section 3(2) has them gazetted each year, every fixed one "or, if that
+/// day is a Sunday, the following day", and Boxing Day the Tuesday when
+/// Christmas is the Sunday — the same two days here, with the
+/// substitute named for Christmas. Arrival Day, Independence Day,
+/// CARICOM Day and Emancipation Day are the Minister's under section 6,
+/// and the Sunday rule is applied to them as the yearly lists do — a
+/// Sunday 5 May 2024 was kept on the Monday. Republic Day from 1970 and
+/// Arrival Day from 2004; Commonwealth Day on the first Monday of
+/// August, which the printed section still carries, is not. The four
+/// gazetted feasts are on the tabular Hijri calendar and the crate's
+/// Holi and Lakṣmī Pūjā rules as approximations.
+pub static GUYANA: RuleSet = RuleSet {
+    code: "GY",
+    english_name: "Guyana",
+    rules: GY_RULES,
+    substitution: GY_SUBSTITUTION,
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Public Holidays Act, Chapter 19:07, L.R.O. 1/2012, as the Ministry of Legal \
+              Affairs publishes it (mola.gov.gy), retrieved 2026-09-22, for sections 3 \
+              and 6; Wikipedia, \"2024 in Guyana\" and \"2025 in Guyana\", and the Ministry \
+              of Home Affairs' notices for the yearly lists; Kaieteur News on Arrival Day's \
+              2004 designation; Wikipedia, \"Public holidays in Guyana\", for the names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Haiti
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Carnival Monday, a holiday "from noon".
+const fn ht_lundi_gras() -> HolidayRule {
+    HolidayRule::fixed_public("Carnival Monday", "Lundi Gras", Rule::easter(SHROVE_MONDAY))
+        .of_kind(Kind::Bank)
+}
+
+static HT_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Fête de l'Indépendance",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public("Ancestors' Day", "Jour des Aïeux", Rule::gregorian(1, 2)),
+    ht_lundi_gras().years(None, Some(1988)),
+    ht_lundi_gras().years(Some(2025), None),
+    HolidayRule::fixed_public(
+        "Carnival Tuesday",
+        "Mardi Gras",
+        Rule::easter(SHROVE_TUESDAY),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Vendredi Saint", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public(
+        "Labour and Agriculture Day",
+        "Fête du Travail et de l'Agriculture",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Flag and University Day",
+        "Fête du Drapeau et de l'Université",
+        Rule::gregorian(5, 18),
+    ),
+    HolidayRule::fixed_public("Corpus Christi", "Fête-Dieu", Rule::easter(CORPUS_CHRISTI))
+        .years(Some(1989), None),
+    HolidayRule::fixed_public(
+        "Bois-Caïman Day",
+        "Jour du Bois-Caïman",
+        Rule::gregorian(8, 14),
+    )
+    .years(Some(2025), None),
+    HolidayRule::fixed_public("Assumption", "Fête de l'Assomption", Rule::gregorian(8, 15))
+        .years(Some(1989), None),
+    HolidayRule::fixed_public(
+        "Dessalines Day",
+        "Jour de Dessalines",
+        Rule::gregorian(9, 20),
+    )
+    .years(Some(2025), None),
+    HolidayRule::fixed_public(
+        "Death of Dessalines",
+        "Commémoration de la mort de Dessalines",
+        Rule::gregorian(10, 17),
+    )
+    .years(Some(1989), None),
+    HolidayRule::fixed_public(
+        "All Saints' Day",
+        "Fête de la Toussaint",
+        Rule::gregorian(11, 1),
+    )
+    .years(Some(2025), None),
+    HolidayRule::fixed_public("All Souls' Day", "Fête des Morts", Rule::gregorian(11, 2))
+        .of_kind(Kind::Bank)
+        .years(None, Some(1988)),
+    HolidayRule::fixed_public("All Souls' Day", "Fête des Morts", Rule::gregorian(11, 2))
+        .years(Some(1989), None),
+    HolidayRule::fixed_public(
+        "Battle of Vertières Day",
+        "Commémoration de la Bataille de Vertières",
+        Rule::gregorian(11, 18),
+    ),
+    HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+];
+
+/// Haiti.
+///
+/// Two texts. Article 275-1 of the 1987 Constitution names the five
+/// national holidays — 1 and 2 January, 1 and 18 May, 18 November — which
+/// the 1984 Labour Code's article 110 already had as days off. The
+/// decree of 11 December 2024, article 2, lists the legal holidays with
+/// days off: Carnival Monday from noon, a bank day here, Carnival
+/// Tuesday, Good Friday, Corpus Christi, 14 and 15 August, 20 September,
+/// 17 October, 1 and 2 November and Christmas. Before it, the decree of
+/// 23 May 1989 kept Carnival Tuesday, Good Friday, Corpus Christi, the
+/// Assumption, 17 October, 2 November and Christmas, so those three
+/// dates run from 1989 and 14 August, 20 September and 1 November from
+/// 2025; the 1984 code's Carnival Monday and 2 November "from noon" end
+/// in 1988, and the yearly decrees that gave 20 September and 1 November
+/// before 2024 are not carried. No text read moves a holiday off a
+/// Sunday.
+pub static HAITI: RuleSet = RuleSet {
+    code: "HT",
+    english_name: "Haiti",
+    rules: HT_RULES,
+    substitution: &[],
+    bridges: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 22),
+    sources: "Code du travail, décret du 24 février 1984, articles 109 to 111, from the \
+              CEPAL copy (oig.cepal.org), retrieved 2026-09-22; HDIT Cabinet Volmar, \
+              \"Nouveaux jours fériés en Haïti\" (29 December 2024), for article 2 of the \
+              décret du 11 décembre 2024 (Moniteur spécial no. 66-A) and the décret du \
+              23 mai 1989, and \"Le premier novembre nécessite-t-il un arrêté \
+              présidentiel ?\" for article 275-1 of the 1987 Constitution; Wikipedia, \
+              \"Public holidays in Haiti\", for the English names",
 };

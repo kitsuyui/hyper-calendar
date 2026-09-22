@@ -111,3 +111,5 @@ tuplets = "tuplets"
 tuplet = "tuplet"
 # Latin: "stilus nativitatis", the Nativity style of dating. Not the pen.
 stilus = "stilus"
+# ACI Prensa, the Catholic news agency cited for Cuba's Good Fridays.
+ACI = "ACI"

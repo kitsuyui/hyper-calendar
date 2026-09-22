@@ -3587,6 +3587,213 @@ fn cote_d_ivoire_gives_the_day_after_five_sunday_feasts_since_2011() {
 }
 
 #[test]
+fn cuba_moves_the_sunday_rest_for_1_may_and_10_october_only() {
+    expect(
+        "CU",
+        None,
+        &[
+            (2026, 1, 1, "Triumph of the Revolution"),
+            (2026, 1, 2, "Victory Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 5, 1, "International Workers' Day"),
+            (2026, 7, 25, "Day before National Rebellion Day"),
+            (2026, 7, 26, "National Rebellion Day"),
+            (2026, 7, 27, "Day after National Rebellion Day"),
+            (2026, 10, 10, "Beginning of the Wars of Independence"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 31, "New Year's Eve"),
+            (2022, 5, 2, "International Workers' Day"),
+            (2021, 10, 11, "Beginning of the Wars of Independence"),
+            (2012, 4, 6, "Good Friday"),
+            (1998, 12, 25, "Christmas Day"),
+        ],
+    );
+    // A Sunday 26 July, 1 January or Christmas gives nothing; 2011 had no
+    // Good Friday and 1997 no Christmas.
+    expect_working(
+        "CU",
+        None,
+        &[
+            (2026, 7, 28),
+            (2023, 1, 3),
+            (2022, 12, 26),
+            (2011, 4, 22),
+            (1997, 12, 25),
+        ],
+    );
+    expect_substitute("CU", None, 2022, (5, 1), (5, 2));
+    expect_substitute("CU", None, 2021, (10, 10), (10, 11));
+}
+
+#[test]
+fn belize_follows_the_governments_notices_from_2022_to_2026() {
+    expect(
+        "BZ",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 15, "George Price Day"),
+            (2026, 3, 9, "National Heroes and Benefactors Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 4, "Holy Saturday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 8, 1, "Emancipation Day"),
+            (2026, 9, 10, "St. George's Caye Day"),
+            (2026, 9, 21, "Independence Day"),
+            (2026, 10, 12, "Indigenous Peoples' Resistance Day"),
+            (2026, 11, 19, "Garifuna Settlement Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Boxing Day"),
+            // 2025: a Wednesday George Price Day and St. George's Caye Day
+            // stayed; the Sundays gave Mondays.
+            (2025, 1, 15, "George Price Day"),
+            (2025, 3, 10, "National Heroes and Benefactors Day"),
+            (2025, 9, 10, "St. George's Caye Day"),
+            (2025, 9, 22, "Independence Day"),
+            (2025, 10, 13, "Indigenous Peoples' Resistance Day"),
+            // 2024: Saturdays to the Monday after, a Wednesday Labour Day and
+            // a Tuesday St. George's Caye Day to the Monday before, a Thursday
+            // Emancipation Day and a Tuesday Garifuna Settlement Day stayed.
+            (2024, 3, 11, "National Heroes and Benefactors Day"),
+            (2024, 4, 29, "Labour Day"),
+            (2024, 8, 1, "Emancipation Day"),
+            (2024, 9, 9, "St. George's Caye Day"),
+            (2024, 10, 14, "Indigenous Peoples' Resistance Day"),
+            (2024, 11, 19, "Garifuna Settlement Day"),
+            // 2023: Thursdays to the Monday before, a Tuesday Emancipation
+            // Day too, and Sundays to the Monday after.
+            (2023, 1, 2, "New Year's Day"),
+            (2023, 1, 16, "George Price Day"),
+            (2023, 3, 6, "National Heroes and Benefactors Day"),
+            (2023, 7, 31, "Emancipation Day"),
+            (2023, 9, 11, "St. George's Caye Day"),
+            (2023, 10, 9, "Indigenous Peoples' Resistance Day"),
+            (2023, 11, 20, "Garifuna Settlement Day"),
+            // 2022: Wednesdays to the Monday before; a Sunday Christmas got
+            // no Monday.
+            (2022, 3, 7, "National Heroes and Benefactors Day"),
+            (2022, 5, 2, "Labour Day"),
+            (2022, 10, 10, "Indigenous Peoples' Resistance Day"),
+            (2022, 12, 26, "Boxing Day"),
+            (2021, 10, 11, "Pan American Day"),
+            (2020, 5, 25, "Commonwealth Day"),
+        ],
+    );
+    expect_working(
+        "BZ",
+        None,
+        &[
+            (2026, 12, 28),
+            (2026, 8, 3),
+            (2025, 1, 13),
+            (2025, 9, 8),
+            (2024, 5, 1),
+            (2024, 8, 5),
+            (2022, 12, 27),
+            (2022, 5, 24),
+            (2020, 1, 15),
+            (2020, 8, 1),
+        ],
+    );
+    expect_substitute("BZ", None, 2025, (9, 21), (9, 22));
+    expect_substitute("BZ", None, 2023, (9, 10), (9, 11));
+}
+
+#[test]
+fn guyana_gives_the_following_day_for_a_sunday_and_the_tuesday_after_a_sunday_christmas() {
+    expect(
+        "GY",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 2, 23, "Republic Day"),
+            (2026, 3, 3, "Phagwah"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 5, "Arrival Day"),
+            (2026, 5, 26, "Independence Day"),
+            (2026, 5, 27, "Eid-ul-Azha"),
+            (2026, 7, 6, "CARICOM Day"),
+            (2026, 8, 1, "Emancipation Day"),
+            (2026, 8, 26, "Youman Nabi"),
+            (2026, 11, 8, "Deepavali"),
+            (2026, 11, 9, "Deepavali"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Boxing Day"),
+            // 2024 as the lists had it: Phagwah on 25 March, Deepavali on
+            // 31 October, a Sunday Arrival Day and Independence Day on the
+            // Mondays.
+            (2024, 3, 25, "Phagwah"),
+            (2024, 5, 6, "Arrival Day"),
+            (2024, 5, 27, "Independence Day"),
+            (2024, 10, 31, "Deepavali"),
+            (2022, 12, 26, "Boxing Day"),
+            (2022, 12, 27, "Christmas Day"),
+            (2004, 5, 5, "Arrival Day"),
+            (1970, 2, 23, "Republic Day"),
+        ],
+    );
+    expect_working(
+        "GY",
+        None,
+        &[(2026, 8, 3), (2022, 12, 28), (2003, 5, 5), (1969, 2, 24)],
+    );
+    expect_substitute("GY", None, 2024, (5, 5), (5, 6));
+    expect_substitute("GY", None, 2022, (12, 25), (12, 27));
+}
+
+#[test]
+fn haiti_has_the_constitutions_five_days_and_the_decrees_of_1989_and_2024() {
+    expect(
+        "HT",
+        None,
+        &[
+            (2026, 1, 1, "Independence Day"),
+            (2026, 1, 2, "Ancestors' Day"),
+            (2026, 2, 16, "Carnival Monday"),
+            (2026, 2, 17, "Carnival Tuesday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 5, 1, "Labour and Agriculture Day"),
+            (2026, 5, 18, "Flag and University Day"),
+            (2026, 6, 4, "Corpus Christi"),
+            (2026, 8, 14, "Bois-Caïman Day"),
+            (2026, 8, 15, "Assumption"),
+            (2026, 9, 20, "Dessalines Day"),
+            (2026, 10, 17, "Death of Dessalines"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 11, 2, "All Souls' Day"),
+            (2026, 11, 18, "Battle of Vertières Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (1989, 5, 25, "Corpus Christi"),
+            (1989, 8, 15, "Assumption"),
+            (1989, 10, 17, "Death of Dessalines"),
+            (1988, 2, 15, "Carnival Monday"),
+            (1988, 11, 2, "All Souls' Day"),
+        ],
+    );
+    expect_working(
+        "HT",
+        None,
+        &[
+            (2024, 8, 14),
+            (2024, 9, 20),
+            (2024, 11, 1),
+            (1988, 8, 15),
+            (1988, 10, 17),
+        ],
+    );
+    let calendar = HolidayCalendar::for_year(table("HT"), None, 2026);
+    let kinds: Vec<Kind> = calendar
+        .on(ymd(2026, 2, 16))
+        .iter()
+        .map(|holiday| holiday.kind)
+        .collect();
+    assert_eq!(kinds, [Kind::Bank]);
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",
