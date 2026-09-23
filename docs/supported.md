@@ -189,7 +189,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `JP` | Japan | 38 | yes | stated | 2026-09-21 |
 | `KE` | Kenya | 13 | yes | stated | 2026-09-22 |
 | `KG` | Kyrgyzstan | 30 | yes | stated | 2026-09-22 |
-| `KR` | South Korea | 17 | yes | stated | 2026-09-21 |
+| `KR` | South Korea | 41 | yes | stated | 2026-09-23 |
 | `KW` | Kuwait | 13 | none | stated | 2026-09-22 |
 | `KZ` | Kazakhstan | 20 | yes | stated | 2026-09-22 |
 | `LB` | Lebanon | 21 | yes | stated | 2026-09-22 |
@@ -289,7 +289,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Exchange calendars
 
-21 tables, feature `holiday`, keyed by ISO 10383 Market Identifier Code. A closed day is a public-kind entry; an early close is an observance.
+22 tables, feature `holiday`, keyed by ISO 10383 Market Identifier Code. A closed day is a public-kind entry; an early close is an observance.
 
 | MIC | Exchange | Entries |
 | --- | --- | --- |
@@ -304,6 +304,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `XHKG` | Stock Exchange of Hong Kong (HKEX) | 3 |
 | `XICE` | Nasdaq Iceland | 14 |
 | `XJPX` | Tokyo Stock Exchange (JPX) | 3 |
+| `XKRX` | Korea Exchange | 2 |
 | `XLIS` | Euronext Lisbon | 8 |
 | `XLON` | London Stock Exchange | 2 |
 | `XMIL` | Euronext Milan (Borsa Italiana) | 9 |

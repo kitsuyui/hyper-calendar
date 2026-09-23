@@ -33,8 +33,9 @@
 //! # An exchange on its country's calendar
 //!
 //! Where an exchange closes on every public holiday and adds a few days of
-//! its own — Tokyo on 2 and 3 January and 31 December, Hong Kong on none,
-//! with three half days — its table includes the country's through
+//! its own — Tokyo on 2 and 3 January and 31 December, Seoul on 1 May and
+//! the last weekday of the year, Hong Kong on none, with three half days —
+//! its table includes the country's through
 //! [`RuleSet::includes`] and lists only what is its own, so that the
 //! country's substitute and bridge holidays come along under the country's
 //! policies and are never copied.
@@ -51,7 +52,7 @@ use crate::computus::offsets::{
     MAUNDY_THURSDAY, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
 };
 use crate::countries::europe::GB_ENGLAND_AND_WALES;
-use crate::countries::{HONG_KONG, JAPAN, UNITED_KINGDOM};
+use crate::countries::{HONG_KONG, JAPAN, SOUTH_KOREA, UNITED_KINGDOM};
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Include, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
     SubstituteDirection, SubstitutionPolicy,
@@ -964,6 +965,49 @@ pub static TOKYO_STOCK_EXCHANGE: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// Korea Exchange
+// ─────────────────────────────────────────────────────────────────────────
+
+static XKRX_RULES: &[HolidayRule] = &[
+    // 근로자의 날, a paid day off for employees though not a public
+    // holiday, until it became the public holiday 노동절 in 2026 and came
+    // in through the country's table. Never moved off a weekend.
+    HolidayRule::fixed_public("Labour Day", "근로자의 날", Rule::gregorian(5, 1))
+        .years(None, Some(2025)),
+    HolidayRule::fixed_public(
+        "End of Year Holiday",
+        "연말 휴장일",
+        Rule::Computed(last_weekday_of_the_year),
+    ),
+];
+
+/// The Korea Exchange, for its securities market.
+///
+/// KRX's closure lists for 2009 to 2030: the exchange is closed on
+/// Saturdays, Sundays and every public holiday — the [`SOUTH_KOREA`]
+/// table's days, with its substitute holidays, election days and the days
+/// the government designated, which this set includes and does not
+/// repeat — and on two days of its own: 1 May, Labour Day, which was a day
+/// off for employees before it became a public holiday in 2026, and the
+/// last weekday of the year, the "End of Year Holiday" — Friday 29
+/// December in 2023, when the 30th and 31st are a weekend. The lists for
+/// the years ahead carry only the days already set, so an election or a
+/// designated day in those years appears when it is decided.
+pub static KOREA_EXCHANGE: RuleSet = RuleSet {
+    code: "XKRX",
+    english_name: "Korea Exchange",
+    rules: XKRX_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[Include::nationwide(&SOUTH_KOREA)],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "KRX, \"Market Closing(Holiday)\" \
+              (global.krx.co.kr/contents/GLB/05/0501/0501110000/GLB0501110000.jsp), retrieved \
+              2026-09-23, the closed days of each year from 2009 to 2030",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Nasdaq Nordic: Copenhagen, Stockholm, Helsinki, Iceland
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -1212,6 +1256,7 @@ pub static ALL: &[&RuleSet] = &[
     &HONG_KONG_EXCHANGES,
     &NASDAQ_ICELAND,
     &TOKYO_STOCK_EXCHANGE,
+    &KOREA_EXCHANGE,
     &EURONEXT_LISBON,
     &LONDON_STOCK_EXCHANGE,
     &EURONEXT_MILAN,

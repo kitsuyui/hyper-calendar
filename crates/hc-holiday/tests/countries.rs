@@ -678,6 +678,27 @@ fn south_korea_holidays() {
     // Constitution Day stopped being one after 2007.
     expect("KR", None, &[(2007, 7, 17, "Constitution Day")]);
     expect_working("KR", None, &[(2010, 7, 17)]);
+    // Both came in with the decree in force from May 2026, restored and new.
+    expect(
+        "KR",
+        None,
+        &[
+            (2026, 5, 1, "Labour Day"),
+            (2026, 7, 17, "Constitution Day"),
+        ],
+    );
+    expect_working("KR", None, &[(2025, 5, 1)]);
+    // Election days, and a day the government designated.
+    expect(
+        "KR",
+        None,
+        &[
+            (2024, 4, 10, "22nd National Assembly election"),
+            (2026, 6, 3, "9th local elections"),
+            (2024, 10, 1, "Armed Forces Day"),
+        ],
+    );
+    expect_working("KR", None, &[(2023, 10, 1)]);
 }
 
 #[test]
@@ -690,6 +711,13 @@ fn the_korean_substitute_holiday_covers_sundays_and_collisions() {
     // 5 May 2025 was Children's Day and Buddha's Birthday at once, and the
     // 6th was the 대체공휴일 — a collision, not a weekend.
     expect_substitute("KR", None, 2025, (5, 5), (5, 6));
+    // A collision with a holiday that is not itself substituted still
+    // counts: the eve of Chuseok 2017 was National Foundation Day, four
+    // years before that day came under the rule.
+    expect_substitute("KR", None, 2017, (10, 3), (10, 6));
+    // Constitution Day and Labour Day are substituted from the start.
+    expect_substitute("KR", None, 2027, (7, 17), (7, 19));
+    expect_substitute("KR", None, 2027, (5, 1), (5, 3));
     // Before 2014 there was no substitute at all: 3 October 2010 was a
     // Sunday.
     expect_working("KR", None, &[(2010, 10, 4)]);
