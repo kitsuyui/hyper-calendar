@@ -15,3 +15,4 @@ intent.
 | [0006](0006-refuse-to-extrapolate.md) | Refuse to extrapolate observational data | Accepted |
 | [0007](0007-sets-the-world-can-extend-are-data.md) | Sets the world can extend are data; sets we define are enums | Accepted |
 | [0008](0008-exchange-calendars-are-rule-sets.md) | Exchange calendars are rule sets keyed by Market Identifier Code | Accepted |
+| [0009](0009-a-working-day-is-an-entry.md) | A weekend day made a working day is an entry, not a weekend rule | Accepted |

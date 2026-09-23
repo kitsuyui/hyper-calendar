@@ -483,6 +483,7 @@ mod holiday {
                 Kind::Religious => "religious",
                 Kind::Observance => "observance",
                 Kind::School => "school",
+                Kind::Workday => "workday",
             };
             let confidence = match holiday.confidence {
                 Confidence::Exact => "exact",
@@ -554,8 +555,8 @@ mod holiday {
     /// lines in a caller-owned buffer.
     ///
     /// One line per entry, tab-separated: the ISO 8601 date, the name, the
-    /// local name, the kind (`public`, `bank`, `religious`, `observance`
-    /// or `school`), the confidence (`exact` or `approximate`), `1` for a
+    /// local name, the kind (`public`, `bank`, `religious`, `observance`,
+    /// `school` or `workday`), the confidence (`exact` or `approximate`), `1` for a
     /// substitute day and `0` otherwise, and the date the substitute
     /// stands in for or nothing. Writes the required length, including the
     /// terminator, into `written`; `HC_ERROR_UNKNOWN` names a table that

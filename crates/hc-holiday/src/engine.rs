@@ -271,10 +271,20 @@ impl<'a> HolidayCalendar<'a> {
         self.rules.weekend_in(year).contains(&Weekday::from_rd(day))
     }
 
-    /// Whether `day` is a working day: neither the weekend nor a holiday.
+    /// Whether `day` is a weekend day the calendar makes a working day — a
+    /// [`Kind::Workday`] entry, China's 调休上班.
+    #[must_use]
+    pub fn is_designated_workday(&self, day: Rd) -> bool {
+        self.holidays
+            .iter()
+            .any(|holiday| holiday.date == day && holiday.kind == Kind::Workday)
+    }
+
+    /// Whether `day` is a working day: not a holiday, and either not the
+    /// weekend or a weekend day the calendar makes a working day.
     #[must_use]
     pub fn is_business_day(&self, day: Rd) -> bool {
-        !self.is_weekend(day) && !self.is_holiday(day)
+        !self.is_holiday(day) && (!self.is_weekend(day) || self.is_designated_workday(day))
     }
 
     /// `day` moved by `count` business days.
@@ -717,6 +727,28 @@ mod tests {
         substitution: &[],
         ..SIMPLE
     };
+
+    static INCLUDES_CHINA: RuleSet = RuleSet {
+        rules: &[],
+        substitution: &[],
+        includes: &[crate::rule::Include::nationwide(&crate::countries::CHINA)],
+        ..SIMPLE
+    };
+
+    #[test]
+    fn a_working_weekend_day_counts_and_is_not_lent() {
+        // Sunday 4 February 2024 was worked in China.
+        let sunday = gregorian::to_fixed(2024, 2, 4).unwrap();
+        let china = HolidayCalendar::for_year(&crate::countries::CHINA, None, 2024);
+        assert!(china.is_weekend(sunday));
+        assert!(china.is_designated_workday(sunday));
+        assert!(china.is_business_day(sunday));
+        // A table that includes China takes its days off and not the day
+        // worked: the Sunday stays the weekend.
+        let including = HolidayCalendar::for_year(&INCLUDES_CHINA, None, 2024);
+        assert!(!including.is_business_day(sunday));
+        assert!(including.is_holiday(gregorian::to_fixed(2024, 2, 13).unwrap()));
+    }
 
     #[test]
     fn a_holiday_on_a_sunday_moves_to_the_monday() {
