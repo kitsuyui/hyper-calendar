@@ -138,3 +138,8 @@ Chinees = "Chinees"
 # Italian "successivo", following: Vatican City's "Giorno successivo
 # all'Assunzione".
 successivo = "successivo"
+# Portuguese "Jornal da República", Timor-Leste's official gazette, and
+# "Datas Oficiais Comemorativas", official commemorative dates, in the
+# title of its holidays law.
+Jornal = "Jornal"
+Datas = "Datas"

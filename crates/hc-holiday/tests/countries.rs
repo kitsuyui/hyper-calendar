@@ -1615,6 +1615,238 @@ fn mongolia_reports_its_lunar_holidays_as_gaps_and_moves_nothing() {
     assert!(calendar.on(ymd(2024, 6, 3)).is_empty());
 }
 
+#[test]
+fn cambodia_keeps_the_days_its_sub_decrees_give() {
+    // Sub-decrees No. 204 (2025), No. 167 (2026) and No. 198 (2027).
+    expect(
+        "KH",
+        None,
+        &[
+            (2025, 1, 7, "Victory over Genocide Day"),
+            (2025, 4, 14, "Khmer New Year"),
+            (2025, 5, 11, "Visak Bochea"),
+            (2025, 5, 15, "Royal Ploughing Ceremony"),
+            (2025, 9, 21, "Pchum Ben"),
+            (2025, 9, 23, "Pchum Ben"),
+            (2025, 11, 6, "Water Festival"),
+            (2025, 12, 29, "Peace Day in Cambodia"),
+            // In 2026 Visak Bochea is International Labour Day, one day off.
+            (2026, 5, 1, "International Labour Day"),
+            (2026, 5, 1, "Visak Bochea"),
+            (2026, 5, 5, "Royal Ploughing Ceremony"),
+            (2026, 5, 14, "King Norodom Sihamoni's Birthday"),
+            (2026, 10, 10, "Pchum Ben"),
+            (
+                2026,
+                10,
+                15,
+                "Commemoration Day of King Father Norodom Sihanouk",
+            ),
+            (2026, 11, 23, "Water Festival"),
+            (2027, 4, 16, "Khmer New Year"),
+            (2027, 5, 20, "Visak Bochea"),
+            (2027, 5, 24, "Royal Ploughing Ceremony"),
+            (2027, 10, 1, "Pchum Ben"),
+            (2027, 10, 29, "King Norodom Sihamoni's Coronation Day"),
+            (2027, 11, 14, "Water Festival"),
+        ],
+    );
+    // The lunar days move: 2025's Pchum Ben and Water Festival are not
+    // 2026's, and 13 April is not Khmer New Year in any year read.
+    expect_working(
+        "KH",
+        None,
+        &[(2026, 9, 22), (2026, 11, 5), (2025, 4, 13), (2027, 5, 11)],
+    );
+}
+
+#[test]
+fn cambodia_moves_nothing_off_its_sunday_weekend() {
+    // Visak Bochea 2025 fell on Sunday 11 May and Independence Day on Sunday
+    // 9 November; guideline No. 028/22 says a Sunday holiday is not moved.
+    let calendar = HolidayCalendar::for_year(table("KH"), None, 2025);
+    assert!(calendar.is_weekend(ymd(2025, 5, 11)));
+    assert!(calendar.on(ymd(2025, 5, 12)).is_empty());
+    assert!(calendar.on(ymd(2025, 11, 10)).is_empty());
+    // Saturday is a working day under article 147 of the Labour Law.
+    assert!(!calendar.is_weekend(ymd(2025, 3, 8)));
+    assert!(calendar.is_business_day(ymd(2025, 3, 15)));
+    assert!(calendar.on(ymd(2025, 3, 10)).is_empty());
+}
+
+#[test]
+fn cambodia_reports_the_years_its_sub_decrees_do_not_cover_as_gaps() {
+    assert!(HolidayCalendar::for_year(table("KH"), None, 2027).is_complete());
+    let beyond = HolidayCalendar::for_year(table("KH"), None, 2028);
+    assert!(!beyond.is_complete());
+    let missing: Vec<&str> = beyond.gaps().iter().map(|gap| gap.name).collect();
+    for name in [
+        "Khmer New Year",
+        "Visak Bochea",
+        "Royal Ploughing Ceremony",
+        "Pchum Ben",
+        "Water Festival",
+    ] {
+        assert!(
+            missing.contains(&name),
+            "{name} should be a gap: {missing:?}"
+        );
+    }
+    assert_eq!(beyond.name_on(ymd(2028, 11, 9)), Some("Independence Day"));
+}
+
+#[test]
+fn laos_keeps_the_holidays_of_its_decree_and_notices() {
+    expect(
+        "LA",
+        None,
+        &[
+            (2024, 1, 1, "International New Year's Day"),
+            (2024, 4, 13, "Lao New Year"),
+            (2024, 4, 16, "Lao New Year"),
+            (2024, 12, 2, "National Day"),
+            (2025, 4, 14, "Lao New Year"),
+            (2025, 4, 16, "Lao New Year"),
+            (2025, 5, 1, "International Labour Day"),
+            (2026, 1, 1, "International New Year's Day"),
+            (2026, 4, 14, "Lao New Year"),
+            (2026, 4, 16, "Lao New Year"),
+            (2026, 5, 1, "International Labour Day"),
+            (2026, 12, 2, "National Day"),
+        ],
+    );
+    // The Lao Women's Union's day, off for women alone, is not carried.
+    expect_working("LA", None, &[(2026, 7, 20), (2025, 4, 13), (2026, 4, 13)]);
+}
+
+#[test]
+fn laos_makes_up_a_weekend_holiday_on_the_next_working_day() {
+    // The notices: Monday 10 March 2025 for Saturday 8 March, Monday 9 March
+    // 2026 for Sunday 8 March, and 17 and 18 April 2024 for the Saturday and
+    // Sunday of a New Year running to Tuesday 16 April.
+    expect_substitute("LA", None, 2025, (3, 8), (3, 10));
+    expect_substitute("LA", None, 2026, (3, 8), (3, 9));
+    expect_substitute("LA", None, 2024, (4, 13), (4, 17));
+    expect_substitute("LA", None, 2024, (4, 14), (4, 18));
+    let calendar = HolidayCalendar::for_year(table("LA"), None, 2026);
+    assert!(calendar.is_weekend(ymd(2026, 3, 7)));
+    assert!(calendar.is_business_day(ymd(2026, 3, 10)));
+}
+
+#[test]
+fn laos_reports_the_years_its_notices_do_not_cover_as_gaps() {
+    assert!(HolidayCalendar::for_year(table("LA"), None, 2026).is_complete());
+    let beyond = HolidayCalendar::for_year(table("LA"), None, 2027);
+    assert!(!beyond.is_complete());
+    assert!(beyond.gaps().iter().any(|gap| gap.name == "Lao New Year"));
+    assert_eq!(beyond.name_on(ymd(2027, 12, 2)), Some("National Day"));
+}
+
+#[test]
+fn brunei_keeps_the_days_of_the_prime_ministers_circulars() {
+    expect(
+        "BN",
+        None,
+        &[
+            (2024, 2, 10, "Chinese New Year"),
+            (2024, 6, 17, "Hari Raya Aidil Adha"),
+            (2024, 7, 15, "Sultan's Birthday"),
+            (2024, 9, 16, "Prophet Muhammad's Birthday"),
+            (2025, 1, 1, "New Year's Day"),
+            (2025, 1, 27, "Isra' and Mi'raj"),
+            (2025, 1, 29, "Chinese New Year"),
+            (2025, 3, 31, "Hari Raya Aidil Fitri"),
+            (2025, 4, 2, "Hari Raya Aidil Fitri"),
+            (2025, 5, 31, "Royal Brunei Armed Forces Day"),
+            (2026, 2, 17, "Chinese New Year"),
+            (2026, 2, 23, "National Day"),
+            (2026, 5, 27, "Hari Raya Aidil Adha"),
+            (2026, 6, 17, "Islamic New Year"),
+            (2026, 12, 25, "Christmas Day"),
+        ],
+    );
+    // The Hijri days are predictions: the circular's Awal Ramadhan 2026 is
+    // Thursday 19 February, and the tabular calendar says the 18th.
+    let calendar = HolidayCalendar::for_year(table("BN"), None, 2026);
+    for holiday in calendar.on(ymd(2026, 2, 18)) {
+        assert_eq!(holiday.confidence, Confidence::Approximate);
+    }
+    assert!(
+        calendar
+            .on(ymd(2026, 2, 17))
+            .iter()
+            .all(|holiday| holiday.confidence == Confidence::Exact)
+    );
+}
+
+#[test]
+fn brunei_replaces_a_friday_or_sunday_holiday_with_the_next_working_day() {
+    // Every one of these is the circular's "sebagai ganti".
+    expect_substitute("BN", None, 2023, (1, 22), (1, 23));
+    expect_substitute("BN", None, 2023, (4, 23), (4, 25));
+    expect_substitute("BN", None, 2024, (2, 23), (2, 24));
+    expect_substitute("BN", None, 2024, (5, 31), (6, 1));
+    expect_substitute("BN", None, 2025, (2, 23), (2, 24));
+    expect_substitute("BN", None, 2025, (9, 5), (9, 6));
+    expect_substitute("BN", None, 2026, (5, 31), (6, 1));
+    expect_substitute("BN", None, 2026, (12, 25), (12, 26));
+    // A Saturday holiday is not replaced: Armed Forces Day 2025.
+    expect_working("BN", None, &[(2025, 6, 2)]);
+    let calendar = HolidayCalendar::for_year(table("BN"), None, 2025);
+    assert!(calendar.is_weekend(ymd(2025, 5, 30)));
+    assert!(calendar.is_weekend(ymd(2025, 6, 1)));
+    assert!(calendar.is_business_day(ymd(2025, 5, 24)));
+}
+
+#[test]
+fn timor_leste_keeps_the_holidays_of_its_holidays_law() {
+    expect(
+        "TL",
+        None,
+        &[
+            (2024, 3, 3, "Veterans' Day"),
+            (2024, 3, 29, "Good Friday"),
+            (2024, 4, 10, "Idul Fitri"),
+            (2024, 5, 30, "Corpus Christi"),
+            (2024, 6, 17, "Idul Adha"),
+            (2025, 4, 18, "Good Friday"),
+            (2025, 5, 20, "Restoration of Independence Day"),
+            (2025, 6, 19, "Corpus Christi"),
+            (2025, 8, 30, "Popular Consultation Day"),
+            (2025, 11, 3, "National Women's Day"),
+            (2026, 3, 20, "Idul Fitri"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 6, 4, "Corpus Christi"),
+            (2026, 11, 28, "Proclamation of Independence Day"),
+            (2026, 12, 7, "Memorial Day"),
+            (2026, 12, 8, "Immaculate Conception"),
+            (2026, 12, 31, "National Heroes' Day"),
+        ],
+    );
+    // Before the amendments: 7 December was National Heroes' Day and 3 March,
+    // 3 November and 31 December were not holidays.
+    expect("TL", None, &[(2011, 12, 7, "National Heroes' Day")]);
+    expect_working(
+        "TL",
+        None,
+        &[(2011, 12, 31), (2016, 3, 3), (2022, 11, 3), (2026, 8, 20)],
+    );
+}
+
+#[test]
+fn timor_leste_moves_nothing_off_its_sunday_weekend() {
+    // Popular Consultation Day 2026 and All Saints' Day are Sundays.
+    let calendar = HolidayCalendar::for_year(table("TL"), None, 2026);
+    assert!(calendar.is_weekend(ymd(2026, 8, 30)));
+    assert!(calendar.on(ymd(2026, 8, 31)).is_empty());
+    // Saturday 28 November 2026 is a holiday on a working day.
+    assert!(!calendar.is_weekend(ymd(2026, 11, 28)));
+    assert!(calendar.is_business_day(ymd(2026, 11, 21)));
+    for holiday in calendar.on(ymd(2026, 3, 20)) {
+        assert_eq!(holiday.confidence, Confidence::Approximate);
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // The Middle East and Africa
 // ─────────────────────────────────────────────────────────────────────────

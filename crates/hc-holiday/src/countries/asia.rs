@@ -14,7 +14,8 @@ use hc_seasons::SolarTerm;
 use hc_seasons::zodiac::Ayanamsa;
 
 use crate::computus::offsets::{
-    ASCENSION, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY,
+    ASCENSION, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY,
+    MAUNDY_THURSDAY,
 };
 use crate::hindu::{
     BUDDHA_PURNIMA, DIWALI, GURU_NANAK_JAYANTI, HOLI, JANMASHTAMI, MAHAVIR_JAYANTI, RAMA_NAVAMI,
@@ -4258,4 +4259,587 @@ pub static MONGOLIA: RuleSet = RuleSet {
               Law (Хөдөлмөрийн тухай хууль, revised 2 July 2021, as amended), articles \
               96.1 and 97.1, both from legalinfo.mn, retrieved 2026-09-23, with the \
               Mongolian names",
+};
+
+/// The days a table of announced dates names `name` for in `year`: the
+/// lookup behind Cambodia's and Laos's tabulated days.
+fn announced(table: &[(i64, u8, u8, &str)], year: i64, name: &str) -> Days {
+    let mut out = Days::new();
+    for &(y, month, day, entry) in table {
+        if y == year
+            && entry == name
+            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
+        {
+            out.push(fixed);
+        }
+    }
+    out
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Cambodia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year of the sub-decrees carried for the days they date.
+const KH_FIRST: i64 = 2025;
+/// The last.
+const KH_LAST: i64 = 2027;
+
+/// The days the annual sub-decrees date on the Khmer calendar, which the
+/// crate does not have, as sub-decrees No. 204 (2025), No. 167 (2026) and
+/// No. 198 (2027) list them. Khmer New Year is the three days of the
+/// Songkran, Visak Bochea the full moon of Pisak, Pchum Ben the last days of
+/// Photrobot and the Water Festival the full moon of Kadeuk; the Royal
+/// Ploughing Ceremony is the day the palace sets.
+static KH_DECREED: &[(i64, u8, u8, &str)] = &[
+    // 2025
+    (2025, 4, 14, "Khmer New Year"),
+    (2025, 4, 15, "Khmer New Year"),
+    (2025, 4, 16, "Khmer New Year"),
+    (2025, 5, 11, "Visak Bochea"),
+    (2025, 5, 15, "Royal Ploughing Ceremony"),
+    (2025, 9, 21, "Pchum Ben"),
+    (2025, 9, 22, "Pchum Ben"),
+    (2025, 9, 23, "Pchum Ben"),
+    (2025, 11, 4, "Water Festival"),
+    (2025, 11, 5, "Water Festival"),
+    (2025, 11, 6, "Water Festival"),
+    // 2026, when Visak Bochea is 1 May, International Labour Day.
+    (2026, 4, 14, "Khmer New Year"),
+    (2026, 4, 15, "Khmer New Year"),
+    (2026, 4, 16, "Khmer New Year"),
+    (2026, 5, 1, "Visak Bochea"),
+    (2026, 5, 5, "Royal Ploughing Ceremony"),
+    (2026, 10, 10, "Pchum Ben"),
+    (2026, 10, 11, "Pchum Ben"),
+    (2026, 10, 12, "Pchum Ben"),
+    (2026, 11, 23, "Water Festival"),
+    (2026, 11, 24, "Water Festival"),
+    (2026, 11, 25, "Water Festival"),
+    // 2027
+    (2027, 4, 14, "Khmer New Year"),
+    (2027, 4, 15, "Khmer New Year"),
+    (2027, 4, 16, "Khmer New Year"),
+    (2027, 5, 20, "Visak Bochea"),
+    (2027, 5, 24, "Royal Ploughing Ceremony"),
+    (2027, 9, 29, "Pchum Ben"),
+    (2027, 9, 30, "Pchum Ben"),
+    (2027, 10, 1, "Pchum Ben"),
+    (2027, 11, 12, "Water Festival"),
+    (2027, 11, 13, "Water Festival"),
+    (2027, 11, 14, "Water Festival"),
+];
+
+fn kh_new_year(year: i64) -> Days {
+    announced(KH_DECREED, year, "Khmer New Year")
+}
+
+fn kh_visak_bochea(year: i64) -> Days {
+    announced(KH_DECREED, year, "Visak Bochea")
+}
+
+fn kh_royal_ploughing(year: i64) -> Days {
+    announced(KH_DECREED, year, "Royal Ploughing Ceremony")
+}
+
+fn kh_pchum_ben(year: i64) -> Days {
+    announced(KH_DECREED, year, "Pchum Ben")
+}
+
+fn kh_water_festival(year: i64) -> Days {
+    announced(KH_DECREED, year, "Water Festival")
+}
+
+/// A day the sub-decrees date, for the years read, and a gap in any other.
+const fn kh_decreed(
+    name: &'static str,
+    local: &'static str,
+    function: fn(i64) -> Days,
+) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::Tabulated {
+            function,
+            first_year: KH_FIRST,
+            last_year: KH_LAST,
+        },
+    )
+}
+
+/// Article 147 of the Labour Law: weekly time off "shall, in principle, be
+/// given on Sunday".
+static KH_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Sunday],
+    valid_from: None,
+    valid_until: None,
+}];
+
+static KH_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "International New Year Day",
+        "ទិវាចូលឆ្នាំសកល",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Victory over Genocide Day",
+        "ទិវាជ័យជម្នះលើរបបប្រល័យពូជសាសន៍",
+        Rule::gregorian(1, 7),
+    ),
+    HolidayRule::fixed_public(
+        "International Women's Day",
+        "ទិវាអន្តរជាតិនារី",
+        Rule::gregorian(3, 8),
+    ),
+    kh_decreed("Khmer New Year", "ពិធីបុណ្យចូលឆ្នាំថ្មី ប្រពៃណីជាតិ", kh_new_year),
+    HolidayRule::fixed_public(
+        "International Labour Day",
+        "ទិវាពលកម្មអន្តរជាតិ",
+        Rule::gregorian(5, 1),
+    ),
+    kh_decreed("Visak Bochea", "ពិធីបុណ្យវិសាខបូជា", kh_visak_bochea),
+    HolidayRule::fixed_public(
+        "King Norodom Sihamoni's Birthday",
+        "ព្រះរាជពិធីបុណ្យចម្រើនព្រះជន្ម ព្រះករុណាព្រះបាទសម្តេចព្រះបរមនាថ នរោត្តម សីហមុនី",
+        Rule::gregorian(5, 14),
+    ),
+    kh_decreed(
+        "Royal Ploughing Ceremony",
+        "ព្រះរាជពិធីច្រត់ព្រះនង្គ័ល",
+        kh_royal_ploughing,
+    ),
+    HolidayRule::fixed_public(
+        "Queen Mother Norodom Monineath Sihanouk's Birthday",
+        "ព្រះរាជពិធីបុណ្យចម្រើនព្រះជន្ម សម្តេចព្រះមហាក្សត្រី នរោត្តម មុនិនាថ សីហនុ",
+        Rule::gregorian(6, 18),
+    ),
+    HolidayRule::fixed_public("Constitution Day", "ទិវាប្រកាសរដ្ឋធម្មនុញ្ញ", Rule::gregorian(9, 24)),
+    kh_decreed("Pchum Ben", "ពិធីបុណ្យភ្ជុំបិណ្ឌ", kh_pchum_ben),
+    HolidayRule::fixed_public(
+        "Commemoration Day of King Father Norodom Sihanouk",
+        "ទិវាប្រារព្ធពិធីគោរពព្រះវិញ្ញាណក្ខន្ធ ព្រះករុណាព្រះបាទសម្តេចព្រះ នរោត្តម សីហនុ",
+        Rule::gregorian(10, 15),
+    ),
+    HolidayRule::fixed_public(
+        "King Norodom Sihamoni's Coronation Day",
+        "ព្រះរាជពិធីគ្រងព្រះបរមរាជសម្បត្តិ",
+        Rule::gregorian(10, 29),
+    ),
+    HolidayRule::fixed_public("Independence Day", "ពិធីបុណ្យឯករាជ្យជាតិ", Rule::gregorian(11, 9)),
+    kh_decreed(
+        "Water Festival",
+        "ព្រះរាជពិធីបុណ្យអុំទូក បណ្តែតប្រទីប និងសំពះព្រះខែ អកអំបុក",
+        kh_water_festival,
+    ),
+    HolidayRule::fixed_public(
+        "Peace Day in Cambodia",
+        "ទិវាសន្តិភាពនៅកម្ពុជា",
+        Rule::gregorian(12, 29),
+    ),
+];
+
+/// Cambodia — the days off the Royal Government's annual sub-decree on the
+/// holiday calendar of civil servants, employees and workers
+/// (អនុក្រឹត្យស្តីពីប្រតិទិនឈប់សម្រាកការងារ) gives, as the sub-decrees for
+/// 2025, 2026 and 2027 list them.
+///
+/// Eleven days fall on the same Gregorian date in all three and are carried
+/// as fixed dates: New Year, Victory over Genocide Day, Women's Day, Labour
+/// Day, the King's and the Queen Mother's birthdays, Constitution Day, the
+/// King Father's commemoration, the Coronation, Independence Day and Peace
+/// Day. They are the present-day list, not a history: each year's list is its
+/// own sub-decree, earlier ones differed, and none before 2025 was read.
+///
+/// Khmer New Year, Visak Bochea, the Royal Ploughing Ceremony, Pchum Ben and
+/// the Water Festival are dated on the Khmer lunisolar calendar, or by the
+/// palace, and the crate has neither: they are the three sub-decrees' dates,
+/// and a year outside 2025–2027 reports them as a gap.
+///
+/// Nothing moves off the weekend. The Ministry of Labour's guideline
+/// No. 028/22 of 5 May 2022 states that, under article 162 (new) of the
+/// Labour Law, a paid holiday falling on a Sunday is not moved to the next
+/// day, and none of the sub-decrees gives a substitute. The article's
+/// earlier text, which by commentators' accounts gave the following day off
+/// until the amendment of 5 October 2021, was not read and is not carried. The weekend
+/// is Sunday, under article 147 of the Labour Law; the civil service's
+/// working week, which Sub-decree No. 21 of 30 April 1996 sets, was not read.
+pub static CAMBODIA: RuleSet = RuleSet {
+    code: "KH",
+    english_name: "Cambodia",
+    rules: KH_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: KH_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Royal Government of Cambodia, the sub-decrees (អនុក្រឹត្យ) on the holiday \
+              calendar of civil servants, employees and workers: No. 204 អនក្រ.បក of \
+              August 2024 for 2025, as the images Commerce Cambodia posted \
+              (commerce-cambodia.com); No. 167 អនក្រ.បក of 5 September 2025 for 2026, from \
+              the Ministry of Labour and Vocational Training (mlvt.gov.kh); No. 198 \
+              អនក្រ.បក of 16 September 2026 for 2027, as the images DAP News posted \
+              (dap-news.com) — all retrieved 2026-09-23, with the Khmer names; the \
+              Ministry of Labour and Vocational Training's guideline No. 028/22 of \
+              5 May 2022 on paid holidays falling on a Sunday (mlvt.gov.kh), and the \
+              Council for the Development of Cambodia's summary of articles 146 and \
+              147 of the Labour Law (cdc.gov.kh), retrieved 2026-09-23",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Laos
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year of the notices carried for Lao New Year.
+const LA_FIRST: i64 = 2024;
+/// The last.
+const LA_LAST: i64 = 2026;
+
+/// The days of Lao New Year (ບຸນປີໃໝ່ລາວ) — the decree's ວັນສັງຂານລ່ອງ,
+/// ວັນສັງຂານເນົາ and ວັນສັງຂານຂຶ້ນ, which the Songkran moment dates and the
+/// Prime Minister's Office's notice gives each year: four days in 2024, three
+/// in 2025 and 2026.
+static LA_NEW_YEAR: &[(i64, u8, u8, &str)] = &[
+    (2024, 4, 13, "Lao New Year"),
+    (2024, 4, 14, "Lao New Year"),
+    (2024, 4, 15, "Lao New Year"),
+    (2024, 4, 16, "Lao New Year"),
+    (2025, 4, 14, "Lao New Year"),
+    (2025, 4, 15, "Lao New Year"),
+    (2025, 4, 16, "Lao New Year"),
+    (2026, 4, 14, "Lao New Year"),
+    (2026, 4, 15, "Lao New Year"),
+    (2026, 4, 16, "Lao New Year"),
+];
+
+fn la_new_year(year: i64) -> Days {
+    announced(LA_NEW_YEAR, year, "Lao New Year")
+}
+
+/// Article 3 of the decree: the compensatory day (ວັນພັກຊົດເຊີຍ) is the day
+/// off in place of an official holiday that falls on a Saturday or a Sunday,
+/// and article 5 has the Prime Minister's Office announce it. Every notice
+/// read puts it on the next working day: Monday 10 March 2025 for a Saturday
+/// Women's Day, Monday 9 March 2026 for a Sunday one, and 17 and 18 April
+/// 2024 for the Saturday and Sunday of a New Year that ran on to the 16th.
+/// From 2019, the decree's first full year in force.
+static LA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: Some(2019),
+    valid_until: None,
+}];
+
+static LA_RULES: &[HolidayRule] = &[
+    HolidayRule::public(
+        "International New Year's Day",
+        "ວັນປີໃໝ່ສາກົນ",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::public(
+        "International Women's Day",
+        "ວັນແມ່ຍິງສາກົນ",
+        Rule::gregorian(3, 8),
+    ),
+    HolidayRule::public(
+        "Lao New Year",
+        "ບຸນປີໃໝ່ລາວ",
+        Rule::Tabulated {
+            function: la_new_year,
+            first_year: LA_FIRST,
+            last_year: LA_LAST,
+        },
+    ),
+    HolidayRule::public(
+        "International Labour Day",
+        "ວັນກຳມະກອນສາກົນ",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::public("National Day", "ວັນຊາດ ສປປ ລາວ", Rule::gregorian(12, 2)),
+];
+
+/// Laos — the official holidays (ວັນພັກທາງລັດຖະການ) of article 4 of the
+/// Decree on Holidays, No. 386/ລບ of 15 December 2017, for every state,
+/// social and business organisation in the country, with the compensatory
+/// days its article 3 defines.
+///
+/// New Year, Women's Day, Labour Day and National Day are fixed dates. Lao
+/// New Year is the Songkran's days, which the Prime Minister's Office's
+/// annual notice dates; the notices for 2024, 2025 and 2026 are carried, and
+/// another year reports the days as a gap. The weekend is Saturday and
+/// Sunday, under article 3, and a holiday on it is made up on the next
+/// working day, as every notice read does it.
+///
+/// The Lao Women's Union's founding day, 20 July, which the notices give as
+/// a day off for female civil servants and workers alone, is not a day off
+/// for the country and is not carried; nor are the other anniversaries the
+/// decree leaves to ministries and organisations to mark.
+pub static LAOS: RuleSet = RuleSet {
+    code: "LA",
+    english_name: "Laos",
+    rules: LA_RULES,
+    substitution: LA_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Decree on Holidays (ດຳລັດວ່າດ້ວຍວັນພັກ), No. 386/ລບ of 15 December 2017, \
+              articles 3 to 6, from the Lao Official Gazette (laoofficialgazette.gov.la), \
+              with the Lao names; the notice of the Office of the Prime Minister's Office \
+              on the official and compensatory holidays for 2026, No. 2118/ຫສນຍ of \
+              26 December 2025, as the image Mahasan News posted (mahasan.org); the \
+              Vientiane Times reports of the Prime Minister's Office's announcements for \
+              2024 (2 January 2024) and 2025 (30 December 2024), vientianetimes.org.la — \
+              all retrieved 2026-09-23",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Brunei
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Friday and Sunday. The public service works "Isnin hingga Sabtu (kecuali
+/// Jumaat, Ahad serta hari-hari kelepasan awam)", and every circular read
+/// gives a substitute for a holiday on a Friday or a Sunday and none for one
+/// on a Saturday.
+static BN_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Friday, Weekday::Sunday],
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// The circulars' "sebagai ganti": a holiday on a Friday or a Sunday is
+/// replaced by the next day that is neither a weekend nor a holiday — the
+/// Saturday for Christmas on Friday 25 December 2026, the Monday for Armed
+/// Forces Day on Sunday 31 May 2026, and the Tuesday for the second day of
+/// Hari Raya Aidil Fitri on Sunday 22 March 2026, the Monday being its third.
+/// Stated for the circulars read, those for 2023 to 2026.
+static BN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Friday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// A day of the Hijri calendar. The circulars date every holiday by its
+/// Hijri day as well, and star Awal Ramadhan, Nuzul Al-Qur'an and the two
+/// Hari Raya as "tertakluk kepada perubahan", subject to change.
+const fn bn_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::public(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, month, day),
+    )
+    .approximate()
+}
+
+static BN_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Awal Tahun Masihi", Rule::gregorian(1, 1)),
+    bn_hijri("Isra' and Mi'raj", "Memperingati Isra' dan Mi'raj", 7, 27),
+    HolidayRule::public(
+        "Chinese New Year",
+        "Tahun Baru Cina",
+        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
+    ),
+    HolidayRule::public(
+        "National Day",
+        "Hari Kebangsaan Negara Brunei Darussalam",
+        Rule::gregorian(2, 23),
+    ),
+    bn_hijri("First Day of Ramadan", "Awal Ramadhan", 9, 1),
+    bn_hijri("Nuzul Al-Qur'an", "Memperingati Nuzul Al-Qur'an", 9, 17),
+    bn_hijri("Hari Raya Aidil Fitri", "", 10, 1),
+    bn_hijri("Hari Raya Aidil Fitri", "", 10, 2),
+    bn_hijri("Hari Raya Aidil Fitri", "", 10, 3),
+    HolidayRule::public(
+        "Royal Brunei Armed Forces Day",
+        "Hari Ulang Tahun Angkatan Bersenjata Diraja Brunei",
+        Rule::gregorian(5, 31),
+    ),
+    bn_hijri("Hari Raya Aidil Adha", "", 12, 10),
+    bn_hijri("Islamic New Year", "Ilal Hijrah", 1, 1),
+    HolidayRule::public(
+        "Sultan's Birthday",
+        "Hari Keputeraan Kebawah Duli Yang Maha Mulia Paduka Seri Baginda Sultan dan \
+         Yang Di-Pertuan Negara Brunei Darussalam",
+        Rule::gregorian(7, 15),
+    ),
+    bn_hijri(
+        "Prophet Muhammad's Birthday",
+        "Maulud Nabi Muhammad Shallallahu 'Alaihi Wasallam",
+        3,
+        12,
+    ),
+    HolidayRule::public("Christmas Day", "Hari Krismas", Rule::gregorian(12, 25)),
+];
+
+/// Brunei — the public holidays (hari-hari kelepasan awam) that the Prime
+/// Minister's Office's circular declares each year on the Sultan's command,
+/// as the circulars for 2023, 2024, 2025 and 2026 list them.
+///
+/// New Year, National Day, Armed Forces Day, the Sultan's Birthday and
+/// Christmas are fixed Gregorian dates; Chinese New Year is 1 正月 on the
+/// `chinese` calendar. Isra' and Mi'raj, the first day of Ramadan, Nuzul
+/// Al-Qur'an, the three days of Hari Raya Aidil Fitri, Hari Raya Aidil Adha,
+/// the Islamic New Year and the Prophet's Birthday are on the tabular Hijri
+/// calendar and approximate: the circulars date them by Brunei's own Hijri
+/// calendar, a day from the tabular one in several of the years read, and
+/// star those of Ramadan and the two Hari Raya as subject to change.
+///
+/// The weekend is Friday and Sunday, and a holiday on either is replaced by
+/// the next working day, as each circular read names it. The circulars
+/// cite no statute for the list or for the replacement, so the table claims
+/// nothing about years before 2023 except that the list is the present one.
+pub static BRUNEI: RuleSet = RuleSet {
+    code: "BN",
+    english_name: "Brunei",
+    rules: BN_RULES,
+    substitution: BN_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: BN_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Prime Minister's Office (Jabatan Perdana Menteri), the circulars (Surat \
+              Keliling) Hari-Hari Kelepasan Awam: No. 4/2022 for 2023, No. 4/2023 for \
+              2024, No. 6/2024 for 2025 and No. 4/2025 for 2026, from jpm.gov.bn, \
+              retrieved 2026-09-23, with the Malay names; the Public Works Department's \
+              Peraturan-Peraturan Asas Perkhidmatan Awam, Bahagian I, Waktu Bekerja \
+              (pwd.gov.bn), for the working week, retrieved 2026-09-23",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Timor-Leste
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 30 of the Labour Code, Law No. 4/2012: the weekly rest day "só
+/// pode deixar de ser ao domingo" for work that cannot stop.
+static TL_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Sunday],
+    valid_from: None,
+    valid_until: None,
+}];
+
+static TL_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Dia de Ano Novo", Rule::gregorian(1, 1)),
+    // Added by Law No. 3/2016, in force from 26 May 2016.
+    HolidayRule::fixed_public("Veterans' Day", "Dia dos Veteranos", Rule::gregorian(3, 3))
+        .years(Some(2017), None),
+    HolidayRule::fixed_public(
+        "Good Friday",
+        "Sexta-Feira Santa",
+        Rule::easter(GOOD_FRIDAY),
+    ),
+    HolidayRule::fixed_public("Idul Fitri", "", EID_AL_FITR).approximate(),
+    HolidayRule::fixed_public(
+        "World Workers' Day",
+        "Dia Mundial do Trabalhador",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Restoration of Independence Day",
+        "Dia da Restauração da Independência",
+        Rule::gregorian(5, 20),
+    ),
+    HolidayRule::fixed_public("Idul Adha", "", EID_AL_ADHA).approximate(),
+    HolidayRule::fixed_public(
+        "Corpus Christi",
+        "Festa do Corpo de Deus",
+        Rule::easter(CORPUS_CHRISTI),
+    ),
+    HolidayRule::fixed_public(
+        "Popular Consultation Day",
+        "Dia da Consulta Popular",
+        Rule::gregorian(8, 30),
+    ),
+    HolidayRule::fixed_public(
+        "All Saints' Day",
+        "Dia de Todos os Santos",
+        Rule::gregorian(11, 1),
+    ),
+    HolidayRule::fixed_public(
+        "All Souls' Day",
+        "Dia de Todos os Fiéis Defuntos",
+        Rule::gregorian(11, 2),
+    ),
+    // A commemorative date until Law No. 10/2023, in force from 6 April
+    // 2023, made it a holiday.
+    HolidayRule::fixed_public(
+        "National Women's Day",
+        "Dia Nacional da Mulher",
+        Rule::gregorian(11, 3),
+    )
+    .years(Some(2023), None),
+    HolidayRule::fixed_public(
+        "National Youth Day",
+        "Dia Nacional da Juventude",
+        Rule::gregorian(11, 12),
+    ),
+    HolidayRule::fixed_public(
+        "Proclamation of Independence Day",
+        "Dia da Proclamação da Independência",
+        Rule::gregorian(11, 28),
+    ),
+    // 7 December was National Heroes' Day until Law No. 3/2016 named it
+    // Memorial Day and gave the Heroes 31 December.
+    HolidayRule::fixed_public(
+        "National Heroes' Day",
+        "Dia dos Heróis Nacionais",
+        Rule::gregorian(12, 7),
+    )
+    .years(None, Some(2015)),
+    HolidayRule::fixed_public("Memorial Day", "Dia da Memória", Rule::gregorian(12, 7))
+        .years(Some(2016), None),
+    HolidayRule::fixed_public(
+        "Immaculate Conception",
+        "Dia da Nossa Senhora da Imaculada Conceição",
+        Rule::gregorian(12, 8),
+    ),
+    HolidayRule::fixed_public("Christmas Day", "Dia de Natal", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public(
+        "National Heroes' Day",
+        "Dia dos Heróis Nacionais",
+        Rule::gregorian(12, 31),
+    )
+    .years(Some(2016), None),
+];
+
+/// Timor-Leste — the national holidays of article 2 of Law No. 10/2005 of
+/// 10 August, on holidays and official commemorative dates, as Law
+/// No. 3/2016 of 25 May and Law No. 10/2023 of 5 April amended it.
+///
+/// The fixed-date holidays are carried with the two amendments by year:
+/// Veterans' Day from 2017, the first 3 March after the 2016 law; 7 December
+/// renamed Memorial Day and National Heroes' Day moved to 31 December from
+/// 2016; National Women's Day, until then a commemorative date, a holiday
+/// from 2023. The four variable holidays have their dates fixed each year by
+/// a government dispatch on the word of the Diocese of Dili and the Islamic
+/// community: Good Friday and Corpus Christi are the Western Easter's, which
+/// is what every list read gives, and Idul Fitri and Idul Adha are on the
+/// tabular Hijri calendar and approximate.
+///
+/// The commemorative dates of article 5 — Children's Day, FALINTIL Day,
+/// Human Rights Day, Ash Wednesday, Maundy Thursday, Ascension and, from
+/// 2023, the Day of Persons with Disabilities — are not holidays, and the
+/// *tolerâncias de ponto* the Government grants around them are
+/// discretionary; neither is carried. The law moves nothing off a weekend,
+/// and the weekend is Sunday, under article 30 of the Labour Code.
+pub static TIMOR_LESTE: RuleSet = RuleSet {
+    code: "TL",
+    english_name: "Timor-Leste",
+    rules: TL_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: TL_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Lei n.º 10/2005, de 10 de agosto, Feriados Nacionais e Datas Oficiais \
+              Comemorativas, articles 2, 5 and 7; Lei n.º 3/2016, de 25 de maio (Jornal da \
+              República, Série I, N.º 20) and Lei n.º 10/2023, de 5 de abril (Série I, \
+              N.º 13 A), with the republished text; Lei n.º 4/2012, Lei do Trabalho, \
+              article 30 — all from the Jornal da República (mj.gov.tl/jornal) and \
+              FAOLEX, with the Portuguese names; the Government's press releases of the \
+              holidays for 2011, 2020 and 2022 to 2026 (timor-leste.gov.tl) — all \
+              retrieved 2026-09-23",
 };
