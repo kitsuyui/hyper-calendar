@@ -8,7 +8,7 @@ use hc_holiday::exchanges::{
     EURONEXT_DUBLIN, EURONEXT_LISBON, EURONEXT_MILAN, EURONEXT_OSLO, EURONEXT_PARIS,
     FRANKFURT_STOCK_EXCHANGE, HONG_KONG_EXCHANGES, LONDON_STOCK_EXCHANGE, NASDAQ,
     NASDAQ_COPENHAGEN, NASDAQ_HELSINKI, NASDAQ_ICELAND, NASDAQ_STOCKHOLM, NEW_YORK_STOCK_EXCHANGE,
-    TOKYO_STOCK_EXCHANGE, TORONTO_STOCK_EXCHANGE,
+    SIX_SWISS_EXCHANGE, TOKYO_STOCK_EXCHANGE, TORONTO_STOCK_EXCHANGE,
 };
 use hc_holiday::rule::RuleSet;
 use hc_holiday::rule::{Confidence, Kind};
@@ -995,11 +995,48 @@ fn an_included_region_is_the_inclusions_and_not_the_callers() {
 }
 
 #[test]
+fn six_closes_on_the_days_its_calendar_lists() {
+    // SIX's market holidays of the Swiss Stock Exchange, 2026 and 2027: the
+    // weekday ones, nothing moved off a weekend, no early close.
+    let (closed, early) = year_of(&SIX_SWISS_EXCHANGE, 2026);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (1, 2),
+            (4, 3),
+            (4, 6),
+            (5, 1),
+            (5, 14),
+            (5, 25),
+            (12, 24),
+            (12, 25),
+            (12, 31)
+        ]
+    );
+    assert!(early.is_empty());
+    let (closed, early) = year_of(&SIX_SWISS_EXCHANGE, 2027);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (3, 26),
+            (3, 29),
+            (5, 6),
+            (5, 17),
+            (12, 24),
+            (12, 31)
+        ]
+    );
+    assert!(early.is_empty());
+}
+
+#[test]
 fn the_catalogue_is_keyed_by_market_identifier_code() {
     assert_eq!(
         exchanges::by_code("xnys").map(|e| e.english_name),
         Some("New York Stock Exchange")
     );
     assert!(exchanges::ALL.iter().all(|e| e.code.len() == 4));
-    assert_eq!(exchanges::ALL.len(), 20);
+    assert_eq!(exchanges::ALL.len(), 21);
 }

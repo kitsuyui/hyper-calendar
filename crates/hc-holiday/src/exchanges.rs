@@ -373,6 +373,52 @@ pub static LONDON_STOCK_EXCHANGE: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// SIX Swiss Exchange
+// ─────────────────────────────────────────────────────────────────────────
+
+static XSWX_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Neujahr", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("Berchtholdstag", "Berchtoldstag", Rule::gregorian(1, 2)),
+    HolidayRule::fixed_public("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::fixed_public("Labour Day", "Tag der Arbeit", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Ascension Day", "Auffahrt", Rule::easter(ASCENSION)),
+    HolidayRule::fixed_public("Whitmonday", "Pfingstmontag", Rule::easter(WHIT_MONDAY)),
+    HolidayRule::fixed_public("Christmas Eve", "Heiligabend", Rule::gregorian(12, 24)),
+    HolidayRule::fixed_public("Christmas", "Weihnachten", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public("New Year's Eve", "Silvester", Rule::gregorian(12, 31)),
+];
+
+/// The SIX Swiss Exchange.
+///
+/// Its "Market Holidays of the Swiss Stock Exchange" for 2026 and 2027:
+/// New Year's Day and Berchtholdstag, Good Friday and Easter Monday,
+/// Labour Day, Ascension Day, Whitmonday, Christmas Eve, Christmas and New
+/// Year's Eve, each on its day when that is a weekday — 2 January 2027,
+/// 1 May 2027 and Christmas 2027, Saturdays, are not listed and move to
+/// no other day. No early closes.
+///
+/// Swiss National Day, 1 August, and St Stephen's Day, 26 December, fall
+/// on a Saturday or a Sunday in both years the calendar covers, so it
+/// shows neither a closure nor a trading day for them; this table carries
+/// neither, and a weekday 1 August or 26 December is answered as a trading
+/// day on no evidence either way.
+pub static SIX_SWISS_EXCHANGE: RuleSet = RuleSet {
+    code: "XSWX",
+    english_name: "SIX Swiss Exchange",
+    rules: XSWX_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "SIX, \"Trading & Currency Holiday Calendar\" \
+              (six-group.com/en/market-data/news-tools/trading-currency-holiday-calendar.html), \
+              retrieved 2026-09-23: the market holidays of the Swiss Stock Exchange for 2026 and \
+              2027",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Frankfurt Stock Exchange (Xetra)
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -1174,6 +1220,7 @@ pub static ALL: &[&RuleSet] = &[
     &EURONEXT_OSLO,
     &EURONEXT_PARIS,
     &NASDAQ_STOCKHOLM,
+    &SIX_SWISS_EXCHANGE,
     &TORONTO_STOCK_EXCHANGE,
 ];
 

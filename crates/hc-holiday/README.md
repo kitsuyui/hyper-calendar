@@ -17,7 +17,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `traditions` | the cross-cutting religious cycles |
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `international` | the United Nations international days, each citing its resolution |
-| `exchanges` | 20 exchange calendars: New York, Nasdaq, Toronto, São Paulo, London, Frankfurt, Euronext's seven markets, Nasdaq's four Nordic markets, Tokyo, Hong Kong, Sydney |
+| `exchanges` | 21 exchange calendars: New York, Nasdaq, Toronto, São Paulo, London, Frankfurt, Zurich, Euronext's seven markets, Nasdaq's four Nordic markets, Tokyo, Hong Kong, Sydney |
 | `countries` | 124 national tables |
 
 ## The vocabulary
@@ -154,7 +154,8 @@ the day after Thanksgiving and on 3 July and Christmas Eve when those fall on
 a Monday to Thursday; the Toronto Stock Exchange (`XTSE`); the Frankfurt
 Stock Exchange on Xetra (`XETR`), which closes on Christmas Eve and New Year's
 Eve, trades on Ascension Day and Corpus Christi and moves nothing off a
-weekend; the Australian Securities Exchange (`XASX`), which trades on the
+weekend; SIX in Zurich (`XSWX`), which closes on Berchtoldstag, Ascension Day
+and Whit Monday besides and also moves nothing; the Australian Securities Exchange (`XASX`), which trades on the
 states' Monday for a Sunday Anzac Day; and Euronext's seven markets, four of
 them — Amsterdam, Brussels, Lisbon, Paris — on one calendar of six closed days
 and two half days, Dublin moving a weekend holiday where the others leave it,
