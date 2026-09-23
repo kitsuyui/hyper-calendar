@@ -27,7 +27,7 @@ LunarPhase { phase, after }   the first full moon on or after a fixed date
 Tithi { m, tithi, prevails }  Rāma Navamī, Chaitra śukla 9 at midday
 Sankranti { sign, ayanamsa }  Makar Sankranti, the Sun's entry into Makara
 Nakshatra { n, sign, tithi }  Thaipusam, Puṣya in Thai
-Offset { base, days }         除夕, Seollal's eve, Tết's first days
+Offset { base, days }         除夕, Seollal's eve
 MovedByWeekday { base, moves } a Monday-holiday law: Argentina's trasladables, Colombia's Ley Emiliani
 Tabulated { fn, first, last } Matariki, gazetted through a stated last year
 Computed(fn)                  the few that really are bespoke
@@ -81,14 +81,15 @@ none.
   below carry no substitution policy at all, because their countries have
   none in calendar-expressible form; `supported.md` shows which.
 - **It will not guess an annual administrative act.** China's 调休, Taiwan's
-  swaps of a working day for a Saturday, Vietnam's Tết span, Thailand's
-  Songkran makeup days and Indonesia's *cuti bersama* are decided year by
-  year by a ministry. Where those acts have been read they are data for
-  their years: China's arrangements from 2008 to 2026, Russia's transfer
-  decrees from 2013 to 2027 and Taiwan's swaps from 2017 until they ended in
-  2025, the days off and the weekend days worked alike ([ADR 0009](adr/0009-a-working-day-is-an-entry.md)). A year past them
-  is a gap. Elsewhere the statutory days are listed and the bridging days
-  are not.
+  swaps of a working day for a Saturday, Vietnam's Tết span and *làm bù*,
+  Thailand's Songkran makeup days and Indonesia's *cuti bersama* are decided
+  year by year by a ministry. Where those acts have been read they are data
+  for their years: China's arrangements from 2008 to 2026, Russia's transfer
+  decrees from 2013 to 2027, Taiwan's swaps from 2017 until they ended in
+  2025 and Vietnam's notices from 2021 to 2026, the days off and the weekend
+  days worked alike ([ADR 0009](adr/0009-a-working-day-is-an-entry.md)). A
+  year past them is a gap. Elsewhere the statutory days are listed and the
+  bridging days are not.
 - **It will not tabulate what it cannot compute.** Indonesia's Nyepi is
   absent because the Balinese Saka calendar it is dated in does not exist in
   the crate yet. India's Hindu, Sikh and Jain gazetted holidays and
@@ -234,7 +235,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Peru 🇵🇪 | The sixteen days of the 2026 list from 2024, where they fall; the laws of the four recent additions not read, so nothing before is stated |
 | Ukraine 🇺🇦 | The 2023 list — 8 May, 15 July, 1 October, Christmas on 25 December alone — with the earlier dates by year; the next-working-day rule of article 67; the martial-law suspension of days off is noted, not modelled |
 | Thailand 🇹🇭 | Including the Buddhist lunar holidays, flagged `Approximate` |
-| Vietnam 🇻🇳 | Keyed to the `vietnamese` calendar |
+| Vietnam 🇻🇳 | Article 112 of the 2019 Labour Code, Hùng Kings' day on the `vietnamese` calendar, and article 111(3)'s next working day for a fixed holiday on a weekend; Tết, the second National Day holiday and the working days swapped for a Saturday from the civil-service notices for 2021 to 2026, the Saturdays worked as working days; Vietnamese Culture Day from 2026 |
 | Indonesia 🇮🇩 | |
 | Spain 🇪🇸, Italy 🇮🇹, Netherlands 🇳🇱, Poland 🇵🇱, Türkiye 🇹🇷, Egypt 🇪🇬, Nigeria 🇳🇬, South Africa 🇿🇦, Singapore 🇸🇬, Malaysia 🇲🇾, Philippines 🇵🇭, Switzerland 🇨🇭, Austria 🇦🇹, Belgium 🇧🇪, Sweden 🇸🇪, Norway 🇳🇴, Denmark 🇩🇰, Finland 🇫🇮, Portugal 🇵🇹, Greece 🇬🇷, Czechia 🇨🇿 | Core national list |
 

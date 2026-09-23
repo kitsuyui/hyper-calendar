@@ -1298,40 +1298,174 @@ pub static THAILAND: RuleSet = RuleSet {
 // Vietnam
 // ─────────────────────────────────────────────────────────────────────────
 
-static VN_TET: Rule = Rule::in_calendar(CalendarSystem::VIETNAMESE, 1, 1);
+// ── The annual notices ───────────────────────────────────────────────────
+
+/// A holiday an annual notice gives days off, or a Saturday worked, for.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum VnFestival {
+    NewYearsDay,
+    Tet,
+    /// 30 April and 1 May, which the notices swap days around together.
+    VictoryAndLabour,
+    NationalDay,
+}
+
+use VnFestival::{NationalDay, NewYearsDay, Tet, VictoryAndLabour};
+
+/// The first year the notices carried here cover: the first under the
+/// 2019 Labour Code, which made Tết five days and National Day two.
+const VN_NOTICES_FIRST: i64 = 2021;
+/// The last.
+const VN_NOTICES_LAST: i64 = 2026;
+
+/// The days each year's notices give civil servants off beyond the
+/// statutory days the rules below compute, as spans: the holiday, the
+/// Gregorian year, and the first and last month and day.
+///
+/// A Tết span is the five days the notice counts as Tết together with the
+/// days it gives in lieu of those that fall on a weekend, and nothing
+/// else: the weekly rest days a notice counts around them are weekends
+/// already. A National Day entry is the second day the notice names, or a
+/// weekday it swaps for a Saturday.
+#[rustfmt::skip]
+static VN_DAYS_OFF: &[(VnFestival, i64, u8, u8, u8, u8)] = &[
+    // Thông báo 4875/TB-LĐTBXH, 10 December 2020: two days before Tết and
+    // three after, 10–14 February, with 15 and 16 February in lieu of the
+    // second and third days of the lunar year, a Saturday and a Sunday;
+    // National Day on 2 and 3 September.
+    (Tet, 2021, 2, 10, 2, 16),
+    (NationalDay, 2021, 9, 3, 9, 3),
+    // Thông báo 119/TB-LĐTBXH, 14 January 2022: Tết from 31 January to
+    // 4 February; National Day on 1 and 2 September.
+    (Tet, 2022, 1, 31, 2, 4),
+    (NationalDay, 2022, 9, 1, 9, 1),
+    // Thông báo 5034/TB-LĐTBXH, 7 December 2022: five days of Tết from
+    // 20 January and two in lieu of the weekend, to 26 January; National
+    // Day on 1 and 2 September, the 2nd a Saturday made up on the 4th.
+    (Tet, 2023, 1, 20, 1, 26),
+    (NationalDay, 2023, 9, 1, 9, 1),
+    // Thông báo 5015/TB-LĐTBXH, 22 November 2023: five days of Tết from
+    // 8 February and two in lieu, to 14 February; National Day on 2 and
+    // 3 September.
+    (Tet, 2024, 2, 8, 2, 14),
+    (NationalDay, 2024, 9, 3, 9, 3),
+    // Thông báo 1570/TB-LĐTBXH, 12 April 2024: Monday 29 April off, for
+    // Saturday 4 May.
+    (VictoryAndLabour, 2024, 4, 29, 4, 29),
+    // Thông báo 6150/TB-LĐTBXH, 3 December 2024: Tết from 27 to
+    // 31 January, between two weekends; Friday 2 May off, for Saturday
+    // 26 April; National Day on 1 and 2 September.
+    (Tet, 2025, 1, 27, 1, 31),
+    (VictoryAndLabour, 2025, 5, 2, 5, 2),
+    (NationalDay, 2025, 9, 1, 9, 1),
+    // Công văn 12729/VPCP-KGVX, 25 December 2025: Friday 2 January off,
+    // for Saturday 10 January.
+    (NewYearsDay, 2026, 1, 2, 1, 2),
+    // Thông báo 9441/TB-BNV, 16 October 2025: one day before Tết and four
+    // after, 16–20 February; National Day on 1 and 2 September, and
+    // Monday 31 August off for Saturday 22 August.
+    (Tet, 2026, 2, 16, 2, 20),
+    (NationalDay, 2026, 8, 31, 9, 1),
+];
+
+/// The Saturdays the notices make working days, in exchange for the
+/// weekdays off above.
+#[rustfmt::skip]
+static VN_WORKDAYS: &[(VnFestival, i64, u8, u8)] = &[
+    (VictoryAndLabour, 2024, 5, 4),
+    (VictoryAndLabour, 2025, 4, 26),
+    (NewYearsDay, 2026, 1, 10),
+    (NationalDay, 2026, 8, 22),
+];
+
+fn vn_days_off(festival: VnFestival, year: i64) -> Days {
+    let mut out = Days::new();
+    for &(of, y, first_month, first_day, last_month, last_day) in VN_DAYS_OFF {
+        if of != festival || y != year {
+            continue;
+        }
+        let (Ok(first), Ok(last)) = (
+            gregorian::to_fixed(y, first_month, first_day),
+            gregorian::to_fixed(y, last_month, last_day),
+        ) else {
+            continue;
+        };
+        for day in first.0..=last.0 {
+            out.push(Rd(day));
+        }
+    }
+    out
+}
+
+fn vn_workdays(festival: VnFestival, year: i64) -> Days {
+    let mut out = Days::new();
+    for &(of, y, month, day) in VN_WORKDAYS {
+        if of == festival
+            && y == year
+            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
+        {
+            out.push(fixed);
+        }
+    }
+    out
+}
+
+/// The lookups for each holiday, as the `fn(i64) -> Days` a
+/// [`Rule::Tabulated`] takes.
+macro_rules! vn_noticed {
+    ($($festival:ident => $off:ident, $work:ident);* $(;)?) => {
+        $(
+            fn $off(year: i64) -> Days {
+                vn_days_off($festival, year)
+            }
+            fn $work(year: i64) -> Days {
+                vn_workdays($festival, year)
+            }
+        )*
+    };
+}
+
+vn_noticed! {
+    NewYearsDay => vn_new_year_off, vn_new_year_work;
+    Tet => vn_tet_off, vn_tet_work;
+    VictoryAndLabour => vn_victory_labour_off, vn_victory_labour_work;
+    NationalDay => vn_national_off, vn_national_work;
+}
+
+const fn vn_tabulated(function: fn(i64) -> Days) -> Rule {
+    Rule::Tabulated {
+        function,
+        first_year: VN_NOTICES_FIRST,
+        last_year: VN_NOTICES_LAST,
+    }
+}
+
+/// The days the notices give off for a holiday, under the holiday's own
+/// name. They are never moved by the weekend rule: a notice states its
+/// days in lieu itself.
+const fn vn_off(
+    name: &'static str,
+    local_name: &'static str,
+    function: fn(i64) -> Days,
+) -> HolidayRule {
+    HolidayRule::fixed_public(name, local_name, vn_tabulated(function))
+}
+
+/// The Saturdays they make working days.
+const fn vn_work(
+    name: &'static str,
+    local_name: &'static str,
+    function: fn(i64) -> Days,
+) -> HolidayRule {
+    HolidayRule::workday(name, local_name, vn_tabulated(function))
+}
 
 static VN_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "Tết Dương lịch", Rule::gregorian(1, 1)),
-    // Tết is five statutory days and the Prime Minister fixes which five,
-    // so the weekend make-up rule is not applied to them here.
-    HolidayRule::fixed_public(
-        "Tết",
-        "Tết Nguyên Đán",
-        Rule::Offset {
-            base: &VN_TET,
-            days: -1,
-        },
-    ),
-    HolidayRule::fixed_public(
-        "Tết",
-        "Tết Nguyên Đán",
-        Rule::in_calendar(CalendarSystem::VIETNAMESE, 1, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Tết",
-        "Tết Nguyên Đán",
-        Rule::in_calendar(CalendarSystem::VIETNAMESE, 1, 2),
-    ),
-    HolidayRule::fixed_public(
-        "Tết",
-        "Tết Nguyên Đán",
-        Rule::in_calendar(CalendarSystem::VIETNAMESE, 1, 3),
-    ),
-    HolidayRule::fixed_public(
-        "Tết",
-        "Tết Nguyên Đán",
-        Rule::in_calendar(CalendarSystem::VIETNAMESE, 1, 4),
-    ),
+    // Tết is five days by article 112(1)(b), and which five is the Prime
+    // Minister's decision each year under article 112(3). There is no
+    // rule for it, only the notices.
+    vn_off("Tết", "Tết Nguyên Đán", vn_tet_off),
     HolidayRule::public(
         "Hùng Kings' Festival",
         "Giỗ Tổ Hùng Vương",
@@ -1345,10 +1479,55 @@ static VN_RULES: &[HolidayRule] = &[
     ),
     HolidayRule::public("Labour Day", "Ngày Quốc tế Lao động", Rule::gregorian(5, 1)),
     HolidayRule::public("National Day", "Quốc khánh", Rule::gregorian(9, 2)),
-    HolidayRule::public("National Day", "Quốc khánh", Rule::gregorian(9, 1))
-        .years(Some(2021), None),
+    // The second National Day holiday, from 2021, is "the day before or
+    // after" 2 September, and which is again the Prime Minister's choice.
+    vn_off("National Day", "Quốc khánh", vn_national_off),
+    // Ngày Văn hóa Việt Nam, a paid day off by Nghị quyết 28/2026/QH16
+    // from 1 July 2026. The resolution says nothing of a weekend, and the
+    // make-up rule of article 111(3) reaches only the days of article
+    // 112(1), which does not list it yet, so it is not moved.
+    HolidayRule::fixed_public(
+        "Vietnamese Culture Day",
+        "Ngày Văn hóa Việt Nam",
+        Rule::gregorian(11, 24),
+    )
+    .years(Some(2026), None),
+    // The weekdays the notices swap for a Saturday.
+    vn_off("New Year's Day", "Tết Dương lịch", vn_new_year_off),
+    vn_off(
+        "Reunification Day and Labour Day",
+        "Ngày Chiến thắng và Ngày Quốc tế Lao động",
+        vn_victory_labour_off,
+    ),
+    // And the Saturdays worked for them.
+    vn_work(
+        "Make-up working day, New Year's Day",
+        "Làm bù, Tết Dương lịch",
+        vn_new_year_work,
+    ),
+    vn_work(
+        "Make-up working day, Tết",
+        "Làm bù, Tết Nguyên Đán",
+        vn_tet_work,
+    ),
+    vn_work(
+        "Make-up working day, Reunification Day and Labour Day",
+        "Làm bù, Ngày Chiến thắng và Ngày Quốc tế Lao động",
+        vn_victory_labour_work,
+    ),
+    vn_work(
+        "Make-up working day, National Day",
+        "Làm bù, Quốc khánh",
+        vn_national_work,
+    ),
 ];
 
+/// Article 111(3) of the Labour Code: a weekly rest day that coincides
+/// with a holiday of article 112(1) is made up on the next working day.
+/// The civil service rests on Saturday and Sunday, and the notices apply
+/// the rule in those terms — 4 September 2023 for Saturday 2 September.
+/// It moves only the fixed holidays here; the notices' own days are
+/// stated with their days in lieu.
 static VN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     trigger: &[Weekday::Saturday, Weekday::Sunday],
     direction: SubstituteDirection::Forward,
@@ -1359,6 +1538,13 @@ static VN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 }];
 
 /// Vietnam.
+///
+/// The fixed holidays of article 112 of the 2019 Labour Code, with the
+/// make-up rule of article 111(3); Tết, the second National Day holiday
+/// and the swapped working days from the notices for the civil service
+/// for 2021 to 2026, which the Labour Code leaves to the Prime Minister
+/// each year. A year outside them is a gap. Private employers may choose
+/// their own Tết split and are not modelled.
 pub static VIETNAM: RuleSet = RuleSet {
     code: "VN",
     english_name: "Vietnam",
@@ -1367,12 +1553,21 @@ pub static VIETNAM: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Bộ luật Lao động 2019, điều 112. Tết is five statutory days; \
-              which five is fixed by the Prime Minister each year, and the \
-              eve-plus-four split used here is the usual one. The second \
-              National Day holiday may be 1 or 3 September by the same \
-              annual decision",
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Bộ luật Lao động 45/2019/QH14, điều 111 and 112, in force \
+              from 2021; Nghị quyết 28/2026/QH16, điều 2, for 24 November \
+              from 2026; for the civil service, the Bộ Lao động – Thương \
+              binh và Xã hội's Thông báo 4875/TB-LĐTBXH (2021), \
+              119/TB-LĐTBXH (2022), 5034/TB-LĐTBXH (2023), \
+              5015/TB-LĐTBXH and 1570/TB-LĐTBXH (2024) and \
+              6150/TB-LĐTBXH (2025), and for 2026 the Bộ Nội vụ's Thông \
+              báo 9441/TB-BNV, the Văn phòng Chính phủ's Công văn \
+              12729/VPCP-KGVX, and the Bộ Nội vụ's Công văn 3383/BNV-CVL \
+              that no swap was made around 30 April; all read on \
+              23 September 2026, mostly as the government portals and law \
+              databases reproduce them. The notices for 2027 had not been \
+              issued, and no swap around 24 November 2026 had been \
+              decided",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

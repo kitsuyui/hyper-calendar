@@ -924,6 +924,144 @@ fn vietnam_holidays() {
     // The second National Day holiday dates from 2021.
     expect("VN", None, &[(2025, 9, 1, "National Day")]);
     expect_working("VN", None, &[(2019, 9, 1), (2006, 4, 7)]);
+    // Vietnamese Culture Day, from 2026.
+    expect("VN", None, &[(2026, 11, 24, "Vietnamese Culture Day")]);
+    expect_working("VN", None, &[(2025, 11, 24)]);
+}
+
+/// Days of one year, as (month, day).
+type MonthDays = Vec<(u8, u8)>;
+
+/// The weekdays a year's calendar gives off and the weekend days it makes
+/// working days.
+fn weekdays_off_and_weekends_worked(code: &str, year: i64) -> (MonthDays, MonthDays) {
+    use hc_calendar::Weekday;
+    let calendar = HolidayCalendar::for_year(table(code), None, year);
+    let mut off = Vec::new();
+    let mut worked = Vec::new();
+    for month in 1..=12u8 {
+        for day in 1..=31u8 {
+            let Ok(date) = gregorian::to_fixed(year, month, day) else {
+                continue;
+            };
+            let weekend = matches!(Weekday::from_rd(date), Weekday::Saturday | Weekday::Sunday);
+            if !weekend && !calendar.is_business_day(date) {
+                off.push((month, day));
+            }
+            if weekend && calendar.is_business_day(date) {
+                worked.push((month, day));
+            }
+        }
+    }
+    (off, worked)
+}
+
+#[test]
+fn vietnam_keeps_each_years_notices() {
+    // Each year's weekdays off and Saturdays worked for the civil service,
+    // assembled by hand from the statutory days, article 111(3)'s make-up
+    // day for one on a weekend, and the notices.
+    type Year<'a> = (i64, &'a [(u8, u8)], &'a [(u8, u8)]);
+    #[rustfmt::skip]
+    let years: &[Year] = &[
+        (2021, &[
+            (1, 1),
+            // 4875/TB-LĐTBXH: Tết 10–14 February, and 15 and 16 February
+            // in lieu of the Saturday and Sunday among them.
+            (2, 10), (2, 11), (2, 12), (2, 15), (2, 16),
+            // Hùng Kings' Festival, 10/3 of Tân Sửu.
+            (4, 21),
+            // 1 May was a Saturday, made up on Monday the 3rd.
+            (4, 30), (5, 3),
+            // The notice's second National Day holiday is the 3rd.
+            (9, 2), (9, 3),
+        ], &[]),
+        (2022, &[
+            // 1 January was a Saturday.
+            (1, 3),
+            // 119/TB-LĐTBXH: Tết 31 January to 4 February.
+            (1, 31), (2, 1), (2, 2), (2, 3), (2, 4),
+            // Hùng Kings' Festival on Sunday 10 April.
+            (4, 11),
+            // 30 April and 1 May on the weekend, made up on the 2nd and 3rd.
+            (5, 2), (5, 3),
+            // The second National Day holiday is the 1st.
+            (9, 1), (9, 2),
+        ], &[]),
+        (2023, &[
+            // 1 January was a Sunday.
+            (1, 2),
+            // 5034/TB-LĐTBXH: Tết 20–24 January, with the 25th and 26th in
+            // lieu of the Saturday and Sunday.
+            (1, 20), (1, 23), (1, 24), (1, 25), (1, 26),
+            // Hùng Kings' Festival on Saturday 29 April and 30 April on the
+            // Sunday, made up on 2 and 3 May.
+            (5, 1), (5, 2), (5, 3),
+            // National Day on 1 and 2 September, the 2nd a Saturday made
+            // up on Monday the 4th, as the notice says.
+            (9, 1), (9, 4),
+        ], &[]),
+        (2024, &[
+            (1, 1),
+            // 5015/TB-LĐTBXH: Tết 8–12 February, with the 13th and 14th in
+            // lieu of the Saturday and Sunday.
+            (2, 8), (2, 9), (2, 12), (2, 13), (2, 14),
+            (4, 18),
+            // 1570/TB-LĐTBXH: Monday 29 April swapped for Saturday 4 May.
+            (4, 29), (4, 30), (5, 1),
+            // The second National Day holiday is the 3rd.
+            (9, 2), (9, 3),
+        ], &[(5, 4)]),
+        (2025, &[
+            (1, 1),
+            // 6150/TB-LĐTBXH: Tết 27–31 January, two days before the
+            // 29th and three after.
+            (1, 27), (1, 28), (1, 29), (1, 30), (1, 31),
+            (4, 7),
+            // The same notice: Friday 2 May swapped for Saturday 26 April.
+            (4, 30), (5, 1), (5, 2),
+            // The second National Day holiday is the 1st.
+            (9, 1), (9, 2),
+        ], &[(4, 26)]),
+        (2026, &[
+            // 12729/VPCP-KGVX: Friday 2 January swapped for Saturday
+            // 10 January.
+            (1, 1), (1, 2),
+            // 9441/TB-BNV: Tết 16–20 February.
+            (2, 16), (2, 17), (2, 18), (2, 19), (2, 20),
+            // Hùng Kings' Festival on Sunday 26 April, made up on the 27th;
+            // 3383/BNV-CVL: no swap around 30 April.
+            (4, 27), (4, 30), (5, 1),
+            // 9441/TB-BNV: the second National Day holiday is the 1st, and
+            // Monday 31 August is swapped for Saturday 22 August.
+            (8, 31), (9, 1), (9, 2),
+            // Nghị quyết 28/2026/QH16.
+            (11, 24),
+        ], &[(1, 10), (8, 22)]),
+    ];
+    for &(year, off, worked) in years {
+        let (found_off, found_worked) = weekdays_off_and_weekends_worked("VN", year);
+        assert_eq!(found_off, off, "{year}: weekdays off");
+        assert_eq!(found_worked, worked, "{year}: weekend days worked");
+        assert!(
+            HolidayCalendar::for_year(table("VN"), None, year).is_complete(),
+            "{year}"
+        );
+    }
+    // A Tết day the notice counts on a weekend is not moved again: in 2021
+    // the 13th and 14th are Tết, and the days in lieu are the notice's own.
+    let calendar = HolidayCalendar::for_year(table("VN"), None, 2021);
+    assert!(
+        !calendar
+            .all()
+            .iter()
+            .any(|holiday| holiday.name == "Tết" && holiday.is_substitute())
+    );
+    // A year no notice carried here covers is a gap, not a guess.
+    for year in [2020, 2027] {
+        let calendar = HolidayCalendar::for_year(table("VN"), None, year);
+        assert!(!calendar.is_complete(), "{year}");
+    }
 }
 
 #[test]

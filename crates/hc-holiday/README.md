@@ -35,7 +35,7 @@ LunarPhase { phase, month, day, mer } the first full moon on or after a date
 Tithi { month, tithi, prevails, wt }  Rāma Navamī, Chaitra śukla 9 at midday
 Sankranti { sign, ayanamsa, mer }     Makar Sankranti, the Sun's entry into Makara
 Nakshatra { n, sign, tithi, ay, mer } Thaipusam, Puṣya in Thai
-Offset { base, days }                 Seollal's eve, 除夕, Tết's first days
+Offset { base, days }                 Seollal's eve, 除夕
 Span { from, to }                     Dashain, Phūlpātī to Āśvina śukla 12, six or seven days
 MovedByWeekday { base, moves }        Argentina's feriados trasladables, Colombia's Ley Emiliani
 Tabulated { function, first, last }   Matariki, gazetted through a stated last year
@@ -203,15 +203,15 @@ source read here gives are not, and the table says which.
   calendar-expressible form. Their holidays fall on the weekend and stay
   there. That is a deliberate refusal, not an oversight.
 * **It will not guess an annual administrative act.** China's 调休, Taiwan's
-  swaps of a working day for a Saturday, Vietnam's Tết span, Thailand's
-  Songkran makeup days and Indonesia's *cuti bersama* are decided year by
-  year by a ministry, not by a rule. Where the acts have been read they are
-  data for their years: China's arrangements from 2008 to 2026, Russia's
-  transfer decrees from 2013 to 2027 and Taiwan's swaps from 2017 until they
-  ended in 2025, with the weekend days they put to work as
-  `Kind::Workday` entries that business-day arithmetic
-  counts. A year past them is a gap. Elsewhere the statutory days are listed
-  and the bridging days are not.
+  swaps of a working day for a Saturday, Vietnam's Tết span and *làm bù*,
+  Thailand's Songkran makeup days and Indonesia's *cuti bersama* are decided
+  year by year by a ministry, not by a rule. Where the acts have been read
+  they are data for their years: China's arrangements from 2008 to 2026,
+  Russia's transfer decrees from 2013 to 2027, Taiwan's swaps from 2017
+  until they ended in 2025 and Vietnam's notices from 2021 to 2026, with the
+  weekend days they put to work as `Kind::Workday` entries that
+  business-day arithmetic counts. A year past them is a gap. Elsewhere the
+  statutory days are listed and the bridging days are not.
 * **It will not pretend a list is current.** Every table carries a
   `sources_checked` date and names its statute or gazette in a comment.
 * **It will not guess outside the span it evaluated.** Business-day arithmetic
