@@ -123,3 +123,5 @@ ACI = "ACI"
 Handel = "Handel"
 # Catalan "Associats" in the name of an Andorran firm cited as a source.
 Associats = "Associats"
+# Bengali "Prothom Alo", the Dhaka daily newspaper cited as a source.
+Alo = "Alo"

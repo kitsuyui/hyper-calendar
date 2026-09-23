@@ -25,7 +25,7 @@ use hc_calendars_lunar::tabular::{self, LeapYearRule};
 use hc_calendars_lunar::{ChineseCalendar, DangiCalendar, LunisolarDate, VietnameseCalendar};
 use hc_calendars_regional::burmese;
 use hc_calendars_solar::{
-    bahai_kept, coptic, ethiopic, gregorian, julian, nanakshahi, persian, zoroastrian,
+    bahai_kept, bangladeshi, coptic, ethiopic, gregorian, julian, nanakshahi, persian, zoroastrian,
 };
 use hc_core::math::normalize_degrees;
 use hc_seasons::solar_terms::term_day;
@@ -341,6 +341,16 @@ hc_core::catalogue! {
             CalendarId("nanakshahi"),
             |year, month, day| nanakshahi::to_fixed(year, month.ordinal, day).ok(),
             |rd| nanakshahi::from_fixed(rd).ok().map(|(year, _, _)| year),
+        );
+
+        /// The Bangladeshi national calendar as revised in 2019, in which
+        /// Bangladesh dates Pohela Boishakh, 1 Boishakh: a fixed naming of
+        /// the Gregorian day, so every date is a fixed Gregorian one
+        /// (`hc_calendars_solar::bangladeshi`).
+        pub const BANGLADESHI = Self::new(
+            CalendarId("bangladeshi"),
+            |year, month, day| bangladeshi::to_fixed(year, month.ordinal, day).ok(),
+            |rd| bangladeshi::from_fixed(rd).ok().map(|(year, _, _)| year),
         );
 
         /// The Bikram Sambat, in which Nepal dates its national days: the

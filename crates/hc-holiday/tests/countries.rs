@@ -1440,6 +1440,181 @@ fn sri_lanka_reports_the_years_its_gazettes_do_not_cover_as_gaps() {
     assert_eq!(beyond.name_on(ymd(2028, 2, 4)), Some("Independence Day"));
 }
 
+#[test]
+fn bangladesh_keeps_the_days_its_notifications_date() {
+    // The Ministry of Public Administration's notifications for 2025 and
+    // 2026, general and executive-order holidays alike, each with the
+    // weekday the notification prints.
+    expect(
+        "BD",
+        None,
+        &[
+            (
+                2025,
+                2,
+                21,
+                "Shaheed Day and International Mother Language Day",
+            ), // Friday
+            (2025, 3, 26, "Independence and National Day"), // Wednesday
+            (2025, 4, 14, "Pohela Boishakh"),               // 1 Boishakh 1432, Monday
+            (2025, 5, 1, "May Day"),                        // Thursday
+            (2025, 5, 11, "Buddha Purnima"),                // Sunday
+            (2025, 8, 5, "July Mass Uprising Day"),         // Tuesday
+            (2025, 8, 16, "Janmashtami"),                   // Saturday
+            (2025, 10, 1, "Durga Puja (Navami)"),           // Wednesday
+            (2025, 10, 2, "Durga Puja (Bijoya Dashami)"),   // Thursday
+            (2025, 12, 16, "Victory Day"),                  // Tuesday
+            (2025, 12, 25, "Christmas Day"),                // Thursday
+            (
+                2026,
+                2,
+                21,
+                "Shaheed Day and International Mother Language Day",
+            ), // Saturday
+            (2026, 3, 26, "Independence and National Day"), // Thursday
+            (2026, 4, 14, "Pohela Boishakh"),               // 1 Boishakh 1433, Tuesday
+            (2026, 5, 1, "Buddha Purnima"),                 // Friday
+            (2026, 8, 5, "July Mass Uprising Day"),         // Wednesday
+            (2026, 9, 4, "Janmashtami"),                    // Friday
+            (2026, 10, 20, "Durga Puja (Navami)"),          // Tuesday
+            (2026, 10, 21, "Durga Puja (Bijoya Dashami)"),  // Wednesday
+            (2026, 12, 16, "Victory Day"),                  // Wednesday
+        ],
+    );
+    // 7 March and 15 August are no longer holidays; 15 August 2025 is also
+    // where the Indian rule puts Janmashtami, a day before the notification.
+    expect_working("BD", None, &[(2025, 3, 7), (2025, 8, 15), (2025, 5, 12)]);
+    // Chaitra Sankranti, 30 Choitro, is the hill districts' general holiday
+    // from the 2026 notification, and nobody else's.
+    expect("BD", Some("BD-56"), &[(2026, 4, 13, "Chaitra Sankranti")]);
+    expect_working("BD", None, &[(2026, 4, 13)]);
+    expect_working("BD", Some("BD-56"), &[(2025, 4, 13)]);
+}
+
+#[test]
+fn bangladesh_keeps_its_hijri_days_on_the_tabular_calendar_as_predictions() {
+    // In 2025 the tabular calendar gives the notification's own dates for
+    // the Eids, the days around them, Jumatul Bida, Eid-e-Miladunnabi and
+    // Ashura; Shab-e-Barat and Shab-e-Qadr come a day early (the
+    // notification's 15 February and 28 March). In 2026 it puts Eid-ul-Fitr
+    // on Friday 20 March, a day before the notification's, and so Jumatul
+    // Bida on 13 March — which is what approximate means.
+    expect(
+        "BD",
+        None,
+        &[
+            (2025, 2, 14, "Shab-e-Barat"),
+            (2025, 3, 27, "Shab-e-Qadr"),
+            (2025, 3, 28, "Jumatul Bida"),
+            (2025, 3, 29, "Eid-ul-Fitr"),
+            (2025, 3, 30, "Eid-ul-Fitr"),
+            (2025, 3, 31, "Eid-ul-Fitr"),
+            (2025, 4, 1, "Eid-ul-Fitr"),
+            (2025, 4, 2, "Eid-ul-Fitr"),
+            (2025, 6, 5, "Eid-ul-Azha"),
+            (2025, 6, 7, "Eid-ul-Azha"),
+            (2025, 6, 10, "Eid-ul-Azha"),
+            (2025, 7, 6, "Ashura"),
+            (2025, 9, 5, "Eid-e-Miladunnabi"),
+            (2026, 3, 13, "Jumatul Bida"),
+            (2026, 3, 20, "Eid-ul-Fitr"),
+            (2026, 5, 27, "Eid-ul-Azha"),
+            (2026, 8, 26, "Eid-e-Miladunnabi"),
+        ],
+    );
+    expect_working("BD", None, &[(2025, 4, 3), (2025, 6, 11)]);
+    let calendar = HolidayCalendar::for_year(table("BD"), None, 2025);
+    for holiday in calendar.on(ymd(2025, 3, 31)) {
+        assert_eq!(
+            holiday.confidence,
+            Confidence::Approximate,
+            "{}",
+            holiday.name
+        );
+    }
+    // Pohela Boishakh is a fixed Bengali date, and exact.
+    assert!(
+        calendar
+            .on(ymd(2025, 4, 14))
+            .iter()
+            .all(|holiday| holiday.confidence == Confidence::Exact)
+    );
+}
+
+#[test]
+fn bangladesh_keeps_a_friday_saturday_weekend_and_moves_nothing_off_it() {
+    let calendar = HolidayCalendar::for_year(table("BD"), None, 2025);
+    // Friday 21 February 2025 was Shaheed Day, and the notification counts
+    // it among the five general holidays on a weekly holiday.
+    assert!(calendar.is_weekend(ymd(2025, 2, 21)));
+    assert!(calendar.is_weekend(ymd(2025, 2, 22)));
+    assert!(calendar.is_business_day(ymd(2025, 2, 23)));
+    assert!(calendar.on(ymd(2025, 2, 23)).is_empty());
+}
+
+#[test]
+fn bangladesh_reports_the_years_its_notifications_do_not_cover_as_gaps() {
+    assert!(
+        HolidayCalendar::for_year(table("BD"), None, 2026).is_complete(),
+        "{:?}",
+        HolidayCalendar::for_year(table("BD"), None, 2026).gaps()
+    );
+    let beyond = HolidayCalendar::for_year(table("BD"), None, 2027);
+    assert!(!beyond.is_complete());
+    assert!(beyond.gaps().iter().any(|gap| gap.name == "Janmashtami"));
+    assert_eq!(beyond.name_on(ymd(2027, 12, 16)), Some("Victory Day"));
+}
+
+#[test]
+fn mongolia_keeps_the_gregorian_days_of_its_holidays_law() {
+    expect(
+        "MN",
+        None,
+        &[
+            (2025, 1, 1, "New Year's Day"),
+            (2025, 3, 8, "International Women's Day"),
+            (2025, 6, 1, "Children's Day"),
+            (2025, 7, 10, "Naadam"),
+            (2025, 7, 15, "Naadam"),
+            (2025, 11, 26, "Republic Day"),
+            (2025, 12, 29, "National Freedom and Independence Day"),
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 8, "International Women's Day"),
+            (2026, 6, 1, "Children's Day"),
+            (2026, 7, 12, "Naadam"),
+            (2026, 11, 26, "Republic Day"),
+            (2026, 12, 29, "National Freedom and Independence Day"),
+        ],
+    );
+    // Republic Day and 29 December before the laws that added them;
+    // Constitution Day, 13 January, is a day of observance, not a day off.
+    expect_working("MN", None, &[(2015, 11, 26), (2010, 12, 29), (2026, 1, 13)]);
+}
+
+#[test]
+fn mongolia_reports_its_lunar_holidays_as_gaps_and_moves_nothing() {
+    let calendar = HolidayCalendar::for_year(table("MN"), None, 2026);
+    assert!(!calendar.is_complete());
+    let missing: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+    for name in ["Tsagaan Sar", "Buddha's Birthday", "Chinggis Khaan Day"] {
+        assert!(
+            missing.contains(&name),
+            "{name} should be a gap: {missing:?}"
+        );
+    }
+    // Before the laws that added them, the two are not even gaps.
+    let early = HolidayCalendar::for_year(table("MN"), None, 2011);
+    let missing: Vec<&str> = early.gaps().iter().map(|gap| gap.name).collect();
+    assert!(missing.contains(&"Tsagaan Sar"));
+    assert!(!missing.contains(&"Buddha's Birthday"));
+    assert!(!missing.contains(&"Chinggis Khaan Day"));
+    // Children's Day 2024 fell on a Saturday and stays there.
+    let calendar = HolidayCalendar::for_year(table("MN"), None, 2024);
+    assert!(calendar.is_weekend(ymd(2024, 6, 1)));
+    assert!(calendar.is_business_day(ymd(2024, 6, 3)));
+    assert!(calendar.on(ymd(2024, 6, 3)).is_empty());
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // The Middle East and Africa
 // ─────────────────────────────────────────────────────────────────────────

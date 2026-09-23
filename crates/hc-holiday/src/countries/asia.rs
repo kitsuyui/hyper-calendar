@@ -2372,6 +2372,245 @@ pub static PAKISTAN: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// Bangladesh
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Friday and Saturday. The notifications do not name the weekly holidays,
+/// but they count them: "৫টি সাপ্তাহিক ছুটির দিনসহ", five of the 2025
+/// general holidays on a weekly holiday, and seven of 2026's — exactly the
+/// ones on a Friday or a Saturday.
+static BD_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Friday, Weekday::Saturday],
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// The first year of the notifications carried for the festivals.
+const BD_FIRST: i64 = 2025;
+/// The last.
+const BD_LAST: i64 = 2026;
+
+/// The Hindu and Buddhist days as the notifications date them. The
+/// crate's Indian rules put Buddha Purnima on 12 May 2025, Janmashtami on
+/// 15 August 2025 and Vijaya Dashami on 20 October 2026, a day from each
+/// notification's, and no Bengali almanac was read to fit another.
+static BD_NOTIFIED: &[(i64, u8, u8, &str)] = &[
+    (2025, 5, 11, "Buddha Purnima"),
+    (2025, 8, 16, "Janmashtami"),
+    (2025, 10, 1, "Durga Puja (Navami)"),
+    (2025, 10, 2, "Durga Puja (Bijoya Dashami)"),
+    (2026, 5, 1, "Buddha Purnima"),
+    (2026, 9, 4, "Janmashtami"),
+    (2026, 10, 20, "Durga Puja (Navami)"),
+    (2026, 10, 21, "Durga Puja (Bijoya Dashami)"),
+];
+
+/// A lookup into [`BD_NOTIFIED`] for each day it names.
+macro_rules! bd_notified {
+    ($($function:ident => $name:literal),* $(,)?) => {
+        $(
+            fn $function(year: i64) -> Days {
+                let mut out = Days::new();
+                for &(y, month, day, name) in BD_NOTIFIED {
+                    if y == year && name == $name {
+                        if let Ok(fixed) = gregorian::to_fixed(y, month, day) {
+                            out.push(fixed);
+                        }
+                    }
+                }
+                out
+            }
+        )*
+    };
+}
+
+bd_notified! {
+    bd_buddha_purnima => "Buddha Purnima",
+    bd_janmashtami => "Janmashtami",
+    bd_navami => "Durga Puja (Navami)",
+    bd_bijoya_dashami => "Durga Puja (Bijoya Dashami)",
+}
+
+/// A day the notifications date, for the years read.
+const fn bd_notified(
+    name: &'static str,
+    local: &'static str,
+    function: fn(i64) -> Days,
+) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::Tabulated {
+            function,
+            first_year: BD_FIRST,
+            last_year: BD_LAST,
+        },
+    )
+}
+
+/// A day of the Hijri calendar, which the notifications star as
+/// "চাঁদ দেখার উপর নির্ভরশীল", depending on the sighting of the moon.
+const fn bd_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, month, day),
+    )
+    .approximate()
+}
+
+static BD_EID_AL_FITR: Rule = EID_AL_FITR;
+static BD_EID_AL_ADHA: Rule = EID_AL_ADHA;
+
+/// A day of an Eid's executive-order holiday, counted from the Eid:
+/// "ঈদের পূর্বের ০২ দিন ও পরের ০২ দিন" for Eid-ul-Fitr and "পূর্বের ০২ দিন
+/// ও পরের ০৩ দিন" for Eid-ul-Azha in both notifications.
+const fn bd_around(
+    name: &'static str,
+    local: &'static str,
+    base: &'static Rule,
+    days: i16,
+) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, Rule::Offset { base, days }).approximate()
+}
+
+/// Jumatul Bida, the last Friday of Ramadan: the last Friday before
+/// 1 Shawwal on the tabular calendar.
+fn bd_jumatul_bida(year: i64) -> Days {
+    let mut out = Days::new();
+    for probe in [year, year + 1] {
+        for eid in EID_AL_FITR.days_in_year(probe).as_slice() {
+            out.push(Weekday::Friday.on_or_before(Rd(eid.0 - 1)));
+        }
+    }
+    out
+}
+
+static BD_RULES: &[HolidayRule] = &[
+    // The general holidays (সাধারণ ছুটি) on a fixed day.
+    HolidayRule::fixed_public(
+        "Shaheed Day and International Mother Language Day",
+        "শহিদ দিবস ও আন্তর্জাতিক মাতৃভাষা দিবস",
+        Rule::gregorian(2, 21),
+    ),
+    HolidayRule::fixed_public(
+        "Independence and National Day",
+        "স্বাধীনতা ও জাতীয় দিবস",
+        Rule::gregorian(3, 26),
+    ),
+    // For the three hill districts alone — Bandarban, Khagrachhari and
+    // Rangamati — and first among the general holidays in the 2026
+    // notification; the 2025 one lists it only among the Buddhist optional
+    // days. 30 Choitro.
+    HolidayRule::fixed_public(
+        "Chaitra Sankranti",
+        "চৈত্র সংক্রান্তি",
+        Rule::in_calendar(CalendarSystem::BANGLADESHI, 12, 30),
+    )
+    .in_regions(&["BD-01", "BD-29", "BD-56"])
+    .years(Some(2026), None),
+    HolidayRule::fixed_public("May Day", "মে দিবস", Rule::gregorian(5, 1)),
+    // Declared by the Cabinet Division's notification of 2 July 2025, to be
+    // kept every year; the 2025 holiday list, issued before it, lacks it.
+    HolidayRule::fixed_public(
+        "July Mass Uprising Day",
+        "জুলাই গণঅভ্যুত্থান দিবস",
+        Rule::gregorian(8, 5),
+    )
+    .years(Some(2025), None),
+    HolidayRule::fixed_public("Victory Day", "বিজয় দিবস", Rule::gregorian(12, 16)),
+    HolidayRule::fixed_public(
+        "Christmas Day",
+        "যিশু খ্রিষ্টের জন্মদিন (বড়দিন)",
+        Rule::gregorian(12, 25),
+    ),
+    // The general holidays on the Hijri calendar.
+    HolidayRule::fixed_public("Jumatul Bida", "জুমাতুল বিদা", Rule::Computed(bd_jumatul_bida))
+        .approximate(),
+    bd_hijri("Eid-ul-Fitr", "ঈদ-উল-ফিতর", 10, 1),
+    bd_hijri("Eid-ul-Azha", "ঈদ-উল-আজহা", 12, 10),
+    bd_hijri("Eid-e-Miladunnabi", "ঈদ-ই-মিলাদুন্নবী (সা.)", 3, 12),
+    // The general holidays the notifications date each year.
+    bd_notified(
+        "Buddha Purnima",
+        "বুদ্ধ পূর্ণিমা (বৈশাখী পূর্ণিমা)",
+        bd_buddha_purnima,
+    )
+    .approximate(),
+    bd_notified("Janmashtami", "জন্মাষ্টমী", bd_janmashtami),
+    bd_notified(
+        "Durga Puja (Bijoya Dashami)",
+        "দুর্গাপূজা (বিজয়া দশমী)",
+        bd_bijoya_dashami,
+    ),
+    // The executive-order holidays (নির্বাহী আদেশে সরকারি ছুটি).
+    HolidayRule::fixed_public(
+        "Pohela Boishakh",
+        "নববর্ষ",
+        Rule::in_calendar(CalendarSystem::BANGLADESHI, 1, 1),
+    ),
+    // The night of mid-Sha'ban and the night of power, each a holiday on
+    // the day that follows the night: 15 Sha'ban and 27 Ramadan.
+    bd_hijri("Shab-e-Barat", "শব-ই-বরাত", 8, 15),
+    bd_hijri("Shab-e-Qadr", "শব-ই-কদর", 9, 27),
+    bd_around("Eid-ul-Fitr", "ঈদ-উল-ফিতর", &BD_EID_AL_FITR, -2),
+    bd_around("Eid-ul-Fitr", "ঈদ-উল-ফিতর", &BD_EID_AL_FITR, -1),
+    bd_around("Eid-ul-Fitr", "ঈদ-উল-ফিতর", &BD_EID_AL_FITR, 1),
+    bd_around("Eid-ul-Fitr", "ঈদ-উল-ফিতর", &BD_EID_AL_FITR, 2),
+    bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, -2),
+    bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, -1),
+    bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, 1),
+    bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, 2),
+    bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, 3),
+    bd_hijri("Ashura", "আশুরা", 1, 10),
+    bd_notified("Durga Puja (Navami)", "দুর্গাপূজা (নবমী)", bd_navami),
+];
+
+/// Bangladesh — the general holidays and the executive-order holidays the
+/// Ministry of Public Administration's annual notification gives every
+/// government, semi-government, autonomous and statutory office.
+///
+/// The civil days are on their Gregorian dates, as the notifications
+/// print them first; under the revised Bangladeshi calendar they are also
+/// fixed Bengali dates, 8 Falgun, 12 Choitro, 21 Srabon and 1 Poush.
+/// Pohela Boishakh, 1 Boishakh, and Chaitra Sankranti, 30 Choitro, are
+/// dated in that calendar, and are exact. The Hijri days — the two Eids
+/// with the days the executive order adds around them, Eid-e-Miladunnabi,
+/// Ashura, Shab-e-Barat, Shab-e-Qadr, and Jumatul Bida as the last Friday
+/// before 1 Shawwal — are on the tabular calendar and approximate, as the
+/// notifications themselves say they depend on the moon. The Hindu and
+/// Buddhist days — Janmashtami, the Navami and Bijoya Dashami of the Durga
+/// Puja, and Buddha Purnima, which the notifications also star — are the
+/// notifications' dates for 2025 and 2026, and a year outside them
+/// reports those days as a gap. The executive order's days around the two
+/// Eids, two before and two after Eid-ul-Fitr and two before and three
+/// after Eid-ul-Azha, are the pattern both notifications give; another
+/// year's order may give others.
+///
+/// The optional holidays (ঐচ্ছিক ছুটি) an employee may choose three of are
+/// not carried. Nothing moves off the weekend: the notifications count
+/// the holidays that fall on one and give nothing in their place.
+pub static BANGLADESH: RuleSet = RuleSet {
+    code: "BD",
+    english_name: "Bangladesh",
+    rules: BD_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: BD_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Government of the People's Republic of Bangladesh, Ministry of Public \
+              Administration, the notifications (প্রজ্ঞাপন) of the holiday lists for 2025 \
+              (21 October 2024) and 2026 (9 November 2025), sections (ক) general holidays \
+              and (খ) executive-order holidays, from mopa.gov.bd, retrieved 2026-09-23, \
+              for the days, their dates, their Bengali names and the weekly-holiday \
+              counts; the Cabinet Division's notification of 2 July 2025 declaring \
+              5 August July Mass Uprising Day with a general holiday, as Prothom Alo \
+              reported it the same day, retrieved 2026-09-23; ISO 3166-2:BD for the \
+              three hill districts",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Myanmar
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -3916,4 +4155,107 @@ pub static TURKMENISTAN: RuleSet = RuleSet {
               (22 May 2026) on turkmenistan.gov.tm, and oilgas.gov.tm's 2025 list; \
               Wikipedia, \"State Flag and Constitution Day (Turkmenistan)\", and Wikipedia \
               (ru), \"День независимости Туркменистана\", for 1995, 2017 and 2018",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Mongolia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A day the laws date in the lunar calendar (билгийн тооллын), which the
+/// crate does not have: the Mongolian reckoning is not the Tibetan Phugpa
+/// one that `hc_calendars_lunar::tibetan` carries, and no year's official
+/// dates were read to tabulate. The table covers no year, so every year
+/// reports the day as a gap rather than as a day that does not occur.
+const fn mn_lunar(name: &'static str, local: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::Tabulated {
+            function: mn_lunar_unread,
+            first_year: 1,
+            last_year: 0,
+        },
+    )
+}
+
+/// No date has been read for any year.
+const fn mn_lunar_unread(_year: i64) -> Days {
+    Days::new()
+}
+
+static MN_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Шинэ жил", Rule::gregorian(1, 1)),
+    // The first, second and third days of the first spring month.
+    mn_lunar("Tsagaan Sar", "Цагаан сар"),
+    mn_lunar("Tsagaan Sar", "Цагаан сар"),
+    mn_lunar("Tsagaan Sar", "Цагаан сар"),
+    HolidayRule::fixed_public(
+        "International Women's Day",
+        "Олон улсын эмэгтэйчүүдийн өдөр",
+        Rule::gregorian(3, 8),
+    ),
+    // The fifteenth day of the first summer month; added by the law of
+    // 20 December 2019, after that year's.
+    mn_lunar("Buddha's Birthday", "Бурхан багшийн Их дүйчин өдөр").years(Some(2020), None),
+    HolidayRule::fixed_public("Children's Day", "Хүүхдийн баяр", Rule::gregorian(6, 1)),
+    HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 10)),
+    HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 11)),
+    HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 12)),
+    HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 13)),
+    HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 14)),
+    HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 15)),
+    // The first day of the first winter month; added by the law of
+    // 8 November 2012.
+    mn_lunar("Chinggis Khaan Day", "Их Эзэн Чингис хааны өдөр").years(Some(2012), None),
+    // Added to the holidays by the law of 18 November 2016.
+    HolidayRule::fixed_public(
+        "Republic Day",
+        "Бүгд Найрамдах Улс тунхагласан өдөр",
+        Rule::gregorian(11, 26),
+    )
+    .years(Some(2016), None),
+    // Added by the law of 23 December 2011.
+    HolidayRule::fixed_public(
+        "National Freedom and Independence Day",
+        "Үндэсний эрх чөлөө, тусгаар тогтнолоо сэргээсний баярын өдөр",
+        Rule::gregorian(12, 29),
+    )
+    .years(Some(2011), None),
+];
+
+/// Mongolia — the public holidays, the days "нийтээр амарч", publicly
+/// rested, of article 4.1 of the Law on Public Holidays and Days of
+/// Observance, which article 97.1 of the Labour Law repeats as the days
+/// off.
+///
+/// The Gregorian days are carried: New Year's Day, Women's Day,
+/// Children's Day, Naadam's six days from 10 to 15 July, Republic Day and
+/// the National Freedom and Independence Day, the last two from the years
+/// of the laws that the consolidated text says added them. Item 4.1.2,
+/// repealed in 2012, is not printed, so whether Republic Day was a holiday
+/// before is not known here and is not carried; and the amendments of 2014
+/// and 2022 to Naadam and of 2013 to Tsagaan Sar are noted without their
+/// content, so no earlier form of either is stated.
+///
+/// The three days of Tsagaan Sar, Buddha's Birthday and Chinggis Khaan
+/// Day are dated in the lunar calendar, which the crate does not have, and
+/// are carried as gaps in every year: a calendar for Mongolia is never
+/// complete, and says so. The weekend is Saturday and Sunday, under
+/// article 96.1 of the Labour Law, and neither law moves a holiday off it;
+/// the Government's occasional transfers of working days are not carried.
+pub static MONGOLIA: RuleSet = RuleSet {
+    code: "MN",
+    english_name: "Mongolia",
+    rules: MN_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Law of Mongolia on Public Holidays and Days of Observance (Нийтээр тэмдэглэх \
+              баярын болон тэмдэглэлт өдрүүдийн тухай хууль, 18 December 2003, as amended), \
+              articles 3.1.1 and 4.1 with the notes of the amending laws, and the Labour \
+              Law (Хөдөлмөрийн тухай хууль, revised 2 July 2021, as amended), articles \
+              96.1 and 97.1, both from legalinfo.mn, retrieved 2026-09-23, with the \
+              Mongolian names",
 };
