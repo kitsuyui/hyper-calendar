@@ -27,6 +27,7 @@
 //! [`LabelConvention`] deliberately does not implement `Default`.
 
 use hc_calendar::{CalendarError, CalendarId, Rd, Weekday};
+use hc_calendars_indic::{BikramSambatCalendar, HinduSolarDate};
 use hc_calendars_solar::{buddhist, ethiopic, gregorian, persian};
 
 use hc_calendar::CalendarResult;
@@ -39,9 +40,8 @@ use crate::error::{FiscalError, FiscalResult};
 /// reason as `hc_holiday::rule::CalendarSystem`: a country table has to be
 /// a `static` value, and a trait object cannot be one without an allocator.
 /// And a struct rather than an `enum` (ADR 0007): a fiscal year dated in a
-/// calendar this crate has not met — Nepal's Bikram Sambat is the standing
-/// example, a [documented gap](crate::countries::GAPS) — is an entry
-/// somebody writes, not a variant this crate has to be taught.
+/// calendar this crate has not met is an entry somebody writes, not a
+/// variant this crate has to be taught — as Nepal's Bikram Sambat was.
 ///
 /// Two systems are equal when they name the same calendar; the conversions
 /// are not compared.
@@ -144,6 +144,25 @@ hc_core::catalogue! {
             Some(12),
             buddhist::to_fixed,
             buddhist::from_fixed,
+        );
+        /// The Bikram Sambat, Nepal's calendar: twelve solar months from
+        /// Baisakh, 29 to 32 days long.
+        ///
+        /// Approximate because a month's length is what the Government of
+        /// Nepal publishes: `hc-calendars-indic` has the published months of
+        /// 2080–2083 BS and computes the others by a reckoning that missed
+        /// one of those 48 months by a day.
+        pub const BIKRAM_SAMBAT = Self::new(
+            CalendarId("bikram-sambat"),
+            "Bikram Sambat",
+            true,
+            Some(12),
+            |year, month, day| BikramSambatCalendar.to_fixed(HinduSolarDate { year, month, day }),
+            |rd| {
+                BikramSambatCalendar
+                    .from_fixed(rd)
+                    .map(|date| (date.year, date.month, date.day))
+            },
         );
     }
 }

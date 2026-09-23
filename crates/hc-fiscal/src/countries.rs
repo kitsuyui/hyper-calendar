@@ -112,40 +112,6 @@ impl FiscalProfile {
     }
 }
 
-/// A fiscal year this crate knows about and deliberately does not compute.
-///
-/// `docs/policy.md` §4: the library refuses to guess. A gap recorded here is
-/// a claim that the answer is known and the machinery to express it is not
-/// present — which is a different statement from silence, and a different
-/// statement again from an approximation.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct DocumentedGap {
-    /// The ISO 3166-1 alpha-2 code.
-    pub code: &'static str,
-    /// The English name of the country.
-    pub english_name: &'static str,
-    /// What the fiscal year actually is, in words.
-    pub description: &'static str,
-    /// Why this crate cannot express it.
-    pub reason: &'static str,
-    /// Where the description came from.
-    pub source: &'static str,
-}
-
-/// Fiscal years that are known and not implemented.
-pub static GAPS: &[DocumentedGap] = &[DocumentedGap {
-    code: "NP",
-    english_name: "Nepal",
-    description: "The Nepali fiscal year runs from 1 Shrawan to the end of Ashadh in the Bikram \
-                  Sambat calendar, which places its start in mid-July of the Gregorian year.",
-    reason: "This workspace has no Bikram Sambat calendar. Bikram Sambat month lengths are \
-             published annually by the Nepal Panchanga Nirnayak Samiti rather than derived from \
-             a rule, so the start cannot be computed and a fixed Gregorian date would be an \
-             approximation dressed as an answer. `hc-holiday` reaches the same conclusion about \
-             Nepal's holidays.",
-    source: "Ministry of Finance, Government of Nepal, budget speeches (fiscal year 2081/82)",
-}];
-
 // ── Asia and the Pacific ────────────────────────────────────────────────
 
 /// Japan 🇯🇵 — 会計年度 and 学年度, both 1 April.
@@ -1007,6 +973,46 @@ pub static ETHIOPIA: FiscalProfile = FiscalProfile {
               Budget Proclamation No. 1297/2015",
 };
 
+/// Nepal 🇳🇵 — 1 Shrawan to the last day of Asar, in the Bikram Sambat,
+/// labelled by the year it **starts** in.
+///
+/// The Financial Procedures and Fiscal Responsibility Act, 2076, section
+/// 2(e), in the Nepal Law Commission's English translation: the fiscal year
+/// "starts from the first day of Shrawan of the current year and ends on
+/// the last day of Ashad of the following year of Vikram Samvat". Shrawan
+/// is the fourth month, so the year straddles two Bikram Sambat years and is
+/// written with both — the budget of 2081/82 is for the year from Shrawan
+/// 2081 — and it is labelled here by the first, as the United Kingdom's
+/// 2024/25 is.
+///
+/// Its Gregorian start moves with the length of the Bikram Sambat months:
+/// 16 July in 2024, 17 July in 2025 and 2026, from the months the
+/// Government of Nepal gazettes. Outside the gazetted years 2080–2083 the
+/// start is computed, and [`StartCalendar::BIKRAM_SAMBAT`] says by how
+/// much that can be trusted.
+pub static NEPAL: FiscalProfile = FiscalProfile {
+    code: "NP",
+    english_name: "Nepal",
+    systems: &[YearSystem {
+        name: "Nepali fiscal year",
+        local_name: "आर्थिक वर्ष",
+        kind: SystemKind::Government,
+        authority: Authority::Statute,
+        start: YearStart::new(StartCalendar::BIKRAM_SAMBAT, 4, 1),
+        label: LabelConvention::LabelledByStartYear,
+        valid_from: Some(2076),
+        valid_until: None,
+        note: "Labels are Bikram Sambat years, the first of the two the year is written with. \
+               The months are the gazette's for 2080–2083 BS and computed otherwise. \
+               valid_from is the year of the cited Act, not the year Nepal began using this \
+               fiscal year.",
+    }],
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "The Financial Procedures and Fiscal Responsibility Act, 2076, section 2(e), Nepal \
+              Law Commission English translation; the Ministry of Home Affairs' public holiday \
+              notices for 2080–2083 BS, for the month lengths",
+};
+
 /// Every country table in this crate, in ISO 3166-1 alpha-2 order.
 pub static ALL: &[&FiscalProfile] = &[
     &AUSTRALIA,
@@ -1022,6 +1028,7 @@ pub static ALL: &[&FiscalProfile] = &[
     &INDIA,
     &IRAN,
     &JAPAN,
+    &NEPAL,
     &NEW_ZEALAND,
     &PAKISTAN,
     &RUSSIA,
@@ -1036,16 +1043,6 @@ pub static ALL: &[&FiscalProfile] = &[
 #[must_use]
 pub fn by_code(code: &str) -> Option<&'static FiscalProfile> {
     ALL.iter().copied().find(|profile| profile.code == code)
-}
-
-/// The documented gap for an ISO 3166-1 alpha-2 code, if there is one.
-///
-/// Checked separately from [`by_code`] on purpose: "this crate has no data"
-/// and "this crate knows the answer and declines to compute it" are
-/// different replies and should not both arrive as `None`.
-#[must_use]
-pub fn gap_for(code: &str) -> Option<&'static DocumentedGap> {
-    GAPS.iter().find(|gap| gap.code == code)
 }
 
 #[cfg(test)]
@@ -1487,7 +1484,7 @@ mod tests {
                 assert_ne!(profile.code, other.code, "duplicate {}", profile.code);
             }
         }
-        assert_eq!(ALL.len(), 21);
+        assert_eq!(ALL.len(), 22);
     }
 
     #[test]
@@ -1517,11 +1514,7 @@ mod tests {
         assert_eq!(by_code("JP").unwrap().english_name, "Japan");
         assert_eq!(by_code("ET").unwrap().code, "ET");
         assert!(by_code("ZZ").is_none());
-        // Nepal is not a profile; it is a documented gap, and the two
-        // lookups are deliberately separate.
-        assert!(by_code("NP").is_none());
-        assert_eq!(gap_for("NP").unwrap().english_name, "Nepal");
-        assert!(gap_for("JP").is_none());
+        assert_eq!(by_code("NP").unwrap().english_name, "Nepal");
     }
 
     #[test]
@@ -1586,15 +1579,22 @@ mod tests {
     }
 
     #[test]
-    fn a_documented_gap_says_what_it_knows_and_why_it_declines() {
-        let nepal = gap_for("NP").unwrap();
-        assert!(nepal.description.contains("Shrawan"));
-        assert!(nepal.reason.contains("Bikram Sambat"));
-        assert!(!nepal.source.is_empty());
-        for gap in GAPS {
-            assert_eq!(gap.code.len(), 2);
-            assert!(by_code(gap.code).is_none(), "{} is both", gap.code);
+    fn nepal_starts_its_year_on_1_shrawan() {
+        let system = NEPAL.government(2082).unwrap();
+        // Shrawan 1 of 2081, 2082 and 2083 BS, from the gazetted months.
+        for (label, year, month, day) in [
+            (2081, 2024, 7, 16),
+            (2082, 2025, 7, 17),
+            (2083, 2026, 7, 17),
+        ] {
+            let span = system.span(label).unwrap();
+            assert_eq!(span.first, greg(year, month, day), "{label}");
         }
+        // 2082/83 ends on the last day of Asar 2083, the day before
+        // 2083/84 begins.
+        assert_eq!(system.span(2082).unwrap().last, greg(2026, 7, 16));
+        assert_eq!(system.label_at(greg(2026, 1, 1)).unwrap(), 2082);
+        assert!(system.start.calendar.is_approximate());
     }
 
     #[test]

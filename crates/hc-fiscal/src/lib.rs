@@ -56,9 +56,6 @@
 //!
 //! # What this crate does not do
 //!
-//! * It does not implement the Bikram Sambat calendar, so **Nepal's fiscal
-//!   year is a documented gap** rather than an approximation. See
-//!   [`countries::GAPS`].
 //! * It does not know your company's fiscal year. It knows the named
 //!   conventions; a filer's own 52/53-week year is a value the caller
 //!   constructs, on the same terms as the ones shipped here.

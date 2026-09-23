@@ -14,10 +14,11 @@ keywords.workspace = true
 
 [features]
 default = ["std"]
-std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-calendars-solar/std"]
-alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-calendars-solar/alloc"]
+std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-calendars-solar/std", "hc-calendars-indic/std"]
+alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-calendars-solar/alloc", "hc-calendars-indic/alloc"]
 
 [dependencies]
 hc-core = { workspace = true }
 hc-calendar = { workspace = true }
 hc-calendars-solar = { workspace = true }
+hc-calendars-indic = { workspace = true }

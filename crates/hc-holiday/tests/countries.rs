@@ -9,7 +9,7 @@ use hc_calendar::Rd;
 use hc_calendars_solar::gregorian;
 use hc_holiday::countries::{self, CountryRules};
 use hc_holiday::engine::{Holiday, HolidayCalendar};
-use hc_holiday::rule::Kind;
+use hc_holiday::rule::{Confidence, Kind};
 
 /// Panics rather than returning a `Result`, because every date in this file
 /// is a literal the author typed and a bad one is a bug in the test.
@@ -867,10 +867,47 @@ fn nepal_keeps_a_one_day_weekend_until_2026() {
     let new = HolidayCalendar::for_year(country, None, 2026);
     assert!(new.is_weekend(ymd(2026, 3, 7)));
     assert!(new.is_weekend(ymd(2026, 3, 8)));
+}
+
+#[test]
+fn nepal_keeps_the_days_its_notices_date() {
+    // The Ministry of Home Affairs' notices for 2082 and 2083 BS, sections
+    // 2.1, 6.1 and 7.1, each with the weekday the notice prints beside it.
+    // Maghe Sankranti 2082 is where the gazette's Magh 1 and the computed
+    // one part, and the gazette's is kept.
     expect(
         "NP",
         None,
-        &[(2024, 5, 1, "Labour Day"), (2025, 5, 1, "Labour Day")],
+        &[
+            (2025, 4, 14, "Nepali New Year"),          // Baisakh 1, Monday
+            (2025, 5, 1, "Labour Day"),                // Baisakh 18, Thursday
+            (2025, 5, 29, "Republic Day"),             // Jeth 15, Thursday
+            (2025, 9, 19, "Constitution Day"),         // Asoj 3, Friday
+            (2025, 12, 25, "Christmas Day"),           // Pus 10, Thursday
+            (2026, 1, 11, "Prithvi Jayanti"),          // Pus 27, Sunday
+            (2026, 1, 15, "Maghe Sankranti"),          // Magh 1, Thursday
+            (2026, 1, 30, "Martyrs' Day"),             // Magh 16, Friday
+            (2026, 2, 19, "National Democracy Day"),   // Phagun 7, Thursday
+            (2026, 3, 8, "International Women's Day"), // Phagun 24, Sunday
+            (2026, 4, 14, "Nepali New Year"),          // Baisakh 1, Tuesday
+            (2026, 5, 1, "Labour Day"),                // Baisakh 18, Friday
+            (2026, 5, 29, "Republic Day"),             // Jeth 15, Friday
+            (2026, 9, 19, "Constitution Day"),         // Asoj 3, Saturday
+            (2026, 12, 25, "Christmas Day"),           // Pus 10, Friday
+            (2027, 1, 11, "Prithvi Jayanti"),          // Pus 27, Monday
+            (2027, 1, 15, "Maghe Sankranti"),          // Magh 1, Friday
+            (2027, 1, 30, "Martyrs' Day"),             // Magh 16, Saturday
+            (2027, 2, 19, "National Democracy Day"),   // Phagun 7, Friday
+            (2027, 3, 8, "International Women's Day"), // Phagun 24, Monday
+        ],
+    );
+    // A date the gazette fixes is not a prediction.
+    let calendar = HolidayCalendar::for_year(table("NP"), None, 2026);
+    assert!(
+        calendar
+            .on(ymd(2026, 1, 15))
+            .iter()
+            .all(|holiday| holiday.confidence == Confidence::Exact)
     );
 }
 
