@@ -240,7 +240,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `TN` | Tunisia | 23 | none | stated | 2026-09-22 |
 | `TR` | Türkiye | 14 | none | stated | 2026-09-21 |
 | `TT` | Trinidad and Tobago | 17 | yes | stated | 2026-09-22 |
-| `TW` | Taiwan | 15 | yes | stated | 2026-09-21 |
+| `TW` | Taiwan | 19 | yes | stated | 2026-09-23 |
 | `TZ` | Tanzania | 17 | yes | stated | 2026-09-22 |
 | `UA` | Ukraine | 16 | yes | stated | 2026-09-22 |
 | `UG` | Uganda | 14 | none | stated | 2026-09-22 |

@@ -652,16 +652,137 @@ pub static CHINA: RuleSet = RuleSet {
 
 static TW_NEW_YEAR: Rule = Rule::in_calendar(CalendarSystem::CHINESE, 1, 1);
 
+static TW_QINGMING: Rule = Rule::SolarTerm {
+    term: QINGMING,
+    meridian: hc_seasons::Meridian::CHINA,
+};
+
+/// Children's Day: 4 April, unless 清明 falls on it too, when it is kept
+/// the day before — or the day after, when 4 April is a Thursday.
+fn tw_childrens_day(year: i64) -> Days {
+    let Ok(april_4) = gregorian::to_fixed(year, 4, 4) else {
+        return Days::new();
+    };
+    if !TW_QINGMING.days_in_year(year).as_slice().contains(&april_4) {
+        return Days::one(april_4);
+    }
+    if Weekday::from_rd(april_4) == Weekday::Thursday {
+        Days::one(Rd(april_4.0 + 1))
+    } else {
+        Days::one(Rd(april_4.0 - 1))
+    }
+}
+
+/// The first year the adjustments carried here cover.
+const TW_ADJUSTED_FIRST: i64 = 2017;
+/// The last year there were any: from 2026 the Executive Yuan's rules no
+/// longer let a working day be swapped for a Saturday.
+const TW_ADJUSTED_LAST: i64 = 2025;
+
+/// The working days each year's 政府行政機關辦公日曆表 gives off in
+/// exchange for a Saturday, 調整放假 — among them 小年夜 in 2023 to 2025,
+/// before it was a holiday.
+#[rustfmt::skip]
+static TW_ADJUSTED_OFF: &[(i64, u8, u8)] = &[
+    // 2017
+    (2017, 2, 27), (2017, 5, 29), (2017, 10, 9),
+    // 2018
+    (2018, 4, 6), (2018, 12, 31),
+    // 2019
+    (2019, 2, 8), (2019, 3, 1), (2019, 10, 11),
+    // 2020
+    (2020, 1, 23), (2020, 6, 26), (2020, 10, 2),
+    // 2021
+    (2021, 2, 10), (2021, 9, 20),
+    // 2022
+    (2022, 2, 4),
+    // 2023
+    (2023, 1, 20), (2023, 1, 27), (2023, 2, 27), (2023, 4, 3), (2023, 6, 23), (2023, 10, 9),
+    // 2024
+    (2024, 2, 8),
+    // 2025
+    (2025, 1, 27),
+];
+
+/// The Saturdays each year's calendar makes working days, 調整上班 or
+/// 補行上班.
+#[rustfmt::skip]
+static TW_MADE_UP: &[(i64, u8, u8)] = &[
+    // 2017
+    (2017, 2, 18), (2017, 6, 3), (2017, 9, 30),
+    // 2018
+    (2018, 3, 31), (2018, 12, 22),
+    // 2019
+    (2019, 1, 19), (2019, 2, 23), (2019, 10, 5),
+    // 2020
+    (2020, 2, 15), (2020, 6, 20), (2020, 9, 26),
+    // 2021
+    (2021, 2, 20), (2021, 9, 11),
+    // 2022
+    (2022, 1, 22),
+    // 2023
+    (2023, 1, 7), (2023, 2, 4), (2023, 2, 18), (2023, 3, 25), (2023, 6, 17), (2023, 9, 23),
+    // 2024
+    (2024, 2, 17),
+    // 2025
+    (2025, 2, 8),
+];
+
+fn tw_lookup(table: &[(i64, u8, u8)], year: i64) -> Days {
+    let mut out = Days::new();
+    for &(y, month, day) in table {
+        if y == year
+            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
+        {
+            out.push(fixed);
+        }
+    }
+    out
+}
+
+fn tw_adjusted_off(year: i64) -> Days {
+    tw_lookup(TW_ADJUSTED_OFF, year)
+}
+
+fn tw_made_up(year: i64) -> Days {
+    tw_lookup(TW_MADE_UP, year)
+}
+
+const TW_ADJUSTED: Rule = Rule::Tabulated {
+    function: tw_adjusted_off,
+    first_year: TW_ADJUSTED_FIRST,
+    last_year: TW_ADJUSTED_LAST,
+};
+
+const TW_MADE_UP_DAYS: Rule = Rule::Tabulated {
+    function: tw_made_up,
+    first_year: TW_ADJUSTED_FIRST,
+    last_year: TW_ADJUSTED_LAST,
+};
+
+/// The Lunar New Year days are made up after, whichever weekend day they
+/// fall on.
+const fn tw_new_year_day(name: &'static str, local_name: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::public(name, local_name, rule).substitute_towards(SubstituteDirection::Forward)
+}
+
 static TW_RULES: &[HolidayRule] = &[
     HolidayRule::public(
         "Founding Day of the Republic of China",
         "中華民國開國紀念日",
         Rule::gregorian(1, 1),
     ),
-    // The Lunar New Year cluster is never adjusted by the Saturday/Sunday
-    // rule: 人事行政總處 extends it instead, by a different number of days
-    // each year, and this crate does not guess an administrative decision.
-    HolidayRule::fixed_public(
+    // 小年夜, the day before the eve, since the 條例 of 28 May 2025.
+    tw_new_year_day(
+        "Day before Lunar New Year's Eve",
+        "小年夜",
+        Rule::Offset {
+            base: &TW_NEW_YEAR,
+            days: -2,
+        },
+    )
+    .years(Some(2026), None),
+    tw_new_year_day(
         "Lunar New Year's Eve",
         "農曆除夕",
         Rule::Offset {
@@ -669,33 +790,31 @@ static TW_RULES: &[HolidayRule] = &[
             days: -1,
         },
     ),
-    HolidayRule::fixed_public(
+    tw_new_year_day(
         "Spring Festival",
         "春節",
         Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
     ),
-    HolidayRule::fixed_public(
+    tw_new_year_day(
         "Spring Festival",
         "春節",
         Rule::in_calendar(CalendarSystem::CHINESE, 1, 2),
     ),
-    HolidayRule::fixed_public(
+    tw_new_year_day(
         "Spring Festival",
         "春節",
         Rule::in_calendar(CalendarSystem::CHINESE, 1, 3),
     ),
     HolidayRule::public("Peace Memorial Day", "和平紀念日", Rule::gregorian(2, 28))
         .years(Some(1997), None),
-    HolidayRule::public("Children's Day", "兒童節", Rule::gregorian(4, 4)).years(Some(2011), None),
-    HolidayRule::public(
-        "Tomb Sweeping Day",
-        "民族掃墓節",
-        Rule::SolarTerm {
-            term: QINGMING,
-            meridian: hc_seasons::Meridian::CHINA,
-        },
-    ),
-    HolidayRule::public("Labour Day", "勞動節", Rule::gregorian(5, 1)),
+    HolidayRule::public("Children's Day", "兒童節", Rule::Computed(tw_childrens_day))
+        .years(Some(2011), None),
+    // 民族掃墓節 under the 辦法, 清明節 under the 條例.
+    HolidayRule::public("Tomb Sweeping Day", "民族掃墓節", TW_QINGMING).years(None, Some(2025)),
+    HolidayRule::public("Qingming Festival", "清明節", TW_QINGMING).years(Some(2026), None),
+    // A day off for everyone only since the 條例; before, for workers under
+    // the 勞動基準法 and not for government offices.
+    HolidayRule::public("Labour Day", "勞動節", Rule::gregorian(5, 1)).years(Some(2026), None),
     HolidayRule::public(
         "Dragon Boat Festival",
         "端午節",
@@ -709,18 +828,28 @@ static TW_RULES: &[HolidayRule] = &[
     HolidayRule::public("Teachers' Day", "孔子誕辰紀念日", Rule::gregorian(9, 28))
         .years(Some(2025), None),
     HolidayRule::public("National Day", "國慶日", Rule::gregorian(10, 10)),
-    HolidayRule::public("Retrocession Day", "臺灣光復節", Rule::gregorian(10, 25))
-        .years(Some(2025), None),
+    HolidayRule::public(
+        "Taiwan Retrocession and Guningtou Victory Memorial Day",
+        "臺灣光復暨金門古寧頭大捷紀念日",
+        Rule::gregorian(10, 25),
+    )
+    .years(Some(2025), None),
     HolidayRule::public("Constitution Day", "行憲紀念日", Rule::gregorian(12, 25))
         .years(Some(2025), None),
+    // The swaps of each year's calendar, until they ended.
+    HolidayRule::fixed_public("Adjusted day off", "調整放假", TW_ADJUSTED)
+        .years(None, Some(TW_ADJUSTED_LAST as i32)),
+    HolidayRule::workday("Make-up working day", "補行上班", TW_MADE_UP_DAYS)
+        .years(None, Some(TW_ADJUSTED_LAST as i32)),
 ];
 
-/// Taiwan's adjustment rule: a Saturday holiday is kept the Friday before,
-/// a Sunday holiday the Monday after.
+/// Taiwan's adjustment rule: a Saturday holiday is made up the working day
+/// before, a Sunday holiday the working day after, and the Lunar New Year
+/// days always after.
 static TW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     trigger: &[Weekday::Saturday, Weekday::Sunday],
-    direction: SubstituteDirection::Nearest,
-    skip_occupied: false,
+    direction: SubstituteDirection::NearestWorkingDay,
+    skip_occupied: true,
     on_collision: false,
     valid_from: Some(2012),
     valid_until: None,
@@ -735,11 +864,13 @@ pub static TAIWAN: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "紀念日及節日實施條例 (2024) and the 紀念日及節日實施辦法 it \
-              replaced; 行政院人事行政總處 for the adjustment rule. The \
-              annual 調整上班日 that turns a Saturday into a working day is \
-              an administrative act and is not modelled",
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "紀念日及節日實施條例 (28 May 2025) and the 紀念日及節日實施辦法 \
+              it replaced, articles 5 and 5-1 for Children's Day and the \
+              making-up of a weekend holiday; 行政院人事行政總處, \
+              政府行政機關辦公日曆表 for 2017 to 2027 (data.gov.tw dataset \
+              14718), retrieved 2026-09-23, for the adjusted days and the \
+              Saturdays worked",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

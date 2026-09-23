@@ -81,11 +81,12 @@ none.
   below carry no substitution policy at all, because their countries have
   none in calendar-expressible form; `supported.md` shows which.
 - **It will not guess an annual administrative act.** China's 调休, Taiwan's
-  Lunar New Year makeup days, Vietnam's Tết span, Thailand's Songkran makeup
-  days and Indonesia's *cuti bersama* are decided year by year by a ministry.
-  Where those acts have been read they are data for their years: China's
-  arrangements from 2008 to 2026 and Russia's transfer decrees from 2013 to
-  2027, the days off and the weekend days worked alike ([ADR 0009](adr/0009-a-working-day-is-an-entry.md)). A year past them
+  swaps of a working day for a Saturday, Vietnam's Tết span, Thailand's
+  Songkran makeup days and Indonesia's *cuti bersama* are decided year by
+  year by a ministry. Where those acts have been read they are data for
+  their years: China's arrangements from 2008 to 2026, Russia's transfer
+  decrees from 2013 to 2027 and Taiwan's swaps from 2017 until they ended in
+  2025, the days off and the weekend days worked alike ([ADR 0009](adr/0009-a-working-day-is-an-entry.md)). A year past them
   is a gap. Elsewhere the statutory days are listed and the bridging days
   are not.
 - **It will not tabulate what it cannot compute.** Indonesia's Nyepi is
@@ -153,7 +154,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Hong Kong 🇭🇰 | The seventeen general holidays with the statutory subset as `Kind::Public` and the 2021 phasing-in as years; Sunday and coincidence made up on the next free day, the 1983–2011 eve rule computed; complete from 1997 |
 | Macau 🇲🇴 | Executive Order 60/2000 with the ten obligatory holidays of Law 7/2008 as `Kind::Public`; the public administration's compensatory rest days from 2019; the eves as observances |
 | China 🇨🇳 | Statutory holidays keyed to the `chinese` calendar, across the 1999, 2007 and 2024 revisions; the State Council's arrangement for each year from 2008 to 2026, days off and working weekend days, with the three notices that changed a year |
-| Taiwan 🇹🇼 | Including the 2025 restoration of three commemorative holidays |
+| Taiwan 🇹🇼 | The 紀念日及節日實施條例 of May 2025 and the 辦法 before it: the making-up of a weekend holiday on the nearer working day and of the Lunar New Year days after them, Children's Day when 清明 falls on it, and the five days the 條例 added; the swaps of each office calendar from 2017 until they ended in 2025. Checked against the government office calendar for 2017–2027 |
 | South Korea 🇰🇷 | Keyed to the `dangi` calendar, with every extension of the 대체공휴일 and the collision rule; 노동절 and the restored 제헌절 from 2026; the election days of 제2조제10호의2 from 2007 and the government-designated days from 2009, each for its year |
 | Canada 🇨🇦 | Federal plus the provincial days fixed by statute |
 | Australia 🇦🇺 | National plus all six states and both territories |
