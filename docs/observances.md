@@ -258,6 +258,11 @@ Ordered by how well the sources can be cited, not by importance.
 | Tunisia 🇹🇳 | Decree 2021-223's list for the public service, Aïd el-Fitr three days and Aïd el-Idha two, approximate; the decrees of 1961 to 2021 by their years |
 | Senegal 🇸🇳 | Law 74-52 with Easter and Pentecost on their Sundays, the Monday after a Sunday Korité or Tabaski only, and the Grand Magal from 2012 |
 | Côte d'Ivoire 🇨🇮 | Decree 96-205 as rewritten in 2011: twelve days and the day after a Sunday national holiday, Labour Day, Aïd el-Fitr, Christmas or Tabaski, from 2011; the two lendemain days approximate |
+| Benin 🇧🇯 | Law 90-019's twelve days with article 3's national days as observances; the traditional religions on 10 January from 1998, and on the second Friday of January with the Thursday before from 2025; the Islamic days approximate; nothing moves |
+| Burkina Faso 🇧🇫 | Law 079-2015/CNT from 2016 with its Sunday-to-Monday rule, Easter's Monday by it, and 15 May from 2024; the eleven days of the 2026 law with the rest as commemorations, a Sunday's Monday in 2026 a gap |
+| Cabo Verde 🇨🇻 | Law 16/IV/91's seven days and Good Friday, Children's Day as a school day; 13 January from 2020 with 1992–2019 a gap; nothing moves |
+| Guinea 🇬🇳 | Decree D/2022/0526 as the press reproduced it: twelve days, the lendemain days approximate, and the next working day for a weekend Independence Day, New Year's Day or Aïd el-Fitr from 2023 |
+| Mali 🇲🇱 | Law 05-040's eleven days with the Birth and Baptism of Maouloud approximate, 14 January from 2023; article 2's declared extra days and Achoura not carried; nothing moves |
 | Cameroon 🇨🇲 | Law 73/5 of 1973: four civil and six religious days, the Eids approximate, and the next day for a civil holiday on a Sunday or on another holiday, from 1974; the President's declared days not carried |
 | Republic of the Congo 🇨🇬 | Law 2-94 of 1994's nine days with the Easter and Pentecost Mondays; nothing moves; 28 November and the Minister's declared days not carried |
 | Democratic Republic of the Congo 🇨🇩 | Ordinances 14-010 and 23-042: 6 April from 2023, a Sunday holiday to the Saturday from 2014 to 2025, the Minister's moves for 2025 and 2026 as the communiqués give them and a gap from 2027 |

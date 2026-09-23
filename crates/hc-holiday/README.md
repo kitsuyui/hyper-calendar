@@ -93,20 +93,21 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**154 countries.** Albania, **156 countries.** Albania, Algeria, Andorra,
-Angola, Antigua and Barbuda, Argentina, Armenia, Australia (eight states and
-territories), Austria, Azerbaijan, the Bahamas, Bahrain, Bangladesh, Barbados,
-Belarus, Belgium, Belize, Bolivia, Bosnia and Herzegovina (the Federation,
-Botswana, Brazil, Brunei, Bulgaria, Cambodia, Cameroon, Canada (federal plus the
-provincial days fixed by statute), Chile, China, Colombia, Costa Rica, Croatia,
-Cuba, Cyprus, Czechia, Côte d'Ivoire, the Democratic Republic of the Congo,
-Denmark, Dominica, the Dominican Republic, the Republic of the Congo.
-Ecuador, Egypt, El Salvador, Estonia, Ethiopia, Finland, France (métropole plus
-Alsace-Moselle), Georgia, Germany (all 16 *Länder*), Ghana, Greece, Grenada,
-Guatemala, Guyana, Haiti, Honduras, Hong Kong, Hungary, Iceland, India,
-Indonesia, Iran, Iraq, Ireland, Israel, Italy, Jamaica, Japan, Jordan,
-Kazakhstan, Kenya, Kuwait, Kyrgyzstan, Laos, Latvia, Lebanon, Libya,
-Liechtenstein, Lithuania, Luxembourg, Macau, Malawi, Malaysia, Malta, the
+**154 countries.** Albania, **156 countries.** Albania, **157 countries.**
+Albania, Algeria, Andorra, Angola, Antigua and Barbuda, Argentina, Armenia,
+Australia (eight states and territories), Austria, Azerbaijan, the Bahamas,
+Bahrain, Bangladesh, Barbados, Belarus, Belgium, Belize, Benin, Bolivia, Bosnia
+and Herzegovina (the Federation, Botswana, Brazil, Brunei, Bulgaria, Burkina
+Faso, Cabo Verde, Cambodia, Cameroon, Canada (federal plus the provincial days
+fixed by statute), Chile, China, Colombia, Costa Rica, Croatia, Cuba, Cyprus,
+Czechia, Côte d'Ivoire, the Democratic Republic of the Congo, Denmark, Dominica,
+the Dominican Republic, Ecuador, Egypt, El Salvador, Estonia, Ethiopia, Finland,
+France (métropole plus Alsace-Moselle), Georgia, Germany (all 16 *Länder*),
+Ghana, Greece, Grenada, Guatemala, Guinea, Guyana, Haiti, Honduras, Hong Kong,
+Hungary, Iceland, India, Indonesia, Iran, Iraq, Ireland, Israel, Italy, Jamaica,
+Japan, Jordan, Kazakhstan, Kenya, Kuwait, Kyrgyzstan, Laos, Latvia, Lebanon,
+Libya, Liechtenstein, Lithuania, Luxembourg, Macau, Malawi, Malaysia, Mali,
+Malta, the Republic of the Congo. Ecuador, the.
 Marshall Islands, Mauritius, Mexico, Micronesia, Moldova, Monaco, Mongolia,
 Montenegro, Morocco, Myanmar, Namibia, Nauru, Nepal, the Netherlands, New
 Zealand, Nicaragua, Nigeria, North Macedonia, Norway, Oman, Pakistan, Palau,

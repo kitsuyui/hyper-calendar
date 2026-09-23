@@ -4878,6 +4878,212 @@ fn angola_moved_a_sunday_holiday_until_2018_and_bridges_tuesdays_and_thursdays_s
 }
 
 #[test]
+fn benin_moves_the_traditional_religions_to_a_thursday_and_friday_from_2025() {
+    expect(
+        "BJ",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 8, "Eve of Traditional Religions Day"),
+            (2026, 1, 9, "Traditional Religions Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 14, "Ascension"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 5, 27, "Tabaski"),
+            (2026, 8, 1, "National Day"),
+            (2026, 8, 15, "Assumption"),
+            (2026, 8, 26, "Maouloud"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2025, 1, 9, "Eve of Traditional Religions Day"),
+            (2025, 1, 10, "Traditional Religions Day"),
+            (2024, 1, 10, "Traditional Religions Day"),
+            (1998, 1, 10, "Traditional Religions Day"),
+        ],
+    );
+    // Before law 97-031 there was no such day; the national days of
+    // article 3 are not days off; a Sunday holiday stays on the Sunday.
+    expect_working(
+        "BJ",
+        None,
+        &[
+            (1997, 1, 10),
+            (2026, 1, 16),
+            (2025, 2, 28),
+            (2026, 3, 9),
+            (2026, 11, 2),
+        ],
+    );
+}
+
+#[test]
+fn burkina_faso_gave_a_sundays_monday_until_the_2026_law() {
+    expect(
+        "BF",
+        None,
+        &[
+            (2025, 1, 1, "New Year's Day"),
+            (2025, 1, 3, "Popular Uprising Day"),
+            (2025, 3, 8, "International Women's Day"),
+            (2025, 3, 31, "Eid al-Fitr"),
+            (2025, 5, 1, "Labour Day"),
+            (2025, 5, 15, "Customs and Traditions Day"),
+            (2025, 5, 29, "Ascension"),
+            (2025, 6, 7, "Tabaski"),
+            (2025, 8, 5, "Independence Day"),
+            (2025, 8, 15, "Assumption"),
+            (2025, 9, 5, "Mouloud"),
+            (2025, 10, 31, "National Martyrs' Day"),
+            (2025, 11, 1, "All Saints' Day"),
+            (2025, 12, 11, "National Day"),
+            (2025, 12, 25, "Christmas Day"),
+            // Six days before the new law was adopted.
+            (2026, 1, 3, "Popular Uprising Day"),
+            (2026, 5, 15, "Customs and Traditions Day"),
+            (2026, 5, 27, "Tabaski"),
+            (2026, 8, 26, "Mouloud"),
+            (2026, 12, 11, "National Day"),
+        ],
+    );
+    // Easter Sunday's Monday, and a Sunday Popular Uprising Day and
+    // Christmas, under article 2 of the 2015 law.
+    expect_substitute("BF", None, 2025, (4, 20), (4, 21));
+    expect_substitute("BF", None, 2016, (1, 3), (1, 4));
+    expect_substitute("BF", None, 2022, (12, 25), (12, 26));
+    // The 2026 law made these commemorations and dropped Easter; 15 May
+    // was not a holiday before 2024, nor 31 October before the 2015 law.
+    expect_working(
+        "BF",
+        None,
+        &[
+            (2026, 8, 5),
+            (2027, 11, 1),
+            (2027, 1, 4),
+            (2027, 3, 29),
+            (2023, 5, 15),
+            (2015, 10, 31),
+        ],
+    );
+    // Whether a Sunday holiday still gave the Monday in 2026 depends on
+    // the new law's promulgation date, which was not read.
+    let transition = HolidayCalendar::for_year(table("BF"), None, 2026);
+    assert!(
+        transition
+            .gaps()
+            .iter()
+            .any(|gap| gap.name == "Day after a Sunday holiday")
+    );
+    assert!(HolidayCalendar::for_year(table("BF"), None, 2025).is_complete());
+    assert!(HolidayCalendar::for_year(table("BF"), None, 2027).is_complete());
+}
+
+#[test]
+fn cabo_verde_keeps_law_16_iv_91_and_13_january_from_2020() {
+    expect(
+        "CV",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 13, "Freedom and Democracy Day"),
+            (2026, 1, 20, "Nationality and National Heroes' Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 5, 1, "Workers' Day"),
+            (2026, 7, 5, "Independence Day"),
+            (2026, 8, 15, "Assumption"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2025, 1, 13, "Freedom and Democracy Day"),
+            (2025, 4, 18, "Good Friday"),
+            (2020, 1, 13, "Freedom and Democracy Day"),
+        ],
+    );
+    // Children's Day is for schools; a Sunday Independence Day stays; no
+    // Easter Monday.
+    expect_working("CV", None, &[(2026, 6, 1), (2026, 7, 6), (2026, 4, 6)]);
+    let children = HolidayCalendar::for_year(table("CV"), None, 2026);
+    assert!(
+        children
+            .on(ymd(2026, 6, 1))
+            .iter()
+            .any(|holiday| holiday.kind == Kind::School)
+    );
+    // The years before any source read calls 13 January a holiday are a gap.
+    let before = HolidayCalendar::for_year(table("CV"), None, 2016);
+    assert!(
+        before
+            .gaps()
+            .iter()
+            .any(|gap| gap.name == "Freedom and Democracy Day")
+    );
+    assert!(HolidayCalendar::for_year(table("CV"), None, 2020).is_complete());
+}
+
+#[test]
+fn guinea_moves_only_three_holidays_to_the_next_working_day_from_2023() {
+    expect(
+        "GN",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 16, "Day after the Night of Destiny"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 25, "Africa Day"),
+            (2026, 5, 27, "Tabaski"),
+            (2026, 5, 28, "Day after Tabaski"),
+            (2026, 8, 15, "Assumption"),
+            (2026, 8, 26, "Day after the Prophet's Birthday"),
+            (2026, 10, 2, "Independence Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2025, 10, 2, "Independence Day"),
+            (2025, 6, 7, "Tabaski"),
+        ],
+    );
+    expect_substitute("GN", None, 2023, (1, 1), (1, 2));
+    expect_substitute("GN", None, 2027, (10, 2), (10, 4));
+    // A Saturday Christmas stays, and before the decree nothing moved.
+    expect_working("GN", None, &[(2027, 12, 27), (2022, 10, 3)]);
+}
+
+#[test]
+fn mali_keeps_both_days_of_maouloud_and_no_declared_extras() {
+    expect(
+        "ML",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 14, "Day of Recovered Sovereignty"),
+            (2026, 1, 20, "Armed Forces Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 3, 26, "Martyrs' Day"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 25, "Africa Day"),
+            (2026, 5, 27, "Tabaski"),
+            // The Ministry announced 25 and 31 August for the sighted dates.
+            (2026, 8, 26, "Prophet's Birthday"),
+            (2026, 9, 1, "Prophet's Baptism"),
+            (2026, 9, 22, "Independence Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2025, 1, 14, "Day of Recovered Sovereignty"),
+            (2025, 9, 11, "Prophet's Baptism"),
+            (2025, 9, 22, "Independence Day"),
+        ],
+    );
+    // 14 January before 2023; the day after New Year declared for 2026 and
+    // Achoura, both decisions of the year, are not carried; a Sunday 22
+    // September stays.
+    expect_working(
+        "ML",
+        None,
+        &[(2022, 1, 14), (2026, 1, 2), (2026, 6, 26), (2024, 9, 23)],
+    );
+}
+
+#[test]
 fn cuba_moves_the_sunday_rest_for_1_may_and_10_october_only() {
     expect(
         "CU",
