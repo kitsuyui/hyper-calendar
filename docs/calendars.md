@@ -162,6 +162,7 @@ Not calendars in their own right, but named subdivisions layered onto one.
 | 二十四節気 — the 24 solar terms | `hc-seasons` | Done |
 | 七十二候 — the 72 pentads (Chinese and Japanese sets; a further set is one entry) | `hc-seasons` | Done |
 | 雑節 — zassetsu (節分, 彼岸, 社日, 八十八夜, 入梅, 半夏生, 土用, 二百十日, 二百二十日) | `hc-seasons` | Done |
+| 三伏 and 數九 — the Chinese dog days and the nine nines | `hc-seasons` | Done — 入伏 the third 庚 day from the summer solstice, 中伏 the fourth, 末伏 the first from 立秋, the solstice counted when it is itself a 庚 day, as the published dates of 2017–2030 require; the nines from the winter solstice, as the Hong Kong Observatory counts them |
 | Moon phases as a calendar layer | `hc-seasons` | Done |
 | 六曜 — rokuyō (先勝, 友引, 先負, 仏滅, 大安, 赤口) | `hc-seasons` | Done |
 | 十二直 and 二十八宿 (and 二十七宿) | `hc-almanac` | Done |
