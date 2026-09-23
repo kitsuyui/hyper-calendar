@@ -115,21 +115,20 @@ impl Combination {
     /// This combination's position in [`Combination::ALL`], which is its
     /// bit in a [`CombinationSet`].
     ///
-    /// # Panics
-    ///
-    /// If the combination is not in [`Combination::ALL`], which a value built
-    /// with [`Combination::new`] outside this module would be; such a value
-    /// can be tested with [`Combination::holds`] but not stored in a set.
+    /// `None` for a combination that is not in [`Combination::ALL`], which a
+    /// value built with [`Combination::new`] outside this module would be;
+    /// such a value can be tested with [`Combination::holds`] but not stored
+    /// in a set.
     #[must_use]
-    pub const fn index(self) -> u8 {
+    pub const fn index(self) -> Option<u8> {
         let mut index = 0;
         while index < Self::ALL.len() {
             if same_id(Self::ALL[index].id, self.id) {
-                return index as u8;
+                return Some(index as u8);
             }
             index += 1;
         }
-        panic!("a combination that is not in Combination::ALL has no index")
+        None
     }
 
     /// The name in Japanese characters, e.g. `"天赦日＋一粒万倍日"`.
@@ -270,14 +269,28 @@ impl CombinationSet {
     /// Whether a combination is in the set.
     #[must_use]
     pub const fn contains(self, combination: Combination) -> bool {
-        self.bits & (1 << combination.index()) != 0
+        match combination.index() {
+            Some(index) => self.bits & (1 << index) != 0,
+            None => false,
+        }
     }
 
     /// Add a combination to the set.
+    ///
+    /// `None` for a value that is not one of [`Combination::ALL`], which has no
+    /// place in a set.
     #[must_use]
-    pub const fn with(self, combination: Combination) -> Self {
+    pub const fn with(self, combination: Combination) -> Option<Self> {
+        match combination.index() {
+            Some(index) => Some(self.with_position(index as usize)),
+            None => None,
+        }
+    }
+
+    /// Add the entry at a position in [`Combination::ALL`].
+    const fn with_position(self, position: usize) -> Self {
         Self {
-            bits: self.bits | (1 << combination.index()),
+            bits: self.bits | (1 << position),
         }
     }
 
@@ -459,9 +472,9 @@ fn combinations_of(
     selected: SelectedDaySet,
 ) -> CombinationSet {
     let mut set = CombinationSet::EMPTY;
-    for combination in Combination::ALL {
+    for (position, combination) in Combination::ALL.iter().enumerate() {
         if combination.holds(rokuyo, lower, selected) {
-            set = set.with(*combination);
+            set = set.with_position(position);
         }
     }
     set
@@ -629,19 +642,24 @@ mod tests {
     }
 
     #[test]
+    fn a_combination_outside_the_table_has_no_index_and_no_place_in_a_set() {
+        let invented = Combination::new("invented", "創作", false, |_, _, _| true);
+        assert_eq!(invented.index(), None);
+        assert!(!CombinationSet::EMPTY.contains(invented));
+        assert_eq!(CombinationSet::EMPTY.with(invented), None);
+    }
+
+    #[test]
     fn the_combination_set_holds_every_combination_distinctly() {
         let mut set = CombinationSet::EMPTY;
         assert!(set.is_empty());
         for combination in Combination::ALL.iter().copied() {
             assert!(!set.contains(combination));
-            set = set.with(combination);
+            set = set.with(combination).unwrap();
             assert!(!combination.japanese_name().is_empty());
             assert_eq!(
-                usize::from(combination.index()),
-                Combination::ALL
-                    .iter()
-                    .position(|c| c == &combination)
-                    .unwrap_or(usize::MAX)
+                combination.index().map(usize::from),
+                Combination::ALL.iter().position(|c| c == &combination)
             );
         }
         assert_eq!(set.len() as usize, Combination::ALL.len());
