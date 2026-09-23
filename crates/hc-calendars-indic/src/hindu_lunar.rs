@@ -256,13 +256,20 @@ impl HinduLunarCalendar {
 
     /// The first day of a month: the first day whose sunrise follows the
     /// conjunction the month begins after.
+    ///
+    /// The search starts the day before the conjunction's date in Universal
+    /// Time and walks forward. It cannot stop at the day after: east of
+    /// Greenwich the local date runs ahead, and a conjunction late in the
+    /// Universal day can fall after the next local sunrise too. At the
+    /// Central Station on 11 June 2002 the new moon came at 05:17 Indian
+    /// Standard Time and the sun had risen at 05:13, so the month began on
+    /// the 12th.
     fn first_day_of(&self, month: LunarMonth) -> Rd {
-        let day = month.start.day();
-        if sunrise_of(day, self.location).0 > month.start.0 {
-            day
-        } else {
-            Rd(day.0 + 1)
+        let mut day = Rd(month.start.day().0 - 1);
+        while sunrise_of(day, self.location).0 <= month.start.0 {
+            day = Rd(day.0 + 1);
         }
+        day
     }
 
     /// The months of a Śaka year, in order: twelve or thirteen of them.
@@ -613,6 +620,26 @@ impl Calendar for HinduLunarCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_new_moon_after_the_next_local_sunrise_starts_the_month_a_day_later() {
+        // 11 June 2002: the new moon at 05:17 IST, after that day's sunrise
+        // at the Central Station, so the sunrise of the 11th still carries
+        // the thirtieth tithi and Jyeṣṭha begins on the 12th.
+        let rashtriya = HinduLunarCalendar::RASHTRIYA;
+        let day = |d| gregorian::to_fixed(2002, 6, d).expect("a date");
+        assert_eq!(
+            rashtriya.month_span(1924, 2, false),
+            Ok((gregorian::to_fixed(2002, 5, 13).expect("a date"), day(12)))
+        );
+        let eleventh = rashtriya.from_fixed(day(11)).expect("in range");
+        assert_eq!((eleventh.month, eleventh.day), (2, 30));
+        assert_eq!(rashtriya.from_fixed(day(12)).map(|date| date.month), Ok(3));
+        for d in 8..=16 {
+            let date = rashtriya.from_fixed(day(d)).expect("in range");
+            assert_eq!(rashtriya.to_fixed(date), Ok(day(d)), "{date:?}");
+        }
+    }
 
     fn ymd(year: i64, month: u8, day: u8) -> Rd {
         gregorian::to_fixed(year, month, day).unwrap()
