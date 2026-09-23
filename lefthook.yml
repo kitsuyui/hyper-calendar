@@ -7,9 +7,8 @@
 # These hooks passing is necessary but not sufficient, and the reason is
 # version skew. CI installs the *latest* stable Rust and the latest `typos`
 # on every run, so both lint against newer rules than a local toolchain that
-# has not been updated. Two failures have already reached a pull request that
-# way: `clippy::question_mark` on Rust 1.98 against 1.95 locally, and a French
-# word that `typos` 1.46 knows and 1.39 does not.
+# has not been updated: a lint added in a newer Rust, or a word a newer
+# `typos` knows, passes here and fails there.
 #
 # So before pushing anything substantial:
 #
