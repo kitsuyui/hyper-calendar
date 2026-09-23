@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-97 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+98 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 79 of 97 have months and 79 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 80 of 98 have months and 80 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 | id | Name | Crate | Feature | Earliest | Latest | Astronomical | Leap months | Day begins | Cycles | Named |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -31,6 +31,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `bahai-arithmetic` | Badíʿ (arithmetic) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1844-03-21 | +11843-03-20 | no | yes | sunset | month ×19, weekday ×7 | yes |
 | `bahai-astronomical` | Badíʿ (astronomical) | [`hc-calendars-equinox`](../crates/hc-calendars-equinox) | `equinox` | 1844-03-20 | 3001-03-20 | yes | yes | sunset | month ×19, weekday ×7 | yes |
 | `balinese-pawukon` | Balinese Pawukon | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | month ×30, ekawara ×1, dwiwara ×2, triwara ×3, caturwara ×4, pancawara ×5, sadwara ×6, weekday ×7, astawara ×8, sangawara ×9, dasawara ×10 | yes |
+| `bikram-sambat` | Bikram Sambat | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-04-09 | 2300-04-18 | yes | no | midnight | month ×12, weekday ×7 | yes |
 | `buddhist` | Thai Buddhist | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -542-01-01 | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `burmese` | Burmese | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0639-03-26 | 3639-05-13 | no | yes | midnight | month ×12–13, weekday ×7 | yes |
 | `byzantine` | Byzantine (Anno Mundi) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -5508-07-19 | +94493-08-06 | no | no | midnight | month ×12, weekday ×7 | yes |

@@ -95,7 +95,7 @@ These need the astronomical engine, so they live behind the `lunar` feature.
 | Hindu solar, Tamil | `hindu-solar-tamil` | `hc-calendars-indic` | Done — the month begins on the saṅkrānti's day unless it fell after sunset; the *Rashtriya Panchang*'s regional tables for 2023–2025 |
 | Hindu solar, Malayalam (Kollam era) | `hindu-solar-malayalam` | `hc-calendars-indic` | Done — unless it fell after three fifths of the daylight |
 | Hindu solar, Bengali (Bangabda) | `hindu-solar-bengali` | `hc-calendars-indic` | Done — the day after the saṅkrānti's |
-| Hindu solar, Vikrami (Punjab, Odisha; the Nepali reckoning) | `hindu-solar-vikrami` | `hc-calendars-indic` | Done — the sunrise-to-sunrise day of the saṅkrānti |
+| Hindu solar, Vikrami (Punjab, Haryana, Odisha) | `hindu-solar-vikrami` | `hc-calendars-indic` | Done — the sunrise-to-sunrise day of the saṅkrānti |
 | Old Hindu (mean) solar and lunisolar | `hindu-old-solar`, `hindu-old-lunar` | `hc-calendars-indic` | Done — the *Ārya Siddhānta*'s mean Sun and Moon from the Kali Yuga epoch, as Reingold and Dershowitz give the arithmetic; tested for what a mean calendar must do, since no almanac prints it for a modern year |
 
 ## Stage 3 — Astronomical variants of stage 1 calendars
@@ -134,7 +134,7 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Igbo four-day week (Izu) | `igbo` | `hc-calendars-regional` | Researching — the source says the calendar is "neither universal nor synchronized" between communities and dates no market day, so there is no anchor to carry |
 | Yoruba four-day week | `yoruba` | `hc-calendars-regional` | Researching — regional variants differ |
 | Akan Adaduanan (42-day cycle) | `akan` | `hc-calendars-regional` | Done — the six-day and seven-day weeks against each other, anchored on the Fɔdwo of 23 January 1978 the source dates; the four dabɔne named |
-| Nepali Bikram Sambat | `bikram-sambat` | `hc-calendars-regional` | Planned — the Vikrami solar rule and era are `hindu-solar-vikrami`; what remains is comparing the committee's published calendar against it |
+| Nepali Bikram Sambat | `bikram-sambat` | `hc-calendars-indic` | Done — the months the Government of Nepal gazettes for 2080–2083 BS, read from the Saturdays its holiday notices list; elsewhere the *Sūrya Siddhānta*'s saṅkrāntis on their civil day at Kathmandu, which matches 47 of those 48 months (Magh 2082 is the one it misses). Not the Vikrami rule: with the modern Sun and Lahiri ayanamsa no hour-of-day rule fits the gazette. More gazetted years would replace the reckoning in them |
 | Nepal Sambat (lunar) | `nepal-sambat` | `hc-calendars-indic` | Done — the amānta months under their Newar names, Kachhalā (Kārtika) first, the year opening at Mha Puja, the day read at Kathmandu's sunrise; tested against the Mha Puja dates of 2013–2017. The solar Nepal Sambat of Lalitpur is not carried: its source does not say where its leap day falls |
 | Burmese | `burmese` | `hc-calendars-regional` | Done — Yan Naing Aye's arithmetic of the Myanmar Era, era by era, with the record's exceptions as data; 1 to 3000 ME |
 | Thai lunar (Chulasakarat) | `thai-lunar` | `hc-calendars-regional` | Planned |

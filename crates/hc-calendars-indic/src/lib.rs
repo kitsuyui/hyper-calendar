@@ -10,7 +10,7 @@
 //!   a month ends at the full moon, so the dark fortnight comes first and
 //!   takes the following bright fortnight's name. `hindu-lunar-purnimanta`.
 //! * [`hindu_solar`] — the solar reckonings of Tamil Nadu, Kerala, Bengal
-//!   and the Vikrami regions (Punjab, Odisha, Nepal): a month is the Sun's
+//!   and the Vikrami regions (Punjab, Haryana, Odisha): a month is the Sun's
 //!   stay in a sidereal sign, and each region has its own rule for the day
 //!   the month begins. `hindu-solar-tamil`, `hindu-solar-malayalam`,
 //!   `hindu-solar-bengali`, `hindu-solar-vikrami`.
@@ -24,8 +24,14 @@
 //! * [`nepal_sambat`] — the lunisolar calendar of the Newar people: the
 //!   amānta months under their Newar names, the year opening at Kachhalā,
 //!   the day read at Kathmandu's sunrise. `nepal-sambat`.
+//! * [`bikram_sambat`] — the solar calendar of Nepal: the months the
+//!   Government of Nepal gazettes for 2080–2083, and elsewhere the
+//!   *Sūrya Siddhānta*'s saṅkrāntis on their civil day. `bikram-sambat`.
+//! * [`surya_siddhanta`] — the Sun of the *Sūrya Siddhānta*, whose
+//!   saṅkrāntis the traditional almanacs keep.
 //! * [`places`] — the sunrise that reads the day: the Central Station of
-//!   the national calendar, Ujjain of the classical almanacs, New Delhi.
+//!   the national calendar, Ujjain of the classical almanacs, New Delhi,
+//!   Kathmandu.
 //!
 //! # What is here and what is not yet
 //!
@@ -33,9 +39,9 @@
 //! across most of India and the one the national almanac carries; the
 //! pūrṇimānta form is the north's naming of the same days; the four solar
 //! reckonings are the civil calendars of the south, the east and the
-//! north-west. What is still to come — the Nepali Bikram Sambat as its
-//! committee publishes it, the Odia year counts, the Tamil sixty-year
-//! names — `docs/calendars.md` lists.
+//! north-west; the Bikram Sambat is Nepal's. What is still to come — the
+//! Odia year counts, the Tamil sixty-year names, the Bikram Sambat's
+//! gazetted months outside 2080–2083 — `docs/calendars.md` lists.
 //!
 //! # Why a crate of its own
 //!
@@ -52,6 +58,7 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+pub mod bikram_sambat;
 pub mod hindu_lunar;
 pub mod hindu_old;
 pub mod hindu_purnimanta;
@@ -59,14 +66,16 @@ pub mod hindu_solar;
 pub mod nakshatra;
 pub mod nepal_sambat;
 pub mod places;
+pub mod surya_siddhanta;
 pub mod tithi;
 
+pub use bikram_sambat::{BikramSambatCalendar, BikramSambatDate};
 pub use hindu_lunar::{HinduLunarCalendar, HinduLunarDate};
 pub use hindu_old::{
     OldHinduLunarCalendar, OldHinduLunarDate, OldHinduSolarCalendar, OldHinduSolarDate,
 };
 pub use hindu_purnimanta::HinduPurnimantaCalendar;
-pub use hindu_solar::{HinduSolarCalendar, HinduSolarDate, SankrantiRule};
+pub use hindu_solar::{HinduSolarCalendar, HinduSolarDate, SankrantiRule, SolarModel};
 pub use nepal_sambat::{NepalSambatCalendar, NepalSambatDate};
 pub use tithi::{Paksha, Prevalence};
 
@@ -96,6 +105,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(
             crate::NepalSambatCalendar::KATHMANDU,
         )));
+        registry.insert(Box::new(DynAdapter::new(crate::BikramSambatCalendar)));
     }
 }
 
@@ -109,7 +119,7 @@ mod tests {
     use super::*;
 
     /// The number of calendars this crate registers.
-    const CALENDAR_COUNT: usize = 9;
+    const CALENDAR_COUNT: usize = 10;
 
     /// Every calendar the crate registers, so that neither list can drift
     /// from the registry unnoticed.
@@ -121,6 +131,7 @@ mod tests {
             OldHinduSolarCalendar.meta(),
             OldHinduLunarCalendar.meta(),
             NepalSambatCalendar::KATHMANDU.meta(),
+            BikramSambatCalendar.meta(),
         ];
         metas.extend(crate::hindu_solar::ALL.iter().map(Calendar::meta));
         metas
@@ -166,6 +177,7 @@ mod tests {
         assert!(registry.get_by_name("hindu-old-solar").is_some());
         assert!(registry.get_by_name("hindu-old-lunar").is_some());
         assert!(registry.get_by_name("nepal-sambat").is_some());
+        assert!(registry.get_by_name("bikram-sambat").is_some());
         register_all(&mut registry);
         assert_eq!(registry.len(), CALENDAR_COUNT);
     }
