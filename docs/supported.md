@@ -212,7 +212,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `NG` | Nigeria | 14 | yes | stated | 2026-09-21 |
 | `NL` | Netherlands | 12 | none | stated | 2026-09-21 |
 | `NO` | Norway | 12 | none | stated | 2026-09-21 |
-| `NP` | Nepal | 10 | none | stated | 2026-09-23 |
+| `NP` | Nepal | 23 | none | stated | 2026-09-23 |
 | `NZ` | New Zealand | 13 | yes | stated | 2026-09-21 |
 | `OM` | Oman | 20 | yes | stated | 2026-09-22 |
 | `PA` | Panama | 15 | yes | stated | 2026-09-22 |

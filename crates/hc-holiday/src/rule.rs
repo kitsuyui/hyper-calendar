@@ -38,9 +38,10 @@ use crate::computus::{Computus, easter};
 ///
 /// A calendar whose year is shorter than the Gregorian one can put the same
 /// anniversary in a Gregorian year twice — 1 Muḥarram fell on both
-/// 1 January and 21 December of 2008 — so the answer is a small list rather
-/// than an `Option`. Four slots is one more than any rule in this crate has
-/// ever needed, and keeps the type `Copy` and allocation-free.
+/// 1 January and 21 December of 2008 — and a [`Rule::Span`] yields every
+/// day of a festival that runs a week, so the answer is a small list rather
+/// than an `Option`. Sixteen slots hold two week-long spans, one each side
+/// of a New Year, and keep the type `Copy` and allocation-free.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Days {
     days: [Rd; Days::CAPACITY],
@@ -49,7 +50,7 @@ pub struct Days {
 
 impl Days {
     /// How many days a single rule may yield in one Gregorian year.
-    pub const CAPACITY: usize = 4;
+    pub const CAPACITY: usize = 16;
 
     /// An empty list.
     #[must_use]
@@ -72,9 +73,9 @@ impl Days {
     /// Append a day, silently ignoring anything past [`Days::CAPACITY`].
     ///
     /// Overflow is dropped rather than reported because no rule in the
-    /// vocabulary can produce a fifth day: the shortest calendar year in the
-    /// crate is the Hijri one at about 354 days, which fits an anniversary
-    /// into a Gregorian year at most twice.
+    /// vocabulary can produce a seventeenth day: an anniversary lands in a
+    /// Gregorian year at most twice, and a span is refused beyond
+    /// [`Rule::MAX_SPAN`] days.
     pub const fn push(&mut self, day: Rd) {
         if (self.len as usize) < Self::CAPACITY {
             self.days[self.len as usize] = day;
@@ -621,6 +622,21 @@ pub enum Rule {
         /// The shift, in days.
         days: i16,
     },
+    /// Every day from the day one rule gives to the next day another
+    /// gives, both included: a festival whose first and last days are each
+    /// a tithi, so that its length changes from year to year. Nepal's
+    /// Dashain holiday runs from Phūlpātī, Āśvina śukla 7, to Āśvina śukla
+    /// 12 — six days in one year, seven in another.
+    ///
+    /// A `from` with no `to` on or after it within [`Rule::MAX_SPAN`] days
+    /// yields nothing: the two rules are meant to fall a few days apart,
+    /// and a span longer than that is a mistake in the table.
+    Span {
+        /// The rule for the first day.
+        from: &'static Rule,
+        /// The rule for the last day.
+        to: &'static Rule,
+    },
     /// Another rule, moved by the weekday it falls on: the day the base
     /// rule gives, plus the days its weekday is listed with in `moves`, or
     /// the day itself when its weekday is not listed.
@@ -772,6 +788,15 @@ impl Rule {
         }
     }
 
+    /// The longest [`Rule::Span`], in days: a week.
+    pub const MAX_SPAN: i64 = 7;
+
+    /// Every day from one rule's to another's; see [`Rule::Span`].
+    #[must_use]
+    pub const fn span(from: &'static Rule, to: &'static Rule) -> Self {
+        Self::Span { from, to }
+    }
+
     /// Another rule, moved by the weekday it falls on; see
     /// [`Rule::MovedByWeekday`].
     #[must_use]
@@ -818,6 +843,7 @@ impl Rule {
             Self::Offset { base, .. } | Self::MovedByWeekday { base, .. } => {
                 base.is_resolvable_in(year)
             }
+            Self::Span { from, to } => from.is_resolvable_in(year) && to.is_resolvable_in(year),
             // Everything else is Gregorian arithmetic, astronomy or a
             // closure, none of which has a calendar range to fall outside.
             // The solar terms and the computus do have accuracy limits, but
@@ -927,6 +953,37 @@ impl Rule {
                             && !out.as_slice().contains(shifted)
                         {
                             out.push(*shifted);
+                        }
+                    }
+                }
+                out
+            }
+            Self::Span { from, to } => {
+                // A span can straddle a New Year, so a first day in the year
+                // before is searched as well, and every last day from this
+                // year and the next is a candidate for the end.
+                let mut ends = Days::new();
+                for probe in [year - 1, year, year + 1] {
+                    for day in to.days_in_year(probe).as_slice() {
+                        ends.push(*day);
+                    }
+                }
+                let mut out = Days::new();
+                for probe in [year - 1, year] {
+                    for start in from.days_in_year(probe).as_slice() {
+                        let Some(end) = ends
+                            .as_slice()
+                            .iter()
+                            .filter(|end| end.0 >= start.0 && end.0 - start.0 < Self::MAX_SPAN)
+                            .min()
+                        else {
+                            continue;
+                        };
+                        for day in start.0..=end.0 {
+                            let day = Rd(day);
+                            if day >= first && day <= last && !out.as_slice().contains(&day) {
+                                out.push(day);
+                            }
                         }
                     }
                 }
@@ -1747,7 +1804,7 @@ mod tests {
     #[test]
     fn days_drops_anything_past_its_capacity() {
         let mut days = Days::new();
-        for offset in 0..10 {
+        for offset in 0..(Days::CAPACITY as i64 + 5) {
             days.push(Rd(offset));
         }
         assert_eq!(days.len(), Days::CAPACITY);

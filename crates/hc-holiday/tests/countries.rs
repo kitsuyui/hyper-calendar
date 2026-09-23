@@ -911,6 +911,85 @@ fn nepal_keeps_the_days_its_notices_date() {
     );
 }
 
+#[test]
+fn nepal_keeps_its_festivals_on_the_days_its_notices_give() {
+    // The notices for 2080 to 2083 BS, sections 2.1 and 7.1: each
+    // festival's Bikram Sambat date, here in the Gregorian calendar. The
+    // rules were fitted to 2082 and 2083; 2080 and 2081 check them.
+    expect(
+        "NP",
+        None,
+        &[
+            (2023, 5, 5, "Buddha Jayanti"),       // Baisakh 22
+            (2023, 8, 31, "Janai Purnima"),       // Bhadau 14
+            (2023, 9, 6, "Krishna Janmashtami"),  // Bhadau 20
+            (2023, 10, 15, "Ghatasthapana"),      // Asoj 28
+            (2023, 12, 26, "Dhanya Purnima"),     // Pus 10
+            (2023, 12, 31, "Tamu Lhosar"),        // Pus 15
+            (2024, 2, 10, "Sonam Lhosar"),        // Magh 27
+            (2024, 3, 8, "Maha Shivaratri"),      // Phagun 25
+            (2024, 3, 11, "Gyalpo Lhosar"),       // Phagun 28
+            (2024, 5, 23, "Buddha Jayanti"),      // Jeth 10
+            (2024, 8, 19, "Janai Purnima"),       // Bhadau 3
+            (2024, 8, 26, "Krishna Janmashtami"), // Bhadau 10
+            (2024, 10, 3, "Ghatasthapana"),       // Asoj 17
+            (2024, 12, 15, "Dhanya Purnima"),     // Mangsir 30
+            (2024, 12, 30, "Tamu Lhosar"),        // Pus 15
+            (2025, 1, 30, "Sonam Lhosar"),        // Magh 17
+            (2025, 2, 26, "Maha Shivaratri"),     // Phagun 14
+            (2025, 2, 28, "Gyalpo Lhosar"),       // Phagun 16
+            (2025, 5, 12, "Buddha Jayanti"),      // Baisakh 29
+            (2025, 8, 9, "Janai Purnima"),        // Saun 24
+            (2025, 8, 16, "Krishna Janmashtami"), // Saun 31
+            (2025, 9, 22, "Ghatasthapana"),       // Asoj 6
+            (2025, 12, 4, "Dhanya Purnima"),      // Mangsir 18
+            (2025, 12, 30, "Tamu Lhosar"),        // Pus 15
+            (2026, 1, 19, "Sonam Lhosar"),        // Magh 5
+            (2026, 2, 15, "Maha Shivaratri"),     // Phagun 3
+            (2026, 2, 18, "Gyalpo Lhosar"),       // Phagun 6
+            (2026, 5, 1, "Buddha Jayanti"),       // Baisakh 18
+            (2026, 8, 28, "Janai Purnima"),       // Bhadau 12
+            (2026, 9, 4, "Krishna Janmashtami"),  // Bhadau 19
+            (2026, 10, 11, "Ghatasthapana"),      // Asoj 25
+            (2026, 12, 24, "Dhanya Purnima"),     // Pus 9
+            (2026, 12, 30, "Tamu Lhosar"),        // Pus 15
+            (2027, 2, 7, "Sonam Lhosar"),         // Magh 24
+            (2027, 3, 6, "Maha Shivaratri"),      // Phagun 22
+            (2027, 3, 9, "Gyalpo Lhosar"),        // Phagun 25
+        ],
+    );
+}
+
+#[test]
+fn nepal_keeps_dashain_and_tihar_for_as_many_days_as_the_notices_give() {
+    // Dashain runs from Phulpati to Dwadashi and Tihar from Lakshmi Puja to
+    // the day after Bhai Tika, each first and last day as the notices for
+    // 2080 to 2083 BS give them: Dashain five, six or seven days long.
+    type MonthDay = (u8, u8);
+    let spans: [(&str, i64, MonthDay, MonthDay); 8] = [
+        ("Dashain", 2023, (10, 21), (10, 26)), // Kattik 4–9, 2080
+        ("Dashain", 2024, (10, 10), (10, 14)), // Asoj 24–28, 2081
+        ("Dashain", 2025, (9, 29), (10, 4)),   // Asoj 13–18, 2082
+        ("Dashain", 2026, (10, 17), (10, 23)), // Asoj 31 to Kattik 6, 2083
+        ("Tihar", 2023, (11, 12), (11, 16)),   // Kattik 26–30, 2080
+        ("Tihar", 2024, (10, 31), (11, 4)),    // Kattik 15–19, 2081
+        ("Tihar", 2025, (10, 20), (10, 24)),   // Kattik 3–7, 2082
+        ("Tihar", 2026, (11, 8), (11, 12)),    // Kattik 22–26, 2083
+    ];
+    for (name, year, (from_month, from_day), (to_month, to_day)) in spans {
+        let found: Vec<Rd> = HolidayCalendar::for_year(table("NP"), None, year)
+            .in_year(year)
+            .iter()
+            .filter(|holiday| holiday.name == name)
+            .map(|holiday| holiday.date)
+            .collect();
+        let expected: Vec<Rd> = (ymd(year, from_month, from_day).0..=ymd(year, to_month, to_day).0)
+            .map(Rd)
+            .collect();
+        assert_eq!(found, expected, "{name} {year}");
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // The Middle East and Africa
 // ─────────────────────────────────────────────────────────────────────────
