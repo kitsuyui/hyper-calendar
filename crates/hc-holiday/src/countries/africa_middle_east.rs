@@ -15,8 +15,8 @@ use hc_seasons::Meridian;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
 use crate::computus::offsets::{
-    ASCENSION, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY,
-    PALM_SUNDAY, PENTECOST, WHIT_MONDAY,
+    ASCENSION, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY,
+    MAUNDY_THURSDAY, PALM_SUNDAY, PENTECOST, SHROVE_TUESDAY, WHIT_MONDAY,
 };
 use crate::hindu::{DIWALI, GANESH_CHATURTHI, MAHA_SHIVARATRI, UGADI};
 use crate::rule::{
@@ -2073,6 +2073,526 @@ pub static COTE_D_IVOIRE: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// Benin
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The day of the traditional religions from 2025: the second Friday of
+/// January.
+static BJ_TRADITIONAL_RELIGIONS: Rule = Rule::nth(1, 2, Weekday::Friday);
+
+static BJ_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Fête du Nouvel An", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Traditional Religions Day",
+        "Fête annuelle des religions traditionnelles",
+        Rule::gregorian(1, 10),
+    )
+    .years(Some(1998), Some(2024)),
+    HolidayRule::fixed_public(
+        "Eve of Traditional Religions Day",
+        "Jeudi précédant la fête des religions traditionnelles",
+        Rule::Offset {
+            base: &BJ_TRADITIONAL_RELIGIONS,
+            days: -1,
+        },
+    )
+    .years(Some(2025), None),
+    HolidayRule::fixed_public(
+        "Traditional Religions Day",
+        "Fête annuelle des religions traditionnelles",
+        BJ_TRADITIONAL_RELIGIONS,
+    )
+    .years(Some(2025), None),
+    HolidayRule::observance(
+        "Remembrance Day",
+        "Journée de Souvenir",
+        Rule::gregorian(1, 16),
+    ),
+    HolidayRule::observance(
+        "People's Sovereignty Day",
+        "Journée de la Souveraineté du Peuple",
+        Rule::gregorian(2, 28),
+    ),
+    HolidayRule::observance("Women's Day", "Journée de la Femme", Rule::gregorian(3, 8)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Lundi de Pâques",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Ascension", "Jour de l'Ascension", Rule::easter(ASCENSION)),
+    HolidayRule::fixed_public(
+        "Whit Monday",
+        "Lundi de Pentecôte",
+        Rule::easter(WHIT_MONDAY),
+    ),
+    HolidayRule::fixed_public("National Day", "Fête Nationale", Rule::gregorian(8, 1)),
+    HolidayRule::fixed_public("Assumption", "Jour de l'Assomption", Rule::gregorian(8, 15)),
+    HolidayRule::fixed_public(
+        "All Saints' Day",
+        "Jour de la Toussaint",
+        Rule::gregorian(11, 1),
+    ),
+    HolidayRule::fixed_public("Christmas Day", "Jour de la Noël", Rule::gregorian(12, 25)),
+    hijri("Maouloud", "Journée Maouloud", 3, 12),
+    hijri("Eid al-Fitr", "Jour du Ramadan", 10, 1),
+    hijri("Tabaski", "Jour de la Tabaski", 12, 10),
+];
+
+/// Benin.
+///
+/// Law 90-019 of 27 July 1990 fixing the legal holidays, from the scan the
+/// Secrétariat général du Gouvernement publishes: article 1's twelve
+/// legal holidays, which article 2 makes days off with pay, and article
+/// 3's three national days — 16 January, 28 February and 8 March — which
+/// are carried as observances; the scan stops at article 3, and nothing
+/// after it was read. Law 97-031 of 20 August 1997 instituted the annual
+/// feast of the traditional religions on 10 January, a paid day off, first
+/// kept in 1998; law 2024-32 of 2 September 2024 repealed it and put the
+/// feast on the second Friday of January, with that Friday "and the
+/// Thursday before it" off with pay, from 2025. The Islamic days are on
+/// the tabular calendar as approximations of the dates announced each
+/// year. The law states no rule for a holiday on a Sunday and none is
+/// carried; the days the Council of Ministers declares off now and then
+/// are not carried either.
+pub static BENIN: RuleSet = RuleSet {
+    code: "BJ",
+    english_name: "Benin",
+    rules: BJ_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Loi n° 90-019 du 27 juillet 1990 fixant les fêtes légales en République du \
+              Bénin (first page, articles 1 to 3), loi n° 97-031 du 20 août 1997 portant \
+              institution d'une fête annuelle des religions traditionnelles, and loi n° \
+              2024-32 du 02 septembre 2024 fixant la fête annuelle des religions \
+              traditionnelles, each from the Secrétariat général du Gouvernement's \
+              documenthèque (sgg.gouv.bj/doc/loi-90-019, loi-97-031, loi-2024-32), \
+              retrieved 2026-09-23; Wikipedia (fr), \"Fêtes et jours fériés au Bénin\", \
+              as a cross-check",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Burkina Faso
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 2 of law 079-2015/CNT: "when a legal holiday falls on a Sunday,
+/// the day after is off with pay", until the 2026 law ended it.
+static BF_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: false,
+    on_collision: false,
+    valid_from: Some(2016),
+    valid_until: Some(2025),
+}];
+
+fn bf_unread(_year: i64) -> Days {
+    Days::new()
+}
+
+/// The Monday after a Sunday holiday in 2026, the year the new law was
+/// adopted: its promulgation date was not read, so whether the old
+/// article 2 still gave a Sunday's Monday in the first months of 2026 is
+/// not known.
+const BF_2026_MONDAYS: Rule = Rule::Tabulated {
+    function: bf_unread,
+    first_year: 1,
+    last_year: 0,
+};
+
+static BF_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
+    // 3 January 2026 came six days before the new law was adopted.
+    HolidayRule::public(
+        "Popular Uprising Day",
+        "Soulèvement populaire",
+        Rule::gregorian(1, 3),
+    )
+    .years(None, Some(2026)),
+    HolidayRule::observance(
+        "Popular Uprising Day",
+        "Soulèvement populaire",
+        Rule::gregorian(1, 3),
+    )
+    .years(Some(2027), None),
+    HolidayRule::public(
+        "International Women's Day",
+        "Journée internationale de la femme",
+        Rule::gregorian(3, 8),
+    ),
+    HolidayRule::public(
+        "Easter Sunday",
+        "Jour de Pâques",
+        Rule::easter(EASTER_SUNDAY),
+    )
+    .years(None, Some(2025)),
+    HolidayRule::public("Labour Day", "Fête du travail", Rule::gregorian(5, 1)),
+    HolidayRule::public(
+        "Customs and Traditions Day",
+        "Journée des coutumes et traditions",
+        Rule::gregorian(5, 15),
+    )
+    .years(Some(2024), None),
+    HolidayRule::public("Ascension", "Ascension", Rule::easter(ASCENSION)),
+    HolidayRule::observance(
+        "Advent of the Democratic and Popular Revolution",
+        "Avènement de la révolution démocratique et populaire",
+        Rule::gregorian(8, 4),
+    ),
+    HolidayRule::public(
+        "Independence Day",
+        "Proclamation de l'indépendance",
+        Rule::gregorian(8, 5),
+    )
+    .years(None, Some(2025)),
+    HolidayRule::observance(
+        "Independence Day",
+        "Proclamation de l'indépendance",
+        Rule::gregorian(8, 5),
+    )
+    .years(Some(2026), None),
+    HolidayRule::public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+    HolidayRule::observance(
+        "Day of Thanksgiving",
+        "Journée d'action de grâce",
+        Rule::gregorian(9, 29),
+    )
+    .years(None, Some(2025)),
+    HolidayRule::observance(
+        "Commemoration of the Assassination of Thomas Sankara",
+        "Commémoration de l'assassinat du Président Thomas Sankara",
+        Rule::gregorian(10, 15),
+    )
+    .years(Some(2026), None),
+    HolidayRule::observance(
+        "Popular Insurrection",
+        "Insurrection populaire",
+        Rule::gregorian(10, 30),
+    )
+    .years(Some(2016), Some(2025)),
+    HolidayRule::public(
+        "National Martyrs' Day",
+        "Journée nationale des martyrs",
+        Rule::gregorian(10, 31),
+    )
+    .years(Some(2016), Some(2025)),
+    HolidayRule::observance(
+        "National Martyrs' Day",
+        "Journée nationale des martyrs",
+        Rule::gregorian(10, 31),
+    )
+    .years(Some(2026), None),
+    HolidayRule::public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1))
+        .years(None, Some(2025)),
+    HolidayRule::observance("All Saints' Day", "Toussaint", Rule::gregorian(11, 1))
+        .years(Some(2026), None),
+    HolidayRule::public("National Day", "Fête nationale", Rule::gregorian(12, 11)),
+    HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    hijri_public("Mouloud", "Mouloud", 3, 12),
+    hijri_public("Eid al-Fitr", "Ramadan", 10, 1),
+    hijri_public("Tabaski", "Tabaski", 12, 10),
+    HolidayRule::fixed_public(
+        "Day after a Sunday holiday",
+        "Lendemain d'une fête légale tombant un dimanche",
+        BF_2026_MONDAYS,
+    )
+    .years(Some(2026), Some(2026)),
+];
+
+/// Burkina Faso.
+///
+/// Law 079-2015/CNT of 23 November 2015 instituting the legal holidays and
+/// the events of a historical character, as the Académie de police
+/// publishes it, from 2016: fifteen legal holidays, off with pay under
+/// article 2, which adds that "when a legal holiday falls on a Sunday, the
+/// day after is off with pay" — the policy, which is also how Easter
+/// Sunday, the law's "jour de Pâques", gave the Monday; and article 4's
+/// three commemorations with the services open, carried as observances.
+/// The law repealed law 19-2000/AN, which was not read, so only the days
+/// it names for the first time, the martyrs of 31 October and the
+/// insurrection of 30 October, start in 2016. The Customs and Traditions
+/// Day of 15 May was declared a holiday by the decree adopted in the
+/// Council of Ministers of 6 March 2024. The law adopted by the
+/// Transitional Legislative Assembly on 9 January 2026 repealed the 2015
+/// law: eleven days off with pay — 1 January, 8 March, 1 May, 15 May,
+/// 15 August, 11 December, Christmas, Ascension, Mouloud, Ramadan and
+/// Tabaski — and 3 January, 4 and 5 August, 15 October, 31 October and
+/// 1 November as days of commemoration, carried as observances; Easter
+/// and the Sunday rule are gone. Its text and promulgation date were not
+/// read, only the Assembly's and the press's accounts, so the table
+/// switches at 2026, keeps 3 January 2026 — six days before the vote — on
+/// the old law, and reports a Sunday holiday's Monday in 2026 as a gap.
+/// The Islamic days are on the tabular calendar as approximations of the
+/// dates the Government announces.
+pub static BURKINA_FASO: RuleSet = RuleSet {
+    code: "BF",
+    english_name: "Burkina Faso",
+    rules: BF_RULES,
+    substitution: BF_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Loi n° 079-2015/CNT portant institution de fêtes légales et évènements à \
+              caractère historique au Burkina Faso, from academiedepolice.bf, retrieved \
+              2026-09-23; Présidence du Faso, \"Conseil des ministres : le 15 mai institué \
+              Journée des coutumes et traditions\" (6 March 2024); Assemblée législative de \
+              Transition, \"Nouvelle loi sur les jours fériés : ce qui va changer\" \
+              (an.bf/545), leFaso.net and Sidwaya on the law adopted on 9 January 2026, \
+              whose own text was not read",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Cabo Verde
+// ─────────────────────────────────────────────────────────────────────────
+
+fn cv_unread(_year: i64) -> Days {
+    Days::new()
+}
+
+/// 13 January in the years between law 16/IV/91, which does not have it,
+/// and 2020, the first year a source read calls it a national holiday: the
+/// law that added it was not read.
+const CV_DEMOCRACY_DAY_UNREAD: Rule = Rule::Tabulated {
+    function: cv_unread,
+    first_year: 1,
+    last_year: 0,
+};
+
+static CV_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Ano Novo", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Freedom and Democracy Day",
+        "Dia da Liberdade e da Democracia",
+        CV_DEMOCRACY_DAY_UNREAD,
+    )
+    .years(Some(1992), Some(2019)),
+    HolidayRule::fixed_public(
+        "Freedom and Democracy Day",
+        "Dia da Liberdade e da Democracia",
+        Rule::gregorian(1, 13),
+    )
+    .years(Some(2020), None),
+    HolidayRule::fixed_public(
+        "Nationality and National Heroes' Day",
+        "Dia da Nacionalidade e dos Heróis Nacionais",
+        Rule::gregorian(1, 20),
+    ),
+    HolidayRule::fixed_public(
+        "Good Friday",
+        "Sexta-Feira Santa",
+        Rule::easter(GOOD_FRIDAY),
+    ),
+    HolidayRule::fixed_public("Workers' Day", "Dia do Trabalhador", Rule::gregorian(5, 1)),
+    HolidayRule::observance("Children's Day", "Dia da Criança", Rule::gregorian(6, 1))
+        .of_kind(Kind::School),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Dia da Independência Nacional",
+        Rule::gregorian(7, 5),
+    ),
+    HolidayRule::fixed_public("Assumption", "Dia da Assunção", Rule::gregorian(8, 15)),
+    HolidayRule::fixed_public(
+        "All Saints' Day",
+        "Dia de Todos os Santos",
+        Rule::gregorian(11, 1),
+    ),
+    HolidayRule::fixed_public("Christmas Day", "Dia do Natal", Rule::gregorian(12, 25)),
+];
+
+/// Cabo Verde.
+///
+/// Law 16/IV/91 of 30 December 1991, from the supplement to the Boletim
+/// Oficial no. 52 that the Government publishes: article 1's seven
+/// national holidays "with total cessation of all activities not
+/// permitted by law on Sundays", and Good Friday; article 3's Children's
+/// Day on 1 June, on which schools may stop their normal activity, is a
+/// school day off; article 2's two municipal holidays a year, chosen by
+/// each Municipal Assembly, are not carried. The Freedom and Democracy
+/// Day of 13 January is not in that law; it is carried from 2020, the
+/// earliest year a source read names it a national holiday, and the
+/// years 1992 to 2019 are a gap, the law that added it not having been
+/// read. Carnival and Ash Wednesday, which the Government gives as
+/// *tolerância de ponto* each year, are not holidays and not carried.
+/// The law moves nothing off a Sunday.
+pub static CABO_VERDE: RuleSet = RuleSet {
+    code: "CV",
+    english_name: "Cabo Verde",
+    rules: CV_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Lei n.º 16/IV/91, de 30 de Dezembro, Suplemento ao Boletim Oficial de Cabo \
+              Verde n.º 52 de 30 de Dezembro de 1991, pp. 10–11, from governo.cv, \
+              retrieved 2026-09-23; for 13 January, Vatican News, \"Cabo Verde comemora 13 \
+              de Janeiro\" (January 2020), and the list of national holidays of the \
+              Consulate-General in the Netherlands (conscv.nl)",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Guinea
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Decree D/2022/0526: "if Independence Day, New Year's Day or Aïd el-Fitr
+/// falls on a non-working day, the next working day is declared a
+/// holiday". Only those three rules substitute.
+static GN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: Some(2023),
+    valid_until: None,
+}];
+
+static GN_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Nouvel an", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Lundi de Pâques",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Labour Day",
+        "Fête internationale du travail",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Africa Day",
+        "Anniversaire de l'Union africaine",
+        Rule::gregorian(5, 25),
+    ),
+    HolidayRule::fixed_public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+    HolidayRule::public(
+        "Independence Day",
+        "Anniversaire de l'indépendance",
+        Rule::gregorian(10, 2),
+    ),
+    HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    hijri(
+        "Day after the Prophet's Birthday",
+        "Lendemain de la nuit du Maouloud",
+        3,
+        12,
+    ),
+    hijri(
+        "Day after the Night of Destiny",
+        "Lendemain de la nuit de Laylatoul Qadr",
+        9,
+        27,
+    ),
+    hijri_public("Eid al-Fitr", "Aïd el-Fitr", 10, 1),
+    hijri("Tabaski", "Jour de la Tabaski", 12, 10),
+    hijri("Day after Tabaski", "Lendemain de la Tabaski", 12, 11),
+];
+
+/// Guinea.
+///
+/// Decree D/2022/0526/PRG/CNRD/SGG of 2 November 2022 on the holidays,
+/// which the Labour Code leaves to presidential decree: twelve days off
+/// with pay for the public, private and mixed sectors, and "if
+/// Independence Day, New Year's Day or Aïd el-Fitr falls on a non-working
+/// day, the next working day is declared a holiday", which those three
+/// rules do from 2023. The decree's own text was not read — only its
+/// reading on the state media as the press reproduced it, which agree —
+/// so the table does not say what it replaced or claim anything earlier.
+/// The Maouloud day is "the day after the night of Maouloud" and the
+/// Night of Destiny's "the day after the night of Laylatoul Qadr",
+/// carried as 12 Rabi al-awwal and 27 Ramadan on the tabular Hijri
+/// calendar as Côte d'Ivoire's are; all the Islamic days approximate the
+/// dates the Ministry announces after the sighting.
+pub static GUINEA: RuleSet = RuleSet {
+    code: "GN",
+    english_name: "Guinea",
+    rules: GN_RULES,
+    substitution: GN_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Décret D/2022/0526/PRG/CNRD/SGG du 2 novembre 2022 relatif aux jours fériés, \
+              as Guinée Nondi (\"Guinée : les jours de fête et férié sont officiellement \
+              connus\", 3 November 2022) and Africa Guinée reproduce it, the decree's own \
+              text not read, retrieved 2026-09-23; Kalenews on the decree's number and \
+              Labour Code article 222.6",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Mali
+// ─────────────────────────────────────────────────────────────────────────
+
+static ML_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Day of Recovered Sovereignty",
+        "Journée nationale de la souveraineté retrouvée",
+        Rule::gregorian(1, 14),
+    )
+    .years(Some(2023), None),
+    HolidayRule::fixed_public(
+        "Armed Forces Day",
+        "Journée de l'Armée",
+        Rule::gregorian(1, 20),
+    ),
+    HolidayRule::fixed_public("Martyrs' Day", "Journée du 26 mars", Rule::gregorian(3, 26)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Lundi de Pâques",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Africa Day", "Journée de l'Afrique", Rule::gregorian(5, 25)),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Fête Nationale de la République du Mali",
+        Rule::gregorian(9, 22),
+    ),
+    HolidayRule::fixed_public("Christmas Day", "Fête de Noël", Rule::gregorian(12, 25)),
+    hijri("Prophet's Birthday", "Maouloud (Naissance)", 3, 12),
+    hijri("Prophet's Baptism", "Maouloud (Baptême)", 3, 18),
+    hijri("Eid al-Fitr", "Fête du Ramadan", 10, 1),
+    hijri("Tabaski", "Tabaski", 12, 10),
+];
+
+/// Mali.
+///
+/// Law 05-040 of 22 July 2005 on the legal holidays, from the Journal
+/// officiel of 10 September 2005: article 1's eleven legal holidays,
+/// "the days of Maouloud (Birth and Baptism)" among them, all off with
+/// pay under article 3. The Baptism is carried on 18 Rabi al-awwal, six
+/// days after the Birth, as the Ministry of Labour's days of 25 and 31
+/// August 2026 were, and like the other Islamic days it approximates the
+/// announced date on the tabular calendar. Article 2
+/// lets the Government declare the working day after "certain legal
+/// holidays" a holiday as well, as it did for 2 January 2026; those days
+/// are a decision each time and are not carried, nor is Achoura, which
+/// the Ministry has declared off in some years on no footing the author
+/// read. The Day of Recovered Sovereignty on 14 January was made a paid
+/// day off by a decree of January 2023, which was not read, only Studio
+/// Tamani's account of it. No Sunday rule.
+pub static MALI: RuleSet = RuleSet {
+    code: "ML",
+    english_name: "Mali",
+    rules: ML_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Loi n° 05-040 du 22 juillet 2005 relative aux fêtes légales en République \
+              du Mali, Journal officiel de la République du Mali no. 25 of 10 September \
+              2005 (sgg-mali.ml/JO/2005/mali-jo-2005-25.pdf), retrieved 2026-09-23; the \
+              Ministry of Labour's communiqués on the Maouloud of 2025 and 2026 as Bamada \
+              reports them; Studio Tamani, \"Mali : le 14 janvier désormais dédié à la \
+              souveraineté\", on the decree of 2023",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Oman
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -3284,4 +3804,1011 @@ pub static YEMEN: RuleSet = RuleSet {
               retrieved 2026-09-23; Yemen Post (16 August 2013) on Council of Ministers \
               resolution No. 179 of 2013 and the Friday and Saturday weekend; Wikipedia, \
               \"Public holidays in Yemen\", for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Cameroon
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 2 of law 73/5: "when a civil legal holiday falls on a Sunday or
+/// on a holiday, the following day is treated as that holiday" for work
+/// and pay. Only the four civil days substitute.
+static CM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: false,
+    on_collision: true,
+    valid_from: Some(1974),
+    valid_until: None,
+}];
+
+static CM_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
+    HolidayRule::public("Youth Day", "Fête de la Jeunesse", Rule::gregorian(2, 11)),
+    HolidayRule::fixed_public("Good Friday", "Vendredi saint", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+    HolidayRule::public("National Day", "Fête nationale", Rule::gregorian(5, 20)),
+    HolidayRule::fixed_public("Ascension", "Ascension", Rule::easter(ASCENSION)),
+    HolidayRule::fixed_public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+    HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    hijri(
+        "Eid al-Fitr",
+        "Fête de fin de Ramadan (Djouldé Soumaé)",
+        10,
+        1,
+    ),
+    hijri("Eid al-Adha", "Fête du Mouton (Djouldé Laihadji)", 12, 10),
+];
+
+/// Cameroon.
+///
+/// Law 73/5 of 7 December 1973 fixing the regime of the legal holidays,
+/// from the Ministry of Public Service's collection, with the changes of
+/// law 76/8 of 8 July 1976 as Camerlex summarises the regime: four civil
+/// holidays — New Year, Youth Day on 11 February, 1 May and the National
+/// Day on 20 May — and six religious ones — Ascension, Good Friday,
+/// 15 August, Christmas, "la fête de fin de Ramadan (Djouldé Soumaé)" and
+/// "la fête du Mouton (Djouldé Laihadji)", the two Eids on the tabular
+/// Hijri calendar as approximations of the sighted dates. Article 2:
+/// "when a civil legal holiday falls on a Sunday or on a holiday, the
+/// following day is treated as that holiday" for work and pay, which the
+/// four civil days do from 1974, the 1972 ordinance the law repealed not
+/// having been read. The President's power to declare, by decree each
+/// time, the day after a Sunday religious holiday, the eve or the morrow
+/// of a holiday on a Friday or a Tuesday, and since 1976 a day for an
+/// event of national importance is not carried. Nor is article 5's
+/// distinction between the civil days, when stopping work is compulsory,
+/// and the religious ones, when in the 1973 text it is not for workers
+/// over eighteen: all ten are days off here.
+pub static CAMEROON: RuleSet = RuleSet {
+    code: "CM",
+    english_name: "Cameroon",
+    rules: CM_RULES,
+    substitution: CM_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Loi n° 73/5 du 7 décembre 1973 fixant le régime des fêtes légales en \
+              République Unie du Cameroun, from the Ministry of Public Service's \
+              collection (minfopra.gov.cm) as the Internet Archive holds it, retrieved \
+              2026-09-23; Camerlex, \"Les jours fériés\", on the regime as loi n° 76/8 \
+              du 8 juillet 1976 amended it; NATLEX for the amending law's title",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Republic of the Congo
+// ─────────────────────────────────────────────────────────────────────────
+
+static CG_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Lundi de Pâques",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public("Labour Day", "Fête du travail", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Ascension", "Jeudi de l'Ascension", Rule::easter(ASCENSION)),
+    HolidayRule::fixed_public(
+        "Whit Monday",
+        "Lundi de Pentecôte",
+        Rule::easter(WHIT_MONDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Sovereign National Conference Day",
+        "Fête de la commémoration de la Conférence nationale souveraine",
+        Rule::gregorian(6, 10),
+    ),
+    HolidayRule::fixed_public("National Day", "Fête nationale", Rule::gregorian(8, 15)),
+    HolidayRule::fixed_public("All Saints' Day", "La Toussaint", Rule::gregorian(11, 1)),
+    HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+];
+
+/// Republic of the Congo.
+///
+/// Law 2-94 of 1 March 1994 fixing the holidays that are off and paid,
+/// from the signed text the Secretariat-General of the Government
+/// publishes, which repealed law 43-79 of 1979: nine days, with Easter
+/// Monday, Ascension and Whit Monday, and 10 June for the Sovereign
+/// National Conference, which closed on 10 June 1991. Article 2 lets the
+/// Minister of Labour declare other days off by order "on the occasion of
+/// important events", as order 976 of 30 April 2025 did for Friday 2 May
+/// 2025, citing law 2-94 as the law in force; those orders are not
+/// carried, and neither is 28 November, the Republic's anniversary, which
+/// is not in the law's list — whether an order made it a day off, and in
+/// which years, was not checked. The law says nothing of a holiday on a
+/// Sunday, so nothing moves.
+pub static CONGO: RuleSet = RuleSet {
+    code: "CG",
+    english_name: "Republic of the Congo",
+    rules: CG_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Loi n° 2-94 du 1er mars 1994 fixant les jours fériés, chômés et payés, the \
+              signed text and Unicongo's note of 2 April 1994, from the Secrétariat \
+              général du Gouvernement (sgg.cg), retrieved 2026-09-23; arrêté n° 976 du \
+              30 avril 2025, Journal officiel 2025 no. 19, on the same site; Wikipedia, \
+              \"Public holidays in the Republic of the Congo\", for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Democratic Republic of the Congo
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 2 of ordinances 14-010 and 23-042: a holiday that "coincides
+/// with a Sunday" is taken "the day before", as the Minister's
+/// communiqués applied it until 2025.
+static CD_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Backward,
+    skip_occupied: false,
+    on_collision: false,
+    valid_from: Some(2014),
+    valid_until: Some(2025),
+}];
+
+/// Nothing: no communiqué for 2027 or later was read, so a weekend holiday
+/// moved by one is a gap in those years.
+fn cd_unread(_: i64) -> Days {
+    Days::new()
+}
+
+static CD_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Nouvel an", Rule::gregorian(1, 1)),
+    HolidayRule::public(
+        "Martyrs of Independence Day",
+        "Journée des Martyrs de l'indépendance",
+        Rule::gregorian(1, 4),
+    ),
+    HolidayRule::public(
+        "Laurent-Désiré Kabila Day",
+        "Journée du héros national Laurent Désiré Kabila",
+        Rule::gregorian(1, 16),
+    ),
+    HolidayRule::public(
+        "Patrice Lumumba Day",
+        "Journée du héros national Patrice Emery Lumumba",
+        Rule::gregorian(1, 17),
+    ),
+    HolidayRule::public(
+        "Simon Kimbangu Day",
+        "Journée du combat de Simon Kimbangu et de la conscience africaine",
+        Rule::gregorian(4, 6),
+    )
+    .years(Some(2023), None),
+    HolidayRule::public("Labour Day", "Fête du travail", Rule::gregorian(5, 1)),
+    HolidayRule::public(
+        "Armed Forces Day",
+        "Journée des Forces armées",
+        Rule::gregorian(5, 17),
+    ),
+    HolidayRule::public(
+        "Independence Day",
+        "Journée de l'indépendance",
+        Rule::gregorian(6, 30),
+    ),
+    HolidayRule::public("Parents' Day", "Fête des parents", Rule::gregorian(8, 1)),
+    HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    // The Minister's communiqués: a Saturday holiday to the Friday in 2025,
+    // and every weekend holiday to the Monday in 2026.
+    HolidayRule::fixed_public(
+        "Martyrs of Independence Day",
+        "Journée des Martyrs de l'indépendance",
+        Rule::gregorian(1, 3),
+    )
+    .years(Some(2025), Some(2025)),
+    HolidayRule::fixed_public(
+        "Armed Forces Day",
+        "Journée des Forces armées",
+        Rule::gregorian(5, 16),
+    )
+    .years(Some(2025), Some(2025)),
+    HolidayRule::fixed_public(
+        "Martyrs of Independence Day",
+        "Journée des Martyrs de l'indépendance",
+        Rule::gregorian(1, 5),
+    )
+    .years(Some(2026), Some(2026)),
+    HolidayRule::fixed_public(
+        "Patrice Lumumba Day",
+        "Journée du héros national Patrice Emery Lumumba",
+        Rule::gregorian(1, 19),
+    )
+    .years(Some(2026), Some(2026)),
+    HolidayRule::fixed_public(
+        "Armed Forces Day",
+        "Journée des Forces armées",
+        Rule::gregorian(5, 18),
+    )
+    .years(Some(2026), Some(2026)),
+    HolidayRule::fixed_public("Parents' Day", "Fête des parents", Rule::gregorian(8, 3))
+        .years(Some(2026), Some(2026)),
+    HolidayRule::fixed_public(
+        "Weekend holiday moved by communiqué",
+        "Jour férié reporté par communiqué",
+        Rule::Tabulated {
+            function: cd_unread,
+            first_year: 1,
+            last_year: 0,
+        },
+    )
+    .years(Some(2027), None),
+];
+
+/// Democratic Republic of the Congo.
+///
+/// Ordinance 23-042 of 30 March 2023 fixing the list of legal holidays,
+/// which replaced ordinance 14-010 of 14 May 2014: the 2014 list of nine
+/// days, and from 2023 6 April, the day of Simon Kimbangu's struggle and
+/// of African consciousness. Article 2 of both: where a holiday "coincides
+/// with a Sunday, the leave for that day is taken the day before", the
+/// Saturday, carried from 2014 to 2025; the 1979 ordinance the 2014 one
+/// replaced was not read. Since decree 24/09 of 17 February 2024 made
+/// Saturday a day off in the public service, the Minister of Employment
+/// and Labour's communiqués have departed from the ordinance: in 2025 a
+/// Saturday holiday was brought forward to the Friday, 3 January and
+/// 16 May, while Sunday 6 April still gave Saturday 5 April (and Friday
+/// 4 April to the public services, which is not carried); in 2026 the
+/// Minister moved Sunday 4 January to Monday 5 January, withdrawing an
+/// earlier communiqué that gave the Saturday, and Saturday 17 January,
+/// Sunday 17 May and Saturday 1 August to 19 January, 18 May and
+/// 3 August. Those days are carried as the communiqués give them, and
+/// from 2027, which no communiqué read covers, a weekend holiday's move is
+/// reported as a gap. GENOCOST day on 2 August, commemorated since 2024,
+/// is not in the ordinance's list, and reports disagree on whether it was
+/// a day off in 2024; it is not carried, and neither are the other days
+/// the Minister declares off for an occasion.
+pub static DR_CONGO: RuleSet = RuleSet {
+    code: "CD",
+    english_name: "Democratic Republic of the Congo",
+    rules: CD_RULES,
+    substitution: CD_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Ordonnance n° 23-042 du 30 mars 2023 fixant la liste des jours fériés légaux \
+              (J.O. RDC, 15 May 2023) and ordonnance n° 14/010 du 14 mai 2014 (J.O. RDC \
+              no. 11, 1 June 2014), from droitcongolais.info, retrieved 2026-09-23; the \
+              Ministry of Employment and Labour's communiqués as ACP (2 April and 14 May \
+              2025, 12 January 2026), Congo Quotidien (2 January 2025), Opinion Info \
+              (31 December 2025, 13 May 2026) and Netic News (27 July 2026) report them; \
+              Actualite.cd (5 January 2026) on communiqués 010 and 011 of December 2025 \
+              and (13 January 2026) on ordinance 23-042 being in force; Radio Okapi (15 July \
+              2024) on GENOCOST",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Angola
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 6 of law 10/11 as enacted: a holiday on a Sunday is "transferred
+/// to the working day immediately after", except New Year, Carnival, All
+/// Souls and Christmas. Law 11/18 replaced it in September 2018; Sunday
+/// 4 February 2018, the one case that year before the change, is a rule of
+/// its own.
+static AO_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: Some(2011),
+    valid_until: Some(2017),
+}];
+
+/// The national holidays of article 2, each with the first year it is a
+/// holiday, for the bridges of article 6 as law 11/18 rewrote it.
+static AO_BRIDGED: &[(Rule, i64)] = &[
+    (Rule::gregorian(1, 1), i64::MIN),
+    (Rule::gregorian(2, 4), i64::MIN),
+    (Rule::gregorian(3, 8), i64::MIN),
+    (Rule::gregorian(3, 23), 2019),
+    (Rule::easter(SHROVE_TUESDAY), i64::MIN),
+    (Rule::gregorian(4, 4), i64::MIN),
+    (Rule::easter(GOOD_FRIDAY), i64::MIN),
+    (Rule::gregorian(5, 1), i64::MIN),
+    (Rule::gregorian(9, 17), i64::MIN),
+    (Rule::gregorian(11, 2), i64::MIN),
+    (Rule::gregorian(11, 11), i64::MIN),
+    (Rule::gregorian(12, 25), i64::MIN),
+];
+
+/// "When a national holiday falls on a Tuesday or a Thursday, work stops on
+/// the working day before or the day immediately after, Monday or Friday
+/// respectively": from the law's publication on 28 September 2018.
+fn ao_bridges(year: i64) -> Days {
+    let mut out = Days::new();
+    let Ok(in_force) = gregorian::to_fixed(2018, 9, 28) else {
+        return out;
+    };
+    for (rule, from) in AO_BRIDGED {
+        if year < *from {
+            continue;
+        }
+        for date in rule.days_in_year(year).as_slice() {
+            if *date < in_force {
+                continue;
+            }
+            match Weekday::from_rd(*date) {
+                Weekday::Tuesday => out.push(Rd(date.0 - 1)),
+                Weekday::Thursday => out.push(Rd(date.0 + 1)),
+                _ => {}
+            }
+        }
+    }
+    out
+}
+
+static AO_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Dia do Ano Novo", Rule::gregorian(1, 1)),
+    HolidayRule::public(
+        "Liberation War Day",
+        "Dia do Início da Luta Armada de Libertação Nacional",
+        Rule::gregorian(2, 4),
+    ),
+    // The Monday after Sunday 4 February 2018, under article 6 as it stood
+    // until 28 September 2018.
+    HolidayRule::fixed_public(
+        "Liberation War Day",
+        "Dia do Início da Luta Armada de Libertação Nacional",
+        Rule::gregorian(2, 5),
+    )
+    .years(Some(2018), Some(2018)),
+    HolidayRule::public(
+        "International Women's Day",
+        "Dia Internacional da Mulher",
+        Rule::gregorian(3, 8),
+    ),
+    HolidayRule::public(
+        "Southern Africa Liberation Day",
+        "Dia da Libertação da África Austral",
+        Rule::gregorian(3, 23),
+    )
+    .years(Some(2019), None),
+    HolidayRule::fixed_public("Carnival", "Dia do Carnaval", Rule::easter(SHROVE_TUESDAY)),
+    HolidayRule::public(
+        "Peace and National Reconciliation Day",
+        "Dia da Paz e da Reconciliação Nacional",
+        Rule::gregorian(4, 4),
+    ),
+    HolidayRule::fixed_public(
+        "Good Friday",
+        "Sexta-Feira Santa",
+        Rule::easter(GOOD_FRIDAY),
+    ),
+    HolidayRule::public(
+        "Labour Day",
+        "Dia Internacional do Trabalhador",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::public(
+        "National Heroes' Day",
+        "Dia do Fundador da Nação e do Herói Nacional",
+        Rule::gregorian(9, 17),
+    ),
+    HolidayRule::fixed_public("All Souls' Day", "Dia dos Finados", Rule::gregorian(11, 2)),
+    HolidayRule::public(
+        "Independence Day",
+        "Dia da Independência",
+        Rule::gregorian(11, 11),
+    ),
+    HolidayRule::fixed_public(
+        "Christmas and Family Day",
+        "Dia de Natal e da Família",
+        Rule::gregorian(12, 25),
+    ),
+    HolidayRule::fixed_public("Bridge day", "Ponte", Rule::Computed(ao_bridges)),
+    // Article 3's national celebration dates, on which "there is no
+    // suspension of work".
+    HolidayRule::observance(
+        "Martyrs of Colonial Repression Day",
+        "Dia dos Mártires da Repressão Colonial",
+        Rule::gregorian(1, 4),
+    ),
+    HolidayRule::observance(
+        "Veterans' Day",
+        "Dia do Antigo Combatente e Veterano da Pátria",
+        Rule::gregorian(1, 15),
+    )
+    .years(Some(2019), None),
+    HolidayRule::observance(
+        "Angolan Women's Day",
+        "Dia da Mulher Angolana",
+        Rule::gregorian(3, 2),
+    ),
+    HolidayRule::observance(
+        "Day of the Expansion of the Armed Struggle",
+        "Dia da Expansão da Luta Armada de Libertação Nacional",
+        Rule::gregorian(3, 15),
+    ),
+    HolidayRule::observance(
+        "Angolan Youth Day",
+        "Dia da Juventude Angolana",
+        Rule::gregorian(4, 14),
+    ),
+    HolidayRule::observance("Africa Day", "Dia de África", Rule::gregorian(5, 25)),
+    HolidayRule::observance(
+        "International Children's Day",
+        "Dia Internacional da Criança",
+        Rule::gregorian(6, 1),
+    ),
+    HolidayRule::observance(
+        "Human Rights Day",
+        "Dia Internacional dos Direitos Humanos",
+        Rule::gregorian(12, 10),
+    ),
+];
+
+/// Angola.
+///
+/// Law 10/11 of 16 February 2011 on the national and local holidays and
+/// the national celebration dates, as law 11/18 of 28 September 2018
+/// rewrote its articles 2, 3 and 6, both from AngoLEX: eleven national
+/// holidays, with Carnival on Shrove Tuesday, and Southern Africa
+/// Liberation Day on 23 March the twelfth from 2019. As enacted, article 6
+/// moved a holiday on a Sunday "to the working day immediately after",
+/// New Year, Carnival, All Souls and Christmas excepted; that is carried
+/// from 2011 to 2017, and for Sunday 4 February 2018 as the Monday. The
+/// rewritten article 6 replaced it on publication with a bridge — work
+/// stops on the Monday before a Tuesday holiday and on the Friday after a
+/// Thursday one — computed from 28 September 2018, which gives every
+/// Carnival its Monday from 2019; since then nothing moves off a Sunday.
+/// Article 3's national celebration dates, 15 January among them from
+/// 2019, are observances, "there being no suspension of work". Article
+/// 7's afternoons of 24 and 31 December, the municipal holidays and the
+/// Executive's tolerâncias de ponto are not carried. Law 7/03, which law
+/// 10/11 repealed, was not read.
+pub static ANGOLA: RuleSet = RuleSet {
+    code: "AO",
+    english_name: "Angola",
+    rules: AO_RULES,
+    substitution: AO_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Lei n.º 10/11 de 16 de Fevereiro, Lei dos Feriados Nacionais e Locais e Datas \
+              de Celebração Nacional, and Lei n.º 11/18 de 28 de Setembro amending its \
+              articles 2, 3 and 6, from AngoLEX (angolex.com), retrieved 2026-09-23; \
+              lex.ao for the latter's publication in the Diário da República, I Série \
+              n.º 147; Novo Jornal on the 2018 vote; the Ministério da Administração do \
+              Território's \"Efemérides\" page on the laws in force",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Rwanda
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 4 of Presidential Order 54/01 of 2017: a holiday on the weekend
+/// makes "the following working day" a holiday; "two consecutive official
+/// public holidays" on the weekend "are compensated in one working day that
+/// follows"; and two holidays on one day give "the following working day".
+/// The search does not go past a day already taken, which is how the 2022
+/// holidays were handled: a Sunday Christmas or New Year's Day is followed
+/// by a holiday, and the compensation "will not apply", as The New Times
+/// reported the Ministry's statement.
+static RW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: false,
+    on_collision: true,
+    valid_from: Some(2017),
+    valid_until: None,
+}];
+
+/// A holiday of the 2017 Order, which the table carries from that year.
+const fn rw(name: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::public(name, "", rule).years(Some(2017), None)
+}
+
+static RW_RULES: &[HolidayRule] = &[
+    rw("New Year's Day", Rule::gregorian(1, 1)),
+    rw("Day after New Year's Day", Rule::gregorian(1, 2)),
+    rw("National Heroes' Day", Rule::gregorian(2, 1)),
+    rw("Good Friday", Rule::easter(GOOD_FRIDAY)),
+    rw("Easter Monday", Rule::easter(EASTER_MONDAY)),
+    // "Except 07 April": never moved off the weekend.
+    HolidayRule::fixed_public(
+        "Genocide against the Tutsi Memorial Day",
+        "",
+        Rule::gregorian(4, 7),
+    )
+    .years(Some(2017), None),
+    rw("Labour Day", Rule::gregorian(5, 1)),
+    rw("Independence Day", Rule::gregorian(7, 1)),
+    rw("Liberation Day", Rule::gregorian(7, 4)),
+    // "Friday of the first week of August": the first Friday, as the
+    // Government's list for 2025 gives it, 1 August.
+    rw("Umuganura Day", Rule::nth(8, 1, Weekday::Friday)),
+    rw("Assumption Day", Rule::gregorian(8, 15)),
+    rw("Christmas Day", Rule::gregorian(12, 25)),
+    rw("Boxing Day", Rule::gregorian(12, 26)),
+    hijri_public("Eid al-Fitr", "", 10, 1).years(Some(2017), None),
+    hijri_public("Eid al-Adha", "", 12, 10).years(Some(2017), None),
+    // The two days the Ministry "exceptionally designated" for the festive
+    // season, when the Sunday Christmas and New Year's Day gave none.
+    HolidayRule::fixed_public("Additional public holiday", "", Rule::gregorian(12, 27))
+        .years(Some(2022), Some(2022)),
+    HolidayRule::fixed_public("Additional public holiday", "", Rule::gregorian(1, 3))
+        .years(Some(2023), Some(2023)),
+];
+
+/// Rwanda.
+///
+/// Presidential Order 54/01 of 24 February 2017 determining official
+/// public holidays, in force from its publication on 13 March 2017, which
+/// repealed Presidential Order 42/03 of 2015: article 3's fifteen days for
+/// the public and the private sector alike, Umuganura on the first Friday
+/// of August, and Eid al-Fitr and Eid al-Adha, "announced each year by
+/// Rwanda Moslems' Association", on the tabular Hijri calendar as
+/// approximations. Article 4 makes the following working day a holiday
+/// for one that falls on the weekend, 7 April excepted, compensates two
+/// consecutive weekend holidays with one day, and two holidays on the same
+/// day with one: a forward policy that does not go past a day already
+/// taken, so that a Saturday Christmas and Sunday Boxing Day give the one
+/// Monday, and a Sunday Christmas, followed by Boxing Day, gives nothing —
+/// which is what The New Times reported of 2022 from the statement in
+/// which the Ministry of Public Service and Labour "exceptionally
+/// designated" 27 December 2022 and 3 January 2023 as additional
+/// holidays, carried for those years. RwandaLII records
+/// no amendment of the Order. The 2015 Order was not read, so nothing
+/// before 2017 is stated. Other days the President or the Ministry
+/// declares, such as the one after an inauguration, are not carried; nor
+/// is the week of mourning after 7 April, which is not a holiday.
+pub static RWANDA: RuleSet = RuleSet {
+    code: "RW",
+    english_name: "Rwanda",
+    rules: RW_RULES,
+    substitution: RW_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Presidential Order n° 54/01 of 24/02/2017 determining official public holidays, \
+              Official Gazette no. 11 of 13 March 2017, articles 3 and 4, from the Laws.Africa \
+              copy on RwandaLII (rwandalii.org/akn/rw/act/po/2017/54), retrieved 2026-09-23; \
+              The New Times, \"Rwanda Announces Two Extra Public Holidays as Festive Season \
+              Kicks in\" (23 December 2022), as allAfrica published it and the Internet Archive \
+              holds it, allAfrica refusing this session's requests, for the Ministry's statement \
+              on 27 December 2022 and 3 January 2023; the High Commission in Tanzania's list for \
+              2025 (rwandaintanzania.gov.rw) for Umuganura on 1 August",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Burundi
+// ─────────────────────────────────────────────────────────────────────────
+
+static BI_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "New Year's Day",
+        "Premier Jour du nouvel an",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Unity Day",
+        "Fête de l'Unité et de la Réconciliation Nationales",
+        Rule::gregorian(2, 5),
+    ),
+    HolidayRule::fixed_public(
+        "Commemoration of the Assassination of President Cyprien Ntaryamira",
+        "Commémoration de l'Assassinat du Président Cyprien Ntaryamira",
+        Rule::gregorian(4, 6),
+    ),
+    HolidayRule::fixed_public("Ascension Day", "Ascension", Rule::easter(ASCENSION)),
+    HolidayRule::fixed_public(
+        "Labour Day",
+        "Fête Internationale du Travail",
+        Rule::gregorian(5, 1),
+    ),
+    // Pierre Nkurunziza died on 8 June 2020; the decree that made the day a
+    // holiday came into force on 7 June 2021.
+    HolidayRule::fixed_public(
+        "National Patriotism Day",
+        "Journée Nationale du Patriotisme et Commémoration de la Mort du Président Pierre Nkurunziza",
+        Rule::gregorian(6, 8),
+    )
+    .years(Some(2021), None),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Anniversaire de l'Indépendance",
+        Rule::gregorian(7, 1),
+    ),
+    HolidayRule::fixed_public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+    HolidayRule::fixed_public(
+        "Rwagasore Day",
+        "Commémoration de l'Assassinat du Héros National, le Prince Louis Rwagasore",
+        Rule::gregorian(10, 13),
+    ),
+    HolidayRule::fixed_public(
+        "Ndadaye Day",
+        "Commémoration de l'Assassinat du Président Melchior Ndadaye",
+        Rule::gregorian(10, 21),
+    ),
+    HolidayRule::fixed_public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
+    HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    hijri("Eid al-Fitr", "Aïd-El-Fithr", 10, 1),
+    hijri("Eid al-Adha", "Aïd-El-Hadj", 12, 10),
+];
+
+/// Burundi.
+///
+/// Decree 100/150 of 7 June 2021 amending decree 100/182 of 17 July 2006
+/// fixing the list and regime of public holidays, from the scan the
+/// Presidency published, article 1: the fourteen days "fériés, chômés et
+/// payés", Aïd-El-Fithr and Aïd-El-Hadj one day each on the tabular Hijri
+/// calendar as approximations. The Ministry of Foreign Affairs' embassy
+/// in Algiers lists the same fourteen for the present. The day of 8 June,
+/// for the death of Pierre Nkurunziza, runs from 2021, the decree coming
+/// into force on its signature the day before; the 2006 decree was not
+/// read, so no other day is dated. Article 4 moves a holiday that
+/// coincides with a Sunday to the next working day only "lorsqu'il
+/// paraîtra inopportun" that it be observed there — a decision each time,
+/// not a rule — and nothing is moved. The days declared by decree under
+/// article 3 are not carried.
+pub static BURUNDI: RuleSet = RuleSet {
+    code: "BI",
+    english_name: "Burundi",
+    rules: BI_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Décret n° 100/150 du 07 juin 2021 portant modification du décret n° 100/182 du \
+              17 juillet 2006 fixant la liste et le régime des jours fériés, the Presidency's \
+              scan (presidence.gov.bi, Liste-et-regime-des-jours-feries.pdf) as the Internet \
+              Archive holds it, the page now answering 404, retrieved 2026-09-23; the Embassy \
+              of Burundi in Algiers, \"Jours fériés\" (ambabualgerie.mae.gov.bi), retrieved the \
+              same day",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Madagascar
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A day on every one of the yearly decrees read, those for 2023 to 2026,
+/// carried from 2023.
+const fn mg(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, rule).years(Some(2023), None)
+}
+
+/// Nothing: the calendar of the Concertation Nationale, the Ministry's
+/// date for the day of culture and the electoral calendar were not read.
+fn mg_unread(_: i64) -> Days {
+    Days::new()
+}
+
+/// A day a decree names without its date, which another act fixes.
+const MG_UNDATED: Rule = Rule::Tabulated {
+    function: mg_unread,
+    first_year: 1,
+    last_year: 0,
+};
+
+static MG_RULES: &[HolidayRule] = &[
+    mg("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
+    // "Fériée et chômée uniquement pour les femmes".
+    HolidayRule::observance(
+        "International Women's Day",
+        "Journée internationale de la Femme",
+        Rule::gregorian(3, 8),
+    )
+    .years(Some(2023), None),
+    mg(
+        "Martyrs' Day",
+        "Journée commémorative des morts des évènements de 1947",
+        Rule::gregorian(3, 29),
+    ),
+    mg("Easter Sunday", "Pâques", Rule::easter(EASTER_SUNDAY)),
+    mg(
+        "Easter Monday",
+        "Lundi de Pâques",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    mg("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+    mg("Ascension Day", "Ascension", Rule::easter(ASCENSION)),
+    mg("Pentecost", "Pentecôte", Rule::easter(PENTECOST)),
+    mg(
+        "Whit Monday",
+        "Lundi de Pentecôte",
+        Rule::easter(WHIT_MONDAY),
+    ),
+    mg(
+        "Independence Day",
+        "Fête nationale de l'Indépendance",
+        Rule::gregorian(6, 26),
+    ),
+    mg("Assumption", "Assomption", Rule::gregorian(8, 15)),
+    mg("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
+    mg("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    hijri("Eid al-Fitr", "Eid Al-Fitr", 10, 1).years(Some(2023), None),
+    hijri("Eid al-Adha", "Eid Al-Adha", 12, 10).years(Some(2023), None),
+    // Article 2 of the 2024 decree: the communal and legislative election
+    // days of the electoral calendar.
+    HolidayRule::fixed_public("Election day", "Journée d'élections", MG_UNDATED)
+        .years(Some(2024), Some(2024)),
+    HolidayRule::fixed_public(
+        "Additional public holiday",
+        "Journée chômée et payée",
+        Rule::gregorian(4, 23),
+    )
+    .years(Some(2025), Some(2025))
+    .cited("Décret n° 2025-415 du 15 avril 2025"),
+    // Articles 2 and 3 of the 2026 decree.
+    HolidayRule::fixed_public("Malagasy New Year", "Taombaovao Malagasy", MG_UNDATED)
+        .years(Some(2026), None),
+    HolidayRule::fixed_public(
+        "National Culture Day",
+        "Journée nationale de la culture",
+        MG_UNDATED,
+    )
+    .years(Some(2026), None),
+];
+
+/// Madagascar.
+///
+/// The decree that fixes each year's list of "jours fériés, chômés et
+/// payés" — under article 81 of the 2004 Labour Code for 2023 and 2024
+/// and article 115 of Law 2024-014 from 2025 — read for four years:
+/// 2023-007, 2024-108, 2025-005 and 2026-006. All four give the same
+/// thirteen days, Easter and Pentecost on their Sundays and their Mondays,
+/// and 8 March "fériée et chômée uniquement pour les femmes", which the
+/// crate cannot scope to part of the workforce and carries as an
+/// observance; and Eid al-Fitr and Eid al-Adha "suivant le calendrier fixé
+/// par la Communauté musulmane", on the tabular Hijri calendar as
+/// approximations. They run from 2023 and are carried forward as the
+/// yearly decrees have repeated them; the decrees before 2023 were not
+/// read. The days named without a date are gaps: 2024's election days,
+/// fixed by the electoral calendar's decree, and from 2026 the Malagasy
+/// New Year, on "the calendar fixed at the Concertation Nationale", and
+/// the national day of culture, whose date the Ministry of Communication
+/// and Culture sets. Decree 2025-415 made 23 April 2025 a day off; other
+/// days declared by decree in these years were not searched for. The
+/// decrees list Sunday holidays as they fall, and nothing moves.
+pub static MADAGASCAR: RuleSet = RuleSet {
+    code: "MG",
+    english_name: "Madagascar",
+    rules: MG_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Décrets n° 2023-007 du 04 janvier 2023, n° 2024-108 du 31 janvier 2024, \
+              n° 2025-005 du 07 janvier 2025 and n° 2026-006 du 08 janvier 2026 fixant la liste \
+              des jours fériés, chômés et payés au titre de l'année, and décret n° 2025-415 du \
+              15 avril 2025, from the Centre National de Législation (cnlegis.gov.mg), retrieved \
+              2026-09-23",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Seychelles
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Section 4 of the Public Holidays Act: "where any public holiday, except
+/// Sunday, falls on a Sunday the next following day, not being itself a
+/// public holiday, shall be a public holiday".
+static SC_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+static SC_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::public("New Year Holiday", "", Rule::gregorian(1, 2)),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Saturday", "", Rule::easter(HOLY_SATURDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY))
+        .years(Some(2017), None),
+    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Corpus Christi", "Fête Dieu", Rule::easter(CORPUS_CHRISTI)),
+    HolidayRule::public("Liberation Day", "", Rule::gregorian(6, 5)).years(None, Some(2016)),
+    HolidayRule::public("National Day", "", Rule::gregorian(6, 18)).years(Some(1994), Some(2014)),
+    HolidayRule::public("Constitution Day", "", Rule::gregorian(6, 18)).years(Some(2015), None),
+    HolidayRule::public("Independence Day", "", Rule::gregorian(6, 29)).years(None, Some(2014)),
+    HolidayRule::public("Independence (National) Day", "", Rule::gregorian(6, 29))
+        .years(Some(2015), None),
+    HolidayRule::public("Assumption Day", "", Rule::gregorian(8, 15)),
+    HolidayRule::public("All Saints' Day", "", Rule::gregorian(11, 1)),
+    HolidayRule::public("Immaculate Conception", "", Rule::gregorian(12, 8)),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+];
+
+/// Seychelles.
+///
+/// The Public Holidays Act (Cap. 190) and its Schedule: the 1991 edition,
+/// with National Day on 18 June added by Act 5 of 1994, carried from that
+/// year; Act 11 of 2014, assented to on 23 July 2014, which renamed
+/// National Day Constitution Day and Independence Day "Independence
+/// (National) Day", carried from 2015, the first 18 June after it; and Act
+/// 3 of 2017, assented to and in force on 11 April 2017, which removed
+/// Liberation Day on 5 June, last kept in 2016, and made Easter Monday a
+/// holiday "from 2017" — that Act's text was not read, and its effect is
+/// the State House's and the Seychelles Nation's report of it, which the
+/// Central Bank's list for 2026 bears out. Section 4 moves a Sunday
+/// holiday to the next day that is not itself one, a forward policy that
+/// makes a Sunday New Year's Day the 3rd; a Saturday holiday stays. The
+/// Statute Law Revision Act of 2022 that also amends the Act was not read.
+/// The days the President proclaims by order under section 5 — 1 February
+/// 2026 by S.I. 2 of 2026, and the election and other days of earlier
+/// orders — are not carried.
+pub static SEYCHELLES: RuleSet = RuleSet {
+    code: "SC",
+    english_name: "Seychelles",
+    rules: SC_RULES,
+    substitution: SC_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Public Holidays Act (Cap. 190, 1991 edition) with the Public Holidays (Amendment) \
+              Act, 2014 (Act 11 of 2014), the Public Service Bureau's scan (psb.gov.sc), \
+              retrieved 2026-09-23; SeyLII's consolidation at 30 June 2012 as the Internet \
+              Archive holds it, SeyLII refusing this session's requests; State House, \
+              \"President Assents to Public Holiday (Amendment) Act\", and Seychelles Nation, \
+              \"Assembly approves repeal of June 5 as a public holiday, supports Easter \
+              Monday\", both 13 April 2017, for Act 3 of 2017; the Central Bank of Seychelles, \
+              \"Public Holidays\" for 2026 (cbs.sc); S.I. 2 of 2026 (gazette.sc)",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Mozambique
+// ─────────────────────────────────────────────────────────────────────────
+
+static MZ_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Ano Novo", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Heroes' Day",
+        "Dia dos Heróis Moçambicanos",
+        Rule::gregorian(2, 3),
+    ),
+    HolidayRule::fixed_public(
+        "Women's Day",
+        "Dia da Mulher Moçambicana",
+        Rule::gregorian(4, 7),
+    ),
+    HolidayRule::fixed_public(
+        "Workers' Day",
+        "Dia Internacional do Trabalhador",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Dia da Independência Nacional",
+        Rule::gregorian(6, 25),
+    ),
+    HolidayRule::fixed_public(
+        "Lusaka Accord Day",
+        "Dia dos Acordos de Lusaka",
+        Rule::gregorian(9, 7),
+    ),
+    HolidayRule::fixed_public(
+        "Armed Forces Day",
+        "Dia das Forças Armadas",
+        Rule::gregorian(9, 25),
+    ),
+    HolidayRule::fixed_public(
+        "Peace and Reconciliation Day",
+        "Dia da Paz e Reconciliação Nacional",
+        Rule::gregorian(10, 4),
+    ),
+    HolidayRule::fixed_public("Family Day", "Dia da Família", Rule::gregorian(12, 25)),
+];
+
+/// Mozambique.
+///
+/// Article 105 of the Labour Law, Lei n.º 13/2023 of 25 August 2023, in
+/// force 180 days after its publication, from the Boletim da República:
+/// the nine "feriados obrigatórios" of paragraph 2, with their names in
+/// the law. The same nine dates are in the Confederation of Business
+/// Associations' table from Lei n.º 23/2007, which the 2023 law repealed,
+/// so they carry no first year; the older names are not carried.
+/// Paragraph 6 reads, as published, "Sempre que o dia feriado coincida
+/// com o domingo, salvo nos casos de actividades laborais previstas no
+/// número 4" and stops, stating no consequence; commentaries read into it
+/// a move to the next working day, but the law does not say one, and
+/// nothing is moved. The "tolerâncias de ponto" the Minister grants under
+/// article 106, Good Friday and the Eids among them in practice, and the
+/// municipal holidays are not carried.
+pub static MOZAMBIQUE: RuleSet = RuleSet {
+    code: "MZ",
+    english_name: "Mozambique",
+    rules: MZ_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Lei n.º 13/2023, de 25 de Agosto, Lei do Trabalho, Boletim da República I série \
+              n.º 165, articles 105, 106 and 274, from the Tribunal Supremo's copy (ts.gov.mz), \
+              retrieved 2026-09-23; CTA, \"Feriados em Moçambique: Entre a Oportunidade \
+              Económica e a Desorganização Produtiva\" (cta.org.mz, May 2025), for the table \
+              under Lei n.º 23/2007",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Lesotho
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Nothing: the notices that changed the Schedule between 1996 and 2025
+/// were not read, so those years are a gap for the days they touched.
+fn ls_unread(_: i64) -> Days {
+    Days::new()
+}
+
+/// A day whose date in 1996–2025 depends on a notice not read.
+const LS_UNREAD: Rule = Rule::Tabulated {
+    function: ls_unread,
+    first_year: 1,
+    last_year: 0,
+};
+
+/// A day of the 1995 Act's Schedule that the 2026 list still gives on the
+/// same date, carried from the Act's first year.
+const fn ls(name: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::fixed_public(name, "", rule).years(Some(1996), None)
+}
+
+static LS_RULES: &[HolidayRule] = &[
+    ls("New Year's Day", Rule::gregorian(1, 1)),
+    ls("Moshoeshoe's Day", Rule::gregorian(3, 11)),
+    ls("Good Friday", Rule::easter(GOOD_FRIDAY)),
+    ls("Easter Monday", Rule::easter(EASTER_MONDAY)),
+    ls("Workers' Day", Rule::gregorian(5, 1)),
+    ls("Ascension Day", Rule::easter(ASCENSION)),
+    ls("National Independence Day", Rule::gregorian(10, 4)),
+    ls("Christmas Day", Rule::gregorian(12, 25)),
+    // The Schedule's Heroes Day on 4 April and King's Birthday on 2 May
+    // are not on the 2026 list; its Africa's Heroes' Day, King's Birthday
+    // and Boxing Day are not in the Schedule. When each changed is not
+    // known, so 1996 to 2025 are a gap for them.
+    HolidayRule::fixed_public("Heroes' Day", "", LS_UNREAD).years(Some(1996), Some(2025)),
+    HolidayRule::fixed_public("King's Birthday", "", LS_UNREAD).years(Some(1996), Some(2025)),
+    HolidayRule::fixed_public("Boxing Day", "", LS_UNREAD).years(Some(1996), Some(2025)),
+    HolidayRule::fixed_public("Africa's Heroes' Day", "", Rule::gregorian(5, 25))
+        .years(Some(2026), None),
+    HolidayRule::fixed_public("King Letsie III's Birthday", "", Rule::gregorian(7, 17))
+        .years(Some(2026), None),
+    HolidayRule::fixed_public("Boxing Day", "", Rule::gregorian(12, 26)).years(Some(2026), None),
+];
+
+/// Lesotho.
+///
+/// The Public Holidays Act 1995 (Act 7 of 1995), in operation from
+/// 1 January 1996, which repealed the Act of 1967: the Schedule's days,
+/// and section 3's power of the King, on the Minister of Home Affairs'
+/// advice, to appoint others by notice in the Gazette. The Act has no rule
+/// for a holiday on the weekend, and nothing moves; the Embassy's list
+/// for 2026 leaves Independence Day on its Sunday. Eight of the
+/// Schedule's days are on that list on the same dates and are carried from
+/// 1996. The other two, Heroes Day on 4 April and the King's Birthday on
+/// 2 May, are not, and the list has Africa's Heroes' Day on 25 May, King
+/// Letsie III's Birthday on 17 July and Boxing Day instead. The notices
+/// that made those changes were not read, so the list's three days are
+/// carried from 2026, and 1996 to 2025 are reported as a gap for Heroes'
+/// Day, the King's Birthday and Boxing Day rather than given a date. The
+/// list's Ascension Day of 29 May is 2025's; the day is carried by
+/// its rule, 14 May in 2026. Other days appointed under section 3 are not
+/// carried.
+pub static LESOTHO: RuleSet = RuleSet {
+    code: "LS",
+    english_name: "Lesotho",
+    rules: LS_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Public Holidays Act 1995 (Act No. 7 of 1995), sections 1 to 6 and the Schedule, \
+              CommonLII's copy (pha1995163.pdf) as the Internet Archive holds it, CommonLII and \
+              LesothoLII refusing this session's requests; the Embassy of the Kingdom of Lesotho \
+              in Washington, \"Public Holidays\" for 2026 (lesothoemb-usa.gov.ls), retrieved \
+              2026-09-23",
 };

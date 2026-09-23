@@ -42,6 +42,8 @@ Patrios = "Patrios"
 stil = "stil"
 # Swahili "Nane Nane", the eighth of the eighth, Tanzania's farmers' day.
 Nane = "Nane"
+# French "Réconciliation Nationales", in the name of Burundi's Unity Day.
+Nationales = "Nationales"
 # Fo, the first day of the Akan six-day week.
 Fo = "Fo"
 # German and Dutch month names.
@@ -135,3 +137,14 @@ Alo = "Alo"
 # Dutch "Chinees Nieuwjaar", Chinese New Year, in Suriname's Besluit Vrije
 # Dagen 1971.
 Chinees = "Chinees"
+# Italian "successivo", following: Vatican City's "Giorno successivo
+# all'Assunzione".
+successivo = "successivo"
+# Portuguese "Jornal da República", Timor-Leste's official gazette, and
+# "Datas Oficiais Comemorativas", official commemorative dates, in the
+# title of its holidays law.
+Jornal = "Jornal"
+Datas = "Datas"
+# Portuguese "Datas de Celebração Nacional", national celebration dates, in
+# the title of Angola's holidays law, and "Novo Jornal", the Luanda weekly
+# cited as a source.
