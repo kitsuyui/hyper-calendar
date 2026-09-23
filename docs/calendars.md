@@ -53,6 +53,7 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | Indian national civil (Śaka) | `indian` | `hc-calendars-solar` | Done |
 | Discordian | `discordian` | `hc-calendars-solar` | Done — the five seasons, the Erisian week and St. Tib's Day of the *Principia Discordia*, on the Gregorian leap rule; the eleven named holydays |
 | Nanakshahi (Sikh, 2003) | `nanakshahi` | `hc-calendars-solar` | Done — the 2003 calendar of fixed Gregorian month starts, year 1 in 1469; the SGPC's 2010 and 2014 revisions are the Bikrami calendar under the same name and are `hindu-solar-vikrami` and `hindu-lunar` |
+| Bangladeshi national calendar | `bangladeshi` | `hc-calendars-solar` | Done — the Bengali months from 14 April in the Bengali era, every month on a fixed Gregorian date; the 1966 committee's lengths, adopted in 1987, through 1425, and the 2019 revision's from 1426, when Ashvin gained a day and Falgun lost one. The Falgun leap day is taken to be the Gregorian one of the February Falgun spans, the source saying only "every leap year" |
 | Thai solar (Buddhist Era) | `buddhist` | `hc-calendars-solar` | Partial — the 1889–1940 April year start is not modelled |
 | Minguo (Republic of China) | `roc` | `hc-calendars-solar` | Done |
 | Juche (DPRK) | `juche` | `hc-calendars-solar` | Done |
