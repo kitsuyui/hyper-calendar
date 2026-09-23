@@ -145,6 +145,16 @@ pub struct Nengo {
     /// belongs to both eras, is a different table and this crate does not
     /// carry it.
     pub start: Option<Rd>,
+    /// The first day with no era in force, for an era that lapsed without a
+    /// successor rather than being replaced by one.
+    ///
+    /// Two did. 白雉 lapsed when Empress Saimei re-ascended the throne, its
+    /// last day being 白雉5年12月30日 = 655-02-11, and no era was named until
+    /// 朱鳥; 朱鳥 lapsed the year after Emperor Tenmu died, its last day
+    /// being 朱鳥元年閏12月30日 = 687-02-17, and none was named until 大宝 in
+    /// 701. Both dates are Julian and both come from the source above, which
+    /// marks each gap 元号は中断する.
+    pub lapsed: Option<Rd>,
 }
 
 impl Nengo {
@@ -289,7 +299,9 @@ pub fn stream(court: Court) -> impl Iterator<Item = &'static Nengo> {
     ALL.iter().filter(move |era| era.used_by(court))
 }
 
-/// The era in force on `rd` according to `court`.
+/// The era in force on `rd` according to `court`, or `None` on a day when
+/// no era was: from the lapse of 白雉 in 655 to 朱鳥 in 686, and from the
+/// lapse of 朱鳥 in 687 to 大宝 in 701. See [`Nengo::lapsed`].
 ///
 /// # Errors
 ///
@@ -314,7 +326,7 @@ pub fn stream(court: Court) -> impl Iterator<Item = &'static Nengo> {
 /// which month that was, because the lunisolar calendar Japan used then is
 /// not implemented anywhere in this workspace. See that module for exactly
 /// where the line falls.
-pub fn era_at(rd: Rd, court: Court) -> CalendarResult<&'static Nengo> {
+pub fn era_at(rd: Rd, court: Court) -> CalendarResult<Option<&'static Nengo>> {
     let court = match court {
         Court::Unified if is_nanbokucho(rd) => return Err(CalendarError::UnknownEra),
         Court::Unified if rd >= NANBOKUCHO_END => Court::Northern,
@@ -330,7 +342,11 @@ pub fn era_at(rd: Rd, court: Court) -> CalendarResult<&'static Nengo> {
             None => {}
         }
     }
-    found.ok_or(CalendarError::BeforeEpoch)
+    let era = found.ok_or(CalendarError::BeforeEpoch)?;
+    Ok(match era.lapsed {
+        Some(lapsed) if lapsed <= rd => None,
+        _ => Some(era),
+    })
 }
 
 /// The next dated era after `era` in `court`'s stream, if any.
@@ -586,8 +602,8 @@ mod tests {
             era_at(midway, Court::Unified),
             Err(CalendarError::UnknownEra)
         );
-        assert_eq!(era_at(midway, Court::Northern).map(|e| e.kanji), Ok("延文"));
-        assert_eq!(era_at(midway, Court::Southern).map(|e| e.kanji), Ok("正平"));
+        assert_eq!(kanji_at(midway, Court::Northern), Ok(Some("延文")));
+        assert_eq!(kanji_at(midway, Court::Southern), Ok(Some("正平")));
     }
 
     #[test]
@@ -604,13 +620,10 @@ mod tests {
         assert!(is_nanbokucho(NANBOKUCHO_START));
         assert!(!is_nanbokucho(NANBOKUCHO_END));
         // The Northern court's era carried on through the union.
+        assert_eq!(kanji_at(NANBOKUCHO_END, Court::Unified), Ok(Some("明徳")));
         assert_eq!(
-            era_at(NANBOKUCHO_END, Court::Unified).map(|e| e.kanji),
-            Ok("明徳")
-        );
-        assert_eq!(
-            era_at(Rd(NANBOKUCHO_END.0 - 1), Court::Southern).map(|e| e.kanji),
-            Ok("元中")
+            kanji_at(Rd(NANBOKUCHO_END.0 - 1), Court::Southern),
+            Ok(Some("元中"))
         );
     }
 
@@ -633,11 +646,49 @@ mod tests {
         for ((year, month, day), kanji) in cases {
             let rd = gregorian::to_fixed(year, month, day).expect("valid");
             assert_eq!(
-                era_at(rd, Court::Unified).map(|era| era.kanji),
-                Ok(kanji),
+                kanji_at(rd, Court::Unified),
+                Ok(Some(kanji)),
                 "{year}-{month}-{day}"
             );
         }
+    }
+
+    /// The era's kanji on a day, for comparing lookups.
+    fn kanji_at(rd: Rd, court: Court) -> CalendarResult<Option<&'static str>> {
+        era_at(rd, court).map(|era| era.map(|era| era.kanji))
+    }
+
+    /// 白雉 ran to 白雉5年12月30日 = 655-02-11 and 朱鳥 to 朱鳥元年閏12月30日 =
+    /// 687-02-17, both Julian, and neither had a successor until 朱鳥 and
+    /// 大宝, per 元号一覧 (日本).
+    #[test]
+    fn no_era_is_in_force_after_hakuchi_and_shucho_lapse() {
+        let day = |year, month, day| julian::to_fixed(year, month, day).expect("valid");
+        let cases = [
+            ((650, 3, 22), Some("白雉")),
+            ((655, 2, 11), Some("白雉")),
+            ((655, 2, 12), None),
+            ((670, 1, 1), None),
+            ((686, 8, 13), None),
+            ((686, 8, 14), Some("朱鳥")),
+            ((687, 2, 17), Some("朱鳥")),
+            ((687, 2, 18), None),
+            ((701, 5, 2), None),
+            ((701, 5, 3), Some("大宝")),
+        ];
+        for ((year, month, date), kanji) in cases {
+            assert_eq!(
+                kanji_at(day(year, month, date), Court::Unified),
+                Ok(kanji),
+                "{year}-{month}-{date} Julian"
+            );
+        }
+        assert!(
+            ALL.iter()
+                .filter(|era| era.lapsed.is_some())
+                .map(|era| era.kanji)
+                .eq(["白雉", "朱鳥"])
+        );
     }
 
     #[test]
