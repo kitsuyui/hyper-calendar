@@ -1847,6 +1847,116 @@ fn timor_leste_moves_nothing_off_its_sunday_weekend() {
     }
 }
 
+#[test]
+fn bhutan_keeps_the_days_of_the_ministry_of_home_affairs_lists() {
+    expect(
+        "BT",
+        None,
+        &[
+            (2025, 1, 30, "Traditional Day of Offering"),
+            (2025, 2, 28, "Losar"),
+            (2025, 3, 1, "Losar"),
+            (2025, 5, 7, "Death Anniversary of Zhabdrung"),
+            (2025, 10, 2, "Dassain"),
+            (2025, 11, 11, "Descending Day of Lord Buddha"),
+            (2026, 1, 2, "Winter Solstice"),
+            (2026, 2, 18, "Losar"),
+            (2026, 2, 21, "Birth Anniversary of His Majesty the King"),
+            (2026, 2, 23, "Birth Anniversary of His Majesty the King"),
+            (2026, 5, 2, "Birth Anniversary of the Third Druk Gyalpo"),
+            (2026, 5, 31, "Lord Buddha's Parinirvana"),
+            (2026, 6, 24, "Birth Anniversary of Guru Rinpoche"),
+            (2026, 7, 18, "First Sermon of Lord Buddha"),
+            (2026, 9, 23, "Blessed Rainy Day"),
+            (2026, 11, 1, "Coronation of His Majesty the King"),
+            (2026, 11, 1, "Descending Day of Lord Buddha"),
+            (
+                2026,
+                11,
+                11,
+                "Birth Anniversary of the Fourth Druk Gyalpo – Constitution Day",
+            ),
+            (2026, 12, 17, "National Day"),
+        ],
+    );
+    // Thimphu Drubchoe (17 September 2026) is Thimphu's alone, and nothing
+    // moves off the weekend: the King's birthday of Saturday 21 and Sunday
+    // 22 February 2026 gives no Tuesday.
+    expect_working("BT", None, &[(2026, 9, 17), (2026, 2, 24), (2026, 10, 2)]);
+    let calendar = HolidayCalendar::for_year(table("BT"), None, 2026);
+    assert!(calendar.is_weekend(ymd(2026, 2, 21)));
+    assert!(calendar.is_business_day(ymd(2026, 2, 20)));
+}
+
+#[test]
+fn bhutan_reports_the_years_its_lists_do_not_cover_as_gaps() {
+    assert!(HolidayCalendar::for_year(table("BT"), None, 2025).is_complete());
+    assert!(HolidayCalendar::for_year(table("BT"), None, 2026).is_complete());
+    let beyond = HolidayCalendar::for_year(table("BT"), None, 2027);
+    assert!(beyond.gaps().iter().any(|gap| gap.name == "Losar"));
+    // The royal and national days are Gregorian and remain known.
+    assert_eq!(beyond.name_on(ymd(2027, 12, 17)), Some("National Day"));
+}
+
+#[test]
+fn the_maldives_keeps_the_days_of_section_97_as_the_monetary_authority_lists_them() {
+    expect(
+        "MV",
+        None,
+        &[
+            (2025, 1, 1, "New Year's Day"),
+            (2025, 5, 1, "Labour Day"),
+            (2025, 7, 26, "Independence Day"),
+            (2025, 7, 27, "Independence Day"),
+            (2025, 11, 3, "Victory Day"),
+            (2026, 11, 11, "Republic Day"),
+            // The tabular Hijri calendar agrees with the Authority's 2026
+            // list on these.
+            (2026, 2, 18, "First Day of Ramadan"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 3, 22, "Eid al-Fitr"),
+            (2026, 5, 26, "Hajj Day"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 5, 30, "Eid al-Adha"),
+        ],
+    );
+    // The Hijri days are predictions: the list's National Day 2026 is
+    // Friday 14 August, and the tabular calendar says the 15th.
+    let calendar = HolidayCalendar::for_year(table("MV"), None, 2026);
+    let national_day = calendar
+        .in_year(2026)
+        .into_iter()
+        .find(|holiday| holiday.name == "National Day")
+        .unwrap_or_else(|| panic!("MV 2026: no National Day"));
+    assert_eq!(national_day.confidence, Confidence::Approximate);
+    assert!(
+        calendar
+            .on(ymd(2026, 7, 26))
+            .iter()
+            .all(|holiday| holiday.confidence == Confidence::Exact)
+    );
+    // Four days of Eid al-Adha from the 2017 list, three in 2016's.
+    let count = |year: i64| {
+        HolidayCalendar::for_year(table("MV"), None, year)
+            .in_year(year)
+            .iter()
+            .filter(|holiday| holiday.name == "Eid al-Adha")
+            .count()
+    };
+    assert_eq!(count(2016), 3);
+    assert_eq!(count(2017), 4);
+}
+
+#[test]
+fn the_maldives_moves_nothing_off_its_friday_and_saturday_weekend() {
+    // Eid al-Fitr 2026 is Friday to Sunday, and no day follows it.
+    expect_working("MV", None, &[(2026, 3, 23), (2025, 7, 28), (2025, 11, 4)]);
+    let calendar = HolidayCalendar::for_year(table("MV"), None, 2026);
+    assert!(calendar.is_weekend(ymd(2026, 3, 20)));
+    assert!(calendar.is_weekend(ymd(2026, 3, 21)));
+    assert!(calendar.is_business_day(ymd(2026, 3, 29)));
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // The Middle East and Africa
 // ─────────────────────────────────────────────────────────────────────────
@@ -7384,4 +7494,104 @@ fn samoa_gives_the_monday_and_tuesday_for_a_sunday_christmas_or_new_year() {
     expect_substitute("WS", None, 2022, (12, 25), (12, 27));
     // A Saturday holiday stays on the Saturday.
     expect_working("WS", None, &[(2026, 12, 28), (2027, 1, 4)]);
+}
+
+#[test]
+fn fiji_keeps_the_days_of_the_governments_yearly_lists() {
+    expect(
+        "FJ",
+        None,
+        &[
+            (2019, 9, 9, "Constitution Day"),
+            (2019, 11, 11, "Prophet Mohammed's Birthday"),
+            (2020, 4, 11, "Easter Saturday"),
+            (2021, 10, 10, "Fiji Day"),
+            (2021, 12, 27, "Christmas Day"),
+            (2022, 1, 3, "New Year's Day"),
+            (2022, 10, 25, "Diwali"),
+            (2023, 5, 15, "Girmit Day"),
+            (2023, 5, 29, "Ratu Sir Lala Sukuna Day"),
+            (2024, 5, 31, "Ratu Sir Lala Sukuna Day"),
+            (2024, 4, 1, "Easter Monday"),
+            (2025, 9, 8, "Prophet Mohammed's Birthday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 5, 15, "Girmit Day"),
+            (2026, 10, 10, "Fiji Day"),
+            (2026, 12, 28, "Boxing Day"),
+        ],
+    );
+    // The lists move New Year's Day 2022 and Boxing Day 2026 off the
+    // Saturday and leave Fiji Day 2026 on it; Constitution Day is gone from
+    // the 2023 list, and Girmit Day 2024 is kept on Monday 13 May, not on
+    // the 14th.
+    expect_working(
+        "FJ",
+        None,
+        &[
+            (2022, 1, 1),
+            (2026, 12, 26),
+            (2026, 10, 12),
+            (2023, 9, 7),
+            (2024, 5, 14),
+        ],
+    );
+}
+
+#[test]
+fn fiji_reports_the_years_its_lists_do_not_cover_as_gaps() {
+    assert!(HolidayCalendar::for_year(table("FJ"), None, 2019).is_complete());
+    assert!(HolidayCalendar::for_year(table("FJ"), None, 2026).is_complete());
+    let before = HolidayCalendar::for_year(table("FJ"), None, 2018);
+    assert!(before.gaps().iter().any(|gap| gap.name == "Fiji Day"));
+    let beyond = HolidayCalendar::for_year(table("FJ"), None, 2027);
+    assert!(beyond.gaps().iter().any(|gap| gap.name == "Diwali"));
+    // Easter is the Schedule's, and known in any year.
+    assert_eq!(beyond.name_on(ymd(2027, 3, 26)), Some("Good Friday"));
+}
+
+#[test]
+fn kiribati_keeps_the_days_of_the_beretitentis_orders() {
+    expect(
+        "KI",
+        None,
+        &[
+            (2025, 3, 7, "International Women's Day"),
+            (2025, 4, 25, "Special Day in honour of Pope Francis"),
+            (2025, 5, 2, "International Labour Day"),
+            (2025, 6, 23, "National Police Day"),
+            (2025, 7, 12, "National Day"),
+            (2025, 7, 14, "National Day"),
+            (2025, 12, 29, "Kiribati Holiday"),
+            (2026, 1, 2, "Kiribati Holiday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 4, 7, "National Health Day"),
+            (2026, 7, 10, "Gospel Day"),
+            (2026, 7, 14, "Kiribati Culture and Senior Citizens Day"),
+            (2026, 7, 15, "Kiribati Special Day"),
+            (2026, 8, 3, "National Youth and Children's Day"),
+            (2026, 10, 5, "World Teachers' Day"),
+            (2026, 12, 11, "Human Rights Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 28, "Boxing Day"),
+        ],
+    );
+    // The orders' own days and no others: Gospel Day 2026 is the Friday
+    // before Saturday 11 July, and the National Day week ends on Wednesday
+    // 15 July.
+    expect_working("KI", None, &[(2026, 7, 16), (2026, 4, 8), (2025, 12, 24)]);
+}
+
+#[test]
+fn kiribati_reports_the_years_its_orders_were_not_read_as_gaps() {
+    assert!(HolidayCalendar::for_year(table("KI"), None, 2025).is_complete());
+    assert!(HolidayCalendar::for_year(table("KI"), None, 2026).is_complete());
+    let before = HolidayCalendar::for_year(table("KI"), None, 2024);
+    assert!(before.gaps().iter().any(|gap| gap.name == "National Day"));
+    assert!(
+        !before
+            .gaps()
+            .iter()
+            .any(|gap| gap.name == "Special Day in honour of Pope Francis")
+    );
+    assert!(!HolidayCalendar::for_year(table("KI"), None, 2027).is_complete());
 }

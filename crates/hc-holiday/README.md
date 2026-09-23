@@ -93,20 +93,21 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**176 countries.** Albania, Algeria, Andorra, Angola, Antigua and Barbuda,
-Argentina, Armenia, Australia (eight states and territories), Austria,
-Azerbaijan, the Bahamas, Bahrain, Bangladesh, Barbados, Belarus, Belgium,
-Belize, Benin, Bolivia, Bosnia and Herzegovina, Botswana, Brazil, Brunei,
-Bulgaria, Burkina Faso, Burundi, Cabo Verde, Cambodia, Cameroon, Canada (federal
-plus the provincial days fixed by statute), Chad, Chile, China, Colombia, Costa
-Rica, Côte d'Ivoire, Croatia, Cuba, Cyprus, Czechia, Democratic Republic of the
-Congo, Denmark, Djibouti, Dominica, the Dominican Republic, Ecuador, Egypt, El
-Salvador, Estonia, Ethiopia, Finland, France (métropole plus Alsace-Moselle),
-Georgia, Germany (all 16 *Länder*), Ghana, Greece, Grenada, Guatemala, Guinea,
-Guyana, Haiti, Honduras, Hong Kong, Hungary, Iceland, India, Indonesia, Iran,
-Iraq, Ireland, Israel, Italy, Jamaica, Japan, Jordan, Kazakhstan, Kenya, Kuwait,
-Kyrgyzstan, Laos, Latvia, Lebanon, Lesotho, Libya, Liechtenstein, Lithuania,
-Luxembourg, Macau, Madagascar, Malawi, Malaysia, Mali, Malta, the Marshall
+**176 countries.** Albania, **177 countries.** Albania, Algeria, Andorra,
+Angola, Antigua and Barbuda, Argentina, Armenia, Australia (eight states and
+territories), Austria, Azerbaijan, the Bahamas, Bahrain, Bangladesh, Barbados,
+Belarus, Belgium, Belize, Benin, Bhutan, Bolivia, Bosnia and Herzegovina,
+Botswana, Brazil, Brunei, Bulgaria, Burkina Faso, Burundi, Cabo Verde, Cambodia,
+Cameroon, Canada (federal plus the provincial days fixed by statute), Chad,
+Chile, China, Colombia, Costa Rica, Croatia, Cuba, Cyprus, Czechia, Côte
+d'Ivoire, Democratic Republic of the Congo, Denmark, Djibouti, Dominica, the
+Dominican Republic, Ecuador, Egypt, El Salvador, Estonia, Ethiopia, Fiji,
+Finland, France (métropole plus Alsace-Moselle), Georgia, Germany (all 16
+*Länder*), Ghana, Greece, Grenada, Guatemala, Guinea, Guyana, Haiti, Honduras,
+Hong Kong, Hungary, Iceland, India, Indonesia, Iran, Iraq, Ireland, Israel,
+Italy, Jamaica, Japan, Jordan, Kazakhstan, Kenya, Kiribati, Kuwait, Kyrgyzstan,
+Laos, Latvia, Lebanon, Lesotho, Libya, Liechtenstein, Lithuania, Luxembourg,
+Macau, Madagascar, Malawi, Malaysia, the Maldives, Mali, Malta, the Marshall
 Islands, Mauritania, Mauritius, Mexico, Micronesia, Moldova, Monaco, Mongolia,
 Montenegro, Morocco, Mozambique, Myanmar, Namibia, Nauru, Nepal, the
 Netherlands, New Zealand, Nicaragua, Nigeria, North Macedonia, Norway, Oman,
@@ -116,7 +117,7 @@ Rwanda, Saint Kitts and Nevis, Saint Lucia, Saint Vincent and the Grenadines,
 Samoa, San Marino, Saudi Arabia, Senegal, Serbia, Seychelles, Singapore,
 Slovakia, Slovenia, the Solomon Islands, South Africa, South Korea, Spain, Sri
 Lanka, Suriname, Sweden, Switzerland, Syria, Taiwan, Tajikistan, Tanzania,
-Thailand, Timor-Leste, Tonga, Trinidad and Tobago, Tunisia, Türkiye,
+Thailand, Timor-Leste, Tonga, Trinidad and Tobago, Tunisia, Türkiye.
 Turkmenistan, Tuvalu, Uganda, Ukraine, the United Arab Emirates, the United
 Kingdom (three bank-holiday jurisdictions), the United States, Uruguay,
 Uzbekistan, Vanuatu, Vatican City, Venezuela, Vietnam, Yemen, Zambia, Zimbabwe.

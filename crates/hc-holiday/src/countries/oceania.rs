@@ -999,3 +999,342 @@ pub static SAMOA: RuleSet = RuleSet {
               (ag.gov.ws); Ministry of Commerce, Industry and Labour, \"Public holidays \
               calendar\" for 2025 to 2027 (mcil.gov.ws), retrieved 2026-09-23",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// The lists read day by day
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A lookup into a list of `(year, month, day, name)` for each holiday it
+/// names: the days of that name the list gives for `year`.
+macro_rules! listed_days {
+    ($table:ident; $($function:ident => $name:literal),* $(,)?) => {
+        $(
+            fn $function(year: i64) -> Days {
+                let mut out = Days::new();
+                for &(y, month, day, name) in $table {
+                    if y == year && name == $name {
+                        if let Ok(fixed) = gregorian::to_fixed(y, month, day) {
+                            out.push(fixed);
+                        }
+                    }
+                }
+                out
+            }
+        )*
+    };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Fiji
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year of the Ministry of Information's lists carried.
+const FJ_FIRST: i64 = 2019;
+/// The last.
+const FJ_LAST: i64 = 2026;
+
+/// Every day of the lists for 2019 to 2026 but the three of Easter, as the
+/// lists date them.
+static FJ_LISTED: &[(i64, u8, u8, &str)] = &[
+    // 2019
+    (2019, 1, 1, "New Year's Day"),
+    (2019, 9, 9, "Constitution Day"),
+    (2019, 10, 10, "Fiji Day"),
+    (2019, 10, 28, "Diwali"),
+    (2019, 11, 11, "Prophet Mohammed's Birthday"),
+    (2019, 12, 25, "Christmas Day"),
+    (2019, 12, 26, "Boxing Day"),
+    // 2020
+    (2020, 1, 1, "New Year's Day"),
+    (2020, 9, 7, "Constitution Day"),
+    (2020, 10, 10, "Fiji Day"),
+    (2020, 11, 2, "Prophet Mohammed's Birthday"),
+    (2020, 11, 16, "Diwali"),
+    (2020, 12, 25, "Christmas Day"),
+    (2020, 12, 28, "Boxing Day"),
+    // 2021
+    (2021, 1, 1, "New Year's Day"),
+    (2021, 9, 7, "Constitution Day"),
+    (2021, 10, 10, "Fiji Day"),
+    (2021, 10, 18, "Prophet Mohammed's Birthday"),
+    (2021, 11, 4, "Diwali"),
+    (2021, 12, 27, "Christmas Day"),
+    (2021, 12, 28, "Boxing Day"),
+    // 2022
+    (2022, 1, 3, "New Year's Day"),
+    (2022, 9, 7, "Constitution Day"),
+    (2022, 10, 7, "Prophet Mohammed's Birthday"),
+    (2022, 10, 10, "Fiji Day"),
+    (2022, 10, 25, "Diwali"),
+    (2022, 12, 26, "Christmas Day"),
+    (2022, 12, 27, "Boxing Day"),
+    // 2023
+    (2023, 1, 2, "New Year's Day"),
+    (2023, 5, 15, "Girmit Day"),
+    (2023, 5, 29, "Ratu Sir Lala Sukuna Day"),
+    (2023, 10, 2, "Prophet Mohammed's Birthday"),
+    (2023, 10, 10, "Fiji Day"),
+    (2023, 11, 13, "Diwali"),
+    (2023, 12, 25, "Christmas Day"),
+    (2023, 12, 26, "Boxing Day"),
+    // 2024
+    (2024, 1, 1, "New Year's Day"),
+    (2024, 5, 13, "Girmit Day"),
+    (2024, 5, 31, "Ratu Sir Lala Sukuna Day"),
+    (2024, 9, 16, "Prophet Mohammed's Birthday"),
+    (2024, 10, 10, "Fiji Day"),
+    (2024, 11, 1, "Diwali"),
+    (2024, 12, 25, "Christmas Day"),
+    (2024, 12, 26, "Boxing Day"),
+    // 2025
+    (2025, 1, 1, "New Year's Day"),
+    (2025, 5, 12, "Girmit Day"),
+    (2025, 5, 30, "Ratu Sir Lala Sukuna Day"),
+    (2025, 9, 8, "Prophet Mohammed's Birthday"),
+    (2025, 10, 10, "Fiji Day"),
+    (2025, 10, 21, "Diwali"),
+    (2025, 12, 25, "Christmas Day"),
+    (2025, 12, 26, "Boxing Day"),
+    // 2026
+    (2026, 1, 1, "New Year's Day"),
+    (2026, 5, 15, "Girmit Day"),
+    (2026, 5, 29, "Ratu Sir Lala Sukuna Day"),
+    (2026, 8, 24, "Prophet Mohammed's Birthday"),
+    (2026, 10, 10, "Fiji Day"),
+    (2026, 11, 9, "Diwali"),
+    (2026, 12, 25, "Christmas Day"),
+    (2026, 12, 28, "Boxing Day"),
+];
+
+listed_days! {
+    FJ_LISTED;
+    fj_new_year => "New Year's Day",
+    fj_girmit => "Girmit Day",
+    fj_sukuna => "Ratu Sir Lala Sukuna Day",
+    fj_constitution => "Constitution Day",
+    fj_prophet => "Prophet Mohammed's Birthday",
+    fj_fiji_day => "Fiji Day",
+    fj_diwali => "Diwali",
+    fj_christmas => "Christmas Day",
+    fj_boxing => "Boxing Day",
+}
+
+/// A day the lists give, for the years they cover.
+const fn fj(name: &'static str, function: fn(i64) -> Days) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        "",
+        Rule::Tabulated {
+            function,
+            first_year: FJ_FIRST,
+            last_year: FJ_LAST,
+        },
+    )
+}
+
+static FJ_RULES: &[HolidayRule] = &[
+    fj("New Year's Day", fj_new_year),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Saturday", "", Rule::easter(HOLY_SATURDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    fj("Girmit Day", fj_girmit),
+    fj("Ratu Sir Lala Sukuna Day", fj_sukuna),
+    fj("Constitution Day", fj_constitution),
+    fj("Prophet Mohammed's Birthday", fj_prophet),
+    fj("Fiji Day", fj_fiji_day),
+    fj("Diwali", fj_diwali),
+    fj("Christmas Day", fj_christmas),
+    fj("Boxing Day", fj_boxing),
+];
+
+/// Fiji — the public holidays as the Government's own yearly lists give
+/// them, 2019 to 2026.
+///
+/// The Public Holidays Act (Cap. 101) keeps the days of its Schedule as
+/// "close holidays" and gives the Monday for one on a Sunday "unless
+/// otherwise ordered by the Minister by notification in the Gazette";
+/// section 6 lets the Minister appoint special days. The Schedule has been
+/// amended since the 1985 edition read here — the amendments of 1994 and
+/// 2003 were read, any later ones not — and the days actually kept are the
+/// ones Cabinet approves and the Ministry of Information publishes each
+/// year: Constitution Day in the lists for 2019 to 2022 and not after,
+/// Girmit Day and Ratu Sir Lala Sukuna Day from the 2023 list, the
+/// Prophet's Birthday and Diwali on the days announced, and a holiday moved
+/// off a weekend in some years — New Year's Day 2022 and 2023, Christmas
+/// 2021 and 2022, Boxing Day 2020 and 2026 — and left on it in others, Fiji Day on
+/// the Saturday of 2020 and 2026 and the Sunday of 2021. No rule reproduces
+/// that, so every day but the three of Easter, which the Schedule names
+/// and every list keeps where it falls, is taken from the lists, and a year
+/// outside 2019–2026 reports them as a gap rather than a guess. Special
+/// days the Minister appoints, such as an election day, are not carried.
+/// The weekend is Saturday and Sunday, the days the lists move a holiday
+/// off when they move one.
+pub static FIJI: RuleSet = RuleSet {
+    code: "FJ",
+    english_name: "Fiji",
+    rules: FJ_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Public Holidays Act (Cap. 101), 1985 edition, sections 2 and 6 and Schedule, and \
+              the Public Holidays (Amendment) Acts 1994 (No. 14 of 1995) and 2003 (No. 8 of \
+              2003), PacLII's copies as the Internet Archive holds them, captured 2013-07-15 \
+              and 2009-01-08; Ministry of Information, \"Public Holidays\" \
+              (fiji.gov.fj/About-Fiji/Public-Holidays), the lists for 2019 to 2026 as the \
+              Internet Archive holds them, captured 2019-11-19, 2020-11-27, 2022-12-23, \
+              2023-05-04, 2024-04-18, 2025-09-09 and 2026-04-11, the 2026 list also at \
+              fiji.gov.fj/public-holidays captured 2026-08-12, fiji.gov.fj refusing this \
+              session's requests; retrieved 2026-09-23",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Kiribati
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year of the Beretitenti's orders carried.
+const KI_FIRST: i64 = 2025;
+/// The last.
+const KI_LAST: i64 = 2026;
+
+/// Every day of the orders for 2025 (as revised) and 2026 but Good Friday
+/// and Easter Monday, under one name for each holiday: the "in honour of"
+/// day an order gives beside or instead of the day itself is listed under
+/// the holiday's name.
+static KI_LISTED: &[(i64, u8, u8, &str)] = &[
+    // 2025, the revised order of 18 December 2025
+    (2025, 1, 1, "New Year's Day"),
+    (2025, 3, 7, "International Women's Day"),
+    (2025, 4, 7, "National Health Day"),
+    (2025, 4, 25, "Special Day in honour of Pope Francis"),
+    (2025, 5, 2, "International Labour Day"),
+    (2025, 6, 23, "National Police Day"),
+    (2025, 7, 11, "Gospel Day"),
+    (2025, 7, 12, "National Day"),
+    (2025, 7, 14, "National Day"),
+    (2025, 7, 15, "Kiribati Culture and Senior Citizens Day"),
+    (2025, 7, 16, "Kiribati Special Day"),
+    (2025, 8, 1, "National Youth and Children's Day"),
+    (2025, 10, 6, "World Teachers' Day"),
+    (2025, 12, 12, "Human Rights Day"),
+    (2025, 12, 25, "Christmas Day"),
+    (2025, 12, 26, "Boxing Day"),
+    (2025, 12, 29, "Kiribati Holiday"),
+    (2025, 12, 30, "Kiribati Holiday"),
+    (2025, 12, 31, "Kiribati Holiday"),
+    // 2026, the order of 18 December 2025
+    (2026, 1, 1, "New Year's Day"),
+    (2026, 1, 2, "Kiribati Holiday"),
+    (2026, 3, 9, "International Women's Day"),
+    (2026, 4, 7, "National Health Day"),
+    (2026, 5, 1, "International Labour Day"),
+    (2026, 6, 22, "National Police Day"),
+    (2026, 7, 10, "Gospel Day"),
+    (2026, 7, 13, "National Day"),
+    (2026, 7, 14, "Kiribati Culture and Senior Citizens Day"),
+    (2026, 7, 15, "Kiribati Special Day"),
+    (2026, 8, 3, "National Youth and Children's Day"),
+    (2026, 10, 5, "World Teachers' Day"),
+    (2026, 12, 11, "Human Rights Day"),
+    (2026, 12, 25, "Christmas Day"),
+    (2026, 12, 28, "Boxing Day"),
+    (2026, 12, 29, "Kiribati Holiday"),
+    (2026, 12, 30, "Kiribati Holiday"),
+    (2026, 12, 31, "Kiribati Holiday"),
+];
+
+listed_days! {
+    KI_LISTED;
+    ki_new_year => "New Year's Day",
+    ki_holiday => "Kiribati Holiday",
+    ki_women => "International Women's Day",
+    ki_health => "National Health Day",
+    ki_pope_francis => "Special Day in honour of Pope Francis",
+    ki_labour => "International Labour Day",
+    ki_police => "National Police Day",
+    ki_gospel => "Gospel Day",
+    ki_national => "National Day",
+    ki_culture => "Kiribati Culture and Senior Citizens Day",
+    ki_special => "Kiribati Special Day",
+    ki_youth => "National Youth and Children's Day",
+    ki_teachers => "World Teachers' Day",
+    ki_human_rights => "Human Rights Day",
+    ki_christmas => "Christmas Day",
+    ki_boxing => "Boxing Day",
+}
+
+/// A day the orders declare, for the years they cover.
+const fn ki(name: &'static str, function: fn(i64) -> Days) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        "",
+        Rule::Tabulated {
+            function,
+            first_year: KI_FIRST,
+            last_year: KI_LAST,
+        },
+    )
+}
+
+static KI_RULES: &[HolidayRule] = &[
+    ki("New Year's Day", ki_new_year),
+    ki("Kiribati Holiday", ki_holiday),
+    ki("International Women's Day", ki_women),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    ki("National Health Day", ki_health),
+    // Declared by the revised order for 2025 alone.
+    ki("Special Day in honour of Pope Francis", ki_pope_francis).years(Some(2025), Some(2025)),
+    ki("International Labour Day", ki_labour),
+    ki("National Police Day", ki_police),
+    ki("Gospel Day", ki_gospel),
+    ki("National Day", ki_national),
+    ki("Kiribati Culture and Senior Citizens Day", ki_culture),
+    ki("Kiribati Special Day", ki_special),
+    ki("National Youth and Children's Day", ki_youth),
+    ki("World Teachers' Day", ki_teachers),
+    ki("Human Rights Day", ki_human_rights),
+    ki("Christmas Day", ki_christmas),
+    ki("Boxing Day", ki_boxing),
+];
+
+/// Kiribati — the days the Beretitenti's orders under the Public Holidays
+/// Ordinance declare for 2025 and 2026.
+///
+/// The Ordinance (Cap. 81) keeps the days of its Schedule — the one the
+/// Public Holidays (Amendment) Act 2002 substituted — and gives the Monday
+/// for one on a Saturday or a Sunday "unless otherwise ordered by the
+/// Minister by notice". Section 6 lets the Minister alter the days in any
+/// year, and section 9, added in 2005, amend the Schedule by notice. The
+/// orders for 2025, as revised on 18 December 2025, and for 2026 list every
+/// day of the year's holidays, and they are tabulated as the orders give
+/// them, the "in honour of" day standing for a holiday moved off a weekend
+/// or kept beside it: Gospel Day on Friday 10 July 2026, the day before a
+/// Saturday 11 July; National Day on Saturday 12 July 2025 and on Monday
+/// 14 July as well; Boxing Day on Monday 28 December 2026. The names are
+/// unified across the two years. Good Friday and Easter Monday, in the
+/// Schedule and in both orders, are carried by rule; the rest are reported
+/// as a gap in a year outside 2025–2026. Each order also keeps "any day
+/// appointed to be a public holiday under section 2" that it does not list;
+/// the Schedule as amended by notice was not read, and nothing beyond the
+/// orders' lists is carried. The Public Service Office's page for 2025,
+/// which puts National Police Day on "Friday, 23rd June" and lacks days the
+/// revised order has, was not used.
+pub static KIRIBATI: RuleSet = RuleSet {
+    code: "KI",
+    english_name: "Kiribati",
+    rules: KI_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Public Holidays Ordinance (Cap. 81), 1977 revised edition, sections 2 and 6 \
+              and Schedule, and the Public Holidays (Amendment) Acts 1992, 2002 and 2005, \
+              PacLII's copies as the Internet Archive holds them, captured 2015-08-28 and \
+              2024-12-23; the Orders under sections 6 and 9 declaring the public holidays \
+              for 2025 (revised) and 2026, dated 18 December 2025 (PH_2025_revised_181225.pdf, \
+              PH_2026_181225.pdf, president.gov.ki, Gazettes & Instruments), the 2026 list \
+              also from the Public Service Office (pso.gov.ki); retrieved 2026-09-23",
+};

@@ -4843,3 +4843,259 @@ pub static TIMOR_LESTE: RuleSet = RuleSet {
               holidays for 2011, 2020 and 2022 to 2026 (timor-leste.gov.tl) — all \
               retrieved 2026-09-23",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Bhutan
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year of the Ministry of Home Affairs' lists carried.
+const BT_FIRST: i64 = 2025;
+/// The last.
+const BT_LAST: i64 = 2026;
+
+/// The days of the lists that are on the Bhutanese calendar, or that the
+/// lists alone date, as the lists for 2025 and 2026 give them.
+static BT_LISTED: &[(i64, u8, u8, &str)] = &[
+    // 2025, the Wood Female Snake year
+    (2025, 1, 2, "Winter Solstice"),
+    (2025, 1, 30, "Traditional Day of Offering"),
+    (2025, 2, 28, "Losar"),
+    (2025, 3, 1, "Losar"),
+    (2025, 5, 7, "Death Anniversary of Zhabdrung"),
+    (2025, 6, 11, "Lord Buddha's Parinirvana"),
+    (2025, 7, 5, "Birth Anniversary of Guru Rinpoche"),
+    (2025, 7, 28, "First Sermon of Lord Buddha"),
+    (2025, 9, 23, "Blessed Rainy Day"),
+    (2025, 10, 2, "Dassain"),
+    (2025, 11, 11, "Descending Day of Lord Buddha"),
+    // 2026, the Fire Male Horse year
+    (2026, 1, 2, "Winter Solstice"),
+    (2026, 1, 19, "Traditional Day of Offering"),
+    (2026, 2, 18, "Losar"),
+    (2026, 2, 19, "Losar"),
+    (2026, 4, 26, "Death Anniversary of Zhabdrung"),
+    (2026, 5, 31, "Lord Buddha's Parinirvana"),
+    (2026, 6, 24, "Birth Anniversary of Guru Rinpoche"),
+    (2026, 7, 18, "First Sermon of Lord Buddha"),
+    (2026, 9, 23, "Blessed Rainy Day"),
+    (2026, 10, 21, "Dassain"),
+    (2026, 11, 1, "Descending Day of Lord Buddha"),
+];
+
+/// A lookup into [`BT_LISTED`] for each holiday it names: the days of that
+/// name the list for `year` gives.
+macro_rules! bt_listed {
+    ($($function:ident => $name:literal),* $(,)?) => {
+        $(
+            fn $function(year: i64) -> Days {
+                let mut out = Days::new();
+                for &(y, month, day, name) in BT_LISTED {
+                    if y == year && name == $name {
+                        if let Ok(fixed) = gregorian::to_fixed(y, month, day) {
+                            out.push(fixed);
+                        }
+                    }
+                }
+                out
+            }
+        )*
+    };
+}
+
+bt_listed! {
+    bt_winter_solstice => "Winter Solstice",
+    bt_offering => "Traditional Day of Offering",
+    bt_losar => "Losar",
+    bt_zhabdrung => "Death Anniversary of Zhabdrung",
+    bt_parinirvana => "Lord Buddha's Parinirvana",
+    bt_guru_rinpoche => "Birth Anniversary of Guru Rinpoche",
+    bt_first_sermon => "First Sermon of Lord Buddha",
+    bt_rainy_day => "Blessed Rainy Day",
+    bt_dassain => "Dassain",
+    bt_descending_day => "Descending Day of Lord Buddha",
+}
+
+/// A day the lists date, for the years they cover.
+const fn bt(name: &'static str, function: fn(i64) -> Days) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        "",
+        Rule::Tabulated {
+            function,
+            first_year: BT_FIRST,
+            last_year: BT_LAST,
+        },
+    )
+}
+
+static BT_RULES: &[HolidayRule] = &[
+    bt("Winter Solstice", bt_winter_solstice),
+    bt("Traditional Day of Offering", bt_offering),
+    HolidayRule::fixed_public(
+        "Birth Anniversary of His Majesty the King",
+        "",
+        Rule::gregorian(2, 21),
+    ),
+    HolidayRule::fixed_public(
+        "Birth Anniversary of His Majesty the King",
+        "",
+        Rule::gregorian(2, 22),
+    ),
+    HolidayRule::fixed_public(
+        "Birth Anniversary of His Majesty the King",
+        "",
+        Rule::gregorian(2, 23),
+    ),
+    bt("Losar", bt_losar),
+    HolidayRule::fixed_public(
+        "Birth Anniversary of the Third Druk Gyalpo",
+        "",
+        Rule::gregorian(5, 2),
+    ),
+    bt("Death Anniversary of Zhabdrung", bt_zhabdrung),
+    bt("Lord Buddha's Parinirvana", bt_parinirvana),
+    bt("Birth Anniversary of Guru Rinpoche", bt_guru_rinpoche),
+    bt("First Sermon of Lord Buddha", bt_first_sermon),
+    bt("Blessed Rainy Day", bt_rainy_day),
+    bt("Dassain", bt_dassain),
+    HolidayRule::fixed_public(
+        "Coronation of His Majesty the King",
+        "",
+        Rule::gregorian(11, 1),
+    ),
+    bt("Descending Day of Lord Buddha", bt_descending_day),
+    HolidayRule::fixed_public(
+        "Birth Anniversary of the Fourth Druk Gyalpo – Constitution Day",
+        "",
+        Rule::gregorian(11, 11),
+    ),
+    HolidayRule::fixed_public("National Day", "", Rule::gregorian(12, 17)),
+];
+
+/// Bhutan — the government holidays of the Ministry of Home Affairs' lists
+/// for 2025 and 2026.
+///
+/// The royal and national days are the same Gregorian dates in both lists
+/// and are carried by rule: the King's birthday on 21 to 23 February, the
+/// Third Druk Gyalpo's on 2 May, the Coronation on 1 November, the Fourth
+/// Druk Gyalpo's birthday and Constitution Day on 11 November, and National
+/// Day on 17 December. They are the present reign's, and no years are
+/// claimed for them. Everything else — Losar, the Buddhist days, the
+/// Traditional Day of Offering and Dassain on the Bhutanese lunar calendar,
+/// which the crate does not have, and the Winter Solstice and the Blessed
+/// Rainy Day, which fall on the same dates in both years but for which no
+/// rule was read — is taken from the two lists, and a year outside 2025–
+/// 2026 reports them as a gap. The lists' Thimphu Drubchoe and Thimphu
+/// Tshechu are for Thimphu only, and the other districts' tshechu days are
+/// "confirmed by the respective Dzongkhag Administration"; none is carried.
+/// The names are the lists' English ones, the 2025 list's "Losar Wood
+/// Female Dragon Year" among them shortened to Losar.
+///
+/// The weekend is Saturday and Sunday, the civil service's "weekly off
+/// days (Saturdays and Sundays)" of the Bhutan Civil Service Rules; the
+/// lists move nothing off it, the King's birthday of Saturday 21 and Sunday
+/// 22 February 2026 among them.
+pub static BHUTAN: RuleSet = RuleSet {
+    code: "BT",
+    english_name: "Bhutan",
+    rules: BT_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Ministry of Home Affairs, \"Government Holidays list\" for the Wood Female \
+              Snake year 2025 and for the Wood Female Snake and Fire Male Horse years \
+              2025-2026, in the Ministry's calendars Calendar_2025.pdf and calender-2026.pdf \
+              (moha.gov.bt); Royal Civil Service Commission, Bhutan Civil Service Rules and \
+              Regulations 2023, section 8.7.5, as the Internet Archive holds it, captured \
+              2024-01-18, rcsc.gov.bt refusing this session's requests; retrieved 2026-09-23",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Maldives
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Friday and Saturday. Section 97 of the Employment Act makes every Friday
+/// a public holiday, and the government works "Sunday to Thursday", as the
+/// Ministry of Economic Development and Trade's gazette notice of 27 March
+/// 2024 puts its hours.
+static MV_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Friday, Weekday::Saturday],
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// A day of the Hijri calendar, on the tabular calendar and approximate:
+/// the Maldives keeps it on the sighting.
+const fn mv_hijri(name: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        "",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, month, day),
+    )
+    .approximate()
+}
+
+static MV_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "", Rule::gregorian(1, 1)),
+    mv_hijri("First Day of Ramadan", 9, 1),
+    mv_hijri("Eid al-Fitr", 10, 1),
+    mv_hijri("Eid al-Fitr", 10, 2),
+    mv_hijri("Eid al-Fitr", 10, 3),
+    HolidayRule::fixed_public("Labour Day", "", Rule::gregorian(5, 1)),
+    mv_hijri("Hajj Day", 12, 9),
+    mv_hijri("Eid al-Adha", 12, 10),
+    mv_hijri("Eid al-Adha", 12, 11),
+    mv_hijri("Eid al-Adha", 12, 12),
+    // Three days in the list for 2016, four in every list from 2017.
+    mv_hijri("Eid al-Adha", 12, 13).years(Some(2017), None),
+    mv_hijri("Islamic New Year", 1, 1),
+    HolidayRule::fixed_public("Independence Day", "", Rule::gregorian(7, 26)),
+    HolidayRule::fixed_public("Independence Day", "", Rule::gregorian(7, 27)),
+    mv_hijri("National Day", 3, 1),
+    mv_hijri("Prophet Muhammad's Birthday", 3, 12),
+    mv_hijri("The Day Maldives Embraced Islam", 4, 2),
+    HolidayRule::fixed_public("Victory Day", "", Rule::gregorian(11, 3)),
+    HolidayRule::fixed_public("Republic Day", "", Rule::gregorian(11, 11)),
+];
+
+/// The Maldives — the public holidays of section 97 of the Employment Act,
+/// dated as the Maldives Monetary Authority's holiday lists for 2016 to 2026
+/// date them.
+///
+/// Section 97 defines a public holiday as a Friday or one of ten named
+/// days, and dates none of them. The Authority's lists add New Year's Day,
+/// Labour Day and the Islamic New Year, and give Independence Day two days,
+/// 26 and 27 July, Eid al-Fitr three, and Eid al-Adha, after Hajj Day,
+/// four — three in 2016, the fourth from the 2017 list. The civil days are
+/// on their Gregorian dates. The Hijri ones are on the tabular Hijri
+/// calendar and approximate, the country keeping them on the sighting:
+/// the first of Ramadan, 1 to 3 Shawwal, Hajj Day on 9 Dhu al-Hijjah and
+/// the Eid from the 10th to the 13th, 1 Muharram, National Day on 1 Rabi'
+/// al-Awwal, the Prophet's Birthday on the 12th, and the Day the Maldives
+/// Embraced Islam on 2 Rabi' al-Akhir, which is where the lists put it,
+/// nineteen or twenty days after the Prophet's Birthday in every list from
+/// 2017.
+///
+/// The government holidays the President declares one by one — beside an
+/// Eid, on the day of the Presidential Address, for an election — and those
+/// of the last ten days of Ramadan are not carried, though a list of the
+/// Authority's sometimes has one. The weekend is Friday and Saturday, and
+/// nothing is moved off it.
+pub static MALDIVES: RuleSet = RuleSet {
+    code: "MV",
+    english_name: "Maldives",
+    rules: MV_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: MV_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Employment Act, Law No. 2/2008, section 97, in the Labour Relations Authority's \
+              consolidated unofficial English translation (lra.gov.mv); Maldives Monetary \
+              Authority, \"Bank Holidays\", the lists for 2016 to 2026 (mma.gov.mv, \
+              JSON/holidays.json); Ministry of Economic Development and Trade, gazette notice \
+              (IUL)101-AS/1/2024/34 of 27 March 2024 (gazette.gov.mv), for the working week; \
+              retrieved 2026-09-23",
+};
