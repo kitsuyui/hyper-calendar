@@ -183,9 +183,10 @@ operations return `Result`; infallible ones are proved infallible by
 construction.
 
 The `Add`, `Sub` and `Neg` operators on `Duration`, and the `AddAssign` and
-`SubAssign` built on them, are the deliberate exception: they panic on
-overflow so that ordinary arithmetic reads normally, and each has a
-`checked_*` twin.
+`SubAssign` built on them, are the deliberate exception, together with the
+`Add` and `Sub` operators on `Rd` and `Rd::days_since`: they panic on
+overflow, in release builds too, so that ordinary arithmetic reads normally,
+and each has a `checked_*` twin.
 
 ## 9. No dependencies without a reason
 
