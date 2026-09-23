@@ -160,6 +160,15 @@ Ordered by how well the sources can be cited, not by importance.
 | Canada 🇨🇦 | Federal plus the provincial days fixed by statute |
 | Australia 🇦🇺 | National plus all six states and both territories |
 | New Zealand 🇳🇿 | Including mondayisation from 2014, and Matariki over 2022–2035 — the Act schedules to 2052, and a calendar past 2035 reports it as a gap rather than dropping it |
+| Micronesia 🇫🇲 | Title 1, chapter 6: the national holidays with section 602's Friday and Monday, Veterans' day from 2004, Culture and Tradition Day from 2010, Presidents Day and the Veterans Day name from 2021 |
+| Marshall Islands 🇲🇭 | The 1988 Act's Schedule as amended to 2015, the Friday holidays by weekday, section 902's Friday and Monday; General Election Day not carried |
+| Nauru 🇳🇷 | Section 81 of the Public Service Act 2016 with its Monday, and Monday and Tuesday, for a weekend; the President's declared days tabulated from the 2023, 2024 and 2026 gazettes, other years a gap |
+| Palau 🇵🇼 | 1 PNCA §§ 701–702: the nine legal holidays with the Friday and Monday rule, Family Day on the fourth Friday of November |
+| Solomon Islands 🇸🇧 | Cap. 151's Schedule with the Sunday rule and the Tuesday after a Monday 26 December; the Sovereign's Birthday, the provincial days and the notices' Saturday-to-Friday practice not carried |
+| Tonga 🇹🇴 | The Act's section 2 as the Prime Minister's Office applies it in 2024 and 2026: three days to a Monday by weekday, the royal birthdays of the reign off a Sunday, the rest where they fall |
+| Tuvalu 🇹🇻 | Cap. 4.50's 2022 Schedule with the Monday for a weekend and the Tuesday for Tuvalu Day and Boxing Day; National Children's Day, dated from an undefined White Sunday, not carried |
+| Vanuatu 🇻🇺 | Cap. 114's fourteen days with the Sunday rule and the Tuesday for a Monday Family Day, dated and named as the Government lists them; provincial days not carried |
+| Samoa 🇼🇸 | The 2008 Act with the Monday, and Tuesday, for a Sunday, Independence Day on 1 June as the Ministry's calendar gives it, the three Mondays after the second Sundays of May, August and October |
 | Brazil 🇧🇷 | Including Consciência Negra from 2024 |
 | Mexico 🇲🇽 | Including the 2006 Monday reform and the six-yearly presidential handover |
 | Saudi Arabia 🇸🇦 | Umm al-Qura based, with the 2013 weekend change |
@@ -198,14 +207,26 @@ Ordered by how well the sources can be cited, not by importance.
 | Belize 🇧🇿 | The Government's yearly notices under Chapter 289, the Act itself unread: Sunday to Monday, the Second Schedule's two days to the nearest Monday, the Tuesday and Wednesday moves the notices show |
 | Guyana 🇬🇾 | Chapter 19:07 s. 3 with "if that day is a Sunday, the following day" and the section 6 days by the yearly lists; Phagwah, Deepavali and the two Islamic days approximate |
 | Haiti 🇭🇹 | Art. 275-1's five national days, the 1984 code's list to 1988, the 1989 decree's seven from 1989, and the December 2024 decree's additions from 2025, Carnival Monday from noon as bank |
+| Honduras 🇭🇳 | Art. 339 with Holy Week's three days; the October days on their dates to 2013 and as the Semana Morazánica from 2015, its Wednesday from noon as bank and 2020's in November; 2014 not carried |
+| El Salvador 🇸🇻 | Art. 190 with San Salvador's 3 and 5 August as `SV-SS`, Father's Day from 2013 and Mother's Day for everyone from 2016 by their decrees, 7 July 2023; nothing moves |
+| Nicaragua 🇳🇮 | Art. 66's nine days and art. 67's Santo Domingo days for Managua as `NI-MN`; art. 68's "será compensado" names no day, so nothing moves |
 | Bolivia 🇧🇴 | Decreto Supremo 2750 with the Sunday rule and the four days it excepts; departmental holidays and yearly bridges not carried |
 | Chile 🇨🇱 | Every move a rule of its own: Ley 19.668's Mondays, Ley 20.299's Fridays, the computed 2 January and 17/20 September days, the solstice at Chile's meridian; Arica's day as `CL-AP` |
 | Ecuador 🇪🇨 | Art. 65 as reformed in 2016: the moves per holiday, the weekend-only moves of the three excepted days, and the 2/3 November pair as the Government resolved it |
 | Uruguay 🇺🇾 | Ley 16.805 as amended in 2001: paid holidays public, common ones bank, Tourism Week's six days, three holidays to the adjacent Monday |
+| Venezuela 🇻🇪 | LOTTT art. 184 with Carnival, Holy Week and the whole days of 24 and 31 December, and the 1971 Ley de Fiestas Nacionales' five days, 12 October renamed in 2002; the declared days not carried |
+| Paraguay 🇵🇾 | Ley 7544/2025 with 14 May from 2012, 29 September from 1995 and 20 June from 2026; the 2026 decrees' three Monday moves and the additional days read for 2025 and 2026, earlier decreed moves not carried |
 | Jamaica 🇯🇲 | The Holidays (Public General) Act's Schedule: Sunday moves, Labour Day off a Saturday too, a Sunday Christmas giving the 26th and 27th; a Sunday Boxing Day's Monday only from the Minister's 2021 appointment |
 | Trinidad and Tobago 🇹🇹 | Chap. 19:05 with section 3(2)'s next free day for a Sunday or for two holidays at once; Eid-ul-Fitr and Divali approximate; Carnival Monday and Tuesday as observances; African Emancipation Day from 2024 |
 | Barbados 🇧🇧 | Cap. 352's First Schedule: the Monday after a Sunday, and the Tuesday for Emancipation Day off a Sunday or a Monday and for Christmas off a Sunday |
 | Bahamas 🇧🇸 | Ch. 36's Sunday proviso and the Saturday practice, both to the next free weekday; Majority Rule Day from 2014 and National Heroes Day from 2013; no Tuesday-to-Thursday moves, which the Act does not have |
+| Antigua and Barbuda 🇦🇬 | Cap. 354 by the 2005 Schedule from 2006 and the 2019 one from 2020: the Sunday moves to the next free day, Independence Day off a Saturday too, and from 2020 Christmas and V. C. Bird Day off a Saturday; the Carnival Monday and Tuesday in August |
+| Dominica 🇩🇲 | Chap. 19:10's Schedule, every Sunday in it, and section 9's next free day for two holidays at once; Labour Day on the first Monday of May from the 2021 lists |
+| Grenada 🇬🇩 | Cap. 25's Schedule and "the Monday immediately next following" a Sunday, nothing more; Carnival Tuesday from noon as bank until 2023, Emancipation Day on 1 August and National Heroes' Day from 2025 |
+| Saint Kitts and Nevis 🇰🇳 | Cap. 23.23's Schedule with the Sunday rule and a Sunday Christmas's Monday and Tuesday; Carnival Day and Culturama Day, proclaimed each year, not carried |
+| Saint Lucia 🇱🇨 | The Bank Holidays Act's Schedule and its note: a Sunday or a second holiday to the next free day, so a Sunday 1 January gives the 3rd; Thanksgiving Day on the first Monday of October, approximate |
+| Saint Vincent and the Grenadines 🇻🇨 | The Prime Minister's Office's lists, the Act itself unread: the Sunday moves they show, Carnival from the lists for 2021–2026, Spiritual Baptist Liberation Day from 2025 |
+| Suriname 🇸🇷 | The Besluit Vrije Dagen 1971 as S.B. 2021 no. 27 left it, the 2007 and 2012 additions by year and 25 February for 2012–2020; Holi, Divali, the Ieds and Chinese New Year approximate; nothing moves |
 | Argentina 🇦🇷 | From Decreto 1584/2010 in 2011: the *inamovibles* where they fall, the *trasladables* on the decree's Mondays to 2016 and by the weekday rule of Ley 27.399 from 2018; the annual tourist holidays not carried; Holy Thursday and the days of the Jewish and Islamic faiths as observances |
 | Colombia 🇨🇴 | Ley 51 de 1983 from 1984: ten holidays to the following Monday, eight where they fall |
 | Ethiopia 🇪🇹 | The national and Orthodox holidays on the Ethiopian calendar (`ethiopic`), where they are kept; Fasika by the Julian computus; the Islamic days approximate |
@@ -217,6 +238,10 @@ Ordered by how well the sources can be cited, not by importance.
 | Qatar 🇶🇦 | Emiri Decision 57/2025: the two Eid spans approximate, National Day, Sport Day, the one-day bridge from 2025, the bank days of article 4 |
 | Iraq 🇮🇶 | Law 12 of 2024 from the Gazette: eleven days with Ghadir and 16 March new, Christmas for all over 2020–2023, and article 2's Christian and Yazidi days as religious, the Julian-dated ones on the Julian calendar |
 | Lebanon 🇱🇧 | Decree 15215 of 2005 from the Council of Ministers' own table: both Good Fridays and the Saturday they share, two-day Eids approximate, Labour Day alone moved off a Sunday, the May commemorations on their Sundays |
+| Syria 🇸🇾 | Decree 188 of 2025 for the State's workers: both Easters on their Sundays, Liberation Day from 2025 and the Revolution from 2026, Nowruz from 2026 by Decree 13, Eids of three and four days approximate; the weekend by its two eras |
+| Palestine 🇵🇸 | The Council of Ministers' tables for the Government sector: the Eids with their eves, the Eastern Easter for all, the Eastern and Western Christian employees' days as `Kind::Religious`; the Samaritan table not carried |
+| Libya 🇱🇾 | Law 5 of 2012's table: Arafah and three days of each Eid approximate, the two days of 2011 from 2012; the Prime Minister's yearly decisions not carried; the 2006 weekend change |
+| Yemen 🇾🇪 | Law 2 of 2000: five-day Eids approximate, the five national days, article 3(b)'s days as observances; article 4's replacement day not carried; the 2013 weekend change |
 | Tanzania 🇹🇿 | Cap. 35's Schedule with two days of Eid al-Fitr, section 4's Saturday-and-Sunday rule, and the two presidential days kept every year |
 | Uganda 🇺🇬 | Cap. 255's list with Luwum Day from 2016 and Heroes' Day from 2001, one day of each Eid; substitutes by designation not carried |
 | Zambia 🇿🇲 | Cap. 272 with the three declared days by their years, the Monday and Tuesday holidays, the Act's Sunday-to-Monday rule |
@@ -246,7 +271,10 @@ Ordered by how well the sources can be cited, not by importance.
 | India 🇮🇳 | The three national holidays and the gazetted list — Holi, Ram Navami, Mahavir Jayanti, Buddha Purnima, Janmashtami, Dussehra, Diwali and Guru Nanak's Birthday now computed on `hindu-lunar`, the Hijri days approximate |
 | Myanmar 🇲🇲 | The full moons, National Day, the Kayin New Year and Deepavali on the Burmese calendar (`burmese`), Thingyan from the calendar's own akya and atat moments; the gazette's annual extensions not carried; Eid al-Adha approximate |
 | Nepal 🇳🇵 | The public holidays on a fixed date, from the Ministry of Home Affairs' notices for 2082 and 2083 BS: New Year, Republic Day, Constitution Day, Prithvi Jayanti, Maghe Sankranti, Martyrs' Day and Democracy Day on `bikram-sambat`, and Labour Day, Christmas and Women's Day on their Gregorian dates, as the notices give them. The festivals on `hindu-lunar` read at Kathmandu — Buddha Jayanti, Janai Purnima, Janmashtami, Ghatasthapana, Dashain and Tihar for as many days as each year's notice gives, Dhanya Purnima, Sonam and Gyalpo Lhosar, Maha Shivaratri — with Tamu Lhosar on Pus 15; the part of the day each tithi holds is fitted to the notices of 2080–2083 BS, so they are approximate, as are the two Eids. Chhath, which no single rule fits, and the holidays for one community or region are not carried. The one-day weekend until April 2026 |
+| Papua New Guinea 🇵🇬 | Chapter 321's own days — New Year, the Easter weekend, Remembrance Day, Christmas and Boxing Day — with the Sunday rule; Independence Day, the Sovereign's Birthday and the other gazetted days not carried |
 | Sri Lanka 🇱🇰 | The Holidays Act orders for 2023–2027, every day of each: the full-moon Poya days, *adhi* ones included, Thai Pongal, Maha Shivarathri, the Sinhala and Tamil New Year, the three Muslim days and Deepavali as the gazettes date them, a year beyond reported as a gap; Independence Day, May Day, Christmas and Good Friday by rule. No computed rule reproduces the Poya days, so none is used |
+| Bangladesh 🇧🇩 | The general and executive-order holidays of the Ministry of Public Administration's notifications for 2025 and 2026: the civil days on their Gregorian dates, July Mass Uprising Day from 2025, Pohela Boishakh and the hill districts' Chaitra Sankranti (from 2026) on `bangladeshi`; the two Eids with the executive order's days around them, Eid-e-Miladunnabi, Ashura, Shab-e-Barat, Shab-e-Qadr and Jumatul Bida approximate; Janmashtami, the Durga Puja's Navami and Bijoya Dashami and Buddha Purnima as the notifications date them, a year beyond reported as a gap; the Friday–Saturday weekend, nothing moved off it; the optional holidays not carried |
+| Mongolia 🇲🇳 | The Law on Public Holidays and Days of Observance, art. 4.1, and the Labour Law, art. 97.1: New Year, Women's Day, Children's Day, Naadam's six days, Republic Day from 2016 and 29 December from 2011; Tsagaan Sar, Buddha's Birthday and Chinggis Khaan Day are on the Mongolian lunar calendar, which the crate does not have, and are reported as gaps in every year; nothing moves off the Saturday–Sunday weekend |
 
 **Planned** — every remaining UN member state and observer, plus the
 subdivisions that have their own legal holidays. Tracked as one issue per

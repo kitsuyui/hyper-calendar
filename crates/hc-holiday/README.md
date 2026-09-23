@@ -18,7 +18,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `international` | the United Nations international days, each citing its resolution |
 | `exchanges` | 21 exchange calendars: New York, Nasdaq, Toronto, São Paulo, London, Frankfurt, Zurich, Euronext's seven markets, Nasdaq's four Nordic markets, Tokyo, Hong Kong, Sydney |
-| `countries` | 124 national tables |
+| `countries` | 152 national tables |
 
 ## The vocabulary
 
@@ -93,25 +93,29 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**124 countries.** Albania, Algeria, Andorra, Argentina, Armenia, Australia
-(eight states and territories), Austria, Azerbaijan, the Bahamas, Bahrain,
-Barbados, Belarus, Belgium, Belize, Bolivia, Botswana, Brazil, Bulgaria, Canada
-(federal plus the provincial days fixed by statute), Chile, China, Colombia,
-Costa Rica, Côte d'Ivoire, Croatia, Cuba, Cyprus, Czechia, Denmark, the
-Dominican Republic, Ecuador, Egypt, Estonia, Ethiopia, Finland, France
-(métropole plus Alsace-Moselle), Georgia, Germany (all 16 *Länder*), Ghana,
-Greece, Guatemala, Guyana, Haiti, Hong Kong, Hungary, Iceland, India, Indonesia,
-Iran, Iraq, Ireland, Israel, Italy, Jamaica, Japan, Jordan, Kazakhstan, Kenya,
-Kuwait, Kyrgyzstan, Latvia, Lebanon, Liechtenstein, Lithuania, Luxembourg,
-Macau, Malawi, Malaysia, Malta, Mauritius, Mexico, Moldova, Monaco, Montenegro,
-Morocco, Myanmar, Namibia, Nepal, the Netherlands, New Zealand, Nigeria, North
-Macedonia, Norway, Oman, Pakistan, Panama, Peru, the Philippines, Poland,
-Portugal, Qatar, Romania, Russia, San Marino, Saudi Arabia, Senegal, Serbia,
-Singapore, Slovakia, Slovenia, South Africa, South Korea, Spain, Sri Lanka, Sweden,
-Switzerland, Taiwan, Tajikistan, Tanzania, Thailand, Trinidad and Tobago,
-Tunisia, Türkiye, Turkmenistan, Uganda, Ukraine, the United Arab Emirates, the
-United Kingdom (three bank-holiday jurisdictions), the United States, Uruguay,
-Uzbekistan, Vietnam, Zambia, Zimbabwe.
+**152 countries.** Albania, Algeria, Andorra, Antigua and Barbuda, Argentina,
+Armenia, Australia (eight states and territories), Austria, Azerbaijan, the
+Bahamas, Bahrain, Bangladesh, Barbados, Belarus, Belgium, Belize, Bolivia,
+Botswana, Brazil, Bulgaria, Canada (federal plus the provincial days fixed by
+statute), Chile, China, Colombia, Costa Rica, Côte d'Ivoire, Croatia, Cuba,
+Cyprus, Czechia, Denmark, Dominica, the Dominican Republic, Ecuador, Egypt, El
+Salvador, Estonia, Ethiopia, Finland, France (métropole plus Alsace-Moselle),
+Georgia, Germany (all 16 *Länder*), Ghana, Greece, Grenada, Guatemala, Guyana,
+Haiti, Honduras, Hong Kong, Hungary, Iceland, India, Indonesia, Iran, Iraq,
+Ireland, Israel, Italy, Jamaica, Japan, Jordan, Kazakhstan, Kenya, Kuwait,
+Kyrgyzstan, Latvia, Lebanon, Libya, Liechtenstein, Lithuania, Luxembourg, Macau,
+Malawi, Malaysia, Malta, the Marshall Islands, Mauritius, Mexico, Micronesia,
+Moldova, Monaco, Mongolia, Montenegro, Morocco, Myanmar, Namibia, Nauru, Nepal,
+the Netherlands, New Zealand, Nicaragua, Nigeria, North Macedonia, Norway, Oman,
+Pakistan, Palau, Palestine, Panama, Papua New Guinea, Paraguay, Peru, the
+Philippines, Poland, Portugal, Qatar, Romania, Russia, Saint Kitts and Nevis,
+Saint Lucia, Saint Vincent and the Grenadines, Samoa, San Marino, Saudi Arabia,
+Senegal, Serbia, Singapore, Slovakia, Slovenia, the Solomon Islands, South
+Africa, South Korea, Spain, Sri Lanka, Suriname, Sweden, Switzerland, Syria,
+Taiwan, Tajikistan, Tanzania, Thailand, Tonga, Trinidad and Tobago, Tunisia,
+Türkiye, Turkmenistan, Tuvalu, Uganda, Ukraine, the United Arab Emirates, the
+United Kingdom (three bank- holiday jurisdictions), the United States, Uruguay,
+Uzbekistan, Vanuatu Vietnam, Venezuela, Vietnam, Yemen, Zambia, Zimbabwe.
 
 **Twenty traditions.** Christianity under both computations, the General
 Roman Calendar with the rank of every celebration (`roman_calendar`), the
@@ -230,6 +234,7 @@ calendar that does:
 | Umm al-Qurā | the published table, 1300–1600 AH |
 | Easter | 1583–4099 Gregorian, 326–4099 Julian |
 | New Zealand's Matariki | 2022–2035, the years this crate's sources publish |
+| Nauru's declared days | 2023, 2024 and 2026, the years whose gazettes this crate read |
 
 Outside those the holiday has no date, which is **not** the same as not
 occurring — and an evaluated calendar used to express both by leaving it
@@ -260,9 +265,10 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 
 | Entry | Why |
 | --- | --- |
-| Every Hijri-dated holiday, in forty-six countries and the Islamic tradition table | the observed date is a sighting decision, per country |
+| Every Hijri-dated holiday, in fifty-two countries and the Islamic tradition table | the observed date is a sighting decision, per country |
 | Vesak, Makha Bucha, Asalha Bucha, Khao Phansa (Thailand, Indonesia, Singapore, Malaysia, the Buddhist table) | dated by the Thai lunar calendar, which this crate does not have; approximated as the full moon of Chinese lunar month *n* − 2. Right in 2022, 2024 and 2025; a day out in 2023; a month out in a Thai intercalary year |
 | Nepal's festivals — Buddha Jayanti, Dashain, Tihar and the rest | each is a tithi read at Kathmandu, and the part of the day it must hold is fitted to the notices of 2080–2083 BS, which it reproduces, rather than quoted from the almanac |
+| Bangladesh's Buddha Purnima | the notifications' own dates for 2025 and 2026, which they star as depending on the moon |
 
 ## Deliberate gaps
 
@@ -278,6 +284,19 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   four notices do. The holidays for one community, region or group — the
   Kathmandu Valley's *jātrā*s, Fagu Purnima's two dates, the days for women
   or for the Newar community — are not carried.
+* **Bangladesh** carries the general and executive-order holidays of the
+  Ministry of Public Administration's notifications. Janmashtami, the Durga
+  Puja's Navami and Bijoya Dashami, and Buddha Purnima are those
+  notifications' dates for 2025 and 2026 — the Indian rules miss each by a
+  day in one of the two years — and a later year reports them as gaps. The
+  optional holidays are not carried.
+* **Mongolia** carries the Gregorian days of its holidays law. Tsagaan Sar,
+  Buddha's Birthday and Chinggis Khaan Day are dated in the Mongolian lunar
+  calendar, which the crate does not have and which is not the Tibetan
+  Phugpa one it does; they are reported as gaps in every year.
+* **Papua New Guinea** carries only the days its Public Holidays Act fixes.
+  Independence Day, the Sovereign's Birthday and any other day are appointed
+  by notice in the National Gazette, and no gazette was read.
 * **Subdivisions** are modelled only where a statute names them. German
   *Länder*, US federal-versus-state, Australian states, Canadian provinces, UK
   jurisdictions and French Alsace-Moselle are in; Swiss cantons, Spanish
@@ -287,7 +306,7 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 ## Business days
 
 The weekend is data. Saturday–Sunday is the common case; Friday–Saturday holds
-in Egypt, Israel and Saudi Arabia today; Thursday–Friday held in Saudi Arabia
+in Bangladesh, Egypt, Israel and Saudi Arabia today; Thursday–Friday held in Saudi Arabia
 until its June 2013 royal order; the Emirates moved to Saturday–Sunday on
 1 January 2022; and Nepal kept a one-day Saturday weekend until April 2026.
 All five are exercised by the test suite.

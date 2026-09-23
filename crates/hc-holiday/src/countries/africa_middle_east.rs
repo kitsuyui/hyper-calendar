@@ -15,8 +15,8 @@ use hc_seasons::Meridian;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
 use crate::computus::offsets::{
-    ASCENSION, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, PALM_SUNDAY, PENTECOST,
-    WHIT_MONDAY,
+    ASCENSION, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY,
+    PALM_SUNDAY, PENTECOST, WHIT_MONDAY,
 };
 use crate::hindu::{DIWALI, GANESH_CHATURTHI, MAHA_SHIVARATRI, UGADI};
 use crate::rule::{
@@ -2796,4 +2796,492 @@ pub static MALAWI: RuleSet = RuleSet {
     sources: "Public Holidays Act, Cap. 18:05, sections 2 to 4 and the Schedule, from the \
               NATLEX copy (MWI90377), retrieved 2026-09-22; Nyasa Times on the Christmas, \
               Boxing and New Year's holidays; Wikipedia, \"Public holidays in Malawi\"",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Syria
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Friday alone, and Friday and Saturday from February 2004, when the
+/// Council of Ministers added Saturday for the State's offices.
+static SY_WEEKEND: &[WeekendPolicy] = &[
+    WeekendPolicy {
+        days: &[Weekday::Friday],
+        valid_from: None,
+        valid_until: Some(2003),
+    },
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday],
+        valid_from: Some(2004),
+        valid_until: None,
+    },
+];
+
+static SY_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "New Year's Day",
+        "عيد رأس السنة الميلادية",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Syrian Revolution Day",
+        "عيد الثورة السورية",
+        Rule::gregorian(3, 18),
+    )
+    .years(Some(2026), None),
+    HolidayRule::fixed_public("Mother's Day", "عيد الأم", Rule::gregorian(3, 21)),
+    HolidayRule::fixed_public("Nowruz", "عيد النوروز", Rule::gregorian(3, 21))
+        .years(Some(2026), None),
+    HolidayRule::fixed_public("Evacuation Day", "عيد الجلاء", Rule::gregorian(4, 17)),
+    HolidayRule::fixed_public(
+        "Western Easter",
+        "عيد الفصح لدى الطوائف المسيحية الغربية",
+        Rule::easter(EASTER_SUNDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Eastern Easter",
+        "عيد الفصح لدى الطوائف المسيحية الشرقية",
+        Rule::paschal(EASTER_SUNDAY),
+    ),
+    HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Liberation Day", "عيد التحرير", Rule::gregorian(12, 8))
+        .years(Some(2025), None),
+    HolidayRule::fixed_public(
+        "Christmas Day",
+        "عيد الميلاد لدى جميع الطوائف المسيحية",
+        Rule::gregorian(12, 25),
+    ),
+    hijri("Islamic New Year", "عيد رأس السنة الهجرية", 1, 1),
+    hijri("Prophet's Birthday", "عيد المولد النبوي الشريف", 3, 12),
+    hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 1),
+    hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 2),
+    hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 3),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 13),
+];
+
+/// Syria.
+///
+/// Decree 188 of 5 October 2025, issued by President Ahmed al-Sharaa and
+/// published by SANA, which repealed Decree 474 of 30 December 2004 and
+/// fixes the days on which those under the Basic Law for State Workers
+/// have a paid holiday: Eid al-Fitr three days and Eid al-Adha four, the
+/// Hijri New Year and the Prophet's Birthday one each, on the tabular
+/// calendar as approximations of the dates the Presidency's notices
+/// announce under article 3; 1 January, Mother's Day on 21 March,
+/// Evacuation Day on 17 April, 1 May and Christmas on 25 December "for
+/// all Christian denominations"; Easter "for the Eastern Christian
+/// denominations" and Easter "for the Western", one day each, which the
+/// notice for 2026 closed on their Sundays, 5 and 12 April; and the two
+/// new days, Liberation Day on 8 December, first kept in 2025, and the
+/// Revolution on 18 March, first kept in 2026. Article 5 of Decree 13 of
+/// 16 January 2026 adds Nowruz on 21 March, the day Mother's Day already
+/// holds. The four days the decree dropped — 8 March, Teachers' Day, the
+/// October War and Martyrs' Day — and the 2004 decree's list are not
+/// carried, so nothing before 2025 is claimed beyond the days that stayed.
+/// Eid al-Fitr is carried as 1 to 3 Shawwal and Eid al-Adha as 10 to
+/// 13 Dhu al-Hijja; the notices lengthen them, as 2026's 26 to 30 May
+/// from the Day of Arafah did, and those spans are not carried. The table
+/// is the Damascus Government's; days kept by local authorities outside
+/// its administration are not. The decree says nothing of a holiday on the
+/// weekend, and nothing moves. The weekend is Friday and Saturday from
+/// February 2004.
+pub static SYRIA: RuleSet = RuleSet {
+    code: "SY",
+    english_name: "Syria",
+    rules: SY_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SY_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Decree No. 188 of 2025 determining the official holidays, as SANA published it \
+              (sana.sy/presidency/2299819), retrieved 2026-09-23; Decree No. 13 of 2026, \
+              article 5, on Nowruz (sana.sy/presidency/2376054); the General Secretariat \
+              of the Presidency's notices for 7 and 8 December 2025, 18 to 23 March 2026 and \
+              5 and 12 April 2026 (SANA) and for 26 to 30 May 2026 (Al-Ain); Al-Dustour \
+              (25 December 2003) on the Council of Ministers' decision adding Saturday to \
+              the weekly holiday from February 2004; Wikipedia, \"Public holidays in \
+              Syria\", for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Palestine
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A day the Council of Ministers' tables give only the Eastern or only the
+/// Western Christian employees: a religious day, not a day off for all.
+const fn ps_christian(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::observance(name, local, rule).of_kind(Kind::Religious)
+}
+
+/// 1 Shawwal, the base of the eve of Eid al-Fitr.
+static PS_SHAWWAL_1: Rule = EID_AL_FITR;
+
+static PS_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "New Year's Day",
+        "رأس السنة الميلادية",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Eastern Christmas",
+        "عيد الميلاد المجيد الشرقي",
+        Rule::gregorian(1, 7),
+    ),
+    HolidayRule::fixed_public(
+        "International Women's Day",
+        "يوم المرأة العالمي",
+        Rule::gregorian(3, 8),
+    ),
+    // The table's one Easter for all is the Eastern one: 12 April 2026.
+    HolidayRule::fixed_public(
+        "Easter Sunday",
+        "عيد الفصح المجيد",
+        Rule::paschal(EASTER_SUNDAY),
+    ),
+    HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Independence Day", "عيد الاستقلال", Rule::gregorian(11, 15)),
+    HolidayRule::fixed_public(
+        "Western Christmas",
+        "عيد الميلاد المجيد الغربي",
+        Rule::gregorian(12, 25),
+    ),
+    hijri("Islamic New Year", "رأس السنة الهجرية", 1, 1),
+    hijri("Prophet's Birthday", "ذكرى المولد النبوي الشريف", 3, 12),
+    hijri("Isra and Mi'raj", "ذكرى الإسراء والمعراج", 7, 27),
+    // "The eve and three days", and "the eve and four days".
+    HolidayRule::fixed_public(
+        "Eve of Eid al-Fitr",
+        "وقفة عيد الفطر",
+        Rule::Offset {
+            base: &PS_SHAWWAL_1,
+            days: -1,
+        },
+    )
+    .approximate(),
+    hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 1),
+    hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 2),
+    hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 3),
+    hijri("Eve of Eid al-Adha", "وقفة عيد الأضحى", 12, 9),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 13),
+    // The Eastern Christian employees, by the Julian computus.
+    ps_christian(
+        "Eastern Christmas",
+        "عيد الميلاد المجيد",
+        Rule::gregorian(1, 8),
+    ),
+    ps_christian(
+        "Eastern New Year",
+        "عيد رأس السنة الشرقي",
+        Rule::gregorian(1, 14),
+    ),
+    ps_christian("Eastern Epiphany", "عيد الغطاس", Rule::gregorian(1, 19)),
+    ps_christian(
+        "Eastern Palm Sunday",
+        "أحد الشعانين",
+        Rule::paschal(PALM_SUNDAY),
+    ),
+    ps_christian(
+        "Eastern Maundy Thursday",
+        "خميس الغسل",
+        Rule::paschal(MAUNDY_THURSDAY),
+    ),
+    ps_christian(
+        "Eastern Good Friday",
+        "الجمعة العظيمة",
+        Rule::paschal(GOOD_FRIDAY),
+    ),
+    ps_christian(
+        "Eastern Holy Saturday",
+        "سبت النور",
+        Rule::paschal(HOLY_SATURDAY),
+    ),
+    ps_christian(
+        "Eastern Easter Monday",
+        "أحد الفصح المجيد",
+        Rule::paschal(EASTER_MONDAY),
+    ),
+    ps_christian("Eastern Ascension", "خميس الصعود", Rule::paschal(ASCENSION)),
+    ps_christian("Eastern Pentecost", "أحد العنصرة", Rule::paschal(PENTECOST)),
+    // The Western Christian employees, by the Gregorian computus.
+    ps_christian("Western Epiphany", "عيد الغطاس", Rule::gregorian(1, 6)),
+    ps_christian(
+        "Western Palm Sunday",
+        "أحد الشعانين",
+        Rule::easter(PALM_SUNDAY),
+    ),
+    ps_christian(
+        "Western Maundy Thursday",
+        "خميس الغسل",
+        Rule::easter(MAUNDY_THURSDAY),
+    ),
+    ps_christian(
+        "Western Good Friday",
+        "الجمعة العظيمة",
+        Rule::easter(GOOD_FRIDAY),
+    ),
+    ps_christian(
+        "Western Holy Saturday",
+        "سبت النور",
+        Rule::easter(HOLY_SATURDAY),
+    ),
+    ps_christian(
+        "Western Easter Sunday",
+        "أحد الفصح المجيد",
+        Rule::easter(EASTER_SUNDAY),
+    ),
+    ps_christian(
+        "Western Easter Monday",
+        "أحد الفصح المجيد",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    ps_christian("Western Ascension", "خميس الصعود", Rule::easter(ASCENSION)),
+    ps_christian("Western Pentecost", "أحد العنصرة", Rule::easter(PENTECOST)),
+    ps_christian(
+        "Western Christmas",
+        "عيد الميلاد المجيد",
+        Rule::gregorian(12, 26),
+    ),
+];
+
+/// Palestine.
+///
+/// The Palestinian Authority's Council of Ministers, which approves each
+/// year's official holidays for the Government's employees in four tables;
+/// the first three are carried as the National Information Centre (WAFA)
+/// publishes them for 2025. The first, for everyone: Eid al-Fitr "the eve
+/// and three days" and Eid al-Adha "the eve and four days", the Hijri New
+/// Year, the Prophet's Birthday and Isra and Mi'raj, on the tabular
+/// calendar as approximations of the dates the Council announces — 2026's
+/// Fitr ran from Thursday 19 to Sunday 22 March and its Hijri New Year was
+/// 16 June, a day before the tabular one; 1 January, 8 March, 1 May,
+/// 15 November, both Christmases, and one Easter, which the Council's
+/// announcement for Sunday 12 April 2026 shows to be the Eastern one. The
+/// second and third tables give the Eastern and the Western Christian
+/// employees their own days — Christmas and Easter of two days each, read
+/// as the day after and Easter Monday, the Epiphany, Palm Sunday, Holy
+/// Week from its Thursday, Ascension and Pentecost, and the Eastern New
+/// Year on 14 January — which are [`Kind::Religious`] here; their days that
+/// the first table already gives everyone — 1 and 7 January, the Eastern
+/// Easter Sunday, 25 December — are not repeated. The fourth,
+/// the Samaritans' feasts, is in a calendar the crate lacks and is not
+/// carried. Wikipedia's older copy of the list has neither the Easter
+/// for all nor the eve of Eid al-Fitr, and the year either was added is
+/// not known, so both are carried without a first year, as is every
+/// other day. The weekend is Friday and Saturday, as the Centre states
+/// for the Government sector; the tables say nothing of a holiday on it,
+/// and nothing moves. Days the de facto authorities in Gaza announce are
+/// not carried.
+pub static PALESTINE: RuleSet = RuleSet {
+    code: "PS",
+    english_name: "Palestine",
+    rules: PS_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: FRIDAY_SATURDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Palestinian National Information Centre (WAFA), \"العطل الرسمية في فلسطين\" \
+              (info.wafa.ps/pages/details/29601), retrieved 2026-09-23, for the Council of \
+              Ministers' 2025 tables and the working week; the Council's announcements for \
+              2026 reported by Al-Dahriyeh Municipality (Easter, 12 April), the National \
+              Press Agency (Eid al-Fitr, 19 to 22 March) and An-Najah News (the Hijri New \
+              Year, 16 June); Cabinet Decision No. 16 of 2003 on the paid religious and \
+              official holidays (maqam.najah.edu); the Arabic Wikipedia, \"قائمة العطل \
+              الرسمية في فلسطين\", for the older list. The yearly decisions in the Official \
+              Gazette (mjr.ogb.gov.ps) could not be retrieved",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Libya
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Friday alone, and Friday and Saturday for the Government's offices from
+/// January 2006; schools and hospitals kept Friday alone.
+static LY_WEEKEND: &[WeekendPolicy] = &[
+    WeekendPolicy {
+        days: &[Weekday::Friday],
+        valid_from: None,
+        valid_until: Some(2005),
+    },
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday],
+        valid_from: Some(2006),
+        valid_until: None,
+    },
+];
+
+static LY_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "Revolution Day",
+        "عيد الثورة الليبية",
+        Rule::gregorian(2, 17),
+    )
+    .years(Some(2012), None),
+    HolidayRule::fixed_public("Labour Day", "عيد العمل", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Martyrs' Day", "يوم الشهيد", Rule::gregorian(9, 16)),
+    HolidayRule::fixed_public("Liberation Day", "عيد التحرير", Rule::gregorian(10, 23))
+        .years(Some(2012), None),
+    HolidayRule::fixed_public("Independence Day", "عيد الاستقلال", Rule::gregorian(12, 24)),
+    hijri("Islamic New Year", "عيد رأس السنة الهجرية", 1, 1),
+    hijri("Prophet's Birthday", "ذكرى المولد النبوي الشريف", 3, 12),
+    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 1),
+    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 2),
+    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 3),
+    hijri("Day of Arafah", "يوم الوقوف بعرفة", 12, 9),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
+];
+
+/// Libya.
+///
+/// Law 5 of 2012 on the official holidays, issued by the National
+/// Transitional Council on 8 January 2012, which repealed law 4 of 1987:
+/// its table's Prophet's Birthday, Hijri New Year, three days of Eid
+/// al-Fitr, the Day of Arafah and three days of Eid al-Adha, on the
+/// tabular calendar as approximations of the dates each year's decision
+/// of the Prime Minister fixes; and the Revolution of 17 February, 1 May,
+/// Liberation on 23 October, Martyrs' Day on 16 September and
+/// Independence on 24 December. The two days of 2011 run from 2012, the
+/// law's first year; law 4 of 1987 was not read, so no other day is
+/// dated. The law predates the division between the governments in
+/// Tripoli and the east, and is the one both issue their holiday
+/// decisions under; those yearly decisions, which fix the dates and add
+/// days, are not carried. The law says nothing of a holiday on the
+/// weekend, and nothing moves. The weekend is Friday and Saturday for the
+/// Government's offices from January 2006.
+pub static LIBYA: RuleSet = RuleSet {
+    code: "LY",
+    english_name: "Libya",
+    rules: LY_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: LY_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Law No. 5 of 2012 on the official holidays and its table, Official Gazette \
+              2012 no. 1, as the Libyan Legal Society's archive (lawsociety.ly) reproduces \
+              it, retrieved 2026-09-23, with the Prime Minister's decisions it lists for \
+              2021 to 2026; Al-Dustour (3 January 2006) on the Government's Friday and \
+              Saturday weekend; Wikipedia, \"Public holidays in Libya\", for the English \
+              names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Yemen
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Thursday and Friday until Council of Ministers resolution 179 of 2013
+/// made Saturday the second day in Thursday's place from 15 August 2013.
+static YE_WEEKEND: &[WeekendPolicy] = &[
+    WeekendPolicy {
+        days: &[Weekday::Thursday, Weekday::Friday],
+        valid_from: None,
+        valid_until: Some(2012),
+    },
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday],
+        valid_from: Some(2013),
+        valid_until: None,
+    },
+];
+
+static YE_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "Labour Day",
+        "ذكرى يوم العمال العالمي",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::fixed_public(
+        "National Day",
+        "اليوم الوطني للجمهورية",
+        Rule::gregorian(5, 22),
+    ),
+    HolidayRule::fixed_public(
+        "26 September Revolution Day",
+        "ذكرى ثورة 26 سبتمبر",
+        Rule::gregorian(9, 26),
+    ),
+    HolidayRule::fixed_public(
+        "14 October Revolution Day",
+        "ذكرى ثورة 14 أكتوبر",
+        Rule::gregorian(10, 14),
+    ),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "ذكرى يوم الاستقلال",
+        Rule::gregorian(11, 30),
+    ),
+    hijri("Islamic New Year", "ذكرى الهجرة النبوية الشريفة", 1, 1),
+    // "From 29 Ramadan to 3 Shawwal", and "from 9 Dhu al-Hijja to the
+    // fourth day of the feast".
+    hijri("Eid al-Fitr", "عيد الفطر المبارك", 9, 29),
+    hijri("Eid al-Fitr", "عيد الفطر المبارك", 9, 30),
+    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 1),
+    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 2),
+    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 3),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 9),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
+    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 13),
+    // Article 3(b): "celebrated without an official holiday".
+    HolidayRule::observance("Prophet's Birthday", "ذكرى المولد النبوي الشريف", MAWLID)
+        .approximate(),
+    HolidayRule::observance(
+        "Isra and Mi'raj",
+        "ذكرى الإسراء والمعراج",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 7, 27),
+    )
+    .approximate(),
+    HolidayRule::observance("7 July", "ذكرى 7 يوليو", Rule::gregorian(7, 7)),
+];
+
+/// Yemen.
+///
+/// Law 2 of 2000 determining the official leave and holidays, issued at
+/// Sana'a on 25 January 2000, which repealed law 42 of 1997, from the
+/// Public Prosecution's copy. Article 3(a): Eid al-Fitr "from 29 Ramadan
+/// to 3 Shawwal", Eid al-Adha "from 9 Dhu al-Hijja to the fourth day of
+/// the feast" and the Hijra on 1 Muharram, on the tabular calendar as
+/// approximations of the sighting, which gives five days of each Eid;
+/// 22 May, 26 September, 14 October, 30 November and 1 May. Article 3(b)'s
+/// days "celebrated without an official holiday" — the Prophet's
+/// Birthday, Isra and Mi'raj and 7 July — are observances. Article 4
+/// replaces a holiday that "coincides with a Friday or an official
+/// holiday" with "another of the working days following the holiday", and
+/// is not carried: a policy triggered by Friday alone would, in this
+/// engine, land a Friday's replacement on the Saturday that resolution 179
+/// of 2013 made a weekend day, and one triggered by Saturday too would
+/// replace a Saturday holiday, which the article does not; whether the
+/// yearly announcements the Minister of Civil Service makes under
+/// article 5 still apply it was not checked either. So nothing moves, and
+/// the table says less than the law rather than something else. The law
+/// is the unified Republic's, from before the war; the announcements of
+/// the internationally recognised Government and of the authorities in
+/// Sana'a since then were not read, and nothing either has added is
+/// carried. Amendments to the law, if any, were not read. The weekend was
+/// Thursday and Friday until 15 August 2013 and is Friday and Saturday
+/// since.
+pub static YEMEN: RuleSet = RuleSet {
+    code: "YE",
+    english_name: "Yemen",
+    rules: YE_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: YE_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Law No. 2 of 2000 determining the official leave and holidays, articles 3 to \
+              7, from the Public Prosecution's legislation library (agoyemen.net), \
+              retrieved 2026-09-23; Yemen Post (16 August 2013) on Council of Ministers \
+              resolution No. 179 of 2013 and the Friday and Saturday weekend; Wikipedia, \
+              \"Public holidays in Yemen\", for the English names",
 };
