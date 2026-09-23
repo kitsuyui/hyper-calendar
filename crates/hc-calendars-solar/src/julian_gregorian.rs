@@ -34,8 +34,7 @@
 //! usually means what this crate calls 1722-02-12 — and recovering that
 //! needs the scribe's convention, not just the country.
 //!
-//! An earlier version of this note left that to the caller.
-//! [`crate::year_style`] now carries the conventions as named styles, which
+//! [`crate::year_style`] carries the conventions as named styles, which
 //! is policy §5's answer to exactly this: a finite set the caller selects,
 //! rather than one silent default. The reform date and the year start are
 //! independent, so they stay two separate things to choose.

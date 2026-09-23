@@ -1,9 +1,8 @@
 //! Internal helpers shared by the body modules.
 //!
-//! Nothing here is public. The proleptic Gregorian arithmetic is a deliberate
-//! duplicate of `hc-calendars-solar`: this crate depends only on `hc-core`,
-//! `hc-calendar` and `hc-astro`, and pulling in a calendar crate to write down
-//! ten mission landing times would invert the dependency order for no gain.
+//! Nothing here is public. The proleptic Gregorian arithmetic is a private
+//! copy of the formula that [`hc_calendar::gregorian::to_fixed`] implements,
+//! used only to write down the ten mission landing times.
 
 use hc_core::math::floor;
 use hc_core::{Duration, Instant, Tai, TimeResult};

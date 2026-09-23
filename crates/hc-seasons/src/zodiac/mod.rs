@@ -59,7 +59,8 @@
 //! # The conventional dates are not these dates
 //!
 //! Newspaper astrology columns print fixed dates — "Aries: March 21 –
-//! April 19" — that have not been recomputed since roughly the 1920s. The
+//! April 19" — that have not been recomputed since the early twentieth
+//! century. The
 //! equinox has drifted since. [`TropicalSign::conventional_period`] ships
 //! those fixed dates as data so that the disagreement can be measured;
 //! `tests/zodiac_conventional_dates.rs` measures it and prints the table.

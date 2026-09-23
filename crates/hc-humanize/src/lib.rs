@@ -23,7 +23,7 @@
 //! | [`relative`] | When was it, relative to now? | *3 days ago*, *yesterday* |
 //! | [`duration`] | How long is it? | *2 hours 30 minutes*, *2h30m* |
 //! | [`calendar_relative`] | Which calendar day was it? | *yesterday at 15:30*, *last Tuesday* |
-//! | [`approximate`] | Roughly how long? | *just over a week* |
+//! | [`approximate`](mod@approximate) | Roughly how long? | *just over a week* |
 //!
 //! and one shared decision underneath them:
 //!
@@ -41,9 +41,10 @@
 //!
 //! Every formatter writes into a [`core::fmt::Write`] sink a piece at a
 //! time, and nothing is assembled into an intermediate buffer. The crate
-//! builds with `--no-default-features --features alloc`, and the `alloc`
-//! feature adds only the `String`-returning conveniences —
-//! `format`, `format_amount`, `format_elapsed` — beside the `write` ones.
+//! builds without `std`, with or without `alloc`, given `hc-core`'s `libm`
+//! feature for floating-point math, and the `alloc` feature adds only the
+//! `String`-returning conveniences — `format`, `format_amount`,
+//! `format_elapsed` — beside the `write` ones.
 //!
 //! ```
 //! use core::fmt::Write as _;
@@ -66,8 +67,8 @@
 //!
 //! Its month and year lengths are the Gregorian means, which is what makes
 //! "about 3 months" a meaningful sentence about a bare duration; see
-//! [`unit`] for the exact constants and for what that deliberately refuses
-//! to answer.
+//! [`unit`](mod@unit) for the exact constants and for what that deliberately
+//! refuses to answer.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]

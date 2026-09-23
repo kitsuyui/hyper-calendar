@@ -9,15 +9,11 @@
 //! Gregorian year, month and day belongs here, beside the definition it
 //! implements.
 //!
-//! The practical reason is sharper. Five crates had grown their own private
-//! copy of these six functions, each with its own tests — `hc-tz` for POSIX
+//! The practical reason is the dependency order. `hc-tz` needs it for POSIX
 //! transition rules, `hc-seasons` and `hc-attributes` for month arithmetic,
-//! `hc-calendars-lunar` for its epochs, `hc-planetary` for landing dates,
-//! `hc-astro` for the start of a solar year.
-//! Each was written because the crate could not depend on
-//! `hc-calendars-solar` without inverting the layering or waiting for it to
-//! exist. Every one of them said in a comment that it should be deleted
-//! later. This is that deletion.
+//! `hc-calendars-lunar` for its epochs and `hc-astro` for the start of a
+//! solar year, and none of them can depend on `hc-calendars-solar` without
+//! inverting the layering. All of them already depend on this crate.
 //!
 //! # What is *not* here
 //!
@@ -67,9 +63,7 @@ pub const fn days_in_year(year: i64) -> u16 {
 ///
 /// The bound is what keeps `365 * year` inside `i64`. Without it
 /// [`to_fixed`] overflows and panics — a `Result`-returning function that
-/// aborts before it can return its error, which policy §8 forbids. The
-/// constant used to live only in `hc-calendars-solar`, so its callers were
-/// safe and this crate's were not.
+/// aborts before it can return its error, which policy §8 forbids.
 pub const MIN_YEAR: i64 = -9_999_999;
 
 /// The latest year this implementation converts.
@@ -196,9 +190,8 @@ mod tests {
     use crate::weekday::Weekday;
 
     /// `to_fixed` returns a `Result`, so it must not abort before returning
-    /// one. It used to: the year bound that stops `365 * year` overflowing
-    /// lived in `hc-calendars-solar`, so a year past it reached the
-    /// multiplication here and panicked.
+    /// one: a year past the bound has to be refused before it reaches the
+    /// `365 * year` multiplication.
     #[test]
     fn a_year_past_the_bound_is_an_error_and_not_a_panic() {
         assert_eq!(

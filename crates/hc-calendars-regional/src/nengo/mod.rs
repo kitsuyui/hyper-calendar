@@ -247,8 +247,7 @@ pub const fn is_nanbokucho(rd: Rd) -> bool {
 /// table, so they are searched first and completely; only then are the
 /// ambiguous romanisations and readings tried. Searching all four fields in
 /// one pass over a chronologically ordered table would hand every collision
-/// to the *earlier* era, which for 昭和 is six centuries wrong and is what
-/// this function used to do.
+/// to the *earlier* era, which for 昭和 is six centuries wrong.
 #[must_use]
 pub fn find(name: &str) -> Option<&'static Nengo> {
     if let Some(exact) = ALL.iter().find(|era| era.id == name || era.kanji == name) {
@@ -372,8 +371,8 @@ mod tests {
     }
 
     /// Twelve romanisations and twelve readings are shared by two eras each.
-    /// Every one of them used to resolve to the earlier era, because the
-    /// search ran over a chronologically ordered table in a single pass.
+    /// A single pass over the chronologically ordered table would resolve
+    /// every one of them to the earlier era.
     #[test]
     fn a_colliding_romanisation_resolves_to_the_era_that_kept_the_plain_id() {
         // 昭和 (1926) keeps `showa`; 正和 (1312) is `showa-1312`.

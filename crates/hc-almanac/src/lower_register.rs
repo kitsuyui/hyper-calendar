@@ -9,9 +9,10 @@
 //!
 //! # Every rule here is a rule over a cycle
 //!
-//! Twenty-one annotations, and between them only five shapes: a list of
-//! sexagenary days, a branch per 節月, a stem per 節月, a sexagenary day per
-//! 節月, and a day count from a sectional term. So each entry below is a
+//! Twenty-one annotations, and between them only seven shapes: a list of
+//! sexagenary days, a list of branches, a branch per 節月, a stem per 節月, a
+//! sexagenary day per 節月, a day count from a sectional term, and a
+//! mansion. So each entry below is a
 //! name and an [`AlmanacRule`] value, and [`rule_applies`] evaluates all of
 //! them. See [`crate::rules`].
 //!

@@ -98,10 +98,11 @@ and quarter means are exact integers too. A day is the nominal 86 400 s.
 
 ### Known gaps
 
-- **Short and narrow styles are stated for `en`, `de`, `es`, `fr`, `ru` and
-  `ja` only.** Every other locale answers all three styles through style
-  fallback, which returns its long forms. That is correct for the languages
-  that do not abbreviate and incomplete for the ones that do.
+- **The short style is stated for `en`, `de`, `es`, `fr` and `ru` only, and
+  the narrow style for `en` and `ja`.** Every other style answers through
+  style fallback (narrow → short → long), so most locales return their long
+  forms in all three. That is correct for the languages that do not
+  abbreviate and incomplete for the ones that do.
 - **`ar`, `hi` and `th` state no compact suffixes**, so `DurationStyle::Compact`
   falls back to the root's Latin ones. Inside right-to-left text that needs
   bidi isolation the compact form does not carry; use `Narrow` there.
@@ -115,8 +116,10 @@ and quarter means are exact integers too. A day is the nominal 86 400 s.
 
 Every formatter writes into a `core::fmt::Write` sink one piece at a time and
 nothing is assembled into an intermediate buffer. The crate builds with
-`--no-default-features` and with `--no-default-features --features alloc`;
-`alloc` adds only the `String`-returning conveniences (`format`,
+`--no-default-features` and with `--no-default-features --features alloc`,
+given the floating-point math every `no_std` build of the workspace needs
+from `hc-core`'s `libm` feature (`--features hc-core/libm`); `alloc` adds
+only the `String`-returning conveniences (`format`,
 `format_amount`, `format_elapsed`) beside the `write` ones.
 
 ```rust
@@ -131,9 +134,8 @@ assert_eq!(text, "5 дней назад");
 
 ## Spell checking
 
-`crates/hc-humanize/_typos.toml` lists the foreign-language words the data
-contains that an English dictionary would "correct" — *vor*, *als*, *hace*,
-*seconde*, *dne*, *mis*, *alle* and the rest. `typos` honours it when run
-with this directory as its search root; run from the workspace root it
-resolves only the workspace's own `_typos.toml`, so those words would have to
-be merged there as well.
+The foreign-language words the data contains that an English dictionary
+would "correct" — *vor*, *als*, *hace*, *seconde*, *dne*, *mis*, *alle* and
+the rest — are listed in the workspace's root
+[`_typos.toml`](../../_typos.toml). `typos` does not merge nested
+configuration files, so a word this crate adds belongs there too.

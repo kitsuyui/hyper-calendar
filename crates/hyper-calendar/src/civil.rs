@@ -14,7 +14,7 @@
 //!
 //! So [`Date`] validates once at construction and is infallible afterwards.
 //! It stores both the fixed day and the broken-down fields, which costs
-//! sixteen bytes and buys accessors that cannot fail.
+//! sixteen bytes over a bare [`Rd`] and buys accessors that cannot fail.
 //!
 //! # The one borrowed idea worth naming
 //!

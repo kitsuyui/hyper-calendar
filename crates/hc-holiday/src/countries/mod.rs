@@ -289,8 +289,8 @@ mod tests {
 
     #[test]
     fn the_registry_holds_the_number_of_countries_the_readme_claims() {
-        // `README.md` and `docs/observances.md` both state this figure, and a
-        // documented count that drifts is a documented lie.
+        // `README.md` states this figure, and a documented count that drifts
+        // is a documented lie.
         assert_eq!(ALL.len(), 180);
     }
 
@@ -312,7 +312,7 @@ mod tests {
         /// Whether a rule bottoms out in a Hijri calendar.
         ///
         /// Compared by identifier rather than matched: a `CalendarSystem`
-        /// carries function pointers now, and those cannot appear in a
+        /// carries function pointers, and those cannot appear in a
         /// pattern. That is the cost of the set being open, and it is a
         /// small one.
         fn hijri_dated(rule: &Rule) -> bool {

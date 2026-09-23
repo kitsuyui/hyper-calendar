@@ -29,8 +29,9 @@ pub enum RelativityError {
     NonPositiveRadius,
     /// A mass or standard gravitational parameter was negative.
     NegativeMass,
-    /// A proper acceleration or a distance was zero or negative where a
-    /// strictly positive value is required.
+    /// An input fell below the bound its quantity requires: a proper
+    /// acceleration that is zero or negative, a negative distance, a Lorentz
+    /// factor below 1, or a cosine outside `[−1, 1]`.
     NonPositive,
     /// The radius lies at or inside the Schwarzschild radius, where the
     /// static time-dilation factor is undefined.

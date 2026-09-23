@@ -11,8 +11,8 @@ A time library gets asked two questions that look like one:
 - *How long is a year?* — several answers, and the honest ones have error
   bars. The tropical year is a measurement that drifts. The sidereal day is a
   measurement. The synodic month is a measurement. The galactic year is a
-  measurement with a ten-per-cent spread that popular writing prints as a
-  single round number.
+  measurement with a spread of several per cent that popular writing prints
+  as a single round number.
 
 This crate answers only the first kind. Every unit in it is a fixed multiple
 of the SI second fixed by some authority, so every one is an exact

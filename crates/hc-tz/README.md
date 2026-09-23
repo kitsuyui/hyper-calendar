@@ -57,7 +57,8 @@ name under each — everything a caller needs to explain the problem to a user.
 ## What each module covers
 
 * **`offset`** — `UtcOffset`, whole seconds, validated to
-  `-25:59:59 ..= +25:59:59` (RFC 8536's range for a TZif `utoff`). Parses `Z`,
+  `-25:59:59 ..= +25:59:59`, a window that contains the range RFC 8536
+  recommends for a TZif `utoff` (`-24:59:59 ..= +25:59:59`). Parses `Z`,
   `±hh`, `±hh:mm`, `±hhmm`, `±hh:mm:ss`, `±hhmmss`; renders any of them into a
   stack buffer, so `no_std` builds need no allocator. Applies to and from
   `hc_calendar::CivilDateTime`.
@@ -111,10 +112,8 @@ name under each — everything a caller needs to explain the problem to a user.
 * Gregorian arithmetic (needed for `Mm.w.d` and `Jn` rules) is the standard
   Rata Die formulation from Reingold and Dershowitz, *Calendrical
   Calculations* (4th ed., §2.2), and it is **not** implemented here: the
-  private `gregorian` module is four thin adapters over `hc_calendar`'s
+  private `gregorian` module is five thin adapters over `hc_calendar`'s
   implementation, which policy §2 names as the one owner of this arithmetic.
-  An earlier version of this line scheduled that consolidation against
-  `hc-calendars-solar`; it happened, and against `hc-calendar`.
 
 ## Deliberate omissions
 
@@ -136,7 +135,9 @@ name under each — everything a caller needs to explain the problem to a user.
 ## Features
 
 `default = ["std"]`, `std = ["alloc", ...]`, `alloc = [...]`. The crate builds
-with `--no-default-features`; only the `system` module needs `std`.
+with `--no-default-features`, given the floating-point math every `no_std`
+build of the workspace needs from `hc-core`'s `libm` feature
+(`--features hc-core/libm`); only the `system` module needs `std`.
 
 ## Tests
 

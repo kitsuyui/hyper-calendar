@@ -7,7 +7,7 @@ a calendar actually asks of the sky:
   longitude**? That search is what the 24 solar terms, the equinoxes and the
   solstices are made of.
 * Where is the Moon, and **when is the next conjunction**? That is what the
-  Chinese, Dangi, Hebrew and observational Hijri calendars are made of.
+  Chinese, Dangi, Vietnamese and observational Hijri calendars are made of.
 * How bright is the Moon?
 * When does the Sun or Moon cross the horizon at a given place?
 
@@ -20,9 +20,9 @@ Every public function takes and returns a `hc_calendar::fixed::Moment` in
 conversion happens inside, through `time::delta_t`. Published worked examples
 are almost always quoted in TT, so `time::universal_time` bridges them.
 
-ΔT is the Espenak–Meeus NASA polynomial set: fifteen segments over
+ΔT is the Espenak–Meeus NASA polynomial set: thirteen segments over
 −500…+2150, and the parabola ΔT = −20 + 32u², u = (year − 1820)/100, outside
-that. The segments are independent least-squares fits and meet at the joins
+that, fifteen expressions in all. The segments are independent least-squares fits and meet at the joins
 to within a couple of tenths of a second, which this crate does not smooth.
 
 ## Accuracy claimed, and over what era
@@ -53,9 +53,9 @@ around — Meeus's chapter 25 in its higher-accuracy form — with the series
 truncated at an amplitude of 10⁻⁷ and the cost of the cut measured against
 the full theory: 0.23″ in longitude over 1000–3000, which is under six
 seconds of the Sun's motion. What is left in an equinox time is ΔT and the
-half-minute the published tables round to. It used to be the chapter's
-low-accuracy series, good to 0.01° and a quarter of an hour, until the
-equinox calendars asked which side of a sunset an equinox fell on.
+half-minute the published tables round to. The chapter's low-accuracy
+series, good to 0.01° and a quarter of an hour, is not enough for the
+equinox calendars, which ask which side of a sunset an equinox fell on.
 
 For a solar term that falls within a minute of local midnight, the *day*
 this crate assigns it is still decided by ΔT and the truncation rather than

@@ -68,9 +68,9 @@ pub struct Strictness {
     pub allow_leap_second: bool,
     /// `-00:00`, which ISO 8601 forbids and RFC 3339 §4.3 gives a meaning to.
     pub allow_negative_zero_offset: bool,
-    /// `2026-09-21t14:30:05z` — the lowercase designators RFC 3339 tolerates.
-    pub allow_space_separator: bool,
     /// `2026-09-21 14:30:05` — a space where the standard writes `T`.
+    pub allow_space_separator: bool,
+    /// `2026-09-21t14:30:05z` — the lowercase designators RFC 3339 tolerates.
     pub allow_lowercase_designators: bool,
     /// `-P1D` — a signed duration, which is ISO 8601-2, not 8601-1.
     pub allow_signed_duration: bool,
@@ -182,7 +182,7 @@ impl Default for Strictness {
 ///
 /// # Errors
 ///
-/// See [`ParseError`]; every failure names what was expected and where.
+/// See [`crate::ParseError`]; every failure names what was expected and where.
 pub fn parse(text: &str) -> ParseResult<IsoDateTime> {
     parse_with(text, Strictness::ISO)
 }
@@ -191,7 +191,7 @@ pub fn parse(text: &str) -> ParseResult<IsoDateTime> {
 ///
 /// # Errors
 ///
-/// See [`ParseError`].
+/// See [`crate::ParseError`].
 pub fn parse_with(text: &str, strictness: Strictness) -> ParseResult<IsoDateTime> {
     let mut scanner = Scanner::new(text);
     if scanner.is_empty() {
@@ -206,7 +206,7 @@ pub fn parse_with(text: &str, strictness: Strictness) -> ParseResult<IsoDateTime
 ///
 /// # Errors
 ///
-/// See [`ParseError`].
+/// See [`crate::ParseError`].
 pub fn parse_date(text: &str) -> ParseResult<IsoDate> {
     parse_date_with(text, Strictness::ISO)
 }
@@ -215,7 +215,7 @@ pub fn parse_date(text: &str) -> ParseResult<IsoDate> {
 ///
 /// # Errors
 ///
-/// See [`ParseError`].
+/// See [`crate::ParseError`].
 pub fn parse_date_with(text: &str, strictness: Strictness) -> ParseResult<IsoDate> {
     let mut scanner = Scanner::new(text);
     if scanner.is_empty() {
@@ -231,7 +231,7 @@ pub fn parse_date_with(text: &str, strictness: Strictness) -> ParseResult<IsoDat
 ///
 /// # Errors
 ///
-/// See [`ParseError`].
+/// See [`crate::ParseError`].
 pub fn parse_time(text: &str) -> ParseResult<(IsoTime, ZoneInfo, OffsetStyle)> {
     parse_time_with(text, Strictness::ISO)
 }
@@ -240,7 +240,7 @@ pub fn parse_time(text: &str) -> ParseResult<(IsoTime, ZoneInfo, OffsetStyle)> {
 ///
 /// # Errors
 ///
-/// See [`ParseError`].
+/// See [`crate::ParseError`].
 pub fn parse_time_with(
     text: &str,
     strictness: Strictness,
@@ -265,7 +265,7 @@ pub fn parse_time_with(
 ///
 /// # Errors
 ///
-/// See [`ParseError`]. An empty string is [`ErrorKind::Empty`], not an
+/// See [`crate::ParseError`]. An empty string is [`ErrorKind::Empty`], not an
 /// unqualified zone.
 pub fn parse_offset(text: &str) -> ParseResult<(ZoneInfo, OffsetStyle)> {
     parse_offset_with(text, Strictness::ISO)
@@ -275,7 +275,7 @@ pub fn parse_offset(text: &str) -> ParseResult<(ZoneInfo, OffsetStyle)> {
 ///
 /// # Errors
 ///
-/// See [`ParseError`].
+/// See [`crate::ParseError`].
 pub fn parse_offset_with(
     text: &str,
     strictness: Strictness,

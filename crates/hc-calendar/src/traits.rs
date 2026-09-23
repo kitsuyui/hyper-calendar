@@ -150,9 +150,8 @@ pub trait Calendar {
     ///
     /// There is no default. A calendar that has no named cycles — a day
     /// count — says so with an empty slice; a calendar that says nothing
-    /// does not compile. Half the registry once stayed silent under a
-    /// defaulted method, and a gap that a test can only report is still a
-    /// gap.
+    /// does not compile. A defaulted method would let a calendar stay
+    /// silent, and a gap that a test can only report is still a gap.
     fn cycles(&self) -> &'static [CycleShape];
 
     /// Where this calendar's day begins.

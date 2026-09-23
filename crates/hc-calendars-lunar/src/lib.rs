@@ -13,7 +13,7 @@
 //! | Computed | [`chinese`], [`dangi`], [`vietnamese`], [`japanese_tenpo`], [`islamic_observational`] | an astronomical model, exact only to the model |
 //! | Historical | [`japanese_historical`] | the system's *own* period constants, exact to the bureau that published it |
 //!
-//! The three rows behave differently and the crate does not pretend
+//! The four rows behave differently and the crate does not pretend
 //! otherwise. Arithmetic calendars answer for any year you like. The
 //! tabulated one refuses every day outside 1300–1600 AH rather than
 //! extrapolating. The computed ones carry bounded ranges, say what their
@@ -23,7 +23,7 @@
 //! systems' errors on purpose, because the errors are what the surviving
 //! documents record.
 //!
-//! # Two engines, thirteen calendars
+//! # Two engines, fifteen calendars
 //!
 //! Almost nothing here is written twice.
 //!
@@ -41,8 +41,9 @@
 //!   Senmyō-reki, Jōkyō-reki, Hōryaku-reki and Kansei-reki so that those
 //!   calendars drift away from the sky exactly as they historically did.
 //!
-//! [`hebrew`] stands alone because its rules genuinely are its own, and
-//! [`islamic_umalqura`] stands alone because a table is not an algorithm.
+//! [`hebrew`] and [`tibetan`] stand alone because their rules genuinely are
+//! their own, [`islamic_umalqura`] because a table is not an algorithm, and
+//! [`islamic_observational`] because it predicts a sighting.
 //!
 //! # What this crate will not tell you
 //!
@@ -142,14 +143,13 @@ mod registration {
     /// site and insert it themselves, replacing this entry.
     ///
     /// Tabular Hijri variants beyond the two canonical epochs get names of
-    /// their own rather than being withheld. An earlier version of this
-    /// note declined to register any of them "because they share the
-    /// `islamic-civil` and `islamic-tbla` identifiers" — but a competing
-    /// convention that shares a name is precisely what policy §5 says to
-    /// solve by minting a name, and `islamic-fatimid` is that name for the
-    /// Ṭayyibī Bohra *Misri* calendar, which a community of about a million
-    /// people uses for every religious date and which is defined by an
-    /// authority that publishes it.
+    /// their own rather than being withheld. A competing convention that
+    /// would otherwise share the `islamic-civil` or `islamic-tbla`
+    /// identifier is what policy §5 says to solve by minting a name, and
+    /// `islamic-fatimid` is that name for the Ṭayyibī Bohra *Misri*
+    /// calendar, which a community of about a million people uses for every
+    /// religious date and which is defined by an authority that publishes
+    /// it.
     ///
     /// The Kūshyār ibn Labbān and Ḥabash al-Ḥāsib schemes stay
     /// constructible rather than registered. They are medieval *zīj*

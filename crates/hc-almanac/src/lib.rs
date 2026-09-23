@@ -39,9 +39,10 @@
 //! genuinely disagree is stated in the doc comment with one reading picked
 //! explicitly; every table is checked against *published date lists* in the
 //! tests, because a citation cannot catch a transcription error and a
-//! printed calendar can. Where no rule could be established the crate
-//! answers [`AlmanacRule::Undetermined`] rather than inventing one, and the
-//! README lists the gaps.
+//! printed calendar can. Where no rule could be established the annotation
+//! is left out rather than invented, and the README lists the gaps;
+//! [`AlmanacRule::Undetermined`] is the value an entry without an
+//! established rule would carry.
 //!
 //! # Accuracy
 //!

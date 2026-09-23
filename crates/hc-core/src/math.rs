@@ -9,10 +9,9 @@
 //! # A `no_std` build must enable `libm`
 //!
 //! Enabling neither is a **compile error**, and that is the point of the
-//! guard below. It used to be a `panic!` in each function body, which meant a
-//! build with neither feature compiled cleanly and then panicked the first
-//! time anything asked for a sine — so `cargo build` passed, CI passed, and
-//! `cargo test` failed at run time in a configuration nobody had exercised.
+//! guard below. A run-time `panic!` instead would let such a build compile
+//! cleanly and then fail the first time anything asked for a sine, in a
+//! configuration no test had exercised.
 //!
 //! A missing feature is a fact about the build, not about the input, so it
 //! belongs at compile time where the person choosing the features will see

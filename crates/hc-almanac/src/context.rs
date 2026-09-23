@@ -38,9 +38,8 @@ const BRANCH_OF_FIRST_SOLAR_MONTH: u8 = 2;
 
 /// The proleptic Gregorian year a fixed day falls in.
 ///
-/// `hc-seasons` keeps its own copy of this private, and the almanac rules
-/// need it to know which year's solstices and terms to ask for. The
-/// arithmetic is the standard 400/100/4 unwinding from Reingold &
+/// The almanac rules need it to know which year's solstices and terms to
+/// ask for. The arithmetic is the standard 400/100/4 unwinding from Reingold &
 /// Dershowitz, *Calendrical Calculations*, §2.
 #[must_use]
 pub const fn gregorian_year_of(day: Rd) -> i64 {
@@ -251,8 +250,10 @@ impl DayContext {
     /// This is `hc-seasons`' minimal 定気 derivation, which is what 六曜 is
     /// built on. It decides month by month rather than looking at the whole
     /// year between two solstices, so its leap months can differ from the
-    /// 天保暦 rule by a handful of days a century. Only 不成就日 and 凶会日
-    /// depend on it.
+    /// 天保暦 rule, and when they do a whole month is numbered differently:
+    /// 89 of the 3,653 days of 2024–2033, measured in
+    /// `hc_seasons::lunisolar`. Of the rules here only 不成就日 reads it; the
+    /// 二十七宿 and 六曜 use the same derivation.
     #[must_use]
     pub const fn lunisolar(self) -> LunisolarDay {
         self.lunisolar
@@ -365,12 +366,12 @@ mod tests {
     /// assurance.
     ///
     /// Measured over the 3,653 days of 2024–2033 at the Chinese meridian,
-    /// the two disagree on **89 days, 2.4%**, in a small number of contiguous
-    /// runs — the minimal rule decides a leap month one month at a time
-    /// where the full one looks across a whole solstice-to-solstice year, so
-    /// when they differ they differ about a whole month's numbering and not
-    /// about single days. Every affected day is one where 不成就日 and
-    /// 二十七宿 would come out differently under the two, and 六曜 with them.
+    /// the two disagree on **89 days, 2.4%**, in one contiguous run — the
+    /// minimal rule decides a leap month one month at a time where the full
+    /// one looks across a whole solstice-to-solstice year, so when they
+    /// differ they differ about a whole month's numbering and not about
+    /// single days. These are the days on which 不成就日, 二十七宿 and 六曜
+    /// can come out differently under the two.
     ///
     /// The bound asserted here is five per cent. It is a regression guard,
     /// not a claim: if the figure moves, the README figure must move too.

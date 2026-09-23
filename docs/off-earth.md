@@ -18,17 +18,18 @@ detail.
 | **MSD** | Mars Sol Date — the sol count from a 1873-12-29 epoch, the Martian analogue of the Julian Day |
 | **MTC** | Coordinated Mars Time — mean solar time at the Martian prime meridian, MSD's fractional part in 24 Martian hours |
 | **LMST** | Local Mean Solar Time at a given west longitude |
-| **LTST** | Local True Solar Time, LMST plus the Martian equation of time (which swings about ±50 minutes, far more than Earth's ±16) |
-| **Mission sol** | The landing-relative sol count each mission uses. Spirit, Opportunity, Curiosity, InSight, Perseverance and Zhurong are tabulated |
+| **LTST** | Local True Solar Time, LMST plus the Martian equation of time (which runs from about −51 to +40 minutes, far more than Earth's −14 to +16) |
+| **Mission sol** | The landing-relative sol count each mission uses. All ten surface missions are tabulated: Viking 1 and 2, Mars Pathfinder, Spirit, Opportunity, Phoenix, Curiosity, InSight, Perseverance and Zhurong |
 | **Darian calendar** | Gangale's 24-month Martian calendar, the most developed proposal for a Martian civil calendar |
 | **Mars year** | The Clancy convention, counting from the 1955 northern spring equinox, used throughout Mars atmospheric science |
 
 ### Other bodies
 
-Rotation periods (sidereal and synodic), orbital periods, obliquities and solar
-day lengths for the Moon, Mercury, Venus, the Galilean moons, Titan, Enceladus,
-Triton, Pluto and Ceres — enough to define a local solar day and a year on each,
-with the source for every constant.
+Rotation periods, orbital periods, axial tilts and semi-major axes for 22
+bodies — the Sun, the eight planets, the Moon, Phobos and Deimos, Ceres, the
+Galilean moons, Enceladus, Titan, Triton, Pluto and Charon — with the solar
+day and the year in local days derived from them, enough to define a local
+solar day and a year on each, and the source for every constant.
 
 Coordinated Lunar Time is tracked as *researching*: the 2024 US policy
 directive asked for one, the standard is still being defined, and inventing a
@@ -70,9 +71,9 @@ story against:
 
 - A twin paradox with a real turnaround, not an idealised instantaneous one
 - A 1g relativistic rocket: the standard closed forms for distance, coordinate
-  time, proper time and final velocity. (1g to Andromeda, 2.5 Mly, is about 28
-  years of ship time and 2.5 million years of Earth time — the test suite
-  checks both.)
+  time, proper time and final velocity. (A 1g flip-and-burn to Andromeda,
+  2.5 Mly, is about 28.6 years of ship time and 2.5 million years of Earth
+  time — the test suite checks both.)
 - A ship's clock and a planetary clock compared as `Instant`s, with
   `hc-uncertainty` carrying the error through when the inputs are uncertain
 

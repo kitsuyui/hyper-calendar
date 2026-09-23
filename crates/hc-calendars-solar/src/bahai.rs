@@ -273,9 +273,9 @@ impl Calendar for ArithmeticBahaiCalendar {
     /// between the eighteenth and the nineteenth — so it is not a position
     /// in this cycle.
     ///
-    /// This calendar is why `hc_calendar::shape` exists: the old name model
-    /// asserted twelve or thirteen months, so nineteen was not merely
-    /// missing, it was *rejected*.
+    /// This calendar is why `hc_calendar::shape` exists: a name model that
+    /// assumes twelve or thirteen months does not merely lack nineteen, it
+    /// *rejects* them.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         SHAPE
     }

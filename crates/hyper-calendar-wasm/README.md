@@ -10,8 +10,8 @@ more here than anywhere else. A calendar library is a leaf dependency of a web
 application; whatever it drags in, the bundle carries. So the exports are
 plain `extern "C"` functions over integers and linear memory, which every
 WebAssembly host can call with no glue at all. The cost is that the JavaScript
-side does the string marshalling. That is about thirty lines, shown below,
-and it is thirty lines the caller can read.
+side does the string marshalling. That is a few lines, shown below, and they
+are lines the caller can read.
 
 ## Memory and text
 
@@ -108,15 +108,16 @@ A function that returns `i64` returns one of these instead of trapping. All are 
 The three `hc_holiday_*` exports need the `holiday` feature:
 
 ```sh
-cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --release --features holiday
+cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --profile release-compact --features holiday
 ```
 
 It compiles every table of `hc-holiday` into the module — the countries,
-the exchanges, the traditions and the international days — and costs about
-660 KiB on top of the 31 KiB of the civil build, which is why it is a
-feature and not the default. A table is named by its identifier: a country's
-ISO 3166-1 alpha-2 code (`JP`), an exchange's ISO 10383 Market Identifier
-Code (`XNYS`), a tradition's slug (`christian-western`) or `un-days`, and
+the exchanges, the traditions and the international days — and makes the
+module about 900 KiB against the 35 KiB of the civil build, both with the
+`release-compact` profile, which is why it is a feature and not the
+default. A table is named by its identifier: a country's ISO 3166-1 alpha-2
+code (`JP`), an exchange's ISO 10383 Market Identifier Code (`XNYS`), a
+tradition's slug (`christian-western`) or `un-days`, and
 `hc_holiday_codes` lists them all. `hc_holiday_is_day_off` answers for one
 day; `hc_holidays_in_year` writes a year as tab-separated lines — the ISO
 date, the name, the local name, the kind, the confidence, `1` for a

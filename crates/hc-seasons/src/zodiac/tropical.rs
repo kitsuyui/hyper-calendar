@@ -33,7 +33,7 @@
 //! so Aries begins on different days in different years.
 //! [`TropicalSign::conventional_period`] carries the fixed dates newspaper
 //! columns print — "Aries: March 21 – April 19" — which were last a good fit
-//! around the 1920s. `tests/zodiac_conventional_dates.rs` measures how far
+//! in the early twentieth century. `tests/zodiac_conventional_dates.rs` measures how far
 //! apart the two have drifted rather than asserting that either is right.
 //!
 //! Accuracy: the underlying solar longitude is good to about 1″, so only an

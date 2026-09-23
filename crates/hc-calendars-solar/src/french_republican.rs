@@ -243,10 +243,9 @@ impl Calendar for ArithmeticFrenchRepublicanCalendar {
     /// Twelve months of thirty days, a thirteenth of complementary days,
     /// and a *décade* of ten — not a week of seven.
     ///
-    /// The ten-day cycle is the other reason `hc_calendar::shape` exists.
-    /// Weekday names used to be stored against the seven-valued
-    /// `hc_calendar::Weekday`, so Primidi through Décadi had nowhere to
-    /// live even though this calendar was implemented and tested.
+    /// The ten-day cycle is the other reason `hc_calendar::shape` exists:
+    /// the seven-valued `hc_calendar::Weekday` has nowhere to put Primidi
+    /// through Décadi, so the *décade* is declared as a cycle of its own.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         use hc_calendar::shape::{CycleShape, MONTH};
         const SHAPE: &[CycleShape] = &[

@@ -19,7 +19,7 @@
 //! that adding a language stays a single edit:
 //!
 //! * the approximation hedges (*just over*, *nearly*) used by
-//!   [`crate::approximate`];
+//!   [`crate::approximate`](mod@crate::approximate);
 //! * the half-unit idioms (*half an hour*, *anderthalb Stunden*);
 //! * the compact suffixes of *2h30m*.
 //!

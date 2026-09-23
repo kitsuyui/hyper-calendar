@@ -10,8 +10,8 @@
 //!
 //! That matters here specifically, because the units in this crate are the
 //! ones chosen *for* their divisibility. A flick exists so that a frame at
-//! 24, 25, 30, 48, 50, 60, 90, 100 or 120 fps, and a sample at 44.1 or 48
-//! kHz, and the NTSC 1000/1001 pull-down of all of them, are each a whole
+//! 24, 25, 30, 48, 50, 60, 90, 100 or 120 fps, the NTSC 1000/1001 pull-down
+//! of those frame rates, and a sample at 44.1 or 48 kHz are each a whole
 //! number of flicks. Storing a flick as 1 417 233 560 attoseconds throws
 //! away the one property it was invented to have.
 //!

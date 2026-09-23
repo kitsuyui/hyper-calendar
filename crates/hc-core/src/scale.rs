@@ -111,9 +111,10 @@ pub struct Gps;
 /// UT1 — Universal Time, tied to the Earth's rotation angle.
 ///
 /// UT1 cannot be computed from TAI; the difference `UT1 - UTC` is measured
-/// and published by the IERS. The [`TimeScale`] implementation here therefore
-/// treats UT1 as equal to TAI-derived UTC with a zero `DUT1`, which is wrong
-/// by at most 0.9 s. Use [`Ut1Offsets`] to supply real values.
+/// and published by the IERS. The [`TimeScale`] implementation here is
+/// therefore a placeholder: it returns the TAI reading unchanged, ignoring
+/// both `TAI - UTC` and `DUT1`, so it is off by the whole of `TAI - UTC`
+/// (37 s since 2017) plus `DUT1`. Use [`Ut1Offsets`] to supply real values.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Ut1;
 
@@ -197,8 +198,10 @@ impl TimeScale for Tcg {
 
 /// Apply a small, model-derived offset to an exact reading.
 ///
-/// The offsets between coordinate time scales are at most a fraction of a
-/// second, so they can be computed in `f64` without meaningful loss. Doing
+/// The offsets between coordinate time scales are small against the reading
+/// itself — at most about 1.7 ms for TDB, and seconds to tens of seconds for
+/// TCG and TCB over the modern era — so they can be computed in `f64`
+/// without meaningful loss. Doing
 /// the *addition* on [`Duration`] instead of on `f64` seconds keeps the full
 /// attosecond precision of the original reading, which a round trip through
 /// `f64` would destroy.

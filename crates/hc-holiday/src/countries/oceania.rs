@@ -122,16 +122,15 @@ pub static AUSTRALIA: RuleSet = RuleSet {
 /// The Te Kāhui o Matariki Public Holiday Act 2022 does not give a rule; it
 /// gives a *table*, because the date is the Friday nearest the Tangaroa
 /// nights of the lunar month in which the Pleiades rise, as determined by
-/// the Matariki Advisory Group. A table is the one thing the rule
-/// vocabulary genuinely cannot express, so this is a `Computed` rule holding
-/// the schedule verbatim.
+/// the Matariki Advisory Group. No rule in the vocabulary expresses that, so
+/// this function holds the schedule verbatim.
 ///
 /// The Act schedules dates through 2052. Only the years published in the
 /// sources this crate checked are carried here; a year outside them yields
-/// nothing rather than an invented Friday — and, because "nothing" and "no
-/// holiday that year" used to be the same answer, the rule is a
-/// [`Rule::Tabulated`] with its last year written down, so a calendar built
-/// past 2035 reports Matariki as a gap instead of dropping it.
+/// nothing rather than an invented Friday. "Nothing" must not read as "no
+/// holiday that year", so the rule is a [`Rule::Tabulated`] with its last
+/// year written down, and a calendar built past 2035 reports Matariki as a
+/// gap instead of dropping it.
 fn matariki(year: i64) -> Days {
     let (month, day) = match year {
         2022 => (6u8, 24u8),

@@ -134,27 +134,25 @@ impl Default for Days {
 ///
 /// # Why this is a struct and not an enum
 ///
-/// It was an enum, with this justification: "the whole point of the crate
-/// is that a holiday table is a `static` value, and a trait object cannot
-/// be one without an allocator". The first half is right and the second is
-/// true of `dyn Calendar` — but neither requires a *closed set*.
+/// A holiday table is a `static` value, and a trait object cannot be one
+/// without an allocator. That rules out `dyn Calendar`, but it does not call
+/// for a *closed set*.
 ///
-/// A closed set is a hole generator. A holiday dated in the Ethiopic,
-/// Coptic, Solar Hijri or Badíʿ calendar could not be written down at all,
-/// however much anyone wanted to: the rule vocabulary had no way to say it,
-/// so Ethiopian Christmas had to be approximated in some other calendar or
-/// left out. Adding one meant editing an enum and two match arms in a crate
-/// the person who wanted it does not own.
+/// A closed set is a hole generator. A holiday dated in a calendar the set
+/// does not list — the Ethiopic, the Coptic, the Solar Hijri, the Badíʿ —
+/// could not be written down at all: Ethiopian Christmas would have to be
+/// approximated in some other calendar or left out, and adding the calendar
+/// would mean editing an enum and its match arms in a crate the person who
+/// wants it does not own.
 ///
 /// Two function pointers and an identifier are `Copy`, `const`-constructible
-/// and `static`-safe, exactly as the enum was, and open: a caller with a
-/// calendar this crate has never heard of can build one and date a holiday
-/// in it.
+/// and `static`-safe, and open: a caller with a calendar this crate has never
+/// heard of can build one and date a holiday in it.
 ///
 /// The identifier is a real [`CalendarId`], and
-/// `hyper-calendar/tests/holiday_calendars.rs` asserts that every system
-/// here names a calendar the registry answers to — the same guard the
-/// vocabulary layer gained, for the same reason.
+/// `crates/hyper-calendar/tests/holiday_calendars.rs` asserts that every
+/// system here names a calendar the registry answers to — the same guard the
+/// vocabulary layer has, for the same reason.
 #[derive(Debug, Clone, Copy)]
 pub struct CalendarSystem {
     /// The calendar this dates in, as the registry names it.

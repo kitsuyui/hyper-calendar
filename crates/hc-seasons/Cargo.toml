@@ -14,9 +14,10 @@ keywords.workspace = true
 
 [features]
 default = ["std"]
-# Route the lunisolar derivation through the real calendars instead of the
-# simplified one in `lunisolar`. Off by default: a caller who wants only the
-# solar terms should not compile thirteen lunisolar calendars to get them.
+# Add `lunisolar::exact_lunisolar_day`, the Tenpō reading to compare the
+# simplified derivation against. Nothing routes through it. Off by default: a
+# caller who wants only the solar terms should not compile the lunisolar
+# calendars to get them.
 lunar = ["dep:hc-calendars-lunar"]
 std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-astro/std", "hc-calendars-lunar?/std"]
 alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-astro/alloc", "hc-calendars-lunar?/alloc"]

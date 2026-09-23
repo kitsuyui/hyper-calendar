@@ -3,7 +3,7 @@
 //! Kaei 3 (嘉永3年) is a good demonstration case because it is a *lunisolar*
 //! year, so it does not line up with a Gregorian one: it began on
 //! 1850-02-12 and ended on 1851-01-31. A converter that answers "Kaei 3 =
-//! 1850" is rounding off a seven-week disagreement at each end.
+//! 1850" is rounding off six weeks at one end and a month at the other.
 //!
 //! Run with:
 //!

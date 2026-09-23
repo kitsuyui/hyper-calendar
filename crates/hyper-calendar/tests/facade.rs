@@ -1,12 +1,10 @@
 //! Every feature that compiles a crate in must also give a way to reach it.
 //!
-//! This file exists because four features did not. `almanac`, `fiscal`,
-//! `attributes` and `units` each declared an optional dependency, appeared in
-//! `full`, and had no `pub use` — so enabling them paid the compile cost of a
-//! crate the caller then had no path to. Nothing caught it, because a missing
-//! re-export is not a compile error anywhere.
+//! A missing re-export is not a compile error anywhere, so a feature can
+//! declare an optional dependency, appear in `full` and have no `pub use`:
+//! enabling it pays the compile cost of a crate the caller has no path to.
 //!
-//! It is one now. Each check below names a real item in its crate, so the
+//! This file makes it one. Each check below names a real item in its crate, so the
 //! test fails to compile if the re-export goes away, and fails to *link* if
 //! the item is renamed. That is stronger than listing the module paths,
 //! which would pass against an empty re-export.

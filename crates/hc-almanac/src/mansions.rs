@@ -13,8 +13,9 @@
 //! 二十八宿 column is a **plain twenty-eight-day cycle** running unbroken
 //! from a fixed anchor day. It advances one mansion per day forever and has
 //! no dependence on the Moon whatsoever. The sidereal month is 27.32 days,
-//! not 28, so a 28-day cycle drifts against the Moon by about two days a
-//! month and laps it entirely in under three years.
+//! not 28, so a 28-day cycle drifts against the Moon by about two-thirds of
+//! a mansion a month and laps it entirely in about 1,128 days, a little over
+//! three years.
 //!
 //! The two therefore disagree almost always. [`mansion_of`] implements the
 //! cyclic one, because that is what "今日の二十八宿" means in an almanac and

@@ -3,7 +3,7 @@
 //! # Two things `Rd` deliberately does not say
 //!
 //! [`Rd`] is a day number and nothing else. Two facts about a
-//! calendar sit just outside it, and both were previously only in prose:
+//! calendar sit just outside it, and this module states both:
 //!
 //! * **A day does not have to begin at midnight.** The Julian Day begins at
 //!   noon, the Hebrew and Islamic day at sunset, and the traditional Chinese
@@ -15,12 +15,11 @@
 //!
 //! # Why this is a trait method and not a `CalendarMeta` field
 //!
-//! `CalendarMeta` is built as a struct literal in ninety-six places across
-//! five crates. Adding fields would have meant editing all of them to say
-//! "midnight, no restriction", which is the answer for most of them and tells
-//! a reader nothing. A default trait method says the same thing once, and a
-//! calendar that differs overrides it — so the override itself becomes the
-//! documentation.
+//! "Midnight, no recorded period of use" is the answer for most calendars.
+//! As a `CalendarMeta` field it would be repeated in every calendar's struct
+//! literal, where it tells a reader nothing. A default trait method says it
+//! once, and a calendar that differs overrides it — so the override itself
+//! becomes the documentation.
 
 use core::fmt;
 

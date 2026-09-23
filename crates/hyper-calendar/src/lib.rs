@@ -23,6 +23,8 @@
 //! | `format` *(default)* | [`hc_format`] | ISO 8601, RFC 3339, patterns |
 //! | `i18n` *(default)* | [`hc_i18n`] | Locales, plural rules, names |
 //! | `lunar` | [`hc_astro`], [`hc_calendars_lunar`] | Hijri, Hebrew, Chinese, Tenpō |
+//! | `equinox` | [`hc_calendars_equinox`] | Solar Hijri, Badíʿ, French Republican by the equinox |
+//! | `indic` | [`hc_calendars_indic`] | The Hindu lunisolar calendar |
 //! | `regional` | [`hc_calendars_regional`] | Japanese eras, Maya, Pawukon |
 //! | `astro` | [`hc_astro`] | Solar longitude, phases, rise and set |
 //! | `seasons` | [`hc_seasons`] | 24 solar terms, 72 pentads, zassetsu |
@@ -38,9 +40,10 @@
 //! | `relativity` | [`hc_relativity`] | Time dilation, worldlines |
 //! | `full` | all of the above | |
 //!
-//! `std` is on by default. Turning it off leaves a `no_std` build; add
-//! `alloc` for the parts that need an allocator and `libm` for floating-point
-//! math on targets that lack it.
+//! `std` is on by default. Turning it off leaves a `no_std` build, which
+//! needs `libm` for floating-point math — a build with neither `std` nor
+//! `libm` is refused at compile time — and `alloc` for the parts that need
+//! an allocator.
 //!
 //! # Where to start
 //!
@@ -117,10 +120,9 @@ pub use hc_units;
 
 /// The repository README, compiled as doctests and nothing else.
 ///
-/// All three of its examples once used API that did not exist — a
-/// `Worldline` constructor, a `LightYears` newtype, two accessors — while
-/// describing a capability the library really has and tests elsewhere.
-/// Nothing caught it because a README is not compiled. This makes it one.
+/// A README is not compiled by default, so an example in it can name API
+/// that does not exist without anything failing. Including it here makes
+/// every example a doctest.
 ///
 /// `cfg(doctest)` keeps the text out of the rendered documentation, where it
 /// would duplicate the module header above.

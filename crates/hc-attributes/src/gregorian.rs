@@ -1,8 +1,7 @@
 //! Gregorian helpers in the shapes this crate uses.
 //!
 //! The conversion itself lives in [`hc_calendar::gregorian`], which owns it
-//! because it is what defines `Rd`. This module was a private copy, written
-//! when nothing in the workspace held one; it is now three adapters that
+//! because it is what defines `Rd`. This module holds thin adapters that
 //! change the shape and nothing else, so that the call sites here can pass
 //! bare integers instead of threading `Rd` and `Result` through arithmetic
 //! that cannot fail.

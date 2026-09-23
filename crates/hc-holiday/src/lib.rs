@@ -13,7 +13,10 @@
 //! | [`rule`] | the rule vocabulary and the observance modifiers |
 //! | [`computus`] | Easter, Gregorian and Julian, and the offsets keyed to it |
 //! | [`engine`] | evaluation, and business-day arithmetic |
+//! | [`hindu`] | the Hindu festival rules the traditions and the national tables share |
 //! | [`traditions`] | the cross-cutting religious cycles |
+//! | [`roman_calendar`] | the General Roman Calendar, every celebration with its rank |
+//! | [`international`] | the United Nations international days, each citing its resolution |
 //! | [`countries`] | the national tables |
 //! | [`exchanges`] | the trading calendars of stock exchanges |
 //!

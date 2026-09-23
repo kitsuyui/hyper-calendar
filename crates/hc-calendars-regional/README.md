@@ -1,17 +1,18 @@
 # hc-calendars-regional
 
 Regional, cyclic and era calendars for `hyper-calendar`: Japanese imperial
-eras, the Maya calendars, the two Aztec ones, the Balinese Pawukon, the
-Javanese *pasaran*, the Burmese and Thai lunar calendars, and the sexagenary
-cycle.
+eras, the Chinese and Korean regnal eras, the Maya calendars, the two Aztec
+ones, the Balinese Pawukon, the Javanese *pasaran*, the Akan *Adaduanan*, the
+Burmese and Thai lunar calendars, and the sexagenary cycle.
 
-What they have in common is that **the day has a name before it has a
+What most of them have in common is that **the day has a name before it has a
 number**. A Maya day is *4 Ahau 8 Cumku*; a Balinese day is *Buda Kliwon
 Dungulan*, a position in two of ten concurrent week cycles and one of thirty
 *wuku*; a Japanese day
-belongs to an era a government proclaimed. None of them is a count of years
-from an epoch with months cut out of it, which is why none of them belongs in
-`hc-calendars-solar` or `hc-calendars-lunar`.
+belongs to an era a government proclaimed. Those are not counts of years
+from an epoch with months cut out of them, which is why they do not belong in
+`hc-calendars-solar` or `hc-calendars-lunar`. The Burmese and Thai lunar
+calendars are such counts, and are here as regional calendars.
 
 | Identifier | What it is |
 | --- | --- |
@@ -57,7 +58,9 @@ structure underneath changed on a known day:
 * **1873-01-01 onward** — proleptic Gregorian.
 * **1844-02-18 to 1872-12-31** — the Tenpō lunisolar calendar, leap months
   and all, through `hc_calendars_lunar::japanese_tenpo`.
-* **Before 1844-02-18** — refused.
+* **862-02-07 to 1844-02-17** — the four earlier lunisolar calendars, through
+  `hc_calendars_lunar::japanese_historical`.
+* **Before 862-02-07** — refused.
 
 明治5年12月2日 is 1872-12-31, the day after it is 明治6年1月1日 = 1873-01-01,
 and 明治5年12月3日 does not exist. Running the Gregorian calendar backwards
@@ -126,14 +129,21 @@ extra one, is `Month::leap(8)`; the day is counted 1 to 30 through the month,
 
 ## Accuracy
 
-Everything except the pre-1873 half of `japanese` is exact integer
-arithmetic: no floating point, no astronomy, no approximation. The lunisolar
-half of `japanese` inherits the Tenpō calendar's model, where new moons are
-good to about a minute and the apparent solar longitude to about 1″; a
-computed month boundary can still differ by a day from what the Japanese
-calendar bureau actually promulgated, because the bureau computed from its
-own tables rather than from modern astronomy. No table of promulgated Tenpō
-months ships with this crate, so no disagreement rate against one is claimed.
+Everything except the pre-1873 half of `japanese`, the lunisolar calendar
+under `chinese-regnal` and `burmese` is exact integer arithmetic: no floating
+point, no astronomy, no approximation. `burmese` evaluates Yan Naing Aye's
+arithmetic, whose year and month are stated as ratios, in floating point.
+
+From 1844 to 1872 `japanese` inherits the Tenpō calendar's model, where new
+moons are good to about a minute and the apparent solar longitude to about
+1″; a computed month boundary can still differ by a day from what the
+Japanese calendar bureau actually promulgated, because the bureau computed
+from its own tables rather than from modern astronomy. No table of
+promulgated Tenpō months ships with this crate, so no disagreement rate
+against one is claimed. Before 1844 it inherits the four historical systems,
+whose agreement with a published table of their months the
+`hc-calendars-lunar` README gives: 96.4% to 99.1% of days. `chinese-regnal`
+inherits the `chinese` calendar's model, as that README describes.
 
 ## Sources
 
@@ -158,11 +168,13 @@ months ships with this crate, so no disagreement rate against one is claimed.
 ## Deliberate omissions
 
 * No Japanese lunisolar calendar before Senmyō (862), as above.
-* No Thai lunar year before 2535 BE or after 2570 BE, and no *suriyayatra*
-  arithmetic to extend it: a year is added when Thailand publishes it.
+* No Thai lunar year before 2535 BE or after 2570 BE beyond the first six
+  months of 2571, and no *suriyayatra* arithmetic to extend it: a year is
+  added when Thailand publishes it.
 * No Javanese calendar proper: the Sultan Agung lunar year, its *windu* and
   its Anno Javanico era are a different calendar and are not here.
 * No Maya "lord of the night" glyph cycle, no Aztec year bearer.
 * The sexagenary **month** pillar follows the lunar month, not the solar
   terms. If you are casting a chart rather than reading a date, it is not
-  the function you want; the module says so.
+  the function you want; `hc_calendar::cycle::month_pillar` takes the
+  solar-term month instead.

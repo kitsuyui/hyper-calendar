@@ -31,7 +31,7 @@ Highlights:
   significant place of the value.
 - `FuzzyInstant::relations` returns a **set** of Allen relations, not one.
   Two fully determined spans give a singleton; `Before(1500)` against a known
-  span gives five; two `Unknown`s give all thirteen.
+  span that ends before 1500 gives five; two `Unknown`s give all thirteen.
 - EDTF round-trips: `parse(s).to_string() == s` for every supported form,
   covered by a test enumerating them.
 
@@ -66,12 +66,10 @@ Highlights:
 - `DurationInterval` is exact: bounds are `hc_core::Duration`, and the
   midpoint is halved componentwise rather than through an attosecond total, so
   it stays correct past the 5.4×10¹² years at which such a total overflows.
-  (An earlier version of this line said "failing past 5.4", which was a
-  transcription of a doc comment that had dropped twelve orders of magnitude.)
 - EDTF dates are placed by counting 86 400-second days from the 1970 epoch on
   TAI. This ignores leap seconds, so a converted date is displaced from true
-  TAI by the accumulated offset: under 40 seconds in the leap-second era, zero
-  before 1972. At a resolution of one day that is irrelevant, and an exact
+  TAI by `TAI − UTC`: under 40 seconds since UTC began in 1961, and undefined
+  before that, when there was no UTC to be displaced from. At a resolution of one day that is irrelevant, and an exact
   conversion would need a UTC table covering barely 1 % of EDTF's range.
 - The Gaussian-to-support cut is three σ (99.73 %); the flat-range-to-σ
   conversion is `w/√12`, the true standard deviation of a uniform
@@ -94,7 +92,10 @@ Highlights:
 
 ## Feature flags
 
-`default = ["std"]`, `std = ["alloc", ...]`, `alloc = [...]`. The crate builds
-with `--no-default-features --features alloc`; the EDTF set and list forms
-(`[...]`, `{...}`) need `alloc` and report
-`UncertaintyError::Unsupported` without it rather than silently parsing less.
+`default = ["std"]`, `std = ["alloc", ...]`, `alloc = [...]`. The crate has no
+`libm` feature of its own, so a build without `std` also needs `hc-core/libm`
+enabled, as the `hyper-calendar` facade's `libm` feature does;
+`--no-default-features --features alloc` alone stops at `hc-core`'s
+compile-time guard. The EDTF set and list forms (`[...]`, `{...}`) need
+`alloc` and report `UncertaintyError::Unsupported` without it rather than
+silently parsing less.

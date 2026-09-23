@@ -363,7 +363,7 @@ fn number<W: fmt::Write>(
 ///
 /// # Errors
 ///
-/// See [`ParseError`].
+/// See [`crate::ParseError`].
 pub fn parse(pattern: &str, text: &str) -> ParseResult<ParsedFields> {
     parse_with_locale(pattern, text, None)
 }
@@ -376,7 +376,7 @@ pub fn parse(pattern: &str, text: &str) -> ParseResult<ParsedFields> {
 ///
 /// # Errors
 ///
-/// See [`ParseError`].
+/// See [`crate::ParseError`].
 pub fn parse_with_locale(
     pattern: &str,
     text: &str,

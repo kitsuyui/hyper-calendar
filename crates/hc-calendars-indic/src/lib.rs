@@ -17,7 +17,8 @@
 //! * [`tithi`] — the lunar day itself: which tithi is in progress at a
 //!   moment, and which a civil day carries.
 //! * [`nakshatra`] — the Moon's station among the twenty-seven: which is
-//!   in progress at a moment, and when the Moon enters and leaves one.
+//!   in progress at a moment, and when the Moon enters and leaves one; and
+//!   the Sun's.
 //! * [`hindu_old`] — the mean-motion solar and lunisolar calendars of the
 //!   *Ārya Siddhānta*, counted in the Kali Yuga: the arithmetic the true
 //!   calendars replaced. `hindu-old-solar`, `hindu-old-lunar`.

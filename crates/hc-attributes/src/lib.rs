@@ -87,7 +87,8 @@
 //!
 //! # Where the astronomy comes in
 //!
-//! Only once, and it is the Harvest Moon. It is defined as the full moon
+//! Twice. [`zodiac_stones::stones_on`] asks `hc-seasons` for the sign a day
+//! falls in. The other is the Harvest Moon, defined as the full moon
 //! nearest the September equinox, so about one year in four it falls in
 //! October and September's moon takes its other name. That is a rule, not a
 //! table row, and [`moon_names::harvest_moon`] computes it from
@@ -97,12 +98,13 @@
 //! # Precision
 //!
 //! The tables are exact: they are transcriptions, and the tests check them
-//! against the published lists. The only thing that can be wrong by a day is
-//! the Harvest Moon, which inherits `hc-seasons`' accuracy — lunar phases
-//! and the equinox within about a minute. Since the rule compares intervals
-//! of roughly a fortnight,
-//! neither error can change which month the answer falls in for any year
-//! this crate is tested over.
+//! against the published lists. The only things that can be wrong by a day
+//! are the two computations, which inherit `hc-seasons`' accuracy. A sign
+//! boundary within about ten minutes of local midnight can move
+//! [`zodiac_stones::stones_on`] by a day. The Harvest Moon rests on lunar
+//! phases and the equinox, each within about a minute, and since the rule
+//! compares intervals of roughly a fortnight, neither error can change which
+//! month the answer falls in for any year this crate is tested over.
 //!
 //! # Features
 //!

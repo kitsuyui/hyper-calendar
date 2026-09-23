@@ -230,8 +230,8 @@ pub fn count_of(span: Duration, unit: TimeUnit) -> f64 {
 /// one unit, always in `0.0..1.0`.
 ///
 /// Sign is dropped first, so a span in the past and the matching span in the
-/// future have the same remainder. [`crate::approximate`] keys its hedges on
-/// this.
+/// future have the same remainder.
+/// [`crate::approximate`](fn@crate::approximate) keys its hedges on this.
 #[must_use]
 pub fn fraction_of(span: Duration, unit: TimeUnit) -> f64 {
     let magnitude = abs(count_of(span, unit));

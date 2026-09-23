@@ -3,10 +3,10 @@
 //!
 //! The Chinese, Korean and Vietnamese calendars run 1645–2150; Umm al-Qurā
 //! is a published table with its own bounds. Outside those, a rule dated in
-//! one of them has no answer. The engine used to express that by listing
-//! nothing, so `holidays_in_year(CHINA, 2151)` came back with seven entries
-//! instead of thirteen — no Spring Festival, no Dragon Boat, no
-//! Mid-Autumn — and every survivor marked `Exact`.
+//! one of them has no answer. Listing nothing would be the easy mistake:
+//! `holidays_in_year(&CHINA, None, 2151)` would then return the solar-dated
+//! entries alone — no Spring Festival, no Dragon Boat, no Mid-Autumn — with
+//! every survivor marked `Exact`.
 //!
 //! The tests use South Korea, whose table is bounded by the `dangi`
 //! calendar alone. China's is also bounded by the State Council's annual

@@ -18,6 +18,7 @@ file does not:
 | `julian` | Proleptic Julian, with BC/AD eras | `julian` |
 | `julian_gregorian` | Julian before a country's reform, Gregorian after | `julian-gregorian-*` |
 | `year_style` | Where the year began: Lady Day, Annunciation (Florentine, Pisan), Nativity, more veneto, Greek | *(not calendars; a year-number conversion)* |
+| `cycles` | The computus cycles: golden number, dominical letter, epact, solar cycle, indiction, Julian Period | *(not calendars; year numbers)* |
 | `iso_week` | ISO 8601 week date | `iso8601-week` |
 | `ordinal` | ISO 8601 ordinal date | `iso8601-ordinal` |
 | `julian_day` | Julian Day Number, Modified Julian Date | `julian-day`, `modified-julian-day` |
@@ -45,6 +46,7 @@ file does not:
 | `bahai_kept` | Badíʿ as kept: the arithmetic rule to 171 BE, the Bahá'í World Centre's table for 172–221 BE, nothing after | `bahai` |
 | `symmetry454` | Symmetry454 | `symmetry454` |
 | `symmetry010` | Symmetry010 | `symmetry010` |
+| `symmetry` | The leap rule the two Symmetry calendars share | *(not a calendar)* |
 | `revised_julian` | Revised Julian (Milanković) | `revised-julian` |
 | `koki` | Japanese imperial year (皇紀, kōki) | `japanese-imperial` |
 | `world_calendar` | The World Calendar | `world-calendar` |
@@ -58,13 +60,14 @@ The crate's boundary is arithmetic. A calendar whose rule is "every fourth
 year" belongs here; one whose rule is "the day the equinox falls at Tehran"
 does not, because the answer would depend on an ephemeris and would move when
 the model behind it improved. Three calendars sit on that line and are
-implemented in their arithmetic form only, under names that say so:
+implemented here in their arithmetic form, under names that say so; the
+astronomical forms are in `hc-calendars-equinox`:
 
 * **Solar Hijri.** The official Iranian calendar begins the year at the
   observed March equinox. Implemented here is the 2 820-year cyclic rule
   associated with Birashk, which disagrees with the observation in a handful
   of years even inside the range where it is at its best. The CLDR identifier
-  `persian` is left free for `hc-astro`.
+  `persian` belongs to the astronomical calendar in `hc-calendars-equinox`.
 * **French Republican.** The decree of 1793 used the true autumn equinox at
   Paris. Implemented here is Romme's proposed arithmetic rule, which puts the
   sextile day at the end of An IV where France put it at the end of An III —
@@ -74,22 +77,26 @@ implemented in their arithmetic form only, under names that say so:
 * **Badíʿ.** Since 2015 the Bahá'í calendar is unified on astronomical rules
   keyed to the Tehran equinox and sunset. Implemented here is the pre-2015
   Western form with Naw-Rúz pinned to 21 March, which is exact for what it is
-  and an approximation after B.E. 171.
+  and an approximation after B.E. 171. `bahai` is the calendar as kept: this
+  rule to 171 BE and the Bahá'í World Centre's published table for 172–221
+  BE. It refuses later days rather than compute them.
 
-Thailand's year began on 1 April until 1941, and was counted in the
-Rattanakosin era until March 1913. `buddhist` keeps the modern year, and
+From 1889 to 1940 Thailand's year began on 1 April, and it was counted in
+the Rattanakosin era until March 1913. `buddhist` keeps the modern year, and
 `buddhist::printed_year` and `buddhist::printed_to_fixed` convert between a
 day and the year a Thai document of the time printed for it.
 
 Smaller omissions, each documented in its module: the Roman republican
-calendar before 45 BC and the kalends/nones/ides counting (`roman`); the 25 March year
-start England used before 1752 (`julian_gregorian`); the regional lunisolar
-Hindu calendars (`indian`); the Alexandrian and Antiochene world eras
+calendar before 45 BC and the kalends/nones/ides counting, which is in
+`hc_format::roman` (`roman`); the year starts other than 1 January, which are
+`year_style` (`julian_gregorian`); the regional lunisolar Hindu calendars,
+which are in `hc-calendars-indic` (`indian`); the Alexandrian and Antiochene world eras
 (`byzantine`); month and weekday names in each *language*, which are locale
 data and live in `hc-i18n`. A calendar whose months have one orthography that
 every language borrows — Coptic, Ethiopic, Egyptian, the two Armenian,
-Persian, Indian, French Republican — declares those names itself, with its
-shape, and `hc-i18n` consults them after the locale.
+Zoroastrian, Persian, Indian, Nanakshahi, Bangladeshi, Rumi, French
+Republican, Discordian — declares those names itself, with its shape, and
+`hc-i18n` consults them after the locale.
 
 ## Accuracy
 
@@ -102,7 +109,8 @@ The Gregorian and Julian modules support years −9 999 999 to 9 999 999, which
 comfortably contains the −9999..=9999 range the rest of the workspace assumes.
 Calendars with an epoch start at it and refuse earlier days with
 `CalendarError::BeforeEpoch` rather than extending proleptically into a period
-where the year number would be meaningless.
+where the year number would be meaningless. Minguo is the exception: it
+counts the years before 1912 as 民國前, so it covers the Gregorian range.
 
 Where a calendar's rule *approximates* an astronomical year, the mean year is
 stated and tested: 365.242 198 58 days for the Persian 2 820-year cycle,

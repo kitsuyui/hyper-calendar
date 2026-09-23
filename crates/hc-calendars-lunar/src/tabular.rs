@@ -469,10 +469,9 @@ impl Calendar for TabularIslamicCalendar {
     /// The Islamic day begins at sunset, which is also why the month begins
     /// with a crescent seen after one.
     ///
-    /// Declared here rather than only on the wrappers in `islamic_civil`
-    /// and `islamic_astronomical`. It used to be only there, so those two
-    /// were right and every other tabular variant a caller built — or that
-    /// this crate registered — silently said midnight.
+    /// Declared here, on the engine, rather than only on the wrappers in
+    /// `islamic_civil` and `islamic_astronomical`, so that every tabular
+    /// variant a caller builds, or this crate registers, says sunset too.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Sunset
     }
@@ -551,8 +550,8 @@ mod tests {
     }
 
     /// Every tabular Hijri calendar starts its day at sunset, whatever
-    /// epoch and leap rule it carries. This used to be true only of the two
-    /// that had their own wrapper type.
+    /// epoch and leap rule it carries, not only the two that have their own
+    /// wrapper type.
     #[test]
     fn a_tabular_hijri_day_begins_at_sunset() {
         use hc_calendar::DayBoundary;

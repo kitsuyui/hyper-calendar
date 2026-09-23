@@ -1,10 +1,11 @@
 //! Asian national tables, other than Japan.
 //!
-//! This is where the calendars stop being Gregorian. China, Taiwan, Korea
-//! and Vietnam key their great festivals to four *different* lunisolar
-//! calendars — the same algorithm at four different meridians — and Chinese
-//! New Year, Seollal and Tết are not always the same day. Each table names
-//! its own calendar rather than borrowing China's.
+//! This is where the calendars stop being Gregorian. China and Taiwan, Korea
+//! and Vietnam key their great festivals to three *different* lunisolar
+//! calendars — the same algorithm at three different meridians — and Chinese
+//! New Year, Seollal and Tết are not always the same day. Korea's table names
+//! `dangi` and Vietnam's `vietnamese` rather than borrowing China's; Taiwan
+//! keeps the Chinese calendar at the Beijing meridian, as China does.
 
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_indic::places::KATHMANDU;

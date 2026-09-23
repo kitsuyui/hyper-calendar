@@ -1,10 +1,9 @@
 //! Gregorian helpers in the shapes this crate uses.
 //!
 //! The conversion itself lives in [`hc_calendar::gregorian`], which owns it
-//! because it is what defines `Rd`. This module was a private copy, written
-//! before anything in the workspace held one. It is now three adapters that
-//! change the shape and nothing else: the epochs and validation ranges here
-//! are `const` expressions built from published dates, so they need a total
+//! because it is what defines `Rd`. This module holds adapters that change
+//! the shape and nothing else: the epochs and validation ranges here are
+//! `const` expressions built from published dates, so they need a total
 //! function rather than one that returns `Result`.
 
 use hc_calendar::Rd;

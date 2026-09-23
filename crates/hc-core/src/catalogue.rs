@@ -9,17 +9,14 @@
 //! identifiers are unique, every entry is findable by its own identifier,
 //! the table is in the order it claims, and nothing is missing its source.
 //!
-//! Those were written by hand each time, and the evidence that this was a bad
-//! idea is in the repository's own history. Two hand-written property tests
-//! were *wrong*: one asserted a span was "well past the range" of an
-//! attosecond count when it was five million times inside it, and another
-//! compared a function against itself through a re-export, so no change
-//! could ever have failed it. Both would have been correct if generated.
+//! Hand-written property tests are easy to get subtly wrong: a bound can be
+//! off by orders of magnitude, or a function can end up compared against
+//! itself through a re-export, so that no change could ever fail the test.
+//! Generated tests do not have that failure mode.
 //!
 //! The larger win is not the tests. It is that declaring an entry, listing
-//! it, and counting it stop being three separate edits. That class of
-//! mistake — implemented but not registered — happened three times in a
-//! single afternoon of work on this crate.
+//! it, and counting it stop being three separate edits, so an entry cannot
+//! be implemented and then left unregistered.
 //!
 //! # What it deliberately does not do
 //!
@@ -302,8 +299,7 @@ macro_rules! catalogue_tests {
             }
 
             /// Every entry must be reachable by its own identifier. This is
-            /// what fails when an entry is declared and not listed — the
-            /// mistake that used to need a third edit to avoid.
+            /// what fails when an entry is declared and not listed.
             #[test]
             fn every_entry_is_findable_by_its_own_identifier() {
                 for entry in all() {

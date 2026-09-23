@@ -38,11 +38,13 @@ TCB.
 
 ### Why the offsets are computed the way they are
 
-TCG, TDB and TCB differ from TT by a *small* amount — fractions of a second
-over decades. So the library computes that small difference in `f64` and then
-applies it to the exact `Duration`, rather than converting the whole reading to
-`f64` and back. Converting 1.7 billion seconds through `f64` costs about
-400 ns of precision; converting a 0.2 s offset costs nothing that matters.
+TCG, TDB and TCB differ from TT by a *small* amount against the reading
+itself: TDB by at most about 1.7 ms, TCG by about a second and TCB by about
+twenty-four seconds since 1977. So the library computes that small difference
+in `f64` and then applies it to the exact `Duration`, rather than converting
+the whole reading to `f64` and back. An `f64` near 1.7 billion seconds
+resolves only about 240 ns; an offset of a few seconds converts with
+femtosecond error, which is nothing that matters.
 
 ## UTC is not one of them
 
@@ -88,16 +90,19 @@ and B.
 
 The library therefore does **not** ship a DUT1 table baked in. `Ut1Offsets`
 takes the series the caller trusts, interpolates linearly inside it and returns
-`None` outside it rather than extrapolating. Supplying no series means UT1 is
-treated as UTC, which is wrong by at most 0.9 s and is documented as such.
+`None` outside it rather than extrapolating. The `Ut1` scale marker on its own
+is a placeholder that returns the TAI reading unchanged, so without a series
+it is off by the whole of `TAI − UTC` as well as DUT1.
 
 ## ΔT
 
 `hc-astro` needs `TT − UT1` (ΔT) to place historical astronomical events on a
 civil calendar. Before atomic clocks this is reconstructed from eclipse
 records, and the uncertainty grows fast: a few seconds in 1900, minutes in
-1000 CE, hours in 1000 BCE. `hc-astro` uses the Espenak–Meeus polynomial fits
-and states its uncertainty per era.
+1000 CE, hours in 1000 BCE. `hc-astro` uses the Espenak–Meeus polynomial fits.
+It does not attach an uncertainty to each value, but `time::is_fitted_year`
+reports whether a year lies inside the span the fits cover (−500 to +2150) or
+in the parabolic extrapolation beyond it.
 
 This is why a Chinese lunisolar date computed for 500 CE can differ by a day
 from what was actually proclaimed: the calculation is right and the Earth's

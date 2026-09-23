@@ -70,14 +70,14 @@ impl Holiday {
 /// A holiday the calendar could not compute, and why.
 ///
 /// A rule dated in the Chinese, Korean, Vietnamese or Umm al-Qurā calendar
-/// has no answer outside that calendar's range, and an evaluated calendar
-/// used to express that by simply not listing the holiday — so
-/// `holidays_in_year(CHINA, 2151)` returned seven entries instead of
-/// thirteen, with 春節, 端午節 and 中秋節 missing and everything that
-/// remained marked [`Confidence::Exact`].
+/// has no answer outside that calendar's range, and the holiday list alone
+/// cannot say so: `holidays_in_year(&CHINA, None, 2151)` gives seven
+/// entries instead of thirteen, with 春節, 端午節 and 中秋節 missing and
+/// everything that remains marked [`Confidence::Exact`].
 ///
 /// Policy §4 says the library refuses rather than guesses. Omitting a
-/// holiday silently is a guess — that it did not happen.
+/// holiday silently is a guess — that it did not happen — so the calendar
+/// records each one it could not compute as a gap.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Gap {
     /// The Gregorian year that could not be answered.

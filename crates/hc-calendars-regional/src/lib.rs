@@ -3,10 +3,12 @@
 //! The calendars here have one thing in common: **the day has a name before
 //! it has a number.** A Maya day is *4 Ahau 8 Cumku* before it is the
 //! 1 872 000th day of anything; a Balinese day is *Buda Kliwon Dungulan*,
-//! the simultaneous position in three of ten concurrent week cycles; a
-//! Japanese day belongs to an era that a government proclaimed. None of them
-//! is a count of years from an epoch with months cut out of it, which is why
-//! none of them fits in [`hc_calendars_solar`] or [`hc_calendars_lunar`].
+//! a position in two of ten concurrent week cycles and in one of thirty
+//! *wuku*; a Japanese day belongs to an era that a government proclaimed.
+//! Those are not counts of years from an epoch with months cut out of them,
+//! which is why they do not fit in [`hc_calendars_solar`] or
+//! [`hc_calendars_lunar`]. The Burmese and Thai lunar calendars are such
+//! counts, and are here as regional calendars.
 //!
 //! | Module | Calendars |
 //! | --- | --- |

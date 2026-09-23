@@ -32,8 +32,9 @@
 //! # Cycles, which are not calendars
 //!
 //! Some ways of naming a day are not calendars at all: they repeat without
-//! counting. [`weekday`] holds the seven-day week and the four-, five- and
-//! ten-day weeks that are not seven days long; [`cycle`] holds the East Asian
+//! counting. [`weekday`] holds the seven-day week and
+//! [`weekday::DayCycle`], which places a day in a week of any other length;
+//! [`cycle`] holds the East Asian
 //! sexagenary cycle (干支) — the stems and branches, the readings they are
 //! written in, the twelve double-hours
 //! (十二時辰), and the four pillars (四柱 / 八字) of year, month, day and

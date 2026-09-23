@@ -11,7 +11,7 @@
 //! metric is Schwarzschild's, so the model is exact for a non-rotating,
 //! uncharged, spherically symmetric mass and approximate for anything real.
 //! For the Earth the leading correction is the quadrupole moment `J₂`, which
-//! shifts these numbers by parts in 10⁻³ of themselves — nanoseconds per day
+//! shifts these numbers by about one part in 10³ — nanoseconds per day
 //! on the GPS figures below, not microseconds. Rotation (the Kerr metric) and
 //! the Earth's own rotation in the ground clock's frame are not modelled at
 //! all.
@@ -66,7 +66,8 @@ fn check_radius(radius: f64) -> RelativityResult<f64> {
 ///
 /// # Errors
 ///
-/// See [`check_gm`].
+/// Returns [`RelativityError::NotFinite`] for a NaN or infinite argument and
+/// [`RelativityError::NegativeMass`] for a negative `gm`.
 pub fn schwarzschild_radius(gm: f64) -> RelativityResult<f64> {
     Ok(2.0 * check_gm(gm)? / SPEED_OF_LIGHT_SQUARED)
 }
@@ -79,7 +80,8 @@ pub fn schwarzschild_radius(gm: f64) -> RelativityResult<f64> {
 ///
 /// # Errors
 ///
-/// See [`check_gm`].
+/// Returns [`RelativityError::NotFinite`] for a NaN or infinite argument and
+/// [`RelativityError::NegativeMass`] for a negative `mass`.
 pub fn schwarzschild_radius_of_mass(mass: f64) -> RelativityResult<f64> {
     schwarzschild_radius(crate::constants::GRAVITATIONAL_CONSTANT * finite(mass)?)
 }
@@ -92,9 +94,11 @@ pub fn schwarzschild_radius_of_mass(mass: f64) -> RelativityResult<f64> {
 ///
 /// # Errors
 ///
-/// See [`check_gm`] and [`check_radius`]; returns
-/// [`RelativityError::InsideHorizon`] when `r ≤ r_s`, where no static
-/// observer exists.
+/// Returns [`RelativityError::NotFinite`] for a NaN or infinite argument,
+/// [`RelativityError::NegativeMass`] for a negative `gm` and
+/// [`RelativityError::NonPositiveRadius`] for a radius that is zero or
+/// negative. Also returns [`RelativityError::InsideHorizon`] when
+/// `r ≤ r_s`, where no static observer exists.
 pub fn static_dilation_factor(gm: f64, radius: f64) -> RelativityResult<f64> {
     let gm = check_gm(gm)?;
     let radius = check_radius(radius)?;
@@ -155,7 +159,10 @@ pub fn gravitational_redshift(
 ///
 /// # Errors
 ///
-/// See [`check_gm`] and [`check_radius`].
+/// Returns [`RelativityError::NotFinite`] for a NaN or infinite argument,
+/// [`RelativityError::NegativeMass`] for a negative `gm` and
+/// [`RelativityError::NonPositiveRadius`] for a radius that is zero or
+/// negative.
 pub fn circular_orbit_speed(gm: f64, radius: f64) -> RelativityResult<f64> {
     let gm = check_gm(gm)?;
     let radius = check_radius(radius)?;
@@ -170,9 +177,11 @@ pub fn circular_orbit_speed(gm: f64, radius: f64) -> RelativityResult<f64> {
 ///
 /// # Errors
 ///
-/// See [`check_gm`] and [`check_radius`]; returns
-/// [`RelativityError::InsideHorizon`] inside the photon sphere at
-/// `r = 3GM/c²`, where no circular timelike orbit exists.
+/// Returns [`RelativityError::NotFinite`] for a NaN or infinite argument,
+/// [`RelativityError::NegativeMass`] for a negative `gm` and
+/// [`RelativityError::NonPositiveRadius`] for a radius that is zero or
+/// negative. Also returns [`RelativityError::InsideHorizon`] inside the
+/// photon sphere at `r = 3GM/c²`, where no circular timelike orbit exists.
 pub fn circular_orbit_dilation_factor(gm: f64, radius: f64) -> RelativityResult<f64> {
     let gm = check_gm(gm)?;
     let radius = check_radius(radius)?;
@@ -210,7 +219,10 @@ pub fn orbit_rate_offset(gm: f64, orbit_radius: f64, ground_radius: f64) -> Rela
 ///
 /// # Errors
 ///
-/// See [`check_gm`] and [`check_radius`].
+/// Returns [`RelativityError::NotFinite`] for a NaN or infinite argument,
+/// [`RelativityError::NegativeMass`] for a negative `gm` and
+/// [`RelativityError::NonPositiveRadius`] for a radius that is zero or
+/// negative.
 pub fn gravitational_rate_offset(
     gm: f64,
     orbit_radius: f64,
@@ -228,7 +240,10 @@ pub fn gravitational_rate_offset(
 ///
 /// # Errors
 ///
-/// See [`check_gm`] and [`check_radius`].
+/// Returns [`RelativityError::NotFinite`] for a NaN or infinite argument,
+/// [`RelativityError::NegativeMass`] for a negative `gm` and
+/// [`RelativityError::NonPositiveRadius`] for a radius that is zero or
+/// negative.
 pub fn kinematic_rate_offset(gm: f64, orbit_radius: f64) -> RelativityResult<f64> {
     let gm = check_gm(gm)?;
     let orbit = check_radius(orbit_radius)?;

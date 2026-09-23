@@ -1,21 +1,15 @@
 //! Every calendar a holiday can be dated in must be one the registry has.
 //!
 //! The companion of `vocabulary.rs`, for the same reason and against the
-//! same failure. `hc_holiday::CalendarSystem` was a closed enum of eight,
-//! justified on the grounds that "a trait object cannot be a `static`
-//! without an allocator" — true of `dyn Calendar`, and not a reason for the
-//! set to be *closed*.
+//! same failure.
 //!
-//! A closed set is a hole generator. A feast kept in the Ethiopic, Coptic,
-//! Solar Hijri or Badíʿ calendar could not be written down, so it had to be
-//! approximated in a calendar it does not belong to or left out. Adding one
-//! meant editing an enum and two match arms in a crate the person who wants
-//! it does not own.
-//!
-//! Now it is a struct of two function pointers and a [`CalendarId`] — still
-//! `Copy`, still `const`, still `static`-safe, and open. What that costs is
-//! the guarantee an enum gave for free: that every system names something
-//! real. This file is that guarantee, paid for explicitly.
+//! `hc_holiday::CalendarSystem` is a struct of two function pointers and a
+//! [`CalendarId`] — `Copy`, `const`, `static`-safe, and open, so a feast
+//! kept in the Ethiopic, Coptic, Solar Hijri or Badíʿ calendar can be
+//! written down in its own calendar without editing `hc-holiday`. A closed
+//! enum would guarantee for free that every system names something real;
+//! an open struct does not. This file is that guarantee, paid for
+//! explicitly.
 
 #![cfg(all(
     feature = "alloc",

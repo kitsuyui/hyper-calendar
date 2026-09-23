@@ -6,8 +6,8 @@
 //! paced the ice ages. They belong here rather than in `hc-units` for one
 //! reason: every one of them is a *measurement*. `hc-units` holds lengths
 //! that an authority defined, which are exact; these have error bars, they
-//! are revised as the data improve, and several of them are not even
-//! constant over the span they are quoted for.
+//! are revised as the data improve, and some of them are not even constant
+//! over the span they are quoted for.
 //!
 //! # Honesty about the galactic year
 //!

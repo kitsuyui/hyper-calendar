@@ -19,18 +19,19 @@ It contains no calendar.
 | `moon_calendar` | phase names, 月齢, illuminated fraction, a month's four principal phases, 十五夜, 十三夜 |
 | `seasons` | astronomical, meteorological and East Asian seasons |
 | `zodiac` | 黄道十二宮: the tropical Western signs, the sidereal rāśi with the ayanamsa, the Indian solar months, and the Chinese 十二次 |
-| `lunisolar` | a minimal month/day derivation, here on sufferance — see below |
+| `lunisolar` | a minimal month/day derivation for 六曜 and the moon-viewing nights — see Known gaps |
 
 ## A day is not an instant
 
 Every event here starts as an astronomical instant in Universal Time and ends
 as a calendar day. The step between them is a choice of meridian, and it
-changes answers. Beijing is an hour behind Tokyo, so over 1950–2050 the two
-almanacs put a solar term on different dates **99 times out of 2400**. A
+changes answers. Beijing is an hour behind Tokyo, so over 1950–2049 the two
+almanacs put a solar term on different dates **98 times out of 2400**. A
 lunar month boundary shifts the same way, which is why Chinese and Japanese
 new year occasionally differ.
 
-So nothing here guesses. Every function returning an `Rd` takes a `Meridian`,
+So nothing here guesses. Every function that turns an instant into an `Rd`
+takes a `Meridian`,
 and `Meridian::JAPAN` (UTC+9) and `Meridian::CHINA` (UTC+8) are the meridians
 the respective national almanacs are computed at. `Meridian` is a fixed
 offset, not a time zone: no daylight saving, no political history. That is
@@ -57,7 +58,7 @@ tropical sign rotated back fifteen degrees, and is the same interval as the
 
 ### Why the sidereal one is here
 
-Twenty-four degrees out of thirty is four fifths. **For 293 days of 2024 the
+Twenty-four degrees out of thirty is four fifths. **For 295 days of 2024 the
 tropical and sidereal signs disagree** — most of tropical Aries is sidereal
 Pisces, most of tropical Taurus is sidereal Aries — so a library that shipped
 only one of them would be answering "which sign" with one of two answers and
@@ -109,7 +110,7 @@ asserting zero, because the margin is eleven minutes and not a principle;
 a companion test asserts that any future disagreement must be a case within
 half an hour of midnight JST, so a real regression cannot hide behind the
 documented bias. Computing the same holiday in Universal Time instead of JST
-would get **89 of those 240 days wrong**, which is what the `Meridian`
+would get **88 of those 240 days wrong**, which is what the `Meridian`
 argument exists to prevent.
 
 Other accuracy notes:
@@ -140,23 +141,23 @@ ingresses, 12 signs a year, and prints the result:
 
 | Meridian | 1900–1929 | 1970–1999 | 2000–2029 | 2070–2099 |
 | --- | --- | --- | --- | --- |
-| Greenwich | 31.4 % | 25.6 % | **48.6 %** | 90.8 % |
-| New York (UTC−5) | 21.9 % | 43.9 % | **68.6 %** | 97.8 % |
-| Tokyo (UTC+9) | 66.4 % | 23.3 % | **22.5 %** | 61.7 % |
+| Greenwich | 31.1 % | 25.3 % | **48.6 %** | 90.6 % |
+| New York (UTC−5) | 21.7 % | 43.1 % | **68.3 %** | 97.8 % |
+| Tokyo (UTC+9) | 66.4 % | 23.3 % | **22.2 %** | 61.4 % |
 
 Percentages are sign-years on which the computed ingress day differs from the
 printed date. Three things are worth reading out of that table:
 
-* **The printed dates fit New York best around 1900**, which is where and when
-  the convention was settled, and they have got steadily worse there ever
+* **The printed dates fit New York best in 1900–1929**, which is where and
+  when the convention was settled, and they have got steadily worse there ever
   since — 97.8 % wrong by the 2070s.
 * **The day counts are not monotone**, because a day count is a rounded
   number and the rounding depends on the meridian: Tokyo's nine-hour offset
   catches the drift at a different point, so the printed dates fit Tokyo
-  *best* in the late twentieth century.
+  *best* around the turn of the twenty-first century.
 * **What is monotone is the instant underneath.** The mean arrival of the Sun
   against the printed date falls at every meridian in every span, by
-  **1.30 days between 1900–1929 and 2070–2099** — about three quarters of a
+  **1.29 days between 1900–1929 and 2070–2099** — about three quarters of a
   day per century. That is not precession of the equinoxes; it is the
   Gregorian calendar. Between the 1900 and 2100 century rules no leap year is
   skipped (2000 was a leap year), so for two hundred years the calendar keeps
@@ -167,7 +168,7 @@ Over 2000–2029 at Greenwich the split is 185 exact against 175 one day early
 and nothing ever late or two days early: the drift is entirely one-sided and
 entirely small. And a fixed date has no meridian, so no recomputed list could
 be right everywhere at once — Greenwich and Tokyo put a sign boundary on
-different dates **451 times in 1200 sign-years, 37.6 %**.
+different dates **447 times in 1200 sign-years, 37.2 %**.
 
 ## The reference data, and where it came from
 
@@ -182,8 +183,8 @@ different dates **451 times in 1200 sign-years, 37.6 %**.
   clams; Japan replaced those because they are not observations of Japan.
 * **雑節 dates**, **term dates** and the **equinox-day table** are checked
   against the National Astronomical Observatory of Japan's 暦要項.
-* **土用の丑の日** is checked against the published eel days for 2015–2025,
-  including the years with a 二の丑.
+* **土用の丑の日** is checked against the published eel days for 2023–2025,
+  two of which had a 二の丑.
 * **中秋の名月 and 十三夜** against the published dates for 2020–2025.
 * **Lunar new year** for 2015–2026, which every almanac agrees about, anchors
   the lunisolar derivation.
@@ -204,9 +205,9 @@ different dates **451 times in 1200 sign-years, 37.6 %**.
   person.
 * **The ayanamsa anchors** are the Swiss Ephemeris values, the most widely
   deployed reference implementation, carried forward by IAU 2006 general
-  precession (Capitaine, Wallace & Chapront 2003). Makara Saṅkrānti
-  (mid-January) and Meṣa Saṅkrānti (mid-April) are checked against the
-  published festival dates for 2015–2030.
+  precession (Capitaine, Wallace & Chapront 2003). Makara Saṅkrānti is
+  checked to fall on 14 or 15 January and Meṣa Saṅkrānti on 13 to 15 April in
+  every year 2015–2030, the window the published dates fall in.
 * **The 十二次** with the traditional-character and shinjitai columns (they
   differ for 實沈/実沈 and 壽星/寿星), pinyin, the matching 十二辰 branch taken
   from `hc_calendar::cycle::readings::PINYIN` rather than copied, and the
@@ -287,16 +288,18 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
 
 ## Known gaps
 
-* **`lunisolar` is a stand-in.** 六曜 is a function of the lunisolar month and
-  day, and `hc-calendars-lunar` — which will own the real Chinese, Dangi and
-  Japanese lunisolar calendars — is being written separately and must not be
-  depended on from here. So this crate carries a minimal derivation:
-  new moon starts the month, the 中気 it contains numbers it, a month without
-  a 中気 is a leap month repeating the previous number. **When
-  `hc-calendars-lunar` lands, delete `lunisolar` and re-point `rokuyo` and
-  `moon_calendar` at it.**
+* **`lunisolar` is a minimal derivation.** 六曜 is a function of the lunisolar
+  month and day, and this crate computes it from its own minimal derivation
+  rather than from `hc-calendars-lunar`: new moon starts the month, the 中気
+  it contains numbers it, a month without a 中気 is a leap month repeating the
+  previous number. Routing every 六曜 through the full calendar would make each
+  one pay for a new-moon search; the module documentation records the cost.
+  With the `lunar` feature, `lunisolar::exact_lunisolar_day` reads the same
+  day from the unbounded Tenpō calendar, and a test counts the difference: 89
+  of the 3,653 days of 2024–2033 differ, all in one run from 25 August to 21
+  November 2033.
 
-  What the stand-in does not implement: the leap month is properly the
+  What the derivation does not implement: the leap month is properly the
   *first* 中気-less month after the eleventh, decided by looking at the whole
   year between two winter solstices, and a month can occasionally hold two
   中気 — the case that has made 天保暦's rule formally ambiguous since 1844
@@ -304,7 +307,7 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
   today. This code decides month by month and takes the later 中気 when a
   month holds two. It reproduces every lunar new year 2015–2026 and the 2023
   閏二月, and it puts the winter solstice in month 11 for every year
-  1990–2040.
+  1990–2039.
 * **社日's tie-break.** When the equinox falls on a 癸 day the two 戊 days are
   exactly five days either side. This crate takes the earlier; sources differ,
   and there is no switch for it.
@@ -340,9 +343,9 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
 * Jean Meeus, *Astronomical Algorithms*, 2nd ed., Willmann-Bell 1998, through
   `hc-astro`.
 * Edward M. Reingold and Nachum Dershowitz, *Calendrical Calculations*, 4th
-  ed., Cambridge 2018 — the Rata Die pivot, the Gregorian arithmetic repeated
-  privately in `gregorian.rs`, and the Beijing local-mean-time meridian used
-  for Chinese dates before 1929.
+  ed., Cambridge 2018 — the Rata Die pivot, the Gregorian arithmetic that
+  `gregorian.rs` adapts from `hc_calendar::gregorian`, and the Beijing
+  local-mean-time meridian used for Chinese dates before 1929.
 * National Astronomical Observatory of Japan, 暦要項 (*Calendar Essentials*),
   published annually in the *Official Gazette* — solar term dates, 雑節 dates,
   and the 春分の日 / 秋分の日 table.

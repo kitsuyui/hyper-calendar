@@ -163,9 +163,7 @@ impl Duration {
     ///
     /// Returns [`TimeError::Overflow`] when the span exceeds ±2¹²⁷ as, which
     /// is about ±5.4 × 10¹² years — five trillion, roughly four hundred
-    /// times the age of the universe. An earlier version of this line said
-    /// "5.4 years", and three other places repeated it as a reason to avoid
-    /// this method.
+    /// times the age of the universe.
     pub const fn total_attos(self) -> TimeResult<i128> {
         match self.secs.checked_mul(ATTOS_PER_SEC_I128) {
             Some(scaled) => match scaled.checked_add(self.attos as i128) {
@@ -488,12 +486,9 @@ mod tests {
     use super::*;
     /// The range claims in this module's doc comment, pinned.
     ///
-    /// Both were wrong for a while and both were repeated elsewhere as
-    /// reasons to do something: the attosecond limit was given as "5.4
-    /// years" and used to justify avoiding `total_attos` in
-    /// `hc-uncertainty`, and the second count was given as 5·10³⁰ times the
-    /// age of the universe in three places including an ADR. A number that
-    /// justifies a decision should be a test.
+    /// Both limits are easy to misstate by many orders of magnitude, and
+    /// other crates rely on them when deciding whether `total_attos` is safe
+    /// to call. A number that justifies a decision should be a test.
     #[test]
     fn the_attosecond_total_reaches_trillions_of_years_not_units_of_them() {
         // The Julian year astronomy counts in.

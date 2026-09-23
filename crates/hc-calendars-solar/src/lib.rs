@@ -25,12 +25,13 @@
 //!
 //! | Family | Calendars |
 //! | --- | --- |
-//! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`byzantine`], [`roman`], [`rumi`] |
-//! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`indian`], [`nanakshahi`], [`bangladeshi`], [`discordian`] |
-//! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`armenian`], [`french_republican`], [`zoroastrian`] |
-//! | Day counts | [`julian_day`] |
+//! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`revised_julian`], [`byzantine`], [`roman`], [`rumi`] |
+//! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`koki`], [`indian`], [`nanakshahi`], [`bangladeshi`], [`discordian`] |
+//! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`armenian`], [`armenian_fixed`], [`french_republican`], [`zoroastrian`] |
+//! | Day counts | [`julian_day`], [`day_counts`] |
 //! | Cycle-based | [`persian`], [`bahai`], [`bahai_kept`] |
-//! | Proposed reforms | [`symmetry454`], [`world_calendar`] |
+//! | Proposed reforms | [`symmetry454`], [`symmetry010`] (both on [`symmetry`]), [`world_calendar`] |
+//! | Not calendars | [`cycles`] (the computus cycles), [`year_style`] (where the year began) |
 //!
 //! Everything converts through [`hc_calendar::Rd`], so any two of them can
 //! be put side by side without either knowing the other exists:

@@ -114,11 +114,11 @@ a date on its own.
 
 CLDR supports `G y Y u Q q M L w W d D F E e c a h H K k m s S A z Z O X x`
 and `'` quoting. Not implemented: `b`/`B` (flexible day periods, which need
-per-locale hour ranges), `v`/`V` (metazones), `U` (cyclic year names) and `r`
-(related Gregorian year). `z`, `O` and `v` are format-only when parsing:
-resolving an abbreviation back to a zone is not possible — `CST` is three
-different zones — so those fields are consumed and the zone left unstated
-unless RFC 5322 assigns the name an offset.
+per-locale hour ranges), `v`/`V` (metazones), `U` (cyclic year names), `r`
+(related Gregorian year) and `g` (modified Julian day). `z`, `v` and `V` are
+not resolved when parsing: mapping an abbreviation back to a zone is not
+possible — `CST` is three different zones — so those fields are consumed and
+the zone left unstated unless RFC 5322 assigns the name an offset.
 
 With no locale, names are the POSIX `C` (English) ones, which is what
 `strftime` without `setlocale` gives and what a protocol field needs. With a
@@ -153,7 +153,7 @@ year outside it.
 
 ## Tests
 
-212 tests. The property tests in `tests/round_trip.rs` take every day from
+The property tests in `tests/round_trip.rs` take every day from
 1583-01-01 to 2400-12-31 through all three ISO date forms in both formats,
 every second of a day through the time grammar, every whole-minute offset
 through every offset style, and tens of thousands of generated date-times,

@@ -19,14 +19,16 @@
 //! multiples of 30°) and the **odd** indices are the twelve 節気 (sectional
 //! terms). The lunisolar leap-month rule is "a month containing no 中気 is a
 //! leap month", so this distinction is not decoration — see
-//! [`crate::rokuyo`], which depends on it.
+//! [`crate::lunisolar`], which depends on it, and [`crate::rokuyo`], which is
+//! built on that.
 //!
 //! # The day is not the instant
 //!
 //! A term is an instant in Universal Time; a term *date* is that instant read
 //! at some meridian. Beijing is an hour behind Tokyo, so the Chinese and
-//! Japanese almanacs put a handful of terms a century on different dates.
-//! Every function here that returns an [`Rd`] therefore takes a
+//! Japanese almanacs put about one term a year on different dates (98 of the
+//! 2,400 terms of 1950–2049). Every function here that returns an [`Rd`]
+//! therefore takes a
 //! [`Meridian`], and none of them guesses.
 //!
 //! Accuracy: `hc-astro`'s solar longitude is good to about 1″, which is
@@ -541,8 +543,8 @@ pub fn term_beginning_on(day: Rd, meridian: Meridian) -> Option<SolarTermEvent> 
 /// day as 0.
 ///
 /// The answer is 0 to 15; a 15 means the term ran long, which happens around
-/// the December solstice when the Sun is moving fastest and 中気 to 中気 is
-/// only 29 days.
+/// the June solstice, when the Sun is moving slowest and a term lasts nearly
+/// 15.7 days.
 #[must_use]
 pub fn days_into_term(day: Rd, meridian: Meridian) -> i64 {
     day.0 - term_in_effect(day, meridian).day.0

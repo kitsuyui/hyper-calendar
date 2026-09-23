@@ -148,11 +148,10 @@ fn calendar_rows() -> Vec<Row> {
 /// Whether English can name this calendar's months — from the locale or
 /// from the calendar's own names — or `None` when it has no months.
 ///
-/// The column this feeds is the one nothing used to answer. A calendar
-/// could be implemented, tested and registered and still be unnameable in
-/// any language, and the only way to find out was to grep. Two of the
-/// entries that looked like data — `persian` and `islamic` — were keyed to
-/// identifiers no calendar had, so they answered for nothing at all.
+/// A calendar can be implemented, tested and registered and still be
+/// unnameable in any language; this column is where that shows. It asks
+/// the real lookup, so an entry keyed to an identifier no calendar has
+/// counts as no names at all.
 fn month_names_resolve(
     id: hyper_calendar::hc_calendar::CalendarId,
     cycles: &[hyper_calendar::hc_calendar::shape::CycleShape],

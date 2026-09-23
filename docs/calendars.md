@@ -18,7 +18,7 @@ Status values:
 | Value | Meaning |
 | --- | --- |
 | **Done** | Implemented, tested, anchored to a citable reference |
-| **Partial** | Implemented with a documented restriction (arithmetic variant only, bounded range) |
+| **Partial** | Implemented with a documented restriction: a simplified model, or part of the calendar not carried |
 | **Planned** | Accepted into scope with a known algorithm; not yet written |
 | **Researching** | In scope, but the rules are contested or the sources disagree |
 | **Out of scope** | Deliberately excluded, with a reason |
@@ -72,7 +72,10 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 
 ## Stage 2 — Lunar and lunisolar calendars
 
-These need the astronomical engine, so they live behind the `lunar` feature.
+Their crates need the astronomical engine, so they live behind features:
+`hc-calendars-lunar` behind `lunar`, `hc-calendars-indic` behind `indic`. The
+tabular Hijri, Hebrew, Tibetan and Old Hindu calendars are arithmetic, and
+live with their families.
 
 | Calendar | Id | Crate | Status |
 | --- | --- | --- | --- |
@@ -98,6 +101,8 @@ These need the astronomical engine, so they live behind the `lunar` feature.
 | Hindu solar, Bengali (Bangabda) | `hindu-solar-bengali` | `hc-calendars-indic` | Done — the day after the saṅkrānti's |
 | Hindu solar, Vikrami (Punjab, Haryana, Odisha) | `hindu-solar-vikrami` | `hc-calendars-indic` | Done — the sunrise-to-sunrise day of the saṅkrānti |
 | Old Hindu (mean) solar and lunisolar | `hindu-old-solar`, `hindu-old-lunar` | `hc-calendars-indic` | Done — the *Ārya Siddhānta*'s mean Sun and Moon from the Kali Yuga epoch, as Reingold and Dershowitz give the arithmetic; tested for what a mean calendar must do, since no almanac prints it for a modern year |
+| Odia year counts | — | `hc-calendars-indic` | Planned |
+| Tamil sixty-year names | — | `hc-calendars-indic` | Planned |
 
 ## Stage 3 — Astronomical variants of stage 1 calendars
 
@@ -116,7 +121,7 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 
 | Calendar | Id | Crate | Status |
 | --- | --- | --- | --- |
-| Japanese imperial eras (和暦, 大化 → 令和) | `japanese` | `hc-calendars-regional` | Done — 248 nengō |
+| Japanese imperial eras (和暦, 大化 → 令和) | `japanese` | `hc-calendars-regional` | Done — 248 nengō from 大化 (645); days converted from 862-02-07, the first day of Senmyō-reki |
 | Japanese eras, Northern Court (北朝) | `japanese-northern` | `hc-calendars-regional` | Done |
 | Japanese eras, Southern Court (南朝) | `japanese-southern` | `hc-calendars-regional` | Done |
 | Japanese eras, as proclaimed (改元当時) | `japanese-proclaimed` | `hc-calendars-regional` | Done |
@@ -138,7 +143,7 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Yoruba four-day week | `yoruba` | `hc-calendars-regional` | Researching — regional variants differ |
 | Akan Adaduanan (42-day cycle) | `akan` | `hc-calendars-regional` | Done — the six-day and seven-day weeks against each other, anchored on the Fɔdwo of 23 January 1978 the source dates; the four dabɔne named |
 | Nepali Bikram Sambat | `bikram-sambat` | `hc-calendars-indic` | Done — the months the Government of Nepal gazettes for 2080–2083 BS, read from the Saturdays its holiday notices list; elsewhere the *Sūrya Siddhānta*'s saṅkrāntis on their civil day at Kathmandu, which matches 47 of those 48 months (Magh 2082 is the one it misses). Not the Vikrami rule: with the modern Sun and Lahiri ayanamsa no hour-of-day rule fits the gazette. More gazetted years would replace the reckoning in them |
-| Nepal Sambat (lunar) | `nepal-sambat` | `hc-calendars-indic` | Done — the amānta months under their Newar names, Kachhalā (Kārtika) first, the year opening at Mha Puja, the day read at Kathmandu's sunrise; tested against the Mha Puja dates of 2013–2017. The solar Nepal Sambat of Lalitpur is not carried: its source does not say where its leap day falls |
+| Nepal Sambat (lunar) | `nepal-sambat` | `hc-calendars-indic` | Done — the amānta months under their Newar names, Kachhalā (Kārtika) first, the year opening at Mha Puja, the day read at Kathmandu's sunrise; tested against the Mha Puja dates of 2013, 2014, 2016 and 2017. The solar Nepal Sambat of Lalitpur is not carried: its source does not say where its leap day falls |
 | Burmese | `burmese` | `hc-calendars-regional` | Done — Yan Naing Aye's arithmetic of the Myanmar Era, era by era, with the record's exceptions as data; 1 to 3000 ME |
 | Thai lunar | `thai-lunar` | `hc-calendars-regional` | Done — the calendar as Thailand publishes it, its year types carried as data for 2535–2570 BE (1992–2027) and the first six months of 2571, and refused outside. Each year's type is read off the Makha, Visakha and Asalha Bucha (to 2006 Khao Phansa) dates of the Bank of Thailand's holiday lists and notifications, which fix it, and checked against the step to the next year's Makha Bucha. J. C. Eade's *suriyayatra* rule (*Journal of the Siam Society* 88, 2000) is not used: it reproduces his own year types for CS 1320–1340 but was found to disagree with eight of the thirty-six years of a table of dates for 1996–2031, and Thai Wikipedia's table of Makha Bucha dates for those years departs from the published ones in 1997, 2025, 2026 and 2027, so how far the rule is from the published calendar is not settled |
 | Attic (Athenian) | `attic` | `hc-calendars-regional` | Researching — reconstruction, sources conflict |

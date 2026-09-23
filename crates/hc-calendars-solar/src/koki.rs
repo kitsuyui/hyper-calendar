@@ -26,12 +26,13 @@
 //!   Gregorian calendar without a gap. Kōki 1 is astronomical year −659.
 //! * **Before 1873 Japan did not use this calendar.** The imperial year was
 //!   introduced alongside the Gregorian calendar in 1872; before that Japan
-//!   used the lunisolar Tenpō calendar, whose years do not line up with
-//!   Gregorian ones. Kōki applied retrospectively to a pre-1873 date is a
-//!   Gregorian-structure back-projection, not what anyone wrote at the time.
+//!   used lunisolar calendars, Tenpō from 1844 and four others back to 862,
+//!   whose years do not line up with Gregorian ones. Kōki applied
+//!   retrospectively to a pre-1873 date is a Gregorian-structure
+//!   back-projection, not what anyone wrote at the time.
 //!   [`PROLEPTIC_BEFORE`] marks where that begins, and
-//!   [`crate::julian_gregorian`] or `hc-calendars-lunar`'s Tenpō calendar are
-//!   the honest routes for earlier dates.
+//!   [`crate::julian_gregorian`] or `hc-calendars-lunar`'s Japanese
+//!   lunisolar calendars are the honest routes for earlier dates.
 //!
 //! 紀元節, the holiday marking the accession, was 11 February; it is now
 //! 建国記念の日 and belongs to `hc-holiday` rather than here.

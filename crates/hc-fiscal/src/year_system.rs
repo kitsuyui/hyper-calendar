@@ -2,8 +2,8 @@
 //!
 //! A [`YearSystem`] is three things and no more:
 //!
-//! 1. a **start** — a month and a day *in a named calendar*, which for Iran
-//!    and Ethiopia is not the Gregorian one;
+//! 1. a **start** — a month and a day *in a named calendar*, which for Iran,
+//!    Ethiopia, Thailand and Nepal is not the Gregorian one;
 //! 2. a **labelling convention** — whether the year is named after the
 //!    calendar year it begins in or the one it ends in;
 //! 3. a **validity range**, because countries change their minds.

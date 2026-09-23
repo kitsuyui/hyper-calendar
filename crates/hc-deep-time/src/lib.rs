@@ -16,6 +16,7 @@
 //! | [`future`] | The far future as data, out to 10¹⁰⁰ years and past it |
 //! | [`geologic`] | The ICS International Chronostratigraphic Chart as a queryable tree |
 //! | [`archaeology`] | The `BP` convention, and the calibrated/uncalibrated distinction |
+//! | [`periods`] | Long astronomical recurrences: the precession of the equinoxes and the galactic year |
 //! | [`timeline`] | All of the above, queried together |
 //!
 //! # The one rule

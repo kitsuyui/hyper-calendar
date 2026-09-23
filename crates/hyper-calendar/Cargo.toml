@@ -75,7 +75,7 @@ libm = ["hc-core/libm"]
 units = ["dep:hc-units"]
 # Civil dates: the Gregorian family plus the calendar abstraction.
 civil = ["dep:hc-calendar", "dep:hc-calendars-solar"]
-# Lunisolar calendars, which need the astronomical engine.
+# Lunar and lunisolar calendars, which need the astronomical engine.
 lunar = ["civil", "dep:hc-astro", "dep:hc-calendars-lunar"]
 # Solar calendars judged by an equinox at a place: Solar Hijri, Badíʿ and
 # French Republican computed astronomically.

@@ -160,7 +160,7 @@ pub static UNITED_KINGDOM: RuleSet = RuleSet {
 /// first Monday of February, "except where St Brigid's Day, being the first
 /// day of February, falls on a Friday, in which case that Friday". Nothing
 /// in the vocabulary expresses a conditional between two shapes, so this is
-/// one of the genuine handful that uses [`Rule::Computed`].
+/// a [`Rule::Computed`] rule.
 fn st_brigids_day(year: i64) -> Days {
     let first_of_february = Rule::gregorian(2, 1).days_in_year(year);
     let Some(first) = first_of_february.as_slice().first().copied() else {

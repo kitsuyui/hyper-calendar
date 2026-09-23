@@ -36,11 +36,11 @@
 //! ends as a calendar day. The step between the two is a choice of meridian,
 //! and it is a choice that changes answers: Beijing is an hour behind Tokyo,
 //! so the same solar term lands on different dates in the Chinese and the
-//! Japanese almanac several times a century, and the same is true of a lunar
-//! month boundary.
+//! Japanese almanac about once a year, and the same is true of a lunar month
+//! boundary.
 //!
-//! So no function in this crate that returns an [`Rd`] guesses. They all take
-//! a [`Meridian`], and the named ones — [`Meridian::JAPAN`],
+//! So no function in this crate that turns an instant into an [`Rd`]
+//! guesses. They all take a [`Meridian`], and the named ones — [`Meridian::JAPAN`],
 //! [`Meridian::CHINA`] — are the meridians the respective national almanacs
 //! are computed at.
 //!
@@ -60,8 +60,8 @@
 //! The underlying solar longitude is `hc-astro`'s VSOP87 series, good to
 //! about 1″, and its seasonal events land within the minute the almanacs
 //! round to. An event within about a minute of local midnight can therefore
-//! still be given the wrong *day*. That is measured rather than asserted: the integration
-//! tests compare against the 240 equinox days Japan published for 1980–2099,
+//! still be given the wrong *day*. That is measured rather than asserted: the
+//! integration tests compare against the 240 equinox days Japan published for 1980–2099,
 //! and the README states the rate.
 //!
 //! The Moon is better — conjunctions land within about a minute — so the

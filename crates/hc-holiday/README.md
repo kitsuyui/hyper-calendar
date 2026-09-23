@@ -14,6 +14,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `rule` | the rule vocabulary and the observance modifiers |
 | `computus` | Easter, Gregorian and Julian, and the offsets keyed to it |
 | `engine` | evaluation, and business-day arithmetic |
+| `hindu` | the Hindu festival rules the traditions and the national tables share |
 | `traditions` | the cross-cutting religious cycles |
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `international` | the United Nations international days, each citing its resolution |
@@ -52,10 +53,13 @@ and `Kind` for public / bank / religious / observance. A set can also
 under its own policies, with its days off merged in and its observances left
 behind.
 
-Only **five** statutes in the whole crate are `Computed`, each written as a
-sentence rather than a pattern: Ireland's St Brigid's Day, the Dutch royal
-day (under two monarchs), US Inauguration Day, Mexico's presidential handover
-and Israel's Yom HaAtzmaut. New Zealand's Matariki is `Tabulated`, a
+A rule is `Computed` only where its statute is written as a sentence rather
+than a pattern: Ireland's St Brigid's Day, the Dutch royal day (under two
+monarchs), US Inauguration Day, Mexico's presidential handover, Israel's Yom
+HaAtzmaut and some thirty more in the national tables, most of them a move
+that depends on the weekday or on another holiday — Chile's September days,
+Costa Rica's tourism Mondays of 2020–2024, Hong Kong's make-up days of
+1983–2011, Myanmar's Thingyan. New Zealand's Matariki is `Tabulated`, a
 published schedule with its last year stated, so that running past it is a
 reported gap. Japan needs none.
 
@@ -132,10 +136,10 @@ court rites beside it, the Wheel of the Year in both hemispheres, and the
 Zoroastrian schedule of feasts on each of its three reckonings.
 
 The Ethiopian entry is worth a word. Its fixed feasts are ordinary dates —
-29 Tahsas, 11 Tirr — in the Ethiopic calendar, and until `CalendarSystem`
-stopped being a closed enum none of them could be written down at all. Its
-movable cycle follows *Bahire Hasab*, whose arithmetic is its own but whose
-rule is the Alexandrian computus: Tinsae is the Orthodox Pascha every year,
+29 Tahsas, 11 Tirr — in the Ethiopic calendar, which a rule can name because
+`CalendarSystem` is open to any calendar the registry holds rather than a
+closed list. Its movable cycle follows *Bahire Hasab*, whose arithmetic is
+its own but whose rule is the Alexandrian computus: Tinsae is the Orthodox Pascha every year,
 so the cycle is written as the *tewsak* offsets from the Julian-computus
 Easter, from the Fast of Nineveh to Paraclete, and three years of anchors
 check it.
@@ -237,18 +241,25 @@ calendar that does:
 | --- | --- |
 | Chinese, Korean (Dangi), Vietnamese | 1645–2150 |
 | Umm al-Qurā | the published table, 1300–1600 AH |
+| Hindu lunisolar, Bikram Sambat | 1700–2300 |
+| Thai lunar | 1992–2027, the years Thailand has published |
+| Badíʿ, as kept | to 19 March 2065, where the Bahá'í World Centre's table ends |
 | Easter | 1583–4099 Gregorian, 326–4099 Julian |
 | New Zealand's Matariki | 2022–2035, the years this crate's sources publish |
 | Nauru's declared days | 2023, 2024 and 2026, the years whose gazettes this crate read |
 
-Outside those the holiday has no date, which is **not** the same as not
-occurring — and an evaluated calendar used to express both by leaving it
-out. `holidays_in_year(&countries::CHINA, None, 2151)` returned seven
-entries instead of thirteen, with the Spring Festival, the Dragon Boat
-Festival and the Mid-Autumn Festival missing and everything that survived
-marked `Exact`.
+The same holds for every day a table takes from a government's yearly
+notices rather than from a rule — Sri Lanka's Poya days, Cambodia's Khmer
+New Year, Fiji's lists and the rest: each table's documentation names the
+years read.
 
-Now the calendar says so:
+Outside those the holiday has no date, which is **not** the same as not
+occurring, and a holiday list alone cannot tell the two apart:
+`holidays_in_year(&countries::CHINA, None, 2151)` gives seven entries
+instead of thirteen, with the Spring Festival, the Dragon Boat Festival and
+the Mid-Autumn Festival missing and everything that remains marked `Exact`.
+
+So the calendar also says what it could not compute:
 
 ```rust
 let calendar = HolidayCalendar::for_year(&countries::CHINA, None, 2151);
@@ -281,7 +292,7 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   Holi, Ram Navami, Mahavir Jayanti, Buddha Purnima, Janmashtami, Dussehra,
   Diwali and Guru Nanak's Birthday computed on `hindu-lunar`; the states' own
   days are not carried. Singapore's and Malaysia's Deepavali is the same
-  Dīpāvalī rule. Nyepi is still missing from Indonesia: the Balinese Saka
+  Dīpāvalī rule. Nyepi is missing from Indonesia: the Balinese Saka
   calendar that dates it is not in the crate, and the crate will not tabulate
   what it cannot compute.
 * **Nepal** carries the holidays of its Home Ministry's notices for every
@@ -312,19 +323,25 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   Independence Day, the Sovereign's Birthday and any other day are appointed
   by notice in the National Gazette, and no gazette was read.
 * **Subdivisions** are modelled only where a statute names them. German
-  *Länder*, US federal-versus-state, Australian states, Canadian provinces, UK
-  jurisdictions and French Alsace-Moselle are in; Swiss cantons, Spanish
-  autonomous communities, Italian patron-saint days, Malaysian states and New
-  Zealand anniversary days are not.
+  *Länder*, Australian states and territories, Canadian provinces, UK
+  jurisdictions, French Alsace-Moselle, the three units of Bosnia and
+  Herzegovina and Bangladesh's hill districts are in, and so are a few
+  single places: Inauguration Day in the District of Columbia, Chișinău,
+  Guatemala City, San Salvador, Managua and Chile's Arica and Parinacota.
+  US states, Swiss cantons, Spanish autonomous communities, Italian
+  patron-saint days, Malaysian states and New Zealand anniversary days are
+  not.
 
 ## Business days
 
 The weekend is data. Saturday–Sunday is the common case; Friday–Saturday holds
-in Bangladesh, Egypt, Israel and Saudi Arabia today; Thursday–Friday held in Saudi Arabia
-until its June 2013 royal order; the Emirates moved to Saturday–Sunday on
-1 January 2022; Nepal kept a one-day Saturday weekend until April 2026; and
-Brunei rests on Friday and Sunday and works the Saturday between. All six are
-exercised by the test suite.
+in Israel, Bangladesh, the Maldives and most of the Arab states today;
+Thursday–Friday held in Saudi Arabia until its June 2013 royal order; the
+Emirates moved to Saturday–Sunday on 1 January 2022; Nepal kept a one-day
+Saturday weekend until April 2026; and Brunei rests on Friday and Sunday and
+works the Saturday between. All six are exercised by the test suite. A few
+tables rest on one day: Iran and Djibouti the Friday, Cuba, Cambodia,
+Timor-Leste and the Vatican the Sunday.
 
 ```rust
 use hc_calendars_solar::gregorian::to_fixed;

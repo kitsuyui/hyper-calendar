@@ -65,7 +65,7 @@ const NAMED_ZONES: [(&str, i32); 11] = [
 ///
 /// # Errors
 ///
-/// See [`ParseError`].
+/// See [`crate::ParseError`].
 pub fn parse(text: &str) -> ParseResult<OffsetDateTime> {
     let mut scanner = Scanner::new(text);
     if scanner.is_empty() {
@@ -182,7 +182,7 @@ pub fn write<W: fmt::Write>(out: &mut W, value: OffsetDateTime) -> FormatResult<
 ///
 /// # Errors
 ///
-/// See [`write`].
+/// See [`write`](fn@write).
 pub fn write_imf_fixdate<W: fmt::Write>(out: &mut W, utc: CivilDateTime) -> FormatResult<()> {
     let (year, month, day) =
         gregorian::from_fixed(utc.day).map_err(|_| FormatError::Unrepresentable("the date"))?;

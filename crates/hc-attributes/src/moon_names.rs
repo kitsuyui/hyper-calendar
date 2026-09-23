@@ -83,8 +83,7 @@
 //!
 //! The lunar phase instants come from `hc-astro` through `hc-seasons` and
 //! land within about a minute of the published ones, and so does the
-//! equinox instant. The
-//! Harvest Moon rule compares two intervals of roughly a fortnight, so
+//! equinox instant. The Harvest Moon rule compares two intervals of roughly a fortnight, so
 //! neither error can change the answer except in a year where two full moons
 //! are almost exactly equidistant from the equinox — which requires them to
 //! be within seconds of 14.77 days either side, and does not occur in the
@@ -151,8 +150,8 @@ pub static MOON_NAMES_OFA_CURRENT: MonthTable = MonthTable::new(
 ///
 /// Three months differ from what the same publisher prints now: June was
 /// the generic "June Moon" rather than Strawberry, July was Hot Moon rather
-/// than Buck, and November was Travel Moon rather than Beaver. All three of
-/// the 1964 readings are closer to Carver's 1778 list.
+/// than Buck, and November was Travel Moon rather than Beaver. Two of the
+/// three 1964 readings, Hot and Travel, are closer to Carver's 1778 list.
 ///
 /// One publisher, sixty years, three changes: shipping both is what lets a
 /// caller see that "the traditional name" moved within living memory.
@@ -193,8 +192,8 @@ pub static MOON_NAMES_OFA_1964: MonthTable = MonthTable::new(
 /// publisher to "our early English ancestors".
 ///
 /// A separate tradition, not a variant of the others: it is seasonal rather
-/// than monthly, runs from the winter solstice, and shares only Flower,
-/// Harvest and Hunter's with the modern list. It is the source of the
+/// than monthly, runs from the winter solstice, and shares only Wolf,
+/// Flower, Harvest and Hunter's with the modern list. It is the source of the
 /// original "blue moon" rule, and of the observation that these names were
 /// being called English by the people printing them two decades before they
 /// were widely called Native American.
@@ -334,7 +333,7 @@ pub fn harvest_moon(year: i64, meridian: Meridian) -> Rd {
 /// The day of the Hunter's Moon: the full moon after the Harvest Moon.
 ///
 /// Defined relative to the Harvest Moon rather than to a month, so it moves
-/// with it: a October Harvest Moon puts the Hunter's Moon in November.
+/// with it: an October Harvest Moon puts the Hunter's Moon in November.
 #[must_use]
 pub fn hunters_moon(year: i64, meridian: Meridian) -> Rd {
     let harvest = harvest_moon(year, meridian);

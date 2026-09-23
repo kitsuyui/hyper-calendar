@@ -45,12 +45,10 @@ Proleptic Gregorian conversion lives in `hc-calendar` because "day 1 is
 calendar — the eras, validation and `Calendar` implementation stay in
 `hc-calendars-solar`.
 
-This is not tidiness. Five crates had each grown a private copy of those six
-functions, every one of them written because the crate could not depend on
-`hc-calendars-solar` yet, and every one of them carrying a comment saying it
-should be deleted later. A second implementation is a second thing to be
-wrong, and the measurable case is next door: `hc-almanac` uses a simplified
-lunisolar derivation and differs from the real one on 89 of 3,653 days.
+This is not tidiness. A second implementation is a second thing to be
+wrong, and the measurable case is next door: `hc-almanac` reads
+`hc-seasons`' simplified lunisolar derivation, which differs from the full
+calculation on 89 of the 3,653 days of 2024–2033.
 
 Where a shape change is genuinely wanted — bare integers instead of `Rd` and
 `Result`, because the call site is a `const` table of published dates — keep
@@ -154,8 +152,10 @@ and nothing else pays for Gregorian dates and nothing else.
 - Each capability is its own crate.
 - The `hyper-calendar` facade exposes each as an optional feature.
 - `default` is deliberately modest (`std`, `civil`, `format`, `i18n`).
-- Every crate builds under `--no-default-features --features alloc`, and the
-  core builds under `no_std` with `libm`.
+- The facade builds under `--no-default-features --features alloc,libm`, and
+  `hc-core` under `no_std` with `libm`. A crate built on its own without
+  `std` also needs `hc-core/libm`, because `hc-core` refuses to compile with
+  neither.
 - No crate depends on another unless it genuinely needs it. The dependency
   graph is a DAG and is documented in [architecture.md](architecture.md).
 
@@ -181,9 +181,10 @@ embedded in a WebAssembly runtime or behind an FFI boundary. Fallible
 operations return `Result`; infallible ones are proved infallible by
 construction.
 
-The two `impl Add`/`impl Sub` operators on `Duration` are the deliberate
-exception: they panic on overflow so that ordinary arithmetic reads normally,
-and every one of them has a `checked_*` twin.
+The `Add`, `Sub` and `Neg` operators on `Duration`, and the `AddAssign` and
+`SubAssign` built on them, are the deliberate exception: they panic on
+overflow so that ordinary arithmetic reads normally, and each has a
+`checked_*` twin.
 
 ## 9. No dependencies without a reason
 

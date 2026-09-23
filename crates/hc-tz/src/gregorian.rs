@@ -1,11 +1,10 @@
 //! Gregorian helpers in the shapes this crate's rule arithmetic wants.
 //!
 //! The conversion itself lives in [`hc_calendar::gregorian`], which owns it
-//! because it is what defines `Rd`. This module used to carry a private copy,
-//! written when nothing else in the workspace had one; it is now four
-//! adapters over the shared implementation, kept because POSIX transition
-//! rules are stated in bare integers and threading `Rd` and `Result` through
-//! them would obscure the rules rather than the arithmetic.
+//! because it is what defines `Rd`. This module holds no arithmetic of its
+//! own: it is five adapters over the shared implementation, kept because
+//! POSIX transition rules are stated in bare integers and threading `Rd` and
+//! `Result` through them would obscure the rules rather than the arithmetic.
 
 use hc_calendar::Rd;
 use hc_calendar::gregorian;

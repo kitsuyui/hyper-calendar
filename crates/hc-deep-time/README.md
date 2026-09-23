@@ -21,6 +21,7 @@ system stops the error bars being dropped on the way.
 | `future` | Eight dated events and four eras, out past 10¹⁰⁰ years, plus `black_hole_lifetime` |
 | `geologic` | 175 intervals of the ICS chart in five ranks, queryable as a tree |
 | `archaeology` | The BP convention, the calibrated/uncalibrated distinction, eleven conventional periods |
+| `periods` | Two long astronomical recurrences, the precession of the equinoxes and the galactic year, with their spreads and whether they drift |
 | `timeline` | All four chronologies queried together, with the uncertainty carried through |
 
 Highlights:
