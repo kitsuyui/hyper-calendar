@@ -455,12 +455,14 @@ mod tests {
 /// **Nothing in this crate routes through it.** See the module documentation
 /// for why. It exists so the difference can be counted instead of guessed,
 /// and so a caller who wants the exact article knows where to get it.
+///
+/// It takes no meridian: the Tenpō calendar carries its own, Kyoto's
+/// 135°46′E before 1888 and Japan Standard Time's 135°E from then on.
 #[cfg(feature = "lunar")]
 #[must_use]
-pub fn exact_lunisolar_day(day: Rd, meridian: Meridian) -> Option<LunisolarDay> {
+pub fn exact_lunisolar_day(day: Rd) -> Option<LunisolarDay> {
     use hc_calendar::Calendar as _;
 
-    let _ = meridian;
     let date = hc_calendars_lunar::japanese_tenpo::UNBOUNDED
         .from_fixed(day)
         .ok()?;
@@ -489,7 +491,7 @@ mod divergence_tests {
         let mut differing = 0usize;
         for rd in start.0..=end.0 {
             let day = Rd(rd);
-            let Some(exact) = exact_lunisolar_day(day, Meridian::JAPAN) else {
+            let Some(exact) = exact_lunisolar_day(day) else {
                 continue;
             };
             let here = lunisolar_day(day, Meridian::JAPAN);
@@ -517,7 +519,7 @@ mod divergence_tests {
         // Chinese calendar would conflate a meridian difference with a
         // method difference — it roughly triples the apparent error.
         let new_year_2024 = hc_calendar::gregorian::to_fixed(2024, 2, 10).unwrap();
-        let exact = exact_lunisolar_day(new_year_2024, Meridian::JAPAN).unwrap();
+        let exact = exact_lunisolar_day(new_year_2024).unwrap();
         assert_eq!((exact.month, exact.day, exact.leap_month), (1, 1, false));
     }
 }
