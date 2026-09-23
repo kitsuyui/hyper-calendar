@@ -105,6 +105,7 @@ name = "hc-fiscal"
 version = "0.1.0"
 dependencies = [
  "hc-calendar",
+ "hc-calendars-indic",
  "hc-calendars-solar",
  "hc-core",
 ]

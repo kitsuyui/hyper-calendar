@@ -16,7 +16,9 @@ use hc_calendar::{CalendarId, Month, Rd, Weekday};
 use hc_calendars_equinox::persian as solar_hijri;
 use hc_calendars_indic::nakshatra::nakshatra_span;
 use hc_calendars_indic::tithi::{DEGREES_PER_TITHI, TITHIS_PER_MONTH, tithi_of_day};
-use hc_calendars_indic::{HinduLunarCalendar, Prevalence, hindu_lunar};
+use hc_calendars_indic::{
+    BikramSambatCalendar, HinduLunarCalendar, HinduSolarDate, Prevalence, hindu_lunar,
+};
 use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
 use hc_calendars_lunar::tabular::{self, LeapYearRule};
@@ -338,6 +340,27 @@ hc_core::catalogue! {
             CalendarId("nanakshahi"),
             |year, month, day| nanakshahi::to_fixed(year, month.ordinal, day).ok(),
             |rd| nanakshahi::from_fixed(rd).ok().map(|(year, _, _)| year),
+        );
+
+        /// The Bikram Sambat, in which Nepal dates its national days: the
+        /// months the Government of Nepal gazettes, and the *Sūrya
+        /// Siddhānta* reckoning outside the gazetted years
+        /// (`hc_calendars_indic::bikram_sambat`).
+        pub const BIKRAM_SAMBAT = Self::new(
+            CalendarId("bikram-sambat"),
+            |year, month, day| {
+                if month.leap {
+                    return None;
+                }
+                BikramSambatCalendar
+                    .to_fixed(HinduSolarDate {
+                        year,
+                        month: month.ordinal,
+                        day,
+                    })
+                    .ok()
+            },
+            |rd| BikramSambatCalendar.from_fixed(rd).ok().map(|date| date.year),
         );
 
         /// The Burmese calendar, in which Myanmar dates its full-moon

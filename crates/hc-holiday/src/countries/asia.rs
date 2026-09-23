@@ -920,28 +920,38 @@ static NP_WEEKEND: &[WeekendPolicy] = &[
     },
 ];
 
-static NP_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("Prithvi Jayanti", "पृथ्वी जयन्ती", Rule::gregorian(1, 11))
-        .approximate(),
-    HolidayRule::fixed_public("Martyrs' Day", "शहीद दिवस", Rule::gregorian(1, 30)).approximate(),
+/// A day the notices date in the Bikram Sambat.
+const fn np_bs(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
     HolidayRule::fixed_public(
-        "National Democracy Day",
-        "प्रजातन्त्र दिवस",
-        Rule::gregorian(2, 19),
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::BIKRAM_SAMBAT, month, day),
     )
-    .approximate(),
+}
+
+/// The days the Ministry of Home Affairs' notice gives every office in the
+/// country, and which fall on a fixed date: in the Bikram Sambat for the
+/// national days and the two that open a month, in the Gregorian calendar
+/// for the three the notice dates that way — it prints "(मे १)", "(मार्च
+/// ८)" and "(डिसेम्बर २५)" beside them. Local names are the notice's.
+static NP_RULES: &[HolidayRule] = &[
+    np_bs("Nepali New Year", "नव वर्ष", 1, 1),
+    HolidayRule::fixed_public("Labour Day", "विश्व मजदुर दिवस", Rule::gregorian(5, 1)),
+    np_bs("Republic Day", "गणतन्त्र दिवस", 2, 15),
+    np_bs("Constitution Day", "संविधान दिवस", 6, 3),
+    HolidayRule::fixed_public("Christmas Day", "क्रिसमस डे", Rule::gregorian(12, 25)),
+    np_bs("Prithvi Jayanti", "पृथ्वी जयन्ती", 9, 27),
+    np_bs("Maghe Sankranti", "माघे सङ्क्रान्ति", 10, 1),
+    np_bs("Martyrs' Day", "सहिद दिवस", 10, 16),
+    np_bs("National Democracy Day", "राष्ट्रिय प्रजातन्त्र दिवस", 11, 7),
     HolidayRule::fixed_public(
         "International Women's Day",
-        "नारी दिवस",
+        "अन्तर्राष्ट्रिय महिला दिवस",
         Rule::gregorian(3, 8),
     ),
-    HolidayRule::fixed_public("Labour Day", "श्रमिक दिवस", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Republic Day", "गणतन्त्र दिवस", Rule::gregorian(5, 29)).approximate(),
-    HolidayRule::fixed_public("Constitution Day", "संविधान दिवस", Rule::gregorian(9, 19))
-        .approximate(),
 ];
 
-/// Nepal — the weekend rule, and very little else.
+/// Nepal — the weekend, and the public holidays on a fixed date.
 pub static NEPAL: RuleSet = RuleSet {
     code: "NP",
     english_name: "Nepal",
@@ -950,15 +960,15 @@ pub static NEPAL: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: NP_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Government of Nepal, Ministry of Home Affairs, annual public \
-              holiday notice. DELIBERATELY THIN: Nepal's holidays are dated \
-              in Bikram Sambat and dominated by Hindu and Buddhist festivals \
-              that need calendars this crate does not have. Only the days \
-              whose Bikram Sambat date maps to a near-fixed Gregorian one \
-              are listed, and each is flagged approximate because that \
-              mapping moves by a day. The table exists chiefly for the \
-              one-day weekend",
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Government of Nepal, Ministry of Home Affairs, the annual \
+              notices of public holidays in the Nepal Rajpatra, Part 5: for \
+              2082 BS (Khanda 74, No. 59) and 2083 BS (Khanda 75, No. 67), \
+              sections 2.1, 6.1 and 7.1, the holidays for every office in \
+              the country. The festivals among them — Buddha Jayanti, \
+              Dashain, Tihar, Chhath and the rest, which follow the lunar \
+              calendar — and the holidays for one community, region or \
+              group are not listed yet",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

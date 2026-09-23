@@ -91,15 +91,15 @@ example shows why the distinction matters — a Saturday year end in November
   AP 1437 as the only two disagreements between AP 1244 and AP 1531
   (AD 1865–2152). There is a test that asserts the wrong answer on purpose, so
   that the day an astronomical Solar Hijri calendar lands, it fails and says so.
+* **Nepal is exact where the months are published, and approximate elsewhere,
+  by a stated amount.** The year begins on 1 Shrawan in the Bikram Sambat, and
+  a Bikram Sambat month is as long as the Government of Nepal says. The months
+  of 2080–2083 BS are the gazette's, which puts 1 Shrawan on 16 July 2024 and
+  17 July 2025 and 2026. Other years go through `hc-calendars-indic`'s
+  reckoning, which missed one of those 48 months by a day.
 
 ## What it deliberately does not do
 
-* **Nepal is a documented gap, not an approximation.** The Nepali fiscal year
-  begins on 1 Shrawan in the Bikram Sambat calendar, whose month lengths are
-  published annually rather than derived from a rule. `countries::GAPS` records
-  what the answer is and why this crate will not compute it; `gap_for` is a
-  separate lookup from `by_code` precisely so that "no data" and "known and
-  declined" do not both arrive as `None`.
 * **It leaves holes where history left them.** The United States' transition
   quarter — 1 July to 30 September 1976, after FY1976 ended and before FY1977
   began — belongs to no fiscal year, and `FiscalProfile::at` returns `None` for
@@ -155,7 +155,9 @@ Act 1978, the Income Tax Act 2007 and the Calendar (New Style) Act 1750 for the
 United Kingdom; the Financial Administration Act for Canada; the General
 Clauses Act 1897 for India; พระราชบัญญัติวิธีการงบประมาณ พ.ศ. 2561 for
 Thailand; قانون محاسبات عمومی کشور art. 6 for Iran; Financial Administration
-Proclamation No. 648/2009 for Ethiopia; the Budget Law art. 18 for China;
+Proclamation No. 648/2009 for Ethiopia; the Financial Procedures and Fiscal
+Responsibility Act, 2076, section 2(e), for Nepal; the Budget Law art. 18 for
+China;
 Bundeshaushaltsordnung § 4, the LOLF art. 1, the Russian Budget Code art. 12
 and Lei nº 4.320 art. 34 for the calendar-year countries; Treasury Regulation
 § 1.441-2 and the National Retail Federation for the retail calendars.
