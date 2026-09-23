@@ -298,6 +298,13 @@ static KR_RULES: &[HolidayRule] = &[
     // first day it produced was 16 August 2021.
     HolidayRule::public("Independence Movement Day", "삼일절", Rule::gregorian(3, 1))
         .substituted_from(2021),
+    // 대통령령 제36290호 made 노동절, the renamed 근로자의 날, a public
+    // holiday from 1 May 2026, under the 대체공휴일 from the start. Before
+    // then it was a paid day off for employees under its own Act, and not a
+    // public holiday.
+    HolidayRule::public("Labour Day", "노동절", Rule::gregorian(5, 1))
+        .substituted_from(2026)
+        .years(Some(2026), None),
     HolidayRule::public("Children's Day", "어린이날", Rule::gregorian(5, 5))
         .substituted_from(2014)
         .years(Some(1975), None),
@@ -311,6 +318,11 @@ static KR_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("Memorial Day", "현충일", Rule::gregorian(6, 6)),
     HolidayRule::public("Constitution Day", "제헌절", Rule::gregorian(7, 17))
         .years(Some(1949), Some(2007)),
+    // Restored by the same decree, in force for it from 11 May 2026, and
+    // substituted like the other national days.
+    HolidayRule::public("Constitution Day", "제헌절", Rule::gregorian(7, 17))
+        .substituted_from(2026)
+        .years(Some(2026), None),
     HolidayRule::public("Liberation Day", "광복절", Rule::gregorian(8, 15)).substituted_from(2021),
     // Chuseok is the fourteenth, fifteenth and sixteenth of the eighth
     // month.
@@ -353,7 +365,111 @@ static KR_RULES: &[HolidayRule] = &[
         .substituted_from(2021)
         .years(Some(2013), None),
     HolidayRule::public("Christmas Day", "성탄절", Rule::gregorian(12, 25)).substituted_from(2023),
+    // ── Election days, 제2조제10호의2 ────────────────────────────────────
+    // The day of every election held because a term has run out has been a
+    // public holiday since 대통령령 제19674호 of 6 September 2006; before,
+    // each was designated in turn. None is substituted, and none triggers a
+    // substitute by coinciding with another holiday.
+    kr_one_off(
+        "17th presidential election",
+        "제17대 대통령 선거",
+        2007,
+        12,
+        19,
+    ),
+    kr_one_off(
+        "18th National Assembly election",
+        "제18대 국회의원 선거",
+        2008,
+        4,
+        9,
+    ),
+    kr_one_off("5th local elections", "제5회 전국동시지방선거", 2010, 6, 2),
+    kr_one_off(
+        "19th National Assembly election",
+        "제19대 국회의원 선거",
+        2012,
+        4,
+        11,
+    ),
+    kr_one_off(
+        "18th presidential election",
+        "제18대 대통령 선거",
+        2012,
+        12,
+        19,
+    ),
+    kr_one_off("6th local elections", "제6회 전국동시지방선거", 2014, 6, 4),
+    kr_one_off(
+        "20th National Assembly election",
+        "제20대 국회의원 선거",
+        2016,
+        4,
+        13,
+    ),
+    kr_one_off("7th local elections", "제7회 전국동시지방선거", 2018, 6, 13),
+    kr_one_off(
+        "21st National Assembly election",
+        "제21대 국회의원 선거",
+        2020,
+        4,
+        15,
+    ),
+    kr_one_off(
+        "20th presidential election",
+        "제20대 대통령 선거",
+        2022,
+        3,
+        9,
+    ),
+    kr_one_off("8th local elections", "제8회 전국동시지방선거", 2022, 6, 1),
+    kr_one_off(
+        "22nd National Assembly election",
+        "제22대 국회의원 선거",
+        2024,
+        4,
+        10,
+    ),
+    kr_one_off("9th local elections", "제9회 전국동시지방선거", 2026, 6, 3),
+    // ── Days the government designated, 제2조제11호 ─────────────────────
+    // Each by a Cabinet decision. Carried from 2009, the first year the
+    // Korea Exchange's closure lists reach, which they were checked
+    // against. The two presidential elections that followed a vacancy
+    // rather than a term's end are here, not above.
+    kr_one_off("Temporary holiday", "임시공휴일", 2015, 8, 14),
+    kr_one_off("Temporary holiday", "임시공휴일", 2016, 5, 6),
+    kr_one_off(
+        "19th presidential election",
+        "제19대 대통령 선거",
+        2017,
+        5,
+        9,
+    ),
+    kr_one_off("Temporary holiday", "임시공휴일", 2017, 10, 2),
+    kr_one_off("Temporary holiday", "임시공휴일", 2020, 8, 17),
+    kr_one_off("Temporary holiday", "임시공휴일", 2023, 10, 2),
+    kr_one_off("Armed Forces Day", "국군의 날", 2024, 10, 1),
+    kr_one_off("Temporary holiday", "임시공휴일", 2025, 1, 27),
+    kr_one_off(
+        "21st presidential election",
+        "제21대 대통령 선거",
+        2025,
+        6,
+        3,
+    ),
 ];
+
+/// A day off for one year only.
+const fn kr_one_off(
+    name: &'static str,
+    local_name: &'static str,
+    year: i32,
+    month: u8,
+    day: u8,
+) -> HolidayRule {
+    HolidayRule::fixed_public(name, local_name, Rule::gregorian(month, day))
+        .years(Some(year), Some(year))
+}
 
 static KR_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     trigger: &[Weekday::Saturday, Weekday::Sunday],
@@ -376,12 +492,18 @@ pub static SOUTH_KOREA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "관공서의 공휴일에 관한 규정 (대통령령), including the 2013 \
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "관공서의 공휴일에 관한 규정 (대통령령), as in force from \
+              11 May 2026 (대통령령 제36290호) and its earlier texts: the \
+              2006 amendment making election days holidays, the 2013 \
               amendment introducing 대체공휴일 for Seollal, Chuseok and \
-              Children's Day, the July 2021 extension to the four national \
-              days, and the 2023 extension to Buddha's Birthday and \
-              Christmas. Seollal and Chuseok are dated in the `dangi` \
+              Children's Day, the July 2021 extension to the national \
+              days, the 2023 extension to Buddha's Birthday and \
+              Christmas, and the 2026 addition of 노동절 and the \
+              restoration of 제헌절. The designated days from 2009 were \
+              checked against the Korea Exchange's closure lists; days \
+              designated later than the table was read are not carried. \
+              Seollal and Chuseok are dated in the `dangi` \
               calendar, computed at the Seoul meridian, which puts them a \
               day away from the Chinese dates a few times a century",
 };

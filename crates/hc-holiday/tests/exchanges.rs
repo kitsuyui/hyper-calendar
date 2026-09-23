@@ -6,7 +6,7 @@ use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::exchanges::{
     self, AUSTRALIAN_SECURITIES_EXCHANGE, B3, EURONEXT_AMSTERDAM, EURONEXT_BRUSSELS,
     EURONEXT_DUBLIN, EURONEXT_LISBON, EURONEXT_MILAN, EURONEXT_OSLO, EURONEXT_PARIS,
-    FRANKFURT_STOCK_EXCHANGE, HONG_KONG_EXCHANGES, LONDON_STOCK_EXCHANGE, NASDAQ,
+    FRANKFURT_STOCK_EXCHANGE, HONG_KONG_EXCHANGES, KOREA_EXCHANGE, LONDON_STOCK_EXCHANGE, NASDAQ,
     NASDAQ_COPENHAGEN, NASDAQ_HELSINKI, NASDAQ_ICELAND, NASDAQ_STOCKHOLM, NEW_YORK_STOCK_EXCHANGE,
     SIX_SWISS_EXCHANGE, TOKYO_STOCK_EXCHANGE, TORONTO_STOCK_EXCHANGE,
 };
@@ -649,6 +649,64 @@ fn tokyo_closes_on_japans_holidays_and_its_three_market_holidays() {
     assert!(calendar.is_complete());
 }
 
+/// The weekday closures the Korea Exchange lists, year by year.
+///
+/// Its list for 2030 stops at October and is left out.
+#[rustfmt::skip]
+const KRX_CLOSURES: &[(i64, &[(u8, u8)])] = &[
+    (2009, &[(1, 1), (1, 26), (1, 27), (5, 1), (5, 5), (10, 2), (12, 25), (12, 31)]),
+    (2010, &[(1, 1), (2, 15), (3, 1), (5, 5), (5, 21), (6, 2), (9, 21), (9, 22), (9, 23), (12, 31)]),
+    (2011, &[(2, 2), (2, 3), (2, 4), (3, 1), (5, 5), (5, 10), (6, 6), (8, 15), (9, 12), (9, 13), (10, 3), (12, 30)]),
+    (2012, &[(1, 23), (1, 24), (3, 1), (4, 11), (5, 1), (5, 28), (6, 6), (8, 15), (10, 1), (10, 3), (12, 19), (12, 25), (12, 31)]),
+    (2013, &[(1, 1), (2, 11), (3, 1), (5, 1), (5, 17), (6, 6), (8, 15), (9, 18), (9, 19), (9, 20), (10, 3), (10, 9), (12, 25), (12, 31)]),
+    (2014, &[(1, 1), (1, 30), (1, 31), (5, 1), (5, 5), (5, 6), (6, 4), (6, 6), (8, 15), (9, 8), (9, 9), (9, 10), (10, 3), (10, 9), (12, 25), (12, 31)]),
+    (2015, &[(1, 1), (2, 18), (2, 19), (2, 20), (5, 1), (5, 5), (5, 25), (8, 14), (9, 28), (9, 29), (10, 9), (12, 25), (12, 31)]),
+    (2016, &[(1, 1), (2, 8), (2, 9), (2, 10), (3, 1), (4, 13), (5, 5), (5, 6), (6, 6), (8, 15), (9, 14), (9, 15), (9, 16), (10, 3), (12, 30)]),
+    (2017, &[(1, 27), (1, 30), (3, 1), (5, 1), (5, 3), (5, 5), (5, 9), (6, 6), (8, 15), (10, 2), (10, 3), (10, 4), (10, 5), (10, 6), (10, 9), (12, 25), (12, 29)]),
+    (2018, &[(1, 1), (2, 15), (2, 16), (3, 1), (5, 1), (5, 7), (5, 22), (6, 6), (6, 13), (8, 15), (9, 24), (9, 25), (9, 26), (10, 3), (10, 9), (12, 25), (12, 31)]),
+    (2019, &[(1, 1), (2, 4), (2, 5), (2, 6), (3, 1), (5, 1), (5, 6), (6, 6), (8, 15), (9, 12), (9, 13), (10, 3), (10, 9), (12, 25), (12, 31)]),
+    (2020, &[(1, 1), (1, 24), (1, 27), (4, 15), (4, 30), (5, 1), (5, 5), (8, 17), (9, 30), (10, 1), (10, 2), (10, 9), (12, 25), (12, 31)]),
+    (2021, &[(1, 1), (2, 11), (2, 12), (3, 1), (5, 5), (5, 19), (8, 16), (9, 20), (9, 21), (9, 22), (10, 4), (10, 11), (12, 31)]),
+    (2022, &[(1, 31), (2, 1), (2, 2), (3, 1), (3, 9), (5, 5), (6, 1), (6, 6), (8, 15), (9, 9), (9, 12), (10, 3), (10, 10), (12, 30)]),
+    (2023, &[(1, 23), (1, 24), (3, 1), (5, 1), (5, 5), (5, 29), (6, 6), (8, 15), (9, 28), (9, 29), (10, 2), (10, 3), (10, 9), (12, 25), (12, 29)]),
+    (2024, &[(1, 1), (2, 9), (2, 12), (3, 1), (4, 10), (5, 1), (5, 6), (5, 15), (6, 6), (8, 15), (9, 16), (9, 17), (9, 18), (10, 1), (10, 3), (10, 9), (12, 25), (12, 31)]),
+    (2025, &[(1, 1), (1, 27), (1, 28), (1, 29), (1, 30), (3, 3), (5, 1), (5, 5), (5, 6), (6, 3), (6, 6), (8, 15), (10, 3), (10, 6), (10, 7), (10, 8), (10, 9), (12, 25), (12, 31)]),
+    (2026, &[(1, 1), (2, 16), (2, 17), (2, 18), (3, 2), (5, 1), (5, 5), (5, 25), (6, 3), (7, 17), (8, 17), (9, 24), (9, 25), (10, 5), (10, 9), (12, 25), (12, 31)]),
+    (2027, &[(1, 1), (2, 8), (2, 9), (3, 1), (5, 3), (5, 5), (5, 13), (7, 19), (8, 16), (9, 14), (9, 15), (9, 16), (10, 4), (10, 11), (12, 27), (12, 31)]),
+    (2028, &[(1, 26), (1, 27), (1, 28), (3, 1), (5, 1), (5, 2), (5, 5), (6, 6), (7, 17), (8, 15), (10, 2), (10, 3), (10, 4), (10, 5), (10, 9), (12, 25), (12, 29)]),
+    (2029, &[(1, 1), (2, 12), (2, 13), (2, 14), (3, 1), (5, 1), (5, 7), (5, 21), (6, 6), (7, 17), (8, 15), (9, 21), (9, 24), (10, 3), (10, 9), (12, 25), (12, 31)]),
+];
+
+#[test]
+fn the_krx_closes_on_the_days_it_lists_from_2009_to_2029() {
+    for &(y, listed) in KRX_CLOSURES {
+        let (closed, early) = year_of(&KOREA_EXCHANGE, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert!(early.is_empty(), "{y}");
+    }
+}
+
+#[test]
+fn the_krx_keeps_labour_day_and_the_last_weekday_of_the_year() {
+    // Labour Day on a Monday before it was a public holiday; the End of
+    // Year Holiday on the Friday when the 30th and 31st are a weekend.
+    let calendar = HolidayCalendar::for_year(&KOREA_EXCHANGE, None, 2023);
+    assert_eq!(calendar.on(ymd(2023, 5, 1))[0].name, "Labour Day");
+    assert_eq!(
+        calendar.on(ymd(2023, 12, 29))[0].name,
+        "End of Year Holiday"
+    );
+    // From 2026 the day comes from the country's table, once, and is
+    // substituted like it: Saturday 1 May 2027 gives Monday the 3rd.
+    let calendar = HolidayCalendar::for_year(&KOREA_EXCHANGE, None, 2027);
+    assert_eq!(calendar.on(ymd(2027, 5, 1)).len(), 1);
+    assert!(calendar.is_holiday(ymd(2027, 5, 3)));
+    // The national table does not close for either before 2026.
+    let calendar = HolidayCalendar::for_year(&hc_holiday::countries::SOUTH_KOREA, None, 2023);
+    assert!(!calendar.is_holiday(ymd(2023, 5, 1)));
+    assert!(!calendar.is_holiday(ymd(2023, 12, 29)));
+}
+
 #[test]
 fn hong_kong_closes_on_the_general_holidays_and_halves_three_eves() {
     // HKEX's calendar feed for 2026: every "Hong Kong Market is closed"
@@ -1038,5 +1096,5 @@ fn the_catalogue_is_keyed_by_market_identifier_code() {
         Some("New York Stock Exchange")
     );
     assert!(exchanges::ALL.iter().all(|e| e.code.len() == 4));
-    assert_eq!(exchanges::ALL.len(), 21);
+    assert_eq!(exchanges::ALL.len(), 22);
 }

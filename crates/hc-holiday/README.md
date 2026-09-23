@@ -136,7 +136,7 @@ national list**, with historical `valid_from` / `valid_until` years wherever a
 change is named in the cited source — the US Uniform Monday Holiday Act, the
 French suspension of 8 May, Italy's 1977–2000 Republic Day, Portugal's
 2013–2015 austerity suspensions, Denmark's abolition of Store bededag in 2024,
-Korea's three successive extensions of the 대체공휴일, and so on. None of them
+Korea's successive extensions of the 대체공휴일, and so on. None of them
 claims to be complete back to its own founding.
 
 ## Exchange calendars
@@ -168,7 +168,10 @@ of their own — Tokyo 2 and 3 January and 31 December, Hong Kong three half
 days — and so include their countries' tables through `includes` rather than
 copy them; London (`XLON`), which includes the United Kingdom's table for
 England and Wales, the region the inclusion names, and halves the last
-weekdays before Christmas and of the year; and Nasdaq's Nordic markets — Copenhagen (`XCSE`), Stockholm
+weekdays before Christmas and of the year; Seoul (`XKRX`), which includes
+South Korea's table and adds 1 May, a day off for employees before it was a
+public holiday, and the last weekday of the year, and which matches the
+Korea Exchange's own closure lists for every year from 2009 to 2029; and Nasdaq's Nordic markets — Copenhagen (`XCSE`), Stockholm
 (`XSTO`), Helsinki (`XHEL`) and Iceland (`XICE`) — each on its country's
 days as Nasdaq's calendar lists them, Stockholm with five half days a year.
 The unscheduled closures a read source

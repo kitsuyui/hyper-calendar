@@ -467,19 +467,15 @@ fn evaluate(
         .collect();
     occupied.sort_unstable();
 
+    let collided = collisions(&base);
     let mut substitutes: Vec<Holiday> = Vec::new();
-    // Tracks the date of the previous day-off occurrence so that a second
-    // holiday landing on the same day can be recognised as a collision.
-    let mut previous_day_off: Option<Rd> = None;
-    for occurrence in &base {
+    for (occurrence, &collided) in base.iter().zip(&collided) {
         let Ok(year) = gregorian::year_from_fixed(occurrence.date) else {
             continue;
         };
         if !occurrence.rule.kind.is_day_off() {
             continue;
         }
-        let collided = previous_day_off == Some(occurrence.date);
-        previous_day_off = Some(occurrence.date);
         if !occurrence.rule.substitutes_in(year) {
             continue;
         }
@@ -588,6 +584,41 @@ fn evaluate(
     });
     out.dedup_by_key(|holiday| (holiday.date.0, holiday.name, holiday.observed_for.is_some()));
     (out, gaps)
+}
+
+/// For each occurrence, in `base`'s date order, whether it is owed a
+/// substitute for sharing its day with another day off.
+///
+/// Holidays that share a day lose one day each but one, so a day with `k`
+/// of them owes `k - 1` substitutes. They go to the occurrences that can be
+/// substituted, the later ones in `base`'s order first: on 3 October 2017
+/// the eve of Chuseok, substituted since 2014, shared its day with National
+/// Foundation Day, not substituted until 2021, and the substitute was
+/// Chuseok's.
+fn collisions(base: &[Occurrence]) -> Vec<bool> {
+    let mut collided = vec![false; base.len()];
+    let mut end = base.len();
+    while end > 0 {
+        let date = base[end - 1].date;
+        let mut start = end - 1;
+        while start > 0 && base[start - 1].date == date {
+            start -= 1;
+        }
+        let day_off = |occurrence: &Occurrence| occurrence.rule.kind.is_day_off();
+        let sharing = base[start..end].iter().filter(|o| day_off(o)).count();
+        let mut owed = sharing.saturating_sub(1);
+        if let Ok(year) = gregorian::year_from_fixed(date) {
+            for index in (start..end).rev() {
+                let occurrence = &base[index];
+                if owed > 0 && day_off(occurrence) && occurrence.rule.substitutes_in(year) {
+                    collided[index] = true;
+                    owed -= 1;
+                }
+            }
+        }
+        end = start;
+    }
+    collided
 }
 
 /// Where a substitution lands.
