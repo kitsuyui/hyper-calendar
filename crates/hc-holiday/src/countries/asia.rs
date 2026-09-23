@@ -7,8 +7,11 @@
 //! its own calendar rather than borrowing China's.
 
 use hc_calendar::{Rd, Weekday};
+use hc_calendars_indic::places::KATHMANDU;
+use hc_calendars_indic::{HinduLunarCalendar, Prevalence};
 use hc_calendars_solar::gregorian;
 use hc_seasons::SolarTerm;
+use hc_seasons::zodiac::Ayanamsa;
 
 use crate::computus::offsets::{
     ASCENSION, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY,
@@ -19,7 +22,7 @@ use crate::hindu::{
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
+    SubstituteDirection, SubstitutionPolicy, WeekendPolicy, WhenTwice,
 };
 
 /// 清明, the fifth solar term, at solar longitude 15°.
@@ -929,6 +932,51 @@ const fn np_bs(name: &'static str, local: &'static str, month: u8, day: u8) -> H
     )
 }
 
+/// Nepal's festivals are read at Kathmandu's sunrise with the Lahiri
+/// ayanamsa: the tithis of the modern Moon and Sun, as the Bikram Sambat's
+/// months are not (`hc_calendars_indic::bikram_sambat`).
+const NP_LUNAR: HinduLunarCalendar = HinduLunarCalendar::new(KATHMANDU, Ayanamsa::LAHIRI);
+
+/// A tithi of an amānta month, read at Kathmandu.
+///
+/// The part of the day each festival's tithi must hold is fitted to the
+/// notices of 2080 to 2083 BS, not quoted from the almanac, so every
+/// festival dated this way is flagged approximate, as Thaipusam is. Where
+/// the Indian rule for the same festival fits all four years, it is kept;
+/// where it does not and several parts of the day do, sunrise is taken,
+/// the tithi the day carries.
+const fn np_tithi(month: u8, tithi: u8, prevails: Prevalence, when_twice: WhenTwice) -> Rule {
+    Rule::Tithi {
+        month,
+        tithi,
+        prevails,
+        when_twice,
+        calendar: NP_LUNAR,
+    }
+}
+
+/// Phūlpātī, the seventh day of Dashain: Āśvina śukla 7, at midday — at
+/// sunrise it gives 18 October 2026, the day after the notice's.
+static NP_PHULPATI: Rule = np_tithi(7, 7, Prevalence::Midday, WhenTwice::Earlier);
+/// The last day of the Dashain holiday, Āśvina śukla 12, "द्वादशी".
+static NP_DASHAIN_DWADASHI: Rule = np_tithi(7, 12, Prevalence::Sunrise, WhenTwice::Earlier);
+/// Lakṣmī Pūjā, the new moon of Āśvina in the evening, the first day of
+/// the Tihar holiday. When the new moon holds two evenings Nepal keeps the
+/// first — 31 October 2024, where India's Dīpāvalī was 1 November.
+static NP_LAXMI_PUJA: Rule = np_tithi(7, 30, Prevalence::Evening, WhenTwice::Earlier);
+/// Bhai Tika, Kārtika śukla 2.
+static NP_BHAI_TIKA: Rule = np_tithi(8, 2, Prevalence::Sunrise, WhenTwice::Earlier);
+/// The day after Bhai Tika, the last day of the Tihar holiday.
+static NP_TIHAR_LAST: Rule = Rule::Offset {
+    base: &NP_BHAI_TIKA,
+    days: 1,
+};
+
+/// A festival day from the notice's section 2.1, 7.1 or both.
+const fn np_festival(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, rule).approximate()
+}
+
 /// The days the Ministry of Home Affairs' notice gives every office in the
 /// country, and which fall on a fixed date: in the Bikram Sambat for the
 /// national days and the two that open a month, in the Gregorian calendar
@@ -949,9 +997,76 @@ static NP_RULES: &[HolidayRule] = &[
         "अन्तर्राष्ट्रिय महिला दिवस",
         Rule::gregorian(3, 8),
     ),
+    // Tamu Lhosar, the Gurung new year, is "पुस १५" in both notices.
+    np_bs("Tamu Lhosar", "तमू ल्होछार", 9, 15),
+    // The festivals, from the same sections: a tithi each, or the span
+    // between two, or the Tibetan new year.
+    np_festival(
+        "Buddha Jayanti",
+        "बुद्ध जयन्ती",
+        np_tithi(2, 15, Prevalence::Midday, WhenTwice::Earlier),
+    ),
+    np_festival(
+        "Janai Purnima",
+        "रक्षाबन्धन",
+        np_tithi(5, 15, Prevalence::Sunrise, WhenTwice::Earlier),
+    ),
+    // In the evening: the Indian rule, the eighth tithi at midnight, gives
+    // 15 August 2025 where the notice has the 16th, and sunrise gives
+    // 7 September 2023 where it has the 6th.
+    np_festival(
+        "Krishna Janmashtami",
+        "श्रीकृष्ण जन्माष्टमी",
+        np_tithi(5, 23, Prevalence::Evening, WhenTwice::Earlier),
+    ),
+    np_festival(
+        "Ghatasthapana",
+        "घटस्थापना",
+        np_tithi(7, 1, Prevalence::Sunrise, WhenTwice::Earlier),
+    ),
+    np_festival(
+        "Dashain",
+        "दशैं",
+        Rule::span(&NP_PHULPATI, &NP_DASHAIN_DWADASHI),
+    ),
+    np_festival("Tihar", "तिहार", Rule::span(&NP_LAXMI_PUJA, &NP_TIHAR_LAST)),
+    // Chhath, Kārtika śukla 6, is left out: no one part of the day puts
+    // it where all four notices do. Sunrise gives 28 October 2025 for the
+    // notice's 27th, and every later part of the day 18 November 2023 for
+    // its 19th.
+    np_festival(
+        "Dhanya Purnima",
+        "धान्य पूर्णिमा",
+        np_tithi(9, 15, Prevalence::Sunrise, WhenTwice::Earlier),
+    ),
+    np_festival(
+        "Sonam Lhosar",
+        "सोनम ल्होछार",
+        np_tithi(11, 1, Prevalence::Sunrise, WhenTwice::Earlier),
+    ),
+    np_festival(
+        "Maha Shivaratri",
+        "महाशिवरात्री",
+        np_tithi(11, 29, Prevalence::Midnight, WhenTwice::Earlier),
+    ),
+    // Gyalpo Lhosar is the Tibetan New Year, but not the Phugpa
+    // reckoning's: its Losar is 18 February 2026, the notice's day, and
+    // 7 February 2027, a month before the notice's 9 March, because it
+    // intercalates a month that Nepal's reckoning does not. Phālguna śukla
+    // 1 at Kathmandu gives both of the notices' days.
+    np_festival(
+        "Gyalpo Lhosar",
+        "ग्याल्पो ल्होसार",
+        np_tithi(12, 1, Prevalence::Sunrise, WhenTwice::Earlier),
+    ),
+    // The notices give these without a date — "ईद (ईद उल फित्र) का दिन",
+    // the day of Eid — and the tabular Hijri calendar is a prediction of it.
+    np_festival("Eid al-Fitr", "ईद", EID_AL_FITR),
+    np_festival("Eid al-Adha", "बकर ईद", EID_AL_ADHA),
 ];
 
-/// Nepal — the weekend, and the public holidays on a fixed date.
+/// Nepal — the weekend, the public holidays on a fixed date, and the
+/// festivals.
 pub static NEPAL: RuleSet = RuleSet {
     code: "NP",
     english_name: "Nepal",
@@ -965,10 +1080,21 @@ pub static NEPAL: RuleSet = RuleSet {
               notices of public holidays in the Nepal Rajpatra, Part 5: for \
               2082 BS (Khanda 74, No. 59) and 2083 BS (Khanda 75, No. 67), \
               sections 2.1, 6.1 and 7.1, the holidays for every office in \
-              the country. The festivals among them — Buddha Jayanti, \
-              Dashain, Tihar, Chhath and the rest, which follow the lunar \
-              calendar — and the holidays for one community, region or \
-              group are not listed yet",
+              the country, with their dates and local names. Which tithi \
+              each festival is: Wikipedia, \"Dashain\" (Āśvina śukla, \
+              Phulpati the seventh day), \"Tihar (festival)\" (Lakshmi Puja \
+              on the new moon, Bhai Tika Kartika śukla 2), \"Raksha Bandhan\" (the full moon of \
+              Shravana; Janai Purnima in Nepal), \"Krishna Janmashtami\" \
+              (Shravana kṛṣṇa 8, amānta), \"Buddha's Birthday\" (the full \
+              moon of Vaisakha in Nepal), \"Yomari Punhi\" (the full moon of \
+              Thinlā, Mārgaśīrṣa), \"Maha Shivaratri\" (Māgha kṛṣṇa 14, \
+              amānta), \"Sonam Lhosar\" (Magh śukla pratipadā), \"Tamu \
+              Lhosar\" (15 Poush) and \"Gyalpo Losar\" (the first day of \
+              the Tibetan year, whose Phugpa reckoning the 2083 notice does \
+              not follow), all retrieved 2026-09-23. The part of the day each \
+              tithi holds is fitted to the notices for 2080 to 2083 BS. \
+              Chhath, which no single rule fits, and the holidays for one \
+              community, region or group are not listed yet",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

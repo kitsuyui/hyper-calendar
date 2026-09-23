@@ -178,10 +178,10 @@ fn saudi_arabia_before_2013_rested_on_thursday_and_friday() {
 #[test]
 fn nepal_gets_six_business_days_a_week_before_2026() {
     let nepal = calendar("NP", 2024, 2024);
-    // 2024-03-10 was a Sunday; only Saturday is the weekend, and no Nepali
+    // 2024-03-17 was a Sunday; only Saturday is the weekend, and no Nepali
     // holiday falls in that week.
     assert_eq!(
-        nepal.business_days_between(ymd(2024, 3, 10), ymd(2024, 3, 17)),
+        nepal.business_days_between(ymd(2024, 3, 17), ymd(2024, 3, 24)),
         Some(6)
     );
     // The week before has one fewer, because 8 March is a holiday.

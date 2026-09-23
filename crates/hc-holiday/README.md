@@ -35,6 +35,7 @@ Tithi { month, tithi, prevails, wt }  Rāma Navamī, Chaitra śukla 9 at midday
 Sankranti { sign, ayanamsa, mer }     Makar Sankranti, the Sun's entry into Makara
 Nakshatra { n, sign, tithi, ay, mer } Thaipusam, Puṣya in Thai
 Offset { base, days }                 Seollal's eve, 除夕, Tết's first days
+Span { from, to }                     Dashain, Phūlpātī to Āśvina śukla 12, six or seven days
 MovedByWeekday { base, moves }        Argentina's feriados trasladables, Colombia's Ley Emiliani
 Tabulated { function, first, last }   Matariki, gazetted through a stated last year
 Computed(fn)                          the handful that really are bespoke
@@ -238,9 +239,9 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 
 | Entry | Why |
 | --- | --- |
-| Every Hijri-dated holiday, in forty-five countries and the Islamic tradition table | the observed date is a sighting decision, per country |
+| Every Hijri-dated holiday, in forty-six countries and the Islamic tradition table | the observed date is a sighting decision, per country |
 | Vesak, Makha Bucha, Asalha Bucha, Khao Phansa (Thailand, Indonesia, Singapore, Malaysia, the Buddhist table) | dated by the Thai lunar calendar, which this crate does not have; approximated as the full moon of Chinese lunar month *n* − 2. Right in 2022, 2024 and 2025; a day out in 2023; a month out in a Thai intercalary year |
-| Nepal's Gregorian-looking national days | they are Bikram Sambat dates whose Gregorian equivalent moves by a day |
+| Nepal's festivals — Buddha Jayanti, Dashain, Tihar and the rest | each is a tithi read at Kathmandu, and the part of the day it must hold is fitted to the notices of 2080–2083 BS, which it reproduces, rather than quoted from the almanac |
 
 ## Deliberate gaps
 
@@ -251,9 +252,11 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   Dīpāvalī rule. Nyepi is still missing from Indonesia: the Balinese Saka
   calendar that dates it is not in the crate, and the crate will not tabulate
   what it cannot compute.
-* **Nepal** is deliberately thin: its calendar is Bikram Sambat and its
-  holidays are Hindu and Buddhist festivals. Its table exists chiefly to carry
-  the one-day weekend.
+* **Nepal** carries the holidays of its Home Ministry's notices for every
+  office in the country, except Chhath, which no one tithi rule puts where all
+  four notices do. The holidays for one community, region or group — the
+  Kathmandu Valley's *jātrā*s, Fagu Purnima's two dates, the days for women
+  or for the Newar community — are not carried.
 * **Subdivisions** are modelled only where a statute names them. German
   *Länder*, US federal-versus-state, Australian states, Canadian provinces, UK
   jurisdictions and French Alsace-Moselle are in; Swiss cantons, Spanish
