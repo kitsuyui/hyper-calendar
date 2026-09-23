@@ -16,7 +16,7 @@ use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
 use crate::computus::offsets::{
     ASCENSION, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY,
-    PALM_SUNDAY, PENTECOST, WHIT_MONDAY,
+    PALM_SUNDAY, PENTECOST, SHROVE_TUESDAY, WHIT_MONDAY,
 };
 use crate::hindu::{DIWALI, GANESH_CHATURTHI, MAHA_SHIVARATRI, UGADI};
 use crate::rule::{
@@ -3284,4 +3284,476 @@ pub static YEMEN: RuleSet = RuleSet {
               retrieved 2026-09-23; Yemen Post (16 August 2013) on Council of Ministers \
               resolution No. 179 of 2013 and the Friday and Saturday weekend; Wikipedia, \
               \"Public holidays in Yemen\", for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Cameroon
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 2 of law 73/5: "when a civil legal holiday falls on a Sunday or
+/// on a holiday, the following day is treated as that holiday" for work
+/// and pay. Only the four civil days substitute.
+static CM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: false,
+    on_collision: true,
+    valid_from: Some(1974),
+    valid_until: None,
+}];
+
+static CM_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
+    HolidayRule::public("Youth Day", "Fête de la Jeunesse", Rule::gregorian(2, 11)),
+    HolidayRule::fixed_public("Good Friday", "Vendredi saint", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+    HolidayRule::public("National Day", "Fête nationale", Rule::gregorian(5, 20)),
+    HolidayRule::fixed_public("Ascension", "Ascension", Rule::easter(ASCENSION)),
+    HolidayRule::fixed_public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+    HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    hijri(
+        "Eid al-Fitr",
+        "Fête de fin de Ramadan (Djouldé Soumaé)",
+        10,
+        1,
+    ),
+    hijri("Eid al-Adha", "Fête du Mouton (Djouldé Laihadji)", 12, 10),
+];
+
+/// Cameroon.
+///
+/// Law 73/5 of 7 December 1973 fixing the regime of the legal holidays,
+/// from the Ministry of Public Service's collection, with the changes of
+/// law 76/8 of 8 July 1976 as Camerlex summarises the regime: four civil
+/// holidays — New Year, Youth Day on 11 February, 1 May and the National
+/// Day on 20 May — and six religious ones — Ascension, Good Friday,
+/// 15 August, Christmas, "la fête de fin de Ramadan (Djouldé Soumaé)" and
+/// "la fête du Mouton (Djouldé Laihadji)", the two Eids on the tabular
+/// Hijri calendar as approximations of the sighted dates. Article 2:
+/// "when a civil legal holiday falls on a Sunday or on a holiday, the
+/// following day is treated as that holiday" for work and pay, which the
+/// four civil days do from 1974, the 1972 ordinance the law repealed not
+/// having been read. The President's power to declare, by decree each
+/// time, the day after a Sunday religious holiday, the eve or the morrow
+/// of a holiday on a Friday or a Tuesday, and since 1976 a day for an
+/// event of national importance is not carried. Nor is article 5's
+/// distinction between the civil days, when stopping work is compulsory,
+/// and the religious ones, when in the 1973 text it is not for workers
+/// over eighteen: all ten are days off here.
+pub static CAMEROON: RuleSet = RuleSet {
+    code: "CM",
+    english_name: "Cameroon",
+    rules: CM_RULES,
+    substitution: CM_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Loi n° 73/5 du 7 décembre 1973 fixant le régime des fêtes légales en \
+              République Unie du Cameroun, from the Ministry of Public Service's \
+              collection (minfopra.gov.cm) as the Internet Archive holds it, retrieved \
+              2026-09-23; Camerlex, \"Les jours fériés\", on the regime as loi n° 76/8 \
+              du 8 juillet 1976 amended it; NATLEX for the amending law's title",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Republic of the Congo
+// ─────────────────────────────────────────────────────────────────────────
+
+static CG_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Lundi de Pâques",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public("Labour Day", "Fête du travail", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Ascension", "Jeudi de l'Ascension", Rule::easter(ASCENSION)),
+    HolidayRule::fixed_public(
+        "Whit Monday",
+        "Lundi de Pentecôte",
+        Rule::easter(WHIT_MONDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Sovereign National Conference Day",
+        "Fête de la commémoration de la Conférence nationale souveraine",
+        Rule::gregorian(6, 10),
+    ),
+    HolidayRule::fixed_public("National Day", "Fête nationale", Rule::gregorian(8, 15)),
+    HolidayRule::fixed_public("All Saints' Day", "La Toussaint", Rule::gregorian(11, 1)),
+    HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+];
+
+/// Republic of the Congo.
+///
+/// Law 2-94 of 1 March 1994 fixing the holidays that are off and paid,
+/// from the signed text the Secretariat-General of the Government
+/// publishes, which repealed law 43-79 of 1979: nine days, with Easter
+/// Monday, Ascension and Whit Monday, and 10 June for the Sovereign
+/// National Conference, which closed on 10 June 1991. Article 2 lets the
+/// Minister of Labour declare other days off by order "on the occasion of
+/// important events", as order 976 of 30 April 2025 did for Friday 2 May
+/// 2025, citing law 2-94 as the law in force; those orders are not
+/// carried, and neither is 28 November, the Republic's anniversary, which
+/// is not in the law's list — whether an order made it a day off, and in
+/// which years, was not checked. The law says nothing of a holiday on a
+/// Sunday, so nothing moves.
+pub static CONGO: RuleSet = RuleSet {
+    code: "CG",
+    english_name: "Republic of the Congo",
+    rules: CG_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Loi n° 2-94 du 1er mars 1994 fixant les jours fériés, chômés et payés, the \
+              signed text and Unicongo's note of 2 April 1994, from the Secrétariat \
+              général du Gouvernement (sgg.cg), retrieved 2026-09-23; arrêté n° 976 du \
+              30 avril 2025, Journal officiel 2025 no. 19, on the same site; Wikipedia, \
+              \"Public holidays in the Republic of the Congo\", for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Democratic Republic of the Congo
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 2 of ordinances 14-010 and 23-042: a holiday that "coincides
+/// with a Sunday" is taken "the day before", as the Minister's
+/// communiqués applied it until 2025.
+static CD_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Backward,
+    skip_occupied: false,
+    on_collision: false,
+    valid_from: Some(2014),
+    valid_until: Some(2025),
+}];
+
+/// Nothing: no communiqué for 2027 or later was read, so a weekend holiday
+/// moved by one is a gap in those years.
+fn cd_unread(_: i64) -> Days {
+    Days::new()
+}
+
+static CD_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "Nouvel an", Rule::gregorian(1, 1)),
+    HolidayRule::public(
+        "Martyrs of Independence Day",
+        "Journée des Martyrs de l'indépendance",
+        Rule::gregorian(1, 4),
+    ),
+    HolidayRule::public(
+        "Laurent-Désiré Kabila Day",
+        "Journée du héros national Laurent Désiré Kabila",
+        Rule::gregorian(1, 16),
+    ),
+    HolidayRule::public(
+        "Patrice Lumumba Day",
+        "Journée du héros national Patrice Emery Lumumba",
+        Rule::gregorian(1, 17),
+    ),
+    HolidayRule::public(
+        "Simon Kimbangu Day",
+        "Journée du combat de Simon Kimbangu et de la conscience africaine",
+        Rule::gregorian(4, 6),
+    )
+    .years(Some(2023), None),
+    HolidayRule::public("Labour Day", "Fête du travail", Rule::gregorian(5, 1)),
+    HolidayRule::public(
+        "Armed Forces Day",
+        "Journée des Forces armées",
+        Rule::gregorian(5, 17),
+    ),
+    HolidayRule::public(
+        "Independence Day",
+        "Journée de l'indépendance",
+        Rule::gregorian(6, 30),
+    ),
+    HolidayRule::public("Parents' Day", "Fête des parents", Rule::gregorian(8, 1)),
+    HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    // The Minister's communiqués: a Saturday holiday to the Friday in 2025,
+    // and every weekend holiday to the Monday in 2026.
+    HolidayRule::fixed_public(
+        "Martyrs of Independence Day",
+        "Journée des Martyrs de l'indépendance",
+        Rule::gregorian(1, 3),
+    )
+    .years(Some(2025), Some(2025)),
+    HolidayRule::fixed_public(
+        "Armed Forces Day",
+        "Journée des Forces armées",
+        Rule::gregorian(5, 16),
+    )
+    .years(Some(2025), Some(2025)),
+    HolidayRule::fixed_public(
+        "Martyrs of Independence Day",
+        "Journée des Martyrs de l'indépendance",
+        Rule::gregorian(1, 5),
+    )
+    .years(Some(2026), Some(2026)),
+    HolidayRule::fixed_public(
+        "Patrice Lumumba Day",
+        "Journée du héros national Patrice Emery Lumumba",
+        Rule::gregorian(1, 19),
+    )
+    .years(Some(2026), Some(2026)),
+    HolidayRule::fixed_public(
+        "Armed Forces Day",
+        "Journée des Forces armées",
+        Rule::gregorian(5, 18),
+    )
+    .years(Some(2026), Some(2026)),
+    HolidayRule::fixed_public("Parents' Day", "Fête des parents", Rule::gregorian(8, 3))
+        .years(Some(2026), Some(2026)),
+    HolidayRule::fixed_public(
+        "Weekend holiday moved by communiqué",
+        "Jour férié reporté par communiqué",
+        Rule::Tabulated {
+            function: cd_unread,
+            first_year: 1,
+            last_year: 0,
+        },
+    )
+    .years(Some(2027), None),
+];
+
+/// Democratic Republic of the Congo.
+///
+/// Ordinance 23-042 of 30 March 2023 fixing the list of legal holidays,
+/// which replaced ordinance 14-010 of 14 May 2014: the 2014 list of nine
+/// days, and from 2023 6 April, the day of Simon Kimbangu's struggle and
+/// of African consciousness. Article 2 of both: where a holiday "coincides
+/// with a Sunday, the leave for that day is taken the day before", the
+/// Saturday, carried from 2014 to 2025; the 1979 ordinance the 2014 one
+/// replaced was not read. Since decree 24/09 of 17 February 2024 made
+/// Saturday a day off in the public service, the Minister of Employment
+/// and Labour's communiqués have departed from the ordinance: in 2025 a
+/// Saturday holiday was brought forward to the Friday, 3 January and
+/// 16 May, while Sunday 6 April still gave Saturday 5 April (and Friday
+/// 4 April to the public services, which is not carried); in 2026 the
+/// Minister moved Sunday 4 January to Monday 5 January, withdrawing an
+/// earlier communiqué that gave the Saturday, and Saturday 17 January,
+/// Sunday 17 May and Saturday 1 August to 19 January, 18 May and
+/// 3 August. Those days are carried as the communiqués give them, and
+/// from 2027, which no communiqué read covers, a weekend holiday's move is
+/// reported as a gap. GENOCOST day on 2 August, commemorated since 2024,
+/// is not in the ordinance's list, and reports disagree on whether it was
+/// a day off in 2024; it is not carried, and neither are the other days
+/// the Minister declares off for an occasion.
+pub static DR_CONGO: RuleSet = RuleSet {
+    code: "CD",
+    english_name: "Democratic Republic of the Congo",
+    rules: CD_RULES,
+    substitution: CD_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Ordonnance n° 23-042 du 30 mars 2023 fixant la liste des jours fériés légaux \
+              (J.O. RDC, 15 May 2023) and ordonnance n° 14/010 du 14 mai 2014 (J.O. RDC \
+              no. 11, 1 June 2014), from droitcongolais.info, retrieved 2026-09-23; the \
+              Ministry of Employment and Labour's communiqués as ACP (2 April and 14 May \
+              2025, 12 January 2026), Congo Quotidien (2 January 2025), Opinion Info \
+              (31 December 2025, 13 May 2026) and Netic News (27 July 2026) report them; \
+              Actualite.cd (5 January 2026) on communiqués 010 and 011 of December 2025 \
+              and (13 January 2026) on ordinance 23-042 being in force; Radio Okapi (15 July \
+              2024) on GENOCOST",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Angola
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 6 of law 10/11 as enacted: a holiday on a Sunday is "transferred
+/// to the working day immediately after", except New Year, Carnival, All
+/// Souls and Christmas. Law 11/18 replaced it in September 2018; Sunday
+/// 4 February 2018, the one case that year before the change, is a rule of
+/// its own.
+static AO_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: Some(2011),
+    valid_until: Some(2017),
+}];
+
+/// The national holidays of article 2, each with the first year it is a
+/// holiday, for the bridges of article 6 as law 11/18 rewrote it.
+static AO_BRIDGED: &[(Rule, i64)] = &[
+    (Rule::gregorian(1, 1), i64::MIN),
+    (Rule::gregorian(2, 4), i64::MIN),
+    (Rule::gregorian(3, 8), i64::MIN),
+    (Rule::gregorian(3, 23), 2019),
+    (Rule::easter(SHROVE_TUESDAY), i64::MIN),
+    (Rule::gregorian(4, 4), i64::MIN),
+    (Rule::easter(GOOD_FRIDAY), i64::MIN),
+    (Rule::gregorian(5, 1), i64::MIN),
+    (Rule::gregorian(9, 17), i64::MIN),
+    (Rule::gregorian(11, 2), i64::MIN),
+    (Rule::gregorian(11, 11), i64::MIN),
+    (Rule::gregorian(12, 25), i64::MIN),
+];
+
+/// "When a national holiday falls on a Tuesday or a Thursday, work stops on
+/// the working day before or the day immediately after, Monday or Friday
+/// respectively": from the law's publication on 28 September 2018.
+fn ao_bridges(year: i64) -> Days {
+    let mut out = Days::new();
+    let Ok(in_force) = gregorian::to_fixed(2018, 9, 28) else {
+        return out;
+    };
+    for (rule, from) in AO_BRIDGED {
+        if year < *from {
+            continue;
+        }
+        for date in rule.days_in_year(year).as_slice() {
+            if *date < in_force {
+                continue;
+            }
+            match Weekday::from_rd(*date) {
+                Weekday::Tuesday => out.push(Rd(date.0 - 1)),
+                Weekday::Thursday => out.push(Rd(date.0 + 1)),
+                _ => {}
+            }
+        }
+    }
+    out
+}
+
+static AO_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Dia do Ano Novo", Rule::gregorian(1, 1)),
+    HolidayRule::public(
+        "Liberation War Day",
+        "Dia do Início da Luta Armada de Libertação Nacional",
+        Rule::gregorian(2, 4),
+    ),
+    // The Monday after Sunday 4 February 2018, under article 6 as it stood
+    // until 28 September 2018.
+    HolidayRule::fixed_public(
+        "Liberation War Day",
+        "Dia do Início da Luta Armada de Libertação Nacional",
+        Rule::gregorian(2, 5),
+    )
+    .years(Some(2018), Some(2018)),
+    HolidayRule::public(
+        "International Women's Day",
+        "Dia Internacional da Mulher",
+        Rule::gregorian(3, 8),
+    ),
+    HolidayRule::public(
+        "Southern Africa Liberation Day",
+        "Dia da Libertação da África Austral",
+        Rule::gregorian(3, 23),
+    )
+    .years(Some(2019), None),
+    HolidayRule::fixed_public("Carnival", "Dia do Carnaval", Rule::easter(SHROVE_TUESDAY)),
+    HolidayRule::public(
+        "Peace and National Reconciliation Day",
+        "Dia da Paz e da Reconciliação Nacional",
+        Rule::gregorian(4, 4),
+    ),
+    HolidayRule::fixed_public(
+        "Good Friday",
+        "Sexta-Feira Santa",
+        Rule::easter(GOOD_FRIDAY),
+    ),
+    HolidayRule::public(
+        "Labour Day",
+        "Dia Internacional do Trabalhador",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::public(
+        "National Heroes' Day",
+        "Dia do Fundador da Nação e do Herói Nacional",
+        Rule::gregorian(9, 17),
+    ),
+    HolidayRule::fixed_public("All Souls' Day", "Dia dos Finados", Rule::gregorian(11, 2)),
+    HolidayRule::public(
+        "Independence Day",
+        "Dia da Independência",
+        Rule::gregorian(11, 11),
+    ),
+    HolidayRule::fixed_public(
+        "Christmas and Family Day",
+        "Dia de Natal e da Família",
+        Rule::gregorian(12, 25),
+    ),
+    HolidayRule::fixed_public("Bridge day", "Ponte", Rule::Computed(ao_bridges)),
+    // Article 3's national celebration dates, on which "there is no
+    // suspension of work".
+    HolidayRule::observance(
+        "Martyrs of Colonial Repression Day",
+        "Dia dos Mártires da Repressão Colonial",
+        Rule::gregorian(1, 4),
+    ),
+    HolidayRule::observance(
+        "Veterans' Day",
+        "Dia do Antigo Combatente e Veterano da Pátria",
+        Rule::gregorian(1, 15),
+    )
+    .years(Some(2019), None),
+    HolidayRule::observance(
+        "Angolan Women's Day",
+        "Dia da Mulher Angolana",
+        Rule::gregorian(3, 2),
+    ),
+    HolidayRule::observance(
+        "Day of the Expansion of the Armed Struggle",
+        "Dia da Expansão da Luta Armada de Libertação Nacional",
+        Rule::gregorian(3, 15),
+    ),
+    HolidayRule::observance(
+        "Angolan Youth Day",
+        "Dia da Juventude Angolana",
+        Rule::gregorian(4, 14),
+    ),
+    HolidayRule::observance("Africa Day", "Dia de África", Rule::gregorian(5, 25)),
+    HolidayRule::observance(
+        "International Children's Day",
+        "Dia Internacional da Criança",
+        Rule::gregorian(6, 1),
+    ),
+    HolidayRule::observance(
+        "Human Rights Day",
+        "Dia Internacional dos Direitos Humanos",
+        Rule::gregorian(12, 10),
+    ),
+];
+
+/// Angola.
+///
+/// Law 10/11 of 16 February 2011 on the national and local holidays and
+/// the national celebration dates, as law 11/18 of 28 September 2018
+/// rewrote its articles 2, 3 and 6, both from AngoLEX: eleven national
+/// holidays, with Carnival on Shrove Tuesday, and Southern Africa
+/// Liberation Day on 23 March the twelfth from 2019. As enacted, article 6
+/// moved a holiday on a Sunday "to the working day immediately after",
+/// New Year, Carnival, All Souls and Christmas excepted; that is carried
+/// from 2011 to 2017, and for Sunday 4 February 2018 as the Monday. The
+/// rewritten article 6 replaced it on publication with a bridge — work
+/// stops on the Monday before a Tuesday holiday and on the Friday after a
+/// Thursday one — computed from 28 September 2018, which gives every
+/// Carnival its Monday from 2019; since then nothing moves off a Sunday.
+/// Article 3's national celebration dates, 15 January among them from
+/// 2019, are observances, "there being no suspension of work". Article
+/// 7's afternoons of 24 and 31 December, the municipal holidays and the
+/// Executive's tolerâncias de ponto are not carried. Law 7/03, which law
+/// 10/11 repealed, was not read.
+pub static ANGOLA: RuleSet = RuleSet {
+    code: "AO",
+    english_name: "Angola",
+    rules: AO_RULES,
+    substitution: AO_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Lei n.º 10/11 de 16 de Fevereiro, Lei dos Feriados Nacionais e Locais e Datas \
+              de Celebração Nacional, and Lei n.º 11/18 de 28 de Setembro amending its \
+              articles 2, 3 and 6, from AngoLEX (angolex.com), retrieved 2026-09-23; \
+              lex.ao for the latter's publication in the Diário da República, I Série \
+              n.º 147; Novo Jornal on the 2018 vote; the Ministério da Administração do \
+              Território's \"Efemérides\" page on the laws in force",
 };

@@ -94,12 +94,13 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 ## Coverage
 
 **154 countries.** Albania, **156 countries.** Albania, Algeria, Andorra,
-Antigua and Barbuda, Argentina, Armenia, Australia (eight states and
+Angola, Antigua and Barbuda, Argentina, Armenia, Australia (eight states and
 territories), Austria, Azerbaijan, the Bahamas, Bahrain, Bangladesh, Barbados,
 Belarus, Belgium, Belize, Bolivia, Bosnia and Herzegovina (the Federation,
-Botswana, Brazil, Brunei, Bulgaria, Cambodia, Canada (federal plus the
+Botswana, Brazil, Brunei, Bulgaria, Cambodia, Cameroon, Canada (federal plus the
 provincial days fixed by statute), Chile, China, Colombia, Costa Rica, Croatia,
-Cuba, Cyprus, Czechia, Côte d'Ivoire, Denmark, Dominica, the Dominican Republic,
+Cuba, Cyprus, Czechia, Côte d'Ivoire, the Democratic Republic of the Congo,
+Denmark, Dominica, the Dominican Republic, the Republic of the Congo.
 Ecuador, Egypt, El Salvador, Estonia, Ethiopia, Finland, France (métropole plus
 Alsace-Moselle), Georgia, Germany (all 16 *Länder*), Ghana, Greece, Grenada,
 Guatemala, Guyana, Haiti, Honduras, Hong Kong, Hungary, Iceland, India,

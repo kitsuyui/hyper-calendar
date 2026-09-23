@@ -39,10 +39,10 @@ fn hijri_dates_appear_in_the_number_of_countries_the_readme_states() {
     // Named, so that a country losing its Hijri holidays is visible rather
     // than merely a smaller number.
     for expected in [
-        "AE", "AL", "AR", "AZ", "BA", "BD", "BH", "BN", "CI", "DZ", "EG", "ET", "GH", "GY", "ID",
-        "IN", "IQ", "IR", "JO", "KE", "KG", "KW", "KZ", "LB", "LY", "MA", "ME", "MK", "MM", "MU",
-        "MW", "MY", "NG", "NP", "OM", "PH", "PK", "PS", "QA", "RS", "SA", "SG", "SR", "SY", "TL",
-        "TR", "TT", "TZ", "UG", "YE",
+        "AE", "AL", "AR", "AZ", "BA", "BD", "BH", "BN", "CI", "CM", "DZ", "EG", "ET", "GH", "GY",
+        "ID", "IN", "IQ", "IR", "JO", "KE", "KG", "KW", "KZ", "LB", "LY", "MA", "ME", "MK", "MM",
+        "MU", "MW", "MY", "NG", "NP", "OM", "PH", "PK", "PS", "QA", "RS", "SA", "SG", "SR", "SY",
+        "TL", "TR", "TT", "TZ", "UG", "YE",
     ] {
         assert!(
             countries_with_hijri.contains(&expected),

@@ -4704,6 +4704,180 @@ fn cote_d_ivoire_gives_the_day_after_five_sunday_feasts_since_2011() {
 }
 
 #[test]
+fn cameroon_gives_the_next_day_for_a_civil_holiday_on_a_sunday_or_a_holiday() {
+    expect(
+        "CM",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 2, 11, "Youth Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 14, "Ascension"),
+            (2026, 5, 20, "National Day"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 8, 15, "Assumption"),
+            (2026, 12, 25, "Christmas Day"),
+            // Sunday 20 May and 11 February 2018, Sunday 1 January 2023.
+            (2018, 5, 21, "National Day"),
+            (2018, 2, 12, "Youth Day"),
+            (2023, 1, 2, "New Year's Day"),
+        ],
+    );
+    expect_substitute("CM", None, 2018, (5, 20), (5, 21));
+    // Ascension fell on 1 May in 2008 and on 20 May in 2004.
+    expect_substitute("CM", None, 2008, (5, 1), (5, 2));
+    expect_substitute("CM", None, 2004, (5, 20), (5, 21));
+    // A Sunday religious holiday stays; Easter Monday is not a holiday;
+    // before the 1973 law, nothing is claimed to move.
+    expect_working(
+        "CM",
+        None,
+        &[(2022, 12, 26), (2021, 8, 16), (2026, 4, 6), (1973, 5, 21)],
+    );
+}
+
+#[test]
+fn the_republic_of_the_congo_keeps_law_2_94_and_moves_nothing() {
+    expect(
+        "CG",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 14, "Ascension"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 6, 10, "Sovereign National Conference Day"),
+            (2026, 8, 15, "National Day"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2025, 4, 21, "Easter Monday"),
+            (2025, 5, 29, "Ascension"),
+            (2025, 6, 9, "Whit Monday"),
+        ],
+    );
+    // Good Friday and 28 November are not in the law; Sunday All Saints'
+    // Day 2026 and Sunday Christmas 2022 stay.
+    expect_working(
+        "CG",
+        None,
+        &[(2026, 4, 3), (2025, 11, 28), (2026, 11, 2), (2022, 12, 26)],
+    );
+}
+
+#[test]
+fn the_democratic_republic_of_the_congo_takes_a_sunday_holiday_the_day_before_until_2025() {
+    expect(
+        "CD",
+        None,
+        &[
+            (2024, 1, 1, "New Year's Day"),
+            (2024, 1, 4, "Martyrs of Independence Day"),
+            (2024, 1, 16, "Laurent-Désiré Kabila Day"),
+            (2024, 1, 17, "Patrice Lumumba Day"),
+            (2024, 4, 6, "Simon Kimbangu Day"),
+            (2024, 5, 1, "Labour Day"),
+            (2024, 5, 17, "Armed Forces Day"),
+            (2024, 6, 30, "Independence Day"),
+            (2024, 8, 1, "Parents' Day"),
+            (2024, 12, 25, "Christmas Day"),
+            (2023, 4, 6, "Simon Kimbangu Day"),
+            // Sunday 30 June 2024 and Sunday 6 April 2025.
+            (2024, 6, 29, "Independence Day"),
+            (2025, 4, 5, "Simon Kimbangu Day"),
+        ],
+    );
+    expect_substitute("CD", None, 2024, (6, 30), (6, 29));
+    expect_substitute("CD", None, 2025, (4, 6), (4, 5));
+    // 6 April is a holiday from 2023; the public services' Friday of 2025
+    // is not carried.
+    expect_working("CD", None, &[(2022, 4, 6), (2025, 4, 4)]);
+}
+
+#[test]
+fn the_democratic_republic_of_the_congo_follows_the_ministers_communiques_from_2025() {
+    expect(
+        "CD",
+        None,
+        &[
+            // 2025: a Saturday holiday brought forward to the Friday.
+            (2025, 1, 3, "Martyrs of Independence Day"),
+            (2025, 5, 16, "Armed Forces Day"),
+            // 2026: every weekend holiday to the Monday.
+            (2026, 1, 5, "Martyrs of Independence Day"),
+            (2026, 1, 19, "Patrice Lumumba Day"),
+            (2026, 5, 18, "Armed Forces Day"),
+            (2026, 8, 3, "Parents' Day"),
+        ],
+    );
+    // The Saturday the ordinance would give in 2026 was withdrawn.
+    expect_working("CD", None, &[(2026, 1, 3), (2026, 5, 16)]);
+    let read = HolidayCalendar::for_year(table("CD"), None, 2026);
+    assert!(read.is_complete(), "{:?}", read.gaps());
+    // No communiqué for 2027 was read, so its moves are a gap.
+    let unread = HolidayCalendar::for_year(table("CD"), None, 2027);
+    assert!(
+        unread
+            .gaps()
+            .iter()
+            .any(|gap| gap.name == "Weekend holiday moved by communiqué"),
+        "{:?}",
+        unread.gaps()
+    );
+}
+
+#[test]
+fn angola_moved_a_sunday_holiday_until_2018_and_bridges_tuesdays_and_thursdays_since() {
+    expect(
+        "AO",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 2, "Bridge day"),
+            (2026, 2, 4, "Liberation War Day"),
+            (2026, 2, 16, "Bridge day"),
+            (2026, 2, 17, "Carnival"),
+            (2026, 3, 8, "International Women's Day"),
+            (2026, 3, 23, "Southern Africa Liberation Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 4, "Peace and National Reconciliation Day"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 9, 17, "National Heroes' Day"),
+            (2026, 9, 18, "Bridge day"),
+            (2026, 11, 2, "All Souls' Day"),
+            (2026, 11, 11, "Independence Day"),
+            (2026, 12, 25, "Christmas and Family Day"),
+            // Tuesday 23 March 2021.
+            (2021, 3, 22, "Bridge day"),
+            // Sunday 4 February 2018, before law 11/18; Christmas on
+            // Tuesday 25 December 2018, after it.
+            (2018, 2, 5, "Liberation War Day"),
+            (2018, 12, 24, "Bridge day"),
+        ],
+    );
+    expect_substitute("AO", None, 2017, (9, 17), (9, 18));
+    expect_working(
+        "AO",
+        None,
+        &[
+            // Sunday 8 March 2026 and Sunday 11 November 2018 stay.
+            (2026, 3, 9),
+            (2018, 11, 12),
+            // Tuesday 1 May 2018 was before the bridges.
+            (2018, 4, 30),
+            // Christmas was excepted from the Sunday rule.
+            (2016, 12, 26),
+            // 23 March is a holiday from 2019; 14 April is a celebration
+            // date without a day off.
+            (2018, 3, 23),
+            (2026, 4, 14),
+        ],
+    );
+}
+
+#[test]
 fn cuba_moves_the_sunday_rest_for_1_may_and_10_october_only() {
     expect(
         "CU",
