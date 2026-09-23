@@ -14,6 +14,8 @@
 //! * [`zassetsu`] — 雑節: 節分, 彼岸, 社日, 八十八夜, 入梅, 半夏生, 土用 with
 //!   its 丑の日, 二百十日 and 二百二十日, each with its rule as data.
 //! * [`rokuyo`] — 六曜, the six-day cycle Japanese calendars print.
+//! * [`san_fu`] — 三伏 and 數九, the Chinese dog days and the nine nines,
+//!   counted in 庚 days and in nines from the solstices.
 //! * [`quarter_days`] — the quarter days and term days of England and
 //!   Wales, Ireland and Scotland, each tradition's four fixed dates.
 //! * [`moon_calendar`] — phase names, 月齢, illuminated fraction, the four
@@ -76,6 +78,7 @@ pub mod moon_calendar;
 pub mod pentads;
 pub mod quarter_days;
 pub mod rokuyo;
+pub mod san_fu;
 pub mod seasons;
 pub mod solar_terms;
 pub mod zassetsu;

@@ -14,6 +14,7 @@ It contains no calendar.
 | `pentads` | 七十二候, both the Chinese and the Japanese name sets |
 | `zassetsu` | 節分, 彼岸, 社日, 八十八夜, 入梅, 半夏生, 土用 + 丑の日, 二百十日, 二百二十日 |
 | `rokuyo` | 六曜: 先勝 友引 先負 仏滅 大安 赤口 |
+| `san_fu` | 三伏 (初伏, 中伏, 末伏) counted in 庚 days from the summer solstice and 立秋, and 數九, the nine nines from the winter solstice |
 | `quarter_days` | the quarter days and term days of England and Wales, Ireland and Scotland, traditional and under the 1990 Act |
 | `moon_calendar` | phase names, 月齢, illuminated fraction, a month's four principal phases, 十五夜, 十三夜 |
 | `seasons` | astronomical, meteorological and East Asian seasons |
@@ -248,8 +249,9 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
 * **No default meridian, and no default season definition.** A caller who has
   not said which they mean has not decided yet, and a library that decided for
   them would be asserting something it cannot know.
-* **Japanese 雑節 only.** China and Korea have their own 雜節 and they are not
-  this list.
+* **Japanese 雑節 only, and the Chinese 三伏 and 數九.** The 雑節 list is
+  Japan's; of China's own, the dog days and the nines are in `san_fu`, and
+  China's 入梅 and 出梅 and Korea's are not carried.
 * **The Sun only, in the zodiac too.** Every sign function here places the
   **Sun**. There is no Moon sign, no planet in a sign, no ascendant, no house
   system and no chart. That matters most for the sidereal side: in Jyotiṣa a
