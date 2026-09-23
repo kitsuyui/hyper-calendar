@@ -5,7 +5,7 @@
 //! offsets live in [`crate::computus::offsets`] and no country repeats them.
 //! Greece is the one that pays for the second computus.
 
-use hc_calendar::Weekday;
+use hc_calendar::{Rd, Weekday};
 
 use hc_calendars_solar::gregorian;
 
@@ -1389,6 +1389,148 @@ pub static ROMANIA: RuleSet = RuleSet {
 // Russia
 // ─────────────────────────────────────────────────────────────────────────
 
+/// The first year the Government's transfer decrees carried here cover.
+const RU_TRANSFERS_FIRST: i64 = 2013;
+/// The last.
+const RU_TRANSFERS_LAST: i64 = 2027;
+
+/// Each year's decree «О переносе выходных дней»: the days off it moves,
+/// as the year, the month and day moved from, and the month and day moved
+/// to.
+#[rustfmt::skip]
+static RU_TRANSFERS: &[(i64, u8, u8, u8, u8)] = &[
+    // Постановление Правительства РФ № 1048 of 15 October 2012.
+    (2013, 1, 5, 5, 2), (2013, 1, 6, 5, 3), (2013, 2, 25, 5, 10),
+    // Постановление Правительства РФ № 444 of 28 May 2013.
+    (2014, 1, 4, 5, 2), (2014, 1, 5, 6, 13), (2014, 2, 24, 11, 3),
+    // Постановление Правительства РФ № 860 of 27 August 2014.
+    (2015, 1, 3, 1, 9), (2015, 1, 4, 5, 4),
+    // Постановление Правительства РФ № 1017 of 24 September 2015.
+    (2016, 1, 2, 5, 3), (2016, 1, 3, 3, 7), (2016, 2, 20, 2, 22),
+    // Постановление Правительства РФ № 756 of 4 August 2016.
+    (2017, 1, 1, 2, 24), (2017, 1, 7, 5, 8),
+    // Постановление Правительства РФ № 1250 of 14 October 2017.
+    (2018, 1, 6, 3, 9), (2018, 1, 7, 5, 2), (2018, 4, 28, 4, 30), (2018, 6, 9, 6, 11), (2018, 12, 29, 12, 31),
+    // Постановление Правительства РФ № 1163 of 1 October 2018.
+    (2019, 1, 5, 5, 2), (2019, 1, 6, 5, 3), (2019, 2, 23, 5, 10),
+    // Постановление Правительства РФ № 875 of 10 July 2019.
+    (2020, 1, 4, 5, 4), (2020, 1, 5, 5, 5),
+    // Постановление Правительства РФ № 1648 of 10 October 2020.
+    (2021, 1, 2, 11, 5), (2021, 1, 3, 12, 31), (2021, 2, 20, 2, 22),
+    // Постановление Правительства РФ № 1564 of 16 September 2021.
+    (2022, 1, 1, 5, 3), (2022, 1, 2, 5, 10), (2022, 3, 5, 3, 7),
+    // Постановление Правительства РФ № 1505 of 29 August 2022.
+    (2023, 1, 1, 2, 24), (2023, 1, 8, 5, 8),
+    // Постановление Правительства РФ № 1314 of 10 August 2023.
+    (2024, 1, 6, 5, 10), (2024, 1, 7, 12, 31), (2024, 4, 27, 4, 29), (2024, 11, 2, 4, 30), (2024, 12, 28, 12, 30),
+    // Постановление Правительства РФ № 1335 of 4 October 2024.
+    (2025, 1, 4, 5, 2), (2025, 1, 5, 12, 31), (2025, 2, 23, 5, 8), (2025, 3, 8, 6, 13), (2025, 11, 1, 11, 3),
+    // Постановление Правительства РФ № 1466 of 24 September 2025.
+    (2026, 1, 3, 1, 9), (2026, 1, 4, 12, 31),
+    // Постановление Правительства РФ № 1187 of 17 September 2026.
+    (2027, 1, 2, 11, 5), (2027, 1, 3, 12, 31), (2027, 2, 20, 2, 22),
+];
+
+/// The non-working holidays outside January. Article 112 moves the day off
+/// of one that falls on a weekend to the next working day; the January
+/// days it leaves to the Government, which transfers two of them.
+const RU_OUTSIDE_JANUARY: [(u8, u8); 6] = [(2, 23), (3, 8), (5, 1), (5, 9), (6, 12), (11, 4)];
+
+fn ru_day(year: i64, month: u8, day: u8) -> Option<Rd> {
+    gregorian::to_fixed(year, month, day).ok()
+}
+
+fn is_ru_weekend(day: Rd) -> bool {
+    matches!(Weekday::from_rd(day), Weekday::Saturday | Weekday::Sunday)
+}
+
+/// The decree's transfers for `year`, as (from, to).
+fn ru_transfers(year: i64) -> impl Iterator<Item = (Rd, Rd)> {
+    RU_TRANSFERS
+        .iter()
+        .filter(move |row| row.0 == year)
+        .filter_map(|&(y, from_month, from_day, to_month, to_day)| {
+            Some((
+                ru_day(y, from_month, from_day)?,
+                ru_day(y, to_month, to_day)?,
+            ))
+        })
+}
+
+/// Whether `day` is one of the non-working holidays of article 112.
+fn is_ru_holiday(year: i64, day: Rd) -> bool {
+    (1..=8).any(|january| ru_day(year, 1, january) == Some(day))
+        || RU_OUTSIDE_JANUARY
+            .iter()
+            .any(|&(month, date)| ru_day(year, month, date) == Some(day))
+}
+
+/// The days the decree makes days off.
+fn ru_transferred(year: i64) -> Days {
+    let mut out = Days::new();
+    for (_, to) in ru_transfers(year) {
+        out.push(to);
+    }
+    out
+}
+
+/// The weekend days the decree makes working days: those it moves the day
+/// off from that are not holidays themselves. A January holiday on a
+/// weekend stays a holiday; only its weekend is moved.
+fn ru_worked(year: i64) -> Days {
+    let mut out = Days::new();
+    for (from, _) in ru_transfers(year) {
+        if is_ru_weekend(from) && !is_ru_holiday(year, from) {
+            out.push(from);
+        }
+    }
+    out
+}
+
+/// The days off article 112 carries over from a holiday on the weekend,
+/// to the next working day — except where the decree moves that weekend
+/// day itself, or the day it would have been carried to, somewhere else.
+/// In 2025 the decree moved Sunday 23 February to 8 May; in 2014 it moved
+/// Monday 24 February, the day Sunday 23 February gave, to 3 November.
+fn ru_carried_over(year: i64) -> Days {
+    let mut sources = Days::new();
+    for (from, _) in ru_transfers(year) {
+        sources.push(from);
+    }
+    let sources = sources.as_slice();
+    let worked = ru_worked(year);
+    let transferred = ru_transferred(year);
+    let mut out = Days::new();
+    for &(month, date) in &RU_OUTSIDE_JANUARY {
+        let Some(holiday) = ru_day(year, month, date) else {
+            continue;
+        };
+        if !is_ru_weekend(holiday) || sources.contains(&holiday) {
+            continue;
+        }
+        let mut day = Rd(holiday.0 + 1);
+        while (is_ru_weekend(day) && !worked.as_slice().contains(&day))
+            || is_ru_holiday(year, day)
+            || transferred.as_slice().contains(&day)
+            || out.as_slice().contains(&day)
+        {
+            day = Rd(day.0 + 1);
+        }
+        if !sources.contains(&day) {
+            out.push(day);
+        }
+    }
+    out
+}
+
+const fn ru_tabulated(function: fn(i64) -> Days) -> Rule {
+    Rule::Tabulated {
+        function,
+        first_year: RU_TRANSFERS_FIRST,
+        last_year: RU_TRANSFERS_LAST,
+    }
+}
+
 static RU_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public(
         "New Year Holidays",
@@ -1474,6 +1616,21 @@ static RU_RULES: &[HolidayRule] = &[
         Rule::gregorian(11, 4),
     )
     .years(Some(2005), None),
+    HolidayRule::fixed_public(
+        "Day off carried over from a holiday on the weekend",
+        "Перенесённый выходной день",
+        ru_tabulated(ru_carried_over),
+    ),
+    HolidayRule::fixed_public(
+        "Day off transferred by the Government",
+        "Перенесённый выходной день",
+        ru_tabulated(ru_transferred),
+    ),
+    HolidayRule::workday(
+        "Working day, a day off transferred by the Government",
+        "Рабочий день",
+        ru_tabulated(ru_worked),
+    ),
 ];
 
 /// Russia.
@@ -1484,13 +1641,20 @@ static RU_RULES: &[HolidayRule] = &[
 /// 4 November from 2005 in place of 7 November, and 2 May dropped after
 /// 2004.
 ///
-/// **No substitution is carried, deliberately.** Article 112 says a holiday
-/// on a weekend moves to the next working day, but it also lets the
-/// Government transfer days off, and the Government does so by decree every
-/// year — a Saturday 8 March becomes a Friday in June, a Sunday in January
-/// a day in May — so the statutory default is the one thing that almost
-/// never happens. A table that computed it would be wrong most years;
-/// this one says the holidays and stops.
+/// Article 112 carries the day off of a holiday outside January that falls
+/// on a weekend over to the next working day, and lets the Government
+/// transfer days off by decree, which it does every year: two of the
+/// January weekend days go elsewhere, and a Saturday between a holiday and
+/// a weekend is often swapped for the working day beside it. The decrees
+/// for 2013 to 2027 are carried as data, and the carry-over is computed
+/// from them, since a decree may move the weekend day or the day it would
+/// have been carried to — in 2025, Sunday 23 February went to 8 May, not
+/// to the Monday. Both were checked against ConsultantPlus's production
+/// calendars for every one of those years. A year outside them is a gap.
+///
+/// The President's non-working days of 2020 and 2021, which kept pay but
+/// were not days off under the Labour Code, are not carried: the
+/// production calendar does not count them either.
 pub static RUSSIA: RuleSet = RuleSet {
     code: "RU",
     english_name: "Russia",
@@ -1499,12 +1663,15 @@ pub static RUSSIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Трудовой кодекс Российской Федерации, статья 112, as amended \
               (Federal Law 201-ФЗ of 2004 for the 2005 list, 35-ФЗ of 2012 \
-              for 6 and 8 January); Wikipedia, \"Public holidays in Russia\", \
-              retrieved 2026-09-22. The annual transfers of days off by \
-              Government decree are not carried",
+              for 6 and 8 January); the Government's decrees «О переносе \
+              выходных дней» for 2013 to 2027, as ConsultantPlus and Garant \
+              publish them; ConsultantPlus's production calendars for those \
+              years (consultant.ru/law/ref/calendar/proizvodstvennye/), \
+              retrieved 2026-09-23; Wikipedia, \"Public holidays in Russia\", \
+              retrieved 2026-09-22",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

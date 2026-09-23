@@ -4677,6 +4677,94 @@ fn russia_grew_its_new_year_holidays_and_carries_no_transfers() {
     expect_working("RU", None, &[(2012, 1, 6), (2005, 11, 7), (2025, 3, 10)]);
 }
 
+/// ConsultantPlus's production calendars for Russia, 2013 to 2027: the
+/// weekdays that are not working days, and the weekend days that are.
+/// A year of a production calendar: the year, its weekdays off, and its
+/// weekend days worked, as (month, day).
+type ProductionYear = (i64, &'static [(u8, u8)], &'static [(u8, u8)]);
+
+#[rustfmt::skip]
+const RU_PRODUCTION_CALENDARS: &[ProductionYear] = &[
+    (2013, &[(1, 1), (1, 2), (1, 3), (1, 4), (1, 7), (1, 8), (3, 8), (5, 1), (5, 2), (5, 3), (5, 9), (5, 10), (6, 12), (11, 4)], &[]),
+    (2014, &[(1, 1), (1, 2), (1, 3), (1, 6), (1, 7), (1, 8), (3, 10), (5, 1), (5, 2), (5, 9), (6, 12), (6, 13), (11, 3), (11, 4)], &[]),
+    (2015, &[(1, 1), (1, 2), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (2, 23), (3, 9), (5, 1), (5, 4), (5, 11), (6, 12), (11, 4)], &[]),
+    (2016, &[(1, 1), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (2, 22), (2, 23), (3, 7), (3, 8), (5, 2), (5, 3), (5, 9), (6, 13), (11, 4)], &[(2, 20)]),
+    (2017, &[(1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (2, 23), (2, 24), (3, 8), (5, 1), (5, 8), (5, 9), (6, 12), (11, 6)], &[]),
+    (2018, &[(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 8), (2, 23), (3, 8), (3, 9), (4, 30), (5, 1), (5, 2), (5, 9), (6, 11), (6, 12), (11, 5), (12, 31)], &[(4, 28), (6, 9), (12, 29)]),
+    (2019, &[(1, 1), (1, 2), (1, 3), (1, 4), (1, 7), (1, 8), (3, 8), (5, 1), (5, 2), (5, 3), (5, 9), (5, 10), (6, 12), (11, 4)], &[]),
+    (2020, &[(1, 1), (1, 2), (1, 3), (1, 6), (1, 7), (1, 8), (2, 24), (3, 9), (5, 1), (5, 4), (5, 5), (5, 11), (6, 12), (11, 4)], &[]),
+    (2021, &[(1, 1), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (2, 22), (2, 23), (3, 8), (5, 3), (5, 10), (6, 14), (11, 4), (11, 5), (12, 31)], &[(2, 20)]),
+    (2022, &[(1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (2, 23), (3, 7), (3, 8), (5, 2), (5, 3), (5, 9), (5, 10), (6, 13), (11, 4)], &[(3, 5)]),
+    (2023, &[(1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (2, 23), (2, 24), (3, 8), (5, 1), (5, 8), (5, 9), (6, 12), (11, 6)], &[]),
+    (2024, &[(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 8), (2, 23), (3, 8), (4, 29), (4, 30), (5, 1), (5, 9), (5, 10), (6, 12), (11, 4), (12, 30), (12, 31)], &[(4, 27), (11, 2), (12, 28)]),
+    (2025, &[(1, 1), (1, 2), (1, 3), (1, 6), (1, 7), (1, 8), (5, 1), (5, 2), (5, 8), (5, 9), (6, 12), (6, 13), (11, 3), (11, 4), (12, 31)], &[(11, 1)]),
+    (2026, &[(1, 1), (1, 2), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (2, 23), (3, 9), (5, 1), (5, 11), (6, 12), (11, 4), (12, 31)], &[]),
+    (2027, &[(1, 1), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (2, 22), (2, 23), (3, 8), (5, 3), (5, 10), (6, 14), (11, 4), (11, 5), (12, 31)], &[(2, 20)]),
+];
+
+#[test]
+fn russia_matches_its_production_calendar_from_2013_to_2027() {
+    use hc_calendar::Weekday;
+    for &(year, days_off, days_worked) in RU_PRODUCTION_CALENDARS {
+        let calendar = HolidayCalendar::for_year(table("RU"), None, year);
+        assert!(calendar.is_complete(), "{year}: {:?}", calendar.gaps());
+        let mut off = Vec::new();
+        let mut worked = Vec::new();
+        let first = ymd(year, 1, 1).0;
+        let last = ymd(year, 12, 31).0;
+        for fixed in first..=last {
+            let day = Rd(fixed);
+            let (_, month, date) = gregorian::from_fixed(day).unwrap();
+            let weekend = matches!(Weekday::from_rd(day), Weekday::Saturday | Weekday::Sunday);
+            let working = calendar.is_business_day(day);
+            if !weekend && !working {
+                off.push((month, date));
+            }
+            if weekend && working {
+                worked.push((month, date));
+            }
+        }
+        assert_eq!(off, days_off, "{year}: weekdays off");
+        assert_eq!(worked, days_worked, "{year}: weekend days worked");
+    }
+}
+
+#[test]
+fn russia_carries_a_weekend_holiday_over_unless_the_decree_moves_it() {
+    // Sunday 8 March 2020 gave Monday the 9th.
+    expect(
+        "RU",
+        None,
+        &[(
+            2020,
+            3,
+            9,
+            "Day off carried over from a holiday on the weekend",
+        )],
+    );
+    // Sunday 23 February 2025 went to Thursday 8 May instead.
+    expect_working("RU", None, &[(2025, 2, 24)]);
+    expect(
+        "RU",
+        None,
+        &[(2025, 5, 8, "Day off transferred by the Government")],
+    );
+    // In 2014 the decree moved the Monday the Sunday had given.
+    expect_working("RU", None, &[(2014, 2, 24)]);
+    // Saturday 27 April 2024 was worked, for Monday the 29th.
+    let calendar = HolidayCalendar::for_year(table("RU"), None, 2024);
+    assert!(calendar.is_business_day(ymd(2024, 4, 27)));
+    assert!(!calendar.is_business_day(ymd(2024, 4, 29)));
+    // A January holiday on the weekend stays a holiday when its weekend is
+    // moved: 6 January 2024 was a Saturday, moved to 10 May.
+    assert!(calendar.is_holiday(ymd(2024, 1, 6)));
+    assert!(!calendar.is_business_day(ymd(2024, 1, 6)));
+    // A year no decree carried here covers is a gap.
+    for year in [2012, 2028] {
+        assert!(!HolidayCalendar::for_year(table("RU"), None, year).is_complete());
+    }
+}
+
 #[test]
 fn ukraine_moves_a_weekend_holiday_forward_and_changed_its_list_in_2023() {
     // 2021: Labour Day on Saturday 1 May took Monday the 3rd, so Orthodox

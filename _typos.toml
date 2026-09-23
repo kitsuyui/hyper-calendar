@@ -16,6 +16,8 @@
 extend-exclude = ["Cargo.lock"]
 
 [default.extend-words]
+# Garant, the Russian legal database that publishes the Government's decrees.
+Garant = "Garant"
 # St Peter Chanel, martyr of Futuna, in the General Roman Calendar.
 Chanel = "Chanel"
 # St Achilleus, martyr with St Nereus, in the General Roman Calendar.

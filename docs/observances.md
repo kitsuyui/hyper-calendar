@@ -84,8 +84,8 @@ none.
   Lunar New Year makeup days, Vietnam's Tết span, Thailand's Songkran makeup
   days and Indonesia's *cuti bersama* are decided year by year by a ministry.
   Where those acts have been read they are data for their years: China's
-  arrangements from 2008 to 2026, the days off and the weekend days worked
-  alike ([ADR 0009](adr/0009-a-working-day-is-an-entry.md)). A year past them
+  arrangements from 2008 to 2026 and Russia's transfer decrees from 2013 to
+  2027, the days off and the weekend days worked alike ([ADR 0009](adr/0009-a-working-day-is-an-entry.md)). A year past them
   is a gap. Elsewhere the statutory days are listed and the bridging days
   are not.
 - **It will not tabulate what it cannot compute.** Indonesia's Nyepi is
@@ -187,7 +187,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Iceland 🇮🇸 | The act's list with the First Day of Summer and Commerce Day by their weekday rules, the two eves as half days; no substitution |
 | Hungary 🇭🇺 | With Good Friday from 2017; the annual rearrangement of working days by decree is not carried |
 | Romania 🇷🇴 | Orthodox Easter and Pentecost by the Julian computus; the additions of the last decade by year, Epiphany and Saint John from 2024 |
-| Russia 🇷🇺 | The New Year holidays as they grew to 1–8 January; no substitution, because the Government transfers days off by decree every year and the statutory default almost never applies |
+| Russia 🇷🇺 | The New Year holidays as they grew to 1–8 January; the Government's transfer decrees for 2013–2027, with the working Saturdays they create, and article 112's carry-over of a weekend holiday computed from them; checked against the production calendar for each of those years |
 | Costa Rica 🇨🇷 | Art. 148 with the unpaid days and their years, and Ley 9875's 2020–2024 Mondays as computed rules that fall silent from 2025 |
 | Dominican Republic 🇩🇴 | Ley 139-97 from its text: adjacent-Monday moves, the excluded days, Restoration Day fixed in inauguration years, a Sunday 1 May to Monday |
 | Guatemala 🇬🇹 | Art. 127 with two half days and Guatemala City's Assumption as `GT-GU`; the tourism law's Monday moves for Army Day, and for 1 May and 20 October only until the 2020 ruling |

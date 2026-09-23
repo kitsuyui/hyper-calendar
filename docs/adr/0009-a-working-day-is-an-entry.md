@@ -52,5 +52,6 @@ been published, and guessing it would be wrong for certain.
   observances, and `is_day_off` and `is_holiday` remain the questions to
   ask.
 - The FFI and WebAssembly kind strings gain `workday`.
-- Taiwan, Vietnam and Russia can carry their worked days the same way, once
-  their acts are read.
+- Russia's transfer decrees for 2013 to 2027 use it for their working
+  Saturdays. Taiwan and Vietnam can carry their worked days the same way,
+  once their acts are read.
