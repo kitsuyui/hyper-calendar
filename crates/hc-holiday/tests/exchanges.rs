@@ -64,9 +64,9 @@ fn year_of(exchange: &RuleSet, year: i64) -> (Closures, EarlyCloses) {
             assert_eq!(holiday.kind, Kind::Observance, "{}", holiday.name);
             early.push((month, day));
         } else {
-            // An included country's own observances — Hong Kong's Winter
-            // Solstice — come along and are neither closure nor partial day.
-            assert_eq!(holiday.kind, Kind::Observance, "{}", holiday.name);
+            // Every entry is a closure or a partial day: an included
+            // country's observances do not come along.
+            panic!("{}: neither a closure nor a partial day", holiday.name);
         }
     }
     (closed, early)
@@ -241,6 +241,12 @@ fn the_asx_closes_on_the_days_its_calendar_lists() {
     assert!(!calendar.is_holiday(ymd(2027, 4, 26)));
     let calendar = HolidayCalendar::for_year(&AUSTRALIAN_SECURITIES_EXCHANGE, None, 2022);
     assert_eq!(calendar.name_on(ymd(2022, 6, 13)), Some("Queen's Birthday"));
+    // The early closes are the "Last Business day before Christmas Day" and
+    // the "Last Business day of the Year", as the calendar names them, not
+    // fixed dates: in 2022, when 24 and 31 December were Saturdays, they
+    // fall on the Fridays before.
+    let (_, early) = year_of(&AUSTRALIAN_SECURITIES_EXCHANGE, 2022);
+    assert_eq!(early, [(12, 23), (12, 30)]);
 }
 
 #[test]
@@ -911,6 +917,26 @@ fn the_nordic_exchanges_close_on_the_days_nasdaqs_calendar_lists() {
             (12, 31)
         ]
     );
+}
+
+#[test]
+fn an_included_country_lends_its_days_off_and_not_its_observances() {
+    // Hong Kong keeps the Winter Solstice, 22 December 2026, as an
+    // observance; HKEX's calendar feed has no entry for the day, and the
+    // exchange's table does not either.
+    let country = HolidayCalendar::for_year(&hc_holiday::countries::HONG_KONG, None, 2026);
+    assert!(
+        country
+            .on(ymd(2026, 12, 22))
+            .iter()
+            .any(|holiday| !holiday.is_day_off()),
+        "the country table keeps the observance"
+    );
+    let exchange = HolidayCalendar::for_year(&HONG_KONG_EXCHANGES, None, 2026);
+    assert!(exchange.on(ymd(2026, 12, 22)).is_empty());
+    // Its days off do come along, substitutes with them.
+    assert!(exchange.is_holiday(ymd(2026, 12, 25)));
+    assert!(exchange.is_holiday(ymd(2026, 4, 7)));
 }
 
 #[test]

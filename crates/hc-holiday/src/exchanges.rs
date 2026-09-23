@@ -234,7 +234,7 @@ pub static NASDAQ: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Nasdaq Trader, \"Trading Calendar\" (nasdaqtrader.com/trader.aspx?id=calendar), \
               retrieved 2026-09-23, for 2026; Wikipedia, \"Economic effects of the September 11 \
-              attacks\", for the closure to 17 September 2001 (\"the Nasdaq also canceled \
+              attacks\", for the closure to 17 September 2001 (\"The Nasdaq also canceled \
               trading\"); Wikipedia, \"Effects of Hurricane Sandy in New York\", for 29 and \
               30 October 2012 (\"U.S. stock trading was suspended\"); Wikipedia, \"Death and \
               state funeral of George H. W. Bush\", for 5 December 2018",
@@ -244,9 +244,11 @@ pub static NASDAQ: RuleSet = RuleSet {
 // Australian Securities Exchange
 // ─────────────────────────────────────────────────────────────────────────
 
-/// "When public holidays fall on weekends, ASX observes substitute days
-/// on the following business day" — Anzac Day excepted, which its rule
-/// says.
+/// A holiday on a weekend is observed on the next business day, a later
+/// one passing a day already taken. The calendar states no rule; this one
+/// is read from the substitutes it lists — "Substitute for Saturday 25
+/// December" on Monday 27 December 2027 and "Substitute for Sunday 26
+/// December" on the Tuesday — and Anzac Day is excepted, as its rule says.
 static XASX_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     trigger: &[Weekday::Saturday, Weekday::Sunday],
     direction: SubstituteDirection::Forward,
@@ -256,14 +258,17 @@ static XASX_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-/// 24 December, when the market closes at 14:10 Sydney time.
-fn xasx_christmas_eve(year: i64) -> Days {
-    if_weekday(year, 12, 24)
+/// "Last Business day before Christmas Day", when "normal trading ceases
+/// at 14:10 (Sydney time)": 24 December, or the Friday before a weekend
+/// one.
+fn xasx_before_christmas(year: i64) -> Days {
+    last_weekday_on_or_before(year, 12, 24)
 }
 
-/// 31 December, when the market closes at 14:10 Sydney time.
-fn xasx_new_years_eve(year: i64) -> Days {
-    if_weekday(year, 12, 31)
+/// "Last Business day of the Year", with the same 14:10 close: 31
+/// December, or the Friday before a weekend one.
+fn xasx_last_of_the_year(year: i64) -> Days {
+    last_weekday_on_or_before(year, 12, 31)
 }
 
 static XASX_RULES: &[HolidayRule] = &[
@@ -281,14 +286,14 @@ static XASX_RULES: &[HolidayRule] = &[
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
     HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
     HolidayRule::observance(
-        "Early close, Christmas Eve",
+        "Early close, the last business day before Christmas Day",
         "",
-        Rule::Computed(xasx_christmas_eve),
+        Rule::Computed(xasx_before_christmas),
     ),
     HolidayRule::observance(
-        "Early close, New Year's Eve",
+        "Early close, the last business day of the year",
         "",
-        Rule::Computed(xasx_new_years_eve),
+        Rule::Computed(xasx_last_of_the_year),
     ),
 ];
 
@@ -297,13 +302,15 @@ static XASX_RULES: &[HolidayRule] = &[
 /// The exchange's own trading calendar for 2026 and 2027: New Year's Day,
 /// Australia Day, Good Friday, Easter Monday, Anzac Day, the King's
 /// Birthday on the second Monday of June, Christmas and Boxing Day, with a
-/// weekend holiday observed "on the following business day" — Christmas
-/// 2027, a Saturday, on the Monday and Boxing Day on the Tuesday — except
+/// weekend holiday observed on the next business day — Christmas 2027, a
+/// Saturday, on the Monday and Boxing Day on the Tuesday — except
 /// Anzac Day, which the calendar shows the market open for on Monday
 /// 26 April 2027, the states' substitute for the Sunday, and closed for on
 /// Saturday 25 April 2026, a day it would not have traded anyway. The
-/// market closes at 14:10 Sydney time on 24 and 31 December when those
-/// are trading days. The sovereign's birthday takes the sovereign's name,
+/// market closes at 14:10 Sydney time on the "Last Business day before
+/// Christmas Day" and the "Last Business day of the Year", as the calendar
+/// names them: 24 and 31 December when those are weekdays, and the Friday
+/// before when they are not. The sovereign's birthday takes the sovereign's name,
 /// the Queen's to 2022 and the King's from 2023.
 pub static AUSTRALIAN_SECURITIES_EXCHANGE: RuleSet = RuleSet {
     code: "XASX",
@@ -314,7 +321,7 @@ pub static AUSTRALIAN_SECURITIES_EXCHANGE: RuleSet = RuleSet {
     includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
-    sources: "ASX, \"ASX Trade trading calendar\" (asx.com.au/markets/market-resources/trading-hours-calendar/cash-market-trading-hours/trading-calendar), \
+    sources: "ASX, \"Trading calendar\" (asx.com.au/markets/market-resources/trading-hours-calendar/cash-market-trading-hours/trading-calendar), \
               retrieved 2026-09-23, for the closed days, the early closes and the weekend rule \
               of 2026 and 2027",
 };
@@ -761,7 +768,7 @@ pub static B3: RuleSet = RuleSet {
     includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
-    sources: "B3, \"Trading calendar — Holidays\" (b3.com.br/en_us/solutions/platforms/puma-trading-system/for-members-and-traders/trading-calendar/holidays/), \
+    sources: "B3, \"Trading calendar\" (b3.com.br/en_us/solutions/platforms/puma-trading-system/for-members-and-traders/trading-calendar/holidays/), \
               retrieved 2026-09-23, the market calendars for 2021 to 2026",
 };
 

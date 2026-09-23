@@ -47,7 +47,8 @@ holidays colliding count), `BridgePolicy` (Japan's 国民の休日),
 `valid_from` / `valid_until` on every rule, `regions` for subdivision scoping,
 and `Kind` for public / bank / religious / observance. A set can also
 `include` other sets — an exchange on its country's calendar — each evaluated
-under its own policies and merged in.
+under its own policies, with its days off merged in and its observances left
+behind.
 
 Only **five** statutes in the whole crate are `Computed`, each written as a
 sentence rather than a pattern: Ireland's St Brigid's Day, the Dutch royal
