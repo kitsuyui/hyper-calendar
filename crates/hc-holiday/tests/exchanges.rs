@@ -6,9 +6,9 @@ use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::exchanges::{
     self, AUSTRALIAN_SECURITIES_EXCHANGE, B3, EURONEXT_AMSTERDAM, EURONEXT_BRUSSELS,
     EURONEXT_DUBLIN, EURONEXT_LISBON, EURONEXT_MILAN, EURONEXT_OSLO, EURONEXT_PARIS,
-    FRANKFURT_STOCK_EXCHANGE, HONG_KONG_EXCHANGES, NASDAQ, NASDAQ_COPENHAGEN, NASDAQ_HELSINKI,
-    NASDAQ_ICELAND, NASDAQ_STOCKHOLM, NEW_YORK_STOCK_EXCHANGE, TOKYO_STOCK_EXCHANGE,
-    TORONTO_STOCK_EXCHANGE,
+    FRANKFURT_STOCK_EXCHANGE, HONG_KONG_EXCHANGES, LONDON_STOCK_EXCHANGE, NASDAQ,
+    NASDAQ_COPENHAGEN, NASDAQ_HELSINKI, NASDAQ_ICELAND, NASDAQ_STOCKHOLM, NEW_YORK_STOCK_EXCHANGE,
+    TOKYO_STOCK_EXCHANGE, TORONTO_STOCK_EXCHANGE,
 };
 use hc_holiday::rule::RuleSet;
 use hc_holiday::rule::{Confidence, Kind};
@@ -940,11 +940,66 @@ fn an_included_country_lends_its_days_off_and_not_its_observances() {
 }
 
 #[test]
+fn london_closes_on_the_bank_holidays_of_england_and_wales_and_halves_two_days() {
+    // The Exchange's business-days table, August 2026 to January 2029.
+    let (closed, early) = year_of(&LONDON_STOCK_EXCHANGE, 2026);
+    let from_august: Vec<(u8, u8)> = days(&closed)
+        .into_iter()
+        .filter(|(month, _)| *month >= 8)
+        .collect();
+    assert_eq!(from_august, [(8, 31), (12, 25), (12, 28)]);
+    assert_eq!(early, [(12, 24), (12, 31)]);
+    let (closed, early) = year_of(&LONDON_STOCK_EXCHANGE, 2027);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (3, 26),
+            (3, 29),
+            (5, 3),
+            (5, 31),
+            (8, 30),
+            (12, 27),
+            (12, 28)
+        ]
+    );
+    assert_eq!(early, [(12, 24), (12, 31)]);
+    let (closed, early) = year_of(&LONDON_STOCK_EXCHANGE, 2028);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 3),
+            (4, 14),
+            (4, 17),
+            (5, 1),
+            (5, 29),
+            (8, 28),
+            (12, 25),
+            (12, 26)
+        ]
+    );
+    // The 24th and the 31st are Sundays: the half days are the Fridays.
+    assert_eq!(early, [(12, 22), (12, 29)]);
+    let (closed, _) = year_of(&LONDON_STOCK_EXCHANGE, 2029);
+    assert_eq!(days(&closed).first(), Some(&(1, 1)));
+}
+
+#[test]
+fn an_included_region_is_the_inclusions_and_not_the_callers() {
+    // Scotland keeps 2 January and the first Monday of August, and the
+    // Exchange, on England and Wales's days, trades through both.
+    let calendar = HolidayCalendar::for_year(&LONDON_STOCK_EXCHANGE, None, 2027);
+    assert!(calendar.is_business_day(ymd(2027, 8, 2)));
+    assert!(!calendar.is_business_day(ymd(2027, 8, 30)));
+    assert!(!calendar.is_business_day(ymd(2027, 3, 29)), "Easter Monday");
+}
+
+#[test]
 fn the_catalogue_is_keyed_by_market_identifier_code() {
     assert_eq!(
         exchanges::by_code("xnys").map(|e| e.english_name),
         Some("New York Stock Exchange")
     );
     assert!(exchanges::ALL.iter().all(|e| e.code.len() == 4));
-    assert_eq!(exchanges::ALL.len(), 19);
+    assert_eq!(exchanges::ALL.len(), 20);
 }

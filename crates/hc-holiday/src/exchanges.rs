@@ -50,9 +50,10 @@ use crate::computus::offsets::{
     ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_MONDAY, GOOD_FRIDAY, HOLY_WEDNESDAY,
     MAUNDY_THURSDAY, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
 };
-use crate::countries::{HONG_KONG, JAPAN};
+use crate::countries::europe::GB_ENGLAND_AND_WALES;
+use crate::countries::{HONG_KONG, JAPAN, UNITED_KINGDOM};
 use crate::rule::{
-    CalendarSystem, Days, HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
+    CalendarSystem, Days, HolidayRule, Include, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
     SubstituteDirection, SubstitutionPolicy,
 };
 
@@ -258,16 +259,17 @@ static XASX_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-/// "Last Business day before Christmas Day", when "normal trading ceases
-/// at 14:10 (Sydney time)": 24 December, or the Friday before a weekend
-/// one.
-fn xasx_before_christmas(year: i64) -> Days {
+/// The last weekday before Christmas Day: 24 December, or the Friday
+/// before a weekend one. Sydney's "Last Business day before Christmas
+/// Day" and London's "Christmas Holiday half day".
+fn last_weekday_before_christmas(year: i64) -> Days {
     last_weekday_on_or_before(year, 12, 24)
 }
 
-/// "Last Business day of the Year", with the same 14:10 close: 31
-/// December, or the Friday before a weekend one.
-fn xasx_last_of_the_year(year: i64) -> Days {
+/// The last weekday of the year: 31 December, or the Friday before a
+/// weekend one. Sydney's "Last Business day of the Year" and London's
+/// "New Year's Holiday half day".
+fn last_weekday_of_the_year(year: i64) -> Days {
     last_weekday_on_or_before(year, 12, 31)
 }
 
@@ -288,12 +290,12 @@ static XASX_RULES: &[HolidayRule] = &[
     HolidayRule::observance(
         "Early close, the last business day before Christmas Day",
         "",
-        Rule::Computed(xasx_before_christmas),
+        Rule::Computed(last_weekday_before_christmas),
     ),
     HolidayRule::observance(
         "Early close, the last business day of the year",
         "",
-        Rule::Computed(xasx_last_of_the_year),
+        Rule::Computed(last_weekday_of_the_year),
     ),
 ];
 
@@ -324,6 +326,50 @@ pub static AUSTRALIAN_SECURITIES_EXCHANGE: RuleSet = RuleSet {
     sources: "ASX, \"Trading calendar\" (asx.com.au/markets/market-resources/trading-hours-calendar/cash-market-trading-hours/trading-calendar), \
               retrieved 2026-09-23, for the closed days, the early closes and the weekend rule \
               of 2026 and 2027",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// London Stock Exchange
+// ─────────────────────────────────────────────────────────────────────────
+
+static XLON_RULES: &[HolidayRule] = &[
+    HolidayRule::observance(
+        "Early close, Christmas Holiday half day",
+        "",
+        Rule::Computed(last_weekday_before_christmas),
+    ),
+    HolidayRule::observance(
+        "Early close, New Year's Holiday half day",
+        "",
+        Rule::Computed(last_weekday_of_the_year),
+    ),
+];
+
+/// The London Stock Exchange.
+///
+/// Its business-days page: the Exchange "generally operates its Trading
+/// Services each weekday" and "recognise\[s\] the Public and Bank Holidays
+/// of England & Wales", which are the [`UNITED_KINGDOM`] table's days for
+/// England and Wales — with their substitutes, Boxing Day 2026 on Monday
+/// 28 December — included here and not repeated. Two days a year are half
+/// days, on which the "markets closing process commences from 12:30 London
+/// time": the "Christmas Holiday half day", the last weekday before
+/// Christmas Day, and the "New Year's Holiday half day", the last weekday
+/// of the year — Friday 22 and Friday 29 December in 2028, when the 24th
+/// and the 31st are Sundays.
+pub static LONDON_STOCK_EXCHANGE: RuleSet = RuleSet {
+    code: "XLON",
+    english_name: "London Stock Exchange",
+    rules: XLON_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[Include::in_region(&UNITED_KINGDOM, GB_ENGLAND_AND_WALES)],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "London Stock Exchange, \"Business days\" \
+              (londonstockexchange.com/equities-trading/business-days), retrieved 2026-09-23: \
+              the statement of which holidays the Exchange recognises, and its table of bank \
+              holidays and half days from August 2026 to January 2029",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -833,7 +879,7 @@ pub static HONG_KONG_EXCHANGES: RuleSet = RuleSet {
     rules: XHKG_RULES,
     substitution: &[],
     bridges: &[],
-    includes: &[&HONG_KONG],
+    includes: &[Include::nationwide(&HONG_KONG)],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "HKEX, \"HKEX Calendar\" (hkex.com.hk/News/HKEX-Calendar), retrieved 2026-09-23: \
@@ -864,7 +910,7 @@ pub static TOKYO_STOCK_EXCHANGE: RuleSet = RuleSet {
     rules: XJPX_RULES,
     substitution: &[],
     bridges: &[],
-    includes: &[&JAPAN],
+    includes: &[Include::nationwide(&JAPAN)],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "JPX, \"Trading calendar\" (jpx.co.jp/english/corporate/about-jpx/calendar/index.html), \
@@ -1121,6 +1167,7 @@ pub static ALL: &[&RuleSet] = &[
     &NASDAQ_ICELAND,
     &TOKYO_STOCK_EXCHANGE,
     &EURONEXT_LISBON,
+    &LONDON_STOCK_EXCHANGE,
     &EURONEXT_MILAN,
     &NASDAQ,
     &NEW_YORK_STOCK_EXCHANGE,
