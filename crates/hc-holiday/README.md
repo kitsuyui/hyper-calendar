@@ -94,28 +94,30 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 ## Coverage
 
 **128 countries.** Albania, **129 countries.** Albania, **131 countries.**
-Albania, Algeria, Andorra, Antigua and Barbuda, Argentina, Armenia, Australia
-(eight states and territories), Austria, Azerbaijan, the Bahamas, Bahrain,
-Bangladesh, Barbados, Belarus, Belgium, Belize, Bolivia, Botswana, Brazil,
-Bulgaria, Canada (federal plus the provincial days fixed by statute), Chile,
-China, Colombia, Costa Rica, Croatia, Cuba, Cyprus, Czechia, Côte d'Ivoire,
-Denmark, Dominica, the Dominican Republic, Ecuador, Egypt, El Salvador, Estonia,
-Ethiopia, Finland, France (métropole plus Alsace-Moselle), Georgia, Germany (all
-16 *Länder*), Ghana, Greece, Grenada, Guatemala, Guyana, Haiti, Honduras, Hong
-Kong, Hungary, Iceland, India, Indonesia, Iran, Iraq, Ireland, Israel, Italy,
-Jamaica, Japan, Jordan, Kazakhstan, Kenya, Kuwait, Kyrgyzstan, Latvia, Lebanon,
-Libya, Liechtenstein, Lithuania, Luxembourg, Macau, Malawi, Malaysia, Malta,
-Mauritius, Mexico, Moldova, Monaco, Mongolia, Montenegro, Morocco, Myanmar,
-Namibia, Nepal, the Netherlands, New Zealand, Nicaragua, Nigeria, North
-Macedonia, Norway, Oman, Pakistan, Palestine, Panama, Paraguay, Peru, the
-Philippines, Poland, Portugal, Qatar, Romania, Russia, Saint Kitts and Nevis,
-Saint Lucia, Saint Vincent and the Grenadines, San Marino, Saudi Arabia,
-Senegal, Serbia, Singapore, Slovakia, Slovenia, South Africa, South Korea,
-Spain, Sri Lanka, Suriname, Sweden, Switzerland, Syria, Taiwan, Tajikistan,
-Tanzania, Thailand, Trinidad and Tobago, Tunisia, Türkiye, Turkmenistan, Uganda,
-Ukraine, the United Arab Emirates, the United Kingdom (three bank-holiday
-jurisdictions), the United States, Uruguay, Uzbekistan, Venezuela, Vietnam,
-Yemen, Zambia, Zimbabwe.
+Albania, **134 countries.** Albania, Algeria, Andorra, Antigua and Barbuda,
+Argentina, Armenia, Australia (eight states and territories), Austria,
+Azerbaijan, the Bahamas, Bahrain, Bangladesh, Barbados, Belarus, Belgium,
+Belize, Bolivia, Botswana, Brazil, Bulgaria, Canada (federal plus the provincial
+days fixed by statute), Chile, China, Colombia, Costa Rica, Croatia, Cuba,
+Cyprus, Czechia, Côte d'Ivoire, Denmark, Dominica, the Dominican Republic,
+Ecuador, Egypt, El Salvador, Estonia, Ethiopia, Finland, France (métropole plus
+Alsace-Moselle), Georgia, Germany (all 16 *Länder*), Ghana, Greece, Grenada,
+Guatemala, Guyana, Haiti, Honduras, Hong Kong, Hungary, Iceland, India,
+Indonesia, Iran, Iraq, Ireland, Israel, Italy, Jamaica, Japan, Jordan,
+Kazakhstan, Kenya, Kuwait, Kyrgyzstan, Latvia, Lebanon, Libya, Liechtenstein,
+Lithuania, Luxembourg, Macau, Malawi, Malaysia, Malta, the Marshall Islands,
+Mauritius, Mexico, Micronesia, Moldova, Monaco, Mongolia, Montenegro, Morocco,
+Myanmar, Namibia, Nauru, Nepal, the Netherlands, New Zealand, Nicaragua,
+Nigeria, North Macedonia, Norway, Oman, Pakistan, Palau, Palestine, Panama,
+Papua New Guinea, Paraguay, Peru, the Philippines, Poland, Portugal, Qatar,
+Romania, Russia, Saint Kitts and Nevis, Saint Lucia, Saint Vincent and the
+Grenadines, Samoa, San Marino, Saudi Arabia, Senegal, Serbia, Singapore,
+Slovakia, Slovenia, the Solomon Islands, South Africa, South Korea, Spain, Sri
+Lanka, Suriname, Sweden, Switzerland, Syria, Taiwan, Tajikistan, Tanzania,
+Thailand, Tonga, Trinidad and Tobago, Tunisia, Türkiye, Turkmenistan, Tuvalu,
+Uganda, Ukraine, the United Arab Emirates, the United Kingdom (three bank-
+holiday jurisdictions), the United States, Uruguay, Uzbekistan, Vanuatu Vietnam,
+Venezuela, Vietnam, Yemen, Zambia, Zimbabwe.
 
 **Twenty traditions.** Christianity under both computations, the General
 Roman Calendar with the rank of every celebration (`roman_calendar`), the
@@ -234,6 +236,7 @@ calendar that does:
 | Umm al-Qurā | the published table, 1300–1600 AH |
 | Easter | 1583–4099 Gregorian, 326–4099 Julian |
 | New Zealand's Matariki | 2022–2035, the years this crate's sources publish |
+| Nauru's declared days | 2023, 2024 and 2026, the years whose gazettes this crate read |
 
 Outside those the holiday has no date, which is **not** the same as not
 occurring — and an evaluated calendar used to express both by leaving it
@@ -293,6 +296,9 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   Buddha's Birthday and Chinggis Khaan Day are dated in the Mongolian lunar
   calendar, which the crate does not have and which is not the Tibetan
   Phugpa one it does; they are reported as gaps in every year.
+* **Papua New Guinea** carries only the days its Public Holidays Act fixes.
+  Independence Day, the Sovereign's Birthday and any other day are appointed
+  by notice in the National Gazette, and no gazette was read.
 * **Subdivisions** are modelled only where a statute names them. German
   *Länder*, US federal-versus-state, Australian states, Canadian provinces, UK
   jurisdictions and French Alsace-Moselle are in; Swiss cantons, Spanish

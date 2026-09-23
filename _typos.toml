@@ -58,6 +58,10 @@ oktober = "oktober"
 sie = "sie"
 # The World Health Assembly, cited by its resolutions.
 WHA = "WHA"
+# Tongan "ʻaloʻi", born, in the names of the royal birthdays.
+alo = "alo"
+# Samoan and Tuvaluan "aso", day, as in "Aso Tutoʻatasi" and "Te Aso o te Tala Lei".
+Aso = "Aso"
 # Vietnamese "Thứ Ba", Tuesday.
 Ba = "Ba"
 # The CLDR identifier of the Bengali numbering system.

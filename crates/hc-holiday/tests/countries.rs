@@ -5981,3 +5981,291 @@ fn new_zealand_mondayisation_and_matariki() {
         &[(2022, 6, 24, "Matariki"), (2026, 7, 10, "Matariki")],
     );
 }
+
+#[test]
+fn micronesia_keeps_a_saturday_on_the_friday_and_adds_presidents_day_from_2021() {
+    expect(
+        "FM",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 31, "Micronesian Culture and Tradition Day"),
+            (2026, 11, 3, "Independence Day"),
+            (2026, 11, 11, "Veterans Day"),
+            (2026, 11, 23, "Presidents Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2020, 11, 11, "FSM Veterans of Foreign Wars Day"),
+            (2004, 11, 11, "FSM Veterans of Foreign Wars Day"),
+        ],
+    );
+    // Presidents Day became law on 24 November 2020, the day after; the
+    // Culture and Tradition Day and the veterans' day did not exist
+    // before 2010 and 2004.
+    expect_working("FM", None, &[(2020, 11, 23), (2009, 3, 31), (2003, 11, 11)]);
+    // FSM Day 2026 is a Sunday, United Nations Day 2026 a Saturday.
+    expect_substitute("FM", None, 2026, (5, 10), (5, 11));
+    expect_substitute("FM", None, 2026, (10, 24), (10, 23));
+}
+
+#[test]
+fn the_marshall_islands_keep_their_friday_holidays_and_move_a_weekend_one_either_way() {
+    expect(
+        "MH",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 5, 1, "Constitution Day"),
+            (2026, 7, 3, "Fisherman's Day"),
+            (2026, 9, 4, "Dri-jerbal Day"),
+            (2026, 9, 25, "Manit Day"),
+            (2026, 11, 17, "President's Day"),
+            (2026, 12, 4, "Gospel Day"),
+            (2025, 7, 4, "Fisherman's Day"),
+            (2025, 9, 26, "Manit Day"),
+        ],
+    );
+    // 1 March 2026 is a Sunday; 1 May 2027 a Saturday.
+    expect_substitute("MH", None, 2026, (3, 1), (3, 2));
+    expect_substitute("MH", None, 2027, (5, 1), (4, 30));
+    // General Election Day is not carried, and 2026 is not an election
+    // year in any case.
+    expect_working("MH", None, &[(2026, 11, 16), (2026, 12, 31)]);
+}
+
+#[test]
+fn nauru_moves_a_weekend_independence_day_to_the_monday_and_tuesday() {
+    expect(
+        "NR",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 31, "Independence Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 4, 7, "Easter Tuesday"),
+            (2026, 6, 26, "Eigigu Day"),
+            (2026, 6, 29, "Remembrance Day"),
+            (2026, 7, 1, "RONPHOS Handover"),
+            (2026, 8, 19, "Ibumin Earoeni Day"),
+            (2026, 9, 25, "Sir Hammer DeRoburt Day"),
+            (2026, 10, 26, "Angam Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2024, 3, 8, "International Women's Day"),
+            (2024, 7, 1, "RONPHOS Handover"),
+            (2023, 9, 25, "Sir Hammer DeRoburt Day"),
+        ],
+    );
+    // 31 January 2026 is a Saturday and 1 February a Sunday: the Monday
+    // and the Tuesday, as section 81(2)(b) gives.
+    expect_substitute("NR", None, 2026, (1, 31), (2, 2));
+    expect_substitute("NR", None, 2026, (2, 1), (2, 3));
+    expect_substitute("NR", None, 2026, (3, 8), (3, 9));
+    expect_substitute("NR", None, 2026, (5, 17), (5, 18));
+    expect_substitute("NR", None, 2026, (7, 25), (7, 27));
+    expect_substitute("NR", None, 2026, (12, 26), (12, 28));
+    expect_substitute("NR", None, 2024, (10, 26), (10, 28));
+    expect_working("NR", None, &[(2026, 12, 29), (2026, 2, 4)]);
+}
+
+#[test]
+fn nauru_reports_the_years_its_gazettes_were_not_read_as_gaps() {
+    assert!(HolidayCalendar::for_year(table("NR"), None, 2026).is_complete());
+    // 2024's gazette was read, but the days only 2026's declared are
+    // unknown for it.
+    assert!(!HolidayCalendar::for_year(table("NR"), None, 2024).is_complete());
+    assert!(!HolidayCalendar::for_year(table("NR"), None, 2025).is_complete());
+    assert!(!HolidayCalendar::for_year(table("NR"), None, 2027).is_complete());
+}
+
+#[test]
+fn palau_keeps_the_nine_days_of_its_code_with_the_friday_and_monday_rule() {
+    expect(
+        "PW",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 15, "Youth Day"),
+            (2026, 5, 5, "Senior Citizens Day"),
+            (2026, 7, 9, "Constitution Day"),
+            (2026, 9, 7, "Labor Day"),
+            (2026, 11, 26, "Thanksgiving Day"),
+            (2026, 11, 27, "Family Day"),
+            (2026, 12, 25, "Christmas Day"),
+            // November 2024 begins on a Friday: the fourth Friday comes
+            // before the fourth Thursday.
+            (2024, 11, 22, "Family Day"),
+            (2024, 11, 28, "Thanksgiving Day"),
+        ],
+    );
+    expect_substitute("PW", None, 2026, (3, 15), (3, 16));
+    expect_substitute("PW", None, 2026, (10, 24), (10, 23));
+    expect_working("PW", None, &[(2026, 4, 3), (2024, 11, 29)]);
+}
+
+#[test]
+fn papua_new_guinea_carries_the_acts_own_days_and_its_sunday_rule() {
+    expect(
+        "PG",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 4, "Easter Saturday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 7, 23, "Papua New Guinea Remembrance Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Boxing Day"),
+            (2025, 4, 19, "Easter Saturday"),
+        ],
+    );
+    expect_substitute("PG", None, 2023, (1, 1), (1, 2));
+    expect_substitute("PG", None, 2028, (7, 23), (7, 24));
+    // A Sunday Christmas gives the Tuesday, Boxing Day holding the Monday.
+    expect_substitute("PG", None, 2022, (12, 25), (12, 27));
+    // A Saturday holiday stays where it falls.
+    expect_working("PG", None, &[(2026, 12, 28)]);
+}
+
+#[test]
+fn solomon_islands_move_a_sunday_holiday_to_the_monday_only() {
+    expect(
+        "SB",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 4, "Holy Saturday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 7, 7, "Independence Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "National Day of Thanksgiving"),
+            (2020, 6, 1, "Whit Monday"),
+            (2018, 7, 7, "Independence Day"),
+        ],
+    );
+    expect_substitute("SB", None, 2023, (1, 1), (1, 2));
+    // Section 2(2): 26 December on a Monday gives the Tuesday.
+    expect_substitute("SB", None, 2022, (12, 25), (12, 27));
+    expect_working("SB", None, &[(2026, 12, 28), (2026, 6, 12)]);
+}
+
+#[test]
+fn tonga_moves_three_days_to_a_monday_and_the_royal_birthdays_off_a_sunday() {
+    expect(
+        "TO",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 4, 25, "Anzac Day"),
+            // 4 June 2026 is a Thursday, 4 November a Wednesday, 4
+            // December a Friday, as the 2026 list has them.
+            (2026, 6, 8, "Emancipation Day"),
+            (2026, 7, 4, "Birthday of the Reigning Sovereign"),
+            (2026, 9, 17, "Birthday of the Heir to the Crown"),
+            (2026, 11, 2, "Constitution Day"),
+            (
+                2026,
+                12,
+                7,
+                "Anniversary of the Coronation of King George Tupou I",
+            ),
+            (2026, 12, 26, "Boxing Day"),
+            // And the 2024 list: a Tuesday, a Monday and a Wednesday.
+            (2024, 6, 3, "Emancipation Day"),
+            (2024, 11, 4, "Constitution Day"),
+            (
+                2024,
+                12,
+                2,
+                "Anniversary of the Coronation of King George Tupou I",
+            ),
+        ],
+    );
+    expect_working(
+        "TO",
+        None,
+        &[(2026, 6, 4), (2026, 11, 4), (2026, 12, 4), (2026, 4, 27)],
+    );
+    expect_substitute("TO", None, 2027, (7, 4), (7, 5));
+    expect_substitute("TO", None, 2028, (9, 17), (9, 18));
+}
+
+#[test]
+fn tuvalu_moves_a_weekend_tuvalu_day_to_the_monday_and_tuesday() {
+    expect(
+        "TV",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 11, "Gospel Day"),
+            (2026, 6, 13, "Sovereign's Birthday"),
+            (2026, 8, 3, "National Youth Day"),
+            (2026, 10, 1, "Tuvalu Day"),
+            (2026, 10, 2, "Tuvalu Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2025, 5, 12, "Gospel Day"),
+        ],
+    );
+    expect_substitute("TV", None, 2026, (6, 13), (6, 15));
+    expect_substitute("TV", None, 2022, (10, 1), (10, 3));
+    expect_substitute("TV", None, 2022, (10, 2), (10, 4));
+    expect_substitute("TV", None, 2022, (12, 25), (12, 27));
+    // Commonwealth Day, the second Monday of March, left the Schedule.
+    expect_working("TV", None, &[(2026, 3, 9)]);
+}
+
+#[test]
+fn vanuatu_moves_a_sunday_holiday_and_a_monday_family_day() {
+    expect(
+        "VU",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 2, 21, "Lini Day"),
+            (2026, 3, 5, "Custom Chief's Day"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 14, "Ascension Day"),
+            (2026, 7, 24, "Children's National Day"),
+            (2026, 7, 30, "Independence Day"),
+            (2026, 8, 15, "Assumption Day"),
+            (2026, 10, 5, "Constitution Day"),
+            (2026, 11, 29, "National Unity Day"),
+            (2026, 12, 26, "Family Day"),
+            (2025, 5, 29, "Ascension Day"),
+        ],
+    );
+    expect_substitute("VU", None, 2026, (11, 29), (11, 30));
+    expect_substitute("VU", None, 2022, (12, 25), (12, 27));
+    // A Saturday Lini Day stays on the Saturday.
+    expect_working("VU", None, &[(2026, 2, 23), (2026, 8, 17)]);
+}
+
+#[test]
+fn samoa_gives_the_monday_and_tuesday_for_a_sunday_christmas_or_new_year() {
+    expect(
+        "WS",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 2, "Day after New Year's Day"),
+            (2026, 4, 4, "Saturday after Good Friday"),
+            (2026, 5, 11, "Mothers' Day"),
+            (2026, 6, 1, "Independence Day"),
+            (2026, 8, 10, "Fathers' Day"),
+            (2026, 10, 12, "White Sunday Holiday"),
+            (2026, 12, 26, "Boxing Day"),
+            (2025, 5, 12, "Mothers' Day"),
+            (2025, 10, 13, "White Sunday Holiday"),
+        ],
+    );
+    expect_substitute("WS", None, 2025, (6, 1), (6, 2));
+    expect_substitute("WS", None, 2027, (12, 26), (12, 27));
+    expect_substitute("WS", None, 2023, (1, 1), (1, 3));
+    expect_substitute("WS", None, 2022, (12, 25), (12, 27));
+    // A Saturday holiday stays on the Saturday.
+    expect_working("WS", None, &[(2026, 12, 28), (2027, 1, 4)]);
+}

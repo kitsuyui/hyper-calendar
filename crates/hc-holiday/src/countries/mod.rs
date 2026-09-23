@@ -65,7 +65,10 @@ pub use europe::{
     SLOVENIA, SPAIN, SWEDEN, SWITZERLAND, UKRAINE, UNITED_KINGDOM,
 };
 pub use japan::JAPAN;
-pub use oceania::{AUSTRALIA, NEW_ZEALAND};
+pub use oceania::{
+    AUSTRALIA, MARSHALL_ISLANDS, MICRONESIA, NAURU, NEW_ZEALAND, PALAU, PAPUA_NEW_GUINEA, SAMOA,
+    SOLOMON_ISLANDS, TONGA, TUVALU, VANUATU,
+};
 
 /// A country's holiday table. The same type as any other rule set: a country
 /// is not special, it is just the rule set people ask for most.
@@ -114,6 +117,7 @@ pub static ALL: &[&CountryRules] = &[
     &SPAIN,
     &ETHIOPIA,
     &FINLAND,
+    &MICRONESIA,
     &FRANCE,
     &UNITED_KINGDOM,
     &GRENADA,
@@ -156,6 +160,7 @@ pub static ALL: &[&CountryRules] = &[
     &MONACO,
     &MOLDOVA,
     &MONTENEGRO,
+    &MARSHALL_ISLANDS,
     &NORTH_MACEDONIA,
     &MYANMAR,
     &MONGOLIA,
@@ -171,21 +176,25 @@ pub static ALL: &[&CountryRules] = &[
     &NETHERLANDS,
     &NORWAY,
     &NEPAL,
+    &NAURU,
     &NEW_ZEALAND,
     &OMAN,
     &PANAMA,
     &PERU,
+    &PAPUA_NEW_GUINEA,
     &PHILIPPINES,
     &PAKISTAN,
     &POLAND,
     &PALESTINE,
     &PORTUGAL,
     &PARAGUAY,
+    &PALAU,
     &QATAR,
     &ROMANIA,
     &SERBIA,
     &RUSSIA,
     &SAUDI_ARABIA,
+    &SOLOMON_ISLANDS,
     &SWEDEN,
     &SINGAPORE,
     &SLOVENIA,
@@ -199,8 +208,10 @@ pub static ALL: &[&CountryRules] = &[
     &TAJIKISTAN,
     &TURKMENISTAN,
     &TUNISIA,
+    &TONGA,
     &TURKEY,
     &TRINIDAD_AND_TOBAGO,
+    &TUVALU,
     &TAIWAN,
     &TANZANIA,
     &UKRAINE,
@@ -212,6 +223,8 @@ pub static ALL: &[&CountryRules] = &[
     &VENEZUELA,
     &VIETNAM,
     &YEMEN,
+    &VANUATU,
+    &SAMOA,
     &SOUTH_AFRICA,
     &ZAMBIA,
     &ZIMBABWE,
