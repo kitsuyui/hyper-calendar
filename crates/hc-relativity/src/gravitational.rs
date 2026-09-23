@@ -451,19 +451,33 @@ mod tests {
 
     #[test]
     fn a_low_enough_orbit_loses_time_instead_of_gaining_it() {
-        // Below about 3 187 km altitude the kinematic loss wins. The
-        // International Space Station is one such orbit.
+        // Below half an Earth radius of altitude, about 3 190 km, the
+        // kinematic loss wins (see the break-even test below). The
+        // International Space Station, at about 420 km, is one such orbit.
         let iss_radius = EARTH_EQUATORIAL_RADIUS + 420_000.0;
         let offset =
             weak_field_orbit_rate_offset(GM_EARTH, iss_radius, EARTH_EQUATORIAL_RADIUS).unwrap();
         let micros = rate_offset_to_micros_per_day(offset).unwrap();
         assert!(micros < 0.0, "got {micros} us/day");
-        // This model gives -24.5 us/day. The figure usually quoted for the
-        // station is nearer -28, because the real comparison is against a
-        // clock on the rotating geoid rather than a static clock at the
-        // equatorial radius, and the station's orbit is not exactly
-        // circular. Neither refinement is modelled here.
+        // This model gives -24.5 us/day: +3.7 from gravity against -28.2
+        // from speed, so -28 is the speed term alone.
         assert!((micros + 24.5).abs() < 0.5, "got {micros} us/day");
+        let speed_only =
+            rate_offset_to_micros_per_day(kinematic_rate_offset(GM_EARTH, iss_radius).unwrap())
+                .unwrap();
+        assert!((speed_only + 28.2).abs() < 0.1, "got {speed_only} us/day");
+        // Comparing with a clock on the rotating geoid instead of a static
+        // one at the equatorial radius barely moves it. A geoid clock runs
+        // slow of TCG by the defining constant L_G (IAU 2000 Resolution
+        // B1.9), which includes the Earth's rotation; the station runs slow
+        // of it by (GM/r + v²/2)/c².
+        let station =
+            (GM_EARTH / iss_radius + GM_EARTH / (2.0 * iss_radius)) / SPEED_OF_LIGHT_SQUARED;
+        let against_geoid = (hc_core::scale::L_G - station) * 86_400.0 * 1e6;
+        assert!(
+            (micros - against_geoid).abs() < 0.2,
+            "{micros} against {against_geoid} us/day"
+        );
     }
 
     #[test]
