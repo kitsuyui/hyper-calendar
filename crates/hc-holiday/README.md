@@ -94,33 +94,34 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 ## Coverage
 
 **154 countries.** Albania, **156 countries.** Albania, **157 countries.**
-Albania, Algeria, Andorra, Angola, Antigua and Barbuda, Argentina, Armenia,
-Australia (eight states and territories), Austria, Azerbaijan, the Bahamas,
-Bahrain, Bangladesh, Barbados, Belarus, Belgium, Belize, Benin, Bolivia, Bosnia
-and Herzegovina (the Federation, Botswana, Brazil, Brunei, Bulgaria, Burkina
-Faso, Cabo Verde, Cambodia, Cameroon, Canada (federal plus the provincial days
-fixed by statute), Chile, China, Colombia, Costa Rica, Croatia, Cuba, Cyprus,
-Czechia, Côte d'Ivoire, the Democratic Republic of the Congo, Denmark, Dominica,
-the Dominican Republic, Ecuador, Egypt, El Salvador, Estonia, Ethiopia, Finland,
-France (métropole plus Alsace-Moselle), Georgia, Germany (all 16 *Länder*),
-Ghana, Greece, Grenada, Guatemala, Guinea, Guyana, Haiti, Honduras, Hong Kong,
-Hungary, Iceland, India, Indonesia, Iran, Iraq, Ireland, Israel, Italy, Jamaica,
-Japan, Jordan, Kazakhstan, Kenya, Kuwait, Kyrgyzstan, Laos, Latvia, Lebanon,
-Libya, Liechtenstein, Lithuania, Luxembourg, Macau, Malawi, Malaysia, Mali,
-Malta, the Republic of the Congo. Ecuador, the.
-Marshall Islands, Mauritius, Mexico, Micronesia, Moldova, Monaco, Mongolia,
-Montenegro, Morocco, Myanmar, Namibia, Nauru, Nepal, the Netherlands, New
-Zealand, Nicaragua, Nigeria, North Macedonia, Norway, Oman, Pakistan, Palau,
-Palestine, Panama, Papua New Guinea, Paraguay, Peru, the Philippines, Poland,
-Portugal, Qatar, Republika Srpska and Brčko), Romania, Russia, Saint Kitts and
-Nevis, Saint Lucia, Saint Vincent and the Grenadines, Samoa, San Marino, Saudi
-Arabia, Senegal, Serbia, Singapore, Slovakia, Slovenia, the Solomon Islands,
+Albania, **158 countries.** Albania, Algeria, Andorra, Angola, Antigua and
+Barbuda, Argentina, Armenia, Australia (eight states and territories), Austria,
+Azerbaijan, the Bahamas, Bahrain, Bangladesh, Barbados, Belarus, Belgium,
+Belize, Benin, Bolivia, Bosnia and Herzegovina (the Federation, Botswana,
+Brazil, Brunei, Bulgaria, Burkina Faso, Burundi, Cabo Verde, Cambodia, Cameroon,
+Canada (federal plus the provincial days fixed by statute), Chile, China,
+Colombia, Costa Rica, Croatia, Cuba, Cyprus, Czechia, Côte d'Ivoire, the
+Democratic Republic of the Congo, Denmark, Dominica, the Dominican Republic,
+Ecuador, Egypt, El Salvador, Estonia, Ethiopia, Finland, France (métropole plus
+Alsace-Moselle), Georgia, Germany (all 16 *Länder*), Ghana, Greece, Grenada,
+Guatemala, Guinea, Guyana, Haiti, Honduras, Hong Kong, Hungary, Iceland, India,
+Indonesia, Iran, Iraq, Ireland, Israel, Italy, Jamaica, Japan, Jordan,
+Kazakhstan, Kenya, Kuwait, Kyrgyzstan, Laos, Latvia, Lebanon, Lesotho, Libya,
+Liechtenstein, Lithuania, Luxembourg, Macau, Madagascar, Malawi, Malaysia, Mali,
+Malta, the Marshall Islands, Mauritius, Mexico, Micronesia, Moldova, Monaco,
+Mongolia, Montenegro, Morocco, Mozambique, Myanmar, Namibia, Nauru, Nepal, the
+Netherlands, New Zealand, Nicaragua, Nigeria, North Macedonia, Norway, Oman,
+Pakistan, Palau, Palestine, Panama, Papua New Guinea, Paraguay, Peru, the
+Philippines, Poland, Portugal, Qatar, the Republic of the Congo. Ecuador,
+Republika Srpska and Brčko), Romania, Russia, Rwanda, Saint Kitts and Nevis,
+Saint Lucia, Saint Vincent and the Grenadines, Samoa, San Marino, Saudi Arabia,
+Senegal, Serbia, Seychelles, Singapore, Slovakia, Slovenia, the Solomon Islands,
 South Africa, South Korea, Spain, Sri Lanka, Suriname, Sweden, Switzerland,
-Syria, Taiwan, Tajikistan, Tanzania, Thailand, Timor-Leste, Tonga, Trinidad and
-Tobago, Tunisia, Türkiye, Turkmenistan, Tuvalu, Uganda, Ukraine, the United Arab
-Emirates, the United Kingdom (three bank- holiday jurisdictions), the United
-States, Uruguay, Uzbekistan, Vanuatu, Vanuatu Vietnam, Vatican City, Venezuela,
-Vietnam, Yemen, Zambia, Zimbabwe.
+Syria, Taiwan, Tajikistan, Tanzania, Thailand, the. Marshall Islands, Timor-
+Leste, Tonga, Trinidad and Tobago, Tunisia, Türkiye, Turkmenistan, Tuvalu,
+Uganda, Ukraine, the United Arab Emirates, the United Kingdom (three bank-
+holiday jurisdictions), the United States, Uruguay, Uzbekistan, Vanuatu, Vanuatu
+Vietnam, Vatican City, Venezuela, Vietnam, Yemen, Zambia, Zimbabwe.
 
 **Twenty traditions.** Christianity under both computations, the General
 Roman Calendar with the rank of every celebration (`roman_calendar`), the
