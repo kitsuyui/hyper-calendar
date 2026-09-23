@@ -2,7 +2,8 @@
 
 Regional, cyclic and era calendars for `hyper-calendar`: Japanese imperial
 eras, the Maya calendars, the two Aztec ones, the Balinese Pawukon, the
-Javanese *pasaran*, and the sexagenary cycle.
+Javanese *pasaran*, the Burmese and Thai lunar calendars, and the sexagenary
+cycle.
 
 What they have in common is that **the day has a name before it has a
 number**. A Maya day is *4 Ahau 8 Cumku*; a Balinese day is *Buda Kliwon
@@ -30,6 +31,7 @@ from an epoch with months cut out of it, which is why none of them belongs in
 | `korean-regnal` | The Korean Empire's eras 建陽, 光武, 隆熙 on the Gregorian days of 1896–1910 |
 | `chinese-regnal` | The Qing eras over the lunisolar calendar, 1645–1912; the Ming and Qing era table as data |
 | `burmese` | The Burmese lunisolar calendar of the Myanmar Era: watat years, First Waso and the Nayon day, by the published arithmetic |
+| `thai-lunar` | The Thai lunar calendar as Thailand publishes it: the adhikamāsa and adhikavāra years carried as data for 2535–2570 BE (1992–2027) |
 | `sexagenary` | 干支 over years, months and days |
 
 `register_all(&mut CalendarRegistry)` inserts every calendar in the table,
@@ -87,6 +89,26 @@ This crate does not pick one: every era carries a `Court`, and `era_at` asks
 which you mean. `Court::Unified` inside that window returns
 `CalendarError::UnknownEra`.
 
+## The Thai lunar calendar, as published
+
+`thai-lunar` is twelve months of 29 and 30 days, month 8 doubled in an
+adhikamāsa year (384 days) and month 7 given a 30th day in an adhikavāra one
+(355). Which year is which is **not computed**: J. C. Eade's statement of the
+*suriyayatra* rule reproduces his own year types but not, reliably, the
+Buddhist holidays Thailand kept. So the year types are carried as data, from
+2535 to 2570 BE (1992–2027), each read off the Makha, Visakha and Asalha
+Bucha dates Thailand published for it — the three full moons fix the type,
+and the step to the next year's Makha Bucha checks it — and the calendar
+refuses what the table does not reach. The year after the table is carried
+through its sixth month, which no year type changes; from month 7 it is
+`AfterSupportedRange`.
+
+A year runs from ขึ้น 1 ค่ำ เดือนอ้าย, in November or December, and is
+numbered by the Buddhist Era of the Gregorian year its Makha Bucha falls in,
+a convention of this crate. The first month 8 of an adhikamāsa year, the
+extra one, is `Month::leap(8)`; the day is counted 1 to 30 through the month,
+แรม 15 ค่ำ being day 30.
+
 ## Correlations, stated
 
 * **Maya**: Goodman–Martínez–Thompson, **584 283**. `13.0.0.0.0` is
@@ -121,6 +143,13 @@ months ships with this crate, so no disagreement rate against one is claimed.
 * Maya and Aztec ordinal arithmetic, the Pawukon's epoch and its three
   irregular cycles: Reingold and Dershowitz, *Calendrical Calculations*
   (4th ed., 2018), chapters 9, 10 and 11.
+* Thai lunar year types: the Bank of Thailand's lists of financial-institution
+  holidays for 1992–2022 as the Internet Archive keeps them, its
+  notifications FPG 3/2565, FPG 8/2566, FPG 5/2567 and 31/2568 for
+  2023–2026, and notification 37/2569 in the Royal Gazette of 25 August 2026
+  for 2027, all retrieved 2026-09-23; the structure from the *Dictionary of
+  Buddhism* (พจนานุกรมพุทธศาสน์ ฉบับประมวลศัพท์) and Thai Wikipedia,
+  ปฏิทินจันทรคติไทย.
 * Checked independently against five published Galungan dates (each must be
   Buda Kliwon Dungulan), the weton of 17 August 1945 (Jumat Legi, neptu 11),
   a published modern long count and Aztec date, and five Bakumatsu events
@@ -129,6 +158,8 @@ months ships with this crate, so no disagreement rate against one is claimed.
 ## Deliberate omissions
 
 * No Japanese lunisolar calendar before Senmyō (862), as above.
+* No Thai lunar year before 2535 BE or after 2570 BE, and no *suriyayatra*
+  arithmetic to extend it: a year is added when Thailand publishes it.
 * No Javanese calendar proper: the Sultan Agung lunar year, its *windu* and
   its Anno Javanico era are a different calendar and are not here.
 * No Maya "lord of the night" glyph cycle, no Aztec year bearer.
