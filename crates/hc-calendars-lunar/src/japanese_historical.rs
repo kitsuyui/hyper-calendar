@@ -3,8 +3,8 @@
 //! Japan ran eight lunisolar systems in succession between 604 and 1872.
 //! [`crate::japanese_tenpo`] is the last. This module is the four that
 //! between them cover 862 to 1844 — every Japanese day from the adoption of
-//! Senmyō-reki to the eve of the Tenpō reform, which is the whole of the
-//! period `hc-calendars-regional` previously had to refuse.
+//! Senmyō-reki to the eve of the Tenpō reform, the period over which
+//! `hc-calendars-regional` dates the eras before Tenpō.
 //!
 //! | Module | System | In force | 歳実 (days) | 朔実 (days) | 中気 | 進朔 |
 //! |---|---|---|---|---|---|---|

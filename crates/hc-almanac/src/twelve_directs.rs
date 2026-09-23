@@ -334,7 +334,7 @@ mod tests {
     }
 
     /// The whole point of the module: the cycle repeats a day at every one
-    /// of the twelve sectional terms and never skips one, for a century of
+    /// of the twelve sectional terms and never skips one, for a decade of
     /// consecutive days.
     #[test]
     fn the_directs_repeat_but_never_skip_at_a_sectional_term() {

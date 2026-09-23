@@ -17,7 +17,7 @@
 //!
 //! * [`ratio`] — exact rational seconds, and the explicit, refusable step
 //!   down to [`hc_core::Duration`].
-//! * [`unit`] — the catalogue: SI prefixes, civil units, the Hebrew helek,
+//! * [`mod@unit`] — the catalogue: SI prefixes, civil units, the Hebrew helek,
 //!   the Chinese 刻 in both of its lengths, the Indian ghati, French
 //!   Republican decimal time, Nystrom's hexadecimal time, the flick, the
 //!   shake and the microfortnight.

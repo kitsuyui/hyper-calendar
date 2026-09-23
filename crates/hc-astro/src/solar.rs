@@ -9,10 +9,9 @@
 //! about 1″ and a seasonal event to well under a minute of time; what
 //! remains is ΔT.
 //!
-//! It was the chapter's low-accuracy series until the equinox calendars
-//! asked which side of a sunset an equinox fell on. That series is good to
-//! 0.01°, a quarter of an hour of the Sun's motion, and a calendar decided
-//! by a noon, a sunset or a midnight is decided at the minute.
+//! The chapter's low-accuracy series is not used. It is good to 0.01°, a
+//! quarter of an hour of the Sun's motion, and a calendar decided by a noon,
+//! a sunset or a midnight is decided at the minute.
 
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;

@@ -4,14 +4,13 @@
 //! # This is not the lunisolar calendar
 //!
 //! `hc-calendars-lunar` owns the Chinese, Dangi and Japanese lunisolar
-//! calendars. An earlier note here said this derivation should be deleted and
-//! its callers re-pointed at that crate once it existed. It exists, and the
-//! answer turned out to be no — for two reasons found by trying it.
+//! calendars. This derivation is kept beside them rather than replaced by
+//! them, for two reasons.
 //!
-//! **Cost.** Every call here becomes a full lunisolar conversion with new
-//! moon and solar term searches behind it. 六曜 asks for a month and day on
-//! every single date, so the crate's own test suite went from seconds to more
-//! than ten minutes.
+//! **Cost.** Routed through `hc-calendars-lunar`, every call here becomes a
+//! full lunisolar conversion with new moon and solar term searches behind it.
+//! 六曜 asks for a month and day on every single date, which takes the crate's
+//! own test suite from seconds to more than ten minutes.
 //!
 //! **Coherence.** 六曜, 不成就日 and 二十七宿 must agree with one another.
 //! Routing some of them through one derivation and some through another makes
@@ -44,9 +43,10 @@
 //! definition today. Neither case is handled here: this code decides month by
 //! month, takes the later 中気 when a month holds two, and says so.
 //!
-//! For 六曜 — a six-day cycle that resets on the first of each month — those
-//! edge cases move at most a handful of days a century, and the caller who
-//! needs them right wants `hc-calendars-lunar`.
+//! When those edge cases bite, a whole month is numbered differently, and
+//! every 六曜 in it moves: the test at the bottom counts 89 of the 3,653 days
+//! of 2024–2033, all in one run from 25 August to 21 November 2033. The
+//! caller who needs them right wants `hc-calendars-lunar`.
 
 use hc_astro::solar::solar_longitude;
 use hc_astro::{new_moon_at_or_after, new_moon_before};

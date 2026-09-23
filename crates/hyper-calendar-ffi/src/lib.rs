@@ -49,7 +49,7 @@ pub type HcStatus = c_int;
 
 /// The call succeeded.
 pub const HC_OK: HcStatus = 0;
-/// A required out-parameter pointer was null.
+/// A required pointer was null, or a string argument was not UTF-8.
 pub const HC_ERROR_NULL_POINTER: HcStatus = -1;
 /// A field was outside its valid range.
 pub const HC_ERROR_OUT_OF_RANGE: HcStatus = -2;
@@ -265,9 +265,10 @@ fn format_into(scratch: &mut [u8; 32], date: Date) -> Option<&str> {
 
 /// Convert a POSIX timestamp to a TAI reading in seconds and attoseconds.
 ///
-/// `strict` selects the leap-second policy: non-zero refuses to answer past
-/// the announced IERS table, zero extrapolates. The difference matters, which
-/// is why it is a parameter rather than a default.
+/// `strict` selects the leap-second policy: non-zero refuses to answer
+/// before 1961 and past the announced IERS table, zero extrapolates. The
+/// difference matters, which is why it is a parameter rather than a
+/// default.
 ///
 /// # Safety
 ///

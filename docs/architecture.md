@@ -68,55 +68,39 @@ the library silently assumes "local time" or "now".
 
 ## Crate graph
 
-```text
-                          hc-core
-                 (Duration, Instant<S>, scales,
-                  leap table, epochs, math)
-                             │
-        ┌────────────────────┼─────────────────┬──────────────┐
-        │                    │                 │              │
-  hc-uncertainty        hc-calendar           hc-units
-  (sig figs, fuzzy,   (Rd, CivilTime,
-   EDTF, intervals)    Calendar trait,
-        │               registry)
-        │                    │
-        ├──────────┐         ├──────────────┬────────────┬──────────┐
-        │          │         │              │            │          │
- hc-deep-time  hc-relativity │       hc-calendars-solar  hc-tz   hc-i18n
- (Planck →     (Lorentz,     │       (Gregorian, Julian,  (offsets, (locales,
-  cosmology)    Schwarzschild,│        ISO, Coptic, …)    POSIX TZ,  plurals,
-                worldlines)   │              │            TZif)     names)
-                              │              │              │          │
-                         hc-astro            │              │          │
-                    (ΔT, solar longitude,    │              │     hc-humanize
-                     new moon, rise/set)     │              │
-                          │    │             │              │
-                          │    └─────────────┼──────────────┴──▶ hc-format
-                          │                  │                   (ISO 8601,
-                   hc-calendars-lunar        │                    RFC 3339)
-                   (Hijri, Hebrew,           │
-                    Chinese, Tenpō)          │
-                          │                  │
-                   hc-calendars-regional ◀───┘
-                   (Japanese eras, Maya,
-                    Pawukon)
-                          │
-                    hc-seasons ──▶ hc-holiday
-                 (24 terms, 72 pentads)  (rule engine + country data)
+Every crate depends on `hc-core`, and every crate from `hc-calendars-solar`
+down also depends on `hc-calendar`. The table gives each crate's other direct
+dependencies. A crate depends only on crates in rows above it.
 
-                   hc-planetary  (Mars sols, MTC, Darian)
+| Crate | Holds | Also depends on |
+| --- | --- | --- |
+| `hc-core` | `Duration`, `Instant<S>`, time scales, the leap-second table, epochs, math | — |
+| `hc-calendar` | `Rd`, `CivilTime`, the `Calendar` trait, the registry | — |
+| `hc-uncertainty` | Significant figures, fuzzy dates, EDTF, intervals | — |
+| `hc-units` | Exact ratios, tempo and media rates | — |
+| `hc-deep-time` | Planck time to cosmology | `hc-uncertainty` |
+| `hc-relativity` | Lorentz transforms, Schwarzschild, worldlines | `hc-uncertainty` |
+| `hc-calendars-solar` | Gregorian, Julian, ISO, Coptic, … | — |
+| `hc-tz` | Offsets, POSIX TZ, TZif | — |
+| `hc-i18n` | Locales, plurals, names | — |
+| `hc-astro` | ΔT, solar longitude, new moon, rise and set | — |
+| `hc-humanize` | Relative times and spelled-out durations | `hc-i18n`, `hc-units` |
+| `hc-format` | ISO 8601, RFC 3339, RFC 2822, patterns | `hc-calendars-solar`, `hc-tz`, `hc-i18n` |
+| `hc-planetary` | Mars sols, MTC, Darian | `hc-astro` |
+| `hc-calendars-lunar` | Hijri, Hebrew, Chinese, Tibetan, the Japanese lunisolar systems | `hc-astro` |
+| `hc-calendars-equinox` | Solar Hijri, Badíʿ and French Republican by the equinox | `hc-astro`, `hc-calendars-solar` |
+| `hc-seasons` | 24 terms, 72 pentads | `hc-astro`, optionally `hc-calendars-lunar` |
+| `hc-calendars-regional` | Japanese eras, Maya, Aztec, Pawukon, Burmese, Thai lunar | `hc-calendars-solar`, `hc-calendars-lunar` |
+| `hc-calendars-indic` | Hindu lunisolar and solar calendars, Bikram and Nepal Sambat | `hc-astro`, `hc-calendars-solar`, `hc-seasons` |
+| `hc-almanac` | 暦注 | `hc-astro`, `hc-calendars-lunar`, `hc-seasons` |
+| `hc-attributes` | Birthstones and the like | `hc-seasons` |
+| `hc-fiscal` | Fiscal and academic years | `hc-calendars-solar`, `hc-calendars-indic` |
+| `hc-holiday` | The rule engine and the country, tradition and exchange tables | `hc-astro`, `hc-seasons` and every `hc-calendars-*` crate |
+| `hyper-calendar` | The feature-gated facade | Every crate above, each behind a feature |
+| `hyper-calendar-ffi` | `cdylib` and `staticlib`, C ABI | `hyper-calendar` |
+| `hyper-calendar-wasm` | `cdylib`, WebAssembly | `hyper-calendar` |
 
-                          hyper-calendar  (feature-gated facade)
-                            ├── hyper-calendar-ffi   (cdylib / staticlib, C ABI)
-                            └── hyper-calendar-wasm  (cdylib, WebAssembly)
-```
-
-Four crates are left out of the drawing to keep it legible: `hc-units`
-(exact ratios, tempo and media rates; on `hc-core` alone), `hc-attributes`
-(birthstones and the like; on `hc-calendar` and `hc-seasons`), `hc-almanac`
-(暦注; on `hc-seasons`, `hc-astro` and `hc-calendars-lunar`) and `hc-fiscal`
-(fiscal and academic years; on `hc-calendars-solar`). The workspace manifest
-is the list of record.
+The workspace manifest is the list of record.
 
 The graph is a DAG. No crate depends on a crate it does not need, and nothing
 depends on the facade.
@@ -145,7 +129,8 @@ run time and an FFI caller can name one by string.
 `days_in_month`/`days_in_year`/`is_leap_year` all follow.
 
 `DateFields` is a fixed-capacity bag — era, year, month (with a leap flag),
-day, and up to eight named extras. The leap flag is not decoration: the Chinese
+day (with a leap flag of its own, for calendars that repeat a day), and up
+to eight named extras. The leap flag is not decoration: the Chinese
 leap fourth month is "閏四月", not "month 13", and a type that cannot say that
 forces every lunisolar calendar to invent a private encoding. The extras slot
 is what lets the Maya long count and the Balinese Pawukon use the same type as

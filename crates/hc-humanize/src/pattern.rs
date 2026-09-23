@@ -392,8 +392,9 @@ pub struct LocaleData {
     /// Suffixes for the compact form *2h30m*.
     pub compact: UnitStrings,
     /// The indefinite singular of each unit — *an hour*, *ein Jahr* — used
-    /// by [`crate::approximate`] in place of the numeral `1`. Empty for a
-    /// language with no indefinite article, which then gets the numeral.
+    /// by [`crate::approximate`](fn@crate::approximate) in place of the
+    /// numeral `1`. Empty for a language with no indefinite article, which
+    /// then gets the numeral.
     pub indefinite: UnitStrings,
     /// How the language joins a list of components.
     pub list: ListPatterns,

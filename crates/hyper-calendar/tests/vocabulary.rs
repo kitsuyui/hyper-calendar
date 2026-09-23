@@ -1,31 +1,26 @@
 //! The registry and the locale data must agree, and this is where that is
 //! checked — the only place both are in scope.
 //!
-//! # What this replaces
+//! # What can go wrong
 //!
-//! Nothing. That was the problem.
+//! Locale data can disagree with a calendar in two ways that no test inside
+//! `hc-i18n` can see:
 //!
-//! `hc-i18n` stored month names against a key and asserted that every month
-//! list had twelve or thirteen entries. Neither half was checked against a
-//! calendar:
+//! * **The key.** A name list keyed to an identifier the registry does not
+//!   have is written, tested and unreachable. The registry calls the
+//!   arithmetic Solar Hijri calendar `persian-arithmetic` and the tabular
+//!   Hijri `islamic-civil`, and an entry under a near miss answers for
+//!   nothing.
+//! * **The length.** Assuming the Gregorian shape — twelve or thirteen
+//!   months, seven weekdays — rejects correct data for anything else. The
+//!   Badíʿ calendar has nineteen months and the French Republican décade has
+//!   ten days, Primidi through Décadi.
 //!
-//! * The key was a bare string. `persian`, `islamic` and `iso8601` were
-//!   written, tested and unreachable, because the registry calls those
-//!   calendars `persian-arithmetic`, `islamic-civil` and `iso8601-week`.
-//!   Twelve Persian month names sat in the table for anyone to read and no
-//!   caller could ever get one.
-//! * The length assertion was the Gregorian shape imposed on everything
-//!   else. The Badíʿ calendar has nineteen months, so it could not be given
-//!   names — not "had not been", *could not be*: supplying the correct data
-//!   would have failed the test. The French Republican décade is ten days,
-//!   and weekday names were stored against a seven-valued enum, so Primidi
-//!   through Décadi had nowhere to live either.
-//!
-//! Both are now structural. Every calendar declares its own cycles
-//! (`hc_calendar::shape` — the trait method has no default, so a calendar
-//! that does not declare does not compile), the vocabulary is keyed to real
-//! [`CalendarId`]s and to those cycles by name, and the assertions below
-//! make any disagreement a test failure rather than a discovery.
+//! Every calendar therefore declares its own cycles (`hc_calendar::shape` —
+//! the trait method has no default, so a calendar that does not declare
+//! does not compile), the vocabulary is keyed to real [`CalendarId`]s and to
+//! those cycles by name, and the assertions below make any disagreement a
+//! test failure rather than a discovery.
 //!
 //! # Why the coverage number is asserted
 //!
@@ -155,8 +150,8 @@ fn a_calendar_declares_a_month_cycle_exactly_when_its_dates_carry_a_month() {
 
 /// No vocabulary may name a calendar the registry does not have.
 ///
-/// This is the assertion that would have caught `persian`, `islamic` and
-/// `iso8601` on the day they were written.
+/// An entry keyed to a near miss of a registry identifier fails here on
+/// the day it is written.
 #[test]
 fn every_calendar_a_locale_names_is_one_the_registry_answers_to() {
     let registered = registered();

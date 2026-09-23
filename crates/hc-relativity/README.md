@@ -49,8 +49,9 @@ of the tests.
   are all absent. Each moves the GPS numbers by nanoseconds per day, not
   microseconds — but a real time-transfer system needs all of them, and this
   crate should not be used as though it had them. The ISS figure above is
-  −24.5 µs/day where the usually quoted number is nearer −28, and the
-  difference is exactly these missing terms.
+  −24.5 µs/day where the usually quoted number is nearer −28; the test
+  attributes the difference to the rotating geoid and the station's
+  non-circular orbit, neither of which is modelled.
 - **`circular_orbit_speed` is Newtonian.** The relativistic correction is of
   order `r_s/r`, which is 5·10⁻¹⁰ at GPS altitude. It would matter near a
   black hole and the function says so.
@@ -94,12 +95,14 @@ of the tests.
 - `GM☉` — IAU 2015 Resolution B3 nominal value. `GM⊕` — IERS Conventions
   (2010) and WGS 84. Moon — JPL DE430. Mars and Jupiter systems — JPL DE440.
 - Sagittarius A\* — (4.297 ± 0.013)·10⁶ M☉, GRAVITY Collaboration, A&A 625,
-  L10 (2019). Good to three figures, and `Body::source` says so.
+  L10 (2019). Good to three figures, and `GravitatingBody::source` says so.
 - The transverse Doppler shift as a confirmation of time dilation: Ives and
   Stilwell (1938).
 
 ## Feature flags
 
-`default = ["std"]`, `std = ["alloc", ...]`, `alloc = [...]`. The crate builds
-with `--no-default-features` and with `--no-default-features --features
-alloc`; nothing here needs a heap.
+`default = ["std"]`, `std = ["alloc", ...]`, `alloc = [...]`. Nothing here
+needs a heap. The crate has no `libm` feature of its own, so a build without
+`std` also needs `hc-core/libm` enabled, as the `hyper-calendar` facade's
+`libm` feature does; `--no-default-features` alone stops at `hc-core`'s
+compile-time guard.

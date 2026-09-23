@@ -3,8 +3,7 @@
 //! This crate is the engine underneath every calendar that is defined by
 //! where the Sun and Moon actually are rather than by a counting rule: the
 //! Chinese and Dangi lunisolar calendars, the observational Hijri variants,
-//! the Hebrew calendar's molad cross-checks, the 24 solar terms, and the
-//! holiday rules that pin a date to an equinox or a solstice.
+//! the Hindu calendars, the 24 solar terms, and the holiday rules that pin a date to an equinox or a solstice.
 //!
 //! # What it is
 //!

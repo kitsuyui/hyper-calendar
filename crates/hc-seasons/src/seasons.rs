@@ -12,7 +12,8 @@
 //! The East Asian one is not a shifted version of the astronomical one: it
 //! treats the solstices and equinoxes as the *middles* of their seasons,
 //! which is what 夏至 ("summer's extreme") and 中秋 ("mid-autumn") actually
-//! mean. That is why the Mid-Autumn Festival is in September.
+//! mean. That is why the Mid-Autumn Festival, the full moon of the eighth
+//! lunisolar month, falls near the autumn equinox.
 //!
 //! None of the three is the default here. A caller who does not say which
 //! they mean has not decided yet.
@@ -226,9 +227,10 @@ hc_core::catalogue! {
         /// next.
         ///
         /// This is the one almanacs and school textbooks in Europe and North
-        /// America use. Its seasons are unequal — northern spring is four
-        /// days longer than northern autumn — because the Earth's orbit is
-        /// an ellipse.
+        /// America use. Its seasons are unequal — northern summer is nearly
+        /// five days longer than northern winter, and spring about three
+        /// days longer than autumn — because the Earth's orbit is an
+        /// ellipse.
         pub const ASTRONOMICAL = Self::new("astronomical", "astronomical", astronomical_opening);
         /// Whole calendar months: spring is March to May, and so on.
         ///
@@ -666,7 +668,7 @@ mod tests {
         );
     }
 
-    /// The Mid-Autumn Festival is in September because the autumn equinox is
+    /// The Mid-Autumn Festival falls near the autumn equinox because it is
     /// the *middle* of the East Asian autumn, not its start. The same day is
     /// early autumn astronomically and mid-autumn in the East Asian
     /// reckoning — a disagreement of a whole season for part of the year.

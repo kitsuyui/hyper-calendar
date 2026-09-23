@@ -143,13 +143,9 @@ impl DurationInterval {
     /// in attoseconds first and so would overflow beyond about 5.4 × 10¹²
     /// years.
     ///
-    /// An earlier version of this note gave that threshold as "about 5.4
-    /// years — uselessly short for a library that has to talk about
-    /// centuries", which is wrong by twelve orders of magnitude and makes
-    /// the choice sound far more necessary than it is. Centuries would have
-    /// been perfectly safe through an attosecond total. The componentwise
-    /// halving earns its place only in deep time, above five trillion
-    /// years — which this crate does reach, because that is what it is for.
+    /// Centuries, or even the age of the universe, would be safe through an
+    /// attosecond total. The componentwise halving earns its place only in
+    /// deep time, above five trillion years, which this crate does reach.
     ///
     /// # Errors
     ///

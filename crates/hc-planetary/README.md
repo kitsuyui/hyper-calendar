@@ -128,21 +128,13 @@ synodic month).
   deliver a standard by the end of 2026. No definition was published at the
   time of writing.
 
-## `hc_core::epoch::J2000`, and the bug that used to be here
+## `hc_core::epoch::J2000`
 
-This crate takes J2000 straight from `hc_core::epoch::J2000` —
-`src/util.rs` is a one-line re-binding of it, and a test asserts the two
-agree.
+This crate takes J2000 straight from `hc_core::epoch::J2000`. `src/util.rs`
+binds it to a local name, and a test re-derives it from the leap-second table
+and asserts that the two agree.
 
-That is worth a heading because it was not always true. `hc-core` once
-stored 946 727 935.632 s, which is a *Unix* reading of the epoch: the
-TT-to-TAI offset of 32.184 s had been applied to a value that already had it.
-The TAI reading is 946 727 967.816 s. While that stood, this crate restated
-the constant locally and pinned the discrepancy in a test, and this section
-told readers not to use `hc-core`'s value.
-
-`hc-core` was fixed — `crates/hc-core/src/epoch.rs` now stores the TAI
-reading, checked two independent ways — so the local copy is gone and the
-test that pinned the gap now pins the agreement. Using the wrong value put
-MTC half a Martian minute out and broke both published GISS worked examples,
-which is why the test stayed after the duplication went.
+The value is easy to get wrong. Its TAI reading is 946 727 967.816 s;
+applying the 32.184 s TT-to-TAI offset a second time gives 946 727 935.632 s.
+That error puts MTC half a Martian minute out and breaks both published GISS
+worked examples, which is why the agreement is a test.

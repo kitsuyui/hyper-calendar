@@ -79,7 +79,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | Code | Value | Meaning |
 | --- | --- | --- |
 | `HC_OK` | 0 | The call succeeded. |
-| `HC_ERROR_NULL_POINTER` | -1 | A required out-parameter pointer was null. |
+| `HC_ERROR_NULL_POINTER` | -1 | A required pointer was null, or a string argument was not UTF-8. |
 | `HC_ERROR_OUT_OF_RANGE` | -2 | A field was outside its valid range. |
 | `HC_ERROR_INVALID_DATE` | -3 | The date does not exist in the requested calendar. |
 | `HC_ERROR_OVERFLOW` | -4 | Arithmetic left the representable range. |
@@ -120,17 +120,20 @@ free(lines);
 ## Leap seconds, and the `strict` flag
 
 `hc_tai_from_unix`, `hc_tai_minus_utc` and `hc_utc_from_tai` take a `strict`
-flag. Non-zero refuses to answer past the announced validity of the IERS
-leap-second table, with `HC_ERROR_NO_DATA`; zero holds the last published
-offset. The difference is a forecast, which is why it is the caller's choice
-and not a default. `hc-core`'s README states the table's horizon.
+flag. Non-zero refuses to answer before 1961, when UTC did not exist, and past
+the announced validity of the IERS leap-second table, with
+`HC_ERROR_NO_DATA`; zero holds the last published offset into the future and
+treats UTC as TAI before 1961. The difference is a forecast, which is why it
+is the caller's choice and not a default. `hc_day_has_leap_second` takes no
+flag and always uses the second policy. `hc-core`'s README states the
+table's horizon.
 
 ## What is not here
 
-The surface is the civil calendar and the TAI–UTC bridge: enough to turn a
-POSIX timestamp or a Gregorian date into a fixed day and back, name a weekday,
-and ask about leap seconds honestly. The rest of the library — the other
-calendars, holidays, solar terms, locales — is reachable by adding entry
-points of the same shape, and the `full` feature compiles it in for that
-purpose. Before 1.0 the only stability promise is the status codes, whose
-meanings do not change.
+The default surface is the civil calendar and the TAI–UTC bridge: enough to
+turn a POSIX timestamp or a Gregorian date into a fixed day and back, name a
+weekday, and ask about leap seconds honestly; the holiday tables are a
+feature, above. The rest of the library — the other calendars, solar terms,
+locales — is reachable by adding entry points of the same shape, and the
+`full` feature compiles it in for that purpose. Before 1.0 the only
+stability promise is the status codes, whose meanings do not change.

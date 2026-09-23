@@ -17,7 +17,7 @@
 //!
 //! This is the *civil* calendar, not the religious one. The many regional
 //! Hindu calendars — lunisolar, with tithis, adhika months and sunrise-based
-//! day boundaries — are a different problem living in another crate; the
+//! day boundaries — are a different problem living in `hc-calendars-indic`; the
 //! reform committee designed this calendar precisely so that civil dating
 //! would not have to solve it. The historical Śaka era itself is older than
 //! the national calendar and was reckoned differently; only the 1957 rules

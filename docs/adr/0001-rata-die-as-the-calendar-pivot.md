@@ -29,11 +29,11 @@ cycle survived every calendar reform.
 Islamic day starts at sunset; the Chinese traditional day started at 23:00)
 cannot express that in `Rd` alone. The library handles it by pairing `Rd` with
 a `CivilTime` and declaring the convention per calendar through
-`Calendar::day_boundary`, rather than by bending the pivot. That started as
-prose and is now a type: `DayBoundary` also distinguishes the boundaries a
-clock can resolve from the ones that need a location and an ephemeris.
+`Calendar::day_boundary`, rather than by bending the pivot. The convention is
+a type, `DayBoundary`, which also distinguishes the boundaries a clock can
+resolve from the ones that need a location and an ephemeris.
 
-A second cost surfaced later. `Rd` counts days, so a calendar that
+A second cost: `Rd` counts days, so a calendar that
 occasionally *repeats* a day number — the Tibetan *lhag*, the Hindu *adhika
 tithi*, the Balinese *ngunaratri* — produces two consecutive fixed days that
 it names identically, and the round-trip contract above cannot hold for them.

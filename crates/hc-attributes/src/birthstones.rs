@@ -1,7 +1,7 @@
 //! Birthstones by month — six lists, six authorities, no default.
 //!
 //! **There is no such thing as "the" birthstone for a month.** There is the
-//! American list, which has been revised four times since 1912; the British
+//! American list, which has been revised three times since 1912; the British
 //! list of 1937; Japan's list of 1958, substantially revised in 2021; and
 //! the older Western stones that all three replaced. They disagree, the
 //! disagreements are recent and documented, and this module's job is to make
@@ -36,8 +36,8 @@
 //! | [`BIRTHSTONES_JP_2021`] | 全国宝石卸商協同組合, with JJA and YJA | 1958, rev. 20 December 2021 |
 //!
 //! The 2021 Japanese revision is the most recent change anywhere: it added
-//! ten stones after sixty-three years, four of them following the American
-//! list and six chosen in Japan. Chrysoberyl cat's-eye went to February
+//! ten stones after sixty-three years: four following the American list, one
+//! restored on historical grounds and five chosen in Japan. Chrysoberyl cat's-eye went to February
 //! because 22 February is 猫の日 in Japan — which is as good an illustration
 //! as the crate could ask for of what kind of fact a birthstone is.
 //!
@@ -101,7 +101,7 @@ pub static BIRTHSTONES_TRADITIONAL: MonthTable = MonthTable::new(
 ///
 /// The National Association of Jewelers — now Jewelers of America — met in
 /// Kansas City and adopted a standard list, printed in Kunz (1913),
-/// pp. 319–320. Four later revisions changed it; [`BIRTHSTONES_US_2016`] is
+/// pp. 319–320. Three later revisions changed it; [`BIRTHSTONES_US_2016`] is
 /// where it ended up.
 ///
 /// Three differences from the modern American list are worth keeping: March
@@ -148,7 +148,7 @@ pub static BIRTHSTONES_US_1912: MonthTable = MonthTable::new(
 /// The entries here follow the Gemological Institute of America's published
 /// chart, which is what the trade currently prints.
 ///
-/// Four revisions in a century is the reason [`Validity::is_current`] means
+/// Three revisions in a century is the reason [`Validity::is_current`] means
 /// "still current as far as this crate knows" and not "settled".
 pub static BIRTHSTONES_US_2016: MonthTable = MonthTable::new(
     Authority {
@@ -188,7 +188,8 @@ pub static BIRTHSTONES_US_2016: MonthTable = MonthTable::new(
 /// Four months differ from the American list in ways that are not merely a
 /// matter of which stone is printed first: April carries rock crystal, May
 /// carries chrysoprase, July carries carnelian and September carries lapis
-/// lazuli, none of which appear in any American list. October is opal alone,
+/// lazuli, none of which appear in the current American list. Lapis lazuli
+/// was in the 1912 one, for December. October is opal alone,
 /// where the American list has had tourmaline beside it since 1912.
 pub static BIRTHSTONES_UK: MonthTable = MonthTable::new(
     Authority {

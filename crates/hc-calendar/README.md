@@ -21,8 +21,8 @@ This is the design of Reingold and Dershowitz's *Calendrical Calculations*.
 
 Because the sentence "day 1 is `0001-01-01`" is what fixes the origin, the
 proleptic Gregorian arithmetic that implements it lives here, in `gregorian`,
-rather than in a calendar crate. Five crates once carried private copies of
-those six functions; this is the one that remains.
+rather than in a calendar crate, where every crate below the calendars can
+reach it.
 
 ## Two interfaces
 
@@ -50,16 +50,17 @@ behind one interface.
   its arithmetic is defined over.
 - **Where its day begins, and when it was in use.** `day_boundary` and `usage`
   default to midnight and "unrecorded"; a calendar that differs — the Julian
-  Day at noon, the Hebrew day at sunset, the traditional Chinese day at 23:00
-  — overrides them, so the override itself is the documentation.
+  Day at noon, the Hebrew day at sunset, the Hindu day at sunrise — overrides
+  them, so the override itself is the documentation.
 
 ## Cycles that are not calendars
 
 `weekday` holds the seven-day week and, as `DayCycle`, the weeks that are not
 seven days long. `cycle` holds the East Asian sexagenary cycle: the sixty
 stem–branch pairs, the readings they are written in (a catalogue of nine —
-characters, pinyin with and without tones, the Japanese kun and on readings,
-Hangul and its romanisation, Vietnamese — each anchored at 甲子 and 癸亥), the
+characters, pinyin with and without tones, the Japanese kun readings in kana
+and romanised, the romanised on readings, Hangul and its romanisation, and
+Vietnamese — each anchored at 甲子 and 癸亥), the
 twelve double-hours, and the four pillars of year, month, day and hour. Every
 one is a pure function of `Rd`, which is why they live here; and every one
 stops where astronomy would begin. The solar term that fixes a month pillar is

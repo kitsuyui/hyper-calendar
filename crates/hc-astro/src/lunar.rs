@@ -11,7 +11,8 @@
 //! * [`nth_new_moon`] evaluates the phase series of Meeus chapter 49, which
 //!   is fitted directly to the *time* of a conjunction rather than to a
 //!   position. It answers "when is the next new moon", to within a few
-//!   seconds, and it is what the Chinese, Hebrew and Hijri calendars want.
+//!   seconds, and it is what the Chinese and observational Hijri calendars
+//!   want.
 //!
 //! The two are checked against each other in this module's tests: the
 //! conjunction found by searching the longitude series agrees with the
@@ -680,8 +681,8 @@ pub fn new_moon_before(moment: Moment) -> Moment {
 
 /// The first new moon at or after a moment.
 ///
-/// This is the conjunction search the Chinese, Hebrew and Hijri calendars
-/// need: a lunar month begins on the day containing (or following) a new
+/// This is the conjunction search the Chinese and observational Hijri
+/// calendars need: a lunar month begins on the day containing (or following) a new
 /// moon, depending on the calendar's own rule and its own meridian.
 #[must_use]
 pub fn new_moon_at_or_after(moment: Moment) -> Moment {

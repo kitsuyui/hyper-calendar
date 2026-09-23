@@ -12,9 +12,9 @@ rule vocabulary; every country and tradition is a table of rule values.
 Rule                          Example
 ────────────────────────────  ──────────────────────────────────────────────
 FixedGregorian { month, day } New Year's Day, 1 January
-NthWeekday { month, n, day }  US Thanksgiving, 4th Thursday of November
+NthWeekday { month, n, wd }   US Thanksgiving, 4th Thursday of November
                               Japan's 成人の日, 2nd Monday of January
-LastWeekday { month, day }    UK Spring Bank Holiday, last Monday of May
+LastWeekday { month, wd }     UK Spring Bank Holiday, last Monday of May
 WeekdayOnOrAfter { m, d, wd } Midsommardagen, the Saturday on or after 20 June
 WeekdayOnOrBefore { m, d, wd} Buß- und Bettag, the Wednesday before 23 Nov
 FixedInCalendar { cal, m, d } Eid al-Fitr, 1 Shawwal in islamic-umalqura
@@ -23,20 +23,20 @@ SolarTerm { term, meridian }  春分の日 / 秋分の日, the equinoxes at UTC+
                               清明節, at the Beijing meridian
 EasterRelative { comp, offs } Good Friday (-2), Easter Monday (+1)
                               Ash Wednesday (-46), Pentecost (+49)
-LunarPhase { phase, after }   the first full moon on or after a fixed date
+LunarPhase { phase, m, d }    the first full moon on or after a fixed date
 Tithi { m, tithi, prevails }  Rāma Navamī, Chaitra śukla 9 at midday
 Sankranti { sign, ayanamsa }  Makar Sankranti, the Sun's entry into Makara
 Nakshatra { n, sign, tithi }  Thaipusam, Puṣya in Thai
 Offset { base, days }         除夕, Seollal's eve
+Span { from, to }             Dashain, Phūlpātī to Āśvina śukla 12
 MovedByWeekday { base, moves } a Monday-holiday law: Argentina's trasladables, Colombia's Ley Emiliani
 Tabulated { fn, first, last } Matariki, gazetted through a stated last year
 Computed(fn)                  the few that really are bespoke
 ```
 
-`WeekdayOnOrAfter`, `WeekdayOnOrBefore`, `Offset` and `Tabulated` were added
-while writing the national tables; each is still a pure rule value. The first
-three each removed a `Computed` that would otherwise have been needed, and
-the fourth gives a published table a last year, so that running out of table
+Each is a pure rule value. `WeekdayOnOrAfter`, `WeekdayOnOrBefore` and
+`Offset` each spare a `Computed` that would otherwise be needed, and
+`Tabulated` gives a published table a last year, so that running out of table
 is reported as a gap rather than passing for a year without the holiday.
 
 Rules then pass through **observance modifiers**, which are themselves data:
@@ -50,10 +50,13 @@ Rules then pass through **observance modifiers**, which are themselves data:
 - `ValidFrom` / `ValidUntil` — a holiday that was created or abolished. Every
   rule carries these, because "is today a holiday in Japan" has a different
   answer in 1990 and 2020 and a library that ignores that is wrong for history.
-- `Region` — subdivision scoping, used today for German *Länder*, Canadian
-  provinces, Australian states and territories, Spanish autonomous
-  communities and the single US entry `US-DC`. Swiss cantons and US states
-  are *not* modelled: the vocabulary carries them, the tables do not.
+- `Region` — subdivision scoping, used for German *Länder*, Canadian
+  provinces, Australian states and territories, the United Kingdom's three
+  jurisdictions, French Alsace-Moselle, the three units of Bosnia and
+  Herzegovina, Bangladesh's hill districts, and a few single places: `US-DC`,
+  `MD-CU`, `GT-GU`, `SV-SS`, `NI-MN` and `CL-AP`. Swiss cantons, Spanish
+  autonomous communities and US states are *not* modelled: the vocabulary
+  carries them, the tables do not.
 - `Kind` — public holiday, bank holiday, school holiday, observance without a
   day off, religious day of obligation, and a weekend day made a working day
   (China's 调休上班).
@@ -64,11 +67,12 @@ Rules then pass through **observance modifiers**, which are themselves data:
 Because the rule set is data, a caller can supply their own table — a company
 calendar, a school year, a fictional setting — and get the same engine.
 
-Only **five** statutes in the whole crate are `Computed`: Ireland's St
-Brigid's Day, the Dutch royal day (under two monarchs), US Inauguration Day,
-Mexico's presidential handover and Israel's Yom HaAtzmaut. New Zealand's
-Matariki is `Tabulated`, with the last gazetted year stated. Japan needs
-none.
+A rule is `Computed` only where its statute is a sentence rather than a
+pattern: Ireland's St Brigid's Day, the Dutch royal day (under two monarchs),
+US Inauguration Day, Mexico's presidential handover, Israel's Yom HaAtzmaut
+and some thirty more in the national tables, most of them a move that
+depends on the weekday or on another holiday. New Zealand's Matariki is
+`Tabulated`, with the last gazetted year stated. Japan needs none.
 
 ## What the engine will not do
 
@@ -79,7 +83,7 @@ none.
 - **It will not invent substitution rules it cannot cite.** A country's
   weekend-substitution behaviour is law, and laws differ. Most of the tables
   below carry no substitution policy at all, because their countries have
-  none in calendar-expressible form; `supported.md` shows which.
+  none in calendar-expressible form; [supported.md](supported.md) shows which.
 - **It will not guess an annual administrative act.** China's 调休, Taiwan's
   swaps of a working day for a Saturday, Vietnam's Tết span and *làm bù*,
   Thailand's Songkran makeup days and Indonesia's *cuti bersama* are decided
@@ -91,10 +95,9 @@ none.
   year past them is a gap. Elsewhere the statutory days are listed and the
   bridging days are not.
 - **It will not tabulate what it cannot compute.** Indonesia's Nyepi is
-  absent because the Balinese Saka calendar it is dated in does not exist in
-  the crate yet. India's Hindu, Sikh and Jain gazetted holidays and
-  Singapore's and Malaysia's Deepavali were absent for the same reason until
-  `hindu-lunar` and `nanakshahi` arrived, and are computed now.
+  absent because the Balinese Saka calendar it is dated in is not in the
+  crate. India's Hindu, Sikh and Jain gazetted holidays and Singapore's and
+  Malaysia's Deepavali are computed on `hindu-lunar` and `nanakshahi`.
 - **It will not pretend a holiday list is current.** Every country table
   carries the date its sources were checked.
 - **It will not answer outside the span it evaluated.** Business-day
@@ -103,11 +106,10 @@ none.
 ## Stage 1 — Religious and traditional cycles
 
 > A rule can be dated in any calendar, not a fixed list of them.
-> `CalendarSystem` was a closed enum of eight, so a feast kept in the
-> Ethiopic, Coptic, Solar Hijri or Badíʿ calendar could not be expressed —
-> not "was not yet", *could not be*. It is now an open struct keyed to a
-> registry identifier, and the Ethiopian Orthodox table is there to prove
-> it rather than to describe it.
+> `CalendarSystem` is an open struct keyed to a registry identifier, so a
+> feast kept in the Ethiopic, Coptic, Solar Hijri or Badíʿ calendar is
+> written in that calendar, and the Ethiopian Orthodox table is there to
+> prove it rather than to describe it.
 
 The cross-cutting ones, because national tables depend on them.
 
@@ -176,7 +178,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Israel 🇮🇱 | Hebrew-dated and therefore exact, with Yom HaAtzmaut's Sabbath-avoidance rule |
 | Iran 🇮🇷 | Civil holidays on the astronomical `persian` calendar, so exact — Nowruz 1404 on 21 March 2025, where the arithmetic cycle says the 20th; the lunar Hijri days flagged `Approximate`, since Iran declares them on its own sighting; Friday weekend |
 | Albania 🇦🇱 | Law 7651's fifteen holidays with both Easters, approximate Eids and the weekend rule that gives each holiday its own working day after |
-| Montenegro 🇲🇪 | The 2007 law's two-day holidays with Njegoš Day from 2021, the Sunday rule, and each community's religious days as `Kind::Religious` |
+| Montenegro 🇲🇪 | The 2007 law's two-day holidays with Njegoš Day from 2022, the Sunday rule, and each community's religious days as `Kind::Religious` |
 | North Macedonia 🇲🇰 | The 1998 law as amended in 2007, the Sunday rule, the religious and ethnic communities' days off, Duhovden as the Friday before Pentecost |
 | Serbia 🇷🇸 | The 2001 law with its 2007 and 2011 amendments: state holidays with the Sunday rule, the Orthodox days fixed, the working holidays as observances, the other confessions' days as `Kind::Religious` |
 | Bosnia and Herzegovina 🇧🇦 | No state law: the Federation's taken-over 1973 law with 1 March and 25 November, Republika Srpska's 2007 law with its 9 January as the notices give it to 2026 and the religious days as `Kind::Religious`, Brčko's 2002 law and the Assembly's religious days for 2017–2026, each a region with its own Sunday rule |
@@ -282,14 +284,14 @@ Ordered by how well the sources can be cited, not by importance.
 | Brunei 🇧🇳 | The Prime Minister's Office's circulars for 2023–2026: New Year, National Day, Armed Forces Day, the Sultan's Birthday and Christmas fixed, Chinese New Year on `chinese`, Isra' and Mi'raj, Awal Ramadhan, Nuzul Al-Qur'an, the three days of Hari Raya Aidil Fitri, Hari Raya Aidil Adha, the Islamic New Year and the Prophet's Birthday approximate; the Friday–Sunday weekend, a Friday or Sunday holiday replaced by the next working day as each circular names it |
 | Timor-Leste 🇹🇱 | Law 10/2005 art. 2 as amended by Laws 3/2016 and 10/2023: Veterans' Day from 2017, 7 December renamed Memorial Day and National Heroes' Day on 31 December from 2016, National Women's Day from 2023; Good Friday and Corpus Christi by the Western computus, Idul Fitri and Idul Adha approximate; the commemorative dates not carried; the Labour Code's Sunday weekend, nothing moved |
 | Maldives 🇲🇻 | Section 97 of the Employment Act, dated as the Maldives Monetary Authority's lists for 2016–2026: New Year, Labour Day, Independence Day's two days, Victory Day and Republic Day fixed; the first of Ramadan, Eid al-Fitr's three days, Hajj Day, Eid al-Adha's four (three in 2016), the Islamic New Year, National Day, the Prophet's Birthday and the Day the Maldives Embraced Islam approximate; the Friday–Saturday weekend, nothing moved off it; the President's declared government holidays not carried |
-| Indonesia 🇮🇩 | |
+| Indonesia 🇮🇩 | The national days of the three ministries' joint decree: Chinese New Year on `chinese` from 2003, Labour Day from 2014, Pancasila Day from 2017, Vesak on the Chinese calendar and the Islamic days, all approximate; Nyepi and the *cuti bersama* not carried |
 | Spain 🇪🇸, Italy 🇮🇹, Netherlands 🇳🇱, Poland 🇵🇱, Türkiye 🇹🇷, Egypt 🇪🇬, Nigeria 🇳🇬, South Africa 🇿🇦, Singapore 🇸🇬, Malaysia 🇲🇾, Philippines 🇵🇭, Switzerland 🇨🇭, Austria 🇦🇹, Belgium 🇧🇪, Sweden 🇸🇪, Norway 🇳🇴, Denmark 🇩🇰, Finland 🇫🇮, Portugal 🇵🇹, Greece 🇬🇷, Czechia 🇨🇿 | Core national list |
 
 **Partial**
 
 | Country | Note |
 | --- | --- |
-| India 🇮🇳 | The three national holidays and the gazetted list — Holi, Ram Navami, Mahavir Jayanti, Buddha Purnima, Janmashtami, Dussehra, Diwali and Guru Nanak's Birthday now computed on `hindu-lunar`, the Hijri days approximate |
+| India 🇮🇳 | The three national holidays and the gazetted list — Holi, Ram Navami, Mahavir Jayanti, Buddha Purnima, Janmashtami, Dussehra, Diwali and Guru Nanak's Birthday computed on `hindu-lunar`, the Hijri days approximate |
 | Myanmar 🇲🇲 | The full moons, National Day, the Kayin New Year and Deepavali on the Burmese calendar (`burmese`), Thingyan from the calendar's own akya and atat moments; the gazette's annual extensions not carried; Eid al-Adha approximate |
 | Nepal 🇳🇵 | The public holidays on a fixed date, from the Ministry of Home Affairs' notices for 2082 and 2083 BS: New Year, Republic Day, Constitution Day, Prithvi Jayanti, Maghe Sankranti, Martyrs' Day and Democracy Day on `bikram-sambat`, and Labour Day, Christmas and Women's Day on their Gregorian dates, as the notices give them. The festivals on `hindu-lunar` read at Kathmandu — Buddha Jayanti, Janai Purnima, Janmashtami, Ghatasthapana, Dashain and Tihar for as many days as each year's notice gives, Dhanya Purnima, Sonam and Gyalpo Lhosar, Maha Shivaratri — with Tamu Lhosar on Pus 15; the part of the day each tithi holds is fitted to the notices of 2080–2083 BS, so they are approximate, as are the two Eids. Chhath, which no single rule fits, and the holidays for one community or region are not carried. The one-day weekend until April 2026 |
 | Papua New Guinea 🇵🇬 | Chapter 321's own days — New Year, the Easter weekend, Remembrance Day, Christmas and Boxing Day — with the Sunday rule; Independence Day, the Sovereign's Birthday and the other gazetted days not carried |
@@ -304,15 +306,19 @@ Ordered by how well the sources can be cited, not by importance.
 | Fiji 🇫🇯 | The Ministry of Information's yearly lists for 2019–2026, every day of each as listed — Constitution Day to 2022, Girmit Day and Ratu Sir Lala Sukuna Day from 2023, the Prophet's Birthday and Diwali, and the weekend moves the lists make in some years and not others — a year outside reported as a gap; Good Friday, Easter Saturday and Easter Monday by rule from Cap. 101's Schedule |
 | Kiribati 🇰🇮 | The Beretitenti's orders under Cap. 81 for 2025 (revised) and 2026, every day of each as ordered, the "in honour of" days included, a year outside reported as a gap; Good Friday and Easter Monday by rule; the Schedule days an order keeps without listing not carried |
 
-**Planned** — every remaining UN member state and observer, plus the
-subdivisions that have their own legal holidays. Tracked as one issue per
-country so that each lands with a citable source.
+**Planned** — the United Nations member states without a table,
+Afghanistan, the Central African Republic, the Comoros, Equatorial Guinea,
+Eritrea, Eswatini, Gabon, the Gambia, Guinea-Bissau, Liberia, Niger, North
+Korea, São Tomé and Príncipe, Sierra Leone, Somalia, South Sudan, Sudan and
+Togo, plus the subdivisions that have their own legal holidays. Tracked as
+one issue per country so that each lands with a citable source.
 
-**Researching** — countries whose holiday dates are announced annually by
-decree rather than fixed in law (much of the Gulf, parts of South Asia). These
-are supported as *predictions* with an explicit `Approximate` flag; the hook
-for supplying an announced table is simply to build a `RuleSet` of your own,
-which the engine takes on the same terms as its own.
+Where a country's dates are announced each year by decree rather than fixed
+in law, its table carries the notices that were read and reports any other
+year as a gap, as Sri Lanka's, Cambodia's and Fiji's do, or predicts the date
+with an explicit `Approximate` flag, as every Hijri-dated entry does. A caller
+holding an announced table can build a `RuleSet` of their own, which the
+engine takes on the same terms as its own.
 
 ## Stage 3 — Beyond public holidays
 
@@ -326,7 +332,9 @@ which the engine takes on the same terms as its own.
 
 ## Adding a country
 
-1. Add a `CountryRules` entry with its rules and a `sources_checked` date.
+1. Add a `CountryRules` entry with its rules and a `sources_checked` date,
+   and register it in `countries::ALL`, whose length a test holds to the
+   count the crate README states.
 2. Cite the statute or the government gazette in a comment. A holiday without a
    source is a rumour.
 3. Test at least five specific dates across at least two different years,

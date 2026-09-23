@@ -325,9 +325,10 @@ hc_core::catalogue! {
     /// A 705 600 000th of a second.
     ///
     /// Chosen so that a single frame at 24, 25, 30, 48, 50, 60, 90, 100 or 120
-    /// fps, a single sample at 8, 16, 22.05, 24, 32, 44.1, 48, 88.2, 96 or 192
-    /// kHz, and the NTSC 1000/1001 pull-down of any of them, are each a whole
-    /// number of flicks. `crate::media` tests exactly that.
+    /// fps, the NTSC 1000/1001 pull-down of any of those frame rates, and a
+    /// single sample at 8, 16, 22.05, 24, 32, 44.1, 48, 88.2, 96 or 192 kHz
+    /// are each a whole number of flicks. The crate's tests check every rate in
+    /// [`crate::media`].
     pub const FLICK = unit(
         "flick",
         "flick",

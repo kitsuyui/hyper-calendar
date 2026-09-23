@@ -1,12 +1,11 @@
 //! Tables for the Middle East and Africa.
 //!
-//! Two things in this file exist nowhere else in the crate. The first is the
-//! **Friday–Saturday weekend**, and the fact that two of these countries
-//! changed theirs inside the last fifteen years: Saudi Arabia moved from
-//! Thursday–Friday in June 2013, and the United Arab Emirates to
-//! Saturday–Sunday on 1 January 2022. The second is **Israel's Independence
-//! Day**, whose statute is a sentence rather than a pattern and which is
-//! therefore one of the crate's handful of [`Rule::Computed`] rules.
+//! Most of the crate's **Friday–Saturday weekends** are in this file, and so
+//! are most of its weekend changes: Saudi Arabia moved from Thursday–Friday
+//! in June 2013, and the United Arab Emirates to Saturday–Sunday on
+//! 1 January 2022. So is **Israel's Independence Day**, whose statute is a
+//! sentence rather than a pattern and which is therefore a
+//! [`Rule::Computed`] rule.
 
 use hc_calendar::{Month, Rd, Weekday};
 use hc_calendars_indic::nakshatra::PUSHYA;
@@ -265,7 +264,7 @@ static IR_RULES: &[HolidayRule] = &[
 
 /// Iran.
 ///
-/// Two calendars, and the crate can now be honest about both. The civil
+/// Two calendars, and the table is honest about both. The civil
 /// holidays are dated in the Solar Hijri calendar as Iran keeps it — the
 /// astronomical `persian`, Nowruz on the equinox day or the day after
 /// depending on noon in Tehran — so they are exact; the arithmetic cycle

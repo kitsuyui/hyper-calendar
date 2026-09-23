@@ -75,9 +75,8 @@
 //! the tests demonstrate that. In a 240-day period the last sixty days will
 //! differ from any given publisher, and this crate does not pretend
 //! otherwise: [`DayStarPeriod::is_leap_period`] reports when a caller is in
-//! one. Under the nearest-甲子 rule the 240-day periods fall at the June
-//! solstice of 2020, the December solstice of 2031 and the June solstice of
-//! 2043.
+//! one. Under the nearest-甲子 rule, 240-day periods open on 23 November
+//! 2019, 24 May 2031 and 26 May 2042.
 //!
 //! # Sources
 //!
@@ -346,7 +345,7 @@ impl DayStarPeriod {
     }
 }
 
-/// The 甲子 day nearest a given day, ties resolved toward the earlier.
+/// The 甲子 day nearest a given day, ties resolved toward the later.
 ///
 /// The sexagenary cycle is sixty days, so a 甲子 always lies within thirty
 /// days either way. こよみのページ states the rule operationally: if the
@@ -766,9 +765,8 @@ mod tests {
 
     /// Every period runs 180 days, except the roughly one in twenty-three
     /// that runs 240 and needs a 閏 this crate does not implement. Over
-    /// 2021–2030 there should be none; the known 240-day periods under the
-    /// nearest-甲子 rule are the June solstice of 2020, December 2031 and
-    /// June 2043.
+    /// 2021–2030 there should be none; under the nearest-甲子 rule the
+    /// 240-day periods either side open on 23 November 2019 and 24 May 2031.
     #[test]
     fn periods_run_a_hundred_and_eighty_days_except_at_a_leap() {
         // RD 737_791 is 2021-01-01; the loop runs to the end of 2030.

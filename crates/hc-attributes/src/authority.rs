@@ -8,7 +8,7 @@
 //! the only functions that compare several.
 //!
 //! That is deliberately the same split `hc_almanac::rules` makes: thirty-six
-//! 暦注 there share one `rule_applies`, and nine birthstone and flower lists
+//! 暦注 there share one `rule_applies`, and nine stone and flower lists
 //! here share one `at`. The alternative — a `birthstone(month)` function per
 //! list — would be nine places to silently pick a default.
 //!

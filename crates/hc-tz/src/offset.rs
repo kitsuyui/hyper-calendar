@@ -11,11 +11,13 @@ use crate::error::{TzError, TzResult};
 
 /// The largest magnitude an offset may have, in seconds: `25:59:59`.
 ///
-/// RFC 8536 §3.2 bounds a TZif local time type's `utoff` to
-/// `-25:59:59 ..= +25:59:59`, and POSIX `TZ` strings inherit the same limit
-/// in practice. Real civil offsets span only `-12:00 ..= +14:00`, but the
-/// wider window lets historical local-mean-time records (Asia/Manila's
-/// `-15:56:00` before 1844, say) and hand-written test data through.
+/// RFC 8536 §3.2 says a TZif local time type's `utoff` should lie in
+/// `[-89999, 93599]` seconds, more than −25 hours and less than 26; this
+/// type accepts the symmetric window `-25:59:59 ..= +25:59:59` that contains
+/// it, and POSIX `TZ` strings inherit the same limit in practice. Real
+/// civil offsets span only `-12:00 ..= +14:00`, but the wider window lets
+/// historical local-mean-time records (Asia/Manila's `-15:56:00` before
+/// 1844, say) and hand-written test data through.
 pub const MAX_OFFSET_SECONDS: i32 = 25 * 3_600 + 59 * 60 + 59;
 
 /// A fixed displacement from UTC, counted in whole seconds, positive east.

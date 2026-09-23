@@ -8,13 +8,12 @@
 //! Human Rights Day is answering "what is today" for some people and not
 //! others.
 //!
-//! # Source, and the promise
+//! # Source
 //!
 //! The United Nations' own list, *International Days and Weeks*
 //! (`un.org/en/observances/list-days-weeks`, retrieved 2026-09-22), which
 //! gives each day's date and the General Assembly resolution or the agency
-//! that designated it. `docs/observances.md` promised that each entry
-//! would cite its resolution, and each does, in
+//! that designated it. Each entry cites its resolution or agency in
 //! [`HolidayRule::source`](crate::rule::HolidayRule::source): a test asserts
 //! that none is blank. The weeks the list also carries — World Space Week,
 //! Disarmament Week and the rest — are spans, not days, and are not here.

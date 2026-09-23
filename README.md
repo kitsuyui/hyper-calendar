@@ -75,8 +75,7 @@ assert!(ship < 29.0 && home > 2.5e6);
 
 > These three blocks are doctests. The crate includes this file with
 > `#[doc = include_str!]` under `cfg(doctest)`, so a README example that stops
-> compiling fails CI. It was written after all three had quietly rotted into
-> API that never existed.
+> compiling fails CI.
 
 ## The eight requirements, and where they live
 

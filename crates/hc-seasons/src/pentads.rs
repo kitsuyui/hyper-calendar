@@ -25,8 +25,8 @@
 //! # What this module does not claim
 //!
 //! The 5° division is the modern 定気 one: a pentad is an arc of the
-//! ecliptic, so its length in days varies from about 4.7 near perihelion to
-//! about 5.3 near aphelion. Pre-1685 Japanese and pre-1645 Chinese almanacs
+//! ecliptic, so its length in days varies from about 4.9 near perihelion to
+//! about 5.2 near aphelion. Pre-1685 Japanese and pre-1645 Chinese almanacs
 //! used 平気, equal divisions *in time*, and those give different dates. This
 //! module does not implement 平気.
 
@@ -51,11 +51,10 @@ pub const PENTADS_PER_TERM: usize = 3;
 ///
 /// # Why this is a struct and not an enum
 ///
-/// It was an enum of two, with a `PentadNames` struct behind it holding
-/// **72 rows of four fields**. Adding a tradition meant two more fields and
-/// an edit to every one of those rows, and the field list was a claim that
-/// the 七十二候 have been named twice and no more — which is not this
-/// crate's to make. The Korean 칠십이후 and several later Japanese
+/// An enum of two, with a table of **72 rows of four fields** behind it,
+/// would make adding a tradition two more fields and an edit to every one of
+/// those rows, and the field list would claim that the 七十二候 have been
+/// named twice and no more — which is not this crate's to make. The Korean 칠십이후 and several later Japanese
 /// revisions name the same 72 intervals.
 ///
 /// So the table is transposed. A tradition is one entry carrying its own 72

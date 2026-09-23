@@ -11,8 +11,7 @@
 //! glue at all.
 //!
 //! The cost is that the JavaScript side does the string marshalling. That is
-//! about thirty lines, shown below, and it is thirty lines the caller can
-//! read.
+//! a few lines, shown below, and they are lines the caller can read.
 //!
 //! # Memory
 //!
@@ -30,13 +29,13 @@
 //! );
 //! const wasm = instance.exports;
 //!
-//! // 2026-09-21 as a fixed day number.
-//! const rd = wasm.hc_gregorian_to_fixed(2026, 9, 21);
+//! // 2026-09-21 as a fixed day number. i64 arrives as a BigInt.
+//! const rd = wasm.hc_gregorian_to_fixed(2026n, 9, 21);
 //!
 //! // Read it back as an ISO 8601 date.
 //! const cap = 32;
 //! const ptr = wasm.hc_alloc(cap);
-//! const len = wasm.hc_format_iso_date(rd, ptr, cap);
+//! const len = Number(wasm.hc_format_iso_date(rd, ptr, cap));
 //! const bytes = new Uint8Array(wasm.memory.buffer, ptr, len);
 //! const text = new TextDecoder().decode(bytes);
 //! wasm.hc_free(ptr, cap);
@@ -47,9 +46,9 @@
 //! Functions returning a day number or a count return a negative sentinel on
 //! failure rather than trapping, because a trap tears down the instance and
 //! takes any other work in it with it. The sentinels are the `HC_ERR_*`
-//! constants, all below [`HC_ERR_FLOOR`], and a day number can never be that
-//! negative: [`HC_ERR_FLOOR`] is more than a thousand times the age of the
-//! universe in days.
+//! constants, all at or below [`HC_ERR_FLOOR`], and a day number can never
+//! be that negative: [`HC_ERR_FLOOR`] is more than a thousand times the age
+//! of the universe in days.
 
 #![allow(unsafe_code)]
 #![warn(missing_docs)]
@@ -209,9 +208,10 @@ pub extern "C" fn hc_fixed_from_unix(unix_seconds: i64) -> i64 {
 
 /// `TAI - UTC` in whole seconds at a POSIX timestamp.
 ///
-/// `strict` non-zero refuses to answer past the announced leap-second table,
-/// returning [`HC_ERR_NO_DATA`]; zero holds the last published value. The
-/// difference is a forecast, so it is the caller's choice to make.
+/// `strict` non-zero refuses to answer before 1961 and past the announced
+/// leap-second table, returning [`HC_ERR_NO_DATA`]; zero holds the last
+/// published value. The difference is a forecast, so it is the caller's
+/// choice to make.
 #[unsafe(no_mangle)]
 pub extern "C" fn hc_tai_minus_utc(unix_seconds: i64, strict: i32) -> i64 {
     let policy = if strict != 0 {

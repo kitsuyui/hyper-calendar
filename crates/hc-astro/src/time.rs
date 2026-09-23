@@ -246,11 +246,9 @@ pub fn centuries_from_dynamical_julian_date(julian_date: f64) -> f64 {
 /// The fixed day on which a proleptic Gregorian year begins.
 ///
 /// An adapter over [`hc_calendar::gregorian::new_year`], which owns this
-/// arithmetic. An earlier version of this module implemented it here, on the
-/// grounds that "this crate cannot ask `hc-calendars-solar` for this: the
-/// solar calendars depend on the astronomy, not the other way round." That
-/// was true and beside the point — the owner is `hc-calendar`, which this
-/// crate already depends on, and which the solar calendars depend on too.
+/// arithmetic. The owner is `hc-calendar` rather than `hc-calendars-solar`,
+/// so this crate can use it without depending on the solar calendars, which
+/// depend on the astronomy.
 #[must_use]
 pub const fn gregorian_new_year(year: i64) -> Rd {
     hc_calendar::gregorian::new_year(year)

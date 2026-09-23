@@ -71,10 +71,9 @@ const fn weekday_widths(
 /// The calendars that share the Gregorian month names.
 ///
 /// They differ in how they count years, not in what they call the months,
-/// so one vocabulary entry serves all of them. This replaces the alias
-/// function that used to map identifiers onto `gregory` — and two of the
-/// identifiers that function listed, `iso8601` and `roc`, were not
-/// registry identifiers at all, so their entries were inert.
+/// so one vocabulary entry serves all of them. Every identifier here must be
+/// one the registry answers to, or its entry is inert; `hyper-calendar`'s
+/// vocabulary test checks that.
 const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("gregory"),
     CalendarId("julian"),
@@ -152,9 +151,9 @@ const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
 
 /// The Solar Hijri calendar.
 ///
-/// The registry calls it `persian-arithmetic`. This data used to key it as
-/// `persian`, a name no calendar answered to, so the twelve Persian month
-/// names below were written, tested and unreachable.
+/// The registry has it twice: `persian-arithmetic`, the Birashk
+/// arithmetic calendar, and `persian`, the astronomical calendar of
+/// `hc-calendars-equinox`. Their months have the same names.
 const PERSIAN_CALENDARS: &[CalendarId] = &[CalendarId("persian-arithmetic"), CalendarId("persian")];
 
 /// The Coptic calendar.
@@ -2272,11 +2271,9 @@ mod tests {
 
     /// Every width of a cycle must carry the same number of names.
     ///
-    /// This replaces a test that asserted every month list had twelve or
-    /// thirteen entries. That assertion was not a safety net, it was the
-    /// hole: it made the Badíʿ calendar's nineteen months and the Maya
-    /// Haabʼ's nineteen *rejectable* rather than merely absent, so the data
-    /// could not have been added even by someone willing to write it.
+    /// A fixed expected length — twelve or thirteen months — would be the
+    /// wrong test: it would reject the Badíʿ calendar's nineteen months and
+    /// the Maya Haabʼ's nineteen, correct data included.
     ///
     /// What is actually invariant is internal consistency — a calendar that
     /// names twelve months wide must name twelve abbreviated — and

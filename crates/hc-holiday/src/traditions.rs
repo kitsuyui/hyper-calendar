@@ -283,10 +283,10 @@ static ETHIOPIAN_ORTHODOX_RULES: &[HolidayRule] = &[
 /// The feasts of the Ethiopian Orthodox Tewahedo Church.
 ///
 /// The fixed ones are ordinary dates — 29 Tahsas, 11 Tirr — in the calendar
-/// the church actually keeps, and until [`CalendarSystem`] stopped being a
-/// closed enum **none of them could be written down at all**. The options
-/// were to approximate them in a calendar they do not belong to, or to
-/// leave them out.
+/// the church actually keeps, and they are written down there, because
+/// [`CalendarSystem`] is open to any calendar the registry names. A closed
+/// list of calendars would have left two poor choices: approximate them in
+/// a calendar they do not belong to, or leave them out.
 ///
 /// The movable ones follow *Bahire Hasab*, the Ethiopian computus. Its
 /// arithmetic — the cycle of evangelists, *wengelawi*, *abektie* and
@@ -403,8 +403,7 @@ static COPTIC_ORTHODOX_RULES: &[HolidayRule] = &[
 /// both Feasts of the Cross, the Apostles and the two feasts of St Mary,
 /// dated in the Coptic calendar the church keeps; and the paschal cycle from
 /// the Fast of Nineveh to Pentecost as offsets from the Julian-computus
-/// Easter, which is the Alexandrian one. This is the second of the calendars
-/// the closed `CalendarSystem` could not name, after the Ethiopian.
+/// Easter, which is the Alexandrian one.
 ///
 /// The Arabic names are the ones the church's own publications use; the
 /// Coptic-language names of the feasts are not carried.

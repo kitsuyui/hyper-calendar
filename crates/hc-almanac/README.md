@@ -16,7 +16,7 @@ let notes = day_notes(Rd(738_886), Meridian::JAPAN); // 1 January 2024
 assert_eq!(notes.sexagenary().index(), 0);           // 甲子
 assert_eq!(notes.twelve_direct().japanese_name(), "建");
 assert_eq!(notes.mansion().japanese_name(), "畢");
-assert!(notes.lower_register().contains(LowerRegister::Tenshanichi));
+assert!(notes.lower_register().contains(LowerRegister::TENSHANICHI));
 ```
 
 ## Coverage
@@ -81,7 +81,8 @@ A warning worth repeating: most of the well-known Japanese 暦注 websites desce
 from the same 岡田芳朗 lineage, so four agreeing pages are often one witness. The
 tests therefore anchor on printed date lists as well as on rule statements,
 because a citation cannot catch a transcription error and a published calendar
-can. Three circulated tables were caught that way and corrected:
+can. Three circulated tables disagree with the printed lists, and the crate
+follows the lists:
 
 * 一粒万倍日, 亥月 row: **酉・戌**, not the widely copied 酉・午.
 * 大明日: the **25**-entry list, which includes 己巳 and excludes 乙卯.
@@ -112,31 +113,32 @@ can. Three circulated tables were caught that way and corrected:
 
 A term instant within about a minute of local midnight can still be assigned
 the wrong *day*, which moves a 節月 boundary and with it every annotation
-keyed to one. The
-sharpest real case the crate tests is 立秋 2025, which fell at 22:52 JST on 7
+keyed to one. The sharpest real case the crate tests is 立秋 2025, which fell at 22:52 JST on 7
 August: the whole of that day is 申月, which is what makes it the autumn 天赦日.
 
 For the lunisolar class the divergence is measured rather than asserted, and
 the measurement lives in `hc_seasons::lunisolar` beside both implementations.
 Over the 3,653 days of 2024–2033, `hc-seasons`' minimal derivation and the
-Japanese 旧暦 disagree on **89 days, 2.4%**, in a handful of contiguous runs —
-they differ about a whole month's numbering, not about single days.
+Japanese 旧暦 disagree on **89 days, 2.4%**, all in one contiguous run from 25
+August to 21 November 2033. They differ about a whole month's numbering, not
+about single days.
 
-**A correction to an earlier version of this note:** it said the comparison
-was against `hc-calendars-lunar`'s Chinese calendar. That was the wrong
-reference. Japan computes the 旧暦 at 135°E and China at 120°E, and that hour
-moves month boundaries on its own, so measuring against the Chinese calendar
-conflates a meridian difference with a method difference — it gives 239 days
-rather than 89, nearly triple. The right reference is the unbounded Tenpō
-engine, which is the Tenpō rules continued past their 1872 abolition, and is
-what Japanese almanacs have keyed 六曜 to ever since.
+The reference matters. The right one is the unbounded Tenpō engine, which is
+the Tenpō rules continued past their 1872 abolition, and is what Japanese
+almanacs have keyed 六曜 to ever since. Japan computes the 旧暦 at 135°E and
+China at 120°E, and that hour moves month boundaries on its own. Comparing the
+derivation read at the Japanese meridian with `hc-calendars-lunar`'s Chinese
+calendar therefore conflates a meridian difference with a method difference,
+and gives 239 days rather than 89. Read at the Chinese meridian, the
+derivation differs from the Chinese calendar on the same 89 days; the test in
+`hc_almanac::context` guards that figure.
 
 This crate uses the minimal derivation deliberately, so that 六曜, 不成就日 and
 二十七宿 agree with one another and with the 六曜 a caller gets from
-`hc-seasons`. Routing through the real calendar was tried and rejected: it
-makes every annotation pay for a new-moon search, taking the seasons crate's
-own test suite from seconds to over ten minutes, and routing only some of the
-annotations makes them contradict each other. `hc-calendars-lunar` is
+`hc-seasons`. Routing through the real calendar makes every annotation pay for
+a new-moon search, which takes the seasons crate's own test suite from seconds
+to over ten minutes, and routing only some of the annotations makes them
+contradict each other. `hc-calendars-lunar` is
 re-exported for callers who want the fuller article.
 
 ## Documented gaps
@@ -151,8 +153,8 @@ Things this crate deliberately does not do, rather than guessing:
   の計算方式が乱立している状態」 and labels its own scheme 「独自に考案した方式」.
   This crate counts continuously and applies no correction;
   `DayStarPeriod::is_leap_period` tells a caller when its answer will differ from
-  a publisher's. The next such periods open at the June solstice of 2020, the
-  December solstice of 2031 and the June solstice of 2043.
+  a publisher's. Under the nearest-甲子 rule, 240-day periods open on 23
+  November 2019, 24 May 2031 and 26 May 2042.
 * **Per-mansion 吉凶 lists.** The 吉/凶 flag is shipped; the per-mansion lists of
   favoured and forbidden undertakings are not, because published tables diverge
   enough that picking one would be inventing a tradition. Only the two statements
@@ -164,19 +166,19 @@ Things this crate deliberately does not do, rather than guessing:
   All 33 are emitted.
 * **凶会日 as 月切り.** Sources contradict each other, and one contradicts itself.
   The 節月 reading is implemented and the reason is stated in
-  `LowerRegister::Kuenichi`; a caller wanting the 旧暦月 reading must evaluate the
+  `LowerRegister::KUENICHI`; a caller wanting the 旧暦月 reading must evaluate the
   shipped table against `DayContext::lunisolar` itself.
 * **臘日.** At least four incompatible definitions are in print and many almanacs
   omit it. Not implemented.
-* **三伏 (初伏・中伏・末伏).** A period rather than a cycle rule; it needs an
-  "nth stem day after a term" shape that nothing else in the crate uses. Not
-  implemented.
+* **三伏 (初伏・中伏・末伏).** A period counted from the summer solstice and 立秋
+  rather than a rule over a cycle, so it is not an annotation here.
+  `hc_seasons::san_fu` computes it.
 * **納音.** Not modelled, so the per-person forms of 五墓日 and the 三箇の悪日
   cannot be filtered.
 * **The astronomical mansion.** `mansion_of` is the almanac's 28-day *counter*
   and has nothing to do with where the Moon is; the sidereal month is 27.32 days,
-  so the two lap each other in under three years. Finding the mansion the Moon is
-  actually in means taking `hc_astro::lunar_longitude` and a star catalogue, and
+  so the two lap each other in about 1,128 days, a little over three years.
+  Finding the mansion the Moon is actually in means taking `hc_astro::lunar_longitude` and a star catalogue, and
   that is an `hc-astro` problem rather than a 暦注 one.
 
 ## The two places the bugs live
@@ -198,7 +200,7 @@ where the doubled star appears.
 
 ## Testing
 
-109 unit tests and 3 doc tests. The anchors are published almanac dates, cited in
+126 unit tests and 3 doc tests. The anchors are published almanac dates, cited in
 the test doc comments: whole published years of 一粒万倍日, 三隣亡 and 往亡日;
 the 2024 鬼宿日 list; the 2024 and 2025 天赦日; the 八専, 十方暮 and 天一天上
 windows for 2025; the 二十七宿 for September 2026; and the 1685 epoch of the

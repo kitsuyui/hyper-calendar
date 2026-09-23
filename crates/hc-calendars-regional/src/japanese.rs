@@ -64,15 +64,18 @@
 //!
 //! # Accuracy
 //!
-//! From 1873 the calendar is exact integer arithmetic. Before it, every day
-//! comes from the Tenpō calendar, which is astronomical: new moons are good
-//! to about a minute and the apparent solar longitude to about 1″, and a
-//! month boundary computed here can still differ by one day from what the
-//! Japanese calendar bureau actually promulgated, because the bureau
-//! computed from its own tables rather than from modern astronomy. See
-//! [`hc_calendars_lunar::japanese_tenpo`] for the meridian and the model.
-//! No table of the promulgated Tenpō months is shipped with this crate, so
-//! this module cannot report a disagreement rate against one.
+//! From 1873 the calendar is exact integer arithmetic. From 1844 to 1872
+//! every day comes from the Tenpō calendar, which is astronomical: new
+//! moons are good to about a minute and the apparent solar longitude to
+//! about 1″, and a month boundary computed here can still differ by one day
+//! from what the Japanese calendar bureau actually promulgated, because the
+//! bureau computed from its own tables rather than from modern astronomy.
+//! See [`hc_calendars_lunar::japanese_tenpo`] for the meridian and the
+//! model. No table of the promulgated Tenpō months is shipped with this
+//! crate, so this module cannot report a disagreement rate against one.
+//! Before 1844 every day comes from the system in force, on its own
+//! constants, which `hc-calendars-lunar` measures against a published
+//! table of the months from 862 to 1843.
 
 use core::fmt;
 

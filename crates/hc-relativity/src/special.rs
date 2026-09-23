@@ -224,8 +224,8 @@ pub fn transverse_doppler(beta: f64) -> RelativityResult<f64> {
 /// # Errors
 ///
 /// See [`check_beta`]; also returns [`RelativityError::NotFinite`] for a
-/// non-finite or out-of-range `cos_theta`, and
-/// [`RelativityError::NonPositive`] when `|cos θ| > 1`.
+/// non-finite `cos_theta` and [`RelativityError::NonPositive`] when
+/// `|cos θ| > 1`.
 pub fn aberrated_cosine(cos_theta: f64, beta: f64) -> RelativityResult<f64> {
     let beta = check_beta(beta)?;
     let cos_theta = finite(cos_theta)?;

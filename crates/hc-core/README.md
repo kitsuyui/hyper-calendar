@@ -29,14 +29,14 @@ The time primitives every other crate uses and none may redefine.
 
 | Claim | |
 | --- | --- |
-| `Duration` | exact to the attosecond over a range of about 10³⁰ years; arithmetic reports overflow rather than wrapping |
+| `Duration` | exact to the attosecond over a range of about 5 × 10³⁰ years; arithmetic reports overflow rather than wrapping |
 | TAI − TT | exactly 32.184 s |
 | TAI − UTC, 1972 onward | exact, a whole number of seconds from the IANA `leap-seconds.list`, which mirrors IERS Bulletin C; the last entry is the leap second of 2017-01-01 |
 | TAI − UTC, 1961 to 1971 | the official rate-offset coefficients of that era, in `RATE_ERA` |
 | before 1961 | refused: UTC did not exist, and a conversion returns `BeforeModelStart` unless the caller opts into treating UTC as TAI |
 | after the table's announced validity | `LeapPolicy::Strict` refuses with `AfterModelEnd`; `LeapPolicy::Extrapolate` holds the last published offset, and the caller has named the forecast by choosing it |
 | `23:59:60` | representable: `UtcInstant` carries the leap-second flag that POSIX time cannot |
-| TDB, UT1 | models, not constants. TDB follows a periodic series in `scale`; UT1 comes only from a caller-supplied offset series and is refused outside it |
+| TDB, UT1 | models, not constants. TDB follows a periodic series in `scale`. Real UT1 needs a caller-supplied `Ut1Offsets` series, which refuses to extrapolate outside its samples; the `Ut1` marker alone is a placeholder that returns the TAI reading unchanged |
 
 The table's validity horizon is `leap::table_valid_until_unix`, the expiry
 declared by the `leap-seconds.list` it was built from, and it is updated

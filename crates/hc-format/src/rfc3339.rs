@@ -139,8 +139,8 @@ pub fn write<W: fmt::Write>(
 ///
 /// # Errors
 ///
-/// See [`write`], plus [`FormatError::Unrepresentable`] when the instant is
-/// outside the Gregorian range.
+/// See [`write`](fn@write), plus [`FormatError::Unrepresentable`] when the
+/// instant is outside the Gregorian range.
 pub fn write_unix<W: fmt::Write>(
     out: &mut W,
     unix: UnixTime,
@@ -161,7 +161,7 @@ pub fn write_unix<W: fmt::Write>(
 ///
 /// # Errors
 ///
-/// See [`write`].
+/// See [`write`](fn@write).
 pub fn write_civil<W: fmt::Write>(
     out: &mut W,
     local: CivilDateTime,

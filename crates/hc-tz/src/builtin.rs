@@ -151,9 +151,8 @@ pub fn zone(id: &str) -> TzResult<PosixTimeZone<'static>> {
 #[cfg(test)]
 mod tests {
     /// The README states this count twice, and a documented count that
-    /// drifts is a documented lie. An audit reported it as eighteen against
-    /// the README's seventeen; the README was right, and this is why the
-    /// count now lives where it can be checked.
+    /// drifts is a documented lie. The count is easy to get wrong by eye, so
+    /// it is checked here rather than trusted.
     #[test]
     fn the_builtin_zone_count_is_the_one_the_readme_states() {
         assert_eq!(ZONES.len(), 17);

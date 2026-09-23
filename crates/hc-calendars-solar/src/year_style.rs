@@ -3,7 +3,7 @@
 //! [`crate::julian_gregorian`] models the day a country moved from the
 //! Julian calendar to the Gregorian one, and says in its own doc comment
 //! that it does not model the *start of the year*: "recovering that
-//! requires knowing the scribe's convention, not just the country". That is
+//! needs the scribe's convention, not just the country". That is
 //! true, and it is precisely the case policy §5 answers — a finite set of
 //! named conventions the caller selects, rather than one silent default.
 //!

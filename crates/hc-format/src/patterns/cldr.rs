@@ -24,10 +24,11 @@
 //!   this workspace.
 //! * `U` (cyclic year name), `r` (related Gregorian year) and `g` (modified
 //!   Julian day) belong to calendars that are not this module's subject.
-//! * `z`, `O` and `v` are format-only. Parsing them would mean mapping an
-//!   abbreviation back to a zone, and abbreviations are not unique: `CST` is
-//!   three different zones. Parsing consumes such a field and leaves the
-//!   zone unstated unless RFC 5322 assigns the name an offset.
+//! * `z`, `v` and `V` are not resolved when parsing. Resolving them would
+//!   mean mapping an abbreviation back to a zone, and abbreviations are not
+//!   unique: `CST` is three different zones. Parsing consumes such a field
+//!   and leaves the zone unstated unless RFC 5322 assigns the name an
+//!   offset.
 
 use core::fmt;
 

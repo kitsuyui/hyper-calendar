@@ -44,8 +44,8 @@
 //!
 //! Instants are produced by counting 86 400-second days from the 1970 epoch
 //! on the TAI scale. That ignores leap seconds, so a converted EDTF date is
-//! displaced from true TAI by the accumulated offset — under 40 seconds
-//! across the whole leap-second era, and zero before 1972. At EDTF's
+//! displaced from true TAI by `TAI - UTC` — under 40 seconds since UTC
+//! began in 1961, and undefined before that. At EDTF's
 //! coarsest useful resolution of one day this is irrelevant, and making it
 //! exact would require a UTC table that only covers 1 % of the range EDTF
 //! can express.

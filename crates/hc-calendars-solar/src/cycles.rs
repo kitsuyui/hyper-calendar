@@ -7,8 +7,8 @@
 //! Scaliger's Julian Period. A reader working with a medieval source has
 //! them and wants the year; a reader working with a year wants them.
 //!
-//! This crate could already compute Easter and threw every one of these
-//! away on the way to the answer.
+//! Easter itself is computed in `hc-holiday`; this module states the
+//! numbers it is computed from.
 //!
 //! # What each one is
 //!
@@ -254,7 +254,7 @@ pub const fn julian_epact(year: i64) -> u8 {
 /// years, because the Metonic cycle itself runs long.
 ///
 /// The century number is ⌊y/100⌋ **+ 1**, which is the one place this is
-/// easy to get wrong — and which the cross-check below caught when it was.
+/// easy to get wrong, and which the cross-check below guards.
 ///
 /// The correctness of all of it is not asserted but *derived*: `hc-holiday`
 /// rebuilds Easter out of this epact and compares it against Butcher's

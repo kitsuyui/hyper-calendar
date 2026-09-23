@@ -24,14 +24,16 @@ end, in the same country.
 
 **The calendar.** "The year starts on 1 April" is not a complete rule until the
 calendar is named. So a `YearStart` carries a `StartCalendar`, and the
-non-Gregorian entries go through the real calendars in `hc-calendars-solar`
-rather than through a hard-coded approximate Gregorian date:
+non-Gregorian entries go through the real calendars in `hc-calendars-solar` and
+`hc-calendars-indic` rather than through a hard-coded approximate Gregorian
+date:
 
 | Country | Start | Calendar | Labelled by |
 | --- | --- | --- | --- |
 | Iran | 1 Farvardin | `persian-arithmetic` | start year (Solar Hijri) |
 | Ethiopia | Hamle 1 | `ethiopic` | **end** year (Ethiopic) |
 | Thailand | 1 October | `buddhist` | **end** year (Buddhist Era) |
+| Nepal | 1 Shrawan | `bikram-sambat` | start year (Bikram Sambat) |
 
 Thailand is there because the label 2568 is a Buddhist Era year. Expressing
 that as a start *in the Thai calendar* rather than as a Gregorian date with 543
@@ -44,7 +46,7 @@ one piece of arithmetic then serves Bangkok, Tokyo and Tehran.
 | --- | --- |
 | `year_system` | the core type — a start in a named calendar, a labelling convention, a validity range. Given an `Rd` it yields the label and the position in the year; given a label it yields the span. |
 | `quarters` | quarters, halves and months *of the fiscal year*. Japan's Q1 is April–June; the United States federal Q1 is October–December. |
-| `countries` | 21 national tables, each with a source and a `sources_checked` date. |
+| `countries` | 22 national tables, each with a source and a `sources_checked` date. |
 | `academic` | 8 school and university years, each carrying how firmly it is fixed. |
 | `retail` | 4-4-5, 4-5-4, 5-4-4 and the 52/53-week year, as named conventions. |
 
@@ -104,7 +106,7 @@ example shows why the distinction matters — a Saturday year end in November
   quarter — 1 July to 30 September 1976, after FY1976 ended and before FY1977
   began — belongs to no fiscal year, and `FiscalProfile::at` returns `None` for
   every day in it. Sweden's eighteen-month 1995/96 budget year is likewise
-  outside both Swedish systems, so 1996 has no answer. England's 1751 and 1752
+  outside both Swedish budget-year systems, so 1996 has no answer. England's 1751 and 1752
   are outside both English ones.
 * **It refuses quarters it cannot define.** The Ethiopic year is twelve
   thirty-day months plus Pagumen. No source says which quarter Pagumen falls
@@ -171,7 +173,7 @@ crate declines to encode it and says why.
 
 ## Testing
 
-117 tests. Among them: Japan's 年度 boundary from both sides; the United States
+134 unit tests and 1 doc test. Among them: Japan's 年度 boundary from both sides; the United States
 and Japan labelling the same day a year apart; the 92 days of the 1976
 transition quarter belonging to no year; the UK tax year's 6 April start and
 its five-day offset from the government year; the published Solar Hijri years

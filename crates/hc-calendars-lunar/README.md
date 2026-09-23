@@ -1,9 +1,9 @@
 # `hc-calendars-lunar`
 
 Lunar and lunisolar calendars for [`hyper-calendar`]: the Hijri family, the
-Hebrew calendar, the East Asian lunisolar calendars of China, Korea and
-Vietnam, and the five successive lunisolar calendars Japan used between 862
-and 1872.
+Hebrew calendar, the Tibetan Phugpa calendar, the East Asian lunisolar
+calendars of China, Korea and Vietnam, and the five successive lunisolar
+calendars Japan used between 862 and 1872.
 
 Every calendar implements `hc_calendar::Calendar`, so every one of them
 converts through `Rd`, the Rata Die fixed day, and none of them knows the
@@ -15,6 +15,7 @@ others exist.
 |---|---|---|---|
 | `islamic_civil` | `islamic-civil` | arithmetic | 1–9999 AH |
 | `islamic_astronomical` | `islamic-tbla` | arithmetic | 1–9999 AH |
+| `tabular::FATIMID` | `islamic-fatimid` | arithmetic | 1–9999 AH |
 | `islamic_umalqura` | `islamic-umalqura` | published table | **1300–1600 AH only** |
 | `islamic_observational` | `islamic-rgsa` | prediction | 1900–2100 CE |
 | `hebrew` | `hebrew` | arithmetic | AM 1–9999 |
@@ -37,8 +38,8 @@ own period of use.
 `tabular` takes an epoch and one of four intercalation schemes, so eight
 tabular Hijri calendars are reachable, not two. `lunisolar` takes a meridian
 history, an epoch, a year numbering, a choice of true or mean solar terms
-and — new, and the whole of what makes the Japanese historical calendars
-possible — an optional `MeanMotionModel` holding one system's own period
+and — the whole of what makes the Japanese historical calendars possible —
+an optional `MeanMotionModel` holding one system's own period
 constants. Nine lunisolar calendars, one algorithm.
 
 ## Japan's historical calendars

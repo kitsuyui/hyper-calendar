@@ -419,9 +419,10 @@ fn check_distance(distance: f64) -> RelativityResult<f64> {
 ///
 /// # Errors
 ///
-/// See [`check_acceleration`]; also returns [`RelativityError::NotFinite`]
-/// when the result overflows, which happens after a few hundred years of
-/// proper time at 1 g.
+/// Returns [`RelativityError::NotFinite`] for a NaN or infinite argument and
+/// [`RelativityError::NonPositive`] for a proper acceleration that is zero or
+/// negative. Also returns [`RelativityError::NotFinite`] when the result
+/// overflows, which happens after a few hundred years of proper time at 1 g.
 pub fn rocket_coordinate_time(proper_acceleration: f64, proper_time: f64) -> RelativityResult<f64> {
     let acceleration = check_acceleration(proper_acceleration)?;
     let tau = finite(proper_time)?;
@@ -433,7 +434,9 @@ pub fn rocket_coordinate_time(proper_acceleration: f64, proper_time: f64) -> Rel
 ///
 /// # Errors
 ///
-/// See [`check_acceleration`].
+/// Returns [`RelativityError::NotFinite`] for a NaN or infinite argument and
+/// [`RelativityError::NonPositive`] for a proper acceleration that is zero or
+/// negative.
 pub fn rocket_proper_time(proper_acceleration: f64, coordinate_time: f64) -> RelativityResult<f64> {
     let acceleration = check_acceleration(proper_acceleration)?;
     let elapsed = finite(coordinate_time)?;
@@ -447,7 +450,9 @@ pub fn rocket_proper_time(proper_acceleration: f64, coordinate_time: f64) -> Rel
 ///
 /// # Errors
 ///
-/// See [`check_acceleration`].
+/// Returns [`RelativityError::NotFinite`] for a NaN or infinite argument and
+/// [`RelativityError::NonPositive`] for a proper acceleration that is zero or
+/// negative.
 pub fn rocket_distance(proper_acceleration: f64, proper_time: f64) -> RelativityResult<f64> {
     let acceleration = check_acceleration(proper_acceleration)?;
     let tau = finite(proper_time)?;
@@ -461,7 +466,9 @@ pub fn rocket_distance(proper_acceleration: f64, proper_time: f64) -> Relativity
 ///
 /// # Errors
 ///
-/// See [`check_acceleration`].
+/// Returns [`RelativityError::NotFinite`] for a NaN or infinite argument and
+/// [`RelativityError::NonPositive`] for a proper acceleration that is zero or
+/// negative.
 pub fn rocket_beta(proper_acceleration: f64, proper_time: f64) -> RelativityResult<f64> {
     let acceleration = check_acceleration(proper_acceleration)?;
     let tau = finite(proper_time)?;
@@ -477,7 +484,9 @@ pub fn rocket_beta(proper_acceleration: f64, proper_time: f64) -> RelativityResu
 ///
 /// # Errors
 ///
-/// See [`check_acceleration`] and [`check_distance`].
+/// Returns [`RelativityError::NotFinite`] for a NaN or infinite argument and
+/// [`RelativityError::NonPositive`] for a proper acceleration that is zero or
+/// negative or a negative distance.
 pub fn rocket_proper_time_for_distance(
     proper_acceleration: f64,
     distance: f64,
@@ -493,7 +502,9 @@ pub fn rocket_proper_time_for_distance(
 ///
 /// # Errors
 ///
-/// See [`check_acceleration`] and [`check_distance`].
+/// Returns [`RelativityError::NotFinite`] for a NaN or infinite argument and
+/// [`RelativityError::NonPositive`] for a proper acceleration that is zero or
+/// negative or a negative distance.
 pub fn rocket_coordinate_time_for_distance(
     proper_acceleration: f64,
     distance: f64,

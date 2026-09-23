@@ -3,8 +3,7 @@
 //! Ten Heavenly Stems against twelve Earthly Branches give sixty pairs, and
 //! East Asia has named years, months, days and two-hour periods with them
 //! for well over two thousand years. [`hc_calendar::cycle`] holds the
-//! arithmetic; this module turns it into a [`Calendar`] and adds the
-//! readings the same sixty names carry in Chinese, Japanese and Korean.
+//! arithmetic and the readings; this module turns it into a [`Calendar`].
 //!
 //! # The day cycle is the one that never broke
 //!
@@ -29,7 +28,7 @@
 //! calendar in this workspace counts. The two agree for most of each month
 //! and disagree for up to a fortnight around the boundaries. If you are
 //! casting a chart rather than reading a date, this is not the function you
-//! want.
+//! want: [`hc_calendar::cycle::month_pillar`] takes the solar-term month.
 //!
 //! The rule the month pillar does follow here is the traditional mnemonic
 //! 甲己之年丙作首 — in a year whose stem is 甲 or 己, the first month is

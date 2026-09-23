@@ -1,33 +1,29 @@
 //! What a calendar is *made of*: the positional cycles it runs.
 //!
-//! # The hole this closes
+//! # Why the shape belongs to the calendar
 //!
 //! Everything a calendar needs said in words — month names, weekday names,
 //! the names of a ten-day décade or a thirteen-day trecena — has to be
 //! stored somewhere, and that store has to know how many names to expect.
 //!
-//! `hc-i18n` used to assume the Gregorian answer: twelve or thirteen
-//! months, seven weekdays. That assumption was not a limitation to be
-//! worked around later; it was a *hole generator*. The Badíʿ calendar has
-//! nineteen months and could not be given names at all. The Maya Haabʼ has
-//! nineteen. The Aztec Xiuhpōhualli has eighteen and a remainder. The
-//! French Republican week is ten days long, so it had nowhere to live even
-//! though the calendar itself was implemented. A test asserted the twelve
-//! or thirteen, which meant the library would *reject* the correct data if
-//! anyone supplied it.
+//! Assuming the Gregorian answer, twelve or thirteen months and seven
+//! weekdays, leaves no room for the rest. The Badíʿ calendar has nineteen
+//! months, and so does the Maya Haabʼ. The Aztec Xiuhpōhualli has eighteen
+//! and a remainder. The French Republican week is ten days long. A name
+//! table that enforced the Gregorian counts would *reject* the correct data
+//! for all of them.
 //!
-//! So the shape moves to the calendar, where it is known, and the
+//! So the shape lives with the calendar, where it is known, and the
 //! vocabulary is keyed to it. A calendar that declares nineteen months can
 //! be given nineteen names; one that declares a ten-day week can be given
 //! ten. Nothing has to be special-cased, because nothing is assumed.
 //!
 //! # Why every calendar must declare one
 //!
-//! [`crate::Calendar::cycles`] has no default. It began as a defaulted
-//! method, so that a calendar could declare its shape when it had one and
-//! stay silent otherwise, with the silence reported by a test. Half the
-//! registry stayed silent. A gap a test can only report is a gap that
-//! persists; a gap the compiler refuses cannot. So a calendar with no named
+//! [`crate::Calendar::cycles`] has no default. A defaulted method would let
+//! a calendar stay silent about its shape, with the silence only reported by
+//! a test, and a gap a test can only report is a gap that persists; a gap
+//! the compiler refuses cannot. So a calendar with no named
 //! cycles — a day count — says so with an empty slice, and a calendar that
 //! says nothing does not build.
 

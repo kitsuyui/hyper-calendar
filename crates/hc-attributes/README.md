@@ -105,7 +105,9 @@ assert_eq!(harvest_moon_falls_in(2025, Meridian::UNIVERSAL), 10);
 assert_eq!(september_moon_name(2025, Meridian::UNIVERSAL), "Corn Moon");
 ```
 
-This is the only computation in the crate. Everything else is a static lookup.
+This and `zodiac_stones::stones_on`, which asks `hc-seasons` for the sign a
+day falls in, are the only computations in the crate. Everything else is a
+static lookup.
 
 ## The moon names are a publication history, not an ethnographic record
 
@@ -163,13 +165,13 @@ prose:
 
 The tables are exact: they are transcriptions, and the tests check them against
 the published lists — the ten stones the 2021 Japanese revision added, the four
-stones the British list has that no American list does, the three names the Old
-Farmer's Almanac changed after 1964.
+stones the British list has that the current American list does not, the three
+names the Old Farmer's Almanac changed after 1964.
 
 The Harvest Moon inherits `hc-seasons`' accuracy: lunar phases within about a
 minute, the September equinox within the minute the almanacs round to. The
-rule compares two intervals of roughly a fortnight, so neither
-error can change which month the answer falls in for any year tested (1900–2100).
+rule compares two intervals of roughly a fortnight, so neither error can change
+which month the answer falls in for any year tested (1900–2099).
 
 ## Where the data came from
 

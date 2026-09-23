@@ -646,8 +646,7 @@ mod tests {
         }
         assert_eq!(set.len() as usize, Combination::ALL.len());
         assert_eq!(set.iter().count(), Combination::ALL.len());
-        // Eight, the two clashes included. There used to be two lists, one
-        // of seven and one of eight, and they disagreed.
+        // Eight, the two clashes included.
         assert_eq!(Combination::ALL.len(), 8);
         let clashes = Combination::ALL
             .iter()

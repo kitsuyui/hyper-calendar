@@ -2,17 +2,16 @@
 //!
 //! `countries/mod.rs` already guards its own length with the comment "a
 //! documented count that drifts is a documented lie". These are the other
-//! numbers the prose commits to. One of them was wrong — the README said
-//! Hijri dates appeared in nine countries and the tables held ten — and
-//! another that an audit reported as wrong turned out to be right, which is
-//! the better argument for computing them than for correcting them.
+//! numbers the prose commits to. A count like these is easy to get wrong by
+//! hand in either direction, which is the argument for computing it rather
+//! than correcting it.
 
 use hc_holiday::{CalendarSystem, Rule, countries, traditions};
 
 /// Whether a rule is dated in a Hijri calendar, following `Offset` down to
 /// the rule it shifts.
 fn uses_hijri(rule: &Rule) -> bool {
-    // Compared by identifier, because a `CalendarSystem` is now a struct
+    // Compared by identifier, because a `CalendarSystem` is a struct
     // carrying function pointers and those cannot appear in a pattern.
     match rule {
         Rule::FixedInCalendar { system, .. } => {

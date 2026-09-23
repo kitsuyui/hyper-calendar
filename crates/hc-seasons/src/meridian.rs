@@ -4,11 +4,11 @@
 //! returns those in Universal Time. A calendar, though, wants a day, and a
 //! day starts at midnight *somewhere*. That "somewhere" is not a detail: the
 //! Chinese and Japanese calendars disagree about the date of a solar term
-//! several times a century purely because Beijing is an hour behind Tokyo,
-//! and the same instant therefore falls on two different dates.
+//! about once a year purely because Beijing is an hour behind Tokyo, and the
+//! same instant therefore falls on two different dates.
 //!
-//! So nothing in this crate silently assumes UT. Every function that returns
-//! an [`Rd`] takes a `Meridian`.
+//! So nothing in this crate silently assumes UT. Every function that turns an
+//! instant into an [`Rd`] takes a `Meridian`.
 //!
 //! This is *not* a time-zone database. A `Meridian` is a fixed offset, with
 //! no daylight saving and no history of political changes; `hc-tz` is where

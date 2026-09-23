@@ -1,13 +1,14 @@
 //! One rule value, one evaluator.
 //!
-//! There are roughly forty annotations in [`mod@crate::lower_register`] and
-//! [`mod@crate::selected_days`], and a naive implementation would be forty
-//! functions. It would also be forty places to get the 節月 boundary wrong.
+//! There are thirty-six annotations in [`mod@crate::lower_register`] and
+//! [`mod@crate::selected_days`], and a naive implementation would be
+//! thirty-six functions. It would also be thirty-six places to get the 節月
+//! boundary wrong.
 //!
 //! In fact they have only a handful of *shapes*. 大明日 is a list of
 //! sexagenary days. 受死日 is a branch per 節月. 月徳日 is a stem per 節月.
 //! 往亡日 is a day count from a sectional term. 不成就日 is a set of
-//! lunisolar days per lunisolar month. 八専 is a run of the sexagenary
+//! lunisolar days per lunisolar month. 十方暮 is a run of the sexagenary
 //! cycle. That is very nearly all of them.
 //!
 //! So an annotation here is a name plus an [`AlmanacRule`] value, and
@@ -17,12 +18,13 @@
 //!
 //! # Undetermined rules are a value, not a guess
 //!
-//! Several 暦注 have no rule this crate could establish from a citable
-//! source — 凶会日's full table is the clearest case. Those carry
-//! [`AlmanacRule::Undetermined`], and [`rule_applies`] answers `None` for
-//! them, never `false`. A caller can tell "the almanac says no" from "this
-//! crate does not know", which is the whole reason the return type is an
-//! `Option`.
+//! An annotation whose rule cannot be established from a citable source
+//! carries [`AlmanacRule::Undetermined`], and [`rule_applies`] answers
+//! `None` for it, never `false`. A caller can tell "the almanac says no"
+//! from "this crate does not know", which is the whole reason the return
+//! type is an `Option`. No shipped entry carries it: every annotation in
+//! the two catalogues has an established rule, and the ones without one are
+//! left out and listed in the README.
 
 use crate::context::DayContext;
 use crate::mansions::{Mansion, mansion_of};
@@ -51,8 +53,10 @@ pub enum AlmanacRule {
     /// The day falls in a run of consecutive sexagenary positions, wrapping
     /// at 癸亥.
     ///
-    /// 八専 (壬子 for twelve days), 十方暮 (甲申 for ten) and 天一天上 (癸巳
-    /// for sixteen) are all runs.
+    /// 十方暮 (甲申 for ten days), 天一天上 (癸巳 for sixteen), 大犯土 (庚午
+    /// for seven) and 小犯土 (戊寅 for seven) are runs. 八専 is not: its
+    /// twelve-day window less the four 間日 is a [`AlmanacRule::SexagenaryIn`]
+    /// list.
     SexagenaryRun {
         /// The sexagenary position the run opens on.
         first: u8,
@@ -75,7 +79,7 @@ pub enum AlmanacRule {
     StemBySolarMonth(&'static [&'static [u8]; 12]),
     /// The day's full sexagenary position is in the set this 節月 lists.
     ///
-    /// 天赦日 and 五墓日 are of this kind.
+    /// 天赦日 and 凶会日 are of this kind.
     SexagenaryBySolarMonth(&'static [&'static [u8]; 12]),
     /// The day's full sexagenary position is in the set this *lunisolar*
     /// month lists.

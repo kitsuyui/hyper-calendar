@@ -16,12 +16,10 @@
 //! calendar, and this module calls [`crate::lunisolar`]'s minimal derivation
 //! rather than `hc-calendars-lunar`'s full one.
 //!
-//! An earlier version of this note said to re-point it once
-//! `hc-calendars-lunar` landed. It has landed, and the answer turned out to
-//! be no: see [`crate::lunisolar`] for the measurement. Routing through the
-//! real calendar makes every 六曜 pay for a new-moon search, and routing only
-//! some of this crate's annotations through it makes them contradict each
-//! other.
+//! [`crate::lunisolar`] records why and measures the difference. Routing
+//! through the real calendar makes every 六曜 pay for a new-moon search, and
+//! routing only some of this crate's annotations through it makes them
+//! contradict each other.
 //!
 //! # Before 1873
 //!
@@ -300,7 +298,7 @@ mod tests {
 
     /// 2023 had a leap second month. A leap month repeats the number of the
     /// month before it, so 閏二月 runs the same 六曜 sequence that 二月 did:
-    /// both open on 先負. That is the case a naive "count the months" rule
+    /// both open on 友引. That is the case a naive "count the months" rule
     /// gets wrong, and it is the reason 六曜 needs a real leap flag.
     #[test]
     fn a_leap_month_repeats_the_previous_months_rokuyo_sequence() {

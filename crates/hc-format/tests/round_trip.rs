@@ -12,8 +12,9 @@
 //! a developer's machine.
 //!
 //! The exhaustive loops matter more than the random ones. Every day from
-//! 1583 to 2400 goes through every date form, which is 300 000 conversions
-//! and catches the off-by-one that a thousand random samples would miss.
+//! 1583 to 2400 goes through every date form, which is about 300 000 days
+//! in each form, and catches the off-by-one that a thousand random samples
+//! would miss.
 
 use hc_format::hc_calendar::{CivilDateTime, CivilTime, Rd};
 use hc_format::hc_calendars_solar::{gregorian, iso_week, ordinal};

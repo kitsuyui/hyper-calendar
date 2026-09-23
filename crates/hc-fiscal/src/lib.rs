@@ -24,8 +24,8 @@
 //! depending on where the equinox falls. Ethiopia's begins on Hamle 1 in the
 //! Ethiopic calendar. So a [`YearStart`] carries a
 //! [`StartCalendar`], and the non-Gregorian
-//! entries go through the real calendars in `hc-calendars-solar` rather than
-//! through a hard-coded "about 21 March".
+//! entries go through the real calendars in `hc-calendars-solar` and
+//! `hc-calendars-indic` rather than through a hard-coded "about 21 March".
 //!
 //! # The modules
 //!

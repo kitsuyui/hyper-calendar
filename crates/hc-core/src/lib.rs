@@ -15,8 +15,8 @@
 //!
 //! * No calendar knowledge lives here. A calendar turns a day number into
 //!   fields; that is [`hc-calendar`](https://docs.rs/hc-calendar)'s job.
-//! * The crate is `no_std` by default-compatible: enable `std` (the default)
-//!   or `libm` to get floating-point math.
+//! * The crate is `no_std`-compatible: enable `std` (the default) or, for a
+//!   `no_std` build, `libm` to get floating-point math.
 //! * Everything that can be exact is exact. Floating point appears only where
 //!   the underlying physics is itself a fitted model (TDB, UT1).
 
