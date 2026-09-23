@@ -714,6 +714,48 @@ fn china_keeps_each_years_arrangement() {
     assert!(HolidayCalendar::for_year(table("CN"), None, 2026).is_complete());
 }
 
+/// 行政院人事行政總處's 政府行政機關辦公日曆表 for 2017 to 2027: the
+/// weekdays off, and the Saturdays worked.
+#[rustfmt::skip]
+const TW_OFFICE_CALENDARS: &[ProductionYear] = &[
+    (2017, &[(1, 2), (1, 27), (1, 30), (1, 31), (2, 1), (2, 27), (2, 28), (4, 3), (4, 4), (5, 29), (5, 30), (10, 4), (10, 9), (10, 10)], &[(2, 18), (6, 3), (9, 30)]),
+    (2018, &[(1, 1), (2, 15), (2, 16), (2, 19), (2, 20), (2, 28), (4, 4), (4, 5), (4, 6), (6, 18), (9, 24), (10, 10), (12, 31)], &[(3, 31), (12, 22)]),
+    (2019, &[(1, 1), (2, 4), (2, 5), (2, 6), (2, 7), (2, 8), (2, 28), (3, 1), (4, 4), (4, 5), (6, 7), (9, 13), (10, 10), (10, 11)], &[(1, 19), (2, 23), (10, 5)]),
+    (2020, &[(1, 1), (1, 23), (1, 24), (1, 27), (1, 28), (1, 29), (2, 28), (4, 2), (4, 3), (6, 25), (6, 26), (10, 1), (10, 2), (10, 9)], &[(2, 15), (6, 20), (9, 26)]),
+    (2021, &[(1, 1), (2, 10), (2, 11), (2, 12), (2, 15), (2, 16), (3, 1), (4, 2), (4, 5), (6, 14), (9, 20), (9, 21), (10, 11), (12, 31)], &[(2, 20), (9, 11)]),
+    (2022, &[(1, 31), (2, 1), (2, 2), (2, 3), (2, 4), (2, 28), (4, 4), (4, 5), (6, 3), (9, 9), (10, 10)], &[(1, 22)]),
+    (2023, &[(1, 2), (1, 20), (1, 23), (1, 24), (1, 25), (1, 26), (1, 27), (2, 27), (2, 28), (4, 3), (4, 4), (4, 5), (6, 22), (6, 23), (9, 29), (10, 9), (10, 10)], &[(1, 7), (2, 4), (2, 18), (3, 25), (6, 17), (9, 23)]),
+    (2024, &[(1, 1), (2, 8), (2, 9), (2, 12), (2, 13), (2, 14), (2, 28), (4, 4), (4, 5), (6, 10), (9, 17), (10, 10)], &[(2, 17)]),
+    (2025, &[(1, 1), (1, 27), (1, 28), (1, 29), (1, 30), (1, 31), (2, 28), (4, 3), (4, 4), (5, 30), (9, 29), (10, 6), (10, 10), (10, 24), (12, 25)], &[(2, 8)]),
+    (2026, &[(1, 1), (2, 16), (2, 17), (2, 18), (2, 19), (2, 20), (2, 27), (4, 3), (4, 6), (5, 1), (6, 19), (9, 25), (9, 28), (10, 9), (10, 26), (12, 25)], &[]),
+    (2027, &[(1, 1), (2, 4), (2, 5), (2, 8), (2, 9), (2, 10), (3, 1), (4, 5), (4, 6), (4, 30), (6, 9), (9, 15), (9, 28), (10, 11), (10, 25), (12, 24), (12, 31)], &[]),
+];
+
+#[test]
+fn taiwan_matches_the_government_office_calendar_from_2017_to_2027() {
+    use hc_calendar::Weekday;
+    for &(year, days_off, days_worked) in TW_OFFICE_CALENDARS {
+        let calendar = HolidayCalendar::for_year(table("TW"), None, year);
+        assert!(calendar.is_complete(), "{year}: {:?}", calendar.gaps());
+        let mut off = Vec::new();
+        let mut worked = Vec::new();
+        for fixed in ymd(year, 1, 1).0..=ymd(year, 12, 31).0 {
+            let day = Rd(fixed);
+            let (_, month, date) = gregorian::from_fixed(day).unwrap();
+            let weekend = matches!(Weekday::from_rd(day), Weekday::Saturday | Weekday::Sunday);
+            let working = calendar.is_business_day(day);
+            if !weekend && !working {
+                off.push((month, date));
+            }
+            if weekend && working {
+                worked.push((month, date));
+            }
+        }
+        assert_eq!(off, days_off, "{year}: weekdays off");
+        assert_eq!(worked, days_worked, "{year}: Saturdays worked");
+    }
+}
+
 #[test]
 fn taiwan_holidays_and_the_nearest_weekday_adjustment() {
     expect(
@@ -722,7 +764,11 @@ fn taiwan_holidays_and_the_nearest_weekday_adjustment() {
         &[
             (2024, 2, 9, "Lunar New Year's Eve"),
             (2024, 2, 28, "Peace Memorial Day"),
-            (2024, 4, 4, "Children's Day"),
+            // 清明 fell on 4 April 2024, a Thursday, so Children's Day was
+            // kept the day after.
+            (2024, 4, 5, "Children's Day"),
+            (2020, 4, 3, "Children's Day"),
+            (2026, 2, 15, "Day before Lunar New Year's Eve"),
             (2025, 1, 29, "Spring Festival"),
             (2025, 10, 10, "National Day"),
         ],
@@ -734,6 +780,15 @@ fn taiwan_holidays_and_the_nearest_weekday_adjustment() {
     // Teachers' Day, Retrocession Day and Constitution Day became holidays
     // again only in 2025.
     expect_working("TW", None, &[(2024, 9, 28), (2024, 10, 25), (2024, 12, 25)]);
+    // Labour Day became a day off for government offices only in 2026.
+    expect_working("TW", None, &[(2025, 5, 1)]);
+    // The Lunar New Year days are made up after: 小年夜 2026 was a Sunday,
+    // made up on Friday 20 February after the four days that followed it.
+    expect_substitute("TW", None, 2026, (2, 15), (2, 20));
+    // The swaps ended in 2025, so a later year is complete without them,
+    // and an earlier one than the calendars read is a gap.
+    assert!(HolidayCalendar::for_year(table("TW"), None, 2030).is_complete());
+    assert!(!HolidayCalendar::for_year(table("TW"), None, 2016).is_complete());
 }
 
 #[test]

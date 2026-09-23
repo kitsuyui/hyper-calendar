@@ -498,7 +498,12 @@ fn evaluate(
         if !triggered {
             continue;
         }
-        let Some(target) = substitute_day(occurrence.date, policy, trigger, &occupied) else {
+        let direction = occurrence
+            .rule
+            .substitute_direction
+            .unwrap_or(policy.direction);
+        let Some(target) = substitute_day(occurrence.date, direction, policy, trigger, &occupied)
+        else {
             continue;
         };
         if let Err(index) = occupied.binary_search(&target) {
@@ -634,47 +639,48 @@ fn collisions(base: &[Occurrence]) -> Vec<bool> {
 /// Where a substitution lands.
 fn substitute_day(
     date: Rd,
+    direction: SubstituteDirection,
     policy: &SubstitutionPolicy,
     trigger: &[Weekday],
     occupied: &[Rd],
 ) -> Option<Rd> {
-    match policy.direction {
+    let step = match direction {
         SubstituteDirection::Nearest => {
             // Saturday moves back, Sunday moves forward; anything else in the
             // trigger set has no "nearer" side and is left alone.
-            match Weekday::from_rd(date) {
+            return match Weekday::from_rd(date) {
                 Weekday::Saturday => Some(Rd(date.0 - 1)),
                 Weekday::Sunday => Some(Rd(date.0 + 1)),
                 _ => None,
-            }
-        }
-        SubstituteDirection::Forward | SubstituteDirection::Backward => {
-            let step = if policy.direction == SubstituteDirection::Forward {
-                1
-            } else {
-                -1
             };
-            let mut cursor = date;
-            // Thirty steps is far more than any real law needs and bounds
-            // the loop against a table that triggers on every weekday.
-            for _ in 0..30 {
-                cursor = Rd(cursor.0 + step);
-                if trigger.contains(&Weekday::from_rd(cursor)) {
-                    continue;
-                }
-                if occupied.binary_search(&cursor).is_ok() {
-                    if policy.skip_occupied {
-                        continue;
-                    }
-                    // Japan's pre-2007 rule named one day and stopped: when
-                    // that day was already a 祝日, no extra day was created.
-                    return None;
-                }
-                return Some(cursor);
-            }
-            None
         }
+        SubstituteDirection::NearestWorkingDay => match Weekday::from_rd(date) {
+            Weekday::Saturday => -1,
+            Weekday::Sunday => 1,
+            _ => return None,
+        },
+        SubstituteDirection::Forward => 1,
+        SubstituteDirection::Backward => -1,
+    };
+    let mut cursor = date;
+    // Thirty steps is far more than any real law needs and bounds the loop
+    // against a table that triggers on every weekday.
+    for _ in 0..30 {
+        cursor = Rd(cursor.0 + step);
+        if trigger.contains(&Weekday::from_rd(cursor)) {
+            continue;
+        }
+        if occupied.binary_search(&cursor).is_ok() {
+            if policy.skip_occupied {
+                continue;
+            }
+            // Japan's pre-2007 rule named one day and stopped: when that day
+            // was already a 祝日, no extra day was created.
+            return None;
+        }
+        return Some(cursor);
     }
+    None
 }
 
 #[cfg(test)]
@@ -748,6 +754,41 @@ mod tests {
         let including = HolidayCalendar::for_year(&INCLUDES_CHINA, None, 2024);
         assert!(!including.is_business_day(sunday));
         assert!(including.is_holiday(gregorian::to_fixed(2024, 2, 13).unwrap()));
+    }
+
+    // 3 and 4 July 2026 are a Friday and a Saturday: the Saturday holiday
+    // is made up the working day before the Friday one, the Thursday. A
+    // Saturday 1 January 2028 with its own direction goes forward instead.
+    static NEAREST_WORKING_RULES: [HolidayRule; 3] = [
+        HolidayRule::fixed_public("Eve", "", Rule::FixedGregorian { month: 7, day: 3 }),
+        HolidayRule::public("Day", "", Rule::FixedGregorian { month: 7, day: 4 }),
+        HolidayRule::public("New Year", "", Rule::FixedGregorian { month: 1, day: 1 })
+            .substitute_towards(SubstituteDirection::Forward),
+    ];
+
+    static NEAREST_WORKING: [SubstitutionPolicy; 1] = [SubstitutionPolicy {
+        trigger: &[Weekday::Saturday, Weekday::Sunday],
+        direction: SubstituteDirection::NearestWorkingDay,
+        skip_occupied: true,
+        on_collision: false,
+        valid_from: None,
+        valid_until: None,
+    }];
+
+    static NEAREST_WORKING_SET: RuleSet = RuleSet {
+        rules: &NEAREST_WORKING_RULES,
+        substitution: &NEAREST_WORKING,
+        ..SIMPLE
+    };
+
+    #[test]
+    fn a_saturday_holiday_goes_back_past_a_day_already_taken() {
+        let calendar = HolidayCalendar::for_year(&NEAREST_WORKING_SET, None, 2026);
+        let thursday = gregorian::to_fixed(2026, 7, 2).unwrap();
+        assert!(calendar.is_holiday(thursday));
+        let calendar = HolidayCalendar::for_year(&NEAREST_WORKING_SET, None, 2028);
+        assert!(calendar.is_holiday(gregorian::to_fixed(2028, 1, 3).unwrap()));
+        assert!(!calendar.is_holiday(gregorian::to_fixed(2027, 12, 31).unwrap()));
     }
 
     #[test]

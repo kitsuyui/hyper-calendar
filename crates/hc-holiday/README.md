@@ -175,7 +175,10 @@ Korea Exchange's own closure lists for every year from 2009 to 2029;
 Shanghai (`XSHG`), which includes China's table — its annual arrangements,
 without the weekend days they make working days — and adds the eve of the
 Spring Festival 2024, and which matches the exchange's closure notices for
-2014 to 2026; and Nasdaq's Nordic markets — Copenhagen (`XCSE`), Stockholm
+2014 to 2026; Taipei (`XTAI`), which includes Taiwan's table without the
+Saturdays it works, and adds Labour Day before it was a government holiday
+and the two settlement-only days before the Lunar New Year break, and which
+matches the exchange's schedules for 2023 to 2026; and Nasdaq's Nordic markets — Copenhagen (`XCSE`), Stockholm
 (`XSTO`), Helsinki (`XHEL`) and Iceland (`XICE`) — each on its country's
 days as Nasdaq's calendar lists them, Stockholm with five half days a year.
 The unscheduled closures a read source
@@ -200,11 +203,12 @@ source read here gives are not, and the table says which.
   calendar-expressible form. Their holidays fall on the weekend and stay
   there. That is a deliberate refusal, not an oversight.
 * **It will not guess an annual administrative act.** China's 调休, Taiwan's
-  Lunar New Year makeup days, Vietnam's Tết span, Thailand's Songkran makeup
-  days and Indonesia's *cuti bersama* are decided year by year by a ministry,
-  not by a rule. Where the acts have been read they are data for their
-  years: China's arrangements from 2008 to 2026 and Russia's transfer
-  decrees from 2013 to 2027, with the weekend days they put to work as
+  swaps of a working day for a Saturday, Vietnam's Tết span, Thailand's
+  Songkran makeup days and Indonesia's *cuti bersama* are decided year by
+  year by a ministry, not by a rule. Where the acts have been read they are
+  data for their years: China's arrangements from 2008 to 2026, Russia's
+  transfer decrees from 2013 to 2027 and Taiwan's swaps from 2017 until they
+  ended in 2025, with the weekend days they put to work as
   `Kind::Workday` entries that business-day arithmetic
   counts. A year past them is a gap. Elsewhere the statutory days are listed
   and the bridging days are not.

@@ -52,7 +52,7 @@ use crate::computus::offsets::{
     MAUNDY_THURSDAY, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
 };
 use crate::countries::europe::GB_ENGLAND_AND_WALES;
-use crate::countries::{CHINA, HONG_KONG, JAPAN, SOUTH_KOREA, UNITED_KINGDOM};
+use crate::countries::{CHINA, HONG_KONG, JAPAN, SOUTH_KOREA, TAIWAN, UNITED_KINGDOM};
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Include, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
     SubstituteDirection, SubstitutionPolicy,
@@ -1002,6 +1002,78 @@ pub static SHANGHAI_STOCK_EXCHANGE: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// Taiwan Stock Exchange
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year the exchange's schedules carried here cover.
+const XTAI_FIRST: i64 = 2023;
+/// The last.
+const XTAI_LAST: i64 = 2026;
+
+/// The days before the Lunar New Year break on which the market does not
+/// trade and only settles, as each year's schedule lists them.
+static XTAI_SETTLEMENT_ONLY: &[(i64, u8, u8)] = &[
+    (2023, 1, 18),
+    (2023, 1, 19),
+    (2024, 2, 6),
+    (2024, 2, 7),
+    (2025, 1, 23),
+    (2025, 1, 24),
+    (2026, 2, 12),
+    (2026, 2, 13),
+];
+
+fn xtai_settlement_only(year: i64) -> Days {
+    let mut out = Days::new();
+    for &(y, month, day) in XTAI_SETTLEMENT_ONLY {
+        if y == year
+            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
+        {
+            out.push(fixed);
+        }
+    }
+    out
+}
+
+static XTAI_RULES: &[HolidayRule] = &[
+    // A day off for workers before it was a government holiday in 2026, and
+    // one the exchange closed on.
+    HolidayRule::fixed_public("Labour Day", "勞動節", Rule::gregorian(5, 1))
+        .years(None, Some(2025)),
+    HolidayRule::fixed_public(
+        "No trading, settlement only",
+        "市場無交易，僅辦理結算交割作業",
+        Rule::Tabulated {
+            function: xtai_settlement_only,
+            first_year: XTAI_FIRST,
+            last_year: XTAI_LAST,
+        },
+    ),
+];
+
+/// The Taiwan Stock Exchange.
+///
+/// Its 市場開休市日期 for 2023 to 2026: the market is closed on Saturdays,
+/// Sundays and the government's days off — the [`TAIWAN`] table's, which
+/// this set includes and does not repeat, and not the Saturdays that table
+/// makes working days — on Labour Day before it became a government
+/// holiday, and on the two days before the Lunar New Year break when the
+/// market only settles, which each year's schedule lists and which are
+/// carried as they are listed. A year outside those schedules is a gap.
+pub static TAIWAN_STOCK_EXCHANGE: RuleSet = RuleSet {
+    code: "XTAI",
+    english_name: "Taiwan Stock Exchange",
+    rules: XTAI_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[Include::nationwide(&TAIWAN)],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "臺灣證券交易所, 市場開休市日期 (twse.com.tw/zh/trading/holiday.html), retrieved \
+              2026-09-23, the schedules for 2023 to 2026",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Korea Exchange
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -1304,6 +1376,7 @@ pub static ALL: &[&RuleSet] = &[
     &SHANGHAI_STOCK_EXCHANGE,
     &NASDAQ_STOCKHOLM,
     &SIX_SWISS_EXCHANGE,
+    &TAIWAN_STOCK_EXCHANGE,
     &TORONTO_STOCK_EXCHANGE,
 ];
 

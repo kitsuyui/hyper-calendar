@@ -1288,6 +1288,12 @@ pub enum SubstituteDirection {
     /// Outwards in the nearer direction: Saturday moves back to Friday,
     /// Sunday forward to Monday. The US federal "observed" rule.
     Nearest,
+    /// Outwards in the nearer direction, to a working day: a Saturday
+    /// holiday to the last working day before it, a Sunday holiday to the
+    /// first working day after it, going on past a day already taken when
+    /// the policy skips occupied days. Taiwan's rule, whose "前一個上班日"
+    /// is the Thursday when the Friday is itself a holiday.
+    NearestWorkingDay,
 }
 
 /// A country's weekend-substitution law.
@@ -1431,6 +1437,12 @@ pub struct HolidayRule {
     /// when it fell on a Sunday, while Children's Day moved from a Saturday
     /// too.
     pub substitute_trigger: Option<&'static [Weekday]>,
+    /// The direction a substitute moves for this holiday alone, overriding
+    /// the country policy's own `direction`.
+    ///
+    /// Taiwan: a Saturday holiday is made up the working day before, except
+    /// the Lunar New Year days, which are always made up after.
+    pub substitute_direction: Option<SubstituteDirection>,
     /// The instrument that established this entry — a statute, a decree, a
     /// General Assembly resolution — or `""` when the table's `sources`
     /// speaks for it. The United Nations days cite their resolutions here,
@@ -1454,6 +1466,7 @@ impl HolidayRule {
             regions: &[],
             substitute_from: Some(i32::MIN),
             substitute_trigger: None,
+            substitute_direction: None,
             source: "",
         }
     }
@@ -1539,6 +1552,15 @@ impl HolidayRule {
     pub const fn substitute_on(self, trigger: &'static [Weekday]) -> Self {
         Self {
             substitute_trigger: Some(trigger),
+            ..self
+        }
+    }
+
+    /// The same rule, with its own direction for a substitute.
+    #[must_use]
+    pub const fn substitute_towards(self, direction: SubstituteDirection) -> Self {
+        Self {
+            substitute_direction: Some(direction),
             ..self
         }
     }
