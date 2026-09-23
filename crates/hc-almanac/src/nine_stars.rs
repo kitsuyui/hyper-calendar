@@ -88,10 +88,11 @@
 
 use hc_calendar::Rd;
 use hc_calendar::cycle::sexagenary_day;
+use hc_calendar::gregorian;
 use hc_seasons::Meridian;
 use hc_seasons::solar_terms::{SolarTerm, term_day};
 
-use crate::context::{DayContext, gregorian_year_of};
+use crate::context::DayContext;
 
 /// How many stars there are.
 pub const STAR_COUNT: u8 = 9;
@@ -368,7 +369,7 @@ pub const fn switch_day_near(day: Rd) -> Rd {
 /// is nearest it.
 #[must_use]
 pub fn day_star_period(day: Rd, meridian: Meridian) -> DayStarPeriod {
-    let year = gregorian_year_of(day);
+    let year = gregorian::year_from_fixed(day);
     // Four candidate switches bracket any day: the December solstice of the
     // previous year can reach into late January, and the December solstice
     // of the year after cannot start before late November, so this window is
@@ -429,7 +430,7 @@ pub fn day_star(day: Rd, meridian: Meridian) -> NineStar {
 /// is why this cannot be read off the Gregorian year alone.
 #[must_use]
 pub fn nine_star_year(day: Rd, meridian: Meridian) -> i64 {
-    let year = gregorian_year_of(day);
+    let year = gregorian::year_from_fixed(day);
     if day.0 < term_day(year, SolarTerm::BEGINNING_OF_SPRING, meridian).0 {
         year - 1
     } else {

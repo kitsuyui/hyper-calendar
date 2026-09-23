@@ -36,31 +36,6 @@ const SEARCH_LOOKBACK_DAYS: f64 = 35.0;
 /// The earthly branch index of 寅, which names the first 節月.
 const BRANCH_OF_FIRST_SOLAR_MONTH: u8 = 2;
 
-/// The proleptic Gregorian year a fixed day falls in.
-///
-/// The almanac rules need it to know which year's solstices and terms to
-/// ask for. The arithmetic is the standard 400/100/4 unwinding from Reingold &
-/// Dershowitz, *Calendrical Calculations*, §2.
-#[must_use]
-pub const fn gregorian_year_of(day: Rd) -> i64 {
-    let days = day.0 - 1;
-    let four_hundreds = days.div_euclid(146_097);
-    let rest = days.rem_euclid(146_097);
-    let hundreds = rest / 36_524;
-    let rest = rest % 36_524;
-    let fours = rest / 1_461;
-    let rest = rest % 1_461;
-    let ones = rest / 365;
-    let year = 400 * four_hundreds + 100 * hundreds + 4 * fours + ones;
-    // A `hundreds` or `ones` of 4 means the day is the last of a leap year,
-    // which the division has already counted.
-    if hundreds == 4 || ones == 4 {
-        year
-    } else {
-        year + 1
-    }
-}
-
 /// A 節月: one of the twelve months that begin at a sectional solar term.
 ///
 /// This is the month almost every 暦注 table means by "正月", "二月" and so
@@ -303,24 +278,6 @@ mod tests {
         }
         assert_eq!(SolarMonth::opening_term(0), None);
         assert_eq!(SolarMonth::opening_term(13), None);
-    }
-
-    #[test]
-    fn gregorian_years_are_recovered_from_fixed_days() {
-        // RD 1 is 0001-01-01; RD 719163 is 1970-01-01; RD 738886 is
-        // 2024-01-01 and RD 738885 the last day of 2023.
-        assert_eq!(gregorian_year_of(Rd(1)), 1);
-        assert_eq!(gregorian_year_of(Rd(365)), 1);
-        assert_eq!(gregorian_year_of(Rd(366)), 2);
-        assert_eq!(gregorian_year_of(Rd(719_163)), 1970);
-        assert_eq!(gregorian_year_of(Rd(738_885)), 2023);
-        assert_eq!(gregorian_year_of(Rd(738_886)), 2024);
-        // 2024 was a leap year, so its last day is RD 738886 + 365.
-        assert_eq!(gregorian_year_of(Rd(738_886 + 365)), 2024);
-        assert_eq!(gregorian_year_of(Rd(738_886 + 366)), 2025);
-        // 1600 and 2000 were leap years; 1700, 1800 and 1900 were not.
-        assert_eq!(gregorian_year_of(Rd(730_120)), 2000);
-        assert_eq!(gregorian_year_of(Rd(730_119)), 1999);
     }
 
     #[test]

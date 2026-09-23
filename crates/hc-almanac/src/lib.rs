@@ -97,7 +97,7 @@ pub mod selected_days;
 pub mod seven_luminaries;
 pub mod twelve_directs;
 
-pub use context::{DayContext, SolarMonth, gregorian_year_of, solar_month_of};
+pub use context::{DayContext, SolarMonth, solar_month_of};
 pub use day_notes::{Combination, CombinationSet, DayNotes, day_notes};
 pub use lower_register::{LowerRegister, LowerRegisterSet, lower_register};
 pub use mansions::{Mansion, Mansion27, Quadrant, mansion_of, mansion27_of};
