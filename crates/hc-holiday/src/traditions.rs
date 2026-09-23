@@ -900,9 +900,12 @@ static BUDDHIST_RULES: &[HolidayRule] = &[
 /// Buddhism — **partial**, and honest about it.
 ///
 /// Theravada observances are dated by the Thai, Burmese, Sinhalese or Lao
-/// lunar calendars, none of which this crate implements. What it has is the
-/// Chinese lunisolar calendar, whose month *n* is usually the Thai month
-/// *n + 2*; that relation puts Vesak on the full moon of Chinese month 4,
+/// lunar calendars, which do not agree with one another, so a table that is
+/// no one country's cannot take any of them; Thailand's own table uses the
+/// Thai one, `thai-lunar`, which in any case reaches only 1992–2027. What
+/// this table uses is the Chinese lunisolar calendar, whose month *n* is
+/// usually the Thai month *n + 2*; that relation puts Vesak on the full
+/// moon of Chinese month 4,
 /// which matched the Thai date in 2022, 2024 and 2025, missed by a day in
 /// 2023 and would miss by a month in a Thai intercalary year. Every
 /// Theravada entry is therefore [`Confidence::Approximate`](crate::rule::Confidence::Approximate).
@@ -922,8 +925,8 @@ pub static BUDDHIST: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "Thai and Japanese Buddhist calendars. PARTIAL: the Theravada \
               dates are approximated from the Chinese lunisolar calendar \
-              because no Thai, Burmese or Sinhalese lunar calendar exists in \
-              `hc-calendars-lunar` yet",
+              because the Thai, Burmese and Sinhalese reckonings differ and \
+              the Thai one is carried only for 1992-2027",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

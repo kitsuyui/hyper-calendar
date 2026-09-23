@@ -1195,23 +1195,53 @@ pub static INDIA: RuleSet = RuleSet {
 // Thailand
 // ─────────────────────────────────────────────────────────────────────────
 
-/// Thai Buddhist observances are dated by the Thai lunar calendar, which
-/// this crate does not implement. The nearest thing it has is the Chinese
-/// lunisolar calendar, whose month *n* is usually the Thai month *n + 2*, so
-/// Makha Bucha is the full moon of Chinese month 1, Visakha Bucha of month
-/// 4 and Asalha Bucha of month 6. The approximation is right in most years
-/// and a month out in a Thai intercalary year, so every one of them is
-/// flagged approximate.
-static TH_ASALHA: Rule = Rule::in_calendar(CalendarSystem::CHINESE, 6, 15);
+/// Thai Buddhist observances are dated by the Thai lunar calendar,
+/// `thai-lunar`, which carries the year types Thailand published for 2535–
+/// 2570 BE and so answers exactly for 1992–2027 and not at all outside
+/// them: there the four days are reported as gaps.
+///
+/// Asalha Bucha is the full moon of month 8 — in an adhikamāsa year the
+/// second month 8, which the calendar writes as the regular one — and Khao
+/// Phansa the day after, so both are plain dates in it. Makha and
+/// Visakha Bucha move a month instead: to the full moon of month 4 and of
+/// month 7 in an adhikamāsa year, from 3 and 6. A date in a calendar names
+/// one month, so those two are the calendar's own functions, answered for
+/// the same years.
+static TH_ASALHA: Rule = Rule::in_calendar(CalendarSystem::THAI_LUNAR, 8, 15);
+
+/// แรม 1 ค่ำ เดือน 8, the day after Asalha Bucha.
+static TH_KHAO_PHANSA: Rule = Rule::in_calendar(CalendarSystem::THAI_LUNAR, 8, 16);
+
+/// A day the Thai lunar calendar computes for a Buddhist Era year, in the
+/// Gregorian year its Makha Bucha falls in.
+fn th_lunar_day(year: i64, day: fn(i64) -> hc_calendar::CalendarResult<Rd>) -> Days {
+    match day(year + hc_calendars_regional::thai_lunar::BUDDHIST_ERA_OFFSET) {
+        Ok(rd) => Days::one(rd),
+        Err(_) => Days::new(),
+    }
+}
+
+fn th_makha_bucha(year: i64) -> Days {
+    th_lunar_day(year, hc_calendars_regional::thai_lunar::makha_bucha)
+}
+
+fn th_visakha_bucha(year: i64) -> Days {
+    th_lunar_day(year, hc_calendars_regional::thai_lunar::visakha_bucha)
+}
+
+/// A Thai lunar day that moves in an adhikamāsa year, over the years the
+/// calendar's table answers for.
+const fn th_lunar(function: fn(i64) -> Days) -> Rule {
+    Rule::Tabulated {
+        function,
+        first_year: hc_calendars_regional::thai_lunar::FIRST_GREGORIAN_YEAR,
+        last_year: hc_calendars_regional::thai_lunar::LAST_GREGORIAN_YEAR,
+    }
+}
 
 static TH_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "วันขึ้นปีใหม่", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "Makha Bucha",
-        "วันมาฆบูชา",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 15),
-    )
-    .approximate(),
+    HolidayRule::public("Makha Bucha", "วันมาฆบูชา", th_lunar(th_makha_bucha)),
     HolidayRule::public("Chakri Memorial Day", "วันจักรี", Rule::gregorian(4, 6)),
     HolidayRule::fixed_public("Songkran", "วันสงกรานต์", Rule::gregorian(4, 13)),
     HolidayRule::fixed_public("Songkran", "วันสงกรานต์", Rule::gregorian(4, 14)),
@@ -1219,28 +1249,15 @@ static TH_RULES: &[HolidayRule] = &[
     HolidayRule::public("Labour Day", "วันแรงงานแห่งชาติ", Rule::gregorian(5, 1)),
     HolidayRule::public("Coronation Day", "วันฉัตรมงคล", Rule::gregorian(5, 4))
         .years(Some(2019), None),
-    HolidayRule::public(
-        "Visakha Bucha",
-        "วันวิสาขบูชา",
-        Rule::in_calendar(CalendarSystem::CHINESE, 4, 15),
-    )
-    .approximate(),
+    HolidayRule::public("Visakha Bucha", "วันวิสาขบูชา", th_lunar(th_visakha_bucha)),
     HolidayRule::public(
         "Queen Suthida's Birthday",
         "วันเฉลิมพระชนมพรรษาสมเด็จพระนางเจ้าฯ",
         Rule::gregorian(6, 3),
     )
     .years(Some(2019), None),
-    HolidayRule::public("Asalha Bucha", "วันอาสาฬหบูชา", TH_ASALHA).approximate(),
-    HolidayRule::fixed_public(
-        "Khao Phansa",
-        "วันเข้าพรรษา",
-        Rule::Offset {
-            base: &TH_ASALHA,
-            days: 1,
-        },
-    )
-    .approximate(),
+    HolidayRule::public("Asalha Bucha", "วันอาสาฬหบูชา", TH_ASALHA),
+    HolidayRule::fixed_public("Khao Phansa", "วันเข้าพรรษา", TH_KHAO_PHANSA),
     HolidayRule::public(
         "King Vajiralongkorn's Birthday",
         "วันเฉลิมพระชนมพรรษา",
@@ -1286,13 +1303,19 @@ pub static THAILAND: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
+    sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Bank of Thailand's annual list of financial-institution \
               holidays and the Royal Gazette announcements behind it. The \
-              four Buddhist observances are approximated from the Chinese \
-              lunisolar calendar and can be a month out in a Thai \
-              intercalary year; the Royal Ploughing Ceremony, whose date the \
-              palace fixes each year, is not modelled",
+              four Buddhist observances are on the `thai-lunar` calendar, \
+              whose year types for 1992-2027 are read off the Makha, Visakha \
+              and Asalha Bucha (to 2006 Khao Phansa) dates of the Bank's \
+              lists for 1992-2022, as the Internet Archive keeps them, of its \
+              notifications FPG 3/2565, FPG 8/2566, FPG 5/2567 and 31/2568 \
+              for 2023-2026, and of notification 37/2569, Royal Gazette vol. \
+              143 special part 202 ง, 25 August 2026, for 2027, all \
+              retrieved 2026-09-23; outside those years they are gaps. The \
+              Royal Ploughing Ceremony, whose date the palace fixes each \
+              year, is not modelled",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

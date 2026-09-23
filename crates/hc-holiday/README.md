@@ -271,7 +271,7 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 | Entry | Why |
 | --- | --- |
 | Every Hijri-dated holiday, in sixty-seven countries and the Islamic tradition table | the observed date is a sighting decision, per country |
-| Vesak, Makha Bucha, Asalha Bucha, Khao Phansa (Thailand, Indonesia, Singapore, Malaysia, the Buddhist table) | dated by the Thai lunar calendar, which this crate does not have; approximated as the full moon of Chinese lunar month *n* − 2. Right in 2022, 2024 and 2025; a day out in 2023; a month out in a Thai intercalary year |
+| Vesak (Indonesia, Singapore, Malaysia) and the Buddhist table's Magha Puja, Vesak, Asalha Puja, Vassa and Pavarana | approximated as the full moon of Chinese lunar month *n* − 2, which against the Thai dates is right in 2022, 2024 and 2025, a day out in 2023 and a month out in a Thai adhikamāsa year. Thailand's own four are exact on `thai-lunar` for 1992–2027 and gaps outside |
 | Nepal's festivals — Buddha Jayanti, Dashain, Tihar and the rest | each is a tithi read at Kathmandu, and the part of the day it must hold is fitted to the notices of 2080–2083 BS, which it reproduces, rather than quoted from the almanac |
 | Bangladesh's Buddha Purnima | the notifications' own dates for 2025 and 2026, which they star as depending on the moon |
 

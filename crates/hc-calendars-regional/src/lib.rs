@@ -19,6 +19,7 @@
 //! | [`korean_regnal`] | `korean-regnal` — the three eras of the Korean Empire, 建陽, 光武 and 隆熙, on the Gregorian days of 1896–1910 |
 //! | [`chinese_regnal`] | `chinese-regnal` — the Qing eras over the Chinese lunisolar calendar, 1645 to the abdication of 1912, with the Ming and Qing era table as data |
 //! | [`burmese`] | `burmese` — the Myanmar Era's lunisolar calendar, its watat years and full moons by the Calendar Advisory Board's arithmetic and the record's exceptions |
+//! | [`thai_lunar`] | `thai-lunar` — the Thai lunar calendar, its adhikamāsa and adhikavāra years carried as published for 2535–2570 BE (1992–2027) |
 //! | [`sexagenary`] | `sexagenary` — 干支 over years, months and days |
 //!
 //! # Cyclic calendars and the round-trip contract
@@ -84,6 +85,7 @@ pub mod korean_regnal;
 pub mod maya;
 pub mod nengo;
 pub mod sexagenary;
+pub mod thai_lunar;
 
 pub use akan::{AkanCalendar, AkanDate};
 pub use aztec::{
@@ -102,6 +104,7 @@ pub use maya::{
 };
 pub use nengo::{Certainty, Court, Nengo, WesternScale};
 pub use sexagenary::{SexagenaryCalendar, SexagenaryDayDate};
+pub use thai_lunar::{ThaiLunarCalendar, ThaiLunarDate};
 
 pub use hc_calendar;
 pub use hc_calendars_lunar;
@@ -146,6 +149,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::ChineseRegnalCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BurmeseCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::SexagenaryCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::ThaiLunarCalendar)));
     }
 }
 
@@ -154,7 +158,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 18;
+const CALENDAR_COUNT: usize = 19;
 
 #[cfg(test)]
 mod tests {
@@ -223,6 +227,7 @@ mod tests {
                 ChineseRegnalCalendar,
                 BurmeseCalendar,
                 SexagenaryCalendar,
+                ThaiLunarCalendar,
             );
         }
     }
@@ -310,6 +315,7 @@ mod tests {
             JapaneseCalendar::UNIFIED.meta(),
             MayaLongCountCalendar::GMT.meta(),
             MayaCalendarRoundCalendar.meta(),
+            ThaiLunarCalendar.meta(),
         ] {
             let first = meta.earliest.expect("bounded below");
             let last = meta.latest.expect("bounded above");
@@ -371,8 +377,9 @@ mod tests {
 
         let rd = gregorian::to_fixed(2026, 9, 21).expect("in range");
         let rendered = registry.describe_day(rd);
-        // Every calendar that claims the day renders it; the one that does
-        // not claim it is the Korean Empire's, kept only from 1896 to 1910.
+        // Every calendar that claims the day renders it; the ones that do
+        // not are the Korean Empire's, kept only from 1896 to 1910, and the
+        // Qing eras'.
         let supporting = registry.metas().filter(|meta| meta.supports(rd)).count();
         assert_eq!(rendered.len(), supporting);
         let unsupporting: Vec<&str> = registry
@@ -402,13 +409,15 @@ mod tests {
             assert!(!meta.id.as_str().is_empty());
             assert!(!meta.english_name.is_empty());
             // Only the era calendars over a lunisolar year carry intercalary
-            // months: the Japanese, in the lunisolar half of its range, and
-            // the Qing eras over the Chinese calendar.
+            // months — the Japanese, in the lunisolar half of its range, and
+            // the Qing eras over the Chinese calendar — and the two Theravada
+            // lunisolar calendars.
             assert!(
                 !meta.has_leap_months
                     || meta.id.as_str().starts_with("japanese")
                     || meta.id.as_str() == "chinese-regnal"
                     || meta.id.as_str() == "burmese"
+                    || meta.id.as_str() == "thai-lunar"
             );
             if let (Some(first), Some(last)) = (meta.earliest, meta.latest) {
                 assert!(first < last, "{} has an empty range", meta.id);

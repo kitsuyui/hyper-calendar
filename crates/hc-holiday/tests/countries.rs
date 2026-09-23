@@ -908,6 +908,73 @@ fn thailand_holidays_and_its_monday_substitution() {
 }
 
 #[test]
+fn thailand_keeps_its_buddhist_days_on_the_thai_lunar_calendar() {
+    // As the Bank of Thailand's notifications give them. 2023 and 2026
+    // double month 8, so Makha and Visakha Bucha are the full moons of
+    // months 4 and 7, and Asalha Bucha that of the second month 8.
+    expect(
+        "TH",
+        None,
+        &[
+            (2012, 3, 7, "Makha Bucha"),
+            (2012, 6, 4, "Visakha Bucha"),
+            (2012, 8, 2, "Asalha Bucha"),
+            (2012, 8, 3, "Khao Phansa"),
+            (2023, 3, 6, "Makha Bucha"),
+            (2023, 6, 3, "Visakha Bucha"),
+            (2023, 8, 1, "Asalha Bucha"),
+            (2023, 8, 2, "Khao Phansa"),
+            (2025, 2, 12, "Makha Bucha"),
+            (2025, 5, 11, "Visakha Bucha"),
+            (2025, 7, 10, "Asalha Bucha"),
+            (2025, 7, 11, "Khao Phansa"),
+            (2026, 3, 3, "Makha Bucha"),
+            (2026, 5, 31, "Visakha Bucha"),
+            (2026, 7, 29, "Asalha Bucha"),
+            (2026, 7, 30, "Khao Phansa"),
+            (2027, 2, 21, "Makha Bucha"),
+            (2027, 5, 20, "Visakha Bucha"),
+            (2027, 7, 18, "Asalha Bucha"),
+            (2004, 8, 1, "Khao Phansa"),
+            (1992, 2, 18, "Makha Bucha"),
+        ],
+    );
+    // The Monday in place of a weekend one, as the notifications give it.
+    expect_substitute("TH", None, 2024, (2, 24), (2, 26));
+    expect_substitute("TH", None, 2025, (5, 11), (5, 12));
+    expect_substitute("TH", None, 2026, (5, 31), (6, 1));
+    expect_substitute("TH", None, 2027, (2, 21), (2, 22));
+    // The Chinese full moon the table used to approximate Makha Bucha by
+    // was a month early in 2012.
+    expect_working("TH", None, &[(2012, 2, 6)]);
+    for year in [1992, 2012, 2026, 2027] {
+        let calendar = HolidayCalendar::for_year(table("TH"), None, year);
+        assert!(calendar.is_complete(), "{year}: {:?}", calendar.gaps());
+        assert!(
+            calendar
+                .in_year(year)
+                .iter()
+                .all(|holiday| holiday.confidence == Confidence::Exact),
+            "{year}"
+        );
+    }
+    // Beyond the years Thailand has published the four are gaps, not
+    // guesses.
+    for year in [1991, 2028] {
+        let calendar = HolidayCalendar::for_year(table("TH"), None, year);
+        let missing: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+        for name in [
+            "Makha Bucha",
+            "Visakha Bucha",
+            "Asalha Bucha",
+            "Khao Phansa",
+        ] {
+            assert!(missing.contains(&name), "{year}: {name} should be a gap");
+        }
+    }
+}
+
+#[test]
 fn vietnam_holidays() {
     expect(
         "VN",

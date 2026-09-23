@@ -23,7 +23,7 @@ use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
 use hc_calendars_lunar::tabular::{self, LeapYearRule};
 use hc_calendars_lunar::{ChineseCalendar, DangiCalendar, LunisolarDate, VietnameseCalendar};
-use hc_calendars_regional::burmese;
+use hc_calendars_regional::{burmese, thai_lunar};
 use hc_calendars_solar::{
     bahai_kept, bangladeshi, coptic, ethiopic, gregorian, julian, nanakshahi, persian, zoroastrian,
 };
@@ -397,6 +397,23 @@ hc_core::catalogue! {
                 })
             },
             |rd| burmese::from_fixed(rd).ok().map(|date| date.year),
+        );
+
+        /// The Thai lunar calendar as Thailand publishes it, in which
+        /// Thailand dates its Buddhist holidays: the adhikamāsa and
+        /// adhikavāra years carried as data for 2535–2570 BE (1992–2027),
+        /// with the first six months of 2571 that no year type changes,
+        /// and nothing else, so that a Thai lunar holiday beyond the table
+        /// is a reported gap. Years are Buddhist Era, changing
+        /// at เดือนอ้าย in November or December; the first month 8 of an
+        /// adhikamāsa year is `Month::leap(8)` and the second, Asalha
+        /// Bucha's, `Month::regular(8)` (`hc_calendars_regional::thai_lunar`).
+        pub const THAI_LUNAR = Self::new(
+            CalendarId("thai-lunar"),
+            |year, month, day| {
+                thai_lunar::to_fixed(thai_lunar::ThaiLunarDate::new(year, month, day)).ok()
+            },
+            |rd| thai_lunar::from_fixed(rd).ok().map(|date| date.year),
         );
 
         /// The Zoroastrian calendar by the Qadimi reckoning: the 365-day
