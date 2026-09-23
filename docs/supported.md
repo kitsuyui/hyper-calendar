@@ -122,7 +122,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Holidays by country
 
-123 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
+124 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
 
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
@@ -193,6 +193,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `KZ` | Kazakhstan | 20 | yes | stated | 2026-09-22 |
 | `LB` | Lebanon | 21 | yes | stated | 2026-09-22 |
 | `LI` | Liechtenstein | 20 | none | stated | 2026-09-22 |
+| `LK` | Sri Lanka | 28 | none | stated | 2026-09-23 |
 | `LT` | Lithuania | 16 | none | stated | 2026-09-22 |
 | `LU` | Luxembourg | 12 | none | stated | 2026-09-22 |
 | `LV` | Latvia | 51 | yes | stated | 2026-09-22 |

@@ -1098,6 +1098,270 @@ pub static NEPAL: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// Sri Lanka
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year the gazettes carried here fix.
+const LK_FIRST: i64 = 2023;
+/// The last year they fix.
+const LK_LAST: i64 = 2027;
+
+/// The days the Holidays Act orders name, as the gazette for each year
+/// lists them, in the gazette's order.
+static LK_GAZETTED: &[(i64, u8, u8, &str)] = &[
+    // 2023
+    (2023, 1, 6, "Duruthu Full Moon Poya Day"),
+    (2023, 1, 15, "Tamil Thai Pongal Day"),
+    (2023, 1, 16, "Special Bank Holiday"),
+    (2023, 2, 5, "Navam Full Moon Poya Day"),
+    (2023, 2, 18, "Maha Shivarathri Day"),
+    (2023, 3, 6, "Medin Full Moon Poya Day"),
+    (2023, 4, 5, "Bak Full Moon Poya Day"),
+    (2023, 4, 13, "Day Prior to Sinhala & Tamil New Year Day"),
+    (2023, 4, 14, "Sinhala & Tamil New Year Day"),
+    (2023, 4, 22, "Id-Ul-Fitr (Ramazan Festival Day)"),
+    (2023, 5, 5, "Vesak Full Moon Poya Day"),
+    (2023, 5, 6, "Day Following Vesak Full Moon Poya Day"),
+    (2023, 6, 3, "Poson Full Moon Poya Day"),
+    (2023, 6, 29, "Id-Ul-Adha (Hadji Festival Day)"),
+    (2023, 7, 3, "Adhi Esala Full Moon Poya Day"),
+    (2023, 8, 1, "Esala Full Moon Poya Day"),
+    (2023, 8, 30, "Nikini Full Moon Poya Day"),
+    (2023, 9, 28, "Milad-Un-Nabi (Holy Prophet's Birthday)"),
+    (2023, 9, 29, "Binara Full Moon Poya Day"),
+    (2023, 10, 28, "Vap Full Moon Poya Day"),
+    (2023, 11, 12, "Deepavali Festival Day"),
+    (2023, 11, 26, "Il Full Moon Poya Day"),
+    (2023, 12, 26, "Unduvap Full Moon Poya Day"),
+    // 2024
+    (2024, 1, 15, "Tamil Thai Pongal Day"),
+    (2024, 1, 25, "Duruthu Full Moon Poya Day"),
+    (2024, 2, 23, "Navam Full Moon Poya Day"),
+    (2024, 3, 8, "Maha Shivarathri Day"),
+    (2024, 3, 24, "Medin Full Moon Poya Day"),
+    (2024, 4, 11, "Id-Ul-Fitr (Ramazan Festival Day)"),
+    (2024, 4, 12, "Day Prior to Sinhala & Tamil New Year Day"),
+    (2024, 4, 13, "Sinhala & Tamil New Year Day"),
+    (2024, 4, 23, "Bak Full Moon Poya Day"),
+    (2024, 5, 23, "Vesak Full Moon Poya Day"),
+    (2024, 5, 24, "Day Following Vesak Full Moon Poya Day"),
+    (2024, 6, 17, "Id-Ul-Adha (Hadji Festival Day)"),
+    (2024, 6, 21, "Poson Full Moon Poya Day"),
+    (2024, 7, 20, "Esala Full Moon Poya Day"),
+    (2024, 8, 19, "Nikini Full Moon Poya Day"),
+    (2024, 9, 16, "Milad-Un-Nabi (Holy Prophet's Birthday)"),
+    (2024, 9, 17, "Binara Full Moon Poya Day"),
+    (2024, 10, 17, "Vap Full Moon Poya Day"),
+    (2024, 10, 31, "Deepavali Festival Day"),
+    (2024, 11, 15, "Il Full Moon Poya Day"),
+    (2024, 12, 14, "Unduvap Full Moon Poya Day"),
+    // 2025
+    (2025, 1, 13, "Duruthu Full Moon Poya Day"),
+    (2025, 1, 14, "Tamil Thai Pongal Day"),
+    (2025, 2, 12, "Navam Full Moon Poya Day"),
+    (2025, 2, 26, "Maha Shivarathri Day"),
+    (2025, 3, 13, "Medin Full Moon Poya Day"),
+    (2025, 3, 31, "Id-Ul-Fitr (Ramazan Festival Day)"),
+    (2025, 4, 12, "Bak Full Moon Poya Day"),
+    (2025, 4, 13, "Day Prior to Sinhala & Tamil New Year Day"),
+    (2025, 4, 14, "Sinhala & Tamil New Year Day"),
+    (2025, 4, 15, "Special Bank Holiday"),
+    (2025, 5, 12, "Vesak Full Moon Poya Day"),
+    (2025, 5, 13, "Day Following Vesak Full Moon Poya Day"),
+    (2025, 6, 7, "Id-Ul-Adha (Hadji Festival Day)"),
+    (2025, 6, 10, "Poson Full Moon Poya Day"),
+    (2025, 7, 10, "Esala Full Moon Poya Day"),
+    (2025, 8, 8, "Nikini Full Moon Poya Day"),
+    (2025, 9, 5, "Milad-Un-Nabi (Holy Prophet's Birthday)"),
+    (2025, 9, 7, "Binara Full Moon Poya Day"),
+    (2025, 10, 6, "Vap Full Moon Poya Day"),
+    (2025, 10, 20, "Deepavali Festival Day"),
+    (2025, 11, 5, "Il Full Moon Poya Day"),
+    (2025, 12, 4, "Unduvap Full Moon Poya Day"),
+    // 2026
+    (2026, 1, 3, "Duruthu Full Moon Poya Day"),
+    (2026, 1, 15, "Tamil Thai Pongal Day"),
+    (2026, 2, 1, "Navam Full Moon Poya Day"),
+    (2026, 2, 15, "Maha Shivarathri Day"),
+    (2026, 3, 2, "Medin Full Moon Poya Day"),
+    (2026, 3, 21, "Id-Ul-Fitr (Ramazan Festival Day)"),
+    (2026, 4, 1, "Bak Full Moon Poya Day"),
+    (2026, 4, 13, "Day Prior to Sinhala & Tamil New Year Day"),
+    (2026, 4, 14, "Sinhala & Tamil New Year Day"),
+    (2026, 5, 1, "Vesak Full Moon Poya Day"),
+    (2026, 5, 2, "Day Following Vesak Full Moon Poya Day"),
+    (2026, 5, 28, "Id-Ul-Adha (Hadji Festival Day)"),
+    (2026, 5, 30, "Adhi Poson Full Moon Poya Day"),
+    (2026, 6, 29, "Poson Full Moon Poya Day"),
+    (2026, 7, 29, "Esala Full Moon Poya Day"),
+    (2026, 8, 26, "Milad-Un-Nabi (Holy Prophet's Birthday)"),
+    (2026, 8, 27, "Nikini Full Moon Poya Day"),
+    (2026, 9, 26, "Binara Full Moon Poya Day"),
+    (2026, 10, 25, "Vap Full Moon Poya Day"),
+    (2026, 11, 8, "Deepavali Festival Day"),
+    (2026, 11, 24, "Il Full Moon Poya Day"),
+    (2026, 12, 23, "Unduvap Full Moon Poya Day"),
+    // 2027
+    (2027, 1, 15, "Tamil Thai Pongal Day"),
+    (2027, 1, 22, "Duruthu Full Moon Poya Day"),
+    (2027, 2, 20, "Navam Full Moon Poya Day"),
+    (2027, 3, 6, "Maha Shivarathri Day"),
+    (2027, 3, 10, "Id-Ul-Fitr (Ramazan Festival Day)"),
+    (2027, 3, 22, "Medin Full Moon Poya Day"),
+    (2027, 4, 13, "Day Prior to Sinhala & Tamil New Year Day"),
+    (2027, 4, 14, "Sinhala & Tamil New Year Day"),
+    (2027, 4, 20, "Bak Full Moon Poya Day"),
+    (2027, 5, 17, "Id-Ul-Adha (Hadji Festival Day)"),
+    (2027, 5, 19, "Vesak Full Moon Poya Day"),
+    (2027, 5, 20, "Day Following Vesak Full Moon Poya Day"),
+    (2027, 6, 18, "Poson Full Moon Poya Day"),
+    (2027, 7, 18, "Esala Full Moon Poya Day"),
+    (2027, 8, 15, "Milad-Un-Nabi (Holy Prophet's Birthday)"),
+    (2027, 8, 16, "Nikini Full Moon Poya Day"),
+    (2027, 9, 15, "Binara Full Moon Poya Day"),
+    (2027, 10, 15, "Vap Full Moon Poya Day"),
+    (2027, 10, 28, "Deepavali Festival Day"),
+    (2027, 11, 13, "Il Full Moon Poya Day"),
+    (2027, 12, 13, "Unduvap Full Moon Poya Day"),
+];
+
+/// A lookup into [`LK_GAZETTED`] for each holiday it names: the days of
+/// that name the gazette for `year` lists.
+macro_rules! lk_gazetted {
+    ($($function:ident => $name:literal),* $(,)?) => {
+        $(
+            fn $function(year: i64) -> Days {
+                let mut out = Days::new();
+                for &(y, month, day, name) in LK_GAZETTED {
+                    if y == year && name == $name {
+                        if let Ok(fixed) = gregorian::to_fixed(y, month, day) {
+                            out.push(fixed);
+                        }
+                    }
+                }
+                out
+            }
+        )*
+    };
+}
+
+lk_gazetted! {
+    lk_duruthu => "Duruthu Full Moon Poya Day",
+    lk_navam => "Navam Full Moon Poya Day",
+    lk_medin => "Medin Full Moon Poya Day",
+    lk_bak => "Bak Full Moon Poya Day",
+    lk_vesak => "Vesak Full Moon Poya Day",
+    lk_after_vesak => "Day Following Vesak Full Moon Poya Day",
+    lk_adhi_poson => "Adhi Poson Full Moon Poya Day",
+    lk_poson => "Poson Full Moon Poya Day",
+    lk_adhi_esala => "Adhi Esala Full Moon Poya Day",
+    lk_esala => "Esala Full Moon Poya Day",
+    lk_nikini => "Nikini Full Moon Poya Day",
+    lk_binara => "Binara Full Moon Poya Day",
+    lk_vap => "Vap Full Moon Poya Day",
+    lk_il => "Il Full Moon Poya Day",
+    lk_unduvap => "Unduvap Full Moon Poya Day",
+    lk_thai_pongal => "Tamil Thai Pongal Day",
+    lk_shivarathri => "Maha Shivarathri Day",
+    lk_new_year_eve => "Day Prior to Sinhala & Tamil New Year Day",
+    lk_new_year => "Sinhala & Tamil New Year Day",
+    lk_fitr => "Id-Ul-Fitr (Ramazan Festival Day)",
+    lk_adha => "Id-Ul-Adha (Hadji Festival Day)",
+    lk_milad => "Milad-Un-Nabi (Holy Prophet's Birthday)",
+    lk_deepavali => "Deepavali Festival Day",
+    lk_special_bank => "Special Bank Holiday",
+}
+
+/// A day the gazettes list, public and bank holiday alike, for the years
+/// they cover.
+const fn lk(name: &'static str, function: fn(i64) -> Days) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        "",
+        Rule::Tabulated {
+            function,
+            first_year: LK_FIRST,
+            last_year: LK_LAST,
+        },
+    )
+}
+
+static LK_RULES: &[HolidayRule] = &[
+    lk("Duruthu Full Moon Poya Day", lk_duruthu),
+    lk("Tamil Thai Pongal Day", lk_thai_pongal),
+    HolidayRule::fixed_public("Independence Day", "", Rule::gregorian(2, 4)),
+    lk("Navam Full Moon Poya Day", lk_navam),
+    lk("Maha Shivarathri Day", lk_shivarathri),
+    lk("Medin Full Moon Poya Day", lk_medin),
+    lk("Id-Ul-Fitr (Ramazan Festival Day)", lk_fitr),
+    lk("Bak Full Moon Poya Day", lk_bak),
+    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    lk("Day Prior to Sinhala & Tamil New Year Day", lk_new_year_eve),
+    lk("Sinhala & Tamil New Year Day", lk_new_year),
+    HolidayRule::fixed_public(
+        "May Day (International Workers' Day)",
+        "",
+        Rule::gregorian(5, 1),
+    ),
+    lk("Vesak Full Moon Poya Day", lk_vesak),
+    lk("Day Following Vesak Full Moon Poya Day", lk_after_vesak),
+    lk("Id-Ul-Adha (Hadji Festival Day)", lk_adha),
+    lk("Adhi Poson Full Moon Poya Day", lk_adhi_poson),
+    lk("Poson Full Moon Poya Day", lk_poson),
+    lk("Adhi Esala Full Moon Poya Day", lk_adhi_esala),
+    lk("Esala Full Moon Poya Day", lk_esala),
+    lk("Nikini Full Moon Poya Day", lk_nikini),
+    lk("Milad-Un-Nabi (Holy Prophet's Birthday)", lk_milad),
+    lk("Binara Full Moon Poya Day", lk_binara),
+    lk("Vap Full Moon Poya Day", lk_vap),
+    lk("Deepavali Festival Day", lk_deepavali),
+    lk("Il Full Moon Poya Day", lk_il),
+    lk("Unduvap Full Moon Poya Day", lk_unduvap),
+    HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
+    // Marked for the banks alone: 16 January 2023 and 15 April 2025.
+    lk("Special Bank Holiday", lk_special_bank).of_kind(Kind::Bank),
+];
+
+/// Sri Lanka — the public and bank holidays the Minister of Public
+/// Administration orders under section 4 of the Holidays Act, No. 29 of
+/// 1971, one gazette a year.
+///
+/// Independence Day, May Day and Christmas are fixed Gregorian dates and
+/// Good Friday is the Western Easter's; everything else — the full-moon
+/// Poya days, Thai Pongal, Maha Shivarathri, the Sinhala and Tamil New
+/// Year, the three Muslim days and Deepavali — is taken from the gazettes
+/// for 2023 to 2027, and a year outside them reports those days as a gap.
+///
+/// # Why the Poya days are a table
+///
+/// Every Poya is the day of a full moon, and in an intercalary year one is
+/// the *adhi* Poya of the month it doubles. But no rule found reproduces
+/// which day: the day whose sunrise, midday, afternoon, evening or midnight
+/// has the full-moon tithi at Colombo places 34 to 55 of the 62 gazetted
+/// Poya days of these five years. The *Sūrya Siddhānta*'s full moon fits
+/// at best 59, taking the day of the last sunset before it, and only with
+/// its clock moved two and a half hours for no reason the sources give.
+/// And the intercalary month is not
+/// always India's: 2026's Adhi Poson is the adhika Jyeṣṭha of the
+/// *Rashtriya Panchang*, but 2023's Adhi Esala falls a month before its
+/// adhika Śrāvaṇa. So the days are the gazettes', and the crate does not
+/// guess the next year's.
+///
+/// No day is moved when it falls on a weekend: the gazettes list, for
+/// instance, the Poson Poya of Saturday 3 June 2023 and no substitute.
+pub static SRI_LANKA: RuleSet = RuleSet {
+    code: "LK",
+    english_name: "Sri Lanka",
+    rules: LK_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "The Holidays Act, No. 29 of 1971, section 4 orders in the Gazette Extraordinary:               Nos. 2287/4 (2023), 2341/46 (2024), 2395/33 (2025), 2438/22 (2026) and 2493/5               (2027), from the Department of Government Printing (documents.gov.lk),               retrieved 2026-09-23. Holiday names are the gazettes' English ones, their               spellings unified where they vary from year to year",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Pakistan
 // ─────────────────────────────────────────────────────────────────────────
 

@@ -17,7 +17,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `traditions` | the cross-cutting religious cycles |
 | `international` | the United Nations international days, each citing its resolution |
 | `exchanges` | 20 exchange calendars: New York, Nasdaq, Toronto, São Paulo, London, Frankfurt, Euronext's seven markets, Nasdaq's four Nordic markets, Tokyo, Hong Kong, Sydney |
-| `countries` | 123 national tables |
+| `countries` | 124 national tables |
 
 ## The vocabulary
 
@@ -92,7 +92,7 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**123 countries.** Albania, Algeria, Andorra, Argentina, Armenia, Australia
+**124 countries.** Albania, Algeria, Andorra, Argentina, Armenia, Australia
 (eight states and territories), Austria, Azerbaijan, the Bahamas, Bahrain,
 Barbados, Belarus, Belgium, Belize, Bolivia, Botswana, Brazil, Bulgaria, Canada
 (federal plus the provincial days fixed by statute), Chile, China, Colombia,
@@ -106,7 +106,7 @@ Macau, Malawi, Malaysia, Malta, Mauritius, Mexico, Moldova, Monaco, Montenegro,
 Morocco, Myanmar, Namibia, Nepal, the Netherlands, New Zealand, Nigeria, North
 Macedonia, Norway, Oman, Pakistan, Panama, Peru, the Philippines, Poland,
 Portugal, Qatar, Romania, Russia, San Marino, Saudi Arabia, Senegal, Serbia,
-Singapore, Slovakia, Slovenia, South Africa, South Korea, Spain, Sweden,
+Singapore, Slovakia, Slovenia, South Africa, South Korea, Spain, Sri Lanka, Sweden,
 Switzerland, Taiwan, Tajikistan, Tanzania, Thailand, Trinidad and Tobago,
 Tunisia, Türkiye, Turkmenistan, Uganda, Ukraine, the United Arab Emirates, the
 United Kingdom (three bank-holiday jurisdictions), the United States, Uruguay,
