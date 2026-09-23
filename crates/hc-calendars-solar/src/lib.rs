@@ -26,7 +26,7 @@
 //! | Family | Calendars |
 //! | --- | --- |
 //! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`byzantine`], [`roman`], [`rumi`] |
-//! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`indian`], [`nanakshahi`], [`discordian`] |
+//! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`indian`], [`nanakshahi`], [`bangladeshi`], [`discordian`] |
 //! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`armenian`], [`french_republican`], [`zoroastrian`] |
 //! | Day counts | [`julian_day`] |
 //! | Cycle-based | [`persian`], [`bahai`], [`bahai_kept`] |
@@ -59,6 +59,7 @@ pub mod armenian;
 pub mod armenian_fixed;
 pub mod bahai;
 pub mod bahai_kept;
+pub mod bangladeshi;
 pub mod buddhist;
 pub mod byzantine;
 pub mod coptic;
@@ -95,6 +96,7 @@ pub use armenian::{ArmenianCalendar, ArmenianDate};
 pub use armenian_fixed::{ArmenianFixedCalendar, ArmenianFixedDate};
 pub use bahai::{ArithmeticBahaiCalendar, BahaiDate};
 pub use bahai_kept::BahaiCalendar;
+pub use bangladeshi::{BangladeshiCalendar, BangladeshiDate};
 pub use buddhist::{BuddhistCalendar, BuddhistDate};
 pub use byzantine::{ByzantineCalendar, ByzantineDate};
 pub use coptic::{CopticCalendar, CopticDate};
@@ -164,6 +166,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::ArithmeticPersianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::IndianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::NanakshahiCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::BangladeshiCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::DiscordianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BuddhistCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::MinguoCalendar)));
@@ -200,7 +203,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 40;
+const CALENDAR_COUNT: usize = 41;
 
 #[cfg(test)]
 mod tests {
@@ -268,6 +271,7 @@ mod tests {
                 ArithmeticPersianCalendar,
                 IndianCalendar,
                 NanakshahiCalendar,
+                BangladeshiCalendar,
                 DiscordianCalendar,
                 BuddhistCalendar,
                 MinguoCalendar,

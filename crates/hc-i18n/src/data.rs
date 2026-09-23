@@ -724,6 +724,27 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &[],
         &[],
     ),
+    // The months as Wikipedia's "Bangladeshi national calendar" links
+    // them; `hc_calendars_solar::bangladeshi` has the Bengali script.
+    dated(
+        &[CalendarId("bangladeshi")],
+        &[months(&[
+            "Boishakh",
+            "Joishtho",
+            "Asharh",
+            "Srabon",
+            "Bhadro",
+            "Ashvin",
+            "Kartik",
+            "Ogrohayon",
+            "Poush",
+            "Magh",
+            "Falgun",
+            "Choitro",
+        ])],
+        &["bangabda"],
+        &["Bangabda"],
+    ),
     dated(
         ARMENIAN_CALENDARS,
         &[months(&[
