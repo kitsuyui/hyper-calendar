@@ -18,7 +18,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `international` | the United Nations international days, each citing its resolution |
 | `exchanges` | 21 exchange calendars: New York, Nasdaq, Toronto, São Paulo, London, Frankfurt, Zurich, Euronext's seven markets, Nasdaq's four Nordic markets, Tokyo, Hong Kong, Sydney |
-| `countries` | 128 national tables |
+| `countries` | 152 national tables |
 
 ## The vocabulary
 
@@ -93,31 +93,29 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**128 countries.** Albania, **129 countries.** Albania, **131 countries.**
-Albania, **134 countries.** Albania, Algeria, Andorra, Antigua and Barbuda,
-Argentina, Armenia, Australia (eight states and territories), Austria,
-Azerbaijan, the Bahamas, Bahrain, Bangladesh, Barbados, Belarus, Belgium,
-Belize, Bolivia, Botswana, Brazil, Bulgaria, Canada (federal plus the provincial
-days fixed by statute), Chile, China, Colombia, Costa Rica, Croatia, Cuba,
-Cyprus, Czechia, Côte d'Ivoire, Denmark, Dominica, the Dominican Republic,
-Ecuador, Egypt, El Salvador, Estonia, Ethiopia, Finland, France (métropole plus
-Alsace-Moselle), Georgia, Germany (all 16 *Länder*), Ghana, Greece, Grenada,
-Guatemala, Guyana, Haiti, Honduras, Hong Kong, Hungary, Iceland, India,
-Indonesia, Iran, Iraq, Ireland, Israel, Italy, Jamaica, Japan, Jordan,
-Kazakhstan, Kenya, Kuwait, Kyrgyzstan, Latvia, Lebanon, Libya, Liechtenstein,
-Lithuania, Luxembourg, Macau, Malawi, Malaysia, Malta, the Marshall Islands,
-Mauritius, Mexico, Micronesia, Moldova, Monaco, Mongolia, Montenegro, Morocco,
-Myanmar, Namibia, Nauru, Nepal, the Netherlands, New Zealand, Nicaragua,
-Nigeria, North Macedonia, Norway, Oman, Pakistan, Palau, Palestine, Panama,
-Papua New Guinea, Paraguay, Peru, the Philippines, Poland, Portugal, Qatar,
-Romania, Russia, Saint Kitts and Nevis, Saint Lucia, Saint Vincent and the
-Grenadines, Samoa, San Marino, Saudi Arabia, Senegal, Serbia, Singapore,
-Slovakia, Slovenia, the Solomon Islands, South Africa, South Korea, Spain, Sri
-Lanka, Suriname, Sweden, Switzerland, Syria, Taiwan, Tajikistan, Tanzania,
-Thailand, Tonga, Trinidad and Tobago, Tunisia, Türkiye, Turkmenistan, Tuvalu,
-Uganda, Ukraine, the United Arab Emirates, the United Kingdom (three bank-
-holiday jurisdictions), the United States, Uruguay, Uzbekistan, Vanuatu Vietnam,
-Venezuela, Vietnam, Yemen, Zambia, Zimbabwe.
+**152 countries.** Albania, Algeria, Andorra, Antigua and Barbuda, Argentina,
+Armenia, Australia (eight states and territories), Austria, Azerbaijan, the
+Bahamas, Bahrain, Bangladesh, Barbados, Belarus, Belgium, Belize, Bolivia,
+Botswana, Brazil, Bulgaria, Canada (federal plus the provincial days fixed by
+statute), Chile, China, Colombia, Costa Rica, Côte d'Ivoire, Croatia, Cuba,
+Cyprus, Czechia, Denmark, Dominica, the Dominican Republic, Ecuador, Egypt, El
+Salvador, Estonia, Ethiopia, Finland, France (métropole plus Alsace-Moselle),
+Georgia, Germany (all 16 *Länder*), Ghana, Greece, Grenada, Guatemala, Guyana,
+Haiti, Honduras, Hong Kong, Hungary, Iceland, India, Indonesia, Iran, Iraq,
+Ireland, Israel, Italy, Jamaica, Japan, Jordan, Kazakhstan, Kenya, Kuwait,
+Kyrgyzstan, Latvia, Lebanon, Libya, Liechtenstein, Lithuania, Luxembourg, Macau,
+Malawi, Malaysia, Malta, the Marshall Islands, Mauritius, Mexico, Micronesia,
+Moldova, Monaco, Mongolia, Montenegro, Morocco, Myanmar, Namibia, Nauru, Nepal,
+the Netherlands, New Zealand, Nicaragua, Nigeria, North Macedonia, Norway, Oman,
+Pakistan, Palau, Palestine, Panama, Papua New Guinea, Paraguay, Peru, the
+Philippines, Poland, Portugal, Qatar, Romania, Russia, Saint Kitts and Nevis,
+Saint Lucia, Saint Vincent and the Grenadines, Samoa, San Marino, Saudi Arabia,
+Senegal, Serbia, Singapore, Slovakia, Slovenia, the Solomon Islands, South
+Africa, South Korea, Spain, Sri Lanka, Suriname, Sweden, Switzerland, Syria,
+Taiwan, Tajikistan, Tanzania, Thailand, Tonga, Trinidad and Tobago, Tunisia,
+Türkiye, Turkmenistan, Tuvalu, Uganda, Ukraine, the United Arab Emirates, the
+United Kingdom (three bank- holiday jurisdictions), the United States, Uruguay,
+Uzbekistan, Vanuatu Vietnam, Venezuela, Vietnam, Yemen, Zambia, Zimbabwe.
 
 **Twenty traditions.** Christianity under both computations, the General
 Roman Calendar with the rank of every celebration (`roman_calendar`), the
@@ -267,7 +265,7 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 
 | Entry | Why |
 | --- | --- |
-| Every Hijri-dated holiday, in fifty countries and the Islamic tradition table | the observed date is a sighting decision, per country |
+| Every Hijri-dated holiday, in fifty-two countries and the Islamic tradition table | the observed date is a sighting decision, per country |
 | Vesak, Makha Bucha, Asalha Bucha, Khao Phansa (Thailand, Indonesia, Singapore, Malaysia, the Buddhist table) | dated by the Thai lunar calendar, which this crate does not have; approximated as the full moon of Chinese lunar month *n* − 2. Right in 2022, 2024 and 2025; a day out in 2023; a month out in a Thai intercalary year |
 | Nepal's festivals — Buddha Jayanti, Dashain, Tihar and the rest | each is a tithi read at Kathmandu, and the part of the day it must hold is fitted to the notices of 2080–2083 BS, which it reproduces, rather than quoted from the almanac |
 | Bangladesh's Buddha Purnima | the notifications' own dates for 2025 and 2026, which they star as depending on the moon |
