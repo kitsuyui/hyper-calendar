@@ -4800,6 +4800,215 @@ fn suriname_keeps_the_decrees_free_days_and_moves_none() {
 }
 
 #[test]
+fn venezuela_has_the_lottt_days_and_the_five_fiestas_nacionales_and_moves_none() {
+    expect(
+        "VE",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 2, 16, "Carnival Monday"),
+            (2026, 2, 17, "Carnival Tuesday"),
+            (2026, 4, 2, "Maundy Thursday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 19, "Declaration of Independence"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 6, 24, "Battle of Carabobo"),
+            (2026, 7, 5, "Independence Day"),
+            (2026, 7, 24, "Birthday of Simón Bolívar"),
+            (2026, 10, 12, "Day of Indigenous Resistance"),
+            (2026, 12, 24, "Christmas Eve"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 31, "New Year's Eve"),
+            (2025, 3, 3, "Carnival Monday"),
+            (2025, 3, 4, "Carnival Tuesday"),
+            (2025, 4, 17, "Maundy Thursday"),
+            (2025, 4, 18, "Good Friday"),
+            (2002, 10, 12, "Day of Indigenous Resistance"),
+            (2001, 10, 12, "Day of the Race"),
+        ],
+    );
+    // A Sunday 5 July 2026 gives no Monday; Easter Monday and Flag Day are
+    // working days.
+    expect_working("VE", None, &[(2026, 7, 6), (2026, 4, 6), (2026, 8, 3)]);
+}
+
+#[test]
+fn paraguay_follows_ley_7544_and_the_2026_decrees_that_moved_three_days() {
+    expect(
+        "PY",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 2, "Heroes' Day"),
+            (2026, 4, 2, "Maundy Thursday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 14, "Independence Day"),
+            (2026, 5, 15, "Independence Day"),
+            (2026, 6, 12, "Chaco Peace Day"),
+            (2026, 6, 22, "Constitution Day"),
+            (2026, 6, 30, "Additional national holiday"),
+            (2026, 8, 15, "Founding of Asunción"),
+            (2026, 9, 28, "Battle of Boquerón Day"),
+            (2026, 12, 8, "Virgin of Caacupé Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2025, 9, 5, "Additional national holiday"),
+            (2025, 12, 26, "Additional national holiday"),
+            (2025, 5, 15, "Independence Day"),
+            (1995, 9, 29, "Battle of Boquerón Day"),
+        ],
+    );
+    // A year whose moving decrees were not read is a gap: under Ley 1723
+    // from 2001 to 2025, and for the four movable days from 2027.
+    for year in [2010, 2025, 2027] {
+        assert!(
+            !HolidayCalendar::for_year(table("PY"), None, year).is_complete(),
+            "{year}"
+        );
+    }
+    assert!(HolidayCalendar::for_year(table("PY"), None, 1999).is_complete());
+    assert!(HolidayCalendar::for_year(table("PY"), None, 2026).is_complete());
+    // The days the 2026 decrees moved off, 20 June before the 2025 law,
+    // and 29 September before Ley 715 of 1995.
+    expect_working(
+        "PY",
+        None,
+        &[
+            (2026, 3, 1),
+            (2026, 6, 20),
+            (2026, 9, 29),
+            (2025, 6, 20),
+            (1994, 9, 29),
+        ],
+    );
+}
+
+#[test]
+fn honduras_keeps_the_october_days_as_the_semana_morazanica_from_2015() {
+    expect(
+        "HN",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 4, 2, "Maundy Thursday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 4, "Holy Saturday"),
+            (2026, 4, 14, "Pan American Day"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 9, 15, "Independence Day"),
+            (2026, 10, 7, "Morazanic Week"),
+            (2026, 10, 8, "Morazanic Week"),
+            (2026, 10, 9, "Morazanic Week"),
+            (2026, 12, 25, "Christmas Day"),
+            (2025, 10, 1, "Morazanic Week"),
+            (2025, 10, 2, "Morazanic Week"),
+            (2025, 10, 3, "Morazanic Week"),
+            // Decreto 126-2020: November, for 2020 alone.
+            (2020, 11, 4, "Morazanic Week"),
+            (2020, 11, 5, "Morazanic Week"),
+            (2020, 11, 6, "Morazanic Week"),
+            (2013, 10, 3, "Soldier's Day"),
+            (2013, 10, 12, "Discovery of America Day"),
+            (2013, 10, 21, "Armed Forces Day"),
+        ],
+    );
+    expect_working(
+        "HN",
+        None,
+        &[
+            (2026, 10, 12),
+            (2026, 10, 21),
+            (2020, 10, 7),
+            (2019, 10, 21),
+        ],
+    );
+    let calendar = HolidayCalendar::for_year(table("HN"), None, 2026);
+    let kinds: Vec<Kind> = calendar
+        .on(ymd(2026, 10, 7))
+        .iter()
+        .map(|holiday| holiday.kind)
+        .collect();
+    assert_eq!(kinds, [Kind::Bank]);
+    // Decreto 75-2014 was not read, so 2014 is a gap.
+    assert!(!HolidayCalendar::for_year(table("HN"), None, 2014).is_complete());
+    assert!(HolidayCalendar::for_year(table("HN"), None, 2013).is_complete());
+}
+
+#[test]
+fn el_salvador_has_article_190_the_two_parents_days_and_san_salvadors_august() {
+    expect(
+        "SV",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 4, 2, "Maundy Thursday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 4, "Holy Saturday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 10, "Mother's Day"),
+            (2026, 6, 17, "Father's Day"),
+            (2026, 8, 6, "Feast of the Divine Saviour of the World"),
+            (2026, 9, 15, "Independence Day"),
+            (2026, 11, 2, "All Souls' Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2025, 4, 19, "Holy Saturday"),
+            (2023, 7, 7, "Central American and Caribbean Games holiday"),
+            (2016, 5, 10, "Mother's Day"),
+            (2013, 6, 17, "Father's Day"),
+        ],
+    );
+    expect(
+        "SV",
+        Some("SV-SS"),
+        &[
+            (2026, 8, 3, "August Festivities"),
+            (2026, 8, 5, "August Festivities"),
+            (2026, 8, 6, "Feast of the Divine Saviour of the World"),
+        ],
+    );
+    // San Salvador's two days are not national; Father's Day began in
+    // 2013; 7 July was a day off in 2023 alone.
+    expect_working(
+        "SV",
+        None,
+        &[(2026, 8, 3), (2026, 8, 5), (2011, 6, 17), (2026, 7, 7)],
+    );
+}
+
+#[test]
+fn nicaragua_has_article_66_and_managuas_santo_domingo_and_moves_none() {
+    expect(
+        "NI",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 4, 2, "Maundy Thursday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 7, 19, "Revolution Day"),
+            (2026, 9, 14, "Battle of San Jacinto"),
+            (2026, 9, 15, "Independence Day"),
+            (2026, 12, 8, "Immaculate Conception"),
+            (2026, 12, 25, "Christmas Day"),
+            (2025, 4, 17, "Maundy Thursday"),
+            (2025, 4, 18, "Good Friday"),
+            (2025, 9, 15, "Independence Day"),
+        ],
+    );
+    expect(
+        "NI",
+        Some("NI-MN"),
+        &[
+            (2026, 8, 1, "Santo Domingo de Guzmán"),
+            (2026, 8, 10, "Santo Domingo de Guzmán"),
+        ],
+    );
+    // A Sunday 19 July 2026 gives no Monday; Managua's days are not
+    // national.
+    expect_working("NI", None, &[(2026, 7, 20), (2026, 8, 10), (2026, 11, 2)]);
+}
+
+#[test]
 fn oman_compensates_weekend_days_as_the_2022_decree_says() {
     expect(
         "OM",

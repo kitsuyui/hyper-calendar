@@ -2693,6 +2693,658 @@ pub static HAITI: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// Venezuela
+// ─────────────────────────────────────────────────────────────────────────
+
+static VE_RULES: &[HolidayRule] = &[
+    // Article 184(b) of the LOTTT.
+    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Carnival Monday",
+        "Lunes de Carnaval",
+        Rule::easter(SHROVE_MONDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Carnival Tuesday",
+        "Martes de Carnaval",
+        Rule::easter(SHROVE_TUESDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Maundy Thursday",
+        "Jueves Santo",
+        Rule::easter(MAUNDY_THURSDAY),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    // Article 184(c): the five days of the Ley de Fiestas Nacionales.
+    HolidayRule::fixed_public(
+        "Declaration of Independence",
+        "Declaración de la Independencia",
+        Rule::gregorian(4, 19),
+    ),
+    HolidayRule::fixed_public("Labour Day", "Día del Trabajador", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public(
+        "Battle of Carabobo",
+        "Batalla de Carabobo",
+        Rule::gregorian(6, 24),
+    ),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Día de la Independencia",
+        Rule::gregorian(7, 5),
+    ),
+    HolidayRule::fixed_public(
+        "Birthday of Simón Bolívar",
+        "Natalicio del Libertador",
+        Rule::gregorian(7, 24),
+    ),
+    // Decreto 2.028 of 10 October 2002 renamed the day; the date and the
+    // day off are the Ley de Fiestas Nacionales'.
+    HolidayRule::fixed_public("Day of the Race", "Día de la Raza", Rule::gregorian(10, 12))
+        .years(None, Some(2001)),
+    HolidayRule::fixed_public(
+        "Day of Indigenous Resistance",
+        "Día de la Resistencia Indígena",
+        Rule::gregorian(10, 12),
+    )
+    .years(Some(2002), None),
+    HolidayRule::fixed_public("Christmas Eve", "Nochebuena", Rule::gregorian(12, 24)),
+    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+    HolidayRule::fixed_public("New Year's Eve", "Fin de Año", Rule::gregorian(12, 31)),
+];
+
+/// Venezuela.
+///
+/// Article 184 of the Ley Orgánica del Trabajo, los Trabajadores y las
+/// Trabajadoras of 2012: Sundays; 1 January, Carnival Monday and Tuesday,
+/// Maundy Thursday and Good Friday, 1 May and 24, 25 and 31 December,
+/// all as whole days; and "los señalados en la Ley de Fiestas
+/// Nacionales", whose 1971 text makes 19 April, 24 June, 5 July, 24 July
+/// and 12 October the days of national festival. 12 October is the Day
+/// of the Race until 2001 and the Day of Indigenous Resistance from
+/// Decreto 2.028 of 10 October 2002, which renamed it. The Asamblea
+/// Nacional lists a Ley de Reforma Parcial de la Ley de Fiestas
+/// Nacionales among its sanctioned laws; its text could not be read, and
+/// the 2022 bill as LabLabor reported it added four patriotic dates
+/// without the standing of holidays under the LOTTT, so the table follows
+/// the 1971 text. The up to three days a year the national, state or
+/// municipal governments may declare under article 184(d) are not
+/// carried, and nothing in either law moves a holiday off a weekend.
+/// Article 173 gives two continuous rest days a week without naming them;
+/// the weekend is taken as Saturday and Sunday.
+pub static VENEZUELA: RuleSet = RuleSet {
+    code: "VE",
+    english_name: "Venezuela",
+    rules: VE_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Ley Orgánica del Trabajo, los Trabajadores y las Trabajadoras, Gaceta \
+              Oficial Extraordinaria 6.076 of 7 May 2012, articles 173 and 184, from \
+              tugacetaoficial.com and Acceso a la Justicia, retrieved 2026-09-23; Ley de \
+              Fiestas Nacionales, Gaceta Oficial 29.541 of 22 June 1971, article 1, from \
+              the Justia copy of the gazette; Decreto 2.028 of 10 October 2002 as \
+              NotiIndígena reproduces it; LabLabor (12 August 2022) and El Universal \
+              (8 July 2022) on the reform bill; Wikipedia, \"Public holidays in \
+              Venezuela\", for the names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Paraguay
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The last year before Ley 1723 of 2001 let the Executive move holidays
+/// by decree.
+const PY_UNMOVED_UNTIL: i32 = 2000;
+/// The years whose moving decrees the table has read.
+const PY_DECREES_FIRST: i64 = 2026;
+/// The last.
+const PY_DECREES_LAST: i64 = 2026;
+
+/// The four days Ley 7544/2025 lets an annual decree move, where each
+/// read year's decrees put them: the day's month and day in the law, then
+/// the month and day of that year.
+static PY_DECREED: &[(i64, u8, u8, u8, u8)] = &[
+    // 1 March, a Sunday, moved to Monday 2 March.
+    (2026, 3, 1, 3, 2),
+    // 12 June, a Friday, left where it was.
+    (2026, 6, 12, 6, 12),
+    // Decreto 6215: Saturday 20 June to Monday 22 June.
+    (2026, 6, 20, 6, 22),
+    // Decreto 6601: Tuesday 29 September to Monday 28 September.
+    (2026, 9, 29, 9, 28),
+];
+
+fn py_decreed(year: i64, month: u8, day: u8) -> Days {
+    for &(y, law_month, law_day, to_month, to_day) in PY_DECREED {
+        if y == year && (law_month, law_day) == (month, day) {
+            return gregorian::to_fixed(y, to_month, to_day)
+                .map_or_else(|_| Days::new(), Days::one);
+        }
+    }
+    Days::new()
+}
+
+fn py_heroes_day(year: i64) -> Days {
+    py_decreed(year, 3, 1)
+}
+
+fn py_chaco_peace_day(year: i64) -> Days {
+    py_decreed(year, 6, 12)
+}
+
+fn py_constitution_day(year: i64) -> Days {
+    py_decreed(year, 6, 20)
+}
+
+fn py_boqueron_day(year: i64) -> Days {
+    py_decreed(year, 9, 29)
+}
+
+/// Nothing: the decrees of 2001 to 2025 that could move this day were not
+/// read, so a year among them is a gap.
+fn py_unread(_: i64) -> Days {
+    Days::new()
+}
+
+const fn py_decrees(function: fn(i64) -> Days) -> Rule {
+    Rule::Tabulated {
+        function,
+        first_year: PY_DECREES_FIRST,
+        last_year: PY_DECREES_LAST,
+    }
+}
+
+/// A day a decree may move: on its date until 2000, and from 2001 where the
+/// read decrees put it, a gap in every other year.
+const fn py_movable(
+    name: &'static str,
+    local_name: &'static str,
+    function: fn(i64) -> Days,
+) -> HolidayRule {
+    HolidayRule::fixed_public(name, local_name, py_decrees(function))
+        .years(Some(PY_UNMOVED_UNTIL + 1), None)
+}
+
+/// A day Ley 1723 let a decree move and Ley 7544 fixed again: the years
+/// 2001 to 2025 are a gap.
+const fn py_moved_until_2025(name: &'static str, local_name: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(name, local_name, py_decrees(py_unread))
+        .years(Some(PY_UNMOVED_UNTIL + 1), Some(2025))
+}
+
+static PY_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Heroes' Day",
+        "Día de los Héroes de la Patria",
+        Rule::gregorian(3, 1),
+    )
+    .years(None, Some(PY_UNMOVED_UNTIL)),
+    py_movable(
+        "Heroes' Day",
+        "Día de los Héroes de la Patria",
+        py_heroes_day,
+    ),
+    HolidayRule::fixed_public(
+        "Maundy Thursday",
+        "Jueves Santo",
+        Rule::easter(MAUNDY_THURSDAY),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public(
+        "Labour Day",
+        "Día de los Trabajadores",
+        Rule::gregorian(5, 1),
+    )
+    .years(None, Some(PY_UNMOVED_UNTIL)),
+    py_moved_until_2025("Labour Day", "Día de los Trabajadores"),
+    HolidayRule::fixed_public(
+        "Labour Day",
+        "Día de los Trabajadores",
+        Rule::gregorian(5, 1),
+    )
+    .years(Some(2026), None),
+    // Ley 4531 of November 2011 restored 14 May beside 15 May.
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Día de la Independencia Nacional",
+        Rule::Tabulated {
+            function: py_unread,
+            first_year: PY_DECREES_FIRST,
+            last_year: PY_DECREES_LAST,
+        },
+    )
+    .years(Some(2012), Some(2025)),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Día de la Independencia Nacional",
+        Rule::gregorian(5, 14),
+    )
+    .years(Some(2026), None),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Día de la Independencia Nacional",
+        Rule::gregorian(5, 15),
+    ),
+    HolidayRule::fixed_public(
+        "Chaco Peace Day",
+        "Día de la Paz del Chaco",
+        Rule::gregorian(6, 12),
+    )
+    .years(None, Some(PY_UNMOVED_UNTIL)),
+    py_movable(
+        "Chaco Peace Day",
+        "Día de la Paz del Chaco",
+        py_chaco_peace_day,
+    ),
+    py_movable(
+        "Constitution Day",
+        "Día de la Jura de la Constitución Nacional",
+        py_constitution_day,
+    )
+    .years(Some(2026), None),
+    HolidayRule::fixed_public(
+        "Founding of Asunción",
+        "Día de la Fundación de Asunción",
+        Rule::gregorian(8, 15),
+    )
+    .years(None, Some(PY_UNMOVED_UNTIL)),
+    py_moved_until_2025("Founding of Asunción", "Día de la Fundación de Asunción"),
+    HolidayRule::fixed_public(
+        "Founding of Asunción",
+        "Día de la Fundación de Asunción",
+        Rule::gregorian(8, 15),
+    )
+    .years(Some(2026), None),
+    HolidayRule::fixed_public(
+        "Battle of Boquerón Day",
+        "Día de la Batalla de Boquerón",
+        Rule::gregorian(9, 29),
+    )
+    .years(Some(1995), Some(PY_UNMOVED_UNTIL)),
+    py_movable(
+        "Battle of Boquerón Day",
+        "Día de la Batalla de Boquerón",
+        py_boqueron_day,
+    ),
+    HolidayRule::fixed_public(
+        "Virgin of Caacupé Day",
+        "Día de la Virgen de Caacupé",
+        Rule::gregorian(12, 8),
+    ),
+    HolidayRule::fixed_public(
+        "Christmas Day",
+        "Día de la Navidad",
+        Rule::gregorian(12, 25),
+    ),
+    // The additional days of article 4 of Ley 7544/2025 that the table has
+    // read of.
+    HolidayRule::fixed_public(
+        "Additional national holiday",
+        "Feriado nacional adicional",
+        Rule::gregorian(9, 5),
+    )
+    .years(Some(2025), Some(2025)),
+    HolidayRule::fixed_public(
+        "Additional national holiday",
+        "Feriado nacional adicional",
+        Rule::gregorian(12, 26),
+    )
+    .years(Some(2025), Some(2025)),
+    HolidayRule::fixed_public(
+        "Additional national holiday",
+        "Feriado nacional adicional",
+        Rule::gregorian(6, 30),
+    )
+    .years(Some(2026), Some(2026))
+    .cited("Decreto 6280 of 29 June 2026"),
+];
+
+/// Paraguay.
+///
+/// Article 217 of the Código del Trabajo makes the holidays "established by
+/// law" days of obligatory rest. The law is Ley 7544/2025, promulgated and
+/// published on 3 September 2025, which repealed and replaced Ley 8/90 and
+/// its amendments: 1 January, 1 March, Maundy Thursday and Good Friday, 1
+/// May, 14 and 15 May, 12 June, 20 June, 15 August, 29 September, 8
+/// December and 25 December. Its 20 June is new and runs from 2026; 14 May
+/// is Ley 4531's, restored from 2012; 29 September is Ley 715's of 1995,
+/// for five years and then for good by Ley 1601 of 2000; the rest are Ley
+/// 8/90's of 1990, and nothing earlier is stated. Article 3 of the 2025 law
+/// lets the Executive move 1 March, 12 June, 20 June and 29 September to
+/// the Monday before or after by an annual decree, as Ley 1723 of 2001 had
+/// let it move all but 1 January, 15 May, 8 and 25 December and Holy Week;
+/// those moves are not a rule. The table carries the days on their dates
+/// until 2000 and where 2026's decrees put them, and reports every day a
+/// decree could move as a gap in the years whose decrees it has not read:
+/// 2001 to 2025 under Ley 1723, and from 2027 the four days Ley 7544 lets
+/// move. Ley 4316's one-off pair of 14 and 16 May 2011 is left out.
+/// Article 4's up to three additional days a year are carried for the three the table read of, 5 September and
+/// 26 December 2025 and 30 June 2026. No law read moves a holiday off a
+/// weekend, and the Code's weekly rest is "normally Sunday"; the weekend is
+/// Saturday and Sunday as for the region's other tables.
+pub static PARAGUAY: RuleSet = RuleSet {
+    code: "PY",
+    english_name: "Paraguay",
+    rules: PY_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Ley 7544/2025, Ley 8/90, Ley 715/95, Ley 1601/2000, Ley 1723/2001, Ley \
+              4531/2011 and Ley 213/93 (Código del Trabajo) articles 213 and 217, from \
+              the Biblioteca y Archivo Central del Congreso Nacional (bacn.gov.py), \
+              retrieved 2026-09-23; Decreto 6215 of 9 June 2026 from its published scan; \
+              ABC Color on Decreto 6601 (20 August 2026), Decreto 6280 (29 June 2026), \
+              the 1 March 2026 move (16 February 2026), the 2025 additional days and the \
+              2026 list (21 September 2026)",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Honduras
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first Wednesday of the Semana Morazánica: of October from 2015 by
+/// Decreto 78-2015, and of November in 2020 alone by Decreto 126-2020.
+fn hn_morazanic_wednesday(year: i64) -> Days {
+    if year < 2015 {
+        return Days::new();
+    }
+    let month = if year == 2020 { 11 } else { 10 };
+    gregorian::to_fixed(year, month, 1).map_or_else(
+        |_| Days::new(),
+        |first| Days::one(Weekday::Wednesday.on_or_after(first)),
+    )
+}
+
+/// The Thursday and Friday after that Wednesday.
+fn hn_morazanic_thursday_friday(year: i64) -> Days {
+    let mut out = Days::new();
+    for wednesday in hn_morazanic_wednesday(year).as_slice() {
+        out.push(Rd(wednesday.0 + 1));
+        out.push(Rd(wednesday.0 + 2));
+    }
+    out
+}
+
+/// Nothing: Decreto 75-2014, which placed the three October days in 2014,
+/// was not read, so that year is a gap.
+fn hn_unread(_: i64) -> Days {
+    Days::new()
+}
+
+static HN_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Pan American Day",
+        "Día de las Américas",
+        Rule::gregorian(4, 14),
+    ),
+    HolidayRule::fixed_public(
+        "Maundy Thursday",
+        "Jueves Santo",
+        Rule::easter(MAUNDY_THURSDAY),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Holy Saturday", "Sábado Santo", Rule::easter(HOLY_SATURDAY)),
+    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Día de la Independencia",
+        Rule::gregorian(9, 15),
+    ),
+    // Article 339's three October days, on their dates until Decreto
+    // 75-2014 moved them.
+    HolidayRule::fixed_public("Soldier's Day", "Día del Soldado", Rule::gregorian(10, 3))
+        .years(None, Some(2013)),
+    HolidayRule::fixed_public(
+        "Discovery of America Day",
+        "Día del Descubrimiento de América",
+        Rule::gregorian(10, 12),
+    )
+    .years(None, Some(2013)),
+    HolidayRule::fixed_public(
+        "Armed Forces Day",
+        "Día de las Fuerzas Armadas",
+        Rule::gregorian(10, 21),
+    )
+    .years(None, Some(2013)),
+    HolidayRule::fixed_public(
+        "Morazanic Week",
+        "Semana Morazánica",
+        Rule::Tabulated {
+            function: hn_unread,
+            first_year: 2015,
+            last_year: 2015,
+        },
+    )
+    .years(Some(2014), Some(2014)),
+    // The private sector's holiday begins at noon on the Wednesday.
+    HolidayRule::fixed_public(
+        "Morazanic Week",
+        "Semana Morazánica",
+        Rule::Computed(hn_morazanic_wednesday),
+    )
+    .of_kind(Kind::Bank),
+    HolidayRule::fixed_public(
+        "Morazanic Week",
+        "Semana Morazánica",
+        Rule::Computed(hn_morazanic_thursday_friday),
+    ),
+    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+];
+
+/// Honduras.
+///
+/// Article 339 of the Código del Trabajo: 1 January, 14 April, 1 May, 15
+/// September, 3, 12 and 21 October and 25 December "aunque caigan en
+/// domingo", and the Thursday, Friday and Saturday of Holy Week; a
+/// holiday on a Sunday is paid and not moved. Decreto 75-2014 put the
+/// three October days together for tourism, and Decreto 78-2015, in
+/// force from September 2015, made them the Semana Morazánica "a partir
+/// del primer miércoles del mes de octubre, de cada año": for public
+/// employees the Wednesday, Thursday and Friday, for the private sector
+/// from noon on the Wednesday to noon on the Saturday. The Wednesday is
+/// therefore [`Kind::Bank`] here, the Thursday and Friday days off, and
+/// the Saturday morning falls on the weekend. Decreto 126-2020 moved the
+/// week to the first Wednesday of November for 2020 alone. The two
+/// decrees that describe 75-2014 put its week at the end and at the start
+/// of October, and its own text was not read, so 2014 is reported as a
+/// gap. The festivity days that article 339's second paragraph
+/// leaves to the employer are not carried.
+pub static HONDURAS: RuleSet = RuleSet {
+    code: "HN",
+    english_name: "Honduras",
+    rules: HN_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Código del Trabajo, Decreto 189 of 1959, articles 338 and 339, from the \
+              edu-honduras.info copy, retrieved 2026-09-23; Decreto 78-2015, La Gaceta \
+              33,834 of 14 September 2015, and Decreto 126-2020, La Gaceta 35,387 of 30 \
+              September 2020, from the Tribunal Superior de Cuentas (tsc.gob.hn); Infobae \
+              (25 August 2026) and La Prensa on the COHEP's dates for 2025 and 2026; \
+              Wikipedia, \"Public holidays in Honduras\", for the names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// El Salvador
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The department of San Salvador, whose capital is the city article 190
+/// names.
+const SV_SAN_SALVADOR: &[&str] = &["SV-SS"];
+
+static SV_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Maundy Thursday",
+        "Jueves Santo",
+        Rule::easter(MAUNDY_THURSDAY),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Holy Saturday", "Sábado Santo", Rule::easter(HOLY_SATURDAY)),
+    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public("Mother's Day", "Día de la Madre", Rule::gregorian(5, 10))
+        .years(Some(2016), None)
+        .cited("Decreto Legislativo 339 of 14 April 2016"),
+    HolidayRule::fixed_public("Father's Day", "Día del Padre", Rule::gregorian(6, 17))
+        .years(Some(2013), None)
+        .cited("Decreto Legislativo 208 of 28 November 2012"),
+    HolidayRule::fixed_public(
+        "Central American and Caribbean Games holiday",
+        "Asueto nacional por los XXIV Juegos Centroamericanos y del Caribe",
+        Rule::gregorian(7, 7),
+    )
+    .years(Some(2023), Some(2023))
+    .cited("Decreto Legislativo 776 of 20 June 2023"),
+    HolidayRule::fixed_public(
+        "August Festivities",
+        "Fiestas Agostinas",
+        Rule::gregorian(8, 3),
+    )
+    .in_regions(SV_SAN_SALVADOR),
+    HolidayRule::fixed_public(
+        "August Festivities",
+        "Fiestas Agostinas",
+        Rule::gregorian(8, 5),
+    )
+    .in_regions(SV_SAN_SALVADOR),
+    HolidayRule::fixed_public(
+        "Feast of the Divine Saviour of the World",
+        "Fiesta del Divino Salvador del Mundo",
+        Rule::gregorian(8, 6),
+    ),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Día de la Independencia",
+        Rule::gregorian(9, 15),
+    ),
+    HolidayRule::fixed_public(
+        "All Souls' Day",
+        "Día de los Difuntos",
+        Rule::gregorian(11, 2),
+    ),
+    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+];
+
+/// El Salvador.
+///
+/// Article 190 of the Código de Trabajo, in the text of Decreto Legislativo
+/// 408 of 1995: 1 January, the Thursday, Friday and Saturday of Holy Week,
+/// 1 May, 6 August, 15 September, 2 November and 25 December, and 3 and 5
+/// August "en la ciudad de San Salvador". The city is not an ISO 3166-2
+/// subdivision, so those two days are scoped to its department, `SV-SS`,
+/// which is wider than the Code; the patron-saint day that the same
+/// sentence gives every other place "según la costumbre" is not carried.
+/// Two decrees outside the Code add days: Father's Day on 17 June "con
+/// asueto remunerado", restricted to no sector, from Decreto Legislativo
+/// 208 of 2012, in force before 17 June 2013; and Mother's Day on 10 May
+/// for the public and private sectors from Decreto Legislativo 339 of 2016,
+/// which extended to everyone the public sector's day of 1983 — so the day
+/// runs from 2016 here, and the public sector's years before are not
+/// carried. Decreto Legislativo 776 of 2023 made 7 July 2023 a national day
+/// off for the Central American and Caribbean Games; the other one-off days
+/// the Assembly decrees are not carried. Article 194 pays a holiday that
+/// falls on the weekly rest day and does not move it.
+pub static EL_SALVADOR: RuleSet = RuleSet {
+    code: "SV",
+    english_name: "El Salvador",
+    rules: SV_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Código de Trabajo, Decreto Legislativo 15 of 23 June 1972, articles 190 and \
+              194 with the reform list, and Decretos Legislativos 208/2012, 339/2016 and \
+              776/2023, from the Asamblea Legislativa's Índice Legislativo \
+              (asamblea.gob.sv), retrieved 2026-09-23; the Corte Suprema de Justicia's \
+              note on the días de asueto (26 May 2021); Wikipedia, \"Public holidays in \
+              El Salvador\", for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Nicaragua
+// ─────────────────────────────────────────────────────────────────────────
+
+static NI_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public(
+        "Maundy Thursday",
+        "Jueves Santo",
+        Rule::easter(MAUNDY_THURSDAY),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public(
+        "Revolution Day",
+        "Día de la Revolución",
+        Rule::gregorian(7, 19),
+    ),
+    // Article 67: Managua's two days of Santo Domingo.
+    HolidayRule::fixed_public(
+        "Santo Domingo de Guzmán",
+        "Fiestas de Santo Domingo de Guzmán",
+        Rule::gregorian(8, 1),
+    )
+    .in_regions(&["NI-MN"]),
+    HolidayRule::fixed_public(
+        "Santo Domingo de Guzmán",
+        "Fiestas de Santo Domingo de Guzmán",
+        Rule::gregorian(8, 10),
+    )
+    .in_regions(&["NI-MN"]),
+    HolidayRule::fixed_public(
+        "Battle of San Jacinto",
+        "Batalla de San Jacinto",
+        Rule::gregorian(9, 14),
+    ),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Día de la Independencia",
+        Rule::gregorian(9, 15),
+    ),
+    HolidayRule::fixed_public(
+        "Immaculate Conception",
+        "Día de la Inmaculada Concepción",
+        Rule::gregorian(12, 8),
+    ),
+    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+];
+
+/// Nicaragua.
+///
+/// Article 66 of the Código del Trabajo, Ley 185 of 1996: 1 January,
+/// Maundy Thursday and Good Friday, 1 May, 19 July, 14 and 15 September,
+/// 8 and 25 December. Article 67 adds 1 and 10 August "en la ciudad de
+/// Managua", scoped here to the department, `NI-MN`, which is wider than
+/// the Code, and gives every other place the main day of its festivity
+/// "según la costumbre", which is not carried. Article 68 says a holiday
+/// that coincides with the seventh day "será compensado" without naming
+/// a day, so no substitution is carried. The days of asueto the Executive
+/// may declare under article 66 are not carried either.
+pub static NICARAGUA: RuleSet = RuleSet {
+    code: "NI",
+    english_name: "Nicaragua",
+    rules: NI_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Ley 185, Código del Trabajo, La Gaceta 205 of 30 October 1996, articles 66 \
+              to 68, from the Asamblea Nacional's Normas Jurídicas de Nicaragua \
+              (legislacion.asamblea.gob.ni), retrieved 2026-09-23; Wikipedia, \"Public \
+              holidays in Nicaragua\", for the English names",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Antigua and Barbuda
 // ─────────────────────────────────────────────────────────────────────────
 

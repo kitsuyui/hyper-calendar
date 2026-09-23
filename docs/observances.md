@@ -198,10 +198,15 @@ Ordered by how well the sources can be cited, not by importance.
 | Belize 🇧🇿 | The Government's yearly notices under Chapter 289, the Act itself unread: Sunday to Monday, the Second Schedule's two days to the nearest Monday, the Tuesday and Wednesday moves the notices show |
 | Guyana 🇬🇾 | Chapter 19:07 s. 3 with "if that day is a Sunday, the following day" and the section 6 days by the yearly lists; Phagwah, Deepavali and the two Islamic days approximate |
 | Haiti 🇭🇹 | Art. 275-1's five national days, the 1984 code's list to 1988, the 1989 decree's seven from 1989, and the December 2024 decree's additions from 2025, Carnival Monday from noon as bank |
+| Honduras 🇭🇳 | Art. 339 with Holy Week's three days; the October days on their dates to 2013 and as the Semana Morazánica from 2015, its Wednesday from noon as bank and 2020's in November; 2014 not carried |
+| El Salvador 🇸🇻 | Art. 190 with San Salvador's 3 and 5 August as `SV-SS`, Father's Day from 2013 and Mother's Day for everyone from 2016 by their decrees, 7 July 2023; nothing moves |
+| Nicaragua 🇳🇮 | Art. 66's nine days and art. 67's Santo Domingo days for Managua as `NI-MN`; art. 68's "será compensado" names no day, so nothing moves |
 | Bolivia 🇧🇴 | Decreto Supremo 2750 with the Sunday rule and the four days it excepts; departmental holidays and yearly bridges not carried |
 | Chile 🇨🇱 | Every move a rule of its own: Ley 19.668's Mondays, Ley 20.299's Fridays, the computed 2 January and 17/20 September days, the solstice at Chile's meridian; Arica's day as `CL-AP` |
 | Ecuador 🇪🇨 | Art. 65 as reformed in 2016: the moves per holiday, the weekend-only moves of the three excepted days, and the 2/3 November pair as the Government resolved it |
 | Uruguay 🇺🇾 | Ley 16.805 as amended in 2001: paid holidays public, common ones bank, Tourism Week's six days, three holidays to the adjacent Monday |
+| Venezuela 🇻🇪 | LOTTT art. 184 with Carnival, Holy Week and the whole days of 24 and 31 December, and the 1971 Ley de Fiestas Nacionales' five days, 12 October renamed in 2002; the declared days not carried |
+| Paraguay 🇵🇾 | Ley 7544/2025 with 14 May from 2012, 29 September from 1995 and 20 June from 2026; the 2026 decrees' three Monday moves and the additional days read for 2025 and 2026, earlier decreed moves not carried |
 | Jamaica 🇯🇲 | The Holidays (Public General) Act's Schedule: Sunday moves, Labour Day off a Saturday too, a Sunday Christmas giving the 26th and 27th; a Sunday Boxing Day's Monday only from the Minister's 2021 appointment |
 | Trinidad and Tobago 🇹🇹 | Chap. 19:05 with section 3(2)'s next free day for a Sunday or for two holidays at once; Eid-ul-Fitr and Divali approximate; Carnival Monday and Tuesday as observances; African Emancipation Day from 2024 |
 | Barbados 🇧🇧 | Cap. 352's First Schedule: the Monday after a Sunday, and the Tuesday for Emancipation Day off a Sunday or a Monday and for Christmas off a Sunday |
