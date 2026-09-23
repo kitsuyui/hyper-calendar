@@ -51,6 +51,8 @@ pre-push:
       run: typos
     - name: test
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo test --workspace --all-features
+    - name: doc
+      run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features
     # The three build shapes CI checks. They catch a feature combination or a
     # target that the default build never exercises.
     - name: build-no-std

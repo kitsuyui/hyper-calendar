@@ -13,7 +13,10 @@ categories.workspace = true
 keywords.workspace = true
 
 [lib]
-name = "hyper_calendar"
+# The library is `hyper_calendar_ffi`, so the artefacts are
+# `libhyper_calendar_ffi.{so,dylib,a}` and `hyper_calendar_ffi.dll`. It cannot
+# be `hyper_calendar`: that is the facade's library name, and two libraries of
+# one name in a workspace collide in `cargo doc` output.
 crate-type = ["cdylib", "staticlib", "rlib"]
 
 [features]
@@ -23,8 +26,5 @@ holiday = ["hc/holiday"]
 full = ["hc/full"]
 
 [dependencies]
-# Aliased to `hc` because this crate's own library is named `hyper_calendar`
-# so that the artifact is `libhyper_calendar.{so,dylib,dll}`, which is what a
-# C caller expects to link. Without the alias the two share an extern name and
-# rustdoc cannot tell them apart.
+# Aliased to `hc`, as in `hyper-calendar-wasm`, to keep paths short.
 hc = { package = "hyper-calendar", version = "0.1.0", path = "../hyper-calendar", default-features = false, features = ["std"] }

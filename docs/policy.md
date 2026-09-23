@@ -168,9 +168,9 @@ and nothing else pays for Gregorian dates and nothing else.
   months, leap seconds, the first and last supported day.
 - Error paths are tested. A function that can return `MonthOutOfRange` has a
   test that makes it do so.
-- CI runs `cargo test`, `cargo clippy -D warnings`, `cargo fmt --check`, a
-  `no_std` build, a WebAssembly build, a shared-library build and
-  `cargo audit` on every pull request. Coverage is reported by octocov with a
+- CI runs `cargo test`, `cargo clippy -D warnings`, `cargo fmt --check`,
+  `cargo doc` with warnings denied, `no_std` builds, a WebAssembly build, a
+  shared-library build and `cargo audit` on every pull request. Coverage is reported by octocov with a
   70% floor.
 
 ## 8. `unwrap` and `expect` are forbidden outside tests

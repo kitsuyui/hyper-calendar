@@ -1,6 +1,7 @@
 # hyper-calendar-ffi
 
-A C ABI for `hyper-calendar`, built as `libhyper_calendar.{so,dylib,dll}` and
+A C ABI for `hyper-calendar`, built as the shared library
+`libhyper_calendar_ffi.{so,dylib}` (`hyper_calendar_ffi.dll` on Windows) and
 as a static library.
 
 ## The shape of the interface
@@ -26,10 +27,11 @@ A C boundary has three ways to go wrong, and each is closed deliberately.
 cargo build -p hyper-calendar-ffi --release
 ```
 
-The artefacts land in `target/release/`: `libhyper_calendar.so` on Linux,
-`libhyper_calendar.dylib` on macOS, `hyper_calendar.dll` on Windows, and the
-static `libhyper_calendar.a`. There is no generated header. The prototypes
-below are the interface, and `HcStatus` is `int`.
+The artefacts land in `target/release/`: `libhyper_calendar_ffi.so` on Linux,
+`libhyper_calendar_ffi.dylib` on macOS, `hyper_calendar_ffi.dll` on Windows,
+and the static `libhyper_calendar_ffi.a`; link with `-lhyper_calendar_ffi`.
+There is no generated header. The prototypes below are the interface, and
+`HcStatus` is `int`.
 
 ```c
 #include <stdint.h>

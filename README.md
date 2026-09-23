@@ -145,7 +145,8 @@ artefact carries no glue it did not ask for. See
 cargo build -p hyper-calendar-ffi --release
 ```
 
-Produces `libhyper_calendar.{so,dylib,dll}` and a static library. See
+Produces `libhyper_calendar_ffi.{so,dylib}` (`hyper_calendar_ffi.dll` on
+Windows) and a static library. See
 [`crates/hyper-calendar-ffi`](crates/hyper-calendar-ffi).
 
 ## What it will not do
