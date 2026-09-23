@@ -92,10 +92,9 @@ Highlights:
 
 ## Feature flags
 
-`default = ["std"]`, `std = ["alloc", ...]`, `alloc = [...]`. The crate has no
-`libm` feature of its own, so a build without `std` also needs `hc-core/libm`
-enabled, as the `hyper-calendar` facade's `libm` feature does;
-`--no-default-features --features alloc` alone stops at `hc-core`'s
-compile-time guard. The EDTF set and list forms (`[...]`, `{...}`) need
+`default = ["std"]`, `std = ["alloc", ...]`, `alloc = [...]`. A build without
+`std` also enables `libm`, which passes through to `hc-core` for
+floating-point math; `--no-default-features --features alloc` alone stops at
+`hc-core`'s compile-time guard. The EDTF set and list forms (`[...]`, `{...}`) need
 `alloc` and report `UncertaintyError::Unsupported` without it rather than
 silently parsing less.

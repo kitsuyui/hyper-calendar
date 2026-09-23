@@ -141,8 +141,10 @@ Thursday; 2000-01-01 is RD 730 120; 1582-10-04 Julian is followed by
 
 ## Features
 
-`default = ["std"]`; `std` implies `alloc`. The crate builds with
-`--no-default-features` and with `--no-default-features --features alloc`;
-only `register_all` and the registry need an allocator.
+`default = ["std"]`; `std` implies `alloc`. Without `std`, `libm` passes
+through to `hc-core`, which refuses to compile with neither. The crate builds
+with `--no-default-features --features libm` and with
+`--no-default-features --features alloc,libm`; only `register_all` and the
+registry need an allocator.
 
 [`hyper-calendar`]: https://github.com/kitsuyui/hyper-calendar

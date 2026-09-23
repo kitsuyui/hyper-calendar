@@ -379,7 +379,7 @@ a reader can use — `cargo test -p hc-seasons` is the authority.
 cargo test -p hc-seasons
 cargo clippy -p hc-seasons --all-targets --all-features -- -D warnings
 cargo fmt -p hc-seasons -- --check
-cargo build -p hc-seasons --no-default-features --features alloc
+cargo build -p hc-seasons --no-default-features --features alloc,libm
 
 # The drift table above, printed:
 cargo test -p hc-seasons --test zodiac_conventional_dates -- --nocapture

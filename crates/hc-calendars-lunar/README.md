@@ -303,8 +303,9 @@ to `hc-calendars-regional`, not here.
 
 ## Feature flags
 
-`std` (default) → `alloc` → core. The crate builds with
-`--no-default-features --features alloc`; nothing here needs an allocator
-except through `hc-calendar`'s registry.
+`std` (default) → `alloc` → core, and `libm`, which passes through to
+`hc-core` for floating-point math where there is no `std`. The crate builds
+with `--no-default-features --features alloc,libm`; nothing here needs an
+allocator except through `hc-calendar`'s registry.
 
 [`hyper-calendar`]: https://github.com/kitsuyui/hyper-calendar

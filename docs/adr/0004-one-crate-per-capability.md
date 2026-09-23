@@ -37,9 +37,10 @@ consistent. A feature that compiles a crate in and re-exports nothing is the
 easy mistake, and `crates/hyper-calendar/tests/facade.rs` rejects it. Cross-crate refactoring is more work than moving a module. Feature
 unification means a consumer who enables `full` pays the full compile time.
 
-CI compensates by building `--all-features`, `--no-default-features --features
-alloc,libm`, and the WebAssembly and cdylib targets on every pull request, so a
-broken feature combination is caught immediately.
+CI compensates by building `--all-features`, the facade and every `hc-*`
+crate with `--no-default-features --features alloc,libm`, and the WebAssembly
+and cdylib targets on every pull request, so a broken feature combination is
+caught immediately.
 
 ## Alternatives rejected
 

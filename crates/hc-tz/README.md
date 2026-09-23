@@ -136,8 +136,8 @@ name under each — everything a caller needs to explain the problem to a user.
 
 `default = ["std"]`, `std = ["alloc", ...]`, `alloc = [...]`. The crate builds
 with `--no-default-features`, given the floating-point math every `no_std`
-build of the workspace needs from `hc-core`'s `libm` feature
-(`--features hc-core/libm`); only the `system` module needs `std`.
+build of the workspace needs from the `libm` feature, which passes through to
+`hc-core`; only the `system` module needs `std`.
 
 ## Tests
 

@@ -186,5 +186,5 @@ and the ISO 8601 week year cross-checked day for day against
 ```sh
 cargo test -p hc-fiscal
 cargo clippy -p hc-fiscal --all-targets --all-features -- -D warnings
-cargo build -p hc-fiscal --no-default-features --features alloc
+cargo build -p hc-fiscal --no-default-features --features alloc,libm
 ```

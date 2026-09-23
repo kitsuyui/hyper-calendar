@@ -152,10 +152,10 @@ and nothing else pays for Gregorian dates and nothing else.
 - Each capability is its own crate.
 - The `hyper-calendar` facade exposes each as an optional feature.
 - `default` is deliberately modest (`std`, `civil`, `format`, `i18n`).
-- The facade builds under `--no-default-features --features alloc,libm`, and
-  `hc-core` under `no_std` with `libm`. A crate built on its own without
-  `std` also needs `hc-core/libm`, because `hc-core` refuses to compile with
-  neither.
+- The facade, and every `hc-*` crate on its own, builds under
+  `--no-default-features --features alloc,libm`. Each crate's `libm` feature
+  passes through to `hc-core`, which refuses to compile with neither `std`
+  nor `libm`.
 - No crate depends on another unless it genuinely needs it. The dependency
   graph is a DAG and is documented in [architecture.md](architecture.md).
 

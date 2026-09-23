@@ -47,6 +47,13 @@ jobs:
       # compiles and then fails at run time is exactly the bug this replaced.
       - run: cargo test -p hc-core --no-default-features --features alloc,libm
       - run: cargo build -p hyper-calendar --no-default-features --features alloc,libm
+      # Each crate on its own as well: the facade enables features across the
+      # graph, so a crate that cannot build alone without `std` passes there.
+      - run: |
+          for manifest in crates/hc-*/Cargo.toml; do
+            crate=$(basename "$(dirname "$manifest")")
+            cargo build -p "$crate" --no-default-features --features alloc,libm
+          done
 
   wasm:
     name: Build for WebAssembly

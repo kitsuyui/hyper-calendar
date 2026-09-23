@@ -57,6 +57,8 @@ pre-push:
     # target that the default build never exercises.
     - name: build-no-std
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo build -p hyper-calendar --no-default-features --features alloc,libm
+    - name: build-no-std-crates
+      run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; for manifest in crates/hc-*/Cargo.toml; do crate=$(basename "$(dirname "$manifest")"); cargo build -p "$crate" --no-default-features --features alloc,libm || exit 1; done
     - name: build-wasm
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown
     - name: build-wasm-holiday
