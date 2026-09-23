@@ -76,9 +76,13 @@ implemented in their arithmetic form only, under names that say so:
   Western form with Naw-Rúz pinned to 21 March, which is exact for what it is
   and an approximation after B.E. 171.
 
+Thailand's year began on 1 April until 1941, and was counted in the
+Rattanakosin era until March 1913. `buddhist` keeps the modern year, and
+`buddhist::printed_year` and `buddhist::printed_to_fixed` convert between a
+day and the year a Thai document of the time printed for it.
+
 Smaller omissions, each documented in its module: the Roman republican
-calendar before 45 BC and the kalends/nones/ides counting (`roman`); the
-1 April year start Thailand used before 1941 (`buddhist`); the 25 March year
+calendar before 45 BC and the kalends/nones/ides counting (`roman`); the 25 March year
 start England used before 1752 (`julian_gregorian`); the regional lunisolar
 Hindu calendars (`indian`); the Alexandrian and Antiochene world eras
 (`byzantine`); month and weekday names in each *language*, which are locale
