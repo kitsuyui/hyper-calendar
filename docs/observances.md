@@ -55,7 +55,8 @@ Rules then pass through **observance modifiers**, which are themselves data:
   communities and the single US entry `US-DC`. Swiss cantons and US states
   are *not* modelled: the vocabulary carries them, the tables do not.
 - `Kind` — public holiday, bank holiday, school holiday, observance without a
-  day off, religious day of obligation.
+  day off, religious day of obligation, and a weekend day made a working day
+  (China's 调休上班).
 - `WeekendPolicy` — which days are the weekend, over stated years, because
   Saudi Arabia (2013), the United Arab Emirates (2022) and Nepal (2026) all
   changed theirs inside living memory.
@@ -82,7 +83,11 @@ none.
 - **It will not guess an annual administrative act.** China's 调休, Taiwan's
   Lunar New Year makeup days, Vietnam's Tết span, Thailand's Songkran makeup
   days and Indonesia's *cuti bersama* are decided year by year by a ministry.
-  The statutory days are listed; the bridging days are not.
+  Where those acts have been read they are data for their years: China's
+  arrangements from 2008 to 2026, the days off and the weekend days worked
+  alike ([ADR 0009](adr/0009-a-working-day-is-an-entry.md)). A year past them
+  is a gap. Elsewhere the statutory days are listed and the bridging days
+  are not.
 - **It will not tabulate what it cannot compute.** Indonesia's Nyepi is
   absent because the Balinese Saka calendar it is dated in does not exist in
   the crate yet. India's Hindu, Sikh and Jain gazetted holidays and
@@ -147,7 +152,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Turkmenistan 🇹🇲 | Labour Code art. 81: the nine days with Kurban Bayram's three, approximate; art. 81(2)'s Sunday rule; 2018's move of Independence Day and merger of Flag Day |
 | Hong Kong 🇭🇰 | The seventeen general holidays with the statutory subset as `Kind::Public` and the 2021 phasing-in as years; Sunday and coincidence made up on the next free day, the 1983–2011 eve rule computed; complete from 1997 |
 | Macau 🇲🇴 | Executive Order 60/2000 with the ten obligatory holidays of Law 7/2008 as `Kind::Public`; the public administration's compensatory rest days from 2019; the eves as observances |
-| China 🇨🇳 | Statutory holidays keyed to the `chinese` calendar, across the 1999, 2007 and 2024 revisions |
+| China 🇨🇳 | Statutory holidays keyed to the `chinese` calendar, across the 1999, 2007 and 2024 revisions; the State Council's arrangement for each year from 2008 to 2026, days off and working weekend days, with the three notices that changed a year |
 | Taiwan 🇹🇼 | Including the 2025 restoration of three commemorative holidays |
 | South Korea 🇰🇷 | Keyed to the `dangi` calendar, with every extension of the 대체공휴일 and the collision rule; 노동절 and the restored 제헌절 from 2026; the election days of 제2조제10호의2 from 2007 and the government-designated days from 2009, each for its year |
 | Canada 🇨🇦 | Federal plus the provincial days fixed by statute |
@@ -256,7 +261,7 @@ which the engine takes on the same terms as its own.
 | Category | Status |
 | --- | --- |
 | Business-day calculation (weekend rules by country, including Friday–Saturday, Thursday–Friday and one-day weekends) | Done |
-| Trading-day calendars for major exchanges | In progress — `hc_holiday::exchanges`, rule sets keyed by Market Identifier Code from each exchange's own published calendar ([ADR 0008](adr/0008-exchange-calendars-are-rule-sets.md)): New York (`XNYS`) and Nasdaq (`XNAS`), Toronto (`XTSE`), Frankfurt on Xetra (`XETR`), Sydney (`XASX`), Euronext's Amsterdam, Brussels, Dublin, Lisbon, Milan, Oslo and Paris (`XAMS`, `XBRU`, `XDUB`, `XLIS`, `XMIL`, `XOSL`, `XPAR`) from its 2021–2026 tables, B3 in São Paulo (`BVMF`) from its 2021–2026 market calendars, and Nasdaq's Copenhagen, Stockholm, Helsinki and Iceland (`XCSE`, `XSTO`, `XHEL`, `XICE`) from its Nordic calendar for 2025–2027; Tokyo (`XJPX`), Hong Kong (`XHKG`) and Seoul (`XKRX`, checked against its closure lists for 2009–2029) as their countries' tables plus the exchanges' own days, through `RuleSet::includes`; SIX in Zurich (`XSWX`) from its market holidays for 2026 and 2027, 1 August and 26 December not shown by either year and not carried; London (`XLON`) as the bank holidays of England and Wales, the region its inclusion of the United Kingdom's table names, with its two half days, from its business-days table for August 2026 to January 2029 |
+| Trading-day calendars for major exchanges | In progress — `hc_holiday::exchanges`, rule sets keyed by Market Identifier Code from each exchange's own published calendar ([ADR 0008](adr/0008-exchange-calendars-are-rule-sets.md)): New York (`XNYS`) and Nasdaq (`XNAS`), Toronto (`XTSE`), Frankfurt on Xetra (`XETR`), Sydney (`XASX`), Euronext's Amsterdam, Brussels, Dublin, Lisbon, Milan, Oslo and Paris (`XAMS`, `XBRU`, `XDUB`, `XLIS`, `XMIL`, `XOSL`, `XPAR`) from its 2021–2026 tables, B3 in São Paulo (`BVMF`) from its 2021–2026 market calendars, and Nasdaq's Copenhagen, Stockholm, Helsinki and Iceland (`XCSE`, `XSTO`, `XHEL`, `XICE`) from its Nordic calendar for 2025–2027; Tokyo (`XJPX`), Hong Kong (`XHKG`), Seoul (`XKRX`, checked against its closure lists for 2009–2029) and Shanghai (`XSHG`, on China's annual arrangements, checked against its notices for 2014–2026) as their countries' tables plus the exchanges' own days, through `RuleSet::includes`; SIX in Zurich (`XSWX`) from its market holidays for 2026 and 2027, 1 August and 26 December not shown by either year and not carried; London (`XLON`) as the bank holidays of England and Wales, the region its inclusion of the United Kingdom's table names, with its two half days, from its business-days table for August 2026 to January 2029 |
 | School terms | Out of scope — too local and too volatile |
 | Name days and the sanctorale | In progress — as named authorities rather than one list, since the Roman calendar was recast in 1969 and the Swedish *namnsdagslängd* was revised in 1901, 1993 and 2001 ([policy.md](policy.md) §5). The General Roman Calendar is done (`roman-general`, `hc_holiday::roman_calendar`): the 2002 Missal's calendar with each of the Holy See's decrees since, 2014–2025, every celebration with its rank, precedence not applied. National and diocesan calendars and the name-day lists are not yet carried |
 | Anniversaries and commemorations without a day off | Partial — `Kind::Observance` exists and a handful of tables use it. A general commemoration list is **out of scope** under [policy.md](policy.md) §10: no authority defines which commemorations belong, so its coverage could never be stated. Individual ones enter through whichever authority proclaims them |

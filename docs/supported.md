@@ -149,7 +149,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `CH` | Switzerland | 8 | none | stated | 2026-09-21 |
 | `CI` | Côte d'Ivoire | 14 | yes | stated | 2026-09-22 |
 | `CL` | Chile | 28 | none | stated | 2026-09-22 |
-| `CN` | China | 17 | none | stated | 2026-09-21 |
+| `CN` | China | 35 | none | stated | 2026-09-23 |
 | `CO` | Colombia | 18 | none | stated | 2026-09-22 |
 | `CR` | Costa Rica | 13 | none | stated | 2026-09-22 |
 | `CU` | Cuba | 10 | yes | stated | 2026-09-22 |
@@ -289,7 +289,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Exchange calendars
 
-22 tables, feature `holiday`, keyed by ISO 10383 Market Identifier Code. A closed day is a public-kind entry; an early close is an observance.
+23 tables, feature `holiday`, keyed by ISO 10383 Market Identifier Code. A closed day is a public-kind entry; an early close is an observance.
 
 | MIC | Exchange | Entries |
 | --- | --- | --- |
@@ -312,6 +312,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `XNYS` | New York Stock Exchange | 20 |
 | `XOSL` | Euronext Oslo (Oslo Børs) | 13 |
 | `XPAR` | Euronext Paris | 8 |
+| `XSHG` | Shanghai Stock Exchange | 1 |
 | `XSTO` | Nasdaq Stockholm | 17 |
 | `XSWX` | SIX Swiss Exchange | 10 |
 | `XTSE` | Toronto Stock Exchange | 11 |

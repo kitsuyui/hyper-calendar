@@ -633,8 +633,85 @@ fn china_statutory_holidays() {
     // 除夕 was dropped from the statutory list between 2014 and 2024, and
     // Qingming was not on it before 2008.
     expect_working("CN", None, &[(2024, 2, 9), (2007, 4, 5)]);
-    // China has no substitution rule: the 调休 table is an annual act.
-    expect_working("CN", None, &[(2024, 2, 13)]);
+}
+
+#[test]
+fn a_chinese_working_day_is_a_weekend_day_and_never_a_day_off() {
+    use hc_calendar::Weekday;
+    use hc_holiday::rule::Kind;
+    let mut worked = 0;
+    for year in 2008..=2026 {
+        let calendar = HolidayCalendar::for_year(table("CN"), None, year);
+        for entry in calendar.all() {
+            if entry.kind != Kind::Workday {
+                continue;
+            }
+            worked += 1;
+            assert!(
+                matches!(
+                    Weekday::from_rd(entry.date),
+                    Weekday::Saturday | Weekday::Sunday
+                ),
+                "{year}: {}",
+                entry.name
+            );
+            assert!(!calendar.is_holiday(entry.date), "{year}: {}", entry.name);
+            assert!(calendar.is_business_day(entry.date));
+        }
+    }
+    // The nineteen notices name 123 working days between them, and the
+    // extension of 2020 took one back.
+    assert_eq!(worked, 123);
+}
+
+#[test]
+fn china_keeps_each_years_arrangement() {
+    // 2024: 春节 from Saturday 10 to Saturday 17 February, with Sunday 4
+    // and Sunday 18 February worked. The eve, 9 February, was a working
+    // day the notice only encouraged employers to give.
+    expect("CN", None, &[(2024, 2, 13, "Spring Festival")]);
+    let calendar = HolidayCalendar::for_year(table("CN"), None, 2024);
+    assert!(calendar.is_business_day(ymd(2024, 2, 4)));
+    assert!(calendar.is_business_day(ymd(2024, 2, 18)));
+    assert!(calendar.is_business_day(ymd(2024, 2, 9)));
+    assert!(!calendar.is_business_day(ymd(2024, 2, 16)));
+    // A working Sunday counts in business-day arithmetic: from Friday
+    // 2 February 2024 the next business day is Sunday the 4th.
+    assert_eq!(
+        calendar.add_business_days(ymd(2024, 2, 2), 1),
+        Some(ymd(2024, 2, 4))
+    );
+    // The three notices that changed a year after its arrangement.
+    expect("CN", None, &[(2020, 1, 31, "Spring Festival")]);
+    let calendar = HolidayCalendar::for_year(table("CN"), None, 2020);
+    assert!(!calendar.is_business_day(ymd(2020, 2, 1)));
+    expect(
+        "CN",
+        None,
+        &[
+            (2019, 5, 2, "Labour Day"),
+            (
+                2015,
+                9,
+                4,
+                "70th anniversary of the victory of the War of Resistance against Japanese Aggression",
+            ),
+        ],
+    );
+    let calendar = HolidayCalendar::for_year(table("CN"), None, 2015);
+    assert!(calendar.is_business_day(ymd(2015, 9, 6)));
+    // An arrangement that begins in the December before: 2019's New
+    // Year's Day ran from 30 December 2018, and Saturday the 29th was
+    // worked.
+    expect("CN", None, &[(2018, 12, 31, "New Year's Day")]);
+    let calendar = HolidayCalendar::for_year(table("CN"), None, 2018);
+    assert!(calendar.is_business_day(ymd(2018, 12, 29)));
+    // A year no arrangement carried here covers is a gap, not a guess.
+    for year in [2007, 2027] {
+        let calendar = HolidayCalendar::for_year(table("CN"), None, year);
+        assert!(!calendar.is_complete(), "{year}");
+    }
+    assert!(HolidayCalendar::for_year(table("CN"), None, 2026).is_complete());
 }
 
 #[test]

@@ -7,6 +7,10 @@
 //! nothing, so `holidays_in_year(CHINA, 2151)` came back with seven entries
 //! instead of thirteen — no Spring Festival, no Dragon Boat, no
 //! Mid-Autumn — and every survivor marked `Exact`.
+//!
+//! The tests use South Korea, whose table is bounded by the `dangi`
+//! calendar alone. China's is also bounded by the State Council's annual
+//! arrangements it carries, which end sooner.
 
 use hc_holiday::{CalendarSystem, Rule, countries, holidays_in_year};
 
@@ -16,7 +20,7 @@ const LAST_LUNISOLAR_YEAR: i64 = 2150;
 #[test]
 fn a_year_the_chinese_calendar_reaches_is_complete() {
     let calendar =
-        hc_holiday::HolidayCalendar::for_year(&countries::CHINA, None, LAST_LUNISOLAR_YEAR);
+        hc_holiday::HolidayCalendar::for_year(&countries::SOUTH_KOREA, None, LAST_LUNISOLAR_YEAR);
     assert!(
         calendar.is_complete(),
         "2150 is inside the range and should have no gaps: {:?}",
@@ -25,15 +29,15 @@ fn a_year_the_chinese_calendar_reaches_is_complete() {
     // And the lunisolar holidays are actually there.
     let names: Vec<&str> = calendar.all().iter().map(|h| h.name).collect();
     assert!(
-        names.iter().any(|name| name.contains("Spring Festival")),
-        "2150 should have a Spring Festival, got {names:?}"
+        names.iter().any(|name| name.contains("Seollal")),
+        "2150 should have a Seollal, got {names:?}"
     );
 }
 
 #[test]
 fn a_year_past_the_chinese_calendar_reports_what_it_could_not_answer() {
     let year = LAST_LUNISOLAR_YEAR + 1;
-    let calendar = hc_holiday::HolidayCalendar::for_year(&countries::CHINA, None, year);
+    let calendar = hc_holiday::HolidayCalendar::for_year(&countries::SOUTH_KOREA, None, year);
 
     assert!(
         !calendar.is_complete(),
@@ -48,15 +52,15 @@ fn a_year_past_the_chinese_calendar_reports_what_it_could_not_answer() {
     // The ones that went missing silently are named now.
     let missing: Vec<&str> = gaps.iter().map(|gap| gap.name).collect();
     assert!(
-        missing.iter().any(|name| name.contains("Spring Festival")),
-        "the Spring Festival should be reported missing, got {missing:?}"
+        missing.iter().any(|name| name.contains("Seollal")),
+        "Seollal should be reported missing, got {missing:?}"
     );
 
     // The holidays that *are* returned are still correct; the list is
-    // incomplete, not wrong. Qingming is a solar term and needs no
+    // incomplete, not wrong. Liberation Day is Gregorian and needs no
     // lunisolar calendar.
     let names: Vec<&str> = calendar.all().iter().map(|h| h.name).collect();
-    assert!(names.iter().any(|name| name.contains("Qingming")));
+    assert!(names.iter().any(|name| name.contains("Liberation Day")));
 }
 
 #[test]
@@ -64,8 +68,8 @@ fn the_free_function_is_affected_too_and_the_gap_is_reachable() {
     // `holidays_in_year` cannot report a gap through its return type, so
     // this records what it does instead: it gives the shorter list. A
     // caller who needs to know builds the calendar.
-    let inside = holidays_in_year(&countries::CHINA, None, LAST_LUNISOLAR_YEAR);
-    let outside = holidays_in_year(&countries::CHINA, None, LAST_LUNISOLAR_YEAR + 1);
+    let inside = holidays_in_year(&countries::SOUTH_KOREA, None, LAST_LUNISOLAR_YEAR);
+    let outside = holidays_in_year(&countries::SOUTH_KOREA, None, LAST_LUNISOLAR_YEAR + 1);
     assert!(
         outside.len() < inside.len(),
         "2151 should be shorter than 2150: {} vs {}",

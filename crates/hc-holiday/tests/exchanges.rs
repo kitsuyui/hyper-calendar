@@ -8,7 +8,7 @@ use hc_holiday::exchanges::{
     EURONEXT_DUBLIN, EURONEXT_LISBON, EURONEXT_MILAN, EURONEXT_OSLO, EURONEXT_PARIS,
     FRANKFURT_STOCK_EXCHANGE, HONG_KONG_EXCHANGES, KOREA_EXCHANGE, LONDON_STOCK_EXCHANGE, NASDAQ,
     NASDAQ_COPENHAGEN, NASDAQ_HELSINKI, NASDAQ_ICELAND, NASDAQ_STOCKHOLM, NEW_YORK_STOCK_EXCHANGE,
-    SIX_SWISS_EXCHANGE, TOKYO_STOCK_EXCHANGE, TORONTO_STOCK_EXCHANGE,
+    SHANGHAI_STOCK_EXCHANGE, SIX_SWISS_EXCHANGE, TOKYO_STOCK_EXCHANGE, TORONTO_STOCK_EXCHANGE,
 };
 use hc_holiday::rule::RuleSet;
 use hc_holiday::rule::{Confidence, Kind};
@@ -707,6 +707,45 @@ fn the_krx_keeps_labour_day_and_the_last_weekday_of_the_year() {
     assert!(!calendar.is_holiday(ymd(2023, 12, 29)));
 }
 
+/// The weekday closures in the Shanghai Stock Exchange's annual notices,
+/// with the three later changes: 3 and 4 September 2015 from the
+/// exchanges' announcement of July 2015, as the press reported it; 2 and 3
+/// May 2019 from 上证公告〔2019〕20号; 31 January 2020 from 上证公告〔2020〕6号.
+/// The notice for 2019 closes 31 December 2018, which is here under 2018.
+#[rustfmt::skip]
+const SSE_CLOSURES: &[(i64, &[(u8, u8)])] = &[
+    (2014, &[(1, 1), (1, 31), (2, 3), (2, 4), (2, 5), (2, 6), (4, 7), (5, 1), (5, 2), (6, 2), (9, 8), (10, 1), (10, 2), (10, 3), (10, 6), (10, 7)]),
+    (2015, &[(1, 1), (1, 2), (2, 18), (2, 19), (2, 20), (2, 23), (2, 24), (4, 6), (5, 1), (6, 22), (9, 3), (9, 4), (10, 1), (10, 2), (10, 5), (10, 6), (10, 7)]),
+    (2016, &[(1, 1), (2, 8), (2, 9), (2, 10), (2, 11), (2, 12), (4, 4), (5, 2), (6, 9), (6, 10), (9, 15), (9, 16), (10, 3), (10, 4), (10, 5), (10, 6), (10, 7)]),
+    (2017, &[(1, 2), (1, 27), (1, 30), (1, 31), (2, 1), (2, 2), (4, 3), (4, 4), (5, 1), (5, 29), (5, 30), (10, 2), (10, 3), (10, 4), (10, 5), (10, 6)]),
+    (2018, &[(1, 1), (2, 15), (2, 16), (2, 19), (2, 20), (2, 21), (4, 5), (4, 6), (4, 30), (5, 1), (6, 18), (9, 24), (10, 1), (10, 2), (10, 3), (10, 4), (10, 5), (12, 31)]),
+    (2019, &[(1, 1), (2, 4), (2, 5), (2, 6), (2, 7), (2, 8), (4, 5), (5, 1), (5, 2), (5, 3), (6, 7), (9, 13), (10, 1), (10, 2), (10, 3), (10, 4), (10, 7)]),
+    (2020, &[(1, 1), (1, 24), (1, 27), (1, 28), (1, 29), (1, 30), (1, 31), (4, 6), (5, 1), (5, 4), (5, 5), (6, 25), (6, 26), (10, 1), (10, 2), (10, 5), (10, 6), (10, 7), (10, 8)]),
+    (2021, &[(1, 1), (2, 11), (2, 12), (2, 15), (2, 16), (2, 17), (4, 5), (5, 3), (5, 4), (5, 5), (6, 14), (9, 20), (9, 21), (10, 1), (10, 4), (10, 5), (10, 6), (10, 7)]),
+    (2022, &[(1, 3), (1, 31), (2, 1), (2, 2), (2, 3), (2, 4), (4, 4), (4, 5), (5, 2), (5, 3), (5, 4), (6, 3), (9, 12), (10, 3), (10, 4), (10, 5), (10, 6), (10, 7)]),
+    (2023, &[(1, 2), (1, 23), (1, 24), (1, 25), (1, 26), (1, 27), (4, 5), (5, 1), (5, 2), (5, 3), (6, 22), (6, 23), (9, 29), (10, 2), (10, 3), (10, 4), (10, 5), (10, 6)]),
+    (2024, &[(1, 1), (2, 9), (2, 12), (2, 13), (2, 14), (2, 15), (2, 16), (4, 4), (4, 5), (5, 1), (5, 2), (5, 3), (6, 10), (9, 16), (9, 17), (10, 1), (10, 2), (10, 3), (10, 4), (10, 7)]),
+    (2025, &[(1, 1), (1, 28), (1, 29), (1, 30), (1, 31), (2, 3), (2, 4), (4, 4), (5, 1), (5, 2), (5, 5), (6, 2), (10, 1), (10, 2), (10, 3), (10, 6), (10, 7), (10, 8)]),
+    (2026, &[(1, 1), (1, 2), (2, 16), (2, 17), (2, 18), (2, 19), (2, 20), (2, 23), (4, 6), (5, 1), (5, 4), (5, 5), (6, 19), (9, 25), (10, 1), (10, 2), (10, 5), (10, 6), (10, 7)]),
+];
+
+#[test]
+fn shanghai_closes_on_the_days_its_notices_list_from_2014_to_2026() {
+    for &(y, listed) in SSE_CLOSURES {
+        let (closed, early) = year_of(&SHANGHAI_STOCK_EXCHANGE, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert!(early.is_empty(), "{y}");
+    }
+    // The Sunday China works is a weekend day for the exchange.
+    let calendar = HolidayCalendar::for_year(&SHANGHAI_STOCK_EXCHANGE, None, 2024);
+    assert!(!calendar.is_business_day(ymd(2024, 2, 4)));
+    assert!(!calendar.is_business_day(ymd(2024, 2, 9)));
+    assert!(calendar.is_business_day(ymd(2024, 2, 19)));
+    // And a year without an arrangement is not guessed.
+    let calendar = HolidayCalendar::for_year(&SHANGHAI_STOCK_EXCHANGE, None, 2027);
+    assert!(!calendar.is_complete());
+}
+
 #[test]
 fn hong_kong_closes_on_the_general_holidays_and_halves_three_eves() {
     // HKEX's calendar feed for 2026: every "Hong Kong Market is closed"
@@ -1096,5 +1135,5 @@ fn the_catalogue_is_keyed_by_market_identifier_code() {
         Some("New York Stock Exchange")
     );
     assert!(exchanges::ALL.iter().all(|e| e.code.len() == 4));
-    assert_eq!(exchanges::ALL.len(), 22);
+    assert_eq!(exchanges::ALL.len(), 23);
 }

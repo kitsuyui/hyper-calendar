@@ -46,6 +46,434 @@ const MAWLID: Rule = Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 3, 12);
 // China
 // ─────────────────────────────────────────────────────────────────────────
 
+// ── The State Council's arrangements ─────────────────────────────────────
+
+/// A festival the State Council's annual arrangement gives days off for.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Arranged {
+    NewYear,
+    Spring,
+    Qingming,
+    Labour,
+    DragonBoat,
+    MidAutumn,
+    National,
+    /// 国庆节、中秋节, one span for both when they fall together.
+    NationalAndMidAutumn,
+    /// The 70th anniversary of the victory in 1945, off by its own notice.
+    Victory,
+}
+
+use Arranged::{
+    DragonBoat, Labour, MidAutumn, National, NationalAndMidAutumn, NewYear, Qingming, Spring,
+    Victory,
+};
+
+/// The first year the arrangements carried here cover.
+const CN_ARRANGED_FIRST: i64 = 2008;
+/// The last.
+const CN_ARRANGED_LAST: i64 = 2026;
+
+/// The days each arrangement gives off, as spans: the festival, the
+/// Gregorian year, and the first and last month and day. A span that
+/// crosses a New Year is split at it; the arrangement for 2019 begins on
+/// 30 December 2018.
+#[rustfmt::skip]
+static CN_DAYS_OFF: &[(Arranged, i64, u8, u8, u8, u8)] = &[
+    // The arrangement for 2008
+    (NewYear, 2008, 1, 1, 1, 1),
+    (Spring, 2008, 2, 6, 2, 12),
+    (Qingming, 2008, 4, 4, 4, 6),
+    (Labour, 2008, 5, 1, 5, 3),
+    (DragonBoat, 2008, 6, 7, 6, 9),
+    (MidAutumn, 2008, 9, 13, 9, 15),
+    (National, 2008, 9, 29, 10, 5),
+    // The arrangement for 2009
+    (NewYear, 2009, 1, 1, 1, 3),
+    (Spring, 2009, 1, 25, 1, 31),
+    (Qingming, 2009, 4, 4, 4, 6),
+    (Labour, 2009, 5, 1, 5, 3),
+    (DragonBoat, 2009, 5, 28, 5, 30),
+    (NationalAndMidAutumn, 2009, 10, 1, 10, 8),
+    // The arrangement for 2010
+    (NewYear, 2010, 1, 1, 1, 3),
+    (Spring, 2010, 2, 13, 2, 19),
+    (Qingming, 2010, 4, 3, 4, 5),
+    (Labour, 2010, 5, 1, 5, 3),
+    (DragonBoat, 2010, 6, 14, 6, 16),
+    (MidAutumn, 2010, 9, 22, 9, 24),
+    (National, 2010, 10, 1, 10, 7),
+    // The arrangement for 2011
+    (NewYear, 2011, 1, 1, 1, 3),
+    (Spring, 2011, 2, 2, 2, 8),
+    (Qingming, 2011, 4, 3, 4, 5),
+    (Labour, 2011, 4, 30, 5, 2),
+    (DragonBoat, 2011, 6, 4, 6, 6),
+    (MidAutumn, 2011, 9, 10, 9, 12),
+    (National, 2011, 10, 1, 10, 7),
+    // The arrangement for 2012
+    (NewYear, 2012, 1, 1, 1, 3),
+    (Spring, 2012, 1, 22, 1, 28),
+    (Qingming, 2012, 4, 2, 4, 4),
+    (Labour, 2012, 4, 29, 5, 1),
+    (DragonBoat, 2012, 6, 22, 6, 24),
+    (NationalAndMidAutumn, 2012, 9, 30, 10, 7),
+    // The arrangement for 2013
+    (NewYear, 2013, 1, 1, 1, 3),
+    (Spring, 2013, 2, 9, 2, 15),
+    (Qingming, 2013, 4, 4, 4, 6),
+    (Labour, 2013, 4, 29, 5, 1),
+    (DragonBoat, 2013, 6, 10, 6, 12),
+    (MidAutumn, 2013, 9, 19, 9, 21),
+    (National, 2013, 10, 1, 10, 7),
+    // The arrangement for 2014
+    (NewYear, 2014, 1, 1, 1, 1),
+    (Spring, 2014, 1, 31, 2, 6),
+    (Qingming, 2014, 4, 5, 4, 5),
+    (Qingming, 2014, 4, 7, 4, 7),
+    (Labour, 2014, 5, 1, 5, 3),
+    (DragonBoat, 2014, 6, 2, 6, 2),
+    (MidAutumn, 2014, 9, 8, 9, 8),
+    (National, 2014, 10, 1, 10, 7),
+    // The arrangement for 2015
+    (NewYear, 2015, 1, 1, 1, 3),
+    (Spring, 2015, 2, 18, 2, 24),
+    (Qingming, 2015, 4, 5, 4, 5),
+    (Qingming, 2015, 4, 6, 4, 6),
+    (Labour, 2015, 5, 1, 5, 1),
+    (DragonBoat, 2015, 6, 20, 6, 20),
+    (DragonBoat, 2015, 6, 22, 6, 22),
+    // 国发明电〔2015〕1号.
+    (Victory, 2015, 9, 3, 9, 5),
+    (MidAutumn, 2015, 9, 27, 9, 27),
+    (National, 2015, 10, 1, 10, 7),
+    // The arrangement for 2016
+    (NewYear, 2016, 1, 1, 1, 1),
+    (Spring, 2016, 2, 7, 2, 13),
+    (Qingming, 2016, 4, 4, 4, 4),
+    (Labour, 2016, 5, 1, 5, 1),
+    (Labour, 2016, 5, 2, 5, 2),
+    (DragonBoat, 2016, 6, 9, 6, 11),
+    (MidAutumn, 2016, 9, 15, 9, 17),
+    (National, 2016, 10, 1, 10, 7),
+    // The arrangement for 2017
+    (NewYear, 2017, 1, 1, 1, 1),
+    (NewYear, 2017, 1, 2, 1, 2),
+    (Spring, 2017, 1, 27, 2, 2),
+    (Qingming, 2017, 4, 2, 4, 4),
+    (Labour, 2017, 5, 1, 5, 1),
+    (DragonBoat, 2017, 5, 28, 5, 30),
+    (NationalAndMidAutumn, 2017, 10, 1, 10, 8),
+    // The arrangement for 2018
+    (NewYear, 2018, 1, 1, 1, 1),
+    (Spring, 2018, 2, 15, 2, 21),
+    (Qingming, 2018, 4, 5, 4, 7),
+    (Labour, 2018, 4, 29, 5, 1),
+    (DragonBoat, 2018, 6, 18, 6, 18),
+    (MidAutumn, 2018, 9, 24, 9, 24),
+    (National, 2018, 10, 1, 10, 7),
+    // The arrangement for 2019
+    (NewYear, 2018, 12, 30, 12, 31),
+    (NewYear, 2019, 1, 1, 1, 1),
+    (Spring, 2019, 2, 4, 2, 10),
+    (Qingming, 2019, 4, 5, 4, 5),
+    // As changed on 22 March 2019, from 1 May alone.
+    (Labour, 2019, 5, 1, 5, 4),
+    (DragonBoat, 2019, 6, 7, 6, 7),
+    (MidAutumn, 2019, 9, 13, 9, 13),
+    (National, 2019, 10, 1, 10, 7),
+    // The arrangement for 2020
+    (NewYear, 2020, 1, 1, 1, 1),
+    // As extended on 26 January 2020 for the epidemic, from 30 January.
+    (Spring, 2020, 1, 24, 2, 2),
+    (Qingming, 2020, 4, 4, 4, 6),
+    (Labour, 2020, 5, 1, 5, 5),
+    (DragonBoat, 2020, 6, 25, 6, 27),
+    (NationalAndMidAutumn, 2020, 10, 1, 10, 8),
+    // The arrangement for 2021
+    (NewYear, 2021, 1, 1, 1, 3),
+    (Spring, 2021, 2, 11, 2, 17),
+    (Qingming, 2021, 4, 3, 4, 5),
+    (Labour, 2021, 5, 1, 5, 5),
+    (DragonBoat, 2021, 6, 12, 6, 14),
+    (MidAutumn, 2021, 9, 19, 9, 21),
+    (National, 2021, 10, 1, 10, 7),
+    // The arrangement for 2022
+    (NewYear, 2022, 1, 1, 1, 3),
+    (Spring, 2022, 1, 31, 2, 6),
+    (Qingming, 2022, 4, 3, 4, 5),
+    (Labour, 2022, 4, 30, 5, 4),
+    (DragonBoat, 2022, 6, 3, 6, 5),
+    (MidAutumn, 2022, 9, 10, 9, 12),
+    (National, 2022, 10, 1, 10, 7),
+    // The arrangement for 2023
+    (NewYear, 2022, 12, 31, 12, 31),
+    (NewYear, 2023, 1, 1, 1, 2),
+    (Spring, 2023, 1, 21, 1, 27),
+    (Qingming, 2023, 4, 5, 4, 5),
+    (Labour, 2023, 4, 29, 5, 3),
+    (DragonBoat, 2023, 6, 22, 6, 24),
+    (NationalAndMidAutumn, 2023, 9, 29, 10, 6),
+    // The arrangement for 2024
+    (NewYear, 2024, 1, 1, 1, 1),
+    (Spring, 2024, 2, 10, 2, 17),
+    (Qingming, 2024, 4, 4, 4, 6),
+    (Labour, 2024, 5, 1, 5, 5),
+    (DragonBoat, 2024, 6, 10, 6, 10),
+    (MidAutumn, 2024, 9, 15, 9, 17),
+    (National, 2024, 10, 1, 10, 7),
+    // The arrangement for 2025
+    (NewYear, 2025, 1, 1, 1, 1),
+    (Spring, 2025, 1, 28, 2, 4),
+    (Qingming, 2025, 4, 4, 4, 6),
+    (Labour, 2025, 5, 1, 5, 5),
+    (DragonBoat, 2025, 5, 31, 6, 2),
+    (NationalAndMidAutumn, 2025, 10, 1, 10, 8),
+    // The arrangement for 2026
+    (NewYear, 2026, 1, 1, 1, 3),
+    (Spring, 2026, 2, 15, 2, 23),
+    (Qingming, 2026, 4, 4, 4, 6),
+    (Labour, 2026, 5, 1, 5, 5),
+    (DragonBoat, 2026, 6, 19, 6, 21),
+    (MidAutumn, 2026, 9, 25, 9, 27),
+    (National, 2026, 10, 1, 10, 7),
+];
+
+/// The weekend days each arrangement makes working days, 上班, with the
+/// festival they pay for.
+#[rustfmt::skip]
+static CN_WORKDAYS: &[(Arranged, i64, u8, u8)] = &[
+    // The arrangement for 2008
+    (Spring, 2008, 2, 2),
+    (Spring, 2008, 2, 3),
+    (Labour, 2008, 5, 4),
+    (National, 2008, 9, 27),
+    (National, 2008, 9, 28),
+    // The arrangement for 2009
+    (NewYear, 2009, 1, 4),
+    (Spring, 2009, 1, 24),
+    (Spring, 2009, 2, 1),
+    (DragonBoat, 2009, 5, 31),
+    (NationalAndMidAutumn, 2009, 9, 27),
+    (NationalAndMidAutumn, 2009, 10, 10),
+    // The arrangement for 2010
+    (Spring, 2010, 2, 20),
+    (Spring, 2010, 2, 21),
+    (DragonBoat, 2010, 6, 12),
+    (DragonBoat, 2010, 6, 13),
+    (MidAutumn, 2010, 9, 19),
+    (MidAutumn, 2010, 9, 25),
+    (National, 2010, 9, 26),
+    (National, 2010, 10, 9),
+    // The arrangement for 2011
+    (Spring, 2011, 1, 30),
+    (Spring, 2011, 2, 12),
+    (Qingming, 2011, 4, 2),
+    (National, 2011, 10, 8),
+    (National, 2011, 10, 9),
+    // The arrangement for 2012
+    (NewYear, 2011, 12, 31),
+    (Spring, 2012, 1, 21),
+    (Spring, 2012, 1, 29),
+    (Qingming, 2012, 3, 31),
+    (Qingming, 2012, 4, 1),
+    (Labour, 2012, 4, 28),
+    (NationalAndMidAutumn, 2012, 9, 29),
+    // The arrangement for 2013
+    (NewYear, 2013, 1, 5),
+    (NewYear, 2013, 1, 6),
+    (Spring, 2013, 2, 16),
+    (Spring, 2013, 2, 17),
+    (Qingming, 2013, 4, 7),
+    (Labour, 2013, 4, 27),
+    (Labour, 2013, 4, 28),
+    (DragonBoat, 2013, 6, 8),
+    (DragonBoat, 2013, 6, 9),
+    (MidAutumn, 2013, 9, 22),
+    (National, 2013, 9, 29),
+    (National, 2013, 10, 12),
+    // The arrangement for 2014
+    (Spring, 2014, 1, 26),
+    (Spring, 2014, 2, 8),
+    (Labour, 2014, 5, 4),
+    (National, 2014, 9, 28),
+    (National, 2014, 10, 11),
+    // The arrangement for 2015
+    (NewYear, 2015, 1, 4),
+    (Spring, 2015, 2, 15),
+    (Spring, 2015, 2, 28),
+    (Victory, 2015, 9, 6),
+    (National, 2015, 10, 10),
+    // The arrangement for 2016
+    (Spring, 2016, 2, 6),
+    (Spring, 2016, 2, 14),
+    (DragonBoat, 2016, 6, 12),
+    (MidAutumn, 2016, 9, 18),
+    (National, 2016, 10, 8),
+    (National, 2016, 10, 9),
+    // The arrangement for 2017
+    (Spring, 2017, 1, 22),
+    (Spring, 2017, 2, 4),
+    (Qingming, 2017, 4, 1),
+    (DragonBoat, 2017, 5, 27),
+    (NationalAndMidAutumn, 2017, 9, 30),
+    // The arrangement for 2018
+    (Spring, 2018, 2, 11),
+    (Spring, 2018, 2, 24),
+    (Qingming, 2018, 4, 8),
+    (Labour, 2018, 4, 28),
+    (National, 2018, 9, 29),
+    (National, 2018, 9, 30),
+    // The arrangement for 2019
+    (NewYear, 2018, 12, 29),
+    (Spring, 2019, 2, 2),
+    (Spring, 2019, 2, 3),
+    (Labour, 2019, 4, 28),
+    (Labour, 2019, 5, 5),
+    (National, 2019, 9, 29),
+    (National, 2019, 10, 12),
+    // The arrangement for 2020
+    // The extension turned Saturday 1 February into a day off.
+    (Spring, 2020, 1, 19),
+    (Labour, 2020, 4, 26),
+    (Labour, 2020, 5, 9),
+    (DragonBoat, 2020, 6, 28),
+    (NationalAndMidAutumn, 2020, 9, 27),
+    (NationalAndMidAutumn, 2020, 10, 10),
+    // The arrangement for 2021
+    (Spring, 2021, 2, 7),
+    (Spring, 2021, 2, 20),
+    (Labour, 2021, 4, 25),
+    (Labour, 2021, 5, 8),
+    (MidAutumn, 2021, 9, 18),
+    (National, 2021, 9, 26),
+    (National, 2021, 10, 9),
+    // The arrangement for 2022
+    (Spring, 2022, 1, 29),
+    (Spring, 2022, 1, 30),
+    (Qingming, 2022, 4, 2),
+    (Labour, 2022, 4, 24),
+    (Labour, 2022, 5, 7),
+    (National, 2022, 10, 8),
+    (National, 2022, 10, 9),
+    // The arrangement for 2023
+    (Spring, 2023, 1, 28),
+    (Spring, 2023, 1, 29),
+    (Labour, 2023, 4, 23),
+    (Labour, 2023, 5, 6),
+    (DragonBoat, 2023, 6, 25),
+    (NationalAndMidAutumn, 2023, 10, 7),
+    (NationalAndMidAutumn, 2023, 10, 8),
+    // The arrangement for 2024
+    (Spring, 2024, 2, 4),
+    (Spring, 2024, 2, 18),
+    (Qingming, 2024, 4, 7),
+    (Labour, 2024, 4, 28),
+    (Labour, 2024, 5, 11),
+    (MidAutumn, 2024, 9, 14),
+    (National, 2024, 9, 29),
+    (National, 2024, 10, 12),
+    // The arrangement for 2025
+    (Spring, 2025, 1, 26),
+    (Spring, 2025, 2, 8),
+    (Labour, 2025, 4, 27),
+    (NationalAndMidAutumn, 2025, 9, 28),
+    (NationalAndMidAutumn, 2025, 10, 11),
+    // The arrangement for 2026
+    (NewYear, 2026, 1, 4),
+    (Spring, 2026, 2, 14),
+    (Spring, 2026, 2, 28),
+    (Labour, 2026, 5, 9),
+    (National, 2026, 9, 20),
+    (National, 2026, 10, 10),
+];
+
+fn cn_days_off(festival: Arranged, year: i64) -> Days {
+    let mut out = Days::new();
+    for &(of, y, first_month, first_day, last_month, last_day) in CN_DAYS_OFF {
+        if of != festival || y != year {
+            continue;
+        }
+        let (Ok(first), Ok(last)) = (
+            gregorian::to_fixed(y, first_month, first_day),
+            gregorian::to_fixed(y, last_month, last_day),
+        ) else {
+            continue;
+        };
+        for day in first.0..=last.0 {
+            out.push(Rd(day));
+        }
+    }
+    out
+}
+
+fn cn_workdays(festival: Arranged, year: i64) -> Days {
+    let mut out = Days::new();
+    for &(of, y, month, day) in CN_WORKDAYS {
+        if of == festival
+            && y == year
+            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
+        {
+            out.push(fixed);
+        }
+    }
+    out
+}
+
+/// The two lookups for each festival, as the `fn(i64) -> Days` a
+/// [`Rule::Tabulated`] takes.
+macro_rules! cn_arranged {
+    ($($festival:ident => $off:ident, $work:ident);* $(;)?) => {
+        $(
+            fn $off(year: i64) -> Days {
+                cn_days_off($festival, year)
+            }
+            fn $work(year: i64) -> Days {
+                cn_workdays($festival, year)
+            }
+        )*
+    };
+}
+
+cn_arranged! {
+    NewYear => cn_new_year_off, cn_new_year_work;
+    Spring => cn_spring_off, cn_spring_work;
+    Qingming => cn_qingming_off, cn_qingming_work;
+    Labour => cn_labour_off, cn_labour_work;
+    DragonBoat => cn_dragon_boat_off, cn_dragon_boat_work;
+    MidAutumn => cn_mid_autumn_off, cn_mid_autumn_work;
+    National => cn_national_off, cn_national_work;
+    NationalAndMidAutumn => cn_national_mid_autumn_off, cn_national_mid_autumn_work;
+    Victory => cn_victory_off, cn_victory_work;
+}
+
+const fn cn_tabulated(function: fn(i64) -> Days) -> Rule {
+    Rule::Tabulated {
+        function,
+        first_year: CN_ARRANGED_FIRST,
+        last_year: CN_ARRANGED_LAST,
+    }
+}
+
+/// The days an arrangement gives off for a festival, under the
+/// festival's own name, so that its statutory days are not listed twice.
+const fn cn_off(
+    name: &'static str,
+    local_name: &'static str,
+    function: fn(i64) -> Days,
+) -> HolidayRule {
+    HolidayRule::fixed_public(name, local_name, cn_tabulated(function))
+}
+
+/// The weekend days it makes working days.
+const fn cn_work(
+    name: &'static str,
+    local_name: &'static str,
+    function: fn(i64) -> Days,
+) -> HolidayRule {
+    HolidayRule::workday(name, local_name, cn_tabulated(function))
+}
+
 static CN_NEW_YEAR: Rule = Rule::in_calendar(CalendarSystem::CHINESE, 1, 1);
 
 static CN_RULES: &[HolidayRule] = &[
@@ -125,6 +553,70 @@ static CN_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("National Day", "国庆节", Rule::gregorian(10, 1)),
     HolidayRule::fixed_public("National Day", "国庆节", Rule::gregorian(10, 2)),
     HolidayRule::fixed_public("National Day", "国庆节", Rule::gregorian(10, 3)),
+    // The arrangements: the days off beyond the statutory ones, and the
+    // weekend days worked in exchange.
+    cn_off("New Year's Day", "元旦", cn_new_year_off),
+    cn_off("Spring Festival", "春节", cn_spring_off),
+    cn_off("Qingming Festival", "清明节", cn_qingming_off),
+    cn_off("Labour Day", "劳动节", cn_labour_off),
+    cn_off("Dragon Boat Festival", "端午节", cn_dragon_boat_off),
+    cn_off("Mid-Autumn Festival", "中秋节", cn_mid_autumn_off),
+    cn_off("National Day", "国庆节", cn_national_off),
+    cn_off(
+        "National Day and Mid-Autumn Festival",
+        "国庆节、中秋节",
+        cn_national_mid_autumn_off,
+    ),
+    cn_off(
+        "70th anniversary of the victory of the War of Resistance against Japanese Aggression",
+        "中国人民抗日战争暨世界反法西斯战争胜利70周年纪念日",
+        cn_victory_off,
+    ),
+    cn_work(
+        "Adjusted working day, New Year's Day",
+        "元旦调休上班",
+        cn_new_year_work,
+    ),
+    cn_work(
+        "Adjusted working day, Spring Festival",
+        "春节调休上班",
+        cn_spring_work,
+    ),
+    cn_work(
+        "Adjusted working day, Qingming Festival",
+        "清明节调休上班",
+        cn_qingming_work,
+    ),
+    cn_work(
+        "Adjusted working day, Labour Day",
+        "劳动节调休上班",
+        cn_labour_work,
+    ),
+    cn_work(
+        "Adjusted working day, Dragon Boat Festival",
+        "端午节调休上班",
+        cn_dragon_boat_work,
+    ),
+    cn_work(
+        "Adjusted working day, Mid-Autumn Festival",
+        "中秋节调休上班",
+        cn_mid_autumn_work,
+    ),
+    cn_work(
+        "Adjusted working day, National Day",
+        "国庆节调休上班",
+        cn_national_work,
+    ),
+    cn_work(
+        "Adjusted working day, National Day and Mid-Autumn Festival",
+        "国庆节、中秋节调休上班",
+        cn_national_mid_autumn_work,
+    ),
+    cn_work(
+        "Adjusted working day, the 70th anniversary of the victory",
+        "胜利70周年纪念日调休上班",
+        cn_victory_work,
+    ),
 ];
 
 /// China.
@@ -133,17 +625,25 @@ pub static CHINA: RuleSet = RuleSet {
     english_name: "China",
     rules: CN_RULES,
     // China has no substitution rule. It has 调休: the State Council
-    // publishes a table each autumn that both extends the holidays and
-    // designates ordinary weekends as working days. That is an annual
-    // administrative act, not a rule, and this crate will not guess it.
+    // publishes an arrangement each autumn that both extends the holidays
+    // and designates ordinary weekends as working days. That is an annual
+    // administrative act, not a rule, so the arrangements are carried as
+    // data for the years they were read, and a year without one is a gap
+    // rather than a guess.
     substitution: &[],
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
+    sources_checked: SourceDate::new(2026, 9, 23),
     sources: "《全国年节及纪念日放假办法》(国务院令第270号), as revised in \
-              1999, 2007, 2013 and 2024. The statutory days are listed; the \
-              annual 调休 bridging days are not",
+              1999, 2007, 2013 and 2024, for the statutory days; the \
+              国务院办公厅关于2008年 to 2026年部分节假日安排的通知 on \
+              gov.cn for the days off and the working weekend days of each \
+              year, with the three notices that changed a year: \
+              国发明电〔2015〕1号 for 3 September 2015, the change of \
+              22 March 2019 to that year's Labour Day, and the extension of \
+              26 January 2020 to that year's Spring Festival. An \
+              arrangement for 2027 may still begin in late December 2026",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

@@ -171,7 +171,11 @@ England and Wales, the region the inclusion names, and halves the last
 weekdays before Christmas and of the year; Seoul (`XKRX`), which includes
 South Korea's table and adds 1 May, a day off for employees before it was a
 public holiday, and the last weekday of the year, and which matches the
-Korea Exchange's own closure lists for every year from 2009 to 2029; and Nasdaq's Nordic markets — Copenhagen (`XCSE`), Stockholm
+Korea Exchange's own closure lists for every year from 2009 to 2029;
+Shanghai (`XSHG`), which includes China's table — its annual arrangements,
+without the weekend days they make working days — and adds the eve of the
+Spring Festival 2024, and which matches the exchange's closure notices for
+2014 to 2026; and Nasdaq's Nordic markets — Copenhagen (`XCSE`), Stockholm
 (`XSTO`), Helsinki (`XHEL`) and Iceland (`XICE`) — each on its country's
 days as Nasdaq's calendar lists them, Stockholm with five half days a year.
 The unscheduled closures a read source
@@ -198,7 +202,11 @@ source read here gives are not, and the table says which.
 * **It will not guess an annual administrative act.** China's 调休, Taiwan's
   Lunar New Year makeup days, Vietnam's Tết span, Thailand's Songkran makeup
   days and Indonesia's *cuti bersama* are decided year by year by a ministry,
-  not by a rule. The statutory days are listed; the bridging days are not.
+  not by a rule. Where the acts have been read they are data for their
+  years: China's arrangements from 2008 to 2026, with the weekend days they
+  put to work as `Kind::Workday` entries that business-day arithmetic
+  counts. A year past them is a gap. Elsewhere the statutory days are listed
+  and the bridging days are not.
 * **It will not pretend a list is current.** Every table carries a
   `sources_checked` date and names its statute or gazette in a comment.
 * **It will not guess outside the span it evaluated.** Business-day arithmetic

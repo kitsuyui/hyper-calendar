@@ -1246,6 +1246,12 @@ pub enum Kind {
     Observance,
     /// A school holiday.
     School,
+    /// A day made a working day by the authority that sets the calendar:
+    /// in China, a weekend day the State Council's annual arrangement puts
+    /// to work in exchange for a weekday off beside a holiday (调休上班).
+    /// It is the opposite of a day off — business-day arithmetic counts it
+    /// even when it falls on the weekend.
+    Workday,
 }
 
 impl Kind {
@@ -1472,6 +1478,16 @@ impl HolidayRule {
     pub const fn observance(name: &'static str, local_name: &'static str, rule: Rule) -> Self {
         Self {
             kind: Kind::Observance,
+            substitute_from: None,
+            ..Self::public(name, local_name, rule)
+        }
+    }
+
+    /// A weekend day made a working day. See [`Kind::Workday`].
+    #[must_use]
+    pub const fn workday(name: &'static str, local_name: &'static str, rule: Rule) -> Self {
+        Self {
+            kind: Kind::Workday,
             substitute_from: None,
             ..Self::public(name, local_name, rule)
         }
