@@ -247,7 +247,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `US` | United States | 18 | yes | stated | 2026-09-21 |
 | `UY` | Uruguay | 19 | none | stated | 2026-09-22 |
 | `UZ` | Uzbekistan | 10 | yes | stated | 2026-09-22 |
-| `VN` | Vietnam | 11 | yes | stated | 2026-09-21 |
+| `VN` | Vietnam | 14 | yes | stated | 2026-09-23 |
 | `ZA` | South Africa | 12 | yes | stated | 2026-09-21 |
 | `ZM` | Zambia | 15 | yes | stated | 2026-09-22 |
 | `ZW` | Zimbabwe | 14 | yes | stated | 2026-09-22 |
