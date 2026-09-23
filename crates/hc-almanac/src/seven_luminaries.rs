@@ -14,9 +14,11 @@
 //! Kūkai in 806. It appears in Japanese 具注暦 from the ninth century as a
 //! divinatory cycle rather than a civil one — the 七曜 column sat beside the
 //! 十二直 and the 二十八宿, which is why it belongs in an almanac crate at
-//! all. Japan adopted it as the civil week only on 1 January 1876, when the
-//! government made Sunday a holiday. See the National Diet Library's
-//! 「日本の暦」exhibition, 具注暦 section.
+//! all. See the National Diet Library's 「日本の暦」exhibition, 具注暦
+//! section. It became the civil week in April 1876, when 太政官達第27号 of
+//! 明治9年3月12日 made Sunday a day off and Saturday afternoon a half-day
+//! from that month, replacing the days ending in 1 and 6 (NAOJ 暦計算室, 暦Wiki
+//! 「日曜日」 and 「明治以降の休日」).
 //!
 //! # The names differ by country more than the associations do
 //!
@@ -363,11 +365,13 @@ mod tests {
         assert_eq!(luminary_of(Rd(1)).japanese_name(), "月曜日");
     }
 
-    /// 1 January 1876 — RD 684_830 — is the day Japan's civil seven-day week
-    /// began, and it was a Saturday, 土曜日.
+    /// 1 April 1876 — RD 684_921 — is the day 太政官達第27号 put the
+    /// Sunday rest into force, and it was a Saturday, 土曜日, the first of the
+    /// half-days; the first Sunday off was the next day.
     #[test]
-    fn the_first_day_of_the_japanese_civil_week_was_saturday() {
-        let day = Rd(684_830);
+    fn the_sunday_rest_took_force_on_a_saturday() {
+        let day = Rd(684_921);
+        assert_eq!(Weekday::from_rd(Rd(day.0 + 1)), Weekday::Sunday);
         assert_eq!(Weekday::from_rd(day), Weekday::Saturday);
         assert_eq!(luminary_of(day), Luminary::Saturn);
         assert_eq!(luminary_of(day).name(&namings::KOREAN), "토요일");

@@ -11,10 +11,11 @@
 //! Phase, age and illuminated fraction all change through a day — the Moon's
 //! elongation grows by about 12° a day — so a single number for a whole day
 //! has to be quoted for some instant inside it. This module uses **local
-//! noon**, and says so in every doc comment. Japan's National Astronomical
-//! Observatory quotes 月齢 at local *midnight* instead, so its table and this
-//! one differ by about half a day; [`moon_age_at`] takes any instant for
-//! callers who need to match a particular source.
+//! noon**, and says so in every doc comment. That is the convention of
+//! Japan's National Astronomical Observatory, whose 暦要項 prints 正午月齢,
+//! the age at 12:00 Japan Standard Time (NAOJ 暦計算室, 「月齢について」,
+//! 2017), so at [`Meridian::JAPAN`] the two agree. [`moon_age_at`] takes any
+//! instant for callers who need to match a source that quotes another.
 //!
 //! # 十五夜 and 十三夜
 //!
@@ -179,9 +180,10 @@ pub fn moon_age_at(moment: Moment) -> f64 {
 
 /// The age of the Moon at local noon on a day, in days.
 ///
-/// Quoted at noon so that one number describes a whole day. Japan's National
-/// Astronomical Observatory publishes 月齢 for local midnight, which is half
-/// a day less; use [`moon_age_at`] with [`Meridian::midnight`] to match it.
+/// Quoted at noon so that one number describes a whole day, as the National
+/// Astronomical Observatory of Japan quotes its 正午月齢: at
+/// [`Meridian::JAPAN`] this is that figure before rounding. Use
+/// [`moon_age_at`] for any other instant.
 #[must_use]
 pub fn moon_age(day: Rd, meridian: Meridian) -> f64 {
     moon_age_at(meridian.noon(day))

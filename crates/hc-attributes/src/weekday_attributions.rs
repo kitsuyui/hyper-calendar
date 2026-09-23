@@ -191,10 +191,13 @@ pub static WEEKDAY_LUMINARIES_JAPANESE: WeekdayTable = WeekdayTable::new(
 
 /// The Sanskrit *vāsara* day names and their *navagraha*.
 ///
-/// The Indian planetary week is attested from the Gupta period — the
-/// *Yājñavalkya Smṛti*, roughly the third to fifth century — which is about
-/// the same time as, or earlier than, the system's spread in the Roman
-/// empire, so this is not a borrowing in an obvious direction.
+/// The earliest dated weekday in an Indian inscription is in the Eran
+/// pillar inscription of Budhagupta, Gupta year 165 (484 CE), which dates
+/// itself "on the day of Suraguru", a Thursday (J. F. Fleet, *Corpus
+/// Inscriptionum Indicarum* III, *Inscriptions of the Early Gupta Kings*,
+/// 1888). That is four centuries after the planetary week was in general
+/// use in the Roman empire, where a Pompeian graffito dates 6 February 60 CE
+/// by its *dies solis*.
 ///
 /// *Śukra* is Venus, a son of Bhṛgu; *guru* here is a title of Bṛhaspati and
 /// so of Jupiter; *budha*, Mercury, is a son of Soma, the Moon.
@@ -204,12 +207,13 @@ pub static WEEKDAY_VASARA_SANSKRIT: WeekdayTable = WeekdayTable::new(
         english_name: "Sanskrit vāsara day names",
         body: None,
         region: Region::INDIA,
-        established: Some(AttributionDate::year(400)),
+        established: Some(AttributionDate::year(484)),
         revised: None,
-        validity: Validity::since(400),
+        validity: Validity::since(484),
         provenance: Provenance::Recorded,
         source: "Monier-Williams, Sanskrit-English Dictionary (1899), s.v. vāsara and vāra; \
-                 attestation per the Yājñavalkya Smṛti, c. 3rd–5th century CE",
+                 the earliest dated use, the Eran pillar inscription of Budhagupta, 484 CE, \
+                 in Fleet, Corpus Inscriptionum Indicarum III (1888)",
         caveat: None,
     },
     [

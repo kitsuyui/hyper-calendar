@@ -198,6 +198,8 @@ ones:
   (1999); forms per Braune, *Althochdeutsches Lesebuch*, 17th ed.
 - Vojtěch Kebrle, "Česká jména měsíců", *Naše řeč* 23 (1939), pp. 65–67.
 - Monier-Williams, *Sanskrit-English Dictionary* (1899), s.v. *vāsara*.
+- J. F. Fleet, *Corpus Inscriptionum Indicarum* III (1888), the Eran pillar
+  inscription of Budhagupta, 484 CE, the earliest dated Indian weekday.
 - Denis Segaller, *Thai Ways* (Silkworm Books, 2005), on the day colours.
 
 ## Features

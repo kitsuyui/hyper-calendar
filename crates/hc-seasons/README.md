@@ -120,8 +120,8 @@ Other accuracy notes:
   within a minute of a midnight boundary.
 * Lunar conjunctions land within about a minute, so month boundaries, phase
   dates, 十五夜 and 六曜 are firmer than the solar-term dates.
-* 月齢 and the illuminated fraction are quoted for **local noon**. NAOJ quotes
-  月齢 for local midnight, half a day less; `moon_age_at` takes any instant.
+* 月齢 and the illuminated fraction are quoted for **local noon**, as NAOJ
+  quotes its 正午月齢 for 12:00 JST; `moon_age_at` takes any instant.
 * **Zodiac sign boundaries inherit the same bias.** A sign is 30 days wide, so
   the *sign* is never wrong; only its day, and only when an ingress lands
   within about ten minutes of local midnight. The sidereal boundaries carry a
