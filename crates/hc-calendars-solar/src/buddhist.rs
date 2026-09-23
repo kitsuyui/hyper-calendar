@@ -2,22 +2,45 @@
 //!
 //! Gregorian structure with the year number raised by [`YEAR_OFFSET`]: 2026
 //! CE is 2569 BE. Thailand adopted the Gregorian month structure in 1889 and
-//! moved the start of the year to 1 January in 1941, so this calendar is the
-//! modern Thai civil calendar and nothing older.
+//! moved the start of the year to 1 January in 1941. The calendar here is
+//! the modern Thai civil calendar, whose year is the Gregorian one.
+//!
+//! # The year as it was printed before 1941
+//!
+//! Before 1941 the months were the same but the year was not. From
+//! 1 April 1889 the year began on 1 April and was counted in the
+//! Rattanakosin era (รัตนโกสินทรศก, RS), from the founding of Bangkok:
+//! 1 April 1889 was the first day of RS 108. A proclamation of 21 February
+//! RS 131 replaced the era with the Buddhist Era from 1 April 2456, which
+//! is 1 April 1913, still from 1 April. The Calendar Year Act of 2483
+//! (Royal Gazette vol. 57, p. 419) began 2484 on 1 January 1941, so 2483
+//! ran from 1 April to 31 December 1940 and was nine months long.
+//!
+//! So a Thai document of those years dates January to March a year higher
+//! than [`BuddhistCalendar`] does — 1 January 1920 was printed 2462, not
+//! 2463 — and before 1 April 1913 in another era altogether.
+//! [`printed_year`] gives the year a document of the time would have
+//! printed for a day, and [`printed_to_fixed`] reads such a dateline back.
+//! Like [`crate::year_style`], it changes the year number only. The month
+//! and day are the Gregorian ones throughout, and the calendar itself
+//! keeps the modern year, whose every year begins on 1 January.
 //!
 //! # What this deliberately does not do
 //!
-//! * It does not model the years before 1941, when the Thai year began on
-//!   1 April. A date between 1 January and 31 March in the years 1889 to
-//!   1940 therefore carries a year number one higher here than the one
-//!   printed on a Thai document of the time — the reason the Thai year 2483
-//!   was only nine months long.
+//! * It does not model the lunar reckoning in the Chulasakarat era that
+//!   official use left on 1 April 1889; [`printed_year`] refuses an earlier
+//!   day.
 //! * It does not model the Burmese, Sinhalese, Khmer or Lao Buddhist eras,
 //!   which use the same era name with different epochs and, in several
 //!   cases, a lunisolar year.
 //! * It says nothing about where the Buddhist era's own epoch comes from.
 //!   The parinirvana is dated 544 or 543 BCE depending on the tradition, and
 //!   the Thai reckoning is the one that makes the offset 543.
+//!
+//! **Sources:** the proclamation ให้ใช้วันอย่างใหม่ of 1888, in force from
+//! 1 April RS 108; the proclamation of 21 February RS 131 adopting the
+//! Buddhist Era from 1 April 2456; พระราชบัญญัติปีปฏิทิน พุทธศักราช ๒๔๘๓,
+//! Royal Gazette vol. 57, section ก, p. 419, 17 September 1940.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
@@ -89,6 +112,105 @@ pub fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
         return Err(CalendarError::BeforeEpoch);
     }
     common::offset_from_fixed(rd, YEAR_OFFSET)
+}
+
+/// The era a Thai document printed its year in.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PrintedEra {
+    /// The Rattanakosin era, รัตนโกสินทรศก, from 1 April 1889 (RS 108) to
+    /// 31 March 1913 (the end of RS 131).
+    Rattanakosin,
+    /// The Buddhist Era, from 1 April 1913 (2456).
+    Buddhist,
+}
+
+impl PrintedEra {
+    /// The abbreviation: `RS` or `BE`.
+    #[must_use]
+    pub const fn code(self) -> &'static str {
+        match self {
+            Self::Rattanakosin => "RS",
+            Self::Buddhist => "BE",
+        }
+    }
+}
+
+/// How far the Rattanakosin era runs behind the Common Era, for the days
+/// from April to December: 1889 was RS 108.
+pub const RATTANAKOSIN_OFFSET: i64 = -1781;
+
+/// The first day of the solar reckoning, 1 April 1889, RS 108.
+pub const PRINTED_EARLIEST: Rd = match gregorian::to_fixed(1889, 4, 1) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// The first day of the Buddhist Era in official use, 1 April 1913, 2456.
+pub const BUDDHIST_ERA_FROM: Rd = match gregorian::to_fixed(1913, 4, 1) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// The first day of a year beginning on 1 January, 1 January 1941, 2484.
+pub const JANUARY_YEAR_FROM: Rd = match gregorian::to_fixed(1941, 1, 1) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// The era and year a Thai document of the time would print for `rd`.
+///
+/// # Errors
+///
+/// Returns [`CalendarError::BeforeEpoch`] before 1 April 1889, when the
+/// reckoning was lunar, or the Gregorian range errors.
+pub fn printed_year(rd: Rd) -> CalendarResult<(PrintedEra, i64)> {
+    if rd < PRINTED_EARLIEST {
+        return Err(CalendarError::BeforeEpoch);
+    }
+    let (year, month, _) = gregorian::from_fixed(rd)?;
+    // Before 1941 January to March belong to the year that began the April
+    // before.
+    let april_year = if rd < JANUARY_YEAR_FROM && month < 4 {
+        year - 1
+    } else {
+        year
+    };
+    Ok(if rd < BUDDHIST_ERA_FROM {
+        (PrintedEra::Rattanakosin, april_year + RATTANAKOSIN_OFFSET)
+    } else {
+        (PrintedEra::Buddhist, april_year + YEAR_OFFSET)
+    })
+}
+
+/// The fixed day of a dateline as a Thai document of the time printed it:
+/// a year in `era`, a Gregorian month and a day.
+///
+/// # Errors
+///
+/// Returns [`CalendarError::YearOutOfRange`] for a year outside the era's
+/// use — RS 108 to 131, or BE from 2456 — and
+/// [`CalendarError::MonthOutOfRange`] for January to March of 2483, a year
+/// that ended in December. Otherwise the Gregorian errors.
+pub fn printed_to_fixed(era: PrintedEra, year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
+    let april_year = match era {
+        PrintedEra::Rattanakosin if (108..=131).contains(&year) => year - RATTANAKOSIN_OFFSET,
+        PrintedEra::Buddhist if year >= 2456 => year - YEAR_OFFSET,
+        _ => return Err(CalendarError::YearOutOfRange),
+    };
+    if !(1..=12).contains(&month) {
+        return Err(CalendarError::MonthOutOfRange);
+    }
+    if april_year >= 1941 {
+        return gregorian::to_fixed(april_year, month, day);
+    }
+    if month >= 4 {
+        return gregorian::to_fixed(april_year, month, day);
+    }
+    let rd = gregorian::to_fixed(april_year + 1, month, day)?;
+    if rd >= JANUARY_YEAR_FROM {
+        return Err(CalendarError::MonthOutOfRange);
+    }
+    Ok(rd)
 }
 
 /// A Thai solar date.
@@ -240,6 +362,102 @@ mod tests {
             BuddhistCalendar.from_fields(&DateFields::ymd(2569, 1, 1).with_era("AD")),
             Err(CalendarError::UnknownEra)
         );
+    }
+
+    fn ymd(year: i64, month: u8, day: u8) -> Rd {
+        gregorian::to_fixed(year, month, day).unwrap()
+    }
+
+    #[test]
+    fn a_document_before_1941_printed_january_to_march_a_year_lower() {
+        // 1 January 1920 was printed 2462: the year 2462 began on 1 April
+        // 1919. The calendar's own year is the modern one, 2463.
+        assert_eq!(
+            printed_year(ymd(1920, 1, 1)),
+            Ok((PrintedEra::Buddhist, 2462))
+        );
+        assert_eq!(from_fixed(ymd(1920, 1, 1)), Ok((2463, 1, 1)));
+        assert_eq!(
+            printed_year(ymd(1920, 4, 1)),
+            Ok((PrintedEra::Buddhist, 2463))
+        );
+        // The constitution of 10 December 2475 is 1932 either way.
+        assert_eq!(
+            printed_to_fixed(PrintedEra::Buddhist, 2475, 12, 10),
+            Ok(ymd(1932, 12, 10))
+        );
+    }
+
+    #[test]
+    fn the_rattanakosin_era_ran_from_1889_to_march_1913() {
+        assert_eq!(
+            printed_year(ymd(1889, 4, 1)),
+            Ok((PrintedEra::Rattanakosin, 108))
+        );
+        assert_eq!(
+            printed_year(ymd(1889, 3, 31)),
+            Err(CalendarError::BeforeEpoch)
+        );
+        // 21 February RS 131, the day of the proclamation, was in 1913.
+        assert_eq!(
+            printed_to_fixed(PrintedEra::Rattanakosin, 131, 2, 21),
+            Ok(ymd(1913, 2, 21))
+        );
+        assert_eq!(
+            printed_year(ymd(1913, 3, 31)),
+            Ok((PrintedEra::Rattanakosin, 131))
+        );
+        assert_eq!(
+            printed_year(ymd(1913, 4, 1)),
+            Ok((PrintedEra::Buddhist, 2456))
+        );
+        // RS 108 ended on 31 March 1890.
+        assert_eq!(
+            printed_to_fixed(PrintedEra::Rattanakosin, 108, 3, 31),
+            Ok(ymd(1890, 3, 31))
+        );
+        assert_eq!(
+            printed_to_fixed(PrintedEra::Rattanakosin, 132, 4, 1),
+            Err(CalendarError::YearOutOfRange)
+        );
+        assert_eq!(
+            printed_to_fixed(PrintedEra::Buddhist, 2455, 4, 1),
+            Err(CalendarError::YearOutOfRange)
+        );
+    }
+
+    #[test]
+    fn the_year_2483_was_nine_months_long() {
+        let first = printed_to_fixed(PrintedEra::Buddhist, 2483, 4, 1).unwrap();
+        let last = printed_to_fixed(PrintedEra::Buddhist, 2483, 12, 31).unwrap();
+        assert_eq!(first, ymd(1940, 4, 1));
+        assert_eq!(last.0 - first.0 + 1, 275);
+        assert_eq!(
+            printed_to_fixed(PrintedEra::Buddhist, 2483, 1, 1),
+            Err(CalendarError::MonthOutOfRange)
+        );
+        assert_eq!(
+            printed_year(ymd(1941, 1, 1)),
+            Ok((PrintedEra::Buddhist, 2484))
+        );
+        assert_eq!(
+            printed_to_fixed(PrintedEra::Buddhist, 2484, 1, 1),
+            Ok(ymd(1941, 1, 1))
+        );
+    }
+
+    #[test]
+    fn a_printed_dateline_round_trips() {
+        for rd in (PRINTED_EARLIEST.0..=ymd(1960, 12, 31).0).step_by(7) {
+            let (era, year) = printed_year(Rd(rd)).unwrap();
+            let (_, month, day) = gregorian::from_fixed(Rd(rd)).unwrap();
+            assert_eq!(printed_to_fixed(era, year, month, day), Ok(Rd(rd)));
+        }
+        // From 1941 the printed year is the calendar's.
+        for rd in (JANUARY_YEAR_FROM.0..=ymd(2100, 1, 1).0).step_by(97) {
+            let (_, year) = printed_year(Rd(rd)).unwrap();
+            assert_eq!(Ok(year), from_fixed(Rd(rd)).map(|(year, _, _)| year));
+        }
     }
 
     #[test]
