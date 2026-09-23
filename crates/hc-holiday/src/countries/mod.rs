@@ -291,7 +291,7 @@ mod tests {
     fn the_registry_holds_the_number_of_countries_the_readme_claims() {
         // `README.md` and `docs/observances.md` both state this figure, and a
         // documented count that drifts is a documented lie.
-        assert_eq!(ALL.len(), 176);
+        assert_eq!(ALL.len(), 180);
     }
 
     #[test]

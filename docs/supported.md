@@ -123,7 +123,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Holidays by country
 
-176 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
+180 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
 
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
@@ -150,6 +150,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `BO` | Bolivia | 11 | yes | stated | 2026-09-22 |
 | `BR` | Brazil | 14 | none | stated | 2026-09-21 |
 | `BS` | Bahamas | 13 | yes | stated | 2026-09-22 |
+| `BT` | Bhutan | 17 | none | stated | 2026-09-23 |
 | `BW` | Botswana | 14 | yes | stated | 2026-09-22 |
 | `BY` | Belarus | 16 | none | stated | 2026-09-22 |
 | `BZ` | Belize | 16 | yes | stated | 2026-09-22 |
@@ -179,6 +180,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `ES` | Spain | 10 | none | stated | 2026-09-21 |
 | `ET` | Ethiopia | 13 | none | stated | 2026-09-22 |
 | `FI` | Finland | 15 | none | stated | 2026-09-21 |
+| `FJ` | Fiji | 12 | none | stated | 2026-09-23 |
 | `FM` | Micronesia | 9 | yes | stated | 2026-09-23 |
 | `FR` | France | 14 | none | stated | 2026-09-21 |
 | `GB` | United Kingdom | 32 | yes | stated | 2026-09-21 |
@@ -208,6 +210,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `KE` | Kenya | 13 | yes | stated | 2026-09-22 |
 | `KG` | Kyrgyzstan | 30 | yes | stated | 2026-09-22 |
 | `KH` | Cambodia | 16 | none | stated | 2026-09-23 |
+| `KI` | Kiribati | 18 | none | stated | 2026-09-23 |
 | `KN` | Saint Kitts and Nevis | 10 | yes | stated | 2026-09-23 |
 | `KR` | South Korea | 41 | yes | stated | 2026-09-23 |
 | `KW` | Kuwait | 13 | none | stated | 2026-09-22 |
@@ -236,6 +239,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `MR` | Mauritania | 8 | none | stated | 2026-09-23 |
 | `MT` | Malta | 14 | none | stated | 2026-09-22 |
 | `MU` | Mauritius | 16 | none | stated | 2026-09-22 |
+| `MV` | Maldives | 19 | none | stated | 2026-09-23 |
 | `MW` | Malawi | 13 | yes | stated | 2026-09-22 |
 | `MX` | Mexico | 11 | none | stated | 2026-09-21 |
 | `MY` | Malaysia | 15 | yes | stated | 2026-09-21 |
