@@ -135,3 +135,6 @@ Alo = "Alo"
 # Dutch "Chinees Nieuwjaar", Chinese New Year, in Suriname's Besluit Vrije
 # Dagen 1971.
 Chinees = "Chinees"
+# Italian "successivo", following: Vatican City's "Giorno successivo
+# all'Assunzione".
+successivo = "successivo"

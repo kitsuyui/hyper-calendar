@@ -3115,6 +3115,136 @@ fn serbia_moves_state_holidays_off_sunday_and_leaves_the_church_days_alone() {
 }
 
 #[test]
+fn bosnia_and_herzegovina_has_no_state_holidays_and_three_laws_beneath() {
+    // No state law: asking for the country as a whole gives nothing.
+    assert!(
+        HolidayCalendar::for_year(table("BA"), None, 2026)
+            .all()
+            .is_empty()
+    );
+
+    // The Federation: 1 January 2023 on a Sunday gave Tuesday 3 January,
+    // 1 May 2016 on a Sunday gave Tuesday 3 May and 2 May 2021 on a Sunday
+    // gave Monday 3 May, as the Federal Ministry announced.
+    expect(
+        "BA",
+        Some("BA-BIH"),
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 2, "New Year's Day"),
+            (2026, 3, 1, "Independence Day"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 2, "Labour Day"),
+            (2026, 11, 25, "Statehood Day"),
+            (2025, 3, 1, "Independence Day"),
+            (2025, 11, 25, "Statehood Day"),
+        ],
+    );
+    expect_substitute("BA", Some("BA-BIH"), 2023, (1, 1), (1, 3));
+    expect_substitute("BA", Some("BA-BIH"), 2016, (5, 1), (5, 3));
+    expect_substitute("BA", Some("BA-BIH"), 2021, (5, 2), (5, 3));
+    // 9 May is kept at work; the Government's Monday for the Sunday
+    // 1 March 2026 is not carried, nor are the other entity's days.
+    expect_working(
+        "BA",
+        Some("BA-BIH"),
+        &[(2025, 5, 9), (2026, 3, 2), (2026, 1, 9), (2026, 11, 21)],
+    );
+
+    // Republika Srpska: article 4 moved Sunday 2 January 2022 to Monday
+    // 3 January, and left Sunday 1 January 2023 alone.
+    expect(
+        "BA",
+        Some("BA-SRP"),
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 2, "New Year's Day"),
+            (2026, 1, 9, "Republic Day"),
+            (2026, 5, 1, "International Labour Day"),
+            (2026, 5, 2, "International Labour Day"),
+            (2026, 5, 9, "Victory over Fascism Day"),
+            (2026, 11, 21, "Dayton Agreement Day"),
+            (2016, 1, 9, "Republic Day"),
+            (2019, 1, 9, "Republic Day"),
+        ],
+    );
+    expect_substitute("BA", Some("BA-SRP"), 2022, (1, 2), (1, 3));
+    expect_working(
+        "BA",
+        Some("BA-SRP"),
+        &[
+            (2023, 1, 3),
+            (2026, 1, 7),
+            (2026, 1, 14),
+            (2026, 3, 1),
+            (2026, 11, 25),
+        ],
+    );
+    // The religious days are the believers' own. Orthodox Easter 2026 on
+    // 12 April, Catholic on 5 April.
+    let calendar = HolidayCalendar::for_year(table("BA"), Some("BA-SRP"), 2026);
+    for (month, day, name) in [
+        (1, 6, "Orthodox Christmas Eve"),
+        (1, 7, "Orthodox Christmas"),
+        (4, 3, "Catholic Good Friday"),
+        (4, 6, "Catholic Easter Monday"),
+        (4, 10, "Orthodox Good Friday"),
+        (4, 13, "Orthodox Easter Monday"),
+        (12, 24, "Catholic Christmas Eve"),
+        (12, 25, "Catholic Christmas"),
+    ] {
+        let found: Vec<(&str, Kind)> = calendar
+            .on(ymd(2026, month, day))
+            .iter()
+            .map(|holiday| (holiday.name, holiday.kind))
+            .collect();
+        assert_eq!(found, [(name, Kind::Religious)], "{month}-{day}");
+    }
+    // 9 January is known from the Ministry's notices to 2026 and no
+    // further.
+    let later = HolidayCalendar::for_year(table("BA"), Some("BA-SRP"), 2027);
+    assert!(later.gaps().iter().any(|gap| gap.name == "Republic Day"));
+
+    // Brčko: District Day on Sunday 8 March 2026 gave Monday 9 March, and
+    // the Assembly's decisions give each religious holiday one day.
+    expect(
+        "BA",
+        Some("BA-BRC"),
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 2, "New Year's Day"),
+            (2026, 1, 7, "Orthodox Christmas"),
+            (2026, 3, 8, "Brčko District Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 4, 6, "Catholic Easter"),
+            (2026, 4, 13, "Orthodox Easter"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 2, "Labour Day"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 12, 25, "Catholic Christmas"),
+            (2025, 4, 18, "Catholic Easter"),
+            (2022, 12, 26, "Catholic Christmas"),
+            (2023, 1, 9, "Orthodox Christmas"),
+            (2027, 1, 7, "Orthodox Christmas"),
+        ],
+    );
+    expect_substitute("BA", Some("BA-BRC"), 2026, (3, 8), (3, 9));
+    expect_working(
+        "BA",
+        Some("BA-BRC"),
+        &[(2026, 4, 3), (2026, 4, 10), (2026, 1, 9), (2026, 3, 1)],
+    );
+    // Past the decisions read, the religious days are a gap, not absent.
+    let gaps: Vec<&str> = HolidayCalendar::for_year(table("BA"), Some("BA-BRC"), 2027)
+        .gaps()
+        .iter()
+        .map(|gap| gap.name)
+        .collect();
+    assert!(gaps.contains(&"Catholic Easter"), "{gaps:?}");
+    assert!(!gaps.contains(&"Orthodox Christmas"), "{gaps:?}");
+}
+
+#[test]
 fn costa_rica_kept_the_mondays_ley_9875_named_and_no_others() {
     expect(
         "CR",
@@ -5422,6 +5552,108 @@ fn san_marino_keeps_the_captains_regent_days_and_closes_the_banks_on_the_eves() 
         .map(|holiday| holiday.kind)
         .collect();
     assert_eq!(kinds, [Kind::Bank, Kind::Bank]);
+}
+
+#[test]
+fn vatican_city_keeps_the_holy_days_of_obligation_and_the_popes_days() {
+    // Easter 2026 on 5 April; Leo XIV elected on 8 May 2025.
+    expect(
+        "VA",
+        None,
+        &[
+            (2026, 1, 1, "Solemnity of Mary, Mother of God"),
+            (2026, 1, 6, "Epiphany"),
+            (
+                2026,
+                2,
+                11,
+                "Anniversary of the Establishment of Vatican City State",
+            ),
+            (2026, 3, 19, "Saint Joseph"),
+            (2026, 4, 2, "Maundy Thursday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 4, "Holy Saturday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 4, 7, "Easter Tuesday"),
+            (2026, 5, 1, "Saint Joseph the Worker"),
+            (2026, 5, 8, "Anniversary of the Pope's Election"),
+            (2026, 5, 14, "Ascension"),
+            (2026, 6, 4, "Corpus Christi"),
+            (2026, 6, 29, "Saints Peter and Paul"),
+            (2026, 8, 14, "Eve of the Assumption"),
+            (2026, 8, 15, "Assumption"),
+            (2026, 8, 16, "Day after the Assumption"),
+            (2026, 9, 17, "Pope's Name Day"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 11, 2, "All Souls' Day"),
+            (2026, 12, 8, "Immaculate Conception"),
+            (2026, 12, 24, "Christmas Eve"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Saint Stephen's Day"),
+            (2026, 12, 27, "Saint John the Apostle"),
+            (2026, 12, 31, "Last Day of the Year"),
+            // The excavations office's list for 2023.
+            (2023, 3, 13, "Anniversary of the Pope's Election"),
+            (2023, 4, 23, "Pope's Name Day"),
+            (2023, 5, 18, "Ascension"),
+            (2023, 6, 8, "Corpus Christi"),
+            (2025, 9, 17, "Pope's Name Day"),
+        ],
+    );
+    // Francis's days are not Leo XIV's; the See was vacant on 23 April
+    // 2025; the Annunciation and the Baptist's birth are solemnities but
+    // not holy days of obligation.
+    expect_working(
+        "VA",
+        None,
+        &[
+            (2026, 3, 13),
+            (2026, 4, 23),
+            (2025, 4, 23),
+            (2026, 3, 25),
+            (2026, 6, 24),
+        ],
+    );
+    // Saturday is a working day, and nothing moves off a Sunday.
+    assert_eq!(
+        table("VA").weekend_in(2026),
+        &[hc_calendar::Weekday::Sunday]
+    );
+    assert!(table("VA").substitution.is_empty());
+    // Canon 1246's fixed days are solemnities of the General Roman
+    // Calendar on the same dates.
+    for (month, day) in [
+        (1, 1),
+        (1, 6),
+        (3, 19),
+        (6, 29),
+        (8, 15),
+        (11, 1),
+        (12, 8),
+        (12, 25),
+    ] {
+        let date = ymd(2026, month, day);
+        assert!(
+            hc_holiday::roman_calendar::celebrations_on(date)
+                .iter()
+                .any(|celebration| celebration.rank == hc_holiday::roman_calendar::Rank::Solemnity),
+            "{month}-{day}"
+        );
+        assert!(
+            HolidayCalendar::for_year(table("VA"), None, 2026).is_holiday(date),
+            "{month}-{day}"
+        );
+    }
+    // Who reigns after 2026 is not known, and the calendar says so.
+    let gaps: Vec<&str> = HolidayCalendar::for_year(table("VA"), None, 2027)
+        .gaps()
+        .iter()
+        .map(|gap| gap.name)
+        .collect();
+    assert_eq!(
+        gaps,
+        ["Anniversary of the Pope's Election", "Pope's Name Day"]
+    );
 }
 
 #[test]

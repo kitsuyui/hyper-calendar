@@ -179,12 +179,14 @@ Ordered by how well the sources can be cited, not by importance.
 | Montenegro 🇲🇪 | The 2007 law's two-day holidays with Njegoš Day from 2021, the Sunday rule, and each community's religious days as `Kind::Religious` |
 | North Macedonia 🇲🇰 | The 1998 law as amended in 2007, the Sunday rule, the religious and ethnic communities' days off, Duhovden as the Friday before Pentecost |
 | Serbia 🇷🇸 | The 2001 law with its 2007 and 2011 amendments: state holidays with the Sunday rule, the Orthodox days fixed, the working holidays as observances, the other confessions' days as `Kind::Religious` |
+| Bosnia and Herzegovina 🇧🇦 | No state law: the Federation's taken-over 1973 law with 1 March and 25 November, Republika Srpska's 2007 law with its 9 January as the notices give it to 2026 and the religious days as `Kind::Religious`, Brčko's 2002 law and the Assembly's religious days for 2017–2026, each a region with its own Sunday rule |
 | Belarus 🇧🇾 | Decree 157's ten non-working days with Radunitsa on the ninth day after the Orthodox Easter and the years of 2 January and 3 July; the working state holidays as observances |
 | Luxembourg 🇱🇺 | The eleven legal holidays with Europe Day from 2019 and Good Friday as the banks' alone; the compensatory day not carried |
 | Malta 🇲🇹 | Cap. 252's five national and nine public holidays; nothing moves |
 | Liechtenstein 🇱🇮 | The Labour Act's thirteen days equal to Sundays; the five bank days and the two collective-agreement days as bank and observance |
 | Monaco 🇲🇨 | Law 798's twelve days, six of them to the Monday after a Sunday; the Prince's Day on 19 November since 1952 |
 | San Marino 🇸🇲 | The 2013 rewriting of the 1990 calendar's civil days, the religious days as the Central Bank's calendars give them, 24 and 31 December as bank days |
+| Vatican City 🇻🇦 | The Governorate's and the Curia's staff regulations: canon 1246's holy days of obligation, the Ascension and Corpus Christi on their Thursdays, Holy Week to Easter Tuesday and the regulations' own days; the Pope's election anniversary and name day for 2013–2026, a gap after; a Sunday-only week |
 | Andorra 🇦🇩 | Law 31/2018 art. 62 and the yearly decree's fourteen national days, Carnival on its Monday; parish days not carried |
 | Moldova 🇲🇩 | Art. 111 with the two Christmases, the Orthodox Easter and the Easter of the Blajini, Europe Day from 2017, Children's Day from 2024, and Chișinău's feast as `MD-CU` |
 | Bulgaria 🇧🇬 | Labour Code art. 154: the list, the Orthodox Easter, 1 November for schools, and the weekend rule of 2017 that excepts the Easter days |

@@ -18,7 +18,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `international` | the United Nations international days, each citing its resolution |
 | `exchanges` | 21 exchange calendars: New York, Nasdaq, Toronto, São Paulo, London, Frankfurt, Zurich, Euronext's seven markets, Nasdaq's four Nordic markets, Tokyo, Hong Kong, Sydney |
-| `countries` | 152 national tables |
+| `countries` | 154 national tables |
 
 ## The vocabulary
 
@@ -93,10 +93,11 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**152 countries.** Albania, Algeria, Andorra, Antigua and Barbuda, Argentina,
+**154 countries.** Albania, Algeria, Andorra, Antigua and Barbuda, Argentina,
 Armenia, Australia (eight states and territories), Austria, Azerbaijan, the
 Bahamas, Bahrain, Bangladesh, Barbados, Belarus, Belgium, Belize, Bolivia,
-Botswana, Brazil, Bulgaria, Canada (federal plus the provincial days fixed by
+Bosnia and Herzegovina (the Federation, Republika Srpska and Brčko), Botswana,
+Brazil, Bulgaria, Canada (federal plus the provincial days fixed by
 statute), Chile, China, Colombia, Costa Rica, Côte d'Ivoire, Croatia, Cuba,
 Cyprus, Czechia, Denmark, Dominica, the Dominican Republic, Ecuador, Egypt, El
 Salvador, Estonia, Ethiopia, Finland, France (métropole plus Alsace-Moselle),
@@ -115,7 +116,7 @@ Africa, South Korea, Spain, Sri Lanka, Suriname, Sweden, Switzerland, Syria,
 Taiwan, Tajikistan, Tanzania, Thailand, Tonga, Trinidad and Tobago, Tunisia,
 Türkiye, Turkmenistan, Tuvalu, Uganda, Ukraine, the United Arab Emirates, the
 United Kingdom (three bank- holiday jurisdictions), the United States, Uruguay,
-Uzbekistan, Vanuatu Vietnam, Venezuela, Vietnam, Yemen, Zambia, Zimbabwe.
+Uzbekistan, Vanuatu, Vatican City, Venezuela, Vietnam, Yemen, Zambia, Zimbabwe.
 
 **Twenty traditions.** Christianity under both computations, the General
 Roman Calendar with the rank of every celebration (`roman_calendar`), the

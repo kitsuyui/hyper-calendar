@@ -15,7 +15,7 @@ use crate::computus::offsets::{
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    SubstituteDirection, SubstitutionPolicy,
+    SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
 };
 
 /// The British and Irish shift: a bank holiday on a weekend is kept on the
@@ -3468,6 +3468,444 @@ pub static SERBIA: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// Bosnia and Herzegovina
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The Federation of Bosnia and Herzegovina.
+const BA_FEDERATION: &[&str] = &["BA-BIH"];
+/// Republika Srpska.
+const BA_SRPSKA: &[&str] = &["BA-SRP"];
+/// Brčko District.
+const BA_BRCKO: &[&str] = &["BA-BRC"];
+
+/// The three Sunday rules as one policy, each reaching only the days its law
+/// names: in the Federation a day of New Year or of 1 May on a Sunday makes
+/// the first day after the two a holiday; in Republika Srpska article 4
+/// moves only the second day of a two-day holiday, to the Monday; in Brčko
+/// article 5 makes the first working day after any District holiday on a
+/// Sunday non-working. A Sunday-only forward policy that skips occupied days
+/// does all three, and the days a law does not reach are `fixed_public`.
+static BA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// A day of a Brčko Assembly decision, read from `table`, or nothing.
+fn ba_decided(table: &[(i64, u8, u8)], year: i64) -> Days {
+    table
+        .iter()
+        .find(|(decided, _, _)| *decided == year)
+        .and_then(|(_, month, day)| gregorian::to_fixed(year, *month, *day).ok())
+        .map_or_else(Days::new, Days::one)
+}
+
+/// The Assembly's decisions on the non-working days of the religious
+/// holidays, one a year from March or April to the January after, as read
+/// for the decisions of 2017 to 2026. The Assembly picks the day: Easter
+/// Monday in some years, Good Friday in others, and the working day next to
+/// a Christmas that falls at the weekend.
+static BA_BRCKO_CATHOLIC_EASTER: &[(i64, u8, u8)] = &[
+    (2017, 4, 17),
+    (2018, 4, 2),
+    (2019, 4, 22),
+    (2020, 4, 13),
+    (2021, 4, 5),
+    (2022, 4, 18),
+    (2023, 4, 10),
+    (2024, 4, 1),
+    (2025, 4, 18),
+    (2026, 4, 6),
+];
+static BA_BRCKO_ORTHODOX_EASTER: &[(i64, u8, u8)] = &[
+    (2017, 4, 14),
+    (2018, 4, 9),
+    (2019, 4, 26),
+    (2020, 4, 17),
+    (2021, 4, 30),
+    (2022, 4, 22),
+    (2023, 4, 17),
+    (2024, 5, 6),
+    (2025, 4, 21),
+    (2026, 4, 13),
+];
+static BA_BRCKO_EID_AL_FITR: &[(i64, u8, u8)] = &[
+    (2017, 6, 26),
+    (2018, 6, 15),
+    (2019, 6, 4),
+    (2020, 5, 25),
+    (2021, 5, 13),
+    (2022, 5, 4),
+    (2023, 4, 21),
+    (2024, 4, 10),
+    (2025, 3, 31),
+    (2026, 3, 20),
+];
+static BA_BRCKO_EID_AL_ADHA: &[(i64, u8, u8)] = &[
+    (2017, 9, 1),
+    (2018, 8, 21),
+    (2019, 8, 12),
+    (2020, 7, 31),
+    (2021, 7, 20),
+    (2022, 7, 11),
+    (2023, 6, 28),
+    (2024, 6, 17),
+    (2025, 6, 6),
+    (2026, 5, 27),
+];
+static BA_BRCKO_CATHOLIC_CHRISTMAS: &[(i64, u8, u8)] = &[
+    (2017, 12, 25),
+    (2018, 12, 25),
+    (2019, 12, 25),
+    (2020, 12, 25),
+    (2021, 12, 24),
+    (2022, 12, 26),
+    (2023, 12, 25),
+    (2024, 12, 25),
+    (2025, 12, 25),
+    (2026, 12, 25),
+];
+/// The January of each decision is the next year's: the 2016 decision,
+/// which would give January 2017, was not read, and the 2026 decision
+/// gives January 2027.
+static BA_BRCKO_ORTHODOX_CHRISTMAS: &[(i64, u8, u8)] = &[
+    (2018, 1, 8),
+    (2019, 1, 7),
+    (2020, 1, 7),
+    (2021, 1, 7),
+    (2022, 1, 7),
+    (2023, 1, 9),
+    (2024, 1, 8),
+    (2025, 1, 7),
+    (2026, 1, 7),
+    (2027, 1, 7),
+];
+
+fn ba_brcko_catholic_easter(year: i64) -> Days {
+    ba_decided(BA_BRCKO_CATHOLIC_EASTER, year)
+}
+
+fn ba_brcko_orthodox_easter(year: i64) -> Days {
+    ba_decided(BA_BRCKO_ORTHODOX_EASTER, year)
+}
+
+fn ba_brcko_eid_al_fitr(year: i64) -> Days {
+    ba_decided(BA_BRCKO_EID_AL_FITR, year)
+}
+
+fn ba_brcko_eid_al_adha(year: i64) -> Days {
+    ba_decided(BA_BRCKO_EID_AL_ADHA, year)
+}
+
+fn ba_brcko_catholic_christmas(year: i64) -> Days {
+    ba_decided(BA_BRCKO_CATHOLIC_CHRISTMAS, year)
+}
+
+fn ba_brcko_orthodox_christmas(year: i64) -> Days {
+    ba_decided(BA_BRCKO_ORTHODOX_CHRISTMAS, year)
+}
+
+/// A religious holiday's day in Brčko, as the Assembly's decisions give
+/// it for the years read and a gap for every other.
+const fn ba_brcko_decided(
+    name: &'static str,
+    local_name: &'static str,
+    function: fn(i64) -> Days,
+    first_year: i64,
+    last_year: i64,
+) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local_name,
+        Rule::Tabulated {
+            function,
+            first_year,
+            last_year,
+        },
+    )
+    .in_regions(BA_BRCKO)
+}
+
+/// 9 January in the years whose announcements were read: the Ministry of
+/// Administration and Local Self-Government's notice for each January from
+/// 2017 to 2026 names it a non-working day.
+fn ba_srpska_republic_day(year: i64) -> Days {
+    gregorian::to_fixed(year, 1, 9).map_or_else(|_| Days::new(), Days::one)
+}
+
+/// A day that article 8 gives the Orthodox, Catholic and Muslim believers
+/// the right to be absent from work on, paid: a day off for them alone.
+const fn ba_srpska_religious(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::observance(name, local, rule)
+        .of_kind(Kind::Religious)
+        .in_regions(BA_SRPSKA)
+}
+
+static BA_RULES: &[HolidayRule] = &[
+    // The Federation: the Law on Holidays the Republic took over in 1992
+    // and the two laws of 1995.
+    HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 1))
+        .in_regions(BA_FEDERATION),
+    HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 2))
+        .in_regions(BA_FEDERATION),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Dan nezavisnosti Bosne i Hercegovine",
+        Rule::gregorian(3, 1),
+    )
+    .in_regions(BA_FEDERATION),
+    HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 1))
+        .in_regions(BA_FEDERATION),
+    HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 2))
+        .in_regions(BA_FEDERATION),
+    HolidayRule::observance(
+        "Victory over Fascism Day",
+        "Dan pobjede nad fašizmom",
+        Rule::gregorian(5, 9),
+    )
+    .in_regions(BA_FEDERATION),
+    HolidayRule::fixed_public(
+        "Statehood Day",
+        "Dan državnosti Bosne i Hercegovine",
+        Rule::gregorian(11, 25),
+    )
+    .in_regions(BA_FEDERATION),
+    // Republika Srpska: the Law on Holidays of 2007. Article 4 reaches
+    // the second day of a two-day holiday only.
+    HolidayRule::fixed_public("New Year's Day", "Нова година", Rule::gregorian(1, 1))
+        .in_regions(BA_SRPSKA),
+    HolidayRule::public("New Year's Day", "Нова година", Rule::gregorian(1, 2))
+        .in_regions(BA_SRPSKA),
+    HolidayRule::fixed_public("Republic Day", "Дан Републике", Rule::gregorian(1, 9))
+        .years(None, Some(2016))
+        .in_regions(BA_SRPSKA),
+    HolidayRule::fixed_public(
+        "Republic Day",
+        "Дан Републике",
+        Rule::Tabulated {
+            function: ba_srpska_republic_day,
+            first_year: 2017,
+            last_year: 2026,
+        },
+    )
+    .years(Some(2017), None)
+    .in_regions(BA_SRPSKA),
+    HolidayRule::fixed_public(
+        "International Labour Day",
+        "Међународни празник рада",
+        Rule::gregorian(5, 1),
+    )
+    .in_regions(BA_SRPSKA),
+    HolidayRule::public(
+        "International Labour Day",
+        "Међународни празник рада",
+        Rule::gregorian(5, 2),
+    )
+    .in_regions(BA_SRPSKA),
+    HolidayRule::fixed_public(
+        "Victory over Fascism Day",
+        "Дан побједе над фашизмом",
+        Rule::gregorian(5, 9),
+    )
+    .in_regions(BA_SRPSKA),
+    HolidayRule::fixed_public(
+        "Dayton Agreement Day",
+        "Дан успостављања Општег оквирног споразума за мир у Босни и Херцеговини",
+        Rule::gregorian(11, 21),
+    )
+    .in_regions(BA_SRPSKA),
+    // Articles 7 and 8: two days of each, Christmas on its Eve and Day,
+    // and Good Friday one day of each Easter.
+    ba_srpska_religious("Orthodox Christmas Eve", "Бадњи дан", Rule::gregorian(1, 6)),
+    ba_srpska_religious("Orthodox Christmas", "Божић", Rule::gregorian(1, 7)),
+    ba_srpska_religious(
+        "Orthodox Good Friday",
+        "Велики петак",
+        Rule::paschal(GOOD_FRIDAY),
+    ),
+    ba_srpska_religious("Orthodox Easter", "Васкрс", Rule::paschal(EASTER_SUNDAY)),
+    ba_srpska_religious(
+        "Orthodox Easter Monday",
+        "Васкрсни понедјељак",
+        Rule::paschal(EASTER_MONDAY),
+    ),
+    ba_srpska_religious(
+        "Catholic Good Friday",
+        "Велики петак (католички)",
+        Rule::easter(GOOD_FRIDAY),
+    ),
+    ba_srpska_religious("Catholic Easter", "Ускрс", Rule::easter(EASTER_SUNDAY)),
+    ba_srpska_religious(
+        "Catholic Easter Monday",
+        "Ускршњи понедјељак",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    ba_srpska_religious(
+        "Catholic Christmas Eve",
+        "Бадњи дан (католички)",
+        Rule::gregorian(12, 24),
+    ),
+    ba_srpska_religious(
+        "Catholic Christmas",
+        "Божић (католички)",
+        Rule::gregorian(12, 25),
+    ),
+    ba_srpska_religious(
+        "Eid al-Fitr",
+        "Рамазански бајрам",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+    )
+    .approximate(),
+    ba_srpska_religious(
+        "Eid al-Fitr",
+        "Рамазански бајрам",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
+    )
+    .approximate(),
+    ba_srpska_religious(
+        "Eid al-Adha",
+        "Курбан-бајрам",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+    )
+    .approximate(),
+    ba_srpska_religious(
+        "Eid al-Adha",
+        "Курбан-бајрам",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
+    )
+    .approximate(),
+    // Brčko District: the Law on Holidays of 2002, and the Assembly's
+    // yearly decisions.
+    HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 1))
+        .in_regions(BA_BRCKO),
+    HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 2))
+        .in_regions(BA_BRCKO),
+    HolidayRule::public(
+        "Brčko District Day",
+        "Dan uspostavljanja Brčko distrikta",
+        Rule::gregorian(3, 8),
+    )
+    .in_regions(BA_BRCKO),
+    HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 1)).in_regions(BA_BRCKO),
+    HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 2)).in_regions(BA_BRCKO),
+    ba_brcko_decided(
+        "Orthodox Christmas",
+        "Božić (pravoslavni)",
+        ba_brcko_orthodox_christmas,
+        2018,
+        2027,
+    ),
+    ba_brcko_decided(
+        "Catholic Easter",
+        "Uskrs (katolički)",
+        ba_brcko_catholic_easter,
+        2017,
+        2026,
+    ),
+    ba_brcko_decided(
+        "Orthodox Easter",
+        "Vaskrs (pravoslavni)",
+        ba_brcko_orthodox_easter,
+        2017,
+        2026,
+    ),
+    ba_brcko_decided(
+        "Eid al-Fitr",
+        "Ramazanski bajram",
+        ba_brcko_eid_al_fitr,
+        2017,
+        2026,
+    ),
+    ba_brcko_decided(
+        "Eid al-Adha",
+        "Kurban-bajram",
+        ba_brcko_eid_al_adha,
+        2017,
+        2026,
+    ),
+    ba_brcko_decided(
+        "Catholic Christmas",
+        "Božić (katolički)",
+        ba_brcko_catholic_christmas,
+        2017,
+        2026,
+    ),
+];
+
+/// Bosnia and Herzegovina.
+///
+/// There is no state law on holidays: the bills put to the Parliamentary
+/// Assembly have all failed, and the national set is empty. Each of the
+/// three units has its own, and the table carries them as regions.
+///
+/// **The Federation** (`BA-BIH`) applies the Law on Holidays of the SFRY
+/// (Official Gazette of the SFRY 6/73), taken over as a law of the
+/// Republic in 1992 and confirmed in 1994: New Year and 1 May two days
+/// each, with a day of either on a Sunday making the first day after the
+/// two a holiday, and 9 May kept as a working day, an observance here. The
+/// laws of 1995 add Independence Day on 1 March and Statehood Day on 25
+/// November as non-working days, with no Sunday rule; the Monday the
+/// Government has declared for a Sunday 1 March, as in 2026, is not
+/// carried. The Labour Law's four days of religious leave are chosen by
+/// the worker and have no dates, and the cantons' own days are not
+/// carried.
+///
+/// **Republika Srpska** (`BA-SRP`) follows its Law on Holidays (Official
+/// Gazette 43/07): New Year and 1 May two days each, with article 4
+/// moving the second day to the Monday when it falls on a Sunday, 9 May
+/// and 21 November. Its 9 January, Republic Day, was struck from the law
+/// by the Constitutional Court of Bosnia and Herzegovina (decision U 3/13,
+/// the provision ceasing on 26 November 2016), re-enacted by the Law on
+/// the Day of Republika Srpska (113/16) and struck again (U 2/18, 2019);
+/// the entity's Ministry of Administration and Local Self-Government has
+/// named it a non-working day every January since, under that law and a
+/// Government decision. It is carried as the statute's until 2016 and as
+/// the notices give it for 2017 to 2026, a gap after. The religious days of
+/// articles 7 and 8 — two of each Christmas, Easter and Bajram, and each
+/// Good Friday — are the believers' right to paid absence, and are
+/// [`Kind::Religious`]. The extra days the Government declares for public
+/// bodies, the Julian New Year on 14 January among them, are not carried.
+///
+/// **Brčko District** (`BA-BRC`) follows its Law on Holidays (Official
+/// Gazette of the District 19/02 and 19/22): New Year and 1 May two days
+/// each and District Day on 8 March, with article 5 making the first
+/// working day after one on a Sunday non-working. The Assembly decides each
+/// year which day of each Christmas, Easter and Bajram is non-working for
+/// the District's institutions, public enterprises and health insurance
+/// fund; those days are tabulated from the decisions of 2017 to 2026 and
+/// are a gap in every other year. Private employers are not bound by
+/// them.
+pub static BOSNIA_AND_HERZEGOVINA: RuleSet = RuleSet {
+    code: "BA",
+    english_name: "Bosnia and Herzegovina",
+    rules: BA_RULES,
+    substitution: BA_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Federation: the Federal Ministry of Labour and Social Policy's notices on \
+              fbihvlada.gov.ba for 1 May 2016, 1 May 2021 and New Year 2023, citing the Law \
+              on Holidays (Sl. list SFRJ 6/73; Sl. list RBiH 2/92 and 13/94) and its Sunday \
+              rule, and the Ministry's summary of the 1995 laws on 1 March and 25 November \
+              (Sl. list RBiH 9/95) as a school reproduces it (msts-travnik.net); Republika \
+              Srpska: Zakon o praznicima Republike Srpske (Sl. glasnik RS 43/07, with the \
+              Constitutional Court's ruling in Sl. glasnik BiH 77/16) from Paragraf Lex \
+              (paragraf.ba) and the Serbian Wikisource, the Constitutional Court's decision \
+              U 2/18 (Sl. glasnik BiH 30/19, sluzbenilist.ba), and the Ministry of \
+              Administration and Local Self-Government's January notices for 2017 to 2026 \
+              as Novosti, Paragraf Lex, BL Portal, Glas Srpske (by the Internet Archive), \
+              Mondo, RTRS, Srna and Tanjug report them; Brčko: Zakon o praznicima Brčko \
+              distrikta BiH (Sl. glasnik BD 19/02 and 19/22) from Paragraf Lex, and the \
+              Assembly's decisions on non-working days for 2017 to 2026 from its register \
+              (skupstinabd.ba); RFE/RL, January 2021, for the absence of a state law; all \
+              retrieved 2026-09-23",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Belarus
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -4056,6 +4494,223 @@ pub static SAN_MARINO: RuleSet = RuleSet {
               days the 1990 law dropped; Wikipedia, \"Public holidays in San Marino\", \
               for the English names",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Vatican City
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The reigning Pope's election anniversary: Francis, elected on 13 March
+/// 2013, from 2014 to 2025; Leo XIV, elected on 8 May 2025, in 2026. There
+/// was none in 2013.
+fn va_election_anniversary(year: i64) -> Days {
+    let (month, day) = match year {
+        2014..=2025 => (3, 13),
+        2026 => (5, 8),
+        _ => return Days::new(),
+    };
+    gregorian::to_fixed(year, month, day).map_or_else(|_| Days::new(), Days::one)
+}
+
+/// The reigning Pope's name day: Francis's, Jorge's, on Saint George's day,
+/// 23 April, from 2013 to 2024; Leo XIV's, Robert's, on Saint Robert
+/// Bellarmine's, 17 September, in 2025 and 2026. On 23 April 2025 the See
+/// was vacant.
+fn va_name_day(year: i64) -> Days {
+    let (month, day) = match year {
+        2013..=2024 => (4, 23),
+        2025..=2026 => (9, 17),
+        _ => return Days::new(),
+    };
+    gregorian::to_fixed(year, month, day).map_or_else(|_| Days::new(), Days::one)
+}
+
+/// A day that belongs to a pontificate, known for the pontificates that
+/// have begun and a gap for the years after 2026.
+const fn va_pontifical(
+    name: &'static str,
+    local_name: &'static str,
+    function: fn(i64) -> Days,
+) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local_name,
+        Rule::Tabulated {
+            function,
+            first_year: 2013,
+            last_year: 2026,
+        },
+    )
+}
+
+static VA_RULES: &[HolidayRule] = &[
+    // The holy days of obligation of canon 1246, the first of the two
+    // lists; each falls on its day in the General Roman Calendar.
+    HolidayRule::fixed_public(
+        "Solemnity of Mary, Mother of God",
+        "Maria Santissima Madre di Dio",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public("Epiphany", "Epifania del Signore", Rule::gregorian(1, 6)),
+    HolidayRule::fixed_public("Saint Joseph", "San Giuseppe", Rule::gregorian(3, 19)),
+    HolidayRule::fixed_public(
+        "Ascension",
+        "Ascensione del Signore",
+        Rule::easter(ASCENSION),
+    ),
+    HolidayRule::fixed_public(
+        "Corpus Christi",
+        "Santissimo Corpo e Sangue di Cristo",
+        Rule::easter(CORPUS_CHRISTI),
+    ),
+    HolidayRule::fixed_public(
+        "Saints Peter and Paul",
+        "Santi Pietro e Paolo",
+        Rule::gregorian(6, 29),
+    ),
+    HolidayRule::fixed_public(
+        "Assumption",
+        "Assunzione della Beata Vergine Maria",
+        Rule::gregorian(8, 15),
+    ),
+    HolidayRule::fixed_public("All Saints' Day", "Tutti i Santi", Rule::gregorian(11, 1)),
+    HolidayRule::fixed_public(
+        "Immaculate Conception",
+        "Immacolata Concezione",
+        Rule::gregorian(12, 8),
+    ),
+    HolidayRule::fixed_public(
+        "Christmas Day",
+        "Natale del Signore",
+        Rule::gregorian(12, 25),
+    ),
+    // The regulations' own list.
+    va_pontifical(
+        "Anniversary of the Pope's Election",
+        "Anniversario dell'elezione del Sommo Pontefice",
+        va_election_anniversary,
+    ),
+    va_pontifical(
+        "Pope's Name Day",
+        "Onomastico del Sommo Pontefice",
+        va_name_day,
+    ),
+    HolidayRule::fixed_public(
+        "Anniversary of the Establishment of Vatican City State",
+        "Anniversario dell'istituzione dello Stato della Città del Vaticano",
+        Rule::gregorian(2, 11),
+    ),
+    HolidayRule::fixed_public(
+        "Saint Joseph the Worker",
+        "San Giuseppe Artigiano",
+        Rule::gregorian(5, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Maundy Thursday",
+        "Giovedì Santo",
+        Rule::easter(MAUNDY_THURSDAY),
+    ),
+    HolidayRule::fixed_public("Good Friday", "Venerdì Santo", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::fixed_public("Holy Saturday", "Sabato Santo", Rule::easter(HOLY_SATURDAY)),
+    HolidayRule::fixed_public("Easter Sunday", "Pasqua", Rule::easter(EASTER_SUNDAY)),
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Lunedì di Pasqua",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public(
+        "Easter Tuesday",
+        "Martedì di Pasqua",
+        Rule::easter(EASTER_MONDAY + 1),
+    ),
+    HolidayRule::fixed_public(
+        "Eve of the Assumption",
+        "Vigilia dell'Assunzione",
+        Rule::gregorian(8, 14),
+    ),
+    HolidayRule::fixed_public(
+        "Day after the Assumption",
+        "Giorno successivo all'Assunzione",
+        Rule::gregorian(8, 16),
+    ),
+    HolidayRule::fixed_public(
+        "All Souls' Day",
+        "Commemorazione di tutti i fedeli defunti",
+        Rule::gregorian(11, 2),
+    ),
+    HolidayRule::fixed_public(
+        "Christmas Eve",
+        "Vigilia di Natale",
+        Rule::gregorian(12, 24),
+    ),
+    HolidayRule::fixed_public(
+        "Saint Stephen's Day",
+        "Santo Stefano",
+        Rule::gregorian(12, 26),
+    ),
+    HolidayRule::fixed_public(
+        "Saint John the Apostle",
+        "San Giovanni Apostolo ed Evangelista",
+        Rule::gregorian(12, 27),
+    ),
+    HolidayRule::fixed_public(
+        "Last Day of the Year",
+        "Ultimo giorno dell'anno",
+        Rule::gregorian(12, 31),
+    ),
+];
+
+/// Vatican City.
+///
+/// The Governorate's General Regulation for its staff, in force from 2011,
+/// article 27, and the Holy See's for the Roman Curia — article 50 of the
+/// General Regulation of 1999 and article 52 of the Regulation for the
+/// Personnel in force from 2026 — give the same list: besides Sundays and
+/// the other holy days of obligation ("according to canon 1246 of the Code
+/// of Canon Law", the Governorate's adds), the days off are the anniversary
+/// of the Pope's election, his name day, the anniversary of the State's
+/// establishment on 11 February, Saint Joseph the Worker, the last three
+/// days of Holy Week, Easter Monday and Tuesday, the eve and the day after
+/// the Assumption, All Souls, the eve and the two days after Christmas, and
+/// the last day of the year. Canon 1246's ten days are carried on the days
+/// the General Roman Calendar ([`crate::roman_calendar`]) keeps them, the
+/// Ascension and Corpus Christi on their Thursdays, as the Fabbrica di San
+/// Pietro's excavations office listed its closures for 2014, 2022 and 2023.
+/// Easter Sunday is carried with its week.
+///
+/// The Pope's two days are tabulated for the pontificates of Francis and
+/// Leo XIV, from 2013 to 2026, and are a gap after, when the reigning Pope
+/// is not a fact yet. The weekly rest is Sunday, as both regulations state,
+/// and Saturday is a working day. Nothing moves off a Sunday, and a
+/// celebration the liturgy transfers — Saint Joseph in Holy Week, the
+/// Immaculate Conception on a Sunday of Advent — is not moved here, for no
+/// source says the day off follows it.
+pub static VATICAN_CITY: RuleSet = RuleSet {
+    code: "VA",
+    english_name: "Vatican City",
+    rules: VA_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: VA_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Regolamento generale per il personale del Governatorato dello Stato della Città \
+              del Vaticano (21 November 2010), articles 26 and 27, from vatican.va and from the \
+              ULSA's current copy by the Internet Archive (11 May 2026); Regolamento del \
+              Personale della Curia Romana (23 November 2025), articles 49 and 52, and \
+              Regolamento generale della Curia Romana (30 April 1999), article 50, from \
+              vatican.va; the Code of Canon Law, canon 1246, from vatican.va; the Ufficio \
+              Scavi's closure days for 2014, 2022 and 2023 (scavi.va, by the Internet \
+              Archive); AgenSIR, 17 September 2025, for Leo XIV's name day; all retrieved \
+              2026-09-23",
+};
+
+/// Sunday alone: the regulations' "day of weekly rest, which coincides
+/// with Sunday".
+static VA_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Sunday],
+    valid_from: None,
+    valid_until: None,
+}];
 
 // ─────────────────────────────────────────────────────────────────────────
 // Andorra
