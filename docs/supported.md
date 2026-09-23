@@ -254,7 +254,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-19 tables, feature `holiday`.
+20 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
@@ -270,6 +270,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `jain` | Jainism | 23 |
 | `jewish` | Judaism | 19 |
 | `kyuchu-saishi` | Imperial court rites (宮中祭祀) | 60 |
+| `roman-general` | General Roman Calendar | 232 |
 | `shinto` | Shinto | 5 |
 | `sikh` | Sikhism | 39 |
 | `wheel-of-the-year` | Wheel of the Year | 8 |
