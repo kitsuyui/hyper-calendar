@@ -5,15 +5,16 @@
 //! twelve *saṅkrāntis*, the Sun's entries into the sidereal signs — the
 //! same instants for everyone, fixed by the ayanamsa — and then has to say
 //! which civil day a month begins on when the saṅkrānti falls in the
-//! middle of one. Four answers are in use, and the *Rashtriya Panchang*
-//! tabulates all four side by side in its "Regional Calendars" pages:
+//! middle of one. Four answers are in use in India, and the *Rashtriya
+//! Panchang* tabulates all four side by side in its "Regional Calendars"
+//! pages:
 //!
 //! | Reckoning | The month begins on … | [`SankrantiRule`] |
 //! |---|---|---|
 //! | Tamil Nadu | the saṅkrānti's day, unless it fell after sunset | [`BeforeSunset`](SankrantiRule::BeforeSunset) |
 //! | Kerala | the saṅkrānti's day, unless it fell after three fifths of the daylight (*aparāhṇa*) | [`BeforeAfternoon`](SankrantiRule::BeforeAfternoon) |
 //! | Bengal, Assam | the day after the saṅkrānti's | [`DayAfter`](SankrantiRule::DayAfter) |
-//! | Punjab, Haryana, Odisha; Nepal | the sunrise-to-sunrise day the saṅkrānti fell in, named by its date at sunrise | [`SunriseDay`](SankrantiRule::SunriseDay) |
+//! | Punjab, Haryana, Odisha | the sunrise-to-sunrise day the saṅkrānti fell in, named by its date at sunrise | [`SunriseDay`](SankrantiRule::SunriseDay) |
 //!
 //! Each is a [`HinduSolarCalendar`] value here — [`TAMIL`], [`MALAYALAM`],
 //! [`BENGALI`], [`VIKRAMI`] — with the era each counts its years in:
@@ -29,12 +30,18 @@
 //! a caller with a local almanac can build the same calendar for another
 //! place with [`HinduSolarCalendar::new`].
 //!
+//! # Whose Sun
+//!
+//! The saṅkrāntis are those of a [`SolarModel`]: the true Sun of modern
+//! astronomy in the sidereal zodiac of an ayanamsa, as the national
+//! almanac computes it and all four reckonings above use, or the Sun of
+//! the *Sūrya Siddhānta* ([`crate::surya_siddhanta`]), whose saṅkrāntis
+//! fall hours away from the modern ones. The Nepali Bikram Sambat is the
+//! second with a fifth rule, [`CivilDay`](SankrantiRule::CivilDay), and is
+//! [`crate::bikram_sambat`].
+//!
 //! # What is not here
 //!
-//! The Nepali Bikram Sambat follows the same sunrise-day rule with the same
-//! era as [`VIKRAMI`], and the Government of Nepal's committee publishes
-//! the calendar it keeps; until that publication has been compared against
-//! this computation, [`VIKRAMI`] is what it says and not `bikram-sambat`.
 //! The Odia year counts (*aṅka*) and the sixty-year names of the Tamil year
 //! are extras this crate does not yet carry.
 
@@ -45,7 +52,7 @@ use hc_calendar::{
 };
 use hc_calendars_solar::gregorian;
 use hc_seasons::zodiac::rashi::{self, SolarMonthTradition};
-use hc_seasons::zodiac::sidereal::ingress_after;
+use hc_seasons::zodiac::sidereal;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
 use crate::places::CENTRAL_STATION;
@@ -75,9 +82,13 @@ pub enum SankrantiRule {
     DayAfter,
     /// The day, sunrise to sunrise, in which the saṅkrānti falls, named by
     /// its civil date at sunrise — so a saṅkrānti between midnight and
-    /// sunrise belongs to the day before: Punjab, Haryana, Odisha, and the
-    /// Nepali reckoning.
+    /// sunrise belongs to the day before: Punjab, Haryana and Odisha.
     SunriseDay,
+    /// The civil day, midnight to midnight, in which the saṅkrānti falls,
+    /// whatever the hour: the Nepali Bikram Sambat, as the months the
+    /// Government of Nepal gazettes show it with the *Sūrya Siddhānta*'s
+    /// saṅkrāntis ([`crate::bikram_sambat`]).
+    CivilDay,
 }
 
 impl SankrantiRule {
@@ -90,6 +101,7 @@ impl SankrantiRule {
     pub fn month_begins(self, instant: Moment, location: Location) -> Rd {
         let civil = Moment(instant.0 + location.longitude_degrees / 360.0).day();
         match self {
+            Self::CivilDay => civil,
             Self::DayAfter => Rd(civil.0 + 1),
             Self::SunriseDay => {
                 if instant.0 < sunrise_of(civil, location).0 {
@@ -114,6 +126,39 @@ impl SankrantiRule {
                     Rd(civil.0 + 1)
                 }
             }
+        }
+    }
+}
+
+/// Whose Sun a solar calendar follows: which instants its saṅkrāntis are.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum SolarModel {
+    /// The true Sun of modern astronomy, in the sidereal zodiac whose zero
+    /// point an ayanamsa fixes: the *Rashtriya Panchang*'s, with
+    /// [`Ayanamsa::LAHIRI`].
+    Modern(Ayanamsa),
+    /// The Sun of the *Sūrya Siddhānta*, sidereal by construction
+    /// ([`crate::surya_siddhanta`]).
+    SuryaSiddhanta,
+}
+
+impl SolarModel {
+    /// The first moment at or after `moment` at which the Sun enters
+    /// `sign`.
+    #[must_use]
+    pub fn ingress_after(self, sign: SiderealSign, moment: Moment) -> Moment {
+        match self {
+            Self::Modern(ayanamsa) => sidereal::ingress_after(sign, ayanamsa, moment),
+            Self::SuryaSiddhanta => crate::surya_siddhanta::ingress_after(sign, moment),
+        }
+    }
+
+    /// The sign the Sun stands in at a moment.
+    #[must_use]
+    pub fn sign_at(self, moment: Moment) -> SiderealSign {
+        match self {
+            Self::Modern(ayanamsa) => sidereal::sign_at_moment(moment, ayanamsa),
+            Self::SuryaSiddhanta => crate::surya_siddhanta::sign_at(moment),
         }
     }
 }
@@ -149,8 +194,8 @@ pub struct HinduSolarCalendar {
     pub era_offset: i64,
     /// Whose civil day, sunrise and sunset decide the rule.
     pub location: Location,
-    /// The ayanamsa that fixes the sidereal zero point.
-    pub ayanamsa: Ayanamsa,
+    /// Whose Sun: which instants the saṅkrāntis are.
+    pub model: SolarModel,
 }
 
 /// The Tamil solar calendar: Chithirai to Panguni from the Meṣa saṅkrānti,
@@ -165,7 +210,7 @@ pub const TAMIL: HinduSolarCalendar = HinduSolarCalendar {
     era: "Tiruvalluvar",
     era_offset: 31,
     location: CENTRAL_STATION,
-    ayanamsa: Ayanamsa::LAHIRI,
+    model: SolarModel::Modern(Ayanamsa::LAHIRI),
 };
 
 /// The Malayalam calendar of Kerala: Chingam to Karkadakam from the Siṃha
@@ -180,7 +225,7 @@ pub const MALAYALAM: HinduSolarCalendar = HinduSolarCalendar {
     era: "Kollam",
     era_offset: -824,
     location: CENTRAL_STATION,
-    ayanamsa: Ayanamsa::LAHIRI,
+    model: SolarModel::Modern(Ayanamsa::LAHIRI),
 };
 
 /// The Bengali calendar of West Bengal and Assam: Boishakh to Choitro from
@@ -194,11 +239,11 @@ pub const BENGALI: HinduSolarCalendar = HinduSolarCalendar {
     era: "Bangabda",
     era_offset: -593,
     location: CENTRAL_STATION,
-    ayanamsa: Ayanamsa::LAHIRI,
+    model: SolarModel::Modern(Ayanamsa::LAHIRI),
 };
 
-/// The Vikrami solar calendar of Punjab, Haryana and Odisha, and of the
-/// Nepali reckoning: Vaiśākha to Chaitra from the Meṣa saṅkrānti, the month
+/// The Vikrami solar calendar of Punjab, Haryana and Odisha: Vaiśākha to
+/// Chaitra from the Meṣa saṅkrānti, the month
 /// beginning on the sunrise-to-sunrise day the saṅkrānti fell in, years in
 /// the Vikrama Saṃvat (Gregorian year plus 57). The month names are the
 /// Sanskrit ones the almanac's Punjab and Odisha column prints.
@@ -210,21 +255,21 @@ pub const VIKRAMI: HinduSolarCalendar = HinduSolarCalendar {
     era: "VS",
     era_offset: 57,
     location: CENTRAL_STATION,
-    ayanamsa: Ayanamsa::LAHIRI,
+    model: SolarModel::Modern(Ayanamsa::LAHIRI),
 };
 
 /// Every solar reckoning this crate registers.
 pub const ALL: &[HinduSolarCalendar] = &[TAMIL, MALAYALAM, BENGALI, VIKRAMI];
 
 impl HinduSolarCalendar {
-    /// The same reckoning judged at another place, or with another
-    /// ayanamsa, under an identifier of the caller's.
+    /// The same reckoning judged at another place, or with another Sun,
+    /// under an identifier of the caller's.
     #[must_use]
-    pub const fn new(self, id: CalendarId, location: Location, ayanamsa: Ayanamsa) -> Self {
+    pub const fn new(self, id: CalendarId, location: Location, model: SolarModel) -> Self {
         Self {
             id,
             location,
-            ayanamsa,
+            model,
             ..self
         }
     }
@@ -251,9 +296,8 @@ impl HinduSolarCalendar {
     /// Gregorian year the era says.
     fn year_opening(&self, year: i64) -> Moment {
         let gregorian_year = year - self.era_offset;
-        ingress_after(
+        self.model.ingress_after(
             self.tradition.year_opens_at,
-            self.ayanamsa,
             Moment(hc_astro::time::gregorian_new_year(gregorian_year).0 as f64),
         )
     }
@@ -264,13 +308,13 @@ impl HinduSolarCalendar {
         if month == 1 {
             opening
         } else {
-            ingress_after(self.sign_of_month(month), self.ayanamsa, opening)
+            self.model.ingress_after(self.sign_of_month(month), opening)
         }
     }
 
     /// The first day of `month` of `year`, without validation; `month` may
     /// be 13, for the first day of the next year.
-    fn month_start_raw(&self, year: i64, month: u8) -> Rd {
+    pub(crate) fn month_start_raw(&self, year: i64, month: u8) -> Rd {
         if month > MONTHS_IN_YEAR {
             return self.month_start_raw(year + 1, 1);
         }
@@ -364,14 +408,14 @@ impl HinduSolarCalendar {
         // day to after `rd`, in which case the day is still the month
         // before's.
         let noon = Moment(rd.0 as f64 + 0.5 - self.location.longitude_degrees / 360.0);
-        let sign = hc_seasons::zodiac::sidereal::sign_at_moment(noon, self.ayanamsa);
+        let sign = self.model.sign_at(noon);
         // The Sun stays in a sign for at most 32 days, so its entry into the
         // current sign lies within the last 33.
-        let entry = ingress_after(sign, self.ayanamsa, Moment(noon.0 - 33.0));
-        // The Sun may enter the next sign later this very day, and three of
-        // the four rules then begin the next month today.
+        let entry = self.model.ingress_after(sign, Moment(noon.0 - 33.0));
+        // The Sun may enter the next sign later this very day, and every
+        // rule but the day-after one may then begin the next month today.
         let next_sign = sign.next();
-        let next_entry = ingress_after(next_sign, self.ayanamsa, Moment(entry.0 + 1.0));
+        let next_entry = self.model.ingress_after(next_sign, Moment(entry.0 + 1.0));
         let next_start = self.rule.month_begins(next_entry, self.location);
         if rd >= next_start {
             let (year, month) = self.year_and_month_of_ingress(next_sign, next_entry);
@@ -393,7 +437,9 @@ impl HinduSolarCalendar {
         // The month before: its saṅkrānti is the entry into the previous
         // sign, within the last 65 days.
         let previous_sign = sign.previous();
-        let previous_entry = ingress_after(previous_sign, self.ayanamsa, Moment(noon.0 - 65.0));
+        let previous_entry = self
+            .model
+            .ingress_after(previous_sign, Moment(noon.0 - 65.0));
         let (year, month) = self.year_and_month_of_ingress(previous_sign, previous_entry);
         let start = self.rule.month_begins(previous_entry, self.location);
         Ok(HinduSolarDate {

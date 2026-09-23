@@ -863,6 +863,23 @@ const EN_CALENDARS: &[CalendarNames] = &[
         quarters: ContextualNames::EMPTY,
     },
     CalendarNames {
+        calendars: &[CalendarId("bikram-sambat")],
+        // The Nepali forms Wikipedia's "Vikram Samvat" lists beside the
+        // Sanskrit names; `hc_calendars_indic::bikram_sambat` has the
+        // gazette's Devanagari.
+        cycles: &[months(&[
+            "Baisakh", "Jeth", "Asar", "Saaun", "Bhadau", "Aasoj", "Kattik", "Mangsir", "Push",
+            "Maagh", "Falgun", "Chait",
+        ])],
+        leap_month_prefix: "",
+        eras: EraNames {
+            codes: &["bikram-sambat"],
+            names: widths(&["Bikram Sambat"], &["BS"], &[]),
+            calendars: &[],
+        },
+        quarters: ContextualNames::EMPTY,
+    },
+    CalendarNames {
         calendars: &[
             CalendarId("bahai-arithmetic"),
             CalendarId("bahai"),
