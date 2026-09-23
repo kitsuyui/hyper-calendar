@@ -18,7 +18,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `traditions` | the cross-cutting religious cycles |
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `international` | the United Nations international days, each citing its resolution |
-| `exchanges` | 21 exchange calendars: New York, Nasdaq, Toronto, São Paulo, London, Frankfurt, Zurich, Euronext's seven markets, Nasdaq's four Nordic markets, Tokyo, Hong Kong, Sydney |
+| `exchanges` | 34 exchange calendars: New York, Nasdaq, Toronto, Mexico City, São Paulo, London, Frankfurt, Zurich, Vienna, Madrid, Warsaw, Moscow, Istanbul, Euronext's seven markets, Nasdaq's four Nordic markets, Johannesburg, Tel Aviv, Riyadh, Tokyo, Seoul, Shanghai, Taipei, Hong Kong, Sydney, NZX |
 | `countries` | 180 national tables |
 
 ## The vocabulary
@@ -157,8 +157,8 @@ claims to be complete back to its own founding.
 `exchanges` carries the trading calendars of stock exchanges as rule sets
 keyed by ISO 10383 Market Identifier Code: the days an exchange is closed, as
 public-kind entries that stop business-day arithmetic, and the days it closes
-early or opens late, as observances that do not. Nineteen so far, each from
-the exchange's own published calendar: the New York Stock Exchange (`XNYS`)
+early or opens late, as observances that do not. Thirty-four so far, each
+from the exchange's own published calendar: the New York Stock Exchange (`XNYS`)
 and Nasdaq (`XNAS`) on one calendar, which closes on
 Good Friday, which no statute makes a holiday, trades on Columbus Day and
 Veterans Day, moves a Saturday holiday to the Friday before except a New
@@ -198,6 +198,28 @@ The unscheduled closures a read source
 records — the September 2001 attacks, Hurricane Sandy, the day of mourning
 for President George H. W. Bush — are data in the New York table; those no
 source read here gives are not, and the table says which.
+
+Ten more follow their exchanges' own lists. Johannesburg (`XJSE`), Mexico
+City (`XMEX`), Warsaw (`XWAR`) and NZX (`XNZE`) include their
+countries' tables: Johannesburg adds the days the President declared and
+closes at noon on the December days its schedules name, which are carried for
+2023 to 2025 and are a gap in other years; Mexico City adds Holy Thursday, Good Friday,
+2 November and 12 December, the CNBV's closing days, and matches the lists for
+2019 to 2026; Warsaw adds Good Friday, Christmas Eve before it was a public
+holiday and New Year's Eve, and matches its lists for 2019 to 2027; NZX adds
+the Queen Elizabeth II holiday of 2022 and its two abbreviated days, and
+trades on the regional anniversary days. Vienna (`XWBO`) closes on 26 October
+and five Christmas and New Year days, trades on six Austrian holidays and, from
+2023, on Whit Monday; Madrid (`XMAD`) closes on six days and trades to 14:00 on
+24 and 31 December. Moscow (`MISX`) does not close on Russia's days off: it
+closes on the holiday dates themselves, trades on the rest and on the working
+Saturdays, and in 2026 holds only its weekend session on four holidays; Tel
+Aviv (`XTAE`), which moved from a Sunday–Thursday to a Monday–Friday week in
+January 2026, Riyadh (`XSAU`), on a Sunday–Thursday week with its Eid holidays
+as announced, and Istanbul (`XIST`), with the Bayram days and the half-day eves
+of its tables, are carried as their lists give each year — 2023 to 2026 for
+Moscow and Riyadh, 2024 to 2027 for Tel Aviv, 2019 to 2026 for Istanbul — and
+a year outside them is a gap.
 
 ## What this crate will not do
 

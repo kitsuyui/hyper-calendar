@@ -346,11 +346,12 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Exchange calendars
 
-24 tables, feature `holiday`, keyed by ISO 10383 Market Identifier Code. A closed day is a public-kind entry; an early close is an observance.
+34 tables, feature `holiday`, keyed by ISO 10383 Market Identifier Code. A closed day is a public-kind entry; an early close is an observance.
 
 | MIC | Exchange | Entries |
 | --- | --- | --- |
 | `BVMF` | B3 (São Paulo) | 16 |
+| `MISX` | Moscow Exchange | 15 |
 | `XAMS` | Euronext Amsterdam | 8 |
 | `XASX` | Australian Securities Exchange | 11 |
 | `XBRU` | Euronext Brussels | 8 |
@@ -360,20 +361,29 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `XHEL` | Nasdaq Helsinki | 12 |
 | `XHKG` | Stock Exchange of Hong Kong (HKEX) | 3 |
 | `XICE` | Nasdaq Iceland | 14 |
+| `XIST` | Borsa İstanbul | 12 |
 | `XJPX` | Tokyo Stock Exchange (JPX) | 3 |
+| `XJSE` | Johannesburg Stock Exchange | 4 |
 | `XKRX` | Korea Exchange | 2 |
 | `XLIS` | Euronext Lisbon | 8 |
 | `XLON` | London Stock Exchange | 2 |
+| `XMAD` | Bolsa de Madrid (BME) | 8 |
+| `XMEX` | Bolsa Mexicana de Valores | 4 |
 | `XMIL` | Euronext Milan (Borsa Italiana) | 9 |
 | `XNAS` | Nasdaq | 20 |
 | `XNYS` | New York Stock Exchange | 20 |
+| `XNZE` | NZX | 3 |
 | `XOSL` | Euronext Oslo (Oslo Børs) | 13 |
 | `XPAR` | Euronext Paris | 8 |
+| `XSAU` | Saudi Exchange (Tadawul) | 4 |
 | `XSHG` | Shanghai Stock Exchange | 1 |
 | `XSTO` | Nasdaq Stockholm | 17 |
 | `XSWX` | SIX Swiss Exchange | 10 |
+| `XTAE` | Tel Aviv Stock Exchange | 24 |
 | `XTAI` | Taiwan Stock Exchange | 2 |
 | `XTSE` | Toronto Stock Exchange | 11 |
+| `XWAR` | Warsaw Stock Exchange (GPW) | 3 |
+| `XWBO` | Wiener Börse | 10 |
 
 ## Exactly defined units of time
 
