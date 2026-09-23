@@ -123,7 +123,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Holidays by country
 
-124 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
+128 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
 
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
@@ -198,6 +198,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `LT` | Lithuania | 16 | none | stated | 2026-09-22 |
 | `LU` | Luxembourg | 12 | none | stated | 2026-09-22 |
 | `LV` | Latvia | 51 | yes | stated | 2026-09-22 |
+| `LY` | Libya | 14 | none | stated | 2026-09-23 |
 | `MA` | Morocco | 18 | none | stated | 2026-09-22 |
 | `MC` | Monaco | 12 | yes | stated | 2026-09-22 |
 | `MD` | Moldova | 15 | none | stated | 2026-09-22 |
@@ -222,6 +223,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `PH` | Philippines | 18 | none | stated | 2026-09-21 |
 | `PK` | Pakistan | 13 | none | stated | 2026-09-22 |
 | `PL` | Poland | 15 | none | stated | 2026-09-21 |
+| `PS` | Palestine | 39 | none | stated | 2026-09-23 |
 | `PT` | Portugal | 18 | none | stated | 2026-09-21 |
 | `QA` | Qatar | 16 | none | stated | 2026-09-22 |
 | `RO` | Romania | 17 | none | stated | 2026-09-22 |
@@ -234,6 +236,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `SK` | Slovakia | 20 | none | stated | 2026-09-22 |
 | `SM` | San Marino | 20 | none | stated | 2026-09-22 |
 | `SN` | Senegal | 16 | yes | stated | 2026-09-22 |
+| `SY` | Syria | 19 | none | stated | 2026-09-23 |
 | `TH` | Thailand | 19 | yes | stated | 2026-09-21 |
 | `TJ` | Tajikistan | 13 | yes | stated | 2026-09-22 |
 | `TM` | Turkmenistan | 15 | yes | stated | 2026-09-22 |
@@ -248,6 +251,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `UY` | Uruguay | 19 | none | stated | 2026-09-22 |
 | `UZ` | Uzbekistan | 10 | yes | stated | 2026-09-22 |
 | `VN` | Vietnam | 14 | yes | stated | 2026-09-23 |
+| `YE` | Yemen | 19 | none | stated | 2026-09-23 |
 | `ZA` | South Africa | 12 | yes | stated | 2026-09-21 |
 | `ZM` | Zambia | 15 | yes | stated | 2026-09-22 |
 | `ZW` | Zimbabwe | 14 | yes | stated | 2026-09-22 |

@@ -4515,6 +4515,164 @@ fn iraq_follows_law_12_of_2024_with_its_community_days_religious() {
 }
 
 #[test]
+fn syria_follows_decree_188_of_2025_with_both_easters() {
+    expect(
+        "SY",
+        None,
+        &[
+            (2025, 4, 20, "Eastern Easter"),
+            (2025, 4, 20, "Western Easter"),
+            (2025, 12, 8, "Liberation Day"),
+            (2025, 12, 25, "Christmas Day"),
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 18, "Syrian Revolution Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 3, 21, "Mother's Day"),
+            (2026, 3, 21, "Nowruz"),
+            (2026, 4, 5, "Western Easter"),
+            (2026, 4, 12, "Eastern Easter"),
+            (2026, 4, 17, "Evacuation Day"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 5, 30, "Eid al-Adha"),
+        ],
+    );
+    // The Revolution and Nowruz are new in 2026, and the days the decree
+    // dropped — 8 March, the October War, Martyrs' Day — are gone.
+    expect_working(
+        "SY",
+        None,
+        &[(2025, 3, 18), (2026, 3, 8), (2026, 10, 6), (2026, 5, 6)],
+    );
+    let calendar = HolidayCalendar::for_year(table("SY"), None, 2025);
+    let nowruz_2025: Vec<&str> = calendar
+        .on(ymd(2025, 3, 21))
+        .iter()
+        .map(|holiday| holiday.name)
+        .collect();
+    assert_eq!(nowruz_2025, ["Mother's Day"]);
+    // Friday and Saturday from 2004, Friday alone before.
+    assert!(calendar.is_weekend(ymd(2025, 3, 22)));
+    let calendar = HolidayCalendar::for_year(table("SY"), None, 2003);
+    assert!(!calendar.is_weekend(ymd(2003, 3, 22)));
+}
+
+#[test]
+fn palestine_follows_the_council_of_ministers_tables_with_the_eastern_easter_for_all() {
+    expect(
+        "PS",
+        None,
+        &[
+            (2025, 3, 30, "Eve of Eid al-Fitr"),
+            (2025, 4, 20, "Easter Sunday"),
+            (2025, 6, 6, "Eve of Eid al-Adha"),
+            (2025, 11, 15, "Independence Day"),
+            (2026, 1, 7, "Eastern Christmas"),
+            (2026, 3, 8, "International Women's Day"),
+            (2026, 3, 19, "Eve of Eid al-Fitr"),
+            (2026, 3, 22, "Eid al-Fitr"),
+            (2026, 4, 12, "Easter Sunday"),
+            (2026, 5, 30, "Eid al-Adha"),
+            (2026, 12, 25, "Western Christmas"),
+        ],
+    );
+    // The Western Easter and the Christians' second days are not days off
+    // for all; a Friday holiday stays on the Friday.
+    expect_working(
+        "PS",
+        None,
+        &[(2026, 4, 5), (2026, 4, 13), (2026, 12, 26), (2026, 5, 3)],
+    );
+    let calendar = HolidayCalendar::for_year(table("PS"), None, 2026);
+    for (month, day, name) in [
+        (1, 14, "Eastern New Year"),
+        (4, 3, "Western Good Friday"),
+        (4, 5, "Western Easter Sunday"),
+        (4, 10, "Eastern Good Friday"),
+        (4, 13, "Eastern Easter Monday"),
+        (5, 21, "Eastern Ascension"),
+        (12, 26, "Western Christmas"),
+    ] {
+        let found: Vec<(&str, Kind)> = calendar
+            .on(ymd(2026, month, day))
+            .iter()
+            .filter(|holiday| holiday.name == name)
+            .map(|holiday| (holiday.name, holiday.kind))
+            .collect();
+        assert_eq!(found, [(name, Kind::Religious)], "{month}-{day}");
+    }
+}
+
+#[test]
+fn libya_follows_law_5_of_2012_with_arafah_and_three_days_of_each_eid() {
+    expect(
+        "LY",
+        None,
+        &[
+            (2025, 2, 17, "Revolution Day"),
+            (2025, 6, 6, "Day of Arafah"),
+            (2025, 9, 16, "Martyrs' Day"),
+            (2025, 10, 23, "Liberation Day"),
+            (2026, 3, 22, "Eid al-Fitr"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 26, "Day of Arafah"),
+            (2026, 5, 29, "Eid al-Adha"),
+            (2026, 8, 26, "Prophet's Birthday"),
+            (2026, 12, 24, "Independence Day"),
+        ],
+    );
+    // Three days of Eid al-Adha, not four; the days of 2011 not before the
+    // law; and 1 January is not in its table.
+    expect_working(
+        "LY",
+        None,
+        &[(2026, 5, 30), (2011, 2, 17), (2011, 10, 23), (2026, 1, 1)],
+    );
+    let calendar = HolidayCalendar::for_year(table("LY"), None, 2026);
+    assert!(calendar.is_weekend(ymd(2026, 5, 30)));
+    let calendar = HolidayCalendar::for_year(table("LY"), None, 2005);
+    assert!(!calendar.is_weekend(ymd(2005, 1, 8)));
+}
+
+#[test]
+fn yemen_follows_law_2_of_2000_with_five_day_eids_and_nothing_moved() {
+    expect(
+        "YE",
+        None,
+        &[
+            (2025, 3, 29, "Eid al-Fitr"),
+            (2025, 4, 2, "Eid al-Fitr"),
+            (2025, 5, 22, "National Day"),
+            (2025, 9, 26, "26 September Revolution Day"),
+            (2025, 11, 30, "Independence Day"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 26, "Eid al-Adha"),
+            (2026, 5, 30, "Eid al-Adha"),
+            (2026, 6, 17, "Islamic New Year"),
+            (2026, 10, 14, "14 October Revolution Day"),
+        ],
+    );
+    // Article 4's replacement day is not carried: Labour Day on Friday
+    // 1 May 2026 gives no Sunday. The article 3(b) days are observances.
+    expect_working(
+        "YE",
+        None,
+        &[(2026, 5, 3), (2026, 5, 31), (2026, 8, 26), (2026, 7, 7)],
+    );
+    let calendar = HolidayCalendar::for_year(table("YE"), None, 2026);
+    let mawlid: Vec<(&str, Kind)> = calendar
+        .on(ymd(2026, 8, 26))
+        .iter()
+        .map(|holiday| (holiday.name, holiday.kind))
+        .collect();
+    assert_eq!(mawlid, [("Prophet's Birthday", Kind::Observance)]);
+    // Thursday and Friday until 2013, Friday and Saturday since.
+    assert!(calendar.is_weekend(ymd(2026, 5, 2)));
+    let calendar = HolidayCalendar::for_year(table("YE"), None, 2012);
+    assert!(calendar.is_weekend(ymd(2012, 5, 3)));
+    assert!(!calendar.is_weekend(ymd(2012, 5, 5)));
+}
+
+#[test]
 fn liechtenstein_has_thirteen_legal_holidays_and_five_bank_days() {
     expect(
         "LI",
