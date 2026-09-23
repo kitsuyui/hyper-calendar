@@ -175,7 +175,10 @@ Korea Exchange's own closure lists for every year from 2009 to 2029;
 Shanghai (`XSHG`), which includes China's table — its annual arrangements,
 without the weekend days they make working days — and adds the eve of the
 Spring Festival 2024, and which matches the exchange's closure notices for
-2014 to 2026; and Nasdaq's Nordic markets — Copenhagen (`XCSE`), Stockholm
+2014 to 2026; Taipei (`XTAI`), which includes Taiwan's table without the
+Saturdays it works, and adds Labour Day before it was a government holiday
+and the two settlement-only days before the Lunar New Year break, and which
+matches the exchange's schedules for 2023 to 2026; and Nasdaq's Nordic markets — Copenhagen (`XCSE`), Stockholm
 (`XSTO`), Helsinki (`XHEL`) and Iceland (`XICE`) — each on its country's
 days as Nasdaq's calendar lists them, Stockholm with five half days a year.
 The unscheduled closures a read source

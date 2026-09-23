@@ -8,7 +8,8 @@ use hc_holiday::exchanges::{
     EURONEXT_DUBLIN, EURONEXT_LISBON, EURONEXT_MILAN, EURONEXT_OSLO, EURONEXT_PARIS,
     FRANKFURT_STOCK_EXCHANGE, HONG_KONG_EXCHANGES, KOREA_EXCHANGE, LONDON_STOCK_EXCHANGE, NASDAQ,
     NASDAQ_COPENHAGEN, NASDAQ_HELSINKI, NASDAQ_ICELAND, NASDAQ_STOCKHOLM, NEW_YORK_STOCK_EXCHANGE,
-    SHANGHAI_STOCK_EXCHANGE, SIX_SWISS_EXCHANGE, TOKYO_STOCK_EXCHANGE, TORONTO_STOCK_EXCHANGE,
+    SHANGHAI_STOCK_EXCHANGE, SIX_SWISS_EXCHANGE, TAIWAN_STOCK_EXCHANGE, TOKYO_STOCK_EXCHANGE,
+    TORONTO_STOCK_EXCHANGE,
 };
 use hc_holiday::rule::RuleSet;
 use hc_holiday::rule::{Confidence, Kind};
@@ -746,6 +747,28 @@ fn shanghai_closes_on_the_days_its_notices_list_from_2014_to_2026() {
     assert!(!calendar.is_complete());
 }
 
+/// The weekday closures in the Taiwan Stock Exchange's schedules.
+#[rustfmt::skip]
+const TWSE_CLOSURES: &[(i64, &[(u8, u8)])] = &[
+    (2023, &[(1, 2), (1, 18), (1, 19), (1, 20), (1, 23), (1, 24), (1, 25), (1, 26), (1, 27), (2, 27), (2, 28), (4, 3), (4, 4), (4, 5), (5, 1), (6, 22), (6, 23), (9, 29), (10, 9), (10, 10)]),
+    (2024, &[(1, 1), (2, 6), (2, 7), (2, 8), (2, 9), (2, 12), (2, 13), (2, 14), (2, 28), (4, 4), (4, 5), (5, 1), (6, 10), (9, 17), (10, 10)]),
+    (2025, &[(1, 1), (1, 23), (1, 24), (1, 27), (1, 28), (1, 29), (1, 30), (1, 31), (2, 28), (4, 3), (4, 4), (5, 1), (5, 30), (9, 29), (10, 6), (10, 10), (10, 24), (12, 25)]),
+    (2026, &[(1, 1), (2, 12), (2, 13), (2, 16), (2, 17), (2, 18), (2, 19), (2, 20), (2, 27), (4, 3), (4, 6), (5, 1), (6, 19), (9, 25), (9, 28), (10, 9), (10, 26), (12, 25)]),
+];
+
+#[test]
+fn taipei_closes_on_the_days_its_schedules_list_from_2023_to_2026() {
+    for &(y, listed) in TWSE_CLOSURES {
+        let (closed, early) = year_of(&TAIWAN_STOCK_EXCHANGE, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert!(early.is_empty(), "{y}");
+    }
+    // The Saturdays the government worked, the exchange did not.
+    let calendar = HolidayCalendar::for_year(&TAIWAN_STOCK_EXCHANGE, None, 2023);
+    assert!(!calendar.is_business_day(ymd(2023, 1, 7)));
+    assert!(!HolidayCalendar::for_year(&TAIWAN_STOCK_EXCHANGE, None, 2027).is_complete());
+}
+
 #[test]
 fn hong_kong_closes_on_the_general_holidays_and_halves_three_eves() {
     // HKEX's calendar feed for 2026: every "Hong Kong Market is closed"
@@ -1135,5 +1158,5 @@ fn the_catalogue_is_keyed_by_market_identifier_code() {
         Some("New York Stock Exchange")
     );
     assert!(exchanges::ALL.iter().all(|e| e.code.len() == 4));
-    assert_eq!(exchanges::ALL.len(), 23);
+    assert_eq!(exchanges::ALL.len(), 24);
 }
