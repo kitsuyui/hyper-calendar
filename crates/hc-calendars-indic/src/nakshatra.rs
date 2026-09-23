@@ -1,5 +1,6 @@
 //! The nakṣatra: the Moon's station among the twenty-seven, which one is
-//! in progress at a moment, and when the Moon enters and leaves it.
+//! in progress at a moment, and when the Moon enters and leaves it — and
+//! the Sun's, which the almanacs print as its own table.
 //!
 //! The sidereal ecliptic is cut into twenty-seven equal arcs of 13°20′
 //! from the ayanamsa's zero point, Aśvinī first and Revatī last. The Moon
@@ -11,9 +12,11 @@
 //! Chingam. `hc-holiday` reads those from here.
 
 use hc_astro::lunar::lunar_longitude;
+use hc_astro::solar::solar_longitude_after;
 use hc_calendar::fixed::Moment;
 use hc_core::math::{floor, normalize_degrees};
 use hc_seasons::zodiac::Ayanamsa;
+use hc_seasons::zodiac::sidereal::sidereal_longitude;
 
 /// The nakṣatras in a sidereal revolution.
 pub const NAKSHATRAS_PER_REVOLUTION: u8 = 27;
@@ -148,6 +151,71 @@ pub fn nakshatra_span(nakshatra: u8, moment: Moment, ayanamsa: Ayanamsa) -> (Mom
     (entry, exit)
 }
 
+// ── The Sun's nakṣatra ──────────────────────────────────────────────────
+
+/// The Sun's nakṣatra at a moment, 1 for Aśvinī through 27 for Revatī: the
+/// arc of 13°20′ its sidereal longitude is in.
+///
+/// The Sun takes about thirteen and a half days over one, a little more
+/// in the northern summer when the Earth is farther from it, so a year holds
+/// twenty-seven such stays, each beginning twice a month or so. The
+/// almanacs print their entry times as the Sun's nakṣatra transits (Sūrya
+/// nakṣatra gochar), and two farming calendars are counted by them:
+/// Kerala's ñāṭṭuvēla, whose Thiruvathira period is the Sun's stay in
+/// Ārdrā at the monsoon's height, and the rain nakṣatras of the Deccan.
+/// Which ayanamsa an almanac measures from is its own convention and a
+/// parameter here; the Lahiri value is the one the Indian national almanac
+/// and Drik Panchang use. Drik Panchang's Lahiri stands about 20″ from the
+/// one here, so its transit times are eight to ten minutes later than these
+/// throughout the year.
+#[must_use]
+pub fn solar_nakshatra_at(moment: Moment, ayanamsa: Ayanamsa) -> u8 {
+    let arc = floor(sidereal_longitude(moment, ayanamsa) / DEGREES_PER_NAKSHATRA);
+    (arc as u8).min(NAKSHATRAS_PER_REVOLUTION - 1) + 1
+}
+
+/// How many refinement passes the solar ingress search makes, for the same
+/// reason as the saṅkrānti search in `hc-seasons`: the target depends on
+/// the ayanamsa at the ingress, which is not known until it is found.
+const SOLAR_INGRESS_REFINEMENTS: usize = 2;
+
+/// The first moment at or after `moment` when the Sun enters `nakshatra`,
+/// 1 to 27.
+///
+/// # Panics
+///
+/// Does not panic; a `nakshatra` outside 1 to 27 is taken modulo 27.
+#[must_use]
+pub fn solar_nakshatra_ingress_after(nakshatra: u8, ayanamsa: Ayanamsa, moment: Moment) -> Moment {
+    let start = f64::from((nakshatra + NAKSHATRAS_PER_REVOLUTION - 1) % NAKSHATRAS_PER_REVOLUTION)
+        * DEGREES_PER_NAKSHATRA;
+    let target = |at: Moment| normalize_degrees(start + ayanamsa.degrees_at(at));
+    let mut found = solar_longitude_after(target(moment), moment);
+    let mut pass = 0;
+    while pass < SOLAR_INGRESS_REFINEMENTS {
+        // Two days before the previous answer the Sun is two degrees short
+        // of the target, inside the previous nakṣatra, so the crossing found
+        // again is the same one.
+        found = solar_longitude_after(target(found), Moment(found.0 - 2.0));
+        pass += 1;
+    }
+    found
+}
+
+/// The Sun's stay in the nakṣatra it is in at `moment`: when it entered and
+/// when it leaves.
+#[must_use]
+pub fn solar_nakshatra_span(moment: Moment, ayanamsa: Ayanamsa) -> (Moment, Moment) {
+    let current = solar_nakshatra_at(moment, ayanamsa);
+    let next = current % NAKSHATRAS_PER_REVOLUTION + 1;
+    let exit = solar_nakshatra_ingress_after(next, ayanamsa, moment);
+    // The Sun moves about a degree a day, so sixteen days before the exit is
+    // inside the stay before this one, and the next entry into `current`
+    // found from there is this stay's.
+    let entry = solar_nakshatra_ingress_after(current, ayanamsa, Moment(exit.0 - 16.0));
+    (entry, exit)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -159,6 +227,87 @@ mod tests {
     }
 
     const THREE_MINUTES: f64 = 3.0 / 1440.0;
+
+    /// Drik Panchang, 2025 Sun Nakshatra Transit for New Delhi, in IST: the
+    /// nakṣatra and the moment the Sun enters it.
+    const DRIK_2025_IST: [(u8, u8, u8, f64, f64); 27] = [
+        (UTTARA_ASHADHA, 1, 11, 2.0, 30.0),
+        (SHRAVANA, 1, 24, 4.0, 52.0),
+        (DHANISHTHA, 2, 6, 7.0, 57.0),
+        (SHATABHISHA, 2, 19, 12.0, 34.0),
+        (PURVA_BHADRAPADA, 3, 4, 18.0, 48.0),
+        (UTTARA_BHADRAPADA, 3, 18, 3.0, 20.0),
+        (REVATI, 3, 31, 14.0, 8.0),
+        (ASHVINI, 4, 14, 3.0, 30.0),
+        (BHARANI, 4, 27, 19.0, 19.0),
+        (KRITTIKA, 5, 11, 13.0, 26.0),
+        (ROHINI, 5, 25, 9.0, 40.0),
+        (MRIGASHIRSHA, 6, 8, 7.0, 26.0),
+        (ARDRA, 6, 22, 6.0, 28.0),
+        (PUNARVASU, 7, 6, 5.0, 55.0),
+        (PUSHYA, 7, 20, 5.0, 30.0),
+        (ASHLESHA, 8, 3, 4.0, 16.0),
+        (MAGHA, 8, 17, 2.0, 0.0),
+        (PURVA_PHALGUNI, 8, 30, 21.0, 52.0),
+        (UTTARA_PHALGUNI, 9, 13, 15.0, 48.0),
+        (HASTA, 9, 27, 7.0, 14.0),
+        (CHITRA, 10, 10, 20.0, 19.0),
+        (SVATI, 10, 24, 6.0, 48.0),
+        (VISHAKHA, 11, 6, 14.0, 59.0),
+        (ANURADHA, 11, 19, 21.0, 3.0),
+        (JYESHTHA, 12, 3, 1.0, 21.0),
+        (MULA, 12, 16, 4.0, 26.0),
+        (PURVA_ASHADHA, 12, 29, 6.0, 37.0),
+    ];
+
+    #[test]
+    fn the_suns_nakshatra_transits_of_2025_are_the_almanacs() {
+        let mut offsets = Vec::new();
+        for (nakshatra, month, day, hour, minute) in DRIK_2025_IST {
+            // IST is five and a half hours ahead of Universal Time.
+            let expected = Moment(at(2025, month, day, hour, minute).0 - 5.5 / 24.0);
+            let found = solar_nakshatra_ingress_after(
+                nakshatra,
+                Ayanamsa::LAHIRI,
+                Moment(expected.0 - 10.0),
+            );
+            offsets.push((nakshatra, (found.0 - expected.0) * 1440.0));
+            assert_eq!(
+                solar_nakshatra_at(Moment(found.0 + 0.01), Ayanamsa::LAHIRI),
+                nakshatra
+            );
+        }
+        // Every entry comes eight to ten minutes before the almanac's, and
+        // the spread across the year is under two minutes: the Lahiri value
+        // here and Drik Panchang's stand about 20″ apart, the disagreement
+        // between published values of a named ayanamsa that `hc-seasons`
+        // describes, and not an error that grows through the year.
+        let (low, high) = offsets
+            .iter()
+            .fold((f64::MAX, f64::MIN), |(low, high), (_, m)| {
+                (low.min(*m), high.max(*m))
+            });
+        assert!(low > -10.5 && high < -7.0, "{offsets:?}");
+        assert!(high - low < 2.0, "{offsets:?}");
+    }
+
+    #[test]
+    fn the_sun_stays_about_a_fortnight_in_ardra_at_the_monsoons_height() {
+        // Kerala's Thiruvathira ñāṭṭuvēla: the Sun in Ārdrā, 22 June to
+        // 6 July 2025 by the table above.
+        let (entry, exit) = solar_nakshatra_span(at(2025, 6, 30, 0.0, 0.0), Ayanamsa::LAHIRI);
+        assert_eq!(
+            solar_nakshatra_at(at(2025, 6, 30, 0.0, 0.0), Ayanamsa::LAHIRI),
+            ARDRA
+        );
+        let days = exit.0 - entry.0;
+        assert!(days > 13.9 && days < 14.1, "{days}");
+        // The stays are longest near aphelion in July and shortest near
+        // perihelion in January.
+        let (winter_entry, winter_exit) =
+            solar_nakshatra_span(at(2025, 1, 15, 0.0, 0.0), Ayanamsa::LAHIRI);
+        assert!(winter_exit.0 - winter_entry.0 < days);
+    }
 
     #[test]
     fn pushya_in_january_2024_begins_and_ends_when_the_almanac_says() {
