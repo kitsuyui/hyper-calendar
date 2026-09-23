@@ -4549,6 +4549,257 @@ fn haiti_has_the_constitutions_five_days_and_the_decrees_of_1989_and_2024() {
 }
 
 #[test]
+fn antigua_and_barbuda_follows_the_2005_and_2019_schedules() {
+    expect(
+        "AG",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 4, "Labour Day"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 8, 3, "Carnival Monday"),
+            (2026, 8, 4, "Carnival Tuesday"),
+            (2026, 11, 2, "Independence Day"),
+            (2026, 12, 9, "Sir Vere Cornwall Bird Snr. Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Boxing Day"),
+            // A Saturday Christmas under the 2019 Schedule: the Monday and
+            // Tuesday, the Tuesday for the Sunday Boxing Day.
+            (2021, 12, 27, "Christmas Day"),
+            (2021, 12, 28, "Boxing Day"),
+            // A Sunday Christmas: Boxing Day and the Tuesday.
+            (2022, 12, 27, "Christmas Day"),
+            (2013, 12, 9, "National Heroes Day"),
+            (2014, 12, 9, "Sir Vere Cornwall Bird Snr. Day"),
+            (2006, 1, 2, "New Year's Day"),
+        ],
+    );
+    // Under the 2005 Schedule a Saturday Christmas gave the Monday only,
+    // and 9 December did not move off a Saturday; nothing before 2006.
+    expect_working("AG", None, &[(2010, 12, 28), (2017, 12, 11), (2005, 11, 1)]);
+    expect_substitute("AG", None, 2026, (11, 1), (11, 2));
+    expect_substitute("AG", None, 2021, (12, 25), (12, 27));
+    expect_substitute("AG", None, 2021, (12, 26), (12, 28));
+    expect_substitute("AG", None, 2022, (12, 25), (12, 27));
+    expect_substitute("AG", None, 2023, (12, 9), (12, 11));
+}
+
+#[test]
+fn dominica_moves_a_sunday_holiday_to_the_next_free_day() {
+    expect(
+        "DM",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 2, 16, "Carnival Monday"),
+            (2026, 2, 17, "Carnival Tuesday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 4, "Labour Day"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 8, 3, "Emancipation Day"),
+            (2026, 11, 3, "Independence Day"),
+            (2026, 11, 4, "National Day of Community Service"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Boxing Day"),
+            (2023, 1, 2, "New Year's Day"),
+            (2024, 11, 5, "Independence Day"),
+            (2022, 12, 27, "Christmas Day"),
+            (2021, 12, 27, "Boxing Day"),
+        ],
+    );
+    // A Saturday stays: Community Day 2023, Boxing Day 2026.
+    expect_working("DM", None, &[(2023, 11, 6), (2026, 12, 28), (2025, 5, 1)]);
+    expect_substitute("DM", None, 2024, (11, 3), (11, 5));
+    expect_substitute("DM", None, 2023, (1, 1), (1, 2));
+}
+
+#[test]
+fn grenada_gives_only_the_monday_after_a_sunday() {
+    expect(
+        "GD",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 2, 7, "Independence Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 6, 4, "Corpus Christi"),
+            (2026, 8, 1, "Emancipation Day"),
+            (2026, 8, 10, "Carnival Monday"),
+            (2026, 8, 11, "Carnival Tuesday"),
+            (2026, 10, 19, "National Heroes' Day"),
+            (2026, 10, 26, "Thanksgiving Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Boxing Day"),
+            (2025, 10, 20, "National Heroes' Day"),
+            (2024, 8, 5, "Emancipation Holiday"),
+            (2024, 8, 13, "Carnival Tuesday"),
+            (2022, 5, 2, "Labour Day"),
+        ],
+    );
+    // A Sunday Christmas adds nothing to Boxing Day; the first Monday of
+    // August is no longer a holiday from 2025; 19 October before 2025 is
+    // not carried.
+    expect_working("GD", None, &[(2022, 12, 27), (2025, 8, 4), (2024, 10, 19)]);
+    expect_substitute("GD", None, 2025, (10, 19), (10, 20));
+    let calendar = HolidayCalendar::for_year(table("GD"), None, 2023);
+    let kinds: Vec<Kind> = calendar
+        .on(ymd(2023, 8, 15))
+        .iter()
+        .map(|holiday| holiday.kind)
+        .collect();
+    assert_eq!(kinds, [Kind::Bank]);
+}
+
+#[test]
+fn saint_kitts_and_nevis_moves_a_sunday_to_the_monday() {
+    expect(
+        "KN",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 4, "Labour Day"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 8, 3, "Emancipation Day"),
+            (2026, 9, 16, "National Heroes Day"),
+            (2026, 9, 19, "Independence Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Boxing Day"),
+            (2021, 9, 20, "Independence Day"),
+            (2021, 12, 27, "Boxing Day"),
+            (2022, 12, 26, "Boxing Day"),
+            (2022, 12, 27, "Christmas Day"),
+        ],
+    );
+    // A Saturday Independence Day stays; Carnival Day is not carried.
+    expect_working("KN", None, &[(2026, 9, 21), (2026, 1, 2)]);
+    expect_substitute("KN", None, 2021, (9, 19), (9, 20));
+    expect_substitute("KN", None, 2022, (12, 25), (12, 27));
+}
+
+#[test]
+fn saint_lucia_moves_a_sunday_past_the_next_holiday() {
+    expect(
+        "LC",
+        None,
+        &[
+            (2025, 1, 1, "New Year's Day"),
+            (2025, 1, 2, "New Year's Holiday"),
+            (2025, 2, 22, "Independence Day"),
+            (2025, 4, 18, "Good Friday"),
+            (2025, 4, 21, "Easter Monday"),
+            (2025, 5, 1, "Labour Day"),
+            (2025, 6, 9, "Whit Monday"),
+            (2025, 6, 19, "Corpus Christi"),
+            (2025, 8, 1, "Emancipation Day"),
+            (2025, 10, 6, "Thanksgiving Day"),
+            (2025, 12, 13, "National Day"),
+            (2025, 12, 25, "Christmas Day"),
+            (2025, 12, 26, "Boxing Day"),
+            (2023, 1, 3, "New Year's Day"),
+            (2022, 12, 27, "Christmas Day"),
+        ],
+    );
+    // A Saturday stays: National Day 2025.
+    expect_working("LC", None, &[(2025, 12, 15), (2025, 7, 14)]);
+    expect_substitute("LC", None, 2023, (1, 1), (1, 3));
+    expect_substitute("LC", None, 2022, (1, 2), (1, 3));
+}
+
+#[test]
+fn saint_vincent_follows_the_prime_ministers_lists() {
+    expect(
+        "VC",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 14, "National Heroes' Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "National Workers' Day"),
+            (2026, 5, 21, "Spiritual Baptist Liberation Day"),
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 7, 6, "Carnival Monday"),
+            (2026, 7, 7, "Carnival Tuesday"),
+            (2026, 8, 1, "Emancipation Day"),
+            (2026, 10, 27, "Independence Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Boxing Day"),
+            (2021, 9, 6, "Carnival Monday"),
+            (2021, 9, 7, "Carnival Tuesday"),
+            (2024, 10, 28, "Independence Day"),
+            (2022, 12, 27, "Christmas Day"),
+            (2023, 7, 11, "Carnival Tuesday"),
+        ],
+    );
+    // A Saturday stays; Spiritual Baptist Liberation Day before 2025 is
+    // not carried; 2021's Carnival was not in July.
+    expect_working("VC", None, &[(2026, 3, 16), (2024, 5, 21), (2021, 7, 5)]);
+    expect_substitute("VC", None, 2021, (8, 1), (8, 2));
+    expect_substitute("VC", None, 2022, (12, 25), (12, 27));
+}
+
+#[test]
+fn suriname_keeps_the_decrees_free_days_and_moves_none() {
+    expect(
+        "SR",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 2, 17, "Chinese New Year"),
+            (2026, 3, 3, "Holi Phagwa"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 7, 1, "Keti Koti"),
+            (2026, 8, 9, "Indigenous People's Day"),
+            (2026, 10, 10, "Day of the Maroons"),
+            (2026, 11, 25, "Independence Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2026, 12, 26, "Boxing Day"),
+            // The Minister's announcements.
+            (2024, 3, 25, "Holi Phagwa"),
+            (2024, 2, 10, "Chinese New Year"),
+            (2023, 1, 22, "Chinese New Year"),
+            (2024, 4, 10, "Eid al-Fitr"),
+            (2023, 6, 29, "Eid al-Adha"),
+            (2021, 11, 4, "Divali"),
+            (2022, 10, 24, "Divali"),
+            (2023, 11, 12, "Divali"),
+            (2020, 2, 25, "Day of Liberation and Renewal"),
+            (2007, 8, 9, "Indigenous People's Day"),
+        ],
+    );
+    // Nothing moves off a weekend; 25 February ends in 2020; Divali, the
+    // Maroons' day and 9 August before their decrees are not carried.
+    expect_working(
+        "SR",
+        None,
+        &[
+            (2023, 11, 13),
+            (2023, 1, 23),
+            (2021, 2, 25),
+            (2011, 10, 10),
+            (2006, 8, 9),
+        ],
+    );
+    let calendar = HolidayCalendar::for_year(table("SR"), None, 2024);
+    assert!(
+        calendar
+            .on(ymd(2024, 4, 10))
+            .iter()
+            .all(|holiday| holiday.confidence == Confidence::Approximate)
+    );
+}
+
+#[test]
 fn oman_compensates_weekend_days_as_the_2022_decree_says() {
     expect(
         "OM",

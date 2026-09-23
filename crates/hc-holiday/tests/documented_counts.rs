@@ -41,8 +41,8 @@ fn hijri_dates_appear_in_the_number_of_countries_the_readme_states() {
     for expected in [
         "AE", "AL", "AR", "AZ", "BD", "BH", "CI", "DZ", "EG", "ET", "GH", "GY", "ID", "IN", "IQ",
         "IR", "JO", "KE", "KG", "KW", "KZ", "LB", "LY", "MA", "ME", "MK", "MM", "MU", "MW", "MY",
-        "NG", "NP", "OM", "PH", "PK", "PS", "QA", "RS", "SA", "SG", "SY", "TR", "TT", "TZ", "UG",
-        "YE",
+        "NG", "NP", "OM", "PH", "PK", "PS", "QA", "RS", "SA", "SG", "SR", "SY", "TR", "TT", "TZ",
+        "UG", "YE",
     ] {
         assert!(
             countries_with_hijri.contains(&expected),

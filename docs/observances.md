@@ -206,6 +206,13 @@ Ordered by how well the sources can be cited, not by importance.
 | Trinidad and Tobago 🇹🇹 | Chap. 19:05 with section 3(2)'s next free day for a Sunday or for two holidays at once; Eid-ul-Fitr and Divali approximate; Carnival Monday and Tuesday as observances; African Emancipation Day from 2024 |
 | Barbados 🇧🇧 | Cap. 352's First Schedule: the Monday after a Sunday, and the Tuesday for Emancipation Day off a Sunday or a Monday and for Christmas off a Sunday |
 | Bahamas 🇧🇸 | Ch. 36's Sunday proviso and the Saturday practice, both to the next free weekday; Majority Rule Day from 2014 and National Heroes Day from 2013; no Tuesday-to-Thursday moves, which the Act does not have |
+| Antigua and Barbuda 🇦🇬 | Cap. 354 by the 2005 Schedule from 2006 and the 2019 one from 2020: the Sunday moves to the next free day, Independence Day off a Saturday too, and from 2020 Christmas and V. C. Bird Day off a Saturday; the Carnival Monday and Tuesday in August |
+| Dominica 🇩🇲 | Chap. 19:10's Schedule, every Sunday in it, and section 9's next free day for two holidays at once; Labour Day on the first Monday of May from the 2021 lists |
+| Grenada 🇬🇩 | Cap. 25's Schedule and "the Monday immediately next following" a Sunday, nothing more; Carnival Tuesday from noon as bank until 2023, Emancipation Day on 1 August and National Heroes' Day from 2025 |
+| Saint Kitts and Nevis 🇰🇳 | Cap. 23.23's Schedule with the Sunday rule and a Sunday Christmas's Monday and Tuesday; Carnival Day and Culturama Day, proclaimed each year, not carried |
+| Saint Lucia 🇱🇨 | The Bank Holidays Act's Schedule and its note: a Sunday or a second holiday to the next free day, so a Sunday 1 January gives the 3rd; Thanksgiving Day on the first Monday of October, approximate |
+| Saint Vincent and the Grenadines 🇻🇨 | The Prime Minister's Office's lists, the Act itself unread: the Sunday moves they show, Carnival from the lists for 2021–2026, Spiritual Baptist Liberation Day from 2025 |
+| Suriname 🇸🇷 | The Besluit Vrije Dagen 1971 as S.B. 2021 no. 27 left it, the 2007 and 2012 additions by year and 25 February for 2012–2020; Holi, Divali, the Ieds and Chinese New Year approximate; nothing moves |
 | Argentina 🇦🇷 | From Decreto 1584/2010 in 2011: the *inamovibles* where they fall, the *trasladables* on the decree's Mondays to 2016 and by the weekday rule of Ley 27.399 from 2018; the annual tourist holidays not carried; Holy Thursday and the days of the Jewish and Islamic faiths as observances |
 | Colombia 🇨🇴 | Ley 51 de 1983 from 1984: ten holidays to the following Monday, eight where they fall |
 | Ethiopia 🇪🇹 | The national and Orthodox holidays on the Ethiopian calendar (`ethiopic`), where they are kept; Fasika by the Julian computus; the Islamic days approximate |
