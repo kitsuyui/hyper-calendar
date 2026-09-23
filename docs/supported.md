@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-96 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+97 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 78 of 96 have months and 78 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 79 of 97 have months and 79 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 | id | Name | Crate | Feature | Earliest | Latest | Astronomical | Leap months | Day begins | Cycles | Named |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -100,6 +100,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `maya-tzolkin` | Maya tzolk'in | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | trecena ×13, day-sign ×20 | — |
 | `modified-julian-day` | Modified Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | none | — |
 | `nanakshahi` | Nanakshahi | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1469-03-14 | +11468-03-13 | no | no | midnight | month ×12, weekday ×7 | yes |
+| `nepal-sambat` | Nepal Sambat (lunar) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | month ×12–13, weekday ×7 | yes |
 | `persian` | Solar Hijri | [`hc-calendars-equinox`](../crates/hc-calendars-equinox) | `equinox` | 0622-03-22 | 3001-03-20 | yes | no | midnight | month ×12, weekday ×7 | yes |
 | `persian-arithmetic` | Solar Hijri (arithmetic) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0622-03-22 | +10621-03-17 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `reduced-julian-day` | Reduced Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | noon | none | — |

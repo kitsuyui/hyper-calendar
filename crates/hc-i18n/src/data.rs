@@ -832,6 +832,36 @@ const EN_CALENDARS: &[CalendarNames] = &[
         },
         quarters: ContextualNames::EMPTY,
     },
+    // Nepal Sambat's months are the amānta months under their Newar names,
+    // Kachhalā first, as Wikipedia's "Nepal Sambat" romanizes them; the
+    // Devanagari and Newa-script names are the calendar's own, in
+    // `hc-calendars-indic`. The tradition calls an intercalary month Analā,
+    // and the source does not say how it is written beside the month it
+    // doubles, so no prefix is supplied rather than one invented.
+    CalendarNames {
+        calendars: &[CalendarId("nepal-sambat")],
+        cycles: &[months(&[
+            "Kachhalā",
+            "Thinlā",
+            "Pwanhelā",
+            "Silā",
+            "Chilā",
+            "Chaulā",
+            "Bachhalā",
+            "Tachhalā",
+            "Dilā",
+            "Gunlā",
+            "Yanlā",
+            "Kaulā",
+        ])],
+        leap_month_prefix: "",
+        eras: EraNames {
+            codes: &["nepal-sambat"],
+            names: widths(&["Nepal Sambat"], &["NS"], &[]),
+            calendars: &[],
+        },
+        quarters: ContextualNames::EMPTY,
+    },
     CalendarNames {
         calendars: &[
             CalendarId("bahai-arithmetic"),

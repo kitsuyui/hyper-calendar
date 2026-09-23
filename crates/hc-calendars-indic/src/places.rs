@@ -23,3 +23,10 @@ pub const UJJAIN: Location = Location::new(23.176_5, 75.788_5, 0.0);
 /// holiday lists are drawn up for, and the first of the four whose sunrise
 /// the *Rashtriya Panchang* tabulates.
 pub const NEW_DELHI: Location = Location::new(28.613_9, 77.209_0, 0.0);
+
+/// Kathmandu, 27°42′36″ N 85°19′12″ E — the city whose sunrise the
+/// Nepal Sambat is judged at here (Wikipedia, "Kathmandu", retrieved
+/// 2026-09-23, for the coordinates). At sea level, as the other places
+/// are, so that its sunrise is the one computed for the horizon rather
+/// than for the valley floor at 1 400 m.
+pub const KATHMANDU: Location = Location::new(27.71, 85.32, 0.0);

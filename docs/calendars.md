@@ -135,7 +135,7 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Yoruba four-day week | `yoruba` | `hc-calendars-regional` | Researching — regional variants differ |
 | Akan Adaduanan (42-day cycle) | `akan` | `hc-calendars-regional` | Done — the six-day and seven-day weeks against each other, anchored on the Fɔdwo of 23 January 1978 the source dates; the four dabɔne named |
 | Nepali Bikram Sambat | `bikram-sambat` | `hc-calendars-regional` | Planned — the Vikrami solar rule and era are `hindu-solar-vikrami`; what remains is comparing the committee's published calendar against it |
-| Nepal Sambat | `nepal-sambat` | `hc-calendars-regional` | Planned |
+| Nepal Sambat (lunar) | `nepal-sambat` | `hc-calendars-indic` | Done — the amānta months under their Newar names, Kachhalā (Kārtika) first, the year opening at Mha Puja, the day read at Kathmandu's sunrise; tested against the Mha Puja dates of 2013–2017. The solar Nepal Sambat of Lalitpur is not carried: its source does not say where its leap day falls |
 | Burmese | `burmese` | `hc-calendars-regional` | Done — Yan Naing Aye's arithmetic of the Myanmar Era, era by era, with the record's exceptions as data; 1 to 3000 ME |
 | Thai lunar (Chulasakarat) | `thai-lunar` | `hc-calendars-regional` | Planned |
 | Attic (Athenian) | `attic` | `hc-calendars-regional` | Researching — reconstruction, sources conflict |
