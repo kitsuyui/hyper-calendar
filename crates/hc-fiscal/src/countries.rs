@@ -772,11 +772,14 @@ pub static SWEDEN: FiscalProfile = FiscalProfile {
             start: YearStart::gregorian(7, 1),
             label: LabelConvention::LabelledByStartYear,
             valid_from: Some(1923),
-            valid_until: Some(1995),
+            // The last twelve-month July year is 1994/95. Label 1995 would be a
+            // 1 July 1995 to 30 June 1996 year that never existed.
+            valid_until: Some(1994),
             note: "Budget year 1995/96 was itself an eighteen-month transitional period \
                    (1 July 1995 to 31 December 1996) and is not modelled; nor is the \
-                   six-month stub of 1 January to 30 June 1923. 1996 therefore falls in no \
-                   Swedish budget year here, which is the honest answer.",
+                   six-month stub of 1 January to 30 June 1923. 1 July 1995 to 31 December \
+                   1996 therefore falls in no Swedish budget year here, which is the honest \
+                   answer.",
         },
         YearSystem {
             name: "Swedish company accounting year",
@@ -1381,10 +1384,27 @@ mod tests {
     #[test]
     fn the_eighteen_month_swedish_transition_is_left_out_of_both_systems() {
         // Budget year 1995/96 ran 1 July 1995 to 31 December 1996 and is not
-        // modelled, so 1996 belongs to no Swedish budget year here.
+        // modelled, so neither label 1995 nor 1996 is a Swedish budget year
+        // here, and no day of those eighteen months falls in one.
+        assert!(SWEDEN.government(1994).is_some());
+        assert_eq!(SWEDEN.government(1995), None);
         assert_eq!(SWEDEN.government(1996), None);
-        assert!(SWEDEN.government(1995).is_some());
         assert!(SWEDEN.government(1997).is_some());
+        let government = SystemKind::Government;
+        assert_eq!(
+            SWEDEN
+                .at(government, greg(1995, 6, 30))
+                .map(|(_, label)| label),
+            Some(1994)
+        );
+        assert_eq!(SWEDEN.at(government, greg(1995, 7, 1)), None);
+        assert_eq!(SWEDEN.at(government, greg(1996, 12, 31)), None);
+        assert_eq!(
+            SWEDEN
+                .at(government, greg(1997, 1, 1))
+                .map(|(_, label)| label),
+            Some(1997)
+        );
     }
 
     #[test]
