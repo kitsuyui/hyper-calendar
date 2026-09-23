@@ -4812,3 +4812,310 @@ pub static LESOTHO: RuleSet = RuleSet {
               in Washington, \"Public Holidays\" for 2026 (lesothoemb-usa.gov.ls), retrieved \
               2026-09-23",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Chad
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 2 of decree 97-413: "when these feasts fall on a Sunday, the
+/// following Monday is a holiday, off and paid". Only article 2's days
+/// substitute.
+static TD_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: false,
+    on_collision: false,
+    valid_from: Some(1997),
+    valid_until: None,
+}];
+
+/// Nothing: decree 10-636 of 10 August 2010, which replaced the day of
+/// 11 August that year, was not read.
+fn td_unread(_: i64) -> Days {
+    Days::new()
+}
+
+/// A day whose date depends on a decree not read.
+const TD_UNREAD: Rule = Rule::Tabulated {
+    function: td_unread,
+    first_year: 1,
+    last_year: 0,
+};
+
+static TD_RULES: &[HolidayRule] = &[
+    // Article 2: off and paid, and moved off a Sunday.
+    HolidayRule::public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
+    HolidayRule::public(
+        "International Women's Day",
+        "Journée internationale de la femme",
+        Rule::gregorian(3, 8),
+    )
+    .years(Some(2019), None),
+    HolidayRule::public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+    HolidayRule::public(
+        "Independence Day",
+        "Anniversaire de la Proclamation de l'Indépendance, Fête nationale",
+        Rule::gregorian(8, 11),
+    )
+    .years(None, Some(2009)),
+    HolidayRule::fixed_public(
+        "Independence Day",
+        "Anniversaire de la Proclamation de l'Indépendance, Fête nationale",
+        TD_UNREAD,
+    )
+    .years(Some(2010), Some(2010)),
+    HolidayRule::public(
+        "Independence Day",
+        "Anniversaire de la Proclamation de l'Indépendance, Fête nationale",
+        Rule::gregorian(8, 11),
+    )
+    .years(Some(2011), None),
+    HolidayRule::public(
+        "Freedom and Democracy Day",
+        "Journée de la Liberté et de la Démocratie",
+        Rule::gregorian(12, 1),
+    ),
+    // Article 1: off, not paid, and not moved.
+    HolidayRule::fixed_public(
+        "Easter Monday",
+        "Lundi de Pâques",
+        Rule::easter(EASTER_MONDAY),
+    ),
+    HolidayRule::fixed_public(
+        "All Saints' Day",
+        "Fête de la Toussaint",
+        Rule::gregorian(11, 1),
+    ),
+    HolidayRule::fixed_public(
+        "Republic Day",
+        "Anniversaire de la Proclamation de la République",
+        Rule::gregorian(11, 28),
+    ),
+    HolidayRule::fixed_public("Christmas Day", "Fête de Noël", Rule::gregorian(12, 25)),
+    hijri("Prophet's Birthday", "Maouloud El Nebi", 3, 12),
+    hijri("Eid al-Fitr", "Aïd El Fitir", 10, 1),
+    hijri("Eid al-Adha", "Aïd El Adha", 12, 10),
+];
+
+/// Chad.
+///
+/// Decree 97-413/PR/MFPT of 30 September 1997 revising the list and regime
+/// of the holidays, in force from its signature, from Légitchad's text:
+/// article 1's seven days "fériés et chômés", which are not paid and may be
+/// made up, and article 2's four days "fériés, chômés et payés", with "when
+/// these feasts fall on a Sunday, the following Monday is a holiday, off
+/// and paid", which those rules do from 1997; the decree before it, 063 of
+/// 1991, was not read, so the Sunday rule is not claimed before it. Decree
+/// 273/PR/MFPTDS of 7 March 2019 rewrote article 2 to add 8 March, carried
+/// from 2019; its own text was not read, only the press's account of it,
+/// which gives the same five days and the same Sunday rule. Légitchad lists
+/// decree 10-636 of 10 August 2010 "replacing the day of 11 August" as
+/// amending the 1997 decree; it was not read, so 11 August 2010 is a gap
+/// rather than a date; the Minister's communiqué of 2015 declared 11 August
+/// that year a paid day off. The Islamic days are on the tabular Hijri
+/// calendar as approximations of the dates the Minister announces after the
+/// sighting. Article 4's exceptional days the President declares are not
+/// carried. The weekly rest is on Sunday under decree 56 of 1969; the
+/// Saturday of the Saturday–Sunday weekend carried here is not from a
+/// source read.
+pub static CHAD: RuleSet = RuleSet {
+    code: "TD",
+    english_name: "Chad",
+    rules: TD_RULES,
+    substitution: TD_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Décret n° 97-413/PR/MFPT du 30 septembre 1997 portant révision de la liste et du \
+              régime des jours fériés et chômés, Légitchad's text (legitchad.cefod-tchad.org/texte/895) \
+              as NATLEX holds it (TCD-97323.pdf) through the Internet Archive, retrieved \
+              2026-09-23; Tchadinfos, \"Tchad : désormais le 8 mars est déclaré férié, chômé et \
+              payé\" (7 March 2019), for décret n° 273/PR/MFPTDS/2019, the decree's own text not \
+              read; Le Pays (7 March 2025) on its application; NATLEX's abstract of décret n° 56 of \
+              1969 on the weekly rest; Alwihda Info on the Minister's communiqué for 11 August 2015",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Mauritania
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Friday–Saturday until the decree the Council of Ministers adopted on
+/// 11 September 2014, and Saturday–Sunday from 1 October 2014. The crate
+/// keeps a weekend by whole years, so 2014 is given the new one, as
+/// Algeria's 2009 is.
+static MR_WEEKEND: &[WeekendPolicy] = &[
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday],
+        valid_from: None,
+        valid_until: Some(2013),
+    },
+    WeekendPolicy {
+        days: &[Weekday::Saturday, Weekday::Sunday],
+        valid_from: Some(2014),
+        valid_until: None,
+    },
+];
+
+static MR_RULES: &[HolidayRule] = &[
+    HolidayRule::fixed_public(
+        "New Year's Day",
+        "رأس السنة الميلادية",
+        Rule::gregorian(1, 1),
+    ),
+    HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
+    HolidayRule::fixed_public(
+        "Africa Liberation Day",
+        "يوم تحرير أفريقيا",
+        Rule::gregorian(5, 25),
+    ),
+    HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 28)),
+    hijri("Islamic New Year", "رأس السنة الهجرية", 1, 1),
+    hijri("Prophet's Birthday", "المولد النبوي الشريف", 3, 12),
+    hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
+    hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+];
+
+/// Mauritania.
+///
+/// Law 92-018 of 7 December 1992 fixing the legal holidays, from the
+/// Ministry of Public Service and Labour's own copy and its 2021
+/// collection of the texts in force: the national day on 28 November and
+/// seven legal holidays, all "chômées et payées" under article 2. The law
+/// names the four Islamic days by the feast alone — "El Mawlid", "El
+/// Fitre", "El Adha", "Mouharram" — so each is carried as one day, and
+/// "Mouharram" is read as its first day, the New Year, which the law does
+/// not say in so many words; all four are on the tabular Hijri calendar
+/// as approximations of the sighted dates. The further days the President
+/// declares by decree under article 3, as the second day of an Eid often
+/// is, are not carried. The law has no weekend rule, and nothing moves.
+/// The weekend is Friday–Saturday until 2013 and Saturday–Sunday from
+/// 2014, from the press accounts of the decree of 2014, which was not
+/// read; when the Friday–Saturday weekend began was not searched for.
+pub static MAURITANIA: RuleSet = RuleSet {
+    code: "MR",
+    english_name: "Mauritania",
+    rules: MR_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: MR_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Loi n° 92-018 du 7 décembre 1992 fixant les fêtes légales en Mauritanie, from the \
+              Ministère de la Fonction Publique et du Travail (fonctionpublique.gov.mr) and its \
+              \"Textes législatifs\" collection of 23 June 2021, retrieved 2026-09-23; Cridem, \
+              \"Mauritanie : Le repos hebdomadaire s'aligne sur l'international\" (15 September \
+              2014), and Le360 (6 October 2014) on the Council of Ministers' decree of \
+              11 September 2014 changing the weekly rest from 1 October 2014",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Djibouti
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 97 of the Labour Code: the weekly rest "takes place in
+/// principle on Friday"; article 2 of arrêté 2019-193 gives it to all
+/// employees at once on the Friday.
+static DJ_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Friday],
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// Nothing: whether arrêté 80-0931, published in 1981, already governed
+/// 28 June 1980 was not found out.
+fn dj_unread(_: i64) -> Days {
+    Days::new()
+}
+
+/// A day whose date in one year depends on when an arrêté took effect.
+const DJ_UNREAD: Rule = Rule::Tabulated {
+    function: dj_unread,
+    first_year: 1,
+    last_year: 0,
+};
+
+/// A day of arrêté 77-347, carried from 1978, its first full year.
+const fn dj(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, rule).years(Some(1978), None)
+}
+
+/// A Hijri day of arrêté 77-347, carried from 1978, on the tabular
+/// calendar.
+const fn dj_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    dj(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, month, day),
+    )
+    .approximate()
+}
+
+static DJ_RULES: &[HolidayRule] = &[
+    dj("New Year's Day", "Nouvel An", Rule::gregorian(1, 1)),
+    dj("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+    dj(
+        "Independence Day",
+        "Fête de l'Indépendance",
+        Rule::gregorian(6, 27),
+    ),
+    HolidayRule::fixed_public(
+        "Independence Day (second day)",
+        "Fête de l'Indépendance",
+        DJ_UNREAD,
+    )
+    .years(Some(1980), Some(1980)),
+    HolidayRule::fixed_public(
+        "Independence Day (second day)",
+        "Fête de l'Indépendance",
+        Rule::gregorian(6, 28),
+    )
+    .years(Some(1981), None),
+    dj("Christmas Day", "Fête de Noël", Rule::gregorian(12, 25)),
+    dj_hijri("Islamic New Year", "Awal Mouharam", 1, 1),
+    dj_hijri("Prophet's Birthday", "Mouloud", 3, 12),
+    dj_hijri("Isra and Mi'raj", "Al Isra et Al Mirague", 7, 27),
+    dj_hijri("Eid al-Fitr", "Aïd el-Fitre", 10, 1),
+    dj_hijri("Eid al-Fitr (second day)", "Aïd el-Fitre", 10, 2),
+    dj_hijri("Eid al-Adha", "Aïd el-Addha", 12, 10),
+    dj_hijri("Eid al-Adha (second day)", "Aïd el-Addha", 12, 11),
+];
+
+/// Djibouti.
+///
+/// Arrêté 77-347/INT/AA of 4 October 1977 on the days "fériés, chômés et
+/// payés", whose article 1 the rectifying arrêté 80-0931/PR, published on
+/// 23 June 1981, quotes in full before replacing its Independence Day line:
+/// two days of each Eid, the first of Muharram, New Year's Day, the
+/// Mouloud, 1 May, Independence Day on 27 June and Al Isra wal Mi'raj, with
+/// Independence Day made "two consecutive days, the 27th and 28th of June
+/// of each year". Christmas was added by arrêté 77-609/PR/CAB, and arrêté
+/// 78-0226 added it too, worded for 25 December 1977. The list is carried
+/// from 1978, the arrêté's first full year, the French-era arrêté
+/// 59/90/SPCG before it not having been read. The second day of
+/// Independence is carried from 1981; whether the rectifying arrêté,
+/// numbered in 1980, already reached 28 June 1980 was not found out, so
+/// that day of 1980 is a gap. The Journal officiel's own search finds no
+/// later text changing the list. The Islamic days are on the tabular Hijri
+/// calendar, the second day of each Eid the day after, as approximations of
+/// the dates the sighting fixes. No text read moves a holiday off the
+/// weekly rest, and nothing moves. The weekend is the Friday alone: article
+/// 97 of the Labour Code puts the weekly rest "in principle on Friday", and
+/// arrêté 2019-193 gives it to all employees at once on that day, a two-day
+/// rest being left to collective agreements.
+pub static DJIBOUTI: RuleSet = RuleSet {
+    code: "DJ",
+    english_name: "Djibouti",
+    rules: DJ_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: DJ_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Arrêté n° 80-0931/PR portant rectificatif de l'arrêté n° 77-347/PR/MI du \
+              4.10.1977 règlementant les jours fériés, chômés et payés, arrêté n° 77-609/PR/CAB \
+              and arrêté n° 78-0226/MI/AA, from the Journal officiel's eJO \
+              (journalofficiel.dj), retrieved 2026-09-23; loi n° 133/AN/05/5ème L portant Code du \
+              Travail, articles 97 and 98, and arrêté n° 2019-193/PR/MTRA on the weekly rest, \
+              from the same, retrieved the same day",
+};
