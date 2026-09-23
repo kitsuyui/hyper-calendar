@@ -20,6 +20,11 @@ Every public function takes and returns a `hc_calendar::fixed::Moment` in
 conversion happens inside, through `time::delta_t`. Published worked examples
 are almost always quoted in TT, so `time::universal_time` bridges them.
 
+`ut1::Ut1` is the UT1 time scale for `hc_core::Instant`, read as `TT − ΔT`
+from this model: within about 0.1 s of the IERS EOP 20 C04 series from 1972
+through 2005, and behind it after, by 6.0 s on 2026-01-01. `ut1::Ut1Offsets`
+reads UT1 as `UTC + DUT1` from a series the caller supplies instead.
+
 ΔT is the Espenak–Meeus NASA polynomial set: thirteen segments over
 −500…+2150, and the parabola ΔT = −20 + 32u², u = (year − 1820)/100, outside
 that, fifteen expressions in all. The segments are independent least-squares fits and meet at the joins

@@ -21,8 +21,9 @@ The default is to say it does not know.
 - `LeapPolicy::Strict` returns `AfterModelEnd` past the announced validity of
   the leap-second table. `LeapPolicy::Extrapolate` exists, but the caller has
   to ask for it.
-- `Ut1Offsets` interpolates inside the supplied series and returns `None`
-  outside it.
+- `Ut1Offsets` interpolates inside the supplied series and returns
+  `BeforeModelStart` or `AfterModelEnd` outside it. UT1 without a series is
+  the `Ut1` marker's ΔT model, a different type with its accuracy stated.
 - Calendars whose rules are astronomical carry `is_astronomical: true`, and
   those with bounded data carry `earliest`/`latest` in their metadata.
 - Holidays that are announced rather than computed are flagged `Approximate`.

@@ -8,6 +8,7 @@
 //! # What it is
 //!
 //! * [`time`] — Universal Time to Terrestrial Time, and ΔT.
+//! * [`ut1`] — the UT1 time scale, from ΔT or from a published DUT1 series.
 //! * [`earth`] — obliquity, nutation, sidereal time.
 //! * [`vsop87`] — the Earth's heliocentric position from VSOP87, truncated
 //!   to a measured quarter of a second of arc.
@@ -53,6 +54,7 @@ pub mod lunar;
 pub mod riseset;
 pub mod solar;
 pub mod time;
+pub mod ut1;
 pub mod vsop87;
 
 mod search;
@@ -69,6 +71,7 @@ pub use solar::{
     solstice,
 };
 pub use time::{delta_t, dynamical_time, julian_centuries, universal_time};
+pub use ut1::{Ut1, Ut1Offsets};
 
 pub use hc_calendar;
 pub use hc_calendar::fixed::Moment;

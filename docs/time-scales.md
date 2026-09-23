@@ -31,7 +31,7 @@ confused.
 | **TDB** | Barycentric Dynamical Time. TT plus the periodic terms from the Earth's orbital motion; the independent variable of solar-system ephemerides. | `TDB − TT` is a truncated Fairhead–Bretagnon series, at most about 1.7 ms |
 | **TCB** | Barycentric Coordinate Time. | `TCB − TDB` is linear in `L_B = 1.550519768×10⁻⁸` plus `TDB₀` |
 | **GPS** | GPS system time. | `GPS = TAI − 19 s`, exactly, frozen at the 1980 epoch |
-| **UT1** | Universal Time — the Earth's actual rotation angle. | Observational. See below. |
+| **UT1** | Universal Time — the Earth's actual rotation angle. In `hc-astro`, not `hc-core`. | Observational; modelled as `TT − ΔT`, or read from a DUT1 series. See below. |
 
 `T₀` throughout is `1977-01-01T00:00:00 TAI`, the defining origin of TCG and
 TCB.
@@ -88,11 +88,23 @@ core-mantle coupling, glacial rebound and atmospheric angular momentum all move
 it. `UT1 − UTC` (DUT1) is measured by VLBI and published in IERS Bulletins A
 and B.
 
-The library therefore does **not** ship a DUT1 table baked in. `Ut1Offsets`
-takes the series the caller trusts, interpolates linearly inside it and returns
-`None` outside it rather than extrapolating. The `Ut1` scale marker on its own
-is a placeholder that returns the TAI reading unchanged, so without a series
-it is off by the whole of `TAI − UTC` as well as DUT1.
+The library therefore does **not** ship a DUT1 table baked in. Both readings
+of UT1 live in `hc-astro::ut1`:
+
+- `Ut1Offsets` takes the series the caller trusts and reads
+  `UT1 = UTC + DUT1`. Between samples it interpolates `UT1 − TAI`, which is
+  continuous, rather than DUT1, which steps a second at every leap second.
+  Outside the series it returns `BeforeModelStart` or `AfterModelEnd` rather
+  than extrapolating.
+- The `Ut1` scale marker needs no series. It reads `UT1 = TT − ΔT` from the
+  Espenak–Meeus model below. Against the IERS EOP 20 C04 series it is within
+  about 0.1 s from 1972 through 2005, where the model was fitted, and falls
+  behind after: 1.4 s on 2016-01-01, 6.0 s on 2026-01-01, because ΔT has
+  grown more slowly since 2006 than the model's forecast segment assumed.
+
+Since 1972 the IERS has kept `|UT1 − UTC| < 0.9 s` (ITU-R TF.460-6), so
+inside the leap-second table UTC itself is a closer reading of UT1 than the
+model has been since 2011; only a DUT1 series does better.
 
 ## ΔT
 

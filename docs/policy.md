@@ -77,7 +77,8 @@ Some questions have no answer, and the API says so instead of inventing one:
   that, `LeapPolicy::Strict` returns `AfterModelEnd`. A caller who wants a
   forecast must ask for one.
 - **UT1 before it was measured.** `DUT1` is observational. The library
-  interpolates within a supplied series and refuses to extrapolate outside it.
+  interpolates within a supplied series and refuses to extrapolate outside it;
+  UT1 without one is the ΔT model, a separate type whose error is stated.
 - **Historical proclamations.** Many calendars were, in practice, whatever an
   authority announced. Computed Hijri dates, pre-modern Chinese dates and
   pre-reform Julian dates can disagree with what was actually observed or

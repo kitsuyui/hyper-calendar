@@ -61,7 +61,7 @@ impl Duration {
     /// One mean solar day as used by civil calendars (86 400 SI seconds).
     ///
     /// This is the *nominal* day of the SI-second world, not the varying
-    /// rotation period of the Earth. See [`crate::scale::Ut1`].
+    /// rotation period of the Earth, which UT1 follows (see `hc-astro`).
     pub const DAY: Self = Self {
         secs: 86_400,
         attos: 0,
