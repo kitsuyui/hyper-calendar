@@ -55,7 +55,7 @@
 //! rather than at sunrise — and that belongs to a holiday rule, not to the
 //! date.
 
-use hc_astro::lunar::{new_moon_at_or_after, new_moon_before};
+use hc_astro::lunar::moon_phase_at_or_after;
 use hc_astro::riseset::Location;
 use hc_calendar::fixed::Moment;
 use hc_calendar::{
@@ -178,6 +178,33 @@ impl Default for HinduLunarCalendar {
     }
 }
 
+/// The first conjunction at or after a moment: the instant the Moon's
+/// elongation from the Sun, the quantity the tithi is counted in, returns to
+/// zero.
+///
+/// Not the tabulated new moon of [`hc_astro::lunar::nth_new_moon`], which
+/// comes from a different series and can differ from the elongation's zero by
+/// minutes. A month has to begin where its first tithi does, or a sunrise in
+/// those minutes would read the first tithi of a month the month boundaries
+/// have not yet begun.
+fn conjunction_at_or_after(moment: Moment) -> Moment {
+    moon_phase_at_or_after(0.0, moment)
+}
+
+/// The last conjunction strictly before a moment, on the same definition.
+fn conjunction_before(moment: Moment) -> Moment {
+    // A synodic month is under thirty days, so a search from 31 days back
+    // finds the conjunction before or the one before that.
+    let mut found = conjunction_at_or_after(Moment(moment.0 - 31.0));
+    loop {
+        let next = conjunction_at_or_after(Moment(found.0 + 1.0));
+        if next.0 >= moment.0 {
+            return found;
+        }
+        found = next;
+    }
+}
+
 impl HinduLunarCalendar {
     /// The calendar as the *Rashtriya Panchang* computes it: sunrise at the
     /// Central Station, Lahiri ayanamsa. The registered `hindu-lunar`.
@@ -201,13 +228,13 @@ impl HinduLunarCalendar {
     /// The lunar month bounded by the conjunction before `moment` and the
     /// one after, named and placed in its year.
     fn month_containing(&self, moment: Moment) -> LunarMonth {
-        let start = new_moon_before(moment);
+        let start = conjunction_before(moment);
         self.month_from(start)
     }
 
     /// The lunar month beginning after the conjunction `start`.
     fn month_from(&self, start: Moment) -> LunarMonth {
-        let end = new_moon_at_or_after(Moment(start.0 + 1.0));
+        let end = conjunction_at_or_after(Moment(start.0 + 1.0));
         let sign_at_start = sign_at_moment(start, self.ayanamsa);
         let sign_at_end = sign_at_moment(end, self.ayanamsa);
         let crossings =
@@ -287,7 +314,7 @@ impl HinduLunarCalendar {
             Moment(hc_astro::time::gregorian_new_year(gregorian_year).0 as f64),
         );
         let chaitra = self.month_containing(mesha);
-        let before = self.month_from(new_moon_before(Moment(chaitra.start.0 - 1.0)));
+        let before = self.month_from(conjunction_before(Moment(chaitra.start.0 - 1.0)));
         let first = if before.month == 1 && before.leap {
             before
         } else {
@@ -332,7 +359,7 @@ impl HinduLunarCalendar {
         if !leap {
             return Ok(ordinary);
         }
-        let before = self.month_from(new_moon_before(Moment(ordinary.start.0 - 1.0)));
+        let before = self.month_from(conjunction_before(Moment(ordinary.start.0 - 1.0)));
         if before.month == month && before.leap && before.year == year {
             Ok(before)
         } else {
@@ -620,6 +647,29 @@ impl Calendar for HinduLunarCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_month_begins_where_its_first_tithi_does() {
+        // 1 October 2016 at Kathmandu (27.71° N, 85.32° E): the conjunction
+        // fell within minutes of sunrise, and the tabulated new moon and the
+        // elongation's zero fell on either side of it. Read at sunrise the
+        // day carries the first tithi, so it is the first day of Āśvina.
+        let kathmandu = HinduLunarCalendar::new(
+            hc_astro::riseset::Location::new(27.71, 85.32, 0.0),
+            Ayanamsa::LAHIRI,
+        );
+        let day = |m, d| gregorian::to_fixed(2016, m, d).expect("a date");
+        let first = kathmandu.from_fixed(day(10, 1)).expect("in range");
+        assert_eq!((first.month, first.day), (7, 1), "{first:?}");
+        for d in 25..=30 {
+            let date = kathmandu.from_fixed(day(9, d)).expect("in range");
+            assert_eq!(kathmandu.to_fixed(date), Ok(day(9, d)), "{date:?}");
+        }
+        for d in 1..=5 {
+            let date = kathmandu.from_fixed(day(10, d)).expect("in range");
+            assert_eq!(kathmandu.to_fixed(date), Ok(day(10, d)), "{date:?}");
+        }
+    }
 
     #[test]
     fn a_new_moon_after_the_next_local_sunrise_starts_the_month_a_day_later() {
