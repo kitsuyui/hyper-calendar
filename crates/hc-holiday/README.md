@@ -15,6 +15,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `computus` | Easter, Gregorian and Julian, and the offsets keyed to it |
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
+| `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `international` | the United Nations international days, each citing its resolution |
 | `exchanges` | 20 exchange calendars: New York, Nasdaq, Toronto, São Paulo, London, Frankfurt, Euronext's seven markets, Nasdaq's four Nordic markets, Tokyo, Hong Kong, Sydney |
 | `countries` | 124 national tables |
@@ -112,7 +113,8 @@ Tunisia, Türkiye, Turkmenistan, Uganda, Ukraine, the United Arab Emirates, the
 United Kingdom (three bank-holiday jurisdictions), the United States, Uruguay,
 Uzbekistan, Vietnam, Zambia, Zimbabwe.
 
-**Nineteen traditions.** Christianity under both computations, the
+**Twenty traditions.** Christianity under both computations, the General
+Roman Calendar with the rank of every celebration (`roman_calendar`), the
 Ethiopian Orthodox Tewahedo and the Coptic Orthodox Churches, Islam,
 Judaism, the Bahá'í Faith, Hinduism, Jainism (Paryuṣaṇa and Daśa Lakṣaṇa
 counted back from their last days), Sikhism on the Nanakshahi calendar of

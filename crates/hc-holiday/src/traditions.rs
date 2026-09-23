@@ -1550,6 +1550,7 @@ pub static ZOROASTRIAN_QADIMI: RuleSet = RuleSet {
 /// Every tradition table in the crate.
 pub static ALL: &[&RuleSet] = &[
     &CHRISTIAN_WESTERN,
+    &crate::roman_calendar::GENERAL_ROMAN_CALENDAR,
     &CHRISTIAN_ORTHODOX,
     &ETHIOPIAN_ORTHODOX,
     &COPTIC_ORTHODOX,

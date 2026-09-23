@@ -16,6 +16,10 @@
 extend-exclude = ["Cargo.lock"]
 
 [default.extend-words]
+# St Peter Chanel, martyr of Futuna, in the General Roman Calendar.
+Chanel = "Chanel"
+# St Achilleus, martyr with St Nereus, in the General Roman Calendar.
+Achilleus = "Achilleus"
 # Spanish "Decreto Legislativo", Peru's legislative decree.
 Legislativo = "Legislativo"
 # The Macao Government's English spelling of the Tung Ng Festival.

@@ -81,6 +81,8 @@ pub mod engine;
 #[cfg(feature = "alloc")]
 pub mod exchanges;
 #[cfg(feature = "alloc")]
+pub mod roman_calendar;
+#[cfg(feature = "alloc")]
 pub mod traditions;
 
 pub use computus::{Computus, easter, gregorian_easter, orthodox_easter};
