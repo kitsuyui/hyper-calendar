@@ -171,7 +171,11 @@ England and Wales, the region the inclusion names, and halves the last
 weekdays before Christmas and of the year; Seoul (`XKRX`), which includes
 South Korea's table and adds 1 May, a day off for employees before it was a
 public holiday, and the last weekday of the year, and which matches the
-Korea Exchange's own closure lists for every year from 2009 to 2029; and Nasdaq's Nordic markets — Copenhagen (`XCSE`), Stockholm
+Korea Exchange's own closure lists for every year from 2009 to 2029;
+Shanghai (`XSHG`), which includes China's table — its annual arrangements,
+without the weekend days they make working days — and adds the eve of the
+Spring Festival 2024, and which matches the exchange's closure notices for
+2014 to 2026; and Nasdaq's Nordic markets — Copenhagen (`XCSE`), Stockholm
 (`XSTO`), Helsinki (`XHEL`) and Iceland (`XICE`) — each on its country's
 days as Nasdaq's calendar lists them, Stockholm with five half days a year.
 The unscheduled closures a read source

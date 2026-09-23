@@ -52,7 +52,7 @@ use crate::computus::offsets::{
     MAUNDY_THURSDAY, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
 };
 use crate::countries::europe::GB_ENGLAND_AND_WALES;
-use crate::countries::{HONG_KONG, JAPAN, SOUTH_KOREA, UNITED_KINGDOM};
+use crate::countries::{CHINA, HONG_KONG, JAPAN, SOUTH_KOREA, UNITED_KINGDOM};
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Include, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
     SubstituteDirection, SubstitutionPolicy,
@@ -965,6 +965,43 @@ pub static TOKYO_STOCK_EXCHANGE: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// Shanghai Stock Exchange
+// ─────────────────────────────────────────────────────────────────────────
+
+static XSHG_RULES: &[HolidayRule] = &[
+    // The eve of the Spring Festival 2024, a working day in the State
+    // Council's arrangement and a day the exchange's notice closes.
+    HolidayRule::fixed_public("Chinese New Year's Eve", "除夕", Rule::gregorian(2, 9))
+        .years(Some(2024), Some(2024)),
+];
+
+/// The Shanghai Stock Exchange.
+///
+/// The exchange's annual closure notices for 2014 to 2026: it is closed on
+/// Saturdays, Sundays and the days off of the State Council's arrangement
+/// for each year — the [`CHINA`] table's, which this set includes and does
+/// not repeat, with the three later notices that changed 2015, 2019 and
+/// 2020 — and not on the weekend days that arrangement makes working days,
+/// which the notices list as "周末休市". The one day of its own is
+/// 9 February 2024, the eve of the Spring Festival, which the arrangement
+/// left a working day. A year the [`CHINA`] table has no arrangement for is
+/// a gap here too.
+pub static SHANGHAI_STOCK_EXCHANGE: RuleSet = RuleSet {
+    code: "XSHG",
+    english_name: "Shanghai Stock Exchange",
+    rules: XSHG_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[Include::nationwide(&CHINA)],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "上海证券交易所, 关于上海证券交易所2014年 to 2026年全年（部分节假日）休市安排的通知 \
+              (sse.com.cn/disclosure/dealinstruc/closed/list/), retrieved 2026-09-23, with \
+              上证公告〔2019〕20号 on that year's Labour Day and 上证公告〔2020〕6号 on that \
+              year's Spring Festival",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // Korea Exchange
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -1264,6 +1301,7 @@ pub static ALL: &[&RuleSet] = &[
     &NEW_YORK_STOCK_EXCHANGE,
     &EURONEXT_OSLO,
     &EURONEXT_PARIS,
+    &SHANGHAI_STOCK_EXCHANGE,
     &NASDAQ_STOCKHOLM,
     &SIX_SWISS_EXCHANGE,
     &TORONTO_STOCK_EXCHANGE,
