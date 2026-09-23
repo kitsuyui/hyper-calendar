@@ -335,12 +335,14 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 ## Business days
 
 The weekend is data. Saturday–Sunday is the common case; Friday–Saturday holds
-in Israel, Bangladesh, the Maldives and most of the Arab states today;
+in Bangladesh, the Maldives and most of the Arab states today;
 Thursday–Friday held in Saudi Arabia until its June 2013 royal order; the
 Emirates moved to Saturday–Sunday on 1 January 2022; Nepal kept a one-day
-Saturday weekend until April 2026; and Brunei rests on Friday and Sunday and
-works the Saturday between. All six are exercised by the test suite. A few
-tables rest on one day: Iran and Djibouti the Friday, Cuba, Cambodia,
+Saturday weekend until 6 April 2026, which the table carries from 1 January
+2026 because a weekend rule is valid for whole years; and Brunei rests on Friday and Sunday
+and works the Saturday between. All six are exercised by the test suite. A
+few tables rest on one day: Iran and Djibouti the Friday, Israel the
+Saturday, which is its only statutory day of rest, and Cuba, Cambodia,
 Timor-Leste and the Vatican the Sunday.
 
 ```rust

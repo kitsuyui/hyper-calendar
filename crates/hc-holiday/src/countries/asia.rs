@@ -1881,14 +1881,27 @@ pub static PHILIPPINES: RuleSet = RuleSet {
 /// extended it to Saturday and Sunday in April 2026. It is the reason the
 /// engine takes weekend days as data rather than assuming Saturday and
 /// Sunday, and the reason a weekend rule carries years like everything else.
+///
+/// The cabinet decided on 5 April 2026 (चैत्र 22, 2082 BS) to close
+/// government offices and every educational institution on Sundays as well
+/// as Saturdays, "effective from Chaitra 23, 2082", which is Monday 6 April
+/// 2026, as a saving on fuel during the disruption of petroleum supply. The
+/// decision is quoted by New Spotlight, 5 April 2026
+/// (<https://www.spotlightnepal.com/2026/04/05/nepal-government-decides-grant-two-day-holiday-saturday-and-sunday/>),
+/// and OnlineKhabar English reported it the same day from the government
+/// spokesperson as starting the next day. The first Sunday off was 12 April
+/// 2026.
+///
+/// A weekend policy here is valid for whole Gregorian years, so 2026 is
+/// carried as a Saturday–Sunday year: that is right from 12 April and wrong
+/// for the fourteen Sundays from 4 January to 5 April, which were working
+/// days.
 static NP_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Saturday],
         valid_from: None,
         valid_until: Some(2025),
     },
-    // The government extended the weekly holiday to Saturday and Sunday for
-    // government offices and schools in April 2026.
     WeekendPolicy {
         days: &[Weekday::Saturday, Weekday::Sunday],
         valid_from: Some(2026),
@@ -2067,7 +2080,10 @@ pub static NEPAL: RuleSet = RuleSet {
               not follow), all retrieved 2026-09-23. The part of the day each \
               tithi holds is fitted to the notices for 2080 to 2083 BS. \
               Chhath, which no single rule fits, and the holidays for one \
-              community, region or group are not listed yet",
+              community, region or group are not listed yet. The Sunday \
+              weekend: the cabinet decision of 5 April 2026, effective \
+              Chaitra 23, 2082 BS (6 April 2026), as quoted by New \
+              Spotlight, retrieved 2026-09-23",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

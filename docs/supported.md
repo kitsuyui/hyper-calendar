@@ -199,7 +199,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `HU` | Hungary | 11 | none | stated | 2026-09-22 |
 | `ID` | Indonesia | 15 | none | stated | 2026-09-21 |
 | `IE` | Ireland | 11 | yes | stated | 2026-09-21 |
-| `IL` | Israel | 13 | none | stated | 2026-09-21 |
+| `IL` | Israel | 13 | none | stated | 2026-09-23 |
 | `IN` | India | 17 | none | stated | 2026-09-21 |
 | `IQ` | Iraq | 32 | none | stated | 2026-09-22 |
 | `IR` | Iran | 27 | none | stated | 2026-09-22 |

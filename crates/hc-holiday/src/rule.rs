@@ -1392,10 +1392,10 @@ impl BridgePolicy {
 
 /// Which days of the week are the weekend, and when.
 ///
-/// Friday–Saturday is the weekend in much of the Middle East, Sunday alone in
-/// Nepal, and both Saudi Arabia (2013) and the United Arab Emirates (2022)
-/// changed theirs within living memory, so this carries years like everything
-/// else.
+/// Friday–Saturday is the weekend in much of the Middle East, Saturday alone
+/// in Nepal until 2026, and Saudi Arabia (2013), the United Arab Emirates
+/// (2022) and Nepal (2026) all changed theirs within living memory, so this
+/// carries years like everything else.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WeekendPolicy {
     /// The weekend days.

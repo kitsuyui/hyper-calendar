@@ -2062,9 +2062,11 @@ fn israeli_independence_day_moves_away_from_the_sabbath() {
 }
 
 #[test]
-fn israel_keeps_a_friday_saturday_weekend() {
+fn israel_rests_on_the_sabbath_and_works_on_friday() {
+    // The Hours of Work and Rest Law makes the Sabbath the weekly rest and
+    // Friday a shortened working day.
     let calendar = HolidayCalendar::for_year(table("IL"), None, 2025);
-    assert!(calendar.is_weekend(ymd(2025, 3, 7)));
+    assert!(calendar.is_business_day(ymd(2025, 3, 7)));
     assert!(calendar.is_weekend(ymd(2025, 3, 8)));
     assert!(calendar.is_business_day(ymd(2025, 3, 9)));
 }

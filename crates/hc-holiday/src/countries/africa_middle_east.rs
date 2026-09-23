@@ -137,6 +137,21 @@ static IL_RULES: &[HolidayRule] = &[
     ),
 ];
 
+/// Israel's weekly day of rest: the Sabbath, and in law nothing else.
+///
+/// The Hours of Work and Rest Law, 5711-1951, section 7(b)(1), puts the
+/// Sabbath in every Jewish employee's weekly rest, and the Law and
+/// Administration Ordinance, section 18A, makes the Sabbath and the festivals
+/// the State's prescribed days of rest. Friday is a working day: section
+/// 2(b) shortens the day before the weekly rest to seven hours, and the
+/// Sunday-to-Thursday week many employers keep is agreement and custom, not
+/// statute.
+static IL_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Saturday],
+    valid_from: None,
+    valid_until: None,
+}];
+
 /// Israel.
 pub static ISRAEL: RuleSet = RuleSet {
     code: "IL",
@@ -145,14 +160,18 @@ pub static ISRAEL: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: FRIDAY_SATURDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
+    weekend: IL_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 23),
     sources: "חוק יום העצמאות, התש\"ט-1949 and its 2004 amendment; \
-              פקודת סדרי השלטון והמשפט for the festival days. Every date is \
+              פקודת סדרי השלטון והמשפט for the festival days and, in \
+              section 18A, the Sabbath as the day of rest; חוק שעות עבודה \
+              ומנוחה, התשי\"א-1951, sections 2(b) and 7, in the ILO NATLEX \
+              English translation, retrieved 2026-09-23. Every date is \
               exact, because the Hebrew calendar is arithmetic. Holidays \
               begin at sunset on the preceding evening, which this crate \
               does not model: it names days, not evenings. Friday is a \
-              working half-day rather than a full weekend day",
+              working day in law, shortened to seven hours, so the weekend \
+              here is Saturday alone",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
