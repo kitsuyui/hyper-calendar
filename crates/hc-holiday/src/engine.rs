@@ -386,8 +386,13 @@ fn evaluate_with_includes(
         return (holidays, gaps);
     }
     for included in rules.includes {
-        let (more, more_gaps) =
-            evaluate_with_includes(included, region, first_year, last_year, depth + 1);
+        let (more, more_gaps) = evaluate_with_includes(
+            included.set,
+            included.region,
+            first_year,
+            last_year,
+            depth + 1,
+        );
         // Only the days off: an included set's commemorations are its own.
         // Hong Kong keeps the Winter Solstice as an observance, and the
         // exchange that closes on Hong Kong's holidays trades through it.

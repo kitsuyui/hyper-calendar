@@ -1579,6 +1579,38 @@ impl SourceDate {
     }
 }
 
+/// A rule set another keeps the days off of, and which of its regions:
+/// see [`RuleSet::includes`].
+///
+/// The region belongs to the inclusion, not to whoever asks. The London
+/// Stock Exchange closes on the bank holidays of England and Wales, and
+/// asking for its calendar in no particular region still means those.
+#[derive(Debug, Clone, Copy)]
+pub struct Include {
+    /// The set whose days off are kept.
+    pub set: &'static RuleSet,
+    /// The region of it to evaluate, or `None` for its nationwide days.
+    pub region: Option<&'static str>,
+}
+
+impl Include {
+    /// A set's nationwide days off.
+    #[must_use]
+    pub const fn nationwide(set: &'static RuleSet) -> Self {
+        Self { set, region: None }
+    }
+
+    /// A set's days off in one of its regions, the nationwide ones among
+    /// them.
+    #[must_use]
+    pub const fn in_region(set: &'static RuleSet, region: &'static str) -> Self {
+        Self {
+            set,
+            region: Some(region),
+        }
+    }
+}
+
 /// A named table of holiday rules, with the policies that modify them.
 ///
 /// One country is one of these; so is one religious tradition. The evaluator
@@ -1599,15 +1631,15 @@ pub struct RuleSet {
     /// Bridge policies, such as Japan's 国民の休日.
     pub bridges: &'static [BridgePolicy],
     /// Other rule sets whose days off this one keeps as well, each
-    /// evaluated under its own policies and merged in: an exchange that
-    /// closes on its country's holidays includes the country's table and
-    /// lists only its own days. Only the days off come along — public and
-    /// bank holidays, with their substitutes and bridges — and not the
-    /// included set's religious days or observances, which are its own:
-    /// Hong Kong's Winter Solstice is not a day its exchange notes. A set
-    /// may include a set that includes another; the engine follows eight
-    /// levels and no further.
-    pub includes: &'static [&'static RuleSet],
+    /// evaluated under its own policies, in the region the [`Include`]
+    /// names, and merged in: an exchange that closes on its country's
+    /// holidays includes the country's table and lists only its own days.
+    /// Only the days off come along — public and bank holidays, with their
+    /// substitutes and bridges — and not the included set's religious days
+    /// or observances, which are its own: Hong Kong's Winter Solstice is
+    /// not a day its exchange notes. A set may include a set that includes
+    /// another; the engine follows eight levels and no further.
+    pub includes: &'static [Include],
     /// Which days are the weekend, over stated years.
     pub weekend: &'static [WeekendPolicy],
     /// When the sources behind this table were last checked.

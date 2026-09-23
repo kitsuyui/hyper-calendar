@@ -16,7 +16,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `engine` | evaluation, and business-day arithmetic |
 | `traditions` | the cross-cutting religious cycles |
 | `international` | the United Nations international days, each citing its resolution |
-| `exchanges` | 19 exchange calendars: New York, Nasdaq, Toronto, São Paulo, Frankfurt, Euronext's seven markets, Nasdaq's four Nordic markets, Tokyo, Hong Kong, Sydney |
+| `exchanges` | 20 exchange calendars: New York, Nasdaq, Toronto, São Paulo, London, Frankfurt, Euronext's seven markets, Nasdaq's four Nordic markets, Tokyo, Hong Kong, Sydney |
 | `countries` | 123 national tables |
 
 ## The vocabulary
@@ -163,7 +163,9 @@ year, and open from 1:00 p.m. on Ash Wednesday; and Tokyo (`XJPX`) and Hong
 Kong (`XHKG`), which close on every national or general holiday and add days
 of their own — Tokyo 2 and 3 January and 31 December, Hong Kong three half
 days — and so include their countries' tables through `includes` rather than
-copy them; and Nasdaq's Nordic markets — Copenhagen (`XCSE`), Stockholm
+copy them; London (`XLON`), which includes the United Kingdom's table for
+England and Wales, the region the inclusion names, and halves the last
+weekdays before Christmas and of the year; and Nasdaq's Nordic markets — Copenhagen (`XCSE`), Stockholm
 (`XSTO`), Helsinki (`XHEL`) and Iceland (`XICE`) — each on its country's
 days as Nasdaq's calendar lists them, Stockholm with five half days a year.
 The unscheduled closures a read source
