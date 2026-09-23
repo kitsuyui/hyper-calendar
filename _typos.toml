@@ -148,3 +148,9 @@ Datas = "Datas"
 # Portuguese "Datas de Celebração Nacional", national celebration dates, in
 # the title of Angola's holidays law, and "Novo Jornal", the Luanda weekly
 # cited as a source.
+# French "Fonction publique", the civil service, in the name of
+# Mauritania's Ministère de la Fonction Publique et du Travail.
+Fonction = "Fonction"
+# French "s'aligne", aligns itself, in the title of the Cridem article on
+# Mauritania's 2014 weekend change.
+aligne = "aligne"

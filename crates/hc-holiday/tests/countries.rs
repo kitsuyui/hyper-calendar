@@ -6613,6 +6613,103 @@ fn lesotho_keeps_the_acts_days_and_reports_the_changed_ones_as_gaps_before_2026(
 }
 
 #[test]
+fn chad_moves_only_article_2s_paid_days_off_a_sunday() {
+    expect(
+        "TD",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 8, "International Women's Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 8, 11, "Independence Day"),
+            (2026, 8, 26, "Prophet's Birthday"),
+            (2026, 11, 1, "All Saints' Day"),
+            (2026, 11, 28, "Republic Day"),
+            (2026, 12, 1, "Freedom and Democracy Day"),
+            (2026, 12, 25, "Christmas Day"),
+            (2015, 8, 11, "Independence Day"),
+        ],
+    );
+    // 8 March 2020, 1 December 2024 and 11 August 2024 were Sundays.
+    expect_substitute("TD", None, 2020, (3, 8), (3, 9));
+    expect_substitute("TD", None, 2024, (12, 1), (12, 2));
+    expect_substitute("TD", None, 2024, (8, 11), (8, 12));
+    // 8 March before the 2019 decree; a Sunday Republic Day or Christmas,
+    // article 1's days, stays.
+    expect_working("TD", None, &[(2018, 3, 8), (2021, 11, 29), (2022, 12, 26)]);
+    let missing: Vec<&str> = HolidayCalendar::for_year(table("TD"), None, 2010)
+        .gaps()
+        .iter()
+        .map(|gap| gap.name)
+        .collect();
+    assert!(missing.contains(&"Independence Day"), "{missing:?}");
+    assert!(HolidayCalendar::for_year(table("TD"), None, 2011).is_complete());
+}
+
+#[test]
+fn mauritania_keeps_law_92_018_and_its_weekend_moved_in_2014() {
+    expect(
+        "MR",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 25, "Africa Liberation Day"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 6, 17, "Islamic New Year"),
+            (2026, 8, 26, "Prophet's Birthday"),
+            (2026, 11, 28, "National Day"),
+            (2025, 11, 28, "National Day"),
+            (2025, 5, 25, "Africa Liberation Day"),
+        ],
+    );
+    // A Saturday National Day stays; the second day of an Eid is a decree
+    // each time and is not carried.
+    expect_working("MR", None, &[(2026, 11, 30), (2026, 5, 28)]);
+    let before = HolidayCalendar::for_year(table("MR"), None, 2013);
+    assert!(before.is_weekend(ymd(2013, 6, 7)), "a Friday in 2013");
+    assert!(!before.is_weekend(ymd(2013, 6, 9)), "a Sunday in 2013");
+    let after = HolidayCalendar::for_year(table("MR"), None, 2026);
+    assert!(!after.is_weekend(ymd(2026, 6, 5)), "a Friday in 2026");
+    assert!(after.is_weekend(ymd(2026, 6, 7)), "a Sunday in 2026");
+}
+
+#[test]
+fn djibouti_keeps_two_days_of_each_eid_and_of_independence_on_a_friday_weekend() {
+    expect(
+        "DJ",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 1, 16, "Isra and Mi'raj"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 3, 21, "Eid al-Fitr (second day)"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 5, 28, "Eid al-Adha (second day)"),
+            (2026, 6, 17, "Islamic New Year"),
+            (2026, 6, 27, "Independence Day"),
+            (2026, 6, 28, "Independence Day (second day)"),
+            (2026, 8, 26, "Prophet's Birthday"),
+            (2026, 12, 25, "Christmas Day"),
+            (1981, 6, 28, "Independence Day (second day)"),
+            (1979, 6, 27, "Independence Day"),
+        ],
+    );
+    // One day of Independence before the rectifying arrêté.
+    expect_working("DJ", None, &[(1979, 6, 28)]);
+    assert!(!HolidayCalendar::for_year(table("DJ"), None, 1980).is_complete());
+    let calendar = HolidayCalendar::for_year(table("DJ"), None, 2026);
+    assert!(calendar.is_weekend(ymd(2026, 9, 25)), "a Friday");
+    assert!(!calendar.is_weekend(ymd(2026, 9, 26)), "a Saturday");
+    assert!(!calendar.is_weekend(ymd(2026, 9, 27)), "a Sunday");
+}
+
+#[test]
 fn hungary_holidays_stay_on_the_weekend_and_good_friday_began_in_2017() {
     expect(
         "HU",
