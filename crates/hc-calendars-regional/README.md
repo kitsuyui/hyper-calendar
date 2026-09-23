@@ -77,8 +77,9 @@ day, back to 貞観4年1月1日 = 862-02-07. Before that it refuses: a date in
 
 The **era table is complete regardless**: all 248 nengō from 大化 (645) to
 令和 live in the `nengo` module, and `nengo::era_at` will name the era in
-force on any day from 645 onward. It simply will not tell you the month and
-day.
+force on any day from 645 onward, or answer `None` where there was none: 白雉
+lapsed in 655 with no successor until 朱鳥 in 686, and 朱鳥 in 687 with none
+until 大宝 in 701. It simply will not tell you the month and day.
 
 Era years are counted from the era's first *calendar* year, which is why
 安政元年 is the lunisolar year that began in 1854 even though the era was

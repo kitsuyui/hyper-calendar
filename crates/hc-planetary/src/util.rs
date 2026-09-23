@@ -1,19 +1,18 @@
 //! Internal helpers shared by the body modules.
 //!
-//! Nothing here is public. The proleptic Gregorian arithmetic is a private
-//! copy of the formula that [`hc_calendar::gregorian::to_fixed`] implements,
-//! used only to write down the ten mission landing times.
+//! Nothing here is public. The Gregorian date of a mission landing goes
+//! through [`hc_calendar::gregorian::to_fixed`], which owns that arithmetic;
+//! [`utc_unix_seconds`] only changes its shape into the bare POSIX timestamp
+//! a `const` table can hold.
 
+use hc_calendar::fixed::RD_OF_UNIX_EPOCH;
+use hc_calendar::gregorian;
 use hc_core::math::floor;
 use hc_core::{Duration, Instant, Tai, TimeResult};
 
 /// Seconds in a terrestrial day as the astronomical series count them: 86 400
 /// exactly, with no leap second, because TAI and TT are uniform scales.
 pub(crate) const SECONDS_PER_DAY: f64 = 86_400.0;
-
-/// The Rata Die of `1970-01-01`, repeated here so the landing-time constants
-/// can be evaluated in a `const` context.
-const RD_OF_UNIX_EPOCH: i64 = 719_163;
 
 /// The TAI reading of J2000.0, measured from `1970-01-01T00:00:00 TAI`.
 ///
@@ -81,37 +80,17 @@ pub(crate) fn signed_degrees(degrees: f64) -> f64 {
     }
 }
 
-/// Whether `year` is a leap year in the proleptic Gregorian calendar.
-const fn is_gregorian_leap(year: i64) -> bool {
-    year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
-}
-
-/// The Rata Die of a proleptic Gregorian date.
-///
-/// Reingold and Dershowitz, *Calendrical Calculations*, `fixed-from-gregorian`.
-/// No validation: every caller is a compile-time constant in this crate or a
-/// test.
-const fn fixed_from_gregorian(year: i64, month: u8, day: u8) -> i64 {
-    let prior = year - 1;
-    let correction = if month <= 2 {
-        0
-    } else if is_gregorian_leap(year) {
-        -1
-    } else {
-        -2
-    };
-    365 * prior + prior.div_euclid(4) - prior.div_euclid(100)
-        + prior.div_euclid(400)
-        + (367 * month as i64 - 362) / 12
-        + correction
-        + day as i64
-}
-
 /// The POSIX timestamp of a UTC civil date and time.
 ///
 /// POSIX time ignores leap seconds by construction, so this is exact for every
 /// second that is not itself an inserted leap second; none of the instants
 /// this crate names are.
+///
+/// # Panics
+///
+/// For a date that does not exist. Every caller is a `const` initialiser of
+/// a published landing time, or a test, so the panic happens at compile time
+/// and an impossible date is a build error rather than a wrong constant.
 pub(crate) const fn utc_unix_seconds(
     year: i64,
     month: u8,
@@ -120,10 +99,11 @@ pub(crate) const fn utc_unix_seconds(
     minute: u8,
     second: u8,
 ) -> i64 {
-    (fixed_from_gregorian(year, month, day) - RD_OF_UNIX_EPOCH) * 86_400
-        + hour as i64 * 3_600
-        + minute as i64 * 60
-        + second as i64
+    let day = match gregorian::to_fixed(year, month, day) {
+        Ok(rd) => rd.0,
+        Err(_) => panic!("a landing date that does not exist"),
+    };
+    (day - RD_OF_UNIX_EPOCH) * 86_400 + hour as i64 * 3_600 + minute as i64 * 60 + second as i64
 }
 
 /// The TAI instant of a UTC civil date and time.
@@ -153,13 +133,23 @@ pub(crate) fn tai_from_utc_fields(
 mod tests {
     use super::*;
 
+    /// The timestamp is the owner's fixed day, reshaped: whole days since
+    /// 1970 times 86 400, plus the time of day.
     #[test]
-    fn the_gregorian_helper_agrees_with_the_published_rata_die_anchors() {
-        // Reingold and Dershowitz, table 1.2.
-        assert_eq!(fixed_from_gregorian(1, 1, 1), 1);
-        assert_eq!(fixed_from_gregorian(1970, 1, 1), 719_163);
-        assert_eq!(fixed_from_gregorian(2000, 1, 1), 730_120);
-        assert_eq!(fixed_from_gregorian(1582, 10, 15), 577_736);
+    fn the_unix_helper_changes_the_shape_of_the_gregorian_conversion_and_nothing_else() {
+        for (year, month, day) in [(1, 1, 1), (1582, 10, 15), (1970, 1, 1), (2024, 2, 29)] {
+            let rd = gregorian::to_fixed(year, month, day).unwrap();
+            assert_eq!(
+                utc_unix_seconds(year, month, day, 1, 2, 3),
+                rd.to_unix_days() * 86_400 + 3_723
+            );
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "does not exist")]
+    fn the_unix_helper_refuses_a_date_that_does_not_exist() {
+        let _ = utc_unix_seconds(2023, 2, 29, 0, 0, 0);
     }
 
     #[test]

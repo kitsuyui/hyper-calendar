@@ -37,8 +37,21 @@
 use core::fmt;
 
 use hc_calendar::{
-    Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd,
-    YearKind,
+    Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, CivilTime, DateFields,
+    DayBoundary, Month, Rd, YearKind,
+};
+
+/// Mean daybreak, 05:00 local mean solar time, when the Tibetan calendar day
+/// begins.
+///
+/// The calendar day runs "from dawn to dawn" and is a constant 24 hours, so
+/// no sunrise is computed; Janson's Remark 6 gives Henning's mean daybreak,
+/// 5 a.m. local mean solar time, as the start (Janson, "Tibetan calendar
+/// mathematics", Section 2 and Remark 6; Edward Henning, *Kālacakra and the
+/// Tibetan Calendar*, 2007, pp. 10–11).
+pub const DAWN: CivilTime = match CivilTime::hms(5, 0, 0) {
+    Ok(time) => time,
+    Err(_) => panic!("05:00 is a time of day"),
 };
 
 /// The epoch year of the Kālacakra Tantra reckoning, 806.
@@ -443,6 +456,11 @@ impl Calendar for TibetanCalendar {
         hc_calendar::shape::LUNISOLAR_TWELVE
     }
 
+    /// Mean daybreak, [`DAWN`]: the Tibetan day runs from dawn to dawn.
+    fn day_boundary(&self) -> DayBoundary {
+        DayBoundary::LocalTime(DAWN)
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("tibetan"),
@@ -486,6 +504,14 @@ impl Calendar for TibetanCalendar {
 mod tests {
     use super::*;
     use crate::civil;
+
+    #[test]
+    fn the_day_begins_at_mean_daybreak() {
+        assert_eq!(
+            TibetanCalendar.day_boundary(),
+            DayBoundary::LocalTime(CivilTime::hms(5, 0, 0).unwrap())
+        );
+    }
 
     fn greg(year: i64, month: u8, day: u8) -> Rd {
         civil::to_rd(year, month, day)

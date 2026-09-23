@@ -49,7 +49,7 @@ pub type HcStatus = c_int;
 
 /// The call succeeded.
 pub const HC_OK: HcStatus = 0;
-/// A required pointer was null, or a string argument was not UTF-8.
+/// A required pointer was null.
 pub const HC_ERROR_NULL_POINTER: HcStatus = -1;
 /// A field was outside its valid range.
 pub const HC_ERROR_OUT_OF_RANGE: HcStatus = -2;
@@ -61,8 +61,10 @@ pub const HC_ERROR_OVERFLOW: HcStatus = -4;
 pub const HC_ERROR_BUFFER_TOO_SMALL: HcStatus = -5;
 /// The value lies outside the range where the requested model has data.
 pub const HC_ERROR_NO_DATA: HcStatus = -6;
-/// The requested calendar or identifier is not known.
+/// The requested calendar, table or identifier is not known.
 pub const HC_ERROR_UNKNOWN: HcStatus = -7;
+/// A string argument was not valid UTF-8.
+pub const HC_ERROR_NOT_UTF8: HcStatus = -8;
 
 fn status_from_calendar(error: CalendarError) -> HcStatus {
     match error {
@@ -429,7 +431,8 @@ mod holiday {
     use hc::hc_holiday::{countries, exchanges, international, traditions};
 
     use super::{
-        HC_ERROR_NULL_POINTER, HC_ERROR_OUT_OF_RANGE, HC_ERROR_UNKNOWN, HC_OK, HcStatus, write_text,
+        HC_ERROR_NOT_UTF8, HC_ERROR_NULL_POINTER, HC_ERROR_OUT_OF_RANGE, HC_ERROR_UNKNOWN, HC_OK,
+        HcStatus, write_text,
     };
 
     /// The table an identifier names: a country's ISO 3166-1 alpha-2 code,
@@ -442,17 +445,44 @@ mod holiday {
             .or_else(|| international::by_code(code))
     }
 
-    /// A NUL-terminated string, or `None` for null or non-UTF-8.
+    /// A NUL-terminated string: `Ok(None)` for a null pointer and
+    /// [`HC_ERROR_NOT_UTF8`] for bytes that are not UTF-8.
     ///
     /// # Safety
     ///
     /// `pointer` must be null or point to a NUL-terminated string.
-    unsafe fn text<'a>(pointer: *const c_char) -> Option<&'a str> {
+    unsafe fn text<'a>(pointer: *const c_char) -> Result<Option<&'a str>, HcStatus> {
         if pointer.is_null() {
-            return None;
+            return Ok(None);
         }
         // SAFETY: the caller guarantees a NUL-terminated string.
-        unsafe { CStr::from_ptr(pointer) }.to_str().ok()
+        unsafe { CStr::from_ptr(pointer) }
+            .to_str()
+            .map(Some)
+            .map_err(|_| HC_ERROR_NOT_UTF8)
+    }
+
+    /// The table and region two string arguments name.
+    ///
+    /// # Errors
+    ///
+    /// [`HC_ERROR_NULL_POINTER`] for a null `code`, [`HC_ERROR_NOT_UTF8`] for
+    /// either argument not being UTF-8, and [`HC_ERROR_UNKNOWN`] for a code
+    /// that names no table. A null or empty `region` is no region.
+    ///
+    /// # Safety
+    ///
+    /// Each pointer must be null or point to a NUL-terminated string.
+    unsafe fn table_and_region<'a>(
+        code: *const c_char,
+        region: *const c_char,
+    ) -> Result<(&'static RuleSet, Option<&'a str>), HcStatus> {
+        // SAFETY: forwarded to the caller's contract above.
+        let code = unsafe { text(code) }?.ok_or(HC_ERROR_NULL_POINTER)?;
+        // SAFETY: forwarded to the caller's contract above.
+        let region = unsafe { text(region) }?.filter(|region| !region.is_empty());
+        let table = table(code).ok_or(HC_ERROR_UNKNOWN)?;
+        Ok((table, region))
     }
 
     /// Every table's identifier, one per line.
@@ -516,8 +546,10 @@ mod holiday {
     /// `code` is a NUL-terminated table identifier — a country's ISO 3166-1
     /// alpha-2 code, an exchange's ISO 10383 Market Identifier Code, a
     /// tradition's slug or `un-days` — and `region`, which may be null, a
-    /// subdivision's ISO 3166-2 code. Writes 1 or 0 to `out_is_day_off`;
-    /// `HC_ERROR_UNKNOWN` names a table that does not exist.
+    /// subdivision's ISO 3166-2 code. Writes 1 or 0 to `out_is_day_off`.
+    /// A null `code` or `out_is_day_off` is `HC_ERROR_NULL_POINTER`, a
+    /// string that is not UTF-8 `HC_ERROR_NOT_UTF8`, and a code that names
+    /// no table `HC_ERROR_UNKNOWN`.
     ///
     /// # Safety
     ///
@@ -534,14 +566,10 @@ mod holiday {
             return HC_ERROR_NULL_POINTER;
         }
         // SAFETY: forwarded to the caller's contract above.
-        let Some(code) = (unsafe { text(code) }) else {
-            return HC_ERROR_NULL_POINTER;
+        let (table, region) = match unsafe { table_and_region(code, region) } {
+            Ok(found) => found,
+            Err(status) => return status,
         };
-        let Some(table) = table(code) else {
-            return HC_ERROR_UNKNOWN;
-        };
-        // SAFETY: forwarded to the caller's contract above.
-        let region = unsafe { text(region) }.filter(|region| !region.is_empty());
         let day = Rd(fixed);
         let Ok(year) = gregorian::year_from_fixed(day) else {
             return HC_ERROR_OUT_OF_RANGE;
@@ -560,8 +588,8 @@ mod holiday {
     /// `school` or `workday`), the confidence (`exact` or `approximate`), `1` for a
     /// substitute day and `0` otherwise, and the date the substitute
     /// stands in for or nothing. Writes the required length, including the
-    /// terminator, into `written`; `HC_ERROR_UNKNOWN` names a table that
-    /// does not exist.
+    /// terminator, into `written`. The string arguments fail as for
+    /// `hc_holiday_is_day_off`.
     ///
     /// # Safety
     ///
@@ -577,14 +605,10 @@ mod holiday {
         written: *mut usize,
     ) -> HcStatus {
         // SAFETY: forwarded to the caller's contract above.
-        let Some(code) = (unsafe { text(code) }) else {
-            return HC_ERROR_NULL_POINTER;
+        let (table, region) = match unsafe { table_and_region(code, region) } {
+            Ok(found) => found,
+            Err(status) => return status,
         };
-        let Some(table) = table(code) else {
-            return HC_ERROR_UNKNOWN;
-        };
-        // SAFETY: forwarded to the caller's contract above.
-        let region = unsafe { text(region) }.filter(|region| !region.is_empty());
         let text = lines(table, region, year);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_text(&text, buffer, capacity, written) }
@@ -821,8 +845,40 @@ mod tests {
             },
             HC_ERROR_NULL_POINTER
         );
-        // Too small reports the need; big enough receives the lines.
+        assert_eq!(
+            unsafe {
+                hc_holiday_is_day_off(core::ptr::null(), core::ptr::null(), fixed, &mut answer)
+            },
+            HC_ERROR_NULL_POINTER
+        );
+        // A string that is not UTF-8 says so, in the code and in the region
+        // alike, rather than passing for a null pointer or for no region.
+        let not_utf8 = c"\xff";
+        assert_eq!(
+            unsafe {
+                hc_holiday_is_day_off(not_utf8.as_ptr(), core::ptr::null(), fixed, &mut answer)
+            },
+            HC_ERROR_NOT_UTF8
+        );
+        assert_eq!(
+            unsafe { hc_holiday_is_day_off(jp.as_ptr(), not_utf8.as_ptr(), fixed, &mut answer) },
+            HC_ERROR_NOT_UTF8
+        );
         let mut written = 0usize;
+        assert_eq!(
+            unsafe {
+                hc_holidays_in_year(
+                    zz.as_ptr(),
+                    core::ptr::null(),
+                    2026,
+                    core::ptr::null_mut(),
+                    0,
+                    &mut written,
+                )
+            },
+            HC_ERROR_UNKNOWN
+        );
+        // Too small reports the need; big enough receives the lines.
         assert_eq!(
             unsafe {
                 hc_holidays_in_year(

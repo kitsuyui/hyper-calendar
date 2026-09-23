@@ -72,12 +72,12 @@ pub fn lorentz_factor_from_speed(metres_per_second: f64) -> RelativityResult<f64
 /// # Errors
 ///
 /// Returns [`RelativityError::NotFinite`] for a non-finite argument and
-/// [`RelativityError::NonPositive`] for `γ < 1`, which no real motion
-/// produces.
+/// [`RelativityError::LorentzFactorBelowOne`] for `γ < 1`, which no real
+/// motion produces.
 pub fn beta_from_lorentz(gamma: f64) -> RelativityResult<f64> {
     let gamma = finite(gamma)?;
     if gamma < 1.0 {
-        return Err(RelativityError::NonPositive);
+        return Err(RelativityError::LorentzFactorBelowOne);
     }
     Ok(math::sqrt(1.0 - 1.0 / (gamma * gamma)))
 }
@@ -224,13 +224,13 @@ pub fn transverse_doppler(beta: f64) -> RelativityResult<f64> {
 /// # Errors
 ///
 /// See [`check_beta`]; also returns [`RelativityError::NotFinite`] for a
-/// non-finite `cos_theta` and [`RelativityError::NonPositive`] when
+/// non-finite `cos_theta` and [`RelativityError::CosineOutOfRange`] when
 /// `|cos θ| > 1`.
 pub fn aberrated_cosine(cos_theta: f64, beta: f64) -> RelativityResult<f64> {
     let beta = check_beta(beta)?;
     let cos_theta = finite(cos_theta)?;
     if math::abs(cos_theta) > 1.0 {
-        return Err(RelativityError::NonPositive);
+        return Err(RelativityError::CosineOutOfRange);
     }
     let denominator = 1.0 + beta * cos_theta;
     if denominator == 0.0 {
@@ -315,7 +315,10 @@ mod tests {
 
     #[test]
     fn a_lorentz_factor_below_one_is_rejected() {
-        assert_eq!(beta_from_lorentz(0.5), Err(RelativityError::NonPositive));
+        assert_eq!(
+            beta_from_lorentz(0.5),
+            Err(RelativityError::LorentzFactorBelowOne)
+        );
         assert_eq!(beta_from_lorentz(f64::NAN), Err(RelativityError::NotFinite));
     }
 
@@ -477,7 +480,7 @@ mod tests {
     fn aberration_rejects_a_cosine_outside_the_unit_range() {
         assert_eq!(
             aberrated_cosine(1.5, 0.5),
-            Err(RelativityError::NonPositive)
+            Err(RelativityError::CosineOutOfRange)
         );
         assert_eq!(
             aberrated_cosine(f64::NAN, 0.5),

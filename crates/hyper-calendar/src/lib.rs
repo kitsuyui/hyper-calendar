@@ -63,7 +63,7 @@ pub use hc_core;
 
 pub use hc_core::{
     Duration, Gps, Instant, Tai, Tcb, Tcg, Tdb, TimeError, TimeResult, TimeScale, TimeScaleId, Tt,
-    UnixTime, Ut1,
+    UnixTime,
 };
 
 #[cfg(feature = "civil")]
@@ -83,6 +83,8 @@ pub mod civil;
 pub use hc_almanac;
 #[cfg(feature = "astro")]
 pub use hc_astro;
+#[cfg(feature = "astro")]
+pub use hc_astro::{Ut1, Ut1Offsets};
 #[cfg(feature = "attributes")]
 pub use hc_attributes;
 #[cfg(feature = "equinox")]

@@ -31,6 +31,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Disputed,
         start: Some(Rd(235_429)),
+        lapsed: None,
     },
     Nengo {
         id: "hakuchi",
@@ -45,6 +46,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(237_126)),
+        lapsed: Some(Rd(238_914)),
     },
     Nengo {
         id: "shucho",
@@ -59,6 +61,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(250_420)),
+        lapsed: Some(Rd(250_608)),
     },
     Nengo {
         id: "taiho",
@@ -73,6 +76,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(255_796)),
+        lapsed: None,
     },
     Nengo {
         id: "keiun",
@@ -87,6 +91,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(256_936)),
+        lapsed: None,
     },
     Nengo {
         id: "wado",
@@ -101,6 +106,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(258_267)),
+        lapsed: None,
     },
     Nengo {
         id: "reiki",
@@ -115,6 +121,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(261_062)),
+        lapsed: None,
     },
     Nengo {
         id: "yoro",
@@ -129,6 +136,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(261_875)),
+        lapsed: None,
     },
     Nengo {
         id: "jinki",
@@ -143,6 +151,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(264_136)),
+        lapsed: None,
     },
     Nengo {
         id: "tenpyo",
@@ -157,6 +166,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(266_145)),
+        lapsed: None,
     },
     Nengo {
         id: "tenpyokanpo",
@@ -171,6 +181,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(273_329)),
+        lapsed: None,
     },
     Nengo {
         id: "tenpyoshoho",
@@ -185,6 +196,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(273_436)),
+        lapsed: None,
     },
     Nengo {
         id: "tenpyohoji",
@@ -199,6 +211,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(276_376)),
+        lapsed: None,
     },
     Nengo {
         id: "tenpyojingo",
@@ -213,6 +226,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(279_081)),
+        lapsed: None,
     },
     Nengo {
         id: "jingokeiun",
@@ -227,6 +241,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(280_035)),
+        lapsed: None,
     },
     Nengo {
         id: "hoki",
@@ -241,6 +256,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(281_171)),
+        lapsed: None,
     },
     Nengo {
         id: "teno",
@@ -255,6 +271,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(284_923)),
+        lapsed: None,
     },
     Nengo {
         id: "enryaku",
@@ -269,6 +286,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(285_531)),
+        lapsed: None,
     },
     Nengo {
         id: "daido",
@@ -283,6 +301,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(294_183)),
+        lapsed: None,
     },
     Nengo {
         id: "konin",
@@ -297,6 +316,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(295_778)),
+        lapsed: None,
     },
     Nengo {
         id: "tencho",
@@ -311,6 +331,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(300_637)),
+        lapsed: None,
     },
     Nengo {
         id: "jowa-834",
@@ -325,6 +346,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(304_296)),
+        lapsed: None,
     },
     Nengo {
         id: "kasho-848",
@@ -339,6 +361,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(309_562)),
+        lapsed: None,
     },
     Nengo {
         id: "ninju",
@@ -353,6 +376,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(310_612)),
+        lapsed: None,
     },
     Nengo {
         id: "saiko",
@@ -367,6 +391,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(311_913)),
+        lapsed: None,
     },
     Nengo {
         id: "tenan",
@@ -381,6 +406,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(312_731)),
+        lapsed: None,
     },
     Nengo {
         id: "jogan",
@@ -395,6 +421,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(313_522)),
+        lapsed: None,
     },
     Nengo {
         id: "gangyo",
@@ -409,6 +436,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(320_109)),
+        lapsed: None,
     },
     Nengo {
         id: "ninna",
@@ -423,6 +451,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(322_949)),
+        lapsed: None,
     },
     Nengo {
         id: "kanpyo",
@@ -437,6 +466,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(324_490)),
+        lapsed: None,
     },
     Nengo {
         id: "shotai",
@@ -451,6 +481,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(327_767)),
+        lapsed: None,
     },
     Nengo {
         id: "engi",
@@ -465,6 +496,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(328_966)),
+        lapsed: None,
     },
     Nengo {
         id: "encho",
@@ -479,6 +511,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(336_907)),
+        lapsed: None,
     },
     Nengo {
         id: "johei",
@@ -493,6 +526,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(339_816)),
+        lapsed: None,
     },
     Nengo {
         id: "tengyo",
@@ -507,6 +541,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(342_410)),
+        lapsed: None,
     },
     Nengo {
         id: "tenryaku",
@@ -521,6 +556,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(345_659)),
+        lapsed: None,
     },
     Nengo {
         id: "tentoku",
@@ -535,6 +571,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(349_502)),
+        lapsed: None,
     },
     Nengo {
         id: "owa",
@@ -549,6 +586,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(350_702)),
+        lapsed: None,
     },
     Nengo {
         id: "koho",
@@ -563,6 +601,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(351_965)),
+        lapsed: None,
     },
     Nengo {
         id: "anna",
@@ -577,6 +616,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(353_446)),
+        lapsed: None,
     },
     Nengo {
         id: "tenroku",
@@ -591,6 +631,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(354_048)),
+        lapsed: None,
     },
     Nengo {
         id: "tenen",
@@ -605,6 +646,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(355_402)),
+        lapsed: None,
     },
     Nengo {
         id: "jogen-976",
@@ -619,6 +661,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(356_340)),
+        lapsed: None,
     },
     Nengo {
         id: "tengen",
@@ -633,6 +676,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(357_212)),
+        lapsed: None,
     },
     Nengo {
         id: "eikan",
@@ -647,6 +691,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(358_822)),
+        lapsed: None,
     },
     Nengo {
         id: "kanna",
@@ -661,6 +706,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(359_543)),
+        lapsed: None,
     },
     Nengo {
         id: "eien",
@@ -675,6 +721,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(360_259)),
+        lapsed: None,
     },
     Nengo {
         id: "eiso",
@@ -689,6 +736,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(361_118)),
+        lapsed: None,
     },
     Nengo {
         id: "shoryaku",
@@ -703,6 +751,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(361_560)),
+        lapsed: None,
     },
     Nengo {
         id: "chotoku",
@@ -717,6 +766,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(363_140)),
+        lapsed: None,
     },
     Nengo {
         id: "choho",
@@ -731,6 +781,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(364_549)),
+        lapsed: None,
     },
     Nengo {
         id: "kanko",
@@ -745,6 +796,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(366_564)),
+        lapsed: None,
     },
     Nengo {
         id: "chowa",
@@ -759,6 +811,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(369_670)),
+        lapsed: None,
     },
     Nengo {
         id: "kannin",
@@ -773,6 +826,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(371_233)),
+        lapsed: None,
     },
     Nengo {
         id: "jian",
@@ -787,6 +841,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(372_629)),
+        lapsed: None,
     },
     Nengo {
         id: "manju",
@@ -801,6 +856,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(373_880)),
+        lapsed: None,
     },
     Nengo {
         id: "chogen",
@@ -815,6 +871,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(375_340)),
+        lapsed: None,
     },
     Nengo {
         id: "choryaku",
@@ -829,6 +886,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(378_526)),
+        lapsed: None,
     },
     Nengo {
         id: "chokyu",
@@ -843,6 +901,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(379_843)),
+        lapsed: None,
     },
     Nengo {
         id: "kantoku",
@@ -857,6 +916,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(381_304)),
+        lapsed: None,
     },
     Nengo {
         id: "eisho-1046",
@@ -871,6 +931,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(381_826)),
+        lapsed: None,
     },
     Nengo {
         id: "tengi",
@@ -885,6 +946,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(384_274)),
+        lapsed: None,
     },
     Nengo {
         id: "kohei",
@@ -899,6 +961,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(386_329)),
+        lapsed: None,
     },
     Nengo {
         id: "jiryaku",
@@ -913,6 +976,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(388_871)),
+        lapsed: None,
     },
     Nengo {
         id: "enkyu",
@@ -927,6 +991,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(390_211)),
+        lapsed: None,
     },
     Nengo {
         id: "joho",
@@ -941,6 +1006,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(392_170)),
+        lapsed: None,
     },
     Nengo {
         id: "joryaku",
@@ -955,6 +1021,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(393_346)),
+        lapsed: None,
     },
     Nengo {
         id: "eiho",
@@ -969,6 +1036,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(394_549)),
+        lapsed: None,
     },
     Nengo {
         id: "otoku",
@@ -983,6 +1051,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(395_638)),
+        lapsed: None,
     },
     Nengo {
         id: "kanji",
@@ -997,6 +1066,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(396_790)),
+        lapsed: None,
     },
     Nengo {
         id: "kaho",
@@ -1011,6 +1081,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(399_604)),
+        lapsed: None,
     },
     Nengo {
         id: "eicho",
@@ -1025,6 +1096,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(400_315)),
+        lapsed: None,
     },
     Nengo {
         id: "jotoku",
@@ -1039,6 +1111,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(400_673)),
+        lapsed: None,
     },
     Nengo {
         id: "kowa-1099",
@@ -1053,6 +1126,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(401_300)),
+        lapsed: None,
     },
     Nengo {
         id: "choji",
@@ -1067,6 +1141,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(402_936)),
+        lapsed: None,
     },
     Nengo {
         id: "kasho-1106",
@@ -1081,6 +1156,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(403_732)),
+        lapsed: None,
     },
     Nengo {
         id: "tennin",
@@ -1095,6 +1171,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(404_582)),
+        lapsed: None,
     },
     Nengo {
         id: "tenei",
@@ -1109,6 +1186,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(405_272)),
+        lapsed: None,
     },
     Nengo {
         id: "eikyu",
@@ -1123,6 +1201,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(406_393)),
+        lapsed: None,
     },
     Nengo {
         id: "genei",
@@ -1137,6 +1216,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(408_097)),
+        lapsed: None,
     },
     Nengo {
         id: "hoan",
@@ -1151,6 +1231,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(408_842)),
+        lapsed: None,
     },
     Nengo {
         id: "tenji",
@@ -1165,6 +1246,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(410_312)),
+        lapsed: None,
     },
     Nengo {
         id: "daiji",
@@ -1179,6 +1261,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(410_950)),
+        lapsed: None,
     },
     Nengo {
         id: "tensho-1131",
@@ -1193,6 +1276,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(412_789)),
+        lapsed: None,
     },
     Nengo {
         id: "chosho",
@@ -1207,6 +1291,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(413_360)),
+        lapsed: None,
     },
     Nengo {
         id: "hoen",
@@ -1221,6 +1306,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(414_352)),
+        lapsed: None,
     },
     Nengo {
         id: "eiji",
@@ -1235,6 +1321,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(416_608)),
+        lapsed: None,
     },
     Nengo {
         id: "koji-1142",
@@ -1249,6 +1336,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(416_893)),
+        lapsed: None,
     },
     Nengo {
         id: "tenyo",
@@ -1263,6 +1351,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(417_566)),
+        lapsed: None,
     },
     Nengo {
         id: "kyuan",
@@ -1277,6 +1366,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(418_068)),
+        lapsed: None,
     },
     Nengo {
         id: "ninpei",
@@ -1291,6 +1381,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(420_080)),
+        lapsed: None,
     },
     Nengo {
         id: "kyuju",
@@ -1305,6 +1396,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(421_469)),
+        lapsed: None,
     },
     Nengo {
         id: "hogen",
@@ -1319,6 +1411,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(422_000)),
+        lapsed: None,
     },
     Nengo {
         id: "heiji",
@@ -1333,6 +1426,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(423_086)),
+        lapsed: None,
     },
     Nengo {
         id: "eiryaku",
@@ -1347,6 +1441,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(423_371)),
+        lapsed: None,
     },
     Nengo {
         id: "oho",
@@ -1361,6 +1456,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(423_955)),
+        lapsed: None,
     },
     Nengo {
         id: "chokan",
@@ -1375,6 +1471,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(424_542)),
+        lapsed: None,
     },
     Nengo {
         id: "eiman",
@@ -1389,6 +1486,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(425_344)),
+        lapsed: None,
     },
     Nengo {
         id: "ninan",
@@ -1403,6 +1501,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(425_780)),
+        lapsed: None,
     },
     Nengo {
         id: "kao",
@@ -1417,6 +1516,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(426_736)),
+        lapsed: None,
     },
     Nengo {
         id: "joan",
@@ -1431,6 +1531,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(427_487)),
+        lapsed: None,
     },
     Nengo {
         id: "angen",
@@ -1445,6 +1546,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(429_029)),
+        lapsed: None,
     },
     Nengo {
         id: "jisho",
@@ -1459,6 +1561,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(429_773)),
+        lapsed: None,
     },
     Nengo {
         id: "yowa",
@@ -1473,6 +1576,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(431_230)),
+        lapsed: None,
     },
     Nengo {
         id: "juei",
@@ -1487,6 +1591,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(431_538)),
+        lapsed: None,
     },
     Nengo {
         id: "genryaku",
@@ -1501,6 +1606,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(432_236)),
+        lapsed: None,
     },
     Nengo {
         id: "bunji",
@@ -1515,6 +1621,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(432_706)),
+        lapsed: None,
     },
     Nengo {
         id: "kenkyu",
@@ -1529,6 +1636,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(434_416)),
+        lapsed: None,
     },
     Nengo {
         id: "shoji",
@@ -1543,6 +1651,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(437_710)),
+        lapsed: None,
     },
     Nengo {
         id: "kennin",
@@ -1557,6 +1666,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(438_376)),
+        lapsed: None,
     },
     Nengo {
         id: "genkyu",
@@ -1571,6 +1681,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(439_476)),
+        lapsed: None,
     },
     Nengo {
         id: "kenei",
@@ -1585,6 +1696,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(440_280)),
+        lapsed: None,
     },
     Nengo {
         id: "jogen-1207",
@@ -1599,6 +1711,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(440_809)),
+        lapsed: None,
     },
     Nengo {
         id: "kenryaku",
@@ -1613,6 +1726,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(442_063)),
+        lapsed: None,
     },
     Nengo {
         id: "kenpo",
@@ -1627,6 +1741,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(443_064)),
+        lapsed: None,
     },
     Nengo {
         id: "jokyu",
@@ -1641,6 +1756,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(445_019)),
+        lapsed: None,
     },
     Nengo {
         id: "joo-1222",
@@ -1655,6 +1771,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(446_113)),
+        lapsed: None,
     },
     Nengo {
         id: "gennin",
@@ -1669,6 +1786,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(447_064)),
+        lapsed: None,
     },
     Nengo {
         id: "karoku",
@@ -1683,6 +1801,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(447_212)),
+        lapsed: None,
     },
     Nengo {
         id: "antei",
@@ -1697,6 +1816,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(448_177)),
+        lapsed: None,
     },
     Nengo {
         id: "kangi",
@@ -1711,6 +1831,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(448_615)),
+        lapsed: None,
     },
     Nengo {
         id: "joei",
@@ -1725,6 +1846,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(449_734)),
+        lapsed: None,
     },
     Nengo {
         id: "tenpuku",
@@ -1739,6 +1861,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(450_131)),
+        lapsed: None,
     },
     Nengo {
         id: "bunryaku",
@@ -1753,6 +1876,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(450_682)),
+        lapsed: None,
     },
     Nengo {
         id: "katei",
@@ -1767,6 +1891,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(451_021)),
+        lapsed: None,
     },
     Nengo {
         id: "ryakunin",
@@ -1781,6 +1906,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(452_176)),
+        lapsed: None,
     },
     Nengo {
         id: "eno",
@@ -1795,6 +1921,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(452_249)),
+        lapsed: None,
     },
     Nengo {
         id: "ninji",
@@ -1809,6 +1936,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(452_760)),
+        lapsed: None,
     },
     Nengo {
         id: "kangen",
@@ -1823,6 +1951,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(453_715)),
+        lapsed: None,
     },
     Nengo {
         id: "hoji",
@@ -1837,6 +1966,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(455_194)),
+        lapsed: None,
     },
     Nengo {
         id: "kencho",
@@ -1851,6 +1981,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(455_952)),
+        lapsed: None,
     },
     Nengo {
         id: "kogen",
@@ -1865,6 +1996,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(458_684)),
+        lapsed: None,
     },
     Nengo {
         id: "shoka",
@@ -1879,6 +2011,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(458_842)),
+        lapsed: None,
     },
     Nengo {
         id: "shogen",
@@ -1893,6 +2026,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(459_592)),
+        lapsed: None,
     },
     Nengo {
         id: "buno",
@@ -1907,6 +2041,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(459_992)),
+        lapsed: None,
     },
     Nengo {
         id: "kocho",
@@ -1921,6 +2056,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(460_294)),
+        lapsed: None,
     },
     Nengo {
         id: "bunei",
@@ -1935,6 +2071,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(461_395)),
+        lapsed: None,
     },
     Nengo {
         id: "kenji",
@@ -1949,6 +2086,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(465_468)),
+        lapsed: None,
     },
     Nengo {
         id: "koan-1278",
@@ -1963,6 +2101,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(466_504)),
+        lapsed: None,
     },
     Nengo {
         id: "shoo",
@@ -1977,6 +2116,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(470_224)),
+        lapsed: None,
     },
     Nengo {
         id: "einin",
@@ -1991,6 +2131,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(472_150)),
+        lapsed: None,
     },
     Nengo {
         id: "shoan",
@@ -2005,6 +2146,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(474_237)),
+        lapsed: None,
     },
     Nengo {
         id: "kengen",
@@ -2019,6 +2161,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(475_532)),
+        lapsed: None,
     },
     Nengo {
         id: "kagen",
@@ -2033,6 +2176,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(475_812)),
+        lapsed: None,
     },
     Nengo {
         id: "tokuji",
@@ -2047,6 +2191,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(477_032)),
+        lapsed: None,
     },
     Nengo {
         id: "enkyo-1308",
@@ -2061,6 +2206,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(477_706)),
+        lapsed: None,
     },
     Nengo {
         id: "ocho",
@@ -2075,6 +2221,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(478_612)),
+        lapsed: None,
     },
     Nengo {
         id: "showa-1312",
@@ -2089,6 +2236,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(478_958)),
+        lapsed: None,
     },
     Nengo {
         id: "bunpo",
@@ -2103,6 +2251,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(480_742)),
+        lapsed: None,
     },
     Nengo {
         id: "geno",
@@ -2117,6 +2266,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(481_535)),
+        lapsed: None,
     },
     Nengo {
         id: "genko-1321",
@@ -2131,6 +2281,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(482_209)),
+        lapsed: None,
     },
     Nengo {
         id: "shochu",
@@ -2145,6 +2296,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(483_583)),
+        lapsed: None,
     },
     Nengo {
         id: "karyaku",
@@ -2159,6 +2311,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(484_102)),
+        lapsed: None,
     },
     Nengo {
         id: "gentoku",
@@ -2173,6 +2326,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(485_315)),
+        lapsed: None,
     },
     Nengo {
         id: "genko-1331",
@@ -2187,6 +2341,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(486_034)),
+        lapsed: None,
     },
     Nengo {
         id: "shokei",
@@ -2201,6 +2356,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(486_289)),
+        lapsed: None,
     },
     Nengo {
         id: "kenmu",
@@ -2215,6 +2371,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(486_940)),
+        lapsed: None,
     },
     Nengo {
         id: "engen",
@@ -2229,6 +2386,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(487_708)),
+        lapsed: None,
     },
     Nengo {
         id: "ryakuo",
@@ -2243,6 +2401,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(488_621)),
+        lapsed: None,
     },
     Nengo {
         id: "kokoku",
@@ -2257,6 +2416,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(489_213)),
+        lapsed: None,
     },
     Nengo {
         id: "koei",
@@ -2271,6 +2431,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(489_950)),
+        lapsed: None,
     },
     Nengo {
         id: "jowa-1345",
@@ -2285,6 +2446,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(491_213)),
+        lapsed: None,
     },
     Nengo {
         id: "shohei",
@@ -2299,6 +2461,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(491_644)),
+        lapsed: None,
     },
     Nengo {
         id: "kanno",
@@ -2313,6 +2476,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(492_814)),
+        lapsed: None,
     },
     Nengo {
         id: "bunna",
@@ -2327,6 +2491,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(493_759)),
+        lapsed: None,
     },
     Nengo {
         id: "enbun",
@@ -2341,6 +2506,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(495_031)),
+        lapsed: None,
     },
     Nengo {
         id: "koan-1361",
@@ -2355,6 +2521,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(496_862)),
+        lapsed: None,
     },
     Nengo {
         id: "joji",
@@ -2369,6 +2536,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(497_387)),
+        lapsed: None,
     },
     Nengo {
         id: "oan",
@@ -2383,6 +2551,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(499_361)),
+        lapsed: None,
     },
     Nengo {
         id: "kentoku",
@@ -2397,6 +2566,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Disputed,
         start: Some(Rd(500_253)),
+        lapsed: None,
     },
     Nengo {
         id: "bunchu",
@@ -2411,6 +2581,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::MonthOnly,
         start: None,
+        lapsed: None,
     },
     Nengo {
         id: "eiwa",
@@ -2425,6 +2596,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(501_939)),
+        lapsed: None,
     },
     Nengo {
         id: "tenju",
@@ -2439,6 +2611,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Disputed,
         start: Some(Rd(502_028)),
+        lapsed: None,
     },
     Nengo {
         id: "koryaku",
@@ -2453,6 +2626,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(503_411)),
+        lapsed: None,
     },
     Nengo {
         id: "kowa-1381",
@@ -2467,6 +2641,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Disputed,
         start: Some(Rd(504_108)),
+        lapsed: None,
     },
     Nengo {
         id: "eitoku",
@@ -2481,6 +2656,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(504_122)),
+        lapsed: None,
     },
     Nengo {
         id: "shitoku",
@@ -2495,6 +2671,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(505_217)),
+        lapsed: None,
     },
     Nengo {
         id: "genchu",
@@ -2509,6 +2686,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Disputed,
         start: Some(Rd(505_277)),
+        lapsed: None,
     },
     Nengo {
         id: "kakei",
@@ -2523,6 +2701,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(506_512)),
+        lapsed: None,
     },
     Nengo {
         id: "koo",
@@ -2537,6 +2716,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(507_031)),
+        lapsed: None,
     },
     Nengo {
         id: "meitoku",
@@ -2551,6 +2731,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(507_432)),
+        lapsed: None,
     },
     Nengo {
         id: "oei",
@@ -2565,6 +2746,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(509_005)),
+        lapsed: None,
     },
     Nengo {
         id: "shocho",
@@ -2579,6 +2761,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(521_371)),
+        lapsed: None,
     },
     Nengo {
         id: "eikyo",
@@ -2593,6 +2776,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(521_851)),
+        lapsed: None,
     },
     Nengo {
         id: "kakitsu",
@@ -2607,6 +2791,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(526_027)),
+        lapsed: None,
     },
     Nengo {
         id: "bunan",
@@ -2621,6 +2806,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(527_107)),
+        lapsed: None,
     },
     Nengo {
         id: "hotoku",
@@ -2635,6 +2821,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(529_108)),
+        lapsed: None,
     },
     Nengo {
         id: "kyotoku",
@@ -2649,6 +2836,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(530_198)),
+        lapsed: None,
     },
     Nengo {
         id: "kosho",
@@ -2663,6 +2851,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(531_320)),
+        lapsed: None,
     },
     Nengo {
         id: "choroku",
@@ -2677,6 +2866,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(532_091)),
+        lapsed: None,
     },
     Nengo {
         id: "kansho",
@@ -2691,6 +2881,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(533_295)),
+        lapsed: None,
     },
     Nengo {
         id: "bunsho",
@@ -2705,6 +2896,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(535_162)),
+        lapsed: None,
     },
     Nengo {
         id: "onin",
@@ -2719,6 +2911,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(535_553)),
+        lapsed: None,
     },
     Nengo {
         id: "bunmei",
@@ -2733,6 +2926,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(536_344)),
+        lapsed: None,
     },
     Nengo {
         id: "chokyo",
@@ -2747,6 +2941,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(542_980)),
+        lapsed: None,
     },
     Nengo {
         id: "entoku",
@@ -2761,6 +2956,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(543_749)),
+        lapsed: None,
     },
     Nengo {
         id: "meio",
@@ -2775,6 +2971,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(544_810)),
+        lapsed: None,
     },
     Nengo {
         id: "bunki",
@@ -2789,6 +2986,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(547_950)),
+        lapsed: None,
     },
     Nengo {
         id: "eisho-1504",
@@ -2803,6 +3001,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(549_044)),
+        lapsed: None,
     },
     Nengo {
         id: "taiei",
@@ -2817,6 +3016,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(555_444)),
+        lapsed: None,
     },
     Nengo {
         id: "kyoroku",
@@ -2831,6 +3031,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(557_981)),
+        lapsed: None,
     },
     Nengo {
         id: "tenbun",
@@ -2845,6 +3046,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(559_437)),
+        lapsed: None,
     },
     Nengo {
         id: "koji-1555",
@@ -2859,6 +3061,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(567_907)),
+        lapsed: None,
     },
     Nengo {
         id: "eiroku",
@@ -2873,6 +3076,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(568_769)),
+        lapsed: None,
     },
     Nengo {
         id: "genki",
@@ -2887,6 +3091,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(573_222)),
+        lapsed: None,
     },
     Nengo {
         id: "tensho-1573",
@@ -2901,6 +3106,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Julian,
         certainty: Certainty::Attested,
         start: Some(Rd(574_408)),
+        lapsed: None,
     },
     Nengo {
         id: "bunroku",
@@ -2915,6 +3121,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(581_476)),
+        lapsed: None,
     },
     Nengo {
         id: "keicho",
@@ -2929,6 +3136,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(582_912)),
+        lapsed: None,
     },
     Nengo {
         id: "genna",
@@ -2943,6 +3151,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(589_749)),
+        lapsed: None,
     },
     Nengo {
         id: "kanei",
@@ -2957,6 +3166,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(592_896)),
+        lapsed: None,
     },
     Nengo {
         id: "shoho",
@@ -2971,6 +3181,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(600_472)),
+        lapsed: None,
     },
     Nengo {
         id: "keian",
@@ -2985,6 +3196,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(601_652)),
+        lapsed: None,
     },
     Nengo {
         id: "joo-1652",
@@ -2999,6 +3211,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(603_309)),
+        lapsed: None,
     },
     Nengo {
         id: "meireki",
@@ -3013,6 +3226,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(604_249)),
+        lapsed: None,
     },
     Nengo {
         id: "manji",
@@ -3027,6 +3241,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(605_440)),
+        lapsed: None,
     },
     Nengo {
         id: "kanbun",
@@ -3041,6 +3256,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(606_446)),
+        lapsed: None,
     },
     Nengo {
         id: "enpo",
@@ -3055,6 +3271,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(610_989)),
+        lapsed: None,
     },
     Nengo {
         id: "tenna",
@@ -3069,6 +3286,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(613_921)),
+        lapsed: None,
     },
     Nengo {
         id: "jokyo",
@@ -3083,6 +3301,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(614_799)),
+        lapsed: None,
     },
     Nengo {
         id: "genroku",
@@ -3097,6 +3316,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(616_461)),
+        lapsed: None,
     },
     Nengo {
         id: "hoei",
@@ -3111,6 +3331,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(622_114)),
+        lapsed: None,
     },
     Nengo {
         id: "shotoku",
@@ -3125,6 +3346,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(624_726)),
+        lapsed: None,
     },
     Nengo {
         id: "kyoho",
@@ -3139,6 +3361,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(626_612)),
+        lapsed: None,
     },
     Nengo {
         id: "genbun",
@@ -3153,6 +3376,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(633_854)),
+        lapsed: None,
     },
     Nengo {
         id: "kanpo",
@@ -3167,6 +3391,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(635_624)),
+        lapsed: None,
     },
     Nengo {
         id: "enkyo-1744",
@@ -3181,6 +3406,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(636_711)),
+        lapsed: None,
     },
     Nengo {
         id: "kanen",
@@ -3195,6 +3421,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(638_296)),
+        lapsed: None,
     },
     Nengo {
         id: "horeki",
@@ -3209,6 +3436,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(639_522)),
+        lapsed: None,
     },
     Nengo {
         id: "meiwa",
@@ -3223,6 +3451,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(644_104)),
+        lapsed: None,
     },
     Nengo {
         id: "anei",
@@ -3237,6 +3466,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(647_189)),
+        lapsed: None,
     },
     Nengo {
         id: "tenmei",
@@ -3251,6 +3481,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(650_247)),
+        lapsed: None,
     },
     Nengo {
         id: "kansei",
@@ -3265,6 +3496,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(653_104)),
+        lapsed: None,
     },
     Nengo {
         id: "kyowa",
@@ -3279,6 +3511,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(657_514)),
+        lapsed: None,
     },
     Nengo {
         id: "bunka",
@@ -3293,6 +3526,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(658_613)),
+        lapsed: None,
     },
     Nengo {
         id: "bunsei",
@@ -3307,6 +3541,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(663_791)),
+        lapsed: None,
     },
     Nengo {
         id: "tenpo",
@@ -3321,6 +3556,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(668_416)),
+        lapsed: None,
     },
     Nengo {
         id: "koka",
@@ -3335,6 +3571,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(673_516)),
+        lapsed: None,
     },
     Nengo {
         id: "kaei",
@@ -3349,6 +3586,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(674_694)),
+        lapsed: None,
     },
     Nengo {
         id: "ansei",
@@ -3363,6 +3601,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(677_174)),
+        lapsed: None,
     },
     Nengo {
         id: "manen",
@@ -3377,6 +3616,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(679_084)),
+        lapsed: None,
     },
     Nengo {
         id: "bunkyu",
@@ -3391,6 +3631,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(679_439)),
+        lapsed: None,
     },
     Nengo {
         id: "genji",
@@ -3405,6 +3646,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(680_533)),
+        lapsed: None,
     },
     Nengo {
         id: "keio",
@@ -3419,6 +3661,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(680_933)),
+        lapsed: None,
     },
     Nengo {
         id: "meiji",
@@ -3433,6 +3676,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(681_932)),
+        lapsed: None,
     },
     Nengo {
         id: "taisho",
@@ -3447,6 +3691,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(698_189)),
+        lapsed: None,
     },
     Nengo {
         id: "showa",
@@ -3461,6 +3706,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(703_450)),
+        lapsed: None,
     },
     Nengo {
         id: "heisei",
@@ -3475,6 +3721,7 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(726_110)),
+        lapsed: None,
     },
     Nengo {
         id: "reiwa",
@@ -3489,5 +3736,6 @@ pub static ALL: [Nengo; 248] = [
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
         start: Some(Rd(737_180)),
+        lapsed: None,
     },
 ];

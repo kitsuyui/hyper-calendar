@@ -32,6 +32,7 @@ lefthook install   # installs the pre-commit and pre-push hooks
 cargo test --workspace --all-features
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo fmt --all -- --check
+RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features
 cargo build -p hyper-calendar --no-default-features --features alloc,libm  # no_std
 cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown     # WebAssembly
 cargo build -p hyper-calendar-ffi --release                            # shared library

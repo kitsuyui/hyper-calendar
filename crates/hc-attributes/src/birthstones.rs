@@ -584,11 +584,31 @@ mod tests {
     }
 
     #[test]
-    fn the_british_list_names_four_stones_no_american_list_does() {
+    fn the_british_list_names_four_stones_the_current_american_list_does_not() {
         for only_british in ["rock crystal", "chrysoprase", "carnelian", "lapis lazuli"] {
             assert!(BIRTHSTONES_UK.names(only_british), "{only_british}");
             assert!(!BIRTHSTONES_US_2016.names(only_british), "{only_british}");
         }
+        // Three of them were never American. Lapis lazuli was, in 1912, but
+        // for December, where Britain has it for September.
+        for never_american in ["rock crystal", "chrysoprase", "carnelian"] {
+            assert!(
+                !BIRTHSTONES_US_1912.names(never_american),
+                "{never_american}"
+            );
+        }
+        assert!(
+            stones(&BIRTHSTONES_US_1912, Month::regular(12))
+                .is_ok_and(|december| december.contains(&"lapis lazuli"))
+        );
+        assert!(
+            stones(&BIRTHSTONES_UK, Month::regular(9))
+                .is_ok_and(|september| september.contains(&"lapis lazuli"))
+        );
+        assert!(
+            stones(&BIRTHSTONES_US_1912, Month::regular(9))
+                .is_ok_and(|september| !september.contains(&"lapis lazuli"))
+        );
         // October is opal alone in Britain and opal with tourmaline in the US.
         assert_eq!(
             stones(&BIRTHSTONES_UK, Month::regular(10)),

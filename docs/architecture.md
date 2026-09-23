@@ -42,7 +42,9 @@ sub-day concerns is what makes date libraries collapse.
 
 A **time scale** answers a different question: *what does a clock read at this
 event?* All uniform scales — TT, TCG, TDB, TCB, GPS — are functions of TAI, so
-`Instant<S>` carries a zero-sized scale marker and converts through TAI.
+`Instant<S>` carries a zero-sized scale marker and converts through TAI. UT1
+is not uniform, but `hc-astro` gives it a marker too, modelled through ΔT;
+it lives there rather than in `hc-core` because the ΔT model does.
 
 ```text
 Instant<Tt> ──┐                      ┌── Instant<Tcg>

@@ -1,6 +1,6 @@
 [package]
 name = "hc-core"
-description = "Core time primitives for hyper-calendar: exact durations, uniform time scales (TAI/TT/TCG/TDB/TCB/GPS/UT1), leap seconds and epochs."
+description = "Core time primitives for hyper-calendar: exact durations, uniform time scales (TAI/TT/TCG/TDB/TCB/GPS), leap seconds and epochs."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

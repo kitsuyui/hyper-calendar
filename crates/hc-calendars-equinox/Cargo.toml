@@ -27,6 +27,9 @@ alloc = [
     "hc-calendars-solar/alloc",
     "hc-astro/alloc",
 ]
+# Floating-point math for `no_std` builds: `hc-core` refuses to compile with
+# neither `std` nor `libm`.
+libm = ["hc-core/libm"]
 
 [dependencies]
 hc-core = { workspace = true }

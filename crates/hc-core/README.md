@@ -7,7 +7,7 @@ The time primitives every other crate uses and none may redefine.
 | Module | What it is |
 | --- | --- |
 | `duration` | `Duration`: an exact span of SI seconds, `i128` whole seconds and `u64` attoseconds, of either sign. No floating point. |
-| `scale` | `Instant<S>`: a reading on a uniform time scale, the scale being a zero-sized type parameter, so a TAI reading cannot be passed where a TT reading is expected. The scales are TAI, TT, TCG, TCB, TDB, GPS and UT1. |
+| `scale` | `Instant<S>`: a reading on a uniform time scale, the scale being a zero-sized type parameter, so a TAI reading cannot be passed where a TT reading is expected. The scales are TAI, TT, TCG, TCB, TDB and GPS; UT1, which is measured rather than defined, is in `hc-astro` beside the ΔT model it is computed from. |
 | `leap` | The UTC leap-second table, as data. |
 | `unix` | POSIX time (`UnixTime`), UTC with the leap second made explicit (`UtcInstant`), and the conversions between them and TAI under a `LeapPolicy`. |
 | `epoch` | Well-known epochs as TAI readings: Unix, GPS, J2000, MJD, the Julian Day, Rata Die, Windows FILETIME, NTP, Core Foundation, and the TCG/TCB origin. |
@@ -36,7 +36,7 @@ The time primitives every other crate uses and none may redefine.
 | before 1961 | refused: UTC did not exist, and a conversion returns `BeforeModelStart` unless the caller opts into treating UTC as TAI |
 | after the table's announced validity | `LeapPolicy::Strict` refuses with `AfterModelEnd`; `LeapPolicy::Extrapolate` holds the last published offset, and the caller has named the forecast by choosing it |
 | `23:59:60` | representable: `UtcInstant` carries the leap-second flag that POSIX time cannot |
-| TDB, UT1 | models, not constants. TDB follows a periodic series in `scale`. Real UT1 needs a caller-supplied `Ut1Offsets` series, which refuses to extrapolate outside its samples; the `Ut1` marker alone is a placeholder that returns the TAI reading unchanged |
+| TDB | a model, not a constant: the truncated Fairhead–Bretagnon series in `scale`, to about 30 µs over 1980–2100 |
 
 The table's validity horizon is `leap::table_valid_until_unix`, the expiry
 declared by the `leap-seconds.list` it was built from, and it is updated

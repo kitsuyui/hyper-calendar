@@ -198,21 +198,19 @@ ones:
   (1999); forms per Braune, *Althochdeutsches Lesebuch*, 17th ed.
 - Vojtěch Kebrle, "Česká jména měsíců", *Naše řeč* 23 (1939), pp. 65–67.
 - Monier-Williams, *Sanskrit-English Dictionary* (1899), s.v. *vāsara*.
+- J. F. Fleet, *Corpus Inscriptionum Indicarum* III (1888), the Eran pillar
+  inscription of Budhagupta, 484 CE, the earliest dated Indian weekday.
 - Denis Segaller, *Thai Ways* (Silkworm Books, 2005), on the day colours.
 
 ## Features
 
 Every table is `&'static` data and every lookup is an array index, so the tables
 need neither `std` nor `alloc`. Both features exist only to propagate to the
-`hc-*` crates below, and the crate builds under:
+`hc-*` crates below. The Harvest Moon, `september_moon_name` and
+`zodiac_stones::stones_on` reach the astronomy, and `hc-core` refuses to
+compile with neither `std` nor a floating-point backend, so a `no_std` build
+also enables `libm`, which passes through to `hc-core`:
 
 ```sh
-cargo build -p hc-attributes --no-default-features --features alloc
+cargo build -p hc-attributes --no-default-features --features alloc,libm
 ```
-
-The one part that needs more is the Harvest Moon, because it reaches the
-astronomy. `hc_core::math` panics without a floating-point backend, so a
-`no_std` caller wanting `harvest_moon`, `september_moon_name` or
-`zodiac_stones::stones_on` must also enable `hc-core/libm`. This is the same
-constraint `hc-seasons` and `hc-astro` carry, not something peculiar to this
-crate.

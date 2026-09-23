@@ -35,7 +35,8 @@ pub enum TimeScaleId {
     Tcb,
     /// GPS time, TAI retarded by exactly 19 s.
     Gps,
-    /// Universal Time, tied to the Earth's actual rotation angle.
+    /// Universal Time, tied to the Earth's actual rotation angle. Its
+    /// marker type lives in `hc-astro`, which has the ΔT model it needs.
     Ut1,
     /// Coordinated Universal Time — an atomic scale with leap seconds.
     Utc,
@@ -64,11 +65,16 @@ impl fmt::Display for TimeScaleId {
     }
 }
 
-/// A uniform time scale: one whose reading can be computed from the TAI
-/// reading of the same event without consulting observational data.
+/// A time scale whose reading is a function of the TAI reading of the same
+/// event: an exact offset for TT and GPS, a smooth model for TCG, TDB and
+/// TCB.
 ///
 /// Implementors are zero-sized markers. The two required functions are
 /// inverses of each other to within the precision of the underlying model.
+///
+/// UT1, the scale of the Earth's rotation, is measured rather than defined,
+/// so it is not here: `hc-astro` implements it from its ΔT model, beside the
+/// published `UT1 − UTC` series that give it exactly.
 pub trait TimeScale: Copy + Clone + fmt::Debug + 'static {
     /// The runtime identifier for this scale.
     const ID: TimeScaleId;
@@ -107,16 +113,6 @@ pub struct Tcb;
 /// GPS time. `GPS = TAI - 19 s`, exactly.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Gps;
-
-/// UT1 — Universal Time, tied to the Earth's rotation angle.
-///
-/// UT1 cannot be computed from TAI; the difference `UT1 - UTC` is measured
-/// and published by the IERS. The [`TimeScale`] implementation here is
-/// therefore a placeholder: it returns the TAI reading unchanged, ignoring
-/// both `TAI - UTC` and `DUT1`, so it is off by the whole of `TAI - UTC`
-/// (37 s since 2017) plus `DUT1`. Use [`Ut1Offsets`] to supply real values.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-pub struct Ut1;
 
 /// `TT - TAI`, an exact defined constant.
 pub const TT_MINUS_TAI: Duration = Duration::from_attos(32_184_000_000_000_000_000);
@@ -275,18 +271,6 @@ impl TimeScale for Tcb {
     }
 }
 
-impl TimeScale for Ut1 {
-    const ID: TimeScaleId = TimeScaleId::Ut1;
-
-    fn from_tai(tai: Duration) -> Duration {
-        tai
-    }
-
-    fn to_tai(value: Duration) -> Duration {
-        value
-    }
-}
-
 /// A reading on the uniform time scale `S`, measured from
 /// `1970-01-01T00:00:00` as labelled in `S` itself.
 ///
@@ -431,51 +415,6 @@ impl<S: TimeScale> From<Instant<S>> for AnyInstant {
     }
 }
 
-/// Published `UT1 - UTC` offsets (`DUT1`).
-///
-/// The Earth's rotation is not predictable, so these values are *measured*.
-/// Supply the IERS Bulletin A/B series you trust; the library will not invent
-/// them for you.
-#[derive(Debug, Clone, Copy, Default)]
-pub struct Ut1Offsets<'a> {
-    /// `(unix_seconds, dut1_seconds)` samples in ascending time order.
-    pub samples: &'a [(i64, f64)],
-}
-
-impl Ut1Offsets<'_> {
-    /// Linearly interpolate `DUT1` at the given Unix time.
-    ///
-    /// Returns `None` outside the sampled range rather than extrapolating.
-    #[must_use]
-    pub fn dut1_at(&self, unix_seconds: i64) -> Option<f64> {
-        let samples = self.samples;
-        if samples.len() < 2 {
-            return samples.first().and_then(
-                |&(t, v)| {
-                    if t == unix_seconds { Some(v) } else { None }
-                },
-            );
-        }
-        let first = samples[0];
-        let last = samples[samples.len() - 1];
-        if unix_seconds < first.0 || unix_seconds > last.0 {
-            return None;
-        }
-        let index = match samples.binary_search_by_key(&unix_seconds, |&(t, _)| t) {
-            Ok(exact) => return Some(samples[exact].1),
-            Err(insert) => insert,
-        };
-        let (t0, v0) = samples[index - 1];
-        let (t1, v1) = samples[index];
-        let span = (t1 - t0) as f64;
-        if span == 0.0 {
-            return Some(v0);
-        }
-        let fraction = (unix_seconds - t0) as f64 / span;
-        Some(v0 + (v1 - v0) * fraction)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -559,17 +498,6 @@ mod tests {
             .unwrap()
             .as_secs_f64();
         assert!(error < 1e-6, "round trip error {error}");
-    }
-
-    #[test]
-    fn dut1_interpolates_and_refuses_to_extrapolate() {
-        let offsets = Ut1Offsets {
-            samples: &[(0, 0.1), (100, 0.3)],
-        };
-        assert_eq!(offsets.dut1_at(0), Some(0.1));
-        assert_eq!(offsets.dut1_at(50), Some(0.2));
-        assert_eq!(offsets.dut1_at(-1), None);
-        assert_eq!(offsets.dut1_at(101), None);
     }
 
     #[test]

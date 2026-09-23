@@ -71,6 +71,36 @@ pub const HC_ERR_OUT_OF_RANGE: i64 = -9_000_000_000_000_002;
 pub const HC_ERR_BUFFER_TOO_SMALL: i64 = -9_000_000_000_000_003;
 /// The requested model has no data for this value.
 pub const HC_ERR_NO_DATA: i64 = -9_000_000_000_000_004;
+/// A pointer was null with a non-zero length.
+pub const HC_ERR_NULL_POINTER: i64 = -9_000_000_000_000_005;
+/// The requested table or identifier is not known.
+pub const HC_ERR_UNKNOWN: i64 = -9_000_000_000_000_006;
+/// Text was not valid UTF-8.
+pub const HC_ERR_NOT_UTF8: i64 = -9_000_000_000_000_007;
+
+/// UTF-8 text from linear memory. A null pointer with a zero length is the
+/// empty string.
+///
+/// # Errors
+///
+/// [`HC_ERR_NULL_POINTER`] for a null pointer with a non-zero length and
+/// [`HC_ERR_NOT_UTF8`] for bytes that are not UTF-8.
+///
+/// # Safety
+///
+/// `pointer` must be readable for `len` bytes unless it is null.
+unsafe fn text<'a>(pointer: *const u8, len: usize) -> Result<&'a str, i64> {
+    if pointer.is_null() {
+        return if len == 0 {
+            Ok("")
+        } else {
+            Err(HC_ERR_NULL_POINTER)
+        };
+    }
+    // SAFETY: the caller guarantees `pointer` is readable for `len` bytes.
+    let bytes = unsafe { core::slice::from_raw_parts(pointer, len) };
+    core::str::from_utf8(bytes).map_err(|_| HC_ERR_NOT_UTF8)
+}
 
 /// Allocate `len` bytes of linear memory and return a pointer to them.
 ///
@@ -263,18 +293,19 @@ pub unsafe extern "C" fn hc_format_iso_date(fixed: i64, buffer: *mut u8, capacit
 
 /// Parse an ISO 8601 date from UTF-8, returning its fixed day number.
 ///
+/// Text that is not a date is `HC_ERR_INVALID_DATE`; a null `buffer` with a
+/// non-zero `len` is `HC_ERR_NULL_POINTER`, and bytes that are not UTF-8
+/// are `HC_ERR_NOT_UTF8`.
+///
 /// # Safety
 ///
-/// `buffer` must be readable for `len` bytes.
+/// `buffer` must be readable for `len` bytes unless it is null.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn hc_parse_iso_date(buffer: *const u8, len: usize) -> i64 {
-    if buffer.is_null() {
-        return HC_ERR_INVALID_DATE;
-    }
-    // SAFETY: the caller guarantees `buffer` is readable for `len` bytes.
-    let bytes = unsafe { core::slice::from_raw_parts(buffer, len) };
-    let Ok(text) = core::str::from_utf8(bytes) else {
-        return HC_ERR_INVALID_DATE;
+    // SAFETY: forwarded to the caller's contract above.
+    let text = match unsafe { text(buffer, len) } {
+        Ok(text) => text,
+        Err(sentinel) => return sentinel,
     };
     match hc::hc_format::iso8601::parse_date(text) {
         Ok(parsed) => parsed.to_fixed().map_or(HC_ERR_INVALID_DATE, Rd::get),
@@ -287,7 +318,7 @@ pub unsafe extern "C" fn hc_parse_iso_date(buffer: *const u8, len: usize) -> i64
 /// identifier and rendered as tab-separated lines.
 #[cfg(feature = "holiday")]
 mod holiday {
-    use super::{HC_ERR_BUFFER_TOO_SMALL, HC_ERR_NO_DATA, HC_ERR_OUT_OF_RANGE, emit};
+    use super::{HC_ERR_BUFFER_TOO_SMALL, HC_ERR_OUT_OF_RANGE, HC_ERR_UNKNOWN, emit, text};
     use hc::hc_calendar::Rd;
     use hc::hc_holiday::engine::HolidayCalendar;
     use hc::hc_holiday::hc_calendars_solar::gregorian;
@@ -304,19 +335,28 @@ mod holiday {
             .or_else(|| international::by_code(code))
     }
 
-    /// UTF-8 text from linear memory; a null pointer with zero length is
-    /// the empty string.
+    /// The table and region two strings in linear memory name.
+    ///
+    /// # Errors
+    ///
+    /// As [`text`] for either string, and [`HC_ERR_UNKNOWN`] for a code that
+    /// names no table. An empty region is no region.
     ///
     /// # Safety
     ///
-    /// `pointer` must be readable for `len` bytes unless it is null.
-    unsafe fn text<'a>(pointer: *const u8, len: usize) -> Option<&'a str> {
-        if pointer.is_null() {
-            return (len == 0).then_some("");
-        }
-        // SAFETY: the caller guarantees `pointer` is readable for `len` bytes.
-        let bytes = unsafe { core::slice::from_raw_parts(pointer, len) };
-        core::str::from_utf8(bytes).ok()
+    /// As [`text`], for each pointer and its length.
+    unsafe fn table_and_region<'a>(
+        code: *const u8,
+        code_len: usize,
+        region: *const u8,
+        region_len: usize,
+    ) -> Result<(&'static RuleSet, Option<&'a str>), i64> {
+        // SAFETY: forwarded to the caller's contract above.
+        let code = unsafe { text(code, code_len) }?;
+        // SAFETY: forwarded to the caller's contract above.
+        let region = unsafe { text(region, region_len) }?;
+        let table = table(code).ok_or(HC_ERR_UNKNOWN)?;
+        Ok((table, (!region.is_empty()).then_some(region)))
     }
 
     /// Every table's identifier, one per line.
@@ -381,7 +421,9 @@ mod holiday {
     /// `code` names the table — a country's ISO 3166-1 alpha-2 code, an
     /// exchange's ISO 10383 Market Identifier Code, a tradition's slug or
     /// `un-days` — and `region`, which may be empty, a subdivision's ISO
-    /// 3166-2 code. `HC_ERR_NO_DATA` names a table that does not exist.
+    /// 3166-2 code. A null pointer with a non-zero length is
+    /// `HC_ERR_NULL_POINTER`, text that is not UTF-8 `HC_ERR_NOT_UTF8`, and a
+    /// code that names no table `HC_ERR_UNKNOWN`.
     ///
     /// # Safety
     ///
@@ -396,19 +438,15 @@ mod holiday {
         fixed: i64,
     ) -> i64 {
         // SAFETY: forwarded to the caller's contract above.
-        let (Some(code), Some(region)) = (unsafe { text(code, code_len) }, unsafe {
-            text(region, region_len)
-        }) else {
-            return HC_ERR_NO_DATA;
-        };
-        let Some(table) = table(code) else {
-            return HC_ERR_NO_DATA;
+        let (table, region) = match unsafe { table_and_region(code, code_len, region, region_len) }
+        {
+            Ok(found) => found,
+            Err(sentinel) => return sentinel,
         };
         let day = Rd(fixed);
         let Ok(year) = gregorian::year_from_fixed(day) else {
             return HC_ERR_OUT_OF_RANGE;
         };
-        let region = (!region.is_empty()).then_some(region);
         i64::from(HolidayCalendar::for_year(table, region, year).is_holiday(day))
     }
 
@@ -420,8 +458,8 @@ mod holiday {
     /// `school` or `workday`), the confidence (`exact` or `approximate`), `1` for a
     /// substitute day and `0` otherwise, and the date the substitute
     /// stands in for or nothing. A null `buffer` returns the length the
-    /// text needs, so a caller can allocate exactly. `HC_ERR_NO_DATA` names
-    /// a table that does not exist.
+    /// text needs, so a caller can allocate exactly. The string arguments
+    /// fail as for `hc_holiday_is_day_off`.
     ///
     /// # Safety
     ///
@@ -438,15 +476,11 @@ mod holiday {
         capacity: usize,
     ) -> i64 {
         // SAFETY: forwarded to the caller's contract above.
-        let (Some(code), Some(region)) = (unsafe { text(code, code_len) }, unsafe {
-            text(region, region_len)
-        }) else {
-            return HC_ERR_NO_DATA;
+        let (table, region) = match unsafe { table_and_region(code, code_len, region, region_len) }
+        {
+            Ok(found) => found,
+            Err(sentinel) => return sentinel,
         };
-        let Some(table) = table(code) else {
-            return HC_ERR_NO_DATA;
-        };
-        let region = (!region.is_empty()).then_some(region);
         let text = lines(table, region, year);
         if buffer.is_null() {
             return text.len() as i64;
@@ -525,6 +559,9 @@ mod tests {
             HC_ERR_OUT_OF_RANGE,
             HC_ERR_BUFFER_TOO_SMALL,
             HC_ERR_NO_DATA,
+            HC_ERR_NULL_POINTER,
+            HC_ERR_UNKNOWN,
+            HC_ERR_NOT_UTF8,
         ] {
             assert!(sentinel <= HC_ERR_FLOOR);
         }
@@ -565,7 +602,19 @@ mod tests {
             let result = unsafe { hc_parse_iso_date(text.as_ptr(), text.len()) };
             assert!(result <= HC_ERR_FLOOR, "{text} gave {result}");
         }
-        assert!(unsafe { hc_parse_iso_date(core::ptr::null(), 0) } <= HC_ERR_FLOOR);
+        assert_eq!(
+            unsafe { hc_parse_iso_date(core::ptr::null(), 0) },
+            HC_ERR_INVALID_DATE
+        );
+        assert_eq!(
+            unsafe { hc_parse_iso_date(core::ptr::null(), 10) },
+            HC_ERR_NULL_POINTER
+        );
+        let not_utf8 = [0xffu8, b'-', b'0'];
+        assert_eq!(
+            unsafe { hc_parse_iso_date(not_utf8.as_ptr(), not_utf8.len()) },
+            HC_ERR_NOT_UTF8
+        );
     }
 
     #[test]
@@ -618,7 +667,34 @@ mod tests {
         let zz = b"ZZ";
         assert_eq!(
             unsafe { hc_holiday_is_day_off(zz.as_ptr(), 2, core::ptr::null(), 0, day) },
-            HC_ERR_NO_DATA
+            HC_ERR_UNKNOWN
+        );
+        let not_utf8 = [0xffu8];
+        assert_eq!(
+            unsafe { hc_holiday_is_day_off(not_utf8.as_ptr(), 1, core::ptr::null(), 0, day) },
+            HC_ERR_NOT_UTF8
+        );
+        assert_eq!(
+            unsafe { hc_holiday_is_day_off(jp.as_ptr(), 2, not_utf8.as_ptr(), 1, day) },
+            HC_ERR_NOT_UTF8
+        );
+        assert_eq!(
+            unsafe { hc_holiday_is_day_off(core::ptr::null(), 2, core::ptr::null(), 0, day) },
+            HC_ERR_NULL_POINTER
+        );
+        assert_eq!(
+            unsafe {
+                hc_holidays_in_year(
+                    zz.as_ptr(),
+                    2,
+                    core::ptr::null(),
+                    0,
+                    2026,
+                    core::ptr::null_mut(),
+                    0,
+                )
+            },
+            HC_ERR_UNKNOWN
         );
         // A null buffer measures; a sized one receives the lines.
         let needed = unsafe {

@@ -29,10 +29,17 @@ pub enum RelativityError {
     NonPositiveRadius,
     /// A mass or standard gravitational parameter was negative.
     NegativeMass,
-    /// An input fell below the bound its quantity requires: a proper
-    /// acceleration that is zero or negative, a negative distance, a Lorentz
-    /// factor below 1, or a cosine outside `[−1, 1]`.
-    NonPositive,
+    /// A proper acceleration was zero or negative.
+    ///
+    /// The hyperbolic-motion formulas divide by it, and a burn from rest at
+    /// no acceleration goes nowhere.
+    NonPositiveAcceleration,
+    /// A distance was negative.
+    NegativeDistance,
+    /// A Lorentz factor was below 1, which no real motion produces.
+    LorentzFactorBelowOne,
+    /// A cosine lay outside `[−1, 1]`.
+    CosineOutOfRange,
     /// The radius lies at or inside the Schwarzschild radius, where the
     /// static time-dilation factor is undefined.
     ///
@@ -56,7 +63,12 @@ impl fmt::Display for RelativityError {
             Self::FasterThanLight => f.write_str("speed reached or exceeded the speed of light"),
             Self::NonPositiveRadius => f.write_str("radius must be strictly positive"),
             Self::NegativeMass => f.write_str("mass must not be negative"),
-            Self::NonPositive => f.write_str("value must be strictly positive"),
+            Self::NonPositiveAcceleration => {
+                f.write_str("proper acceleration must be strictly positive")
+            }
+            Self::NegativeDistance => f.write_str("distance must not be negative"),
+            Self::LorentzFactorBelowOne => f.write_str("Lorentz factor must be at least 1"),
+            Self::CosineOutOfRange => f.write_str("cosine must lie between -1 and 1"),
             Self::InsideHorizon => f.write_str("radius is at or inside the Schwarzschild radius"),
             Self::Overflow => f.write_str("duration arithmetic overflowed"),
             Self::NegativeDuration => f.write_str("a worldline segment ran backwards"),
@@ -134,7 +146,10 @@ mod tests {
             RelativityError::FasterThanLight,
             RelativityError::NonPositiveRadius,
             RelativityError::NegativeMass,
-            RelativityError::NonPositive,
+            RelativityError::NonPositiveAcceleration,
+            RelativityError::NegativeDistance,
+            RelativityError::LorentzFactorBelowOne,
+            RelativityError::CosineOutOfRange,
             RelativityError::InsideHorizon,
             RelativityError::Overflow,
             RelativityError::NegativeDuration,

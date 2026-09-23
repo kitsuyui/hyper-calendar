@@ -109,14 +109,15 @@ pub(crate) fn cosh_difference(upper: f64, lower: f64) -> f64 {
 /// # Errors
 ///
 /// Returns [`RelativityError::NotFinite`] for a non-finite argument and
-/// [`RelativityError::NonPositive`] for a negative one, where the result
-/// would be the inverse cosine of an argument below 1.
+/// [`RelativityError::LorentzFactorBelowOne`] for a negative one, where the
+/// result would be the inverse cosine of an argument below 1. In the crate's
+/// one use, `1 + y` is the Lorentz factor `1 + ad/c²` at the end of a burn.
 pub(crate) fn acosh_one_plus(y: f64) -> RelativityResult<f64> {
     if !y.is_finite() {
         return Err(RelativityError::NotFinite);
     }
     if y < 0.0 {
-        return Err(RelativityError::NonPositive);
+        return Err(RelativityError::LorentzFactorBelowOne);
     }
     Ok(2.0 * asinh(math::sqrt(y / 2.0)))
 }
@@ -209,7 +210,10 @@ mod tests {
 
     #[test]
     fn acosh_one_plus_refuses_a_negative_excess() {
-        assert_eq!(acosh_one_plus(-1.0), Err(RelativityError::NonPositive));
+        assert_eq!(
+            acosh_one_plus(-1.0),
+            Err(RelativityError::LorentzFactorBelowOne)
+        );
         assert_eq!(acosh_one_plus(f64::NAN), Err(RelativityError::NotFinite));
         assert_eq!(acosh_one_plus(0.0), Ok(0.0));
     }

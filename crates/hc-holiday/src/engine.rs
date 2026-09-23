@@ -18,7 +18,7 @@
 //!    国民の祝日 and a 振替休日 is not one.
 //! 4. **Clipping** to the requested years.
 
-use alloc::vec::Vec;
+use alloc::{vec, vec::Vec};
 
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;

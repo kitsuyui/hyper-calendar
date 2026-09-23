@@ -118,7 +118,7 @@ Every formatter writes into a `core::fmt::Write` sink one piece at a time and
 nothing is assembled into an intermediate buffer. The crate builds with
 `--no-default-features` and with `--no-default-features --features alloc`,
 given the floating-point math every `no_std` build of the workspace needs
-from `hc-core`'s `libm` feature (`--features hc-core/libm`); `alloc` adds
+from the `libm` feature, which passes through to `hc-core`; `alloc` adds
 only the `String`-returning conveniences (`format`,
 `format_amount`, `format_elapsed`) beside the `write` ones.
 

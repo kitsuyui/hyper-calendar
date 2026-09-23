@@ -170,9 +170,16 @@ impl PartialOrd for SelectedDay {
 }
 
 impl Ord for SelectedDay {
-    /// Listing order: the position in [`SelectedDay::ALL`].
+    /// Listing order: the position in [`SelectedDay::ALL`]. A value that is not
+    /// in it sorts after every entry, and among such values by identifier.
     fn cmp(&self, other: &Self) -> core::cmp::Ordering {
-        self.index().cmp(&other.index())
+        use core::cmp::Ordering;
+        match (self.index(), other.index()) {
+            (Some(left), Some(right)) => left.cmp(&right),
+            (Some(_), None) => Ordering::Less,
+            (None, Some(_)) => Ordering::Greater,
+            (None, None) => self.id.cmp(other.id),
+        }
     }
 }
 
@@ -385,21 +392,19 @@ const fn same_id(left: &str, right: &str) -> bool {
 }
 
 impl SelectedDay {
-    /// This entry's position in [`SelectedDay::ALL`].
-    ///
-    /// # Panics
-    ///
-    /// If the entry is not in [`SelectedDay::ALL`].
+    /// This entry's position in [`SelectedDay::ALL`], or `None` for a value
+    /// that is not one of its entries, such as a copy whose public `id` was
+    /// changed.
     #[must_use]
-    pub const fn index(self) -> u8 {
+    pub const fn index(self) -> Option<u8> {
         let mut index = 0;
         while index < Self::ALL.len() {
             if same_id(Self::ALL[index].id, self.id) {
-                return index as u8;
+                return Some(index as u8);
             }
             index += 1;
         }
-        panic!("an entry that is not in ALL has no index")
+        None
     }
 
     /// The rule that fixes this day.
@@ -477,14 +482,28 @@ impl SelectedDaySet {
     /// Whether a 選日 is in the set.
     #[must_use]
     pub const fn contains(self, day: SelectedDay) -> bool {
-        self.bits & (1 << day.index()) != 0
+        match day.index() {
+            Some(index) => self.bits & (1 << index) != 0,
+            None => false,
+        }
     }
 
     /// Add a 選日 to the set.
+    ///
+    /// `None` for a value that is not one of [`SelectedDay::ALL`], which has no
+    /// place in a set.
     #[must_use]
-    pub const fn with(self, day: SelectedDay) -> Self {
+    pub const fn with(self, day: SelectedDay) -> Option<Self> {
+        match day.index() {
+            Some(index) => Some(self.with_position(index as usize)),
+            None => None,
+        }
+    }
+
+    /// Add the entry at a position in [`SelectedDay::ALL`].
+    const fn with_position(self, position: usize) -> Self {
         Self {
-            bits: self.bits | (1 << day.index()),
+            bits: self.bits | (1 << position),
         }
     }
 
@@ -515,9 +534,9 @@ impl SelectedDay {}
 #[must_use]
 pub fn selected_days_of_context(context: &DayContext) -> SelectedDaySet {
     let mut set = SelectedDaySet::EMPTY;
-    for day in SelectedDay::ALL.iter().copied() {
+    for (position, day) in SelectedDay::ALL.iter().enumerate() {
         if day.applies_to(context) == Some(true) {
-            set = set.with(day);
+            set = set.with_position(position);
         }
     }
     set
@@ -562,15 +581,25 @@ mod tests {
     }
 
     #[test]
+    fn a_value_outside_the_table_has_no_index_and_no_place_in_a_set() {
+        let mut stranger = SelectedDay::ALL[0];
+        stranger.id = "not-a-selected-day";
+        assert_eq!(stranger.index(), None);
+        assert!(!SelectedDaySet::EMPTY.contains(stranger));
+        assert_eq!(SelectedDaySet::EMPTY.with(stranger), None);
+        assert!(stranger > SelectedDay::ALL[0]);
+    }
+
+    #[test]
     fn the_indices_are_distinct_and_match_the_listing_order() {
         for (position, day) in SelectedDay::ALL.iter().enumerate() {
-            assert_eq!(day.index() as usize, position);
+            assert_eq!(day.index().map(usize::from), Some(position));
         }
         let mut set = SelectedDaySet::EMPTY;
         assert!(set.is_empty());
         for day in SelectedDay::ALL.iter().copied() {
             assert!(!set.contains(day));
-            set = set.with(day);
+            set = set.with(day).unwrap();
             assert!(set.contains(day));
         }
         assert_eq!(set.len() as usize, SelectedDay::ALL.len());

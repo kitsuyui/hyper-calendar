@@ -54,7 +54,7 @@ struct Row {
     latest: Option<Rd>,
     astronomical: bool,
     leap_months: bool,
-    boundary: &'static str,
+    boundary: String,
     /// The cycles the calendar declares, or `None` where it declares none.
     cycles: &'static [hyper_calendar::hc_calendar::shape::CycleShape],
     /// Whether a locale can name this calendar's months in English.
@@ -186,15 +186,15 @@ fn shape_of(row: &Row) -> String {
         .join(", ")
 }
 
-/// The day boundary as a word for the table.
-fn boundary_name(boundary: hyper_calendar::hc_calendar::DayBoundary) -> &'static str {
+/// The day boundary as a word for the table, or the local time it falls at.
+fn boundary_name(boundary: hyper_calendar::hc_calendar::DayBoundary) -> String {
     use hyper_calendar::hc_calendar::DayBoundary as B;
     match boundary {
-        B::Midnight => "midnight",
-        B::Noon => "noon",
-        B::Sunset => "sunset",
-        B::Sunrise => "sunrise",
-        B::LocalTime(_) => "local time",
+        B::Midnight => "midnight".to_owned(),
+        B::Noon => "noon".to_owned(),
+        B::Sunset => "sunset".to_owned(),
+        B::Sunrise => "sunrise".to_owned(),
+        B::LocalTime(time) => format!("{time} local"),
     }
 }
 

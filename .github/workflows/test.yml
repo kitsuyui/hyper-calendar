@@ -47,6 +47,13 @@ jobs:
       # compiles and then fails at run time is exactly the bug this replaced.
       - run: cargo test -p hc-core --no-default-features --features alloc,libm
       - run: cargo build -p hyper-calendar --no-default-features --features alloc,libm
+      # Each crate on its own as well: the facade enables features across the
+      # graph, so a crate that cannot build alone without `std` passes there.
+      - run: |
+          for manifest in crates/hc-*/Cargo.toml; do
+            crate=$(basename "$(dirname "$manifest")")
+            cargo build -p "$crate" --no-default-features --features alloc,libm
+          done
 
   wasm:
     name: Build for WebAssembly
@@ -69,6 +76,17 @@ jobs:
       - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
       - run: cargo build -p hyper-calendar-ffi --release
       - run: cargo build -p hyper-calendar-ffi --release --features holiday
+
+  doc:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+      - run: cargo doc --workspace --no-deps --all-features
+        env:
+          RUSTDOCFLAGS: -D warnings
 
   format:
     name: Format

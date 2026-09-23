@@ -25,8 +25,8 @@ nothing else in the workspace hard-codes a localised string.
 `Locale` is `Copy` and allocation-free: subtags live in inline ASCII buffers,
 and rendering goes through `core::fmt::Write`. Everything works with
 `--no-default-features` (no allocator at all), given the floating-point math
-every `no_std` build of the workspace needs from `hc-core`'s `libm` feature
-(`--features hc-core/libm`); the `alloc` feature only adds the
+every `no_std` build of the workspace needs from the `libm` feature, which
+passes through to `hc-core`; the `alloc` feature only adds the
 `String`-returning conveniences.
 
 ## Data is not code

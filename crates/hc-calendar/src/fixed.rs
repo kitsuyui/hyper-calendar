@@ -41,9 +41,31 @@ impl Rd {
     }
 
     /// Days elapsed between two fixed days.
+    ///
+    /// # Panics
+    ///
+    /// Panics when the difference does not fit in an `i64`. Use
+    /// [`Rd::checked_days_since`] to handle it.
     #[must_use]
     pub const fn days_since(self, earlier: Self) -> i64 {
-        self.0 - earlier.0
+        match self.checked_days_since(earlier) {
+            Ok(days) => days,
+            Err(_) => panic!("hc-calendar: day difference overflowed"),
+        }
+    }
+
+    /// Days elapsed between two fixed days, reporting overflow instead of
+    /// panicking.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CalendarError::Overflow`] when the difference does not fit
+    /// in an `i64`.
+    pub const fn checked_days_since(self, earlier: Self) -> CalendarResult<i64> {
+        match self.0.checked_sub(earlier.0) {
+            Some(days) => Ok(days),
+            None => Err(CalendarError::Overflow),
+        }
     }
 
     /// Move forward by a whole number of days.
@@ -54,6 +76,19 @@ impl Rd {
     /// unrepresentable.
     pub const fn checked_add_days(self, days: i64) -> CalendarResult<Self> {
         match self.0.checked_add(days) {
+            Some(value) => Ok(Self(value)),
+            None => Err(CalendarError::Overflow),
+        }
+    }
+
+    /// Move back by a whole number of days.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CalendarError::Overflow`] when the result is
+    /// unrepresentable.
+    pub const fn checked_sub_days(self, days: i64) -> CalendarResult<Self> {
+        match self.0.checked_sub(days) {
             Some(value) => Ok(Self(value)),
             None => Err(CalendarError::Overflow),
         }
@@ -99,24 +134,41 @@ impl Rd {
 impl Add<i64> for Rd {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// Panics on overflow, in release builds as well as debug ones, as
+    /// [`Duration`]'s operators do. Use [`Rd::checked_add_days`] to handle it.
     fn add(self, days: i64) -> Self {
-        Self(self.0 + days)
+        match self.checked_add_days(days) {
+            Ok(value) => value,
+            Err(_) => panic!("hc-calendar: day addition overflowed"),
+        }
     }
 }
 
 impl Sub<i64> for Rd {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// Panics on overflow. Use [`Rd::checked_sub_days`] to handle it.
     fn sub(self, days: i64) -> Self {
-        Self(self.0 - days)
+        match self.checked_sub_days(days) {
+            Ok(value) => value,
+            Err(_) => panic!("hc-calendar: day subtraction overflowed"),
+        }
     }
 }
 
 impl Sub for Rd {
     type Output = i64;
 
+    /// # Panics
+    ///
+    /// Panics on overflow, as [`Rd::days_since`] does. Use
+    /// [`Rd::checked_days_since`] to handle it.
     fn sub(self, other: Self) -> i64 {
-        self.0 - other.0
+        self.days_since(other)
     }
 }
 
@@ -194,6 +246,45 @@ pub fn rd_from_tai_naive(instant: Instant<Tai>) -> (Rd, Duration) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn day_arithmetic_reports_overflow_where_it_is_checked() {
+        assert_eq!(
+            Rd(i64::MAX).checked_add_days(1),
+            Err(CalendarError::Overflow)
+        );
+        assert_eq!(
+            Rd(i64::MIN).checked_sub_days(1),
+            Err(CalendarError::Overflow)
+        );
+        assert_eq!(
+            Rd(i64::MAX).checked_days_since(Rd(-1)),
+            Err(CalendarError::Overflow)
+        );
+        assert_eq!(Rd(10).checked_sub_days(3), Ok(Rd(7)));
+        assert_eq!(Rd(10).checked_days_since(Rd(3)), Ok(7));
+        assert_eq!(Rd(10) - Rd(3), 7);
+        assert_eq!(Rd(10) - 3, Rd(7));
+        assert_eq!(Rd(10) + 3, Rd(13));
+    }
+
+    #[test]
+    #[should_panic(expected = "day addition overflowed")]
+    fn the_addition_operator_panics_on_overflow() {
+        let _ = Rd(i64::MAX) + 1;
+    }
+
+    #[test]
+    #[should_panic(expected = "day subtraction overflowed")]
+    fn the_subtraction_operator_panics_on_overflow() {
+        let _ = Rd(i64::MIN) - 1;
+    }
+
+    #[test]
+    #[should_panic(expected = "day difference overflowed")]
+    fn the_difference_operator_panics_on_overflow() {
+        let _ = Rd(i64::MIN) - Rd(1);
+    }
 
     #[test]
     fn the_unix_epoch_sits_where_the_standard_says() {

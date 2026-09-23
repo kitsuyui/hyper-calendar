@@ -77,7 +77,8 @@ Some questions have no answer, and the API says so instead of inventing one:
   that, `LeapPolicy::Strict` returns `AfterModelEnd`. A caller who wants a
   forecast must ask for one.
 - **UT1 before it was measured.** `DUT1` is observational. The library
-  interpolates within a supplied series and refuses to extrapolate outside it.
+  interpolates within a supplied series and refuses to extrapolate outside it;
+  UT1 without one is the ΔT model, a separate type whose error is stated.
 - **Historical proclamations.** Many calendars were, in practice, whatever an
   authority announced. Computed Hijri dates, pre-modern Chinese dates and
   pre-reform Julian dates can disagree with what was actually observed or
@@ -152,10 +153,10 @@ and nothing else pays for Gregorian dates and nothing else.
 - Each capability is its own crate.
 - The `hyper-calendar` facade exposes each as an optional feature.
 - `default` is deliberately modest (`std`, `civil`, `format`, `i18n`).
-- The facade builds under `--no-default-features --features alloc,libm`, and
-  `hc-core` under `no_std` with `libm`. A crate built on its own without
-  `std` also needs `hc-core/libm`, because `hc-core` refuses to compile with
-  neither.
+- The facade, and every `hc-*` crate on its own, builds under
+  `--no-default-features --features alloc,libm`. Each crate's `libm` feature
+  passes through to `hc-core`, which refuses to compile with neither `std`
+  nor `libm`.
 - No crate depends on another unless it genuinely needs it. The dependency
   graph is a DAG and is documented in [architecture.md](architecture.md).
 
@@ -168,9 +169,9 @@ and nothing else pays for Gregorian dates and nothing else.
   months, leap seconds, the first and last supported day.
 - Error paths are tested. A function that can return `MonthOutOfRange` has a
   test that makes it do so.
-- CI runs `cargo test`, `cargo clippy -D warnings`, `cargo fmt --check`, a
-  `no_std` build, a WebAssembly build, a shared-library build and
-  `cargo audit` on every pull request. Coverage is reported by octocov with a
+- CI runs `cargo test`, `cargo clippy -D warnings`, `cargo fmt --check`,
+  `cargo doc` with warnings denied, `no_std` builds, a WebAssembly build, a
+  shared-library build and `cargo audit` on every pull request. Coverage is reported by octocov with a
   70% floor.
 
 ## 8. `unwrap` and `expect` are forbidden outside tests
@@ -182,9 +183,10 @@ operations return `Result`; infallible ones are proved infallible by
 construction.
 
 The `Add`, `Sub` and `Neg` operators on `Duration`, and the `AddAssign` and
-`SubAssign` built on them, are the deliberate exception: they panic on
-overflow so that ordinary arithmetic reads normally, and each has a
-`checked_*` twin.
+`SubAssign` built on them, are the deliberate exception, together with the
+`Add` and `Sub` operators on `Rd` and `Rd::days_since`: they panic on
+overflow, in release builds too, so that ordinary arithmetic reads normally,
+and each has a `checked_*` twin.
 
 ## 9. No dependencies without a reason
 

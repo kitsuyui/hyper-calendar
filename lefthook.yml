@@ -7,9 +7,8 @@
 # These hooks passing is necessary but not sufficient, and the reason is
 # version skew. CI installs the *latest* stable Rust and the latest `typos`
 # on every run, so both lint against newer rules than a local toolchain that
-# has not been updated. Two failures have already reached a pull request that
-# way: `clippy::question_mark` on Rust 1.98 against 1.95 locally, and a French
-# word that `typos` 1.46 knows and 1.39 does not.
+# has not been updated: a lint added in a newer Rust, or a word a newer
+# `typos` knows, passes here and fails there.
 #
 # So before pushing anything substantial:
 #
@@ -51,10 +50,14 @@ pre-push:
       run: typos
     - name: test
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo test --workspace --all-features
+    - name: doc
+      run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features
     # The three build shapes CI checks. They catch a feature combination or a
     # target that the default build never exercises.
     - name: build-no-std
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo build -p hyper-calendar --no-default-features --features alloc,libm
+    - name: build-no-std-crates
+      run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; for manifest in crates/hc-*/Cargo.toml; do crate=$(basename "$(dirname "$manifest")"); cargo build -p "$crate" --no-default-features --features alloc,libm || exit 1; done
     - name: build-wasm
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown
     - name: build-wasm-holiday

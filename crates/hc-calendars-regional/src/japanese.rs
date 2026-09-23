@@ -46,8 +46,9 @@
 //! asking for a day before it gets [`CalendarError::BeforeEpoch`]. That is
 //! not where the *eras* stop — [`crate::nengo`] carries all 248 of them back
 //! to 大化 in 645, and [`crate::nengo::era_at`] will name the era in force
-//! on any day from 645 onward. It just will not give the month and day
-//! before 862.
+//! on any day from 645 onward, or say that none was, as between 655 and 686
+//! and between 687 and 701. It just will not give the month and day before
+//! 862.
 //!
 //! # Era boundaries
 //!
@@ -766,8 +767,14 @@ mod court_tests {
         let early = Rd(nengo::NANBOKUCHO_START.0 + 1_000);
         assert!(nengo::is_nanbokucho(early));
         assert_eq!(
-            nengo::era_at(early, Court::Northern).unwrap().kanji,
-            nengo::era_at(early, Court::Southern).unwrap().kanji
+            nengo::era_at(early, Court::Northern)
+                .unwrap()
+                .unwrap()
+                .kanji,
+            nengo::era_at(early, Court::Southern)
+                .unwrap()
+                .unwrap()
+                .kanji
         );
     }
 
@@ -776,15 +783,21 @@ mod court_tests {
         // Far enough in that the two streams have genuinely parted.
         let forked = Rd(nengo::NANBOKUCHO_START.0 + 3_000);
         assert!(nengo::is_nanbokucho(forked));
-        let north = nengo::era_at(forked, Court::Northern).unwrap();
-        let south = nengo::era_at(forked, Court::Southern).unwrap();
+        let north = nengo::era_at(forked, Court::Northern).unwrap().unwrap();
+        let south = nengo::era_at(forked, Court::Southern).unwrap().unwrap();
         assert_ne!(north.kanji, south.kanji, "the schism is a disagreement");
 
         // Well after the reunification the streams have converged again.
         let modern = Rd(719_163);
         assert_eq!(
-            nengo::era_at(modern, Court::Northern).unwrap().kanji,
-            nengo::era_at(modern, Court::Southern).unwrap().kanji
+            nengo::era_at(modern, Court::Northern)
+                .unwrap()
+                .unwrap()
+                .kanji,
+            nengo::era_at(modern, Court::Southern)
+                .unwrap()
+                .unwrap()
+                .kanji
         );
     }
 }
@@ -1031,8 +1044,8 @@ mod tests {
         );
         // But the era lookup still knows the era was in force.
         assert_eq!(
-            nengo::era_at(greg(1703, 1, 30), Court::Unified).map(|era| era.kanji),
-            Ok("元禄")
+            nengo::era_at(greg(1703, 1, 30), Court::Unified).map(|era| era.map(|era| era.kanji)),
+            Ok(Some("元禄"))
         );
     }
 

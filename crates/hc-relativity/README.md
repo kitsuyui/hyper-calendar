@@ -102,7 +102,6 @@ of the tests.
 ## Feature flags
 
 `default = ["std"]`, `std = ["alloc", ...]`, `alloc = [...]`. Nothing here
-needs a heap. The crate has no `libm` feature of its own, so a build without
-`std` also needs `hc-core/libm` enabled, as the `hyper-calendar` facade's
-`libm` feature does; `--no-default-features` alone stops at `hc-core`'s
-compile-time guard.
+needs a heap. A build without `std` also enables `libm`, which passes through
+to `hc-core` for floating-point math; `--no-default-features` alone stops at
+`hc-core`'s compile-time guard.
