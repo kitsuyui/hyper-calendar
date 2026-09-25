@@ -1,48 +1,46 @@
 //! The Burmese calendar, the lunisolar calendar of Myanmar.
 //!
+//! The system is written up in `docs/systems/burmese.md` in the
+//! repository: the months and the two halves of the month, watat and
+//! yat-ngyin, the eras of the Myanmar Era and what each changed, the solar
+//! New Year and Hnaung Tagu, Yan Naing Aye's arithmetic with 1374 ME worked
+//! by hand, where each exception in the era tables comes from, what is
+//! carried and not, and how the dates were checked against the published
+//! holidays. This page summarises it and states the code's own facts.
+//!
 //! Twelve lunar months of 29 and 30 days alternately, Tagu first, kept in
-//! step with a sidereal year of 365.2587565 days by an intercalary month —
-//! a second Waso, the first being the extra one — in *watat* years, and in
-//! *big watat* years by an intercalary day at the end of Nayon as well. The
-//! year is the Myanmar Era, ME, whose year 0 began in 638 CE; the days are
-//! counted in two halves, waxing 1 to 15 and waning 1 to 14 or 15, the
-//! 15th waxing being the civil full moon.
+//! step with a year of 365.2587565 days — the *Sūrya Siddhānta*'s sidereal
+//! year — by a First Waso inserted before Waso in *watat* years and, in
+//! *big watat* years, a thirtieth day of Nayon as well. The year is the
+//! Myanmar Era, ME, whose year 0 began in 638 CE; the days are counted
+//! waxing 1 to 15 and waning 1 to 14 or 15, waxing 15 being the civil full
+//! moon. The New Year is solar: the *atat* moment falls in April, and the
+//! days of Tagu (and sometimes Kason) before it are the old year's
+//! *Hnaung* — late — Tagu, which [`BurmeseDate::late`] marks.
 //!
-//! # The arithmetic, and whose it is
+//! # Whose arithmetic
 //!
-//! This module is a port of Yan Naing Aye's *Algorithm, Program and
-//! Calculation of Myanmar Calendar* (2013), which derives the calendar from
-//! Irwin's constants and reconciles it, era by era, with the published
-//! calendars: the length of the year and the mean lunation, the excess days
-//! at the New Year that decide a watat year, the full moon of Second Waso
-//! that anchors everything else, and the tables of years where the record
-//! departs from the rule. Three eras follow three rules for the watat
-//! year — the Metonic cycle of the kings to 1216 ME, the excess days of
-//! the first four months under the British to 1311 ME, and of the first
-//! eight months under the Calendar Advisory Board since 1312 ME — and each
-//! era has its own offset for the full moon and its own exceptions, all
-//! carried here as data.
+//! Yan Naing Aye's *Algorithm, Program and Calculation of Myanmar
+//! Calendar* (2013), evaluated here in floating point: the year and the
+//! lunation stated as ratios, the excess days at the New Year that decide a
+//! watat year, the full moon of Second Waso that anchors the year, and
+//! five eras that each carry their own watat rule, full-moon offset and
+//! exceptions in [`ERAS`], as data. The eras and the exception tables are
+//! the source's; the document says which of them the source explains.
 //!
-//! The New Year is solar, not lunar: the *atat* moment of the sidereal year
-//! falls in April, and the days of Tagu (and sometimes Kason) before it
-//! belong to the old year as *Hnaung* — late — Tagu, so a date names which
-//! half it is in. Tagu of 1373 ME is two stretches of days a year apart,
-//! and [`BurmeseDate::late`] says which.
+//! # What is not carried
 //!
-//! # What is and is not carried
-//!
-//! The civil calendar as the Board publishes it, in the third era, and the
-//! reconstruction of the earlier eras with the source's exceptions. Not
-//! carried: the Arakanese and Thai variants, which place the intercalary
-//! day differently; the Thingyan's astrological moments beyond the New
-//! Year's day; and any year the source's own error flag marks, which the
-//! conversion reports rather than silently accepts.
+//! The Arakanese and Thai variants, which place the intercalary day
+//! differently; the Thingyan's astrological moments beyond its days; and
+//! any year whose two full moons the source's consistency check rejects,
+//! which [`YearInfo::inconsistent`] reports rather than repairs.
 //!
 //! Sources: Yan Naing Aye, "Algorithm, Program and Calculation of Myanmar
 //! Calendar", cool-emerald.blogspot.com, 2013, retrieved 2026-09-22, for
 //! every constant, rule, exception and worked example; Wikipedia, "Burmese
 //! calendar", retrieved 2026-09-22, for the month names in Burmese script
-//! and the structure of the year.
+//! and the structure of the year. Keyed in `docs/references.bib` as
+//! `yannaingaye2013` and `wikipedia-burmese-calendar`.
 
 use core::fmt;
 
@@ -275,8 +273,8 @@ pub struct YearInfo {
     /// watat year.
     pub waso_full_moon: i64,
     /// Whether the interval from the previous watat year's full moon was
-    /// neither 30 nor 31 days over the common years between, which the
-    /// source flags as an error in the record.
+    /// neither 30 nor 31 days over the common years between, a case the
+    /// source says would be disputed; reported rather than repaired.
     pub inconsistent: bool,
 }
 

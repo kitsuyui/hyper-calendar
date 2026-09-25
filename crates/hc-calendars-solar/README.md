@@ -133,11 +133,16 @@ modules. Every one of those epochs is cross-checked in a test against an
 independent statement of the same day — a Julian calendar date, a Julian Day
 Number, or both — rather than trusted as a constant.
 
-The Gregorian reform adoption dates come from the national legislation and
-gazettes as summarised in the same work and in the *Explanatory Supplement to
-the Astronomical Almanac* (3rd ed., 2013), §15.3. Each table entry is checked
-for internal consistency: the day after the last Julian date must be the first
-Gregorian one.
+The Gregorian reform's twelve cut-overs, and the Swedish calendar of
+1700–1712 beside them, are written up in
+[`docs/systems/gregorian-reform.md`](../../docs/systems/gregorian-reform.md):
+the decree or act behind each date and which of them were read — the bull,
+the British Act of 1750 and the Soviet decree of 1918 directly, the rest
+through secondary sources — the dropped days and the unbroken week, a
+British date of 1752 worked across the gap, the polities deliberately not
+carried, and the two rows (Holland, Serbia) the sources do not support.
+Each table entry is checked for internal consistency: the day after the
+last Julian date must be the first Gregorian one.
 
 Anchors used in tests, each cross-checked against a second derivation (a known
 weekday or a Julian Day Number): 1970-01-01 is RD 719 163, JDN 2 440 588 and a

@@ -64,6 +64,18 @@ over 1400–1445 AH it starts the month a day later for 322 of 552 months —
 58% — and never earlier, which is the signature of a sighting criterion
 against a computation criterion and is asserted in a test.
 
+## The Hebrew calendar
+
+`hebrew` is written up in
+[`docs/systems/hebrew.md`](../../docs/systems/hebrew.md): the molad and its
+parts, the nineteen-year cycle, the four dehiyyot and why each exists, the
+six year lengths, Rosh Hashanah 5784 worked by hand through the rules, the
+drift from the sky, what is carried and what is not — the observational
+calendar of the Second Temple and the Samaritan calendar among the latter —
+and the sources, Maimonides first. The module keeps the month-numbering
+convention, Tishrei first with Adar I as `Month::leap(5)`, and the Omer and
+*birkat hachama* functions beside the calendar.
+
 ## Japan's historical calendars
 
 The five Japanese systems are written up in
@@ -115,19 +127,34 @@ such wherever they appear.
 **元嘉暦, 儀鳳暦, 大衍暦 and 五紀暦 (604–862) are not implemented**; the
 document says why.
 
+## The Tibetan calendar
+
+`tibetan` is written up in
+[`docs/systems/tibetan-phugpa.md`](../../docs/systems/tibetan-phugpa.md):
+the Phugpa tradition and the others, the lunar day and the rule that skips
+and repeats calendar days, the leap-month rule on the 65-year cycle, the
+mean motions as exact rationals, Losar 2024 worked by hand from Janson's
+formulas, what the Tsurphu and other versions would change, and how the
+module was checked. The module summarises it; this README keeps the
+figures. The module reproduces all 120 Losar dates of Janson's Table 1
+(1927–2046), his leap months of 2000–2019 and every skipped and repeated
+day of 2012, the paper's own datelines, Losar 2000 on the first day of a
+leap month, and the published Losars of 2023–2026.
+
 ## Accuracy
 
-**Arithmetic calendars — exact.** The tabular Hijri and Hebrew calendars are
-counting rules, and this is those rules. The tabular Hijri checks are in
-the section above. The Hebrew implementation reproduces 1 Tishrei 5784 =
-2023-09-16 and 15 Nisan 5784 = 2024-04-23, keeps Rosh Hashanah off Sunday,
-Wednesday and Friday for all 9 999 years, and gives every year one of the
-six permitted lengths.
+**Arithmetic calendars — exact.** The tabular Hijri, Hebrew and Tibetan
+calendars are counting rules, and this is those rules. The tabular Hijri
+and Tibetan checks are in the sections above; the Hebrew ones — two
+published dates of 5784, Rosh Hashanah off Sunday, Wednesday and Friday for
+all 9 999 years, every year one of the six permitted lengths — are
+tabulated in the system document.
 
-Exact is not the same as astronomically right. The Hebrew molad is 0.4 seconds
-longer than the true mean synodic month, so it drifts about a day later every
-216 years; the tabular Hijri month is 2.9 seconds short, so it drifts a day in
-about 2 400 years. Both figures are in the module documentation.
+Exact is not the same as astronomically right. The Hebrew molad is 0.46
+seconds longer than the mean synodic month, a day in about 15 000 years,
+and the Hebrew mean year is 0.0046 days longer than the tropical year, a day
+every 216 years; the tabular Hijri month is 2.9 seconds short, so it drifts
+a day in about 2 400 years. The figures are derived in the system documents.
 
 **The Umm al-Qura table — exact where it reaches, and nowhere else.** See
 the section above and the system document.

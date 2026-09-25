@@ -132,12 +132,28 @@ The history of the constants, the worked readings and the sources are in
 * **Javanese pasaran**: anchored through the Pawukon, because they are the
   same five-day cycle; fixed day 0 works out as Ahad Legi.
 
+## The Burmese calendar
+
+`burmese` is written up in
+[`docs/systems/burmese.md`](../../docs/systems/burmese.md): the months and
+their two halves, watat and yat-ngyin, the five eras of the Myanmar Era
+and the exceptions each carries as data, the solar New Year that cuts Tagu
+in two, 1374 ME worked by hand from Yan Naing Aye's arithmetic, and how
+the full moons and Thingyan of 2024 were checked against the published
+holidays. The module summarises it; this README keeps one figure. The
+module reproduces the source's worked example, the four full-moon
+holidays and the Thingyan of 2024, and every day of 2000–2030
+round-trips. For the Waso full moons of 2022 and 2025 two secondary
+holiday lists give a day later than the module does, and no official
+notification could be read; the document records the disagreement.
+
 ## Accuracy
 
 Everything except the pre-1873 half of `japanese`, the lunisolar calendar
 under `chinese-regnal` and `burmese` is exact integer arithmetic: no floating
 point, no astronomy, no approximation. `burmese` evaluates Yan Naing Aye's
-arithmetic, whose year and month are stated as ratios, in floating point.
+arithmetic, whose year and month are stated as ratios, in floating point;
+what it was checked against is in the section above.
 
 From 1844 to 1872 `japanese` inherits the Tenpō calendar's model, where new
 moons are good to about a minute and the apparent solar longitude to about
@@ -166,6 +182,11 @@ inherits the `chinese` calendar's model, as that README describes.
   for 2027, all retrieved 2026-09-23; the structure from the *Dictionary of
   Buddhism* (พจนานุกรมพุทธศาสน์ ฉบับประมวลศัพท์) and Thai Wikipedia,
   ปฏิทินจันทรคติไทย.
+* Burmese calendar: Yan Naing Aye, "Algorithm, Program and Calculation of
+  Myanmar Calendar" (2013) and his `mmcal` code; Wikipedia, "Burmese
+  calendar"; the 2024–2026 holiday lists named in
+  [`docs/systems/burmese.md`](../../docs/systems/burmese.md), keyed in
+  `docs/references.bib`.
 * Checked independently against five published Galungan dates (each must be
   Buda Kliwon Dungulan), the weton of 17 August 1945 (Jumat Legi, neptu 11),
   a published modern long count and Aztec date, and five Bakumatsu events

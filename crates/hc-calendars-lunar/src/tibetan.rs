@@ -1,38 +1,45 @@
 //! The Tibetan calendar in the Phugpa tradition.
 //!
+//! The system is written up in `docs/systems/tibetan-phugpa.md` in the
+//! repository: the traditions and the sixty-year names, the lunar day and
+//! the rule that skips and repeats calendar days, the leap-month rule, the
+//! mean motions as the exact rationals they are, Losar 2024 and a skipped
+//! and an extra day worked by hand, what the Tsurphu and other traditions
+//! would change, what is carried and not, and how the dates were checked
+//! against Janson's tables and the published Losars. This page summarises
+//! it and states the code's own facts.
+//!
 //! A lunisolar calendar of twelve or thirteen months, each of thirty lunar
 //! days, computed entirely by arithmetic: a mean motion for the date, the
 //! sun and the moon's anomaly, two small tables in place of a sine, and a
 //! leap-month rule on a 65-month cycle. A calendar day is named by the
-//! lunar day that is current at its dawn, so a lunar day short enough to
-//! end within one calendar day gives its number to none — the number is
-//! *skipped* — and one long enough to contain a whole calendar day gives
-//! it to two, the first of which is the *extra* (leap) day. The year is
-//! numbered by the Western year it begins in, as Tibetans commonly number
-//! it, and named in the sixty-year cycle: 2007 is the Fire–Pig year.
+//! lunar day current at its dawn, so a lunar day that ends within one
+//! calendar day gives its number to none — the number is *skipped* — and
+//! one that contains a whole calendar day gives it to two, the first of
+//! which is the *extra* (leap) day. The year is numbered by the Western
+//! year it begins in and named in the sixty-year cycle: 2007 is the
+//! Fire–Pig year.
 //!
 //! # Whose arithmetic
 //!
-//! Svante Janson's *Tibetan Calendar Mathematics* (2014), which states the
-//! Phugpa calculations in modern notation with exact rational constants
-//! and the epoch of 806 from the Kālacakra Tantra. The true month count
-//! is his (5.10), the leap-month rule his (5.8), the inverse his
-//! (5.19)–(5.22), the mean date, mean sun and moon's anomaly his (7.1),
+//! Svante Janson's *Tibetan Calendar Mathematics* (2014), in modern
+//! notation with exact rational constants from the epoch of 806: the true
+//! month count is his (5.10), the leap-month rule his (5.8), the inverse
+//! his (5.19)–(5.22), the mean date, mean sun and moon's anomaly his (7.1),
 //! (7.5) and (7.11) with the almanacs' `a2 = 1/28`, the tables his (7.18)
 //! and (7.21), the true date his (7.22), and the calendar day his (8.1)
-//! with the rule of Section 6 for skipped and repeated days. Every constant
-//! is carried as the rational it is, and every date is computed exactly.
+//! with the rule of his Section 6. Every constant is carried as the
+//! rational it is, and every date is computed exactly.
 //!
 //! # What is not carried
 //!
-//! The Tsurphu and other traditions, which differ in their constants
-//! (his Appendix A); Henning's alternative anomaly increment (7.24), which
-//! moves about one day in four thousand; the almanac's further columns —
-//! the true day of week's fraction, the lunar mansion, the yoga and the
-//! karaṇa — of his Section 10; and the Mongolian and Bhutanese variants.
+//! The Tsurphu, Mongolian and Bhutanese versions (his Appendix A);
+//! Henning's exact anomaly increment (7.24), which moves about one day in
+//! four thousand; and the almanac's further columns of his Section 10.
 //!
 //! Source: Svante Janson, "Tibetan calendar mathematics", arXiv:1401.6285,
-//! revised 8 January 2014, retrieved 2026-09-22.
+//! revised 8 January 2014, retrieved 2026-09-22; keyed in
+//! `docs/references.bib` as `janson2014`.
 
 use core::fmt;
 
