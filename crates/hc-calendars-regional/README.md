@@ -115,15 +115,16 @@ extra one, is `Month::leap(8)`; the day is counted 1 to 30 through the month,
 
 ## Correlations, stated
 
-* **Maya**: Goodman–Martínez–Thompson, **584 283**. `13.0.0.0.0` is
-  2012-12-21. The alternative 584 285 would move every Western date two days
-  later, and it is its own registered calendar, `maya-longcount-gmt2`, rather
-  than a switch on the first: a correlation is a claim about history, and two
-  claims get two names (policy §5).
+* **Maya**: Goodman–Martínez–Thompson, **584 283**, as `maya-longcount`;
+  the alternative 584 285 is its own registered calendar,
+  `maya-longcount-gmt2`, rather than a switch on the first (policy §5). The
+  three cycles are anchored to 584 283 only.
 * **Aztec**: the fall of Tenochtitlan, **13 August 1521 Julian**, dated
-  *1 Coatl*, 2 Xocotlhuetzi — Caso's correlation, as tabulated in
-  *Calendrical Calculations*. The 365-day year is modelled **without**
-  intercalation, so it drifts a day every four years against the seasons.
+  *1 Coatl*, 2 Xocotlhuetzi — Caso's correlation as *Calendrical
+  Calculations* tabulates it — over an uncorrected 365-day year.
+
+The history of the constants, the worked readings and the sources are in
+[`docs/systems/mesoamerican-counts.md`](../../docs/systems/mesoamerican-counts.md).
 * **Balinese Pawukon**: Julian Day Number 146.
 * **Javanese pasaran**: anchored through the Pawukon, because they are the
   same five-day cycle; fixed day 0 works out as Ahad Legi.
@@ -153,7 +154,8 @@ inherits the `chinese` calendar's model, as that README describes.
   starts: Japanese Wikipedia, 元号一覧 (日本).
 * Maya and Aztec ordinal arithmetic, the Pawukon's epoch and its three
   irregular cycles: Reingold and Dershowitz, *Calendrical Calculations*
-  (4th ed., 2018), chapters 9, 10 and 11.
+  (4th ed., 2018), chapters 9, 10 and 11; the Maya and Aztec sources in
+  full in [`docs/systems/mesoamerican-counts.md`](../../docs/systems/mesoamerican-counts.md).
 * Thai lunar year types: the Bank of Thailand's lists of financial-institution
   holidays for 1992–2022 as the Internet Archive keeps them, its
   notifications FPG 3/2565, FPG 8/2566, FPG 5/2567 and 31/2568 for
@@ -174,7 +176,9 @@ inherits the `chinese` calendar's model, as that README describes.
   added when Thailand publishes it.
 * No Javanese calendar proper: the Sultan Agung lunar year, its *windu* and
   its Anno Javanico era are a different calendar and are not here.
-* No Maya "lord of the night" glyph cycle, no Aztec year bearer.
+* No Maya "lord of the night" glyph cycle, no 819-day count, no Maya or
+  Aztec year bearer as a field; the reasons are in
+  [`docs/systems/mesoamerican-counts.md`](../../docs/systems/mesoamerican-counts.md).
 * The sexagenary **month** pillar follows the lunar month, not the solar
   terms. If you are casting a chart rather than reading a date, it is not
   the function you want; `hc_calendar::cycle::month_pillar` takes the

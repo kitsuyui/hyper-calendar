@@ -32,6 +32,7 @@ None of the three repeats another.
 | China's annual holiday arrangements and working weekends | [china-holiday-arrangements.md](china-holiday-arrangements.md) | `hc-holiday`'s `CHINA`; `XSHG`, `XSHE` |
 | The Hijri calendars: the tabular schemes, the Umm al-Qura table and the observational prediction | [hijri.md](hijri.md) | `islamic-civil`, `islamic-tbla`, `islamic-fatimid`, `islamic-umalqura`, `islamic-rgsa`; `tabular` |
 | The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, ayanāṃśa | [hindu-calendars.md](hindu-calendars.md) | `hindu-lunar`, `hindu-lunar-purnimanta`, `hindu-solar-tamil`, `hindu-solar-malayalam`, `hindu-solar-bengali`, `hindu-solar-vikrami`, `hindu-old-solar`, `hindu-old-lunar`; `tithi`, `nakshatra`, `surya_siddhanta` |
+| The Maya and Aztec counts: the Long Count under two correlations, the Tzolkʼin, Haabʼ and Calendar Round, the tonalpohualli and xiuhpohualli | [mesoamerican-counts.md](mesoamerican-counts.md) | `maya-longcount`, `maya-longcount-gmt2`, `maya-tzolkin`, `maya-haab`, `maya-round`, `aztec-tonalpohualli`, `aztec-xiuhpohualli` |
 
 ## Systems that need a document
 
@@ -47,7 +48,6 @@ explanation is from what a reader needs.
 | Bikram Sambat as gazetted, and Nepal Sambat | `bikram_sambat`, `nepal_sambat` |
 | The East Asian lunisolar calendars and their meridian conventions | `lunisolar`, `chinese`, `dangi`, `vietnamese` |
 | The Hebrew calendar's dehiyyot | `hebrew` |
-| The Maya and Aztec counts | `maya`, `aztec` |
 | The Balinese Pawukon and the Javanese pasaran | `balinese_pawukon`, `javanese_pasaran` |
 | The Badíʿ calendar and the French Republican equinox rule | `hc-calendars-equinox` |
 | The 24 solar terms and 72 pentads, and the zodiac conventions | `hc-seasons` |

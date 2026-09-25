@@ -2,35 +2,17 @@
 //! xiuhpōhualli.
 //!
 //! They are structurally the Mesoamerican pair that [`crate::maya`] also
-//! implements — a 260-day count of thirteen numbers against twenty
-//! day-signs, and a vague year of eighteen twenty-day months plus five
-//! unlucky days — with different names and a different correlation. Unlike
-//! the Maya, the Aztecs left no long count, so there is nothing here that
-//! counts days from an epoch; both calendars are cycles and both carry a
-//! round number for the reasons the crate documentation gives.
-//!
-//! # The correlation
-//!
-//! The anchor is the **fall of Tenochtitlan on 13 August 1521 in the Julian
-//! calendar**, which Sahagún's informants dated *1 Coatl*, the second day of
-//! the month Xocotlhuetzi. That is [`CORRELATION`]. It is the correlation
-//! of Alfonso Caso, and the one Reingold and Dershowitz tabulate in
-//! *Calendrical Calculations* (4th ed., 2018), chapter 9.
-//!
-//! It is a choice, not a measurement. Other reconstructions exist — the
-//! Nuttall–Ochoa model, among others, shifts the xiuhpōhualli by a
-//! different amount and disputes whether the year was ever corrected for
-//! the quarter-day drift. This module implements the uncorrected 365-day
-//! year, which is what the anchor above describes and what every published
-//! conversion table this crate was checked against uses. It does not model
-//! a leap day, because the evidence that the Aztecs kept one is contested.
-//!
-//! # Drift
-//!
-//! Without intercalation the xiuhpōhualli slips one day against the
-//! tropical year every four years, so a month that fell at the maize
-//! harvest in 1500 falls a season away from it after four centuries. That
-//! is a property of the calendar, not of this implementation.
+//! implements — thirteen numbers against twenty day-signs, and a vague
+//! year of eighteen twenty-day months plus five unlucky days — under
+//! Nahuatl names and an anchor of their own: [`CORRELATION`], the fall of
+//! Tenochtitlan on 13 August 1521 (Julian) as *1 Coatl*, 2 Xocotlhuetzi,
+//! which is Caso's correlation as Reingold and Dershowitz tabulate it.
+//! There is no Aztec long count, so both calendars are cycles and both
+//! carry a round number, for the reasons the crate documentation gives.
+//! The year is the uncorrected 365 days and drifts a day against the
+//! seasons every four years. The anchor, the competing reconstructions,
+//! the year bearers and the sources are in
+//! [`docs/systems/mesoamerican-counts.md`](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/systems/mesoamerican-counts.md).
 
 use core::fmt;
 
