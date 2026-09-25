@@ -29,6 +29,7 @@ None of the three repeats another.
 | Name-day lists | [name-days.md](name-days.md) | `hc-name-days` |
 | The Japanese lunisolar calendars, Senmyō to Tenpō | [japanese-lunisolar.md](japanese-lunisolar.md) | `japanese-senmyo`, `japanese-jokyo`, `japanese-horyaku`, `japanese-kansei`, `japanese-tenpo` |
 | The Thai lunar calendar's year types, and the Buddhist year as printed | [thai-lunar.md](thai-lunar.md) | `thai-lunar`; `buddhist::printed_year` |
+| China's annual holiday arrangements and working weekends | [china-holiday-arrangements.md](china-holiday-arrangements.md) | `hc-holiday`'s `CHINA`; `XSHG`, `XSHE` |
 
 ## Systems that need a document
 
@@ -38,8 +39,7 @@ from. Each is a task of its own; the order is by how far the module's
 explanation is from what a reader needs.
 
 | System | Where the explanation is now |
-| The Thai lunar calendar's year types and the printed Buddhist year | `thai_lunar` and `buddhist` |
-| The Japanese lunisolar calendars, Senmyō to Tenpō, and their fitted constants | `hc-calendars-lunar` README and `japanese_historical` |
+| --- | --- |
 | The Burmese calendar's eras and exceptions | `burmese` |
 | The Tibetan Phugpa arithmetic | `tibetan` |
 | The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, ayanāṃśa | `hc-calendars-indic` |
@@ -52,7 +52,6 @@ explanation is from what a reader needs.
 | The Badíʿ calendar and the French Republican equinox rule | `hc-calendars-equinox` |
 | The 24 solar terms and 72 pentads, and the zodiac conventions | `hc-seasons` |
 | The sexagenary cycle and its year boundaries | `sexagenary` |
-| China's annual holiday arrangements and working weekends | `hc-holiday`, China |
 | Russia's transferred days off | `hc-holiday`, Russia |
 | Korea's substitute-holiday rules and collisions | `hc-holiday`, South Korea, and `engine` |
 | Japan's holiday law and its amendments | `hc-holiday`, Japan |

@@ -980,15 +980,17 @@ static XSHG_RULES: &[HolidayRule] = &[
 
 /// The Shanghai Stock Exchange.
 ///
-/// The exchange's annual closure notices for 2014 to 2026: it is closed on
-/// Saturdays, Sundays and the days off of the State Council's arrangement
-/// for each year — the [`CHINA`] table's, which this set includes and does
-/// not repeat, with the three later notices that changed 2015, 2019 and
-/// 2020 — and not on the weekend days that arrangement makes working days,
-/// which the notices list as "周末休市". The one day of its own is
+/// Closed on Saturdays, Sundays and the days off of the State Council's
+/// arrangement for each year — the [`CHINA`] table's, which this set
+/// includes and does not repeat, with the three later notices that changed
+/// 2015, 2019 and 2020 — and not on the weekend days that arrangement
+/// makes working days, which the exchange's notices list as "周末休市".
+/// Why an included working day stays a weekend day here is in
+/// `docs/systems/china-holiday-arrangements.md`. The one day of its own is
 /// 9 February 2024, the eve of the Spring Festival, which the arrangement
-/// left a working day. A year the [`CHINA`] table has no arrangement for is
-/// a gap here too.
+/// left a working day. Checked against the exchange's closure notices for
+/// 2014 to 2026; a year the [`CHINA`] table has no arrangement for is a
+/// gap here too.
 pub static SHANGHAI_STOCK_EXCHANGE: RuleSet = RuleSet {
     code: "XSHG",
     english_name: "Shanghai Stock Exchange",
@@ -2243,17 +2245,17 @@ pub static NZX: RuleSet = RuleSet {
 /// The Shenzhen Stock Exchange.
 ///
 /// The exchange's annual closure notices for 2015 to 2026,
-/// 关于20XX年部分节假日休市安排的通知, with the three that changed a year —
-/// the commemoration of 3 and 4 September 2015, Labour Day 2019 and the
-/// Spring Festival of 2020, extended to 2 February: in every year read they
-/// close the same days as Shanghai's notices, both following the CSRC's
-/// 关于部分节假日放假和休市安排的通知 for the year — Saturdays, Sundays and
-/// the days off of the State Council's arrangement, the [`CHINA`] table's,
-/// which this set includes and does not repeat, not the weekend days that
-/// arrangement makes working days, which the notices list as 周末休市, and
-/// 9 February 2024, the eve of the Spring Festival, which the 2024 notice
-/// closes as Shanghai's does. The rule slice is Shanghai's, shared so that
-/// the two cannot drift apart unnoticed. A year the [`CHINA`] table has no
+/// 关于20XX年部分节假日休市安排的通知, with the three that changed a year,
+/// close the same days as Shanghai's in every year read, both following
+/// the CSRC's 关于部分节假日放假和休市安排的通知 for the year: Saturdays,
+/// Sundays and the days off of the State Council's arrangement, the
+/// [`CHINA`] table's, which this set includes and does not repeat, not
+/// the weekend days that arrangement makes working days, which the
+/// notices list as 周末休市 (the reason is in
+/// `docs/systems/china-holiday-arrangements.md`), and 9 February 2024,
+/// the eve of the Spring Festival, which the 2024 notice closes as
+/// Shanghai's does. The rule slice is Shanghai's, shared so that the two
+/// cannot drift apart unnoticed. A year the [`CHINA`] table has no
 /// arrangement for is a gap here too.
 pub static SHENZHEN_STOCK_EXCHANGE: RuleSet = RuleSet {
     code: "XSHE",
