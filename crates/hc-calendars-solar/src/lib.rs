@@ -25,9 +25,9 @@
 //!
 //! | Family | Calendars |
 //! | --- | --- |
-//! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`swedish`], [`revised_julian`], [`byzantine`], [`roman`], [`rumi`] |
-//! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`koki`], [`indian`], [`nanakshahi`], [`bangladeshi`], [`discordian`] |
-//! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`armenian`], [`armenian_fixed`], [`french_republican`], [`zoroastrian`] |
+//! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`swedish`], [`revised_julian`], [`byzantine`], [`roman`], [`rumi`], [`berber`], [`yazidi`] |
+//! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`koki`], [`indian`], [`nanakshahi`], [`bangladeshi`], [`discordian`], [`assyrian`] |
+//! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`armenian`], [`armenian_fixed`], [`french_republican`], [`zoroastrian`], [`mandaean`] |
 //! | Day counts | [`julian_day`], [`day_counts`] |
 //! | Cycle-based | [`persian`], [`bahai`], [`bahai_kept`] |
 //! | Proposed reforms | [`symmetry454`], [`symmetry010`] (both on [`symmetry`]), [`world_calendar`], [`international_fixed`], [`positivist`] |
@@ -58,9 +58,11 @@ mod common;
 
 pub mod armenian;
 pub mod armenian_fixed;
+pub mod assyrian;
 pub mod bahai;
 pub mod bahai_kept;
 pub mod bangladeshi;
+pub mod berber;
 pub mod buddhist;
 pub mod byzantine;
 pub mod coptic;
@@ -80,6 +82,7 @@ pub mod julian;
 pub mod julian_day;
 pub mod julian_gregorian;
 pub mod koki;
+pub mod mandaean;
 pub mod minguo;
 pub mod nanakshahi;
 pub mod ordinal;
@@ -93,14 +96,17 @@ pub mod symmetry;
 pub mod symmetry010;
 pub mod symmetry454;
 pub mod world_calendar;
+pub mod yazidi;
 pub mod year_style;
 pub mod zoroastrian;
 
 pub use armenian::{ArmenianCalendar, ArmenianDate};
 pub use armenian_fixed::{ArmenianFixedCalendar, ArmenianFixedDate};
+pub use assyrian::{AssyrianCalendar, AssyrianDate};
 pub use bahai::{ArithmeticBahaiCalendar, BahaiDate};
 pub use bahai_kept::BahaiCalendar;
 pub use bangladeshi::{BangladeshiCalendar, BangladeshiDate};
+pub use berber::{BerberCalendar, BerberDate};
 pub use buddhist::{BuddhistCalendar, BuddhistDate};
 pub use byzantine::{ByzantineCalendar, ByzantineDate};
 pub use coptic::{CopticCalendar, CopticDate};
@@ -120,6 +126,7 @@ pub use julian_day::{
 };
 pub use julian_gregorian::{Adoption, ReformCalendar, ReformDate};
 pub use koki::{KokiCalendar, KokiDate};
+pub use mandaean::{MandaeanCalendar, MandaeanDate};
 pub use minguo::{MinguoCalendar, MinguoDate};
 pub use nanakshahi::{NanakshahiCalendar, NanakshahiDate};
 pub use ordinal::{OrdinalCalendar, OrdinalDate};
@@ -132,6 +139,7 @@ pub use swedish::{SwedishCalendar, SwedishDate};
 pub use symmetry010::{Symmetry010Calendar, Symmetry010Date};
 pub use symmetry454::{Symmetry454Calendar, Symmetry454Date};
 pub use world_calendar::{WorldCalendar, WorldCalendarDate};
+pub use yazidi::{YazidiCalendar, YazidiDate};
 pub use zoroastrian::{Reckoning, ZoroastrianCalendar, ZoroastrianDate};
 
 #[cfg(feature = "alloc")]
@@ -195,6 +203,10 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::InternationalFixedCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::PositivistCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::SwedishCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::BerberCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::MandaeanCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::AssyrianCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::YazidiCalendar)));
         for zoroastrian in crate::ZoroastrianCalendar::ALL {
             registry.insert(Box::new(DynAdapter::new(zoroastrian)));
         }
@@ -213,7 +225,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 44;
+const CALENDAR_COUNT: usize = 48;
 
 #[cfg(test)]
 mod tests {
@@ -298,6 +310,10 @@ mod tests {
                 InternationalFixedCalendar,
                 PositivistCalendar,
                 SwedishCalendar,
+                BerberCalendar,
+                MandaeanCalendar,
+                AssyrianCalendar,
+                YazidiCalendar,
                 ZoroastrianCalendar::QADIMI,
                 ZoroastrianCalendar::SHAHANSHAHI,
                 ZoroastrianCalendar::FASLI,
@@ -327,6 +343,10 @@ mod tests {
             ArithmeticFrenchRepublicanCalendar.meta(),
             Symmetry454Calendar.meta(),
             SwedishCalendar.meta(),
+            BerberCalendar.meta(),
+            MandaeanCalendar.meta(),
+            AssyrianCalendar.meta(),
+            YazidiCalendar.meta(),
         ] {
             let first = meta.earliest.expect("bounded below");
             let last = meta.latest.expect("bounded above");
