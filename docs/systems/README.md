@@ -31,6 +31,7 @@ None of the three repeats another.
 | The Thai lunar calendar's year types, and the Buddhist year as printed | [thai-lunar.md](thai-lunar.md) | `thai-lunar`; `buddhist::printed_year` |
 | China's annual holiday arrangements and working weekends | [china-holiday-arrangements.md](china-holiday-arrangements.md) | `hc-holiday`'s `CHINA`; `XSHG`, `XSHE` |
 | The Hijri calendars: the tabular schemes, the Umm al-Qura table and the observational prediction | [hijri.md](hijri.md) | `islamic-civil`, `islamic-tbla`, `islamic-fatimid`, `islamic-umalqura`, `islamic-rgsa`; `tabular` |
+| The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, ayanāṃśa | [hindu-calendars.md](hindu-calendars.md) | `hindu-lunar`, `hindu-lunar-purnimanta`, `hindu-solar-tamil`, `hindu-solar-malayalam`, `hindu-solar-bengali`, `hindu-solar-vikrami`, `hindu-old-solar`, `hindu-old-lunar`; `tithi`, `nakshatra`, `surya_siddhanta` |
 
 ## Systems that need a document
 
@@ -43,7 +44,6 @@ explanation is from what a reader needs.
 | --- | --- |
 | The Burmese calendar's eras and exceptions | `burmese` |
 | The Tibetan Phugpa arithmetic | `tibetan` |
-| The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, ayanāṃśa | `hc-calendars-indic` |
 | Bikram Sambat as gazetted, and Nepal Sambat | `bikram_sambat`, `nepal_sambat` |
 | The East Asian lunisolar calendars and their meridian conventions | `lunisolar`, `chinese`, `dangi`, `vietnamese` |
 | The Hebrew calendar's dehiyyot | `hebrew` |

@@ -1,13 +1,18 @@
 //! The Hindu solar calendars: a month is the Sun's stay in a sidereal
 //! sign, and the regions differ on which day it begins.
 //!
+//! The four regional rules, as Sewell and Dikshit state them and as the
+//! *Rashtriya Panchang*'s "Regional Calendars" tables show them, the
+//! eras, the true and the *Sūrya Siddhānta* Sun and the ayanamsa are
+//! written up with their sources in `docs/systems/hindu-calendars.md` in
+//! the repository. This page summarises it and states the code's own
+//! facts.
+//!
 //! Every solar reckoning of the subcontinent divides the year at the
 //! twelve *saṅkrāntis*, the Sun's entries into the sidereal signs — the
 //! same instants for everyone, fixed by the ayanamsa — and then has to say
 //! which civil day a month begins on when the saṅkrānti falls in the
-//! middle of one. Four answers are in use in India, and the *Rashtriya
-//! Panchang* tabulates all four side by side in its "Regional Calendars"
-//! pages:
+//! middle of one. Four answers are in use in India:
 //!
 //! | Reckoning | The month begins on … | [`SankrantiRule`] |
 //! |---|---|---|
@@ -19,9 +24,8 @@
 //! Each is a [`HinduSolarCalendar`] value here — [`TAMIL`], [`MALAYALAM`],
 //! [`BENGALI`], [`VIKRAMI`] — with the era each counts its years in:
 //! the Tiruvaḷḷuvar year, the Kollam era, the Bengali San, the Vikrama
-//! Saṃvat. The rules were not taken from a description; they were read off
-//! the almanac's tables, twenty-four months of each, and the tests are
-//! those tables.
+//! Saṃvat. The rules were read off the almanac's tables, twenty-four
+//! months of each, and the tests are those tables.
 //!
 //! # Whose day
 //!

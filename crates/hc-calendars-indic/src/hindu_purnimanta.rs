@@ -1,21 +1,24 @@
 //! The Hindu lunisolar calendar, *pūrṇimānta* — `hindu-lunar-purnimanta`.
 //!
+//! The naming is explained, with the almanac's labelling of Śaka 1945 and
+//! its sources, in `docs/systems/hindu-calendars.md` in the repository,
+//! beside the amānta calendar. This page summarises it and states the
+//! code's own facts.
+//!
 //! Northern India keeps the same tithis, the same fortnights and the same
 //! year as the amānta reckoning of [`crate::hindu_lunar`], and names the
 //! months differently: a month ends at the full moon, so the dark
 //! fortnight comes *first* and carries the name of the bright fortnight
-//! that follows it. The dark half that amānta calls Chaitra kṛṣṇa is
-//! pūrṇimānta Vaiśākha kṛṣṇa; Janmāṣṭamī is Śrāvaṇa kṛṣṇa 8 in the south
-//! and Bhādrapada kṛṣṇa 8 in the north, on the same night.
+//! that follows it. Janmāṣṭamī is Śrāvaṇa kṛṣṇa 8 in the south and
+//! Bhādrapada kṛṣṇa 8 in the north, on the same night.
 //!
 //! # The intercalary month is the exception
 //!
 //! An *adhika* month is inserted whole and runs bright fortnight first,
 //! as in amānta: the ordinary month's dark half, then the adhika month's
-//! bright and dark halves, then the ordinary month's bright half. That is
-//! how the *Rashtriya Panchang* labels Śaka 1945 — Śrāvaṇa vadi from
-//! 4 July 2023, adhika Śrāvaṇa sudi from the 18th and vadi from
-//! 2 August, nija Śrāvaṇa sudi from the 17th — and how this module maps it.
+//! bright and dark halves, then the ordinary month's bright half, which is
+//! how the *Rashtriya Panchang*'s vadi column labels it and how this
+//! module maps it.
 //!
 //! # What this is
 //!

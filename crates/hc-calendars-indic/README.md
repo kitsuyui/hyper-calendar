@@ -5,6 +5,14 @@ with the one most of India dates its festivals in: the Hindu lunisolar
 calendar in its *amānta* form, computed from the true Sun and Moon the way
 the Government of India's *Rashtriya Panchang* computes it.
 
+The Hindu calendars — the amānta and pūrṇimānta months, the four solar
+reckonings, the Old Hindu arithmetic, the nakṣatras and the ayanamsa —
+are written up in [`docs/systems/hindu-calendars.md`](../../docs/systems/hindu-calendars.md):
+what each is, how it works with a worked example, what is carried, how
+it was checked against the almanac, and where every statement comes from.
+This README summarises the crate; the module documentation summarises
+each module.
+
 ## What is here
 
 | Module | Identifier | What it is | Range |
@@ -34,14 +42,12 @@ knows.
 
 ## What the tests are
 
-The *Rashtriya Panchang* itself, Śaka 1945 and 1946 (2023–2025), published
-by the Positional Astronomy Centre of the India Meteorological Department:
-the first day of every lunar fortnight it tabulates, the intercalary
-Śrāvaṇa of 1945, the ayanamsa it prints at the head of each month, the
-festival dates it lists where those are the tithi at sunrise — and, for
-the solar reckonings, its "Regional Calendars" tables: the first day of
-every month of every reckoning for both years, ninety-six dates, from
-which the four rules were read rather than assumed.
+For the Hindu calendars, the *Rashtriya Panchang* itself, Śaka 1945 and
+1946 (2023–2025): the first day of every lunar fortnight, the intercalary
+Śrāvaṇa of 1945, the printed ayanamsa, the festival dates that are the
+tithi at sunrise, and the ninety-six first days of the solar months in
+its "Regional Calendars" tables; for the nakṣatras, Drik Panchang's
+transit times. The system document lists every check and its result.
 
 The Bikram Sambat is held to the Government of Nepal's gazette: the
 notices fixing the public holidays of 2080–2083 BS, which list every
@@ -56,13 +62,8 @@ its saṅkrāntis fall from the Lahiri ones.
 
 The two Old Hindu calendars have no such table — the *Panchang* tabulates
 the true calendars, not the mean ones they replaced — so they are held to
-what an arithmetic calendar must do instead: every one of the 3 652 952
-days in their range converts and converts back, months and years have the
-lengths the mean motions allow, an intercalary month falls seven years in
-nineteen and precedes the month it is named for, both calendars place the
-Kali Yuga epoch on the same day as the sources, and the mean months of
-2024–2025 are checked against the true ones above, which they run within
-two days of.
+what an arithmetic calendar must do instead, and to the true months of
+2024–2025, which they run within two days of.
 
 ## What is not here yet
 
