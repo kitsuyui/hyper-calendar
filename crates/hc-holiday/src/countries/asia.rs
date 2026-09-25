@@ -622,16 +622,26 @@ static CN_RULES: &[HolidayRule] = &[
 ];
 
 /// China.
+///
+/// The regime is written up in `docs/systems/china-holiday-arrangements.md`
+/// in the repository: the 放假办法 and its revisions, how each year's
+/// notice moves the rest of a weekend day to a weekday beside a festival
+/// (调休), how the table and the engine carry a worked Sunday and what an
+/// exchange that includes the table receives, with a worked example, and
+/// how the rows were checked against the notices. This comment keeps the
+/// summary and the code's own facts.
+///
+/// The statutory days are rules, bounded to the years each revision of the
+/// 放假办法 was in force. The State Council's arrangement for each year
+/// from 2008 to 2026 is data — `CN_DAYS_OFF` for the spans given off and
+/// `CN_WORKDAYS` for the weekend days worked, the latter as `Kind::Workday`
+/// entries — because it is an annual administrative act, not a rule.
+/// China has no substitution rule, and a year without an arrangement here
+/// is a gap rather than a guess.
 pub static CHINA: RuleSet = RuleSet {
     code: "CN",
     english_name: "China",
     rules: CN_RULES,
-    // China has no substitution rule. It has 调休: the State Council
-    // publishes an arrangement each autumn that both extends the holidays
-    // and designates ordinary weekends as working days. That is an annual
-    // administrative act, not a rule, so the arrangements are carried as
-    // data for the years they were read, and a year without one is a gap
-    // rather than a guess.
     substitution: &[],
     bridges: &[],
     includes: &[],
