@@ -10,8 +10,9 @@ more here than anywhere else. A calendar library is a leaf dependency of a web
 application; whatever it drags in, the bundle carries. So the exports are
 plain `extern "C"` functions over integers and linear memory, which every
 WebAssembly host can call with no glue at all. The cost is that the JavaScript
-side does the string marshalling. That is a few lines, shown below, and they
-are lines the caller can read.
+side does the string marshalling. That is written once, in the binding under
+[`js/`](js/) described below, and it is a few hundred lines the caller can
+read.
 
 ## Memory and text
 
@@ -53,38 +54,157 @@ nothing.
 cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --profile release-compact
 ```
 
+The module is `target/wasm32-unknown-unknown/release-compact/hyper_calendar_wasm.wasm`.
+Any WebAssembly host can call it as it is; a page calls it through the
+binding below, which is the marshalling written once.
+
+## Loading from JavaScript
+
+[`js/hyper-calendar.js`](js/hyper-calendar.js) is an ES module with no
+dependencies and no build step, typed by the hand-written
+[`js/hyper-calendar.d.ts`](js/hyper-calendar.d.ts) beside it. It lives
+with the crate because it is the same surface the crate's README describes,
+column for column, and [`js/readme.test.js`](js/readme.test.js) holds the
+two to each other. Copy the two files next to the page, or serve them from
+wherever the page is served.
+
 ```js
-const { instance } = await WebAssembly.instantiateStreaming(
-  fetch("hyper_calendar_wasm.wasm"),
-);
-const wasm = instance.exports;
+import { load, HcError } from "./hyper-calendar.js";
 
-// 2026-09-21 as a fixed day number. i64 arrives as a BigInt.
-const rd = wasm.hc_gregorian_to_fixed(2026n, 9, 21);
+const hc = await load(fetch("hyper_calendar_wasm.wasm"));
 
-// Read it back as an ISO 8601 date.
-const cap = 32;
-const ptr = wasm.hc_alloc(cap);
-const len = Number(wasm.hc_format_iso_date(rd, ptr, cap));
-const text = new TextDecoder().decode(
-  new Uint8Array(wasm.memory.buffer, ptr, len),
-);
-wasm.hc_free(ptr, cap);
+const rd = hc.gregorianToFixed(2026, 9, 21);        // 739880
+hc.formatIsoDate(rd);                                // "2026-09-21"
+hc.describeDay(rd, "ja-JP").find((row) => row.id === "japanese");
+// { id: "japanese", era: "reiwa", eraLabel: "令和", year: 8, month: 9, day: 21, ... }
+hc.holidaysOn(rd);                                   // [{ table: "JP", name: ..., kind: "public", ... }, ...]
+hc.fixedFromUnixInZone(Date.now() / 1000 | 0, "Asia/Tokyo");
+
+try {
+  hc.parseIsoDate("2026-02-30");
+} catch (error) {
+  error instanceof HcError;      // true
+  error.name;                    // "invalid-date"
+  error.constant;                // "HC_ERR_INVALID_DATE"
+  error.code;                    // -9000000000000001n
+}
 ```
 
-Reading lines is the same with a measuring call first:
+`load(source)` takes the module in whatever form the page has it — a
+`WebAssembly.Module` or `Instance`, its bytes as an `ArrayBuffer` or
+`Uint8Array`, a `Response`, or a `URL` or string to fetch — or a promise of
+any of those, and resolves to a `HyperCalendar` with one method per export:
+
+| Method | Export | Answers with |
+| --- | --- | --- |
+| `alloc(len)`, `free(pointer, len)` | `hc_alloc`, `hc_free` | a pointer; nothing |
+| `version()` | `hc_version` | a string |
+| `gregorianToFixed(year, month, day)` | `hc_gregorian_to_fixed` | a fixed day number |
+| `gregorianYear(rd)`, `gregorianMonth(rd)`, `gregorianDay(rd)`, `weekday(rd)`, `dayOfYear(rd)` | the `hc_gregorian_*`, `hc_weekday`, `hc_day_of_year` | a number |
+| `isLeapYear(rd)`, `dayHasLeapSecond(unix)` | `hc_is_leap_year`, `hc_day_has_leap_second` | a boolean |
+| `fixedFromUnix(unix)`, `unixFromFixed(rd)`, `taiMinusUtc(unix, strict)` | `hc_fixed_from_unix`, `hc_unix_from_fixed`, `hc_tai_minus_utc` | a number |
+| `formatIsoDate(rd)`, `parseIsoDate(text)` | `hc_format_iso_date`, `hc_parse_iso_date` | a string; a fixed day number |
+| `describeDay(rd, locale)` | `hc_describe_day` | `DescribedDay[]`, one per calendar |
+| `holidayIsDayOff(code, region, rd)` | `hc_holiday_is_day_off` | a boolean |
+| `holidaysInYear(code, region, year)` | `hc_holidays_in_year` | `HolidayInYear[]` |
+| `holidayCodes()` | `hc_holiday_codes` | `string[]` |
+| `holidaysOn(rd)` | `hc_holidays_on` | `HolidayOn[]` |
+| `termInEffect(rd, meridian)`, `pentadInEffect(rd, meridian)` | `hc_term_in_effect`, `hc_pentad_in_effect` | a `TermInEffect` |
+| `placeYearsAgo(years, stdDev)`, `cosmicEvents()`, `geologicIntervals(rank)` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `DeepTimeRow[]` |
+| `fixedFromUnixInZone(unix, zone)`, `unixFromFixedInZone(rd, zone)` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone` | a number |
+| `loadZone(name, tzif)` | `hc_zone_load` | nothing |
+| `skyAt(unix)` | `hc_sky_at` | a `Sky` |
+| `solarTermsBetween(from, to)`, `moonPhasesBetween(from, to)` | `hc_solar_terms_between`, `hc_moon_phases_between` | `SkyEvent[]` |
+
+Each method does what a page would otherwise write by hand:
+
+- **Text** crosses as UTF-8 in `hc_alloc` blocks that are freed with the
+  length they were allocated with, whether or not the call succeeds.
+- **Lines** are decoded into objects by the column tables below, with an
+  empty cell as `null`, a `0`/`1` cell as a boolean, and the extra fields
+  of a calendar as an object. The column order is the README's, and the
+  tests assert it, so a column moved in the source fails the build.
+- **`i64`** crosses as `BigInt`; every result leaves as a number, which
+  every day number, year and timestamp fits, and one that does not is an
+  `unsafe-integer` error rather than a rounded value. An `i64` argument may
+  be a number or a `BigInt`.
+- **Sentinels** are thrown as `HcError`: `name` is the sentinel's name in
+  lower case without the prefix (`invalid-date`, `out-of-range`,
+  `buffer-too-small`, `no-data`, `null-pointer`, `unknown`, `not-utf8`,
+  `malformed`), `constant` its `HC_ERR_*` name, `code` its value as a
+  `BigInt`, and `export` the export that returned it.
+- **Buffers.** An export that writes text is first offered a buffer of
+  `initialCapacity` bytes — 64 KiB unless `load(source, { initialCapacity })`
+  says otherwise — which every ordinary answer fits, so the module computes
+  its text once. When that comes back `HC_ERR_BUFFER_TOO_SMALL`, an export
+  that measures is asked the exact length with a null buffer and called
+  again; `hc_version` and `hc_format_iso_date`, which cannot measure, are
+  offered double until they fit.
+- **Layers.** `load()` works with any build. A method whose export the
+  build lacks throws `HcError` with the name `not-exported` when it is
+  called, not when the module is loaded, so one page can start on `civil`
+  and load `full` later. `hc.has("describeDay")` asks first, and
+  `hc.layers()` names the features the build carries.
+
+### Tests
+
+[`js/*.test.js`](js/) run under `node --test` with Node's built-ins alone,
+against the built module: every method, every line format held to the
+README's columns and count, the sentinels as thrown errors, the buffer
+protocol with a capacity too small to fit anything, a `civil` build's
+refusals by name, and the embedded module below. CI runs them on every
+pull request; locally,
+
+```sh
+scripts/wasm-js-test.sh      # builds civil and full, then node --test
+```
+
+or, with the module already built, `node --test "crates/hyper-calendar-wasm/js/*.test.js"`
+from the repository root, with `CARGO_TARGET_DIR` honoured and `HC_WASM`
+and `HC_WASM_CIVIL` naming the two builds outright.
+
+### The embedded module
+
+A page opened from disk cannot fetch a `.wasm` file: browsers refuse
+`fetch` of a `file:` URL. For that page,
+
+```sh
+scripts/wasm-layers.sh                  # or any build of the module
+node scripts/wasm-embed.mjs             # --wasm <file> for another build
+```
+
+writes `target/wasm-js/hyper-calendar.embedded.js`: the binding above with
+the module's bytes inside it as base64, decoded with `atob` and bound by a
+`load(options)` that takes no source and fetches nothing. It is one
+self-contained ES module; `hyper-calendar.embedded.d.ts` types it. It is
+generated, not committed — CI uploads it with the layered builds below —
+and it is 1.91 MiB (2,001,994 bytes) for the `full` layer of 2026-09-25,
+base64 being four thirds of the module.
+
+### tzdata beside the module
+
+The module's seventeen built-in zones carry only their current rules (the
+time zones section below). For a zone's history, or any other zone, a page
+hands `loadZone(name, bytes)` the zone's TZif file, and
+
+```sh
+scripts/wasm-tzdata.sh                  # [<output directory>]
+```
+
+copies the seventeen from the host's `/usr/share/zoneinfo` (or `ZONEINFO`)
+into `target/tzdata/`, laid out as the database lays them out
+(`tzdata/Asia/Tokyo`), with `VERSION` holding the database release read
+from the host's `+VERSION` or `tzdata.zi`, and `SOURCE` saying where they
+came from. The files are the IANA Time Zone Database's own compiled TZif
+files, copied unmodified; the database is in the public domain. CI uploads
+the directory beside the module, from the Ubuntu runner's `tzdata` package,
+and the README of `hc-tz` names the release its built-in table was read
+from. A page then does
 
 ```js
-function readLines(call) {
-  const need = Number(call(0, 0));           // a null buffer measures
-  if (need < 0) throw new Error(`sentinel ${need}`);
-  const out = wasm.hc_alloc(need);
-  const len = Number(call(out, need));
-  const text = new TextDecoder().decode(new Uint8Array(wasm.memory.buffer, out, len));
-  wasm.hc_free(out, need);
-  return text.split("\n").filter(Boolean).map((line) => line.split("\t"));
-}
-const rows = readLines((buf, cap) => wasm.hc_holidays_on(rd, buf, cap));
+const tzif = await (await fetch("tzdata/Europe/Rome")).arrayBuffer();
+hc.loadZone("Europe/Rome", tzif);
+hc.fixedFromUnixInZone(331_250_400, "Europe/Rome");   // 1980-07-01, by the 1980 rules
 ```
 
 ## Layers
@@ -92,26 +212,31 @@ const rows = readLines((buf, cap) => wasm.hc_holidays_on(rd, buf, cap));
 The exports come in layers, each a Cargo feature, so a page loads what it
 paints first and fetches the rest later. Every feature builds on its own;
 `calendars` does not need `holiday`, so a page can show every calendar
-before it loads the holiday tables. The sizes are of the `--release` build
-for `wasm32-unknown-unknown`; the `release-compact` profile is smaller
-still.
+before it loads the holiday tables.
 
-| Feature | Exports | Brings in | Size |
-| --- | --- | --- | --- |
-| `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 31 KiB |
-| `calendars` | `hc_describe_day`: one day in every registered calendar, in a locale | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n` | 431 KiB |
-| `holiday` | the four `hc_holiday*` exports and `hc_holidays_on` | `hc-holiday` and everything it dates by | 1.05 MiB |
-| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 82 KiB |
-| `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 115 KiB |
-| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 60 KiB |
-| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between` | `hc-astro`, `hc-seasons` | 98 KiB |
-| `full` | all of the above | everything | 1.52 MiB |
+| Feature | Exports | Brings in | Bytes | Size |
+| --- | --- | --- | ---: | ---: |
+| `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,495 | 35 KiB |
+| `calendars` | `hc_describe_day`: one day in every registered calendar, in a locale | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n` | 414,920 | 405 KiB |
+| `holiday` | the four `hc_holiday*` exports and `hc_holidays_on` | `hc-holiday` and everything it dates by | 1,017,832 | 994 KiB |
+| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 88,259 | 86 KiB |
+| `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 101,842 | 99 KiB |
+| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,414 | 56 KiB |
+| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between` | `hc-astro`, `hc-seasons` | 96,550 | 94 KiB |
+| `full` | all of the above | everything | 1,466,491 | 1.40 MiB |
+
+The sizes are of the `release-compact` profile for
+`wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
+printed them on 2026-09-25 with rustc 1.98.1:
 
 ```sh
-cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --release --features calendars
-cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --release --features full
+scripts/wasm-layers.sh
+# cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --profile release-compact --no-default-features --features <layer>
 ```
 
+The script leaves each layer at `target/wasm-layers/hyper_calendar_wasm.<feature>.wasm`
+and prints the table; CI runs it on every pull request and uploads the
+eight files, the embedded module and `tzdata/` as one workflow artifact.
 `hc_alloc`, `hc_free` and `hc_version` are in every build.
 
 ## What is exported
@@ -258,16 +383,10 @@ code or region that is not UTF-8 is `HC_ERR_NOT_UTF8`, and a code that names
 no table is `HC_ERR_UNKNOWN`. An empty region is no region.
 
 ```js
-const enc = new TextEncoder();
-const code = enc.encode("JP");
-const codePtr = wasm.hc_alloc(code.length);
-new Uint8Array(wasm.memory.buffer, codePtr, code.length).set(code);
-const need = Number(wasm.hc_holidays_in_year(codePtr, code.length, 0, 0, 2026n, 0, 0));
-const out = wasm.hc_alloc(need);
-const len = Number(wasm.hc_holidays_in_year(codePtr, code.length, 0, 0, 2026n, out, need));
-const lines = new TextDecoder().decode(new Uint8Array(wasm.memory.buffer, out, len));
-wasm.hc_free(out, need);
-wasm.hc_free(codePtr, code.length);
+hc.holidaysInYear("JP", "", 2026);
+// [{ date: "2026-01-01", name: "New Year's Day", localName: "元日", kind: "public",
+//    confidence: "exact", substitute: false, observedFor: null }, ...]
+hc.holidayIsDayOff("XNYS", "", hc.gregorianToFixed(2026, 4, 3));   // true: Good Friday
 ```
 
 ### One day, every table
@@ -421,15 +540,14 @@ nothing is kept; a name nobody knows is `HC_ERR_UNKNOWN`; an instant whose
 local day leaves the range of a day number is `HC_ERR_OUT_OF_RANGE`.
 
 ```js
-const bytes = new Uint8Array(await (await fetch("/zoneinfo/Europe/Rome")).arrayBuffer());
-const name = enc.encode("Europe/Rome");
-const namePtr = wasm.hc_alloc(name.length), bytesPtr = wasm.hc_alloc(bytes.length);
-new Uint8Array(wasm.memory.buffer, namePtr, name.length).set(name);
-new Uint8Array(wasm.memory.buffer, bytesPtr, bytes.length).set(bytes);
-wasm.hc_zone_load(namePtr, name.length, bytesPtr, bytes.length);   // 0n
-wasm.hc_free(bytesPtr, bytes.length);
-const today = wasm.hc_fixed_from_unix_in_zone(BigInt(Math.floor(Date.now() / 1000)), namePtr, name.length);
+const tzif = await (await fetch("tzdata/Europe/Rome")).arrayBuffer();
+hc.loadZone("Europe/Rome", tzif);
+const today = hc.fixedFromUnixInZone(Math.floor(Date.now() / 1000), "Europe/Rome");
 ```
+
+The `tzdata/` artifact that CI uploads, and `scripts/wasm-tzdata.sh`
+writes, holds the seventeen built-in zones' files with the database's
+release in `VERSION`; see "tzdata beside the module" above.
 
 ## The sky
 
@@ -497,9 +615,13 @@ phase series of Meeus chapter 49 — the same series that dates columns 8
 and 9 of `hc_sky_at`, so a new moon appears at the same second in both.
 
 ```js
-const from = BigInt(Date.UTC(2026, 8, 1) / 1000), to = BigInt(Date.UTC(2026, 9, 1) / 1000);
-const terms = readLines((buf, cap) => wasm.hc_solar_terms_between(from, to, buf, cap));
-// [["165", "1788...", "白露", "白露"], ["180", "1790...", "秋分", "秋分"]]
+const from = Date.UTC(2026, 8, 1) / 1000, to = Date.UTC(2026, 9, 1) / 1000;
+hc.solarTermsBetween(from, to);
+// [{ angle: 165, instant: 1788..., name: "白露", japaneseName: "白露" },
+//  { angle: 180, instant: 1790..., name: "秋分", japaneseName: "秋分" }]
+hc.moonPhasesBetween(from, to).map((phase) => phase.name);
+// ["last-quarter", "new", "first-quarter", "full"]
+hc.skyAt(Date.now() / 1000 | 0).illuminatedFraction;
 ```
 
 ## What is not here

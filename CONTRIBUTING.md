@@ -35,6 +35,7 @@ cargo fmt --all -- --check
 RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features
 cargo build -p hyper-calendar --no-default-features --features alloc,libm  # no_std
 cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown     # WebAssembly
+scripts/wasm-js-test.sh                                                # its JavaScript binding, under node --test
 cargo build -p hyper-calendar-ffi --release                            # shared library
 ```
 

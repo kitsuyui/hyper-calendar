@@ -141,7 +141,11 @@ cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --profile rel
 ```
 
 The WebAssembly surface is a raw C-style ABI with no `wasm-bindgen`, so the
-artefact carries no glue it did not ask for. See
+artefact carries no glue it did not ask for. A dependency-free JavaScript
+binding, one method per export, is in
+[`crates/hyper-calendar-wasm/js`](crates/hyper-calendar-wasm/js), with a
+generator for a single-file module a page can open from disk and a script
+that builds every layer and prints its size. See
 [`crates/hyper-calendar-wasm`](crates/hyper-calendar-wasm).
 
 ### C shared library

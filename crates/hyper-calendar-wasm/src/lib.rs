@@ -11,7 +11,9 @@
 //! glue at all.
 //!
 //! The cost is that the JavaScript side does the string marshalling. That is
-//! a few lines, shown below, and they are lines the caller can read.
+//! a few lines, shown below, and they are lines the caller can read; written
+//! once for every export, they are the binding in `js/hyper-calendar.js`
+//! beside this crate, which the README describes.
 //!
 //! # Memory
 //!
