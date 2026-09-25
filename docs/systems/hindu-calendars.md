@@ -5,7 +5,8 @@ Backs the identifiers `hindu-lunar`, `hindu-lunar-purnimanta`,
 `hindu-solar-vikrami`, `hindu-old-solar` and `hindu-old-lunar` in
 `hc-calendars-indic`, and the crate's `tithi`, `nakshatra`,
 `surya_siddhanta` and `places` modules. Nepal's Bikram Sambat and Nepal
-Sambat are in the same crate and will have a document of their own.
+Sambat are in the same crate and have their own,
+[nepal-calendars.md](nepal-calendars.md).
 
 ## What it is
 

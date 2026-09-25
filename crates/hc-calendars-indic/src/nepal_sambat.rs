@@ -1,48 +1,45 @@
 //! Nepal Sambat, the lunisolar calendar of the Newar people: the amānta
-//! lunar months under their Newar names, the year opening at Kachhalā.
+//! lunar months under their Newar names, the year opening at Kachhalā —
+//! `nepal-sambat`.
 //!
-//! The months are the amānta months of [`crate::hindu_lunar`], each renamed,
-//! and the year begins with Kachhalā, the month of Kārtika — the month whose
-//! full moon is Kārtik Purnimā, as Wikipedia's table of the months pairs each
-//! Newar month with its full moon. So New Year's Day is Kārtika śukla
-//! pratipadā, the day of Mha Puja during the Swanti festival, and a date keeps
-//! its tithi, its fortnight and its intercalary or skipped days exactly as the
-//! amānta calendar has them.
+//! The system is written up in `docs/systems/nepal-calendars.md` in the
+//! repository: the calendar's history and standing, the months and their
+//! full moons, the year count, whose sunrise the day is read at, Mha Puja
+//! of 1134 worked through by hand, what is carried and what is not, the
+//! checks against the published New Year's Days, and the sources, keyed
+//! in `docs/references.bib`. This page summarises it and states the
+//! code's own facts.
 //!
-//! | # | Month | Amānta month | Full moon |
-//! | --- | --- | --- | --- |
-//! | 1 | Kachhalā | Kārtika | Kārtik Purnimā |
-//! | 2 | Thinlā | Mārgaśīrṣa | Dhānya Purnimā |
-//! | 3 | Pwanhelā | Pauṣa | Paush Purnimā |
-//! | 4 | Silā | Māgha | Māghi Purnimā |
-//! | 5 | Chilā | Phālguna | Phāgu Purnimā |
-//! | 6 | Chaulā | Chaitra | Bālāju Purnimā |
-//! | 7 | Bachhalā | Vaiśākha | Baisākh Purnimā |
-//! | 8 | Tachhalā | Jyeṣṭha | Gaidu Purnimā |
-//! | 9 | Dilā | Āṣāḍha | Guru Purnimā |
-//! | 10 | Gunlā | Śrāvaṇa | Janāi Purnimā |
-//! | 11 | Yanlā | Bhādrapada | Bhādra Purnimā |
-//! | 12 | Kaulā | Āśvina | Kojāgrat Purnimā |
+//! The months are the amānta months of [`crate::hindu_lunar`], each
+//! renamed — Kachhalā is Kārtika, the month whose full moon is Kārtik
+//! Purnimā, and so on round the twelve — and the year begins with
+//! Kachhalā, on Kārtika śukla pratipadā, the day of Mha Puja during the
+//! Swanti festival. A date keeps its tithi, its fortnight and its
+//! intercalary or skipped days exactly as the amānta calendar has them.
 //!
-//! # The year count
+//! | # | Month | Amānta month |
+//! | --- | --- | --- |
+//! | 1 | Kachhalā | Kārtika |
+//! | 2 | Thinlā | Mārgaśīrṣa |
+//! | 3 | Pwanhelā | Pauṣa |
+//! | 4 | Silā | Māgha |
+//! | 5 | Chilā | Phālguna |
+//! | 6 | Chaulā | Chaitra |
+//! | 7 | Bachhalā | Vaiśākha |
+//! | 8 | Tachhalā | Jyeṣṭha |
+//! | 9 | Dilā | Āṣāḍha |
+//! | 10 | Gunlā | Śrāvaṇa |
+//! | 11 | Yanlā | Bhādrapada |
+//! | 12 | Kaulā | Āśvina |
 //!
-//! Year *N* begins in the autumn of Gregorian year *N* + 879: New Year's Day
-//! of Nepal Sambat 1134 was 4 November 2013, and the year Lalitpur began
-//! dating its documents in, "1140, i.e. mid 2020", is the one that began in
-//! the autumn of 2019. The era's epoch, 20 October 879, opens its year 0.
-//! Against the Śaka years of `hindu-lunar`, Kachhalā to Chilā of year *N* are
-//! in Śaka *N* + 801 and Chaulā to Kaulā in Śaka *N* + 802.
-//!
-//! # Whose sunrise
-//!
-//! A tithi is one instant for the whole Earth, but which day carries it
-//! depends on whose sunrise is asked, and the Newar calendar is kept in the
-//! Kathmandu Valley. [`NepalSambatCalendar::KATHMANDU`] reads the day at
-//! Kathmandu's sunrise with the Lahiri ayanamsa. The almanac of Nepal's
-//! calendar committee was not read, so on a day when a tithi turns within
-//! minutes of sunrise it may differ from this by a day; the calendar is
-//! registered as that reading and no other. [`NepalSambatCalendar::new`]
-//! takes another.
+//! Year *N* begins in the autumn of Gregorian year *N* + 879 — New Year's
+//! Day of 1134 was 4 November 2013 — and the epoch, 20 October 879, opens
+//! year 0. Against the Śaka years of `hindu-lunar`, Kachhalā to Chilā of
+//! year *N* are in Śaka *N* + 801 and Chaulā to Kaulā in Śaka *N* + 802.
+//! [`NepalSambatCalendar::KATHMANDU`], the registered calendar, reads the
+//! day at Kathmandu's sunrise with the Lahiri ayanamsa; the almanac of
+//! Nepal's calendar committee was not read, and [`NepalSambatCalendar::new`]
+//! takes another place and ayanamsa.
 //!
 //! # What is not here
 //!
