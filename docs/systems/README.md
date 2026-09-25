@@ -34,6 +34,9 @@ None of the three repeats another.
 | The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, ayanāṃśa | [hindu-calendars.md](hindu-calendars.md) | `hindu-lunar`, `hindu-lunar-purnimanta`, `hindu-solar-tamil`, `hindu-solar-malayalam`, `hindu-solar-bengali`, `hindu-solar-vikrami`, `hindu-old-solar`, `hindu-old-lunar`; `tithi`, `nakshatra`, `surya_siddhanta` |
 | The Maya and Aztec counts: the Long Count under two correlations, the Tzolkʼin, Haabʼ and Calendar Round, the tonalpohualli and xiuhpohualli | [mesoamerican-counts.md](mesoamerican-counts.md) | `maya-longcount`, `maya-longcount-gmt2`, `maya-tzolkin`, `maya-haab`, `maya-round`, `aztec-tonalpohualli`, `aztec-xiuhpohualli` |
 | The East Asian lunisolar calendars: China, Korea and Vietnam on their meridians | [east-asian-lunisolar.md](east-asian-lunisolar.md) | `chinese`, `dangi`, `vietnamese`; `lunisolar` |
+| South Korea's public holidays and the substitute holiday, with the collision rule | [korea-holidays.md](korea-holidays.md) | `hc-holiday`'s `SOUTH_KOREA` and `engine::collisions`; `XKRX` |
+| Russia's public holidays and the transfers of days off | [russia-transfers.md](russia-transfers.md) | `hc-holiday`'s `RUSSIA`; `MISX` |
+| Japan's holiday law and its amendments | [japan-holidays.md](japan-holidays.md) | `hc-holiday`'s `JAPAN`; `XJPX` |
 
 ## Systems that need a document
 
@@ -52,7 +55,4 @@ explanation is from what a reader needs.
 | The Badíʿ calendar and the French Republican equinox rule | `hc-calendars-equinox` |
 | The 24 solar terms and 72 pentads, and the zodiac conventions | `hc-seasons` |
 | The sexagenary cycle and its year boundaries | `sexagenary` |
-| Russia's transferred days off | `hc-holiday`, Russia |
-| Korea's substitute-holiday rules and collisions | `hc-holiday`, South Korea, and `engine` |
-| Japan's holiday law and its amendments | `hc-holiday`, Japan |
 | The Gregorian reform, country by country | `julian_gregorian` |

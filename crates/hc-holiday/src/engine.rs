@@ -609,7 +609,9 @@ fn evaluate(
 /// substituted, the later ones in `base`'s order first: on 3 October 2017
 /// the eve of Chuseok, substituted since 2014, shared its day with National
 /// Foundation Day, not substituted until 2021, and the substitute was
-/// Chuseok's.
+/// Chuseok's. The rule this models, South Korea's "다른 공휴일과 겹칠
+/// 경우", and the cases it was checked against are in
+/// `docs/systems/korea-holidays.md` in the repository.
 fn collisions(base: &[Occurrence]) -> Vec<bool> {
     let mut collided = vec![false; base.len()];
     let mut end = base.len();
