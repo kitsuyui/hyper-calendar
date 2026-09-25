@@ -17,6 +17,7 @@ file does not:
 | `gregorian` | Proleptic Gregorian | `gregory` |
 | `julian` | Proleptic Julian, with BC/AD eras | `julian` |
 | `julian_gregorian` | Julian before a country's reform, Gregorian after | `julian-gregorian-*` |
+| `swedish` | Swedish, 1700–1712: the Julian calendar a day early, and 30 February 1712 | `swedish-1700` |
 | `year_style` | Where the year began: Lady Day, Annunciation (Florentine, Pisan), Nativity, more veneto, Greek | *(not calendars; a year-number conversion)* |
 | `cycles` | The computus cycles: golden number, dominical letter, epact, solar cycle, indiction, Julian Period | *(not calendars; year numbers)* |
 | `iso_week` | ISO 8601 week date | `iso8601-week` |
@@ -50,6 +51,8 @@ file does not:
 | `revised_julian` | Revised Julian (Milanković) | `revised-julian` |
 | `koki` | Japanese imperial year (皇紀, kōki) | `japanese-imperial` |
 | `world_calendar` | The World Calendar | `world-calendar` |
+| `international_fixed` | International Fixed (Cotsworth): thirteen months of 28 days with Sol, Year Day and Leap Day outside the week | `international-fixed` |
+| `positivist` | Positivist (Comte, 1849): thirteen months of 28 days from Moïse to Bichat, year 1 in 1789, the complementary days outside the week | `positivist` |
 
 `register_all(&mut CalendarRegistry)`, behind the `alloc` feature, inserts every
 calendar in the table.

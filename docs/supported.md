@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-101 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+104 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 83 of 101 have months and 83 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 86 of 104 have months and 86 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 | id | Name | Crate | Feature | Earliest | Latest | Astronomical | Leap months | Day begins | Cycles | Named |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -61,6 +61,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `hindu-solar-vikrami` | Vikrami solar | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-04-09 | 2300-04-17 | yes | no | sunrise | month ×12, weekday ×7 | yes |
 | `holocene` | Holocene (Human Era) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999-01-01 | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `indian` | Indian national (Śaka) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0079-03-22 | +10078-03-21 | no | no | midnight | month ×12, weekday ×7 | yes |
+| `international-fixed` | International Fixed | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | month ×13, weekday ×7 | yes |
 | `islamic-civil` | Hijri (tabular, civil epoch) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0622-07-19 | +10323-10-21 | no | no | sunset | month ×12, weekday ×7 | yes |
 | `islamic-fatimid` | Hijri (Fatimid, Ṭayyibī Bohra "Misri") | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0622-07-18 | +10323-10-20 | no | no | sunset | month ×12, weekday ×7 | yes |
 | `islamic-rgsa` | Hijri (observational, predicted) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1900-01-01 | 2100-12-31 | yes | no | sunset | month ×12, weekday ×7 | yes |
@@ -106,12 +107,14 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `nepal-sambat` | Nepal Sambat (lunar) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | month ×12–13, weekday ×7 | yes |
 | `persian` | Solar Hijri | [`hc-calendars-equinox`](../crates/hc-calendars-equinox) | `equinox` | 0622-03-22 | 3001-03-20 | yes | no | midnight | month ×12, weekday ×7 | yes |
 | `persian-arithmetic` | Solar Hijri (arithmetic) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0622-03-22 | +10621-03-17 | no | no | midnight | month ×12, weekday ×7 | yes |
+| `positivist` | Positivist | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | month ×13, weekday ×7 | yes |
 | `reduced-julian-day` | Reduced Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | noon | none | — |
 | `revised-julian` | Revised Julian (Milanković) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999931-06-13 | +9999992-05-24 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `roc` | Minguo (Republic of China) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `roman-auc` | Roman (ab urbe condita) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -753-12-24 | +99249-01-11 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `rumi` | Rumi | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1840-03-13 | 1925-12-31 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `sexagenary` | Sexagenary cycle (干支) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | stem ×10, branch ×12 | — |
+| `swedish-1700` | Swedish (1700–1712) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1700-03-11 | 1712-03-11 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `symmetry010` | Symmetry010 | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0001-01-01 | +99999-12-12 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `symmetry454` | Symmetry454 | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0001-01-01 | +99999-12-12 | no | no | midnight | month ×12, weekday ×7 | yes |
 | `thai-lunar` | Thai lunar | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 1991-12-07 | 2028-05-23 | no | yes | midnight | month ×12–13, weekday ×7 | yes |
