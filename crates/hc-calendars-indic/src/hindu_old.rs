@@ -247,6 +247,7 @@ impl Calendar for OldHinduSolarCalendar {
             is_astronomical: false,
             earliest: Some(self.earliest()),
             latest: Some(self.latest()),
+            native_locales: &["sa"],
         }
     }
 
@@ -484,6 +485,7 @@ impl Calendar for OldHinduLunarCalendar {
             is_astronomical: false,
             earliest: Some(self.earliest()),
             latest: Some(self.latest()),
+            native_locales: &["sa"],
         }
     }
 

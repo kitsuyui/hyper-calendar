@@ -429,6 +429,9 @@ pub struct LunisolarParameters {
     pub earliest: Option<Rd>,
     /// The latest fixed day this calendar will convert.
     pub latest: Option<Rd>,
+    /// The languages the calendar's sources are written in; see
+    /// [`CalendarMeta::native_locales`].
+    pub native_locales: &'static [&'static str],
 }
 
 /// The Chinese epoch: 15 February 2637 BCE, the traditional first year of the
@@ -904,6 +907,7 @@ impl LunisolarParameters {
             is_astronomical: true,
             earliest: self.earliest,
             latest: self.latest,
+            native_locales: self.native_locales,
         }
     }
 }
@@ -971,6 +975,16 @@ impl Calendar for LunisolarCalendar {
 
     fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
         self.parameters.is_leap_year(year)
+    }
+
+    /// From the month's first day to the next new moon: one search, where
+    /// the trait's default would convert thirty days one by one.
+    fn days_in_month(&self, fields: &DateFields) -> CalendarResult<u16> {
+        let month = fields.require_month()?;
+        self.parameters
+            .days_in_month(fields.year, month)
+            .map(u16::from)
+            .ok_or(CalendarError::MonthOutOfRange)
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -1046,6 +1060,7 @@ mod tests {
         mean_motion: None,
         earliest: None,
         latest: None,
+        native_locales: &[],
     };
 
     #[test]
@@ -1146,6 +1161,7 @@ mod tests {
             mean_motion: None,
             earliest: None,
             latest: None,
+            native_locales: &[],
         };
         // Equal divisions of the mean year and true 30° steps agree at the
         // solstices and part company in between, so the term index differs on

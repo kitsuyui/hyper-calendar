@@ -257,6 +257,23 @@ impl Calendar for KoreanRegnalCalendar {
         Ok(gregorian::is_leap_year(year))
     }
 
+    /// Resolves the era first: the fields count years within it, and the
+    /// leap rule counts Gregorian years.
+    fn is_leap_year_of(&self, fields: &DateFields) -> CalendarResult<bool> {
+        match fields.era {
+            Some(name) => {
+                let era = find(name).ok_or(CalendarError::UnknownEra)?;
+                self.is_leap_year(era.start_year + fields.year - 1)
+            }
+            None => self.is_leap_year(fields.year),
+        }
+    }
+
+    /// The era in Hangul with its Revised Romanisation.
+    fn era_name(&self, code: &str) -> Option<hc_calendar::EraName> {
+        find(code).map(|era| hc_calendar::EraName::new(era.hangul, era.romanised))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("korean-regnal"),
@@ -266,6 +283,7 @@ impl Calendar for KoreanRegnalCalendar {
             is_astronomical: false,
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
+            native_locales: &["ko"],
         }
     }
 

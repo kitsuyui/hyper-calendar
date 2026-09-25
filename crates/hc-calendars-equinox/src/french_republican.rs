@@ -270,6 +270,7 @@ impl Calendar for EquinoxFrenchRepublicanCalendar {
             is_astronomical: true,
             earliest: Some(earliest()),
             latest: Some(latest()),
+            native_locales: &["fr"],
         }
     }
 

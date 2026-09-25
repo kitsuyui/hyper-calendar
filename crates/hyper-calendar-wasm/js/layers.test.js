@@ -43,6 +43,9 @@ test("a method of another layer throws not-exported when called, not at load", (
   /** @type {Record<string, () => unknown>} */
   const calls = {
     describeDay: () => hc.describeDay(739_880, "en"),
+    calendarUnits: () => hc.calendarUnits("gregory", "year", 739_000, 739_880, "en"),
+    calendars: () => hc.calendars(739_880, "en"),
+    locales: () => hc.locales(),
     holidayIsDayOff: () => hc.holidayIsDayOff("JP", "", 739_880),
     holidaysInYear: () => hc.holidaysInYear("JP", "", 2026),
     holidayCodes: () => hc.holidayCodes(),

@@ -295,6 +295,7 @@ impl Calendar for NepalSambatCalendar {
             is_astronomical: true,
             earliest: self.earliest().ok(),
             latest: self.latest().ok(),
+            native_locales: &["new", "ne"],
         }
     }
 

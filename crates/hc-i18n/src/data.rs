@@ -21,8 +21,15 @@
 //!   interval patterns and relative-time strings are not here.
 //! * Non-Gregorian vocabulary is carried for the calendars where the names
 //!   genuinely differ: Hijri months in Arabic and English, Hebrew months in
-//!   Hebrew and English, Babylonian months in English, the Chinese lunisolar months in both Chinese
-//!   scripts, their Japanese traditional names, and the Japanese era names.
+//!   Hebrew and English, Babylonian months in English, the Chinese
+//!   calendar's months in both Chinese scripts, in Japanese and in Korean,
+//!   the Japanese lunisolar calendars' traditional month names, and the
+//!   Japanese era names. A family's names serve that family: 師走 answers
+//!   for the Tenpō calendar and never for the Chinese one.
+//! * Each locale states its name in English and in itself, its script, and
+//!   how it writes a year with its era, a day and a whole date — the
+//!   templates `hc-format` renders — and what it calls the calendars it has
+//!   a word for. Every template names the CLDR pattern it was read from.
 //! * Five locales exist for a calendar's own language: Amharic for the
 //!   Ethiopic calendar, Coptic for the Coptic, Burmese for the Burmese,
 //!   Tibetan for the Tibetan and Nepali for the Bikram Sambat and Nepal
@@ -45,7 +52,8 @@ use hc_calendar::{CalendarId, Weekday};
 use crate::casing::CasingStyle;
 use crate::direction::Direction;
 use crate::names::{
-    CalendarNames, ContextualNames, CycleNames, EraNames, LocaleData, SexagenaryNames, WidthSet,
+    CalendarDisplayName, CalendarNames, ContextualNames, CycleNames, DateTemplates, EraNames,
+    LeapMonthNames, LocaleData, SexagenaryNames, WidthSet,
 };
 
 // --- construction helpers -------------------------------------------------
@@ -150,13 +158,47 @@ const BABYLONIAN_CALENDARS: &[CalendarId] = &[CalendarId("babylonian")];
 const BUDDHIST_CALENDARS: &[CalendarId] = &[CalendarId("buddhist")];
 
 /// The lunisolar calendars whose months are numbered rather than named, and
-/// so share one set of names: First Month, 正月, 정월.
+/// so share one set of English ordinals: First Month, Second Month.
+///
+/// English is the one locale that serves all of them from a single list,
+/// because an ordinal is not anybody's word for a month. A locale with
+/// words of its own states them for one family at a time —
+/// [`CHINESE_FAMILY_CALENDARS`] or [`JAPANESE_LUNISOLAR_CALENDARS`] — so
+/// that 師走 never answers for the Chinese calendar and 腊月 never for the
+/// Tenpō.
 const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("chinese"),
     CalendarId("chinese-regnal"),
     CalendarId("tibetan"),
     CalendarId("dangi"),
     CalendarId("vietnamese"),
+    CalendarId("japanese-tenpo"),
+    CalendarId("japanese-kansei"),
+    CalendarId("japanese-horyaku"),
+    CalendarId("japanese-jokyo"),
+    CalendarId("japanese-senmyo"),
+];
+
+/// The calendars of the Chinese family that write their year by its stem
+/// and branch — 癸卯年 — and their months as 正月, 二月 … 腊月 in Chinese
+/// and 正月, 二月 … 十二月 in Japanese: the Chinese calendar itself, the
+/// Korean Dangi and the Vietnamese, which share its month structure and
+/// its sexagenary count. The Chinese regnal calendar shares the months but
+/// writes its year by the reign, so it is served beside these and not
+/// among them.
+const CHINESE_FAMILY_CALENDARS: &[CalendarId] = &[
+    CalendarId("chinese"),
+    CalendarId("dangi"),
+    CalendarId("vietnamese"),
+];
+
+/// The Chinese regnal calendar on its own: the months of the Chinese
+/// family, the year of the reign.
+const CHINESE_REGNAL_CALENDARS: &[CalendarId] = &[CalendarId("chinese-regnal")];
+
+/// The five Japanese lunisolar calendars, whose months the Japanese
+/// traditional names — 睦月 … 師走 — belong to and to nothing else.
+const JAPANESE_LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("japanese-tenpo"),
     CalendarId("japanese-kansei"),
     CalendarId("japanese-horyaku"),
@@ -209,6 +251,8 @@ const fn gregorian(
         leap_month_prefix: "",
         eras,
         quarters,
+        templates: GREGORIAN_TEMPLATES,
+        leap_names: LeapMonthNames::NONE,
     }
 }
 
@@ -223,6 +267,8 @@ const fn lunisolar(
         leap_month_prefix,
         eras: EraNames::EMPTY,
         quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
     }
 }
 
@@ -242,6 +288,8 @@ const fn dated(
             calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
     }
 }
 
@@ -280,6 +328,384 @@ const JAPANESE_ERA_CODES: &[&str] = &["meiji", "taisho", "showa", "heisei", "rei
 /// The Latin-letter era abbreviations shared by Japanese and English data.
 const JAPANESE_ERA_NARROW: &[&str] = &["M", "T", "S", "H", "R"];
 
+// --- date templates -------------------------------------------------------
+//
+// How a locale writes a year with its era, a day of the month and a whole
+// date, as `hc-format` renders them. Each convention is read from CLDR 48
+// `common/main/<locale>.xml`, `calendar type="gregorian"` (read 2026-09-26
+// from the `release-48` tag of github.com/unicode-org/cldr): the `Gy`
+// date-format item for the year with its era, `d` for the day and `yMMMMd`
+// for the date, with CLDR's `G`, `y`, `MMMM` and `d` read as this crate's
+// `{era}`, `{year}`, `{month}` and `{day}`; where the day carries a suffix
+// or a point, that is the day template's, so that a date without a day
+// loses the point with it. A locale whose patterns were not read (`am`,
+// `bo`, `cop`, `my`, `ne`) states none and takes `DateTemplates::DEFAULT`.
+//
+// The era is written wherever the date carries one and the locale has not
+// declared it implied: every Gregorian-family entry declares `ad` implied,
+// as CLDR's own `yMMMMd` patterns leave the era out and its `Gy` items put
+// it back for the years before Christ, so 2026 is *2026* and 44 BC is
+// *44 BC*.
+
+/// What the Hebrew entries state: the era of the world is implied.
+const HEBREW_TEMPLATES: DateTemplates = DateTemplates {
+    implied_era: "am",
+    ..DateTemplates::NONE
+};
+
+/// What every Gregorian-family entry states: the current era is implied.
+const GREGORIAN_TEMPLATES: DateTemplates = DateTemplates {
+    implied_era: "ad",
+    ..DateTemplates::NONE
+};
+
+/// `en.xml`: `Gy` is "y G", `yMMMMd` is "MMMM d, y".
+const EN_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{year} {era}",
+    date: "{month} {day}, {year}",
+    ..DateTemplates::NONE
+};
+
+/// `fr.xml`, `it.xml`, `nl.xml`, `pl.xml`, `id.xml`, `hi.xml`: `Gy` is
+/// "y G" and `yMMMMd` is "d MMMM y" in each.
+const DAY_MONTH_YEAR_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{year} {era}",
+    date: "{day} {month} {year}",
+    ..DateTemplates::NONE
+};
+
+/// `de.xml`: `Gy` is "y G", `d` is "d.", `yMMMMd` is "d. MMMM y".
+const DE_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{year} {era}",
+    day: "{day}.",
+    date: "{day} {month} {year}",
+    ..DateTemplates::NONE
+};
+
+/// `cs.xml`: `Gy` is "y G", `d` is "d.", `yMMMMd` is "d. MMMM y".
+const CS_TEMPLATES: DateTemplates = DE_TEMPLATES;
+
+/// `es.xml` and `pt.xml`: `Gy` is "y G", `yMMMMd` is "d 'de' MMMM 'de' y".
+const ES_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{year} {era}",
+    date: "{day} de {month} de {year}",
+    ..DateTemplates::NONE
+};
+
+/// `ru.xml`: `Gy` is "y G", `yMMMMd` is "d MMMM y 'г'.".
+const RU_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{year} {era}",
+    date: "{day} {month} {year} г.",
+    ..DateTemplates::NONE
+};
+
+/// `tr.xml`: `Gy` is "G y", `yMMMMd` is "d MMMM y".
+const TR_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{era} {year}",
+    date: "{day} {month} {year}",
+    ..DateTemplates::NONE
+};
+
+/// `ja.xml`: `Gy` is "Gy年", `d` is "d日", `GyMMMd` is "Gy年M月d日". The
+/// first year of an era is 元年, not 1年: CLDR's `jpanyear` numbering
+/// system (`supplemental/numberingSystems.xml`, "Japanese first-year Gannen
+/// numbering for Japanese calendar") exists for exactly that.
+const JA_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{era}{year}年",
+    first_year: "{era}元年",
+    day: "{day}日",
+    date: "{year}{month}{day}",
+    ..DateTemplates::NONE
+};
+
+/// `zh.xml` and `zh_Hant.xml`: `Gy` is "Gy年", `d` is "d日", `yMMMd` is
+/// "y年M月d日" — the month by its number, which is the abbreviated form
+/// here, since the wide simplified names are 一月 … 十二月.
+const ZH_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{era}{year}年",
+    day: "{day}日",
+    date: "{year}{month:abbreviated}{day}",
+    ..DateTemplates::NONE
+};
+
+/// `ko.xml`: `Gy` is "G y년", `d` is "d일", `yMMMd` is "y년 M월 d일".
+const KO_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{era} {year}년",
+    day: "{day}일",
+    date: "{year} {month} {day}",
+    ..DateTemplates::NONE
+};
+
+/// `he.xml`: `Gy` is "y G", `yMMMMd` is "d בMMMM y".
+const HE_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{year} {era}",
+    date: "{day} ב{month} {year}",
+    ..DateTemplates::NONE
+};
+
+/// `ar.xml` and `fa.xml`: `Gy` is "y G", `yMMMMd` is "d MMMM y".
+const AR_TEMPLATES: DateTemplates = DAY_MONTH_YEAR_TEMPLATES;
+const FA_TEMPLATES: DateTemplates = DAY_MONTH_YEAR_TEMPLATES;
+
+/// `th.xml`: `Gy` is "G y", `yMMMMd` is "d MMMM y" — so the Buddhist
+/// calendar writes 21 กันยายน พ.ศ. 2569, the era before its year.
+const TH_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{era} {year}",
+    date: "{day} {month} {year}",
+    ..DateTemplates::NONE
+};
+
+/// `vi.xml`: `Gy` is "y G", `yMMMMd` is "d MMMM, y".
+const VI_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{year} {era}",
+    date: "{day} {month}, {year}",
+    ..DateTemplates::NONE
+};
+
+/// The Chinese calendar's year and day as Chinese writes them: the year by
+/// its stem and branch (CLDR 48 `zh.xml`, `calendar type="chinese"`, whose
+/// `y` item is "U年", the cyclic year name) and the day of the month by the
+/// `hanidays` numbering system (`supplemental/numberingSystems.xml`,
+/// "Han-character day-of-month numbering for lunar/other traditional
+/// calendars": 初一 … 三十), with the date "U年MMMd" — 癸卯年闰二月初一.
+/// The same characters serve both scripts.
+const CHINESE_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{sexagenary}年",
+    day: "{day}",
+    date: "{year}{month}{day}",
+    day_names: HANIDAYS,
+    ..DateTemplates::NONE
+};
+
+/// The thirty day names of CLDR's `hanidays`.
+const HANIDAYS: &[&str] = &[
+    "初一", "初二", "初三", "初四", "初五", "初六", "初七", "初八", "初九", "初十", "十一", "十二",
+    "十三", "十四", "十五", "十六", "十七", "十八", "十九", "二十", "廿一", "廿二", "廿三", "廿四",
+    "廿五", "廿六", "廿七", "廿八", "廿九", "三十",
+];
+
+/// The Chinese calendar's year in Japanese: by its stem and branch, in
+/// the same characters — 癸卯年 — as the National Astronomical Observatory's
+/// calendar notes write the 干支 of a year (暦Wiki, eco.mtk.nao.ac.jp/koyomi/wiki,
+/// read 2026-09-26); the day stays the locale's `{day}日`.
+const JA_CHINESE_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{sexagenary}年",
+    date: "{year}{month}{day}",
+    ..DateTemplates::NONE
+};
+
+/// The Dangi year in Korean: by its stem and branch in Hangul, 계묘년
+/// (CLDR 48 `ko.xml`, `calendar type="dangi"`, whose `y` item is "U년").
+const KO_CHINESE_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{sexagenary}년",
+    date: "{year} {month} {day}",
+    ..DateTemplates::NONE
+};
+
+// --- calendar display names ----------------------------------------------
+//
+// What a locale calls a calendar, from CLDR 48 `common/main/<locale>.xml`,
+// `localeDisplayNames/types/type[@key="calendar"]` (read 2026-09-26), keyed
+// to the registry: CLDR's `gregorian` is `gregory`, its `iso8601` is
+// `iso8601-week`, its `persian` serves both `persian` and
+// `persian-arithmetic`, and its `islamic-civil`, `islamic-tbla`,
+// `islamic-umalqura` and `islamic-rgsa` are the registry's own. CLDR's bare
+// `islamic` names a tradition rather than one of the four tabular and
+// observational conventions here, so it is not carried. A calendar a
+// locale has no CLDR name for is left unnamed.
+
+const EN_CALENDAR_NAMES: &[CalendarDisplayName] = &[
+    CalendarDisplayName::new("buddhist", "Buddhist Calendar"),
+    CalendarDisplayName::new("chinese", "Chinese Calendar"),
+    CalendarDisplayName::new("coptic", "Coptic Calendar"),
+    CalendarDisplayName::new("dangi", "Dangi Calendar"),
+    CalendarDisplayName::new("ethiopic", "Ethiopic Calendar"),
+    CalendarDisplayName::new("gregory", "Gregorian Calendar"),
+    CalendarDisplayName::new("hebrew", "Hebrew Calendar"),
+    CalendarDisplayName::new("indian", "Indian National Calendar"),
+    CalendarDisplayName::new("islamic-civil", "Islamic Calendar (tabular, civil epoch)"),
+    CalendarDisplayName::new(
+        "islamic-tbla",
+        "Islamic Calendar (tabular, astronomical epoch)",
+    ),
+    CalendarDisplayName::new("islamic-umalqura", "Islamic Calendar (Umm al-Qura)"),
+    CalendarDisplayName::new("islamic-rgsa", "Islamic Calendar (Saudi Arabia, sighting)"),
+    CalendarDisplayName::new("iso8601-week", "ISO-8601 Calendar"),
+    CalendarDisplayName::new("japanese", "Japanese Calendar"),
+    CalendarDisplayName::new("persian", "Persian Calendar"),
+    CalendarDisplayName::new("persian-arithmetic", "Persian Calendar"),
+    CalendarDisplayName::new("roc", "Minguo Calendar"),
+];
+
+const JA_CALENDAR_NAMES: &[CalendarDisplayName] = &[
+    CalendarDisplayName::new("buddhist", "タイ仏暦"),
+    CalendarDisplayName::new("chinese", "中国暦"),
+    CalendarDisplayName::new("coptic", "コプト暦"),
+    CalendarDisplayName::new("dangi", "檀紀"),
+    CalendarDisplayName::new("ethiopic", "エチオピア暦"),
+    CalendarDisplayName::new("gregory", "西暦(グレゴリオ暦)"),
+    CalendarDisplayName::new("hebrew", "ヘブライ暦"),
+    CalendarDisplayName::new("indian", "インド国定暦"),
+    CalendarDisplayName::new("islamic-civil", "イスラム民事暦"),
+    CalendarDisplayName::new("iso8601-week", "ISO-8601"),
+    CalendarDisplayName::new("japanese", "和暦"),
+    CalendarDisplayName::new("persian", "ペルシャ暦"),
+    CalendarDisplayName::new("persian-arithmetic", "ペルシャ暦"),
+    CalendarDisplayName::new("roc", "民国暦"),
+];
+
+const ZH_HANS_CALENDAR_NAMES: &[CalendarDisplayName] = &[
+    CalendarDisplayName::new("buddhist", "佛历"),
+    CalendarDisplayName::new("chinese", "农历"),
+    CalendarDisplayName::new("coptic", "科普特历"),
+    CalendarDisplayName::new("dangi", "大衮历"),
+    CalendarDisplayName::new("ethiopic", "埃塞俄比亚历"),
+    CalendarDisplayName::new("gregory", "公历"),
+    CalendarDisplayName::new("hebrew", "希伯来历"),
+    CalendarDisplayName::new("indian", "印度国定历"),
+    CalendarDisplayName::new("islamic-civil", "伊斯兰希吉来历"),
+    CalendarDisplayName::new("iso8601-week", "国际标准历法"),
+    CalendarDisplayName::new("japanese", "和历"),
+    CalendarDisplayName::new("persian", "波斯历"),
+    CalendarDisplayName::new("persian-arithmetic", "波斯历"),
+    CalendarDisplayName::new("roc", "民国纪年"),
+];
+
+const ZH_HANT_CALENDAR_NAMES: &[CalendarDisplayName] = &[
+    CalendarDisplayName::new("buddhist", "佛曆"),
+    CalendarDisplayName::new("chinese", "農曆"),
+    CalendarDisplayName::new("coptic", "科普特曆"),
+    CalendarDisplayName::new("ethiopic", "衣索比亞曆"),
+    CalendarDisplayName::new("gregory", "公曆"),
+    CalendarDisplayName::new("hebrew", "希伯來曆"),
+    CalendarDisplayName::new("indian", "印度國定曆"),
+    CalendarDisplayName::new("japanese", "日本曆"),
+    CalendarDisplayName::new("persian", "波斯曆"),
+    CalendarDisplayName::new("persian-arithmetic", "波斯曆"),
+    CalendarDisplayName::new("roc", "民國曆"),
+];
+
+const KO_CALENDAR_NAMES: &[CalendarDisplayName] = &[
+    CalendarDisplayName::new("buddhist", "불교력"),
+    CalendarDisplayName::new("chinese", "중국력"),
+    CalendarDisplayName::new("coptic", "콥트력"),
+    CalendarDisplayName::new("ethiopic", "에티오피아력"),
+    CalendarDisplayName::new("gregory", "그레고리력"),
+    CalendarDisplayName::new("hebrew", "히브리력"),
+    CalendarDisplayName::new("indian", "인도력"),
+    CalendarDisplayName::new("islamic-civil", "이슬람 상용력"),
+    CalendarDisplayName::new("japanese", "일본력"),
+    CalendarDisplayName::new("persian", "페르시아력"),
+    CalendarDisplayName::new("persian-arithmetic", "페르시아력"),
+    CalendarDisplayName::new("roc", "대만력"),
+];
+
+const DE_CALENDAR_NAMES: &[CalendarDisplayName] = &[
+    CalendarDisplayName::new("buddhist", "Buddhistischer Kalender"),
+    CalendarDisplayName::new("chinese", "Chinesischer Kalender"),
+    CalendarDisplayName::new("coptic", "Koptischer Kalender"),
+    CalendarDisplayName::new("dangi", "Dangi-Kalender"),
+    CalendarDisplayName::new("ethiopic", "Äthiopischer Kalender"),
+    CalendarDisplayName::new("gregory", "Gregorianischer Kalender"),
+    CalendarDisplayName::new("hebrew", "Hebräischer Kalender"),
+    CalendarDisplayName::new("indian", "Indischer Nationalkalender"),
+    CalendarDisplayName::new("islamic-civil", "Bürgerlicher islamischer Kalender"),
+    CalendarDisplayName::new("islamic-umalqura", "Islamischer Kalender (Umm al-Qura)"),
+    CalendarDisplayName::new("iso8601-week", "ISO-8601-Kalender"),
+    CalendarDisplayName::new("japanese", "Japanischer Kalender"),
+    CalendarDisplayName::new("persian", "Persischer Kalender"),
+    CalendarDisplayName::new("persian-arithmetic", "Persischer Kalender"),
+    CalendarDisplayName::new("roc", "Minguo-Kalender"),
+];
+
+const FR_CALENDAR_NAMES: &[CalendarDisplayName] = &[
+    CalendarDisplayName::new("buddhist", "calendrier bouddhiste"),
+    CalendarDisplayName::new("chinese", "calendrier chinois"),
+    CalendarDisplayName::new("coptic", "calendrier copte"),
+    CalendarDisplayName::new("dangi", "calendrier dangi"),
+    CalendarDisplayName::new("ethiopic", "calendrier éthiopien"),
+    CalendarDisplayName::new("gregory", "calendrier grégorien"),
+    CalendarDisplayName::new("hebrew", "calendrier hébraïque"),
+    CalendarDisplayName::new("indian", "calendrier indien"),
+    CalendarDisplayName::new(
+        "islamic-civil",
+        "calendrier musulman (tabulaire, époque civile)",
+    ),
+    CalendarDisplayName::new("islamic-umalqura", "calendrier musulman (Umm al-Qura)"),
+    CalendarDisplayName::new("iso8601-week", "calendrier ISO 8601"),
+    CalendarDisplayName::new("japanese", "calendrier japonais"),
+    CalendarDisplayName::new("persian", "calendrier persan"),
+    CalendarDisplayName::new("persian-arithmetic", "calendrier persan"),
+    CalendarDisplayName::new("roc", "calendrier républicain chinois"),
+];
+
+const ES_CALENDAR_NAMES: &[CalendarDisplayName] = &[
+    CalendarDisplayName::new("buddhist", "calendario budista"),
+    CalendarDisplayName::new("chinese", "calendario chino"),
+    CalendarDisplayName::new("coptic", "calendario copto"),
+    CalendarDisplayName::new("dangi", "calendario dangi"),
+    CalendarDisplayName::new("ethiopic", "calendario etíope"),
+    CalendarDisplayName::new("gregory", "calendario gregoriano"),
+    CalendarDisplayName::new("hebrew", "calendario hebreo"),
+    CalendarDisplayName::new("indian", "calendario nacional hindú"),
+    CalendarDisplayName::new("islamic-civil", "calendario civil islámico"),
+    CalendarDisplayName::new("iso8601-week", "calendario ISO-8601"),
+    CalendarDisplayName::new("japanese", "calendario japonés"),
+    CalendarDisplayName::new("persian", "calendario persa"),
+    CalendarDisplayName::new("persian-arithmetic", "calendario persa"),
+    CalendarDisplayName::new("roc", "calendario de la República de China"),
+];
+
+const HE_CALENDAR_NAMES: &[CalendarDisplayName] = &[
+    CalendarDisplayName::new("buddhist", "לוח השנה הבודהיסטי"),
+    CalendarDisplayName::new("chinese", "לוח השנה הסיני"),
+    CalendarDisplayName::new("coptic", "הלוח הקופטי"),
+    CalendarDisplayName::new("gregory", "לוח השנה הגרגוריאני"),
+    CalendarDisplayName::new("hebrew", "לוח השנה העברי"),
+    CalendarDisplayName::new("japanese", "לוח השנה היפני"),
+    CalendarDisplayName::new("persian", "הלוח הפרסי"),
+    CalendarDisplayName::new("persian-arithmetic", "הלוח הפרסי"),
+];
+
+const AR_CALENDAR_NAMES: &[CalendarDisplayName] = &[
+    CalendarDisplayName::new("buddhist", "التقويم البوذي"),
+    CalendarDisplayName::new("chinese", "التقويم الصيني"),
+    CalendarDisplayName::new("coptic", "التقويم القبطي"),
+    CalendarDisplayName::new("ethiopic", "التقويم الإثيوبي"),
+    CalendarDisplayName::new("gregory", "التقويم الميلادي"),
+    CalendarDisplayName::new("hebrew", "التقويم العبري"),
+    CalendarDisplayName::new("islamic-umalqura", "تقويم أم القرى"),
+    CalendarDisplayName::new("japanese", "التقويم الياباني"),
+    CalendarDisplayName::new("persian", "التقويم الفارسي"),
+    CalendarDisplayName::new("persian-arithmetic", "التقويم الفارسي"),
+];
+
+const FA_CALENDAR_NAMES: &[CalendarDisplayName] = &[
+    CalendarDisplayName::new("buddhist", "تقویم بودایی"),
+    CalendarDisplayName::new("chinese", "تقویم چینی"),
+    CalendarDisplayName::new("coptic", "تقویم قبطی"),
+    CalendarDisplayName::new("ethiopic", "تقویم اتیوپیایی"),
+    CalendarDisplayName::new("gregory", "تقویم میلادی"),
+    CalendarDisplayName::new("hebrew", "تقویم عبری"),
+    CalendarDisplayName::new("japanese", "تقویم ژاپنی"),
+    CalendarDisplayName::new("persian", "تقویم هجری شمسی"),
+    CalendarDisplayName::new("persian-arithmetic", "تقویم هجری شمسی"),
+];
+
+const TH_CALENDAR_NAMES: &[CalendarDisplayName] = &[
+    CalendarDisplayName::new("buddhist", "ปฏิทินพุทธ"),
+    CalendarDisplayName::new("chinese", "ปฏิทินจีน"),
+    CalendarDisplayName::new("coptic", "ปฏิทินคอปติก"),
+    CalendarDisplayName::new("ethiopic", "ปฏิทินเอธิโอเปีย"),
+    CalendarDisplayName::new("gregory", "ปฏิทินเกรกอเรียน"),
+    CalendarDisplayName::new("hebrew", "ปฏิทินฮีบรู"),
+    CalendarDisplayName::new("indian", "ปฏิทินแห่งชาติอินเดีย"),
+    CalendarDisplayName::new("japanese", "ปฏิทินญี่ปุ่น"),
+    CalendarDisplayName::new("persian", "ปฏิทินเปอร์เซีย"),
+    CalendarDisplayName::new("persian-arithmetic", "ปฏิทินเปอร์เซีย"),
+    CalendarDisplayName::new("roc", "ปฏิทินไต้หวัน"),
+];
+
 // --- root -----------------------------------------------------------------
 
 /// The floor of every lookup.
@@ -289,6 +715,11 @@ const JAPANESE_ERA_NARROW: &[&str] = &["M", "T", "S", "H", "R"];
 /// plainly that no language claimed the field.
 pub static ROOT: LocaleData = LocaleData {
     tag: "und",
+    english_name: "Root",
+    native_name: "",
+    script: "Latn",
+    templates: DateTemplates::NONE,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
@@ -397,6 +828,11 @@ const AM_CALENDARS: &[CalendarNames] = &[
 
 const AM: LocaleData = LocaleData {
     tag: "am",
+    english_name: "Amharic",
+    native_name: "አማርኛ",
+    script: "Ethi",
+    templates: DateTemplates::NONE,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
@@ -485,6 +921,11 @@ const AR_CALENDARS: &[CalendarNames] = &[
 
 const AR: LocaleData = LocaleData {
     tag: "ar",
+    english_name: "Arabic",
+    native_name: "العربية",
+    script: "Arab",
+    templates: AR_TEMPLATES,
+    calendar_names: AR_CALENDAR_NAMES,
     direction: Direction::RightToLeft,
     numbering: "arab",
     first_day_of_week: Weekday::Saturday,
@@ -605,6 +1046,11 @@ const BO_CALENDARS: &[CalendarNames] = &[
 
 const BO: LocaleData = LocaleData {
     tag: "bo",
+    english_name: "Tibetan",
+    native_name: "བོད་སྐད་",
+    script: "Tibt",
+    templates: DateTemplates::NONE,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
@@ -661,6 +1107,11 @@ const BO: LocaleData = LocaleData {
 
 const COP: LocaleData = LocaleData {
     tag: "cop",
+    english_name: "Coptic",
+    native_name: "Ϯⲙⲉⲧⲣⲉⲙⲛ̀ⲭⲏⲙⲓ",
+    script: "Copt",
+    templates: DateTemplates::NONE,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Saturday,
@@ -701,6 +1152,11 @@ const COP: LocaleData = LocaleData {
 
 const CS: LocaleData = LocaleData {
     tag: "cs",
+    english_name: "Czech",
+    native_name: "čeština",
+    script: "Latn",
+    templates: CS_TEMPLATES,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
@@ -777,6 +1233,11 @@ const CS: LocaleData = LocaleData {
 
 const DE: LocaleData = LocaleData {
     tag: "de",
+    english_name: "German",
+    native_name: "Deutsch",
+    script: "Latn",
+    templates: DE_TEMPLATES,
+    calendar_names: DE_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
@@ -879,6 +1340,8 @@ const EN_CALENDARS: &[CalendarNames] = &[
             calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
     },
     dated(
         ISLAMIC_CALENDARS,
@@ -899,15 +1362,28 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &["ah"],
         &["AH"],
     ),
+    // The months as `hc_calendars_lunar::hebrew` numbers them, Tishri 1 to
+    // Elul 12, with Adar I the intercalary repetition of month 5 and the
+    // Adar of a leap year Adar II — CLDR 48 `en.xml`, `calendar
+    // type="hebrew"`, spells the same thirteen names in its own thirteen
+    // slots. The year is written bare — 5784 — as English-language Jewish
+    // calendars print it and as Reingold and Dershowitz, *Calendrical
+    // Calculations* (4th ed., 2018, chapter 8), write it; *AM* is the era's
+    // name when one is asked for.
     dated(
         HEBREW_CALENDARS,
         &[months(&[
-            "Tishri", "Heshvan", "Kislev", "Tevet", "Shevat", "Adar I", "Adar", "Nisan", "Iyar",
-            "Sivan", "Tamuz", "Av", "Elul",
+            "Tishri", "Heshvan", "Kislev", "Tevet", "Shevat", "Adar", "Nisan", "Iyar", "Sivan",
+            "Tamuz", "Av", "Elul",
         ])],
         &["am"],
         &["AM"],
-    ),
+    )
+    .with_leap_names(LeapMonthNames {
+        intercalary: &[(5, "Adar I")],
+        in_leap_years: &[(6, "Adar II")],
+    })
+    .with_templates(HEBREW_TEMPLATES),
     // CLDR has no Babylonian vocabulary. The months are the Akkadian names
     // in the normalisation R. H. van Gent's converter of Parker and
     // Dubberstein's tables prints (webspace.science.uu.nl/~gent0113/babylon/,
@@ -937,6 +1413,8 @@ const EN_CALENDARS: &[CalendarNames] = &[
             calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
     },
     lunisolar(
         NUMBERED_LUNISOLAR_CALENDARS,
@@ -1146,6 +1624,8 @@ const EN_CALENDARS: &[CalendarNames] = &[
             calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
     },
     // The Old Hindu lunisolar calendar's months are those same twelve, and
     // its intercalary month is likewise "Adhika X"; it declares none of its
@@ -1177,6 +1657,8 @@ const EN_CALENDARS: &[CalendarNames] = &[
             calendars: &[CalendarId("hindu-old-lunar"), CalendarId("hindu-old-solar")],
         },
         quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
     },
     // Nepal Sambat's months are the amānta months under their Newar names,
     // Kachhalā first, as Wikipedia's "Nepal Sambat" romanizes them; the
@@ -1207,6 +1689,8 @@ const EN_CALENDARS: &[CalendarNames] = &[
             calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
     },
     CalendarNames {
         calendars: &[CalendarId("bikram-sambat")],
@@ -1224,6 +1708,8 @@ const EN_CALENDARS: &[CalendarNames] = &[
             calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
     },
     CalendarNames {
         calendars: &[
@@ -1259,11 +1745,18 @@ const EN_CALENDARS: &[CalendarNames] = &[
             calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
     },
 ];
 
 const EN: LocaleData = LocaleData {
     tag: "en",
+    english_name: "English",
+    native_name: "English",
+    script: "Latn",
+    templates: EN_TEMPLATES,
+    calendar_names: EN_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
@@ -1290,6 +1783,8 @@ const EN: LocaleData = LocaleData {
             "Rat", "Ox", "Tiger", "Rabbit", "Dragon", "Snake", "Horse", "Goat", "Monkey",
             "Rooster", "Dog", "Pig",
         ]),
+        // Pinyin writes the two syllables apart: jia zi.
+        joiner: " ",
     },
     calendars: EN_CALENDARS,
 };
@@ -1298,6 +1793,11 @@ const EN: LocaleData = LocaleData {
 
 const ES: LocaleData = LocaleData {
     tag: "es",
+    english_name: "Spanish",
+    native_name: "español",
+    script: "Latn",
+    templates: ES_TEMPLATES,
+    calendar_names: ES_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
@@ -1362,6 +1862,11 @@ const ES: LocaleData = LocaleData {
 
 const FA: LocaleData = LocaleData {
     tag: "fa",
+    english_name: "Persian",
+    native_name: "فارسی",
+    script: "Arab",
+    templates: FA_TEMPLATES,
+    calendar_names: FA_CALENDAR_NAMES,
     direction: Direction::RightToLeft,
     numbering: "arabext",
     first_day_of_week: Weekday::Saturday,
@@ -1416,6 +1921,11 @@ const FA: LocaleData = LocaleData {
 
 const FR: LocaleData = LocaleData {
     tag: "fr",
+    english_name: "French",
+    native_name: "français",
+    script: "Latn",
+    templates: DAY_MONTH_YEAR_TEMPLATES,
+    calendar_names: FR_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
@@ -1496,6 +2006,9 @@ const HE_CALENDARS: &[CalendarNames] = &[
         gregorian_eras(&["לפני הספירה", "לספירה"], &[], &[]),
         ContextualNames::EMPTY,
     ),
+    // Keyed as the English entry is, Tishri 1 to Elul 12 with Adar I and
+    // Adar II beside them; the names are CLDR 48 `he.xml`, `calendar
+    // type="hebrew"`.
     dated(
         HEBREW_CALENDARS,
         &[months(&[
@@ -1504,7 +2017,6 @@ const HE_CALENDARS: &[CalendarNames] = &[
             "כסלו",
             "טבת",
             "שבט",
-            "אדר א׳",
             "אדר",
             "ניסן",
             "אייר",
@@ -1515,11 +2027,23 @@ const HE_CALENDARS: &[CalendarNames] = &[
         ])],
         &["am"],
         &["לבריאת העולם"],
-    ),
+    )
+    .with_leap_names(LeapMonthNames {
+        intercalary: &[(5, "אדר א׳")],
+        in_leap_years: &[(6, "אדר ב׳")],
+    })
+    // The year alone, as in English: CLDR 48 `he.xml`, `calendar
+    // type="hebrew"`, formats a date as "d בMMMM y" with no era.
+    .with_templates(HEBREW_TEMPLATES),
 ];
 
 const HE: LocaleData = LocaleData {
     tag: "he",
+    english_name: "Hebrew",
+    native_name: "עברית",
+    script: "Hebr",
+    templates: HE_TEMPLATES,
+    calendar_names: HE_CALENDAR_NAMES,
     direction: Direction::RightToLeft,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
@@ -1556,6 +2080,11 @@ const HE: LocaleData = LocaleData {
 
 const HI: LocaleData = LocaleData {
     tag: "hi",
+    english_name: "Hindi",
+    native_name: "हिन्दी",
+    script: "Deva",
+    templates: DAY_MONTH_YEAR_TEMPLATES,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
@@ -1618,6 +2147,11 @@ const HI: LocaleData = LocaleData {
 
 const ID: LocaleData = LocaleData {
     tag: "id",
+    english_name: "Indonesian",
+    native_name: "Indonesia",
+    script: "Latn",
+    templates: DAY_MONTH_YEAR_TEMPLATES,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
@@ -1663,6 +2197,11 @@ const ID: LocaleData = LocaleData {
 
 const IT: LocaleData = LocaleData {
     tag: "it",
+    english_name: "Italian",
+    native_name: "italiano",
+    script: "Latn",
+    templates: DAY_MONTH_YEAR_TEMPLATES,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
@@ -1746,12 +2285,16 @@ const JA_CALENDARS: &[CalendarNames] = &[
             calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
     },
-    // The traditional lunisolar month names, still used for seasonal and
-    // literary dates: 師走 is December in feeling, the twelfth lunar month in
-    // fact.
+    // The traditional month names of the Japanese lunisolar calendars,
+    // still used for seasonal and literary dates: 師走 is December in
+    // feeling, the twelfth lunar month in fact. They are Japan's words for
+    // Japan's months and serve nothing else — the Chinese calendar is
+    // below, by number.
     lunisolar(
-        NUMBERED_LUNISOLAR_CALENDARS,
+        JAPANESE_LUNISOLAR_CALENDARS,
         &[months(&[
             "睦月",
             "如月",
@@ -1768,10 +2311,38 @@ const JA_CALENDARS: &[CalendarNames] = &[
         ])],
         "閏",
     ),
+    // The Chinese calendar's months in Japanese: the first is 正月 and the
+    // rest are numbered, an intercalary month is 閏二月, and the year is
+    // written by its stem and branch — the forms the National Astronomical
+    // Observatory's calendar notes use for the old calendar (暦Wiki,
+    // eco.mtk.nao.ac.jp/koyomi/wiki, "旧暦", read 2026-09-26). The regnal
+    // calendar takes the same months with the year of the reign.
+    lunisolar(CHINESE_FAMILY_CALENDARS, JA_LUNAR_MONTHS, "閏").with_templates(JA_CHINESE_TEMPLATES),
+    lunisolar(CHINESE_REGNAL_CALENDARS, JA_LUNAR_MONTHS, "閏"),
 ];
+
+const JA_LUNAR_MONTHS: &[CycleNames] = &[months(&[
+    "正月",
+    "二月",
+    "三月",
+    "四月",
+    "五月",
+    "六月",
+    "七月",
+    "八月",
+    "九月",
+    "十月",
+    "十一月",
+    "十二月",
+])];
 
 const JA: LocaleData = LocaleData {
     tag: "ja",
+    english_name: "Japanese",
+    native_name: "日本語",
+    script: "Jpan",
+    templates: JA_TEMPLATES,
+    calendar_names: JA_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
@@ -1794,6 +2365,7 @@ const JA: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["午前", "午後"], &[], &[])),
     cycle: SexagenaryNames {
         reading: Some(&readings::HAN),
+        joiner: "",
         zodiac: Some(&[
             "鼠", "牛", "虎", "兎", "竜", "蛇", "馬", "羊", "猿", "鶏", "犬", "猪",
         ]),
@@ -1805,6 +2377,11 @@ const JA: LocaleData = LocaleData {
 
 const KO: LocaleData = LocaleData {
     tag: "ko",
+    english_name: "Korean",
+    native_name: "한국어",
+    script: "Kore",
+    templates: KO_TEMPLATES,
+    calendar_names: KO_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
@@ -1827,6 +2404,7 @@ const KO: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["오전", "오후"], &[], &[])),
     cycle: SexagenaryNames {
         reading: Some(&readings::HANGUL),
+        joiner: "",
         zodiac: Some(&[
             "쥐",
             "소",
@@ -1842,22 +2420,38 @@ const KO: LocaleData = LocaleData {
             "돼지",
         ]),
     },
-    calendars: &[gregorian(
-        &[month_cycle(ContextualNames::same(widths(
-            &[
+    calendars: &[
+        gregorian(
+            &[month_cycle(ContextualNames::same(widths(
+                &[
+                    "1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월",
+                    "12월",
+                ],
+                &[],
+                &[],
+            )))],
+            gregorian_eras(&["기원전", "서기"], &[], &[]),
+            ContextualNames::same(widths(
+                &["제1분기", "제2분기", "제3분기", "제4분기"],
+                &["1분기", "2분기", "3분기", "4분기"],
+                &[],
+            )),
+        ),
+        // The Dangi calendar's months are numbered, 1월 … 12월, as CLDR 48
+        // `ko.xml` `calendar type="dangi"` numbers them; an intercalary month
+        // is 윤 before the number (its `monthPatterns`, leap "윤{0}"); the year
+        // is written by its stem and branch in Hangul, as `KO_CHINESE_TEMPLATES`
+        // states. The Chinese and Vietnamese calendars share the forms.
+        lunisolar(
+            CHINESE_FAMILY_CALENDARS,
+            &[months(&[
                 "1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월",
                 "12월",
-            ],
-            &[],
-            &[],
-        )))],
-        gregorian_eras(&["기원전", "서기"], &[], &[]),
-        ContextualNames::same(widths(
-            &["제1분기", "제2분기", "제3분기", "제4분기"],
-            &["1분기", "2분기", "3분기", "4분기"],
-            &[],
-        )),
-    )],
+            ])],
+            "윤",
+        )
+        .with_templates(KO_CHINESE_TEMPLATES),
+    ],
 };
 
 // --- Burmese --------------------------------------------------------------
@@ -1943,6 +2537,11 @@ const MY_CALENDARS: &[CalendarNames] = &[
 
 const MY: LocaleData = LocaleData {
     tag: "my",
+    english_name: "Burmese",
+    native_name: "မြန်မာ",
+    script: "Mymr",
+    templates: DateTemplates::NONE,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "mymr",
     first_day_of_week: Weekday::Sunday,
@@ -2096,6 +2695,11 @@ const NE_CALENDARS: &[CalendarNames] = &[
 
 const NE: LocaleData = LocaleData {
     tag: "ne",
+    english_name: "Nepali",
+    native_name: "नेपाली",
+    script: "Deva",
+    templates: DateTemplates::NONE,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "deva",
     first_day_of_week: Weekday::Sunday,
@@ -2124,6 +2728,11 @@ const NE: LocaleData = LocaleData {
 
 const NL: LocaleData = LocaleData {
     tag: "nl",
+    english_name: "Dutch",
+    native_name: "Nederlands",
+    script: "Latn",
+    templates: DAY_MONTH_YEAR_TEMPLATES,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
@@ -2179,6 +2788,11 @@ const NL: LocaleData = LocaleData {
 
 const PL: LocaleData = LocaleData {
     tag: "pl",
+    english_name: "Polish",
+    native_name: "polski",
+    script: "Latn",
+    templates: DAY_MONTH_YEAR_TEMPLATES,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
@@ -2251,6 +2865,11 @@ const PL: LocaleData = LocaleData {
 
 const PT: LocaleData = LocaleData {
     tag: "pt",
+    english_name: "Portuguese",
+    native_name: "português",
+    script: "Latn",
+    templates: ES_TEMPLATES,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
@@ -2310,6 +2929,11 @@ const PT: LocaleData = LocaleData {
 
 const RU: LocaleData = LocaleData {
     tag: "ru",
+    english_name: "Russian",
+    native_name: "русский",
+    script: "Cyrl",
+    templates: RU_TEMPLATES,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
@@ -2413,6 +3037,11 @@ const RU: LocaleData = LocaleData {
 
 const TH: LocaleData = LocaleData {
     tag: "th",
+    english_name: "Thai",
+    native_name: "ไทย",
+    script: "Thai",
+    templates: TH_TEMPLATES,
+    calendar_names: TH_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
@@ -2480,6 +3109,8 @@ const TH: LocaleData = LocaleData {
                 calendars: &[],
             },
             quarters: ContextualNames::EMPTY,
+            templates: DateTemplates::NONE,
+            leap_names: LeapMonthNames::NONE,
         },
     ],
 };
@@ -2488,6 +3119,11 @@ const TH: LocaleData = LocaleData {
 
 const TR: LocaleData = LocaleData {
     tag: "tr",
+    english_name: "Turkish",
+    native_name: "Türkçe",
+    script: "Latn",
+    templates: TR_TEMPLATES,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
@@ -2530,6 +3166,11 @@ const TR: LocaleData = LocaleData {
 
 const VI: LocaleData = LocaleData {
     tag: "vi",
+    english_name: "Vietnamese",
+    native_name: "Tiếng Việt",
+    script: "Latn",
+    templates: VI_TEMPLATES,
+    calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
@@ -2552,6 +3193,7 @@ const VI: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["SA", "CH"], &[], &[])),
     cycle: SexagenaryNames {
         reading: Some(&readings::VIETNAMESE),
+        joiner: " ",
         // Not the Chinese animals: 丑 is the buffalo and 卯 the cat.
         zodiac: Some(&[
             "Chuột", "Trâu", "Hổ", "Mèo", "Rồng", "Rắn", "Ngựa", "Dê", "Khỉ", "Gà", "Chó", "Lợn",
@@ -2622,28 +3264,38 @@ const ZH_HANS_CALENDARS: &[CalendarNames] = &[
             &[],
         )),
     ),
-    lunisolar(
-        NUMBERED_LUNISOLAR_CALENDARS,
-        &[months(&[
-            "正月",
-            "二月",
-            "三月",
-            "四月",
-            "五月",
-            "六月",
-            "七月",
-            "八月",
-            "九月",
-            "十月",
-            "十一月",
-            "腊月",
-        ])],
-        "闰",
-    ),
+    // The Chinese calendar's own months (CLDR 48 `zh.xml`, `calendar
+    // type="chinese"`): 正月 first, 腊月 last, 闰 before a repeated one; the
+    // year by its stem and branch and the day by its Han name, as
+    // `CHINESE_TEMPLATES` states. The regnal calendar takes the same months
+    // with the year of the reign.
+    lunisolar(CHINESE_FAMILY_CALENDARS, ZH_HANS_LUNAR_MONTHS, "闰")
+        .with_templates(CHINESE_TEMPLATES),
+    lunisolar(CHINESE_REGNAL_CALENDARS, ZH_HANS_LUNAR_MONTHS, "闰"),
 ];
+
+const ZH_HANS_LUNAR_MONTHS: &[CycleNames] = &[months(&[
+    "正月",
+    "二月",
+    "三月",
+    "四月",
+    "五月",
+    "六月",
+    "七月",
+    "八月",
+    "九月",
+    "十月",
+    "十一月",
+    "腊月",
+])];
 
 const ZH_HANS: LocaleData = LocaleData {
     tag: "zh-Hans",
+    english_name: "Chinese (Simplified)",
+    native_name: "简体中文",
+    script: "Hans",
+    templates: ZH_TEMPLATES,
+    calendar_names: ZH_HANS_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
@@ -2666,6 +3318,7 @@ const ZH_HANS: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["上午", "下午"], &[], &[])),
     cycle: SexagenaryNames {
         reading: Some(&readings::HAN),
+        joiner: "",
         zodiac: Some(&[
             "鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊", "猴", "鸡", "狗", "猪",
         ]),
@@ -2690,28 +3343,35 @@ const ZH_HANT_CALENDARS: &[CalendarNames] = &[
         gregorian_eras(&["西元前", "西元"], &[], &[]),
         ContextualNames::same(widths(&["第1季", "第2季", "第3季", "第4季"], &[], &[])),
     ),
-    lunisolar(
-        NUMBERED_LUNISOLAR_CALENDARS,
-        &[months(&[
-            "正月",
-            "二月",
-            "三月",
-            "四月",
-            "五月",
-            "六月",
-            "七月",
-            "八月",
-            "九月",
-            "十月",
-            "十一月",
-            "臘月",
-        ])],
-        "閏",
-    ),
+    // As the simplified entry, in traditional characters (CLDR 48
+    // `zh_Hant.xml`, `calendar type="chinese"`).
+    lunisolar(CHINESE_FAMILY_CALENDARS, ZH_HANT_LUNAR_MONTHS, "閏")
+        .with_templates(CHINESE_TEMPLATES),
+    lunisolar(CHINESE_REGNAL_CALENDARS, ZH_HANT_LUNAR_MONTHS, "閏"),
 ];
+
+const ZH_HANT_LUNAR_MONTHS: &[CycleNames] = &[months(&[
+    "正月",
+    "二月",
+    "三月",
+    "四月",
+    "五月",
+    "六月",
+    "七月",
+    "八月",
+    "九月",
+    "十月",
+    "十一月",
+    "臘月",
+])];
 
 const ZH_HANT: LocaleData = LocaleData {
     tag: "zh-Hant",
+    english_name: "Chinese (Traditional)",
+    native_name: "繁體中文",
+    script: "Hant",
+    templates: ZH_TEMPLATES,
+    calendar_names: ZH_HANT_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
@@ -2734,6 +3394,7 @@ const ZH_HANT: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["上午", "下午"], &[], &[])),
     cycle: SexagenaryNames {
         reading: Some(&readings::HAN),
+        joiner: "",
         zodiac: Some(&[
             "鼠", "牛", "虎", "兔", "龍", "蛇", "馬", "羊", "猴", "雞", "狗", "豬",
         ]),
@@ -3068,6 +3729,124 @@ mod tests {
             .map(|data| data.tag)
             .collect();
         assert_eq!(rtl, ["ar", "fa", "he"]);
+    }
+
+    #[test]
+    fn every_locale_states_its_names_and_its_script() {
+        const SCRIPTS: &[&str] = &[
+            "Arab", "Copt", "Cyrl", "Deva", "Ethi", "Hans", "Hant", "Hebr", "Jpan", "Kore", "Latn",
+            "Mymr", "Thai", "Tibt",
+        ];
+        for data in LOCALES {
+            assert!(!data.english_name.is_empty(), "{}", data.tag);
+            assert!(!data.native_name.is_empty(), "{}", data.tag);
+            assert!(
+                SCRIPTS.contains(&data.script),
+                "{}: {}",
+                data.tag,
+                data.script
+            );
+        }
+        assert_eq!(ROOT.script, "Latn");
+        assert!(
+            LOCALES
+                .iter()
+                .filter(|data| data.direction == Direction::RightToLeft)
+                .all(|data| matches!(data.script, "Arab" | "Hebr"))
+        );
+    }
+
+    /// Every placeholder a template writes is one the renderer fills, and
+    /// the day names and implied eras are well formed.
+    #[test]
+    fn every_template_uses_known_placeholders() {
+        const PLACEHOLDERS: &[&str] = &["era", "year", "month", "day", "sexagenary", "extras"];
+        const WIDTHS: &[&str] = &["wide", "abbreviated", "narrow", "short"];
+        fn check(tag: &str, templates: &DateTemplates) {
+            for (field, template) in [
+                ("era", templates.era),
+                ("year", templates.year),
+                ("first_year", templates.first_year),
+                ("month", templates.month),
+                ("day", templates.day),
+                ("date", templates.date),
+            ] {
+                let mut rest = template;
+                while let Some(start) = rest.find('{') {
+                    let after = &rest[start + 1..];
+                    let end = after
+                        .find('}')
+                        .unwrap_or_else(|| panic!("{tag} {field}: unclosed placeholder"));
+                    let inside = &after[..end];
+                    let (name, width) = inside.split_once(':').unwrap_or((inside, "wide"));
+                    assert!(
+                        PLACEHOLDERS.contains(&name),
+                        "{tag} {field}: unknown placeholder {name}"
+                    );
+                    assert!(
+                        WIDTHS.contains(&width),
+                        "{tag} {field}: unknown width {width}"
+                    );
+                    rest = &after[end + 1..];
+                }
+                assert!(!rest.contains('}'), "{tag} {field}: stray brace");
+            }
+            assert!(templates.day_names.len() <= 31, "{tag}: too many day names");
+            for name in templates.day_names {
+                assert!(
+                    !name.is_empty() && *name == name.trim(),
+                    "{tag}: day name {name:?}"
+                );
+            }
+            assert_eq!(
+                templates.implied_era,
+                templates.implied_era.to_ascii_lowercase(),
+                "{tag}: era codes are written in lower case in the data"
+            );
+        }
+        for data in every_entry() {
+            check(data.tag, &data.templates);
+            for entry in data.calendars {
+                check(data.tag, &entry.templates);
+            }
+            for entry in data.calendars {
+                for (ordinal, name) in entry
+                    .leap_names
+                    .intercalary
+                    .iter()
+                    .chain(entry.leap_names.in_leap_years)
+                {
+                    assert!(*ordinal >= 1, "{}: leap name for month 0", data.tag);
+                    assert!(
+                        !name.is_empty() && *name == name.trim(),
+                        "{}: {name:?}",
+                        data.tag
+                    );
+                    assert!(
+                        usize::from(*ordinal)
+                            <= entry
+                                .months()
+                                .get(NameWidth::Wide, NameContext::Format)
+                                .len(),
+                        "{}: leap name for a month the entry does not name",
+                        data.tag
+                    );
+                }
+            }
+            for name in data.calendar_names {
+                assert!(!name.name.is_empty(), "{}: {}", data.tag, name.calendar.0);
+                assert_eq!(
+                    data.calendar_names
+                        .iter()
+                        .filter(|other| other.calendar == name.calendar)
+                        .count(),
+                    1,
+                    "{}: {} named twice",
+                    data.tag,
+                    name.calendar.0
+                );
+            }
+        }
     }
 
     #[test]

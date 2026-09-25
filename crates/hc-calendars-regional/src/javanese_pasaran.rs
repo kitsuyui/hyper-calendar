@@ -227,6 +227,7 @@ impl Calendar for JavanesePasaranCalendar {
             is_astronomical: false,
             earliest: None,
             latest: None,
+            native_locales: &["jv"],
         }
     }
 

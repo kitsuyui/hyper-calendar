@@ -7,7 +7,7 @@ use crate::daystart::{DayBoundary, Standing, Usage};
 use crate::error::{CalendarError, CalendarResult};
 use crate::fields::{DateFields, YearKind};
 use crate::fixed::Rd;
-use crate::shape::CycleShape;
+use crate::shape::{CycleShape, EraName};
 
 /// A stable machine identifier for a calendar.
 ///
@@ -58,6 +58,24 @@ pub struct CalendarMeta {
     pub earliest: Option<Rd>,
     /// The latest fixed day this implementation will convert, if bounded.
     pub latest: Option<Rd>,
+    /// The languages the calendar's own sources are written in, as BCP 47
+    /// tags, the primary one first.
+    ///
+    /// The rule for what goes here: the language a reader of the calendar's
+    /// almanacs, gazettes and inscriptions writes its dates in — `he` for
+    /// the Hebrew calendar, `ar` for the Hijri family, `ja` for the Japanese
+    /// eras, `akk` for the Babylonian months, `yua` for the Maya count. A
+    /// calendar with more than one such language lists them all, the one
+    /// its sources are chiefly written in first: `zh-Hans` and `zh-Hant`
+    /// for the Chinese calendar, `sa` and `hi` and the regional language
+    /// for the Hindu calendars, `fa` and `ar` for the Badíʿ.
+    ///
+    /// Empty for a calendar that has no natural language of its own — a day
+    /// count, a proposed calendar — and for the Gregorian family, which
+    /// every language writes and none owns. A renderer asked for the
+    /// calendar's "native" locale takes the first tag here that a locale
+    /// data set carries, and falls back to English when there is none.
+    pub native_locales: &'static [&'static str],
 }
 
 impl CalendarMeta {
@@ -81,6 +99,27 @@ impl CalendarMeta {
             return Err(CalendarError::AfterSupportedRange);
         }
         Ok(())
+    }
+
+    /// A day inside the supported range, for probing how the calendar lays
+    /// out its fields: `preferred` when the calendar supports it, otherwise
+    /// the middle of a bounded range, or four hundred days inside an open
+    /// one.
+    ///
+    /// Four hundred days is longer than any calendar's year, so the probe
+    /// lands clear of the edge and past whatever the first year does at
+    /// its start.
+    #[must_use]
+    pub fn sample_day(&self, preferred: Rd) -> Rd {
+        if self.supports(preferred) {
+            return preferred;
+        }
+        match (self.earliest, self.latest) {
+            (Some(first), Some(last)) => Rd(first.0.midpoint(last.0)),
+            (Some(first), None) => Rd(first.0.saturating_add(400)),
+            (None, Some(last)) => Rd(last.0.saturating_sub(400)),
+            (None, None) => preferred,
+        }
     }
 }
 
@@ -179,6 +218,72 @@ pub trait Calendar {
     /// cannot know about.
     fn is_leap_year(&self, year: i64) -> CalendarResult<bool>;
 
+    /// Whether the year a date falls in carries the intercalary unit: the
+    /// era-aware form of [`Calendar::is_leap_year`].
+    ///
+    /// The default reads [`DateFields::year`] as the year
+    /// [`Calendar::is_leap_year`] takes, which is right wherever the two
+    /// count the same way. A calendar whose fields count years within an
+    /// era while its leap rule counts them continuously — the Japanese
+    /// nengō, whose 令和6年 is the leap year 2024 and whose `is_leap_year(6)`
+    /// asks about the year 6 — overrides it to resolve the era first.
+    ///
+    /// # Errors
+    ///
+    /// As [`Calendar::is_leap_year`], plus [`CalendarError::UnknownEra`] for
+    /// an era the calendar does not know.
+    fn is_leap_year_of(&self, fields: &DateFields) -> CalendarResult<bool> {
+        self.is_leap_year(fields.year)
+    }
+
+    /// The number of days in the month a date falls in.
+    ///
+    /// The default measures it through fixed days, converting day by day
+    /// from the first of the month, which is right for every calendar and
+    /// slow for an astronomical one: the Chinese calendar's conversion runs
+    /// the rules of its whole year, and thirty of them per month is what a
+    /// walk over its months would otherwise pay. A calendar with a cheaper
+    /// rule — the next new moon, a table — overrides it.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`CalendarError`] when the month does not exist.
+    fn days_in_month(&self, fields: &DateFields) -> CalendarResult<u16> {
+        let mut probe = *fields;
+        probe.day = Some(1);
+        let first = self.to_fixed(self.from_fields(&probe)?)?;
+        let mut length = 1u16;
+        loop {
+            let next = self.to_fields(self.from_fixed(Rd(first.0 + i64::from(length)))?)?;
+            if next.month != probe.month || next.year != probe.year {
+                return Ok(length);
+            }
+            length += 1;
+            if length > 400 {
+                return Err(CalendarError::MonthOutOfRange);
+            }
+        }
+    }
+
+    /// The calendar's own name for one of its era codes, if it has one.
+    ///
+    /// This is the era analogue of [`CycleShape::names`]: the name in the
+    /// orthography the calendar's sources use, with a romanisation where
+    /// the sources carry one, so that an era a locale has no word for can
+    /// still be written. The Japanese calendar answers for all of its two
+    /// hundred and forty-eight nengō from its own table — 嘉永 and *Kaei* —
+    /// where a locale's data lists only the modern five. A locale's own
+    /// name for an era still comes first; this is what a renderer falls
+    /// back to before printing the bare code.
+    ///
+    /// Defaults to `None`, which is right for the many calendars whose
+    /// eras are named by locales rather than by the calendar — *AD*,
+    /// *AH*, *AM* — and for calendars without eras.
+    fn era_name(&self, code: &str) -> Option<EraName> {
+        let _ = code;
+        None
+    }
+
     /// Where this calendar's day begins.
     ///
     /// Defaults to midnight, which is right for most calendars and for every
@@ -255,7 +360,8 @@ pub trait DynCalendar {
     /// range.
     fn fixed_to_fields(&self, rd: Rd) -> CalendarResult<DateFields>;
 
-    /// The number of days in the given month of the given year.
+    /// The number of days in the given month of the given year. See
+    /// [`Calendar::days_in_month`].
     ///
     /// The default walks the month boundaries through fixed days, which works
     /// for every calendar but is slower than a closed form. Calendars with a
@@ -316,6 +422,22 @@ pub trait DynCalendar {
     /// calendar's dates have no year, and [`CalendarError::YearOutOfRange`]
     /// when the year is outside what the calendar can know.
     fn is_leap_year(&self, year: i64) -> CalendarResult<bool>;
+
+    /// Whether the year a date falls in carries the intercalary unit. See
+    /// [`Calendar::is_leap_year_of`].
+    ///
+    /// # Errors
+    ///
+    /// As [`DynCalendar::is_leap_year`], plus [`CalendarError::UnknownEra`].
+    fn is_leap_year_of(&self, fields: &DateFields) -> CalendarResult<bool> {
+        self.is_leap_year(fields.year)
+    }
+
+    /// The calendar's own name for an era code. See [`Calendar::era_name`].
+    fn era_name(&self, code: &str) -> Option<EraName> {
+        let _ = code;
+        None
+    }
 }
 
 /// Turns any [`Calendar`] into a [`DynCalendar`].
@@ -373,6 +495,10 @@ impl<C: Calendar> DynCalendar for DynAdapter<C> {
         self.inner.usage()
     }
 
+    fn days_in_month(&self, fields: &DateFields) -> CalendarResult<u16> {
+        self.inner.days_in_month(fields)
+    }
+
     /// Measures from the first day of `year` to the first day of the next.
     ///
     /// For a calendar that declares a month cycle the first day is month 1,
@@ -406,6 +532,14 @@ impl<C: Calendar> DynCalendar for DynAdapter<C> {
 
     fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
         self.inner.is_leap_year(year)
+    }
+
+    fn is_leap_year_of(&self, fields: &DateFields) -> CalendarResult<bool> {
+        self.inner.is_leap_year_of(fields)
+    }
+
+    fn era_name(&self, code: &str) -> Option<EraName> {
+        self.inner.era_name(code)
     }
 }
 
@@ -455,6 +589,7 @@ mod tests {
                 is_astronomical: false,
                 earliest: None,
                 latest: None,
+                native_locales: &[],
             }
         }
 
@@ -540,6 +675,7 @@ mod tests {
                 is_astronomical: false,
                 earliest: None,
                 latest: None,
+                native_locales: &[],
             }
         }
 
@@ -594,6 +730,7 @@ mod tests {
             is_astronomical: false,
             earliest: Some(Rd(10)),
             latest: Some(Rd(20)),
+            native_locales: &[],
         };
         assert!(meta.supports(Rd(15)));
         assert_eq!(meta.check_range(Rd(9)), Err(CalendarError::BeforeEpoch));

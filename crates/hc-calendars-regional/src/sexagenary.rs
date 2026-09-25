@@ -165,6 +165,7 @@ impl Calendar for SexagenaryCalendar {
             is_astronomical: false,
             earliest: None,
             latest: None,
+            native_locales: &["zh-Hans", "zh-Hant", "ja", "ko", "vi"],
         }
     }
 

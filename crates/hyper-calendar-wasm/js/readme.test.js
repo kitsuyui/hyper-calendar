@@ -93,6 +93,12 @@ test("describeDay reads the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.describeDay], columnsAfter("## Every calendar"));
 });
 
+test("calendarUnits, calendars and locales read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.calendarUnits], columnsAfter("## Units of a calendar"));
+  assert.deepEqual([...COLUMNS.calendars], columnsAfter("## The calendars"));
+  assert.deepEqual([...COLUMNS.locales], columnsAfter("## The locales"));
+});
+
 test("holidaysOn reads the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.holidaysOn], columnsAfter("### One day, every table"));
 });

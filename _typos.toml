@@ -52,6 +52,9 @@ Nane = "Nane"
 Nationales = "Nationales"
 # Fo, the first day of the Akan six-day week.
 Fo = "Fo"
+# French calendar names: "calendrier indien", "calendrier persan".
+indien = "indien"
+persan = "persan"
 # German and Dutch month names.
 Januar = "Januar"
 Februar = "Februar"

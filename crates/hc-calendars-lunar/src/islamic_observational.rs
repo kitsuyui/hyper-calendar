@@ -350,6 +350,7 @@ impl Calendar for IslamicObservationalCalendar {
             is_astronomical: true,
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
+            native_locales: &["ar"],
         }
     }
 

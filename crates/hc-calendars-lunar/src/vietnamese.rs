@@ -102,6 +102,7 @@ pub static SOUTHERN_MERIDIANS: [MeridianEra; 1] = [MeridianEra::from_zone(
 pub static PARAMETERS: LunisolarParameters = LunisolarParameters {
     id: ID,
     english_name: "Vietnamese lunisolar",
+    native_locales: &["vi"],
     meridians: &MERIDIANS,
     epoch: CHINESE_EPOCH,
     year_offset: YEAR_OFFSET,
@@ -115,6 +116,7 @@ pub static PARAMETERS: LunisolarParameters = LunisolarParameters {
 pub static SOUTHERN_PARAMETERS: LunisolarParameters = LunisolarParameters {
     id: CalendarId("vietnamese-south-1968"),
     english_name: "Vietnamese lunisolar (Republic of Vietnam reckoning)",
+    native_locales: &["vi"],
     meridians: &SOUTHERN_MERIDIANS,
     epoch: CHINESE_EPOCH,
     year_offset: YEAR_OFFSET,
@@ -156,6 +158,11 @@ impl Calendar for VietnameseCalendar {
 
     fn meta(&self) -> CalendarMeta {
         ENGINE.meta()
+    }
+
+    /// The engine's one-new-moon rule, not the trait's day-by-day walk.
+    fn days_in_month(&self, fields: &DateFields) -> CalendarResult<u16> {
+        ENGINE.days_in_month(fields)
     }
 
     fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {

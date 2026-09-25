@@ -201,6 +201,14 @@ macro_rules! delegating_calendar {
                 PARAMETERS.is_leap_year(year)
             }
 
+            /// The engine's one-new-moon rule, not the trait's day-by-day walk.
+            fn days_in_month(&self, fields: &DateFields) -> CalendarResult<u16> {
+
+                ENGINE.days_in_month(fields)
+
+            }
+
+
             fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
                 ENGINE.to_fixed(date)
             }
@@ -239,6 +247,7 @@ macro_rules! parameter_sets {
         const TEMPLATE: LunisolarParameters = LunisolarParameters {
             id: ID,
             english_name: $english,
+            native_locales: &["ja"],
             meridians: &MERIDIANS,
             epoch: CHINESE_EPOCH,
             year_offset: YEAR_OFFSET,
@@ -1080,6 +1089,7 @@ mod tests {
         static MEAN: LunisolarParameters = LunisolarParameters {
             id: CalendarId("japanese-senmyo-heisaku"),
             english_name: "Senmyō-reki with mean conjunctions",
+            native_locales: &["ja"],
             meridians: &MERIDIANS,
             epoch: CHINESE_EPOCH,
             year_offset: YEAR_OFFSET,

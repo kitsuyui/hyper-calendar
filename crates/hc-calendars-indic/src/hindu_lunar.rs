@@ -625,6 +625,7 @@ impl Calendar for HinduLunarCalendar {
             is_astronomical: true,
             earliest: self.earliest().ok(),
             latest: self.latest().ok(),
+            native_locales: &["sa", "hi"],
         }
     }
 

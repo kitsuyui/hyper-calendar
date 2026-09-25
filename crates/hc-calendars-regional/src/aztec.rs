@@ -281,6 +281,7 @@ impl Calendar for AztecTonalpohualliCalendar {
             is_astronomical: false,
             earliest: None,
             latest: None,
+            native_locales: &["nah"],
         }
     }
 
@@ -360,6 +361,7 @@ impl Calendar for AztecXiuhpohualliCalendar {
             is_astronomical: false,
             earliest: None,
             latest: None,
+            native_locales: &["nah"],
         }
     }
 

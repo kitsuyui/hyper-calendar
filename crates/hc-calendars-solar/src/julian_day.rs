@@ -81,6 +81,7 @@ const fn day_count_meta(id: &'static str, english_name: &'static str) -> Calenda
         is_astronomical: false,
         earliest: Some(Rd(-MAX_MAGNITUDE)),
         latest: Some(Rd(MAX_MAGNITUDE)),
+        native_locales: &[],
     }
 }
 

@@ -378,6 +378,7 @@ impl Calendar for DarianCalendar {
             is_astronomical: false,
             earliest: Some(Rd(year_start_sol(MIN_YEAR))),
             latest: Some(Rd(year_start_sol(MAX_YEAR + 1) - 1)),
+            native_locales: &[],
         }
     }
 

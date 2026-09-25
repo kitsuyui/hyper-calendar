@@ -609,6 +609,7 @@ impl Calendar for HebrewCalendar {
             is_astronomical: false,
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
+            native_locales: &["he"],
         }
     }
 

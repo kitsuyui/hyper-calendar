@@ -488,170 +488,40 @@ pub use civil::{
 };
 
 /// Every calendar, behind the `calendars` feature: the registry the facade
-/// populates, rendered for one day with the locale's vocabulary.
+/// populates, described for one day, walked as eras, years, months and
+/// days, and listed, in the vocabulary of a locale; and the locales
+/// themselves. The lines are `hyper_calendar::lines`', shared with the
+/// WebAssembly module.
 #[cfg(feature = "calendars")]
 mod calendars {
     use core::ffi::c_char;
 
-    use hc::hc_calendar::shape::MONTH;
-    use hc::hc_calendar::{DateFields, DayBoundary, DynCalendar, Rd, Standing};
-    use hc::hc_i18n::Locale;
-    use hc::hc_i18n::names::{
-        NameContext, NameWidth, era_name_by_code, month_label, position_name,
-    };
+    use hc::hc_calendar::Rd;
+    use hc::hc_calendar::units::Unit;
+    use hc::lines;
 
-    use super::{HcStatus, push_cell, text, write_text};
-
-    /// The locale a BCP 47 tag names, or the root locale `und` for a tag
-    /// that does not parse.
-    pub(super) fn locale(tag: &str) -> Locale {
-        Locale::parse(tag).unwrap_or(Locale::ROOT)
-    }
-
-    /// [`Standing`] as the word the line carries.
-    const fn standing_name(standing: Standing) -> &'static str {
-        match standing {
-            Standing::InUse => "in-use",
-            Standing::Proleptic => "proleptic",
-            Standing::Extended => "extended",
-            Standing::Unrecorded => "unrecorded",
-        }
-    }
-
-    /// [`DayBoundary`] as the word the line carries.
-    fn push_day_boundary(out: &mut String, boundary: DayBoundary) {
-        use core::fmt::Write;
-        match boundary {
-            DayBoundary::Midnight => out.push_str("midnight"),
-            DayBoundary::Noon => out.push_str("noon"),
-            DayBoundary::Sunset => out.push_str("sunset"),
-            DayBoundary::Sunrise => out.push_str("sunrise"),
-            DayBoundary::LocalTime(time) => {
-                let _ = write!(out, "local-time {time}");
-            }
-        }
-    }
-
-    /// The date columns of a converted day: era code, era label, year,
-    /// month ordinal, leap-month flag, month label, day, leap-day flag and
-    /// the extra fields.
-    fn push_fields(
-        out: &mut String,
-        locale: &Locale,
-        calendar: &(dyn DynCalendar + Send + Sync),
-        fields: &DateFields,
-    ) {
-        use core::fmt::Write;
-        let id = calendar.meta().id;
-        let era = fields.era.unwrap_or("");
-        push_cell(out, era);
-        out.push('\t');
-        let era_label = fields
-            .era
-            .and_then(|code| era_name_by_code(locale, id, code, NameWidth::Wide))
-            .unwrap_or("");
-        push_cell(out, era_label);
-        let _ = write!(out, "\t{}\t", fields.year);
-        match fields.month {
-            Some(month) => {
-                let _ = write!(out, "{}\t{}\t", month.ordinal, u8::from(month.leap));
-            }
-            None => out.push_str("\t0\t"),
-        }
-        // The locale's word for the month, or the calendar's own name for
-        // it, or nothing: a month is never numbered here as if that were
-        // its name.
-        if let Some(month) = fields.month {
-            let label = month_label(locale, id, month, NameWidth::Wide, NameContext::Standalone)
-                .map(|label| label.to_string())
-                .or_else(|| {
-                    let cycle = calendar.cycles().iter().find(|cycle| cycle.kind == MONTH)?;
-                    let index = usize::from(month.ordinal).checked_sub(1)?;
-                    position_name(
-                        locale,
-                        id,
-                        cycle,
-                        index,
-                        NameWidth::Wide,
-                        NameContext::Standalone,
-                    )
-                    .map(str::to_owned)
-                })
-                .unwrap_or_default();
-            push_cell(out, &label);
-        }
-        out.push('\t');
-        if let Some(day) = fields.day {
-            let _ = write!(out, "{day}");
-        }
-        let _ = write!(out, "\t{}\t", u8::from(fields.leap_day));
-        let mut first = true;
-        for extra in fields.extra.iter() {
-            if !first {
-                out.push(';');
-            }
-            first = false;
-            push_cell(out, extra.name);
-            let _ = write!(out, "={}", extra.value);
-        }
-    }
-
-    /// One day in every registered calendar, one line each, in registry
-    /// order; see [`hc_describe_day`] for the columns.
-    pub(super) fn lines(fixed: i64, locale: &Locale) -> String {
-        use core::fmt::Write;
-        let registry = hc::registry();
-        let day = Rd(fixed);
-        let mut out = String::new();
-        for (id, described) in registry.describe_day(day) {
-            let Some(calendar) = registry.get(id) else {
-                continue;
-            };
-            let meta = calendar.meta();
-            push_cell(&mut out, id.as_str());
-            out.push('\t');
-            push_cell(&mut out, meta.english_name);
-            out.push('\t');
-            match described {
-                Ok(fields) => {
-                    push_fields(&mut out, locale, calendar, &fields);
-                    // No error code, no error name; then the standing.
-                    out.push_str("\t\t\t");
-                    out.push_str(standing_name(calendar.standing(day)));
-                }
-                Err(refusal) => {
-                    // The nine date columns stay empty; the refusal is the
-                    // answer, and there is no standing for a day the
-                    // calendar cannot name.
-                    out.push_str("\t\t\t\t\t\t\t\t\t");
-                    let _ = write!(out, "{}\t{}\t", refusal.code(), refusal.name());
-                }
-            }
-            out.push('\t');
-            push_day_boundary(&mut out, calendar.day_boundary());
-            // `formatted` is reserved: empty until hc-format renders a
-            // date of any calendar in a locale's own way.
-            out.push_str("\t\n");
-        }
-        out
-    }
+    use super::{HC_ERROR_NULL_POINTER, HC_ERROR_UNKNOWN, HcStatus, text, write_text};
 
     /// One fixed day in every registered calendar, as NUL-terminated UTF-8
     /// lines in a caller-owned buffer.
     ///
     /// One line per calendar, in registry order, tab-separated: the calendar
     /// identifier, its English name, the era code, the era's name in the
-    /// locale, the year, the month ordinal, `1` for a leap month, the month's
-    /// name in the locale (or the calendar's own name for it), the day, `1`
-    /// for a leap day, the calendar's extra fields as `name=value` pairs
-    /// joined by `;`, the error code, the error name, the standing (`in-use`,
-    /// `proleptic`, `extended` or `unrecorded`), where the calendar's day
-    /// begins (`midnight`, `noon`, `sunset`, `sunrise` or `local-time
-    /// HH:MM:SS`), and a reserved, empty `formatted` column. A calendar that
-    /// refuses the day is still a line: its date columns and standing are
-    /// empty and the error code and name say why. `locale` is a NUL-terminated
-    /// BCP 47 tag, or null; one that does not parse, or names no data, falls
-    /// back to the root locale `und`, whose month names are CLDR's
+    /// locale (or the calendar's own name for it), the year, the month
+    /// ordinal, `1` for a leap month, the month's name in the locale (or the
+    /// calendar's own name for it), the day, `1` for a leap day, the
+    /// calendar's extra fields as `name=value` pairs joined by `;`, the error
+    /// code, the error name, the standing (`in-use`, `proleptic`, `extended`
+    /// or `unrecorded`), where the calendar's day begins (`midnight`, `noon`,
+    /// `sunset`, `sunrise` or `local-time HH:MM:SS`), the date as the locale
+    /// writes it (令和8年9月21日, 癸卯年闰二月初一), and the locale used. A
+    /// calendar that refuses the day is still a line: its date columns,
+    /// standing and formatted date are empty and the error code and name say
+    /// why. `locale` is a NUL-terminated BCP 47 tag, `native` for each
+    /// calendar's own language, or null; a calendar the tag's data does not
+    /// name is rendered in its own language where the library carries it,
+    /// else in English, and the last column says which. A tag that does not
+    /// parse is the root locale `und`, whose month names are CLDR's
     /// `M01`..`M12` — ask for `en` for English. A `locale` that is not UTF-8
     /// is `HC_ERROR_NOT_UTF8`. Writes the required length, including the
     /// terminator, into `written`.
@@ -674,14 +544,136 @@ mod calendars {
             Ok(tag) => tag.unwrap_or(""),
             Err(status) => return status,
         };
-        let text = lines(fixed, &self::locale(tag));
+        let text = lines::describe_day(&hc::registry(), Rd(fixed), tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&text, buffer, capacity, written) }
+    }
+
+    /// The days from `from_fixed` up to but not including `to_fixed` as one
+    /// calendar's eras, years, months or days, as NUL-terminated UTF-8 lines
+    /// in a caller-owned buffer.
+    ///
+    /// `id` is a NUL-terminated registry identifier — `gregory`, `chinese`,
+    /// `japanese` — and `unit` is `0` for eras, `1` for years, `2` for
+    /// months and `3` for days; a null `id` is `HC_ERROR_NULL_POINTER` and an
+    /// identifier or unit the library does not know is `HC_ERROR_UNKNOWN`.
+    /// One line per span, in order and touching end to start, tab-separated:
+    /// the first day of the span, the day after its last, its label in the
+    /// locale (令和元年, `Adar I`, 閏二月, 初四), `1` for an intercalary unit,
+    /// the standing of its first day, the error code, the error name and the
+    /// locale used. The first and last spans are whole units and may reach
+    /// outside the range asked for. A span the calendar refuses — days before
+    /// its epoch or past its table, a unit it does not have — has an empty
+    /// label, leap flag and standing and carries the refusal's code and name.
+    /// An empty range writes an empty string. `locale` is as for
+    /// `hc_describe_day`, `native` included. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `id` and `locale` must be null or point to NUL-terminated strings;
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_calendar_units(
+        id: *const c_char,
+        unit: u32,
+        from_fixed: i64,
+        to_fixed: i64,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let id = match unsafe { text(id) } {
+            Ok(Some(id)) => id,
+            Ok(None) => return HC_ERROR_NULL_POINTER,
+            Err(status) => return status,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale) } {
+            Ok(tag) => tag.unwrap_or(""),
+            Err(status) => return status,
+        };
+        let Some(unit) = Unit::from_index(unit) else {
+            return HC_ERROR_UNKNOWN;
+        };
+        let registry = hc::registry();
+        let Some(calendar) = registry.get_by_name(id) else {
+            return HC_ERROR_UNKNOWN;
+        };
+        let text = lines::calendar_units(calendar, unit, Rd(from_fixed), Rd(to_fixed), tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&text, buffer, capacity, written) }
+    }
+
+    /// Every registered calendar, as NUL-terminated UTF-8 lines in a
+    /// caller-owned buffer.
+    ///
+    /// One line per calendar, in registry order, tab-separated: the
+    /// identifier, what the locale calls the calendar (和暦, or empty where
+    /// it has no name), its English name, the earliest and latest fixed days
+    /// it converts (empty where unbounded), whether it has eras, years,
+    /// months and days as `1` or `0` each, the languages its sources are
+    /// written in as BCP 47 tags joined by `;` (empty for a day count, a
+    /// proposal or the Gregorian family), and its standing on `today`
+    /// (`in-use`, `proleptic`, `extended` or `unrecorded`). `locale` is as
+    /// for `hc_describe_day`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be null or point to a NUL-terminated string; `buffer`
+    /// must be writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_calendars(
+        today: i64,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale) } {
+            Ok(tag) => tag.unwrap_or(""),
+            Err(status) => return status,
+        };
+        let text = lines::calendars(&hc::registry(), Rd(today), tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&text, buffer, capacity, written) }
+    }
+
+    /// Every locale the library carries, as NUL-terminated UTF-8 lines in a
+    /// caller-owned buffer.
+    ///
+    /// One line per locale, in tag order, tab-separated: the BCP 47 tag, the
+    /// language's name in English and in itself, whether the locale's own
+    /// data names the Gregorian months, the weekdays and the Gregorian eras
+    /// as `1` or `0` each, and the identifiers of the calendars it has
+    /// vocabulary of its own for beyond the shared Gregorian months, joined
+    /// by `;`. Writes the required length, including the terminator, into
+    /// `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_locales(
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let text = lines::locales();
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_text(&text, buffer, capacity, written) }
     }
 }
 
 #[cfg(feature = "calendars")]
-pub use calendars::hc_describe_day;
+pub use calendars::{hc_calendar_units, hc_calendars, hc_describe_day, hc_locales};
 
 /// The holiday tables, behind the `holiday` feature: every country,
 /// exchange, tradition and international set of `hc-holiday`, looked up by
@@ -2535,7 +2527,7 @@ mod tests {
                 .map(|line| line.split('\t').collect())
                 .collect();
             assert_eq!(rows.len(), hc::registry().len());
-            assert!(rows.iter().all(|row| row.len() == 16), "{rows:?}");
+            assert!(rows.iter().all(|row| row.len() == 17), "{rows:?}");
             let japanese = rows
                 .iter()
                 .find(|row| row[0] == "japanese")
@@ -2545,8 +2537,12 @@ mod tests {
                 ["reiwa", "令和", "8", "9", "0", "9月", "21", "0"]
             );
             assert_eq!(japanese[11..14], ["", "", "in-use"]);
+            assert_eq!(japanese[15..17], ["令和8年9月21日", "ja"]);
             let rumi = rows.iter().find(|row| row[0] == "rumi").expect("rumi");
             assert_eq!(rumi[11..14], ["7", "after-supported-range", ""]);
+            // Neither Japanese nor Turkish names the Rumi calendar, so it
+            // is rendered in English, and says so.
+            assert_eq!(rumi[15..17], ["", "en"]);
             // A null locale is `und`.
             let text = read_lines(|buffer, capacity, written| unsafe {
                 hc_describe_day(739_880, core::ptr::null(), buffer, capacity, written)
@@ -2564,6 +2560,101 @@ mod tests {
                 },
                 HC_ERROR_NOT_UTF8
             );
+        }
+
+        #[test]
+        fn the_units_the_calendars_and_the_locales_are_lines_too() {
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_calendar_units(
+                    c"japanese".as_ptr(),
+                    0,
+                    // 1989-01-01 to 2019-12-31.
+                    726_103,
+                    737_424,
+                    c"ja".as_ptr(),
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            let rows: Vec<Vec<&str>> = text
+                .lines()
+                .map(|line| line.split('\t').collect())
+                .collect();
+            let labels: Vec<&str> = rows.iter().map(|row| row[2]).collect();
+            assert_eq!(labels, ["昭和", "平成", "令和"]);
+            assert!(rows.iter().all(|row| row.len() == 8), "{rows:?}");
+            assert_eq!(rows[2][7], "ja");
+            assert_eq!(
+                unsafe {
+                    hc_calendar_units(
+                        c"no-such-calendar".as_ptr(),
+                        0,
+                        0,
+                        10,
+                        core::ptr::null(),
+                        core::ptr::null_mut(),
+                        0,
+                        core::ptr::null_mut(),
+                    )
+                },
+                HC_ERROR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe {
+                    hc_calendar_units(
+                        c"gregory".as_ptr(),
+                        4,
+                        0,
+                        10,
+                        core::ptr::null(),
+                        core::ptr::null_mut(),
+                        0,
+                        core::ptr::null_mut(),
+                    )
+                },
+                HC_ERROR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe {
+                    hc_calendar_units(
+                        core::ptr::null(),
+                        0,
+                        0,
+                        10,
+                        core::ptr::null(),
+                        core::ptr::null_mut(),
+                        0,
+                        core::ptr::null_mut(),
+                    )
+                },
+                HC_ERROR_NULL_POINTER
+            );
+
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_calendars(739_880, c"native".as_ptr(), buffer, capacity, written)
+            });
+            let rows: Vec<Vec<&str>> = text
+                .lines()
+                .map(|line| line.split('\t').collect())
+                .collect();
+            assert_eq!(rows.len(), hc::registry().len());
+            assert!(rows.iter().all(|row| row.len() == 11), "{rows:?}");
+            let hebrew = rows.iter().find(|row| row[0] == "hebrew").expect("hebrew");
+            assert_eq!(hebrew[2], "Hebrew");
+            assert_eq!(hebrew[9], "he");
+            assert!(!hebrew[1].is_empty(), "named in its own language");
+
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_locales(buffer, capacity, written)
+            });
+            let rows: Vec<Vec<&str>> = text
+                .lines()
+                .map(|line| line.split('\t').collect())
+                .collect();
+            assert_eq!(rows.len(), hc::hc_i18n::data::LOCALES.len());
+            assert!(rows.iter().all(|row| row.len() == 7), "{rows:?}");
+            assert_eq!(rows[0][0], "am");
         }
     }
 

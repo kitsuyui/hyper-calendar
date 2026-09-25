@@ -283,6 +283,7 @@ impl Calendar for RevisedJulianCalendar {
             is_astronomical: false,
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
+            native_locales: &[],
         }
     }
 
