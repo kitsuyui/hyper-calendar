@@ -279,6 +279,12 @@ Not calendars in their own right, but named subdivisions layered onto one.
 
 ## Adding a calendar
 
+0. If the calendar is one a maintainer cannot be expected to know — year
+   types, a reconstruction, a rule that depends on a place or an authority —
+   write it up first under [`systems/`](systems/README.md), from its sources,
+   and add those sources to [`references.bib`](references.bib). The module
+   documentation will summarise the document and name it
+   ([policy.md §12](policy.md)).
 1. Implement `hc_calendar::Calendar` in its own module in the right crate,
    declaring its shape in `cycles` — the compiler insists — with a `month`
    cycle exactly when its dates carry a month.

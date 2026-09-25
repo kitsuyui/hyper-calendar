@@ -1,5 +1,11 @@
 //! The Babylonian calendar in its regular form — `babylonian`.
 //!
+//! The system is written up in `docs/systems/babylonian.md` in the
+//! repository: what it is, how the cycle and the visibility criterion work
+//! with a worked example, what is carried and what is not, and the
+//! measurement against Parker and Dubberstein's table. This page summarises
+//! it and states the code's own facts.
+//!
 //! # What this is
 //!
 //! The lunisolar calendar of Babylonia as it ran from the fourth century
