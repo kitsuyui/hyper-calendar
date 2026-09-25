@@ -110,24 +110,34 @@ of UT1 live in `hc-astro::ut1`:
   Outside the series it returns `BeforeModelStart` or `AfterModelEnd` rather
   than extrapolating.
 - The `Ut1` scale marker needs no series. It reads `UT1 = TT − ΔT` from the
-  Espenak–Meeus model below. Against the IERS EOP 20 C04 series it is within
-  about 0.1 s from 1972 through 2005, where the model was fitted, and falls
-  behind after: 1.4 s on 2016-01-01, 6.0 s on 2026-01-01, because ΔT has
-  grown more slowly since 2006 than the model's forecast segment assumed.
+  ΔT below. Against the IERS EOP 20 C04 series it is within 0.1 s from
+  1974-01-01 through 2026-04-01, where ΔT is the observed value, and falls
+  behind after — 6.2 s on 2026-07-01 — because there the Espenak–Meeus
+  polynomial answers, and ΔT has grown more slowly since 2006 than its
+  forecast segment assumed.
 
-Since 1972 the IERS has kept `|UT1 − UTC| < 0.9 s` (ITU-R TF.460-6), so
-inside the leap-second table UTC itself is a closer reading of UT1 than the
-model has been since 2011; only a DUT1 series does better.
+Since 1972 the IERS has kept `|UT1 − UTC| < 0.9 s` (ITU-R TF.460-6), so past
+the observed table UTC itself is a closer reading of UT1 than the model;
+only a DUT1 series does better there.
 
 ## ΔT
 
-`hc-astro` needs `TT − UT1` (ΔT) to place historical astronomical events on a
-civil calendar. Before atomic clocks this is reconstructed from eclipse
-records, and the uncertainty grows fast: a few seconds in 1900, minutes in
-1000 CE, hours in 1000 BCE. `hc-astro` uses the Espenak–Meeus polynomial fits.
-It does not attach an uncertainty to each value, but `time::is_fitted_year`
-reports whether a year lies inside the span the fits cover (−500 to +2150) or
-in the parabolic extrapolation beyond it.
+`hc-astro` needs `TT − UT1` (ΔT) to place astronomical events on a civil
+calendar. From 1974-01-01 to 2026-04-01 it reads the value the USNO
+observed, one sample a year, interpolated between them and not
+extrapolated: `time::TABULATED_DELTA_T_FIRST` and `TABULATED_DELTA_T_LAST`
+are the ends. In the atomic era that observation is
+`32.184 s + (TAI − UTC) − DUT1`, the leap-second table above and the IERS
+DUT1 combined, and the tests check it through that identity. Outside the
+table `hc-astro` uses the Espenak–Meeus polynomial fits. Before atomic
+clocks those are reconstructed from eclipse records, and the uncertainty
+grows fast: a few seconds in 1900, minutes in 1000 CE, hours in 1000 BCE.
+After the table's end the fit is a forecast made in 2006 that now runs
+6.1 s high, so an instant computed there is about six seconds early until
+the table is extended. `hc-astro` does not attach an uncertainty to each
+value, but `time::delta_t_regime` reports whether a year is answered from
+the observations, from the fits (−500 to +2150), or from the parabolic
+extrapolation beyond them.
 
 This is why a Chinese lunisolar date computed for 500 CE can differ by a day
 from what was actually proclaimed: the calculation is right and the Earth's

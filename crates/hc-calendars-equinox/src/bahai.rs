@@ -399,14 +399,23 @@ mod tests {
             }
         }
         // Two of the fifty fall inside the tolerance. 183 BE (2026): the
-        // equinox at 14:45.8 UT and Tehran's sea-level sunset within seconds
-        // of it; the table says 21 March, the model — equinox first, by less
-        // than a second — the 20th. 216 BE (2059): about two minutes before
-        // sunset by the model, which agrees with the table. Neither is a row
-        // a model gets to decide, so neither is claimed.
+        // equinox at 14:45:55 UT and Tehran's sea-level sunset within
+        // seconds of it; the table says 21 March, and so does the model,
+        // with the equinox six seconds after the sunset. That agreement is
+        // ΔT's: with the observed ΔT of 2026 the equinox lands here, and
+        // with the Espenak–Meeus polynomial's, five seconds larger, it
+        // landed under a second before the sunset and the model said the
+        // 20th. 216 BE (2059): about two minutes before sunset by the
+        // model, which agrees with the table. Neither is a row a model gets
+        // to decide, so neither is claimed.
         assert_eq!(undecidable, [183, 216], "the marginal years changed");
         assert_eq!(kept::new_year(183), gregorian::to_fixed(2026, 3, 21));
-        assert_eq!(new_year(183), gregorian::to_fixed(2026, 3, 20));
+        assert_eq!(new_year(183), kept::new_year(183));
+        let margin_183 = new_year_margin(183).unwrap();
+        assert!(
+            (-0.2..0.0).contains(&margin_183),
+            "183 BE margin {margin_183} minutes"
+        );
         assert_eq!(new_year(216), kept::new_year(216));
     }
 

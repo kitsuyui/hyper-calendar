@@ -107,7 +107,10 @@ ecliptic and are not here.
 **The longitude.** `hc-astro` gives the Sun's apparent geocentric longitude
 from VSOP87 with nutation and aberration, in the form of Meeus's chapter 25,
 good to about 1″ [meeus1998]; the series is evaluated in Terrestrial Time
-and the answer converted to Universal Time by a ΔT polynomial. A term is
+and the answer converted to Universal Time by ΔT, which `hc-astro` reads
+from the USNO's observed values from 1974 to 2026-04-01, one a year,
+interpolated, and from the Espenak–Meeus polynomials outside them
+[usno-deltat]. A term is
 found by `solar_longitude_after`: from 1 January of the year, the days to go
 are estimated at the mean rate of 365.242 189 ⁄ 360 days per degree, a
 bracket of ±5 days is placed round the estimate, and the crossing is
@@ -158,13 +161,14 @@ any other anchor.
 1 January 2024 the Sun stands near 280°, so it has 335° to go; at
 1.0146 days per degree that is about 340 days, which lands the estimate on
 5 December, and the bracket runs from 30 November to 10 December. Bisecting
-the apparent longitude in that bracket, with ΔT = 73.9 s added to reach
-Terrestrial Time, gives
+the apparent longitude in that bracket, with ΔT = 69.2 s — the observed
+value for the end of 2024, interpolated between the USNO's 1 January
+samples of 69.18 s and 69.14 s — added to reach Terrestrial Time, gives
 
-    255° at 2024-12-06 15:16:53 UT.
+    255° at 2024-12-06 15:16:58 UT.
 
-Read at Tokyo, nine hours east, that is 00:16:53 on 7 December; read at
-Beijing, eight hours east, it is 23:16:53 on 6 December. The 暦要項 for
+Read at Tokyo, nine hours east, that is 00:16:58 on 7 December; read at
+Beijing, eight hours east, it is 23:16:58 on 6 December. The 暦要項 for
 令和6年 prints 大雪 255度 12月07日 0時17分 [nao-rekiyoko-2024], and the Hong
 Kong Observatory's table prints Heavy Snow on 2024/12/6
 [hko-conversion-2024]: one instant, two dates, both right.
@@ -258,25 +262,34 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
 
 ## Accuracy
 
-**Against the 暦要項.** The 72 terms of 2024, 2025 and 2026 were compared
+**Against the 暦要項.** The 72 terms of 2024, 2025 and 2026 are compared
 with the times the Observatory published for those years, which it gives to
-the minute in JST [nao-rekiyoko-2024, nao-rekiyoko-2025, nao-rekiyoko-2026]:
+the minute in JST [nao-rekiyoko-2024, nao-rekiyoko-2025, nao-rekiyoko-2026],
+by `tests/rekiyoko_solar_terms.rs`, which carries the 72 published minutes.
+The observed ΔT table `hc-astro` reads ends on 2026-04-01, the last month
+the USNO had observed when it was taken [usno-deltat], so the 54 terms up
+to 清明 2026 are computed with the observed ΔT and the 18 after it with
+the Espenak–Meeus polynomial, and the two groups are counted apart:
 
-| Measure | Result |
-| --- | --- |
-| Term on the published day | 72 of 72 |
-| Term at the published minute | 64 of 72 |
-| A minute earlier than published | 8 |
-| Computed instant less the published minute | −36 s to +24 s, mean −5 s |
+| Measure | Observed ΔT, 54 terms | Polynomial ΔT, 18 terms |
+| --- | --- | --- |
+| Term on the published day | 54 of 54 | 18 of 18 |
+| Term at the published minute | 53 of 54 | 16 of 18 |
+| A minute earlier than published | 1 | 2 |
+| Computed instant less the published minute | −30 s to +29 s, mean +1.1 s | −36 s to +17 s, mean −6.4 s |
 
 The published minute is the instant rounded to the nearest minute, since
-the offsets are spread over one minute and not two. The eight mismatches are
-all instants the crate places 24 to 36 seconds before the half-minute, and
-the mean offset of −5 s is the ΔT of the polynomial `hc-astro` carries —
-73.9 s for 2024, 75.1 s for 2026 — against the observed 69.2 s and 69.1 s
-[usno-deltat]: a ΔT five seconds too large puts every Universal Time instant
-five seconds early. That is under a tenth of the minute the almanac prints
-and a small fraction of the 1″, about 24 s, that the series is good to.
+the offsets are spread over one minute and not two. Inside the table the
+bias is gone: the one mismatch, 小雪 2025, is an instant the crate places
+0.2 s past the half-minute, and the mean of +1.1 s is inside the 1″, about
+24 s, that the series is good to. The polynomial alone would put the same
+54 terms at −36 s to +24 s with a mean of −4.3 s and 48 of them on the
+published minute, because its ΔT — 73.9 s for 2024, 75.1 s for 2026, a
+forecast made in 2006 — runs 4.7 to 6.1 s above the observed 69.2 s and
+69.1 s, and a ΔT five seconds too large puts every Universal Time instant
+five seconds early. That is what the 18 terms after the table's end still
+show, at −6.4 s: still under a tenth of the minute the almanac prints,
+and gone when the table is extended.
 
 **Against the equinox days.** Japan's 240 published equinox days of
 1980–2099 — the 1980–2030 table and the published formula that reproduces
@@ -343,7 +356,7 @@ they were settled.
 | [yueling-72hou-jijie] | Attributed in the crate README as a source of the Chinese list; the readings 候雁北 and 麦秋至 that the crate's list carries and the 逸周書 does not | Not read |
 | [reingold2018] | The 中気 rule; Beijing local mean time as 1397⁄180 hours; the search's mean tropical year | Not re-read for this document; the modules cite it |
 | [meeus1998] | The apparent solar longitude, chapter 25, through `hc-astro` | Not read for this document; `hc-astro` cites it |
-| [usno-deltat] | The observed ΔT, 69.18 s at 2024-01-01 and 69.11 s at 2026-01-01 | Yes, 2026-09-25 |
+| [usno-deltat] | The observed ΔT that `hc-astro` reads from 1974-01-01 to 2026-04-01: 69.18 s at 2024-01-01, 69.11 s at 2026-01-01, 69.13 s at 2026-04-01 | Yes, 2026-09-25 |
 | [capitaine2003] | The general precession in longitude, equation (39), 5028.796 195″ per century | Not read directly; the bibliographic record from Crossref, 2026-09-25; the module cites the equation |
 | [swisseph] | The four ayanāṃśa anchors | Yes, 2026-09-25, for the Hindu document |
 | [crc1955] | The Lahiri ayanāṃśa as the national standard, 23°15′ on 21 March 1956; the 82°30′E meridian | Yes, 2026-09-25, for the Hindu document |
@@ -434,6 +447,9 @@ The measurements, in `crates/hc-seasons/tests/`:
 `zodiac_conventional_dates.rs` —
 `the_printed_zodiac_dates_disagree_with_the_sun_and_the_rate_is_reported`,
 `the_modern_disagreement_is_almost_always_exactly_one_day_early`,
-`the_printed_dates_cannot_be_right_at_every_meridian_at_once`. The
-minute-by-minute comparison with the 2024–2026 暦要項 above was made for
-this document and is not a test.
+`the_printed_dates_cannot_be_right_at_every_meridian_at_once`;
+`rekiyoko_solar_terms.rs` —
+`every_term_of_2024_to_2026_falls_on_the_published_day`,
+`inside_the_observed_table_the_terms_are_on_the_published_minute`,
+`past_the_observed_table_the_terms_run_about_six_seconds_early`, which
+print the minute-by-minute comparison above under `--nocapture`.
