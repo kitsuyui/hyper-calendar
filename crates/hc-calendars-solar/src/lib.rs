@@ -412,17 +412,19 @@ mod tests {
 
         let rd = gregorian::to_fixed(2026, 9, 21).unwrap();
         let rendered = registry.describe_day(rd);
-        // Every calendar that claims the day renders it; the ones that do
-        // not claim it are the Rumi calendar, kept only from 1840 to 1925,
-        // and the Swedish calendar of 1700 to 1712.
+        // Every calendar answers; the ones that refuse the day are the Rumi
+        // calendar, kept only from 1840 to 1925, and the Swedish calendar
+        // of 1700 to 1712.
+        assert_eq!(rendered.len(), registry.len());
+        let converted = rendered.iter().filter(|(_, fields)| fields.is_ok()).count();
         let supporting = registry.metas().filter(|meta| meta.supports(rd)).count();
-        assert_eq!(rendered.len(), supporting);
-        let unsupporting: Vec<&str> = registry
-            .metas()
-            .filter(|meta| !meta.supports(rd))
-            .map(|meta| meta.id.0)
+        assert_eq!(converted, supporting);
+        let refusing: Vec<&str> = rendered
+            .iter()
+            .filter(|(_, fields)| fields.is_err())
+            .map(|(id, _)| id.0)
             .collect();
-        assert_eq!(unsupporting, ["rumi", "swedish-1700"]);
+        assert_eq!(refusing, ["rumi", "swedish-1700"]);
 
         let gregorian_fields = registry
             .get(CalendarId("gregory"))

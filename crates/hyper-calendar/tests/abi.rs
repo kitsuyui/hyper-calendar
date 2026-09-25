@@ -10,6 +10,10 @@
 //! an entry point — fails the build. The prose around the markers is
 //! written; only the tables are generated.
 //!
+//! Each row also names the Cargo feature the export is behind, read from
+//! the `#[cfg(feature = "...")]` on the module that holds it, so the table
+//! says which layer a caller has to build.
+//!
 //! To accept a change: `UPDATE_ABI=1 cargo test -p hyper-calendar --test
 //! abi`, then read the diff before committing it.
 
@@ -32,6 +36,14 @@ struct Export {
     returns: Option<String>,
     /// The first paragraph of the doc comment.
     summary: String,
+    /// The Cargo feature the export is behind, or `always`.
+    feature: String,
+}
+
+/// What a module's feature gate names: `civil` for `#[cfg(feature = "civil")]`.
+fn feature_gate(line: &str) -> Option<&str> {
+    line.strip_prefix("#[cfg(feature = \"")?
+        .strip_suffix("\")]")
 }
 
 /// One `pub const` status code or sentinel.
@@ -69,11 +81,27 @@ fn summary_of(docs: &[&str]) -> String {
         .replace("`]", "`")
 }
 
-/// Every `#[unsafe(no_mangle)]` function in the source, in order.
+/// Every `#[unsafe(no_mangle)]` function in the source, in order, each
+/// with the feature of the top-level module it sits in.
+///
+/// A module's gate is the `#[cfg(feature = "...")]` at column zero on the
+/// line before its `mod`, and the module ends at the next `}` at column
+/// zero. An export outside any gated module is in every build.
 fn exports(source: &str) -> Vec<Export> {
     let lines: Vec<&str> = source.lines().collect();
     let mut out = Vec::new();
+    let mut module_feature: Option<String> = None;
     for (index, line) in lines.iter().enumerate() {
+        if let Some(feature) = feature_gate(line)
+            && lines
+                .get(index + 1)
+                .is_some_and(|next| next.starts_with("mod ") || next.starts_with("pub mod "))
+        {
+            module_feature = Some(feature.to_owned());
+        }
+        if *line == "}" {
+            module_feature = None;
+        }
         if line.trim() != "#[unsafe(no_mangle)]" {
             continue;
         }
@@ -96,14 +124,17 @@ fn exports(source: &str) -> Vec<Export> {
             }
             cursor += 1;
         }
-        out.push(parse_signature(&signature, summary));
+        let feature = module_feature
+            .clone()
+            .unwrap_or_else(|| "always".to_owned());
+        out.push(parse_signature(&signature, summary, feature));
     }
     assert!(!out.is_empty(), "no exports found");
     out
 }
 
 /// `pub [unsafe] extern "C" fn NAME(PARAMS) [-> RET] {` into its parts.
-fn parse_signature(signature: &str, summary: String) -> Export {
+fn parse_signature(signature: &str, summary: String, feature: String) -> Export {
     let after_fn = signature
         .split(" fn ")
         .nth(1)
@@ -130,6 +161,16 @@ fn parse_signature(signature: &str, summary: String) -> Export {
         params,
         returns,
         summary,
+        feature,
+    }
+}
+
+/// The feature cell of a row: the feature's name in code, or `always`.
+fn feature_cell(export: &Export) -> String {
+    if export.feature == "always" {
+        "always".to_owned()
+    } else {
+        format!("`{}`", export.feature)
     }
 }
 
@@ -168,6 +209,7 @@ fn c_type(rust: &str) -> String {
     match rust {
         "i64" => "int64_t".to_owned(),
         "u64" => "uint64_t".to_owned(),
+        "f64" => "double".to_owned(),
         "i32" => "int32_t".to_owned(),
         "u32" => "uint32_t".to_owned(),
         "u8" => "uint8_t".to_owned(),
@@ -226,12 +268,19 @@ fn render_ffi(source: &str) -> String {
     let _ = writeln!(
         out,
         "{} functions. Each is `extern \"C\"`, takes nothing it has to free and \
-         returns an `HcStatus`.\n",
+         returns an `HcStatus`. The feature column is the Cargo feature the \
+         library has to be built with for the entry point to exist.\n",
         exports.len()
     );
-    out.push_str("| Prototype | What it does |\n| --- | --- |\n");
+    out.push_str("| Prototype | Feature | What it does |\n| --- | --- | --- |\n");
     for export in &exports {
-        let _ = writeln!(out, "| `{}` | {} |", prototype(export), export.summary);
+        let _ = writeln!(
+            out,
+            "| `{}` | {} | {} |",
+            prototype(export),
+            feature_cell(export),
+            export.summary
+        );
     }
     let _ = writeln!(out, "\n### Status codes\n");
     let _ = writeln!(
@@ -259,12 +308,19 @@ fn render_wasm(source: &str) -> String {
         out,
         "{} functions. Types are the WebAssembly ones: `i64` crosses into \
          JavaScript as a `BigInt`, everything else as a `number`, and a pointer \
-         is a byte offset into `memory`.\n",
+         is a byte offset into `memory`. The feature column is the Cargo \
+         feature the module has to be built with for the export to exist.\n",
         exports.len()
     );
-    out.push_str("| Export | What it does |\n| --- | --- |\n");
+    out.push_str("| Export | Feature | What it does |\n| --- | --- | --- |\n");
     for export in &exports {
-        let _ = writeln!(out, "| `{}` | {} |", wasm_signature(export), export.summary);
+        let _ = writeln!(
+            out,
+            "| `{}` | {} | {} |",
+            wasm_signature(export),
+            feature_cell(export),
+            export.summary
+        );
     }
     let _ = writeln!(out, "\n### Error sentinels\n");
     let _ = writeln!(

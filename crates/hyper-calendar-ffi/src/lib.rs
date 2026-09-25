@@ -33,16 +33,30 @@
 //!     // rd == 739880
 //! }
 //! ```
+//!
+//! # Lines and cells
+//!
+//! Every entry point that answers with more than one value writes UTF-8
+//! lines ending in `\n`, one per entry, with the cells of a line separated
+//! by `\t`, NUL-terminated as a whole. The column order of each is fixed,
+//! stated on the entry point and in the README, and only ever grows at the
+//! end; a cell with nothing to say is empty, and no cell contains a tab or
+//! a line break. The lines are the same lines the WebAssembly module
+//! writes.
+//!
+//! # Layers
+//!
+//! The entry points come in layers, each a Cargo feature: `civil` (the
+//! default), `calendars`, `holiday`, `seasons`, `deep-time` and `tz`, with
+//! `full` for all of them. Which feature each needs is in the README's
+//! table.
 
 #![allow(unsafe_code)]
 #![warn(missing_docs)]
 
 use core::ffi::{c_char, c_int};
 
-use hc::civil::Date;
-use hc::hc_calendar::{CalendarError, Weekday};
-use hc::hc_core::unix::{self, LeapPolicy, UtcInstant};
-use hc::hc_core::{Duration, Instant, Tai, TimeError, UnixTime};
+use hc::hc_core::TimeError;
 
 /// The status returned by every entry point. Zero is success.
 pub type HcStatus = c_int;
@@ -65,18 +79,8 @@ pub const HC_ERROR_NO_DATA: HcStatus = -6;
 pub const HC_ERROR_UNKNOWN: HcStatus = -7;
 /// A string argument was not valid UTF-8.
 pub const HC_ERROR_NOT_UTF8: HcStatus = -8;
-
-fn status_from_calendar(error: CalendarError) -> HcStatus {
-    match error {
-        CalendarError::MonthOutOfRange
-        | CalendarError::DayOutOfRange
-        | CalendarError::YearOutOfRange => HC_ERROR_INVALID_DATE,
-        CalendarError::Overflow => HC_ERROR_OVERFLOW,
-        CalendarError::BeforeEpoch | CalendarError::AfterSupportedRange => HC_ERROR_NO_DATA,
-        CalendarError::UnknownCalendar | CalendarError::UnknownEra => HC_ERROR_UNKNOWN,
-        _ => HC_ERROR_OUT_OF_RANGE,
-    }
-}
+/// Data was not in the format the call expects.
+pub const HC_ERROR_MALFORMED: HcStatus = -9;
 
 fn status_from_time(error: TimeError) -> HcStatus {
     match error {
@@ -116,6 +120,36 @@ unsafe fn write_text(
     HC_OK
 }
 
+/// A NUL-terminated string: `Ok(None)` for a null pointer and
+/// [`HC_ERROR_NOT_UTF8`] for bytes that are not UTF-8.
+///
+/// # Safety
+///
+/// `pointer` must be null or point to a NUL-terminated string.
+#[allow(dead_code)]
+unsafe fn text<'a>(pointer: *const c_char) -> Result<Option<&'a str>, HcStatus> {
+    if pointer.is_null() {
+        return Ok(None);
+    }
+    // SAFETY: the caller guarantees a NUL-terminated string.
+    unsafe { core::ffi::CStr::from_ptr(pointer) }
+        .to_str()
+        .map(Some)
+        .map_err(|_| HC_ERROR_NOT_UTF8)
+}
+
+/// Append one cell of a line: `text` with any tab or line break replaced
+/// by a space, so the line format survives whatever a source string holds.
+#[allow(dead_code)]
+fn push_cell(out: &mut String, text: &str) {
+    for character in text.chars() {
+        out.push(match character {
+            '\t' | '\n' | '\r' => ' ',
+            other => other,
+        });
+    }
+}
+
 /// The library version, as a NUL-terminated string.
 ///
 /// Writes the required length, including the terminator, into `written`.
@@ -134,295 +168,527 @@ pub unsafe extern "C" fn hc_version(
     unsafe { write_text(hc::VERSION, buffer, capacity, written) }
 }
 
-/// The fixed day number of a proleptic Gregorian date.
-///
-/// The fixed day is the Rata Die: `0001-01-01` is day 1. It is also what
-/// Python's `date.toordinal()` returns.
-///
-/// # Safety
-///
-/// `out_fixed` must be null or writable.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn hc_gregorian_to_fixed(
-    year: i64,
-    month: u8,
-    day: u8,
-    out_fixed: *mut i64,
-) -> HcStatus {
-    if out_fixed.is_null() {
-        return HC_ERROR_NULL_POINTER;
-    }
-    match Date::new(year, month, day) {
-        Ok(date) => {
-            // SAFETY: checked non-null immediately above.
-            unsafe { *out_fixed = date.to_ordinal() };
-            HC_OK
-        }
-        Err(error) => status_from_calendar(error),
-    }
-}
+/// The civil calendar, behind the `civil` feature: proleptic Gregorian
+/// dates, ISO 8601 text and the TAI–UTC bridge.
+#[cfg(feature = "civil")]
+mod civil {
+    use core::ffi::{c_char, c_int};
 
-/// The proleptic Gregorian date on a fixed day.
-///
-/// # Safety
-///
-/// Every non-null out-parameter must be writable.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn hc_gregorian_from_fixed(
-    fixed: i64,
-    out_year: *mut i64,
-    out_month: *mut u8,
-    out_day: *mut u8,
-) -> HcStatus {
-    if out_year.is_null() || out_month.is_null() || out_day.is_null() {
-        return HC_ERROR_NULL_POINTER;
+    use hc::civil::Date;
+    use hc::hc_calendar::{CalendarError, Weekday};
+    use hc::hc_core::unix::{self, LeapPolicy, UtcInstant};
+    use hc::hc_core::{Duration, Instant, Tai, UnixTime};
+
+    use super::{
+        HC_ERROR_BUFFER_TOO_SMALL, HC_ERROR_INVALID_DATE, HC_ERROR_NO_DATA, HC_ERROR_NULL_POINTER,
+        HC_ERROR_OUT_OF_RANGE, HC_ERROR_OVERFLOW, HC_ERROR_UNKNOWN, HC_OK, HcStatus,
+        status_from_time, write_text,
+    };
+
+    fn status_from_calendar(error: CalendarError) -> HcStatus {
+        match error {
+            CalendarError::MonthOutOfRange
+            | CalendarError::DayOutOfRange
+            | CalendarError::YearOutOfRange => HC_ERROR_INVALID_DATE,
+            CalendarError::Overflow => HC_ERROR_OVERFLOW,
+            CalendarError::BeforeEpoch | CalendarError::AfterSupportedRange => HC_ERROR_NO_DATA,
+            CalendarError::UnknownCalendar | CalendarError::UnknownEra => HC_ERROR_UNKNOWN,
+            _ => HC_ERROR_OUT_OF_RANGE,
+        }
     }
-    match Date::from_ordinal(fixed) {
-        Ok(date) => {
-            // SAFETY: all three were checked non-null immediately above.
-            unsafe {
-                *out_year = date.year();
-                *out_month = date.month();
-                *out_day = date.day();
+
+    /// The fixed day number of a proleptic Gregorian date.
+    ///
+    /// The fixed day is the Rata Die: `0001-01-01` is day 1. It is also what
+    /// Python's `date.toordinal()` returns.
+    ///
+    /// # Safety
+    ///
+    /// `out_fixed` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gregorian_to_fixed(
+        year: i64,
+        month: u8,
+        day: u8,
+        out_fixed: *mut i64,
+    ) -> HcStatus {
+        if out_fixed.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        match Date::new(year, month, day) {
+            Ok(date) => {
+                // SAFETY: checked non-null immediately above.
+                unsafe { *out_fixed = date.to_ordinal() };
+                HC_OK
             }
-            HC_OK
+            Err(error) => status_from_calendar(error),
         }
-        Err(error) => status_from_calendar(error),
-    }
-}
-
-/// The ISO 8601 weekday of a fixed day, Monday = 1 through Sunday = 7.
-///
-/// # Safety
-///
-/// `out_weekday` must be null or writable.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn hc_weekday_from_fixed(fixed: i64, out_weekday: *mut u8) -> HcStatus {
-    if out_weekday.is_null() {
-        return HC_ERROR_NULL_POINTER;
-    }
-    let weekday = Weekday::from_rd(hc::hc_calendar::Rd(fixed));
-    // SAFETY: checked non-null immediately above.
-    unsafe { *out_weekday = weekday.iso_number() };
-    HC_OK
-}
-
-/// Render a fixed day as an ISO 8601 date into a caller-owned buffer.
-///
-/// # Safety
-///
-/// `buffer` must be writable for `capacity` bytes and `written` must be null
-/// or writable.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn hc_format_iso_date(
-    fixed: i64,
-    buffer: *mut c_char,
-    capacity: usize,
-    written: *mut usize,
-) -> HcStatus {
-    let date = match Date::from_ordinal(fixed) {
-        Ok(value) => value,
-        Err(error) => return status_from_calendar(error),
-    };
-    // 17 bytes covers a signed expanded year, the separators and the
-    // terminator; `write_text` reports the exact requirement regardless.
-    let mut scratch = [0u8; 32];
-    let text = match format_into(&mut scratch, date) {
-        Some(value) => value,
-        None => return HC_ERROR_BUFFER_TOO_SMALL,
-    };
-    // SAFETY: forwarded to the caller's contract above.
-    unsafe { write_text(text, buffer, capacity, written) }
-}
-
-/// Format a date into a fixed scratch buffer without allocating.
-fn format_into(scratch: &mut [u8; 32], date: Date) -> Option<&str> {
-    use core::fmt::Write;
-
-    struct Sink<'a> {
-        buffer: &'a mut [u8; 32],
-        length: usize,
     }
 
-    impl Write for Sink<'_> {
-        fn write_str(&mut self, text: &str) -> core::fmt::Result {
-            let end = self.length + text.len();
-            if end > self.buffer.len() {
-                return Err(core::fmt::Error);
+    /// The proleptic Gregorian date on a fixed day.
+    ///
+    /// # Safety
+    ///
+    /// Every non-null out-parameter must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gregorian_from_fixed(
+        fixed: i64,
+        out_year: *mut i64,
+        out_month: *mut u8,
+        out_day: *mut u8,
+    ) -> HcStatus {
+        if out_year.is_null() || out_month.is_null() || out_day.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        match Date::from_ordinal(fixed) {
+            Ok(date) => {
+                // SAFETY: all three were checked non-null immediately above.
+                unsafe {
+                    *out_year = date.year();
+                    *out_month = date.month();
+                    *out_day = date.day();
+                }
+                HC_OK
             }
-            self.buffer[self.length..end].copy_from_slice(text.as_bytes());
-            self.length = end;
-            Ok(())
+            Err(error) => status_from_calendar(error),
         }
     }
 
-    let mut sink = Sink {
-        buffer: scratch,
-        length: 0,
-    };
-    write!(sink, "{date}").ok()?;
-    let length = sink.length;
-    core::str::from_utf8(&scratch[..length]).ok()
+    /// The ISO 8601 weekday of a fixed day, Monday = 1 through Sunday = 7.
+    ///
+    /// # Safety
+    ///
+    /// `out_weekday` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_weekday_from_fixed(fixed: i64, out_weekday: *mut u8) -> HcStatus {
+        if out_weekday.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        let weekday = Weekday::from_rd(hc::hc_calendar::Rd(fixed));
+        // SAFETY: checked non-null immediately above.
+        unsafe { *out_weekday = weekday.iso_number() };
+        HC_OK
+    }
+
+    /// Render a fixed day as an ISO 8601 date into a caller-owned buffer.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be null
+    /// or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_format_iso_date(
+        fixed: i64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let date = match Date::from_ordinal(fixed) {
+            Ok(value) => value,
+            Err(error) => return status_from_calendar(error),
+        };
+        // 17 bytes covers a signed expanded year, the separators and the
+        // terminator; `write_text` reports the exact requirement regardless.
+        let mut scratch = [0u8; 32];
+        let text = match format_into(&mut scratch, date) {
+            Some(value) => value,
+            None => return HC_ERROR_BUFFER_TOO_SMALL,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(text, buffer, capacity, written) }
+    }
+
+    /// Format a date into a fixed scratch buffer without allocating.
+    fn format_into(scratch: &mut [u8; 32], date: Date) -> Option<&str> {
+        use core::fmt::Write;
+
+        struct Sink<'a> {
+            buffer: &'a mut [u8; 32],
+            length: usize,
+        }
+
+        impl Write for Sink<'_> {
+            fn write_str(&mut self, text: &str) -> core::fmt::Result {
+                let end = self.length + text.len();
+                if end > self.buffer.len() {
+                    return Err(core::fmt::Error);
+                }
+                self.buffer[self.length..end].copy_from_slice(text.as_bytes());
+                self.length = end;
+                Ok(())
+            }
+        }
+
+        let mut sink = Sink {
+            buffer: scratch,
+            length: 0,
+        };
+        write!(sink, "{date}").ok()?;
+        let length = sink.length;
+        core::str::from_utf8(&scratch[..length]).ok()
+    }
+
+    /// Convert a POSIX timestamp to a TAI reading in seconds and attoseconds.
+    ///
+    /// `strict` selects the leap-second policy: non-zero refuses to answer
+    /// before 1961 and past the announced IERS table, zero extrapolates. The
+    /// difference matters, which is why it is a parameter rather than a
+    /// default.
+    ///
+    /// # Safety
+    ///
+    /// Both out-parameters must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_tai_from_unix(
+        unix_seconds: i64,
+        strict: c_int,
+        out_seconds: *mut i64,
+        out_attos: *mut u64,
+    ) -> HcStatus {
+        if out_seconds.is_null() || out_attos.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        let policy = if strict != 0 {
+            LeapPolicy::Strict
+        } else {
+            LeapPolicy::Extrapolate
+        };
+        match unix::tai_from_unix(UnixTime::from_seconds(unix_seconds), policy) {
+            Ok(instant) => {
+                let reading = instant.since_epoch();
+                let seconds = match i64::try_from(reading.whole_seconds()) {
+                    Ok(value) => value,
+                    Err(_) => return HC_ERROR_OVERFLOW,
+                };
+                // SAFETY: both were checked non-null immediately above.
+                unsafe {
+                    *out_seconds = seconds;
+                    *out_attos = reading.subsec_attos();
+                }
+                HC_OK
+            }
+            Err(error) => status_from_time(error),
+        }
+    }
+
+    /// `TAI - UTC` in whole seconds at a POSIX timestamp.
+    ///
+    /// Returns [`HC_ERROR_NO_DATA`] under the strict policy outside the published
+    /// leap-second table, which is the honest answer rather than a forecast.
+    ///
+    /// # Safety
+    ///
+    /// `out_offset` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_tai_minus_utc(
+        unix_seconds: i64,
+        strict: c_int,
+        out_offset: *mut i64,
+    ) -> HcStatus {
+        if out_offset.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        let policy = if strict != 0 {
+            LeapPolicy::Strict
+        } else {
+            LeapPolicy::Extrapolate
+        };
+        match unix::tai_minus_utc_at(unix_seconds, policy) {
+            Ok(offset) => {
+                let seconds = match i64::try_from(offset.whole_seconds()) {
+                    Ok(value) => value,
+                    Err(_) => return HC_ERROR_OVERFLOW,
+                };
+                // SAFETY: checked non-null immediately above.
+                unsafe { *out_offset = seconds };
+                HC_OK
+            }
+            Err(error) => status_from_time(error),
+        }
+    }
+
+    /// Whether a POSIX timestamp names a day that ends with an inserted leap
+    /// second.
+    ///
+    /// # Safety
+    ///
+    /// `out_has_leap` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_day_has_leap_second(
+        unix_seconds: i64,
+        out_has_leap: *mut c_int,
+    ) -> HcStatus {
+        if out_has_leap.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        let day_start = unix_seconds.div_euclid(86_400) * 86_400;
+        let next_day = day_start + 86_400;
+        let policy = LeapPolicy::Extrapolate;
+        let before = match unix::tai_minus_utc_at(day_start, policy) {
+            Ok(value) => value,
+            Err(error) => return status_from_time(error),
+        };
+        let after = match unix::tai_minus_utc_at(next_day, policy) {
+            Ok(value) => value,
+            Err(error) => return status_from_time(error),
+        };
+        let has_leap = c_int::from(after > before);
+        // SAFETY: checked non-null immediately above.
+        unsafe { *out_has_leap = has_leap };
+        HC_OK
+    }
+
+    /// Convert a TAI reading back to a UTC label, naming a leap second when the
+    /// instant falls inside one.
+    ///
+    /// `out_is_leap_second` receives 1 when the instant is an inserted
+    /// `23:59:60`, which POSIX time cannot express.
+    ///
+    /// # Safety
+    ///
+    /// Both out-parameters must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_utc_from_tai(
+        tai_seconds: i64,
+        strict: c_int,
+        out_unix_seconds: *mut i64,
+        out_is_leap_second: *mut c_int,
+    ) -> HcStatus {
+        if out_unix_seconds.is_null() || out_is_leap_second.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        let policy = if strict != 0 {
+            LeapPolicy::Strict
+        } else {
+            LeapPolicy::Extrapolate
+        };
+        let instant = Instant::<Tai>::from_epoch(Duration::from_secs(tai_seconds as i128));
+        match unix::utc_from_tai(instant, policy) {
+            Ok(UtcInstant {
+                unix_seconds,
+                leap_second,
+                ..
+            }) => {
+                // SAFETY: both were checked non-null immediately above.
+                unsafe {
+                    *out_unix_seconds = unix_seconds;
+                    *out_is_leap_second = c_int::from(leap_second);
+                }
+                HC_OK
+            }
+            Err(error) => status_from_time(error),
+        }
+    }
 }
 
-/// Convert a POSIX timestamp to a TAI reading in seconds and attoseconds.
-///
-/// `strict` selects the leap-second policy: non-zero refuses to answer
-/// before 1961 and past the announced IERS table, zero extrapolates. The
-/// difference matters, which is why it is a parameter rather than a
-/// default.
-///
-/// # Safety
-///
-/// Both out-parameters must be writable.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn hc_tai_from_unix(
-    unix_seconds: i64,
-    strict: c_int,
-    out_seconds: *mut i64,
-    out_attos: *mut u64,
-) -> HcStatus {
-    if out_seconds.is_null() || out_attos.is_null() {
-        return HC_ERROR_NULL_POINTER;
-    }
-    let policy = if strict != 0 {
-        LeapPolicy::Strict
-    } else {
-        LeapPolicy::Extrapolate
+#[cfg(feature = "civil")]
+pub use civil::{
+    hc_day_has_leap_second, hc_format_iso_date, hc_gregorian_from_fixed, hc_gregorian_to_fixed,
+    hc_tai_from_unix, hc_tai_minus_utc, hc_utc_from_tai, hc_weekday_from_fixed,
+};
+
+/// Every calendar, behind the `calendars` feature: the registry the facade
+/// populates, rendered for one day with the locale's vocabulary.
+#[cfg(feature = "calendars")]
+mod calendars {
+    use core::ffi::c_char;
+
+    use hc::hc_calendar::shape::MONTH;
+    use hc::hc_calendar::{DateFields, DayBoundary, DynCalendar, Rd, Standing};
+    use hc::hc_i18n::Locale;
+    use hc::hc_i18n::names::{
+        NameContext, NameWidth, era_name_by_code, month_label, position_name,
     };
-    match unix::tai_from_unix(UnixTime::from_seconds(unix_seconds), policy) {
-        Ok(instant) => {
-            let reading = instant.since_epoch();
-            let seconds = match i64::try_from(reading.whole_seconds()) {
-                Ok(value) => value,
-                Err(_) => return HC_ERROR_OVERFLOW,
+
+    use super::{HcStatus, push_cell, text, write_text};
+
+    /// The locale a BCP 47 tag names, or the root locale `und` for a tag
+    /// that does not parse.
+    pub(super) fn locale(tag: &str) -> Locale {
+        Locale::parse(tag).unwrap_or(Locale::ROOT)
+    }
+
+    /// [`Standing`] as the word the line carries.
+    const fn standing_name(standing: Standing) -> &'static str {
+        match standing {
+            Standing::InUse => "in-use",
+            Standing::Proleptic => "proleptic",
+            Standing::Extended => "extended",
+            Standing::Unrecorded => "unrecorded",
+        }
+    }
+
+    /// [`DayBoundary`] as the word the line carries.
+    fn push_day_boundary(out: &mut String, boundary: DayBoundary) {
+        use core::fmt::Write;
+        match boundary {
+            DayBoundary::Midnight => out.push_str("midnight"),
+            DayBoundary::Noon => out.push_str("noon"),
+            DayBoundary::Sunset => out.push_str("sunset"),
+            DayBoundary::Sunrise => out.push_str("sunrise"),
+            DayBoundary::LocalTime(time) => {
+                let _ = write!(out, "local-time {time}");
+            }
+        }
+    }
+
+    /// The date columns of a converted day: era code, era label, year,
+    /// month ordinal, leap-month flag, month label, day, leap-day flag and
+    /// the extra fields.
+    fn push_fields(
+        out: &mut String,
+        locale: &Locale,
+        calendar: &(dyn DynCalendar + Send + Sync),
+        fields: &DateFields,
+    ) {
+        use core::fmt::Write;
+        let id = calendar.meta().id;
+        let era = fields.era.unwrap_or("");
+        push_cell(out, era);
+        out.push('\t');
+        let era_label = fields
+            .era
+            .and_then(|code| era_name_by_code(locale, id, code, NameWidth::Wide))
+            .unwrap_or("");
+        push_cell(out, era_label);
+        let _ = write!(out, "\t{}\t", fields.year);
+        match fields.month {
+            Some(month) => {
+                let _ = write!(out, "{}\t{}\t", month.ordinal, u8::from(month.leap));
+            }
+            None => out.push_str("\t0\t"),
+        }
+        // The locale's word for the month, or the calendar's own name for
+        // it, or nothing: a month is never numbered here as if that were
+        // its name.
+        if let Some(month) = fields.month {
+            let label = month_label(locale, id, month, NameWidth::Wide, NameContext::Standalone)
+                .map(|label| label.to_string())
+                .or_else(|| {
+                    let cycle = calendar.cycles().iter().find(|cycle| cycle.kind == MONTH)?;
+                    let index = usize::from(month.ordinal).checked_sub(1)?;
+                    position_name(
+                        locale,
+                        id,
+                        cycle,
+                        index,
+                        NameWidth::Wide,
+                        NameContext::Standalone,
+                    )
+                    .map(str::to_owned)
+                })
+                .unwrap_or_default();
+            push_cell(out, &label);
+        }
+        out.push('\t');
+        if let Some(day) = fields.day {
+            let _ = write!(out, "{day}");
+        }
+        let _ = write!(out, "\t{}\t", u8::from(fields.leap_day));
+        let mut first = true;
+        for extra in fields.extra.iter() {
+            if !first {
+                out.push(';');
+            }
+            first = false;
+            push_cell(out, extra.name);
+            let _ = write!(out, "={}", extra.value);
+        }
+    }
+
+    /// One day in every registered calendar, one line each, in registry
+    /// order; see [`hc_describe_day`] for the columns.
+    pub(super) fn lines(fixed: i64, locale: &Locale) -> String {
+        use core::fmt::Write;
+        let registry = hc::registry();
+        let day = Rd(fixed);
+        let mut out = String::new();
+        for (id, described) in registry.describe_day(day) {
+            let Some(calendar) = registry.get(id) else {
+                continue;
             };
-            // SAFETY: both were checked non-null immediately above.
-            unsafe {
-                *out_seconds = seconds;
-                *out_attos = reading.subsec_attos();
+            let meta = calendar.meta();
+            push_cell(&mut out, id.as_str());
+            out.push('\t');
+            push_cell(&mut out, meta.english_name);
+            out.push('\t');
+            match described {
+                Ok(fields) => {
+                    push_fields(&mut out, locale, calendar, &fields);
+                    // No error code, no error name; then the standing.
+                    out.push_str("\t\t\t");
+                    out.push_str(standing_name(calendar.standing(day)));
+                }
+                Err(refusal) => {
+                    // The nine date columns stay empty; the refusal is the
+                    // answer, and there is no standing for a day the
+                    // calendar cannot name.
+                    out.push_str("\t\t\t\t\t\t\t\t\t");
+                    let _ = write!(out, "{}\t{}\t", refusal.code(), refusal.name());
+                }
             }
-            HC_OK
+            out.push('\t');
+            push_day_boundary(&mut out, calendar.day_boundary());
+            // `formatted` is reserved: empty until hc-format renders a
+            // date of any calendar in a locale's own way.
+            out.push_str("\t\n");
         }
-        Err(error) => status_from_time(error),
+        out
+    }
+
+    /// One fixed day in every registered calendar, as NUL-terminated UTF-8
+    /// lines in a caller-owned buffer.
+    ///
+    /// One line per calendar, in registry order, tab-separated: the calendar
+    /// identifier, its English name, the era code, the era's name in the
+    /// locale, the year, the month ordinal, `1` for a leap month, the month's
+    /// name in the locale (or the calendar's own name for it), the day, `1`
+    /// for a leap day, the calendar's extra fields as `name=value` pairs
+    /// joined by `;`, the error code, the error name, the standing (`in-use`,
+    /// `proleptic`, `extended` or `unrecorded`), where the calendar's day
+    /// begins (`midnight`, `noon`, `sunset`, `sunrise` or `local-time
+    /// HH:MM:SS`), and a reserved, empty `formatted` column. A calendar that
+    /// refuses the day is still a line: its date columns and standing are
+    /// empty and the error code and name say why. `locale` is a NUL-terminated
+    /// BCP 47 tag, or null; one that does not parse, or names no data, falls
+    /// back to the root locale `und`, whose month names are CLDR's
+    /// `M01`..`M12` — ask for `en` for English. A `locale` that is not UTF-8
+    /// is `HC_ERROR_NOT_UTF8`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be null or point to a NUL-terminated string; `buffer`
+    /// must be writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_describe_day(
+        fixed: i64,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale) } {
+            Ok(tag) => tag.unwrap_or(""),
+            Err(status) => return status,
+        };
+        let text = lines(fixed, &self::locale(tag));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&text, buffer, capacity, written) }
     }
 }
 
-/// `TAI - UTC` in whole seconds at a POSIX timestamp.
-///
-/// Returns [`HC_ERROR_NO_DATA`] under the strict policy outside the published
-/// leap-second table, which is the honest answer rather than a forecast.
-///
-/// # Safety
-///
-/// `out_offset` must be writable.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn hc_tai_minus_utc(
-    unix_seconds: i64,
-    strict: c_int,
-    out_offset: *mut i64,
-) -> HcStatus {
-    if out_offset.is_null() {
-        return HC_ERROR_NULL_POINTER;
-    }
-    let policy = if strict != 0 {
-        LeapPolicy::Strict
-    } else {
-        LeapPolicy::Extrapolate
-    };
-    match unix::tai_minus_utc_at(unix_seconds, policy) {
-        Ok(offset) => {
-            let seconds = match i64::try_from(offset.whole_seconds()) {
-                Ok(value) => value,
-                Err(_) => return HC_ERROR_OVERFLOW,
-            };
-            // SAFETY: checked non-null immediately above.
-            unsafe { *out_offset = seconds };
-            HC_OK
-        }
-        Err(error) => status_from_time(error),
-    }
-}
-
-/// Whether a POSIX timestamp names a day that ends with an inserted leap
-/// second.
-///
-/// # Safety
-///
-/// `out_has_leap` must be writable.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn hc_day_has_leap_second(
-    unix_seconds: i64,
-    out_has_leap: *mut c_int,
-) -> HcStatus {
-    if out_has_leap.is_null() {
-        return HC_ERROR_NULL_POINTER;
-    }
-    let day_start = unix_seconds.div_euclid(86_400) * 86_400;
-    let next_day = day_start + 86_400;
-    let policy = LeapPolicy::Extrapolate;
-    let before = match unix::tai_minus_utc_at(day_start, policy) {
-        Ok(value) => value,
-        Err(error) => return status_from_time(error),
-    };
-    let after = match unix::tai_minus_utc_at(next_day, policy) {
-        Ok(value) => value,
-        Err(error) => return status_from_time(error),
-    };
-    let has_leap = c_int::from(after > before);
-    // SAFETY: checked non-null immediately above.
-    unsafe { *out_has_leap = has_leap };
-    HC_OK
-}
-
-/// Convert a TAI reading back to a UTC label, naming a leap second when the
-/// instant falls inside one.
-///
-/// `out_is_leap_second` receives 1 when the instant is an inserted
-/// `23:59:60`, which POSIX time cannot express.
-///
-/// # Safety
-///
-/// Both out-parameters must be writable.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn hc_utc_from_tai(
-    tai_seconds: i64,
-    strict: c_int,
-    out_unix_seconds: *mut i64,
-    out_is_leap_second: *mut c_int,
-) -> HcStatus {
-    if out_unix_seconds.is_null() || out_is_leap_second.is_null() {
-        return HC_ERROR_NULL_POINTER;
-    }
-    let policy = if strict != 0 {
-        LeapPolicy::Strict
-    } else {
-        LeapPolicy::Extrapolate
-    };
-    let instant = Instant::<Tai>::from_epoch(Duration::from_secs(tai_seconds as i128));
-    match unix::utc_from_tai(instant, policy) {
-        Ok(UtcInstant {
-            unix_seconds,
-            leap_second,
-            ..
-        }) => {
-            // SAFETY: both were checked non-null immediately above.
-            unsafe {
-                *out_unix_seconds = unix_seconds;
-                *out_is_leap_second = c_int::from(leap_second);
-            }
-            HC_OK
-        }
-        Err(error) => status_from_time(error),
-    }
-}
+#[cfg(feature = "calendars")]
+pub use calendars::hc_describe_day;
 
 /// The holiday tables, behind the `holiday` feature: every country,
 /// exchange, tradition and international set of `hc-holiday`, looked up by
 /// identifier and rendered as tab-separated lines.
 #[cfg(feature = "holiday")]
 mod holiday {
-    use core::ffi::{CStr, c_char, c_int};
+    use core::ffi::{c_char, c_int};
 
     use hc::hc_calendar::Rd;
     use hc::hc_holiday::engine::HolidayCalendar;
@@ -431,8 +697,8 @@ mod holiday {
     use hc::hc_holiday::{countries, exchanges, international, traditions};
 
     use super::{
-        HC_ERROR_NOT_UTF8, HC_ERROR_NULL_POINTER, HC_ERROR_OUT_OF_RANGE, HC_ERROR_UNKNOWN, HC_OK,
-        HcStatus, write_text,
+        HC_ERROR_NULL_POINTER, HC_ERROR_OUT_OF_RANGE, HC_ERROR_UNKNOWN, HC_OK, HcStatus, push_cell,
+        text, write_text,
     };
 
     /// The table an identifier names: a country's ISO 3166-1 alpha-2 code,
@@ -445,21 +711,16 @@ mod holiday {
             .or_else(|| international::by_code(code))
     }
 
-    /// A NUL-terminated string: `Ok(None)` for a null pointer and
-    /// [`HC_ERROR_NOT_UTF8`] for bytes that are not UTF-8.
-    ///
-    /// # Safety
-    ///
-    /// `pointer` must be null or point to a NUL-terminated string.
-    unsafe fn text<'a>(pointer: *const c_char) -> Result<Option<&'a str>, HcStatus> {
-        if pointer.is_null() {
-            return Ok(None);
-        }
-        // SAFETY: the caller guarantees a NUL-terminated string.
-        unsafe { CStr::from_ptr(pointer) }
-            .to_str()
-            .map(Some)
-            .map_err(|_| HC_ERROR_NOT_UTF8)
+    /// Every table, in the order [`hc_holiday_codes`] lists them: the
+    /// countries, then the exchanges, the traditions and the international
+    /// sets.
+    fn tables() -> impl Iterator<Item = &'static RuleSet> {
+        countries::ALL
+            .iter()
+            .chain(exchanges::ALL)
+            .chain(traditions::ALL)
+            .chain(international::ALL)
+            .copied()
     }
 
     /// The table and region two string arguments name.
@@ -488,16 +749,31 @@ mod holiday {
     /// Every table's identifier, one per line.
     pub(super) fn codes() -> String {
         let mut out = String::new();
-        for set in countries::ALL
-            .iter()
-            .chain(exchanges::ALL)
-            .chain(traditions::ALL)
-            .chain(international::ALL)
-        {
+        for set in tables() {
             out.push_str(set.code);
             out.push('\n');
         }
         out
+    }
+
+    /// The word a [`Kind`] is written as.
+    const fn kind_name(kind: Kind) -> &'static str {
+        match kind {
+            Kind::Public => "public",
+            Kind::Bank => "bank",
+            Kind::Religious => "religious",
+            Kind::Observance => "observance",
+            Kind::School => "school",
+            Kind::Workday => "workday",
+        }
+    }
+
+    /// The word a [`Confidence`] is written as.
+    const fn confidence_name(confidence: Confidence) -> &'static str {
+        match confidence {
+            Confidence::Exact => "exact",
+            Confidence::Approximate => "approximate",
+        }
     }
 
     /// The holidays of a year as lines: the ISO date, the name, the local
@@ -508,24 +784,14 @@ mod holiday {
         let calendar = HolidayCalendar::for_year(table, region, year);
         let mut out = String::new();
         for holiday in calendar.all() {
-            let kind = match holiday.kind {
-                Kind::Public => "public",
-                Kind::Bank => "bank",
-                Kind::Religious => "religious",
-                Kind::Observance => "observance",
-                Kind::School => "school",
-                Kind::Workday => "workday",
-            };
-            let confidence = match holiday.confidence {
-                Confidence::Exact => "exact",
-                Confidence::Approximate => "approximate",
-            };
             let _ = write!(
                 out,
-                "{}\t{}\t{}\t{kind}\t{confidence}\t{}\t",
+                "{}\t{}\t{}\t{}\t{}\t{}\t",
                 iso(holiday.date),
                 holiday.name,
                 holiday.local_name,
+                kind_name(holiday.kind),
+                confidence_name(holiday.confidence),
                 u8::from(holiday.is_substitute())
             );
             if let Some(day) = holiday.observed_for {
@@ -534,6 +800,57 @@ mod holiday {
             out.push('\n');
         }
         out
+    }
+
+    /// Every entry on one day across every table, one line each; see
+    /// [`hc_holidays_on`] for the columns.
+    ///
+    /// # Errors
+    ///
+    /// [`HC_ERROR_OUT_OF_RANGE`] for a day with no Gregorian year.
+    pub(super) fn lines_on(fixed: i64) -> Result<String, HcStatus> {
+        use core::fmt::Write;
+        let day = Rd(fixed);
+        gregorian::year_from_fixed(day).map_err(|_| HC_ERROR_OUT_OF_RANGE)?;
+        let mut out = String::new();
+        for table in tables() {
+            let calendar = HolidayCalendar::for_day(table, None, day);
+            for holiday in calendar.on(day) {
+                push_cell(&mut out, table.code);
+                out.push('\t');
+                push_cell(&mut out, table.english_name);
+                out.push('\t');
+                push_cell(&mut out, holiday.name);
+                out.push('\t');
+                push_cell(&mut out, holiday.local_name);
+                let _ = write!(
+                    out,
+                    "\t{}\t{}\t",
+                    kind_name(holiday.kind),
+                    confidence_name(holiday.confidence)
+                );
+                push_cell(&mut out, holiday.source);
+                let _ = write!(out, "\t{}\t", u8::from(holiday.is_substitute()));
+                if let Some(observed_for) = holiday.observed_for {
+                    let _ = write!(out, "{}", observed_for.0);
+                }
+                out.push('\n');
+            }
+            // A gap is a holiday the table could not place this year — its
+            // calendar's range ended, or no announcement was read — and it
+            // is reported rather than left out, so that a caller can say so.
+            for gap in calendar.gaps() {
+                push_cell(&mut out, table.code);
+                out.push('\t');
+                push_cell(&mut out, table.english_name);
+                out.push('\t');
+                push_cell(&mut out, gap.name);
+                out.push('\t');
+                push_cell(&mut out, gap.local_name);
+                out.push_str("\tgap\t\t\t0\t\n");
+            }
+        }
+        Ok(out)
     }
 
     fn iso(day: Rd) -> String {
@@ -571,10 +888,10 @@ mod holiday {
             Err(status) => return status,
         };
         let day = Rd(fixed);
-        let Ok(year) = gregorian::year_from_fixed(day) else {
+        if gregorian::year_from_fixed(day).is_err() {
             return HC_ERROR_OUT_OF_RANGE;
-        };
-        let answer = HolidayCalendar::for_year(table, region, year).is_holiday(day);
+        }
+        let answer = HolidayCalendar::for_day(table, region, day).is_holiday(day);
         // SAFETY: checked non-null above; the caller guarantees it is writable.
         unsafe { *out_is_day_off = c_int::from(answer) };
         HC_OK
@@ -634,91 +951,800 @@ mod holiday {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_text(&text, buffer, capacity, written) }
     }
+
+    /// Every holiday on one fixed day across every table, as NUL-terminated
+    /// UTF-8 lines in a caller-owned buffer.
+    ///
+    /// The tables are the ones `hc_holiday_codes` lists, in that order, each
+    /// evaluated nationwide. One line per (table, entry), tab-separated: the
+    /// table's identifier, its English name, the holiday's English name, its
+    /// local name, the kind (`public`, `bank`, `religious`, `observance`,
+    /// `school`, `workday`, or `gap`), the confidence (`exact` or
+    /// `approximate`), the instrument the rule cites or nothing, `1` for a
+    /// substitute day and `0` otherwise, and the fixed day a substitute
+    /// stands in for or nothing. A `gap` line is a holiday the table could
+    /// not place in the day's year — its calendar's range ended, or no
+    /// announcement was read — with the confidence and source empty, so a
+    /// caller can say the year is unanswered rather than show nothing. A
+    /// day with no Gregorian year is `HC_ERROR_OUT_OF_RANGE`. Writes the
+    /// required length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_holidays_on(
+        fixed: i64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let text = match lines_on(fixed) {
+            Ok(text) => text,
+            Err(status) => return status,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&text, buffer, capacity, written) }
+    }
 }
 
 #[cfg(feature = "holiday")]
-pub use holiday::{hc_holiday_codes, hc_holiday_is_day_off, hc_holidays_in_year};
+pub use holiday::{hc_holiday_codes, hc_holiday_is_day_off, hc_holidays_in_year, hc_holidays_on};
+
+/// The almanac, behind the `seasons` feature: the 24 solar terms and the 72
+/// pentads of `hc-seasons`, judged at a named meridian.
+#[cfg(feature = "seasons")]
+mod seasons {
+    use core::ffi::c_char;
+
+    use hc::hc_calendar::Rd;
+    use hc::hc_seasons::hc_astro::solar::solar_longitude_after;
+    use hc::hc_seasons::solar_terms::{TermOrder, namings, term_in_effect};
+    use hc::hc_seasons::{Meridian, pentads};
+
+    use super::{HC_ERROR_UNKNOWN, HcStatus, push_cell, text, write_text};
+
+    /// The meridian a string names.
+    ///
+    /// A name — `universal`, `japan`, `china`, `korea`, `india` or
+    /// `china-before-1929`, in any case, with the empty string meaning
+    /// `universal` — or a longitude in decimal degrees east of Greenwich,
+    /// read as local mean solar time.
+    ///
+    /// # Errors
+    ///
+    /// [`HC_ERROR_UNKNOWN`] for anything else.
+    pub(super) fn meridian(name: &str) -> Result<Meridian, HcStatus> {
+        let lowered = name.trim().to_ascii_lowercase();
+        Ok(match lowered.as_str() {
+            "" | "universal" => Meridian::UNIVERSAL,
+            "japan" => Meridian::JAPAN,
+            "china" => Meridian::CHINA,
+            "korea" => Meridian::KOREA,
+            "india" => Meridian::INDIA,
+            "china-before-1929" => Meridian::CHINA_BEFORE_1929,
+            degrees => degrees
+                .parse::<f64>()
+                .ok()
+                .filter(|degrees| degrees.is_finite() && (-180.0..=180.0).contains(degrees))
+                .map(Meridian::from_longitude_degrees)
+                .ok_or(HC_ERROR_UNKNOWN)?,
+        })
+    }
+
+    /// The solar term in effect on a day as one line; see
+    /// [`hc_term_in_effect`] for the columns.
+    pub(super) fn term_line(fixed: i64, meridian: Meridian) -> String {
+        use core::fmt::Write;
+        let event = term_in_effect(Rd(fixed), meridian);
+        let next = solar_longitude_after(event.term.next().solar_longitude_degrees(), event.moment);
+        let end = Rd(meridian.day_of(next).0 - 1);
+        let mut out = String::new();
+        let _ = write!(
+            out,
+            "{}\t{}\t{}\t{}\t{}\t",
+            event.term.index(TermOrder::SpringEquinoxFirst),
+            event.term.chinese_name(),
+            event.term.japanese_name(),
+            event.day.0,
+            end.0
+        );
+        push_cell(&mut out, namings::TRADITIONAL_CHINESE.authority);
+        out.push('\t');
+        push_cell(&mut out, namings::JAPANESE.authority);
+        out.push('\n');
+        out
+    }
+
+    /// The pentad in effect on a day as one line; see
+    /// [`hc_pentad_in_effect`] for the columns.
+    pub(super) fn pentad_line(fixed: i64, meridian: Meridian) -> String {
+        use core::fmt::Write;
+        let event = pentads::pentad_in_effect(Rd(fixed), meridian);
+        let next =
+            solar_longitude_after(event.pentad.next().solar_longitude_degrees(), event.moment);
+        let end = Rd(meridian.day_of(next).0 - 1);
+        let mut out = String::new();
+        let _ = write!(
+            out,
+            "{}\t{}\t{}\t{}\t{}\t",
+            event.pentad.index(TermOrder::SpringEquinoxFirst),
+            event.pentad.name(pentads::CHINESE),
+            event.pentad.name(pentads::JAPANESE),
+            event.day.0,
+            end.0
+        );
+        push_cell(&mut out, pentads::CHINESE.authority);
+        out.push('\t');
+        push_cell(&mut out, pentads::JAPANESE.authority);
+        out.push('\n');
+        out
+    }
+
+    /// The meridian a NUL-terminated string argument names, null meaning
+    /// `universal`.
+    ///
+    /// # Safety
+    ///
+    /// `name` must be null or point to a NUL-terminated string.
+    unsafe fn meridian_argument(name: *const c_char) -> Result<Meridian, HcStatus> {
+        // SAFETY: forwarded to the caller's contract above.
+        let name = unsafe { text(name) }?.unwrap_or("");
+        meridian(name)
+    }
+
+    /// The solar term in effect on a fixed day at a meridian, as one
+    /// NUL-terminated UTF-8 line in a caller-owned buffer.
+    ///
+    /// Tab-separated: the term's index from 春分 at 0 through 驚蟄 at 23
+    /// (the longitude divided by 15°), its name in traditional Chinese, its
+    /// name in Japanese, the fixed day the term began at that meridian, the
+    /// last fixed day before the next term begins, the authority for the
+    /// Chinese names and the authority for the Japanese names. `meridian`
+    /// is a NUL-terminated name — `universal`, `japan`, `china`, `korea`,
+    /// `india` or `china-before-1929`, in any case — or a longitude in
+    /// decimal degrees east of Greenwich, read as local mean solar time;
+    /// null or empty is `universal`, anything else `HC_ERROR_UNKNOWN`, and
+    /// text that is not UTF-8 `HC_ERROR_NOT_UTF8`. Writes the required
+    /// length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `meridian` must be null or point to a NUL-terminated string; `buffer`
+    /// must be writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_term_in_effect(
+        fixed: i64,
+        meridian: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let meridian = match unsafe { meridian_argument(meridian) } {
+            Ok(meridian) => meridian,
+            Err(status) => return status,
+        };
+        let text = term_line(fixed, meridian);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&text, buffer, capacity, written) }
+    }
+
+    /// The pentad (候) in effect on a fixed day at a meridian, as one
+    /// NUL-terminated UTF-8 line in a caller-owned buffer.
+    ///
+    /// Tab-separated: the pentad's index from the first pentad of 春分 at 0
+    /// through 71 (the longitude divided by 5°), its name in the Chinese
+    /// tradition, its name in the Japanese tradition, the fixed day the
+    /// pentad began at that meridian, the last fixed day before the next
+    /// pentad begins, the text the Chinese names come from and the text the
+    /// Japanese names come from. `meridian` is as for `hc_term_in_effect`.
+    /// Writes the required length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_term_in_effect`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_pentad_in_effect(
+        fixed: i64,
+        meridian: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let meridian = match unsafe { meridian_argument(meridian) } {
+            Ok(meridian) => meridian,
+            Err(status) => return status,
+        };
+        let text = pentad_line(fixed, meridian);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&text, buffer, capacity, written) }
+    }
+}
+
+#[cfg(feature = "seasons")]
+pub use seasons::{hc_pentad_in_effect, hc_term_in_effect};
+
+/// Deep time, behind the `deep-time` feature: the cosmic, geologic and
+/// archaeological chronologies of `hc-deep-time`, and a moment placed in
+/// all of them at once.
+#[cfg(feature = "deep-time")]
+mod deep_time {
+    use core::ffi::c_char;
+
+    use hc::hc_deep_time::geologic::{self, GeologicInterval, GeologicRank};
+    use hc::hc_deep_time::universe::{self, CosmicEpoch, CosmicEvent};
+    use hc::hc_deep_time::{ArchaeologicalPeriod, DeepTime, FutureEra, place_years_ago};
+
+    use super::{HC_ERROR_OUT_OF_RANGE, HC_ERROR_UNKNOWN, HcStatus, push_cell, write_text};
+
+    /// One entry's figures: the value, its standard uncertainty, the
+    /// significant figures claimed (empty when the table claims none) and
+    /// whether the chart marks it approximate.
+    struct Bound {
+        value: f64,
+        std_dev: f64,
+        figures: Option<u8>,
+        approximate: bool,
+    }
+
+    impl Bound {
+        const fn exact(value: f64, std_dev: f64, figures: u8) -> Self {
+            Self {
+                value,
+                std_dev,
+                figures: Some(figures),
+                approximate: false,
+            }
+        }
+
+        fn of(time: DeepTime) -> Self {
+            Self::exact(time.central_seconds(), time.std_dev(), time.figures())
+        }
+    }
+
+    /// The shape every line of the deep-time entry points has.
+    struct Row<'a> {
+        kind: &'a str,
+        name: &'a str,
+        scope: &'a str,
+        start: Option<Bound>,
+        end: Option<Bound>,
+        unit: &'a str,
+        description: &'a str,
+        source: &'a str,
+    }
+
+    fn push_bound(out: &mut String, bound: Option<&Bound>) {
+        use core::fmt::Write;
+        match bound {
+            Some(bound) => {
+                let _ = write!(out, "{}\t{}\t", bound.value, bound.std_dev);
+                if let Some(figures) = bound.figures {
+                    let _ = write!(out, "{figures}");
+                }
+                let _ = write!(out, "\t{}\t", u8::from(bound.approximate));
+            }
+            None => out.push_str("\t\t\t\t"),
+        }
+    }
+
+    fn push_row(out: &mut String, row: &Row<'_>) {
+        push_cell(out, row.kind);
+        out.push('\t');
+        push_cell(out, row.name);
+        out.push('\t');
+        push_cell(out, row.scope);
+        out.push('\t');
+        push_bound(out, row.start.as_ref());
+        push_bound(out, row.end.as_ref());
+        push_cell(out, row.unit);
+        out.push('\t');
+        push_cell(out, row.description);
+        out.push('\t');
+        push_cell(out, row.source);
+        out.push('\n');
+    }
+
+    /// The unit of every cosmic figure: seconds after the Big Bang.
+    const SINCE_BIG_BANG: &str = "seconds-since-big-bang";
+
+    fn push_epoch(out: &mut String, epoch: &CosmicEpoch) {
+        push_row(
+            out,
+            &Row {
+                kind: "cosmic-epoch",
+                name: epoch.name,
+                scope: "",
+                start: epoch.start().ok().map(Bound::of),
+                end: epoch.end().ok().map(Bound::of),
+                unit: SINCE_BIG_BANG,
+                description: epoch.description,
+                source: epoch.source,
+            },
+        );
+    }
+
+    fn push_event(out: &mut String, event: &CosmicEvent) {
+        let when = event.deep_time().ok().map(Bound::of);
+        push_row(
+            out,
+            &Row {
+                kind: "cosmic-event",
+                name: event.name,
+                scope: "",
+                start: event.deep_time().ok().map(Bound::of),
+                end: when,
+                unit: SINCE_BIG_BANG,
+                description: event.description,
+                source: event.source,
+            },
+        );
+    }
+
+    fn push_interval(out: &mut String, interval: &GeologicInterval) {
+        push_row(
+            out,
+            &Row {
+                kind: interval.rank.english_name(),
+                name: interval.name,
+                scope: interval.parent.unwrap_or(""),
+                start: Some(Bound {
+                    value: interval.base_ma,
+                    std_dev: interval.base_std_dev_ma,
+                    figures: Some(interval.base_figures),
+                    approximate: interval.base_approximate,
+                }),
+                end: Some(Bound {
+                    value: interval.top_ma,
+                    std_dev: interval.top_std_dev_ma,
+                    figures: Some(interval.top_figures),
+                    approximate: interval.top_approximate,
+                }),
+                unit: "megayears-before-present",
+                description: "",
+                source: geologic::CHART_CITATION,
+            },
+        );
+    }
+
+    fn push_period(out: &mut String, period: &ArchaeologicalPeriod) {
+        let bound = |bp: Result<hc::hc_deep_time::Bp, _>| {
+            bp.ok().map(|bp| Bound {
+                value: bp.years().value,
+                std_dev: bp.years().std_dev,
+                figures: None,
+                approximate: false,
+            })
+        };
+        push_row(
+            out,
+            &Row {
+                kind: "archaeological",
+                name: period.name,
+                scope: period.region,
+                start: bound(period.begins()),
+                end: bound(period.ends()),
+                unit: "years-before-1950",
+                description: period.description,
+                source: period.source,
+            },
+        );
+    }
+
+    fn push_future_era(out: &mut String, era: &FutureEra) {
+        push_row(
+            out,
+            &Row {
+                kind: "future-era",
+                name: era.name,
+                scope: "",
+                start: Some(Bound::exact(era.start_decade, 0.0, 2)),
+                end: era.end_decade.map(|decade| Bound::exact(decade, 0.0, 2)),
+                unit: "log10-years-from-now",
+                description: era.description,
+                source: era.source,
+            },
+        );
+    }
+
+    /// A moment placed in every chronology, one line each; see
+    /// [`hc_place_years_ago`] for the columns.
+    ///
+    /// # Errors
+    ///
+    /// [`HC_ERROR_OUT_OF_RANGE`] for a value the crate refuses: not finite,
+    /// or beyond what it can represent.
+    pub(super) fn placement_lines(years_ago: f64, std_dev_years: f64) -> Result<String, HcStatus> {
+        let placement =
+            place_years_ago(years_ago, std_dev_years).map_err(|_| HC_ERROR_OUT_OF_RANGE)?;
+        let mut out = String::new();
+        let moment = |name, time: DeepTime, unit| Row {
+            kind: "moment",
+            name,
+            scope: "",
+            start: Some(Bound::of(time)),
+            end: Some(Bound::of(time)),
+            unit,
+            description: "",
+            source: universe::PRESENT_DAY.source,
+        };
+        push_row(
+            &mut out,
+            &moment("since-big-bang", placement.since_big_bang, SINCE_BIG_BANG),
+        );
+        push_row(
+            &mut out,
+            &moment(
+                "before-present",
+                placement.before_present,
+                "seconds-before-present",
+            ),
+        );
+        if let Some(epoch) = placement.cosmic_epoch {
+            push_epoch(&mut out, epoch);
+        }
+        if let Some(event) = placement.cosmic_event {
+            push_event(&mut out, event);
+        }
+        if let Some(era) = placement.future_era {
+            push_future_era(&mut out, era);
+        }
+        for interval in placement.geologic.iter().flatten() {
+            push_interval(&mut out, interval);
+        }
+        if let Some(period) = placement.archaeological {
+            push_period(&mut out, period);
+        }
+        Ok(out)
+    }
+
+    /// Every cosmic epoch, then every dated cosmic event, one line each.
+    pub(super) fn cosmic_lines() -> String {
+        let mut out = String::new();
+        for epoch in universe::EPOCHS {
+            push_epoch(&mut out, epoch);
+        }
+        for event in universe::EVENTS {
+            push_event(&mut out, event);
+        }
+        out
+    }
+
+    /// The rank a number names: 0 eon, 1 era, 2 period, 3 epoch, 4 age.
+    ///
+    /// # Errors
+    ///
+    /// [`HC_ERROR_UNKNOWN`] for any other number.
+    fn rank(number: u32) -> Result<GeologicRank, HcStatus> {
+        usize::try_from(number)
+            .ok()
+            .and_then(|index| GeologicRank::ALL.get(index))
+            .copied()
+            .ok_or(HC_ERROR_UNKNOWN)
+    }
+
+    /// Every interval of one rank, youngest first, one line each.
+    pub(super) fn interval_lines(rank: GeologicRank) -> String {
+        let mut out = String::new();
+        for interval in geologic::intervals(rank) {
+            push_interval(&mut out, interval);
+        }
+        out
+    }
+
+    /// A moment some years before the present, placed in every chronology
+    /// at once, as NUL-terminated UTF-8 lines in a caller-owned buffer.
+    ///
+    /// One line per entry, tab-separated, every deep-time entry point
+    /// alike: the kind (`moment`, `cosmic-epoch`, `cosmic-event`,
+    /// `future-era`, a geologic rank `eon`, `era`, `period`, `epoch` or
+    /// `age`, or `archaeological`), the name, the scope (the interval one
+    /// rank up for a geologic interval, the region for an archaeological
+    /// period), the older bound's value, standard uncertainty, significant
+    /// figures and `1` where the chart marks it approximate, the same four
+    /// for the younger bound, the unit the values are in, the description
+    /// and the source. A point in time has the same start and end. The
+    /// units are what each table counts in: `seconds-since-big-bang` for
+    /// the cosmic rows, `megayears-before-present` for the geologic chart's,
+    /// the `years-before-1950` of the BP convention for the archaeological
+    /// rows, `log10-years-from-now` for a future era. The lines are the
+    /// moment itself as `since-big-bang` and `before-present`, its cosmic
+    /// epoch and the last dated cosmic event before it, its future era if
+    /// it lies ahead, its geologic chain from eon down to age, and its
+    /// archaeological period, each present only where that chronology
+    /// reaches. `years_ago` counts back from the present as the crate
+    /// defines it — the Planck 2018 age of the universe — not from 1950 and
+    /// not from the caller's clock; the crate ignores the difference
+    /// between the three, which lies below the smallest uncertainty in any
+    /// of its tables. Negative years are the future. A value the crate
+    /// refuses — not finite, beyond its range — is `HC_ERROR_OUT_OF_RANGE`.
+    /// Writes the required length, including the terminator, into
+    /// `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_place_years_ago(
+        years_ago: f64,
+        std_dev_years: f64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let text = match placement_lines(years_ago, std_dev_years) {
+            Ok(text) => text,
+            Err(status) => return status,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&text, buffer, capacity, written) }
+    }
+
+    /// Every cosmic epoch and every dated cosmic event, as NUL-terminated
+    /// UTF-8 lines in a caller-owned buffer.
+    ///
+    /// The epochs first, Big Bang to the present, then the events, oldest
+    /// first, each a line of the columns `hc_place_years_ago` writes, in
+    /// `seconds-since-big-bang`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_cosmic_events(
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let text = cosmic_lines();
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&text, buffer, capacity, written) }
+    }
+
+    /// Every interval of one rank of the geologic time scale, as
+    /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+    ///
+    /// `rank` is 0 for the eons, 1 for the eras, 2 for the periods, 3 for
+    /// the epochs and 4 for the ages; anything else is `HC_ERROR_UNKNOWN`.
+    /// The intervals come youngest first, each a line of the columns
+    /// `hc_place_years_ago` writes, in `megayears-before-present` with the
+    /// chart's own figures and uncertainties and the chart as the source.
+    /// Writes the required length, including the terminator, into
+    /// `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_geologic_intervals(
+        rank: u32,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let rank = match self::rank(rank) {
+            Ok(rank) => rank,
+            Err(status) => return status,
+        };
+        let text = interval_lines(rank);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&text, buffer, capacity, written) }
+    }
+}
+
+#[cfg(feature = "deep-time")]
+pub use deep_time::{hc_cosmic_events, hc_geologic_intervals, hc_place_years_ago};
+
+/// Time zones, behind the `tz` feature: the day an instant falls on, and
+/// the instant a day begins, by the wall clock of an IANA zone.
+#[cfg(feature = "tz")]
+mod tz {
+    use core::ffi::c_char;
+    use std::sync::{Mutex, PoisonError};
+
+    use hc::hc_calendar::{CivilDateTime, Rd};
+    use hc::hc_core::UnixTime;
+    use hc::hc_tz::{LocalResolution, TimeZone, TzifTimeZone, builtin};
+
+    use super::{
+        HC_ERROR_MALFORMED, HC_ERROR_NULL_POINTER, HC_ERROR_OUT_OF_RANGE, HC_ERROR_UNKNOWN, HC_OK,
+        HcStatus, text,
+    };
+
+    /// The zones a caller has handed the library as TZif bytes, by name.
+    static LOADED: Mutex<Vec<(String, Vec<u8>)>> = Mutex::new(Vec::new());
+
+    /// The zone a name selects — one loaded through [`hc_zone_load`] first,
+    /// then the built-in table — handed to `answer`.
+    ///
+    /// # Errors
+    ///
+    /// [`HC_ERROR_UNKNOWN`] for a name neither knows.
+    fn with_zone<R>(name: &str, answer: impl FnOnce(&dyn TimeZone) -> R) -> Result<R, HcStatus> {
+        let loaded = LOADED.lock().unwrap_or_else(PoisonError::into_inner);
+        if let Some((known, bytes)) = loaded
+            .iter()
+            .find(|(known, _)| known.eq_ignore_ascii_case(name))
+        {
+            let zone = TzifTimeZone::parse(known, bytes).map_err(|_| HC_ERROR_UNKNOWN)?;
+            return Ok(answer(&zone));
+        }
+        drop(loaded);
+        let zone = builtin::zone(name).map_err(|_| HC_ERROR_UNKNOWN)?;
+        Ok(answer(&zone))
+    }
+
+    /// The fixed day an instant falls on by a zone's wall clock.
+    pub(super) fn day_in_zone(unix: i64, name: &str) -> Result<i64, HcStatus> {
+        with_zone(name, |zone| {
+            zone.local_at(UnixTime::from_seconds(unix))
+                .map(|local| local.day.0)
+                .map_err(|_| HC_ERROR_OUT_OF_RANGE)
+        })?
+    }
+
+    /// The instant a day begins by a zone's wall clock: its midnight, or
+    /// the first instant after a gap that swallows it, or the earlier of
+    /// two midnights when the clocks fall back across it.
+    pub(super) fn start_in_zone(fixed: i64, name: &str) -> Result<i64, HcStatus> {
+        with_zone(name, |zone| {
+            let instant = match zone.resolve_local(CivilDateTime::midnight(Rd(fixed))) {
+                LocalResolution::Unambiguous(instant) => instant,
+                LocalResolution::Ambiguous { earlier, .. } => earlier,
+                LocalResolution::Nonexistent { after_gap, .. } => after_gap,
+            };
+            instant.seconds()
+        })
+    }
+
+    /// The zone name a NUL-terminated argument carries.
+    ///
+    /// # Safety
+    ///
+    /// `zone` must be null or point to a NUL-terminated string.
+    unsafe fn zone_argument<'a>(zone: *const c_char) -> Result<&'a str, HcStatus> {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { text(zone) }?.ok_or(HC_ERROR_NULL_POINTER)
+    }
+
+    /// The fixed day a POSIX timestamp falls on by the wall clock of a zone.
+    ///
+    /// `zone` is a NUL-terminated IANA name, `Asia/Tokyo`, in any case: one
+    /// a caller has loaded through `hc_zone_load`, or else one of the
+    /// seventeen the library carries with their current rules. A null
+    /// `zone` or `out_fixed` is `HC_ERROR_NULL_POINTER`, a name neither
+    /// knows `HC_ERROR_UNKNOWN`, an instant whose local day leaves the range
+    /// of a day number `HC_ERROR_OUT_OF_RANGE`, and a name that is not UTF-8
+    /// `HC_ERROR_NOT_UTF8`.
+    ///
+    /// # Safety
+    ///
+    /// `zone` must be null or point to a NUL-terminated string, and
+    /// `out_fixed` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_fixed_from_unix_in_zone(
+        unix_seconds: i64,
+        zone: *const c_char,
+        out_fixed: *mut i64,
+    ) -> HcStatus {
+        if out_fixed.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        // SAFETY: forwarded to the caller's contract above.
+        let name = match unsafe { zone_argument(zone) } {
+            Ok(name) => name,
+            Err(status) => return status,
+        };
+        match day_in_zone(unix_seconds, name) {
+            Ok(day) => {
+                // SAFETY: checked non-null immediately above.
+                unsafe { *out_fixed = day };
+                HC_OK
+            }
+            Err(status) => status,
+        }
+    }
+
+    /// The POSIX timestamp at which a fixed day begins by the wall clock of
+    /// a zone.
+    ///
+    /// The day begins at its local midnight. When the clocks go forward
+    /// across that midnight, so that it does not exist, the day begins at
+    /// the first instant after the gap; when they go back across it, at the
+    /// earlier of the two midnights. `zone` is as for
+    /// `hc_fixed_from_unix_in_zone`, and fails the same way.
+    ///
+    /// # Safety
+    ///
+    /// `zone` must be null or point to a NUL-terminated string, and
+    /// `out_unix_seconds` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_unix_from_fixed_in_zone(
+        fixed: i64,
+        zone: *const c_char,
+        out_unix_seconds: *mut i64,
+    ) -> HcStatus {
+        if out_unix_seconds.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        // SAFETY: forwarded to the caller's contract above.
+        let name = match unsafe { zone_argument(zone) } {
+            Ok(name) => name,
+            Err(status) => return status,
+        };
+        match start_in_zone(fixed, name) {
+            Ok(instant) => {
+                // SAFETY: checked non-null immediately above.
+                unsafe { *out_unix_seconds = instant };
+                HC_OK
+            }
+            Err(status) => status,
+        }
+    }
+
+    /// Give the library a zone's TZif data under an IANA name.
+    ///
+    /// The built-in table carries seventeen zones and only their current
+    /// rules; a caller that wants another zone, or a zone's history, reads
+    /// the IANA file and hands its bytes here once, after which the two
+    /// `_in_zone` entry points answer for that name — a loaded zone takes
+    /// precedence over a built-in one of the same name. The bytes are
+    /// copied. A null or empty `name` is `HC_ERROR_NULL_POINTER`, bytes
+    /// that are not a TZif file `HC_ERROR_MALFORMED`, and nothing is kept
+    /// on failure.
+    ///
+    /// # Safety
+    ///
+    /// `name` must be null or point to a NUL-terminated string, and `tzif`
+    /// must be readable for `tzif_len` bytes unless `tzif_len` is zero.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_zone_load(
+        name: *const c_char,
+        tzif: *const u8,
+        tzif_len: usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let name = match unsafe { zone_argument(name) } {
+            Ok(name) if !name.is_empty() => name,
+            Ok(_) => return HC_ERROR_NULL_POINTER,
+            Err(status) => return status,
+        };
+        let bytes: &[u8] = if tzif.is_null() || tzif_len == 0 {
+            &[]
+        } else {
+            // SAFETY: the caller guarantees `tzif` is readable for `tzif_len`.
+            unsafe { core::slice::from_raw_parts(tzif, tzif_len) }
+        };
+        if TzifTimeZone::parse(name, bytes).is_err() {
+            return HC_ERROR_MALFORMED;
+        }
+        let mut loaded = LOADED.lock().unwrap_or_else(PoisonError::into_inner);
+        if let Some(slot) = loaded
+            .iter_mut()
+            .find(|(known, _)| known.eq_ignore_ascii_case(name))
+        {
+            slot.1 = bytes.to_vec();
+        } else {
+            loaded.push((name.to_owned(), bytes.to_vec()));
+        }
+        HC_OK
+    }
+}
+
+#[cfg(feature = "tz")]
+pub use tz::{hc_fixed_from_unix_in_zone, hc_unix_from_fixed_in_zone, hc_zone_load};
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn gregorian_conversion_round_trips_through_the_boundary() {
-        let mut fixed = 0i64;
-        assert_eq!(
-            unsafe { hc_gregorian_to_fixed(2026, 9, 21, &mut fixed) },
-            HC_OK
-        );
-        assert_eq!(fixed, 739_880);
-
-        let (mut year, mut month, mut day) = (0i64, 0u8, 0u8);
-        assert_eq!(
-            unsafe { hc_gregorian_from_fixed(fixed, &mut year, &mut month, &mut day) },
-            HC_OK
-        );
-        assert_eq!((year, month, day), (2026, 9, 21));
-    }
-
-    #[test]
-    fn invalid_dates_return_a_status_rather_than_panicking() {
-        let mut fixed = 0i64;
-        assert_eq!(
-            unsafe { hc_gregorian_to_fixed(2026, 2, 30, &mut fixed) },
-            HC_ERROR_INVALID_DATE
-        );
-        assert_eq!(
-            unsafe { hc_gregorian_to_fixed(2026, 13, 1, &mut fixed) },
-            HC_ERROR_INVALID_DATE
-        );
-    }
-
-    #[test]
-    fn null_out_parameters_are_refused() {
-        assert_eq!(
-            unsafe { hc_gregorian_to_fixed(2026, 9, 21, core::ptr::null_mut()) },
-            HC_ERROR_NULL_POINTER
-        );
-        assert_eq!(
-            unsafe { hc_weekday_from_fixed(0, core::ptr::null_mut()) },
-            HC_ERROR_NULL_POINTER
-        );
-    }
-
-    #[test]
-    fn weekdays_use_iso_numbering() {
-        let mut weekday = 0u8;
-        // 1970-01-01 was a Thursday.
-        assert_eq!(
-            unsafe { hc_weekday_from_fixed(719_163, &mut weekday) },
-            HC_OK
-        );
-        assert_eq!(weekday, 4);
-    }
-
-    #[test]
-    fn a_short_buffer_reports_the_required_length_and_writes_nothing() {
-        let mut buffer = [0 as c_char; 4];
-        let mut written = 0usize;
-        let status =
-            unsafe { hc_format_iso_date(739_880, buffer.as_mut_ptr(), buffer.len(), &mut written) };
-        assert_eq!(status, HC_ERROR_BUFFER_TOO_SMALL);
-        assert_eq!(written, "2026-09-21".len() + 1);
-        assert!(buffer.iter().all(|byte| *byte == 0));
-    }
-
-    #[test]
-    fn a_sufficient_buffer_receives_a_nul_terminated_iso_date() {
-        let mut buffer = [0 as c_char; 32];
-        let mut written = 0usize;
-        let status =
-            unsafe { hc_format_iso_date(739_880, buffer.as_mut_ptr(), buffer.len(), &mut written) };
-        assert_eq!(status, HC_OK);
-        assert_eq!(written, 11);
-        let bytes: Vec<u8> = buffer[..10].iter().map(|byte| *byte as u8).collect();
-        assert_eq!(core::str::from_utf8(&bytes).unwrap(), "2026-09-21");
-        assert_eq!(buffer[10], 0);
-    }
 
     #[test]
     fn querying_the_version_works_in_both_passes() {
@@ -736,197 +1762,657 @@ mod tests {
         );
     }
 
-    #[test]
-    fn the_leap_second_offset_matches_the_published_table() {
-        let mut offset = 0i64;
-        assert_eq!(
-            unsafe { hc_tai_minus_utc(1_700_000_000, 1, &mut offset) },
-            HC_OK
-        );
-        assert_eq!(offset, 37);
-        assert_eq!(
-            unsafe { hc_tai_minus_utc(63_072_000, 1, &mut offset) },
-            HC_OK
-        );
-        assert_eq!(offset, 10);
-    }
-
-    #[test]
-    fn the_strict_policy_refuses_to_forecast_across_the_boundary() {
-        let mut offset = 0i64;
-        assert_eq!(
-            unsafe { hc_tai_minus_utc(4_000_000_000, 1, &mut offset) },
-            HC_ERROR_NO_DATA
-        );
-        assert_eq!(
-            unsafe { hc_tai_minus_utc(4_000_000_000, 0, &mut offset) },
-            HC_OK
-        );
-        assert_eq!(offset, 37);
-    }
-
-    #[test]
-    fn the_leap_second_survives_the_boundary() {
-        // 2016-12-31 ends with an inserted second.
-        let mut has_leap = 0;
-        assert_eq!(
-            unsafe { hc_day_has_leap_second(1_483_142_400, &mut has_leap) },
-            HC_OK
-        );
-        assert_eq!(has_leap, 1);
-        assert_eq!(
-            unsafe { hc_day_has_leap_second(1_483_228_800, &mut has_leap) },
-            HC_OK
-        );
-        assert_eq!(has_leap, 0);
-    }
-
-    #[test]
-    fn unix_and_tai_round_trip_across_the_boundary() {
-        let (mut seconds, mut attos) = (0i64, 0u64);
-        assert_eq!(
-            unsafe { hc_tai_from_unix(1_700_000_000, 1, &mut seconds, &mut attos) },
-            HC_OK
-        );
-        assert_eq!(seconds, 1_700_000_037);
-
-        let (mut unix_seconds, mut is_leap) = (0i64, 0);
-        assert_eq!(
-            unsafe { hc_utc_from_tai(seconds, 1, &mut unix_seconds, &mut is_leap) },
-            HC_OK
-        );
-        assert_eq!(unix_seconds, 1_700_000_000);
-        assert_eq!(is_leap, 0);
-    }
-
-    #[test]
-    fn the_inserted_second_is_reachable_through_the_boundary() {
-        // The TAI reading one second before the 2017 step is 23:59:60 UTC.
-        let (mut unix_seconds, mut is_leap) = (0i64, 0);
-        assert_eq!(
-            unsafe { hc_utc_from_tai(1_483_228_836, 1, &mut unix_seconds, &mut is_leap) },
-            HC_OK
-        );
-        assert_eq!(unix_seconds, 1_483_228_800);
-        assert_eq!(is_leap, 1);
-    }
-
-    #[cfg(feature = "holiday")]
-    #[test]
-    fn holiday_tables_answer_by_identifier() {
-        use core::ffi::CStr;
-        let jp = c"JP";
-        let xnys = c"XNYS";
-        let us = c"US";
-        let zz = c"ZZ";
-        let mut fixed = 0i64;
-        assert_eq!(
-            unsafe { hc_gregorian_to_fixed(2026, 4, 3, &mut fixed) },
-            HC_OK
-        );
-        let mut answer = -1;
-        assert_eq!(
-            unsafe { hc_holiday_is_day_off(xnys.as_ptr(), core::ptr::null(), fixed, &mut answer) },
-            HC_OK
-        );
-        assert_eq!(answer, 1);
-        assert_eq!(
-            unsafe { hc_holiday_is_day_off(us.as_ptr(), core::ptr::null(), fixed, &mut answer) },
-            HC_OK
-        );
-        assert_eq!(answer, 0);
-        assert_eq!(
-            unsafe { hc_holiday_is_day_off(zz.as_ptr(), core::ptr::null(), fixed, &mut answer) },
-            HC_ERROR_UNKNOWN
-        );
-        assert_eq!(
-            unsafe {
-                hc_holiday_is_day_off(jp.as_ptr(), core::ptr::null(), fixed, core::ptr::null_mut())
-            },
-            HC_ERROR_NULL_POINTER
-        );
-        assert_eq!(
-            unsafe {
-                hc_holiday_is_day_off(core::ptr::null(), core::ptr::null(), fixed, &mut answer)
-            },
-            HC_ERROR_NULL_POINTER
-        );
-        // A string that is not UTF-8 says so, in the code and in the region
-        // alike, rather than passing for a null pointer or for no region.
-        let not_utf8 = c"\xff";
-        assert_eq!(
-            unsafe {
-                hc_holiday_is_day_off(not_utf8.as_ptr(), core::ptr::null(), fixed, &mut answer)
-            },
-            HC_ERROR_NOT_UTF8
-        );
-        assert_eq!(
-            unsafe { hc_holiday_is_day_off(jp.as_ptr(), not_utf8.as_ptr(), fixed, &mut answer) },
-            HC_ERROR_NOT_UTF8
-        );
+    /// Call a line-writing entry point the way a C caller does: measure,
+    /// allocate, read, and check the terminator.
+    #[cfg(any(
+        feature = "calendars",
+        feature = "holiday",
+        feature = "seasons",
+        feature = "deep-time"
+    ))]
+    fn read_lines(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> String {
         let mut written = 0usize;
         assert_eq!(
-            unsafe {
-                hc_holidays_in_year(
-                    zz.as_ptr(),
-                    core::ptr::null(),
-                    2026,
-                    core::ptr::null_mut(),
-                    0,
-                    &mut written,
-                )
-            },
-            HC_ERROR_UNKNOWN
-        );
-        // Too small reports the need; big enough receives the lines.
-        assert_eq!(
-            unsafe {
-                hc_holidays_in_year(
-                    jp.as_ptr(),
-                    core::ptr::null(),
-                    2026,
-                    core::ptr::null_mut(),
-                    0,
-                    &mut written,
-                )
-            },
+            call(core::ptr::null_mut(), 0, &mut written),
             HC_ERROR_BUFFER_TOO_SMALL
         );
         assert!(written > 1);
-        let mut buffer = vec![0 as c_char; written];
+        let mut small = [7 as c_char; 1];
         assert_eq!(
-            unsafe {
-                hc_holidays_in_year(
-                    jp.as_ptr(),
-                    core::ptr::null(),
-                    2026,
-                    buffer.as_mut_ptr(),
-                    buffer.len(),
-                    &mut written,
-                )
-            },
-            HC_OK
-        );
-        let text = unsafe { CStr::from_ptr(buffer.as_ptr()) }
-            .to_str()
-            .expect("UTF-8");
-        assert!(
-            text.starts_with("2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\n"),
-            "{text}"
-        );
-        assert!(text.contains("\t1\t2026-05-03\n"), "{text}");
-        assert_eq!(
-            unsafe { hc_holiday_codes(core::ptr::null_mut(), 0, &mut written) },
+            call(small.as_mut_ptr(), small.len(), core::ptr::null_mut()),
             HC_ERROR_BUFFER_TOO_SMALL
         );
+        assert_eq!(small, [7 as c_char], "a refused buffer is left untouched");
         let mut buffer = vec![0 as c_char; written];
-        assert_eq!(
-            unsafe { hc_holiday_codes(buffer.as_mut_ptr(), buffer.len(), &mut written) },
-            HC_OK
-        );
-        let text = unsafe { CStr::from_ptr(buffer.as_ptr()) }
+        let mut again = 0usize;
+        assert_eq!(call(buffer.as_mut_ptr(), buffer.len(), &mut again), HC_OK);
+        assert_eq!(again, written);
+        let text = unsafe { core::ffi::CStr::from_ptr(buffer.as_ptr()) }
             .to_str()
-            .expect("UTF-8");
-        assert!(text.contains("\nJP\n") && text.contains("\nXNYS\n") && text.contains("un-days\n"));
+            .expect("UTF-8")
+            .to_owned();
+        assert_eq!(text.len() + 1, written);
+        assert!(text.ends_with('\n'), "{text:?}");
+        text
+    }
+
+    #[cfg(feature = "civil")]
+    mod civil {
+        use super::super::*;
+
+        #[test]
+        fn gregorian_conversion_round_trips_through_the_boundary() {
+            let mut fixed = 0i64;
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(2026, 9, 21, &mut fixed) },
+                HC_OK
+            );
+            assert_eq!(fixed, 739_880);
+
+            let (mut year, mut month, mut day) = (0i64, 0u8, 0u8);
+            assert_eq!(
+                unsafe { hc_gregorian_from_fixed(fixed, &mut year, &mut month, &mut day) },
+                HC_OK
+            );
+            assert_eq!((year, month, day), (2026, 9, 21));
+        }
+
+        #[test]
+        fn invalid_dates_return_a_status_rather_than_panicking() {
+            let mut fixed = 0i64;
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(2026, 2, 30, &mut fixed) },
+                HC_ERROR_INVALID_DATE
+            );
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(2026, 13, 1, &mut fixed) },
+                HC_ERROR_INVALID_DATE
+            );
+        }
+
+        #[test]
+        fn null_out_parameters_are_refused() {
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(2026, 9, 21, core::ptr::null_mut()) },
+                HC_ERROR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe { hc_weekday_from_fixed(0, core::ptr::null_mut()) },
+                HC_ERROR_NULL_POINTER
+            );
+        }
+
+        #[test]
+        fn weekdays_use_iso_numbering() {
+            let mut weekday = 0u8;
+            // 1970-01-01 was a Thursday.
+            assert_eq!(
+                unsafe { hc_weekday_from_fixed(719_163, &mut weekday) },
+                HC_OK
+            );
+            assert_eq!(weekday, 4);
+        }
+
+        #[test]
+        fn a_short_buffer_reports_the_required_length_and_writes_nothing() {
+            let mut buffer = [0 as c_char; 4];
+            let mut written = 0usize;
+            let status = unsafe {
+                hc_format_iso_date(739_880, buffer.as_mut_ptr(), buffer.len(), &mut written)
+            };
+            assert_eq!(status, HC_ERROR_BUFFER_TOO_SMALL);
+            assert_eq!(written, "2026-09-21".len() + 1);
+            assert!(buffer.iter().all(|byte| *byte == 0));
+        }
+
+        #[test]
+        fn a_sufficient_buffer_receives_a_nul_terminated_iso_date() {
+            let mut buffer = [0 as c_char; 32];
+            let mut written = 0usize;
+            let status = unsafe {
+                hc_format_iso_date(739_880, buffer.as_mut_ptr(), buffer.len(), &mut written)
+            };
+            assert_eq!(status, HC_OK);
+            assert_eq!(written, 11);
+            let bytes: Vec<u8> = buffer[..10].iter().map(|byte| *byte as u8).collect();
+            assert_eq!(core::str::from_utf8(&bytes).unwrap(), "2026-09-21");
+            assert_eq!(buffer[10], 0);
+        }
+
+        #[test]
+        fn the_leap_second_offset_matches_the_published_table() {
+            let mut offset = 0i64;
+            assert_eq!(
+                unsafe { hc_tai_minus_utc(1_700_000_000, 1, &mut offset) },
+                HC_OK
+            );
+            assert_eq!(offset, 37);
+            assert_eq!(
+                unsafe { hc_tai_minus_utc(63_072_000, 1, &mut offset) },
+                HC_OK
+            );
+            assert_eq!(offset, 10);
+        }
+
+        #[test]
+        fn the_strict_policy_refuses_to_forecast_across_the_boundary() {
+            let mut offset = 0i64;
+            assert_eq!(
+                unsafe { hc_tai_minus_utc(4_000_000_000, 1, &mut offset) },
+                HC_ERROR_NO_DATA
+            );
+            assert_eq!(
+                unsafe { hc_tai_minus_utc(4_000_000_000, 0, &mut offset) },
+                HC_OK
+            );
+            assert_eq!(offset, 37);
+        }
+
+        #[test]
+        fn the_leap_second_survives_the_boundary() {
+            // 2016-12-31 ends with an inserted second.
+            let mut has_leap = 0;
+            assert_eq!(
+                unsafe { hc_day_has_leap_second(1_483_142_400, &mut has_leap) },
+                HC_OK
+            );
+            assert_eq!(has_leap, 1);
+            assert_eq!(
+                unsafe { hc_day_has_leap_second(1_483_228_800, &mut has_leap) },
+                HC_OK
+            );
+            assert_eq!(has_leap, 0);
+        }
+
+        #[test]
+        fn unix_and_tai_round_trip_across_the_boundary() {
+            let (mut seconds, mut attos) = (0i64, 0u64);
+            assert_eq!(
+                unsafe { hc_tai_from_unix(1_700_000_000, 1, &mut seconds, &mut attos) },
+                HC_OK
+            );
+            assert_eq!(seconds, 1_700_000_037);
+
+            let (mut unix_seconds, mut is_leap) = (0i64, 0);
+            assert_eq!(
+                unsafe { hc_utc_from_tai(seconds, 1, &mut unix_seconds, &mut is_leap) },
+                HC_OK
+            );
+            assert_eq!(unix_seconds, 1_700_000_000);
+            assert_eq!(is_leap, 0);
+        }
+
+        #[test]
+        fn the_inserted_second_is_reachable_through_the_boundary() {
+            // The TAI reading one second before the 2017 step is 23:59:60 UTC.
+            let (mut unix_seconds, mut is_leap) = (0i64, 0);
+            assert_eq!(
+                unsafe { hc_utc_from_tai(1_483_228_836, 1, &mut unix_seconds, &mut is_leap) },
+                HC_OK
+            );
+            assert_eq!(unix_seconds, 1_483_228_800);
+            assert_eq!(is_leap, 1);
+        }
+    }
+
+    #[cfg(feature = "calendars")]
+    mod calendars {
+        use super::super::*;
+        use super::read_lines;
+
+        #[test]
+        fn one_day_in_every_calendar_decodes_column_by_column() {
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_describe_day(739_880, c"ja-JP".as_ptr(), buffer, capacity, written)
+            });
+            let rows: Vec<Vec<&str>> = text
+                .lines()
+                .map(|line| line.split('\t').collect())
+                .collect();
+            assert_eq!(rows.len(), hc::registry().len());
+            assert!(rows.iter().all(|row| row.len() == 16), "{rows:?}");
+            let japanese = rows
+                .iter()
+                .find(|row| row[0] == "japanese")
+                .expect("japanese");
+            assert_eq!(
+                japanese[2..10],
+                ["reiwa", "令和", "8", "9", "0", "9月", "21", "0"]
+            );
+            assert_eq!(japanese[11..14], ["", "", "unrecorded"]);
+            let rumi = rows.iter().find(|row| row[0] == "rumi").expect("rumi");
+            assert_eq!(rumi[11..14], ["7", "after-supported-range", ""]);
+            // A null locale is `und`.
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_describe_day(739_880, core::ptr::null(), buffer, capacity, written)
+            });
+            assert!(text.contains("\tM09\t"), "{text}");
+            assert_eq!(
+                unsafe {
+                    hc_describe_day(
+                        739_880,
+                        c"\xff".as_ptr(),
+                        core::ptr::null_mut(),
+                        0,
+                        core::ptr::null_mut(),
+                    )
+                },
+                HC_ERROR_NOT_UTF8
+            );
+        }
+    }
+
+    #[cfg(feature = "holiday")]
+    mod holiday {
+        use super::super::*;
+        use super::read_lines;
+
+        #[test]
+        fn holiday_tables_answer_by_identifier() {
+            use core::ffi::CStr;
+            let jp = c"JP";
+            let xnys = c"XNYS";
+            let us = c"US";
+            let zz = c"ZZ";
+            let mut fixed = 0i64;
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(2026, 4, 3, &mut fixed) },
+                HC_OK
+            );
+            let mut answer = -1;
+            assert_eq!(
+                unsafe {
+                    hc_holiday_is_day_off(xnys.as_ptr(), core::ptr::null(), fixed, &mut answer)
+                },
+                HC_OK
+            );
+            assert_eq!(answer, 1);
+            assert_eq!(
+                unsafe {
+                    hc_holiday_is_day_off(us.as_ptr(), core::ptr::null(), fixed, &mut answer)
+                },
+                HC_OK
+            );
+            assert_eq!(answer, 0);
+            assert_eq!(
+                unsafe {
+                    hc_holiday_is_day_off(zz.as_ptr(), core::ptr::null(), fixed, &mut answer)
+                },
+                HC_ERROR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe {
+                    hc_holiday_is_day_off(
+                        jp.as_ptr(),
+                        core::ptr::null(),
+                        fixed,
+                        core::ptr::null_mut(),
+                    )
+                },
+                HC_ERROR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe {
+                    hc_holiday_is_day_off(core::ptr::null(), core::ptr::null(), fixed, &mut answer)
+                },
+                HC_ERROR_NULL_POINTER
+            );
+            // A string that is not UTF-8 says so, in the code and in the region
+            // alike, rather than passing for a null pointer or for no region.
+            let not_utf8 = c"\xff";
+            assert_eq!(
+                unsafe {
+                    hc_holiday_is_day_off(not_utf8.as_ptr(), core::ptr::null(), fixed, &mut answer)
+                },
+                HC_ERROR_NOT_UTF8
+            );
+            assert_eq!(
+                unsafe {
+                    hc_holiday_is_day_off(jp.as_ptr(), not_utf8.as_ptr(), fixed, &mut answer)
+                },
+                HC_ERROR_NOT_UTF8
+            );
+            let mut written = 0usize;
+            assert_eq!(
+                unsafe {
+                    hc_holidays_in_year(
+                        zz.as_ptr(),
+                        core::ptr::null(),
+                        2026,
+                        core::ptr::null_mut(),
+                        0,
+                        &mut written,
+                    )
+                },
+                HC_ERROR_UNKNOWN
+            );
+            // Too small reports the need; big enough receives the lines.
+            assert_eq!(
+                unsafe {
+                    hc_holidays_in_year(
+                        jp.as_ptr(),
+                        core::ptr::null(),
+                        2026,
+                        core::ptr::null_mut(),
+                        0,
+                        &mut written,
+                    )
+                },
+                HC_ERROR_BUFFER_TOO_SMALL
+            );
+            assert!(written > 1);
+            let mut buffer = vec![0 as c_char; written];
+            assert_eq!(
+                unsafe {
+                    hc_holidays_in_year(
+                        jp.as_ptr(),
+                        core::ptr::null(),
+                        2026,
+                        buffer.as_mut_ptr(),
+                        buffer.len(),
+                        &mut written,
+                    )
+                },
+                HC_OK
+            );
+            let text = unsafe { CStr::from_ptr(buffer.as_ptr()) }
+                .to_str()
+                .expect("UTF-8");
+            assert!(
+                text.starts_with("2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\n"),
+                "{text}"
+            );
+            assert!(text.contains("\t1\t2026-05-03\n"), "{text}");
+            assert_eq!(
+                unsafe { hc_holiday_codes(core::ptr::null_mut(), 0, &mut written) },
+                HC_ERROR_BUFFER_TOO_SMALL
+            );
+            let mut buffer = vec![0 as c_char; written];
+            assert_eq!(
+                unsafe { hc_holiday_codes(buffer.as_mut_ptr(), buffer.len(), &mut written) },
+                HC_OK
+            );
+            let text = unsafe { CStr::from_ptr(buffer.as_ptr()) }
+                .to_str()
+                .expect("UTF-8");
+            assert!(
+                text.contains("\nJP\n") && text.contains("\nXNYS\n") && text.contains("un-days\n")
+            );
+        }
+
+        #[test]
+        fn one_day_across_every_table_decodes_column_by_column() {
+            let mut day = 0i64;
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(2026, 5, 6, &mut day) },
+                HC_OK
+            );
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_holidays_on(day, buffer, capacity, written)
+            });
+            let rows: Vec<Vec<&str>> = text
+                .lines()
+                .map(|line| line.split('\t').collect())
+                .collect();
+            assert!(rows.iter().all(|row| row.len() == 9), "{rows:?}");
+            let substitute = rows
+                .iter()
+                .find(|row| row[0] == "JP" && row[7] == "1")
+                .expect("Japan's substitute for Constitution Memorial Day");
+            assert_eq!(
+                substitute[1..7],
+                [
+                    "Japan",
+                    "Constitution Memorial Day",
+                    "憲法記念日",
+                    "public",
+                    "exact",
+                    ""
+                ]
+            );
+            assert_eq!(substitute[8], (day - 3).to_string());
+            assert_eq!(
+                unsafe {
+                    hc_holidays_on(i64::MAX, core::ptr::null_mut(), 0, core::ptr::null_mut())
+                },
+                HC_ERROR_OUT_OF_RANGE
+            );
+        }
+    }
+
+    #[cfg(feature = "seasons")]
+    mod seasons {
+        use super::super::*;
+        use super::read_lines;
+
+        #[test]
+        fn the_term_and_pentad_in_effect_decode_column_by_column() {
+            let mut day = 0i64;
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(2024, 2, 10, &mut day) },
+                HC_OK
+            );
+            let term = read_lines(|buffer, capacity, written| unsafe {
+                hc_term_in_effect(day, c"japan".as_ptr(), buffer, capacity, written)
+            });
+            let columns: Vec<&str> = term.trim_end().split('\t').collect();
+            assert_eq!(columns.len(), 7, "{columns:?}");
+            assert_eq!(columns[..3], ["21", "立春", "立春"]);
+            assert_eq!(columns[3], (day - 6).to_string());
+            assert_eq!(columns[4], (day + 8).to_string());
+            let pentad = read_lines(|buffer, capacity, written| unsafe {
+                hc_pentad_in_effect(day, core::ptr::null(), buffer, capacity, written)
+            });
+            let columns: Vec<&str> = pentad.trim_end().split('\t').collect();
+            assert_eq!(columns.len(), 7, "{columns:?}");
+            assert_eq!(columns[..3], ["64", "蟄虫始振", "黄鶯睍睆"]);
+            assert_eq!(
+                unsafe {
+                    hc_term_in_effect(
+                        day,
+                        c"mars".as_ptr(),
+                        core::ptr::null_mut(),
+                        0,
+                        core::ptr::null_mut(),
+                    )
+                },
+                HC_ERROR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe {
+                    hc_pentad_in_effect(
+                        day,
+                        c"\xff".as_ptr(),
+                        core::ptr::null_mut(),
+                        0,
+                        core::ptr::null_mut(),
+                    )
+                },
+                HC_ERROR_NOT_UTF8
+            );
+        }
+    }
+
+    #[cfg(feature = "tz")]
+    mod tz {
+        use super::super::*;
+
+        const TZIF_V2_EASTERN: &[u8] = &[
+            0x54, 0x5a, 0x69, 0x66, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02,
+            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00,
+            0x00, 0x08, 0x65, 0xed, 0x5a, 0x70, 0x67, 0x27, 0x11, 0x60, 0x67, 0xcd, 0x3c, 0x70,
+            0x69, 0x06, 0xf3, 0x60, 0x01, 0x00, 0x01, 0x00, 0xff, 0xff, 0xb9, 0xb0, 0x00, 0x00,
+            0xff, 0xff, 0xc7, 0xc0, 0x01, 0x04, 0x45, 0x53, 0x54, 0x00, 0x45, 0x44, 0x54, 0x00,
+            0x58, 0x68, 0x46, 0x80, 0x00, 0x00, 0x00, 0x1b, 0x00, 0x00, 0x00, 0x00, 0x54, 0x5a,
+            0x69, 0x66, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00,
+            0x00, 0x01, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x08,
+            0x00, 0x00, 0x00, 0x00, 0x65, 0xed, 0x5a, 0x70, 0x00, 0x00, 0x00, 0x00, 0x67, 0x27,
+            0x11, 0x60, 0x00, 0x00, 0x00, 0x00, 0x67, 0xcd, 0x3c, 0x70, 0x00, 0x00, 0x00, 0x00,
+            0x69, 0x06, 0xf3, 0x60, 0x01, 0x00, 0x01, 0x00, 0xff, 0xff, 0xb9, 0xb0, 0x00, 0x00,
+            0xff, 0xff, 0xc7, 0xc0, 0x01, 0x04, 0x45, 0x53, 0x54, 0x00, 0x45, 0x44, 0x54, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x58, 0x68, 0x46, 0x80, 0x00, 0x00, 0x00, 0x1b, 0x00, 0x00,
+            0x00, 0x00, 0x0a, 0x45, 0x53, 0x54, 0x35, 0x45, 0x44, 0x54, 0x2c, 0x4d, 0x33, 0x2e,
+            0x32, 0x2e, 0x30, 0x2c, 0x4d, 0x31, 0x31, 0x2e, 0x31, 0x2e, 0x30, 0x0a,
+        ];
+
+        #[test]
+        fn days_follow_the_zones_wall_clock() {
+            // 08:00 on 25 September 2026 in Tokyo is 23:00 UTC on the 24th.
+            let mut september_24 = 0i64;
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(2026, 9, 24, &mut september_24) },
+                HC_OK
+            );
+            let instant = (september_24 - 719_163) * 86_400 + 23 * 3_600;
+            let mut day = 0i64;
+            assert_eq!(
+                unsafe { hc_fixed_from_unix_in_zone(instant, c"Asia/Tokyo".as_ptr(), &mut day) },
+                HC_OK
+            );
+            assert_eq!(day, september_24 + 1);
+            let mut start = 0i64;
+            assert_eq!(
+                unsafe {
+                    hc_unix_from_fixed_in_zone(september_24 + 1, c"Asia/Tokyo".as_ptr(), &mut start)
+                },
+                HC_OK
+            );
+            // The Tokyo day began at 15:00 UTC on the 24th.
+            assert_eq!(start, instant - 8 * 3_600);
+            // Cairo's clocks go forward at midnight: 24 April 2026 begins
+            // at 01:00 EEST, 22:00 UTC on the 23rd.
+            let april_24 = september_24 - 153;
+            assert_eq!(
+                unsafe {
+                    hc_unix_from_fixed_in_zone(april_24, c"Africa/Cairo".as_ptr(), &mut start)
+                },
+                HC_OK
+            );
+            assert_eq!(start, (april_24 - 719_163) * 86_400 - 2 * 3_600);
+            assert_eq!(
+                unsafe { hc_fixed_from_unix_in_zone(0, c"Mars/Olympus".as_ptr(), &mut day) },
+                HC_ERROR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe { hc_fixed_from_unix_in_zone(0, core::ptr::null(), &mut day) },
+                HC_ERROR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe { hc_fixed_from_unix_in_zone(0, c"UTC".as_ptr(), core::ptr::null_mut()) },
+                HC_ERROR_NULL_POINTER
+            );
+        }
+
+        #[test]
+        fn a_loaded_zone_answers_by_name() {
+            let name = c"Test/Eastern";
+            let mut day = 0i64;
+            assert_eq!(
+                unsafe { hc_fixed_from_unix_in_zone(0, name.as_ptr(), &mut day) },
+                HC_ERROR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe {
+                    hc_zone_load(
+                        name.as_ptr(),
+                        TZIF_V2_EASTERN.as_ptr(),
+                        TZIF_V2_EASTERN.len(),
+                    )
+                },
+                HC_OK
+            );
+            // 2025-03-09 07:00 UTC is 03:00 EDT, just after the gap.
+            let mut march_9 = 0i64;
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(2025, 3, 9, &mut march_9) },
+                HC_OK
+            );
+            let midnight_utc = (march_9 - 719_163) * 86_400;
+            assert_eq!(
+                unsafe {
+                    hc_fixed_from_unix_in_zone(midnight_utc + 7 * 3_600, name.as_ptr(), &mut day)
+                },
+                HC_OK
+            );
+            assert_eq!(day, march_9);
+            let junk = b"not a zone";
+            assert_eq!(
+                unsafe { hc_zone_load(c"Test/Junk".as_ptr(), junk.as_ptr(), junk.len()) },
+                HC_ERROR_MALFORMED
+            );
+            assert_eq!(
+                unsafe { hc_zone_load(c"".as_ptr(), junk.as_ptr(), junk.len()) },
+                HC_ERROR_NULL_POINTER
+            );
+        }
+    }
+
+    #[cfg(feature = "deep-time")]
+    mod deep_time {
+        use super::super::*;
+        use super::read_lines;
+
+        #[test]
+        fn deep_time_lines_decode_column_by_column() {
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_place_years_ago(66.0e6, 0.0, buffer, capacity, written)
+            });
+            let rows: Vec<Vec<&str>> = text
+                .lines()
+                .map(|line| line.split('\t').collect())
+                .collect();
+            assert!(rows.iter().all(|row| row.len() == 14), "{rows:?}");
+            let kinds: Vec<&str> = rows.iter().map(|row| row[0]).collect();
+            assert_eq!(
+                kinds,
+                [
+                    "moment",
+                    "moment",
+                    "cosmic-epoch",
+                    "cosmic-event",
+                    "eon",
+                    "era",
+                    "period",
+                    "epoch",
+                    "age"
+                ]
+            );
+            assert_eq!(rows[8][..3], ["age", "Maastrichtian", "Upper Cretaceous"]);
+            assert_eq!(rows[8][11], "megayears-before-present");
+            let cosmic = read_lines(|buffer, capacity, written| unsafe {
+                hc_cosmic_events(buffer, capacity, written)
+            });
+            assert_eq!(
+                cosmic.lines().count(),
+                hc::hc_deep_time::universe::EPOCHS.len() + hc::hc_deep_time::universe::EVENTS.len()
+            );
+            let eons = read_lines(|buffer, capacity, written| unsafe {
+                hc_geologic_intervals(0, buffer, capacity, written)
+            });
+            assert!(
+                eons.starts_with("eon\tPhanerozoic\t\t538.8\t0.6\t4\t0\t0\t0\t1\t0\t"),
+                "{eons}"
+            );
+            assert_eq!(
+                unsafe {
+                    hc_geologic_intervals(5, core::ptr::null_mut(), 0, core::ptr::null_mut())
+                },
+                HC_ERROR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe {
+                    hc_place_years_ago(
+                        f64::NAN,
+                        0.0,
+                        core::ptr::null_mut(),
+                        0,
+                        core::ptr::null_mut(),
+                    )
+                },
+                HC_ERROR_OUT_OF_RANGE
+            );
+        }
     }
 }

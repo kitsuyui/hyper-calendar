@@ -7,8 +7,10 @@
 //! # The order the modifiers apply in
 //!
 //! 1. **Base rules.** Every rule valid in the year and in the requested
-//!    region is evaluated. The neighbouring years are evaluated too, because
-//!    a substitution or a bridge can reach across 1 January.
+//!    region is evaluated, over every year within `REACH_DAYS` of the
+//!    span asked for, because a substitution or a bridge can reach across
+//!    1 January. For a whole year that is the year and both its
+//!    neighbours; for one day it is usually the day's year alone.
 //! 2. **Substitution.** Days are taken in date order so that a substitute
 //!    can be pushed past a substitute already assigned — which is exactly
 //!    what happens when Christmas Day falls on a Saturday in the United
@@ -16,7 +18,7 @@
 //! 3. **Bridges.** Japan's 国民の休日 is evaluated against the *base*
 //!    holidays, because the statute says the neighbouring days must be
 //!    国民の祝日 and a 振替休日 is not one.
-//! 4. **Clipping** to the requested years.
+//! 4. **Clipping** to the requested days.
 
 use alloc::{vec, vec::Vec};
 
@@ -24,7 +26,8 @@ use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 
 use crate::rule::{
-    Confidence, HolidayRule, Kind, RuleSet, SubstituteDirection, SubstitutionPolicy,
+    Confidence, EvaluationCache, HolidayRule, Kind, RuleSet, SubstituteDirection,
+    SubstitutionPolicy,
 };
 
 /// One holiday on one day.
@@ -128,7 +131,7 @@ impl<'a> HolidayCalendar<'a> {
         let (holidays, gaps) = if first_year > last_year {
             (Vec::new(), Vec::new())
         } else {
-            evaluate_with_includes(rules, region, first_year, last_year, 0)
+            evaluate_with_includes(rules, region, first_day, last_day, 0)
         };
         Self {
             rules,
@@ -146,6 +149,35 @@ impl<'a> HolidayCalendar<'a> {
     #[must_use]
     pub fn for_year(rules: &'a RuleSet, region: Option<&'a str>, year: i64) -> Self {
         Self::new(rules, region, year, year)
+    }
+
+    /// Evaluate one day.
+    ///
+    /// The result is what [`HolidayCalendar::for_year`] for the day's year
+    /// would say about the day — the same holidays from
+    /// [`HolidayCalendar::on`], the same [`HolidayCalendar::gaps`] — at a
+    /// fraction of the cost, because only the calendar years that can reach
+    /// the day are evaluated rather than the Gregorian year and both its
+    /// neighbours. A page that asks "what is today, in every table" asks
+    /// this two hundred and forty-five times, which is why it exists.
+    ///
+    /// [`HolidayCalendar::covers`] is true for the day alone, so
+    /// business-day arithmetic on the result answers `None` for every other
+    /// day.
+    #[must_use]
+    pub fn for_day(rules: &'a RuleSet, region: Option<&'a str>, day: Rd) -> Self {
+        let year = gregorian::year_from_fixed(day).unwrap_or(0);
+        let (holidays, gaps) = evaluate_with_includes(rules, region, day, day, 0);
+        Self {
+            rules,
+            region,
+            first_year: year,
+            last_year: year,
+            first_day: day,
+            last_day: day,
+            holidays,
+            gaps,
+        }
     }
 
     /// The holidays this calendar could not compute, and the years it could
@@ -361,13 +393,17 @@ pub fn holidays_in_year(rules: &RuleSet, region: Option<&str>, year: i64) -> Vec
         .to_vec()
 }
 
+/// Convenience: every entry falling on one day, including observances
+/// with no day off.
+#[must_use]
+pub fn holidays_on(rules: &RuleSet, region: Option<&str>, day: Rd) -> Vec<Holiday> {
+    HolidayCalendar::for_day(rules, region, day).on(day)
+}
+
 /// Convenience: whether one day is a day-off holiday.
 #[must_use]
 pub fn is_holiday(rules: &RuleSet, region: Option<&str>, day: Rd) -> bool {
-    let Ok(year) = gregorian::year_from_fixed(day) else {
-        return false;
-    };
-    HolidayCalendar::for_year(rules, region, year).is_holiday(day)
+    HolidayCalendar::for_day(rules, region, day).is_holiday(day)
 }
 
 /// An occurrence before the modifiers have been applied.
@@ -377,21 +413,31 @@ struct Occurrence {
     rule: &'static HolidayRule,
 }
 
-/// Evaluate a rule set, apply every modifier, and clip to the requested
-/// years.
 /// How many levels of [`RuleSet::includes`] the engine follows.
 const INCLUDE_DEPTH: u8 = 8;
+
+/// How far a modifier can reach from the occurrence it modifies, in days.
+///
+/// A substitute is found within thirty steps of its holiday
+/// ([`substitute_day`]), a bridge sits one day from each neighbour, and a
+/// substitute already assigned can push a later one along. So the base
+/// rules are evaluated this far outside the span asked for, and the
+/// modifiers inside the span see every occurrence that can touch them.
+/// Sixty-two days is twice the longest reach any real chain has needed;
+/// `tests/on_day.rs` holds every table to it. For a whole year it evaluates
+/// the year and both its neighbours, as the engine always did.
+const REACH_DAYS: i64 = 62;
 
 /// A set's own holidays and gaps, with those of every set it includes,
 /// each evaluated under its own policies, merged in date order.
 fn evaluate_with_includes(
     rules: &RuleSet,
     region: Option<&str>,
-    first_year: i64,
-    last_year: i64,
+    first_day: Rd,
+    last_day: Rd,
     depth: u8,
 ) -> (Vec<Holiday>, Vec<Gap>) {
-    let (mut holidays, mut gaps) = evaluate(rules, region, first_year, last_year);
+    let (mut holidays, mut gaps) = evaluate(rules, region, first_day, last_day);
     if depth >= INCLUDE_DEPTH {
         return (holidays, gaps);
     }
@@ -399,8 +445,8 @@ fn evaluate_with_includes(
         let (more, more_gaps) = evaluate_with_includes(
             included.set,
             included.region,
-            first_year,
-            last_year,
+            first_day,
+            last_day,
             depth + 1,
         );
         // Only the days off: an included set's commemorations are its own.
@@ -415,26 +461,42 @@ fn evaluate_with_includes(
     (holidays, gaps)
 }
 
+/// Evaluate a rule set over `first_day..=last_day`, apply every modifier,
+/// and clip to those days.
 fn evaluate(
     rules: &RuleSet,
     region: Option<&str>,
-    first_year: i64,
-    last_year: i64,
+    first_day: Rd,
+    last_day: Rd,
 ) -> (Vec<Holiday>, Vec<Gap>) {
-    // One year of slack each side: a substitution can push 31 December into
-    // January, and a bridge can sit either side of New Year's Day.
+    // The years asked about, and the years the base rules are evaluated
+    // over: [`REACH_DAYS`] of slack each side, because a substitution can
+    // push 31 December into January and a bridge can sit either side of
+    // New Year's Day.
+    let (Ok(first_year), Ok(last_year)) = (
+        gregorian::year_from_fixed(first_day),
+        gregorian::year_from_fixed(last_day),
+    ) else {
+        return (Vec::new(), Vec::new());
+    };
+    let (Ok(first_reached), Ok(last_reached)) = (
+        gregorian::year_from_fixed(Rd(first_day.0 - REACH_DAYS)),
+        gregorian::year_from_fixed(Rd(last_day.0 + REACH_DAYS)),
+    ) else {
+        return (Vec::new(), Vec::new());
+    };
+    let mut cache = EvaluationCache::default();
     let mut base: Vec<Occurrence> = Vec::new();
     let mut gaps: Vec<Gap> = Vec::new();
-    for year in (first_year - 1)..=(last_year + 1) {
+    for year in first_reached..=last_reached {
         for rule in rules.rules {
             if !rule.applies_in(year) || !rule.applies_in_region(region) {
                 continue;
             }
             // Only the years actually asked for are reported as gaps; the
-            // year of slack on each side exists to catch a substitution
-            // crossing New Year, and its absence is not a hole in the
-            // answer.
-            if !rule.rule.is_resolvable_in(year) {
+            // slack on each side exists to catch a substitution crossing
+            // New Year, and its absence is not a hole in the answer.
+            if !rule.rule.is_resolvable_with(year, &mut cache) {
                 if (first_year..=last_year).contains(&year) {
                     gaps.push(Gap {
                         year,
@@ -444,7 +506,7 @@ fn evaluate(
                 }
                 continue;
             }
-            for date in rule.rule.days_in_year(year).as_slice() {
+            for date in rule.rule.days_in_year_with(year, &mut cache).as_slice() {
                 base.push(Occurrence { date: *date, rule });
             }
         }
@@ -531,8 +593,7 @@ fn evaluate(
         .collect();
     let mut bridges: Vec<Holiday> = Vec::new();
     for policy in rules.bridges {
-        for offset in 0..=(last_year - first_year + 2) {
-            let year = first_year - 1 + offset;
+        for year in first_reached..=last_reached {
             if !policy.applies_in(year) {
                 continue;
             }
@@ -582,13 +643,7 @@ fn evaluate(
     out.extend(substitutes);
     out.extend(bridges);
 
-    let (Ok(clip_start), Ok(clip_end)) = (
-        gregorian::to_fixed(first_year, 1, 1),
-        gregorian::to_fixed(last_year, 12, 31),
-    ) else {
-        return (Vec::new(), gaps);
-    };
-    out.retain(|holiday| holiday.date >= clip_start && holiday.date <= clip_end);
+    out.retain(|holiday| holiday.date >= first_day && holiday.date <= last_day);
     out.sort_by_key(|holiday| {
         (
             holiday.date.0,

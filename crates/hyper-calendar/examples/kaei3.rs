@@ -28,6 +28,15 @@ fn describe(label: &str, rd: Rd, registry: &CalendarRegistry) {
     let mut rows = registry.describe_day(rd);
     rows.sort_by_key(|(id, _)| id.as_str());
     for (id, fields) in rows {
+        // A calendar that was not in use on the day says so, in its own
+        // row, rather than being left out.
+        let fields = match fields {
+            Ok(fields) => fields,
+            Err(refusal) => {
+                println!("{:<28} {refusal}", id.as_str());
+                continue;
+            }
+        };
         let month = match fields.month {
             Some(month) if month.leap => format!("leap {}", month.ordinal),
             Some(month) => month.ordinal.to_string(),

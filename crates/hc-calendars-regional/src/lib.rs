@@ -397,17 +397,18 @@ mod tests {
 
         let rd = gregorian::to_fixed(2026, 9, 21).expect("in range");
         let rendered = registry.describe_day(rd);
-        // Every calendar that claims the day renders it; the ones that do
-        // not are the Korean Empire's, kept only from 1896 to 1910, and the
-        // Qing eras'.
+        // Every calendar answers; the ones that refuse the day are the
+        // Korean Empire's, kept only from 1896 to 1910, and the Qing eras'.
+        assert_eq!(rendered.len(), registry.len());
+        let converted = rendered.iter().filter(|(_, fields)| fields.is_ok()).count();
         let supporting = registry.metas().filter(|meta| meta.supports(rd)).count();
-        assert_eq!(rendered.len(), supporting);
-        let unsupporting: Vec<&str> = registry
-            .metas()
-            .filter(|meta| !meta.supports(rd))
-            .map(|meta| meta.id.0)
+        assert_eq!(converted, supporting);
+        let refusing: Vec<&str> = rendered
+            .iter()
+            .filter(|(_, fields)| fields.is_err())
+            .map(|(id, _)| id.0)
             .collect();
-        assert_eq!(unsupporting, ["korean-regnal", "chinese-regnal"]);
+        assert_eq!(refusing, ["korean-regnal", "chinese-regnal"]);
 
         let japanese = registry
             .get(CalendarId("japanese"))

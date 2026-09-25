@@ -634,6 +634,7 @@ fn the_dynamic_registry_offers_the_right_calendar_for_a_historical_day() {
     let described = registry.describe_day(gregorian(1582, 7, 1));
     let japanese: Vec<_> = described
         .iter()
+        .filter(|(_, fields)| fields.is_ok())
         .map(|(id, _)| id.0)
         .filter(|id| id.starts_with("japanese-"))
         .collect();
@@ -642,6 +643,7 @@ fn the_dynamic_registry_offers_the_right_calendar_for_a_historical_day() {
     let described = registry.describe_day(gregorian(1800, 6, 11));
     let japanese: Vec<_> = described
         .iter()
+        .filter(|(_, fields)| fields.is_ok())
         .map(|(id, _)| id.0)
         .filter(|id| id.starts_with("japanese-"))
         .collect();
