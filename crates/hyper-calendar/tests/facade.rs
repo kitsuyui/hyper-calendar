@@ -51,6 +51,17 @@ fn the_attributes_feature_reaches_its_crate() {
 }
 
 #[test]
+#[cfg(feature = "name-days")]
+fn the_name_days_feature_reaches_its_crate() {
+    use hyper_calendar::hc_name_days;
+    // Latvia's 1 January, the anchor that put this crate in the workspace.
+    assert_eq!(
+        hc_name_days::names_on(&hc_name_days::latvia::LV_TRADITIONAL_2026, 2026, 1, 1),
+        Ok(&["Laimnesis", "Solvita", "Solvija"][..])
+    );
+}
+
+#[test]
 #[cfg(feature = "relativity")]
 fn the_relativity_feature_reaches_its_crate() {
     use hyper_calendar::hc_relativity;

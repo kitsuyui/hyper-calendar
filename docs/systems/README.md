@@ -26,6 +26,7 @@ None of the three repeats another.
 | System | Document | Backs |
 | --- | --- | --- |
 | Babylonian calendar of the Seleucid era | [babylonian.md](babylonian.md) | `babylonian` |
+| Name-day lists | [name-days.md](name-days.md) | `hc-name-days` |
 | The Japanese lunisolar calendars, Senmyō to Tenpō | [japanese-lunisolar.md](japanese-lunisolar.md) | `japanese-senmyo`, `japanese-jokyo`, `japanese-horyaku`, `japanese-kansei`, `japanese-tenpo` |
 
 ## Systems that need a document

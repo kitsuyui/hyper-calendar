@@ -96,6 +96,7 @@ dependencies. A crate depends only on crates in rows above it.
 | `hc-calendars-indic` | Hindu lunisolar and solar calendars, Bikram and Nepal Sambat | `hc-astro`, `hc-calendars-solar`, `hc-seasons` |
 | `hc-almanac` | 暦注 | `hc-astro`, `hc-calendars-lunar`, `hc-seasons` |
 | `hc-attributes` | Birthstones and the like | `hc-seasons` |
+| `hc-name-days` | Name-day lists by authority and edition, and a loader for licensed ones | — |
 | `hc-fiscal` | Fiscal and academic years | `hc-calendars-solar`, `hc-calendars-indic` |
 | `hc-holiday` | The rule engine and the country, tradition and exchange tables | `hc-astro`, `hc-seasons` and every `hc-calendars-*` crate |
 | `hyper-calendar` | The feature-gated facade | Every crate above, each behind a feature |

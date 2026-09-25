@@ -31,6 +31,7 @@
 //! | `almanac` | [`hc_almanac`] | 六曜, 二十八宿, 九星, 暦注下段, 選日 |
 //! | `fiscal` | [`hc_fiscal`] | 年度, fiscal, tax and academic years |
 //! | `attributes` | [`hc_attributes`] | Birthstones, birth flowers, moon names |
+//! | `name-days` | [`hc_name_days`] | Name-day lists by authority and edition |
 //! | `tz` | [`hc_tz`] | Time zones |
 //! | `humanize` | [`hc_humanize`] | "3 days ago" |
 //! | `holiday` | [`hc_holiday`] | Holidays and observances |
@@ -107,6 +108,8 @@ pub use hc_holiday;
 pub use hc_humanize;
 #[cfg(feature = "i18n")]
 pub use hc_i18n;
+#[cfg(feature = "name-days")]
+pub use hc_name_days;
 #[cfg(feature = "planetary")]
 pub use hc_planetary;
 #[cfg(feature = "relativity")]
