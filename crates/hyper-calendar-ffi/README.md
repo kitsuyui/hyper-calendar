@@ -64,9 +64,9 @@ are NUL-terminated and may be null, and the length comes back through
 
 The entry points come in layers, each a Cargo feature, the same layers as
 the WebAssembly module's: `civil` (the default), `calendars`, `holiday`,
-`seasons`, `deep-time`, `tz` and `full`. Each builds on its own — `calendars` does
-not need `holiday` — and the table below names the one each entry point
-needs.
+`seasons`, `deep-time`, `tz`, `sky` and `full`. Each builds on its own —
+`calendars` does not need `holiday` — and the table below names the one
+each entry point needs.
 
 ```sh
 cargo build -p hyper-calendar-ffi --release --features calendars
@@ -83,7 +83,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-22 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+25 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -109,6 +109,9 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_fixed_from_unix_in_zone(int64_t unix_seconds, const char *zone, int64_t *out_fixed);` | `tz` | The fixed day a POSIX timestamp falls on by the wall clock of a zone. |
 | `HcStatus hc_unix_from_fixed_in_zone(int64_t fixed, const char *zone, int64_t *out_unix_seconds);` | `tz` | The POSIX timestamp at which a fixed day begins by the wall clock of a zone. |
 | `HcStatus hc_zone_load(const char *name, const uint8_t *tzif, size_t tzif_len);` | `tz` | Give the library a zone's TZif data under an IANA name. |
+| `HcStatus hc_sky_at(int64_t unix_seconds, char *buffer, size_t capacity, size_t *written);` | `sky` | The Sun and the Moon at a POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_solar_terms_between(int64_t from_unix, int64_t to_unix, char *buffer, size_t capacity, size_t *written);` | `sky` | Every solar term whose instant falls in `[from_unix, to_unix)`, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_moon_phases_between(int64_t from_unix, int64_t to_unix, char *buffer, size_t capacity, size_t *written);` | `sky` | Every new moon, first quarter, full moon and last quarter whose instant falls in `[from_unix, to_unix)`, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 
 ### Status codes
 
@@ -231,6 +234,24 @@ or a zone's history, `hc_zone_load(name, tzif, tzif_len)` takes the zone's
 TZif file once and the conversions answer for that name from then on, a
 loaded zone outranking a built-in one. Bytes that are not TZif are
 `HC_ERROR_MALFORMED`.
+
+## The sky
+
+`hc_sky_at(unix_seconds, buffer, capacity, written)`,
+`hc_solar_terms_between(from_unix, to_unix, ...)` and
+`hc_moon_phases_between(from_unix, to_unix, ...)` need the `sky` feature
+and write the lines the WebAssembly module's README tabulates: for an
+instant, the Sun's apparent longitude and distance, the Moon's longitude,
+latitude and distance, its elongation and illuminated fraction, the new
+moons either side, ΔT with its regime and the series each came from; for
+a half-open span, one line per solar term or per principal moon phase —
+the defining angle, the instant as whole POSIX seconds, and the term's
+traditional Chinese and Japanese names or the phase's `new`,
+`first-quarter`, `full` or `last-quarter`. Every instant is Universal
+Time. An instant outside the proleptic Gregorian years −1000 through 3000,
+the era over which `hc-astro` states its series valid, is
+`HC_ERROR_OUT_OF_RANGE`, as is a span longer than 400 years; a span whose
+`to` is at or before its `from` is an empty answer.
 
 ## Leap seconds, and the `strict` flag
 
