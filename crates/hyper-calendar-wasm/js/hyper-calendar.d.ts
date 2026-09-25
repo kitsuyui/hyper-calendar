@@ -52,7 +52,7 @@ export type BindingErrorName =
   | "unrecognised-sentinel";
 
 /** The Cargo features the exports are gated by. */
-export type Feature = "civil" | "calendars" | "holiday" | "seasons" | "deep-time" | "tz" | "sky";
+export type Feature = "civil" | "calendars" | "holiday" | "seasons" | "deep-time" | "tz" | "sky" | "orbital";
 
 /** One method of `HyperCalendar` and the export it stands for. */
 export interface MethodEntry {
@@ -72,6 +72,8 @@ export const COLUMNS: {
   readonly deepTime: ReadonlyArray<string>;
   readonly sky: ReadonlyArray<string>;
   readonly skyEvent: ReadonlyArray<string>;
+  readonly orbit: ReadonlyArray<string>;
+  readonly orbitSeries: ReadonlyArray<string>;
 };
 export const GEOLOGIC_RANKS: ReadonlyArray<GeologicRank>;
 
@@ -280,6 +282,41 @@ export interface SkyEvent {
 }
 
 /**
+ * The one line of `hc_orbit_at`: Earth's orbital elements and the June
+ * insolation at 65° N at an epoch, from Berger's 1978 series. Each spread
+ * is the measured disagreement with Berger & Loutre's 1991 solution over
+ * the tier of the span the epoch falls in, not a Gaussian width.
+ */
+export interface Orbit {
+  /** The eccentricity *e* of Earth's orbit. */
+  eccentricity: number;
+  eccentricitySpread: number;
+  /** The obliquity of the ecliptic in degrees. */
+  obliquity: number;
+  /** In degrees. */
+  obliquitySpread: number;
+  /** ϖ, the longitude of perihelion from the moving equinox in degrees, 0 to 360; about 102 at present. */
+  longitudeOfPerihelion: number;
+  /** In degrees; 180 where the eccentricity is smaller than the precession's spread. */
+  longitudeOfPerihelionSpread: number;
+  /** *e* sin ϖ, positive when perihelion falls in northern summer. */
+  climaticPrecession: number;
+  climaticPrecessionSpread: number;
+  /** The daily mean insolation at 65° N at the June solstice, in W/m², for `solarConstant`. */
+  insolation65NJune: number;
+  /** The solar constant the insolation was computed with, in W/m². */
+  solarConstant: number;
+  /** The series and the constant, by name. */
+  source: string;
+}
+
+/** One line of `hc_orbit_series`: `Orbit` at an epoch. */
+export interface OrbitSample extends Orbit {
+  /** The epoch, in years before 1950; negative for the future. */
+  yearsBefore1950: number;
+}
+
+/**
  * An instantiated module, one method per export. Every `i64` result is a
  * number; an `i64` argument may be a number or a `BigInt`. A method whose
  * export the build lacks throws `HcError` `not-exported` when called.
@@ -375,6 +412,15 @@ export class HyperCalendar {
   solarTermsBetween(fromUnix: number | bigint, toUnix: number | bigint): SkyEvent[];
   /** `hc_moon_phases_between`: the phases in `[from, to)`, as `solarTermsBetween`. */
   moonPhasesBetween(fromUnix: number | bigint, toUnix: number | bigint): SkyEvent[];
+
+  /** `hc_orbit_at`; an epoch beyond a million years either side of 1950 is `out-of-range`. */
+  orbitAt(yearsBefore1950: number): Orbit;
+  /**
+   * `hc_orbit_series`: `orbitAt` at `from`, `from + step`, ... up to `to`, at most
+   * 10 000 samples; a step that is not positive, an end off the span or more
+   * samples is `out-of-range`, and a `to` before `from` is empty.
+   */
+  orbitSeries(fromYearsBefore1950: number, toYearsBefore1950: number, stepYears: number): OrbitSample[];
 }
 
 /**

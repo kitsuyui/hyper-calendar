@@ -68,8 +68,8 @@
 //!
 //! The exports come in layers that a page can load as it needs them, each a
 //! Cargo feature: `civil` (the default), `calendars`, `holiday`, `seasons`,
-//! `deep-time`, `tz` and `sky`, with `full` for all of them. Which feature
-//! each export needs is in the README's table.
+//! `deep-time`, `tz`, `sky` and `orbital`, with `full` for all of them.
+//! Which feature each export needs is in the README's table.
 
 #![allow(unsafe_code)]
 #![warn(missing_docs)]
@@ -1973,6 +1973,203 @@ mod sky {
 #[cfg(feature = "sky")]
 pub use sky::{hc_moon_phases_between, hc_sky_at, hc_solar_terms_between};
 
+/// The orbit, behind the `orbital` feature: Earth's orbital elements and
+/// the June insolation at 65° N they set, a million years either side of
+/// 1950, from Berger's 1978 series in `hc-orbital`.
+#[cfg(feature = "orbital")]
+mod orbital {
+    use super::{HC_ERR_OUT_OF_RANGE, emit_or_measure, push_cell};
+    use hc::hc_core::math::floor;
+    use hc::hc_orbital::{
+        LATITUDE_65N, MID_JUNE_SOLAR_LONGITUDE, SOLAR_CONSTANT_BERGER_LOUTRE_1991, SOURCE,
+        VALID_SPAN, daily_insolation, elements_at,
+    };
+
+    /// The solar constant every insolation cell is computed with: the
+    /// 1360 W m⁻² of Berger & Loutre's 1991 tables, `hc-orbital`'s
+    /// `SOLAR_CONSTANT_BERGER_LOUTRE_1991`, so a figure here compares with
+    /// the NOAA `orbit91` table exactly. The value is written in its own
+    /// column and the constant's name in the source; a page that wants
+    /// another value — 1361 W m⁻² for a modern paper — scales the cell,
+    /// since the insolation is proportional to the constant.
+    pub(super) const SOLAR_CONSTANT: f64 = SOLAR_CONSTANT_BERGER_LOUTRE_1991;
+
+    /// The name the source cell gives the constant.
+    const SOLAR_CONSTANT_NAME: &str = "SOLAR_CONSTANT_BERGER_LOUTRE_1991";
+
+    /// The most samples one call of [`hc_orbit_series`] writes.
+    ///
+    /// Ten thousand lines are about five megabytes of text, most of it the
+    /// source cell repeated, and some forty milliseconds; a page draws far
+    /// fewer columns than that, and a caller that wants more asks in
+    /// pieces.
+    pub(super) const MAX_SERIES_SAMPLES: usize = 10_000;
+
+    /// Append the eleven cells of one epoch and the line break; see
+    /// [`hc_orbit_at`] for the columns.
+    ///
+    /// # Errors
+    ///
+    /// [`HC_ERR_OUT_OF_RANGE`] for an epoch the crate refuses: not finite,
+    /// or beyond a million years either side of 1950.
+    fn push_epoch(out: &mut String, years_before_present: f64) -> Result<(), i64> {
+        use core::fmt::Write;
+        let elements = elements_at(years_before_present).map_err(|_| HC_ERR_OUT_OF_RANGE)?;
+        let insolation = daily_insolation(
+            &elements,
+            LATITUDE_65N,
+            MID_JUNE_SOLAR_LONGITUDE,
+            SOLAR_CONSTANT,
+        )
+        .map_err(|_| HC_ERR_OUT_OF_RANGE)?;
+        let _ = write!(
+            out,
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{insolation}\t{SOLAR_CONSTANT}\t",
+            elements.eccentricity.value,
+            elements.eccentricity.std_dev,
+            elements.obliquity_degrees.value,
+            elements.obliquity_degrees.std_dev,
+            elements.longitude_of_perihelion_degrees.value,
+            elements.longitude_of_perihelion_degrees.std_dev,
+            elements.climatic_precession.value,
+            elements.climatic_precession.std_dev,
+        );
+        push_cell(out, SOURCE);
+        out.push_str(
+            "; insolation: Berger (1978) daily mean at 65N for solar longitude 90, solar constant ",
+        );
+        out.push_str(SOLAR_CONSTANT_NAME);
+        out.push('\n');
+        Ok(())
+    }
+
+    /// The elements and the insolation at one epoch as one line; see
+    /// [`hc_orbit_at`] for the columns.
+    ///
+    /// # Errors
+    ///
+    /// As [`push_epoch`].
+    pub(super) fn orbit_line(years_before_present: f64) -> Result<String, i64> {
+        let mut out = String::new();
+        push_epoch(&mut out, years_before_present)?;
+        Ok(out)
+    }
+
+    /// One line per sample from `from` to `to` in steps of `step`, each
+    /// with the epoch first; see [`hc_orbit_series`].
+    ///
+    /// # Errors
+    ///
+    /// [`HC_ERR_OUT_OF_RANGE`] for a step that is not finite and positive,
+    /// an end outside the span, or more than [`MAX_SERIES_SAMPLES`]
+    /// samples.
+    pub(super) fn series_lines(from: f64, to: f64, step: f64) -> Result<String, i64> {
+        use core::fmt::Write;
+        if !(from.is_finite() && to.is_finite() && step.is_finite()) || step <= 0.0 {
+            return Err(HC_ERR_OUT_OF_RANGE);
+        }
+        if !(VALID_SPAN.contains(&from) && VALID_SPAN.contains(&to)) {
+            return Err(HC_ERR_OUT_OF_RANGE);
+        }
+        let mut out = String::new();
+        if to < from {
+            return Ok(out);
+        }
+        // A step too small for the span divides to a count the cast
+        // saturates, which the cap then refuses; the cap is checked before
+        // the first sample is counted so that nothing overflows.
+        let intervals = floor((to - from) / step) as usize;
+        if intervals >= MAX_SERIES_SAMPLES {
+            return Err(HC_ERR_OUT_OF_RANGE);
+        }
+        for sample in 0..=intervals {
+            // Each sample is computed from the start rather than
+            // accumulated, so the error does not grow along the series, and
+            // the last one is held to `to` against rounding.
+            let epoch = (from + sample as f64 * step).min(to);
+            let _ = write!(out, "{epoch}\t");
+            push_epoch(&mut out, epoch)?;
+        }
+        Ok(out)
+    }
+
+    /// Earth's orbital elements and the June insolation at 65° N at an
+    /// epoch, as one UTF-8 line, returning the byte length written.
+    ///
+    /// The epoch is in years before 1950, negative for the future, as
+    /// `hc-orbital` counts. Tab-separated: the eccentricity and its spread,
+    /// the obliquity in degrees and its spread, the longitude of perihelion
+    /// from the moving equinox in degrees (heliocentric, about 102° at
+    /// present) and its spread, the climatic precession *e* sin ϖ and its
+    /// spread, the daily mean insolation at 65° N at the June solstice in
+    /// W m⁻², the solar constant that insolation was computed with in W m⁻²
+    /// and the source, which names the series and the constant. Each
+    /// spread is the measured disagreement between this series and Berger
+    /// & Loutre's 1991 solution for the tier of the span the epoch falls
+    /// in, not a Gaussian width; the perihelion's is 180° where the
+    /// eccentricity is smaller than the precession's spread. An epoch that
+    /// is not finite or lies beyond a million years either side of 1950 is
+    /// `HC_ERR_OUT_OF_RANGE`: the series would return numbers there, and
+    /// they would be fiction. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_orbit_at(
+        years_before_1950: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let text = match orbit_line(years_before_1950) {
+            Ok(text) => text,
+            Err(sentinel) => return sentinel,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_or_measure(&text, buffer, capacity) }
+    }
+
+    /// The line of `hc_orbit_at` at every epoch from `from_years_before_1950`
+    /// to `to_years_before_1950` in steps of `step_years`, each with the
+    /// epoch as a first column, as UTF-8 lines, returning the byte length
+    /// written.
+    ///
+    /// One line per sample, tab-separated: the epoch in years before 1950,
+    /// then the eleven columns of `hc_orbit_at`. The samples are `from`,
+    /// `from + step`, `from + 2 step` and so on, every one at or before
+    /// `to`, so `from` and `to` themselves are samples when `to - from` is
+    /// a multiple of `step`, and a page drawing across the span asks once
+    /// rather than once per column. Both ends have to lie within a million
+    /// years either side of 1950 and `step` has to be finite and positive,
+    /// else `HC_ERR_OUT_OF_RANGE`; more than 10 000 samples is
+    /// `HC_ERR_OUT_OF_RANGE` too, and a caller who wants more asks in
+    /// pieces. A `to` before `from` is an empty answer of zero bytes, not an
+    /// error. A null `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_orbit_series(
+        from_years_before_1950: f64,
+        to_years_before_1950: f64,
+        step_years: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let text = match series_lines(from_years_before_1950, to_years_before_1950, step_years) {
+            Ok(text) => text,
+            Err(sentinel) => return sentinel,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_or_measure(&text, buffer, capacity) }
+    }
+}
+
+#[cfg(feature = "orbital")]
+pub use orbital::{hc_orbit_at, hc_orbit_series};
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2021,7 +2218,8 @@ mod tests {
         feature = "holiday",
         feature = "seasons",
         feature = "deep-time",
-        feature = "sky"
+        feature = "sky",
+        feature = "orbital"
     ))]
     fn read_lines(call: impl Fn(*mut u8, usize) -> i64) -> String {
         let needed = call(core::ptr::null_mut(), 0);
@@ -3191,6 +3389,153 @@ mod tests {
             let pointer = hc_alloc(capacity);
             assert_eq!(unsafe { hc_sky_at(instant, pointer, capacity) }, needed);
             unsafe { hc_free(pointer, capacity) };
+        }
+    }
+
+    #[cfg(feature = "orbital")]
+    mod orbital {
+        use super::super::*;
+        use super::read_lines;
+
+        fn rows(text: &str) -> Vec<Vec<String>> {
+            text.lines()
+                .map(|line| line.split('\t').map(str::to_owned).collect())
+                .collect()
+        }
+
+        fn orbit(years_before_1950: f64) -> Vec<String> {
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_orbit_at(years_before_1950, buffer, capacity)
+            });
+            let lines = rows(&text);
+            assert_eq!(lines.len(), 1, "{text:?}");
+            lines.into_iter().next().unwrap_or_default()
+        }
+
+        fn number(cell: &str) -> f64 {
+            cell.parse()
+                .unwrap_or_else(|_| panic!("not a number: {cell}"))
+        }
+
+        /// The author's own table (`bein1.dat`) and the PMIP experiments
+        /// put the Last Glacial Maximum, 21 000 years before 1950, at
+        /// e = 0.018994, ϖ = 114.42°, ε = 22.949°, e sin ϖ = 0.01729; the
+        /// spreads are the nearest tier's; and at 1950 the June insolation
+        /// at 65° N is 477.6 W m⁻² for 1360 W m⁻².
+        #[test]
+        fn the_last_glacial_maximum_decodes_column_by_column() {
+            let columns = orbit(21_000.0);
+            assert_eq!(columns.len(), 11, "{columns:?}");
+            assert!(
+                (number(&columns[0]) - 0.018_994).abs() < 1e-6,
+                "{columns:?}"
+            );
+            assert_eq!(columns[1], "0.002");
+            assert!((number(&columns[2]) - 22.949).abs() < 1e-3, "{columns:?}");
+            assert_eq!(columns[3], "0.05");
+            assert!((number(&columns[4]) - 114.42).abs() < 0.01, "{columns:?}");
+            // asin(0.0025 / 0.018994), in degrees.
+            assert!((number(&columns[5]) - 7.56).abs() < 0.01, "{columns:?}");
+            assert!((number(&columns[6]) - 0.017_29).abs() < 5e-6, "{columns:?}");
+            assert_eq!(columns[7], "0.0025");
+            let lgm_june = number(&columns[8]);
+            assert_eq!(columns[9], "1360");
+            assert!(columns[10].contains("Berger, A. (1978)"), "{}", columns[10]);
+            assert!(
+                columns[10].contains("SOLAR_CONSTANT_BERGER_LOUTRE_1991"),
+                "{}",
+                columns[10]
+            );
+            assert!(!columns[10].contains('\t'));
+
+            let now = orbit(0.0);
+            assert!((number(&now[8]) - 477.6).abs() < 0.1, "{now:?}");
+            assert!(lgm_june < number(&now[8]));
+            let early_holocene = orbit(11_000.0);
+            assert!(number(&early_holocene[8]) - number(&now[8]) > 45.0);
+            // Numbers are written in plain decimal notation.
+            assert!(
+                now.iter().take(10).all(|cell| !cell.contains('e')),
+                "{now:?}"
+            );
+        }
+
+        #[test]
+        fn a_million_years_is_answered_and_a_year_more_is_refused() {
+            let null = core::ptr::null_mut();
+            assert!(unsafe { hc_orbit_at(1_000_000.0, null, 0) } > 0);
+            assert!(unsafe { hc_orbit_at(-1_000_000.0, null, 0) } > 0);
+            for epoch in [
+                1_000_001.0,
+                -1_000_001.0,
+                f64::NAN,
+                f64::INFINITY,
+                f64::NEG_INFINITY,
+            ] {
+                assert_eq!(
+                    unsafe { hc_orbit_at(epoch, null, 0) },
+                    HC_ERR_OUT_OF_RANGE,
+                    "{epoch}"
+                );
+            }
+        }
+
+        #[test]
+        fn a_series_is_the_single_lines_with_the_epoch_first() {
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_orbit_series(0.0, 21_000.0, 1_000.0, buffer, capacity)
+            });
+            let lines = rows(&text);
+            assert_eq!(lines.len(), 22, "{}", lines.len());
+            assert!(lines.iter().all(|line| line.len() == 12), "{lines:?}");
+            let epochs: Vec<f64> = lines.iter().map(|line| number(&line[0])).collect();
+            let expected: Vec<f64> = (0..22).map(|kyr| f64::from(kyr) * 1_000.0).collect();
+            assert_eq!(epochs, expected);
+            assert_eq!(lines[0][1..], orbit(0.0)[..]);
+            assert_eq!(lines[21][1..], orbit(21_000.0)[..]);
+            // A step that does not divide the span stops before `to`.
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_orbit_series(0.0, 1_000.0, 300.0, buffer, capacity)
+            });
+            let epochs: Vec<String> = rows(&text).iter().map(|line| line[0].clone()).collect();
+            assert_eq!(epochs, ["0", "300", "600", "900"]);
+            // The whole span at the widest step that fits the cap.
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_orbit_series(-1_000_000.0, 1_000_000.0, 200.01, buffer, capacity)
+            });
+            let lines = rows(&text);
+            assert_eq!(lines.len(), 10_000);
+            assert!(number(&lines[9_999][0]) <= 1_000_000.0);
+        }
+
+        #[test]
+        fn a_series_that_is_empty_too_long_or_off_the_span_is_refused_or_empty() {
+            let null = core::ptr::null_mut();
+            // A `to` before `from` is an empty answer.
+            assert_eq!(unsafe { hc_orbit_series(1_000.0, 0.0, 100.0, null, 0) }, 0);
+            // One sample when they coincide.
+            assert!(unsafe { hc_orbit_series(0.0, 0.0, 100.0, null, 0) } > 0);
+            for (from, to, step) in [
+                (0.0, 1_000_001.0, 100.0),
+                (-1_000_001.0, 0.0, 100.0),
+                (f64::NAN, 0.0, 100.0),
+                (0.0, f64::INFINITY, 100.0),
+                (0.0, 1_000.0, 0.0),
+                (0.0, 1_000.0, -100.0),
+                (0.0, 1_000.0, f64::NAN),
+                (0.0, 1_000.0, f64::MIN_POSITIVE),
+                // 10 001 samples.
+                (0.0, 10_000.0, 1.0),
+                (-1_000_000.0, 1_000_000.0, 200.0),
+            ] {
+                assert_eq!(
+                    unsafe { hc_orbit_series(from, to, step, null, 0) },
+                    HC_ERR_OUT_OF_RANGE,
+                    "{from} to {to} by {step}"
+                );
+            }
+            // 10 000 samples is the most.
+            assert!(unsafe { hc_orbit_series(0.0, 9_999.0, 1.0, null, 0) } > 0);
         }
     }
 }

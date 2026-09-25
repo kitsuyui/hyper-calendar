@@ -35,8 +35,11 @@ tz = ["civil", "hc/tz"]
 # The sky: where the Sun and Moon are at an instant, and the solar terms and
 # the moon phases within a span, from hc-astro's series.
 sky = ["civil", "hc/seasons"]
+# The orbit: Earth's orbital elements and the June insolation at 65° N, a
+# million years either side of 1950, from Berger's 1978 series.
+orbital = ["hc/orbital"]
 # Every layer.
-full = ["civil", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "hc/full"]
+full = ["civil", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "hc/full"]
 
 [dependencies]
 hc = { package = "hyper-calendar", version = "0.1.0", path = "../hyper-calendar", default-features = false, features = ["std"] }

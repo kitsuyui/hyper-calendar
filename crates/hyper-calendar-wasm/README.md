@@ -115,6 +115,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `loadZone(name, tzif)` | `hc_zone_load` | nothing |
 | `skyAt(unix)` | `hc_sky_at` | a `Sky` |
 | `solarTermsBetween(from, to)`, `moonPhasesBetween(from, to)` | `hc_solar_terms_between`, `hc_moon_phases_between` | `SkyEvent[]` |
+| `orbitAt(years)`, `orbitSeries(from, to, step)` | `hc_orbit_at`, `hc_orbit_series` | an `Orbit`; `OrbitSample[]` |
 
 Each method does what a page would otherwise write by hand:
 
@@ -178,7 +179,7 @@ the module's bytes inside it as base64, decoded with `atob` and bound by a
 `load(options)` that takes no source and fetches nothing. It is one
 self-contained ES module; `hyper-calendar.embedded.d.ts` types it. It is
 generated, not committed — CI uploads it with the layered builds below —
-and it is 1.91 MiB (2,001,994 bytes) for the `full` layer of 2026-09-25,
+and it is 1.94 MiB (2,032,112 bytes) for the `full` layer of 2026-09-26,
 base64 being four thirds of the module.
 
 ### tzdata beside the module
@@ -223,11 +224,12 @@ before it loads the holiday tables.
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 101,842 | 99 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,414 | 56 KiB |
 | `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between` | `hc-astro`, `hc-seasons` | 96,550 | 94 KiB |
-| `full` | all of the above | everything | 1,485,352 | 1.42 MiB |
+| `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 63,961 | 62 KiB |
+| `full` | all of the above | everything | 1,494,019 | 1.42 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
-printed them on 2026-09-25 with rustc 1.98.1:
+printed them on 2026-09-26 with rustc 1.98.1:
 
 ```sh
 scripts/wasm-layers.sh
@@ -236,7 +238,7 @@ scripts/wasm-layers.sh
 
 The script leaves each layer at `target/wasm-layers/hyper_calendar_wasm.<feature>.wasm`
 and prints the table; CI runs it on every pull request and uploads the
-eight files, the embedded module and `tzdata/` as one workflow artifact.
+nine files, the embedded module and `tzdata/` as one workflow artifact.
 `hc_alloc`, `hc_free` and `hc_version` are in every build.
 
 The profile's `opt-level = "z"` is a measured choice, not a default. On
@@ -259,7 +261,7 @@ not pass CI.
 
 ### Exports
 
-32 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+34 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -295,6 +297,8 @@ not pass CI.
 | `hc_sky_at(unix_seconds: i64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | The Sun and the Moon at a POSIX timestamp, as one UTF-8 line, returning the byte length written. |
 | `hc_solar_terms_between(from_unix: i64, to_unix: i64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | Every solar term whose instant falls in `[from_unix, to_unix)`, as UTF-8 lines, returning the byte length written. |
 | `hc_moon_phases_between(from_unix: i64, to_unix: i64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | Every new moon, first quarter, full moon and last quarter whose instant falls in `[from_unix, to_unix)`, as UTF-8 lines, returning the byte length written. |
+| `hc_orbit_at(years_before_1950: f64, buffer: *mut u8, capacity: usize) -> i64` | `orbital` | Earth's orbital elements and the June insolation at 65° N at an epoch, as one UTF-8 line, returning the byte length written. |
+| `hc_orbit_series(from_years_before_1950: f64, to_years_before_1950: f64, step_years: f64, buffer: *mut u8, capacity: usize) -> i64` | `orbital` | The line of `hc_orbit_at` at every epoch from `from_years_before_1950` to `to_years_before_1950` in steps of `step_years`, each with the epoch as a first column, as UTF-8 lines, returning the byte length written. |
 
 ### Error sentinels
 
@@ -637,6 +641,80 @@ hc.solarTermsBetween(from, to);
 hc.moonPhasesBetween(from, to).map((phase) => phase.name);
 // ["last-quarter", "new", "first-quarter", "full"]
 hc.skyAt(Date.now() / 1000 | 0).illuminatedFraction;
+```
+
+## The orbit
+
+`hc_orbit_at` and `hc_orbit_series` need the `orbital` feature and answer
+from `hc-orbital`: Berger's 1978 trigonometric solution for the slow
+cycles of Earth's orbit — the eccentricity, the obliquity and the
+longitude of perihelion, the cycles that paced the ice ages — and the
+daily insolation that follows from them, over a million years either
+side of 1950. Every epoch is in years before 1950, negative for the
+future, which is the series' own count and the radiocarbon "before
+present" datum. An epoch outside that span is `HC_ERR_OUT_OF_RANGE`,
+never a number: a trigonometric fit past its span does not fade, it
+lies. `hc-orbital`'s README and `docs/systems/orbital-elements.md` say
+what the series is good to.
+
+`hc_orbit_at(years_before_1950, buffer, capacity)` writes one line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | eccentricity | the eccentricity *e* of Earth's orbit |
+| 2 | eccentricity spread | its spread |
+| 3 | obliquity | the obliquity of the ecliptic ε, in degrees |
+| 4 | obliquity spread | its spread, in degrees |
+| 5 | longitude of perihelion | ϖ, the longitude of perihelion from the moving equinox, in degrees, 0 to 360: the heliocentric direction of perihelion, about 102° at present; add 180° for the Sun's longitude at perihelion |
+| 6 | longitude of perihelion spread | its spread, in degrees; 180 where *e* is smaller than the precession's spread, because the angle of a vector shorter than its own error bar is unknown |
+| 7 | climatic precession | *e* sin ϖ, positive when perihelion falls in northern summer |
+| 8 | climatic precession spread | its spread |
+| 9 | insolation 65°N June | the daily mean insolation at 65° N at the June solstice (solar longitude 90°), in W/m², for the solar constant of column 10 |
+| 10 | solar constant | the solar constant the insolation was computed with, in W/m²: 1360, `hc-orbital`'s `SOLAR_CONSTANT_BERGER_LOUTRE_1991`, the value of the tables the spreads were measured against |
+| 11 | source | the series and the constant, by name |
+
+A spread is not a standard uncertainty. It is the largest disagreement
+measured between this series and Berger & Loutre's 1991 solution, the
+one the same author published to replace it, over the tier of the span
+the epoch falls in — within 100 000 years of 1950, within 800 000, or
+the whole million — so it widens in steps rather than smoothly, and
+`hc-orbital`'s `SPREAD_TIERS` carries the figures. The insolation is
+proportional to the solar constant, so a page that wants the modern
+1361 W/m² scales column 9 by 1361/1360.
+
+`hc_orbit_series(from_years_before_1950, to_years_before_1950,
+step_years, buffer, capacity)` writes the same line at `from`,
+`from + step`, `from + 2 step` and so on, every sample at or before `to`,
+one line per sample with the epoch in years before 1950 as a first
+column before the eleven above, so a page drawing a curve asks once
+rather than once per pixel. Both ends have to lie within the span and
+`step` has to be finite and positive, and at most 10 000 samples are
+answered, else `HC_ERR_OUT_OF_RANGE`; a caller who wants more asks in
+pieces. A `to` before `from` is an empty answer of zero bytes, not an
+error. Each sample is computed from `from` rather than accumulated, so
+the error does not grow along the series, and the last is held to `to`
+against rounding.
+
+A call is cheap: 163 trigonometric terms and eleven numbers written.
+Measured over 10 000 calls at epochs spread across the span, on 2026-09-26,
+`hc_orbit_at` costs about 2.5 µs natively and 5–6 µs in WebAssembly under
+Node 22, both in the `release-compact` profile the layers are built with
+(1.4 µs and 3–4.5 µs at `opt-level = 3`). Through the binding the same
+call costs about 40 µs in `release-compact`, because every text-writing
+method first offers the module a 64 KiB buffer and `hc_alloc` zeroes it;
+a page that draws the orbit alone loads with a smaller
+`initialCapacity`, which every line of `hc_orbit_at` fits at 1 024
+bytes, or asks for the series, whose 10 000 samples cost about 40 ms to
+write and 180 ms to decode. The series saves the calls and the
+allocations, not the arithmetic.
+
+```js
+const lgm = hc.orbitAt(21_000);          // the Last Glacial Maximum
+lgm.eccentricity;                         // 0.018994
+lgm.obliquity;                            // 22.949
+lgm.climaticPrecession;                   // 0.01729
+lgm.insolation65NJune;                    // 468.8, against 477.6 at 1950
+hc.orbitSeries(0, 100_000, 1_000).map((sample) => [sample.yearsBefore1950, sample.insolation65NJune]);
 ```
 
 ## What is not here

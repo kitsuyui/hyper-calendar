@@ -105,8 +105,8 @@ dependencies. A crate depends only on crates in rows above it.
 | `hyper-calendar-wasm` | `cdylib`, WebAssembly | `hyper-calendar` |
 
 The two boundary crates expose the same layers as Cargo features — `civil`
-(the default), `calendars`, `holiday`, `seasons`, `deep-time`, `tz`, `sky`
-and `full` — so a page or a host program builds only the layer it loads,
+(the default), `calendars`, `holiday`, `seasons`, `deep-time`, `tz`, `sky`,
+`orbital` and `full` — so a page or a host program builds only the layer it loads,
 and each crate's README lists every export with the feature it needs. Their
 answers about a set of things are tab-separated lines with a fixed column
 order, and a calendar that cannot name a day is a line that says so, with
