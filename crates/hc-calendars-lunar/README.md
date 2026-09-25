@@ -127,13 +127,28 @@ such wherever they appear.
 **元嘉暦, 儀鳳暦, 大衍暦 and 五紀暦 (604–862) are not implemented**; the
 document says why.
 
+## The Tibetan calendar
+
+`tibetan` is written up in
+[`docs/systems/tibetan-phugpa.md`](../../docs/systems/tibetan-phugpa.md):
+the Phugpa tradition and the others, the lunar day and the rule that skips
+and repeats calendar days, the leap-month rule on the 65-year cycle, the
+mean motions as exact rationals, Losar 2024 worked by hand from Janson's
+formulas, what the Tsurphu and other versions would change, and how the
+module was checked. The module summarises it; this README keeps the
+figures. The module reproduces all 120 Losar dates of Janson's Table 1
+(1927–2046), his leap months of 2000–2019 and every skipped and repeated
+day of 2012, the paper's own datelines, Losar 2000 on the first day of a
+leap month, and the published Losars of 2023–2026.
+
 ## Accuracy
 
-**Arithmetic calendars — exact.** The tabular Hijri and Hebrew calendars are
-counting rules, and this is those rules. The tabular Hijri checks are in
-the section above; the Hebrew ones — two published dates of 5784, Rosh
-Hashanah off Sunday, Wednesday and Friday for all 9 999 years, every year
-one of the six permitted lengths — are tabulated in the system document.
+**Arithmetic calendars — exact.** The tabular Hijri, Hebrew and Tibetan
+calendars are counting rules, and this is those rules. The tabular Hijri
+and Tibetan checks are in the sections above; the Hebrew ones — two
+published dates of 5784, Rosh Hashanah off Sunday, Wednesday and Friday for
+all 9 999 years, every year one of the six permitted lengths — are
+tabulated in the system document.
 
 Exact is not the same as astronomically right. The Hebrew molad is 0.46
 seconds longer than the mean synodic month, a day in about 15 000 years,

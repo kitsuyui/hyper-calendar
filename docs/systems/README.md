@@ -45,6 +45,8 @@ None of the three repeats another.
 | Nepal's calendars: the Bikram Sambat as gazetted, and Nepal Sambat | [nepal-calendars.md](nepal-calendars.md) | `bikram-sambat`, `nepal-sambat` |
 | The Hebrew calendar: the molad, the nineteen-year cycle and the four dehiyyot | [hebrew.md](hebrew.md) | `hebrew` |
 | The Gregorian reform, country by country, and the Swedish exception | [gregorian-reform.md](gregorian-reform.md) | `julian-gregorian-<polity>`, twelve of them; `swedish-1700` |
+| The Burmese calendar: the eras of the Myanmar Era, watat and yat-ngyin, the record's exceptions as data | [burmese.md](burmese.md) | `burmese`; `hc-holiday`'s Thingyan days |
+| The Tibetan calendar: the Phugpa arithmetic, the lunar day with its skipped and extra days, the leap-month rule, the sixty-year names | [tibetan-phugpa.md](tibetan-phugpa.md) | `tibetan` |
 
 ## Systems that need a document
 
@@ -57,8 +59,8 @@ explanation is from what a reader needs.
 | --- | --- |
 | The Burmese calendar's eras and exceptions | `burmese` |
 | The Tibetan Phugpa arithmetic | `tibetan` |
-| The Hebrew calendar's dehiyyot | `hebrew` |
 | Bikram Sambat as gazetted, and Nepal Sambat | `bikram_sambat`, `nepal_sambat` |
+| The Hebrew calendar's dehiyyot | `hebrew` |
 | The Balinese Pawukon and the Javanese pasaran | `balinese_pawukon`, `javanese_pasaran` |
 | The Badíʿ calendar and the French Republican equinox rule | `hc-calendars-equinox` |
 | The sexagenary cycle and its year boundaries | `sexagenary` |

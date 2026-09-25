@@ -2025,3 +2025,109 @@
   year      = {2013},
   note      = {Cited by the module for §15.3, the adoption dates of the Gregorian calendar. Not read here}
 }
+
+% --- The Hebrew calendar (docs/systems/hebrew.md) ---
+% reingold2018 and reingold2018code, above, are cited too.
+
+@misc{yannaingaye2013,
+  author       = {Yan Naing Aye},
+  title        = {Algorithm, Program and Calculation of Myanmar Calendar},
+  year         = {2013},
+  howpublished = {\url{https://cool-emerald.blogspot.com/2013/06/algorithm-program-and-calculation-of.html}},
+  note         = {Posted 15 June 2013. Every constant, rule, era table and exception of \texttt{burmese}, the 1374 ME worked example, and the finding that 1377 ME's Second Waso full moon fell a day later than the rule. Cites Irwin 1909, Ohn Kyaing 1964 and Tin Naing Toe 1999, none read here. Retrieved 2026-09-22 and re-read 2026-09-25}
+}
+
+@misc{yan9a-mmcal,
+  author       = {Yan Naing Aye},
+  title        = {mmcal: Myanmar Calendar},
+  howpublished = {\url{https://github.com/yan9a/mmcal}},
+  note         = {The author's C++ and JavaScript implementations of \cite{yannaingaye2013}, MIT licence. The era tables of \texttt{javascript/ceMmDateTime.js} (version 20260909) and \texttt{cpp/include/cemmdt.h} (version 20250726) read 2026-09-25 and found identical to the article's}
+}
+
+@book{irwin1909,
+  author  = {Irwin, A. M. B.},
+  title   = {The Burmese \& Arakanese Calendars},
+  address = {Rangoon},
+  year    = {1909},
+  note    = {Not read directly. Cited by \cite{yannaingaye2013} for the solar year and lunation and by \cite{wikipedia-burmese-calendar} for the Thandeikta reform, the intercalary day's placement and the Arakanese variant}
+}
+
+@misc{wikipedia-burmese-calendar,
+  title        = {Burmese calendar},
+  howpublished = {\url{https://en.wikipedia.org/wiki/Burmese_calendar}},
+  note         = {Wikipedia. The month names in Burmese script, the 29- and 30-day months, the intercalary month and day, the Makaranta and Thandeikta history with its 1838 and 1853 dates, the Metonic remainder sets, the Calendar Advisory Board, the epoch of 22 March 638, the Arakanese and Thai placements of the intercalary day. Retrieved 2026-09-22 and 2026-09-25}
+}
+
+@misc{officeholidays-myanmar-2024,
+  author       = {{Office Holidays}},
+  title        = {National Holidays in Myanmar in 2024},
+  howpublished = {\url{https://www.officeholidays.com/countries/myanmar/2024}},
+  note         = {A secondary list that names no source. Thingyan 13--16 April, New Year 17 April, Kason 22 May, Waso 20 July, Thadingyut 17 October and Tazaungmon 15 November 2024. Its 2025 list, \url{https://www.officeholidays.com/countries/myanmar/2025}, gives Waso as 10 July 2025 where \texttt{burmese} gives 9 July. Both retrieved 2026-09-25}
+}
+
+@misc{scb-myanmar-holidays-2026,
+  author       = {{Siam Commercial Bank Myanmar}},
+  title        = {National Public Holiday of Myanmar for the Year 2026},
+  howpublished = {\url{https://www.scbmm.com/en/about-us/national-holiday.html}},
+  note         = {Tabaung 2 March, Thingyan 11--19 April, Kason 30 April, Waso 29 July, Thadingyut 25--27 October and Tazaungmon 23--24 November 2026. Retrieved 2026-09-25}
+}
+
+@misc{myanmar-national-portal-holidays,
+  author       = {{Myanmar National Portal}},
+  title        = {Upcoming Holidays},
+  howpublished = {\url{https://myanmar.gov.mm/upcoming-holidays}},
+  note         = {Thadingyut holidays 25--27 October and Tazaungdaing holidays 23--24 November 2026. Retrieved 2026-09-25}
+}
+
+@misc{calendarlabs-waso,
+  author       = {{Calendar Labs}},
+  title        = {Full Moon Day of Waso in 2027},
+  howpublished = {\url{https://www.calendarlabs.com/holidays/myanmar/full-moon-waso.php}},
+  note         = {A secondary table that names no source: 13 July 2022, 1 August 2023, 20 July 2024, 18 July 2027. The 2022 date is a day after \texttt{burmese}'s. Retrieved 2026-09-25}
+}
+
+@misc{moip-public-holidays,
+  author       = {{Ministry of Immigration and Population, Myanmar}},
+  title        = {Public Holidays in Myanmar},
+  howpublished = {\url{https://evisa.moip.gov.mm/home/publicholiday}; \url{https://moip.gov.mm/notice/public-holiday}},
+  note         = {The government's lists for 2025 and 2026. Not readable on 2026-09-25: both pages returned their title and no list}
+}
+
+@misc{janson2014,
+  author       = {Janson, Svante},
+  title        = {Tibetan calendar mathematics},
+  year         = {2014},
+  howpublished = {arXiv:1401.6285 [math.HO], \url{https://arxiv.org/abs/1401.6285}},
+  note         = {Dated 31 December 2007, revised 8 January 2014, submitted 24 January 2014; 86 pages. The whole of \texttt{tibetan}'s arithmetic, cited by its equation, remark and table numbers, which are the arXiv version's. Retrieved 2026-09-22 as PDF; re-read 2026-09-25 from the TeX source at \url{https://arxiv.org/e-print/1401.6285}}
+}
+
+@book{henning2007,
+  author    = {Henning, Edward},
+  title     = {Kālacakra and the Tibetan Calendar},
+  series    = {Treasury of the Buddhist Sciences},
+  publisher = {American Institute of Buddhist Studies, Columbia University Press},
+  address   = {New York},
+  year      = {2007},
+  note      = {xv + 391 pp., ISBN 978-0-9753734-9-1. Not read directly: \texttt{tibetan} cites its pp. 10--11 for mean daybreak, and this repository the Phugpa and Tsurphu histories and epoch data, through \cite{janson2014}}
+}
+
+@misc{kalacakra-org,
+  author       = {Henning, Edward},
+  title        = {The Tibetan calendar},
+  howpublished = {\url{https://www.kalacakra.org/calendar/tcal.htm}},
+  note         = {Henning's site, which \cite{janson2014} cites for epoch data, a computed calendar archive and open-source Phugpa, Tsurphu and Bhutanese programs. Not read: on 2026-09-25 the host presented a TLS certificate for another domain and the fetch was refused}
+}
+
+@misc{tnp-losar,
+  author       = {{Tibetan Nuns Project}},
+  title        = {Losar, Tibetan New Year; Important Tibetan Buddhist Holidays in 2024},
+  howpublished = {\url{https://tnp.org/category/losar-tibetan-new-year/}; \url{https://tnp.org/important-tibetan-buddhist-holidays-in-2024/}},
+  note         = {Losar on 21 February 2023 (Water Hare 2150), 10 February 2024 (Wood Dragon 2151), 28 February 2025 (Wood Snake 2152), 18 February 2026 (Fire Horse 2153) and 7 February 2027 (Fire Sheep 2154); Saga Dawa Düchen on 23 May 2024. The posts name no almanac. Retrieved 2026-09-25}
+}
+
+@misc{tibet-net-losar-2152,
+  author       = {{Central Tibetan Administration}},
+  title        = {Sikyong Penpa Tsering of the 16th Kashag greets Tibetans on Losar, Tibetan New Year 2152},
+  howpublished = {\url{https://tibet.net/sikyong-penpa-tsering-of-the-16th-kashag-greets-tibetans-on-losar-tibetan-new-year-2152/}},
+  note         = {Names the year beginning in 2025 as 2152, the Wood Snake year; the page carries no Gregorian date. Retrieved 2026-09-25}
+}
