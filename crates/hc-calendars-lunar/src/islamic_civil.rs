@@ -1,12 +1,14 @@
 //! The tabular Hijri calendar on the civil (Friday) epoch — CLDR
 //! `islamic-civil`.
 //!
-//! This is the arithmetic Hijri calendar in its most common form: the
-//! intercalation scheme of al-Fazārī and al-Khwārizmī
+//! The Hijri family, this scheme's place in it, a month worked by hand and
+//! the closed-form check are in `docs/systems/hijri.md`. This is the
+//! arithmetic Hijri calendar in its most common form: the intercalation
+//! scheme of al-Fazārī, al-Khwārizmī and al-Battānī
 //! ([`LeapYearRule::CIVIL`]), counted from Friday 16 July 622 in the Julian
 //! calendar. It is the calendar behind `islamic-civil` in CLDR, behind
-//! `IslamicCalendar` in ICU's `CIVIL` mode, and behind most published
-//! conversion tables.
+//! ICU's civil calculation type, and behind most published conversion
+//! tables.
 //!
 //! # What it is for, and what it is not
 //!
@@ -15,11 +17,9 @@
 //! exactly why it is not the calendar of religious practice. Months in
 //! practice begin on sighting or on a national table; see
 //! [`crate::islamic_umalqura`] for Saudi Arabia's official table and
-//! [`crate::islamic_observational`] for a sighting *prediction*.
-//!
-//! Compared with the Umm al-Qura calendar over 1300–1600 AH, this calendar's
-//! month starts differ by a day or two for most months; the crate's tests
-//! measure the disagreement rather than assert it away.
+//! [`crate::islamic_observational`] for a sighting *prediction*. Against
+//! the Umm al-Qura table the month starts differ for 39% of months, never
+//! by more than three days; the figure is measured in that module's tests.
 
 use hc_calendar::{Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd};
 

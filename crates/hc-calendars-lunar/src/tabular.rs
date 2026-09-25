@@ -1,13 +1,18 @@
 //! The tabular (arithmetic) Hijri calendar, parameterised.
 //!
+//! The Hijri family is written up in `docs/systems/hijri.md` in the
+//! repository: the calendar as kept by sighting and the schemes beside it,
+//! the thirty-year cycle with its four leap-year patterns and two epochs
+//! and who is credited with each, a month worked by hand, the Umm al-Qura
+//! rules and the visibility criterion, and how every scheme here was
+//! checked. This page keeps the summary and the parameters.
+//!
 //! The Hijri calendar as actually kept is observational: a month begins when
-//! the crescent is *seen*. Since the ninth century, astronomers and
-//! chancelleries have also used an arithmetic stand-in that averages the
-//! synodic month: twelve months alternating 30 and 29 days, giving a year of
-//! 354 days, with a thirtieth day added to the last month in eleven years out
-//! of every thirty. Thirty years then run 10 631 days, a mean month of
-//! 29.530556 days — 2.9 seconds short of the true mean synodic month, so the
-//! scheme drifts by a day in roughly 2 500 years.
+//! the crescent is *seen*. The arithmetic stand-in averages the synodic
+//! month: twelve months alternating 30 and 29 days, a year of 354 days, and
+//! a thirtieth day on the last month in eleven years of every thirty. Thirty
+//! years then run 10 631 days, a mean month of 29.530556 days — 2.9 seconds
+//! short of the true mean synodic month.
 //!
 //! # The data/algorithm split, in miniature
 //!
@@ -30,9 +35,9 @@
 //!
 //! It is not the calendar of any state that determines months by sighting or
 //! by the Umm al-Qura tables, and it does not claim to reproduce any
-//! historical proclamation. Against the Saudi Umm al-Qura calendar
-//! ([`crate::islamic_umalqura`]) the civil variant disagrees by a day or two
-//! for most months.
+//! historical proclamation. The document gives the measured disagreement
+//! between the civil variant and the Saudi table
+//! ([`crate::islamic_umalqura`]).
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,

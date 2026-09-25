@@ -193,6 +193,7 @@
   address   = {Richmond, VA},
   year      = {1998},
   note      = {Chapters 25 and 47, for the equation-of-centre and evection amplitudes the Edo models substitute for their tables}
+}
 
 @misc{lva-vardadienas,
   author = {Valsts valodas centrs},
@@ -359,6 +360,8 @@
   title = {Imieniny},
   howpublished = {\url{https://pl.wikipedia.org/wiki/Imieniny}},
   note = {No source beyond the Catholic liturgical calendar; publishers differ. Read 2026-09-25}
+}
+
 % The Thai lunar calendar and the printed Buddhist year: docs/systems/thai-lunar.md
 
 @misc{bot-fiholiday,
@@ -671,4 +674,94 @@
   title        = {关于2015年 to 2026年部分节假日休市安排的通知},
   howpublished = {\url{https://www.szse.cn/disclosure/notice/general/}, t20141224\_501340 to t20251222\_618087; the 2026 notice of 22 December 2025 at \url{https://www.szse.cn/disclosure/notice/general/t20251222_618087.html}},
   note         = {The same closures as Shanghai's, 周末休市 for the weekend days the arrangement works. The 2026 notice read 2026-09-25; the yearly notices as the exchange table cites them, read 2026-09-25 over http}
+% --- The Hijri calendars (docs/systems/hijri.md) ---
+% reingold2018 and reingold2018code, above, are cited too.
+
+@misc{vangent-tabcal,
+  author       = {van Gent, R. H.},
+  title        = {Islamic-Western Calendar Converter (Based on the Tabular or Arithmetical Calendar)},
+  howpublished = {\url{https://webspace.science.uu.nl/~gent0113/islam/islam_tabcal.htm}; the intercalation schemes on \url{https://webspace.science.uu.nl/~gent0113/islam/islam_tabcal_variants.htm}},
+  note         = {The tabular calendar's eighth-century origin, the four thirty-year schemes with their attributions, the astrolabe pattern of 1212/13, the eight-year cycle, and the Thursday and Friday epochs. Retrieved 2026-09-25}
+}
+
+@misc{vangent-ummalqura,
+  author       = {van Gent, R. H.},
+  title        = {The Umm al-Qura Calendar of Saudi Arabia},
+  howpublished = {\url{https://webspace.science.uu.nl/~gent0113/islam/ummalqura.htm}; the rules on \url{https://webspace.science.uu.nl/~gent0113/islam/ummalqura_rules.htm}},
+  note         = {Who follows the calendar and that KACST computes it for the Ka\`ba; the rules by period: uncertain before 1392 AH, new moon less than three hours after Saudi midnight for 1392--1419, moonset after sunset at Mecca for 1420--1422, conjunction before sunset and moonset after sunset from 1423; about 75\% of first evenings invisible to the naked eye. Retrieved 2026-09-25}
+}
+
+@misc{kacst-ummulqura,
+  author       = {{King Abdulaziz City for Science and Technology}},
+  title        = {التقويم الرسمي أم القرى (The official Umm al-Qura calendar)},
+  howpublished = {\url{https://www.ummulqura.org.sa/}},
+  note         = {The official site. Reached 2026-09-25, when it served only its title; nothing was read from it, and the rules are cited from \cite{vangent-ummalqura}}
+}
+
+@misc{cldr-bcp47-calendar,
+  author       = {{Unicode CLDR}},
+  title        = {common/bcp47/calendar.xml},
+  howpublished = {\url{https://github.com/unicode-org/cldr/blob/main/common/bcp47/calendar.xml}},
+  note         = {The identifiers islamic, islamic-civil, islamic-tbla, islamic-umalqura and islamic-rgsa with their descriptions, all since CLDR 24; islamicc deprecated in favour of islamic-civil. Retrieved 2026-09-25}
+}
+
+@misc{cldr-islamic-calendar-types,
+  author       = {{Unicode CLDR}},
+  title        = {Islamic Calendar Types},
+  howpublished = {Design proposal, \url{https://cldr.unicode.org/development/development-process/design-proposals/islamic-calendar-types}},
+  note         = {The Friday epoch of islamic-civil and the Thursday epoch of islamic-tbla, and Umm al-Qura as the calendar Saudi Arabia adopted for administrative purposes. Retrieved 2026-09-25 as an extracted summary only; not quoted}
+}
+
+@misc{icu-islamcal,
+  author       = {{Unicode ICU}},
+  title        = {icu4c/source/i18n/islamcal.cpp},
+  howpublished = {\url{https://github.com/unicode-org/icu/blob/main/icu4c/source/i18n/islamcal.cpp}},
+  note         = {UMALQURA\_MONTHLENGTH for UMALQURA\_YEAR\_START 1300 to UMALQURA\_YEAR\_END 1600, with no source named; CIVIL\_EPOC 1948440 and ASTRONOMICAL\_EPOC 1948439; the fallback to the civil calculation outside the table. Retrieved 2026-09-25 and compared with the crate's table}
+}
+
+@misc{dawoodibohras-misri,
+  author       = {Adamjee, Mufaddal and Gulamali, Murtaza},
+  title        = {The Misri-Hijri Calendar},
+  howpublished = {The Dawoodi Bohras, \url{https://www.thedawoodibohras.com/the-misri-hijri-calendar/}},
+  note         = {The community's account of its calendar, citing the Sahifa: odd months of 30 and even of 29 days, the qarn saghir of 30 years with kabisa remainders 2, 5, 8, 10, 13, 16, 19, 21, 24, 27 and 29, the worked years 1431 and 1432, and 12 Rabi al-Awwal 1439 on 30 November 2017. Page last updated 2026-01-12; retrieved 2026-09-25}
+}
+
+@misc{spa-ramadan-1445,
+  author       = {{Saudi Press Agency}},
+  title        = {Royal Court: Ramadan Begins in Saudi Arabia Tomorrow, March 11},
+  year         = {2024},
+  howpublished = {\url{https://www.spa.gov.sa/en/N2062566}; the Supreme Court's call to sight the crescent on the evening of 10 March at \url{https://spa.gov.sa/en/N2061434}},
+  note         = {1 Ramadan 1445 = Monday 11 March 2024. Retrieved 2026-09-25, when the page served its title, which carries the date}
+}
+
+@misc{spa-eid-alfitr-1445,
+  author       = {{Saudi Press Agency}},
+  title        = {Supreme Court: Tomorrow is the Last Day of Ramadan and Wednesday is the First Day of Eid Al-Fitr 1445 Hijri},
+  year         = {2024},
+  howpublished = {\url{https://www.spa.gov.sa/en/N2080637}},
+  note         = {1 Shawwal 1445 = Wednesday 10 April 2024, Ramadan completing 30 days. Retrieved 2026-09-25}
+}
+
+@misc{spa-ramadan-1446,
+  author       = {{Saudi Press Agency}},
+  title        = {Royal Court: Ramadan Begins in Saudi Arabia Tomorrow, March 1, 2025},
+  year         = {2025},
+  howpublished = {\url{https://spa.gov.sa/en/N2272538}},
+  note         = {1 Ramadan 1446 = Saturday 1 March 2025. Retrieved 2026-09-25, when the page served its title, which carries the date}
+}
+
+@misc{gulfnews-muharram-1445,
+  author       = {{Gulf News}},
+  title        = {Islamic New Year: Saudi Arabia announces first day of Muharram 1445 Hijri},
+  year         = {2023},
+  howpublished = {\url{https://gulfnews.com/world/gulf/saudi/islamic-new-year-saudi-arabia-announces-first-day-of-muharram-1445-hijri-1.1689676787916}},
+  note         = {The Supreme Court's announcement of 18 July 2023: crescent sighted, 1 Muharram 1445 = Wednesday 19 July 2023. Retrieved 2026-09-25}
+}
+
+@misc{gulfnews-muharram-1447,
+  author       = {{Gulf News}},
+  title        = {Muharram 2025: Hijri New Year begins as moon sighted in Saudi Arabia},
+  year         = {2025},
+  howpublished = {\url{https://gulfnews.com/world/gulf/saudi/muharram-2025-hijri-new-year-begins-as-moon-sighted-in-saudi-arabia-1.500177097}},
+  note         = {Crescent sighted in Saudi Arabia on the evening of Wednesday 25 June 2025, Dhu al-Hijja 1446 of 29 days, so 1 Muharram 1447 = Thursday 26 June 2025. Retrieved 2026-09-25}
 }
