@@ -18,7 +18,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `traditions` | the cross-cutting religious cycles |
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `international` | the United Nations international days, each citing its resolution |
-| `exchanges` | 34 exchange calendars: New York, Nasdaq, Toronto, Mexico City, São Paulo, London, Frankfurt, Zurich, Vienna, Madrid, Warsaw, Moscow, Istanbul, Euronext's seven markets, Nasdaq's four Nordic markets, Johannesburg, Tel Aviv, Riyadh, Tokyo, Seoul, Shanghai, Taipei, Hong Kong, Sydney, NZX |
+| `exchanges` | 42 exchange calendars: New York, Nasdaq, Toronto, Mexico City, São Paulo, London, Frankfurt, Zurich, Vienna, Madrid, Warsaw, Moscow, Istanbul, Euronext's seven markets, Nasdaq's four Nordic markets, Johannesburg, Tel Aviv, Riyadh, Tokyo, Seoul, Shanghai, Shenzhen, Taipei, Hong Kong, Mumbai's NSE and BSE, Bangkok, Singapore, Kuala Lumpur, Jakarta, Manila, Sydney, NZX |
 | `countries` | 180 national tables |
 
 ## The vocabulary
@@ -157,7 +157,7 @@ claims to be complete back to its own founding.
 `exchanges` carries the trading calendars of stock exchanges as rule sets
 keyed by ISO 10383 Market Identifier Code: the days an exchange is closed, as
 public-kind entries that stop business-day arithmetic, and the days it closes
-early or opens late, as observances that do not. Thirty-four so far, each
+early or opens late, as observances that do not. Forty-two so far, each
 from the exchange's own published calendar: the New York Stock Exchange (`XNYS`)
 and Nasdaq (`XNAS`) on one calendar, which closes on
 Good Friday, which no statute makes a holiday, trades on Columbus Day and
@@ -220,6 +220,27 @@ as announced, and Istanbul (`XIST`), with the Bayram days and the half-day eves
 of its tables, are carried as their lists give each year — 2023 to 2026 for
 Moscow and Riyadh, 2024 to 2027 for Tel Aviv, 2019 to 2026 for Istanbul — and
 a year outside them is a gap.
+
+Eight more are in Asia. Shenzhen (`XSHE`) includes China's table on the
+Shanghai rules, its notices for 2015 to 2026 closing the same days. The other
+seven set their days each year and are carried as their lists give them, a
+year outside them a gap: Bangkok (`XBKK`, from its holiday pages for 2022 to
+2027, which substitute a weekday for a Saturday holiday as well as a Sunday
+one and add a special holiday most years); the National Stock Exchange of
+India (`XNSE`) and BSE (`XBOM`), on one list from their circulars and notices
+for 2020 to 2026 — Maharashtra's holidays, the days added for elections, the
+Diwali Laxmi Pujan holiday on which a Muhurat session is held, carried as a
+closure whose name says so, and the Union Budget and other weekend sessions,
+carried as working days; Singapore (`XSES`), which prints no closure list but
+states that it follows the Ministry of Manpower's calendar, so the Ministry's
+holidays for 2020 to 2026, Polling Days included, are carried under that rule
+with the half days SGX prints; Kuala Lumpur (`XKLS`, from its calendar pages
+for 2020 to 2026, with the Mondays its own note gives for a Sunday holiday and
+the half-day eves it printed to 2023); Jakarta (`XIDX`, from its calendars for
+2020 to 2022 and 2024 to 2026, with the joint-leave and election days and its
+own 31 December, 2023 a gap since its calendar could not be read); and Manila
+(`XPHS`, from its memoranda for 2020 to 2026, with the suspensions for the Taal
+ash, the quarantine, a typhoon, a technical failure and floods).
 
 ## What this crate will not do
 
