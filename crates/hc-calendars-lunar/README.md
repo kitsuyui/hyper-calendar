@@ -237,9 +237,9 @@ is what the modern rules say, not what the almanac of 1700 said. The lower
 bound of 1645 is the Shíxiàn calendar, which introduced the true-solar-term
 rule implemented there; before that the terms were mean, the month numbering
 could differ, and the crate refuses those years rather than answering wrongly.
-The Korean and Vietnamese courts adopted the same rules some years later
-still, so dates in that gap are what the rules give, not what was proclaimed
-in Hanseong or Huế.
+Joseon adopted the same rules in 1653, and when the Vietnamese court did is
+not established here, so dates in that gap are what the rules give, not what
+was proclaimed in Hanseong or Huế.
 
 Japan is the exception, and deliberately so: `japanese_historical` implements
 the pre-1844 Japanese systems *on their own constants* precisely in order to
@@ -258,8 +258,9 @@ Finally, year numbering. The Chinese count of 4661 for the year that began in
 2024 is the one *Calendrical Calculations* uses and the one for which
 `hc_calendar::cycle::sexagenary_year` is directly correct; other conventions
 number the same year 4721 or 4722, and none of them is official, because the
-calendar has no official continuous era. Dangi 4357 is the standard Korean
-number. The Vietnamese and Japanese year numbers — the Gregorian year in which
+calendar has no official continuous era. Dangi 4357 is the count from the
+foundation of Gojoseon, Korea's official year number from 1945 to 1961 and not
+in official use now. The Vietnamese and Japanese year numbers — the Gregorian year in which
 the lunisolar year begins — are this crate's own convention and are labelled
 as such. Historical Japanese dates were written with a nengō, and nengō belong
 to `hc-calendars-regional`, not here.

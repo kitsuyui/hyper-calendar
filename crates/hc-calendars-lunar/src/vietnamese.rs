@@ -12,21 +12,30 @@
 //!
 //! | From | Offset | |
 //! |---|---|---|
-//! | — | UT+8 | the 120°E zone, on which the calendar was computed before 1968 |
-//! | 1968 | UT+7 | the 105°E zone, by Decision 121-CP of 8 August 1967 |
+//! | — | UT+8 | the 120°E meridian, on which the published code computes the calendar before 1968 (`vietnamese-location`) |
+//! | 1968 | UT+7 | the 105°E meridian, by Decision 121-CP of 8 August 1967, from 1 January 1968 |
 //!
-//! The conjunction that began the Year of the Monkey fell in the hour
-//! between the two midnights, so the North, on UT+7 from 1 January 1968,
-//! kept Tết on **29 January 1968** and the South, on UT+8, on **30 January**.
-//! The calendar here is the northern one, which is the calendar of unified
-//! Vietnam; the southern reckoning of that year is [`SOUTHERN_PARAMETERS`],
-//! and the crate tests both.
+//! These are the meridians of the *calendar*, not the civil clock: the
+//! Democratic Republic had kept UT+7 as civil time since 1945, and the
+//! 1967 decision is what moved the calendar's computation onto it. The
+//! conjunction that began the Year of the Monkey fell in the hour between
+//! the two midnights, so the north, computing on UT+7 from 1 January 1968,
+//! kept Tết on **29 January 1968** and the south, whose calendar stayed on
+//! UT+8 — its civil time since 1960 — on **30 January**. The calendar here
+//! is the northern one, which is the calendar of unified Vietnam; the
+//! southern reckoning of that year is [`SOUTHERN_PARAMETERS`], and the
+//! crate tests both. The same hour catches the conjunction of February
+//! 1969: Tết Kỷ Dậu fell on 16 February in the north, the day Hồ Chí Minh
+//! planted the tree at Vật Lại "sáng 16-2-1969 (mồng 1 Tết)"
+//! (`nhandan-tet-trong-cay-2019`), and on 17 February, with Chinese New
+//! Year, in the south.
 //!
 //! # Year numbering
 //!
 //! There is no continuous Vietnamese era, so years are numbered by the
 //! Gregorian year in which they begin: the year that began on 2024-02-10 is
-//! 2024. That is this crate's choice rather than anyone's official one. The
+//! 2024. That is this crate's choice rather than anyone's official one, and
+//! no claim is made about what other tools do. The
 //! sexagenary term — 2024 is *Giáp Thìn* — is the traditional name and is
 //! available through [`LunisolarParameters::sexagenary_year`].
 //!
@@ -56,19 +65,28 @@ pub const LATEST: Rd = civil::to_rd(2150, 12, 31);
 
 /// The meridian history of the Vietnamese calendar, northern reckoning.
 pub static MERIDIANS: [MeridianEra; 2] = [
-    MeridianEra::from_zone(i64::MIN / 4, 8.0, "the Indochina zone of 120°E"),
-    MeridianEra::from_zone(1968, 7.0, "the 105°E zone"),
+    MeridianEra::from_zone(i64::MIN / 4, 8.0, "the 120°E meridian"),
+    MeridianEra::from_zone(1968, 7.0, "the 105°E meridian"),
 ];
 
-/// The meridian of the Republic of Vietnam, which stayed on UT+8 through
-/// Tết 1968.
+/// The meridian of the Republic of Vietnam's calendar, which stayed on
+/// UT+8 through Tết 1968.
 ///
 /// Kept as data rather than prose so that the crate can test the
-/// disagreement rather than only describe it.
+/// disagreement rather than only describe it. It keeps UT+8 for all time,
+/// as the published code does for the whole country before 1968, and
+/// carries no era for the south's civil time of UT+7 before 1 January
+/// 1960: the calendar's meridian is not the civil clock — the north kept
+/// UT+7 civil time from 1945 and computed its calendar on UT+8 until 1968
+/// — and no southern almanac was read. Had the set been read at UT+7
+/// before 1960, three month boundaries of the Republic's years would move
+/// by a day (2 to 3 November 1956, 1 to 2 March 1957, 21 to 22 November
+/// 1957) and no new year or leap month; the system document has the
+/// measurement.
 pub static SOUTHERN_MERIDIANS: [MeridianEra; 1] = [MeridianEra::from_zone(
     i64::MIN / 4,
     8.0,
-    "the Indochina zone of 120°E",
+    "the 120°E meridian",
 )];
 
 /// The parameters of the Vietnamese calendar.
@@ -158,8 +176,9 @@ mod tests {
 
     #[test]
     fn tet_1968_fell_on_different_days_in_the_north_and_the_south() {
-        // The documented case: the North, on UT+7 from 1 January 1968, kept
-        // Tết on 29 January; the South, still on UT+8, on 30 January.
+        // The documented case: the north, computing on UT+7 from 1 January
+        // 1968, kept Tết on 29 January; the south, whose calendar stayed on
+        // UT+8, on 30 January.
         assert_eq!(tet(1_968), Ok(civil::to_rd(1968, 1, 29)));
         assert_eq!(
             SOUTHERN_PARAMETERS.new_year(1_968),
@@ -179,6 +198,24 @@ mod tests {
         // change of zone shows up in a handful of years.
         assert!(differences >= 1, "the zone change had no effect at all");
         assert!(differences <= 5, "{differences} years differed");
+    }
+
+    #[test]
+    fn tet_1969_fell_a_day_before_chinese_new_year() {
+        // The conjunction of 16 February 1969 at 16:25 UT is 23:25 at UT+7,
+        // still the 16th, and 00:25 at UT+8, the 17th. Nhân Dân dates Hồ
+        // Chí Minh's tree-planting at
+        // Vật Lại "sáng 16-2-1969 (mồng 1 Tết)" (`nhandan-tet-trong-cay-2019`);
+        // the south, on UT+8, kept Tết with China on the 17th.
+        assert_eq!(tet(1_969), Ok(civil::to_rd(1969, 2, 16)));
+        assert_eq!(
+            SOUTHERN_PARAMETERS.new_year(1_969),
+            Ok(civil::to_rd(1969, 2, 17))
+        );
+        assert_eq!(
+            chinese::new_year(1_969 + 2_637),
+            Ok(civil::to_rd(1969, 2, 17))
+        );
     }
 
     #[test]

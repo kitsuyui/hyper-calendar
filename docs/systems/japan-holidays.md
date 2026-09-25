@@ -184,15 +184,16 @@ The equinox computation is checked in `hc-seasons`
 (`crates/hc-seasons/tests/japanese_equinox_days.rs`) against the published
 days for 1980 to 2030 transcribed into the test, 102 dates, with no
 disagreement, and against a floor formula for 1980 to 2099 that
-reproduces the published table. The crate's module documentation and
-README describe that as agreement with 240 days "the Observatory has
-published for 1980–2099"; the Observatory publishes one year ahead — the
-latest 暦要項 is for 2027 — and its FAQ gives predicted dates only to
-2050, with a caveat. The 2031–2099 comparison is therefore against the
+reproduces the published table. The Observatory publishes one year ahead
+— the latest 暦要項 is for 2027 — and its FAQ gives predicted dates only
+to 2050, with a caveat. The 2031–2099 comparison is therefore against the
 formula, which the test file gives without attribution and which
 circulates in Japanese references as a simplification of the 1980 epoch
-and the tropical year. The comparison is still worth having, but it is a
-comparison with a prediction, not with a publication.
+and the tropical year: a comparison with a prediction, not with a
+publication. `hc-holiday`'s README now says so; `hc-seasons`'s module
+documentation still describes it as agreement with 240 days "the
+Observatory has published for 1980–2099", and that statement is left to
+the change that is revising the solar-term code.
 
 Known points a reader may stumble on:
 

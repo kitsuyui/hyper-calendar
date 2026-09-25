@@ -236,8 +236,11 @@ Known points a reader may stumble on:
 - ConsultantPlus's calendar is itself a reading of the article and the
   decree, not a primary source; it is what employers use, and a
   disagreement between it and the engine would be a bug in one of them.
-- The table's own `sources` string dates the 2012 amendment "35-ФЗ of
-  2012" without a day; it is 23 April 2012.
+- The table's `sources` string dates the two amendments in full, 201-ФЗ of
+  29 December 2004 and 35-ФЗ of 23 April 2012, and says what the years
+  before 2005 rest on: the changes of 1991, 1992, 1993, 1996 and 2002 come
+  from Wikipedia's "Public holidays in Russia" and no statute read, and
+  the President's non-working days of 2020 and 2021 were not read.
 
 ## Sources
 

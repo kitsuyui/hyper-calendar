@@ -29,7 +29,11 @@
 //!    takes the name of the month that follows it, written
 //!    [`Month::leap(n)`](hc_calendar::Month::leap).
 //! 4. **A month with two saṅkrāntis loses a name** — *kṣaya māsa* — and
-//!    keeps the first; the name it loses is reported as not existing.
+//!    keeps the first; the name it loses is reported as not existing. It
+//!    is rare: it can only happen near perihelion, when the Sun's stay in a
+//!    sign is shortest, and in Sewell and Dikshit's tables of 300 to
+//!    1900 CE the expunged months come 19 to 141 years apart
+//!    (`sewell1896`, Art. 50). Neither year the tests check has one.
 //! 5. **The year is the Śaka era**, counted from Chaitra śukla 1; a
 //!    Gregorian year *g* holds the turn of Śaka *g* − 78. The Vikrama year,
 //!    135 greater, is carried as an extra field.

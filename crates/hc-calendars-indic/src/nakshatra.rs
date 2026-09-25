@@ -163,9 +163,12 @@ pub fn nakshatra_span(nakshatra: u8, moment: Moment, ayanamsa: Ayanamsa) -> (Mom
 /// in the northern summer when the Earth is farther from it, so a year holds
 /// twenty-seven such stays, each beginning twice a month or so. The
 /// almanacs print their entry times as the Sun's nakṣatra transits (Sūrya
-/// nakṣatra gochar), and two farming calendars are counted by them:
-/// Kerala's ñāṭṭuvēla, whose Thiruvathira period is the Sun's stay in
-/// Ārdrā at the monsoon's height, and the rain nakṣatras of the Deccan.
+/// nakṣatra gochar). Kerala's farming calendar counts by them: a
+/// ñāṭṭuvēla is the Sun's stay in one nakṣatra, twenty-seven to the year
+/// of thirteen to fourteen days each, and the Thiruvathira ñāṭṭuvēla, the
+/// Sun's stay in Ārdrā at the monsoon's height, is the one the farmers hold
+/// the best (`wikipedia-ml-njattuvela`); other regions' reckonings by the
+/// Sun's nakṣatra are not sourced here.
 /// Which ayanamsa an almanac measures from is its own convention and a
 /// parameter here; the Lahiri value is the one the Indian national almanac
 /// and Drik Panchang use. Drik Panchang's Lahiri stands about 20″ from the
@@ -296,8 +299,8 @@ mod tests {
 
     #[test]
     fn the_sun_stays_about_a_fortnight_in_ardra_at_the_monsoons_height() {
-        // Kerala's Thiruvathira ñāṭṭuvēla: the Sun in Ārdrā, 22 June to
-        // 6 July 2025 by the table above.
+        // Kerala's Thiruvathira ñāṭṭuvēla (`wikipedia-ml-njattuvela`): the
+        // Sun in Ārdrā, 22 June to 6 July 2025 by the table above.
         let (entry, exit) = solar_nakshatra_span(at(2025, 6, 30, 0.0, 0.0), Ayanamsa::LAHIRI);
         assert_eq!(
             solar_nakshatra_at(at(2025, 6, 30, 0.0, 0.0), Ayanamsa::LAHIRI),

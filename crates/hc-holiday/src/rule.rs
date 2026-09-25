@@ -1452,8 +1452,8 @@ pub struct HolidayRule {
     ///
     /// South Korea is why this is per holiday rather than per country: its
     /// 대체공휴일 covered only Seollal, Chuseok and Children's Day until
-    /// 2021, four more national days from July 2021, and Buddha's Birthday
-    /// and Christmas from 2023.
+    /// 2021, four more national days from August 2021, and Buddha's
+    /// Birthday and Christmas from 2023.
     pub substitute_from: Option<i32>,
     /// Weekdays that trigger a substitution for this holiday alone,
     /// overriding the country policy's own `trigger`.

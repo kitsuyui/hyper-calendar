@@ -1,8 +1,9 @@
 # The Maya and Aztec counts
 
-Backs the identifiers `maya-longcount`, `maya-longcount-gmt2`, `maya-tzolkin`,
-`maya-haab`, `maya-round`, `aztec-tonalpohualli` and `aztec-xiuhpohualli` in
-`hc-calendars-regional`.
+Backs the identifiers `maya-longcount`, `maya-tzolkin`, `maya-haab`,
+`maya-round`, their GMT+2 counterparts `maya-longcount-gmt2`,
+`maya-tzolkin-gmt2`, `maya-haab-gmt2` and `maya-round-gmt2`, and
+`aztec-tonalpohualli` and `aztec-xiuhpohualli` in `hc-calendars-regional`.
 
 ## What it is
 
@@ -117,7 +118,9 @@ right is a claim about history, not arithmetic; this library therefore
 registers 584 283 as `maya-longcount` and 584 285 as `maya-longcount-gmt2`,
 two calendars with two names, so that a caller can ask both and see the
 two-day difference rather than get one of them silently
-([policy.md §5](../policy.md)).
+([policy.md §5](../policy.md)), and the three cycles likewise, under
+`-gmt2` names, because a Calendar Round is only the round an inscription
+pairs with its long count when both are read under the same constant.
 
 **The Aztec counts and Caso's correlation.** The tonalpohualli works
 exactly as the Tzolkʼin, with the signs Cipactli, Ehecatl, Calli,
@@ -198,15 +201,26 @@ name independently.
   accepts any other constant — 584 286, say — but such a calendar reports
   the identifier `maya-longcount` and is not registered.
 - **`maya-tzolkin`**, **`maya-haab`**, **`maya-round`** — the three
-  cycles, anchored to 584 283 **only**: their epochs are derived from
-  `EPOCH`, and reading the same fixed day through them beside
-  `maya-longcount-gmt2` gives a Calendar Round two positions on (Chiapa de
-  Corzo's day comes out 8 Men 18 Xul). The Tzolkʼin and Haabʼ are unbounded
-  and run backwards through the epoch; `maya-round` is bounded to the Long
-  Count's twenty baktun so that its round number stays meaningful beside
+  cycles anchored to 584 283, as `MayaTzolkinCalendar::GMT`,
+  `MayaHaabCalendar::GMT` and `MayaCalendarRoundCalendar::GMT`, and
+  **`maya-tzolkin-gmt2`**, **`maya-haab-gmt2`**, **`maya-round-gmt2`**, the
+  same cycles anchored to 584 285 as the `GMT_PLUS_TWO` constants of the
+  same types. A cycle's epoch is 159 or 348 days before its constant's
+  `0.0.0.0.0`, which is 4 Ahau 8 Cumku under either, so a fixed day read
+  through the cycles of one constant beside the long count of the other
+  comes out two positions on: Chiapa de Corzo's day is 6 Ben 16 Xul under
+  `maya-longcount` and `maya-round` together, or under the two `-gmt2`
+  calendars together, and 8 Men 18 Xul when the two are mixed. Each type's
+  `with_correlation` takes any other constant, unnamed as the Long Count's
+  is. The Tzolkʼin and Haabʼ are unbounded and run backwards through the
+  epoch; the Calendar Round is bounded to the Long Count's twenty baktun
+  under its own constant so that its round number stays meaningful beside
   it. The Haabʼ's generic `day` field is **1-based** as the trait
   requires, so 0 Pop is `day: 1` in `DateFields` and `day: 0` in
-  `HaabPosition`.
+  `HaabPosition`. The Haabʼ's month names come from the shape the calendar
+  declares, as the 584 283 one's do, so `hc-i18n` names the `-gmt2` months
+  without any locale entry, and `hyper-calendar`'s vocabulary test counts
+  both.
 - **`aztec-tonalpohualli`**, **`aztec-xiuhpohualli`** — the two Aztec
   cycles under Caso's anchor, `CORRELATION` = RD 555 403, unbounded in
   both directions. Xiuhpohualli days are 1-based in the position and the
@@ -266,6 +280,7 @@ anchor. The tests hold these published readings:
 | 21 September 2026 = 13.0.13.17.2 | [azteccalendar] | `a_published_modern_long_count_matches` |
 | 13 August 1521 (Julian) = 1 Coatl, 2 Xocotlhuetzi | [reingold2018code] | `the_correlation_is_the_fall_of_tenochtitlan`, `tenochtitlan_fell_on_one_coatl_two_xocotlhuetzi` |
 | 21 September 2026 = 8 Ehecatl, 14 Tititl | [azteccalendar] | `a_published_modern_date_matches` |
+| 7.16.3.2.13 = 6 Ben 16 Xul, round 59, under either constant read consistently, and not when mixed; 13.0.0.0.0 = 4 Ahau 3 Kankin on 23 December 2012 under 584 285; the `-gmt2` cycles two days on everywhere | the worked example above; [famsi-vanstone-2012] | `the_cycles_follow_their_long_count_under_each_correlation` |
 
 Beyond the anchors, the tests check that exactly 18 980 of the 94 900
 Tzolkʼin–Haabʼ pairings are accepted, that every day of a whole Calendar
@@ -326,23 +341,28 @@ source: that Sahagún's informants dated the fall of Tenochtitlan 1 Coatl,
 2 Xocotlhuetzi (the pairing is Reingold and Dershowitz's, attributed by them
 to Caso; the *Florentine Codex* was not read); that the "Nuttall–Ochoa
 model" is the name of the competing reconstruction (Wikipedia names Ochoa
-and Medina correlations, not Nuttall); that the radiocarbon result supports
-584 283 as a number rather than "the GMT correlation" by name, which is all
-the abstract says; that the Calendar Round "is what most dated monuments
-actually carry"; that the day and month spellings are those of Reingold and
-Dershowitz's tables (the tables were not read; Wikipedia's older spelling is
-the same); and, in the roadmap row, that Stela 2's two highest places are
-reconstructed — the Long Count article offers a second reading, 8.7.3.2.13,
-which differs in exactly those two places, and says no more.
+and Medina correlations, not Nuttall); that the Calendar Round "is what
+most dated monuments actually carry"; that the day and month spellings are
+those of Reingold and Dershowitz's tables (the tables were not read;
+Wikipedia's older spelling is the same); and, in the roadmap row, that
+Stela 2's two highest places are reconstructed — the Long Count article
+offers a second reading, 8.7.3.2.13, which differs in exactly those two
+places, and says no more. The `GMT` constant's documentation once read the
+radiocarbon result as supporting 584 283 as a number; it now says what the
+abstract says, that the lintel "strongly supports" the GMT correlation by
+name, and that 584 283 is the value the literature calls GMT.
 
 ## Code
 
 `crates/hc-calendars-regional/src/maya.rs` (`GMT_CORRELATION`,
 `GMT_PLUS_TWO_CORRELATION`, `EPOCH`, `MayaLongCountCalendar`,
 `MayaTzolkinCalendar`, `MayaHaabCalendar`, `MayaCalendarRoundCalendar`,
-`calendar_round_ordinal`) and `aztec.rs` (`CORRELATION`,
+`calendar_round_ordinal`, the `GMT` and `GMT_PLUS_TWO` constants of the
+three cycle types) and `aztec.rs` (`CORRELATION`,
 `AztecTonalpohualliCalendar`, `AztecXiuhpohualliCalendar`). Anchors:
 `the_correlation_puts_the_epoch_where_the_constant_says`,
+`the_cycles_under_each_correlation_are_separate_calendars`,
+`the_cycles_follow_their_long_count_under_each_correlation`,
 `the_epoch_is_four_ahau_eight_cumku`,
 `the_thirteenth_baktun_ended_on_the_twenty_first_of_december_2012`,
 `the_thirteenth_baktun_ended_on_four_ahau_three_kankin`,

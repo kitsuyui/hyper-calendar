@@ -29,9 +29,11 @@
 //!
 //! *Dangi* (단기) years count from the traditional foundation of Gojoseon in
 //! 2333 BCE, so the year that began on 2024-02-10 is Dangi 4357, 304 less
-//! than the Chinese count of the same year; the sexagenary term is of course
-//! identical, and [`LunisolarParameters::sexagenary_year`] corrects for the
-//! offset so that it stays so.
+//! than the Chinese count of the same year, which is what the published
+//! code's `korean-year` gives. The count was Korea's official year number
+//! from 1945 to 1961 and is not in official use now; the sexagenary term
+//! is of course identical, and [`LunisolarParameters::sexagenary_year`]
+//! corrects for the offset so that it stays so.
 //!
 //! # Range
 //!
@@ -62,6 +64,12 @@ pub const EARLIEST: Rd = civil::to_rd(1645, 1, 1);
 pub const LATEST: Rd = civil::to_rd(2150, 12, 31);
 
 /// The meridian history of the Korean calendar.
+///
+/// The eras are keyed by year where the published code changes on
+/// 1 April 1908, 1 January 1912, 21 March 1954 and 10 August 1961; the
+/// test `the_year_keyed_eras_give_the_days_the_day_keyed_changes_give`
+/// shows that no new moon and no zhōngqì in the three partial years falls
+/// on a different day under either offset.
 pub static MERIDIANS: [MeridianEra; 5] = [
     MeridianEra::from_zone(i64::MIN / 4, 3_809.0 / 450.0, "Seoul local mean time"),
     MeridianEra::from_zone(1908, 8.5, "the 127°30′E zone"),
@@ -212,6 +220,117 @@ mod tests {
                 era.offset_hours
             );
         }
+    }
+
+    /// A parameter set reading the whole range at one offset, for the
+    /// comparison below.
+    const fn at_offset(meridians: &'static [MeridianEra]) -> LunisolarParameters {
+        LunisolarParameters {
+            id: CalendarId("dangi-test"),
+            english_name: "test",
+            meridians,
+            epoch: CHINESE_EPOCH,
+            year_offset: YEAR_OFFSET,
+            solar_term_mode: SolarTermMode::Apparent,
+            mean_motion: None,
+            earliest: Some(EARLIEST),
+            latest: Some(LATEST),
+        }
+    }
+
+    #[test]
+    fn the_year_keyed_eras_give_the_days_the_day_keyed_changes_give() {
+        // The published code's `korean-location` changes offset on 1 April
+        // 1908, 1 January 1912, 21 March 1954 and 10 August 1961; this
+        // table changes at the start of each of those years. In the three
+        // windows where the two disagree, every new moon and every
+        // zhōngqì must fall on the same day under either offset, or a date
+        // would differ. (The winter solstice is outside all three.)
+        static SEOUL: [MeridianEra; 1] = [MeridianEra::from_zone(
+            i64::MIN / 4,
+            3_809.0 / 450.0,
+            "Seoul local mean time",
+        )];
+        static HALF: [MeridianEra; 1] = [MeridianEra::from_zone(
+            i64::MIN / 4,
+            8.5,
+            "the 127°30′E zone",
+        )];
+        static NINE: [MeridianEra; 1] =
+            [MeridianEra::from_zone(i64::MIN / 4, 9.0, "the 135°E zone")];
+        static AT_SEOUL: LunisolarParameters = at_offset(&SEOUL);
+        static AT_HALF: LunisolarParameters = at_offset(&HALF);
+        static AT_NINE: LunisolarParameters = at_offset(&NINE);
+        let windows: [(&LunisolarParameters, &LunisolarParameters, Rd, Rd); 3] = [
+            // 1 January to 31 March 1908: the code reads Seoul mean time,
+            // the table UT+8:30.
+            (
+                &AT_SEOUL,
+                &AT_HALF,
+                civil::to_rd(1908, 1, 1),
+                civil::to_rd(1908, 3, 31),
+            ),
+            // 1 January to 20 March 1954: UT+9 against UT+8:30.
+            (
+                &AT_NINE,
+                &AT_HALF,
+                civil::to_rd(1954, 1, 1),
+                civil::to_rd(1954, 3, 20),
+            ),
+            // 1 January to 9 August 1961: UT+8:30 against UT+9.
+            (
+                &AT_HALF,
+                &AT_NINE,
+                civil::to_rd(1961, 1, 1),
+                civil::to_rd(1961, 8, 9),
+            ),
+        ];
+        let mut events = 0;
+        for (published, table, first, last) in windows {
+            let mut previous_moon = None;
+            for rd in first.0..=last.0 {
+                let rd = Rd(rd);
+                let moon = published.new_moon_on_or_after(rd);
+                assert_eq!(moon, table.new_moon_on_or_after(rd), "new moon from {rd}");
+                if previous_moon != Some(moon) {
+                    events += 1;
+                    previous_moon = Some(moon);
+                }
+                assert_eq!(
+                    published.major_solar_term(rd),
+                    table.major_solar_term(rd),
+                    "zhōngqì index at {rd}"
+                );
+                assert_eq!(published.from_fixed(rd), table.from_fixed(rd), "{rd}");
+            }
+        }
+        // The windows hold about a year of lunations between them.
+        assert!(events >= 12, "{events} new moons checked");
+        // And the table does read the offsets the windows assume.
+        assert!(
+            (PARAMETERS
+                .meridian_era(civil::to_rd(1908, 2, 1))
+                .offset_hours
+                - 8.5)
+                .abs()
+                < 1e-9
+        );
+        assert!(
+            (PARAMETERS
+                .meridian_era(civil::to_rd(1954, 2, 1))
+                .offset_hours
+                - 8.5)
+                .abs()
+                < 1e-9
+        );
+        assert!(
+            (PARAMETERS
+                .meridian_era(civil::to_rd(1961, 2, 1))
+                .offset_hours
+                - 9.0)
+                .abs()
+                < 1e-9
+        );
     }
 
     #[test]

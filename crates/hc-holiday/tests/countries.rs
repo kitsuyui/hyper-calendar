@@ -854,6 +854,37 @@ fn south_korea_holidays() {
         ],
     );
     expect_working("KR", None, &[(2023, 10, 1)]);
+    // The days the decree dropped: 2 January to 1998 and 3 January to
+    // 1989, 식목일 to 2005 (with 사방의 날 in its place in 1960 alone) and
+    // 국군의 날 from 1976 to 1990.
+    expect(
+        "KR",
+        None,
+        &[
+            (1998, 1, 2, "New Year Holiday"),
+            (1989, 1, 3, "New Year Holiday"),
+            (1959, 4, 5, "Arbor Day"),
+            (1960, 3, 21, "Erosion Control Day"),
+            (1961, 4, 5, "Arbor Day"),
+            (2005, 4, 5, "Arbor Day"),
+            (1976, 10, 1, "Armed Forces Day"),
+            (1990, 10, 1, "Armed Forces Day"),
+            (1956, 6, 6, "Memorial Day"),
+        ],
+    );
+    expect_working(
+        "KR",
+        None,
+        &[
+            (1999, 1, 2),
+            (1990, 1, 3),
+            (1960, 4, 5),
+            (2006, 4, 5),
+            (1975, 10, 1),
+            (1991, 10, 1),
+            (1955, 6, 6),
+        ],
+    );
 }
 
 #[test]
@@ -876,6 +907,15 @@ fn the_korean_substitute_holiday_covers_sundays_and_collisions() {
     // Before 2014 there was no substitute at all: 3 October 2010 was a
     // Sunday.
     expect_working("KR", None, &[(2010, 10, 4)]);
+    // Except under the 익일휴무제 of 1989–1990: 국군의 날 fell on Sunday
+    // 1 October 1989 and Monday the 2nd was off, the one day the rule ever
+    // produced. The Seollal run was outside it — Sunday 28 January 1990,
+    // the day after Seollal, earned nothing — and 개천절 on the day of
+    // Chuseok, Wednesday 3 October 1990, is not carried as owing a day.
+    expect_substitute("KR", None, 1989, (10, 1), (10, 2));
+    expect_working("KR", None, &[(1990, 1, 29), (1990, 10, 5)]);
+    // And not before 1989: 한글날 fell on Sunday 9 October 1988.
+    expect_working("KR", None, &[(1988, 10, 10)]);
 }
 
 #[test]

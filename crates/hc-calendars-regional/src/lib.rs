@@ -13,7 +13,7 @@
 //! | Module | Calendars |
 //! | --- | --- |
 //! | [`japanese`] | `japanese`, `japanese-northern`, `japanese-southern`, `japanese-proclaimed` — imperial eras (和暦), Gregorian from 1873 and lunisolar before it |
-//! | [`maya`] | `maya-longcount`, `maya-longcount-gmt2`, `maya-tzolkin`, `maya-haab`, `maya-round` |
+//! | [`maya`] | `maya-longcount`, `maya-tzolkin`, `maya-haab`, `maya-round`, and the same four under the GMT+2 correlation as `maya-longcount-gmt2`, `maya-tzolkin-gmt2`, `maya-haab-gmt2`, `maya-round-gmt2` |
 //! | [`aztec`] | `aztec-tonalpohualli`, `aztec-xiuhpohualli` |
 //! | [`balinese_pawukon`] | `balinese-pawukon` — thirty *wuku* and ten concurrent week cycles over 210 days |
 //! | [`javanese_pasaran`] | `javanese-pasaran` — the five-day market week and the 35-day wetonan |
@@ -129,7 +129,9 @@ mod registration {
     /// The four Maya calendars are registered separately because they are
     /// four calendars and not four views of one: a Maya scribe who wrote a
     /// Calendar Round date had said something a long count date does not
-    /// say, and vice versa.
+    /// say, and vice versa. Each is registered under both correlation
+    /// constants, so that the cycles read beside `maya-longcount-gmt2` are
+    /// anchored as it is.
     pub fn register_all(registry: &mut CalendarRegistry) {
         registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::UNIFIED)));
         registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::NORTHERN)));
@@ -139,9 +141,20 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(
             crate::MayaLongCountCalendar::GMT_PLUS_TWO,
         )));
-        registry.insert(Box::new(DynAdapter::new(crate::MayaTzolkinCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::MayaHaabCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::MayaCalendarRoundCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::MayaTzolkinCalendar::GMT)));
+        registry.insert(Box::new(DynAdapter::new(crate::MayaHaabCalendar::GMT)));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::MayaCalendarRoundCalendar::GMT,
+        )));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::MayaTzolkinCalendar::GMT_PLUS_TWO,
+        )));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::MayaHaabCalendar::GMT_PLUS_TWO,
+        )));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::MayaCalendarRoundCalendar::GMT_PLUS_TWO,
+        )));
         registry.insert(Box::new(DynAdapter::new(crate::AztecTonalpohualliCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::AztecXiuhpohualliCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BalinesePawukonCalendar)));
@@ -160,7 +173,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 19;
+const CALENDAR_COUNT: usize = 22;
 
 #[cfg(test)]
 mod tests {
@@ -217,9 +230,13 @@ mod tests {
             round_trip_every_calendar!(
                 Rd(rd),
                 MayaLongCountCalendar::GMT,
-                MayaTzolkinCalendar,
-                MayaHaabCalendar,
-                MayaCalendarRoundCalendar,
+                MayaLongCountCalendar::GMT_PLUS_TWO,
+                MayaTzolkinCalendar::GMT,
+                MayaHaabCalendar::GMT,
+                MayaCalendarRoundCalendar::GMT,
+                MayaTzolkinCalendar::GMT_PLUS_TWO,
+                MayaHaabCalendar::GMT_PLUS_TWO,
+                MayaCalendarRoundCalendar::GMT_PLUS_TWO,
                 AztecTonalpohualliCalendar,
                 AztecXiuhpohualliCalendar,
                 BalinesePawukonCalendar,
@@ -316,7 +333,8 @@ mod tests {
         for meta in [
             JapaneseCalendar::UNIFIED.meta(),
             MayaLongCountCalendar::GMT.meta(),
-            MayaCalendarRoundCalendar.meta(),
+            MayaCalendarRoundCalendar::GMT.meta(),
+            MayaCalendarRoundCalendar::GMT_PLUS_TWO.meta(),
             ThaiLunarCalendar.meta(),
         ] {
             let first = meta.earliest.expect("bounded below");
@@ -340,7 +358,7 @@ mod tests {
         // A cycle has no epoch in the sense a calendar does, so the only
         // honest bound is the arithmetic one.
         let deep = Rd(-5_000_000);
-        assert!(MayaTzolkinCalendar.from_fixed(deep).is_ok());
+        assert!(MayaTzolkinCalendar::GMT.from_fixed(deep).is_ok());
         assert!(BalinesePawukonCalendar.from_fixed(deep).is_ok());
         assert!(SexagenaryCalendar.from_fixed(deep).is_ok());
     }
@@ -436,6 +454,8 @@ mod tests {
     const YEAR_IS_A_ROUND_POSITION: &[&str] = &[
         "maya-haab",
         "maya-round",
+        "maya-haab-gmt2",
+        "maya-round-gmt2",
         "aztec-xiuhpohualli",
         "balinese-pawukon",
     ];
