@@ -199,6 +199,16 @@ This is a cost, and it is paid deliberately. A date library is a dependency of
 everything else; it should not drag a tree behind it. It also keeps the
 WebAssembly artefact small and the `cargo audit` surface near zero.
 
+The same care applies to code that would never appear in `Cargo.toml`. The
+algorithms here are written from published rules and the reference dates
+that accompany them — *Calendrical Calculations* above all — and anchored to
+those dates with tests of their own. A rule is a procedure and free to
+implement; a reference's own source code is a separate work under its own
+licence, and it is read only where that licence allows it and named where it
+was read, as the Babylonian module names the book's Apache-licensed
+`calendar-code2`. This workspace is BSD-3-Clause, and nothing under a
+licence that BSD-3-Clause cannot carry is copied into it.
+
 ## 10. Recurring events need an authority, not an opinion
 
 Periodic events — Olympiads, World Cups, election years, Jubilee years — are

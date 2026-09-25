@@ -38,3 +38,11 @@ decision rather than a silent assumption.
 **Costs.** More `Result` in the API than a library that always answers. Code
 that schedules into the future has to choose a policy explicitly. That is the
 intended cost: the choice exists whether or not the API admits it.
+
+**Open.** `CalendarMeta` distinguishes arithmetic from astronomical and
+bounded from unbounded, but not computed from *decreed*. A calendar whose
+months are fixed each year by an authority — the Umm al-Qura, the Nepali
+Bikram Sambat as gazetted, the Sinhalese new year as published — is a third
+kind, one where a computed answer can differ from the ruling by a day and is
+most confidently wrong when it does. The tables carry the rulings and refuse
+outside them, but a caller cannot yet ask the metadata which kind it holds.

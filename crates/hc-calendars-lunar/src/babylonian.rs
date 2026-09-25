@@ -8,9 +8,10 @@
 //! second Addaru in the years ≡ 1, 4, 7, 9, 12 and 15 (mod 19) of the
 //! Seleucid count and a second Ulūlu in the years ≡ 18. The rules are those
 //! Reingold and Dershowitz give in *Calendrical Calculations* (4th ed.,
-//! Cambridge, 2018), transcribed from the `babylonian-*` functions of their
-//! published source, `calendar.l` in the `calendar-code2` repository, read
-//! 2026-09-25; they in turn follow Parker and Dubberstein, *Babylonian
+//! Cambridge, 2018), following the `babylonian-*` functions of their
+//! published source, `calendar.l` in the `calendar-code2` repository
+//! (Apache License 2.0), read 2026-09-25; they in turn follow Parker and
+//! Dubberstein, *Babylonian
 //! Chronology 626 B.C.–A.D. 75* (Brown University Press, 1956; rev. 1971).
 //!
 //! # The year count

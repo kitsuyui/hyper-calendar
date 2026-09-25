@@ -61,6 +61,19 @@ Instead, `hc-core::unix` models it explicitly:
   leap second and the second after it share a timestamp. That ambiguity is what
   POSIX time is, and the type is named so nobody mistakes it for elapsed time.
 
+### Smeared time is not UTC
+
+Some operators spread a leap second over the hours around it, so that their
+clocks never read `23:59:60`. What such a clock reads is neither UTC nor
+TAI, and a client cannot tell from the reading alone; RFC 8633, the NTP best
+current practice, says clients must not mix smeared and unsmeared servers and
+that public servers must not smear. The library has no type for smeared
+time and does not label it UTC, for the same reason it refuses to
+extrapolate a leap second ([ADR 0006](adr/0006-refuse-to-extrapolate.md)):
+a smeared reading passed off as UTC would defeat the leap-second table and
+the flag that make `23:59:60` nameable. A caller with a smeared clock
+converts it to true UTC on their side, where the smear's shape is known.
+
 ### Three eras of UTC
 
 | Era | `TAI − UTC` |
