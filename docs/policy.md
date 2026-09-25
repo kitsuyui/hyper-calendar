@@ -199,6 +199,15 @@ This is a cost, and it is paid deliberately. A date library is a dependency of
 everything else; it should not drag a tree behind it. It also keeps the
 WebAssembly artefact small and the `cargo audit` surface near zero.
 
+The same care applies to code that would never appear in `Cargo.toml`. The
+algorithms here are written from published formulae and the reference dates
+that accompany them — *Calendrical Calculations* above all, cited by chapter
+and section — never ported from a reference's own source code. A formula is a
+procedure and free to implement; the code that accompanies a book is licensed
+separately and, for that book, not freely, and this workspace is BSD-3-Clause.
+So an implementation cites the published rule and anchors itself to the
+published dates, and its tests are its own.
+
 ## 10. Recurring events need an authority, not an opinion
 
 Periodic events — Olympiads, World Cups, election years, Jubilee years — are

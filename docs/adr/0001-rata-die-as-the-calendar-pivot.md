@@ -22,8 +22,12 @@ Every calendar converts to and from a single integer day number — the Rata Die
 **Good.** `2n` conversions instead of `n²`. Calendars are mutually independent,
 so they can live in separate crates and be feature-gated. Cross-calendar
 conversion, the registry, formatting and the holiday engine all fall out of the
-two functions. Weekday is derivable from `Rd` alone, because the seven-day
-cycle survived every calendar reform.
+two functions. Weekday is derivable from `Rd` alone for every calendar that
+keeps the seven-day week, which is nearly all of them: the cycle survived
+every reform of the *date*. The reforms of the *week* — the French
+Republican *décade*, the Soviet five- and six-day weeks of 1929 to 1940 — are
+still functions of `Rd`, but not the same function, and a calendar that keeps
+another week declares it as a cycle of its own rather than as the weekday.
 
 **Costs.** Calendars whose day does not start at midnight (the Hebrew and
 Islamic day starts at sunset; the Chinese traditional day started at 23:00)

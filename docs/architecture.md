@@ -138,6 +138,30 @@ forces every lunisolar calendar to invent a private encoding. The extras slot
 is what lets the Maya long count and the Balinese Pawukon use the same type as
 everything else.
 
+### Open questions in the dynamic interface
+
+- `DynAdapter`'s default `is_leap_year` reads "longer than the previous
+  year". That is not what leap means for a calendar with several common-year
+  lengths: Hebrew common years run 353 to 355 days and the nineteen-year
+  cycle contains consecutive common years, and the Burmese and Thai lunar
+  years have three lengths each, so a longer common year reports as leap. The
+  concrete modules answer correctly through their own functions; the dynamic
+  answer needs the trait to ask the calendar rather than infer.
+- The default `days_in_year` measures from month 1, day 1 of one year to the
+  next. It can only fail for a calendar whose dates are not year-month-day —
+  the long count — and a cycle index is not a year for `balinese-pawukon` or
+  `sexagenary`. `cycles` says which calendars have a month; the defaults do
+  not yet read it.
+- `DateFields` holds eight extras and the Pawukon uses all eight. A single
+  view of a long count with its calendar round needs nine, and the 819-day
+  count a tenth; the Borana calendar needs a star-month, a day name and a
+  phase beside its month and day. `set` reports the overflow at run time for
+  a shape known when the calendar is written.
+- `DateFields::era` is a `&'static str`, so an era vocabulary must be
+  compiled in. The nengō table is; a caller supplying eras across the FFI or
+  WebAssembly boundary cannot, and a calendar whose "year" is itself a name
+  chosen afterwards has no representation.
+
 ## Where the hard parts live
 
 | Concern | Crate | Note |
