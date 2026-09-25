@@ -37,6 +37,7 @@ None of the three repeats another.
 | South Korea's public holidays and the substitute holiday, with the collision rule | [korea-holidays.md](korea-holidays.md) | `hc-holiday`'s `SOUTH_KOREA` and `engine::collisions`; `XKRX` |
 | Russia's public holidays and the transfers of days off | [russia-transfers.md](russia-transfers.md) | `hc-holiday`'s `RUSSIA`; `MISX` |
 | Japan's holiday law and its amendments | [japan-holidays.md](japan-holidays.md) | `hc-holiday`'s `JAPAN`; `XJPX` |
+| The 24 solar terms and 72 pentads, and the zodiac conventions: 定気, the meridian, the ayanāṃśa | [solar-terms-and-pentads.md](solar-terms-and-pentads.md) | `hc-seasons`: `solar_terms`, `pentads`, `meridian`, `zodiac` |
 
 ## Systems that need a document
 
@@ -53,6 +54,5 @@ explanation is from what a reader needs.
 | The Hebrew calendar's dehiyyot | `hebrew` |
 | The Balinese Pawukon and the Javanese pasaran | `balinese_pawukon`, `javanese_pasaran` |
 | The Badíʿ calendar and the French Republican equinox rule | `hc-calendars-equinox` |
-| The 24 solar terms and 72 pentads, and the zodiac conventions | `hc-seasons` |
 | The sexagenary cycle and its year boundaries | `sexagenary` |
 | The Gregorian reform, country by country | `julian_gregorian` |

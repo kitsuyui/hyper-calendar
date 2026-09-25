@@ -223,8 +223,8 @@ Not calendars in their own right, but named subdivisions layered onto one.
 
 | System | Crate | Status |
 | --- | --- | --- |
-| 二十四節気 — the 24 solar terms | `hc-seasons` | Done |
-| 七十二候 — the 72 pentads (Chinese and Japanese sets; a further set is one entry) | `hc-seasons` | Done |
+| 二十四節気 — the 24 solar terms | `hc-seasons` | Done — 定気 at 15° of apparent longitude, read at a named meridian; the rules, the 暦要項 comparison and the sources are in [systems/solar-terms-and-pentads.md](systems/solar-terms-and-pentads.md) |
+| 七十二候 — the 72 pentads (Chinese and Japanese sets; a further set is one entry) | `hc-seasons` | Done — the 時訓解 list and the 1874 略本暦 list at 5° each; see [systems/solar-terms-and-pentads.md](systems/solar-terms-and-pentads.md) |
 | 雑節 — zassetsu (節分, 彼岸, 社日, 八十八夜, 入梅, 半夏生, 土用, 二百十日, 二百二十日) | `hc-seasons` | Done |
 | 三伏 and 數九 — the Chinese dog days and the nine nines | `hc-seasons` | Done — 入伏 the third 庚 day from the summer solstice, 中伏 the fourth, 末伏 the first from 立秋, the solstice counted when it is itself a 庚 day, as the published dates of 2017–2030 require; the nines from the winter solstice, as the Hong Kong Observatory counts them |
 | Moon phases as a calendar layer | `hc-seasons` | Done |
@@ -234,10 +234,10 @@ Not calendars in their own right, but named subdivisions layered onto one.
 | Medieval year-start styles — Lady Day, Annunciation (Florentine and Pisan), Nativity, *more veneto*, Greek | `hc-calendars-solar::year_style` | Done |
 | Roman day notation — kalends, nones, ides, *pridie*, the doubled bissextile day | `hc-format::roman` | Done |
 | 九星, 七曜, 暦注下段, 選日 | `hc-almanac` | Done |
-| 黄道十二宮 — Western zodiac signs (tropical), with periods | `hc-seasons` | Done |
-| Sidereal signs / rāśi, with the Lahiri and other ayanamsas | `hc-seasons` | Done |
-| Indian solar months over the rāśi — Sanskrit, Tamil, Bengali, Malayalam, and any tradition added as an entry | `hc-seasons` | Done |
-| 十二次 — the Chinese twelvefold ecliptic division | `hc-seasons` | Done |
+| 黄道十二宮 — Western zodiac signs (tropical), with periods | `hc-seasons` | Done — the twelve 中気 as sign boundaries; see [systems/solar-terms-and-pentads.md](systems/solar-terms-and-pentads.md) |
+| Sidereal signs / rāśi, with the Lahiri and other ayanamsas | `hc-seasons` | Done — the tropical longitude less an ayanāṃśa carried by IAU 2006 precession from a Swiss Ephemeris anchor; see [systems/solar-terms-and-pentads.md](systems/solar-terms-and-pentads.md) |
+| Indian solar months over the rāśi — Sanskrit, Tamil, Bengali, Malayalam, and any tradition added as an entry | `hc-seasons` | Done — month names over the sidereal boundaries; see [systems/solar-terms-and-pentads.md](systems/solar-terms-and-pentads.md) |
+| 十二次 — the Chinese twelvefold ecliptic division | `hc-seasons` | Done — 星紀 from 大雪, each 次 opening at a 節気; see [systems/solar-terms-and-pentads.md](systems/solar-terms-and-pentads.md) |
 | Quarter days and term days — England and Wales, the English cross-quarter days, Ireland, Scotland traditional and under the 1990 Act | `hc-seasons` | Done |
 
 ## Stage 6 — Non-terrestrial

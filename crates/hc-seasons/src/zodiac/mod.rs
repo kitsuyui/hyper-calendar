@@ -1,6 +1,11 @@
 //! 黄道十二宮 — the ecliptic cut into twelve, in the three traditions that
 //! cut it differently.
 //!
+//! The three divisions, the ayanāṃśa, what the boundaries are good to and
+//! the sources are written up in `docs/systems/solar-terms-and-pentads.md`
+//! in the repository, with the sources keyed in `docs/references.bib`. This
+//! page summarises it and states the code's own facts.
+//!
 //! This crate already computes [`crate::solar_terms`] as the instants the
 //! Sun's apparent longitude reaches a multiple of 15°. A zodiac sign is the
 //! same computation at a multiple of 30°, so nothing new is needed but the
@@ -43,28 +48,13 @@
 //! [`hc_calendar::cycle::sexagenary_year`] and
 //! [`hc_calendar::cycle::ZODIAC_ANIMALS`]. Nothing here duplicates it.
 //!
-//! # Accuracy: a boundary near midnight can land on the wrong day
-//!
-//! Every instant here comes from `hc-astro`'s VSOP87 solar longitude, good
-//! to about 1″ — under half a minute of the Sun's motion. A sign boundary
-//! falling within about a minute of local midnight can therefore still be
-//! given the wrong *day*. That is a property of any series, not a bug, and
-//! it is the same caveat the solar terms carry.
-//!
-//! The sidereal boundaries carry one more term of uncertainty on top: the
-//! published Lahiri ayanamsa values disagree among themselves by a few tens
-//! of arcseconds, and 20″ of solar longitude is about eight minutes of time.
-//! [`sidereal::Ayanamsa`] documents which parameterisation is used.
-//!
 //! # The conventional dates are not these dates
 //!
 //! Newspaper astrology columns print fixed dates — "Aries: March 21 –
-//! April 19" — that have not been recomputed since the early twentieth
-//! century. The
-//! equinox has drifted since. [`TropicalSign::conventional_period`] ships
-//! those fixed dates as data so that the disagreement can be measured;
-//! `tests/zodiac_conventional_dates.rs` measures it and prints the table.
-//! The drift is real, and it is currently about a day.
+//! April 19" — and the equinox has drifted since they were settled.
+//! [`TropicalSign::conventional_period`] ships those fixed dates as data so
+//! that the disagreement can be measured; `tests/zodiac_conventional_dates.rs`
+//! measures it and prints the table, and the document reads the result.
 
 pub mod chinese_twelve;
 pub mod rashi;

@@ -1,5 +1,12 @@
 //! 二十四節気 — the 24 solar terms.
 //!
+//! The system is written up in `docs/systems/solar-terms-and-pentads.md` in
+//! the repository: the 15° division, 定気 against 平気, who publishes the
+//! terms and where, the meridian at which a term becomes a date, a worked
+//! example against the 暦要項, the comparison with the published times, and
+//! the sources, keyed in `docs/references.bib`. This page summarises it and
+//! states the code's own facts.
+//!
 //! A solar term is the instant the Sun's apparent longitude reaches a
 //! multiple of 15°. Twenty-four multiples, twenty-four terms, one tropical
 //! year. That is the whole definition; everything else here is naming,
@@ -28,15 +35,9 @@
 //! at some meridian. Beijing is an hour behind Tokyo, so the Chinese and
 //! Japanese almanacs put about one term a year on different dates (98 of the
 //! 2,400 terms of 1950–2049). Every function here that returns an [`Rd`]
-//! therefore takes a
-//! [`Meridian`], and none of them guesses.
-//!
-//! Accuracy: `hc-astro`'s solar longitude is good to about 1″, which is
-//! under half a minute of solar motion. A term whose instant falls within
-//! about a minute of local midnight may therefore be assigned the wrong
-//! *day*. The crate README
-//! reports the measured disagreement rate against Japan's published
-//! equinox-day table.
+//! therefore takes a [`Meridian`], and none of them guesses. What the
+//! instants are good to, and how that was measured against the published
+//! times, is in the document.
 
 use hc_astro::solar::{seasonal_event, solar_longitude, solar_longitude_after};
 use hc_calendar::Rd;

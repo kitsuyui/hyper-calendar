@@ -8,6 +8,14 @@ cycle, the Moon's phases, the zodiac in its three incompatible divisions, and
 the four seasons under each of the three definitions that disagree about them.
 It contains no calendar.
 
+The solar terms, the pentads, the meridians and the zodiac are written up in
+[`docs/systems/solar-terms-and-pentads.md`](../../docs/systems/solar-terms-and-pentads.md):
+the rules from the sources, a worked example against the 暦要項, what is
+carried and what is not, how the instants compare with the published
+almanacs, and the sources, keyed in
+[`docs/references.bib`](../../docs/references.bib). This README summarises it
+and states the crate's own facts.
+
 | Module | Covers |
 | --- | --- |
 | `solar_terms` | 二十四節気, both orderings, the 節気 / 中気 split |
@@ -67,13 +75,10 @@ calendars of Tamil Nadu, West Bengal, Assam, Odisha and Kerala take their
 months from it, so `zodiac::rashi` is month names over the same boundaries and
 no second algorithm.
 
-The ayanamsa is a parameter. `Ayanamsa::LAHIRI` (Chitrapaksha) is the Indian
-government standard adopted on the 1955 Calendar Reform Committee's
-recommendation; `RAMAN`, `KRISHNAMURTI` and `FAGAN_BRADLEY` are shipped beside
-it, and `Ayanamsa::new` takes any anchor at all, because every scheme in use
-is the same IAU 2006 precession from a different anchor and only the anchor is
-disputed. Moving from Lahiri to Raman — 1.45° — moves **all twelve** month
-boundaries by a day or more.
+The ayanamsa is a parameter: four named anchors are shipped, `Ayanamsa::new`
+takes any other, and the document says where each anchor comes from. Moving
+from Lahiri to Raman — 1.45° — moves **all twelve** month boundaries by a day
+or more.
 
 The Chinese zodiac **animal** of a year is not here and is not a 次. It is the
 earthly branch of the sexagenary year, a counting cycle with no angle in it,
@@ -85,134 +90,48 @@ loudly enough that nobody should read a birth animal out of this module.
 ## Accuracy, and the measurement that proves it
 
 `hc-astro`'s apparent solar longitude is VSOP87, good to about 1″ — under
-half a minute of solar motion — and its seasonal events land within the
-minute the almanacs round to, with no measured bias. An event within about a
-minute of local midnight can therefore still be assigned the wrong *day*.
+half a minute of solar motion — so an event within about a minute of local
+midnight can still be assigned the wrong *day*. The document measures that
+two ways. Against the 春分の日 and 秋分の日 the National Astronomical
+Observatory of Japan publishes, `tests/japanese_equinox_days.rs` finds **0
+disagreements in 240 days** of 1980–2099, and shows that computing the same
+holiday in Universal Time instead of JST would get 88 of them wrong, which is
+what the `Meridian` argument exists to prevent. Against the 暦要項's times
+for 2024–2026, every one of the 72 terms lands on the published day and 64 on
+the published minute, the rest a minute early.
 
-Japan's 春分の日 and 秋分の日 are the sharpest available test of that, because
-the law defines them as "the day of the equinox" and the National
-Astronomical Observatory of Japan computes the instant in JST and publishes
-the resulting *date* in the *Official Gazette* a year ahead. If this crate and
-the Observatory disagree, one of them is wrong about a public holiday.
+Terms are 15 days apart, pentads 5 and signs 30, so the *term*, *pentad* or
+*sign* is never wrong; only its day, and only at a midnight boundary. Lunar
+conjunctions land within about a minute, so month boundaries, phase dates,
+十五夜 and 六曜 are firmer than the solar-term dates. 月齢 and the illuminated
+fraction are quoted for **local noon**, as NAOJ quotes its 正午月齢 for 12:00
+JST; `moon_age_at` takes any instant. The sidereal boundaries carry a second,
+independent uncertainty, the few tens of arcseconds by which published values
+of a named ayanamsa disagree.
 
-`tests/japanese_equinox_days.rs` runs that comparison:
-
-| Span | Days compared | Disagreements | Rate |
-| --- | --- | --- | --- |
-| 1980–2030 | 102 | **0** | **0.00 %** |
-| 1980–2099 | 240 | **0** | **0.00 %** |
-
-Zero, not "about right". The reason is that over this span no equinox happens
-to fall inside the minute where the model could move the date: the tightest
-case in the modern record is the autumn equinox of 2012 at 23:49 JST, eleven
-minutes clear. The tests still measure and print the rate rather than
-asserting zero, because the margin is eleven minutes and not a principle;
-a companion test asserts that any future disagreement must be a case within
-half an hour of midnight JST, so a real regression cannot hide behind the
-documented bias. Computing the same holiday in Universal Time instead of JST
-would get **88 of those 240 days wrong**, which is what the `Meridian`
-argument exists to prevent.
-
-Other accuracy notes:
-
-* Solar term dates inherit the same accuracy. Terms are 15 days apart, so
-  the *term* is never wrong; only its day, and only when its instant falls
-  within a minute of a midnight boundary.
-* Lunar conjunctions land within about a minute, so month boundaries, phase
-  dates, 十五夜 and 六曜 are firmer than the solar-term dates.
-* 月齢 and the illuminated fraction are quoted for **local noon**, as NAOJ
-  quotes its 正午月齢 for 12:00 JST; `moon_age_at` takes any instant.
-* **Zodiac sign boundaries inherit the same bias.** A sign is 30 days wide, so
-  the *sign* is never wrong; only its day, and only when an ingress lands
-  within about ten minutes of local midnight. The sidereal boundaries carry a
-  second, independent uncertainty on top: published values for a named
-  ayanamsa disagree among themselves by a few tens of arcseconds, and 20″ of
-  solar longitude is about **eight minutes** of time — many times the
-  series' own error. A saṅkrānti near midnight moves for that reason before
-  any other.
-
-### The zodiac dates every newspaper prints, measured
-
-Astrology columns print fixed dates — "Aries: March 21 – April 19" — that have
-not been recomputed since the early twentieth century.
-`TropicalSign::conventional_period` ships them as data and
-`tests/zodiac_conventional_dates.rs` compares them against the computed
-ingresses, 12 signs a year, and prints the result:
-
-| Meridian | 1900–1929 | 1970–1999 | 2000–2029 | 2070–2099 |
-| --- | --- | --- | --- | --- |
-| Greenwich | 31.1 % | 25.3 % | **48.6 %** | 90.6 % |
-| New York (UTC−5) | 21.7 % | 43.1 % | **68.3 %** | 97.8 % |
-| Tokyo (UTC+9) | 66.4 % | 23.3 % | **22.2 %** | 61.4 % |
-
-Percentages are sign-years on which the computed ingress day differs from the
-printed date. Three things are worth reading out of that table:
-
-* **The printed dates fit New York best in 1900–1929**, which is where and
-  when the convention was settled, and they have got steadily worse there ever
-  since — 97.8 % wrong by the 2070s.
-* **The day counts are not monotone**, because a day count is a rounded
-  number and the rounding depends on the meridian: Tokyo's nine-hour offset
-  catches the drift at a different point, so the printed dates fit Tokyo
-  *best* around the turn of the twenty-first century.
-* **What is monotone is the instant underneath.** The mean arrival of the Sun
-  against the printed date falls at every meridian in every span, by
-  **1.29 days between 1900–1929 and 2070–2099** — about three quarters of a
-  day per century. That is not precession of the equinoxes; it is the
-  Gregorian calendar. Between the 1900 and 2100 century rules no leap year is
-  skipped (2000 was a leap year), so for two hundred years the calendar keeps
-  a mean year of exactly 365.25 days and runs slow against the tropical year
-  by 0.0078 days annually. 2100 will reset it.
-
-Over 2000–2029 at Greenwich the split is 185 exact against 175 one day early
-and nothing ever late or two days early: the drift is entirely one-sided and
-entirely small. And a fixed date has no meridian, so no recomputed list could
-be right everywhere at once — Greenwich and Tokyo put a sign boundary on
-different dates **447 times in 1200 sign-years, 37.2 %**.
+`TropicalSign::conventional_period` ships the fixed dates newspapers print
+— "Aries: March 21 – April 19" — and `tests/zodiac_conventional_dates.rs`
+measures them against the computed ingresses at three meridians and prints
+the table; the document reads the result. Greenwich and Tokyo put a sign
+boundary on different dates **447 times in 1200 sign-years, 37.2 %**, so no
+fixed list could be right everywhere at once.
 
 ## The reference data, and where it came from
 
-* **The 24 terms.** Names in traditional Chinese and in Japanese shinjitai as
-  separate columns, because three of the 24 genuinely differ (驚蟄/啓蟄,
-  小滿/小満, 處暑/処暑). Pinyin with tone marks and Hepburn romaji.
-* **The 72 pentads.** Both sets: the classical Chinese one of 逸周書·時訓解 as
-  the 宣明暦 transmitted it, and the 本朝七十二候 of Japan's 1874 略本暦
-  revision. **Only 21 of the 72 are written identically**, which is why
-  shipping one set and calling it "the 72 pentads" is the usual mistake. The
-  Chinese set says hawks turn into doves and sparrows enter the sea and become
-  clams; Japan replaced those because they are not observations of Japan.
-* **雑節 dates**, **term dates** and the **equinox-day table** are checked
-  against the National Astronomical Observatory of Japan's 暦要項.
+* **The 24 terms, the 72 pentads, the zodiac signs, the rāśi, the ayanamsa
+  anchors and the 十二次** are sourced, column by column, in the document.
+  Two facts worth restating here: three of the 24 terms are written
+  differently in traditional Chinese and in Japanese shinjitai (驚蟄/啓蟄,
+  小滿/小満, 處暑/処暑), and **only 21 of the 72 pentads** are written
+  identically in the Chinese and the Japanese list, which is why shipping one
+  set and calling it "the 72 pentads" is the usual mistake.
+* **雑節 dates** and the **equinox-day table** are checked against the
+  National Astronomical Observatory of Japan's 暦要項.
 * **土用の丑の日** is checked against the published eel days for 2023–2025,
   two of which had a 二の丑.
 * **中秋の名月 and 十三夜** against the published dates for 2020–2025.
 * **Lunar new year** for 2015–2026, which every almanac agrees about, anchors
   the lunisolar derivation.
-* **The zodiac signs.** English and Latin names as separate columns, because
-  English clipped exactly two of them (*Scorpius* → Scorpio, *Capricornus* →
-  Capricorn); the 黄道十二宮 names Japanese almanacs print; the symbols
-  U+2648 ♈ to U+2653 ♓, which a test checks against arithmetic rather than
-  against a second copy of the table. Element, modality and the Ptolemaic
-  domicile rulerships are data; the element is the index modulo four and the
-  modality the index modulo three, and because three and four are coprime a
-  test can assert that each of the twelve pairs occurs exactly once instead of
-  trusting a hand-written table.
-* **The rāśi** in IAST with diacritics and in Devanagari, because Meṣa and
-  Mesa, Siṃha and Simha are different words. Nine of the twelve emblems are
-  word for word the Western ones; the three that differ — Dhanus the bow not
-  the archer, Kumbha the pot not the water-bearer, Makara a sea-creature not
-  a goat-fish — differ in the same way, by naming the vessel instead of the
-  person.
-* **The ayanamsa anchors** are the Swiss Ephemeris values, the most widely
-  deployed reference implementation, carried forward by IAU 2006 general
-  precession (Capitaine, Wallace & Chapront 2003). Makara Saṅkrānti is
-  checked to fall on 14 or 15 January and Meṣa Saṅkrānti on 13 to 15 April in
-  every year 2015–2030, the window the published dates fall in.
-* **The 十二次** with the traditional-character and shinjitai columns (they
-  differ for 實沈/実沈 and 壽星/寿星), pinyin, the matching 十二辰 branch taken
-  from `hc_calendar::cycle::readings::PINYIN` rather than copied, and the
-  Ming-dynasty equation of each 次 with a Western sign — which the docs label
-  an equation of *names*, since under the 定気 rule the arcs are 15° apart.
 
 None of these reference values was produced by this crate.
 
@@ -238,8 +157,9 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
 ## What this crate deliberately does not do
 
 * **No 平気.** The 5° and 15° divisions here are 定気, arcs of the ecliptic.
-  Pre-1685 Japanese and pre-1645 Chinese almanacs divided the year equally in
-  *time*, and those give different dates. Not implemented.
+  The older almanacs divided the year equally in *time*, and those give
+  different dates; the document says which almanacs and until when. Not
+  implemented.
 * **No calendar.** Nothing here implements `hc_calendar::Calendar`. A solar
   term is not a date system; it is a subdivision that several date systems
   refer to.
@@ -340,33 +260,17 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
 
 ## Sources
 
+The solar terms, pentads, meridians and zodiac cite their sources in the
+document, with keys in `docs/references.bib`. The rest of the crate cites:
+
 * Jean Meeus, *Astronomical Algorithms*, 2nd ed., Willmann-Bell 1998, through
   `hc-astro`.
 * Edward M. Reingold and Nachum Dershowitz, *Calendrical Calculations*, 4th
-  ed., Cambridge 2018 — the Rata Die pivot, the Gregorian arithmetic that
-  `gregorian.rs` adapts from `hc_calendar::gregorian`, and the Beijing
-  local-mean-time meridian used for Chinese dates before 1929.
+  ed., Cambridge 2018 — the Rata Die pivot and the Gregorian arithmetic that
+  `gregorian.rs` adapts from `hc_calendar::gregorian`.
 * National Astronomical Observatory of Japan, 暦要項 (*Calendar Essentials*),
-  published annually in the *Official Gazette* — solar term dates, 雑節 dates,
-  and the 春分の日 / 秋分の日 table.
-* 国民の祝日に関する法律 (Act on National Holidays), 1948, for the legal
-  definition of the two equinox holidays.
-* 逸周書·時訓解 and 月令七十二候集解 for the Chinese pentads; the 1874 略本暦
-  revision (本朝七十二候) for the Japanese ones.
-* Claudius Ptolemy, *Tetrabiblos*, I.17–19, for the domicile rulerships and
-  the element and modality assignments the `zodiac::tropical` data reproduces.
-* N. Capitaine, P. T. Wallace and J. Chapront, "Expressions for IAU 2000
-  precession quantities", *Astronomy & Astrophysics* 412 (2003), equation
-  (39) — the general precession in longitude that carries every ayanamsa
-  away from its anchor.
-* Report of the Calendar Reform Committee, Council of Scientific and
-  Industrial Research, Government of India, 1955, for the adoption of the
-  Lahiri (Chitrapaksha) ayanamsa as the national standard, and the *Indian
-  Astronomical Ephemeris* for the 82°30′E meridian the saṅkrānti are computed
-  at. The numerical anchors for the four named ayanamsas are the Swiss
-  Ephemeris ones.
-* The Unicode Standard, Miscellaneous Symbols block, for U+2648 ♈ to
-  U+2653 ♓.
+  published annually in the *Official Gazette* — the 雑節 dates and the
+  春分の日 / 秋分の日 table.
 
 ## Testing
 
