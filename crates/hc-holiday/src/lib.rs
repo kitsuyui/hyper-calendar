@@ -89,6 +89,8 @@ pub mod roman_calendar;
 pub mod traditions;
 
 pub use computus::{Computus, easter, gregorian_easter, orthodox_easter};
+#[cfg(feature = "alloc")]
+pub use rule::EvaluationContext;
 pub use rule::{
     BridgePolicy, CalendarSystem, Confidence, Days, HolidayRule, Kind, Phase, Rule, RuleSet,
     SourceDate, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,

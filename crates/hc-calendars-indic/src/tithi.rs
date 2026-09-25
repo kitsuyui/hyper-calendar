@@ -102,7 +102,7 @@ pub fn sunset_of(day: Rd, location: Location) -> Moment {
 /// Navamī at midday, Vijayā Daśamī in the afternoon, Dīpāvalī in the
 /// evening, Janmāṣṭamī and Śivarātri at midnight. Each variant names the
 /// instant it probes, in the day's own sunrise-to-sunrise terms.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Prevalence {
     /// At sunrise: the tithi the civil day carries.
     Sunrise,
@@ -125,15 +125,32 @@ impl Prevalence {
     /// Universal Time.
     #[must_use]
     pub fn moment_of(self, day: Rd, location: Location) -> Moment {
-        let rise = sunrise_of(day, location).0;
-        let set = sunset_of(day, location).0;
+        self.moment_between(sunrise_of(day, location), sunset_of(day, location), || {
+            sunrise_of(Rd(day.0 + 1), location)
+        })
+    }
+
+    /// The instant this prevalence probes, from the day's sunrise and
+    /// sunset and, asked for only at midnight, the next day's sunrise.
+    ///
+    /// [`Prevalence::moment_of`] finds the three for one day; a caller that
+    /// reads many festivals at one place finds each sunrise once and hands
+    /// them in here.
+    #[must_use]
+    pub fn moment_between(
+        self,
+        rise: Moment,
+        set: Moment,
+        next_rise: impl FnOnce() -> Moment,
+    ) -> Moment {
+        let (rise, set) = (rise.0, set.0);
         Moment(match self {
             Self::Sunrise => rise,
             Self::Midday => rise + (set - rise) / 2.0,
             Self::Afternoon => rise + (set - rise) * 0.7,
             Self::Evening => set + 1.0 / 24.0,
             Self::Midnight => {
-                let next_rise = sunrise_of(Rd(day.0 + 1), location).0;
+                let next_rise = next_rise().0;
                 set + (next_rise - set) / 2.0
             }
         })

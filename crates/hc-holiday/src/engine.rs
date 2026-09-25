@@ -26,8 +26,8 @@ use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 
 use crate::rule::{
-    Confidence, EvaluationCache, HolidayRule, Kind, RuleSet, SubstituteDirection,
-    SubstitutionPolicy,
+    Confidence, EvaluationContext, HolidayRule, Kind, RuleSet, SubstituteDirection,
+    SubstitutionPolicy, Window,
 };
 
 /// One holiday on one day.
@@ -95,7 +95,9 @@ pub struct Gap {
 ///
 /// Building one is the expensive part — solar terms and lunar conjunctions
 /// are astronomy — so queries that touch many days, above all business-day
-/// arithmetic, should build a calendar once and ask it repeatedly.
+/// arithmetic, should build a calendar once and ask it repeatedly, and a
+/// caller building many calendars should pass one [`EvaluationContext`]
+/// through the `_with` constructors so that the astronomy is done once.
 #[derive(Debug, Clone)]
 pub struct HolidayCalendar<'a> {
     rules: &'a RuleSet,
@@ -126,12 +128,31 @@ impl<'a> HolidayCalendar<'a> {
         first_year: i64,
         last_year: i64,
     ) -> Self {
+        Self::new_with(
+            rules,
+            region,
+            first_year,
+            last_year,
+            &mut EvaluationContext::new(),
+        )
+    }
+
+    /// [`HolidayCalendar::new`] with the astronomy memoised in `context`,
+    /// which a caller building several calendars shares between them.
+    #[must_use]
+    pub fn new_with(
+        rules: &'a RuleSet,
+        region: Option<&'a str>,
+        first_year: i64,
+        last_year: i64,
+        context: &mut EvaluationContext,
+    ) -> Self {
         let first_day = gregorian::to_fixed(first_year, 1, 1).unwrap_or(Rd(0));
         let last_day = gregorian::to_fixed(last_year, 12, 31).unwrap_or(Rd(-1));
         let (holidays, gaps) = if first_year > last_year {
             (Vec::new(), Vec::new())
         } else {
-            evaluate_with_includes(rules, region, first_day, last_day, 0)
+            evaluate_with_includes(rules, region, first_day, last_day, 0, context)
         };
         Self {
             rules,
@@ -151,6 +172,18 @@ impl<'a> HolidayCalendar<'a> {
         Self::new(rules, region, year, year)
     }
 
+    /// [`HolidayCalendar::for_year`] with the astronomy memoised in
+    /// `context`.
+    #[must_use]
+    pub fn for_year_with(
+        rules: &'a RuleSet,
+        region: Option<&'a str>,
+        year: i64,
+        context: &mut EvaluationContext,
+    ) -> Self {
+        Self::new_with(rules, region, year, year, context)
+    }
+
     /// Evaluate one day.
     ///
     /// The result is what [`HolidayCalendar::for_year`] for the day's year
@@ -159,15 +192,34 @@ impl<'a> HolidayCalendar<'a> {
     /// fraction of the cost, because only the calendar years that can reach
     /// the day are evaluated rather than the Gregorian year and both its
     /// neighbours. A page that asks "what is today, in every table" asks
-    /// this two hundred and forty-five times, which is why it exists.
+    /// this two hundred and forty-five times, which is why it exists — and
+    /// why [`HolidayCalendar::for_day_with`] exists, so that the two
+    /// hundred and forty-five share one [`EvaluationContext`].
     ///
     /// [`HolidayCalendar::covers`] is true for the day alone, so
     /// business-day arithmetic on the result answers `None` for every other
     /// day.
     #[must_use]
     pub fn for_day(rules: &'a RuleSet, region: Option<&'a str>, day: Rd) -> Self {
+        Self::for_day_with(rules, region, day, &mut EvaluationContext::new())
+    }
+
+    /// [`HolidayCalendar::for_day`] with the astronomy memoised in
+    /// `context`.
+    ///
+    /// The tables that date by the same sky ask the same questions of it —
+    /// every Hindu table the same tithis, every Chinese-dated table the
+    /// same new moons — so a caller evaluating many tables for one day
+    /// builds one context and passes it to each.
+    #[must_use]
+    pub fn for_day_with(
+        rules: &'a RuleSet,
+        region: Option<&'a str>,
+        day: Rd,
+        context: &mut EvaluationContext,
+    ) -> Self {
         let year = gregorian::year_from_fixed(day).unwrap_or(0);
-        let (holidays, gaps) = evaluate_with_includes(rules, region, day, day, 0);
+        let (holidays, gaps) = evaluate_with_includes(rules, region, day, day, 0, context);
         Self {
             rules,
             region,
@@ -436,8 +488,9 @@ fn evaluate_with_includes(
     first_day: Rd,
     last_day: Rd,
     depth: u8,
+    context: &mut EvaluationContext,
 ) -> (Vec<Holiday>, Vec<Gap>) {
-    let (mut holidays, mut gaps) = evaluate(rules, region, first_day, last_day);
+    let (mut holidays, mut gaps) = evaluate(rules, region, first_day, last_day, context);
     if depth >= INCLUDE_DEPTH {
         return (holidays, gaps);
     }
@@ -448,6 +501,7 @@ fn evaluate_with_includes(
             first_day,
             last_day,
             depth + 1,
+            context,
         );
         // Only the days off: an included set's commemorations are its own.
         // Hong Kong keeps the Winter Solstice as an observance, and the
@@ -468,6 +522,7 @@ fn evaluate(
     region: Option<&str>,
     first_day: Rd,
     last_day: Rd,
+    context: &mut EvaluationContext,
 ) -> (Vec<Holiday>, Vec<Gap>) {
     // The years asked about, and the years the base rules are evaluated
     // over: [`REACH_DAYS`] of slack each side, because a substitution can
@@ -485,7 +540,13 @@ fn evaluate(
     ) else {
         return (Vec::new(), Vec::new());
     };
-    let mut cache = EvaluationCache::default();
+    // The base rules are asked for whole years, but only the days within
+    // reach of the span can touch the answer, and a rule may skip the
+    // astronomy of anything it can prove lies outside them.
+    let window = Window {
+        first: Rd(first_day.0 - REACH_DAYS),
+        last: Rd(last_day.0 + REACH_DAYS),
+    };
     let mut base: Vec<Occurrence> = Vec::new();
     let mut gaps: Vec<Gap> = Vec::new();
     for year in first_reached..=last_reached {
@@ -496,7 +557,7 @@ fn evaluate(
             // Only the years actually asked for are reported as gaps; the
             // slack on each side exists to catch a substitution crossing
             // New Year, and its absence is not a hole in the answer.
-            if !rule.rule.is_resolvable_with(year, &mut cache) {
+            if !rule.rule.is_resolvable_with(year, context) {
                 if (first_year..=last_year).contains(&year) {
                     gaps.push(Gap {
                         year,
@@ -506,7 +567,11 @@ fn evaluate(
                 }
                 continue;
             }
-            for date in rule.rule.days_in_year_with(year, &mut cache).as_slice() {
+            for date in rule
+                .rule
+                .days_in_year_with(year, window, context)
+                .as_slice()
+            {
                 base.push(Occurrence { date: *date, rule });
             }
         }
