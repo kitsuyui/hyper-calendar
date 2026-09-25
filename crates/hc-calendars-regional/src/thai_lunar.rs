@@ -250,6 +250,19 @@ pub fn new_year(year: i64) -> Option<Rd> {
     Some(Rd(start))
 }
 
+/// The last day the lunar calendar was Thailand's official reckoning,
+/// 31 March 1889: the civil reckoning was solar from the next day.
+pub const LAST_CIVIL: Rd = match hc_calendars_solar::gregorian::to_fixed(1889, 3, 31) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Official dates lunar, in the Chulasakarat era, until the solar reckoning from 1 April 1889 \
+    [proclamation-new-day-rs107]; printed on every Thai wall calendar beside the civil date \
+    and the calendar of the holy days since, as docs/systems/thai-lunar.md states; no source \
+    read dates its beginning";
+
 /// The earliest fixed day converted: ขึ้น 1 ค่ำ เดือนอ้าย of [`FIRST_YEAR`].
 #[must_use]
 pub const fn earliest() -> Rd {
@@ -516,6 +529,13 @@ pub struct ThaiLunarCalendar;
 
 impl Calendar for ThaiLunarCalendar {
     type Date = ThaiLunarDate;
+
+    /// Thailand's official reckoning until 31 March 1889 and the calendar of
+    /// its holy days since, undated at the start; the year types carried run
+    /// from 2535 BE, which bounds the range and not the use.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::undated(USAGE_SOURCE).civil_until(LAST_CIVIL)
+    }
 
     fn cycles(&self) -> &'static [CycleShape] {
         SHAPE

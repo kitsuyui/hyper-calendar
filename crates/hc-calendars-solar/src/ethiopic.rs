@@ -62,6 +62,20 @@ pub const fn days_in_year(year: i64) -> u16 {
     if is_leap_year(year) { 366 } else { 365 }
 }
 
+/// The first day of the year in which Annianus of Alexandria computed the
+/// era of the Incarnation, "c. 400": 1 January 400 Julian, the source giving
+/// no closer date.
+pub const ERA_COMPUTED: Rd = match crate::julian::to_fixed(400, 1, 1) {
+    Ok(rd) => rd,
+    Err(_) => EPOCH,
+};
+
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "The era of the Incarnation computed by Annianus of Alexandria c. 400 and used by the \
+    Ethiopian and Eritrean churches, the official civil calendar of Ethiopia today; \
+    Wikipedia, \"Ethiopian calendar\", retrieved 2026-09-26, which does not date \
+    Ethiopia's adoption, so the year's first day is taken";
+
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = Rd(common::coptic_style_to_fixed(EPOCH.0, MIN_YEAR, 1, 1));
 
@@ -171,6 +185,14 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 
 impl Calendar for EthiopicCalendar {
     type Date = EthiopicDate;
+
+    /// The Amete Mihret count was computed c. 400, four centuries after the
+    /// epoch it counts from, and has been Ethiopia's calendar since; no source
+    /// read dates its adoption closer, so [`ERA_COMPUTED`] is where the
+    /// record begins and the years before it are proleptic.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(ERA_COMPUTED, USAGE_SOURCE)
+    }
 
     /// Thirteen months, named in Geʽez script, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {

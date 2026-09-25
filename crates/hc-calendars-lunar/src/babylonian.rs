@@ -126,6 +126,12 @@ pub const MIN_YEAR: i64 = -71;
 /// The latest Seleucid year converted, 75/76 CE.
 pub const MAX_YEAR: i64 = 386;
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Parker and Dubberstein 1956 [parker1956]: the nineteen-year rule followed without exception \
+    from 1 Nisanu of SE −71, 383 BCE, to 29 Addaru of SE 386, 76 CE, where their table ends \
+    with the last dated cuneiform texts; earlier the king intercalated by decree, and later \
+    the Seleucid count went on in Syria on other calendars";
+
 /// The earliest fixed day converted: 1 Nisanu SE −71, 18 April 383 BCE
 /// Julian, as Parker and Dubberstein's table has it and as the criterion
 /// places it.
@@ -378,6 +384,13 @@ pub struct BabylonianCalendar;
 
 impl Calendar for BabylonianCalendar {
     type Date = BabylonianDate;
+
+    /// SE −71 to SE 386, which is also the whole of the range it converts:
+    /// the years in which the nineteen-year rule was followed without
+    /// exception and the cuneiform record runs.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(EARLIEST, LATEST, USAGE_SOURCE)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::LUNISOLAR_TWELVE

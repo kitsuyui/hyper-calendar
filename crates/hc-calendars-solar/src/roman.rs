@@ -160,6 +160,12 @@ pub struct RomanCalendar;
 impl Calendar for RomanCalendar {
     type Date = RomanDate;
 
+    /// Unrecorded: the era was rarely used for dating in antiquity and is a
+    /// convenience of later historians, so there is no period of use to state.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
+
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::SOLAR_TWELVE
     }

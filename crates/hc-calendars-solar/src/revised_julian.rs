@@ -66,6 +66,10 @@ pub const CYCLE_YEARS: i64 = 900;
 /// Leap years per cycle, giving a mean year of 365.2422̄ days.
 pub const LEAPS_PER_CYCLE: i64 = 218;
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "The Pan-Orthodox Congress of Constantinople (May 1923): \
+    in use from 1 October 1923 Julian, which is 14 October 1923";
+
 /// The day the Pan-Orthodox Congress put the calendar into use: 1 October
 /// 1923 Julian, which this calendar and the Gregorian one both call
 /// 14 October 1923.
@@ -287,7 +291,7 @@ impl Calendar for RevisedJulianCalendar {
     /// Gregorian calendar before 1 March 1600 and no church ever used it
     /// there.
     fn usage(&self) -> Usage {
-        Usage::since(ADOPTION)
+        Usage::since(ADOPTION, USAGE_SOURCE)
     }
 
     fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {

@@ -122,6 +122,11 @@ pub struct Symmetry454Calendar;
 impl Calendar for Symmetry454Calendar {
     type Date = Symmetry454Date;
 
+    /// Unrecorded: Bromberg's proposal, adopted by nobody.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
+
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::SOLAR_TWELVE
     }

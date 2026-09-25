@@ -346,6 +346,25 @@ impl fmt::Display for MayaCalendarRoundDate {
     }
 }
 
+/// Days from `0.0.0.0.0` to `7.16.3.2.13`, Stela 2 at Chiapa de Corzo, the
+/// earliest contemporaneous Long Count yet found, in 36 BCE.
+pub const EARLIEST_ATTESTED_DAYS: i64 = 7 * 144_000 + 16 * 7_200 + 3 * 360 + 2 * 20 + 13;
+
+/// Landa's Colonial Maya New Year, 12 Kʼan 1 Pop on 16 July 1553 Julian:
+/// the latest attestation of the Haabʼ and the Calendar Round in the sources
+/// read, and the time by which the Long Count had fallen out of use.
+pub const LANDA: Rd = match hc_calendars_solar::julian::to_fixed(1553, 7, 16) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// Where the periods of use come from.
+pub const USAGE_SOURCE: &str = "docs/systems/mesoamerican-counts.md: the earliest contemporaneous Long Count, Stela 2 at \
+    Chiapa de Corzo, 7.16.3.2.13 in 36 BCE [wikipedia-long-count, wikipedia-chiapa-de-corzo]; \
+    the Long Count out of use by Landa's time and his 12 Kʼan 1 Pop of 16 July 1553 \
+    [martin2012], taken as the bound the sources give; the 260-day count never stopped and \
+    is kept in the Guatemalan highlands today [wikipedia-tzolkin, wikipedia-maya-calendar]";
+
 /// The Maya long count, under a stated correlation with the Julian day.
 ///
 /// The long count is an unbroken count of days, so converting it to any other
@@ -528,6 +547,17 @@ const ROUND_SHAPE: &[hc_calendar::shape::CycleShape] = &[
 impl Calendar for MayaLongCountCalendar {
     type Date = MayaLongCountDate;
 
+    /// Attested from Stela 2 at Chiapa de Corzo, 36 BCE, and out of use by
+    /// Landa's time; his date of 1553 is the bound the sources give, not the
+    /// last inscription, which is centuries earlier.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(
+            Rd(self.epoch().0 + EARLIEST_ATTESTED_DAYS),
+            LANDA,
+            USAGE_SOURCE,
+        )
+    }
+
     /// A long count is a place-value number; none of its places is a named
     /// position.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
@@ -598,6 +628,13 @@ fn small(value: i64) -> CalendarResult<u8> {
 impl Calendar for MayaTzolkinCalendar {
     type Date = MayaTzolkinDate;
 
+    /// Attested from Stela 2 at Chiapa de Corzo, 36 BCE — the count is older,
+    /// by the sources at least fifth-century BCE, but not to a day — and never
+    /// stopped: it is kept in the Guatemalan highlands today.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(Rd(self.epoch().0 + EARLIEST_ATTESTED_DAYS), USAGE_SOURCE)
+    }
+
     /// The thirteen numbers and the twenty day-signs.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         TZOLKIN_SHAPE
@@ -661,6 +698,16 @@ impl Calendar for MayaTzolkinCalendar {
 
 impl Calendar for MayaHaabCalendar {
     type Date = MayaHaabDate;
+
+    /// Attested from Stela 2 at Chiapa de Corzo, 36 BCE, to Landa's New Year
+    /// of 1553, the last attestation in the sources read.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(
+            Rd(self.epoch().0 + EARLIEST_ATTESTED_DAYS),
+            LANDA,
+            USAGE_SOURCE,
+        )
+    }
 
     /// Eighteen months of twenty days and the five-day Uayeb, which has a
     /// name and so is a nineteenth position.
@@ -775,6 +822,17 @@ pub const CALENDAR_ROUND_LATEST: Rd = Rd(EPOCH.0 + 20 * 144_000 - 1);
 
 impl Calendar for MayaCalendarRoundCalendar {
     type Date = MayaCalendarRoundDate;
+
+    /// Attested from Stela 2 at Chiapa de Corzo, 36 BCE, to Landa's 12 Kʼan
+    /// 1 Pop of 1553, itself a Calendar Round date and the last attestation in
+    /// the sources read.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(
+            Rd(self.epoch().0 + EARLIEST_ATTESTED_DAYS),
+            LANDA,
+            USAGE_SOURCE,
+        )
+    }
 
     /// Both cycles of the round: the tzolkʼin's two and the haabʼ's one.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {

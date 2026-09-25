@@ -268,6 +268,12 @@ pub struct WorldCalendar;
 impl Calendar for WorldCalendar {
     type Date = WorldCalendarDate;
 
+    /// Unrecorded: Achelis's proposal of 1930, which the United Nations
+    /// declined to adopt.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
+
     /// Twelve months and the seven-day week.
     ///
     /// Worldsday and Leapyear Day sit outside the week, and `to_fields`

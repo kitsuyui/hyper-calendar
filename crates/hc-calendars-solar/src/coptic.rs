@@ -61,6 +61,12 @@ pub const fn days_in_year(year: i64) -> u16 {
     if is_leap_year(year) { 366 } else { 365 }
 }
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "The era of the Martyrs counted from Diocletian's accession, 1 Thout 1 A.M. = 29 August \
+    284 Julian, on the Alexandrian year Augustus fixed in 25 BC, as this module states \
+    them; the calendar of the Coptic Orthodox Church and of the Egyptian agricultural year \
+    today";
+
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = Rd(common::coptic_style_to_fixed(EPOCH.0, MIN_YEAR, 1, 1));
 
@@ -165,6 +171,14 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 
 impl Calendar for CopticCalendar {
     type Date = CopticDate;
+
+    /// In use from the era's first day, 29 August 284, and never abandoned:
+    /// the liturgical calendar of the Coptic church and the agricultural year
+    /// of Egypt. The Alexandrian year underneath it is older, from 25 BC, but
+    /// the year count this calendar carries is not.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(EPOCH, USAGE_SOURCE)
+    }
 
     /// Thirteen months, named in Coptic script, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {

@@ -10,9 +10,11 @@
 //! before 1912: the decree does not define one, so this module refuses dates
 //! before [`EARLIEST`] rather than inventing a "before Juche" convention.
 //!
-//! Reporting since 2024 suggests the era is being used less in official
-//! media. That is a fact about usage, not about arithmetic, and this module
-//! keeps converting either way.
+//! North Korea began phasing the era out in October 2024, and the official
+//! calendars for 2025 print the Gregorian year where Juche 114 would have
+//! stood (Wikipedia, "Juche calendar", retrieved 2026-09-26). That is a
+//! fact about usage, carried by [`Calendar::usage`], not about arithmetic,
+//! and this module keeps converting either way.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
@@ -52,6 +54,18 @@ pub const fn days_in_month(year: i64, month: u8) -> Option<u8> {
 pub const fn days_in_year(year: i64) -> u16 {
     gregorian::days_in_year(year - YEAR_OFFSET)
 }
+
+/// The last day of 2024, after which the official calendars print the
+/// Gregorian year alone.
+pub const LAST_KEPT: Rd = match gregorian::to_fixed(2024, 12, 31) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Wikipedia, \"Juche calendar\", retrieved 2026-09-26: the decree adopted on 8 July 1997 \
+    and implemented from 9 September 1997; phased out from October 2024, the official \
+    calendars for 2025 printing 2025 where Juche 114 would have stood";
 
 /// The earliest fixed day this implementation converts, 1 January 1912.
 pub const EARLIEST: Rd = match gregorian::to_fixed(MIN_YEAR - YEAR_OFFSET, 1, 1) {
@@ -128,13 +142,19 @@ impl Calendar for JucheCalendar {
         Ok(is_leap_year(year))
     }
 
-    /// Introduced by decree in 1997. Years between 1912 and 1997 are
-    /// computed backwards onto an era that did not yet exist.
+    /// Implemented from 9 September 1997 and dropped from the official
+    /// calendars after 2024. Years between 1912 and 1997 are computed
+    /// backwards onto an era that did not yet exist; years after 2024 are
+    /// its extension.
     fn usage(&self) -> hc_calendar::Usage {
-        hc_calendar::Usage::since(match gregorian::to_fixed(1997, 9, 9) {
-            Ok(rd) => rd,
-            Err(_) => EARLIEST,
-        })
+        hc_calendar::Usage::between(
+            match gregorian::to_fixed(1997, 9, 9) {
+                Ok(rd) => rd,
+                Err(_) => EARLIEST,
+            },
+            LAST_KEPT,
+            USAGE_SOURCE,
+        )
     }
 
     fn meta(&self) -> CalendarMeta {

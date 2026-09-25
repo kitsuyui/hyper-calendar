@@ -252,6 +252,12 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 impl Calendar for ArithmeticPersianCalendar {
     type Date = PersianDate;
 
+    /// Unrecorded: Birashk's cycle is an arithmetic approximation that no
+    /// authority promulgated; the calendar in force is `persian`.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
+
     /// Twelve months, named in Persian script, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         SHAPE

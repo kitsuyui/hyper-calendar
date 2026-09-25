@@ -109,6 +109,11 @@ const fn days_before_month(month: u8, leap: bool) -> i64 {
     chaitra + 31 * long_months + 30 * short_months
 }
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Adopted by India on 22 March 1957, 1 Chaitra 1879 Śaka, for the Gazette of India, All \
+    India Radio and government communications, as this module and \
+    docs/systems/hindu-calendars.md state it from Wikipedia, \"Indian national calendar\"";
+
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = Rd(new_year_raw(MIN_YEAR));
 
@@ -245,6 +250,18 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 
 impl Calendar for IndianCalendar {
     type Date = IndianDate;
+
+    /// In use since 22 March 1957, 1 Chaitra 1879 Śaka; the years before it
+    /// are the 1957 rules projected backwards.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(
+            match to_fixed(1879, 1, 1) {
+                Ok(rd) => rd,
+                Err(_) => EARLIEST,
+            },
+            USAGE_SOURCE,
+        )
+    }
 
     /// Twelve months under their official names, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {

@@ -210,6 +210,12 @@ pub const fn nnanson_of(rd: Rd) -> u8 {
 impl Calendar for AkanCalendar {
     type Date = AkanDate;
 
+    /// Unrecorded: the source dates the *dabɔne* of 1978 and nothing about
+    /// when the cycle began or whether it is kept today.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
+
     /// The six-day *nnanson* and the seven-day week it runs against.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         const SHAPE: &[hc_calendar::shape::CycleShape] = &[

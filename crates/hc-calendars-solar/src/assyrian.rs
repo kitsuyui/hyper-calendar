@@ -159,6 +159,11 @@ pub const LATEST: Rd = match gregorian::to_fixed(MAX_YEAR - YEAR_OFFSET + 1, 3, 
     Err(_) => Rd(0),
 };
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Wikipedia, \"Assyrian calendar\", retrieved 2026-09-25, citing Paulissian 1999 and \
+    Daniel 2001, not read here: the epoch fixed by Jean Alkhas in *Gilgamesh* in April 1955, \
+    so 1 Neesan 1955 is the first new year kept under it";
+
 /// The first Kha b-Neesan under the epoch: 1 April 1955.
 pub const FIRST_KEPT: Rd = match gregorian::to_fixed(FIRST_YEAR_KEPT - YEAR_OFFSET, 4, 1) {
     Ok(rd) => rd,
@@ -283,7 +288,7 @@ impl Calendar for AssyrianCalendar {
 
     /// Kept since the article of April 1955 that fixed the epoch.
     fn usage(&self) -> Usage {
-        Usage::since(FIRST_KEPT)
+        Usage::since(FIRST_KEPT, USAGE_SOURCE)
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -448,7 +453,7 @@ mod tests {
         }
         assert_eq!(calendar.meta().id, CalendarId(ID));
         assert_eq!(calendar.meta().year_kind, YearKind::EpochForward);
-        assert_eq!(calendar.usage(), Usage::since(FIRST_KEPT));
+        assert_eq!(calendar.usage(), Usage::since(FIRST_KEPT, USAGE_SOURCE));
         assert_eq!(
             calendar.from_fields(&DateFields::ymd(6776, 1, 1).with_era("BC")),
             Err(CalendarError::UnknownEra)

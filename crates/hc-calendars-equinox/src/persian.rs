@@ -121,6 +121,11 @@ pub fn new_year_margin(year: i64) -> CalendarResult<f64> {
     Ok((noon - instant.0) * 24.0 * 60.0)
 }
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Legally adopted by Iran on 31 March 1925 (Wikipedia, \"Solar Hijri calendar\", retrieved \
+    2026-09-26); the calendar of the Iranian civil code, whose standard-time rule this \
+    module follows, and of Afghanistan under other month names";
+
 /// The earliest fixed day this calendar converts.
 #[must_use]
 pub fn earliest() -> Rd {
@@ -238,6 +243,16 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 
 impl Calendar for PersianCalendar {
     type Date = PersianDate;
+
+    /// Iran's calendar by the law of 31 March 1925; the years before it are
+    /// the equinox rule projected back over the Jalālī reckoning the law
+    /// codified.
+    fn usage(&self) -> hc_calendar::Usage {
+        match gregorian::to_fixed(1925, 3, 31) {
+            Ok(rd) => hc_calendar::Usage::since(rd, USAGE_SOURCE),
+            Err(_) => hc_calendar::Usage::UNRECORDED,
+        }
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         SHAPE

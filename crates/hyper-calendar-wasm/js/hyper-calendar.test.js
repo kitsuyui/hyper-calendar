@@ -221,7 +221,7 @@ describe("describeDay", () => {
       leapDay: false,
       extras: {},
       error: null,
-      standing: "unrecorded",
+      standing: "in-use",
       dayBoundary: "midnight",
       formatted: null,
     });

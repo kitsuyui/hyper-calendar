@@ -198,6 +198,12 @@ pub const fn pasaran_of(rd: Rd) -> u8 {
 impl Calendar for JavanesePasaranCalendar {
     type Date = WetonDate;
 
+    /// Unrecorded: the module states everyday use for the weton and cites no
+    /// source for it, and a cycle with no epoch has no first day to record.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
+
     /// The five-day *pasaran* and the seven-day week it runs against.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         const SHAPE: &[hc_calendar::shape::CycleShape] = &[

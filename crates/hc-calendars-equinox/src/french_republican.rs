@@ -252,7 +252,11 @@ impl Calendar for EquinoxFrenchRepublicanCalendar {
             gregorian::to_fixed(1793, 10, 24),
             gregorian::to_fixed(1805, 12, 31),
         ) {
-            (Ok(from), Ok(until)) => hc_calendar::Usage::between(from, until),
+            (Ok(from), Ok(until)) => hc_calendar::Usage::between(
+                from,
+                until,
+                hc_calendars_solar::french_republican::USAGE_SOURCE,
+            ),
             _ => hc_calendar::Usage::UNRECORDED,
         }
     }

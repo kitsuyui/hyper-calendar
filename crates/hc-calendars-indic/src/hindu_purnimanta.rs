@@ -153,6 +153,11 @@ impl HinduPurnimantaCalendar {
 impl Calendar for HinduPurnimantaCalendar {
     type Date = HinduLunarDate;
 
+    /// As the amānta calendar's: in use today, undated at the start.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::undated(crate::hindu_lunar::USAGE_SOURCE)
+    }
+
     /// Twelve months with a thirteenth in an intercalary year, and the
     /// seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {

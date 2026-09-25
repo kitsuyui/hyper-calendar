@@ -183,6 +183,12 @@ macro_rules! delegating_calendar {
         impl Calendar for $name {
             type Date = LunisolarDate;
 
+            /// In force from the day the system was adopted to the day
+            /// before its successor's, which is also the range it converts.
+            fn usage(&self) -> hc_calendar::Usage {
+                hc_calendar::Usage::between(EARLIEST, LATEST, USAGE_SOURCE)
+            }
+
             fn meta(&self) -> CalendarMeta {
                 ENGINE.meta()
             }
@@ -336,6 +342,10 @@ pub mod senmyo {
     /// reform.
     pub const LATEST: Rd = civil::to_rd(1685, 2, 3);
 
+    /// Where the period of use comes from.
+    pub const USAGE_SOURCE: &str = "貞観4年1月1日 = 862-02-03 Julian, 862-02-07 proleptic Gregorian [wikipedia-ja-senmyo, nao-rekiwiki-senmyo], \\
+        to 貞享元年12月30日 = 1685-02-03, the day before Jōkyō-reki [wikipedia-ja-jokyo, nao-rekiwiki-jokyo]";
+
     /// The period constants of Senmyō-reki.
     ///
     /// The conjunction epoch is the conjunction of the adoption day read at
@@ -431,6 +441,10 @@ pub mod jokyo {
     /// 宝暦4年12月30日, Gregorian 1755-02-10.
     pub const LATEST: Rd = civil::to_rd(1755, 2, 10);
 
+    /// Where the period of use comes from.
+    pub const USAGE_SOURCE: &str = "貞享2年1月1日 = 1685-02-04, by imperial proclamation [wikipedia-ja-jokyo, nao-rekiwiki-jokyo], to \\
+        宝暦4年12月30日 = 1755-02-10, the day before Hōryaku-reki [nao-rekiwiki-horyaku, wikipedia-ja-horyaku]";
+
     /// The period constants of Jōkyō-reki.
     ///
     /// The solstice epoch is the true December solstice of 1684 at Kyoto
@@ -510,6 +524,10 @@ pub mod horyaku {
 
     /// 寛政9年12月30日, Gregorian 1798-02-15.
     pub const LATEST: Rd = civil::to_rd(1798, 2, 15);
+
+    /// Where the period of use comes from.
+    pub const USAGE_SOURCE: &str = "宝暦5年1月1日 = 1755-02-11 [nao-rekiwiki-horyaku, wikipedia-ja-horyaku] to 寛政9年12月30日 = \\
+        1798-02-15, the day before Kansei-reki [nao-rekiwiki-kansei, wikipedia-ja-kansei]";
 
     /// The period constants of Hōryaku-reki as promulgated.
     ///
@@ -599,6 +617,10 @@ pub mod kansei {
 
     /// 天保14年12月29日, Gregorian 1844-02-17.
     pub const LATEST: Rd = civil::to_rd(1844, 2, 17);
+
+    /// Where the period of use comes from.
+    pub const USAGE_SOURCE: &str = "寛政10年1月1日 = 1798-02-16 [nao-rekiwiki-kansei, wikipedia-ja-kansei] to 天保14年12月29日 = \\
+        1844-02-17, the day before Tenpō-reki [nao-rekiwiki-tenpo, wikipedia-ja-tenpo]";
 
     /// The period constants of Kansei-reki.
     ///

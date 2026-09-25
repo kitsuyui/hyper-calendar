@@ -429,6 +429,13 @@ impl TabularIslamicCalendar {
     }
 }
 
+/// Where the period of use of the tabular calendars comes from.
+pub const USAGE_SOURCE: &str = "The Hijri count from the year of the migration, 622 [vangent-tabcal], the day being the \
+    scheme's own epoch; the tabular scheme introduced by Muslim astronomers in the eighth \
+    century, which no source read dates to a day, so the count's first day is taken; the \
+    calendar of administrations and of the Ṭayyibī Bohra community today, as \
+    docs/systems/hijri.md states";
+
 /// The Fatimid or Ṭayyibī tabular Hijri calendar — the Bohra *Misri*.
 ///
 /// The official calendar of the Ṭayyibī Ismāʿīlī communities, of whom the
@@ -470,6 +477,13 @@ impl Default for TabularIslamicCalendar {
 
 impl Calendar for TabularIslamicCalendar {
     type Date = IslamicDate;
+
+    /// From the scheme's own epoch, 1 Muḥarram 1 AH, and never abandoned; the
+    /// scheme itself is eighth-century, and the years before it are the rule
+    /// projected back onto a count that was already in use.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(self.epoch, USAGE_SOURCE)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::SOLAR_TWELVE

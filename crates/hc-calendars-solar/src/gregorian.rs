@@ -85,6 +85,11 @@ const fn new_year_raw(year: i64) -> i64 {
     365 * prior + prior.div_euclid(4) - prior.div_euclid(100) + prior.div_euclid(400) + 1
 }
 
+/// Where the period of use comes from: the bull that promulgated the
+/// calendar, read for `docs/systems/gregorian-reform.md`.
+pub const USAGE_SOURCE: &str = "Gregory XIII, *Inter gravissimas* (24 February 1582), read: \
+    the day after 4 October 1582 is 15 October 1582";
+
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = Rd(new_year_raw(MIN_YEAR));
 
@@ -245,10 +250,13 @@ impl Calendar for GregorianCalendar {
     /// a good deal of time *after* it, since adoption took until 1923. Use
     /// [`crate::julian_gregorian`] when the country matters.
     fn usage(&self) -> hc_calendar::Usage {
-        hc_calendar::Usage::since(match to_fixed(1582, 10, 15) {
-            Ok(rd) => rd,
-            Err(_) => Rd(0),
-        })
+        hc_calendar::Usage::since(
+            match to_fixed(1582, 10, 15) {
+                Ok(rd) => rd,
+                Err(_) => Rd(0),
+            },
+            USAGE_SOURCE,
+        )
     }
 
     fn meta(&self) -> CalendarMeta {

@@ -315,6 +315,13 @@ impl Default for IslamicObservationalCalendar {
 impl Calendar for IslamicObservationalCalendar {
     type Date = IslamicDate;
 
+    /// Unrecorded: this is a prediction of sightings under one criterion,
+    /// never a calendar any authority announced, so there is no period in
+    /// which it was in force.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
+
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::SOLAR_TWELVE
     }

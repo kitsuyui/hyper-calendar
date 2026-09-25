@@ -141,6 +141,18 @@ const fn days_before_month(year: i64, month: u8) -> i64 {
     total
 }
 
+/// The first Pohela Boishakh under the adopted calendar, 14 April 1987,
+/// opening 1394. The source gives the year of adoption and no day.
+pub const ADOPTED: Rd = match gregorian::to_fixed(1987, 4, 14) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Wikipedia, \"Bangladeshi national calendar\", retrieved 2026-09-23 and 2026-09-26: adopted \
+    by Bangladesh in 1987, the year only, so the Pohela Boishakh of that year is taken; \
+    the 2019 revision in effect from 16 October 2019";
+
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = Rd(new_year_raw(MIN_YEAR));
 
@@ -252,6 +264,12 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 
 impl Calendar for BangladeshiCalendar {
     type Date = BangladeshiDate;
+
+    /// Kept since 1987, from the Pohela Boishakh of that year, the source
+    /// giving no day; the 1966 lengths before it are proleptic.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(ADOPTED, USAGE_SOURCE)
+    }
 
     /// Twelve months, named in Bengali, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {

@@ -57,6 +57,15 @@ pub const ID: CalendarId = CalendarId("vietnamese");
 /// How far the year number falls below the continuous Chinese count.
 pub const YEAR_OFFSET: i64 = -2_637;
 
+/// The first day the calendar was computed at UT+7 by decree, 1 January 1968.
+pub const DECREED_FROM: Rd = civil::to_rd(1968, 1, 1);
+
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Decision 121-CP of 8 August 1967, in effect from 1 January 1968 [vn-decision-121-cp]: \
+    the calendar at UT+7, the calendar of unified Vietnam and of Tết today; when the \
+    Vietnamese court adopted the Shíxiàn rules no source read states, so the earlier \
+    years are proleptic";
+
 /// The earliest fixed day this calendar converts.
 pub const EARLIEST: Rd = civil::to_rd(1645, 1, 1);
 
@@ -128,6 +137,14 @@ pub struct VietnameseCalendar;
 
 impl Calendar for VietnameseCalendar {
     type Date = VietnameseDate;
+
+    /// In use since 1 January 1968, when Decision 121-CP fixed the meridian
+    /// this calendar computes at, and the calendar of Tết since. The years
+    /// from 1645 convert under the same rules and are proleptic: no source
+    /// read dates the Vietnamese court's adoption of them.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(DECREED_FROM, USAGE_SOURCE)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::LUNISOLAR_TWELVE

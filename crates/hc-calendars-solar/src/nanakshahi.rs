@@ -119,6 +119,25 @@ const fn days_before_month(month: u8) -> i64 {
     }
 }
 
+/// The day the calendar was launched, 14 April 2003.
+pub const LAUNCHED: Rd = match gregorian::to_fixed(2003, 4, 14) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// The last day of Nanakshahi 541, 13 March 2010, the year before the
+/// SGPC's amendment of 2010; the source gives the year only.
+pub const LAST_KEPT: Rd = match gregorian::to_fixed(2010, 3, 13) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Wikipedia, \"Nanakshahi calendar\", retrieved 2026-09-22 and 2026-09-26: approved by the \
+    SGPC in January 2003 and launched on 14 April 2003; amended in 2010 to follow the \
+    Bikrami month starts, the year only, so the calendar year's end is taken; scrapped \
+    entirely by 2014";
+
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = Rd(new_year_raw(MIN_YEAR));
 
@@ -239,6 +258,14 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 
 impl Calendar for NanakshahiCalendar {
     type Date = NanakshahiDate;
+
+    /// The 2003 calendar was kept from its launch on 14 April 2003 until the
+    /// SGPC's amendment of 2010 moved the month starts onto the Bikrami
+    /// calendar; the amended and later calendars are `hindu-solar-vikrami`
+    /// under this name, so the record ends with Nanakshahi 541.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(LAUNCHED, LAST_KEPT, USAGE_SOURCE)
+    }
 
     /// Twelve months, named in Gurmukhi, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {

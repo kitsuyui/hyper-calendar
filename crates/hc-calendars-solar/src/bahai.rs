@@ -93,6 +93,12 @@ pub const fn new_year(year: i64) -> CalendarResult<Rd> {
     Ok(Rd(new_year_raw(year)))
 }
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "The calendar as kept in the West from the first Naw-Rúz, 21 March 1844, until the end of \
+    171 BE, the Universal House of Justice having unified the calendar on astronomical \
+    rules from Naw-Rúz 172 BE (letter of 10 July 2014; *Badíʿ dates 172 to 221 BE*, \
+    Bahá'í World Centre, 2014)";
+
 /// The fixed day of the first Naw-Rúz, 21 March 1844.
 pub const EPOCH: Rd = Rd(new_year_raw(1));
 
@@ -266,6 +272,20 @@ pub struct ArithmeticBahaiCalendar;
 
 impl Calendar for ArithmeticBahaiCalendar {
     type Date = BahaiDate;
+
+    /// Kept from 21 March 1844 to the last day of 171 BE, after which the
+    /// astronomical rules of `bahai-astronomical` govern; the arithmetic goes
+    /// on, and is an extension.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(
+            EPOCH,
+            match new_year(FIRST_ASTRONOMICAL_YEAR) {
+                Ok(rd) => Rd(rd.0 - 1),
+                Err(_) => EPOCH,
+            },
+            USAGE_SOURCE,
+        )
+    }
 
     /// Nineteen months of nineteen days, and a seven-day week.
     ///

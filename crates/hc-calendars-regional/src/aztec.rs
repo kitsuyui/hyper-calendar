@@ -251,6 +251,13 @@ pub struct AztecXiuhpohualliCalendar;
 impl Calendar for AztecTonalpohualliCalendar {
     type Date = AztecTonalpohualliDate;
 
+    /// Unrecorded: the sources read give the correlation anchor of 1521 and
+    /// the painted books, not a span of use, and the count went on in
+    /// colonial books after the anchor.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
+
     /// The thirteen numbers and the twenty day-signs.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         const SHAPE: &[hc_calendar::shape::CycleShape] = &[
@@ -322,6 +329,12 @@ fn byte(value: i64) -> CalendarResult<u8> {
 
 impl Calendar for AztecXiuhpohualliCalendar {
     type Date = AztecXiuhpohualliDate;
+
+    /// Unrecorded, for the reason [`AztecTonalpohualliCalendar::usage`]
+    /// gives.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
 
     /// Eighteen months of twenty days and the five-day Nemontemi, which has
     /// a name and so is a nineteenth position.

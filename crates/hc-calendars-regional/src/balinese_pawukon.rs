@@ -60,6 +60,11 @@ pub const PAWUKON_CYCLE: i64 = 210;
 /// The number of *wuku*, the seven-day weeks the Pawukon is divided into.
 pub const WUKU_COUNT: usize = 30;
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Kept in Bali today, the Galungan days of 2024–2026 this module is checked against falling \
+    on it; Reingold and Dershowitz, *Calendrical Calculations* (4th ed., 2018), §10.6; no \
+    source read dates its beginning";
+
 /// The fixed day of Pawukon day 0, Julian Day Number 146.
 pub const EPOCH: Rd = Rd(146 - hc_calendar::fixed::JDN_OF_RD_ZERO);
 
@@ -341,6 +346,12 @@ const PAWUKON_SHAPE: &[hc_calendar::shape::CycleShape] = &[
 
 impl Calendar for BalinesePawukonCalendar {
     type Date = PawukonDate;
+
+    /// In use today and undated at the start: the anchor at Julian Day
+    /// Number 146 is arithmetic, not a first day anyone kept.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::undated(USAGE_SOURCE)
+    }
 
     /// The thirty *wuku*, as the month, and the ten concurrent weeks.
     ///

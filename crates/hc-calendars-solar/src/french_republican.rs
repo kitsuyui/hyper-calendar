@@ -104,6 +104,11 @@ const fn to_fixed_raw(year: i64, month: u8, day: u8) -> i64 {
         + day as i64
 }
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "The decrees of 14 Vendémiaire and 3 Brumaire An II (5 and 24 October 1793) \
+    establishing the calendar, and its abolition from 1 January 1806 at the end of An XIV, \
+    as Wikipedia, \"French Republican calendar\" (retrieved 2026-09-22) renders them";
+
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = Rd(to_fixed_raw(MIN_YEAR, 1, 1));
 
@@ -269,7 +274,7 @@ impl Calendar for ArithmeticFrenchRepublicanCalendar {
             gregorian::to_fixed(1793, 10, 24),
             gregorian::to_fixed(1805, 12, 31),
         ) {
-            (Ok(from), Ok(until)) => hc_calendar::Usage::between(from, until),
+            (Ok(from), Ok(until)) => hc_calendar::Usage::between(from, until, USAGE_SOURCE),
             _ => hc_calendar::Usage::UNRECORDED,
         }
     }

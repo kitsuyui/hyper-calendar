@@ -44,6 +44,12 @@ pub struct IslamicAstronomicalCalendar;
 impl Calendar for IslamicAstronomicalCalendar {
     type Date = IslamicDate;
 
+    /// From the astronomical epoch, Thursday 15 July 622 Julian, and never
+    /// abandoned; see [`crate::tabular::USAGE_SOURCE`].
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(EPOCH, crate::tabular::USAGE_SOURCE)
+    }
+
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::SOLAR_TWELVE
     }

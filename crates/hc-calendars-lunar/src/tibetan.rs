@@ -300,6 +300,14 @@ pub fn new_year(year: i64) -> CalendarResult<Rd> {
     Ok(Rd(new_year_jdn(year) - JDN_OFFSET))
 }
 
+/// The year the Phugpa tradition began, 1447.
+pub const PHUGPA_FROM_YEAR: i64 = 1_447;
+
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Janson 2014, §1 and Appendix A [janson2014]: the Phugpa tradition begun in 1447 by Phugpa \
+    Lhundrub Gyatso, used by the Tibetan government from at least 1696 to 1959 and in the \
+    almanacs published at Dharamsala since; the year only, so its Losar is taken";
+
 /// The earliest fixed day this implementation converts, Losar of
 /// [`MIN_YEAR`].
 pub fn earliest() -> Rd {
@@ -458,6 +466,16 @@ pub struct TibetanCalendar;
 
 impl Calendar for TibetanCalendar {
     type Date = TibetanDate;
+
+    /// From Losar of 1447, the year the Phugpa tradition began, and kept in
+    /// the Dharamsala almanacs today; the years from 1000 convert by the same
+    /// arithmetic and are proleptic.
+    fn usage(&self) -> hc_calendar::Usage {
+        match new_year(PHUGPA_FROM_YEAR) {
+            Ok(losar) => hc_calendar::Usage::since(losar, USAGE_SOURCE),
+            Err(_) => hc_calendar::Usage::UNRECORDED,
+        }
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::LUNISOLAR_TWELVE

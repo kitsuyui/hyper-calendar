@@ -66,6 +66,11 @@ pub const LAST_YEAR: i64 = 1712;
 /// 1712, the *tillökningsdag*, as year, month and day.
 pub const DOUBLE_LEAP_DAY: (i64, u8, u8) = (1712, 2, 30);
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Toke Nørby, \"The Perpetual Calendar\", norbyhus.dk/calendar.php, and \
+    Hans Högman, \"Tideräkning\", hhogman.se/tiderakning.htm, both retrieved 2026-09-25: \
+    kept from 1 March 1700 to 30 February 1712";
+
 /// The earliest fixed day this calendar converts: 1 March 1700, which is
 /// Julian 29 February 1700 and Gregorian 11 March 1700.
 pub const EARLIEST: Rd = match julian::to_fixed(1700, 2, 29) {
@@ -206,7 +211,7 @@ impl Calendar for SwedishCalendar {
     /// Kept from 1 March 1700 to 30 February 1712, which is also the whole
     /// of the range it converts.
     fn usage(&self) -> Usage {
-        Usage::between(EARLIEST, LATEST)
+        Usage::between(EARLIEST, LATEST, USAGE_SOURCE)
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -371,6 +376,9 @@ mod tests {
         );
         let meta = SwedishCalendar.meta();
         assert_eq!(meta.id, CalendarId(ID));
-        assert_eq!(SwedishCalendar.usage(), Usage::between(EARLIEST, LATEST));
+        assert_eq!(
+            SwedishCalendar.usage(),
+            Usage::between(EARLIEST, LATEST, USAGE_SOURCE)
+        );
     }
 }

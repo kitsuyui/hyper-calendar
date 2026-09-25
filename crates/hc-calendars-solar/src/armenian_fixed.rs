@@ -123,6 +123,10 @@ pub const EARLIEST: Rd = Rd(new_year_raw(MIN_YEAR));
 /// The latest fixed day this implementation converts.
 pub const LATEST: Rd = Rd(new_year_raw(MAX_YEAR + 1) - 1);
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Sarkawag's reform of 1084 as the standard Armenian chronological \
+    literature dates it: in force from Armenian year 533, which begins on 11 August 1084 Julian";
+
 /// The first day the reform was in force.
 pub const REFORM: Rd = Rd(new_year_raw(REFORM_YEAR));
 
@@ -253,7 +257,7 @@ impl Calendar for ArmenianFixedCalendar {
     /// wandering calendar is the one that was in use then, and the two
     /// disagree by months.
     fn usage(&self) -> Usage {
-        Usage::since(REFORM)
+        Usage::since(REFORM, USAGE_SOURCE)
     }
 
     fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {

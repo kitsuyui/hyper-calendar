@@ -209,6 +209,13 @@ impl OldHinduSolarCalendar {
 impl Calendar for OldHinduSolarCalendar {
     type Date = OldHinduSolarDate;
 
+    /// Unrecorded: a mean reckoning that the almanacs replaced with true
+    /// positions at dates no source read gives, so there is no period to
+    /// state.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
+
     /// Twelve months named for the signs, and the seven-day week.
     fn cycles(&self) -> &'static [CycleShape] {
         const SHAPE: &[CycleShape] = &[
@@ -442,6 +449,11 @@ impl OldHinduLunarCalendar {
 
 impl Calendar for OldHinduLunarCalendar {
     type Date = OldHinduLunarDate;
+
+    /// Unrecorded, for the reason [`OldHinduSolarCalendar::usage`] gives.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
 
     /// Twelve months with a thirteenth in an intercalary year, and the
     /// seven-day week.

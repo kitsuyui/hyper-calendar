@@ -107,6 +107,11 @@ pub const ID_NORTHERN_PROCLAIMED: CalendarId = CalendarId("japanese-northern-pro
 /// The identifier of the Southern Court stream read as proclaimed.
 pub const ID_SOUTHERN_PROCLAIMED: CalendarId = CalendarId("japanese-southern-proclaimed");
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "元号一覧 (日本), Japanese Wikipedia: eras since 大化 (645), continuously since 大宝 (701), \
+    and 令和 today; days converted from 貞観4年1月1日 = 862-02-07, the first day of \
+    Senmyō-reki, the earliest calendar underneath the eras this crate can compute";
+
 /// The first day the solar calendar was in force: 明治6年1月1日, decreed to
 /// follow 明治5年12月2日 directly.
 pub const GREGORIAN_ADOPTION: Rd = Rd(683_735);
@@ -613,6 +618,14 @@ fn era_in_force(
 
 impl Calendar for JapaneseCalendar {
     type Date = JapaneseDate;
+
+    /// In use since the first day this calendar converts, 862-02-07, and
+    /// never abandoned: the eras are older, back to 645, but the days before
+    /// Senmyō-reki are refused rather than dated, so the record and the range
+    /// begin together. The same for every court's stream.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(EARLIEST, USAGE_SOURCE)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::LUNISOLAR_TWELVE

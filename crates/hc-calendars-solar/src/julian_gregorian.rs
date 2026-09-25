@@ -66,8 +66,14 @@ pub struct Adoption {
     /// The calendar identifier for this variant, for example
     /// `"julian-gregorian-gb"`.
     pub id: &'static str,
+    /// The English name of the calendar, carrying the polity: "Julian–Gregorian
+    /// reform (France)".
+    pub name: &'static str,
     /// The English name of the polity that adopted on this date.
     pub region: &'static str,
+    /// The instrument behind the cut-over, as `docs/systems/gregorian-reform.md`
+    /// names it, and whether it was read.
+    pub source: &'static str,
     /// The last date written in the Julian calendar, as year, month, day.
     pub last_julian: (i64, u8, u8),
     /// The first date written in the Gregorian calendar, as year, month, day.
@@ -124,73 +130,97 @@ impl Adoption {
 pub const ADOPTIONS: [Adoption; 12] = [
     Adoption {
         id: "julian-gregorian-catholic",
+        name: "Julian–Gregorian reform (Papal States, Spain, Portugal, Poland-Lithuania)",
         region: "Papal States, Spain, Portugal, Poland-Lithuania",
+        source: "Gregory XIII, *Inter gravissimas* (24 February 1582), read [inter-gravissimas]",
         last_julian: (1582, 10, 4),
         first_gregorian: (1582, 10, 15),
     },
     Adoption {
         id: "julian-gregorian-fr",
+        name: "Julian–Gregorian reform (France)",
         region: "France",
+        source: "An edict of Henri III, not read; the dates from secondary sources [frwiki-passage-gregorien, wikipedia-adoption-gregorian]",
         last_julian: (1582, 12, 9),
         first_gregorian: (1582, 12, 20),
     },
     Adoption {
         id: "julian-gregorian-nl",
+        name: "Julian–Gregorian reform (Holland and Zeeland)",
         region: "Holland and Zeeland",
+        source: "No instrument read; Zeeland's date in every secondary source, Holland's disputed [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]",
         last_julian: (1582, 12, 14),
         first_gregorian: (1582, 12, 25),
     },
     Adoption {
         id: "julian-gregorian-de-catholic",
+        name: "Julian–Gregorian reform (Catholic Germany, Bavaria)",
         region: "Catholic Germany (Bavaria)",
+        source: "A ducal order, not read; the dates from a secondary source [dewiki-gregorianischer-kalender]",
         last_julian: (1583, 10, 5),
         first_gregorian: (1583, 10, 16),
     },
     Adoption {
         id: "julian-gregorian-hu",
+        name: "Julian–Gregorian reform (Hungary)",
         region: "Hungary",
+        source: "A law of the diet of 1587/88, not read; the dates from secondary sources [wikipedia-adoption-list, frwiki-passage-gregorien]",
         last_julian: (1587, 10, 21),
         first_gregorian: (1587, 11, 1),
     },
     Adoption {
         id: "julian-gregorian-de-protestant",
+        name: "Julian–Gregorian reform (Protestant Germany, Denmark and Norway)",
         region: "Protestant Germany, Denmark and Norway",
+        source: "The resolution of the *Corpus Evangelicorum* at Regensburg (1699) and Denmark–Norway's royal ordinance prepared by Ole Rømer, neither read [dewiki-gregorianischer-kalender, dawiki-gregorianske-kalender]",
         last_julian: (1700, 2, 18),
         first_gregorian: (1700, 3, 1),
     },
     Adoption {
         id: "julian-gregorian-gb",
+        name: "Julian–Gregorian reform (Great Britain and its colonies)",
         region: "Great Britain and its colonies",
+        source: "The Calendar (New Style) Act 1750, 24 Geo. II c. 23, read",
         last_julian: (1752, 9, 2),
         first_gregorian: (1752, 9, 14),
     },
     Adoption {
         id: "julian-gregorian-se",
+        name: "Julian–Gregorian reform (Sweden and Finland)",
         region: "Sweden and Finland",
+        source: "The Swedish decision of 1753, not read; the dates from a secondary source [wikipedia-adoption-gregorian]",
         last_julian: (1753, 2, 17),
         first_gregorian: (1753, 3, 1),
     },
     Adoption {
         id: "julian-gregorian-bg",
+        name: "Julian–Gregorian reform (Bulgaria)",
         region: "Bulgaria",
+        source: "Decree No. 8 of Tsar Ferdinand, State Gazette no. 65 of 21 March 1916, not read; the dates from a secondary source [bgwiki-grigorianski-kalendar]",
         last_julian: (1916, 3, 31),
         first_gregorian: (1916, 4, 14),
     },
     Adoption {
         id: "julian-gregorian-ru",
+        name: "Julian–Gregorian reform (Soviet Russia)",
         region: "Soviet Russia",
+        source: "The Sovnarkom decree of 24 January (6 February) 1918, read in transcription",
         last_julian: (1918, 1, 31),
         first_gregorian: (1918, 2, 14),
     },
     Adoption {
         id: "julian-gregorian-ro",
+        name: "Julian–Gregorian reform (Romania and Serbia)",
         region: "Romania and Serbia",
+        source: "Romania's decree-law of 5/18 March 1919, not read; the dates from a secondary source [rowiki-calendarul-gregorian]; wrong for Serbia, which changed on 28 January 1919",
         last_julian: (1919, 3, 31),
         first_gregorian: (1919, 4, 14),
     },
     Adoption {
         id: "julian-gregorian-gr",
+        name: "Julian–Gregorian reform (Greece)",
         region: "Greece",
+        source: "A royal decree reckoning 16 February 1923 as 1 March 1923, not read; the dates from secondary sources [elwiki-gregoriano-imerologio, wikipedia-adoption-list]",
         last_julian: (1923, 2, 15),
         first_gregorian: (1923, 3, 1),
     },
@@ -231,7 +261,9 @@ impl ReformDate {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ReformCalendar {
     id: &'static str,
+    name: &'static str,
     region: &'static str,
+    source: &'static str,
     cutover: Rd,
 }
 
@@ -246,7 +278,9 @@ impl ReformCalendar {
             Err(error) => Err(error),
             Ok(cutover) => Ok(Self {
                 id: adoption.id,
+                name: adoption.name,
                 region: adoption.region,
+                source: adoption.source,
                 cutover,
             }),
         }
@@ -254,12 +288,22 @@ impl ReformCalendar {
 
     /// A calendar with an explicit cut-over, for a polity not in the table.
     ///
-    /// `cutover` is the fixed day of the *first* Gregorian date.
+    /// `cutover` is the fixed day of the *first* Gregorian date; `name` is
+    /// the calendar's English name, carrying the polity as the table's do;
+    /// `source` names the instrument the cut-over rests on.
     #[must_use]
-    pub const fn with_cutover(id: &'static str, region: &'static str, cutover: Rd) -> Self {
+    pub const fn with_cutover(
+        id: &'static str,
+        name: &'static str,
+        region: &'static str,
+        cutover: Rd,
+        source: &'static str,
+    ) -> Self {
         Self {
             id,
+            name,
             region,
+            source,
             cutover,
         }
     }
@@ -276,6 +320,12 @@ impl ReformCalendar {
         self.region
     }
 
+    /// The instrument the cut-over rests on, and whether it was read.
+    #[must_use]
+    pub const fn source(&self) -> &'static str {
+        self.source
+    }
+
     /// Whether a fixed day falls in the Gregorian part of this calendar.
     #[must_use]
     pub const fn is_new_style(&self, rd: Rd) -> bool {
@@ -288,7 +338,9 @@ impl Default for ReformCalendar {
     fn default() -> Self {
         Self {
             id: ADOPTIONS[0].id,
+            name: ADOPTIONS[0].name,
             region: ADOPTIONS[0].region,
+            source: ADOPTIONS[0].source,
             // `to_fixed` of 1582-10-15 cannot fail; the fallback keeps the
             // no-panic rule without pretending the failure is meaningful.
             cutover: match ADOPTIONS[0].cutover() {
@@ -301,6 +353,14 @@ impl Default for ReformCalendar {
 
 impl Calendar for ReformCalendar {
     type Date = ReformDate;
+
+    /// The Julian calendar from its reform of 45 BC, in force in Europe
+    /// since, and the Gregorian from this polity's cut-over on; the source
+    /// is the cut-over's instrument, since the Julian side is
+    /// [`julian::USAGE_SOURCE`]'s and the same for every polity.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(julian::REFORM, self.source)
+    }
 
     /// Twelve months and the seven-day week on both sides of the reform.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
@@ -322,7 +382,7 @@ impl Calendar for ReformCalendar {
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId(self.id),
-            english_name: "Julian/Gregorian reform",
+            english_name: self.name,
             year_kind: YearKind::Astronomical,
             has_leap_months: false,
             is_astronomical: false,
@@ -556,7 +616,13 @@ mod tests {
         // calendar can only model the calendar half — which is what a caller
         // gets by naming the cut-over themselves.
         let cutover = gregorian::to_fixed(1867, 10, 18).unwrap();
-        let alaska = ReformCalendar::with_cutover("julian-gregorian-ak", "Alaska", cutover);
+        let alaska = ReformCalendar::with_cutover(
+            "julian-gregorian-ak",
+            "Julian–Gregorian reform (Alaska)",
+            "Alaska",
+            cutover,
+            "a test",
+        );
         assert_eq!(
             alaska.from_fixed(cutover),
             Ok(ReformDate::new(1867, 10, 18))

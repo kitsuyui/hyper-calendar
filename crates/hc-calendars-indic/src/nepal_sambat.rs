@@ -67,6 +67,13 @@ use hc_seasons::zodiac::Ayanamsa;
 use crate::hindu_lunar::{HinduLunarCalendar, HinduLunarDate};
 use crate::places::KATHMANDU;
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Established on 20 October 879 and the official calendar of Nepal until the end of the Malla \
+    dynasty in 1769; displaced by the Bikram Sambat in 1903; the Newar calendar of Mha Puja \
+    since, in Lalitpur's documents from 2020 and in the government's from 11 November 2023 \
+    [wikipedia-nepal-sambat], as docs/systems/nepal-calendars.md states; the epoch is taken \
+    as a Julian date";
+
 /// The calendar's identifier.
 pub const ID: CalendarId = CalendarId("nepal-sambat");
 /// The era it counts in.
@@ -242,6 +249,16 @@ impl NepalSambatCalendar {
 
 impl Calendar for NepalSambatCalendar {
     type Date = NepalSambatDate;
+
+    /// From its establishment on 20 October 879, official until 1769, and the
+    /// calendar of the Newar new year since; the end of civil use is given by
+    /// the year only and is not carried as a day.
+    fn usage(&self) -> hc_calendar::Usage {
+        match hc_calendars_solar::julian::to_fixed(879, 10, 20) {
+            Ok(rd) => hc_calendar::Usage::since(rd, USAGE_SOURCE),
+            Err(_) => hc_calendar::Usage::UNRECORDED,
+        }
+    }
 
     /// Twelve months with a thirteenth in an intercalary year, and the
     /// seven-day week.

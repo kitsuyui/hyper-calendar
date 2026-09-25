@@ -113,6 +113,11 @@ pub const MIN_YEAR: i64 = gregorian::MIN_YEAR;
 /// The latest year this implementation converts.
 pub const MAX_YEAR: i64 = gregorian::MAX_YEAR;
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Wikipedia, \"International Fixed Calendar\", retrieved 2026-09-25: the Eastman Kodak \
+    Company ran on it from 1928 to 1989, the years only, so the calendar years are taken; \
+    adopted by no state";
+
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = gregorian::EARLIEST;
 
@@ -309,6 +314,18 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 
 impl Calendar for InternationalFixedCalendar {
     type Date = InternationalFixedDate;
+
+    /// Kept by one company, Eastman Kodak, from 1928 to 1989, and by no
+    /// state; the source gives years, so the whole of each is taken.
+    fn usage(&self) -> hc_calendar::Usage {
+        match (
+            gregorian::to_fixed(1928, 1, 1),
+            gregorian::to_fixed(1989, 12, 31),
+        ) {
+            (Ok(from), Ok(until)) => hc_calendar::Usage::between(from, until, USAGE_SOURCE),
+            _ => hc_calendar::Usage::UNRECORDED,
+        }
+    }
 
     /// A year with a Leap Day, by the Gregorian rule.
     fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {

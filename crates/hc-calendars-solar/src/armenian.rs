@@ -44,6 +44,11 @@ pub const fn days_in_month(month: u8) -> Option<u8> {
     common::wandering_days_in_month(month)
 }
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "The era's first day, 1 Nawasardi 1 = 11 July 552 Julian, when the Armenian church \
+    began its own reckoning, as this module states it; superseded by Sarkawag's fixed \
+    year from 11 August 1084, as `armenian_fixed` states it";
+
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = Rd(common::wandering_to_fixed(EPOCH.0, MIN_YEAR, 1, 1));
 
@@ -148,6 +153,18 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 
 impl Calendar for ArmenianCalendar {
     type Date = ArmenianDate;
+
+    /// From the era's first day, 11 July 552, until the day before Sarkawag's
+    /// fixed year took effect on 11 August 1084. The wandering year lingered
+    /// in use beside the fixed one afterwards; no source read dates that, so
+    /// it is not carried.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(
+            EPOCH,
+            hc_calendar::Rd(crate::armenian_fixed::REFORM.0 - 1),
+            USAGE_SOURCE,
+        )
+    }
 
     /// Thirteen months, named in Armenian script, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {

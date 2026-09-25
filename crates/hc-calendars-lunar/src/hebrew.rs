@@ -318,6 +318,17 @@ const fn to_fixed_internal(year: i64, month: u8, day: u8) -> i64 {
     new_year(year).0 + days_before_internal_month(year, month) + day as i64 - 1
 }
 
+/// The year tradition attributes the fixed calendar to Hillel II in: 670 of
+/// the Seleucid era, 358/9 CE, which is 4119 AM.
+pub const TRADITIONAL_ADOPTION_YEAR: i64 = 4_119;
+
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Tradition, first recorded in a responsum of Hai Gaon of 992, attributes the fixed calendar \
+    to Hillel II in 670 of the Seleucid era, 358/9 CE, 4119 AM; the modern reading has it \
+    reach its exact form in 922–924 [wikipedia-hillel-ii], and docs/systems/hebrew.md \
+    carries both; the calendar of Jewish religious life and one of Israel's two civil \
+    calendars today";
+
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = new_year(MIN_YEAR);
 
@@ -563,6 +574,15 @@ pub struct HebrewCalendar;
 
 impl Calendar for HebrewCalendar {
     type Date = HebrewDate;
+
+    /// From Rosh Hashanah of 4119 AM, the autumn of 358 CE, the year
+    /// tradition gives for Hillel II's fixed calendar, and never abandoned.
+    /// The tradition is carried as a tradition: the calendar's exact modern
+    /// form is later, and the years before 4119 are the fixed rules
+    /// projected back.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(new_year(TRADITIONAL_ADOPTION_YEAR), USAGE_SOURCE)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::LUNISOLAR_TWELVE
