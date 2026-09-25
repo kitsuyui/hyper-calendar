@@ -21,7 +21,7 @@
 //!   interval patterns and relative-time strings are not here.
 //! * Non-Gregorian vocabulary is carried for the calendars where the names
 //!   genuinely differ: Hijri months in Arabic and English, Hebrew months in
-//!   Hebrew and English, the Chinese lunisolar months in both Chinese
+//!   Hebrew and English, Babylonian months in English, the Chinese lunisolar months in both Chinese
 //!   scripts, their Japanese traditional names, and the Japanese era names.
 //! * The sexagenary cycle is written in whichever of the readings
 //!   `hc_calendar::cycle::readings` catalogues the locale uses; only the
@@ -128,6 +128,9 @@ const ISLAMIC_CALENDARS: &[CalendarId] = &[
 
 /// The Hebrew calendar.
 const HEBREW_CALENDARS: &[CalendarId] = &[CalendarId("hebrew")];
+
+/// The Babylonian calendar of the Seleucid era.
+const BABYLONIAN_CALENDARS: &[CalendarId] = &[CalendarId("babylonian")];
 
 /// The Thai Buddhist calendar, which counts years its own way and names
 /// the months as the Gregorian calendar does — so it appears both here,
@@ -612,6 +615,36 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &["am"],
         &["AM"],
     ),
+    // CLDR has no Babylonian vocabulary. The months are the Akkadian names
+    // in the normalisation R. H. van Gent's converter of Parker and
+    // Dubberstein's tables prints (webspace.science.uu.nl/~gent0113/babylon/,
+    // read 2026-09-25), the sixth spelt as it spells the intercalary one; an
+    // intercalary month is "second Ulūlu" or "second Addāru", the converter's
+    // "Ulūlu II" and "Addāru II" put into English word order.
+    CalendarNames {
+        calendars: BABYLONIAN_CALENDARS,
+        cycles: &[months(&[
+            "Nīsannu",
+            "Ayyāru",
+            "Sīmannu",
+            "Duʾūzu",
+            "Ābu",
+            "Ulūlu",
+            "Tašrītu",
+            "Araḫsamna",
+            "Kisilīmu",
+            "Ṭebētu",
+            "Šabāṭu",
+            "Addāru",
+        ])],
+        leap_month_prefix: "second ",
+        eras: EraNames {
+            codes: &["se"],
+            names: widths(&["SE"], &[], &[]),
+            calendars: &[],
+        },
+        quarters: ContextualNames::EMPTY,
+    },
     lunisolar(
         NUMBERED_LUNISOLAR_CALENDARS,
         &[months(&[

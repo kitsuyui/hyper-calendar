@@ -86,7 +86,7 @@ there. The table is checked for sortedness and uniqueness by a test.
 
 Locales shipped: `ar cs de en es fa fr he hi id it ja ko nl pl pt ru th tr vi
 zh-Hans zh-Hant`, plus the `und` root. Non-Gregorian vocabulary: Hijri months
-(Arabic, English), Hebrew months (Hebrew, English), the numbered lunisolar
+(Arabic, English), Hebrew months (Hebrew, English), Babylonian months (English), the numbered lunisolar
 months in both Chinese scripts and in English, their Japanese traditional
 names (睦月 … 師走), Japanese era names, romanisations of the Coptic,
 Ethiopic, Armenian and Persian months (whose own scripts the calendars carry

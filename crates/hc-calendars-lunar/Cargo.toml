@@ -1,6 +1,6 @@
 [package]
 name = "hc-calendars-lunar"
-description = "Lunar and lunisolar calendars for hyper-calendar: Hijri, Hebrew, Chinese, Japanese Tenpo, Korean and Vietnamese."
+description = "Lunar and lunisolar calendars for hyper-calendar: Hijri, Hebrew, Babylonian, Chinese, Japanese Tenpo, Korean and Vietnamese."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
