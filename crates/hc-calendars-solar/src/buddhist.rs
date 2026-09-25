@@ -7,23 +7,24 @@
 //!
 //! # The year as it was printed before 1941
 //!
-//! Before 1941 the months were the same but the year was not. From
-//! 1 April 1889 the year began on 1 April and was counted in the
-//! Rattanakosin era (รัตนโกสินทรศก, RS), from the founding of Bangkok:
-//! 1 April 1889 was the first day of RS 108. A proclamation of 21 February
-//! RS 131 replaced the era with the Buddhist Era from 1 April 2456, which
-//! is 1 April 1913, still from 1 April. The Calendar Year Act of 2483
-//! (Royal Gazette vol. 57, p. 419) began 2484 on 1 January 1941, so 2483
-//! ran from 1 April to 31 December 1940 and was nine months long.
+//! The history behind this — the solar reckoning from 1 April 1889 in the
+//! Rattanakosin era, the Buddhist Era from 1 April 2456 (1913), and the
+//! Calendar Years Act of 2483 that began 2484 on 1 January 1941 — is
+//! written up with its sources in `docs/systems/thai-lunar.md` in the
+//! repository, beside the lunar calendar. This page summarises it and
+//! states the code's own facts.
 //!
-//! So a Thai document of those years dates January to March a year higher
+//! Before 1941 the months were the same but the year began on 1 April, so
+//! a Thai document of those years dates January to March a year lower
 //! than [`BuddhistCalendar`] does — 1 January 1920 was printed 2462, not
-//! 2463 — and before 1 April 1913 in another era altogether.
-//! [`printed_year`] gives the year a document of the time would have
-//! printed for a day, and [`printed_to_fixed`] reads such a dateline back.
-//! Like [`crate::year_style`], it changes the year number only. The month
-//! and day are the Gregorian ones throughout, and the calendar itself
-//! keeps the modern year, whose every year begins on 1 January.
+//! 2463 — and before 1 April 1913 in another era altogether, RS 108 to
+//! 131. [`printed_year`] gives the era and year a document of the time
+//! would have printed for a day, and [`printed_to_fixed`] reads such a
+//! dateline back; 2483 ran from 1 April to 31 December 1940 and has no
+//! January to March. Like [`crate::year_style`], it changes the year
+//! number only. The month and day are the Gregorian ones throughout, and
+//! the calendar itself keeps the modern year, whose every year begins on
+//! 1 January.
 //!
 //! # What this deliberately does not do
 //!

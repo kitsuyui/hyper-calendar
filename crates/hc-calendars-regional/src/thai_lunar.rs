@@ -1,36 +1,32 @@
 //! The Thai lunar calendar, ปฏิทินจันทรคติไทย, as Thailand publishes it.
 //!
+//! The system is written up in `docs/systems/thai-lunar.md` in the
+//! repository: what the calendar is, how a year type fixes every month and
+//! how each year's type was read off the published holy days, with a
+//! worked example, what is carried and why J. C. Eade's *suriyayatra* rule
+//! is not, and how the table was checked against the Bank of Thailand's
+//! lists. This page summarises it and states the code's own facts.
+//!
 //! Twelve months, เดือนอ้าย to เดือนสิบสอง, of 29 days when the month's
-//! number is odd and 30 when it is even: a normal year of 354 days. In an
-//! *adhikamāsa* year (ปีอธิกมาส) month 8 is doubled, the extra month —
-//! เดือน 8 หนแรก, the first of the two — coming between month 7 and the
-//! regular month 8, both of them 30 days, for 384. In an *adhikavāra* year
-//! (ปีอธิกวาร) month 7 has a 30th day, แรม 15 ค่ำ เดือน 7, for 355. A year
-//! is never both. The days of a month are counted in two halves: waxing,
-//! ขึ้น 1 to 15 ค่ำ, and waning, แรม 1 to 14 ค่ำ, or to 15 in a 30-day month.
+//! number is odd and 30 when it is even: a normal year (ปกติมาส) of 354
+//! days. In an *adhikamāsa* year (ปีอธิกมาส) month 8 is doubled, the extra
+//! month — เดือน 8 หนแรก, the first of the two — coming between month 7 and
+//! the regular month 8, both of them 30 days, for 384. In an *adhikavāra*
+//! year (ปีอธิกวาร) month 7 has a 30th day, แรม 15 ค่ำ เดือน 7, for 355. A
+//! year is never both. The days of a month are counted in two halves:
+//! waxing, ขึ้น 1 to 15 ค่ำ, and waning, แรม 1 to 14 ค่ำ, or to 15 in a
+//! 30-day month.
 //!
 //! # Carried as data, not as a rule
 //!
-//! Which years take the extra month and which the extra day is decided by
-//! an astronomical reckoning that the published calendar does not always
-//! follow in its textbook form: J. C. Eade's statement of the *suriyayatra*
-//! rule reproduces his own year types but not the Buddhist holidays
-//! Thailand actually kept. So this module does not compute the year type.
-//! It carries it, year by year, in [`YEAR_TYPES`], and refuses every year
-//! the table does not reach.
-//!
-//! The table is read off the dates Thailand published for its three
-//! full-moon holidays, which the year type fixes completely. Makha Bucha is
-//! the full moon of month 3, or of month 4 in an adhikamāsa year; Visakha
-//! Bucha of month 6, or of month 7; Asalha Bucha of month 8, the regular
-//! one in an adhikamāsa year, and Khao Phansa the day after it. Counting
-//! the days: Makha to Visakha is 88 days, or 89 in an adhikamāsa year, and
-//! Visakha to Asalha 59 days, or 60 in an adhikavāra year. Every year's
-//! three dates therefore name its type, and the step from one year's Makha
-//! Bucha to the next checks it again, since that step is the year's length.
-//! Where a notice gives only the Monday that stood in for a weekend
-//! holiday, the Saturday or the Sunday is decided by those two checks, and
-//! in every such year exactly one of them passes.
+//! Which years take the extra month and which the extra day is not
+//! computed here: the published calendar is not known to follow the
+//! *suriyayatra* rule as Eade states it, and the document says how far
+//! that was tested. The type is carried, year by year, in [`YEAR_TYPES`],
+//! each read off the Makha, Visakha and Asalha Bucha (to 2006 Khao Phansa)
+//! dates Thailand published for it, which fix it, and every year the table
+//! does not reach is refused. [`makha_bucha`], [`visakha_bucha`],
+//! [`asalha_bucha`] and [`khao_phansa`] give the holy days.
 //!
 //! # Sources, per span
 //!
@@ -55,7 +51,8 @@
 //! 8 and the 30th of month 7 — is as the *Dictionary of Buddhism*
 //! (พจนานุกรมพุทธศาสน์ ฉบับประมวลศัพท์) states it under อธิกมาส, and as Thai
 //! Wikipedia, "ปฏิทินจันทรคติไทย", retrieved 2026-09-23, describes the
-//! official calendar, with the month names.
+//! official calendar, with the month names. The same sources are keyed in
+//! `docs/references.bib`.
 //!
 //! # The range
 //!
