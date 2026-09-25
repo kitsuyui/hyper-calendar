@@ -310,6 +310,14 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 impl Calendar for InternationalFixedCalendar {
     type Date = InternationalFixedDate;
 
+    /// A year with a Leap Day, by the Gregorian rule.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        Ok(is_leap_year(year))
+    }
+
     /// Thirteen months, Sol among them, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         SHAPE

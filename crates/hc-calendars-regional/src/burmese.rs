@@ -589,6 +589,14 @@ impl Calendar for BurmeseCalendar {
         hc_calendar::shape::LUNISOLAR_TWELVE
     }
 
+    /// A watat year, with its Second Waso.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        Ok(year_info(year).year_type.has_watat())
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("burmese"),

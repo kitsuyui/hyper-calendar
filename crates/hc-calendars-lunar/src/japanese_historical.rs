@@ -198,6 +198,10 @@ macro_rules! delegating_calendar {
                 ENGINE.cycles()
             }
 
+            fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+                PARAMETERS.is_leap_year(year)
+            }
+
             fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
                 ENGINE.to_fixed(date)
             }

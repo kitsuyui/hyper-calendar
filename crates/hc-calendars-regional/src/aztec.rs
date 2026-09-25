@@ -278,6 +278,11 @@ impl Calendar for AztecTonalpohualliCalendar {
         SHAPE
     }
 
+    /// A cycle has no year: the `year` field carries the round.
+    fn is_leap_year(&self, _year: i64) -> CalendarResult<bool> {
+        Err(CalendarError::UnsupportedField("year"))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("aztec-tonalpohualli"),
@@ -344,6 +349,11 @@ impl Calendar for AztecXiuhpohualliCalendar {
             &MONTHS,
         )];
         SHAPE
+    }
+
+    /// A cycle has no year: the `year` field carries the round.
+    fn is_leap_year(&self, _year: i64) -> CalendarResult<bool> {
+        Err(CalendarError::UnsupportedField("year"))
     }
 
     fn meta(&self) -> CalendarMeta {

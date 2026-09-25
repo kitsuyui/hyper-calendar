@@ -59,6 +59,10 @@ impl Calendar for IslamicCivilCalendar {
         hc_calendar::shape::SOLAR_TWELVE
     }
 
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(PARAMETERS.is_leap_year(year))
+    }
+
     /// The Islamic day begins at sunset, which is also why the month begins
     /// with a crescent seen after one.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {

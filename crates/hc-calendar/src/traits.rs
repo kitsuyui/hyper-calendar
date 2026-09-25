@@ -154,6 +154,31 @@ pub trait Calendar {
     /// silent, and a gap that a test can only report is still a gap.
     fn cycles(&self) -> &'static [CycleShape];
 
+    /// Whether `year` carries this calendar's intercalary unit.
+    ///
+    /// True when the year has the leap day, the leap month or the leap
+    /// week that the calendar itself intercalates, whatever the calendar
+    /// calls it: a 29 February, an Adar I, a second Waso, a fifty-third
+    /// ISO week, a sixth epagomenal day. False for a common year, however
+    /// long or short it is — a Hebrew common year runs 353 to 355 days and
+    /// none of the three is leap — and always false for a calendar that
+    /// never intercalates, such as the Egyptian wandering year.
+    ///
+    /// There is no default, for the same reason [`Calendar::cycles`] has
+    /// none: a calendar that stays silent would be answered by an inference
+    /// from year lengths, and that inference is wrong for every calendar
+    /// with more than one common-year length.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CalendarError::UnsupportedField`] naming `"year"` for a
+    /// calendar whose dates have no year — a day count, the Julian Day, the
+    /// Maya long count, the Pawukon, the sexagenary cycle — where the
+    /// `year` field of [`DateFields`] carries something else, and
+    /// [`CalendarError::YearOutOfRange`] for a year a bounded calendar
+    /// cannot know about.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool>;
+
     /// Where this calendar's day begins.
     ///
     /// Defaults to midnight, which is right for most calendars and for every
@@ -278,11 +303,14 @@ pub trait DynCalendar {
         self.usage().standing(rd)
     }
 
-    /// Whether the given year is longer than an ordinary one.
+    /// Whether the given year carries the calendar's intercalary unit. See
+    /// [`Calendar::is_leap_year`].
     ///
     /// # Errors
     ///
-    /// Returns a [`CalendarError`] when the year does not exist.
+    /// Returns [`CalendarError::UnsupportedField`] naming `"year"` when the
+    /// calendar's dates have no year, and [`CalendarError::YearOutOfRange`]
+    /// when the year is outside what the calendar can know.
     fn is_leap_year(&self, year: i64) -> CalendarResult<bool>;
 }
 
@@ -341,16 +369,39 @@ impl<C: Calendar> DynCalendar for DynAdapter<C> {
         self.inner.usage()
     }
 
+    /// Measures from the first day of `year` to the first day of the next.
+    ///
+    /// For a calendar that declares a month cycle the first day is month 1,
+    /// day 1. For one that declares none — an ISO week date, an ordinal
+    /// date — it is whatever the calendar reads a bare year as, and a
+    /// calendar whose dates have no year at all says so through
+    /// [`Calendar::is_leap_year`] and is refused with the same error, rather
+    /// than having a day count or a cycle index measured as though it were
+    /// a year.
     fn days_in_year(&self, year: i64) -> CalendarResult<u16> {
-        let start = self.fields_to_fixed(&DateFields::ymd(year, 1, 1))?;
-        let next = self.fields_to_fixed(&DateFields::ymd(year + 1, 1, 1))?;
+        let has_month = self
+            .cycles()
+            .iter()
+            .any(|cycle| cycle.kind == crate::shape::MONTH);
+        if !has_month
+            && let Err(error @ CalendarError::UnsupportedField(_)) = self.is_leap_year(year)
+        {
+            return Err(error);
+        }
+        let first_day = |year| {
+            if has_month {
+                DateFields::ymd(year, 1, 1)
+            } else {
+                DateFields::new(year)
+            }
+        };
+        let start = self.fields_to_fixed(&first_day(year))?;
+        let next = self.fields_to_fixed(&first_day(year + 1))?;
         u16::try_from(next.0 - start.0).map_err(|_| CalendarError::YearOutOfRange)
     }
 
     fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
-        let this = self.days_in_year(year)?;
-        let previous = self.days_in_year(year - 1)?;
-        Ok(this > previous)
+        self.inner.is_leap_year(year)
     }
 }
 
@@ -385,6 +436,10 @@ mod tests {
                 CycleShape::fixed("decimal-day", 10),
             ];
             SHAPE
+        }
+
+        fn is_leap_year(&self, _year: i64) -> CalendarResult<bool> {
+            Ok(false)
         }
 
         fn meta(&self) -> CalendarMeta {
@@ -455,6 +510,66 @@ mod tests {
         assert_eq!(dynamic.days_in_month(&fields).unwrap(), 10);
         assert_eq!(dynamic.days_in_year(3).unwrap(), 100);
         assert!(!dynamic.is_leap_year(3).unwrap());
+    }
+
+    /// A bare day count: no cycles, and the `year` field carries the count.
+    #[derive(Debug, Clone, Copy)]
+    struct Count;
+
+    impl Calendar for Count {
+        type Date = i64;
+
+        fn cycles(&self) -> &'static [CycleShape] {
+            &[]
+        }
+
+        fn is_leap_year(&self, _year: i64) -> CalendarResult<bool> {
+            Err(CalendarError::UnsupportedField("year"))
+        }
+
+        fn meta(&self) -> CalendarMeta {
+            CalendarMeta {
+                id: CalendarId("test-count"),
+                english_name: "Day count test calendar",
+                year_kind: YearKind::Astronomical,
+                has_leap_months: false,
+                is_astronomical: false,
+                earliest: None,
+                latest: None,
+            }
+        }
+
+        fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
+            Ok(Rd(date))
+        }
+
+        fn from_fixed(&self, rd: Rd) -> CalendarResult<Self::Date> {
+            Ok(rd.0)
+        }
+
+        fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
+            Ok(DateFields::new(date))
+        }
+
+        fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
+            Ok(fields.year)
+        }
+    }
+
+    #[test]
+    fn a_calendar_without_a_year_is_not_measured_as_one() {
+        // Read as year-month-day, a count of days would report every
+        // "year" as one day long. The calendar says it has no year, and
+        // both dynamic questions about the year carry that answer.
+        let dynamic = DynAdapter::new(Count);
+        assert_eq!(
+            dynamic.is_leap_year(7),
+            Err(CalendarError::UnsupportedField("year"))
+        );
+        assert_eq!(
+            dynamic.days_in_year(7),
+            Err(CalendarError::UnsupportedField("year"))
+        );
     }
 
     #[test]

@@ -209,4 +209,99 @@ mod registration_tests {
         super::register_all(&mut registry);
         assert_eq!(registry.len(), first);
     }
+
+    /// Every registered calendar answers whether a year is leap, or says
+    /// that its dates have no year; nothing falls through to an inference.
+    #[test]
+    fn every_registered_calendar_says_whether_a_year_is_leap() {
+        use hc_calendar::{CalendarError, CalendarRegistry, Rd, shape::MONTH};
+
+        let mut registry = CalendarRegistry::new();
+        super::register_all(&mut registry);
+        for meta in registry.metas() {
+            let calendar = registry.get(meta.id).unwrap();
+            let inside = match (meta.earliest, meta.latest) {
+                (Some(first), Some(last)) => Rd((first.0 + last.0) / 2),
+                _ => Rd(738_000),
+            };
+            let year = calendar.fixed_to_fields(inside).unwrap().year;
+            match calendar.is_leap_year(year) {
+                Ok(_) => {}
+                Err(CalendarError::UnsupportedField("year")) => assert!(
+                    !calendar.cycles().iter().any(|cycle| cycle.kind == MONTH),
+                    "{} has months and so a year",
+                    meta.id
+                ),
+                Err(error) => panic!("{} could not answer for {year}: {error}", meta.id),
+            }
+        }
+    }
+
+    /// The dynamic answer is the module's own rule, not a reading of year
+    /// lengths — which for a lunar or lunisolar calendar would be wrong.
+    #[test]
+    fn the_dynamic_leap_year_is_the_module_rule() {
+        use hc_calendar::{DynAdapter, DynCalendar};
+
+        use crate::{
+            BabylonianCalendar, ChineseCalendar, HebrewCalendar, IslamicCivilCalendar,
+            IslamicUmmAlQuraCalendar, TibetanCalendar, babylonian, chinese, hebrew,
+            islamic_umalqura, tabular, tibetan,
+        };
+
+        for year in (1..=400).step_by(3) {
+            assert_eq!(
+                DynAdapter::new(HebrewCalendar).is_leap_year(5_700 + year),
+                Ok(hebrew::is_leap_year(5_700 + year))
+            );
+            assert_eq!(
+                DynAdapter::new(TibetanCalendar).is_leap_year(1_900 + year),
+                Ok(tibetan::is_leap_year(1_900 + year))
+            );
+            assert_eq!(
+                DynAdapter::new(BabylonianCalendar).is_leap_year(year),
+                Ok(babylonian::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(IslamicCivilCalendar).is_leap_year(1_300 + year),
+                Ok(tabular::is_leap_year(
+                    tabular::LeapYearRule::CIVIL,
+                    1_300 + year
+                ))
+            );
+        }
+        for year in (islamic_umalqura::FIRST_YEAR..=islamic_umalqura::LAST_YEAR).step_by(3) {
+            assert_eq!(
+                DynAdapter::new(IslamicUmmAlQuraCalendar).is_leap_year(year),
+                Ok(islamic_umalqura::days_in_year(year) == Some(355))
+            );
+        }
+        for year in (4_600..=4_700).step_by(7) {
+            assert_eq!(
+                DynAdapter::new(ChineseCalendar).is_leap_year(year),
+                chinese::PARAMETERS.is_leap_year(year)
+            );
+        }
+    }
+
+    /// A Hebrew common year can be longer than the year before it; that
+    /// never made it leap, and the dynamic interface no longer says so.
+    #[test]
+    fn a_longer_common_year_is_not_a_leap_year() {
+        use hc_calendar::{DynAdapter, DynCalendar};
+
+        use crate::{HebrewCalendar, hebrew};
+
+        let calendar = DynAdapter::new(HebrewCalendar);
+        let mut seen = 0;
+        for year in 5_700..=5_800 {
+            if !hebrew::is_leap_year(year)
+                && hebrew::days_in_year(year) > hebrew::days_in_year(year - 1)
+            {
+                assert_eq!(calendar.is_leap_year(year), Ok(false), "{year}");
+                seen += 1;
+            }
+        }
+        assert!(seen > 0, "the century contains such years");
+    }
 }

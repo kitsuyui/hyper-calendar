@@ -383,6 +383,11 @@ impl Calendar for BabylonianCalendar {
         hc_calendar::shape::LUNISOLAR_TWELVE
     }
 
+    /// A year with a second Addaru or a second Ulūlu.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(is_leap_year(year))
+    }
+
     /// The Babylonian day begins at sunset, which is when its month is
     /// decided.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {

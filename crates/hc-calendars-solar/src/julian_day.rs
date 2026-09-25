@@ -96,6 +96,11 @@ impl Calendar for JulianDayCalendar {
         &[]
     }
 
+    /// A day count has no year: the `year` field carries the count itself.
+    fn is_leap_year(&self, _year: i64) -> CalendarResult<bool> {
+        Err(CalendarError::UnsupportedField("year"))
+    }
+
     /// The Julian Day begins at noon, not midnight. Astronomers count that
     /// way so that one night's observations carry a single date, and the
     /// convention has outlived the reason.
@@ -141,6 +146,11 @@ impl Calendar for ModifiedJulianDayCalendar {
     /// A day count names nothing: it has no months and no week, only a number.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         &[]
+    }
+
+    /// A day count has no year: the `year` field carries the count itself.
+    fn is_leap_year(&self, _year: i64) -> CalendarResult<bool> {
+        Err(CalendarError::UnsupportedField("year"))
     }
 
     /// The Modified Julian Date begins at midnight, unlike the Julian Day

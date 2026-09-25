@@ -618,6 +618,18 @@ impl Calendar for JapaneseCalendar {
         hc_calendar::shape::LUNISOLAR_TWELVE
     }
 
+    /// For a calendar year with no era, as [`Self::from_fields`] reads
+    /// one: a leap month under the lunisolar system in force at the
+    /// year's start, or a 29 February from 1873.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        let start = calendar_to_fixed(year, Month::regular(1), 1)?;
+        if start >= GREGORIAN_ADOPTION {
+            Ok(gregorian::is_leap_year(year))
+        } else {
+            engine_in_force(start).is_leap_year(year)
+        }
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: self.id(),

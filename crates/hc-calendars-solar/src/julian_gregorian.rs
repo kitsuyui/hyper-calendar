@@ -298,6 +298,18 @@ impl Calendar for ReformCalendar {
         hc_calendar::shape::SOLAR_TWELVE
     }
 
+    /// A year in which 29 February was written, under whichever calendar
+    /// was in force that day. Julian 1700 has one in Russia and not in
+    /// Britain; a polity that reformed in February has none that year at
+    /// all.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        match self.to_fixed(ReformDate::new(year, 2, 29)) {
+            Ok(_) => Ok(true),
+            Err(CalendarError::DayOutOfRange) => Ok(false),
+            Err(error) => Err(error),
+        }
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId(self.id),
@@ -546,6 +558,33 @@ mod tests {
         );
         assert_eq!(alaska.meta().id, CalendarId("julian-gregorian-ak"));
         assert_eq!(alaska.region(), "Alaska");
+    }
+
+    #[test]
+    fn a_leap_year_is_one_in_which_29_february_was_written() {
+        // 1582 has 355 days in the Catholic reform and 1583 is an ordinary
+        // 365: neither is leap, whatever a comparison of their lengths says.
+        let catholic = ReformCalendar::default();
+        assert_eq!(catholic.is_leap_year(1582), Ok(false));
+        assert_eq!(catholic.is_leap_year(1583), Ok(false));
+        assert_eq!(catholic.is_leap_year(1584), Ok(true));
+        // 1700 was Julian, and leap, where the reform had not yet reached;
+        // Gregorian, and common, where it had.
+        assert_eq!(calendar("julian-gregorian-gb").is_leap_year(1700), Ok(true));
+        assert_eq!(catholic.is_leap_year(1700), Ok(false));
+        // The Protestant German states went from 18 February straight to
+        // 1 March 1700, so their 1700 had no 29 February on either side.
+        assert_eq!(
+            calendar("julian-gregorian-de-protestant").is_leap_year(1700),
+            Ok(false)
+        );
+        assert_eq!(calendar("julian-gregorian-ru").is_leap_year(1900), Ok(true));
+        assert_eq!(calendar("julian-gregorian-ru").is_leap_year(2000), Ok(true));
+        assert_eq!(
+            calendar("julian-gregorian-ru").is_leap_year(2100),
+            Ok(false)
+        );
+        assert!(catholic.is_leap_year(julian::MIN_YEAR - 1).is_err());
     }
 
     #[test]

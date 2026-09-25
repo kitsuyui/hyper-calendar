@@ -314,6 +314,15 @@ impl Calendar for IslamicObservationalCalendar {
         hc_calendar::shape::SOLAR_TWELVE
     }
 
+    /// A year of 355 days: seven of its twelve predicted months ran to
+    /// thirty. Nothing is intercalated by rule, so the answer is read off
+    /// the crescents like everything else here.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        let start = self.compose(year, 1, 1)?;
+        let next = self.compose(year + 1, 1, 1)?;
+        Ok(next.0 - start.0 == 355)
+    }
+
     /// The Islamic day begins at sunset, which is also why the month begins
     /// with a crescent seen after one.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {

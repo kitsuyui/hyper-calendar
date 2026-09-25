@@ -381,6 +381,16 @@ impl Calendar for ChineseRegnalCalendar {
         hc_calendar::shape::LUNISOLAR_TWELVE
     }
 
+    /// For the Common Era year a lunisolar year began in, as
+    /// [`Self::from_fields`] reads one with no era: whether that year had
+    /// a leap month, within the years the Qing eras span.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        if era_of_year(Dynasty::Qing, year).is_none() {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        chinese::PARAMETERS.is_leap_year(year + YEAR_OFFSET)
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("chinese-regnal"),

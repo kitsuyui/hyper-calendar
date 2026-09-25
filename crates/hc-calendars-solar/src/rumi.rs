@@ -268,6 +268,10 @@ impl Calendar for RumiCalendar {
         SHAPE
     }
 
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(is_leap_year(year))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("rumi"),

@@ -189,6 +189,15 @@ pub struct SwedishCalendar;
 impl Calendar for SwedishCalendar {
     type Date = SwedishDate;
 
+    /// 1704, 1708 and 1712 have a 29 February here; 1700's February
+    /// precedes the calendar, and a year outside it is refused.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        if !(FIRST_YEAR..=LAST_YEAR).contains(&year) {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        Ok(is_leap_year(year))
+    }
+
     /// Twelve months and the seven-day week, which the reform never broke.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::SOLAR_TWELVE

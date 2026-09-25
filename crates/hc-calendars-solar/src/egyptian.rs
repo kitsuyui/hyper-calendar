@@ -159,6 +159,14 @@ impl Calendar for EgyptianCalendar {
         SHAPE
     }
 
+    /// Never: a wandering year of 365 days intercalates nothing.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        Ok(false)
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("egyptian"),

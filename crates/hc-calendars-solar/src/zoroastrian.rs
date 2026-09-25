@@ -457,6 +457,10 @@ impl Calendar for ZoroastrianCalendar {
         SHAPE
     }
 
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(self.reckoning.is_leap_year(year))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: self.reckoning.id(),

@@ -315,6 +315,15 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 impl Calendar for PositivistCalendar {
     type Date = PositivistDate;
 
+    /// A year with the *Fête générale des Saintes Femmes*, which is when
+    /// the Gregorian year it names has a 29 February.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        Ok(is_leap_year(year))
+    }
+
     /// Thirteen months named for their types, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         SHAPE

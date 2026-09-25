@@ -503,6 +503,15 @@ impl Calendar for HinduSolarCalendar {
         }
     }
 
+    /// Never: a solar year is the Sun's passage through the twelve signs,
+    /// 365 or 366 days as the saṅkrāntis fall, with nothing inserted.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        if !(self.min_year()..=self.max_year()).contains(&year) {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        Ok(false)
+    }
+
     /// The Hindu day begins at sunrise.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Sunrise

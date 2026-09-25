@@ -144,6 +144,10 @@ impl Calendar for MinguoCalendar {
         hc_calendar::shape::SOLAR_TWELVE
     }
 
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(is_leap_year(year))
+    }
+
     /// In use from the founding of the Republic on 1 January 1912. The
     /// 民國前 years before it are a back-count, which is what the name says.
     fn usage(&self) -> hc_calendar::Usage {

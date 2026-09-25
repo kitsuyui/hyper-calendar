@@ -364,6 +364,11 @@ impl Calendar for DarianCalendar {
         SHAPE
     }
 
+    /// A long year of 669 sols.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(is_leap_year(year))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("darian"),
@@ -470,6 +475,17 @@ mod tests {
         assert!(is_leap_year(-1), "negative odd years are long too");
         assert!(!is_leap_year(-100));
         assert!(is_leap_year(-500));
+    }
+
+    #[test]
+    fn the_calendar_answers_with_the_leap_rule() {
+        for year in -500..=1_500 {
+            assert_eq!(
+                DarianCalendar.is_leap_year(year),
+                Ok(is_leap_year(year)),
+                "{year}"
+            );
+        }
     }
 
     #[test]

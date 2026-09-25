@@ -116,6 +116,10 @@ impl Calendar for VietnameseCalendar {
         hc_calendar::shape::LUNISOLAR_TWELVE
     }
 
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        PARAMETERS.is_leap_year(year)
+    }
+
     fn meta(&self) -> CalendarMeta {
         ENGINE.meta()
     }

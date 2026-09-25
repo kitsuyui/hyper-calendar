@@ -239,6 +239,11 @@ impl Calendar for EquinoxFrenchRepublicanCalendar {
         SHAPE
     }
 
+    /// A year with a sixth complementary day.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        is_leap_year(year).ok_or(CalendarError::YearOutOfRange)
+    }
+
     /// In force from the decree of 1793 until Napoleon abolished it at the
     /// end of An XIV, 31 December 1805 — the same span as the arithmetic
     /// variant, since the two agree throughout it.

@@ -521,6 +521,17 @@ impl Calendar for ThaiLunarCalendar {
         SHAPE
     }
 
+    /// An อธิกมาส year, with its doubled month 8, or an อธิกวาร year,
+    /// with its thirtieth day of month 7: Thailand names both as
+    /// intercalations, and the table records which a year was.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        match year_type(year) {
+            Some(kind) => Ok(!matches!(kind, YearType::Normal)),
+            None if year == LAST_YEAR + 1 => Err(CalendarError::AfterSupportedRange),
+            None => Err(CalendarError::YearOutOfRange),
+        }
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("thai-lunar"),

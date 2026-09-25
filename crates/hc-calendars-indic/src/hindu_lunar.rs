@@ -590,6 +590,11 @@ impl Calendar for HinduLunarCalendar {
         hc_calendar::shape::LUNISOLAR_TWELVE
     }
 
+    /// A year with an adhika māsa.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(self.leap_month_of(year)?.is_some())
+    }
+
     /// The Hindu day begins at sunrise.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Sunrise
