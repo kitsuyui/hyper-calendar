@@ -153,12 +153,22 @@ and measured because they do not: the crate keys each meridian era by year,
 not by day, so it reads 1 January to 31 March 1908 at UT+8:30, 1 January to
 20 March 1954 at UT+8:30 and 1 January to 9 August 1961 at UT+9 where the
 published code reads the earlier offset. Every new moon and every zhōngqì
-in those three windows falls on the same day under either offset (checked
-from `hc-astro` for this document, not by a test), so no date differs. And
-the Vietnamese "southern" parameter set keeps UT+8 for all time, which is
-right for the calendar printed in Saigon in 1968 and says nothing about what
-the south printed before 1960, when its civil time was UT+7
-[tienphong-two-zones].
+in those three windows falls on the same day under either offset, and so
+does every calendar date; the test
+`the_year_keyed_eras_give_the_days_the_day_keyed_changes_give` reads each
+window at both offsets and says so. And the Vietnamese "southern" parameter
+set keeps UT+8 for all time. That is right for the calendar printed in
+Saigon in 1968, and it carries no era for the south's civil time of UT+7
+before 1 January 1960 [tienphong-two-zones], on purpose: the meridian of
+the calendar is not the civil clock — the north kept UT+7 civil time from
+1945 and, by the published code, computed its calendar on UT+8 until 1968
+— and no southern almanac was read that would put the calendar on UT+7.
+Measured for this document, reading 1949–1959 at UT+7 instead of UT+8
+would move six month boundaries by a day (13 to 14 August 1950, 4 to
+5 June 1951, 9 to 10 August 1953, 2 to 3 November 1956, 1 to 2 March 1957
+and 21 to 22 November 1957 — the last three in the Republic's own years),
+change the zhōngqì index at midnight on nine days without moving a term's
+month, and move no new year and no leap month.
 
 ### The model
 
@@ -244,8 +254,11 @@ of 29 January 1968 at 16:29 UT is 23:29 at UT+7 and 00:29 at UT+8, so the
 north, on the new meridian from 1 January, kept Tết on 29 January and the
 south on 30 January [wikipedia-vi-tet], and the crate reproduces both from
 the two parameter sets. The same hour catches the conjunction of February
-1969 as well (16 against 17 February), which the crate finds and no source
-read here mentions. Over 1968–2049 the crate finds Tết and Chinese New Year
+1969 as well: 16 February in the north against 17 February, Chinese New
+Year, in the south. Nhân Dân dates Hồ Chí Minh's tree-planting at Vật Lại,
+Ba Vì, "sáng 16-2-1969 (mồng 1 Tết)" [nhandan-tet-trong-cay-2019], which
+attests the northern day; the southern one is as computed. Over 1968–2049
+the crate finds Tết and Chinese New Year
 apart in 1968, 1969, 2007 and 2030 by a day and in 1985 by a lunation; a
 Vietnamese account names 2007 and 2030 as years the two calendars differ
 [lichhuongque-press].
@@ -323,11 +336,13 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
 | Seollal 1988 = 18 February and Seollal 2024 = 10 February, Dangi 4357 | Reproduced; the Korean side is checked against no publication of KASI's, whose conversion service could not be queried and whose FAQ was not reachable on 2026-09-25 | `seollal_1988_fell_a_day_after_chinese_new_year`, `seollal_2024_was_the_tenth_of_february_and_the_year_is_dangi_4357` |
 | Korean and Chinese new years over 1900–2049 | Differ in 9 years, never by more than a day | `the_two_calendars_disagree_only_occasionally` |
 | Tết 1968 = 29 January north, 30 January south | Reproduced [wikipedia-vi-tet] | `tet_1968_fell_on_different_days_in_the_north_and_the_south` |
+| Tết 1969 = 16 February north, 17 February south and China | The northern day reproduced [nhandan-tet-trong-cay-2019]; the southern as computed | `tet_1969_fell_a_day_before_chinese_new_year` |
 | Tết 1985 = 21 January, with 閏二月 from 21 March | Reproduced [wikipedia-en-vietnamese-calendar] | `tet_1985_fell_a_whole_month_before_chinese_new_year` |
 | Tết 2024 = 10 February, numbered 2024 | Reproduced; no Vietnamese publication of the date was read | `tet_2024_was_the_tenth_of_february_and_the_year_is_numbered_2024` |
 | Tết against Chinese New Year over 1968–2049 | Every difference is one day or one lunation | `the_calendar_sometimes_differs_from_the_chinese_one_since_1968` |
 | Mean and apparent terms over the year 2000 | Disagree on more than ten days | `the_mean_and_apparent_solar_term_rules_disagree_somewhere` |
 | The meridian tables | Read in order; the Korean half-hour eras in force in the years named | `the_meridian_table_is_read_in_order`, `the_half_hour_zones_are_read_from_the_table` |
+| The three partial years of the Korean table, 1 January–31 March 1908, 1 January–20 March 1954, 1 January–9 August 1961 | Every new moon, zhōngqì index and calendar date the same under the published code's offset and the table's | `the_year_keyed_eras_give_the_days_the_day_keyed_changes_give` |
 | Round trips across 1929, across every Korean change, across 1968 and at both ends of the range | Every day | `the_calendar_round_trips_across_the_1929_meridian_change`, `the_calendar_round_trips_across_every_meridian_change`, `the_calendar_round_trips_across_the_1968_change`, `the_calendar_round_trips_at_both_ends_of_its_range` |
 | Structure: months of 29 or 30 days, years of 12 or 13, the leap month after the month it repeats, never a leap first month, about 37 leap years a century | Holds over 4600–4700 | `months_are_twenty_nine_or_thirty_days_and_years_twelve_or_thirteen_months`, `every_leap_month_immediately_follows_the_month_it_repeats`, `leap_months_are_rare_and_never_the_first_month` |
 
@@ -347,36 +362,41 @@ a guarantee elsewhere.
 
 **The day boundary.** A calendar here is the rule at one meridian, and the
 meridian is a table of years. The three windows in which that is coarser
-than the published code are measured above to contain no event that
-moves. The Chinese pre-1929 offset is a mean-time reading of a reference
-one source calls apparent; nothing checked here reaches back that far.
+than the published code are tested above to contain no event that moves.
+The Chinese pre-1929 offset is a mean-time reading of a reference one
+source calls apparent; nothing checked here reaches back that far.
 
 **Statements in the module documentation that no source read here
-supports, or that a source contradicts**, as of 2026-09-25:
+supports, or that a source contradicts**, as of 2026-09-25, and what was
+done about them:
 
-- `vietnamese` says the DRV "decreed a move from UT+8 to UT+7". As a
-  statement about civil time it is contradicted: the north had kept UT+7
+- `vietnamese` said the DRV "decreed a move from UT+8 to UT+7" as if of
+  civil time, called UT+8 "the Indochina zone of 120°E", said the south
+  was "still on UT+8", and made claims about the Tết Offensive and about
+  "every Vietnamese calendar tool". The north had kept UT+7 civil time
   since 2 September 1945, with UT+8 only in the zones of fighting from 1947
-  [wikipedia-vi-gio-viet-nam]. As a statement about the meridian of the
-  calendar it is what the published code encodes and what accounts of the
-  decision say [wikipedia-en-vietnamese-calendar]; the decision's text was
-  not read [vn-decision-121-cp].
-- `vietnamese` calls UT+8 "the Indochina zone of 120°E" and says the south
-  was "still on UT+8". The name has no source here, and the south's civil
-  time was UT+8 only from 1 January 1960 [tienphong-two-zones].
-- `vietnamese` says the Tết Offensive opened on the night of 30 January
-  against a north that had already celebrated, and that Gregorian-year
-  numbering is "the convention of every Vietnamese calendar tool in common
-  use". Neither is sourced here.
-- The crate README calls Dangi 4357 "the standard Korean number"; the count
+  [wikipedia-vi-gio-viet-nam]; the 1967 decision moved the calendar's
+  meridian, which is what the published code encodes and what accounts of
+  the decision say [wikipedia-en-vietnamese-calendar], though the
+  decision's text was not read [vn-decision-121-cp]; the south's civil
+  time was UT+8 only from 1 January 1960 [tienphong-two-zones]; the zone's
+  name and the other two claims had no source. The module now says the
+  meridians are the calendar's and not the clock's, names them by
+  longitude, dates the south's UT+8 from 1960, and makes no claim about
+  other tools.
+- The crate README called Dangi 4357 "the standard Korean number"; the count
   was official from 1945 to 1961 and is not now
-  [wikipedia-en-korean-calendar].
-- `dangi` and the README say the Korean and Vietnamese courts adopted the
-  Shíxiàn rules "some years later" than 1645. Korea's 1653 is sourced;
-  Vietnam's date is not.
-- `lunisolar` dates China's move from mean to true conjunctions to Li
-  Chunfeng's Línde system of 665; no source read for this document covers
-  it, and it does not bear on the three calendars here.
+  [wikipedia-en-korean-calendar], and the README and `dangi` now say so.
+- The README said the Korean and Vietnamese courts adopted the Shíxiàn
+  rules "some years later" than 1645. It now gives Korea's 1653 and says
+  Vietnam's date is not established here.
+- `lunisolar` dated China's move from mean to true conjunctions to Li
+  Chunfeng's Línde system of 665 without a source. It now says that the
+  true conjunction was first used by the Wuyin calendar of 619, given up in
+  645 after four long months in a row, and settled by the Línde calendar of
+  665 with 進朔 against such runs [wikipedia-zh-dingshuo,
+  wikipedia-zh-wuyinyuanli, wikipedia-zh-lindeli]; the point bears on the
+  Japanese systems, not on the three calendars here.
 - Seollal 1988 = 18 February and Tết 2024 = 10 February are reproduced by
   the crate and match the Chinese side of the published tables, but no
   Korean or Vietnamese publication of those dates was read.
@@ -403,6 +423,8 @@ supports, or that a source contradicts**, as of 2026-09-25:
 | [lichhuongque-press] | The Ban Lịch Nhà nước and the VAST Information Centre; 2007 and 2030 as years of difference | Yes, 2026-09-25; a secondary account |
 | [hko-conversion] | The tables' range and the Observatory's own caveat about midnight | Yes, 2026-09-25 |
 | [hko-conversion-tables] | The first day of the first lunar month in 1968, 1985, 1988, 2000 and 2020–2026; the 12th month of 1985 from 21 January; 閏二月 of 2023 from 22 March | Yes, 2026-09-25 |
+| [nhandan-tet-trong-cay-2019] | Tết Kỷ Dậu on 16 February 1969 in the north | Yes, 2026-09-25 |
+| [wikipedia-zh-dingshuo], [wikipedia-zh-wuyinyuanli], [wikipedia-zh-lindeli] | The history of the true conjunction that `lunisolar`'s `ConjunctionMode` summarises: 619, 645, 665 and 進朔 | Yes, 2026-09-25 |
 
 ## Code
 
@@ -430,9 +452,11 @@ Anchors: in `lunisolar`, `the_meridian_table_is_read_in_order`,
 `seollal_1988_fell_a_day_after_chinese_new_year`,
 `the_two_calendars_disagree_only_occasionally`,
 `the_half_hour_zones_are_read_from_the_table`,
+`the_year_keyed_eras_give_the_days_the_day_keyed_changes_give`,
 `the_sexagenary_year_matches_the_chinese_one_despite_the_offset`,
 `the_calendar_is_not_the_chinese_one_even_where_they_agree`; in
 `vietnamese`, `tet_1968_fell_on_different_days_in_the_north_and_the_south`,
+`tet_1969_fell_a_day_before_chinese_new_year`,
 `tet_1985_fell_a_whole_month_before_chinese_new_year`,
 `the_calendar_sometimes_differs_from_the_chinese_one_since_1968`,
 `the_calendar_round_trips_across_the_1968_change`. In

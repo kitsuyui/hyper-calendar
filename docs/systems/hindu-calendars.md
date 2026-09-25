@@ -131,10 +131,8 @@ Dhanus sankranti occurs; the name Pausha is therefore expunged"
 is shortest, near perihelion in the northern winter, and in Sewell and
 Dikshit's tables of 300 to 1900 CE the months Mārgaśīrṣa, Pauṣa and Māgha
 are never intercalary and the intervals between expunged months are 19,
-46, 65, 76, 122 or 141 years [sewell1896, Art. 50]. The module's
-statement that a kṣaya month "always" has an adhika month on each side of
-it in the same year is Reingold and Dershowitz's, not read directly here,
-and no source in this document's table states it.
+46, 65, 76, 122 or 141 years [sewell1896, Art. 50]; the module states the
+rarity in those terms.
 
 **The year.** The year is the Śaka era and turns at Chaitra śukla 1, in
 March or April; a Gregorian year *g* holds the turn of Śaka *g* − 78, so
@@ -260,10 +258,12 @@ entries as the Sun's nakṣatra transits. The Committee asked for both
 [crc1955, p. 8]. Some festivals are fixed by the Moon's nakṣatra rather
 than by a tithi: Thaipusam falls on Puṣya (Tamil Pusam) in the month of
 Thai [wikipedia-thaipusam] and Onam on Śravaṇa (Malayalam Thiruvonam) in
-Chingam [wikipedia-onam]. The Sun's nakṣatra counts two farming calendars,
-Kerala's ñāṭṭuvēla and the rain nakṣatras of the Deccan; that is the
-module's statement, and no source in this document's table was found for
-it.
+Chingam [wikipedia-onam]. Kerala's farming calendar counts by the Sun's
+nakṣatra: a ñāṭṭuvēla is the Sun's stay in one, twenty-seven to the year of
+thirteen to fourteen days each, and the Thiruvathira ñāṭṭuvēla, the Sun in
+Ārdrā at the monsoon's height, is the one the farmers hold the best
+[wikipedia-ml-njattuvela]. The module once also named "the rain nakṣatras
+of the Deccan"; no source for that was found, and it no longer does.
 
 **The Old Hindu calendars.** Before the true positions, the almanacs
 reckoned by mean motion, and the library carries the mean solar and
@@ -367,10 +367,17 @@ weeks.
   75°46′6″ E as the book gives it.
 - **`places`**: `CENTRAL_STATION` (23.183 333° N, 82.5° E), `UJJAIN`,
   `NEW_DELHI`, `KATHMANDU`, all at sea level so that sunrise is the
-  almanac's. `UJJAIN` is 23.1765° N, 75.7885° E, the city's modern
-  coordinates; the book's `ujjain`, which the constant cites, is
-  23°9′ N, 75°46′6″ E, and the two differ by about a minute of arc, five
-  seconds of sunrise.
+  almanac's. `UJJAIN` is the book's `ujjain`, 23°9′ N, 75°46′6″ E
+  [reingold2018code], the longitude `surya_siddhanta` uses. Until
+  2026-09-25 the constant carried the city's modern coordinates,
+  23.1765° N, 75.7885° E, under the same citation; the two differ by about
+  a minute of arc, five seconds of sunrise, and over 1700–2299 the change
+  moves the sunrise tithi at Ujjain on sixteen days — 17 June 1770,
+  22 February 1802, 17 January 1831, 20 May 1859, 26 August 1867,
+  7 January 1995, 23 September 2089, 15 October 2097 and eight days after
+  2100 — measured for this document by comparing `tithi_of_day` at the two
+  places on every day of the range. No registered calendar reads at
+  Ujjain, so no test moved.
 - **Range** Gregorian 1700 to 2299 for the true calendars — Śaka 1622 to
   2221 for the lunisolar ones, the era years the offsets give for the
   solar ones — "as far back as the lunar theory is worth asking", and
@@ -389,8 +396,9 @@ weeks.
   - *Festival observance*: which part of the day a tithi must hold, and
     the Smārta and Vaiṣṇava readings, are `hc-holiday`'s rules, not
     dates.
-  - *The nakṣatra names in the regional languages*, and the ñāṭṭuvēla and
-    rain-nakṣatra periods' names and lore: no source for them was read.
+  - *The nakṣatra names in the regional languages*, and the twenty-seven
+    ñāṭṭuvēla's names and farming lore: the Malayalam article was read for
+    what a ñāṭṭuvēla is and no further.
   - *A Sūrya Siddhānta Moon*: only the Sun is carried, since the solar
     calendars are what the gazetted Bikram Sambat needed; the Siddhānta's
     tithis are not computed.
@@ -484,18 +492,16 @@ for 2024 and 2025 give the times the tests hold.
 | [wikipedia-aryabhata-sine-table] | The twenty-four values of the sine table | Yes, 2026-09-25 |
 | [wikipedia-thaipusam] | Thaipusam on Puṣya in Thai | Yes, 2026-09-25 |
 | [wikipedia-onam] | Onam on Thiruvonam in Chingam | Yes, 2026-09-25 |
+| [wikipedia-ml-njattuvela] | What a ñāṭṭuvēla is; the Thiruvathira ñāṭṭuvēla | Yes, 2026-09-25 |
 | [swisseph] | The ayanāṃśa anchors `hc-seasons` carries, and Lahiri as the Spica tradition | Yes, 2026-09-25 |
 | [drik-sun-nakshatra-2025] | The Sun's twenty-seven nakṣatra entries of 2025 for New Delhi | Yes, 2026-09-25; the five entries checked agree with the test's table |
 | [drik-thaipusam-2024], [drik-thaipusam-2025] | Puṣya's beginning and end at Chennai, 25–26 January 2024 and 10–11 February 2025 | Yes, 2026-09-25 |
 
 Statements in the module documentation for which this document names no
-source: that a kṣaya month always has an adhika month on each side of it
-in the same year (Reingold and Dershowitz's, not read directly); that the
-Tiruvaḷḷuvar year is the Gregorian year plus 31 "as the Tamil Nadu
-government's almanac counts them"; that the Sun's nakṣatra counts Kerala's
-ñāṭṭuvēla and the Deccan's rain nakṣatras; the modern mean sidereal year
-of 365.256 36 days; and that Drik Panchang's Lahiri anchor is about 20″
-from the library's, which is inferred from the measured offset. The
+source: that the Tiruvaḷḷuvar year is the Gregorian year plus 31 "as the
+Tamil Nadu government's almanac counts them"; the modern mean sidereal
+year of 365.256 36 days; and that Drik Panchang's Lahiri anchor is about
+20″ from the library's, which is inferred from the measured offset. The
 Central Station's latitude as "the latitude of Ujjain" is the Committee's
 phrase; the module states the coordinates only.
 

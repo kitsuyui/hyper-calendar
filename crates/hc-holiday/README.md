@@ -88,8 +88,12 @@ The 1959, 1989, 1990 and 1993 imperial one-offs are there too.
 as the day of the equinox; the National Astronomical Observatory of Japan
 computes the instant in JST and the Cabinet Office prints the resulting date
 in the 官報 a year ahead. So this crate carries `Rule::SolarTerm` at
-`Meridian::JAPAN` and lets `hc-seasons` answer. Over 1980–2099 that agrees
-with all 240 dates the Observatory has published. The underlying solar
+`Meridian::JAPAN` and lets `hc-seasons` answer. Against the 102 equinox days
+the Observatory published for 1980 to 2030, transcribed into `hc-seasons`'s
+test, that disagrees nowhere; the Observatory publishes one year ahead, so
+for 2031–2099 the same test compares the computation with a floor formula
+that reproduces the published table — a prediction, not a publication, and
+the formula is the test's own. The underlying solar
 longitude is VSOP87, good to about 1″, so an equinox lands within the minute
 the almanacs round to; only an equinox within about a minute of JST midnight
 could still be given the wrong *day*, and the tightest case in the modern
@@ -431,7 +435,8 @@ chapter 8.
   model** of `hc-calendars-lunar`, whose lunar conjunctions land within about a
   minute.
 * **Solar-term holidays: exact to the model**, with the day-boundary caveat
-  above. Zero disagreements against Japan's published equinox days, 1980–2099.
+  above. Zero disagreements against Japan's published equinox days, 1980–2030,
+  and against the floor formula that extends them to 2099.
 * **Everything else: exact as stated in the cited statute**, subject to the
   refusals above.
 

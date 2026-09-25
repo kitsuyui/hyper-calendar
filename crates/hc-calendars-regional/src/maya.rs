@@ -7,11 +7,14 @@
 //! two, which repeats every 18 980 days. Nothing in any of them names a
 //! Western date: that takes a **correlation constant**, the Julian Day
 //! Number of `0.0.0.0.0`, and this module registers the two published
-//! values as two calendars — [`GMT_CORRELATION`] = 584 283 as
-//! `maya-longcount` and [`GMT_PLUS_TWO_CORRELATION`] = 584 285 as
-//! `maya-longcount-gmt2` — rather than as a switch, because a correlation
-//! is a claim about history. The counts, the history of the constants, a
-//! worked reading of a monument and the sources are in
+//! values as two calendars of each count — [`GMT_CORRELATION`] = 584 283 as
+//! `maya-longcount`, `maya-tzolkin`, `maya-haab` and `maya-round`, and
+//! [`GMT_PLUS_TWO_CORRELATION`] = 584 285 as `maya-longcount-gmt2`,
+//! `maya-tzolkin-gmt2`, `maya-haab-gmt2` and `maya-round-gmt2` — rather
+//! than as a switch, because a correlation is a claim about history, and
+//! a Calendar Round read beside a long count has to be read under the same
+//! constant or it is two positions off. The counts, the history of the
+//! constants, a worked reading of a monument and the sources are in
 //! [`docs/systems/mesoamerican-counts.md`](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/systems/mesoamerican-counts.md).
 //!
 //! The tzolk'in, the haab and the Calendar Round are cycles, so each date
@@ -35,10 +38,11 @@ use hc_calendar::{
 /// Number of long count `0.0.0.0.0`.
 pub const GMT_CORRELATION: i64 = 584_283;
 
-/// The alternative correlation constant, two days later.
+/// The alternative correlation constant, two days later: Thompson's earlier
+/// value, kept in use by Lounsbury (`martin2012`, `wikipedia-long-count`).
 ///
 /// Stated so that the difference is visible in the source rather than only
-/// in prose. This module does not use it.
+/// in prose; the `-gmt2` calendars are anchored to it.
 pub const GMT_PLUS_TWO_CORRELATION: i64 = 584_285;
 
 /// The fixed day of long count `0.0.0.0.0` under [`GMT_CORRELATION`].
@@ -201,11 +205,32 @@ impl fmt::Display for HaabPosition {
     }
 }
 
-/// The fixed day whose tzolk'in ordinal is 0.
-const TZOLKIN_EPOCH: i64 = EPOCH.0 - 159;
+/// Days from the start of the tzolk'in cycle that contains `0.0.0.0.0` to
+/// the epoch itself, which is 4 Ahau, ordinal 159 (`reingold2018code`,
+/// `mayan-tzolkin-epoch`).
+const TZOLKIN_EPOCH_OFFSET: i64 = 159;
 
-/// The fixed day whose haab ordinal is 0, the seating of Pop.
-const HAAB_EPOCH: i64 = EPOCH.0 - 348;
+/// Days from the seating of Pop of the haab year that contains `0.0.0.0.0`
+/// to the epoch itself, which is 8 Cumku, ordinal 348 (`reingold2018code`,
+/// `mayan-haab-epoch`).
+const HAAB_EPOCH_OFFSET: i64 = 348;
+
+/// The fixed day whose tzolk'in ordinal is 0 under [`GMT_CORRELATION`].
+const TZOLKIN_EPOCH: i64 = tzolkin_epoch_under(EPOCH);
+
+/// The fixed day whose haab ordinal is 0, the seating of Pop, under
+/// [`GMT_CORRELATION`].
+const HAAB_EPOCH: i64 = haab_epoch_under(EPOCH);
+
+/// The fixed day whose tzolk'in ordinal is 0 when `0.0.0.0.0` is `epoch`.
+const fn tzolkin_epoch_under(epoch: Rd) -> i64 {
+    epoch.0 - TZOLKIN_EPOCH_OFFSET
+}
+
+/// The fixed day whose haab ordinal is 0 when `0.0.0.0.0` is `epoch`.
+const fn haab_epoch_under(epoch: Rd) -> i64 {
+    epoch.0 - HAAB_EPOCH_OFFSET
+}
 
 /// A long count date, `baktun.katun.tun.uinal.kin`.
 ///
@@ -347,8 +372,12 @@ impl Default for MayaLongCountCalendar {
 impl MayaLongCountCalendar {
     /// The Goodman–Martínez–Thompson correlation, 584 283.
     ///
-    /// The mainstream choice, and the one supported by the radiocarbon
-    /// evidence of Kennett et al., *Scientific Reports* 3, 1597 (2013).
+    /// The mainstream choice. Kennett et al.'s radiocarbon dating of a
+    /// Tikal lintel (*Scientific Reports* 3, 1597, 2013; `kennett2013`)
+    /// "strongly supports" the GMT correlation by that name; its abstract,
+    /// which is all that was read, does not state the constant, and
+    /// 584 283 is the value the literature calls GMT (`martin2012`,
+    /// `wikipedia-long-count`).
     pub const GMT: Self = Self {
         correlation: GMT_CORRELATION,
     };
@@ -390,17 +419,88 @@ impl MayaLongCountCalendar {
     }
 }
 
-/// The 260-day tzolk'in.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct MayaTzolkinCalendar;
+/// The cycles are anchored the same way as the long count: a correlation
+/// constant places `0.0.0.0.0`, which is 4 Ahau 8 Cumku under any of them,
+/// on a fixed day, and the tzolk'in and haab epochs are 159 and 348 days
+/// before it (`reingold2018code`, `mayan-tzolkin-epoch`, `mayan-haab-epoch`).
+/// Each of the three cycle calendars therefore carries the constant too,
+/// as `GMT` and `GMT_PLUS_TWO`, so that a day read through `maya-round-gmt2`
+/// beside `maya-longcount-gmt2` gives the Calendar Round the inscription
+/// pairs with that long count. This macro writes the shared part.
+macro_rules! correlated {
+    ($calendar:ident, $gmt:literal, $plus_two:literal) => {
+        impl Default for $calendar {
+            fn default() -> Self {
+                Self::GMT
+            }
+        }
 
-/// The 365-day haab.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct MayaHaabCalendar;
+        impl $calendar {
+            /// Under the Goodman–Martínez–Thompson correlation, 584 283.
+            pub const GMT: Self = Self {
+                correlation: GMT_CORRELATION,
+            };
 
-/// The 18 980-day Calendar Round.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct MayaCalendarRoundCalendar;
+            /// Under the GMT+2 correlation, 584 285.
+            pub const GMT_PLUS_TWO: Self = Self {
+                correlation: GMT_PLUS_TWO_CORRELATION,
+            };
+
+            /// The cycle under an arbitrary correlation constant, unnamed
+            /// as [`MayaLongCountCalendar::with_correlation`] is.
+            #[must_use]
+            pub const fn with_correlation(correlation: i64) -> Self {
+                Self { correlation }
+            }
+
+            /// The correlation constant this calendar uses.
+            #[must_use]
+            pub const fn correlation(self) -> i64 {
+                self.correlation
+            }
+
+            /// The fixed day of `0.0.0.0.0` under this correlation.
+            #[must_use]
+            pub const fn epoch(self) -> Rd {
+                Rd(self.correlation - hc_calendar::fixed::JDN_OF_RD_ZERO)
+            }
+
+            /// This calendar's identifier.
+            #[must_use]
+            pub const fn id(self) -> CalendarId {
+                if self.correlation == GMT_PLUS_TWO_CORRELATION {
+                    CalendarId($plus_two)
+                } else {
+                    CalendarId($gmt)
+                }
+            }
+        }
+    };
+}
+
+/// The 260-day tzolk'in, under a correlation constant.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MayaTzolkinCalendar {
+    correlation: i64,
+}
+
+correlated!(MayaTzolkinCalendar, "maya-tzolkin", "maya-tzolkin-gmt2");
+
+/// The 365-day haab, under a correlation constant.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MayaHaabCalendar {
+    correlation: i64,
+}
+
+correlated!(MayaHaabCalendar, "maya-haab", "maya-haab-gmt2");
+
+/// The 18 980-day Calendar Round, under a correlation constant.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MayaCalendarRoundCalendar {
+    correlation: i64,
+}
+
+correlated!(MayaCalendarRoundCalendar, "maya-round", "maya-round-gmt2");
 
 /// The last day [`MayaLongCountCalendar`] represents, `19.19.19.17.19`.
 pub const LONG_COUNT_LATEST: Rd = Rd(EPOCH.0 + 20 * 144_000 - 1);
@@ -510,7 +610,7 @@ impl Calendar for MayaTzolkinCalendar {
 
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
-            id: CalendarId("maya-tzolkin"),
+            id: self.id(),
             english_name: "Maya tzolk'in",
             year_kind: YearKind::Astronomical,
             has_leap_months: false,
@@ -521,13 +621,13 @@ impl Calendar for MayaTzolkinCalendar {
     }
 
     fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
-        Ok(Rd(TZOLKIN_EPOCH
+        Ok(Rd(tzolkin_epoch_under(self.epoch())
             + date.round * TZOLKIN_CYCLE
             + date.position.ordinal()?))
     }
 
     fn from_fixed(&self, rd: Rd) -> CalendarResult<Self::Date> {
-        let count = rd.0 - TZOLKIN_EPOCH;
+        let count = rd.0 - tzolkin_epoch_under(self.epoch());
         Ok(MayaTzolkinDate {
             round: count.div_euclid(TZOLKIN_CYCLE),
             position: TzolkinPosition::from_ordinal(count),
@@ -575,7 +675,7 @@ impl Calendar for MayaHaabCalendar {
 
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
-            id: CalendarId("maya-haab"),
+            id: self.id(),
             english_name: "Maya haab",
             year_kind: YearKind::Astronomical,
             has_leap_months: false,
@@ -586,13 +686,13 @@ impl Calendar for MayaHaabCalendar {
     }
 
     fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
-        Ok(Rd(HAAB_EPOCH
+        Ok(Rd(haab_epoch_under(self.epoch())
             + date.round * HAAB_CYCLE
             + date.position.ordinal()?))
     }
 
     fn from_fixed(&self, rd: Rd) -> CalendarResult<Self::Date> {
-        let count = rd.0 - HAAB_EPOCH;
+        let count = rd.0 - haab_epoch_under(self.epoch());
         Ok(MayaHaabDate {
             round: count.div_euclid(HAAB_CYCLE),
             position: HaabPosition::from_ordinal(count),
@@ -636,7 +736,12 @@ impl Calendar for MayaHaabCalendar {
     }
 }
 
-/// The ordinal within a Calendar Round of a tzolk'in and haab pair.
+/// The ordinal within a Calendar Round of a tzolk'in and haab pair, counted
+/// from 4 Ahau 8 Cumku.
+///
+/// The ordinal does not depend on the correlation: `0.0.0.0.0` is 4 Ahau
+/// 8 Cumku under every constant, and the count from it to a pairing is the
+/// same however the epoch is placed in Western days.
 ///
 /// Only one combination in five occurs: the tzolk'in advances 365 mod 260 =
 /// 105 places per haab year, and `gcd(105, 260) = 5`, so a pairing whose
@@ -661,7 +766,8 @@ pub fn calendar_round_ordinal(tzolkin: TzolkinPosition, haab: HaabPosition) -> C
     Ok((day - EPOCH.0).rem_euclid(CALENDAR_ROUND_CYCLE))
 }
 
-/// The last day [`MayaCalendarRoundCalendar`] represents.
+/// The last day [`MayaCalendarRoundCalendar::GMT`] represents; the GMT+2
+/// calendar's is two days later.
 ///
 /// The Calendar Round is bounded here only so that the round number stays
 /// meaningful next to the long count it usually accompanies.
@@ -682,19 +788,19 @@ impl Calendar for MayaCalendarRoundCalendar {
 
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
-            id: CalendarId("maya-round"),
+            id: self.id(),
             english_name: "Maya Calendar Round",
             year_kind: YearKind::EpochForward,
             has_leap_months: false,
             is_astronomical: false,
-            earliest: Some(EPOCH),
-            latest: Some(CALENDAR_ROUND_LATEST),
+            earliest: Some(self.epoch()),
+            latest: Some(Rd(self.epoch().0 + 20 * 144_000 - 1)),
         }
     }
 
     fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
         let ordinal = calendar_round_ordinal(date.tzolkin, date.haab)?;
-        let rd = Rd(EPOCH.0 + date.round * CALENDAR_ROUND_CYCLE + ordinal);
+        let rd = Rd(self.epoch().0 + date.round * CALENDAR_ROUND_CYCLE + ordinal);
         self.meta().check_range(rd)?;
         Ok(rd)
     }
@@ -702,9 +808,9 @@ impl Calendar for MayaCalendarRoundCalendar {
     fn from_fixed(&self, rd: Rd) -> CalendarResult<Self::Date> {
         self.meta().check_range(rd)?;
         Ok(MayaCalendarRoundDate {
-            round: (rd.0 - EPOCH.0).div_euclid(CALENDAR_ROUND_CYCLE),
-            tzolkin: TzolkinPosition::from_ordinal(rd.0 - TZOLKIN_EPOCH),
-            haab: HaabPosition::from_ordinal(rd.0 - HAAB_EPOCH),
+            round: (rd.0 - self.epoch().0).div_euclid(CALENDAR_ROUND_CYCLE),
+            tzolkin: TzolkinPosition::from_ordinal(rd.0 - tzolkin_epoch_under(self.epoch())),
+            haab: HaabPosition::from_ordinal(rd.0 - haab_epoch_under(self.epoch())),
         })
     }
 
@@ -803,6 +909,108 @@ mod correlation_tests {
     }
 
     #[test]
+    fn the_cycles_under_each_correlation_are_separate_calendars() {
+        assert_eq!(MayaTzolkinCalendar::GMT.id(), CalendarId("maya-tzolkin"));
+        assert_eq!(
+            MayaTzolkinCalendar::GMT_PLUS_TWO.id(),
+            CalendarId("maya-tzolkin-gmt2")
+        );
+        assert_eq!(MayaHaabCalendar::GMT.id(), CalendarId("maya-haab"));
+        assert_eq!(
+            MayaHaabCalendar::GMT_PLUS_TWO.id(),
+            CalendarId("maya-haab-gmt2")
+        );
+        assert_eq!(
+            MayaCalendarRoundCalendar::GMT.id(),
+            CalendarId("maya-round")
+        );
+        assert_eq!(
+            MayaCalendarRoundCalendar::GMT_PLUS_TWO.id(),
+            CalendarId("maya-round-gmt2")
+        );
+        assert_eq!(MayaTzolkinCalendar::default(), MayaTzolkinCalendar::GMT);
+        assert_eq!(MayaHaabCalendar::default(), MayaHaabCalendar::GMT);
+        assert_eq!(
+            MayaCalendarRoundCalendar::default(),
+            MayaCalendarRoundCalendar::GMT
+        );
+        assert_eq!(
+            MayaCalendarRoundCalendar::with_correlation(584_286).id(),
+            CalendarId("maya-round")
+        );
+    }
+
+    #[test]
+    fn the_cycles_follow_their_long_count_under_each_correlation() {
+        // Chiapa de Corzo Stela 2, 7.16.3.2.13, is 6 Ben 16 Xul under any
+        // constant (docs/systems/mesoamerican-counts.md, the worked
+        // example): a Calendar Round is a count from 4 Ahau 8 Cumku. Read
+        // through the cycles anchored to the *other* constant, the same
+        // fixed day comes out two positions on.
+        let stela = MayaLongCountDate::new(7, 16, 3, 2, 13);
+        for (long_count, round, other) in [
+            (
+                MayaLongCountCalendar::GMT,
+                MayaCalendarRoundCalendar::GMT,
+                MayaCalendarRoundCalendar::GMT_PLUS_TWO,
+            ),
+            (
+                MayaLongCountCalendar::GMT_PLUS_TWO,
+                MayaCalendarRoundCalendar::GMT_PLUS_TWO,
+                MayaCalendarRoundCalendar::GMT,
+            ),
+        ] {
+            let day = long_count.to_fixed(stela).unwrap();
+            let matching = round.from_fixed(day).unwrap();
+            assert_eq!(matching.to_string(), "6 Ben 16 Xul");
+            assert_eq!(matching.round, 59);
+            let mismatched = other.from_fixed(day).unwrap();
+            assert_ne!(mismatched.to_string(), "6 Ben 16 Xul");
+        }
+        // 13.0.0.0.0 is 4 Ahau 3 Kankin on 23 December 2012 under 584 285.
+        let thirteen = MayaLongCountCalendar::GMT_PLUS_TWO
+            .to_fixed(MayaLongCountDate::from_days(13 * 144_000))
+            .unwrap();
+        assert_eq!(
+            MayaCalendarRoundCalendar::GMT_PLUS_TWO
+                .from_fixed(thirteen)
+                .unwrap()
+                .to_string(),
+            "4 Ahau 3 Kankin"
+        );
+        assert_eq!(
+            MayaTzolkinCalendar::GMT_PLUS_TWO
+                .from_fixed(thirteen)
+                .unwrap()
+                .position
+                .to_string(),
+            "4 Ahau"
+        );
+        assert_eq!(
+            MayaHaabCalendar::GMT_PLUS_TWO
+                .from_fixed(thirteen)
+                .unwrap()
+                .position
+                .to_string(),
+            "3 Kankin"
+        );
+        // Every day differs by exactly two between the two anchorings.
+        for rd in (-1_200_000..800_000).step_by(7_919) {
+            let day = Rd(rd);
+            let tzolkin = MayaTzolkinCalendar::GMT.from_fixed(day).unwrap();
+            assert_eq!(
+                MayaTzolkinCalendar::GMT_PLUS_TWO.to_fixed(tzolkin),
+                Ok(Rd(rd + 2))
+            );
+            let haab = MayaHaabCalendar::GMT.from_fixed(day).unwrap();
+            assert_eq!(
+                MayaHaabCalendar::GMT_PLUS_TWO.to_fixed(haab),
+                Ok(Rd(rd + 2))
+            );
+        }
+    }
+
+    #[test]
     fn an_arbitrary_correlation_is_available_but_unnamed() {
         // Correlation is an open research question, so a caller may supply
         // one; only the two published values get identifiers.
@@ -851,17 +1059,20 @@ mod tests {
 
     #[test]
     fn the_epoch_is_four_ahau_eight_cumku() {
-        let tzolkin = MayaTzolkinCalendar.from_fixed(EPOCH).expect("any day");
+        // `mayan-tzolkin-epoch` and `mayan-haab-epoch` in the published code
+        // place the epoch at (mayan-tzolkin-date 4 20) and (mayan-haab-date
+        // 18 8): 4 Ahau 8 Cumku (`reingold2018code`).
+        let tzolkin = MayaTzolkinCalendar::GMT.from_fixed(EPOCH).expect("any day");
         assert_eq!(tzolkin.position, TzolkinPosition::new(4, 20));
         assert_eq!(tzolkin.position.name_str(), Ok("Ahau"));
         assert_eq!(tzolkin.position.to_string(), "4 Ahau");
 
-        let haab = MayaHaabCalendar.from_fixed(EPOCH).expect("any day");
+        let haab = MayaHaabCalendar::GMT.from_fixed(EPOCH).expect("any day");
         assert_eq!(haab.position, HaabPosition::new(18, 8));
         assert_eq!(haab.position.month_str(), Ok("Cumku"));
         assert_eq!(haab.position.to_string(), "8 Cumku");
 
-        let round = MayaCalendarRoundCalendar
+        let round = MayaCalendarRoundCalendar::GMT
             .from_fixed(EPOCH)
             .expect("in range");
         assert_eq!(round.round, 0);
@@ -870,9 +1081,13 @@ mod tests {
 
     #[test]
     fn the_thirteenth_baktun_ended_on_four_ahau_three_kankin() {
-        // The Calendar Round of 13.0.0.0.0, as every account of it says.
+        // The Calendar Round of 13.0.0.0.0: 4 Ajaw 3 Kʼankʼin
+        // (`famsi-vanstone-2012`), which the published code's ordinals give
+        // from the epoch's 4 Ahau 8 Cumku (`reingold2018code`).
         let day = greg(2012, 12, 21);
-        let round = MayaCalendarRoundCalendar.from_fixed(day).expect("in range");
+        let round = MayaCalendarRoundCalendar::GMT
+            .from_fixed(day)
+            .expect("in range");
         assert_eq!(round.tzolkin, TzolkinPosition::new(4, 20));
         assert_eq!(round.haab, HaabPosition::new(14, 3));
         assert_eq!(round.to_string(), "4 Ahau 3 Kankin");
@@ -957,8 +1172,8 @@ mod tests {
     #[test]
     fn the_tzolkin_repeats_every_two_hundred_and_sixty_days() {
         let start = greg(2026, 9, 21);
-        let first = MayaTzolkinCalendar.from_fixed(start).expect("any day");
-        let later = MayaTzolkinCalendar
+        let first = MayaTzolkinCalendar::GMT.from_fixed(start).expect("any day");
+        let later = MayaTzolkinCalendar::GMT
             .from_fixed(Rd(start.0 + 260))
             .expect("any day");
         assert_eq!(first.position, later.position);
@@ -966,7 +1181,7 @@ mod tests {
         // Every one of the 260 positions occurs exactly once per cycle.
         let mut seen = [false; 260];
         for offset in 0..260 {
-            let ordinal = MayaTzolkinCalendar
+            let ordinal = MayaTzolkinCalendar::GMT
                 .from_fixed(Rd(start.0 + offset))
                 .expect("any day")
                 .position
@@ -1047,10 +1262,10 @@ mod tests {
         assert_eq!(CALENDAR_ROUND_CYCLE, 52 * HAAB_CYCLE);
         assert_eq!(CALENDAR_ROUND_CYCLE, 73 * TZOLKIN_CYCLE);
         let start = greg(2026, 9, 21);
-        let first = MayaCalendarRoundCalendar
+        let first = MayaCalendarRoundCalendar::GMT
             .from_fixed(start)
             .expect("in range");
-        let later = MayaCalendarRoundCalendar
+        let later = MayaCalendarRoundCalendar::GMT
             .from_fixed(Rd(start.0 + CALENDAR_ROUND_CYCLE))
             .expect("in range");
         assert_eq!(first.tzolkin, later.tzolkin);
@@ -1065,12 +1280,22 @@ mod tests {
         let start = EPOCH;
         for offset in 0..CALENDAR_ROUND_CYCLE {
             let rd = Rd(start.0 + offset);
-            let date = MayaCalendarRoundCalendar.from_fixed(rd).expect("in range");
-            assert_eq!(MayaCalendarRoundCalendar.to_fixed(date), Ok(rd), "{offset}");
-            let tzolkin = MayaTzolkinCalendar.from_fixed(rd).expect("any day");
-            assert_eq!(MayaTzolkinCalendar.to_fixed(tzolkin), Ok(rd), "{offset}");
-            let haab = MayaHaabCalendar.from_fixed(rd).expect("any day");
-            assert_eq!(MayaHaabCalendar.to_fixed(haab), Ok(rd), "{offset}");
+            let date = MayaCalendarRoundCalendar::GMT
+                .from_fixed(rd)
+                .expect("in range");
+            assert_eq!(
+                MayaCalendarRoundCalendar::GMT.to_fixed(date),
+                Ok(rd),
+                "{offset}"
+            );
+            let tzolkin = MayaTzolkinCalendar::GMT.from_fixed(rd).expect("any day");
+            assert_eq!(
+                MayaTzolkinCalendar::GMT.to_fixed(tzolkin),
+                Ok(rd),
+                "{offset}"
+            );
+            let haab = MayaHaabCalendar::GMT.from_fixed(rd).expect("any day");
+            assert_eq!(MayaHaabCalendar::GMT.to_fixed(haab), Ok(rd), "{offset}");
         }
     }
 
@@ -1097,22 +1322,22 @@ mod tests {
 
     #[test]
     fn the_haab_day_field_is_one_based_although_the_haab_is_not() {
-        let date = MayaHaabCalendar.from_fixed(EPOCH).expect("any day");
+        let date = MayaHaabCalendar::GMT.from_fixed(EPOCH).expect("any day");
         assert_eq!(date.position.day, 8);
-        let fields = MayaHaabCalendar.to_fields(date).expect("describable");
+        let fields = MayaHaabCalendar::GMT.to_fields(date).expect("describable");
         assert_eq!(fields.day, Some(9));
         assert_eq!(fields.month, Some(Month::regular(18)));
-        assert_eq!(MayaHaabCalendar.from_fields(&fields), Ok(date));
+        assert_eq!(MayaHaabCalendar::GMT.from_fields(&fields), Ok(date));
         let mut broken = fields;
         broken.day = Some(0);
         assert_eq!(
-            MayaHaabCalendar.from_fields(&broken),
+            MayaHaabCalendar::GMT.from_fields(&broken),
             Err(CalendarError::DayOutOfRange)
         );
         let mut leap = fields;
         leap.month = Some(Month::leap(18));
         assert_eq!(
-            MayaHaabCalendar.from_fields(&leap),
+            MayaHaabCalendar::GMT.from_fields(&leap),
             Err(CalendarError::MonthOutOfRange)
         );
     }
@@ -1141,23 +1366,26 @@ mod tests {
     #[test]
     fn the_cycles_run_backwards_through_the_epoch_as_well() {
         // Days before 0.0.0.0.0 still have a tzolk'in and a haab; only the
-        // long count refuses them.
+        // long count refuses them. The positions follow from the epoch's
+        // 4 Ahau 8 Cumku (`reingold2018code`) by one step back.
         let before = Rd(EPOCH.0 - 1);
-        let tzolkin = MayaTzolkinCalendar.from_fixed(before).expect("any day");
+        let tzolkin = MayaTzolkinCalendar::GMT
+            .from_fixed(before)
+            .expect("any day");
         assert_eq!(tzolkin.position, TzolkinPosition::new(3, 19));
         // The tzolk'in cycle containing the epoch began 159 days earlier,
         // so the day before the epoch is still inside round 0.
         assert_eq!(tzolkin.round, 0);
         assert_eq!(
-            MayaTzolkinCalendar
+            MayaTzolkinCalendar::GMT
                 .from_fixed(Rd(EPOCH.0 - 160))
                 .expect("any day")
                 .round,
             -1
         );
-        assert_eq!(MayaTzolkinCalendar.to_fixed(tzolkin), Ok(before));
-        let haab = MayaHaabCalendar.from_fixed(before).expect("any day");
+        assert_eq!(MayaTzolkinCalendar::GMT.to_fixed(tzolkin), Ok(before));
+        let haab = MayaHaabCalendar::GMT.from_fixed(before).expect("any day");
         assert_eq!(haab.position, HaabPosition::new(18, 7));
-        assert_eq!(MayaHaabCalendar.to_fixed(haab), Ok(before));
+        assert_eq!(MayaHaabCalendar::GMT.to_fixed(haab), Ok(before));
     }
 }

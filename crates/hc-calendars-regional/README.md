@@ -24,6 +24,7 @@ calendars are such counts, and are here as regional calendars.
 | `maya-tzolkin` | 13 numbers × 20 day-names = 260 days |
 | `maya-haab` | 18 months of 20 days plus the 5-day Uayeb |
 | `maya-round` | The 18 980-day Calendar Round |
+| `maya-tzolkin-gmt2`, `maya-haab-gmt2`, `maya-round-gmt2` | The three cycles anchored to the GMT+2 correlation, to read beside `maya-longcount-gmt2` |
 | `aztec-tonalpohualli` | 260 days |
 | `aztec-xiuhpohualli` | 365 days |
 | `balinese-pawukon` | Thirty *wuku* and ten concurrent week cycles over 210 days |
@@ -115,10 +116,12 @@ extra one, is `Month::leap(8)`; the day is counted 1 to 30 through the month,
 
 ## Correlations, stated
 
-* **Maya**: Goodman–Martínez–Thompson, **584 283**, as `maya-longcount`;
-  the alternative 584 285 is its own registered calendar,
-  `maya-longcount-gmt2`, rather than a switch on the first (policy §5). The
-  three cycles are anchored to 584 283 only.
+* **Maya**: Goodman–Martínez–Thompson, **584 283**, as `maya-longcount`,
+  `maya-tzolkin`, `maya-haab` and `maya-round`; the alternative 584 285
+  anchors its own registered calendars, `maya-longcount-gmt2`,
+  `maya-tzolkin-gmt2`, `maya-haab-gmt2` and `maya-round-gmt2`, rather than
+  a switch on the first (policy §5), so that a Calendar Round is read under
+  the same constant as the long count beside it.
 * **Aztec**: the fall of Tenochtitlan, **13 August 1521 Julian**, dated
   *1 Coatl*, 2 Xocotlhuetzi — Caso's correlation as *Calendrical
   Calculations* tabulates it — over an uncorrected 365-day year.

@@ -943,8 +943,16 @@ const SUNDAY_ONLY: &[Weekday] = &[Weekday::Sunday];
 
 static KR_RULES: &[HolidayRule] = &[
     // New Year's Day and Memorial Day are the two the 대체공휴일 never
-    // reaches.
+    // reaches. The 1949 decree (대통령령 제124호 of 4 June 1949) listed
+    // 1, 2 and 3 January; 제12616호 of 1 February 1989 kept only the 1st
+    // and 2nd, so the 3rd was last a holiday in 1989, and 제15939호 of
+    // 18 December 1998 dropped the 2nd from 1999. The 익일휴무제 of 1989–90
+    // excluded the 신정 run, so the three are never substituted.
     HolidayRule::fixed_public("New Year's Day", "신정", Rule::gregorian(1, 1)),
+    HolidayRule::fixed_public("New Year Holiday", "신정 연휴", Rule::gregorian(1, 2))
+        .years(Some(1949), Some(1998)),
+    HolidayRule::fixed_public("New Year Holiday", "신정 연휴", Rule::gregorian(1, 3))
+        .years(Some(1949), Some(1989)),
     // Seollal is three days: the eve, the day, and the day after. The
     // three-day form dates from 1989; 1985–88 kept the day alone, under the
     // name 민속의 날.
@@ -978,10 +986,24 @@ static KR_RULES: &[HolidayRule] = &[
     .substituted_from(2014)
     .substitute_on(SUNDAY_ONLY)
     .years(Some(1989), None),
-    // The four national days came under the 대체공휴일 in July 2021; the
-    // first day it produced was 16 August 2021.
+    // The holidays the 익일휴무제 of 1989–90 could reach are split at
+    // 1990: the earlier row substitutes whenever a policy is in force,
+    // which before 2014 is only those two years, and the later row carries
+    // the year its step of the 대체공휴일 began. The four national days came
+    // under the 대체공휴일 by 대통령령 제31930호 of 4 August 2021; the first
+    // day it produced was 16 August 2021.
     HolidayRule::public("Independence Movement Day", "삼일절", Rule::gregorian(3, 1))
-        .substituted_from(2021),
+        .years(None, Some(1990)),
+    HolidayRule::public("Independence Movement Day", "삼일절", Rule::gregorian(3, 1))
+        .substituted_from(2021)
+        .years(Some(1991), None),
+    // 식목일 was in the 1949 decree; 제1568호 of 16 March 1960 replaced it
+    // for that year by 사방의 날, 15 March, which its 부칙 set at 21 March
+    // for 1960, and 국무원령 제210호 of 27 February 1961 put 식목일 back;
+    // 제18893호 of 30 June 2005 dropped it from 2006.
+    HolidayRule::public("Arbor Day", "식목일", Rule::gregorian(4, 5)).years(Some(1949), Some(1959)),
+    kr_one_off("Erosion Control Day", "사방의 날", 1960, 3, 21),
+    HolidayRule::public("Arbor Day", "식목일", Rule::gregorian(4, 5)).years(Some(1961), Some(2005)),
     // 대통령령 제36290호 made 노동절, the renamed 근로자의 날, a public
     // holiday from 1 May 2026, under the 대체공휴일 from the start. Before
     // then it was a paid day off for employees under its own Act, and not a
@@ -989,17 +1011,32 @@ static KR_RULES: &[HolidayRule] = &[
     HolidayRule::public("Labour Day", "노동절", Rule::gregorian(5, 1))
         .substituted_from(2026)
         .years(Some(2026), None),
+    // Children's Day and Buddha's Birthday were added by 대통령령
+    // 제7538호 of 27 January 1975, in force on promulgation.
+    HolidayRule::public("Children's Day", "어린이날", Rule::gregorian(5, 5))
+        .years(Some(1975), Some(1990)),
     HolidayRule::public("Children's Day", "어린이날", Rule::gregorian(5, 5))
         .substituted_from(2014)
-        .years(Some(1975), None),
+        .years(Some(1991), None),
+    HolidayRule::public(
+        "Buddha's Birthday",
+        "부처님 오신 날",
+        Rule::in_calendar(CalendarSystem::DANGI, 4, 8),
+    )
+    .years(Some(1975), Some(1990)),
     HolidayRule::public(
         "Buddha's Birthday",
         "부처님 오신 날",
         Rule::in_calendar(CalendarSystem::DANGI, 4, 8),
     )
     .substituted_from(2023)
-    .years(Some(1975), None),
-    HolidayRule::fixed_public("Memorial Day", "현충일", Rule::gregorian(6, 6)),
+    .years(Some(1991), None),
+    // 현충일 dates from 제1145호 of 19 April 1956, in force from 6 June
+    // 1956 by its 부칙.
+    HolidayRule::public("Memorial Day", "현충일", Rule::gregorian(6, 6))
+        .years(Some(1956), Some(1990)),
+    HolidayRule::fixed_public("Memorial Day", "현충일", Rule::gregorian(6, 6))
+        .years(Some(1991), None),
     HolidayRule::public("Constitution Day", "제헌절", Rule::gregorian(7, 17))
         .years(Some(1949), Some(2007)),
     // Restored by the same decree, in force for it from 11 May 2026, and
@@ -1007,7 +1044,10 @@ static KR_RULES: &[HolidayRule] = &[
     HolidayRule::public("Constitution Day", "제헌절", Rule::gregorian(7, 17))
         .substituted_from(2026)
         .years(Some(2026), None),
-    HolidayRule::public("Liberation Day", "광복절", Rule::gregorian(8, 15)).substituted_from(2021),
+    HolidayRule::public("Liberation Day", "광복절", Rule::gregorian(8, 15)).years(None, Some(1990)),
+    HolidayRule::public("Liberation Day", "광복절", Rule::gregorian(8, 15))
+        .substituted_from(2021)
+        .years(Some(1991), None),
     // Chuseok is the fourteenth, fifteenth and sixteenth of the eighth
     // month.
     HolidayRule::public(
@@ -1039,8 +1079,18 @@ static KR_RULES: &[HolidayRule] = &[
     .substituted_from(2014)
     .substitute_on(SUNDAY_ONLY)
     .years(Some(1989), None),
+    // 국군의 날 was made a holiday by 대통령령 제8235호 of 3 September 1976
+    // — whose text was not read; the number and date are the 국가법령정보센터
+    // index's — and dropped, with 한글날, by 제13155호 of 5 November 1990
+    // from 1991. Sunday 1 October 1989 is the one day the 익일휴무제 ever
+    // moved: Monday the 2nd was off.
+    HolidayRule::public("Armed Forces Day", "국군의 날", Rule::gregorian(10, 1))
+        .years(Some(1976), Some(1990)),
     HolidayRule::public("National Foundation Day", "개천절", Rule::gregorian(10, 3))
-        .substituted_from(2021),
+        .years(None, Some(1990)),
+    HolidayRule::public("National Foundation Day", "개천절", Rule::gregorian(10, 3))
+        .substituted_from(2021)
+        .years(Some(1991), None),
     // Hangul Day was a public holiday until 1990, dropped to make room for
     // more working days, and restored in 2013.
     HolidayRule::public("Hangul Day", "한글날", Rule::gregorian(10, 9))
@@ -1048,7 +1098,10 @@ static KR_RULES: &[HolidayRule] = &[
     HolidayRule::public("Hangul Day", "한글날", Rule::gregorian(10, 9))
         .substituted_from(2021)
         .years(Some(2013), None),
-    HolidayRule::public("Christmas Day", "성탄절", Rule::gregorian(12, 25)).substituted_from(2023),
+    HolidayRule::public("Christmas Day", "성탄절", Rule::gregorian(12, 25)).years(None, Some(1990)),
+    HolidayRule::public("Christmas Day", "성탄절", Rule::gregorian(12, 25))
+        .substituted_from(2023)
+        .years(Some(1991), None),
     // ── Election days, 제2조제10호의2 ────────────────────────────────────
     // The day of every election held because a term has run out has been a
     // public holiday since 대통령령 제19674호 of 6 September 2006; before,
@@ -1155,17 +1208,36 @@ const fn kr_one_off(
         .years(Some(year), Some(year))
 }
 
-static KR_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
-    trigger: &[Weekday::Saturday, Weekday::Sunday],
-    direction: SubstituteDirection::Forward,
-    skip_occupied: true,
-    // "또는 다른 공휴일과 겹칠 경우": two holidays on one day earn a third.
-    // 5 May 2025 was Children's Day and Buddha's Birthday at once, and
-    // 6 May was the 대체공휴일.
-    on_collision: true,
-    valid_from: Some(2014),
-    valid_until: None,
-}];
+static KR_SUBSTITUTION: &[SubstitutionPolicy] = &[
+    // The 익일휴무제 of 대통령령 제12616호 (1 February 1989), abolished by
+    // 제13155호 (5 November 1990) from 1991. Its text was not read: the
+    // amendment's stated purpose gives it as "연휴외의 공휴일이 겹칠 때에는
+    // 그 다음날도 공휴일로 함" — a holiday outside the 신정, 설날 and 추석
+    // runs that coincides with another, Sunday being one, earns the next
+    // day — and a secondary account says it was applied once, on Monday
+    // 2 October 1989 after 국군의 날 on the Sunday. A Sunday trigger and
+    // no collision rule reproduce that; whether 개천절 falling on the day
+    // of Chuseok in 1990 owed a day is not answered by anything read.
+    SubstitutionPolicy {
+        trigger: &[Weekday::Sunday],
+        direction: SubstituteDirection::Forward,
+        skip_occupied: false,
+        on_collision: false,
+        valid_from: Some(1989),
+        valid_until: Some(1990),
+    },
+    SubstitutionPolicy {
+        trigger: &[Weekday::Saturday, Weekday::Sunday],
+        direction: SubstituteDirection::Forward,
+        skip_occupied: true,
+        // "또는 다른 공휴일과 겹칠 경우": two holidays on one day earn a
+        // third. 5 May 2025 was Children's Day and Buddha's Birthday at
+        // once, and 6 May was the 대체공휴일.
+        on_collision: true,
+        valid_from: Some(2014),
+        valid_until: None,
+    },
+];
 
 /// South Korea.
 ///
@@ -1177,14 +1249,17 @@ static KR_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 /// with a worked example. This comment keeps the summary and the code's
 /// own facts.
 ///
-/// The named days are rules bounded to the years each was a holiday, and
-/// each carries `substituted_from` with the first year its step of the
-/// 대체공휴일 applied — 2014, 2021, 2023 or 2026 — or is `fixed_public`
-/// where the rule never reached it. Seollal and Chuseok carry their own
-/// Sunday-only trigger. Election days and the days the government
-/// designated are one-year rows through `kr_one_off`, never moved. The
-/// policy is one entry from 2014 with `on_collision`, so two holidays on
-/// one day earn a third.
+/// The named days are rules bounded to the years each was a holiday, the
+/// dropped ones among them — 2 and 3 January, 식목일, 국군의 날, the first
+/// 한글날 and 제헌절 — and each carries `substituted_from` with the first
+/// year its step of the 대체공휴일 applied — 2014, 2021, 2023 or 2026 — or
+/// is `fixed_public` where the rule never reached it. Seollal and Chuseok
+/// carry their own Sunday-only trigger. Election days and the days the
+/// government designated are one-year rows through `kr_one_off`, never
+/// moved. The policy has two entries: the 익일휴무제 of 1989–1990, a Sunday
+/// trigger for the holidays outside the 신정, 설날 and 추석 runs, and the
+/// 대체공휴일 from 2014 with `on_collision`, so two holidays on one day earn
+/// a third.
 pub static SOUTH_KOREA: RuleSet = RuleSet {
     code: "KR",
     english_name: "South Korea",
@@ -1198,10 +1273,18 @@ pub static SOUTH_KOREA: RuleSet = RuleSet {
               11 May 2026 (대통령령 제36290호) and its earlier texts: the \
               2006 amendment making election days holidays, the 2013 \
               amendment introducing 대체공휴일 for Seollal, Chuseok and \
-              Children's Day, the July 2021 extension to the national \
-              days, the 2023 extension to Buddha's Birthday and \
-              Christmas, and the 2026 addition of 노동절 and the \
-              restoration of 제헌절. The designated days from 2009 were \
+              Children's Day, the extension to the national days by \
+              제31930호 of 4 August 2021, the 2023 extension to Buddha's \
+              Birthday and Christmas, and the 2026 addition of 노동절 and \
+              the restoration of 제헌절; for the dropped days, the 1949 \
+              decree (제124호), the 1956, 1959, 1960 and 1961 texts and \
+              the 1975 text (제7538호) as Wikisource carries them, and \
+              the 국가법령정보센터's list of amendment reasons for 1985 to \
+              2026 (제12616호 of 1989 for 3 January and the 익일휴무제, \
+              제13155호 of 1990 for 국군의 날, 한글날 and its abolition, \
+              제15939호 of 1998 for 2 January, 제18893호 of 2005 for 식목일 \
+              and 제헌절); the 1976 decree (제8235호) that made 국군의 날 a \
+              holiday was not read. The designated days from 2009 were \
               checked against the Korea Exchange's closure lists; days \
               designated later than the table was read are not carried. \
               Seollal and Chuseok are dated in the `dangi` \

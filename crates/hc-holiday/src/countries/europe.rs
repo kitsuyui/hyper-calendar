@@ -1662,13 +1662,17 @@ pub static RUSSIA: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Трудовой кодекс Российской Федерации, статья 112, as amended \
-              (Federal Law 201-ФЗ of 2004 for the 2005 list, 35-ФЗ of 2012 \
-              for 6 and 8 January); the Government's decrees «О переносе \
-              выходных дней» for 2013 to 2027, as ConsultantPlus and Garant \
-              publish them; ConsultantPlus's production calendars for those \
-              years (consultant.ru/law/ref/calendar/proizvodstvennye/), \
-              retrieved 2026-09-23; Wikipedia, \"Public holidays in Russia\", \
-              retrieved 2026-09-22",
+              (Federal Law 201-ФЗ of 29 December 2004 for the 2005 list, \
+              35-ФЗ of 23 April 2012 for 6 and 8 January); the Government's \
+              decrees «О переносе выходных дней» for 2013 to 2027, as \
+              ConsultantPlus and Garant publish them; ConsultantPlus's \
+              production calendars for those years \
+              (consultant.ru/law/ref/calendar/proizvodstvennye/), retrieved \
+              2026-09-23. The years the list changed before 2005 — 1991, \
+              1992, 1993, 1996 and 2002 — rest on Wikipedia, \"Public \
+              holidays in Russia\", retrieved 2026-09-22, and on no statute \
+              read; the President's non-working days of 2020 and 2021 were \
+              not read and are not carried",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

@@ -146,9 +146,13 @@ pub enum SolarTermMode {
 ///
 /// The distinction is 平朔 against 定朔, and East Asian calendrical history
 /// turns on it: the mean conjunction is arithmetic, the true one needs a
-/// theory of the Sun's and the Moon's unequal motion. China moved from the
-/// first to the second with Li Chunfeng's Linde system of 665, and Japan
-/// inherited the change with the Gihō calendar of 697.
+/// theory of the Sun's and the Moon's unequal motion. China first used the
+/// true conjunction in Fu Renjun's Wuyin calendar of 619, went back to the
+/// mean one in 645 after a run of four long months, and settled on the true
+/// one with Li Chunfeng's Linde system of 665, which added 進朔 to keep such
+/// runs out (`wikipedia-zh-dingshuo`, `wikipedia-zh-wuyinyuanli`,
+/// `wikipedia-zh-lindeli`); Japan inherited the change with the Gihō
+/// calendar of 697.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ConjunctionMode {
     /// *Heisaku* (平朔): the month begins at the mean conjunction, so the
@@ -291,7 +295,8 @@ pub struct MeanMotionModel {
     /// first of the month to the next day anyway, so that the waxing
     /// crescent would be visible on the third and the calendar would not be
     /// publicly embarrassed. Li Chunfeng's Linde system of 665 introduced it
-    /// with a limit of 1005/1340 of a day; Senmyō-reki set 6300/8400, which
+    /// (`wikipedia-zh-lindeli`: 創進朔以避連四大月) with a limit of 1005/1340
+    /// of a day; Senmyō-reki set 6300/8400, which
     /// is exactly three quarters, or 18:00 local mean time; Taien-reki used
     /// something nearer 2655/3040. Shibukawa Harumi abolished it in
     /// Jōkyō-reki as having no basis, which is why the later Japanese
