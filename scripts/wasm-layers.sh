@@ -17,7 +17,7 @@ cd "$(dirname "$0")/.."
 profile=${PROFILE:-release-compact}
 target_dir=${CARGO_TARGET_DIR:-target}
 out="$target_dir/wasm-layers"
-layers="civil calendars seasons holiday deep-time tz sky full"
+layers="civil calendars seasons holiday deep-time tz sky orbital full"
 
 mkdir -p "$out"
 

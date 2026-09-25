@@ -74,7 +74,17 @@ export const METHODS = Object.freeze([
   { method: "skyAt", export: "hc_sky_at", feature: "sky" },
   { method: "solarTermsBetween", export: "hc_solar_terms_between", feature: "sky" },
   { method: "moonPhasesBetween", export: "hc_moon_phases_between", feature: "sky" },
+  { method: "orbitAt", export: "hc_orbit_at", feature: "orbital" },
+  { method: "orbitSeries", export: "hc_orbit_series", feature: "orbital" },
 ].map(Object.freeze));
+
+/** The columns of `hc_orbit_at`, which `hc_orbit_series` writes after the epoch. */
+const ORBIT_COLUMNS = Object.freeze([
+  "eccentricity", "eccentricity spread", "obliquity", "obliquity spread",
+  "longitude of perihelion", "longitude of perihelion spread",
+  "climatic precession", "climatic precession spread",
+  "insolation 65°N June", "solar constant", "source",
+]);
 
 /**
  * The column names of every line format, in the README's order. A decoder
@@ -110,6 +120,8 @@ export const COLUMNS = Object.freeze({
     "ΔT", "ΔT regime", "source",
   ]),
   skyEvent: Object.freeze(["angle", "instant", "name", "japanese name"]),
+  orbit: ORBIT_COLUMNS,
+  orbitSeries: Object.freeze(["years before 1950", ...ORBIT_COLUMNS]),
 });
 
 /** The geologic ranks `hc_geologic_intervals` numbers, coarsest first. */
@@ -544,6 +556,44 @@ function skyEvent(cells) {
     name,
     japaneseName: optional(japaneseName),
   };
+}
+
+/**
+ * The one line of `hc_orbit_at`, or the tail of a line of `hc_orbit_series`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Orbit}
+ */
+function orbit(cells) {
+  const [
+    eccentricity, eccentricitySpread, obliquity, obliquitySpread,
+    longitudeOfPerihelion, longitudeOfPerihelionSpread,
+    climaticPrecession, climaticPrecessionSpread, insolation, solarConstant, source,
+  ] = cells;
+  return {
+    eccentricity: decimal(eccentricity, "eccentricity"),
+    eccentricitySpread: decimal(eccentricitySpread, "eccentricity spread"),
+    obliquity: decimal(obliquity, "obliquity"),
+    obliquitySpread: decimal(obliquitySpread, "obliquity spread"),
+    longitudeOfPerihelion: decimal(longitudeOfPerihelion, "longitude of perihelion"),
+    longitudeOfPerihelionSpread: decimal(longitudeOfPerihelionSpread, "longitude of perihelion spread"),
+    climaticPrecession: decimal(climaticPrecession, "climatic precession"),
+    climaticPrecessionSpread: decimal(climaticPrecessionSpread, "climatic precession spread"),
+    insolation65NJune: decimal(insolation, "insolation 65°N June"),
+    solarConstant: decimal(solarConstant, "solar constant"),
+    source,
+  };
+}
+
+/**
+ * One line of `hc_orbit_series`: the epoch, then the cells of `hc_orbit_at`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").OrbitSample}
+ */
+function orbitSample(cells) {
+  const [yearsBefore1950, ...rest] = cells;
+  return { yearsBefore1950: decimal(yearsBefore1950, "years before 1950"), ...orbit(rest) };
 }
 
 /** The capacity a text read starts with unless `load` was told otherwise. */
@@ -1195,6 +1245,54 @@ export class HyperCalendar {
     const to = toI64(toUnix, "toUnix");
     const text = this.#text(exportName, (buffer, capacity) => fn(from, to, buffer, capacity), true);
     return rows(text, COLUMNS.skyEvent, exportName).map(skyEvent);
+  }
+
+  /**
+   * Earth's orbital elements — the eccentricity, the obliquity, the
+   * longitude of perihelion from the moving equinox and the climatic
+   * precession, each with its spread — and the June insolation at 65° N,
+   * at an epoch in years before 1950, negative for the future, from
+   * Berger's 1978 series. The insolation is for the solar constant the
+   * line carries, and is proportional to it. An epoch beyond a million
+   * years either side of 1950 is `out-of-range`.
+   *
+   * @param {number} yearsBefore1950
+   * @returns {import("./hyper-calendar.d.ts").Orbit}
+   */
+  orbitAt(yearsBefore1950) {
+    const fn = this.#export("hc_orbit_at");
+    const epoch = toF64(yearsBefore1950, "yearsBefore1950");
+    const text = this.#text("hc_orbit_at", (buffer, capacity) => fn(epoch, buffer, capacity), true);
+    const lines = rows(text, COLUMNS.orbit, "hc_orbit_at");
+    if (lines.length !== 1) {
+      throw new HcError("malformed", {
+        export: "hc_orbit_at",
+        message: `hc_orbit_at wrote ${lines.length} lines, not one`,
+      });
+    }
+    return orbit(lines[0]);
+  }
+
+  /**
+   * {@link orbitAt} at every epoch from `from` to `to` in steps of `step`
+   * years — `from`, `from + step`, and so on, every one at or before `to` —
+   * each with its epoch, in one call. Both ends have to lie within a
+   * million years either side of 1950 and `step` has to be positive, and
+   * at most 10 000 samples are answered, else `out-of-range`; a `to`
+   * before `from` is an empty list.
+   *
+   * @param {number} fromYearsBefore1950
+   * @param {number} toYearsBefore1950
+   * @param {number} stepYears
+   * @returns {import("./hyper-calendar.d.ts").OrbitSample[]}
+   */
+  orbitSeries(fromYearsBefore1950, toYearsBefore1950, stepYears) {
+    const fn = this.#export("hc_orbit_series");
+    const from = toF64(fromYearsBefore1950, "fromYearsBefore1950");
+    const to = toF64(toYearsBefore1950, "toYearsBefore1950");
+    const step = toF64(stepYears, "stepYears");
+    const text = this.#text("hc_orbit_series", (buffer, capacity) => fn(from, to, step, buffer, capacity), true);
+    return rows(text, COLUMNS.orbitSeries, "hc_orbit_series").map(orbitSample);
   }
 }
 

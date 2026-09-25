@@ -145,6 +145,15 @@ test("the sky events have the README's columns", () => {
   assert.equal(body.length, COLUMNS.skyEvent.length);
 });
 
+test("orbitAt reads the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.orbit], columnsAfter("## The orbit"));
+});
+
+test("orbitSeries reads the epoch, then orbitAt's columns, as the README says", () => {
+  assert.deepEqual([...COLUMNS.orbitSeries], ["years before 1950", ...COLUMNS.orbit]);
+  assert.match(README, /with the epoch in years before 1950 as a first\s+column before the eleven above/);
+});
+
 test("the layer table names every feature the binding knows", () => {
   const features = new Set(METHODS.map((entry) => entry.feature).filter((feature) => feature !== null));
   for (const feature of features) {

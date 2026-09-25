@@ -64,7 +64,7 @@ are NUL-terminated and may be null, and the length comes back through
 
 The entry points come in layers, each a Cargo feature, the same layers as
 the WebAssembly module's: `civil` (the default), `calendars`, `holiday`,
-`seasons`, `deep-time`, `tz`, `sky` and `full`. Each builds on its own —
+`seasons`, `deep-time`, `tz`, `sky`, `orbital` and `full`. Each builds on its own —
 `calendars` does not need `holiday` — and the table below names the one
 each entry point needs.
 
@@ -83,7 +83,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-25 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+27 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -112,6 +112,8 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_sky_at(int64_t unix_seconds, char *buffer, size_t capacity, size_t *written);` | `sky` | The Sun and the Moon at a POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_solar_terms_between(int64_t from_unix, int64_t to_unix, char *buffer, size_t capacity, size_t *written);` | `sky` | Every solar term whose instant falls in `[from_unix, to_unix)`, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_moon_phases_between(int64_t from_unix, int64_t to_unix, char *buffer, size_t capacity, size_t *written);` | `sky` | Every new moon, first quarter, full moon and last quarter whose instant falls in `[from_unix, to_unix)`, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_orbit_at(double years_before_1950, char *buffer, size_t capacity, size_t *written);` | `orbital` | Earth's orbital elements and the June insolation at 65° N at an epoch, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_orbit_series(double from_years_before_1950, double to_years_before_1950, double step_years, char *buffer, size_t capacity, size_t *written);` | `orbital` | The line of `hc_orbit_at` at every epoch from `from_years_before_1950` to `to_years_before_1950` in steps of `step_years`, each with the epoch as a first column, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 
 ### Status codes
 
@@ -252,6 +254,24 @@ Time. An instant outside the proleptic Gregorian years −1000 through 3000,
 the era over which `hc-astro` states its series valid, is
 `HC_ERROR_OUT_OF_RANGE`, as is a span longer than 400 years; a span whose
 `to` is at or before its `from` is an empty answer.
+
+## The orbit
+
+`hc_orbit_at(years_before_1950, buffer, capacity, written)` and
+`hc_orbit_series(from_years_before_1950, to_years_before_1950, step_years,
+...)` need the `orbital` feature and write the lines the WebAssembly
+module's README tabulates, from `hc-orbital`'s evaluation of Berger's 1978
+series: for an epoch in years before 1950, negative for the future, the
+eccentricity, the obliquity in degrees, the longitude of perihelion from
+the moving equinox in degrees and the climatic precession *e* sin ϖ, each
+followed by its spread, then the daily mean insolation at 65° N at the
+June solstice in W/m², the solar constant it was computed with (1360,
+`SOLAR_CONSTANT_BERGER_LOUTRE_1991`) and the source; for a series, one line
+per sample at `from`, `from + step` and so on up to `to`, with the epoch
+as a first column before those eleven. An epoch beyond a million years
+either side of 1950 is `HC_ERROR_OUT_OF_RANGE`, never a number; so is a
+step that is not finite and positive, or a series of more than 10 000
+samples. A `to` before `from` is an empty answer.
 
 ## Leap seconds, and the `strict` flag
 

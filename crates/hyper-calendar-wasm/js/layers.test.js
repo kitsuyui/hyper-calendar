@@ -58,6 +58,8 @@ test("a method of another layer throws not-exported when called, not at load", (
     skyAt: () => hc.skyAt(0),
     solarTermsBetween: () => hc.solarTermsBetween(0, 86_400),
     moonPhasesBetween: () => hc.moonPhasesBetween(0, 86_400),
+    orbitAt: () => hc.orbitAt(21_000),
+    orbitSeries: () => hc.orbitSeries(0, 21_000, 1_000),
   };
   const gated = METHODS.filter((entry) => entry.feature !== null && entry.feature !== "civil");
   assert.deepEqual(Object.keys(calls).sort(), gated.map((entry) => entry.method).sort(), "every gated method is tried");

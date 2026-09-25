@@ -96,7 +96,7 @@ describe("load", () => {
 
   test("names the version and the layers", () => {
     assert.match(hc.version(), /^\d+\.\d+\.\d+/);
-    assert.deepEqual(hc.layers(), ["civil", "calendars", "holiday", "seasons", "deep-time", "tz", "sky"]);
+    assert.deepEqual(hc.layers(), ["civil", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital"]);
     for (const entry of METHODS) {
       assert.ok(hc.has(entry.method), entry.method);
       assert.equal(typeof hc[entry.method], "function", entry.method);
@@ -728,6 +728,82 @@ describe("the sky", () => {
   });
 });
 
+describe("the orbit", () => {
+  test("the Last Glacial Maximum decodes column by column", () => {
+    // The author's own table (bein1.dat) and the PMIP experiments put
+    // 21 000 years before 1950 at e = 0.018994, ϖ = 114.42°, ε = 22.949°
+    // and e sin ϖ = 0.01729, the anchors hc-orbital's own tests pin.
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_orbit_at(21_000, buffer, capacity));
+    assert.equal(raw.length, 1);
+    assert.equal(raw[0].length, COLUMNS.orbit.length);
+    const lgm = hc.orbitAt(21_000);
+    assert.ok(Math.abs(lgm.eccentricity - 0.018994) < 1e-6, `${lgm.eccentricity}`);
+    assert.equal(lgm.eccentricitySpread, 0.002);
+    assert.ok(Math.abs(lgm.obliquity - 22.949) < 1e-3, `${lgm.obliquity}`);
+    assert.equal(lgm.obliquitySpread, 0.05);
+    assert.ok(Math.abs(lgm.longitudeOfPerihelion - 114.42) < 0.01, `${lgm.longitudeOfPerihelion}`);
+    // asin(0.0025 / 0.018994), in degrees.
+    assert.ok(Math.abs(lgm.longitudeOfPerihelionSpread - 7.56) < 0.01, `${lgm.longitudeOfPerihelionSpread}`);
+    assert.ok(Math.abs(lgm.climaticPrecession - 0.01729) < 5e-6, `${lgm.climaticPrecession}`);
+    assert.equal(lgm.climaticPrecessionSpread, 0.0025);
+    assert.equal(lgm.solarConstant, 1360);
+    assert.match(lgm.source, /Berger, A\. \(1978\)/);
+    assert.match(lgm.source, /SOLAR_CONSTANT_BERGER_LOUTRE_1991/);
+    // The June insolation at 65° N: 477.6 W/m² at 1950, lower at the
+    // glacial maximum, and 45 W/m² higher in the early Holocene.
+    const now = hc.orbitAt(0);
+    assert.ok(Math.abs(now.insolation65NJune - 477.6) < 0.1, `${now.insolation65NJune}`);
+    assert.ok(lgm.insolation65NJune < now.insolation65NJune);
+    assert.ok(hc.orbitAt(11_000).insolation65NJune - now.insolation65NJune > 45);
+    // The future is negative years; the spread widens with distance.
+    const far = hc.orbitAt(-900_000);
+    assert.equal(far.eccentricitySpread, 0.01);
+    assert.equal(far.obliquitySpread, 0.27);
+  });
+
+  test("a series is the single lines with the epoch first", () => {
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_orbit_series(0, 21_000, 1_000, buffer, capacity));
+    assert.equal(raw.length, 22);
+    assert.ok(raw.every((cells) => cells.length === COLUMNS.orbitSeries.length), JSON.stringify(raw[0]));
+    const series = hc.orbitSeries(0, 21_000, 1_000);
+    assert.equal(series.length, 22);
+    assert.deepEqual(series.map((sample) => sample.yearsBefore1950), Array.from({ length: 22 }, (_, kyr) => kyr * 1_000));
+    const { yearsBefore1950: first, ...head } = series[0];
+    assert.equal(first, 0);
+    assert.deepEqual(head, hc.orbitAt(0));
+    const { yearsBefore1950: last, ...tail } = series[21];
+    assert.equal(last, 21_000);
+    assert.deepEqual(tail, hc.orbitAt(21_000));
+    // A step that does not divide the span stops before `to`.
+    assert.deepEqual(hc.orbitSeries(0, 1_000, 300).map((sample) => sample.yearsBefore1950), [0, 300, 600, 900]);
+    // The whole span at the widest step that fits the cap, and one sample
+    // when the ends coincide.
+    assert.equal(hc.orbitSeries(-1_000_000, 1_000_000, 200.01).length, 10_000);
+    assert.equal(hc.orbitSeries(-50, -50, 1).length, 1);
+    assert.deepEqual(hc.orbitSeries(1_000, 0, 100), []);
+  });
+
+  test("epochs off the span and series too long are refused", () => {
+    assert.ok(hc.orbitAt(1_000_000).eccentricity > 0);
+    assert.ok(hc.orbitAt(-1_000_000).eccentricity > 0);
+    for (const epoch of [1_000_001, -1_000_001, Number.NaN, Number.POSITIVE_INFINITY]) {
+      const error = refused(() => hc.orbitAt(epoch), "out-of-range");
+      assert.equal(error.constant, "HC_ERR_OUT_OF_RANGE");
+      assert.equal(error.export, "hc_orbit_at");
+    }
+    refused(() => hc.orbitSeries(0, 1_000_001, 100), "out-of-range");
+    refused(() => hc.orbitSeries(-1_000_001, 0, 100), "out-of-range");
+    refused(() => hc.orbitSeries(0, 1_000, 0), "out-of-range");
+    refused(() => hc.orbitSeries(0, 1_000, -100), "out-of-range");
+    refused(() => hc.orbitSeries(0, 1_000, Number.NaN), "out-of-range");
+    // 10 001 samples.
+    refused(() => hc.orbitSeries(0, 10_000, 1), "out-of-range");
+    refused(() => hc.orbitSeries(-1_000_000, 1_000_000, 200), "out-of-range");
+    assert.throws(() => hc.orbitAt(/** @type {any} */ ("21000")), TypeError);
+    assert.throws(() => hc.orbitSeries(0, 1_000, /** @type {any} */ (undefined)), TypeError);
+  });
+});
+
 describe("the buffer protocol", () => {
   /**
    * The module with its exports counted.
@@ -765,6 +841,8 @@ describe("the buffer protocol", () => {
     assert.deepEqual(small.holidaysInYear("JP", "", -5000), []);
     assert.deepEqual(small.skyAt(1_789_948_800), hc.skyAt(1_789_948_800));
     assert.deepEqual(small.moonPhasesBetween(0, 0), []);
+    assert.deepEqual(small.orbitAt(21_000), hc.orbitAt(21_000));
+    assert.deepEqual(small.orbitSeries(0, 21_000, 7_000), hc.orbitSeries(0, 21_000, 7_000));
   });
 
   test("an export that measures is measured once, then read", async () => {
