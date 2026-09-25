@@ -81,6 +81,7 @@ dependencies. A crate depends only on crates in rows above it.
 | `hc-uncertainty` | Significant figures, fuzzy dates, EDTF, intervals | — |
 | `hc-units` | Exact ratios, tempo and media rates | — |
 | `hc-deep-time` | Planck time to cosmology | `hc-uncertainty` |
+| `hc-orbital` | Milankovitch orbital elements and insolation, Berger 1978 | `hc-uncertainty` |
 | `hc-relativity` | Lorentz transforms, Schwarzschild, worldlines | `hc-uncertainty` |
 | `hc-calendars-solar` | Gregorian, Julian, ISO, Coptic, … | — |
 | `hc-tz` | Offsets, POSIX TZ, TZif | — |
@@ -179,6 +180,7 @@ everything else.
 | Indian reckonings | `hc-astro` + `hc-seasons` + `hc-calendars-indic` | The tithi at sunrise and the month named by its saṅkrānti, downstream of the sidereal zodiac |
 | Uncertainty | `hc-uncertainty` | EDTF, Allen interval relations, significant figures |
 | Scale beyond seconds | `hc-deep-time` | Logarithmic magnitudes for Planck time and cosmology |
+| The ice-age cycles | `hc-orbital` | A trigonometric series answered over ±1 Myr and refused beyond |
 | Off-Earth clocks | `hc-planetary` | Mars sols, MSD, MTC, Darian |
 | Relativity | `hc-relativity` | Worldline integration, so an SF timeline is computable |
 | Ambiguous local time | `hc-tz` | A three-way `LocalResolution`, never a silent pick |

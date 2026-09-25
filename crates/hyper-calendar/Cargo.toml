@@ -39,6 +39,7 @@ std = [
     "hc-holiday?/std",
     "hc-uncertainty?/std",
     "hc-deep-time?/std",
+    "hc-orbital?/std",
     "hc-planetary?/std",
     "hc-relativity?/std",
 ]
@@ -64,6 +65,7 @@ alloc = [
     "hc-holiday?/alloc",
     "hc-uncertainty?/alloc",
     "hc-deep-time?/alloc",
+    "hc-orbital?/alloc",
     "hc-planetary?/alloc",
     "hc-relativity?/alloc",
 ]
@@ -114,6 +116,9 @@ holiday = ["regional", "seasons", "equinox", "indic", "dep:hc-holiday"]
 uncertainty = ["dep:hc-uncertainty"]
 # Planck time to cosmology.
 deep-time = ["uncertainty", "dep:hc-deep-time"]
+# Milankovitch orbital elements and insolation, a million years either side
+# of 1950.
+orbital = ["uncertainty", "dep:hc-orbital"]
 # Mars sols and other bodies.
 planetary = ["astro", "dep:hc-planetary"]
 # Special and general relativistic time dilation.
@@ -140,6 +145,7 @@ full = [
     "holiday",
     "uncertainty",
     "deep-time",
+    "orbital",
     "planetary",
     "relativity",
 ]
@@ -166,6 +172,7 @@ hc-humanize = { workspace = true, optional = true }
 hc-holiday = { workspace = true, optional = true }
 hc-uncertainty = { workspace = true, optional = true }
 hc-deep-time = { workspace = true, optional = true }
+hc-orbital = { workspace = true, optional = true }
 hc-planetary = { workspace = true, optional = true }
 hc-relativity = { workspace = true, optional = true }
 

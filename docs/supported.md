@@ -484,7 +484,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Facade features
 
-22 capability features, read from `crates/hyper-calendar/Cargo.toml`. Every one that names a crate also re-exports it; `tests/facade.rs` is what makes that true rather than hoped.
+23 capability features, read from `crates/hyper-calendar/Cargo.toml`. Every one that names a crate also re-exports it; `tests/facade.rs` is what makes that true rather than hoped.
 
 Besides these, `std` (on by default) chooses the build shape: turn it off for `no_std`, add `alloc` for the parts that need an allocator, and `libm` for floating-point math on targets without it. A build with neither `std` nor `libm` is refused at compile time.
 
@@ -509,6 +509,7 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `holiday` | regional, seasons, equinox, indic, hc-holiday |
 | `uncertainty` | hc-uncertainty |
 | `deep-time` | uncertainty, hc-deep-time |
+| `orbital` | uncertainty, hc-orbital |
 | `planetary` | astro, hc-planetary |
 | `relativity` | uncertainty, hc-relativity |
-| `full` | units, civil, lunar, equinox, indic, regional, astro, seasons, almanac, fiscal, attributes, name-days, tz, format, i18n, humanize, holiday, uncertainty, deep-time, planetary, relativity |
+| `full` | units, civil, lunar, equinox, indic, regional, astro, seasons, almanac, fiscal, attributes, name-days, tz, format, i18n, humanize, holiday, uncertainty, deep-time, orbital, planetary, relativity |

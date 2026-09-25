@@ -22,6 +22,7 @@ members = [
     "crates/hc-holiday",
     "crates/hc-uncertainty",
     "crates/hc-deep-time",
+    "crates/hc-orbital",
     "crates/hc-planetary",
     "crates/hc-relativity",
     "crates/hyper-calendar",
@@ -63,6 +64,7 @@ hc-humanize = { version = "0.1.0", path = "crates/hc-humanize", default-features
 hc-holiday = { version = "0.1.0", path = "crates/hc-holiday", default-features = false }
 hc-uncertainty = { version = "0.1.0", path = "crates/hc-uncertainty", default-features = false }
 hc-deep-time = { version = "0.1.0", path = "crates/hc-deep-time", default-features = false }
+hc-orbital = { version = "0.1.0", path = "crates/hc-orbital", default-features = false }
 hc-planetary = { version = "0.1.0", path = "crates/hc-planetary", default-features = false }
 hc-relativity = { version = "0.1.0", path = "crates/hc-relativity", default-features = false }
 hyper-calendar = { version = "0.1.0", path = "crates/hyper-calendar", default-features = false }
