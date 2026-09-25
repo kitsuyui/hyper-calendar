@@ -53,6 +53,10 @@ file does not:
 | `world_calendar` | The World Calendar | `world-calendar` |
 | `international_fixed` | International Fixed (Cotsworth): thirteen months of 28 days with Sol, Year Day and Leap Day outside the week | `international-fixed` |
 | `positivist` | Positivist (Comte, 1849): thirteen months of 28 days from Moïse to Bichat, year 1 in 1789, the complementary days outside the week | `positivist` |
+| `berber` | Berber (Amazigh) agrarian: the Julian year under Latin-derived month names, Yennayer on 14 January, the Amazigh era of 950 BC that the Académie berbère constructed in the 1960s | `berber` |
+| `mandaean` | Mandaean: twelve thirty-day zodiacal months with the five Parwanaia after the eighth, no leap day, years after the creation of Adam | `mandaean` |
+| `assyrian` | Modern Assyrian: the Gregorian months from 1 Neesan = 1 April under Syriac names, year 1 in 4750 BC | `assyrian` |
+| `yazidi` | Yazidi: the year from Serêsal, the first Wednesday of Eastern (Julian) Nisan, in the 4750 count; the day of the year over the Julian date | `yazidi` |
 
 `register_all(&mut CalendarRegistry)`, behind the `alloc` feature, inserts every
 calendar in the table.
