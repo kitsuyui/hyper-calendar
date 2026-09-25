@@ -73,6 +73,13 @@ in the hook output rather than in a failed pull request.
 - **At least one anchor to a published reference value**, cited in a comment.
   "I checked it against another library" is not a citation; the other library
   may be wrong too.
+- **Every rule that comes from a document cites it**, in the code and, for a
+  source cited from more than one place, in [`docs/references.bib`](docs/references.bib) —
+  [policy.md §11](docs/policy.md).
+- **A complex or unfamiliar system is written up first**, as a document under
+  [`docs/systems/`](docs/systems/README.md) that the module then refers to —
+  [policy.md §12](docs/policy.md). If you would need a paragraph to explain
+  the rule to a colleague, it needs the document.
 - **Comments that explain why.** Where the constant came from, what accuracy is
   claimed, what the function deliberately refuses to do. Not a narration of the
   code.

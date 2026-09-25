@@ -258,7 +258,66 @@ it leaves scope at that point. Record the ratio where it is close.
 changes, the old version stays and the new one is added under its own name, as
 §5 requires. The 1912 American birthstone list and the 2016 one are both real.
 
-## 11. Scope
+## 11. Every rule from the literature cites it
+
+A calendar, a holiday table, a solar-term convention or a reconstruction is
+only ever *somebody's* statement of how the world counts days, and this
+library carries the statement, not the world. So every rule, constant, table
+and reference date that comes from a document names that document: author,
+title, edition and year for a book or paper; the issuing body, number and
+date for a statute, decree, gazette or exchange notice; the URL and the date
+retrieved for anything read on the web, with an archive copy named where the
+live page is gone or blocked. "As is well known" is not a source, and neither
+is another library.
+
+Citations live in three places, and the same source is spelled the same way
+in all of them:
+
+- **In the code**, in the module documentation and in the `sources` string
+  of every data table, so that a reader of the code sees where it came from
+  without leaving it.
+- **In the system document** under [`systems/`](systems/README.md), for
+  anything complex enough to have one (§12).
+- **In [`references.bib`](references.bib)**, one BibTeX entry per source
+  cited more than once or cited from a system document, keyed as the
+  documents cite it. BibTeX is the format because it is the one every
+  reference manager reads and because a key like `parker1956` is shorter
+  and more stable than a title.
+
+A source that was *not* read is named as not read: "which cites Hildebrand
+1882, not read here" is honest; silently copying the citation is not. Where
+the only source readable was secondary, the code says so and the roadmap row
+says what primary source would replace it.
+
+## 12. A complex system is written up before it is coded
+
+Code states a rule exactly and explains it badly. A calendar with year
+types, a reconstruction with competing readings, a holiday regime of annual
+decrees and transferred days, a month scheme that depends on the sky at a
+named place — for anything a maintainer cannot be expected to know already,
+the explanation is written first, as a document under
+[`systems/`](systems/README.md), from the sources, and the code then refers
+to the document rather than carrying the explanation in comments alone.
+
+The document says what the system is in the world, how it works, with a
+worked example the reader can follow by hand, what this library carries of
+it and what it deliberately does not, how well the implementation agrees
+with the published reference and how that was measured, and where every
+statement comes from. The module documentation summarises it in a paragraph
+and names the document; the document names the module and the tests that
+anchor it. Neither repeats the other.
+
+The rule exists for the reader who arrives at a module without the context
+its author had, which is every reader after the author, and for the reviewer
+who has to judge a change to it. It also exists for the author: a rule that
+cannot be written down in prose from its sources is not yet understood well
+enough to be coded.
+
+Which systems count as complex is a judgement, and the index in
+[`systems/README.md`](systems/README.md) records the judgement: it lists the
+systems that have a document, and the ones that should and do not yet.
+
+## 13. Scope
 
 `hyper-calendar` computes and formats. It has no UI, no I/O beyond optionally
 reading a TZif file, no clock (the caller supplies the current time), no
