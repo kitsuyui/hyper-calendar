@@ -105,6 +105,7 @@ const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("julian-gregorian-ru"),
     CalendarId("julian-gregorian-ro"),
     CalendarId("julian-gregorian-gr"),
+    CalendarId("swedish-1700"),
 ];
 
 /// A month cycle from names already shaped into widths and contexts.

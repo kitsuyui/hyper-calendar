@@ -157,3 +157,11 @@ Fonction = "Fonction"
 # French "s'aligne", aligns itself, in the title of the Cridem article on
 # Mauritania's 2014 weekend change.
 aligne = "aligne"
+# French, in the passages of Comte's Calendrier positiviste (1852) the
+# Positivist module quotes: "je n'attribue", "chaque mois y commencera", the
+# "culte concret", and the month Aristote.
+attribue = "attribue"
+commencera = "commencera"
+concret = "concret"
+Aristote = "Aristote"
+ARISTOTE = "ARISTOTE"
