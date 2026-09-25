@@ -2,6 +2,11 @@
 //! of the *Ārya Siddhānta*, the arithmetic behind the almanacs before the
 //! true positions took over.
 //!
+//! The reckoning, its place beside the true calendars, how it is tested
+//! without an almanac and its sources are in
+//! `docs/systems/hindu-calendars.md` in the repository. This page
+//! summarises it and states the code's own facts.
+//!
 //! Both count from the Kali Yuga epoch, Friday 18 February 3102 BCE in
 //! the Julian calendar, when the mean Sun and Moon stood together at the
 //! start of Meṣa, and both move the mean Sun at one sidereal year of
@@ -10,11 +15,10 @@
 //! twelve mean months of a twelfth of that year, day 1 of a month being
 //! the civil day in which the mean Sun enters it; the lunisolar year is
 //! the mean lunar months, each named for the solar month that begins
-//! within it — the next solar month after its own new moon — so that a
-//! lunar month no solar month begins in, its new moon and the next both
-//! falling in one, takes the same name as the month after it and is the
-//! intercalary one. Its days are the mean tithis, thirty to a month, and
-//! a civil day takes the tithi current at its mean sunrise. The mean
+//! within it, so that a lunar month no solar month begins in takes the
+//! same name as the month after it and is the intercalary one. Its days
+//! are the mean tithis, thirty to a month, and a civil day takes the tithi
+//! current at its mean sunrise, a quarter day after midnight. The mean
 //! tithi is shorter than a day, so a tithi is skipped now and then and
 //! none is ever repeated.
 //!
@@ -27,32 +31,15 @@
 //! `old-hindu-lunar-leap-year?`, with the epoch, the year and month
 //! lengths and the leap-year threshold as they give them.
 //!
-//! The *Rashtriya Panchang*, the almanac this crate tests its true Hindu
-//! calendars against, does not tabulate the mean ones, so there is no
-//! published table here to check against. They are tested instead for
-//! what an arithmetic calendar must do — every day of the supported
+//! The *Rashtriya Panchang* does not tabulate the mean calendars, so they
+//! are tested for what an arithmetic calendar must do — every day of the
 //! range converts and converts back, months and years have the lengths
 //! the mean motions allow, an intercalary month falls seven years in
 //! nineteen and now and then eight, and precedes the month it is named
 //! for — for where both calendars place the epoch, and for how far the
-//! mean months have drifted from the true ones, which the almanac does
-//! give.
-//!
-//! # What it is for
-//!
-//! Dating the ancient and medieval sources that reckoned by mean motion,
-//! and showing what the true calendars of this crate corrected. It is not
-//! a calendar any almanac keeps today: its year is 0.002 3 days longer
-//! than the modern mean sidereal year of 365.256 36 days, so it has
-//! gained some twelve days on one since the epoch.
-//!
-//! That drift is not the distance from the true saṅkrāntis, because the
-//! *Ārya Siddhānta*'s zero point is not the modern sidereal one and the
-//! two errors largely cancel. Measured against the true Tamil calendar of
-//! [`crate::hindu_solar`], which is tested against the almanac's own
-//! tables, the mean months of Kali Yuga 5125 — Śaka 1946, 2024 to 2025 —
-//! begin between two days early and two days late, a quarter of a day
-//! late on average.
+//! mean months of Kali Yuga 5125 (Śaka 1946, 2024 to 2025) stand from
+//! the true Tamil months of [`crate::hindu_solar`]: between two days
+//! early and two days late, a quarter of a day late on average.
 
 use hc_calendar::shape::{CycleShape, LUNISOLAR_TWELVE, MONTH, WEEKDAY};
 use hc_calendar::{

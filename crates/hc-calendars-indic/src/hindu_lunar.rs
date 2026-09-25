@@ -1,5 +1,14 @@
 //! The Hindu lunisolar calendar, *amānta* — `hindu-lunar`.
 //!
+//! The system is written up in `docs/systems/hindu-calendars.md` in the
+//! repository: the tithi, the naming of months by their saṅkrānti, adhika
+//! and kṣaya months, the Śaka and Vikrama years, the Central Station and
+//! the ayanamsa, with the adhika Śrāvaṇa of Śaka 1945 worked through by
+//! hand, what is carried and what is not, how the calendar was checked
+//! against the *Rashtriya Panchang*'s tables, and the sources, keyed in
+//! `docs/references.bib`. This page summarises it and states the code's
+//! own facts.
+//!
 //! The calendar most of India dates its festivals in, computed the way the
 //! *Rashtriya Panchang* of the Government of India computes it: from the
 //! true positions of the Sun and Moon, with the sidereal zodiac fixed by the
@@ -11,36 +20,27 @@
 //!    the day's tithi is the one in progress at sunrise ([`crate::tithi`]).
 //!    The month begins with the first day whose sunrise follows the
 //!    conjunction — śukla pratipadā — and ends with amāvāsyā, the day of the
-//!    next conjunction. That is the *amānta* (new-moon-ending) reckoning of
-//!    the south and west and of the national calendar; the *pūrṇimānta*
-//!    reckoning of the north names the same fortnights differently and is a
-//!    separate calendar.
-//! 2. **A month is named for the sidereal sign the Sun enters during it.**
-//!    The Sun's entry into Meṣa is a *saṅkrānti*; the lunar month in which
-//!    it happens is Chaitra, the one with the Vṛṣabha saṅkrānti is Vaiśākha,
-//!    and so on round the twelve.
+//!    next conjunction. That is the *amānta* reckoning; the *pūrṇimānta*
+//!    reckoning of the north is [`crate::hindu_purnimanta`].
+//! 2. **A month is named for the sidereal sign the Sun enters during it**:
+//!    the lunar month holding the Meṣa saṅkrānti is Chaitra, and so on
+//!    round the twelve.
 //! 3. **A month with no saṅkrānti is intercalary** — *adhika māsa* — and
 //!    takes the name of the month that follows it, written
-//!    [`Month::leap(n)`](hc_calendar::Month::leap). One in about thirty-two
-//!    months is such, because twelve lunar months fall eleven days short of
-//!    the solar year.
+//!    [`Month::leap(n)`](hc_calendar::Month::leap).
 //! 4. **A month with two saṅkrāntis loses a name** — *kṣaya māsa* — and
-//!    keeps the first. It happens a few times a century, only in the short
-//!    months near perihelion, and always with an adhika month on each side
-//!    of it in the same year.
-//! 5. **The year is the Śaka era**, counted from Chaitra śukla 1, which
-//!    falls in March or April; a Gregorian year *g* holds the turn of Śaka
-//!    *g* − 78. The Vikrama year, 135 greater, is carried as an extra field.
+//!    keeps the first; the name it loses is reported as not existing.
+//! 5. **The year is the Śaka era**, counted from Chaitra śukla 1; a
+//!    Gregorian year *g* holds the turn of Śaka *g* − 78. The Vikrama year,
+//!    135 greater, is carried as an extra field.
 //!
 //! # Whose sunrise
 //!
-//! Rule 1 needs a place, and a tithi that ends within an hour of sunrise
-//! belongs to different days in Delhi and in Chennai. The *Rashtriya
-//! Panchang* reads the day at the sunrise of its adopted Central Station,
-//! 23°11′ N 82°30′ E; the classical almanacs read it at Ujjain. Both are
-//! [`crate::places`] constants and both calendars are provided; a caller
-//! with a city and a local panchang can build a third with
-//! [`HinduLunarCalendar::new`].
+//! Rule 1 needs a place. [`HinduLunarCalendar::RASHTRIYA`], the registered
+//! calendar, reads the day at the Central Station's sunrise as the almanac
+//! does; [`HinduLunarCalendar::UJJAIN`] at Ujjain, as the classical almanacs
+//! do. Both are [`crate::places`] constants, and a caller with a city and a
+//! local panchang can build a third with [`HinduLunarCalendar::new`].
 //!
 //! # What is exact and what is not
 //!
@@ -50,10 +50,9 @@
 //! saṅkrānti that falls within seconds of a conjunction, is therefore a
 //! decision this calendar makes by a model where a panchang makes it by
 //! its own; the *Rashtriya Panchang* itself is the reference, and the tests
-//! compare against it. Festival *observance* is a further question — a
-//! feast may be kept on the day the tithi holds at midday, or in the evening,
-//! rather than at sunrise — and that belongs to a holiday rule, not to the
-//! date.
+//! compare against it. Festival *observance* — a feast kept on the day the
+//! tithi holds at midday or in the evening rather than at sunrise — belongs
+//! to a holiday rule, not to the date.
 
 use hc_astro::lunar::moon_phase_at_or_after;
 use hc_astro::riseset::Location;

@@ -2,14 +2,17 @@
 //! in progress at a moment, and when the Moon enters and leaves it — and
 //! the Sun's, which the almanacs print as its own table.
 //!
+//! The division, the ayanamsa it hangs on, the festivals fixed by it and
+//! the comparison with Drik Panchang's transit times are written up with
+//! their sources in `docs/systems/hindu-calendars.md` in the repository.
+//! This page summarises it and states the code's own facts.
+//!
 //! The sidereal ecliptic is cut into twenty-seven equal arcs of 13°20′
 //! from the ayanamsa's zero point, Aśvinī first and Revatī last. The Moon
-//! crosses one in about a day — a little under where its orbit is swift, a
-//! little over where it is slow — so a nakṣatra, like a tithi, is held at
-//! one or two sunrises or, now and then, at none. The almanacs print it
-//! beside the tithi, and a few festivals are fixed by it rather than by a
-//! tithi: Thaipusam on Puṣya in the month of Thai, Onam on Śravaṇa in
-//! Chingam. `hc-holiday` reads those from here.
+//! crosses one in about a day, so a nakṣatra, like a tithi, is held at one
+//! or two sunrises or, now and then, at none. A few festivals are fixed by
+//! it rather than by a tithi — Thaipusam on Puṣya in the month of Thai —
+//! and `hc-holiday` reads those from here.
 
 use hc_astro::lunar::lunar_longitude;
 use hc_astro::solar::solar_longitude_after;
