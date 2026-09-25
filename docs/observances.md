@@ -272,6 +272,8 @@ Ordered by how well the sources can be cited, not by importance.
 | Chad 🇹🇩 | Decree 97-413 of 1997: article 1's seven days off unpaid and unmoved, article 2's paid days with the Monday after a Sunday from 1997, 8 March from 2019 by decree 273 as the press gives it; 11 August 2010, replaced by a decree not read, a gap; the Islamic days approximate |
 | Mauritania 🇲🇷 | Law 92-018's national day and seven legal holidays, the four Islamic days one day each and approximate, "Mouharram" read as its first day; the President's declared days not carried; nothing moves; Friday–Saturday weekend to 2013, Saturday–Sunday from 2014 |
 | Djibouti 🇩🇯 | Arrêté 77-347 of 1977 as its 1981 rectificatif quotes it, from 1978: two days of each Eid, the first of Muharram, the Mouloud and Isra and Mi'raj approximate, Christmas by arrêté 77-609, Independence two days from 1981 and 28 June 1980 a gap; nothing moves; the Friday weekend of the Labour Code |
+| Comoros 🇰🇲 | Decree 25-147/PR of 19 December 2025 from 2026: six civil days and the seven religious days approximate, the end of Ramadan as the three days after 29 Ramadan and Eid al-Kabir with its morrow; the earlier decrees it repeals unread; article 3's bridge days a decision each time, not carried; nothing moves |
+| Equatorial Guinea 🇬🇶 | Decree 9/2007's ten days from 2007, with article 4's first working day after a feast on a Saturday or Sunday; the ministerial orders of article 5, Easter Monday among them, not carried |
 | Cameroon 🇨🇲 | Law 73/5 of 1973: four civil and six religious days, the Eids approximate, and the next day for a civil holiday on a Sunday or on another holiday, from 1974; the President's declared days not carried |
 | Republic of the Congo 🇨🇬 | Law 2-94 of 1994's nine days with the Easter and Pentecost Mondays; nothing moves; 28 November and the Minister's declared days not carried |
 | Democratic Republic of the Congo 🇨🇩 | Ordinances 14-010 and 23-042: 6 April from 2023, a Sunday holiday to the Saturday from 2014 to 2025, the Minister's moves for 2025 and 2026 as the communiqués give them and a gap from 2027 |
@@ -307,10 +309,9 @@ Ordered by how well the sources can be cited, not by importance.
 | Kiribati 🇰🇮 | The Beretitenti's orders under Cap. 81 for 2025 (revised) and 2026, every day of each as ordered, the "in honour of" days included, a year outside reported as a gap; Good Friday and Easter Monday by rule; the Schedule days an order keeps without listing not carried |
 
 **Planned** — the United Nations member states without a table,
-Afghanistan, the Central African Republic, the Comoros, Equatorial Guinea,
-Eritrea, Eswatini, Gabon, the Gambia, Guinea-Bissau, Liberia, Niger, North
-Korea, São Tomé and Príncipe, Sierra Leone, Somalia, South Sudan, Sudan and
-Togo, plus the subdivisions that have their own legal holidays. Tracked as
+Afghanistan, the Central African Republic, Eritrea, Eswatini, Gabon, the
+Gambia, Guinea-Bissau, Liberia, Niger, North Korea, São Tomé and Príncipe,
+Sierra Leone, Somalia, South Sudan, Sudan and Togo, plus the subdivisions that have their own legal holidays. Tracked as
 one issue per country so that each lands with a citable source.
 
 Where a country's dates are announced each year by decree rather than fixed

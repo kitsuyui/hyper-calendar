@@ -5137,3 +5137,220 @@ pub static DJIBOUTI: RuleSet = RuleSet {
               Travail, articles 97 and 98, and arrêté n° 2019-193/PR/MTRA on the weekly rest, \
               from the same, retrieved the same day",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Comoros
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A day of article 1 of decree 25-147/PR, carried from 2026, the decree's
+/// first full year.
+const fn km(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, rule).years(Some(2026), None)
+}
+
+/// A religious day of article 1, on the tabular Hijri calendar, carried
+/// from 2026.
+const fn km_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    km(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, month, day),
+    )
+    .approximate()
+}
+
+static KM_RULES: &[HolidayRule] = &[
+    // Article 1, 1: the religious days.
+    km_hijri("Islamic New Year", "Premier jour de l'An musulman", 1, 1),
+    km_hijri(
+        "Prophet's Birthday",
+        "Jour de la Naissance du prophète Muhammad",
+        3,
+        12,
+    ),
+    km_hijri(
+        "End of Ramadan (first day)",
+        "Les trois jours suivant le 29 du mois de Ramadan",
+        9,
+        30,
+    ),
+    km_hijri(
+        "End of Ramadan (second day)",
+        "Les trois jours suivant le 29 du mois de Ramadan",
+        10,
+        1,
+    ),
+    km_hijri(
+        "End of Ramadan (third day)",
+        "Les trois jours suivant le 29 du mois de Ramadan",
+        10,
+        2,
+    ),
+    km_hijri("Eid al-Kabir", "Jour de l'Ide El Kabir", 12, 10),
+    km_hijri(
+        "Day after Eid al-Kabir",
+        "Lendemain de l'Ide El Kabir",
+        12,
+        11,
+    ),
+    // Article 1, 2: the civil days.
+    km("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
+    km(
+        "National Reconciliation Day",
+        "Jour de la Réconciliation nationale",
+        Rule::gregorian(2, 17),
+    ),
+    km(
+        "Labour Day",
+        "Fête internationale du Travail",
+        Rule::gregorian(5, 1),
+    ),
+    km(
+        "Independence Day",
+        "Fête de l'Indépendance",
+        Rule::gregorian(7, 6),
+    ),
+    km(
+        "Day after Independence Day",
+        "Lendemain de la Fête de l'Indépendance",
+        Rule::gregorian(7, 7),
+    ),
+    km(
+        "Admission of the Comoros to the United Nations",
+        "Jour de l'Admission des Comores aux Nations unies",
+        Rule::gregorian(11, 12),
+    ),
+];
+
+/// Comoros.
+///
+/// Decree 25-147/PR of 19 December 2025 fixing the list of the days
+/// "fériés, chômés et payés" in the Union, from the Union's own legal
+/// portal: article 1's seven religious days and six civil days, all off
+/// and paid under article 2. The list is carried from 2026, the decree's
+/// first full year; the decrees it repeals under article 5 — 06-192/PR of
+/// 2006, 03-066/PR of 2003, 99-168/CE of 1999 and 96-227/PR of 1996 — were
+/// not read, so nothing earlier is claimed. The end of Ramadan is "the
+/// three days following the 29th of the month of Ramadan", which on the
+/// tabular calendar, whose Ramadan always has thirty days, are 30 Ramadan
+/// and 1 and 2 Shawwal; in a year the sighting ends Ramadan at 29 days
+/// they are 1 to 3 Shawwal. Eid al-Kabir is "the day and the day after",
+/// 10 and 11 Dhu al-Hijjah. All the religious days are approximations of
+/// the sighted dates. Article 3 lets a working day between two holidays,
+/// between a holiday and a Saturday, or between a Sunday and a holiday be
+/// declared off and paid, which is a decision each time and is not
+/// carried; article 4 lets no other day be a holiday but by a specific
+/// decree. Nothing moves a holiday off the weekend. The Saturday–Sunday
+/// weekend is the one article 3 assumes; the Labour Code's weekly-rest
+/// article was not read.
+pub static COMOROS: RuleSet = RuleSet {
+    code: "KM",
+    english_name: "Comoros",
+    rules: KM_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 25),
+    sources: "Décret n° 25-147/PR du 19 décembre 2025 fixant la liste des jours fériés, chômés \
+              et payés en Union des Comores, articles 1 to 6, from Munganyo, the Union's legal \
+              portal (munganyo.km/decrees/526), retrieved 2026-09-25",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Equatorial Guinea
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Article 4 of decree 9/2007: "when one of the feasts recognised in this
+/// provision falls on a non-working day, the first working day after it
+/// is also a holiday". The Ministry of Labour's notices apply it to a
+/// Saturday as well as a Sunday.
+static GQ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: Some(2007),
+    valid_until: None,
+}];
+
+/// A day of article 2 of decree 9/2007, carried from 2007.
+const fn gq(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::public(name, local, rule).years(Some(2007), None)
+}
+
+static GQ_RULES: &[HolidayRule] = &[
+    // Article 2 A: the national feasts.
+    gq(
+        "President's Birthday",
+        "Natalicio de Su Excelencia el Presidente de la República",
+        Rule::gregorian(6, 5),
+    ),
+    gq(
+        "Freedom Coup Day",
+        "Golpe de Libertad",
+        Rule::gregorian(8, 3),
+    ),
+    gq(
+        "Constitution Day",
+        "Día de la Ley Fundamental",
+        Rule::gregorian(8, 15),
+    ),
+    gq(
+        "Independence Day",
+        "Día de la Independencia Nacional",
+        Rule::gregorian(10, 12),
+    ),
+    // Article 2 B: the international feast.
+    gq(
+        "Labour Day",
+        "Día Internacional de Trabajo",
+        Rule::gregorian(5, 1),
+    ),
+    // Article 2 C: the religious feasts.
+    gq("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    gq("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    gq(
+        "Corpus Christi",
+        "Corpus Cristi",
+        Rule::easter(CORPUS_CHRISTI),
+    ),
+    gq(
+        "Immaculate Conception",
+        "Festividad de la Inmaculada Concepción, Patrona de Guinea Ecuatorial",
+        Rule::gregorian(12, 8),
+    ),
+    gq("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+];
+
+/// Equatorial Guinea.
+///
+/// Decree 9/2007 of 5 February fixing the official holidays, from the
+/// Boletín Oficial del Estado's copy: article 2's four national feasts,
+/// the international feast of 1 May and five religious feasts, ten days
+/// in all, in force on the whole territory under article 3 and carried
+/// from 2007, the year the decree replaced the "obsolete" calendar of
+/// decree 34/1989, which was not read. Article 4: a feast on a
+/// non-working day makes "the first working day after it" a holiday too,
+/// and the Ministry of Labour's notices for a Saturday Christmas in 2021
+/// and a Saturday New Year in 2022 gave the Monday, so a Saturday
+/// triggers it as a Sunday does. Article 5 leaves later celebrations to
+/// ministerial orders, which were not read; the Easter Monday the press
+/// reports as a day off is one of them and is not carried. The
+/// Saturday–Sunday weekend follows the same notices, the decree not
+/// defining "día inhábil".
+pub static EQUATORIAL_GUINEA: RuleSet = RuleSet {
+    code: "GQ",
+    english_name: "Equatorial Guinea",
+    rules: GQ_RULES,
+    substitution: GQ_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 25),
+    sources: "Decreto núm. 9/2007, de fecha 5 de febrero, por el que se fijan los días feriados \
+              en la República de Guinea Ecuatorial, articles 1 to 5, from the Boletín Oficial \
+              del Estado (boe.gob.gq), retrieved 2026-09-25; Revista Real Equatorial Guinea, \
+              \"Declarados festivos los días 27 de diciembre 2021 y 3 de enero 2022\" \
+              (25 December 2021), on the Ministry of Labour's application of article 4",
+};
