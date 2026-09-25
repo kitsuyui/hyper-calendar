@@ -109,11 +109,11 @@ live with their families.
 
 | Calendar | Id | Crate | Status |
 | --- | --- | --- | --- |
-| Tabular Islamic, civil epoch | `islamic-civil` | `hc-calendars-lunar` | Done |
-| Tabular Islamic, astronomical epoch | `islamic-tbla` | `hc-calendars-lunar` | Done |
-| Fatimid / Ṭayyibī Bohra *Misri* | `islamic-fatimid` | `hc-calendars-lunar` | Done |
-| Umm al-Qura (Saudi official) | `islamic-umalqura` | `hc-calendars-lunar` | Done — table-driven, 1300–1600 AH |
-| Observational Hijri | `islamic-rgsa` | `hc-calendars-lunar` | Partial — visibility model is a simplification |
+| Tabular Islamic, civil epoch | `islamic-civil` | `hc-calendars-lunar` | Done — the common thirty-year scheme on the Friday epoch, checked against the published closed form; the family is in [systems/hijri.md](systems/hijri.md) |
+| Tabular Islamic, astronomical epoch | `islamic-tbla` | `hc-calendars-lunar` | Done — the same scheme on the Thursday epoch, one day earlier; see [systems/hijri.md](systems/hijri.md) |
+| Fatimid / Ṭayyibī Bohra *Misri* | `islamic-fatimid` | `hc-calendars-lunar` | Done — the Bohra community's scheme on the Thursday epoch, anchored to its published Mawlid of 1439; see [systems/hijri.md](systems/hijri.md) |
+| Umm al-Qura (Saudi official) | `islamic-umalqura` | `hc-calendars-lunar` | Done — the published table for 1300–1600 AH, refused outside it, with the rules it embodies and the announcements it was checked against in [systems/hijri.md](systems/hijri.md) |
+| Observational Hijri | `islamic-rgsa` | `hc-calendars-lunar` | Partial — a prediction under one visibility criterion at Mecca, a day after the Umm al-Qura table for 58% of months and never a record of an announcement; see [systems/hijri.md](systems/hijri.md) |
 | Hebrew | `hebrew` | `hc-calendars-lunar` | Done |
 | Chinese lunisolar | `chinese` | `hc-calendars-lunar` | Done |
 | Korean (Dangi) | `dangi` | `hc-calendars-lunar` | Done |

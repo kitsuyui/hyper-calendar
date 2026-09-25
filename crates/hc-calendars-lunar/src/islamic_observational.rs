@@ -4,46 +4,42 @@
 //! # Read this before using it
 //!
 //! The Hijri calendar as kept in religious practice is **announced, not
-//! computed**. A month begins when a qualified observer reports seeing the
-//! young crescent and a competent authority accepts the report. Cloud,
-//! haze, the observer's eyesight, the altitude of the observing site and the
-//! authority's own criteria all enter into it, and different authorities
-//! reach different answers on the same evening every year.
-//!
+//! computed**: a month begins when a qualified observer reports the young
+//! crescent and a competent authority accepts the report, and different
+//! authorities reach different answers on the same evening every year.
 //! What this module computes is *whether the crescent should have been
 //! visible*, under one published criterion, from one place, in a clear sky.
-//! That is a forecast of an observation. It is not, and cannot be, a record
-//! of what was proclaimed. **Do not use it to state when Ramadan began.**
-//! For Saudi Arabia's official answer use [`crate::islamic_umalqura`], which
-//! reads the published table; for an administrative calendar use
+//! That is a forecast of an observation, not a record of what was
+//! proclaimed. **Do not use it to state when Ramadan began.** For Saudi
+//! Arabia's civil calendar use [`crate::islamic_umalqura`], which reads the
+//! published table; for an administrative calendar use
 //! [`crate::islamic_civil`].
 //!
 //! Measured against the Umm al-Qura table over 1400–1445 AH, this module
 //! puts the first of the month **one day later for 322 of 552 months** —
-//! 58% — and never earlier, and never by more than one day. That is not a
-//! bug on either side: the Umm al-Qura criterion since 1420 AH asks only
-//! that the conjunction precede sunset at Mecca and the Moon set after the
-//! Sun, which is satisfied on evenings when the crescent is far too thin to
-//! be seen. A sighting criterion is stricter than a computation criterion,
-//! so it lands a day later about half the time. The figure is in the crate's
-//! tests, not hidden.
+//! 58% — and never earlier, and never by more than one day. The figure is
+//! asserted in the crate's tests; what it measures, why the difference runs
+//! one way, and a named evening on which the table, the prediction and the
+//! Saudi announcement can be compared are in `docs/systems/hijri.md`, with
+//! the sources for the criterion and the Umm al-Qura rules.
 //!
 //! # The criterion
 //!
-//! [`VisibilityCriterion::REINGOLD_DERSHOWITZ`] is the one from *Calendrical
-//! Calculations*: at a moment shortly after sunset, when the Sun is 4.5°
-//! below the horizon, the Moon must be past conjunction and short of first
-//! quarter, its arc of light must be at least 10.6°, and it must be more
-//! than 4.1° above the horizon. The arc of light is the true angular
+//! [`VisibilityCriterion::REINGOLD_DERSHOWITZ`] is the crescent-visibility
+//! test of *Calendrical Calculations*, which the published code attributes
+//! to S. K. Shaukat: at the moment the Sun is 4.5° below the horizon on the
+//! evening before the day, the Moon must be past conjunction and short of
+//! first quarter, its arc of light must be at least 10.6°, and it must be
+//! more than 4.1° above the horizon. The arc of light is the true angular
 //! separation from the Sun, `arccos(cos β · cos φ)` for lunar latitude β and
 //! elongation φ.
 //!
 //! `hc-astro` offers dusk only at the three standard twilight depressions,
 //! so the 4.5° instant is interpolated linearly between sunset and civil
-//! dusk. At Mecca's latitude the Sun's depression grows close enough to
-//! linearly over that stretch for the error to be well under a minute, which
-//! is far inside the tolerance of a criterion whose real uncertainty is the
-//! weather.
+//! dusk, from the depression the Sun has at sunset. At Mecca's latitude the
+//! depression grows close enough to linearly over that stretch for the
+//! error to be well under a minute, which is far inside the tolerance of a
+//! criterion whose real uncertainty is the weather; no test measures it.
 //!
 //! # The place
 //!
@@ -70,9 +66,9 @@ use crate::tabular::{CIVIL_EPOCH, ERA, IslamicDate};
 
 /// The machine identifier CLDR uses for this calendar.
 ///
-/// `rgsa` is CLDR's abbreviation for "religious, Saudi Arabia"; the
-/// identifier names the intent, and the caveats above say what this module
-/// can honestly deliver against it.
+/// CLDR describes `islamic-rgsa` as "Hijri calendar, Saudi Arabia
+/// sighting"; the identifier names the intent, and the caveats above say
+/// what this module can honestly deliver against it.
 pub const ID: CalendarId = CalendarId("islamic-rgsa");
 
 /// The fixed day on which this calendar places 1 Muḥarram 1 AH, used only to

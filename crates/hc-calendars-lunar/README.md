@@ -44,6 +44,26 @@ and — the whole of what makes the Japanese historical calendars possible —
 an optional `MeanMotionModel` holding one system's own period
 constants. Nine lunisolar calendars, one algorithm.
 
+## The Hijri family
+
+The five Hijri identifiers are written up in
+[`docs/systems/hijri.md`](../../docs/systems/hijri.md): the calendar as
+kept by sighting and the schemes beside it, the thirty-year cycle with its
+four leap-year patterns and two epochs, the Umm al-Qura rules by period and
+the table's provenance, the visibility criterion, a month worked by hand
+and a named evening on which the three disagree, and what each measurement
+below means. This section keeps the summary and the figures.
+
+The tabular calendars are counting rules and are exact as such: `tabular`
+is checked against the closed form of Reingold and Dershowitz for every
+month of 1–3000 AH, and `islamic-fatimid` against the Bohra community's own
+published Mawlid of 1439. The Umm al-Qura table is exact where it reaches,
+1300–1600 AH, and refuses everywhere else. The observational prediction is
+a forecast under one criterion at one place: against the Umm al-Qura table
+over 1400–1445 AH it starts the month a day later for 322 of 552 months —
+58% — and never earlier, which is the signature of a sighting criterion
+against a computation criterion and is asserted in a test.
+
 ## Japan's historical calendars
 
 The five Japanese systems are written up in
@@ -98,20 +118,19 @@ document says why.
 ## Accuracy
 
 **Arithmetic calendars — exact.** The tabular Hijri and Hebrew calendars are
-counting rules, and this is those rules. The tabular Hijri implementation is
-checked against the closed form in Reingold and Dershowitz, *Calendrical
-Calculations*, for every month of the first three thousand years. The Hebrew
-implementation reproduces 1 Tishrei 5784 = 2023-09-16 and 15 Nisan 5784 =
-2024-04-23, keeps Rosh Hashanah off Sunday, Wednesday and Friday for all
-9 999 years, and gives every year one of the six permitted lengths.
+counting rules, and this is those rules. The tabular Hijri checks are in
+the section above. The Hebrew implementation reproduces 1 Tishrei 5784 =
+2023-09-16 and 15 Nisan 5784 = 2024-04-23, keeps Rosh Hashanah off Sunday,
+Wednesday and Friday for all 9 999 years, and gives every year one of the
+six permitted lengths.
 
 Exact is not the same as astronomically right. The Hebrew molad is 0.4 seconds
 longer than the true mean synodic month, so it drifts about a day later every
 216 years; the tabular Hijri month is 2.9 seconds short, so it drifts a day in
-about 2 500 years. Both figures are in the module documentation.
+about 2 400 years. Both figures are in the module documentation.
 
 **The Umm al-Qura table — exact where it reaches, and nowhere else.** See
-below.
+the section above and the system document.
 
 **Astronomical calendars — good to a day, usually.** Conjunctions come from
 `hc-astro` and land within about a minute. Solar longitude comes from the
@@ -178,25 +197,21 @@ month, and put Tết a *whole lunation* before Chinese New Year.
 ## Reference data
 
 **The Umm al-Qura table** is 301 `u16` values, one per Hijri year from 1300 to
-1600, each carrying twelve bits for which months have 30 days. It was
-extracted from the platform's own `islamic-umalqura` implementation
-(Foundation's `Calendar(identifier: .islamicUmmAlQura)`, which is ICU's
-`UMALQURA` data) by asking for the first day of every month in that span and
-differencing. It was then spot-checked against dates published by the Saudi
-authorities: 1 Muḥarram 1300 = 1882-11-12, 1 Muḥarram 1445 = 2023-07-19,
-1 Ramaḍān 1445 = 2024-03-11, 1 Shawwāl 1445 = 2024-04-10, 1 Ramaḍān 1446 =
-2025-03-01, 1 Muḥarram 1447 = 2025-06-26.
-
-The covered range is **1300 AH to 1600 AH inclusive — Gregorian 1882-11-12 to
-2174-11-25 — and nothing outside it.** Outside that span this calendar returns
-`BeforeEpoch` or `AfterSupportedRange`. It does not fall back to an arithmetic
-rule, because a computed month presented as an Umm al-Qurā month would be a
-fabrication. (ICU itself does fall back, so a caller comparing the two outside
-the range is comparing a refusal against a guess.)
+1600, each carrying twelve bits for which months have 30 days: ICU's
+`UMALQURA` table, bit for bit, and the system document says how it was
+read, what rules it embodies and which Saudi announcements it was checked
+against. The covered range is **1300 AH to 1600 AH inclusive — Gregorian
+1882-11-12 to 2174-11-25 — and nothing outside it.** Outside that span this
+calendar returns `BeforeEpoch` or `AfterSupportedRange`. It does not fall
+back to an arithmetic rule, because a computed month presented as an Umm
+al-Qurā month would be a fabrication. (ICU itself does fall back, so a
+caller comparing the two outside the range is comparing a refusal against a
+guess.)
 
 Everything else — the epochs, the intercalation schemes, the dehiyyot, the
 lunisolar rules — comes from Reingold and Dershowitz, *Calendrical
-Calculations*, and is cited in the module documentation where it is used.
+Calculations*, and is cited in the module documentation where it is used;
+the Hijri sources are keyed in `docs/references.bib`.
 
 ## What this crate refuses to claim
 
@@ -206,11 +221,8 @@ The Hijri months of religious practice are proclaimed after a sighting is
 reported and accepted. `islamic_observational` predicts whether the crescent
 *should* have been visible from a given place in a clear sky under one
 published criterion. That is a forecast of an observation, not a record of a
-decision, and the crate says so in the module documentation and measures the
-gap: against the Umm al-Qura table over 1400–1445 AH it starts the month one
-day later for 322 of 552 months — 58% — and never earlier. That is the
-expected signature of a sighting criterion against a computation criterion,
-and the number is asserted in a test so it cannot drift unnoticed.
+decision; the module says so, and the measured gap is in the Hijri section
+above and explained in the system document.
 
 The Chinese, Korean and Vietnamese calendars were promulgated by bureaux using
 their own tables and their own solar theories. A date `chinese` gives for 1700

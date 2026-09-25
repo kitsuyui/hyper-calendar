@@ -30,6 +30,7 @@ None of the three repeats another.
 | The Japanese lunisolar calendars, Senmyō to Tenpō | [japanese-lunisolar.md](japanese-lunisolar.md) | `japanese-senmyo`, `japanese-jokyo`, `japanese-horyaku`, `japanese-kansei`, `japanese-tenpo` |
 | The Thai lunar calendar's year types, and the Buddhist year as printed | [thai-lunar.md](thai-lunar.md) | `thai-lunar`; `buddhist::printed_year` |
 | China's annual holiday arrangements and working weekends | [china-holiday-arrangements.md](china-holiday-arrangements.md) | `hc-holiday`'s `CHINA`; `XSHG`, `XSHE` |
+| The Hijri calendars: the tabular schemes, the Umm al-Qura table and the observational prediction | [hijri.md](hijri.md) | `islamic-civil`, `islamic-tbla`, `islamic-fatimid`, `islamic-umalqura`, `islamic-rgsa`; `tabular` |
 
 ## Systems that need a document
 
@@ -45,7 +46,6 @@ explanation is from what a reader needs.
 | The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, ayanāṃśa | `hc-calendars-indic` |
 | Bikram Sambat as gazetted, and Nepal Sambat | `bikram_sambat`, `nepal_sambat` |
 | The East Asian lunisolar calendars and their meridian conventions | `lunisolar`, `chinese`, `dangi`, `vietnamese` |
-| The Hijri family: tabular schemes, the Umm al-Qura table, the observational prediction | `tabular`, `islamic_umalqura`, `islamic_observational` |
 | The Hebrew calendar's dehiyyot | `hebrew` |
 | The Maya and Aztec counts | `maya`, `aztec` |
 | The Balinese Pawukon and the Javanese pasaran | `balinese_pawukon`, `javanese_pasaran` |

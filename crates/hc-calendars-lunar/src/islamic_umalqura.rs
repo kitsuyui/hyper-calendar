@@ -1,11 +1,12 @@
 //! The Umm al-Qurā calendar of Saudi Arabia — CLDR `islamic-umalqura`.
 //!
-//! This calendar is not computed. It is **published**: the Umm al-Qurā
-//! committee fixes the length of every month in advance and the result is a
-//! table, not a formula. Between 1300 AH and 1420 AH the tabulated months
-//! follow the conjunction rule then in force; from 1420 AH the criterion is
-//! that the geocentric conjunction occurs before sunset at Mecca and the Moon
-//! sets after the Sun. Either way, the only correct implementation of a
+//! This calendar is not computed. It is **published**: Saudi Arabia's
+//! civil calendar is computed at KACST by rules that have changed over the
+//! years, and the result is a table, not a formula. The rules by period,
+//! the table's provenance, the announcements it was checked against and
+//! what the tabular and observational calendars measure against it are in
+//! `docs/systems/hijri.md`; this page keeps the table's format, its range
+//! and its behaviour at the edges. The only correct implementation of a
 //! published table is the table.
 //!
 //! # The table, and where it came from
@@ -18,23 +19,16 @@
 //! `islamic-umalqura` implementation (Foundation's
 //! `Calendar(identifier: .islamicUmmAlQura)`, which is ICU's `UMALQURA`
 //! table), by asking it for the first day of every month from 1300 AH to
-//! 1600 AH and differencing. The extraction was then spot-checked against
-//! dates published by the Saudi authorities and reported in the press:
-//!
-//! | Hijri | Gregorian | |
-//! |---|---|---|
-//! | 1 Muḥarram 1300 | 1882-11-12 | the first year of the table |
-//! | 1 Muḥarram 1445 | 2023-07-19 | |
-//! | 1 Ramaḍān 1445 | 2024-03-11 | start of Ramadan 2024 |
-//! | 1 Shawwāl 1445 | 2024-04-10 | Eid al-Fitr 2024 |
-//! | 1 Ramaḍān 1446 | 2025-03-01 | start of Ramadan 2025 |
-//! | 1 Muḥarram 1447 | 2025-06-26 | |
+//! 1600 AH and differencing; it equals ICU's own table bit for bit. It was
+//! then spot-checked against six dates, five of them the Supreme Court's
+//! announced first days of 1445–1447, which the test
+//! `the_published_dates_are_reproduced` holds and the document cites.
 //!
 //! # The range, and why it stops
 //!
 //! **1300 AH to 1600 AH**, that is 1882-11-12 to 2174-11-25 Gregorian, and
-//! not one day more. The official tables are published for exactly this
-//! span. Outside it this calendar returns [`CalendarError::BeforeEpoch`] or
+//! not one day more, which is the span ICU's table covers. Outside it this
+//! calendar returns [`CalendarError::BeforeEpoch`] or
 //! [`CalendarError::AfterSupportedRange`]; it does **not** fall back to an
 //! arithmetic rule, because a computed month presented as an Umm al-Qurā
 //! month would be a fabrication. Callers who want a computed answer outside

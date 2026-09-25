@@ -1,12 +1,11 @@
 //! The tabular Hijri calendar on the astronomical (Thursday) epoch — CLDR
 //! `islamic-tbla`.
 //!
-//! Identical arithmetic to [`crate::islamic_civil`], one day earlier. The two
-//! epochs come from the same tradition read two ways: the Hijra is placed on
-//! 16 July 622 Julian if the day is counted from sunrise as the chancelleries
-//! did, and on 15 July 622 if it is counted from the preceding sunset as
-//! astronomers did. CLDR's `tbla` stands for "tabular, leap year,
-//! astronomical epoch".
+//! Identical arithmetic to [`crate::islamic_civil`], one day earlier: the
+//! same scheme counted from Thursday 15 July 622 Julian, the "astronomical"
+//! epoch, which CLDR describes as the tabular calendar on the astronomical
+//! epoch. Where the two epochs come from, and the check of the scheme
+//! against the published closed form, are in `docs/systems/hijri.md`.
 //!
 //! Every remark in [`crate::islamic_civil`] about what an arithmetic Hijri
 //! calendar is not applies here unchanged.
