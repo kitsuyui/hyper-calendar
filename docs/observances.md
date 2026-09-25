@@ -141,7 +141,7 @@ Ordered by how well the sources can be cited, not by importance.
 
 | Country | Note |
 | --- | --- |
-| Japan 🇯🇵 | Complete from 1948 (祝日法) to the present, including every amendment: the 1973 振替休日 (in force from 12 April, so 1973-02-12 is *not* a holiday), the 1985 国民の休日, ハッピーマンデー in 2000 and 2003, 海の日, 山の日, the 1959/1989/1990/1993 imperial one-offs, the 2019 即位礼正殿の儀 and the 2020–21 Olympic moves. 春分の日 and 秋分の日 are computed from the equinox at the Japan meridian, not tabulated. |
+| Japan 🇯🇵 | Complete from 1948 (祝日法) to the present with every amendment, the 振替休日 and 国民の休日 as policies and the equinox days computed; the law, its amendments and how the table was checked are in [systems/japan-holidays.md](systems/japan-holidays.md) |
 | United States 🇺🇸 | Federal holidays with the Saturday/Sunday observed rule, the Uniform Monday Holiday Act, Veterans Day's 1971–77 detour, Juneteenth from 2021, Inauguration Day for the capital region, and the two state-funeral days |
 | United Kingdom 🇬🇧 | England and Wales, Scotland and Northern Ireland as separate regions, with the royal one-offs and the three jubilee moves of the Spring Bank Holiday |
 | Ireland 🇮🇪 | Including St Brigid's Day and its conditional rule |
@@ -159,7 +159,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Macau 🇲🇴 | Executive Order 60/2000 with the ten obligatory holidays of Law 7/2008 as `Kind::Public`; the public administration's compensatory rest days from 2019; the eves as observances |
 | China 🇨🇳 | The statutory days by rule across the 1999, 2007, 2013 and 2024 revisions and the State Council's arrangement for each year from 2008 to 2026 as data, days off and working weekend days alike; how the notices are read, carried and checked is in [systems/china-holiday-arrangements.md](systems/china-holiday-arrangements.md) |
 | Taiwan 🇹🇼 | The 紀念日及節日實施條例 of May 2025 and the 辦法 before it: the making-up of a weekend holiday on the nearer working day and of the Lunar New Year days after them, Children's Day when 清明 falls on it, and the five days the 條例 added; the swaps of each office calendar from 2017 until they ended in 2025. Checked against the government office calendar for 2017–2027 |
-| South Korea 🇰🇷 | Keyed to the `dangi` calendar, with every extension of the 대체공휴일 and the collision rule; 노동절 and the restored 제헌절 from 2026; the election days of 제2조제10호의2 from 2007 and the government-designated days from 2009, each for its year |
+| South Korea 🇰🇷 | The decree's days keyed to the `dangi` calendar, the 대체공휴일 in its three steps with the collision rule, the election days from 2007 and the designated days from 2009; the rules, the engine's part and the check against the Korea Exchange's lists are in [systems/korea-holidays.md](systems/korea-holidays.md) |
 | Canada 🇨🇦 | Federal plus the provincial days fixed by statute |
 | Australia 🇦🇺 | National plus all six states and both territories |
 | New Zealand 🇳🇿 | Including mondayisation from 2014, and Matariki over 2022–2035 — the Act schedules to 2052, and a calendar past 2035 reports it as a gap rather than dropping it |
@@ -203,7 +203,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Iceland 🇮🇸 | The act's list with the First Day of Summer and Commerce Day by their weekday rules, the two eves as half days; no substitution |
 | Hungary 🇭🇺 | With Good Friday from 2017; the annual rearrangement of working days by decree is not carried |
 | Romania 🇷🇴 | Orthodox Easter and Pentecost by the Julian computus; the additions of the last decade by year, Epiphany and Saint John from 2024 |
-| Russia 🇷🇺 | The New Year holidays as they grew to 1–8 January; the Government's transfer decrees for 2013–2027, with the working Saturdays they create, and article 112's carry-over of a weekend holiday computed from them; checked against the production calendar for each of those years |
+| Russia 🇷🇺 | Article 112's holidays and the Government's transfer decrees for 2013–2027 as data, with the working Saturdays and the carry-over computed from them; the article, the decrees and the check against the production calendars are in [systems/russia-transfers.md](systems/russia-transfers.md) |
 | Costa Rica 🇨🇷 | Art. 148 with the unpaid days and their years, and Ley 9875's 2020–2024 Mondays as computed rules that fall silent from 2025 |
 | Dominican Republic 🇩🇴 | Ley 139-97 from its text: adjacent-Monday moves, the excluded days, Restoration Day fixed in inauguration years, a Sunday 1 May to Monday |
 | Guatemala 🇬🇹 | Art. 127 with two half days and Guatemala City's Assumption as `GT-GU`; the tourism law's Monday moves for Army Day, and for 1 May and 20 October only until the 2020 ruling |

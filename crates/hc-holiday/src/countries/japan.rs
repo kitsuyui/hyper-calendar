@@ -1,47 +1,33 @@
 //! Japan — 国民の祝日に関する法律, complete from 1948.
 //!
+//! The regime is written up in `docs/systems/japan-holidays.md` in the
+//! repository: the 祝日法 and each of its amendments with its law number
+//! and commencement, the acts beside it for the imperial one-offs, the
+//! accession of 2019 and the two Olympic years, the 振替休日 in its two
+//! wordings and the 国民の休日, how the equinox days are announced and how
+//! the crate computes them, and how the table was checked against the
+//! Cabinet Office's lists and the 暦要項, with a worked example. This
+//! comment keeps the summary and the code's own facts.
+//!
 //! This is the crate's worked example, and the claim it makes is a strong
 //! one: every Japanese public holiday from the enactment of the 祝日法
 //! (昭和23年法律第178号, in force 20 July 1948) to today, with every
 //! amendment, expressed entirely as rule values. There is no function in
 //! this file. The 振替休日, the 国民の休日, ハッピーマンデー, the imperial
-//! one-offs and the two Olympic years are all data.
-//!
-//! # The amendments, in order
-//!
-//! | In force | Law | Change |
-//! | --- | --- | --- |
-//! | 1948-07-20 | 昭和23年法律第178号 | the nine original holidays |
-//! | 1966-06-25 | 昭和41年法律第86号 | 敬老の日 9/15, 体育の日 10/10, and 建国記念の日, whose date was left to a 政令 that came on 1966-12-09 — so it was first kept in 1967 |
-//! | 1973-04-12 | 昭和48年法律第10号 | 振替休日: a holiday falling on a Sunday is kept the following day |
-//! | 1985-12-27 | 昭和60年法律第103号 | 国民の休日: a working day trapped between two 祝日 becomes a holiday, from 1986 |
-//! | 1989-02-17 | 平成元年法律第5号 | 昭和天皇's death: 天皇誕生日 moves 4/29 → 12/23, and 4/29 becomes みどりの日 |
-//! | 1996-01-01 | 平成7年法律第22号 | 海の日, 20 July |
-//! | 2000-01-01 | 平成10年法律第141号 | ハッピーマンデー I: 成人の日 → 2nd Monday of January, 体育の日 → 2nd Monday of October |
-//! | 2003-01-01 | 平成13年法律第59号 | ハッピーマンデー II: 海の日 → 3rd Monday of July, 敬老の日 → 3rd Monday of September |
-//! | 2007-01-01 | 平成17年法律第43号 | 4/29 becomes 昭和の日, みどりの日 moves to 5/4, and 振替休日 becomes "the nearest following day that is not a 祝日" |
-//! | 2016-01-01 | 平成26年法律第43号 | 山の日, 11 August |
-//! | 2019/2020 | 平成30年法律第99号 | the accession: 2019-05-01 and 2019-10-22 as one-off 祝日, and 天皇誕生日 moves to 2/23 from 2020 |
-//! | 2020 | 平成30年法律第76号 | Tokyo 2020: 海の日 → 7/23, 体育の日 renamed スポーツの日 and moved to 7/24, 山の日 → 8/10 |
-//! | 2021 | 令和2年法律第68号 | the postponed games: 海の日 → 7/22, スポーツの日 → 7/23, 山の日 → 8/8 |
+//! one-offs and the two Olympic years are all data: a holiday whose date or
+//! name changed is one rule per date, each bounded to its years.
 //!
 //! # The equinoxes are computed, not tabulated
 //!
 //! 春分の日 and 秋分の日 are defined by the statute as 「春分日」 and
-//! 「秋分日」 — the day of the equinox itself. The National Astronomical
-//! Observatory of Japan computes the instant in JST and the Cabinet Office
-//! publishes the resulting date in the 官報 a year ahead; nobody legislates
-//! a table. So this file does not carry one either: it carries
-//! [`Rule::SolarTerm`] at [`Meridian::JAPAN`] and lets `hc-seasons` answer.
-//!
-//! That is right in principle and, measured, right in practice:
-//! `hc-seasons`'s own test suite compares its equinox days against the 240
-//! the Observatory has published for 1980–2099 and finds no disagreement.
-//! The underlying solar longitude is VSOP87, good to about 1″, so an equinox
-//! lands within the minute the almanacs round to; only an equinox within
-//! about a minute of JST midnight could still be given the wrong day, and
-//! the closest case in the modern record, the autumn equinox of 2012 at
-//! 23:49 JST, is eleven minutes clear.
+//! 「秋分日」, the day of the equinox itself, which the National
+//! Astronomical Observatory of Japan computes in JST and the Cabinet Office
+//! publishes in the 官報 a year ahead; nobody legislates a table. So this
+//! file carries [`Rule::SolarTerm`] at [`Meridian::JAPAN`] and lets
+//! `hc-seasons` answer. `hc-seasons`'s own tests compare its equinox days
+//! with the published days for 1980–2030 and with the formula that
+//! reproduces them to 2099, and find no disagreement; the document says
+//! what that comparison is worth.
 //!
 //! # 1948 is a half year
 //!

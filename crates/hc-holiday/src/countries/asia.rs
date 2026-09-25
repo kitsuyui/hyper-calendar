@@ -1168,6 +1168,23 @@ static KR_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 }];
 
 /// South Korea.
+///
+/// The regime is written up in `docs/systems/korea-holidays.md` in the
+/// repository: the 관공서의 공휴일에 관한 규정 and its amendments, the
+/// three steps by which the 대체공휴일 reached each holiday, the collision
+/// rule, how the engine walks to a substitute, the Korea Exchange as the
+/// consumer, and how the rows were checked against its closure lists,
+/// with a worked example. This comment keeps the summary and the code's
+/// own facts.
+///
+/// The named days are rules bounded to the years each was a holiday, and
+/// each carries `substituted_from` with the first year its step of the
+/// 대체공휴일 applied — 2014, 2021, 2023 or 2026 — or is `fixed_public`
+/// where the rule never reached it. Seollal and Chuseok carry their own
+/// Sunday-only trigger. Election days and the days the government
+/// designated are one-year rows through `kr_one_off`, never moved. The
+/// policy is one entry from 2014 with `on_collision`, so two holidays on
+/// one day earn a third.
 pub static SOUTH_KOREA: RuleSet = RuleSet {
     code: "KR",
     english_name: "South Korea",

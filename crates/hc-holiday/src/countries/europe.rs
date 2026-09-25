@@ -1635,26 +1635,23 @@ static RU_RULES: &[HolidayRule] = &[
 
 /// Russia.
 ///
-/// The non-working holidays of article 112 of the Labour Code, with the
-/// growth of the New Year holidays — 1 and 2 January, then 1 to 5 from
-/// 2005, then 1 to 8 from 2013 — and the two replacements: Unity Day on
-/// 4 November from 2005 in place of 7 November, and 2 May dropped after
-/// 2004.
+/// The regime is written up in `docs/systems/russia-transfers.md` in the
+/// repository: article 112 of the Labour Code, the carry-over of a weekend
+/// holiday and its January exception, the Government's annual decree
+/// «О переносе выходных дней» and every decree from 2013 to 2027, how the
+/// rows become the year's transferred, worked and carried-over days, the
+/// Moscow Exchange as a consumer that does not follow the decree, and how
+/// each year was checked against the production calendar, with a worked
+/// example. This comment keeps the summary and the code's own facts.
 ///
-/// Article 112 carries the day off of a holiday outside January that falls
-/// on a weekend over to the next working day, and lets the Government
-/// transfer days off by decree, which it does every year: two of the
-/// January weekend days go elsewhere, and a Saturday between a holiday and
-/// a weekend is often swapped for the working day beside it. The decrees
-/// for 2013 to 2027 are carried as data, and the carry-over is computed
-/// from them, since a decree may move the weekend day or the day it would
-/// have been carried to — in 2025, Sunday 23 February went to 8 May, not
-/// to the Monday. Both were checked against ConsultantPlus's production
-/// calendars for every one of those years. A year outside them is a gap.
-///
-/// The President's non-working days of 2020 and 2021, which kept pay but
-/// were not days off under the Labour Code, are not carried: the
-/// production calendar does not count them either.
+/// The holidays are fixed rules with the years the list changed. The
+/// decrees are data in `RU_TRANSFERS`, and three tabulated rules bounded
+/// to those years derive from them the days off transferred, the weekend
+/// days worked (as `Kind::Workday`) and article 112's carry-over, which is
+/// computed rather than tabulated because a decree may move the weekend
+/// day or the day it would have been carried to. A year without a decree
+/// here is a gap. The President's non-working days of 2020 and 2021 are
+/// not carried: the production calendar does not count them either.
 pub static RUSSIA: RuleSet = RuleSet {
     code: "RU",
     english_name: "Russia",
