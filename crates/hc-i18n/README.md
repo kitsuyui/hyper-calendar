@@ -84,16 +84,30 @@ there. The table is checked for sortedness and uniqueness by a test.
 * **Casing** follows UAX 21 plus the Turkic tailoring that Unicode itself
   specifies for `tr` and `az`.
 
-Locales shipped: `ar cs de en es fa fr he hi id it ja ko nl pl pt ru th tr vi
-zh-Hans zh-Hant`, plus the `und` root. Non-Gregorian vocabulary: Hijri months
-(Arabic, English), Hebrew months (Hebrew, English), Babylonian months (English), the numbered lunisolar
-months in both Chinese scripts and in English, their Japanese traditional
-names (睦月 … 師走), Japanese era names, romanisations of the Coptic,
-Ethiopic, Armenian and Persian months (whose own scripts the calendars carry
-themselves), the Egyptian Arabic forms of the Coptic months, and the zodiac
-animals in Chinese, Japanese, Korean, Vietnamese and English. The stems and
-branches are not spelled here: each locale names one of the readings
-`hc_calendar::cycle::readings` catalogues.
+Locales shipped: `am ar bo cop cs de en es fa fr he hi id it ja ko my ne nl
+pl pt ru th tr vi zh-Hans zh-Hant`, plus the `und` root. Non-Gregorian
+vocabulary: Hijri months (Arabic, English), Hebrew months (Hebrew, English),
+Babylonian months (English), the numbered lunisolar months in both Chinese
+scripts, in Tibetan and in English, their Japanese traditional names (睦月 …
+師走), Japanese era names, the Ethiopic months in Amharic, the Coptic months
+in Coptic and in Egyptian Arabic, the Burmese months in Burmese, the Bikram
+Sambat and Nepal Sambat months in Devanagari, romanisations of the Coptic,
+Ethiopic, Burmese, Armenian and Persian months (whose own scripts the
+calendars carry themselves), and the zodiac animals in Chinese, Japanese,
+Korean, Vietnamese and English. The stems and branches are not spelled here:
+each locale names one of the readings `hc_calendar::cycle::readings`
+catalogues.
+
+Five of the locales exist for a calendar's own language, and they cover
+what their sources cover and no more:
+
+| Locale | Calendar | Gregorian vocabulary | Calendar vocabulary | Not carried |
+|---|---|---|---|---|
+| `am` Amharic | `ethiopic`, `coptic` | CLDR 48 `am.xml` | the thirteen Ethiopic months (CLDR `ethiopic`), the Coptic era abbreviation ዓ/ም (CLDR `coptic`) | Ethiopic era names: CLDR's `am` inherits root's Latin `AA`/`AM` |
+| `cop` Coptic | `coptic` | none: CLDR has no `cop`, so it inherits | the thirteen Bohairic months (Wikipedia, "Coptic calendar") | weekdays, day periods, the era: no source read names them |
+| `my` Burmese | `burmese` | CLDR 48 `my.xml` | the twelve months (Wikipedia, "Burmese calendar") | a "Second Waso" prefix in Burmese script |
+| `bo` Tibetan | `tibetan` | CLDR 48 `bo.xml` | the numbered months, CLDR's own ordinal month names keyed to the calendar that numbers its months | the doubled-month prefix; the sixty-year cycle, which the crate's cycle model cannot hold |
+| `ne` Nepali | `bikram-sambat`, `nepal-sambat` | CLDR 48 `ne.xml` | the Bikram Sambat months as the Nepal Rajpatra spells them, the Nepal Sambat months in Devanagari (Wikipedia, "Nepal Sambat") | either era in Devanagari; a `new` (Newar) locale, which CLDR does not have |
 
 Plural languages: `ar cs cy da de en es fi fr ga he hi id it ja ko lt lv nl pl
 pt ro ru sl sv th tr uk vi zh`.

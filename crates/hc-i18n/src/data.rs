@@ -23,6 +23,17 @@
 //!   genuinely differ: Hijri months in Arabic and English, Hebrew months in
 //!   Hebrew and English, Babylonian months in English, the Chinese lunisolar months in both Chinese
 //!   scripts, their Japanese traditional names, and the Japanese era names.
+//! * Five locales exist for a calendar's own language: Amharic for the
+//!   Ethiopic calendar, Coptic for the Coptic, Burmese for the Burmese,
+//!   Tibetan for the Tibetan and Nepali for the Bikram Sambat and Nepal
+//!   Sambat. Their Gregorian vocabulary is CLDR's where CLDR has the locale
+//!   (CLDR 48, `common/main/am.xml`, `my.xml`, `bo.xml` and `ne.xml`, read
+//!   2026-09-25 from the `release-48` tag of github.com/unicode-org/cldr);
+//!   CLDR has no `cop`, so that entry states only what the calendar's own
+//!   sources say. Where a CLDR value is the inheritance marker `↑↑↑`, the
+//!   value it resolves to under CLDR's aliases (abbreviated to wide, format
+//!   narrow to stand-alone narrow) is what is written here, and a width that
+//!   resolves to the wide form is left empty.
 //! * The sexagenary cycle is written in whichever of the readings
 //!   `hc_calendar::cycle::readings` catalogues the locale uses; only the
 //!   zodiac animals are spelled here, for Chinese in both scripts, Japanese,
@@ -306,6 +317,102 @@ pub static ROOT: LocaleData = LocaleData {
     )],
 };
 
+// --- Amharic --------------------------------------------------------------
+//
+// The language of the Ethiopic calendar. Gregorian vocabulary from CLDR 48
+// `common/main/am.xml`, `calendar type="gregorian"`; the Ethiopic months
+// from its `calendar type="ethiopic"`, which spells the thirteenth ጳጉሜን
+// where the calendar's own table (Wikipedia, "Ethiopian calendar") has
+// ጳጐሜን, so this is an override and not a repeat. CLDR's `am` carries no
+// Amharic names for the Ethiopic eras — its `ethiopic` eras are the
+// inheritance marker, resolving to root's Latin "AA" and "AM" — so none are
+// written here; the Amharic ዓመተ ዓለም and ዓመተ ምሕረት are what CLDR gives as
+// the *Gregorian* era names, and they are carried there. The Coptic
+// calendar's era abbreviation ዓ/ም is CLDR's `calendar type="coptic"`.
+// Ethiopia's week begins on Sunday (CLDR 48 `supplementalData.xml`,
+// `weekData/firstDay`, ET) and its default numbering system is `latn`.
+
+const AM_CALENDARS: &[CalendarNames] = &[
+    gregorian(
+        &[month_cycle(ContextualNames::same(widths(
+            &[
+                "ጃንዋሪ",
+                "ፌብሩዋሪ",
+                "ማርች",
+                "ኤፕሪል",
+                "ሜይ",
+                "ጁን",
+                "ጁላይ",
+                "ኦገስት",
+                "ሴፕቴምበር",
+                "ኦክቶበር",
+                "ኖቬምበር",
+                "ዲሴምበር",
+            ],
+            &[
+                "ጃን",
+                "ፌብ",
+                "ማርች",
+                "ኤፕሪ",
+                "ሜይ",
+                "ጁን",
+                "ጁላይ",
+                "ኦገስ",
+                "ሴፕቴ",
+                "ኦክቶ",
+                "ኖቬም",
+                "ዲሴም",
+            ],
+            &["ጃ", "ፌ", "ማ", "ኤ", "ሜ", "ጁ", "ጁ", "ኦ", "ሴ", "ኦ", "ኖ", "ዲ"],
+        )))],
+        gregorian_eras(&["ዓመተ ዓለም", "ዓመተ ምሕረት"], &["ዓ/ዓ", "ዓ/ም"], &[]),
+        ContextualNames::same(widths(
+            &["1ኛው ሩብ", "2ኛው ሩብ", "3ኛው ሩብ", "4ኛው ሩብ"],
+            &["ሩብ1", "ሩብ2", "ሩብ3", "ሩብ4"],
+            &[],
+        )),
+    ),
+    dated(
+        ETHIOPIC_CALENDARS,
+        &[months(&[
+            "መስከረም",
+            "ጥቅምት",
+            "ኅዳር",
+            "ታኅሣሥ",
+            "ጥር",
+            "የካቲት",
+            "መጋቢት",
+            "ሚያዝያ",
+            "ግንቦት",
+            "ሰኔ",
+            "ሐምሌ",
+            "ነሐሴ",
+            "ጳጉሜን",
+        ])],
+        &[],
+        &[],
+    ),
+    dated(COPTIC_CALENDARS, &[], &["am"], &["ዓ/ም"]),
+];
+
+const AM: LocaleData = LocaleData {
+    tag: "am",
+    direction: Direction::LeftToRight,
+    numbering: "latn",
+    first_day_of_week: Weekday::Sunday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: false,
+    weekdays: ContextualNames::same(weekday_widths(
+        &["ሰኞ", "ማክሰኞ", "ረቡዕ", "ሐሙስ", "ዓርብ", "ቅዳሜ", "እሑድ"],
+        &["ሰኞ", "ማክሰ", "ረቡዕ", "ሐሙስ", "ዓርብ", "ቅዳሜ", "እሑድ"],
+        &["ሰ", "ማ", "ረ", "ሐ", "ዓ", "ቅ", "እ"],
+        &["ሰ", "ማ", "ረ", "ሐ", "ዓ", "ቅ", "እ"],
+    )),
+    day_periods: ContextualNames::same(widths(&["ጥዋት", "ከሰዓት"], &[], &["ጠ", "ከ"])),
+    cycle: SexagenaryNames::EMPTY,
+    calendars: AM_CALENDARS,
+};
+
 // --- Arabic ---------------------------------------------------------------
 
 const AR_CALENDARS: &[CalendarNames] = &[
@@ -400,6 +507,191 @@ const AR: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["ص", "م"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: AR_CALENDARS,
+};
+
+// --- Tibetan --------------------------------------------------------------
+//
+// The language of the Tibetan calendar. Gregorian vocabulary from CLDR 48
+// `common/main/bo.xml`, `calendar type="gregorian"`: CLDR names the
+// Gregorian months by number — ཟླ་བ་དང་པོ, "first month" — and writes the
+// stand-alone form with a closing tsheg, which is kept, as are the tshegs
+// that end the weekday, day-period and era names. Only `eraAbbr` is
+// stated, and CLDR's `eraNames` alias to it, so the abbreviations stand as
+// the wide names too. The week begins on Sunday (CLDR 48 `weekData`, CN
+// and IN alike) and the default numbering system inherits root's `latn`.
+//
+// The Tibetan calendar numbers its months (Janson, "Tibetan calendar
+// mathematics", 2014, Section 5, which `hc_calendars_lunar::tibetan`
+// follows), so the CLDR ordinal month names are keyed to it as English's
+// "First Month" is keyed to the numbered lunisolar calendars — the same
+// twelve words for the same twelve numbers, and not a translation. CLDR
+// has no `tibetan` calendar and no word for the doubled month, so the
+// leap-month prefix is empty. The sixty-year names are not here: the
+// calendar module carries them in English, and this crate's cycle model
+// names stems and branches, not elements.
+
+const BO_MONTHS: &[&str] = &[
+    "ཟླ་བ་དང་པོ",
+    "ཟླ་བ་གཉིས་པ",
+    "ཟླ་བ་གསུམ་པ",
+    "ཟླ་བ་བཞི་པ",
+    "ཟླ་བ་ལྔ་པ",
+    "ཟླ་བ་དྲུག་པ",
+    "ཟླ་བ་བདུན་པ",
+    "ཟླ་བ་བརྒྱད་པ",
+    "ཟླ་བ་དགུ་པ",
+    "ཟླ་བ་བཅུ་པ",
+    "ཟླ་བ་བཅུ་གཅིག་པ",
+    "ཟླ་བ་བཅུ་གཉིས་པ",
+];
+
+const BO_MONTHS_STANDALONE: &[&str] = &[
+    "ཟླ་བ་དང་པོ་",
+    "ཟླ་བ་གཉིས་པ་",
+    "ཟླ་བ་གསུམ་པ་",
+    "ཟླ་བ་བཞི་པ་",
+    "ཟླ་བ་ལྔ་པ་",
+    "ཟླ་བ་དྲུག་པ་",
+    "ཟླ་བ་བདུན་པ་",
+    "ཟླ་བ་བརྒྱད་པ་",
+    "ཟླ་བ་དགུ་པ་",
+    "ཟླ་བ་བཅུ་པ་",
+    "ཟླ་བ་བཅུ་གཅིག་པ་",
+    "ཟླ་བ་བཅུ་གཉིས་པ་",
+];
+
+const BO_MONTHS_ABBREVIATED: &[&str] = &[
+    "ཟླ་༡",
+    "ཟླ་༢",
+    "ཟླ་༣",
+    "ཟླ་༤",
+    "ཟླ་༥",
+    "ཟླ་༦",
+    "ཟླ་༧",
+    "ཟླ་༨",
+    "ཟླ་༩",
+    "ཟླ་༡༠",
+    "ཟླ་༡༡",
+    "ཟླ་༡༢",
+];
+
+const BO_CALENDARS: &[CalendarNames] = &[
+    gregorian(
+        &[month_cycle(ContextualNames {
+            format: widths(BO_MONTHS, BO_MONTHS_ABBREVIATED, &[]),
+            standalone: widths(BO_MONTHS_STANDALONE, &[], &[]),
+        })],
+        gregorian_eras(&["སྤྱི་ལོ་སྔོན་", "སྤྱི་ལོ་"], &[], &[]),
+        ContextualNames::same(widths(
+            &[
+                "དུས་ཚིགས་དང་པོ།",
+                "དུས་ཚིགས་གཉིས་པ།",
+                "དུས་ཚིགས་གསུམ་པ།",
+                "དུས་ཚིགས་བཞི་པ།",
+            ],
+            &[],
+            &[],
+        )),
+    ),
+    lunisolar(
+        &[CalendarId("tibetan")],
+        &[month_cycle(ContextualNames {
+            format: widths(BO_MONTHS, BO_MONTHS_ABBREVIATED, &[]),
+            standalone: widths(BO_MONTHS_STANDALONE, &[], &[]),
+        })],
+        "",
+    ),
+];
+
+const BO: LocaleData = LocaleData {
+    tag: "bo",
+    direction: Direction::LeftToRight,
+    numbering: "latn",
+    first_day_of_week: Weekday::Sunday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: false,
+    weekdays: ContextualNames::same(weekday_widths(
+        &[
+            "གཟའ་ཟླ་བ་",
+            "གཟའ་མིག་དམར་",
+            "གཟའ་ལྷག་པ་",
+            "གཟའ་ཕུར་བུ་",
+            "གཟའ་པ་སངས་",
+            "གཟའ་སྤེན་པ་",
+            "གཟའ་ཉི་མ་",
+        ],
+        &[
+            "ཟླ་བ་",
+            "མིག་དམར་",
+            "ལྷག་པ་",
+            "ཕུར་བུ་",
+            "པ་སངས་",
+            "སྤེན་པ་",
+            "ཉི་མ་",
+        ],
+        &[],
+        &["ཟླ", "མིག", "ལྷག", "ཕུར", "སངས", "སྤེན", "ཉི"],
+    )),
+    day_periods: ContextualNames::same(widths(&["སྔ་དྲོ་", "ཕྱི་དྲོ་"], &[], &[])),
+    cycle: SexagenaryNames::EMPTY,
+    calendars: BO_CALENDARS,
+};
+
+// --- Coptic ---------------------------------------------------------------
+//
+// The language of the Coptic calendar. CLDR has no `cop` locale, so this
+// entry has no Gregorian vocabulary — the empty Gregorian entry below is
+// there because every locale states that calendar, and it inherits — and no
+// weekdays: the only Coptic weekday name found with a source was Monday
+// (ⲡⲓⲥⲛⲁⲩ, Wiktionary's category of Coptic days of the week, read
+// 2026-09-25), which is not a week. The thirteen months are the Bohairic
+// column of the months table of Wikipedia, "Coptic calendar", read
+// 2026-09-25, which prints Bohairic and Sahidic side by side and cites
+// Černý, Coptic Etymological Dictionary (1976) and Vycichl, Dictionnaire
+// étymologique de la langue copte (1983) for the names' origins, neither
+// read here. Bohairic is the dialect of the Coptic Orthodox liturgy, and
+// these are the same forms `hc_calendars_solar::coptic` declares with its
+// shape; the locale states them so that the language, and not only the
+// calendar, claims them. The Sahidic forms (Ⲑⲟⲟⲩⲧ, Ⲡⲁⲱⲡⲉ …) are not
+// carried. No source read gives the era's name in Coptic script. The
+// week begins on Saturday because CLDR 48 `weekData/firstDay` says so for
+// EG, the only region the language is spoken in, and there is no CLDR
+// locale to say otherwise; numbering is `latn` because this crate has no
+// Coptic numerals.
+
+const COP: LocaleData = LocaleData {
+    tag: "cop",
+    direction: Direction::LeftToRight,
+    numbering: "latn",
+    first_day_of_week: Weekday::Saturday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: true,
+    weekdays: ContextualNames::EMPTY,
+    day_periods: ContextualNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
+    calendars: &[
+        gregorian(&[], EraNames::EMPTY, ContextualNames::EMPTY),
+        dated(
+            COPTIC_CALENDARS,
+            &[months(&[
+                "Ⲑⲱⲟⲩⲧ",
+                "Ⲡⲁⲟⲡⲓ",
+                "Ⲁⲑⲱⲣ",
+                "Ⲭⲟⲓⲁⲕ",
+                "Ⲧⲱⲃⲓ",
+                "Ⲙⲉϣⲓⲣ",
+                "Ⲡⲁⲣⲉⲙϩⲁⲧ",
+                "Ⲫⲁⲣⲙⲟⲩⲑⲓ",
+                "Ⲡⲁϣⲟⲛⲥ",
+                "Ⲡⲁⲱⲛⲓ",
+                "Ⲉⲡⲓⲡ",
+                "Ⲙⲉⲥⲱⲣⲓ",
+                "Ⲡⲓⲕⲟⲩϫⲓ ⲛ̀ⲁ̀ⲃⲟⲧ",
+            ])],
+            &[],
+            &[],
+        ),
+    ],
 };
 
 // --- Czech ----------------------------------------------------------------
@@ -1568,6 +1860,266 @@ const KO: LocaleData = LocaleData {
     )],
 };
 
+// --- Burmese --------------------------------------------------------------
+//
+// The language of the Burmese calendar. Gregorian vocabulary from CLDR 48
+// `common/main/my.xml`, `calendar type="gregorian"`; the abbreviated
+// weekdays are the inheritance marker there and so resolve to the wide
+// forms, which is why that width is empty. Release 48 prints the
+// abbreviated AD era with its vowel signs out of order (အဒေီ); the form here
+// is the one CLDR's main branch has corrected it to (commit 49b5089,
+// 2026-09-24). Myanmar's week begins on Sunday (CLDR 48 `weekData`, MM)
+// and the default numbering system is `mymr`. CLDR carries no Burmese
+// calendar and no Buddhist-era names for `my`.
+//
+// The twelve Burmese months are those of the months table of Wikipedia,
+// "Burmese calendar", read 2026-09-25 — the same forms
+// `hc_calendars_regional::burmese::MONTHS` holds, which the calendar's
+// numbered shape does not declare, so this entry is what lets a Burmese
+// date print in Burmese. The page names the intercalary month only as
+// ဝါထပ်, "watat", and does not spell "Second Waso" in Burmese script, so
+// the leap-month prefix is empty.
+
+const MY_CALENDARS: &[CalendarNames] = &[
+    gregorian(
+        &[month_cycle(ContextualNames::same(widths(
+            &[
+                "ဇန်နဝါရီ",
+                "ဖေဖော်ဝါရီ",
+                "မတ်",
+                "ဧပြီ",
+                "မေ",
+                "ဇွန်",
+                "ဇူလိုင်",
+                "ဩဂုတ်",
+                "စက်တင်ဘာ",
+                "အောက်တိုဘာ",
+                "နိုဝင်ဘာ",
+                "ဒီဇင်ဘာ",
+            ],
+            &[
+                "ဇန်",
+                "ဖေ",
+                "မတ်",
+                "ဧ",
+                "မေ",
+                "ဇွန်",
+                "ဇူ",
+                "ဩ",
+                "စက်",
+                "အောက်",
+                "နို",
+                "ဒီ",
+            ],
+            &["ဇ", "ဖ", "မ", "ဧ", "မ", "ဇ", "ဇ", "ဩ", "စ", "အ", "န", "ဒ"],
+        )))],
+        gregorian_eras(&["ခရစ်တော် မပေါ်မီနှစ်", "ခရစ်နှစ်"], &["ဘီစီ", "အေဒီ"], &[]),
+        ContextualNames::same(widths(
+            &["ပထမ သုံးလပတ်", "ဒုတိယ သုံးလပတ်", "တတိယ သုံးလပတ်", "စတုတ္ထ သုံးလပတ်"],
+            &["Q1", "Q2", "Q3", "Q4"],
+            &["ပ", "ဒု", "တ", "စ"],
+        )),
+    ),
+    dated(
+        BURMESE_CALENDARS,
+        &[months(&[
+            "တန်ခူး",
+            "ကဆုန်",
+            "နယုန်",
+            "ဝါဆို",
+            "ဝါခေါင်",
+            "တော်သလင်း",
+            "သီတင်းကျွတ်",
+            "တန်ဆောင်မုန်း",
+            "နတ်တော်",
+            "ပြာသို",
+            "တပို့တွဲ",
+            "တပေါင်း",
+        ])],
+        &[],
+        &[],
+    ),
+];
+
+const MY: LocaleData = LocaleData {
+    tag: "my",
+    direction: Direction::LeftToRight,
+    numbering: "mymr",
+    first_day_of_week: Weekday::Sunday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: false,
+    weekdays: ContextualNames::same(weekday_widths(
+        &[
+            "တနင်္လာ",
+            "အင်္ဂါ",
+            "ဗုဒ္ဓဟူး",
+            "ကြာသပတေး",
+            "သောကြာ",
+            "စနေ",
+            "တနင်္ဂနွေ",
+        ],
+        &[],
+        &["လာ", "ဂါ", "ဟူး", "တေး", "ကြာ", "နေ", "နွေ"],
+        &["တ", "အ", "ဗ", "က", "သ", "စ", "တ"],
+    )),
+    day_periods: ContextualNames::same(widths(&["နံနက်", "ညနေ"], &[], &[])),
+    cycle: SexagenaryNames::EMPTY,
+    calendars: MY_CALENDARS,
+};
+
+// --- Nepali ---------------------------------------------------------------
+//
+// The language of the Bikram Sambat, and the language Nepal Sambat is
+// printed in beside Newar. Gregorian vocabulary from CLDR 48
+// `common/main/ne.xml`, `calendar type="gregorian"`: the abbreviated months
+// are the inheritance marker, resolving to the wide forms, and the narrow
+// months are the stand-alone narrow list except February, which the format
+// list spells फेब where the stand-alone list has a doubled vowel sign; only
+// `eraAbbr` is stated, so it stands as the wide era names too. The
+// quarters differ between contexts, पहिलो inside a date and प्रथम on their
+// own. Nepal's week begins on Sunday (CLDR 48 `weekData`, NP) and the
+// default numbering system is `deva`.
+//
+// The Bikram Sambat months are the Government of Nepal's spellings, from
+// the Ministry of Home Affairs's holiday notices in the Nepal Rajpatra
+// (Khaṇḍa 72 No. 65, 73 No. 54, 74 No. 59 and 75 No. 67, Part 5) as
+// `hc_calendars_indic::bikram_sambat::MONTHS_DEVANAGARI` carries them; the
+// calendar declares its English names with its shape, so the Devanagari
+// needs a locale. CLDR's `ne` has no Bikram Sambat; its `indian` (Śaka)
+// calendar lists the same Nepali forms, Chaitra first, differing only in
+// मङसिर for the gazette's मङ्सिर, and is not used. No source read names
+// the era in Devanagari, so none is written.
+//
+// The Nepal Sambat months are the Devanagari column of the months table of
+// Wikipedia, "Nepal Sambat", read 2026-09-25 — the Newar names as Nepal's
+// Devanagari prints them, which is what a Nepali reader sees; CLDR has no
+// `new` (Newar) locale to key them to instead, and the Newa-script forms
+// stay with the calendar module. The table names the intercalary month
+// अनला, Analā, as a month of its own rather than as a prefix, so the
+// leap-month prefix is empty.
+
+const NE_CALENDARS: &[CalendarNames] = &[
+    gregorian(
+        &[month_cycle(ContextualNames::same(widths(
+            &[
+                "जनवरी",
+                "फेब्रुअरी",
+                "मार्च",
+                "अप्रिल",
+                "मे",
+                "जुन",
+                "जुलाई",
+                "अगस्ट",
+                "सेप्टेम्बर",
+                "अक्टोबर",
+                "नोभेम्बर",
+                "डिसेम्बर",
+            ],
+            &[],
+            &[
+                "जन",
+                "फेब",
+                "मार्च",
+                "अप्र",
+                "मे",
+                "जुन",
+                "जुल",
+                "अग",
+                "सेप",
+                "अक्टो",
+                "नोभे",
+                "डिसे",
+            ],
+        )))],
+        gregorian_eras(&["ईसा पूर्व", "सन्"], &[], &[]),
+        ContextualNames {
+            format: widths(
+                &[
+                    "पहिलो त्रैमासिक",
+                    "दोस्रो त्रैमासिक",
+                    "तेस्रो त्रैमासिक",
+                    "चौथो त्रैमासिक",
+                ],
+                &[],
+                &[],
+            ),
+            standalone: widths(
+                &[
+                    "प्रथम त्रैमासिक",
+                    "द्वितीय त्रैमासिक",
+                    "तृतीय त्रैमासिक",
+                    "चतुर्थ त्रैमासिक",
+                ],
+                &[],
+                &["१", "२", "३", "४"],
+            ),
+        },
+    ),
+    dated(
+        &[CalendarId("bikram-sambat")],
+        &[months(&[
+            "वैशाख",
+            "जेठ",
+            "असार",
+            "साउन",
+            "भदौ",
+            "असोज",
+            "कात्तिक",
+            "मङ्सिर",
+            "पुस",
+            "माघ",
+            "फागुन",
+            "चैत",
+        ])],
+        &[],
+        &[],
+    ),
+    lunisolar(
+        &[CalendarId("nepal-sambat")],
+        &[months(&[
+            "कछला",
+            "थिंला",
+            "प्वँहेला",
+            "सिला",
+            "चिला",
+            "चौला",
+            "बछला",
+            "तछला",
+            "दिला",
+            "गुंला",
+            "ञंला",
+            "कौला",
+        ])],
+        "",
+    ),
+];
+
+const NE: LocaleData = LocaleData {
+    tag: "ne",
+    direction: Direction::LeftToRight,
+    numbering: "deva",
+    first_day_of_week: Weekday::Sunday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: false,
+    weekdays: ContextualNames::same(weekday_widths(
+        &[
+            "सोमबार",
+            "मङ्गलबार",
+            "बुधबार",
+            "बिहिबार",
+            "शुक्रबार",
+            "शनिबार",
+            "आइतबार",
+        ],
+        &["सोम", "मङ्गल", "बुध", "बिहि", "शुक्र", "शनि", "आइत"],
+        &[],
+        &["सो", "म", "बु", "बि", "शु", "श", "आ"],
+    )),
+    day_periods: ContextualNames::same(widths(&["पूर्वाह्न", "अपराह्न"], &[], &[])),
+    cycle: SexagenaryNames::EMPTY,
+    calendars: NE_CALENDARS,
+};
+
 // --- Dutch ----------------------------------------------------------------
 
 const NL: LocaleData = LocaleData {
@@ -2194,8 +2746,8 @@ const ZH_HANT: LocaleData = LocaleData {
 /// The root entry is not in this table: it is [`ROOT`], the floor that the
 /// lookup falls to when nothing here claims the locale.
 pub static LOCALES: &[LocaleData] = &[
-    AR, CS, DE, EN, ES, FA, FR, HE, HI, ID, IT, JA, KO, NL, PL, PT, RU, TH, TR, VI, ZH_HANS,
-    ZH_HANT,
+    AM, AR, BO, COP, CS, DE, EN, ES, FA, FR, HE, HI, ID, IT, JA, KO, MY, NE, NL, PL, PT, RU, TH,
+    TR, VI, ZH_HANS, ZH_HANT,
 ];
 
 #[cfg(test)]
@@ -2293,6 +2845,12 @@ mod tests {
                         names.len()
                     );
                 }
+            }
+            // A locale that states no weekday at all inherits them — Coptic,
+            // whose sources name no week. One that states any must state
+            // the wide form.
+            if data.weekdays.is_empty() {
+                continue;
             }
             assert_eq!(
                 data.weekdays.format.wide.len(),
@@ -2518,8 +3076,9 @@ mod tests {
         assert_eq!(
             tags,
             [
-                "ar", "cs", "de", "en", "es", "fa", "fr", "he", "hi", "id", "it", "ja", "ko", "nl",
-                "pl", "pt", "ru", "th", "tr", "vi", "zh-Hans", "zh-Hant"
+                "am", "ar", "bo", "cop", "cs", "de", "en", "es", "fa", "fr", "he", "hi", "id",
+                "it", "ja", "ko", "my", "ne", "nl", "pl", "pt", "ru", "th", "tr", "vi", "zh-Hans",
+                "zh-Hant"
             ]
         );
         assert_eq!(ROOT.tag.to_string(), "und");
