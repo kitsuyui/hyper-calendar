@@ -72,8 +72,8 @@ pub const CIVIL_EPOCH: Rd = Rd(227_015);
 /// the "astronomical" tabular Hijri calendar places 1 Muharram 1 AH.
 ///
 /// Its Julian Day Number is 1 948 439. CLDR calls this variant
-/// `islamic-tbla`, where `tbla` abbreviates "tabular, leap year, astronomical
-/// epoch".
+/// `islamic-tbla` and describes it as the tabular calendar on the
+/// astronomical epoch; it does not spell the abbreviation out.
 pub const ASTRONOMICAL_EPOCH: Rd = Rd(227_014);
 
 /// Which eleven years of the thirty-year cycle carry the extra day.
@@ -130,9 +130,11 @@ hc_core::catalogue! {
             long_years: [2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29],
             attribution: "al-Fazārī, al-Khwārizmī and al-Battānī",
         };
-        /// 2, 5, 7, 10, 13, 15, 18, 21, 24, 26, 29 — associated with Kūshyār
-        /// ibn Labbān and with the Fatimid/Ismaili (Ṭayyibī Bohra)
-        /// reckoning.
+        /// 2, 5, 7, 10, 13, 15, 18, 21, 24, 26, 29 — van Gent's scheme I,
+        /// which he attributes to Kūshyār ibn Labbān, Ulugh Beg, ʿAlī
+        /// al-Qūshjī and Taqī al-Dīn (`vangent-tabcal` in
+        /// `docs/references.bib`). It is not the Bohra calendar, which is
+        /// scheme III, [`LeapYearRule::FATIMID`].
         ///
         /// It differs from [`LeapYearRule::CIVIL`] in a single year: the
         /// long year at 16 moves to 15, so the two calendars run one day
@@ -140,13 +142,15 @@ hc_core::catalogue! {
         pub const KUSHYAR_IBN_LABBAN = Self {
             id: "kushyar",
             long_years: [2, 5, 7, 10, 13, 15, 18, 21, 24, 26, 29],
-            attribution: "Kūshyār ibn Labbān; the Ṭayyibī Bohra reckoning",
+            attribution: "Kūshyār ibn Labbān, Ulugh Beg, ʿAlī al-Qūshjī and Taqī al-Dīn",
         };
-        /// 2, 5, 8, 10, 13, 16, 19, 21, 24, 27, 29.
+        /// 2, 5, 8, 10, 13, 16, 19, 21, 24, 27, 29 — van Gent's scheme III,
+        /// the Fatimid calendar, also called the Ismāʿīlī, Ṭayyibī or Bohra
+        /// calendar, and Ibn al-Ajdābī's.
         pub const FATIMID = Self {
             id: "fatimid",
             long_years: [2, 5, 8, 10, 13, 16, 19, 21, 24, 27, 29],
-            attribution: "the Fatimid tables",
+            attribution: "the Fatimid tables; the Ṭayyibī Bohra reckoning",
         };
         /// 2, 5, 8, 11, 13, 16, 19, 21, 24, 27, 30 — associated with Ḥabash
         /// al-Ḥāsib, al-Bīrūnī and Elias of Nisibis.

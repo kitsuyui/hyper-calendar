@@ -166,7 +166,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `CI` | Côte d'Ivoire | 14 | yes | stated | 2026-09-22 |
 | `CL` | Chile | 28 | none | stated | 2026-09-22 |
 | `CM` | Cameroon | 10 | yes | stated | 2026-09-23 |
-| `CN` | China | 35 | none | stated | 2026-09-23 |
+| `CN` | China | 36 | none | stated | 2026-09-23 |
 | `CO` | Colombia | 18 | none | stated | 2026-09-22 |
 | `CR` | Costa Rica | 13 | none | stated | 2026-09-22 |
 | `CU` | Cuba | 10 | yes | stated | 2026-09-22 |

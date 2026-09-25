@@ -25,7 +25,7 @@
 //!
 //! # The criterion
 //!
-//! [`VisibilityCriterion::REINGOLD_DERSHOWITZ`] is the crescent-visibility
+//! [`VisibilityCriterion::SHAUKAT`] is the crescent-visibility
 //! test of *Calendrical Calculations*, which the published code attributes
 //! to S. K. Shaukat: at the moment the Sun is 4.5° below the horizon on the
 //! evening before the day, the Moon must be past conjunction and short of
@@ -82,6 +82,11 @@ pub const EARLIEST: Rd = civil::to_rd(1900, 1, 1);
 pub const LATEST: Rd = civil::to_rd(2100, 12, 31);
 
 /// Mecca: 21°25′21″N, 39°49′34″E, 298 m.
+///
+/// These are the crate's own figures for the Great Mosque, not taken from
+/// a named source. The `mecca` constant of the published *Calendrical
+/// Calculations* code is 21°25′24″N, 39°49′24″E, 298 m, a few hundred
+/// metres away; the document records the difference.
 pub const MECCA: Location = Location::new(21.422_5, 39.826_2, 298.0);
 
 /// The thresholds a young crescent must clear to count as visible.
@@ -96,9 +101,13 @@ pub struct VisibilityCriterion {
 }
 
 impl VisibilityCriterion {
-    /// The criterion given by Reingold and Dershowitz, *Calendrical
-    /// Calculations*, for their observational Islamic calendar.
-    pub const REINGOLD_DERSHOWITZ: Self = Self {
+    /// S. K. Shaukat's criterion, as the published code of Reingold and
+    /// Dershowitz, *Calendrical Calculations*, carries it under the name
+    /// `shaukat-criterion` for their observational Islamic calendar
+    /// (`reingold2018code` in `docs/references.bib`, where it was read).
+    /// The same code offers Yallop's criterion as an alternative, which
+    /// this crate does not carry.
+    pub const SHAUKAT: Self = Self {
         evaluation_depression_degrees: 4.5,
         minimum_arc_of_light_degrees: 10.6,
         minimum_altitude_degrees: 4.1,
@@ -107,7 +116,7 @@ impl VisibilityCriterion {
 
 impl Default for VisibilityCriterion {
     fn default() -> Self {
-        Self::REINGOLD_DERSHOWITZ
+        Self::SHAUKAT
     }
 }
 
@@ -130,8 +139,8 @@ impl ObservationSite {
         }
     }
 
-    /// Mecca, judged by the Reingold–Dershowitz criterion.
-    pub const MECCA: Self = Self::new(MECCA, VisibilityCriterion::REINGOLD_DERSHOWITZ);
+    /// Mecca, judged by Shaukat's criterion.
+    pub const MECCA: Self = Self::new(MECCA, VisibilityCriterion::SHAUKAT);
 
     /// The moment, in Universal Time, at which the evening of `rd` is
     /// judged — when the Sun reaches the criterion's depression.
@@ -543,7 +552,7 @@ mod tests {
         // the west at Mecca can be already set, or comfortably up, elsewhere.
         let jakarta = ObservationSite::new(
             Location::new(-6.2, 106.8, 8.0),
-            VisibilityCriterion::REINGOLD_DERSHOWITZ,
+            VisibilityCriterion::SHAUKAT,
         );
         let mecca = ObservationSite::MECCA;
         let mut differences = 0;
