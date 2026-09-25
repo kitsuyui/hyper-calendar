@@ -2229,4 +2229,80 @@
   title        = {Sikyong Penpa Tsering of the 16th Kashag greets Tibetans on Losar, Tibetan New Year 2152},
   howpublished = {\url{https://tibet.net/sikyong-penpa-tsering-of-the-16th-kashag-greets-tibetans-on-losar-tibetan-new-year-2152/}},
   note         = {Names the year beginning in 2025 as 2152, the Wood Snake year; the page carries no Gregorian date. Retrieved 2026-09-25}
+% --- Milankovitch orbital elements (docs/systems/orbital-elements.md) ---
+
+@article{berger1978,
+  author  = {Berger, Andr{\'e} L.},
+  title   = {Long-term variations of daily insolation and {Quaternary} climatic changes},
+  journal = {Journal of the Atmospheric Sciences},
+  volume  = {35},
+  number  = {12},
+  pages   = {2362--2367},
+  year    = {1978},
+  doi     = {10.1175/1520-0469(1978)035<2362:LTVODI>2.0.CO;2},
+  note    = {Not read directly: the publisher's site refused the request on 2026-09-25. The coefficient tables, the constants and the combination of the sums were read in the author's own deposit \cite{berger1978deposit}; the paper's accuracy statement is therefore not quoted here. Its companion is the unread Contribution 18, \emph{A simple algorithm to compute long term variations of daily or monthly insolation}, Institut d'Astronomie et de G{\'e}ophysique G. Lemaître, Louvain-la-Neuve, 1978}
+}
+
+@misc{berger1978deposit,
+  author       = {Berger, Andr{\'e} L.},
+  title        = {Long-term variations of daily insolation and {Quaternary} climatic changes: supplementary material},
+  howpublished = {Zenodo record 7198109, \url{https://doi.org/10.5281/zenodo.7198109}, deposited by Michel Crucifix, 2022-10-14},
+  year         = {2014},
+  note         = {CC BY 4.0. The files \texttt{INSOL.IN} ("1978 BERGER SOLUTION": the 19, 47 and 78 terms of the eccentricity vector, the obliquity and the general precession, amplitude, rate in arcseconds per year and phase in degrees) and \texttt{insol14.f} ("BERGER 78 version 2014": the program that combines them, with ε* = 23.320556°, ζ = 3.392506°, ψ̄ = 50.439273″/yr, time in years from 1950 negative in the past, the perihelion longitude + 180° for the insolation, and the daily insolation subroutine DAYINS). hc-orbital's \texttt{series} module is generated from \texttt{INSOL.IN}. Retrieved 2026-09-25}
+}
+
+@article{bergerloutre1991,
+  author  = {Berger, Andr{\'e} and Loutre, Marie-France},
+  title   = {Insolation values for the climate of the last 10 million years},
+  journal = {Quaternary Science Reviews},
+  volume  = {10},
+  number  = {4},
+  pages   = {297--317},
+  year    = {1991},
+  doi     = {10.1016/0277-3791(91)90033-Q},
+  note    = {Not read directly. Its solution was read as the table \texttt{orbit91} of \cite{noaa-insolation}, and used only as the reference against which the 1978 series' drift is measured}
+}
+
+@misc{noaa-insolation,
+  author       = {Berger, Andr{\'e} L.},
+  title        = {Orbital Variations and Insolation Database},
+  howpublished = {IGBP PAGES/World Data Center for Paleoclimatology Data Contribution Series 92-007, NOAA/NGDC Paleoclimatology Program, \url{https://www.ncei.noaa.gov/pub/data/paleo/climate_forcing/orbital_variations/insolation/}},
+  year         = {1992},
+  note         = {The files \texttt{readme\_insolation.txt} (solar constants 1.95 cal/cm²/min for the 1978 solution and 1360 W/m² for 1991; "the two solutions are equivalent through 800 KYBP"), \texttt{bein1.dat} (the 1978 solution's elements and mid-month insolations, 0–100 kyr BP, in langleys per day), \texttt{orbit91} (the 1991 solution's elements, e sin ω and 65°N July insolation, 0–5 Myr BP), \texttt{citation} and \texttt{contents.78}. Retrieved 2026-09-25}
+}
+
+@misc{giss-orbpar,
+  author       = {{NASA Goddard Institute for Space Studies}},
+  title        = {Earth's Orbital Parameters, and Orbital parameters for the last 2000 years to 2100 {AD} ({Berger}, 1978)},
+  howpublished = {\url{https://data.giss.nasa.gov/modelE/ar5plots/srorbpar.html} and \url{https://data.giss.nasa.gov/modelforce/orbit/pmip3_lm_orbital_parameters.txt}},
+  note         = {The program ORBPAR's evaluation of the 1978 series for 0–2100 CE to seven figures, whose PERI − 180 is Berger's ϖ; "considered to be valid for approximately 1 million years". Used as the transcription check. Retrieved 2026-09-25}
+}
+
+@misc{cesm-shr-orb,
+  author       = {{NCAR / ESCOMP}},
+  title        = {\texttt{shr\_orb\_mod.F90}: \texttt{shr\_orb\_params}},
+  howpublished = {\url{https://github.com/ESCOMP/CESM_share/blob/main/src/shr_orb_mod.F90}},
+  note         = {The CESM transcription of the same three tables, "valid only to 1,000,000 years past or hence", with the note that 180° is added to the perihelion longitude for the insolation, citing Berger, Loutre and Tricot (1993), JGR 98, 10341, Appendix B. Read for the conventions only; no code was taken from it. Retrieved 2026-09-25}
+}
+
+@article{braconnot2012,
+  author  = {Braconnot, Pascale and Harrison, Sandy P. and Kageyama, Masa and Bartlein, Patrick J. and Masson-Delmotte, Val{\'e}rie and Abe-Ouchi, Ayako and Otto-Bliesner, Bette and Zhao, Yan},
+  title   = {Evaluation of climate models using palaeoclimatic data},
+  journal = {Nature Climate Change},
+  volume  = {2},
+  pages   = {417--424},
+  year    = {2012},
+  doi     = {10.1038/nclimate1456},
+  note    = {Not read directly. The PMIP3 boundary conditions it describes were read on the PMIP design pages (\url{https://pmip3.lsce.ipsl.fr/}, \url{https://wiki.lsce.ipsl.fr/pmip3/doku.php/pmip3:wg:degla:bc:core}): 6 ka e = 0.018682, ε = 24.105°, perihelion − 180 = 0.87°; 21 ka e = 0.018994, ε = 22.949°, perihelion − 180 = 114.42°, "from Berger (1978)". Retrieved 2026-09-25}
+}
+
+@article{laskar2004,
+  author  = {Laskar, Jacques and Robutel, Philippe and Joutel, Fr{\'e}d{\'e}ric and Gastineau, Micka{\"e}l and Correia, Alexandre C. M. and Levrard, Benjamin},
+  title   = {A long-term numerical solution for the insolation quantities of the {Earth}},
+  journal = {Astronomy \& Astrophysics},
+  volume  = {428},
+  pages   = {261--285},
+  year    = {2004},
+  doi     = {10.1051/0004-6361:20041335},
+  note    = {Not read. Named as the modern reference solution, distributed as tables at \url{https://ssp.imcce.fr/insola/earth/online/earth/earth.html} (nominal −50 to +20 Myr), which hc-orbital does not carry}
 }

@@ -74,3 +74,25 @@ fn the_deep_time_feature_reaches_its_crate() {
     use hyper_calendar::hc_deep_time;
     assert!(hc_deep_time::GALACTIC_YEAR.julian_years > 0.0);
 }
+
+#[test]
+#[cfg(feature = "orbital")]
+fn the_orbital_feature_reaches_its_crate() {
+    use hyper_calendar::hc_orbital;
+    // The Last Glacial Maximum, the epoch the system document works through.
+    let lgm = hc_orbital::elements_at(21_000.0).expect("inside the span");
+    assert!((lgm.obliquity_degrees.value - 22.949).abs() < 1e-3);
+}
+
+/// The two crates that count years before a "present" count from the
+/// same one, 1950, so a `Bp` from `hc-deep-time` is the argument
+/// `hc-orbital` takes.
+#[test]
+#[cfg(all(feature = "orbital", feature = "deep-time"))]
+fn the_orbital_epoch_is_the_radiocarbon_bp_datum() {
+    use hyper_calendar::{hc_deep_time, hc_orbital};
+    assert_eq!(
+        hc_orbital::EPOCH_YEAR,
+        hc_deep_time::archaeology::BP_DATUM_YEAR
+    );
+}

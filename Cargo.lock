@@ -163,6 +163,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "hc-orbital"
+version = "0.1.0"
+dependencies = [
+ "hc-core",
+ "hc-uncertainty",
+]
+
+[[package]]
 name = "hc-planetary"
 version = "0.1.0"
 dependencies = [
@@ -232,6 +240,7 @@ dependencies = [
  "hc-humanize",
  "hc-i18n",
  "hc-name-days",
+ "hc-orbital",
  "hc-planetary",
  "hc-relativity",
  "hc-seasons",

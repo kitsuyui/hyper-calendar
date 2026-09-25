@@ -37,6 +37,7 @@
 //! | `holiday` | [`hc_holiday`] | Holidays and observances |
 //! | `uncertainty` | [`hc_uncertainty`] | Significant figures, fuzzy dates, EDTF |
 //! | `deep-time` | [`hc_deep_time`] | Planck time to cosmology |
+//! | `orbital` | [`hc_orbital`] | Milankovitch cycles, insolation |
 //! | `planetary` | [`hc_planetary`] | Mars sols, other bodies |
 //! | `relativity` | [`hc_relativity`] | Time dilation, worldlines |
 //! | `full` | all of the above | |
@@ -110,6 +111,8 @@ pub use hc_humanize;
 pub use hc_i18n;
 #[cfg(feature = "name-days")]
 pub use hc_name_days;
+#[cfg(feature = "orbital")]
+pub use hc_orbital;
 #[cfg(feature = "planetary")]
 pub use hc_planetary;
 #[cfg(feature = "relativity")]

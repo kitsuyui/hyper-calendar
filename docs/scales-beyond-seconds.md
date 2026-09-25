@@ -89,6 +89,27 @@ representation is a magnitude with an exponent, not a count.
 Every entry in those tables carries its uncertainty. A timeline that says the
 Hadean began 4.567 Ga with no error bar is not a timeline, it is a decoration.
 
+## `hc-orbital`
+
+Between the calendar and deep time lies the span the ice ages happened in:
+tens to hundreds of thousands of years, where the Earth's orbit is no
+longer the fixed ellipse a calendar assumes. `hc-orbital` evaluates
+Berger's 1978 trigonometric solution for the **Milankovitch elements** —
+eccentricity, obliquity, the longitude of perihelion from the moving
+equinox and the climatic precession *e* sin ϖ — and the daily insolation
+that follows from them, for a million years either side of 1950.
+
+- "Present" is 1950, the same datum as `archaeology::Bp`, so a BP age is
+  the argument.
+- Every element is an `Uncertain` whose error bar is the measured
+  disagreement with the author's later solution, in tiers that widen with
+  distance.
+- Beyond ±1 Myr the crate refuses (ADR 0006); a longer solution — Laskar
+  et al. 2004 — is named and not carried.
+
+The explanation and the worked example are in
+[`systems/orbital-elements.md`](systems/orbital-elements.md).
+
 ## What this is not
 
 It is not a physics engine and not a cosmology solver. `hc-deep-time` carries
