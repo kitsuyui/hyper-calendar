@@ -64,6 +64,18 @@ over 1400–1445 AH it starts the month a day later for 322 of 552 months —
 58% — and never earlier, which is the signature of a sighting criterion
 against a computation criterion and is asserted in a test.
 
+## The Hebrew calendar
+
+`hebrew` is written up in
+[`docs/systems/hebrew.md`](../../docs/systems/hebrew.md): the molad and its
+parts, the nineteen-year cycle, the four dehiyyot and why each exists, the
+six year lengths, Rosh Hashanah 5784 worked by hand through the rules, the
+drift from the sky, what is carried and what is not — the observational
+calendar of the Second Temple and the Samaritan calendar among the latter —
+and the sources, Maimonides first. The module keeps the month-numbering
+convention, Tishrei first with Adar I as `Month::leap(5)`, and the Omer and
+*birkat hachama* functions beside the calendar.
+
 ## Japan's historical calendars
 
 The five Japanese systems are written up in
@@ -119,15 +131,15 @@ document says why.
 
 **Arithmetic calendars — exact.** The tabular Hijri and Hebrew calendars are
 counting rules, and this is those rules. The tabular Hijri checks are in
-the section above. The Hebrew implementation reproduces 1 Tishrei 5784 =
-2023-09-16 and 15 Nisan 5784 = 2024-04-23, keeps Rosh Hashanah off Sunday,
-Wednesday and Friday for all 9 999 years, and gives every year one of the
-six permitted lengths.
+the section above; the Hebrew ones — two published dates of 5784, Rosh
+Hashanah off Sunday, Wednesday and Friday for all 9 999 years, every year
+one of the six permitted lengths — are tabulated in the system document.
 
-Exact is not the same as astronomically right. The Hebrew molad is 0.4 seconds
-longer than the true mean synodic month, so it drifts about a day later every
-216 years; the tabular Hijri month is 2.9 seconds short, so it drifts a day in
-about 2 400 years. Both figures are in the module documentation.
+Exact is not the same as astronomically right. The Hebrew molad is 0.46
+seconds longer than the mean synodic month, a day in about 15 000 years,
+and the Hebrew mean year is 0.0046 days longer than the tropical year, a day
+every 216 years; the tabular Hijri month is 2.9 seconds short, so it drifts
+a day in about 2 400 years. The figures are derived in the system documents.
 
 **The Umm al-Qura table — exact where it reaches, and nowhere else.** See
 the section above and the system document.

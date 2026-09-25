@@ -1,5 +1,14 @@
 //! The Julian calendar up to a country's reform, Gregorian afterwards.
 //!
+//! The system is written up in `docs/systems/gregorian-reform.md` in the
+//! repository: the bull of 1582 and what it changed, the twelve cut-overs
+//! with the decree or act behind each and which of those were read, the
+//! dropped days and the unbroken week, a British date of 1752 worked by
+//! hand across the gap, the Swedish exception as a calendar of its own, the
+//! polities deliberately not carried, and the two rows — Holland and Serbia
+//! — whose dates the sources do not support. This page summarises it and
+//! states the code's own facts.
+//!
 //! Neither [`crate::julian`] nor [`crate::gregorian`] tells you what was
 //! written on a page on a given day, because the answer depends on where the
 //! page was written. Great Britain went to bed on Wednesday 2 September 1752
@@ -19,13 +28,13 @@
 //!
 //! # Sources
 //!
-//! The cut-over dates are the ones given in the national legislation or
-//! gazette of each country as summarised by Reingold and Dershowitz,
-//! *Calendrical Calculations* (4th ed.), appendix, and by the Explanatory
-//! Supplement to the Astronomical Almanac (3rd ed., 2013), §15.3. Where a
-//! state adopted the reform province by province — the Dutch Republic, the
-//! German states, Switzerland — the entry names the province the date
-//! belongs to rather than pretending the state moved at once.
+//! The document's sources table names the instrument behind every row:
+//! *Inter gravissimas* (1582), the Calendar (New Style) Act 1750 and the
+//! Sovnarkom decree of 24 January 1918 were read; the other nine rows rest
+//! on secondary sources. Where a state adopted the reform province by
+//! province — the Dutch Republic, the German states — the entry names the
+//! province the date belongs to rather than pretending the state moved at
+//! once.
 //!
 //! # The start of the year is a separate axis
 //!

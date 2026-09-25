@@ -1,27 +1,27 @@
 //! The arithmetic Hebrew calendar — CLDR `hebrew`.
 //!
-//! A lunisolar calendar with no astronomy in it. Since Hillel II the months
-//! have been fixed by calculation from the *molad*, the mean conjunction, and
-//! the calculation is exact arithmetic on integers: this module computes no
-//! solar longitude and calls nothing in `hc-astro`.
+//! The system is written up in `docs/systems/hebrew.md` in the repository:
+//! the molad and its parts, the nineteen-year cycle, the four dehiyyot and
+//! why each exists, the six year lengths, Rosh Hashanah 5784 worked by hand
+//! through the rules, how far the arithmetic drifts from the sky, what is
+//! carried and what is not, and the sources. This page summarises it and
+//! states the code's own facts.
 //!
-//! # How a year is built
+//! # What this is
 //!
-//! 1. **The molad.** The mean synodic month is taken as exactly 29 days,
-//!    12 hours and 793 *ḥalakim* (parts), a part being 1/1080 of an hour.
-//!    That is 29.530594 days, 0.4 seconds longer than the true mean synodic
-//!    month, so the molad drifts about a day later every 216 years.
-//! 2. **The Metonic cycle.** 235 months are fitted into 19 years, with years
-//!    3, 6, 8, 11, 14, 17 and 19 of each cycle carrying a thirteenth month.
-//!    235 mean months are 6939.69 days against 19 mean tropical years of
-//!    6939.60, so Passover creeps later by about a day per 216 years too.
-//! 3. **The four dehiyyot.** Rosh Hashanah is then postponed, by the rules
-//!    listed on [`new_year`], until it falls on a permitted weekday and
-//!    leaves the year a permitted length.
-//! 4. **The year's length follows.** A common year runs 353, 354 or 355 days
-//!    and a leap year 383, 384 or 385, called *deficient*, *regular* and
-//!    *complete*. The three are distinguished by Ḥeshvan (29 or 30 days) and
-//!    Kislev (30 or 29); every other month has a fixed length.
+//! A lunisolar calendar with no astronomy in it. The months are fixed by
+//! calculation from the *molad*, the mean conjunction, taken as exactly
+//! 29 days, 12 hours and 793 parts of 1/1080 hour; seven years of every
+//! nineteen carry a thirteenth month; and Rosh Hashanah is moved off
+//! Sunday, Wednesday and Friday and away from a molad at or after noon by
+//! the four *dehiyyot*, so that every year runs 353, 354 or 355 days, or
+//! 383, 384 or 385 in a leap year. The rules are Maimonides' statement of
+//! them in *Hilchot Kiddush HaChodesh*, chapters 6–8, in the arithmetic of
+//! Reingold and Dershowitz, *Calendrical Calculations* (4th ed., Cambridge,
+//! 2018), following the `hebrew-*` functions of their published source,
+//! `calendar.l` in the `calendar-code2` repository (Apache License 2.0),
+//! read 2026-09-25. The calculation is exact arithmetic on integers: this
+//! module computes no solar longitude and calls nothing in `hc-astro`.
 //!
 //! # Month numbering
 //!
@@ -32,22 +32,21 @@
 //! In a leap year the extra month is inserted after Shevaṭ, so it is
 //! [`Month::leap(5)`](hc_calendar::Month::leap) — CLDR's `M05L` — and it is
 //! called **Adar I**. The ordinary month 6 is then **Adar II**, the one that
-//! carries Purim and the one the Talmud treats as "the" Adar. Writing Adar I
-//! as the intercalary repetition of Shevaṭ rather than of Adar is what keeps
-//! a single [`hc_calendar::Month`] type usable for this calendar and
-//! for the Chinese one, where the leap month likewise follows the month it
-//! is named after.
-//!
-//! Note that the religious year is counted from Nisan, which is why the
-//! internal arithmetic below — and Reingold and Dershowitz's presentation of
-//! it — numbers Nisan 1 and Tishrei 7. Only the internal numbering does; the
+//! carries Purim. Writing Adar I as the intercalary repetition of Shevaṭ
+//! rather than of Adar is what keeps a single [`hc_calendar::Month`] type
+//! usable for this calendar and for the Chinese one, where the leap month
+//! likewise follows the month it is named after. The internal arithmetic
+//! below numbers the months from Nisan, as Reingold and Dershowitz do; the
 //! public API is the Tishrei-first one throughout.
 //!
 //! # Accuracy
 //!
 //! Exact. There is nothing to approximate: the rules are arithmetic and this
-//! is those rules. What the calendar is not is *astronomically* right, and
-//! the drift figures above say by how much it is not.
+//! is those rules. What the calendar is not is *astronomically* right: the
+//! molad interval is 0.46 seconds longer than the mean synodic month, a day
+//! in about 15 000 years, and the mean year of 365.2468 days is 0.0046 days
+//! longer than the tropical year, so the festivals move later through the
+//! seasons by about a day every 216 years. The document derives both.
 
 use hc_calendar::fixed::Moment;
 use hc_calendar::{

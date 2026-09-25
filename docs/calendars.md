@@ -36,7 +36,7 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | --- | --- | --- | --- |
 | Proleptic Gregorian | `gregory` | `hc-calendars-solar` | Done |
 | Proleptic Julian | `julian` | `hc-calendars-solar` | Done |
-| Julian→Gregorian reform (per country) | `julian-gregorian-<polity>`, 12 of them | `hc-calendars-solar` | Done |
+| Julian→Gregorian reform (per country) | `julian-gregorian-<polity>`, 12 of them | `hc-calendars-solar` | Done — twelve cut-overs, three of them on a document read and nine on secondary sources, with Serbia's row known to be wrong; see [systems/gregorian-reform.md](systems/gregorian-reform.md) |
 | ISO 8601 week date | `iso8601-week` | `hc-calendars-solar` | Done |
 | ISO 8601 ordinal date | `iso8601-ordinal` | `hc-calendars-solar` | Done |
 | Julian Day Number | `julian-day` | `hc-calendars-solar` | Done |
@@ -114,7 +114,7 @@ live with their families.
 | Fatimid / Ṭayyibī Bohra *Misri* | `islamic-fatimid` | `hc-calendars-lunar` | Done — the Bohra community's scheme on the Thursday epoch, anchored to its published Mawlid of 1439; see [systems/hijri.md](systems/hijri.md) |
 | Umm al-Qura (Saudi official) | `islamic-umalqura` | `hc-calendars-lunar` | Done — the published table for 1300–1600 AH, refused outside it, with the rules it embodies and the announcements it was checked against in [systems/hijri.md](systems/hijri.md) |
 | Observational Hijri | `islamic-rgsa` | `hc-calendars-lunar` | Partial — a prediction under one visibility criterion at Mecca, a day after the Umm al-Qura table for 58% of months and never a record of an announcement; see [systems/hijri.md](systems/hijri.md) |
-| Hebrew | `hebrew` | `hc-calendars-lunar` | Done |
+| Hebrew | `hebrew` | `hc-calendars-lunar` | Done — the fixed calendar as Maimonides states it, checked against two published dates of 5784 and its own structural rules over 9 999 years; see [systems/hebrew.md](systems/hebrew.md) |
 | Chinese lunisolar | `chinese` | `hc-calendars-lunar` | Done — the modern rule at Beijing's meridian from the Shíxiàn reform of 1645, checked against the published new years; see [systems/east-asian-lunisolar.md](systems/east-asian-lunisolar.md) |
 | Korean (Dangi) | `dangi` | `hc-calendars-lunar` | Done — the same rule read at Seoul through five changes of meridian, which is why Seollal 1988 fell a day after Chinese New Year; see [systems/east-asian-lunisolar.md](systems/east-asian-lunisolar.md) |
 | Vietnamese | `vietnamese` | `hc-calendars-lunar` | Done — the same rule at UT+7 from 1968, which put Tết 1985 a lunation before Chinese New Year; see [systems/east-asian-lunisolar.md](systems/east-asian-lunisolar.md) |

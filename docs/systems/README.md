@@ -43,6 +43,8 @@ None of the three repeats another.
 | The modern Assyrian calendar and its 4750 BC epoch | [assyrian.md](assyrian.md) | `assyrian` |
 | The Yazidi year: Serêsal and the Eastern calendar | [yazidi.md](yazidi.md) | `yazidi` |
 | Nepal's calendars: the Bikram Sambat as gazetted, and Nepal Sambat | [nepal-calendars.md](nepal-calendars.md) | `bikram-sambat`, `nepal-sambat` |
+| The Hebrew calendar: the molad, the nineteen-year cycle and the four dehiyyot | [hebrew.md](hebrew.md) | `hebrew` |
+| The Gregorian reform, country by country, and the Swedish exception | [gregorian-reform.md](gregorian-reform.md) | `julian-gregorian-<polity>`, twelve of them; `swedish-1700` |
 
 ## Systems that need a document
 
@@ -56,7 +58,7 @@ explanation is from what a reader needs.
 | The Burmese calendar's eras and exceptions | `burmese` |
 | The Tibetan Phugpa arithmetic | `tibetan` |
 | The Hebrew calendar's dehiyyot | `hebrew` |
+| Bikram Sambat as gazetted, and Nepal Sambat | `bikram_sambat`, `nepal_sambat` |
 | The Balinese Pawukon and the Javanese pasaran | `balinese_pawukon`, `javanese_pasaran` |
 | The Badíʿ calendar and the French Republican equinox rule | `hc-calendars-equinox` |
 | The sexagenary cycle and its year boundaries | `sexagenary` |
-| The Gregorian reform, country by country | `julian_gregorian` |
