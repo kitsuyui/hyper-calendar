@@ -31,6 +31,7 @@ std = [
     "hc-almanac?/std",
     "hc-fiscal?/std",
     "hc-attributes?/std",
+    "hc-name-days?/std",
     "hc-tz?/std",
     "hc-format?/std",
     "hc-i18n?/std",
@@ -55,6 +56,7 @@ alloc = [
     "hc-almanac?/alloc",
     "hc-fiscal?/alloc",
     "hc-attributes?/alloc",
+    "hc-name-days?/alloc",
     "hc-tz?/alloc",
     "hc-format?/alloc",
     "hc-i18n?/alloc",
@@ -95,6 +97,9 @@ almanac = ["seasons", "lunar", "dep:hc-almanac"]
 fiscal = ["civil", "dep:hc-fiscal"]
 # Birthstones, birth flowers, moon names and traditional month names.
 attributes = ["seasons", "dep:hc-attributes"]
+# Name-day lists: Latvia's vendored, and a loader for lists a caller has
+# licensed.
+name-days = ["civil", "dep:hc-name-days"]
 # Time zones.
 tz = ["civil", "dep:hc-tz"]
 # ISO 8601 / RFC 3339 parsing and formatting.
@@ -127,6 +132,7 @@ full = [
     "almanac",
     "fiscal",
     "attributes",
+    "name-days",
     "tz",
     "format",
     "i18n",
@@ -152,6 +158,7 @@ hc-seasons = { workspace = true, optional = true }
 hc-almanac = { workspace = true, optional = true }
 hc-fiscal = { workspace = true, optional = true }
 hc-attributes = { workspace = true, optional = true }
+hc-name-days = { workspace = true, optional = true }
 hc-tz = { workspace = true, optional = true }
 hc-format = { workspace = true, optional = true }
 hc-i18n = { workspace = true, optional = true }

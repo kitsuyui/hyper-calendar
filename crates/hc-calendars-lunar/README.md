@@ -46,52 +46,30 @@ constants. Nine lunisolar calendars, one algorithm.
 
 ## Japan's historical calendars
 
+The five Japanese systems are written up in
+[`docs/systems/japanese-lunisolar.md`](../../docs/systems/japanese-lunisolar.md):
+what each was and who computed it, how 恒気, 定朔, 進朔 and the 里差 work,
+with two worked examples that can be followed by hand, every constant with
+its source, and how the measurement below was made. This section keeps the
+summary and the figures.
+
 A calendar that ran for eight centuries on ninth-century constants is not the
 sky, and must not be computed as if it were. Senmyō-reki's tropical year is
 3.4 minutes too long; over the 823 years Japan used it, its solar terms slid
 about two days away from the Sun, and *that drift is why the Jōkyō reform
-happened*. A Senmyō-reki driven by a modern solar series would have no error
-to demonstrate.
-
-So each of these four carries its own 歳実 and 朔実, its own 恒気 (mean, equal)
-major solar terms, and — for Senmyō-reki — its own 進朔, the rule that holds a
-late conjunction over to the following day.
-
-| System | In force | 歳実 (days) | 朔実 (days) | 近点月 | Source for the constants |
-|---|---|---|---|---|---|
-| 宣明暦 Senmyō | 862–1685 | 3068055/8400 = 365.244643 | 248057/8400 = 29.530595 | 231458.19/8400 = 27.554546 | NAO 暦計算室 暦Wiki「宣明暦」; 新唐書 卷030上 長慶宣明曆 |
-| 貞享暦 Jōkyō | 1685–1755 | 365.241696 | 29.530590 | 27.554600 | NAO 暦計算室 暦Wiki「貞享暦」 |
-| 宝暦暦 Hōryaku | 1755–1798 | 365.241556 | 29.530590 | 27.554600 | NAO 暦計算室 暦Wiki「宝暦暦」 |
-| 寛政暦 Kansei | 1798–1844 | 365.242347 | 29.530584 | *modern 27.554550* | NAO 暦計算室 暦Wiki「寛政暦」 |
-
-Senmyō-reki additionally uses its 日躔 and 月離 tables' peaks, 1526/8400 and
-3225/8400 of a day, and its 進朔限 of 6300/8400. The 進朔限 is sourced; **the
-two 朓朒 peaks are a reading of the tables in 新唐書 and are quoted literally
-by no secondary source reachable from here**, though NAO's 暦Wiki models the
-lunar correction as (6.29° − 1.27°)·sin l over the Moon's daily motion, which
-peaks at the same 0.38 days.
-
-Every constant in the code carries its source in a comment.
+happened*. So each of the four pre-Tenpō systems carries its own 歳実, 朔実
+and 近点月, its own 恒気 major solar terms and, for Senmyō-reki, its own 進朔;
+Tenpō-reki, which defined its terms as the true Sun, is computed from
+`hc-astro`. Every constant in the code carries its source in a comment.
 
 ### Measured agreement
 
 `tests/data/japanese_month_lengths.txt` holds the first day and the length of
 every month of every year from 862 to 1843 — **982 years, 12 146 months,
-300 592 days** — taken from the 西暦との対照表 published in the Japanese
-Wikipedia article for each 元号, which are transcriptions of 内田正男
-『日本暦日原典』 (雄山閣, 1975). The file's header records how it was gathered
-and the three cross-checks it passed: every interval between consecutive month
-starts is 29 or 30 days, the tables' own 小の月 marks agree with those
-intervals in every case, and the tables' independently given Julian and
-Gregorian columns agree in all 3 959 rows that carry both.
-
-It is one source family. A separate scrape of 2 096 dated events from
-unrelated Japanese Wikipedia articles agrees with it on 96.9% of cases, the
-disagreements being scattered single-article errors, but that is corroboration
-and not independence. This README says so rather than implying otherwise.
-
-Against that table, with `cargo test -p hc-calendars-lunar --
---nocapture`:
+300 592 days** — from the 西暦との対照表 of the Japanese Wikipedia era
+articles, which transcribe 内田正男『日本暦日原典』 (雄山閣, 1975). It is one
+source family, cross-checked as the document describes. Against it, with
+`cargo test -p hc-calendars-lunar -- --nocapture`:
 
 | System | New years | Intercalary months | Month starts | Individual days |
 |---|---|---|---|---|
@@ -104,66 +82,18 @@ The four dates usually asked for all come out right: 本能寺の変 天正10年
 1582-06-21 Julian, 関ヶ原 慶長5年9月15日 = 1600-10-21, 赤穂事件討ち入り
 元禄15年12月14日 = 1703-01-30, and 貞享2年1月1日 = 1685-02-04.
 
-### The pattern of the disagreement
+Almost every disagreement is a month boundary one day off; the document gives
+the three causes and the two things this crate measured rather than assumed —
+that a system's own tropical year is worth twenty-five points of
+intercalary-month agreement over modern solar theory, and that the true
+conjunction reproduces the published month starts better than the system's
+own tables do, which is why each module also exports a `PARAMETERS_TABULATED`
+and both are measured. Two scalars per calendar — the 暦元 solstice phase,
+and for Senmyō-reki the 進朔 limit — are fitted, and the code labels them as
+such wherever they appear.
 
-Not random. Almost every failure is a month boundary landing one day early or
-late, which then moves the day-of-month for that month and, if it falls near a
-中気, can move the intercalary month and so the following new year. Three
-causes, in order of size:
-
-1. **The conjunction.** A pre-modern 定朔 is a table lookup — fourteen
-   tabulated daily increments per half anomalistic month — and this crate has
-   those tables for Senmyō-reki alone. The residual is a few tenths of a day,
-   which is exactly the width of a day boundary.
-2. **The 暦元 solstice.** A system's winter solstice came from its 上元積年,
-   an arithmetic chain reaching back millions of years, not from an
-   observation in the adoption year. That chain was not recoverable, so the
-   phase is **fitted**: one scalar per calendar, +0.20 days for Senmyō-reki
-   and −0.30 to −0.50 for the three Edo systems. That three independently
-   derived Edo systems all want a solstice a third to half a day early is
-   itself a finding — they determined it by gnomon shadow, and this is the
-   size of that method's known bias.
-3. **Decree.** The Japanese court occasionally adjusted a promulgated month by
-   hand, and Senmyō-reki's later centuries accumulated errors the bureau
-   sometimes corrected. No computation reproduces those.
-
-Two fitted scalars per calendar against 300 592 days of independent data is
-calibration rather than curve-fitting, but it is fitting and the code labels
-it as such everywhere it appears.
-
-### Two things this crate measured rather than assumed
-
-**The historical tropical year is worth twenty-five points.** Over every fifth
-year of the table — 165 years, enough to be decisive and cheap enough to run
-in a debug build — Senmyō-reki's own 歳実 places the intercalary month
-correctly 92.1% of the time. The same machinery with modern apparent (定気)
-solar terms manages 66.7%, and the same 恒気 rule on the *modern* tropical
-year manages 64.2%. A reconstruction on modern solar theory would not be a
-worse Senmyō-reki — it would be a different calendar.
-`the_systems_own_tropical_year_is_what_places_the_intercalary_month` asserts
-this, so the claim cannot quietly stop being true.
-
-**Modern astronomy reproduces these calendars' *conjunctions* better than
-their own tables do**, which was not the expected result. Approximating a
-system's 日躔 and 月離 tables by a single sine each places the published month
-starts at 89.9% for Senmyō-reki and 91.0% for Kansei-reki, against 96.7% and
-99.1% for the true conjunction over the same sample. Those bureaux computed conjunctions
-to within an hour or two — it was their solar theory that was two days out. So
-the default parameter set takes the conjunction from `hc-astro` and everything
-else from the system, and each module also exports a `PARAMETERS_TABULATED`
-that uses the system's own amplitudes. Both are measured, and both numbers are
-above.
-
-### What is not here
-
-**元嘉暦 (604–697), 儀鳳暦 (697–764), 大衍暦 (764–862) and 五紀暦 (858–862)
-are not implemented.** Their period constants are recoverable — 元嘉暦 is 日法
-752 with 222070/608 and 22207/752; 儀鳳暦 and 五紀暦 share 総法 1340 with
-489428/1340 and 39571/1340; 大衍暦 is 通法 3040 with 1110343/3040 and
-89773/3040 — but the validation table begins in 862, the adoption dates before
-then are contested by years, 元嘉暦 used 平朔 where the others used 定朔, and
-their 進朔限 differ from system to system. Four more calendars that nothing
-could check would be worse than none.
+**元嘉暦, 儀鳳暦, 大衍暦 and 五紀暦 (604–862) are not implemented**; the
+document says why.
 
 ## Accuracy
 
@@ -232,14 +162,10 @@ Calculations*:
 | Vietnamese | UT+8 before 1968; UT+7 from 1968 |
 | Japanese (all five) | Kyoto local mean time (135°46′E) before 1888; UT+9 from 1888 |
 
-One caveat on that last row. Kyoto is right from Jōkyō-reki onward, because
-Shibukawa's 里差 — the correction from the Chinese capital's meridian to
-Kyoto's — was one of the 1685 reform's headline changes. Senmyō-reki had no
-such correction: Japan applied the Chinese tables unadjusted for eight
-centuries, so its true reckoning was Chang'an's, 0.075 days west. That offset
-is not modelled as a meridian here; it is absorbed into Senmyō-reki's fitted
-進朔限, and the module documentation says so and gives the agreement rate for
-the other arrangement.
+One caveat on that last row. Kyoto is right from Jōkyō-reki onward, whose
+里差 was the reform's headline change; Senmyō-reki was applied with no
+correction at all, and the system document says how that offset is absorbed
+and what the other arrangement measures.
 
 These are not decoration. Over 1900–2049 the Korean and Chinese new years fall
 on different days nine times, including 1988, when Seollal was 18 February and
@@ -304,12 +230,10 @@ the court adjusted a promulgated month by decree from time to time, and no
 computation reproduces a decree.
 
 The Tenpō calendar stops on 1872-12-31 because that is the last day it ever
-named: the Dajōkan decree of 9 November 1872 made Meiji 5, twelfth month,
-third day into 1 January 1873. There is no Tenpō date after that, and this
-crate returns an error rather than inventing one. (It will, if asked through
-an unbounded parameter set, tell you that Meiji 6 was due a leap sixth month —
-the thirteen months of salary usually given as the reason for the reform's
-haste.)
+named; the decree that ended it is in the system document. There is no Tenpō
+date after that, and this crate returns an error rather than inventing one.
+(It will, if asked through an unbounded parameter set, tell you that Meiji 6
+was due a leap sixth month.)
 
 Finally, year numbering. The Chinese count of 4661 for the year that began in
 2024 is the one *Calendrical Calculations* uses and the one for which

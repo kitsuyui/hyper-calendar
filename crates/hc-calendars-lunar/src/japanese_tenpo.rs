@@ -1,5 +1,11 @@
 //! The Tenpō calendar (天保暦), Japan's last lunisolar calendar.
 //!
+//! The five Japanese systems, this one included, are written up in
+//! `docs/systems/japanese-lunisolar.md` in the repository: the succession
+//! that ended here, the decree that abolished it, the 定気 rule that sets it
+//! apart from its predecessors, and the dates that anchor it. This page
+//! summarises it and states the code's own facts.
+//!
 //! In force from the first month of Tenpō 15 (1844) until it was abolished by
 //! decree in 1872. It was the first Japanese calendar to use *teiki* — the
 //! true solar terms — which is the rule [`crate::lunisolar`] implements, and

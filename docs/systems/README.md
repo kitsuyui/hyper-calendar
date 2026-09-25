@@ -26,6 +26,9 @@ None of the three repeats another.
 | System | Document | Backs |
 | --- | --- | --- |
 | Babylonian calendar of the Seleucid era | [babylonian.md](babylonian.md) | `babylonian` |
+| Name-day lists | [name-days.md](name-days.md) | `hc-name-days` |
+| The Japanese lunisolar calendars, Senmyō to Tenpō | [japanese-lunisolar.md](japanese-lunisolar.md) | `japanese-senmyo`, `japanese-jokyo`, `japanese-horyaku`, `japanese-kansei`, `japanese-tenpo` |
+| The Thai lunar calendar's year types, and the Buddhist year as printed | [thai-lunar.md](thai-lunar.md) | `thai-lunar`; `buddhist::printed_year` |
 
 ## Systems that need a document
 
@@ -35,9 +38,8 @@ from. Each is a task of its own; the order is by how far the module's
 explanation is from what a reader needs.
 
 | System | Where the explanation is now |
-| --- | --- |
-| The Japanese lunisolar calendars, Senmyō to Tenpō, and their fitted constants | `hc-calendars-lunar` README and `japanese_historical` |
 | The Thai lunar calendar's year types and the printed Buddhist year | `thai_lunar` and `buddhist` |
+| The Japanese lunisolar calendars, Senmyō to Tenpō, and their fitted constants | `hc-calendars-lunar` README and `japanese_historical` |
 | The Burmese calendar's eras and exceptions | `burmese` |
 | The Tibetan Phugpa arithmetic | `tibetan` |
 | The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, ayanāṃśa | `hc-calendars-indic` |

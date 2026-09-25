@@ -329,8 +329,38 @@ engine takes on the same terms as its own.
 | Business-day calculation (weekend rules by country, including Friday–Saturday, Thursday–Friday and one-day weekends) | Done |
 | Trading-day calendars for major exchanges | In progress — `hc_holiday::exchanges`, rule sets keyed by Market Identifier Code from each exchange's own published calendar ([ADR 0008](adr/0008-exchange-calendars-are-rule-sets.md)): New York (`XNYS`) and Nasdaq (`XNAS`), Toronto (`XTSE`), Frankfurt on Xetra (`XETR`), Sydney (`XASX`), Euronext's Amsterdam, Brussels, Dublin, Lisbon, Milan, Oslo and Paris (`XAMS`, `XBRU`, `XDUB`, `XLIS`, `XMIL`, `XOSL`, `XPAR`) from its 2021–2026 tables, B3 in São Paulo (`BVMF`) from its 2021–2026 market calendars, and Nasdaq's Copenhagen, Stockholm, Helsinki and Iceland (`XCSE`, `XSTO`, `XHEL`, `XICE`) from its Nordic calendar for 2025–2027; Tokyo (`XJPX`), Hong Kong (`XHKG`), Seoul (`XKRX`, checked against its closure lists for 2009–2029) Shanghai (`XSHG`, on China's annual arrangements, checked against its notices for 2014–2026) and Taipei (`XTAI`, checked against its schedules for 2023–2026) as their countries' tables plus the exchanges' own days, through `RuleSet::includes`; SIX in Zurich (`XSWX`) from its market holidays for 2026 and 2027, 1 August and 26 December not shown by either year and not carried; London (`XLON`) as the bank holidays of England and Wales, the region its inclusion of the United Kingdom's table names, with its two half days, from its business-days table for August 2026 to January 2029; Johannesburg (`XJSE`, South Africa's table plus the declared days, from its calendars for 2024–2026, its noon closes carried for 2023–2025), Mexico City (`XMEX`, Mexico's table plus the CNBV's four closing days, from its lists for 2019–2026), Warsaw (`XWAR`, Poland's table plus three days, from its lists for 2019–2027) and NZX (`XNZE`, New Zealand's table, from its memos for 2022–2026) through `RuleSet::includes`; Vienna (`XWBO`) from its lists for 2019–2027 and Madrid (`XMAD`) from BME's calendars for 2023–2026; Moscow (`MISX`, which trades on most of Russia's days off, from its announcements for 2023–2026), Tel Aviv (`XTAE`, Sunday–Thursday to 2025 and Monday–Friday from 2026, from its schedules for 2024–2027), Riyadh (`XSAU`, from its announcements for 2023–2026) and Istanbul (`XIST`, the Bayram days from its tables for 2019–2026) tabulated as listed, a year outside them a gap; Shenzhen (`XSHE`, China's table on the Shanghai rules, checked against its notices for 2015–2026) through `RuleSet::includes`; Bangkok (`XBKK`, from its holiday pages for 2022–2027), the National Stock Exchange of India and BSE (`XNSE`, `XBOM`, one list from their circulars and notices for 2020–2026, the Muhurat and weekend sessions included), Singapore (`XSES`, the Ministry of Manpower's holidays for 2020–2026 under SGX's stated rule, with SGX's half days), Kuala Lumpur (`XKLS`, from its calendar pages for 2020–2026), Jakarta (`XIDX`, from its calendars for 2020–2022 and 2024–2026, 2023 a gap) and Manila (`XPHS`, from its memoranda for 2020–2026) tabulated as listed, a year outside them a gap |
 | School terms | Out of scope — too local and too volatile |
-| Name days and the sanctorale | In progress — as named authorities rather than one list, since the Roman calendar was recast in 1969 and the Swedish *namnsdagslängd* was revised in 1901, 1993 and 2001 ([policy.md](policy.md) §5). The General Roman Calendar is done (`roman-general`, `hc_holiday::roman_calendar`): the 2002 Missal's calendar with each of the Holy See's decrees since, 2014–2025, every celebration with its rank, precedence not applied. National and diocesan calendars and the name-day lists are not yet carried |
+| Name days and the sanctorale | In progress — as named authorities rather than one list, since the Roman calendar was recast in 1969 and the Swedish *namnsdagslängd* was revised in 1901, 1993 and 2001 ([policy.md](policy.md) §5). The General Roman Calendar is done (`roman-general`, `hc_holiday::roman_calendar`): the 2002 Missal's calendar with each of the Holy See's decrees since, 2014–2025, every celebration with its rank, precedence not applied. National and diocesan calendars are not yet carried. The name-day lists are `hc-name-days`, one edition per revision, listed country by country in the table below |
 | Anniversaries and commemorations without a day off | Partial — `Kind::Observance` exists and a handful of tables use it. A general commemoration list is **out of scope** under [policy.md](policy.md) §10: no authority defines which commemorations belong, so its coverage could never be stated. Individual ones enter through whichever authority proclaims them |
+
+### Name-day lists
+
+`hc-name-days` ([`docs/systems/name-days.md`](systems/name-days.md)). A list is
+vendored only where its terms permit copying it; a list whose owner charges, or
+has stated no terms, is read at run time from a text the caller supplies. Every
+list is one edition of one authority, and an edition refuses the years it does
+not cover.
+
+**Done**
+
+| Country | Note |
+| --- | --- |
+| Latvia 🇱🇻 | The traditional (about 1,000 names) and extended (about 5,600) lists of the Valsts valodas centrs's Kalendārvārdu ekspertu komisija, CC0-1.0 open data on data.gov.lv, in two editions each: the 2022 revision, in force 2023–2025, and the 2025 revision, in force from 1 January 2026 (`lv-traditional-2023`, `lv-traditional-2026`, `lv-extended-2023`, `lv-extended-2026`). 29 February carries no names, as the source prints; 22 May is Emīlija and the day for names not in the calendar; the six Latgalian forms the 2026 extended list prints in parentheses are names with a note |
+
+**Not carried**
+
+| Country | Status | Note |
+| --- | --- | --- |
+| Finland 🇫🇮 | Out of scope until licensed | The Finnish, Finland-Swedish, Orthodox and Sámi lists are the University of Helsinki's, confirmed by the Supreme Court (KKO 2000:56); free publication stops at two weeks or 15 names, and a whole year is charged per copy. A caller who holds a licence loads the list with `hc_name_days::load` |
+| Norway 🇳🇴 | Out of scope until licensed | Almanakkforlaget owns the list; editorial use is free with credit and commercial use is on its terms. Loaded, not shipped |
+| Sweden 🇸🇪 | Researching | The Namnlängdskommittén's list has had no official status since 1972 and no stated terms; not carried until the committee is asked |
+| Slovakia 🇸🇰 | Researching | The Ministry of Culture's Oficiálne kalendárium is recommendatory and states no terms; whether it is an official work under Zákon č. 185/2015 Z. z. § 5 is unchecked |
+| Croatia 🇭🇷 | Researching | Only the Bishops' Conference of Bosnia and Herzegovina's calendar is compiled, for its own territory, with no terms stated |
+| France 🇫🇷 | Researching | The postal calendar is a publishers' compilation; Nominis (Conférence des évêques de France) states no terms that were retrieved |
+| Greece 🇬🇷, Bulgaria 🇧🇬 | Researching | The church calendars name saints, not given names; the movable rules on the Julian computus (Thomas Sunday, All Saints, St George after Pascha; Цветница, Тодоровден, Спасовден) are recorded in `hc_name_days::gaps` and not yet carried |
+| Russia 🇷🇺 | Out of scope | A name day is the saint's day nearest after the birthday, read from the Месяцеслов; a rule on the caller's birthday, not a list |
+| Czechia 🇨🇿, Poland 🇵🇱, Denmark 🇩🇰, Lithuania 🇱🇹 | Out of scope | Publishers' lists with no body to choose between them |
+| Hungary 🇭🇺, Estonia 🇪🇪 | Out of scope | The printed lists rest on copyrighted books, and the claims of an official keeper are unconfirmed |
+| Germany 🇩🇪, Austria 🇦🇹, Spain 🇪🇸 | Out of scope | Liturgical calendars only, which belong beside `hc_holiday::roman_calendar` |
 
 ## Adding a country
 

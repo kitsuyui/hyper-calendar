@@ -14,6 +14,7 @@ members = [
     "crates/hc-almanac",
     "crates/hc-fiscal",
     "crates/hc-attributes",
+    "crates/hc-name-days",
     "crates/hc-tz",
     "crates/hc-format",
     "crates/hc-i18n",
@@ -54,6 +55,7 @@ hc-seasons = { version = "0.1.0", path = "crates/hc-seasons", default-features =
 hc-almanac = { version = "0.1.0", path = "crates/hc-almanac", default-features = false }
 hc-fiscal = { version = "0.1.0", path = "crates/hc-fiscal", default-features = false }
 hc-attributes = { version = "0.1.0", path = "crates/hc-attributes", default-features = false }
+hc-name-days = { version = "0.1.0", path = "crates/hc-name-days", default-features = false }
 hc-tz = { version = "0.1.0", path = "crates/hc-tz", default-features = false }
 hc-format = { version = "0.1.0", path = "crates/hc-format", default-features = false }
 hc-i18n = { version = "0.1.0", path = "crates/hc-i18n", default-features = false }
