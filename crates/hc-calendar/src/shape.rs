@@ -191,6 +191,43 @@ impl<const N: usize> Naming<N> {
     }
 }
 
+/// A calendar's own name for one of its eras.
+///
+/// The era analogue of [`CycleShape::names`]: what the calendar's sources
+/// call the era, in their orthography, and the romanisation they carry
+/// where they carry one. A locale's own word for the era comes first in
+/// any lookup; this is what answers when the locale has none, so that
+/// 嘉永 is written as itself rather than as its code.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct EraName {
+    /// The name in the orthography the calendar's sources use: 嘉永, 光武,
+    /// 康熙.
+    pub native: &'static str,
+    /// The name in Latin letters, as the sources romanise it — *Kaei*,
+    /// *Gwangmu*, *Kangxi* — or empty when the sources carry none or
+    /// `native` is already in Latin letters.
+    pub romanised: &'static str,
+}
+
+impl EraName {
+    /// A name with a romanisation.
+    #[must_use]
+    pub const fn new(native: &'static str, romanised: &'static str) -> Self {
+        Self { native, romanised }
+    }
+
+    /// The name a reader of Latin script gets: the romanisation when there
+    /// is one, else the native name.
+    #[must_use]
+    pub const fn latin(&self) -> &'static str {
+        if self.romanised.is_empty() {
+            self.native
+        } else {
+            self.romanised
+        }
+    }
+}
+
 /// The kind name for a calendar's months.
 pub const MONTH: &str = "month";
 
@@ -285,6 +322,14 @@ mod tests {
         assert_eq!(cycle.name(2), Some("Akʼbʼal"));
         assert_eq!(cycle.name(3), None);
         assert_eq!(CycleShape::fixed("trecena", 13).name(0), None);
+    }
+
+    #[test]
+    fn an_era_name_answers_in_latin_letters_when_it_can() {
+        let kaei = EraName::new("嘉永", "Kaei");
+        assert_eq!(kaei.latin(), "Kaei");
+        let bare = EraName::new("Saka", "");
+        assert_eq!(bare.latin(), "Saka");
     }
 
     #[test]

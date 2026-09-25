@@ -388,6 +388,7 @@ impl Calendar for ReformCalendar {
             is_astronomical: false,
             earliest: Some(julian::EARLIEST),
             latest: Some(gregorian::LATEST),
+            native_locales: &[],
         }
     }
 

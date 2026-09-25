@@ -26,7 +26,7 @@ default = ["civil"]
 # Proleptic Gregorian dates, ISO 8601 text and the TAI-UTC bridge.
 civil = ["hc/civil"]
 # Every calendar the facade registers, described for one day in a locale.
-calendars = ["civil", "hc/lunar", "hc/equinox", "hc/indic", "hc/regional", "hc/i18n"]
+calendars = ["civil", "hc/lunar", "hc/equinox", "hc/indic", "hc/regional", "hc/i18n", "hc/format"]
 # The holiday tables: countries, exchanges, traditions and the UN days.
 holiday = ["civil", "hc/holiday"]
 # The 24 solar terms and the 72 pentads.

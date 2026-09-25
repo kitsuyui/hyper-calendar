@@ -513,6 +513,7 @@ impl Calendar for TabularIslamicCalendar {
             is_astronomical: false,
             earliest: Some(earliest(self.epoch, self.rule)),
             latest: Some(latest(self.epoch, self.rule)),
+            native_locales: &["ar"],
         }
     }
 

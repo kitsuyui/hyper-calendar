@@ -80,6 +80,13 @@ pub use hc_calendar::{
 
 #[cfg(feature = "civil")]
 pub mod civil;
+#[cfg(all(
+    feature = "alloc",
+    feature = "civil",
+    feature = "i18n",
+    feature = "format"
+))]
+pub mod lines;
 
 #[cfg(feature = "almanac")]
 pub use hc_almanac;

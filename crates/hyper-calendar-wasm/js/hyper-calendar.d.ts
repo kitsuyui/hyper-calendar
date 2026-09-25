@@ -75,6 +75,8 @@ export const COLUMNS: {
   readonly orbit: ReadonlyArray<string>;
   readonly orbitSeries: ReadonlyArray<string>;
 };
+export const UNITS: readonly Unit[];
+export const NATIVE: "native";
 export const GEOLOGIC_RANKS: ReadonlyArray<GeologicRank>;
 
 /**
@@ -127,8 +129,75 @@ export interface DescribedDay {
   standing: Standing | null;
   /** Where the calendar's day begins: `midnight`, `noon`, `sunset`, `sunrise` or `local-time HH:MM:SS`. */
   dayBoundary: string;
-  /** Reserved; `null` until hc-format renders calendar dates generally. */
+  /** The date as the locale writes it — 令和8年9月21日, 癸卯年闰二月初一 — or `null` on a refusal. */
   formatted: string | null;
+  /** The tag of the locale data that answered: `ja`, `he`, `und`. */
+  localeUsed: string;
+}
+
+/** A unit of a calendar `calendarUnits` walks, largest first. */
+export type Unit = "era" | "year" | "month" | "day";
+
+/** One span of `hc_calendar_units`: a run of fixed days that is one unit, or that the calendar refuses. */
+export interface CalendarUnit {
+  /** The first fixed day of the span. */
+  start: number;
+  /** The day after the span's last, so that `end - start` is its length. */
+  end: number;
+  /** The span's label in the locale — 令和元年, `Adar I`, 閏二月, 初四 — or `null` on a refusal. */
+  label: string | null;
+  /** Whether the unit is intercalary: a leap year, a leap month, a repeated day. */
+  leap: boolean;
+  /** The standing of the span's first day, or `null` on a refusal. */
+  standing: Standing | null;
+  /** `null` for a unit; otherwise the calendar's refusal of every day in the span. */
+  error: { code: number; name: string } | null;
+  /** The tag of the locale data that answered. */
+  localeUsed: string;
+}
+
+/** One row of `hc_calendars`. */
+export interface CalendarEntry {
+  /** The calendar's identifier. */
+  id: string;
+  /** What the locale calls the calendar, or `null` where it has no name for it. */
+  name: string | null;
+  /** Its English name. */
+  englishName: string;
+  /** The earliest fixed day it converts, or `null` where unbounded. */
+  earliest: number | null;
+  /** The latest fixed day it converts, or `null` where unbounded. */
+  latest: number | null;
+  /** Whether its dates carry an era. */
+  hasEra: boolean;
+  /** Whether its dates carry a year. */
+  hasYear: boolean;
+  /** Whether it has months. */
+  hasMonth: boolean;
+  /** Whether its dates carry a day of the month. */
+  hasDay: boolean;
+  /** The languages its sources are written in, as BCP 47 tags, primary first; empty for a day count, a proposal or the Gregorian family. */
+  nativeLocales: string[];
+  /** Its standing on the day asked about. */
+  standing: Standing;
+}
+
+/** One row of `hc_locales`. */
+export interface LocaleEntry {
+  /** The BCP 47 tag. */
+  tag: string;
+  /** The language's name in English. */
+  englishName: string;
+  /** The language's name in itself. */
+  nativeName: string;
+  /** Whether the locale's own data names the Gregorian months. */
+  gregorianMonths: boolean;
+  /** Whether it names the weekdays. */
+  weekdays: boolean;
+  /** Whether it names the Gregorian eras. */
+  gregorianEras: boolean;
+  /** The calendars it has vocabulary of its own for, beyond the shared Gregorian months. */
+  calendars: string[];
 }
 
 export type HolidayKind = "public" | "bank" | "religious" | "observance" | "school" | "workday";
@@ -377,6 +446,12 @@ export class HyperCalendar {
    * order. `locale` is a BCP 47 tag, `und` unless given, as the module.
    */
   describeDay(fixed: number | bigint, locale?: string): DescribedDay[];
+  /** The days from `from` up to but not including `to` as one calendar's eras, years, months or days. */
+  calendarUnits(id: string, unit: Unit | number, from: number | bigint, to: number | bigint, locale?: string): CalendarUnit[];
+  /** Every registered calendar, with what the locale calls it and its standing on `today`. */
+  calendars(today: number | bigint, locale?: string): CalendarEntry[];
+  /** Every locale the module carries. */
+  locales(): LocaleEntry[];
 
   /** `hc_holiday_is_day_off`; `region` may be empty. A code naming no table is `unknown`. */
   holidayIsDayOff(code: string, region: string, fixed: number | bigint): boolean;

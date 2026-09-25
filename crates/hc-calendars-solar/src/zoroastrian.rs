@@ -222,6 +222,18 @@ impl Reckoning {
         }
     }
 
+    /// The languages this reckoning's sources are written in: Persian for
+    /// the calendar as kept in Iran, Gujarati for the Parsi reckonings of
+    /// India, and both for the Fasli, which both communities adopted.
+    #[must_use]
+    pub const fn native_locales(self) -> &'static [&'static str] {
+        match self {
+            Self::Qadimi => &["fa", "gu"],
+            Self::Shahanshahi => &["gu", "fa"],
+            Self::Fasli => &["fa", "gu"],
+        }
+    }
+
     /// The earliest year this reckoning converts.
     #[must_use]
     pub const fn min_year(self) -> i64 {
@@ -496,6 +508,7 @@ impl Calendar for ZoroastrianCalendar {
             is_astronomical: false,
             earliest: Some(self.reckoning.earliest()),
             latest: Some(self.reckoning.latest()),
+            native_locales: self.reckoning.native_locales(),
         }
     }
 

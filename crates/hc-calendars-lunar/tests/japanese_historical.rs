@@ -482,6 +482,7 @@ fn the_systems_own_tropical_year_is_what_places_the_intercalary_month() {
     );
 
     static MODERN_TERMS: LunisolarParameters = LunisolarParameters {
+        native_locales: &[],
         id: hc_calendar::CalendarId("japanese-senmyo-dingqi"),
         english_name: "Senmyō-reki with modern apparent solar terms",
         meridians: &hc_calendars_lunar::japanese_historical::MERIDIANS,
@@ -495,6 +496,7 @@ fn the_systems_own_tropical_year_is_what_places_the_intercalary_month() {
     let modern_terms = measure_sampled(&MODERN_TERMS, senmyo::EARLIEST.0, senmyo::LATEST.0, STRIDE);
 
     static MODERN_YEAR: LunisolarParameters = LunisolarParameters {
+        native_locales: &[],
         id: hc_calendar::CalendarId("japanese-senmyo-modern-year"),
         english_name: "Senmyō-reki on the modern tropical year",
         meridians: &hc_calendars_lunar::japanese_historical::MERIDIANS,

@@ -249,6 +249,7 @@ impl Calendar for JulianCalendar {
             is_astronomical: false,
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
+            native_locales: &[],
         }
     }
 

@@ -147,6 +147,7 @@ impl Calendar for HoloceneCalendar {
             is_astronomical: false,
             earliest: Some(EARLIEST),
             latest: Some(gregorian::LATEST),
+            native_locales: &[],
         }
     }
 

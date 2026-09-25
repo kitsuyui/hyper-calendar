@@ -64,8 +64,8 @@ pub use direction::Direction;
 pub use error::{I18nError, I18nResult};
 pub use locale::{HourCycle, Locale};
 pub use names::{
-    CalendarNames, ContextualNames, DayPeriod, EraNames, LocaleData, NameContext, NameWidth,
-    WidthSet,
+    CalendarNames, ContextualNames, DayPeriod, EraNames, LeapMonthNames, LocaleData, NameContext,
+    NameWidth, WidthSet,
 };
 pub use numbering::NumberingSystem;
 pub use plural::{PluralCategory, PluralOperands, PluralRules};

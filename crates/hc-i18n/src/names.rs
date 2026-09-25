@@ -32,8 +32,8 @@ use core::fmt;
 
 use hc_calendar::cycle::Sexagenary;
 use hc_calendar::cycle::readings::Reading;
-use hc_calendar::shape::CycleShape;
-use hc_calendar::{CalendarId, Month, Weekday};
+use hc_calendar::shape::{CycleShape, EraName};
+use hc_calendar::{CalendarId, CalendarMeta, Month, Weekday};
 
 use crate::casing::CasingStyle;
 use crate::data::{LOCALES, ROOT};
@@ -276,9 +276,219 @@ impl EraNames {
     }
 
     /// The index of an era code.
+    ///
+    /// Codes are ASCII identifiers and are matched without regard to case,
+    /// because the calendars spell theirs as their sources do — `AH`,
+    /// `AM`, `BE` — and the data spells them as CLDR does, in lower case.
+    /// A lookup that failed on the difference named nothing.
     #[must_use]
     pub fn index_of(&self, code: &str) -> Option<usize> {
-        self.codes.iter().position(|candidate| *candidate == code)
+        self.codes
+            .iter()
+            .position(|candidate| candidate.eq_ignore_ascii_case(code))
+    }
+}
+
+/// How a locale writes a calendar's units and dates: patterns over the
+/// placeholders a renderer fills in.
+///
+/// # The placeholders
+///
+/// | Placeholder | Filled with |
+/// | --- | --- |
+/// | `{era}` | the era's name: the locale's, else the calendar's own, else its code; nothing for the [`DateTemplates::implied_era`] |
+/// | `{year}` | the year as a number in the locale's numbering system |
+/// | `{month}` | the month's label: name and leap prefix, or its number |
+/// | `{day}` | the day's name from [`DateTemplates::day_names`], or its number |
+/// | `{sexagenary}` | the year's stem and branch in the locale's reading, where the date carries a `sexagenary_year` |
+/// | `{extras}` | the calendar's extra fields as `name=value` pairs joined by `;` |
+///
+/// In [`DateTemplates::date`], `{year}`, `{month}` and `{day}` stand for
+/// the *rendered* year, month and day — the year with its era, the day
+/// with its 日 — so that a field the date does not carry vanishes with
+/// the affixes its own template gave it.
+///
+/// A placeholder whose field the date does not carry is filled with
+/// nothing, and the renderer then trims the pattern and collapses the
+/// spaces that are left, so that `{year} {era}` writes `2026` for a
+/// calendar without eras. A template that is empty says *no
+/// preference*, and so does one whose every placeholder came out empty:
+/// the renderer takes the next level of the [`TemplateChain`] — the
+/// entries', the locale's, then [`DateTemplates::DEFAULT`].
+///
+/// # Where they live
+///
+/// A locale states its general way of writing a date in
+/// [`LocaleData::templates`], and an entry that serves a family of
+/// calendars states what differs for that family in
+/// [`CalendarNames::templates`]: the sexagenary year of the Chinese
+/// calendar, the named days of its months. Both are data, and every
+/// convention in them is sourced in a comment beside it.
+#[derive(Debug, Clone, Copy)]
+pub struct DateTemplates {
+    /// The era on its own.
+    pub era: &'static str,
+    /// The year with its era: `{era}{year}年`, `{year} {era}`.
+    pub year: &'static str,
+    /// The first year of an era, where the language has a word for it
+    /// that replaces the number — `{era}元年`, `{era} 원년` — and empty
+    /// where it does not. Applied only when the date carries an era.
+    pub first_year: &'static str,
+    /// The month on its own.
+    pub month: &'static str,
+    /// The day on its own.
+    pub day: &'static str,
+    /// The whole date.
+    pub date: &'static str,
+    /// The locale's names for the days of the month, day 1 at index 0,
+    /// where it has them — 初一 … 三十 — and empty where days are numbered.
+    pub day_names: &'static [&'static str],
+    /// An era code so usual that the locale leaves it unwritten in a year:
+    /// `ad` for the Gregorian family, whose 2026 is never *2026 AD* in
+    /// running text, `am` for the Hebrew calendar's 5784. Matched without
+    /// regard to case, as era codes are; empty where every era is written.
+    pub implied_era: &'static str,
+}
+
+impl DateTemplates {
+    /// No preference in any field.
+    pub const NONE: Self = Self {
+        era: "",
+        year: "",
+        first_year: "",
+        month: "",
+        day: "",
+        date: "",
+        day_names: &[],
+        implied_era: "",
+    };
+
+    /// What a renderer writes when no locale has said otherwise: each
+    /// field by itself, and a date as its fields in the order
+    /// [`hc_calendar::DateFields`] lists them — era, year, month, day, then
+    /// the extra fields — separated by spaces. It states the numbers and
+    /// names the library already has and invents no orthography.
+    pub const DEFAULT: Self = Self {
+        era: "{era}",
+        year: "{year} {era}",
+        first_year: "",
+        month: "{month}",
+        day: "{day}",
+        date: "{year} {month} {day} {extras}",
+        day_names: &[],
+        implied_era: "",
+    };
+
+    /// Whether every field is empty.
+    #[must_use]
+    pub const fn is_none(&self) -> bool {
+        self.era.is_empty()
+            && self.year.is_empty()
+            && self.first_year.is_empty()
+            && self.month.is_empty()
+            && self.day.is_empty()
+            && self.date.is_empty()
+            && self.day_names.is_empty()
+            && self.implied_era.is_empty()
+    }
+
+    /// These templates with every empty field taken from `other`.
+    #[must_use]
+    pub const fn or(self, other: Self) -> Self {
+        const fn pick(first: &'static str, second: &'static str) -> &'static str {
+            if first.is_empty() { second } else { first }
+        }
+        Self {
+            era: pick(self.era, other.era),
+            year: pick(self.year, other.year),
+            first_year: pick(self.first_year, other.first_year),
+            month: pick(self.month, other.month),
+            day: pick(self.day, other.day),
+            date: pick(self.date, other.date),
+            day_names: if self.day_names.is_empty() {
+                other.day_names
+            } else {
+                self.day_names
+            },
+            implied_era: pick(self.implied_era, other.implied_era),
+        }
+    }
+
+    /// Whether `code` is the era this locale leaves unwritten.
+    #[must_use]
+    pub fn implies_era(&self, code: &str) -> bool {
+        !self.implied_era.is_empty() && self.implied_era.eq_ignore_ascii_case(code)
+    }
+}
+
+/// The templates that apply to one calendar in one locale, level by level:
+/// what the entries serving the calendar state, what the locale states in
+/// general, and [`DateTemplates::DEFAULT`].
+///
+/// A renderer tries each level's template for a field in turn and moves
+/// to the next when the template says nothing — its field is empty, or
+/// every placeholder in it came out empty, as `{sexagenary}年` does for a
+/// date that carries no sexagenary year. The levels are kept apart rather
+/// than merged so that a renderer can tell the two cases from one another.
+#[derive(Debug, Clone, Copy)]
+pub struct TemplateChain {
+    /// The serving entries' own templates, merged field by field in entry
+    /// order.
+    pub entry: DateTemplates,
+    /// The locale's general templates.
+    pub locale: DateTemplates,
+}
+
+impl TemplateChain {
+    /// Nothing but the default.
+    pub const NONE: Self = Self {
+        entry: DateTemplates::NONE,
+        locale: DateTemplates::NONE,
+    };
+
+    /// The levels, most specific first, ending in the default.
+    #[must_use]
+    pub const fn levels(&self) -> [DateTemplates; 3] {
+        [self.entry, self.locale, DateTemplates::DEFAULT]
+    }
+
+    /// Every level merged into one, for the fields that do not need the
+    /// levels told apart: the day names and the implied era.
+    #[must_use]
+    pub const fn merged(&self) -> DateTemplates {
+        self.entry.or(self.locale).or(DateTemplates::DEFAULT)
+    }
+}
+
+/// Names for an intercalary month, and for the months of a year that has
+/// one, where the locale's word is not the ordinary name with a prefix.
+///
+/// The Hebrew calendar's *Adar I* is the intercalary repetition of its
+/// fifth month, Shevaṭ, and is not called *leap Shevaṭ*; and the Adar of a
+/// leap year is *Adar II*. A prefix can say neither, so a calendar entry
+/// may list them by the month's ordinal. Most calendars need neither list,
+/// and [`LeapMonthNames::NONE`] says so.
+#[derive(Debug, Clone, Copy)]
+pub struct LeapMonthNames {
+    /// The name of the intercalary repetition of a month, by the month's
+    /// ordinal: `(5, "Adar I")`.
+    pub intercalary: &'static [(u8, &'static str)],
+    /// The name a month takes in a year that has the intercalary month, by
+    /// ordinal: `(6, "Adar II")`.
+    pub in_leap_years: &'static [(u8, &'static str)],
+}
+
+impl LeapMonthNames {
+    /// The prefix and the ordinary names suffice.
+    pub const NONE: Self = Self {
+        intercalary: &[],
+        in_leap_years: &[],
+    };
+
+    fn find(list: &'static [(u8, &'static str)], ordinal: u8) -> Option<&'static str> {
+        list.iter()
+            .find(|(month, _)| *month == ordinal)
+            .map(|(_, name)| *name)
     }
 }
 
@@ -311,10 +521,17 @@ pub struct CalendarNames {
     /// What an intercalary month is prefixed with: 闰 in Chinese, 閏 in
     /// Japanese, `leap ` in English. Empty where the calendar has none.
     pub leap_month_prefix: &'static str,
+    /// The intercalary month's own name, and the leap-year names of the
+    /// months, where a prefix cannot say them.
+    pub leap_names: LeapMonthNames,
     /// Era names.
     pub eras: EraNames,
     /// Quarter names, indexed from zero for quarter 1.
     pub quarters: ContextualNames,
+    /// How the locale writes these calendars' units where that differs
+    /// from how it writes a date in general; [`DateTemplates::NONE`] where
+    /// it does not.
+    pub templates: DateTemplates,
 }
 
 /// The names of one positional cycle.
@@ -347,9 +564,32 @@ impl CalendarNames {
             calendars,
             cycles: &[],
             leap_month_prefix: "",
+            leap_names: LeapMonthNames::NONE,
             eras: EraNames::EMPTY,
             quarters: ContextualNames::EMPTY,
+            templates: DateTemplates::NONE,
         }
+    }
+
+    /// This entry with names for its intercalary month and its leap years.
+    #[must_use]
+    pub const fn with_leap_names(mut self, names: LeapMonthNames) -> Self {
+        self.leap_names = names;
+        self
+    }
+
+    /// This entry with templates of its own.
+    #[must_use]
+    pub const fn with_templates(mut self, templates: DateTemplates) -> Self {
+        self.templates = templates;
+        self
+    }
+
+    /// This entry with a leap-month prefix.
+    #[must_use]
+    pub const fn with_leap_month_prefix(mut self, prefix: &'static str) -> Self {
+        self.leap_month_prefix = prefix;
+        self
     }
 
     /// Whether this entry serves `calendar`.
@@ -387,6 +627,10 @@ pub struct SexagenaryNames {
     pub reading: Option<&'static Reading>,
     /// The twelve zodiac animals, in branch order.
     pub zodiac: Option<&'static [&'static str; 12]>,
+    /// What the locale writes between a stem and its branch: nothing in
+    /// the Han and Hangul readings (甲子, 갑자), a space in the Vietnamese
+    /// and pinyin ones (Giáp Tý, jia zi).
+    pub joiner: &'static str,
 }
 
 impl SexagenaryNames {
@@ -394,7 +638,28 @@ impl SexagenaryNames {
     pub const EMPTY: Self = Self {
         reading: None,
         zodiac: None,
+        joiner: "",
     };
+}
+
+/// A calendar's name in a locale.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CalendarDisplayName {
+    /// The calendar.
+    pub calendar: CalendarId,
+    /// What the locale calls it.
+    pub name: &'static str,
+}
+
+impl CalendarDisplayName {
+    /// A name for a calendar.
+    #[must_use]
+    pub const fn new(calendar: &'static str, name: &'static str) -> Self {
+        Self {
+            calendar: CalendarId(calendar),
+            name,
+        }
+    }
 }
 
 /// Everything this crate knows about one locale.
@@ -406,6 +671,15 @@ impl SexagenaryNames {
 pub struct LocaleData {
     /// The canonical tag this entry answers for, such as `zh-Hans`.
     pub tag: &'static str,
+    /// The language's name in English: *Japanese*.
+    pub english_name: &'static str,
+    /// The language's name in itself: 日本語.
+    pub native_name: &'static str,
+    /// The ISO 15924 code of the script the locale is written in: `Latn`,
+    /// `Jpan`, `Hans`, `Arab`. A renderer with a name in a calendar's own
+    /// script and a romanisation of it gives a `Latn` locale the
+    /// romanisation and every other locale the name itself.
+    pub script: &'static str,
     /// The direction of the locale's usual script.
     pub direction: Direction,
     /// The default numbering system identifier.
@@ -424,6 +698,11 @@ pub struct LocaleData {
     pub cycle: SexagenaryNames,
     /// Per-calendar vocabulary.
     pub calendars: &'static [CalendarNames],
+    /// How the locale writes a date in general; what an entry in
+    /// `calendars` does not override.
+    pub templates: DateTemplates,
+    /// What the locale calls the calendars it has a name for.
+    pub calendar_names: &'static [CalendarDisplayName],
 }
 
 impl LocaleData {
@@ -470,6 +749,39 @@ impl LocaleData {
         self.entries_for(id)
             .map(|entry| &entry.quarters)
             .find(|names| !names.is_empty())
+    }
+
+    /// The templates for `id`: every serving entry's own, merged field by
+    /// field in entry order, and the locale's general ones behind them;
+    /// `None` when no entry serves `id` at all, because a locale's way of
+    /// writing a date is stated for the calendars it names and not assumed
+    /// for the rest.
+    #[must_use]
+    pub fn templates_for(&self, id: CalendarId) -> Option<TemplateChain> {
+        let mut entries = self.entries_for(id).peekable();
+        entries.peek()?;
+        let entry = entries.fold(DateTemplates::NONE, |merged, entry| {
+            merged.or(entry.templates)
+        });
+        Some(TemplateChain {
+            entry,
+            locale: self.templates,
+        })
+    }
+
+    /// Whether this entry names `id` in any way.
+    #[must_use]
+    pub fn names_calendar(&self, id: CalendarId) -> bool {
+        self.entries_for(id).next().is_some()
+    }
+
+    /// What this locale calls `id`, if it has a name for it.
+    #[must_use]
+    pub fn calendar_name(&self, id: CalendarId) -> Option<&'static str> {
+        self.calendar_names
+            .iter()
+            .find(|entry| entry.calendar == id)
+            .map(|entry| entry.name)
     }
 }
 
@@ -529,7 +841,9 @@ impl fmt::Display for MonthLabel {
 ///
 /// Returns `None` if no entry in the fallback chain names that month of that
 /// calendar — an ordinal past the end of the list, or a calendar this crate
-/// has no vocabulary for.
+/// has no vocabulary for. This is [`month_label_in`] for a common year; a
+/// caller that knows the year has an intercalary month passes that on, so
+/// that the Hebrew Adar of a leap year is *Adar II*.
 #[must_use]
 pub fn month_label(
     locale: &Locale,
@@ -538,20 +852,67 @@ pub fn month_label(
     width: NameWidth,
     context: NameContext,
 ) -> Option<MonthLabel> {
+    month_label_in(locale, calendar, month, false, width, context)
+}
+
+/// Whether any locale in the chain names a month of this calendar
+/// differently in a leap year — so that a caller can spare itself the
+/// question of whether the year is one, which an astronomical calendar
+/// answers slowly.
+#[must_use]
+pub fn has_leap_year_month_names(locale: &Locale, calendar: CalendarId) -> bool {
+    resolve(locale, |data| {
+        data.entries_for(calendar)
+            .find(|entry| !entry.months().is_empty())
+            .map(|entry| !entry.leap_names.in_leap_years.is_empty())
+    })
+    .unwrap_or(false)
+}
+
+/// The name of a month, in a year that has the calendar's intercalary
+/// month when `in_leap_year` says so.
+///
+/// An intercalary month is the locale's own name for it where it has one
+/// (*Adar I*), else the ordinary name with the locale's prefix (闰二月); a
+/// month of a leap year takes its leap-year name where the locale lists
+/// one (*Adar II*). Everything comes from whichever entry carries the
+/// months, since that is the entry that knows how the calendar writes
+/// them.
+#[must_use]
+pub fn month_label_in(
+    locale: &Locale,
+    calendar: CalendarId,
+    month: Month,
+    in_leap_year: bool,
+    width: NameWidth,
+    context: NameContext,
+) -> Option<MonthLabel> {
     let index = usize::from(month.ordinal).checked_sub(1)?;
     resolve(locale, |data| {
-        let names = data.cycle_for(calendar, hc_calendar::shape::MONTH)?;
-        let name = names.get(width, context).get(index).copied()?;
-        // The prefix belongs to whichever entry carries the months, since
-        // that is the entry that knows how the calendar writes a leap one.
-        let prefix = if month.leap {
-            data.entries_for(calendar)
-                .find(|entry| !entry.months().is_empty())
-                .map_or("", |entry| entry.leap_month_prefix)
+        let entry = data
+            .entries_for(calendar)
+            .find(|entry| !entry.months().is_empty())?;
+        let name = entry.months().get(width, context).get(index).copied()?;
+        if month.leap {
+            return Some(
+                LeapMonthNames::find(entry.leap_names.intercalary, month.ordinal).map_or(
+                    MonthLabel {
+                        prefix: entry.leap_month_prefix,
+                        name,
+                    },
+                    |own| MonthLabel {
+                        prefix: "",
+                        name: own,
+                    },
+                ),
+            );
+        }
+        let name = if in_leap_year {
+            LeapMonthNames::find(entry.leap_names.in_leap_years, month.ordinal).unwrap_or(name)
         } else {
-            ""
+            name
         };
-        Some(MonthLabel { prefix, name })
+        Some(MonthLabel { prefix: "", name })
     })
 }
 
@@ -590,6 +951,19 @@ pub fn month_name(
     context: NameContext,
 ) -> Option<&'static str> {
     month_label(locale, calendar, month, width, context).map(|label| label.name)
+}
+
+/// What a locale writes before an intercalary month of a calendar: 闰, 閏,
+/// `leap `, `Adhika ` — from the first entry in the chain that names the
+/// calendar's months, or empty when none does.
+#[must_use]
+pub fn leap_month_prefix(locale: &Locale, calendar: CalendarId) -> &'static str {
+    resolve(locale, |data| {
+        data.entries_for(calendar)
+            .find(|entry| !entry.months().is_empty())
+            .map(|entry| entry.leap_month_prefix)
+    })
+    .unwrap_or("")
 }
 
 /// How many months a calendar is named for in a locale.
@@ -677,6 +1051,132 @@ pub fn era_codes(locale: &Locale, calendar: CalendarId) -> Option<&'static [&'st
     })
 }
 
+/// How a locale writes a calendar's units and dates.
+///
+/// The first entry in the fallback chain that names the calendar decides:
+/// its serving entries' templates, its general ones, and
+/// [`DateTemplates::DEFAULT`] behind both. A calendar no locale in the
+/// chain names gets the default outright.
+#[must_use]
+pub fn templates(locale: &Locale, calendar: CalendarId) -> TemplateChain {
+    resolve(locale, |data| data.templates_for(calendar)).unwrap_or(TemplateChain::NONE)
+}
+
+/// Whether a locale is written in Latin letters, judged from the data
+/// entry it resolves to.
+///
+/// A renderer with a calendar's own name for something and a romanisation
+/// of it gives a Latin-script locale the romanisation and every other
+/// locale the name itself: *Kaei* for `en`, 嘉永 for `ja`, and 嘉永 for
+/// `ko` too, because a Korean reader is no better served by Hepburn.
+#[must_use]
+pub fn is_latin_script(locale: &Locale) -> bool {
+    locale_data(locale).script == "Latn"
+}
+
+/// The name an era is written under: the locale's own, else the
+/// calendar's own ([`EraName`], romanised for a Latin-script locale), else
+/// the code itself.
+///
+/// The width applies to the locale's names and degrades as
+/// [`WidthSet::get`] does. The calendar's own name answers for the eras a
+/// locale's data does not list — the two hundred and forty-three nengō
+/// before 明治 — so that 嘉永三年 is written as itself and never as
+/// `kaei 3`.
+#[must_use]
+pub fn era_label<'a>(
+    locale: &Locale,
+    calendar: CalendarId,
+    code: &'a str,
+    own: Option<EraName>,
+    width: NameWidth,
+) -> &'a str {
+    if let Some(name) = era_name_by_code(locale, calendar, code, width) {
+        return name;
+    }
+    match own {
+        Some(name) if is_latin_script(locale) => name.latin(),
+        Some(name) => name.native,
+        None => code,
+    }
+}
+
+/// What a locale calls a calendar, if any locale in the chain has a name
+/// for it.
+#[must_use]
+pub fn calendar_display_name(locale: &Locale, calendar: CalendarId) -> Option<&'static str> {
+    resolve(locale, |data| data.calendar_name(calendar))
+}
+
+/// Whether some locale in the chain names `calendar` at all: has months,
+/// eras or templates for it.
+#[must_use]
+pub fn names_calendar(locale: &Locale, calendar: CalendarId) -> bool {
+    resolve(locale, |data| data.names_calendar(calendar).then_some(())).is_some()
+}
+
+/// Whether a tag names a locale this crate carries data for, rather than
+/// one that falls through to the root.
+#[must_use]
+pub fn is_carried(locale: &Locale) -> bool {
+    LOCALES.iter().any(|data| {
+        locale
+            .fallback()
+            .any(|candidate| candidate.matches_tag(data.tag))
+    })
+}
+
+/// The first of a calendar's native locales that this crate carries.
+///
+/// A calendar states the languages its sources are written in
+/// ([`CalendarMeta::native_locales`]); this is the one it can be rendered
+/// in here, or `None` when the crate carries none of them.
+#[must_use]
+pub fn native_locale(meta: &CalendarMeta) -> Option<Locale> {
+    meta.native_locales
+        .iter()
+        .filter_map(|tag| Locale::parse(tag).ok())
+        .find(is_carried)
+}
+
+/// English, the locale every fallback ends in before the calendar's own
+/// names.
+#[must_use]
+pub fn english() -> Locale {
+    Locale::parse("en").unwrap_or(Locale::ROOT)
+}
+
+/// The locale a calendar is rendered in, given the one that was asked for
+/// or, with `None`, a request for the calendar's own.
+///
+/// The requested locale answers when it names the calendar. When it does
+/// not — Japanese has no words for the Hebrew months — the calendar's
+/// native locale answers if the crate carries it, then English, so that a
+/// month is named in *some* language before it is numbered; and when no
+/// locale names the calendar, the requested one (or English) is kept for
+/// its numbering and its general templates, with the names coming from
+/// the calendar's own shape. The tag of the data that answered is
+/// [`locale_data`] of the result.
+#[must_use]
+pub fn locale_for_calendar(requested: Option<&Locale>, meta: &CalendarMeta) -> Locale {
+    let names = |locale: &Locale| names_calendar(locale, meta.id);
+    if let Some(requested) = requested
+        && names(requested)
+    {
+        return *requested;
+    }
+    if let Some(native) = native_locale(meta)
+        && names(&native)
+    {
+        return native;
+    }
+    let english = english();
+    if names(&english) {
+        return english;
+    }
+    requested.copied().unwrap_or(english)
+}
+
 /// The name of a quarter, numbered 1 to 4.
 #[must_use]
 pub fn quarter_name(
@@ -726,13 +1226,21 @@ pub fn zodiac_animal_name(locale: &Locale, index: usize) -> Option<&'static str>
 /// The stem and branch of a sexagenary position, in the locale's script.
 ///
 /// The two are returned separately because Chinese and Japanese write them
-/// adjacent (甲子) while a romanising locale wants a separator.
+/// adjacent (甲子) while a romanising locale wants a separator; what the
+/// locale puts between them is [`sexagenary_joiner`].
 #[must_use]
 pub fn sexagenary_names(
     locale: &Locale,
     position: Sexagenary,
 ) -> Option<(&'static str, &'static str)> {
     sexagenary_reading(locale).map(|reading| reading.pair(position))
+}
+
+/// What a locale writes between a stem and its branch, from the same
+/// entry that supplies its reading.
+#[must_use]
+pub fn sexagenary_joiner(locale: &Locale) -> &'static str {
+    resolve(locale, |data| data.cycle.reading.map(|_| data.cycle.joiner)).unwrap_or("")
 }
 
 /// The first day of the week for a locale.
@@ -850,6 +1358,320 @@ mod tests {
             gregorian_month("en", 1, NameWidth::Abbreviated, NameContext::Format),
             "Jan"
         );
+    }
+
+    fn lunisolar_month(tag: &str, calendar: &'static str, month: Month) -> Option<String> {
+        month_label(
+            &locale(tag),
+            CalendarId(calendar),
+            month,
+            NameWidth::Wide,
+            NameContext::Standalone,
+        )
+        .map(|label| label.to_string())
+    }
+
+    #[test]
+    fn the_japanese_traditional_months_serve_only_the_japanese_lunisolar_calendars() {
+        // 弥生 is Japan's word for the third month of Japan's old calendar,
+        // and was answering for the Chinese calendar too.
+        for id in [
+            "japanese-tenpo",
+            "japanese-kansei",
+            "japanese-horyaku",
+            "japanese-jokyo",
+            "japanese-senmyo",
+        ] {
+            assert_eq!(
+                lunisolar_month("ja", id, Month::regular(3)).as_deref(),
+                Some("弥生"),
+                "{id}"
+            );
+            assert_eq!(
+                lunisolar_month("ja", id, Month::regular(12)).as_deref(),
+                Some("師走"),
+                "{id}"
+            );
+        }
+        for id in ["chinese", "dangi", "vietnamese"] {
+            assert_eq!(
+                lunisolar_month("ja", id, Month::regular(1)).as_deref(),
+                Some("正月"),
+                "{id}"
+            );
+            assert_eq!(
+                lunisolar_month("ja", id, Month::regular(3)).as_deref(),
+                Some("三月"),
+                "{id}"
+            );
+            assert_eq!(
+                lunisolar_month("ja", id, Month::leap(2)).as_deref(),
+                Some("閏二月"),
+                "{id}"
+            );
+            assert_eq!(
+                lunisolar_month("ja", id, Month::regular(12)).as_deref(),
+                Some("十二月"),
+                "{id}"
+            );
+            assert_eq!(
+                lunisolar_month("zh-Hans", id, Month::regular(12)).as_deref(),
+                Some("腊月"),
+                "{id}"
+            );
+            assert_eq!(
+                lunisolar_month("zh-Hant", id, Month::leap(2)).as_deref(),
+                Some("閏二月"),
+                "{id}"
+            );
+        }
+        assert_eq!(
+            lunisolar_month("ja", "chinese-regnal", Month::regular(12)).as_deref(),
+            Some("十二月")
+        );
+        // Japanese has no word for the Tibetan months, and Chinese none for
+        // the Tenpō calendar's: neither leaks the other family's names.
+        assert_eq!(lunisolar_month("ja", "tibetan", Month::regular(3)), None);
+        assert_eq!(
+            lunisolar_month("zh-Hans", "japanese-tenpo", Month::regular(12)),
+            None
+        );
+        // English ordinals serve every numbered lunisolar calendar.
+        assert_eq!(
+            lunisolar_month("en", "japanese-tenpo", Month::regular(12)).as_deref(),
+            Some("Twelfth Month")
+        );
+        assert_eq!(
+            lunisolar_month("en", "chinese", Month::leap(2)).as_deref(),
+            Some("leap Second Month")
+        );
+        assert_eq!(
+            leap_month_prefix(&locale("ja"), CalendarId("chinese")),
+            "閏"
+        );
+        assert_eq!(leap_month_prefix(&locale("ko"), CalendarId("dangi")), "윤");
+        assert_eq!(leap_month_prefix(&locale("de"), CalendarId("gregory")), "");
+    }
+
+    #[test]
+    fn the_hebrew_intercalary_month_and_leap_year_adar_have_their_own_names() {
+        let hebrew = CalendarId("hebrew");
+        let month = |tag: &str, month: Month, leap_year: bool| {
+            month_label_in(
+                &locale(tag),
+                hebrew,
+                month,
+                leap_year,
+                NameWidth::Wide,
+                NameContext::Standalone,
+            )
+            .map(|label| label.to_string())
+        };
+        // Adar I is the intercalary repetition of Shevaṭ, month 5, and is
+        // not "leap Shevat"; the Adar of a leap year is Adar II; Nisan is
+        // month 7 in every year.
+        assert_eq!(month("en", Month::leap(5), true).as_deref(), Some("Adar I"));
+        assert_eq!(
+            month("en", Month::regular(5), true).as_deref(),
+            Some("Shevat")
+        );
+        assert_eq!(
+            month("en", Month::regular(6), true).as_deref(),
+            Some("Adar II")
+        );
+        assert_eq!(
+            month("en", Month::regular(6), false).as_deref(),
+            Some("Adar")
+        );
+        assert_eq!(
+            month("en", Month::regular(7), false).as_deref(),
+            Some("Nisan")
+        );
+        assert_eq!(
+            month("en", Month::regular(12), true).as_deref(),
+            Some("Elul")
+        );
+        assert_eq!(month("en", Month::regular(13), true), None);
+        assert_eq!(month("he", Month::leap(5), true).as_deref(), Some("אדר א׳"));
+        assert_eq!(
+            month("he", Month::regular(6), true).as_deref(),
+            Some("אדר ב׳")
+        );
+        assert_eq!(
+            month("he", Month::regular(6), false).as_deref(),
+            Some("אדר")
+        );
+        // A calendar with a prefix and no such names is unchanged by the
+        // year.
+        assert_eq!(
+            lunisolar_month("zh-Hans", "chinese", Month::leap(2)).as_deref(),
+            Some("闰二月")
+        );
+        assert_eq!(
+            month_label_in(
+                &locale("zh-Hans"),
+                CalendarId("chinese"),
+                Month::regular(2),
+                true,
+                NameWidth::Wide,
+                NameContext::Standalone
+            )
+            .map(|label| label.to_string())
+            .as_deref(),
+            Some("二月")
+        );
+    }
+
+    #[test]
+    fn an_era_the_locale_does_not_list_is_written_from_the_calendars_own_name() {
+        use hc_calendar::shape::EraName;
+        let japanese = CalendarId("japanese");
+        // The data lists the modern five; 嘉永 is not among them.
+        assert_eq!(
+            era_name_by_code(&locale("ja"), japanese, "kaei", NameWidth::Wide),
+            None
+        );
+        let kaei = Some(EraName::new("嘉永", "Kaei"));
+        assert_eq!(
+            era_label(&locale("ja"), japanese, "kaei", kaei, NameWidth::Wide),
+            "嘉永"
+        );
+        assert_eq!(
+            era_label(&locale("en"), japanese, "kaei", kaei, NameWidth::Wide),
+            "Kaei"
+        );
+        // A non-Latin locale gets the calendar's own orthography, not
+        // Hepburn.
+        assert_eq!(
+            era_label(&locale("ko"), japanese, "kaei", kaei, NameWidth::Wide),
+            "嘉永"
+        );
+        // The locale's own name still comes first, and the code is the last
+        // resort.
+        assert_eq!(
+            era_label(&locale("ja"), japanese, "reiwa", kaei, NameWidth::Wide),
+            "令和"
+        );
+        assert_eq!(
+            era_label(&locale("ja"), japanese, "kaei", None, NameWidth::Wide),
+            "kaei"
+        );
+        // Era codes match without regard to case, as the calendars spell
+        // theirs in capitals.
+        assert_eq!(
+            era_name_by_code(
+                &locale("en"),
+                CalendarId("gregory"),
+                "AD",
+                NameWidth::Abbreviated
+            ),
+            Some("AD")
+        );
+    }
+
+    #[test]
+    fn a_calendar_the_locale_does_not_name_is_rendered_in_its_own_language_then_english() {
+        use hc_calendar::{CalendarMeta, Rd, YearKind};
+        let meta = |id: &'static str, native: &'static [&'static str]| CalendarMeta {
+            id: CalendarId(id),
+            english_name: "",
+            year_kind: YearKind::EpochForward,
+            has_leap_months: false,
+            is_astronomical: false,
+            earliest: None,
+            latest: None,
+            native_locales: native,
+        };
+        let ja = locale("ja");
+        // Japanese has no words for the Hebrew months, so the Hebrew
+        // calendar answers in Hebrew.
+        let hebrew = meta("hebrew", &["he"]);
+        assert_eq!(locale_for_calendar(Some(&ja), &hebrew).to_string(), "he");
+        assert_eq!(
+            lunisolar_month("ja", "hebrew", Month::regular(1)),
+            None,
+            "ja itself still has no name"
+        );
+        assert!(
+            month_label(
+                &locale_for_calendar(Some(&ja), &hebrew),
+                CalendarId("hebrew"),
+                Month::regular(1),
+                NameWidth::Wide,
+                NameContext::Standalone
+            )
+            .is_some()
+        );
+        // The crate carries the haabʼ's own language, so the calendar
+        // answers in Yucatec.
+        let maya = meta("maya-haab", &["yua"]);
+        assert_eq!(locale_for_calendar(Some(&ja), &maya).to_string(), "yua");
+        // When no locale names the calendar at all, the request stands for
+        // its numbering.
+        let akan = meta("akan", &["ak"]);
+        assert_eq!(
+            locale_for_calendar(Some(&ja), &akan).to_string(),
+            "ja",
+            "no locale names the Akan calendar, so the request stands for numbering"
+        );
+        // A native locale the crate does not carry falls to English.
+        let babylonian = meta("babylonian", &["akk"]);
+        assert_eq!(
+            locale_for_calendar(Some(&ja), &babylonian).to_string(),
+            "en"
+        );
+        // Asked for the native locale outright.
+        assert_eq!(locale_for_calendar(None, &hebrew).to_string(), "he");
+        assert_eq!(locale_for_calendar(None, &babylonian).to_string(), "en");
+        let gregorian = meta("gregory", &[]);
+        assert_eq!(locale_for_calendar(None, &gregorian).to_string(), "en");
+        // A request that names the calendar is kept as asked, region and
+        // all.
+        assert_eq!(
+            locale_for_calendar(Some(&locale("ja-JP")), &gregorian).to_string(),
+            "ja-JP"
+        );
+        assert!(names_calendar(&locale("tlh"), CalendarId("gregory")));
+        assert!(!names_calendar(&locale("tlh"), CalendarId("hebrew")));
+        assert!(is_carried(&locale("zh-Hans-CN")));
+        assert!(!is_carried(&locale("tlh")));
+        assert_eq!(
+            Rd(1).0,
+            1,
+            "the meta above is a value, not a calendar; nothing converts"
+        );
+    }
+
+    #[test]
+    fn templates_come_level_by_level_and_the_default_fills_the_rest() {
+        let chain = templates(&locale("ja"), CalendarId("japanese"));
+        assert_eq!(chain.entry.implied_era, "ad");
+        assert_eq!(chain.locale.year, "{era}{year}年");
+        assert_eq!(chain.locale.first_year, "{era}元年");
+        assert_eq!(chain.merged().date, "{year}{month}{day}");
+        assert!(chain.merged().implies_era("AD"));
+        assert!(!chain.merged().implies_era("reiwa"));
+        // The Chinese calendar's entry states the sexagenary year and the
+        // day names; the locale's day suffix stands behind it.
+        let chinese = templates(&locale("zh-Hans"), CalendarId("chinese"));
+        assert_eq!(chinese.entry.year, "{sexagenary}年");
+        assert_eq!(chinese.entry.day_names.len(), 30);
+        assert_eq!(chinese.levels()[1].day, "{day}日");
+        // A calendar nobody names gets the default outright.
+        let haab = templates(&locale("ja"), CalendarId("maya-haab"));
+        assert!(haab.entry.is_none() && haab.locale.is_none());
+        assert_eq!(haab.levels()[2].year, DateTemplates::DEFAULT.year);
+        assert_eq!(
+            calendar_display_name(&locale("ja-JP"), CalendarId("japanese")),
+            Some("和暦")
+        );
+        assert_eq!(
+            calendar_display_name(&locale("de"), CalendarId("maya-haab")),
+            None
+        );
+        assert_eq!(sexagenary_joiner(&locale("en")), " ");
+        assert_eq!(sexagenary_joiner(&locale("ja")), "");
+        assert_eq!(sexagenary_joiner(&locale("de")), "");
     }
 
     #[test]
@@ -1078,6 +1900,8 @@ mod tests {
             ),
             Some("תשרי")
         );
+        // Month 6 is Adar, as the calendar numbers it; Adar I is the
+        // intercalary repetition of month 5 and has a name of its own.
         assert_eq!(
             month_name(
                 &locale("en"),
@@ -1086,20 +1910,30 @@ mod tests {
                 NameWidth::Wide,
                 NameContext::Format
             ),
+            Some("Adar")
+        );
+        assert_eq!(
+            month_name(
+                &locale("en"),
+                CalendarId("hebrew"),
+                Month::leap(5),
+                NameWidth::Wide,
+                NameContext::Format
+            ),
             Some("Adar I")
         );
         assert_eq!(
             month_count(&locale("en"), CalendarId("hebrew"), NameContext::Format),
-            Some(13)
+            Some(12)
         );
     }
 
     #[test]
-    fn the_old_japanese_month_names_are_kept_under_the_lunisolar_calendar() {
+    fn the_old_japanese_month_names_are_kept_under_the_japanese_lunisolar_calendars() {
         assert_eq!(
             month_name(
                 &locale("ja"),
-                CalendarId("chinese"),
+                CalendarId("japanese-tenpo"),
                 Month::regular(12),
                 NameWidth::Wide,
                 NameContext::Format
@@ -1109,7 +1943,7 @@ mod tests {
         assert_eq!(
             month_name(
                 &locale("ja"),
-                CalendarId("chinese"),
+                CalendarId("japanese-senmyo"),
                 Month::regular(1),
                 NameWidth::Wide,
                 NameContext::Format

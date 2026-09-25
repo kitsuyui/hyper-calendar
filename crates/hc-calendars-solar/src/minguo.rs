@@ -173,6 +173,7 @@ impl Calendar for MinguoCalendar {
             is_astronomical: false,
             earliest: Some(gregorian::EARLIEST),
             latest: Some(gregorian::LATEST),
+            native_locales: &["zh-Hant"],
         }
     }
 

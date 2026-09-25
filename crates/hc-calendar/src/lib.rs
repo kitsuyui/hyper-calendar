@@ -29,6 +29,13 @@
 //! Every calendar implements `Calendar`; [`DynAdapter`] derives the dynamic
 //! one from it, so no calendar author writes the bridge twice.
 //!
+//! # Units of a calendar
+//!
+//! [`units`] walks a stretch of fixed days as one calendar's eras, years,
+//! months or days, each as a span of fixed days with the fields of its
+//! first day, using nothing but the dynamic interface — so a timeline can
+//! draw any registered calendar as a lane without knowing which one it is.
+//!
 //! # Cycles, which are not calendars
 //!
 //! Some ways of naming a day are not calendars at all: they repeat without
@@ -59,6 +66,7 @@ pub mod fixed;
 pub mod gregorian;
 pub mod time;
 pub mod traits;
+pub mod units;
 pub mod weekday;
 
 #[cfg(feature = "alloc")]
@@ -69,9 +77,10 @@ pub use daystart::{DayBoundary, Standing, Usage};
 pub use error::{CalendarError, CalendarResult};
 pub use fields::{DateFields, Month, YearKind};
 pub use fixed::{Rd, moment_to_rd, rd_to_moment};
-pub use shape::{CycleLength, CycleShape, Naming};
+pub use shape::{CycleLength, CycleShape, EraName, Naming};
 pub use time::{CivilDateTime, CivilTime};
 pub use traits::{Calendar, CalendarId, CalendarMeta, DynAdapter, DynCalendar};
+pub use units::{Unit, UnitSpan};
 pub use weekday::Weekday;
 
 #[cfg(feature = "alloc")]

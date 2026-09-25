@@ -349,6 +349,7 @@ impl Calendar for InternationalFixedCalendar {
             is_astronomical: false,
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
+            native_locales: &[],
         }
     }
 

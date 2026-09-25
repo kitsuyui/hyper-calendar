@@ -297,6 +297,7 @@ impl Calendar for AstronomicalBahaiCalendar {
             is_astronomical: true,
             earliest: Some(earliest()),
             latest: Some(latest()),
+            native_locales: &["fa", "ar"],
         }
     }
 
