@@ -1151,6 +1151,421 @@ fn six_closes_on_the_days_its_calendar_lists() {
     assert!(early.is_empty());
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Moscow, Johannesburg, Mexico City, Tel Aviv, Riyadh, Istanbul, Warsaw,
+// Vienna, Madrid, NZX
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The weekday closures in the Moscow Exchange's announcements, which for
+/// 2025 and 2026 are also its trading calendar's weekdays without trading
+/// or with only the weekend session.
+#[rustfmt::skip]
+const MISX_CLOSURES: &[(i64, &[(u8, u8)])] = &[
+    (2023, &[(1, 2), (2, 23), (3, 8), (5, 1), (5, 9), (6, 12)]),
+    (2024, &[(1, 1), (1, 2), (2, 23), (3, 8), (5, 1), (5, 9), (6, 12), (11, 4), (12, 31)]),
+    (2025, &[(1, 1), (1, 2), (1, 7), (5, 1), (5, 9), (6, 12), (11, 4), (12, 31)]),
+    (2026, &[(1, 1), (1, 2), (1, 7), (2, 23), (5, 1), (6, 12), (11, 4), (12, 31)]),
+];
+
+#[test]
+fn moscow_closes_on_the_days_its_announcements_list_from_2023_to_2026() {
+    for &(y, listed) in MISX_CLOSURES {
+        let (closed, early) = year_of(&exchanges::MOSCOW_EXCHANGE, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert!(early.is_empty(), "{y}");
+    }
+}
+
+#[test]
+fn moscow_trades_on_russias_other_days_off_and_its_working_saturdays() {
+    let russia = |y| HolidayCalendar::for_year(&hc_holiday::countries::RUSSIA, None, y);
+    let moex = |y| HolidayCalendar::for_year(&exchanges::MOSCOW_EXCHANGE, None, y);
+    // Days off in Russia on which the exchange trades.
+    for (y, m, d) in [
+        (2023, 1, 3),
+        (2023, 1, 6),
+        (2023, 2, 24),
+        (2023, 11, 6),
+        (2024, 1, 8),
+        (2024, 4, 29),
+        (2024, 12, 30),
+        (2025, 1, 3),
+        (2025, 5, 8),
+        (2025, 6, 13),
+        (2025, 11, 3),
+        (2026, 1, 9),
+        (2026, 3, 9),
+        (2026, 5, 11),
+    ] {
+        assert!(!russia(y).is_business_day(ymd(y, m, d)), "{y}-{m}-{d}");
+        assert!(moex(y).is_business_day(ymd(y, m, d)), "{y}-{m}-{d}");
+    }
+    // The working Saturdays, traded "в обычном режиме".
+    for (y, m, d) in [(2024, 4, 27), (2024, 11, 2), (2024, 12, 28), (2025, 11, 1)] {
+        assert!(russia(y).is_business_day(ymd(y, m, d)), "{y}-{m}-{d}");
+        assert!(moex(y).is_business_day(ymd(y, m, d)), "{y}-{m}-{d}");
+    }
+    // A weekend with a weekend-day session is not a trading day of its
+    // own, and a 2026 holiday with only that session is named for it.
+    assert!(!moex(2026).is_business_day(ymd(2026, 3, 14)));
+    assert_eq!(
+        moex(2026).on(ymd(2026, 6, 12))[0].name,
+        "Russia Day, weekend session only"
+    );
+    // A year the exchange's days are not read for is a gap.
+    assert!(!moex(2022).is_complete());
+    assert!(!moex(2027).is_complete());
+}
+
+/// Days as (month, day).
+type Days = Vec<(u8, u8)>;
+
+/// The closures on the exchange's own trading days, in order, and its
+/// partial days, for an exchange whose weekend need not be Saturday and
+/// Sunday; the gaps are left to the caller.
+fn trading_week_closures(exchange: &RuleSet, year: i64) -> (Days, Days) {
+    let calendar = HolidayCalendar::for_year(exchange, None, year);
+    let mut closed = Vec::new();
+    let mut early = Vec::new();
+    for holiday in calendar.all() {
+        let Ok((_, month, day)) = gregorian::from_fixed(holiday.date) else {
+            panic!("{}", holiday.name);
+        };
+        assert_eq!(holiday.confidence, Confidence::Exact, "{}", holiday.name);
+        if calendar.is_weekend(holiday.date) {
+            continue;
+        }
+        if holiday.is_day_off() {
+            if closed.last() != Some(&(month, day)) {
+                closed.push((month, day));
+            }
+        } else {
+            assert!(
+                holiday.name.starts_with("Early close")
+                    || holiday.name.starts_with("Half trading day"),
+                "{}",
+                holiday.name
+            );
+            early.push((month, day));
+        }
+    }
+    (closed, early)
+}
+
+#[test]
+fn johannesburg_closes_on_the_national_holidays_and_the_declared_days() {
+    let jse = &exchanges::JOHANNESBURG_STOCK_EXCHANGE;
+    // The markets calendars: a Sunday holiday closes the Monday (Youth Day
+    // 2024, Freedom Day 2025, Women's Day 2026), a Saturday one nothing
+    // (Freedom Day 2024, Women's Day 2025, Human Rights Day 2026), and the
+    // declared days close for their year.
+    let (closed, early) = year_of(jse, 2024);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (3, 21),
+            (3, 29),
+            (4, 1),
+            (5, 1),
+            (5, 29),
+            (6, 17),
+            (8, 9),
+            (9, 24),
+            (12, 16),
+            (12, 25),
+            (12, 26)
+        ]
+    );
+    assert_eq!(early, [(12, 24), (12, 31)]);
+    let (closed, early) = year_of(jse, 2025);
+    assert_eq!(
+        days(&closed),
+        [
+            (1, 1),
+            (3, 21),
+            (4, 18),
+            (4, 21),
+            (4, 28),
+            (5, 1),
+            (6, 16),
+            (9, 24),
+            (12, 16),
+            (12, 25),
+            (12, 26)
+        ]
+    );
+    assert_eq!(early, [(12, 24), (12, 31)]);
+    // 2026's early closes are not yet announced: a gap, and no guess.
+    let (closed, early) = trading_week_closures(jse, 2026);
+    assert_eq!(
+        closed,
+        [
+            (1, 1),
+            (4, 3),
+            (4, 6),
+            (4, 27),
+            (5, 1),
+            (6, 16),
+            (8, 10),
+            (9, 24),
+            (11, 4),
+            (12, 16),
+            (12, 25)
+        ]
+    );
+    assert!(early.is_empty());
+    assert!(!HolidayCalendar::for_year(jse, None, 2026).is_complete());
+    // December 2023: the declared 15th, and the Fridays before the Sunday
+    // 24th and 31st closing at noon.
+    let calendar = HolidayCalendar::for_year(jse, None, 2023);
+    assert!(calendar.is_holiday(ymd(2023, 12, 15)));
+    assert!(calendar.is_business_day(ymd(2023, 12, 22)));
+    assert_eq!(calendar.on(ymd(2023, 12, 29))[0].name, "Early close, 12:00");
+    // The declared days are for their year only.
+    let calendar = HolidayCalendar::for_year(jse, None, 2025);
+    assert!(calendar.is_business_day(ymd(2025, 5, 29)));
+}
+
+/// The weekday closures on the Bolsa Mexicana de Valores' lists.
+#[rustfmt::skip]
+const XMEX_CLOSURES: &[(i64, &[(u8, u8)])] = &[
+    (2019, &[(1, 1), (2, 4), (3, 18), (4, 18), (4, 19), (5, 1), (9, 16), (11, 18), (12, 12), (12, 25)]),
+    (2020, &[(1, 1), (2, 3), (3, 16), (4, 9), (4, 10), (5, 1), (9, 16), (11, 2), (11, 16), (12, 25)]),
+    (2021, &[(1, 1), (2, 1), (3, 15), (4, 1), (4, 2), (9, 16), (11, 2), (11, 15)]),
+    (2022, &[(2, 7), (3, 21), (4, 14), (4, 15), (9, 16), (11, 2), (11, 21), (12, 12)]),
+    (2023, &[(2, 6), (3, 20), (4, 6), (4, 7), (5, 1), (11, 2), (11, 20), (12, 12), (12, 25)]),
+    // The BMV's page leaves out 1 January; the CNBV's list closes it.
+    (2024, &[(1, 1), (2, 5), (3, 18), (3, 28), (3, 29), (5, 1), (9, 16), (10, 1), (11, 18), (12, 12), (12, 25)]),
+    (2025, &[(1, 1), (2, 3), (3, 17), (4, 17), (4, 18), (5, 1), (9, 16), (11, 17), (12, 12), (12, 25)]),
+    (2026, &[(1, 1), (2, 2), (3, 16), (4, 2), (4, 3), (5, 1), (9, 16), (11, 2), (11, 16), (12, 25)]),
+];
+
+#[test]
+fn mexico_city_closes_on_the_days_its_lists_give_from_2019_to_2026() {
+    for &(y, listed) in XMEX_CLOSURES {
+        let (closed, early) = year_of(&exchanges::BOLSA_MEXICANA_DE_VALORES, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert!(early.is_empty(), "{y}");
+    }
+    // Holy Thursday, 2 November and 12 December are the exchange's, not
+    // the country's.
+    let country = HolidayCalendar::for_year(&hc_holiday::countries::MEXICO, None, 2026);
+    assert!(country.is_business_day(ymd(2026, 4, 2)));
+    assert!(country.is_business_day(ymd(2026, 11, 2)));
+}
+
+/// The closures on the Tel Aviv Stock Exchange's trading days, from its
+/// vacation schedules.
+#[rustfmt::skip]
+const XTAE_CLOSURES: &[(i64, &[(u8, u8)])] = &[
+    (2024, &[(3, 24), (4, 22), (4, 23), (4, 28), (4, 29), (5, 13), (5, 14), (6, 11), (6, 12), (8, 13), (10, 2), (10, 3), (10, 16), (10, 17), (10, 23), (10, 24)]),
+    (2025, &[(4, 13), (4, 30), (5, 1), (6, 1), (6, 2), (8, 3), (9, 22), (9, 23), (9, 24), (10, 1), (10, 2), (10, 6), (10, 7), (10, 13), (10, 14)]),
+    (2026, &[(1, 2), (3, 3), (4, 1), (4, 2), (4, 7), (4, 8), (4, 21), (4, 22), (5, 21), (5, 22), (7, 23), (9, 11), (9, 18), (9, 21), (9, 25), (10, 2), (10, 27)]),
+    (2027, &[(3, 23), (4, 21), (4, 22), (4, 27), (4, 28), (5, 11), (5, 12), (6, 10), (6, 11), (8, 12), (10, 1), (10, 8), (10, 11), (10, 15), (10, 22)]),
+];
+
+#[test]
+fn tel_aviv_closes_on_the_days_its_schedules_list_from_2024_to_2027() {
+    let tase = &exchanges::TEL_AVIV_STOCK_EXCHANGE;
+    for &(y, listed) in XTAE_CLOSURES {
+        let calendar = HolidayCalendar::for_year(tase, None, y);
+        assert!(calendar.is_complete(), "{y}: {:?}", calendar.gaps());
+        let (closed, _) = trading_week_closures(tase, y);
+        assert_eq!(closed, listed, "{y}");
+    }
+    let (_, early) = trading_week_closures(tase, 2025);
+    assert_eq!(
+        early,
+        [
+            (4, 14),
+            (4, 15),
+            (4, 16),
+            (4, 17),
+            (10, 8),
+            (10, 9),
+            (10, 12)
+        ]
+    );
+    // Sunday to Thursday in 2025, Monday to Friday from January 2026.
+    let calendar = HolidayCalendar::for_year(tase, None, 2025);
+    assert!(calendar.is_business_day(ymd(2025, 12, 28)));
+    assert!(!calendar.is_business_day(ymd(2025, 12, 26)));
+    let calendar = HolidayCalendar::for_year(tase, None, 2026);
+    assert!(!calendar.is_business_day(ymd(2026, 1, 2)));
+    assert!(!calendar.is_business_day(ymd(2026, 1, 4)));
+    assert!(calendar.is_business_day(ymd(2026, 1, 9)));
+    assert!(!HolidayCalendar::for_year(tase, None, 2023).is_complete());
+    assert!(!HolidayCalendar::for_year(tase, None, 2028).is_complete());
+}
+
+/// The closures on the Saudi Exchange's trading days, from its holiday
+/// announcements.
+#[rustfmt::skip]
+const XSAU_CLOSURES: &[(i64, &[(u8, u8)])] = &[
+    (2023, &[(2, 22), (4, 18), (4, 19), (4, 20), (4, 23), (4, 24), (6, 25), (6, 26), (6, 27), (6, 28), (6, 29), (9, 24)]),
+    (2024, &[(2, 22), (4, 7), (4, 8), (4, 9), (4, 10), (4, 11), (6, 16), (6, 17), (6, 18), (6, 19), (6, 20), (9, 23)]),
+    (2025, &[(2, 23), (3, 30), (3, 31), (4, 1), (4, 2), (6, 5), (6, 8), (6, 9), (6, 10), (9, 23)]),
+    (2026, &[(2, 22), (3, 17), (3, 18), (3, 19), (3, 22), (3, 23), (5, 24), (5, 25), (5, 26), (5, 27), (5, 28), (9, 23)]),
+];
+
+#[test]
+fn riyadh_closes_on_the_days_its_announcements_give_from_2023_to_2026() {
+    let tadawul = &exchanges::SAUDI_EXCHANGE;
+    for &(y, listed) in XSAU_CLOSURES {
+        let calendar = HolidayCalendar::for_year(tadawul, None, y);
+        assert!(calendar.is_complete(), "{y}: {:?}", calendar.gaps());
+        let (closed, early) = trading_week_closures(tadawul, y);
+        assert_eq!(closed, listed, "{y}");
+        assert!(early.is_empty(), "{y}");
+    }
+    // A Sunday-to-Thursday week: Sunday trades, Friday does not.
+    let calendar = HolidayCalendar::for_year(tadawul, None, 2026);
+    assert!(calendar.is_business_day(ymd(2026, 3, 15)));
+    assert!(!calendar.is_business_day(ymd(2026, 3, 13)));
+    assert!(
+        calendar.is_business_day(ymd(2026, 3, 24)),
+        "trading resumes"
+    );
+    // The Eid days are announced, not predicted.
+    assert!(!HolidayCalendar::for_year(tadawul, None, 2027).is_complete());
+}
+
+/// A year's weekday closures and half days, as (month, day).
+type ClosuresAndHalves = (i64, &'static [(u8, u8)], &'static [(u8, u8)]);
+
+/// The weekday closures and half days in Borsa İstanbul's tables.
+#[rustfmt::skip]
+const XIST_DAYS: &[ClosuresAndHalves] = &[
+    (2019, &[(1, 1), (4, 23), (5, 1), (6, 4), (6, 5), (6, 6), (7, 15), (8, 12), (8, 13), (8, 14), (8, 30), (10, 29)], &[(6, 3), (10, 28)]),
+    (2020, &[(1, 1), (4, 23), (5, 1), (5, 19), (5, 25), (5, 26), (7, 15), (7, 31), (8, 3), (10, 29)], &[(7, 30), (10, 28)]),
+    (2021, &[(1, 1), (4, 23), (5, 13), (5, 14), (5, 19), (7, 15), (7, 20), (7, 21), (7, 22), (7, 23), (8, 30), (10, 29)], &[(5, 12), (7, 19), (10, 28)]),
+    (2022, &[(5, 2), (5, 3), (5, 4), (5, 19), (7, 11), (7, 12), (7, 15), (8, 30)], &[(7, 8), (10, 28)]),
+    (2023, &[(4, 21), (5, 1), (5, 19), (6, 28), (6, 29), (6, 30), (8, 30)], &[(4, 20), (6, 27)]),
+    (2024, &[(1, 1), (4, 10), (4, 11), (4, 12), (4, 23), (5, 1), (6, 17), (6, 18), (6, 19), (7, 15), (8, 30), (10, 29)], &[(4, 9), (10, 28)]),
+    (2025, &[(1, 1), (3, 31), (4, 1), (4, 23), (5, 1), (5, 19), (6, 6), (6, 9), (7, 15), (10, 29)], &[(6, 5), (10, 28)]),
+    (2026, &[(1, 1), (3, 20), (4, 23), (5, 1), (5, 19), (5, 27), (5, 28), (5, 29), (7, 15), (10, 29)], &[(3, 19), (5, 26), (10, 28)]),
+];
+
+#[test]
+fn istanbul_closes_on_the_days_its_tables_give_from_2019_to_2026() {
+    for &(y, listed, halves) in XIST_DAYS {
+        let (closed, early) = year_of(&exchanges::BORSA_ISTANBUL, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert_eq!(early, halves, "{y}");
+    }
+    // An administrative-leave day beside a Bayram is traded.
+    let calendar = HolidayCalendar::for_year(&exchanges::BORSA_ISTANBUL, None, 2026);
+    assert!(calendar.is_business_day(ymd(2026, 5, 25)));
+    assert!(!HolidayCalendar::for_year(&exchanges::BORSA_ISTANBUL, None, 2027).is_complete());
+}
+
+/// The weekday "Dni bez sesji" on GPW's pages.
+#[rustfmt::skip]
+const XWAR_CLOSURES: &[(i64, &[(u8, u8)])] = &[
+    (2019, &[(1, 1), (4, 19), (4, 22), (5, 1), (5, 3), (6, 20), (8, 15), (11, 1), (11, 11), (12, 24), (12, 25), (12, 26), (12, 31)]),
+    (2020, &[(1, 1), (1, 6), (4, 10), (4, 13), (5, 1), (6, 11), (11, 11), (12, 24), (12, 25), (12, 31)]),
+    (2021, &[(1, 1), (1, 6), (4, 2), (4, 5), (5, 3), (6, 3), (11, 1), (11, 11), (12, 24), (12, 31)]),
+    (2022, &[(1, 6), (4, 15), (4, 18), (5, 3), (6, 16), (8, 15), (11, 1), (11, 11), (12, 26)]),
+    (2023, &[(1, 6), (4, 7), (4, 10), (5, 1), (5, 3), (6, 8), (8, 15), (11, 1), (12, 25), (12, 26)]),
+    (2024, &[(1, 1), (3, 29), (4, 1), (5, 1), (5, 3), (5, 30), (8, 15), (11, 1), (11, 11), (12, 24), (12, 25), (12, 26), (12, 31)]),
+    (2025, &[(1, 1), (1, 6), (4, 18), (4, 21), (5, 1), (6, 19), (8, 15), (11, 11), (12, 24), (12, 25), (12, 26), (12, 31)]),
+    (2026, &[(1, 1), (1, 6), (4, 3), (4, 6), (5, 1), (6, 4), (11, 11), (12, 24), (12, 25), (12, 31)]),
+    (2027, &[(1, 1), (1, 6), (3, 26), (3, 29), (5, 3), (5, 27), (11, 1), (11, 11), (12, 24), (12, 31)]),
+];
+
+#[test]
+fn warsaw_closes_on_the_days_its_pages_list_from_2019_to_2027() {
+    for &(y, listed) in XWAR_CLOSURES {
+        let (closed, early) = year_of(&exchanges::WARSAW_STOCK_EXCHANGE, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert!(early.is_empty(), "{y}");
+    }
+    // Christmas Eve 2025 comes from the country's table, once.
+    let calendar = HolidayCalendar::for_year(&exchanges::WARSAW_STOCK_EXCHANGE, None, 2025);
+    assert_eq!(calendar.on(ymd(2025, 12, 24)).len(), 1);
+}
+
+/// The weekday "Handelsfreie Feiertage" of the Wiener Börse.
+#[rustfmt::skip]
+const XWBO_CLOSURES: &[(i64, &[(u8, u8)])] = &[
+    (2019, &[(1, 1), (4, 19), (4, 22), (5, 1), (6, 10), (12, 24), (12, 25), (12, 26), (12, 31)]),
+    (2020, &[(1, 1), (4, 10), (4, 13), (5, 1), (6, 1), (10, 26), (12, 24), (12, 25), (12, 31)]),
+    (2021, &[(1, 1), (4, 2), (4, 5), (5, 24), (10, 26), (12, 24), (12, 31)]),
+    (2022, &[(4, 15), (4, 18), (6, 6), (10, 26), (12, 26)]),
+    (2023, &[(4, 7), (4, 10), (5, 1), (10, 26), (12, 25), (12, 26)]),
+    (2024, &[(1, 1), (3, 29), (4, 1), (5, 1), (12, 24), (12, 25), (12, 26), (12, 31)]),
+    (2025, &[(1, 1), (4, 18), (4, 21), (5, 1), (12, 24), (12, 25), (12, 26), (12, 31)]),
+    (2026, &[(1, 1), (4, 3), (4, 6), (5, 1), (10, 26), (12, 24), (12, 25), (12, 31)]),
+    (2027, &[(1, 1), (3, 26), (3, 29), (10, 26), (12, 24), (12, 31)]),
+];
+
+#[test]
+fn vienna_closes_on_the_days_its_lists_give_from_2019_to_2027() {
+    for &(y, listed) in XWBO_CLOSURES {
+        let (closed, early) = year_of(&exchanges::WIENER_BOERSE, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert!(early.is_empty(), "{y}");
+    }
+    // Whit Monday traded from 2023; 8 December and 1 November traded.
+    let calendar = HolidayCalendar::for_year(&exchanges::WIENER_BOERSE, None, 2026);
+    assert!(calendar.is_business_day(ymd(2026, 5, 25)));
+    assert!(calendar.is_business_day(ymd(2026, 12, 8)));
+}
+
+#[test]
+fn madrid_closes_on_the_days_bmes_calendars_list_from_2023_to_2026() {
+    let bme = &exchanges::BOLSA_DE_MADRID;
+    let (closed, early) = year_of(bme, 2023);
+    assert_eq!(days(&closed), [(4, 7), (4, 10), (5, 1), (12, 25), (12, 26)]);
+    assert!(early.is_empty());
+    for (y, listed) in [
+        (2024, [(1, 1), (3, 29), (4, 1), (5, 1), (12, 25), (12, 26)]),
+        (2025, [(1, 1), (4, 18), (4, 21), (5, 1), (12, 25), (12, 26)]),
+    ] {
+        let (closed, early) = year_of(bme, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert_eq!(early, [(12, 24), (12, 31)], "{y}");
+    }
+    let (closed, early) = year_of(bme, 2026);
+    assert_eq!(days(&closed), [(1, 1), (4, 3), (4, 6), (5, 1), (12, 25)]);
+    assert_eq!(early, [(12, 24), (12, 31)]);
+    // Epiphany and the Immaculate Conception are trading days.
+    let calendar = HolidayCalendar::for_year(bme, None, 2026);
+    assert!(calendar.is_business_day(ymd(2026, 1, 6)));
+    assert!(calendar.is_business_day(ymd(2026, 12, 8)));
+}
+
+/// The weekday closures in NZX's market-holiday memos.
+#[rustfmt::skip]
+const XNZE_CLOSURES: &[(i64, &[(u8, u8)])] = &[
+    (2022, &[(1, 3), (1, 4), (2, 7), (4, 15), (4, 18), (4, 25), (6, 6), (6, 24), (9, 26), (10, 24), (12, 26), (12, 27)]),
+    (2023, &[(1, 2), (1, 3), (2, 6), (4, 7), (4, 10), (4, 25), (6, 5), (7, 14), (10, 23), (12, 25), (12, 26)]),
+    (2024, &[(1, 1), (1, 2), (2, 6), (3, 29), (4, 1), (4, 25), (6, 3), (6, 28), (10, 28), (12, 25), (12, 26)]),
+    (2025, &[(1, 1), (1, 2), (2, 6), (4, 18), (4, 21), (4, 25), (6, 2), (6, 20), (10, 27), (12, 25), (12, 26)]),
+    (2026, &[(1, 1), (1, 2), (2, 6), (4, 3), (4, 6), (4, 27), (6, 1), (7, 10), (10, 26), (12, 25), (12, 28)]),
+];
+
+#[test]
+fn nzx_closes_on_the_days_its_memos_list_from_2022_to_2026() {
+    for &(y, listed) in XNZE_CLOSURES {
+        let (closed, _) = year_of(&exchanges::NZX, y);
+        assert_eq!(days(&closed), listed, "{y}");
+    }
+    // The abbreviated days: the business days before Christmas and the New
+    // Year, the Fridays in 2022.
+    let (_, early) = year_of(&exchanges::NZX, 2022);
+    assert_eq!(early, [(12, 23), (12, 30)]);
+    let (_, early) = year_of(&exchanges::NZX, 2026);
+    assert_eq!(early, [(12, 24), (12, 31)]);
+    // 2027 as far as the memo reaches: 2 January, a Saturday, closes the
+    // Monday. Wellington's anniversary day is traded.
+    let (closed, _) = year_of(&exchanges::NZX, 2027);
+    assert_eq!(days(&closed)[..2], [(1, 1), (1, 4)]);
+    let calendar = HolidayCalendar::for_year(&exchanges::NZX, None, 2026);
+    assert!(calendar.is_business_day(ymd(2026, 1, 19)));
+}
+
 #[test]
 fn the_catalogue_is_keyed_by_market_identifier_code() {
     assert_eq!(
@@ -1158,5 +1573,5 @@ fn the_catalogue_is_keyed_by_market_identifier_code() {
         Some("New York Stock Exchange")
     );
     assert!(exchanges::ALL.iter().all(|e| e.code.len() == 4));
-    assert_eq!(exchanges::ALL.len(), 24);
+    assert_eq!(exchanges::ALL.len(), 34);
 }
