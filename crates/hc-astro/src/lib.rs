@@ -8,8 +8,9 @@
 //! # What it is
 //!
 //! * [`time`] — Universal Time to Terrestrial Time, and ΔT.
-//! * [`delta_t_table`] — the observed ΔT, 1974–2026, that [`time`] reads
-//!   before falling back to its polynomials.
+//! * [`delta_t_table`] — the observed ΔT, 1974–2026, and the USNO's
+//!   predictions to 2033, that [`time`] reads before falling back to its
+//!   polynomials.
 //! * [`ut1`] — the UT1 time scale, from ΔT or from a published DUT1 series.
 //! * [`earth`] — obliquity, nutation, sidereal time.
 //! * [`vsop87`] — the Earth's heliocentric position from VSOP87, truncated

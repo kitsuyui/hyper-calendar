@@ -7,7 +7,7 @@
 //! formula but an observation: the Earth's rotation is irregular, so ΔT can
 //! only be measured, and outside the measurements fitted or extrapolated.
 //!
-//! [`delta_t`] therefore answers from two sources, and [`delta_t_regime`]
+//! [`delta_t`] therefore answers from three sources, and [`delta_t_regime`]
 //! says which:
 //!
 //! * From 1974-01-01 to 2026-04-01, the **observed** values the USNO
@@ -15,7 +15,13 @@
 //!   is [`crate::delta_t_table`], with its source and the check against the
 //!   leap-second table; [`TABULATED_DELTA_T_FIRST`] and
 //!   [`TABULATED_DELTA_T_LAST`] are its ends. It is not extrapolated.
-//! * Outside that, the NASA/Espenak–Meeus "Polynomial Expressions for
+//! * From there to 2033-10-01, the USNO's **predictions**, one a quarter,
+//!   interpolated the same way, each with the error the USNO states for
+//!   it; [`PREDICTED_DELTA_T_LAST`] is their end, and [`delta_t_predicted`]
+//!   gives the value with its error. The file's rows begin in 2022 and
+//!   overlap the observations, where the observation wins. They are not
+//!   extrapolated either.
+//! * Outside both, the NASA/Espenak–Meeus "Polynomial Expressions for
 //!   Delta T" (Espenak & Meeus, *Five Millennium Canon of Solar Eclipses*,
 //!   NASA/TP-2006-214141, and the derived polynomial set), which covers
 //!   −1999 to +3000 in fifteen segments, with the parabola
@@ -24,19 +30,23 @@
 //!
 //! The polynomial segments meet at their joins to a few tenths of a second,
 //! which is well inside the uncertainty of the underlying eclipse-timing
-//! data, so this crate does not smooth them. The table meets the polynomial
-//! to 0.1 s at its start. At its end it does not: the 2005–2050 segment is a
-//! forecast made in 2006, and the Earth has since rotated faster than it
-//! forecast, so on 2026-04-01 the polynomial is 6.1 s above the observed
-//! value and the step is left visible rather than hidden by a blend. A
-//! Universal Time instant computed after the table's end is therefore about
-//! six seconds early, and the gap grows with the forecast's slope until the
-//! table is extended.
+//! data, so this crate does not smooth them. The observed table meets the
+//! polynomial to 0.1 s at its start, and the predictions to 0.04 s at its
+//! end, inside the 0.22 s error the USNO states there. At the end of the
+//! predictions the join is not close: the polynomial's 2005–2050 segment
+//! is a forecast made in 2006, and the Earth has since rotated faster than
+//! it forecast, so on 2033-10-01 the polynomial is 8.9 s above the last
+//! prediction, and the step is left visible rather than hidden by a blend
+//! or an offset. A Universal Time instant computed after the predictions'
+//! end is therefore about nine seconds early, and the gap grows with the
+//! forecast's slope until the tables are extended.
 
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
 
-use crate::delta_t_table::{DeltaTSample, TABULATED_DELTA_T};
+use crate::delta_t_table::{
+    DeltaTPredictionSample, DeltaTSample, PREDICTED_DELTA_T, TABULATED_DELTA_T,
+};
 use crate::util::poly;
 
 /// The J2000.0 epoch as a Rata Die moment: 2000-01-01 12:00 TT.
@@ -66,23 +76,48 @@ pub const TABULATED_DELTA_T_FIRST: f64 = decimal_year_of_sample(TABULATED_DELTA_
 
 /// The last decimal year the observed ΔT table covers: 2026-04-01, the
 /// last month the USNO had observed when the table was taken. After it the
-/// polynomial answers, six seconds high; see the [module
+/// predictions answer, to [`PREDICTED_DELTA_T_LAST`]; see the [module
 /// documentation](self).
 pub const TABULATED_DELTA_T_LAST: f64 =
     decimal_year_of_sample(TABULATED_DELTA_T[TABULATED_DELTA_T.len() - 1]);
 
-/// The decimal Gregorian year of a table sample, by the same rule as
+/// The first decimal year the USNO's ΔT predictions cover: 2022-07-02.
+/// The observed table overlaps the predictions up to its own last sample,
+/// and the observation wins there, so [`delta_t`] reads the predictions
+/// only after [`TABULATED_DELTA_T_LAST`].
+pub const PREDICTED_DELTA_T_FIRST: f64 = decimal_year_of_prediction(PREDICTED_DELTA_T[0]);
+
+/// The last decimal year the USNO's ΔT predictions cover: 2033-10-01.
+/// After it the polynomial answers, 8.9 s above the last prediction; see
+/// the [module documentation](self).
+pub const PREDICTED_DELTA_T_LAST: f64 =
+    decimal_year_of_prediction(PREDICTED_DELTA_T[PREDICTED_DELTA_T.len() - 1]);
+
+/// The decimal Gregorian year of 0h on a fixed day, by the same rule as
 /// [`decimal_year`]: the elapsed fraction of the actual year.
+const fn decimal_year_of_day(day: Rd) -> f64 {
+    let year = gregorian_year_from_rd(day);
+    let start = gregorian_new_year(year).0;
+    let length = gregorian_new_year(year + 1).0 - start;
+    year as f64 + (day.0 - start) as f64 / length as f64
+}
+
+/// The decimal Gregorian year of an observed sample.
 ///
 /// The table is a literal, so a sample naming a month that does not exist
 /// is a compile-time error here rather than a runtime one.
 const fn decimal_year_of_sample(sample: DeltaTSample) -> f64 {
-    let day_of_year = match hc_calendar::gregorian::day_of_year(sample.year, sample.month, 1) {
+    let day = match hc_calendar::gregorian::to_fixed(sample.year, sample.month, 1) {
         Ok(day) => day,
         Err(_) => panic!("a ΔT sample names a month that does not exist"),
     };
-    let length = hc_calendar::gregorian::days_in_year(sample.year);
-    sample.year as f64 + (day_of_year as f64 - 1.0) / length as f64
+    decimal_year_of_day(day)
+}
+
+/// The decimal Gregorian year of a prediction row, from its Modified Julian
+/// Date.
+const fn decimal_year_of_prediction(sample: DeltaTPredictionSample) -> f64 {
+    decimal_year_of_day(Rd::from_modified_julian_day(sample.mjd))
 }
 
 /// Which source answered a ΔT query; see [`delta_t_regime`].
@@ -91,11 +126,27 @@ pub enum DeltaTRegime {
     /// The observed table, interpolated between its yearly samples:
     /// [`TABULATED_DELTA_T_FIRST`] to [`TABULATED_DELTA_T_LAST`].
     Observed,
+    /// The USNO's predictions, interpolated between their quarterly rows:
+    /// after [`TABULATED_DELTA_T_LAST`], to [`PREDICTED_DELTA_T_LAST`].
+    Predicted,
     /// The Espenak–Meeus polynomials inside the span they were fitted to,
-    /// [`EARLIEST_FITTED_YEAR`] to [`LATEST_FITTED_YEAR`], outside the table.
+    /// [`EARLIEST_FITTED_YEAR`] to [`LATEST_FITTED_YEAR`], outside the
+    /// observations and the predictions.
     Fitted,
     /// The long-term parabola beyond the fitted span.
     Extrapolated,
+}
+
+/// A predicted ΔT, with the error the USNO states for it; see
+/// [`delta_t_predicted`].
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PredictedDeltaT {
+    /// `TT − UT1` in seconds.
+    pub seconds: f64,
+    /// The stated error of the prediction in seconds, interpolated between
+    /// the rows like the value. The file stops stating one past 1 s, so a
+    /// reading of 1.0 is a floor, not a measurement.
+    pub uncertainty: f64,
 }
 
 /// ΔT = TT − UT1 in seconds, for a moment in Universal Time.
@@ -111,14 +162,18 @@ pub fn delta_t(moment: Moment) -> f64 {
 /// ΔT = TT − UT1 in seconds, for a decimal Gregorian year.
 ///
 /// Inside [`TABULATED_DELTA_T_FIRST`]`..=`[`TABULATED_DELTA_T_LAST`] this is
-/// the observed table, [`delta_t_tabulated`]; outside it, the polynomials,
+/// the observed table, [`delta_t_tabulated`]; from there to
+/// [`PREDICTED_DELTA_T_LAST`] the USNO's predictions,
+/// [`delta_t_predicted`]; outside both, the polynomials,
 /// [`delta_t_polynomial`]. Beyond −500…+2150 those are the Espenak–Meeus
 /// parabola, whose uncertainty grows to hours at the ends of the historical
 /// record; see the crate README for what that means for a date you actually
 /// care about.
 #[must_use]
 pub fn delta_t_for_year(year: f64) -> f64 {
-    delta_t_tabulated(year).unwrap_or_else(|| delta_t_polynomial(year))
+    delta_t_tabulated(year)
+        .or_else(|| delta_t_predicted(year).map(|predicted| predicted.seconds))
+        .unwrap_or_else(|| delta_t_polynomial(year))
 }
 
 /// Which source [`delta_t_for_year`] answers from for a decimal year.
@@ -126,11 +181,40 @@ pub fn delta_t_for_year(year: f64) -> f64 {
 pub fn delta_t_regime(year: f64) -> DeltaTRegime {
     if (TABULATED_DELTA_T_FIRST..=TABULATED_DELTA_T_LAST).contains(&year) {
         DeltaTRegime::Observed
+    } else if (PREDICTED_DELTA_T_FIRST..=PREDICTED_DELTA_T_LAST).contains(&year) {
+        DeltaTRegime::Predicted
     } else if is_fitted_year(year) {
         DeltaTRegime::Fitted
     } else {
         DeltaTRegime::Extrapolated
     }
+}
+
+/// Linear interpolation in a series of samples ordered by `year_of`, or
+/// `None` outside it. The ends are the samples themselves.
+fn interpolate<T: Copy>(
+    samples: &[T],
+    year: f64,
+    year_of: impl Fn(T) -> f64,
+    value_of: impl Fn(T) -> f64,
+) -> Option<f64> {
+    let (&first, &last) = (samples.first()?, samples.last()?);
+    if !(year_of(first)..=year_of(last)).contains(&year) {
+        return None;
+    }
+    let index = samples.partition_point(|&sample| year_of(sample) <= year);
+    if index == 0 {
+        return Some(value_of(first));
+    }
+    if index == samples.len() {
+        return Some(value_of(last));
+    }
+    let (lower, upper) = (samples[index - 1], samples[index]);
+    let (x0, x1) = (year_of(lower), year_of(upper));
+    if x1 <= x0 {
+        return Some(value_of(lower));
+    }
+    Some(value_of(lower) + (value_of(upper) - value_of(lower)) * (year - x0) / (x1 - x0))
 }
 
 /// ΔT from the observed table alone, interpolated linearly between the
@@ -140,31 +224,47 @@ pub fn delta_t_regime(year: f64) -> DeltaTRegime {
 /// not the last value carried forward.
 #[must_use]
 pub fn delta_t_tabulated(year: f64) -> Option<f64> {
-    if !(TABULATED_DELTA_T_FIRST..=TABULATED_DELTA_T_LAST).contains(&year) {
-        return None;
-    }
-    let (&first, &last) = (TABULATED_DELTA_T.first()?, TABULATED_DELTA_T.last()?);
-    let index = TABULATED_DELTA_T.partition_point(|&sample| decimal_year_of_sample(sample) <= year);
-    if index == 0 {
-        return Some(first.seconds);
-    }
-    if index == TABULATED_DELTA_T.len() {
-        return Some(last.seconds);
-    }
-    let (lower, upper) = (TABULATED_DELTA_T[index - 1], TABULATED_DELTA_T[index]);
-    let (x0, x1) = (decimal_year_of_sample(lower), decimal_year_of_sample(upper));
-    if x1 <= x0 {
-        return Some(lower.seconds);
-    }
-    Some(lower.seconds + (upper.seconds - lower.seconds) * (year - x0) / (x1 - x0))
+    interpolate(TABULATED_DELTA_T, year, decimal_year_of_sample, |sample| {
+        sample.seconds
+    })
+}
+
+/// ΔT from the USNO's predictions alone, interpolated linearly between the
+/// quarterly rows either side of `year`, with the stated error interpolated
+/// the same way, or `None` outside [`PREDICTED_DELTA_T_FIRST`]`..=`
+/// [`PREDICTED_DELTA_T_LAST`].
+///
+/// This answers over the whole file, including the rows the observed table
+/// overlaps, so that the two can be compared; [`delta_t_for_year`] prefers
+/// the observation wherever there is one. The predictions are not
+/// extrapolated: a year past the last row gets `None`.
+#[must_use]
+pub fn delta_t_predicted(year: f64) -> Option<PredictedDeltaT> {
+    let seconds = interpolate(
+        PREDICTED_DELTA_T,
+        year,
+        decimal_year_of_prediction,
+        |sample| sample.seconds,
+    )?;
+    let uncertainty = interpolate(
+        PREDICTED_DELTA_T,
+        year,
+        decimal_year_of_prediction,
+        |sample| sample.uncertainty,
+    )?;
+    Some(PredictedDeltaT {
+        seconds,
+        uncertainty,
+    })
 }
 
 /// ΔT from the Espenak–Meeus polynomials alone, for any decimal year,
-/// ignoring the observed table.
+/// ignoring the observed table and the predictions.
 ///
-/// This is what [`delta_t_for_year`] answers outside the table, and inside
-/// it the value the crate would give without the table: 73.9 s for 2024
-/// against the 69.2 s observed.
+/// This is what [`delta_t_for_year`] answers outside both, and inside them
+/// the value the crate would give without them: 73.9 s for 2024 against
+/// the 69.2 s observed, 80.2 s for October 2033 against the 71.25 s
+/// predicted.
 #[must_use]
 #[allow(clippy::too_many_lines)]
 pub fn delta_t_polynomial(year: f64) -> f64 {
@@ -452,8 +552,21 @@ mod tests {
         assert!((TABULATED_DELTA_T_LAST - (2026.0 + 90.0 / 365.0)).abs() < 1e-12);
     }
 
+    /// The predictions' ends, as decimal years by the crate's own rule.
     #[test]
-    fn the_table_answers_inside_its_range_and_the_polynomial_outside() {
+    fn the_predictions_run_from_july_2022_to_october_2033() {
+        let first = Moment(hc_calendar::gregorian::to_fixed(2022, 7, 2).unwrap().0 as f64);
+        assert!((PREDICTED_DELTA_T_FIRST - decimal_year(first)).abs() < 1e-12);
+        let last = Moment(hc_calendar::gregorian::to_fixed(2033, 10, 1).unwrap().0 as f64);
+        assert!((PREDICTED_DELTA_T_LAST - decimal_year(last)).abs() < 1e-12);
+        const {
+            assert!(PREDICTED_DELTA_T_FIRST < TABULATED_DELTA_T_LAST);
+            assert!(TABULATED_DELTA_T_LAST < PREDICTED_DELTA_T_LAST);
+        }
+    }
+
+    #[test]
+    fn each_regime_answers_inside_its_own_range() {
         assert_eq!(delta_t_regime(1973.9), DeltaTRegime::Fitted);
         assert_eq!(delta_t_regime(1974.0), DeltaTRegime::Observed);
         assert_eq!(delta_t_regime(2024.5), DeltaTRegime::Observed);
@@ -463,6 +576,15 @@ mod tests {
         );
         assert_eq!(
             delta_t_regime(TABULATED_DELTA_T_LAST + 1e-9),
+            DeltaTRegime::Predicted
+        );
+        assert_eq!(delta_t_regime(2030.0), DeltaTRegime::Predicted);
+        assert_eq!(
+            delta_t_regime(PREDICTED_DELTA_T_LAST),
+            DeltaTRegime::Predicted
+        );
+        assert_eq!(
+            delta_t_regime(PREDICTED_DELTA_T_LAST + 1e-9),
             DeltaTRegime::Fitted
         );
         assert_eq!(delta_t_regime(0.0), DeltaTRegime::Fitted);
@@ -472,7 +594,10 @@ mod tests {
         assert!(delta_t_tabulated(1973.9).is_none());
         assert!(delta_t_tabulated(TABULATED_DELTA_T_LAST + 1e-9).is_none());
         assert!(delta_t_tabulated(f64::NAN).is_none());
-        for year in [-1000.0, 1900.0, 1973.9, 2030.0, 2200.0] {
+        assert!(delta_t_predicted(2022.4).is_none());
+        assert!(delta_t_predicted(PREDICTED_DELTA_T_LAST + 1e-9).is_none());
+        assert!(delta_t_predicted(f64::NAN).is_none());
+        for year in [-1000.0, 1900.0, 1973.9, 2034.0, 2200.0] {
             assert!((delta_t_for_year(year) - delta_t_polynomial(year)).abs() < 1e-12);
         }
         for sample in TABULATED_DELTA_T {
@@ -482,6 +607,67 @@ mod tests {
                 "at {year}"
             );
         }
+        for sample in PREDICTED_DELTA_T {
+            let year = decimal_year_of_prediction(*sample);
+            let predicted = delta_t_predicted(year).unwrap();
+            assert!(
+                (predicted.seconds - sample.seconds).abs() < 1e-9
+                    && (predicted.uncertainty - sample.uncertainty).abs() < 1e-9,
+                "at MJD {}",
+                sample.mjd
+            );
+            if year > TABULATED_DELTA_T_LAST {
+                assert!((delta_t_for_year(year) - sample.seconds).abs() < 1e-9);
+            } else {
+                // The observation wins over the prediction wherever both
+                // exist.
+                assert!((delta_t_for_year(year) - delta_t_tabulated(year).unwrap()).abs() < 1e-9);
+            }
+        }
+    }
+
+    /// Over the rows the observations overlap, the predictions run low by
+    /// up to 0.12 s against the observed table as this crate interpolates
+    /// it, and from late 2023 to early 2025 by more than the error the file
+    /// states, 2.7 times it at worst. The module documentation of the table
+    /// records the figures; this test keeps them honest.
+    #[test]
+    fn the_predictions_are_measured_against_the_observations_they_overlap() {
+        let mut worst = 0.0f64;
+        let mut worst_ratio = 0.0f64;
+        for sample in PREDICTED_DELTA_T {
+            let year = decimal_year_of_prediction(*sample);
+            let Some(observed) = delta_t_tabulated(year) else {
+                continue;
+            };
+            let difference = sample.seconds - observed;
+            assert!(
+                (-0.13..=0.05).contains(&difference),
+                "MJD {}: predicted {} against observed {observed}",
+                sample.mjd,
+                sample.seconds
+            );
+            worst = worst.max(difference.abs());
+            worst_ratio = worst_ratio.max(difference.abs() / sample.uncertainty);
+        }
+        assert!((0.10..0.13).contains(&worst), "worst difference {worst}");
+        assert!(
+            (2.5..3.0).contains(&worst_ratio),
+            "worst ratio {worst_ratio}"
+        );
+    }
+
+    #[test]
+    fn the_predictions_interpolate_linearly_between_their_rows() {
+        // MJD 62502 (2030-01-01): 69.97 s ± 0.768; MJD 62593 (2030-04-02):
+        // 70.08 s ± 0.794.
+        let year = decimal_year_of_day(Rd::from_modified_julian_day(62_502 + 91 / 2));
+        let predicted = delta_t_predicted(year).unwrap();
+        let fraction = 45.0 / 91.0;
+        assert!((predicted.seconds - (69.97 + 0.11 * fraction)).abs() < 1e-9);
+        assert!((predicted.uncertainty - (0.768 + 0.026 * fraction)).abs() < 1e-9);
+        let at_2030 = delta_t_for_year(2030.0);
+        assert!((at_2030 - 69.97).abs() < 1e-9, "{at_2030}");
     }
 
     #[test]
@@ -557,23 +743,38 @@ mod tests {
         }
     }
 
-    /// The table joins the polynomial to a tenth of a second at its start,
-    /// where the 1961–1986 segment was fitted to the same observations, and
-    /// leaves a step of six seconds at its end, where the 2005–2050 segment
-    /// is a forecast that ran high. The module documentation quotes both.
+    /// The observed table joins the polynomial to a tenth of a second at
+    /// its start, where the 1961–1986 segment was fitted to the same
+    /// observations, and the predictions to 0.04 s at its end. The
+    /// predictions leave a step of nine seconds at their own end, where the
+    /// 2005–2050 segment is a forecast that ran high; without them the step
+    /// at the observations' end would be six seconds. The module
+    /// documentation quotes all of these.
     #[test]
-    fn the_table_meets_the_polynomial_at_its_start_and_not_at_its_end() {
+    fn the_joins_between_the_regimes_are_as_documented() {
         let start_step =
             delta_t_polynomial(TABULATED_DELTA_T_FIRST) - delta_t_for_year(TABULATED_DELTA_T_FIRST);
         assert!(
             start_step.abs() < 0.15,
             "step of {start_step} s at the start"
         );
-        let end_step =
+        let hand_over = delta_t_for_year(TABULATED_DELTA_T_LAST + 1e-9)
+            - delta_t_for_year(TABULATED_DELTA_T_LAST);
+        assert!(
+            (hand_over + 0.043).abs() < 0.005,
+            "step of {hand_over} s from the observations to the predictions"
+        );
+        let polynomial_step =
             delta_t_polynomial(TABULATED_DELTA_T_LAST) - delta_t_for_year(TABULATED_DELTA_T_LAST);
         assert!(
-            (end_step - 6.1).abs() < 0.1,
-            "step of {end_step} s at the end"
+            (polynomial_step - 6.1).abs() < 0.1,
+            "the polynomial is {polynomial_step} s high at the observations' end"
+        );
+        let end_step =
+            delta_t_polynomial(PREDICTED_DELTA_T_LAST) - delta_t_for_year(PREDICTED_DELTA_T_LAST);
+        assert!(
+            (end_step - 8.9).abs() < 0.1,
+            "step of {end_step} s at the predictions' end"
         );
         let at_2024 = delta_t_polynomial(2024.0) - delta_t_for_year(2024.0);
         assert!((at_2024 - 4.7).abs() < 0.1, "{at_2024}");

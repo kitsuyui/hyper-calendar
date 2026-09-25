@@ -25,10 +25,12 @@
 //!
 //! The observed ΔT table `hc-astro` carries ends on 2026-04-01, the last
 //! month the USNO had observed when it was taken; the terms after it are
-//! computed from the Espenak–Meeus polynomial and are expected to run about
-//! six seconds early. The tests count the two groups separately.
+//! computed from the USNO's predicted ΔT, which the observations so far
+//! have run a few hundredths of a second above. The tests count the two
+//! groups separately, and assert that no term of these years falls to the
+//! Espenak–Meeus polynomial, which would put it about six seconds early.
 
-use hc_astro::time::{TABULATED_DELTA_T_LAST, decimal_year, delta_t, delta_t_polynomial};
+use hc_astro::time::{DeltaTRegime, decimal_year, delta_t, delta_t_polynomial, delta_t_regime};
 use hc_calendar::fixed::Moment;
 use hc_seasons::Meridian;
 use hc_seasons::solar_terms::{SolarTerm, term_moment};
@@ -145,8 +147,8 @@ struct Residual {
     seconds: f64,
     /// The same with ΔT from the polynomial alone.
     polynomial_seconds: f64,
-    /// Whether the instant is inside the observed ΔT table.
-    observed: bool,
+    /// Which ΔT source the instant was computed with.
+    regime: DeltaTRegime,
 }
 
 fn residuals() -> Vec<Residual> {
@@ -177,7 +179,7 @@ fn residuals() -> Vec<Residual> {
                 moment,
                 seconds,
                 polynomial_seconds,
-                observed: year_of <= TABULATED_DELTA_T_LAST,
+                regime: delta_t_regime(year_of),
             });
         }
     }
@@ -222,6 +224,26 @@ fn every_term_of_2024_to_2026_falls_on_the_published_day() {
     );
 }
 
+/// The residuals of one ΔT regime, and the same terms under the
+/// polynomial alone.
+fn group(all: &[Residual], regime: DeltaTRegime) -> (Vec<f64>, Vec<f64>) {
+    let inside: Vec<f64> = all
+        .iter()
+        .filter(|r| r.regime == regime)
+        .map(|r| r.seconds)
+        .collect();
+    let polynomial: Vec<f64> = all
+        .iter()
+        .filter(|r| r.regime == regime)
+        .map(|r| r.polynomial_seconds)
+        .collect();
+    (inside, polynomial)
+}
+
+fn mean(residuals: &[f64]) -> f64 {
+    residuals.iter().sum::<f64>() / residuals.len() as f64
+}
+
 /// Inside the observed ΔT table the residual against the published minute
 /// has no bias left beyond the rounding of the minute and the series'
 /// own error: the mean is within two seconds of zero. The tests print the
@@ -231,21 +253,13 @@ fn every_term_of_2024_to_2026_falls_on_the_published_day() {
 #[test]
 fn inside_the_observed_table_the_terms_are_on_the_published_minute() {
     let all = residuals();
-    let inside: Vec<f64> = all
-        .iter()
-        .filter(|r| r.observed)
-        .map(|r| r.seconds)
-        .collect();
-    let polynomial: Vec<f64> = all
-        .iter()
-        .filter(|r| r.observed)
-        .map(|r| r.polynomial_seconds)
-        .collect();
+    let (inside, polynomial) = group(&all, DeltaTRegime::Observed);
+    assert_eq!(inside.len(), 54);
     summary("observed ΔT, 2024-01-01 to 2026-04-01", &inside);
     summary("the polynomial alone, same terms", &polynomial);
     for r in all
         .iter()
-        .filter(|r| r.observed && !on_the_minute(r.seconds))
+        .filter(|r| r.regime == DeltaTRegime::Observed && !on_the_minute(r.seconds))
     {
         println!(
             "  {} of {} is {:+.1} s from the published minute (UT {:.5})",
@@ -262,41 +276,73 @@ fn inside_the_observed_table_the_terms_are_on_the_published_minute() {
             r.seconds
         );
     }
-    let mean = inside.iter().sum::<f64>() / inside.len() as f64;
-    assert!(mean.abs() < 2.0, "a bias of {mean:+.1} s");
-    let polynomial_mean = polynomial.iter().sum::<f64>() / polynomial.len() as f64;
     assert!(
-        (polynomial_mean + 4.5).abs() < 1.0,
-        "the polynomial alone would leave a bias of {polynomial_mean:+.1} s"
+        mean(&inside).abs() < 2.0,
+        "a bias of {:+.1} s",
+        mean(&inside)
+    );
+    assert!(
+        (mean(&polynomial) + 4.5).abs() < 1.0,
+        "the polynomial alone would leave a bias of {:+.1} s",
+        mean(&polynomial)
     );
 }
 
-/// Past the table's end the polynomial answers, about six seconds high, so
-/// those terms run about six seconds early: still on the published day, and
-/// on the published minute unless the true instant is within six seconds of
-/// a half-minute.
+/// Past the observed table the USNO's predictions answer. The prediction
+/// for 2026 runs a few hundredths of a second below what the observations
+/// have shown so far, so these terms carry no bias a minute can see: the
+/// mean is within two seconds of zero, and every term is on the published
+/// minute or at its half-minute. The polynomial alone would put them about
+/// six seconds early.
 #[test]
-fn past_the_observed_table_the_terms_run_about_six_seconds_early() {
+fn past_the_observed_table_the_terms_follow_the_predictions() {
     let all = residuals();
-    let outside: Vec<f64> = all
+    let (predicted, polynomial) = group(&all, DeltaTRegime::Predicted);
+    assert_eq!(predicted.len(), 18);
+    summary("predicted ΔT, after 2026-04-01", &predicted);
+    summary("the polynomial alone, same terms", &polynomial);
+    for r in all
         .iter()
-        .filter(|r| !r.observed)
-        .map(|r| r.seconds)
-        .collect();
-    summary("polynomial ΔT, after 2026-04-01", &outside);
-    assert!(
-        !outside.is_empty(),
-        "the table now covers all of 2026; retire this test"
-    );
-    let mean = outside.iter().sum::<f64>() / outside.len() as f64;
-    assert!((mean + 6.0).abs() < 2.0, "a bias of {mean:+.1} s");
-    for r in all.iter().filter(|r| !r.observed) {
+        .filter(|r| r.regime == DeltaTRegime::Predicted && !on_the_minute(r.seconds))
+    {
+        println!(
+            "  {} of {} is {:+.1} s from the published minute (UT {:.5})",
+            r.term.japanese_name(),
+            r.year,
+            r.seconds,
+            r.moment.0
+        );
         assert!(
-            r.seconds.abs() < 60.0,
-            "{} of {} is {:+.0} s from the published minute",
+            (30.0..32.0).contains(&r.seconds.abs()),
+            "{} of {} is {:+.1} s from the published minute",
             r.term.japanese_name(),
             r.year,
             r.seconds
+        );
+    }
+    assert!(
+        mean(&predicted).abs() < 2.0,
+        "a bias of {:+.1} s",
+        mean(&predicted)
+    );
+    assert!(
+        (mean(&polynomial) + 6.0).abs() < 1.0,
+        "the polynomial alone would leave a bias of {:+.1} s",
+        mean(&polynomial)
+    );
+}
+
+/// No term of these three years is computed from the polynomial: the
+/// observations and the predictions between them cover 2024–2026.
+#[test]
+fn no_term_of_these_years_falls_to_the_polynomial() {
+    for r in residuals() {
+        assert!(
+            matches!(r.regime, DeltaTRegime::Observed | DeltaTRegime::Predicted),
+            "{} of {} was computed with {:?} ΔT",
+            r.term.japanese_name(),
+            r.year,
+            r.regime
         );
     }
 }

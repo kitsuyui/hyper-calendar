@@ -22,13 +22,15 @@ are almost always quoted in TT, so `time::universal_time` bridges them.
 
 `ut1::Ut1` is the UT1 time scale for `hc_core::Instant`, read as `TT − ΔT`
 from the ΔT below: within 0.1 s of the IERS EOP 20 C04 series from 1974
-through 2026-04-01, and behind it after, by 6.2 s on 2026-07-01.
+through 2026-04-01, 0.06 s late on 2026-07-01 where the predictions
+answer, and behind it by 8.9 s where the polynomial takes over in October
+2033.
 `ut1::Ut1Offsets` reads UT1 as `UTC + DUT1` from a series the caller
 supplies instead.
 
 ### ΔT
 
-ΔT = TT − UT1 comes from two sources, and `time::delta_t_regime` says
+ΔT = TT − UT1 comes from three sources, and `time::delta_t_regime` says
 which answered:
 
 * **Observed, 1974-01-01 to 2026-04-01.** The USNO's `deltat.data`
@@ -38,32 +40,46 @@ which answered:
   are `time::TABULATED_DELTA_T_FIRST` and `TABULATED_DELTA_T_LAST`. At the
   samples the value is the observation itself; between them a straight
   line misses the USNO's monthly values by at most 0.09 s. It is not
-  extrapolated: the USNO's forecasts are not carried, and past the last
-  sample the polynomial answers.
-* **Fitted, outside that.** The Espenak–Meeus NASA polynomial set:
+  extrapolated.
+* **Predicted, from there to 2033-10-01.** The USNO's `deltat.preds`
+  (<https://maia.usno.navy.mil/ser7/deltat.preds>, retrieved 2026-09-25),
+  every quarterly row with the error the file states for it, in the same
+  module, interpolated the same way; `time::delta_t_predicted` gives the
+  value with its error, and `PREDICTED_DELTA_T_FIRST` and
+  `PREDICTED_DELTA_T_LAST` are the file's ends. The file's rows begin in
+  July 2022 and overlap the observations, and there the observation wins.
+  The overlap measures the predictions: they ran below the observations by
+  up to 0.12 s, and from late 2023 to early 2025 by up to 2.7 times the
+  error the file stated, so the error column is the USNO's estimate and
+  not a bound. The predictions are not extrapolated either.
+* **Fitted, outside both.** The Espenak–Meeus NASA polynomial set:
   thirteen segments over −500…+2150, and the parabola ΔT = −20 + 32u²,
   u = (year − 1820)/100, outside that, fifteen expressions in all. The
   segments are independent least-squares fits and meet at the joins to
   within a couple of tenths of a second, which this crate does not smooth.
   `time::delta_t_polynomial` is this fit alone, for any year.
 
-The two meet to 0.1 s at the table's start, where the polynomial was fitted
-to the same observations. At its end they do not: the polynomial's
-2005–2050 segment is a forecast made in 2006, and the Earth has since
-rotated faster than it forecast, so on 2026-04-01 the polynomial is 6.1 s
-above the observed value and the step is left visible. Concretely, for
-2024 the polynomial gives 73.9 s where 69.2 s was observed, which put every
-solar term of that year 4.7 s early in Universal Time; with the table the
+The observations meet the polynomial to 0.1 s at their start, where the
+polynomial was fitted to the same observations, and the predictions to
+0.04 s at their end, inside the 0.22 s the USNO states there. At the
+predictions' end the join is not close: the polynomial's 2005–2050 segment
+is a forecast made in 2006, and the Earth has since rotated faster than it
+forecast, so on 2033-10-01 the polynomial is 8.9 s above the last
+prediction, and the step is left visible rather than blended or offset.
+Concretely, for 2024 the polynomial gives 73.9 s where 69.2 s was observed,
+which put every solar term of that year 4.7 s early in Universal Time; the
 72 terms of 2024–2026 that the 暦要項 publishes to the minute sit at a mean
-of +1.1 s inside the table and at −6.4 s for the 18 terms after its end
-(the measurement is in
+of +1.1 s for the 54 inside the observations and −0.1 s for the 18 on the
+predictions, where the polynomial alone would put them at −4.3 s and
+−6.4 s (the measurement is in
 [`docs/systems/solar-terms-and-pentads.md`](../../docs/systems/solar-terms-and-pentads.md)).
-A caller computing past the table's end gets an instant about six seconds
-early, growing at the forecast's slope of about 0.6 s a year, until the
-table is extended; extending it is a data change, not a code change. In
-the atomic era ΔT = 32.184 s + (TAI − UTC) − DUT1, and the tests check the
-table against `hc-core`'s leap-second table and the IERS series through
-that identity rather than carrying a second copy of the same measurement.
+A caller computing past the predictions' end gets an instant about nine
+seconds early, growing at the forecast's slope of about 0.7 s a year, until
+the tables are extended; extending them is a data change, not a code
+change. In the atomic era ΔT = 32.184 s + (TAI − UTC) − DUT1, and the
+tests check the observed table against `hc-core`'s leap-second table and
+the IERS series through that identity rather than carrying a second copy
+of the same measurement.
 
 ## Accuracy claimed, and over what era
 
@@ -84,8 +100,8 @@ Inside it the limiting factor is the series; outside it the limiting factor is
 ΔT, whose own uncertainty reaches hours before 500 BCE — so a lunisolar date
 computed for the Warring States period is a plausible reconstruction, not a
 fact. `time::delta_t_regime` reports whether a year is answered from the
-observed table, from the fitted polynomials, or from the extrapolation
-beyond them, and `time::is_fitted_year` whether it is inside the span the
+observed table, from the USNO's predictions, from the fitted polynomials,
+or from the extrapolation beyond them, and `time::is_fitted_year` whether it is inside the span the
 polynomials were fitted to at all.
 
 ### The Sun is VSOP87, cut where it was measured
@@ -152,6 +168,9 @@ by the sky, and the calendars built on top of this say so where it matters.
   observed ΔT of 1974–2026; checked against the IERS EOP 20 C04 series,
   <https://hpiers.obspm.fr/iers/eop/eopc04/eopc04.1962-now>, retrieved the
   same day.
+* United States Naval Observatory, *Delta T: deltat.preds*,
+  <https://maia.usno.navy.mil/ser7/deltat.preds>, retrieved 2026-09-25 —
+  the predicted ΔT of 2022–2033 with its stated error.
 * Reference event times: the USNO "Earth's Seasons" table, the IMCCE, and the
   National Astronomical Observatory of Japan's ephemeris for the Tokyo
   rise/set anchors.

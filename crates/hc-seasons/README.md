@@ -102,8 +102,9 @@ terms on the published day. For the 54 terms up to 2026-04-01, where
 `hc-astro` reads the observed ΔT, 53 are on the published minute and the
 residual is **−30 s to +29 s with a mean of +1.1 s**; the polynomial ΔT
 alone would leave those at a mean of −4.3 s. The 18 terms after the table's
-end, still on the polynomial, run **6.4 s early** on average, 16 of them on
-the published minute.
+end are computed with the USNO's predicted ΔT and sit at **−30 s to +23 s
+with a mean of −0.1 s**, all 18 on the published minute; the polynomial
+would put them 6.4 s early.
 
 Terms are 15 days apart, pentads 5 and signs 30, so the *term*, *pentad* or
 *sign* is never wrong; only its day, and only at a midnight boundary. Lunar

@@ -109,8 +109,9 @@ from VSOP87 with nutation and aberration, in the form of Meeus's chapter 25,
 good to about 1″ [meeus1998]; the series is evaluated in Terrestrial Time
 and the answer converted to Universal Time by ΔT, which `hc-astro` reads
 from the USNO's observed values from 1974 to 2026-04-01, one a year,
-interpolated, and from the Espenak–Meeus polynomials outside them
-[usno-deltat]. A term is
+interpolated [usno-deltat], from the USNO's predictions from there to
+2033-10-01, one a quarter [usno-deltat-preds], and from the Espenak–Meeus
+polynomials outside both. A term is
 found by `solar_longitude_after`: from 1 January of the year, the days to go
 are estimated at the mean rate of 365.242 189 ⁄ 360 days per degree, a
 bracket of ±5 days is placed round the estimate, and the crossing is
@@ -269,27 +270,32 @@ by `tests/rekiyoko_solar_terms.rs`, which carries the 72 published minutes.
 The observed ΔT table `hc-astro` reads ends on 2026-04-01, the last month
 the USNO had observed when it was taken [usno-deltat], so the 54 terms up
 to 清明 2026 are computed with the observed ΔT and the 18 after it with
-the Espenak–Meeus polynomial, and the two groups are counted apart:
+the USNO's predicted ΔT [usno-deltat-preds], and the two groups are
+counted apart:
 
-| Measure | Observed ΔT, 54 terms | Polynomial ΔT, 18 terms |
+| Measure | Observed ΔT, 54 terms | Predicted ΔT, 18 terms |
 | --- | --- | --- |
 | Term on the published day | 54 of 54 | 18 of 18 |
-| Term at the published minute | 53 of 54 | 16 of 18 |
-| A minute earlier than published | 1 | 2 |
-| Computed instant less the published minute | −30 s to +29 s, mean +1.1 s | −36 s to +17 s, mean −6.4 s |
+| Term at the published minute | 53 of 54 | 18 of 18 |
+| A minute earlier than published | 1 | 0 |
+| Computed instant less the published minute | −30 s to +29 s, mean +1.1 s | −30 s to +23 s, mean −0.1 s |
 
 The published minute is the instant rounded to the nearest minute, since
-the offsets are spread over one minute and not two. Inside the table the
-bias is gone: the one mismatch, 小雪 2025, is an instant the crate places
-0.2 s past the half-minute, and the mean of +1.1 s is inside the 1″, about
-24 s, that the series is good to. The polynomial alone would put the same
-54 terms at −36 s to +24 s with a mean of −4.3 s and 48 of them on the
-published minute, because its ΔT — 73.9 s for 2024, 75.1 s for 2026, a
-forecast made in 2006 — runs 4.7 to 6.1 s above the observed 69.2 s and
-69.1 s, and a ΔT five seconds too large puts every Universal Time instant
-five seconds early. That is what the 18 terms after the table's end still
-show, at −6.4 s: still under a tenth of the minute the almanac prints,
-and gone when the table is extended.
+the offsets are spread over one minute and not two. The bias is gone: the
+one mismatch, 小雪 2025, is an instant the crate places 0.2 s past the
+half-minute, and the means of +1.1 s and −0.1 s are inside the 1″, about
+24 s, that the series is good to. The Espenak–Meeus polynomial alone would
+put the same 72 terms at −36 s to +24 s with means of −4.3 s and −6.4 s
+and 64 of them on the published minute, because its ΔT — 73.9 s for 2024,
+75.1 s for 2026, a forecast made in 2006 — runs 4.7 to 6.1 s above the
+observed 69.2 s and 69.1 s, and a ΔT five seconds too large puts every
+Universal Time instant five seconds early. The predictions for 2026, 69.09
+to 69.11 s, are within a few hundredths of a second of the observations
+they overlap, which is why the second group shows no bias a minute can
+see. After the predictions' end in October 2033 the polynomial answers
+again, 8.9 s above the last prediction, and a term computed there is
+about nine seconds early: still under a tenth of the minute the almanac
+prints, and gone when the tables are extended.
 
 **Against the equinox days.** Japan's 240 published equinox days of
 1980–2099 — the 1980–2030 table and the published formula that reproduces
@@ -357,6 +363,7 @@ they were settled.
 | [reingold2018] | The 中気 rule; Beijing local mean time as 1397⁄180 hours; the search's mean tropical year | Not re-read for this document; the modules cite it |
 | [meeus1998] | The apparent solar longitude, chapter 25, through `hc-astro` | Not read for this document; `hc-astro` cites it |
 | [usno-deltat] | The observed ΔT that `hc-astro` reads from 1974-01-01 to 2026-04-01: 69.18 s at 2024-01-01, 69.11 s at 2026-01-01, 69.13 s at 2026-04-01 | Yes, 2026-09-25 |
+| [usno-deltat-preds] | The predicted ΔT that `hc-astro` reads after 2026-04-01, to 2033-10-01: 69.09 s at 2026-04-02, 71.25 s at 2033-10-01 | Yes, 2026-09-25 |
 | [capitaine2003] | The general precession in longitude, equation (39), 5028.796 195″ per century | Not read directly; the bibliographic record from Crossref, 2026-09-25; the module cites the equation |
 | [swisseph] | The four ayanāṃśa anchors | Yes, 2026-09-25, for the Hindu document |
 | [crc1955] | The Lahiri ayanāṃśa as the national standard, 23°15′ on 21 March 1956; the 82°30′E meridian | Yes, 2026-09-25, for the Hindu document |
@@ -451,5 +458,6 @@ The measurements, in `crates/hc-seasons/tests/`:
 `rekiyoko_solar_terms.rs` —
 `every_term_of_2024_to_2026_falls_on_the_published_day`,
 `inside_the_observed_table_the_terms_are_on_the_published_minute`,
-`past_the_observed_table_the_terms_run_about_six_seconds_early`, which
-print the minute-by-minute comparison above under `--nocapture`.
+`past_the_observed_table_the_terms_follow_the_predictions`,
+`no_term_of_these_years_falls_to_the_polynomial`, which print the
+minute-by-minute comparison above under `--nocapture`.
