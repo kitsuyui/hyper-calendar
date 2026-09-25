@@ -101,10 +101,11 @@ still.
 | `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 31 KiB |
 | `calendars` | `hc_describe_day`: one day in every registered calendar, in a locale | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n` | 431 KiB |
 | `holiday` | the four `hc_holiday*` exports and `hc_holidays_on` | `hc-holiday` and everything it dates by | 1.05 MiB |
-| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 75 KiB |
+| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 82 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 115 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 60 KiB |
-| `full` | all of the above | everything | 1.49 MiB |
+| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between` | `hc-astro`, `hc-seasons` | 98 KiB |
+| `full` | all of the above | everything | 1.52 MiB |
 
 ```sh
 cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --release --features calendars
@@ -125,7 +126,7 @@ not pass CI.
 
 ### Exports
 
-29 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+32 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -158,6 +159,9 @@ not pass CI.
 | `hc_fixed_from_unix_in_zone(unix_seconds: i64, zone: *const u8, zone_len: usize) -> i64` | `tz` | The fixed day a POSIX timestamp falls on by the wall clock of a zone, or an error sentinel. |
 | `hc_unix_from_fixed_in_zone(fixed: i64, zone: *const u8, zone_len: usize) -> i64` | `tz` | The POSIX timestamp at which a fixed day begins by the wall clock of a zone, or an error sentinel. |
 | `hc_zone_load(name: *const u8, name_len: usize, tzif: *const u8, tzif_len: usize) -> i64` | `tz` | Give the module a zone's TZif data under an IANA name, returning 0. |
+| `hc_sky_at(unix_seconds: i64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | The Sun and the Moon at a POSIX timestamp, as one UTF-8 line, returning the byte length written. |
+| `hc_solar_terms_between(from_unix: i64, to_unix: i64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | Every solar term whose instant falls in `[from_unix, to_unix)`, as UTF-8 lines, returning the byte length written. |
+| `hc_moon_phases_between(from_unix: i64, to_unix: i64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | Every new moon, first quarter, full moon and last quarter whose instant falls in `[from_unix, to_unix)`, as UTF-8 lines, returning the byte length written. |
 
 ### Error sentinels
 
@@ -425,6 +429,77 @@ new Uint8Array(wasm.memory.buffer, bytesPtr, bytes.length).set(bytes);
 wasm.hc_zone_load(namePtr, name.length, bytesPtr, bytes.length);   // 0n
 wasm.hc_free(bytesPtr, bytes.length);
 const today = wasm.hc_fixed_from_unix_in_zone(BigInt(Math.floor(Date.now() / 1000)), namePtr, name.length);
+```
+
+## The sky
+
+`hc_sky_at`, `hc_solar_terms_between` and `hc_moon_phases_between` need the
+`sky` feature and answer from `hc-astro`'s series directly: where the Sun
+and the Moon are at an instant, and when the Sun and the Moon reach the
+angles the almanacs are built on. Every instant in and out is a POSIX
+timestamp read as Universal Time, and every instant out is whole seconds,
+rounded down, with no fractional column: the series are not good to better
+than a few seconds, and ΔT past the USNO's predictions (October 2033) is
+about nine seconds off, so a fraction would claim what is not known.
+
+**The range rule.** `hc-astro`'s README states the era over which its
+series hold as roughly 1000 BCE to 3000 CE, with ΔT the limiting factor
+outside it. The three exports therefore answer only for instants whose
+proleptic Gregorian year is −1000 through 3000 and return
+`HC_ERR_OUT_OF_RANGE` for any other, never a number; for a span, both
+`from` and the last second before `to` have to lie inside. A span longer
+than 400 years is `HC_ERR_OUT_OF_RANGE` too — that is about 4 950
+lunations and 9 600 terms, a few seconds of computation — and a span whose
+`to` is at or before its `from` is an empty answer of zero bytes, not an
+error.
+
+`hc_sky_at(unix_seconds, buffer, capacity)` writes one line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | sun longitude | the Sun's apparent ecliptic longitude in degrees, 0 at the March equinox |
+| 2 | sun distance | the Earth–Sun distance in astronomical units |
+| 3 | moon longitude | the Moon's apparent ecliptic longitude in degrees |
+| 4 | moon latitude | the Moon's ecliptic latitude in degrees, positive north |
+| 5 | moon distance | the Earth–Moon distance in kilometres, centre to centre |
+| 6 | elongation | the Moon's elongation from the Sun in degrees: 0 at new moon, 90 at first quarter, 180 at full, 270 at last quarter |
+| 7 | illuminated fraction | the lit fraction of the Moon's disc, 0 to 1 |
+| 8 | previous new moon | the last new moon before the instant, as POSIX seconds |
+| 9 | next new moon | the first new moon at or after the instant, as POSIX seconds |
+| 10 | ΔT | `TT − UT1` at the instant, in seconds |
+| 11 | ΔT regime | which source answered: `observed`, `predicted`, `fitted` or `extrapolated` |
+| 12 | source | the series behind the line, as `hc-astro` names them |
+
+The source cell names the Sun's series (VSOP87D's Earth series truncated
+at an amplitude of 10⁻⁷, 213 terms, Meeus chapter 25), the Moon's (the
+ELP-2000/82 abridgement of Meeus tables 47.A and 47.B, sixty terms, with
+the illumination of chapter 48), the phase series behind the new moons
+(Meeus chapter 49) and the ΔT source of the regime: the USNO's
+`deltat.data` where observed, its `deltat.preds` where predicted, the
+Espenak–Meeus polynomials where fitted and their long-term parabola where
+extrapolated. `hc-astro`'s README states what each is good to.
+
+`hc_solar_terms_between(from_unix, to_unix, buffer, capacity)` and
+`hc_moon_phases_between(from_unix, to_unix, buffer, capacity)` write one
+line per event in the half-open span `[from, to)`, in time order, in the
+same four columns:
+
+| # | `hc_solar_terms_between` | `hc_moon_phases_between` |
+| --- | --- | --- |
+| 1 | the Sun's apparent longitude that defines the term, `0` for 春分 through `345` in steps of 15 | the elongation that defines the phase: `0`, `90`, `180` or `270` |
+| 2 | the instant as POSIX seconds, rounded down | the same |
+| 3 | the term's name in traditional Chinese, 秋分 | `new`, `first-quarter`, `full` or `last-quarter` |
+| 4 | the term's name in Japanese, 啓蟄 where the Chinese has 驚蟄 | empty |
+
+A term is an instant, not a date: which day it falls on depends on the
+meridian, which is `hc_term_in_effect`'s business. The phases are the
+phase series of Meeus chapter 49 — the same series that dates columns 8
+and 9 of `hc_sky_at`, so a new moon appears at the same second in both.
+
+```js
+const from = BigInt(Date.UTC(2026, 8, 1) / 1000), to = BigInt(Date.UTC(2026, 9, 1) / 1000);
+const terms = readLines((buf, cap) => wasm.hc_solar_terms_between(from, to, buf, cap));
+// [["165", "1788...", "白露", "白露"], ["180", "1790...", "秋分", "秋分"]]
 ```
 
 ## What is not here

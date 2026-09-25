@@ -47,8 +47,8 @@
 //! # Layers
 //!
 //! The entry points come in layers, each a Cargo feature: `civil` (the
-//! default), `calendars`, `holiday`, `seasons`, `deep-time` and `tz`, with
-//! `full` for all of them. Which feature each needs is in the README's
+//! default), `calendars`, `holiday`, `seasons`, `deep-time`, `tz` and `sky`,
+//! with `full` for all of them. Which feature each needs is in the README's
 //! table.
 
 #![allow(unsafe_code)]
@@ -1742,6 +1742,373 @@ mod tz {
 #[cfg(feature = "tz")]
 pub use tz::{hc_fixed_from_unix_in_zone, hc_unix_from_fixed_in_zone, hc_zone_load};
 
+/// The sky, behind the `sky` feature: where the Sun and the Moon are at an
+/// instant, and the solar terms and the moon phases within a span, from
+/// `hc-astro`'s series, in Universal Time.
+#[cfg(feature = "sky")]
+mod sky {
+    use core::ffi::c_char;
+
+    use hc::hc_astro::lunar::{
+        MEAN_SYNODIC_MONTH, MoonPhase, lunar_distance, lunar_illuminated_fraction, lunar_latitude,
+        lunar_longitude, lunar_phase, new_moon_at_or_after, new_moon_before, nth_moon_phase,
+        nth_new_moon,
+    };
+    use hc::hc_astro::solar::{solar_longitude, solar_longitude_after, solar_radius_vector};
+    use hc::hc_astro::time::{DeltaTRegime, decimal_year, delta_t, delta_t_regime};
+    use hc::hc_calendar::fixed::{Moment, RD_OF_UNIX_EPOCH};
+    use hc::hc_calendar::gregorian::new_year;
+    use hc::hc_core::math::floor;
+    use hc::hc_seasons::solar_terms::{DEGREES_PER_TERM, SolarTerm, TermOrder};
+
+    use super::{HC_ERROR_OUT_OF_RANGE, HcStatus, push_cell, write_text};
+
+    /// The first proleptic Gregorian year the entry points answer for: the
+    /// start of the era, roughly 1000 BCE to 3000 CE, over which
+    /// `hc-astro`'s README states its series hold. Outside it the lunar
+    /// series and ΔT are not stated valid, so the entry points refuse
+    /// rather than extrapolate.
+    pub(super) const EARLIEST_YEAR: i64 = -1000;
+
+    /// The last proleptic Gregorian year the entry points answer for.
+    pub(super) const LATEST_YEAR: i64 = 3000;
+
+    /// The longest span the `_between` entry points accept, in seconds:
+    /// 400 Julian years, about 4 950 lunations and 9 600 solar terms.
+    pub(super) const MAX_SPAN_SECONDS: i64 = 400 * 31_557_600;
+
+    /// The first fixed day of the era.
+    const FIRST_DAY: i64 = new_year(EARLIEST_YEAR).0;
+
+    /// The first fixed day after the era.
+    const END_DAY: i64 = new_year(LATEST_YEAR + 1).0;
+
+    /// Seconds in a day, as the astronomical series count them: no leap
+    /// second, because ΔT carries the Earth's rotational irregularity.
+    const SECONDS_PER_DAY: i64 = 86_400;
+
+    /// The word a [`DeltaTRegime`] is written as.
+    const fn regime_name(regime: DeltaTRegime) -> &'static str {
+        match regime {
+            DeltaTRegime::Observed => "observed",
+            DeltaTRegime::Predicted => "predicted",
+            DeltaTRegime::Fitted => "fitted",
+            DeltaTRegime::Extrapolated => "extrapolated",
+        }
+    }
+
+    /// The source ΔT was answered from in a regime, as `hc-astro`'s
+    /// README names it.
+    const fn delta_t_source(regime: DeltaTRegime) -> &'static str {
+        match regime {
+            DeltaTRegime::Observed => "USNO deltat.data, observed",
+            DeltaTRegime::Predicted => "USNO deltat.preds, predicted",
+            DeltaTRegime::Fitted => "Espenak-Meeus polynomials, fitted",
+            DeltaTRegime::Extrapolated => "Espenak-Meeus parabola, extrapolated",
+        }
+    }
+
+    /// The series behind the Sun's columns, as `hc-astro` names them.
+    const SUN_SOURCE: &str =
+        "Sun: VSOP87D Earth series truncated at 1e-7 (213 terms), Meeus ch. 25";
+
+    /// The series behind the Moon's columns.
+    const MOON_SOURCE: &str = "Moon: ELP-2000/82 abridged to Meeus tables 47.A and 47.B (60 terms), illumination Meeus ch. 48";
+
+    /// The series behind the new moons and the phase list.
+    const PHASES_SOURCE: &str = "phases: Meeus ch. 49 phase series";
+
+    /// The word a [`MoonPhase`] is written as.
+    const fn phase_name(phase: MoonPhase) -> &'static str {
+        match phase {
+            MoonPhase::New => "new",
+            MoonPhase::FirstQuarter => "first-quarter",
+            MoonPhase::Full => "full",
+            MoonPhase::LastQuarter => "last-quarter",
+        }
+    }
+
+    /// The Universal Time moment of a POSIX timestamp, if it lies in the
+    /// era the entry points answer for.
+    ///
+    /// # Errors
+    ///
+    /// [`HC_ERROR_OUT_OF_RANGE`] outside [`EARLIEST_YEAR`]..=[`LATEST_YEAR`].
+    pub(super) fn moment_in_era(unix: i64) -> Result<Moment, HcStatus> {
+        let day = unix
+            .div_euclid(SECONDS_PER_DAY)
+            .checked_add(RD_OF_UNIX_EPOCH)
+            .ok_or(HC_ERROR_OUT_OF_RANGE)?;
+        if !(FIRST_DAY..END_DAY).contains(&day) {
+            return Err(HC_ERROR_OUT_OF_RANGE);
+        }
+        let seconds = unix.rem_euclid(SECONDS_PER_DAY);
+        Ok(Moment(day as f64 + seconds as f64 / SECONDS_PER_DAY as f64))
+    }
+
+    /// The POSIX second a Universal Time moment falls in.
+    ///
+    /// Whole seconds, rounded down: the series are not good to better than
+    /// a few seconds, and ΔT past the predictions' end is off by nine, so
+    /// a fraction would claim what is not known.
+    fn unix_from_moment(moment: Moment) -> i64 {
+        floor((moment.0 - RD_OF_UNIX_EPOCH as f64) * SECONDS_PER_DAY as f64) as i64
+    }
+
+    /// The Sun and the Moon at an instant as one line; see [`hc_sky_at`]
+    /// for the columns.
+    ///
+    /// # Errors
+    ///
+    /// As [`moment_in_era`].
+    pub(super) fn sky_line(unix: i64) -> Result<String, HcStatus> {
+        use core::fmt::Write;
+        let moment = moment_in_era(unix)?;
+        let regime = delta_t_regime(decimal_year(moment));
+        let mut out = String::new();
+        let _ = write!(
+            out,
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t",
+            solar_longitude(moment),
+            solar_radius_vector(moment),
+            lunar_longitude(moment),
+            lunar_latitude(moment),
+            lunar_distance(moment),
+            lunar_phase(moment),
+            lunar_illuminated_fraction(moment),
+            unix_from_moment(new_moon_before(moment)),
+            unix_from_moment(new_moon_at_or_after(moment)),
+            delta_t(moment),
+            regime_name(regime),
+        );
+        let source = format!(
+            "{SUN_SOURCE}; {MOON_SOURCE}; {PHASES_SOURCE}; delta T: {}",
+            delta_t_source(regime)
+        );
+        push_cell(&mut out, &source);
+        out.push('\n');
+        Ok(out)
+    }
+
+    /// The moment a half-open span `[from, to)` of POSIX seconds begins
+    /// at, or `None` for an empty span.
+    ///
+    /// # Errors
+    ///
+    /// [`HC_ERROR_OUT_OF_RANGE`] for an end outside the era or a span
+    /// longer than [`MAX_SPAN_SECONDS`].
+    fn span(from: i64, to: i64) -> Result<Option<Moment>, HcStatus> {
+        let start = moment_in_era(from)?;
+        if to <= from {
+            return Ok(None);
+        }
+        moment_in_era(to - 1)?;
+        if to - from > MAX_SPAN_SECONDS {
+            return Err(HC_ERROR_OUT_OF_RANGE);
+        }
+        Ok(Some(start))
+    }
+
+    /// Every solar term in `[from, to)`, one line each, in time order; see
+    /// [`hc_solar_terms_between`] for the columns.
+    ///
+    /// # Errors
+    ///
+    /// As [`span`].
+    pub(super) fn term_lines(from: i64, to: i64) -> Result<String, HcStatus> {
+        use core::fmt::Write;
+        let mut out = String::new();
+        let Some(start) = span(from, to)? else {
+            return Ok(out);
+        };
+        // The term in effect at the start; the first line is the one after
+        // it. A longitude that rounds to 360° names 春分 again.
+        let index = floor(solar_longitude(start) / DEGREES_PER_TERM) as u8;
+        let mut term = SolarTerm::from_index(TermOrder::SpringEquinoxFirst, index)
+            .unwrap_or(SolarTerm::SPRING_EQUINOX);
+        let mut moment = start;
+        // The span is bounded, so the loop is; the cap is against a search
+        // that fails to advance, which would otherwise spin.
+        for _ in 0..(MAX_SPAN_SECONDS / (13 * SECONDS_PER_DAY)) {
+            term = term.next();
+            moment = solar_longitude_after(term.solar_longitude_degrees(), moment);
+            let unix = unix_from_moment(moment);
+            if unix >= to {
+                break;
+            }
+            if unix < from {
+                continue;
+            }
+            let _ = writeln!(
+                out,
+                "{}\t{unix}\t{}\t{}",
+                term.solar_longitude_degrees(),
+                term.chinese_name(),
+                term.japanese_name()
+            );
+        }
+        Ok(out)
+    }
+
+    /// Every principal moon phase in `[from, to)`, one line each, in time
+    /// order; see [`hc_moon_phases_between`] for the columns.
+    ///
+    /// # Errors
+    ///
+    /// As [`span`].
+    pub(super) fn phase_lines(from: i64, to: i64) -> Result<String, HcStatus> {
+        use core::fmt::Write;
+        let mut out = String::new();
+        let Some(start) = span(from, to)? else {
+            return Ok(out);
+        };
+        // The lunation containing the start: seeded from the mean synodic
+        // month, which is never more than a lunation out, then walked.
+        let mut lunation = floor((start.0 - nth_new_moon(0).0) / MEAN_SYNODIC_MONTH) as i64;
+        for _ in 0..8 {
+            if nth_new_moon(lunation).0 <= start.0 {
+                break;
+            }
+            lunation -= 1;
+        }
+        for _ in 0..8 {
+            if nth_new_moon(lunation + 1).0 > start.0 {
+                break;
+            }
+            lunation += 1;
+        }
+        'lunations: for _ in 0..(MAX_SPAN_SECONDS / (29 * SECONDS_PER_DAY)) {
+            for phase in [
+                MoonPhase::New,
+                MoonPhase::FirstQuarter,
+                MoonPhase::Full,
+                MoonPhase::LastQuarter,
+            ] {
+                let unix = unix_from_moment(nth_moon_phase(lunation, phase));
+                if unix >= to {
+                    break 'lunations;
+                }
+                if unix < from {
+                    continue;
+                }
+                let _ = writeln!(
+                    out,
+                    "{}\t{unix}\t{}\t",
+                    phase.elongation_degrees(),
+                    phase_name(phase)
+                );
+            }
+            lunation += 1;
+        }
+        Ok(out)
+    }
+
+    /// The Sun and the Moon at a POSIX timestamp, as one NUL-terminated
+    /// UTF-8 line in a caller-owned buffer.
+    ///
+    /// Tab-separated: the Sun's apparent longitude in degrees, the
+    /// Earth–Sun distance in astronomical units, the Moon's apparent
+    /// longitude and latitude in degrees and its distance in kilometres,
+    /// the Moon's elongation from the Sun in degrees (0 at new moon, 180 at
+    /// full), the illuminated fraction of its disc, the last new moon
+    /// before the instant and the first at or after it as POSIX seconds,
+    /// ΔT in seconds, the regime ΔT was answered from (`observed`,
+    /// `predicted`, `fitted` or `extrapolated`) and a `source` naming the
+    /// series each figure came from. The instant is read as Universal
+    /// Time. An instant outside the years −1000 to 3000, the era over
+    /// which `hc-astro` states its series valid, is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_sky_at(
+        unix_seconds: i64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let text = match sky_line(unix_seconds) {
+            Ok(text) => text,
+            Err(status) => return status,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&text, buffer, capacity, written) }
+    }
+
+    /// Every solar term whose instant falls in `[from_unix, to_unix)`, as
+    /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+    ///
+    /// One line per term, in time order, tab-separated: the Sun's
+    /// apparent longitude that defines the term in degrees (0 for 春分
+    /// through 345), the instant as whole POSIX seconds, rounded down, in
+    /// Universal Time, the term's name in traditional Chinese and its name
+    /// in Japanese. The span is half-open and is refused with
+    /// `HC_ERROR_OUT_OF_RANGE` when either end lies outside the years
+    /// −1000 to 3000 or when it is longer than 400 years; `to_unix` at or
+    /// before `from_unix` is an empty answer. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_sky_at`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_solar_terms_between(
+        from_unix: i64,
+        to_unix: i64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let text = match term_lines(from_unix, to_unix) {
+            Ok(text) => text,
+            Err(status) => return status,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&text, buffer, capacity, written) }
+    }
+
+    /// Every new moon, first quarter, full moon and last quarter whose
+    /// instant falls in `[from_unix, to_unix)`, as NUL-terminated UTF-8
+    /// lines in a caller-owned buffer.
+    ///
+    /// One line per phase, in time order, tab-separated: the Moon's
+    /// elongation from the Sun that defines the phase in degrees (0, 90,
+    /// 180 or 270), the instant as whole POSIX seconds, rounded down, in
+    /// Universal Time, the phase's name (`new`, `first-quarter`, `full` or
+    /// `last-quarter`) and an empty fourth column, so the lines have the
+    /// shape of `hc_solar_terms_between`'s. The instants are the phase
+    /// series of Meeus chapter 49, the same series that dates the new
+    /// moons of `hc_sky_at`. The span fails as for
+    /// `hc_solar_terms_between`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_sky_at`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_moon_phases_between(
+        from_unix: i64,
+        to_unix: i64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let text = match phase_lines(from_unix, to_unix) {
+            Ok(text) => text,
+            Err(status) => return status,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&text, buffer, capacity, written) }
+    }
+}
+
+#[cfg(feature = "sky")]
+pub use sky::{hc_moon_phases_between, hc_sky_at, hc_solar_terms_between};
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1768,7 +2135,8 @@ mod tests {
         feature = "calendars",
         feature = "holiday",
         feature = "seasons",
-        feature = "deep-time"
+        feature = "deep-time",
+        feature = "sky"
     ))]
     fn read_lines(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> String {
         let mut written = 0usize;
@@ -2413,6 +2781,102 @@ mod tests {
                 },
                 HC_ERROR_OUT_OF_RANGE
             );
+        }
+    }
+
+    #[cfg(feature = "sky")]
+    mod sky {
+        use super::super::*;
+        use super::read_lines;
+
+        /// The POSIX timestamp of a UTC date and time.
+        fn at(year: i64, month: u8, day: u8, hour: i64, minute: i64) -> i64 {
+            let mut fixed = 0i64;
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(year, month, day, &mut fixed) },
+                HC_OK
+            );
+            (fixed - 719_163) * 86_400 + hour * 3_600 + minute * 60
+        }
+
+        fn rows(text: &str) -> Vec<Vec<String>> {
+            text.lines()
+                .map(|line| line.split('\t').map(str::to_owned).collect())
+                .collect()
+        }
+
+        /// The 暦要項 of the National Astronomical Observatory of Japan for
+        /// 2026 puts the new moon of September at 11 September 12:27 JST,
+        /// 03:27 UTC, and the equinox at 23 September 09:05 JST, 00:05 UTC.
+        #[test]
+        fn the_sky_the_terms_and_the_phases_decode_column_by_column() {
+            let instant = at(2026, 9, 11, 3, 0);
+            let sky = read_lines(|buffer, capacity, written| unsafe {
+                hc_sky_at(instant, buffer, capacity, written)
+            });
+            let columns = rows(&sky);
+            assert_eq!(columns.len(), 1, "{sky:?}");
+            let columns = &columns[0];
+            assert_eq!(columns.len(), 12, "{columns:?}");
+            let elongation: f64 = columns[5].parse().expect("a number");
+            assert!(elongation > 359.0, "{elongation}");
+            let next: i64 = columns[8].parse().expect("a timestamp");
+            assert!((next - at(2026, 9, 11, 3, 27)).abs() <= 90, "{next}");
+            assert_eq!(columns[10], "predicted");
+            assert!(columns[11].contains("VSOP87"), "{}", columns[11]);
+
+            let (from, to) = (at(2026, 9, 1, 0, 0), at(2026, 10, 1, 0, 0));
+            let terms = rows(&read_lines(|buffer, capacity, written| unsafe {
+                hc_solar_terms_between(from, to, buffer, capacity, written)
+            }));
+            assert_eq!(terms.len(), 2, "{terms:?}");
+            assert_eq!(terms[1][0], "180");
+            assert_eq!(terms[1][2..], ["秋分", "秋分"]);
+            let equinox: i64 = terms[1][1].parse().expect("a timestamp");
+            assert!((equinox - at(2026, 9, 23, 0, 5)).abs() <= 90, "{equinox}");
+
+            let phases = rows(&read_lines(|buffer, capacity, written| unsafe {
+                hc_moon_phases_between(from, to, buffer, capacity, written)
+            }));
+            assert_eq!(phases.len(), 4, "{phases:?}");
+            assert_eq!(phases[1][0], "0");
+            assert_eq!(phases[1][2..], ["new", ""]);
+            assert_eq!(phases[1][1], columns[8]);
+        }
+
+        #[test]
+        fn instants_outside_the_era_and_spans_too_long_are_refused() {
+            let null = core::ptr::null_mut();
+            let mut written = 0usize;
+            assert_eq!(
+                unsafe { hc_sky_at(at(3001, 1, 1, 0, 0), null, 0, &mut written) },
+                HC_ERROR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe { hc_sky_at(i64::MIN, null, 0, &mut written) },
+                HC_ERROR_OUT_OF_RANGE
+            );
+            let from = at(1600, 1, 1, 0, 0);
+            assert_eq!(
+                unsafe {
+                    hc_solar_terms_between(from, at(2001, 1, 1, 0, 0), null, 0, &mut written)
+                },
+                HC_ERROR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe {
+                    hc_moon_phases_between(from, at(3001, 1, 1, 0, 1), null, 0, &mut written)
+                },
+                HC_ERROR_OUT_OF_RANGE
+            );
+            // An empty span is an empty, terminated answer.
+            let mut buffer = [7 as c_char; 4];
+            assert_eq!(
+                unsafe { hc_solar_terms_between(from, from, buffer.as_mut_ptr(), 4, &mut written) },
+                HC_OK
+            );
+            assert_eq!(written, 1);
+            assert_eq!(buffer[0], 0);
         }
     }
 }

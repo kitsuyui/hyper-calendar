@@ -36,8 +36,11 @@ deep-time = ["hc/deep-time"]
 # The day by a time zone's wall clock: seventeen built-in zones, and any
 # zone a caller loads as TZif bytes.
 tz = ["civil", "hc/tz"]
+# The sky: where the Sun and Moon are at an instant, and the solar terms and
+# the moon phases within a span, from hc-astro's series.
+sky = ["civil", "hc/seasons"]
 # Every layer.
-full = ["civil", "calendars", "holiday", "seasons", "deep-time", "tz", "hc/full"]
+full = ["civil", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "hc/full"]
 
 [dependencies]
 # Aliased to `hc`, as in `hyper-calendar-wasm`, to keep paths short.
