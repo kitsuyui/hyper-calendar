@@ -57,6 +57,17 @@ pub const ID: CalendarId = CalendarId("dangi");
 /// The Dangi epoch is 2333 BCE and the Chinese one 2637 BCE.
 pub const YEAR_OFFSET: i64 = -304;
 
+/// The last day the lunisolar calendar was Korea's civil calendar,
+/// 31 December 1895: the next day was 建陽 元年 1月 1日, Gregorian.
+pub const LAST_CIVIL: Rd = civil::to_rd(1895, 12, 31);
+
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Joseon's adoption of the Shíxiàn rules in 1653 [wikipedia-ko-siheollyeok, \
+    wikipedia-en-korean-calendar], the range beginning with the rules themselves in 1645; \
+    civil until Korea adopted the Gregorian calendar on 1 January 1896 (Wikipedia (ja), 建陽, \
+    retrieved 2026-09-22); kept since for Seollal and Chuseok, as \
+    docs/systems/east-asian-lunisolar.md states";
+
 /// The earliest fixed day this calendar converts.
 pub const EARLIEST: Rd = civil::to_rd(1645, 1, 1);
 
@@ -104,6 +115,14 @@ pub struct DangiCalendar;
 
 impl Calendar for DangiCalendar {
     type Date = DangiDate;
+
+    /// In use from the Shíxiàn rules of 1645, which Joseon adopted in 1653 —
+    /// a day in that gap is what the rules give, not what Hanseong proclaimed
+    /// — civil until the end of 1895, and the calendar of Seollal and Chuseok
+    /// since.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(EARLIEST, USAGE_SOURCE).civil_until(LAST_CIVIL)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::LUNISOLAR_TWELVE

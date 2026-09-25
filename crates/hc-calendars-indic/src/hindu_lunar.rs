@@ -81,6 +81,12 @@ pub const ERA: &str = "Saka";
 /// The number of months in a common year.
 pub const MONTHS_IN_YEAR: u8 = 12;
 
+/// Where the period of use of the *Rashtriya Panchang*'s calendars comes
+/// from.
+pub const USAGE_SOURCE: &str = "The calendars of India's festivals and regional years, older than any source read dates; \
+    the reckoning carried is the *Rashtriya Panchang*'s, published from Śaka 1879 (1957–58) \
+    [pac-rashtriya-panchang], as docs/systems/hindu-calendars.md states";
+
 /// The Gregorian year in which Śaka year zero would begin, so that Śaka 1
 /// begins in 79 CE.
 pub const GREGORIAN_YEAR_OFFSET: i64 = 78;
@@ -586,6 +592,13 @@ impl Iterator for MonthsOfYear {
 
 impl Calendar for HinduLunarCalendar {
     type Date = HinduLunarDate;
+
+    /// In use today and older than any source read dates, so undated at the
+    /// start; the almanac whose reckoning is carried has been published since
+    /// 1957.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::undated(USAGE_SOURCE)
+    }
 
     /// Twelve months with a thirteenth in an intercalary year, and the
     /// seven-day week.

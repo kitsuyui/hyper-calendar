@@ -202,7 +202,11 @@ pub trait Calendar {
     ///
     /// Defaults to [`Usage::UNRECORDED`], which is honest for a proposed
     /// calendar or a pure day count and wrong for a historical one — so a
-    /// historical calendar should override it.
+    /// historical calendar overrides it, naming the source of the period
+    /// in [`Usage::source`], since a period without one is a claim nobody
+    /// can check. The facade's `tests/usage.rs` holds every registered
+    /// calendar to that: each either records a period with a source or is
+    /// listed there, with its reason, as one that cannot.
     fn usage(&self) -> Usage {
         Usage::UNRECORDED
     }
@@ -210,9 +214,9 @@ pub trait Calendar {
     /// Whether a day falls inside the period this calendar was used in.
     ///
     /// The arithmetic will answer for any day in range; this says whether the
-    /// answer is a historical reading or a projection. Today in the Shōwa era
-    /// is [`Standing::Extended`]: perfectly computable, and not what anyone
-    /// writes.
+    /// answer is a historical reading or a projection. Today in the Japanese
+    /// imperial year, Kōki 2686, is [`Standing::Extended`]: perfectly
+    /// computable, and not what anyone has written since 1945.
     fn standing(&self, rd: Rd) -> Standing {
         self.usage().standing(rd)
     }

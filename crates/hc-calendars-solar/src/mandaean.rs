@@ -129,6 +129,11 @@ pub const MIN_YEAR: i64 = 1;
 /// The latest year this implementation converts.
 pub const MAX_YEAR: i64 = 999_999;
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Häberl 2021: the structure faithfully maintained since 472 CE at the latest, the \
+    continuation of the Sasanian civil calendar; Drower 1937 and Häberl's 2016–2023 New \
+    Year's Days for its use today; nothing read dates its beginning";
+
 /// The earliest fixed day this implementation converts: the epoch.
 pub const EARLIEST: Rd = EPOCH;
 
@@ -311,6 +316,14 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 
 impl Calendar for MandaeanCalendar {
     type Date = MandaeanDate;
+
+    /// In use today and unchanged since 472 at the latest; no source read
+    /// dates where it began, so the period is undated at that end. The years
+    /// after Adam it is numbered in are Häberl's reckoning, and say nothing
+    /// about use.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::undated(USAGE_SOURCE)
+    }
 
     /// Never: every year is 365 days and nothing is intercalated.
     fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {

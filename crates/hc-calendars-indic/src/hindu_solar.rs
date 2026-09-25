@@ -477,6 +477,13 @@ impl HinduSolarCalendar {
 impl Calendar for HinduSolarCalendar {
     type Date = HinduSolarDate;
 
+    /// In use today in each tradition's region and older than any source read
+    /// dates, so undated at the start; see
+    /// [`crate::hindu_lunar::USAGE_SOURCE`].
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::undated(crate::hindu_lunar::USAGE_SOURCE)
+    }
+
     /// Twelve named months, in the tradition's own names, and the seven-day
     /// week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {

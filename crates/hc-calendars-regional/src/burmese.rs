@@ -375,6 +375,12 @@ const fn rd_to_jdn(rd: Rd) -> i64 {
     rd.0 + 1_721_425
 }
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Year 0 of the Myanmar Era begun on 22 March 638 by the reckoning of King Popa Sawrahan \
+    [wikipedia-burmese-calendar]; the eras of the calendar's rules to the Calendar Advisory \
+    Board of 1950 on [yannaingaye2013], which sits today in the Ministry of Religious Affairs \
+    and Culture, as docs/systems/burmese.md states";
+
 /// The earliest fixed day this implementation converts: the New Year's
 /// day of 1 ME.
 pub fn earliest() -> Rd {
@@ -582,6 +588,12 @@ pub struct BurmeseCalendar;
 
 impl Calendar for BurmeseCalendar {
     type Date = BurmeseDate;
+
+    /// From the New Year's Day of 1 ME, the first day this calendar converts,
+    /// and kept today under the Calendar Advisory Board.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(earliest(), USAGE_SOURCE)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::LUNISOLAR_TWELVE

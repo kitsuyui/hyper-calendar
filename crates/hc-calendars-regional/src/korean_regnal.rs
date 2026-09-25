@@ -102,6 +102,10 @@ pub static YUNGHUI: KoreanEra = KoreanEra {
 /// The three eras in order.
 pub static ALL: [&KoreanEra; 3] = [&GEONYANG, &GWANGMU, &YUNGHUI];
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "建陽 元年 1月 1日 = 1 January 1896 to the annexation of 29 August 1910 (Wikipedia (ja), 建陽, \
+    光武 (元号), 隆熙, retrieved 2026-09-22; Wikipedia, \"Korean era name\", retrieved 2026-09-22)";
+
 /// The first day this calendar converts, 建陽 元年 1月 1日.
 pub const EARLIEST: Rd = day(1896, 1, 1);
 
@@ -231,6 +235,12 @@ pub fn from_fixed(rd: Rd) -> CalendarResult<KoreanRegnalDate> {
 
 impl Calendar for KoreanRegnalCalendar {
     type Date = KoreanRegnalDate;
+
+    /// From 1 January 1896 to 29 August 1910, which is also the whole of the
+    /// range it converts.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(EARLIEST, LATEST, USAGE_SOURCE)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::SOLAR_TWELVE

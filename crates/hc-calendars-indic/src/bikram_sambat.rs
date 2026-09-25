@@ -61,6 +61,12 @@ use hc_seasons::zodiac::rashi;
 use crate::hindu_solar::{HinduSolarCalendar, HinduSolarDate, SankrantiRule, SolarModel};
 use crate::places::KATHMANDU;
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "The official calendar of Nepal since 1901, 1958 VS [wikipedia-vikram-samvat], or 1903 \
+    [wikipedia-nepal-sambat], the two sources disagreeing by two years and neither giving a \
+    day; the era itself older than any source read dates; the gazetted months of 2080–2083 \
+    BS from the Ministry of Home Affairs notices";
+
 /// The calendar's identifier.
 pub const ID: CalendarId = CalendarId("bikram-sambat");
 /// The era it counts in.
@@ -303,6 +309,12 @@ impl BikramSambatCalendar {
 
 impl Calendar for BikramSambatCalendar {
     type Date = BikramSambatDate;
+
+    /// Nepal's official calendar today; official since 1901 or 1903, the
+    /// sources disagreeing, and older than either, so undated at the start.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::undated(USAGE_SOURCE)
+    }
 
     /// Twelve named months and the seven-day week.
     fn cycles(&self) -> &'static [CycleShape] {

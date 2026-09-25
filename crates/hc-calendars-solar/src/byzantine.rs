@@ -96,6 +96,19 @@ pub const fn new_year(year: i64) -> CalendarResult<Rd> {
     to_fixed(year, NEW_YEAR_MONTH, 1)
 }
 
+/// The last day of the world era in Russian civil use, 31 December 7208,
+/// which is 31 December 1699 Julian: Peter I's decree made the next day
+/// 1 January 1700.
+pub const LAST_CIVIL: Rd = match julian::to_fixed(1699, 12, 31) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "The civil calendar of the Eastern Roman Empire from the seventh century, of the Orthodox \
+    church afterwards, and of Russia until Peter I replaced it on 1 January 1700, as this \
+    module states; the beginning is not dated closer by any source read";
+
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = match new_year(MIN_YEAR) {
     Ok(rd) => rd,
@@ -195,6 +208,12 @@ pub struct ByzantineCalendar;
 
 impl Calendar for ByzantineCalendar {
     type Date = ByzantineDate;
+
+    /// In use until 31 December 1699 Julian, the day before Peter I's reform,
+    /// from a beginning the sources put in the seventh century and no closer.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::until(LAST_CIVIL, USAGE_SOURCE)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::SOLAR_TWELVE

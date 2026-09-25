@@ -354,8 +354,15 @@ carrying the code and name `CalendarError` gives every refusal:
 | 10 | `overflow` | day arithmetic left the representable range |
 | 11 | `astronomical-model-failure` | the astronomical model could not answer |
 
-The standing (column 14) is a different question from the refusal: Shōwa
-101 converts perfectly well and is `extended`, because nobody writes it.
+The standing (column 14) is a different question from the refusal: the
+Juche calendar converts 2026 perfectly well and is `extended`, because the
+official calendars dropped the era after 2024, and the Chinese calendar is
+`in-use`, because the Spring Festival is still dated by it although it
+stopped being China's civil calendar in 1912. A calendar answers for the
+period its sources record, with the source named in `Usage::source`;
+`unrecorded` is what the day counts, the proposals and the calendars whose
+sources give no span say, and `crates/hyper-calendar/tests/usage.rs` lists
+which those are.
 
 ## Holidays
 

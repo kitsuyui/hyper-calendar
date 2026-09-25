@@ -82,6 +82,12 @@ pub const fn days_in_year(year: i64) -> u16 {
     gregorian::days_in_year(year - YEAR_OFFSET)
 }
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "พระราชบัญญัติปีปฏิทิน พุทธศักราช ๒๔๘๓, Royal Gazette vol. 57, section ก, p. 419, \
+    17 September 1940: the year from 1 January from 2484 (1941) on; the solar months \
+    since 1 April 1889 and the Buddhist Era since 1 April 1913 are the printed year, \
+    `printed_year`";
+
 /// The earliest fixed day this implementation converts, the first day of
 /// Buddhist year 1.
 pub const EARLIEST: Rd = match gregorian::to_fixed(MIN_YEAR - YEAR_OFFSET, 1, 1) {
@@ -249,6 +255,15 @@ pub struct BuddhistCalendar;
 
 impl Calendar for BuddhistCalendar {
     type Date = BuddhistDate;
+
+    /// The year as this calendar counts it, from 1 January, has been kept
+    /// since 1 January 1941 under the Calendar Years Act of 2483. The earlier
+    /// solar years from 1 April are [`printed_year`]'s, not this calendar's,
+    /// so a day before 1941 is proleptic here even where Thailand was already
+    /// writing solar dates.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(JANUARY_YEAR_FROM, USAGE_SOURCE)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::SOLAR_TWELVE

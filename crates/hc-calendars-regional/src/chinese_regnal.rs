@@ -280,6 +280,11 @@ pub fn era_of_year(dynasty: Dynasty, year: i64) -> Option<&'static ChineseEra> {
         .last()
 }
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "The Qing eras over the Shíxiàn calendar from 1 January 1645 to 宣統 3年 12月 25日, 12 February \
+    1912, the abdication (Wikipedia (ja), 宣統 and 元号一覧 (中国), retrieved 2026-09-22); the \
+    Qing eras from 1616 are year data only";
+
 /// The earliest day the calendar converts: 1 January 1645, where the
 /// Shíxiàn calendar begins.
 pub const EARLIEST: Rd = chinese::EARLIEST;
@@ -376,6 +381,12 @@ pub fn to_fixed(date: ChineseRegnalDate) -> CalendarResult<Rd> {
 
 impl Calendar for ChineseRegnalCalendar {
     type Date = ChineseRegnalDate;
+
+    /// Day by day from 1645 to the abdication of 12 February 1912, which is
+    /// also the whole of the range it converts.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(EARLIEST, LATEST, USAGE_SOURCE)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::LUNISOLAR_TWELVE

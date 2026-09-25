@@ -281,6 +281,12 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 impl Calendar for DiscordianCalendar {
     type Date = DiscordianDate;
 
+    /// Unrecorded: the calendar of a text, kept by whoever likes it, and no
+    /// source read dates a period of use.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
+
     /// Five seasons as the month cycle, and the five-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         SHAPE

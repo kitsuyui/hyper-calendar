@@ -151,6 +151,11 @@ pub const LATEST: Rd = match julian::to_fixed(MAX_YEAR - YEAR_OFFSET, 12, 31) {
     Err(_) => Rd(0),
 };
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Jean-Pierre Laporte, \"Sheshonq Ier et le « calendrier berbère »\", \
+    *Encyclopédie berbère* 42 (2019), retrieved 2026-09-25: the first calendar printed in the \
+    era, in 1980, dated 2930";
+
 /// The day the year number was first printed: 1 Yennayer 2930, Gregorian
 /// 14 January 1980.
 pub const FIRST_PRINTED: Rd = match julian::to_fixed(FIRST_PRINTED_YEAR - YEAR_OFFSET, 1, 1) {
@@ -262,7 +267,7 @@ impl Calendar for BerberCalendar {
     /// The year number has been written since the calendar of 1980; the
     /// months are far older, but a year before 2930 is one nobody dated.
     fn usage(&self) -> Usage {
-        Usage::since(FIRST_PRINTED)
+        Usage::since(FIRST_PRINTED, USAGE_SOURCE)
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -394,7 +399,7 @@ mod tests {
         }
         assert_eq!(calendar.meta().id, CalendarId(ID));
         assert_eq!(calendar.meta().year_kind, YearKind::EpochForward);
-        assert_eq!(calendar.usage(), Usage::since(FIRST_PRINTED));
+        assert_eq!(calendar.usage(), Usage::since(FIRST_PRINTED, USAGE_SOURCE));
     }
 
     #[test]

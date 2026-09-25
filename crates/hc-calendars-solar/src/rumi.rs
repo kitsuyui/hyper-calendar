@@ -83,6 +83,10 @@ pub const CUTOVER: Rd = match gregorian::to_fixed(REFORM_YEAR + YEAR_OFFSET, 3, 
     Err(_) => Rd(0),
 };
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Wikipedia, \"Rumi calendar\", retrieved 2026-09-22: adopted for civil use on 1 Mart 1256, \
+    13 March 1840 Gregorian, and abandoned for 1926, so kept to 31 December 1925";
+
 /// The earliest day this implementation converts, 1 Mart 1256: 1 March
 /// 1840 in the Julian calendar.
 pub const EARLIEST: Rd = match julian::to_fixed(MIN_YEAR + YEAR_OFFSET, 3, 1) {
@@ -262,6 +266,12 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 
 impl Calendar for RumiCalendar {
     type Date = RumiDate;
+
+    /// Kept from 13 March 1840 to 31 December 1925, which is also the whole of
+    /// the range it converts.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(EARLIEST, LATEST, USAGE_SOURCE)
+    }
 
     /// Twelve months, named in Ottoman Turkish, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {

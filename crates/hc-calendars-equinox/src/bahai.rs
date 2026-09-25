@@ -130,6 +130,11 @@ pub fn new_year_margin(year: i64) -> CalendarResult<f64> {
     Ok((set.0 - instant.0) * 24.0 * 60.0)
 }
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "The Universal House of Justice, letter of 10 July 2014: the calendar unified worldwide on \
+    astronomical rules from Naw-Rúz 172 BE, 21 March 2015 (*Badíʿ dates 172 to 221 BE*, \
+    Bahá'í World Centre, 2014)";
+
 /// The earliest fixed day this calendar converts.
 #[must_use]
 pub fn earliest() -> Rd {
@@ -252,6 +257,16 @@ pub struct AstronomicalBahaiCalendar;
 
 impl Calendar for AstronomicalBahaiCalendar {
     type Date = BahaiDate;
+
+    /// The rules in force from Naw-Rúz 172 BE, 21 March 2015; before that the
+    /// calendar was kept by other rules, which `bahai` carries, and this one
+    /// is proleptic.
+    fn usage(&self) -> hc_calendar::Usage {
+        match gregorian::to_fixed(2015, 3, 21) {
+            Ok(rd) => hc_calendar::Usage::since(rd, USAGE_SOURCE),
+            Err(_) => hc_calendar::Usage::UNRECORDED,
+        }
+    }
 
     /// Nineteen months of nineteen days, and a seven-day week; Ayyám-i-Há is
     /// not a position in the month cycle.

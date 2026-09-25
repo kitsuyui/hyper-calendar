@@ -135,6 +135,11 @@ const fn year_length_from_mask(mask: u16) -> u16 {
     total
 }
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "The published table for 1300–1600 AH, 1882-11-12 to 2174-11-25 [icu-islamcal], which is the \
+    span carried; Saudi Arabia's civil calendar for several decades, under rules known \
+    from 1392 AH and fixed since 1423 AH [vangent-ummalqura], as docs/systems/hijri.md states";
+
 /// The earliest fixed day this calendar converts: 1 Muḥarram 1300 AH.
 pub const EARLIEST: Rd = EPOCH;
 
@@ -269,6 +274,14 @@ pub struct IslamicUmmAlQuraCalendar;
 
 impl Calendar for IslamicUmmAlQuraCalendar {
     type Date = IslamicDate;
+
+    /// The span of the published table, 1300 to 1600 AH, which is the whole
+    /// of the range it converts; Saudi Arabia's civil calendar, whose rules
+    /// are known only from 1392 AH, so the table's earlier years are a
+    /// computation and not a record.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(EARLIEST, LATEST, USAGE_SOURCE)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::SOLAR_TWELVE

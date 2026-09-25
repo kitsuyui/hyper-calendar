@@ -2347,7 +2347,7 @@ mod tests {
                 japanese[2..10],
                 ["reiwa", "令和", "8", "9", "0", "9月", "21", "0"]
             );
-            assert_eq!(japanese[11..14], ["", "", "unrecorded"]);
+            assert_eq!(japanese[11..14], ["", "", "in-use"]);
             let rumi = rows.iter().find(|row| row[0] == "rumi").expect("rumi");
             assert_eq!(rumi[11..14], ["7", "after-supported-range", ""]);
             // A null locale is `und`.

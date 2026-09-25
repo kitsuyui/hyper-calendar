@@ -87,6 +87,12 @@ pub const fn days_in_year(year: i64) -> u16 {
     gregorian::days_in_year(year - YEAR_OFFSET)
 }
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Adopted with the Gregorian calendar, the 1872 almanac 神武天皇即位紀元二千五百三十三年明治六年太陽暦 \
+    being the first to carry it, and in use from 1 January 1873 (Wikipedia, \"Japanese \
+    imperial year\", retrieved 2026-09-26); the end of 1945 is this module's close of its \
+    official use, no instrument abolishing the era having been found";
+
 /// The earliest fixed day this implementation converts, 1 January of Kōki 1.
 pub const EARLIEST: Rd = match gregorian::to_fixed(MIN_YEAR - YEAR_OFFSET, 1, 1) {
     Ok(rd) => rd,
@@ -180,6 +186,7 @@ impl Calendar for KokiCalendar {
                 Ok(rd) => rd,
                 Err(_) => PROLEPTIC_BEFORE,
             },
+            USAGE_SOURCE,
         )
     }
 

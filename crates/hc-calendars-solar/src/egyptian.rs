@@ -154,6 +154,15 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 impl Calendar for EgyptianCalendar {
     type Date = EgyptianDate;
 
+    /// Unrecorded. The wandering year ran for three millennia and the era
+    /// of Nabonassar it is counted in is Ptolemy's astronomical convention,
+    /// applied to it centuries later and kept by astronomers into the
+    /// Renaissance; no source read bounds either, so there is no period to
+    /// state.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
+
     /// Thirteen months under their Greek names, and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         SHAPE

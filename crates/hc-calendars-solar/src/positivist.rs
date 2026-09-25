@@ -315,6 +315,12 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 impl Calendar for PositivistCalendar {
     type Date = PositivistDate;
 
+    /// Unrecorded: Comte's proposal of 1849, kept by Positivist societies in
+    /// ways no source read dates.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
+
     /// A year with the *Fête générale des Saintes Femmes*, which is when
     /// the Gregorian year it names has a 29 February.
     fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {

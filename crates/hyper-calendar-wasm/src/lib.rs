@@ -2186,8 +2186,9 @@ mod tests {
                     "",
                     "",
                     "",
-                    // The imperial-era calendar records no period of use.
-                    "unrecorded",
+                    // The era calendar has been in use since 862, and never
+                    // abandoned.
+                    "in-use",
                     "midnight",
                     ""
                 ]

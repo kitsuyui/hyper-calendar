@@ -55,6 +55,19 @@ impl OrdinalDate {
     }
 }
 
+/// The first day of the month ISO 2711 was issued in, January 1973.
+///
+/// The source gives the month and no day, so the month's first is taken.
+pub const FIRST_PUBLISHED: Rd = match gregorian::to_fixed(1973, 1, 1) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "ISO 2711, issued January 1973, the first standard of the ordinal date, folded into \
+    ISO 8601:1988; Wikipedia, \"ISO 8601\", retrieved 2026-09-26, which gives the month \
+    and no day";
+
 /// The fixed day of an ordinal date.
 ///
 /// # Errors
@@ -91,6 +104,13 @@ pub struct OrdinalCalendar;
 
 impl Calendar for OrdinalCalendar {
     type Date = OrdinalDate;
+
+    /// Standardised in ISO 2711, January 1973, and carried into ISO 8601 since
+    /// 1988; the source gives no day, so [`FIRST_PUBLISHED`] is the month's
+    /// first.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(FIRST_PUBLISHED, USAGE_SOURCE)
+    }
 
     /// The 365 or 366 numbered days of the year, and nothing else: an
     /// ordinal date has no month and names no weekday.

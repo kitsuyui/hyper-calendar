@@ -28,6 +28,10 @@ pub const ERA_REPUBLIC: &str = "roc";
 /// The era code for years before the Republic, 民國前.
 pub const ERA_BEFORE_REPUBLIC: &str = "broc";
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "Counted from the founding of the Republic on 1 January 1912, as this module states, and \
+    official in Taiwan today; used on the mainland until 1949";
+
 /// The earliest signed year this implementation converts.
 pub const MIN_YEAR: i64 = gregorian::MIN_YEAR + YEAR_OFFSET;
 
@@ -151,10 +155,13 @@ impl Calendar for MinguoCalendar {
     /// In use from the founding of the Republic on 1 January 1912. The
     /// 民國前 years before it are a back-count, which is what the name says.
     fn usage(&self) -> hc_calendar::Usage {
-        hc_calendar::Usage::since(match gregorian::to_fixed(1912, 1, 1) {
-            Ok(rd) => rd,
-            Err(_) => Rd(0),
-        })
+        hc_calendar::Usage::since(
+            match gregorian::to_fixed(1912, 1, 1) {
+                Ok(rd) => rd,
+                Err(_) => Rd(0),
+            },
+            USAGE_SOURCE,
+        )
     }
 
     fn meta(&self) -> CalendarMeta {

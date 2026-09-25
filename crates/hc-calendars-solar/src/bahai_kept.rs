@@ -140,6 +140,10 @@ pub const fn new_year(year: i64) -> CalendarResult<Rd> {
     Ok(Rd(new_year_raw(year)))
 }
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "The calendar as kept from the first Naw-Rúz, 21 March 1844: by the arithmetic rule to \
+    171 BE and by the Bahá'í World Centre's *Badíʿ dates 172 to 221 BE* (2014) since";
+
 /// The earliest fixed day this calendar converts: 21 March 1844.
 pub const EARLIEST: Rd = EPOCH;
 
@@ -226,6 +230,13 @@ pub struct BahaiCalendar;
 
 impl Calendar for BahaiCalendar {
     type Date = BahaiDate;
+
+    /// Kept since the first Naw-Rúz, 21 March 1844, under one rule to 171 BE
+    /// and the published table since; the range ends where the table does,
+    /// which is a limit of the data and not of the calendar.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(EARLIEST, USAGE_SOURCE)
+    }
 
     /// Nineteen months of nineteen days, and a seven-day week; Ayyám-i-Há is
     /// not a position in the month cycle.

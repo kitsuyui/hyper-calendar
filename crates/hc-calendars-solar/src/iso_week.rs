@@ -23,6 +23,21 @@ use hc_calendar::{
 
 use crate::gregorian;
 
+/// The first day of the month ISO 8601:1988 was published in, June 1988.
+///
+/// The week date was first standardised in ISO 2015 (1976, from ISO/R 2015
+/// of 1971); the source gives the month of the 8601 edition and no day, so
+/// the month's first day is taken.
+pub const FIRST_PUBLISHED: Rd = match gregorian::to_fixed(1988, 6, 1) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "ISO 8601:1988, published June 1988, the first edition to carry the week date under \
+    that number, after ISO 2015 (April 1976) and ISO/R 2015 (1971); Wikipedia, \"ISO 8601\", \
+    retrieved 2026-09-26, which gives the month and no day";
+
 /// The earliest ISO year this implementation converts.
 pub const MIN_YEAR: i64 = gregorian::MIN_YEAR + 1;
 
@@ -148,6 +163,13 @@ pub struct IsoWeekCalendar;
 
 impl Calendar for IsoWeekCalendar {
     type Date = IsoWeekDate;
+
+    /// Standardised in ISO 8601:1988, June 1988, after ISO 2015 of 1976 and
+    /// ISO/R 2015 of 1971; the source gives no day, so [`FIRST_PUBLISHED`] is
+    /// the month's first.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(FIRST_PUBLISHED, USAGE_SOURCE)
+    }
 
     /// Fifty-two or fifty-three numbered weeks and the seven-day week. No
     /// months: an ISO week date has none, and its fields carry none.

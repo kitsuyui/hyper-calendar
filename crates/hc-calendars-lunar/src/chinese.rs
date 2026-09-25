@@ -47,6 +47,16 @@ use crate::lunisolar::{
 /// The machine identifier CLDR uses for this calendar.
 pub const ID: CalendarId = CalendarId("chinese");
 
+/// The last day the calendar was China's civil calendar, 31 December 1911:
+/// the Republic adopted the Gregorian calendar at its founding the next day.
+pub const LAST_CIVIL: Rd = civil::to_rd(1911, 12, 31);
+
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "The Shíxiàn calendar promulgated by the Shunzhi Emperor for 1645 [wikipedia-en-chongzhen-calendar]; \
+    civil until the Republic adopted the Gregorian calendar at its founding on 1 January 1912 \
+    (Wikipedia, \"Adoption of the Gregorian calendar\", retrieved 2026-09-26); kept since for \
+    the festivals, under GB/T 33661-2017 today, as docs/systems/east-asian-lunisolar.md states";
+
 /// The earliest fixed day this calendar converts.
 pub const EARLIEST: Rd = civil::to_rd(1645, 1, 1);
 
@@ -94,6 +104,14 @@ pub struct ChineseCalendar;
 
 impl Calendar for ChineseCalendar {
     type Date = ChineseDate;
+
+    /// In use since the Shíxiàn calendar of 1645, which is also where the
+    /// range begins; civil until the end of 1911, and the calendar of the
+    /// Spring Festival and every other traditional date since, so it has an
+    /// end of civil use and no end.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(EARLIEST, USAGE_SOURCE).civil_until(LAST_CIVIL)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::LUNISOLAR_TWELVE

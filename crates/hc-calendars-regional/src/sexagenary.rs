@@ -132,6 +132,13 @@ pub struct SexagenaryCalendar;
 impl Calendar for SexagenaryCalendar {
     type Date = SexagenaryDayDate;
 
+    /// Unrecorded: a cycle, like a day count, with nothing to be outside of.
+    /// The day cycle's two millennia of unbroken use are the module's
+    /// statement and are not dated by a source read.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::UNRECORDED
+    }
+
     /// The ten stems and the twelve branches.
     ///
     /// The sixty pairs are not a third cycle: a pair's name is its stem's

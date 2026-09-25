@@ -68,6 +68,11 @@ pub const ID: CalendarId = CalendarId("japanese-tenpo");
 /// How far the year number falls below the continuous Chinese count.
 pub const YEAR_OFFSET: i64 = -2_637;
 
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "天保15年1月1日 = 1844-02-18 [nao-rekiwiki-tenpo, wikipedia-ja-tenpo] to 明治5年12月2日 = \
+    1872-12-31, the day before 明治5年太政官布告第337号 made the next day 1 January 1873 \
+    [wikipedia-ja-meiji-kaireki, nao-rekiwiki-meiji]";
+
 /// The earliest fixed day this calendar converts: the first day of the first
 /// month of Tenpō 15, when the Tenpō calendar took effect.
 ///
@@ -117,6 +122,13 @@ pub struct JapaneseTenpoCalendar;
 
 impl Calendar for JapaneseTenpoCalendar {
     type Date = JapaneseTenpoDate;
+
+    /// In force from 18 February 1844 to 31 December 1872, which is also the
+    /// whole of the range it converts; the 旧暦 the almanacs have printed
+    /// since is its continuation, and is proleptic here by design.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(EARLIEST, LATEST, USAGE_SOURCE)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::LUNISOLAR_TWELVE

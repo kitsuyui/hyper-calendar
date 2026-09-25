@@ -82,6 +82,19 @@ pub const ERA: &str = "YZ";
 /// Yazdegerdi era: 1370 Y.Z. is 3738 ZRE.
 pub const ZRE_OFFSET: i64 = 2_368;
 
+/// The first day of Fasli 1276, 21 March 1906, the year of the Bombay
+/// society's proposal.
+pub const FASLI_PROPOSED: Rd = match gregorian::to_fixed(1906, 3, 21) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// Where the periods of use come from.
+pub const USAGE_SOURCE: &str = "Wikipedia, \"Zoroastrian calendar\", retrieved 2026-09-22: the wandering year from the \
+    accession of Yazdegerd III, 16 June 632 Julian, continued in Iran and adopted as Kadmi \
+    by some Parsis in 1745; the Shahanshahi a month behind it from 498 Y.Z., 1129; the \
+    Fasli proposed by a Bombay society in 1906, the year only, so its first Nowruz is taken";
+
 /// The fixed day of 1 Fravardin 1 Y.Z. by the Qadimi reckoning: 16 June
 /// 632 in the Julian calendar, Julian Day Number 1 952 063.
 pub const QADIMI_EPOCH: Rd = Rd(230_638);
@@ -450,6 +463,19 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 
 impl Calendar for ZoroastrianCalendar {
     type Date = ZoroastrianDate;
+
+    /// Each reckoning from the day its own count begins: the Qadimi from the
+    /// Yazdegerdi epoch, the Shahanshahi from 498 Y.Z., the Fasli from the
+    /// Nowruz of 1906. All three are kept today.
+    fn usage(&self) -> hc_calendar::Usage {
+        match self.reckoning {
+            Reckoning::Qadimi => hc_calendar::Usage::since(QADIMI_EPOCH, USAGE_SOURCE),
+            Reckoning::Shahanshahi => {
+                hc_calendar::Usage::since(Reckoning::Shahanshahi.earliest(), USAGE_SOURCE)
+            }
+            Reckoning::Fasli => hc_calendar::Usage::since(FASLI_PROPOSED, USAGE_SOURCE),
+        }
+    }
 
     /// Twelve months, the Gatha days as a thirteenth, and the seven-day
     /// week.

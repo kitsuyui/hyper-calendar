@@ -71,6 +71,28 @@ const fn new_year_raw(year: i64) -> i64 {
     EPOCH.0 + 365 * prior + prior.div_euclid(4)
 }
 
+/// The first day of the reformed calendar: 1 January 45 BC, astronomical
+/// year −44.
+pub const REFORM: Rd = match to_fixed(-44, 1, 1) {
+    Ok(rd) => rd,
+    Err(_) => EPOCH,
+};
+
+/// The last day the Julian calendar was a civil calendar in the polities
+/// `docs/systems/gregorian-reform.md` carries: 15 February 1923 Julian in
+/// Greece, the day before its cut-over, which is 28 February 1923 Gregorian.
+pub const LAST_CIVIL: Rd = match crate::gregorian::to_fixed(1923, 3, 1) {
+    Ok(rd) => Rd(rd.0 - 1),
+    Err(_) => EPOCH,
+};
+
+/// Where the period of use comes from.
+pub const USAGE_SOURCE: &str = "The reform of 45 BC, in force from 1 January of that year; the civil calendar \
+    of Europe until the cut-overs docs/systems/gregorian-reform.md dates polity by polity, \
+    the last of them Greece's on 1 March 1923 (Wikipedia, \"Adoption of the Gregorian \
+    calendar\", retrieved 2026-09-26); kept for the liturgical year by several Orthodox \
+    churches since";
+
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = Rd(new_year_raw(MIN_YEAR));
 
@@ -201,6 +223,14 @@ pub struct JulianCalendar;
 
 impl Calendar for JulianCalendar {
     type Date = JulianDate;
+
+    /// In force from 1 January 45 BC. Civil until Greece's cut-over of 1923,
+    /// the last in `docs/systems/gregorian-reform.md`, and the calendar of
+    /// several Orthodox churches' liturgical year since — so it has not been
+    /// abandoned, and [`LAST_CIVIL`] is where its civil use ends.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::since(REFORM, USAGE_SOURCE).civil_until(LAST_CIVIL)
+    }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         hc_calendar::shape::SOLAR_TWELVE
