@@ -1,5 +1,10 @@
 //! The twelve Western signs, measured from the March equinox.
 //!
+//! The division, its identity with the 中気 and the sources of the sign data
+//! are in `docs/systems/solar-terms-and-pentads.md` in the repository, with
+//! the sources keyed in `docs/references.bib`. This page summarises it and
+//! states the code's own facts.
+//!
 //! A tropical sign is a 30° arc of apparent solar longitude counted from the
 //! equinox: Aries 0°–30°, Taurus 30°–60°, and so on round to Pisces at
 //! 330°–360°. That is the entire definition, and it is the one this crate
@@ -32,13 +37,9 @@
 //! March equinox falls on 20 March in most years now and on 19 March in some,
 //! so Aries begins on different days in different years.
 //! [`TropicalSign::conventional_period`] carries the fixed dates newspaper
-//! columns print — "Aries: March 21 – April 19" — which were last a good fit
-//! in the early twentieth century. `tests/zodiac_conventional_dates.rs` measures how far
-//! apart the two have drifted rather than asserting that either is right.
-//!
-//! Accuracy: the underlying solar longitude is good to about 1″, so only an
-//! ingress within about a minute of local midnight can be assigned the wrong
-//! day. See the crate README.
+//! columns print — "Aries: March 21 – April 19" — and
+//! `tests/zodiac_conventional_dates.rs` measures how far apart the two have
+//! drifted rather than asserting that either is right.
 
 use hc_astro::solar::{seasonal_event, solar_longitude, solar_longitude_after};
 use hc_calendar::Rd;

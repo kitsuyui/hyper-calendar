@@ -1,5 +1,10 @@
 //! The same twelve divisions, measured from the fixed stars.
 //!
+//! The ayanāṃśa, its anchors and the precession that carries them, and what
+//! a saṅkrānti day is good to are in `docs/systems/solar-terms-and-pentads.md`
+//! in the repository, with the sources keyed in `docs/references.bib`. This
+//! page summarises it and states the code's own facts.
+//!
 //! A sidereal sign is a 30° arc of *sidereal* longitude: the same apparent
 //! solar longitude the tropical signs use, minus the **ayanamsa** — the angle
 //! by which precession has carried the March equinox away from the sidereal
@@ -35,16 +40,12 @@
 //!
 //! # Accuracy, twice over
 //!
-//! The solar longitude underneath is `hc-astro`'s VSOP87 series, good to
-//! about 1″, so only a saṅkrānti within about a minute of local midnight can
-//! be given the wrong day. On top of that, published values for a named
-//! ayanamsa disagree among themselves by a few tens of arcseconds — different
-//! precession models, different rounding of the anchor — and 20″ of solar
-//! longitude is about eight minutes of time. That second uncertainty is now
-//! much the larger, and it is a disagreement between authorities rather than
-//! an error of the model; both are stated rather than hidden. For a
-//! saṅkrānti *day* the practical consequence is the same: a boundary near
-//! midnight may move.
+//! A saṅkrānti carries the series' error and, on top of it, the few tens of
+//! arcseconds by which published values of a named ayanamsa disagree — eight
+//! minutes of time for 20″, a disagreement between authorities rather than
+//! an error of the model. For a saṅkrānti *day* the practical consequence
+//! is the same: a boundary near midnight may move. The document states
+//! both.
 
 use hc_astro::julian_centuries;
 use hc_astro::solar::{solar_longitude, solar_longitude_after};

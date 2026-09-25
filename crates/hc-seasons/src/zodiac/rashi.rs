@@ -1,6 +1,11 @@
 //! राशि — the rāśi as a *month*, and the Indian solar calendars that count
 //! months that way.
 //!
+//! The sidereal division this rests on is written up in
+//! `docs/systems/solar-terms-and-pentads.md` in the repository, and the month
+//! names and year openings are sourced in `docs/systems/hindu-calendars.md`.
+//! This page summarises them and states the code's own facts.
+//!
 //! A [`SiderealSign`] is not only a sign; it is a month.
 //! The solar calendars of Tamil Nadu, Bengal, Assam, Odisha and Kerala define
 //! a month as the interval the Sun spends in one rāśi, so their months begin

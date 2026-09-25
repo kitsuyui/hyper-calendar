@@ -30,6 +30,12 @@
 //!   routed through `hc-calendars-lunar` for measured reasons the module
 //!   itself records.
 //!
+//! The solar terms, the pentads, the meridians and the zodiac are written up
+//! in `docs/systems/solar-terms-and-pentads.md` in the repository — the
+//! rules, a worked example, what is carried, how the instants compare with
+//! the published almanacs, and the sources, keyed in `docs/references.bib`.
+//! The module pages summarise it and state the code's own facts.
+//!
 //! # A day is not an instant, and a meridian is not optional
 //!
 //! Everything here begins as an astronomical instant in Universal Time and
@@ -58,11 +64,11 @@
 //! # Accuracy
 //!
 //! The underlying solar longitude is `hc-astro`'s VSOP87 series, good to
-//! about 1″, and its seasonal events land within the minute the almanacs
-//! round to. An event within about a minute of local midnight can therefore
-//! still be given the wrong *day*. That is measured rather than asserted: the
-//! integration tests compare against the 240 equinox days Japan published for 1980–2099,
-//! and the README states the rate.
+//! about 1″, and an event within about a minute of local midnight can still
+//! be given the wrong *day*. That is measured rather than asserted: the
+//! integration tests compare against the 240 equinox days Japan published
+//! for 1980–2099, and the document states the rate and the minute-by-minute
+//! comparison with the 暦要項.
 //!
 //! The Moon is better — conjunctions land within about a minute — so the
 //! lunar month boundaries and the phase dates are firmer than the solar-term

@@ -1,5 +1,10 @@
 //! 十二次 — the Chinese twelvefold division of the ecliptic.
 //!
+//! The division and its relation to the 節気 are written up in
+//! `docs/systems/solar-terms-and-pentads.md` in the repository, which also
+//! records which of this page's historical statements no source read there
+//! supports. This page summarises it and states the code's own facts.
+//!
 //! Twelve stations, thirty degrees each, named for the lunar lodges and the
 //! asterisms they contain: 星紀, 玄枵, 娵訾, and so round to 析木. They are
 //! older than the Western signs' arrival in China and were originally the

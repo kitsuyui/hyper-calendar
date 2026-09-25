@@ -1,5 +1,12 @@
 //! 七十二候 — the 72 pentads.
 //!
+//! The system is written up in `docs/systems/solar-terms-and-pentads.md` in
+//! the repository: the 候 as thirds of a term, the 時訓解 list and its
+//! Japanese revisions, what the two name sets carried here are and where
+//! they depart from the texts read, and the sources, keyed in
+//! `docs/references.bib`. This page summarises it and states the code's own
+//! facts.
+//!
 //! Each of the 24 solar terms divides into three 候 of about five days, so
 //! the pentad boundaries are the multiples of 5° of apparent solar longitude.
 //! One shared algorithm, exactly as for the terms; what changes is the data.
@@ -8,15 +15,10 @@
 //!
 //! The pentads are named after what is supposed to be happening in nature,
 //! and what is happening in nature depends on where you are. The classical
-//! Chinese set — the one in 逸周書·時訓解, carried into the 宣明暦 that Japan
-//! used from 862 to 1684 — describes the climate of the Yellow River valley,
-//! and says things that are simply false in Japan: hawks turn into doves,
-//! sparrows enter the sea and become clams.
-//!
-//! Japan therefore rewrote them. Shibukawa Harumi's 貞享暦 (1685) replaced
-//! part of the set, and the 略本暦 revision of 1874 — 本朝七十二候 — produced
-//! the list Japanese almanacs still print. Of the 72, fewer than half are
-//! shared word for word.
+//! Chinese list describes the Yellow River valley and says things that are
+//! simply false in Japan — hawks turn into doves, sparrows enter the sea and
+//! become clams — so Japan rewrote it, and the list Japanese almanacs print
+//! today shares only 21 of its 72 names with the Chinese one.
 //!
 //! Both sets are shipped here, selected by [`PentadTradition`]. Neither is
 //! the default, because a library that picked one would be asserting
@@ -26,9 +28,9 @@
 //!
 //! The 5° division is the modern 定気 one: a pentad is an arc of the
 //! ecliptic, so its length in days varies from about 4.9 near perihelion to
-//! about 5.2 near aphelion. Pre-1685 Japanese and pre-1645 Chinese almanacs
-//! used 平気, equal divisions *in time*, and those give different dates. This
-//! module does not implement 平気.
+//! about 5.2 near aphelion. The older almanacs divided the year equally *in
+//! time* (平気), which gives different dates; this module does not implement
+//! it, and the document says which almanacs those were.
 
 use hc_astro::solar::{seasonal_event, solar_longitude, solar_longitude_after};
 use hc_calendar::Rd;
@@ -151,7 +153,9 @@ hc_core::catalogue! {
     entries: {
         /// The classical Chinese set, as transmitted through the 宣明暦.
         ///
-        /// The 逸周書·時訓解 list, in traditional characters.
+        /// The 逸周書·時訓解 list, in the shinjitai the Japanese references
+        /// print it in; the document records the five entries in which it
+        /// departs from the 逸周書 text.
         pub const CHINESE = PentadTradition {
             id: "chinese",
             english_name: "Chinese",
@@ -354,7 +358,7 @@ hc_core::catalogue! {
             authority: "逸周書·時訓解, as the 宣明暦 transmitted it",
         };
 
-        /// The Japanese set of the 1874 略本暦 revision, 本朝七十二候.
+        /// The Japanese set as the 略本暦 printed it from 1874.
         ///
         /// In shinjitai.
         pub const JAPANESE = PentadTradition {

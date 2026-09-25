@@ -1,5 +1,10 @@
 //! The meridian a seasonal *day* is measured at.
 //!
+//! The named meridians, the almanacs computed at each and a worked example of
+//! one instant becoming two dates are in `docs/systems/solar-terms-and-pentads.md`
+//! in the repository, with the sources keyed in `docs/references.bib`. This
+//! page summarises it and states the code's own facts.
+//!
 //! Every event in this crate is an astronomical instant, and `hc-astro`
 //! returns those in Universal Time. A calendar, though, wants a day, and a
 //! day starts at midnight *somewhere*. That "somewhere" is not a detail: the
