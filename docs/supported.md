@@ -346,7 +346,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Exchange calendars
 
-34 tables, feature `holiday`, keyed by ISO 10383 Market Identifier Code. A closed day is a public-kind entry; an early close is an observance.
+42 tables, feature `holiday`, keyed by ISO 10383 Market Identifier Code. A closed day is a public-kind entry; an early close is an observance.
 
 | MIC | Exchange | Entries |
 | --- | --- | --- |
@@ -354,6 +354,8 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `MISX` | Moscow Exchange | 15 |
 | `XAMS` | Euronext Amsterdam | 8 |
 | `XASX` | Australian Securities Exchange | 11 |
+| `XBKK` | Stock Exchange of Thailand | 33 |
+| `XBOM` | BSE (Bombay Stock Exchange) | 26 |
 | `XBRU` | Euronext Brussels | 8 |
 | `XCSE` | Nasdaq Copenhagen | 12 |
 | `XDUB` | Euronext Dublin | 9 |
@@ -361,9 +363,11 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `XHEL` | Nasdaq Helsinki | 12 |
 | `XHKG` | Stock Exchange of Hong Kong (HKEX) | 3 |
 | `XICE` | Nasdaq Iceland | 14 |
+| `XIDX` | Indonesia Stock Exchange | 28 |
 | `XIST` | Borsa İstanbul | 12 |
 | `XJPX` | Tokyo Stock Exchange (JPX) | 3 |
 | `XJSE` | Johannesburg Stock Exchange | 4 |
+| `XKLS` | Bursa Malaysia | 32 |
 | `XKRX` | Korea Exchange | 2 |
 | `XLIS` | Euronext Lisbon | 8 |
 | `XLON` | London Stock Exchange | 2 |
@@ -371,11 +375,15 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `XMEX` | Bolsa Mexicana de Valores | 4 |
 | `XMIL` | Euronext Milan (Borsa Italiana) | 9 |
 | `XNAS` | Nasdaq | 20 |
+| `XNSE` | National Stock Exchange of India | 26 |
 | `XNYS` | New York Stock Exchange | 20 |
 | `XNZE` | NZX | 3 |
 | `XOSL` | Euronext Oslo (Oslo Børs) | 13 |
 | `XPAR` | Euronext Paris | 8 |
+| `XPHS` | Philippine Stock Exchange | 30 |
 | `XSAU` | Saudi Exchange (Tadawul) | 4 |
+| `XSES` | Singapore Exchange | 23 |
+| `XSHE` | Shenzhen Stock Exchange | 1 |
 | `XSHG` | Shanghai Stock Exchange | 1 |
 | `XSTO` | Nasdaq Stockholm | 17 |
 | `XSWX` | SIX Swiss Exchange | 10 |

@@ -1566,6 +1566,303 @@ fn nzx_closes_on_the_days_its_memos_list_from_2022_to_2026() {
     assert!(calendar.is_business_day(ymd(2026, 1, 19)));
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Shenzhen, Bangkok, NSE, BSE, Singapore, Kuala Lumpur, Jakarta, Manila
+// ─────────────────────────────────────────────────────────────────────────
+
+#[test]
+fn shenzhen_closes_on_the_days_its_notices_list_from_2015_to_2026() {
+    // The Shenzhen notices for 2015 to 2026 close the same weekdays as the
+    // Shanghai ones, 31 December 2018 and 9 February 2024 among them.
+    for &(y, listed) in SSE_CLOSURES {
+        if y < 2015 {
+            continue;
+        }
+        let (closed, early) = year_of(&exchanges::SHENZHEN_STOCK_EXCHANGE, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert!(early.is_empty(), "{y}");
+    }
+    let calendar = HolidayCalendar::for_year(&exchanges::SHENZHEN_STOCK_EXCHANGE, None, 2026);
+    // 20 September 2026, a Sunday China works, is 周末休市.
+    assert!(!calendar.is_business_day(ymd(2026, 9, 20)));
+    assert!(!calendar.is_business_day(ymd(2026, 9, 25)));
+    assert!(calendar.is_business_day(ymd(2026, 9, 28)));
+    assert!(
+        !HolidayCalendar::for_year(&exchanges::SHENZHEN_STOCK_EXCHANGE, None, 2027).is_complete()
+    );
+}
+
+/// The weekday closures on the Stock Exchange of Thailand's holiday pages.
+#[rustfmt::skip]
+const XBKK_CLOSURES: &[(i64, &[(u8, u8)])] = &[
+    (2022, &[(1, 3), (2, 16), (4, 6), (4, 13), (4, 14), (4, 15), (5, 2), (5, 4), (5, 16), (6, 3), (7, 13), (7, 28), (7, 29), (8, 12), (10, 13), (10, 14), (10, 24), (12, 5), (12, 12)]),
+    (2023, &[(1, 2), (3, 6), (4, 6), (4, 13), (4, 14), (5, 1), (5, 4), (5, 5), (6, 5), (7, 28), (8, 1), (8, 14), (10, 13), (10, 23), (12, 5), (12, 11), (12, 29)]),
+    (2024, &[(1, 1), (2, 26), (4, 8), (4, 12), (4, 15), (4, 16), (5, 1), (5, 6), (5, 22), (6, 3), (7, 22), (7, 29), (8, 12), (10, 14), (10, 23), (12, 5), (12, 10), (12, 31)]),
+    (2025, &[(1, 1), (2, 12), (4, 7), (4, 14), (4, 15), (5, 1), (5, 5), (5, 12), (6, 2), (6, 3), (7, 10), (7, 28), (8, 11), (8, 12), (10, 13), (10, 23), (12, 5), (12, 10), (12, 31)]),
+    (2026, &[(1, 1), (1, 2), (3, 3), (4, 6), (4, 13), (4, 14), (4, 15), (5, 1), (5, 4), (6, 1), (6, 3), (7, 28), (7, 29), (8, 12), (10, 13), (10, 16), (10, 23), (12, 7), (12, 10), (12, 31)]),
+    (2027, &[(1, 1), (2, 22), (4, 6), (4, 13), (4, 14), (4, 15), (5, 3), (5, 4), (5, 20), (6, 3), (7, 19), (7, 28), (8, 12), (10, 13), (10, 25), (12, 6), (12, 10), (12, 31)]),
+];
+
+#[test]
+fn bangkok_closes_on_the_days_its_pages_list_from_2022_to_2027() {
+    let set = &exchanges::STOCK_EXCHANGE_OF_THAILAND;
+    for &(y, listed) in XBKK_CLOSURES {
+        let (closed, early) = year_of(set, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert!(early.is_empty(), "{y}");
+    }
+    // A Saturday holiday is substituted too, and Songkran's weekend days
+    // by one Tuesday; the Sunday New Year's Eve of 2023 by the Friday.
+    let calendar = HolidayCalendar::for_year(set, None, 2024);
+    assert_eq!(
+        calendar.on(ymd(2024, 4, 16))[0].name,
+        "Substitution for Songkran Festival"
+    );
+    assert_eq!(
+        calendar.on(ymd(2024, 2, 26))[0].name,
+        "Substitution for Makha Bucha Day"
+    );
+    let calendar = HolidayCalendar::for_year(set, None, 2023);
+    assert_eq!(
+        calendar.on(ymd(2023, 12, 29))[0].name,
+        "Substitution for New Year's Eve"
+    );
+    assert_eq!(calendar.on(ymd(2023, 6, 5)).len(), 2);
+    // The day the Cabinet added in June 2026.
+    let calendar = HolidayCalendar::for_year(set, None, 2026);
+    assert_eq!(
+        calendar.on(ymd(2026, 10, 16))[0].name,
+        "Additional special holiday"
+    );
+    assert!(!HolidayCalendar::for_year(set, None, 2021).is_complete());
+    assert!(!HolidayCalendar::for_year(set, None, 2028).is_complete());
+}
+
+/// The weekday trading holidays of the NSE circulars and BSE notices,
+/// after the changes made during the year.
+#[rustfmt::skip]
+const XNSE_CLOSURES: &[(i64, &[(u8, u8)])] = &[
+    (2020, &[(2, 21), (3, 10), (4, 2), (4, 6), (4, 10), (4, 14), (5, 1), (5, 25), (10, 2), (11, 16), (11, 30), (12, 25)]),
+    (2021, &[(1, 26), (3, 11), (3, 29), (4, 2), (4, 14), (4, 21), (5, 13), (7, 21), (8, 19), (9, 10), (10, 15), (11, 4), (11, 5), (11, 19)]),
+    (2022, &[(1, 26), (3, 1), (3, 18), (4, 14), (4, 15), (5, 3), (8, 9), (8, 15), (8, 31), (10, 5), (10, 24), (10, 26), (11, 8)]),
+    (2023, &[(1, 26), (3, 7), (3, 30), (4, 4), (4, 7), (4, 14), (5, 1), (6, 29), (8, 15), (9, 19), (10, 2), (10, 24), (11, 14), (11, 27), (12, 25)]),
+    (2024, &[(1, 22), (1, 26), (3, 8), (3, 25), (3, 29), (4, 11), (4, 17), (5, 1), (5, 20), (6, 17), (7, 17), (8, 15), (10, 2), (11, 1), (11, 15), (11, 20), (12, 25)]),
+    (2025, &[(2, 26), (3, 14), (3, 31), (4, 10), (4, 14), (4, 18), (5, 1), (8, 15), (8, 27), (10, 2), (10, 21), (10, 22), (11, 5), (12, 25)]),
+    (2026, &[(1, 15), (1, 26), (3, 3), (3, 26), (3, 31), (4, 3), (4, 14), (5, 1), (5, 28), (6, 26), (9, 14), (10, 2), (10, 20), (11, 10), (11, 24), (12, 25)]),
+];
+
+#[test]
+fn the_indian_exchanges_close_on_the_days_their_circulars_list_from_2020_to_2026() {
+    for set in [
+        &exchanges::NATIONAL_STOCK_EXCHANGE_OF_INDIA,
+        &exchanges::BSE,
+    ] {
+        for &(y, listed) in XNSE_CLOSURES {
+            let (closed, early) = year_of(set, y);
+            assert_eq!(days(&closed), listed, "{} {y}", set.code);
+            assert!(early.is_empty(), "{} {y}", set.code);
+        }
+        // Bakri Id 2023 moved from the Wednesday to the Thursday.
+        let calendar = HolidayCalendar::for_year(set, None, 2023);
+        assert!(calendar.is_business_day(ymd(2023, 6, 28)));
+        assert!(!calendar.is_business_day(ymd(2023, 6, 29)));
+        // A weekday Muhurat day is a closure that says the session is
+        // held; a Sunday one is not a trading day of its own.
+        let calendar = HolidayCalendar::for_year(set, None, 2025);
+        assert_eq!(
+            calendar.on(ymd(2025, 10, 21))[0].name,
+            "Diwali Laxmi Pujan (Muhurat trading session held)"
+        );
+        let calendar = HolidayCalendar::for_year(set, None, 2026);
+        assert!(!calendar.is_business_day(ymd(2026, 11, 8)));
+        assert_eq!(calendar.on(ymd(2026, 11, 8)).len(), 1);
+        // The Union Budget sessions on a Saturday and a Sunday, and the
+        // three Saturdays of 2024, are trading days.
+        assert!(calendar.is_business_day(ymd(2026, 2, 1)));
+        let calendar = HolidayCalendar::for_year(set, None, 2024);
+        for (m, d) in [(1, 20), (3, 2), (5, 18)] {
+            assert!(calendar.is_business_day(ymd(2024, m, d)), "{m}-{d}");
+        }
+        assert!(!calendar.is_business_day(ymd(2024, 1, 27)));
+        assert!(!HolidayCalendar::for_year(set, None, 2019).is_complete());
+        assert!(!HolidayCalendar::for_year(set, None, 2027).is_complete());
+    }
+}
+
+/// The weekday closures and half days of the Singapore Exchange: the
+/// Ministry of Manpower's holidays, and the half days SGX prints.
+#[rustfmt::skip]
+const XSES_DAYS: &[ClosuresAndHalves] = &[
+    (2020, &[(1, 1), (1, 27), (4, 10), (5, 1), (5, 7), (5, 25), (7, 10), (7, 31), (8, 10), (12, 25)], &[(1, 24), (12, 24), (12, 31)]),
+    (2021, &[(1, 1), (2, 12), (4, 2), (5, 13), (5, 26), (7, 20), (8, 9), (11, 4)], &[(2, 11), (12, 24), (12, 31)]),
+    (2022, &[(2, 1), (2, 2), (4, 15), (5, 2), (5, 3), (5, 16), (7, 11), (8, 9), (10, 24), (12, 26)], &[(1, 31)]),
+    (2023, &[(1, 2), (1, 23), (1, 24), (4, 7), (5, 1), (6, 2), (6, 29), (8, 9), (9, 1), (11, 13), (12, 25)], &[]),
+    (2024, &[(1, 1), (2, 12), (3, 29), (4, 10), (5, 1), (5, 22), (6, 17), (8, 9), (10, 31), (12, 25)], &[(2, 9), (12, 24), (12, 31)]),
+    (2025, &[(1, 1), (1, 29), (1, 30), (3, 31), (4, 18), (5, 1), (5, 12), (10, 20), (12, 25)], &[(1, 28), (12, 24), (12, 31)]),
+    (2026, &[(1, 1), (2, 17), (2, 18), (4, 3), (5, 1), (5, 27), (6, 1), (8, 10), (11, 9), (12, 25)], &[(2, 16), (12, 24), (12, 31)]),
+];
+
+#[test]
+fn singapore_closes_on_the_ministrys_days_from_2020_to_2026_and_halves_three_eves() {
+    let sgx = &exchanges::SINGAPORE_EXCHANGE;
+    for &(y, listed, halves) in XSES_DAYS {
+        let (closed, early) = year_of(sgx, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert_eq!(early, halves, "{y}");
+    }
+    // A Sunday holiday closes the Monday — the Tuesday when the Monday is
+    // Chinese New Year — and a Saturday one nothing.
+    let calendar = HolidayCalendar::for_year(sgx, None, 2023);
+    assert_eq!(
+        calendar.on(ymd(2023, 1, 24))[0].name,
+        "Chinese New Year holiday, in lieu of the Sunday"
+    );
+    assert!(calendar.is_business_day(ymd(2023, 4, 24)));
+    // Polling Day, and the country table's day off the exchange does not
+    // add.
+    assert_eq!(calendar.on(ymd(2023, 9, 1))[0].name, "Polling Day");
+    assert!(!HolidayCalendar::for_year(sgx, None, 2019).is_complete());
+    assert!(!HolidayCalendar::for_year(sgx, None, 2027).is_complete());
+}
+
+/// The weekday closures and half days on Bursa Malaysia's calendar pages.
+#[rustfmt::skip]
+const XKLS_DAYS: &[ClosuresAndHalves] = &[
+    (2020, &[(1, 1), (1, 27), (5, 1), (5, 7), (5, 11), (5, 25), (5, 26), (6, 8), (7, 31), (8, 20), (8, 31), (9, 16), (10, 29), (12, 25)], &[(1, 24)]),
+    (2021, &[(1, 1), (1, 28), (2, 1), (2, 12), (4, 29), (5, 13), (5, 14), (5, 26), (6, 7), (7, 20), (8, 10), (8, 31), (9, 16), (10, 19), (11, 4), (12, 3)], &[(2, 11), (5, 12)]),
+    (2022, &[(1, 18), (2, 1), (2, 2), (4, 19), (5, 2), (5, 3), (5, 4), (5, 16), (6, 6), (7, 11), (8, 31), (9, 16), (10, 10), (10, 24), (11, 28), (12, 26)], &[(1, 31)]),
+    (2023, &[(1, 2), (1, 23), (1, 24), (2, 1), (2, 6), (4, 21), (4, 24), (5, 1), (5, 4), (6, 5), (6, 29), (7, 19), (8, 31), (9, 28), (11, 13), (12, 25)], &[]),
+    (2024, &[(1, 1), (1, 25), (2, 1), (2, 12), (3, 28), (4, 10), (4, 11), (5, 1), (5, 22), (6, 3), (6, 17), (7, 8), (9, 16), (9, 17), (10, 31), (12, 25)], &[]),
+    (2025, &[(1, 1), (1, 29), (1, 30), (2, 11), (3, 18), (3, 31), (4, 1), (5, 1), (5, 12), (6, 2), (6, 27), (9, 1), (9, 5), (9, 15), (9, 16), (10, 20), (12, 25)], &[]),
+    (2026, &[(1, 1), (2, 2), (2, 17), (2, 18), (3, 20), (3, 23), (5, 1), (5, 27), (6, 1), (6, 17), (8, 25), (8, 31), (9, 16), (11, 9), (12, 25)], &[]),
+];
+
+#[test]
+fn kuala_lumpur_closes_on_the_days_its_pages_give_from_2020_to_2026() {
+    let bursa = &exchanges::BURSA_MALAYSIA;
+    for &(y, listed, halves) in XKLS_DAYS {
+        let (closed, early) = year_of(bursa, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert_eq!(early, halves, "{y}");
+    }
+    // The Federal Territory's days, and the Labuan-only festival traded.
+    let calendar = HolidayCalendar::for_year(bursa, None, 2024);
+    assert_eq!(
+        calendar.on(ymd(2024, 2, 1))[0].name,
+        "Federal Territory Day"
+    );
+    assert!(calendar.is_business_day(ymd(2024, 5, 30)));
+    // Two holidays on one Monday close the Tuesday after.
+    assert_eq!(calendar.on(ymd(2024, 9, 16)).len(), 2);
+    assert_eq!(
+        calendar.on(ymd(2024, 9, 17))[0].name,
+        "Birthday of Prophet Muhammad holiday, in lieu"
+    );
+    // Hari Raya Puasa 2026 as the gazette set it, and the Tuesday after
+    // the Agong's Birthday not carried.
+    let calendar = HolidayCalendar::for_year(bursa, None, 2026);
+    assert!(!calendar.is_business_day(ymd(2026, 3, 20)));
+    assert!(calendar.is_business_day(ymd(2026, 3, 19)));
+    assert!(calendar.is_business_day(ymd(2026, 6, 2)));
+    assert!(!HolidayCalendar::for_year(bursa, None, 2019).is_complete());
+    assert!(!HolidayCalendar::for_year(bursa, None, 2027).is_complete());
+}
+
+/// The weekday closures of the Indonesia Stock Exchange's calendars, each
+/// in its last version read; 2023 was not read.
+#[rustfmt::skip]
+const XIDX_CLOSURES: &[(i64, &[(u8, u8)])] = &[
+    (2020, &[(1, 1), (3, 25), (4, 10), (5, 1), (5, 7), (5, 21), (5, 22), (5, 25), (6, 1), (7, 31), (8, 17), (8, 20), (8, 21), (10, 28), (10, 29), (10, 30), (12, 9), (12, 24), (12, 25), (12, 31)]),
+    (2021, &[(1, 1), (2, 12), (3, 11), (4, 2), (5, 12), (5, 13), (5, 14), (5, 26), (6, 1), (7, 20), (8, 11), (8, 17), (10, 20), (12, 31)]),
+    (2022, &[(2, 1), (2, 28), (3, 3), (4, 15), (4, 29), (5, 2), (5, 3), (5, 4), (5, 5), (5, 6), (5, 16), (5, 26), (6, 1), (8, 17)]),
+    (2024, &[(1, 1), (2, 8), (2, 9), (2, 14), (3, 11), (3, 12), (3, 29), (4, 8), (4, 9), (4, 10), (4, 11), (4, 12), (4, 15), (5, 1), (5, 9), (5, 10), (5, 23), (5, 24), (6, 17), (6, 18), (9, 16), (11, 27), (12, 25), (12, 26), (12, 31)]),
+    (2025, &[(1, 1), (1, 27), (1, 28), (1, 29), (3, 28), (3, 31), (4, 1), (4, 2), (4, 3), (4, 4), (4, 7), (4, 18), (5, 1), (5, 12), (5, 13), (5, 29), (5, 30), (6, 6), (6, 9), (6, 27), (8, 18), (9, 5), (12, 25), (12, 26), (12, 31)]),
+    (2026, &[(1, 1), (1, 16), (2, 16), (2, 17), (3, 18), (3, 19), (3, 20), (3, 23), (3, 24), (4, 3), (5, 1), (5, 14), (5, 15), (5, 27), (5, 28), (6, 1), (6, 16), (8, 17), (8, 25), (12, 24), (12, 25), (12, 31)]),
+];
+
+/// The trading days each calendar totals.
+const XIDX_TRADING_DAYS: &[(i64, usize)] = &[
+    (2020, 242),
+    (2021, 247),
+    (2022, 246),
+    (2024, 237),
+    (2025, 236),
+    (2026, 239),
+];
+
+#[test]
+fn jakarta_closes_on_the_days_its_calendars_list_and_2023_is_a_gap() {
+    let idx = &exchanges::INDONESIA_STOCK_EXCHANGE;
+    for &(y, listed) in XIDX_CLOSURES {
+        let (closed, early) = year_of(idx, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert!(early.is_empty(), "{y}");
+    }
+    // The calendars' own totals of trading days.
+    for &(y, total) in XIDX_TRADING_DAYS {
+        let calendar = HolidayCalendar::for_year(idx, None, y);
+        let mut count = 0;
+        let mut day = ymd(y, 1, 1);
+        while day < ymd(y + 1, 1, 1) {
+            if calendar.is_business_day(day) {
+                count += 1;
+            }
+            day = Rd(day.0 + 1);
+        }
+        assert_eq!(count, total, "{y}");
+    }
+    // The joint-leave day the government cancelled in 2021 was traded.
+    let calendar = HolidayCalendar::for_year(idx, None, 2021);
+    assert!(calendar.is_business_day(ymd(2021, 12, 24)));
+    assert_eq!(
+        calendar.on(ymd(2021, 12, 31))[0].name,
+        "Exchange holiday, the last day of the year"
+    );
+    for y in [2019, 2023, 2027] {
+        assert!(
+            !HolidayCalendar::for_year(idx, None, y).is_complete(),
+            "{y}"
+        );
+    }
+}
+
+/// The weekday non-trading days and half days in the Philippine Stock
+/// Exchange's memoranda.
+#[rustfmt::skip]
+const XPHS_DAYS: &[ClosuresAndHalves] = &[
+    (2020, &[(1, 1), (1, 13), (2, 25), (3, 17), (3, 18), (4, 9), (4, 10), (5, 1), (5, 25), (6, 12), (7, 31), (8, 21), (8, 31), (11, 2), (11, 12), (11, 30), (12, 8), (12, 24), (12, 25), (12, 30), (12, 31)], &[]),
+    (2021, &[(1, 1), (2, 12), (2, 25), (4, 1), (4, 2), (4, 9), (5, 13), (7, 20), (8, 30), (11, 1), (11, 30), (12, 8), (12, 30)], &[(12, 24), (12, 31)]),
+    (2022, &[(1, 4), (2, 1), (2, 25), (4, 14), (4, 15), (5, 3), (5, 9), (8, 29), (9, 26), (10, 31), (11, 1), (11, 30), (12, 8), (12, 26), (12, 30)], &[]),
+    (2023, &[(1, 2), (2, 24), (4, 6), (4, 7), (4, 10), (4, 21), (5, 1), (6, 12), (6, 28), (8, 21), (8, 28), (10, 30), (11, 1), (11, 2), (11, 27), (12, 8), (12, 25), (12, 26)], &[]),
+    (2024, &[(1, 1), (2, 9), (3, 28), (3, 29), (4, 9), (4, 10), (5, 1), (6, 12), (6, 17), (7, 24), (8, 23), (8, 26), (11, 1), (12, 24), (12, 25), (12, 30), (12, 31)], &[]),
+    (2025, &[(1, 1), (1, 29), (4, 1), (4, 9), (4, 17), (4, 18), (5, 1), (5, 12), (6, 6), (6, 12), (8, 21), (8, 25), (10, 31), (12, 8), (12, 24), (12, 25), (12, 30), (12, 31)], &[]),
+    (2026, &[(1, 1), (2, 17), (3, 20), (4, 2), (4, 3), (4, 9), (5, 1), (5, 27), (6, 12), (8, 21), (8, 31), (11, 2), (11, 30), (12, 8), (12, 24), (12, 25), (12, 30), (12, 31)], &[]),
+];
+
+#[test]
+fn manila_closes_on_the_days_its_memoranda_give_from_2020_to_2026() {
+    let pse = &exchanges::PHILIPPINE_STOCK_EXCHANGE;
+    for &(y, listed, halves) in XPHS_DAYS {
+        let (closed, early) = year_of(pse, y);
+        assert_eq!(days(&closed), listed, "{y}");
+        assert_eq!(early, halves, "{y}");
+    }
+    // A day moved by proclamation, an unscheduled closure, and the day
+    // the exchange traded when the Wednesday was first announced.
+    let calendar = HolidayCalendar::for_year(pse, None, 2024);
+    assert_eq!(calendar.on(ymd(2024, 8, 23))[0].name, "Ninoy Aquino Day");
+    assert!(calendar.is_business_day(ymd(2024, 8, 21)));
+    assert_eq!(
+        calendar.on(ymd(2024, 7, 24))[0].name,
+        "Trading suspension, inclement weather and floods"
+    );
+    // EDSA Day 2025, in no memorandum, is a trading day.
+    let calendar = HolidayCalendar::for_year(pse, None, 2025);
+    assert!(calendar.is_business_day(ymd(2025, 2, 25)));
+    assert!(!HolidayCalendar::for_year(pse, None, 2019).is_complete());
+    assert!(!HolidayCalendar::for_year(pse, None, 2027).is_complete());
+}
+
 #[test]
 fn the_catalogue_is_keyed_by_market_identifier_code() {
     assert_eq!(
@@ -1573,5 +1870,5 @@ fn the_catalogue_is_keyed_by_market_identifier_code() {
         Some("New York Stock Exchange")
     );
     assert!(exchanges::ALL.iter().all(|e| e.code.len() == 4));
-    assert_eq!(exchanges::ALL.len(), 34);
+    assert_eq!(exchanges::ALL.len(), 42);
 }

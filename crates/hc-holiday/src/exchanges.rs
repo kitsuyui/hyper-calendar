@@ -1711,16 +1711,7 @@ static XTAE_DAYS: &[(i64, u8, u8, u8)] = &[
 
 /// The days of one rule in [`XTAE_DAYS`].
 fn xtae_days<const RULE: u8>(year: i64) -> Days {
-    let mut out = Days::new();
-    for &(y, month, day, rule) in XTAE_DAYS {
-        if y == year
-            && rule == RULE
-            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
-        {
-            out.push(fixed);
-        }
-    }
-    out
+    ruled_days(XTAE_DAYS, year, RULE)
 }
 
 /// A closure the vacation schedules list.
@@ -1860,16 +1851,7 @@ static XSAU_DAYS: &[(i64, u8, u8, u8)] = &[
 
 /// The days of one rule in [`XSAU_DAYS`].
 fn xsau_days<const RULE: u8>(year: i64) -> Days {
-    let mut out = Days::new();
-    for &(y, month, day, rule) in XSAU_DAYS {
-        if y == year
-            && rule == RULE
-            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
-        {
-            out.push(fixed);
-        }
-    }
-    out
+    ruled_days(XSAU_DAYS, year, RULE)
 }
 
 /// A closure the exchange's announcements list.
@@ -1953,16 +1935,7 @@ static XIST_DAYS: &[(i64, u8, u8, u8)] = &[
 
 /// The days of one rule in [`XIST_DAYS`].
 fn xist_days<const RULE: u8>(year: i64) -> Days {
-    let mut out = Days::new();
-    for &(y, month, day, rule) in XIST_DAYS {
-        if y == year
-            && rule == RULE
-            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
-        {
-            out.push(fixed);
-        }
-    }
-    out
+    ruled_days(XIST_DAYS, year, RULE)
 }
 
 /// The Bayram days of one rule, over the years the tables carried cover.
@@ -2263,11 +2236,991 @@ pub static NZX: RuleSet = RuleSet {
               \"public holidays will be mondayised\"; retrieved 2026-09-23",
 };
 
+// ─────────────────────────────────────────────────────────────────────────
+// Shenzhen Stock Exchange
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The Shenzhen Stock Exchange.
+///
+/// The exchange's annual closure notices for 2015 to 2026,
+/// 关于20XX年部分节假日休市安排的通知, with the three that changed a year —
+/// the commemoration of 3 and 4 September 2015, Labour Day 2019 and the
+/// Spring Festival of 2020, extended to 2 February: in every year read they
+/// close the same days as Shanghai's notices, both following the CSRC's
+/// 关于部分节假日放假和休市安排的通知 for the year — Saturdays, Sundays and
+/// the days off of the State Council's arrangement, the [`CHINA`] table's,
+/// which this set includes and does not repeat, not the weekend days that
+/// arrangement makes working days, which the notices list as 周末休市, and
+/// 9 February 2024, the eve of the Spring Festival, which the 2024 notice
+/// closes as Shanghai's does. The rule slice is Shanghai's, shared so that
+/// the two cannot drift apart unnoticed. A year the [`CHINA`] table has no
+/// arrangement for is a gap here too.
+pub static SHENZHEN_STOCK_EXCHANGE: RuleSet = RuleSet {
+    code: "XSHE",
+    english_name: "Shenzhen Stock Exchange",
+    rules: XSHG_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[Include::nationwide(&CHINA)],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 25),
+    sources: "深圳证券交易所, 关于2015年 to 2026年部分节假日休市安排的通知 \
+              (szse.cn/disclosure/notice/general/, t20141224_501340 to t20251222_618087), with \
+              关于中国人民抗日战争暨世界反法西斯战争胜利70周年纪念日休市安排的通知 of 21 July 2015 \
+              (t20150721_501527), 关于调整2019年劳动节休市安排的通知 of 18 April 2019 \
+              (t20190418_566376) and 关于延长2020年春节休市安排的通知 of 27 January 2020 \
+              (t20200127_573917); retrieved 2026-09-25 over http, the site's https refusing \
+              the connection",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Stock Exchange of Thailand
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year of the exchange's holiday pages carried here.
+const XBKK_FIRST: i64 = 2022;
+/// The last.
+const XBKK_LAST: i64 = 2027;
+
+/// The exchange's "SET Holidays" for 2022 to 2027, as (year, month, day,
+/// which of the rules below).
+#[rustfmt::skip]
+static XBKK_DAYS: &[(i64, u8, u8, u8)] = &[
+    (2022, 1, 3, 17), (2022, 2, 16, 1), (2022, 4, 6, 2), (2022, 4, 13, 3), (2022, 4, 14, 3),
+    (2022, 4, 15, 3), (2022, 5, 2, 21), (2022, 5, 4, 5), (2022, 5, 16, 23), (2022, 6, 3, 7),
+    (2022, 7, 13, 8), (2022, 7, 28, 9), (2022, 7, 29, 16), (2022, 8, 12, 10), (2022, 10, 13, 11),
+    (2022, 10, 14, 16), (2022, 10, 24, 29), (2022, 12, 5, 13), (2022, 12, 12, 31),
+    (2023, 1, 2, 17), (2023, 1, 2, 32), (2023, 3, 6, 1), (2023, 4, 6, 2), (2023, 4, 13, 3),
+    (2023, 4, 14, 3), (2023, 5, 1, 4), (2023, 5, 4, 5), (2023, 5, 5, 16), (2023, 6, 5, 24),
+    (2023, 6, 5, 23), (2023, 7, 28, 9), (2023, 8, 1, 8), (2023, 8, 14, 27), (2023, 10, 13, 11),
+    (2023, 10, 23, 12), (2023, 12, 5, 13), (2023, 12, 11, 31), (2023, 12, 29, 32),
+    (2024, 1, 1, 0), (2024, 2, 26, 18), (2024, 4, 8, 19), (2024, 4, 12, 16), (2024, 4, 15, 3),
+    (2024, 4, 16, 20), (2024, 5, 1, 4), (2024, 5, 6, 22), (2024, 5, 22, 6), (2024, 6, 3, 7),
+    (2024, 7, 22, 25), (2024, 7, 29, 26), (2024, 8, 12, 10), (2024, 10, 14, 28),
+    (2024, 10, 23, 12), (2024, 12, 5, 13), (2024, 12, 10, 14), (2024, 12, 31, 15),
+    (2025, 1, 1, 0), (2025, 2, 12, 1), (2025, 4, 7, 19), (2025, 4, 14, 3), (2025, 4, 15, 3),
+    (2025, 5, 1, 4), (2025, 5, 5, 22), (2025, 5, 12, 23), (2025, 6, 2, 16), (2025, 6, 3, 7),
+    (2025, 7, 10, 8), (2025, 7, 28, 9), (2025, 8, 11, 16), (2025, 8, 12, 10), (2025, 10, 13, 11),
+    (2025, 10, 23, 12), (2025, 12, 5, 13), (2025, 12, 10, 14), (2025, 12, 31, 15),
+    (2026, 1, 1, 0), (2026, 1, 2, 16), (2026, 3, 3, 1), (2026, 4, 6, 2), (2026, 4, 13, 3),
+    (2026, 4, 14, 3), (2026, 4, 15, 3), (2026, 5, 1, 4), (2026, 5, 4, 5), (2026, 6, 1, 23),
+    (2026, 6, 3, 7), (2026, 7, 28, 9), (2026, 7, 29, 8), (2026, 8, 12, 10), (2026, 10, 13, 11),
+    (2026, 10, 16, 16), (2026, 10, 23, 12), (2026, 12, 7, 30), (2026, 12, 10, 14),
+    (2026, 12, 31, 15),
+    (2027, 1, 1, 0), (2027, 2, 22, 18), (2027, 4, 6, 2), (2027, 4, 13, 3), (2027, 4, 14, 3),
+    (2027, 4, 15, 3), (2027, 5, 3, 21), (2027, 5, 4, 5), (2027, 5, 20, 6), (2027, 6, 3, 7),
+    (2027, 7, 19, 25), (2027, 7, 28, 9), (2027, 8, 12, 10), (2027, 10, 13, 11), (2027, 10, 25, 29),
+    (2027, 12, 6, 30), (2027, 12, 10, 14), (2027, 12, 31, 15),
+];
+
+/// The days of one rule in [`XBKK_DAYS`].
+fn xbkk_days<const RULE: u8>(year: i64) -> Days {
+    ruled_days(XBKK_DAYS, year, RULE)
+}
+
+/// A closure the exchange's holiday pages list.
+const fn xbkk_closed<const RULE: u8>(name: &'static str, local_name: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local_name,
+        Rule::Tabulated {
+            function: xbkk_days::<RULE>,
+            first_year: XBKK_FIRST,
+            last_year: XBKK_LAST,
+        },
+    )
+}
+
+static XBKK_RULES: &[HolidayRule] = &[
+    xbkk_closed::<0>("New Year's Day", "วันขึ้นปีใหม่"),
+    xbkk_closed::<1>("Makha Bucha Day", "วันมาฆบูชา"),
+    xbkk_closed::<2>("Chakri Memorial Day", "วันจักรี"),
+    xbkk_closed::<3>("Songkran Festival", "วันสงกรานต์"),
+    xbkk_closed::<4>("National Labour Day", "วันแรงงานแห่งชาติ"),
+    xbkk_closed::<5>("Coronation Day", "วันฉัตรมงคล"),
+    xbkk_closed::<6>("Visakha Bucha Day", "วันวิสาขบูชา"),
+    xbkk_closed::<7>(
+        "H.M. Queen Suthida's Birthday",
+        "วันเฉลิมพระชนมพรรษา สมเด็จพระนางเจ้าสุทิดา พัชรสุธาพิมลลักษณ พระบรมราชินี",
+    ),
+    xbkk_closed::<8>("Asarnha Bucha Day", "วันอาสาฬหบูชา"),
+    xbkk_closed::<9>(
+        "H.M. King Maha Vajiralongkorn's Birthday",
+        "วันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระเจ้าอยู่หัว",
+    ),
+    xbkk_closed::<10>(
+        "H.M. Queen Sirikit The Queen Mother's Birthday and Mother's Day",
+        "วันแม่แห่งชาติ",
+    ),
+    xbkk_closed::<11>(
+        "H.M. King Bhumibol Adulyadej The Great Memorial Day",
+        "วันนวมินทรมหาราช",
+    ),
+    xbkk_closed::<12>("Chulalongkorn Day", "วันปิยมหาราช"),
+    xbkk_closed::<13>(
+        "H.M. King Bhumibol Adulyadej The Great's Birthday, National Day and Father's Day",
+        "วันพ่อแห่งชาติ",
+    ),
+    xbkk_closed::<14>("Constitution Day", "วันรัฐธรรมนูญ"),
+    xbkk_closed::<15>("New Year's Eve", "วันสิ้นปี"),
+    xbkk_closed::<16>("Additional special holiday", "วันหยุดทำการเพิ่มเติมเป็นกรณีพิเศษ"),
+    xbkk_closed::<17>("Substitution for New Year's Day", "ชดเชยวันขึ้นปีใหม่"),
+    xbkk_closed::<18>("Substitution for Makha Bucha Day", "ชดเชยวันมาฆบูชา"),
+    xbkk_closed::<19>("Substitution for Chakri Memorial Day", "ชดเชยวันจักรี"),
+    xbkk_closed::<20>("Substitution for Songkran Festival", "ชดเชยวันสงกรานต์"),
+    xbkk_closed::<21>(
+        "Substitution for National Labour Day",
+        "ชดเชยวันแรงงานแห่งชาติ",
+    ),
+    xbkk_closed::<22>("Substitution for Coronation Day", "ชดเชยวันฉัตรมงคล"),
+    xbkk_closed::<23>("Substitution for Visakha Bucha Day", "ชดเชยวันวิสาขบูชา"),
+    xbkk_closed::<24>(
+        "Substitution for H.M. Queen Suthida's Birthday",
+        "ชดเชยวันเฉลิมพระชนมพรรษา สมเด็จพระนางเจ้าสุทิดา พัชรสุธาพิมลลักษณ พระบรมราชินี",
+    ),
+    xbkk_closed::<25>("Substitution for Asarnha Bucha Day", "ชดเชยวันอาสาฬหบูชา"),
+    xbkk_closed::<26>(
+        "Substitution for H.M. King Maha Vajiralongkorn's Birthday",
+        "ชดเชยวันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระเจ้าอยู่หัว",
+    ),
+    xbkk_closed::<27>(
+        "Substitution for H.M. Queen Sirikit The Queen Mother's Birthday and Mother's Day",
+        "ชดเชยวันแม่แห่งชาติ",
+    ),
+    xbkk_closed::<28>(
+        "Substitution for H.M. King Bhumibol Adulyadej The Great Memorial Day",
+        "ชดเชยวันนวมินทรมหาราช",
+    ),
+    xbkk_closed::<29>("Substitution for Chulalongkorn Day", "ชดเชยวันปิยมหาราช"),
+    xbkk_closed::<30>(
+        "Substitution for H.M. King Bhumibol Adulyadej The Great's Birthday, National Day and Father's Day",
+        "ชดเชยวันพ่อแห่งชาติ",
+    ),
+    xbkk_closed::<31>("Substitution for Constitution Day", "ชดเชยวันรัฐธรรมนูญ"),
+    xbkk_closed::<32>("Substitution for New Year's Eve", "ชดเชยวันสิ้นปี"),
+];
+
+/// The Stock Exchange of Thailand.
+///
+/// The exchange's "SET Holidays" pages for 2022 to 2027, which it changes
+/// "in line with the announcement of the Bank of Thailand (BOT) and the
+/// Securities Exchange Commission (SEC)": the days each year's page lists
+/// are carried as listed, since the Cabinet adds a day to most years —
+/// the "Additional special holiday" of 29 July and 14 October 2022, 5 May
+/// 2023, 12 April 2024, 2 June and 11 August 2025, 2 January and 16
+/// October 2026, the last added by the exchange's notification of 16 June
+/// 2026 — and substitutes a weekday for a weekend holiday on the pages'
+/// own terms: a Monday for a Saturday holiday as well as a Sunday one,
+/// Tuesday 16 April 2024 for the weekend days of Songkran, Friday 29
+/// December 2023 for the Sunday New Year's Eve, added during the year,
+/// and one Monday for two holidays on one Saturday, 5 June 2023. New
+/// Year's Eve is a closure. The pages for 2020 and 2021 are no longer
+/// served, so those years and any year after 2027 are a gap. No early
+/// closes.
+pub static STOCK_EXCHANGE_OF_THAILAND: RuleSet = RuleSet {
+    code: "XBKK",
+    english_name: "Stock Exchange of Thailand",
+    rules: XBKK_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 25),
+    sources: "SET, \"SET Holidays\" (set.or.th/en/about/event-calendar/holiday?year=YYYY, and \
+              the Thai page set.or.th/th/about/event-calendar/holiday), the pages for 2022 to \
+              2027, retrieved 2026-09-25, read in a browser, the site refusing automated \
+              access; the exchange's holiday API for 2022 and 2023 in web.archive.org copies \
+              of 10 January and 20 June 2023 (set.or.th/api/set/holiday/year/YYYY?lang=en), \
+              for the lists as first published",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// National Stock Exchange of India and BSE
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year of the exchanges' holiday circulars carried here.
+const XNSE_FIRST: i64 = 2020;
+/// The last.
+const XNSE_LAST: i64 = 2026;
+
+/// The trading holidays of the NSE's Capital Market circulars and BSE's
+/// Equity notices for 2020 to 2026, with the later circulars that added or
+/// moved a day and the live sessions held on a Saturday or Sunday, as
+/// (year, month, day, which of the rules below). The Diwali Laxmi Pujan
+/// holiday is listed on its day whether a weekday or not, since a Muhurat
+/// session is held on it.
+#[rustfmt::skip]
+static XNSE_DAYS: &[(i64, u8, u8, u8)] = &[
+    (2020, 2, 1, 23), (2020, 2, 21, 1), (2020, 3, 10, 2), (2020, 4, 2, 3), (2020, 4, 6, 4),
+    (2020, 4, 10, 5), (2020, 4, 14, 6), (2020, 5, 1, 7), (2020, 5, 25, 8), (2020, 10, 2, 13),
+    (2020, 11, 14, 15), (2020, 11, 16, 16), (2020, 11, 30, 17), (2020, 12, 25, 18),
+    (2021, 1, 26, 0), (2021, 3, 11, 1), (2021, 3, 29, 2), (2021, 4, 2, 5), (2021, 4, 14, 6),
+    (2021, 4, 21, 3), (2021, 5, 13, 8), (2021, 7, 21, 9), (2021, 8, 19, 10), (2021, 9, 10, 12),
+    (2021, 10, 15, 14), (2021, 11, 4, 15), (2021, 11, 5, 16), (2021, 11, 19, 17),
+    (2022, 1, 26, 0), (2022, 3, 1, 1), (2022, 3, 18, 2), (2022, 4, 14, 6), (2022, 4, 14, 4),
+    (2022, 4, 15, 5), (2022, 5, 3, 8), (2022, 8, 9, 10), (2022, 8, 15, 11), (2022, 8, 31, 12),
+    (2022, 10, 5, 14), (2022, 10, 24, 15), (2022, 10, 26, 16), (2022, 11, 8, 17),
+    (2023, 1, 26, 0), (2023, 3, 7, 2), (2023, 3, 30, 3), (2023, 4, 4, 4), (2023, 4, 7, 5),
+    (2023, 4, 14, 6), (2023, 5, 1, 7), (2023, 6, 29, 9), (2023, 8, 15, 11), (2023, 9, 19, 12),
+    (2023, 10, 2, 13), (2023, 10, 24, 14), (2023, 11, 12, 15), (2023, 11, 14, 16),
+    (2023, 11, 27, 17), (2023, 12, 25, 18),
+    (2024, 1, 20, 24), (2024, 1, 22, 19), (2024, 1, 26, 0), (2024, 3, 2, 25), (2024, 3, 8, 1),
+    (2024, 3, 25, 2), (2024, 3, 29, 5), (2024, 4, 11, 8), (2024, 4, 17, 3), (2024, 5, 1, 7),
+    (2024, 5, 18, 25), (2024, 5, 20, 20), (2024, 6, 17, 9), (2024, 7, 17, 10), (2024, 8, 15, 11),
+    (2024, 10, 2, 13), (2024, 11, 1, 15), (2024, 11, 15, 17), (2024, 11, 20, 21),
+    (2024, 12, 25, 18),
+    (2025, 2, 1, 23), (2025, 2, 26, 1), (2025, 3, 14, 2), (2025, 3, 31, 8), (2025, 4, 10, 4),
+    (2025, 4, 14, 6), (2025, 4, 18, 5), (2025, 5, 1, 7), (2025, 8, 15, 11), (2025, 8, 27, 12),
+    (2025, 10, 2, 13), (2025, 10, 2, 14), (2025, 10, 21, 15), (2025, 10, 22, 16),
+    (2025, 11, 5, 17), (2025, 12, 25, 18),
+    (2026, 1, 15, 22), (2026, 1, 26, 0), (2026, 2, 1, 23), (2026, 3, 3, 2), (2026, 3, 26, 3),
+    (2026, 3, 31, 4), (2026, 4, 3, 5), (2026, 4, 14, 6), (2026, 5, 1, 7), (2026, 5, 28, 9),
+    (2026, 6, 26, 10), (2026, 9, 14, 12), (2026, 10, 2, 13), (2026, 10, 20, 14), (2026, 11, 8, 15),
+    (2026, 11, 10, 16), (2026, 11, 24, 17), (2026, 12, 25, 18),
+];
+
+/// The days of one rule in [`XNSE_DAYS`].
+fn xnse_days<const RULE: u8>(year: i64) -> Days {
+    ruled_days(XNSE_DAYS, year, RULE)
+}
+
+/// The days of one rule, over the years the circulars carried cover.
+const fn xnse_rule<const RULE: u8>() -> Rule {
+    Rule::Tabulated {
+        function: xnse_days::<RULE>,
+        first_year: XNSE_FIRST,
+        last_year: XNSE_LAST,
+    }
+}
+
+/// A trading holiday the circulars list.
+const fn xnse_closed<const RULE: u8>(name: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(name, "", xnse_rule::<RULE>())
+}
+
+static XNSE_RULES: &[HolidayRule] = &[
+    xnse_closed::<0>("Republic Day"),
+    xnse_closed::<1>("Mahashivratri"),
+    xnse_closed::<2>("Holi"),
+    xnse_closed::<3>("Ram Navami"),
+    xnse_closed::<4>("Mahavir Jayanti"),
+    xnse_closed::<5>("Good Friday"),
+    xnse_closed::<6>("Dr. Baba Saheb Ambedkar Jayanti"),
+    xnse_closed::<7>("Maharashtra Day"),
+    xnse_closed::<8>("Id-Ul-Fitr (Ramzan Id)"),
+    xnse_closed::<9>("Bakri Id"),
+    xnse_closed::<10>("Muharram"),
+    xnse_closed::<11>("Independence Day"),
+    xnse_closed::<12>("Ganesh Chaturthi"),
+    xnse_closed::<13>("Mahatma Gandhi Jayanti"),
+    xnse_closed::<14>("Dussehra"),
+    xnse_closed::<15>("Diwali Laxmi Pujan (Muhurat trading session held)"),
+    xnse_closed::<16>("Diwali Balipratipada"),
+    xnse_closed::<17>("Guru Nanak Jayanti"),
+    xnse_closed::<18>("Christmas"),
+    xnse_closed::<19>("Public holiday under the Negotiable Instruments Act"),
+    xnse_closed::<20>("General election day in Mumbai"),
+    xnse_closed::<21>("Maharashtra Assembly election day"),
+    xnse_closed::<22>("Municipal Corporation election day in Maharashtra"),
+    HolidayRule::workday(
+        "Working day, live trading session for the Union Budget",
+        "",
+        xnse_rule::<23>(),
+    ),
+    HolidayRule::workday(
+        "Working day, live trading session on a Saturday",
+        "",
+        xnse_rule::<24>(),
+    ),
+    HolidayRule::workday(
+        "Working day, special live trading session with a switch to the disaster recovery site",
+        "",
+        xnse_rule::<25>(),
+    ),
+];
+
+/// The National Stock Exchange of India, for its Capital Market segment.
+///
+/// The exchange's trading-holiday circulars for 2020 to 2026, with the
+/// ones that changed a year: the Bakri Id holiday of 2023 moved from
+/// Wednesday 28 to Thursday 29 June, and the days added for a public
+/// holiday under the Negotiable Instruments Act on 22 January 2024, the
+/// general election in Mumbai on 20 May 2024, the Maharashtra Assembly
+/// election on 20 November 2024 and the Municipal Corporation election on
+/// 15 January 2026. The holidays are Maharashtra's, set each year, so each
+/// year's list is carried as listed and a year outside 2020 to 2026 is a
+/// gap. A holiday that falls on a Saturday or Sunday is listed by the
+/// circular under that heading and closes nothing; it is not carried,
+/// except the Diwali Laxmi Pujan holiday, on which the exchange holds a
+/// Muhurat trading session of about an hour in the evening (Saturday 14
+/// November 2020, Sunday 12 November 2023, Sunday 8 November 2026) — a
+/// closure whose name says the session is held, on the weekday
+/// Muhurat days too, on the terms the Moscow table gives its weekend
+/// sessions. The exchange also trades on some weekend days: the Union
+/// Budget sessions of Saturday 1 February 2020 and 2025 and Sunday 1
+/// February 2026, "as per the standard market timings"; Saturday 20
+/// January 2024, "regular trading sessions… as per regular market
+/// timings"; and the special live sessions of Saturday 2 March and 18 May
+/// 2024, with an intraday switch to the disaster recovery site, whose
+/// trades "shall result in settlement obligations" — all carried as
+/// working days. The 2019 circular and the 2027 one, not yet published,
+/// were not read.
+pub static NATIONAL_STOCK_EXCHANGE_OF_INDIA: RuleSet = RuleSet {
+    code: "XNSE",
+    english_name: "National Stock Exchange of India",
+    rules: XNSE_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "NSE, \"Trading Holidays\" circulars for the Capital Market segment \
+              (nsearchives.nseindia.com/content/circulars/CMTRNNNNN.pdf): NSE/CMTR/42877 for \
+              2020, 46623 for 2021, 50560 for 2022, 54757 for 2023, 59722 for 2024, 65587 for \
+              2025 and 71775 for 2026; NSE/CMTR/57285 for Bakri Id 2023, 60338, 61518 and 64960 \
+              for the days added in 2024, and 72260 for 15 January 2026; NSE/CMTR/43290, 65729 \
+              and 72349 for the Union Budget sessions, NSE/MSD/60340 for 20 January 2024 and \
+              NSE/MSD/60677 and 61893 for the special live sessions of 2 March and 18 May 2024; \
+              NSE/CMTR/46230, 50050, 54023, 59124, 64628 and 70319 for the Muhurat sessions of \
+              2020 to 2025; all retrieved 2026-09-23",
+};
+
+/// BSE, the Bombay Stock Exchange, for its Equity segment.
+///
+/// The same days as the National Stock Exchange in every year from 2020
+/// to 2026 — the annual notices, the four days added or moved, the
+/// Muhurat sessions and the weekend live sessions — as BSE's own notices
+/// give them; the rule slice is shared, so the two cannot drift apart
+/// unnoticed. Only the spelling of some names differs between the two
+/// exchanges' lists (BSE's "Muharram" for NSE's "Moharram", "Dussehra" for
+/// "Dasera", "Ramzan Id" for "Ramzan ID"), and the names here follow BSE's
+/// where they do. A year outside 2020 to 2026 is a gap.
+pub static BSE: RuleSet = RuleSet {
+    code: "XBOM",
+    english_name: "BSE (Bombay Stock Exchange)",
+    rules: XNSE_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "BSE, \"Trading Holidays\" notices for the Equity segment \
+              (bseindia.com/markets/MarketInfo/DispNewNoticesCirculars.aspx?page=NOTICE): \
+              20191211-2 for 2020, 20201210-7 for 2021, 20211210-15 for 2022, 20221208-31 for \
+              2023, 20231212-40 for 2024, 20241213-30 for 2025 and 20251212-8 for 2026; \
+              20230627-2 for Bakri Id 2023, 20240119-39, 20240408-25 and 20241108-19 for the \
+              days added in 2024, and 20260112-8 for 15 January 2026; 20200121-47, 20241223-12 \
+              and 20260116-33 for the Union Budget sessions, 20240119-37 for 20 January 2024 \
+              and 20240214-20 and 20240507-18 for the special live sessions of 2 March and 18 \
+              May 2024; 20201102-18, 20211021-32, 20221011-41, 20231027-40, 20241019-1 and \
+              20250922-21 for the Muhurat sessions of 2020 to 2025; all retrieved 2026-09-23",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Singapore Exchange
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year of the Ministry of Manpower's lists carried here.
+const XSES_FIRST: i64 = 2020;
+/// The last.
+const XSES_LAST: i64 = 2026;
+
+/// The Ministry of Manpower's gazetted public holidays on weekdays and
+/// the days it declares for a Sunday holiday, for 2020 to 2026, and the
+/// half days SGX prints, as (year, month, day, which of the rules below).
+#[rustfmt::skip]
+static XSES_DAYS: &[(i64, u8, u8, u8)] = &[
+    (2020, 1, 1, 0), (2020, 1, 24, 20), (2020, 1, 27, 12), (2020, 4, 10, 2), (2020, 5, 1, 4),
+    (2020, 5, 7, 5), (2020, 5, 25, 13), (2020, 7, 10, 10), (2020, 7, 31, 6), (2020, 8, 10, 17),
+    (2020, 12, 24, 21), (2020, 12, 25, 9), (2020, 12, 31, 22),
+    (2021, 1, 1, 0), (2021, 2, 11, 20), (2021, 2, 12, 1), (2021, 4, 2, 2), (2021, 5, 13, 3),
+    (2021, 5, 26, 5), (2021, 7, 20, 6), (2021, 8, 9, 7), (2021, 11, 4, 8), (2021, 12, 24, 21),
+    (2021, 12, 31, 22),
+    (2022, 1, 31, 20), (2022, 2, 1, 1), (2022, 2, 2, 1), (2022, 4, 15, 2), (2022, 5, 2, 14),
+    (2022, 5, 3, 3), (2022, 5, 16, 15), (2022, 7, 11, 16), (2022, 8, 9, 7), (2022, 10, 24, 8),
+    (2022, 12, 26, 19),
+    (2023, 1, 2, 11), (2023, 1, 23, 1), (2023, 1, 24, 12), (2023, 4, 7, 2), (2023, 5, 1, 4),
+    (2023, 6, 2, 5), (2023, 6, 29, 6), (2023, 8, 9, 7), (2023, 9, 1, 10), (2023, 11, 13, 18),
+    (2023, 12, 25, 9),
+    (2024, 1, 1, 0), (2024, 2, 9, 20), (2024, 2, 12, 12), (2024, 3, 29, 2), (2024, 4, 10, 3),
+    (2024, 5, 1, 4), (2024, 5, 22, 5), (2024, 6, 17, 6), (2024, 8, 9, 7), (2024, 10, 31, 8),
+    (2024, 12, 24, 21), (2024, 12, 25, 9), (2024, 12, 31, 22),
+    (2025, 1, 1, 0), (2025, 1, 28, 20), (2025, 1, 29, 1), (2025, 1, 30, 1), (2025, 3, 31, 3),
+    (2025, 4, 18, 2), (2025, 5, 1, 4), (2025, 5, 12, 5), (2025, 10, 20, 8), (2025, 12, 24, 21),
+    (2025, 12, 25, 9), (2025, 12, 31, 22),
+    (2026, 1, 1, 0), (2026, 2, 16, 20), (2026, 2, 17, 1), (2026, 2, 18, 1), (2026, 4, 3, 2),
+    (2026, 5, 1, 4), (2026, 5, 27, 6), (2026, 6, 1, 15), (2026, 8, 10, 17), (2026, 11, 9, 18),
+    (2026, 12, 24, 21), (2026, 12, 25, 9), (2026, 12, 31, 22),
+];
+
+/// The days of one rule in [`XSES_DAYS`].
+fn xses_days<const RULE: u8>(year: i64) -> Days {
+    ruled_days(XSES_DAYS, year, RULE)
+}
+
+/// The days of one rule, over the years the lists carried cover.
+const fn xses_rule<const RULE: u8>() -> Rule {
+    Rule::Tabulated {
+        function: xses_days::<RULE>,
+        first_year: XSES_FIRST,
+        last_year: XSES_LAST,
+    }
+}
+
+/// A closure on a day of the Ministry's list.
+const fn xses_closed<const RULE: u8>(name: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(name, "", xses_rule::<RULE>())
+}
+
+static XSES_RULES: &[HolidayRule] = &[
+    xses_closed::<0>("New Year's Day"),
+    xses_closed::<1>("Chinese New Year"),
+    xses_closed::<2>("Good Friday"),
+    xses_closed::<3>("Hari Raya Puasa"),
+    xses_closed::<4>("Labour Day"),
+    xses_closed::<5>("Vesak Day"),
+    xses_closed::<6>("Hari Raya Haji"),
+    xses_closed::<7>("National Day"),
+    xses_closed::<8>("Deepavali"),
+    xses_closed::<9>("Christmas Day"),
+    xses_closed::<10>("Polling Day"),
+    xses_closed::<11>("New Year's Day holiday, in lieu of the Sunday"),
+    xses_closed::<12>("Chinese New Year holiday, in lieu of the Sunday"),
+    xses_closed::<13>("Hari Raya Puasa holiday, in lieu of the Sunday"),
+    xses_closed::<14>("Labour Day holiday, in lieu of the Sunday"),
+    xses_closed::<15>("Vesak Day holiday, in lieu of the Sunday"),
+    xses_closed::<16>("Hari Raya Haji holiday, in lieu of the Sunday"),
+    xses_closed::<17>("National Day holiday, in lieu of the Sunday"),
+    xses_closed::<18>("Deepavali holiday, in lieu of the Sunday"),
+    xses_closed::<19>("Christmas Day holiday, in lieu of the Sunday"),
+    HolidayRule::observance(
+        "Half trading day, the eve of Chinese New Year",
+        "",
+        xses_rule::<20>(),
+    ),
+    HolidayRule::observance("Half trading day, Christmas Eve", "", xses_rule::<21>()),
+    HolidayRule::observance("Half trading day, New Year's Eve", "", xses_rule::<22>()),
+];
+
+/// The Singapore Exchange, for its securities market.
+///
+/// SGX prints no list of its closed days. Its securities trading page
+/// states, in every version read from 2020 to 2026, that "SGX follows the
+/// Singapore holiday calendar available on the Ministry of Manpower
+/// website", and prints only its half days. The closures here are
+/// therefore derived from that rule: the Ministry's gazetted public
+/// holidays for 2020 to 2026, from its press releases — with the revised
+/// Hari Raya dates of 2022 and Vesak Day of 2023, and the Polling Days it
+/// gazetted for 10 July 2020, 1 September 2023 and Saturday 3 May 2025 —
+/// on their weekdays, and the Monday the Ministry declares for a Sunday
+/// holiday (Tuesday 24 January 2023, the Monday being Chinese New Year),
+/// while a Saturday holiday closes nothing, since the Ministry declares no
+/// day for it. They are carried as the lists give each year, so a year
+/// outside 2020 to 2026 is a gap. The
+/// [`SINGAPORE`](crate::countries::SINGAPORE) table is not included, since
+/// its Islamic dates are computed and these are announced.
+///
+/// The half days SGX prints are the eve of Chinese New Year, Christmas Eve
+/// and New Year's Eve when those are business days — none in 2023 — with
+/// trading to 12:00 and the market closed at 12:16 pm under its half-day
+/// routine. The 2027 half days are not yet published.
+pub static SINGAPORE_EXCHANGE: RuleSet = RuleSet {
+    code: "XSES",
+    english_name: "Singapore Exchange",
+    rules: XSES_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "SGX, \"Securities Trading\" (sgx.com/securities/trading, now \
+              sgx.com/stock-exchange/trading), the \"Singapore Public Holidays\" and \"Half-day \
+              Trading\" blocks, live on 2026-09-23 for 2025 and 2026 and in web.archive.org \
+              copies of 6 August 2020, 17 December 2021, 16 December 2022, 8 December 2023 and \
+              7 December 2024 for 2020 to 2024; Ministry of Manpower, press releases \"Public \
+              Holidays for 2020\" to \"…for 2026\" (mom.gov.sg/newsroom/press-releases/, 8 April \
+              2019, 24 June 2020, 6 April and 21 October 2021, 8 April and 29 September 2022, \
+              24 May 2023, 5 August 2024, 16 June 2025) and \"Public Holiday on Polling Day\" of \
+              24 June 2020, 22 August 2023 and 15 April 2025; all retrieved 2026-09-23",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Bursa Malaysia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year of the exchange's calendar pages carried here.
+const XKLS_FIRST: i64 = 2020;
+/// The last.
+const XKLS_LAST: i64 = 2026;
+
+/// The exchange's "Bursa Malaysia Holidays" for 2020 to 2026 — the
+/// weekday holidays printed, the days its notes give for a Sunday holiday
+/// and the half days — as (year, month, day, which of the rules below).
+#[rustfmt::skip]
+static XKLS_DAYS: &[(i64, u8, u8, u8)] = &[
+    (2020, 1, 1, 0), (2020, 1, 24, 29), (2020, 1, 27, 17), (2020, 5, 1, 6), (2020, 5, 7, 7),
+    (2020, 5, 11, 18), (2020, 5, 25, 5), (2020, 5, 26, 19), (2020, 6, 8, 8), (2020, 7, 31, 9),
+    (2020, 8, 20, 10), (2020, 8, 31, 11), (2020, 9, 16, 12), (2020, 10, 29, 13),
+    (2020, 12, 25, 15),
+    (2021, 1, 1, 0), (2021, 1, 28, 1), (2021, 2, 1, 2), (2021, 2, 11, 29), (2021, 2, 12, 3),
+    (2021, 4, 29, 4), (2021, 5, 12, 30), (2021, 5, 13, 5), (2021, 5, 14, 5), (2021, 5, 26, 7),
+    (2021, 6, 7, 8), (2021, 7, 20, 9), (2021, 8, 10, 10), (2021, 8, 31, 11), (2021, 9, 16, 12),
+    (2021, 10, 19, 13), (2021, 11, 4, 14), (2021, 12, 3, 16),
+    (2022, 1, 18, 1), (2022, 1, 31, 29), (2022, 2, 1, 2), (2022, 2, 1, 3), (2022, 2, 2, 3),
+    (2022, 4, 19, 4), (2022, 5, 2, 20), (2022, 5, 3, 5), (2022, 5, 4, 5), (2022, 5, 16, 21),
+    (2022, 6, 6, 8), (2022, 7, 11, 22), (2022, 8, 31, 11), (2022, 9, 16, 12), (2022, 10, 10, 23),
+    (2022, 10, 24, 14), (2022, 11, 28, 16), (2022, 12, 26, 24),
+    (2023, 1, 2, 25), (2023, 1, 23, 3), (2023, 1, 24, 3), (2023, 2, 1, 2), (2023, 2, 6, 26),
+    (2023, 4, 21, 16), (2023, 4, 24, 5), (2023, 5, 1, 6), (2023, 5, 4, 7), (2023, 6, 5, 8),
+    (2023, 6, 29, 9), (2023, 7, 19, 10), (2023, 8, 31, 11), (2023, 9, 28, 13), (2023, 11, 13, 27),
+    (2023, 12, 25, 15),
+    (2024, 1, 1, 0), (2024, 1, 25, 1), (2024, 2, 1, 2), (2024, 2, 12, 17), (2024, 3, 28, 4),
+    (2024, 4, 10, 5), (2024, 4, 11, 5), (2024, 5, 1, 6), (2024, 5, 22, 7), (2024, 6, 3, 8),
+    (2024, 6, 17, 9), (2024, 7, 8, 31), (2024, 9, 16, 12), (2024, 9, 16, 13), (2024, 9, 17, 23),
+    (2024, 10, 31, 14), (2024, 12, 25, 15),
+    (2025, 1, 1, 0), (2025, 1, 29, 3), (2025, 1, 30, 3), (2025, 2, 11, 1), (2025, 3, 18, 4),
+    (2025, 3, 31, 5), (2025, 4, 1, 5), (2025, 5, 1, 6), (2025, 5, 12, 7), (2025, 6, 2, 8),
+    (2025, 6, 27, 10), (2025, 9, 1, 28), (2025, 9, 5, 13), (2025, 9, 15, 16), (2025, 9, 16, 12),
+    (2025, 10, 20, 14), (2025, 12, 25, 15),
+    (2026, 1, 1, 0), (2026, 2, 2, 26), (2026, 2, 17, 3), (2026, 2, 18, 3), (2026, 3, 20, 5),
+    (2026, 3, 23, 5), (2026, 5, 1, 6), (2026, 5, 27, 9), (2026, 6, 1, 8), (2026, 6, 17, 10),
+    (2026, 8, 25, 13), (2026, 8, 31, 11), (2026, 9, 16, 12), (2026, 11, 9, 27), (2026, 12, 25, 15),
+];
+
+/// The days of one rule in [`XKLS_DAYS`].
+fn xkls_days<const RULE: u8>(year: i64) -> Days {
+    ruled_days(XKLS_DAYS, year, RULE)
+}
+
+/// The days of one rule, over the years the pages carried cover.
+const fn xkls_rule<const RULE: u8>() -> Rule {
+    Rule::Tabulated {
+        function: xkls_days::<RULE>,
+        first_year: XKLS_FIRST,
+        last_year: XKLS_LAST,
+    }
+}
+
+/// A closure the exchange's pages give.
+const fn xkls_closed<const RULE: u8>(name: &'static str, local_name: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(name, local_name, xkls_rule::<RULE>())
+}
+
+static XKLS_RULES: &[HolidayRule] = &[
+    xkls_closed::<0>("New Year's Day", "Tahun Baharu"),
+    xkls_closed::<1>("Thaipusam", "Hari Thaipusam"),
+    xkls_closed::<2>("Federal Territory Day", "Hari Wilayah Persekutuan"),
+    xkls_closed::<3>("Chinese New Year", "Tahun Baharu Cina"),
+    xkls_closed::<4>("Nuzul Al-Quran", "Hari Nuzul Al-Quran"),
+    xkls_closed::<5>("Hari Raya Puasa", "Hari Raya Aidilfitri"),
+    xkls_closed::<6>("Workers' Day", "Hari Pekerja"),
+    xkls_closed::<7>("Wesak Day", "Hari Wesak"),
+    xkls_closed::<8>(
+        "Yang di-Pertuan Agong's Birthday",
+        "Hari Keputeraan Yang di-Pertuan Agong",
+    ),
+    xkls_closed::<9>("Hari Raya Haji", "Hari Raya Aidiladha"),
+    xkls_closed::<10>("Awal Muharram", "Awal Muharam"),
+    xkls_closed::<11>("National Day", "Hari Kebangsaan"),
+    xkls_closed::<12>("Malaysia Day", "Hari Malaysia"),
+    xkls_closed::<13>("Birthday of Prophet Muhammad", "Maulidur Rasul"),
+    xkls_closed::<14>("Deepavali", "Hari Deepavali"),
+    xkls_closed::<15>("Christmas Day", "Hari Krismas"),
+    xkls_closed::<16>("Special public holiday", "Cuti umum khas"),
+    xkls_closed::<17>("Chinese New Year holiday, in lieu", ""),
+    xkls_closed::<18>("Nuzul Al-Quran holiday, in lieu", ""),
+    xkls_closed::<19>("Hari Raya Puasa holiday, in lieu", ""),
+    xkls_closed::<20>("Workers' Day holiday, in lieu", ""),
+    xkls_closed::<21>("Wesak Day holiday, in lieu", ""),
+    xkls_closed::<22>("Hari Raya Haji holiday, in lieu", ""),
+    xkls_closed::<23>("Birthday of Prophet Muhammad holiday, in lieu", ""),
+    xkls_closed::<24>("Christmas Day holiday, in lieu", ""),
+    xkls_closed::<25>("New Year's Day holiday, in lieu", ""),
+    xkls_closed::<26>("Thaipusam holiday, in lieu", ""),
+    xkls_closed::<27>("Deepavali holiday, in lieu", ""),
+    xkls_closed::<28>("National Day holiday, in lieu", ""),
+    HolidayRule::observance(
+        "Half trading day, Chinese New Year Eve",
+        "",
+        xkls_rule::<29>(),
+    ),
+    HolidayRule::observance(
+        "Half trading day, Hari Raya Puasa Eve",
+        "",
+        xkls_rule::<30>(),
+    ),
+    xkls_closed::<31>("Awal Muharram holiday, in lieu", ""),
+];
+
+/// Bursa Malaysia, for its securities market.
+///
+/// The exchange's "Bursa Malaysia Holidays" for 2020 to 2026, the
+/// public-holiday lists on its calendar page, with its closure notices for
+/// 2025 and 2026: the federal holidays and the Federal Territory's —
+/// New Year's Day, Thaipusam, Federal Territory Day and Nuzul Al-Quran —
+/// on their weekdays, the special public holidays the government declared
+/// (3 December 2021, 28 November 2022, 21 April 2023, 15 September 2025)
+/// and the Hari Raya Puasa closure of Friday 20 and Monday 23 March 2026
+/// from the notice of 18 March 2026, following the gazette; and, derived
+/// from the rule the page prints, "when a public holiday falls on Sunday,
+/// the following Monday will be observed as a holiday" — to 2024 with "if
+/// this day is already a holiday, then the next day" — the Mondays for a
+/// Sunday holiday and Tuesday 26 May 2020 and Tuesday 17 September 2024,
+/// which no page prints as dates. A Saturday holiday closes nothing.
+/// Tuesday 2 June 2026, for the Sunday Wesak Day whose Monday is the
+/// Agong's Birthday, is not carried: the 2026 page states only the Sunday
+/// rule, and the exchange's notice for it was not read. The Labuan-only
+/// Harvest Festival is not a closure. The half days are those the pages
+/// print, the afternoon session closed on the eve of Chinese New Year in
+/// 2020 to 2022 and of Hari Raya Puasa in 2021; the 2024 page dropped its
+/// two before the days came, and from 2025 the page states normal hours
+/// on both eves. The dates are the government's, set each year, so each
+/// year is carried as listed and a year outside 2020 to 2026 is a gap.
+pub static BURSA_MALAYSIA: RuleSet = RuleSet {
+    code: "XKLS",
+    english_name: "Bursa Malaysia",
+    rules: XKLS_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "Bursa Malaysia, \"Calendar\" — \"Bursa Malaysia Holidays\" \
+              (bursamalaysia.com/about_bursa/about_us/calendar), in web.archive.org copies of \
+              11 March and 2 December 2020, 16 September 2021, 27 March, 15 June and 8 December \
+              2022, 2 December 2023, 11 March 2024, 17 June 2025 and 23 March 2026, the site \
+              refusing automated access; its media notifications \"Closure of Bursa Malaysia\" \
+              of 7 May, 28 May and 24 June 2025 and 11 February, 13 and 18 March and 27 April \
+              2026, in web.archive.org copies; all retrieved 2026-09-23",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Indonesia Stock Exchange
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year of the exchange's calendars carried here.
+const XIDX_FIRST: i64 = 2020;
+/// The last.
+const XIDX_LAST: i64 = 2026;
+
+/// The exchange's Kalender Libur Bursa for 2020 to 2022 and 2024 to 2026,
+/// each in its last version read, as (year, month, day, which of the
+/// rules below).
+#[rustfmt::skip]
+static XIDX_DAYS: &[(i64, u8, u8, u8)] = &[
+    (2020, 1, 1, 0), (2020, 3, 25, 3), (2020, 4, 10, 4), (2020, 5, 1, 6), (2020, 5, 7, 7),
+    (2020, 5, 21, 8), (2020, 5, 22, 17), (2020, 5, 25, 5), (2020, 6, 1, 9), (2020, 7, 31, 10),
+    (2020, 8, 17, 12), (2020, 8, 20, 11), (2020, 8, 21, 21), (2020, 10, 28, 22),
+    (2020, 10, 29, 13), (2020, 10, 30, 22), (2020, 12, 9, 25), (2020, 12, 24, 24),
+    (2020, 12, 25, 14), (2020, 12, 31, 17),
+    (2021, 1, 1, 0), (2021, 2, 12, 1), (2021, 3, 11, 2), (2021, 4, 2, 4), (2021, 5, 12, 17),
+    (2021, 5, 13, 8), (2021, 5, 13, 5), (2021, 5, 14, 5), (2021, 5, 26, 7), (2021, 6, 1, 9),
+    (2021, 7, 20, 10), (2021, 8, 11, 11), (2021, 8, 17, 12), (2021, 10, 20, 13),
+    (2021, 12, 31, 26),
+    (2022, 2, 1, 1), (2022, 2, 28, 2), (2022, 3, 3, 3), (2022, 4, 15, 4), (2022, 4, 29, 17),
+    (2022, 5, 2, 5), (2022, 5, 3, 5), (2022, 5, 4, 17), (2022, 5, 5, 17), (2022, 5, 6, 17),
+    (2022, 5, 16, 7), (2022, 5, 26, 8), (2022, 6, 1, 9), (2022, 8, 17, 12),
+    (2024, 1, 1, 0), (2024, 2, 8, 2), (2024, 2, 9, 15), (2024, 2, 14, 25), (2024, 3, 11, 3),
+    (2024, 3, 12, 16), (2024, 3, 29, 4), (2024, 4, 8, 17), (2024, 4, 9, 17), (2024, 4, 10, 5),
+    (2024, 4, 11, 5), (2024, 4, 12, 17), (2024, 4, 15, 17), (2024, 5, 1, 6), (2024, 5, 9, 8),
+    (2024, 5, 10, 18), (2024, 5, 23, 7), (2024, 5, 24, 19), (2024, 6, 17, 10), (2024, 6, 18, 20),
+    (2024, 9, 16, 13), (2024, 11, 27, 25), (2024, 12, 25, 14), (2024, 12, 26, 24),
+    (2024, 12, 31, 26),
+    (2025, 1, 1, 0), (2025, 1, 27, 2), (2025, 1, 28, 15), (2025, 1, 29, 1), (2025, 3, 28, 16),
+    (2025, 3, 31, 5), (2025, 4, 1, 5), (2025, 4, 2, 17), (2025, 4, 3, 17), (2025, 4, 4, 17),
+    (2025, 4, 7, 17), (2025, 4, 18, 4), (2025, 5, 1, 6), (2025, 5, 12, 7), (2025, 5, 13, 19),
+    (2025, 5, 29, 8), (2025, 5, 30, 18), (2025, 6, 6, 10), (2025, 6, 9, 20), (2025, 6, 27, 11),
+    (2025, 8, 18, 23), (2025, 9, 5, 13), (2025, 12, 25, 14), (2025, 12, 26, 24),
+    (2025, 12, 31, 26),
+    (2026, 1, 1, 0), (2026, 1, 16, 2), (2026, 2, 16, 15), (2026, 2, 17, 1), (2026, 3, 18, 16),
+    (2026, 3, 19, 3), (2026, 3, 20, 17), (2026, 3, 23, 17), (2026, 3, 24, 17), (2026, 4, 3, 4),
+    (2026, 5, 1, 6), (2026, 5, 14, 8), (2026, 5, 15, 18), (2026, 5, 27, 10), (2026, 5, 28, 20),
+    (2026, 6, 1, 9), (2026, 6, 16, 11), (2026, 8, 17, 12), (2026, 8, 25, 13), (2026, 12, 24, 24),
+    (2026, 12, 25, 14), (2026, 12, 31, 26),
+];
+
+/// The days of one rule in [`XIDX_DAYS`].
+fn xidx_days<const RULE: u8>(year: i64) -> Days {
+    ruled_days(XIDX_DAYS, year, RULE)
+}
+
+/// A closure the exchange's calendars list.
+const fn xidx_closed<const RULE: u8>(name: &'static str, local_name: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local_name,
+        Rule::Tabulated {
+            function: xidx_days::<RULE>,
+            first_year: XIDX_FIRST,
+            last_year: XIDX_LAST,
+        },
+    )
+}
+
+/// No days: the function of a calendar that was not read.
+fn xidx_unread(_year: i64) -> Days {
+    Days::new()
+}
+
+static XIDX_RULES: &[HolidayRule] = &[
+    xidx_closed::<0>("New Year's Day", "Tahun Baru Masehi"),
+    xidx_closed::<1>("Chinese New Year", "Tahun Baru Imlek"),
+    xidx_closed::<2>("Isra Mikraj", "Isra Mikraj Nabi Muhammad SAW"),
+    xidx_closed::<3>("Nyepi, the Saka New Year", "Hari Suci Nyepi"),
+    xidx_closed::<4>("Good Friday", "Wafat Yesus Kristus"),
+    xidx_closed::<5>("Eid al-Fitr", "Idul Fitri"),
+    xidx_closed::<6>("Labour Day", "Hari Buruh Internasional"),
+    xidx_closed::<7>("Vesak Day", "Hari Raya Waisak"),
+    xidx_closed::<8>("Ascension Day", "Kenaikan Yesus Kristus"),
+    xidx_closed::<9>("Pancasila Day", "Hari Lahir Pancasila"),
+    xidx_closed::<10>("Eid al-Adha", "Idul Adha"),
+    xidx_closed::<11>("Islamic New Year", "Tahun Baru Islam"),
+    xidx_closed::<12>("Independence Day", "Proklamasi Kemerdekaan"),
+    xidx_closed::<13>("Prophet Muhammad's Birthday", "Maulid Nabi Muhammad SAW"),
+    xidx_closed::<14>("Christmas Day", "Kelahiran Yesus Kristus"),
+    xidx_closed::<15>(
+        "Joint leave, Chinese New Year",
+        "Cuti Bersama Tahun Baru Imlek",
+    ),
+    xidx_closed::<16>("Joint leave, Nyepi", "Cuti Bersama Hari Suci Nyepi"),
+    xidx_closed::<17>("Joint leave, Eid al-Fitr", "Cuti Bersama Idul Fitri"),
+    xidx_closed::<18>(
+        "Joint leave, Ascension Day",
+        "Cuti Bersama Kenaikan Yesus Kristus",
+    ),
+    xidx_closed::<19>("Joint leave, Vesak Day", "Cuti Bersama Hari Raya Waisak"),
+    xidx_closed::<20>("Joint leave, Eid al-Adha", "Cuti Bersama Idul Adha"),
+    xidx_closed::<21>(
+        "Joint leave, Islamic New Year",
+        "Cuti Bersama Tahun Baru Islam",
+    ),
+    xidx_closed::<22>(
+        "Joint leave, Prophet Muhammad's Birthday",
+        "Cuti Bersama Maulid Nabi Muhammad SAW",
+    ),
+    xidx_closed::<23>(
+        "Joint leave, Independence Day",
+        "Cuti Bersama Proklamasi Kemerdekaan",
+    ),
+    xidx_closed::<24>(
+        "Joint leave, Christmas",
+        "Cuti Bersama Kelahiran Yesus Kristus",
+    ),
+    xidx_closed::<25>("Election day", "Hari Pemilihan Umum"),
+    xidx_closed::<26>("Exchange holiday, the last day of the year", "Libur Bursa"),
+    // The 2023 calendar could not be read: the year is a gap, not a
+    // year without closures.
+    HolidayRule::fixed_public(
+        "Exchange holidays, the calendar for the year not read",
+        "Kalender Libur Bursa",
+        Rule::Tabulated {
+            function: xidx_unread,
+            first_year: 1,
+            last_year: 0,
+        },
+    )
+    .years(Some(2023), Some(2023)),
+];
+
+/// The Indonesia Stock Exchange.
+///
+/// The exchange's Kalender Libur Bursa — the calendar of the days on which
+/// trading and settlement are suspended — for 2020 to 2022 and 2024 to
+/// 2026, each in the last version read: the national holidays and the
+/// joint-leave days (cuti bersama) of the three ministers' joint decree for
+/// the year, as amended during it — the exchange removed the joint-leave
+/// days the government cancelled in 2020 and 2021, and traded on them —
+/// the election days of 9 December 2020, 14 February and 27 November 2024,
+/// and the exchange's own holiday on 31 December, "Libur Bursa", in 2021
+/// and 2024 to 2026, the 2020 one having become a moved joint-leave day
+/// and the 2022 one a Saturday. Each calendar states that further
+/// closures follow if Bank Indonesia cancels clearing or the government
+/// declares a day off, so each year is carried as listed and a year
+/// outside 2020 to 2026 is a gap; 2023 is one too, its calendar not read,
+/// and the 2022 calendar was last read in its version of 7 April 2022. The
+/// [`INDONESIA`](crate::countries::INDONESIA) table is not included, since
+/// its Islamic dates are computed and it has no Nyepi or joint leave. No
+/// early closes.
+pub static INDONESIA_STOCK_EXCHANGE: RuleSet = RuleSet {
+    code: "XIDX",
+    english_name: "Indonesia Stock Exchange",
+    rules: XIDX_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "IDX, \"Trading Holiday\" (idx.co.id/en-us/news/trading-holiday/), the calendar \
+              images 2020_eng-v3.jpg, 2021_eng-ver03.jpg and 2022_eng-v2.jpg with their earlier \
+              versions, and 2024_ind-v3_new.jpg, in web.archive.org copies, the site refusing \
+              automated access; IDX announcements Peng-00213/BEI.POP/10-2024 of 16 October 2024 \
+              and Peng-00149/BEI.POP/08-2025 of 8 August 2025 for 2025 and \
+              Peng-00171/BEI.POP/09-2025 of 23 September 2025 for 2026, as reposted by IDXCarbon \
+              (idxcarbon.co.id/document/share/109, 143 and 158), the exchange's carbon market; \
+              all retrieved 2026-09-23",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Philippine Stock Exchange
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year of the exchange's memoranda carried here.
+const XPHS_FIRST: i64 = 2020;
+/// The last.
+const XPHS_LAST: i64 = 2026;
+
+/// The exchange's non-trading days for 2020 to 2026, from its memoranda
+/// and, for the rest of 2026, its holiday table, as (year, month, day,
+/// which of the rules below).
+#[rustfmt::skip]
+static XPHS_DAYS: &[(i64, u8, u8, u8)] = &[
+    (2020, 1, 1, 0), (2020, 1, 13, 23), (2020, 2, 25, 2), (2020, 3, 17, 24), (2020, 3, 18, 24),
+    (2020, 4, 9, 5), (2020, 4, 9, 3), (2020, 4, 10, 4), (2020, 5, 1, 6), (2020, 5, 25, 7),
+    (2020, 6, 12, 8), (2020, 7, 31, 9), (2020, 8, 21, 10), (2020, 8, 31, 11), (2020, 11, 2, 13),
+    (2020, 11, 12, 25), (2020, 11, 30, 14), (2020, 12, 8, 15), (2020, 12, 24, 13),
+    (2020, 12, 25, 17), (2020, 12, 30, 18), (2020, 12, 31, 19),
+    (2021, 1, 1, 0), (2021, 2, 12, 1), (2021, 2, 25, 2), (2021, 4, 1, 3), (2021, 4, 2, 4),
+    (2021, 4, 9, 5), (2021, 5, 13, 7), (2021, 7, 20, 9), (2021, 8, 30, 11), (2021, 11, 1, 12),
+    (2021, 11, 30, 14), (2021, 12, 8, 15), (2021, 12, 24, 29), (2021, 12, 30, 18),
+    (2021, 12, 31, 29),
+    (2022, 1, 4, 27), (2022, 2, 1, 1), (2022, 2, 25, 2), (2022, 4, 14, 3), (2022, 4, 15, 4),
+    (2022, 5, 3, 7), (2022, 5, 9, 20), (2022, 8, 29, 11), (2022, 9, 26, 28), (2022, 10, 31, 13),
+    (2022, 11, 1, 12), (2022, 11, 30, 14), (2022, 12, 8, 15), (2022, 12, 26, 13),
+    (2022, 12, 30, 18),
+    (2023, 1, 2, 13), (2023, 2, 24, 2), (2023, 4, 6, 3), (2023, 4, 7, 4), (2023, 4, 10, 5),
+    (2023, 4, 21, 7), (2023, 5, 1, 6), (2023, 6, 12, 8), (2023, 6, 28, 9), (2023, 8, 21, 10),
+    (2023, 8, 28, 11), (2023, 10, 30, 20), (2023, 11, 1, 12), (2023, 11, 2, 13),
+    (2023, 11, 27, 14), (2023, 12, 8, 15), (2023, 12, 25, 17), (2023, 12, 26, 13),
+    (2024, 1, 1, 0), (2024, 2, 9, 13), (2024, 3, 28, 3), (2024, 3, 29, 4), (2024, 4, 9, 5),
+    (2024, 4, 10, 7), (2024, 5, 1, 6), (2024, 6, 12, 8), (2024, 6, 17, 9), (2024, 7, 24, 26),
+    (2024, 8, 23, 10), (2024, 8, 26, 11), (2024, 11, 1, 12), (2024, 12, 24, 16),
+    (2024, 12, 25, 17), (2024, 12, 30, 18), (2024, 12, 31, 19),
+    (2025, 1, 1, 0), (2025, 1, 29, 1), (2025, 4, 1, 7), (2025, 4, 9, 5), (2025, 4, 17, 3),
+    (2025, 4, 18, 4), (2025, 5, 1, 6), (2025, 5, 12, 20), (2025, 6, 6, 9), (2025, 6, 12, 8),
+    (2025, 8, 21, 10), (2025, 8, 25, 11), (2025, 10, 31, 21), (2025, 12, 8, 15),
+    (2025, 12, 24, 16), (2025, 12, 25, 17), (2025, 12, 30, 18), (2025, 12, 31, 19),
+    (2026, 1, 1, 0), (2026, 2, 17, 1), (2026, 3, 20, 7), (2026, 4, 2, 3), (2026, 4, 3, 4),
+    (2026, 4, 9, 5), (2026, 5, 1, 6), (2026, 5, 27, 9), (2026, 6, 12, 8), (2026, 8, 21, 10),
+    (2026, 8, 31, 11), (2026, 11, 2, 22), (2026, 11, 30, 14), (2026, 12, 8, 15),
+    (2026, 12, 24, 16), (2026, 12, 25, 17), (2026, 12, 30, 18), (2026, 12, 31, 19),
+];
+
+/// The days of one rule in [`XPHS_DAYS`].
+fn xphs_days<const RULE: u8>(year: i64) -> Days {
+    ruled_days(XPHS_DAYS, year, RULE)
+}
+
+/// The days of one rule, over the years the memoranda carried cover.
+const fn xphs_rule<const RULE: u8>() -> Rule {
+    Rule::Tabulated {
+        function: xphs_days::<RULE>,
+        first_year: XPHS_FIRST,
+        last_year: XPHS_LAST,
+    }
+}
+
+/// A non-trading day the memoranda give.
+const fn xphs_closed<const RULE: u8>(name: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(name, "", xphs_rule::<RULE>())
+}
+
+static XPHS_RULES: &[HolidayRule] = &[
+    xphs_closed::<0>("New Year's Day"),
+    xphs_closed::<1>("Chinese New Year"),
+    xphs_closed::<2>("EDSA People Power Revolution Anniversary"),
+    xphs_closed::<3>("Maundy Thursday"),
+    xphs_closed::<4>("Good Friday"),
+    xphs_closed::<5>("Araw ng Kagitingan"),
+    xphs_closed::<6>("Labor Day"),
+    xphs_closed::<7>("Eid'l Fitr"),
+    xphs_closed::<8>("Independence Day"),
+    xphs_closed::<9>("Eid'l Adha"),
+    xphs_closed::<10>("Ninoy Aquino Day"),
+    xphs_closed::<11>("National Heroes Day"),
+    xphs_closed::<12>("All Saints' Day"),
+    xphs_closed::<13>("Special (non-working) day"),
+    xphs_closed::<14>("Bonifacio Day"),
+    xphs_closed::<15>("Feast of the Immaculate Conception of Mary"),
+    xphs_closed::<16>("Christmas Eve"),
+    xphs_closed::<17>("Christmas Day"),
+    xphs_closed::<18>("Rizal Day"),
+    xphs_closed::<19>("Last Day of the Year"),
+    xphs_closed::<20>("Election day"),
+    xphs_closed::<21>("All Saints' Day Eve"),
+    xphs_closed::<22>("All Souls' Day"),
+    xphs_closed::<23>("Trading suspension, the ash emission of Taal Volcano"),
+    xphs_closed::<24>("Trading suspension, the COVID-19 community quarantine"),
+    xphs_closed::<25>("Trading suspension, Typhoon Ulysses"),
+    xphs_closed::<26>("Trading suspension, inclement weather and floods"),
+    xphs_closed::<27>("Trading cancelled, a technical problem"),
+    xphs_closed::<28>("Trading suspension"),
+    HolidayRule::observance(
+        "Half trading day, the Christmas season",
+        "",
+        xphs_rule::<29>(),
+    ),
+];
+
+/// The Philippine Stock Exchange.
+///
+/// The exchange publishes no annual list: about a month ahead of each
+/// holiday it issues a "Non-Trading Day(s)" memorandum citing the
+/// Malacañang proclamation, and a separate one for any other closure.
+/// The memoranda of 2020 to 2026 are carried as they give the days — the
+/// regular and special holidays, moved where the proclamation moved them
+/// (EDSA Day to Friday 24 February 2023, Ninoy Aquino Day to Friday 23
+/// August 2024), the Eid days once proclaimed, the special days the
+/// proclamations added, the election days of 9 May 2022, 30 October 2023
+/// and 12 May 2025, and the unscheduled closures a memorandum records: the
+/// Taal Volcano ash of 13 January 2020, the Luzon quarantine of 17 and 18
+/// March 2020, Typhoon Ulysses on 12 November 2020, the technical problem
+/// of 4 January 2022, the suspension of 26 September 2022, for which the
+/// memorandum gives no reason, and the floods of 24 July 2024. For the
+/// rest of 2026, after the memorandum for National Heroes Day, the days
+/// are those of the exchange's own holiday table. The half days are the
+/// two of December 2021, closing at 12:10 pm "in observance of the
+/// Christmas season"; the shortened sessions of the pandemic, closing at
+/// 1:00 pm from 16 March 2020 to 5 December 2021 and from 14 January to
+/// 28 February 2022, are not marked day by day. A year outside 2020 to
+/// 2026 is a gap.
+pub static PHILIPPINE_STOCK_EXCHANGE: RuleSet = RuleSet {
+    code: "XPHS",
+    english_name: "Philippine Stock Exchange",
+    rules: XPHS_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 23),
+    sources: "PSE, memoranda \"Non-Trading Day(s)\", \"Trading Suspension\" and \"Half-Day \
+              Trading\" (documents.pse.com.ph/CircularOPSPDF/CN-YYYY-NNNN.pdf, listed at \
+              pse.com.ph/news-and-announcement-archive/), CN-2019-0053 to CN-2026-0034B, among \
+              them CN-2020-0002, 0021, 0025 and 0095 for the 2020 suspensions, CN-2021-0063 for \
+              the half days, CN-2022-0001 and 0035, CN-2023-0008, CN-2024-0038 and 0045; PSE, \
+              \"Trading Hours & Holidays\" (pse.com.ph/investing-at-pse/, the holiday posts at \
+              pse.com.ph/holiday/), for the 2026 days after August; all retrieved 2026-09-23",
+};
+
 /// The days of `year` in a table of (year, month, day).
 fn listed_days(table: &[(i64, u8, u8)], year: i64) -> Days {
     let mut out = Days::new();
     for &(y, month, day) in table {
         if y == year
+            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
+        {
+            out.push(fixed);
+        }
+    }
+    out
+}
+
+/// The days of `year` under one rule in a table of (year, month, day,
+/// rule).
+fn ruled_days(table: &[(i64, u8, u8, u8)], year: i64, rule: u8) -> Days {
+    let mut out = Days::new();
+    for &(y, month, day, r) in table {
+        if y == year
+            && r == rule
             && let Ok(fixed) = gregorian::to_fixed(y, month, day)
         {
             out.push(fixed);
@@ -2282,6 +3235,8 @@ pub static ALL: &[&RuleSet] = &[
     &MOSCOW_EXCHANGE,
     &EURONEXT_AMSTERDAM,
     &AUSTRALIAN_SECURITIES_EXCHANGE,
+    &STOCK_EXCHANGE_OF_THAILAND,
+    &BSE,
     &EURONEXT_BRUSSELS,
     &NASDAQ_COPENHAGEN,
     &EURONEXT_DUBLIN,
@@ -2289,9 +3244,11 @@ pub static ALL: &[&RuleSet] = &[
     &NASDAQ_HELSINKI,
     &HONG_KONG_EXCHANGES,
     &NASDAQ_ICELAND,
+    &INDONESIA_STOCK_EXCHANGE,
     &BORSA_ISTANBUL,
     &TOKYO_STOCK_EXCHANGE,
     &JOHANNESBURG_STOCK_EXCHANGE,
+    &BURSA_MALAYSIA,
     &KOREA_EXCHANGE,
     &EURONEXT_LISBON,
     &LONDON_STOCK_EXCHANGE,
@@ -2299,11 +3256,15 @@ pub static ALL: &[&RuleSet] = &[
     &BOLSA_MEXICANA_DE_VALORES,
     &EURONEXT_MILAN,
     &NASDAQ,
+    &NATIONAL_STOCK_EXCHANGE_OF_INDIA,
     &NEW_YORK_STOCK_EXCHANGE,
     &NZX,
     &EURONEXT_OSLO,
     &EURONEXT_PARIS,
+    &PHILIPPINE_STOCK_EXCHANGE,
     &SAUDI_EXCHANGE,
+    &SINGAPORE_EXCHANGE,
+    &SHENZHEN_STOCK_EXCHANGE,
     &SHANGHAI_STOCK_EXCHANGE,
     &NASDAQ_STOCKHOLM,
     &SIX_SWISS_EXCHANGE,
