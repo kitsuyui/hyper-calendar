@@ -1,5 +1,12 @@
 //! Japan's lunisolar calendars before Tenpō-reki, on their own constants.
 //!
+//! The five Japanese systems are written up in
+//! `docs/systems/japanese-lunisolar.md` in the repository: what each was and
+//! who computed it, how 恒気, 定朔, 進朔 and the 里差 work with worked
+//! examples, every constant with its source, what is carried and what is
+//! not, and how the agreement with the published tables was measured. This
+//! page summarises it and states the code's own facts.
+//!
 //! Japan ran eight lunisolar systems in succession between 604 and 1872.
 //! [`crate::japanese_tenpo`] is the last. This module is the four that
 //! between them cover 862 to 1844 — every Japanese day from the adoption of
@@ -56,8 +63,8 @@
 //! Each module therefore exposes two parameter sets: [`senmyo::PARAMETERS`],
 //! the default, which takes the conjunction from `hc-astro`, and
 //! [`senmyo::PARAMETERS_TABULATED`], which takes it from the system's own
-//! 日躔 and 月離 amplitudes. Both are measured, and the README gives both
-//! numbers.
+//! 日躔 and 月離 amplitudes. Both are measured, and the system document
+//! gives both numbers.
 //!
 //! # The two fitted scalars
 //!
@@ -268,6 +275,12 @@ pub mod senmyo {
     //! 宣明暦 Senmyō-reki, 862–1685 — the longest-serving calendar in
     //! Japanese history.
     //!
+    //! The system is written up in `docs/systems/japanese-lunisolar.md`,
+    //! which reads its constants and its 進朔 rule from 新唐書 and the NAO
+    //! 暦Wiki, works the intercalary month of 1200 by hand, and measures it
+    //! against the published table. This page states the constants and the
+    //! range.
+    //!
     //! Xu Ang's 長慶宣明暦 of 822, adopted in Japan on 貞観4年1月1日 and kept
     //! for **823 years**, through the whole of the Heian, Kamakura, Muromachi
     //! and early Edo periods. China had moved on within seventy years; Japan
@@ -378,6 +391,11 @@ pub mod senmyo {
 pub mod jokyo {
     //! 貞享暦 Jōkyō-reki, 1685–1755 — the first calendar computed in Japan.
     //!
+    //! The system is written up in `docs/systems/japanese-lunisolar.md`,
+    //! which works 貞享2年1月1日 = 1685-02-04 by hand from this model's
+    //! constants and names the sources for them. This page states the
+    //! constants and the range.
+    //!
     //! Shibukawa Harumi (渋川春海) spent twenty years demonstrating that
     //! Senmyō-reki's solar terms were two days wrong, and in 1684 his third
     //! proposal was accepted. Jōkyō-reki is a reworking of the Yuan 授時暦
@@ -456,6 +474,10 @@ pub mod jokyo {
 pub mod horyaku {
     //! 宝暦暦 Hōryaku-reki, 1755–1798 — the reform that went backwards.
     //!
+    //! The system is written up in `docs/systems/japanese-lunisolar.md`,
+    //! with the sources for its constants and for the 1771 revision this
+    //! module does not carry. This page states the constants and the range.
+    //!
     //! Produced by the court in Kyoto rather than by the shogunate's
     //! astronomers, and generally judged worse than the calendar it replaced:
     //! it failed to predict the solar eclipse of 1763, which the amateur
@@ -526,6 +548,11 @@ pub mod horyaku {
 
 pub mod kansei {
     //! 寛政暦 Kansei-reki, 1798–1844 — Japanese calendrics meets Kepler.
+    //!
+    //! The system is written up in `docs/systems/japanese-lunisolar.md`,
+    //! which names the sources for its constants and records the 近点月 the
+    //! NAO page derives, which this model does not yet use. This page states
+    //! the constants and the range.
     //!
     //! Takahashi Yoshitoki (高橋至時) and Hazama Shigetomi built it on
     //! 暦象考成後編, the Chinese translation of Western tables deriving from

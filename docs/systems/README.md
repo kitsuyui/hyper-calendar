@@ -26,6 +26,7 @@ None of the three repeats another.
 | System | Document | Backs |
 | --- | --- | --- |
 | Babylonian calendar of the Seleucid era | [babylonian.md](babylonian.md) | `babylonian` |
+| The Japanese lunisolar calendars, Senmyō to Tenpō | [japanese-lunisolar.md](japanese-lunisolar.md) | `japanese-senmyo`, `japanese-jokyo`, `japanese-horyaku`, `japanese-kansei`, `japanese-tenpo` |
 
 ## Systems that need a document
 
@@ -36,7 +37,6 @@ explanation is from what a reader needs.
 
 | System | Where the explanation is now |
 | --- | --- |
-| The Japanese lunisolar calendars, Senmyō to Tenpō, and their fitted constants | `hc-calendars-lunar` README and `japanese_historical` |
 | The Thai lunar calendar's year types and the printed Buddhist year | `thai_lunar` and `buddhist` |
 | The Burmese calendar's eras and exceptions | `burmese` |
 | The Tibetan Phugpa arithmetic | `tibetan` |
