@@ -16,6 +16,9 @@
 extend-exclude = ["Cargo.lock"]
 
 [default.extend-words]
+# BSE, the Bombay Stock Exchange's own name for itself, and the identifier
+# of its rule set.
+BSE = "BSE"
 # Garant, the Russian legal database that publishes the Government's decrees.
 Garant = "Garant"
 # St Peter Chanel, martyr of Futuna, in the General Roman Calendar.
