@@ -64,3 +64,7 @@ pre-push:
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --features holiday
     - name: build-cdylib
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo build -p hyper-calendar-ffi
+    # The JavaScript binding against the built module, as the wasm-js job
+    # runs it. Needs Node.
+    - name: test-wasm-js
+      run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; scripts/wasm-js-test.sh

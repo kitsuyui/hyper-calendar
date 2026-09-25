@@ -105,11 +105,15 @@ dependencies. A crate depends only on crates in rows above it.
 
 The two boundary crates expose the same layers as Cargo features — `civil`
 (the default), `calendars`, `holiday`, `seasons`, `deep-time`, `tz`, `sky`
-and `full` — so a page or a host program builds only the layer it loads, and each
-crate's README lists every export with the feature it needs. Their
+and `full` — so a page or a host program builds only the layer it loads,
+and each crate's README lists every export with the feature it needs. Their
 answers about a set of things are tab-separated lines with a fixed column
 order, and a calendar that cannot name a day is a line that says so, with
-the stable code and name `CalendarError` gives every refusal.
+the stable code and name `CalendarError` gives every refusal. The
+WebAssembly crate ships the JavaScript that reads those lines — a
+dependency-free ES module under `crates/hyper-calendar-wasm/js`, tested
+in CI against the built module — so a page decodes them once, by the
+README's columns, and a method whose layer is not loaded refuses by name.
 
 The workspace manifest is the list of record.
 
