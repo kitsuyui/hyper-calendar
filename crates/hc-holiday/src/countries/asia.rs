@@ -72,6 +72,11 @@ use Arranged::{
 };
 
 /// The first year the arrangements carried here cover.
+///
+/// The 2008 notice also gives Monday 31 December 2007 off and works
+/// Saturday 29 December 2007. Those two days are not carried: the range
+/// begins at 2008, and a 2007 holding only them would look complete when
+/// its own arrangement is absent, so 2007 stays a reported gap.
 const CN_ARRANGED_FIRST: i64 = 2008;
 /// The last.
 const CN_ARRANGED_LAST: i64 = 2026;
@@ -478,8 +483,35 @@ const fn cn_work(
 
 static CN_NEW_YEAR: Rule = Rule::in_calendar(CalendarSystem::CHINESE, 1, 1);
 
+/// Nothing: the 1949 text of the 放假办法 and its 1999 revision were not
+/// read, so the statutory days before 1999 are a gap rather than the 1999
+/// text's days answered on no authority.
+fn cn_unread(_: i64) -> Days {
+    Days::new()
+}
+
+/// The statutory days of 1949 to 1998, which depend on texts not read.
+const CN_UNREAD: Rule = Rule::Tabulated {
+    function: cn_unread,
+    first_year: 1,
+    last_year: 0,
+};
+
+/// The first year the statutory rules answer for: the 1999 revision is the
+/// earliest text whose days the later decrees' amendments give.
+const CN_STATUTE_FIRST: i32 = 1999;
+
+/// A statutory day the 1999 text gave and no later revision took away.
+const fn cn_statutory(name: &'static str, local_name: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::fixed_public(name, local_name, rule).years(Some(CN_STATUTE_FIRST), None)
+}
+
 static CN_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "元旦", Rule::gregorian(1, 1)),
+    // The statute before the 1999 revision: not carried, and reported as a
+    // gap so that a year before 1999 is not answered with the 1999 days.
+    HolidayRule::fixed_public("Statutory holidays", "法定节假日", CN_UNREAD)
+        .years(None, Some(CN_STATUTE_FIRST - 1)),
+    cn_statutory("New Year's Day", "元旦", Rule::gregorian(1, 1)),
     // 除夕 was a statutory day 2008–2013, dropped in 2014 and restored by
     // the 2024 revision of the 放假办法 with effect from 2025.
     HolidayRule::fixed_public(
@@ -500,12 +532,12 @@ static CN_RULES: &[HolidayRule] = &[
         },
     )
     .years(Some(2025), None),
-    HolidayRule::fixed_public(
+    cn_statutory(
         "Spring Festival",
         "春节",
         Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
     ),
-    HolidayRule::fixed_public(
+    cn_statutory(
         "Spring Festival",
         "春节",
         Rule::in_calendar(CalendarSystem::CHINESE, 1, 2),
@@ -515,7 +547,7 @@ static CN_RULES: &[HolidayRule] = &[
         "春节",
         Rule::in_calendar(CalendarSystem::CHINESE, 1, 3),
     )
-    .years(None, Some(2007)),
+    .years(Some(CN_STATUTE_FIRST), Some(2007)),
     HolidayRule::fixed_public(
         "Spring Festival",
         "春节",
@@ -531,7 +563,7 @@ static CN_RULES: &[HolidayRule] = &[
         },
     )
     .years(Some(2008), None),
-    HolidayRule::fixed_public("Labour Day", "劳动节", Rule::gregorian(5, 1)),
+    cn_statutory("Labour Day", "劳动节", Rule::gregorian(5, 1)),
     // The May golden week ran 1999–2007, and the 2024 revision gave the day
     // after May Day back from 2025.
     HolidayRule::fixed_public("Labour Day", "劳动节", Rule::gregorian(5, 2))
@@ -552,9 +584,9 @@ static CN_RULES: &[HolidayRule] = &[
         Rule::in_calendar(CalendarSystem::CHINESE, 8, 15),
     )
     .years(Some(2008), None),
-    HolidayRule::fixed_public("National Day", "国庆节", Rule::gregorian(10, 1)),
-    HolidayRule::fixed_public("National Day", "国庆节", Rule::gregorian(10, 2)),
-    HolidayRule::fixed_public("National Day", "国庆节", Rule::gregorian(10, 3)),
+    cn_statutory("National Day", "国庆节", Rule::gregorian(10, 1)),
+    cn_statutory("National Day", "国庆节", Rule::gregorian(10, 2)),
+    cn_statutory("National Day", "国庆节", Rule::gregorian(10, 3)),
     // The arrangements: the days off beyond the statutory ones, and the
     // weekend days worked in exchange.
     cn_off("New Year's Day", "元旦", cn_new_year_off),
@@ -632,12 +664,18 @@ static CN_RULES: &[HolidayRule] = &[
 /// summary and the code's own facts.
 ///
 /// The statutory days are rules, bounded to the years each revision of the
-/// 放假办法 was in force. The State Council's arrangement for each year
-/// from 2008 to 2026 is data — `CN_DAYS_OFF` for the spans given off and
+/// 放假办法 was in force, and bounded below at 1999: the 1949 text and the
+/// 1999 revision were not read, so 1949 to 1998 are not carried and a
+/// year before 1999 is a reported gap rather than the 1999 text's days on
+/// no authority. The State Council's arrangement for each year from 2008
+/// to 2026 is data — `CN_DAYS_OFF` for the spans given off and
 /// `CN_WORKDAYS` for the weekend days worked, the latter as `Kind::Workday`
-/// entries — because it is an annual administrative act, not a rule.
-/// China has no substitution rule, and a year without an arrangement here
-/// is a gap rather than a guess.
+/// entries — because it is an annual administrative act, not a rule. The
+/// two days of the 2008 notice that fall in 2007, Monday 31 December off
+/// and Saturday 29 December worked, are not carried: `CN_ARRANGED_FIRST`
+/// is 2008, and 2007 is a gap for its own missing arrangement. China has
+/// no substitution rule, and a year without an arrangement here is a gap
+/// rather than a guess.
 pub static CHINA: RuleSet = RuleSet {
     code: "CN",
     english_name: "China",
@@ -647,8 +685,11 @@ pub static CHINA: RuleSet = RuleSet {
     includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
-    sources: "《全国年节及纪念日放假办法》(国务院令第270号), as revised in \
-              1999, 2007, 2013 and 2024, for the statutory days; the \
+    sources: "《全国年节及纪念日放假办法》, promulgated 1949 and revised by \
+              国务院令第270号 (1999), 第513号 (2007), 第644号 (2013) and \
+              第795号 (2024), the text in force, for the statutory days — \
+              the 2007, 2013 and 2024 texts read on gov.cn, the 1949 and \
+              1999 texts not read; the \
               国务院办公厅关于2008年 to 2026年部分节假日安排的通知 on \
               gov.cn for the days off and the working weekend days of each \
               year, with the three notices that changed a year: \

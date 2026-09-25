@@ -197,9 +197,10 @@ of the new moon and its own eve fails [reingold2018code,
 from the Friday epoch, rounded over the mean synodic month, split into
 twelves [reingold2018code, `observational-islamic-from-fixed`]. The
 observing place is a parameter: the book's sample location is Cairo, and
-this library's default is Mecca at 21°25′21″N, 39°49′34″E, 298 m; the
-book's own `mecca` constant is 21°25′24″N, 39°49′24″E, 298 m, a few hundred
-metres away, and the module does not say where its figures come from.
+this library's default is Mecca at 21°25′21″N, 39°49′34″E, 298 m, which
+the module states are the crate's own figures for the Great Mosque and not
+taken from a named source; the book's own `mecca` constant is 21°25′24″N,
+39°49′24″E, 298 m, a few hundred metres away.
 
 **The 4.5° interpolation.** `hc-astro` gives dusk only at the three standard
 twilight depressions, so the module does not solve for the 4.5° instant.
@@ -248,7 +249,7 @@ module's own functions and are the ones the tests rely on.
   | `islamic-tbla` | Tabular, scheme II, Thursday epoch | `LeapYearRule::CIVIL`, `ASTRONOMICAL_EPOCH` = RD 227 014 |
   | `islamic-fatimid` | Tabular, scheme III, Thursday epoch: the Bohra *Misri* calendar | `LeapYearRule::FATIMID`, `ASTRONOMICAL_EPOCH` |
   | `islamic-umalqura` | The Umm al-Qura table | `MONTH_LENGTH_MASKS`, 301 × `u16` |
-  | `islamic-rgsa` | The observational prediction at Mecca | `ObservationSite::MECCA`: the location and `VisibilityCriterion::REINGOLD_DERSHOWITZ` (4.5°, 10.6°, 4.1°) |
+  | `islamic-rgsa` | The observational prediction at Mecca | `ObservationSite::MECCA`: the location and `VisibilityCriterion::SHAUKAT` (4.5°, 10.6°, 4.1°), named after the published code's `shaukat-criterion` |
 
   The Fatimid calendar's epoch is fixed by the community's own anchor: its
   page dates the Mawlid, 12 Rabīʿ al-Awwal 1439, to 30 November 2017
@@ -338,8 +339,8 @@ measure that should not be expected to match. The number is asserted
 exactly in the test so that a change to `hc-astro` or to the criterion
 cannot move it unnoticed.
 
-**Known disagreements between the module documentation and the sources**,
-as of 2026-09-25, are listed at the end of the next section.
+**What the module documentation states on its own authority** is listed
+at the end of the next section.
 
 ## Sources
 
@@ -361,43 +362,15 @@ as of 2026-09-25, are listed at the end of the next section.
 | [gulfnews-muharram-1447] | The sighting on the evening of 25 June 2025 and Dhū al-Ḥijja 1446 of 29 days, so 1 Muḥarram 1447 = Thursday 26 June 2025 | Yes, 2026-09-25 |
 
 Statements in the module documentation that no source in this table
-supports, or that a source contradicts:
+supports, and that stand as the module's own:
 
-- `tabular` dates the arithmetic calendar to "the ninth century"; van Gent
-  says the eighth [vangent-tabcal].
-- `LeapYearRule::KUSHYAR_IBN_LABBAN` is documented and its attribution
-  string labelled as "the Ṭayyibī Bohra reckoning". The Bohra calendar is
-  scheme III, as the community's own page and van Gent both state and as
-  the crate's own `FATIMID` constant implements; scheme I is Kūshyār's,
-  Ulugh Beg's and Taqī al-Dīn's.
-- `islamic_umalqura` says the months of 1300–1420 AH "follow the
-  conjunction rule then in force" and that the two-condition rule dates
-  from 1420 AH. Van Gent dates the two-condition rule from 1423, gives
-  moonset-after-sunset alone for 1420–1422, the three-hours-after-midnight
-  rule for 1392–1419, and calls the rules before 1392 uncertain
-  [vangent-ummalqura]. The module also says the official tables "are
-  published for exactly this span"; the span 1300–1600 is ICU's, and no
-  Saudi publication of it was found.
-- `islamic_umalqura` calls its six spot-check rows "dates published by the
-  Saudi authorities"; five are the Supreme Court's announcements as the
-  press reported them, and the sixth, 1 Muḥarram 1300, is the table's own
-  first row.
 - The extraction of the table from Apple's Foundation cannot be checked
   from what is carried; that the result equals ICU's table can be, and was.
-- `islamic_astronomical` expands `tbla` as "tabular, leap year,
-  astronomical epoch" and `islamic_observational` expands `rgsa` as
-  "religious, Saudi Arabia". CLDR's data file describes the two as
-  "tabular … astronomical epoch" and "Saudi Arabia sighting" and spells
-  neither abbreviation out [cldr-bcp47-calendar].
-- The criterion is named `REINGOLD_DERSHOWITZ`; the published code
-  attributes it to S. K. Shaukat and offers Yallop's as an alternative
-  [reingold2018code].
-- The Mecca coordinates 21°25′21″N, 39°49′34″E are not the book's `mecca`
-  and carry no source in the module.
 - The interpolation error "well under a minute" is the module's estimate
   and is not measured by a test.
-- `lib.rs` gives the Bohra community as "about a million people"; no
-  source here gives a figure.
+- The Mecca coordinates 21°25′21″N, 39°49′34″E are the crate's own, as the
+  module now says; they are not the book's `mecca`.
+
 
 ## Code
 

@@ -69,12 +69,16 @@ the epidemic [gov-cn-spring-festival-extension-2020].
 
 **From the notice to the table.** The `CHINA` table carries the statute as
 rules and the notices as data. The statutory days are ordinary rules,
-bounded to the years each revision was in force: 1 January; 除夕 as the
-day before the Chinese New Year for 2008 to 2013 and from 2025; the first
-and second days of the first month always and the third to 2007 and from
-2014; Qingming as the solar term at the Chinese meridian from 2008; 1 May,
-with 2 and 3 May for 1999 to 2007 and 2 May from 2025; the fifth of the
-fifth month and the fifteenth of the eighth from 2008; 1 to 3 October.
+bounded to the years each revision was in force and beginning at 1999:
+1 January; 除夕 as the day before the Chinese New Year for 2008 to 2013 and
+from 2025; the first and second days of the first month from 1999 and the
+third for 1999 to 2007 and from 2014; Qingming as the solar term at the
+Chinese meridian from 2008; 1 May, with 2 and 3 May for 1999 to 2007 and
+2 May from 2025; the fifth of the fifth month and the fifteenth of the
+eighth from 2008; 1 to 3 October. A year before 1999 meets one more rule,
+`CN_UNREAD`, a `Rule::Tabulated` that covers no year at all, so that the
+engine reports the statutory days of that year as a gap instead of
+answering with the 1999 text's days.
 
 Each notice is then two lists. `CN_DAYS_OFF` holds one row per span the
 notice gives off — the festival, the Gregorian year, the first and last
@@ -139,10 +143,11 @@ Monday 19 February is the first trading day after the break.
 ## What is carried
 
 - **The statutory days** as rules across the 1999, 2007, 2013 and 2024
-  texts, bounded as above. The rules are not bounded below: for years
-  before 1999 the table answers with the 1999 text's days, which no source
-  read here confirms — the 1949 text is reported to have given National Day
-  two days, and was not read.
+  texts, bounded as above, and beginning at 1999. The 1999 text's days
+  are what the later decrees' amendments imply, and no earlier text was
+  read — the 1949 text is reported to have given National Day two days —
+  so 1949 to 1998 are not carried and a year before 1999 is a reported
+  gap for "Statutory holidays" rather than an answer.
 - **The arrangements for 2008 to 2026**, nineteen notices, as 135 spans
   and 123 weekend days worked:
 
@@ -175,15 +180,22 @@ Monday 19 February is the first trading day after the break.
   rows are keyed by 2018, 2022 and 2011.
 - **The gap rule.** A year without a notice here — 2007 and earlier, 2027
   and later — is a gap: `HolidayCalendar::is_complete` is false and
-  `gaps` names the arrangement. The notice for 2027 had not been published
-  when this was written; the one for 2026 came on 4 November 2025.
+  `gaps` names the arrangement. A year before 1999 is a gap for the
+  statutory days as well, under the name "Statutory holidays", and lists
+  no holiday at all. The notice for 2027 had not been published when this
+  was written; the one for 2026 came on 4 November 2025.
 - **Not carried, and why:**
   - The arrangements before 2008, including the two days of the 2008
     notice that fall in 2007 — Monday 31 December 2007 off and Saturday
-    29 December 2007 worked — because the range begins at 2008 and a
+    29 December 2007 worked — because `CN_ARRANGED_FIRST` is 2008 and a
     2007 with only those two rows would look complete when its own
-    arrangement is absent. The 1949 to 2007 history of the statute is not
-    carried beyond the 1999 text's days for the reason above.
+    arrangement is absent; the module says so at the constant. 2007 stays
+    a gap, and a caller who asks about its last week gets the gap, not
+    the two days.
+  - The statute of 1949 to 1998, because the 1949 text and the 1999
+    revision were not read; what the table knows of the 1999 text is what
+    the 2007 decree amended, which is enough for 1999 to 2007 and says
+    nothing about the years before.
   - The half-days and the day for children of Article 3, which are holidays
     for some citizens only, and the commemorations of Article 5, which give
     no day off: neither stops business-day arithmetic, and the table
@@ -219,9 +231,9 @@ Known points a reader may stumble on:
   compare the exchanges' closures — China's days off plus 9 February
   2024 — with the exchanges' own notices, which is a second reading of
   the arrangement for those years.
-- The `sources` string of the table calls the statute 国务院令第270号,
-  which is the decree of the 1999 revision; the text in force is under
-  第795号.
+- The `sources` string of the table names the four decrees, 第270号,
+  第513号, 第644号 and 第795号, and says that 第795号 is the text in force
+  and that the 1949 and 1999 texts were not read.
 
 ## Sources
 
@@ -264,8 +276,9 @@ them.
 ## Code
 
 `crates/hc-holiday/src/countries/asia.rs`: the statutory rules in
-`CN_RULES`, the arrangements in `CN_DAYS_OFF` and `CN_WORKDAYS`, keyed by
-`Arranged` and read through `cn_days_off`, `cn_workdays` and
+`CN_RULES`, bounded below by `CN_STATUTE_FIRST` with `CN_UNREAD` for the
+years before it; the arrangements in `CN_DAYS_OFF` and `CN_WORKDAYS`,
+keyed by `Arranged` and read through `cn_days_off`, `cn_workdays` and
 `cn_tabulated`; the table `CHINA`. The engine's part is `Kind::Workday`
 and `HolidayRule::workday` in `rule.rs`, `is_designated_workday` and
 `is_business_day` in `engine.rs`, and the `is_day_off` filter in
@@ -277,7 +290,8 @@ Anchors, in `crates/hc-holiday/tests/countries.rs`:
 eve and Qingming as working days outside their years),
 `china_keeps_each_years_arrangement` (the 2024 Spring Festival of the
 worked example, the three changed years, the December 2018 days, the gaps
-at 2007 and 2027) and
+at 2007 and 2027, 1998 as a gap for the statutory days with nothing
+answered and 1999 as answered) and
 `a_chinese_working_day_is_a_weekend_day_and_never_a_day_off` (every
 `Workday` entry a Saturday or Sunday, a business day and not a holiday;
 123 of them). In `crates/hc-holiday/src/engine.rs`:

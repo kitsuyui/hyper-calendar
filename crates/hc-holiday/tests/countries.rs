@@ -712,6 +712,29 @@ fn china_keeps_each_years_arrangement() {
         assert!(!calendar.is_complete(), "{year}");
     }
     assert!(HolidayCalendar::for_year(table("CN"), None, 2026).is_complete());
+    // Before the 1999 revision the statute itself was not read, so 1998 is
+    // a gap for the statutory days as well as for the arrangement, and no
+    // day is answered on the 1999 text's authority.
+    let calendar = HolidayCalendar::for_year(table("CN"), None, 1998);
+    assert!(
+        calendar
+            .gaps()
+            .iter()
+            .any(|gap| gap.year == 1998 && gap.name == "Statutory holidays"),
+        "{:?}",
+        calendar.gaps()
+    );
+    assert!(calendar.all().is_empty(), "{:?}", calendar.all());
+    // From 1999 the statutory days are answered; only the arrangement is
+    // missing.
+    let calendar = HolidayCalendar::for_year(table("CN"), None, 1999);
+    assert!(calendar.is_holiday(ymd(1999, 10, 1)));
+    assert!(
+        !calendar
+            .gaps()
+            .iter()
+            .any(|gap| gap.name == "Statutory holidays")
+    );
 }
 
 /// 行政院人事行政總處's 政府行政機關辦公日曆表 for 2017 to 2027: the

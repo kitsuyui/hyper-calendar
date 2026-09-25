@@ -145,7 +145,7 @@ carries them and as the sources re-read on 2026-09-25 give them:
 | 宣明暦 | 3068055/8400 = 365.244643 | 248057/8400 = 29.530595 | 231458.19/8400 = 27.554546 | 統法 8400, 章歳, 章月 and 曆周 in [xintangshu]; the decimals in [nao-rekiwiki-senmyo] |
 | 貞享暦 | 365.241696 | 29.530590 | 27.554600 | [nao-rekiwiki-jokyo]; the year is 授時暦's with 消長法 applied, and the sidereal year 365.256696 is that plus 0.015 |
 | 宝暦暦 | 365.241556 | 29.530590 | 27.554600 | [nao-rekiwiki-horyaku], the value as promulgated; 修正宝暦暦 of 1771 made it 365.241626, six seconds a year, which the library does not carry |
-| 寛政暦 | 365.242347 | 29.530584 | 27.554550 (modern) | [nao-rekiwiki-kansei] gives 365.242347071 and 29.530584, and derives 27.554570 from the daily mean motions; the library uses the modern 27.554550, and the module's statement that the page does not give a value is out of date. The difference is 2 × 10⁻⁵ days and enters only as the phase of a sine |
+| 寛政暦 | 365.242347 | 29.530584 | 27.554570 | [nao-rekiwiki-kansei] gives 365.242347071 and derives both months from the daily mean motions: 29.530584 = 360 / (13.1763981114 − 0.9856469352) and 27.554570 = 360 / (13.1763981114 − 0.1114147178). Until the review of 2026-09-25 the library used the modern 27.554550, saying the page gave none; the system's own value replaced it, and the re-measurement below did not move any figure at two decimals, the difference being 2 × 10⁻⁵ days in a quantity that enters only as the phase of a sine |
 | 天保暦 | — | — | — | Not used: the library computes Tenpō-reki from the true Sun and Moon. The page gives 365.242233952291 and 29.530588 [nao-rekiwiki-tenpo] |
 
 **Worked example: 貞享2年1月1日.** Jōkyō-reki took effect on its own new

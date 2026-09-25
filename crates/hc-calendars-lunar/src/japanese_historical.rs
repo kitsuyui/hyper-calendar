@@ -169,13 +169,6 @@ const MODERN_SOLAR_EQUATION_DAYS: f64 = 1.9148 / MEAN_ELONGATION_RATE;
 /// for 6.2886 − 1.2740.
 const MODERN_LUNAR_EQUATION_DAYS: f64 = (6.2886 - 1.2740) / MEAN_ELONGATION_RATE;
 
-/// The anomalistic month of modern astronomy, in days.
-///
-/// Used where a system's own 近点月 is not recoverable from the sources at
-/// hand. It enters only as the phase of a sine, so a part in a million costs
-/// about a tenth of a day of lunar phase over eight centuries.
-const MODERN_ANOMALISTIC_MONTH: f64 = 27.554_550;
-
 /// A calendar type delegating wholesale to a configured engine.
 ///
 /// Four systems differ in nothing but their parameters, and four hand-typed
@@ -550,9 +543,8 @@ pub mod kansei {
     //! 寛政暦 Kansei-reki, 1798–1844 — Japanese calendrics meets Kepler.
     //!
     //! The system is written up in `docs/systems/japanese-lunisolar.md`,
-    //! which names the sources for its constants and records the 近点月 the
-    //! NAO page derives, which this model does not yet use. This page states
-    //! the constants and the range.
+    //! which names the sources for its constants and how the agreement was
+    //! measured. This page states the constants and the range.
     //!
     //! Takahashi Yoshitoki (高橋至時) and Hazama Shigetomi built it on
     //! 暦象考成後編, the Chinese translation of Western tables deriving from
@@ -568,12 +560,21 @@ pub mod kansei {
     //! |---|---|
     //! | 歳実 (tropical year) | 365.242347 |
     //! | 朔策 (synodic month) | 29.530584 |
+    //! | 近点月 (anomalistic month) | 27.554570 |
     //!
     //! Source: 国立天文台暦計算室, 暦Wiki「寛政暦」
-    //! (<https://eco.mtk.nao.ac.jp/koyomi/wiki/B4B2C0AFCEF1.html>). The
-    //! system's anomalistic month is not recoverable from that page, so this
-    //! model uses the modern value of 27.554550 days and says so rather than
-    //! passing it off as Kansei-reki's own.
+    //! (<https://eco.mtk.nao.ac.jp/koyomi/wiki/B4B2C0AFCEF1.html>,
+    //! `nao-rekiwiki-kansei` in `docs/references.bib`), which gives the year
+    //! as 365.242347071 and derives the two months from the daily mean
+    //! motions: 29.530584 = 360 / (13.1763981114 − 0.9856469352) and
+    //! 27.554570 = 360 / (13.1763981114 − 0.1114147178), the Moon's mean
+    //! motion less the Sun's and less the apogee's. An earlier revision of
+    //! this model used the modern anomalistic month, 27.554550, saying the
+    //! page gave none; the page does, and the model now carries the system's
+    //! own value, as the crate's policy for these calendars requires. The
+    //! change is 2 × 10⁻⁵ days in a quantity that enters only as the phase
+    //! of a sine, and re-measuring left every agreement figure in
+    //! `tests/japanese_historical.rs` unchanged to two decimals.
     //!
     //! It kept the 恒気 rule for the major solar terms, because Kansei-reki
     //! did; the move to 定気 was Tenpō-reki's innovation six years later, and
@@ -602,7 +603,8 @@ pub mod kansei {
     pub const MODEL: MeanMotionModel = MeanMotionModel {
         tropical_year: 365.242_347,
         synodic_month: 29.530_584,
-        anomalistic_month: MODERN_ANOMALISTIC_MONTH,
+        // 360 / (13.1763981114 − 0.1114147178), as the NAO page derives it.
+        anomalistic_month: 27.554_570,
         // True solstice of 1797 at Kyoto, 656_331.661_712, less 0.30.
         solstice_epoch: 656_331.361_712,
         conjunction_epoch: 656_388.155_468,

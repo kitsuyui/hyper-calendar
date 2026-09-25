@@ -47,10 +47,10 @@ use crate::tabular::{ERA, IslamicDate};
 /// The machine identifier CLDR uses for this calendar.
 pub const ID: CalendarId = CalendarId("islamic-umalqura");
 
-/// The first Hijri year the official table covers.
+/// The first Hijri year the table covers, which is where ICU's table begins.
 pub const FIRST_YEAR: i64 = 1_300;
 
-/// The last Hijri year the official table covers.
+/// The last Hijri year the table covers, which is where ICU's table ends.
 pub const LAST_YEAR: i64 = 1_600;
 
 /// The fixed day of 1 Muḥarram 1300 AH, which is 1882-11-12 Gregorian.
@@ -336,8 +336,13 @@ mod tests {
     /// day it is published against.
     type PublishedPair = (i64, u8, u8, (i64, u8, u8));
 
-    /// Dates published by the Saudi authorities and widely reported, used to
-    /// check the extracted table rather than to derive it.
+    /// Six rows used to check the extracted table rather than to derive it.
+    /// Five are the Supreme Court's sighting announcements as the press
+    /// reported them, keyed in `docs/references.bib` as `spa-ramadan-1445`,
+    /// `spa-eid-alfitr-1445`, `spa-ramadan-1446`, `gulfnews-muharram-1445`
+    /// and `gulfnews-muharram-1447`; the first, 1 Muḥarram 1300, is the
+    /// table's own first row, for which no Saudi publication was found; the
+    /// civil arithmetic gives the same day, RD 687 337, by the closed form.
     const PUBLISHED: [PublishedPair; 6] = [
         (1_300, 1, 1, (1882, 11, 12)),
         (1_445, 1, 1, (2023, 7, 19)),

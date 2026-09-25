@@ -149,9 +149,8 @@ mod registration {
     /// would otherwise share the `islamic-civil` or `islamic-tbla`
     /// identifier is what policy §5 says to solve by minting a name, and
     /// `islamic-fatimid` is that name for the Ṭayyibī Bohra *Misri*
-    /// calendar, which a community of about a million people uses for every
-    /// religious date and which is defined by an authority that publishes
-    /// it.
+    /// calendar, which the community uses for every religious date and
+    /// which is defined by an authority that publishes it.
     ///
     /// The Kūshyār ibn Labbān and Ḥabash al-Ḥāsib schemes stay
     /// constructible rather than registered. They are medieval *zīj*
