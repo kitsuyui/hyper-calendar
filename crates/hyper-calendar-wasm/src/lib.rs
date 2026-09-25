@@ -604,7 +604,7 @@ mod holiday {
     /// Every table, in the order [`hc_holiday_codes`] lists them: the
     /// countries, then the exchanges, the traditions and the international
     /// sets.
-    fn tables() -> impl Iterator<Item = &'static RuleSet> {
+    pub(super) fn tables() -> impl Iterator<Item = &'static RuleSet> {
         countries::ALL
             .iter()
             .chain(exchanges::ALL)
@@ -700,48 +700,62 @@ mod holiday {
     ///
     /// [`HC_ERR_OUT_OF_RANGE`] for a day with no Gregorian year.
     pub(super) fn lines_on(fixed: i64) -> Result<String, i64> {
-        use core::fmt::Write;
         let day = Rd(fixed);
         gregorian::year_from_fixed(day).map_err(|_| HC_ERR_OUT_OF_RANGE)?;
         let mut out = String::new();
+        // One memo for every table: the astronomy the tables share — the
+        // same tithis, the same new moons — is done once.
+        let mut context = hc::hc_holiday::EvaluationContext::new();
         for table in tables() {
-            let calendar = HolidayCalendar::for_day(table, None, day);
-            for holiday in calendar.on(day) {
-                push_cell(&mut out, table.code);
-                out.push('\t');
-                push_cell(&mut out, table.english_name);
-                out.push('\t');
-                push_cell(&mut out, holiday.name);
-                out.push('\t');
-                push_cell(&mut out, holiday.local_name);
-                let _ = write!(
-                    out,
-                    "\t{}\t{}\t",
-                    kind_name(holiday.kind),
-                    confidence_name(holiday.confidence)
-                );
-                push_cell(&mut out, holiday.source);
-                let _ = write!(out, "\t{}\t", u8::from(holiday.is_substitute()));
-                if let Some(observed_for) = holiday.observed_for {
-                    let _ = write!(out, "{}", observed_for.0);
-                }
-                out.push('\n');
-            }
-            // A gap is a holiday the table could not place this year — its
-            // calendar's range ended, or no announcement was read — and it
-            // is reported rather than left out, so that a page can say so.
-            for gap in calendar.gaps() {
-                push_cell(&mut out, table.code);
-                out.push('\t');
-                push_cell(&mut out, table.english_name);
-                out.push('\t');
-                push_cell(&mut out, gap.name);
-                out.push('\t');
-                push_cell(&mut out, gap.local_name);
-                out.push_str("\tgap\t\t\t0\t\n");
-            }
+            let calendar = HolidayCalendar::for_day_with(table, None, day, &mut context);
+            push_lines_on(&mut out, table, &calendar, day);
         }
         Ok(out)
+    }
+
+    /// One table's lines for one day, as [`lines_on`] writes them: the
+    /// entries `calendar` has on the day, then the gaps it reports.
+    pub(super) fn push_lines_on(
+        out: &mut String,
+        table: &RuleSet,
+        calendar: &HolidayCalendar<'_>,
+        day: Rd,
+    ) {
+        use core::fmt::Write;
+        for holiday in calendar.on(day) {
+            push_cell(out, table.code);
+            out.push('\t');
+            push_cell(out, table.english_name);
+            out.push('\t');
+            push_cell(out, holiday.name);
+            out.push('\t');
+            push_cell(out, holiday.local_name);
+            let _ = write!(
+                out,
+                "\t{}\t{}\t",
+                kind_name(holiday.kind),
+                confidence_name(holiday.confidence)
+            );
+            push_cell(out, holiday.source);
+            let _ = write!(out, "\t{}\t", u8::from(holiday.is_substitute()));
+            if let Some(observed_for) = holiday.observed_for {
+                let _ = write!(out, "{}", observed_for.0);
+            }
+            out.push('\n');
+        }
+        // A gap is a holiday the table could not place this year — its
+        // calendar's range ended, or no announcement was read — and it is
+        // reported rather than left out, so that a page can say so.
+        for gap in calendar.gaps() {
+            push_cell(out, table.code);
+            out.push('\t');
+            push_cell(out, table.english_name);
+            out.push('\t');
+            push_cell(out, gap.name);
+            out.push('\t');
+            push_cell(out, gap.local_name);
+            out.push_str("\tgap\t\t\t0\t\n");
+        }
     }
 
     fn iso(day: Rd) -> String {
@@ -2472,18 +2486,47 @@ mod tests {
             );
         }
 
+        #[test]
+        fn one_day_across_every_table_is_what_the_years_say() {
+            // The call evaluates each table for the day alone, through one
+            // memo for all of them; the lines must be the ones the tables'
+            // whole years give, each evaluated on its own.
+            for (month, day) in [(1, 1), (2, 17), (9, 25), (11, 8)] {
+                let fixed = hc_gregorian_to_fixed(2026, month, day);
+                let text = read_lines(|buffer, capacity| unsafe {
+                    hc_holidays_on(fixed, buffer, capacity)
+                });
+                let mut expected = String::new();
+                for table in super::super::holiday::tables() {
+                    let year = hc::hc_holiday::HolidayCalendar::for_year(table, None, 2026);
+                    super::super::holiday::push_lines_on(
+                        &mut expected,
+                        table,
+                        &year,
+                        hc::hc_holiday::Rd(fixed),
+                    );
+                }
+                assert_eq!(text, expected, "2026-{month:02}-{day:02}");
+            }
+        }
+
         /// A measurement, not a gate: one day across every table, as a page
         /// asks for it. Run with `cargo test --release -p hyper-calendar-wasm
-        /// --features holiday -- --nocapture` to read the time.
+        /// --features holiday -- --nocapture` to read the times; the
+        /// README's figures are the `release-compact` profile's.
         #[test]
         fn one_day_across_every_table_is_timed() {
-            let day = hc_gregorian_to_fixed(2026, 9, 25);
-            let start = std::time::Instant::now();
-            let needed = unsafe { hc_holidays_on(day, core::ptr::null_mut(), 0) };
-            let elapsed = start.elapsed();
-            assert!(needed > 0);
             let tables = super::super::holiday::codes().lines().count();
-            eprintln!("hc_holidays_on for one 2026 day across {tables} tables: {elapsed:?}");
+            for (month, day) in [(1, 1), (2, 17), (9, 25)] {
+                let fixed = hc_gregorian_to_fixed(2026, month, day);
+                let start = std::time::Instant::now();
+                let needed = unsafe { hc_holidays_on(fixed, core::ptr::null_mut(), 0) };
+                let elapsed = start.elapsed();
+                assert!(needed > 0);
+                eprintln!(
+                    "hc_holidays_on for 2026-{month:02}-{day:02} across {tables} tables: {elapsed:?}"
+                );
+            }
         }
     }
 

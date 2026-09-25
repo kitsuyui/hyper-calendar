@@ -10,12 +10,16 @@
 //! pure data: [`Rule::WeekdayOnOrAfter`], [`Rule::WeekdayOnOrBefore`],
 //! [`Rule::Offset`] and [`Rule::Tabulated`].
 
+#[cfg(feature = "alloc")]
+use hc_astro::riseset::Location;
 use hc_calendar::Calendar as _;
 use hc_calendar::fixed::Moment;
 use hc_calendar::{CalendarId, Month, Rd, Weekday};
 use hc_calendars_equinox::persian as solar_hijri;
 use hc_calendars_indic::nakshatra::nakshatra_span;
-use hc_calendars_indic::tithi::{DEGREES_PER_TITHI, TITHIS_PER_MONTH, tithi_of_day};
+use hc_calendars_indic::tithi::{DEGREES_PER_TITHI, TITHIS_PER_MONTH};
+#[cfg(feature = "alloc")]
+use hc_calendars_indic::tithi::{sunrise_of, sunset_of, tithi_number_at};
 use hc_calendars_indic::{
     BikramSambatCalendar, HinduLunarCalendar, HinduSolarDate, Prevalence, hindu_lunar,
 };
@@ -27,8 +31,9 @@ use hc_calendars_regional::{burmese, thai_lunar};
 use hc_calendars_solar::{
     bahai_kept, bangladeshi, coptic, ethiopic, gregorian, julian, nanakshahi, persian, zoroastrian,
 };
-use hc_core::math::normalize_degrees;
-use hc_seasons::solar_terms::term_day;
+use hc_core::math::{floor, normalize_degrees};
+use hc_seasons::solar_terms::term_moment;
+use hc_seasons::zodiac::sidereal::ingress_moment;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 use hc_seasons::{Meridian, SolarTerm};
 
@@ -520,7 +525,7 @@ impl CalendarSystem {
 }
 
 /// A lunar phase a [`Rule::LunarPhase`] can key to.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Phase {
     /// Conjunction.
     New,
@@ -896,17 +901,28 @@ impl Rule {
     /// tell the two apart.
     #[must_use]
     pub fn days_in_year(&self, year: i64) -> Days {
-        self.days_in_year_with(year, &mut Uncached)
+        self.days_in_year_with(year, Window::ALL, &mut Uncached)
     }
 
-    /// [`Rule::days_in_year`] with the calendar look-ups it makes answered
-    /// through `lookups`.
+    /// [`Rule::days_in_year`] with the astronomy answered through `lookups`
+    /// and the work outside `window` skipped.
     ///
     /// The look-ups are the expensive part of a lunisolar rule — which
-    /// Chinese years overlap a Gregorian one, where a Hindu month begins —
-    /// and every rule of a table asks the same questions, so the engine
-    /// passes one [`EvaluationCache`] through all of them.
-    pub(crate) fn days_in_year_with<L: Lookups>(&self, year: i64, lookups: &mut L) -> Days {
+    /// Chinese years overlap a Gregorian one, where a Hindu month begins,
+    /// the sunrise a tithi is read at — and every rule of a table asks the
+    /// same questions, so the engine passes one [`EvaluationContext`]
+    /// through all of them.
+    ///
+    /// The answer holds every day of [`Rule::days_in_year`] inside `window`
+    /// and may hold or drop the days outside it: a rule that can tell
+    /// cheaply that a month or a term lies wholly outside the window does
+    /// not compute it. [`Window::ALL`] asks for everything.
+    pub(crate) fn days_in_year_with<L: Lookups>(
+        &self,
+        year: i64,
+        window: Window,
+        lookups: &mut L,
+    ) -> Days {
         let Ok(first) = gregorian::to_fixed(year, 1, 1) else {
             return Days::new();
         };
@@ -949,10 +965,21 @@ impl Rule {
                 |_| Days::new(),
                 |anchor| Days::one(weekday.on_or_before(anchor)),
             ),
-            Self::FixedInCalendar { system, month, day } => {
-                fixed_in_calendar(*system, *month, *day, year, first, last, lookups)
+            Self::FixedInCalendar { system, month, day } => fixed_in_calendar(
+                *system,
+                *month,
+                *day,
+                year,
+                Window { first, last },
+                window,
+                lookups,
+            ),
+            Self::SolarTerm { term, meridian } => {
+                if !window.overlaps(solar_term_bound(year, *term)) {
+                    return Days::new();
+                }
+                Days::one(meridian.day_of(lookups.term_moment(year, *term)))
             }
-            Self::SolarTerm { term, meridian } => Days::one(term_day(year, *term, *meridian)),
             Self::Tithi {
                 month,
                 tithi,
@@ -966,6 +993,7 @@ impl Rule {
                 *prevails,
                 *when_twice,
                 *calendar,
+                window,
                 lookups,
             )
             .clamped(first, last),
@@ -973,16 +1001,14 @@ impl Rule {
                 sign,
                 ayanamsa,
                 meridian,
-            } => Days::one(hc_seasons::zodiac::sidereal::ingress_day(
-                year, *sign, *ayanamsa, *meridian,
-            )),
+            } => Days::one(meridian.day_of(lookups.ingress(year, *sign, *ayanamsa))),
             Self::Nakshatra {
                 nakshatra,
                 sign,
                 with_tithi,
                 ayanamsa,
                 meridian,
-            } => nakshatra_days(year, *nakshatra, *sign, *with_tithi, *ayanamsa, *meridian),
+            } => lookups.nakshatra_days(year, *nakshatra, *sign, *with_tithi, *ayanamsa, *meridian),
             Self::EasterRelative { computus, offset } => easter(*computus, year)
                 .map_or_else(Days::new, |day| Days::one(Rd(day.0 + i64::from(*offset)))),
             Self::LunarPhase {
@@ -990,14 +1016,15 @@ impl Rule {
                 month,
                 day,
                 meridian,
-            } => lunar_phase_day(*phase, year, *month, *day, *meridian),
+            } => lookups.lunar_phase_day(*phase, year, *month, *day, *meridian),
             Self::Offset { base, days } => {
                 // A shifted rule can leave its own Gregorian year, so the
                 // neighbouring years are searched too and the result clamped.
                 let mut out = Days::new();
+                let window = window.shifted(-i64::from(*days));
                 for probe in [year - 1, year, year + 1] {
                     for shifted in base
-                        .days_in_year_with(probe, lookups)
+                        .days_in_year_with(probe, window, lookups)
                         .shifted(i32::from(*days))
                         .as_slice()
                     {
@@ -1015,15 +1042,23 @@ impl Rule {
                 // A span can straddle a New Year, so a first day in the year
                 // before is searched as well, and every last day from this
                 // year and the next is a candidate for the end.
+                // A first day within a span of the window can begin a run
+                // that reaches into it, and the end it takes is the first
+                // within a span of that first day.
                 let mut ends = Days::new();
+                let end_window = window.widened(Self::MAX_SPAN, Self::MAX_SPAN);
                 for probe in [year - 1, year, year + 1] {
-                    for day in to.days_in_year_with(probe, lookups).as_slice() {
+                    for day in to.days_in_year_with(probe, end_window, lookups).as_slice() {
                         ends.push(*day);
                     }
                 }
                 let mut out = Days::new();
+                let start_window = window.widened(Self::MAX_SPAN, 0);
                 for probe in [year - 1, year] {
-                    for start in from.days_in_year_with(probe, lookups).as_slice() {
+                    for start in from
+                        .days_in_year_with(probe, start_window, lookups)
+                        .as_slice()
+                    {
                         let Some(end) = ends
                             .as_slice()
                             .iter()
@@ -1046,8 +1081,14 @@ impl Rule {
                 // As for a shifted rule: a move can cross the New Year, so
                 // the neighbouring years are searched and the result clamped.
                 let mut out = Days::new();
+                let reach = moves
+                    .iter()
+                    .map(|(_, days)| i64::from(days.unsigned_abs()))
+                    .max()
+                    .unwrap_or(0);
+                let window = window.widened(reach, reach);
                 for probe in [year - 1, year, year + 1] {
-                    for day in base.days_in_year_with(probe, lookups).as_slice() {
+                    for day in base.days_in_year_with(probe, window, lookups).as_slice() {
                         let weekday = Weekday::from_rd(*day);
                         let shift = moves
                             .iter()
@@ -1088,6 +1129,69 @@ pub const TO_ADJACENT_MONDAY: &[(Weekday, i16)] = &[
     (Weekday::Friday, 3),
 ];
 
+/// The days an evaluation is interested in, both ends included.
+///
+/// A rule asked for a year with a window narrower than the year may skip
+/// the astronomy of anything it can prove falls outside it; see
+/// [`Rule::days_in_year_with`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Window {
+    /// The first day of interest.
+    pub first: Rd,
+    /// The last day of interest.
+    pub last: Rd,
+}
+
+impl Window {
+    /// Every day: nothing is skipped.
+    pub const ALL: Self = Self {
+        first: Rd(i64::MIN / 4),
+        last: Rd(i64::MAX / 4),
+    };
+
+    /// Whether any day of `low..=high` is in the window.
+    #[must_use]
+    pub const fn overlaps(self, (low, high): (Rd, Rd)) -> bool {
+        low.0 <= self.last.0 && high.0 >= self.first.0
+    }
+
+    /// The window opened `before` days earlier and `after` days later.
+    #[must_use]
+    pub const fn widened(self, before: i64, after: i64) -> Self {
+        Self {
+            first: Rd(self.first.0.saturating_sub(before)),
+            last: Rd(self.last.0.saturating_add(after)),
+        }
+    }
+
+    /// The window moved by `days`.
+    #[must_use]
+    pub const fn shifted(self, days: i64) -> Self {
+        Self {
+            first: Rd(self.first.0.saturating_add(days)),
+            last: Rd(self.last.0.saturating_add(days)),
+        }
+    }
+}
+
+/// The days a solar term can fall on in a Gregorian year, at any meridian,
+/// from the estimate its search starts at.
+///
+/// [`hc_astro::solar_longitude_after`] seeds its bisection with the day the
+/// Sun would reach the term's longitude at its mean rate from the year's
+/// first day, and brackets five days either side of that; the moment it
+/// returns lies inside the bracket by construction. A meridian moves the
+/// day by less than one more. The estimate is the search's own arithmetic,
+/// repeated here so that the bound cannot disagree with it.
+fn solar_term_bound(year: i64, term: SolarTerm) -> (Rd, Rd) {
+    let new_year = Moment(hc_astro::time::gregorian_new_year(year).0 as f64);
+    let rate = hc_astro::MEAN_TROPICAL_YEAR / 360.0;
+    let to_go = term.solar_longitude_degrees() - hc_astro::solar_longitude(new_year);
+    let to_go = to_go - 360.0 * floor(to_go / 360.0);
+    let estimate = floor(new_year.0 + rate * to_go) as i64;
+    (Rd(estimate - 7), Rd(estimate + 7))
+}
+
 /// The first and last fixed day of a Gregorian month.
 fn gregorian_month_span(year: i64, month: u8) -> Option<(Rd, Rd)> {
     let start = gregorian::to_fixed(year, month, 1).ok()?;
@@ -1095,19 +1199,35 @@ fn gregorian_month_span(year: i64, month: u8) -> Option<(Rd, Rd)> {
     Some((start, Rd(start.0 + i64::from(length) - 1)))
 }
 
-/// The calendar look-ups a rule makes, answered directly or from a memo.
+/// The astronomy a rule asks for, answered directly or from a memo.
 ///
-/// Two questions cost nearly everything a lunisolar rule costs: which years
-/// of a calendar overlap a Gregorian year, and where a Hindu month begins.
-/// Both are astronomy, and every rule of a table asks them about the same
-/// years, so the engine answers them once through an [`EvaluationCache`]
+/// A few questions cost nearly everything a lunisolar rule costs: which
+/// years of a calendar overlap a Gregorian year and where a date of it
+/// falls, where a Hindu month begins and which tithi holds a part of a day,
+/// when the Sun enters a sign or reaches a term. Every rule of a table asks
+/// them about the same years, and every table asks them about the same
+/// sky, so the engine answers them once through an [`EvaluationContext`]
 /// and a caller without an allocator answers them each time through
 /// [`Uncached`]. The answers are the same either way; only the cost
 /// differs.
 pub(crate) trait Lookups {
+    /// [`CalendarSystem::year_containing`].
+    fn year_containing(&mut self, system: CalendarSystem, day: Rd) -> Option<i64>;
+
     /// The years of `system` containing 1 January and 31 December of the
     /// Gregorian `year`, or `None` when either falls outside the calendar.
-    fn calendar_years(&mut self, system: CalendarSystem, year: i64) -> Option<(i64, i64)>;
+    fn calendar_years(&mut self, system: CalendarSystem, year: i64) -> Option<(i64, i64)> {
+        let first = gregorian::to_fixed(year, 1, 1).ok()?;
+        let last = gregorian::to_fixed(year, 12, 31).ok()?;
+        Some((
+            self.year_containing(system, first)?,
+            self.year_containing(system, last)?,
+        ))
+    }
+
+    /// [`CalendarSystem::to_fixed`].
+    fn fixed_day(&mut self, system: CalendarSystem, year: i64, month: Month, day: u8)
+    -> Option<Rd>;
 
     /// [`HinduLunarCalendar::month_span`] of the ordinary month `month` in
     /// Śaka year `saka`, or `None` where the calendar has no such month.
@@ -1117,19 +1237,54 @@ pub(crate) trait Lookups {
         saka: i64,
         month: u8,
     ) -> Option<(Rd, Rd)>;
+
+    /// [`Prevalence::tithi_on`] at the calendar's place.
+    fn tithi_at(&mut self, calendar: HinduLunarCalendar, prevails: Prevalence, day: Rd) -> u8;
+
+    /// [`ingress_moment`]: the saṅkrānti into `sign` in a Gregorian year.
+    fn ingress(&mut self, year: i64, sign: SiderealSign, ayanamsa: Ayanamsa) -> Moment;
+
+    /// [`term_moment`]: the instant a solar term begins in a Gregorian year.
+    fn term_moment(&mut self, year: i64, term: SolarTerm) -> Moment;
+
+    /// [`lunar_phase_day`].
+    fn lunar_phase_day(
+        &mut self,
+        phase: Phase,
+        year: i64,
+        month: u8,
+        day: u8,
+        meridian: Meridian,
+    ) -> Days;
+
+    /// [`nakshatra_days`].
+    fn nakshatra_days(
+        &mut self,
+        year: i64,
+        nakshatra: u8,
+        sign: SiderealSign,
+        with_tithi: Option<u8>,
+        ayanamsa: Ayanamsa,
+        meridian: Meridian,
+    ) -> Days;
 }
 
 /// [`Lookups`] that computes every answer afresh.
 pub(crate) struct Uncached;
 
 impl Lookups for Uncached {
-    fn calendar_years(&mut self, system: CalendarSystem, year: i64) -> Option<(i64, i64)> {
-        let first = gregorian::to_fixed(year, 1, 1).ok()?;
-        let last = gregorian::to_fixed(year, 12, 31).ok()?;
-        Some((
-            system.year_containing(first)?,
-            system.year_containing(last)?,
-        ))
+    fn year_containing(&mut self, system: CalendarSystem, day: Rd) -> Option<i64> {
+        system.year_containing(day)
+    }
+
+    fn fixed_day(
+        &mut self,
+        system: CalendarSystem,
+        year: i64,
+        month: Month,
+        day: u8,
+    ) -> Option<Rd> {
+        system.to_fixed(year, month, day)
     }
 
     fn hindu_month(
@@ -1140,44 +1295,181 @@ impl Lookups for Uncached {
     ) -> Option<(Rd, Rd)> {
         calendar.month_span(saka, month, false).ok()
     }
+
+    fn tithi_at(&mut self, calendar: HinduLunarCalendar, prevails: Prevalence, day: Rd) -> u8 {
+        prevails.tithi_on(day, calendar.location)
+    }
+
+    fn ingress(&mut self, year: i64, sign: SiderealSign, ayanamsa: Ayanamsa) -> Moment {
+        ingress_moment(year, sign, ayanamsa)
+    }
+
+    fn term_moment(&mut self, year: i64, term: SolarTerm) -> Moment {
+        term_moment(year, term)
+    }
+
+    fn lunar_phase_day(
+        &mut self,
+        phase: Phase,
+        year: i64,
+        month: u8,
+        day: u8,
+        meridian: Meridian,
+    ) -> Days {
+        lunar_phase_day(phase, year, month, day, meridian)
+    }
+
+    fn nakshatra_days(
+        &mut self,
+        year: i64,
+        nakshatra: u8,
+        sign: SiderealSign,
+        with_tithi: Option<u8>,
+        ayanamsa: Ayanamsa,
+        meridian: Meridian,
+    ) -> Days {
+        nakshatra_days(year, nakshatra, sign, with_tithi, ayanamsa, meridian)
+    }
 }
 
-/// A memoised answer to [`Lookups::calendar_years`]: the system, the
-/// Gregorian year, and the calendar years containing its first and last
-/// days.
-#[cfg(feature = "alloc")]
-type CalendarYearsEntry = (CalendarId, i64, Option<(i64, i64)>);
-
-/// A memoised answer to [`Lookups::hindu_month`]: the calendar, the Śaka
-/// year, the month, and the month's span.
-#[cfg(feature = "alloc")]
-type HinduMonthEntry = (HinduLunarCalendar, i64, u8, Option<(Rd, Rd)>);
-
-/// [`Lookups`] that remembers every answer for the rest of one evaluation.
+/// A memo: keys in order, found by binary search.
 ///
-/// A table's rules are evaluated over a handful of years and name a
-/// handful of calendars, so the memo stays small and a linear scan of it is
-/// cheaper than hashing.
+/// An evaluation asks a few hundred distinct questions, for which a sorted
+/// list is as quick as a tree and a great deal less code in a WebAssembly
+/// module.
+#[cfg(feature = "alloc")]
+#[derive(Debug)]
+struct Memo<K, V>(alloc::vec::Vec<(K, V)>);
+
+#[cfg(feature = "alloc")]
+impl<K, V> Default for Memo<K, V> {
+    fn default() -> Self {
+        Self(alloc::vec::Vec::new())
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl<K: Ord, V: Copy> Memo<K, V> {
+    /// The value under `key`, or `compute`'s, remembered.
+    fn get_or_insert_with(&mut self, key: K, compute: impl FnOnce() -> V) -> V {
+        let index = match self.0.binary_search_by(|(known, _)| known.cmp(&key)) {
+            Ok(index) => return self.0.get(index).map_or_else(compute, |(_, value)| *value),
+            Err(index) => index,
+        };
+        let value = compute();
+        self.0.insert(index, (key, value));
+        value
+    }
+}
+
+/// A place as a memo key: the bits of its coordinates.
+#[cfg(feature = "alloc")]
+type LocationKey = [u64; 3];
+
+/// An ayanamsa as a memo key: its name and the bits of its anchor.
+#[cfg(feature = "alloc")]
+type AyanamsaKey = (&'static str, u64, u64);
+
+/// A Hindu month as a memo key: the calendar's place and ayanamsa, the
+/// Śaka year and the month.
+#[cfg(feature = "alloc")]
+type HinduMonthKey = (LocationKey, AyanamsaKey, i64, u8);
+
+/// A [`Rule::Nakshatra`] evaluation as a memo key: the year and the rule's
+/// fields.
+#[cfg(feature = "alloc")]
+type NakshatraKey = (i64, u8, SiderealSign, Option<u8>, AyanamsaKey, Meridian);
+
+#[cfg(feature = "alloc")]
+fn location_key(location: Location) -> LocationKey {
+    [
+        location.latitude_degrees.to_bits(),
+        location.longitude_degrees.to_bits(),
+        location.elevation_metres.to_bits(),
+    ]
+}
+
+#[cfg(feature = "alloc")]
+fn ayanamsa_key(ayanamsa: Ayanamsa) -> AyanamsaKey {
+    (
+        ayanamsa.name(),
+        ayanamsa.anchor_julian_date().to_bits(),
+        ayanamsa.degrees_at_anchor().to_bits(),
+    )
+}
+
+/// The memo of one evaluation: every answer the astronomy gave, kept for
+/// the rest of the evaluation.
+///
+/// Building a [`HolidayCalendar`](crate::engine::HolidayCalendar) is
+/// mostly astronomy — the conjunctions and solar terms of a lunisolar
+/// calendar, the sunrises a tithi is read at — and the same questions come
+/// back from every rule of a table and from every table that dates by the
+/// same sky. A context answers each once. A page that asks "what is
+/// today, in every table" builds one context and passes it to
+/// [`HolidayCalendar::for_day_with`](crate::engine::HolidayCalendar::for_day_with)
+/// for every table; the answers are the ones
+/// [`HolidayCalendar::for_day`](crate::engine::HolidayCalendar::for_day)
+/// gives, at a fraction of the cost.
+///
+/// Every key is integers: a day, a year, a month, the bits of a place. The
+/// memo holds nothing that could go stale, because nothing it holds
+/// depends on anything but its key, so a context can live as long as the
+/// caller likes.
 #[cfg(feature = "alloc")]
 #[derive(Debug, Default)]
-pub(crate) struct EvaluationCache {
-    calendar_years: alloc::vec::Vec<CalendarYearsEntry>,
-    hindu_months: alloc::vec::Vec<HinduMonthEntry>,
+pub struct EvaluationContext {
+    calendar_years: Memo<(CalendarId, Rd), Option<i64>>,
+    fixed_days: Memo<(CalendarId, i64, Month, u8), Option<Rd>>,
+    hindu_months: Memo<HinduMonthKey, Option<(Rd, Rd)>>,
+    sunrises: Memo<(LocationKey, Rd), Moment>,
+    sunsets: Memo<(LocationKey, Rd), Moment>,
+    tithis: Memo<(LocationKey, Prevalence, Rd), u8>,
+    ingresses: Memo<(i64, SiderealSign, AyanamsaKey), Moment>,
+    terms: Memo<(i64, SolarTerm), Moment>,
+    lunar_phases: Memo<(Phase, i64, u8, u8, Meridian), Days>,
+    nakshatras: Memo<NakshatraKey, Days>,
 }
 
 #[cfg(feature = "alloc")]
-impl Lookups for EvaluationCache {
-    fn calendar_years(&mut self, system: CalendarSystem, year: i64) -> Option<(i64, i64)> {
-        if let Some((_, _, known)) = self
-            .calendar_years
-            .iter()
-            .find(|(id, known_year, _)| *id == system.id && *known_year == year)
-        {
-            return *known;
-        }
-        let answer = Uncached.calendar_years(system, year);
-        self.calendar_years.push((system.id, year, answer));
-        answer
+impl EvaluationContext {
+    /// An empty memo.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// [`sunrise_of`] a day at a place, once.
+    fn sunrise(&mut self, location: Location, day: Rd) -> Moment {
+        self.sunrises
+            .get_or_insert_with((location_key(location), day), || sunrise_of(day, location))
+    }
+
+    /// [`sunset_of`] a day at a place, once.
+    fn sunset(&mut self, location: Location, day: Rd) -> Moment {
+        self.sunsets
+            .get_or_insert_with((location_key(location), day), || sunset_of(day, location))
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl Lookups for EvaluationContext {
+    fn year_containing(&mut self, system: CalendarSystem, day: Rd) -> Option<i64> {
+        self.calendar_years
+            .get_or_insert_with((system.id, day), || system.year_containing(day))
+    }
+
+    fn fixed_day(
+        &mut self,
+        system: CalendarSystem,
+        year: i64,
+        month: Month,
+        day: u8,
+    ) -> Option<Rd> {
+        self.fixed_days
+            .get_or_insert_with((system.id, year, month, day), || {
+                Uncached.fixed_day(system, year, month, day)
+            })
     }
 
     fn hindu_month(
@@ -1186,45 +1478,120 @@ impl Lookups for EvaluationCache {
         saka: i64,
         month: u8,
     ) -> Option<(Rd, Rd)> {
-        if let Some((_, _, _, known)) =
-            self.hindu_months
-                .iter()
-                .find(|(known_calendar, known_saka, known_month, _)| {
-                    *known_calendar == calendar && *known_saka == saka && *known_month == month
-                })
+        let key = (
+            location_key(calendar.location),
+            ayanamsa_key(calendar.ayanamsa),
+            saka,
+            month,
+        );
+        self.hindu_months
+            .get_or_insert_with(key, || Uncached.hindu_month(calendar, saka, month))
+    }
+
+    fn tithi_at(&mut self, calendar: HinduLunarCalendar, prevails: Prevalence, day: Rd) -> u8 {
+        let location = calendar.location;
+        let key = (location_key(location), prevails, day);
+        if let Ok(index) = self.tithis.0.binary_search_by(|(known, _)| known.cmp(&key))
+            && let Some((_, tithi)) = self.tithis.0.get(index)
         {
-            return *known;
+            return *tithi;
         }
-        let answer = Uncached.hindu_month(calendar, saka, month);
-        self.hindu_months.push((calendar, saka, month, answer));
-        answer
+        // The same arithmetic as `Prevalence::tithi_on`, over sunrises
+        // found once per day rather than once per rule.
+        let rise = self.sunrise(location, day);
+        let set = self.sunset(location, day);
+        let moment = prevails.moment_between(rise, set, || self.sunrise(location, Rd(day.0 + 1)));
+        let tithi = tithi_number_at(moment);
+        self.tithis.get_or_insert_with(key, || tithi)
+    }
+
+    fn ingress(&mut self, year: i64, sign: SiderealSign, ayanamsa: Ayanamsa) -> Moment {
+        self.ingresses
+            .get_or_insert_with((year, sign, ayanamsa_key(ayanamsa)), || {
+                ingress_moment(year, sign, ayanamsa)
+            })
+    }
+
+    fn term_moment(&mut self, year: i64, term: SolarTerm) -> Moment {
+        self.terms
+            .get_or_insert_with((year, term), || term_moment(year, term))
+    }
+
+    fn lunar_phase_day(
+        &mut self,
+        phase: Phase,
+        year: i64,
+        month: u8,
+        day: u8,
+        meridian: Meridian,
+    ) -> Days {
+        self.lunar_phases
+            .get_or_insert_with((phase, year, month, day, meridian), || {
+                lunar_phase_day(phase, year, month, day, meridian)
+            })
+    }
+
+    fn nakshatra_days(
+        &mut self,
+        year: i64,
+        nakshatra: u8,
+        sign: SiderealSign,
+        with_tithi: Option<u8>,
+        ayanamsa: Ayanamsa,
+        meridian: Meridian,
+    ) -> Days {
+        let key = (
+            year,
+            nakshatra,
+            sign,
+            with_tithi,
+            ayanamsa_key(ayanamsa),
+            meridian,
+        );
+        self.nakshatras.get_or_insert_with(key, || {
+            nakshatra_days(year, nakshatra, sign, with_tithi, ayanamsa, meridian)
+        })
     }
 }
 
 /// Every occurrence of `month`/`day` in `system` that lands inside
-/// `[first, last]`, the Gregorian `year`.
+/// `span`, the Gregorian `year`, and inside `window`.
 ///
 /// The calendar years that can possibly overlap a Gregorian year are the one
 /// containing 1 January through the one containing 31 December, so the search
-/// is bounded without knowing anything about the calendar's year length.
+/// is bounded without knowing anything about the calendar's year length; and
+/// the ones that can reach the window are the one containing its first day
+/// through the one containing its last, because a calendar's years are
+/// contiguous, so a window narrower than the year — one lunation, for a
+/// day — converts one date where a year converts two.
 fn fixed_in_calendar<L: Lookups>(
     system: CalendarSystem,
     month: Month,
     day: u8,
     year: i64,
-    first: Rd,
-    last: Rd,
+    span: Window,
+    window: Window,
     lookups: &mut L,
 ) -> Days {
     let mut out = Days::new();
     let Some((from, to)) = lookups.calendar_years(system, year) else {
         return out;
     };
+    let (low, high) = (span.first.max(window.first), span.last.min(window.last));
+    if low > high {
+        return out;
+    }
+    let from = lookups
+        .year_containing(system, low)
+        .map_or(from, |reached| reached.max(from));
+    let to = lookups
+        .year_containing(system, high)
+        .map_or(to, |reached| reached.min(to));
     let mut candidate = from;
     while candidate <= to {
-        if let Some(rd) = system.to_fixed(candidate, month, day)
-            && rd >= first
-            && rd <= last
+        if let Some(rd) = lookups.fixed_day(system, candidate, month, day)
+            && rd >= span.first
+            && rd <= span.last
         {
             out.push(rd);
         }
@@ -1245,8 +1612,28 @@ pub enum WhenTwice {
     Later,
 }
 
+/// The days a tithi of an amānta month can fall on, either side of the day
+/// of the saṅkrānti that names the month plus the tithi's number.
+///
+/// The ordinary month holds the saṅkrānti and begins at the conjunction
+/// before it, under thirty days earlier, so its first day is at least
+/// thirty-one days before the saṅkrānti's and, since the first day is the
+/// first whose sunrise follows that conjunction, at most two days after
+/// it. [`tithi_days`] then takes a day from three before to three after
+/// the day numbered `tithi` from the first, and one before the first. So
+/// the day lies from thirty-five before to five after the saṅkrānti's day
+/// plus `tithi`; the bounds here leave two days over that.
+const TITHI_REACH: (i64, i64) = (37, 7);
+
 /// The days in Gregorian `year` on which `tithi` of amānta `month` holds
 /// the stated part of the day, in the ordinary month of that name.
+///
+/// A month whose tithi cannot reach `window` is not found: the saṅkrānti
+/// that names the month bounds the day to [`TITHI_REACH`], and the
+/// saṅkrānti is one search where the month is several and a dozen
+/// sunrises.
+// The five fields of `Rule::Tithi`, the year, the window and the memo.
+#[allow(clippy::too_many_arguments)]
 fn tithi_days<L: Lookups>(
     year: i64,
     month: u8,
@@ -1254,6 +1641,7 @@ fn tithi_days<L: Lookups>(
     prevails: Prevalence,
     when_twice: WhenTwice,
     calendar: HinduLunarCalendar,
+    window: Window,
     lookups: &mut L,
 ) -> Days {
     let mut out = Days::new();
@@ -1263,10 +1651,24 @@ fn tithi_days<L: Lookups>(
         year - hindu_lunar::GREGORIAN_YEAR_OFFSET - 1,
         year - hindu_lunar::GREGORIAN_YEAR_OFFSET,
     ] {
+        // The month is the one holding the saṅkrānti into its sign, which
+        // falls in the Gregorian year the Śaka year begins in for Chaitra
+        // through Mārgaśīrṣa and in the next for Pauṣa through Phālguna —
+        // as `HinduLunarCalendar` places it.
+        let Some(sign) = SiderealSign::from_index(month.wrapping_sub(1)) else {
+            continue;
+        };
+        let sankranti_year = saka + hindu_lunar::GREGORIAN_YEAR_OFFSET + i64::from(month >= 10);
+        let sankranti = lookups
+            .ingress(sankranti_year, sign, calendar.ayanamsa)
+            .day();
+        let numbered = sankranti.0 + i64::from(tithi);
+        if !window.overlaps((Rd(numbered - TITHI_REACH.0), Rd(numbered + TITHI_REACH.1))) {
+            continue;
+        }
         let Some((first, end)) = lookups.hindu_month(calendar, saka, month) else {
             continue;
         };
-        let location = calendar.location;
         // Tithis run from 0.9 to 1.1 days, so the `tithi`-th cannot drift
         // more than three days from the day numbered `tithi`; only that
         // window is read, which is what keeps a year's festivals cheap. The
@@ -1281,7 +1683,7 @@ fn tithi_days<L: Lookups>(
         let mut found = 0;
         let mut day = low;
         while day < high {
-            if prevails.tithi_on(day, location) == tithi {
+            if lookups.tithi_at(calendar, prevails, day) == tithi {
                 if found < 2 {
                     qualifying[found] = Some(day);
                 }
@@ -1298,7 +1700,7 @@ fn tithi_days<L: Lookups>(
                 let mut day = low;
                 let mut fallback = None;
                 while day < high {
-                    let at_sunrise = tithi_of_day(day, location);
+                    let at_sunrise = lookups.tithi_at(calendar, Prevalence::Sunrise, day);
                     if at_sunrise == tithi {
                         fallback = Some(day);
                         break;
@@ -1306,7 +1708,10 @@ fn tithi_days<L: Lookups>(
                     // The thirtieth tithi is followed by the first.
                     let following = at_sunrise % TITHIS_PER_MONTH + 1;
                     let after_it = tithi % TITHIS_PER_MONTH + 1;
-                    if following == tithi && tithi_of_day(Rd(day.0 + 1), location) == after_it {
+                    if following == tithi
+                        && lookups.tithi_at(calendar, Prevalence::Sunrise, Rd(day.0 + 1))
+                            == after_it
+                    {
                         fallback = Some(day);
                         break;
                     }

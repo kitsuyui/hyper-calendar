@@ -217,13 +217,13 @@ before it loads the holiday tables.
 | Feature | Exports | Brings in | Bytes | Size |
 | --- | --- | --- | ---: | ---: |
 | `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,495 | 35 KiB |
-| `calendars` | `hc_describe_day`: one day in every registered calendar, in a locale | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n` | 414,920 | 405 KiB |
-| `holiday` | the four `hc_holiday*` exports and `hc_holidays_on` | `hc-holiday` and everything it dates by | 1,017,832 | 994 KiB |
+| `calendars` | `hc_describe_day`: one day in every registered calendar, in a locale | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n` | 425,560 | 416 KiB |
+| `holiday` | the four `hc_holiday*` exports and `hc_holidays_on` | `hc-holiday` and everything it dates by | 1,026,042 | 1,002 KiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 88,259 | 86 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 101,842 | 99 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,414 | 56 KiB |
 | `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between` | `hc-astro`, `hc-seasons` | 96,550 | 94 KiB |
-| `full` | all of the above | everything | 1,466,491 | 1.40 MiB |
+| `full` | all of the above | everything | 1,485,352 | 1.42 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -238,6 +238,14 @@ The script leaves each layer at `target/wasm-layers/hyper_calendar_wasm.<feature
 and prints the table; CI runs it on every pull request and uploads the
 eight files, the embedded module and `tzdata/` as one workflow artifact.
 `hc_alloc`, `hc_free` and `hc_version` are in every build.
+
+The profile's `opt-level = "z"` is a measured choice, not a default. On
+2026-09-25, with the same rustc, the `full` layer built at `z` was
+1,485,352 bytes and answered `hc_holidays_on` for 2026-01-01 in 87 ms under
+Node 22; at `s`, 1,497,957 bytes and 83 ms; at `3`, 1,614,242 bytes and
+74 ms. The 17 % of time `z` costs against `3` buys 8 % of the size, and a
+page loads the module far more often than it asks the costliest question,
+so `z` stays.
 
 ## What is exported
 
@@ -413,11 +421,18 @@ columns 6 and 7 empty. It is reported rather than left out so a page can say
 "no announcement read for this year" instead of showing nothing; policy §4.
 A day with no Gregorian year is `HC_ERR_OUT_OF_RANGE`.
 
-The call evaluates each table for the one day (`HolidayCalendar::for_day`),
-which answers exactly what the whole year would and costs about a third of
-it; natively, one 2026 day across all 245 tables takes about 0.45 s against
-1.5 s by whole years, most of it the astronomy of the lunisolar-dated
-tables.
+The call evaluates each table for the one day
+(`HolidayCalendar::for_day_with`), which answers exactly what the whole
+year would, through one `EvaluationContext` shared by every table, so the
+astronomy the tables have in common — the sunrises the Hindu festivals are
+read at, the new moons and solar terms of the Chinese-dated ones — is done
+once, and only for the months around the day. Natively, in the
+`release-compact` profile, one 2026 day across all 245 tables takes about
+40 ms (41 ms on 1 January, the costliest, 36 ms on 25 September) against
+0.23 s by whole years; in WebAssembly under Node 22 about 75–90 ms, and
+under JavaScriptCore's shell about 70 ms. Before the tables shared a
+context it was 0.79 s natively and 1.7 s under Node, nearly all of it
+sunrises and solar-longitude searches repeated table by table.
 
 ## Almanac
 
