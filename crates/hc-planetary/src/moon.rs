@@ -449,8 +449,8 @@ mod tests {
 
     #[test]
     fn the_universal_time_bridge_lands_where_delta_t_says_it_should() {
-        // At the J2000 epoch, TT ran 63.83 s ahead of UT1 by the Espenak
-        // and Meeus fit, so the UT moment is that much before the TT one.
+        // At the J2000 epoch, TT ran 63.83 s ahead of UT1 by the USNO's
+        // observation, so the UT moment is that much before the TT one.
         let epoch = crate::util::instant_from_j2000_offset(0.0).unwrap();
         let moment = universal_time_moment(epoch);
         let gap = (hc_astro::time::J2000.0 - moment.0) * 86_400.0;

@@ -1763,4 +1763,19 @@
   title        = {Ser Sal or Charshma Sere Nissana},
   howpublished = {Yezidis International, \url{http://www.yezidisinternational.org/ser-sal-or-charshma-sere-nissana/}},
   note         = {The calendar "6764 years old", read in 2014 terms. Retrieved 2026-09-25}
+  note         = {Observed ΔT by month, 1973-02-01 to 2026-04-01 at retrieval: 69.1752 s at 2024-01-01, 69.1377 s at 2025-01-01, 69.1099 s at 2026-01-01, 69.1330 s at 2026-04-01. The 1 January values of 1974–2026 and the last month are hc-astro's delta_t_table. Retrieved 2026-09-25}
+}
+
+@misc{usno-deltat-preds,
+  author       = {{United States Naval Observatory}},
+  title        = {Delta T: deltat.preds},
+  howpublished = {\url{https://maia.usno.navy.mil/ser7/deltat.preds}},
+  note         = {Predicted ΔT by quarter with its stated error, MJD 59762 (2022-07-02) to MJD 63871 (2033-10-01): 69.09 s ± 0.22 at 2026-04-02, 71.25 s ± 1 at 2033-10-01. Every row is hc-astro's delta_t_table, read after the observations end. Retrieved 2026-09-25}
+}
+
+@misc{iers-eopc04,
+  author       = {{International Earth Rotation and Reference Systems Service, Earth Orientation Parameters Product Centre}},
+  title        = {EOP 20 C04 time series, consistent with ITRF 2020, sampled at 0h UTC},
+  howpublished = {\url{https://hpiers.obspm.fr/iers/eop/eopc04/eopc04.1962-now}},
+  note         = {UT1 − UTC daily from 1962; used to check hc-astro's ΔT table through ΔT = 32.184 s + (TAI − UTC) − DUT1, and as the reference for the Ut1 scale's error. Retrieved 2026-09-25}
 }
