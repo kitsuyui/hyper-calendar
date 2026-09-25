@@ -170,9 +170,17 @@ rather than at what a rule gives.
 
 ## Meridian conventions
 
+The three modern calendars are written up in
+[`docs/systems/east-asian-lunisolar.md`](../../docs/systems/east-asian-lunisolar.md):
+who promulgates each, the 1645 reform that bounds them, the rules with the
+suì and the zhōngqì, Seollal 1988 and Tết 1985 worked by hand, and what each
+published new year in the Accuracy section above was checked against. This
+section keeps the tables and the cases.
+
 The day boundary is read in local time, which is why these calendars disagree
 with each other at all. The tables implemented are those of *Calendrical
-Calculations*:
+Calculations*, keyed by year here; the document gives the days within the
+years for Korea and measures that the difference moves nothing:
 
 | Calendar | Offsets |
 |---|---|
@@ -187,12 +195,11 @@ correction at all, and the system document says how that offset is absorbed
 and what the other arrangement measures.
 
 These are not decoration. Over 1900–2049 the Korean and Chinese new years fall
-on different days nine times, including 1988, when Seollal was 18 February and
-Chinese New Year 17 February. The Vietnamese table reproduces the best-known
-case of all: the DRV moved from UT+8 to UT+7 on 1 January 1968, so the North
-kept Tết on 29 January 1968 and the South, still on UT+8, on 30 January. Both
-are tested. So is Tết 1985, where the same hour moved a zhōngqì, moved the leap
-month, and put Tết a *whole lunation* before Chinese New Year.
+on different days nine times, 1988 among them (Seollal 18 February, Chinese
+New Year 17 February); the Vietnamese calendar kept Tết 1968 on 29 January in
+the North and 30 January in the South; and in 1985 the same hour moved the
+winter solstice, the leap month and Tết itself a whole lunation before Chinese
+New Year. All three are tested, and the document works the last two by hand.
 
 ## Reference data
 

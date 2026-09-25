@@ -1,6 +1,11 @@
 //! The Chinese lunisolar calendar — CLDR `chinese`.
 //!
 //! The rules are in [`crate::lunisolar`]; this module is the parameters.
+//! The calendar as the Purple Mountain Observatory promulgates it under
+//! GB/T 33661-2017, the Shíxiàn reform of 1645 that bounds it, the 1929
+//! change of meridian, the year counts in circulation and the published new
+//! years it was checked against are in
+//! `docs/systems/east-asian-lunisolar.md`.
 //!
 //! # The meridian
 //!
@@ -9,31 +14,27 @@
 //! | — | UT+7:45:40 | Beijing local mean time, 116°25′E |
 //! | 1929 | UT+8 | the 120°E standard zone |
 //!
-//! The change is real and visible. A conjunction or a solstice falling in the
-//! fourteen minutes between 116°25′E and 120°E local midnight lands on
-//! different days under the two conventions, and that moves a month boundary
-//! or, through the zhōngqì test, a leap month.
+//! A conjunction or a solstice falling in the fourteen minutes between the
+//! two local midnights lands on different days under the two conventions,
+//! and that moves a month boundary or, through the zhōngqì test, a leap
+//! month.
 //!
 //! # Year numbering
 //!
 //! Years are counted continuously from the traditional epoch of 2637 BCE, so
-//! the year that began on 2024-02-10 is 4661. That is the numbering
-//! *Calendrical Calculations* uses and the one for which
-//! [`hc_calendar::cycle::sexagenary_year`] gives the right answer directly:
-//! 4661 is *jiǎ-chén*, the Wood Dragon. Other conventions in circulation
-//! number the same year 4721 or 4722; none of them is official, because the
-//! calendar has no official continuous era. Traditional dates are written
-//! with the sexagenary cycle and a reign, and both are available here — the
-//! cycle and position through [`Calendar::to_fields`], the reign eras
-//! through `hc-calendars-regional`.
+//! the year that began on 2024-02-10 is 4661: the count for which
+//! [`hc_calendar::cycle::sexagenary_year`] is directly right, 4661 being
+//! *jiǎ-chén*, the Wood Dragon. The document says how the counts 4721 and
+//! 4722 relate to it; none is official, because the calendar has no
+//! official continuous era. The cycle and position are available through
+//! [`Calendar::to_fields`], the reign eras through `hc-calendars-regional`.
 //!
 //! # Range
 //!
-//! 1645-01-01 to 2150-12-31 Gregorian. The lower bound is the Shíxiàn
-//! calendar of 1645, which introduced the true-solar-term rule implemented
-//! here; before it the terms were mean, the month numbering could differ, and
-//! no modern computation reproduces what the Bureau of Astronomy actually
-//! published. The upper bound is where `hc-astro`'s ΔT fit ends.
+//! 1645-01-01 to 2150-12-31 Gregorian: from the Shíxiàn calendar, which
+//! introduced the true-solar-term rule implemented here, to the end of
+//! `hc-astro`'s ΔT fit. Earlier years are refused rather than answered with
+//! a rule that was not in force.
 
 use hc_calendar::{Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd};
 

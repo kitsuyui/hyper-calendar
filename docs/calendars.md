@@ -115,9 +115,9 @@ live with their families.
 | Umm al-Qura (Saudi official) | `islamic-umalqura` | `hc-calendars-lunar` | Done — the published table for 1300–1600 AH, refused outside it, with the rules it embodies and the announcements it was checked against in [systems/hijri.md](systems/hijri.md) |
 | Observational Hijri | `islamic-rgsa` | `hc-calendars-lunar` | Partial — a prediction under one visibility criterion at Mecca, a day after the Umm al-Qura table for 58% of months and never a record of an announcement; see [systems/hijri.md](systems/hijri.md) |
 | Hebrew | `hebrew` | `hc-calendars-lunar` | Done |
-| Chinese lunisolar | `chinese` | `hc-calendars-lunar` | Done |
-| Korean (Dangi) | `dangi` | `hc-calendars-lunar` | Done |
-| Vietnamese | `vietnamese` | `hc-calendars-lunar` | Done |
+| Chinese lunisolar | `chinese` | `hc-calendars-lunar` | Done — the modern rule at Beijing's meridian from the Shíxiàn reform of 1645, checked against the published new years; see [systems/east-asian-lunisolar.md](systems/east-asian-lunisolar.md) |
+| Korean (Dangi) | `dangi` | `hc-calendars-lunar` | Done — the same rule read at Seoul through five changes of meridian, which is why Seollal 1988 fell a day after Chinese New Year; see [systems/east-asian-lunisolar.md](systems/east-asian-lunisolar.md) |
+| Vietnamese | `vietnamese` | `hc-calendars-lunar` | Done — the same rule at UT+7 from 1968, which put Tết 1985 a lunation before Chinese New Year; see [systems/east-asian-lunisolar.md](systems/east-asian-lunisolar.md) |
 | Japanese lunisolar (Tenpō, 1844–1872) | `japanese-tenpo` | `hc-calendars-lunar` | Done |
 | Japanese lunisolar (Kansei, 1798–1844) | `japanese-kansei` | `hc-calendars-lunar` | Done |
 | Japanese lunisolar (Hōryaku, 1755–1798) | `japanese-horyaku` | `hc-calendars-lunar` | Done |

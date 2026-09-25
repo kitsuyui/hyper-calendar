@@ -1,34 +1,33 @@
 //! The Vietnamese lunisolar calendar — *âm lịch*.
 //!
 //! The same rules as [`crate::chinese`] at the Vietnamese meridian. CLDR has
-//! no identifier for this calendar, so the crate uses `vietnamese`.
+//! no identifier for this calendar, so the crate uses `vietnamese`. The
+//! decision of 1967 that fixed the meridian, the calendar's publisher, Tết
+//! 1985 worked by hand — where the hour between the two midnights moved the
+//! winter solstice, the leap month and the new year by a whole lunation —
+//! and what was checked against which publication are in
+//! `docs/systems/east-asian-lunisolar.md`.
 //!
 //! # The meridian, and Tết 1968
 //!
 //! | From | Offset | |
 //! |---|---|---|
-//! | — | UT+8 | the Indochina zone of 120°E |
-//! | 1968 | UT+7 | the 105°E zone |
+//! | — | UT+8 | the 120°E zone, on which the calendar was computed before 1968 |
+//! | 1968 | UT+7 | the 105°E zone, by Decision 121-CP of 8 August 1967 |
 //!
-//! This two-line table is the whole of the most famous one-day disagreement
-//! in calendar history. On 8 August 1967 the Democratic Republic of Vietnam
-//! decreed a move from UT+8 to UT+7 with effect from 1 January 1968. The new
-//! moon that began the Year of the Monkey fell in the hour between the two
-//! midnights, so the North kept Tết on **29 January 1968** and the South,
-//! still on UT+8, kept it on **30 January**. The Tết Offensive opened on the
-//! night of the 30th, against a North that had already celebrated.
-//!
+//! The conjunction that began the Year of the Monkey fell in the hour
+//! between the two midnights, so the North, on UT+7 from 1 January 1968,
+//! kept Tết on **29 January 1968** and the South, on UT+8, on **30 January**.
 //! The calendar here is the northern one, which is the calendar of unified
-//! Vietnam. The southern reckoning of that year is reachable by building a
-//! [`LunisolarParameters`] with the UT+8 era alone, and the crate tests both.
+//! Vietnam; the southern reckoning of that year is [`SOUTHERN_PARAMETERS`],
+//! and the crate tests both.
 //!
 //! # Year numbering
 //!
 //! There is no continuous Vietnamese era, so years are numbered by the
 //! Gregorian year in which they begin: the year that began on 2024-02-10 is
-//! 2024. This is the convention of every Vietnamese calendar tool in common
-//! use, and it is this crate's choice rather than anyone's official one.
-//! The sexagenary term — 2024 is *Giáp Thìn* — is the traditional name and is
+//! 2024. That is this crate's choice rather than anyone's official one. The
+//! sexagenary term — 2024 is *Giáp Thìn* — is the traditional name and is
 //! available through [`LunisolarParameters::sexagenary_year`].
 //!
 //! # Range

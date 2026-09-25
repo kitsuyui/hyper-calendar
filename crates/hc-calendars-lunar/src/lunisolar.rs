@@ -5,6 +5,15 @@
 //! two hundred lines, this module holds the rules and
 //! [`LunisolarParameters`] holds what differs.
 //!
+//! The calendars as promulgated — by the Purple Mountain Observatory under
+//! GB/T 33661-2017, by KASI, by Vietnam's State Calendar Board — the 1645
+//! Shíxiàn reform that bounds them, the meridian history of each country,
+//! two new years worked by hand, what was checked against which publication
+//! and the sources are in `docs/systems/east-asian-lunisolar.md`; the
+//! Japanese systems that run on this engine with their own constants are in
+//! `docs/systems/japanese-lunisolar.md`. This module keeps the rules and
+//! what each parameter means.
+//!
 //! # The rules
 //!
 //! 1. **A month runs from new moon to new moon.** The first day of a month is
@@ -38,20 +47,16 @@
 //!
 //! # Accuracy, and what it refuses to claim
 //!
-//! The conjunctions come from `hc-astro` and land within about a minute of
-//! the truth, which is far inside a day. The solar longitude is the VSOP87
-//! series, good to about 1″, and its solstice instants land within the
-//! minute the almanacs round to. **When a solstice or a conjunction falls
-//! within about a minute of local midnight, the day this
-//! module assigns can be wrong by one**, and a wrong day for the solstice or
-//! for a zhōngqì can move a leap month by a whole month.
-//!
-//! Separately and more importantly: before the twentieth century these
-//! calendars were *promulgated*, not computed, by bureaux using their own
-//! tables and their own solar theories. A date this module produces for 1700
-//! is what the modern rules say, not what the almanac of 1700 said. The
-//! supported ranges are set accordingly, and the crate refuses dates outside
-//! them rather than guessing.
+//! The conjunctions come from `hc-astro` within about a minute and the solar
+//! longitude within about 1″, so **when a solstice or a conjunction falls
+//! within about a minute of local midnight the day this module assigns can
+//! be wrong by one**, and a wrong day for a zhōngqì can move a leap month by
+//! a whole month. And a date this module produces for 1700 is what the
+//! modern rules say at the modern meridian, not what the almanac of 1700
+//! said; the supported ranges are set accordingly, and the crate refuses
+//! dates outside them rather than guessing. The system document says what
+//! was checked against which publication and where the margins were
+//! measured.
 
 use hc_astro::solar::Solstice;
 use hc_astro::{MEAN_SYNODIC_MONTH, MEAN_TROPICAL_YEAR};
