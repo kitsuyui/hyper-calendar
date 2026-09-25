@@ -250,6 +250,11 @@ impl Calendar for DayCountCalendar {
         &[]
     }
 
+    /// A day count has no year: the `year` field carries the count itself.
+    fn is_leap_year(&self, _year: i64) -> CalendarResult<bool> {
+        Err(CalendarError::UnsupportedField("year"))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: self.0.id,

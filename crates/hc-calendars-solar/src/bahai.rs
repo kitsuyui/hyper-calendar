@@ -280,6 +280,10 @@ impl Calendar for ArithmeticBahaiCalendar {
         SHAPE
     }
 
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(is_leap_year(year))
+    }
+
     /// The Bahá'í day begins at sunset.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Sunset

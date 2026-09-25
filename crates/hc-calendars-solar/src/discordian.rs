@@ -286,6 +286,11 @@ impl Calendar for DiscordianCalendar {
         SHAPE
     }
 
+    /// A St. Tib's Day year.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(is_leap_year(year))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("discordian"),

@@ -182,4 +182,56 @@ mod tests {
         register_all(&mut registry);
         assert_eq!(registry.len(), CALENDAR_COUNT);
     }
+
+    /// Every registered calendar answers whether a year is leap, or says
+    /// that its dates have no year; nothing falls through to an inference.
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn every_registered_calendar_says_whether_a_year_is_leap() {
+        use hc_calendar::{CalendarError, CalendarRegistry, Rd, shape::MONTH};
+
+        let mut registry = CalendarRegistry::new();
+        register_all(&mut registry);
+        for meta in registry.metas() {
+            let calendar = registry.get(meta.id).unwrap();
+            let inside = match (meta.earliest, meta.latest) {
+                (Some(first), Some(last)) => Rd((first.0 + last.0) / 2),
+                _ => Rd(738_000),
+            };
+            let year = calendar.fixed_to_fields(inside).unwrap().year;
+            match calendar.is_leap_year(year) {
+                Ok(_) => {}
+                Err(CalendarError::UnsupportedField("year")) => assert!(
+                    !calendar.cycles().iter().any(|cycle| cycle.kind == MONTH),
+                    "{} has months and so a year",
+                    meta.id
+                ),
+                Err(error) => panic!("{} could not answer for {year}: {error}", meta.id),
+            }
+        }
+    }
+
+    /// The dynamic answer is the module's own rule.
+    #[test]
+    fn the_dynamic_leap_year_is_the_module_rule() {
+        use hc_calendar::{DynAdapter, DynCalendar};
+
+        for year in (1..=400).step_by(3) {
+            assert_eq!(
+                DynAdapter::new(OldHinduLunarCalendar).is_leap_year(year),
+                Ok(OldHinduLunarCalendar.is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(OldHinduSolarCalendar).is_leap_year(year),
+                Ok(false)
+            );
+        }
+        let lunar = HinduLunarCalendar::RASHTRIYA;
+        for year in [1_940, 1_942, 1_945, 1_946] {
+            assert_eq!(
+                DynAdapter::new(lunar).is_leap_year(year),
+                lunar.leap_month_of(year).map(|leap| leap.is_some())
+            );
+        }
+    }
 }

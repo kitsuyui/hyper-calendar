@@ -243,6 +243,11 @@ impl Calendar for PersianCalendar {
         SHAPE
     }
 
+    /// A year whose Esfand has thirty days.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        is_leap_year(year).ok_or(CalendarError::YearOutOfRange)
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: ID,

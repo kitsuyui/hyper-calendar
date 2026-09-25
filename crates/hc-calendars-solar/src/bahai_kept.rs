@@ -233,6 +233,13 @@ impl Calendar for BahaiCalendar {
         bahai::SHAPE
     }
 
+    /// A year whose Ayyám-i-Há has five days, as the table records it.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        days_in_month(year, AYYAM_I_HA)
+            .map(|days| days == 5)
+            .ok_or(CalendarError::YearOutOfRange)
+    }
+
     /// The Bahá'í day begins at sunset.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Sunset

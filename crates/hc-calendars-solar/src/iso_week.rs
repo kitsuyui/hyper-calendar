@@ -159,6 +159,11 @@ impl Calendar for IsoWeekCalendar {
         SHAPE
     }
 
+    /// A long year: the intercalary unit is the fifty-third week.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        is_long_year(year)
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("iso8601-week"),
@@ -195,8 +200,8 @@ impl Calendar for IsoWeekCalendar {
     /// no month. A missing week or weekday defaults to 1, so that asking for
     /// "the start of ISO year 2026" does not need a full field set — which
     /// is also what lets [`hc_calendar::DynCalendar::days_in_year`] work,
-    /// since it probes a calendar with a bare year-month-day. A month, if
-    /// one is supplied, is ignored for the same reason.
+    /// since it probes a calendar without months with a bare year. A month,
+    /// if one is supplied, is ignored for the same reason.
     fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
         let week = fields.extra.get("week").unwrap_or(1);
         let weekday = fields.extra.get("day-of-week").unwrap_or(1);

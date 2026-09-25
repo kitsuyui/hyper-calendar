@@ -126,6 +126,11 @@ impl Calendar for Symmetry454Calendar {
         hc_calendar::shape::SOLAR_TWELVE
     }
 
+    /// A year with the leap week.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(is_leap_year(year))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("symmetry454"),

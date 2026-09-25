@@ -165,6 +165,10 @@ impl Calendar for KokiCalendar {
         hc_calendar::shape::SOLAR_TWELVE
     }
 
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(is_leap_year(year))
+    }
+
     /// Adopted together with the Gregorian calendar, and in official use
     /// until 1945. Earlier dates compute correctly and are back-projections
     /// onto a calendar Japan was not using; the `proleptic` field on the

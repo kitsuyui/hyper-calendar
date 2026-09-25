@@ -235,6 +235,10 @@ impl Calendar for GregorianCalendar {
         hc_calendar::shape::SOLAR_TWELVE
     }
 
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(is_leap_year(year))
+    }
+
     /// Promulgated by *Inter gravissimas* and first used on 15 October 1582.
     /// The arithmetic runs to either side of that by millions of years, and
     /// every day before it is proleptic — including, for most of the world,

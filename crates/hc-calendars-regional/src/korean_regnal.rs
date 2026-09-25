@@ -236,6 +236,17 @@ impl Calendar for KoreanRegnalCalendar {
         hc_calendar::shape::SOLAR_TWELVE
     }
 
+    /// For a Gregorian year with no era, as [`Self::from_fields`] reads
+    /// one, within the years the eras span.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        let (first, _, _) = gregorian::from_fixed(EARLIEST)?;
+        let (last, _, _) = gregorian::from_fixed(LATEST)?;
+        if year < first || year > last {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        Ok(gregorian::is_leap_year(year))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("korean-regnal"),

@@ -207,6 +207,11 @@ impl Calendar for JavanesePasaranCalendar {
         SHAPE
     }
 
+    /// A cycle has no year: the `year` field carries the round.
+    fn is_leap_year(&self, _year: i64) -> CalendarResult<bool> {
+        Err(CalendarError::UnsupportedField("year"))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("javanese-pasaran"),

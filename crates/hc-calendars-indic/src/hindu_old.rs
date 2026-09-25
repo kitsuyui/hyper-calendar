@@ -231,6 +231,14 @@ impl Calendar for OldHinduSolarCalendar {
         SHAPE
     }
 
+    /// Never: the mean solar year has no intercalary unit.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        Ok(false)
+    }
+
     /// The day begins at mean sunrise, a quarter day after midnight.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Sunrise
@@ -452,6 +460,15 @@ impl Calendar for OldHinduLunarCalendar {
     /// seven-day week.
     fn cycles(&self) -> &'static [CycleShape] {
         LUNISOLAR_TWELVE
+    }
+
+    /// A year with an intercalary month, by the rule of
+    /// [`OldHinduLunarCalendar::is_leap_year`].
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        Ok(OldHinduLunarCalendar::is_leap_year(*self, year))
     }
 
     /// The day begins at mean sunrise, a quarter day after midnight.

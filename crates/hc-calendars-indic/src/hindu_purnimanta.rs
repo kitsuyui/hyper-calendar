@@ -156,6 +156,11 @@ impl Calendar for HinduPurnimantaCalendar {
         hc_calendar::shape::LUNISOLAR_TWELVE
     }
 
+    /// A year with an adhika māsa, which is the amānta year's.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(self.amanta.leap_month_of(year)?.is_some())
+    }
+
     /// The Hindu day begins at sunrise.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Sunrise

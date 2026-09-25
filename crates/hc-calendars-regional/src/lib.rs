@@ -426,4 +426,95 @@ mod tests {
             }
         }
     }
+
+    /// The calendars that declare a month cycle and still have no counted
+    /// year: the Haab and the xiuhpohualli run eighteen months and the five
+    /// days, the calendar round carries the Haab's, and the Pawukon declares
+    /// its thirty wuku as its month cycle; in each the `year` field is a
+    /// position in a round, not a count, and nothing is ever intercalated
+    /// into it.
+    const YEAR_IS_A_ROUND_POSITION: &[&str] = &[
+        "maya-haab",
+        "maya-round",
+        "aztec-xiuhpohualli",
+        "balinese-pawukon",
+    ];
+
+    /// Every registered calendar answers whether a year is leap, or says
+    /// that its dates have no year; nothing falls through to an inference.
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn every_registered_calendar_says_whether_a_year_is_leap() {
+        use hc_calendar::{CalendarError, CalendarRegistry, Rd, shape::MONTH};
+
+        let mut registry = CalendarRegistry::new();
+        register_all(&mut registry);
+        for meta in registry.metas() {
+            let calendar = registry.get(meta.id).unwrap();
+            let inside = match (meta.earliest, meta.latest) {
+                (Some(first), Some(last)) => Rd((first.0 + last.0) / 2),
+                _ => Rd(738_000),
+            };
+            // An era-relative calendar's fields carry the year within the
+            // era; its `is_leap_year` takes the era-less year, which for the
+            // regnal calendars is the Gregorian one.
+            let year = match meta.year_kind {
+                hc_calendar::YearKind::EraRelative => {
+                    hc_calendar::gregorian::year_from_fixed(inside)
+                }
+                _ => calendar.fixed_to_fields(inside).unwrap().year,
+            };
+            match calendar.is_leap_year(year) {
+                Ok(_) => {}
+                Err(CalendarError::UnsupportedField("year")) => assert!(
+                    !calendar.cycles().iter().any(|cycle| cycle.kind == MONTH)
+                        || YEAR_IS_A_ROUND_POSITION.contains(&meta.id.as_str()),
+                    "{} has months and so a year",
+                    meta.id
+                ),
+                Err(error) => panic!("{} could not answer for {year}: {error}", meta.id),
+            }
+        }
+    }
+
+    /// The dynamic answer is the module's own rule: a watat year, a year the
+    /// Thai table marks, the Gregorian rule from 1873 in Japan.
+    #[test]
+    fn the_dynamic_leap_year_is_the_module_rule() {
+        use hc_calendar::{CalendarError, DynAdapter, DynCalendar};
+
+        for year in (1_300..=1_400).step_by(3) {
+            assert_eq!(
+                DynAdapter::new(BurmeseCalendar).is_leap_year(year),
+                Ok(burmese::year_info(year).year_type.has_watat())
+            );
+        }
+        for year in thai_lunar::FIRST_YEAR..=thai_lunar::LAST_YEAR {
+            assert_eq!(
+                DynAdapter::new(ThaiLunarCalendar).is_leap_year(year),
+                Ok(thai_lunar::year_type(year) != Some(thai_lunar::YearType::Normal))
+            );
+        }
+        let japanese = DynAdapter::new(JapaneseCalendar::UNIFIED);
+        for year in (1_873..=2_100).step_by(7) {
+            assert_eq!(
+                japanese.is_leap_year(year),
+                Ok(gregorian::is_leap_year(year))
+            );
+        }
+        for year in 1_845..=1_872 {
+            assert_eq!(
+                japanese.is_leap_year(year),
+                hc_calendars_lunar::japanese_tenpo::PARAMETERS.is_leap_year(year)
+            );
+        }
+        assert_eq!(
+            DynAdapter::new(MayaLongCountCalendar::GMT).is_leap_year(13),
+            Err(CalendarError::UnsupportedField("year"))
+        );
+        assert_eq!(
+            DynAdapter::new(BalinesePawukonCalendar).is_leap_year(1),
+            Err(CalendarError::UnsupportedField("year"))
+        );
+    }
 }

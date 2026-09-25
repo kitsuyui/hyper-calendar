@@ -569,6 +569,12 @@ impl Calendar for HebrewCalendar {
         hc_calendar::shape::LUNISOLAR_TWELVE
     }
 
+    /// A year with Adar I. A common year is 353, 354 or 355 days long and
+    /// none of the three is leap.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(is_leap_year(year))
+    }
+
     /// The Hebrew day begins at sunset, so a Hebrew date covers the second
     /// half of one civil day and the first half of the next.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {

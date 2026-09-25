@@ -441,4 +441,110 @@ mod tests {
             }
         }
     }
+
+    /// Every registered calendar answers whether a year is leap, or says
+    /// that its dates have no year; nothing falls through to an inference.
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn every_registered_calendar_says_whether_a_year_is_leap() {
+        use hc_calendar::{CalendarError, CalendarRegistry, Rd, shape::MONTH};
+
+        let mut registry = CalendarRegistry::new();
+        register_all(&mut registry);
+        for meta in registry.metas() {
+            let calendar = registry.get(meta.id).unwrap();
+            let inside = match (meta.earliest, meta.latest) {
+                (Some(first), Some(last)) => Rd((first.0 + last.0) / 2),
+                _ => Rd(738_000),
+            };
+            let year = calendar.fixed_to_fields(inside).unwrap().year;
+            match calendar.is_leap_year(year) {
+                Ok(_) => {}
+                Err(CalendarError::UnsupportedField("year")) => assert!(
+                    !calendar.cycles().iter().any(|cycle| cycle.kind == MONTH),
+                    "{} has months and so a year",
+                    meta.id
+                ),
+                Err(error) => panic!("{} could not answer for {year}: {error}", meta.id),
+            }
+        }
+    }
+
+    /// The dynamic answer is the module's own rule, not a reading of year
+    /// lengths.
+    #[test]
+    fn the_dynamic_leap_year_is_the_module_rule() {
+        use hc_calendar::{DynAdapter, DynCalendar};
+
+        let reform =
+            ReformCalendar::new(julian_gregorian::adoption_by_id("julian-gregorian-gb").unwrap())
+                .unwrap();
+        for year in (1..=2_400).step_by(37) {
+            assert_eq!(
+                DynAdapter::new(GregorianCalendar).is_leap_year(year),
+                Ok(gregorian::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(JulianCalendar).is_leap_year(year),
+                Ok(julian::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(CopticCalendar).is_leap_year(year),
+                Ok(coptic::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(ArithmeticPersianCalendar).is_leap_year(year),
+                Ok(persian::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(ArithmeticFrenchRepublicanCalendar).is_leap_year(year),
+                Ok(french_republican::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(ArithmeticBahaiCalendar).is_leap_year(year),
+                Ok(bahai::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(Symmetry454Calendar).is_leap_year(year),
+                Ok(symmetry::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(RevisedJulianCalendar).is_leap_year(year),
+                Ok(revised_julian::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(WorldCalendar).is_leap_year(year),
+                Ok(world_calendar::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(DiscordianCalendar).is_leap_year(year),
+                Ok(discordian::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(ZoroastrianCalendar::FASLI).is_leap_year(year),
+                Ok(ZoroastrianCalendar::FASLI.reckoning.is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(IsoWeekCalendar).is_leap_year(year),
+                iso_week::is_long_year(year)
+            );
+            // Julian until 1752 in Britain, Gregorian after.
+            let expected = if year < 1752 {
+                julian::is_leap_year(year)
+            } else {
+                gregorian::is_leap_year(year)
+            };
+            assert_eq!(
+                DynAdapter::new(reform).is_leap_year(year),
+                Ok(expected),
+                "{year}"
+            );
+        }
+        for year in bahai_kept::MIN_YEAR..=bahai_kept::MAX_YEAR {
+            assert_eq!(
+                DynAdapter::new(BahaiCalendar).is_leap_year(year),
+                Ok(bahai_kept::days_in_year(year) == Some(366))
+            );
+        }
+    }
 }

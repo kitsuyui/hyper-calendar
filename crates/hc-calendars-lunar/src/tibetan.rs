@@ -456,6 +456,11 @@ impl Calendar for TibetanCalendar {
         hc_calendar::shape::LUNISOLAR_TWELVE
     }
 
+    /// A year with a doubled month.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(is_leap_year(year))
+    }
+
     /// Mean daybreak, [`DAWN`]: the Tibetan day runs from dawn to dawn.
     fn day_boundary(&self) -> DayBoundary {
         DayBoundary::LocalTime(DAWN)

@@ -252,6 +252,21 @@ impl Calendar for NepalSambatCalendar {
         LUNISOLAR_TWELVE
     }
 
+    /// A year with an adhika māsa. The year runs from Kachhalā of one Śaka
+    /// year into the next, so the month may fall in either.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        let saka = year + SAKA_OFFSET_AUTUMN;
+        let autumn = self
+            .lunar
+            .leap_month_of(saka)?
+            .is_some_and(|(month, _, _)| month >= KACHHALA);
+        let spring = self
+            .lunar
+            .leap_month_of(saka + 1)?
+            .is_some_and(|(month, _, _)| month < KACHHALA);
+        Ok(autumn || spring)
+    }
+
     /// The day begins at sunrise.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Sunrise

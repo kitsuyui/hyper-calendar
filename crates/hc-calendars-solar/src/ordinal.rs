@@ -104,6 +104,11 @@ impl Calendar for OrdinalCalendar {
         SHAPE
     }
 
+    /// A year of 366 ordinal days, which is the Gregorian leap year.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(gregorian::is_leap_year(year))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("iso8601-ordinal"),

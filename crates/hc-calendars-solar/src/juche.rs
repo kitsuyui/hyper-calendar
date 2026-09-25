@@ -124,6 +124,10 @@ impl Calendar for JucheCalendar {
         hc_calendar::shape::SOLAR_TWELVE
     }
 
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(is_leap_year(year))
+    }
+
     /// Introduced by decree in 1997. Years between 1912 and 1997 are
     /// computed backwards onto an era that did not yet exist.
     fn usage(&self) -> hc_calendar::Usage {

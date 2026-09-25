@@ -455,6 +455,11 @@ impl Calendar for MayaLongCountCalendar {
         &[]
     }
 
+    /// A long count has no year: the `year` field carries the baktun.
+    fn is_leap_year(&self, _year: i64) -> CalendarResult<bool> {
+        Err(CalendarError::UnsupportedField("year"))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: self.id(),
@@ -519,6 +524,11 @@ impl Calendar for MayaTzolkinCalendar {
         TZOLKIN_SHAPE
     }
 
+    /// A cycle has no year: the `year` field carries the round.
+    fn is_leap_year(&self, _year: i64) -> CalendarResult<bool> {
+        Err(CalendarError::UnsupportedField("year"))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("maya-tzolkin"),
@@ -577,6 +587,11 @@ impl Calendar for MayaHaabCalendar {
     /// name and so is a nineteenth position.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         HAAB_SHAPE
+    }
+
+    /// A cycle has no year: the `year` field carries the round.
+    fn is_leap_year(&self, _year: i64) -> CalendarResult<bool> {
+        Err(CalendarError::UnsupportedField("year"))
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -679,6 +694,11 @@ impl Calendar for MayaCalendarRoundCalendar {
     /// Both cycles of the round: the tzolkʼin's two and the haabʼ's one.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         ROUND_SHAPE
+    }
+
+    /// A cycle has no year: the `year` field carries the round.
+    fn is_leap_year(&self, _year: i64) -> CalendarResult<bool> {
+        Err(CalendarError::UnsupportedField("year"))
     }
 
     fn meta(&self) -> CalendarMeta {

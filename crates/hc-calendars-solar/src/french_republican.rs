@@ -255,6 +255,10 @@ impl Calendar for ArithmeticFrenchRepublicanCalendar {
         SHAPE
     }
 
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(is_leap_year(year))
+    }
+
     /// In force from the decree of 1793 until Napoleon abolished it at the
     /// end of An XIV, 31 December 1805. The Paris Commune revived it for
     /// eighteen days in 1871, which this does not model. Everything outside

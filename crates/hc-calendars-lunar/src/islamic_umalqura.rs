@@ -280,6 +280,14 @@ impl Calendar for IslamicUmmAlQuraCalendar {
         hc_calendar::shape::SOLAR_TWELVE
     }
 
+    /// A year the table gives 355 days: seven months of thirty rather
+    /// than six.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        days_in_year(year)
+            .map(|days| days == 355)
+            .ok_or(CalendarError::YearOutOfRange)
+    }
+
     /// The Islamic day begins at sunset, which is also why the month begins
     /// with a crescent seen after one.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {

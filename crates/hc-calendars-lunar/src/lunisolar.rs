@@ -959,6 +959,10 @@ impl Calendar for LunisolarCalendar {
         hc_calendar::shape::LUNISOLAR_TWELVE
     }
 
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        self.parameters.is_leap_year(year)
+    }
+
     fn meta(&self) -> CalendarMeta {
         self.parameters.meta()
     }

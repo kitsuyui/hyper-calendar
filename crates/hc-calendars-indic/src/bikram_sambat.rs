@@ -336,6 +336,15 @@ impl Calendar for BikramSambatCalendar {
         SHAPE
     }
 
+    /// Never: the year is the Sun's passage through the twelve signs, 365
+    /// or 366 days as the saṅkrāntis fall, with nothing inserted.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        if !(RECKONING.min_year()..=RECKONING.max_year()).contains(&year) {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        Ok(false)
+    }
+
     /// The civil day, midnight to midnight: the day a month begins on is
     /// the civil day of its saṅkrānti.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {

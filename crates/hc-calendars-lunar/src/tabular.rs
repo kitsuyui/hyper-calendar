@@ -466,6 +466,11 @@ impl Calendar for TabularIslamicCalendar {
         hc_calendar::shape::SOLAR_TWELVE
     }
 
+    /// A year whose Dhū al-Ḥijja has thirty days.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(is_leap_year(self.rule, year))
+    }
+
     /// The Islamic day begins at sunset, which is also why the month begins
     /// with a crescent seen after one.
     ///
