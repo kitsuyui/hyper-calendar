@@ -1,9 +1,10 @@
 # `hc-calendars-lunar`
 
 Lunar and lunisolar calendars for [`hyper-calendar`]: the Hijri family, the
-Hebrew calendar, the Tibetan Phugpa calendar, the East Asian lunisolar
-calendars of China, Korea and Vietnam, and the five successive lunisolar
-calendars Japan used between 862 and 1872.
+Hebrew calendar, the Babylonian calendar of the Seleucid era, the Tibetan
+Phugpa calendar, the East Asian lunisolar calendars of China, Korea and
+Vietnam, and the five successive lunisolar calendars Japan used between 862
+and 1872.
 
 Every calendar implements `hc_calendar::Calendar`, so every one of them
 converts through `Rd`, the Rata Die fixed day, and none of them knows the
@@ -19,6 +20,7 @@ others exist.
 | `islamic_umalqura` | `islamic-umalqura` | published table | **1300–1600 AH only** |
 | `islamic_observational` | `islamic-rgsa` | prediction | 1900–2100 CE |
 | `hebrew` | `hebrew` | arithmetic | AM 1–9999 |
+| `babylonian` | `babylonian` | astronomical | SE −71 to 386 (383 BCE to 76 CE) |
 | `tibetan` | `tibetan` | arithmetic (Phugpa) | 1000–3000 |
 | `chinese` | `chinese` | astronomical | 1645–2150 CE |
 | `dangi` | `dangi` | astronomical | 1645–2150 CE |
@@ -191,6 +193,24 @@ whole month. The crate tests the published new years it can check (Chinese New
 Year 1900, 2000, 2020–2026; Seollal 1988 and 2024; Tết 1968, 1985 and 2024;
 the Tenpō dates of 1844 and 1872) and they all come out right, but that is
 evidence, not a guarantee.
+
+**The Babylonian calendar — measured against the standard table.** The
+month begins on the evening that passes the moonlag criterion at Babylon,
+and the thirteenth month falls where the nineteen-year rule puts it, both as
+*Calendrical Calculations* states them. Against Parker and Dubberstein's
+*Babylonian Chronology* (1971 edition, in R. H. van Gent's transcription)
+over the 5 664 months from SE −71, where their table follows the rule
+without exception, every intercalary month is in its place and the first
+day of the month is theirs for 82.9%, a day later for 16.6% and a day
+earlier for 0.5%, never further off; the rate is much the same in every
+fifty-year stretch, so it is the two visibility criteria that differ. The
+criterion is applied to each evening on its own, so 38 of those months run
+31 days here where the table, which does the same, has 29 or 30; the module
+documentation says why the thirty-day rule is not imposed. The range stops
+where the table stops following the rule at one end and where
+the table ends at the other. The figure is asserted in an ignored test that
+runs against a copy of the table, and the module documentation names the
+rows it cites.
 
 **Historical calendars — measured, and the measurement is above.** The four
 Japanese systems in `japanese_historical` do not use modern solar theory at

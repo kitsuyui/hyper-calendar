@@ -86,6 +86,7 @@ extern crate alloc;
 
 mod civil;
 
+pub mod babylonian;
 pub mod chinese;
 pub mod dangi;
 pub mod hebrew;
@@ -100,6 +101,7 @@ pub mod tabular;
 pub mod tibetan;
 pub mod vietnamese;
 
+pub use babylonian::{BabylonianCalendar, BabylonianDate};
 pub use chinese::{ChineseCalendar, ChineseDate};
 pub use dangi::{DangiCalendar, DangiDate};
 pub use hebrew::{HebrewCalendar, HebrewDate};
@@ -172,6 +174,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::SenmyoCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::tabular::FATIMID)));
         registry.insert(Box::new(DynAdapter::new(crate::HebrewCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::BabylonianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::TibetanCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::IslamicCivilCalendar)));
         registry.insert(Box::new(DynAdapter::new(
@@ -195,7 +198,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 15);
+        assert_eq!(registry.len(), 16);
     }
 
     #[test]

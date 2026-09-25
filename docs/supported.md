@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-100 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+101 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 82 of 100 have months and 82 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 83 of 101 have months and 83 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 | id | Name | Crate | Feature | Earliest | Latest | Astronomical | Leap months | Day begins | Cycles | Named |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -27,6 +27,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `armenian-fixed` | Armenian (fixed, Sarkawag 1084) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0552-08-13 | +10551-10-26 | no | no | midnight | month ×13, weekday ×7 | yes |
 | `aztec-tonalpohualli` | Aztec tonalpōhualli | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | trecena ×13, day-sign ×20 | — |
 | `aztec-xiuhpohualli` | Aztec xiuhpōhualli | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | month ×19 | yes |
+| `babylonian` | Babylonian (Seleucid era) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | -382-04-13 | 0076-03-22 | yes | yes | sunset | month ×12–13, weekday ×7 | yes |
 | `bahai` | Badíʿ | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1844-03-21 | 2065-03-19 | no | yes | sunset | month ×19, weekday ×7 | yes |
 | `bahai-arithmetic` | Badíʿ (arithmetic) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1844-03-21 | +11843-03-20 | no | yes | sunset | month ×19, weekday ×7 | yes |
 | `bahai-astronomical` | Badíʿ (astronomical) | [`hc-calendars-equinox`](../crates/hc-calendars-equinox) | `equinox` | 1844-03-20 | 3001-03-20 | yes | yes | sunset | month ×19, weekday ×7 | yes |
