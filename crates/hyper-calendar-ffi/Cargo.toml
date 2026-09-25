@@ -19,11 +19,25 @@ keywords.workspace = true
 # one name in a workspace collide in `cargo doc` output.
 crate-type = ["cdylib", "staticlib", "rlib"]
 
+# The layers, the same as the WebAssembly module's. Every entry point is
+# gated by one of these, and the README's table says which.
 [features]
 default = ["civil"]
+# Proleptic Gregorian dates, ISO 8601 text and the TAI-UTC bridge.
 civil = ["hc/civil"]
-holiday = ["hc/holiday"]
-full = ["hc/full"]
+# Every calendar the facade registers, described for one day in a locale.
+calendars = ["civil", "hc/lunar", "hc/equinox", "hc/indic", "hc/regional", "hc/i18n"]
+# The holiday tables: countries, exchanges, traditions and the UN days.
+holiday = ["civil", "hc/holiday"]
+# The 24 solar terms and the 72 pentads.
+seasons = ["civil", "hc/seasons"]
+# Cosmic, geologic and archaeological time.
+deep-time = ["hc/deep-time"]
+# The day by a time zone's wall clock: seventeen built-in zones, and any
+# zone a caller loads as TZif bytes.
+tz = ["civil", "hc/tz"]
+# Every layer.
+full = ["civil", "calendars", "holiday", "seasons", "deep-time", "tz", "hc/full"]
 
 [dependencies]
 # Aliased to `hc`, as in `hyper-calendar-wasm`, to keep paths short.

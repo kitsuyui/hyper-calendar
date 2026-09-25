@@ -109,17 +109,19 @@ fn a_registry_can_hold_every_calendar_in_the_crate() {
     assert!(registry.get(CalendarId("chinese")).is_some());
     assert!(registry.get(CalendarId("gregory")).is_none());
 
-    // One day, described by every calendar that covers it — which is seven
-    // of the eight, because the Tenpō calendar ended in 1872.
+    // One day, described by every calendar — converted by seven of the
+    // eight, because the Tenpō calendar ended in 1872 and says so.
     let day = gregorian(2024, 2, 10);
     let described = registry.describe_day(day);
-    assert_eq!(described.len(), 7);
-    assert!(
-        !described
-            .iter()
-            .any(|(id, _)| *id == CalendarId("japanese-tenpo"))
-    );
-    for (id, fields) in described {
+    assert_eq!(described.len(), 8);
+    let refused: Vec<_> = described
+        .iter()
+        .filter(|(_, fields)| fields.is_err())
+        .map(|(id, _)| *id)
+        .collect();
+    assert_eq!(refused, [CalendarId("japanese-tenpo")]);
+    for (id, fields) in described.into_iter().filter(|(_, f)| f.is_ok()) {
+        let fields = fields.expect("filtered");
         assert!(fields.month.is_some(), "{id} gave no month");
         let calendar = registry.get(id).expect("just listed");
         assert_eq!(calendar.fields_to_fixed(&fields), Ok(day), "{id}");
@@ -131,14 +133,17 @@ fn the_tenpo_calendar_is_absent_from_a_modern_days_description() {
     let mut registry = CalendarRegistry::new();
     registry.insert(Box::new(DynAdapter::new(JapaneseTenpoCalendar)));
     registry.insert(Box::new(DynAdapter::new(ChineseCalendar)));
-    // It ended in 1872, so a modern day has no Tenpō date and the registry
-    // simply does not offer one.
+    // It ended in 1872, so a modern day has no Tenpō date: the registry
+    // lists the calendar with its refusal rather than offering a date.
     let described = registry.describe_day(gregorian(2024, 2, 10));
-    assert_eq!(described.len(), 1);
-    assert_eq!(described[0].0, CalendarId("chinese"));
+    assert_eq!(described.len(), 2);
+    assert_eq!(described[0].0, CalendarId("japanese-tenpo"));
+    assert_eq!(described[0].1, Err(CalendarError::AfterSupportedRange));
+    assert_eq!(described[1].0, CalendarId("chinese"));
+    assert!(described[1].1.is_ok());
     // In 1860 both cover the day.
     let described = registry.describe_day(gregorian(1860, 6, 1));
-    assert_eq!(described.len(), 2);
+    assert!(described.iter().all(|(_, fields)| fields.is_ok()));
 }
 
 #[test]

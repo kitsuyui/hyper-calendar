@@ -83,21 +83,21 @@ impl CalendarRegistry {
         self.entries.is_empty()
     }
 
-    /// Render one fixed day in every registered calendar that supports it.
+    /// Render one fixed day in every registered calendar, in registry
+    /// order.
     ///
-    /// Calendars that cannot represent the day are skipped rather than
-    /// failing the whole call: asking for "today in every calendar" should
-    /// not break because one of them starts in 1873.
+    /// Every calendar answers, and a calendar that cannot represent the day
+    /// answers with its refusal rather than being left out: asking for
+    /// "today in every calendar" should not break because one of them
+    /// starts in 1873, and it should not pretend that calendar does not
+    /// exist either. "This calendar was not in use" is an answer a reader
+    /// wants to see next to the ones that converted, which is why the
+    /// refusal is carried as a value and not filtered away here.
     #[must_use]
-    pub fn describe_day(&self, rd: Rd) -> Vec<(CalendarId, DateFields)> {
+    pub fn describe_day(&self, rd: Rd) -> Vec<(CalendarId, CalendarResult<DateFields>)> {
         self.entries
             .iter()
-            .filter_map(|(id, calendar)| {
-                calendar
-                    .fixed_to_fields(rd)
-                    .ok()
-                    .map(|fields| (*id, fields))
-            })
+            .map(|(id, calendar)| (*id, calendar.fixed_to_fields(rd)))
             .collect()
     }
 
@@ -206,9 +206,61 @@ mod tests {
         let registry = registry();
         let rendered = registry.describe_day(Rd(500));
         assert_eq!(rendered.len(), 2);
-        let years: Vec<i64> = rendered.iter().map(|(_, fields)| fields.year).collect();
-        assert!(years.contains(&500));
-        assert!(years.contains(&400));
+        let years: Vec<i64> = rendered
+            .iter()
+            .map(|(_, fields)| fields.as_ref().map(|fields| fields.year).unwrap())
+            .collect();
+        assert_eq!(years, [500, 400]);
+    }
+
+    #[test]
+    fn a_calendar_that_refuses_the_day_is_listed_with_its_refusal() {
+        struct Bounded;
+
+        impl DynCalendar for Bounded {
+            fn meta(&self) -> CalendarMeta {
+                CalendarMeta {
+                    id: CalendarId("bounded"),
+                    english_name: "Bounded test calendar",
+                    year_kind: YearKind::Astronomical,
+                    has_leap_months: false,
+                    is_astronomical: false,
+                    earliest: Some(Rd(1_000)),
+                    latest: None,
+                }
+            }
+
+            fn fields_to_fixed(&self, fields: &DateFields) -> CalendarResult<Rd> {
+                Ok(Rd(fields.year))
+            }
+
+            fn fixed_to_fields(&self, rd: Rd) -> CalendarResult<DateFields> {
+                self.meta().check_range(rd)?;
+                Ok(DateFields::new(rd.0))
+            }
+
+            fn days_in_year(&self, _year: i64) -> CalendarResult<u16> {
+                Ok(1)
+            }
+
+            fn is_leap_year(&self, _year: i64) -> CalendarResult<bool> {
+                Ok(false)
+            }
+
+            fn cycles(&self) -> &'static [crate::shape::CycleShape] {
+                &[]
+            }
+        }
+
+        let mut registry = registry();
+        registry.insert(Box::new(Bounded));
+        let rendered = registry.describe_day(Rd(500));
+        // Registry order, refusals included, so a caller can lay the rows
+        // out without a second call.
+        let ids: Vec<&str> = rendered.iter().map(|(id, _)| id.0).collect();
+        assert_eq!(ids, ["zero", "hundred", "bounded"]);
+        assert_eq!(rendered[2].1, Err(CalendarError::BeforeEpoch));
+        assert!(rendered[0].1.is_ok() && rendered[1].1.is_ok());
     }
 
     #[test]

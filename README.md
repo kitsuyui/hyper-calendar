@@ -33,8 +33,13 @@ use hyper_calendar::{registry, Rd};
 
 // The same day, in several calendars at once.
 let today = Rd::from_unix_days(20_352);
-for (calendar, fields) in registry().describe_day(today) {
-    println!("{calendar}: {}-{:?}-{:?}", fields.year, fields.month, fields.day);
+for (calendar, described) in registry().describe_day(today) {
+    match described {
+        Ok(fields) => println!("{calendar}: {}-{:?}-{:?}", fields.year, fields.month, fields.day),
+        // A calendar that was not in use on that day says so, rather than
+        // being left out of the list.
+        Err(refusal) => println!("{calendar}: {refusal}"),
+    }
 }
 ```
 

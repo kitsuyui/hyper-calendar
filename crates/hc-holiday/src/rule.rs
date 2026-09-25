@@ -842,8 +842,15 @@ impl Rule {
     /// in a common year is resolvable and empty.
     #[must_use]
     pub fn is_resolvable_in(&self, year: i64) -> bool {
+        self.is_resolvable_with(year, &mut Uncached)
+    }
+
+    /// [`Rule::is_resolvable_in`] with the calendar look-ups it makes
+    /// answered through `lookups`, so that an evaluation of many rules can
+    /// memoise them.
+    pub(crate) fn is_resolvable_with<L: Lookups>(&self, year: i64, lookups: &mut L) -> bool {
         match self {
-            Self::FixedInCalendar { system, .. } => system.covers_gregorian_year(year),
+            Self::FixedInCalendar { system, .. } => lookups.calendar_years(*system, year).is_some(),
             Self::Tabulated {
                 first_year,
                 last_year,
@@ -866,9 +873,11 @@ impl Rule {
                 ..hindu_lunar::MAX_YEAR + hindu_lunar::GREGORIAN_YEAR_OFFSET)
                 .contains(&year),
             Self::Offset { base, .. } | Self::MovedByWeekday { base, .. } => {
-                base.is_resolvable_in(year)
+                base.is_resolvable_with(year, lookups)
             }
-            Self::Span { from, to } => from.is_resolvable_in(year) && to.is_resolvable_in(year),
+            Self::Span { from, to } => {
+                from.is_resolvable_with(year, lookups) && to.is_resolvable_with(year, lookups)
+            }
             // Everything else is Gregorian arithmetic, astronomy or a
             // closure, none of which has a calendar range to fall outside.
             // The solar terms and the computus do have accuracy limits, but
@@ -887,6 +896,17 @@ impl Rule {
     /// tell the two apart.
     #[must_use]
     pub fn days_in_year(&self, year: i64) -> Days {
+        self.days_in_year_with(year, &mut Uncached)
+    }
+
+    /// [`Rule::days_in_year`] with the calendar look-ups it makes answered
+    /// through `lookups`.
+    ///
+    /// The look-ups are the expensive part of a lunisolar rule — which
+    /// Chinese years overlap a Gregorian one, where a Hindu month begins —
+    /// and every rule of a table asks the same questions, so the engine
+    /// passes one [`EvaluationCache`] through all of them.
+    pub(crate) fn days_in_year_with<L: Lookups>(&self, year: i64, lookups: &mut L) -> Days {
         let Ok(first) = gregorian::to_fixed(year, 1, 1) else {
             return Days::new();
         };
@@ -930,7 +950,7 @@ impl Rule {
                 |anchor| Days::one(weekday.on_or_before(anchor)),
             ),
             Self::FixedInCalendar { system, month, day } => {
-                fixed_in_calendar(*system, *month, *day, first, last)
+                fixed_in_calendar(*system, *month, *day, year, first, last, lookups)
             }
             Self::SolarTerm { term, meridian } => Days::one(term_day(year, *term, *meridian)),
             Self::Tithi {
@@ -939,8 +959,16 @@ impl Rule {
                 prevails,
                 when_twice,
                 calendar,
-            } => tithi_days(year, *month, *tithi, *prevails, *when_twice, *calendar)
-                .clamped(first, last),
+            } => tithi_days(
+                year,
+                *month,
+                *tithi,
+                *prevails,
+                *when_twice,
+                *calendar,
+                lookups,
+            )
+            .clamped(first, last),
             Self::Sankranti {
                 sign,
                 ayanamsa,
@@ -969,7 +997,7 @@ impl Rule {
                 let mut out = Days::new();
                 for probe in [year - 1, year, year + 1] {
                     for shifted in base
-                        .days_in_year(probe)
+                        .days_in_year_with(probe, lookups)
                         .shifted(i32::from(*days))
                         .as_slice()
                     {
@@ -989,13 +1017,13 @@ impl Rule {
                 // year and the next is a candidate for the end.
                 let mut ends = Days::new();
                 for probe in [year - 1, year, year + 1] {
-                    for day in to.days_in_year(probe).as_slice() {
+                    for day in to.days_in_year_with(probe, lookups).as_slice() {
                         ends.push(*day);
                     }
                 }
                 let mut out = Days::new();
                 for probe in [year - 1, year] {
-                    for start in from.days_in_year(probe).as_slice() {
+                    for start in from.days_in_year_with(probe, lookups).as_slice() {
                         let Some(end) = ends
                             .as_slice()
                             .iter()
@@ -1019,7 +1047,7 @@ impl Rule {
                 // the neighbouring years are searched and the result clamped.
                 let mut out = Days::new();
                 for probe in [year - 1, year, year + 1] {
-                    for day in base.days_in_year(probe).as_slice() {
+                    for day in base.days_in_year_with(probe, lookups).as_slice() {
                         let weekday = Weekday::from_rd(*day);
                         let shift = moves
                             .iter()
@@ -1067,18 +1095,129 @@ fn gregorian_month_span(year: i64, month: u8) -> Option<(Rd, Rd)> {
     Some((start, Rd(start.0 + i64::from(length) - 1)))
 }
 
+/// The calendar look-ups a rule makes, answered directly or from a memo.
+///
+/// Two questions cost nearly everything a lunisolar rule costs: which years
+/// of a calendar overlap a Gregorian year, and where a Hindu month begins.
+/// Both are astronomy, and every rule of a table asks them about the same
+/// years, so the engine answers them once through an [`EvaluationCache`]
+/// and a caller without an allocator answers them each time through
+/// [`Uncached`]. The answers are the same either way; only the cost
+/// differs.
+pub(crate) trait Lookups {
+    /// The years of `system` containing 1 January and 31 December of the
+    /// Gregorian `year`, or `None` when either falls outside the calendar.
+    fn calendar_years(&mut self, system: CalendarSystem, year: i64) -> Option<(i64, i64)>;
+
+    /// [`HinduLunarCalendar::month_span`] of the ordinary month `month` in
+    /// Śaka year `saka`, or `None` where the calendar has no such month.
+    fn hindu_month(
+        &mut self,
+        calendar: HinduLunarCalendar,
+        saka: i64,
+        month: u8,
+    ) -> Option<(Rd, Rd)>;
+}
+
+/// [`Lookups`] that computes every answer afresh.
+pub(crate) struct Uncached;
+
+impl Lookups for Uncached {
+    fn calendar_years(&mut self, system: CalendarSystem, year: i64) -> Option<(i64, i64)> {
+        let first = gregorian::to_fixed(year, 1, 1).ok()?;
+        let last = gregorian::to_fixed(year, 12, 31).ok()?;
+        Some((
+            system.year_containing(first)?,
+            system.year_containing(last)?,
+        ))
+    }
+
+    fn hindu_month(
+        &mut self,
+        calendar: HinduLunarCalendar,
+        saka: i64,
+        month: u8,
+    ) -> Option<(Rd, Rd)> {
+        calendar.month_span(saka, month, false).ok()
+    }
+}
+
+/// A memoised answer to [`Lookups::calendar_years`]: the system, the
+/// Gregorian year, and the calendar years containing its first and last
+/// days.
+#[cfg(feature = "alloc")]
+type CalendarYearsEntry = (CalendarId, i64, Option<(i64, i64)>);
+
+/// A memoised answer to [`Lookups::hindu_month`]: the calendar, the Śaka
+/// year, the month, and the month's span.
+#[cfg(feature = "alloc")]
+type HinduMonthEntry = (HinduLunarCalendar, i64, u8, Option<(Rd, Rd)>);
+
+/// [`Lookups`] that remembers every answer for the rest of one evaluation.
+///
+/// A table's rules are evaluated over a handful of years and name a
+/// handful of calendars, so the memo stays small and a linear scan of it is
+/// cheaper than hashing.
+#[cfg(feature = "alloc")]
+#[derive(Debug, Default)]
+pub(crate) struct EvaluationCache {
+    calendar_years: alloc::vec::Vec<CalendarYearsEntry>,
+    hindu_months: alloc::vec::Vec<HinduMonthEntry>,
+}
+
+#[cfg(feature = "alloc")]
+impl Lookups for EvaluationCache {
+    fn calendar_years(&mut self, system: CalendarSystem, year: i64) -> Option<(i64, i64)> {
+        if let Some((_, _, known)) = self
+            .calendar_years
+            .iter()
+            .find(|(id, known_year, _)| *id == system.id && *known_year == year)
+        {
+            return *known;
+        }
+        let answer = Uncached.calendar_years(system, year);
+        self.calendar_years.push((system.id, year, answer));
+        answer
+    }
+
+    fn hindu_month(
+        &mut self,
+        calendar: HinduLunarCalendar,
+        saka: i64,
+        month: u8,
+    ) -> Option<(Rd, Rd)> {
+        if let Some((_, _, _, known)) =
+            self.hindu_months
+                .iter()
+                .find(|(known_calendar, known_saka, known_month, _)| {
+                    *known_calendar == calendar && *known_saka == saka && *known_month == month
+                })
+        {
+            return *known;
+        }
+        let answer = Uncached.hindu_month(calendar, saka, month);
+        self.hindu_months.push((calendar, saka, month, answer));
+        answer
+    }
+}
+
 /// Every occurrence of `month`/`day` in `system` that lands inside
-/// `[first, last]`.
+/// `[first, last]`, the Gregorian `year`.
 ///
 /// The calendar years that can possibly overlap a Gregorian year are the one
 /// containing 1 January through the one containing 31 December, so the search
 /// is bounded without knowing anything about the calendar's year length.
-fn fixed_in_calendar(system: CalendarSystem, month: Month, day: u8, first: Rd, last: Rd) -> Days {
+fn fixed_in_calendar<L: Lookups>(
+    system: CalendarSystem,
+    month: Month,
+    day: u8,
+    year: i64,
+    first: Rd,
+    last: Rd,
+    lookups: &mut L,
+) -> Days {
     let mut out = Days::new();
-    let Some(from) = system.year_containing(first) else {
-        return out;
-    };
-    let Some(to) = system.year_containing(last) else {
+    let Some((from, to)) = lookups.calendar_years(system, year) else {
         return out;
     };
     let mut candidate = from;
@@ -1108,13 +1247,14 @@ pub enum WhenTwice {
 
 /// The days in Gregorian `year` on which `tithi` of amānta `month` holds
 /// the stated part of the day, in the ordinary month of that name.
-fn tithi_days(
+fn tithi_days<L: Lookups>(
     year: i64,
     month: u8,
     tithi: u8,
     prevails: Prevalence,
     when_twice: WhenTwice,
     calendar: HinduLunarCalendar,
+    lookups: &mut L,
 ) -> Days {
     let mut out = Days::new();
     // The month falls in one of the two Śaka years that overlap the
@@ -1123,7 +1263,7 @@ fn tithi_days(
         year - hindu_lunar::GREGORIAN_YEAR_OFFSET - 1,
         year - hindu_lunar::GREGORIAN_YEAR_OFFSET,
     ] {
-        let Ok((first, end)) = calendar.month_span(saka, month, false) else {
+        let Some((first, end)) = lookups.hindu_month(calendar, saka, month) else {
             continue;
         };
         let location = calendar.location;

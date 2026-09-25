@@ -47,6 +47,32 @@ if (hc_gregorian_to_fixed(2026, 9, 21, &rd) == 0) {
 }
 ```
 
+## Lines and cells
+
+Every entry point that answers with more than one value writes UTF-8 lines,
+one per entry, each ending in `\n`, with the cells of a line separated by
+`\t`, and the whole NUL-terminated like every other text here. The column
+orders are fixed and only ever grow at the end; a cell with nothing to say
+is empty, and no cell contains a tab or a line break. They are the same
+lines the WebAssembly module writes, whose
+[README](../hyper-calendar-wasm/README.md) tabulates every column order,
+and the sections below name the differences at this boundary: strings in
+are NUL-terminated and may be null, and the length comes back through
+`written`.
+
+## Layers
+
+The entry points come in layers, each a Cargo feature, the same layers as
+the WebAssembly module's: `civil` (the default), `calendars`, `holiday`,
+`seasons`, `deep-time`, `tz` and `full`. Each builds on its own — `calendars` does
+not need `holiday` — and the table below names the one each entry point
+needs.
+
+```sh
+cargo build -p hyper-calendar-ffi --release --features calendars
+cargo build -p hyper-calendar-ffi --release --features full
+```
+
 ## What is exported
 
 The two tables below are rendered from `src/lib.rs` by
@@ -57,22 +83,32 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-12 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`.
+22 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
-| Prototype | What it does |
-| --- | --- |
-| `HcStatus hc_version(char *buffer, size_t capacity, size_t *written);` | The library version, as a NUL-terminated string. |
-| `HcStatus hc_gregorian_to_fixed(int64_t year, uint8_t month, uint8_t day, int64_t *out_fixed);` | The fixed day number of a proleptic Gregorian date. |
-| `HcStatus hc_gregorian_from_fixed(int64_t fixed, int64_t *out_year, uint8_t *out_month, uint8_t *out_day);` | The proleptic Gregorian date on a fixed day. |
-| `HcStatus hc_weekday_from_fixed(int64_t fixed, uint8_t *out_weekday);` | The ISO 8601 weekday of a fixed day, Monday = 1 through Sunday = 7. |
-| `HcStatus hc_format_iso_date(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | Render a fixed day as an ISO 8601 date into a caller-owned buffer. |
-| `HcStatus hc_tai_from_unix(int64_t unix_seconds, int strict, int64_t *out_seconds, uint64_t *out_attos);` | Convert a POSIX timestamp to a TAI reading in seconds and attoseconds. |
-| `HcStatus hc_tai_minus_utc(int64_t unix_seconds, int strict, int64_t *out_offset);` | `TAI - UTC` in whole seconds at a POSIX timestamp. |
-| `HcStatus hc_day_has_leap_second(int64_t unix_seconds, int *out_has_leap);` | Whether a POSIX timestamp names a day that ends with an inserted leap second. |
-| `HcStatus hc_utc_from_tai(int64_t tai_seconds, int strict, int64_t *out_unix_seconds, int *out_is_leap_second);` | Convert a TAI reading back to a UTC label, naming a leap second when the instant falls inside one. |
-| `HcStatus hc_holiday_is_day_off(const char *code, const char *region, int64_t fixed, int *out_is_day_off);` | Whether a fixed day is a day off in a holiday table. |
-| `HcStatus hc_holidays_in_year(const char *code, const char *region, int64_t year, char *buffer, size_t capacity, size_t *written);` | The holidays of a Gregorian year in a table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
-| `HcStatus hc_holiday_codes(char *buffer, size_t capacity, size_t *written);` | The identifier of every holiday table, one per line, NUL-terminated. |
+| Prototype | Feature | What it does |
+| --- | --- | --- |
+| `HcStatus hc_version(char *buffer, size_t capacity, size_t *written);` | always | The library version, as a NUL-terminated string. |
+| `HcStatus hc_gregorian_to_fixed(int64_t year, uint8_t month, uint8_t day, int64_t *out_fixed);` | `civil` | The fixed day number of a proleptic Gregorian date. |
+| `HcStatus hc_gregorian_from_fixed(int64_t fixed, int64_t *out_year, uint8_t *out_month, uint8_t *out_day);` | `civil` | The proleptic Gregorian date on a fixed day. |
+| `HcStatus hc_weekday_from_fixed(int64_t fixed, uint8_t *out_weekday);` | `civil` | The ISO 8601 weekday of a fixed day, Monday = 1 through Sunday = 7. |
+| `HcStatus hc_format_iso_date(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `civil` | Render a fixed day as an ISO 8601 date into a caller-owned buffer. |
+| `HcStatus hc_tai_from_unix(int64_t unix_seconds, int strict, int64_t *out_seconds, uint64_t *out_attos);` | `civil` | Convert a POSIX timestamp to a TAI reading in seconds and attoseconds. |
+| `HcStatus hc_tai_minus_utc(int64_t unix_seconds, int strict, int64_t *out_offset);` | `civil` | `TAI - UTC` in whole seconds at a POSIX timestamp. |
+| `HcStatus hc_day_has_leap_second(int64_t unix_seconds, int *out_has_leap);` | `civil` | Whether a POSIX timestamp names a day that ends with an inserted leap second. |
+| `HcStatus hc_utc_from_tai(int64_t tai_seconds, int strict, int64_t *out_unix_seconds, int *out_is_leap_second);` | `civil` | Convert a TAI reading back to a UTC label, naming a leap second when the instant falls inside one. |
+| `HcStatus hc_describe_day(int64_t fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | One fixed day in every registered calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_holiday_is_day_off(const char *code, const char *region, int64_t fixed, int *out_is_day_off);` | `holiday` | Whether a fixed day is a day off in a holiday table. |
+| `HcStatus hc_holidays_in_year(const char *code, const char *region, int64_t year, char *buffer, size_t capacity, size_t *written);` | `holiday` | The holidays of a Gregorian year in a table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_holiday_codes(char *buffer, size_t capacity, size_t *written);` | `holiday` | The identifier of every holiday table, one per line, NUL-terminated. |
+| `HcStatus hc_holidays_on(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | Every holiday on one fixed day across every table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_term_in_effect(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The solar term in effect on a fixed day at a meridian, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_pentad_in_effect(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The pentad (候) in effect on a fixed day at a meridian, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_place_years_ago(double years_ago, double std_dev_years, char *buffer, size_t capacity, size_t *written);` | `deep-time` | A moment some years before the present, placed in every chronology at once, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_cosmic_events(char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every cosmic epoch and every dated cosmic event, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_geologic_intervals(uint32_t rank, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every interval of one rank of the geologic time scale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_fixed_from_unix_in_zone(int64_t unix_seconds, const char *zone, int64_t *out_fixed);` | `tz` | The fixed day a POSIX timestamp falls on by the wall clock of a zone. |
+| `HcStatus hc_unix_from_fixed_in_zone(int64_t fixed, const char *zone, int64_t *out_unix_seconds);` | `tz` | The POSIX timestamp at which a fixed day begins by the wall clock of a zone. |
+| `HcStatus hc_zone_load(const char *name, const uint8_t *tzif, size_t tzif_len);` | `tz` | Give the library a zone's TZif data under an IANA name. |
 
 ### Status codes
 
@@ -89,11 +125,28 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HC_ERROR_NO_DATA` | -6 | The value lies outside the range where the requested model has data. |
 | `HC_ERROR_UNKNOWN` | -7 | The requested calendar, table or identifier is not known. |
 | `HC_ERROR_NOT_UTF8` | -8 | A string argument was not valid UTF-8. |
+| `HC_ERROR_MALFORMED` | -9 | Data was not in the format the call expects. |
 <!-- generated by crates/hyper-calendar/tests/abi.rs: end -->
+
+## Every calendar
+
+`hc_describe_day(fixed, locale, buffer, capacity, written)` needs the
+`calendars` feature and writes one line per calendar the facade registers,
+in registry order, in the sixteen columns the WebAssembly module's README
+lists: identifier, English name, era code, era label, year, month ordinal,
+leap-month flag, month label, day, leap-day flag, extras, error code, error
+name, standing, day boundary and the reserved `formatted` column. A calendar
+that cannot name the day is still a line, with its date columns and standing
+empty and the error code and name — the stable ones `CalendarError` gives
+every refusal — saying why. `locale` is a NUL-terminated BCP 47 tag or null;
+a tag that does not parse, or that no data answers for, falls back to the
+root locale `und`, whose month names are CLDR's `M01`..`M12`, so ask for
+`en` for English.
 
 ## Holidays
 
-The three `hc_holiday_*` entry points need the `holiday` feature:
+The four `hc_holiday_*` entry points and `hc_holidays_on` need the
+`holiday` feature:
 
 ```sh
 cargo build -p hyper-calendar-ffi --release --features holiday
@@ -125,6 +178,60 @@ if (hc_holidays_in_year("JP", NULL, 2026, lines, need, &need) == HC_OK) {
 free(lines);
 ```
 
+`hc_holidays_on(fixed, buffer, capacity, written)` writes every entry on
+one day across every table `hc_holiday_codes` lists, in that order, each
+evaluated nationwide, one line per (table, entry): the table's identifier,
+its English name, the holiday's English name, its local name, the kind
+(`public`, `bank`, `religious`, `observance`, `school`, `workday`, or
+`gap`), the confidence, the instrument the rule cites, `1` for a substitute
+and the fixed day it stands in for. A `gap` line is a holiday the table
+could not place in the day's year — its calendar's range ended, or the
+year's announcement has not been read — reported so the caller can say so.
+Each table is evaluated for the one day (`HolidayCalendar::for_day`), which
+answers exactly what the whole year would at about a third of the cost.
+
+## Almanac
+
+`hc_term_in_effect` and `hc_pentad_in_effect` need the `seasons` feature.
+Each writes one line for a fixed day at a meridian: the index (from 春分 at
+0: 24 terms, 72 pentads), the Chinese name, the Japanese name, the fixed
+day the period began, the last fixed day before the next begins, and the
+sources of the Chinese and the Japanese names. `meridian` is a
+NUL-terminated name — `universal`, `japan`, `china`, `korea`, `india` or
+`china-before-1929`, in any case — or a longitude in decimal degrees east of
+Greenwich, read as local mean solar time; null or empty is `universal`, and
+anything else is `HC_ERROR_UNKNOWN`.
+
+## Deep time
+
+`hc_place_years_ago`, `hc_cosmic_events` and `hc_geologic_intervals` need
+the `deep-time` feature and write lines of the same fourteen columns: kind,
+name, scope, the older bound's value, uncertainty, significant figures and
+approximate flag, the same four for the younger bound, the unit, the
+description and the source. `hc_place_years_ago(years_ago, std_dev_years,
+...)` counts back from the present as `hc-deep-time` defines it — the
+Planck 2018 age of the universe, not the BP datum of 1950 and not the
+caller's clock; the crate ignores the difference, which lies below the
+smallest uncertainty in its tables — and places the moment in its cosmic
+epoch, the last dated cosmic event, its future era if it lies ahead, its
+geologic chain and its archaeological period. `hc_geologic_intervals` takes
+`rank` as `0` for the eons through `4` for the ages.
+
+## Time zones
+
+`hc_fixed_from_unix_in_zone(unix, zone, out_fixed)` and
+`hc_unix_from_fixed_in_zone(fixed, zone, out_unix)` need the `tz` feature
+and convert by a zone's wall clock rather than UTC: the day an instant falls
+on, and the instant a day begins — its local midnight, the first instant
+after a gap that swallows it, or the earlier of two midnights when the
+clocks go back across it. `zone` is a NUL-terminated IANA name. The library
+carries the seventeen zones of `hc-tz`'s built-in table with their current
+rules only, listed in the WebAssembly module's README; for any other zone,
+or a zone's history, `hc_zone_load(name, tzif, tzif_len)` takes the zone's
+TZif file once and the conversions answer for that name from then on, a
+loaded zone outranking a built-in one. Bytes that are not TZif are
+`HC_ERROR_MALFORMED`.
+
 ## Leap seconds, and the `strict` flag
 
 `hc_tai_from_unix`, `hc_tai_minus_utc` and `hc_utc_from_tai` take a `strict`
@@ -140,8 +247,9 @@ table's horizon.
 
 The default surface is the civil calendar and the TAI–UTC bridge: enough to
 turn a POSIX timestamp or a Gregorian date into a fixed day and back, name a
-weekday, and ask about leap seconds honestly; the holiday tables are a
-feature, above. The rest of the library — the other calendars, solar terms,
-locales — is reachable by adding entry points of the same shape, and the
-`full` feature compiles it in for that purpose. Before 1.0 the only
-stability promise is the status codes, whose meanings do not change.
+weekday, and ask about leap seconds honestly; the other layers are features,
+above. Formatting a date of any calendar in a locale's own way waits on
+`hc-format` rendering calendars other than the Gregorian, and the last
+column of `hc_describe_day` is reserved for it. Before 1.0 the only
+stability promise is the status codes, whose meanings do not change, and
+the column orders, which only grow at the end.
