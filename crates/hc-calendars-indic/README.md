@@ -49,16 +49,15 @@ tithi at sunrise, and the ninety-six first days of the solar months in
 its "Regional Calendars" tables; for the nakṣatras, Drik Panchang's
 transit times. The system document lists every check and its result.
 
-The Bikram Sambat is held to the Government of Nepal's gazette: the
-notices fixing the public holidays of 2080–2083 BS, which list every
-Saturday of the year by its Bikram Sambat date. The calendar reproduces
-every listed Saturday, the weekday of each New Year's Day, and the one
-Gregorian date the notices name, Christmas 2025 as Pus 10. The
-*Sūrya Siddhānta* reckoning it falls back on outside those years begins 47
-of the 48 gazetted months on the gazette's day; the test states the one it
-misses, Magh 2082, a day early. The *Sūrya Siddhānta* model reproduces the
-classical table of sines and is checked against the modern Sun for how far
-its saṅkrāntis fall from the Lahiri ones.
+Nepal's two calendars are written up in
+[`docs/systems/nepal-calendars.md`](../../docs/systems/nepal-calendars.md).
+The Bikram Sambat is held to the Government of Nepal's holiday notices for
+2080–2083 BS, every Saturday they list and every weekday they name, and
+the Nepal Sambat to the published Mha Puja dates of 2013 to 2017; the
+system document lists every check and its result, and the one month the
+*Sūrya Siddhānta* reckoning misses. The *Sūrya Siddhānta* model itself
+reproduces the classical table of sines and is checked against the modern
+Sun for how far its saṅkrāntis fall from the Lahiri ones.
 
 The two Old Hindu calendars have no such table — the *Panchang* tabulates
 the true calendars, not the mean ones they replaced — so they are held to

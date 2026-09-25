@@ -1,23 +1,22 @@
 //! The Bikram Sambat, the solar calendar of Nepal: Baisakh to Chait from
-//! the Meṣa saṅkrānti, years in the Vikrama era.
+//! the Meṣa saṅkrānti, years in the Vikrama era — `bikram-sambat`.
 //!
-//! A month is the Sun's stay in a sidereal sign, as in every Hindu solar
-//! reckoning, and months run 29 to 32 days. What sets Nepal's apart is
-//! whose Sun and which day. Its months are the months the Government of
-//! Nepal publishes, and for four years of those this module has the
-//! publication itself; outside them it computes the months by a rule
-//! fitted to the publication, and says how well the rule fits.
+//! The system is written up in `docs/systems/nepal-calendars.md` in the
+//! repository: the calendar's standing, how the months are read from
+//! the holiday notices' Saturdays, why the modern Sun with an hour-of-day
+//! rule was rejected and the *Sūrya Siddhānta*'s Sun on its civil day
+//! kept, Pus and Magh 2082 worked through by hand, what is carried and
+//! what is not, the checks against the notices, and the sources, keyed in
+//! `docs/references.bib`. This page summarises it and states the code's
+//! own facts.
 //!
-//! # What was published
-//!
-//! Each year the Ministry of Home Affairs fixes the public holidays of
-//! the coming year in a notice in the *Nepal Rajpatra*, the government
-//! gazette, and the notice opens with every Saturday of the year by its
-//! Bikram Sambat date — Saturday is the weekly holiday. Where one month's
-//! last Saturday and the next month's first are a week apart, the month's
-//! length follows, and with the weekday of Baisakh 1, which the notice
-//! gives for New Year's Day, the whole year falls into place. The four
-//! notices consulted are:
+//! A month is the Sun's stay in a sidereal sign, 29 to 32 days, and its
+//! first day is the one the Government of Nepal publishes: the Ministry
+//! of Home Affairs fixes each coming year's public holidays in a notice in
+//! the *Nepal Rajpatra*, Part 5, whose first section lists every Saturday
+//! of the year by its Bikram Sambat date, and the months' lengths follow
+//! from the Saturdays. [`GAZETTED`] is the first day of every month the
+//! four notices read fix, 48 for 2080–2083 BS:
 //!
 //! | Year | *Rajpatra* | Dated |
 //! | --- | --- | --- |
@@ -26,41 +25,19 @@
 //! | 2082 | Khaṇḍa 74, No. 59, Part 5 | 2081-11-15 |
 //! | 2083 | Khaṇḍa 75, No. 67, Part 5 | 2082-11-18 |
 //!
-//! [`GAZETTED`] is the first day of every month of those four years that
-//! they fix: 48, all but the end of Chait 2083, which needs the 2084
-//! notice. Each year ends on the day the next notice's Baisakh 1 falls
-//! on, and the one Gregorian date a notice names — Christmas Day, "पुस १०
-//! गते" of 2082 — lands on Pus 10.
-//!
-//! # The rule fitted to it
-//!
-//! The months are not those of the modern Sun. With the saṅkrāntis of
-//! the *Rashtriya Panchang*'s true Sun and Lahiri ayanamsa, no rule of
-//! the form "the saṅkrānti's day, unless it fell after such an hour"
-//! reproduces the four years: a saṅkrānti at 21:20 Nepal time kept its
-//! day (Baisakh 2081) while ones at 19:58 and 19:59 did not (Bhadau and
-//! Asoj 2081). With the saṅkrāntis of the *Sūrya Siddhānta*
-//! ([`crate::surya_siddhanta`]), 47 of the 48 months whose first day the
-//! notices fix begin on the civil day, midnight to midnight, in which
-//! their saṅkrānti falls, at any hour:
-//! [`CivilDay`](crate::SankrantiRule::CivilDay). The forty-eighth is
-//! Magh 2082, whose saṅkrānti the model puts at 21:10 Nepal time on
-//! 14 January 2026 and which the gazette begins on the 15th — twice over, since it also
-//! names Maghe Sankranti, Magh 1, a Thursday. No published explanation of
-//! that month was found, and one month is not enough to infer a rule
-//! from, so the reckoning does not try.
-//!
-//! So [`RECKONING`] is the *Sūrya Siddhānta* Sun with the civil-day rule
-//! at Kathmandu, and [`BikramSambatCalendar`] takes a month's first day
-//! from [`GAZETTED`] where it is there and from the reckoning where it is
-//! not. Outside 2080–2083 a date is the reckoning's, which differed from
-//! the gazette once in 48 months: read a computed month's first or last
-//! day with that in mind.
-//!
-//! The civil day is Kathmandu's local mean time, 5 h 41 min ahead of
-//! Universal Time; Nepal Standard Time is 5 h 45 min ahead. The nearest
-//! saṅkrānti to midnight in the four years fell at 23:54 Nepal time, so
-//! the four minutes' difference moves none of them.
+//! Outside them [`RECKONING`] computes the months: the *Sūrya Siddhānta*'s
+//! Sun ([`crate::surya_siddhanta`]), each month beginning on the civil
+//! day, midnight to midnight at Kathmandu, in which its saṅkrānti falls
+//! ([`CivilDay`](crate::SankrantiRule::CivilDay)). That rule begins 47 of
+//! the 48 gazetted months on the gazette's day and misses Magh 2082 by a
+//! day — the saṅkrānti at 21:10 Nepal time on 14 January 2026, the
+//! gazette beginning the month on the 15th — where no rule with the
+//! modern Sun fits at all. [`BikramSambatCalendar`] takes a month's first
+//! day from [`GAZETTED`] where it is there and from the reckoning where
+//! it is not, so a computed month is to be read with that one miss in
+//! mind. The civil day is Kathmandu's local mean time, 5 h 41 min ahead
+//! of Universal Time where Nepal Standard Time is 5 h 45 min; no
+//! saṅkrānti of the four years falls within those four minutes.
 //!
 //! # The names
 //!
