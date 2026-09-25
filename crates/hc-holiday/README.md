@@ -19,7 +19,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `international` | the United Nations international days, each citing its resolution |
 | `exchanges` | 42 exchange calendars: New York, Nasdaq, Toronto, Mexico City, São Paulo, London, Frankfurt, Zurich, Vienna, Madrid, Warsaw, Moscow, Istanbul, Euronext's seven markets, Nasdaq's four Nordic markets, Johannesburg, Tel Aviv, Riyadh, Tokyo, Seoul, Shanghai, Shenzhen, Taipei, Hong Kong, Mumbai's NSE and BSE, Bangkok, Singapore, Kuala Lumpur, Jakarta, Manila, Sydney, NZX |
-| `countries` | 180 national tables |
+| `countries` | 182 national tables |
 
 ## The vocabulary
 
@@ -97,15 +97,15 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**180 countries.** Albania, Algeria, Andorra, Angola, Antigua and Barbuda,
+**182 countries.** Albania, Algeria, Andorra, Angola, Antigua and Barbuda,
 Argentina, Armenia, Australia (eight states and territories), Austria,
 Azerbaijan, the Bahamas, Bahrain, Bangladesh, Barbados, Belarus, Belgium,
 Belize, Benin, Bhutan, Bolivia, Bosnia and Herzegovina, Botswana, Brazil,
 Brunei, Bulgaria, Burkina Faso, Burundi, Cabo Verde, Cambodia, Cameroon, Canada
 (federal plus the provincial days fixed by statute), Chad, Chile, China,
-Colombia, Costa Rica, Côte d'Ivoire, Croatia, Cuba, Cyprus, Czechia, Democratic
+Colombia, Comoros, Costa Rica, Côte d'Ivoire, Croatia, Cuba, Cyprus, Czechia, Democratic
 Republic of the Congo, Denmark, Djibouti, Dominica, the Dominican Republic,
-Ecuador, Egypt, El Salvador, Estonia, Ethiopia, Fiji, Finland, France (métropole
+Ecuador, Egypt, El Salvador, Equatorial Guinea, Estonia, Ethiopia, Fiji, Finland, France (métropole
 plus Alsace-Moselle), Georgia, Germany (all 16 *Länder*), Ghana, Greece,
 Grenada, Guatemala, Guinea, Guyana, Haiti, Honduras, Hong Kong, Hungary,
 Iceland, India, Indonesia, Iran, Iraq, Ireland, Israel, Italy, Jamaica, Japan,

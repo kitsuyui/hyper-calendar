@@ -7664,3 +7664,68 @@ fn kiribati_reports_the_years_its_orders_were_not_read_as_gaps() {
     );
     assert!(!HolidayCalendar::for_year(table("KI"), None, 2027).is_complete());
 }
+
+#[test]
+fn comoros_keeps_decree_25_147s_days_from_2026_and_moves_nothing() {
+    expect(
+        "KM",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 2, 17, "National Reconciliation Day"),
+            (2026, 3, 19, "End of Ramadan (first day)"),
+            (2026, 3, 20, "End of Ramadan (second day)"),
+            (2026, 3, 21, "End of Ramadan (third day)"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 5, 27, "Eid al-Kabir"),
+            (2026, 5, 28, "Day after Eid al-Kabir"),
+            (2026, 6, 17, "Islamic New Year"),
+            (2026, 7, 6, "Independence Day"),
+            (2026, 7, 7, "Day after Independence Day"),
+            (2026, 8, 26, "Prophet's Birthday"),
+            (
+                2026,
+                11,
+                12,
+                "Admission of the Comoros to the United Nations",
+            ),
+            (2027, 2, 17, "National Reconciliation Day"),
+            (2027, 7, 7, "Day after Independence Day"),
+        ],
+    );
+    // Christmas is not a holiday; 12 November 2028 is a Sunday and stays
+    // there; nothing before the decree's first full year is claimed.
+    expect_working("KM", None, &[(2026, 12, 25), (2028, 11, 13), (2025, 7, 6)]);
+}
+
+#[test]
+fn equatorial_guinea_gives_the_next_working_day_after_a_weekend_feast() {
+    expect(
+        "GQ",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 6, 4, "Corpus Christi"),
+            (2026, 6, 5, "President's Birthday"),
+            (2026, 8, 3, "Freedom Coup Day"),
+            (2026, 8, 15, "Constitution Day"),
+            (2026, 10, 12, "Independence Day"),
+            (2026, 12, 8, "Immaculate Conception"),
+            (2026, 12, 25, "Christmas Day"),
+            (2007, 10, 12, "Independence Day"),
+        ],
+    );
+    // The Ministry's notices: a Saturday Christmas in 2021 and a Saturday
+    // New Year in 2022 gave the Monday; a Sunday Christmas in 2022 and a
+    // Sunday New Year in 2023 did too. 15 August 2026 is a Saturday.
+    expect_substitute("GQ", None, 2021, (12, 25), (12, 27));
+    expect_substitute("GQ", None, 2022, (1, 1), (1, 3));
+    expect_substitute("GQ", None, 2022, (12, 25), (12, 26));
+    expect_substitute("GQ", None, 2023, (1, 1), (1, 2));
+    expect_substitute("GQ", None, 2026, (8, 15), (8, 17));
+    // Easter Monday is not in the decree; the Sunday between a Saturday
+    // feast and its Monday is not a holiday; nothing before the decree.
+    expect_working("GQ", None, &[(2026, 4, 6), (2026, 8, 16), (2006, 10, 12)]);
+}

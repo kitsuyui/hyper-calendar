@@ -125,7 +125,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Holidays by country
 
-180 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
+182 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
 
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
@@ -190,6 +190,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `GE` | Georgia | 18 | none | stated | 2026-09-22 |
 | `GH` | Ghana | 16 | none | stated | 2026-09-22 |
 | `GN` | Guinea | 12 | yes | stated | 2026-09-23 |
+| `GQ` | Equatorial Guinea | 10 | yes | stated | 2026-09-25 |
 | `GR` | Greece | 13 | none | stated | 2026-09-21 |
 | `GT` | Guatemala | 18 | none | stated | 2026-09-22 |
 | `GY` | Guyana | 15 | yes | stated | 2026-09-22 |
@@ -213,6 +214,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `KG` | Kyrgyzstan | 30 | yes | stated | 2026-09-22 |
 | `KH` | Cambodia | 16 | none | stated | 2026-09-23 |
 | `KI` | Kiribati | 18 | none | stated | 2026-09-23 |
+| `KM` | Comoros | 13 | none | stated | 2026-09-25 |
 | `KN` | Saint Kitts and Nevis | 10 | yes | stated | 2026-09-23 |
 | `KR` | South Korea | 41 | yes | stated | 2026-09-23 |
 | `KW` | Kuwait | 13 | none | stated | 2026-09-22 |
