@@ -1,48 +1,27 @@
 //! The four Maya calendars: long count, tzolk'in, haab and Calendar Round.
 //!
-//! A Classic Maya inscription dates an event in all of them at once, because
-//! they answer different questions. The long count says how many days have
-//! elapsed since a mythological zero; the tzolk'in and haab say where the
-//! day falls in a 260-day ritual cycle and a 365-day vague year; the
-//! Calendar Round is the pair of the last two, which repeats every 52 vague
-//! years and is what most dated monuments actually carry.
+//! A Classic Maya inscription dates an event in all of them at once. The
+//! long count says how many days have elapsed since a mythological zero;
+//! the tzolk'in and haab say where the day falls in a 260-day ritual cycle
+//! and a 365-day vague year; the Calendar Round is the pair of the last
+//! two, which repeats every 18 980 days. Nothing in any of them names a
+//! Western date: that takes a **correlation constant**, the Julian Day
+//! Number of `0.0.0.0.0`, and this module registers the two published
+//! values as two calendars — [`GMT_CORRELATION`] = 584 283 as
+//! `maya-longcount` and [`GMT_PLUS_TWO_CORRELATION`] = 584 285 as
+//! `maya-longcount-gmt2` — rather than as a switch, because a correlation
+//! is a claim about history. The counts, the history of the constants, a
+//! worked reading of a monument and the sources are in
+//! [`docs/systems/mesoamerican-counts.md`](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/systems/mesoamerican-counts.md).
 //!
-//! # The correlation constant
+//! The tzolk'in, the haab and the Calendar Round are cycles, so each date
+//! type here carries a `round`: how many complete cycles have elapsed since
+//! [`EPOCH`]'s cycle began. See the crate documentation for why.
 //!
-//! Nothing in the Maya calendars fixes them to a Western date. That takes a
-//! **correlation constant**: the Julian Day Number of long count
-//! `0.0.0.0.0`. This crate uses the Goodman–Martínez–Thompson value
-//! [`GMT_CORRELATION`] = **584 283**, which puts `0.0.0.0.0` on 11 August
-//! 3114 BCE in the proleptic Gregorian calendar (6 September in the Julian
-//! one) and `13.0.0.0.0` on 2012-12-21.
-//!
-//! The other value in common use is **584 285**, the "Lounsbury" or GMT+2
-//! variant. The two differ by two days, so every Western date this module
-//! produces would move two days later under it — `13.0.0.0.0` would be
-//! 2012-12-23. The choice matters for matching an inscribed eclipse or
-//! Venus event against an astronomical one, and hardly at all otherwise.
-//! High-precision AMS radiocarbon dating of a carved wooden lintel from
-//! Tikal — Kennett et al., *Scientific Reports* **3**, 1597 (2013) —
-//! supports 584 283. This module does not offer a switch: a correlation is a claim
-//! about history, and a calendar that silently changes its answer depending
-//! on a parameter is worse than one that states its assumption.
-//!
-//! # Cycles and rounds
-//!
-//! The tzolk'in, the haab and the Calendar Round are cycles, so they name
-//! the same day over and over and cannot by themselves be converted back to
-//! a fixed day. Each date type here therefore carries a `round`: how many
-//! complete cycles have elapsed since [`EPOCH`]. See the crate
-//! documentation for why.
-//!
-//! # Sources
-//!
-//! The ordinal arithmetic — in particular the way a tzolk'in position is
-//! turned into a day count, and the congruence that decides whether a
-//! tzolk'in and haab position can occur together — follows Reingold and
-//! Dershowitz, *Calendrical Calculations* (4th ed., 2018), chapter 11. The
-//! day and month names are the conventional Yucatec orthography those
-//! tables use.
+//! The arithmetic follows Reingold and Dershowitz, *Calendrical
+//! Calculations* (4th ed., 2018), chapter 11, as their published code
+//! states it (`reingold2018code` in `docs/references.bib`); the day and
+//! month names are the sixteenth-century Yucatec spelling.
 
 use core::fmt;
 

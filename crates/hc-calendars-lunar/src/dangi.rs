@@ -4,7 +4,10 @@
 //! numbered from a different epoch. Korea used the Chinese calendar of the
 //! day throughout, so the arithmetic is not merely similar: it is the same
 //! arithmetic, which is why this module is thirty lines of constants and no
-//! algorithm.
+//! algorithm. The calendar as KASI publishes it, Joseon's adoption of the
+//! Shíxiàn rules in 1653, the days within the years below, Seollal 1988
+//! worked by hand and what was checked against which publication are in
+//! `docs/systems/east-asian-lunisolar.md`.
 //!
 //! # The meridian, and why it has five entries
 //!
@@ -12,33 +15,29 @@
 //! |---|---|---|
 //! | — | UT+8:27:52 | Seoul local mean time, 126°58′E |
 //! | 1908 | UT+8:30 | the 127°30′E zone, adopted by the Korean Empire |
-//! | 1912 | UT+9 | the 135°E zone, imposed under Japanese rule |
+//! | 1912 | UT+9 | the 135°E zone, under the Governor-General |
 //! | 1954 | UT+8:30 | back to 127°30′E |
 //! | 1961 | UT+9 | back to 135°E, where it remains |
 //!
-//! The table is the one in Reingold and Dershowitz, *Calendrical
-//! Calculations*. A calendar that simply used 135°E from 1908 onward would
-//! get the twentieth century wrong in places, because the two half-hour
-//! periods really did move the day boundary.
-//!
-//! The meridian is the whole of the difference from the Chinese calendar, and
-//! it is enough: over 1900–2049 the Korean and Chinese new years fall on
-//! different days nine times, including 1988, when Seollal was 18 February in
-//! Korea and Chinese New Year was 17 February in China.
+//! A calendar that simply used 135°E from 1908 onward would get the
+//! twentieth century wrong in places, because the two half-hour periods
+//! really did move the day boundary. The meridian is the whole of the
+//! difference from the Chinese calendar, and it is enough: over 1900–2049
+//! the two new years fall on different days nine times, 1988 among them.
 //!
 //! # Year numbering
 //!
 //! *Dangi* (단기) years count from the traditional foundation of Gojoseon in
-//! 2333 BCE, so the year that began on 2024-02-10 is Dangi 4357. That is
-//! 304 less than the Chinese count of the same year; the sexagenary term is
-//! of course identical, and [`LunisolarParameters::sexagenary_year`] corrects
-//! for the offset so that it stays so.
+//! 2333 BCE, so the year that began on 2024-02-10 is Dangi 4357, 304 less
+//! than the Chinese count of the same year; the sexagenary term is of course
+//! identical, and [`LunisolarParameters::sexagenary_year`] corrects for the
+//! offset so that it stays so.
 //!
 //! # Range
 //!
-//! As for [`crate::chinese`]: 1645-01-01 to 2150-12-31. The Korean court
-//! adopted the Shíxiàn rules some years after 1645, so dates in the gap are
-//! what these rules give rather than what was proclaimed in Hanseong.
+//! As for [`crate::chinese`]: 1645-01-01 to 2150-12-31. Joseon adopted the
+//! Shíxiàn rules in 1653, so dates in the gap are what these rules give
+//! rather than what was proclaimed in Hanseong.
 
 use hc_calendar::{Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd};
 
