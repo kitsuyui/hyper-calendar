@@ -84,21 +84,28 @@ there. The table is checked for sortedness and uniqueness by a test.
 * **Casing** follows UAX 21 plus the Turkic tailoring that Unicode itself
   specifies for `tr` and `az`.
 
-Locales shipped: `am ar bo cop cs de en es fa fr he hi id it ja ko my ne nl
-pl pt ru th tr vi zh-Hans zh-Hant`, plus the `und` root. Non-Gregorian
-vocabulary: Hijri months (Arabic, English), Hebrew months (Hebrew, English),
-Babylonian months (English), the numbered lunisolar months in both Chinese
-scripts, in Tibetan and in English, their Japanese traditional names (睦月 …
-師走), Japanese era names, the Ethiopic months in Amharic, the Coptic months
-in Coptic and in Egyptian Arabic, the Burmese months in Burmese, the Bikram
-Sambat and Nepal Sambat months in Devanagari, romanisations of the Coptic,
-Ethiopic, Burmese, Armenian and Persian months (whose own scripts the
-calendars carry themselves), and the zodiac animals in Chinese, Japanese,
-Korean, Vietnamese and English. The stems and branches are not spelled here:
-each locale names one of the readings `hc_calendar::cycle::readings`
-catalogues.
+Locales shipped: `am ar ban bn bo cop cs de en es fa fr he hi id it ja jv
+kab ko mid ml my nah ne nl pl pt ru sa syr ta th tr vi yua zgh zh-Hans
+zh-Hant`, plus the `und` root. Non-Gregorian vocabulary: Hijri months
+(Arabic, English), Hebrew months (Hebrew, English), Babylonian months
+(English), the numbered lunisolar months in both Chinese scripts, in Tibetan
+and in English, their Japanese traditional names (睦月 … 師走), Japanese era
+names, the Ethiopic months in Amharic, the Coptic months in Coptic and in
+Egyptian Arabic, the Burmese months in Burmese, the Bikram Sambat and Nepal
+Sambat months in Devanagari, the Hindu lunisolar and Vikrami solar months in
+Devanagari (Sanskrit and Hindi), the Indian national calendar's months in
+Hindi, Tamil, Malayalam and Bengali, the Tamil, Malayalam and Bengali solar
+months in their own scripts, the Assyrian months in Syriac, the Berber
+months in Kabyle and in Tifinagh, the Maya day-signs and haabʼ months in
+Yucatec, the Aztec day-signs and months in Nahuatl, the Pawukon cycles in
+Balinese, the pasaran and dina in Javanese, the Mandaean weekdays in Mandaic,
+romanisations of the Coptic, Ethiopic, Burmese, Armenian and Persian months
+(whose own scripts the calendars carry themselves), and the zodiac animals
+in Chinese, Japanese, Korean, Vietnamese and English. The stems and branches
+are not spelled here: each locale names one of the readings
+`hc_calendar::cycle::readings` catalogues.
 
-Five of the locales exist for a calendar's own language, and they cover
+Eighteen of the locales exist for a calendar's own language, and they cover
 what their sources cover and no more:
 
 | Locale | Calendar | Gregorian vocabulary | Calendar vocabulary | Not carried |
@@ -108,6 +115,19 @@ what their sources cover and no more:
 | `my` Burmese | `burmese` | CLDR 48 `my.xml` | the twelve months (Wikipedia, "Burmese calendar") | a "Second Waso" prefix in Burmese script |
 | `bo` Tibetan | `tibetan` | CLDR 48 `bo.xml` | the numbered months, CLDR's own ordinal month names keyed to the calendar that numbers its months | the doubled-month prefix; the sixty-year cycle, which the crate's cycle model cannot hold |
 | `ne` Nepali | `bikram-sambat`, `nepal-sambat` | CLDR 48 `ne.xml` | the Bikram Sambat months as the Nepal Rajpatra spells them, the Nepal Sambat months in Devanagari (Wikipedia, "Nepal Sambat") | either era in Devanagari; a `new` (Newar) locale, which CLDR does not have |
+| `sa` Sanskrit | `hindu-lunar`, `hindu-lunar-purnimanta`, `hindu-solar-vikrami` | CLDR 48 `sa.xml`, less the abbreviated months and the weekdays, which inherit because CLDR prints an ASCII colon for a visarga in the former and in Thursday's wide form | the twelve lunar months in Devanagari as the amānta calendar declares them (Rashtriya Panchang, Sanskrit edition; Wikipedia, "Hindu calendar"), the prefix अधिक (Wikipedia, "Adhik Maas"), the Vikrami solar months from Vaiśākha | the eras (CLDR's default forms are Latin); the rāśi names in Devanagari and the nakṣatras: no source read prints the former, no calendar declares the latter |
+| `hi` Hindi | `indian`, `hindu-lunar`, `hindu-lunar-purnimanta`, `hindu-solar-vikrami` | CLDR 48 `hi.xml` | the national calendar's months and era abbreviation शक (CLDR `indian`), the same twelve names keyed to the lunisolar calendars with the prefix अधिक, and from Vaiśākha to the Vikrami solar calendar | the rāśi names in Devanagari; the nakṣatras |
+| `ta` Tamil | `indian`, `hindu-solar-tamil` | CLDR 48 `ta.xml` | the Tamil months சித்திரை … (CLDR `indian`), serving both calendars, with the era abbreviation சாகா | day periods: CLDR's `ta` inherits root's |
+| `ml` Malayalam | `indian`, `hindu-solar-malayalam` | CLDR 48 `ml.xml` | the national calendar's months in Malayalam and the era abbreviation ശക (CLDR `indian`); the Kollam months ചിങ്ങം … (Wikipedia, "Malayalam calendar") | day periods: CLDR's `ml` inherits root's |
+| `bn` Bengali | `indian`, `hindu-solar-bengali`, `bangladeshi` | CLDR 48 `bn.xml` | the twelve months (CLDR `indian`), Chaitra first for the national calendar and Boishakh first for the Bengali year, the same spellings Wikipedia's "Bangladeshi national calendar" prints; CLDR's era abbreviation সাল | day periods: CLDR's `bn` inherits root's |
+| `yua` Yucatec Maya | `maya-tzolkin`, `maya-haab`, `maya-round` and their `-gmt2` twins | none: CLDR has no `yua`, so it inherits | the twenty day-signs and nineteen haabʼ months in the sixteenth-century Yucatec spelling the calendar declares (Reingold and Dershowitz; Wikipedia, "Tzolkʼin", "Maya calendar") | the revised orthography; weekdays, day periods, eras |
+| `nah` Nahuatl | `aztec-tonalpohualli`, `aztec-xiuhpohualli` | none: CLDR has no `nah`, so it inherits | the twenty day-signs and nineteen months as the calendar declares them (Wikipedia, "Tonalpohualli"; Reingold and Dershowitz) | weekdays, day periods, eras |
+| `ban` Balinese | `balinese-pawukon` | none: CLDR has no `ban`, so it inherits | all ten Pawukon cycles as the calendar declares them (Reingold and Dershowitz, §10.6); the Saptawara as weekdays | Balinese script: no source read prints it; day periods, eras |
+| `jv` Javanese | `javanese-pasaran` | CLDR 48 `jv.xml` | the five pasaran and the seven dina (Wikipedia, "Javanese calendar", which spells Monday Senin where the module has Senen) | the Javanese-script forms that page prints, `jv` being a Latin-script locale |
+| `syr` Syriac | `assyrian` | CLDR 48 `syr.xml` | the twelve Assyrian months in vocalised East Syriac (Wikipedia, "Assyrian calendar"), Neesan first, ܛܲܒܵܚ for Tabakh | the era AY in Syriac |
+| `kab` Kabyle | `berber` | CLDR 48 `kab.xml` | the Gregorian months, which are the agrarian calendar's under the same Latin-derived names (Encyclopédie berbère, "Calendrier"); CLDR spells Fuṛar and Nunembeṛ where the calendar has Furar and Wambeṛ | — |
+| `zgh` Standard Moroccan Tamazight | `berber` | CLDR 48 `zgh.xml` | the Gregorian months in Tifinagh, ⵉⵏⵏⴰⵢⵔ …, keyed to the agrarian calendar for the same reason | Kabyle forms in Tifinagh: no source read prints them |
+| `mid` Mandaic | `mandaean` | none: CLDR has no `mid`, so it inherits | the seven weekdays in Mandaic script (Wikipedia, "Mandaean calendar") | the months: that page prints the twelve zodiacal names but no Mandaic Parwanaia, and the calendar's month cycle has thirteen positions; day periods, eras |
 
 Plural languages: `ar cs cy da de en es fi fr ga he hi id it ja ko lt lv nl pl
 pt ro ru sl sv th tr uk vi zh`.

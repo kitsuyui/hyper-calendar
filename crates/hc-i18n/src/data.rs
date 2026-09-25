@@ -23,17 +23,22 @@
 //!   genuinely differ: Hijri months in Arabic and English, Hebrew months in
 //!   Hebrew and English, Babylonian months in English, the Chinese lunisolar months in both Chinese
 //!   scripts, their Japanese traditional names, and the Japanese era names.
-//! * Five locales exist for a calendar's own language: Amharic for the
-//!   Ethiopic calendar, Coptic for the Coptic, Burmese for the Burmese,
-//!   Tibetan for the Tibetan and Nepali for the Bikram Sambat and Nepal
-//!   Sambat. Their Gregorian vocabulary is CLDR's where CLDR has the locale
-//!   (CLDR 48, `common/main/am.xml`, `my.xml`, `bo.xml` and `ne.xml`, read
-//!   2026-09-25 from the `release-48` tag of github.com/unicode-org/cldr);
-//!   CLDR has no `cop`, so that entry states only what the calendar's own
-//!   sources say. Where a CLDR value is the inheritance marker `↑↑↑`, the
-//!   value it resolves to under CLDR's aliases (abbreviated to wide, format
-//!   narrow to stand-alone narrow) is what is written here, and a width that
-//!   resolves to the wide form is left empty.
+//! * Locales exist for a calendar's own language: Amharic for the Ethiopic
+//!   calendar, Coptic for the Coptic, Burmese for the Burmese, Tibetan for
+//!   the Tibetan, Nepali for the Bikram Sambat and Nepal Sambat, Sanskrit
+//!   and Hindi for the Hindu lunisolar and Vikrami solar calendars, Tamil,
+//!   Malayalam and Bengali for the regional solar calendars, Yucatec Maya
+//!   and Nahuatl for the Mesoamerican counts, Balinese and Javanese for the
+//!   Pawukon and the pasaran, Syriac for the Assyrian calendar, Kabyle and
+//!   Standard Moroccan Tamazight for the Berber calendar, and Mandaic for
+//!   the Mandaean. Their Gregorian vocabulary is CLDR's where CLDR has the
+//!   locale (CLDR 48, `common/main/<locale>.xml`, read 2026-09-25 and
+//!   2026-09-26 from the `release-48` tag of github.com/unicode-org/cldr);
+//!   CLDR has no `cop`, `ban`, `yua`, `nah` or `mid`, so those entries state
+//!   only what the calendars' own sources say. Where a CLDR value is the
+//!   inheritance marker `↑↑↑`, the value it resolves to under CLDR's aliases
+//!   (abbreviated to wide, format narrow to stand-alone narrow) is what is
+//!   written here, and a width that resolves to the wide form is left empty.
 //! * The sexagenary cycle is written in whichever of the readings
 //!   `hc_calendar::cycle::readings` catalogues the locale uses; only the
 //!   zodiac animals are spelled here, for Chinese in both scripts, Japanese,
@@ -127,6 +132,12 @@ const fn month_cycle(names: ContextualNames) -> CycleNames {
 /// A month cycle from a plain list of names, the same in every width.
 const fn months(names: &'static [&'static str]) -> CycleNames {
     month_cycle(ContextualNames::same(widths(names, &[], &[])))
+}
+
+/// Any other cycle a calendar declares — a day-sign, a pasaran, a wuku —
+/// from a plain list of names, the same in every width.
+const fn cycle(kind: &'static str, names: &'static [&'static str]) -> CycleNames {
+    CycleNames::new(kind, ContextualNames::same(widths(names, &[], &[])))
 }
 
 /// The five Hijri calendars, which share one set of Arabic month names.
@@ -507,6 +518,283 @@ const AR: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["ص", "م"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: AR_CALENDARS,
+};
+
+// --- Balinese -------------------------------------------------------------
+//
+// The language of the Pawukon. CLDR has no `ban` locale, so this entry has
+// no Gregorian vocabulary — the empty Gregorian entry below is there
+// because every locale states that calendar, and it inherits — and no day
+// periods or eras. The ten cycles are the names
+// `hc_calendars_regional::balinese_pawukon` declares with its shape, which
+// follow Reingold and Dershowitz, *Calendrical Calculations* (4th ed.,
+// 2018), §10.6, as that module's Sources say; the locale restates them so
+// that the language, and not only the calendar, claims them. The seven
+// Saptawara, Redite (Sunday) to Saniscara (Saturday), are the locale's
+// weekdays too, Monday first as this crate orders them. No source read
+// prints any of the names in Balinese script (Wikipedia, "Pawukon
+// calendar", read 2026-09-26, has none), so none are carried. The week
+// begins on Sunday because CLDR 48 `weekData/firstDay` says so for ID, and
+// there is no CLDR locale to say otherwise; numbering is `latn`, this
+// crate having no Balinese numerals.
+
+const BAN_WUKU: &[&str] = &[
+    "Sinta",
+    "Landep",
+    "Ukir",
+    "Kulantir",
+    "Taulu",
+    "Gumbreg",
+    "Wariga",
+    "Warigadean",
+    "Julungwangi",
+    "Sungsang",
+    "Dungulan",
+    "Kuningan",
+    "Langkir",
+    "Medangsia",
+    "Pujut",
+    "Pahang",
+    "Krulut",
+    "Merakih",
+    "Tambir",
+    "Medangkungan",
+    "Matal",
+    "Uye",
+    "Menail",
+    "Prangbakat",
+    "Bala",
+    "Ugu",
+    "Wayang",
+    "Kelawu",
+    "Dukut",
+    "Watugunung",
+];
+
+const BAN_SAPTAWARA: &[&str] = &[
+    "Redite",
+    "Coma",
+    "Anggara",
+    "Buda",
+    "Wraspati",
+    "Sukra",
+    "Saniscara",
+];
+
+const BAN_CALENDARS: &[CalendarNames] = &[
+    gregorian(&[], EraNames::EMPTY, ContextualNames::EMPTY),
+    CalendarNames {
+        calendars: &[CalendarId("balinese-pawukon")],
+        cycles: &[
+            months(BAN_WUKU),
+            cycle("ekawara", &["Luang"]),
+            cycle("dwiwara", &["Menga", "Pepet"]),
+            cycle("triwara", &["Pasah", "Beteng", "Kajeng"]),
+            cycle("caturwara", &["Sri", "Laba", "Jaya", "Menala"]),
+            cycle("pancawara", &["Umanis", "Paing", "Pon", "Wage", "Kliwon"]),
+            cycle(
+                "sadwara",
+                &["Tungleh", "Aryang", "Urukung", "Paniron", "Was", "Maulu"],
+            ),
+            cycle(hc_calendar::shape::WEEKDAY, BAN_SAPTAWARA),
+            cycle(
+                "astawara",
+                &[
+                    "Sri", "Indra", "Guru", "Yama", "Ludra", "Brahma", "Kala", "Uma",
+                ],
+            ),
+            cycle(
+                "sangawara",
+                &[
+                    "Dangu", "Jangur", "Gigis", "Nohan", "Ogan", "Erangan", "Urungan", "Tulus",
+                    "Dadi",
+                ],
+            ),
+            cycle(
+                "dasawara",
+                &[
+                    "Pandita", "Pati", "Suka", "Duka", "Sri", "Manuh", "Manusa", "Raja", "Dewa",
+                    "Raksasa",
+                ],
+            ),
+        ],
+        leap_month_prefix: "",
+        eras: EraNames::EMPTY,
+        quarters: ContextualNames::EMPTY,
+    },
+];
+
+const BAN: LocaleData = LocaleData {
+    tag: "ban",
+    direction: Direction::LeftToRight,
+    numbering: "latn",
+    first_day_of_week: Weekday::Sunday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: true,
+    weekdays: ContextualNames::same(weekday_widths(
+        &[
+            "Coma",
+            "Anggara",
+            "Buda",
+            "Wraspati",
+            "Sukra",
+            "Saniscara",
+            "Redite",
+        ],
+        &[],
+        &[],
+        &[],
+    )),
+    day_periods: ContextualNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
+    calendars: BAN_CALENDARS,
+};
+
+// --- Bengali --------------------------------------------------------------
+//
+// The language of the Bengali solar calendar. Gregorian vocabulary from
+// CLDR 48 `common/main/bn.xml`, `calendar type="gregorian"`: the wide
+// months, the abbreviated ones (March, May and June resolving to the wide
+// form), the stand-alone narrow ones, the weekdays, the format-wide and
+// stand-alone quarters, and the eras, whose wide BC form is the inheritance
+// marker and resolves to the abbreviation. CLDR's `bn` carries no day
+// periods of its own — its am/pm are the inheritance marker, resolving to
+// root's — so none are written. The twelve months of its `calendar
+// type="indian"`, Chaitra first, are keyed to the national calendar with
+// CLDR's era abbreviation সাল; the same twelve words, Boishakh first, are
+// the Bengali solar year's, and are keyed to `hindu-solar-bengali` and
+// `bangladeshi` — the same order and, letter for letter, the same
+// spellings the months table of Wikipedia, "Bangladeshi national
+// calendar", prints, which `hc_calendars_solar::bangladeshi` declares with
+// its shape; the locale states them so that the language, and not only
+// the calendar, claims them. The week begins on Sunday (CLDR 48
+// `weekData/firstDay`, BD and IN alike) and the default numbering system
+// is `beng`.
+
+const BN_SAKA_MONTHS: &[&str] = &[
+    "চৈত্র",
+    "বৈশাখ",
+    "জ্যৈষ্ঠ",
+    "আষাঢ়",
+    "শ্রাবণ",
+    "ভাদ্র",
+    "আশ্বিন",
+    "কার্তিক",
+    "অগ্রহায়ণ",
+    "পৌষ",
+    "মাঘ",
+    "ফাল্গুন",
+];
+
+const BN_BANGABDA_MONTHS: &[&str] = &[
+    "বৈশাখ",
+    "জ্যৈষ্ঠ",
+    "আষাঢ়",
+    "শ্রাবণ",
+    "ভাদ্র",
+    "আশ্বিন",
+    "কার্তিক",
+    "অগ্রহায়ণ",
+    "পৌষ",
+    "মাঘ",
+    "ফাল্গুন",
+    "চৈত্র",
+];
+
+const BN_CALENDARS: &[CalendarNames] = &[
+    gregorian(
+        &[month_cycle(ContextualNames::same(widths(
+            &[
+                "জানুয়ারি",
+                "ফেব্রুয়ারি",
+                "মার্চ",
+                "এপ্রিল",
+                "মে",
+                "জুন",
+                "জুলাই",
+                "আগস্ট",
+                "সেপ্টেম্বর",
+                "অক্টোবর",
+                "নভেম্বর",
+                "ডিসেম্বর",
+            ],
+            &[
+                "জানু",
+                "ফেব",
+                "মার্চ",
+                "এপ্রি",
+                "মে",
+                "জুন",
+                "জুল",
+                "আগ",
+                "সেপ",
+                "অক্টো",
+                "নভে",
+                "ডিসে",
+            ],
+            &[
+                "জা",
+                "ফে",
+                "মা",
+                "এ",
+                "মে",
+                "জুন",
+                "জু",
+                "আ",
+                "সে",
+                "অ",
+                "ন",
+                "ডি",
+            ],
+        )))],
+        gregorian_eras(&["খ্রিস্টপূর্ব", "খ্রিস্টাব্দ"], &["খ্রিস্টপূর্ব", "খৃষ্টাব্দ"], &[]),
+        ContextualNames {
+            format: widths(
+                &["ত্রৈমাসিক", "দ্বিতীয় ত্রৈমাসিক", "তৃতীয় ত্রৈমাসিক", "চতুর্থ ত্রৈমাসিক"],
+                &[],
+                &[],
+            ),
+            standalone: widths(&[], &["Q1", "Q2", "Q3", "Q4"], &["১", "২", "৩", "৪"]),
+        },
+    ),
+    dated(
+        &[CalendarId("indian")],
+        &[months(BN_SAKA_MONTHS)],
+        &["saka"],
+        &["সাল"],
+    ),
+    dated(
+        &[CalendarId("hindu-solar-bengali"), CalendarId("bangladeshi")],
+        &[months(BN_BANGABDA_MONTHS)],
+        &[],
+        &[],
+    ),
+];
+
+const BN: LocaleData = LocaleData {
+    tag: "bn",
+    direction: Direction::LeftToRight,
+    numbering: "beng",
+    first_day_of_week: Weekday::Sunday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: false,
+    weekdays: ContextualNames::same(weekday_widths(
+        &[
+            "সোমবার",
+            "মঙ্গলবার",
+            "বুধবার",
+            "বৃহস্পতিবার",
+            "শুক্রবার",
+            "শনিবার",
+            "রবিবার",
+        ],
+        &["সোম", "মঙ্গল", "বুধ", "বৃহস্পতি", "শুক্র", "শনি", "রবি"],
+        &[],
+        &["সো", "ম", "বু", "বৃ", "শু", "শ", "র"],
+    )),
+    day_periods: ContextualNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
+    calendars: BN_CALENDARS,
 };
 
 // --- Tibetan --------------------------------------------------------------
@@ -1553,31 +1841,59 @@ const HE: LocaleData = LocaleData {
 };
 
 // --- Hindi ----------------------------------------------------------------
+//
+// Gregorian vocabulary from CLDR 48 `common/main/hi.xml`. The twelve months
+// of its `calendar type="indian"`, Chaitra first, are keyed to the national
+// calendar with CLDR's era abbreviation शक. The national calendar's months
+// bear the lunar months' names (docs/systems/hindu-calendars.md, after the
+// Calendar Reform Committee's report of 1955), so the same twelve Hindi
+// forms are keyed to the amānta and pūrṇimānta calendars too, where the
+// calendar's own Devanagari — आषाढ, आश्विन and मार्गशीर्ष, from the Rashtriya
+// Panchang's Sanskrit edition — has the Hindi spellings आषाढ़, अश्विन and
+// अग्रहायण as CLDR writes them; the locale's forms are the override. The
+// intercalary month is adhika: the prefix अधिक is the first element of
+// अधिकमास as Wikipedia, "Adhik Maas", read 2026-09-26, spells the Sanskrit,
+// kept apart from the month name as the English "Adhika " is. The Vikrami
+// solar months of Punjab, Haryana and Odisha are the same names from
+// Vaiśākha (`hc_seasons::zodiac::rashi::VIKRAMI`, after the Rashtriya
+// Panchang's Punjab and Odisha column), so the list is keyed to
+// `hindu-solar-vikrami` starting one month on. Not carried: the rāśi names
+// in Devanagari, which no source read prints (the Old Hindu solar calendar
+// keeps its IAST names), and the twenty-seven nakṣatras, which no calendar
+// declares as a cycle.
 
-const HI: LocaleData = LocaleData {
-    tag: "hi",
-    direction: Direction::LeftToRight,
-    numbering: "latn",
-    first_day_of_week: Weekday::Sunday,
-    casing: CasingStyle::Standard,
-    capitalises_month_names: false,
-    weekdays: ContextualNames::same(weekday_widths(
-        &[
-            "सोमवार",
-            "मंगलवार",
-            "बुधवार",
-            "गुरुवार",
-            "शुक्रवार",
-            "शनिवार",
-            "रविवार",
-        ],
-        &["सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि", "रवि"],
-        &[],
-        &["सो", "मं", "बु", "गु", "शु", "श", "र"],
-    )),
-    day_periods: ContextualNames::same(widths(&["पूर्वाह्न", "अपराह्न"], &[], &[])),
-    cycle: SexagenaryNames::EMPTY,
-    calendars: &[gregorian(
+const HI_SAKA_MONTHS: &[&str] = &[
+    "चैत्र",
+    "वैशाख",
+    "ज्येष्ठ",
+    "आषाढ़",
+    "श्रावण",
+    "भाद्रपद",
+    "अश्विन",
+    "कार्तिक",
+    "अग्रहायण",
+    "पौष",
+    "माघ",
+    "फाल्गुन",
+];
+
+const HI_VIKRAMI_MONTHS: &[&str] = &[
+    "वैशाख",
+    "ज्येष्ठ",
+    "आषाढ़",
+    "श्रावण",
+    "भाद्रपद",
+    "अश्विन",
+    "कार्तिक",
+    "अग्रहायण",
+    "पौष",
+    "माघ",
+    "फाल्गुन",
+    "चैत्र",
+];
+
+const HI_CALENDARS: &[CalendarNames] = &[
+    gregorian(
         &[month_cycle(ContextualNames::same(widths(
             &[
                 "जनवरी",
@@ -1611,7 +1927,53 @@ const HI: LocaleData = LocaleData {
         )))],
         gregorian_eras(&["ईसा-पूर्व", "ईसवी"], &[], &[]),
         ContextualNames::EMPTY,
-    )],
+    ),
+    dated(
+        &[CalendarId("indian")],
+        &[months(HI_SAKA_MONTHS)],
+        &["saka"],
+        &["शक"],
+    ),
+    lunisolar(
+        &[
+            CalendarId("hindu-lunar"),
+            CalendarId("hindu-lunar-purnimanta"),
+        ],
+        &[months(HI_SAKA_MONTHS)],
+        "अधिक ",
+    ),
+    dated(
+        &[CalendarId("hindu-solar-vikrami")],
+        &[months(HI_VIKRAMI_MONTHS)],
+        &[],
+        &[],
+    ),
+];
+
+const HI: LocaleData = LocaleData {
+    tag: "hi",
+    direction: Direction::LeftToRight,
+    numbering: "latn",
+    first_day_of_week: Weekday::Sunday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: false,
+    weekdays: ContextualNames::same(weekday_widths(
+        &[
+            "सोमवार",
+            "मंगलवार",
+            "बुधवार",
+            "गुरुवार",
+            "शुक्रवार",
+            "शनिवार",
+            "रविवार",
+        ],
+        &["सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि", "रवि"],
+        &[],
+        &["सो", "मं", "बु", "गु", "शु", "श", "र"],
+    )),
+    day_periods: ContextualNames::same(widths(&["पूर्वाह्न", "अपराह्न"], &[], &[])),
+    cycle: SexagenaryNames::EMPTY,
+    calendars: HI_CALENDARS,
 };
 
 // --- Indonesian -----------------------------------------------------------
@@ -1801,6 +2163,198 @@ const JA: LocaleData = LocaleData {
     calendars: JA_CALENDARS,
 };
 
+// --- Javanese -------------------------------------------------------------
+//
+// The language of the pasaran. Gregorian vocabulary from CLDR 48
+// `common/main/jv.xml`: the wide and abbreviated months (May's abbreviation
+// resolving to the wide form), the stand-alone narrow ones, the wide and
+// abbreviated weekdays (Sunday's abbreviation resolving to the wide form;
+// the narrow forms are not carried because Saturday's is the inheritance
+// marker and resolves to the wide form), the day periods, the eras and the
+// quarters. The five pasaran days are keyed to `javanese-pasaran` as
+// `hc_calendars_regional::javanese_pasaran` declares them, Legi first,
+// which the "Five-day week" table of Wikipedia, "Javanese calendar", read
+// 2026-09-26, prints in the same forms; the seven dina are that page's
+// "Seven-day week" table, Ahad (Sunday) first as the module orders them,
+// which spells Monday Senin where the module has Senen and gives Minggu
+// beside Ahad for Sunday. That page also prints every one of these names
+// in Javanese script (ꦊꦒꦶ, ꦱꦼꦤꦶꦤ꧀ …); they are not carried, because `jv` is
+// CLDR's Latin-script locale and a `jv-Java` entry would have no Gregorian
+// vocabulary of its own to stand beside them. The week begins on Sunday
+// (CLDR 48 `weekData/firstDay`, ID) and the numbering system is `latn`.
+
+const JV_CALENDARS: &[CalendarNames] = &[
+    gregorian(
+        &[month_cycle(ContextualNames::same(widths(
+            &[
+                "Januari",
+                "Februari",
+                "Maret",
+                "April",
+                "Mei",
+                "Juni",
+                "Juli",
+                "Agustus",
+                "September",
+                "Oktober",
+                "November",
+                "Desember",
+            ],
+            &[
+                "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des",
+            ],
+            &["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
+        )))],
+        gregorian_eras(&["Sakdurunge Masehi", "Masehi"], &["SM", "M"], &[]),
+        ContextualNames::same(widths(
+            &[
+                "triwulan kaping pisan",
+                "triwulan kaping loro",
+                "triwulan kaping telu",
+                "triwulan kaping papat",
+            ],
+            &["TW1", "TW2", "TW3", "TW4"],
+            &[],
+        )),
+    ),
+    CalendarNames {
+        calendars: &[CalendarId("javanese-pasaran")],
+        cycles: &[
+            cycle("pasaran", &["Legi", "Pahing", "Pon", "Wage", "Kliwon"]),
+            cycle(
+                hc_calendar::shape::WEEKDAY,
+                &[
+                    "Ahad", "Senin", "Selasa", "Rebo", "Kemis", "Jemuwah", "Setu",
+                ],
+            ),
+        ],
+        leap_month_prefix: "",
+        eras: EraNames::EMPTY,
+        quarters: ContextualNames::EMPTY,
+    },
+];
+
+const JV: LocaleData = LocaleData {
+    tag: "jv",
+    direction: Direction::LeftToRight,
+    numbering: "latn",
+    first_day_of_week: Weekday::Sunday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: true,
+    weekdays: ContextualNames::same(weekday_widths(
+        &["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Ahad"],
+        &["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Ahad"],
+        &[],
+        &[],
+    )),
+    day_periods: ContextualNames::same(widths(&["Isuk", "Wengi"], &[], &[])),
+    cycle: SexagenaryNames::EMPTY,
+    calendars: JV_CALENDARS,
+};
+
+// --- Kabyle ---------------------------------------------------------------
+//
+// A language of the Berber agrarian calendar. Gregorian vocabulary from
+// CLDR 48 `common/main/kab.xml`: the wide, abbreviated and stand-alone
+// narrow months, the weekdays (one form in every width), the day periods
+// (the abbreviated form joins its two words with a narrow no-break space,
+// as CLDR writes it), the eras and the quarters in both contexts. The
+// agrarian calendar is the Julian year under the Latin-derived names of
+// the months: `hc_calendars_solar::berber` declares them in the Kabyle
+// forms Wikipedia's "Berber calendar" tabulates, and the Encyclopédie
+// berbère's "Calendrier" (1992), which that module cites, says the names
+// are the Julian ones — so CLDR's Kabyle Gregorian months are the
+// calendar's months in this language, and the same list is keyed to
+// `berber`. Two spellings differ from the module's: CLDR writes Fuṛar and
+// Nunembeṛ where the module has Furar and Wambeṛ, and the locale's forms
+// are the override. The week begins on Saturday (CLDR 48
+// `weekData/firstDay`, DZ) and the numbering system is `latn`.
+
+const KAB_MONTHS: &[&str] = &[
+    "Yennayer",
+    "Fuṛar",
+    "Meɣres",
+    "Yebrir",
+    "Mayyu",
+    "Yunyu",
+    "Yulyu",
+    "Ɣuct",
+    "Ctembeṛ",
+    "Tubeṛ",
+    "Nunembeṛ",
+    "Duǧembeṛ",
+];
+
+const KAB_MONTHS_ABBREVIATED: &[&str] = &[
+    "Yen", "Fur", "Meɣ", "Yeb", "May", "Yun", "Yul", "Ɣuc", "Cte", "Tub", "Nun", "Duǧ",
+];
+
+const KAB_MONTHS_NARROW: &[&str] = &["Y", "F", "M", "Y", "M", "Y", "Y", "Ɣ", "C", "T", "N", "D"];
+
+const KAB_CALENDARS: &[CalendarNames] = &[
+    gregorian(
+        &[month_cycle(ContextualNames::same(widths(
+            KAB_MONTHS,
+            KAB_MONTHS_ABBREVIATED,
+            KAB_MONTHS_NARROW,
+        )))],
+        gregorian_eras(
+            &["send talalit n Ɛisa", "seld talalit n Ɛisa"],
+            &["snd. T.Ɛ", "sld. T.Ɛ"],
+            &[],
+        ),
+        ContextualNames {
+            format: widths(
+                &[
+                    "akraḍaggur amenzu",
+                    "akraḍaggur wis-sin",
+                    "akraḍaggur wis-kraḍ",
+                    "akraḍaggur wis-kuẓ",
+                ],
+                &["Kḍg1", "Kḍg2", "Kḍg3", "Kḍg4"],
+                &[],
+            ),
+            standalone: widths(
+                &["akraḍyur 1u", "akraḍyur w2", "akraḍyur w3", "akraḍyur w4"],
+                &["Kḍy1", "Kḍy2", "Kḍy3", "Kḍy4"],
+                &[],
+            ),
+        },
+    ),
+    dated(
+        &[CalendarId("berber")],
+        &[month_cycle(ContextualNames::same(widths(
+            KAB_MONTHS,
+            KAB_MONTHS_ABBREVIATED,
+            KAB_MONTHS_NARROW,
+        )))],
+        &[],
+        &[],
+    ),
+];
+
+const KAB: LocaleData = LocaleData {
+    tag: "kab",
+    direction: Direction::LeftToRight,
+    numbering: "latn",
+    first_day_of_week: Weekday::Saturday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: true,
+    weekdays: ContextualNames::same(weekday_widths(
+        &["Arim", "Aram", "Ahad", "Amhad", "Sem", "Sed", "Acer"],
+        &[],
+        &[],
+        &[],
+    )),
+    day_periods: ContextualNames::same(widths(
+        &["n tufat", "n tmeddit"],
+        &["n\u{202f}tufat", "n\u{202f}tmeddit"],
+        &["f", "m"],
+    )),
+    cycle: SexagenaryNames::EMPTY,
+    calendars: KAB_CALENDARS,
+};
+
 // --- Korean ---------------------------------------------------------------
 
 const KO: LocaleData = LocaleData {
@@ -1858,6 +2412,189 @@ const KO: LocaleData = LocaleData {
             &[],
         )),
     )],
+};
+
+// --- Mandaic --------------------------------------------------------------
+//
+// The language of the Mandaean calendar. CLDR has no `mid` locale, so this
+// entry has no Gregorian vocabulary, no day periods and no eras. The
+// weekdays are the seven Mandaic forms of the days-of-the-week table of
+// Wikipedia, "Mandaean calendar", read 2026-09-26 — Habšaba, Sunday, to
+// Yuma ḏ-Šafta, Saturday — Monday first as this crate orders them. The
+// months are not carried: that page prints the twelve zodiacal months in
+// Mandaic script (ࡃࡀࡅࡋࡀ, ࡍࡅࡍࡀ …, Daula to Gadia) but no Mandaic form of the
+// Parwanaia, and `hc_calendars_solar::mandaean` declares a
+// thirteen-position month cycle with the Parwanaia ninth, which a list of
+// twelve cannot fill; no other source read prints the script. Mandaic
+// runs right to left. The week begins on Saturday because CLDR 48
+// `weekData/firstDay` says so for IQ, where the language is spoken, and
+// there is no CLDR locale to say otherwise; numbering is `latn`, this
+// crate having no Mandaic numerals.
+
+const MID: LocaleData = LocaleData {
+    tag: "mid",
+    direction: Direction::RightToLeft,
+    numbering: "latn",
+    first_day_of_week: Weekday::Saturday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: false,
+    weekdays: ContextualNames::same(weekday_widths(
+        &[
+            "ࡕࡓࡉࡍ ࡄࡀࡁࡔࡀࡁࡀ",
+            "ࡕࡋࡀࡕࡀ ࡄࡀࡁࡔࡀࡁࡀ",
+            "ࡀࡓࡁࡀ ࡄࡀࡁࡔࡀࡁࡀ",
+            "ࡄࡀࡌࡔࡀ ࡄࡀࡁࡔࡀࡁࡀ",
+            "ࡉࡅࡌࡀ ࡃ ࡓࡀࡄࡀࡈࡉࡀ",
+            "ࡔࡀࡐࡕࡀ",
+            "ࡄࡀࡁࡔࡀࡁࡀ",
+        ],
+        &[],
+        &[],
+        &[],
+    )),
+    day_periods: ContextualNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
+    calendars: &[gregorian(&[], EraNames::EMPTY, ContextualNames::EMPTY)],
+};
+
+// --- Malayalam ------------------------------------------------------------
+//
+// The language of the Kollam-era calendar. Gregorian vocabulary from CLDR
+// 48 `common/main/ml.xml`: the wide months, the abbreviated ones (May, June
+// and July resolving to the wide form), the stand-alone narrow ones, the
+// weekdays in four widths, the quarters and the eras; CLDR's `ml` has no
+// day periods of its own. Several forms carry a zero-width non-joiner, as
+// CLDR writes them. The twelve months of its `calendar type="indian"` are
+// the national calendar's Sanskrit names in Malayalam (ചൈത്രം …), keyed to
+// `indian` with the era abbreviation ശക; they are not the Kollam year's
+// months, which are the twelve of the months table of Wikipedia,
+// "Malayalam calendar", read 2026-09-26, Chingam first as
+// `hc_calendars_indic::hindu_solar::MALAYALAM` counts them, keyed to
+// `hindu-solar-malayalam`. The week begins on Sunday (CLDR 48
+// `weekData/firstDay`, IN); numbering is `latn`, CLDR's default for `ml`,
+// this crate having no `mlym`.
+
+const ML_CALENDARS: &[CalendarNames] = &[
+    gregorian(
+        &[month_cycle(ContextualNames::same(widths(
+            &[
+                "ജനുവരി",
+                "ഫെബ്രുവരി",
+                "മാർച്ച്",
+                "ഏപ്രിൽ",
+                "മേയ്",
+                "ജൂൺ",
+                "ജൂലൈ",
+                "ഓഗസ്റ്റ്",
+                "സെപ്റ്റംബർ",
+                "ഒക്\u{200c}ടോബർ",
+                "നവംബർ",
+                "ഡിസംബർ",
+            ],
+            &[
+                "ജനു",
+                "ഫെബ്രു",
+                "മാർ",
+                "ഏപ്രി",
+                "മേയ്",
+                "ജൂൺ",
+                "ജൂലൈ",
+                "ഓഗ",
+                "സെപ്റ്റം",
+                "ഒക്ടോ",
+                "നവം",
+                "ഡിസം",
+            ],
+            &[
+                "ജ",
+                "ഫെ",
+                "മാ",
+                "ഏ",
+                "മെ",
+                "ജൂൺ",
+                "ജൂ",
+                "ഓ",
+                "സെ",
+                "ഒ",
+                "ന",
+                "ഡി",
+            ],
+        )))],
+        gregorian_eras(
+            &["ക്രിസ്\u{200c}തുവിന് മുമ്പ്", "ആന്നോ ഡൊമിനി"],
+            &["ബിസി", "എഡി"],
+            &[],
+        ),
+        ContextualNames::same(widths(
+            &["ഒന്നാം പാദം", "രണ്ടാം പാദം", "മൂന്നാം പാദം", "നാലാം പാദം"],
+            &[],
+            &[],
+        )),
+    ),
+    dated(
+        &[CalendarId("indian")],
+        &[months(&[
+            "ചൈത്രം",
+            "വൈശാഖം",
+            "ജ്യേഷ്ഠം",
+            "ആഷാഢം",
+            "ശ്രാവണം",
+            "ഭാദ്രം",
+            "ആശ്വിനം",
+            "കാർത്തികം",
+            "മാർഗശീർഷം",
+            "പൗഷം",
+            "മാഘം",
+            "ഫാൽഗുനം",
+        ])],
+        &["saka"],
+        &["ശക"],
+    ),
+    dated(
+        &[CalendarId("hindu-solar-malayalam")],
+        &[months(&[
+            "ചിങ്ങം",
+            "കന്നി",
+            "തുലാം",
+            "വൃശ്ചികം",
+            "ധനു",
+            "മകരം",
+            "കുംഭം",
+            "മീനം",
+            "മേടം",
+            "ഇടവം",
+            "മിഥുനം",
+            "കർക്കടകം",
+        ])],
+        &[],
+        &[],
+    ),
+];
+
+const ML: LocaleData = LocaleData {
+    tag: "ml",
+    direction: Direction::LeftToRight,
+    numbering: "latn",
+    first_day_of_week: Weekday::Sunday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: false,
+    weekdays: ContextualNames::same(weekday_widths(
+        &[
+            "തിങ്കളാഴ്\u{200c}ച",
+            "ചൊവ്വാഴ്ച",
+            "ബുധനാഴ്\u{200c}ച",
+            "വ്യാഴാഴ്\u{200c}ച",
+            "വെള്ളിയാഴ്\u{200c}ച",
+            "ശനിയാഴ്\u{200c}ച",
+            "ഞായറാഴ്\u{200c}ച",
+        ],
+        &["തിങ്കൾ", "ചൊവ്വ", "ബുധൻ", "വ്യാഴം", "വെള്ളി", "ശനി", "ഞായർ"],
+        &["തി", "ചൊ", "ബു", "വ്യാ", "വെ", "ശ", "ഞാ"],
+        &["തി", "ചൊ", "ബു", "വ്യാ", "വെ", "ശ", "ഞാ"],
+    )),
+    day_periods: ContextualNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
+    calendars: ML_CALENDARS,
 };
 
 // --- Burmese --------------------------------------------------------------
@@ -1965,6 +2702,95 @@ const MY: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["နံနက်", "ညနေ"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: MY_CALENDARS,
+};
+
+// --- Nahuatl --------------------------------------------------------------
+//
+// The language of the Aztec counts. CLDR has no `nah` locale, so this
+// entry has no Gregorian vocabulary, weekdays, day periods or eras. The
+// twenty day-signs and the nineteen months are the forms
+// `hc_calendars_regional::aztec` declares with its shape: the day-signs
+// Cipactli to Xochitl as Wikipedia, "Tonalpohualli", lists them and the
+// months Izcalli to Nemontemi in Reingold and Dershowitz's numbering
+// (*Calendrical Calculations*, 4th ed., 2018), as
+// docs/systems/mesoamerican-counts.md sets out; the locale restates them
+// so that the language, and not only the calendar, claims them. The
+// spelling is the unmarked one of those sources, without vowel length or
+// saltillo. The week begins on Sunday (CLDR 48 `weekData/firstDay`, MX)
+// and numbering is `latn`.
+
+const NAH_CALENDARS: &[CalendarNames] = &[
+    gregorian(&[], EraNames::EMPTY, ContextualNames::EMPTY),
+    CalendarNames {
+        calendars: &[CalendarId("aztec-tonalpohualli")],
+        cycles: &[cycle(
+            "day-sign",
+            &[
+                "Cipactli",
+                "Ehecatl",
+                "Calli",
+                "Cuetzpalin",
+                "Coatl",
+                "Miquiztli",
+                "Mazatl",
+                "Tochtli",
+                "Atl",
+                "Itzcuintli",
+                "Ozomatli",
+                "Malinalli",
+                "Acatl",
+                "Ocelotl",
+                "Cuauhtli",
+                "Cozcacuauhtli",
+                "Ollin",
+                "Tecpatl",
+                "Quiahuitl",
+                "Xochitl",
+            ],
+        )],
+        leap_month_prefix: "",
+        eras: EraNames::EMPTY,
+        quarters: ContextualNames::EMPTY,
+    },
+    dated(
+        &[CalendarId("aztec-xiuhpohualli")],
+        &[months(&[
+            "Izcalli",
+            "Atlcahualo",
+            "Tlacaxipehualiztli",
+            "Tozoztontli",
+            "Hueytozoztli",
+            "Toxcatl",
+            "Etzalcualiztli",
+            "Tecuilhuitontli",
+            "Hueytecuilhuitl",
+            "Tlaxochimaco",
+            "Xocotlhuetzi",
+            "Ochpaniztli",
+            "Teotleco",
+            "Tepeilhuitl",
+            "Quecholli",
+            "Panquetzaliztli",
+            "Atemoztli",
+            "Tititl",
+            "Nemontemi",
+        ])],
+        &[],
+        &[],
+    ),
+];
+
+const NAH: LocaleData = LocaleData {
+    tag: "nah",
+    direction: Direction::LeftToRight,
+    numbering: "latn",
+    first_day_of_week: Weekday::Sunday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: true,
+    weekdays: ContextualNames::EMPTY,
+    day_periods: ContextualNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
+    calendars: NAH_CALENDARS,
 };
 
 // --- Nepali ---------------------------------------------------------------
@@ -2409,6 +3235,356 @@ const RU: LocaleData = LocaleData {
     )],
 };
 
+// --- Sanskrit -------------------------------------------------------------
+//
+// The language of the Hindu calendars' own names. Gregorian vocabulary
+// from CLDR 48 `common/main/sa.xml`, `calendar type="gregorian"`: the wide
+// months, which end in मासः, the narrow months, the wide day periods and
+// the quarters. Two widths are left to inherit because CLDR 48 prints an
+// ASCII colon where a visarga (ः) belongs — the abbreviated months
+// (जनवरी: …) and Thursday's wide weekday (गुरुवासर:, beside सोमवासरः and
+// the rest) — and it is still so on CLDR main as of 2026-09-26; carrying a
+// source's typo is not faithfulness, so the forms wait until CLDR corrects
+// them. The abbreviated months therefore inherit the wide form, and the
+// weekdays inherit as a whole: a locale that states any weekday must
+// state the wide seven, and the wide seven cannot be stated without
+// Thursday, so the abbreviated and narrow forms CLDR does print correctly
+// go with it. The eras are not written: CLDR's
+// default forms are the inheritance marker, resolving to root's Latin BCE
+// and CE, and the Devanagari इ.स.पू. and संवत् are its `alt="variant"`
+// forms. The twelve lunar months are the Devanagari the amānta calendar
+// declares with its shape — the month headings of the Rashtriya Panchang's
+// Sanskrit edition and Wikipedia, "Hindu calendar", as
+// `hc_calendars_indic::hindu_lunar::MONTHS` cites them — keyed to the
+// amānta and pūrṇimānta calendars so that the language, and not only the
+// calendar, claims them, with the intercalary prefix अधिक, the first
+// element of अधिकमास as Wikipedia, "Adhik Maas", read 2026-09-26, spells
+// the Sanskrit, kept apart from the month name as the English "Adhika "
+// is. The Vikrami solar months are the same names from Vaiśākha
+// (`hc_seasons::zodiac::rashi::VIKRAMI`, after the Rashtriya Panchang's
+// Punjab and Odisha column), keyed to `hindu-solar-vikrami`. Not carried:
+// the rāśi names in Devanagari, which no source read prints (the Old Hindu
+// solar calendar keeps its IAST names), and the twenty-seven nakṣatras,
+// which no calendar declares as a cycle. The week begins on Sunday (CLDR 48
+// `weekData/firstDay`, IN) and the default numbering system is `deva`.
+
+const SA_LUNAR_MONTHS: &[&str] = &[
+    "चैत्र",
+    "वैशाख",
+    "ज्येष्ठ",
+    "आषाढ",
+    "श्रावण",
+    "भाद्रपद",
+    "आश्विन",
+    "कार्तिक",
+    "मार्गशीर्ष",
+    "पौष",
+    "माघ",
+    "फाल्गुन",
+];
+
+const SA_VIKRAMI_MONTHS: &[&str] = &[
+    "वैशाख",
+    "ज्येष्ठ",
+    "आषाढ",
+    "श्रावण",
+    "भाद्रपद",
+    "आश्विन",
+    "कार्तिक",
+    "मार्गशीर्ष",
+    "पौष",
+    "माघ",
+    "फाल्गुन",
+    "चैत्र",
+];
+
+const SA_CALENDARS: &[CalendarNames] = &[
+    gregorian(
+        &[month_cycle(ContextualNames::same(widths(
+            &[
+                "जनवरीमासः",
+                "फरवरीमासः",
+                "मार्चमासः",
+                "अप्रैलमासः",
+                "मईमासः",
+                "जूनमासः",
+                "जुलाईमासः",
+                "अगस्तमासः",
+                "सितंबरमासः",
+                "अक्तूबरमासः",
+                "नवंबरमासः",
+                "दिसंबरमासः",
+            ],
+            &[],
+            &[
+                "ज", "फ", "मा", "अ", "म", "जू", "जु", "अ", "सि", "अ", "न", "दि",
+            ],
+        )))],
+        EraNames::EMPTY,
+        ContextualNames::same(widths(
+            &[
+                "प्रथम त्रैमासिक",
+                "द्वितीय त्रैमासिक",
+                "तृतीय त्रैमासिक",
+                "चतुर्थ त्रैमासिक",
+            ],
+            &["त्रैमासिक1", "त्रैमासिक2", "त्रैमासिक3", "त्रैमासिक4"],
+            &[],
+        )),
+    ),
+    lunisolar(
+        &[
+            CalendarId("hindu-lunar"),
+            CalendarId("hindu-lunar-purnimanta"),
+        ],
+        &[months(SA_LUNAR_MONTHS)],
+        "अधिक ",
+    ),
+    dated(
+        &[CalendarId("hindu-solar-vikrami")],
+        &[months(SA_VIKRAMI_MONTHS)],
+        &[],
+        &[],
+    ),
+];
+
+const SA: LocaleData = LocaleData {
+    tag: "sa",
+    direction: Direction::LeftToRight,
+    numbering: "deva",
+    first_day_of_week: Weekday::Sunday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: false,
+    weekdays: ContextualNames::EMPTY,
+    day_periods: ContextualNames::same(widths(&["पूर्वाह्न", "अपराह्न"], &[], &[])),
+    cycle: SexagenaryNames::EMPTY,
+    calendars: SA_CALENDARS,
+};
+
+// --- Syriac ---------------------------------------------------------------
+//
+// The language of the Assyrian calendar. Gregorian vocabulary from CLDR 48
+// `common/main/syr.xml`: the wide months, which are the Syriac months
+// Kānōn ʾḤrāy to Kānōn Qḏīm under the Gregorian numbering, the
+// abbreviated ones (only the two Tishrins and two Kanoons abbreviate; the
+// rest resolve to the wide form), the stand-alone narrow ones, the
+// weekdays (Saturday's abbreviation resolving to the wide form), the
+// quarters, the day periods and the eras; several abbreviations begin
+// with the Syriac abbreviation mark U+070F and end in a zero-width
+// non-joiner, as CLDR writes them. The Assyrian months are the Syriac
+// column of the months table of Wikipedia, "Assyrian calendar", read
+// 2026-09-26, which `hc_calendars_solar::assyrian` cites, in its
+// vocalised East Syriac forms, Neesan first as the calendar counts, with
+// ܛܲܒܵܚ for the fifth month where the table offers ܐܵܒ or ܛܲܒܵܚ and the
+// module's own name is Tabakh; the two Tishrins and two Kanoons are
+// numbered with the letters ܐ and ܒ as the table prints them. CLDR's
+// unvocalised Gregorian forms are not reused for the calendar because its
+// August is ܐܒ. No Syriac form of the era AY was found in a source read.
+// Syriac runs right to left; the week begins on Saturday (CLDR 48
+// `weekData/firstDay`, IQ) and the numbering system is `latn`.
+
+const SYR_CALENDARS: &[CalendarNames] = &[
+    gregorian(
+        &[month_cycle(ContextualNames::same(widths(
+            &[
+                "ܟܢܘܢ ܐܚܪܝܐ",
+                "ܫܒܛ",
+                "ܐܕܪ",
+                "ܢܝܣܢ",
+                "ܐܝܪ",
+                "ܚܙܝܪܢ",
+                "ܬܡܘܙ",
+                "ܐܒ",
+                "ܐܝܠܘܠ",
+                "ܬܫܪܝܢ ܩܕܡܝܐ",
+                "ܬܫܪܝܢ ܐܚܪܝܐ",
+                "ܟܢܘܢ ܩܕܡܝܐ",
+            ],
+            &[
+                "ܟܢܘܢ ܒ",
+                "ܫܒܛ",
+                "ܐܕܪ",
+                "ܢܝܣܢ",
+                "ܐܝܪ",
+                "ܚܙܝܪܢ",
+                "ܬܡܘܙ",
+                "ܐܒ",
+                "ܐܝܠܘܠ",
+                "ܬܫܪܝܢ ܐ",
+                "ܬܫܪܝܢ ܒ",
+                "ܟܢܘܢ ܐ",
+            ],
+            &["ܟ", "ܫ", "ܐ", "ܢ", "ܐ", "ܚ", "ܬ", "ܐ", "ܐ", "ܬ", "ܬ", "ܟ"],
+        )))],
+        gregorian_eras(
+            &["ܩܕܡ ܡܫܝܚܐ", "ܫܢܬܐ ܡܪܢܝܬܐ"],
+            &["\u{70f}ܩܡ\u{200c}", "\u{70f}ܫܡ\u{200c}"],
+            &[],
+        ),
+        ContextualNames::same(widths(
+            &["ܪܘܒܥܐ ܩܕܡܝܐ", "ܪܘܒܥܐ ܬܪܝܢܐ", "ܪܘܒܥܐ ܬܠܝܬܝܐ", "ܪܘܒܥܐ ܪܒܝܥܝܐ"],
+            &["\u{70f}ܪ ܐ", "\u{70f}ܪ ܒ", "\u{70f}ܪ ܓ", "\u{70f}ܪ ܕ"],
+            &[],
+        )),
+    ),
+    dated(
+        &[CalendarId("assyrian")],
+        &[months(&[
+            "ܢܝܼܣܵܢ",
+            "ܐܝܼܵܪ",
+            "ܚܙܝܼܪܵܢ",
+            "ܬܲܡܘܼܙ",
+            "ܛܲܒܵܚ",
+            "ܐܝܼܠܘܼܠ",
+            "ܬܸܫܪܝܼܢ ܐ",
+            "ܬܸܫܪܝܼܢ ܒ",
+            "ܟܵܢܘܿܢ ܐ",
+            "ܟܵܢܘܿܢ ܒ",
+            "ܫܒ݂ܵܛ",
+            "ܐܵܕܲܪ",
+        ])],
+        &[],
+        &[],
+    ),
+];
+
+const SYR: LocaleData = LocaleData {
+    tag: "syr",
+    direction: Direction::RightToLeft,
+    numbering: "latn",
+    first_day_of_week: Weekday::Saturday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: false,
+    weekdays: ContextualNames::same(weekday_widths(
+        &[
+            "ܬܪܝܢܒܫܒܐ",
+            "ܬܠܬܒܫܒܐ",
+            "ܐܪܒܥܒܫܒܐ",
+            "ܚܡܫܒܫܒܐ",
+            "ܥܪܘܒܬܐ",
+            "ܫܒܬܐ",
+            "ܚܕܒܫܒܐ",
+        ],
+        &["ܬܪܝܢ", "ܬܠܬ", "ܐܪܒܥ", "ܚܡܫ", "ܥܪܘ", "ܫܒܬܐ", "ܚܕ"],
+        &[],
+        &["ܬ", "ܬ", "ܐ", "ܚ", "ܥ", "ܫ", "ܚ"],
+    )),
+    day_periods: ContextualNames::same(widths(
+        &["\u{70f}ܩܛ\u{200c}", "\u{70f}ܒܛ\u{200c}"],
+        &[],
+        &["\u{70f}ܩ\u{200c}", "\u{70f}ܒ\u{200c}"],
+    )),
+    cycle: SexagenaryNames::EMPTY,
+    calendars: SYR_CALENDARS,
+};
+
+// --- Tamil ----------------------------------------------------------------
+//
+// The language of the Tamil solar calendar. Gregorian vocabulary from
+// CLDR 48 `common/main/ta.xml`: the wide months, the abbreviated ones
+// (May, June and July resolving to the wide form), the stand-alone narrow
+// ones, the weekdays (Saturday's abbreviation resolving to the wide form),
+// the quarters and the eras; CLDR's `ta` has no day periods of its own.
+// The twelve months of its `calendar type="indian"` are the Tamil months
+// சித்திரை to பங்குனி, Chithirai first, in the same order
+// `hc_seasons::zodiac::rashi::TAMIL` counts them from the Meṣa saṅkrānti,
+// so one list serves both the national calendar, with CLDR's era
+// abbreviation சாகா, and `hindu-solar-tamil`. The week begins on Sunday
+// (CLDR 48 `weekData/firstDay`, IN) and the numbering system is `latn`.
+
+const TA_SOLAR_MONTHS: &[&str] = &[
+    "சித்திரை",
+    "வைகாசி",
+    "ஆனி",
+    "ஆடி",
+    "ஆவணி",
+    "புரட்டாசி",
+    "ஐப்பசி",
+    "கார்த்திகை",
+    "மார்கழி",
+    "தை",
+    "மாசி",
+    "பங்குனி",
+];
+
+const TA_CALENDARS: &[CalendarNames] = &[
+    gregorian(
+        &[month_cycle(ContextualNames::same(widths(
+            &[
+                "ஜனவரி",
+                "பிப்ரவரி",
+                "மார்ச்",
+                "ஏப்ரல்",
+                "மே",
+                "ஜூன்",
+                "ஜூலை",
+                "ஆகஸ்ட்",
+                "செப்டம்பர்",
+                "அக்டோபர்",
+                "நவம்பர்",
+                "டிசம்பர்",
+            ],
+            &[
+                "ஜன.",
+                "பிப்.",
+                "மார்.",
+                "ஏப்.",
+                "மே",
+                "ஜூன்",
+                "ஜூலை",
+                "ஆக.",
+                "செப்.",
+                "அக்.",
+                "நவ.",
+                "டிச.",
+            ],
+            &[
+                "ஜ", "பி", "மா", "ஏ", "மே", "ஜூ", "ஜூ", "ஆ", "செ", "அ", "ந", "டி",
+            ],
+        )))],
+        gregorian_eras(
+            &["கிறிஸ்துவுக்கு முன்", "அன்னோ டோமினி"],
+            &["கி.மு.", "கி.பி."],
+            &[],
+        ),
+        ContextualNames::same(widths(
+            &["முதல் காலாண்டு", "இரண்டாம் காலாண்டு", "மூன்றாம் காலாண்டு", "நான்காம் காலாண்டு"],
+            &["கா.1", "கா.2", "கா.3", "கா.4"],
+            &[],
+        )),
+    ),
+    dated(
+        &[CalendarId("indian")],
+        &[months(TA_SOLAR_MONTHS)],
+        &["saka"],
+        &["சாகா"],
+    ),
+    dated(
+        &[CalendarId("hindu-solar-tamil")],
+        &[months(TA_SOLAR_MONTHS)],
+        &[],
+        &[],
+    ),
+];
+
+const TA: LocaleData = LocaleData {
+    tag: "ta",
+    direction: Direction::LeftToRight,
+    numbering: "latn",
+    first_day_of_week: Weekday::Sunday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: false,
+    weekdays: ContextualNames::same(weekday_widths(
+        &["திங்கள்", "செவ்வாய்", "புதன்", "வியாழன்", "வெள்ளி", "சனி", "ஞாயிறு"],
+        &["திங்.", "செவ்.", "புத.", "வியா.", "வெள்.", "சனி", "ஞாயி."],
+        &["தி", "செ", "பு", "வி", "வெ", "ச", "ஞா"],
+        &["தி", "செ", "பு", "வி", "வெ", "ச", "ஞா"],
+    )),
+    day_periods: ContextualNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
+    calendars: TA_CALENDARS,
+};
+
 // --- Thai -----------------------------------------------------------------
 
 const TH: LocaleData = LocaleData {
@@ -2588,6 +3764,169 @@ const VI: LocaleData = LocaleData {
     )],
 };
 
+// --- Yucatec Maya ---------------------------------------------------------
+//
+// The language of the Maya counts. CLDR has no `yua` locale, so this entry
+// has no Gregorian vocabulary, weekdays, day periods or eras. The twenty
+// day-signs and the nineteen haabʼ months are the forms
+// `hc_calendars_regional::maya` declares with its shape: the
+// sixteenth-century Yucatec spelling, as Reingold and Dershowitz print it
+// (*Calendrical Calculations*, 4th ed., 2018, chapter 11) and as
+// Wikipedia, "Tzolkʼin" and "Maya calendar", tabulate it beside the revised
+// orthography, which is not carried; docs/systems/mesoamerican-counts.md
+// sets the sources out. The locale restates them so that the language,
+// and not only the calendar, claims them, keyed to the calendars of both
+// correlation constants alike, since a name does not depend on the
+// constant. The week begins on Sunday (CLDR 48 `weekData/firstDay`, MX and
+// GT alike) and numbering is `latn`.
+
+const YUA_DAY_SIGNS: &[&str] = &[
+    "Imix", "Ik", "Akbal", "Kan", "Chicchan", "Cimi", "Manik", "Lamat", "Muluc", "Oc", "Chuen",
+    "Eb", "Ben", "Ix", "Men", "Cib", "Caban", "Etznab", "Cauac", "Ahau",
+];
+
+const YUA_HAAB_MONTHS: &[&str] = &[
+    "Pop", "Uo", "Zip", "Zotz", "Tzec", "Xul", "Yaxkin", "Mol", "Chen", "Yax", "Zac", "Ceh", "Mac",
+    "Kankin", "Muan", "Pax", "Kayab", "Cumku", "Uayeb",
+];
+
+const YUA_CALENDARS: &[CalendarNames] = &[
+    gregorian(&[], EraNames::EMPTY, ContextualNames::EMPTY),
+    CalendarNames {
+        calendars: &[CalendarId("maya-tzolkin"), CalendarId("maya-tzolkin-gmt2")],
+        cycles: &[cycle("day-sign", YUA_DAY_SIGNS)],
+        leap_month_prefix: "",
+        eras: EraNames::EMPTY,
+        quarters: ContextualNames::EMPTY,
+    },
+    dated(
+        &[CalendarId("maya-haab"), CalendarId("maya-haab-gmt2")],
+        &[months(YUA_HAAB_MONTHS)],
+        &[],
+        &[],
+    ),
+    CalendarNames {
+        calendars: &[CalendarId("maya-round"), CalendarId("maya-round-gmt2")],
+        cycles: &[cycle("day-sign", YUA_DAY_SIGNS), months(YUA_HAAB_MONTHS)],
+        leap_month_prefix: "",
+        eras: EraNames::EMPTY,
+        quarters: ContextualNames::EMPTY,
+    },
+];
+
+const YUA: LocaleData = LocaleData {
+    tag: "yua",
+    direction: Direction::LeftToRight,
+    numbering: "latn",
+    first_day_of_week: Weekday::Sunday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: true,
+    weekdays: ContextualNames::EMPTY,
+    day_periods: ContextualNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
+    calendars: YUA_CALENDARS,
+};
+
+// --- Standard Moroccan Tamazight ------------------------------------------
+//
+// A language of the Berber agrarian calendar, in Tifinagh. Gregorian
+// vocabulary from CLDR 48 `common/main/zgh.xml`: the wide, abbreviated and
+// stand-alone narrow months, the wide and abbreviated weekdays, the day
+// periods (whose wide form resolves to the abbreviation), the eras and the
+// quarters. The months are the Latin-derived names — ⵉⵏⵏⴰⵢⵔ from Januarius,
+// as Yennayer is — and the agrarian calendar is the Julian year under
+// exactly those names (the Encyclopédie berbère's "Calendrier", 1992,
+// which `hc_calendars_solar::berber` cites), so the same list is keyed to
+// `berber`. Wikipedia's "Berber calendar" prints no Tifinagh forms; these
+// are CLDR's, in the standard Moroccan orthography rather than the Kabyle
+// one the calendar declares, and the locale's forms are the override. The
+// week begins on Monday (CLDR 48 `weekData/firstDay` lists MA under no
+// exception) and the numbering system is `latn`.
+
+const ZGH_MONTHS: &[&str] = &[
+    "ⵉⵏⵏⴰⵢⵔ",
+    "ⴱⵕⴰⵢⵕ",
+    "ⵎⴰⵕⵚ",
+    "ⵉⴱⵔⵉⵔ",
+    "ⵎⴰⵢⵢⵓ",
+    "ⵢⵓⵏⵢⵓ",
+    "ⵢⵓⵍⵢⵓⵣ",
+    "ⵖⵓⵛⵜ",
+    "ⵛⵓⵜⴰⵏⴱⵉⵔ",
+    "ⴽⵜⵓⴱⵔ",
+    "ⵏⵓⵡⴰⵏⴱⵉⵔ",
+    "ⴷⵓⵊⴰⵏⴱⵉⵔ",
+];
+
+const ZGH_MONTHS_ABBREVIATED: &[&str] = &[
+    "ⵉⵏⵏ",
+    "ⴱⵕⴰ",
+    "ⵎⴰⵕ",
+    "ⵉⴱⵔ",
+    "ⵎⴰⵢ",
+    "ⵢⵓⵏ",
+    "ⵢⵓⵍ",
+    "ⵖⵓⵛ",
+    "ⵛⵓⵜ",
+    "ⴽⵜⵓ",
+    "ⵏⵓⵡ",
+    "ⴷⵓⵊ",
+];
+
+const ZGH_MONTHS_NARROW: &[&str] = &["ⵉ", "ⴱ", "ⵎ", "ⵉ", "ⵎ", "ⵢ", "ⵢ", "ⵖ", "ⵛ", "ⴽ", "ⵏ", "ⴷ"];
+
+const ZGH_CALENDARS: &[CalendarNames] = &[
+    gregorian(
+        &[month_cycle(ContextualNames::same(widths(
+            ZGH_MONTHS,
+            ZGH_MONTHS_ABBREVIATED,
+            ZGH_MONTHS_NARROW,
+        )))],
+        gregorian_eras(&["ⴷⴰⵜ ⵏ ⵄⵉⵙⴰ", "ⴷⴼⴼⵉⵔ ⵏ ⵄⵉⵙⴰ"], &["ⴷⴰⵄ", "ⴷⴼⵄ"], &[]),
+        ContextualNames::same(widths(
+            &["ⴰⴽⵕⴰⴹⵢⵓⵔ 1", "ⴰⴽⵕⴰⴹⵢⵓⵔ 2", "ⴰⴽⵕⴰⴹⵢⵓⵔ 3", "ⴰⴽⵕⴰⴹⵢⵓⵔ 4"],
+            &["ⴰⴽ 1", "ⴰⴽ 2", "ⴰⴽ 3", "ⴰⴽ 4"],
+            &[],
+        )),
+    ),
+    dated(
+        &[CalendarId("berber")],
+        &[month_cycle(ContextualNames::same(widths(
+            ZGH_MONTHS,
+            ZGH_MONTHS_ABBREVIATED,
+            ZGH_MONTHS_NARROW,
+        )))],
+        &[],
+        &[],
+    ),
+];
+
+const ZGH: LocaleData = LocaleData {
+    tag: "zgh",
+    direction: Direction::LeftToRight,
+    numbering: "latn",
+    first_day_of_week: Weekday::Monday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: false,
+    weekdays: ContextualNames::same(weekday_widths(
+        &[
+            "ⴰⵢⵏⴰⵙ",
+            "ⴰⵙⵉⵏⴰⵙ",
+            "ⴰⴽⵕⴰⵙ",
+            "ⴰⴽⵡⴰⵙ",
+            "ⴰⵙⵉⵎⵡⴰⵙ",
+            "ⴰⵙⵉⴹⵢⴰⵙ",
+            "ⴰⵙⴰⵎⴰⵙ",
+        ],
+        &["ⴰⵢⵏ", "ⴰⵙⵉ", "ⴰⴽⵕ", "ⴰⴽⵡ", "ⴰⵙⵉⵎ", "ⴰⵙⵉⴹ", "ⴰⵙⴰ"],
+        &[],
+        &[],
+    )),
+    day_periods: ContextualNames::same(widths(&["ⵜⵉⴼⴰⵡⵜ", "ⵜⴰⴷⴳⴳⵯⴰⵜ"], &[], &[])),
+    cycle: SexagenaryNames::EMPTY,
+    calendars: ZGH_CALENDARS,
+};
+
 // --- Chinese, simplified --------------------------------------------------
 
 const ZH_HANS_CALENDARS: &[CalendarNames] = &[
@@ -2746,8 +4085,8 @@ const ZH_HANT: LocaleData = LocaleData {
 /// The root entry is not in this table: it is [`ROOT`], the floor that the
 /// lookup falls to when nothing here claims the locale.
 pub static LOCALES: &[LocaleData] = &[
-    AM, AR, BO, COP, CS, DE, EN, ES, FA, FR, HE, HI, ID, IT, JA, KO, MY, NE, NL, PL, PT, RU, TH,
-    TR, VI, ZH_HANS, ZH_HANT,
+    AM, AR, BAN, BN, BO, COP, CS, DE, EN, ES, FA, FR, HE, HI, ID, IT, JA, JV, KAB, KO, MID, ML, MY,
+    NAH, NE, NL, PL, PT, RU, SA, SYR, TA, TH, TR, VI, YUA, ZGH, ZH_HANS, ZH_HANT,
 ];
 
 #[cfg(test)]
@@ -3067,7 +4406,7 @@ mod tests {
             .filter(|data| data.direction == Direction::RightToLeft)
             .map(|data| data.tag)
             .collect();
-        assert_eq!(rtl, ["ar", "fa", "he"]);
+        assert_eq!(rtl, ["ar", "fa", "he", "mid", "syr"]);
     }
 
     #[test]
@@ -3076,8 +4415,9 @@ mod tests {
         assert_eq!(
             tags,
             [
-                "am", "ar", "bo", "cop", "cs", "de", "en", "es", "fa", "fr", "he", "hi", "id",
-                "it", "ja", "ko", "my", "ne", "nl", "pl", "pt", "ru", "th", "tr", "vi", "zh-Hans",
+                "am", "ar", "ban", "bn", "bo", "cop", "cs", "de", "en", "es", "fa", "fr", "he",
+                "hi", "id", "it", "ja", "jv", "kab", "ko", "mid", "ml", "my", "nah", "ne", "nl",
+                "pl", "pt", "ru", "sa", "syr", "ta", "th", "tr", "vi", "yua", "zgh", "zh-Hans",
                 "zh-Hant"
             ]
         );
