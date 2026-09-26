@@ -33,7 +33,12 @@ troops, for which it cites a France 24 report rather than a notice
 
 ## How it works
 
-Two calendars date the days. The three civil days are solar: the official
+Two calendars date the days. The Republic's constitution of 2004 made the
+solar calendar "the basis for state offices" [afghanistan-constitution-2004].
+A letter from the Emirate's Administrative Office, reported in March 2022,
+put all administrative correspondence on the lunar Hijri year, the offices' registers
+running to the end of the lunar year and numbered afresh from the next
+[rasa2022] [arwin2022]. The three civil days are still solar: the official
 calendar gives each lunar date "with its solar equivalent", and the
 Ministry's notices name the solar day — "فردا يكشنبه ۲۸ اسد", tomorrow,
 Sunday 28 Asad, in 1403 [alemarah2024-independence]. So 24 Asad, 28 Asad
@@ -112,6 +117,12 @@ The Eid days are a prediction. The tabular calendar puts 10 Dhu al-Hijjah
   1447, as the press reports them; the notices themselves not read.
 - [khaama2024] Khaama Press on the Eid al-Fitr notice of 1445, read through
   a fetching service's summary, the page refusing a direct request.
+- [afghanistan-constitution-2004] Article 18 of the 2004 constitution,
+  read in the Constitute Project's English text, for the solar calendar in
+  state offices before the Emirate.
+- [rasa2022], [arwin2022] Hasht-e Subh's and Afghanistan International's
+  reports of 26 and 29 March 2022 on the Administrative Office's letter, read
+  directly; the letter itself not read.
 - [foschini2023] The Afghanistan Analysts Network's history of the
   national days, read directly in the European Country of Origin
   Information Network's copy, for 8 Saur and 31 August.

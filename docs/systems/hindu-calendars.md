@@ -287,8 +287,7 @@ Chingam [wikipedia-onam]. Kerala's farming calendar counts by the Sun's
 nakṣatra: a ñāṭṭuvēla is the Sun's stay in one, twenty-seven to the year of
 thirteen to fourteen days each, and the Thiruvathira ñāṭṭuvēla, the Sun in
 Ārdrā at the monsoon's height, is the one the farmers hold the best
-[wikipedia-ml-njattuvela]. The module once also named "the rain nakṣatras
-of the Deccan"; no source for that was found, and it no longer does.
+[wikipedia-ml-njattuvela].
 
 **The Old Hindu calendars.** Before the true positions, the almanacs
 reckoned by mean motion, and the library carries the mean solar and
@@ -361,7 +360,7 @@ weeks.
   at sunrise says the same. `RASHTRIYA`, the registered one, reads the
   day at the Central Station's sunrise with the Lahiri ayanāṃśa; `UJJAIN`
   reads it at Ujjain; `new` takes any place and any ayanāṃśa. The era is
-  `Saka`, and `vikrama-year` is an extra field. `new_year`,
+  `saka`, and `vikrama-year` is an extra field. `new_year`,
   `leap_month_of`, `has_kshaya_month`, `month_span` and `days_in_year`
   answer the questions a festival rule asks. A kṣaya month is reported as
   the name not existing, `MonthOutOfRange`; a skipped tithi as
@@ -374,9 +373,9 @@ weeks.
 - **The four solar calendars**, as `HinduSolarCalendar` values `TAMIL`,
   `MALAYALAM`, `BENGALI` and `VIKRAMI`, each a month-name tradition from
   `hc-seasons`, a `SankrantiRule`, an era and offset, a place and a
-  `SolarModel`. The eras are `Tiruvalluvar` (Gregorian year plus 31),
-  `Kollam` (the Gregorian year of Chingam less 824), `Bangabda` (less
-  593) and `VS` (plus 57). `new` gives the same reckoning at another
+  `SolarModel`. The eras are `tiruvalluvar` (Gregorian year plus 31),
+  `kollam` (the Gregorian year of Chingam less 824), `bangabda` (less
+  593) and `vs` (plus 57). `new` gives the same reckoning at another
   place or with the *Sūrya Siddhānta*'s Sun, under an identifier of the
   caller's. A fifth rule, `CivilDay`, the midnight-to-midnight day of the
   saṅkrānti, exists for the Bikram Sambat and is that document's.

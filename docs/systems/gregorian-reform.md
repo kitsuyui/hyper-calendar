@@ -76,7 +76,7 @@ behind the date and the Sources section says which were read.
 | --- | --- | --- | --- | --- | --- |
 | `julian-gregorian-catholic` | Papal States, Spain, Portugal, Poland-Lithuania | Thursday 4 October 1582 | Friday 15 October 1582 | 10 | *Inter gravissimas*, 24 February 1582 [inter-gravissimas]; that Spain, Portugal and Poland-Lithuania changed on the bull's own day rests on secondary sources [wikipedia-adoption-list], which note local resistance in Poland |
 | `julian-gregorian-fr` | France | Sunday 9 December 1582 | Monday 20 December 1582 | 10 | An edict of Henri III, not read; the dates are from secondary sources [frwiki-passage-gregorien, wikipedia-adoption-gregorian], which exclude Alsace and Lorraine (Lorraine changed in 1760) |
-| `julian-gregorian-nl` | Zeeland and the southern Netherlands | Friday 14 December 1582 | Saturday 25 December 1582 | 10 | No instrument read. The date is Zeeland's and the southern provinces' in every source [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]. Until 2026-09-26 this row was labelled "Holland and Zeeland"; Holland is now a row of its own |
+| `julian-gregorian-nl` | Zeeland and the southern Netherlands | Friday 14 December 1582 | Saturday 25 December 1582 | 10 | No instrument read. The date is Zeeland's and the southern provinces' in every source [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]. Holland is a row of its own |
 | `julian-gregorian-nl-holland` | Holland | Saturday 1 January 1583 | Wednesday 12 January 1583 | 10 | No instrument read — the States of Holland's placard is the one that would settle it. The dates from secondary sources [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]; two others put Holland with Zeeland in December 1582 [frwiki-passage-gregorien, wikipedia-adoption-gregorian], see below |
 | `julian-gregorian-de-catholic` | Catholic Germany (Bavaria) | Saturday 5 October 1583 | Sunday 16 October 1583 | 10 | A ducal order, not read; the dates from a secondary source [dewiki-gregorianischer-kalender]. Bavaria only: the other Catholic territories of the Empire changed on dates of their own |
 | `julian-gregorian-hu` | Hungary | Saturday 21 October 1587 | Sunday 1 November 1587 | 10 | A law of the diet of 1587/88, not read; the dates from secondary sources [wikipedia-adoption-list, frwiki-passage-gregorien]; the Hungarian encyclopaedia's own dating is less definite [huwiki-gergely-naptar] |
@@ -86,10 +86,11 @@ behind the date and the Sources section says which were read.
 | `julian-gregorian-bg` | Bulgaria | Thursday 31 March 1916 | Friday 14 April 1916 | 13 | Decree No. 8 of Tsar Ferdinand, State Gazette no. 65 of 21 March 1916, not read; the dates from a secondary source [bgwiki-grigorianski-kalendar] |
 | `julian-gregorian-ru` | Soviet Russia | Wednesday 31 January 1918 | Thursday 14 February 1918 | 13 | The Sovnarkom decree of 24 January (6 February) 1918 on the introduction of the Western European calendar, read in transcription [sovnarkom-calendar-decree-1918]: the day following 31 January Old Style "shall be counted as 14 February" New Style, with both dates to be written on documents until the end of June 1918 |
 | `julian-gregorian-rs` | Kingdom of Serbs, Croats and Slovenes | Tuesday 14 January 1919 | Tuesday 28 January 1919 | 13 | The Law on the Equalisation of the Old and New Calendar of 10 January 1919, *Službene novine Kraljevstva Srba, Hrvata i Slovenaca* no. 1, read as *Politika* quotes it: "Дана 14 јануара 1919 год. по старом календару престаје да важи стари календар", the 15th reckoned as 28 January [politika-gregorian-1919, srwiki-gregorijanski-kalendar]. It changed Serbia, Montenegro and Macedonia; Croatia, Slovenia, Bosnia and Vojvodina were already Gregorian |
-| `julian-gregorian-ro` | Romania (the Old Kingdom) | Sunday 31 March 1919 | Monday 14 April 1919 | 13 | The decree-law of 5/18 March 1919, not read; the dates from a secondary source [rowiki-calendarul-gregorian], for the Old Kingdom only. Until 2026-09-26 this row was labelled "Romania and Serbia"; Serbia is now `julian-gregorian-rs` |
+| `julian-gregorian-ro` | Romania (the Old Kingdom) | Sunday 31 March 1919 | Monday 14 April 1919 | 13 | The decree-law of 5/18 March 1919, not read; the dates from a secondary source [rowiki-calendarul-gregorian], for the Old Kingdom only. Serbia is `julian-gregorian-rs` |
 | `julian-gregorian-gr` | Greece | Wednesday 15 February 1923 | Thursday 1 March 1923 | 13 | A royal decree under which 16 February 1923 was reckoned as 1 March 1923, not read; the dates from secondary sources [elwiki-gregoriano-imerologio, wikipedia-adoption-list], which except Mount Athos. The Church of Greece went instead to the Revised Julian calendar in 1924 |
 
-Two rows were corrected on 2026-09-26, and the reasoning is kept here:
+Two rows split a polity that some sources treat as one, and the reasoning
+is this:
 
 - **Holland.** The Dutch encyclopaedia and the English list of adoption
   dates put Holland's change at 1 January followed by 12 January 1583,
@@ -98,11 +99,11 @@ Two rows were corrected on 2026-09-26, and the reasoning is kept here:
   wikipedia-adoption-list]; the French encyclopaedia and the English
   narrative article put Holland and Zeeland together in December
   [frwiki-passage-gregorien, wikipedia-adoption-gregorian]. No primary
-  source was read. The row once called "Holland and Zeeland" is now
-  `julian-gregorian-nl`, Zeeland and the southern Netherlands, whose date
-  no source disputes, and Holland is `julian-gregorian-nl-holland` on the
-  two sources that date it separately — the ones that distinguish the
-  provinces rather than the ones that summarise them. Its dates rest on
+  source was read. So `julian-gregorian-nl` is Zeeland and the southern
+  Netherlands, whose date no source disputes, and Holland is
+  `julian-gregorian-nl-holland` on the two sources that date it
+  separately — the ones that distinguish the provinces rather than the
+  ones that summarise them. Its dates rest on
   those two and would change with the States of Holland's own placard.
 - **Serbia.** The Kingdom of Serbs, Croats and Slovenes changed by a law
   of 10 January 1919, published in the first number of its official
@@ -110,10 +111,10 @@ Two rows were corrected on 2026-09-26, and the reasoning is kept here:
   28 January 1919: the last Julian date was Tuesday 14 January and the
   first Gregorian one Tuesday 28 January [politika-gregorian-1919,
   srwiki-gregorijanski-kalendar, wikipedia-adoption-list]. That is ten
-  weeks before Romania's change, so the row once called "Romania and
-  Serbia" gave every Serbian date between 28 January and 13 April 1919 a
-  label nobody in Belgrade wrote. It is now two rows, `julian-gregorian-rs`
-  from RD 700 562 and `julian-gregorian-ro`, Romania's alone.
+  weeks before Romania's change, and one row for both would give every
+  Serbian date between 28 January and 13 April 1919 a label nobody in
+  Belgrade wrote. So there are two rows, `julian-gregorian-rs` from
+  RD 700 562 and `julian-gregorian-ro`, Romania's alone.
 
 ### By country
 
@@ -167,11 +168,10 @@ row yet uses, because no source for such a step has been read.
 | TR | Ottoman Empire | 15 Şubat 1332 (28 February 1917) | 1 Mart 1333 (1 March 1917) | `rumi` → `gregory` | partial | An Ottoman law of 1917 whose number and date were not found [wikipedia-rumi-calendar]; partial because the days changed and the Rumi year did not |
 | TR | Republic of Turkey | 31 December 1925 | 1 January 1926 | `rumi` → `gregory` | civil | Law No. 698 of 26 December 1925, not read [trwiki-miladi-takvim] |
 
-Serbia's and Holland's rows were once written out here, when the cut-over
-table had no calendar for either; now that it has `julian-gregorian-rs` and
-`julian-gregorian-nl-holland`, they share those dates like every other
-Julian row. The regional table's Japanese, Korean and Chinese rows end on the days the lunisolar modules say
-those calendars stopped being civil — `japanese_tenpo::LATEST`,
+Serbia's and Holland's rows share the dates of `julian-gregorian-rs` and
+`julian-gregorian-nl-holland`, like every other Julian row that has a
+cut-over calendar. The regional table's Japanese, Korean and Chinese rows
+end on the days the lunisolar modules say those calendars stopped being civil — `japanese_tenpo::LATEST`,
 `dangi::LAST_CIVIL`, `chinese::LAST_CIVIL` — and a test in the facade holds
 them to it. A code with no row is one the table does not know; that is not
 a claim that the country never changed.
@@ -344,13 +344,9 @@ test names a decree. Of the fourteen rows, three rest on a document read
 for this document — the bull, the British Act and the Soviet decree — one
 on the operative sentence of its law as a newspaper quotes it, Serbia's,
 and ten on secondary sources, as the table above says row by row, Holland
-among them on two sources against two. The module once said that its dates
-were "as summarised by Reingold and Dershowitz, *Calendrical Calculations*
-(4th ed.), appendix, and by the *Explanatory Supplement to the
-Astronomical Almanac* (3rd ed., 2013), §15.3"; neither book was read, the
-published code of *Calendrical Calculations* carries no table of adoption
-dates [reingold2018code], and the module now names each row's own source
-instead.
+among them on two sources against two. The published code of
+*Calendrical Calculations* carries no table of adoption dates
+[reingold2018code], so each row names its own source.
 
 ## Sources
 
@@ -384,8 +380,6 @@ instead.
 | [zhwiki-gongli] | China: the order of 1 January 1912; the resolution of 10 October 1928 for 1 January 1929 | Yes, 2026-09-26 |
 | [wikipedia-rumi-calendar] | Turkey: the Rumi calendar on the Gregorian days from 1 March 1917, no instrument named | Yes, 2026-09-26 |
 | [wikipedia-islamic-calendar] | Saudi Arabia: the conflicting date of 14 February 2016 | Yes, 2026-09-26 |
-| [reingold2018] | Once cited by the module for an appendix of adoption dates; no longer cited | Not read |
-| [explanatory-supplement-2013] | Once cited by the module for §15.3; no longer cited | Not read |
 
 The pages that could not be reached on 2026-09-25: the Russian decree on
 Wikisource and the Japanese proclamation on Wikipedia and Wikisource, for

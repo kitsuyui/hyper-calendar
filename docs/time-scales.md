@@ -110,9 +110,9 @@ of UT1 live in `hc-astro::ut1`:
   Outside the series it returns `BeforeModelStart` or `AfterModelEnd` rather
   than extrapolating.
 - The `Ut1` scale marker needs no series. It reads `UT1 = TT − ΔT` from the
-  ΔT below. Against the IERS EOP 20 C04 series it is within 0.1 s from
-  1974-01-01 through 2026-04-01, where ΔT is the observed value; 0.06 s
-  late on 2026-07-01, where ΔT is the USNO's prediction; and falls behind
+  ΔT below. Against the IERS EOP 20 C04 series [iers-eopc04] it is within
+  0.1 s from 1974-01-01 through 2026-04-01, where ΔT is the observed value;
+  0.06 s late on 2026-07-01, where ΔT is the USNO's prediction; and falls behind
   after October 2033 — 8.9 s at the hand-over — because there the
   Espenak–Meeus polynomial answers, and ΔT has grown more slowly since
   2006 than its forecast segment assumed.
