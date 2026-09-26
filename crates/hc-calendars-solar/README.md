@@ -58,7 +58,7 @@ file does not:
 | `bahai_kept` | Badíʿ as kept: the arithmetic rule to 171 BE, the Bahá'í World Centre's table for 172–221 BE, nothing after | `bahai` |
 | `symmetry454` | Symmetry454 | `symmetry454` |
 | `symmetry010` | Symmetry010 | `symmetry010` |
-| `symmetry` | The leap rule the two Symmetry calendars share | *(not a calendar)* |
+| `symmetry` | The leap rule the two Symmetry calendars share, on `leap_week` | *(not a calendar)* |
 | `revised_julian` | Revised Julian (Milanković) | `revised-julian` |
 | `koki` | Japanese imperial year (皇紀, kōki) | `japanese-imperial` |
 | `world_calendar` | The World Calendar | `world-calendar` |
@@ -72,6 +72,13 @@ file does not:
 | `icelandic` | Old Icelandic *misseristal*: 52 weeks in two *misseri*, summer from the first Thursday on or after 19 April Gregorian, or 9 April Julian before 1700, and the leap week *sumarauki* | `icelandic`, `icelandic-julian` |
 | `qumran` | The Qumran and *Jubilees* 364-day year: quarters of 91 days from a Wednesday, no intercalation, the twenty-four priestly courses by week; the epoch a convention of this library | `qumran` |
 | `soviet_week` | The Soviet revolutionary weeks of 1929–1940: Gregorian dates under the continuous five-day week and then the six-day week of the decrees | `soviet-week` |
+| `dee` | Dee's 33-year calendar: the Julian months, leap when the year mod 33 is a non-zero multiple of 4, in Meyer's Dee–Cecil and Dee (eleven-day) correlations; Cassidy's rule of 1996 is the Dee–Cecil calendar ([docs/systems/hermetic-reforms.md](../../docs/systems/hermetic-reforms.md)) | `dee-cecil`, `dee` |
+| `hermetic_leap_week` | Meyer's Hermetic Leap Week: months Arcturus to Lesath of 5, 4, 4 weeks, a leap week when (71Y + 203) mod 400 < 71, from Monday 25 December 1 BC | `hermetic-leap-week` |
+| `leap_week` | The leap-week engine the Symmetry and Hermetic Leap Week calendars share | *(not a calendar; crate-private)* |
+| `week_and_month` | Palmen's Week and Month: the ISO weeks in months of four or five, weeks Alpha to Epsilon | `week-and-month` |
+| `liberalia` | Meyer's Liberalia Triday, solar: quarters of 30 or 31 three-day tridays from 17 March 1904 ([docs/systems/liberalia-triday.md](../../docs/systems/liberalia-triday.md)); the lunar form is in `hc-calendars-lunar` | `liberalia-triday-solar` |
+| `tabot` | Tabot (Moore, rules by Meyer): from 2 November 1930, twelve months on fixed Gregorian dates, Ras of 31 days in the Gregorian leap February | `tabot` |
+| `terran` | The Terran Computational Calendar: elapsed time since 0TC over TAI, the minimonth of leap days and IERS leap seconds, year bases — two functions over `hc_core::Instant<Tai>`, not a calendar of days ([docs/systems/terran-computational.md](../../docs/systems/terran-computational.md)) | *(not registered)* |
 
 `register_all(&mut CalendarRegistry)`, behind the `alloc` feature, inserts every
 calendar in the table.

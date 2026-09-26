@@ -37,7 +37,8 @@
 //! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`philip_era`], [`bostran`], [`armenian`], [`armenian_fixed`], [`french_republican`], [`french_republican_richards`], [`zoroastrian`], [`mandaean`], [`jalali_tusi`] |
 //! | Day counts | [`julian_day`], [`day_counts`], [`spreadsheet`] |
 //! | Cycle-based | [`persian`], [`persian_33`], [`bahai`], [`bahai_kept`] |
-//! | Proposed reforms | [`symmetry454`], [`symmetry010`] (both on [`symmetry`]), [`world_calendar`], [`international_fixed`], [`positivist`], [`hanke_henry`] |
+//! | Proposed reforms | [`symmetry454`], [`symmetry010`] (both on [`symmetry`]), [`hermetic_leap_week`] (on the same leap-week engine), [`world_calendar`], [`international_fixed`], [`positivist`], [`hanke_henry`], [`week_and_month`], [`dee`] (the Dee–Cecil and Dee calendars), [`liberalia`], [`tabot`] |
+//! | An instant system over TAI | [`terran`] (the Terran Computational Calendar, not a day calendar and not registered) |
 //! | A pure week cycle | [`qumran`] |
 //! | Not calendars | [`cycles`] (the computus cycles), [`year_style`] (where the year began), [`adoption`] (when each country took the Gregorian calendar) |
 //!
@@ -63,6 +64,7 @@
 extern crate alloc;
 
 mod common;
+mod leap_week;
 
 pub mod adoption;
 pub mod armenian;
@@ -78,6 +80,7 @@ pub mod byzantine;
 pub mod coptic;
 pub mod cycles;
 pub mod day_counts;
+pub mod dee;
 pub mod discordian;
 pub mod egyptian;
 pub mod era_fascista;
@@ -86,6 +89,7 @@ pub mod french_republican;
 pub mod french_republican_richards;
 pub mod gregorian;
 pub mod hanke_henry;
+pub mod hermetic_leap_week;
 pub mod holocene;
 pub mod icelandic;
 pub mod indian;
@@ -98,6 +102,7 @@ pub mod julian;
 pub mod julian_day;
 pub mod julian_gregorian;
 pub mod koki;
+pub mod liberalia;
 pub mod mandaean;
 pub mod minguo;
 pub mod nanakshahi;
@@ -116,6 +121,9 @@ pub mod swedish;
 pub mod symmetry;
 pub mod symmetry010;
 pub mod symmetry454;
+pub mod tabot;
+pub mod terran;
+pub mod week_and_month;
 pub mod world_calendar;
 pub mod yazidi;
 pub mod year_counts;
@@ -133,6 +141,7 @@ pub use bostran::{BostranCalendar, BostranDate};
 pub use buddhist::{BuddhistCalendar, BuddhistDate};
 pub use byzantine::{ByzantineCalendar, ByzantineDate};
 pub use coptic::{CopticCalendar, CopticDate};
+pub use dee::{DeeCalendar, DeeDate};
 pub use discordian::{DiscordianCalendar, DiscordianDate};
 pub use egyptian::{EgyptianCalendar, EgyptianDate};
 pub use era_fascista::{EraFascistaCalendar, EraFascistaDate};
@@ -141,6 +150,7 @@ pub use french_republican::{ArithmeticFrenchRepublicanCalendar, FrenchRepublican
 pub use french_republican_richards::RichardsFrenchRepublicanCalendar;
 pub use gregorian::{GregorianCalendar, GregorianDate};
 pub use hanke_henry::{HankeHenryCalendar, HankeHenryDate};
+pub use hermetic_leap_week::{HermeticLeapWeekCalendar, HermeticLeapWeekDate};
 pub use holocene::{HoloceneCalendar, HoloceneDate};
 pub use icelandic::{IcelandicCalendar, IcelandicDate};
 pub use indian::{IndianCalendar, IndianDate};
@@ -155,6 +165,7 @@ pub use julian_day::{
 };
 pub use julian_gregorian::{Adoption, ReformCalendar, ReformDate};
 pub use koki::{KokiCalendar, KokiDate};
+pub use liberalia::{LiberaliaSolarCalendar, LiberaliaSolarDate};
 pub use mandaean::{MandaeanCalendar, MandaeanDate};
 pub use minguo::{MinguoCalendar, MinguoDate};
 pub use nanakshahi::{NanakshahiCalendar, NanakshahiDate};
@@ -171,6 +182,8 @@ pub use soviet_week::{SovietWeekCalendar, SovietWeekDate};
 pub use swedish::{SwedishCalendar, SwedishDate};
 pub use symmetry010::{Symmetry010Calendar, Symmetry010Date};
 pub use symmetry454::{Symmetry454Calendar, Symmetry454Date};
+pub use tabot::{TabotCalendar, TabotDate};
+pub use week_and_month::{WeekAndMonthCalendar, WeekAndMonthDate};
 pub use world_calendar::{WorldCalendar, WorldCalendarDate};
 pub use yazidi::{YazidiCalendar, YazidiDate};
 pub use year_counts::{YearCount, YearCountCalendar, YearCountDate};
@@ -267,6 +280,13 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(
             crate::RichardsFrenchRepublicanCalendar,
         )));
+        for dee in crate::dee::ALL {
+            registry.insert(Box::new(DynAdapter::new(dee)));
+        }
+        registry.insert(Box::new(DynAdapter::new(crate::HermeticLeapWeekCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::WeekAndMonthCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::LiberaliaSolarCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::TabotCalendar)));
 
         for adoption in ADOPTIONS {
             if let Ok(reform) = ReformCalendar::new(adoption) {
@@ -282,7 +302,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 71;
+const CALENDAR_COUNT: usize = 77;
 
 #[cfg(test)]
 mod tests {
@@ -392,6 +412,12 @@ mod tests {
                 EraFascistaCalendar,
                 JalaliTusiCalendar,
                 RichardsFrenchRepublicanCalendar,
+                dee::DEE_CECIL,
+                dee::DEE,
+                HermeticLeapWeekCalendar,
+                WeekAndMonthCalendar,
+                LiberaliaSolarCalendar,
+                TabotCalendar,
                 ReformCalendar::default(),
             );
             assert!(checked > 0, "no calendar covered rd {rd}");
@@ -436,6 +462,12 @@ mod tests {
             EraFascistaCalendar.meta(),
             JalaliTusiCalendar.meta(),
             RichardsFrenchRepublicanCalendar.meta(),
+            dee::DEE_CECIL.meta(),
+            dee::DEE.meta(),
+            HermeticLeapWeekCalendar.meta(),
+            WeekAndMonthCalendar.meta(),
+            LiberaliaSolarCalendar.meta(),
+            TabotCalendar.meta(),
         ] {
             let first = meta.earliest.expect("bounded below");
             let last = meta.latest.expect("bounded above");
@@ -664,6 +696,28 @@ mod tests {
             assert_eq!(
                 DynAdapter::new(HankeHenryCalendar).is_leap_year(year),
                 iso_week::is_long_year(year)
+            );
+            assert_eq!(
+                DynAdapter::new(WeekAndMonthCalendar).is_leap_year(year),
+                iso_week::is_long_year(year)
+            );
+            for calendar in dee::ALL {
+                assert_eq!(
+                    DynAdapter::new(calendar).is_leap_year(year),
+                    Ok(dee::is_leap_year(year))
+                );
+            }
+            assert_eq!(
+                DynAdapter::new(HermeticLeapWeekCalendar).is_leap_year(year),
+                Ok(hermetic_leap_week::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(LiberaliaSolarCalendar).is_leap_year(year),
+                Ok(!liberalia::is_short_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(TabotCalendar).is_leap_year(year),
+                Ok(tabot::is_long_year(year))
             );
             assert_eq!(
                 DynAdapter::new(IcelandicCalendar::GREGORIAN).is_leap_year(year),
