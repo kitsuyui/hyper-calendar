@@ -473,3 +473,6 @@ Afganistan = "Afganistan"
 Palestina = "Palestina"
 Stati = "Stati"
 Ierland = "Ierland"
+# CLDR 48's `alt="short"` names in hc-i18n's `territories`: Turkish ABD,
+# Amerika Birleşik Devletleri, the United States.
+ABD = "ABD"

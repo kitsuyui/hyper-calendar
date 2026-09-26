@@ -21,7 +21,7 @@ use hc_i18n::territories::{self, TerritoryName};
 use crate::boundary::{Answer, Refusal, push_cell};
 
 /// How many columns [`holiday_tables`] writes.
-pub const HOLIDAY_TABLES_COLUMNS: usize = 7;
+pub const HOLIDAY_TABLES_COLUMNS: usize = 8;
 
 /// How many columns [`lectionary_line`] writes.
 pub const LECTIONARY_COLUMNS: usize = 4;
@@ -130,19 +130,38 @@ fn requested_locale(tag: &str) -> Option<Locale> {
 /// observances, and nothing here invents a name for one.
 #[must_use]
 pub fn table_name(set: &RuleSet, kind: TableKind, locale: Option<&Locale>) -> TerritoryName {
+    cldr_name(set, kind, locale).unwrap_or(TerritoryName {
+        name: set.english_name,
+        tag: "en",
+    })
+}
+
+/// A country's CLDR name in a locale, where the locale's fallback chain
+/// has one: what [`table_name`] answers before it falls back to English.
+fn cldr_name(set: &RuleSet, kind: TableKind, locale: Option<&Locale>) -> Option<TerritoryName> {
     locale
         .filter(|_| kind == TableKind::Country)
         .and_then(|locale| territories::territory_name(locale, set.code))
-        .unwrap_or(TerritoryName {
-            name: set.english_name,
-            tag: "en",
-        })
+}
+
+/// A country's CLDR `alt="short"` name, from the same locale's data as the
+/// name [`table_name`] gives it — `Hong Kong` for `HK` under `en`, `香港`
+/// under `ja` — where that name is CLDR's and the data has a short one;
+/// see [`territories::short_name`]. Nothing for a table named in English
+/// by fallback, whose English name is its own and not CLDR's.
+#[must_use]
+pub fn short_table_name(
+    set: &RuleSet,
+    kind: TableKind,
+    locale: Option<&Locale>,
+) -> Option<&'static str> {
+    cldr_name(set, kind, locale).and_then(|named| territories::short_name(named.tag, set.code))
 }
 
 /// The lines of `hc_holiday_tables`, one per table in [`tables`] order:
 /// the code, the kind, the name in the locale, the English name, the
-/// locale that answered, the sources, and the country of a subdivision or
-/// an exchange.
+/// locale that answered, the sources, the country of a subdivision or an
+/// exchange, and the short name in the locale.
 ///
 /// Column 3 follows [`table_name`]: a country is named as the locale's
 /// CLDR 48 data names it, where `hc-i18n` carries a name for it — 日本 under
@@ -153,7 +172,11 @@ pub fn table_name(set: &RuleSet, kind: TableKind, locale: Option<&Locale>) -> Te
 /// reaches no territory names, is named in English: the table's own name,
 /// column 4, with `en` in column 5. So column 3 is never empty. Column 7
 /// stays a code, the key of the country's own row, whose column 3 names it
-/// in the same locale.
+/// in the same locale. Column 8 follows [`short_table_name`]: CLDR 48's
+/// `alt="short"` name of a country column 3 names from CLDR, from the same
+/// locale's data — `Hong Kong` for `HK` under `en`, `香港` under `ja`, `UK`
+/// for `GB` — and empty where that data has none, which is most countries,
+/// and for every table named in English by fallback.
 #[must_use]
 pub fn holiday_tables(locale: &str) -> String {
     let requested = requested_locale(locale);
@@ -172,6 +195,10 @@ pub fn holiday_tables(locale: &str) -> String {
         out.push('\t');
         if let Some(country) = country_of(set, kind) {
             push_cell(&mut out, country);
+        }
+        out.push('\t');
+        if let Some(short) = short_table_name(set, kind, requested.as_ref()) {
+            push_cell(&mut out, short);
         }
         out.push('\n');
     }
@@ -297,6 +324,19 @@ mod tests {
             english["HK"][2..5],
             ["Hong Kong SAR China", "Hong Kong", "en"]
         );
+        // Column 8 is CLDR's short name in the same data: `en.xml` and
+        // `ja.xml` both shorten Hong Kong, and neither Japan.
+        assert_eq!(english["HK"][7], "Hong Kong");
+        assert_eq!(english["GB"][7], "UK");
+        assert_eq!(english["JP"][7], "");
+        assert_eq!(japanese["HK"][2], "中華人民共和国香港特別行政区");
+        assert_eq!(japanese["HK"][7], "香港");
+        assert_eq!(japanese["MO"][7], "マカオ");
+        assert_eq!(japanese["PS"][7], "パレスチナ");
+        assert_eq!(japanese["JP"][7], "");
+        assert_eq!(rows_in("ja-JP")["HK"][7], "香港");
+        assert_eq!(rows_in("en-GB")["US"][7], "US");
+        assert_eq!(japanese["XHKG"][7], "", "an exchange has no short name");
         // An exchange and a tradition stay English, whatever the locale;
         // column 7 stays the code of the country's own row.
         assert_eq!(
@@ -319,6 +359,9 @@ mod tests {
     fn a_country_the_locale_does_not_name_falls_back_to_english() {
         let kabyle = rows_in("kab");
         assert_eq!(kabyle["HK"][2..5], ["Hong Kong", "Hong Kong", "en"]);
+        // Named in English by fallback, so no short name, though CLDR's
+        // English has one; Kabyle's own are unconfirmed.
+        assert_eq!(kabyle["HK"][7], "");
         assert_eq!(kabyle["JP"][2..5], ["Jappu", "Japan", "kab"]);
         let tibetan = rows_in("bo");
         assert_eq!(tibetan["FR"][2..5], ["France", "France", "en"]);
@@ -327,7 +370,7 @@ mod tests {
             assert!(
                 rows_in(tag)
                     .values()
-                    .all(|row| row[2] == row[3] && row[4] == "en"),
+                    .all(|row| row[2] == row[3] && row[4] == "en" && row[7].is_empty()),
                 "{tag}"
             );
         }

@@ -310,3 +310,8 @@ found published, so nothing else could be checked.
   `the_months_are_table_2_5`,
   `io_2003_begins_on_the_worked_example_day`,
   `the_circads_agree_with_the_bodies_table`.
+* `crates/hyper-calendar/src/planetary_lines.rs`: `circad_date_line`, the
+  line of `hc_circad_date` in the WebAssembly module and the C library,
+  the date at an instant in any of these calendars or in Martiana,
+  answering within 100 Julian years of J2000.0. Tests:
+  `titans_calibration_is_209_aries_13`, `every_circad_calendar_answers`.

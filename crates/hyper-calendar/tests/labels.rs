@@ -404,7 +404,8 @@ fn the_lines_carry_the_labels_and_name_the_locale_used() {
         day(1989, 1, 1),
         day(2019, 12, 31),
         "ja",
-    );
+    )
+    .expect("within the cap");
     let rows: Vec<Vec<&str>> = text
         .lines()
         .map(|line| line.split('\t').collect())
@@ -502,6 +503,7 @@ fn a_japanese_request_writes_the_umm_al_qura_calendar_in_english() {
     let umalqura = registry
         .get_by_name("islamic-umalqura")
         .expect("islamic-umalqura");
-    let units = lines::calendar_units(umalqura, Unit::Month, on, day(2026, 9, 27), "ja");
+    let units = lines::calendar_units(umalqura, Unit::Month, on, day(2026, 9, 27), "ja")
+        .expect("within the cap");
     assert!(units.trim_end().ends_with("\ten"), "{units}");
 }

@@ -62,6 +62,8 @@ out of range is `out-of-range`, never an unrecognised number.
 | seconds | `hc_unix_from_fixed` | `fixed` −104 165 947 503 through 106 751 991 886 463: an earlier day's midnight would be at or below `HC_ERR_FLOOR` seconds, and a later one's would overflow an `i64`; either is `HC_ERR_OUT_OF_RANGE` |
 | seconds | `hc_unix_from_fixed_in_zone` | the `fixed` days whose start by the zone's clock is above `HC_ERR_FLOOR` and fits an `i64`: by UTC, `hc_unix_from_fixed`'s days, and a zone's offset moves each end by at most a day (Tokyo's last day is 106 751 991 886 464); any other is `HC_ERR_OUT_OF_RANGE` |
 | seconds | `hc_tai_minus_utc` | every `unix_seconds`; under `strict`, 1961 through the end of the announced leap-second table, and `HC_ERR_NO_DATA` outside it |
+| a byte length | `hc_tai_from_unix` | every `unix_seconds` up to 9 223 372 036 854 775 770, `i64::MAX − 37`: TAI runs ahead of UTC, so a later one has no TAI second an `i64` holds and is `HC_ERR_OUT_OF_RANGE`; under `strict`, 1961 through the end of the announced table, else `HC_ERR_NO_DATA` |
+| a byte length | `hc_utc_from_tai` | every `tai_seconds`; under `strict`, as for `hc_tai_from_unix` |
 | 1 or 0 | `hc_day_has_leap_second` | `unix_seconds` −9 223 372 036 854 720 000 through 9 223 372 036 854 719 999, the whole days of the `i64` range; the part-days at its two ends begin or end where no `i64` reaches, and are `HC_ERR_OUT_OF_RANGE` |
 | 1 or 0 | `hc_holiday_is_day_off` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE` |
 | a weekday, 1 through 7 | `hc_first_day_of_week` | every locale tag |
@@ -74,8 +76,17 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_fixed_from_ole_automation` | the values −657 434 through just below 2 958 466, the fixed days 36 160 (1 January 100) through 3 652 059 (31 December 9999); any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_ole_automation_from_fixed` | `fixed` 36 160 (1 January 100) through 3 652 059 (31 December 9999) and a time of day from 0 to below 86 400 s; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_excel_1900_day` | `serial` 1 through 2 958 465, the fixed days 693 596 through 3 652 059, serial 60 writing no day; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_tai64_posix_plus_10_encode` | `unix_seconds` −4 611 686 018 427 387 914 through 4 611 686 018 427 387 893, the seconds whose label 2⁶² + 10 + `unix_seconds` is below 2⁶³, and attoseconds below 10¹⁸; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_tai64_posix_plus_10_decode` | every label below 2⁶³, the POSIX seconds −4 611 686 018 427 387 914 through 4 611 686 018 427 387 893; a reserved label is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_uuid_timestamp` | no `i64` input: every version 1 or version 6 UUID, whose timestamps are the POSIX seconds −12 219 292 800 (1582-10-15) through 103 072 857 660 (5236-03-31); another version is `HC_ERR_NO_DATA` |
+| a byte length | `hc_ntp_resolve` | `reference_unix` −9 223 372 034 707 292 160 through 9 223 372 032 498 303 360, within which every timestamp's date and POSIX second fit an `i64`; nearer the ends of the `i64` range some timestamps are `HC_ERR_OUT_OF_RANGE`, and the zero timestamp is `HC_ERR_NO_DATA` everywhere |
+| a byte length | `hc_fat_decode` | no `i64` input: every pair of words whose fields name a day and a time, the fixed days 722 815 (1980-01-01) through 769 565 (2107-12-31); a word above 65 535 is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_fat_encode` | `fixed` 722 815 (1980-01-01) through 769 565 (2107-12-31) and a time of day below 86 400 s; any other is `HC_ERR_OUT_OF_RANGE` |
+| a beat, 0 through 999 | `hc_swatch_beat` | every `unix_seconds`, and attoseconds below 10¹⁸; more attoseconds are `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_epoch_from_tt` | every `tt_seconds`, and attoseconds below 10¹⁸; more are `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_tt_from_epoch` | no `i64` input: every finite year whose instant is within an `i64` of seconds of 1970 TT, about 2.9 × 10¹¹ years either side; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_describe_day` | every `fixed`; a calendar that refuses the day says so in its own line |
-| a byte length | `hc_calendar_units` | every `from_fixed` and `to_fixed`; a span a calendar refuses says so in its own line, a `to_fixed` at or before `from_fixed` writes nothing, and the text grows with the span, one line a unit |
+| a byte length | `hc_calendar_units` | every `from_fixed` and `to_fixed` whose range is at most 100 000 units; a span a calendar refuses says so in its own line and counts as one, a `to_fixed` at or before `from_fixed` writes nothing, and a range of more units is `HC_ERR_OUT_OF_RANGE` (see [line caps](#line-caps)) |
 | a byte length | `hc_calendars` | every `today` |
 | a byte length | `hc_holidays_in_year` | every `year`; a year the table has no entries for writes nothing |
 | a byte length | `hc_holidays_on` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE` |
@@ -89,12 +100,37 @@ out of range is `out-of-range`, never an unrecognised number.
 | an age, from 1 | `hc_chinese_reckoned_age` | `birth_fixed` and `on_fixed` 600 460 through 785 271, the days of the Chinese calendar's range, 1645 through 2150, a birth before or on the day asked; a day before the birth is `HC_ERR_NO_DATA`, and a day outside the range `HC_ERR_OUT_OF_RANGE` |
 | a fixed day | `hc_astronomical_easter` | `year` 1583 through 2150, Easter falling between the fixed days 577 913 and 785 015; any other year is `HC_ERR_OUT_OF_RANGE` |
 | 0 | `hc_zone_load` | any name and bytes; bytes that are not TZif are `HC_ERR_MALFORMED` |
+| a byte length | `hc_circad_date` | no `i64` input: the instants within 100 Julian years of J2000.0 (1900-01-01T12:00 to 2100-01-01T12:00 TT), as for `hc_mars_time`; any other, or one not finite, is `HC_ERR_OUT_OF_RANGE`, and a calendar not listed `HC_ERR_UNKNOWN` |
 | a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERR_NO_DATA`, and a mission the table does not carry `HC_ERR_UNKNOWN` |
 | a byte length | `hc_version`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_mars_time`, `hc_missions`, `hc_bodies`, `hc_body_time`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
 
 [`crates/hyper-calendar/tests/abi.rs`](../hyper-calendar/tests/abi.rs)
 walks every `i64` export in the source and fails when one has no row
 here, or two, or when its row does not name each of its `i64` inputs.
+
+### Line caps
+
+An export that writes one line per item of a range the caller chooses
+would, unbounded, write as much as it is asked for: a trillion days as
+days is tens of terabytes, and the allocation traps the instance rather
+than returning a sentinel. Each such export has a cap, and refuses a
+range past it with `HC_ERR_OUT_OF_RANGE` before it builds the text, so
+that the work a call can cost is bounded whatever its arguments. A caller
+that wants more asks in pieces.
+
+| One line per | Export | Cap | About |
+| --- | --- | --- | --- |
+| span | `hc_calendar_units` | 100 000 lines, `hyper_calendar::lines::MAX_CALENDAR_UNITS` | 270 years as days, 8 000 years as months; some 4 MB |
+| solar term | `hc_solar_terms_between` | 400 years of span, `MAX_SPAN_SECONDS` | 9 600 lines |
+| principal phase | `hc_moon_phases_between` | 400 years of span, `MAX_SPAN_SECONDS` | 19 800 lines |
+| sample | `hc_orbit_series` | 10 000 lines, `MAX_SERIES_SAMPLES` | 5 MB |
+
+Every other export that writes lines writes one per entry of a fixed
+table — the calendars, the locales, the holiday tables, the missions, the
+bodies — or of one year or one day, and has no range to cap:
+`hc_holidays_in_year` writes a year's entries of one table, some tens of
+lines, whatever the year; `hc_holidays_on` one day's entries across the
+tables; `hc_describe_day` one line per calendar.
 
 ## Lines and cells
 
@@ -172,10 +208,16 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `isLeapYear(fixed)`, `dayHasLeapSecond(unixSeconds)` | `hc_is_leap_year`, `hc_day_has_leap_second` | a boolean |
 | `fixedFromUnix(unixSeconds)`, `unixFromFixed(fixed)`, `taiMinusUtc(unixSeconds, strict)` | `hc_fixed_from_unix`, `hc_unix_from_fixed`, `hc_tai_minus_utc` | a number |
 | `formatIsoDate(fixed)`, `parseIsoDate(text)` | `hc_format_iso_date`, `hc_parse_iso_date` | a string; a fixed day number |
+| `taiFromUnix(unixSeconds, strict)`, `utcFromTai(taiSeconds, strict)` | `hc_tai_from_unix`, `hc_utc_from_tai` | a `TaiInstant`; a `UtcLabel` |
 | `tai64Encode(taiSeconds, attoseconds, format)`, `tai64Decode(hex)` | `hc_tai64_encode`, `hc_tai64_decode` | a string; a `Tai64Label` |
 | `gnssWeek(numbering, taiSeconds, attoseconds)`, `gnssToTai(numbering, week, towSeconds, towAttoseconds)`, `gnssResolveWeek(numbering, broadcast, rule, referenceTaiSeconds)` | `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week` | a `GnssWeek`; a `TaiInstant`; a number |
 | `glonassDate(taiSeconds, attoseconds, strict)` | `hc_glonass_date` | a `GlonassDate` |
 | `fixedFromOleAutomation(value)`, `oleAutomationFromFixed(fixed, secondsOfDay)`, `excel1900Day(serial)` | `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day` | an `OleAutomationDay`; a number; an `Excel1900Day` |
+| `tai64PosixPlus10Encode(unixSeconds, attoseconds, format)`, `tai64PosixPlus10Decode(hex)` | `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode` | a string; a `PosixTai64Label` |
+| `uuidTimestamp(uuid)`, `ntpResolve(seconds, fraction, referenceUnix)` | `hc_uuid_timestamp`, `hc_ntp_resolve` | a `UuidTimestamp`; an `NtpDate` |
+| `fatDecode(date, time)`, `fatEncode(fixed, secondsOfDay)` | `hc_fat_decode`, `hc_fat_encode` | a `FatReading`; `FatWords` |
+| `swatchBeat(unixSeconds, attoseconds)` | `hc_swatch_beat` | a number, 0 through 999 |
+| `epochFromTt(notation, ttSeconds, attoseconds)`, `ttFromEpoch(notation, year)` | `hc_epoch_from_tt`, `hc_tt_from_epoch` | an `Epoch`; an `EpochInstant` |
 | `describeDay(fixed, locale)` | `hc_describe_day` | `DescribedDay[]`, one per calendar |
 | `calendarUnits(id, unit, from, to, locale)` | `hc_calendar_units` | `CalendarUnit[]`, one per span |
 | `calendars(today, locale)` | `hc_calendars` | `CalendarEntry[]`, one per calendar |
@@ -202,6 +244,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `orbitAt(yearsBefore1950)`, `orbitSeries(fromYearsBefore1950, toYearsBefore1950, stepYears)` | `hc_orbit_at`, `hc_orbit_series` | an `Orbit`; `OrbitSample[]` |
 | `marsTime(unixSeconds, eastLongitude)`, `missions()`, `missionSol(mission, unixSeconds)` | `hc_mars_time`, `hc_missions`, `hc_mission_sol` | a `MarsTime`; `Mission[]`; a number |
 | `bodies()`, `bodyTime(body, unixSeconds, eastLongitude)` | `hc_bodies`, `hc_body_time` | `Body[]`; a `BodyTime` |
+| `circadDate(calendar, unixSeconds)` | `hc_circad_date` | a `CircadDate` |
 | `properTime(speedMetresPerSecond, coordinateSeconds)`, `gravitationalDilation(body, radiusMetres)`, `gravitatingBodies()` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | a `ProperTime`; a `GravitationalDilation`; `GravitatingBody[]` |
 
 Each method does what a page would otherwise write by hand:
@@ -302,22 +345,26 @@ hc.fixedFromUnixInZone(331_250_400, "Europe/Rome");   // 1980-07-01, by the 1980
 The exports come in layers, each a Cargo feature, so a page loads what it
 paints first and fetches the rest later. Every feature builds on its own;
 `calendars` does not need `holiday`, so a page can show every calendar
-before it loads the holiday tables.
+before it loads the holiday tables. CI holds each to that:
+[`scripts/layer-tests.sh`](../../scripts/layer-tests.sh) builds every layer
+[`scripts/layers.sh`](../../scripts/layers.sh) lists for `wasm32` alone,
+and runs this crate's and the C library's tests with that feature alone,
+one job a layer.
 
 | Feature | Exports | Brings in | Bytes | Size |
 | --- | --- | --- | ---: | ---: |
-| `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,819 | 35 KiB |
-| `timestamps` | `hc_tai64_encode`, `hc_tai64_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`: TAI64 labels, GNSS weeks, GLONASS dates, OLE Automation dates and Excel 1900 serials | nothing beyond `civil`'s crates: `hc-core`'s `tai64` and `gnss`, `hc-calendars-solar`'s `spreadsheet` | 84,635 | 83 KiB |
-| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; and when each country adopted the Gregorian calendar; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury` | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 783,176 | 765 KiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter` | `hc-holiday` and everything it dates by | 1,139,352 | 1.09 MiB |
-| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 89,186 | 87 KiB |
+| `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,663 | 35 KiB |
+| `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, and Julian and Besselian epochs | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time` and `epoch_notation`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` | 104,440 | 102 KiB |
+| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; and when each country adopted the Gregorian calendar; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury` | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 783,168 | 765 KiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter` | `hc-holiday` and everything it dates by | 1,143,705 | 1.09 MiB |
+| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 89,751 | 88 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 152,767 | 149 KiB |
-| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,822 | 56 KiB |
-| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event` | `hc-astro`, `hc-seasons` | 109,483 | 107 KiB |
+| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,666 | 56 KiB |
+| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event` | `hc-astro`, `hc-seasons` | 109,346 | 107 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 63,961 | 62 KiB |
-| `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`: Mars time, the Darian date, the surface missions' sols, and the solar day and local time of every body in `hc-planetary`'s table | `hc-planetary`, `hc-astro` | 87,824 | 86 KiB |
+| `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 96,090 | 94 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 52,367 | 51 KiB |
-| `full` | all of the above | everything | 2,036,372 | 1.94 MiB |
+| `full` | all of the above | everything | 2,059,906 | 1.96 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -338,8 +385,8 @@ layer on purpose comes with a refreshed table.
 `hc_alloc`, `hc_free` and `hc_version` are in every build.
 
 The profile's `opt-level = "z"` is a measured choice, not a default. On
-2026-09-27, with the same rustc, the `full` layer built at `z` was the
-1,927,503 bytes of the table above and answered `hc_holidays_on` for
+2026-09-27, with the same rustc, the `full` layer built at `z` was
+1,927,503 bytes and answered `hc_holidays_on` for
 2026-01-01 in 125 ms under Node 22; at `s`, 1,942,023 bytes and 121 ms; at
 `3`, 2,093,074 bytes and 119 ms. The 5 % of time `z` costs against `3`
 buys 8 % of the size, and a page loads the module far more often than it
@@ -357,7 +404,7 @@ not pass CI.
 
 ### Exports
 
-72 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+84 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -386,6 +433,17 @@ not pass CI.
 | `hc_fixed_from_ole_automation(value: f64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The fixed day and the time of day of an OLE Automation date, as one UTF-8 line, returning the byte length written. |
 | `hc_ole_automation_from_fixed(fixed: i64, seconds_of_day: f64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The OLE Automation date of a fixed day and a time of day, as one UTF-8 line, returning the byte length written. |
 | `hc_excel_1900_day(serial: i64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | What an Excel 1900 serial names, as one UTF-8 line, returning the byte length written. |
+| `hc_tai_from_unix(unix_seconds: i64, strict: i32, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | A POSIX timestamp as a TAI reading, as one UTF-8 line, returning the byte length written. |
+| `hc_utc_from_tai(tai_seconds: i64, strict: i32, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | A whole TAI second as a UTC label, as one UTF-8 line, returning the byte length written. |
+| `hc_tai64_posix_plus_10_encode(unix_seconds: i64, attoseconds: u64, format: *const u8, format_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | A POSIX instant as a TAI64 or TAI64N label in the `tai64-posix-plus-10` convention, in lower-case hexadecimal, as one UTF-8 line, returning the byte length written. |
+| `hc_tai64_posix_plus_10_decode(hex: *const u8, hex_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | A TAI64 or TAI64N label in the `tai64-posix-plus-10` convention read back, as one UTF-8 line, returning the byte length written. |
+| `hc_uuid_timestamp(uuid: *const u8, uuid_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The timestamp of a version 1 or version 6 UUID, as one UTF-8 line, returning the byte length written. |
+| `hc_ntp_resolve(seconds: u32, fraction: u32, reference_unix: i64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | A 64-bit NTP timestamp placed in its era by a reference time, as one UTF-8 line, returning the byte length written. |
+| `hc_fat_decode(date: u32, time: u32, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The local reading a FAT date word and time word name, as one UTF-8 line, returning the byte length written. |
+| `hc_fat_encode(fixed: i64, seconds_of_day: u32, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The FAT date and time words of a fixed day and a time of day, as one UTF-8 line, returning the byte length written. |
+| `hc_swatch_beat(unix_seconds: i64, attoseconds: u64) -> i64` | `timestamps` | The Swatch Internet Time at a POSIX instant, 0 through 999, or an error sentinel. |
+| `hc_epoch_from_tt(notation: *const u8, notation_len: usize, tt_seconds: i64, attoseconds: u64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The Julian or Besselian epoch of a TT instant, as one UTF-8 line, returning the byte length written. |
+| `hc_tt_from_epoch(notation: *const u8, notation_len: usize, year: f64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The TT instant of a Julian or Besselian epoch, as one UTF-8 line, returning the byte length written. |
 | `hc_describe_day(fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | One fixed day in every registered calendar, as UTF-8 lines, returning the byte length written. |
 | `hc_calendar_units(id: *const u8, id_len: usize, unit: u32, from_fixed: i64, to_fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The days from `from_fixed` up to but not including `to_fixed` as one calendar's eras, years, months or days, as UTF-8 lines, returning the byte length written. |
 | `hc_calendars(today: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every registered calendar, as UTF-8 lines, returning the byte length written. |
@@ -430,6 +488,7 @@ not pass CI.
 | `hc_mission_sol(mission: *const u8, mission_len: usize, unix_seconds: f64) -> i64` | `planetary` | The sol number of a Mars surface mission at a POSIX instant, by the mission's own clock, or an error sentinel. |
 | `hc_bodies(buffer: *mut u8, capacity: usize) -> i64` | `planetary` | Every body `hc-planetary` carries, with its solar day, as UTF-8 lines, returning the byte length written. |
 | `hc_body_time(body: *const u8, body_len: usize, unix_seconds: f64, east_longitude_deg: f64, buffer: *mut u8, capacity: usize) -> i64` | `planetary` | Local mean solar time on a body at a POSIX instant and an east longitude, as one UTF-8 line, returning the byte length written. |
+| `hc_circad_date(calendar: *const u8, calendar_len: usize, unix_seconds: f64, buffer: *mut u8, capacity: usize) -> i64` | `planetary` | The date at a POSIX instant in a calendar of another body's days, as one UTF-8 line, returning the byte length written. |
 | `hc_proper_time(speed_metres_per_second: f64, coordinate_seconds: f64, buffer: *mut u8, capacity: usize) -> i64` | `relativity` | A clock moving at a constant speed while some coordinate time passes, as one UTF-8 line, returning the byte length written. |
 | `hc_gravitational_dilation(body: *const u8, body_len: usize, radius_metres: f64, buffer: *mut u8, capacity: usize) -> i64` | `relativity` | A clock held still at a radius from a body's centre, against one far from every mass, as one UTF-8 line, returning the byte length written. |
 | `hc_gravitating_bodies(buffer: *mut u8, capacity: usize) -> i64` | `relativity` | Every body `hc-relativity` carries a gravitational parameter for, as UTF-8 lines, returning the byte length written. |
@@ -465,8 +524,6 @@ fails when an export has neither a twin of its name nor a row here.
 | --- | --- | --- | --- |
 | The Gregorian date of a fixed day | `hc_gregorian_year`, `hc_gregorian_month`, `hc_gregorian_day` | `hc_gregorian_from_fixed` | A WebAssembly export returns one `i64`, so the three fields are three exports; the C entry point writes all three through out-parameters in one call. |
 | A block of the module's memory | `hc_alloc`, `hc_free` | — | A page has to put text into the module's linear memory before a call can read it. A C caller owns its own memory and passes pointers to it, so the C library allocates nothing. |
-| A POSIX timestamp as a TAI reading | — | `hc_tai_from_unix` | Two results, the seconds and the attoseconds, and the module has no line export for them yet. A page reads `TAI − UTC` from `hc_tai_minus_utc` and adds it, which is exact from 1972. |
-| A TAI reading as a UTC label | — | `hc_utc_from_tai` | Two results, the POSIX second and whether it is an inserted leap second, and the module has no line export for them yet. |
 
 ## Time scales and day counts
 
@@ -588,6 +645,160 @@ and their sources.
 | --- | --- | --- |
 | 1 | fixed | the fixed day the serial names, or empty for serial 60 |
 | 2 | phantom | `1` for serial 60, else `0` |
+
+### The TAI–UTC bridge
+
+`hc_tai_from_unix(unix_seconds, strict, buffer, capacity)` and
+`hc_utc_from_tai(tai_seconds, strict, buffer, capacity)` are the C
+library's entry points of the same names as lines. They are in this layer,
+`timestamps`, though the C library has them in its `civil`: their 128-bit
+arithmetic is what this layer exists to keep out of `civil`, which they
+would grow by a sixth, and a page that only needs `TAI − UTC` has
+`hc_tai_minus_utc` there. `hc_tai_from_unix` writes one line of two cells, the TAI
+seconds and the attoseconds of the TAI instant above; from 1961 to 1972
+the offset is not a whole number of seconds, so the attoseconds are not
+zero.
+`hc_utc_from_tai` reads a whole TAI second back into one line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | unix seconds | the POSIX second, or for a leap second the one after it |
+| 2 | leap second | `1` when the TAI second is an inserted `23:59:60`, which POSIX time cannot express, else `0` |
+
+`strict` non-zero refuses before 1961 and past the announced leap-second
+table with `HC_ERR_NO_DATA`, as for `hc_tai_minus_utc`. The last second of
+2016 is the anchor: 23:59:59 UTC was TAI + 36 s, so TAI second
+1 483 228 836 is 23:59:60 and writes `1483228800` and `1`.
+
+### TAI64 labels on a POSIX clock
+
+TAI64 labels in the wild are not all true TAI. daemontools' `tai64n`, which
+stamps the lines `multilog` writes, takes the system clock as TAI seconds
+since 1970-01-01 00:00:10 TAI, and on an ordinary clock, which keeps POSIX
+time, the label it writes is 2⁶² + 10 + the POSIX seconds, with no
+leap-second table at all (D. J. Bernstein, "The tai64n program", which
+`hc-core`'s `tai64` cites). `hc-core` names that convention
+`tai64-posix-plus-10`, and it has exports of its own rather than a flag on
+`hc_tai64_encode`, because nothing in the bytes says which convention
+wrote them and the caller knows which clock the log came from.
+`hc_tai64_posix_plus_10_encode(unix_seconds, attoseconds, format_ptr,
+format_len, buffer, capacity)` writes the label of a POSIX instant as one
+line of one cell, `format` being `tai64` (16 digits) or `tai64n` (24);
+`tai64na`, which the convention does not write, is `HC_ERR_UNKNOWN`. POSIX 0
+is `400000000000000a`, which `hc_tai64_decode` reads as ten seconds after
+1970 TAI. `hc_tai64_posix_plus_10_decode(hex_ptr, hex_len, buffer,
+capacity)` reads a label of 16 or 24 digits back; any other text is
+`HC_ERR_MALFORMED`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | format | `tai64` or `tai64n`, by the label's length |
+| 2 | unix seconds | the POSIX seconds of the instant the label names |
+| 3 | attoseconds | the attoseconds into that second, a whole number of nanoseconds |
+
+### UUID timestamps
+
+`hc_uuid_timestamp(uuid_ptr, uuid_len, buffer, capacity)` reads the 60-bit
+timestamp of a version 1 or version 6 UUID, RFC 9562's count of
+100-nanosecond intervals from 15 October 1582, which version 1 writes low
+bits first and version 6 high bits first. The UUID is RFC 9562's string
+form: 32 hexadecimal digits in either case, bare or hyphenated
+8-4-4-4-12, optionally after `urn:uuid:`; any other text is
+`HC_ERR_MALFORMED`, and a UUID of another version or variant, which carries
+no timestamp, `HC_ERR_NO_DATA`. The count converts as the RFC's own
+pseudocode does, POSIX-style with no leap second, and is what the
+generator wrote, which RFC 9562 lets it alter. Both of the RFC's test
+vectors, `C232AB00-9414-11EC-B3C8-9F6BDECED846` and
+`1EC9414C-232A-6B00-B3C8-9F6BDECED846`, carry 138 648 505 420 000 000
+intervals, POSIX 1 645 557 742. `docs/systems/binary-timestamps.md` works
+the example through.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | version | `1` or `6` |
+| 2 | timestamp | the 60-bit count of 100-nanosecond intervals from 1582-10-15 00:00 UTC |
+| 3 | unix seconds | the POSIX seconds of the start of that interval |
+| 4 | attoseconds | the attoseconds into that second, a whole number of 100 ns |
+
+### NTP eras
+
+An NTP packet's 64-bit timestamp is 32 bits of seconds from
+1900-01-01 00:00 UTC and 32 of fraction, and the seconds wrap on
+7 February 2036; RFC 5905's 128-bit date carries the era the timestamp
+leaves out, and "eras cannot be produced by NTP directly". `hc_ntp_resolve(seconds,
+fraction, reference_unix, buffer, capacity)` supplies the era from outside,
+as §6 says a client within 68 years of the server does: the one that puts
+the timestamp within 2³¹ s of `reference_unix`, from 2³¹ s before it,
+included, to 2³¹ s after it, excluded. The zero timestamp, which RFC 5905
+reserves for unknown or unsynchronised time, is `HC_ERR_NO_DATA`. The
+timestamp 63 104 read against a clock in 2030 is 8 February 2036, era 1,
+as the RFC's Figure 4 has it; against a clock in 1920 it is 17:31:44 on
+1 January 1900.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | era | the era number, 0 for 1900 to 2036, negative before 1900 |
+| 2 | era offset | the seconds into the era, the timestamp's own |
+| 3 | fraction | the fraction of the second in units of 2⁻⁶⁴ s |
+| 4 | unix seconds | the POSIX seconds of the date |
+| 5 | attoseconds | the attoseconds into that second |
+
+### FAT date and time words
+
+The FAT file system packs a local wall-clock reading into two 16-bit
+words: the day, month and years from 1980 in the date word, the hour, the
+minute and the second halved in the time word, as Microsoft's
+`DosDateTimeToFileTime` gives the layouts. `hc_fat_decode(date, time,
+buffer, capacity)` writes the reading; the words record no zone, so the day
+is a local one and no instant is claimed. A word above 65 535 is
+`HC_ERR_OUT_OF_RANGE`, and one whose fields name no day or no time — month
+0 or 13, 30 February, hour 24, minute 60, halved second 30 — is
+`HC_ERR_INVALID_DATE`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | fixed | the fixed day of the local date |
+| 2 | seconds of day | the seconds into it, always even |
+
+`hc_fat_encode(fixed, seconds_of_day, buffer, capacity)` writes the words
+back as one line of two cells, the date word and the time word, the
+second rounded down to an even one; a day outside 1980 to 2107 or a time
+of day from 86 400 s is `HC_ERR_OUT_OF_RANGE`. 26 September 2026 at
+23:59:58 is the date word 23 866 and the time word 49 021.
+
+### Swatch Internet Time
+
+`hc_swatch_beat(unix_seconds, attoseconds)` answers the beat as a number,
+0 through 999: Swatch divided the day into a thousand beats of 86.4 s,
+beginning at midnight of Biel Mean Time, which is UTC+1 all year and not
+Biel's mean solar time, so @000 begins at 23:00 UTC and the POSIX epoch is
+@041. Swatch defines no unit below the beat, and the export writes none.
+
+### Julian and Besselian epochs
+
+An epoch written `J2000.0` or `B1950.0` is an instant as a year with a
+fraction, in one of two notations SOFA's *Time Scale and Calendar Tools*
+describes, and `hc-core`'s `epoch_notation` carries both: `J`, Julian years
+of exactly 365.25 days of TT from J2000.0, 2000 January 1.5 TT; and `B`,
+Besselian years of 365.242 198 781 days from B1900.0, JD 2415020.31352, the
+constants ERFA's `eraEpb` gives. A **TT instant** crosses as a TAI one
+does, as whole seconds from 1970-01-01 00:00:00 TT and attoseconds; TT is
+TAI + 32.184 s. `hc_epoch_from_tt(notation_ptr, notation_len, tt_seconds,
+attoseconds, buffer, capacity)` writes the epoch; `notation` is `J` or
+`julian-epoch`, or `B` or `besselian-epoch`, in any case, and anything else
+is `HC_ERR_UNKNOWN`. SOFA's example, JD 2457073.05631 TT, which is
+1 424 352 065.184 TT seconds, is J2015.1349933196 and B2015.1365941021.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | notation | `J` or `B` |
+| 2 | epoch | the year with its fraction: `2000` for J2000.0 |
+
+`hc_tt_from_epoch(notation_ptr, notation_len, year, buffer, capacity)`
+reads an epoch back into one line of three cells: the notation's letter,
+the TT seconds and the attoseconds. An empty `notation` reads the year as
+SOFA says an epoch without a letter is read, Besselian before 1984.0 and
+Julian from it, and the first cell says which it was.
 
 ## Every calendar
 
@@ -961,6 +1172,18 @@ names its country only where its table includes the country's for its
 days off — Tokyo, Hong Kong, Shanghai, London among them — and most list
 every closed day themselves and name none.
 
+Column 8 is the short name CLDR 48 gives a country beside the plain one,
+its `alt="short"` value at the `approved` and `contributed` levels, read
+from the same file that answered column 5: `Hong Kong` for `HK` under
+`en`, 香港 under `ja` beside 中華人民共和国香港特別行政区, `UK` for `GB`,
+and likewise for Macao (`MO`) and Palestine (`PS`) in most locales, and
+for Bosnia (`BA`), Myanmar (`MM`), South Korea (`KR`), Saudi Arabia (`SA`)
+and the United States (`US`) in a few. CLDR shortens only these, so the
+cell is empty for most countries; it is empty too where the file writes
+the short value as the inheritance marker `↑↑↑`, which resolves to the
+plain name column 3 already carries, and for every table column 3 names
+in English by fallback, whose name is the table's own and not CLDR's.
+
 | # | Column | Holds |
 | --- | --- | --- |
 | 1 | code | the table's identifier, as `hc_holiday_codes` lists it |
@@ -970,6 +1193,7 @@ every closed day themselves and name none.
 | 5 | locale used | the tag of the data that named column 3: `ja`, `de`, `zh-Hant`, or `en` for an English name |
 | 6 | source | the statute, gazette or calendar the table names as its sources |
 | 7 | country | for a subdivision or an exchange, the ISO 3166-1 code of the country its table records, else empty; the code of a row whose column 3 names the country in the same locale |
+| 8 | short name | CLDR's `alt="short"` name for a country column 3 names from CLDR, from the same locale's data, else empty |
 
 ### The liturgical year
 
@@ -1538,6 +1762,48 @@ hc.bodyTime("titan", Date.now() / 1000).localHourSeconds / 3600;   // 15.97
 hc.bodyTime("mars", 947_116_800).time;   // "23:59:39", Coordinated Mars Time at Airy-0
 ```
 
+### Calendars of other bodies
+
+`hc_circad_date(calendar_ptr, calendar_len, unix_seconds, buffer,
+capacity)` writes the date at an instant in one of the calendars
+`hc-planetary` keeps for bodies whose day is not Earth's, other than the
+Darian date `hc_mars_time` already writes. `calendar` is, in any ASCII
+case:
+
+- `darian-titan`, Gangale's Darian calendar for Titan, and
+  `gregorian-io`, `gregorian-europa`, `gregorian-ganymede` and
+  `gregorian-callisto`, his Gregorian-based calendars for the Galilean
+  moons. Their day is a *circad*, a fixed fraction of the moon's solar day
+  near an Earth day, in weeks of eight, counted from each calendar's epoch
+  by the source's calibration (`docs/systems/circad-calendars.md`).
+- `martiana`, Gangale's variant of the Darian calendar with Aitken's week:
+  the Darian months and sol count, the seven-sol week never shortened, the
+  leap sol in every odd year and an epagomenal sol, outside the week, in
+  every tenth.
+
+Another name is `HC_ERR_UNKNOWN`. The instant is read as for
+`hc_mars_time`, through the leap-second table with the last offset held,
+and only within 100 Julian years of J2000.0: the calendars' calibrations
+are of 2002, and the solar days they divide are fact-sheet figures. One
+line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | calendar | the calendar's identifier, as above |
+| 2 | year | the year, in the calendar's own count |
+| 3 | month | the month, from 1 |
+| 4 | day | the day of the month, from 1: a circad, or a sol |
+| 5 | month name | the month's name, as the source gives it |
+| 6 | week name | the name of the day's place in the week; empty for Martiana's epagomenal sol, which belongs to no week |
+| 7 | count | the day count the date is numbered by: the circad number from the calendar's epoch, or Martiana's Darian sol number |
+| 8 | fraction | the fraction of that circad or sol elapsed, 0 to 1 |
+| 9 | leap | `1` for a year with the calendar's intercalary week or sol, else `0` |
+| 10 | source | where the calendar comes from |
+
+Gangale's calibration of the Titan calendar is the anchor: the superior
+conjunction of 18 December 2002 at 10:42 UTC was 209 Aries 13, Julian
+Circad 144 096, a Solis.
+
 ## Relativity
 
 `hc_proper_time`, `hc_gravitational_dilation` and `hc_gravitating_bodies`
@@ -1639,16 +1905,15 @@ lines, made once in the facade.
 
 Neither boundary exposes these parts of the workspace:
 
-- **`hc-planetary`'s circad calendars**, Titan's Darian calendar and the
-  Galilean moons' calendars. Their day number is a circad of the moon, not
-  an Earth day, so they are not in the registry that `hc_describe_day` and
-  `hc_calendar_units` walk, and a fixed day cannot be handed to them.
-  Mars time and the Darian date are here, in `planetary`.
+- **`hc-planetary`'s circad calendars and the Martiana calendar in the
+  registry.** Their day number is a circad or a sol, not an Earth day, so
+  they are not in the registry that `hc_describe_day` and
+  `hc_calendar_units` walk, and a fixed day cannot be handed to them; an
+  instant can, and `hc_circad_date` answers it.
 - **`hc-humanize`, `hc-fiscal`, `hc-name-days`, `hc-almanac` (the 暦注
   notes), `hc-attributes` and `hc-units`.** No line format has been
   designed for them yet; each would be a layer of its own.
-- **The NTP eras, the UUID timestamp, the FAT date and time words, Swatch
-  Internet Time, the Julian and Besselian epochs, and TAI64's
-  `tai64-posix-plus-10` convention**, all in `hc-core` and `hc-format`. The
-  `timestamps` layer carries TAI64, the GNSS weeks, GLONASS dates and the
-  spreadsheet dates only; these have no export yet.
+- **The encoding halves of the UUID and NTP formats**: writing a
+  version 1 or 6 UUID from a timestamp and a node, and an NTP date or
+  timestamp from a POSIX time, which `hc-core` has and no page has yet
+  asked for; the `timestamps` layer reads them.

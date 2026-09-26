@@ -193,6 +193,15 @@ test("the time-scale lines read the README's columns in order", () => {
   // hc_tai64_decode's line.
   assert.match(README, /one line of two\s+cells, the TAI seconds and the attoseconds/);
   assert.deepEqual([...COLUMNS.taiInstant], COLUMNS.tai64.slice(1));
+  assert.deepEqual([...COLUMNS.utcFromTai], columnsAfter("### The TAI–UTC bridge"));
+  assert.match(README, /`hc_tai_from_unix` writes one line of two cells, the TAI\s+seconds and the attoseconds/);
+  assert.deepEqual([...COLUMNS.tai64PosixPlus10], columnsAfter("### TAI64 labels on a POSIX clock"));
+  assert.deepEqual([...COLUMNS.uuidTimestamp], columnsAfter("### UUID timestamps"));
+  assert.deepEqual([...COLUMNS.ntpResolve], columnsAfter("### NTP eras"));
+  assert.deepEqual([...COLUMNS.fatDecode], columnsAfter("### FAT date and time words"));
+  assert.match(README, /one line of two cells, the date word and the time word/);
+  assert.deepEqual([...COLUMNS.epoch], columnsAfter("### Julian and Besselian epochs"));
+  assert.match(README, /one line of three cells: the notation's letter,\s+the TT seconds and the attoseconds/);
 });
 
 test("the pañcāṅga, the tables and the lectionary read the README's columns in order", () => {
@@ -213,6 +222,7 @@ test("the planetary lines read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.missions], columnsAfter("### Mission sols"));
   assert.deepEqual([...COLUMNS.bodies], columnsAfter("## Other bodies"));
   assert.deepEqual([...COLUMNS.bodyTime], columnsAfter("### Local time on a body"));
+  assert.deepEqual([...COLUMNS.circadDate], columnsAfter("### Calendars of other bodies"));
 });
 
 test("the relativity lines read the README's columns in order", () => {

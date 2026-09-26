@@ -52,8 +52,10 @@ directive asked for one, the standard is still being defined, and inventing a
 definition would be worse than waiting.
 
 The WebAssembly module and the C library carry Mars time, the mission sols,
-the body table and each body's local mean solar time as their `planetary`
-layer; `crates/hyper-calendar-wasm/README.md` gives the lines.
+the body table, each body's local mean solar time, and the dates of the
+Titan, Galilean and Martiana calendars at an instant (`hc_circad_date`) as
+their `planetary` layer; `crates/hyper-calendar-wasm/README.md` gives the
+lines.
 
 ## `hc-relativity`
 

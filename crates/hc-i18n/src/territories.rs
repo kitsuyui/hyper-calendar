@@ -6,12 +6,22 @@
 //! `localeDisplayNames/territories/territory`, read 2026-09-27 for every
 //! locale below: `zh.xml` for `zh-Hans`, `zh_Hant.xml` for `zh-Hant`, and
 //! the file of the same tag for the rest [cldr48-territory-names]. As for
-//! the calendar names in [`crate::data`], only the plain value of each
-//! territory is taken — not its `alt="short"` or `alt="variant"` form, so
-//! Hong Kong is `Hong Kong SAR China` in English and not `Hong Kong` — and
-//! only at CLDR's release levels, `approved` and `contributed`. A
-//! `provisional` or `unconfirmed` value is a proposal the release does not
-//! stand behind, and is left out.
+//! the calendar names in [`crate::data`], the name of each territory is its
+//! plain value — not its `alt="short"` or `alt="variant"` form, so Hong
+//! Kong is `Hong Kong SAR China` in English and not `Hong Kong` — and only
+//! at CLDR's release levels, `approved` and `contributed`. A `provisional`
+//! or `unconfirmed` value is a proposal the release does not stand behind,
+//! and is left out.
+//!
+//! The `alt="short"` values are carried beside the plain ones, from the
+//! same files at the same levels, and [`short_name`] answers them: `Hong
+//! Kong` for `HK` in English, `香港` in Japanese, `UK` for `GB`. CLDR
+//! shortens few names — `BA`, `GB`, `HK`, `KR`, `MM`, `MO`, `PS`, `SA` and
+//! `US` among the [`REGIONS`], and no locale all of them — so most regions
+//! have none. A short value written as CLDR's inheritance marker `↑↑↑`,
+//! which resolves to the plain name, is not carried as a short name, and
+//! Kabyle's, every one unconfirmed, are left out as its plain ones are.
+//! The `alt="variant"` values are not carried.
 //!
 //! # Which regions
 //!
@@ -110,6 +120,14 @@ impl TerritoryNames {
     pub fn name_of(&self, region: &str) -> Option<&'static str> {
         region_index(region).and_then(|index| self.name_at(index))
     }
+
+    /// The `alt="short"` name of `region` in this table's locale — `香港`
+    /// for `HK` under `ja`, where [`Self::name_of`] is `中華人民共和国香港特別行政区` —
+    /// if CLDR gives one at a release level; see [`short_name`].
+    #[must_use]
+    pub fn short_name_of(&self, region: &str) -> Option<&'static str> {
+        short_name(self.tag, region)
+    }
 }
 
 /// A territory's name and the tag of the table that gave it.
@@ -154,6 +172,31 @@ pub fn territory_name(locale: &Locale, region: &str) -> Option<TerritoryName> {
                 })
             })
     })
+}
+
+/// The `alt="short"` name the table tagged `tag` gives `region`, an ISO
+/// 3166-1 alpha-2 code in any case: `UK` for `GB` and `Hong Kong` for
+/// `HK` under `en`, `香港` for `HK` under `ja`.
+///
+/// Only the table's own file answers: no fallback chain is walked, so
+/// that the short name comes from the same locale as the plain one it
+/// stands beside. `None` where CLDR 48 has no short value for the region
+/// in that file at a release level — most regions, since CLDR shortens
+/// only a few names — and also where the file's short value is the
+/// inheritance marker `↑↑↑`, which asks for the value inherited from the
+/// locale's parent and, the parent being root, resolves to the plain name
+/// itself: there is no shorter name than the one [`TerritoryNames::name_of`]
+/// already gives.
+#[must_use]
+pub fn short_name(tag: &str, region: &str) -> Option<&'static str> {
+    let wanted = REGIONS.get(region_index(region)?)?;
+    SHORT_TABLES
+        .iter()
+        .find(|table| table.tag == tag)?
+        .names
+        .iter()
+        .find(|(code, _)| code == wanted)
+        .map(|(_, name)| *name)
 }
 
 /// Every locale with a table, in tag order.
@@ -7304,6 +7347,448 @@ const ZH_HANT: &str = territory_names! {
     ZW "辛巴威"
 };
 
+// --- the short names -----------------------------------------------------
+
+/// One locale's `alt="short"` names: the few regions CLDR gives a shorter
+/// name than the plain one, at a release level, as (code, name) pairs in
+/// code order.
+#[derive(Debug, Clone, Copy)]
+struct ShortNames {
+    tag: &'static str,
+    names: &'static [(&'static str, &'static str)],
+}
+
+/// Whether every code is one of [`REGIONS`] and they are in code order:
+/// the compile-time check of `short_names!`.
+const fn in_regions_in_order(codes: &[&str]) -> bool {
+    let mut index = 0;
+    let mut previous: Option<usize> = None;
+    while index < codes.len() {
+        let code = codes[index].as_bytes();
+        let mut found = None;
+        let mut region = 0;
+        while region < REGIONS.len() {
+            let candidate = REGIONS[region].as_bytes();
+            if candidate.len() == code.len() && candidate[0] == code[0] && candidate[1] == code[1] {
+                found = Some(region);
+            }
+            region += 1;
+        }
+        match (found, previous) {
+            (None, _) => return false,
+            (Some(at), Some(before)) if at <= before => return false,
+            (Some(at), _) => previous = Some(at),
+        }
+        index += 1;
+    }
+    true
+}
+
+/// One locale's short names: a region's code followed by its name, for
+/// each region that has one. The codes must be [`REGIONS`], in code order,
+/// or the build fails.
+macro_rules! short_names {
+    ($($region:ident $name:literal)*) => {{
+        const _: () = assert!(
+            in_regions_in_order(&[$(stringify!($region)),*]),
+            "a short-name table's codes are not REGIONS in order"
+        );
+        &[$((stringify!($region), $name)),*]
+    }};
+}
+
+/// Every locale with a short name for one of the [`REGIONS`], in tag
+/// order: a subset of [`TABLES`].
+static SHORT_TABLES: &[ShortNames] = &[
+    ShortNames {
+        tag: "am",
+        names: SHORT_AM,
+    },
+    ShortNames {
+        tag: "ar",
+        names: SHORT_AR,
+    },
+    ShortNames {
+        tag: "bn",
+        names: SHORT_BN,
+    },
+    ShortNames {
+        tag: "cs",
+        names: SHORT_CS,
+    },
+    ShortNames {
+        tag: "de",
+        names: SHORT_DE,
+    },
+    ShortNames {
+        tag: "en",
+        names: SHORT_EN,
+    },
+    ShortNames {
+        tag: "es",
+        names: SHORT_ES,
+    },
+    ShortNames {
+        tag: "fa",
+        names: SHORT_FA,
+    },
+    ShortNames {
+        tag: "fr",
+        names: SHORT_FR,
+    },
+    ShortNames {
+        tag: "he",
+        names: SHORT_HE,
+    },
+    ShortNames {
+        tag: "hi",
+        names: SHORT_HI,
+    },
+    ShortNames {
+        tag: "id",
+        names: SHORT_ID,
+    },
+    ShortNames {
+        tag: "it",
+        names: SHORT_IT,
+    },
+    ShortNames {
+        tag: "ja",
+        names: SHORT_JA,
+    },
+    ShortNames {
+        tag: "jv",
+        names: SHORT_JV,
+    },
+    ShortNames {
+        tag: "ko",
+        names: SHORT_KO,
+    },
+    ShortNames {
+        tag: "ml",
+        names: SHORT_ML,
+    },
+    ShortNames {
+        tag: "my",
+        names: SHORT_MY,
+    },
+    ShortNames {
+        tag: "ne",
+        names: SHORT_NE,
+    },
+    ShortNames {
+        tag: "nl",
+        names: SHORT_NL,
+    },
+    ShortNames {
+        tag: "pl",
+        names: SHORT_PL,
+    },
+    ShortNames {
+        tag: "ps",
+        names: SHORT_PS,
+    },
+    ShortNames {
+        tag: "pt",
+        names: SHORT_PT,
+    },
+    ShortNames {
+        tag: "ru",
+        names: SHORT_RU,
+    },
+    ShortNames {
+        tag: "syr",
+        names: SHORT_SYR,
+    },
+    ShortNames {
+        tag: "ta",
+        names: SHORT_TA,
+    },
+    ShortNames {
+        tag: "th",
+        names: SHORT_TH,
+    },
+    ShortNames {
+        tag: "tr",
+        names: SHORT_TR,
+    },
+    ShortNames {
+        tag: "vi",
+        names: SHORT_VI,
+    },
+    ShortNames {
+        tag: "zh-Hans",
+        names: SHORT_ZH_HANS,
+    },
+    ShortNames {
+        tag: "zh-Hant",
+        names: SHORT_ZH_HANT,
+    },
+];
+
+// `common/main/am.xml`.
+const SHORT_AM: &[(&str, &str)] = short_names! {
+    GB "ዩኬ"
+    HK "ሆንግ ኮንግ"
+    MO "ማካኦ"
+    PS "ፍልስጥኤም"
+};
+
+// `common/main/ar.xml`.
+const SHORT_AR: &[(&str, &str)] = short_names! {
+    HK "هونغ كونغ"
+    MO "مكاو"
+    PS "فلسطين"
+};
+
+// `common/main/bn.xml`.
+const SHORT_BN: &[(&str, &str)] = short_names! {
+    GB "ইউ কে"
+    HK "হংকং"
+    MO "ম্যাকাও"
+    PS "ফিলিস্তিন"
+    US "ইউ এস"
+};
+
+// `common/main/cs.xml`.
+const SHORT_CS: &[(&str, &str)] = short_names! {
+    GB "GB"
+    HK "Hongkong"
+    MO "Macao"
+    PS "Palestina"
+    US "USA"
+};
+
+// `common/main/de.xml`.
+const SHORT_DE: &[(&str, &str)] = short_names! {
+    GB "UK"
+    HK "Hongkong"
+    MO "Macau"
+    PS "Palästina"
+    US "USA"
+};
+
+// `common/main/en.xml`.
+const SHORT_EN: &[(&str, &str)] = short_names! {
+    BA "Bosnia"
+    GB "UK"
+    HK "Hong Kong"
+    MM "Myanmar"
+    MO "Macao"
+    PS "Palestine"
+    US "US"
+};
+
+// `common/main/es.xml`.
+const SHORT_ES: &[(&str, &str)] = short_names! {
+    GB "RU"
+    HK "Hong Kong"
+    MO "Macao"
+    PS "Palestina"
+    US "EE. UU."
+};
+
+// `common/main/fa.xml`.
+const SHORT_FA: &[(&str, &str)] = short_names! {
+    HK "هنگ‌کنگ"
+    MO "ماکائو"
+    PS "فلسطین"
+    SA "عربستان"
+};
+
+// `common/main/fr.xml`.
+const SHORT_FR: &[(&str, &str)] = short_names! {
+    GB "R.-U."
+    HK "Hong Kong"
+    MO "Macao"
+    PS "Palestine"
+    US "É.-U."
+};
+
+// `common/main/he.xml`.
+const SHORT_HE: &[(&str, &str)] = short_names! {
+    HK "הונג קונג"
+    MO "מקאו"
+    PS "פלסטין"
+    US "ארה״ב"
+};
+
+// `common/main/hi.xml`.
+const SHORT_HI: &[(&str, &str)] = short_names! {
+    GB "यू॰के॰"
+    HK "हाँग काँग"
+    MO "मकाऊ"
+    PS "फ़िलिस्तीन"
+    US "अमेरिका"
+};
+
+// `common/main/id.xml`.
+const SHORT_ID: &[(&str, &str)] = short_names! {
+    GB "UK"
+    HK "Hong Kong"
+    MO "Makau"
+    PS "Palestina"
+    US "AS"
+};
+
+// `common/main/it.xml`.
+const SHORT_IT: &[(&str, &str)] = short_names! {
+    GB "UK"
+    HK "Hong Kong"
+    MO "Macao"
+    PS "Palestina"
+    US "USA"
+};
+
+// `common/main/ja.xml`.
+const SHORT_JA: &[(&str, &str)] = short_names! {
+    GB "英国"
+    HK "香港"
+    MO "マカオ"
+    PS "パレスチナ"
+    US "アメリカ"
+};
+
+// `common/main/jv.xml`.
+const SHORT_JV: &[(&str, &str)] = short_names! {
+    GB "KM"
+    HK "Hong Kong"
+    MO "Macau"
+    PS "Palèstina"
+    US "AS"
+};
+
+// `common/main/ko.xml`.
+const SHORT_KO: &[(&str, &str)] = short_names! {
+    HK "홍콩"
+    KR "한국"
+    MO "마카오"
+    PS "팔레스타인"
+};
+
+// `common/main/ml.xml`.
+const SHORT_ML: &[(&str, &str)] = short_names! {
+    GB "യുകെ"
+    HK "ഹോങ്കോങ്"
+    MO "മക്കാവു"
+    PS "പലസ്‌തീൻ"
+    US "യു.എസ്"
+};
+
+// `common/main/my.xml`.
+const SHORT_MY: &[(&str, &str)] = short_names! {
+    GB "ယူကေ"
+    HK "ဟောင်ကောင်"
+    MO "မကာအို"
+    PS "ပါလက်စတိုင်း"
+    US "ယူအက်စ်"
+};
+
+// `common/main/ne.xml`.
+const SHORT_NE: &[(&str, &str)] = short_names! {
+    GB "युके"
+    HK "हङकङ"
+    MO "मकाउ"
+    PS "प्‍यालेस्टाइन"
+    US "अमेरिका"
+};
+
+// `common/main/nl.xml`.
+const SHORT_NL: &[(&str, &str)] = short_names! {
+    GB "VK"
+    HK "Hongkong"
+    MO "Macau"
+    PS "Palestina"
+    US "VS"
+};
+
+// `common/main/pl.xml`.
+const SHORT_PL: &[(&str, &str)] = short_names! {
+    GB "Wlk. Bryt."
+    HK "Hongkong"
+    MO "Makau"
+    PS "Palestyna"
+    US "USA"
+};
+
+// `common/main/ps.xml`.
+const SHORT_PS: &[(&str, &str)] = short_names! {
+    GB "انګلستان"
+    HK "هانګ کانګ"
+    MO "مکاو"
+    PS "فلسطين"
+};
+
+// `common/main/pt.xml`.
+const SHORT_PT: &[(&str, &str)] = short_names! {
+    HK "Hong Kong"
+    MO "Macau"
+    PS "Palestina"
+    US "EUA"
+};
+
+// `common/main/ru.xml`.
+const SHORT_RU: &[(&str, &str)] = short_names! {
+    GB "Британия"
+    HK "Гонконг"
+    MO "Макао"
+    PS "Палестина"
+    US "США"
+};
+
+// `common/main/syr.xml`.
+const SHORT_SYR: &[(&str, &str)] = short_names! {
+    PS "ܦܠܣܛܝܢ"
+};
+
+// `common/main/ta.xml`.
+const SHORT_TA: &[(&str, &str)] = short_names! {
+    GB "யூகே"
+    HK "ஹாங்காங்"
+    MO "மகாவ்"
+    PS "பாலஸ்தீனம்"
+    US "யூஎஸ்"
+};
+
+// `common/main/th.xml`.
+const SHORT_TH: &[(&str, &str)] = short_names! {
+    HK "ฮ่องกง"
+    MO "มาเก๊า"
+    PS "ปาเลสไตน์"
+    US "สหรัฐฯ"
+};
+
+// `common/main/tr.xml`.
+const SHORT_TR: &[(&str, &str)] = short_names! {
+    GB "BK"
+    HK "Hong Kong"
+    MO "Makao"
+    PS "Filistin"
+    US "ABD"
+};
+
+// `common/main/vi.xml`.
+const SHORT_VI: &[(&str, &str)] = short_names! {
+    HK "Hồng Kông"
+    MO "Macao"
+    PS "Palestine"
+    US "Mỹ"
+};
+
+// `common/main/zh.xml`.
+const SHORT_ZH_HANS: &[(&str, &str)] = short_names! {
+    HK "香港"
+    MO "澳门"
+    PS "巴勒斯坦"
+};
+
+// `common/main/zh_Hant.xml`.
+const SHORT_ZH_HANT: &[(&str, &str)] = short_names! {
+    HK "香港"
+    MO "澳門"
+    PS "巴勒斯坦"
+};
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -7422,6 +7907,51 @@ mod tests {
         assert!(table("cop").is_none());
         assert_eq!(territory_name(&locale("cop"), "EG"), None);
         assert_eq!(territory_name(&Locale::ROOT, "JP"), None);
+    }
+
+    /// CLDR 48 `en.xml`: `<territory type="HK" alt="short">Hong
+    /// Kong</territory>` and `GB` `UK`; `ja.xml`: `HK` `香港`, `GB` `英国`;
+    /// `zh.xml` writes `GB`'s short name as `↑↑↑`, and `kab.xml`'s are all
+    /// unconfirmed.
+    #[test]
+    fn short_names_are_cldrs_alt_short_values() {
+        let english = table("en").expect("English");
+        assert_eq!(english.short_name_of("hk"), Some("Hong Kong"));
+        assert_eq!(english.name_of("HK"), Some("Hong Kong SAR China"));
+        assert_eq!(short_name("en", "GB"), Some("UK"));
+        assert_eq!(short_name("en", "US"), Some("US"));
+        assert_eq!(short_name("en", "JP"), None);
+        assert_eq!(short_name("ja", "HK"), Some("香港"));
+        assert_eq!(short_name("ja", "MO"), Some("マカオ"));
+        assert_eq!(short_name("ja", "PS"), Some("パレスチナ"));
+        assert_eq!(short_name("ko", "KR"), Some("한국"));
+        assert_eq!(short_name("zh-Hans", "HK"), Some("香港"));
+        assert_eq!(short_name("zh-Hans", "GB"), None, "the marker ↑↑↑");
+        assert_eq!(short_name("zh-Hant", "MO"), Some("澳門"));
+        assert_eq!(short_name("kab", "HK"), None, "unconfirmed");
+        assert_eq!(short_name("en", "EU"), None);
+        assert_eq!(short_name("en-GB", "HK"), None, "a data tag, not a chain");
+    }
+
+    #[test]
+    fn every_short_table_is_a_table_in_tag_order_with_names() {
+        for pair in SHORT_TABLES.windows(2) {
+            assert!(
+                pair[0].tag < pair[1].tag,
+                "{} !< {}",
+                pair[0].tag,
+                pair[1].tag
+            );
+        }
+        for short in SHORT_TABLES {
+            let plain = table(short.tag).expect("a table of plain names");
+            assert!(!short.names.is_empty(), "{}", short.tag);
+            for (code, name) in short.names {
+                assert!(plain.name_of(code).is_some(), "{} {code}", short.tag);
+                assert_eq!(*name, name.trim(), "{} {code}", short.tag);
+                assert!(!name.is_empty() && !name.contains(['\t', '\n', '\r', '↑']));
+            }
+        }
     }
 
     #[test]

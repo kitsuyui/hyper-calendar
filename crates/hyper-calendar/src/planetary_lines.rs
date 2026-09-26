@@ -38,9 +38,10 @@ use hc_core::math::floor;
 use hc_core::unix::{self, LeapPolicy};
 use hc_core::{ATTOS_PER_SEC, Instant, Tai, UnixTime};
 use hc_planetary::bodies::{self, Body, BodyKind, EpochBasis};
+use hc_planetary::circad;
 use hc_planetary::clock::BodyClock;
 use hc_planetary::mars::missions::{MISSIONS, Mission, SolConvention};
-use hc_planetary::mars::{DarianCalendar, MarsMoment};
+use hc_planetary::mars::{DarianCalendar, MarsMoment, darian, martiana};
 use hc_planetary::moon::COORDINATED_LUNAR_TIME_STATUS;
 
 use crate::boundary::{Answer, Refusal, names, push_cell};
@@ -61,6 +62,26 @@ pub const BODY_COLUMNS: usize = 12;
 
 /// How many columns a line of [`body_time_line`] has.
 pub const BODY_TIME_COLUMNS: usize = 8;
+
+/// How many columns a line of [`circad_date_line`] has.
+pub const CIRCAD_DATE_COLUMNS: usize = 10;
+
+/// The calendars [`circad_date_line`] answers for, in the order
+/// `hc-planetary` defines them: the circad calendars of Titan and the
+/// Galilean moons, then Mars's Martiana.
+pub const CIRCAD_CALENDARS: [&str; 6] = [
+    "darian-titan",
+    "gregorian-io",
+    "gregorian-europa",
+    "gregorian-ganymede",
+    "gregorian-callisto",
+    "martiana",
+];
+
+/// What the last cell of a Martiana line names.
+const MARTIANA_SOURCE: &str = "Gangale, The Darian Calendar for Mars, §1.4.1 The Martiana \
+     Calendar and Table 1-13 (ops-alaska.com/time/gangale_mst/darian.htm), at Airy-0; the sol \
+     count from Mars24's Mars Sol Date";
 
 /// What the last cell of a Mars time line names.
 const MARS_SOURCE: &str = "NASA GISS Mars24, Algorithm and Worked Examples (Allison and McEwen \
@@ -404,6 +425,75 @@ pub fn body_time_line(
     Ok(out)
 }
 
+/// The date at an instant in a calendar of another body's days, as one
+/// line: the calendar's identifier, the year, the month, the day of the
+/// month, the month's name, the name of the day's place in the week, the
+/// day count the date is numbered by, the fraction of that day elapsed,
+/// `1` for a leap year, and the source.
+///
+/// `calendar` is one of the [`CIRCAD_CALENDARS`], in any ASCII case. For
+/// Titan's and the Galilean moons' calendars a day is a *circad*, a fixed
+/// fraction of the moon's solar day, the week has eight circads, and the
+/// count is the circad number from the calendar's epoch, as
+/// [`hc_planetary::circad`] reckons it from the source's calibration. For
+/// `martiana`, Gangale's variant of the Darian calendar with Aitken's
+/// week, a day is a sol at Airy-0, the count is the Darian sol number, a
+/// leap year is an odd one, and the epagomenal sol of every tenth year,
+/// which belongs to no week, has an empty week cell.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for another calendar, and as [`instant`] for the
+/// instant: the span is Mars24's, ±100 years of J2000.0, for these
+/// calendars too, whose calibrations are of 2002.
+pub fn circad_date_line(calendar: &str, unix_seconds: f64) -> Answer<String> {
+    let known = CIRCAD_CALENDARS
+        .iter()
+        .find(|id| names(calendar, id))
+        .ok_or(Refusal::Unknown)?;
+    let instant = instant(unix_seconds)?;
+    let mut out = String::new();
+    push_cell(&mut out, known);
+    if *known == "martiana" {
+        let msd = MarsMoment::from_tai(instant).mars_sol_date();
+        let sol = darian::sol_from_mars_sol_date(msd);
+        let date = martiana::date_from_sol(sol).map_err(|_| Refusal::OutOfRange)?;
+        let month = date.month_name().map_err(|_| Refusal::OutOfRange)?;
+        let week = date.weekday_name().map_err(|_| Refusal::OutOfRange)?;
+        let _ = write!(out, "\t{}\t{}\t{}\t", date.year, date.month, date.day);
+        push_cell(&mut out, month);
+        out.push('\t');
+        push_cell(&mut out, week.unwrap_or(""));
+        let _ = write!(
+            out,
+            "\t{sol}\t{}\t{}\t",
+            msd - floor(msd),
+            u8::from(martiana::is_leap_year(date.year))
+        );
+        push_cell(&mut out, MARTIANA_SOURCE);
+    } else {
+        let calendar = circad::by_id(known).ok_or(Refusal::Unknown)?;
+        let rule = calendar.rule();
+        let (count, fraction) = calendar.circad_and_fraction_at(instant);
+        let date = calendar
+            .date_from_circad(count)
+            .map_err(|_| Refusal::OutOfRange)?;
+        let month = calendar.month_name(date).map_err(|_| Refusal::OutOfRange)?;
+        let _ = write!(out, "\t{}\t{}\t{}\t", date.year, date.month, date.day);
+        push_cell(&mut out, month);
+        out.push('\t');
+        push_cell(&mut out, calendar.week_name(count));
+        let _ = write!(
+            out,
+            "\t{count}\t{fraction}\t{}\t",
+            u8::from(rule.is_leap_year(date.year))
+        );
+        push_cell(&mut out, rule.source);
+    }
+    out.push('\n');
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -582,6 +672,66 @@ mod tests {
         assert_eq!(
             body_time_line("arrakis", 947_116_800.0, 0.0),
             Err(Refusal::Unknown)
+        );
+    }
+
+    /// Gangale's Titan calibration (§3.6): the superior conjunction of
+    /// 2002 Dec 18 at 10:42 UTC, POSIX 1 040 208 120, was 209 Aries 13,
+    /// Julian Circad 144 096, a Solis.
+    #[test]
+    fn titans_calibration_is_209_aries_13() {
+        let line = circad_date_line("Darian-Titan", 1_040_208_120.0).expect("in the span");
+        let cells = cells(&line);
+        assert_eq!(cells.len(), CIRCAD_DATE_COLUMNS);
+        assert_eq!(
+            cells[..8],
+            [
+                "darian-titan",
+                "209",
+                "9",
+                "13",
+                "Aries",
+                "Solis",
+                "144096",
+                cells[7]
+            ]
+        );
+        assert!((0.0..1.0).contains(&number(cells[7])));
+        assert_eq!(cells[8], "0", "209 is not a multiple of 25");
+        assert!(cells[9].contains("Titan"), "{}", cells[9]);
+    }
+
+    /// Every calendar answers at one instant, the Martiana sol count is the
+    /// Darian one of the same instant, and 2128, past the span, is refused.
+    #[test]
+    fn every_circad_calendar_answers() {
+        for id in CIRCAD_CALENDARS {
+            let line = circad_date_line(id, 1_700_000_000.0).expect("in the span");
+            assert_eq!(cells(&line).len(), CIRCAD_DATE_COLUMNS, "{id}");
+        }
+        let martiana = circad_date_line("MARTIANA", 1_700_000_000.0).expect("in the span");
+        let mars = mars_time_line(1_700_000_000.0, 0.0).expect("in the span");
+        let msd = number(cells(&mars)[0]);
+        let sol = darian::sol_from_mars_sol_date(msd);
+        let martiana = cells(&martiana);
+        assert_eq!(martiana[6], alloc::format!("{sol}"));
+        let date = martiana::date_from_sol(sol).expect("a date");
+        assert_eq!(
+            martiana[1..4],
+            [
+                alloc::format!("{}", date.year),
+                alloc::format!("{}", date.month),
+                alloc::format!("{}", date.day)
+            ]
+        );
+        assert_eq!(circad_date_line("darian", 0.0), Err(Refusal::Unknown));
+        assert_eq!(
+            circad_date_line("gregorian-io", 5e9),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            circad_date_line("gregorian-io", f64::NAN),
+            Err(Refusal::OutOfRange)
         );
     }
 }

@@ -29,7 +29,7 @@ use alloc::vec::Vec;
 use core::fmt::Write;
 
 use hc_calendar::shape::MONTH;
-use hc_calendar::units::{Unit, units};
+use hc_calendar::units::{Unit, units_at_most};
 use hc_calendar::{
     CalendarError, CalendarId, CalendarRegistry, DateFields, DayBoundary, DayNaming, DynCalendar,
     Rd, Standing,
@@ -37,6 +37,8 @@ use hc_calendar::{
 use hc_format::label;
 use hc_i18n::Locale;
 use hc_i18n::names::{self, NameContext, NameWidth};
+
+use crate::boundary::{Answer, Refusal};
 
 /// The tag that asks for each calendar's own language.
 pub const NATIVE: &str = "native";
@@ -51,6 +53,17 @@ pub const CALENDARS_COLUMNS: usize = 11;
 pub const LOCALES_COLUMNS: usize = 7;
 /// How many columns [`gregorian_adoption`] writes.
 pub const GREGORIAN_ADOPTION_COLUMNS: usize = 7;
+
+/// The most lines one call of [`calendar_units`] writes.
+///
+/// The range is the caller's, so without a bound a span of days as days
+/// is one line a day with no end: a billion days would be tens of
+/// gigabytes, and a WebAssembly instance traps on the allocation rather
+/// than answering. A hundred thousand lines is some 270 years of days, or
+/// every month of eight thousand years, about four megabytes of text; a
+/// timeline draws far fewer boxes than that, and a caller that wants more
+/// asks in pieces, each starting where the last line ended.
+pub const MAX_CALENDAR_UNITS: usize = 100_000;
 
 /// The locale a tag asks for: `None` for [`NATIVE`], the root locale for
 /// a tag that does not parse.
@@ -305,18 +318,25 @@ pub fn describe_day(registry: &CalendarRegistry, day: Rd, locale: &str) -> Strin
 /// have — has an empty label, leap flag and standing and carries the
 /// refusal's code and name. See [`hc_calendar::units::units`] for what the
 /// spans are.
-#[must_use]
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a range of more than
+/// [`MAX_CALENDAR_UNITS`] spans, found by walking one span past the bound
+/// and no further.
 pub fn calendar_units(
     calendar: &dyn DynCalendar,
     unit: Unit,
     from: Rd,
     to: Rd,
     locale: &str,
-) -> String {
+) -> Answer<String> {
+    let spans =
+        units_at_most(calendar, unit, from, to, MAX_CALENDAR_UNITS).ok_or(Refusal::OutOfRange)?;
     let locale = locale_for(calendar, locale);
     let used = locale_used(&locale);
     let mut out = String::new();
-    for span in units(calendar, unit, from, to) {
+    for span in spans {
         let _ = write!(out, "{}\t{}\t", span.start.0, span.end.0);
         match span.dated {
             Ok(dated) => {
@@ -337,7 +357,7 @@ pub fn calendar_units(
         out.push_str(used);
         out.push('\n');
     }
-    out
+    Ok(out)
 }
 
 /// Whether a calendar has each unit, judged from one converted day inside

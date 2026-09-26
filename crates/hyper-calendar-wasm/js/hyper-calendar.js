@@ -67,6 +67,17 @@ export const METHODS = Object.freeze([
   { method: "fixedFromOleAutomation", export: "hc_fixed_from_ole_automation", feature: "timestamps" },
   { method: "oleAutomationFromFixed", export: "hc_ole_automation_from_fixed", feature: "timestamps" },
   { method: "excel1900Day", export: "hc_excel_1900_day", feature: "timestamps" },
+  { method: "taiFromUnix", export: "hc_tai_from_unix", feature: "timestamps" },
+  { method: "utcFromTai", export: "hc_utc_from_tai", feature: "timestamps" },
+  { method: "tai64PosixPlus10Encode", export: "hc_tai64_posix_plus_10_encode", feature: "timestamps" },
+  { method: "tai64PosixPlus10Decode", export: "hc_tai64_posix_plus_10_decode", feature: "timestamps" },
+  { method: "uuidTimestamp", export: "hc_uuid_timestamp", feature: "timestamps" },
+  { method: "ntpResolve", export: "hc_ntp_resolve", feature: "timestamps" },
+  { method: "fatDecode", export: "hc_fat_decode", feature: "timestamps" },
+  { method: "fatEncode", export: "hc_fat_encode", feature: "timestamps" },
+  { method: "swatchBeat", export: "hc_swatch_beat", feature: "timestamps" },
+  { method: "epochFromTt", export: "hc_epoch_from_tt", feature: "timestamps" },
+  { method: "ttFromEpoch", export: "hc_tt_from_epoch", feature: "timestamps" },
   { method: "describeDay", export: "hc_describe_day", feature: "calendars" },
   { method: "calendarUnits", export: "hc_calendar_units", feature: "calendars" },
   { method: "calendars", export: "hc_calendars", feature: "calendars" },
@@ -111,6 +122,7 @@ export const METHODS = Object.freeze([
   { method: "missionSol", export: "hc_mission_sol", feature: "planetary" },
   { method: "bodies", export: "hc_bodies", feature: "planetary" },
   { method: "bodyTime", export: "hc_body_time", feature: "planetary" },
+  { method: "circadDate", export: "hc_circad_date", feature: "planetary" },
   { method: "properTime", export: "hc_proper_time", feature: "relativity" },
   { method: "gravitationalDilation", export: "hc_gravitational_dilation", feature: "relativity" },
   { method: "gravitatingBodies", export: "hc_gravitating_bodies", feature: "relativity" },
@@ -186,7 +198,7 @@ export const COLUMNS = Object.freeze({
   ]),
   marriageAugury: Object.freeze(["augury", "lichun at start", "lichun at end"]),
   holidayTables: Object.freeze([
-    "code", "kind", "name", "english name", "locale used", "source", "country",
+    "code", "kind", "name", "english name", "locale used", "source", "country", "short name",
   ]),
   lectionary: Object.freeze(["liturgical year", "sunday cycle", "weekday cycle", "proper"]),
   value: Object.freeze(["value"]),
@@ -216,6 +228,18 @@ export const COLUMNS = Object.freeze({
     "constants", "source",
   ]),
   gravitatingBodies: Object.freeze(["id", "name", "gm", "gm constant", "source"]),
+  utcFromTai: Object.freeze(["unix seconds", "leap second"]),
+  tai64PosixPlus10: Object.freeze(["format", "unix seconds", "attoseconds"]),
+  uuidTimestamp: Object.freeze(["version", "timestamp", "unix seconds", "attoseconds"]),
+  ntpResolve: Object.freeze(["era", "era offset", "fraction", "unix seconds", "attoseconds"]),
+  fatDecode: Object.freeze(["fixed", "seconds of day"]),
+  fatEncode: Object.freeze(["date word", "time word"]),
+  epoch: Object.freeze(["notation", "epoch"]),
+  ttFromEpoch: Object.freeze(["notation", "tt seconds", "attoseconds"]),
+  circadDate: Object.freeze([
+    "calendar", "year", "month", "day", "month name", "week name", "count", "fraction", "leap",
+    "source",
+  ]),
 });
 
 /** The geologic ranks `hc_geologic_intervals` numbers, coarsest first. */
@@ -950,13 +974,145 @@ function marriageAugury(cells) {
 }
 
 /**
+ * The one line of `hc_utc_from_tai`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").UtcLabel}
+ */
+function utcLabel(cells) {
+  const [unixSeconds, leapSecond] = cells;
+  return { unixSeconds: bigInteger(unixSeconds, "unix seconds"), leapSecond: flag(leapSecond, "leap second") };
+}
+
+/**
+ * The one line of `hc_tai64_posix_plus_10_decode`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").PosixTai64Label}
+ */
+function posixTai64Label(cells) {
+  const [format, seconds, attoseconds] = cells;
+  return {
+    format: /** @type {"tai64" | "tai64n"} */ (format),
+    seconds: bigInteger(seconds, "unix seconds"),
+    attoseconds: bigInteger(attoseconds, "attoseconds"),
+  };
+}
+
+/**
+ * The one line of `hc_uuid_timestamp`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").UuidTimestamp}
+ */
+function uuidTimestamp(cells) {
+  const [version, timestamp, unixSeconds, attoseconds] = cells;
+  return {
+    version: /** @type {1 | 6} */ (integer(version, "version")),
+    timestamp: bigInteger(timestamp, "timestamp"),
+    unixSeconds: bigInteger(unixSeconds, "unix seconds"),
+    attoseconds: bigInteger(attoseconds, "attoseconds"),
+  };
+}
+
+/**
+ * The one line of `hc_ntp_resolve`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").NtpDate}
+ */
+function ntpDate(cells) {
+  const [era, offset, fraction, unixSeconds, attoseconds] = cells;
+  return {
+    era: integer(era, "era"),
+    offset: integer(offset, "era offset"),
+    fraction: bigInteger(fraction, "fraction"),
+    unixSeconds: bigInteger(unixSeconds, "unix seconds"),
+    attoseconds: bigInteger(attoseconds, "attoseconds"),
+  };
+}
+
+/**
+ * The one line of `hc_fat_decode`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").FatReading}
+ */
+function fatReading(cells) {
+  const [fixed, secondsOfDay] = cells;
+  return { fixed: integer(fixed, "fixed"), secondsOfDay: integer(secondsOfDay, "seconds of day") };
+}
+
+/**
+ * The one line of `hc_fat_encode`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").FatWords}
+ */
+function fatWords(cells) {
+  const [date, time] = cells;
+  return { date: integer(date, "date word"), time: integer(time, "time word") };
+}
+
+/**
+ * The one line of `hc_epoch_from_tt`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Epoch}
+ */
+function epochLine(cells) {
+  const [notation, epoch] = cells;
+  return {
+    notation: /** @type {import("./hyper-calendar.d.ts").EpochNotation} */ (notation),
+    epoch: decimal(epoch, "epoch"),
+  };
+}
+
+/**
+ * The one line of `hc_tt_from_epoch`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").EpochInstant}
+ */
+function epochInstant(cells) {
+  const [notation, seconds, attoseconds] = cells;
+  return {
+    notation: /** @type {import("./hyper-calendar.d.ts").EpochNotation} */ (notation),
+    seconds: bigInteger(seconds, "tt seconds"),
+    attoseconds: bigInteger(attoseconds, "attoseconds"),
+  };
+}
+
+/**
+ * The one line of `hc_circad_date`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").CircadDate}
+ */
+function circadDate(cells) {
+  const [calendar, year, month, day, monthName, weekName, count, fraction, leap, source] = cells;
+  return {
+    calendar: /** @type {import("./hyper-calendar.d.ts").CircadCalendar} */ (calendar),
+    year: integer(year, "year"),
+    month: integer(month, "month"),
+    day: integer(day, "day"),
+    monthName,
+    weekName: optional(weekName),
+    count: integer(count, "count"),
+    fraction: decimal(fraction, "fraction"),
+    leap: flag(leap, "leap"),
+    source,
+  };
+}
+
+/**
  * One line of `hc_holiday_tables`.
  *
  * @param {string[]} cells
  * @returns {import("./hyper-calendar.d.ts").HolidayTable}
  */
 function holidayTable(cells) {
-  const [code, kind, name, englishName, localeUsed, source, country] = cells;
+  const [code, kind, name, englishName, localeUsed, source, country, shortName] = cells;
   return {
     code,
     kind: /** @type {import("./hyper-calendar.d.ts").HolidayTableKind} */ (kind),
@@ -965,6 +1121,7 @@ function holidayTable(cells) {
     localeUsed: optional(localeUsed),
     source: optional(source),
     country: optional(country),
+    shortName: optional(shortName),
   };
 }
 
@@ -1556,6 +1713,36 @@ export class HyperCalendar {
     const fn = this.#export("hc_parse_iso_date");
     return this.#withText(text, "text", (pointer, len) => toNumber(fn(pointer, len), "hc_parse_iso_date"));
   }
+  /**
+   * A POSIX timestamp as a TAI reading. `strict` refuses before 1961 and
+   * past the leap-second table with `no-data`.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {boolean} [strict]
+   * @returns {import("./hyper-calendar.d.ts").TaiInstant}
+   */
+  taiFromUnix(unixSeconds, strict = false) {
+    const fn = this.#export("hc_tai_from_unix");
+    const seconds = toI64(unixSeconds, "unixSeconds");
+    const text = this.#text("hc_tai_from_unix", (buffer, capacity) => fn(seconds, strict ? 1 : 0, buffer, capacity), true);
+    return taiInstant(this.#oneLine("hc_tai_from_unix", text, COLUMNS.taiInstant));
+  }
+
+  /**
+   * A whole TAI second as a UTC label: its POSIX second, and whether it is
+   * an inserted leap second, named by the POSIX second after it.
+   *
+   * @param {number | bigint} taiSeconds
+   * @param {boolean} [strict]
+   * @returns {import("./hyper-calendar.d.ts").UtcLabel}
+   */
+  utcFromTai(taiSeconds, strict = false) {
+    const fn = this.#export("hc_utc_from_tai");
+    const seconds = toI64(taiSeconds, "taiSeconds");
+    const text = this.#text("hc_utc_from_tai", (buffer, capacity) => fn(seconds, strict ? 1 : 0, buffer, capacity), true);
+    return utcLabel(this.#oneLine("hc_utc_from_tai", text, COLUMNS.utcFromTai));
+  }
+
 
   /**
    * One fixed day in every registered calendar, in registry order, with
@@ -2164,6 +2351,156 @@ export class HyperCalendar {
   }
 
   /**
+   * A POSIX instant as a TAI64 (`tai64`) or TAI64N (`tai64n`) label in the
+   * `tai64-posix-plus-10` convention, 2⁶² + 10 + the POSIX seconds, as
+   * daemontools' `tai64n` writes it on an ordinary clock.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {number | bigint} attoseconds
+   * @param {"tai64" | "tai64n"} format
+   * @returns {string}
+   */
+  tai64PosixPlus10Encode(unixSeconds, attoseconds, format) {
+    const fn = this.#export("hc_tai64_posix_plus_10_encode");
+    const seconds = toI64(unixSeconds, "unixSeconds");
+    const attos = toU64(attoseconds, "attoseconds");
+    const text = this.#withText(format, "format", (pointer, len) =>
+      this.#text("hc_tai64_posix_plus_10_encode", (buffer, capacity) =>
+        fn(seconds, attos, pointer, len, buffer, capacity), true));
+    return this.#oneLine("hc_tai64_posix_plus_10_encode", text, ["label"])[0];
+  }
+
+  /**
+   * A `tai64-posix-plus-10` label read back: its format and the POSIX
+   * instant it names, both parts as `BigInt`s.
+   *
+   * @param {string} hex
+   * @returns {import("./hyper-calendar.d.ts").PosixTai64Label}
+   */
+  tai64PosixPlus10Decode(hex) {
+    const fn = this.#export("hc_tai64_posix_plus_10_decode");
+    const text = this.#withText(hex, "hex", (pointer, len) =>
+      this.#text("hc_tai64_posix_plus_10_decode", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return posixTai64Label(this.#oneLine("hc_tai64_posix_plus_10_decode", text, COLUMNS.tai64PosixPlus10));
+  }
+
+  /**
+   * The version, the 60-bit timestamp and the POSIX instant of a version 1
+   * or version 6 UUID in RFC 9562's string form. Another version is
+   * `no-data`, other text `malformed`.
+   *
+   * @param {string} uuid
+   * @returns {import("./hyper-calendar.d.ts").UuidTimestamp}
+   */
+  uuidTimestamp(uuid) {
+    const fn = this.#export("hc_uuid_timestamp");
+    const text = this.#withText(uuid, "uuid", (pointer, len) =>
+      this.#text("hc_uuid_timestamp", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return uuidTimestamp(this.#oneLine("hc_uuid_timestamp", text, COLUMNS.uuidTimestamp));
+  }
+
+  /**
+   * A 64-bit NTP timestamp, its seconds and 2⁻³² s fraction, placed in the
+   * era within 2³¹ s of a reference POSIX second. The zero timestamp is
+   * `no-data`.
+   *
+   * @param {number} seconds
+   * @param {number} fraction
+   * @param {number | bigint} referenceUnix
+   * @returns {import("./hyper-calendar.d.ts").NtpDate}
+   */
+  ntpResolve(seconds, fraction, referenceUnix) {
+    const fn = this.#export("hc_ntp_resolve");
+    const s = toU32(seconds, "seconds");
+    const f = toU32(fraction, "fraction");
+    const reference = toI64(referenceUnix, "referenceUnix");
+    const text = this.#text("hc_ntp_resolve", (buffer, capacity) => fn(s, f, reference, buffer, capacity), true);
+    return ntpDate(this.#oneLine("hc_ntp_resolve", text, COLUMNS.ntpResolve));
+  }
+
+  /**
+   * The local reading a FAT date word and time word name: its fixed day
+   * and the even seconds into it. Fields that name no day are
+   * `invalid-date`.
+   *
+   * @param {number} date
+   * @param {number} time
+   * @returns {import("./hyper-calendar.d.ts").FatReading}
+   */
+  fatDecode(date, time) {
+    const fn = this.#export("hc_fat_decode");
+    const d = toU32(date, "date");
+    const t = toU32(time, "time");
+    const text = this.#text("hc_fat_decode", (buffer, capacity) => fn(d, t, buffer, capacity), true);
+    return fatReading(this.#oneLine("hc_fat_decode", text, COLUMNS.fatDecode));
+  }
+
+  /**
+   * The FAT date and time words of a fixed day and a time of day in whole
+   * seconds, the second rounded down to an even one; outside 1980 to 2107
+   * is `out-of-range`.
+   *
+   * @param {number | bigint} fixed
+   * @param {number} secondsOfDay
+   * @returns {import("./hyper-calendar.d.ts").FatWords}
+   */
+  fatEncode(fixed, secondsOfDay) {
+    const fn = this.#export("hc_fat_encode");
+    const day = toI64(fixed, "fixed");
+    const seconds = toU32(secondsOfDay, "secondsOfDay");
+    const text = this.#text("hc_fat_encode", (buffer, capacity) => fn(day, seconds, buffer, capacity), true);
+    return fatWords(this.#oneLine("hc_fat_encode", text, COLUMNS.fatEncode));
+  }
+
+  /**
+   * The Swatch Internet Time beat at a POSIX instant, 0 through 999: @000
+   * begins at 23:00 UTC.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {number | bigint} [attoseconds]
+   * @returns {number}
+   */
+  swatchBeat(unixSeconds, attoseconds = 0) {
+    const fn = this.#export("hc_swatch_beat");
+    return toNumber(fn(toI64(unixSeconds, "unixSeconds"), toU64(attoseconds, "attoseconds")), "hc_swatch_beat");
+  }
+
+  /**
+   * The Julian (`J`) or Besselian (`B`) epoch of a TT instant: whole
+   * seconds from 1970-01-01 00:00:00 TT and attoseconds.
+   *
+   * @param {import("./hyper-calendar.d.ts").EpochNotationName} notation
+   * @param {number | bigint} ttSeconds
+   * @param {number | bigint} [attoseconds]
+   * @returns {import("./hyper-calendar.d.ts").Epoch}
+   */
+  epochFromTt(notation, ttSeconds, attoseconds = 0) {
+    const fn = this.#export("hc_epoch_from_tt");
+    const seconds = toI64(ttSeconds, "ttSeconds");
+    const attos = toU64(attoseconds, "attoseconds");
+    const text = this.#withText(notation, "notation", (pointer, len) =>
+      this.#text("hc_epoch_from_tt", (buffer, capacity) => fn(pointer, len, seconds, attos, buffer, capacity), true));
+    return epochLine(this.#oneLine("hc_epoch_from_tt", text, COLUMNS.epoch));
+  }
+
+  /**
+   * The TT instant of a Julian or Besselian epoch. An empty notation reads
+   * the year as SOFA reads one written without a letter: Besselian before
+   * 1984.0, Julian from it.
+   *
+   * @param {import("./hyper-calendar.d.ts").EpochNotationName | ""} notation
+   * @param {number} year
+   * @returns {import("./hyper-calendar.d.ts").EpochInstant}
+   */
+  ttFromEpoch(notation, year) {
+    const fn = this.#export("hc_tt_from_epoch");
+    const y = toF64(year, "year");
+    const text = this.#withText(notation, "notation", (pointer, len) =>
+      this.#text("hc_tt_from_epoch", (buffer, capacity) => fn(pointer, len, y, buffer, capacity), true));
+    return epochInstant(this.#oneLine("hc_tt_from_epoch", text, COLUMNS.ttFromEpoch));
+  }
+
+  /**
    * The yoga and the karaṇa in progress at a POSIX instant, read as
    * Universal Time, the yoga reckoned with an ayanamsa: `Lahiri`, `Raman`,
    * `Krishnamurti` or `Fagan-Bradley`.
@@ -2273,6 +2610,8 @@ export class HyperCalendar {
    * records one. A country is named as CLDR 48 names it in the locale,
    * where `hc-i18n` carries the name, and every other table, and a country
    * the locale has no name for, in English; `localeUsed` says which.
+   * `shortName` is CLDR's `alt="short"` name beside a CLDR name, from the
+   * same data — `Hong Kong` under `en`, 香港 under `ja` — where it has one.
    *
    * @param {string} [locale]
    * @returns {import("./hyper-calendar.d.ts").HolidayTable[]}
@@ -2487,6 +2826,23 @@ export class HyperCalendar {
       this.#text("hc_body_time", (buffer, capacity) => fn(pointer, len, instant, east, buffer, capacity), true));
     return bodyTime(this.#oneLine("hc_body_time", text, COLUMNS.bodyTime));
   }
+  /**
+   * The date at a POSIX instant in a calendar of another body's days:
+   * `darian-titan`, `gregorian-io`, `gregorian-europa`,
+   * `gregorian-ganymede`, `gregorian-callisto` or `martiana`.
+   *
+   * @param {import("./hyper-calendar.d.ts").CircadCalendar} calendar
+   * @param {number} unixSeconds
+   * @returns {import("./hyper-calendar.d.ts").CircadDate}
+   */
+  circadDate(calendar, unixSeconds) {
+    const fn = this.#export("hc_circad_date");
+    const instant = toF64(unixSeconds, "unixSeconds");
+    const text = this.#withText(calendar, "calendar", (pointer, len) =>
+      this.#text("hc_circad_date", (buffer, capacity) => fn(pointer, len, instant, buffer, capacity), true));
+    return circadDate(this.#oneLine("hc_circad_date", text, COLUMNS.circadDate));
+  }
+
 
   /**
    * A clock moving at a constant speed in metres per second while

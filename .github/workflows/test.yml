@@ -81,6 +81,40 @@ jobs:
       - run: cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --release
       - run: cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --release --features holiday
 
+  layer-list:
+    name: List the layers
+    runs-on: ubuntu-latest
+    outputs:
+      layers: ${{ steps.list.outputs.layers }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      # The one list scripts/layers.sh keeps, as a JSON array for the matrix
+      # below, so that a layer added there is tested here with no second
+      # list to keep.
+      - id: list
+        run: echo "layers=$(scripts/layers.sh --json)" >> "$GITHUB_OUTPUT"
+
+  layers:
+    name: Each layer on its own
+    needs: layer-list
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        layer: ${{ fromJSON(needs.layer-list.outputs.layers) }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+        with:
+          key: ${{ matrix.layer }}
+      # The workspace jobs build with --all-features, which hides a layer
+      # that does not build or pass without the others: the module for
+      # wasm32 and both crates' tests with the layer's feature alone.
+      - run: scripts/layer-tests.sh "${{ matrix.layer }}"
+
   wasm-js:
     name: Test the JavaScript binding
     runs-on: ubuntu-latest

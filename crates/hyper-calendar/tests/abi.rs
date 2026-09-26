@@ -213,6 +213,7 @@ fn c_type(rust: &str) -> String {
         "f64" => "double".to_owned(),
         "i32" => "int32_t".to_owned(),
         "u32" => "uint32_t".to_owned(),
+        "u16" => "uint16_t".to_owned(),
         "u8" => "uint8_t".to_owned(),
         "usize" => "size_t".to_owned(),
         "c_int" => "int".to_owned(),

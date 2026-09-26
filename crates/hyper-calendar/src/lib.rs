@@ -105,6 +105,8 @@ pub mod panchanga_lines;
 pub mod planetary_lines;
 #[cfg(all(feature = "alloc", feature = "relativity"))]
 pub mod relativity_lines;
+#[cfg(all(feature = "alloc", feature = "seasons"))]
+pub mod season_lines;
 #[cfg(all(feature = "alloc", feature = "civil"))]
 pub mod time_lines;
 

@@ -98,6 +98,18 @@ test("a method of another layer throws not-exported when called, not at load", (
     properTime: () => hc.properTime(7_800, 86_400),
     gravitationalDilation: () => hc.gravitationalDilation("earth", 6_378_137),
     gravitatingBodies: () => hc.gravitatingBodies(),
+    taiFromUnix: () => hc.taiFromUnix(1_700_000_000, true),
+    utcFromTai: () => hc.utcFromTai(1_700_000_037, true),
+    tai64PosixPlus10Encode: () => hc.tai64PosixPlus10Encode(0, 0, "tai64"),
+    tai64PosixPlus10Decode: () => hc.tai64PosixPlus10Decode("400000000000000a"),
+    uuidTimestamp: () => hc.uuidTimestamp("C232AB00-9414-11EC-B3C8-9F6BDECED846"),
+    ntpResolve: () => hc.ntpResolve(63_104, 0, 1_893_456_000),
+    fatDecode: () => hc.fatDecode(23_866, 49_021),
+    fatEncode: () => hc.fatEncode(739_885, 0),
+    swatchBeat: () => hc.swatchBeat(0),
+    epochFromTt: () => hc.epochFromTt("J", 946_728_000),
+    ttFromEpoch: () => hc.ttFromEpoch("J", 2000),
+    circadDate: () => hc.circadDate("darian-titan", 1_040_208_120),
   };
   const gated = METHODS.filter((entry) => entry.feature !== null && entry.feature !== "civil");
   assert.deepEqual(Object.keys(calls).sort(), gated.map((entry) => entry.method).sort(), "every gated method is tried");
