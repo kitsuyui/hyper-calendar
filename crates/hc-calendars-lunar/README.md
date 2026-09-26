@@ -261,8 +261,10 @@ about a minute of local midnight, the day assigned
 can be wrong by one — and a wrong day for a zhōngqì can move a leap month by a
 whole month. The crate tests the published new years it can check (Chinese New
 Year 1900, 2000, 2020–2026; Seollal 1988 and 2024; Tết 1968, 1985 and 2024;
-the Tenpō dates of 1844 and 1872) and they all come out right, but that is
-evidence, not a guarantee.
+the Tenpō dates of 1844 and 1872) and they all come out right, and `chinese`
+reproduces every month of 1900–2024 in the Purple Mountain Observatory's table
+of the promulgated calendar and `dangi` every month of 1900–1913 in KASI's
+data, but that is evidence, not a guarantee.
 
 **The Babylonian calendar — measured against the standard table.** The
 month begins on the evening that passes the moonlag criterion at Babylon,
@@ -306,7 +308,7 @@ years for Korea and measures that the difference moves nothing:
 | Calendar | Offsets |
 |---|---|
 | Chinese | Beijing local mean time (116°25′E) before 1929; UT+8 from 1929 |
-| Dangi | Seoul local mean time (126°58′E) before 1908; UT+8:30 1908–1911; UT+9 1912–1953; UT+8:30 1954–1960; UT+9 from 1961 |
+| Dangi | Beijing local mean time (116°25′E), the Qing calendar's, before 1912; UT+9 1912–1953; UT+8:30 1954–1960; UT+9 from 1961 |
 | Vietnamese | UT+8 before 1968; UT+7 from 1968 |
 | Japanese (all five) | Kyoto local mean time (135°46′E) before 1888; UT+9 from 1888 |
 
@@ -354,7 +356,11 @@ above and explained in the system document.
 
 The Chinese, Korean and Vietnamese calendars were promulgated by bureaux using
 their own tables and their own solar theories. A date `chinese` gives for 1700
-is what the modern rules say, not what the almanac of 1700 said. The lower
+is what the modern rules say, not what the almanac of 1700 said. From 1900,
+where the Observatory's table of the Qing 時憲書 was read, the one month the
+almanac began on another day — the fourth of 1906, on 24 April — is carried as
+data (`chinese::ALMANAC_CORRECTIONS`); Korea kept that almanac, so `dangi` is
+the Chinese calendar until 1912. The lower
 bound of 1645 is the Shíxiàn calendar, which introduced the true-solar-term
 rule implemented there; before that the terms were mean, the month numbering
 could differ, and the crate refuses those years rather than answering wrongly.

@@ -126,6 +126,14 @@ pub(crate) const fn read_back_error(month_exists: bool) -> CalendarError {
     }
 }
 
+/// The Hijri year containing [`EARLIEST`]: no date of an earlier year is in
+/// range, so [`IslamicObservationalCalendar::compose`] refuses one before
+/// doing any arithmetic on it.
+pub const FIRST_YEAR: i64 = 1_317;
+
+/// The Hijri year containing [`LATEST`]; see [`FIRST_YEAR`].
+pub const LAST_YEAR: i64 = 1_524;
+
 /// Mecca: 21°25′24″N, 39°49′24″E, 298 m, the `mecca` constant of the
 /// published code of *Calendrical Calculations* (`reingold2018code`), which
 /// its observational Islamic calendar uses.
@@ -558,6 +566,14 @@ impl IslamicObservationalCalendar {
         }
         if day == 0 || day > MAXIMUM_MONTH_LENGTH {
             return Err(CalendarError::DayOutOfRange);
+        }
+        // The range first: the month count below overflows near the ends
+        // of `i64`, and a year outside these two has no day in range anyway.
+        if year < FIRST_YEAR {
+            return Err(CalendarError::BeforeEpoch);
+        }
+        if year > LAST_YEAR {
+            return Err(CalendarError::AfterSupportedRange);
         }
         let elapsed_months = (year - 1) * 12 + month as i64 - 1;
         let midmonth = EPOCH.0 + floor((elapsed_months as f64 + 0.5) * MEAN_SYNODIC_MONTH) as i64;
@@ -1138,6 +1154,59 @@ mod tests {
         assert_eq!(
             calendar.from_fixed(Rd(LATEST.0 + 1)),
             Err(CalendarError::AfterSupportedRange)
+        );
+    }
+
+    #[test]
+    fn the_first_and_last_years_are_those_of_the_range_ends() {
+        let calendar = IslamicObservationalCalendar::MECCA;
+        assert_eq!(
+            calendar.decompose(EARLIEST).map(|date| date.0),
+            Ok(FIRST_YEAR)
+        );
+        assert_eq!(calendar.decompose(LATEST).map(|date| date.0), Ok(LAST_YEAR));
+        assert_eq!(
+            calendar.compose(FIRST_YEAR - 1, 12, 1),
+            Err(CalendarError::BeforeEpoch)
+        );
+        assert_eq!(
+            calendar.compose(LAST_YEAR + 1, 1, 1),
+            Err(CalendarError::AfterSupportedRange)
+        );
+    }
+
+    #[test]
+    fn the_ends_of_i64_are_refused_rather_than_overflowed() {
+        let calendar = IslamicObservationalCalendar::MECCA;
+        for month in [1, 12] {
+            assert_eq!(
+                calendar.compose(i64::MIN, month, 1),
+                Err(CalendarError::BeforeEpoch)
+            );
+            assert_eq!(
+                calendar.compose(i64::MAX, month, 30),
+                Err(CalendarError::AfterSupportedRange)
+            );
+        }
+        assert_eq!(
+            calendar.is_leap_year(i64::MIN),
+            Err(CalendarError::BeforeEpoch)
+        );
+        assert_eq!(
+            calendar.is_leap_year(i64::MAX),
+            Err(CalendarError::AfterSupportedRange)
+        );
+        assert_eq!(
+            calendar.from_fields(&DateFields::ymd(i64::MAX, 12, 29)),
+            Err(CalendarError::AfterSupportedRange)
+        );
+        assert_eq!(
+            calendar.to_fixed(IslamicDate {
+                year: i64::MIN,
+                month: 1,
+                day: 1
+            }),
+            Err(CalendarError::BeforeEpoch)
         );
     }
 

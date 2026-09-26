@@ -53,8 +53,10 @@
 //! be wrong by one**, and a wrong day for a zhōngqì can move a leap month by
 //! a whole month. And a date this module produces for 1700 is what the
 //! modern rules say at the modern meridian, not what the almanac of 1700
-//! said; the supported ranges are set accordingly, and the crate refuses
-//! dates outside them rather than guessing. The system document says what
+//! said, except in the months a calendar corrects from a table of the
+//! almanac it has read ([`MonthStartCorrection`]); the supported ranges are
+//! set accordingly, and the crate refuses dates outside them rather than
+//! guessing. The system document says what
 //! was checked against which publication and where the margins were
 //! measured.
 
@@ -121,6 +123,44 @@ impl MeridianEra {
     #[must_use]
     pub fn longitude_degrees_east(&self) -> f64 {
         self.offset_hours * 15.0
+    }
+}
+
+/// A month that the calendar as promulgated began on a different day from
+/// the one the rules here give.
+///
+/// The rules are modern astronomy read at a named meridian; an almanac was
+/// computed by its own bureau, with its own tables, and when a conjunction
+/// falls minutes from midnight the two can land on either side of it. Where
+/// a table of the promulgated calendar has been read, such a month is data,
+/// not a rule: `computed` is the first day the rules give and `promulgated`
+/// the first day the table gives. The engine applies the correction to every
+/// month boundary it finds, so the month before becomes a day longer or
+/// shorter with it.
+///
+/// A correction moves a first day by at most
+/// [`MonthStartCorrection::MAX_SHIFT`] days, which is what lets the search
+/// for the next or previous month stay local; each calendar's tests assert
+/// it of its own table.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MonthStartCorrection {
+    /// The first day of the month by the rules.
+    pub computed: Rd,
+    /// The first day of the month in the promulgated calendar.
+    pub promulgated: Rd,
+}
+
+impl MonthStartCorrection {
+    /// The furthest a correction may move a first day, in days.
+    pub const MAX_SHIFT: i64 = 1;
+
+    /// A correction from the day the rules give to the day the almanac gave.
+    #[must_use]
+    pub const fn new(computed: Rd, promulgated: Rd) -> Self {
+        Self {
+            computed,
+            promulgated,
+        }
     }
 }
 
@@ -426,6 +466,10 @@ pub struct LunisolarParameters {
     /// its own constants, and `hc-astro` is not consulted at all. See
     /// [`MeanMotionModel`] for why that distinction is not a detail.
     pub mean_motion: Option<MeanMotionModel>,
+    /// Months whose first day the promulgated calendar put elsewhere than
+    /// the rules do, read from a published table; empty for a calendar
+    /// with no such table. See [`MonthStartCorrection`].
+    pub month_start_corrections: &'static [MonthStartCorrection],
     /// The earliest fixed day this calendar will convert.
     pub earliest: Option<Rd>,
     /// The latest fixed day this calendar will convert.
@@ -536,9 +580,57 @@ impl LunisolarParameters {
         }
     }
 
-    /// The first day of the first lunar month beginning on or after `rd`.
+    /// The first day of the first lunar month beginning on or after `rd`,
+    /// with the [`MonthStartCorrection`]s applied.
     #[must_use]
     pub fn new_moon_on_or_after(&self, rd: Rd) -> Rd {
+        if self.month_start_corrections.is_empty() {
+            return self.computed_new_moon_on_or_after(rd);
+        }
+        // A computed first day more than the largest shift before `rd` is
+        // before it however it is corrected, so the search starts there.
+        let mut computed =
+            self.computed_new_moon_on_or_after(Rd(rd.0 - MonthStartCorrection::MAX_SHIFT));
+        loop {
+            let start = self.promulgated_month_start(computed);
+            if start >= rd {
+                return start;
+            }
+            computed = self.computed_new_moon_on_or_after(Rd(computed.0 + 1));
+        }
+    }
+
+    /// The first day of the last lunar month beginning before `rd`, with the
+    /// [`MonthStartCorrection`]s applied.
+    #[must_use]
+    pub fn new_moon_before(&self, rd: Rd) -> Rd {
+        if self.month_start_corrections.is_empty() {
+            return self.computed_new_moon_before(rd);
+        }
+        let mut computed =
+            self.computed_new_moon_before(Rd(rd.0 + MonthStartCorrection::MAX_SHIFT));
+        loop {
+            let start = self.promulgated_month_start(computed);
+            if start < rd {
+                return start;
+            }
+            computed = self.computed_new_moon_before(computed);
+        }
+    }
+
+    /// The first day the promulgated calendar gives the month that the rules
+    /// begin on `computed`.
+    fn promulgated_month_start(&self, computed: Rd) -> Rd {
+        self.month_start_corrections
+            .iter()
+            .find(|correction| correction.computed == computed)
+            .map_or(computed, |correction| correction.promulgated)
+    }
+
+    /// The first day of the first lunar month beginning on or after `rd`, by
+    /// the rules alone.
+    #[must_use]
+    pub fn computed_new_moon_on_or_after(&self, rd: Rd) -> Rd {
         let Some(model) = &self.mean_motion else {
             return self
                 .local_from_universal(hc_astro::new_moon_at_or_after(self.midnight(rd)))
@@ -554,9 +646,10 @@ impl LunisolarParameters {
         self.conjunction_day(model, index)
     }
 
-    /// The first day of the last lunar month beginning before `rd`.
+    /// The first day of the last lunar month beginning before `rd`, by the
+    /// rules alone.
     #[must_use]
-    pub fn new_moon_before(&self, rd: Rd) -> Rd {
+    pub fn computed_new_moon_before(&self, rd: Rd) -> Rd {
         let Some(model) = &self.mean_motion else {
             return self
                 .local_from_universal(hc_astro::new_moon_before(self.midnight(rd)))
@@ -1108,6 +1201,7 @@ mod tests {
         year_offset: 0,
         solar_term_mode: SolarTermMode::Apparent,
         mean_motion: None,
+        month_start_corrections: &[],
         earliest: None,
         latest: None,
         native_locales: &[],
@@ -1292,6 +1386,7 @@ mod tests {
             year_offset: 0,
             solar_term_mode: SolarTermMode::Apparent,
             mean_motion: None,
+            month_start_corrections: &[],
             earliest: None,
             latest: None,
             native_locales: &[],
