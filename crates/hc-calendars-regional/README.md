@@ -226,8 +226,11 @@ inherits the `chinese` calendar's model, as that README describes.
 * No Thai lunar year before 2535 BE or after 2570 BE beyond the first six
   months of 2571, and no *suriyayatra* arithmetic to extend it: a year is
   added when Thailand publishes it.
-* No Javanese calendar proper: the Sultan Agung lunar year, its *windu* and
-  its Anno Javanico era are a different calendar and are not here.
+* No Javanese calendar proper here: the Sultan Agung lunar year, its
+  *windu* and its *kurup* are `hc-calendars-lunar`'s `javanese`, beside
+  the other lunar calendars. `tests/javanese.rs` holds its days to the
+  pasaran and the Pawukon's *wuku* against R. Tanaya's tables
+  ([`docs/systems/javanese.md`](../../docs/systems/javanese.md)).
 * No Maya "lord of the night" glyph cycle, no Maya or Aztec year bearer as
   a field; the reasons are in
   [`docs/systems/mesoamerican-counts.md`](../../docs/systems/mesoamerican-counts.md).

@@ -161,6 +161,8 @@ fn the_calendars_in_use_today_say_so() {
         "bikram-sambat",
         "vira-nirvana-samvat",
         "thai-lunar",
+        "javanese",
+        "javanese-aboge",
         "maya-tzolkin",
         "icelandic",
     ] {

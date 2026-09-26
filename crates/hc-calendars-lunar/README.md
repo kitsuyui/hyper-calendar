@@ -2,7 +2,8 @@
 
 Lunar and lunisolar calendars for [`hyper-calendar`]: the Hijri family, the
 Hebrew calendar, the Babylonian calendar of the Seleucid era, the Tibetan
-Phugpa calendar, the East Asian lunisolar calendars of China, Korea and
+Phugpa calendar, the Javanese calendar of Sultan Agung in its three
+reckonings, the East Asian lunisolar calendars of China, Korea and
 Vietnam, the five successive lunisolar calendars Japan used between 862
 and 1872, and two arithmetic proposals, the Meyer–Palmen Solilunar and
 Palmen's Yerm lunar calendar.
@@ -24,6 +25,9 @@ others exist.
 | `samaritan` | `samaritan` | astronomical | Samaritan 3539–3738 (1900–2100 CE) |
 | `babylonian` | `babylonian` | astronomical | SE −71 to 386 (383 BCE to 76 CE) |
 | `tibetan` | `tibetan` | arithmetic (Phugpa) | 1000–3000 |
+| `javanese::JAVANESE` | `javanese` | arithmetic | 1555–2346 AJ (1633–2401 CE) |
+| `javanese::JAVANESE_YOGYAKARTA` | `javanese-yogyakarta` | arithmetic | 1555–2346 AJ (1633–2401 CE) |
+| `javanese::JAVANESE_ABOGE` | `javanese-aboge` | arithmetic | 1555–2346 AJ (1633–2401 CE) |
 | `chinese` | `chinese` | astronomical | 1645–2150 CE |
 | `dangi` | `dangi` | astronomical | 1645–2150 CE |
 | `vietnamese` | `vietnamese` | astronomical | 1645–2150 CE |
@@ -67,6 +71,32 @@ a forecast under one criterion at one place: against the Umm al-Qura table
 over 1400–1445 AH it starts the month a day later for 322 of 552 months —
 58% — and never earlier, which is the signature of a sighting criterion
 against a computation criterion and is asserted in a test.
+
+## The Javanese calendar
+
+`javanese`, `javanese-yogyakarta` and `javanese-aboge` are written up in
+[`docs/systems/javanese.md`](../../docs/systems/javanese.md): Sultan
+Agung's graft of the Hijri months onto the Śaka year number in 1633, the
+day from sunset, the eight-year *windu* of named years with Ehe, Dal and
+Jimakir long, the 120-year *kurup* that drops a day to stay with the
+tabular Hijri cycle, the record of the kurup with Pakubuwana V's change of
+1748 and Surakarta's order of 1935, 1 Sura 1959 worked by hand, and the
+three reckonings: Surakarta's, the standard one, Asapon since 1936;
+Yogyakarta's, a day apart from 1821 to 1866; and the Aboge communities',
+who kept the older kurup and are a day later since 1936. One
+`JavaneseCalendar` carries all three; its only data is a list of kurup.
+
+The rule is exact. Against R. Tanaya's *Kabudayan Paugêraning Taun Jawa*
+(Surakarta, 1971) the weton of 1 Sura agrees in every year of every kurup,
+and the weekday, pasaran and *wuku* of the first of 1440 months of the
+current kurup agree except for four misprinted cells, asserted as such;
+recent printed dates and the Aboge communities' fasts and Idul Fitri of
+2017, 2024 and 2025 agree too. It is the rule and not the Surakarta
+court's old adjustments of the Dal months, which Karjanto and
+Beauducel's tables carry, so it differs from theirs in those years. The
+range ends with Jimakir 2346, the last kurup Tanaya names; from 1987 it is
+the rule of 1935 projected. The pasaran and *wuku* are
+`hc-calendars-regional`'s, whose tests hold these dates to them.
 
 ## The Hebrew calendar
 
@@ -160,9 +190,9 @@ leap month, and the published Losars of 2023–2026.
 
 ## Accuracy
 
-**Arithmetic calendars — exact.** The tabular Hijri, Hebrew and Tibetan
-calendars are counting rules, and this is those rules. The tabular Hijri
-and Tibetan checks are in the sections above; the Hebrew ones — two
+**Arithmetic calendars — exact.** The tabular Hijri, Hebrew, Tibetan and
+Javanese calendars are counting rules, and this is those rules. The tabular
+Hijri, Tibetan and Javanese checks are in the sections above; the Hebrew ones — two
 published dates of 5784, Rosh Hashanah off Sunday, Wednesday and Friday for
 all 9 999 years, every year one of the six permitted lengths — are
 tabulated in the system document.

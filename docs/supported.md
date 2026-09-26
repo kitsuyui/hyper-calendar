@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-127 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+130 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 105 of 127 have months and 105 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 108 of 130 have months and 108 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 **Named by** is which civil day names a day that does not begin at midnight: `start` for the one it begins on, as the Julian Day that begins at noon on 1 January 2000 is that day's, and `end` for the one it ends on, as the Hebrew day that begins at sunset on a Friday is Saturday's.
 
@@ -86,7 +86,10 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `japanese-senmyo` | Japanese Senmyō (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0862-02-07 | 1685-02-03 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `japanese-southern` | Japanese (imperial eras, Southern Court) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0862-02-07 | 9999-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `japanese-tenpo` | Japanese Tenpō (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1844-02-18 | 1872-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `javanese` | Javanese (Pananggalan Jawa) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1633-07-08 | 2401-12-06 | no | no | sunset | end | month ×12, weekday ×7, taun ×8, windu ×4 | yes |
+| `javanese-aboge` | Javanese (Aboge) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1633-07-08 | 2401-12-11 | no | no | sunset | end | month ×12, weekday ×7, taun ×8, windu ×4 | yes |
 | `javanese-pasaran` | Javanese pasaran (wetonan cycle) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | pasaran ×5, weekday ×7 | — |
+| `javanese-yogyakarta` | Javanese (Yogyakarta, 1749–1866) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1633-07-08 | 2401-12-06 | no | no | sunset | end | month ×12, weekday ×7, taun ×8, windu ×4 | yes |
 | `juche` | Juche | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1912-01-01 | +9999999-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `julian` | Julian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | Rd(3652499632) | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `julian-day` | Julian Day Number | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | noon | start | none | — |
