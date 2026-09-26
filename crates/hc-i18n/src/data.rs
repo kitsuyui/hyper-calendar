@@ -2198,6 +2198,37 @@ const EN_CALENDARS: &[CalendarNames] = &[
         ])],
         "leap ",
     ),
+    // The Samaritans number their months, "the first month", "the sixth
+    // month", as the community's calendars print them
+    // (the-samaritans.net, israelite-samaritans.com, read 2026-09-26);
+    // `hc_calendars_lunar::samaritan` numbers them from the Sixth Month,
+    // where the year number changes, with the Thirteenth Month of an
+    // intercalary year as the intercalary month after the Twelfth.
+    CalendarNames {
+        calendars: &[CalendarId("samaritan")],
+        cycles: &[months(&[
+            "Sixth Month",
+            "Seventh Month",
+            "Eighth Month",
+            "Ninth Month",
+            "Tenth Month",
+            "Eleventh Month",
+            "Twelfth Month",
+            "First Month",
+            "Second Month",
+            "Third Month",
+            "Fourth Month",
+            "Fifth Month",
+        ])],
+        leap_month_prefix: "",
+        eras: EraNames::EMPTY,
+        quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames {
+            intercalary: &[(7, "Thirteenth Month")],
+            in_leap_years: &[],
+        },
+    },
     // The scrolls number the months of the 364-day year, "the first
     // month", "the seventh month", as Talmon translates them in the
     // Encyclopedia of the Dead Sea Scrolls (2000), p. 110.
@@ -2489,6 +2520,40 @@ const EN_CALENDARS: &[CalendarNames] = &[
         templates: DateTemplates::NONE,
         leap_names: LeapMonthNames::NONE,
     },
+    // The Vira Nirvana Samvat runs the same amānta months as `hindu-lunar`,
+    // Kārtika first, so they carry the Rashtriya Panchang's English
+    // transliteration above in the Jain year's order. The Oshwal
+    // Association's calendar of 2025 prints the months in Gujarati forms —
+    // Kartik, Posh, Maha, Fagan, Chaitra, Vaishakh, Jeth, Ashadh, Shravan,
+    // Bhadarvo, Aaso — but not Mārgaśīrṣa, so those are not used; it heads
+    // its pages "Vir Samvat 2551", the abbreviation here. The Devanagari
+    // names are the calendar's own, in `hc-calendars-indic`.
+    CalendarNames {
+        calendars: &[CalendarId("vira-nirvana-samvat")],
+        cycles: &[months(&[
+            "Kartika",
+            "Agrahayana",
+            "Pausha",
+            "Magha",
+            "Phalguna",
+            "Chaitra",
+            "Vaisakha",
+            "Jyaishtha",
+            "Ashadha",
+            "Sravana",
+            "Bhadra",
+            "Asvina",
+        ])],
+        leap_month_prefix: "Adhika ",
+        eras: EraNames {
+            codes: &["vira-nirvana"],
+            names: widths(&["Vira Nirvana Samvat"], &["Vir Samvat"], &[]),
+            calendars: &[],
+        },
+        quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
+    },
     CalendarNames {
         calendars: &[CalendarId("bikram-sambat")],
         // The Nepali forms Wikipedia's "Vikram Samvat" lists beside the
@@ -2545,6 +2610,131 @@ const EN_CALENDARS: &[CalendarNames] = &[
         templates: DateTemplates::NONE,
         leap_names: LeapMonthNames::NONE,
     },
+    // Eras only, for calendars whose months English names elsewhere or not at
+    // all, placed after every other entry so that each calendar's first entry,
+    // and with it its templates, is unchanged; `tests/vocabulary.rs` holds every
+    // era a calendar writes to an English name.
+    // CLDR 48 `en.xml` names the Śaka, Solar Hijri and Minguo eras; the rest
+    // are the names each calendar's module documentation gives its era, from
+    // the sources its system document or module cites.
+    dated(&[CalendarId("indian")], &[], &["saka"], &["Saka"]),
+    dated(
+        &[CalendarId("persian"), CalendarId("persian-arithmetic")],
+        &[],
+        &["ap"],
+        &["AP"],
+    ),
+    dated(
+        &[CalendarId("roc")],
+        &[],
+        &["broc", "roc"],
+        &["Before R.O.C.", "Minguo"],
+    ),
+    dated(
+        &[CalendarId("armenian"), CalendarId("armenian-fixed")],
+        &[],
+        &["armenian"],
+        &["Armenian era"],
+    ),
+    dated(&[CalendarId("assyrian")], &[], &["ay"], &["A.Y."]),
+    dated(&[CalendarId("byzantine")], &[], &["am"], &["Anno Mundi"]),
+    dated(&[CalendarId("coptic")], &[], &["am"], &["Anno Martyrum"]),
+    dated(&[CalendarId("discordian")], &[], &["yold"], &["YOLD"]),
+    dated(
+        &[CalendarId("egyptian")],
+        &[],
+        &["nabonassar"],
+        &["Era of Nabonassar"],
+    ),
+    dated(
+        &[CalendarId("ethiopic")],
+        &[],
+        &["am", "aa"],
+        &["Amätä Məḥrät", "Amätä Aläm"],
+    ),
+    dated(
+        &[
+            CalendarId("french-republican-arithmetic"),
+            CalendarId("french-republican-equinox"),
+        ],
+        &[],
+        &["re"],
+        &["Republican era"],
+    ),
+    dated(
+        &[CalendarId("hindu-old-solar")],
+        &[],
+        &["kali-yuga"],
+        &["Kali Yuga"],
+    ),
+    dated(
+        &[CalendarId("hindu-solar-tamil")],
+        &[],
+        &["tiruvalluvar"],
+        &["Tiruvalluvar era"],
+    ),
+    dated(
+        &[CalendarId("hindu-solar-malayalam")],
+        &[],
+        &["kollam"],
+        &["Kollam era"],
+    ),
+    dated(
+        &[CalendarId("hindu-solar-bengali")],
+        &[],
+        &["bangabda"],
+        &["Bengali San"],
+    ),
+    dated(
+        &[CalendarId("hindu-solar-vikrami")],
+        &[],
+        &["vs"],
+        &["Vikrama Samvat"],
+    ),
+    dated(&[CalendarId("holocene")], &[], &["he"], &["Human Era"]),
+    dated(
+        &[CalendarId("japanese-imperial")],
+        &[],
+        &["koki"],
+        &["Kōki"],
+    ),
+    dated(&[CalendarId("juche")], &[], &["juche"], &["Juche"]),
+    dated(&[CalendarId("mandaean")], &[], &["aa"], &["AA"]),
+    dated(&[CalendarId("nanakshahi")], &[], &["ns"], &["Nanakshahi"]),
+    dated(&[CalendarId("roman-auc")], &[], &["auc"], &["AUC"]),
+    dated(&[CalendarId("rumi")], &[], &["rumi"], &["Rumi"]),
+    dated(&[CalendarId("samaritan")], &[], &["entry"], &["Entry Era"]),
+    dated(
+        &[
+            CalendarId("zoroastrian-qadimi"),
+            CalendarId("zoroastrian-shahanshahi"),
+            CalendarId("zoroastrian-fasli"),
+        ],
+        &[],
+        &["yz"],
+        &["Y.Z."],
+    ),
+    dated(
+        &[
+            CalendarId("julian-gregorian-catholic"),
+            CalendarId("julian-gregorian-fr"),
+            CalendarId("julian-gregorian-nl"),
+            CalendarId("julian-gregorian-nl-holland"),
+            CalendarId("julian-gregorian-de-catholic"),
+            CalendarId("julian-gregorian-hu"),
+            CalendarId("julian-gregorian-de-protestant"),
+            CalendarId("julian-gregorian-gb"),
+            CalendarId("julian-gregorian-se"),
+            CalendarId("julian-gregorian-bg"),
+            CalendarId("julian-gregorian-ru"),
+            CalendarId("julian-gregorian-rs"),
+            CalendarId("julian-gregorian-ro"),
+            CalendarId("julian-gregorian-gr"),
+        ],
+        &[],
+        &["os", "ns"],
+        &["Old Style", "New Style"],
+    ),
 ];
 
 const EN: LocaleData = LocaleData {

@@ -10,7 +10,7 @@
 //! |---|---|---|
 //! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], [`hebrew`], [`tibetan`], [`meyer_palmen`], [`yerm`] | a counting rule, exact by definition |
 //! | Tabulated | [`islamic_umalqura`] | a published table, exact where the table reaches |
-//! | Computed | [`chinese`], [`dangi`], [`vietnamese`], [`japanese_tenpo`], [`islamic_observational`] | an astronomical model, exact only to the model |
+//! | Computed | [`chinese`], [`dangi`], [`vietnamese`], [`japanese_tenpo`], [`islamic_observational`], [`samaritan`] | an astronomical model, exact only to the model |
 //! | Historical | [`japanese_historical`] | the system's *own* period constants, exact to the bureau that published it |
 //!
 //! The four rows behave differently and the crate does not pretend
@@ -112,6 +112,7 @@ pub mod japanese_historical;
 pub mod japanese_tenpo;
 pub mod lunisolar;
 pub mod meyer_palmen;
+pub mod samaritan;
 pub mod tabular;
 pub mod tibetan;
 pub mod vietnamese;
@@ -137,6 +138,7 @@ pub use lunisolar::{
     MeridianEra, SolarTermMode,
 };
 pub use meyer_palmen::{MeyerPalmenCalendar, MeyerPalmenDate};
+pub use samaritan::{SamaritanCalendar, SamaritanDate};
 pub use tabular::{IslamicDate, LeapYearRule, TabularIslamicCalendar};
 pub use tibetan::{TibetanCalendar, TibetanDate};
 pub use vietnamese::{VietnameseCalendar, VietnameseDate};
@@ -191,6 +193,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::SenmyoCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::tabular::FATIMID)));
         registry.insert(Box::new(DynAdapter::new(crate::HebrewCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::SamaritanCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BabylonianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::TibetanCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::MeyerPalmenCalendar)));
@@ -217,7 +220,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 18);
+        assert_eq!(registry.len(), 19);
     }
 
     #[test]

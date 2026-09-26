@@ -3608,8 +3608,8 @@ static PS_RULES: &[HolidayRule] = &[
 /// Year on 14 January — which are [`Kind::Religious`] here; their days that
 /// the first table already gives everyone — 1 and 7 January, the Eastern
 /// Easter Sunday, 25 December — are not repeated. The fourth,
-/// the Samaritans' feasts, is in a calendar the crate lacks and is not
-/// carried. Wikipedia's older copy of the list has neither the Easter
+/// the Samaritans' feasts, is on the Samaritan calendar, which this table
+/// does not read, and is not carried. Wikipedia's older copy of the list has neither the Easter
 /// for all nor the eve of Eid al-Fitr, and the year either was added is
 /// not known, so both are carried without a first year, as is every
 /// other day. The weekend is Friday and Saturday, as the Centre states

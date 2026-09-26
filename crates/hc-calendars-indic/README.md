@@ -28,6 +28,7 @@ each module.
 | `hindu_old` | `hindu-old-solar` | the *Ārya Siddhānta*'s mean Sun: twelve months of a twelfth of a 365.258 68-day year, named for the signs; Kali Yuga years | Kali Yuga 0–10000 |
 | | `hindu-old-lunar` | its mean Moon: 29.530 58-day months named for the solar month that begins within them, the intercalary one being the month no solar month begins in, thirty mean tithis a month; Kali Yuga years | Kali Yuga 0–10000 |
 | `nepal_sambat` | `nepal-sambat` | the Newar lunisolar calendar: the amānta months under their Newar names from Kachhalā (Kārtika), the year opening at Mha Puja, the day read at Kathmandu's sunrise; Nepal Sambat years | Gregorian 1700–2299 |
+| `vira_nirvana` | `vira-nirvana-samvat` | the Jain era of Mahāvīra's nirvāṇa over the amānta months, the year opening at Kārtika śukla 1, the day after Dīpāvalī, 605 years after the Śaka year's Kārtika; the day read at the Central Station's sunrise | Gregorian 1700–2299 |
 | `bikram_sambat` | `bikram-sambat` | the solar calendar of Nepal, Baisakh to Chait: the months the Government of Nepal gazettes for 2080–2083 BS, and elsewhere the *Sūrya Siddhānta*'s saṅkrāntis on their civil day at Kathmandu; Bikram Sambat years | Gregorian 1700–2299 |
 | `surya_siddhanta` | — | the Sun of the *Sūrya Siddhānta*: its sidereal longitude, the sign it stands in, and its saṅkrāntis | |
 | `places` | — | the Central Station of the national calendar (82°30′ E), Ujjain, New Delhi, Kathmandu | |

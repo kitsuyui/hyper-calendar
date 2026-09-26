@@ -240,6 +240,70 @@ fn every_era_code_a_calendar_writes_is_one_the_locales_key() {
     }
 }
 
+/// The days an era test probes: sixty-five spread over the calendar's
+/// range, or over two thousand years either side of the present for an
+/// unbounded one, so that a calendar with more than one era shows them.
+fn era_probe_days(meta: &CalendarMeta) -> Vec<Rd> {
+    let first = meta.earliest.unwrap_or(Rd(738_000 - 730_000));
+    let last = meta.latest.unwrap_or(Rd(738_000 + 730_000));
+    let (first, last) = (first.0.max(-10_000_000), last.0.min(10_000_000));
+    (0..=64)
+        .map(|step| Rd(first + (last - first) / 64 * step))
+        .collect()
+}
+
+/// Every era code a registered calendar writes is lowercase kebab-case —
+/// `nepal-sambat`, `kali-yuga`, never `Nepal Sambat` — and English can
+/// name it, from the locale data or from the calendar's own table.
+///
+/// The lookup ignores case and nothing else, so a code with a space or a
+/// capital that the name tables spell with a hyphen is a name written and
+/// never reached; this holds the whole registry to the one spelling.
+#[test]
+fn every_era_code_is_kebab_case_and_english_names_it() {
+    use hyper_calendar::hc_i18n::Locale;
+    use hyper_calendar::hc_i18n::names::{NameWidth, era_name_by_code};
+
+    let english: Locale = "en".parse().expect("en is a locale");
+    let registry = registry();
+    let mut malformed: BTreeSet<String> = BTreeSet::new();
+    let mut unnamed: BTreeSet<String> = BTreeSet::new();
+    let mut seen = 0;
+    for id in registered() {
+        let calendar = registry.get(id).expect("registered");
+        for day in era_probe_days(&calendar.meta()) {
+            let Ok(fields) = calendar.fixed_to_fields(day) else {
+                continue;
+            };
+            let Some(code) = fields.era else { continue };
+            seen += 1;
+            let kebab = !code.is_empty()
+                && !code.starts_with('-')
+                && !code.ends_with('-')
+                && code
+                    .bytes()
+                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-');
+            if !kebab {
+                malformed.insert(format!("{}: {code:?}", id.0));
+            }
+            let named = era_name_by_code(&english, id, code, NameWidth::Wide).is_some()
+                || calendar.era_name(code).is_some();
+            if !named {
+                unnamed.insert(format!("{}: {code}", id.0));
+            }
+        }
+    }
+    assert!(seen > 0, "some calendar writes an era");
+    assert!(
+        malformed.is_empty(),
+        "era codes that are not lowercase kebab-case: {malformed:?}"
+    );
+    assert!(
+        unnamed.is_empty(),
+        "era codes English cannot name: {unnamed:?}"
+    );
+}
+
 /// No vocabulary may name a cycle the calendar does not have.
 #[test]
 fn every_named_cycle_is_one_the_calendar_declares() {
@@ -364,12 +428,12 @@ fn the_vocabulary_gap_is_measured_and_not_growing() {
 
     assert_eq!(
         registered.len(),
-        120,
+        124,
         "the registry changed; update the coverage numbers deliberately"
     );
     assert_eq!(
         with_months.len(),
-        100,
+        102,
         "calendars with a month cycle — changes only when a calendar's shape does"
     );
     assert!(

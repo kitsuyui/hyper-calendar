@@ -21,6 +21,7 @@ others exist.
 | `islamic_umalqura` | `islamic-umalqura` | published table | **1300–1600 AH only** |
 | `islamic_observational` | `islamic-rgsa` | prediction | 1900–2100 CE |
 | `hebrew` | `hebrew` | arithmetic | AM 1–9999 |
+| `samaritan` | `samaritan` | astronomical | Samaritan 3539–3738 (1900–2100 CE) |
 | `babylonian` | `babylonian` | astronomical | SE −71 to 386 (383 BCE to 76 CE) |
 | `tibetan` | `tibetan` | arithmetic (Phugpa) | 1000–3000 |
 | `chinese` | `chinese` | astronomical | 1645–2150 CE |
@@ -74,7 +75,7 @@ against a computation criterion and is asserted in a test.
 parts, the nineteen-year cycle, the four dehiyyot and why each exists, the
 six year lengths, Rosh Hashanah 5784 worked by hand through the rules, the
 drift from the sky, what is carried and what is not — the observational
-calendar of the Second Temple and the Samaritan calendar among the latter —
+calendar of the Second Temple among the latter —
 and the sources, Maimonides first. The module keeps the month-numbering
 convention, Tishrei first with Adar I as `Month::leap(5)`, and the Omer and
 *birkat hachama* functions beside the calendar.

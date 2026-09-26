@@ -25,6 +25,9 @@
 //! * [`nepal_sambat`] — the lunisolar calendar of the Newar people: the
 //!   amānta months under their Newar names, the year opening at Kachhalā,
 //!   the day read at Kathmandu's sunrise. `nepal-sambat`.
+//! * [`vira_nirvana`] — the Jain era of Mahāvīra's nirvāṇa over the same
+//!   amānta months, the year opening at Kārtika śukla 1, the day after
+//!   Dīpāvalī, 605 years before the Śaka year. `vira-nirvana-samvat`.
 //! * [`bikram_sambat`] — the solar calendar of Nepal: the months the
 //!   Government of Nepal gazettes for 2080–2083, and elsewhere the
 //!   *Sūrya Siddhānta*'s saṅkrāntis on their civil day. `bikram-sambat`.
@@ -76,11 +79,13 @@ pub mod hindu_lunar;
 pub mod hindu_old;
 pub mod hindu_purnimanta;
 pub mod hindu_solar;
+mod kartikadi;
 pub mod nakshatra;
 pub mod nepal_sambat;
 pub mod places;
 pub mod surya_siddhanta;
 pub mod tithi;
+pub mod vira_nirvana;
 
 pub use bikram_sambat::{BikramSambatCalendar, BikramSambatDate};
 pub use hindu_lunar::{HinduLunarCalendar, HinduLunarDate};
@@ -91,6 +96,7 @@ pub use hindu_purnimanta::HinduPurnimantaCalendar;
 pub use hindu_solar::{HinduSolarCalendar, HinduSolarDate, SankrantiRule, SolarModel};
 pub use nepal_sambat::{NepalSambatCalendar, NepalSambatDate};
 pub use tithi::{Paksha, Prevalence};
+pub use vira_nirvana::{ViraNirvanaCalendar, ViraNirvanaDate};
 
 #[cfg(feature = "alloc")]
 mod registration {
@@ -119,6 +125,9 @@ mod registration {
             crate::NepalSambatCalendar::KATHMANDU,
         )));
         registry.insert(Box::new(DynAdapter::new(crate::BikramSambatCalendar)));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::ViraNirvanaCalendar::RASHTRIYA,
+        )));
     }
 }
 
@@ -132,7 +141,7 @@ mod tests {
     use super::*;
 
     /// The number of calendars this crate registers.
-    const CALENDAR_COUNT: usize = 10;
+    const CALENDAR_COUNT: usize = 11;
 
     /// Every calendar the crate registers, so that neither list can drift
     /// from the registry unnoticed.
@@ -145,6 +154,7 @@ mod tests {
             OldHinduLunarCalendar.meta(),
             NepalSambatCalendar::KATHMANDU.meta(),
             BikramSambatCalendar.meta(),
+            ViraNirvanaCalendar::RASHTRIYA.meta(),
         ];
         metas.extend(crate::hindu_solar::ALL.iter().map(Calendar::meta));
         metas
@@ -191,6 +201,7 @@ mod tests {
         assert!(registry.get_by_name("hindu-old-lunar").is_some());
         assert!(registry.get_by_name("nepal-sambat").is_some());
         assert!(registry.get_by_name("bikram-sambat").is_some());
+        assert!(registry.get_by_name("vira-nirvana-samvat").is_some());
         register_all(&mut registry);
         assert_eq!(registry.len(), CALENDAR_COUNT);
     }

@@ -35,8 +35,9 @@ use hyper_calendar::hc_calendars_solar::gregorian;
 /// whose sources, as read, give no span: the Egyptian wandering year under
 /// Ptolemy's era, the Roman era of later historians, the Yazidi year, the
 /// observational Hijri prediction, the Old Hindu mean reckonings, the Aztec
-/// counts, the Javanese and Akan weeks, and the Qumran 364-day year, whose
-/// days this library places by a convention of its own.
+/// counts, the Maya 819-day count, the Javanese and Akan weeks, and the
+/// Qumran 364-day year, whose days this library places by a convention of
+/// its own.
 const UNRECORDED: &[&str] = &[
     // Day counts.
     "ansi-date",
@@ -70,6 +71,8 @@ const UNRECORDED: &[&str] = &[
     "hindu-old-lunar",
     "hindu-old-solar",
     "islamic-rgsa",
+    "maya-819",
+    "maya-819-gmt2",
     "qumran",
     "roman-auc",
     "yazidi",
@@ -143,6 +146,7 @@ fn the_calendars_in_use_today_say_so() {
         "dangi",
         "vietnamese",
         "hebrew",
+        "samaritan",
         "islamic-civil",
         "islamic-umalqura",
         "ethiopic",
@@ -154,6 +158,7 @@ fn the_calendars_in_use_today_say_so() {
         "tibetan",
         "hindu-lunar",
         "bikram-sambat",
+        "vira-nirvana-samvat",
         "thai-lunar",
         "maya-tzolkin",
         "icelandic",
