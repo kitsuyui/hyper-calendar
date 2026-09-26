@@ -264,15 +264,15 @@ before it loads the holiday tables.
 
 | Feature | Exports | Brings in | Bytes | Size |
 | --- | --- | --- | ---: | ---: |
-| `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,833 | 35 KiB |
-| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; and when each country adopted the Gregorian calendar | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 712,539 | 696 KiB |
-| `holiday` | the four `hc_holiday*` exports and `hc_holidays_on` | `hc-holiday` and everything it dates by | 997,958 | 975 KiB |
-| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 88,978 | 87 KiB |
+| `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,819 | 35 KiB |
+| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; and when each country adopted the Gregorian calendar | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 751,078 | 733 KiB |
+| `holiday` | the four `hc_holiday*` exports and `hc_holidays_on` | `hc-holiday` and everything it dates by | 997,882 | 974 KiB |
+| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 88,964 | 87 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 152,694 | 149 KiB |
-| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,836 | 56 KiB |
-| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between` | `hc-astro`, `hc-seasons` | 96,781 | 95 KiB |
+| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,822 | 56 KiB |
+| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between` | `hc-astro`, `hc-seasons` | 96,767 | 94 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 63,961 | 62 KiB |
-| `full` | all of the above | everything | 1,783,754 | 1.70 MiB |
+| `full` | all of the above | everything | 1,822,278 | 1.74 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)

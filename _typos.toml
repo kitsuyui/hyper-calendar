@@ -454,3 +454,6 @@ Varak = "Varak"
 # Shemini Atseret, the Samaritan Day of Assembly as the-samaritans.net
 # spells it.
 Atseret = "Atseret"
+# The *tweek*, the ten-day week of Peter Meyer's Archetypes Calendar, and
+# the names of its months and days, in hc-calendars-lunar's `archetypes`.
+tweek = "tweek"

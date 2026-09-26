@@ -6,8 +6,9 @@ calendar in its Phugpa, Tsurphu and Bhutanese versions and the Mongolian
 calendar on the same engine, the Javanese calendar of Sultan Agung in its three
 reckonings, the East Asian lunisolar calendars of China, Korea and
 Vietnam, the five successive lunisolar calendars Japan used between 862
-and 1872, and two arithmetic proposals, the Meyer–Palmen Solilunar and
-Palmen's Yerm lunar calendar.
+and 1872, and four arithmetic proposals, the Meyer–Palmen Solilunar,
+Meyer's Archetypes, Palmen's Yerm lunar calendar and the lunar half of
+Meyer's Liberalia Triday calendar.
 
 Every calendar implements `hc_calendar::Calendar`, so every one of them
 converts through `Rd`, the Rata Die fixed day, and none of them knows the
@@ -43,6 +44,8 @@ others exist.
 | `japanese_tenpo` | `japanese-tenpo` | astronomical | 1844-02-18 to **1872-12-31** |
 | `meyer_palmen` | `meyer-palmen` | arithmetic (proposal) | 10986 BCE to 16375 CE |
 | `yerm` | `yerm` | arithmetic (proposal) | 622 to 10931 CE |
+| `archetypes` | `archetypes` | arithmetic (proposal) | 7665 BCE to 6760 CE |
+| `liberalia_lunar` | `liberalia-triday-lunar` | arithmetic (proposal) | 94964 BCE to 99143 CE |
 
 The five Japanese ranges abut exactly. Between them they name every Japanese
 day from the adoption of Senmyō-reki to the abolition of the lunisolar
@@ -129,9 +132,10 @@ it against the fixed calendar: over 1900–2100 the prediction's 1 Nisan is
 the fixed calendar's or up to two days later in 150 springs and a lunation
 earlier in 51.
 
-## The two proposals
+## The proposals
 
-`meyer-palmen` and `yerm` are calendars nobody adopted, carried because
+`meyer-palmen`, `archetypes`, `yerm` and `liberalia-triday-lunar` are
+calendars nobody adopted, carried because
 their rules are complete and their authors publish the tables to check
 them against. `meyer-palmen` is lunisolar: two remainders over a
 6840-year era decide the long years and the 31-day Metons, and it
@@ -141,6 +145,15 @@ the frequency table of 4001 New Year's Days on its authors' pages
 `yerm` is purely lunar, yerms of 17 and 15 months in cycles of 52, its
 night beginning at noon, and reproduces Palmen's tables of new yerms,
 cycles and months ([`docs/systems/yerm.md`](../../docs/systems/yerm.md)).
+`archetypes` is lunisolar too, two remainders over an 1 803-year period
+deciding the thirteenth month and the 30-day Sophia, with a ten-day
+*tweek*, and reproduces Meyer's three runs of dated days and his table of
+New Year's Days for 4699–4755
+([`docs/systems/archetypes.md`](../../docs/systems/archetypes.md)).
+`liberalia-triday-lunar` is purely lunar, months of three-day tridays in
+cycles of 384 years on the epoch of its solar sibling in
+`hc-calendars-solar`, and reproduces Meyer's correlation tables and dated
+examples ([`docs/systems/liberalia-triday.md`](../../docs/systems/liberalia-triday.md)).
 
 ## Japan's historical calendars
 

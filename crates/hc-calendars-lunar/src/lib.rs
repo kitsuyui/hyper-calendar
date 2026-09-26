@@ -8,7 +8,7 @@
 //!
 //! | | Calendar | Rule comes from |
 //! |---|---|---|
-//! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], `islamic-fatimid` ([`tabular::FATIMID`]), [`hebrew`], [`tibetan`], [`javanese`], [`meyer_palmen`], [`yerm`] | a counting rule, exact by definition |
+//! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], `islamic-fatimid` ([`tabular::FATIMID`]), [`hebrew`], [`tibetan`], [`javanese`], [`meyer_palmen`], [`yerm`], [`liberalia_lunar`], [`archetypes`] | a counting rule, exact by definition |
 //! | Tabulated | [`islamic_umalqura`] | a table, exact where the table reaches |
 //! | Computed | [`chinese`], [`dangi`], [`vietnamese`], [`japanese_tenpo`], [`islamic_observational`], [`hebrew_observational`], [`samaritan`], [`babylonian`] | an astronomical model, exact only to the model |
 //! | Historical | [`japanese_historical`] | the system's *own* period constants, exact to the bureau that published it |
@@ -52,11 +52,13 @@
 //! run in eight-year *windu* and 120-year *kurup*, three reckonings of one
 //! rule; so does [`babylonian`], a nineteen-year cycle of intercalations
 //! over months begun by a computed first sighting at Babylon; so does
-//! [`samaritan`]; and so do the two proposals, [`meyer_palmen`], a
-//! lunisolar calendar of two remainders, and [`yerm`], a lunar one of
-//! 52-yerm cycles; [`islamic_umalqura`] stands alone because a table is not
-//! an algorithm, and [`islamic_observational`] and
-//! [`hebrew_observational`] because they predict a sighting.
+//! [`samaritan`]; and so do the proposals, [`meyer_palmen`], a
+//! lunisolar calendar of two remainders, [`archetypes`], another, with a
+//! ten-day tweek, [`yerm`], a lunar one of 52-yerm cycles, and
+//! [`liberalia_lunar`], a lunar one of three-day tridays; [`islamic_umalqura`]
+//! stands alone because a table is not an algorithm, and
+//! [`islamic_observational`] and [`hebrew_observational`] because they
+//! predict a sighting.
 //!
 //! # What this crate will not tell you
 //!
@@ -111,6 +113,7 @@ pub(crate) const fn sweep_stride(sampled: usize) -> usize {
     if cfg!(debug_assertions) { sampled } else { 1 }
 }
 
+pub mod archetypes;
 pub mod babylonian;
 pub mod chinese;
 pub mod dangi;
@@ -123,6 +126,7 @@ pub mod islamic_umalqura;
 pub mod japanese_historical;
 pub mod japanese_tenpo;
 pub mod javanese;
+pub mod liberalia_lunar;
 pub mod lunisolar;
 pub mod meyer_palmen;
 pub mod samaritan;
@@ -131,6 +135,7 @@ pub mod tibetan;
 pub mod vietnamese;
 pub mod yerm;
 
+pub use archetypes::{ArchetypesCalendar, ArchetypesDate};
 pub use babylonian::{BabylonianCalendar, BabylonianDate};
 pub use chinese::{ChineseCalendar, ChineseDate};
 pub use dangi::{DangiCalendar, DangiDate};
@@ -149,6 +154,7 @@ pub use japanese_historical::kansei::KanseiCalendar;
 pub use japanese_historical::senmyo::SenmyoCalendar;
 pub use japanese_tenpo::{JapaneseTenpoCalendar, JapaneseTenpoDate};
 pub use javanese::{JavaneseCalendar, JavaneseDate};
+pub use liberalia_lunar::{LiberaliaLunarCalendar, LiberaliaLunarDate};
 pub use lunisolar::{
     ConjunctionMode, LunisolarCalendar, LunisolarDate, LunisolarParameters, MeanMotionModel,
     MeridianEra, SolarTermMode,
@@ -225,6 +231,8 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::javanese::JAVANESE_ABOGE)));
         registry.insert(Box::new(DynAdapter::new(crate::MeyerPalmenCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::YermCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::LiberaliaLunarCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::ArchetypesCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::IslamicCivilCalendar)));
         registry.insert(Box::new(DynAdapter::new(
             crate::IslamicAstronomicalCalendar,
@@ -247,7 +255,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 26);
+        assert_eq!(registry.len(), 28);
     }
 
     #[test]
@@ -336,6 +344,14 @@ mod registration_tests {
             assert_eq!(
                 DynAdapter::new(ChineseCalendar).is_leap_year(year),
                 chinese::PARAMETERS.is_leap_year(year)
+            );
+            assert_eq!(
+                DynAdapter::new(crate::ArchetypesCalendar).is_leap_year(year),
+                Ok(crate::archetypes::is_long_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(crate::LiberaliaLunarCalendar).is_leap_year(year),
+                Ok(crate::liberalia_lunar::is_long_year(year))
             );
         }
     }
