@@ -1,4 +1,4 @@
-# The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, ayanāṃśa, the sixty year names north and south
+# The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, the yoga and the karaṇa, ayanāṃśa, the sixty year names north and south
 
 Backs the identifiers `hindu-lunar`, `hindu-lunar-purnimanta`,
 `hindu-solar-tamil`, `hindu-solar-malayalam`, `hindu-solar-bengali`,
@@ -381,6 +381,47 @@ thirteen to fourteen days each, and the Thiruvathira ñāṭṭuvēla, the Sun i
 Ārdrā at the monsoon's height, is the one the farmers hold the best
 [wikipedia-ml-njattuvela].
 
+**The yoga and the karaṇa.** The other two limbs of the almanac are the
+*yoga* and the *karaṇa* [sewell1896, Arts. 9 and 10]. A yoga is the time
+in which "the sum of the motions, of the sun and moon is increased by
+13°20′" [sewell1896, Art. 9]: the sum of the two sidereal longitudes,
+taken modulo 360°, is cut into twenty-seven arcs, Viṣkambha, Prīti,
+Āyuṣmān, Saubhāgya, Śobhana, Atigaṇḍa, Sukarmā, Dhṛti, Śūla, Gaṇḍa,
+Vṛddhi, Dhruva, Vyāghāta, Harṣaṇa, Vajra, Siddhi, Vyatīpāta, Varīyān,
+Parigha, Śiva, Siddha, Sādhya, Śubha, Śukla, Brahma, Indra and Vaidhṛti
+[wikipedia-nityayoga]. It marks no event in the sky; S. B. Dikshit
+thought it "useful only in astrology" [wikipedia-nityayoga, quoting his
+*Bhāratīya Jyotiṣ Śāstra*, not read]. A karaṇa is half a tithi, the
+Moon's gain of 6° on the Sun, sixty to a month [sewell1896, Art. 10].
+Seven movable names, Bava, Bālava, Kaulava, Taitila, Gara, Vaṇija and
+Viṣṭi, run eight times round the fifty-six halves from the second half
+of śukla 1 to the first half of kṛṣṇa 14; four fixed names take the other
+four: Śakuni the second half of kṛṣṇa 14, Catuṣpada and Nāga the two
+halves of amāvāsyā, Kiṃstughna the first half of śukla 1
+[wikipedia-karana; sewell1896, Art. 40]. Sewell and Dikshit note that the
+*Sūrya Siddhānta* orders the fixed four Śakuni, Nāga, Catuṣpada,
+Kiṃstughna, and follow the practice of western India, which Varāhamihira
+and Brahmagupta support, of putting Catuṣpada before Nāga [sewell1896,
+Art. 40, note]; so do Reingold and Dershowitz's `karana`
+[reingold2018code] and Drik Panchang. As with the tithi, a day carries the
+yoga and the karaṇa in progress at its sunrise, and the almanac prints the
+moment each ends: Drik Panchang's page for New Delhi on 1 January 2025
+gives "Yoga Vyaghata upto 05:07 PM" and "Karana Balava upto 02:55 PM",
+then Kaulava to 02:24 AM on the 2nd, the end of the tithi
+[drik-day-panchang-2025].
+
+**Worked example: the end of Vyāghāta on 1 January 2025.** At 11:30 UT,
+17:00 IST, the Sun's apparent longitude is 281.302° and the Moon's
+300.379°, and the Lahiri ayanāṃśa is 24.206°. Their sidereal longitudes
+are 257.096° and 276.173°, and the sum, less 360°, is 173.269°. The arcs
+are counted from zero, so the thirteenth, Vyāghāta, runs from 160° to
+173°20′, 173.333°: the yoga is still Vyāghāta, 0.064° short of its end.
+The sum grows by about 14° a day, 0.6° an hour, so the end comes some six
+and a half minutes later, at 11:36.6 UT, 17:06.6 IST — the page's "upto
+05:07 PM". The figures are the library's own, rounded; the test
+`panchanga::the_yogas_of_january_2025_end_when_drik_panchang_says` holds
+all thirty-two printed ends of the month to within a minute.
+
 **The Old Hindu calendars.** Before the true positions, the almanacs
 reckoned by mean motion, and the library carries the mean solar and
 lunisolar calendars of the *Ārya Siddhānta* as Reingold and Dershowitz
@@ -556,7 +597,10 @@ weeks.
     *Bṛhatsaṃhitā* rule, whose reading they dispute (Art. 59 d): neither
     has a table or example to hold it to. Nor the twelve-year cycle of
     Jupiter (Art. 63).
-  - The Odia Anka is [odia-anka.md](odia-anka.md)'s.
+  - The Odia Anka is [odia-anka.md](odia-anka.md)'s, and the other eras
+    of Sewell and Dikshit's Art. 71 over these months — the Kārttikādi
+    Vikrama, the Rājyābhiṣeka Śaka, the Saptarṣi, the Magi San, the
+    Faṣlī years — are [indian-eras.md](indian-eras.md)'s.
   - *Festival observance*: which part of the day a tithi must hold, and
     the Smārta and Vaiṣṇava readings, are `hc-holiday`'s rules, not
     dates.
@@ -569,6 +613,20 @@ weeks.
   - *The Kollam, Bengali and Tamil calendars of other places*: the
     registered four are all read at the Central Station, as the almanac
     computes them, and not at Chennai, Thiruvananthapuram or Kolkata.
+
+- **The yoga and the karaṇa**, as functions in `panchanga`, not as
+  calendars: `yoga_at` and `yoga_of_day` give the yoga, 1 to 27, at a
+  moment or a day's sunrise for any ayanāṃśa, and `yoga_span` when it
+  began and ends; `karana_at`, `karana_of_day` and `karana_span` the same
+  for the half-tithi, 1 to 60, and `karana_name` its name, 0 to 10, as
+  Reingold and Dershowitz's `karana` maps it [reingold2018code]. The
+  names are Drik Panchang's, in English and in its Hindi edition's
+  Devanagari [drik-day-panchang-2025]. *Not carried*: the twenty-eight
+  weekday-and-nakṣatra yogas of Śrīpati's *Jyotiṣa Ratnamāla*, which
+  Wikipedia describes beside the astronomical ones [wikipedia-nityayoga],
+  and the auspicious yogas of Sewell and Dikshit's Art. 39; the yoga and
+  karaṇa of the *Sūrya Siddhānta*'s Sun and Moon, since only the Sun is
+  carried.
 
 ## Accuracy
 
@@ -603,6 +661,7 @@ assert:
 | Pingala for Śaka 1946, as the Hrishikesh Panchang prints it, from 9 April 2024 to 29 March 2025 on `hindu-lunar-purnimanta`; Anala the day before | `printed_northern_years_carry_the_rules_names`, `the_northern_years_carry_the_names_sewell_and_dikshit_and_the_almanacs_print` | all |
 | The moment: the Siddhānta's Meṣa saṅkrānti of 1514 against Table I's, Vṛṣa's end on 31 March 1514, the expunged Chitrabhānu and Subhānu at the next saṅkrānti; Vibhava 3.3 days and Śukla 364.3 days after the saṅkrānti of Śaka 1779 current; the worked example of 2024 | `the_moment_follows_the_rule_through_an_expunged_year`, `vibhava_begins_three_days_after_the_sankranti_of_1779`, `pingala_gives_way_to_kalayukta_a_fortnight_into_saka_1946` | the saṅkrānti of 1514 1½ minutes from the printed one, Vṛṣa's end within three minutes, the rest to the tenth of a day |
 | The Sun's twenty-seven nakṣatra entries of 2025 | `nakshatra::the_suns_nakshatra_transits_of_2025_are_the_almanacs` | every entry 7 to 10½ minutes before Drik Panchang's, the spread under two minutes |
+| The thirty-two yoga ends and fifty-nine karaṇa ends Drik Panchang prints for New Delhi, 1 to 30 January 2025 | `panchanga::the_yogas_of_january_2025_end_when_drik_panchang_says`, `the_karanas_of_january_2025_end_when_drik_panchang_says` | every yoga end from 56 seconds before the printed minute to 14 seconds after; every karaṇa end 0.6 to 1.6 minutes after it — the pages appear to truncate to the minute, and the yoga carries the two ayanāṃśas' 20″ twice |
 | Puṣya in January 2024 and February 2025, Drik Panchang's Chennai times | `pushya_in_january_2024_begins_and_ends_when_the_almanac_says`, `pushya_in_february_2025_too` | within three minutes |
 | The Siddhānta's sine table holds Āryabhaṭa's twenty-four values; its Meṣa saṅkrānti of 2024 is 139 minutes after Lahiri's | `surya_siddhanta::the_table_holds_the_classical_jyas`, `the_mesha_sankranti_of_2024_is_later_than_the_lahiri_one` | all; ±1 minute |
 | The Old Hindu calendars: every one of the 3 652 952 days of the range round-trips; the epoch is Friday 18 February 3102 BCE; intercalary months come 71 in 190 years and precede their namesake; the mean months of Kali Yuga 5125 (2024–25) against the true Tamil months | `hindu_old::every_day_converts_and_converts_back` and the module's other tests, `the_mean_months_of_2024_fall_within_two_days_of_the_true_ones` | all; within two days, three days late in sum over the twelve |
@@ -709,6 +768,9 @@ for 2024 and 2025 give the times the tests hold.
 | [swisseph] | The ayanāṃśa anchors `hc-seasons` carries, and Lahiri as the Spica tradition | Yes, 2026-09-25 |
 | [drik-sun-nakshatra-2025] | The Sun's twenty-seven nakṣatra entries of 2025 for New Delhi | Yes, 2026-09-25; the five entries checked agree with the test's table |
 | [drik-thaipusam-2024], [drik-thaipusam-2025] | Puṣya's beginning and end at Chennai, 25–26 January 2024 and 10–11 February 2025 | Yes, 2026-09-25 |
+| [drik-day-panchang-2025] | The yoga and karaṇa of every day of 1 to 30 January 2025 for New Delhi, with their end times, in English and in the Hindi edition; the English and Devanagari names | Yes, 2026-09-26 |
+| [wikipedia-nityayoga] | The yoga's definition, the twenty-seven names in order, Wikipedia's copy of Sewell and Dikshit's table of lengths, the other system of twenty-eight | Yes, 2026-09-26 |
+| [wikipedia-karana] | The karaṇa as half a tithi and the table of the sixty halves' names | Yes, 2026-09-26 |
 
 Statements in the module documentation for which this document names no
 source: the modern mean sidereal
@@ -727,8 +789,10 @@ phrase; the module states the coordinates only.
 `ARYA_SIDDHANTA`, `SURYA_SIDDHANTA_BIJA`, `northern_of_saka`,
 `in_progress_at`), `hindu_old.rs` (`HINDU_EPOCH`,
 `ARYA_SOLAR_YEAR`, `ARYA_LUNAR_MONTH`), `tithi.rs`, `nakshatra.rs`,
-`surya_siddhanta.rs` (`SIDEREAL_YEAR`, `ANOMALISTIC_YEAR`,
-`UJJAIN_LONGITUDE_DEGREES`) and `places.rs`. Anchors:
+`panchanga.rs` (`yoga_at`, `yoga_span`, `karana_at`, `karana_name`,
+`karana_span`, `YOGA_NAMES`, `KARANA_NAMES`), `surya_siddhanta.rs`
+(`SIDEREAL_YEAR`, `ANOMALISTIC_YEAR`, `UJJAIN_LONGITUDE_DEGREES`) and
+`places.rs`. Anchors:
 `every_fortnight_of_two_years_begins_where_the_rashtriya_panchang_says`,
 `saka_1945_has_the_intercalary_sravana_and_1946_none`,
 `every_dark_fortnight_carries_the_name_the_rashtriya_panchang_gives_it`,
@@ -746,6 +810,8 @@ phrase; the module states the coordinates only.
 `the_northern_years_carry_the_names_sewell_and_dikshit_and_the_almanacs_print`,
 `the_suns_nakshatra_transits_of_2025_are_the_almanacs`,
 `pushya_in_january_2024_begins_and_ends_when_the_almanac_says`,
+`the_yogas_of_january_2025_end_when_drik_panchang_says`,
+`the_karanas_of_january_2025_end_when_drik_panchang_says`,
 `the_table_holds_the_classical_jyas`,
 `the_mesha_sankranti_of_2024_is_later_than_the_lahiri_one`,
 `the_epoch_is_friday_18_february_3102_bce_and_opens_year_zero`,

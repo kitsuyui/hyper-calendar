@@ -3,6 +3,9 @@
 //! Dīpāvalī — Nepal Sambat ([`crate::nepal_sambat`]) and the Vira Nirvana
 //! Samvat ([`crate::vira_nirvana`]).
 //!
+//! The arithmetic is [`crate::year_start`]'s, for a year opening at
+//! Kārtika śukla 1; this module names it for the two eras.
+//!
 //! Such an era renames nothing but the year and the order of the months:
 //! its month 1 is Kārtika, amānta month 8, and its month 12 Āśvina, amānta
 //! month 7, and a date keeps its tithi, its fortnight and its intercalary
@@ -14,39 +17,32 @@
 use hc_calendar::{CalendarResult, Rd};
 
 use crate::hindu_lunar::HinduLunarCalendar;
+use crate::year_start::YearStart;
 
-/// The amānta month, 1 for Chaitra, that opens a Kārtikādi year: Kārtika.
-pub(crate) const KARTIKA: u8 = 8;
+/// Where a Kārtikādi year opens: Kārtika śukla 1, amānta month 8.
+const START: YearStart = YearStart::KARTTIKADI;
 
 /// The amānta month, 1 for Chaitra, of a Kārtikādi month, 1 for Kārtika.
 pub(crate) const fn amanta_month(month: u8) -> u8 {
-    (month + 6) % 12 + 1
+    START.amanta_month(month)
 }
 
 /// The Kārtikādi month, 1 for Kārtika, of an amānta month, 1 for Chaitra.
 pub(crate) const fn kartikadi_month(amanta: u8) -> u8 {
-    (amanta + 4) % 12 + 1
+    START.era_month(amanta)
 }
 
 /// The Śaka year of an amānta month in a Kārtikādi year, where `offset` is
 /// the Śaka year less the era's year for Kārtika to Phālguna; Chaitra to
 /// Āśvina are a Śaka year later.
 pub(crate) const fn saka_year(year: i64, amanta: u8, offset: i64) -> i64 {
-    if amanta >= KARTIKA {
-        year + offset
-    } else {
-        year + offset + 1
-    }
+    START.saka_year(year, amanta, false, 1, offset)
 }
 
 /// The era's year of an amānta month in a Śaka year: the inverse of
 /// [`saka_year`].
 pub(crate) const fn era_year(saka: i64, amanta: u8, offset: i64) -> i64 {
-    if amanta >= KARTIKA {
-        saka - offset
-    } else {
-        saka - offset - 1
-    }
+    START.era_year(saka, amanta, false, 1, offset)
 }
 
 /// New Year's Day of an era's year: the first day of its first Kārtika —
@@ -57,11 +53,7 @@ pub(crate) const fn era_year(saka: i64, amanta: u8, offset: i64) -> i64 {
 /// [`hc_calendar::CalendarError::YearOutOfRange`] outside the amānta
 /// engine's range.
 pub(crate) fn new_year(lunar: &HinduLunarCalendar, year: i64, offset: i64) -> CalendarResult<Rd> {
-    let saka = year + offset;
-    lunar
-        .month_span(saka, KARTIKA, true)
-        .or_else(|_| lunar.month_span(saka, KARTIKA, false))
-        .map(|(first, _)| first)
+    START.new_year(lunar, year, offset)
 }
 
 /// Whether an era's year has an adhika māsa. The year runs from Kārtika of
@@ -76,14 +68,7 @@ pub(crate) fn is_leap_year(
     year: i64,
     offset: i64,
 ) -> CalendarResult<bool> {
-    let saka = year + offset;
-    let autumn = lunar
-        .leap_month_of(saka)?
-        .is_some_and(|(month, _, _)| month >= KARTIKA);
-    let spring = lunar
-        .leap_month_of(saka + 1)?
-        .is_some_and(|(month, _, _)| month < KARTIKA);
-    Ok(autumn || spring)
+    START.is_leap_year(lunar, year, offset)
 }
 
 #[cfg(test)]
@@ -92,7 +77,7 @@ mod tests {
 
     #[test]
     fn the_months_turn_at_kartika_and_back() {
-        assert_eq!(amanta_month(1), KARTIKA);
+        assert_eq!(amanta_month(1), START.month);
         assert_eq!(amanta_month(5), 12);
         assert_eq!(amanta_month(6), 1);
         assert_eq!(amanta_month(12), 7);
@@ -107,7 +92,7 @@ mod tests {
             let saka = saka_year(2_551, amanta, -605);
             assert_eq!(era_year(saka, amanta, -605), 2_551);
         }
-        assert_eq!(saka_year(2_551, KARTIKA, -605), 1_946);
+        assert_eq!(saka_year(2_551, START.month, -605), 1_946);
         assert_eq!(saka_year(2_551, 1, -605), 1_947);
     }
 }

@@ -109,6 +109,9 @@ const fn weekday_widths(
 const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("gregory"),
     CalendarId("iso8601"),
+    CalendarId("fasli-madras"),
+    CalendarId("fasli-bombay"),
+    CalendarId("sur-san"),
     CalendarId("julian"),
     CalendarId("revised-julian"),
     CalendarId("buddhist"),
@@ -2829,6 +2832,68 @@ const EN_CALENDARS: &[CalendarNames] = &[
         templates: DateTemplates::NONE,
         leap_names: LeapMonthNames::NONE,
     },
+    // The Gujarati Vikrama year runs the amānta months from Kārttika, as the
+    // Vira Nirvana Samvat above does, so it carries the same
+    // transliteration in the same order; its era is the Vikrama Saṃvat,
+    // which Drik Panchang calls the "Gujarati Samvat" when it is counted
+    // from Kārttika (read 2026-09-26).
+    CalendarNames {
+        calendars: &[CalendarId("vikram-samvat-kartikadi")],
+        cycles: &[months(&[
+            "Kartika",
+            "Agrahayana",
+            "Pausha",
+            "Magha",
+            "Phalguna",
+            "Chaitra",
+            "Vaisakha",
+            "Jyaishtha",
+            "Ashadha",
+            "Sravana",
+            "Bhadra",
+            "Asvina",
+        ])],
+        leap_month_prefix: "Adhika ",
+        eras: EraNames {
+            codes: &["vs"],
+            names: widths(&["Vikrama Samvat"], &["VS"], &[]),
+            calendars: &[],
+        },
+        quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
+    },
+    // Śivājī's era and the Saptarṣi era number their months from Chaitra,
+    // amānta and pūrṇimānta, so they carry the lunisolar transliteration
+    // above; the era names are Sewell and Dikshit's, *The Indian
+    // Calendar*, Art. 71 — "Rajyabhisheka Saka", "Saptarshi-Kala", which
+    // they also call the "Laukika-Kala".
+    CalendarNames {
+        calendars: &[CalendarId("rajyabhisheka-saka"), CalendarId("saptarshi")],
+        cycles: &[months(&[
+            "Chaitra",
+            "Vaisakha",
+            "Jyaishtha",
+            "Ashadha",
+            "Sravana",
+            "Bhadra",
+            "Asvina",
+            "Kartika",
+            "Agrahayana",
+            "Pausha",
+            "Magha",
+            "Phalguna",
+        ])],
+        leap_month_prefix: "Adhika ",
+        eras: EraNames {
+            codes: &["rajyabhisheka-saka", "saptarshi"],
+            names: widths(&["Rajyabhisheka Saka", "Saptarshi"], &[], &[]),
+            calendars: &[],
+        },
+        quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
+    },
     CalendarNames {
         calendars: &[CalendarId("bikram-sambat")],
         // The Nepali forms Wikipedia's "Vikram Samvat" lists beside the
@@ -2962,6 +3027,19 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &["bangabda"],
         &["Bengali San"],
     ),
+    // The Magi San of Chittagong, as Sewell and Dikshit, Art. 71, name it;
+    // its months are the Bengali ones its calendar declares.
+    dated(&[CalendarId("magi-san")], &[], &["magi-san"], &["Magi San"]),
+    // The Faṣlī years and the Sūr-san, as Sewell and Dikshit, Art. 71,
+    // spell them without diacritics ("Fasali", "Sur-san"); their months are
+    // the Gregorian ones of `GREGORIAN_MONTH_CALENDARS`.
+    dated(
+        &[CalendarId("fasli-madras"), CalendarId("fasli-bombay")],
+        &[],
+        &["fasli"],
+        &["Fasli"],
+    ),
+    dated(&[CalendarId("sur-san")], &[], &["sur-san"], &["Sur-san"]),
     dated(
         &[CalendarId("hindu-solar-vikrami")],
         &[],
