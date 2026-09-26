@@ -475,8 +475,8 @@ describe("calendars and locales", () => {
       const list = hc.calendarList(locale);
       const full = hc.calendars(739_880, locale);
       assert.deepEqual(
-        list.map((row) => [row.id, row.name, row.englishName]),
-        full.map((row) => [row.id, row.name, row.englishName]),
+        list.map((row) => [row.id, row.name, row.englishName, row.nativeLocales]),
+        full.map((row) => [row.id, row.name, row.englishName, row.nativeLocales]),
         locale,
       );
       for (const row of list) {
@@ -491,7 +491,9 @@ describe("calendars and locales", () => {
       englishName: "Japanese (imperial eras)",
       localeUsed: "ja",
       crate: "hc-calendars-regional",
+      nativeLocales: ["ja"],
     });
+    assert.deepEqual(ja.find((row) => row.id === "gregory")?.nativeLocales, []);
     assert.equal(ja.find((row) => row.id === "chinese")?.crate, "hc-calendars-lunar");
     assert.equal(ja.find((row) => row.id === "hindu-lunar")?.crate, "hc-calendars-indic");
     const hebrew = hc.calendarList(NATIVE).find((row) => row.id === "hebrew");

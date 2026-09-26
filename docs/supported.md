@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-186 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+189 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 152 of 186 have months and 152 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 155 of 189 have months and 155 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 **Named by** is which civil day names a day that does not begin at midnight: `start` for the one it begins on, as the Julian Day that begins at noon on 1 January 2000 is that day's, and `end` for the one it ends on, as the Hebrew day that begins at sunset on a Friday is Saturday's.
 
@@ -76,6 +76,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `hermetic-leap-week` | Hermetic Leap Week | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -100000-12-25 | +99999-12-26 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `hindu-lunar` | Hindu lunisolar (amanta) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | start | month ×12–13, weekday ×7, samvatsara ×60 | yes |
 | `hindu-lunar-purnimanta` | Hindu lunisolar (purnimanta) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | start | month ×12–13, weekday ×7, samvatsara ×60 | yes |
+| `hindu-lunar-surya-siddhanta` | Hindu lunisolar (amanta, Surya Siddhanta) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | -3100-01-13 | 6900-06-15 | yes | yes | sunrise | start | month ×12–13, weekday ×7, samvatsara ×60 | yes |
 | `hindu-old-lunar` | Old Hindu lunisolar (mean) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | -3101-01-23 | 6900-06-14 | no | yes | sunrise | start | month ×12–13, weekday ×7 | yes |
 | `hindu-old-solar` | Old Hindu solar (mean) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | -3101-01-23 | 6900-07-03 | no | no | sunrise | start | month ×12, weekday ×7 | yes |
 | `hindu-solar-bengali` | Bengali solar (Bangabda) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-04-10 | 2300-04-18 | yes | no | sunrise | start | month ×12, weekday ×7 | yes |
@@ -89,7 +90,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `international-fixed` | International Fixed | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | — | month ×13, weekday ×7 | yes |
 | `islamic-civil` | Hijri (tabular, civil epoch) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0622-07-19 | +10323-10-21 | no | no | sunset | end | month ×12, weekday ×7 | yes |
 | `islamic-fatimid` | Hijri (Fatimid, Ṭayyibī Bohra "Misri") | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0622-07-18 | +10323-10-20 | no | no | sunset | end | month ×12, weekday ×7 | yes |
+| `islamic-observational-cairo-rd` | Hijri (observational at Cairo, Calendrical Calculations) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1900-01-01 | 2100-12-31 | yes | no | sunset | end | month ×12, weekday ×7 | yes |
 | `islamic-rgsa` | Hijri (observational, predicted) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1900-01-01 | 2100-12-31 | yes | no | sunset | end | month ×12, weekday ×7 | yes |
+| `islamic-saudi-rule-rd` | Hijri (Saudi rule computed, Calendrical Calculations) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1900-01-01 | 2100-12-31 | yes | no | sunset | end | month ×12, weekday ×7 | yes |
 | `islamic-tbla` | Hijri (tabular, astronomical epoch) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0622-07-18 | +10323-10-20 | no | no | sunset | end | month ×12, weekday ×7 | yes |
 | `islamic-umalqura` | Hijri (Umm al-Qura) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1882-11-12 | 2174-11-25 | no | no | sunset | end | month ×12, weekday ×7 | yes |
 | `iso8601` | ISO 8601 | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999998-02-05 | +9999998-11-26 | no | no | midnight | — | month ×12, weekday ×7 | yes |

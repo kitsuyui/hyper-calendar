@@ -1,7 +1,9 @@
 # The Hijri calendars: the tabular schemes, the Umm al-Qura table and the observational prediction
 
 Backs the identifiers `islamic-civil`, `islamic-tbla`, `islamic-fatimid`,
-`islamic-umalqura` and `islamic-rgsa` in `hc-calendars-lunar`, the
+`islamic-umalqura` and `islamic-rgsa` in `hc-calendars-lunar`, the two
+conventions of *Calendrical Calculations* registered beside them,
+`islamic-observational-cairo-rd` and `islamic-saudi-rule-rd`, the
 Kūshyār ibn Labbān and Ḥabash al-Ḥāsib schemes that `tabular` can build but
 does not register, and Yallop's crescent-visibility test, which
 `islamic_observational` carries beside Shaukat's without registering a
@@ -62,7 +64,11 @@ document covers one implementation of each:
   Cairo as its sample location [reingold2018code]; this library applies it
   at Mecca under CLDR's identifier `islamic-rgsa`, "Hijri calendar, Saudi
   Arabia sighting" [cldr-bcp47-calendar]. It is a forecast of an
-  observation, not a record of a decision.
+  observation, not a record of a decision. The book's own calendar, at
+  Cairo, is registered too, as `islamic-observational-cairo-rd`, and so
+  is the book's computation of the Umm al-Qura rule, as
+  `islamic-saudi-rule-rd`; the `-rd` says that each is Reingold and
+  Dershowitz's convention and no authority's.
 
 Who uses which, in short: administrations and software the tabular
 calendar; Saudi Arabia and its neighbours the Umm al-Qura table for civil
@@ -179,6 +185,48 @@ it could not serve as a check on the rows either. The table is therefore
 another library's, cross-checked against five announcements; the rows for
 1300–1391 AH, before any rule is known, are a computation whose author is
 not named.
+
+### The rule computed: `islamic-saudi-rule-rd`
+
+Reingold and Dershowitz compute a "Saudi Islamic" calendar beside the
+observational one, from the rule of the last row above and not from any
+table [reingold2018code, `saudi-criterion`, `saudi-new-month-on-or-before`,
+`fixed-from-saudi-islamic`, `saudi-islamic-from-fixed`]. On the evening
+before a candidate first day, at sunset at Mecca:
+
+1. the Moon is past conjunction and short of first quarter, its elongation
+   from the Sun between 0° and 90°;
+2. the Moon sets after the Sun (`moonlag` positive; a Moon that does not
+   set that day counts as setting after it).
+
+The first day of the month containing a day is found as the observational
+calendar's is, and the year and month are counted the same way. This
+library carries the rule as a third shape of criterion,
+`VisibilityCriterion::SAUDI_RULE`, judged at sunset, so the month search,
+the range and the reading back are the observational calendar's, and
+registers it at the book's `mecca` as `islamic-saudi-rule-rd`.
+
+It is the table's rule only from 1423 AH [vangent-ummalqura], and the
+book applies it to every year, so it is a different calendar from
+`islamic-umalqura` and not a second copy of it: policy §5 names the two
+apart. Measured over the months both convert, 1317–1524 AH, the rule
+begins a month on the table's day in 287 of the 288 months of 1423–1446;
+in 34 of the 36 of 1420–1422, when moonset after sunset was the whole
+rule and a month could begin before the conjunction, the table being a
+day earlier in the other two; and in about two thirds of the rest, the
+table a day later in the others — before 1392, under 1392–1419's rule of
+the new moon three hours after midnight, and after 1446, where no source
+read says how the table's years were produced. The one disagreement
+after 1423 is Jumādā II 1427: the conjunction of 25 June 2006 fell at
+16:05 UT, four minutes before sunset at Mecca, and the Moon set six and a
+half minutes after the Sun, so the rule begins the month on 26 June and
+the table on 27 June.
+
+**Worked example: 1 Ramaḍān 1445 by the rule.** On the evening of Sunday
+10 March 2024 the Sun set at Mecca at 15:31 UT, six and a half hours
+after the conjunction of 09:00 UT, and the Moon at 15:44: both conditions
+hold, so the rule, like the table and the announcement, begins Ramaḍān on
+Monday 11 March, a day before the prediction of the next section.
 
 ### The visibility criterion
 
@@ -357,6 +405,8 @@ a test (`yallops_q_follows_from_his_own_arcs_and_widths`).
   | `islamic-fatimid` | Tabular, scheme III, Thursday epoch: the Bohra *Misri* calendar | `LeapYearRule::FATIMID`, `ASTRONOMICAL_EPOCH` |
   | `islamic-umalqura` | The Umm al-Qura table | `MONTH_LENGTH_MASKS`, 301 × `u16` |
   | `islamic-rgsa` | The observational prediction at Mecca | `ObservationSite::MECCA`: the location and `VisibilityCriterion::SHAUKAT` (4.5°, 10.6°, 4.1°), named after the published code's `shaukat-criterion` |
+  | `islamic-observational-cairo-rd` | The book's observational Islamic calendar, the same prediction at its sample location | `ObservationSite::CAIRO`: `CAIRO`, 30.1° N, 31.3° E, 200 m, the published code's `islamic-location`, and `VisibilityCriterion::SHAUKAT` |
+  | `islamic-saudi-rule-rd` | The book's computed Saudi calendar: the Umm al-Qura rule of 1423 AH for every year | `ObservationSite::SAUDI_RULE`: `MECCA` and `VisibilityCriterion::SAUDI_RULE`, the published code's `saudi-criterion` |
 
   The Fatimid calendar's epoch is fixed by the community's own anchor: its
   page dates the Mawlid, 12 Rabīʿ al-Awwal 1439, to 30 November 2017
@@ -405,12 +455,12 @@ a test (`yallops_q_follows_from_his_own_arcs_and_widths`).
   - What any authority announced. The announcements cited below are used
     to check the table, not carried as data; a record of proclamations is a
     different thing from a calendar and would be a table of its own.
-  - The Umm al-Qura calendar before 1300 AH or after 1600, and Reingold and
-    Dershowitz's computed `saudi-criterion` [reingold2018code], which
-    reproduces the post-1423 rule from the astronomy. Inside the table's
-    range the table is the published thing and a computation would only
-    disagree with it in the years the rules were different; outside it a
-    computation would be presenting a guess as the Saudi calendar.
+  - The Umm al-Qura calendar before 1300 AH or after 1600. Reingold and
+    Dershowitz's computed `saudi-criterion` [reingold2018code] is
+    carried, but as their calendar, `islamic-saudi-rule-rd`, over the
+    same 1900–2100 as the prediction, and never as the Saudi one: inside
+    the table's range the table is the published thing, and outside it a
+    computation presented as the Saudi calendar would be a guess.
   - The astrolabe pattern and the eight-year cycle, for which no user and no
     anchor were found.
   - The capped observational calendar, `alt-fixed-from-observational-islamic`
@@ -441,8 +491,9 @@ a test (`yallops_q_follows_from_his_own_arcs_and_widths`).
 | Months of 31 days in the 1 212 months of 1400–1500 AH, by place and criterion | Mecca: none under either (568 of 29 days, 644 of 30). Cairo (30.1° N, 31.3° E, 200 m): one under Shaukat's, from 14 August 1988, none under Yallop's. Haifa: one under Shaukat's, from 16 September 2042, none under Yallop's | `months_of_thirty_one_days_by_criterion_and_place_in_1400_to_1500_ah` |
 | The 31st of Shawwāl 1464 at Haifa, 16 October 2042, converts both ways, and the 31st of a shorter month is refused as a day out of range | Both | `a_predicted_month_of_thirty_one_days_has_a_thirty_first_day` |
 | Every day of those two 31-day months, at Cairo and at Haifa, with a day either side, converts both ways | All | `every_day_of_the_months_of_thirty_one_days_round_trips` |
-| The 33 sample dates of *Calendrical Calculations*, as its published code computes them, the 9 of 1900–2100 in range [reingold2018code, `dates.l`] | Shaukat's criterion at Cairo, the book's place: 9 of 9. `islamic-rgsa`, at Mecca: 8 of 9, Rabīʿ II 1362 (1943) beginning a day later. `islamic-civil` against the book's arithmetic calendar: 27 of 27 in its range, the 6 before 622 refused. The Umm al-Qura table against the book's `saudi-islamic`, the Saudi rule computed: 6 of 9 (below) | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) |
+| The 33 sample dates of *Calendrical Calculations*, as its published code computes them, the 9 of 1900–2100 in range [reingold2018code, `dates.l`] | `islamic-observational-cairo-rd`, Shaukat's criterion at Cairo, the book's place: 9 of 9. `islamic-rgsa`, at Mecca: 8 of 9, Rabīʿ II 1362 (1943) beginning a day later. `islamic-civil` against the book's arithmetic calendar: 27 of 27 in its range, the 6 before 622 refused. `islamic-saudi-rule-rd` against the book's `saudi-islamic`: 9 of 9. The Umm al-Qura table against the same: 6 of 9 (below) | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`); `the_books_sample_dates_are_reproduced_at_cairo_and_by_the_saudi_rule`, in the module, both ways |
 | The interpolated 4.5° moment against the bisected one, every thirteenth evening of 2000–2030 | At most 2.9 s at Mecca, 7.7 s at Haifa, 105 s at 55° N | `the_interpolated_evaluation_moment_is_seconds_from_the_true_one` |
+| The rule against the table, by van Gent's periods [vangent-ummalqura], over the months both convert | 1423–1446 AH: 287 of 288 on the same day, Jumādā II 1427 a day earlier. 1420–1422: 34 of 36, the table a day earlier in two. 1392–1419: 211 of 336, the table a day later in 125. 1317–1391: 581 of 892, later in 311. 1447–1524: 630 of 934, later in 304. Never more than a day apart | `the_saudi_rule_is_the_table_only_where_the_rule_was_in_force`; the last three periods in a release build |
 
 **What the five announcements check.** They are the Supreme Court's
 sighting-based decisions [spa-ramadan-1445, spa-eid-alfitr-1445,
@@ -476,10 +527,11 @@ prediction. `dates.l` holds the 33 dates and the program that writes the book's
 tables, not the tables, so the values were computed from the code itself
 and are carried with its licence and the method in the data file's header
 (`crates/hyper-calendar/tests/data/calendrica_sample_dates.txt`); the
-book's printed appendix was not read. At Cairo the module gives every one
-of the nine dates in its range, so the criterion, the search and the
-month count are the code's. At Mecca one of the nine moves by a day, which
-is the place and not an error. The book's `saudi-islamic` is not the Umm
+book's printed appendix was not read. At Cairo, as
+`islamic-observational-cairo-rd`, the module gives every one of the nine
+dates in its range, so the criterion, the search and the month count are
+the code's. At Mecca one of the nine moves by a day, which is the place
+and not an error. The book's `saudi-islamic` is not the Umm
 al-Qura table but the table's post-1423 rule computed from the book's own
 astronomy — conjunction before sunset, the Moon setting after the Sun, at
 Mecca [reingold2018code, `saudi-criterion`] — and the table disagrees
@@ -487,8 +539,13 @@ with it three times: in 1360 and 1362 AH (1941 and 1943), rows from before
 1392 AH, the first year the rules are known for [vangent-ummalqura],
 which follow no stated rule; and in 1518 AH (2094), when on the evening of
 12 July the code's Moon sets 4.3 minutes after the Sun and the table
-begins Rabīʿ I a day later. No row of the table is shown wrong by that:
-the rule, applied by two computations, splits on a margin of minutes.
+begins Rabīʿ I a day later. By the rule, 8 Ramaḍān 1360 is 29 September
+1941, 8 Shawwāl 1362 is 7 October 1943 and 6 Rabīʿ I 1518 is 18 July
+2094, and each is the table's 7th, 7th and 5th. No row of the table is
+shown wrong by that: the rule, applied by two computations, splits on a
+margin of minutes. `islamic-saudi-rule-rd` applies it a third time, with
+this library's astronomy, and gives all nine of the book's dates; its
+Moon sets 3.8 minutes after the Sun on that evening of 2094.
 
 **What the module documentation states on its own authority** is listed
 at the end of the next section.
@@ -498,7 +555,7 @@ at the end of the next section.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [reingold2018] | The scheme II closed forms, the observational calendar, the criterion; the sample values of its Appendix C, which include the observational calendar | Not read directly; the published code was, and the sample values the tests hold are that code's own output (`dates.l`) |
-| [reingold2018code] | `islamic-epoch`, `islamic-leap-year?`, `fixed-from-islamic`, `islamic-from-fixed`, `mean-synodic-month`, `mecca`, `islamic-location`, `shaukat-criterion`, `simple-best-view`, `arc-of-light`, `visible-crescent`, `phasis-on-or-before`, `fixed-from-observational-islamic`, `observational-islamic-from-fixed`, `month-length`, `saudi-criterion`; `dates.l`, its 33 sample dates and the program that writes their tables, run at commit `9afc1f3` to compute them (2026-09-27); the capped `alt-fixed-from-observational-islamic`, `alt-observational-islamic-from-fixed` and `early-month?`, named as not carried; `yallop-criterion`, `bruin-best-view`, `arc-of-vision`, `lunar-semi-diameter`, `lunar-parallax`, `phasis-on-or-after` | Yes, 2026-09-25; the Yallop functions 2026-09-26 |
+| [reingold2018code] | `islamic-epoch`, `islamic-leap-year?`, `fixed-from-islamic`, `islamic-from-fixed`, `mean-synodic-month`, `mecca`, `islamic-location`, `shaukat-criterion`, `simple-best-view`, `arc-of-light`, `visible-crescent`, `phasis-on-or-before`, `fixed-from-observational-islamic`, `observational-islamic-from-fixed`, `month-length`, `saudi-criterion`; `saudi-new-month-on-or-before`, `fixed-from-saudi-islamic`, `saudi-islamic-from-fixed` and `moonlag`, read 2026-09-27 for `islamic-saudi-rule-rd`; `dates.l`, its 33 sample dates and the program that writes their tables, run at commit `9afc1f3` to compute them (2026-09-27); the capped `alt-fixed-from-observational-islamic`, `alt-observational-islamic-from-fixed` and `early-month?`, named as not carried; `yallop-criterion`, `bruin-best-view`, `arc-of-vision`, `lunar-semi-diameter`, `lunar-parallax`, `phasis-on-or-after` | Yes, 2026-09-25; the Yallop functions 2026-09-26 |
 | [bukhari-1909] | The hadith on completing Shaʿbān to thirty days when the crescent is hidden, the practice the capped alternative models | Yes, 2026-09-26, in the English translation served by IslamicFinder; sunnah.com refused automated access |
 | [yallop1997] | The *q*-test, its cubic and its six types; ARCV and the topocentric width; Bruin's best time; the rows of Table 4 the tests check | Yes, 2026-09-26, in the copy served at astronomycenter.net, a 2004 rendering of the 1997 note |
 | [bruin1977] | The curves Yallop draws the best time from | Not read; cited through Yallop |
@@ -531,7 +588,9 @@ supports, and that stand as the module's own:
 calendar; `islamic_civil.rs` and `islamic_astronomical.rs` are the two CLDR
 parameter sets on it; `islamic_umalqura.rs` holds `MONTH_LENGTH_MASKS` and
 the year-start accumulation; `islamic_observational.rs` holds
-`VisibilityCriterion`, `ObservationSite`, `MECCA` and the month search.
+`VisibilityCriterion`, `ObservationSite`, `MECCA`, `CAIRO`, the month
+search and the three registered calendars, `IslamicObservationalCalendar::MECCA`,
+`CAIRO_RD` and `SAUDI_RULE_RD`.
 Anchors: in `tabular`,
 `the_table_driven_civil_rule_agrees_with_the_published_closed_form`,
 `the_variants_realign_at_every_cycle_boundary`,
@@ -548,7 +607,9 @@ Anchors: in `tabular`,
 `the_q_test_at_bruins_best_time_reproduces_yallops_table_4`,
 `yallops_test_and_shaukats_disagree_at_mecca_and_the_crate_says_how_often`,
 `months_of_thirty_one_days_by_criterion_and_place_in_1400_to_1500_ah`,
-`a_predicted_month_of_thirty_one_days_has_a_thirty_first_day`.
+`a_predicted_month_of_thirty_one_days_has_a_thirty_first_day`,
+`the_books_sample_dates_are_reproduced_at_cairo_and_by_the_saudi_rule`,
+`the_saudi_rule_is_the_table_only_where_the_rule_was_in_force`.
 The same module holds `MAXIMUM_MONTH_LENGTH`, the 31-day rule shared with
 the observational Hebrew calendar, and `ArcOfLightCriterion`, `QTestCriterion`,
 `YallopVisibility`, `bruin_best_time`, `arc_of_vision`,

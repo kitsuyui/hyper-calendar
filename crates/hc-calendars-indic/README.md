@@ -22,6 +22,7 @@ module.
 | Module | Identifier | What it is | Range |
 |---|---|---|---|
 | `hindu_lunar` | `hindu-lunar` | months new moon to new moon, named for the saṅkrānti they contain; the day is the tithi at sunrise; Śaka years from Chaitra śukla 1, each named in the southern sixty-year cycle as the extra `samvatsara`, as at the Telugu and Kannada Ugādi | Gregorian 1700–2299 |
+| `hindu_lunar_siddhanta` | `hindu-lunar-surya-siddhanta` | the same months and tithis on the *Sūrya Siddhānta*'s Sun and Moon, the day read at its own sunrise at Ujjain: Reingold and Dershowitz's modern Hindu lunisolar calendar, and the reckoning of the almanacs that compute by the Siddhānta | Kali Yuga 1–10000 (3101 BCE to 6899 CE) |
 | `hindu_purnimanta` | `hindu-lunar-purnimanta` | the same tithis under the north's names: the dark fortnight first, named for the bright one that follows; the intercalary month inserted whole; each year named in the northern Bārhaspatya cycle as the extra `samvatsara` | Gregorian 1700–2299 |
 | `hindu_solar` | `hindu-solar-tamil` | the Sun's stay in each sidereal sign; the month begins on the saṅkrānti's day unless it fell after sunset; Śaka years from Chithirai, each named in the southern sixty-year cycle as the extra `samvatsara`, with the Tiruvaḷḷuvar year, which turns at Thai 1, as the extra `tiruvalluvar-year` | Gregorian 1700–2299 |
 | | `hindu-solar-malayalam` | the same months from Chingam; the month begins on the saṅkrānti's day unless it fell after three fifths of the daylight; Kollam era | |
@@ -47,7 +48,7 @@ module.
 | `samvatsara` | — | the southern sixty-year cycle of year names, Prabhava to Kṣaya, by Sewell and Dikshit's rule on the Śaka year | |
 | `barhaspatya` | — | the northern sixty-year cycle by Jupiter's mean motion: Sewell and Dikshit's rule for the *Sūrya Siddhānta*, with and without the *bīja*, and the *Ārya Siddhānta*; the name at a Meṣa saṅkrānti, the name a year expunges, the name in progress at a moment | |
 | `bikram_sambat` | `bikram-sambat` | the solar calendar of Nepal, Baisakh to Chait: the months the Government of Nepal gazettes for 2080–2083 BS, and elsewhere the *Sūrya Siddhānta*'s saṅkrāntis on their civil day at Kathmandu; Bikram Sambat years | Gregorian 1700–2299 |
-| `surya_siddhanta` | — | the Sun of the *Sūrya Siddhānta*: its sidereal longitude, the sign it stands in, and its saṅkrāntis | |
+| `surya_siddhanta` | — | the Sun and Moon of the *Sūrya Siddhānta*: their sidereal longitudes, the sign the Sun stands in and its saṅkrāntis, the elongation, the tithi and the conjunction, and the Siddhānta's sunrise | |
 | `places` | — | the Central Station of the national calendar (82°30′ E), Ujjain, New Delhi, Kathmandu | |
 
 The calendar is judged at a place — a tithi that ends within an hour of
@@ -56,7 +57,15 @@ ayanamsa. `HinduLunarCalendar::RASHTRIYA` is the registered one: sunrise at
 the Central Station, the Lahiri ayanamsa, as the national almanac has it.
 `HinduLunarCalendar::UJJAIN` is the classical reference, and
 `HinduLunarCalendar::new` takes any place and any ayanamsa `hc-seasons`
-knows.
+knows. Ujjain is where Reingold and Dershowitz read their astronomical
+calendars; it is a constant and not a registered calendar, because the
+place is its only difference from `hindu-lunar` and a place is a
+parameter: over 2000–2030 the two give different dates on 302 of 11 323
+days, and the Tamil rule read there moves 5 of 372 month starts.
+`hindu-lunar-surya-siddhanta` is a registered calendar, because its Sun,
+Moon and sunrise are another convention: it gives Reingold and
+Dershowitz's value for all 33 of their sample dates, 586 BCE to 2094, and
+parts from `HinduLunarCalendar::UJJAIN` on 1 389 days of 2000–2030.
 
 ## What the tests are
 

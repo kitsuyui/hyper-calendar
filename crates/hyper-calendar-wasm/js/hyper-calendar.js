@@ -161,7 +161,9 @@ export const COLUMNS = Object.freeze({
     "id", "name", "english name", "earliest", "latest", "has era", "has year", "has month",
     "has day", "native locales", "standing",
   ]),
-  calendarList: Object.freeze(["id", "name", "english name", "locale used", "crate"]),
+  calendarList: Object.freeze([
+    "id", "name", "english name", "locale used", "crate", "native locales",
+  ]),
   locales: Object.freeze([
     "tag", "english name", "native name", "gregorian months", "weekdays", "gregorian eras",
     "calendars",
@@ -653,13 +655,14 @@ function calendarEntry(cells) {
  * @returns {import("./hyper-calendar.d.ts").CalendarListEntry}
  */
 function calendarListEntry(cells) {
-  const [id, name, englishName, localeUsed, crate] = cells;
+  const [id, name, englishName, localeUsed, crate, nativeLocales] = cells;
   return {
     id,
     name: optional(name),
     englishName,
     localeUsed: optional(localeUsed),
     crate: /** @type {import("./hyper-calendar.d.ts").CalendarCrate | null} */ (optional(crate)),
+    nativeLocales: list(nativeLocales),
   };
 }
 

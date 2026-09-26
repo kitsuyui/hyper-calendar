@@ -1266,4 +1266,26 @@ mod tests {
             assert!(calendar.from_fixed(calendar.latest()).is_ok());
         }
     }
+
+    #[test]
+    fn the_tamil_rule_at_ujjain_moves_one_month_start_in_seventy() {
+        // The book's astronomical solar calendar is the Tamil rule read at
+        // Ujjain; `hindu-solar-tamil` reads it at the Central Station,
+        // whose sunset comes about 27 minutes earlier. A saṅkrānti between
+        // the two sunsets begins its month a day apart: 5 of the 372 month
+        // starts of Śaka 1922–1952 (2000–2031).
+        let ujjain = TAMIL.new(
+            CalendarId("x-hindu-solar-tamil-ujjain"),
+            crate::places::UJJAIN,
+            TAMIL.model,
+        );
+        let mut differ = 0;
+        for year in 1_922..=1_952 {
+            for month in 1..=MONTHS_IN_YEAR {
+                differ +=
+                    usize::from(TAMIL.month_start(year, month) != ujjain.month_start(year, month));
+            }
+        }
+        assert_eq!(differ, 5);
+    }
 }

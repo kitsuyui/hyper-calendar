@@ -1,5 +1,6 @@
 //! A *prediction* of the observational Hijri calendar — CLDR
-//! `islamic-rgsa`.
+//! `islamic-rgsa` — and two conventions of *Calendrical Calculations*
+//! beside it, `islamic-observational-cairo-rd` and `islamic-saudi-rule-rd`.
 //!
 //! # Read this before using it
 //!
@@ -67,6 +68,33 @@
 //! that the answer depends on where you stand. No type here has a
 //! `Default`: a site and a criterion are named where they are chosen.
 //!
+//! # The book's two conventions
+//!
+//! Reingold and Dershowitz compute two more Hijri calendars of this shape,
+//! and each is registered under a name that says it is theirs and no
+//! authority's (policy §5): no government, court or observatory announces
+//! months by either.
+//!
+//! * `islamic-observational-cairo-rd`, [`IslamicObservationalCalendar::CAIRO_RD`]:
+//!   the book's own observational Islamic calendar, Shaukat's criterion at
+//!   its sample location, `islamic-location`, Cairo, 30.1° N, 31.3° E,
+//!   200 m ([`CAIRO`]; `fixed-from-observational-islamic`,
+//!   `observational-islamic-from-fixed` in `reingold2018code`). It is
+//!   `islamic-rgsa` at another place, and it is registered because it is
+//!   the calendar the book's sample dates tabulate.
+//! * `islamic-saudi-rule-rd`, [`IslamicObservationalCalendar::SAUDI_RULE_RD`]:
+//!   the book's computed Saudi calendar, `saudi-criterion` at Mecca — a
+//!   month begins on the day after an evening on which, at sunset, the Moon
+//!   is past conjunction and short of first quarter and sets after the Sun
+//!   ([`VisibilityCriterion::SAUDI_RULE`]; `saudi-new-month-on-or-before`,
+//!   `fixed-from-saudi-islamic`, `saudi-islamic-from-fixed`). That is the
+//!   Umm al-Qura rule of 1423 AH on, applied to every year, and it is not
+//!   the Umm al-Qura calendar: [`crate::islamic_umalqura`] is the published
+//!   table, which the rule reproduces only in the years the rule was in
+//!   force. Three of the book's sample dates, in 1360, 1362 and 1518 AH,
+//!   fall a day apart in the two; `docs/systems/hijri.md` gives them and
+//!   the measured agreement by period of the rules.
+//!
 //! # Range
 //!
 //! 1900-01-01 to 2100-12-31 Gregorian. The sunset and lunar models are good
@@ -90,6 +118,16 @@ use crate::tabular::{CIVIL_EPOCH, ERA, IslamicDate};
 /// sighting"; the identifier names the intent, and the caveats above say
 /// what this module can honestly deliver against it.
 pub const ID: CalendarId = CalendarId("islamic-rgsa");
+
+/// The identifier of the book's observational Islamic calendar at Cairo,
+/// [`IslamicObservationalCalendar::CAIRO_RD`]: `-rd` for Reingold and
+/// Dershowitz, whose convention it is.
+pub const CAIRO_RD_ID: CalendarId = CalendarId("islamic-observational-cairo-rd");
+
+/// The identifier of the book's computed Saudi calendar,
+/// [`IslamicObservationalCalendar::SAUDI_RULE_RD`]: the rule, not the
+/// published table, which is `islamic-umalqura`.
+pub const SAUDI_RULE_RD_ID: CalendarId = CalendarId("islamic-saudi-rule-rd");
 
 /// The fixed day on which this calendar places 1 Muḥarram 1 AH, used only to
 /// count elapsed months.
@@ -139,15 +177,23 @@ pub const LAST_YEAR: i64 = 1_524;
 
 /// Mecca: 21°25′24″N, 39°49′24″E, 298 m, the `mecca` constant of the
 /// published code of *Calendrical Calculations* (`reingold2018code`), which
-/// its Saudi variant, `saudi-criterion`, judges from. Its observational
-/// Islamic calendar's sample place is Cairo, `islamic-location`, from
-/// which [`IslamicObservationalCalendar::new`] reproduces the book's sample
+/// its Saudi variant, `saudi-criterion`, judges from, and so does
+/// [`IslamicObservationalCalendar::SAUDI_RULE_RD`]. Its observational
+/// Islamic calendar's sample place is Cairo, [`CAIRO`], from which
+/// [`IslamicObservationalCalendar::CAIRO_RD`] reproduces the book's sample
 /// dates.
 pub const MECCA: Location = Location::new(
     21.0 + 25.0 / 60.0 + 24.0 / 3_600.0,
     39.0 + 49.0 / 60.0 + 24.0 / 3_600.0,
     298.0,
 );
+
+/// Cairo: 30.1° N, 31.3° E, 200 m, the `islamic-location` of the published
+/// code of *Calendrical Calculations* (`reingold2018code`), "Sample
+/// location for Observational Islamic calendar", at which its
+/// observational Islamic calendar and the book's sample dates are
+/// computed.
+pub const CAIRO: Location = Location::new(30.1, 31.3, 200.0);
 
 /// Thresholds on the arc of light and the altitude, judged when the Sun
 /// has reached a fixed depression — the shape of Shaukat's criterion.
@@ -270,6 +316,12 @@ pub enum VisibilityCriterion {
     ArcOfLight(ArcOfLightCriterion),
     /// Yallop's *q* at Bruin's best time.
     QTest(QTestCriterion),
+    /// No test of visibility at all: at sunset the Moon is past
+    /// conjunction and short of first quarter, and it sets after the Sun —
+    /// the Umm al-Qura rule from 1423 AH, as the published code of
+    /// *Calendrical Calculations* computes it (`saudi-criterion`), which
+    /// [`VisibilityCriterion::SAUDI_RULE`] names.
+    ConjunctionAndMoonset,
 }
 
 impl VisibilityCriterion {
@@ -292,6 +344,19 @@ impl VisibilityCriterion {
     /// Yallop defines it, which differs from that code (see
     /// `docs/systems/hijri.md`).
     pub const YALLOP: Self = Self::QTest(QTestCriterion::YALLOP);
+
+    /// The Saudi rule of the published code of *Calendrical Calculations*,
+    /// `saudi-criterion` (`reingold2018code`, where it was read): on the
+    /// evening of the 29th, at sunset at Mecca, the Moon's elongation lies
+    /// between conjunction and first quarter and the Moon sets after the
+    /// Sun. Van Gent gives the same two conditions as the Umm al-Qura rule
+    /// from 1423 AH (`vangent-ummalqura`). The code judges the phase at
+    /// sunset strictly after conjunction, `(< new phase first-quarter)`,
+    /// where this module, as for the other shapes, takes `0 ≤ φ < 90°`;
+    /// an elongation of exactly zero at sunset is a moment and not a
+    /// measurable difference. Where the Moon does not set that day the
+    /// code counts the lag as a day (`moonlag`), and so does this.
+    pub const SAUDI_RULE: Self = Self::ConjunctionAndMoonset;
 }
 
 /// The arc of light: the true angular separation of the Moon from the Sun,
@@ -396,9 +461,16 @@ impl ObservationSite {
     /// Mecca, judged by Shaukat's criterion.
     pub const MECCA: Self = Self::new(MECCA, VisibilityCriterion::SHAUKAT);
 
+    /// Cairo, the book's `islamic-location`, judged by Shaukat's criterion.
+    pub const CAIRO: Self = Self::new(CAIRO, VisibilityCriterion::SHAUKAT);
+
+    /// Mecca, judged by the Saudi rule the book computes.
+    pub const SAUDI_RULE: Self = Self::new(MECCA, VisibilityCriterion::SAUDI_RULE);
+
     /// The moment, in Universal Time, at which the evening of `rd` is
     /// judged: when the Sun reaches the criterion's depression, for an
-    /// arc-of-light criterion, or at Bruin's best time, for a *q*-test.
+    /// arc-of-light criterion, at Bruin's best time, for a *q*-test, or at
+    /// sunset, for the Saudi rule.
     ///
     /// `None` when there is no such moment that day — the Sun does not set
     /// or twilight does not end, as at high latitudes, or for a *q*-test
@@ -411,6 +483,7 @@ impl ObservationSite {
                 depression_moment(rd, self.location, criterion.evaluation_depression_degrees)
             }
             VisibilityCriterion::QTest(_) => bruin_best_time(rd, self.location),
+            VisibilityCriterion::ConjunctionAndMoonset => sunset(rd, self.location),
         }
     }
 
@@ -450,6 +523,7 @@ impl ObservationSite {
                 let [a, b, c, d] = criterion.coefficients;
                 (1, [a, b, c, d, criterion.minimum_q])
             }
+            VisibilityCriterion::ConjunctionAndMoonset => (2, [0.0; 5]),
         };
         let [latitude, longitude, elevation] = self.location.key();
         let [a, b, c, d, e] = numbers.map(f64::to_bits);
@@ -480,6 +554,11 @@ impl ObservationSite {
                     arc_of_vision(moment, self.location),
                     crescent_width_arcminutes(moment, self.location),
                 ) > criterion.minimum_q
+            }
+            // The moment is the sunset of the evening before; a Moon that
+            // does not set that day sets after it.
+            VisibilityCriterion::ConjunctionAndMoonset => {
+                moonset(Rd(rd.0 - 1), self.location).is_none_or(|set| set.0 > moment.0)
             }
         }
     }
@@ -545,17 +624,55 @@ impl ObservationSite {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct IslamicObservationalCalendar {
     site: ObservationSite,
+    id: CalendarId,
+    english_name: &'static str,
 }
 
+/// The English name of `islamic-rgsa`, and of a calendar
+/// [`IslamicObservationalCalendar::new`] builds.
+const RGSA_ENGLISH_NAME: &str = "Hijri (observational, predicted)";
+
 impl IslamicObservationalCalendar {
-    /// The calendar as observed from a given site.
+    /// The calendar as observed from a given site, under the identifier and
+    /// the name of `islamic-rgsa` until [`IslamicObservationalCalendar::named`]
+    /// gives it its own.
     #[must_use]
     pub const fn new(site: ObservationSite) -> Self {
-        Self { site }
+        Self {
+            site,
+            id: ID,
+            english_name: RGSA_ENGLISH_NAME,
+        }
     }
 
-    /// The calendar as observed from Mecca.
+    /// The same calendar under an identifier and an English name of the
+    /// caller's, as a registry needs for a second site or criterion.
+    #[must_use]
+    pub const fn named(self, id: CalendarId, english_name: &'static str) -> Self {
+        Self {
+            id,
+            english_name,
+            ..self
+        }
+    }
+
+    /// The calendar as observed from Mecca: `islamic-rgsa`.
     pub const MECCA: Self = Self::new(ObservationSite::MECCA);
+
+    /// The observational Islamic calendar of *Calendrical Calculations*,
+    /// Shaukat's criterion at [`CAIRO`]: `islamic-observational-cairo-rd`.
+    pub const CAIRO_RD: Self = Self::new(ObservationSite::CAIRO).named(
+        CAIRO_RD_ID,
+        "Hijri (observational at Cairo, Calendrical Calculations)",
+    );
+
+    /// The computed Saudi calendar of *Calendrical Calculations*,
+    /// [`VisibilityCriterion::SAUDI_RULE`] at [`MECCA`]:
+    /// `islamic-saudi-rule-rd`. Not the Umm al-Qura table.
+    pub const SAUDI_RULE_RD: Self = Self::new(ObservationSite::SAUDI_RULE).named(
+        SAUDI_RULE_RD_ID,
+        "Hijri (Saudi rule computed, Calendrical Calculations)",
+    );
 
     /// The site this calendar observes from.
     #[must_use]
@@ -643,8 +760,8 @@ impl Calendar for IslamicObservationalCalendar {
     type Date = IslamicDate;
 
     /// Unrecorded: this is a prediction of sightings under one criterion,
-    /// never a calendar any authority announced, so there is no period in
-    /// which it was in force.
+    /// or the book's computation of a rule, never a calendar any authority
+    /// announced, so there is no period in which it was in force.
     fn usage(&self) -> hc_calendar::Usage {
         hc_calendar::Usage::UNRECORDED
     }
@@ -673,8 +790,8 @@ impl Calendar for IslamicObservationalCalendar {
 
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
-            id: ID,
-            english_name: "Hijri (observational, predicted)",
+            id: self.id,
+            english_name: self.english_name,
             year_kind: YearKind::EpochForward,
             has_leap_months: false,
             is_astronomical: true,
@@ -1134,7 +1251,7 @@ mod tests {
         // site, has none under either criterion; Cairo, the book's sample
         // location, and Haifa, the observational Hebrew calendar's, have one
         // each under Shaukat's and none under Yallop's.
-        let cairo = Location::new(30.1, 31.3, 200.0);
+        let cairo = CAIRO;
         let haifa = crate::hebrew_observational::HAIFA;
         let cases = [
             (MECCA, VisibilityCriterion::SHAUKAT, [568, 644, 0], vec![]),
@@ -1207,7 +1324,7 @@ mod tests {
         // months where reading a date back is likeliest to go wrong; every
         // day of each, with the last day of the month before and the first
         // of the month after, converts both ways.
-        let cairo = Location::new(30.1, 31.3, 200.0);
+        let cairo = CAIRO;
         let haifa = crate::hebrew_observational::HAIFA;
         for (place, first) in [
             (cairo, civil::to_rd(1_988, 8, 14)),
@@ -1374,5 +1491,158 @@ mod tests {
         assert!(meta.is_astronomical);
         assert!(!meta.has_leap_months);
         assert_eq!(IslamicObservationalCalendar::MECCA.site().location, MECCA);
+        let cairo = IslamicObservationalCalendar::CAIRO_RD.meta();
+        assert_eq!(cairo.id, CalendarId("islamic-observational-cairo-rd"));
+        assert!(cairo.is_astronomical);
+        assert_eq!(
+            (cairo.earliest, cairo.latest),
+            (Some(EARLIEST), Some(LATEST))
+        );
+        let saudi = IslamicObservationalCalendar::SAUDI_RULE_RD.meta();
+        assert_eq!(saudi.id, CalendarId("islamic-saudi-rule-rd"));
+        assert!(saudi.is_astronomical);
+        assert_eq!(
+            IslamicObservationalCalendar::SAUDI_RULE_RD.site(),
+            ObservationSite::new(MECCA, VisibilityCriterion::SAUDI_RULE)
+        );
+        // A calendar built for another site keeps `islamic-rgsa`'s
+        // identifier until it is named.
+        assert_eq!(
+            IslamicObservationalCalendar::new(ObservationSite::CAIRO)
+                .meta()
+                .id,
+            ID
+        );
+    }
+
+    /// A Hijri year, month and day.
+    type HijriYmd = (i64, u8, u8);
+
+    /// The sample dates of *Calendrical Calculations* inside this module's
+    /// range, 1900–2100: the R.D., the book's observational Islamic date
+    /// (Shaukat's criterion at Cairo) and its Saudi Islamic date, as the
+    /// published code's `dates.l` computes them with
+    /// `observational-islamic-from-fixed` and `saudi-islamic-from-fixed`
+    /// (`reingold2018code`, run for this library on 2026-09-27; the table
+    /// is `crates/hyper-calendar/tests/data/calendrica_sample_dates.txt`).
+    /// The other twenty-four sample dates, 586 BCE to 1839, are before the
+    /// range and refused.
+    #[rustfmt::skip]
+    const SAMPLE_DATES: [(i64, HijriYmd, HijriYmd); 9] = [
+        (694_799, (1_321, 1, 20), (1_321, 1, 21)),
+        (704_424, (1_348, 3, 19), (1_348, 3, 20)),
+        (708_842, (1_360, 9, 7), (1_360, 9, 8)),
+        (709_409, (1_362, 4, 14), (1_362, 4, 14)),
+        (709_580, (1_362, 10, 7), (1_362, 10, 8)),
+        (727_274, (1_412, 9, 12), (1_412, 9, 12)),
+        (728_714, (1_416, 10, 5), (1_416, 10, 6)),
+        (744_313, (1_460, 10, 12), (1_460, 10, 13)),
+        (764_652, (1_518, 3, 5), (1_518, 3, 6)),
+    ];
+
+    #[test]
+    fn the_books_sample_dates_are_reproduced_at_cairo_and_by_the_saudi_rule() {
+        let cairo = IslamicObservationalCalendar::CAIRO_RD;
+        let saudi = IslamicObservationalCalendar::SAUDI_RULE_RD;
+        let mut table_differs = Vec::new();
+        for (rd, at_cairo, by_rule) in SAMPLE_DATES {
+            let rd = Rd(rd);
+            assert_eq!(cairo.decompose(rd), Ok(at_cairo), "Cairo, RD {rd}");
+            assert_eq!(saudi.decompose(rd), Ok(by_rule), "the Saudi rule, RD {rd}");
+            let (year, month, day) = by_rule;
+            assert_eq!(saudi.compose(year, month, day), Ok(rd));
+            let (year, month, day) = at_cairo;
+            assert_eq!(cairo.compose(year, month, day), Ok(rd));
+            if islamic_umalqura::from_fixed(rd) != Ok(by_rule) {
+                table_differs.push(rd.0);
+            }
+        }
+        // The book's rule against the published table: a day apart in
+        // 1360, 1362 and 1518 AH, each time the rule a day ahead.
+        assert_eq!(table_differs, [708_842, 709_580, 764_652]);
+        // 1518 AH: on the evening of 12 July 2094 the Moon sets 3.8
+        // minutes after the Sun at Mecca, just past conjunction, so the
+        // rule begins Rabīʿ I on the 13th and the table on the 14th.
+        let evening = civil::to_rd(2_094, 7, 12);
+        let set = sunset(evening, MECCA).expect("the Sun sets");
+        let moon = moonset(evening, MECCA).expect("the Moon sets");
+        let lag = (moon.0 - set.0) * 1_440.0;
+        assert!((3.5..4.1).contains(&lag), "{lag} minutes");
+        assert!((0.0..2.0).contains(&hc_astro::lunar_phase(set)));
+        // The worked example of docs/systems/hijri.md: 1 Ramaḍān 1445 by
+        // the rule is Monday 11 March 2024, the table's day, a day before
+        // the prediction at Mecca.
+        assert_eq!(saudi.compose(1_445, 9, 1), Ok(civil::to_rd(2_024, 3, 11)));
+        assert_eq!(
+            IslamicObservationalCalendar::MECCA.compose(1_445, 9, 1),
+            Ok(civil::to_rd(2_024, 3, 12))
+        );
+    }
+
+    /// How the book's Saudi rule compares with the Umm al-Qura table over
+    /// the years of one of van Gent's periods of the rules: the months
+    /// compared, those on the same day, and those the rule begins a day
+    /// earlier and a day later.
+    fn saudi_rule_against_the_table(first: i64, last: i64) -> [u32; 4] {
+        let rule = IslamicObservationalCalendar::SAUDI_RULE_RD;
+        let mut counts = [0; 4];
+        for year in first..=last {
+            for month in 1..=12u8 {
+                let Ok(table) = islamic_umalqura::to_fixed(year, month, 1) else {
+                    continue;
+                };
+                let Ok(computed) = rule.compose(year, month, 1) else {
+                    continue;
+                };
+                counts[0] += 1;
+                match (computed.0 - table.0).signum() {
+                    0 => counts[1] += 1,
+                    -1 => counts[2] += 1,
+                    _ => counts[3] += 1,
+                }
+            }
+        }
+        counts
+    }
+
+    #[test]
+    fn the_saudi_rule_is_the_table_only_where_the_rule_was_in_force() {
+        // From 1423 AH, when the rule is the table's (van Gent,
+        // `vangent-ummalqura`), every month but one begins on the same day:
+        // Jumādā II 1427, whose conjunction on 25 June 2006 fell four
+        // minutes before sunset at Mecca, with the Moon setting six and a
+        // half minutes after the Sun; the rule takes that evening, the
+        // table the next.
+        assert_eq!(saudi_rule_against_the_table(1_423, 1_446), [288, 287, 1, 0]);
+        assert_eq!(
+            IslamicObservationalCalendar::SAUDI_RULE_RD.compose(1_427, 6, 1),
+            Ok(civil::to_rd(2_006, 6, 26))
+        );
+        assert_eq!(
+            islamic_umalqura::to_fixed(1_427, 6, 1),
+            Ok(civil::to_rd(2_006, 6, 27))
+        );
+        // 1420–1422, when moonset after sunset alone was the rule and a
+        // month could begin before the conjunction, as van Gent says Rajab
+        // 1421 and Shaʿbān 1422 did: the table is earlier twice.
+        assert_eq!(saudi_rule_against_the_table(1_420, 1_422), [36, 34, 0, 2]);
+        // Every other year, a release build only: the table is a day
+        // later in about a third of months — before 1392, under 1392–1419's
+        // rule of the new moon three hours after midnight, and after 1446,
+        // where no source read says how the table's future years were made.
+        if !cfg!(debug_assertions) {
+            assert_eq!(
+                saudi_rule_against_the_table(1_392, 1_419),
+                [336, 211, 125, 0]
+            );
+            assert_eq!(
+                saudi_rule_against_the_table(FIRST_YEAR, 1_391),
+                [892, 581, 311, 0]
+            );
+            assert_eq!(
+                saudi_rule_against_the_table(1_447, LAST_YEAR),
+                [934, 630, 304, 0]
+            );
+        }
     }
 }

@@ -1604,10 +1604,13 @@ mod calendars {
     /// One line per calendar, in registry order, tab-separated: the
     /// identifier, what the locale calls the calendar (和暦, or empty where
     /// it has no name), its English name, the locale used (the tag of the
-    /// data entry the name came from, empty where the name is), and the
-    /// crate that registers it (`hc-calendars-solar`, `hc-calendars-lunar`,
+    /// data entry the name came from, empty where the name is), the crate
+    /// that registers it (`hc-calendars-solar`, `hc-calendars-lunar`,
     /// `hc-calendars-equinox`, `hc-calendars-indic` or
-    /// `hc-calendars-regional`). The names are `hc_calendars`', without the
+    /// `hc-calendars-regional`), and the languages of its sources as
+    /// `hc_calendars` gives them, BCP 47 tags joined by `;` or empty, so
+    /// that a menu can list a reader's own calendars first. The names are
+    /// `hc_calendars`', without the
     /// range, the units and the standing on a day, so nothing is converted:
     /// for a menu of calendars, which is asked for far more often than a
     /// day is described. `locale` is as for `hc_describe_day`. Writes the
@@ -4240,15 +4243,16 @@ mod tests {
                 hc_calendars(739_880, c"ja-JP".as_ptr(), buffer, capacity, written)
             }));
             assert_eq!(list.len(), hc::registry().len());
-            assert!(list.iter().all(|row| row.len() == 5), "{list:?}");
+            assert!(list.iter().all(|row| row.len() == 6), "{list:?}");
             for (row, full) in list.iter().zip(&calendars) {
                 assert_eq!(row[..3], full[..3]);
+                assert_eq!(row[5], full[9], "the native locales, {row:?}");
             }
             let japanese = list
                 .iter()
                 .find(|row| row[0] == "japanese")
                 .expect("japanese");
-            assert_eq!(japanese[3..], ["ja", "hc-calendars-regional"]);
+            assert_eq!(japanese[3..], ["ja", "hc-calendars-regional", "ja"]);
             assert_eq!(
                 unsafe {
                     hc_calendar_list(

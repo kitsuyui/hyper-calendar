@@ -408,9 +408,11 @@ locale's name for it (empty where the locale has none: only `native` names
 a calendar in its own language), English name, earliest, latest, the four
 has-unit flags, native locales and standing on `today` —
 `hc_calendar_list(locale, buffer, capacity, written)` the same calendars
-by name alone in five columns — identifier, the locale's name for it as
+by name alone in six columns — identifier, the locale's name for it as
 `hc_calendars` has it, English name, the locale used (the tag of the data
-the name came from, empty with the name) and the crate that registers it
+the name came from, empty with the name), the crate that registers it and
+the native locales as `hc_calendars` has them, `;`-joined BCP 47 tags or
+empty, so that a menu can put a reader's own calendars first
 — converting no day, for a menu, which is asked for far more often than a
 day is described —
 `hc_locales(buffer, capacity, written)` every locale in its seven: tag,

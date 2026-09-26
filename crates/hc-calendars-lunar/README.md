@@ -23,6 +23,8 @@ others exist.
 | `tabular::FATIMID` | `islamic-fatimid` | arithmetic | 1–9999 AH |
 | `islamic_umalqura` | `islamic-umalqura` | published table | **1300–1600 AH only** |
 | `islamic_observational` | `islamic-rgsa` | prediction | 1900–2100 CE |
+| `islamic_observational::IslamicObservationalCalendar::CAIRO_RD` | `islamic-observational-cairo-rd` | prediction (*Calendrical Calculations*) | 1900–2100 CE |
+| `islamic_observational::IslamicObservationalCalendar::SAUDI_RULE_RD` | `islamic-saudi-rule-rd` | computed rule (*Calendrical Calculations*) | 1900–2100 CE |
 | `hebrew` | `hebrew` | arithmetic | AM 1–9999 |
 | `hebrew_observational` | `hebrew-observational` | prediction | 383 BCE – 2100 CE |
 | `samaritan` | `samaritan` | astronomical | Samaritan 3539–3738 (1900–2100 CE) |
@@ -62,7 +64,7 @@ constants. Nine lunisolar calendars, one algorithm.
 
 ## The Hijri family
 
-The five Hijri identifiers are written up in
+The seven Hijri identifiers are written up in
 [`docs/systems/hijri.md`](../../docs/systems/hijri.md): the calendar as
 kept by sighting and the schemes beside it, the thirty-year cycle with its
 four leap-year patterns and two epochs, the Umm al-Qura rules by period and
@@ -83,6 +85,17 @@ against a computation criterion and is asserted in a test. Yallop's
 `VisibilityCriterion::YALLOP`, reproduces his own Table 4 to 0.005 in *q*,
 and begins 21 of the same 552 months a day away from Shaukat's at Mecca;
 no calendar is registered under it, for want of one to check it against.
+
+Two more identifiers carry conventions of Reingold and Dershowitz's
+*Calendrical Calculations*, named `-rd` because they are the book's and no
+authority's: `islamic-observational-cairo-rd`, the book's own observational
+calendar, Shaukat's criterion at Cairo, and `islamic-saudi-rule-rd`, its
+computation of the Umm al-Qura rule of 1423 AH for every year. Both give
+the book's value for all nine of its sample dates in 1900–2100. The
+computed rule is not the table: it begins 287 of the 288 months of
+1423–1446 AH on the table's day, and about a third of the months of the
+other years a day earlier, and three of the book's sample dates, in 1360,
+1362 and 1518 AH, fall a day apart in the two.
 
 ## The Javanese calendar
 
