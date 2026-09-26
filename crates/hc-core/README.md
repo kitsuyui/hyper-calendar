@@ -11,8 +11,13 @@ The time primitives every other crate uses and none may redefine.
 | `leap` | The UTC leap-second table, as data. |
 | `unix` | POSIX time (`UnixTime`), UTC with the leap second made explicit (`UtcInstant`), and the conversions between them and TAI under a `LeapPolicy`. |
 | `gnss` | The GNSS week numbers — GPS legacy and CNAV, Galileo, BeiDou, NavIC — with the time of week and rollover resolution against a reference the caller supplies, and GLONASS time, UTC(SU) + 3 h with its leap seconds and its four-year intervals. See `docs/systems/gnss-time.md`. |
-| `epoch` | Well-known epochs as TAI readings: Unix, GPS, Galileo, BeiDou, NavIC, GLONASS, J2000, MJD, the Julian Day, Rata Die, Windows FILETIME, NTP, Core Foundation, and the TCG/TCB origin. |
+| `epoch` | Well-known epochs as TAI readings: Unix, GPS, Galileo, BeiDou, NavIC, GLONASS, J2000, MJD, the Julian Day, Rata Die, Windows FILETIME, NTP, Core Foundation, the TCG/TCB origin, the UUID's 1582 and SAS's and Stata's 1960. |
 | `tai64` | Bernstein's TAI64, TAI64N and TAI64NA labels: 2⁶² + TAI seconds since 1970 TAI in 8, 12 or 16 big-endian bytes, encoded from and decoded to `Instant<Tai>`; TAI64NA is exact to the attosecond. |
+| `ntp` | NTP's 128-bit date with its era number and era offset, and the 64-bit timestamp resolved into the era within 2³¹ s of a reference time, across the 2036 wrap. See `docs/systems/binary-timestamps.md`. |
+| `uuid` | The 60-bit timestamp of UUID versions 1 and 6, 100 ns from 1582-10-15, to and from `UnixTime`, and both octet layouts. See `docs/systems/binary-timestamps.md`. |
+| `sas_stata` | SAS datetimes and Stata's `%tc` and `%tC` from 1960, the last counting leap seconds as UTC does. See `docs/systems/statistical-software-dates.md`. |
+| `epoch_notation` | Julian and Besselian epochs, J2000.0 and B1950.0, from and to `Instant<Tt>`. |
+| `internet_time` | Swatch Internet Time, @000 to @999 from POSIX time on Biel Mean Time, UTC+1. |
 | `math` | The floating-point functions a `no_std` build has to route somewhere. |
 | `catalogue` | The `catalogue!` macro, which declares a table of named entries together with the tests every such table needs, and `catalogue_tests!`, which adds those tests to a table assembled by hand. |
 
@@ -37,6 +42,9 @@ The time primitives every other crate uses and none may redefine.
 | TAI − UTC, 1972 onward | exact, a whole number of seconds from the IANA `leap-seconds.list`, which mirrors IERS Bulletin C; the last entry is the leap second of 2017-01-01 |
 | TAI − UTC, 1961 to 1971 | the official rate-offset coefficients of that era, in `RATE_ERA` |
 | before 1961 | refused: UTC did not exist, and a conversion returns `BeforeModelStart` unless the caller opts into treating UTC as TAI |
+| Julian epoch | exact in definition; an `f64` year, about 10⁻¹³ of a year (3 µs) near the present |
+| Besselian epoch | ERFA's `eraEpb` constants, on TT for TDB; within 10⁻¹⁰ of a year of SOFA's example |
+| NTP, UUID, SAS and `%tc` counts | exact labels of 86 400-second days; `%tC` exact from the leap-second table, refused past it under `LeapPolicy::Strict` |
 | after the table's announced validity | `LeapPolicy::Strict` refuses with `AfterModelEnd`; `LeapPolicy::Extrapolate` holds the last published offset, and the caller has named the forecast by choosing it |
 | `23:59:60` | representable: `UtcInstant` carries the leap-second flag that POSIX time cannot |
 | TDB | a model, not a constant: the truncated Fairhead–Bretagnon series in `scale`, to about 30 µs over 1980–2100 |

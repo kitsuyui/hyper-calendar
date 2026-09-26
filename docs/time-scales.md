@@ -236,6 +236,8 @@ as TAI readings so nothing has to rediscover a magic number:
 | `windows-filetime` | 1601-01-01T00:00:00Z |
 | `ntp` | 1900-01-01T00:00:00Z |
 | `core-foundation` | 2001-01-01T00:00:00Z |
+| `uuid-gregorian` | 1582-10-15T00:00:00Z, proleptic, the timestamp of UUID versions 1 and 6 |
+| `sas-stata` | 1960-01-01T00:00:00Z, proleptic, SAS dates and datetimes and Stata's `%td`, `%tc` and `%tC` |
 
 ## TAI64 labels
 
@@ -247,6 +249,47 @@ origin is 1970 *TAI*, the origin of `Instant<Tai>`, not the POSIX epoch.
 Labels from 2⁶³ are reserved and refused. TAI64NA resolves the attosecond,
 as `Duration` does, so it round-trips exactly; TAI64 and TAI64N name the
 second and nanosecond that contain an instant.
+
+## Computing timestamps
+
+Counts that software writes from one of those epochs, each a label of
+86 400-second days unless it says otherwise:
+
+- **NTP eras**, `hc-core::ntp`: the 128-bit date's era and era offset, and
+  the 64-bit timestamp, which wraps at 2036-02-07T06:28:16Z, resolved
+  against a reference time within 2³¹ s of it [rfc5905].
+- **UUID versions 1 and 6**, `hc-core::uuid`: the 60-bit count of 100 ns
+  from `uuid-gregorian`, in both octet orders [rfc9562].
+- **SAS and Stata datetimes**, `hc-core::sas_stata`: SAS seconds and
+  Stata's `%tc` milliseconds from 1960, and Stata's `%tC`, which counts the
+  leap seconds inserted since 1972 as UTC does and so reads the leap-second
+  table [sas-lrcon-dates; stata-help-datetime-conversion].
+
+[systems/binary-timestamps.md](systems/binary-timestamps.md) and
+[systems/statistical-software-dates.md](systems/statistical-software-dates.md)
+work examples through; the FAT date and time words, which are local time,
+are in `hc-format::fat`.
+
+## Julian and Besselian epochs
+
+`hc-core::epoch_notation` writes a TT instant as a year and a fraction
+[sofa-ts, §2.4]. The Julian epoch is 2000.0 + (JD − 2 451 545.0) / 365.25
+on TT, exactly as defined. The Besselian epoch is
+1900.0 + (JD − 2 415 020.313 52) / 365.242 198 781, the constants of ERFA's
+`eraEpb`, which credits them to Lieske (1979, not read) [erfa-epb]; its
+scale is TDB, taken as TT, which `eraEpb` calls indistinguishable for this
+purpose. An epoch written without its letter is Besselian before 1984.0 and
+Julian from it. SOFA's example, JD 2 457 073.056 31 as B2015.136 594 102 1
+and J2015.134 993 319 6, is a test.
+
+## Swatch Internet Time
+
+`hc-core::internet_time::Beat` reads @000 to @999 from POSIX time:
+⌊seconds since midnight BMT / 86.4⌋, BMT being UTC+1 all year, not the
+mean solar time of Biel [swatch-internet-time;
+wikipedia-swatch-internet-time]. @000 is 23:00 UTC and @248 is
+04:57:07.2 UTC. A leap second reads as the second after it, as POSIX time
+does. The 86.4-second `beat` itself is a unit in `hc-units`.
 
 ## Duration
 

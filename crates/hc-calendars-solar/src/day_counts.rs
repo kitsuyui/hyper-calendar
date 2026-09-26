@@ -43,6 +43,15 @@
 //! Excel 1900 system is not linear — it counts a 29 February 1900 that
 //! never was — so it is [`crate::spreadsheet`]'s, beside the OLE date's
 //! fractional time; `docs/systems/spreadsheet-dates.md` describes all three.
+//!
+//! The statistical packages' days are here too: SAS dates and Stata's
+//! `%td`, the same count from 1 January 1960 over two different ranges
+//! and so two identifiers, and MATLAB's `datenum`, whose fractional form is
+//! [`crate::spreadsheet::matlab_datenum`].
+//! `docs/systems/statistical-software-dates.md` describes them, with the
+//! datetimes that `hc_core::sas_stata` reads. Stata's weekly dates,
+//! which name a day by a year, one of 52 weeks and a day of it, are
+//! [`StataWeekCalendar`].
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, DayBoundary,
@@ -373,6 +382,64 @@ hc_core::catalogue! {
         "Microsoft Learn, DateTime.ToOADate, retrieved 2026-09-26 [ms-tooadate]",
     )
     .between((100, 1, 1), (9999, 12, 31));
+
+    /// The SAS date: day 0 is 1 January 1960, supported from 1 January
+    /// 1582 to 31 December 19 900.
+    ///
+    /// SAS 9.3 Language Reference: Concepts, "About SAS Date, Time, and
+    /// Datetime Values", read 2026-09-26 (`sas-lrcon-dates`): "the number
+    /// of days between January 1, 1960, and a specified date. SAS can
+    /// perform calculations on dates ranging from A.D. 1582 to A.D.
+    /// 19,900"; its example `'26oct02'd` is 15 639. The range is read as the
+    /// whole of those years.
+    pub const SAS = DayCount::from_gregorian(
+        "sas-date",
+        "SAS date value",
+        (1960, 1, 1),
+        0,
+        DayBoundary::Midnight,
+        "SAS 9.3 Language Reference: Concepts, About SAS Date, Time, and Datetime Values, \
+         retrieved 2026-09-26 [sas-lrcon-dates]",
+    )
+    .between((1582, 1, 1), (19900, 12, 31));
+
+    /// Stata's `%td`: day 0 is 01jan1960, supported from 01jan0100 to
+    /// 31dec9999.
+    ///
+    /// The SAS count over Stata's range, and so its own identifier. Stata,
+    /// `help datetime`, read 2026-09-26 (`stata-help-datetime`): "days since
+    /// 01jan1960 (01jan1960 = 0)", 20jan2010 being 18 282; `help
+    /// datetime_functions` (`stata-help-datetime-functions`): "e_d dates
+    /// 01jan0100 to 31dec9999 (integers -679,350 to 2,936,549)".
+    pub const STATA = DayCount::from_gregorian(
+        "stata-date",
+        "Stata daily date (%td)",
+        (1960, 1, 1),
+        0,
+        DayBoundary::Midnight,
+        "Stata, help datetime and help datetime_functions (StataNow 19), retrieved \
+         2026-09-26 [stata-help-datetime, stata-help-datetime-functions]",
+    )
+    .between((100, 1, 1), (9999, 12, 31));
+
+    /// MATLAB's `datenum`: day 1 is 1 January 0000 of the proleptic
+    /// Gregorian calendar, so day 0 is "January 0, 0000".
+    ///
+    /// MathWorks, `datenum` reference page, marked "Not recommended; use
+    /// datetime or duration", read 2026-09-26 through a fetching tool, the
+    /// site refusing direct requests (`mathworks-datenum`): "the whole and
+    /// fractional number of days from a fixed, preset date (January 0,
+    /// 0000) in the proleptic ISO calendar". That is the Rata Die plus 366,
+    /// the days of the leap year 0. Its examples: `datenum(2001,12,19)` is
+    /// 731 204 and 19 May 2001 is 730 990. MathWorks states no range.
+    pub const MATLAB = DayCount::from_gregorian(
+        "matlab-datenum",
+        "MATLAB serial date number (datenum)",
+        (0, 1, 1),
+        1,
+        DayBoundary::Midnight,
+        "MathWorks, MATLAB datenum reference page, retrieved 2026-09-26 [mathworks-datenum]",
+    );
     }
 }
 
@@ -439,6 +506,166 @@ impl Calendar for DayCountCalendar {
     }
 }
 
+/// Days in every Stata week but the year's last.
+const STATA_WEEK_DAYS: i64 = 7;
+
+/// Weeks in a Stata year.
+pub const STATA_WEEKS_PER_YEAR: u8 = 52;
+
+/// A day named as Stata's weekly dates name it: the year, the week, 1 to
+/// 52, and the day of that week, 1 to 7, or to 8 or 9 in week 52.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct StataWeekDate {
+    /// The Gregorian year.
+    pub year: i64,
+    /// The week, 1 to 52.
+    pub week: u8,
+    /// The day of the week counted from the week's first day, 1 to 7, and
+    /// to 8 or 9 in week 52.
+    pub day: u8,
+}
+
+impl StataWeekDate {
+    /// The days in this date's week: 7, or what remains of the year in
+    /// week 52.
+    #[must_use]
+    pub const fn days_in_week(year: i64, week: u8) -> u8 {
+        if week == STATA_WEEKS_PER_YEAR {
+            // 365 or 366 less the 357 days of weeks 1 to 51.
+            (gregorian::days_in_year(year) - 357) as u8
+        } else {
+            STATA_WEEK_DAYS as u8
+        }
+    }
+
+    /// Stata's weekly date of this week, `%tw`: weeks since 1960w1, so
+    /// 52 × (year − 1960) + week − 1.
+    #[must_use]
+    pub const fn weekly(self) -> i64 {
+        52 * (self.year - 1960) + self.week as i64 - 1
+    }
+
+    /// The first day of a `%tw` weekly date, as Stata's `dofw` gives it.
+    #[must_use]
+    pub const fn from_weekly(weekly: i64) -> Self {
+        Self {
+            year: 1960 + weekly.div_euclid(52),
+            week: (weekly.rem_euclid(52) + 1) as u8,
+            day: 1,
+        }
+    }
+}
+
+/// Stata's weekly dates as a calendar: `stata-week`.
+///
+/// Stata, `help datetime_functions` (StataNow 19), read 2026-09-26
+/// (`stata-help-datetime-functions`): `week(e_d)` is "the numeric week of
+/// the year" with range "integers 1 to 52", and "The first week of a year
+/// is the first 7-day period of the year"; weekly dates run "0100w1 to
+/// 9999w52 (integers -96,720 to 418,079)", weeks since 1960w1, and `dofw`
+/// of 9999w52 is 24dec9999. So week 1 begins on 1 January, each week is
+/// seven days, and week 52 begins on the year's 358th day and runs to its
+/// end, eight days or, in a leap year, nine: every year has 52 weeks, and
+/// a week never crosses New Year. The table in `help datetime` gives
+/// 2010w3 as 2 601, which the formula that the ranges above follow puts
+/// at 2010w2; 2010w3 is 2 602 here.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct StataWeekCalendar;
+
+impl StataWeekCalendar {
+    /// The first day Stata's weekly dates reach, 01jan0100.
+    pub const EARLIEST: Rd = match gregorian::to_fixed(100, 1, 1) {
+        Ok(rd) => rd,
+        Err(_) => panic!("a real date"),
+    };
+
+    /// The last, 31dec9999.
+    pub const LATEST: Rd = match gregorian::to_fixed(9999, 12, 31) {
+        Ok(rd) => rd,
+        Err(_) => panic!("a real date"),
+    };
+}
+
+impl Calendar for StataWeekCalendar {
+    type Date = StataWeekDate;
+
+    /// The 52 numbered weeks; the days within a week are numbered, not
+    /// named, and are not the weekdays.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        const SHAPE: &[hc_calendar::shape::CycleShape] =
+            &[hc_calendar::shape::CycleShape::fixed("stata-week", 52)];
+        SHAPE
+    }
+
+    /// A leap year's week 52 has nine days; the year is the Gregorian one.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        Ok(gregorian::is_leap_year(year))
+    }
+
+    fn meta(&self) -> CalendarMeta {
+        CalendarMeta {
+            id: CalendarId("stata-week"),
+            english_name: "Stata weekly date (%tw)",
+            year_kind: YearKind::Astronomical,
+            has_leap_months: false,
+            is_astronomical: false,
+            earliest: Some(Self::EARLIEST),
+            latest: Some(Self::LATEST),
+            native_locales: &[],
+        }
+    }
+
+    fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
+        if date.week == 0 || date.week > STATA_WEEKS_PER_YEAR {
+            return Err(CalendarError::MonthOutOfRange);
+        }
+        if date.day == 0 || date.day > StataWeekDate::days_in_week(date.year, date.week) {
+            return Err(CalendarError::DayOutOfRange);
+        }
+        let start = gregorian::new_year(date.year)?;
+        let rd =
+            Rd(start.0 + STATA_WEEK_DAYS * (i64::from(date.week) - 1) + i64::from(date.day) - 1);
+        self.meta().check_range(rd)?;
+        Ok(rd)
+    }
+
+    fn from_fixed(&self, rd: Rd) -> CalendarResult<Self::Date> {
+        self.meta().check_range(rd)?;
+        let year = gregorian::year_from_fixed(rd)?;
+        let day_of_year = rd.0 - gregorian::new_year(year)?.0;
+        let week = (day_of_year / STATA_WEEK_DAYS).min(51) + 1;
+        let day = day_of_year - STATA_WEEK_DAYS * (week - 1) + 1;
+        // Week at most 52 and day at most 9, by the arithmetic above.
+        Ok(StataWeekDate {
+            year,
+            week: week as u8,
+            day: day as u8,
+        })
+    }
+
+    fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
+        DateFields::new(date.year)
+            .with_extra("week", i64::from(date.week))?
+            .with_extra("day-of-stata-week", i64::from(date.day))?
+            .with_extra("stata-weekly", date.weekly())
+    }
+
+    /// As for the ISO week calendar, a missing week or day defaults to 1.
+    /// The day is `day-of-stata-week`, not `day-of-week`: it counts from
+    /// the week's first day, which is whatever weekday 1 January was.
+    fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
+        let week = fields.extra.get("week").unwrap_or(1);
+        let day = fields.extra.get("day-of-stata-week").unwrap_or(1);
+        let week = u8::try_from(week).map_err(|_| CalendarError::MonthOutOfRange)?;
+        let day = u8::try_from(day).map_err(|_| CalendarError::DayOutOfRange)?;
+        Ok(StataWeekDate {
+            year: fields.year,
+            week,
+            day,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -490,6 +717,9 @@ mod tests {
             (MJD2000, 2_451_545),
             (EXCEL_1904, 2_416_481),
             (OLE_AUTOMATION, 2_415_019),
+            (SAS, 2_436_935),
+            (STATA, 2_436_935),
+            (MATLAB, 1_721_059),
         ] {
             assert_eq!(
                 count.number_of(day),
@@ -517,6 +747,9 @@ mod tests {
             MJD2000,
             EXCEL_1904,
             OLE_AUTOMATION,
+            SAS,
+            STATA,
+            MATLAB,
         ] {
             assert_eq!(
                 DayCountCalendar(count).day_boundary(),
@@ -655,6 +888,99 @@ mod tests {
         );
     }
 
+    /// SAS's example, `'26oct02'd` = 15 639, and its range, whose ends
+    /// `hc_core::sas_stata` states as numbers of its own.
+    #[test]
+    fn sas_dates_count_from_1960_between_1582_and_19900() {
+        let sas = DayCountCalendar(SAS);
+        let day = gregorian::to_fixed(2002, 10, 26).expect("exists");
+        assert_eq!(sas.from_fixed(day), Ok(DayNumber(15_639)));
+        let (first, last) = SAS.range();
+        assert_eq!(
+            SAS.number_of(first),
+            DayNumber(hc_core::sas_stata::SAS_FIRST_DAY)
+        );
+        assert_eq!(
+            SAS.number_of(last),
+            DayNumber(hc_core::sas_stata::SAS_LAST_DAY)
+        );
+        assert_eq!(
+            sas.to_fixed(DayNumber(-138_062)),
+            Err(CalendarError::BeforeEpoch)
+        );
+        assert_eq!(
+            sas.to_fixed(DayNumber(hc_core::sas_stata::SAS_LAST_DAY + 1)),
+            Err(CalendarError::AfterSupportedRange)
+        );
+    }
+
+    /// Stata, `help datetime`: 20jan2010 is 18 282, 22jul2010 is 18 465
+    /// and 15jun2004 is 16 237; `help datetime_functions` gives the range
+    /// as −679 350 to 2 936 549.
+    #[test]
+    fn stata_dates_are_the_same_count_over_another_range() {
+        let stata = DayCountCalendar(STATA);
+        for ((year, month, day), number) in [
+            ((2010, 1, 20), 18_282),
+            ((2010, 7, 22), 18_465),
+            ((2004, 6, 15), 16_237),
+            ((100, 1, 1), -679_350),
+            ((9999, 12, 31), 2_936_549),
+        ] {
+            let rd = gregorian::to_fixed(year, month, day).expect("exists");
+            assert_eq!(
+                stata.from_fixed(rd),
+                Ok(DayNumber(number)),
+                "{year}-{month}-{day}"
+            );
+            assert_eq!(SAS.number_of(rd), DayNumber(number));
+        }
+        let (first, last) = STATA.range();
+        assert_eq!(
+            STATA.number_of(first).0,
+            hc_core::sas_stata::STATA_FIRST_DAY
+        );
+        assert_eq!(STATA.number_of(last).0, hc_core::sas_stata::STATA_LAST_DAY);
+        // 1582 is a SAS date and a Stata one; 1500 only Stata's.
+        let early = gregorian::to_fixed(1500, 1, 1).expect("exists");
+        assert!(stata.from_fixed(early).is_ok());
+        assert_eq!(
+            DayCountCalendar(SAS).from_fixed(early),
+            Err(CalendarError::BeforeEpoch)
+        );
+    }
+
+    /// MathWorks' examples: `datenum(2001,12,19)` is 731 204,
+    /// '19-May-2001' 730 990, '12-jun-17' 736 858, and with the pivot year
+    /// 1400 the same text is 12 June 1417, 517 712; the dates of
+    /// '09/16/2007', '05/14/1996' and '11/29/2010' are 733 301, 729 159
+    /// and 734 471. Each is the Rata Die plus 366.
+    #[test]
+    fn matlab_datenum_is_the_rata_die_plus_366() {
+        for ((year, month, day), number) in [
+            ((2001, 12, 19), 731_204),
+            ((2001, 5, 19), 730_990),
+            ((2017, 6, 12), 736_858),
+            ((1417, 6, 12), 517_712),
+            ((2007, 9, 16), 733_301),
+            ((1996, 5, 14), 729_159),
+            ((2010, 11, 29), 734_471),
+        ] {
+            let rd = gregorian::to_fixed(year, month, day).expect("exists");
+            assert_eq!(
+                MATLAB.number_of(rd),
+                DayNumber(number),
+                "{year}-{month}-{day}"
+            );
+            assert_eq!(number - rd.0, 366);
+        }
+        // Day 0 is "January 0, 0000", 31 December of the year −1.
+        assert_eq!(
+            MATLAB.day_of(DayNumber(0)),
+            gregorian::to_fixed(-1, 12, 31).expect("exists")
+        );
+    }
+
     #[test]
     fn a_day_count_has_no_day_of_the_month() {
         let calendar = DayCountCalendar(LILIAN);
@@ -665,6 +991,125 @@ mod tests {
         assert_eq!(
             calendar.from_fields(&fields),
             Err(CalendarError::UnsupportedField("day"))
+        );
+    }
+
+    /// Stata's weekly dates: `tw(1960w2)` is 1; 0100w1 is −96 720 and
+    /// 9999w52 418 079; `dofw` of those is 01jan0100 and 24dec9999
+    /// (−679 350 and 2 936 542 in `%td`); `week(mdy(7,5,2013))` is 27.
+    #[test]
+    fn stata_weeks_are_52_from_1_january() {
+        let calendar = DayCountCalendar(STATA);
+        let weeks = StataWeekCalendar;
+        assert_eq!(
+            StataWeekDate {
+                year: 1960,
+                week: 2,
+                day: 1
+            }
+            .weekly(),
+            1
+        );
+        for (weekly, first_day) in [(-96_720, -679_350), (418_079, 2_936_542), (0, 0)] {
+            let date = StataWeekDate::from_weekly(weekly);
+            assert_eq!(date.weekly(), weekly);
+            let rd = weeks.to_fixed(date).expect("in range");
+            assert_eq!(
+                calendar.from_fixed(rd),
+                Ok(DayNumber(first_day)),
+                "{weekly}"
+            );
+        }
+        assert_eq!(
+            StataWeekDate::from_weekly(418_079),
+            StataWeekDate {
+                year: 9999,
+                week: 52,
+                day: 1
+            }
+        );
+        let july = gregorian::to_fixed(2013, 7, 5).expect("exists");
+        assert_eq!(weeks.from_fixed(july).map(|date| date.week), Ok(27));
+        // 20jan2010, the day of `help datetime`'s example, is in 2010w3.
+        let example = gregorian::to_fixed(2010, 1, 20).expect("exists");
+        let date = weeks.from_fixed(example).expect("in range");
+        assert_eq!((date.week, date.weekly()), (3, 2_602));
+    }
+
+    /// Week 52 takes the rest of the year: eight days in a common year and
+    /// nine in a leap year, and the next day is week 1.
+    #[test]
+    fn week_52_has_eight_or_nine_days() {
+        let weeks = StataWeekCalendar;
+        for (year, days) in [(2023, 8), (2024, 9), (1900, 8), (2000, 9)] {
+            let last = gregorian::to_fixed(year, 12, 31).expect("exists");
+            assert_eq!(
+                weeks.from_fixed(last),
+                Ok(StataWeekDate {
+                    year,
+                    week: 52,
+                    day: days
+                }),
+                "{year}"
+            );
+            assert_eq!(
+                weeks.from_fixed(Rd(last.0 + 1)),
+                Ok(StataWeekDate {
+                    year: year + 1,
+                    week: 1,
+                    day: 1
+                })
+            );
+            let start = weeks
+                .to_fixed(StataWeekDate {
+                    year,
+                    week: 52,
+                    day: 1,
+                })
+                .expect("exists");
+            assert_eq!(
+                gregorian::from_fixed(start).map(|(_, m, d)| (m, d)),
+                Ok((12, if days == 9 { 23 } else { 24 }))
+            );
+            assert_eq!(
+                weeks.to_fixed(StataWeekDate {
+                    year,
+                    week: 52,
+                    day: days + 1
+                }),
+                Err(CalendarError::DayOutOfRange)
+            );
+        }
+        assert_eq!(
+            weeks.to_fixed(StataWeekDate {
+                year: 2024,
+                week: 53,
+                day: 1
+            }),
+            Err(CalendarError::MonthOutOfRange)
+        );
+        assert_eq!(
+            weeks.to_fixed(StataWeekDate {
+                year: 2024,
+                week: 1,
+                day: 8
+            }),
+            Err(CalendarError::DayOutOfRange)
+        );
+    }
+
+    #[test]
+    fn stata_weeks_round_trip_over_their_range() {
+        let weeks = StataWeekCalendar;
+        for rd in (StataWeekCalendar::EARLIEST.0..=StataWeekCalendar::LATEST.0).step_by(997) {
+            let date = weeks.from_fixed(Rd(rd)).expect("in range");
+            assert_eq!(weeks.to_fixed(date), Ok(Rd(rd)));
+            let fields = weeks.to_fields(date).expect("fields");
+            assert_eq!(weeks.from_fields(&fields), Ok(date));
+        }
+        assert_eq!(
+            weeks.from_fixed(Rd(StataWeekCalendar::EARLIEST.0 - 1)),
+            Err(CalendarError::BeforeEpoch)
         );
     }
 }

@@ -1,4 +1,5 @@
-//! The Excel 1900 date system and the OLE Automation date's time of day.
+//! The Excel 1900 date system, and the fractional day numbers of the OLE
+//! Automation date and MATLAB's `datenum`.
 //!
 //! Excel's 1900 system counts serial 1 as 1 January 1900 and gives serial
 //! 60 to 29 February 1900, a day that never was: Lotus 1-2-3 treated 1900
@@ -14,8 +15,13 @@
 //! [`to_ole_automation`] read and write the OLE date's fractional time,
 //! which a negative value carries as a magnitude.
 //!
-//! The systems, the worked examples and the sources are in
-//! `docs/systems/spreadsheet-dates.md`.
+//! [`matlab_datenum`] and [`to_matlab_datenum`] do the same for MATLAB's
+//! serial date number, whose whole part is
+//! [`crate::day_counts::MATLAB`] and whose fraction is the time of day.
+//!
+//! The spreadsheet systems, the worked examples and the sources are in
+//! `docs/systems/spreadsheet-dates.md`; MATLAB's in
+//! `docs/systems/statistical-software-dates.md`.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, DayBoundary, Rd,
@@ -23,7 +29,7 @@ use hc_calendar::{
 };
 use hc_core::Duration;
 
-use crate::day_counts::{DayCountCalendar, DayNumber, OLE_AUTOMATION};
+use crate::day_counts::{DayCountCalendar, DayNumber, MATLAB, OLE_AUTOMATION};
 use crate::gregorian;
 
 /// Serial 60, the 29 February 1900 that Excel counts and the calendar
@@ -233,6 +239,54 @@ pub fn to_ole_automation(rd: Rd, time_of_day: Duration) -> CalendarResult<f64> {
     })
 }
 
+/// The day and the time of day of a MATLAB serial date number.
+///
+/// MathWorks, `datenum` (`mathworks-datenum`): "The whole part of the
+/// serial date number corresponds to the date, and the fractional part
+/// corresponds to the time of day", counted from "January 0, 0000", day 0.
+/// The page gives no negative value and does not say how one would carry
+/// its time of day, so a value below 0 is refused rather than read by the
+/// OLE date's rule or by the floor. The fraction is converted as the `f64`
+/// carries it, without rounding.
+///
+/// # Errors
+///
+/// [`CalendarError::Overflow`] for a value that is not finite or does not
+/// fit, and [`CalendarError::BeforeEpoch`] for a negative one.
+pub fn matlab_datenum(value: f64) -> CalendarResult<(Rd, Duration)> {
+    if !value.is_finite() || value >= 9.0e15 {
+        return Err(CalendarError::Overflow);
+    }
+    if value < 0.0 {
+        return Err(CalendarError::BeforeEpoch);
+    }
+    let days = hc_core::math::floor(value);
+    // Non-negative and below 9 × 10¹⁵, so an exact integer in `i64`.
+    let rd = MATLAB.day_of(DayNumber(days as i64));
+    let seconds = (value - days) * SECONDS_PER_DAY;
+    let time = Duration::from_secs_f64(seconds).map_err(|_| CalendarError::Overflow)?;
+    Ok((rd, time))
+}
+
+/// The MATLAB serial date number of a day and a time of day, the inverse
+/// of [`matlab_datenum`].
+///
+/// # Errors
+///
+/// [`CalendarError::DayOutOfRange`] for a time of day that is negative or
+/// not below a day, and [`CalendarError::BeforeEpoch`] before "January 0,
+/// 0000", whose values [`matlab_datenum`] refuses.
+pub fn to_matlab_datenum(rd: Rd, time_of_day: Duration) -> CalendarResult<f64> {
+    if time_of_day.is_negative() || time_of_day >= Duration::DAY {
+        return Err(CalendarError::DayOutOfRange);
+    }
+    let days = MATLAB.number_of(rd).0;
+    if days < 0 {
+        return Err(CalendarError::BeforeEpoch);
+    }
+    Ok(days as f64 + time_of_day.as_secs_f64() / SECONDS_PER_DAY)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -384,5 +438,36 @@ mod tests {
         let (rd, time) = ole_automation(1.0 - f64::EPSILON / 2.0).expect("in range");
         assert_eq!(rd, day(1899, 12, 30));
         assert!(time < Duration::DAY);
+    }
+
+    /// MathWorks' `datenum(2001,12,19)` is 731 204; noon of that day is
+    /// 731 204.5 and 06:00 731 204.25, both exact in binary.
+    #[test]
+    fn matlab_datenum_carries_the_time_of_day_as_its_fraction() {
+        let rd = day(2001, 12, 19);
+        assert_eq!(matlab_datenum(731_204.0), Ok((rd, Duration::ZERO)));
+        assert_eq!(
+            matlab_datenum(731_204.5),
+            Ok((rd, Duration::from_hours(12)))
+        );
+        assert_eq!(
+            to_matlab_datenum(rd, Duration::from_hours(6)),
+            Ok(731_204.25)
+        );
+        assert_eq!(
+            to_matlab_datenum(rd, Duration::DAY),
+            Err(CalendarError::DayOutOfRange)
+        );
+        // Day 0 is "January 0, 0000"; before it the page says nothing.
+        assert_eq!(
+            matlab_datenum(0.5),
+            Ok((day(-1, 12, 31), Duration::from_hours(12)))
+        );
+        assert_eq!(matlab_datenum(-0.25), Err(CalendarError::BeforeEpoch));
+        assert_eq!(
+            to_matlab_datenum(day(-1, 12, 30), Duration::ZERO),
+            Err(CalendarError::BeforeEpoch)
+        );
+        assert_eq!(matlab_datenum(f64::NAN), Err(CalendarError::Overflow));
     }
 }

@@ -225,6 +225,9 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(
             crate::spreadsheet::Excel1900Calendar,
         )));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::day_counts::StataWeekCalendar,
+        )));
         registry.insert(Box::new(DynAdapter::new(crate::CopticCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::EthiopicCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::EgyptianCalendar)));
@@ -307,7 +310,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 81;
+const CALENDAR_COUNT: usize = 85;
 
 #[cfg(test)]
 mod tests {
