@@ -47,10 +47,10 @@ pub(crate) const fn julian_style_day_of_year(month: u8, day: u8, leap: bool) -> 
 
 /// The month and day of the month for a 1-based day of the year.
 ///
-/// The closed form for the month is the one from Reingold and Dershowitz,
-/// *Calendrical Calculations*: the correction term absorbs the February
-/// irregularity so that the remaining eleven months fall out of a single
-/// division, which keeps `from_fixed` branch-light.
+/// The closed form for the month is Reingold and Dershowitz's, in
+/// `gregorian-from-fixed` (`reingold2018code`): the correction term absorbs
+/// the February irregularity so that the remaining eleven months fall out
+/// of a single division, which keeps `from_fixed` branch-light.
 pub(crate) const fn julian_style_month_day(day_of_year: u16, leap: bool) -> (u8, u8) {
     let prior = day_of_year as i64 - 1;
     let prior_before_march = if leap { 60 } else { 59 };

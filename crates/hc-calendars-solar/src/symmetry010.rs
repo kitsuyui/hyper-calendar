@@ -30,7 +30,8 @@
 //! Bromberg's own worked examples.
 //!
 //! **Source:** Irv Bromberg, *The Symmetry454 Calendar*, University of
-//! Toronto.
+//! Toronto (`bromberg-symmetry454`); the leap cycle and its choice are
+//! [`crate::symmetry`]'s.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, Weekday,

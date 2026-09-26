@@ -15,8 +15,20 @@
 //!
 //! The offset is exactly 10 000 years, so the leap rule, the month lengths
 //! and the weekday of any day are the Gregorian ones; only the year number
-//! differs. This implementation runs from HE 1, which is 10000 BCE in
-//! astronomical numbering, forward.
+//! differs. This implementation runs from HE 1 forward: 10000 BCE, which
+//! is year −9999 in astronomical numbering.
+//!
+//! Sources: C. Emiliani, "Calendar reform", *Nature* 366 (1993) 716
+//! (`emiliani1993`), which sets "the beginning of the human era at
+//! 10,000 BC" without naming the Julian or the Gregorian calendar; and
+//! M. Walker et al., "Formal definition and dating of the GSSP (Global
+//! Stratotype Section and Point) for the base of the Holocene",
+//! *Journal of Quaternary Science* 24 (2009) 3–17 (`walker2009`), for the
+//! 11 700 years before 2000. Neither was read here: both are as Wikipedia,
+//! "Holocene calendar", retrieved 2026-09-26, quotes and cites them
+//! (`wikipedia-holocene-calendar`), and that page's table is the one that
+//! puts HE 1 at astronomical −9999 on the proleptic Gregorian calendar, as
+//! this module does.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,

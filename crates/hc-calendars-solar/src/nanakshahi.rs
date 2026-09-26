@@ -30,15 +30,18 @@
 //! This is the 2003 calendar, the one its supporters call the *Mool* — the
 //! original — Nanakshahi. In 2010 the SGPC amended it so that the months
 //! begin with the Bikrami *saṅkrāntis* and several observances return to
-//! their lunar dates, and by 2014 it had reverted to the Bikrami calendar
-//! entirely while still publishing it under the Nanakshahi name; that
+//! their lunar dates, and its opponents say the SGPC has reverted to the
+//! Bikrami calendar while publishing it under the Nanakshahi name; that
 //! calendar is the Vikrami solar year of `hindu-solar-vikrami` and the
 //! lunar dates of `hindu-lunar`, not this module. A caller who wants the
-//! SGPC's current dates wants those.
+//! SGPC's current dates wants those. The calendar and its revisions are
+//! written up in `docs/systems/fixed-solar-namings.md` in the repository.
 //!
-//! Source: Wikipedia, "Nanakshahi calendar", retrieved 2026-09-22, for the
-//! months table, the leap rule, the epoch, the 2003 adoption and the later
-//! revisions.
+//! Source: Wikipedia, "Nanakshahi calendar", retrieved 2026-09-22 and
+//! 2026-09-26 (`wikipedia-nanakshahi-calendar`), for the months table, the
+//! leap rule, the epoch, the 2003 launch and the 2010 modification. The
+//! SGPC's resolutions and Purewal's own papers, which it cites, were not
+//! read.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
@@ -133,10 +136,10 @@ pub const LAST_KEPT: Rd = match gregorian::to_fixed(2010, 3, 13) {
 };
 
 /// Where the period of use comes from.
-pub const USAGE_SOURCE: &str = "Wikipedia, \"Nanakshahi calendar\", retrieved 2026-09-22 and 2026-09-26: approved by the \
-    SGPC in January 2003 and launched on 14 April 2003; amended in 2010 to follow the \
-    Bikrami month starts, the year only, so the calendar year's end is taken; scrapped \
-    entirely by 2014";
+pub const USAGE_SOURCE: &str = "Wikipedia, \"Nanakshahi calendar\" [wikipedia-nanakshahi-calendar], retrieved \
+    2026-09-22 and 2026-09-26: launched by the SGPC on 14 April 2003 with the Akal Takht's \
+    approval; amended in 2010 to follow the Bikrami month starts, the year only, so the \
+    calendar year's end is taken";
 
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = Rd(new_year_raw(MIN_YEAR));

@@ -31,10 +31,18 @@
 //! fiscal-only use before 1840 kept a different, lunar-corrected count
 //! that this module does not model.
 //!
-//! Source: Wikipedia, "Rumi calendar", retrieved 2026-09-22: the 1840
-//! adoption, the 584-year difference, the months table, and the 1917
-//! conversion table adapted from Richard B. Rose, which the tests
-//! reproduce.
+//! Sources: Wikipedia, "Rumi calendar", retrieved 2026-09-22 and
+//! 2026-09-26 (`wikipedia-rumi-calendar`): the 1840 adoption, the 584-year
+//! difference, the months table, the move to the Gregorian days after
+//! 15 Şubat 1332, which it cites to the *Revue du monde musulman* 43
+//! (1921), p. 47, not read, and gives no law number or date for; and the
+//! 1917 conversion table adapted from Richard B. Rose, "The Ottoman Fiscal
+//! Calendar", *MESA Bulletin* 25 (1991) 167, which the tests reproduce and
+//! which was not read at first hand. Turkish Wikipedia, "Miladi takvim"
+//! (`trwiki-miladi-takvim`), for the end of the era: Law No. 698 of
+//! 26 December 1925, in force from 1 January 1926, itself not read. The
+//! reform of 1917 is also placed among the country-by-country adoptions
+//! in `docs/systems/gregorian-reform.md`.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
@@ -84,8 +92,9 @@ pub const CUTOVER: Rd = match gregorian::to_fixed(REFORM_YEAR + YEAR_OFFSET, 3, 
 };
 
 /// Where the period of use comes from.
-pub const USAGE_SOURCE: &str = "Wikipedia, \"Rumi calendar\", retrieved 2026-09-22: adopted for civil use on 1 Mart 1256, \
-    13 March 1840 Gregorian, and abandoned for 1926, so kept to 31 December 1925";
+pub const USAGE_SOURCE: &str = "Wikipedia, \"Rumi calendar\" [wikipedia-rumi-calendar]: adopted for civil use on \
+    1 Mart 1256, 13 March 1840 Gregorian; abandoned for 1926 by Law No. 698 of 26 December \
+    1925 [trwiki-miladi-takvim], so kept to 31 December 1925";
 
 /// The earliest day this implementation converts, 1 Mart 1256: 1 March
 /// 1840 in the Julian calendar.

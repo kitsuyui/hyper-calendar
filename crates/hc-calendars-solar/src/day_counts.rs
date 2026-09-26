@@ -169,22 +169,29 @@ hc_core::catalogue! {
         (1601, 1, 1),
         1,
         DayBoundary::Midnight,
-        "IBM, INTDATE(ANSI)",
+        "IBM Enterprise COBOL for z/OS 6.3, compiler option INTDATE: INTDATE(ANSI) uses \
+         the 85 COBOL Standard starting date, day 1 = Jan 1, 1601; retrieved 2026-09-26 \
+         [ibm-cobol-intdate]",
     );
 
     /// The Dublin Julian Date: day 0 begins at noon on 31 December 1899.
     ///
-    /// Adopted by the IAU in 1955, with its epoch written "1900 January 0.5" —
+    /// Introduced by the IAU at its Dublin meeting of 1955, as Wikipedia,
+    /// "Julian day", retrieved 2026-09-26, reports it (`wikipedia-julian-day`;
+    /// the IAU's transactions not read), with its epoch written
+    /// "1900 January 0.5" —
     /// which is the trap. January 0 is 31 December of the year before, and the
     /// .5 is the Julian Day's noon. Writing the epoch as 1 January 1900 puts
-    /// every Dublin date a day out, which is what the offset test below caught.
+    /// every Dublin date a day out; the offset test below holds it to
+    /// JD − 2 415 020.
     pub const DUBLIN = DayCount::from_gregorian(
         "dublin-julian-day",
         "Dublin Julian Date",
         (1899, 12, 31),
         0,
         DayBoundary::Noon(DayNaming::ByStart),
-        "IAU General Assembly, Dublin (1955)",
+        "IAU General Assembly, Dublin (1955), not read; JD - 2415020 as Wikipedia, \
+         \"Julian day\", gives it [wikipedia-julian-day]",
     );
 
     /// The Reduced Julian Date: day 0 begins at noon on 16 November 1858.
@@ -198,32 +205,42 @@ hc_core::catalogue! {
         (1858, 11, 16),
         0,
         DayBoundary::Noon(DayNaming::ByStart),
-        "Astronomical usage; JD − 2 400 000",
+        "JD - 2400000, the count from 12:00 on 16 November 1858, as Wikipedia, \
+         \"Julian day\", tabulates it, citing Hopkins 2013, not read [wikipedia-julian-day]",
     );
 
     /// The Truncated Julian Date: day 0 is 24 May 1968.
     ///
     /// NASA defined it in 1979 for spacecraft telemetry, where four digits were
-    /// all that fit.
+    /// all that fit: A. R. Chi, *A Grouped Binary Time Code for Telemetry and
+    /// Space Applications*, NASA Technical Memorandum 80606, Goddard Space
+    /// Flight Center, December 1979 (`chi1979`), read 2026-09-26: TJD "is
+    /// arbitrarily chosen to begin from 0 at midnight May 24" 1968, JDN
+    /// 2 440 000, and recycles after 9999.
     pub const TRUNCATED = DayCount::from_gregorian(
         "truncated-julian-day",
         "Truncated Julian Date",
         (1968, 5, 24),
         0,
         DayBoundary::Midnight,
-        "NASA (1979)",
+        "A. R. Chi, NASA Technical Memorandum 80606, Goddard Space Flight Center, December \
+         1979 [chi1979]",
     );
 
     /// The CNES Julian Date: day 0 is 1 January 1950.
     ///
     /// The French space agency's count, used throughout its mission products.
+    /// The epoch is as Wikipedia, "Julian day", tabulates it, JD − 2 433 282.5,
+    /// citing P.-M. Theveny, *The TPtime Handbook* (2001), not read; no CNES
+    /// document was read.
     pub const CNES = DayCount::from_gregorian(
         "cnes-julian-day",
         "CNES Julian Date",
         (1950, 1, 1),
         0,
         DayBoundary::Midnight,
-        "Centre national d'études spatiales",
+        "Centre national d'etudes spatiales; JD - 2433282.5 as Wikipedia, \"Julian day\", \
+         gives it, citing Theveny 2001, not read [wikipedia-julian-day]",
     );
 
     /// The CCSDS day count: day 0 is 1 January 1958.
@@ -236,7 +253,8 @@ hc_core::catalogue! {
         (1958, 1, 1),
         0,
         DayBoundary::Midnight,
-        "CCSDS 301.0-B, Time Code Formats",
+        "CCSDS 301.0-B-4, Time Code Formats, not read; JD - 2436204.5 as Wikipedia, \
+         \"Julian day\", gives it [wikipedia-julian-day]",
     );
     }
 }

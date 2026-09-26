@@ -28,6 +28,15 @@
 //! The AUC era was in any case rarely used for dating in antiquity — Romans
 //! named years after the consuls. It is a convenience of later historians,
 //! and it is implemented here for the same reason.
+//!
+//! Sources: Wikipedia, "Ab urbe condita", retrieved 2026-09-26
+//! (`wikipedia-ab-urbe-condita`), for the Varronian founding in 753 BC and
+//! AD 1 as AUC 754; Wikipedia, "Julian calendar", retrieved 2026-09-26
+//! (`wikipedia-julian-calendar`), for the 355-day year and its
+//! intercalary month, and for 46 BC, lengthened to 445 days to make up the
+//! intercalations missed — the ninety days that were the calendar's lag
+//! behind the seasons. Neither Varro nor the ancient chronologies were
+//! read.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,

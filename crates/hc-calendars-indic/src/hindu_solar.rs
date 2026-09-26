@@ -23,9 +23,10 @@
 //!
 //! Each is a [`HinduSolarCalendar`] value here — [`TAMIL`], [`MALAYALAM`],
 //! [`BENGALI`], [`VIKRAMI`] — with the era each counts its years in:
-//! the Tiruvaḷḷuvar year, the Kollam era, the Bengali San, the Vikrama
-//! Saṃvat. The rules were read off the almanac's tables, twenty-four
-//! months of each, and the tests are those tables.
+//! the Tiruvaḷḷuvar year's number (which turns in Thai, not Chithirai; see
+//! [`TAMIL`]), the Kollam era, the Bengali San, the Vikrama Saṃvat. The
+//! rules were read off the almanac's tables, twenty-four months of each,
+//! and the tests are those tables.
 //!
 //! # Whose day
 //!
@@ -44,6 +45,17 @@
 //! second with a fifth rule, [`CivilDay`](SankrantiRule::CivilDay), and is
 //! [`crate::bikram_sambat`].
 //!
+//! The traditional almanacs of the four Indian regions that keep the
+//! Siddhānta's saṅkrāntis would be four more calendars under policy §5,
+//! and they are not registered: no such almanac's month table was read,
+//! so there is nothing to anchor a Siddhānta Tamil, Malayalam, Bengali or
+//! Vikrami calendar to, and a registered calendar needs a published
+//! reference its tests hold it to. The Bikram Sambat is registered because
+//! the Government of Nepal's gazetted months are that reference. A caller
+//! with a Siddhānta almanac of their own can build the calendar with
+//! [`HinduSolarCalendar::new`] and [`SolarModel::SuryaSiddhanta`], and
+//! check it against the almanac.
+//!
 //! # The Tamil year's name
 //!
 //! The Tamil year also carries a name from the southern sixty-year cycle,
@@ -54,9 +66,12 @@
 //!
 //! # What is not here
 //!
-//! The Odia year counts are [`crate::odia_anka`]'s, not this reckoning's;
-//! the Amli and Vilayati years of Odisha, whose months are these solar ones
-//! under another year, are not carried yet.
+//! [`VIKRAMI`]'s months are Odisha's as well as Punjab's and Haryana's,
+//! because the almanac prints one column for the three, but its years are
+//! the Vikrama Saṃvat's, which Odisha does not count in. The Odia year
+//! counts are [`crate::odia_anka`]'s: the Gajapati's *aṅka*, and the Amli
+//! year that opens at the same Suniā, as that calendar's `amli-year` field.
+//! The Vilayati year is not carried.
 
 use hc_astro::riseset::Location;
 use hc_calendar::fixed::Moment;
@@ -219,8 +234,20 @@ pub struct HinduSolarCalendar {
 
 /// The Tamil solar calendar: Chithirai to Panguni from the Meṣa saṅkrānti,
 /// the month beginning on the saṅkrānti's day unless it fell after sunset,
-/// years in the Tiruvaḷḷuvar era (Gregorian year plus 31), as the Tamil
-/// Nadu government's almanac counts them.
+/// years numbered as the Gregorian year the Chithirai falls in plus 31,
+/// under the era code of the Tiruvaḷḷuvar year.
+///
+/// That number is the Tiruvaḷḷuvar year only from Chithirai to the end of
+/// Margazhi. The Tiruvaḷḷuvar year, 31 years ahead of the Gregorian, was
+/// gazetted by Tamil Nadu in 1971 and inaugurated on Thiruvalluvar Day, in
+/// Thai (Wikipedia, "Valluvar year", retrieved 2026-09-26,
+/// `wikipedia-valluvar-year`; the Gazette not read), so from Thai to the
+/// end of Panguni it is one more than the year carried here. Tamil Nadu
+/// also declared Thai 1 the Tamil New Year by an act of 29 January 2008
+/// and repealed it on 23 August 2011, returning the new year to Chithirai
+/// 1 (Wikipedia, "Puthandu", retrieved 2026-09-26, `wikipedia-puthandu`;
+/// the acts not read). No source read numbers the Chithirai year in the
+/// Tiruvaḷḷuvar era.
 pub const TAMIL: HinduSolarCalendar = HinduSolarCalendar {
     id: CalendarId("hindu-solar-tamil"),
     english_name: "Tamil solar",
@@ -267,11 +294,12 @@ pub const BENGALI: HinduSolarCalendar = HinduSolarCalendar {
     samvatsara: false,
 };
 
-/// The Vikrami solar calendar of Punjab, Haryana and Odisha: Vaiśākha to
-/// Chaitra from the Meṣa saṅkrānti, the month
-/// beginning on the sunrise-to-sunrise day the saṅkrānti fell in, years in
-/// the Vikrama Saṃvat (Gregorian year plus 57). The month names are the
-/// Sanskrit ones the almanac's Punjab and Odisha column prints.
+/// The Vikrami solar calendar of Punjab and Haryana: Vaiśākha to Chaitra
+/// from the Meṣa saṅkrānti, the month beginning on the sunrise-to-sunrise
+/// day the saṅkrānti fell in, years in the Vikrama Saṃvat (Gregorian year
+/// plus 57). The month names are the Sanskrit ones the almanac's Punjab and
+/// Odisha column prints; Odisha keeps the same months under its own years,
+/// which are [`crate::odia_anka`]'s.
 pub const VIKRAMI: HinduSolarCalendar = HinduSolarCalendar {
     id: CalendarId("hindu-solar-vikrami"),
     english_name: "Vikrami solar",
@@ -565,7 +593,7 @@ impl Calendar for HinduSolarCalendar {
 
     /// The Hindu day begins at sunrise and is named by the civil day on
     /// whose sunrise it begins: Reingold and Dershowitz read a fixed day's
-    /// date at "Sunrise that day" (`calendar-code2`, `hindu-lunar-from-fixed`).
+    /// date at "Sunrise that day" (`reingold2018code`, `hindu-lunar-from-fixed`).
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Sunrise(hc_calendar::DayNaming::ByStart)
     }

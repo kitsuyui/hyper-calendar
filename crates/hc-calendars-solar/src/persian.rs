@@ -1,29 +1,39 @@
-//! The Solar Hijri calendar, arithmetic (Birashk) variant.
+//! The Solar Hijri calendar, arithmetic (Birashk) variant —
+//! `persian-arithmetic`.
 //!
 //! The Iranian year begins at Nowruz, the day on which the March equinox
-//! falls before noon at the 52.5°E meridian. That is an astronomical
-//! definition: it cannot be reduced to arithmetic without approximating,
-//! and this module is the approximation.
+//! falls before noon. That is an astronomical definition: it cannot be
+//! reduced to arithmetic without approximating, and this module is one of
+//! two approximations carried. The calendar, its readings and both
+//! approximations are written up in `docs/systems/solar-hijri.md` in the
+//! repository.
 //!
 //! # Which variant this is, and which it is not
 //!
-//! Implemented here is the 2 820-year cyclic rule associated with Ahmad
-//! Birashk, in the form given by Reingold and Dershowitz, *Calendrical
-//! Calculations*, as `fixed-from-arithmetic-persian`. The cycle contains
-//! 683 leap years, giving a mean year of 365.24219858 days — within a
-//! second of the mean tropical year, and far better than the Gregorian
-//! 365.2425.
+//! Implemented here is the 2 820-year cyclic rule of Z. Behruz (1952) and
+//! A. Birashk, *A Comparative Calendar of the Iranian, Muslim Lunar, and
+//! Christian Eras for Three Thousand Years* (1993; `birashk1993`, not
+//! read), in the form Reingold and Dershowitz give as
+//! `fixed-from-arithmetic-persian` (`reingold2018code`). The cycle contains
+//! 683 leap years in 21 subcycles of 128 years and one of 132, giving a
+//! mean year of 365.24219858 days — the mean tropical year rather than the
+//! 365.2424 days from one March equinox to the next that the calendar
+//! follows, which is why M. Heydari-Malayeri (`heydari-malayeri2004`, §7)
+//! calls the cycle erroneous and why it drifts from the equinox.
 //!
-//! It is nonetheless **not** the calendar of the Iranian civil code. The
-//! official calendar follows the equinox, and the two disagree for a handful
-//! of years even inside the range where the cycle is at its best (Birashk's
-//! own claim is agreement from 1178 to 1633 A.P. with a small number of
-//! exceptions). Nowruz is an observation, not a formula.
+//! It is **not** the calendar of the Iranian civil code. The official
+//! calendar follows the equinox, and the two disagree even in the present:
+//! this cycle makes 1404 the leap year where the equinox made 1403 one.
+//! The CLDR identifier `persian` belongs to the astronomical implementation
+//! in `hc-calendars-equinox`, which has the published Nowruz 1404 this
+//! cycle misses. The other arithmetic approximation, the 33-year rule, is
+//! [`crate::persian_33`], `persian-arithmetic-33`, and agrees with the
+//! equinox from 1178 to 1634.
 //!
-//! For that reason this calendar takes the identifier `persian-arithmetic`
-//! and leaves the CLDR identifier `persian` to the astronomical
-//! implementation, which is `hc-calendars-equinox`'s and has the published
-//! Nowruz 1404 this cycle misses.
+//! The identifier stays `persian-arithmetic` rather than naming Birashk
+//! because it is the scheme Reingold and Dershowitz call
+//! `arithmetic-persian`, where a caller comparing against their tables
+//! looks for it; the 33-year calendar's identifier names its own rule.
 //!
 //! # Structure
 //!
@@ -93,7 +103,7 @@ pub const fn days_in_year(year: i64) -> u16 {
 }
 
 /// Days elapsed in the year before the first of `month`.
-const fn days_before_month(month: u8) -> i64 {
+pub(crate) const fn days_before_month(month: u8) -> i64 {
     if month <= 7 {
         31 * (month as i64 - 1)
     } else {

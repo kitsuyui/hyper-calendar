@@ -49,7 +49,8 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | Armenian (wandering) | `armenian` | `hc-calendars-solar` | Done |
 | Armenian (fixed, Sarkawag 1084) | `armenian-fixed` | `hc-calendars-solar` | Done |
 | Zoroastrian (Qadimi / Shahanshahi / Fasli) | `zoroastrian-qadimi`, `zoroastrian-shahanshahi`, `zoroastrian-fasli` | `hc-calendars-solar` | Done — the two wandering years from the Yazdegerdi epoch, thirty days apart since the Parsi intercalation of the 1120s, and the Fasli on 21 March with the Gregorian leap day; the Iranian *Bastani* observance is `persian` |
-| Solar Hijri (Persian), arithmetic | `persian-arithmetic` | `hc-calendars-solar` | Done — Birashk's 2 820-year cycle; the astronomical calendar is `persian`, stage 3 |
+| Solar Hijri (Persian), arithmetic | `persian-arithmetic` | `hc-calendars-solar` | Done — Birashk's 2 820-year cycle; the astronomical calendar is `persian`, stage 3; see [systems/solar-hijri.md](systems/solar-hijri.md) |
+| Solar Hijri (Persian), 33-year rule | `persian-arithmetic-33` | `hc-calendars-solar` | Done — eight leap years in 33 by Heydari-Malayeri's remainders, agreeing with `persian` on every Nowruz 1178–1634; see [systems/solar-hijri.md](systems/solar-hijri.md) |
 | Indian national civil (Śaka) | `indian` | `hc-calendars-solar` | Done |
 | Discordian | `discordian` | `hc-calendars-solar` | Done — the five seasons, the Erisian week and St. Tib's Day of the *Principia Discordia*, on the Gregorian leap rule; the eleven named holydays |
 | Nanakshahi (Sikh, 2003) | `nanakshahi` | `hc-calendars-solar` | Done — the 2003 calendar of fixed Gregorian month starts, year 1 in 1469; the SGPC's 2010 and 2014 revisions are the Bikrami calendar under the same name and are `hindu-solar-vikrami` and `hindu-lunar` |
@@ -164,7 +165,8 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 
 | Calendar | Id | Status |
 | --- | --- | --- |
-| Solar Hijri, astronomical (noon, Iran Standard Time) | `persian` | Done, in `hc-calendars-equinox` — Nowruz 1404 on 21 March 2025, where Birashk's cycle says the 20th |
+| Solar Hijri, astronomical (noon, Iran Standard Time) | `persian` | Done, in `hc-calendars-equinox` — Nowruz 1404 on 21 March 2025, where Birashk's cycle says the 20th; see [systems/solar-hijri.md](systems/solar-hijri.md) |
+| Solar Hijri, astronomical (apparent noon at Tehran) | `persian-apparent-noon` | Done, in `hc-calendars-equinox` — the Sun's transit at Tehran as Heydari-Malayeri and Reingold and Dershowitz state the rule; `persian`'s days from 1178 to 1469, apart in twenty years of 1–2379; see [systems/solar-hijri.md](systems/solar-hijri.md) |
 | French Republican, autumn equinox at Paris | `french-republican-equinox` | Done, in `hc-calendars-equinox` — the decree's rule, reproducing the fourteen new years France kept; see [systems/equinox-calendars.md](systems/equinox-calendars.md) |
 | Bahá'í, Naw-Rúz from the Tehran equinox for any year | `bahai-astronomical` | Done, in `hc-calendars-equinox` — the 2015 rule, reproducing the World Centre's table for 172–221 BE; see [systems/equinox-calendars.md](systems/equinox-calendars.md) |
 | Solar Hijri as kept in Afghanistan | `persian-afghan` | Done, in `hc-calendars-equinox` — `persian`'s days under the Arabic names of the zodiac signs, حمل … حوت in Dari, with Pashto and English names in `hc-i18n`; civil from 1 Hamal 1336 (21 March 1957), when the month lengths were fixed (Balland, *Encyclopaedia Iranica*), to 7 Asad 1401 (29 July 2022), the eve of 1 Muharram 1444, from which official correspondence is dated by the lunar Hijri year, and in use after it beside the lunar dates. Iran's noon decides Nowruz; a noon at Kabul would move 1 Hamal in 1342, 1346, 1375 and 1379, which no authority read settles. `hc-holiday`'s Afghanistan table dates 24 and 28 Asad and 26 Dalw in it, as `CalendarSystem::SOLAR_HIJRI_AFGHAN` |

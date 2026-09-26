@@ -3,12 +3,17 @@
 //!
 //! Three calendars begin their year on the day an equinox falls, judged by
 //! a clock at a named place, and no counting rule reproduces that exactly;
-//! the first of them is carried twice, as Iran and as Afghanistan name its
-//! months:
+//! the first of them is carried three times, as Iran and as Afghanistan
+//! name its months and under the second reading of its noon:
 //!
 //! * [`persian`] — the Solar Hijri calendar of Iran: Nowruz is the day of
 //!   the March equinox if the equinox falls before noon, Iran Standard
-//!   Time, and the day after otherwise. CLDR `persian`.
+//!   Time, and the day after otherwise. CLDR `persian`. The same days
+//!   under the Dari month names are [`persian_afghan`], `persian-afghan`,
+//!   and the same rule with the Sun's own noon at Tehran in place of the
+//!   clock's is [`persian_apparent_noon`], `persian-apparent-noon`. The
+//!   Solar Hijri calendars are written up in
+//!   `docs/systems/solar-hijri.md` in the repository.
 //! * [`bahai`] — the Badíʿ calendar under the rules unified in 172 BE:
 //!   Naw-Rúz is the Badíʿ day, sunset to sunset at Tehran, in which the
 //!   March equinox falls, and the Twin Holy Birthdays follow the eighth new
@@ -19,8 +24,9 @@
 //!   `french-republican-equinox`.
 //!
 //! Each has an arithmetic sibling in `hc-calendars-solar` —
-//! `persian-arithmetic`, `bahai-arithmetic`, `french-republican-arithmetic`
-//! — that approximates it by a cycle and says so in its name, and the
+//! `persian-arithmetic` and `persian-arithmetic-33`, `bahai-arithmetic`,
+//! `french-republican-arithmetic` — that approximates it by a cycle and
+//! says so in its name, and the
 //! Badíʿ calendar also has the *as kept* form `bahai`, which carries the
 //! Bahá'í World Centre's published table for 172–221 BE. The date types and
 //! the calendars' own month names are shared with those siblings, so a date
@@ -74,12 +80,14 @@ pub mod bahai;
 pub mod french_republican;
 pub mod persian;
 pub mod persian_afghan;
+pub mod persian_apparent_noon;
 pub mod places;
 
 pub use bahai::AstronomicalBahaiCalendar;
 pub use french_republican::EquinoxFrenchRepublicanCalendar;
 pub use persian::PersianCalendar;
 pub use persian_afghan::AfghanPersianCalendar;
+pub use persian_apparent_noon::ApparentNoonPersianCalendar;
 
 #[cfg(feature = "alloc")]
 mod registration {
@@ -95,6 +103,9 @@ mod registration {
     pub fn register_all(registry: &mut CalendarRegistry) {
         registry.insert(Box::new(DynAdapter::new(crate::PersianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::AfghanPersianCalendar)));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::ApparentNoonPersianCalendar,
+        )));
         registry.insert(Box::new(DynAdapter::new(crate::AstronomicalBahaiCalendar)));
         registry.insert(Box::new(DynAdapter::new(
             crate::EquinoxFrenchRepublicanCalendar,
@@ -112,13 +123,14 @@ mod tests {
     use super::*;
 
     /// The number of calendars this crate registers.
-    const CALENDAR_COUNT: usize = 4;
+    const CALENDAR_COUNT: usize = 5;
 
     #[test]
     fn every_calendar_here_is_astronomical_and_bounded() {
         for meta in [
             PersianCalendar.meta(),
             AfghanPersianCalendar.meta(),
+            ApparentNoonPersianCalendar.meta(),
             AstronomicalBahaiCalendar.meta(),
             EquinoxFrenchRepublicanCalendar.meta(),
         ] {
@@ -148,6 +160,7 @@ mod tests {
         assert_eq!(sorted.len(), ids.len(), "identifiers must be distinct");
         assert!(registry.get_by_name("persian").is_some());
         assert!(registry.get_by_name("persian-afghan").is_some());
+        assert!(registry.get_by_name("persian-apparent-noon").is_some());
         assert!(registry.get_by_name("bahai-astronomical").is_some());
         assert!(registry.get_by_name("french-republican-equinox").is_some());
         register_all(&mut registry);
@@ -192,6 +205,11 @@ mod tests {
             assert_eq!(
                 DynAdapter::new(PersianCalendar).is_leap_year(1_300 + year),
                 persian::is_leap_year(1_300 + year).ok_or(CalendarError::YearOutOfRange)
+            );
+            assert_eq!(
+                DynAdapter::new(ApparentNoonPersianCalendar).is_leap_year(1_300 + year),
+                persian_apparent_noon::is_leap_year(1_300 + year)
+                    .ok_or(CalendarError::YearOutOfRange)
             );
             assert_eq!(
                 DynAdapter::new(EquinoxFrenchRepublicanCalendar).is_leap_year(year),

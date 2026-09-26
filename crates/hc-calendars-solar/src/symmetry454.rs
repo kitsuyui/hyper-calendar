@@ -25,6 +25,10 @@
 //! everything but the month layout — the 293-year cycle in
 //! [`crate::symmetry`] is the actual proposal, and the two arrangements are
 //! two ways of spending the same 364 days.
+//!
+//! **Source:** Irv Bromberg, *The Symmetry454 Calendar*, University of
+//! Toronto (`bromberg-symmetry454`); the leap cycle and its choice are
+//! [`crate::symmetry`]'s.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, Weekday,

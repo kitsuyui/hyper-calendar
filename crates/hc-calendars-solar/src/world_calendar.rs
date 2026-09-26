@@ -1,9 +1,9 @@
 //! The World Calendar.
 //!
 //! Elisabeth Achelis proposed this in 1930 and the World Calendar
-//! Association pushed it at the League of Nations and then at the United
-//! Nations, where India formally moved its adoption in 1954 and the United
-//! States opposed it. It remains the best-known perennial calendar proposal.
+//! Association she founded that year pushed it at the League of Nations
+//! and then at the United Nations, where in 1955 the United States
+//! withheld its support and declined to recommend further study.
 //!
 //! Four identical quarters of 91 days — a 31-day month followed by two
 //! 30-day months — which is 364 days, so every quarter begins on a Sunday
@@ -22,9 +22,11 @@
 //! Worldsday and Leapyear Day belong to no week. That is what makes the
 //! calendar perennial — 364 is 52 weeks, so if the two extra days are taken
 //! out of the count, every date keeps its weekday forever — and it is also
-//! what sank the proposal: Jewish, Seventh-day Adventist and Muslim
-//! representatives objected at the United Nations that an uncounted day
-//! shifts a sabbath observed without interruption since antiquity.
+//! what the proposal's main opponents objected to: leaders of religions
+//! that worship on a seven-day cycle, Jewish, Christian, Muslim and
+//! Seventh-day Adventist, for whom a day outside the week makes an
+//! eight-day week and moves the day of worship. Those concerns played a
+//! part in the United States' decision of 1955.
 //!
 //! So this calendar has **two different weekdays** for the same day, and
 //! both are correct:
@@ -42,6 +44,13 @@
 //! Gregorian year 1, the leap rule is the Gregorian rule, and the year
 //! number is the Gregorian one. Only the division of the year into months
 //! and the naming of weekdays differ.
+//!
+//! Source: Wikipedia, "World Calendar", retrieved 2026-09-26
+//! (`wikipedia-world-calendar`), for the structure, Worldsday and
+//! Leapyear Day, Achelis and the Association, the League and the United
+//! Nations, and the religious objections. Achelis's own books, such as
+//! *Of Time and the Calendar* (1955), and the United Nations documents of
+//! 1955 were not read.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, Weekday,

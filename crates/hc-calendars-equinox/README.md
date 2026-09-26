@@ -13,12 +13,13 @@ depends on whose clock is asked. Each calendar here names its clock.
 |---|---|---|---|
 | `persian` | `persian` | noon, Iran Standard Time (52.5° E) | 1 AP to Gregorian 3000 |
 | `persian_afghan` | `persian-afghan` | the same: `persian`'s days under Afghanistan's month names | the same |
+| `persian_apparent_noon` | `persian-apparent-noon` | the Sun's noon at Tehran (51.42° E) | the same |
 | `bahai` | `bahai-astronomical` | sunset at Tehran | 1 BE to Gregorian 3000 |
 | `french_republican` | `french-republican-equinox` | true midnight at the Paris Observatory | An I to Gregorian 3000 |
 
 Each has an arithmetic sibling in `hc-calendars-solar` that approximates it
-by a cycle — `persian-arithmetic`, `bahai-arithmetic`,
-`french-republican-arithmetic` — and the Badíʿ calendar also has the *as
+by a cycle — `persian-arithmetic` and `persian-arithmetic-33`,
+`bahai-arithmetic`, `french-republican-arithmetic` — and the Badíʿ calendar also has the *as
 kept* form `bahai` there, which carries the Bahá'í World Centre's published
 table for 172–221 BE. The date types and the calendars' own month names are
 shared, so a date converts between variants without ceremony.
@@ -32,6 +33,15 @@ the day before official correspondence moved to the lunar Hijri year, and
 in use beside the lunar dates since. Its module states the sources, and
 the four years of the civil period in which a noon at Kabul rather than
 Tehran would have moved 1 Hamal.
+
+`persian-apparent-noon` is the other reading of Iran's rule: the noon that
+decides Nowruz is the Sun's transit at Tehran, as Heydari-Malayeri (2004)
+and Reingold and Dershowitz state it, rather than the clock's. It gives
+`persian`'s days from 1178 to 1469 and parts from it in twenty of the three
+thousand years converted, the first after 1177 being 1470 (2091). The Solar
+Hijri calendars, their readings and their arithmetic approximations are
+written up in
+[`docs/systems/solar-hijri.md`](../../docs/systems/solar-hijri.md).
 
 The Badíʿ and French Republican calendars, with their siblings, are
 written up in
@@ -48,7 +58,8 @@ The published record, not the model checking itself:
 * the two equinoxes the decree of 4 frimaire an II gives as observed,
   within a minute in true time at the Paris Observatory;
 * the leap years Iran had between 1354 and 1419, and Nowruz 1404 on
-  21 March 2025 — a day later than Birashk's cycle says;
+  21 March 2025 — a day later than Birashk's cycle says — under both
+  readings of noon;
 * the Afghan dates the sources print: 6 Hamal 1401 as 26 March 2022 in
   Hasht-e Subh's dateline, and 8 Asad 1401 as the 1 Muharram 1444 from
   which the official lunar calendar runs;

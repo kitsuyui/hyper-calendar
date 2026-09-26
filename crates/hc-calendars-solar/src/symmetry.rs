@@ -12,8 +12,25 @@
 //! Gregorian 365.2425. So the rule lives here once and the two layouts are
 //! thin layers over it, per policy §2.
 //!
-//! **Source:** Irv Bromberg, *The Symmetry454 Calendar*, University of
-//! Toronto, which specifies both variants.
+//! # Which leap cycle
+//!
+//! Bromberg's survey of leap cycles gives the 52/293 cycle as the one
+//! "preferred for the Symmetry454 and Symmetry010 calendars", and says
+//! why: the shortest cycle that tracks the mean northward equinox for the
+//! past five millennia and the next four or five, 294 × 364 days long, its
+//! leap weeks spread symmetrically. The same page tabulates 93/524, which
+//! aligns the equinox slightly more tightly for about 500 years fewer, and
+//! names 327 and 389 years as the best short cycles for the north
+//! solstitial year, which is not these calendars' target. Only the
+//! preferred cycle is carried: the others are the author's own comparison,
+//! not rival conventions anyone keeps, so policy §5 does not ask for them.
+//!
+//! **Sources:** Irv Bromberg, *The Symmetry454 Calendar*, University of
+//! Toronto (`bromberg-symmetry454`), which specifies both variants; and his
+//! "Calendar Leap Cycles", `individual.utoronto.ca/kalendis/leap/`, read
+//! 2026-09-26 in the Wayback Machine's copy of 30 November 2020
+//! (`bromberg-leap-cycles`), for the choice of cycle. The live pages, now
+//! at `kalendis.free.nf`, sit behind a script check and were not read.
 
 use hc_calendar::{CalendarError, CalendarResult, Rd};
 

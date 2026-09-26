@@ -13,7 +13,9 @@
 //! # Whose arithmetic
 //!
 //! The functions of Reingold and Dershowitz, *Calendrical Calculations*
-//! (4th ed., 2018), in the section on the modern Hindu calendars:
+//! (4th ed., 2018), in the section on the modern Hindu calendars, as their
+//! published code gives them (`reingold2018code`; the book, `reingold2018`,
+//! not read here):
 //! `hindu-sine-table`, `hindu-sine`, `hindu-arcsin`,
 //! `hindu-mean-position`, `hindu-true-position` and
 //! `hindu-solar-longitude`, with the sidereal and anomalistic years, the
@@ -57,8 +59,7 @@ pub const SIDEREAL_YEAR: f64 = 1_577_917_828.0 / 4_320_000.0;
 pub const ANOMALISTIC_YEAR: f64 = 1_577_917_828_000.0 / 4_319_999_613.0;
 
 /// The Kali Yuga epoch, Friday 18 February 3102 BCE in the Julian
-/// calendar, as a fixed day number (*Calendrical Calculations*,
-/// `hindu-epoch`).
+/// calendar, as a fixed day number (`reingold2018code`, `hindu-epoch`).
 const EPOCH: f64 = -1_132_959.0;
 
 /// The fraction of an anomalistic revolution between the creation and the

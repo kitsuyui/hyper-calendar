@@ -75,36 +75,41 @@
 //!   page is behind a browser check): 1301 SH, the month lengths fixed in
 //!   1336 SH, the Dari names as the Arabic names of the signs, the Pashto
 //!   translations "rarely used". Its Table 39 of month names is an image
-//!   and was not read.
+//!   and was not read. (`balland1990`)
 //! * Wikipedia, "Solar Hijri calendar", retrieved 2026-09-26: the month
 //!   table with the Dari and Pashto names in their own script and
 //!   romanised, which gives the romanisations `hc-i18n` carries.
+//!   (`wikipedia-solar-hijri-calendar`)
 //! * Unicode CLDR 48, `common/main/fa_AF.xml` and `ps.xml`, `calendar
 //!   type="persian"`, read 2026-09-26: the same Dari names, with the ezafe
 //!   on the format form *سنبلهٔ*, and the Pashto names `hc-i18n`'s `ps`
-//!   carries.
+//!   carries. (`cldr48-persian-months`)
 //! * Mohammad Shaker Rasa, "Taliban Changes Solar Year to Hijri Lunar
 //!   Calendar", *Hasht-e Subh*, 26 March 2022, `8am.media/eng/`, retrieved
 //!   2026-09-26; its dateline gives 26 March 2022 as 1401/01/06.
+//!   (`rasa2022`)
 //! * Ayoub Arwin, "قمری به جای خورشیدی؛ گروه طالبان با تغییر تقویم به دنبال
 //!   چیست؟", *Afghanistan International*, 9 Hamal 1401 (29 March 2022),
 //!   `afintl.com/202203299928`, retrieved 2026-09-26: the letter signed by
 //!   the head of the Administrative Office and its scope, "تمام مکاتیب و
-//!   مراسلات اداری".
+//!   مراسلات اداری". (`arwin2022`)
 //! * "تقویم جدید طالبان…", *Rukhshana Media*, 2 August 2022,
 //!   `rukhshana.com`, retrieved 2026-09-26: the official calendar of
 //!   1444 AH from 1 Muharram (8 Asad 1401), its solar equivalents and its
-//!   holidays.
+//!   holidays. (`rukhshana2022`)
 //! * "IEA changes its fiscal from Gregorian calendar to Hijri Shamsi",
 //!   *Ariana News*, 11 January 2022, `ariananews.af`, retrieved 2026-09-26.
+//!   (`ariana2022`)
 //! * The Constitution of Afghanistan of 2004, art. 18, in the Constitute
 //!   Project's English text, `constituteproject.org`, retrieved
 //!   2026-09-26: "The basis for state offices shall be the solar
-//!   calendar."
+//!   calendar." (`afghanistan-constitution-2004`)
 //! * Afghan Calendar project, "Calendar algorithm",
 //!   `nongnu.org/afghancalendar`, retrieved 2026-09-26: a volunteer
 //!   calendar's arithmetic rule for 1 Hamal, read as a check and not as an
-//!   authority.
+//!   authority. (`afghan-calendar-project`)
+//!
+//! The system document is `docs/systems/solar-hijri.md`.
 //!
 //! # Exactness
 //!

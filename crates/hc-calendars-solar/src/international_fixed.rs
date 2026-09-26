@@ -42,8 +42,12 @@
 //!   (Acomb, York: the author), the archive.org copy
 //!   `rationalalmanact00cotsuoft` from the University of Toronto, whose
 //!   introduction is dated Christmas 1902 and whose tables are "fixed from
-//!   Christmas, 1916" — the issue archive.org dates 1916; the roadmap's
-//!   1905 is the date usually given for the book. Its introduction gives the proposal in three steps:
+//!   Christmas, 1916" — the issue archive.org dates 1916. Wikipedia,
+//!   "International Fixed Calendar", retrieved 2026-09-26, cites the book
+//!   as published by the author in 1905, from a Google Books record, and
+//!   dates the first presentation of the plan to 1902
+//!   (`wikipedia-international-fixed-calendar`); no 1905 issue was read.
+//!   The 1916 issue's introduction gives the proposal in three steps:
 //!   Christmas Day "set apart as the extra yearly day ... without any
 //!   week-day name", "Leap Day" "as a Public Holiday without any week-day
 //!   name", and "13 months of 4 weeks each ... by inserting a Mid-Summer
@@ -51,7 +55,8 @@
 //!   "The Special Day" or "Year Day", and puts Leap Day at the end of June,
 //!   where "it would, by my plan, always fall as an extra Saturday" — which
 //!   fixes the 28th of every month as a Saturday and the 1st as a Sunday.
-//! * Wikipedia, "International Fixed Calendar", retrieved 2026-09-25, for
+//! * Wikipedia, "International Fixed Calendar", retrieved 2026-09-25 and
+//!   2026-09-26 (`wikipedia-international-fixed-calendar`), for
 //!   the League's settled form — Year Day after 28 December, Leap Day
 //!   between Saturday 28 June and Sunday 1 Sol, neither in any week, the
 //!   Gregorian leap rule — and for Kodak's use of it from 1928 to 1989.

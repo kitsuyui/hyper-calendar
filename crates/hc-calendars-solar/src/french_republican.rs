@@ -16,9 +16,9 @@
 //!
 //! What is implemented is the arithmetic rule Charles-Gilbert Romme proposed
 //! in 1795 and never got adopted, in the form Reingold and Dershowitz give
-//! as `fixed-from-arithmetic-french`: a leap year every fourth year, with
-//! the Gregorian century exception and a further exception every four
-//! thousand years. Its mean year is 365.24225 days.
+//! as `fixed-from-arithmetic-french` (`reingold2018code`): a leap year
+//! every fourth year, with the Gregorian century exception and a further
+//! exception every four thousand years. Its mean year is 365.24225 days.
 //!
 //! **The two variants disagree, and early.** The equinox put the sextile day
 //! at the end of An III, An VII and An XI; the Romme rule puts it at the end

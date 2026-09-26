@@ -7,10 +7,11 @@
 use hc_astro::riseset::Location;
 
 /// The adopted Central Station of India, 23°11′ N 82°30′ E: the point the
-/// Calendar Reform Committee of 1955 fixed for the national calendar, whose
-/// local mean time is Indian Standard Time to the second, and whose
-/// sunrise the *Rashtriya Panchang* reads each day's tithi at. At sea
-/// level, so that sunrise is the almanac's sunrise.
+/// Calendar Reform Committee of 1955 fixed for the national calendar
+/// (`crc1955`, p. 4), whose local mean time is Indian Standard Time to the
+/// second, and whose sunrise the *Rashtriya Panchang* reads each day's
+/// tithi at (`rashtriya-panchang-1945`). At sea level, so that sunrise is
+/// the almanac's sunrise.
 pub const CENTRAL_STATION: Location = Location::new(23.183_333, 82.5, 0.0);
 
 /// Ujjain, 23°9′ N, 75°46′6″ E — the *Ujjayinī* of the classical
@@ -19,17 +20,11 @@ pub const CENTRAL_STATION: Location = Location::new(23.183_333, 82.5, 0.0);
 /// computation, at the coordinates their published code gives
 /// (`reingold2018code`, `ujjain`: `(angle 23 9 0) (angle 75 46 6)`), the
 /// same longitude [`crate::surya_siddhanta::UJJAIN_LONGITUDE_DEGREES`]
-/// uses. The city's modern coordinates, 23.1765° N, 75.7885° E, which an
-/// earlier version of this constant carried under the same citation, lie
-/// about a minute of arc away, five seconds of sunrise; over 1700–2299 the
-/// change moves the sunrise tithi at Ujjain on sixteen days, 7 January
-/// 1995 the only one in the twentieth century.
+/// uses. The city's modern coordinates, 23.1765° N, 75.7885° E, lie about
+/// a minute of arc away, five seconds of sunrise; over 1700–2299 the two
+/// put a different sunrise tithi at Ujjain on sixteen days, 7 January 1995
+/// the only one in the twentieth century.
 pub const UJJAIN: Location = Location::new(23.15, 75.0 + 46.0 / 60.0 + 6.0 / 3_600.0, 0.0);
-
-/// New Delhi, 28.6139° N, 77.2090° E — the city the Government of India's
-/// holiday lists are drawn up for, and the first of the four whose sunrise
-/// the *Rashtriya Panchang* tabulates.
-pub const NEW_DELHI: Location = Location::new(28.613_9, 77.209_0, 0.0);
 
 /// Kathmandu, 27°42′36″ N 85°19′12″ E — the city whose sunrise the
 /// Nepal Sambat is judged at here (Wikipedia, "Kathmandu", retrieved

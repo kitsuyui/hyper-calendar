@@ -11,6 +11,17 @@
 //! stores a signed year — 1911 CE is year 0 internally — and translates to
 //! and from the two era codes [`ERA_REPUBLIC`] and [`ERA_BEFORE_REPUBLIC`]
 //! at the field boundary, exactly as [`crate::julian`] does for BC and AD.
+//!
+//! Source: Chinese Wikipedia, 民國紀年, retrieved 2026-09-26
+//! (`zhwiki-minguo-jinian`): the count from 1 January 1912, when Sun
+//! Yat-sen took office as provisional president and dated his inaugural
+//! declaration 大中華民國元年元旦, and his circular telegram of 2 January
+//! making the first day of the first year the solar calendar's; 民國前 N 年
+//! for the years before, as the Household Registration Department of the
+//! Ministry of the Interior tabulates them (not read here); and the
+//! Chinese People's Political Consultative Conference's decision of
+//! 27 September 1949 that the People's Republic count years by the common
+//! era, in force on the mainland from 1 October 1949.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
@@ -29,8 +40,9 @@ pub const ERA_REPUBLIC: &str = "roc";
 pub const ERA_BEFORE_REPUBLIC: &str = "broc";
 
 /// Where the period of use comes from.
-pub const USAGE_SOURCE: &str = "Counted from the founding of the Republic on 1 January 1912, as this module states, and \
-    official in Taiwan today; used on the mainland until 1949";
+pub const USAGE_SOURCE: &str = "Counted from the founding of the Republic on 1 January 1912, and official in Taiwan \
+    today; replaced on the mainland from 1 October 1949 by the common era, under the CPPCC \
+    decision of 27 September 1949 [zhwiki-minguo-jinian]";
 
 /// The earliest signed year this implementation converts.
 pub const MIN_YEAR: i64 = gregorian::MIN_YEAR + YEAR_OFFSET;

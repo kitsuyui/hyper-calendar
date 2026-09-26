@@ -7,9 +7,11 @@
 //!
 //! Also called 神武天皇即位紀元, 皇紀, 紀元 and, in English, the Japanese
 //! imperial year. The Meiji government adopted it in 1872 together with the
-//! Gregorian calendar, and it was in official use until 1945; it survives in
-//! the names of things dated when it was current, most famously the Mitsubishi
-//! A6M "Zero", named for Kōki 2600 (1940).
+//! Gregorian calendar, and it was in official use through the Second World
+//! War; this library takes the end of 1945 as the close of that use, a
+//! choice of its own, since no instrument abolishing the era has been
+//! found. It survives in the names of things dated when it was current,
+//! most famously the Mitsubishi A6M "Zero", named for Kōki 2600 (1940).
 //!
 //! # What this module does and does not claim
 //!
@@ -175,10 +177,11 @@ impl Calendar for KokiCalendar {
         Ok(is_leap_year(year))
     }
 
-    /// Adopted together with the Gregorian calendar, and in official use
-    /// until 1945. Earlier dates compute correctly and are back-projections
-    /// onto a calendar Japan was not using; the `proleptic` field on the
-    /// date fields says the same thing per date.
+    /// Adopted together with the Gregorian calendar, and in official use to
+    /// the end of 1945, the close this library chooses. Earlier dates
+    /// compute correctly and are back-projections onto a calendar Japan was
+    /// not using; the `proleptic` field on the date fields says the same
+    /// thing per date.
     fn usage(&self) -> hc_calendar::Usage {
         hc_calendar::Usage::between(
             PROLEPTIC_BEFORE,

@@ -19,7 +19,7 @@
 //! on 8 Falgun, 26 March on 12 Choitro, 14 April on 1 Boishakh, 5 August
 //! on 21 Srabon and 16 December on 1 Poush.
 //!
-//! | Month | Bengali | 1987–1425 | From 1426 | Begins (from 1426) |
+//! | Month | Bengali | 1394–1425 | From 1426 | Begins (from 1426) |
 //! | --- | --- | --- | --- | --- |
 //! | Boishakh | বৈশাখ | 31 | 31 | 14 April |
 //! | Joishtho | জ্যৈষ্ঠ | 31 | 31 | 15 May |
@@ -46,11 +46,19 @@
 //! under which 29 February always falls in Falgun and the months open on
 //! the same Gregorian dates every year, as the revised table gives them.
 //!
+//! The calendar, its decrees and the Nanakshahi calendar built the same way
+//! are written up in `docs/systems/fixed-solar-namings.md` in the
+//! repository.
+//!
 //! Sources: Wikipedia, "Bangladeshi national calendar", retrieved
 //! 2026-09-23, for the months, both sets of lengths, the start dates, the
 //! 1966 committee, the 1987 adoption, the 2018 revision and the day it
 //! took effect, and the national days' Bengali dates; Wikipedia, "Bengali
-//! calendar", retrieved 2026-09-23, for the same table and the era.
+//! calendar", retrieved 2026-09-23 and 2026-09-26
+//! (`wikipedia-bengali-calendars`), to which the first title now
+//! redirects, for the same table and the era. The decree-level facts rest
+//! on these secondary pages: the Bangla Academy's and the Cabinet
+//! Division's notices of 1987 and 2019 were not read.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
@@ -149,9 +157,10 @@ pub const ADOPTED: Rd = match gregorian::to_fixed(1987, 4, 14) {
 };
 
 /// Where the period of use comes from.
-pub const USAGE_SOURCE: &str = "Wikipedia, \"Bangladeshi national calendar\", retrieved 2026-09-23 and 2026-09-26: adopted \
-    by Bangladesh in 1987, the year only, so the Pohela Boishakh of that year is taken; \
-    the 2019 revision in effect from 16 October 2019";
+pub const USAGE_SOURCE: &str = "Wikipedia, \"Bangladeshi national calendar\" [wikipedia-bengali-calendars], \
+    retrieved 2026-09-23 and 2026-09-26: adopted by Bangladesh in 1987, the year only, so \
+    the Pohela Boishakh of that year is taken; the 2019 revision in effect from 16 October \
+    2019";
 
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = Rd(new_year_raw(MIN_YEAR));

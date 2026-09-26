@@ -10,10 +10,11 @@
 //!   a month ends at the full moon, so the dark fortnight comes first and
 //!   takes the following bright fortnight's name. `hindu-lunar-purnimanta`.
 //! * [`hindu_solar`] — the solar reckonings of Tamil Nadu, Kerala, Bengal
-//!   and the Vikrami regions (Punjab, Haryana, Odisha): a month is the Sun's
-//!   stay in a sidereal sign, and each region has its own rule for the day
-//!   the month begins. `hindu-solar-tamil`, `hindu-solar-malayalam`,
-//!   `hindu-solar-bengali`, `hindu-solar-vikrami`.
+//!   and the Vikrami regions (Punjab and Haryana, whose months Odisha
+//!   shares under its own years): a month is the Sun's stay in a sidereal
+//!   sign, and each region has its own rule for the day the month begins.
+//!   `hindu-solar-tamil`, `hindu-solar-malayalam`, `hindu-solar-bengali`,
+//!   `hindu-solar-vikrami`.
 //! * [`tithi`] — the lunar day itself: which tithi is in progress at a
 //!   moment, and which a civil day carries.
 //! * [`nakshatra`] — the Moon's station among the twenty-seven: which is
@@ -40,7 +41,7 @@
 //! * [`surya_siddhanta`] — the Sun of the *Sūrya Siddhānta*, whose
 //!   saṅkrāntis the traditional almanacs keep.
 //! * [`places`] — the sunrise that reads the day: the Central Station of
-//!   the national calendar, Ujjain of the classical almanacs, New Delhi,
+//!   the national calendar, Ujjain of the classical almanacs, and
 //!   Kathmandu.
 //!
 //! # What is here and what is not yet
@@ -50,7 +51,7 @@
 //! pūrṇimānta form is the north's naming of the same days; the four solar
 //! reckonings are the civil calendars of the south, the east and the
 //! north-west; the Bikram Sambat is Nepal's. What is still to come — the
-//! Odia Amli and Vilayati years, the sixty-year names on the southern
+//! Odia Vilayati year, the sixty-year names on the southern
 //! lunisolar year and the northern Bārhaspatya cycle, the Bikram Sambat's
 //! gazetted months outside 2080–2083 — `docs/calendars.md` lists.
 //!

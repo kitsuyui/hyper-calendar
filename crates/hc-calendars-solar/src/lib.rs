@@ -7,15 +7,17 @@
 //! because the answer would depend on an ephemeris and would change when the
 //! model behind it improved.
 //!
-//! Three calendars sit exactly on that line and are here anyway, under names
+//! Four calendars sit exactly on that line and are here anyway, under names
 //! that say so: [`persian::ArithmeticPersianCalendar`] and
+//! [`persian_33::ThirtyThreeYearPersianCalendar`], the two published cycles
+//! for the Iranian year, and
 //! [`french_republican::ArithmeticFrenchRepublicanCalendar`] implement the
 //! arithmetic *approximations* of calendars that are astronomically defined,
 //! and [`bahai::ArithmeticBahaiCalendar`] implements the pre-2015 Western
 //! form of a calendar that has since become astronomical. Each of those
 //! modules documents what it is not, and the astronomical calendars they
 //! approximate are in `hc-calendars-equinox`, under `persian`,
-//! `bahai-astronomical` and `french-republican-equinox`. A fourth,
+//! `bahai-astronomical` and `french-republican-equinox`. A fifth,
 //! [`bahai_kept::BahaiCalendar`], is a *published table* rather than
 //! astronomy — the Bahá'í World Centre's dates for 172–221 BE, joined to the
 //! arithmetic calendar that was kept before — and stops where the table
@@ -29,7 +31,7 @@
 //! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`koki`], [`indian`], [`nanakshahi`], [`bangladeshi`], [`discordian`], [`assyrian`], [`soviet_week`] |
 //! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`armenian`], [`armenian_fixed`], [`french_republican`], [`zoroastrian`], [`mandaean`] |
 //! | Day counts | [`julian_day`], [`day_counts`] |
-//! | Cycle-based | [`persian`], [`bahai`], [`bahai_kept`] |
+//! | Cycle-based | [`persian`], [`persian_33`], [`bahai`], [`bahai_kept`] |
 //! | Proposed reforms | [`symmetry454`], [`symmetry010`] (both on [`symmetry`]), [`world_calendar`], [`international_fixed`], [`positivist`], [`hanke_henry`] |
 //! | A pure week cycle | [`qumran`] |
 //! | Not calendars | [`cycles`] (the computus cycles), [`year_style`] (where the year began), [`adoption`] (when each country took the Gregorian calendar) |
@@ -91,6 +93,7 @@ pub mod minguo;
 pub mod nanakshahi;
 pub mod ordinal;
 pub mod persian;
+pub mod persian_33;
 pub mod positivist;
 pub mod qumran;
 pub mod revised_julian;
@@ -139,6 +142,7 @@ pub use minguo::{MinguoCalendar, MinguoDate};
 pub use nanakshahi::{NanakshahiCalendar, NanakshahiDate};
 pub use ordinal::{OrdinalCalendar, OrdinalDate};
 pub use persian::{ArithmeticPersianCalendar, PersianDate};
+pub use persian_33::ThirtyThreeYearPersianCalendar;
 pub use positivist::{PositivistCalendar, PositivistDate};
 pub use qumran::{QumranCalendar, QumranDate};
 pub use revised_julian::{RevisedJulianCalendar, RevisedJulianDate};
@@ -189,6 +193,9 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::ArmenianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ArmenianFixedCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ArithmeticPersianCalendar)));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::ThirtyThreeYearPersianCalendar,
+        )));
         registry.insert(Box::new(DynAdapter::new(crate::IndianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::NanakshahiCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BangladeshiCalendar)));
@@ -241,7 +248,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 53;
+const CALENDAR_COUNT: usize = 54;
 
 #[cfg(test)]
 mod tests {
@@ -307,6 +314,7 @@ mod tests {
                 EgyptianCalendar,
                 ArmenianCalendar,
                 ArithmeticPersianCalendar,
+                ThirtyThreeYearPersianCalendar,
                 IndianCalendar,
                 NanakshahiCalendar,
                 BangladeshiCalendar,
@@ -356,6 +364,7 @@ mod tests {
             EgyptianCalendar.meta(),
             ArmenianCalendar.meta(),
             ArithmeticPersianCalendar.meta(),
+            ThirtyThreeYearPersianCalendar.meta(),
             IndianCalendar.meta(),
             ArithmeticBahaiCalendar.meta(),
             BahaiCalendar.meta(),
@@ -543,6 +552,10 @@ mod tests {
             assert_eq!(
                 DynAdapter::new(ArithmeticPersianCalendar).is_leap_year(year),
                 Ok(persian::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(ThirtyThreeYearPersianCalendar).is_leap_year(year),
+                Ok(persian_33::is_leap_year(year))
             );
             assert_eq!(
                 DynAdapter::new(ArithmeticFrenchRepublicanCalendar).is_leap_year(year),
