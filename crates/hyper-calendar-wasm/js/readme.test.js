@@ -208,6 +208,19 @@ test("the Earth's rotation and the Sun's hours read the README's columns in orde
   assert.deepEqual([...COLUMNS.solarEvent], columnsOfTableStarting("instant"));
 });
 
+test("the planetary lines read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.marsTime], columnsAfter("## Mars time"));
+  assert.deepEqual([...COLUMNS.missions], columnsAfter("### Mission sols"));
+  assert.deepEqual([...COLUMNS.bodies], columnsAfter("## Other bodies"));
+  assert.deepEqual([...COLUMNS.bodyTime], columnsAfter("### Local time on a body"));
+});
+
+test("the relativity lines read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.properTime], columnsAfter("## Relativity"));
+  assert.deepEqual([...COLUMNS.gravitationalDilation], columnsAfter("### A clock at a radius"));
+  assert.deepEqual([...COLUMNS.gravitatingBodies], columnsAfter("### The gravitating bodies"));
+});
+
 test("the layer table names every feature the binding knows", () => {
   const features = new Set(METHODS.map((entry) => entry.feature).filter((feature) => feature !== null));
   for (const feature of features) {

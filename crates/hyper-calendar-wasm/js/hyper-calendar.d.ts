@@ -52,7 +52,18 @@ export type BindingErrorName =
   | "unrecognised-sentinel";
 
 /** The Cargo features the exports are gated by. */
-export type Feature = "civil" | "timestamps" | "calendars" | "holiday" | "seasons" | "deep-time" | "tz" | "sky" | "orbital";
+export type Feature =
+  | "civil"
+  | "timestamps"
+  | "calendars"
+  | "holiday"
+  | "seasons"
+  | "deep-time"
+  | "tz"
+  | "sky"
+  | "orbital"
+  | "planetary"
+  | "relativity";
 
 /** One method of `HyperCalendar` and the export it stands for. */
 export interface MethodEntry {
@@ -87,6 +98,13 @@ export const COLUMNS: {
   readonly value: ReadonlyArray<string>;
   readonly solarTime: ReadonlyArray<string>;
   readonly solarEvent: ReadonlyArray<string>;
+  readonly marsTime: ReadonlyArray<string>;
+  readonly missions: ReadonlyArray<string>;
+  readonly bodies: ReadonlyArray<string>;
+  readonly bodyTime: ReadonlyArray<string>;
+  readonly properTime: ReadonlyArray<string>;
+  readonly gravitationalDilation: ReadonlyArray<string>;
+  readonly gravitatingBodies: ReadonlyArray<string>;
 };
 export const UNITS: readonly Unit[];
 export const NATIVE: "native";
@@ -431,6 +449,153 @@ export interface OrbitSample extends Orbit {
   yearsBefore1950: number;
 }
 
+/**
+ * The one line of `hc_mars_time`: Mars at an instant and an east
+ * longitude, from the Mars24 restatement of Allison and McEwen.
+ */
+export interface MarsTime {
+  /** The Mars Sol Date. */
+  marsSolDate: number;
+  /** Coordinated Mars Time, `HH:MM:SS` on the 24-hour Martian clock, truncated. */
+  mtc: string;
+  /** Coordinated Mars Time in decimal Martian hours. */
+  mtcHours: number;
+  /** Local mean solar time at the longitude, `HH:MM:SS`. */
+  lmst: string;
+  lmstHours: number;
+  /** Local true solar time at the longitude, `HH:MM:SS`: what a sundial reads. */
+  ltst: string;
+  ltstHours: number;
+  /** True minus mean solar time, in Martian minutes. */
+  equationOfTimeMinutes: number;
+  /** The areocentric solar longitude `Ls`, in degrees. */
+  solarLongitude: number;
+  /** The Mars year under the Clancy convention, year 1 from 1955-04-11. */
+  marsYear: number;
+  /** The Darian date at Airy-0: year, month 1 to 24, sol of the month, and their names. */
+  darian: { year: number; month: number; sol: number; monthName: string; solOfWeek: string };
+  /** The series and the constants, by name. */
+  source: string;
+}
+
+/** Where a mission clock's midnight is. */
+export type MissionClock = "local-mean-solar-time" | "local-true-solar-time-at-landing";
+
+/** One line of `hc_missions`. */
+export interface Mission {
+  /** Lower case, a hyphen for each space: `viking-1`. */
+  id: string;
+  name: string;
+  /** The landing instant, UTC, as the table writes it. */
+  landingUtc: string;
+  /** The landing instant as a POSIX timestamp. */
+  landingUnix: number;
+  /** 0 or 1, the number of the landing sol; `null` where no convention was published. */
+  landingSol: number | null;
+  /** `null` where no convention was published. */
+  clock: MissionClock | null;
+  /** The east longitude the clock was built on; `null` where no convention was published. */
+  clockEastLongitude: number | null;
+  /** The achieved site's east longitude. */
+  siteEastLongitude: number;
+  /** Whether the operators published the convention. */
+  published: boolean;
+  note: string;
+  source: string;
+}
+
+/** What kind of object a body is. */
+export type BodyKind = "star" | "planet" | "dwarf-planet" | "moon";
+
+/** Whether a clock's zero point is a standard or a convention this library declares. */
+export type ZeroPoint = "standard" | "convention";
+
+/** One line of `hc_bodies`. */
+export interface Body {
+  /** The name in lower case: `titan`. */
+  id: string;
+  name: string;
+  kind: BodyKind;
+  /** The identifier of the body it orbits; `null` for the Sun. */
+  primary: string | null;
+  /** The sidereal rotation period in hours, negative for a retrograde rotator. */
+  siderealRotationHours: number;
+  /** The solar day in SI seconds; `null` for the Sun. */
+  solarDaySeconds: number | null;
+  /** Whether the solar day is a measured constant or derived from the table. */
+  solarDayOrigin: "measured" | "derived" | null;
+  /** The year in local solar days; `null` for the Sun. */
+  yearInLocalDays: number | null;
+  zeroPoint: ZeroPoint;
+  /** What the zero point is. */
+  zeroPointNote: string;
+  source: string;
+  /** The status of a standard still being drawn up: the Moon's Coordinated Lunar Time; `null` elsewhere. */
+  status: string | null;
+}
+
+/** The one line of `hc_body_time`: local mean solar time on a body. */
+export interface BodyTime {
+  /** The local day number, counted from the body's zero point. */
+  day: number;
+  /** The fraction of the local day elapsed, 0 to 1. */
+  fraction: number;
+  /** `HH:MM:SS` on a 24-hour local face, truncated. */
+  time: string;
+  /** Decimal local hours. */
+  hours: number;
+  solarDaySeconds: number;
+  localHourSeconds: number;
+  zeroPoint: ZeroPoint;
+  zeroPointNote: string;
+}
+
+/** The one line of `hc_proper_time`: a clock at a constant speed. */
+export interface ProperTime {
+  /** The speed as a fraction of `SPEED_OF_LIGHT`. */
+  beta: number;
+  /** γ. */
+  lorentzFactor: number;
+  /** The proper time the moving clock records, in seconds. */
+  properSeconds: number;
+  /** dτ/dt = 1/γ. */
+  rate: number;
+  /** The rate's offset from 1 in microseconds per 86 400-second day; negative. */
+  microsecondsPerDay: number;
+  /** The `hc-relativity` constants used, by name. */
+  constants: string[];
+  source: string;
+}
+
+/** The one line of `hc_gravitational_dilation`: a clock held still at a radius. */
+export interface GravitationalDilation {
+  id: string;
+  /** GM in m³ s⁻². */
+  gm: number;
+  /** The `hc-relativity` constant that holds `gm`. */
+  gmConstant: string;
+  /** 2GM/c², in metres. */
+  schwarzschildRadius: number;
+  /** dτ/dt = √(1 − r_s/r) against a clock far from every mass. */
+  factor: number;
+  /** The factor's offset from 1 in microseconds per 86 400-second day; negative. */
+  microsecondsPerDay: number;
+  /** The `hc-relativity` constants used, by name. */
+  constants: string[];
+  source: string;
+}
+
+/** One line of `hc_gravitating_bodies`. */
+export interface GravitatingBody {
+  id: string;
+  name: string;
+  /** GM in m³ s⁻². */
+  gm: number;
+  /** The `hc-relativity` constant that holds `gm`. */
+  gmConstant: string;
+  source: string;
+}
+
 /** A TAI64 label's format. */
 export type Tai64Format = "tai64" | "tai64n" | "tai64na";
 
@@ -764,6 +929,23 @@ export class HyperCalendar {
    * samples is `out-of-range`, and a `to` before `from` is empty.
    */
   orbitSeries(fromYearsBefore1950: number, toYearsBefore1950: number, stepYears: number): OrbitSample[];
+
+  /** `hc_mars_time`; an instant more than 100 Julian years from J2000.0 is `out-of-range`. */
+  marsTime(unixSeconds: number, eastLongitude?: number): MarsTime;
+  /** `hc_missions`. */
+  missions(): Mission[];
+  /** `hc_mission_sol`; an unpublished convention is `no-data`, an instant before the landing sol `out-of-range`. */
+  missionSol(mission: string, unixSeconds: number): number;
+  /** `hc_bodies`. */
+  bodies(): Body[];
+  /** `hc_body_time`; the Sun is `no-data`. */
+  bodyTime(body: string, unixSeconds: number, eastLongitude?: number): BodyTime;
+  /** `hc_proper_time`; a speed at or beyond light is `out-of-range`. */
+  properTime(speedMetresPerSecond: number, coordinateSeconds: number): ProperTime;
+  /** `hc_gravitational_dilation`; a radius at or inside the horizon is `out-of-range`. */
+  gravitationalDilation(body: string, radiusMetres: number): GravitationalDilation;
+  /** `hc_gravitating_bodies`. */
+  gravitatingBodies(): GravitatingBody[];
 }
 
 /**

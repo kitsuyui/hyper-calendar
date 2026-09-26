@@ -43,8 +43,16 @@ sky = ["civil", "hc/seasons"]
 # The orbit: Earth's orbital elements and the June insolation at 65° N, a
 # million years either side of 1950, from Berger's 1978 series.
 orbital = ["hc/orbital"]
+# Time on other bodies: Mars time and the Darian date, the surface
+# missions' sol counts, and the solar day and local mean solar time of every
+# body in hc-planetary's table.
+planetary = ["hc/planetary"]
+# Relativistic time dilation: a clock at a constant velocity, and one held
+# still at a radius from a mass, from hc-relativity. A layer of its own, not
+# part of `planetary`, because neither needs the other's crates.
+relativity = ["hc/relativity"]
 # Every layer.
-full = ["civil", "timestamps", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "hc/full"]
+full = ["civil", "timestamps", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "planetary", "relativity", "hc/full"]
 
 [dependencies]
 hc = { package = "hyper-calendar", version = "0.1.0", path = "../hyper-calendar", default-features = false, features = ["std"] }

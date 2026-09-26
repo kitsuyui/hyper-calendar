@@ -51,6 +51,10 @@ Coordinated Lunar Time is tracked as *researching*: the 2024 US policy
 directive asked for one, the standard is still being defined, and inventing a
 definition would be worse than waiting.
 
+The WebAssembly module and the C library carry Mars time, the mission sols,
+the body table and each body's local mean solar time as their `planetary`
+layer; `crates/hyper-calendar-wasm/README.md` gives the lines.
+
 ## `hc-relativity`
 
 Time dilation is the part that makes an interstellar timeline computable.
@@ -74,6 +78,10 @@ The canonical check is GPS: a satellite clock runs about +45.7 µs/day fast from
 the weaker gravitational potential and about −7.2 µs/day slow from its orbital
 speed, for a net +38.4 µs/day. That number is in the test suite, because if the
 library gets it wrong nothing else it says about relativity is trustworthy.
+
+The two boundary crates carry a constant-velocity clock and a clock held
+still at a radius as their `relativity` layer, a layer of its own because it
+shares no crate with `planetary`; each line names the constants it used.
 
 ### Worldlines
 

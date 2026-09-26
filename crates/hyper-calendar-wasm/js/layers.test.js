@@ -90,6 +90,14 @@ test("a method of another layer throws not-exported when called, not at load", (
     ut2MinusUt1: () => hc.ut2MinusUt1(0),
     solarTime: () => hc.solarTime("temporal", 0, 51.5, 0),
     solarEvent: () => hc.solarEvent("asr-shafii", 739_880, 51.5, 0),
+    marsTime: () => hc.marsTime(947_116_800),
+    missions: () => hc.missions(),
+    missionSol: () => hc.missionSol("curiosity", 1_700_000_000),
+    bodies: () => hc.bodies(),
+    bodyTime: () => hc.bodyTime("titan", 947_116_800),
+    properTime: () => hc.properTime(7_800, 86_400),
+    gravitationalDilation: () => hc.gravitationalDilation("earth", 6_378_137),
+    gravitatingBodies: () => hc.gravitatingBodies(),
   };
   const gated = METHODS.filter((entry) => entry.feature !== null && entry.feature !== "civil");
   assert.deepEqual(Object.keys(calls).sort(), gated.map((entry) => entry.method).sort(), "every gated method is tried");
