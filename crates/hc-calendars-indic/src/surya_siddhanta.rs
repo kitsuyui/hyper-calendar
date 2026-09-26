@@ -1,5 +1,6 @@
-//! The Sun of the *Sūrya Siddhānta*: the classical model whose saṅkrāntis
-//! the traditional almanacs still keep.
+//! The Sun and Moon of the *Sūrya Siddhānta*: the classical model whose
+//! saṅkrāntis and tithis the traditional almanacs still keep, and the
+//! sunrise it reads the day at.
 //!
 //! The Siddhānta moves a mean Sun uniformly round a sidereal zodiac and
 //! corrects it by an epicycle whose size shrinks with the anomaly, and it
@@ -20,7 +21,13 @@
 //! `hindu-mean-position`, `hindu-true-position` and
 //! `hindu-solar-longitude`, with the sidereal and anomalistic years, the
 //! epicycle of 14⁄360 shrinking by 1⁄42, and the table's rounding
-//! correction of 0.215 as they give them. The constants and the order of
+//! correction of 0.215 as they give them; `hindu-lunar-longitude`, with
+//! the sidereal month, the anomalistic month with the *bīja* and the
+//! epicycle of 32⁄360 shrinking by 1⁄96, `hindu-lunar-phase` and
+//! `hindu-lunar-day-from-moment`; and `hindu-sunrise`, with
+//! `hindu-equation-of-time`, `hindu-ascensional-difference`,
+//! `hindu-tropical-longitude`, `hindu-rising-sign`, `hindu-daily-motion`
+//! and `hindu-solar-sidereal-difference`, read 2026-09-27. The constants and the order of
 //! operations were checked line by line against `modern_hindu.R` of the
 //! `calcal` package on CRAN, an implementation of the book's functions,
 //! retrieved 2026-09-23.
@@ -33,7 +40,10 @@
 //! years before the epoch, so the mean Sun is counted from the epoch
 //! instead, and the mean anomaly from the epoch plus the fraction of an
 //! anomalistic revolution the creation-to-epoch interval leaves over,
-//! which is exactly 0.785 75.
+//! which is exactly 0.785 75. The Moon is counted the same way: the
+//! interval is a whole number of sidereal months, so the mean Moon stands
+//! at zero at the epoch, and 25 926 790 776¾ anomalistic months, so its
+//! anomaly stands at three quarters.
 //!
 //! # Whose clock
 //!
@@ -46,6 +56,8 @@
 //! choice of Ujjain's meridian over India's or Nepal's standard time does
 //! not move any of them.
 
+use hc_astro::riseset::Location;
+use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
 use hc_core::math::{abs, ceil, floor, round, sin_deg};
 use hc_seasons::zodiac::SiderealSign;
@@ -57,6 +69,23 @@ pub const SIDEREAL_YEAR: f64 = 1_577_917_828.0 / 4_320_000.0;
 /// The anomalistic year: the same days in 4 320 000 000 − 387 revolutions
 /// of the apsis, 365.258 789 days.
 pub const ANOMALISTIC_YEAR: f64 = 1_577_917_828_000.0 / 4_319_999_613.0;
+
+/// The sidereal month: the days of a *mahāyuga* in 57 753 336 revolutions
+/// of the Moon, 27.321 674 days (`hindu-sidereal-month`).
+pub const SIDEREAL_MONTH: f64 = 1_577_917_828.0 / 57_753_336.0;
+
+/// The anomalistic month, with the *bīja*: the same days in 57 753 336 −
+/// 488 199 revolutions of the Moon's apsis, 27.554 598 days
+/// (`hindu-anomalistic-month`).
+pub const ANOMALISTIC_MONTH: f64 = 1_577_917_828.0 / 57_265_137.0;
+
+/// The mean synodic month, 29 + 7 087 771⁄13 358 334 days, 29.530 588
+/// (`hindu-synodic-month`): the sidereal month against the sidereal year.
+pub const SYNODIC_MONTH: f64 = 29.0 + 7_087_771.0 / 13_358_334.0;
+
+/// The fraction of an anomalistic month between the creation and the
+/// epoch: 1 955 880 000 sidereal years are 25 926 790 776¾ of them.
+const MOON_ANOMALY_AT_EPOCH: f64 = 0.75;
 
 /// The Kali Yuga epoch, Friday 18 February 3102 BCE in the Julian
 /// calendar, as a fixed day number (`reingold2018code`, `hindu-epoch`).
@@ -136,14 +165,168 @@ fn true_position(mean: f64, anomaly: f64, size: f64, change: f64) -> f64 {
     longitude - 360.0 * floor(longitude / 360.0)
 }
 
+/// Ujjain's local time, the book's clock, at a moment in Universal Time.
+fn local(moment: Moment) -> f64 {
+    moment.0 + UJJAIN_LONGITUDE_DEGREES / 360.0
+}
+
+/// The Sun's mean anomaly, as a fraction of a revolution, at a moment of
+/// Ujjain's local time.
+fn solar_anomaly(local: f64) -> f64 {
+    fraction((local - EPOCH) / ANOMALISTIC_YEAR + ANOMALY_AT_EPOCH)
+}
+
+/// The Sun's sidereal longitude in degrees at a moment of Ujjain's local
+/// time.
+fn solar_longitude_local(local: f64) -> f64 {
+    let mean = fraction((local - EPOCH) / SIDEREAL_YEAR);
+    true_position(mean, solar_anomaly(local), 14.0 / 360.0, 1.0 / 42.0)
+}
+
 /// The Sun's sidereal longitude in degrees at a moment in Universal Time
 /// (`hindu-solar-longitude`).
 #[must_use]
 pub fn solar_longitude(moment: Moment) -> f64 {
-    let days = moment.0 + UJJAIN_LONGITUDE_DEGREES / 360.0 - EPOCH;
-    let mean = fraction(days / SIDEREAL_YEAR);
-    let anomaly = fraction(days / ANOMALISTIC_YEAR + ANOMALY_AT_EPOCH);
-    true_position(mean, anomaly, 14.0 / 360.0, 1.0 / 42.0)
+    solar_longitude_local(local(moment))
+}
+
+/// The Moon's sidereal longitude in degrees at a moment in Universal Time
+/// (`hindu-lunar-longitude`).
+#[must_use]
+pub fn lunar_longitude(moment: Moment) -> f64 {
+    let days = local(moment) - EPOCH;
+    let mean = fraction(days / SIDEREAL_MONTH);
+    let anomaly = fraction(days / ANOMALISTIC_MONTH + MOON_ANOMALY_AT_EPOCH);
+    true_position(mean, anomaly, 32.0 / 360.0, 1.0 / 96.0)
+}
+
+/// The Moon's elongation from the Sun in degrees, 0 to 360, at a moment in
+/// Universal Time (`hindu-lunar-phase`).
+#[must_use]
+pub fn lunar_phase(moment: Moment) -> f64 {
+    let phase = lunar_longitude(moment) - solar_longitude(moment);
+    phase - 360.0 * floor(phase / 360.0)
+}
+
+/// The number, 1 to 30, of the tithi in progress at a moment in Universal
+/// Time (`hindu-lunar-day-from-moment`).
+#[must_use]
+pub fn tithi_at(moment: Moment) -> u8 {
+    (floor(lunar_phase(moment) / 12.0) as u8).min(29) + 1
+}
+
+/// The first conjunction at or after a moment: the instant the elongation
+/// returns to zero.
+///
+/// The book finds the conjunction before a moment only as closely as the
+/// sign it falls in needs (`hindu-new-moon-before`); this finds the
+/// instant, since a month here begins with the first sunrise after it.
+#[must_use]
+pub fn conjunction_at_or_after(moment: Moment) -> Moment {
+    let phase = lunar_phase(moment);
+    if phase == 0.0 {
+        return moment;
+    }
+    // Carried at the mean rate from where the Moon stands, the estimate is
+    // off by no more than the two equations of centre together, under
+    // seven and a half degrees of elongation and so under two thirds of a
+    // day.
+    let estimate = moment.0 + (360.0 - phase) / 360.0 * SYNODIC_MONTH;
+    let mut low = (estimate - 1.5).max(moment.0);
+    let mut high = estimate + 1.5;
+    // Just before the conjunction the elongation is close to 360, just
+    // after it close to 0.
+    for _ in 0..64 {
+        let middle = (low + high) / 2.0;
+        if lunar_phase(Moment(middle)) < 180.0 {
+            high = middle;
+        } else {
+            low = middle;
+        }
+    }
+    Moment(high)
+}
+
+/// `x` into `[low, high)`, as the book's `mod3`.
+fn wrap(x: f64, low: f64, high: f64) -> f64 {
+    let span = high - low;
+    low + (x - low - span * floor((x - low) / span))
+}
+
+/// The Sun's daily motion in degrees on a day, `date` its midnight in
+/// Ujjain's local time (`hindu-daily-motion`).
+fn daily_motion(date: f64) -> f64 {
+    let mean_motion = 360.0 / SIDEREAL_YEAR;
+    let anomaly = 360.0 * solar_anomaly(date);
+    let epicycle = 14.0 / 360.0 - abs(sine(anomaly)) / 1_080.0;
+    let entry = floor(anomaly / SINE_STEP_DEGREES);
+    let step = sine_table(entry + 1.0) - sine_table(entry);
+    let factor = -RADIUS / 225.0 * step * epicycle;
+    mean_motion * (1.0 + factor)
+}
+
+/// The Sun's tropical longitude in degrees on a day, with the book's
+/// precession of at most 27° over a period of 7 200 sidereal years
+/// (`hindu-tropical-longitude`).
+fn tropical_longitude(date: f64) -> f64 {
+    let days = floor(date) - EPOCH;
+    let precession = 27.0 - abs(108.0 * wrap(600.0 / 1_577_917_828.0 * days - 0.25, -0.5, 0.5));
+    let longitude = solar_longitude_local(date) - precession;
+    longitude - 360.0 * floor(longitude / 360.0)
+}
+
+/// The tabulated speed of rising of the sign the Sun stands in on a day
+/// (`hindu-rising-sign`).
+fn rising_sign(date: f64) -> f64 {
+    const SPEEDS: [f64; 6] = [1_670.0, 1_795.0, 1_935.0, 1_935.0, 1_795.0, 1_670.0];
+    let index = floor(tropical_longitude(date) / 30.0) as usize % 6;
+    SPEEDS[index] / 1_800.0
+}
+
+/// The difference between the solar and the sidereal day, in degrees
+/// (`hindu-solar-sidereal-difference`).
+fn solar_sidereal_difference(date: f64) -> f64 {
+    daily_motion(date) * rising_sign(date)
+}
+
+/// The time from true to mean midnight, in days (`hindu-equation-of-time`,
+/// "a gross approximation to the correct value", as the book says).
+fn equation_of_time(date: f64) -> f64 {
+    let offset = sine(360.0 * solar_anomaly(date));
+    let equation_of_sun = offset * (57.0 + 18.0 / 60.0) * (14.0 / 360.0 - abs(offset) / 1_080.0);
+    daily_motion(date) / 360.0 * (equation_of_sun / 360.0) * SIDEREAL_YEAR
+}
+
+/// The difference between the right and the oblique ascension of the Sun
+/// on a day at a latitude, in degrees (`hindu-ascensional-difference`).
+fn ascensional_difference(date: f64, latitude_degrees: f64) -> f64 {
+    let sin_declination = 1_397.0 / 3_438.0 * sine(tropical_longitude(date));
+    let diurnal_radius = sine(90.0 + arcsin(sin_declination));
+    let tan_latitude = sine(latitude_degrees) / sine(90.0 + latitude_degrees);
+    let earth_sine = sin_declination * tan_latitude;
+    arcsin(-earth_sine / diurnal_radius)
+}
+
+/// Sunrise on a day at a place, by the Siddhānta, in Universal Time
+/// (`hindu-sunrise`): six in the morning at the place's meridian, less the
+/// equation of time, plus the ascensional difference and a quarter of the
+/// solar-sidereal difference turned from degrees of the sidereal day into
+/// time.
+///
+/// The book computes it at Ujjain; its formula carries the place's
+/// latitude and its longitude from Ujjain's, and so does this. The day is
+/// the civil day of Ujjain's clock, which for any place of the
+/// subcontinent is the local one.
+#[must_use]
+pub fn sunrise(day: Rd, location: Location) -> Moment {
+    let date = day.0 as f64;
+    let offset = (UJJAIN_LONGITUDE_DEGREES - location.longitude_degrees) / 360.0;
+    let sidereal = 1_577_917_828.0 / 1_582_237_828.0 / 360.0;
+    let local = date + 0.25 + offset - equation_of_time(date)
+        + sidereal
+            * (ascensional_difference(date, location.latitude_degrees)
+                + 0.25 * solar_sidereal_difference(date));
+    Moment(local - UJJAIN_LONGITUDE_DEGREES / 360.0)
 }
 
 /// The sign the Sun stands in at a moment.

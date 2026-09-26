@@ -7,6 +7,11 @@
 //!   are named for the saṅkrānti they contain, a month without one is
 //!   intercalary, and the day is the tithi at sunrise; the year is named in
 //!   the southern sixty-year cycle, as at Ugādi. `hindu-lunar`.
+//! * [`hindu_lunar_siddhanta`] — the same months and tithis on the *Sūrya
+//!   Siddhānta*'s Sun and Moon, read at its sunrise at Ujjain: the modern
+//!   Hindu lunisolar calendar of Reingold and Dershowitz, and the
+//!   reckoning of the almanacs that compute by the Siddhānta.
+//!   `hindu-lunar-surya-siddhanta`.
 //! * [`hindu_purnimanta`] — the same tithis under the north's month names:
 //!   a month ends at the full moon, so the dark fortnight comes first and
 //!   takes the following bright fortnight's name; the year is named in the
@@ -58,8 +63,9 @@
 //! * [`bikram_sambat`] — the solar calendar of Nepal: the months the
 //!   Government of Nepal gazettes for 2080–2083, and elsewhere the
 //!   *Sūrya Siddhānta*'s saṅkrāntis on their civil day. `bikram-sambat`.
-//! * [`surya_siddhanta`] — the Sun of the *Sūrya Siddhānta*, whose
-//!   saṅkrāntis the traditional almanacs keep.
+//! * [`surya_siddhanta`] — the Sun and Moon of the *Sūrya Siddhānta*,
+//!   whose saṅkrāntis and tithis the traditional almanacs keep, and its
+//!   sunrise.
 //! * [`places`] — the sunrise that reads the day: the Central Station of
 //!   the national calendar, Ujjain of the classical almanacs, and
 //!   Kathmandu.
@@ -145,10 +151,12 @@ pub(crate) fn sweep_years(first: i64, last: i64, sampled: usize) -> impl Iterato
         .chain((!last_is_sampled && first <= last).then_some(last))
 }
 
+mod amanta;
 pub mod barhaspatya;
 pub mod bikram_sambat;
 pub mod fasli;
 pub mod hindu_lunar;
+pub mod hindu_lunar_siddhanta;
 pub mod hindu_old;
 pub mod hindu_purnimanta;
 pub mod hindu_solar;
@@ -167,6 +175,7 @@ pub mod year_start;
 
 pub use bikram_sambat::{BikramSambatCalendar, BikramSambatDate};
 pub use hindu_lunar::{HinduLunarCalendar, HinduLunarDate};
+pub use hindu_lunar_siddhanta::SiddhantaLunarCalendar;
 pub use hindu_old::{
     OldHinduLunarCalendar, OldHinduLunarDate, OldHinduSolarCalendar, OldHinduSolarDate,
 };
@@ -191,6 +200,9 @@ mod registration {
     pub fn register_all(registry: &mut CalendarRegistry) {
         registry.insert(Box::new(DynAdapter::new(
             crate::HinduLunarCalendar::RASHTRIYA,
+        )));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::SiddhantaLunarCalendar::UJJAIN,
         )));
         registry.insert(Box::new(DynAdapter::new(
             crate::HinduPurnimantaCalendar::RASHTRIYA,
@@ -227,7 +239,7 @@ mod tests {
     use super::*;
 
     /// The number of calendars this crate registers.
-    const CALENDAR_COUNT: usize = 19;
+    const CALENDAR_COUNT: usize = 20;
 
     /// Every calendar the crate registers, so that neither list can drift
     /// from the registry unnoticed.
@@ -235,6 +247,7 @@ mod tests {
     fn all_metas() -> alloc::vec::Vec<hc_calendar::CalendarMeta> {
         let mut metas = alloc::vec![
             HinduLunarCalendar::RASHTRIYA.meta(),
+            SiddhantaLunarCalendar::UJJAIN.meta(),
             HinduPurnimantaCalendar::RASHTRIYA.meta(),
             OldHinduSolarCalendar.meta(),
             OldHinduLunarCalendar.meta(),
@@ -282,6 +295,11 @@ mod tests {
         register_all(&mut registry);
         assert_eq!(registry.len(), CALENDAR_COUNT);
         assert!(registry.get_by_name("hindu-lunar").is_some());
+        assert!(
+            registry
+                .get_by_name("hindu-lunar-surya-siddhanta")
+                .is_some()
+        );
         assert!(registry.get_by_name("hindu-lunar-purnimanta").is_some());
         assert!(registry.get_by_name("hindu-solar-tamil").is_some());
         assert!(registry.get_by_name("hindu-solar-malayalam").is_some());

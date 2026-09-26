@@ -259,6 +259,8 @@ export interface CalendarListEntry {
   localeUsed: string | null;
   /** The crate that registers it. */
   crate: CalendarCrate | null;
+  /** The languages its sources are written in, as `CalendarEntry.nativeLocales` has them: BCP 47 tags, primary first, empty where there are none. A page that puts a reader's own calendars first matches these against the reader's language. */
+  nativeLocales: string[];
 }
 
 /** How far one step of a Gregorian adoption reached. */

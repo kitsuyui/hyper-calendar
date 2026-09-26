@@ -21,8 +21,8 @@
 //! then English. A tag that does not parse is the root locale `und`. The last cell of
 //! every line that was rendered in a locale names the data entry that
 //! answered — `ja`, `zh-Hans`, `he`, `und` — so that a page knows what
-//! language it is showing; in [`calendar_list`]'s lines, whose last cell
-//! is the crate, the one before it does.
+//! language it is showing; in [`calendar_list`]'s lines, whose last cells
+//! are the crate and the calendar's own languages, the fourth does.
 
 use alloc::borrow::ToOwned;
 use alloc::collections::BTreeMap;
@@ -52,7 +52,7 @@ pub const CALENDAR_UNITS_COLUMNS: usize = 8;
 /// How many columns [`calendars`] writes.
 pub const CALENDARS_COLUMNS: usize = 11;
 /// How many columns [`calendar_list`] writes.
-pub const CALENDAR_LIST_COLUMNS: usize = 5;
+pub const CALENDAR_LIST_COLUMNS: usize = 6;
 /// How many columns [`locales`] writes.
 pub const LOCALES_COLUMNS: usize = 7;
 /// How many columns [`gregorian_adoption`] writes.
@@ -454,7 +454,9 @@ fn calendars_in_scope(registry: &CalendarRegistry, today: Rd, locale: &str) -> S
 /// registers it (`hc-calendars-solar`, `hc-calendars-lunar`,
 /// `hc-calendars-equinox`, `hc-calendars-indic`, `hc-calendars-regional`),
 /// as [`crate::CALENDAR_CRATES`] names them, or empty for a calendar none of
-/// them registers.
+/// them registers; and the languages its sources are written in, as BCP 47
+/// tags joined by `;`, the cell [`calendars`] writes, empty where there are
+/// none — what a page needs to list a reader's own calendars first.
 ///
 /// The name is the one [`calendars`] writes in its second column, by the
 /// same rule: the requested locale's own or empty, never borrowed from the
@@ -486,6 +488,8 @@ pub fn calendar_list(registry: &CalendarRegistry, locale: &str) -> String {
         if let Some(krate) = crates.get(meta.id.as_str()) {
             out.push_str(krate);
         }
+        out.push('\t');
+        push_cell(&mut out, &meta.native_locales.join(";"));
         out.push('\n');
     }
     out

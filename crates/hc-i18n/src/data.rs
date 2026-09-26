@@ -178,13 +178,15 @@ const fn cycle(kind: &'static str, names: &'static [&'static str]) -> CycleNames
     CycleNames::new(kind, ContextualNames::same(widths(names, &[], &[])))
 }
 
-/// The five Hijri calendars, which share one set of Arabic month names.
+/// The seven Hijri calendars, which share one set of Arabic month names.
 const ISLAMIC_CALENDARS: &[CalendarId] = &[
     CalendarId("islamic-civil"),
     CalendarId("islamic-tbla"),
     CalendarId("islamic-umalqura"),
     CalendarId("islamic-rgsa"),
     CalendarId("islamic-fatimid"),
+    CalendarId("islamic-observational-cairo-rd"),
+    CalendarId("islamic-saudi-rule-rd"),
 ];
 
 /// The Hebrew calendar, and the prediction of its observational
@@ -2681,6 +2683,7 @@ const EN_CALENDARS: &[CalendarNames] = &[
     CalendarNames {
         calendars: &[
             CalendarId("hindu-lunar"),
+            CalendarId("hindu-lunar-surya-siddhanta"),
             CalendarId("hindu-lunar-purnimanta"),
         ],
         cycles: &[months(&[
@@ -3622,6 +3625,7 @@ const HI_CALENDARS: &[CalendarNames] = &[
     lunisolar(
         &[
             CalendarId("hindu-lunar"),
+            CalendarId("hindu-lunar-surya-siddhanta"),
             CalendarId("hindu-lunar-purnimanta"),
         ],
         &[months(HI_SAKA_MONTHS)],
@@ -5439,6 +5443,7 @@ const SA_CALENDARS: &[CalendarNames] = &[
     lunisolar(
         &[
             CalendarId("hindu-lunar"),
+            CalendarId("hindu-lunar-surya-siddhanta"),
             CalendarId("hindu-lunar-purnimanta"),
         ],
         &[months(SA_LUNAR_MONTHS)],

@@ -286,6 +286,12 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(
             crate::IslamicObservationalCalendar::MECCA,
         )));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::IslamicObservationalCalendar::CAIRO_RD,
+        )));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::IslamicObservationalCalendar::SAUDI_RULE_RD,
+        )));
     }
 }
 
@@ -300,7 +306,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 28);
+        assert_eq!(registry.len(), 30);
     }
 
     #[test]

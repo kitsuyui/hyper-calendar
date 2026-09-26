@@ -1326,10 +1326,13 @@ mod calendars {
     /// One line per calendar, in registry order, tab-separated: the
     /// identifier, what the locale calls the calendar (和暦, or empty where
     /// it has no name), its English name, the locale used (the tag of the
-    /// data entry the name came from, empty where the name is), and the
-    /// crate that registers it (`hc-calendars-solar`, `hc-calendars-lunar`,
+    /// data entry the name came from, empty where the name is), the crate
+    /// that registers it (`hc-calendars-solar`, `hc-calendars-lunar`,
     /// `hc-calendars-equinox`, `hc-calendars-indic` or
-    /// `hc-calendars-regional`). The names are `hc_calendars`', without the
+    /// `hc-calendars-regional`), and the languages of its sources as
+    /// `hc_calendars` gives them, BCP 47 tags joined by `;` or empty, so
+    /// that a menu can list a reader's own calendars first. The names are
+    /// `hc_calendars`', without the
     /// range, the units and the standing on a day, so nothing is converted:
     /// for a menu of calendars, which a page asks for far more often than it
     /// describes a day. `locale` is as for `hc_describe_day`. A null
@@ -4134,9 +4137,10 @@ mod tests {
                     hc_calendars(739_880, locale.as_ptr(), locale.len(), buffer, capacity)
                 }));
                 assert_eq!(list.len(), hc::registry().len(), "{locale}");
-                assert!(list.iter().all(|row| row.len() == 5), "{list:?}");
+                assert!(list.iter().all(|row| row.len() == 6), "{list:?}");
                 for (row, full) in list.iter().zip(&calendars) {
                     assert_eq!(row[..3], full[..3], "{locale}");
+                    assert_eq!(row[5], full[9], "the native locales, {row:?}");
                     assert_eq!(row[1].is_empty(), row[3].is_empty(), "{row:?}");
                 }
             }
@@ -4150,10 +4154,12 @@ mod tests {
                     "和暦",
                     "Japanese (imperial eras)",
                     "ja",
-                    "hc-calendars-regional"
+                    "hc-calendars-regional",
+                    "ja"
                 ]
             );
-            assert_eq!(row("gregory")[3..], ["ja", "hc-calendars-solar"]);
+            assert_eq!(row("gregory")[3..], ["ja", "hc-calendars-solar", ""]);
+            assert_eq!(row("chinese")[5], "zh-Hans;zh-Hant");
             assert_eq!(row("chinese")[4], "hc-calendars-lunar");
             assert_eq!(row("persian")[4], "hc-calendars-equinox");
             assert_eq!(row("hindu-lunar")[4], "hc-calendars-indic");

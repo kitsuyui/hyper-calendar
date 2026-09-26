@@ -49,6 +49,12 @@
 //! does; [`HinduLunarCalendar::UJJAIN`] at Ujjain, as the classical almanacs
 //! do. Both are [`crate::places`] constants, and a caller with a city and a
 //! local panchang can build a third with [`HinduLunarCalendar::new`].
+//! Ujjain is not registered: the place is its only difference, a
+//! parameter, and it moves 302 of the 11 323 dates of 2000–2030. The same
+//! months on the *Sūrya Siddhānta*'s Sun, Moon and sunrise are another
+//! convention, and a registered calendar of their own,
+//! [`crate::hindu_lunar_siddhanta`]; the months' engine the two share is
+//! the crate's `amanta` module.
 //!
 //! # What is exact and what is not
 //!
@@ -73,8 +79,9 @@ use hc_calendars_solar::gregorian;
 use hc_seasons::zodiac::sidereal::{ingress_after, sign_at_moment};
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
+use crate::amanta::{Amanta, Sky};
 use crate::places::{CENTRAL_STATION, UJJAIN};
-use crate::tithi::{TITHIS_PER_MONTH, sunrise_of, tithi_of_day};
+use crate::tithi::{sunrise_of, tithi_of_day};
 
 /// The identifier of the amānta Hindu lunisolar calendar.
 pub const ID: CalendarId = CalendarId("hindu-lunar");
@@ -158,24 +165,6 @@ impl HinduLunarDate {
     }
 }
 
-/// One lunar month, as the calendar sees it: the two conjunctions that
-/// bound it and the name the saṅkrāntis between them give it.
-#[derive(Debug, Clone, Copy, PartialEq)]
-struct LunarMonth {
-    /// The conjunction the month begins after.
-    start: Moment,
-    /// The conjunction the month ends with.
-    end: Moment,
-    /// The month's number, 1 to 12.
-    month: u8,
-    /// Whether the month is intercalary.
-    leap: bool,
-    /// Whether the month holds two saṅkrāntis and has lost a name.
-    kshaya: bool,
-    /// The Śaka year the month belongs to.
-    year: i64,
-}
-
 /// The amānta Hindu lunisolar calendar, judged at a place with an ayanamsa.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct HinduLunarCalendar {
@@ -188,33 +177,6 @@ pub struct HinduLunarCalendar {
 impl Default for HinduLunarCalendar {
     fn default() -> Self {
         Self::RASHTRIYA
-    }
-}
-
-/// The first conjunction at or after a moment: the instant the Moon's
-/// elongation from the Sun, the quantity the tithi is counted in, returns to
-/// zero.
-///
-/// Not the tabulated new moon of [`hc_astro::lunar::nth_new_moon`], which
-/// comes from a different series and can differ from the elongation's zero by
-/// minutes. A month has to begin where its first tithi does, or a sunrise in
-/// those minutes would read the first tithi of a month the month boundaries
-/// have not yet begun.
-fn conjunction_at_or_after(moment: Moment) -> Moment {
-    moon_phase_at_or_after(0.0, moment)
-}
-
-/// The last conjunction strictly before a moment, on the same definition.
-fn conjunction_before(moment: Moment) -> Moment {
-    // A synodic month is under thirty days, so a search from 31 days back
-    // finds the conjunction before or the one before that.
-    let mut found = conjunction_at_or_after(Moment(moment.0 - 31.0));
-    loop {
-        let next = conjunction_at_or_after(Moment(found.0 + 1.0));
-        if next.0 >= moment.0 {
-            return found;
-        }
-        found = next;
     }
 }
 
@@ -242,63 +204,59 @@ impl HinduLunarCalendar {
         crate::samvatsara::southern_of_saka(year)
     }
 
-    /// The month number a saṅkrānti into `sign` gives: Meṣa's is Chaitra.
-    const fn month_of_sign(sign: SiderealSign) -> u8 {
-        sign.index() + 1
+    crate::amanta::amanta_methods!();
+
+    /// The label — month number and intercalary flag — of the month after
+    /// the one containing `day`, for the pūrṇimānta renaming; inside a
+    /// [`hc_core::memo::scope`], once a day.
+    pub(crate) fn next_month_label(&self, day: Rd) -> (u8, bool) {
+        Amanta(*self).next_month_label(day)
+    }
+}
+
+/// The first conjunction at or after a moment: the instant the Moon's
+/// elongation from the Sun, the quantity the tithi is counted in, returns to
+/// zero.
+///
+/// Not the tabulated new moon of [`hc_astro::lunar::nth_new_moon`], which
+/// comes from a different series and can differ from the elongation's zero by
+/// minutes. A month has to begin where its first tithi does, or a sunrise in
+/// those minutes would read the first tithi of a month the month boundaries
+/// have not yet begun.
+fn conjunction_at_or_after(moment: Moment) -> Moment {
+    moon_phase_at_or_after(0.0, moment)
+}
+
+/// The true Sun and Moon of modern astronomy, in the zodiac of the
+/// calendar's ayanamsa, with the day read at its place's sunrise.
+impl Sky for HinduLunarCalendar {
+    fn conjunction_at_or_after(&self, moment: Moment) -> Moment {
+        conjunction_at_or_after(moment)
     }
 
-    /// The lunar month bounded by the conjunction before `moment` and the
-    /// one after, named and placed in its year.
-    fn month_containing(&self, moment: Moment) -> LunarMonth {
-        let start = conjunction_before(moment);
-        self.month_from(start)
+    fn sign_at(&self, moment: Moment) -> SiderealSign {
+        sign_at_moment(moment, self.ayanamsa)
     }
 
-    /// The lunar month beginning after the conjunction `start`.
-    ///
-    /// The place plays no part: the conjunctions and saṅkrāntis are the
-    /// same instants everywhere. So inside a [`hc_core::memo::scope`] a
-    /// month is found once for every calendar with the same ayanamsa,
-    /// wherever its sunrise is read.
-    fn month_from(&self, start: Moment) -> LunarMonth {
-        enum MonthFrom {}
-        let [anchor, degrees] = self.ayanamsa.key();
-        hc_core::memo::cached::<MonthFrom, _, 3>([anchor, degrees, start.0.to_bits()], || {
-            self.computed_month_from(start)
-        })
+    fn ingress_after(&self, sign: SiderealSign, moment: Moment) -> Moment {
+        ingress_after(sign, self.ayanamsa, moment)
     }
 
-    /// [`HinduLunarCalendar::month_from`], found.
-    fn computed_month_from(&self, start: Moment) -> LunarMonth {
-        let end = conjunction_at_or_after(Moment(start.0 + 1.0));
-        let sign_at_start = sign_at_moment(start, self.ayanamsa);
-        let sign_at_end = sign_at_moment(end, self.ayanamsa);
-        let crossings =
-            (i16::from(sign_at_end.index()) - i16::from(sign_at_start.index())).rem_euclid(12);
-        let (month, leap, kshaya) = match crossings {
-            0 => (Self::month_of_sign(sign_at_start.next()), true, false),
-            1 => (Self::month_of_sign(sign_at_end), false, false),
-            _ => (Self::month_of_sign(sign_at_start.next()), false, true),
-        };
-        let year = self.year_of(start, month);
-        LunarMonth {
-            start,
-            end,
-            month,
-            leap,
-            kshaya,
-            year,
-        }
+    fn sunrise(&self, day: Rd) -> Moment {
+        sunrise_of(day, self.location)
     }
 
-    /// The Śaka year of a month that begins after the conjunction `start`.
-    ///
+    fn tithi_of_day(&self, day: Rd) -> u8 {
+        tithi_of_day(day, self.location)
+    }
+
     /// Chaitra, ordinary or intercalary, begins in March or April and opens
     /// the year; every other month begins between mid-April and mid-March
     /// and belongs to the year that opened before it. So a month is in the
     /// Śaka year of its Gregorian year, less 78, unless it is a month other
     /// than Chaitra beginning in January to March, which is the tail of the
-    /// year before.
+    /// year before. That holds while the Meṣa saṅkrānti of the Lahiri
+    /// zodiac falls in April, which it does across the range.
     fn year_of(&self, start: Moment, month: u8) -> i64 {
         let (gregorian_year, gregorian_month, _) =
             gregorian::from_fixed(start.day()).unwrap_or((0, 1, 1));
@@ -309,359 +267,31 @@ impl HinduLunarCalendar {
         }
     }
 
-    /// The calendar and one more word as a [`hc_core::memo`] key: its place
-    /// and its ayanamsa, bit for bit, then `word`.
-    fn key_with(&self, word: u64) -> [u64; 6] {
-        let [latitude, longitude, elevation] = self.location.key();
-        let [anchor, degrees] = self.ayanamsa.key();
-        [latitude, longitude, elevation, anchor, degrees, word]
-    }
-
-    /// The label — month number and intercalary flag — of the month after
-    /// the one containing `day`, for the pūrṇimānta renaming; inside a
-    /// [`hc_core::memo::scope`], once a day.
-    pub(crate) fn next_month_label(&self, day: Rd) -> (u8, bool) {
-        enum NextMonthLabel {}
-        hc_core::memo::cached::<NextMonthLabel, _, 6>(self.key_with(day.0 as u64), || {
-            self.computed_next_month_label(day)
-        })
-    }
-
-    /// [`HinduLunarCalendar::next_month_label`], computed.
-    fn computed_next_month_label(&self, day: Rd) -> (u8, bool) {
-        let current = self.month_containing(sunrise_of(day, self.location));
-        let next = self.month_from(current.end);
-        (next.month, next.leap)
-    }
-
-    /// The first day of a month: the first day whose sunrise follows the
-    /// conjunction the month begins after.
-    ///
-    /// The search starts the day before the conjunction's date in Universal
-    /// Time and walks forward. It cannot stop at the day after: east of
-    /// Greenwich the local date runs ahead, and a conjunction late in the
-    /// Universal day can fall after the next local sunrise too. At the
-    /// Central Station on 11 June 2002 the new moon came at 05:17 Indian
-    /// Standard Time and the sun had risen at 05:13, so the month began on
-    /// the 12th.
-    fn first_day_of(&self, month: LunarMonth) -> Rd {
-        let mut day = Rd(month.start.day().0 - 1);
-        while sunrise_of(day, self.location).0 <= month.start.0 {
-            day = Rd(day.0 + 1);
-        }
-        day
-    }
-
-    /// The months of a Śaka year, in order: twelve or thirteen of them.
-    ///
-    /// The year opens with its first month named Chaitra — the intercalary
-    /// one if there is one — and runs to the month before the next.
-    fn months_of_year(&self, year: i64) -> MonthsOfYear {
-        // The ordinary Chaitra is the month holding the Meṣa saṅkrānti of
-        // the Gregorian year the Śaka year begins in; an intercalary Chaitra
-        // would be the month before it.
-        let gregorian_year = year + GREGORIAN_YEAR_OFFSET;
-        let mesha = ingress_after(
-            SiderealSign::MESHA,
-            self.ayanamsa,
-            Moment(hc_astro::time::gregorian_new_year(gregorian_year).0 as f64),
-        );
-        let chaitra = self.month_containing(mesha);
-        let before = self.month_from(conjunction_before(Moment(chaitra.start.0 - 1.0)));
-        let first = if before.month == 1 && before.leap {
-            before
-        } else {
-            chaitra
-        };
-        MonthsOfYear {
-            calendar: *self,
-            current: Some(first),
-            year,
-        }
-    }
-
-    /// The month of `year` numbered `month`, intercalary or not.
-    ///
-    /// The ordinary month is the one holding the saṅkrānti that names it —
-    /// Meṣa's for Chaitra — which falls in the Gregorian year the Śaka year
-    /// begins in for Chaitra through Mārgaśīrṣa and in the next for Pauṣa
-    /// through Phālguna; the intercalary month of the same name is the one
-    /// before it, when that one has no saṅkrānti. A kṣaya month is the one
-    /// case the saṅkrānti does not land in a month of its own name, and it
-    /// is reported as the name not existing.
-    fn find_month(&self, year: i64, month: u8, leap: bool) -> CalendarResult<LunarMonth> {
-        if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
-            return Err(CalendarError::YearOutOfRange);
-        }
-        if month == 0 || month > MONTHS_IN_YEAR {
-            return Err(CalendarError::MonthOutOfRange);
-        }
-        let Some(sign) = SiderealSign::from_index(month - 1) else {
-            return Err(CalendarError::MonthOutOfRange);
-        };
+    /// The first of January of the Gregorian year the saṅkrānti falls in:
+    /// the Śaka year's own for Chaitra through Mārgaśīrṣa and the next for
+    /// Pauṣa through Phālguna.
+    fn sankranti_search_start(&self, year: i64, month: u8) -> Moment {
         let gregorian_year = year + GREGORIAN_YEAR_OFFSET + i64::from(month >= 10);
-        let sankranti = ingress_after(
-            sign,
-            self.ayanamsa,
-            Moment(hc_astro::time::gregorian_new_year(gregorian_year).0 as f64),
-        );
-        let ordinary = self.month_containing(sankranti);
-        if ordinary.month != month || ordinary.year != year {
-            return Err(CalendarError::MonthOutOfRange);
-        }
-        if !leap {
-            return Ok(ordinary);
-        }
-        let before = self.month_from(conjunction_before(Moment(ordinary.start.0 - 1.0)));
-        if before.month == month && before.leap && before.year == year {
-            Ok(before)
-        } else {
-            Err(CalendarError::MonthOutOfRange)
-        }
+        Moment(hc_astro::time::gregorian_new_year(gregorian_year).0 as f64)
     }
 
-    /// The day of a month carrying tithi `day` at sunrise — the second such
-    /// day when `leap_day` — or `None` when the tithi holds no sunrise.
-    fn day_in_month(&self, month: LunarMonth, day: u8, leap_day: bool) -> Option<Rd> {
-        let first = self.first_day_of(month);
-        let next_first = self.first_day_of(self.month_from(month.end));
-        // Tithis average a little under a day, so tithi `day` falls on or a
-        // day or two before the day numbered `day`; start three days early
-        // and walk forward until the tithi is passed.
-        let mut candidate = Rd(first.0 + i64::from(day) - 4);
-        if candidate < first {
-            candidate = first;
-        }
-        let mut found = None;
-        while candidate < next_first {
-            let tithi = tithi_of_day(candidate, self.location);
-            if tithi == day {
-                if !leap_day {
-                    return Some(candidate);
-                }
-                if found.is_some() {
-                    return Some(candidate);
-                }
-                found = Some(candidate);
-            } else if tithi > day {
-                // Passed it: a skipped tithi, or no second day for a
-                // repeated one.
-                return None;
-            }
-            candidate = Rd(candidate.0 + 1);
-        }
-        None
+    fn years(&self) -> (i64, i64) {
+        (MIN_YEAR, MAX_YEAR)
     }
 
-    /// The fixed day of a date.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`CalendarError::YearOutOfRange`] outside
-    /// [`MIN_YEAR`]..=[`MAX_YEAR`]; [`CalendarError::MonthOutOfRange`] for
-    /// a month number outside 1–12, for an intercalary month the year does
-    /// not have, or for a name a kṣaya month lost; and
-    /// [`CalendarError::DayOutOfRange`] for a tithi outside 1–30, a tithi
-    /// the month skips, or a repeated tithi the month does not repeat.
-    ///
-    /// Inside a [`hc_core::memo::scope`] each date is converted once: the
-    /// calendars built on this one convert the same dates.
-    pub fn to_fixed(&self, date: HinduLunarDate) -> CalendarResult<Rd> {
-        enum ToFixed {}
-        let mut key = [0; 8];
-        key[..6].copy_from_slice(&self.key_with(date.year as u64));
-        key[6] = u64::from(date.month) << 8 | u64::from(date.day);
-        key[7] = u64::from(date.leap_month) << 1 | u64::from(date.leap_day);
-        hc_core::memo::cached::<ToFixed, _, 8>(key, || self.computed_to_fixed(date))
-    }
-
-    /// [`HinduLunarCalendar::to_fixed`], computed.
-    fn computed_to_fixed(&self, date: HinduLunarDate) -> CalendarResult<Rd> {
-        if date.day == 0 || date.day > TITHIS_PER_MONTH {
-            return Err(CalendarError::DayOutOfRange);
-        }
-        let month = self.find_month(date.year, date.month, date.leap_month)?;
-        self.day_in_month(month, date.day, date.leap_day)
-            .ok_or(CalendarError::DayOutOfRange)
-    }
-
-    /// The date of a fixed day.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`CalendarError::BeforeEpoch`] or
-    /// [`CalendarError::AfterSupportedRange`] outside the years this
-    /// calendar converts.
-    ///
-    /// Inside a [`hc_core::memo::scope`] each day is converted once: the
-    /// calendars built on this one convert the same days.
-    pub fn from_fixed(&self, rd: Rd) -> CalendarResult<HinduLunarDate> {
-        enum FromFixed {}
-        hc_core::memo::cached::<FromFixed, _, 6>(self.key_with(rd.0 as u64), || {
-            self.computed_from_fixed(rd)
-        })
-    }
-
-    /// [`HinduLunarCalendar::from_fixed`], computed.
-    fn computed_from_fixed(&self, rd: Rd) -> CalendarResult<HinduLunarDate> {
-        let sunrise = sunrise_of(rd, self.location);
-        let month = self.month_containing(sunrise);
-        if month.year < MIN_YEAR {
-            return Err(CalendarError::BeforeEpoch);
-        }
-        if month.year > MAX_YEAR {
-            return Err(CalendarError::AfterSupportedRange);
-        }
-        let day = tithi_of_day(rd, self.location);
-        let first = self.first_day_of(month);
-        let leap_day = rd > first && tithi_of_day(Rd(rd.0 - 1), self.location) == day;
-        Ok(HinduLunarDate {
-            year: month.year,
-            month: month.month,
-            leap_month: month.leap,
-            day,
-            leap_day,
-        })
-    }
-
-    /// The days of a month: its first day, and the day after its last.
-    ///
-    /// # Errors
-    ///
-    /// As [`HinduLunarCalendar::to_fixed`]: the year out of range, the month
-    /// number outside 1–12, an intercalary month the year does not have, or
-    /// a name a kṣaya month lost.
-    pub fn month_span(&self, year: i64, month: u8, leap: bool) -> CalendarResult<(Rd, Rd)> {
-        let found = self.find_month(year, month, leap)?;
-        let first = self.first_day_of(found);
-        let next = self.first_day_of(self.month_from(found.end));
-        Ok((first, next))
-    }
-
-    /// The first day of Chaitra — Chaitra śukla pratipadā, the new year —
-    /// of a Śaka year. When the year opens with an intercalary Chaitra, this
-    /// is that month's first day.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`CalendarError::YearOutOfRange`] outside
-    /// [`MIN_YEAR`]..=[`MAX_YEAR`].
-    pub fn new_year(&self, year: i64) -> CalendarResult<Rd> {
-        if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
-            return Err(CalendarError::YearOutOfRange);
-        }
-        let first = self
-            .months_of_year(year)
-            .next()
-            .ok_or(CalendarError::YearOutOfRange)?;
-        Ok(self.first_day_of(first))
-    }
-
-    /// The intercalary month of a Śaka year, if it has one, as its number
-    /// and its first and last days.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`CalendarError::YearOutOfRange`] outside
-    /// [`MIN_YEAR`]..=[`MAX_YEAR`].
-    ///
-    /// Inside a [`hc_core::memo::scope`] each year is searched once.
-    pub fn leap_month_of(&self, year: i64) -> CalendarResult<Option<(u8, Rd, Rd)>> {
-        enum LeapMonthOf {}
-        hc_core::memo::cached::<LeapMonthOf, _, 6>(self.key_with(year as u64), || {
-            self.computed_leap_month_of(year)
-        })
-    }
-
-    /// [`HinduLunarCalendar::leap_month_of`], searched for.
-    fn computed_leap_month_of(&self, year: i64) -> CalendarResult<Option<(u8, Rd, Rd)>> {
-        if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
-            return Err(CalendarError::YearOutOfRange);
-        }
-        Ok(self
-            .months_of_year(year)
-            .find(|month| month.leap)
-            .map(|month| {
-                let first = self.first_day_of(month);
-                let last = Rd(self.first_day_of(self.month_from(month.end)).0 - 1);
-                (month.month, first, last)
-            }))
-    }
-
-    /// Whether a Śaka year has a kṣaya month — one that lost its name to a
-    /// second saṅkrānti.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`CalendarError::YearOutOfRange`] outside
-    /// [`MIN_YEAR`]..=[`MAX_YEAR`].
-    pub fn has_kshaya_month(&self, year: i64) -> CalendarResult<bool> {
-        if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
-            return Err(CalendarError::YearOutOfRange);
-        }
-        Ok(self.months_of_year(year).any(|month| month.kshaya))
-    }
-
-    /// The number of days in a Śaka year.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`CalendarError::YearOutOfRange`] outside
-    /// [`MIN_YEAR`]..=[`MAX_YEAR`].
-    pub fn days_in_year(&self, year: i64) -> CalendarResult<u16> {
-        let this = self.new_year(year)?;
-        let next = self.new_year(year + 1)?;
-        Ok((next.0 - this.0) as u16)
-    }
-
-    /// The earliest fixed day this calendar converts: Chaitra śukla 1 of
-    /// [`MIN_YEAR`].
-    ///
-    /// # Errors
-    ///
-    /// Returns an error only if the astronomy cannot place the year, which
-    /// it can.
-    pub fn earliest(&self) -> CalendarResult<Rd> {
-        match self.named_range() {
-            Some((earliest, _)) => Ok(earliest),
-            None => self.computed_earliest(),
-        }
-    }
-
-    /// [`HinduLunarCalendar::earliest`] as the astronomy finds it.
-    fn computed_earliest(&self) -> CalendarResult<Rd> {
-        self.new_year(MIN_YEAR)
-    }
-
-    /// The latest fixed day this calendar converts: the day before Chaitra
-    /// śukla 1 of the year after [`MAX_YEAR`].
-    ///
-    /// # Errors
-    ///
-    /// Returns an error only if the astronomy cannot place the year, which
-    /// it can.
-    pub fn latest(&self) -> CalendarResult<Rd> {
-        match self.named_range() {
-            Some((_, latest)) => Ok(latest),
-            None => self.computed_latest(),
-        }
-    }
-
-    /// [`HinduLunarCalendar::latest`] as the astronomy finds it.
-    fn computed_latest(&self) -> CalendarResult<Rd> {
-        let first = self
-            .months_of_year(MAX_YEAR + 1)
-            .next()
-            .ok_or(CalendarError::YearOutOfRange)?;
-        Ok(Rd(self.first_day_of(first).0 - 1))
-    }
-
-    /// The range of a calendar [`NAMED_RANGES`] holds.
     fn named_range(&self) -> Option<(Rd, Rd)> {
         NAMED_RANGES
             .iter()
             .find(|(calendar, _, _)| calendar == self)
             .map(|&(_, earliest, latest)| (earliest, latest))
+    }
+
+    fn zodiac_key(&self) -> [u64; 2] {
+        self.ayanamsa.key()
+    }
+
+    fn place_key(&self) -> [u64; 3] {
+        self.location.key()
     }
 }
 
@@ -686,33 +316,6 @@ const NAMED_RANGES: [(HinduLunarCalendar, Rd, Rd); 3] = [
     ),
 ];
 
-/// The months of one Śaka year, in order.
-struct MonthsOfYear {
-    calendar: HinduLunarCalendar,
-    current: Option<LunarMonth>,
-    year: i64,
-}
-
-impl Iterator for MonthsOfYear {
-    type Item = LunarMonth;
-
-    fn next(&mut self) -> Option<LunarMonth> {
-        let month = self.current?;
-        let following = self.calendar.month_from(month.end);
-        // The year ends where the next Chaitra begins.
-        self.current = if following.month == 1 {
-            None
-        } else {
-            Some(following)
-        };
-        if month.year == self.year {
-            Some(month)
-        } else {
-            None
-        }
-    }
-}
-
 impl Calendar for HinduLunarCalendar {
     type Date = HinduLunarDate;
 
@@ -726,12 +329,6 @@ impl Calendar for HinduLunarCalendar {
     /// Twelve months with a thirteenth in an intercalary year, the
     /// seven-day week, and the sixty year names of the southern cycle.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        use hc_calendar::shape::{CycleShape, MONTH, WEEKDAY};
-        const SHAPE: &[CycleShape] = &[
-            CycleShape::intercalary(MONTH, 12, 13),
-            CycleShape::fixed(WEEKDAY, 7),
-            CycleShape::named(crate::samvatsara::CYCLE, &crate::samvatsara::NAMES),
-        ];
         SHAPE
     }
 
@@ -769,37 +366,66 @@ impl Calendar for HinduLunarCalendar {
     }
 
     fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
-        let month = if date.leap_month {
-            Month::leap(date.month)
-        } else {
-            Month::regular(date.month)
-        };
-        let mut fields = DateFields::ymd(date.year, date.month, date.day).with_era(ERA);
-        fields.month = Some(month);
-        fields.leap_day = date.leap_day;
-        fields
-            .with_extra("vikrama-year", date.vikrama_year())?
-            .with_extra(
-                crate::samvatsara::CYCLE,
-                i64::from(Self::samvatsara_of(date.year)),
-            )
+        fields_of(date)
     }
 
     fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
-        if fields.era.is_some_and(|era| era != ERA) {
-            return Err(CalendarError::UnknownEra);
-        }
-        let month = fields.require_month()?;
-        let date = HinduLunarDate {
-            year: fields.year,
-            month: month.ordinal,
-            leap_month: month.leap,
-            day: fields.require_day()?,
-            leap_day: fields.leap_day,
-        };
+        let date = date_of(fields)?;
         HinduLunarCalendar::to_fixed(self, date)?;
         Ok(date)
     }
+}
+
+/// The shape of an amānta calendar: twelve months with a thirteenth in an
+/// intercalary year, the seven-day week, and the sixty year names of the
+/// southern cycle.
+pub(crate) const SHAPE: &[hc_calendar::shape::CycleShape] = {
+    use hc_calendar::shape::{CycleShape, MONTH, WEEKDAY};
+    &[
+        CycleShape::intercalary(MONTH, 12, 13),
+        CycleShape::fixed(WEEKDAY, 7),
+        CycleShape::named(crate::samvatsara::CYCLE, &crate::samvatsara::NAMES),
+    ]
+};
+
+/// An amānta date's fields: the Śaka year, the month with its intercalary
+/// flag, the tithi and its repetition, and the Vikrama year and the
+/// southern year name as extra fields.
+pub(crate) fn fields_of(date: HinduLunarDate) -> CalendarResult<DateFields> {
+    let month = if date.leap_month {
+        Month::leap(date.month)
+    } else {
+        Month::regular(date.month)
+    };
+    let mut fields = DateFields::ymd(date.year, date.month, date.day).with_era(ERA);
+    fields.month = Some(month);
+    fields.leap_day = date.leap_day;
+    fields
+        .with_extra("vikrama-year", date.vikrama_year())?
+        .with_extra(
+            crate::samvatsara::CYCLE,
+            i64::from(HinduLunarCalendar::samvatsara_of(date.year)),
+        )
+}
+
+/// The amānta date fields name, not yet checked against a calendar.
+///
+/// # Errors
+///
+/// [`CalendarError::UnknownEra`] for an era other than the Śaka, and the
+/// errors of a missing month or day.
+pub(crate) fn date_of(fields: &DateFields) -> CalendarResult<HinduLunarDate> {
+    if fields.era.is_some_and(|era| era != ERA) {
+        return Err(CalendarError::UnknownEra);
+    }
+    let month = fields.require_month()?;
+    Ok(HinduLunarDate {
+        year: fields.year,
+        month: month.ordinal,
+        leap_month: month.leap,
+        day: fields.require_day()?,
+        leap_day: fields.leap_day,
+    })
 }
 
 #[cfg(test)]
@@ -809,8 +435,9 @@ mod tests {
     #[test]
     fn the_named_ranges_are_the_computed_ones() {
         for (calendar, earliest, latest) in NAMED_RANGES {
-            assert_eq!(calendar.computed_earliest(), Ok(earliest), "{calendar:?}");
-            assert_eq!(calendar.computed_latest(), Ok(latest), "{calendar:?}");
+            let engine = Amanta(calendar);
+            assert_eq!(engine.computed_earliest(), Ok(earliest), "{calendar:?}");
+            assert_eq!(engine.computed_latest(), Ok(latest), "{calendar:?}");
         }
     }
 
@@ -1149,5 +776,29 @@ mod tests {
         assert!(Calendar::cycles(&RASHTRIYA).iter().any(|cycle| {
             cycle.kind == crate::samvatsara::CYCLE && cycle.name(38) == Some("Visvavasu")
         }));
+    }
+
+    #[test]
+    fn ujjain_and_the_central_station_part_on_one_day_in_forty() {
+        // The book's astronomical lunisolar calendar is this one read at
+        // Ujjain; the registered one is read at the Central Station, 6.7°
+        // east, whose sunrise comes about 27 minutes earlier. A tithi that
+        // ends between the two sunrises gives the two places different
+        // dates: 10 of the 366 days of 2024, and in a release build 302 of
+        // the 11 323 days of 2000–2030, 2.7%. That is the whole difference
+        // (docs/systems/hindu-calendars.md), which is why `UJJAIN` is a
+        // constant and not a registered calendar.
+        let count = |first: Rd, last: Rd| {
+            (first.0..=last.0)
+                .filter(|&day| {
+                    HinduLunarCalendar::UJJAIN.from_fixed(Rd(day))
+                        != HinduLunarCalendar::RASHTRIYA.from_fixed(Rd(day))
+                })
+                .count()
+        };
+        assert_eq!(count(ymd(2024, 1, 1), ymd(2024, 12, 31)), 10);
+        if !cfg!(debug_assertions) {
+            assert_eq!(count(ymd(2000, 1, 1), ymd(2030, 12, 31)), 302);
+        }
     }
 }

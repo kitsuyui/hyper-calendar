@@ -27,8 +27,8 @@
 //!   crescent on the criterion's edge, or the reference code's own time
 //!   scale, which its errata correct (`reingold2018errata`, correction 15).
 //!
-//! Over the 51 mappings that is 1 190 agreements, 447 refusals and 13 known
-//! differences, and 1 045 round trips; [`SAME`], [`REFUSED`] and
+//! Over the 53 mappings that is 1 232 agreements, 471 refusals and 13 known
+//! differences, and 1 087 round trips; [`SAME`], [`REFUSED`] and
 //! [`ROUND_TRIPS`] hold the counts so that they move only deliberately. The
 //! astronomical columns are compared to a bound instead, in
 //! [`the_astronomy_is_within_seconds_of_the_books`], and the rising and
@@ -65,19 +65,12 @@ use hyper_calendar::hc_calendar::{
 use hyper_calendar::hc_calendars_indic::HinduLunarCalendar;
 use hyper_calendar::hc_calendars_indic::hindu_solar::{self, SolarModel};
 use hyper_calendar::hc_calendars_indic::places::UJJAIN;
-use hyper_calendar::hc_calendars_lunar::islamic_observational::{
-    IslamicObservationalCalendar, ObservationSite, VisibilityCriterion,
-};
 use hyper_calendar::hc_calendars_solar::{gregorian, julian};
 use hyper_calendar::hc_format::roman::{Anchor, BissextileStyle, RomanDayName};
 use hyper_calendar::hc_holiday::computus;
 use hyper_calendar::hc_seasons::zodiac::Ayanamsa;
 
 const TABLE: &str = include_str!("data/calendrica_sample_dates.txt");
-
-/// The book's observational Islamic calendar is judged at Cairo:
-/// `islamic-location`, 30.1° N, 31.3° E, 200 m (`reingold2018code`).
-const CAIRO: Location = Location::new(30.1, 31.3, 200.0);
 
 /// Every line of the table, by column, in the file's order of dates.
 fn table() -> BTreeMap<&'static str, Vec<(Rd, Vec<&'static str>)>> {
@@ -280,15 +273,16 @@ fn mappings(registry: &CalendarRegistry) -> Vec<Mapping<'_>> {
             ]
         }),
         registered("islamic", "islamic-civil", ymd),
-        built(
+        // The book's observational Islamic calendar is judged at Cairo,
+        // `islamic-location`; islamic-rgsa is the same prediction at Mecca.
+        registered(
             "observational-islamic",
-            "Shaukat's criterion at Cairo, built",
-            Box::new(DynAdapter::new(IslamicObservationalCalendar::new(
-                ObservationSite::new(CAIRO, VisibilityCriterion::SHAUKAT),
-            ))),
+            "islamic-observational-cairo-rd",
             ymd,
         ),
         registered("observational-islamic", "islamic-rgsa", ymd),
+        // The book's computed Saudi rule, and the published table.
+        registered("saudi-islamic", "islamic-saudi-rule-rd", ymd),
         registered("saudi-islamic", "islamic-umalqura", ymd),
         registered("hebrew", "hebrew", hebrew),
         registered("observational-hebrew", "hebrew-observational", hebrew),
@@ -394,6 +388,11 @@ fn mappings(registry: &CalendarRegistry) -> Vec<Mapping<'_>> {
                 vec![n(f.year - 135), n(month(f)), n(day(f))]
             },
         ),
+        // The book's two astronomical calendars are read at Ujjain, and are
+        // built here rather than registered: they are hindu-solar-tamil and
+        // hindu-lunar at another place, which is a parameter and not a
+        // convention (policy §5), and docs/systems/hindu-calendars.md says
+        // how often the place moves a date.
         built(
             "astro-hindu-solar",
             "the Tamil rule at Ujjain with the true Sun and Lahiri's ayanamsa, built",
@@ -412,6 +411,9 @@ fn mappings(registry: &CalendarRegistry) -> Vec<Mapping<'_>> {
             hindu_lunar,
         ),
         registered("astro-hindu-lunar", "hindu-lunar", hindu_lunar),
+        // The book's modern lunisolar calendar, on the Sūrya Siddhānta's
+        // Sun and Moon and read at its sunrise at Ujjain.
+        registered("hindu-lunar", "hindu-lunar-surya-siddhanta", hindu_lunar),
         registered("tibetan", "tibetan", |f, _, _| {
             // The year here is the Western year it begins in; the book's is
             // 127 more, its epoch year being −127.
@@ -622,11 +624,7 @@ const KNOWN: &[Known] = &[
 
 /// The columns this library has no counterpart for, or does not hold to
 /// the book's, and why.
-const NOT_CARRIED: &[(&str, &str)] = &[(
-    "hindu-lunar",
-    "the book's modern Hindu lunisolar calendar on the Sūrya Siddhānta's Sun and \
-         Moon; this library's lunisolar calendar is on the true Sun and Moon only",
-)];
+const NOT_CARRIED: &[(&str, &str)] = &[];
 
 /// The astronomical columns [`the_astronomy_is_within_seconds_of_the_books`]
 /// compares, each with its bound, in seconds of time or of arc.
@@ -788,9 +786,9 @@ fn every_sample_date_agrees_or_is_refused_or_is_a_known_difference() {
 }
 
 /// Values that agree, dates refused as outside a range, and round trips.
-const SAME: usize = 1_190;
-const REFUSED: usize = 447;
-const ROUND_TRIPS: usize = 1_045;
+const SAME: usize = 1_232;
+const REFUSED: usize = 471;
+const ROUND_TRIPS: usize = 1_087;
 
 /// The rising and setting columns
 /// [`the_rising_and_setting_are_within_seconds_of_the_books`] compares,

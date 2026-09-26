@@ -1006,8 +1006,8 @@ says how.
 `hc_calendar_list(locale_ptr, locale_len, buffer, capacity)` needs the
 `calendars` feature and writes one line per registered calendar, in
 registry order, with nothing that depends on a day: the names
-`hc_calendars` writes, by the same rule, without the range, the units and
-the standing. Those cost a conversion of the day in every calendar, some
+`hc_calendars` writes, by the same rule, and the languages of its
+sources, without the range, the units and the standing. Those cost a conversion of the day in every calendar, some
 of them searches of the sky; a menu of calendars needs none of it, and a
 page lists the calendars far more often than it describes a day, so this
 converts nothing and answers in under a millisecond. `locale` is as
@@ -1020,10 +1020,11 @@ for `hc_describe_day`.
 | 3 | english name | its English name, as column 3 of `hc_calendars` |
 | 4 | locale used | the tag of the locale data the name came from, `ja` for 和暦 asked for in `ja-JP`; empty where the name is |
 | 5 | crate | the crate that registers it: `hc-calendars-solar`, `hc-calendars-lunar`, `hc-calendars-equinox`, `hc-calendars-indic` or `hc-calendars-regional` |
+| 6 | native locales | the languages its sources are written in, as column 10 of `hc_calendars` has them: BCP 47 tags joined by `;`, primary first, or empty where there are none. A menu that lists a reader's own calendars first matches these against the reader's language, without asking `hc_calendars` for a day |
 
 ### What the calls cost
 
-A description of a day is one conversion in each of the 186 calendars,
+A description of a day is one conversion in each of the 189 calendars,
 and a few dozen of them search the sky to convert: the Hindu lunar
 calendar and the seven built on it for conjunctions and saṅkrāntis at
 sunrise, the observational Hebrew and Hijri calendars for crescents
