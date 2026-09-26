@@ -29,8 +29,46 @@ functions that consume text take a pointer and a length.
 A function that returns a day number or a count returns a negative sentinel on
 failure rather than trapping, because a trap tears down the instance and takes
 any other work in it with it. Every sentinel is at or below `HC_ERR_FLOOR`,
-which is more than a thousand times the age of the universe in days, so no
-legitimate result can be mistaken for one.
+and the rule is:
+
+> **A value-returning export never returns a number at or below
+> `HC_ERR_FLOOR` except as an error.**
+
+`HC_ERR_FLOOR` is −9 × 10¹⁵, more than a thousand times the age of the
+universe in days, so no day number comes near it. A count of seconds does:
+−9 × 10¹⁵ seconds is only about 285 million years. So an export that answers
+in seconds refuses a day whose answer would reach the floor with
+`HC_ERR_OUT_OF_RANGE`, rather than return a number every binding would read
+as a sentinel, and it refuses the same way a result that would overflow an
+`i64`, rather than wrap or clamp it. The floor and the ends of an `i64` are
+the only bounds on the exports that answer in seconds; the others' are the
+calendar's own.
+
+### Ranges
+
+What each export answers for; outside it, the export returns the sentinel
+named. The JavaScript binding throws that sentinel as an `HcError`, so a day
+out of range is `out-of-range`, never an unrecognised number.
+
+| Answers with | Exports | Answers for |
+| --- | --- | --- |
+| a fixed day | `hc_gregorian_to_fixed`, `hc_parse_iso_date` | the years −9 999 999 through 9 999 999, which are the fixed days −3 652 424 999 through 3 652 424 634; any other date is `HC_ERR_INVALID_DATE` |
+| a Gregorian year, month, day, day of the year, or 1 or 0 | `hc_gregorian_year`, `hc_gregorian_month`, `hc_gregorian_day`, `hc_day_of_year`, `hc_is_leap_year` | the fixed days −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE` |
+| a weekday, 1 through 7 | `hc_weekday` | every `i64` |
+| a fixed day | `hc_fixed_from_unix` | every `i64` timestamp; the day is between −106 751 990 448 138 and 106 751 991 886 463 |
+| a fixed day | `hc_fixed_from_unix_in_zone` | every `i64` timestamp; the day is at most one from the day `hc_fixed_from_unix` gives |
+| seconds | `hc_unix_from_fixed` | the fixed days −104 165 947 503 through 106 751 991 886 463: an earlier day's midnight would be at or below `HC_ERR_FLOOR` seconds, and a later one's would overflow an `i64`; either is `HC_ERR_OUT_OF_RANGE` |
+| seconds | `hc_unix_from_fixed_in_zone` | the days whose start by the zone's clock is above `HC_ERR_FLOOR` and fits an `i64`: by UTC, `hc_unix_from_fixed`'s days, and a zone's offset moves each end by at most a day (Tokyo's last day is 106 751 991 886 464); any other is `HC_ERR_OUT_OF_RANGE` |
+| seconds | `hc_tai_minus_utc` | every `i64` timestamp; under `strict`, 1961 through the end of the announced leap-second table, and `HC_ERR_NO_DATA` outside it |
+| 1 or 0 | `hc_day_has_leap_second` | the timestamps −9 223 372 036 854 720 000 through 9 223 372 036 854 719 999, the whole days of the `i64` range; the part-days at its two ends begin or end where no `i64` reaches, and are `HC_ERR_OUT_OF_RANGE` |
+| 1 or 0 | `hc_holiday_is_day_off` | the fixed days −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE` |
+| a weekday, 1 through 7 | `hc_first_day_of_week` | every locale tag |
+| 0 | `hc_zone_load` | any name and bytes; bytes that are not TZif are `HC_ERR_MALFORMED` |
+| a byte length | `hc_version`, `hc_format_iso_date`, `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`, `hc_gregorian_adoption`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals`, `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_orbit_at`, `hc_orbit_series` | whatever inputs the export's own documentation accepts; a length is never negative, so it never nears the floor |
+
+[`crates/hyper-calendar/tests/abi.rs`](../hyper-calendar/tests/abi.rs)
+walks every `i64` export in the table of exports below and fails when one
+has no row here, or two.
 
 ## Lines and cells
 
@@ -320,7 +358,7 @@ not pass CI.
 
 ### Error sentinels
 
-A function that returns `i64` returns one of these instead of trapping. All are at or below `HC_ERR_FLOOR`, which no day number reaches.
+A function that returns `i64` returns one of these instead of trapping. All are at or below `HC_ERR_FLOOR`, and no legitimate result is: the ranges above say what each export answers for.
 
 | Sentinel | Value | Meaning |
 | --- | --- | --- |

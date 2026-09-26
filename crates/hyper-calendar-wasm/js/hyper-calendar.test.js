@@ -173,6 +173,29 @@ describe("civil", () => {
     // 2^45 days after the epoch is 3 × 10^18 seconds: an i64, not a safe integer.
     refused(() => hc.unixFromFixed(2n ** 45n), "unsafe-integer");
   });
+
+  test("a day too far back for seconds is out-of-range, not an unrecognised sentinel", () => {
+    // Some 54 billion years back. Its midnight, about -1.7 × 10^18 seconds,
+    // is an i64 far below HC_ERR_FLOOR, which every binding reads as a
+    // sentinel, so the module refuses the day instead of answering.
+    const farBack = -19_723_095_000_000;
+    for (const [call, exportName] of [
+      [() => hc.unixFromFixed(farBack), "hc_unix_from_fixed"],
+      [() => hc.unixFromFixedInZone(farBack, "Asia/Tokyo"), "hc_unix_from_fixed_in_zone"],
+    ]) {
+      const error = refused(/** @type {() => unknown} */ (call), "out-of-range");
+      assert.equal(error.constant, "HC_ERR_OUT_OF_RANGE");
+      assert.equal(error.export, exportName);
+    }
+    assert.equal(hc.exports.hc_unix_from_fixed(BigInt(farBack)), -9_000_000_000_000_002n);
+    // The README's first day answers, and the day before it does not.
+    assert.equal(hc.unixFromFixed(-104_165_947_503), -8_999_999_999_942_400);
+    refused(() => hc.unixFromFixed(-104_165_947_504), "out-of-range");
+    // Past where an i64 runs out the day is refused too, not wrapped or clamped.
+    refused(() => hc.unixFromFixed(2n ** 53n), "out-of-range");
+    refused(() => hc.unixFromFixedInZone(2n ** 53n, "Asia/Tokyo"), "out-of-range");
+    assert.equal(hc.exports.hc_unix_from_fixed(106_751_991_886_464n), -9_000_000_000_000_002n);
+  });
 });
 
 describe("describeDay", () => {

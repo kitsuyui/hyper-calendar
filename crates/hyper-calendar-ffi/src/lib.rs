@@ -410,6 +410,10 @@ mod civil {
     /// Whether a POSIX timestamp names a day that ends with an inserted leap
     /// second.
     ///
+    /// A timestamp in a day whose start or whose end is not an `int64_t` —
+    /// the first and last part-days of the range — is
+    /// [`HC_ERROR_OUT_OF_RANGE`].
+    ///
     /// # Safety
     ///
     /// `out_has_leap` must be writable.
@@ -421,8 +425,13 @@ mod civil {
         if out_has_leap.is_null() {
             return HC_ERROR_NULL_POINTER;
         }
-        let day_start = unix_seconds.div_euclid(86_400) * 86_400;
-        let next_day = day_start + 86_400;
+        let Some((day_start, next_day)) = unix_seconds
+            .div_euclid(86_400)
+            .checked_mul(86_400)
+            .and_then(|start| Some((start, start.checked_add(86_400)?)))
+        else {
+            return HC_ERROR_OUT_OF_RANGE;
+        };
         let policy = LeapPolicy::Extrapolate;
         let before = match unix::tai_minus_utc_at(day_start, policy) {
             Ok(value) => value,
@@ -1399,6 +1408,7 @@ mod tz {
     use core::ffi::c_char;
     use std::sync::{Mutex, PoisonError};
 
+    use hc::hc_calendar::fixed::RD_OF_UNIX_EPOCH;
     use hc::hc_calendar::{CivilDateTime, Rd};
     use hc::hc_core::UnixTime;
     use hc::hc_tz::{LocalResolution, TimeZone, TzifTimeZone, builtin};
@@ -1443,6 +1453,12 @@ mod tz {
     /// The instant a day begins by a zone's wall clock: its midnight, or
     /// the first instant after a gap that swallows it, or the earlier of
     /// two midnights when the clocks fall back across it.
+    ///
+    /// # Errors
+    ///
+    /// [`HC_ERROR_UNKNOWN`] for a name neither table knows, and
+    /// [`HC_ERROR_OUT_OF_RANGE`] for a day whose start would overflow an
+    /// `i64`.
     pub(super) fn start_in_zone(fixed: i64, name: &str) -> Result<i64, HcStatus> {
         with_zone(name, |zone| {
             let instant = match zone.resolve_local(CivilDateTime::midnight(Rd(fixed))) {
@@ -1450,8 +1466,24 @@ mod tz {
                 LocalResolution::Ambiguous { earlier, .. } => earlier,
                 LocalResolution::Nonexistent { after_gap, .. } => after_gap,
             };
-            instant.seconds()
-        })
+            unsaturated(fixed, instant.seconds(), zone).ok_or(HC_ERROR_OUT_OF_RANGE)
+        })?
+    }
+
+    /// The start of a day as `resolve_local` gave it, or `None` when that
+    /// was an `i64` bound standing in for an instant beyond it.
+    ///
+    /// `resolve_local` saturates rather than fails, so `i64::MIN` and
+    /// `i64::MAX` are its answer for every day whose start is out of reach.
+    /// Either is kept only when the day's midnight less the zone's offset
+    /// there really is that instant.
+    fn unsaturated(fixed: i64, seconds: i64, zone: &dyn TimeZone) -> Option<i64> {
+        if seconds != i64::MIN && seconds != i64::MAX {
+            return Some(seconds);
+        }
+        let midnight = (i128::from(fixed) - i128::from(RD_OF_UNIX_EPOCH)) * 86_400;
+        let offset = zone.offset_at(UnixTime::from_seconds(seconds)).seconds();
+        (midnight - i128::from(offset) == i128::from(seconds)).then_some(seconds)
     }
 
     /// The zone name a NUL-terminated argument carries.
@@ -1510,6 +1542,12 @@ mod tz {
     /// the first instant after the gap; when they go back across it, at the
     /// earlier of the two midnights. `zone` is as for
     /// `hc_fixed_from_unix_in_zone`, and fails the same way.
+    ///
+    /// A day whose start would overflow an `int64_t` is
+    /// `HC_ERROR_OUT_OF_RANGE`, never a clamped or wrapped number: by UTC, a
+    /// day before fixed day −106 751 990 448 137 or after
+    /// 106 751 991 886 463, and a zone's offset moves each end by at most a
+    /// day.
     ///
     /// # Safety
     ///
@@ -2339,6 +2377,27 @@ mod tests {
         }
 
         #[test]
+        fn the_leap_second_question_refuses_a_day_with_no_int64_bounds() {
+            let ask = |unix: i64| {
+                let mut has_leap = 7;
+                match unsafe { hc_day_has_leap_second(unix, &mut has_leap) } {
+                    HC_OK => Ok(has_leap),
+                    status => Err(status),
+                }
+            };
+            // The first whole day of the range, and the part-day before it.
+            let first_whole = -9_223_372_036_854_720_000;
+            assert_eq!(ask(first_whole), Ok(0));
+            assert_eq!(ask(first_whole - 1), Err(HC_ERROR_OUT_OF_RANGE));
+            assert_eq!(ask(i64::MIN), Err(HC_ERROR_OUT_OF_RANGE));
+            // The last day whose end is an int64_t, and the part-day after.
+            let last_end = 9_223_372_036_854_720_000;
+            assert_eq!(ask(last_end - 1), Ok(0));
+            assert_eq!(ask(last_end), Err(HC_ERROR_OUT_OF_RANGE));
+            assert_eq!(ask(i64::MAX), Err(HC_ERROR_OUT_OF_RANGE));
+        }
+
+        #[test]
         fn unix_and_tai_round_trip_across_the_boundary() {
             let (mut seconds, mut attos) = (0i64, 0u64);
             assert_eq!(
@@ -2354,6 +2413,67 @@ mod tests {
             );
             assert_eq!(unix_seconds, 1_700_000_000);
             assert_eq!(is_leap, 0);
+        }
+
+        #[test]
+        fn the_int64_results_have_the_readmes_ranges() {
+            // The Gregorian range, and the first day on either side of it.
+            let (mut fixed, mut year, mut month, mut day) = (0i64, 0i64, 0u8, 0u8);
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(-9_999_999, 1, 1, &mut fixed) },
+                HC_OK
+            );
+            assert_eq!(fixed, -3_652_424_999);
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(9_999_999, 12, 31, &mut fixed) },
+                HC_OK
+            );
+            assert_eq!(fixed, 3_652_424_634);
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(i64::MIN, 1, 1, &mut fixed) },
+                HC_ERROR_INVALID_DATE
+            );
+            for outside in [-3_652_425_000, 3_652_424_635, i64::MIN, i64::MAX] {
+                assert_eq!(
+                    unsafe { hc_gregorian_from_fixed(outside, &mut year, &mut month, &mut day) },
+                    HC_ERROR_NO_DATA,
+                    "{outside}"
+                );
+            }
+            // TAI runs 37 seconds ahead, so the last 37 POSIX seconds have
+            // no TAI reading an int64_t holds.
+            let (mut seconds, mut attos) = (0i64, 0u64);
+            assert_eq!(
+                unsafe { hc_tai_from_unix(i64::MAX - 37, 0, &mut seconds, &mut attos) },
+                HC_OK
+            );
+            assert_eq!(seconds, i64::MAX);
+            assert_eq!(
+                unsafe { hc_tai_from_unix(i64::MAX - 36, 0, &mut seconds, &mut attos) },
+                HC_ERROR_OVERFLOW
+            );
+            assert_eq!(
+                unsafe { hc_tai_from_unix(i64::MIN, 0, &mut seconds, &mut attos) },
+                HC_OK
+            );
+            assert_eq!(seconds, i64::MIN);
+            // Every TAI reading has a UTC label.
+            let (mut unix_seconds, mut is_leap) = (0i64, 0);
+            for tai in [i64::MIN, i64::MAX] {
+                assert_eq!(
+                    unsafe { hc_utc_from_tai(tai, 0, &mut unix_seconds, &mut is_leap) },
+                    HC_OK,
+                    "{tai}"
+                );
+            }
+            let mut offset = 0i64;
+            for unix in [i64::MIN, i64::MAX] {
+                assert_eq!(
+                    unsafe { hc_tai_minus_utc(unix, 0, &mut offset) },
+                    HC_OK,
+                    "{unix}"
+                );
+            }
         }
 
         #[test]
@@ -2873,6 +2993,59 @@ mod tests {
                 unsafe { hc_fixed_from_unix_in_zone(0, c"UTC".as_ptr(), core::ptr::null_mut()) },
                 HC_ERROR_NULL_POINTER
             );
+        }
+
+        /// `hc_unix_from_fixed_in_zone` as a `Result`.
+        fn starts(fixed: i64, zone: &core::ffi::CStr) -> Result<i64, HcStatus> {
+            let mut start = 0i64;
+            match unsafe { hc_unix_from_fixed_in_zone(fixed, zone.as_ptr(), &mut start) } {
+                HC_OK => Ok(start),
+                status => Err(status),
+            }
+        }
+
+        #[test]
+        fn a_days_start_refuses_rather_than_saturates_downwards() {
+            // The last day whose UTC midnight fits an int64_t, and the
+            // first that would not.
+            let first = -106_751_990_448_137;
+            let midnight = -9_223_372_036_854_720_000;
+            assert_eq!(starts(first, c"UTC"), Ok(midnight));
+            assert_eq!(starts(first - 1, c"UTC"), Err(HC_ERROR_OUT_OF_RANGE));
+            assert_eq!(starts(first, c"Asia/Tokyo"), Ok(midnight - 9 * 3_600));
+            assert_eq!(starts(first - 1, c"Asia/Tokyo"), Err(HC_ERROR_OUT_OF_RANGE));
+            assert_eq!(starts(i64::MIN, c"UTC"), Err(HC_ERROR_OUT_OF_RANGE));
+            assert_eq!(
+                starts(i64::MIN, c"America/New_York"),
+                Err(HC_ERROR_OUT_OF_RANGE)
+            );
+            // There are no sentinels here, so a day 54 billion years back
+            // is an answer, as it cannot be in the WebAssembly module.
+            let far = -19_723_095_000_000;
+            assert_eq!(starts(far, c"UTC"), Ok((far - 719_163) * 86_400));
+        }
+
+        #[test]
+        fn a_days_start_refuses_rather_than_saturates_upwards() {
+            let last = 106_751_991_886_463;
+            let midnight = 9_223_372_036_854_720_000;
+            assert_eq!(starts(last, c"UTC"), Ok(midnight));
+            assert_eq!(starts(last + 1, c"UTC"), Err(HC_ERROR_OUT_OF_RANGE));
+            assert_eq!(starts(last, c"America/Sao_Paulo"), Ok(midnight + 3 * 3_600));
+            assert_eq!(
+                starts(last + 1, c"America/Sao_Paulo"),
+                Err(HC_ERROR_OUT_OF_RANGE)
+            );
+            // Tokyo's day after UTC's last begins nine hours before it,
+            // which still fits.
+            assert_eq!(
+                starts(last + 1, c"Asia/Tokyo"),
+                Ok(midnight - 9 * 3_600 + 86_400)
+            );
+            assert_eq!(starts(last + 2, c"Asia/Tokyo"), Err(HC_ERROR_OUT_OF_RANGE));
+            // 2^53 days, which used to saturate to INT64_MAX.
+            assert_eq!(starts(1 << 53, c"Asia/Tokyo"), Err(HC_ERROR_OUT_OF_RANGE));
+            assert_eq!(starts(i64::MAX, c"UTC"), Err(HC_ERROR_OUT_OF_RANGE));
         }
 
         #[test]

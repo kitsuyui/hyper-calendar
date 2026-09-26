@@ -1068,7 +1068,10 @@ export class HyperCalendar {
   }
 
   /**
-   * The POSIX timestamp of midnight UTC on a fixed day.
+   * The POSIX timestamp of midnight UTC on a fixed day. A day before
+   * −104 165 947 503, whose midnight would read as a sentinel, or after
+   * 106 751 991 886 463, whose midnight would overflow an `i64`, is
+   * `out-of-range`.
    *
    * @param {number | bigint} fixed
    * @returns {number}
@@ -1393,7 +1396,9 @@ export class HyperCalendar {
   /**
    * The POSIX timestamp at which a fixed day begins by the wall clock of a
    * zone: its local midnight, the first instant after a gap that swallows
-   * it, or the earlier of two midnights.
+   * it, or the earlier of two midnights. The range is `unixFromFixed`'s,
+   * each end moved by at most a day by the zone's offset; outside it,
+   * `out-of-range`.
    *
    * @param {number | bigint} fixed
    * @param {string} zone

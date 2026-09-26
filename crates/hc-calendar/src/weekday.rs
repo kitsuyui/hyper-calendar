@@ -44,7 +44,8 @@ impl Weekday {
     /// `Rd(1)` — `0001-01-01` proleptic Gregorian — was a Monday.
     #[must_use]
     pub const fn from_rd(rd: Rd) -> Self {
-        match (rd.0 - 1).rem_euclid(7) {
+        // `(rd - 1) mod 7`, without the subtraction that overflows at `i64::MIN`.
+        match (rd.0.rem_euclid(7) + 6) % 7 {
             0 => Self::Monday,
             1 => Self::Tuesday,
             2 => Self::Wednesday,
@@ -249,6 +250,14 @@ mod tests {
             let expected = Weekday::ALL[((offset + 3).rem_euclid(7)) as usize];
             assert_eq!(Weekday::from_rd(rd), expected, "offset {offset}");
         }
+    }
+
+    #[test]
+    fn every_day_number_has_a_weekday() {
+        // 2^63 is 1 mod 7, so i64::MIN is 6 mod 7, a Saturday like Rd(6),
+        // and i64::MAX, 0 mod 7, a Sunday like Rd(7).
+        assert_eq!(Weekday::from_rd(Rd(i64::MIN)), Weekday::Saturday);
+        assert_eq!(Weekday::from_rd(Rd(i64::MAX)), Weekday::Sunday);
     }
 
     #[test]
