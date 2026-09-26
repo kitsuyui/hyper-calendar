@@ -22,6 +22,14 @@ set -eu
 cd "$(dirname "$0")/.."
 . scripts/layers.sh
 
+# The builds go to a target directory of their own. The pre-push hook runs
+# this beside scripts/wasm-js-test.sh, which builds the module with other
+# features to the same path under the shared target; two concurrent builds
+# of one artefact would leave whichever finished last, and the JS test would
+# read a module built with the wrong layer.
+CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-target}/layer-tests"
+export CARGO_TARGET_DIR
+
 selected=${*:-$layers}
 for layer in $selected; do
     case " $layers " in
