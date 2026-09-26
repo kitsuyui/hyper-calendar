@@ -175,6 +175,100 @@ pub fn new_year(year: i64) -> CalendarResult<Rd> {
     PARAMETERS.new_year(year)
 }
 
+/// A person's age as the Chinese count reckons it, on a fixed day: one at
+/// birth, and one more at each Chinese New Year after, whatever the day
+/// of birth (`chinese-age` in the published code of *Calendrical
+/// Calculations*, `reingold2018code`). `Ok(None)` for a day before the
+/// birth, which has no age.
+///
+/// This is the count Wikipedia's "East Asian age reckoning" gives as the
+/// pre-modern reckoning of *suì* in China: one at birth and one more at
+/// each lunar new year (`wikipedia-en-east-asian-age-reckoning`). Nothing
+/// here says how any other country counts.
+///
+/// # Errors
+///
+/// Returns a [`hc_calendar::CalendarError`] when the birth date does not
+/// exist or either day is outside the supported range.
+pub fn reckoned_age(birth: ChineseDate, on: Rd) -> CalendarResult<Option<u32>> {
+    let born = ChineseCalendar.to_fixed(birth)?;
+    if on < born {
+        return Ok(None);
+    }
+    let today = ChineseCalendar.from_fixed(on)?;
+    u32::try_from(today.year - birth.year + 1)
+        .map(Some)
+        .map_err(|_| hc_calendar::CalendarError::YearOutOfRange)
+}
+
+/// Where 立春 (*lìchūn*, the Beginning of Spring) falls in a Chinese year,
+/// the ground of the marriage auguries of the almanacs: none in the year,
+/// once near its end, once near its start, or at both
+/// (`chinese-year-marriage-augury` and the constants `widow`, `blind`,
+/// `bright` and `double-bright` in the published code of *Calendrical
+/// Calculations*, `reingold2018code`, whose names these are).
+///
+/// Wikipedia's "Lichun" calls a year without the term 無春年, 寡婦年
+/// ("widow year") in the north and 盲年 ("blind year") in the south, and
+/// says marriage in it is thought unlucky (`wikipedia-en-lichun`). So "blind"
+/// names a year without 立春 there and a year with it only at the end in
+/// the published code; the names here are the code's.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum MarriageAugury {
+    /// No 立春 in the year (the code's "double-blind year").
+    Widow,
+    /// 立春 once, near the end of the year.
+    Blind,
+    /// 立春 once, near the start of the year.
+    Bright,
+    /// 立春 twice, at the start and at the end ("double happiness").
+    DoubleBright,
+}
+
+impl MarriageAugury {
+    /// Whether the year's first 立春 comes after its New Year.
+    #[must_use]
+    pub const fn lichun_at_start(self) -> bool {
+        matches!(self, Self::Bright | Self::DoubleBright)
+    }
+
+    /// Whether a 立春 comes before the next New Year after the first.
+    #[must_use]
+    pub const fn lichun_at_end(self) -> bool {
+        matches!(self, Self::Blind | Self::DoubleBright)
+    }
+}
+
+/// The last minor solar term (節氣) to begin before the local midnight
+/// that starts `rd`, numbered 1 for 立春 at 315° to 12 for 小寒 at 285°
+/// (`current-minor-solar-term` in the published code of *Calendrical
+/// Calculations*).
+fn minor_solar_term(rd: Rd) -> i64 {
+    let longitude = hc_astro::solar_longitude(PARAMETERS.midnight(rd));
+    (2 + hc_core::math::floor((longitude - 15.0) / 30.0) as i64).rem_euclid(12) + 1
+}
+
+/// The marriage augury of Chinese year `year`
+/// (`chinese-year-marriage-augury`): whether 立春 falls after its New Year
+/// and whether another falls before the next.
+///
+/// # Errors
+///
+/// Returns [`hc_calendar::CalendarError::YearOutOfRange`] when the year or
+/// the next one begins outside the supported range.
+pub fn marriage_augury(year: i64) -> CalendarResult<MarriageAugury> {
+    // At New Year the last minor term is 小寒 (12) when 立春 is still to
+    // come, and 立春 (1) itself when it has passed.
+    let at_start = minor_solar_term(new_year(year)?) != 1;
+    let at_end = minor_solar_term(new_year(year + 1)?) != 12;
+    Ok(match (at_start, at_end) {
+        (false, false) => MarriageAugury::Widow,
+        (false, true) => MarriageAugury::Blind,
+        (true, false) => MarriageAugury::Bright,
+        (true, true) => MarriageAugury::DoubleBright,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -456,5 +550,70 @@ mod tests {
         assert!(meta.is_astronomical);
         assert_eq!(meta.earliest, Some(EARLIEST));
         assert_eq!(meta.latest, Some(LATEST));
+    }
+
+    #[test]
+    fn a_child_born_in_june_2000_turns_thirteen_at_the_new_year_of_2012() {
+        // Wikipedia, "East Asian age reckoning", § People's Republic of
+        // China: one suì at birth, one more at each lunar new year, and a
+        // child born in June 2000, a dragon year, 13 suì from the lunar new
+        // year of 2012.
+        let birth = ChineseCalendar
+            .from_fixed(civil::to_rd(2000, 6, 15))
+            .expect("in range");
+        assert_eq!(birth.year, 4_637);
+        assert_eq!(PARAMETERS.sexagenary_year(4_637).zodiac_animal(), "dragon");
+        let new_year_2012 = new_year(4_649).expect("in range");
+        assert_eq!(new_year_2012, civil::to_rd(2012, 1, 23));
+        assert_eq!(reckoned_age(birth, new_year_2012), Ok(Some(13)));
+        assert_eq!(reckoned_age(birth, Rd(new_year_2012.0 - 1)), Ok(Some(12)));
+        assert_eq!(reckoned_age(birth, civil::to_rd(2000, 6, 15)), Ok(Some(1)));
+        assert_eq!(reckoned_age(birth, civil::to_rd(2000, 6, 14)), Ok(None));
+    }
+
+    #[test]
+    fn a_child_born_on_new_years_eve_is_two_the_next_day() {
+        let eve = Rd(new_year(4_661).expect("in range").0 - 1);
+        let birth = ChineseCalendar.from_fixed(eve).expect("in range");
+        assert_eq!(reckoned_age(birth, eve), Ok(Some(1)));
+        assert_eq!(reckoned_age(birth, Rd(eve.0 + 1)), Ok(Some(2)));
+        assert!(reckoned_age(LunisolarDate::new(4_661, Month::regular(1), 31), eve).is_err());
+    }
+
+    #[test]
+    fn the_published_widow_and_double_spring_years_are_reproduced() {
+        // The Year of the Dragon that began on 10 February 2024 is a Widow
+        // Year, "lacking Spring Commences" (South China Morning Post,
+        // 3 February 2024).
+        assert_eq!(marriage_augury(4_661), Ok(MarriageAugury::Widow));
+        // The lunar year that began on 26 January 2009 holds two 立春, on
+        // 4 February 2009 and 4 February 2010 (South China Morning Post,
+        // 25 January 2009).
+        assert_eq!(new_year(4_646), Ok(civil::to_rd(2009, 1, 26)));
+        assert_eq!(marriage_augury(4_646), Ok(MarriageAugury::DoubleBright));
+    }
+
+    #[test]
+    fn a_year_with_two_lichun_has_thirteen_months_and_one_with_none_twelve() {
+        // Two 立春 are a tropical year apart and none leaves a gap of one,
+        // so the first can only happen in a year longer than 365 days and
+        // the second only in a shorter one. The augury and the year length
+        // are computed independently, from the Sun and from the Moon.
+        let mut seen = [0u32; 4];
+        for year in 4_290..4_780i64 {
+            let augury = marriage_augury(year).expect("in range");
+            let length =
+                new_year(year + 1).expect("in range").0 - new_year(year).expect("in range").0;
+            match augury {
+                MarriageAugury::DoubleBright => assert!(length > 366, "{year}"),
+                MarriageAugury::Widow => assert!(length < 365, "{year}"),
+                _ => {}
+            }
+            seen[augury as usize] += 1;
+            // What ends one year is what the next does not start with.
+            let next = marriage_augury(year + 1).expect("in range");
+            assert_eq!(augury.lichun_at_end(), !next.lichun_at_start(), "{year}");
+        }
+        assert!(seen.iter().all(|count| *count > 0), "{seen:?}");
     }
 }

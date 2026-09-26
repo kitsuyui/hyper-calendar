@@ -23,6 +23,7 @@ others exist.
 | `islamic_umalqura` | `islamic-umalqura` | published table | **1300–1600 AH only** |
 | `islamic_observational` | `islamic-rgsa` | prediction | 1900–2100 CE |
 | `hebrew` | `hebrew` | arithmetic | AM 1–9999 |
+| `hebrew_observational` | `hebrew-observational` | prediction | 383 BCE – 2100 CE |
 | `samaritan` | `samaritan` | astronomical | Samaritan 3539–3738 (1900–2100 CE) |
 | `babylonian` | `babylonian` | astronomical | SE −71 to 386 (383 BCE to 76 CE) |
 | `tibetan::TIBETAN` | `tibetan` | arithmetic (Phugpa) | 1000–3000 |
@@ -74,7 +75,11 @@ published Mawlid of 1439. The Umm al-Qura table is exact where it reaches,
 a forecast under one criterion at one place: against the Umm al-Qura table
 over 1400–1445 AH it starts the month a day later for 322 of 552 months —
 58% — and never earlier, which is the signature of a sighting criterion
-against a computation criterion and is asserted in a test.
+against a computation criterion and is asserted in a test. Yallop's
+*q*-test at Bruin's best time is carried beside Shaukat's criterion as
+`VisibilityCriterion::YALLOP`, reproduces his own Table 4 to 0.005 in *q*,
+and begins 21 of the same 552 months a day away from Shaukat's at Mecca;
+no calendar is registered under it, for want of one to check it against.
 
 ## The Javanese calendar
 
@@ -108,11 +113,21 @@ the rule of 1935 projected. The pasaran and *wuku* are
 [`docs/systems/hebrew.md`](../../docs/systems/hebrew.md): the molad and its
 parts, the nineteen-year cycle, the four dehiyyot and why each exists, the
 six year lengths, Rosh Hashanah 5784 worked by hand through the rules, the
-drift from the sky, what is carried and what is not — the observational
-calendar of the Second Temple among the latter —
-and the sources, Maimonides first. The module keeps the month-numbering
-convention, Tishrei first with Adar I as `Month::leap(5)`, and the Omer and
-*birkat hachama* functions beside the calendar.
+drift from the sky, what is carried and what is not, and the sources,
+Maimonides first. The module keeps the month-numbering convention, Tishrei
+first with Adar I as `Month::leap(5)`, and the Omer and *birkat hachama*
+functions beside the calendar.
+
+`hebrew-observational` is Reingold and Dershowitz's prediction of the
+calendar the fixed one replaced, written up in
+[`docs/systems/hebrew-observational.md`](../../docs/systems/hebrew-observational.md):
+each month from the first evening the crescent should be seen at Haifa,
+each year from the first month whose fifteenth day is not before the
+equinox, with `first_of_nisan` and `classical_passover_eve`. No declared
+date survives to check it against, so its tests check the rule and measure
+it against the fixed calendar: over 1900–2100 the prediction's 1 Nisan is
+the fixed calendar's or up to two days later in 150 springs and a lunation
+earlier in 51.
 
 ## The two proposals
 
