@@ -21,6 +21,7 @@ detail.
 | **LTST** | Local True Solar Time, LMST plus the Martian equation of time (which runs from about −51 to +40 minutes, far more than Earth's −14 to +16) |
 | **Mission sol** | The landing-relative sol count each mission uses. All ten surface missions are tabulated: Viking 1 and 2, Mars Pathfinder, Spirit, Opportunity, Phoenix, Curiosity, InSight, Perseverance and Zhurong |
 | **Darian calendar** | Gangale's 24-month Martian calendar, the most developed proposal for a Martian civil calendar |
+| **Martiana calendar** | Gangale's variant of it with Aitken's week: the week never shortened, every month of a quarter beginning on the same sol, a two-year cycle, and a decennial sol outside the week |
 | **Mars year** | The Clancy convention, counting from the 1955 northern spring equinox, used throughout Mars atmospheric science |
 
 ### Other bodies
@@ -30,6 +31,21 @@ bodies — the Sun, the eight planets, the Moon, Phobos and Deimos, Ceres, the
 Galilean moons, Enceladus, Titan, Triton, Pluto and Charon — with the solar
 day and the year in local days derived from them, enough to define a local
 solar day and a year on each, and the source for every constant.
+
+### Calendars for the moons of Jupiter and Saturn
+
+Gangale extended the Darian calendar to the moons that have no day a person
+could live by: each is tidally locked, so its solar day is its orbit, 1.8 to
+16.8 Earth days. His calendars divide the solar day into *circads* of about
+21 to 24 hours and build eight-circad weeks, months and a borrowed year out
+of them. `hc-planetary` carries the **Darian calendar for Titan**, 24 months
+in the Martian year with a circad of one sixteenth of Titan's day, and the
+**Gregorian-based calendars of Io, Europa, Ganymede and Callisto**, thirteen
+months in the Earth year under the Gregorian year number; the Darian-based
+Galilean family is read and not yet carried, because its source contradicts
+itself where the dates depend on it. All of them run through one engine
+whose fixed day is a circad, not an Earth day. The rules, their sources and
+their limits are in [systems/circad-calendars.md](systems/circad-calendars.md).
 
 Coordinated Lunar Time is tracked as *researching*: the 2024 US policy
 directive asked for one, the standard is still being defined, and inventing a

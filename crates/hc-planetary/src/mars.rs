@@ -1,5 +1,6 @@
 //! Mars: the sol, the Mars Sol Date, MTC, local mean and true solar time, the
-//! areocentric solar longitude, Mars years and the Darian calendar.
+//! areocentric solar longitude, Mars years, the Darian calendar and its
+//! Martiana variant.
 //!
 //! # Where the numbers come from
 //!
@@ -47,6 +48,7 @@
 //! derives the rest.
 
 pub mod darian;
+pub mod martiana;
 pub mod missions;
 
 use core::fmt;
@@ -57,6 +59,7 @@ use hc_core::{Duration, Instant, Tai, TimeResult};
 use crate::util::{fract, instant_from_j2000_offset, j2000_offset_days, modulo, signed_degrees};
 
 pub use darian::{DarianCalendar, DarianDate};
+pub use martiana::{MartianaCalendar, MartianaDate};
 pub use missions::{Mission, MissionClock, SolConvention};
 
 /// The mean Martian solar day, in SI seconds: 24 h 39 m 35.244 s.

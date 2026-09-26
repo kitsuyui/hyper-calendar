@@ -106,6 +106,18 @@ pub(crate) const fn utc_unix_seconds(
     (day - RD_OF_UNIX_EPOCH) * 86_400 + hour as i64 * 3_600 + minute as i64 * 60 + second as i64
 }
 
+/// TT days from J2000.0 to a UTC instant given as a POSIX timestamp, when
+/// `TAI − UTC` was `tai_minus_utc_seconds` at that instant.
+///
+/// This is the `const` route for a published UTC time in a data table: the
+/// caller states the leap-second offset of the day, and a test checks it
+/// against the leap-second table. `2000-01-01T12:00:00 TT` is POSIX
+/// 946 728 000 read on the TT scale, and a UTC reading is
+/// `TAI − UTC + 32.184 s` behind TT.
+pub(crate) const fn j2000_tt_days_from_utc(unix_seconds: i64, tai_minus_utc_seconds: i64) -> f64 {
+    ((unix_seconds - 946_728_000) as f64 + tai_minus_utc_seconds as f64 + 32.184) / SECONDS_PER_DAY
+}
+
 /// The TAI instant of a UTC civil date and time.
 ///
 /// Only the tests need this: the crate's own data carries POSIX timestamps
@@ -195,6 +207,20 @@ mod tests {
         let instant = tai_from_utc_fields(2000, 1, 1, 11, 58, 55).unwrap();
         let offset = j2000_offset_days(instant) * SECONDS_PER_DAY;
         assert!((offset + 0.816).abs() < 1e-6, "offset {offset} s");
+    }
+
+    #[test]
+    fn the_const_utc_route_agrees_with_the_leap_second_table() {
+        // 2002, when TAI - UTC was 32 s, and 2017, when it was 37 s.
+        for (fields, leap) in [((2002, 12, 18, 10, 42, 0), 32), ((2017, 6, 1, 0, 0, 0), 37)] {
+            let (year, month, day, hour, minute, second) = fields;
+            let unix = utc_unix_seconds(year, month, day, hour, minute, second);
+            let from_table = j2000_offset_days(
+                tai_from_utc_fields(year, month, day, hour, minute, second).unwrap(),
+            );
+            let from_const = j2000_tt_days_from_utc(unix, leap);
+            assert!(((from_table - from_const) * SECONDS_PER_DAY).abs() < 1e-6);
+        }
     }
 
     #[test]

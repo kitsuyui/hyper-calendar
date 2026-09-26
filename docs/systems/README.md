@@ -94,7 +94,8 @@ None of the three repeats another.
 | Spreadsheet serial dates: the Excel 1900 system and its phantom 29 February 1900, the Excel 1904 system, the OLE Automation date and its negative fractions | [spreadsheet-dates.md](spreadsheet-dates.md) | `excel-1900`, `excel-1904`, `ole-automation-date`; `spreadsheet` |
 | The GNSS system times: GPS, Galileo, BeiDou and NavIC time and their epochs, the broadcast week numbers and their rollovers, GLONASS time with its leap seconds and four-year intervals | [gnss-time.md](gnss-time.md) | `hc-core`: `scale`, `epoch`, `gnss` |
 | Local mean and local apparent (sundial) time on the Earth, temporal and Italian hours, and the ʿaṣr and Jewish evening times as named conventions | [hours-of-the-day.md](hours-of-the-day.md) | `hc-astro::solar_time` |
-| Mars timekeeping: the Mars Sol Date, Coordinated Mars Time, local mean and true solar time, the Mars year from 1955, the mission sol conventions, and the Darian calendar | [mars-timekeeping.md](mars-timekeeping.md) | `hc-planetary`: `mars`, `mars::missions`, `mars::darian` |
+| Mars timekeeping: the Mars Sol Date, Coordinated Mars Time, local mean and true solar time, the Mars year from 1955, the mission sol conventions, the Darian calendar and its Martiana variant | [mars-timekeeping.md](mars-timekeeping.md) | `hc-planetary`: `mars`, `mars::missions`, `mars::darian`, `mars::martiana` (`martiana`) |
+| Circad calendars: Gangale's Darian calendar for Titan and the Gregorian-based calendars of the Galilean moons, and why the Darian-based Galilean family is not carried | [circad-calendars.md](circad-calendars.md) | `darian-titan`, `gregorian-io`, `gregorian-europa`, `gregorian-ganymede`, `gregorian-callisto`; `hc-planetary`: `circad`, `titan`, `galilean` |
 
 ## Systems that need a document
 

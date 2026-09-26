@@ -89,7 +89,7 @@ dependencies. A crate depends only on crates in rows above it.
 | `hc-astro` | ΔT, solar longitude, new moon, rise and set | — |
 | `hc-format` | ISO 8601, RFC 3339, RFC 2822, patterns, Python's ISO profile | `hc-calendars-solar`, `hc-tz`, `hc-i18n` |
 | `hc-humanize` | Relative times, spelled-out durations, Python `humanize`'s phrasing | `hc-i18n`, `hc-units`, `hc-format` |
-| `hc-planetary` | Mars sols, MTC, Darian | `hc-astro` |
+| `hc-planetary` | Mars sols, MTC, Darian and Martiana; Titan and Galilean circad calendars | `hc-astro` |
 | `hc-calendars-lunar` | Hijri, Hebrew, Samaritan, Chinese, Tibetan and Mongolian, Javanese, the Japanese lunisolar systems | `hc-astro`, `hc-calendars-solar` |
 | `hc-calendars-equinox` | Solar Hijri, Badíʿ and French Republican by the equinox | `hc-astro`, `hc-calendars-solar` |
 | `hc-seasons` | 24 terms, 72 pentads | `hc-astro`, optionally `hc-calendars-lunar` |
@@ -181,7 +181,7 @@ everything else.
 | Uncertainty | `hc-uncertainty` | EDTF, Allen interval relations, significant figures |
 | Scale beyond seconds | `hc-deep-time` | Logarithmic magnitudes for Planck time and cosmology |
 | The ice-age cycles | `hc-orbital` | A trigonometric series answered over ±1 Myr and refused beyond |
-| Off-Earth clocks | `hc-planetary` | Mars sols, MSD, MTC, Darian |
+| Off-Earth clocks | `hc-planetary` | Mars sols, MSD, MTC, Darian, Martiana; circad calendars for Titan and the Galilean moons |
 | Relativity | `hc-relativity` | Worldline integration, so an SF timeline is computable |
 | Ambiguous local time | `hc-tz` | A three-way `LocalResolution`, never a silent pick |
 | Localisation | `hc-i18n` | Static data plus a fallback chain |
