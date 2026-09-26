@@ -7,14 +7,18 @@
 //! sixty names themselves are data that varies by culture and script. So the
 //! arithmetic lives here, and the *locale-tagged* names live in `hc-i18n`.
 //!
+//! The sexagenary cycle is written up in `docs/systems/sexagenary-cycle.md`
+//! in the repository: its use for days, years, months and hours, the three
+//! year boundaries, the 五虎遁 and 五鼠遁 rules, the readings and their
+//! sources, the four pillars of an instant worked by hand, and how the
+//! functions here were checked. This page states the code's own facts.
+//!
 //! # The sixty-term cycle
 //!
 //! Ten Heavenly Stems (十干) and twelve Earthly Branches (十二支) advance in
 //! step. Because ten and twelve share a factor of two, only sixty of the 120
 //! possible pairs occur, and a pair repeats every sixty steps — the 干支
-//! (*ganzhi*, *kanshi*, *eto*, *gapja*, *can chi*) cycle that East Asia has
-//! used to name years, months, days and hours for more than three thousand
-//! years.
+//! (*ganzhi*, *kanshi*, *eto*, *gapja*, *can chi*) cycle.
 //!
 //! # The four pillars
 //!
@@ -23,19 +27,17 @@
 //! day and the double-hour of a moment. [`FourPillars`] holds all four.
 //!
 //! What makes the four pillars hard is not the naming but the *boundaries*.
-//! Each pillar changes at a different instant, and none of them changes at
-//! midnight on 1 January:
+//! Each pillar changes at its own instant:
 //!
 //! | Pillar | Changes at | Computed by |
 //! |---|---|---|
 //! | 年柱 year | 立春, or the lunar new year, or 1 January — three rival conventions | [`sexagenary_year`], [`sexagenary_year_from_solar_term_year`], [`sexagenary_year_from_gregorian_year`] |
 //! | 月柱 month | the twelve 節気 (立春, 驚蟄, 清明 …), *not* the new moon | [`month_pillar`] |
-//! | 日柱 day | 23:00 under the majority school, midnight under the other | [`pillar_day`] |
+//! | 日柱 day | 23:00 under 早子時, midnight under 夜子時 | [`pillar_day`] |
 //! | 時柱 hour | every two hours from 23:00 | [`hour_pillar`] |
 //!
 //! The day pillar is the only one of the four that needs no calendar at all:
-//! the sixty-day cycle has run without interruption for longer than any
-//! surviving calendar, so [`sexagenary_day`] is a function of [`Rd`] alone.
+//! [`sexagenary_day`] is a function of [`Rd`] alone.
 //!
 //! # What this module deliberately does not do
 //!
@@ -599,9 +601,9 @@ pub const fn sexagenary_year_at(rd: Rd, gregorian_year: i64, start_of_spring: Rd
 
 /// The sexagenary day of a fixed day.
 ///
-/// The day cycle has run without interruption for longer than any surviving
-/// calendar; the anchor used here is that RD 1 (`0001-01-01` proleptic
-/// Gregorian) was *jia-zi* day index 14.
+/// The anchor is that RD −14 is *jia-zi*, index 0, so RD 1 (`0001-01-01`
+/// proleptic Gregorian) is index 15, *ji-mao*; *Calendrical Calculations*
+/// puts the same *jia-zi* at RD 46.
 ///
 /// The same cycle is published as a Julian Day Number rule — stem
 /// `(JDN + 9) mod 10`, branch `(JDN + 1) mod 12` — and the two agree

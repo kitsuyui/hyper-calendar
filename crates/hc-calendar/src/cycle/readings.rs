@@ -7,7 +7,8 @@
 //! A Manchu, Mongolian or Tibetan reading is an entry nobody has written
 //! yet, not a case the type failed to foresee. So a reading is a value of
 //! [`Reading`], the table of them is [`ALL`], and adding one is adding an
-//! entry.
+//! entry. Where each reading's spellings come from, and which were checked,
+//! is in `docs/systems/sexagenary-cycle.md` in the repository.
 //!
 //! What *is* fixed is the shape: ten stems and twelve branches, 甲 and 子
 //! first. That is the structure of the cycle rather than a fact about any

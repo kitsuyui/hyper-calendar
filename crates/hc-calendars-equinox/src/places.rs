@@ -6,18 +6,19 @@
 
 use hc_astro::riseset::Location;
 
-/// Tehran, 35.696111° N, 51.423056° E — the point Reingold and Dershowitz
-/// use for both the Solar Hijri and the Badíʿ calendars (*Calendrical
-/// Calculations*, `tehran`) — with its sunset taken as an almanac tabulates
-/// one, against a sea-level horizon.
+/// Tehran, 35.696111° N, 51.423056° E, with its sunset taken as an almanac
+/// tabulates one, against a sea-level horizon — the location Reingold and
+/// Dershowitz use for the astronomical Badíʿ calendar (*Calendrical
+/// Calculations*, `bahai-location`, elevation 0 m).
 ///
-/// Reingold and Dershowitz give the city its 1 100 m of elevation, which
-/// dips the horizon and puts sunset about five minutes later. The Bahá'í
-/// World Centre's table decides otherwise: on 20 March 2026 the equinox and
-/// the sea-level sunset at Tehran fall within seconds of each other, and
-/// the table puts Naw-Rúz on the 21st — the equinox after sunset — where a
-/// dipped horizon would put it five minutes before. So the elevation is
-/// zero here, on the evidence of the one row that can tell.
+/// Their `tehran`, used for the Solar Hijri calendar, gives the city its
+/// 1 100 m of elevation, which dips the horizon and puts sunset about five
+/// minutes later. The Bahá'í World Centre's table agrees with the sea-level
+/// horizon on the one row that can tell: on 20 March 2026 the equinox and
+/// the sea-level sunset fall within seconds of each other, and the table
+/// puts Naw-Rúz on the 21st — the equinox after sunset — where a dipped
+/// horizon would put it five minutes before. See
+/// `docs/systems/equinox-calendars.md` in the repository.
 pub const TEHRAN: Location = Location::new(35.696_111, 51.423_056, 0.0);
 
 /// The standard meridian of Iran Standard Time, UTC+03:30.

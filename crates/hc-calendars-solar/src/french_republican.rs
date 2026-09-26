@@ -1,5 +1,8 @@
 //! The French Republican calendar, arithmetic (Romme) variant.
 //!
+//! This rule and the decree's are written up in
+//! `docs/systems/equinox-calendars.md` in the repository.
+//!
 //! Twelve months of thirty days, each divided into three *décades* of ten
 //! days, followed by five complementary days — the *sansculottides* — and a
 //! sixth in a leap year. The year began at the autumn equinox, which is why

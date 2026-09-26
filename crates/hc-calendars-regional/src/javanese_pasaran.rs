@@ -1,33 +1,22 @@
 //! The Javanese *pasaran*, the five-day market week, and the 35-day
 //! *wetonan* cycle it makes with the seven-day week.
 //!
-//! The pasaran is the same five-day cycle as the Balinese *pancawara* —
-//! Legi, Pahing, Pon, Wage, Kliwon — under Javanese names. Run against the
-//! ordinary seven-day week it produces a 35-day cycle, the *wetonan*, and a
-//! person's *weton* is the pair they were born on: Jumat Legi, Rebo Pon.
-//! The weton is still in everyday use for choosing wedding dates and for
-//! commemorating a death every 35 days.
+//! The system is written up in `docs/systems/pawukon-and-pasaran.md` in the
+//! repository, together with the Balinese Pawukon whose five-day week it
+//! is: the names, the *neptu*, the wetonan and its anchor, the weton of
+//! 17 August 1945 worked by hand, what is carried and not, and how it was
+//! checked. This page summarises it and states the code's own facts.
 //!
-//! # Neptu
+//! The pasaran — Legi, Pahing, Pon, Wage, Kliwon — is the Balinese
+//! *pancawara* under Javanese names. Against the seven-day week it gives a
+//! 35-day cycle, and a day's *weton* is the pair, as in Jemuwah Legi; its
+//! *neptu* is the two weeks' weights added, the same numbers as the
+//! Balinese *urip* (see [`crate::balinese_pawukon`]).
 //!
-//! Each day of both weeks carries an *urip* or *neptu*, a numerological
-//! weight, and a weton's neptu is the two added. Jumat Legi is 6 + 5 = 11.
-//! The weights are the same numbers the Balinese Pawukon uses to build its
-//! ten-day week; see [`crate::balinese_pawukon`].
-//!
-//! # Anchor
-//!
-//! The pasaran is anchored through the Balinese Pawukon's epoch, Julian Day
-//! Number 146, because the two cycles are the same cycle and anchoring them
-//! separately would be inviting them to drift apart in the source. It works
-//! out that fixed day 0 — 0000-12-31 in the proleptic Gregorian calendar —
-//! is Ahad Legi, so the wetonan ordinal is simply the fixed day modulo 35.
-//!
-//! The implementation is checked against the best-known weton in
-//! Indonesia: the declaration of independence on 17 August 1945 was **Jumat
-//! Legi**, a fact repeated in every Indonesian account of the date.
-//!
-//! # A cycle, not a calendar
+//! Fixed day 0 is Ahad Legi, as the Pawukon's epoch implies, so the
+//! wetonan position is the fixed day modulo 35. The anchor is written here
+//! as [`EPOCH`] rather than derived from the Pawukon's, and a test holds
+//! the two cycles to each other on every day it samples.
 //!
 //! Neither the pasaran nor the wetonan counts anything larger than itself,
 //! so [`WetonDate`] carries a `round` for the reason the crate

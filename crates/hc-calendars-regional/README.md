@@ -147,6 +147,20 @@ round-trips. For the Waso full moons of 2022 and 2025 two secondary
 holiday lists give a day later than the module does, and no official
 notification could be read; the document records the disagreement.
 
+## The Pawukon, the pasaran and the sexagenary cycle
+
+`balinese-pawukon` and `javanese-pasaran` are written up in
+[`docs/systems/pawukon-and-pasaran.md`](../../docs/systems/pawukon-and-pasaran.md):
+the ten concurrent weeks, the padding of the irregular ones, the *urip*
+and *neptu*, the anchors, and 17 August 1945 worked by hand. The names the
+module gives the ten-day week's values disagree by one place with the two
+sources the document could read for them; the document gives the
+evidence. `sexagenary` and the arithmetic in `hc_calendar::cycle` are
+written up in
+[`docs/systems/sexagenary-cycle.md`](../../docs/systems/sexagenary-cycle.md):
+the three year boundaries, the 五虎遁 and 五鼠遁 rules, the readings and
+their sources, and the four pillars of an instant worked by hand.
+
 ## Accuracy
 
 Everything except the pre-1873 half of `japanese`, the lunisolar calendar

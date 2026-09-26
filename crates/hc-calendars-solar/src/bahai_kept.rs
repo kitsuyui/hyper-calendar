@@ -1,5 +1,9 @@
 //! The Badíʿ (Bahá'í) calendar as kept: `bahai`.
 //!
+//! The rules and the table are written up, with the arithmetic and the
+//! astronomical calendars, in `docs/systems/equinox-calendars.md` in the
+//! repository.
+//!
 //! Two rules, one calendar. Until 171 BE the Bahá'í World Centre and the
 //! communities of the West kept the arithmetic calendar of [`crate::bahai`]:
 //! Naw-Rúz on 21 March, the year as long as the Gregorian year. From Naw-Rúz
@@ -35,8 +39,8 @@
 //! Naw-Rúz followed the Iranian equinox day rather than 21 March. Not a
 //! computation past 221 BE. Not the arithmetic rule continued past 171 BE,
 //! which [`crate::bahai`] remains for anyone who wants it. The equinox rule
-//! applied to any year at all, `bahai-astronomical`, is for `hc-astro` to
-//! add — and its first test will be that it reproduces this table.
+//! applied to any year at all is `bahai-astronomical` in
+//! `hc-calendars-equinox`, whose tests reproduce this table.
 //!
 //! A Badíʿ day runs from sunset to sunset; a date here names the fixed day
 //! the Badíʿ day *ends* in, as the table itself does.

@@ -1,38 +1,34 @@
 //! The Badíʿ calendar, astronomical — `bahai-astronomical`.
 //!
+//! The system is written up in `docs/systems/equinox-calendars.md` in the
+//! repository, with the French Republican calendar and the arithmetic
+//! siblings: the 2015 rules, Naw-Rúz 183 BE worked from the equinox and
+//! Tehran's sunset, the part ΔT and the horizon play in it, the years too
+//! close to call, what is carried and not, and how the World Centre's
+//! table was reproduced. This page summarises it and states the code's own
+//! facts.
+//!
 //! The rules the Universal House of Justice unified the calendar on from
 //! Naw-Rúz 172 BE (2015), applied to any year: Naw-Rúz is the Badíʿ day —
 //! sunset to sunset at Tehran — in which the March equinox falls; the year
 //! runs to the next Naw-Rúz, and Ayyám-i-Há is as long as it takes to get
 //! there; and the Twin Holy Birthdays are "the first and the second day
 //! following the occurrence of the eighth new moon after Naw-Rúz", again
-//! reckoned at Tehran. Source: the Universal House of Justice, letter of
-//! 10 July 2014.
+//! reckoned at Tehran (`uhj-2014-07-10` in `docs/references.bib`).
 //!
-//! # The table is the test
+//! The tests reproduce the Bahá'í World Centre's table for 172–221 BE
+//! (`bwc-badi-dates`), which `hc-calendars-solar`'s `bahai` carries as the
+//! calendar as kept: every Naw-Rúz, Ayyám-i-Há and pair of birthdays, save
+//! that the two Naw-Rúzes within [`TOLERANCE_MINUTES`] of Tehran's sunset,
+//! 183 and 216 BE, are named rather than claimed, although the model
+//! agrees with the table on both. Past 221 BE this calendar continues
+//! where the table stops, and that is what it is for.
 //!
-//! The Bahá'í World Centre published the resulting dates for 172–221 BE,
-//! and `hc-calendars-solar`'s `bahai` carries that table as the calendar
-//! as kept. This module reproduces every row of it — Naw-Rúz, the length of
-//! Ayyám-i-Há and both birthdays — save the two Naw-Rúzes that fell within
-//! [`TOLERANCE_MINUTES`] of Tehran's sunset, which the test names rather
-//! than claims. One of them, 183 BE, is the sharpest edge in the table: on
-//! 20 March 2026 the equinox and the sunset fall within seconds of each
-//! other, and the row is decided by the committee's ephemeris and its
-//! definition of sunset, which no model reproduces to that precision. The
-//! test says exactly that, and it is the check on the astronomy
-//! underneath, not only on this module. Past
-//! 221 BE this calendar continues where the table stops, and that is what
-//! it is for.
-//!
-//! # What it is not
-//!
-//! Not the calendar as kept before 172 BE, when Naw-Rúz was 21 March by
-//! rule in the West and the Iranian equinox day in the East; this module
-//! applies the 2015 rule to those years too, so use `bahai` for a date in
-//! them. Not exact beyond the astronomy either: a year whose equinox falls
-//! within [`TOLERANCE_MINUTES`] of Tehran's sunset is decided here by a
-//! model. [`new_year_margin`] says how close the call was.
+//! Before 172 BE it applies the 2015 rule proleptically, where the West
+//! kept Naw-Rúz on 21 March and the East the Iranian equinox day; use
+//! `bahai` for a date in those years. A year whose equinox falls within
+//! [`TOLERANCE_MINUTES`] of Tehran's sunset is decided here by a model, and
+//! [`new_year_margin`] says how close the call was.
 //!
 //! A date here names the fixed day the Badíʿ day *ends* in, as the table
 //! does; the day began at the previous sunset.

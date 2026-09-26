@@ -1,5 +1,8 @@
 //! The Badíʿ (Bahá'í) calendar, arithmetic Western variant.
 //!
+//! This calendar, the calendar as kept and the astronomical one are written
+//! up in `docs/systems/equinox-calendars.md` in the repository.
+//!
 //! Nineteen months of nineteen days, an intercalary period of four or five
 //! days — the *Ayyám-i-Há* — inserted before the last month, and the last
 //! month, ʻAláʼ, kept as the fast. Nineteen nineteens is 361, so a
