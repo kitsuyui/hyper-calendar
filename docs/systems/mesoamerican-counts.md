@@ -338,6 +338,7 @@ anchor. The tests hold these published readings:
 
 | Reading | Source | Test |
 | --- | --- | --- |
+| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `maya-longcount`, `maya-haab` (its days counted from 0), `maya-tzolkin`, `aztec-xiuhpohualli` and `aztec-tonalpohualli`, all at 584 283; all five: 33 of 33 | [reingold2018code] | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) |
 | 0.0.0.0.0 = JDN 584 283 = 11 August 3114 BCE (Gregorian) = 6 September (Julian) | [reingold2018code], [wikipedia-long-count] | `the_correlation_puts_the_epoch_where_the_constant_says` |
 | 0.0.0.0.0 = 4 Ahau 8 Cumku, round 0 | [reingold2018code] | `the_epoch_is_four_ahau_eight_cumku` |
 | 13.0.0.0.0 = 21 December 2012 under 584 283, 23 December under 584 285 | [wikipedia-long-count], [famsi-vanstone-2012] | `the_thirteenth_baktun_ended_on_the_twenty_first_of_december_2012`, `the_thirteenth_baktun_lands_where_each_correlation_says` |

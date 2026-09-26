@@ -183,6 +183,7 @@ approximation. What the tests check against a source outside the code:
 
 | Check | Test | Result |
 | --- | --- | --- |
+| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `balinese-pawukon`, Luang and the nine weeks, the book's ten-day week 0 to 9 against this one's 1 to 10 | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) | 33 of 33 |
 | Five Galungan dates 210 days apart, 28 February 2024 to 17 June 2026, are Buda Kliwon Dungulan, day 73 | `galungan_always_falls_on_buda_kliwon_dungulan` | Holds |
 | Galungan, 17 June 2026, is on every week as the published reading gives it, the ten-day week Manuh | `galungan_is_manuh_in_the_ten_day_week` | Holds |
 | 5 January 2021, Wikipedia's worked day, is day 184 and on every week as the article gives it, the ten-day week Dewa | `wikipedias_worked_day_comes_out_on_all_ten_weeks` | Holds |

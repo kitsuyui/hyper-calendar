@@ -70,6 +70,7 @@ the era and the months and disagree by five months in that year.
 
 | Check | Test | Result |
 | --- | --- | --- |
+| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `armenian` | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) | 28 of the 28 from 552; the 5 before refused |
 | The epoch is 11 July 552 Julian | `armenian::tests::the_epoch_is_the_eleventh_of_july_552` | as stated |
 | The wandering year is the Egyptian one on another epoch | `only_the_epoch_separates_this_calendar_from_the_egyptian_one` | all |
 | 1 Nawasard 533 is 29 February 1084 in the wandering year and 11 August 1084 in the fixed year, 164 days apart | `the_fixed_new_year_is_where_the_wandering_one_stood_in_four_twenty_eight` | as worked above |

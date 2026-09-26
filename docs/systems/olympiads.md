@@ -93,6 +93,7 @@ conventions.
 
 | Check | Test | Result |
 | --- | --- | --- |
+| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `olympiad`, cycle and year | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) | 33 of 33 |
 | Olympiad 1, year 1 is 776 BC; Jerome's 194.3 is 2 BC; Olympiad *N* < 195 begins in 780 − 4*N* BC | `the_first_olympiad_is_776_bc_and_jeromes_194_3_is_2_bc` | Holds for all 194 |
 | The two published functions are inverses | `the_two_functions_are_inverses` | Holds, 776 BC to AD 3000 |
 | The modern Olympiads: I in 1896, VI in 1916–1919, XI in 1936, XIV in 1948, XXXII for 2020 and 2021 | `the_modern_olympiads_count_from_1896_with_the_lost_games_numbered` | Holds |

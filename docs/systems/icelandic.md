@@ -114,6 +114,7 @@ before 22 April 2027: Saturday 24 October 2026.
 
 | Check | Test | Result |
 | --- | --- | --- |
+| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `icelandic`, year, season, week and weekday | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) | 31 of the 31 from AD 1; the 2 before refused |
 | First Days of Summer 1700 (11 April Jul. = 22 April Greg.), 1701 (21 April), 1703 (19 April Greg.; 15 April Jul. by the old rule), 2009 (23 April), 2024–2026 | `the_first_day_of_summer_is_the_thursday_in_the_window` | all |
 | Janson's closed forms (5.4), 15 − ((y + ⌊y/4⌋) mod 7) April Julian, and (6.4), 25 − ((y + ⌊y/4⌋ − ⌊y/100⌋ + ⌊y/400⌋ + 5) mod 7) April Gregorian | `the_first_day_of_summer_follows_jansons_formulas` | years 1–3000 |
 | The rules agree 1496–1702, differ in 1495 and 1703; *sumarauki* in 1702 only under the Julian rule | `the_two_rules_agree_from_1496_and_part_in_1702` | all |

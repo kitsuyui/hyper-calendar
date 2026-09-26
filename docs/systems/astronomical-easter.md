@@ -79,6 +79,7 @@ its own paschal moon for that year is the one after its fixed equinox of
 
 | Check | Test | Result |
 | --- | --- | --- |
+| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `orthodox_easter`, `gregorian_easter` and `astronomical_easter` against the book's three Easters of each date's Gregorian year | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) | 29, 15 and 15 of those in each function's range; the years before 326, 1583 and 1583 refused |
 | The astronomical Easter of every year 2001–2025 in the table [wcc-aleppo-1997] | `the_astronomical_reckoning_reproduces_the_aleppo_table` | 25 of 25 |
 | The vernal full moon of every year 2001–2025 in the table | the same | 25 of 25 |
 | The full moons of 8 April 2001, 28 March 2021 and 13 April 2025 are the table's only Sundays, and each Easter is a week later | `a_full_moon_on_a_sunday_puts_easter_a_week_later` | yes |

@@ -129,6 +129,7 @@ cycle therefore puts Nowruz 1404 on 20 March 2025, a day early.
 
 | Check | Test | Result |
 | --- | --- | --- |
+| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `persian-arithmetic` against the book's `arithmetic-persian` | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) | 27 of 27 in range; the 6 before 622 refused. `persian-arithmetic-33`, another rule, is not compared |
 | The leap years 1354–1419 of Wikipedia's correspondence table, and ten published Nowruzes, reproduced by `persian` | `persian::tests::the_leap_years_are_the_ones_the_correspondence_table_marks`, `nowruz_lands_where_iran_put_it` | all |
 | The same Nowruzes, and 1375 on 20 March 1996, by `persian-apparent-noon` | `persian_apparent_noon::tests::nowruz_lands_where_iran_put_it` | all |
 | The two readings of noon agree on every Nowruz from 1178 to 1469, and differ in exactly twenty years of 1–2379: 166, 426, 492, 525, 686, 719, 752, 785, 1078, 1111, 1144, 1177, 1470, 1503, 1536, 1602, 1701, 2027, 2093, 2159 | `the_two_noons_give_the_same_days_from_1178_to_1469`, `the_twenty_years_the_two_noons_part_company` | measured |

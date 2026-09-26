@@ -678,6 +678,10 @@ assert:
 | Every expunction by the *Sūrya Siddhānta* from Śaka 200 to 1800 at the mean saṅkrānti, without the *bīja* to 1500 and with it after, against Art. 60's nineteen | `the_siddhantas_expunged_names_are_sewell_and_dikshits_list` | 19 of 19, and no others |
 | The same at the apparent saṅkrānti, Table I's: the seven years Art. 60 marks with an asterisk a year later, on the next name, the other twelve the same | `table_i_counts_from_the_apparent_sankranti_and_differs_where_marked` | all |
 | Art. 60's Ārya column | `the_arya_column_of_the_list_is_a_year_after_the_arya_rule` | 0 of 19: see below |
+| The 33 sample dates of *Calendrical Calculations*, as its published code computes them [reingold2018code, `dates.l`]: the Old Hindu solar and lunisolar calendars | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) | 33 of 33 each, 586 BCE to 2094 |
+| The same dates, the book's modern solar calendar: the Sūrya Siddhānta's Sun, the month from the sign at the next sunrise at Ujjain, which is the Vikrami rule, in Śaka years | the same test, on `VIKRAMI` rebuilt at `UJJAIN` with `SolarModel::SuryaSiddhanta` | 13 of the 13 dates in 1700–2299; the 20 before refused |
+| The same dates, the book's astronomical solar calendar, the Tamil rule at Ujjain on the true Sun: `TAMIL` rebuilt at `UJJAIN`, and the registered `hindu-solar-tamil` | the same test | 10 of 13 each; the other three are the reference code's time scale, below |
+| The same dates, the book's astronomical lunisolar calendar at Ujjain: `HinduLunarCalendar::UJJAIN`, and the registered `hindu-lunar` | the same test | 12 of 13 each; the other is the reference code's time scale, below |
 | Vijaya in the north and Chitrabhānu in the south in 1822; the gap of 11, 12 from Śaka 1779 current, 13 from 1865 expired, 14 from 1950 | `the_northern_and_southern_names_stand_eleven_then_twelve_then_thirteen_apart`, `hindu_purnimanta::the_northern_years_carry_the_names_sewell_and_dikshit_and_the_almanacs_print` | all |
 | Pingala for Śaka 1946, as the Hrishikesh Panchang prints it, from 9 April 2024 to 29 March 2025 on `hindu-lunar-purnimanta`; Anala the day before | `printed_northern_years_carry_the_rules_names`, `the_northern_years_carry_the_names_sewell_and_dikshit_and_the_almanacs_print` | all |
 | The moment: the Siddhānta's Meṣa saṅkrānti of 1514 against Table I's, Vṛṣa's end on 31 March 1514, the expunged Chitrabhānu and Subhānu at the next saṅkrānti; Vibhava 3.3 days and Śukla 364.3 days after the saṅkrānti of Śaka 1779 current; the worked example of 2024 | `the_moment_follows_the_rule_through_an_expunged_year`, `vibhava_begins_three_days_after_the_sankranti_of_1779`, `pingala_gives_way_to_kalayukta_a_fortnight_into_saka_1946` | the saṅkrānti of 1514 1½ minutes from the printed one, Vṛṣa's end within three minutes, the rest to the tenth of a day |
@@ -738,6 +742,30 @@ assert:
   they replaced; they are held to what an arithmetic calendar must do and
   to the true months, as the table above says.
 
+**What the sample dates show.** `dates.l` holds the book's 33 sample
+dates and the program that writes their tables, not the tables, so the
+values were computed from the code itself and are carried with its
+licence and the method in the data file's header
+(`crates/hyper-calendar/tests/data/calendrica_sample_dates.txt`); the
+printed appendix was not read. The Old Hindu calendars agree on every date
+from 586 BCE, and the book's modern solar calendar, rebuilt here from
+`hindu_solar`'s parts, agrees on every date in range, which is a check of
+the *Sūrya Siddhānta* Sun against the code's own. The book's astronomical
+calendars differ four times, and all four for one reason, which the
+book's errata give: the code reads the sign or the tithi at Ujjain's
+sunset or sunrise in standard time, as `dawn` and `dusk` return it, but
+passes that moment where Universal Time is wanted, five hours and three
+minutes late; the errata say the calendars "work as advertised" only with
+the conversion to Universal Time [reingold2018errata, correction 15]. The
+saṅkrāntis of 1819, 1903 and 2038 fell 3.6, 1.9 and 4.1 hours after
+Ujjain's sunset, so the Tamil rule begins those months the next day, as
+this library does, and the code the same day. In 2094 the code's own
+functions give tithi 5 at the sunrises of 17 and 18 July, the second a
+repeated day, as this library does, and tithi 6 five hours later, which
+is what the code prints. The book's third lunisolar column, its modern
+calendar on the *Sūrya Siddhānta*'s Moon as well as Sun, has no
+counterpart here.
+
 On 2026-09-25 the sources were re-read as far as they could be. The
 Calendar Reform Committee's report was read in the Internet Archive's OCR
 text, Sewell and Dikshit likewise, and Reingold and Dershowitz's published
@@ -773,7 +801,8 @@ for 2024 and 2025 give the times the tests hold.
 | [tn-act-2-2008] | The Tamil year from Thai 1 to the end of Margazhi, section 3 | Yes, 2026-09-26, in PRS Legislative Research's copy of the Gazette Extraordinary |
 | [wikipedia-puthandu] | The repeal of 2011 and the new year's return to Chithirai 1 | Yes, 2026-09-26; the repealing act not read |
 | [reingold2018] | The Old Hindu calendars, the Siddhānta's Sun, the amānta rules, Ujjain | Not read directly; the published code was |
-| [reingold2018code] | `hindu-epoch`, `arya-solar-year`, `arya-lunar-month`, `old-hindu-lunar-leap-year?`, `hindu-sine-table`, `hindu-sidereal-year`, `hindu-anomalistic-year`, `hindu-true-position`, `ujjain`, `sidereal-start`, `hindu-lunar-station`, and `hindu-lunar-from-fixed` for the day read at sunrise | Yes, 2026-09-25; `hindu-lunar-from-fixed` 2026-09-26 |
+| [reingold2018code] | `hindu-epoch`, `arya-solar-year`, `arya-lunar-month`, `old-hindu-lunar-leap-year?`, `hindu-sine-table`, `hindu-sidereal-year`, `hindu-anomalistic-year`, `hindu-true-position`, `ujjain`, `sidereal-start`, `hindu-lunar-station`, and `hindu-lunar-from-fixed` for the day read at sunrise; `hindu-solar-from-fixed`, `astro-hindu-solar-from-fixed`, `astro-hindu-lunar-from-fixed`, `alt-hindu-sunrise`, `astro-hindu-sunset`, `dawn` and `dusk` for the sample dates, and `dates.l`, run at commit `9afc1f3` to compute them | Yes, 2026-09-25; `hindu-lunar-from-fixed` 2026-09-26; the sample-date functions and `dates.l` 2026-09-27 |
+| [reingold2018errata] | Correction 15: the astronomical Hindu calendars need their sunrise and sunset converted from standard time to Universal Time | Yes, 2026-09-27, the version of 22 September 2026 |
 | [calcal-modern-hindu] | The line-by-line check of the Siddhānta constants the module records | Yes, 2026-09-25: the constants of `modern_hindu.R` are the book's |
 | [wikipedia-hindu-calendar] | The twelve month names in Devanagari | Yes, 2026-09-25 |
 | [wikipedia-adhik-maas] | The 32½-month average, the adhika and nija names, the pūrṇimānta placing of the adhika month | Yes, 2026-09-25 |

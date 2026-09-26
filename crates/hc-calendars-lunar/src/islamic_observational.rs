@@ -139,7 +139,10 @@ pub const LAST_YEAR: i64 = 1_524;
 
 /// Mecca: 21°25′24″N, 39°49′24″E, 298 m, the `mecca` constant of the
 /// published code of *Calendrical Calculations* (`reingold2018code`), which
-/// its observational Islamic calendar uses.
+/// its Saudi variant, `saudi-criterion`, judges from. Its observational
+/// Islamic calendar's sample place is Cairo, `islamic-location`, from
+/// which [`IslamicObservationalCalendar::new`] reproduces the book's sample
+/// dates.
 pub const MECCA: Location = Location::new(
     21.0 + 25.0 / 60.0 + 24.0 / 3_600.0,
     39.0 + 49.0 / 60.0 + 24.0 / 3_600.0,

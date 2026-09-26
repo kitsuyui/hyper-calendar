@@ -240,6 +240,7 @@ say so rather than claim it.
 
 | Check | Test | Result |
 | --- | --- | --- |
+| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `persian` and `persian-apparent-noon` against the book's `persian` (true noon at Tehran), `bahai-arithmetic` and `bahai-astronomical` against its two Badíʿ columns, `bahai` against the first to 171 BE and the second from 172 BE, `french-republican-equinox` against its `french` | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) | Every date in range agrees: 27 of 27 for each Solar Hijri, 9 of 9 for each Badíʿ, 11 of 11 for the French; the dates before each epoch, and `bahai`'s 2094, after its table, refused |
 | The fifty Naw-Rúzes of the World Centre's table, 172–221 BE, and the length of Ayyám-i-Há | `every_naw_ruz_of_the_world_centres_table_the_model_can_decide_is_reproduced` | 48 of 50 claimed and reproduced; 183 and 216 BE within tolerance, named, and reproduced |
 | The fifty Twin Holy Birthdays of the table | `every_twin_birthday_of_the_world_centres_table_is_reproduced` | 50 of 50 |
 | The margin's sign and size in a clear year each way, 172 and 181 BE | `the_margin_is_measured_from_sunset` | Holds |

@@ -1,0 +1,2100 @@
+# The sample dates of *Calendrical Calculations* (Reingold and Dershowitz,
+# 4th ed., Cambridge University Press, 2018), Appendix C, as the book's
+# published code computes them.
+#
+# Source: E. M. Reingold and N. Dershowitz, calendar-code2,
+# https://github.com/EdReingold/calendar-code2, commit
+# 9afc1f3277b839db1a70c2350d6c708ac83df78f (2022-02-04), the files
+# calendar.l ("CALENDRICA 4.0", last modified 20 December 2016) and dates.l,
+# retrieved 2026-09-27 (reingold2018code in docs/references.bib).
+#
+# Licence. Both files are licensed under the Apache License, Version 2.0; a
+# copy is calendar-code2-LICENSE beside this file. Their notice, kept as
+# section 4(c) of the licence requires:
+#
+#   The Functions (code, comments, and definitions) contained in this
+#   file (the "Program") were written by Edward M. Reingold and Nachum
+#   Dershowitz (the "Authors"), who retain all rights to them except as
+#   granted in the License and subject to the warranty and liability
+#   limitations listed therein.  These Functions are explained in the
+#   Authors' book, "Calendrical Calculations", 4th ed. (Cambridge
+#   University Press, 2016), and are subject to an international copyright.
+#
+# What this file is, and how it was changed from the source (section 4(b)).
+# dates.l does not hold the tables: it lists the 33 dates, as R.D. -214193
+# to 764652 written as Hebrew, Julian and Gregorian dates, names the
+# calendars in seven lists, and writes the tables out as TeX by running
+# calendar.l. This file is that program's output in plain text instead of
+# TeX: every date of dates.l's `dates` converted by the `<name>-from-fixed`
+# function of every name in its lists `calendars-1` to `calendars-7`, one
+# line per date and name, with the fields in the order of calendar.l's
+# constructors. The values were produced on 2026-09-27 by
+# scripts/calendrica-sample-dates.py, a Common Lisp subset interpreter
+# written for the purpose because no Lisp system was at hand; every
+# conversion outside dates.l's `do-not-invert-list` was checked to convert
+# back to its R.D., as dates.l's own `convert` checks. Moments are printed
+# in full; dates.l prints six decimals. The book's printed appendix was not
+# read.
+#
+# Checked against: the third edition's tables written by the same program,
+# dates1.tex to dates4.tex as distributed with pycalcal
+# (https://github.com/espinielli/pycalcal, read 2026-09-27, under the third
+# edition's own licence, so nothing of them is copied here). They agree with
+# this file in all but one of the 4 290 values of the 39 date columns the
+# two editions share: astro-bahai at R.D. 25469, whose function the fourth
+# edition changed, from the third's future-bahai judged at Haifa's sunset
+# to Tehran's. The one moment column they share,
+# major-solar-term-on-or-after, differs by up to 9.1 minutes, as the fourth
+# edition's new ephemeris correction would make it.
+#
+# Which of these columns this library carries, under what identifier and
+# with what differences, is crates/hyper-calendar/tests/rd_sample_dates.rs;
+# the Accuracy sections of the system documents under docs/systems say what
+# it showed for each calendar. Where the code's output differs from what
+# its own errata state (reingold2018errata, corrections 14 and 15), this
+# file keeps the code's output and the test says so.
+#
+# Format: "<name> TAB <R.D.> TAB <fields>", fields separated by spaces, "t"
+# and "f" for true and false; a comment line before each name gives its
+# fields.
+# ---- data
+# day (calendars-1): day of week
+day	-214193	Sunday
+day	-61387	Wednesday
+day	25469	Wednesday
+day	49217	Sunday
+day	171307	Wednesday
+day	210155	Monday
+day	253427	Saturday
+day	369740	Sunday
+day	400085	Sunday
+day	434355	Friday
+day	452605	Saturday
+day	470160	Friday
+day	473837	Sunday
+day	507850	Sunday
+day	524156	Wednesday
+day	544676	Saturday
+day	567118	Saturday
+day	569477	Saturday
+day	601716	Wednesday
+day	613424	Sunday
+day	626596	Friday
+day	645554	Sunday
+day	664224	Monday
+day	671401	Wednesday
+day	694799	Sunday
+day	704424	Sunday
+day	708842	Monday
+day	709409	Monday
+day	709580	Thursday
+day	727274	Tuesday
+day	728714	Sunday
+day	744313	Wednesday
+day	764652	Sunday
+# jd (calendars-1): Julian date of the day's midnight
+jd	-214193	1507231.5
+jd	-61387	1660037.5
+jd	25469	1746893.5
+jd	49217	1770641.5
+jd	171307	1892731.5
+jd	210155	1931579.5
+jd	253427	1974851.5
+jd	369740	2091164.5
+jd	400085	2121509.5
+jd	434355	2155779.5
+jd	452605	2174029.5
+jd	470160	2191584.5
+jd	473837	2195261.5
+jd	507850	2229274.5
+jd	524156	2245580.5
+jd	544676	2266100.5
+jd	567118	2288542.5
+jd	569477	2290901.5
+jd	601716	2323140.5
+jd	613424	2334848.5
+jd	626596	2348020.5
+jd	645554	2366978.5
+jd	664224	2385648.5
+jd	671401	2392825.5
+jd	694799	2416223.5
+jd	704424	2425848.5
+jd	708842	2430266.5
+jd	709409	2430833.5
+jd	709580	2431004.5
+jd	727274	2448698.5
+jd	728714	2450138.5
+jd	744313	2465737.5
+jd	764652	2486076.5
+# mjd (calendars-1): modified Julian day
+mjd	-214193	-892769
+mjd	-61387	-739963
+mjd	25469	-653107
+mjd	49217	-629359
+mjd	171307	-507269
+mjd	210155	-468421
+mjd	253427	-425149
+mjd	369740	-308836
+mjd	400085	-278491
+mjd	434355	-244221
+mjd	452605	-225971
+mjd	470160	-208416
+mjd	473837	-204739
+mjd	507850	-170726
+mjd	524156	-154420
+mjd	544676	-133900
+mjd	567118	-111458
+mjd	569477	-109099
+mjd	601716	-76860
+mjd	613424	-65152
+mjd	626596	-51980
+mjd	645554	-33022
+mjd	664224	-14352
+mjd	671401	-7175
+mjd	694799	16223
+mjd	704424	25848
+mjd	708842	30266
+mjd	709409	30833
+mjd	709580	31004
+mjd	727274	48698
+mjd	728714	50138
+mjd	744313	65737
+mjd	764652	86076
+# unix (calendars-1): Unix seconds at the day's midnight
+unix	-214193	-80641958400
+unix	-61387	-67439520000
+unix	25469	-59935161600
+unix	49217	-57883334400
+unix	171307	-47334758400
+unix	210155	-43978291200
+unix	253427	-40239590400
+unix	369740	-30190147200
+unix	400085	-27568339200
+unix	434355	-24607411200
+unix	452605	-23030611200
+unix	470160	-21513859200
+unix	473837	-21196166400
+unix	507850	-18257443200
+unix	524156	-16848604800
+unix	544676	-15075676800
+unix	567118	-13136688000
+unix	569477	-12932870400
+unix	601716	-10147420800
+unix	613424	-9135849600
+unix	626596	-7997788800
+unix	645554	-6359817600
+unix	664224	-4746729600
+unix	671401	-4126636800
+unix	694799	-2105049600
+unix	704424	-1273449600
+unix	708842	-891734400
+unix	709409	-842745600
+unix	709580	-827971200
+unix	727274	700790400
+unix	728714	825206400
+unix	744313	2172960000
+unix	764652	3930249600
+# gregorian (calendars-1): year month day
+gregorian	-214193	-586 7 24
+gregorian	-61387	-168 12 5
+gregorian	25469	70 9 24
+gregorian	49217	135 10 2
+gregorian	171307	470 1 8
+gregorian	210155	576 5 20
+gregorian	253427	694 11 10
+gregorian	369740	1013 4 25
+gregorian	400085	1096 5 24
+gregorian	434355	1190 3 23
+gregorian	452605	1240 3 10
+gregorian	470160	1288 4 2
+gregorian	473837	1298 4 27
+gregorian	507850	1391 6 12
+gregorian	524156	1436 2 3
+gregorian	544676	1492 4 9
+gregorian	567118	1553 9 19
+gregorian	569477	1560 3 5
+gregorian	601716	1648 6 10
+gregorian	613424	1680 6 30
+gregorian	626596	1716 7 24
+gregorian	645554	1768 6 19
+gregorian	664224	1819 8 2
+gregorian	671401	1839 3 27
+gregorian	694799	1903 4 19
+gregorian	704424	1929 8 25
+gregorian	708842	1941 9 29
+gregorian	709409	1943 4 19
+gregorian	709580	1943 10 7
+gregorian	727274	1992 3 17
+gregorian	728714	1996 2 25
+gregorian	744313	2038 11 10
+gregorian	764652	2094 7 18
+# julian (calendars-1): year month day, no year 0 (-1 is 1 BCE)
+julian	-214193	-587 7 30
+julian	-61387	-169 12 8
+julian	25469	70 9 26
+julian	49217	135 10 3
+julian	171307	470 1 7
+julian	210155	576 5 18
+julian	253427	694 11 7
+julian	369740	1013 4 19
+julian	400085	1096 5 18
+julian	434355	1190 3 16
+julian	452605	1240 3 3
+julian	470160	1288 3 26
+julian	473837	1298 4 20
+julian	507850	1391 6 4
+julian	524156	1436 1 25
+julian	544676	1492 3 31
+julian	567118	1553 9 9
+julian	569477	1560 2 24
+julian	601716	1648 5 31
+julian	613424	1680 6 20
+julian	626596	1716 7 13
+julian	645554	1768 6 8
+julian	664224	1819 7 21
+julian	671401	1839 3 15
+julian	694799	1903 4 6
+julian	704424	1929 8 12
+julian	708842	1941 9 16
+julian	709409	1943 4 6
+julian	709580	1943 9 24
+julian	727274	1992 3 4
+julian	728714	1996 2 12
+julian	744313	2038 10 28
+julian	764652	2094 7 5
+# roman (calendars-1): year month event(1 kalends, 2 nones, 3 ides) count leap
+roman	-214193	-587 8 1 3 f
+roman	-61387	-169 12 3 6 f
+roman	25469	70 10 1 6 f
+roman	49217	135 10 2 5 f
+roman	171307	470 1 3 7 f
+roman	210155	576 6 1 15 f
+roman	253427	694 11 3 7 f
+roman	369740	1013 5 1 13 f
+roman	400085	1096 6 1 15 f
+roman	434355	1190 4 1 17 f
+roman	452605	1240 3 2 5 f
+roman	470160	1288 4 1 7 f
+roman	473837	1298 5 1 12 f
+roman	507850	1391 6 2 2 f
+roman	524156	1436 2 1 8 f
+roman	544676	1492 4 1 2 f
+roman	567118	1553 9 3 5 f
+roman	569477	1560 3 1 6 f
+roman	601716	1648 6 1 2 f
+roman	613424	1680 7 1 12 f
+roman	626596	1716 7 3 3 f
+roman	645554	1768 6 3 6 f
+roman	664224	1819 8 1 12 f
+roman	671401	1839 3 3 1 f
+roman	694799	1903 4 3 8 f
+roman	704424	1929 8 3 2 f
+roman	708842	1941 10 1 16 f
+roman	709409	1943 4 3 8 f
+roman	709580	1943 10 1 8 f
+roman	727274	1992 3 2 4 f
+roman	728714	1996 2 3 2 f
+roman	744313	2038 11 1 5 f
+roman	764652	2094 7 2 3 f
+# olympiad (calendars-1): cycle year
+olympiad	-214193	48 2
+olympiad	-61387	152 4
+olympiad	25469	212 2
+olympiad	49217	228 3
+olympiad	171307	312 2
+olympiad	210155	338 4
+olympiad	253427	368 2
+olympiad	369740	448 1
+olympiad	400085	468 4
+olympiad	434355	492 2
+olympiad	452605	504 4
+olympiad	470160	516 4
+olympiad	473837	519 2
+olympiad	507850	542 3
+olympiad	524156	553 4
+olympiad	544676	567 4
+olympiad	567118	583 1
+olympiad	569477	584 4
+olympiad	601716	606 4
+olympiad	613424	614 4
+olympiad	626596	623 4
+olympiad	645554	636 4
+olympiad	664224	649 3
+olympiad	671401	654 3
+olympiad	694799	670 3
+olympiad	704424	677 1
+olympiad	708842	680 1
+olympiad	709409	680 3
+olympiad	709580	680 3
+olympiad	727274	692 4
+olympiad	728714	693 4
+olympiad	744313	704 2
+olympiad	764652	718 2
+# egyptian (calendars-1): year month day
+egyptian	-214193	161 7 15
+egyptian	-61387	580 3 6
+egyptian	25469	818 2 22
+egyptian	49217	883 3 15
+egyptian	171307	1217 9 15
+egyptian	210155	1324 2 18
+egyptian	253427	1442 9 10
+egyptian	369740	1761 5 8
+egyptian	400085	1844 6 28
+egyptian	434355	1938 5 18
+egyptian	452605	1988 5 18
+egyptian	470160	2036 6 23
+egyptian	473837	2046 7 20
+egyptian	507850	2139 9 28
+egyptian	524156	2184 5 29
+egyptian	544676	2240 8 19
+egyptian	567118	2302 2 11
+egyptian	569477	2308 7 30
+egyptian	601716	2396 11 29
+egyptian	613424	2428 12 27
+egyptian	626596	2465 1 24
+egyptian	645554	2517 1 2
+egyptian	664224	2568 2 27
+egyptian	671401	2587 10 29
+egyptian	694799	2651 12 7
+egyptian	704424	2678 4 17
+egyptian	708842	2690 5 25
+egyptian	709409	2691 12 17
+egyptian	709580	2692 6 3
+egyptian	727274	2740 11 27
+egyptian	728714	2744 11 7
+egyptian	744313	2787 8 1
+egyptian	764652	2843 4 20
+# armenian (calendars-1): year month day
+armenian	-214193	-1138 4 10
+armenian	-61387	-720 12 6
+armenian	25469	-482 11 22
+armenian	49217	-417 12 15
+armenian	171307	-82 6 10
+armenian	210155	24 11 18
+armenian	253427	143 6 5
+armenian	369740	462 2 3
+armenian	400085	545 3 23
+armenian	434355	639 2 13
+armenian	452605	689 2 13
+armenian	470160	737 3 18
+armenian	473837	747 4 15
+armenian	507850	840 6 23
+armenian	524156	885 2 24
+armenian	544676	941 5 14
+armenian	567118	1002 11 11
+armenian	569477	1009 4 25
+armenian	601716	1097 8 24
+armenian	613424	1129 9 22
+armenian	626596	1165 10 24
+armenian	645554	1217 10 2
+armenian	664224	1268 11 27
+armenian	671401	1288 7 24
+armenian	694799	1352 9 2
+armenian	704424	1379 1 12
+armenian	708842	1391 2 20
+armenian	709409	1392 9 12
+armenian	709580	1393 2 28
+armenian	727274	1441 8 22
+armenian	728714	1445 8 2
+armenian	744313	1488 4 26
+armenian	764652	1544 1 15
+# akan-name (calendars-2): prefix stem
+akan-name	-214193	6 5
+akan-name	-61387	4 1
+akan-name	25469	4 1
+akan-name	49217	4 5
+akan-name	171307	6 1
+akan-name	210155	4 6
+akan-name	253427	4 4
+akan-name	369740	1 5
+akan-name	400085	4 5
+akan-name	434355	2 3
+akan-name	452605	6 4
+akan-name	470160	5 3
+akan-name	473837	4 5
+akan-name	507850	3 5
+akan-name	524156	1 1
+akan-name	544676	1 4
+akan-name	567118	3 4
+akan-name	569477	4 4
+akan-name	601716	5 1
+akan-name	613424	1 5
+akan-name	626596	3 3
+akan-name	645554	1 5
+akan-name	664224	5 6
+akan-name	671401	6 1
+akan-name	694799	4 5
+akan-name	704424	5 5
+akan-name	708842	1 6
+akan-name	709409	4 6
+akan-name	709580	1 2
+akan-name	727274	1 7
+akan-name	728714	1 5
+akan-name	744313	6 1
+akan-name	764652	5 5
+# coptic (calendars-2): year month day
+coptic	-214193	-870 12 6
+coptic	-61387	-451 4 12
+coptic	25469	-213 1 29
+coptic	49217	-148 2 5
+coptic	171307	186 5 12
+coptic	210155	292 9 23
+coptic	253427	411 3 11
+coptic	369740	729 8 24
+coptic	400085	812 9 23
+coptic	434355	906 7 20
+coptic	452605	956 7 7
+coptic	470160	1004 7 30
+coptic	473837	1014 8 25
+coptic	507850	1107 10 10
+coptic	524156	1152 5 29
+coptic	544676	1208 8 5
+coptic	567118	1270 1 12
+coptic	569477	1276 6 29
+coptic	601716	1364 10 6
+coptic	613424	1396 10 26
+coptic	626596	1432 11 19
+coptic	645554	1484 10 14
+coptic	664224	1535 11 27
+coptic	671401	1555 7 19
+coptic	694799	1619 8 11
+coptic	704424	1645 12 19
+coptic	708842	1658 1 19
+coptic	709409	1659 8 11
+coptic	709580	1660 1 26
+coptic	727274	1708 7 8
+coptic	728714	1712 6 17
+coptic	744313	1755 3 1
+coptic	764652	1810 11 11
+# ethiopic (calendars-2): year month day
+ethiopic	-214193	-594 12 6
+ethiopic	-61387	-175 4 12
+ethiopic	25469	63 1 29
+ethiopic	49217	128 2 5
+ethiopic	171307	462 5 12
+ethiopic	210155	568 9 23
+ethiopic	253427	687 3 11
+ethiopic	369740	1005 8 24
+ethiopic	400085	1088 9 23
+ethiopic	434355	1182 7 20
+ethiopic	452605	1232 7 7
+ethiopic	470160	1280 7 30
+ethiopic	473837	1290 8 25
+ethiopic	507850	1383 10 10
+ethiopic	524156	1428 5 29
+ethiopic	544676	1484 8 5
+ethiopic	567118	1546 1 12
+ethiopic	569477	1552 6 29
+ethiopic	601716	1640 10 6
+ethiopic	613424	1672 10 26
+ethiopic	626596	1708 11 19
+ethiopic	645554	1760 10 14
+ethiopic	664224	1811 11 27
+ethiopic	671401	1831 7 19
+ethiopic	694799	1895 8 11
+ethiopic	704424	1921 12 19
+ethiopic	708842	1934 1 19
+ethiopic	709409	1935 8 11
+ethiopic	709580	1936 1 26
+ethiopic	727274	1984 7 8
+ethiopic	728714	1988 6 17
+ethiopic	744313	2031 3 1
+ethiopic	764652	2086 11 11
+# iso (calendars-2): year week day
+iso	-214193	-586 29 7
+iso	-61387	-168 49 3
+iso	25469	70 39 3
+iso	49217	135 39 7
+iso	171307	470 2 3
+iso	210155	576 21 1
+iso	253427	694 45 6
+iso	369740	1013 16 7
+iso	400085	1096 21 7
+iso	434355	1190 12 5
+iso	452605	1240 10 6
+iso	470160	1288 14 5
+iso	473837	1298 17 7
+iso	507850	1391 23 7
+iso	524156	1436 5 3
+iso	544676	1492 14 6
+iso	567118	1553 38 6
+iso	569477	1560 9 6
+iso	601716	1648 24 3
+iso	613424	1680 26 7
+iso	626596	1716 30 5
+iso	645554	1768 24 7
+iso	664224	1819 31 1
+iso	671401	1839 13 3
+iso	694799	1903 16 7
+iso	704424	1929 34 7
+iso	708842	1941 40 1
+iso	709409	1943 16 1
+iso	709580	1943 40 4
+iso	727274	1992 12 2
+iso	728714	1996 8 7
+iso	744313	2038 45 3
+iso	764652	2094 28 7
+# icelandic (calendars-2): year season(90 summer, 270 winter) week weekday(0 Sunday)
+icelandic	-214193	-586 90 14 0
+icelandic	-61387	-168 270 6 3
+icelandic	25469	70 90 22 3
+icelandic	49217	135 90 24 0
+icelandic	171307	469 270 11 3
+icelandic	210155	576 90 4 1
+icelandic	253427	694 270 3 6
+icelandic	369740	1013 90 1 0
+icelandic	400085	1096 90 5 0
+icelandic	434355	1189 270 22 5
+icelandic	452605	1239 270 21 6
+icelandic	470160	1287 270 23 5
+icelandic	473837	1298 90 1 0
+icelandic	507850	1391 90 8 0
+icelandic	524156	1435 270 15 3
+icelandic	544676	1491 270 25 6
+icelandic	567118	1553 90 22 6
+icelandic	569477	1559 270 20 6
+icelandic	601716	1648 90 7 3
+icelandic	613424	1680 90 10 0
+icelandic	626596	1716 90 14 5
+icelandic	645554	1768 90 9 0
+icelandic	664224	1819 90 15 1
+icelandic	671401	1838 270 22 3
+icelandic	694799	1902 270 26 0
+icelandic	704424	1929 90 18 0
+icelandic	708842	1941 90 23 1
+icelandic	709409	1942 270 26 1
+icelandic	709580	1943 90 25 4
+icelandic	727274	1991 270 21 2
+icelandic	728714	1995 270 18 0
+icelandic	744313	2038 270 3 3
+icelandic	764652	2094 90 13 0
+# islamic (calendars-2): year month day
+islamic	-214193	-1245 12 9
+islamic	-61387	-813 2 23
+islamic	25469	-568 4 1
+islamic	49217	-501 4 6
+islamic	171307	-157 10 17
+islamic	210155	-47 6 3
+islamic	253427	75 7 13
+islamic	369740	403 10 5
+islamic	400085	489 5 22
+islamic	434355	586 2 7
+islamic	452605	637 8 7
+islamic	470160	687 2 20
+islamic	473837	697 7 7
+islamic	507850	793 7 1
+islamic	524156	839 7 6
+islamic	544676	897 6 1
+islamic	567118	960 9 30
+islamic	569477	967 5 27
+islamic	601716	1058 5 18
+islamic	613424	1091 6 2
+islamic	626596	1128 8 4
+islamic	645554	1182 2 3
+islamic	664224	1234 10 10
+islamic	671401	1255 1 11
+islamic	694799	1321 1 21
+islamic	704424	1348 3 19
+islamic	708842	1360 9 8
+islamic	709409	1362 4 13
+islamic	709580	1362 10 7
+islamic	727274	1412 9 13
+islamic	728714	1416 10 5
+islamic	744313	1460 10 12
+islamic	764652	1518 3 5
+# observational-islamic (calendars-2): year month day, Cairo
+observational-islamic	-214193	-1245 12 11
+observational-islamic	-61387	-813 2 25
+observational-islamic	25469	-568 4 2
+observational-islamic	49217	-501 4 7
+observational-islamic	171307	-157 10 18
+observational-islamic	210155	-47 6 3
+observational-islamic	253427	75 7 13
+observational-islamic	369740	403 10 5
+observational-islamic	400085	489 5 22
+observational-islamic	434355	586 2 7
+observational-islamic	452605	637 8 7
+observational-islamic	470160	687 2 21
+observational-islamic	473837	697 7 7
+observational-islamic	507850	793 6 30
+observational-islamic	524156	839 7 6
+observational-islamic	544676	897 6 2
+observational-islamic	567118	960 9 30
+observational-islamic	569477	967 5 27
+observational-islamic	601716	1058 5 18
+observational-islamic	613424	1091 6 3
+observational-islamic	626596	1128 8 4
+observational-islamic	645554	1182 2 4
+observational-islamic	664224	1234 10 10
+observational-islamic	671401	1255 1 11
+observational-islamic	694799	1321 1 20
+observational-islamic	704424	1348 3 19
+observational-islamic	708842	1360 9 7
+observational-islamic	709409	1362 4 14
+observational-islamic	709580	1362 10 7
+observational-islamic	727274	1412 9 12
+observational-islamic	728714	1416 10 5
+observational-islamic	744313	1460 10 12
+observational-islamic	764652	1518 3 5
+# saudi-islamic (calendars-2): year month day, Mecca
+saudi-islamic	-214193	-1245 12 11
+saudi-islamic	-61387	-813 2 26
+saudi-islamic	25469	-568 4 3
+saudi-islamic	49217	-501 4 8
+saudi-islamic	171307	-157 10 18
+saudi-islamic	210155	-47 6 4
+saudi-islamic	253427	75 7 14
+saudi-islamic	369740	403 10 6
+saudi-islamic	400085	489 5 23
+saudi-islamic	434355	586 2 8
+saudi-islamic	452605	637 8 8
+saudi-islamic	470160	687 2 22
+saudi-islamic	473837	697 7 8
+saudi-islamic	507850	793 7 1
+saudi-islamic	524156	839 7 7
+saudi-islamic	544676	897 6 3
+saudi-islamic	567118	960 10 1
+saudi-islamic	569477	967 5 28
+saudi-islamic	601716	1058 5 19
+saudi-islamic	613424	1091 6 4
+saudi-islamic	626596	1128 8 5
+saudi-islamic	645554	1182 2 4
+saudi-islamic	664224	1234 10 11
+saudi-islamic	671401	1255 1 11
+saudi-islamic	694799	1321 1 21
+saudi-islamic	704424	1348 3 20
+saudi-islamic	708842	1360 9 8
+saudi-islamic	709409	1362 4 14
+saudi-islamic	709580	1362 10 8
+saudi-islamic	727274	1412 9 12
+saudi-islamic	728714	1416 10 6
+saudi-islamic	744313	1460 10 13
+saudi-islamic	764652	1518 3 6
+# hebrew (calendars-2): year month(1 Nisan, 7 Tishri, 12 Adar or Adar I, 13 Adar II) day
+hebrew	-214193	3174 5 10
+hebrew	-61387	3593 9 25
+hebrew	25469	3831 7 3
+hebrew	49217	3896 7 9
+hebrew	171307	4230 10 18
+hebrew	210155	4336 3 4
+hebrew	253427	4455 8 13
+hebrew	369740	4773 2 6
+hebrew	400085	4856 2 23
+hebrew	434355	4950 1 7
+hebrew	452605	5000 13 8
+hebrew	470160	5048 1 21
+hebrew	473837	5058 2 7
+hebrew	507850	5151 4 1
+hebrew	524156	5196 11 7
+hebrew	544676	5252 1 3
+hebrew	567118	5314 7 1
+hebrew	569477	5320 12 27
+hebrew	601716	5408 3 20
+hebrew	613424	5440 4 3
+hebrew	626596	5476 5 5
+hebrew	645554	5528 4 4
+hebrew	664224	5579 5 11
+hebrew	671401	5599 1 12
+hebrew	694799	5663 1 22
+hebrew	704424	5689 5 19
+hebrew	708842	5702 7 8
+hebrew	709409	5703 1 14
+hebrew	709580	5704 7 8
+hebrew	727274	5752 13 12
+hebrew	728714	5756 12 5
+hebrew	744313	5799 8 12
+hebrew	764652	5854 5 5
+# observational-hebrew (calendars-2): year month day, as hebrew, Haifa
+observational-hebrew	-214193	3174 5 11
+observational-hebrew	-61387	3593 9 24
+observational-hebrew	25469	3831 7 2
+observational-hebrew	49217	3896 7 7
+observational-hebrew	171307	4230 10 18
+observational-hebrew	210155	4336 3 3
+observational-hebrew	253427	4455 9 13
+observational-hebrew	369740	4773 2 5
+observational-hebrew	400085	4856 2 22
+observational-hebrew	434355	4950 1 7
+observational-hebrew	452605	5000 13 7
+observational-hebrew	470160	5048 1 21
+observational-hebrew	473837	5058 2 7
+observational-hebrew	507850	5151 3 30
+observational-hebrew	524156	5196 12 6
+observational-hebrew	544676	5252 2 2
+observational-hebrew	567118	5313 6 30
+observational-hebrew	569477	5320 12 27
+observational-hebrew	601716	5408 3 18
+observational-hebrew	613424	5440 4 3
+observational-hebrew	626596	5476 5 4
+observational-hebrew	645554	5528 4 4
+observational-hebrew	664224	5579 5 10
+observational-hebrew	671401	5599 1 11
+observational-hebrew	694799	5663 1 20
+observational-hebrew	704424	5689 6 19
+observational-hebrew	708842	5702 7 7
+observational-hebrew	709409	5703 2 14
+observational-hebrew	709580	5704 8 7
+observational-hebrew	727274	5752 1 12
+observational-hebrew	728714	5756 12 5
+observational-hebrew	744313	5799 9 12
+observational-hebrew	764652	5854 5 5
+# persian (calendars-3): year month day
+persian	-214193	-1208 5 1
+persian	-61387	-790 9 14
+persian	25469	-552 7 2
+persian	49217	-487 7 9
+persian	171307	-153 10 19
+persian	210155	-46 2 31
+persian	253427	73 8 19
+persian	369740	392 2 5
+persian	400085	475 3 4
+persian	434355	569 1 3
+persian	452605	618 12 20
+persian	470160	667 1 14
+persian	473837	677 2 8
+persian	507850	770 3 22
+persian	524156	814 11 13
+persian	544676	871 1 21
+persian	567118	932 6 28
+persian	569477	938 12 14
+persian	601716	1027 3 21
+persian	613424	1059 4 10
+persian	626596	1095 5 2
+persian	645554	1147 3 30
+persian	664224	1198 5 10
+persian	671401	1218 1 7
+persian	694799	1282 1 29
+persian	704424	1308 6 3
+persian	708842	1320 7 7
+persian	709409	1322 1 29
+persian	709580	1322 7 14
+persian	727274	1370 12 27
+persian	728714	1374 12 6
+persian	744313	1417 8 19
+persian	764652	1473 4 28
+# arithmetic-persian (calendars-3): year month day
+arithmetic-persian	-214193	-1208 5 1
+arithmetic-persian	-61387	-790 9 14
+arithmetic-persian	25469	-552 7 2
+arithmetic-persian	49217	-487 7 9
+arithmetic-persian	171307	-153 10 18
+arithmetic-persian	210155	-46 2 30
+arithmetic-persian	253427	73 8 19
+arithmetic-persian	369740	392 2 5
+arithmetic-persian	400085	475 3 3
+arithmetic-persian	434355	569 1 3
+arithmetic-persian	452605	618 12 20
+arithmetic-persian	470160	667 1 14
+arithmetic-persian	473837	677 2 8
+arithmetic-persian	507850	770 3 22
+arithmetic-persian	524156	814 11 13
+arithmetic-persian	544676	871 1 21
+arithmetic-persian	567118	932 6 28
+arithmetic-persian	569477	938 12 14
+arithmetic-persian	601716	1027 3 21
+arithmetic-persian	613424	1059 4 10
+arithmetic-persian	626596	1095 5 2
+arithmetic-persian	645554	1147 3 30
+arithmetic-persian	664224	1198 5 10
+arithmetic-persian	671401	1218 1 7
+arithmetic-persian	694799	1282 1 29
+arithmetic-persian	704424	1308 6 3
+arithmetic-persian	708842	1320 7 7
+arithmetic-persian	709409	1322 1 29
+arithmetic-persian	709580	1322 7 14
+arithmetic-persian	727274	1370 12 27
+arithmetic-persian	728714	1374 12 6
+arithmetic-persian	744313	1417 8 19
+arithmetic-persian	764652	1473 4 28
+# bahai (calendars-3): major cycle year month(19 Ala, 0 Ayyam-i-Ha) day
+bahai	-214193	-6 6 3 7 12
+bahai	-61387	-5 9 3 14 13
+bahai	25469	-4 2 13 10 17
+bahai	49217	-4 6 2 11 6
+bahai	171307	-3 4 13 16 9
+bahai	210155	-3 10 6 4 4
+bahai	253427	-3 16 10 13 7
+bahai	369740	-2 14 6 2 17
+bahai	400085	-2 18 13 4 8
+bahai	434355	-1 4 12 1 3
+bahai	452605	-1 7 4 19 9
+bahai	470160	-1 9 15 1 13
+bahai	473837	-1 10 6 2 19
+bahai	507850	-1 15 4 5 8
+bahai	524156	-1 17 10 17 16
+bahai	544676	0 1 10 2 1
+bahai	567118	0 4 14 10 12
+bahai	569477	0 5 1 19 4
+bahai	601716	0 9 14 5 6
+bahai	613424	0 11 8 6 7
+bahai	626596	0 13 6 7 12
+bahai	645554	0 16 1 5 15
+bahai	664224	0 18 14 8 2
+bahai	671401	0 19 15 1 7
+bahai	694799	1 4 3 2 11
+bahai	704424	1 5 10 9 6
+bahai	708842	1 6 3 11 3
+bahai	709409	1 6 5 2 11
+bahai	709580	1 6 5 11 11
+bahai	727274	1 8 15 19 16
+bahai	728714	1 8 19 18 19
+bahai	744313	1 11 5 13 7
+bahai	764652	1 14 4 7 6
+# astro-bahai (calendars-3): major cycle year month day, as bahai
+astro-bahai	-214193	-6 6 3 7 11
+astro-bahai	-61387	-5 9 3 14 13
+astro-bahai	25469	-4 2 13 10 17
+astro-bahai	49217	-4 6 2 11 6
+astro-bahai	171307	-3 4 13 16 10
+astro-bahai	210155	-3 10 6 4 5
+astro-bahai	253427	-3 16 10 13 7
+astro-bahai	369740	-2 14 6 2 17
+astro-bahai	400085	-2 18 13 4 9
+astro-bahai	434355	-1 4 12 1 3
+astro-bahai	452605	-1 7 4 19 10
+astro-bahai	470160	-1 9 15 1 14
+astro-bahai	473837	-1 10 6 3 1
+astro-bahai	507850	-1 15 4 5 8
+astro-bahai	524156	-1 17 10 17 16
+astro-bahai	544676	0 1 10 2 2
+astro-bahai	567118	0 4 14 10 12
+astro-bahai	569477	0 5 1 19 4
+astro-bahai	601716	0 9 14 5 7
+astro-bahai	613424	0 11 8 6 8
+astro-bahai	626596	0 13 6 7 13
+astro-bahai	645554	0 16 1 5 16
+astro-bahai	664224	0 18 14 8 2
+astro-bahai	671401	0 19 15 1 7
+astro-bahai	694799	1 4 3 2 10
+astro-bahai	704424	1 5 10 9 6
+astro-bahai	708842	1 6 3 11 3
+astro-bahai	709409	1 6 5 2 11
+astro-bahai	709580	1 6 5 11 11
+astro-bahai	727274	1 8 15 19 17
+astro-bahai	728714	1 8 19 18 19
+astro-bahai	744313	1 11 5 13 8
+astro-bahai	764652	1 14 4 7 7
+# french (calendars-3): year month day
+french	-214193	-2378 11 5
+french	-61387	-1959 3 14
+french	25469	-1721 1 2
+french	49217	-1656 1 10
+french	171307	-1322 4 19
+french	210155	-1216 9 1
+french	253427	-1097 2 19
+french	369740	-779 8 5
+french	400085	-696 9 5
+french	434355	-602 7 2
+french	452605	-552 6 20
+french	470160	-504 7 13
+french	473837	-494 8 8
+french	507850	-401 9 23
+french	524156	-356 5 14
+french	544676	-300 7 20
+french	567118	-239 13 2
+french	569477	-232 6 15
+french	601716	-144 9 22
+french	613424	-112 10 12
+french	626596	-76 11 6
+french	645554	-24 10 1
+french	664224	27 11 14
+french	671401	47 7 6
+french	694799	111 7 28
+french	704424	137 12 7
+french	708842	150 1 7
+french	709409	151 7 29
+french	709580	152 1 15
+french	727274	200 6 27
+french	728714	204 6 6
+french	744313	247 2 20
+french	764652	302 10 30
+# arithmetic-french (calendars-3): year month day
+arithmetic-french	-214193	-2378 11 4
+arithmetic-french	-61387	-1959 3 13
+arithmetic-french	25469	-1721 1 2
+arithmetic-french	49217	-1656 1 10
+arithmetic-french	171307	-1322 4 18
+arithmetic-french	210155	-1216 9 1
+arithmetic-french	253427	-1097 2 19
+arithmetic-french	369740	-779 8 4
+arithmetic-french	400085	-696 9 5
+arithmetic-french	434355	-602 7 1
+arithmetic-french	452605	-552 6 20
+arithmetic-french	470160	-504 7 13
+arithmetic-french	473837	-494 8 8
+arithmetic-french	507850	-401 9 23
+arithmetic-french	524156	-356 5 13
+arithmetic-french	544676	-300 7 19
+arithmetic-french	567118	-239 13 1
+arithmetic-french	569477	-232 6 14
+arithmetic-french	601716	-144 9 22
+arithmetic-french	613424	-112 10 12
+arithmetic-french	626596	-76 11 6
+arithmetic-french	645554	-24 10 1
+arithmetic-french	664224	27 11 14
+arithmetic-french	671401	47 7 6
+arithmetic-french	694799	111 7 29
+arithmetic-french	704424	137 12 7
+arithmetic-french	708842	150 1 7
+arithmetic-french	709409	151 7 29
+arithmetic-french	709580	152 1 15
+arithmetic-french	727274	200 6 27
+arithmetic-french	728714	204 6 7
+arithmetic-french	744313	247 2 20
+arithmetic-french	764652	302 11 1
+# orthodox-easter (calendars-3): Gregorian year month day
+orthodox-easter	-214193	-586 4 3
+orthodox-easter	-61387	-168 4 1
+orthodox-easter	25469	70 4 13
+orthodox-easter	49217	135 4 17
+orthodox-easter	171307	470 4 6
+orthodox-easter	210155	576 4 7
+orthodox-easter	253427	694 4 22
+orthodox-easter	369740	1013 4 11
+orthodox-easter	400085	1096 4 19
+orthodox-easter	434355	1190 4 1
+orthodox-easter	452605	1240 4 22
+orthodox-easter	470160	1288 4 4
+orthodox-easter	473837	1298 4 13
+orthodox-easter	507850	1391 4 3
+orthodox-easter	524156	1436 4 17
+orthodox-easter	544676	1492 5 1
+orthodox-easter	567118	1553 4 12
+orthodox-easter	569477	1560 4 24
+orthodox-easter	601716	1648 4 12
+orthodox-easter	613424	1680 4 21
+orthodox-easter	626596	1716 4 12
+orthodox-easter	645554	1768 4 10
+orthodox-easter	664224	1819 4 18
+orthodox-easter	671401	1839 4 7
+orthodox-easter	694799	1903 4 19
+orthodox-easter	704424	1929 5 5
+orthodox-easter	708842	1941 4 20
+orthodox-easter	709409	1943 4 25
+orthodox-easter	709580	1943 4 25
+orthodox-easter	727274	1992 4 26
+orthodox-easter	728714	1996 4 14
+orthodox-easter	744313	2038 4 25
+orthodox-easter	764652	2094 4 11
+# easter (calendars-3): Gregorian year month day
+easter	-214193	-586 4 3
+easter	-61387	-168 4 8
+easter	25469	70 4 13
+easter	49217	135 4 17
+easter	171307	470 4 6
+easter	210155	576 4 7
+easter	253427	694 4 22
+easter	369740	1013 4 11
+easter	400085	1096 4 19
+easter	434355	1190 4 1
+easter	452605	1240 4 22
+easter	470160	1288 3 28
+easter	473837	1298 4 6
+easter	507850	1391 4 3
+easter	524156	1436 4 17
+easter	544676	1492 3 27
+easter	567118	1553 4 12
+easter	569477	1560 3 27
+easter	601716	1648 4 12
+easter	613424	1680 4 21
+easter	626596	1716 4 12
+easter	645554	1768 4 3
+easter	664224	1819 4 11
+easter	671401	1839 3 31
+easter	694799	1903 4 12
+easter	704424	1929 3 31
+easter	708842	1941 4 13
+easter	709409	1943 4 25
+easter	709580	1943 4 25
+easter	727274	1992 4 19
+easter	728714	1996 4 7
+easter	744313	2038 4 25
+easter	764652	2094 4 4
+# astronomical-easter (calendars-3): Gregorian year month day
+astronomical-easter	-214193	-586 4 3
+astronomical-easter	-61387	-168 4 8
+astronomical-easter	25469	70 4 13
+astronomical-easter	49217	135 4 17
+astronomical-easter	171307	470 4 6
+astronomical-easter	210155	576 4 7
+astronomical-easter	253427	694 4 22
+astronomical-easter	369740	1013 4 11
+astronomical-easter	400085	1096 4 19
+astronomical-easter	434355	1190 4 1
+astronomical-easter	452605	1240 4 22
+astronomical-easter	470160	1288 3 28
+astronomical-easter	473837	1298 4 6
+astronomical-easter	507850	1391 4 3
+astronomical-easter	524156	1436 4 17
+astronomical-easter	544676	1492 3 27
+astronomical-easter	567118	1553 4 12
+astronomical-easter	569477	1560 3 27
+astronomical-easter	601716	1648 4 12
+astronomical-easter	613424	1680 4 21
+astronomical-easter	626596	1716 4 12
+astronomical-easter	645554	1768 4 3
+astronomical-easter	664224	1819 4 11
+astronomical-easter	671401	1839 3 31
+astronomical-easter	694799	1903 4 19
+astronomical-easter	704424	1929 3 31
+astronomical-easter	708842	1941 4 13
+astronomical-easter	709409	1943 3 28
+astronomical-easter	709580	1943 3 28
+astronomical-easter	727274	1992 4 19
+astronomical-easter	728714	1996 4 7
+astronomical-easter	744313	2038 3 28
+astronomical-easter	764652	2094 4 4
+# mayan-long-count (calendars-4): baktun katun tun uinal kin
+mayan-long-count	-214193	6 8 3 13 9
+mayan-long-count	-61387	7 9 8 3 15
+mayan-long-count	25469	8 1 9 8 11
+mayan-long-count	49217	8 4 15 7 19
+mayan-long-count	171307	9 1 14 10 9
+mayan-long-count	210155	9 7 2 8 17
+mayan-long-count	253427	9 13 2 12 9
+mayan-long-count	369740	10 9 5 14 2
+mayan-long-count	400085	10 13 10 1 7
+mayan-long-count	434355	10 18 5 4 17
+mayan-long-count	452605	11 0 15 17 7
+mayan-long-count	470160	11 3 4 13 2
+mayan-long-count	473837	11 3 14 16 19
+mayan-long-count	507850	11 8 9 7 12
+mayan-long-count	524156	11 10 14 12 18
+mayan-long-count	544676	11 13 11 12 18
+mayan-long-count	567118	11 16 14 1 0
+mayan-long-count	569477	11 17 0 10 19
+mayan-long-count	601716	12 1 10 2 18
+mayan-long-count	613424	12 3 2 12 6
+mayan-long-count	626596	12 4 19 4 18
+mayan-long-count	645554	12 7 11 16 16
+mayan-long-count	664224	12 10 3 14 6
+mayan-long-count	671401	12 11 3 13 3
+mayan-long-count	694799	12 14 8 13 1
+mayan-long-count	704424	12 15 15 8 6
+mayan-long-count	708842	12 16 7 13 4
+mayan-long-count	709409	12 16 9 5 11
+mayan-long-count	709580	12 16 9 14 2
+mayan-long-count	727274	12 18 18 16 16
+mayan-long-count	728714	12 19 2 16 16
+mayan-long-count	744313	13 1 6 4 15
+mayan-long-count	764652	13 4 2 13 14
+# mayan-haab (calendars-4): month day(0-19)
+mayan-haab	-214193	11 12
+mayan-haab	-61387	5 3
+mayan-haab	25469	4 9
+mayan-haab	49217	5 12
+mayan-haab	171307	14 12
+mayan-haab	210155	4 5
+mayan-haab	253427	14 7
+mayan-haab	369740	8 5
+mayan-haab	400085	10 15
+mayan-haab	434355	8 15
+mayan-haab	452605	8 15
+mayan-haab	470160	10 10
+mayan-haab	473837	11 17
+mayan-haab	507850	15 5
+mayan-haab	524156	9 6
+mayan-haab	544676	13 6
+mayan-haab	567118	3 18
+mayan-haab	569477	12 7
+mayan-haab	601716	18 6
+mayan-haab	613424	1 9
+mayan-haab	626596	3 1
+mayan-haab	645554	1 19
+mayan-haab	664224	4 14
+mayan-haab	671401	16 16
+mayan-haab	694799	18 14
+mayan-haab	704424	7 4
+mayan-haab	708842	9 2
+mayan-haab	709409	19 4
+mayan-haab	709580	9 10
+mayan-haab	727274	18 4
+mayan-haab	728714	17 4
+mayan-haab	744313	12 8
+mayan-haab	764652	7 7
+# mayan-tzolkin (calendars-4): number name
+mayan-tzolkin	-214193	5 9
+mayan-tzolkin	-61387	9 15
+mayan-tzolkin	25469	12 11
+mayan-tzolkin	49217	9 19
+mayan-tzolkin	171307	3 9
+mayan-tzolkin	210155	7 17
+mayan-tzolkin	253427	2 9
+mayan-tzolkin	369740	4 2
+mayan-tzolkin	400085	7 7
+mayan-tzolkin	434355	9 17
+mayan-tzolkin	452605	7 7
+mayan-tzolkin	470160	12 2
+mayan-tzolkin	473837	10 19
+mayan-tzolkin	507850	2 12
+mayan-tzolkin	524156	6 18
+mayan-tzolkin	544676	12 18
+mayan-tzolkin	567118	3 20
+mayan-tzolkin	569477	9 19
+mayan-tzolkin	601716	8 18
+mayan-tzolkin	613424	3 6
+mayan-tzolkin	626596	6 18
+mayan-tzolkin	645554	10 16
+mayan-tzolkin	664224	12 6
+mayan-tzolkin	671401	13 3
+mayan-tzolkin	694799	11 1
+mayan-tzolkin	704424	3 6
+mayan-tzolkin	708842	1 4
+mayan-tzolkin	709409	9 11
+mayan-tzolkin	709580	11 2
+mayan-tzolkin	727274	12 16
+mayan-tzolkin	728714	9 16
+mayan-tzolkin	744313	8 15
+mayan-tzolkin	764652	2 14
+# aztec-xihuitl (calendars-4): month day
+aztec-xihuitl	-214193	2 6
+aztec-xihuitl	-61387	14 2
+aztec-xihuitl	25469	13 8
+aztec-xihuitl	49217	14 11
+aztec-xihuitl	171307	5 6
+aztec-xihuitl	210155	13 4
+aztec-xihuitl	253427	5 1
+aztec-xihuitl	369740	17 4
+aztec-xihuitl	400085	1 9
+aztec-xihuitl	434355	17 14
+aztec-xihuitl	452605	17 14
+aztec-xihuitl	470160	1 4
+aztec-xihuitl	473837	2 11
+aztec-xihuitl	507850	5 19
+aztec-xihuitl	524156	18 5
+aztec-xihuitl	544676	3 20
+aztec-xihuitl	567118	12 17
+aztec-xihuitl	569477	3 1
+aztec-xihuitl	601716	8 20
+aztec-xihuitl	613424	10 8
+aztec-xihuitl	626596	11 20
+aztec-xihuitl	645554	10 18
+aztec-xihuitl	664224	13 13
+aztec-xihuitl	671401	7 10
+aztec-xihuitl	694799	9 8
+aztec-xihuitl	704424	16 3
+aztec-xihuitl	708842	18 1
+aztec-xihuitl	709409	9 18
+aztec-xihuitl	709580	18 9
+aztec-xihuitl	727274	8 18
+aztec-xihuitl	728714	7 18
+aztec-xihuitl	744313	3 2
+aztec-xihuitl	764652	16 6
+# aztec-tonalpohualli (calendars-4): number name
+aztec-tonalpohualli	-214193	5 9
+aztec-tonalpohualli	-61387	9 15
+aztec-tonalpohualli	25469	12 11
+aztec-tonalpohualli	49217	9 19
+aztec-tonalpohualli	171307	3 9
+aztec-tonalpohualli	210155	7 17
+aztec-tonalpohualli	253427	2 9
+aztec-tonalpohualli	369740	4 2
+aztec-tonalpohualli	400085	7 7
+aztec-tonalpohualli	434355	9 17
+aztec-tonalpohualli	452605	7 7
+aztec-tonalpohualli	470160	12 2
+aztec-tonalpohualli	473837	10 19
+aztec-tonalpohualli	507850	2 12
+aztec-tonalpohualli	524156	6 18
+aztec-tonalpohualli	544676	12 18
+aztec-tonalpohualli	567118	3 20
+aztec-tonalpohualli	569477	9 19
+aztec-tonalpohualli	601716	8 18
+aztec-tonalpohualli	613424	3 6
+aztec-tonalpohualli	626596	6 18
+aztec-tonalpohualli	645554	10 16
+aztec-tonalpohualli	664224	12 6
+aztec-tonalpohualli	671401	13 3
+aztec-tonalpohualli	694799	11 1
+aztec-tonalpohualli	704424	3 6
+aztec-tonalpohualli	708842	1 4
+aztec-tonalpohualli	709409	9 11
+aztec-tonalpohualli	709580	11 2
+aztec-tonalpohualli	727274	12 16
+aztec-tonalpohualli	728714	9 16
+aztec-tonalpohualli	744313	8 15
+aztec-tonalpohualli	764652	2 14
+# bali-pawukon (calendars-4): luang dwiwara triwara caturwara pancawara sadwara saptawara asatawara sangawara dasawara(0-9)
+bali-pawukon	-214193	f 1 1 1 3 1 1 5 7 3
+bali-pawukon	-61387	t 2 2 1 4 5 4 5 5 2
+bali-pawukon	25469	t 2 2 1 5 5 4 1 5 6
+bali-pawukon	49217	f 1 2 3 3 5 1 3 5 3
+bali-pawukon	171307	f 1 1 3 3 1 4 3 1 5
+bali-pawukon	210155	t 2 2 1 1 5 2 1 8 0
+bali-pawukon	253427	f 1 2 3 3 5 7 3 2 7
+bali-pawukon	369740	f 1 2 2 1 2 1 2 2 1
+bali-pawukon	400085	f 1 2 1 1 5 1 1 8 1
+bali-pawukon	434355	t 2 3 1 1 3 6 1 3 2
+bali-pawukon	452605	f 1 1 1 1 1 7 5 1 5
+bali-pawukon	470160	t 2 3 4 1 6 6 8 6 2
+bali-pawukon	473837	f 1 2 3 3 5 1 3 5 3
+bali-pawukon	507850	f 1 1 4 1 4 1 4 7 1
+bali-pawukon	524156	f 1 2 2 2 2 4 2 5 7
+bali-pawukon	544676	f 1 2 4 2 2 7 8 8 9
+bali-pawukon	567118	t 2 1 4 4 4 7 4 7 4
+bali-pawukon	569477	f 1 2 3 3 5 7 3 2 7
+bali-pawukon	601716	f 1 3 4 2 6 4 8 3 7
+bali-pawukon	613424	t 2 2 4 5 2 1 4 5 4
+bali-pawukon	626596	t 2 1 2 2 4 6 2 1 6
+bali-pawukon	645554	t 2 2 4 5 2 1 4 5 4
+bali-pawukon	664224	f 1 3 4 5 6 2 8 3 3
+bali-pawukon	671401	f 1 1 1 2 1 4 5 4 7
+bali-pawukon	694799	t 2 2 1 5 5 1 5 8 4
+bali-pawukon	704424	t 2 3 2 5 6 1 2 3 4
+bali-pawukon	708842	t 2 2 2 3 2 2 2 1 2
+bali-pawukon	709409	f 1 2 3 5 5 2 3 2 3
+bali-pawukon	709580	t 2 2 4 1 2 5 4 8 4
+bali-pawukon	727274	t 2 2 2 5 2 3 2 8 2
+bali-pawukon	728714	t 2 2 4 5 2 1 4 5 4
+bali-pawukon	744313	t 2 1 3 4 1 4 7 1 2
+bali-pawukon	764652	f 1 3 4 3 6 1 8 6 3
+# babylonian (calendars-4): year(Seleucid) month leap day
+babylonian	-214193	-275 4 f 10
+babylonian	-61387	143 8 f 24
+babylonian	25469	381 7 f 1
+babylonian	49217	446 7 f 7
+babylonian	171307	780 10 f 17
+babylonian	210155	887 2 f 3
+babylonian	253427	1005 8 f 13
+babylonian	369740	1324 1 f 5
+babylonian	400085	1407 2 f 22
+babylonian	434355	1500 12 f 7
+babylonian	452605	1550 12 f 7
+babylonian	470160	1598 12 f 21
+babylonian	473837	1609 1 f 7
+babylonian	507850	1702 2 f 29
+babylonian	524156	1746 11 f 6
+babylonian	544676	1803 1 f 2
+babylonian	567118	1864 5 f 30
+babylonian	569477	1870 11 f 27
+babylonian	601716	1959 2 f 18
+babylonian	613424	1991 4 f 2
+babylonian	626596	2027 4 f 4
+babylonian	645554	2079 3 f 3
+babylonian	664224	2130 4 f 10
+babylonian	671401	2149 12 f 11
+babylonian	694799	2213 12 t 20
+babylonian	704424	2240 5 f 19
+babylonian	708842	2252 6 f 7
+babylonian	709409	2254 1 f 13
+babylonian	709580	2254 7 f 7
+babylonian	727274	2302 12 f 12
+babylonian	728714	2306 12 f 5
+babylonian	744313	2349 8 f 12
+babylonian	764652	2405 4 f 5
+# samaritan (calendars-4): year month(1 the month of Passover) day
+samaritan	-214193	1052 5 12
+samaritan	-61387	1471 9 27
+samaritan	25469	1709 7 4
+samaritan	49217	1774 7 9
+samaritan	171307	2108 10 19
+samaritan	210155	2214 3 5
+samaritan	253427	2333 8 14
+samaritan	369740	2651 2 7
+samaritan	400085	2734 2 24
+samaritan	434355	2828 13 9
+samaritan	452605	2878 12 8
+samaritan	470160	2926 13 23
+samaritan	473837	2936 2 8
+samaritan	507850	3029 3 2
+samaritan	524156	3074 11 7
+samaritan	544676	3130 1 4
+samaritan	567118	3192 7 2
+samaritan	569477	3198 11 28
+samaritan	601716	3286 3 19
+samaritan	613424	3318 4 4
+samaritan	626596	3354 5 6
+samaritan	645554	3406 3 5
+samaritan	664224	3457 5 12
+samaritan	671401	3477 13 12
+samaritan	694799	3541 1 22
+samaritan	704424	3567 5 21
+samaritan	708842	3580 7 9
+samaritan	709409	3581 1 15
+samaritan	709580	3582 7 8
+samaritan	727274	3630 12 13
+samaritan	728714	3634 12 7
+samaritan	744313	3677 8 14
+samaritan	764652	3732 4 6
+# chinese (calendars-5): cycle year month leap day
+chinese	-214193	35 11 6 f 12
+chinese	-61387	42 9 10 f 27
+chinese	25469	46 7 8 f 4
+chinese	49217	47 12 8 f 9
+chinese	171307	52 46 11 f 20
+chinese	210155	54 33 4 f 5
+chinese	253427	56 31 10 f 15
+chinese	369740	61 50 3 f 7
+chinese	400085	63 13 4 f 24
+chinese	434355	64 47 2 f 9
+chinese	452605	65 37 2 f 9
+chinese	470160	66 25 2 f 23
+chinese	473837	66 35 3 f 9
+chinese	507850	68 8 5 f 2
+chinese	524156	68 53 1 f 8
+chinese	544676	69 49 3 f 4
+chinese	567118	70 50 8 f 2
+chinese	569477	70 57 1 f 29
+chinese	601716	72 25 4 t 20
+chinese	613424	72 57 6 f 5
+chinese	626596	73 33 6 f 6
+chinese	645554	74 25 5 f 5
+chinese	664224	75 16 6 f 12
+chinese	671401	75 36 2 f 13
+chinese	694799	76 40 3 f 22
+chinese	704424	77 6 7 f 21
+chinese	708842	77 18 8 f 9
+chinese	709409	77 20 3 f 15
+chinese	709580	77 20 9 f 9
+chinese	727274	78 9 2 f 14
+chinese	728714	78 13 1 f 7
+chinese	744313	78 55 10 f 14
+chinese	764652	79 51 6 f 7
+# chinese-day-name (calendars-5): stem branch
+chinese-day-name	-214193	2 10
+chinese-day-name	-61387	8 8
+chinese-day-name	25469	4 8
+chinese-day-name	49217	2 8
+chinese-day-name	171307	2 10
+chinese-day-name	210155	10 2
+chinese-day-name	253427	2 2
+chinese-day-name	369740	5 11
+chinese-day-name	400085	10 8
+chinese-day-name	434355	10 6
+chinese-day-name	452605	10 4
+chinese-day-name	470160	5 3
+chinese-day-name	473837	2 8
+chinese-day-name	507850	5 1
+chinese-day-name	524156	1 11
+chinese-day-name	544676	1 11
+chinese-day-name	567118	3 1
+chinese-day-name	569477	2 8
+chinese-day-name	601716	1 3
+chinese-day-name	613424	9 11
+chinese-day-name	626596	1 7
+chinese-day-name	645554	9 5
+chinese-day-name	664224	9 3
+chinese-day-name	671401	6 4
+chinese-day-name	694799	4 2
+chinese-day-name	704424	9 3
+chinese-day-name	708842	7 5
+chinese-day-name	709409	4 8
+chinese-day-name	709580	5 11
+chinese-day-name	727274	9 5
+chinese-day-name	728714	9 5
+chinese-day-name	744313	8 4
+chinese-day-name	764652	7 3
+# major-solar-term-on-or-after (calendars-5): moment (UT)
+major-solar-term-on-or-after	-214193	-214191.63313392995
+major-solar-term-on-or-after	-61387	-61370.729673389586
+major-solar-term-on-or-after	25469	25498.215092247046
+major-solar-term-on-or-after	49217	49239.004860393914
+major-solar-term-on-or-after	171307	171318.58809888316
+major-solar-term-on-or-after	210155	210156.74571599602
+major-solar-term-on-or-after	253427	253439.31842390387
+major-solar-term-on-or-after	369740	369767.42361071525
+major-solar-term-on-or-after	400085	400113.9418956007
+major-solar-term-on-or-after	434355	434384.0357401938
+major-solar-term-on-or-after	452605	452615.45823404496
+major-solar-term-on-or-after	470160	470177.75981728773
+major-solar-term-on-or-after	473837	473861.3242872361
+major-solar-term-on-or-after	507850	507860.2353603009
+major-solar-term-on-or-after	524156	524172.8364991369
+major-solar-term-on-or-after	544676	544687.1349516585
+major-solar-term-on-or-after	567118	567122.8355460792
+major-solar-term-on-or-after	569477	569492.9966315707
+major-solar-term-on-or-after	601716	601727.3421014517
+major-solar-term-on-or-after	613424	613446.5208443811
+major-solar-term-on-or-after	626596	626626.4674233093
+major-solar-term-on-or-after	645554	645556.3253340822
+major-solar-term-on-or-after	664224	664246.3762943674
+major-solar-term-on-or-after	671401	671426.1243360509
+major-solar-term-on-or-after	694799	694801.6142626695
+major-solar-term-on-or-after	704424	704453.8694878045
+major-solar-term-on-or-after	708842	708867.1437281952
+major-solar-term-on-or-after	709409	709411.3133945792
+major-solar-term-on-or-after	709580	709597.6304909718
+major-solar-term-on-or-after	727274	727277.6999103288
+major-solar-term-on-or-after	728714	728738.6686838164
+major-solar-term-on-or-after	744313	744325.5632136187
+major-solar-term-on-or-after	764652	764656.5643717329
+# old-hindu-solar (calendars-5): year month day
+old-hindu-solar	-214193	2515 5 19
+old-hindu-solar	-61387	2933 9 26
+old-hindu-solar	25469	3171 7 11
+old-hindu-solar	49217	3236 7 17
+old-hindu-solar	171307	3570 10 19
+old-hindu-solar	210155	3677 2 28
+old-hindu-solar	253427	3795 8 17
+old-hindu-solar	369740	4114 1 26
+old-hindu-solar	400085	4197 2 24
+old-hindu-solar	434355	4290 12 20
+old-hindu-solar	452605	4340 12 7
+old-hindu-solar	470160	4388 12 30
+old-hindu-solar	473837	4399 1 24
+old-hindu-solar	507850	4492 3 7
+old-hindu-solar	524156	4536 10 28
+old-hindu-solar	544676	4593 1 3
+old-hindu-solar	567118	4654 6 12
+old-hindu-solar	569477	4660 11 27
+old-hindu-solar	601716	4749 3 1
+old-hindu-solar	613424	4781 3 21
+old-hindu-solar	626596	4817 4 13
+old-hindu-solar	645554	4869 3 8
+old-hindu-solar	664224	4920 4 20
+old-hindu-solar	671401	4939 12 13
+old-hindu-solar	694799	5004 1 4
+old-hindu-solar	704424	5030 5 11
+old-hindu-solar	708842	5042 6 15
+old-hindu-solar	709409	5044 1 4
+old-hindu-solar	709580	5044 6 23
+old-hindu-solar	727274	5092 12 2
+old-hindu-solar	728714	5096 11 11
+old-hindu-solar	744313	5139 7 26
+old-hindu-solar	764652	5195 4 2
+# hindu-solar (calendars-5): year(Saka) month day
+hindu-solar	-214193	-664 5 19
+hindu-solar	-61387	-246 9 26
+hindu-solar	25469	-8 7 9
+hindu-solar	49217	57 7 16
+hindu-solar	171307	391 10 21
+hindu-solar	210155	498 2 31
+hindu-solar	253427	616 8 16
+hindu-solar	369740	935 1 28
+hindu-solar	400085	1018 2 26
+hindu-solar	434355	1111 12 23
+hindu-solar	452605	1161 12 10
+hindu-solar	470160	1210 1 2
+hindu-solar	473837	1220 1 27
+hindu-solar	507850	1313 3 8
+hindu-solar	524156	1357 10 30
+hindu-solar	544676	1414 1 5
+hindu-solar	567118	1475 6 10
+hindu-solar	569477	1481 11 29
+hindu-solar	601716	1570 3 3
+hindu-solar	613424	1602 3 22
+hindu-solar	626596	1638 4 13
+hindu-solar	645554	1690 3 10
+hindu-solar	664224	1741 4 20
+hindu-solar	671401	1760 12 16
+hindu-solar	694799	1825 1 7
+hindu-solar	704424	1851 5 10
+hindu-solar	708842	1863 6 14
+hindu-solar	709409	1865 1 7
+hindu-solar	709580	1865 6 21
+hindu-solar	727274	1913 12 4
+hindu-solar	728714	1917 11 13
+hindu-solar	744313	1960 7 24
+hindu-solar	764652	2016 4 2
+# astro-hindu-solar (calendars-5): year(Saka) month day
+astro-hindu-solar	-214193	-664 5 13
+astro-hindu-solar	-61387	-246 9 21
+astro-hindu-solar	25469	-8 7 5
+astro-hindu-solar	49217	57 7 11
+astro-hindu-solar	171307	391 10 17
+astro-hindu-solar	210155	498 2 27
+astro-hindu-solar	253427	616 8 13
+astro-hindu-solar	369740	935 1 26
+astro-hindu-solar	400085	1018 2 24
+astro-hindu-solar	434355	1111 12 21
+astro-hindu-solar	452605	1161 12 8
+astro-hindu-solar	470160	1209 12 31
+astro-hindu-solar	473837	1220 1 25
+astro-hindu-solar	507850	1313 3 7
+astro-hindu-solar	524156	1357 10 28
+astro-hindu-solar	544676	1414 1 4
+astro-hindu-solar	567118	1475 6 9
+astro-hindu-solar	569477	1481 11 28
+astro-hindu-solar	601716	1570 3 2
+astro-hindu-solar	613424	1602 3 22
+astro-hindu-solar	626596	1638 4 13
+astro-hindu-solar	645554	1690 3 9
+astro-hindu-solar	664224	1741 4 20
+astro-hindu-solar	671401	1760 12 15
+astro-hindu-solar	694799	1825 1 7
+astro-hindu-solar	704424	1851 5 10
+astro-hindu-solar	708842	1863 6 14
+astro-hindu-solar	709409	1865 1 6
+astro-hindu-solar	709580	1865 6 21
+astro-hindu-solar	727274	1913 12 4
+astro-hindu-solar	728714	1917 11 13
+astro-hindu-solar	744313	1960 7 25
+astro-hindu-solar	764652	2016 4 2
+# old-hindu-lunar (calendars-5): year month leap day
+old-hindu-lunar	-214193	2515 6 f 11
+old-hindu-lunar	-61387	2933 9 f 26
+old-hindu-lunar	25469	3171 8 f 3
+old-hindu-lunar	49217	3236 8 f 9
+old-hindu-lunar	171307	3570 11 t 19
+old-hindu-lunar	210155	3677 3 f 5
+old-hindu-lunar	253427	3795 9 f 15
+old-hindu-lunar	369740	4114 2 f 7
+old-hindu-lunar	400085	4197 2 f 24
+old-hindu-lunar	434355	4291 1 f 9
+old-hindu-lunar	452605	4340 12 f 9
+old-hindu-lunar	470160	4389 1 f 23
+old-hindu-lunar	473837	4399 2 f 8
+old-hindu-lunar	507850	4492 4 f 2
+old-hindu-lunar	524156	4536 11 f 7
+old-hindu-lunar	544676	4593 1 f 3
+old-hindu-lunar	567118	4654 7 f 2
+old-hindu-lunar	569477	4660 11 f 29
+old-hindu-lunar	601716	4749 3 f 20
+old-hindu-lunar	613424	4781 4 f 4
+old-hindu-lunar	626596	4817 5 f 6
+old-hindu-lunar	645554	4869 4 f 5
+old-hindu-lunar	664224	4920 5 f 12
+old-hindu-lunar	671401	4940 1 t 13
+old-hindu-lunar	694799	5004 1 f 23
+old-hindu-lunar	704424	5030 5 f 21
+old-hindu-lunar	708842	5042 7 f 9
+old-hindu-lunar	709409	5044 1 f 15
+old-hindu-lunar	709580	5044 7 f 9
+old-hindu-lunar	727274	5092 12 f 14
+old-hindu-lunar	728714	5096 12 f 7
+old-hindu-lunar	744313	5139 8 f 14
+old-hindu-lunar	764652	5195 4 f 6
+# hindu-lunar (calendars-5): year(Vikrama) month leap-month day leap-day
+hindu-lunar	-214193	-529 6 f 11 f
+hindu-lunar	-61387	-111 9 f 27 f
+hindu-lunar	25469	127 8 f 3 f
+hindu-lunar	49217	192 8 f 9 f
+hindu-lunar	171307	526 11 f 19 f
+hindu-lunar	210155	633 3 f 5 f
+hindu-lunar	253427	751 9 f 15 f
+hindu-lunar	369740	1070 2 f 6 f
+hindu-lunar	400085	1153 3 t 23 f
+hindu-lunar	434355	1247 1 f 8 f
+hindu-lunar	452605	1297 1 f 8 f
+hindu-lunar	470160	1345 1 f 22 f
+hindu-lunar	473837	1355 2 f 8 f
+hindu-lunar	507850	1448 4 f 1 f
+hindu-lunar	524156	1492 11 f 7 f
+hindu-lunar	544676	1549 2 t 3 f
+hindu-lunar	567118	1610 7 f 2 f
+hindu-lunar	569477	1616 11 f 28 t
+hindu-lunar	601716	1705 3 f 20 f
+hindu-lunar	613424	1737 4 f 4 f
+hindu-lunar	626596	1773 5 f 6 f
+hindu-lunar	645554	1825 4 f 5 f
+hindu-lunar	664224	1876 5 f 11 f
+hindu-lunar	671401	1896 1 f 13 f
+hindu-lunar	694799	1960 1 f 22 f
+hindu-lunar	704424	1986 5 f 20 f
+hindu-lunar	708842	1998 7 f 9 f
+hindu-lunar	709409	2000 1 f 14 f
+hindu-lunar	709580	2000 7 f 8 f
+hindu-lunar	727274	2048 12 f 14 f
+hindu-lunar	728714	2052 12 f 7 f
+hindu-lunar	744313	2095 8 f 14 f
+hindu-lunar	764652	2151 4 f 6 f
+# astro-hindu-lunar (calendars-5): year(Vikrama) month leap-month day leap-day
+astro-hindu-lunar	-214193	-529 6 t 11 f
+astro-hindu-lunar	-61387	-111 9 f 27 f
+astro-hindu-lunar	25469	127 8 f 3 t
+astro-hindu-lunar	49217	192 8 f 9 f
+astro-hindu-lunar	171307	526 10 f 20 f
+astro-hindu-lunar	210155	633 3 f 5 f
+astro-hindu-lunar	253427	751 8 f 15 f
+astro-hindu-lunar	369740	1070 2 f 6 f
+astro-hindu-lunar	400085	1153 2 f 23 f
+astro-hindu-lunar	434355	1247 1 f 8 f
+astro-hindu-lunar	452605	1296 12 f 8 f
+astro-hindu-lunar	470160	1345 1 f 23 f
+astro-hindu-lunar	473837	1355 2 f 8 f
+astro-hindu-lunar	507850	1448 4 f 1 f
+astro-hindu-lunar	524156	1492 11 f 7 f
+astro-hindu-lunar	544676	1549 2 t 4 f
+astro-hindu-lunar	567118	1610 7 f 2 f
+astro-hindu-lunar	569477	1616 11 f 29 f
+astro-hindu-lunar	601716	1705 3 f 20 f
+astro-hindu-lunar	613424	1737 4 f 5 f
+astro-hindu-lunar	626596	1773 5 f 6 f
+astro-hindu-lunar	645554	1825 4 f 5 f
+astro-hindu-lunar	664224	1876 5 f 11 f
+astro-hindu-lunar	671401	1896 1 f 13 f
+astro-hindu-lunar	694799	1960 1 f 22 f
+astro-hindu-lunar	704424	1986 5 f 20 f
+astro-hindu-lunar	708842	1998 7 f 9 f
+astro-hindu-lunar	709409	2000 1 f 14 f
+astro-hindu-lunar	709580	2000 7 f 8 f
+astro-hindu-lunar	727274	2048 12 f 14 f
+astro-hindu-lunar	728714	2052 12 f 7 f
+astro-hindu-lunar	744313	2095 8 f 14 f
+astro-hindu-lunar	764652	2151 4 f 6 f
+# tibetan (calendars-5): year month leap-month day leap-day
+tibetan	-214193	-459 8 f 11 f
+tibetan	-61387	-41 12 f 27 f
+tibetan	25469	197 10 f 3 f
+tibetan	49217	262 10 f 9 f
+tibetan	171307	596 12 f 19 f
+tibetan	210155	703 5 f 4 f
+tibetan	253427	821 10 f 15 f
+tibetan	369740	1140 4 f 6 f
+tibetan	400085	1223 4 f 23 f
+tibetan	434355	1317 3 f 8 f
+tibetan	452605	1367 2 f 8 f
+tibetan	470160	1415 2 f 22 f
+tibetan	473837	1425 4 f 8 f
+tibetan	507850	1518 5 f 1 f
+tibetan	524156	1563 1 f 7 f
+tibetan	544676	1619 3 f 3 f
+tibetan	567118	1680 8 f 2 f
+tibetan	569477	1687 1 f 29 f
+tibetan	601716	1775 4 f 20 f
+tibetan	613424	1807 6 t 4 f
+tibetan	626596	1843 6 f 6 f
+tibetan	645554	1895 5 f 5 f
+tibetan	664224	1946 6 f 11 f
+tibetan	671401	1966 2 f 13 f
+tibetan	694799	2030 2 f 22 f
+tibetan	704424	2056 7 f 20 f
+tibetan	708842	2068 8 f 9 f
+tibetan	709409	2070 3 t 14 f
+tibetan	709580	2070 8 f 8 f
+tibetan	727274	2119 1 f 14 f
+tibetan	728714	2123 1 f 7 f
+tibetan	744313	2165 9 f 14 f
+tibetan	764652	2221 6 f 6 f
+# ephem-corr (calendars-6): days (TT - UT)
+ephem-corr	-214193	0.2141698518518518
+ephem-corr	-61387	0.1436325736709162
+ephem-corr	25469	0.11444429141515934
+ephem-corr	49217	0.1071832023269466
+ephem-corr	171307	0.0694980637233795
+ephem-corr	210155	0.05750681225096576
+ephem-corr	253427	0.044758122943398294
+ephem-corr	369740	0.01739725724898436
+ephem-corr	400085	0.012796798891589717
+ephem-corr	434355	0.008869421568656598
+ephem-corr	452605	0.007262628304956151
+ephem-corr	470160	0.005979700330107668
+ephem-corr	473837	0.005740181544555196
+ephem-corr	507850	0.0038756713829057494
+ephem-corr	524156	0.0031575183970409433
+ephem-corr	544676	0.0023931271439193605
+ephem-corr	567118	0.0017316532690131066
+ephem-corr	569477	0.001669881462467923
+ephem-corr	601716	0.0006150149905066667
+ephem-corr	613424	0.0001771681659259259
+ephem-corr	626596	0.00010164585300462962
+ephem-corr	645554	0.0001715234835787037
+ephem-corr	664224	0.00013696411598166654
+ephem-corr	671401	6.153868613872005e-05
+ephem-corr	694799	1.4168812498149138e-05
+ephem-corr	704424	0.0002767107192307865
+ephem-corr	708842	0.0002963680272367922
+ephem-corr	709409	0.0003028239003387824
+ephem-corr	709580	0.0003028239003387824
+ephem-corr	727274	0.0006750883474962962
+ephem-corr	728714	0.0007128242445629629
+ephem-corr	744313	0.0009633446296296297
+ephem-corr	764652	0.0029138888888888886
+# eqn-of-time (calendars-6): days
+eqn-of-time	-214193	-0.0011905655070433155
+eqn-of-time	-61387	0.0031598510176579675
+eqn-of-time	25469	0.005373080560492963
+eqn-of-time	49217	0.006791846517077405
+eqn-of-time	171307	-0.007231186313628672
+eqn-of-time	210155	0.004410075317933824
+eqn-of-time	253427	0.00989779796941346
+eqn-of-time	369740	0.0019878869621730855
+eqn-of-time	400085	0.0034782804847857665
+eqn-of-time	434355	-0.004947970238298936
+eqn-of-time	452605	-0.007588325776593534
+eqn-of-time	470160	-0.002369462921728188
+eqn-of-time	473837	0.002140534147498302
+eqn-of-time	507850	0.0011957321058023882
+eqn-of-time	524156	-0.010356800209556
+eqn-of-time	544676	-0.0010135456160697547
+eqn-of-time	567118	0.004277210523303675
+eqn-of-time	569477	-0.008429058777346954
+eqn-of-time	601716	0.0009431253387389096
+eqn-of-time	613424	-0.002039890003041847
+eqn-of-time	626596	-0.004076285251705824
+eqn-of-time	645554	-0.0005414149380611133
+eqn-of-time	664224	-0.004143426613891734
+eqn-of-time	671401	-0.004008481305098517
+eqn-of-time	694799	0.00039212499718506964
+eqn-of-time	704424	-0.0015551912225697131
+eqn-of-time	708842	0.006529397092051497
+eqn-of-time	709409	0.00042773327759545917
+eqn-of-time	709580	0.008180441176525713
+eqn-of-time	727274	-0.005843163802358557
+eqn-of-time	728714	-0.009214228918509282
+eqn-of-time	744313	0.01123806371226859
+eqn-of-time	764652	-0.004466132373585637
+# solar-long (calendars-6): degrees at noon UT
+solar-long	-214193	119.47343190503307
+solar-long	-61387	254.2489611345809
+solar-long	25469	181.43599673954304
+solar-long	49217	188.66392267483752
+solar-long	171307	289.0915666249348
+solar-long	210155	59.11974154849304
+solar-long	253427	228.31455470912624
+solar-long	369740	34.46076992887538
+solar-long	400085	63.18799596698955
+solar-long	434355	2.4575913259759545
+solar-long	452605	350.475934906397
+solar-long	470160	13.498220866371412
+solar-long	473837	37.403920329437824
+solar-long	507850	81.02813003520714
+solar-long	524156	313.86049865107634
+solar-long	544676	19.95443016415811
+solar-long	567118	176.05943166351062
+solar-long	569477	344.92295174632454
+solar-long	601716	79.96492181924987
+solar-long	613424	99.30231774304411
+solar-long	626596	121.53530416596914
+solar-long	645554	88.56742889029556
+solar-long	664224	129.289884101192
+solar-long	671401	6.146910693067184
+solar-long	694799	28.25199345351575
+solar-long	704424	151.7806330331332
+solar-long	708842	185.94586701843946
+solar-long	709409	28.55560762159439
+solar-long	709580	193.3478921554779
+solar-long	727274	357.15125499424175
+solar-long	728714	336.1706924761211
+solar-long	744313	228.18487947607719
+solar-long	764652	116.43935225951282
+# solstice (calendars-6): moment (UT)
+solstice	-214193	-214131.1473344761
+solstice	-61387	-61371.053052452095
+solstice	25469	25556.789090403363
+solstice	49217	49297.58456814062
+solstice	171307	171378.53929242032
+solstice	210155	210187.90813794904
+solstice	253427	253468.41300131503
+solstice	369740	369798.5591256314
+solstice	400085	400113.6185111315
+solstice	434355	434446.32856129174
+solstice	452605	452615.13485183066
+solstice	470160	470240.01739146403
+solstice	473837	473892.43257169233
+solstice	507850	507859.911980662
+solstice	524156	524202.6224004758
+solstice	544676	544749.3187396597
+solstice	567118	567122.5121680808
+solstice	569477	569492.6732452086
+solstice	601716	601727.0187257166
+solstice	613424	613508.2590613072
+solstice	626596	626656.9709152416
+solstice	645554	645556.0019541306
+solstice	664224	664276.9077185577
+solstice	671401	671488.1668855895
+solstice	694799	694863.628311114
+solstice	704424	704453.5361603084
+solstice	708842	708926.239052775
+solstice	709409	709473.3000396637
+solstice	709580	709656.7281631978
+solstice	727274	727277.366581575
+solstice	728714	728738.3353512224
+solstice	744313	744354.7928071157
+solstice	764652	764718.4688369182
+# dawn (calendars-6): day-fraction hh mm ss, standard time at Paris, 18 degrees
+dawn	-214193	0.0952852746413555 2 17 13
+dawn	-61387	0.27737211426574504 6 39 25
+dawn	25469	0.20356915108277462 4 53 8
+dawn	49217	0.2122311919083586 5 5 37
+dawn	171307	0.2863702318863943 6 52 22
+dawn	210155	0.09628051286563277 2 18 39
+dawn	253427	0.2537308697937988 6 5 22
+dawn	369740	0.14947225590003654 3 35 14
+dawn	400085	0.08848682307871059 2 7 25
+dawn	434355	0.2092176130390726 5 1 16
+dawn	452605	0.22855241264915094 5 29 7
+dawn	470160	0.18985989794600755 4 33 24
+dawn	473837	0.14392086758743972 3 27 15
+dawn	507850	bogus
+dawn	524156	0.27236120210727677 6 32 12
+dawn	544676	0.17806796939112246 4 16 25
+dawn	567118	0.1968395735602826 4 43 27
+dawn	569477	0.23657875461503863 5 40 40
+dawn	601716	0.045748107018880546 1 5 53
+dawn	613424	bogus
+dawn	626596	0.10559532348997891 2 32 3
+dawn	645554	bogus
+dawn	664224	0.12246287649031729 2 56 21
+dawn	671401	0.20285681751556695 4 52 7
+dawn	694799	0.16257908288389444 3 54 7
+dawn	704424	0.16328928992152214 3 55 8
+dawn	708842	0.2086981926113367 5 0 32
+dawn	709409	0.16202027024701238 3 53 19
+dawn	709580	0.2169122528284788 5 12 21
+dawn	727274	0.21768764941953123 5 13 28
+dawn	728714	0.24798074271529913 5 57 6
+dawn	744313	0.2518905623583123 6 2 43
+dawn	764652	0.09495559462811798 2 16 44
+# mid-day (calendars-6): day-fraction hh mm ss, standard time at Tehran
+mid-day	-214193	0.50421673557139 12 6 4
+mid-day	-61387	0.49995200846751686 11 59 56
+mid-day	25469	0.49755619802090223 11 56 29
+mid-day	49217	0.49614339961408405 11 54 27
+mid-day	171307	0.5103318393812515 12 14 53
+mid-day	210155	0.498595012788428 11 57 59
+mid-day	253427	0.4931370181438979 11 50 7
+mid-day	369740	0.5009588354150765 12 1 23
+mid-day	400085	0.49953891057521105 11 59 20
+mid-day	434355	0.5078654386452399 12 11 20
+mid-day	452605	0.5105162668623962 12 15 9
+mid-day	470160	0.5052896186243743 12 7 37
+mid-day	473837	0.5008148543420248 12 1 10
+mid-day	507850	0.5018530653323978 12 2 40
+mid-day	524156	0.5133836925379001 12 19 16
+mid-day	544676	0.5039412586484104 12 5 41
+mid-day	567118	0.4986378779867664 11 58 2
+mid-day	569477	0.5113688790006563 12 16 22
+mid-day	601716	0.5021052776137367 12 3 2
+mid-day	613424	0.5050882423529401 12 7 20
+mid-day	626596	0.5070823880378157 12 10 12
+mid-day	645554	0.503594865789637 12 5 11
+mid-day	664224	0.5071291634812951 12 10 16
+mid-day	671401	0.5069318137830123 12 9 59
+mid-day	694799	0.5025511061539873 12 3 40
+mid-day	704424	0.5044886042596772 12 6 28
+mid-day	708842	0.4963879846036434 11 54 48
+mid-day	709409	0.5025163994869217 12 3 37
+mid-day	709580	0.4947464660508558 11 52 26
+mid-day	727274	0.5087713355896994 12 12 38
+mid-day	728714	0.5121765314834192 12 17 32
+mid-day	744313	0.49178614176344126 11 48 10
+mid-day	764652	0.5074836735147983 12 10 47
+# set (calendars-6): day-fraction hh mm ss, standard time of sunset at Jerusalem
+set	-214193	0.7805563835136127 18 44 0
+set	-61387	0.6973247565329075 16 44 9
+set	25469	0.7348895649665792 17 38 14
+set	49217	0.7285144811175996 17 29 4
+set	171307	0.7087883281346876 17 0 39
+set	210155	0.7742019966826774 18 34 51
+set	253427	0.7008772523258813 16 49 16
+set	369740	0.7627365203225054 18 18 20
+set	400085	0.7767770386417396 18 38 34
+set	434355	0.7480889729340561 17 57 15
+set	452605	0.7425360137713142 17 49 15
+set	470160	0.7531021641334519 18 4 28
+set	473837	0.7644025187473744 18 20 44
+set	507850	0.7840412511141039 18 49 1
+set	524156	0.7225351997767575 17 20 27
+set	544676	0.7561346035217866 18 8 50
+set	567118	0.7396585084497929 17 45 6
+set	569477	0.7396636717021465 17 45 7
+set	601716	0.7840577339520678 18 49 3
+set	613424	0.787086320342496 18 53 24
+set	626596	0.7819691359763965 18 46 2
+set	645554	0.7863087669247761 18 52 17
+set	664224	0.7781326250405982 18 40 31
+set	671401	0.7496876865625381 17 59 33
+set	694799	0.7602310368092731 18 14 44
+set	704424	0.7619096126873046 18 17 9
+set	708842	0.7306473429780453 17 32 8
+set	709409	0.7603906895965338 18 14 58
+set	709580	0.7240122546209022 17 22 35
+set	727274	0.7453617920400575 17 53 19
+set	728714	0.7347509380197152 17 38 2
+set	744313	0.6998211439931765 16 47 45
+set	764652	0.7844809335656464 18 49 39
+# lunar-long (calendars-7): degrees at midnight UT
+lunar-long	-214193	244.85390528339838
+lunar-long	-61387	208.85673853696503
+lunar-long	25469	213.74684265158967
+lunar-long	49217	292.04624333935743
+lunar-long	171307	156.81901407583166
+lunar-long	210155	108.0556329349528
+lunar-long	253427	39.35609790324581
+lunar-long	369740	98.56585102192106
+lunar-long	400085	332.95829627335894
+lunar-long	434355	92.25965175091615
+lunar-long	452605	78.13202909213766
+lunar-long	470160	274.9469953879383
+lunar-long	473837	128.3628442664409
+lunar-long	507850	89.51845094326185
+lunar-long	524156	24.607322526832988
+lunar-long	544676	53.4859568448797
+lunar-long	567118	187.89852001941696
+lunar-long	569477	320.1723620959754
+lunar-long	601716	314.0425667275923
+lunar-long	613424	145.47406514043587
+lunar-long	626596	185.03050779751646
+lunar-long	645554	142.18913274552065
+lunar-long	664224	253.74337531953228
+lunar-long	671401	151.64868501335397
+lunar-long	694799	287.9877436469169
+lunar-long	704424	25.626707154435444
+lunar-long	708842	290.28830064619893
+lunar-long	709409	189.91314245171338
+lunar-long	709580	284.93173002623826
+lunar-long	727274	152.3390442635215
+lunar-long	728714	51.66226507971774
+lunar-long	744313	26.68206023138705
+lunar-long	764652	175.5008226195208
+# lunar-lat (calendars-7): degrees at midnight UT
+lunar-lat	-214193	2.4527590208461576
+lunar-lat	-61387	-4.90223034654341
+lunar-lat	25469	-2.9394693592610484
+lunar-lat	49217	5.001904508580623
+lunar-lat	171307	-3.208909826304433
+lunar-lat	210155	0.894361559890105
+lunar-lat	253427	-3.863335568797983
+lunar-lat	369740	-2.5224444701068927
+lunar-lat	400085	1.0320696124422062
+lunar-lat	434355	3.005689926794408
+lunar-lat	452605	1.613842956502888
+lunar-lat	470160	4.766740664556875
+lunar-lat	473837	4.899202930916035
+lunar-lat	507850	4.838473946607273
+lunar-lat	524156	2.301475724501815
+lunar-lat	544676	-0.8905637199828537
+lunar-lat	567118	4.7657836433468495
+lunar-lat	569477	-2.737358003826797
+lunar-lat	601716	-4.035652608005429
+lunar-lat	613424	-3.157214517184652
+lunar-lat	626596	-1.8796147336498752
+lunar-lat	645554	-3.379519408995276
+lunar-lat	664224	-4.398341468078228
+lunar-lat	671401	2.099198567294447
+lunar-lat	694799	5.268746128633113
+lunar-lat	704424	-1.6722994521634027
+lunar-lat	708842	4.6820126551666865
+lunar-lat	709409	3.705518210116447
+lunar-lat	709580	2.493964063649065
+lunar-lat	727274	-4.167774638752936
+lunar-lat	728714	-2.873757531859998
+lunar-lat	744313	-4.667251128743298
+lunar-lat	764652	5.138562328560728
+# lunar-alt (calendars-7): degrees at midnight UT at Mecca
+lunar-alt	-214193	-13.163184128188277
+lunar-alt	-61387	-7.281425833096932
+lunar-alt	25469	-77.1499009115812
+lunar-alt	49217	-30.401178593900795
+lunar-alt	171307	71.84857827681589
+lunar-alt	210155	-43.79857984753659
+lunar-alt	253427	40.65320421851649
+lunar-alt	369740	-40.2787255279427
+lunar-alt	400085	29.611156512065406
+lunar-alt	434355	-19.973178784428228
+lunar-alt	452605	-23.740743779700097
+lunar-alt	470160	30.956688013173505
+lunar-alt	473837	-18.88869091014726
+lunar-alt	507850	-32.16116202243495
+lunar-alt	524156	-45.68091943596022
+lunar-alt	544676	-50.292110029959986
+lunar-alt	567118	-54.3453056090807
+lunar-alt	569477	-34.56600009726776
+lunar-alt	601716	44.13198955291821
+lunar-alt	613424	-57.539862986917285
+lunar-alt	626596	-62.08243959461623
+lunar-alt	645554	-54.07209109276471
+lunar-alt	664224	-16.120452006695814
+lunar-alt	671401	23.864594681196934
+lunar-alt	694799	32.9501466861486
+lunar-alt	704424	72.69165128891194
+lunar-alt	708842	-29.84948179003885
+lunar-alt	709409	31.610644151367637
+lunar-alt	709580	-42.21968940776054
+lunar-alt	727274	28.6478092363985
+lunar-alt	728714	-38.95055354031621
+lunar-alt	744313	27.601977078963245
+lunar-alt	764652	-54.85468160086822
+# new-moon-after (calendars-7): moment (UT)
+new-moon-after	-214193	-214174.60582868298
+new-moon-after	-61387	-61382.99532831192
+new-moon-after	25469	25495.80977675628
+new-moon-after	49217	49238.50244808781
+new-moon-after	171307	171318.43531326813
+new-moon-after	210155	210180.69184966758
+new-moon-after	253427	253442.85936730343
+new-moon-after	369740	369763.74641362444
+new-moon-after	400085	400091.5783431683
+new-moon-after	434355	434376.5781067696
+new-moon-after	452605	452627.1919724953
+new-moon-after	470160	470167.57836052414
+new-moon-after	473837	473858.8532764285
+new-moon-after	507850	507878.6668429224
+new-moon-after	524156	524179.2470620894
+new-moon-after	544676	544702.7538732041
+new-moon-after	567118	567146.5131819838
+new-moon-after	569477	569479.2032589674
+new-moon-after	601716	601727.0335578924
+new-moon-after	613424	613449.7621296605
+new-moon-after	626596	626620.3698017383
+new-moon-after	645554	645579.0767485882
+new-moon-after	664224	664242.8867184789
+new-moon-after	671401	671418.970538101
+new-moon-after	694799	694807.5633711396
+new-moon-after	704424	704433.4911827276
+new-moon-after	708842	708863.5970001582
+new-moon-after	709409	709424.4049294397
+new-moon-after	709580	709602.0826867367
+new-moon-after	727274	727291.2094001573
+new-moon-after	728714	728737.4476913146
+new-moon-after	744313	744329.5739998783
+new-moon-after	764652	764676.1912733881
+# moonrise (calendars-7): day-fraction hh mm ss, standard time at Mecca
+moonrise	-214193	0.6452602427743841 15 29 10
+moonrise	-61387	0.1466505367643549 3 31 11
+moonrise	25469	0.36559585205395706 8 46 27
+moonrise	49217	0.5825537563578109 13 58 53
+moonrise	171307	0.9267220941546839 22 14 29
+moonrise	210155	0.3915659364720341 9 23 51
+moonrise	253427	0.7372274993103929 17 41 36
+moonrise	369740	0.43427102733403444 10 25 21
+moonrise	400085	0.02811942988773808 0 40 30
+moonrise	434355	0.501712417404633 12 2 28
+moonrise	452605	0.49405092000961304 11 51 26
+moonrise	470160	0.013196723943110555 0 19 0
+moonrise	473837	0.5193064592313021 12 27 48
+moonrise	507850	0.2598263542749919 6 14 9
+moonrise	524156	0.4521904163993895 10 51 9
+moonrise	544676	0.34327686054166406 8 14 19
+moonrise	567118	0.30043152859434485 7 12 37
+moonrise	569477	0.23176377872005105 5 33 44
+moonrise	601716	0.9730151334078982 23 21 9
+moonrise	613424	0.3944171852199361 9 27 58
+moonrise	626596	0.45051895536016673 10 48 45
+moonrise	645554	0.41600866708904505 9 59 3
+moonrise	664224	0.6573916441993788 15 46 39
+moonrise	671401	0.6862596769351512 16 28 13
+moonrise	694799	0.008243074524216354 0 11 52
+moonrise	704424	0.916779184830375 22 0 10
+moonrise	708842	0.5865902814548463 14 4 41
+moonrise	709409	0.7425879179500043 17 49 20
+moonrise	709580	0.5552461851621047 13 19 33
+moonrise	727274	0.7192200226709247 17 15 41
+moonrise	728714	0.46621194016188383 11 11 21
+moonrise	744313	0.7059995282907039 16 56 38
+moonrise	764652	0.4368069327902049 10 29 0
+# moonset (calendars-7): day-fraction hh mm ss, standard time at Mecca
+moonset	-214193	0.0842250865243841 2 1 17
+moonset	-61387	0.6276075680143549 15 3 45
+moonset	25469	0.8426466333039571 20 13 25
+moonset	49217	0.030307662607810926 0 43 39
+moonset	171307	0.4198861566546839 10 4 38
+moonset	210155	0.9657846864720341 23 10 44
+moonset	253427	0.2528524993103929 6 4 6
+moonset	369740	bogus
+moonset	400085	0.5281194298877381 12 40 30
+moonset	434355	0.052493667404633015 1 15 35
+moonset	452605	0.03799623250961304 0 54 43
+moonset	470160	0.49317719269311056 11 50 11
+moonset	473837	0.06032208423130214 1 26 52
+moonset	507850	0.8560177605249919 20 32 40
+moonset	524156	bogus
+moonset	544676	0.9087065480416641 21 48 32
+moonset	567118	0.8180096535943449 19 37 56
+moonset	569477	0.714185653720051 17 8 26
+moonset	601716	0.41686278965789825 10 0 17
+moonset	613424	0.9325031227199361 22 22 48
+moonset	626596	0.9563783303601667 22 57 11
+moonset	645554	0.952629760839045 22 51 47
+moonset	664224	0.07096586294937879 1 42 11
+moonset	671401	0.20041983318515122 4 48 36
+moonset	694799	0.48920010577421635 11 44 27
+moonset	704424	0.429962778580375 10 19 9
+moonset	708842	0.03141450020484626 0 45 14
+moonset	709409	0.22452151170000434 5 23 19
+moonset	709580	bogus
+moonset	727274	0.21482549142092466 5 9 21
+moonset	728714	bogus
+moonset	744313	0.2118589032907039 5 5 5
+moonset	764652	0.9631741202902049 23 6 58
