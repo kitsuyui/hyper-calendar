@@ -460,3 +460,16 @@ Atseret = "Atseret"
 # The *tweek*, the ten-day week of Peter Meyer's Archetypes Calendar, and
 # the names of its months and days, in hc-calendars-lunar's `archetypes`.
 tweek = "tweek"
+# CLDR 48's names for the countries in hc-i18n's `territories`: German
+# Australien, Bangladesch and Indonesien; French Territoires palestiniens;
+# Afganistan in Indonesian, Javanese, Polish and Turkish; Indonesian
+# Palestina; Italian Stati Uniti; Dutch Ierland.
+Australien = "Australien"
+Bangladesch = "Bangladesch"
+Indonesien = "Indonesien"
+Territoires = "Territoires"
+palestiniens = "palestiniens"
+Afganistan = "Afganistan"
+Palestina = "Palestina"
+Stati = "Stati"
+Ierland = "Ierland"

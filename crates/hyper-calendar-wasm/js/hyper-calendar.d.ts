@@ -692,10 +692,10 @@ export type HolidayTableKind = "country" | "subdivision" | "exchange" | "traditi
 export interface HolidayTable {
   code: string;
   kind: HolidayTableKind;
-  /** The name in the locale: the English name for an `en` tag, else `null`. */
+  /** The name in the locale: a country's CLDR name where the locale has one, else the English name. */
   name: string | null;
   englishName: string;
-  /** `en` where `name` is filled, else `null`. */
+  /** The tag of the data that named it: `ja` for 日本, `en` for an English name. */
   localeUsed: string | null;
   /** The sources the table names. */
   source: string | null;

@@ -619,7 +619,7 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `format` | civil, hc-format |
 | `i18n` | civil, hc-i18n |
 | `humanize` | i18n, hc-humanize |
-| `holiday` | regional, seasons, equinox, indic, hc-holiday |
+| `holiday` | regional, seasons, equinox, indic, hc-holiday, hc-i18n, hc-i18n/territories |
 | `uncertainty` | hc-uncertainty |
 | `deep-time` | uncertainty, hc-deep-time |
 | `orbital` | uncertainty, hc-orbital |
