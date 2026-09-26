@@ -337,6 +337,7 @@ Faṣlī 1434, which opened on 1 July 2024.
 | Check | Test | Result |
 | --- | --- | --- |
 | The Kārttikādi Vikrama year as Drik Panchang prints it: 2080 on 15 August 2024, 2081 on 1 January, 10 April and 21 October 2025, 2082 from 22 October 2025, Kārttika śukla 1 | `lunar_era::the_gujarati_year_is_the_one_drik_panchang_prints` | all |
+| The Kārttikādi Vikrama year is the Chaitrādi one from Kārttika 1 and one less before, and the Rājyābhiṣeka Śaka year the Śaka year less 1595 from its opening and 1596 before, on every day of 2023–2025 and 2024–2025 | `lunar_era::the_gujarati_year_is_the_chaitradi_year_from_karttika_and_one_less_before`, `the_years_of_saka_1000_are_table_ii_s` | all in a release build; in a debug one every seventh or fifth day and each era opening and Chaitra 1 with its eve |
 | Sewell and Dikshit's Table II row for Āṣāḍha of Śaka 1000 current: Gupta 758, Kārttikādi Vikrama 1134, Chedi 829 (the heading; Art. 103's text prints 828), all current | `lunar_era::the_years_of_saka_1000_are_table_ii_s` | all but the text's 828 |
 | Kielhorn's Chedi 1 at Āśvina śukla 1 of Śaka 171 current, Fleet's Gupta 0 at Śaka 242 current, the Valabhī epoch at the Kārttikādi Vikrama 376 current | `lunar_era::the_ancient_epochs_are_the_sources` | all, as year arithmetic |
 | 5 September 248 (Julian) begins with tithi 1 at sunrise, and 6 June 1674 (Julian) with tithi 13, by the library's astronomy outside its calendars' range | `lunar_era::the_epoch_days_carry_their_tithis` | both |

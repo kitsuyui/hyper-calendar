@@ -88,15 +88,45 @@ Sinica, and 1949–2025 the model of GB/T 33661-2017, and that the dates of
 the old almanacs are kept where they differ from a modern computation
 [pmo-calendar-1900-2025]. The rules here, read at the meridians below,
 reproduce every month of that table from 1900 to 2024 but one — the fourth
-month of 1906, worked below — and that one is carried as data. Before 1900
-no table of the almanac was read, and a reconstruction of it measures how
-far the rules stray there (*Accuracy*).
+month of 1906, worked below — and that one is carried as data.
+
+Before 1900 two records were read. Liu Yuk Tung's reconstruction of the
+Qing calendar, 1645–1911, starts from a modern computation and corrects it
+to the official calendar as two books give it — the Observatory's
+《新编万年历》, taken from the 時憲書 but only from 1840, and Zhang Peiyu's
+《三千五百年历日天象》, computed from the historical rules and checked
+against surviving calendars — which agree from 1840 to 1911; the books
+were not read here [liu-chinese-calendar-computation]. Against it the
+rules at Beijing mean time part in 28 first days and 5 leap months, all
+before 1900. The Veritable Records, 《清實錄》, the court's day-by-day
+record of each reign, open every month with its first day by sexagenary
+name — 乾隆十九年八月戊申朔, "the eighth month of Qianlong 19, whose first
+day was *wù-shēn*" — and they have all 33 as Liu has them [qing-shilu].
+Those months are carried as data, each with its record: the 28 first days
+as `MonthStartCorrection`s and the 5 leap months as corrections of the
+solar-term day that placed them (*The almanac's terms*, below). Read month
+by month, the Records' first days agree with the calendar so corrected in
+every one of the 3 048 months of 1645–1908 whose opening line the
+transcription gives unambiguously, and with the rules alone in all but 37
+(*Accuracy*). The Records of the last reign, the 宣統政紀, were not read, so
+1909–1911 rest on the Observatory's table.
 
 Korea kept the same almanac, not the same rules at its own meridian. KASI's
 conversion data for 1900–1911 give the Qing first day of every month,
 including five whose conjunction fell before midnight at Beijing and after
 it at Seoul, and over 1653–1911 they side with Beijing in 80 of the 105
-months where the two meridians disagree [kasi-lunisolar-conversion]. A
+months where the two meridians disagree [kasi-lunisolar-conversion]; in 24
+of the other 25 the almanac itself had Seoul's later day, and they are
+among the corrections above. Asked on every day that begins a month under
+one of the Beijing rules, the Seoul rules or the corrected calendar and not
+under another — 216 days of 1653–1911 — KASI agrees with the corrected
+calendar on 210, and on the first day of every leap month of 1653–1911 but
+one. The three months it leaves the Qing almanac in are 1653, Joseon's
+first year on the new rules, where KASI has 閏七月 from 23 August and 八月
+from 21 September against the Records' 閏六月 from 24 July and 八月 from
+22 September; the twelfth month of that year, from 19 January 1654, Seoul's
+day, against 18 January; and the twelfth month of 1841, from 12 January
+1842, the rules' day, against the Records' 11 January, *gēng-chén*. A
 report on ICU4X's issue tracker says that the Joseon, Korean Empire and
 colonial almanacs on KASI's site give their times in Beijing time until
 1912 and that the Korean calendar matches the Qing one until then
@@ -237,15 +267,24 @@ The engine holds the rules and `LunisolarParameters` holds what differs:
   modern astronomy — is a field of `MeanMotionModel` and so concerns only the
   Japanese historical systems.
 - `month_start_corrections: &[MonthStartCorrection]`, the months whose
-  first day a published table of the promulgated calendar puts on another
-  day than the rules: `chinese::ALMANAC_CORRECTIONS`, one entry, which
-  `dangi` shares because before 1912 it is the same calendar, and nothing
-  for `vietnamese`. The engine applies a correction to every month boundary
-  it computes, so the month before gains or loses the day with it, and a
-  correction may move a day by one at most (`MonthStartCorrection::MAX_SHIFT`),
-  which keeps the search for the neighbouring month local. It is data
-  because it is a fact about a document, not a rule: the method that
-  produced it, the 1742 tables, is not implemented.
+  first day a record of the promulgated calendar puts on another day than
+  the rules, each with its `source`: `chinese::ALMANAC_CORRECTIONS`, 29
+  entries of 1652–1906, which `dangi` shares because before 1912 it is the
+  same calendar, and nothing for `vietnamese`. The engine applies a
+  correction to every month boundary it computes, so the month before gains
+  or loses the day with it, and a correction may move a day by one at most
+  (`MonthStartCorrection::MAX_SHIFT`), which keeps the search for the
+  neighbouring month local. It is data because it is a fact about a
+  document, not a rule: the method that produced it, the bureau's tables,
+  is not implemented.
+- `major_term_corrections: &[MajorTermCorrection]`, the *zhōngqì* the
+  promulgated calendar reckoned to another day than the rules, each with
+  its term, its two days and its `source`: `chinese::ALMANAC_TERM_CORRECTIONS`,
+  5 entries of 1645–1805, again shared by `dangi`. `major_solar_term` reads
+  the index at each midnight between the two days as the almanac would,
+  `computed_major_solar_term` is the rules alone, and a correction of 冬至
+  would move the solstice's day too; none is carried. Only terms that move a
+  leap month are carried, because the others change no date.
 - `epoch: CHINESE_EPOCH`, RD −963 099 = 15 February 2637 BCE (year −2636
   proleptic Gregorian), the published code's `chinese-epoch`, from which all
   three count elapsed years; `year_offset` is what each adds to display its
@@ -274,11 +313,13 @@ The one month of 1900–2024 where the rules and the almanac part.
    time, the almanac's, the modern conjunction is at 23:54, still on the
    23rd, and 116°25′ against 116°23′ is eight seconds. What is left is the
    1742 method putting the conjunction at least six minutes later than
-   modern astronomy does — an error of the kind Liu corrected in more than
-   two hundred months of 1645–1911 when he rebuilt the Qing calendar from a
-   modern computation [liu-chinese-calendar-computation].
+   modern astronomy does — the kind of error behind the 28 earlier months
+   the Records and Liu's reconstruction move (*The almanac before 1912*),
+   all with a conjunction within 23 minutes of Beijing mean midnight, 25 of
+   them put after it by the almanac and 3 before
+   [qing-shilu, liu-chinese-calendar-computation].
 5. *What the crate does.* `chinese::ALMANAC_CORRECTIONS` holds the pair
-   (23 April 1906, 24 April 1906); `chinese` and `dangi` then give 三月 thirty
+   (23 April 1906, 24 April 1906) with its source; `chinese` and `dangi` then give 三月 thirty
    days and 四月 twenty-nine, and a parameter set built with no corrections
    still gives the rule's 23 April. The tests are
    `the_fourth_month_of_1906_began_on_the_day_the_almanac_gave` and
@@ -288,10 +329,57 @@ Nothing here counts as a second calendar under the policy's rule for
 competing conventions. The Observatory, the Hong Kong Observatory and KASI
 publish the same day, and nobody published the rule's 23 April: a modern
 recomputation of 1906 at Beijing mean time is this library's approximation
-of the Qing calendar, not a convention anyone kept. So `chinese` carries the
-almanac where a table of it was read, and the bare rule stays constructible
+of the Qing calendar, not a convention anyone kept. The same holds of the
+33 earlier months: the Records, Liu and, for all but three, KASI agree, and
+nothing read publishes the rule's days. So `chinese` carries the
+almanac where a record of it was read, and the bare rule stays constructible
 as a `LunisolarParameters` without corrections, as `vietnamese-south-1968`
 does for a reckoning with no registered use.
+
+### The almanac's terms: the leap month of 1727
+
+A first day the almanac moved changes the lengths of two months; a term
+it moved can carry a leap month a whole lunation. 雍正五年, 1727, is the case
+where the term's day is read rather than inferred.
+
+1. *The months.* The rules and the Records agree on the first days
+   around it: 22 January, 23 March, 21 April and 21 May [qing-shilu].
+2. *The rule.* `hc-astro` puts 春分 at 11:24 Beijing mean time on
+   21 March, in the month from 21 February; 穀雨 at 00:26 on 21 April, the
+   first day of the month that begins then; 小滿 at 01:18 on 22 May, in the
+   month from 21 May. So the month from 23 March holds no *zhōngqì*, the
+   suì has thirteen new moons, and it is 閏二月.
+3. *The almanac.* The Records open 三月 with 戊子, 23 March, and 閏三月 with
+   丁巳, 21 April [qing-shilu]; Liu's table has the same, and its
+   calendrical solar terms — the terms of the Tychonic theory the bureau
+   used before 1733 — put 穀雨 on 20 April, the day before
+   [liu-chinese-calendar-computation]. KASI's Korean calendar has 閏三月 from
+   21 April too [kasi-lunisolar-conversion].
+4. *Why.* With 穀雨 on 20 April the month from 23 March holds it and is
+   三月, and the month from 21 April holds nothing — 小滿 falls on the first
+   day of the next — so it is the leap month. Twenty-six minutes after
+   midnight by modern astronomy is before midnight by the bureau's Sun.
+5. *What the crate does.* `chinese::ALMANAC_TERM_CORRECTIONS` holds
+   (穀雨, 21 April 1727, 20 April 1727), and `chinese` and `dangi` give
+   閏三月 from 21 April; the parameters without corrections give 閏二月 from
+   23 March. Of the five, 1651's 春分 and 1661's 秋分 are Liu's term days in
+   the same way; 1645's 大暑 is Lǐ Tiānjīng's rule, printed on the leap
+   month's first day and counted to the month before, as Wāng Yuēzhēn
+   explains in Liu's account, and carried as reckoned to the day before;
+   1805's 處暑, at 23:52 Beijing mean time on 23 August by the rules, is
+   inferred: no table of the almanac's terms after 1733 was read, and the
+   Records' 閏六月 from 26 July needs it on the 24th. The tests are
+   `the_leap_months_the_almanac_moved_are_where_the_veritable_records_have_them`
+   and `the_almanac_term_corrections_are_live_and_move_a_day_at_most`.
+
+What is carried is the calendar kept, not always the calendar first
+printed. The almanac for 康熙八年, computed by the old Dàtǒng method during the
+Calendar Case, carried a 閏十二月; Ferdinand Verbiest showed that the
+month held 雨水 and was the first month of 康熙九年, and the leap month was
+moved to 康熙九年二月 [qingshigao-shixian, liu-chinese-calendar-computation].
+The rules here give 閏二月 of 1670, the calendar as corrected, and so do the
+Records, which open 康熙九年正月 on 己丑, 21 January 1670, the month the
+first almanac had made 閏十二月 [qing-shilu]; that printing is not carried.
 
 ### Worked example: Seollal 1988
 
@@ -406,8 +494,17 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
 - **Computed, not tabulated.** Every conjunction, solstice and solar
   longitude is computed from `hc-astro` when asked, which is why
   `is_astronomical` is true in the metadata and why the accuracy below is
-  the accuracy of the astronomy at the day boundary. The one stored fact is
-  `chinese::ALMANAC_CORRECTIONS`, the month of 1906 above.
+  the accuracy of the astronomy at the day boundary. The stored facts are
+  `chinese::ALMANAC_CORRECTIONS`, the 29 first days above, and
+  `chinese::ALMANAC_TERM_CORRECTIONS`, the 5 terms, each with its source:
+
+  | Source class | First days | Terms |
+  | --- | --- | --- |
+  | The Veritable Records [qing-shilu], with Liu's table and KASI's data [liu-chinese-calendar-computation, kasi-lunisolar-conversion] | 25 | — |
+  | The Veritable Records and Liu's table; KASI differs | 3 (1652, 1653, 1841) | — |
+  | The Purple Mountain Observatory's table of the 時憲書 [pmo-calendar-1900-2025], the Veritable Records, the Hong Kong Observatory and KASI | 1 (1906) | — |
+  | The leap month from the Veritable Records; the term day from Liu only | — | 4 (1645, 1651, 1661, 1727) |
+  | The leap month from the Veritable Records and Liu; the term day inferred | — | 1 (1805) |
 - **Constructible but not registered.** `SolarTermMode::Mean` with any
   meridian, through `LunisolarParameters`, which is not a calendar anyone
   publishes; and the Republic of Vietnam's 1968 reckoning as
@@ -428,7 +525,10 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
     born in June 2000, a dragon year, who turns 13 *suì* at the lunar new
     year of 2012 [wikipedia-en-east-asian-age-reckoning]; the module
     reproduces it (Chinese New Year 2012 is 23 January). Nothing here
-    describes any other country's count.
+    describes any other country's count. The age turns at 正月初一 because
+    that is `chinese-age`'s rule; a count that turns at 立春 or on
+    1 January, the other two year boundaries of
+    [sexagenary-cycle.md](sexagenary-cycle.md), is not carried.
   - `marriage_augury` and `MarriageAugury`, the year classed by where 立春,
     the minor term at 315°, falls in it (`chinese-year-marriage-augury`):
     `Widow` with none, `Blind` with one near the end, `Bright` with one
@@ -444,15 +544,21 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
     the one that began on 26 January 2009 holds two 立春, 4 February 2009
     and 4 February 2010 [scmp-double-spring-2009]; both are reproduced.
 - **Not carried, and why.**
-  - Any calendar before 1645, and the Qing almanac before 1900: a date this
-    library gives for 1700 is what the modern rule says at Beijing mean
-    time, not what the Bureau of Astronomy printed, and the two part in
-    some thirty months and five leap months of 1645–1899 (*Accuracy*).
-    Liu's reconstruction is the table that would correct them, but it is a
-    secondary compilation of books not read here, and the leap months need
-    a correction of the zhōngqì day, which the engine does not take; the
-    Japanese document says what carrying a bureau's own tables costs. No
-    Vietnamese table was found.
+  - Any calendar before 1645. From 1645 a date is the modern rule at
+    Beijing mean time corrected where a record says the almanac differed,
+    and so corrected it agrees with Liu's reconstruction in every month of
+    1645–1911 and with the Veritable Records wherever they were read
+    (*Accuracy*). The bureau's own method,
+    Tycho's tables to the 1730s and the *Hòubiān*'s after, is not
+    implemented, and the Japanese document says what carrying a bureau's
+    tables costs; so a month the records do not reach is not guaranteed.
+  - The almanac's solar-term days where they move no month — Liu's table
+    lists many before 1733 — and the terms of 1667–1669, which the Dàtǒng
+    method computed as *píngqì*; the months of those years are the same
+    either way [liu-chinese-calendar-computation].
+  - KASI's three departures from the Qing almanac, in 1653 and 1841
+    (above): `dangi` is the Qing calendar before 1912 throughout.
+  - No Vietnamese table was found.
   - The precision and representation clauses of GB/T 33661-2017, which were
     not read (below).
   - Local differences in naming: the cat for the rabbit in the Vietnamese
@@ -470,13 +576,16 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
 | 閏二月 of 2023 beginning 22 March | Reproduced [hko-conversion-tables] | `twenty_twenty_three_had_a_leap_second_month` |
 | A child born in June 2000 is 13 *suì* from the lunar new year of 2012 [wikipedia-en-east-asian-age-reckoning]; one at birth, two the day after a New Year's Eve birth | Reproduced | `a_child_born_in_june_2000_turns_thirteen_at_the_new_year_of_2012`, `a_child_born_on_new_years_eve_is_two_the_next_day` |
 | The Widow Year from 10 February 2024 [scmp-widow-year-2024] and the double-spring year from 26 January 2009 [scmp-double-spring-2009] | Both | `the_published_widow_and_double_spring_years_are_reproduced` |
-| Every double-bright year runs more than 366 days and every widow year fewer than 365, 1653–2143; all four auguries occur | All | `a_year_with_two_lichun_has_thirteen_months_and_one_with_none_twelve` |
+| Every double-bright year runs more than 366 days and every widow year fewer than 365, over the Chinese years beginning 1653–2142; all four auguries occur | All | `a_year_with_two_lichun_has_thirteen_months_and_one_with_none_twelve` |
 | Chinese New Year 1988 = 17 February and 1985 = 20 February, with the 12th month of 1985 beginning 21 January | Reproduced [hko-conversion-tables] | `seollal_1988_fell_a_day_after_chinese_new_year`, `tet_1985_fell_a_whole_month_before_chinese_new_year` |
 | Seollal 1988 = 18 February and Seollal 2024 = 10 February, Dangi 4357 | Reproduced; both days are KASI's [kasi-lunisolar-conversion] | `seollal_1988_fell_a_day_after_chinese_new_year`, `seollal_2024_was_the_tenth_of_february_and_the_year_is_dangi_4357` |
 | Every month of the 125 Chinese years from 31 January 1900 to 10 February 2024, 1 546 months, against the Purple Mountain Observatory's table of the promulgated calendar [pmo-calendar-1900-2025] | Every first day, leap month and length; the rules alone miss one, the fourth month of 1906, which the correction supplies; the table and the Hong Kong Observatory's agree on it and on the Beiyang months of 1914, 1916 and 1920 that a 120°E reading would move [hko-conversion-tables] | `the_chinese_calendar_is_the_purple_mountain_observatorys_from_1900_to_2024`, `without_the_almanac_the_rules_miss_one_month_in_the_table`, `the_fourth_month_of_1906_began_on_the_day_the_almanac_gave` |
 | Every first day of a month of `dangi` from January 1900 to December 1913, 174 months, against KASI's conversion data, queried 2026-09-27 | All 174, with month and leap month; under the published code's Seoul and 127°30′E offsets five of them would be a day late | `before_1912_the_months_begin_where_kasi_has_them_and_not_where_seoul_would` |
-| The 105 months of 1653–1911 whose first day differs between a Beijing and a Seoul reading of the rules, against KASI | KASI has Beijing's day in 80 and Seoul's in 25; in 24 of the 25 Liu's Qing calendar has that later day too, so they are months where the almanac left the rule, and the Korean calendar followed the almanac. Measured for this document, not a test | — |
-| The rules at Beijing mean time against Liu's reconstruction of the Qing calendar, 1645–1930 [liu-chinese-calendar-computation] | 29 first days differ, 1652–1906, and the leap month falls elsewhere in 1645, 1651, 1661, 1727 and 1805; with the 1906 correction, 28 and the five, all before 1900. KASI's data agree with Liu's on 220 of the 224 days queried for the row above, the four others in 1653–1654. Measured for this document, not a test | — |
+| The 28 first days of 1652–1887 and the 5 leap months of 1645–1805 where the rules and the almanac part, against the month's opening line in the Veritable Records [qing-shilu] | All 33 as the Records have them, by sexagenary day; the rules alone give none of them | `each_month_the_almanac_moved_begins_on_the_veritable_records_day`, `the_leap_months_the_almanac_moved_are_where_the_veritable_records_have_them` |
+| Every month of 1645–1908 whose opening line the transcription of the Veritable Records gives unambiguously, 3 048 of the 3 265 [qing-shilu] | All, by sexagenary day; the rules alone miss 37, the 28 first days and 9 months of the five moved leap years. Left out, as the data file's header lists: 7 months the pattern read two or three first days for, 2 lines 20 and 30 days from any possible first day, 208 months with no opening line |  `every_month_the_veritable_records_open_begins_on_their_day` |
+| The corrected calendar against Liu's reconstruction of the Qing calendar and the Republic's, every month of 1645–1935 [liu-chinese-calendar-computation] | Every first day and every leap month; without the corrections, 29 first days and 5 leap months differ. Measured for this document, not a test | — |
+| The 105 months of 1653–1911 whose first day differs between a Beijing and a Seoul reading of the rules, against KASI | KASI has Beijing's day in 80 and Seoul's in 25; in 24 of the 25 the Records and Liu have that later day too, and the corrections carry it. Measured for this document, not a test | — |
+| `dangi` against KASI on the 216 days of 1653–1911 that begin a month under one of the Beijing rules, the Seoul rules and the corrected calendar and not another, and on the first day of each of the 103 leap months any of them gives, queried 2026-09-27 [kasi-lunisolar-conversion] | 210 of 216 and 102 of 103; the rest are the three months of 1653 and 1841 KASI leaves the Qing almanac in (*The almanac before 1912*). Measured for this document; the 25 corrections KASI shares, three of the leap months and the three exceptions are a test | `before_1900_the_almanacs_months_are_kasis_but_for_three` |
 | Korean and Chinese new years over 1900–2049 | Differ in 9 years, never by more than a day | `the_two_calendars_disagree_only_occasionally` |
 | Tết 1968 = 29 January north, 30 January south | Reproduced [wikipedia-vi-tet] | `tet_1968_fell_on_different_days_in_the_north_and_the_south` |
 | Tết 1969 = 16 February north, 17 February south and China | The northern day reproduced [nhandan-tet-trong-cay-2019]; the southern as computed | `tet_1969_fell_a_day_before_chinese_new_year` |
@@ -485,6 +594,8 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
 | Tết against Chinese New Year over 1968–2049 | Every difference is one day or one lunation | `the_calendar_sometimes_differs_from_the_chinese_one_since_1968` |
 | Mean and apparent terms over the year 2000 | Disagree on more than ten days | `the_mean_and_apparent_solar_term_rules_disagree_somewhere` |
 | The meridian tables | Read in order; the Korean half-hour eras in force in the years named | `the_meridian_table_is_read_in_order`, `the_half_hour_zones_are_read_from_the_table` |
+| The corrections: each names a first day or a term day the rules really give, moves it one day, is sorted, and has a source; a term correction, of 冬至 or another term, moves the index at one midnight and the solstice's day with it | All | `the_almanac_corrections_are_live_and_move_a_day_at_most`, `the_almanac_term_corrections_are_live_and_move_a_day_at_most`, `a_term_correction_moves_the_index_and_a_solstice_correction_the_solstice` |
+| The rules at 116°25′E against 116°23′E, 1645–1929 | One month apart, the second of 1687: 14 March at 116°25′ and 13 March at 116°23′; the Records have 13 March, 己酉, and the calendar follows them by a correction | `the_two_readings_of_the_beijing_meridian_differ_once` |
 | The two partial years of the Korean table, 1 January–20 March 1954, 1 January–9 August 1961 | Every new moon, zhōngqì index and calendar date the same under the published code's offset and the table's | `the_year_keyed_eras_give_the_days_the_day_keyed_changes_give` |
 | Round trips across 1929, across every Korean change, across 1968 and at both ends of the range | Every day | `the_calendar_round_trips_across_the_1929_meridian_change`, `the_calendar_round_trips_across_every_meridian_change`, `the_calendar_round_trips_across_the_1968_change`, `the_calendar_round_trips_at_both_ends_of_its_range` |
 | Structure: months of 29 or 30 days, years of 12 or 13, the leap month after the month it repeats, never a leap first month, about 37 leap years a century | Holds over 4600–4700 | `months_are_twenty_nine_or_thirty_days_and_years_twelve_or_thirteen_months`, `every_leap_month_immediately_follows_the_month_it_repeats`, `leap_months_are_rare_and_never_the_first_month` |
@@ -560,9 +671,11 @@ finds no month that the difference moves.
 | [encykorea-dangun-giwon] | Act No. 4 of 25 September 1948 making the Dangi count official, and Act No. 775 of 2 December 1961 replacing it from 1 January 1962 | Yes, 2026-09-26; the statutes themselves were not read |
 | [wikipedia-en-time-in-south-korea] | The years 1908, 1912, 1954 and 1961 and who changed the zone | Yes, 2026-09-25 |
 | [wikipedia-en-time-in-china] | Beijing's reference before standard time; the calendar's reference moving to UT+8 in 1928–1929 | Yes, 2026-09-25 |
-| [kasi-lunisolar-conversion] | KASI as the publisher; the range of its service; the Gregorian calendar as official under the 천문법; the lunar date of every month's first day of 1900–1913, of both sides of each Seoul–Beijing disagreement of 1653–1911, of 24 April 1906 and of Seollal 1988 and 2024 | The page 2026-09-25; the dates 2026-09-27, through the service's own lookup (`/life/solc`); KASI's FAQ, its 월력요항 page and its almanac scans (`/almanac/pageView/27`) returned server errors |
+| [kasi-lunisolar-conversion] | KASI as the publisher; the range of its service; the Gregorian calendar as official under the 천문법; the lunar date of every month's first day of 1900–1913, of both sides of each Seoul–Beijing disagreement of 1653–1911, of both days of each of the 28 earlier corrections and the 5 leap months, of the 216 days and 103 leap months against which `dangi` was measured, of 24 April 1906 and of Seollal 1988 and 2024 | The page 2026-09-25; the dates 2026-09-27, through the service's own lookup (`/life/solc`); KASI's FAQ, its 월력요항 page and its almanac scans (`/almanac/pageView/27`) returned server errors |
 | [pmo-calendar-1900-2025] | The promulgated calendar day by day for 1900–2025; the compilation notes on the 時憲書, the Republic's almanacs and GB/T 33661-2017 as its sources | Yes, 2026-09-27, the whole table read as text |
-| [liu-chinese-calendar-computation] | The Qing calculation: the 1742 method, the Beijing meridian, apparent time; the Beiyang change to mean time; more than 200 corrections to a modern computation for 1645–1911; the reconstruction measured against | Yes, 2026-09-27, the page and the table data its conversion page loads; the books it draws on (the Observatory's 《新编万年历》 and others) were not read |
+| [liu-chinese-calendar-computation] | The Qing calculation: Tycho's theory to the 1730s, the 1742 method, the Beijing meridian, apparent time; the Beiyang change to mean time; more than 200 corrections to a modern computation for 1645–1911 from two books; Lǐ Tiānjīng's rule in 1645; the Dàtǒng years 1667–1669 and the moved leap month of 1669–1670; the reconstruction measured against and its calendrical solar terms of 1645–1733 | Yes, 2026-09-27: the page, the table data its conversion page loads (`table_c.js`) and the calendrical solar terms and notes its calendar page loads (`index_c.js`); the books it draws on (the Observatory's 《新编万年历》, Zhang Peiyu's 《三千五百年历日天象》) were not read, and its Shixian computation pages would not load |
+| [qing-shilu] | The first day of each month of 1644–1908 by its sexagenary name, and the leap months, as the Veritable Records open each month; the 33 months the corrections carry | Yes, 2026-09-27, in 殆知閣's transcription, every reign from 順治 to 光緒; the printed edition and the scans the transcription links to were not read |
+| [qingshigao-shixian] | The Dàtǒng method restored during the Calendar Case, the 閏十二月 of 康熙八年 and its move to 康熙九年二月 on Verbiest's showing | Yes, 2026-09-27, 卷四十五 in Wikisource's text |
 | [icu4x-issue-6455] | A report that the Korean almanacs to 1912 give Beijing time and match the Qing calendar | Yes, 2026-09-27; a secondary report, and the almanac pages it cites could not be opened |
 | [vn-decision-121-cp] | The decision as the module cites it | Not read; the legal database refused the request on 2026-09-25 |
 | [wikipedia-vi-gio-viet-nam] | The decision's date, number and wording; the north's time since 1945; the south's UT+8 from 1960 to 1975 | Yes, 2026-09-25 |
@@ -578,17 +691,21 @@ finds no month that the difference moves.
 ## Code
 
 `crates/hc-calendars-lunar/src/lunisolar.rs` holds the engine:
-`MeridianEra`, `MonthStartCorrection`, `SolarTermMode`, `ConjunctionMode` and `MeanMotionModel`,
+`MeridianEra`, `MonthStartCorrection`, `MajorTermCorrection`, `SolarTermMode`,
+`ConjunctionMode` and `MeanMotionModel`,
 `LunisolarParameters` with `meridian_era`, `midnight`,
 `winter_solstice_on_or_before`, `new_moon_on_or_after`, `major_solar_term`,
+`computed_major_solar_term`,
 `has_no_major_solar_term`, `prior_leap_month`, `new_year_in_sui` and the
 conversions, and `CHINESE_EPOCH`. `chinese.rs`, `dangi.rs` and
 `vietnamese.rs` are parameter sets on it: `MERIDIANS`, `PARAMETERS`,
-`ENGINE`, `new_year` (or `tet`), in `chinese` also `ALMANAC_CORRECTIONS`, `reckoned_age`,
+`ENGINE`, `new_year` (or `tet`), in `chinese` also `ALMANAC_CORRECTIONS`,
+`ALMANAC_TERM_CORRECTIONS`, `reckoned_age`,
 `marriage_augury` and `MarriageAugury`, and in `vietnamese` also
 `SOUTHERN_MERIDIANS` and `SOUTHERN_PARAMETERS`.
 
 Anchors: in `lunisolar`, `the_meridian_table_is_read_in_order`,
+`a_term_correction_moves_the_index_and_a_solstice_correction_the_solstice`,
 `month_eleven_contains_the_winter_solstice`,
 `the_mean_and_apparent_solar_term_rules_disagree_somewhere`,
 `a_leap_month_repeats_the_ordinal_of_the_month_before_it`,
@@ -599,6 +716,10 @@ Anchors: in `lunisolar`, `the_meridian_table_is_read_in_order`,
 `other_published_new_years_are_reproduced`,
 `the_fourth_month_of_1906_began_on_the_day_the_almanac_gave`,
 `the_almanac_corrections_are_live_and_move_a_day_at_most`,
+`the_almanac_term_corrections_are_live_and_move_a_day_at_most`,
+`each_month_the_almanac_moved_begins_on_the_veritable_records_day`,
+`the_leap_months_the_almanac_moved_are_where_the_veritable_records_have_them`,
+`the_two_readings_of_the_beijing_meridian_differ_once`,
 `the_calendar_round_trips_across_the_1929_meridian_change`,
 `the_range_is_refused_rather_than_extrapolated`; in `dangi`,
 `seollal_1988_fell_a_day_after_chinese_new_year`,
@@ -606,6 +727,7 @@ Anchors: in `lunisolar`, `the_meridian_table_is_read_in_order`,
 `the_half_hour_zones_are_read_from_the_table`,
 `the_year_keyed_eras_give_the_days_the_day_keyed_changes_give`,
 `before_1912_the_months_begin_where_kasi_has_them_and_not_where_seoul_would`,
+`before_1900_the_almanacs_months_are_kasis_but_for_three`,
 `the_sexagenary_year_matches_the_chinese_one_despite_the_offset`,
 `the_calendar_is_not_the_chinese_one_even_where_they_agree`; in
 `vietnamese`, `tet_1968_fell_on_different_days_in_the_north_and_the_south`,
@@ -618,4 +740,6 @@ Anchors: in `lunisolar`, `the_meridian_table_is_read_in_order`,
 holds the three and the Tenpō calendar to the same month and day on more
 than 1 800 of 2 000 days from 1860, and `tests/chinese_published.rs` holds
 `chinese` to the Purple Mountain Observatory's table, 1900–2024, in
-`tests/data/chinese_month_lengths_1900_2024.txt`. English month names are in `hc-i18n`.
+`tests/data/chinese_month_lengths_1900_2024.txt`, and `tests/chinese_qing.rs`
+holds it to the Veritable Records' first days, 1645–1908, in
+`tests/data/qing_veritable_records_month_starts.txt`. English month names are in `hc-i18n`.

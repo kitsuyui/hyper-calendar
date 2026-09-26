@@ -574,6 +574,7 @@ fn the_systems_own_tropical_year_is_what_places_the_intercalary_month() {
         year_offset: hc_calendars_lunar::japanese_historical::YEAR_OFFSET,
         solar_term_mode: SolarTermMode::Apparent,
         month_start_corrections: &[],
+        major_term_corrections: &[],
         mean_motion: Some(senmyo::MODEL),
         earliest: Some(senmyo::EARLIEST),
         latest: Some(senmyo::LATEST),
@@ -589,6 +590,7 @@ fn the_systems_own_tropical_year_is_what_places_the_intercalary_month() {
         year_offset: hc_calendars_lunar::japanese_historical::YEAR_OFFSET,
         solar_term_mode: SolarTermMode::Mean,
         month_start_corrections: &[],
+        major_term_corrections: &[],
         mean_motion: Some(hc_calendars_lunar::MeanMotionModel {
             tropical_year: 365.2422,
             // Back to the unfitted solstice, since the fitted phase belongs

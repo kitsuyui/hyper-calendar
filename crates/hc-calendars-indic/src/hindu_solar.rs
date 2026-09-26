@@ -1137,11 +1137,16 @@ mod tests {
     }
 
     #[test]
-    fn a_sample_of_days_round_trips_in_every_reckoning() {
+    fn every_day_of_four_years_round_trips_in_every_reckoning() {
         for calendar in ALL {
-            let start = ymd(2022, 1, 1).0;
-            let end = ymd(2026, 1, 1).0;
-            for rd in (start..end).step_by(11) {
+            let (first, last) = (ymd(2022, 1, 1).0, ymd(2026, 1, 1).0 - 1);
+            let year = |day: i64| calendar.from_fixed(Rd(day)).unwrap().year;
+            let openings: alloc::vec::Vec<i64> = (year(first)..=year(last) + 1)
+                .filter_map(|year| calendar.month_start(year, 1).ok().map(|day| day.0))
+                .collect();
+            // Every day in a release build; in a debug one every eleventh
+            // and each year's first day and the day before it.
+            for rd in crate::sweep_days(first, last, 11, &openings) {
                 let date = calendar.from_fixed(Rd(rd)).unwrap();
                 assert_eq!(
                     calendar.to_fixed(date),

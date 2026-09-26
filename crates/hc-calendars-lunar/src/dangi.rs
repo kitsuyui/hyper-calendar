@@ -23,14 +23,27 @@
 //! Chinese first day for every month of 1900–1911, including the five
 //! months — in 1903, 1904, 1905, 1908 and 1911 — whose conjunction fell
 //! after midnight at Seoul and before it at Beijing, and the almanac's day
-//! for the fourth month of 1906. So the calendar reads Beijing's meridian
-//! and [`crate::chinese::ALMANAC_CORRECTIONS`] until 1912, where the
+//! for the fourth month of 1906. So the calendar reads Beijing's meridian,
+//! [`crate::chinese::ALMANAC_CORRECTIONS`] and
+//! [`crate::chinese::ALMANAC_TERM_CORRECTIONS`] until 1912, where the
 //! published code's `korean-location` reads Seoul mean time to 1908 and
 //! the Korean Empire's 127°30′E zone from 1908 (`reingold2018code`). The
 //! 1908 zone was the clock's, not the calendar's. From 1912 the calendar is
 //! computed on Korean standard time, and the two half-hour periods really
 //! did move its day boundary: over 1900–2049 the Korean and Chinese new
 //! years fall on different days nine times, 1988 among them.
+//!
+//! Before 1900 KASI's data follow the Qing almanac too, month starts the
+//! modern rules miss included, with three exceptions it does not carry:
+//! 1653, Joseon's first year on the Shíxiàn rules, where KASI has 閏七月
+//! from 23 August and 八月 from 21 September against the Qing 閏六月 from
+//! 24 July and 八月 from 22 September; the twelfth month of the same year,
+//! which KASI begins on 19 January 1654, Seoul's day, and the Qing
+//! almanac on the 18th; and the twelfth month of 1841, which KASI begins on
+//! 12 January 1842, the rules' day, and the Qing almanac on the 11th.
+//! Nothing read says what Hanseong printed in those months, so this
+//! calendar stays the Qing one; `docs/systems/east-asian-lunisolar.md` has
+//! the measurement.
 //!
 //! # Year numbering
 //!
@@ -117,8 +130,9 @@ pub static PARAMETERS: LunisolarParameters = LunisolarParameters {
     year_offset: YEAR_OFFSET,
     solar_term_mode: SolarTermMode::Apparent,
     // Keyed by the days the rules give at Beijing, which is the meridian
-    // this calendar reads in the years they cover.
+    // this calendar reads in the years they cover: 1906 is the last.
     month_start_corrections: &crate::chinese::ALMANAC_CORRECTIONS,
+    major_term_corrections: &crate::chinese::ALMANAC_TERM_CORRECTIONS,
     mean_motion: None,
     earliest: Some(EARLIEST),
     latest: Some(LATEST),
@@ -283,6 +297,7 @@ mod tests {
             year_offset: YEAR_OFFSET,
             solar_term_mode: SolarTermMode::Apparent,
             month_start_corrections: &[],
+            major_term_corrections: &[],
             mean_motion: None,
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
@@ -416,6 +431,74 @@ mod tests {
                 (chinese_date.month, chinese_date.day),
                 "RD {rd}"
             );
+        }
+    }
+
+    #[test]
+    fn before_1900_the_almanacs_months_are_kasis_but_for_three() {
+        // KASI's data, read 2026-09-27 (`kasi-lunisolar-conversion`), on
+        // the first days the Qing almanac moved from the rules
+        // (`chinese::ALMANAC_CORRECTIONS`): day 1 of the month in all of
+        // 1655–1899 but 1842, and the leap months of 1661, 1727 and 1805
+        // where the almanac, not the rules, has them.
+        for (year, month, day) in [
+            (1673, 11, 9),
+            (1686, 4, 23),
+            (1687, 3, 13),
+            (1692, 6, 15),
+            (1693, 4, 6),
+            (1704, 10, 29),
+            (1708, 2, 21),
+            (1713, 12, 18),
+            (1715, 3, 6),
+            (1728, 8, 6),
+            (1731, 6, 5),
+            (1754, 9, 17),
+            (1789, 10, 19),
+            (1794, 11, 23),
+            (1813, 5, 1),
+            (1817, 10, 11),
+            (1820, 12, 6),
+            (1823, 5, 11),
+            (1842, 11, 3),
+            (1849, 9, 17),
+            (1856, 11, 28),
+            (1861, 11, 3),
+            (1869, 5, 12),
+            (1880, 11, 3),
+            (1887, 3, 25),
+        ] {
+            let rd = civil::to_rd(year, month, day);
+            assert_eq!(
+                DangiCalendar.from_fixed(rd).map(|date| date.day),
+                Ok(1),
+                "{year}-{month}-{day}"
+            );
+        }
+        for (year, leap, (y, m, d)) in [
+            (4_298, 7, (1661, 8, 25)),
+            (4_364, 3, (1727, 4, 21)),
+            (4_442, 6, (1805, 7, 26)),
+        ] {
+            assert_eq!(
+                DangiCalendar.to_fixed(LunisolarDate::new(
+                    year + YEAR_OFFSET,
+                    Month::leap(leap),
+                    1
+                )),
+                Ok(civil::to_rd(y, m, d))
+            );
+        }
+        // The three KASI does not follow the almanac in, which this calendar
+        // does: 閏六月 of 1653 from 24 July (KASI: 閏七月 from 23 August),
+        // and the twelfth months that begin on 18 January 1654 and
+        // 11 January 1842 (KASI: the 19th and the 12th).
+        assert_eq!(PARAMETERS.leap_month(4_290 + YEAR_OFFSET), Ok(Some(6)));
+        for (y, m, d) in [(1654, 1, 18), (1842, 1, 11)] {
+            let date = DangiCalendar
+                .from_fixed(civil::to_rd(y, m, d))
+                .expect("in range");
+            assert_eq!((date.month, date.day), (Month::regular(12), 1));
         }
     }
 

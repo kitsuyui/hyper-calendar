@@ -114,9 +114,10 @@ fn the_chinese_calendar_is_the_purple_mountain_observatorys_from_1900_to_2024() 
 fn without_the_almanac_the_rules_miss_one_month_in_the_table() {
     // The rules alone, at the same meridians, against the table: the one
     // month they begin on another day is the fourth of 1906, which is why
-    // `chinese::ALMANAC_CORRECTIONS` holds that entry and no other.
+    // `chinese::ALMANAC_CORRECTIONS` holds that entry and no other after 1899.
     static RULES: LunisolarParameters = LunisolarParameters {
         month_start_corrections: &[],
+        major_term_corrections: &[],
         ..chinese::PARAMETERS
     };
     let missed: Vec<Rd> = months()

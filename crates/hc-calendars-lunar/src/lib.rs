@@ -182,8 +182,8 @@ pub use japanese_tenpo::{JapaneseTenpoCalendar, JapaneseTenpoDate};
 pub use javanese::{JavaneseCalendar, JavaneseDate};
 pub use liberalia_lunar::{LiberaliaLunarCalendar, LiberaliaLunarDate};
 pub use lunisolar::{
-    ConjunctionMode, LunisolarCalendar, LunisolarDate, LunisolarParameters, MeanMotionModel,
-    MeridianEra, MonthStartCorrection, SolarTermMode,
+    ConjunctionMode, LunisolarCalendar, LunisolarDate, LunisolarParameters, MajorTermCorrection,
+    MeanMotionModel, MeridianEra, MonthStartCorrection, SolarTermMode,
 };
 pub use meyer_palmen::{MeyerPalmenCalendar, MeyerPalmenDate};
 pub use samaritan::{SamaritanCalendar, SamaritanDate};
