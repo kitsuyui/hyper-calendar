@@ -216,7 +216,10 @@ constants named; only the 216 years and the 97 minutes are also quoted.
   sunset (`DayBoundary::Sunset`).
 - **Range** AM 1 to AM 9 999: RD −1 373 427 (7 October 3761 BCE Julian)
   to the last day of Elul 9 999 (25 September 6239). The lower bound is
-  the epoch; the upper is the library's usual one and has no source. The
+  the epoch; the upper is the library's choice and not a limit of the
+  rules, which neither Maimonides nor Reingold and Dershowitz bound: it
+  is where this implementation stops, and the span over which the
+  structural tests check every year. The
   arithmetic is applied to every year in the range as if the rules had
   always been in force, which before the tenth century they were not
   (see above): a date this library gives for AM 3000 is what the fixed
@@ -232,9 +235,13 @@ constants named; only the 216 years and the 97 minutes are also quoted.
   blessing of the sun said when Shmuel's *tekufah* of Nisan returns to
   its hour and weekday every 28 Julian years, 10 227 days, always on a
   Wednesday, anchored to 8 April 2009. The 28-year cycle is arithmetic on
-  the 365¼-day year; the anchor and the dates 7 April 1897, 8 April 1981
-  and 8 April 2037 that the tests hold are stated by the module as widely
-  reported and rest on no source named here.
+  the 365¼-day year. Reingold and Dershowitz compute the same day as
+  30 Paremhat, the last day of the Coptic seventh month, in a Coptic
+  year that is 17 modulo 28 (`birkath-ha-hama`) [reingold2018code], and
+  a test holds the module to that rule over Coptic years 1 to 2 999. The ten dates the tests pin, Wednesday
+  7 April 1897, 8 April 1925 to 2093 and 9 April 2121 and 2149, are the
+  list in Wikipedia's article, which cites no source for it
+  [wikipedia-birkat-hachamah].
 - **Not carried, and why.**
   - The observational calendar of the Second Temple period and of the
     Sanhedrin, in which each month was declared on the testimony of
@@ -274,7 +281,9 @@ what the anchors check.
 | The molad interval is 29.530 594 days and Rosh Hashanah lies between half a day before and 2½ days after the molad, 5700–5799 | As stated | `the_molad_advances_by_one_mean_synodic_month`, `the_molad_stays_within_a_day_of_rosh_hashanah` |
 | Round trips over 40 000 days from 5700, and 5 000 days at each end of the range | All | `the_calendar_round_trips_over_forty_thousand_modern_days`, `the_calendar_round_trips_near_the_epoch_and_the_end_of_the_range` |
 | The Omer: 49 days from 16 Nisan to 5 Sivan, spoken as weeks and days | As stated | `the_omer_runs_forty_nine_days_from_sixteen_nisan_to_five_sivan`, `the_omer_is_forty_nine_days_long_in_every_year`, `the_omer_speaks_weeks_and_days` |
-| Birkat hachama on a Wednesday every 10 227 days; 1897-04-07, 1981-04-08, 2009-04-08, 2037-04-08 | As stated; the dates unsourced | `birkat_hachama_falls_on_a_wednesday_every_twenty_eight_years`, `the_recent_and_next_birkat_hachama_are_the_published_ones` |
+| Birkat hachama on a Wednesday every 10 227 days | As stated | `birkat_hachama_falls_on_a_wednesday_every_twenty_eight_years` |
+| Birkat hachama on 30 Paremhat of every Coptic year 17 modulo 28, and on no other 30 Paremhat, Coptic years 1–2 999 [reingold2018code] | 2 999 of 2 999 | `birkat_hachama_is_reingold_and_dershowitzs_thirtieth_of_paremhat` |
+| Birkat hachama from 7 April 1897 to 9 April 2149 [wikipedia-birkat-hachamah] | 10 of 10 | `the_recent_and_next_birkat_hachama_are_the_published_ones` |
 
 Two published dates anchor the calendar, both from Hebcal for 5784: Rosh
 Hashanah from sunset on Friday 15 September 2023, so its first day is
@@ -288,9 +297,9 @@ carry the weight: a mistake in any of the four rules breaks one of them.
 The molad test asserts the interval to six decimals and the bound on the
 postponement, not the moment against any published molad.
 
-Statements in the module that no source in the table below supports, and
-that stand as the module's own: the birkat hachama anchor and dates named
-above; and the range's upper bound.
+The one statement in the module that no source in the table below
+supports, and that stands as the module's own, is the range's upper
+bound, which is a choice rather than a finding.
 
 ## Sources
 
@@ -298,9 +307,10 @@ above; and the range's upper bound.
 | --- | --- | --- |
 | [maimonides-kiddush-hachodesh] | Chapter 6: the molad interval and the part, the solar year and the deficit of a lunar year, BaHaRaD, the seven leap years. Chapter 7: the four dehiyyot with their thresholds (halachot 1, 2, 4 and 5) and the reason (7). Chapter 8: the six year lengths, the two months that vary and the month order (halachot 5 and 8) | Yes, 2026-09-25, in Sefaria's English translation |
 | [reingold2018] | The arithmetic: the closed forms and the year-length formulation of the last two dehiyyot | Not read directly; the published code was |
-| [reingold2018code] | `hebrew-epoch`, `hebrew-leap-year?`, `last-month-of-hebrew-year`, `molad`, `hebrew-calendar-elapsed-days`, `hebrew-year-length-correction`, `hebrew-new-year`, `days-in-hebrew-year`, `long-marheshvan?`, `short-kislev?`, `last-day-of-hebrew-month`, `fixed-from-hebrew`, `hebrew-from-fixed`, `mean-synodic-month`, and the month constants | Yes, 2026-09-25 |
+| [reingold2018code] | `birkath-ha-hama`, `fixed-from-coptic`, `coptic-epoch`, `hebrew-epoch`, `hebrew-leap-year?`, `last-month-of-hebrew-year`, `molad`, `hebrew-calendar-elapsed-days`, `hebrew-year-length-correction`, `hebrew-new-year`, `days-in-hebrew-year`, `long-marheshvan?`, `short-kislev?`, `last-day-of-hebrew-month`, `fixed-from-hebrew`, `hebrew-from-fixed`, `mean-synodic-month`, and the month constants | Yes, 2026-09-25; `birkath-ha-hama`, `fixed-from-coptic` and `coptic-epoch` 2026-09-26 |
 | [hebcal-5784] | Rosh Hashanah and Pesach of 5784; that 5784 has Adar I and Adar II | Yes, 2026-09-25 |
 | [wikipedia-hebrew-calendar] | The epoch's Julian date; the six year lengths and their names; the mean year of 365.2468 days and the day per 216 years; the 97 minutes of molad drift | Yes, 2026-09-25 |
+| [wikipedia-birkat-hachamah] | The birkat hachama dates of 1897 to 2149 and their weekday | Yes, 2026-09-26 |
 | [wikipedia-hillel-ii] | The tradition of 358/9 CE and its source; the Geniza letter of 835/6; the final form by 922–924; Stern's reading | Yes, 2026-09-25 |
 
 The Talmud's reason for Lo ADU Rosh (Rosh Hashanah 20a) is cited above as

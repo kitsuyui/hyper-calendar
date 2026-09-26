@@ -71,6 +71,11 @@ pub const EPOCH: Rd = Rd(-1_373_427);
 pub const MIN_YEAR: i64 = 1;
 
 /// The latest Hebrew year this implementation converts.
+///
+/// The library's choice, not a limit of the calendar: neither Maimonides
+/// nor Reingold and Dershowitz bound the year, and the rules run on without
+/// end. AM 9 999 is where this implementation stops, and it is the span over
+/// which the structural tests check every year.
 pub const MAX_YEAR: i64 = 9_999;
 
 /// Parts (1/1080 of an hour) in a day.
@@ -506,6 +511,14 @@ pub const fn omer_weeks_and_days(rd: Rd) -> CalendarResult<Option<(u8, u8)>> {
 /// Because the underlying year is the Julian one, the Gregorian date drifts:
 /// it was 7 April through the nineteenth century, has been 8 April since
 /// 1925, and will move to 9 April in 2121.
+///
+/// Reingold and Dershowitz compute the same day as 30 Paremhat, the last
+/// day of the Coptic seventh month, in a Coptic year that is 17 modulo 28
+/// (*Calendrical Calculations*, 4th ed., 2018, `birkath-ha-hama` in their
+/// published `calendar.l`, read 2026-09-26); a test holds this function to
+/// that rule. The dates the tests pin,
+/// 7 April 1897 to 9 April 2149, are those of Wikipedia's "Birkat
+/// Hachamah" (retrieved 2026-09-26), which gives no source for them.
 #[must_use]
 pub const fn birkat_hachama_on_or_after(rd: Rd) -> Rd {
     let offset = rd.0 - BIRKAT_HACHAMA_ANCHOR.0;
@@ -527,7 +540,9 @@ pub const fn is_birkat_hachama(rd: Rd) -> bool {
 /// Days in the *birkat hachama* cycle: 28 Julian years.
 pub const BIRKAT_HACHAMA_CYCLE_DAYS: i64 = 10_227;
 
-/// A *birkat hachama* the world watched: 8 April 2009.
+/// A *birkat hachama*: Wednesday 8 April 2009, 14 Nisan 5769, as Wikipedia's
+/// "Birkat Hachamah" lists it (retrieved 2026-09-26) and as the rule of
+/// Reingold and Dershowitz gives it.
 pub const BIRKAT_HACHAMA_ANCHOR: Rd = Rd(733_505);
 
 /// A Hebrew date.
@@ -948,10 +963,51 @@ mod tests {
         }
     }
 
+    /// Reingold and Dershowitz's `birkath-ha-hama` (`reingold2018code`):
+    /// the blessing falls on 30 Paremhat, Coptic month 7 day 30, in a
+    /// Coptic year that is 17 modulo 28. The Coptic day is their
+    /// `fixed-from-coptic` with the epoch 29 August 284 Julian, RD 103 605.
+    #[test]
+    fn birkat_hachama_is_reingold_and_dershowitzs_thirtieth_of_paremhat() {
+        const COPTIC_EPOCH: i64 = 103_605;
+        let paremhat_30 =
+            |year: i64| Rd(COPTIC_EPOCH - 1 + 365 * (year - 1) + year.div_euclid(4) + 30 * 6 + 30);
+        assert_eq!(paremhat_30(1725), BIRKAT_HACHAMA_ANCHOR);
+        for year in 1..3_000i64 {
+            assert_eq!(
+                is_birkat_hachama(paremhat_30(year)),
+                year.rem_euclid(28) == 17,
+                "Coptic year {year}"
+            );
+        }
+    }
+
     #[test]
     fn the_recent_and_next_birkat_hachama_are_the_published_ones() {
-        // Widely reported: 1981-04-08, 2009-04-08, next 2037-04-08; before
-        // the Gregorian century rule bit, 1897-04-07.
+        // Wikipedia, "Birkat Hachamah", retrieved 2026-09-26: Wednesday
+        // 7 April 1897, 8 April 1925 to 2093, 9 April 2121 and 2149.
+        for pair in [
+            (1897, 4, 7),
+            (1925, 4, 8),
+            (1953, 4, 8),
+            (1981, 4, 8),
+            (2009, 4, 8),
+            (2037, 4, 8),
+            (2065, 4, 8),
+            (2093, 4, 8),
+            (2121, 4, 9),
+            (2149, 4, 9),
+        ]
+        .windows(2)
+        {
+            let ((y0, m0, d0), (y1, m1, d1)) = (pair[0], pair[1]);
+            let rd = civil::to_rd(y0, m0, d0);
+            assert!(is_birkat_hachama(rd), "{y0}-{m0}-{d0}");
+            assert_eq!(
+                birkat_hachama_on_or_after(Rd(rd.0 + 1)),
+                civil::to_rd(y1, m1, d1)
+            );
+        }
         assert_eq!(
             birkat_hachama_on_or_after(civil::to_rd(2009, 4, 9)),
             civil::to_rd(2037, 4, 8)
