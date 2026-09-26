@@ -9,8 +9,9 @@ calendar asks of the sky:
 * Where is the Moon, and **when is the next conjunction**? The Chinese,
   Korean, Vietnamese and observational Hijri calendars are made of that.
 * How much of the Moon is lit?
-* When does the Sun or Moon cross the horizon at a given place, and what
-  does a sundial read there?
+* When does the Sun or Moon cross the horizon at a given place, against
+  which of the named horizons (`horizon::HORIZONS`), and what does a
+  sundial read there?
 * How far has the Earth turned? This is the Earth Rotation Angle and
   sidereal time, and UT1 with its smoothed variants UT2, UT1R and UT1S.
 
@@ -123,6 +124,8 @@ of the same measurement.
 | New moon / quarter times | **~2 s of the published series** | Meeus examples 49.a and 49.b |
 | Illuminated fraction | **~0.001** | Meeus example 48.a |
 | Sunrise / sunset | **under a minute** | NAOJ 暦計算室, 「日の出入り＠東京(東京都)」, 2024-01-01, at its point 35.6581° N, 139.7414° E, published to the minute |
+| Rise and set under the `usno` horizon | **within the published minute** | the USNO's "Complete Sun and Moon Data for One Day", Jerusalem (31.78° N, 35.24° E, 740 m), four days of 2024: sixteen sunrises, sunsets, moonrises and moonsets within 0.49 min |
+| Rise and set under the `calendrical-calculations` horizon | **3 s** for the Sun, **23 s** for the Moon | the sample dates of *Calendrical Calculations*, 586 BCE–2094, as `calendar-code2` computes them: sunset at Jerusalem, dawn at Paris, noon at Tehran, moonrise and moonset at Mecca; the Sun once the book's sundial error is taken out, the Moon within the book's own 42 s final bracket ([`docs/systems/rise-and-set.md`](../../docs/systems/rise-and-set.md)) |
 | Mean obliquity | **0.01″** near J2000, arcseconds over ±10 000 years | Meeus example 22.a |
 | Nutation | **0.5″** in Δψ, **0.1″** in Δε | Meeus example 22.a |
 | Earth Rotation Angle, IAU 2006 GMST | **10⁻⁹ degree** of the published expressions | ERFA's `eraEra00` and `eraGmst06` test values |
@@ -159,14 +162,20 @@ by the sky, and the calendars built on top of this say so where it matters.
 
 * **No ephemeris.** No planets, no eclipse circumstances, no VSOP87 beyond
   the Earth's own series, no ELP-2000 beyond Meeus's sixty-term truncation.
-* **No atmosphere.** Refraction at the horizon is the conventional 34′, full
-  stop. Real refraction depends on temperature and pressure and can move an
-  observed sunrise by more than a minute — a larger error than any of the
-  astronomy above. Height above sea level is modelled only through the dip of
-  the horizon; terrain is not modelled at all.
-* **No topocentric positions.** Rise and set use geocentric coordinates, with
-  the Moon's parallax folded into the horizon altitude (Meeus's
-  `h₀ = 0.7275π − 34′`) rather than applied to the position.
+* **No atmosphere.** Refraction at the horizon is a convention of the
+  named horizon, 34′ in all three carried, full stop. Real refraction
+  depends on temperature and pressure and can move an observed sunrise by
+  more than a minute — a larger error than any of the astronomy above.
+  Height above sea level is a convention too: the default `geometric-dip`
+  horizon lowers the horizon by the geometric dip, `usno` ignores the
+  height as the USNO does, and `calendrical-calculations` adds the book's
+  19″·√h. Terrain is not modelled at all. The conventions, and the ones not
+  carried (the NAOJ's 35′8″, Sôma's 2.09′·√h), are in
+  [`docs/systems/rise-and-set.md`](../../docs/systems/rise-and-set.md).
+* **No topocentric positions.** Rise and set use geocentric coordinates,
+  with the Moon's parallax folded into the horizon altitude — Meeus's
+  `h₀ = 0.7275π − 34′`, or under `calendrical-calculations` the book's
+  parallax at the Moon's altitude — rather than applied to the position.
 * **No leap seconds.** A day here is exactly 86 400 seconds; ΔT carries the
   whole of the Earth's rotational irregularity. Leap seconds live in
   `hc-core`.
@@ -182,7 +191,14 @@ by the sky, and the calendars built on top of this say so where it matters.
   more than twice in a day; only the first crossing of each kind is returned.
 * The "local day" for rise and set runs from local *mean* solar midnight,
   derived from longitude alone. This crate knows nothing about time zones;
-  that is `hc-tz`'s job.
+  that is `hc-tz`'s job. *Calendrical Calculations* looks for a moonrise
+  between two midnights of standard time instead, so a moonrise within the
+  minutes between the two midnights falls on a different day.
+* `solar_time::local_apparent_time` is mean time plus the equation of
+  time, whose mean Sun is taken at dynamical time; before about 1500 CE,
+  where ΔT is large, it runs ahead of the Sun's hour angle, by 38 s in
+  586 BCE. The rise, set and transit functions solve for the hour angle and
+  do not share the error. *Calendrical Calculations*' solar events do.
 * `solar_longitude_after` and `moon_phase_at_or_after` are "at or after" up to
   floating-point noise. If the argument is the answer to within a rounding
   error, the search may step a whole cycle forward. Search from slightly
@@ -225,6 +241,17 @@ by the sky, and the calendars built on top of this say so where it matters.
   NAOJ 暦計算室, 「日の出入り＠東京(東京都) 令和6年(2024)01月」,
   <https://eco.mtk.nao.ac.jp/koyomi/dni/2024/s1301.html>, retrieved
   2026-09-26 (`nao-koyomi-dni-tokyo-2024`), for the Tokyo rise/set anchors.
+* The horizons: United States Naval Observatory, *Rise, Set, and Twilight
+  Definitions*, <https://aa.usno.navy.mil/faq/RST_defs>, and its
+  *Complete Sun and Moon Data for One Day* service,
+  <https://aa.usno.navy.mil/api/rstt/oneday>, both retrieved 2026-09-27
+  (`usno-rst-definitions`, `usno-api-rstt`); NAOJ 暦計算室, 暦Wiki
+  「日の出入りの定義」, retrieved 2026-09-27
+  (`nao-rekiwiki-hinode-teigi`); 相馬充 (Sôma Mitsuru), 「日出入時刻計算における
+  標高の効果について」, 国立天文台報 5 (2001) 91–95 (`soma2001`); and
+  `refraction`, `sunset`, `observed-lunar-altitude` and their neighbours in
+  Reingold and Dershowitz's `calendar-code2`, read 2026-09-27
+  (`reingold2018code`).
 
 Every reference value in the test suite is taken from one of these. None of
 them was produced by this crate.

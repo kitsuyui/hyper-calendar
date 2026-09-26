@@ -31,10 +31,12 @@
 //! differences, and 1 045 round trips; [`SAME`], [`REFUSED`] and
 //! [`ROUND_TRIPS`] hold the counts so that they move only deliberately. The
 //! astronomical columns are compared to a bound instead, in
-//! [`the_astronomy_is_within_seconds_of_the_books`]. The columns with no
-//! counterpart here, or none held to the book's, are [`NOT_CARRIED`], each
-//! with the reason, and a test checks that every column of the file is one
-//! of the three. The Japanese, Korean and Vietnamese calendars are not
+//! [`the_astronomy_is_within_seconds_of_the_books`], and the rising and
+//! setting columns, each under the book's own horizon, in
+//! [`the_rising_and_setting_are_within_seconds_of_the_books`]. The columns
+//! with no counterpart here, or none held to the book's, are
+//! [`NOT_CARRIED`], each with the reason, and a test checks that every
+//! column of the file is one of the four. The Japanese, Korean and Vietnamese calendars are not
 //! among the columns: `dates.l` has none for them.
 
 #![cfg(all(
@@ -55,7 +57,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use hyper_calendar::hc_astro::Location;
+use hyper_calendar::hc_astro::{Horizon, Location, Moment};
 use hyper_calendar::hc_calendar::weekday::Weekday;
 use hyper_calendar::hc_calendar::{
     CalendarError, CalendarId, CalendarRegistry, DateFields, DynAdapter, DynCalendar, Rd,
@@ -620,27 +622,11 @@ const KNOWN: &[Known] = &[
 
 /// The columns this library has no counterpart for, or does not hold to
 /// the book's, and why.
-const NOT_CARRIED: &[(&str, &str)] = &[
-    (
-        "hindu-lunar",
-        "the book's modern Hindu lunisolar calendar on the Sūrya Siddhānta's Sun and \
+const NOT_CARRIED: &[(&str, &str)] = &[(
+    "hindu-lunar",
+    "the book's modern Hindu lunisolar calendar on the Sūrya Siddhānta's Sun and \
          Moon; this library's lunisolar calendar is on the true Sun and Moon only",
-    ),
-    (
-        "dawn",
-        "hc_astro::dawn exists, but its horizon, refraction and use of the observer's \
-         elevation are its own; measured within 51 s of the book's rising and setting \
-         times where both answer, with Jerusalem's sunset a steady 40-47 s earlier, \
-         which has not been traced, so no bound is asserted",
-    ),
-    ("set", "as dawn: hc_astro::sunset"),
-    ("moonrise", "as dawn: hc_astro::moonrise"),
-    ("moonset", "as dawn: hc_astro::moonset"),
-    (
-        "mid-day",
-        "hc_astro::solar_noon exists and was not compared",
-    ),
-];
+)];
 
 /// The astronomical columns [`the_astronomy_is_within_seconds_of_the_books`]
 /// compares, each with its bound, in seconds of time or of arc.
@@ -751,6 +737,7 @@ fn every_column_is_carried_or_said_not_to_be() {
         .iter()
         .map(|(column, _)| *column)
         .chain(ASTRONOMY.iter().map(|(column, _)| *column))
+        .chain(RISE_AND_SET.iter().map(|(column, _)| *column))
         .collect();
     assert!(mapped.is_disjoint(&not_carried));
     let named: BTreeSet<&str> = mapped.union(&not_carried).copied().collect();
@@ -804,6 +791,140 @@ fn every_sample_date_agrees_or_is_refused_or_is_a_known_difference() {
 const SAME: usize = 1_190;
 const REFUSED: usize = 447;
 const ROUND_TRIPS: usize = 1_045;
+
+/// The rising and setting columns
+/// [`the_rising_and_setting_are_within_seconds_of_the_books`] compares,
+/// each with its bound in seconds of time. `dates.l` fixes the place and
+/// `calendar.l` the convention of each, and every value is in the place's
+/// standard time:
+///
+/// * `dawn` — Paris Observatory, UT+1: `dawn` at 18°, the Sun's centre
+///   18° below the geometric horizon, with no refraction and no dip;
+///   `riseset::dawn` with `Twilight::Astronomical`.
+/// * `set` — Jerusalem, 740 m, UT+2: `sunset`, the upper limb on the
+///   book's horizon of 34′ + dip + 19″·√h; `riseset::sunset_with` and
+///   `horizon::CALENDRICAL_CALCULATIONS`.
+/// * `mid-day` — Tehran, UT+3:30: `midday`, local apparent noon;
+///   `riseset::solar_noon`.
+/// * `moonrise`, `moonset` — Mecca, 298 m, UT+3: the upper limb, 16′,
+///   on the same horizon, above the Moon's topocentric altitude;
+///   `riseset::moonrise_with` and `moonset_with` and
+///   `horizon::CALENDRICAL_CALCULATIONS`.
+///
+/// The book has no sunrise column.
+const RISE_AND_SET: &[(&str, f64)] = &[
+    ("dawn", 3.0),
+    ("set", 3.0),
+    ("mid-day", 3.0),
+    ("moonrise", 23.0),
+    ("moonset", 23.0),
+];
+
+/// Jerusalem as `calendar-code2` places it: 31.78° N, 35.24° E, 740 m
+/// (`reingold2018code`, `jerusalem`).
+const JERUSALEM: Location = Location::new(31.78, 35.24, 740.0);
+
+/// How far `solar_time::local_apparent_time`, mean time plus the equation
+/// of time, runs ahead of the Sun's hour angle at a moment, in days.
+///
+/// The book finds its solar events in sundial time and puts them on the
+/// clock through the same equation of time (`approx-moment-of-depression`,
+/// `local-from-apparent`, `equation-of-time`), whose mean Sun is taken at
+/// dynamical time while mean time runs in Universal Time; this library
+/// solves for the hour angle. The two part by ΔT's worth of the Sun's mean
+/// motion and the difference of two polynomials' squared terms: 38 s in
+/// 586 BCE, under a second after 1500 CE.
+fn sundial_lead(moment: Moment, place: Location) -> f64 {
+    use hyper_calendar::hc_astro::{earth, solar, solar_time};
+    let hour_angle = earth::local_hour_angle(
+        solar::solar_position(moment),
+        moment,
+        place.longitude_degrees,
+    );
+    let by_hour_angle = (hour_angle / 360.0 + 0.5).rem_euclid(1.0);
+    let by_equation = solar_time::local_apparent_time(moment, place)
+        .0
+        .rem_euclid(1.0);
+    (by_equation - by_hour_angle + 0.5).rem_euclid(1.0) - 0.5
+}
+
+/// This library's value for a rising and setting column, as the book
+/// states it: the moment in the place's standard time, less `rd`; `None`
+/// where there is no such event that day.
+fn rising_and_setting(column: &str, rd: Rd) -> Option<f64> {
+    use hyper_calendar::hc_astro::horizon::CALENDRICAL_CALCULATIONS;
+    use hyper_calendar::hc_astro::{Twilight, riseset};
+    use hyper_calendar::hc_calendars_equinox::places::{PARIS_OBSERVATORY, TEHRAN_PERSIAN};
+    use hyper_calendar::hc_calendars_lunar::islamic_observational::MECCA;
+    let solar = |moment: Option<Moment>, place: Location, zone_hours: f64| {
+        moment
+            .map(|moment| moment.0 + zone_hours / 24.0 - sundial_lead(moment, place) - rd.0 as f64)
+    };
+    // The book looks for the Moon between two standard-time midnights at
+    // Mecca, this library between two local mean ones, 20.7 minutes
+    // apart: take the event in the book's day from the days around it.
+    let lunar = |find: fn(Rd, Location, &Horizon) -> Option<Moment>| {
+        let zone = 3.0 / 24.0;
+        (-1..=1)
+            .filter_map(|offset| find(rd + offset, MECCA, &CALENDRICAL_CALCULATIONS))
+            .map(|moment| moment.0 + zone - rd.0 as f64)
+            .find(|standard| (0.0..1.0).contains(standard))
+    };
+    match column {
+        "dawn" => solar(
+            riseset::dawn(rd, PARIS_OBSERVATORY, Twilight::Astronomical),
+            PARIS_OBSERVATORY,
+            1.0,
+        ),
+        "set" => solar(
+            riseset::sunset_with(rd, JERUSALEM, &CALENDRICAL_CALCULATIONS),
+            JERUSALEM,
+            2.0,
+        ),
+        "mid-day" => solar(
+            Some(riseset::solar_noon(rd, TEHRAN_PERSIAN)),
+            TEHRAN_PERSIAN,
+            3.5,
+        ),
+        "moonrise" => lunar(riseset::moonrise_with),
+        "moonset" => lunar(riseset::moonset_with),
+        other => panic!("no rising or setting for {other}"),
+    }
+}
+
+/// The book's rising and setting against this library's, at every one of
+/// the 33 dates, 2094 included: the Sun and its transit within 3 s once
+/// the book's sundial lead is taken out (without it, 39 s in 586 BCE), and
+/// the Moon within 23 s, because the book halves a twelve-hour bracket
+/// ten times, to 42.2 s, and returns its midpoint. A day with no event
+/// in the book (`bogus`) has none here either. How each difference was
+/// traced is in `docs/systems/rise-and-set.md`.
+#[test]
+fn the_rising_and_setting_are_within_seconds_of_the_books() {
+    let columns = table();
+    for (column, bound) in RISE_AND_SET {
+        let rows = columns.get(column).expect(column);
+        let (mut compared, mut bogus) = (0, 0);
+        for (rd, book) in rows {
+            let ours = rising_and_setting(column, *rd);
+            if book[0] == "bogus" {
+                assert_eq!(ours, None, "{column} at R.D. {}", rd.0);
+                bogus += 1;
+                continue;
+            }
+            let book: f64 = book[0].parse().expect("a number");
+            let ours = ours.unwrap_or_else(|| panic!("{column} at R.D. {}: none here", rd.0));
+            let difference = (ours - book).abs() * 86_400.0;
+            assert!(
+                difference <= *bound,
+                "{column} at R.D. {}: {difference:.2} s against a bound of {bound}",
+                rd.0
+            );
+            compared += 1;
+        }
+        assert_eq!(compared + bogus, 33, "{column}");
+    }
+}
 
 /// Beijing's standard time, in which the book states its solar terms: the
 /// local mean time of 116°25′ E before 1929 and UTC+8 from it

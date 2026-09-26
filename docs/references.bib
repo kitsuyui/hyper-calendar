@@ -6599,3 +6599,36 @@
   howpublished = {Wikisource, \url{https://zh.wikisource.org/wiki/清史稿/卷45}},
   note         = {The 時憲志 of the Draft History of Qing: the Western method under Schall, the Dàtǒng method restored during the Calendar Case, the leap month the almanac put at the twelfth month of 康熙八年 and moved to the second month of 康熙九年 after Verbiest showed the month held 雨水. Read 2026-09-27}
 }
+
+% --- Rising and setting (docs/systems/rise-and-set.md) ---
+
+@misc{usno-rst-definitions,
+  author       = {{U.S. Naval Observatory, Astronomical Applications Department}},
+  title        = {Rise, Set, and Twilight Definitions},
+  howpublished = {\url{https://aa.usno.navy.mil/faq/RST_defs}},
+  note         = {Sunrise and sunset at a geometric zenith distance of the Sun's centre of 90.8333°, 16′ of radius and 34′ of refraction; moonrise and moonset at 90.5666° plus the Moon's apparent radius less its horizontal parallax; civil, nautical and astronomical twilight at 6°, 12° and 18°; the observer's eye on the surface of the Earth, height not practical to include. Retrieved 2026-09-27}
+}
+
+@misc{usno-api-rstt,
+  author       = {{U.S. Naval Observatory, Astronomical Applications Department}},
+  title        = {Complete Sun and Moon Data for One Day},
+  howpublished = {\url{https://aa.usno.navy.mil/api/rstt/oneday}, documented at \url{https://aa.usno.navy.mil/data/api}},
+  note         = {Rise, set and transit times to the minute. Queried for 31.78, 35.24 at UT+2 on 2024-01-01, 2024-03-20, 2024-06-21 and 2024-09-22; the service takes no height, and gave the same times with height=740 and height=3000. Retrieved 2026-09-27}
+}
+
+@misc{nao-rekiwiki-hinode-teigi,
+  author       = {{国立天文台暦計算室}},
+  title        = {暦Wiki: 日の出入りと南中/日の出入りの定義},
+  howpublished = {\url{https://eco.mtk.nao.ac.jp/koyomi/wiki/C6FCA4CEBDD0C6FEA4EAA4C8C6EEC3E62FC6FCA4CEBDD0C6FEA4EAA4CEC4EAB5C1.html}},
+  note         = {The Sun's upper limb on the apparent horizon; a horizontal refraction of 35′8″; computed for 0~m, since the dip appears only where a point stands above its surroundings; the history of the Japanese almanac's definition from the Edo period to the upper limb from the almanac for Meiji 36 (1903), and France's definition by the Sun's centre. Last modified 2020-03-16; retrieved 2026-09-27}
+}
+
+@article{soma2001,
+  author  = {相馬, 充 (Sôma, Mitsuru)},
+  title   = {日出入時刻計算における標高の効果について (On the Effects of Dip and Refraction in Calculating the Times of Sunrise and Sunset)},
+  journal = {国立天文台報 (Report of the National Astronomical Observatory of Japan)},
+  volume  = {5},
+  pages   = {91--95},
+  year    = {2001},
+  note    = {\url{https://www.nao.ac.jp/contents/about/reports/report-naoj/p91.pdf}. The geometric dip 1.926′√h (eq. 6), the dip for an observed altitude 1.77′√h (eq. 15), and the correction for a rising or a setting 2.09′√h (eq. 16), with Newcomb's 1.76′ and 2.11′ and the Explanatory Supplement's 1.75′ and 2.12′ as he reports them. Read 2026-09-27}
+}

@@ -15,19 +15,27 @@
 //!
 //! # What "sunrise" means here
 //!
-//! The Sun's *upper limb* touching the *visible* horizon: the centre is
-//! 50′ below the geometric horizon, being 16′ of semidiameter plus 34′ of
-//! standard atmospheric refraction, plus the dip of the horizon if the
-//! observer is above sea level. Those 34′ are a convention, not a
-//! measurement — real refraction depends on the air, and a cold morning can
-//! move an observed sunrise by a minute or more. That is the dominant error
-//! in these results, not the astronomy.
+//! The Sun's *upper limb* touching the *visible* horizon. Where the visible
+//! horizon is, is a convention, and the conventions are named
+//! [`Horizon`]s: [`sunrise`], [`sunset`], [`moonrise`] and [`moonset`] take
+//! [`GEOMETRIC_DIP`], under which the Sun's centre is 50′ below the
+//! geometric horizon, 16′ of semidiameter and 34′ of standard refraction,
+//! plus the geometric dip of the horizon if the observer is above sea level; [`sunrise_with`] and the rest take any
+//! horizon by name, such as the USNO's, which ignores the observer's
+//! height, or *Calendrical Calculations*', which adds 19″·√h. The
+//! conventions and how each was measured are in
+//! [`docs/systems/rise-and-set.md`](../../../docs/systems/rise-and-set.md).
+//!
+//! Those 34′ are a convention, not a measurement — real refraction depends
+//! on the air, and a cold morning can move an observed sunrise by a minute
+//! or more. That is the dominant error in these results, not the astronomy.
 
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
 use hc_core::math::{RAD_TO_DEG, acos};
 
 use crate::earth::{altitude_degrees, apparent_sidereal_time, local_hour_angle};
+use crate::horizon::{GEOMETRIC_DIP, Horizon, MOON_CENTRE_PARALLAX_FRACTION};
 use crate::lunar::{lunar_parallax, lunar_position};
 use crate::search::{bisect_falling, bisect_rising};
 use crate::solar::solar_position;
@@ -104,17 +112,20 @@ pub const SOLAR_SEMIDIAMETER_DEGREES: f64 = 16.0 / 60.0;
 
 /// The Earth's radius in metres, as used for the dip of the horizon.
 ///
-/// A round mean radius, this library's choice and not a published
-/// constant: the dip goes as the square root of height over radius, so the
-/// 0.1 % between this and the WGS 84 equatorial radius changes it by 0.05 %,
-/// a fraction of an arcsecond at any height a person stands at.
+/// The radius `calendar-code2`'s `refraction` takes for the dip
+/// (`reingold2018code`); Sôma takes 6 370 km (`soma2001`). The dip goes as
+/// the square root of height over radius, so the 0.1 % between this and the
+/// WGS 84 equatorial radius changes it by 0.05 %, a fraction of an
+/// arcsecond at any height a person stands at.
 const EARTH_RADIUS_METRES: f64 = 6_372_000.0;
 
 /// How far below the geometric horizon the visible horizon lies, in degrees,
 /// for an observer at a given height.
 ///
-/// Zero at or below sea level; about 0.32° from a hundred metres up. Only the
-/// geometry is modelled, not the extra refraction along a long grazing ray.
+/// arccos(R/(R+h)), which is 1.93′·√h for h in metres (Sôma, eq. 6,
+/// `soma2001`): zero at or below sea level, about 0.32° from a hundred
+/// metres up. Only the geometry is modelled, not the refraction along the
+/// grazing ray, which the [`Horizon`]s that want it add.
 #[must_use]
 pub fn horizon_dip_degrees(elevation_metres: f64) -> f64 {
     if elevation_metres <= 0.0 {
@@ -128,12 +139,12 @@ pub fn horizon_dip_degrees(elevation_metres: f64) -> f64 {
 }
 
 /// The altitude of the Sun's centre at the moment its upper limb touches the
-/// visible horizon, in degrees — always slightly negative.
+/// visible horizon, in degrees — always slightly negative — under the
+/// default horizon, [`GEOMETRIC_DIP`]; [`Horizon::sunrise_altitude_degrees`]
+/// gives it for another.
 #[must_use]
 pub fn sunrise_altitude_degrees(elevation_metres: f64) -> f64 {
-    -(HORIZONTAL_REFRACTION_DEGREES
-        + SOLAR_SEMIDIAMETER_DEGREES
-        + horizon_dip_degrees(elevation_metres))
+    GEOMETRIC_DIP.sunrise_altitude_degrees(elevation_metres)
 }
 
 /// The geometric altitude of the Sun's centre above the horizon, in degrees,
@@ -244,7 +255,9 @@ fn computed_sun_crossing(
     }
 }
 
-/// Sunrise on a local day, or `None` under a polar day or a polar night.
+/// Sunrise on a local day, or `None` under a polar day or a polar night,
+/// against the default horizon, [`GEOMETRIC_DIP`]; [`sunrise_with`] takes
+/// another.
 ///
 /// ```
 /// use hc_astro::riseset::{Location, sunrise};
@@ -259,21 +272,51 @@ fn computed_sun_crossing(
 /// ```
 #[must_use]
 pub fn sunrise(day: Rd, location: Location) -> Option<Moment> {
+    sunrise_with(day, location, &GEOMETRIC_DIP)
+}
+
+/// Sunset on a local day, or `None` under a polar day or a polar night,
+/// against the default horizon, [`GEOMETRIC_DIP`]; [`sunset_with`] takes
+/// another.
+#[must_use]
+pub fn sunset(day: Rd, location: Location) -> Option<Moment> {
+    sunset_with(day, location, &GEOMETRIC_DIP)
+}
+
+/// Sunrise on a local day against a named horizon: the moment the Sun's
+/// centre rises through [`Horizon::sunrise_altitude_degrees`].
+///
+/// ```
+/// use hc_astro::horizon::{CALENDRICAL_CALCULATIONS, USNO};
+/// use hc_astro::riseset::{Location, sunrise_with};
+/// use hc_calendar::Rd;
+///
+/// // Jerusalem, 740 m up, on 2024-01-01. The USNO takes it at sea level;
+/// // Calendrical Calculations lowers its horizon by 61′, and the Sun is
+/// // up almost five minutes sooner.
+/// let jerusalem = Location::new(31.78, 35.24, 740.0);
+/// let sea_level = sunrise_with(Rd(738_886), jerusalem, &USNO).expect("a sunrise");
+/// let book = sunrise_with(Rd(738_886), jerusalem, &CALENDRICAL_CALCULATIONS).expect("a sunrise");
+/// let minutes = (sea_level.0 - book.0) * 1_440.0;
+/// assert!((4.5..5.5).contains(&minutes), "{minutes} minutes");
+/// ```
+#[must_use]
+pub fn sunrise_with(day: Rd, location: Location, horizon: &Horizon) -> Option<Moment> {
     sun_crossing(
         day,
         location,
-        sunrise_altitude_degrees(location.elevation_metres),
+        horizon.sunrise_altitude_degrees(location.elevation_metres),
         true,
     )
 }
 
-/// Sunset on a local day, or `None` under a polar day or a polar night.
+/// Sunset on a local day against a named horizon; see [`sunrise_with`].
 #[must_use]
-pub fn sunset(day: Rd, location: Location) -> Option<Moment> {
+pub fn sunset_with(day: Rd, location: Location, horizon: &Horizon) -> Option<Moment> {
     sun_crossing(
         day,
         location,
-        sunrise_altitude_degrees(location.elevation_metres),
+        horizon.sunrise_altitude_degrees(location.elevation_metres),
         false,
     )
 }
@@ -295,16 +338,18 @@ pub fn dusk(day: Rd, location: Location, twilight: Twilight) -> Option<Moment> {
 }
 
 /// The altitude of the Moon's centre at which its upper limb touches the
-/// visible horizon, in degrees.
+/// visible horizon, in degrees, under the default horizon,
+/// [`GEOMETRIC_DIP`].
 ///
 /// Meeus, chapter 15: `h₀ = 0.7275π − 34′`, where π is the Moon's horizontal
-/// parallax. Unlike the Sun the Moon is near enough that parallax outweighs
-/// refraction, so this value is slightly *positive*.
+/// parallax, less the dip. Unlike the Sun the Moon is near enough that
+/// parallax outweighs refraction, so this value is slightly *positive*.
+/// [`Horizon::lunar_limb_altitude_degrees`] gives the limb's height above
+/// any horizon.
 #[must_use]
 pub fn moonrise_altitude_degrees(moment: Moment, elevation_metres: f64) -> f64 {
-    0.7275 * lunar_parallax(moment)
-        - HORIZONTAL_REFRACTION_DEGREES
-        - horizon_dip_degrees(elevation_metres)
+    MOON_CENTRE_PARALLAX_FRACTION * lunar_parallax(moment)
+        - GEOMETRIC_DIP.depression_degrees(elevation_metres)
 }
 
 /// How finely the lunar day is sampled before the crossing is refined.
@@ -315,13 +360,10 @@ const LUNAR_SCAN_STEPS: i32 = 72;
 
 /// The moment on a local day when the Moon rises or sets, found by scanning
 /// the day and then refining.
-fn moon_crossing(day: Rd, location: Location, rising: bool) -> Option<Moment> {
+fn moon_crossing(day: Rd, location: Location, horizon: &Horizon, rising: bool) -> Option<Moment> {
     let start = day.0 as f64 - location.longitude_degrees / 360.0;
     let step = 1.0 / f64::from(LUNAR_SCAN_STEPS);
-    let altitude = |moment: Moment| {
-        lunar_altitude(moment, location)
-            - moonrise_altitude_degrees(moment, location.elevation_metres)
-    };
+    let altitude = |moment: Moment| horizon.lunar_limb_altitude_degrees(moment, location);
     let mut previous = altitude(Moment(start));
     for index in 1..=LUNAR_SCAN_STEPS {
         let moment = start + f64::from(index) * step;
@@ -347,16 +389,31 @@ fn moon_crossing(day: Rd, location: Location, rising: bool) -> Option<Moment> {
 
 /// Moonrise on a local day, or `None` — which happens about once a month
 /// everywhere, because the Moon rises roughly fifty minutes later each day
-/// and so skips a calendar day entirely.
+/// and so skips a calendar day entirely. Against the default horizon,
+/// [`GEOMETRIC_DIP`]; [`moonrise_with`] takes another.
 #[must_use]
 pub fn moonrise(day: Rd, location: Location) -> Option<Moment> {
-    moon_crossing(day, location, true)
+    moonrise_with(day, location, &GEOMETRIC_DIP)
 }
 
-/// Moonset on a local day, or `None`.
+/// Moonset on a local day, or `None`, against the default horizon,
+/// [`GEOMETRIC_DIP`]; [`moonset_with`] takes another.
 #[must_use]
 pub fn moonset(day: Rd, location: Location) -> Option<Moment> {
-    moon_crossing(day, location, false)
+    moonset_with(day, location, &GEOMETRIC_DIP)
+}
+
+/// Moonrise on a local day against a named horizon: the moment
+/// [`Horizon::lunar_limb_altitude_degrees`] turns positive.
+#[must_use]
+pub fn moonrise_with(day: Rd, location: Location, horizon: &Horizon) -> Option<Moment> {
+    moon_crossing(day, location, horizon, true)
+}
+
+/// Moonset on a local day against a named horizon.
+#[must_use]
+pub fn moonset_with(day: Rd, location: Location, horizon: &Horizon) -> Option<Moment> {
+    moon_crossing(day, location, horizon, false)
 }
 
 #[cfg(test)]
@@ -416,6 +473,95 @@ mod tests {
             error_minutes.abs() < 1.0,
             "sunset was {local} JST, off by {error_minutes} minutes"
         );
+    }
+
+    /// Jerusalem at `calendar-code2`'s point, 31.78° N, 35.24° E, 740 m.
+    const JERUSALEM: Location = Location::new(31.78, 35.24, 740.0);
+
+    /// The USNO's "Complete Sun and Moon Data for One Day"
+    /// (`usno-api-rstt`) for 31.78° N, 35.24° E at UT+2, retrieved
+    /// 2026-09-27: sunrise, sunset, moonrise and moonset in minutes after
+    /// local midnight, for 2024-01-01, 2024-03-20, 2024-06-21 and
+    /// 2024-09-22. The service takes no height: asked for 740 m and for
+    /// 3 000 m it gave the same times.
+    const USNO_JERUSALEM_2024: [(Rd, [f64; 4]); 4] = [
+        (Rd(738_886), [399.0, 1_006.0, 1_307.0, 615.0]),
+        (Rd(738_965), [343.0, 1_071.0, 812.0, 197.0]),
+        (Rd(739_058), [274.0, 1_128.0, 1_119.0, 210.0]),
+        (Rd(739_151), [327.0, 1_055.0, 1_230.0, 617.0]),
+    ];
+
+    /// The four events of a day against a horizon, in minutes after local
+    /// midnight at UT+2.
+    fn jerusalem_events(day: Rd, horizon: &Horizon) -> [f64; 4] {
+        let minutes = |moment: Option<Moment>| {
+            let moment = moment.expect("each of these days has all four events");
+            (moment.0 + 2.0 / 24.0 - day.0 as f64) * 1_440.0
+        };
+        [
+            minutes(sunrise_with(day, JERUSALEM, horizon)),
+            minutes(sunset_with(day, JERUSALEM, horizon)),
+            minutes(moonrise_with(day, JERUSALEM, horizon)),
+            minutes(moonset_with(day, JERUSALEM, horizon)),
+        ]
+    }
+
+    /// The USNO's horizon reproduces the USNO's minutes at a place 740 m
+    /// up: the sixteen events are within 0.49 minute of the published
+    /// minute, which is the rounding.
+    #[test]
+    fn the_usno_horizon_matches_the_usno_at_an_elevated_site() {
+        for (day, published) in USNO_JERUSALEM_2024 {
+            let ours = jerusalem_events(day, &crate::horizon::USNO);
+            for (event, (ours, published)) in ours.iter().zip(published).enumerate() {
+                let error = ours - published;
+                assert!(
+                    error.abs() < 0.55,
+                    "R.D. {} event {event}: {error:.2} minutes from the USNO",
+                    day.0
+                );
+            }
+        }
+    }
+
+    /// The default horizon and *Calendrical Calculations*' both lower the
+    /// horizon for Jerusalem's 740 m, so against the USNO's sea-level
+    /// minutes their risings are earlier and their settings later, by 3.7
+    /// to 6.2 minutes; the book's, with 19″·√h more, always by more.
+    #[test]
+    fn a_horizon_lowered_for_height_rises_earlier_and_sets_later_than_the_usno() {
+        for (day, published) in USNO_JERUSALEM_2024 {
+            let dip = jerusalem_events(day, &GEOMETRIC_DIP);
+            let book = jerusalem_events(day, &crate::horizon::CALENDRICAL_CALCULATIONS);
+            for event in 0..4 {
+                let sign = if event % 2 == 0 { -1.0 } else { 1.0 };
+                let by_dip = sign * (dip[event] - published[event]);
+                let by_book = sign * (book[event] - published[event]);
+                assert!(
+                    (3.0..7.0).contains(&by_dip),
+                    "R.D. {} event {event}: {by_dip:.2}",
+                    day.0
+                );
+                assert!(by_book > by_dip, "R.D. {} event {event}", day.0);
+            }
+        }
+    }
+
+    /// At sea level the default and the USNO's horizon are one and the
+    /// same.
+    #[test]
+    fn at_sea_level_the_default_is_the_usnos_horizon() {
+        for day in [0, 90, 180, 270] {
+            let date = NEW_YEAR_2024 + day;
+            assert_eq!(
+                sunrise(date, TOKYO),
+                sunrise_with(date, TOKYO, &crate::horizon::USNO)
+            );
+            assert_eq!(
+                moonset(date, TOKYO),
+                moonset_with(date, TOKYO, &crate::horizon::USNO)
+            );
+        }
     }
 
     #[test]
