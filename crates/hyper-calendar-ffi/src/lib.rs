@@ -71,7 +71,8 @@ pub const HC_ERROR_OUT_OF_RANGE: HcStatus = -2;
 pub const HC_ERROR_INVALID_DATE: HcStatus = -3;
 /// Arithmetic left the representable range.
 pub const HC_ERROR_OVERFLOW: HcStatus = -4;
-/// The supplied buffer was too small; the required length was written out.
+/// The supplied buffer was too small; the required length, including the
+/// terminating NUL, was written out.
 pub const HC_ERROR_BUFFER_TOO_SMALL: HcStatus = -5;
 /// The value lies outside the range where the requested model has data.
 pub const HC_ERROR_NO_DATA: HcStatus = -6;
@@ -222,7 +223,8 @@ mod civil {
     use core::ffi::{c_char, c_int};
 
     use hc::civil::Date;
-    use hc::hc_calendar::{CalendarError, Weekday};
+    use hc::hc_calendar::fixed::RD_OF_UNIX_EPOCH;
+    use hc::hc_calendar::{CalendarError, Rd, Weekday};
     use hc::hc_core::unix::{self, LeapPolicy, UtcInstant};
     use hc::hc_core::{Duration, Instant, Tai, UnixTime};
 
@@ -307,13 +309,137 @@ mod civil {
     ///
     /// `out_weekday` must be null or writable.
     #[unsafe(no_mangle)]
-    pub unsafe extern "C" fn hc_weekday_from_fixed(fixed: i64, out_weekday: *mut u8) -> HcStatus {
+    pub unsafe extern "C" fn hc_weekday(fixed: i64, out_weekday: *mut u8) -> HcStatus {
         if out_weekday.is_null() {
             return HC_ERROR_NULL_POINTER;
         }
-        let weekday = Weekday::from_rd(hc::hc_calendar::Rd(fixed));
+        let weekday = Weekday::from_rd(Rd(fixed));
         // SAFETY: checked non-null immediately above.
         unsafe { *out_weekday = weekday.iso_number() };
+        HC_OK
+    }
+
+    /// The 1-based day of the Gregorian year on a fixed day.
+    ///
+    /// # Safety
+    ///
+    /// `out_day_of_year` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_day_of_year(fixed: i64, out_day_of_year: *mut u32) -> HcStatus {
+        if out_day_of_year.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        match Date::from_ordinal(fixed) {
+            Ok(date) => {
+                // SAFETY: checked non-null immediately above.
+                unsafe { *out_day_of_year = u32::from(date.day_of_year()) };
+                HC_OK
+            }
+            Err(error) => status_from_calendar(error),
+        }
+    }
+
+    /// Whether the Gregorian year on a fixed day is a leap year: writes 1
+    /// or 0.
+    ///
+    /// # Safety
+    ///
+    /// `out_is_leap` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_is_leap_year(fixed: i64, out_is_leap: *mut c_int) -> HcStatus {
+        if out_is_leap.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        match Date::from_ordinal(fixed) {
+            Ok(date) => {
+                // SAFETY: checked non-null immediately above.
+                unsafe { *out_is_leap = c_int::from(date.is_leap_year()) };
+                HC_OK
+            }
+            Err(error) => status_from_calendar(error),
+        }
+    }
+
+    /// The fixed day a POSIX timestamp falls on, in UTC.
+    ///
+    /// # Safety
+    ///
+    /// `out_fixed` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_fixed_from_unix(
+        unix_seconds: i64,
+        out_fixed: *mut i64,
+    ) -> HcStatus {
+        if out_fixed.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        let fixed = Rd::from_unix_days(unix_seconds.div_euclid(86_400)).get();
+        // SAFETY: checked non-null immediately above.
+        unsafe { *out_fixed = fixed };
+        HC_OK
+    }
+
+    /// The POSIX timestamp of midnight UTC on a fixed day.
+    ///
+    /// A day whose midnight does not fit an `int64_t` is
+    /// [`HC_ERROR_OUT_OF_RANGE`]. There is no floor, as the WebAssembly
+    /// module has; see the README.
+    ///
+    /// # Safety
+    ///
+    /// `out_unix_seconds` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_unix_from_fixed(
+        fixed: i64,
+        out_unix_seconds: *mut i64,
+    ) -> HcStatus {
+        if out_unix_seconds.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        let Some(midnight) = fixed
+            .checked_sub(RD_OF_UNIX_EPOCH)
+            .and_then(|days| days.checked_mul(86_400))
+        else {
+            return HC_ERROR_OUT_OF_RANGE;
+        };
+        // SAFETY: checked non-null immediately above.
+        unsafe { *out_unix_seconds = midnight };
+        HC_OK
+    }
+
+    /// Parse an ISO 8601 date from a NUL-terminated UTF-8 string into its
+    /// fixed day number.
+    ///
+    /// Text that is not a date is [`HC_ERROR_INVALID_DATE`], a null `text`
+    /// [`HC_ERROR_NULL_POINTER`] and bytes that are not UTF-8
+    /// [`HC_ERROR_NOT_UTF8`](super::HC_ERROR_NOT_UTF8).
+    ///
+    /// # Safety
+    ///
+    /// `text` must be null or point to a NUL-terminated string, and
+    /// `out_fixed` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_parse_iso_date(
+        text: *const c_char,
+        out_fixed: *mut i64,
+    ) -> HcStatus {
+        if out_fixed.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        // SAFETY: forwarded to the caller's contract above.
+        let text = match unsafe { super::text(text) } {
+            Ok(Some(text)) => text,
+            Ok(None) => return HC_ERROR_NULL_POINTER,
+            Err(status) => return status,
+        };
+        let Some(fixed) = hc::hc_format::iso8601::parse_date(text)
+            .ok()
+            .and_then(|parsed| parsed.to_fixed().ok())
+        else {
+            return HC_ERROR_INVALID_DATE;
+        };
+        // SAFETY: checked non-null at the top.
+        unsafe { *out_fixed = fixed.get() };
         HC_OK
     }
 
@@ -539,8 +665,9 @@ mod civil {
 
 #[cfg(feature = "civil")]
 pub use civil::{
-    hc_day_has_leap_second, hc_format_iso_date, hc_gregorian_from_fixed, hc_gregorian_to_fixed,
-    hc_tai_from_unix, hc_tai_minus_utc, hc_utc_from_tai, hc_weekday_from_fixed,
+    hc_day_has_leap_second, hc_day_of_year, hc_fixed_from_unix, hc_format_iso_date,
+    hc_gregorian_from_fixed, hc_gregorian_to_fixed, hc_is_leap_year, hc_parse_iso_date,
+    hc_tai_from_unix, hc_tai_minus_utc, hc_unix_from_fixed, hc_utc_from_tai, hc_weekday,
 };
 
 /// Time scales and day counts, behind the `timestamps` feature: TAI64 labels,
@@ -563,8 +690,8 @@ mod time_scales {
     ///
     /// `format` is `tai64`, `tai64n` or `tai64na`, in any case; anything
     /// else is `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`.
-    /// Attoseconds from 10¹⁸, or a second outside the labels below 2⁶³, is
-    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// Attoseconds from 10¹⁸, or a second that no TAI64 label can hold (the
+    /// labels run below 2⁶³), is `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
     /// terminator, into `written`.
     ///
     /// # Safety
@@ -1930,8 +2057,10 @@ mod seasons {
     /// `india` or `china-before-1929`, in any case — or a longitude in
     /// decimal degrees east of Greenwich, read as local mean solar time;
     /// null or empty is `universal`, anything else `HC_ERROR_UNKNOWN`, and
-    /// text that is not UTF-8 `HC_ERROR_NOT_UTF8`. Writes the required
-    /// length, including the terminator, into `written`.
+    /// text that is not UTF-8 `HC_ERROR_NOT_UTF8`. A day outside the years
+    /// −1000 to 3000, the era `hc_sky_at` answers for, is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
     ///
     /// # Safety
     ///
@@ -1951,6 +2080,9 @@ mod seasons {
             Ok(meridian) => meridian,
             Err(status) => return status,
         };
+        if let Err(refusal) = hc::astro_lines::day_in_era(fixed) {
+            return super::status(refusal);
+        }
         let text = term_line(fixed, meridian);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_text(&text, buffer, capacity, written) }
@@ -1964,8 +2096,9 @@ mod seasons {
     /// tradition, its name in the Japanese tradition, the fixed day the
     /// pentad began at that meridian, the last fixed day before the next
     /// pentad begins, the text the Chinese names come from and the text the
-    /// Japanese names come from. `meridian` is as for `hc_term_in_effect`.
-    /// Writes the required length, including the terminator, into `written`.
+    /// Japanese names come from. `meridian` and the day are as for
+    /// `hc_term_in_effect`. Writes the required length, including the
+    /// terminator, into `written`.
     ///
     /// # Safety
     ///
@@ -1983,6 +2116,9 @@ mod seasons {
             Ok(meridian) => meridian,
             Err(status) => return status,
         };
+        if let Err(refusal) = hc::astro_lines::day_in_era(fixed) {
+            return super::status(refusal);
+        }
         let text = pentad_line(fixed, meridian);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_text(&text, buffer, capacity, written) }
@@ -3534,7 +3670,7 @@ mod tests {
                 HC_ERROR_NULL_POINTER
             );
             assert_eq!(
-                unsafe { hc_weekday_from_fixed(0, core::ptr::null_mut()) },
+                unsafe { hc_weekday(0, core::ptr::null_mut()) },
                 HC_ERROR_NULL_POINTER
             );
         }
@@ -3543,11 +3679,95 @@ mod tests {
         fn weekdays_use_iso_numbering() {
             let mut weekday = 0u8;
             // 1970-01-01 was a Thursday.
+            assert_eq!(unsafe { hc_weekday(719_163, &mut weekday) }, HC_OK);
+            assert_eq!(weekday, 4);
+            for (fixed, iso) in [(i64::MIN, 6), (i64::MAX, 7)] {
+                assert_eq!(unsafe { hc_weekday(fixed, &mut weekday) }, HC_OK);
+                assert_eq!(weekday, iso, "{fixed}");
+            }
+        }
+
+        /// The twins of the WebAssembly module's `hc_day_of_year`,
+        /// `hc_is_leap_year`, `hc_fixed_from_unix`, `hc_unix_from_fixed` and
+        /// `hc_parse_iso_date` answer as they do, through out-parameters.
+        #[test]
+        fn the_civil_twins_of_the_webassembly_exports() {
+            // 2024-12-31 is day 366 of a leap year, 739 251.
+            let (mut day_of_year, mut leap) = (0u32, 0 as core::ffi::c_int);
+            assert_eq!(unsafe { hc_day_of_year(739_251, &mut day_of_year) }, HC_OK);
+            assert_eq!(day_of_year, 366);
+            assert_eq!(unsafe { hc_is_leap_year(739_251, &mut leap) }, HC_OK);
+            assert_eq!(leap, 1);
+            assert_eq!(unsafe { hc_is_leap_year(739_252, &mut leap) }, HC_OK);
+            assert_eq!(leap, 0);
+            for outside in [-3_652_425_000, 3_652_424_635] {
+                assert_eq!(
+                    unsafe { hc_day_of_year(outside, &mut day_of_year) },
+                    HC_ERROR_NO_DATA
+                );
+                assert_eq!(
+                    unsafe { hc_is_leap_year(outside, &mut leap) },
+                    HC_ERROR_NO_DATA
+                );
+            }
+
+            let mut fixed = 0i64;
+            assert_eq!(unsafe { hc_fixed_from_unix(0, &mut fixed) }, HC_OK);
+            assert_eq!(fixed, 719_163);
+            assert_eq!(unsafe { hc_fixed_from_unix(-1, &mut fixed) }, HC_OK);
+            assert_eq!(fixed, 719_162);
+            assert_eq!(unsafe { hc_fixed_from_unix(i64::MIN, &mut fixed) }, HC_OK);
+            assert_eq!(fixed, -106_751_990_448_138);
+            assert_eq!(unsafe { hc_fixed_from_unix(i64::MAX, &mut fixed) }, HC_OK);
+            assert_eq!(fixed, 106_751_991_886_463);
+
+            let mut seconds = 0i64;
+            assert_eq!(unsafe { hc_unix_from_fixed(739_880, &mut seconds) }, HC_OK);
+            assert_eq!(seconds, 1_789_948_800);
+            // No floor: the first day whose midnight fits is answered, as
+            // `hc_unix_from_fixed_in_zone` answers it by UTC.
             assert_eq!(
-                unsafe { hc_weekday_from_fixed(719_163, &mut weekday) },
+                unsafe { hc_unix_from_fixed(-106_751_990_448_137, &mut seconds) },
                 HC_OK
             );
-            assert_eq!(weekday, 4);
+            for outside in [
+                -106_751_990_448_138,
+                106_751_991_886_464,
+                i64::MIN,
+                i64::MAX,
+            ] {
+                assert_eq!(
+                    unsafe { hc_unix_from_fixed(outside, &mut seconds) },
+                    HC_ERROR_OUT_OF_RANGE,
+                    "{outside}"
+                );
+            }
+            assert_eq!(
+                unsafe { hc_unix_from_fixed(106_751_991_886_463, &mut seconds) },
+                HC_OK
+            );
+
+            assert_eq!(
+                unsafe { hc_parse_iso_date(c"2026-09-21".as_ptr(), &mut fixed) },
+                HC_OK
+            );
+            assert_eq!(fixed, 739_880);
+            assert_eq!(
+                unsafe { hc_parse_iso_date(c"2026-02-30".as_ptr(), &mut fixed) },
+                HC_ERROR_INVALID_DATE
+            );
+            assert_eq!(
+                unsafe { hc_parse_iso_date(c"\xff".as_ptr(), &mut fixed) },
+                HC_ERROR_NOT_UTF8
+            );
+            assert_eq!(
+                unsafe { hc_parse_iso_date(core::ptr::null(), &mut fixed) },
+                HC_ERROR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe { hc_parse_iso_date(c"2026-09-21".as_ptr(), core::ptr::null_mut()) },
+                HC_ERROR_NULL_POINTER
+            );
         }
 
         #[test]
@@ -4165,6 +4385,38 @@ mod tests {
                 },
                 HC_ERROR_NOT_UTF8
             );
+        }
+
+        /// The days of the years −1000 to 3000 answer, as `hc_sky_at`'s do;
+        /// the days either side of them are refused.
+        #[test]
+        fn the_term_and_pentad_refuse_days_outside_the_era() {
+            let (mut first, mut last) = (0i64, 0i64);
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(-1000, 1, 1, &mut first) },
+                HC_OK
+            );
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(3000, 12, 31, &mut last) },
+                HC_OK
+            );
+            let null = core::ptr::null_mut();
+            for day in [first, last] {
+                let mut written = 0usize;
+                assert_eq!(
+                    unsafe { hc_term_in_effect(day, core::ptr::null(), null, 0, &mut written) },
+                    HC_ERROR_BUFFER_TOO_SMALL
+                );
+                assert!(written > 0);
+            }
+            for day in [first - 1, last + 1, i64::MIN, i64::MAX] {
+                for status in [
+                    unsafe { hc_term_in_effect(day, core::ptr::null(), null, 0, null.cast()) },
+                    unsafe { hc_pentad_in_effect(day, core::ptr::null(), null, 0, null.cast()) },
+                ] {
+                    assert_eq!(status, HC_ERROR_OUT_OF_RANGE, "{day}");
+                }
+            }
         }
     }
 

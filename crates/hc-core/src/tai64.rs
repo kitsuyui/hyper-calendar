@@ -16,10 +16,34 @@
 //! [`Duration`]'s resolution, so it round-trips exactly; TAI64 and TAI64N
 //! name the second and the nanosecond that contain an instant, which is
 //! the floor of its reading.
+//!
+//! # A second convention: POSIX seconds plus ten
+//!
+//! Labels in the wild are not all true TAI. daemontools' `tai64n`, which
+//! stamps the lines `multilog` writes, takes the system clock "as the
+//! number of TAI seconds since 1970-01-01 00:00:10 TAI" (Bernstein, "The
+//! tai64n program", <https://cr.yp.to/daemontools/tai64n.html>, read
+//! 2026-09-27, `bernstein-daemontools-tai64n`). That holds on a clock kept
+//! in the Olson library's `right/` mode. On an ordinary clock, which keeps
+//! POSIX time, the label it writes is `2⁶² + 10 + POSIX seconds`, and its
+//! own `tai64nlocal` page warns that localtime then uses "a broken time
+//! scale that does not account for leap seconds"
+//! (`bernstein-daemontools-tai64nlocal`). Such a label read as true TAI
+//! falls `TAI − UTC − 10` seconds early: 27 s since 2017.
+//!
+//! The two readings are separate named conventions, as `docs/policy.md` §5
+//! asks, not a parameter: `tai64` is the functions above, true TAI through
+//! [`Instant<Tai>`], and `tai64-posix-plus-10` is
+//! [`label_posix_plus_10`], [`from_label_posix_plus_10`] and their
+//! external-format pairs, which read and write [`UnixTime`] with no
+//! leap-second table at all. Neither can tell from the bytes which one
+//! wrote them; the caller knows what clock the log came from. See
+//! `docs/time-scales.md`.
 
 use crate::duration::Duration;
 use crate::error::{TimeError, TimeResult};
 use crate::scale::{Instant, Tai};
+use crate::unix::UnixTime;
 
 /// `2⁶²`, the label of the second that began 1970 TAI.
 pub const TAI64_ORIGIN_LABEL: u64 = 1 << 62;
@@ -33,8 +57,8 @@ const PER_BILLION: u64 = 1_000_000_000;
 ///
 /// # Errors
 ///
-/// [`TimeError::OutOfRange`] when the second is outside the labels below
-/// 2⁶³, more than about 146 billion years from 1970.
+/// [`TimeError::OutOfRange`] for a second that no label can hold: the
+/// labels run below 2⁶³, about 146 billion years either side of 1970.
 pub fn label(instant: Instant<Tai>) -> TimeResult<u64> {
     let seconds = instant.since_epoch().whole_seconds();
     let label = seconds
@@ -173,10 +197,94 @@ pub fn decode_tai64na(bytes: [u8; 16]) -> TimeResult<Instant<Tai>> {
     )
 }
 
+/// The label of POSIX second 0 in the `tai64-posix-plus-10` convention,
+/// `2⁶² + 10`.
+pub const POSIX_PLUS_10_ORIGIN_LABEL: u64 = TAI64_ORIGIN_LABEL + 10;
+
+/// The `tai64-posix-plus-10` label of the POSIX second containing a POSIX
+/// timestamp: `2⁶² + 10 + seconds`, as daemontools' `tai64n` writes it on
+/// a clock that keeps POSIX time. See the [module documentation](self).
+///
+/// # Errors
+///
+/// [`TimeError::OutOfRange`] for a second before −(2⁶² + 10) or from
+/// 2⁶² − 10, whose label would fall outside 0 to 2⁶³ − 1.
+pub fn label_posix_plus_10(unix: UnixTime) -> TimeResult<u64> {
+    let label = i128::from(unix.seconds()) + i128::from(POSIX_PLUS_10_ORIGIN_LABEL);
+    match u64::try_from(label) {
+        Ok(label) if label < TAI64_RESERVED => Ok(label),
+        _ => Err(TimeError::OutOfRange),
+    }
+}
+
+/// The POSIX second a `tai64-posix-plus-10` label names: the label less
+/// 2⁶² + 10.
+///
+/// # Errors
+///
+/// [`TimeError::OutOfRange`] for a label from 2⁶³, which is reserved.
+pub fn from_label_posix_plus_10(label: u64) -> TimeResult<UnixTime> {
+    if label >= TAI64_RESERVED {
+        return Err(TimeError::OutOfRange);
+    }
+    let seconds = i128::from(label) - i128::from(POSIX_PLUS_10_ORIGIN_LABEL);
+    let seconds = i64::try_from(seconds).map_err(|_| TimeError::OutOfRange)?;
+    Ok(UnixTime::from_seconds(seconds))
+}
+
+/// The external TAI64 format of a POSIX timestamp in the
+/// `tai64-posix-plus-10` convention.
+///
+/// # Errors
+///
+/// As [`label_posix_plus_10`].
+pub fn encode_tai64_posix_plus_10(unix: UnixTime) -> TimeResult<[u8; 8]> {
+    Ok(label_posix_plus_10(unix)?.to_be_bytes())
+}
+
+/// Read the external TAI64 format in the `tai64-posix-plus-10` convention.
+///
+/// # Errors
+///
+/// As [`from_label_posix_plus_10`].
+pub fn decode_tai64_posix_plus_10(bytes: [u8; 8]) -> TimeResult<UnixTime> {
+    from_label_posix_plus_10(u64::from_be_bytes(bytes))
+}
+
+/// The external TAI64N format of a POSIX timestamp in the
+/// `tai64-posix-plus-10` convention: what `tai64n` prints, as bytes.
+///
+/// # Errors
+///
+/// As [`label_posix_plus_10`].
+pub fn encode_tai64n_posix_plus_10(unix: UnixTime) -> TimeResult<[u8; 12]> {
+    let mut out = [0; 12];
+    out[..8].copy_from_slice(&encode_tai64_posix_plus_10(unix)?);
+    // Below 10⁹ because the sub-second part is below 10¹⁸.
+    let nanos = u32::try_from(unix.subsec_attos() / PER_BILLION).unwrap_or(u32::MAX);
+    out[8..].copy_from_slice(&nanos.to_be_bytes());
+    Ok(out)
+}
+
+/// Read the external TAI64N format in the `tai64-posix-plus-10`
+/// convention.
+///
+/// # Errors
+///
+/// [`TimeError::OutOfRange`] for a reserved label or a nanosecond count
+/// above 999 999 999.
+pub fn decode_tai64n_posix_plus_10(bytes: [u8; 12]) -> TimeResult<UnixTime> {
+    let [l0, l1, l2, l3, l4, l5, l6, l7, n0, n1, n2, n3] = bytes;
+    let label = u64::from_be_bytes([l0, l1, l2, l3, l4, l5, l6, l7]);
+    let nanos = counter([n0, n1, n2, n3])?;
+    let seconds = from_label_posix_plus_10(label)?.seconds();
+    UnixTime::new(seconds, nanos * PER_BILLION)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::unix::{LeapPolicy, UnixTime, tai_from_unix};
+    use crate::unix::{LeapPolicy, tai_from_unix, utc_from_tai};
 
     fn tai(seconds: i128) -> Instant<Tai> {
         Instant::from_epoch(Duration::from_secs(seconds))
@@ -211,6 +319,109 @@ mod tests {
         assert_eq!(
             encode_tai64(from_utc),
             Ok([0x40, 0, 0, 0, 0x2a, 0x2b, 0x2c, 0x2d])
+        );
+    }
+
+    /// The `tai64n` page's example, `4000000037c219bf2ef02e94`, which its
+    /// `tai64nlocal` page prints as 1999-08-23 21:03:43.787492500 in
+    /// US/Pacific (UTC − 7 h that day) on a clock that keeps TAI, the
+    /// `right/` zones. Read as true TAI it is exactly that instant.
+    #[test]
+    fn the_daemontools_example_is_true_tai() {
+        let bytes = [
+            0x40, 0, 0, 0, 0x37, 0xc2, 0x19, 0xbf, 0x2e, 0xf0, 0x2e, 0x94,
+        ];
+        let instant = decode_tai64n(bytes).expect("in range");
+        assert_eq!(
+            instant,
+            Instant::from_epoch(
+                Duration::from_secs(935_467_455) + Duration::from_nanos(787_492_500)
+            )
+        );
+        // 1999-08-24 04:03:43 UTC is POSIX 935 467 423; TAI − UTC was 32 s.
+        let utc = utc_from_tai(instant, LeapPolicy::Strict).expect("table");
+        assert_eq!(utc.unix_seconds, 935_467_423);
+        assert!(!utc.leap_second);
+        assert_eq!(utc.subsec_attos, 787_492_500_000_000_000);
+    }
+
+    /// `tai64-posix-plus-10`: POSIX 0 is `@400000000000000a`, derived from
+    /// the `tai64n` page's "TAI seconds since 1970-01-01 00:00:10 TAI" with
+    /// a POSIX clock. The same daemontools bytes read this way are 22 s
+    /// later than read as TAI, `TAI − UTC − 10` in 1999, and 27 s since
+    /// 2017.
+    #[test]
+    fn the_posix_plus_10_convention() {
+        assert_eq!(
+            encode_tai64_posix_plus_10(UnixTime::EPOCH),
+            Ok([0x40, 0, 0, 0, 0, 0, 0, 0x0a])
+        );
+        assert_eq!(
+            decode_tai64_posix_plus_10([0x40, 0, 0, 0, 0, 0, 0, 0x0a]),
+            Ok(UnixTime::EPOCH)
+        );
+        assert_eq!(
+            label_posix_plus_10(UnixTime::EPOCH),
+            Ok(POSIX_PLUS_10_ORIGIN_LABEL)
+        );
+
+        let bytes = [
+            0x40, 0, 0, 0, 0x37, 0xc2, 0x19, 0xbf, 0x2e, 0xf0, 0x2e, 0x94,
+        ];
+        let posix = decode_tai64n_posix_plus_10(bytes).expect("in range");
+        assert_eq!(
+            posix,
+            UnixTime::new(935_467_445, 787_492_500_000_000_000).expect("ok")
+        );
+        assert_eq!(encode_tai64n_posix_plus_10(posix), Ok(bytes));
+        let as_tai =
+            utc_from_tai(decode_tai64n(bytes).expect("ok"), LeapPolicy::Strict).expect("table");
+        assert_eq!(posix.seconds() - as_tai.unix_seconds, 22);
+
+        // 2024-01-01 00:00:00 UTC, POSIX 1 704 067 200: the two labels of
+        // the same second differ by TAI − UTC − 10 = 27.
+        let unix = UnixTime::from_seconds(1_704_067_200);
+        let tai = tai_from_unix(unix, LeapPolicy::Strict).expect("table");
+        assert_eq!(
+            label(tai).expect("ok") - label_posix_plus_10(unix).expect("ok"),
+            27
+        );
+
+        // Sub-nanosecond parts floor, and the reserved labels are refused.
+        let fine = UnixTime::new(0, 1_999_999_999).expect("ok");
+        assert_eq!(
+            decode_tai64n_posix_plus_10(encode_tai64n_posix_plus_10(fine).expect("ok")),
+            UnixTime::new(0, 1_000_000_000)
+        );
+        assert_eq!(
+            from_label_posix_plus_10(TAI64_RESERVED),
+            Err(TimeError::OutOfRange)
+        );
+        assert_eq!(
+            decode_tai64n_posix_plus_10([0x40, 0, 0, 0, 0, 0, 0, 0x0a, 0x3b, 0x9a, 0xca, 0x00]),
+            Err(TimeError::OutOfRange)
+        );
+        // The label range reaches every i64 second: i64::MIN is label
+        // 2⁶² + 10 − 2⁶³, below 0.
+        assert_eq!(
+            label_posix_plus_10(UnixTime::from_seconds(i64::MIN)),
+            Err(TimeError::OutOfRange)
+        );
+        assert_eq!(
+            label_posix_plus_10(UnixTime::from_seconds(-(1 << 62) - 10)),
+            Ok(0)
+        );
+        assert_eq!(
+            from_label_posix_plus_10(0),
+            Ok(UnixTime::from_seconds(-(1 << 62) - 10))
+        );
+        assert_eq!(
+            label_posix_plus_10(UnixTime::from_seconds((1 << 62) - 11)),
+            Ok(TAI64_RESERVED - 1)
+        );
+        assert_eq!(
+            label_posix_plus_10(UnixTime::from_seconds((1 << 62) - 10)),
+            Err(TimeError::OutOfRange)
         );
     }
 

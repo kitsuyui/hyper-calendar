@@ -5,11 +5,12 @@
 //! rediscover a magic number.
 //!
 //! Every epoch names the document that defines it in [`Epoch::source`].
-//! Five of them — the UUID's 1582, FILETIME's 1601, the Modified Julian
-//! Date's 1858, NTP's 1900 and SAS's 1960 — are written with a `Z`
-//! although they predate UTC, which began in 1961: the label names the day
-//! on today's proleptic UTC calendar, and the TAI reading is the arithmetic
-//! extension of it, not what any clock read.
+//! Four of them — the UUID's 1582, FILETIME's 1601, NTP's 1900 and SAS's
+//! 1960 — are written with a `Z` although they predate UTC, which began in
+//! 1961: the label names the day on today's proleptic UTC calendar, and the
+//! TAI reading is the arithmetic extension of it, not what any clock read.
+//! The Modified Julian Date's 1858 and the Julian Day's 4713 BCE are
+//! written in UT and extended the same way.
 
 use crate::duration::Duration;
 use crate::scale::{Instant, Tai};
@@ -51,9 +52,9 @@ pub const GPS: Epoch = Epoch {
     id: "gps",
     description: "GPS week zero, 1980-01-06T00:00:00Z",
     tai_reading: Duration::from_secs(315_964_800 + 19),
-    source: "IS-GPS-200, 3.3.4 GPS Time and SV Z-Count: zero time-point at midnight of \
-        5/6 January 1980, UTC(USNO), as quoted by the ARL memorandum of 15 August 2019 \
-        [arl-gps-time-2019]; 19 s behind TAI [rots2015]",
+    source: "IS-GPS-200G (2012), 3.3.4 GPS Time and SV Z-Count: zero time-point at midnight \
+        of 5/6 January 1980, UTC(USNO) [is-gps-200g], as the ARL memorandum of 15 August \
+        2019 also quotes it [arl-gps-time-2019]; 19 s behind TAI [rots2015]",
 };
 
 /// `1999-08-21T23:59:47Z`, week zero of Galileo System Time.
@@ -87,8 +88,8 @@ pub const NAVIC: Epoch = Epoch {
     description: "NavIC (IRNSS) system time week zero, 1999-08-22T00:00:00 NavIC, \
         1999-08-21T23:59:47Z",
     tai_reading: Duration::from_secs(935_280_000 + 19),
-    source: "ISRO, IRNSS SIS ICD for SPS, version 1.1 (2017): 00:00 on 22 August 1999 of \
-        its own reckoning, 23:59:47 UTC on 21 August 1999 [irnss-sps-icd-1-1]",
+    source: "ISRO, IRNSS SIS ICD for SPS, version 1.1 (2017), 5.7: 00:00 on 22 August 1999 \
+        of its own reckoning, 23:59:47 UTC on 21 August 1999 [irnss-sps-icd-1-1]",
 };
 
 /// `1995-12-31T21:00:00Z`, 00:00 on 1 January 1996 in GLONASS time,
@@ -103,7 +104,7 @@ pub const GLONASS: Epoch = Epoch {
     description: "GLONASS four-year interval N4 = 1, 1996-01-01T00:00:00 UTC(SU) + 3 h, \
         1995-12-31T21:00:00Z",
     tai_reading: Duration::from_secs(820_443_600 + 29),
-    source: "GLONASS ICD, Edition 5.1 (2008), 3.3.3 and 4: GLONASS time is UTC(SU) + 3 h; \
+    source: "GLONASS ICD, Edition 5.1 (2008), 3.3.3 and 4.5: GLONASS time is UTC(SU) + 3 h; \
         N4 counts four-year intervals from 1996 [glonass-icd-5-1]; TAI - UTC of 29 s from \
         the leap-second table [iana-leap-seconds-list]",
 };

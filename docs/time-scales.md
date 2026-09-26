@@ -30,7 +30,7 @@ confused.
 | **TCG** | Geocentric Coordinate Time. TT without the gravitational rescaling, so it runs slightly fast. | `TCG − TT = L_G/(1−L_G) · (TT − T₀)`, `L_G = 6.969290134×10⁻¹⁰` |
 | **TDB** | Barycentric Dynamical Time. TT plus the periodic terms from the Earth's orbital motion; the independent variable of solar-system ephemerides. | `TDB − TT` is a truncated Fairhead–Bretagnon series, at most about 1.7 ms |
 | **TCB** | Barycentric Coordinate Time. | `TCB − TDB` is linear in `L_B = 1.550519768×10⁻⁸` plus `TDB₀` |
-| **GPS** | GPS system time, set to UTC at its 1980 epoch and without leap seconds since. | `GPS = TAI − 19 s`, exact by convention. GPS time is steered to UTC(USNO), not to TAI (IS-GPS-200G, §3.3.4), so what a receiver recovers differs from TAI − 19 s by a steering residual SOFA puts at "sub-microsecond" [sofa-ts]; the residual is observational and not carried |
+| **GPS** | GPS system time, set to UTC at its 1980 epoch and without leap seconds since. | `GPS = TAI − 19 s`, exact by convention. GPS time is steered to UTC(USNO), not to TAI [is-gps-200g, §3.3.4], so what a receiver recovers differs from TAI − 19 s by a steering residual SOFA puts at "sub-microsecond" [sofa-ts]; the residual is observational and not carried |
 | **GST** | Galileo System Time. Not Greenwich sidereal time. | `GST = TAI − 19 s`, by convention, as GPS |
 | **BDT** | BeiDou Time, from 2006-01-01 00:00:00 UTC. | `BDT = TAI − 33 s`, by convention; 14 s behind GPS |
 | **NavIC** | NavIC (IRNSS) system time. | `NavIC = TAI − 19 s`, by convention, as GPS |
@@ -146,20 +146,27 @@ length of day only [iers-tn36, ch. 8].
 | **UT1S** | `ut1s_iers2010`, `ut1s_minus_ut1_iers2010` | All the zonal tides, to the 18.6-year nodal term: the table's 62 terms, at most 0.173 s | [iers-tn36], ch. 8, Table 8.1 |
 
 The tidal model is part of the name. Table 8.1 is the IERS 2010 model,
-Yoder, Williams and Parke's 1981 elastic tide with an inelastic body tide
-and an ocean tide added, and it differs from Yoder's 1981 tables, which the
-IAU's definition of UT1R names, by about 6 µs at the fortnightly term; a
-UT1R from those tables would be a separate function. The whole-table sum
-reproduces the test case printed in the IERS routine `RG_ZONT2.F` to
-10⁻¹² s [iers-rg-zont2]; the routine's header was read for the test
-case, and the table and the Delaunay arguments (ch. 5, eq. 5.43) were
-taken from the Conventions' text.
+Yoder, Williams and Parke's 1981 elastic tide with Wahr and Bergen's 1986
+inelastic body tide and Kantha et al.'s 1998 ocean tide added, and it
+differs from the Conventions 2003 model by about 6 µs at the fortnightly
+term [iers-tn36, ch. 8, §8.1]. It is not Yoder et al.'s own 1981 tables,
+which the IAU's 1982 definition of UT1R names; a UT1R from those tables
+would be a separate function. The three tide papers and the IAU
+resolution are cited through [iers-tn36], ch. 8, and were not read. The
+whole-table sum reproduces the test case printed in the IERS routine
+`RG_ZONT2.F` to 10⁻¹² s [iers-rg-zont2]; the routine's header was read
+for the test case, and the table and the Delaunay arguments (ch. 5,
+eq. 5.43) were taken from the Conventions' text. The system, with worked
+examples of UT2 and the Earth Rotation Angle, is written up in
+[systems/earth-rotation.md](systems/earth-rotation.md).
 
 ## Sidereal time and the Earth Rotation Angle
 
 UT1 is defined by the Earth's rotation, and the rotation is measured by an
 angle. Two conventions for that angle are in use, and `hc-astro::earth`
 carries both under their own names, as [policy.md](policy.md) §5 asks.
+[systems/earth-rotation.md](systems/earth-rotation.md) works the angle by
+hand.
 
 | Quantity | Function | Convention | Argument |
 | --- | --- | --- | --- |
@@ -249,6 +256,27 @@ origin is 1970 *TAI*, the origin of `Instant<Tai>`, not the POSIX epoch.
 Labels from 2⁶³ are reserved and refused. TAI64NA resolves the attosecond,
 as `Duration` does, so it round-trips exactly; TAI64 and TAI64N name the
 second and nanosecond that contain an instant.
+
+Not every label in the wild is true TAI, so the module carries two named
+conventions (policy §5):
+
+| Convention | Label of a second | Reads and writes | Source |
+| --- | --- | --- | --- |
+| `tai64` | `2⁶² + s`, `s` the TAI seconds since 1970-01-01 00:00:00 TAI | `Instant<Tai>` | [bernstein-tai64] |
+| `tai64-posix-plus-10` | `2⁶² + 10 + p`, `p` the POSIX seconds | `UnixTime`, with no leap-second table | [bernstein-daemontools-tai64n], [bernstein-daemontools-tai64nlocal] |
+
+daemontools' `tai64n`, which timestamps `multilog`'s logs, takes the
+system clock as "TAI seconds since 1970-01-01 00:00:10 TAI". On a clock
+kept in the Olson `right/` mode that is true, and the label is `tai64`:
+the page's example `4000000037c219bf2ef02e94`, which `tai64nlocal`'s page
+prints as 1999-08-23 21:03:43.787492500 US/Pacific, decodes as `tai64` to
+exactly that instant, 1999-08-24 04:03:43.787492500 UTC. On an ordinary
+clock, which keeps POSIX time, the label is `tai64-posix-plus-10`; POSIX 0
+is `@400000000000000a`. Read as `tai64`, such a label is `TAI − UTC − 10`
+seconds early, 22 s in 1999 and 27 s since 2017. The bytes do not say which
+clock wrote them, so the caller chooses by name. libtai's own `tai_now`,
+which the audit that raised this also names, was not read: its page is
+gone.
 
 ## Computing timestamps
 

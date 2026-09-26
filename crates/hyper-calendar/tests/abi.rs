@@ -17,6 +17,7 @@
 //! To accept a change: `UPDATE_ABI=1 cargo test -p hyper-calendar --test
 //! abi`, then read the diff before committing it.
 
+use std::collections::BTreeSet;
 use std::fmt::Write as _;
 
 const FFI_SOURCE: &str = "../hyper-calendar-ffi/src/lib.rs";
@@ -392,56 +393,150 @@ fn the_wasm_readme_lists_every_export() {
     check(WASM_README, &render_wasm(&read(WASM_SOURCE)));
 }
 
-#[test]
-fn the_two_surfaces_share_their_vocabulary() {
-    // A name that exists in both crates should mean the same thing, so a
-    // caller moving from one to the other is not surprised. The two are not
-    // required to export the same set — the C ABI uses out-parameters and
-    // the WebAssembly surface uses sentinels — but a shared name with a
-    // different summary is a documentation bug.
-    let ffi = exports(&read(FFI_SOURCE));
-    let wasm = exports(&read(WASM_SOURCE));
-    for export in &ffi {
-        if let Some(twin) = wasm.iter().find(|candidate| candidate.name == export.name) {
-            assert!(
-                !twin.summary.is_empty() && !export.summary.is_empty(),
-                "{} is exported by both and documented by neither",
-                export.name
-            );
+/// The heading of the twin table in the WebAssembly README.
+const TWINS: &str = "### Twins";
+
+/// The rows of the twin table: the WebAssembly names, the C names and the
+/// reason, each name cell `—` or a list of names in backticks. The first
+/// cell says what the row is about and is not read.
+fn twin_rows(readme: &str) -> Vec<(Vec<String>, Vec<String>, String)> {
+    let at = readme
+        .find(&format!("\n{TWINS}\n"))
+        .unwrap_or_else(|| panic!("the README has no heading {TWINS}"));
+    let names = |cell: &str| -> Vec<String> {
+        if cell == "—" {
+            return Vec::new();
         }
+        cell.split(", ")
+            .map(|name| {
+                assert!(
+                    name.starts_with('`') && name.ends_with('`'),
+                    "a twin cell lists names in backticks: {cell}"
+                );
+                name.trim_matches('`').to_owned()
+            })
+            .collect()
+    };
+    let mut rows = Vec::new();
+    for line in readme[at..]
+        .lines()
+        .skip_while(|line| !line.starts_with("| "))
+        .skip(2)
+    {
+        if !line.starts_with('|') {
+            break;
+        }
+        let cells: Vec<&str> = line.trim_matches('|').split(" | ").map(str::trim).collect();
+        assert_eq!(cells.len(), 4, "a twin row has four cells: {line}");
+        rows.push((names(cells[1]), names(cells[2]), cells[3].to_owned()));
     }
+    assert!(!rows.is_empty(), "no twin table after {TWINS}");
+    rows
 }
 
-/// The first cell of every row of the generated export table: the
-/// signature or prototype, without its backticks.
-fn export_rows(readme: &str) -> Vec<String> {
-    let start = readme
-        .find(START)
-        .unwrap_or_else(|| panic!("README lacks the start marker {START}"));
-    let end = readme
-        .find(END)
-        .unwrap_or_else(|| panic!("README lacks the end marker {END}"));
-    readme[start..end]
-        .lines()
-        .filter_map(|line| line.strip_prefix("| `"))
-        .filter_map(|rest| rest.split_once("` |"))
-        .map(|(signature, _)| signature.to_owned())
-        .filter(|signature| signature.contains("hc_"))
+/// The unpaired names of each surface, and whether every one of them is in
+/// exactly one row of the twin table with a reason, and every name the
+/// table lists is unpaired on its own surface.
+fn twin_table_problems(
+    wasm: &BTreeSet<String>,
+    ffi: &BTreeSet<String>,
+    rows: &[(Vec<String>, Vec<String>, String)],
+) -> Vec<String> {
+    let mut problems = Vec::new();
+    for (side, own, other, column) in [("WebAssembly", wasm, ffi, 0), ("C", ffi, wasm, 1)] {
+        for name in own.difference(other) {
+            let count = rows
+                .iter()
+                .filter(|row| if column == 0 { &row.0 } else { &row.1 }.contains(name))
+                .count();
+            if count != 1 {
+                problems.push(format!(
+                    "the {side} export `{name}` has no twin of the same name and is in {count} rows of the twin table, not one"
+                ));
+            }
+        }
+        for row in rows {
+            for name in if column == 0 { &row.0 } else { &row.1 } {
+                if !own.contains(name) {
+                    problems.push(format!(
+                        "the twin table lists `{name}`, which the {side} surface does not export"
+                    ));
+                } else if other.contains(name) {
+                    problems.push(format!(
+                        "the twin table lists `{name}`, which both surfaces export"
+                    ));
+                }
+            }
+        }
+    }
+    for (wasm_names, ffi_names, reason) in rows {
+        if reason.is_empty() || (wasm_names.is_empty() && ffi_names.is_empty()) {
+            problems.push(format!(
+                "a twin row with no names or no reason: {wasm_names:?} {ffi_names:?}"
+            ));
+        }
+    }
+    problems
+}
+
+fn names_of(source: &str) -> BTreeSet<String> {
+    exports(source)
+        .into_iter()
+        .map(|export| export.name)
         .collect()
 }
 
-/// The exported name in a signature or prototype.
-fn name_in(signature: &str) -> String {
-    let before = signature
-        .split_once('(')
-        .unwrap_or_else(|| panic!("no parameter list in {signature}"))
-        .0;
-    before
-        .rsplit(' ')
-        .next()
-        .unwrap_or(before)
-        .trim_start_matches('*')
-        .to_owned()
+#[test]
+fn every_export_has_a_twin_or_a_reason() {
+    // A caller moving between the two surfaces finds the same function
+    // under the same name, or the twin table in the WebAssembly README
+    // says what stands in for it and why.
+    let problems = twin_table_problems(
+        &names_of(&read(WASM_SOURCE)),
+        &names_of(&read(FFI_SOURCE)),
+        &twin_rows(&read(WASM_README)),
+    );
+    assert!(problems.is_empty(), "{}", problems.join("\n"));
+}
+
+#[test]
+fn the_twin_check_catches_a_missing_twin_and_a_stale_row() {
+    let set = |names: &[&str]| names.iter().map(|name| (*name).to_owned()).collect();
+    let row = |wasm: &[&str], ffi: &[&str]| {
+        (
+            wasm.iter().map(|name| (*name).to_owned()).collect(),
+            ffi.iter().map(|name| (*name).to_owned()).collect(),
+            "a reason".to_owned(),
+        )
+    };
+    let wasm = set(&["hc_a", "hc_b", "hc_shared"]);
+    let ffi = set(&["hc_c", "hc_shared"]);
+    // Every unpaired name in a row: no problem.
+    assert!(twin_table_problems(&wasm, &ffi, &[row(&["hc_a", "hc_b"], &["hc_c"])]).is_empty());
+    // `hc_b` left out of the table: caught.
+    let missing = twin_table_problems(&wasm, &ffi, &[row(&["hc_a"], &["hc_c"])]);
+    assert!(
+        missing.iter().any(|problem| problem.contains("`hc_b`")),
+        "{missing:?}"
+    );
+    // A row naming an export that both surfaces have, or one that is gone.
+    let stale = twin_table_problems(
+        &wasm,
+        &ffi,
+        &[row(&["hc_a", "hc_b", "hc_shared", "hc_gone"], &["hc_c"])],
+    );
+    assert!(
+        stale.iter().any(|problem| problem.contains("`hc_shared`")),
+        "{stale:?}"
+    );
+    assert!(
+        stale.iter().any(|problem| problem.contains("`hc_gone`")),
+        "{stale:?}"
+    );
+    // A row with no reason.
+    let mut bare = row(&["hc_a", "hc_b"], &["hc_c"]);
+    bare.2.clear();
+    assert!(!twin_table_problems(&wasm, &ffi, &[bare]).is_empty());
 }
 
 /// The rows of the ranges table after `heading`: the names in each row's
@@ -471,60 +566,160 @@ fn ranges(readme: &str, heading: &str) -> Vec<(Vec<String>, String)> {
     rows
 }
 
-/// Every export `returns_a_value` picks out of the README's table has
-/// exactly one row in the ranges table, saying what it answers for, and
-/// every name in that table is such an export.
-fn check_ranges(readme_path: &str, heading: &str, returns_a_value: impl Fn(&str) -> bool) {
-    let readme = read(readme_path);
-    let valued: Vec<String> = export_rows(&readme)
+/// The `i64` inputs of an export: its parameters of type `i64` exactly,
+/// so that a `u64` or a pointer to an `i64` is not one.
+fn i64_inputs(export: &Export) -> Vec<&str> {
+    export
+        .params
         .iter()
-        .filter(|signature| returns_a_value(signature))
-        .map(|signature| name_in(signature))
+        .filter(|(_, ty)| ty == "i64")
+        .map(|(name, _)| name.as_str())
+        .collect()
+}
+
+/// What is wrong with the ranges table against the exports `needs_a_row`
+/// picks: each such export has exactly one row, and the row names each of
+/// its `i64` inputs in backticks, so that it says what range of that input
+/// it answers for; and every name in the table is such an export.
+fn range_problems(
+    exports: &[Export],
+    ranges: &[(Vec<String>, String)],
+    needs_a_row: impl Fn(&Export) -> bool,
+) -> Vec<String> {
+    let mut problems = Vec::new();
+    let needed: Vec<&Export> = exports
+        .iter()
+        .filter(|export| needs_a_row(export))
         .collect();
-    assert!(
-        !valued.is_empty(),
-        "{readme_path}: no value-returning exports"
-    );
-    let ranges = ranges(&readme, heading);
-    for name in &valued {
+    for export in &needed {
         let rows: Vec<&String> = ranges
             .iter()
-            .filter(|(names, _)| names.contains(name))
+            .filter(|(names, _)| names.contains(&export.name))
             .map(|(_, range)| range)
             .collect();
-        assert_eq!(
-            rows.len(),
-            1,
-            "{readme_path}: `{name}` should have one row under {heading}"
-        );
-        assert!(
-            !rows[0].is_empty(),
-            "{readme_path}: `{name}` does not say what it answers for"
-        );
-    }
-    for (names, _) in &ranges {
-        for name in names {
-            assert!(
-                valued.contains(name),
-                "{readme_path}: `{name}` is under {heading} but returns no value there"
-            );
+        if rows.len() != 1 {
+            problems.push(format!(
+                "`{}` has {} rows, not one",
+                export.name,
+                rows.len()
+            ));
+            continue;
+        }
+        if rows[0].is_empty() {
+            problems.push(format!(
+                "`{}` does not say what it answers for",
+                export.name
+            ));
+        }
+        for input in i64_inputs(export) {
+            if !rows[0].contains(&format!("`{input}`")) {
+                problems.push(format!(
+                    "the row of `{}` does not name its input `{input}`",
+                    export.name
+                ));
+            }
         }
     }
+    for (names, _) in ranges {
+        for name in names {
+            if !needed.iter().any(|export| &export.name == name) {
+                problems.push(format!("`{name}` has a row but needs none"));
+            }
+        }
+    }
+    problems
+}
+
+fn check_ranges(
+    source_path: &str,
+    readme_path: &str,
+    heading: &str,
+    needs_a_row: impl Fn(&Export) -> bool,
+) {
+    let exports = exports(&read(source_path));
+    let problems = range_problems(&exports, &ranges(&read(readme_path), heading), needs_a_row);
+    assert!(
+        problems.is_empty(),
+        "{readme_path}, {heading}:\n{}",
+        problems.join("\n")
+    );
+}
+
+/// A WebAssembly export needs a row when it returns an `i64`, which is
+/// every export but `hc_alloc` and `hc_free`.
+fn wasm_needs_a_row(export: &Export) -> bool {
+    export.returns.as_deref() == Some("i64")
+}
+
+/// A C entry point needs a row when it takes an `int64_t` or writes one.
+/// The types are the parsed ones, so a `uint64_t` is neither.
+fn ffi_needs_a_row(export: &Export) -> bool {
+    !i64_inputs(export).is_empty() || export.params.iter().any(|(_, ty)| ty == "*mut i64")
 }
 
 #[test]
 fn every_i64_export_of_the_wasm_module_documents_its_range() {
-    // Every export but `hc_alloc` and `hc_free` returns an `i64`, and each
-    // must say what it answers for, so that a caller knows which numbers
-    // are results and which are refusals.
-    check_ranges(WASM_README, "### Ranges", |signature| {
-        signature.ends_with(") -> i64")
-    });
+    // Each must say what it answers for, so that a caller knows which
+    // numbers are results and which are refusals, and what range of each
+    // `i64` it takes.
+    check_ranges(WASM_SOURCE, WASM_README, "### Ranges", wasm_needs_a_row);
 }
 
 #[test]
-fn every_int64_out_parameter_of_the_c_abi_documents_its_range() {
-    check_ranges(FFI_README, "## Errors and ranges", |prototype| {
-        prototype.contains("int64_t *out_")
-    });
+fn every_int64_entry_point_of_the_c_abi_documents_its_range() {
+    check_ranges(
+        FFI_SOURCE,
+        FFI_README,
+        "## Errors and ranges",
+        ffi_needs_a_row,
+    );
+}
+
+#[test]
+fn the_range_check_catches_a_missing_row_and_an_unnamed_input() {
+    let export = |name: &str, params: &[(&str, &str)], returns: Option<&str>| Export {
+        name: name.to_owned(),
+        params: params
+            .iter()
+            .map(|(name, ty)| ((*name).to_owned(), (*ty).to_owned()))
+            .collect(),
+        returns: returns.map(str::to_owned),
+        summary: "s".to_owned(),
+        feature: "always".to_owned(),
+    };
+    let exports = [
+        export("hc_day", &[("fixed", "i64")], Some("i64")),
+        export(
+            "hc_week",
+            &[("seconds", "u64"), ("out_week", "*mut u64")],
+            Some("HcStatus"),
+        ),
+        export("hc_free", &[("pointer", "*mut u8")], None),
+    ];
+    let row = |names: &[&str], range: &str| {
+        (
+            names
+                .iter()
+                .map(|name| (*name).to_owned())
+                .collect::<Vec<_>>(),
+            range.to_owned(),
+        )
+    };
+    let good = [row(&["hc_day"], "`fixed` from 1")];
+    assert!(range_problems(&exports, &good, wasm_needs_a_row).is_empty());
+    // No row at all, and a row that does not name the input.
+    assert!(!range_problems(&exports, &[row(&["hc_other"], "x")], wasm_needs_a_row).is_empty());
+    let unnamed = range_problems(&exports, &[row(&["hc_day"], "every day")], wasm_needs_a_row);
+    assert!(
+        unnamed.iter().any(|problem| problem.contains("`fixed`")),
+        "{unnamed:?}"
+    );
+    // Two rows for one export, and a row for an export that needs none.
+    let twice = [row(&["hc_day"], "`fixed`"), row(&["hc_day"], "`fixed`")];
+    assert!(!range_problems(&exports, &twice, wasm_needs_a_row).is_empty());
+    let extra = [row(&["hc_day"], "`fixed`"), row(&["hc_free"], "x")];
+    assert!(!range_problems(&exports, &extra, wasm_needs_a_row).is_empty());
+    // A `uint64_t` input or out-parameter is not an `int64_t` one.
+    assert!(!ffi_needs_a_row(&exports[1]));
+    assert!(ffi_needs_a_row(&exports[0]));
 }

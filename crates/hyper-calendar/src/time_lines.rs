@@ -115,7 +115,8 @@ impl Tai64Format {
 ///
 /// # Errors
 ///
-/// [`Refusal::OutOfRange`] for a second outside the labels below 2⁶³.
+/// [`Refusal::OutOfRange`] for a second that no TAI64 label can hold (the
+/// labels run below 2⁶³).
 pub fn tai64_hex(instant: Instant<Tai>, format: Tai64Format) -> Answer<String> {
     let mut bytes = [0u8; 16];
     match format {

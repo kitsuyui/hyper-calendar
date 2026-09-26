@@ -10,7 +10,9 @@ export {
   HcError,
   HyperCalendar,
   METHODS,
+  NATIVE,
   SENTINELS,
+  UNITS,
 } from "./hyper-calendar.js";
 export type * from "./hyper-calendar.js";
 

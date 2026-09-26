@@ -98,6 +98,7 @@ None of the three repeats another.
 | Statistical software dates: SAS dates and datetimes, Stata's `%td`, its two datetime encodings with and without leap seconds and its 52-week year, and MATLAB's `datenum` | [statistical-software-dates.md](statistical-software-dates.md) | `sas-date`, `stata-date`, `stata-week`, `matlab-datenum`; `hc-core`: `sas_stata` |
 | Binary timestamps: NTP's eras and the 2036 wrap, the 60-bit timestamp of UUID versions 1 and 6, and the FAT date and time words | [binary-timestamps.md](binary-timestamps.md) | `hc-core`: `ntp`, `uuid`, `epoch`; `hc-format`: `fat` |
 | Local mean and local apparent (sundial) time on the Earth, temporal and Italian hours, and the ʿaṣr and Jewish evening times as named conventions | [hours-of-the-day.md](hours-of-the-day.md) | `hc-astro::solar_time` |
+| Earth rotation: UT0, UT1 and the smoothed UT2, UT1R and UT1S with the IERS 2010 zonal tide table, the Earth Rotation Angle, and the IAU 1982 and IAU 2006 Greenwich sidereal times | [earth-rotation.md](earth-rotation.md) | `hc-astro`: `ut_variants`, `earth` |
 | Mars timekeeping: the Mars Sol Date, Coordinated Mars Time, local mean and true solar time, the Mars year from 1955, the mission sol conventions, the Darian calendar and its Martiana variant | [mars-timekeeping.md](mars-timekeeping.md) | `hc-planetary`: `mars`, `mars::missions`, `mars::darian`, `mars::martiana` (`martiana`) |
 | Circad calendars: Gangale's Darian calendar for Titan and the Gregorian-based calendars of the Galilean moons, and why the Darian-based Galilean family is not carried | [circad-calendars.md](circad-calendars.md) | `darian-titan`, `gregorian-io`, `gregorian-europa`, `gregorian-ganymede`, `gregorian-callisto`; `hc-planetary`: `circad`, `titan`, `galilean` |
 
@@ -107,3 +108,11 @@ Every implemented system that needs a document has one. The next is
 written up from its sources before it is coded, with the sections above and
 a row in the table above; one found to need a document after it is coded is
 listed here until it has one ([policy.md §12](../policy.md)).
+
+## Systems judged not to need one
+
+Some implemented systems are one rule each, stated in full where they are
+coded and in [time-scales.md](../time-scales.md), with nothing a worked
+example would add: the TAI64 labels and their two conventions, the Julian
+and Besselian epochs, and Swatch Internet Time. They stay there unless a
+competing reading or a table of exceptions turns up.
