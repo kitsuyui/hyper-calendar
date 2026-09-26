@@ -183,8 +183,9 @@ const ISLAMIC_CALENDARS: &[CalendarId] = &[
     CalendarId("islamic-fatimid"),
 ];
 
-/// The Hebrew calendar.
-const HEBREW_CALENDARS: &[CalendarId] = &[CalendarId("hebrew")];
+/// The Hebrew calendar, and the prediction of its observational
+/// predecessor, which numbers its months and years the same way.
+const HEBREW_CALENDARS: &[CalendarId] = &[CalendarId("hebrew"), CalendarId("hebrew-observational")];
 
 /// The Babylonian calendar of the Seleucid era.
 const BABYLONIAN_CALENDARS: &[CalendarId] = &[CalendarId("babylonian")];

@@ -320,6 +320,30 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
   is two new years, not an almanac or decree that fixes its meridian and
   its span, so a registered calendar would claim seven years of months
   that nothing here can check.
+- **Beside the Chinese calendar**, two functions of `chinese` that read a
+  person's or a year's place in it, both from the published code of
+  *Calendrical Calculations* [reingold2018code]:
+  - `reckoned_age`, the age by the Chinese count: one at birth and one more
+    at each Chinese New Year (`chinese-age`). Wikipedia gives this as the
+    pre-modern reckoning of *suì* in China, with the example of a child
+    born in June 2000, a dragon year, who turns 13 *suì* at the lunar new
+    year of 2012 [wikipedia-en-east-asian-age-reckoning]; the module
+    reproduces it (Chinese New Year 2012 is 23 January). Nothing here
+    describes any other country's count.
+  - `marriage_augury` and `MarriageAugury`, the year classed by where 立春,
+    the minor term at 315°, falls in it (`chinese-year-marriage-augury`):
+    `Widow` with none, `Blind` with one near the end, `Bright` with one
+    near the start, `DoubleBright` with both. The test is the last minor
+    term before the local midnight that begins each New Year
+    (`current-minor-solar-term`): 小寒 when 立春 is still to come, 立春
+    when it has passed. The names are the code's. Wikipedia's "Lichun"
+    calls a year without 立春 a "widow year" (寡婦年) in the north and a
+    "blind year" (盲年) in the south, unlucky for marriage
+    [wikipedia-en-lichun], so "blind" means the code's `Widow` there;
+    the English names are carried, the Chinese ones are not. The year that
+    began on 10 February 2024 is a Widow Year [scmp-widow-year-2024], and
+    the one that began on 26 January 2009 holds two 立春, 4 February 2009
+    and 4 February 2010 [scmp-double-spring-2009]; both are reproduced.
 - **Not carried, and why.**
   - Any calendar before 1645, or the almanac of any year: a date this
     library gives for 1700 is what the modern rule says at the modern
@@ -341,6 +365,9 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
 | --- | --- | --- |
 | Chinese New Year 2000, 2020, 2021, 2022, 2023, 2024, 2025 and 2026 against the Hong Kong Observatory's tables [hko-conversion-tables], and 1900 = 31 January against the date in general circulation | 9 of 9 | `other_published_new_years_are_reproduced`, `chinese_new_year_2024_was_the_tenth_of_february` |
 | 閏二月 of 2023 beginning 22 March | Reproduced [hko-conversion-tables] | `twenty_twenty_three_had_a_leap_second_month` |
+| A child born in June 2000 is 13 *suì* from the lunar new year of 2012 [wikipedia-en-east-asian-age-reckoning]; one at birth, two the day after a New Year's Eve birth | Reproduced | `a_child_born_in_june_2000_turns_thirteen_at_the_new_year_of_2012`, `a_child_born_on_new_years_eve_is_two_the_next_day` |
+| The Widow Year from 10 February 2024 [scmp-widow-year-2024] and the double-spring year from 26 January 2009 [scmp-double-spring-2009] | Both | `the_published_widow_and_double_spring_years_are_reproduced` |
+| Every double-bright year runs more than 366 days and every widow year fewer than 365, 1653–2143; all four auguries occur | All | `a_year_with_two_lichun_has_thirteen_months_and_one_with_none_twelve` |
 | Chinese New Year 1988 = 17 February and 1985 = 20 February, with the 12th month of 1985 beginning 21 January | Reproduced [hko-conversion-tables] | `seollal_1988_fell_a_day_after_chinese_new_year`, `tet_1985_fell_a_whole_month_before_chinese_new_year` |
 | Seollal 1988 = 18 February and Seollal 2024 = 10 February, Dangi 4357 | Reproduced; the Korean side is checked against no publication of KASI's, whose conversion service could not be queried and whose FAQ was not reachable on 2026-09-25 | `seollal_1988_fell_a_day_after_chinese_new_year`, `seollal_2024_was_the_tenth_of_february_and_the_year_is_dangi_4357` |
 | Korean and Chinese new years over 1900–2049 | Differ in 9 years, never by more than a day | `the_two_calendars_disagree_only_occasionally` |
@@ -406,7 +433,11 @@ source calls apparent; nothing checked here reaches back that far.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [reingold2018] | The rules, the suì, the meridian histories | Not read directly; the published code was |
-| [reingold2018code] | `chinese-location`, `korean-location`, `korean-year`, `vietnamese-location`, `chinese-epoch`, `current-major-solar-term`, `chinese-no-major-solar-term?`, `chinese-prior-leap-month?`, `chinese-winter-solstice-on-or-before`, `chinese-new-year-in-sui`, `chinese-new-year-on-or-before`, `chinese-from-fixed` | Yes, 2026-09-25 |
+| [reingold2018code] | `chinese-location`, `korean-location`, `korean-year`, `vietnamese-location`, `chinese-epoch`, `current-major-solar-term`, `chinese-no-major-solar-term?`, `chinese-prior-leap-month?`, `chinese-winter-solstice-on-or-before`, `chinese-new-year-in-sui`, `chinese-new-year-on-or-before`, `chinese-from-fixed`; `chinese-age`, `chinese-year-marriage-augury`, `widow`, `blind`, `bright`, `double-bright`, `current-minor-solar-term` | Yes, 2026-09-25; the last seven 2026-09-26 |
+| [wikipedia-en-east-asian-age-reckoning] | The pre-modern Chinese count of *suì* and the child born in June 2000 | Yes, 2026-09-26, § People's Republic of China only |
+| [wikipedia-en-lichun] | 無春年, 寡婦年 and 盲年, and marriage in such a year thought unlucky | Yes, 2026-09-26 |
+| [scmp-widow-year-2024] | The Year of the Dragon of 2024 as a Widow Year | Yes, 2026-09-26 |
+| [scmp-double-spring-2009] | The lunar year from 26 January 2009 with 立春 on 4 February 2009 and 4 February 2010 | Yes, 2026-09-26 |
 | [samr-gbt33661] | The standard's number, title, drafting body and drafters, dates of issue, force and review | The catalogue entry, 2026-09-25; the standard itself was retrieved as a PDF that could not be read here |
 | [wikipedia-zh-nongli] | The standard's rules; 順治二年 and the 定氣 reform; the 中國天文年曆; the year counts | Yes, 2026-09-25 |
 | [wikipedia-en-chongzhen-calendar] | The Chongzhen treatise, its authors, *píngqì* to *dìngqì*, the Shunzhi promulgation | Yes, 2026-09-25 |
@@ -436,7 +467,8 @@ source calls apparent; nothing checked here reaches back that far.
 `has_no_major_solar_term`, `prior_leap_month`, `new_year_in_sui` and the
 conversions, and `CHINESE_EPOCH`. `chinese.rs`, `dangi.rs` and
 `vietnamese.rs` are parameter sets on it: `MERIDIANS`, `PARAMETERS`,
-`ENGINE`, `new_year` (or `tet`), and in `vietnamese` also
+`ENGINE`, `new_year` (or `tet`), in `chinese` also `reckoned_age`,
+`marriage_augury` and `MarriageAugury`, and in `vietnamese` also
 `SOUTHERN_MERIDIANS` and `SOUTHERN_PARAMETERS`.
 
 Anchors: in `lunisolar`, `the_meridian_table_is_read_in_order`,

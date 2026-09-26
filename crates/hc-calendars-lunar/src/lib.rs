@@ -10,7 +10,7 @@
 //! |---|---|---|
 //! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], `islamic-fatimid` ([`tabular::FATIMID`]), [`hebrew`], [`tibetan`], [`javanese`], [`meyer_palmen`], [`yerm`] | a counting rule, exact by definition |
 //! | Tabulated | [`islamic_umalqura`] | a table, exact where the table reaches |
-//! | Computed | [`chinese`], [`dangi`], [`vietnamese`], [`japanese_tenpo`], [`islamic_observational`], [`samaritan`], [`babylonian`] | an astronomical model, exact only to the model |
+//! | Computed | [`chinese`], [`dangi`], [`vietnamese`], [`japanese_tenpo`], [`islamic_observational`], [`hebrew_observational`], [`samaritan`], [`babylonian`] | an astronomical model, exact only to the model |
 //! | Historical | [`japanese_historical`] | the system's *own* period constants, exact to the bureau that published it |
 //!
 //! The four rows behave differently and the crate does not pretend
@@ -55,8 +55,8 @@
 //! [`samaritan`]; and so do the two proposals, [`meyer_palmen`], a
 //! lunisolar calendar of two remainders, and [`yerm`], a lunar one of
 //! 52-yerm cycles; [`islamic_umalqura`] stands alone because a table is not
-//! an algorithm, and [`islamic_observational`] because it predicts a
-//! sighting.
+//! an algorithm, and [`islamic_observational`] and
+//! [`hebrew_observational`] because they predict a sighting.
 //!
 //! # What this crate will not tell you
 //!
@@ -115,6 +115,7 @@ pub mod babylonian;
 pub mod chinese;
 pub mod dangi;
 pub mod hebrew;
+pub mod hebrew_observational;
 pub mod islamic_astronomical;
 pub mod islamic_civil;
 pub mod islamic_observational;
@@ -134,10 +135,12 @@ pub use babylonian::{BabylonianCalendar, BabylonianDate};
 pub use chinese::{ChineseCalendar, ChineseDate};
 pub use dangi::{DangiCalendar, DangiDate};
 pub use hebrew::{HebrewCalendar, HebrewDate};
+pub use hebrew_observational::ObservationalHebrewCalendar;
 pub use islamic_astronomical::IslamicAstronomicalCalendar;
 pub use islamic_civil::IslamicCivilCalendar;
 pub use islamic_observational::{
-    IslamicObservationalCalendar, ObservationSite, VisibilityCriterion,
+    ArcOfLightCriterion, IslamicObservationalCalendar, ObservationSite, QTestCriterion,
+    VisibilityCriterion, YallopVisibility,
 };
 pub use islamic_umalqura::IslamicUmmAlQuraCalendar;
 pub use japanese_historical::horyaku::HoryakuCalendar;
@@ -206,6 +209,9 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::SenmyoCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::tabular::FATIMID)));
         registry.insert(Box::new(DynAdapter::new(crate::HebrewCalendar)));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::ObservationalHebrewCalendar,
+        )));
         registry.insert(Box::new(DynAdapter::new(crate::SamaritanCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BabylonianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::tibetan::TIBETAN)));
@@ -241,7 +247,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 25);
+        assert_eq!(registry.len(), 26);
     }
 
     #[test]

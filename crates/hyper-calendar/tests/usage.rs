@@ -80,6 +80,7 @@ const UNRECORDED: &[&str] = &[
     "egyptian",
     "hindu-old-lunar",
     "hindu-old-solar",
+    "hebrew-observational",
     "islamic-rgsa",
     "maya-819",
     "maya-819-gmt2",

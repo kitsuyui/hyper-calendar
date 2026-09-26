@@ -1,9 +1,11 @@
 # The Hijri calendars: the tabular schemes, the Umm al-Qura table and the observational prediction
 
 Backs the identifiers `islamic-civil`, `islamic-tbla`, `islamic-fatimid`,
-`islamic-umalqura` and `islamic-rgsa` in `hc-calendars-lunar`, and the
+`islamic-umalqura` and `islamic-rgsa` in `hc-calendars-lunar`, the
 Kūshyār ibn Labbān and Ḥabash al-Ḥāsib schemes that `tabular` can build but
-does not register.
+does not register, and Yallop's crescent-visibility test, which
+`islamic_observational` carries beside Shaukat's without registering a
+calendar under it.
 
 ## What it is
 
@@ -242,6 +244,72 @@ and table, prediction and announcement all give Wednesday 10 April
 [spa-eid-alfitr-1445]. The figures are from `hc-astro` through the
 module's own functions and are the ones the tests rely on.
 
+### Yallop's *q*-test and Bruin's best time
+
+Shaukat's is one criterion of several, and the published code of
+*Calendrical Calculations* offers a second beside it, B. D. Yallop's
+[reingold2018code, `yallop-criterion`, `bruin-best-view`,
+`arc-of-vision`]. Yallop set it out in NAO Technical Note 69 of HM
+Nautical Almanac Office, whose cubic the Office adopted in place of its
+older Bruin-based test from March 1996 [yallop1997], and it is his note
+that this library follows.
+
+Yallop works with two angles. The **arc of vision**, ARCV, is the
+geocentric difference in altitude between the centres of the Moon and the
+Sun, ignoring refraction; the arc of light is the one above. From the Moon's
+horizontal parallax π he takes the semi-diameter SD = 0.27245 π, makes it
+topocentric as SD′ = SD (1 + sin *h* sin π) for the Moon's geocentric
+altitude *h*, and has the topocentric **width of the crescent**
+W′ = SD′ (1 − cos ARCL), in minutes of arc (equations 3.8–3.10). His test
+parameter is the arc of vision against a cubic in that width, fitted to the
+"Indian" table of ARCV against azimuth in the *Indian Astronomical
+Ephemeris*, scaled by a tenth so that it runs from about −1 to +1
+(equation 6.1):
+
+    q = (ARCV − (11.8371 − 6.3226 W′ + 0.7319 W′² − 0.1018 W′³)) / 10.
+
+He calibrated six ranges of *q* on 295 recorded sightings and non-sightings
+of 1859–1996 (Table 5): **A**, *q* > +0.216, easily visible; **B**, down to
+−0.014, visible under perfect conditions; **C**, down to −0.160, optical
+aid may be needed to find the crescent; **D**, down to −0.232, optical aid
+will be needed; **E**, down to −0.293, not visible with a telescope; **F**,
+below the Danjon limit. The published code's `yallop-criterion` counts the
+crescent visible when ARCV exceeds the cubic by more than *e* = −0.14,
+which is *q* > −0.014, the lower limit of B.
+
+The moment the test is made at is **Bruin's best time**. Yallop found that
+the minima of Bruin's visibility curves [bruin1977, not read here; cited
+through yallop1997] lie on a line where the Sun's depression is four
+fifths of the Moon's altitude, and turned it into a rule: with sunset at *T*s and moonset at *T*m, the best time is
+*T*b = (5 *T*s + 4 *T*m) / 9, four ninths of the lag after sunset
+(equation 4.1) [yallop1997].
+
+**Worked example: Boston, 8 February 1921.** Yallop's Table 4 lists, as
+No. 91, a naked-eye sighting at 42.3° N, 71.1° W that evening, with
+ARCL = ARCV = 11.0°, π = 54.5′, W′ = 0.27′ and *q* = +0.081, type B
+[yallop1997]. From the date and the place alone, `hc-astro` puts sunset at
+22:07 UT and moonset at 23:05, a lag of 57.6 minutes, so the best time is
+25.6 minutes after sunset, 22:33 UT. Then the Moon is 5.64° up with the Sun
+5.34° down: ARCV = 10.98°, ARCL = 10.98°, π = 54.49′. SD = 0.27245 × 54.49′
+= 14.85′, SD′ = 14.87′, and 1 − cos 10.98° = 0.0183 gives W′ = 0.272′. The
+cubic at 0.272′ is 11.8371 − 1.7197 + 0.0541 − 0.0020 = 10.170°, and
+*q* = (10.98 − 10.17) / 10 = +0.081: type B, visible, as recorded.
+
+**Where the published code differs.** `lunar-semi-diameter` in the
+published code multiplies 0.27245 by `lunar-parallax`, which is the
+parallax *in altitude*, arcsin(sin π · cos *h*), not the horizontal
+parallax, and returns the result in degrees; `yallop-criterion` then feeds
+that width, in degrees, to Yallop's cubic, whose coefficients are for
+minutes of arc [reingold2018code, `lunar-parallax`, `lunar-semi-diameter`,
+`yallop-criterion`; yallop1997, equation 6.1 and Table 4, column 15]. A
+width sixty times too small leaves the cubic at about 11.8° for any young
+crescent, so the code as written asks for an arc of vision above about
+11.7°, where Yallop asks for about 10.5° for a crescent 0.2′ wide. Read that
+way, No. 91 above would fail by 0.7° of arc of vision. The book's own text
+was not read, so whether it intends the width in degrees is not known here;
+this library computes the width as Yallop defines it, and the difference is
+a test (`yallops_q_follows_from_his_own_arcs_and_widths`).
+
 ## What is carried
 
 - **Identifiers**, all in `hc-calendars-lunar`, all with the date as
@@ -274,6 +342,18 @@ module's own functions and are the ones the tests rely on.
   them was right or wrong, and the crate keeps them as parameters. A site
   other than Mecca, or other thresholds, are reached the same way through
   `ObservationSite::new` and `IslamicObservationalCalendar::new`.
+- **Yallop's test, carried and not registered.**
+  `VisibilityCriterion::YALLOP`, with the functions it is made of —
+  `arc_of_vision`, `crescent_width_arcminutes`, `bruin_best_time`,
+  `yallop_q` — and Yallop's six types as `YallopVisibility`. Any
+  `ObservationSite` can use it, and so any `IslamicObservationalCalendar`.
+  No calendar under it has an identifier, because none was found with a
+  published date to test it against: Yallop's note predicts sightings and
+  does not date months, and no authority read here says it begins its
+  months by his test at a named place. An `islamic-yallop` identifier waits
+  on such a calendar. The shapes of criterion are an `enum`, `ArcOfLight`
+  and `QTest`, because a new shape needs new code to evaluate; a new
+  criterion of an existing shape is a value.
 - **Ranges.** The tabular calendars convert 1 to 9 999 AH, a bound chosen
   to match the rest of the library rather than anything in the sources. The
   table converts 1300 to 1600 AH, RD 687 337 (12 November 1882) to
@@ -321,6 +401,9 @@ module's own functions and are the ones the tests rely on.
 | Five Saudi announcements against the table: 1 Muḥarram 1445 = 19 July 2023, 1 Ramaḍān 1445 = 11 March 2024, 1 Shawwāl 1445 = 10 April 2024, 1 Ramaḍān 1446 = 1 March 2025, 1 Muḥarram 1447 = 26 June 2025 | 5 of 5 on the table's day | `the_published_dates_are_reproduced` |
 | The tabular civil calendar against the table over all 3 612 months of 1300–1600 AH | 1 421 month starts differ (39.3%), never by more than three days | `the_table_stays_close_to_the_arithmetic_calendar_without_matching_it` |
 | The prediction against the table over the 552 months of 1400–1445 AH | 322 begin a day later (58.3%), 230 on the same day, none earlier, none further off | `the_prediction_disagrees_with_the_saudi_table_and_the_crate_says_by_how_much` |
+| Yallop's Table 4 from the date and the place alone, ten evenings of 1921–1996, one or more of each type A to F [yallop1997] | 10 of 10: ARCL, ARCV and π within 0.06, W′ within 0.03′, *q* within 0.005, the same type, and visible under the criterion exactly for types A and B | `the_q_test_at_bruins_best_time_reproduces_yallops_table_4` |
+| Equation 6.1 on Yallop's printed ARCV and W′, and his cut-off of +0.216 at ARCL = 12° | Within rounding | `yallops_q_follows_from_his_own_arcs_and_widths` |
+| Yallop's test against Shaukat's at Mecca, the 552 months of 1400–1445 AH | 21 differ by a day: 6 earlier under Yallop's, 15 later | `yallops_test_and_shaukats_disagree_at_mecca_and_the_crate_says_how_often` |
 
 **What the five announcements check.** They are the Supreme Court's
 sighting-based decisions [spa-ramadan-1445, spa-eid-alfitr-1445,
@@ -357,7 +440,9 @@ at the end of the next section.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [reingold2018] | The scheme II closed forms, the observational calendar, the criterion | Not read directly; the published code was |
-| [reingold2018code] | `islamic-epoch`, `islamic-leap-year?`, `fixed-from-islamic`, `islamic-from-fixed`, `mean-synodic-month`, `mecca`, `islamic-location`, `shaukat-criterion`, `simple-best-view`, `arc-of-light`, `visible-crescent`, `phasis-on-or-before`, `fixed-from-observational-islamic`, `observational-islamic-from-fixed`, `saudi-criterion` | Yes, 2026-09-25 |
+| [reingold2018code] | `islamic-epoch`, `islamic-leap-year?`, `fixed-from-islamic`, `islamic-from-fixed`, `mean-synodic-month`, `mecca`, `islamic-location`, `shaukat-criterion`, `simple-best-view`, `arc-of-light`, `visible-crescent`, `phasis-on-or-before`, `fixed-from-observational-islamic`, `observational-islamic-from-fixed`, `saudi-criterion`; `yallop-criterion`, `bruin-best-view`, `arc-of-vision`, `lunar-semi-diameter`, `lunar-parallax`, `phasis-on-or-after` | Yes, 2026-09-25; the Yallop functions 2026-09-26 |
+| [yallop1997] | The *q*-test, its cubic and its six types; ARCV and the topocentric width; Bruin's best time; the rows of Table 4 the tests check | Yes, 2026-09-26, in the copy served at astronomycenter.net, a 2004 rendering of the 1997 note |
+| [bruin1977] | The curves Yallop draws the best time from | Not read; cited through Yallop |
 | [vangent-tabcal] | The origin of the tabular calendar, the four schemes and their attributions, the astrolabe pattern, the eight-year cycle, the two epochs | Yes, 2026-09-25 |
 | [vangent-ummalqura] | Who uses the Umm al-Qura calendar and who computes it, the Kaʿba as its place, the rules by period, the 75% figure | Yes, 2026-09-25 |
 | [kacst-ummulqura] | The official site | Reached 2026-09-25; the page served only its title, and nothing was read from it |
@@ -400,7 +485,12 @@ Anchors: in `tabular`,
 `islamic_observational`,
 `the_evaluation_moment_falls_between_sunset_and_civil_dusk`,
 `the_prediction_disagrees_with_the_saudi_table_and_the_crate_says_by_how_much`,
-`the_site_is_configurable_and_the_answer_depends_on_it`. The registry entry
+`the_site_is_configurable_and_the_answer_depends_on_it`,
+`the_q_test_at_bruins_best_time_reproduces_yallops_table_4`,
+`yallops_test_and_shaukats_disagree_at_mecca_and_the_crate_says_how_often`.
+The same module holds `ArcOfLightCriterion`, `QTestCriterion`,
+`YallopVisibility`, `bruin_best_time`, `arc_of_vision`,
+`crescent_width_arcminutes` and `yallop_q`. The registry entry
 for the prediction is Mecca's, and `register_all` in `lib.rs` says why the
 Kūshyār and Ḥabash schemes are not registered. English month names are in
 `hc-i18n`.

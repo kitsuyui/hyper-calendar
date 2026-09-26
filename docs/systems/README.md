@@ -61,6 +61,7 @@ None of the three repeats another.
 | The Hebrew calendar: the molad, the nineteen-year cycle and the four dehiyyot | [hebrew.md](hebrew.md) | `hebrew` |
 | Astronomical Easter at the meridian of Jerusalem: the Aleppo proposal of 1997, the full moon on a Sunday, apparent time | [astronomical-easter.md](astronomical-easter.md) | `hc-holiday`'s `Computus::ASTRONOMICAL_JERUSALEM` |
 | The lectionary cycles: Years A, B and C, the Roman weekday Years I and II, and the Revised Common Lectionary's Propers | [lectionary-cycles.md](lectionary-cycles.md) | `hc-holiday`'s `lectionary` |
+| The observational Hebrew calendar: Reingold and Dershowitz's prediction of the Second Temple months at Haifa | [hebrew-observational.md](hebrew-observational.md) | `hebrew-observational` |
 | The Samaritan calendar: the conjunction at Mount Gerizim, the first month after Julian 11 March, the Entry Era changing at the sixth month | [samaritan.md](samaritan.md) | `samaritan` |
 | The Odia Anka: the Gajapati's regnal years from Suniā, the numbers they drop, the reign of Dibyasingha Deb | [odia-anka.md](odia-anka.md) | `odia-anka` |
 | The Vira Nirvana Samvat: the Jain era of 527 BCE on the amānta months, from Kārtika śukla 1, and why there is one era and not two | [vira-nirvana-samvat.md](vira-nirvana-samvat.md) | `vira-nirvana-samvat` |

@@ -262,8 +262,13 @@ constants named; only the 216 years and the 97 minutes are also quoted.
 - **Not carried, and why.**
   - The observational calendar of the Second Temple period and of the
     Sanhedrin, in which each month was declared on the testimony of
-    witnesses to the crescent and the leap month by decision. There is no
-    rule to compute, only records, and no record is carried.
+    witnesses to the crescent and the leap month by decision. No record of
+    those declarations is carried. What can be computed is a prediction —
+    the month from the first evening the crescent should be visible, the
+    year from the spring equinox — and Reingold and Dershowitz give one
+    [reingold2018code, `observational-hebrew-first-of-nisan`]. It is a
+    calendar of its own, `hebrew-observational`, written up in
+    [hebrew-observational.md](hebrew-observational.md).
   - The calendar between its fixing and its final form: the years before
     922–924 in which, the Geniza evidence shows, the festivals were not
     where the present rules put them [wikipedia-hillel-ii]. This library
