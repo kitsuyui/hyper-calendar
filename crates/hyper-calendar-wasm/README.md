@@ -248,6 +248,10 @@ scripts/wasm-layers.sh
 The script leaves each layer at `target/wasm-layers/hyper_calendar_wasm.<feature>.wasm`
 and prints the table; CI runs it on every pull request and uploads the
 nine files, the embedded module and `tzdata/` as one workflow artifact.
+CI then runs [`scripts/wasm-size-check.sh`](../../scripts/wasm-size-check.sh),
+which fails when any layer is more than 5% larger or smaller than the table
+above: a layer that grows by accident is caught, and a change that moves a
+layer on purpose comes with a refreshed table.
 `hc_alloc`, `hc_free` and `hc_version` are in every build.
 
 The profile's `opt-level = "z"` is a measured choice, not a default. On
