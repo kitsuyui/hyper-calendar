@@ -32,6 +32,8 @@
 //! * [`direction`] — script direction and the bidi isolation a formatter
 //!   needs when it embeds a date in text running the other way.
 //! * [`casing`] — the locale-dependent parts of upper/lower/title casing.
+//! * `territories` — with the `territories` feature, CLDR's names for the
+//!   regions the workspace keeps holiday tables for.
 //!
 //! # Scope
 //!
@@ -57,6 +59,8 @@ pub mod locale;
 pub mod names;
 pub mod numbering;
 pub mod plural;
+#[cfg(feature = "territories")]
+pub mod territories;
 
 mod util;
 

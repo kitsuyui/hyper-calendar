@@ -393,9 +393,11 @@ answers exactly what the whole year would at about a third of the cost.
 table in `hc_holiday_codes` order, in the seven columns of the WebAssembly
 module's README: the code, the kind, the name in the locale, the English
 name, the locale that answered, the sources and the country of a
-subdivision or an exchange where its table records one. The tables carry
-English names only, so column 3 is filled for a `locale` whose language is
-`en` and empty for any other, or null. `hc_lectionary(fixed, buffer,
+subdivision or an exchange where its table records one. A country is
+named by CLDR 48's territory name in the `locale` where `hc-i18n` carries
+one, and everything else — an exchange, a tradition, a country the locale
+has no name for, and every table for a null `locale` — by the table's
+English name, with the tag that answered in column 5. `hc_lectionary(fixed, buffer,
 capacity, written)` writes the liturgical year, the Sunday cycle, the
 Roman weekday cycle and the RCL Proper of a day, and
 `hc_astronomical_easter(year, out_fixed)` the fixed day of Easter by the

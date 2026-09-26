@@ -1732,10 +1732,12 @@ mod observances {
     /// `subdivision`, `exchange`, `tradition` or `observance`), the name in
     /// the locale, the English name, the locale that answered, the sources,
     /// and the ISO 3166-1 country of a subdivision or an exchange where its
-    /// table records one. The tables carry English names only, so a `locale`
-    /// whose language is `en` has the English name in column 3, and every
-    /// other, or null, has it empty. Writes the required length, including
-    /// the terminator, into `written`.
+    /// table records one. A country is named by its CLDR 48 territory name
+    /// in the `locale` where `hc-i18n` carries one, and every other table,
+    /// a country the locale has no name for, and every table for a null
+    /// `locale`, by its English name, with the tag that answered in column
+    /// 5. Writes the required length, including the terminator, into
+    /// `written`.
     ///
     /// # Safety
     ///

@@ -110,8 +110,17 @@ format = ["civil", "dep:hc-format"]
 i18n = ["civil", "dep:hc-i18n"]
 # Human-readable relative times.
 humanize = ["i18n", "dep:hc-humanize"]
-# Holidays and religious observances.
-holiday = ["regional", "seasons", "equinox", "indic", "dep:hc-holiday"]
+# Holidays and religious observances, and CLDR's names for the countries
+# the tables are kept for, which `holiday_lines` writes in a locale.
+holiday = [
+    "regional",
+    "seasons",
+    "equinox",
+    "indic",
+    "dep:hc-holiday",
+    "dep:hc-i18n",
+    "hc-i18n/territories",
+]
 # Significant figures, error bars and fuzzy intervals.
 uncertainty = ["dep:hc-uncertainty"]
 # Planck time to cosmology.

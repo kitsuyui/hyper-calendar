@@ -248,7 +248,7 @@ the module's bytes inside it as base64, decoded with `atob` and bound by a
 `load(options)` that takes no source and fetches nothing. It is one
 self-contained ES module; `hyper-calendar.embedded.d.ts` types it. It is
 generated, not committed — CI uploads it with the layered builds below —
-and it is 2.53 MiB (2,648,364 bytes) for the `full` layer of 2026-09-26,
+and it is 2.68 MiB (2,812,010 bytes) for the `full` layer of 2026-09-26,
 base64 being four thirds of the module.
 
 ### tzdata beside the module
@@ -287,17 +287,17 @@ before it loads the holiday tables.
 | Feature | Exports | Brings in | Bytes | Size |
 | --- | --- | --- | ---: | ---: |
 | `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,819 | 35 KiB |
-| `timestamps` | `hc_tai64_encode`, `hc_tai64_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`: TAI64 labels, GNSS weeks, GLONASS dates, OLE Automation dates and Excel 1900 serials | nothing beyond `civil`'s crates: `hc-core`'s `tai64` and `gnss`, `hc-calendars-solar`'s `spreadsheet` | 83,975 | 82 KiB |
-| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; and when each country adopted the Gregorian calendar; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury` | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 769,254 | 751 KiB |
-| `holiday` | the four `hc_holiday*` exports, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary` and `hc_astronomical_easter` | `hc-holiday` and everything it dates by | 1,020,159 | 996 KiB |
+| `timestamps` | `hc_tai64_encode`, `hc_tai64_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`: TAI64 labels, GNSS weeks, GLONASS dates, OLE Automation dates and Excel 1900 serials | nothing beyond `civil`'s crates: `hc-core`'s `tai64` and `gnss`, `hc-calendars-solar`'s `spreadsheet` | 84,482 | 83 KiB |
+| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; and when each country adopted the Gregorian calendar; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury` | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 782,697 | 764 KiB |
+| `holiday` | the four `hc_holiday*` exports, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary` and `hc_astronomical_easter` | `hc-holiday` and everything it dates by; `hc-i18n`'s `territories`, CLDR's names for the countries in every carried locale, about 110 KB of the layer | 1,137,864 | 1.09 MiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 88,964 | 87 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 152,767 | 149 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,822 | 56 KiB |
 | `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`; the Earth's rotation and the Sun's hours | `hc-astro`, `hc-seasons` | 109,483 | 107 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 63,961 | 62 KiB |
-| `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`: Mars time, the Darian date, the surface missions' sols, and the solar day and local time of every body in `hc-planetary`'s table | `hc-planetary`, `hc-astro` | 87,632 | 86 KiB |
+| `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`: Mars time, the Darian date, the surface missions' sols, and the solar day and local time of every body in `hc-planetary`'s table | `hc-planetary`, `hc-astro` | 87,824 | 86 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 52,367 | 51 KiB |
-| `full` | all of the above | everything | 1,911,837 | 1.82 MiB |
+| `full` | all of the above | everything | 2,034,330 | 1.94 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -909,11 +909,19 @@ that a menu can show a name rather than a code. Everything in a line is the
 table's own data: the kind is the list the table is in, and a table in the
 countries' list whose code is an ISO 3166-2 code would be a `subdivision`,
 though none is yet — a subdivision's days are rules of its country's
-table, asked for by `region`. The tables carry English names alone, and
-`hc-i18n` carries no CLDR territory names, so there is nothing to put in
-another language: a tag whose language is `en` has the English name in
-column 3 and `en` in column 5, and every other tag has both empty, for the
-page to fall back to column 4, as it does for `hc_calendars`. An exchange
+table, asked for by `region`. A country's table is named in the locale by
+CLDR 48's territory names, which `hc-i18n` carries for the 195 countries in
+every locale it carries that CLDR names them in (its `territories`
+feature): 日本 under `ja`, Deutschland under `de` and `de-AT`, with the tag
+of the data that answered, `ja` or `de`, in column 5. English is CLDR's
+English too, so under `en` column 3 is `Hong Kong SAR China` where the
+table's own name in column 4 is `Hong Kong`. Everything else is named in
+English — the table's own name, with `en` in column 5: a country the
+locale has no release-level CLDR name for (Kabyle's Hong Kong, Tibetan's
+France, every country in Coptic), every exchange, tradition and set of
+observances, which CLDR does not name and the library does not translate,
+and every table under `native`, which names no one language. So column 3
+is never empty. An exchange
 names its country only where its table includes the country's for its
 days off — Tokyo, Hong Kong, Shanghai, London among them — and most list
 every closed day themselves and name none.
@@ -922,11 +930,11 @@ every closed day themselves and name none.
 | --- | --- | --- |
 | 1 | code | the table's identifier, as `hc_holiday_codes` lists it |
 | 2 | kind | `country`, `subdivision`, `exchange`, `tradition` or `observance` |
-| 3 | name | the table's name in the locale, or empty |
+| 3 | name | the table's name in the locale: a country's CLDR name, else the English name of column 4 |
 | 4 | english name | its English name, never empty and never shared by two tables of a kind |
-| 5 | locale used | `en` where column 3 is filled, else empty |
+| 5 | locale used | the tag of the data that named column 3: `ja`, `de`, `zh-Hant`, or `en` for an English name |
 | 6 | source | the statute, gazette or calendar the table names as its sources |
-| 7 | country | for a subdivision or an exchange, the ISO 3166-1 code of the country its table records, else empty |
+| 7 | country | for a subdivision or an exchange, the ISO 3166-1 code of the country its table records, else empty; the code of a row whose column 3 names the country in the same locale |
 
 ### The liturgical year
 

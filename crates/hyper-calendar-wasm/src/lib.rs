@@ -1524,9 +1524,10 @@ mod observances {
     /// table is in; the name in the locale; the English name; the locale
     /// that answered; the sources the table names; and, for a subdivision
     /// or an exchange, the ISO 3166-1 country it belongs to as its table
-    /// records it, else empty. The tables carry English names only, so a
-    /// tag whose language is `en` has the English name in column 3 and `en`
-    /// in column 5, and every other tag has both empty. The locale argument
+    /// records it, else empty. A country is named by its CLDR 48 territory
+    /// name in the locale where `hc-i18n` carries one, and every other
+    /// table, and a country the locale has no name for, by its English
+    /// name; column 5 is the tag that answered. The locale argument
     /// fails as `hc_parse_iso_date` does. A null `buffer` returns the
     /// length the text needs.
     ///

@@ -1290,8 +1290,13 @@ describe("the holiday tables and the liturgical year", () => {
       named.add(key);
     }
     const japanese = hc.holidayTables("ja-JP");
-    assert.ok(japanese.every((table) => table.name === null && table.localeUsed === null));
     assert.deepEqual(japanese.map((table) => table.englishName), tables.map((table) => table.englishName));
+    const inJapanese = new Map(japanese.map((table) => [table.code, table]));
+    assert.equal(inJapanese.get("JP")?.name, "日本");
+    assert.equal(inJapanese.get("JP")?.localeUsed, "ja");
+    assert.equal(inJapanese.get("XJPX")?.name, "Tokyo Stock Exchange (JPX)");
+    assert.equal(inJapanese.get("XJPX")?.localeUsed, "en");
+    assert.equal(inJapanese.get("XJPX")?.country, "JP");
   });
 
   test("the liturgical year 2026 is Year A and Year II", () => {

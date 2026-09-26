@@ -19,6 +19,12 @@ alloc = ["hc-core/alloc", "hc-calendar/alloc"]
 # Floating-point math for `no_std` builds: `hc-core` refuses to compile with
 # neither `std` nor `libm`.
 libm = ["hc-core/libm"]
+# CLDR 48's names for the 195 regions the workspace keeps holiday tables
+# for, in every carried locale CLDR names them in (the `territories`
+# module). About a hundred kilobytes of text, so off unless a caller names
+# territories: the facade's `holiday` feature turns it on, and a build that
+# only renders dates does not carry it.
+territories = []
 
 [dependencies]
 hc-core = { workspace = true }

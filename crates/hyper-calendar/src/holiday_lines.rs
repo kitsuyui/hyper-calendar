@@ -3,7 +3,9 @@
 //!
 //! * The tables themselves, in the order `hc_holiday_codes` lists them,
 //!   with the kind each is, its names, its sources and the country an
-//!   exchange keeps the holidays of, each read from the table's own data.
+//!   exchange keeps the holidays of, each read from the table's own data
+//!   but for a country's name in a locale, which is CLDR's, from
+//!   [`hc_i18n::territories`].
 //! * The lectionary cycles of a day and the astronomical Easter of a year,
 //!   from [`hc_holiday::lectionary`] and [`hc_holiday::computus`].
 
@@ -13,6 +15,8 @@ use core::fmt::Write;
 use hc_calendar::Rd;
 use hc_holiday::rule::RuleSet;
 use hc_holiday::{computus, countries, exchanges, international, lectionary, traditions};
+use hc_i18n::Locale;
+use hc_i18n::territories::{self, TerritoryName};
 
 use crate::boundary::{Answer, Refusal, push_cell};
 
@@ -107,12 +111,32 @@ pub fn country_of(set: &RuleSet, kind: TableKind) -> Option<&'static str> {
     }
 }
 
-/// Whether a BCP 47 tag asks for English: its language subtag is `en`.
-fn asks_for_english(locale: &str) -> bool {
+/// The locale a tag asks for, read as the calendar lines read one: `None`
+/// for `native`, which names no one locale (and a table has no language
+/// of its own to ask for), and the root locale for a tag that does not
+/// parse.
+fn requested_locale(tag: &str) -> Option<Locale> {
+    if tag == "native" {
+        None
+    } else {
+        Some(Locale::parse(tag).unwrap_or(Locale::ROOT))
+    }
+}
+
+/// What a table is called in a locale, and the tag of the data that
+/// answered: a country's CLDR name where the locale's fallback chain has
+/// one, else the table's English name, answered by `en`. Every other kind
+/// is named in English alone — CLDR names no exchange, tradition or set of
+/// observances, and nothing here invents a name for one.
+#[must_use]
+pub fn table_name(set: &RuleSet, kind: TableKind, locale: Option<&Locale>) -> TerritoryName {
     locale
-        .split(['-', '_'])
-        .next()
-        .is_some_and(|language| language.eq_ignore_ascii_case("en"))
+        .filter(|_| kind == TableKind::Country)
+        .and_then(|locale| territories::territory_name(locale, set.code))
+        .unwrap_or(TerritoryName {
+            name: set.english_name,
+            tag: "en",
+        })
 }
 
 /// The lines of `hc_holiday_tables`, one per table in [`tables`] order:
@@ -120,27 +144,29 @@ fn asks_for_english(locale: &str) -> bool {
 /// locale that answered, the sources, and the country of a subdivision or
 /// an exchange.
 ///
-/// A table carries its English name and no other: `hc-i18n` carries no
-/// CLDR territory names and the tables no names in other languages. So a
-/// tag whose language is `en` has the English name in column 3 and `en` in
-/// column 5, and every other tag, `native` included, has both empty, for a
-/// page to fall back to column 4 itself, as it does for `hc_calendars`.
+/// Column 3 follows [`table_name`]: a country is named as the locale's
+/// CLDR 48 data names it, where `hc-i18n` carries a name for it — 日本 under
+/// `ja`, Deutschland under `de` — and column 5 is the tag of the data that
+/// answered, `ja` or `de`, so that a request for `de-AT` says `de`. A
+/// country the locale has no name for, every exchange, tradition and set
+/// of observances, and every table under `native` or a tag whose chain
+/// reaches no territory names, is named in English: the table's own name,
+/// column 4, with `en` in column 5. So column 3 is never empty. Column 7
+/// stays a code, the key of the country's own row, whose column 3 names it
+/// in the same locale.
 #[must_use]
 pub fn holiday_tables(locale: &str) -> String {
-    let english = asks_for_english(locale);
+    let requested = requested_locale(locale);
     let mut out = String::new();
     for (set, kind) in tables_with_kinds() {
+        let named = table_name(set, kind, requested.as_ref());
         push_cell(&mut out, set.code);
         let _ = write!(out, "\t{}\t", kind.name());
-        if english {
-            push_cell(&mut out, set.english_name);
-        }
+        push_cell(&mut out, named.name);
         out.push('\t');
         push_cell(&mut out, set.english_name);
         out.push('\t');
-        if english {
-            out.push_str("en");
-        }
+        out.push_str(named.tag);
         out.push('\t');
         push_cell(&mut out, set.sources);
         out.push('\t');
@@ -191,7 +217,7 @@ pub fn astronomical_easter(year: i64) -> Answer<i64> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::collections::BTreeSet;
+    use alloc::collections::{BTreeMap, BTreeSet};
     use alloc::vec::Vec;
 
     fn day(year: i64, month: u8, day: u8) -> i64 {
@@ -239,16 +265,109 @@ mod tests {
         assert_eq!(row("christian-western")[1], "tradition");
         assert_eq!(row("un-days")[1], "observance");
         assert!(rows.iter().all(|row| row[1] != "subdivision"));
-        let japanese = holiday_tables("ja");
-        let first: Vec<&str> = japanese
+    }
+
+    /// The rows of [`holiday_tables`] in a locale, by code.
+    fn rows_in(locale: &str) -> BTreeMap<String, Vec<String>> {
+        holiday_tables(locale)
             .lines()
-            .next()
-            .expect("a line")
-            .split('\t')
-            .collect();
-        assert_eq!(first[2], "");
-        assert_eq!(first[4], "");
-        assert!(!first[3].is_empty());
+            .map(|line| {
+                let cells: Vec<String> = line.split('\t').map(String::from).collect();
+                (cells[0].clone(), cells)
+            })
+            .collect()
+    }
+
+    /// CLDR 48 `ja.xml` has `<territory type="JP">日本</territory>` and
+    /// `de.xml` `<territory type="DE">Deutschland</territory>`, both
+    /// approved.
+    #[test]
+    fn japanese_names_japan_and_german_names_germany() {
+        let japanese = rows_in("ja");
+        assert_eq!(japanese["JP"][2..5], ["日本", "Japan", "ja"]);
+        assert_eq!(rows_in("ja-JP")["JP"][2..5], ["日本", "Japan", "ja"]);
+        let german = rows_in("de-AT");
+        assert_eq!(german["DE"][2..5], ["Deutschland", "Germany", "de"]);
+        assert_eq!(german["JP"][2], "Japan");
+        assert_eq!(german["JP"][4], "de");
+        // English is CLDR's English: its plain value for HK, not the
+        // table's own name, which column 4 keeps.
+        let english = rows_in("en");
+        assert_eq!(
+            english["HK"][2..5],
+            ["Hong Kong SAR China", "Hong Kong", "en"]
+        );
+        // An exchange and a tradition stay English, whatever the locale;
+        // column 7 stays the code of the country's own row.
+        assert_eq!(
+            japanese["XJPX"][2..5],
+            [
+                "Tokyo Stock Exchange (JPX)",
+                "Tokyo Stock Exchange (JPX)",
+                "en"
+            ]
+        );
+        assert_eq!(japanese["XJPX"][6], "JP");
+        assert_eq!(japanese["christian-western"][4], "en");
+    }
+
+    /// Kabyle's `HK` is unconfirmed in CLDR 48 `kab.xml`, Tibetan's `FR`
+    /// likewise in `bo.xml`, and every Coptic value is: each falls back to
+    /// the table's English name, answered by `en`, beside the names the
+    /// same locales do carry.
+    #[test]
+    fn a_country_the_locale_does_not_name_falls_back_to_english() {
+        let kabyle = rows_in("kab");
+        assert_eq!(kabyle["HK"][2..5], ["Hong Kong", "Hong Kong", "en"]);
+        assert_eq!(kabyle["JP"][2..5], ["Jappu", "Japan", "kab"]);
+        let tibetan = rows_in("bo");
+        assert_eq!(tibetan["FR"][2..5], ["France", "France", "en"]);
+        assert_eq!(tibetan["JP"][4], "bo");
+        for tag in ["cop", "native", "und", "not a tag"] {
+            assert!(
+                rows_in(tag)
+                    .values()
+                    .all(|row| row[2] == row[3] && row[4] == "en"),
+                "{tag}"
+            );
+        }
+    }
+
+    /// Every table a line names a country by is one `hc-i18n` has names
+    /// for, and CLDR's English names them all.
+    #[test]
+    fn every_country_and_every_exchanges_country_is_a_territory() {
+        let english = territories::table("en").expect("English");
+        for (set, kind) in tables_with_kinds() {
+            let code = match kind {
+                TableKind::Country => Some(set.code),
+                _ => country_of(set, kind),
+            };
+            if let Some(code) = code {
+                assert!(english.name_of(code).is_some(), "{code}");
+            }
+        }
+        assert_eq!(countries::ALL.len(), territories::REGIONS.len());
+    }
+
+    /// The names a page shows, column 3, are distinct within a kind in
+    /// every locale `hc-i18n` carries, in `native` and in English, as the
+    /// English names are.
+    #[test]
+    fn no_two_tables_of_a_kind_share_a_name_in_any_locale() {
+        let tags = ["en", "native", "und"]
+            .into_iter()
+            .chain(hc_i18n::data::LOCALES.iter().map(|data| data.tag));
+        for tag in tags {
+            let mut seen = BTreeMap::new();
+            for row in rows_in(tag).into_values() {
+                assert!(!row[2].is_empty(), "{tag} {}", row[0]);
+                let key = (row[1].clone(), row[2].clone());
+                if let Some(other) = seen.insert(key, row[0].clone()) {
+                    panic!("{tag}: {other} and {} are both {}", row[0], row[2]);
+                }
+            }
+        }
     }
 
     /// The system page's worked year: Advent 2025 begins 2026, Year A and

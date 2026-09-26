@@ -21,6 +21,7 @@ nothing else in the workspace hard-codes a localised string.
 | `names` | Months, weekdays, day periods, eras, quarters and the sexagenary cycle, keyed by (locale, calendar, width, context); each locale's names for the calendars, and the templates by which `hc-format` writes a year with its era, a day and a date |
 | `direction` | Script direction and the bidi isolation a formatter needs to embed a date in text running the other way |
 | `casing` | Turkish dotted/dotless i, and whether a language capitalises month names at all |
+| `territories` | With the `territories` feature: CLDR's names for the 195 countries the workspace keeps holiday tables for, in every carried locale CLDR names them in |
 
 `Locale` is `Copy` and allocation-free: subtags live in inline ASCII buffers,
 and rendering goes through `core::fmt::Write`. Everything works with
@@ -49,6 +50,8 @@ one function.
 1. Write a `const` `LocaleData` in `src/data.rs`, copying the nearest
    existing entry for shape.
 2. Add its name to the `LOCALES` array, keeping the array in tag order.
+3. If CLDR names the countries in the language at a release level, add
+   its table to `src/territories.rs` and to `territories::TABLES`.
 
 That is all. The consistency test suite will then check the new entry for
 you: every cycle's names as many as the calendar declares for that cycle
@@ -114,6 +117,20 @@ there. The table is checked for sortedness and uniqueness by a test.
   cycle)". CLDR's `iso8601` likewise names `iso8601`, and `iso8601-week`
   is that name followed by "(W)", ISO 8601's week designator, or in English
   ISO 8601's own "ISO 8601 week date". `data.rs` says so beside the tables.
+* **Territory names** — what a locale calls a country,
+  `territories::territory_name`, behind the `territories` feature — are
+  CLDR 48's `localeDisplayNames/territories`, the plain value (no `alt`
+  form) at the `approved` and `contributed` levels, for the 195 regions
+  `hc-holiday` keeps a country's table for and no others. Thirty-five
+  locales have a table; Coptic, whose every value is unconfirmed, and the
+  five locales without a CLDR file have none, and a region a locale does
+  not name is left unnamed. Each table is one string of names in the order
+  of `territories::REGIONS`, so that about seven thousand names cost their
+  text and a line feed rather than a slice each; a macro checks each
+  table's codes against `REGIONS` at compile time. The feature is off by
+  default, and the facade's `holiday` feature turns it on, because the
+  text is about a hundred kilobytes that a build rendering only dates
+  does not need.
 * **Bidi** follows UAX 9 §2.4 (isolates) and §P2–P3 (first-strong).
 * **Casing** follows the default case algorithms of The Unicode Standard 17.0
   §3.13 plus the Turkic tailoring of `SpecialCasing-17.0.0.txt` for `tr` and

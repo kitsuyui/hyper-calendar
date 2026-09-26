@@ -2270,8 +2270,9 @@ export class HyperCalendar {
   /**
    * Every holiday table, in {@link holidayCodes} order, with its kind, its
    * names, its sources and the country of an exchange where its table
-   * records one. The tables carry English names only: `name` is filled
-   * for a tag whose language is `en` and `null` for any other.
+   * records one. A country is named as CLDR 48 names it in the locale,
+   * where `hc-i18n` carries the name, and every other table, and a country
+   * the locale has no name for, in English; `localeUsed` says which.
    *
    * @param {string} [locale]
    * @returns {import("./hyper-calendar.d.ts").HolidayTable[]}
