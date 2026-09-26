@@ -3,8 +3,9 @@
 //! The second arithmetic approximation of the Iranian calendar, beside
 //! Birashk's 2 820-year cycle in [`crate::persian`]. Eight leap years in
 //! every thirty-three: a year is leap when it leaves a remainder of 1, 5,
-//! 9, 13, 17, 22, 26 or 30 on division by 33, so the cycle opens with a
-//! leap year after four common ones and then takes one every fourth year.
+//! 9, 13, 17, 22, 26 or 30 on division by 33, so a leap year comes every
+//! fourth year, including across the cycle's end from 30 to the next
+//! cycle's 1, except for the single five-year step from 17 to 22.
 //! Its mean year is 365 + 8⁄33 = 365.2424… days, the length of the year
 //! from one March equinox to the next rather than the mean tropical year
 //! the 2 820-year cycle aims at.
@@ -249,6 +250,16 @@ mod tests {
         }
         let leaps = (1..=CYCLE_YEARS).filter(|year| is_leap_year(*year)).count();
         assert_eq!(leaps as i64, LEAPS_PER_CYCLE);
+        // A leap year every fourth year, across the cycle's end as well,
+        // but for the one five-year step from 17 to 22.
+        let leap_years: Vec<i64> = (1..=CYCLE_YEARS + 1)
+            .filter(|year| is_leap_year(*year))
+            .collect();
+        let steps: Vec<i64> = leap_years
+            .windows(2)
+            .map(|pair| pair[1] - pair[0])
+            .collect();
+        assert_eq!(steps, [4, 4, 4, 4, 5, 4, 4, 4]);
     }
 
     #[test]
@@ -314,7 +325,10 @@ mod tests {
 
     #[test]
     fn every_day_of_a_wide_range_round_trips() {
-        for rd in (EARLIEST.0..=LATEST.0).step_by(97) {
+        // Every day in a release build; every 97th in a debug one, with
+        // each year's first and last day.
+        let year_starts = (MIN_YEAR..=MAX_YEAR).map(|year| to_fixed(year, 1, 1).unwrap().0);
+        for rd in crate::sweep_days(EARLIEST.0, LATEST.0, 97, year_starts) {
             let (year, month, day) = from_fixed(Rd(rd)).unwrap();
             assert_eq!(to_fixed(year, month, day), Ok(Rd(rd)), "rd {rd}");
         }
@@ -329,7 +343,10 @@ mod tests {
     #[test]
     fn the_calendar_impl_round_trips_through_fields() {
         let calendar = ThirtyThreeYearPersianCalendar;
-        for rd in (EARLIEST.0..=LATEST.0).step_by(919) {
+        // Every day in a release build; every 919th in a debug one, with
+        // each year's first and last day.
+        let year_starts = (MIN_YEAR..=MAX_YEAR).map(|year| to_fixed(year, 1, 1).unwrap().0);
+        for rd in crate::sweep_days(EARLIEST.0, LATEST.0, 919, year_starts) {
             let date = calendar.from_fixed(Rd(rd)).unwrap();
             let fields = calendar.to_fields(date).unwrap();
             assert_eq!(fields.era, Some(ERA));

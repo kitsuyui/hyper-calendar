@@ -71,8 +71,9 @@ equinox without an ephemeris:
 
 - *The 33-year rule.* Eight leap years in thirty-three, those leaving a
   remainder of 1, 5, 9, 13, 17, 22, 26 or 30 on division by 33
-  [heydari-malayeri2004, §§5, 8]: the first leap year of the cycle after
-  four common ones, then one every fourth year. Its mean year, 365 + 8⁄33 =
+  [heydari-malayeri2004, §§5, 8]: one every fourth year, across the
+  cycle's end from 30 to the next cycle's 1 too, except for the single
+  five-year step from 17 to 22. Its mean year, 365 + 8⁄33 =
   365.2424… days, is the interval from one March equinox to the next
   (§3–4). Heydari-Malayeri reports Borkowski's finding that the rule is
   valid from A.P. 1178 to 1634 [borkowski1996, not read]. Example: A.P.

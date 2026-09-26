@@ -219,7 +219,7 @@ same constants, so this is agreement with the source's arithmetic.
 equals the mixed-radix digits of Henning's epoch data, read directly, and
 so do the shared mean motions. The Tsurphu epochs of 1732 and 1852 give the
 same Losar for every year 1600–2300 and the same date for every day of
-1800–2200.
+1800–2200 in a release build (every 11th day in a debug one).
 
 **Published Tsurphu dates** (`the_tsurphu_calendar_is_hennings_and_the_karmapas`).
 Henning's Tsurphu program prints month 1 of 2013 as "Month: 1989;39",

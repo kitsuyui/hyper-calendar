@@ -10,9 +10,13 @@
 //! 31, 64, 97, 130, 163, 192, 225, 258 and 291. Abdollahy's rule, that a
 //! year is long when (*y* + 3)·39 mod 161 < 39, reproduces the table for
 //! all 295 years, which [`is_leap_year`] computes and a test checks against
-//! the quinquennia. Everything so far is Abdollahy, "Calendars ii. In the
-//! Islamic period", *Encyclopaedia Iranica* IV (1990) (`abdollahy1990`),
-//! read in the Wayback Machine's copy on 2026-09-26; the *Zīj* itself and
+//! the quinquennia. The rule makes year 2 long, 72 long years in all, where
+//! the article's own total, 295 × 365 + 286 × ¼ days, is 71½ extra days;
+//! year 2 is the rule's inference, not the table's, which was not read.
+//! Everything so far is Abdollahy, "Calendars ii. In the Islamic period",
+//! *Encyclopaedia Iranica* IV (1990) (`abdollahy1990`), read in the
+//! Wayback Machine's copy on 2026-09-26, the total of 286 quarter-days in a
+//! search engine's extract of it on 2026-09-27; the *Zīj* itself and
 //! Iranica's Tables 35 and 36, which are images, were not read.
 //!
 //! Where the extra days stand is from the same article's fourth part,
@@ -295,7 +299,9 @@ mod tests {
             assert_eq!(is_leap_year(year), expected[year as usize], "year {year}");
             count += usize::from(is_leap_year(year));
         }
-        // 295 years with 286 quarter-days intercalated, less a half.
+        // 72 long years, the rule's count with year 2 long. Iranica's
+        // "295 x 365 + 286 x 1/4 days" is 71½; docs/systems/jalali.md says
+        // why the two differ and what would settle it.
         assert_eq!(count, 72);
         for year in QUINQUENNIAL_LEAP_YEARS {
             assert!(is_leap_year(year) && is_leap_year(year - 5) && !is_leap_year(year - 4));

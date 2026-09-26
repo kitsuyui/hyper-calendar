@@ -1,15 +1,16 @@
 //! The Era Fascista, the year count of Fascist Italy.
 //!
-//! "Day 1 of Anno I of the Era Fascista corresponded to 29 October 1922",
-//! the day after the March on Rome, and each Anno begins on 29 October, so
-//! a Gregorian date carries the year less 1921 from 29 October and less
-//! 1922 before it: 28 October 1936 is Anno XIV, 29 October 1936 Anno XV. The
-//! count was "introduced in 1926 (Anno IV) and officialized in 1927
-//! (Anno V)", written beside the common year, "abandoned in most of Italy
-//! with the fall of the Fascist regime in 1943 (Anno XXI)", and kept in the
-//! Republic of Salò "until the death of Mussolini in April 1945
-//! (Anno XXIII)". The quotations are Wikipedia, "Era Fascista"
-//! (`wikipedia-era-fascista`), retrieved 2026-09-26, with its coin of 1928
+//! "Day 1 of Anno I of the Era Fascista corresponded to 29 October 1922,
+//! when Mussolini became prime minister after his March on Rome", and each
+//! Anno begins on 29 October, so a Gregorian date carries the year less
+//! 1921 from 29 October and less 1922 before it: 28 October 1936 is
+//! Anno XIV, 29 October 1936 Anno XV. The count was "introduced in 1926
+//! (Anno IV) and officialized in 1927 (Anno V)", written beside the common
+//! year, "abandoned in most of Italy with the fall of the Fascist regime in
+//! 1943 (Anno XXI)", and kept in the Republic of Salò "until the death of
+//! Mussolini in April 1945 (Anno XXIII)". The quotations are Wikipedia,
+//! "Era Fascista" (`wikipedia-era-fascista`), retrieved 2026-09-26 and
+//! 2026-09-27, with its coin of 1928
 //! reading "A.VI" and its sundial of 1939 reading "XVII E F"; the decrees
 //! were not read. The system document is `docs/systems/era-counts.md` in
 //! the repository.

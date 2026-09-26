@@ -4,9 +4,8 @@
 //! The *Almagest* counts Egyptian years from the era of Nabonassar, noon on
 //! 26 February 747 BC, which is [`crate::egyptian`]'s epoch. The *Handy
 //! Tables* count the same years from the Era of Philip, noon on 12 November
-//! 324 BC (−323), the first of Thoth after the death of Alexander, so a day
-//! has the same month and day in both and a year number 424 less in this
-//! one: 1 Thoth of Philip 1 is 1 Thoth of Nabonassar 425. The two epochs,
+//! 324 BC (−323), so a day has the same month and day in both and a year
+//! number 424 less in this one: 1 Thoth of Philip 1 is 1 Thoth of Nabonassar 425. The two epochs,
 //! "noon, −323 November 12" and "noon, −746 February 26", are Chabás's
 //! review of Tihon and Mercier's edition, *Aestimatio* 10 (2013) 106–109
 //! (`chabas2013`), read 2026-09-26; the offset of 424 years is derived from
@@ -196,7 +195,28 @@ mod tests {
 
     #[test]
     fn a_day_keeps_its_egyptian_month_and_day_and_loses_424_years() {
-        for rd in (EPOCH.0..EPOCH.0 + 800_000).step_by(89) {
+        // The first 800 000 days and the last, every day in a release build;
+        // every 89th in a debug one, with each year's first and last day.
+        let year_starts = |first: i64, last: i64| {
+            (first..=last).step_by(365).map(|rd| {
+                let (year, _, _) = from_fixed(Rd(rd)).unwrap();
+                to_fixed(year, 1, 1).unwrap().0
+            })
+        };
+        let top = egyptian::LATEST.0;
+        let days = crate::sweep_days(
+            EPOCH.0,
+            EPOCH.0 + 800_000,
+            89,
+            year_starts(EPOCH.0, EPOCH.0 + 800_000),
+        )
+        .chain(crate::sweep_days(
+            top - 800_000,
+            top,
+            89,
+            year_starts(top - 800_000, top).chain([top + 1]),
+        ));
+        for rd in days {
             let (year, month, day) = from_fixed(Rd(rd)).unwrap();
             assert_eq!(
                 egyptian::from_fixed(Rd(rd)),
@@ -230,7 +250,10 @@ mod tests {
     #[test]
     fn the_calendar_impl_round_trips_through_fields() {
         let calendar = PhilipEraCalendar;
-        for rd in (EPOCH.0..=900_000).step_by(523) {
+        // Every day in a release build; every 523rd in a debug one, with
+        // each year's first and last day.
+        let year_starts = (1..=2_800).map(|year| to_fixed(year, 1, 1).unwrap().0);
+        for rd in crate::sweep_days(EPOCH.0, 900_000, 523, year_starts) {
             let date = calendar.from_fixed(Rd(rd)).unwrap();
             let fields = calendar.to_fields(date).unwrap();
             assert_eq!(fields.era, Some(ERA));

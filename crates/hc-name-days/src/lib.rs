@@ -38,7 +38,7 @@
 //! | [`list`] | the shape of a list, the leap-day rules, the licence, and the two functions that read a list |
 //! | [`latvia`] | the traditional and extended lists of the Valsts valodas centrs, two editions each |
 //! | [`load`] | a text format for lists a caller supplies, for the lists this crate may not ship |
-//! | [`gaps`] | seventeen countries the crate declines to ship, each with its reason |
+//! | [`gaps`] | the seventeen lists, for eighteen countries, the crate declines to ship, each with its reason |
 //!
 //! # Licensing shapes what is vendored
 //!

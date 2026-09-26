@@ -74,8 +74,14 @@ given they must agree.
 **Not carried.** The midsummer boundary: the Olympic year began with the
 Games at a full moon after the solstice, which no source read dates year by
 year, so a date between 1 January and the Games is given the Olympic year
-that began the summer before by nobody's reckoning but the published
-code's convention. The modern definition before 2004, from one opening
+that begins the following summer, by nobody's reckoning but the published
+code's convention: 1 March 775 BC is year 2 of Olympiad 1, whose Games
+were months away. Grumel dates the era's point of departure to "the
+beginning of July 776 b.c." [grumel-eras-historical]; the calendar starts
+it at 1 January 776 BC instead because it follows the published code,
+whose Olympic year is the Julian year, and a July start would need the
+same unmodelled boundary in every later year. The first half of 776 BC is
+therefore Olympiad 1 here, and before the era by Grumel's reckoning. The modern definition before 2004, from one opening
 ceremony to the next, which would need every opening day as data. A
 modern Olympiad as a calendar: it is a four-year label on the Gregorian
 year and carries nothing a function does not.
@@ -99,7 +105,7 @@ conventions.
 | [reingold2018code] | `olympiad-start`, `olympiad-from-julian-year`, `julian-year-from-olympiad` | Yes, 2026-09-26 |
 | [wikipedia-olympiad] | The formula 780 − 4*N* BC, the summer start, Jerome's example, Timaeus and the *Chronicon Paschale*; the modern count from 1 January 1896, the Games not celebrated, the 2020 Games | Yes, 2026-09-26 |
 | [olympedia-olympiad] | The Charter's two definitions, before and after 1 September 2004 | Yes, 2026-09-26; the Charter itself was not read |
-| [grumel-eras-historical] | The Olympiads as a historical era | Yes, 2026-09-26 |
+| [grumel-eras-historical] | The Olympiads as a historical era, from "the beginning of July 776 b.c." | Yes, 2026-09-26; the epoch's wording re-read 2026-09-27 |
 
 ## Code
 

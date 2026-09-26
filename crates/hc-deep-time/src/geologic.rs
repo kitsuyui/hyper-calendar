@@ -14,10 +14,11 @@
 //! revisions from the relevant ICS subcommissions. The ICS's own
 //! machine-readable form of the chart, `chart.ttl` in
 //! <https://github.com/i-c-stratigraphy/chart> (`ics-chart-ttl`), departs
-//! from the printed v2026/06 chart in a few places (0.9 against 1.0 Ma for
-//! the uncertainty at 443.1 Ma, 23.04 against 23.03 Ma for the base of the
-//! Aquitanian, 422.7 against 419.62 Ma for the top of the Ludlow); the
-//! arrays follow the printed chart.
+//! from the printed v2026/06 chart in a few places: `chart.ttl` has ±1.0
+//! where the printed chart has ±0.9 for the uncertainty at 443.1 Ma, 23.03
+//! where it has 23.04 Ma for the base of the Aquitanian, and 419.62 where
+//! it has 422.7 Ma for the top of the Ludlow. The arrays follow the printed
+//! chart.
 //!
 //! An edition is an authority's revision, and §10 of the project policy
 //! keeps each under its own name rather than replacing the older. The

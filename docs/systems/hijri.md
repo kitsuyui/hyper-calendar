@@ -241,9 +241,12 @@ It takes the depression the Sun has at sunset — not zero, since the upper
 limb is on the horizon, refraction has lifted it, and the horizon dips
 with the observer's height — and interpolates linearly between sunset and
 civil dusk (6°) to the fraction where 4.5° falls. At Mecca that puts the
-judging moment about thirteen minutes after sunset. The module states the
-error of the linearisation as well under a minute; no test measures it,
-and a minute would move the Moon by half a degree of altitude at most.
+judging moment about thirteen minutes after sunset. Against the instant
+the Sun's geometric altitude actually reaches −4.5°, found by bisection,
+the linearisation is off by at most 2.9 s at Mecca and 7.7 s at Haifa over
+the evenings of 2000–2030, and by 105 s at 55° N, where the Sun sets at a
+shallower angle; a minute would move the Moon by half a degree of altitude
+at most.
 
 **Worked example: why the prediction lands a day after the table.** The
 new moon of March 2024 was at 09:00 UT on Sunday 10 March. At Mecca that
@@ -295,7 +298,7 @@ Ephemeris*, scaled by a tenth so that it runs from about −1 to +1
     q = (ARCV − (11.8371 − 6.3226 W′ + 0.7319 W′² − 0.1018 W′³)) / 10.
 
 He calibrated six ranges of *q* on 295 recorded sightings and non-sightings
-of 1859–1996 (Table 5): **A**, *q* > +0.216, easily visible; **B**, down to
+of 1859–1996 (Table 4; ranges in Table 5): **A**, *q* > +0.216, easily visible; **B**, down to
 −0.014, visible under perfect conditions; **C**, down to −0.160, optical
 aid may be needed to find the crescent; **D**, down to −0.232, optical aid
 will be needed; **E**, down to −0.293, not visible with a telescope; **F**,
@@ -437,6 +440,8 @@ a test (`yallops_q_follows_from_his_own_arcs_and_widths`).
 | Yallop's test against Shaukat's at Mecca, the 552 months of 1400–1445 AH | 21 differ by a day: 6 earlier under Yallop's, 15 later | `yallops_test_and_shaukats_disagree_at_mecca_and_the_crate_says_how_often` |
 | Months of 31 days in the 1 212 months of 1400–1500 AH, by place and criterion | Mecca: none under either (568 of 29 days, 644 of 30). Cairo (30.1° N, 31.3° E, 200 m): one under Shaukat's, from 14 August 1988, none under Yallop's. Haifa: one under Shaukat's, from 16 September 2042, none under Yallop's | `months_of_thirty_one_days_by_criterion_and_place_in_1400_to_1500_ah` |
 | The 31st of Shawwāl 1464 at Haifa, 16 October 2042, converts both ways, and the 31st of a shorter month is refused as a day out of range | Both | `a_predicted_month_of_thirty_one_days_has_a_thirty_first_day` |
+| Every day of those two 31-day months, at Cairo and at Haifa, with a day either side, converts both ways | All | `every_day_of_the_months_of_thirty_one_days_round_trips` |
+| The interpolated 4.5° moment against the bisected one, every thirteenth evening of 2000–2030 | At most 2.9 s at Mecca, 7.7 s at Haifa, 105 s at 55° N | `the_interpolated_evaluation_moment_is_seconds_from_the_true_one` |
 
 **What the five announcements check.** They are the Supreme Court's
 sighting-based decisions [spa-ramadan-1445, spa-eid-alfitr-1445,
@@ -472,7 +477,7 @@ at the end of the next section.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [reingold2018] | The scheme II closed forms, the observational calendar, the criterion | Not read directly; the published code was |
+| [reingold2018] | The scheme II closed forms, the observational calendar, the criterion; the sample values of its Appendix C, which include the observational calendar (the published code's `dates.l` writes them with an `observational-islamic` column) and would anchor `islamic-rgsa`'s prediction to the book's own | Not read directly; the published code was |
 | [reingold2018code] | `islamic-epoch`, `islamic-leap-year?`, `fixed-from-islamic`, `islamic-from-fixed`, `mean-synodic-month`, `mecca`, `islamic-location`, `shaukat-criterion`, `simple-best-view`, `arc-of-light`, `visible-crescent`, `phasis-on-or-before`, `fixed-from-observational-islamic`, `observational-islamic-from-fixed`, `month-length`, `saudi-criterion`; the capped `alt-fixed-from-observational-islamic`, `alt-observational-islamic-from-fixed` and `early-month?`, named as not carried; `yallop-criterion`, `bruin-best-view`, `arc-of-vision`, `lunar-semi-diameter`, `lunar-parallax`, `phasis-on-or-after` | Yes, 2026-09-25; the Yallop functions 2026-09-26 |
 | [bukhari-1909] | The hadith on completing Shaʿbān to thirty days when the crescent is hidden, the practice the capped alternative models | Yes, 2026-09-26, in the English translation served by IslamicFinder; sunnah.com refused automated access |
 | [yallop1997] | The *q*-test, its cubic and its six types; ARCV and the topocentric width; Bruin's best time; the rows of Table 4 the tests check | Yes, 2026-09-26, in the copy served at astronomycenter.net, a 2004 rendering of the 1997 note |

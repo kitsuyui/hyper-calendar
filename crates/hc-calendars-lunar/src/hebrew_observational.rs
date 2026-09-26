@@ -16,9 +16,13 @@
 //! *prediction* of that calendar: a month begins on the first evening the
 //! crescent should have been visible from Haifa by Shaukat's criterion, and
 //! the year begins with the first such month whose fifteenth day is not
-//! before the spring equinox. It is a forecast of an observation, of the
-//! kind [`crate::islamic_observational`] is, and no published date of the
-//! calendar was found to test it against.
+//! before the spring equinox. Haifa and the criterion are the published
+//! code's sample choices, not a claim about where the court sat; another
+//! place or criterion would be another calendar. It is a forecast of an
+//! observation, of the kind [`crate::islamic_observational`] is. No declared
+//! date survives to test it against; the book's sample values in its
+//! Appendix C include this calendar and were not read, so no test holds
+//! them.
 //!
 //! The rule is `observational-hebrew-first-of-nisan`,
 //! `fixed-from-observational-hebrew`, `observational-hebrew-from-fixed` and
@@ -45,10 +49,12 @@
 //! # Range
 //!
 //! From [`EARLIEST`], 1 January 383 BCE, the year from which this library
-//! has measured its crescent computation against a published table of
-//! first visibilities (the Babylonian calendar's comparison with Parker and
-//! Dubberstein), to [`LATEST`], 31 December 2100, where the observational
-//! Hijri prediction also stops. Both bounds are this library's choice.
+//! has measured its ephemeris against a table of month starts (the
+//! Babylonian calendar's comparison with Parker and Dubberstein's table,
+//! itself computed by Schoch's criterion, under a moonlag at Babylon rather
+//! than Shaukat's criterion), to [`LATEST`], 31 December 2100, where the
+//! observational Hijri prediction also stops. Both bounds are this
+//! library's choice.
 
 use hc_astro::solar::{Equinox, equinox};
 use hc_astro::{Location, sunset};
@@ -442,6 +448,36 @@ mod tests {
     }
 
     #[test]
+    fn every_day_of_the_months_of_thirty_one_days_round_trips() {
+        // The four 31-day months of 1900–2100 are where reading a date back
+        // is likeliest to go wrong. Every day of each, with the last day of
+        // the month before and the first of the month after, converts both
+        // ways.
+        let calendar = ObservationalHebrewCalendar;
+        for (year, month, day) in [
+            (1_917, 7, 21),
+            (1_933, 7, 24),
+            (1_971, 7, 24),
+            (2_042, 9, 16),
+        ] {
+            let first = civil::to_rd(year, month, day);
+            let (hebrew_year, hebrew_month, _) = from_fixed(first).expect("in range");
+            for offset in -1..=31i64 {
+                let rd = Rd(first.0 + offset);
+                let date = calendar.from_fixed(rd).expect("in range");
+                assert_eq!(calendar.to_fixed(date), Ok(rd), "RD {rd}");
+                if (0..31).contains(&offset) {
+                    assert_eq!(
+                        from_fixed(rd),
+                        Ok((hebrew_year, hebrew_month, offset as u8 + 1)),
+                        "RD {rd}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
     fn years_run_twelve_or_thirteen_months() {
         for year in (5_750..5_790i64).chain(3_661..3_700) {
             let start = to_fixed(year, Month::regular(1), 1).expect("Tishrei exists");
@@ -484,8 +520,8 @@ mod tests {
 
     #[test]
     fn the_prediction_and_the_fixed_calendar_and_the_crate_says_how_far_apart() {
-        // No published date of the observational calendar exists to check
-        // it against; this is the measure the document reports instead.
+        // The book's Appendix C, the one published table of this calendar,
+        // was not read; this is the measure the document reports instead.
         let mut differences = [0u32; 4];
         for year in 1_900..=2_100i64 {
             let predicted = first_of_nisan(year).expect("converges");

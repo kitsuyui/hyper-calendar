@@ -50,12 +50,24 @@ five years. The quinquennial leap years are the Jalālī years 31, 64, 97,
 years are 33, 33, 33, 33, 29, 33, 33 and 33, so the count of quadrennia is
 seven in most periods and six in one; the list, not the "seven", is what
 fixes the table. Walking back by fours from 31, the five-year period
-before it, the leap years before are 26, 22, …, 6, 2. Iranica gives the
-rule that reproduces the whole table: "add 3 to the year in question …
+before it, the leap years before are 26, 22, …, 6, 2; year 2 being long is
+this library's inference from the list and from the rule below, not
+something the article states. Iranica gives the rule that reproduces the
+whole table: "add 3 to the year in question …
 multiply the total by 39 … divide the product by 161; if the remainder is
 less than 39, the year was a leap year" [abdollahy1990]. The test
 `the_rule_is_tusis_table_for_all_295_years` builds the table from the
 list and checks the rule against it for every year: 72 long years in 295.
+
+**Iranica's total is half a day less.** The same article counts the 295
+years as "295 x 365 + 286 x 1/4 days", a quarter-day intercalated 295 − 9
+= 286 times [abdollahy1990], which is 71½ extra days, not 72. A table of
+whole days cannot hold the half: the rule and the walk back from 31 make
+year 2 long and give 72, while 71 would follow if the first period of the
+table were counted from year 1 so that year 2 was not long. Ṭūsī's table
+itself would settle it, and it was not read. Until it is, the calendar
+follows the rule, and every date from 1 Farvardīn 3 on rests on that
+choice.
 
 **Worked example.** Year 26 is long, since 29 × 39 = 1131 and 1131 − 7 ×
 161 = 4 < 39; year 27 is not (30 × 39 − 7 × 161 = 43). 1 Farvardīn 1 is
@@ -65,7 +77,8 @@ list and checks the rule against it for every year: 72 long years in 295.
 1 Farvardīn 32 is 5 × 365 + 1 = 1 826 days after 15 March 1105: 15 March
 1110. Over the table the new year slips from 15 March to 12 March Julian,
 1 Farvardīn 295 falling on 12 March 1373, since the table's mean year,
-365 + 72/295 days, is shorter than the Julian 365¼.
+365 + 72/295 days by the rule (365 + 71.5/295 by Iranica's total), is
+shorter than the Julian 365¼.
 
 ## What is carried
 
@@ -108,7 +121,7 @@ and is not tested here: the solar crate does not depend on the lunar one.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [abdollahy1990] | The epoch and its Hejrī and Yazdegerdī equivalents; the thirty-day months; Ṭūsī's table of 295 years and its quinquennia; the mod-161 rule; the astronomical definition of Nowrūz | Yes, in the Wayback Machine's copy, 2026-09-26; Tables 35 and 36 are images and were not read |
+| [abdollahy1990] | The epoch and its Hejrī and Yazdegerdī equivalents; the thirty-day months; Ṭūsī's table of 295 years and its quinquennia; the 295 × 365 + 286 × ¼ days of the table; the mod-161 rule; the astronomical definition of Nowrūz | Yes, in the Wayback Machine's copy, 2026-09-26; the total of 286 quarter-days in a search engine's extract of the article, 2026-09-27, the live page refusing automated access; Tables 35 and 36 are images and were not read |
 | [panaino1990iv] | The extra days after Esfandārmoḏ, or after Bahman in Naṭanz, among the Zoroastrian communities that adopted the calendar | Yes, the same copy |
 | [wikipedia-jalali-calendar] | The astronomical reading, months by the Sun's entry into the signs | Yes, 2026-09-26 |
 

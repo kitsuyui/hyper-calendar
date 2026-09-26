@@ -224,7 +224,17 @@ mod tests {
     fn the_calendar_is_babylonian_day_for_day_and_round_trips() {
         let calendar = ArsacidCalendar;
         let first = earliest().unwrap();
-        for rd in (first.0..=babylonian::LATEST.0).step_by(173) {
+        // Every day of `babylonian` is a crescent computation, and walking
+        // all 167 000 takes minutes even in a release build, so no build
+        // walks every day, as `babylonian`'s own sweep does not: every
+        // 173rd day, and each 1 Nīsannu, where the year turns, with the day
+        // before it, in both builds.
+        let last = babylonian::LATEST.0;
+        let new_years = (1..=MAX_YEAR)
+            .map(|year| to_fixed(year, Month::regular(1), 1).unwrap().0)
+            .flat_map(|day| [day - 1, day])
+            .filter(|&day| (first.0..=last).contains(&day));
+        for rd in (first.0..=last).step_by(173).chain(new_years) {
             let date = calendar.from_fixed(Rd(rd)).unwrap();
             let (se, month, day) = babylonian::from_fixed(Rd(rd)).unwrap();
             assert_eq!(

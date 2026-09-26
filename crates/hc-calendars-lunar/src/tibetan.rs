@@ -1196,6 +1196,32 @@ mod tests {
     }
 
     #[test]
+    fn the_whole_range_round_trips_at_a_stride_and_at_every_new_year() {
+        // A Tibetan conversion costs tens of microseconds, so walking all
+        // 730 000 days of 1000–3000 in each of the four versions takes over
+        // three minutes even in a release build: no build walks every day.
+        // Every day of four decades is walked below; across the whole range
+        // this takes every 29th day in a release build and every 319th in a
+        // debug one, strides prime to 7 and to 30 so that every weekday and
+        // every day of the month is visited, and in both builds every New
+        // Year and the day before it, where the year's months turn.
+        let stride = if cfg!(debug_assertions) { 319 } else { 29 };
+        for calendar in VERSIONS {
+            let id = calendar.meta().id;
+            let (first, last) = (calendar.earliest().0, calendar.latest().0);
+            let new_years = (MIN_YEAR..=MAX_YEAR)
+                .map(|year| calendar.new_year(year).unwrap().0)
+                .chain([last + 1])
+                .flat_map(|day| [day - 1, day])
+                .filter(|&day| (first..=last).contains(&day));
+            for rd in (first..=last).step_by(stride).chain(new_years) {
+                let date = calendar.from_fixed(Rd(rd)).expect("in range");
+                assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "{id} rd {rd} {date}");
+            }
+        }
+    }
+
+    #[test]
     fn every_day_of_four_decades_round_trips_and_years_have_the_five_lengths() {
         for calendar in VERSIONS {
             let id = calendar.meta().id;
@@ -1288,8 +1314,9 @@ mod tests {
                 "{year}"
             );
         }
-        let step = if cfg!(debug_assertions) { 7 } else { 1 };
-        for rd in (greg(1800, 1, 1).0..greg(2200, 1, 1).0).step_by(step) {
+        // Every day in a release build, every 11th in a debug one: a stride
+        // prime to 7, so the sample visits every weekday.
+        for rd in (greg(1800, 1, 1).0..greg(2200, 1, 1).0).step_by(crate::sweep_stride(11)) {
             assert_eq!(
                 e1732.date_from_fixed(Rd(rd)),
                 TIBETAN_TSURPHU.date_from_fixed(Rd(rd)),

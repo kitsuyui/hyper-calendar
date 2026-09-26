@@ -22,9 +22,10 @@
 //! the Julian calendar with the Olympiad and its year beside each date.
 //! The midsummer boundary is not modelled — no source read fixes its day,
 //! and it moved with the full moon — so a date between January and the
-//! Games is given the Olympic year that began the previous summer by
-//! nobody's reckoning but this convention's. The count is a year count and
-//! is used as one.
+//! Games is given the Olympic year that begins the following summer, by
+//! nobody's reckoning but this convention's: 1 March 775 BC is year 2 of
+//! Olympiad 1, although the Games that opened that year were months away.
+//! The count is a year count and is used as one.
 //!
 //! # The modern count
 //!
@@ -149,7 +150,10 @@ impl OlympiadDate {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct OlympiadCalendar;
 
-/// The first day this calendar converts, 1 January 776 BC.
+/// The first day this calendar converts, 1 January 776 BC: the published
+/// code's convention, the Olympic year taken as the Julian year. Grumel
+/// dates the era from "the beginning of July 776 b.c." (`grumel-eras-historical`),
+/// and `docs/systems/olympiads.md` says why this calendar does not.
 pub const EARLIEST: Rd = match julian::to_fixed(OLYMPIAD_START, 1, 1) {
     Ok(rd) => rd,
     Err(_) => Rd(0),
@@ -309,7 +313,18 @@ mod tests {
         assert_eq!(fields.year, -1);
         assert_eq!(fields.extra.get("olympiad"), Some(194));
         assert_eq!(fields.extra.get("year-of-olympiad"), Some(3));
-        for rd in (EARLIEST.0..EARLIEST.0 + 2_000_000).step_by(733) {
+        // A day between January and the Games takes the Olympic year that
+        // begins the following summer: 1 March 775 BC is year 2 of
+        // Olympiad 1, as the module documentation says.
+        let march = calendar
+            .from_fixed(julian::to_fixed(-774, 3, 1).unwrap())
+            .unwrap();
+        assert_eq!((march.olympiad, march.year), (1, 2));
+        // Every day of the first 2 000 000 in a release build; every 733rd
+        // in a debug one, with each 1 January and the day before.
+        let new_years = (OLYMPIAD_START..OLYMPIAD_START + 5_500)
+            .map(|year| julian::to_fixed(year, 1, 1).unwrap().0);
+        for rd in crate::sweep_days(EARLIEST.0, EARLIEST.0 + 1_999_999, 733, new_years) {
             let date = calendar.from_fixed(Rd(rd)).unwrap();
             assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)));
             let fields = calendar.to_fields(date).unwrap();

@@ -270,8 +270,9 @@ hc_core::catalogue! {
     /// all that fit: A. R. Chi, *A Grouped Binary Time Code for Telemetry and
     /// Space Applications*, NASA Technical Memorandum 80606, Goddard Space
     /// Flight Center, December 1979 (`chi1979`), read 2026-09-26: TJD "is
-    /// arbitrarily chosen to begin from 0 at midnight May 24" 1968, JDN
-    /// 2 440 000, and recycles after 9999.
+    /// arbitrarily chosen to begin from 0 at midnight May 24" 1968, which is
+    /// JD 2 440 000.5 (the civil day JDN 2 440 001), and recycles after
+    /// 9999.
     pub const TRUNCATED = DayCount::from_gregorian(
         "truncated-julian-day",
         "Truncated Julian Date",
@@ -354,7 +355,9 @@ hc_core::catalogue! {
     /// (`ms-excel-date-systems`): the 1900 system's serial for a day is
     /// always 1 462 more than the 1904 system's, "four years and one day
     /// (including one leap day)"; 5 July 2011 is 40 729 in the one and
-    /// 39 267 in the other. Excel's own range ends on 9999-12-31.
+    /// 39 267 in the other. Excel's own range ends on 9999-12-31
+    /// (Microsoft Support, "DATEVALUE function", `ms-datevalue`, read
+    /// 2026-09-27); the last serial, 2 957 003, is counted, not printed.
     pub const EXCEL_1904 = DayCount::from_gregorian(
         "excel-1904",
         "Microsoft Excel 1904 date system",
@@ -810,7 +813,8 @@ mod tests {
     fn every_count_round_trips_over_a_wide_span() {
         for count in ALL {
             let calendar = DayCountCalendar(*count);
-            for offset in (-800_000..3_700_000).step_by(9_973) {
+            // Every day in a release build, every 9 973rd in a debug one.
+            for offset in (-800_000..3_700_000).step_by(crate::sweep_stride(9_973)) {
                 let rd = Rd(offset);
                 if !calendar.meta().supports(rd) {
                     continue;
@@ -1101,7 +1105,19 @@ mod tests {
     #[test]
     fn stata_weeks_round_trip_over_their_range() {
         let weeks = StataWeekCalendar;
-        for rd in (StataWeekCalendar::EARLIEST.0..=StataWeekCalendar::LATEST.0).step_by(997) {
+        // Every day in a release build; every 997th in a debug one, with
+        // the first and last day of each year and of each year's week 52,
+        // which runs eight or nine days.
+        let boundaries = (100..=9999).flat_map(|year| {
+            let first = gregorian::to_fixed(year, 1, 1).unwrap().0;
+            [first, first + 7 * 51]
+        });
+        for rd in crate::sweep_days(
+            StataWeekCalendar::EARLIEST.0,
+            StataWeekCalendar::LATEST.0,
+            997,
+            boundaries,
+        ) {
             let date = weeks.from_fixed(Rd(rd)).expect("in range");
             assert_eq!(weeks.to_fixed(date), Ok(Rd(rd)));
             let fields = weeks.to_fields(date).expect("fields");

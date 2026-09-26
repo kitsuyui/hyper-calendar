@@ -103,7 +103,8 @@ that calendar's agreement with the published tables
 read to measure the Qing days against.
 The era boundaries are asserted: the backdated years of 1368, 1402, 1457,
 1620, 1636, 1644, 1645, 1683, 1795, 1861 and 1899, the abdication day, and a
-round trip every nineteenth day of the Qing range. The Korean eras'
+round trip of every day of the Qing range in a release build (every 19th, with
+each lunar New Year and the day before, in a debug one). The Korean eras'
 boundaries are asserted on both sides of each change.
 
 The era years come from secondary sources. The dynastic records and the
@@ -138,7 +139,7 @@ module carries.
 `korean_regnal.rs` (`KoreanEra`, `ALL`, `era_at`, `gaeguk_year`,
 `KoreanRegnalCalendar`). Anchors:
 `the_backdated_reading_gives_shared_years_to_the_later_era`,
-`every_nineteenth_day_of_the_qing_round_trips`,
+`every_day_of_the_qing_round_trips`,
 `the_three_eras_begin_on_the_days_carried`,
 `the_calendar_runs_from_the_gregorian_adoption_to_the_annexation`,
 `every_day_round_trips_through_the_calendar_and_its_fields`.

@@ -208,7 +208,7 @@ Dubberstein ([babylonian.md](babylonian.md)).
 | Evagrius's accession, flight, proclamation, death and earthquake of 518–588 | `evagrius_dates_the_sixth_century_by_the_september_year` | 5 of 5 in the September year; the flight of 518 fails the October one |
 | Antioch's year 1 from 1 October 49 BC, as Grumel gives it | `the_october_year_of_antioch_begins_in_49_bc` | Holds (year level: no dated example in this convention was read) |
 | Kissufim: Loos 636 is August 576 | `the_kissufim_mosaic_is_in_gaza_636` | Holds (year level: the Gaza day of the month is not carried) |
-| Every day of every era round-trips, and each refuses the day before its year 1 | `every_era_round_trips_and_starts_at_year_one` | Holds |
+| Every day of every era, years 1 to 9 999, round-trips in a release build (a debug build takes every 97th day and each year's first and last), and each refuses the day before its year 1 | `every_era_round_trips_and_starts_at_year_one` | Holds |
 | AE = SE − 64; SE 208 is AE 144 | `the_arsacid_year_is_the_seleucid_less_sixty_four` | Holds |
 | 1 Nisannu AE 1 | `the_arsacid_era_begins_with_nisannu_of_se_65` | 15 April 247 BCE here, a day after the 14 April the source gives |
 
