@@ -37,6 +37,12 @@ testExecutionTime:
   # three pull requests in a row. The limit sat inside a shared runner's
   # variance, so it now sits above it, and the job's own `timeout-minutes`
   # is the guard against a hang.
+  #
+  # One run of #148 still took 32m35s. The instrumented run is a debug
+  # build, so the longest day-by-day sweeps now take a fixed sample of their
+  # days there and walk every day only in the release-mode `sweeps` job of
+  # tests.yml (docs/policy.md §7). That cut the suite's debug test time from
+  # about 234 to 85 seconds on one machine, so the ceiling stays where it is.
   acceptable: 30min
 diff:
   datastores:

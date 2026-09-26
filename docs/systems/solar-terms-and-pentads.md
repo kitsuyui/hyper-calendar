@@ -84,6 +84,16 @@ one the 略本暦 printed from 1874 and the one Japanese almanacs still print
 [nao-rekiwiki-72ko, wikipedia-ja-72ko]. Twenty-one of the seventy-two are
 written the same way in both lists [wikipedia-ja-72ko].
 
+The Chinese list is not one text. The 時訓解 and the 月令 of the *Book of
+Rites* differ in a handful of readings, and the Yuan scholar 吳澄's
+月令七十二候集解 differs again — 候鴈北 for the 時訓解's 鴻雁來 at 雨水次候,
+麥秋至 for 小暑至 at 小滿末候, 鶡鴠不鳴 for 鴞鳥不鳴 at 大雪初候, among
+others [yizhoushu-shixun, yueling-72hou-jijie]. The list 宣明暦 took to
+Japan is a third form, printed by the Japanese references in shinjitai
+with readings of its own — 雷乃収声 at 秋分初候 where the 時訓解 and the
+集解 both have 雷始收聲, 野雉入大水為蜃 and 野雉始雊 where they have 雉
+[nao-rekiwiki-72ko].
+
 The pentads were placed by 平気, a seventy-second of the year each, until
 寛政暦; 天保暦 stopped assigning them dates at all, and the modern practice
 of reading them off the Sun's longitude at 5° intervals is a reconstruction
@@ -196,8 +206,16 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
   order from 小寒.
 - **`pentads`**: `Pentad`, the 72 pentads at 5° each, `PentadPosition`
   (初候, 次候, 末候) and `PentadTradition`, a catalogue of name sets with two
-  entries: `CHINESE`, the 時訓解 list, and `JAPANESE`, the list of the 1874
-  略本暦, each with 72 names and 72 English glosses. `pentad_moment`,
+  entries: `CHINESE`, in traditional characters, the 時訓解's reading for
+  63 pentads and the 集解's for the nine where the crate's list has always
+  followed it — 麥秋至, 腐草為螢, 蟄蟲坏戶, 雀入大水為蛤, 蟄蟲咸俯,
+  鶡鴠不鳴, 荔挺出, 鴈北鄉 and 候鴈北, each entry marked with its source
+  and the 時訓解's reading beside it — and `JAPANESE`, the 宝暦暦 revision
+  the 1874 略本暦 printed, in the shinjitai of the 暦Wiki's 宝暦暦以降
+  column, name for name; each has 72 names and 72 English glosses. The
+  `authority` string of each says which text it is. `SHINJITAI` is the 27
+  character pairs by which `is_shared_between_traditions` reads a
+  traditional name as the Japanese list would write it. `pentad_moment`,
   `pentad_day`, `pentad_event`, `pentad_in_effect`, `pentad_on_day`,
   `pentad_beginning_on`, `pentads_from` and `pentads_in_year`. Neither
   tradition is a default.
@@ -219,8 +237,10 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
 - **`zodiac::sidereal`**: `Ayanamsa`, an anchor value at an anchor Julian
   date and nothing else, with `LAHIRI`, `RAMAN`, `KRISHNAMURTI` and
   `FAGAN_BRADLEY` as data and `new` for any other; `degrees_at`;
-  `SiderealSign`, the twelve rāśi in IAST and Devanagari with their emblems
-  and lords; `sidereal_longitude`, `ingress_after`, `ingress_moment`,
+  `SiderealSign`, the twelve rāśi in IAST with their emblems and lords (no
+  Devanagari: the table once carried had no source, and the Hindi
+  *Rashtriya Panchang* that would supply one was not read, so it was
+  removed); `sidereal_longitude`, `ingress_after`, `ingress_moment`,
   `ingress_day`, `sign_period`, `sign_at_moment`, `sign_in_effect`,
   `sign_on_day`, `sign_beginning_on` and `signs_in_year`, every one taking
   the ayanāṃśa as an argument.
@@ -359,17 +379,64 @@ they were settled.
 | [zhwiki-nongli] | The rules as the standard states them: 定気 every 15°, 東經120度 as the standard from 1928, one-second precision, 冬至 as the first term; 時憲暦's adoption of 定気 in 1645; the Hong Kong Space Museum's note on Beijing local time against 120°E | Yes, 2026-09-25 |
 | [yizhoushu-shixun] | The 時訓解 text of the 72 pentads, 立春之日東風解凍 to 大寒 | Yes, 2026-09-25, on Wikisource |
 | [wikipedia-ja-72ko] | The 略本暦 and 宣明暦 lists side by side, 72 rows; 1874; Shibukawa's 本朝七十二候; the 21 shared names | Yes, 2026-09-25 |
-| [yueling-72hou-jijie] | Attributed in the crate README as a source of the Chinese list; the readings 候雁北 and 麦秋至 that the crate's list carries and the 逸周書 does not | Not read |
+| [yueling-72hou-jijie] | The nine readings of the `CHINESE` list taken from it, and its notes on the 月令's variants | Yes, 2026-09-26, on Wikisource |
 | [reingold2018] | The 中気 rule; Beijing local mean time as 1397⁄180 hours; the search's mean tropical year | Not re-read for this document; the modules cite it |
 | [meeus1998] | The apparent solar longitude, chapter 25, through `hc-astro` | Not read for this document; `hc-astro` cites it |
 | [usno-deltat] | The observed ΔT that `hc-astro` reads from 1974-01-01 to 2026-04-01: 69.18 s at 2024-01-01, 69.11 s at 2026-01-01, 69.13 s at 2026-04-01 | Yes, 2026-09-25 |
 | [usno-deltat-preds] | The predicted ΔT that `hc-astro` reads after 2026-04-01, to 2033-10-01: 69.09 s at 2026-04-02, 71.25 s at 2033-10-01 | Yes, 2026-09-25 |
 | [capitaine2003] | The general precession in longitude, equation (39), 5028.796 195″ per century | Not read directly; the bibliographic record from Crossref, 2026-09-25; the module cites the equation |
-| [swisseph] | The four ayanāṃśa anchors | Yes, 2026-09-25, for the Hindu document |
+| [swisseph] | The four ayanāṃśa anchors; Lahiri's own 285 and Raman's own 389 as the years of zero ayanāṃśa, §2.8 | Yes, 2026-09-25, for the Hindu document; §2.8 re-read 2026-09-26 |
 | [crc1955] | The Lahiri ayanāṃśa as the national standard, 23°15′ on 21 March 1956; the 82°30′E meridian | Yes, 2026-09-25, for the Hindu document |
 | [imd-astronomical-ephemeris] | The saṅkrānti computed at the Indian meridian | Yes, 2026-09-25, for the Hindu document |
 | [ptolemy-tetrabiblos] | I.11, the solstitial, equinoctial, solid and bicorporeal signs; I.17, the houses, Leo to the Sun and Cancer to the Moon and the five pairs; I.18, the four triangles | Yes, 2026-09-25, in Robbins's translation on LacusCurtius |
 | [unicode-misc-symbols] | U+2648 ARIES to U+2653 PISCES | Yes, 2026-09-25 |
+
+Statements corrected on 2026-09-26, and how:
+
+- *The pentad lists.* `CHINESE` was the 宣明暦's list in Japanese
+  shinjitai under an authority naming only the 逸周書, so a reader of the
+  Chinese column for 26 September 2026 found 雷乃収声, the Japanese form,
+  where the 時訓解 has 雷始收聲. It is now the Chinese text in traditional
+  characters: the 時訓解 for 63 entries, as the Wikisource text prints it
+  with that edition's stray simplified characters (鸣, 凉风, 鸿雁来, 结,
+  动, 鹊) restored and its 天氣土騰 read 天氣上騰 as its own gloss 天氣不上騰
+  requires, and the 集解 for the nine entries where the old list already
+  followed the 集解 rather than the 時訓解. Four entries that followed
+  neither text (雷乃収声, 野鶏入水為蜃, 野鶏始雊, 鷙鳥厲疾) now read as the
+  時訓解 does (雷始收聲, 雉入大水爲蜃, 雉始雊, 鷙鳥厲). `JAPANESE` was
+  labelled "本朝七十二候 of the 1874 略本暦"; 本朝七十二候 is Shibukawa's
+  Jōkyō set, and the list is the 宝暦暦 revision the 略本暦 printed. Checked
+  against the 暦Wiki's 宝暦暦以降 column it differed in one character,
+  螳螂生 for the column's 蟷螂生, which it now follows. Reading the 27
+  character pairs of `SHINJITAI` as the same, the two lists still share 21
+  names (`the_two_traditions_disagree_about_most_of_the_year`,
+  `the_chinese_list_is_traditional_and_the_japanese_shinjitai`).
+- *The floor formulae* for 春分の日 and 秋分の日 in
+  `tests/japanese_equinox_days.rs`, once "that Japanese references give":
+  the formula circulates on the Japanese web, usually attributed to the
+  Observatory, but no source read publishes it, and the test now calls it
+  the crate's own cross-check. What the Observatory publishes is the
+  暦要項, one year ahead; the 2024 pair was re-read.
+- *The change to 120°E.* The Chinese Wikipedia dates it to 民國十七年, 1928;
+  Reingold and Dershowitz, whose table the crate uses, to 1929. Switching
+  in either year gives the same day for every date of 1926–1930
+  (`the_1928_and_1929_readings_of_the_meridian_change_agree`, in
+  `hc-calendars-lunar`), so the disagreement moves nothing and the
+  identifier `CHINA_BEFORE_1929` stands.
+- *Old Beijing's meridian.* Reingold and Dershowitz's 1397⁄180 hours is
+  116°25′E; the Hong Kong Space Museum, quoted by the Chinese Wikipedia,
+  gives 116°23′E. The eight seconds of time between them move one month
+  start in 1645–1929: the second month of 4324 begins on 14 March 1687 at
+  116°25′ and on 13 March at 116°23′, and a release build checks that no
+  other day differs (`the_two_readings_of_the_beijing_meridian_differ_once`).
+  The crate keeps the book's figure, and that month is to be read with the
+  other in mind.
+- *When the zodiacs coincided.* `tropical` said "around the second century
+  CE" and `sidereal` "around 285 CE". The year depends on the ayanāṃśa:
+  285 by Lahiri's and 389 by Raman's, the years each gave, as the Swiss
+  Ephemeris documentation quotes them [swisseph], and 221 by
+  Fagan–Bradley's as the crate computes it; both modules now say so, and
+  `the_two_zodiacs_coincided_in_the_third_century` checks all three.
 
 Statements in the module documentation and the crate README that no
 source read here supports, or that the sources contradict, recorded so
@@ -378,29 +445,7 @@ that they are not mistaken for sourced:
 - That pre-1685 Japanese almanacs used 平気 and later ones did not. The
   暦Wiki has 平気 through 寛政暦 and 定気 from 天保暦, 1844; 貞享暦 was
   定朔、平気. The Chinese date, 1645, is right.
-- That the `CHINESE` pentad list is the 逸周書·時訓解 "in traditional
-  characters". The names are in Japanese shinjitai, and five differ from
-  the 時訓解 text read here: 候雁北 for 鴻雁來 (雨水次候), 麦秋至 for 小暑至
-  (小満末候), 野鶏入水為蜃 for 雉入大水爲蜃 (立冬末候), 野鶏始雊 for 雉始雊
-  (小寒末候), and 群 for 羣, a variant only. The first two are readings the
-  README attributes to 月令七十二候集解, not read here.
-- That the `JAPANESE` list is "本朝七十二候 of the 1874 略本暦". The
-  Wikipedia article gives 本朝七十二候 as the title of Shibukawa's Jōkyō
-  revision; the 暦Wiki's table gives the list the 略本暦 printed as the
-  宝暦暦 revision, and it is that list the crate carries.
-- The floor formulae for 春分の日 and 秋分の日 "that Japanese references
-  give", in `tests/japanese_equinox_days.rs`; no reference is named, and
-  none was read here. The 1980–2030 table they reproduce is the
-  Observatory's, and the 2024 pair was re-read.
-- That the Chinese calendar has been computed at 120°E "since 1929". The
-  Chinese Wikipedia dates the rule to 民國十七年, 1928; Reingold and
-  Dershowitz to 1929. The Hong Kong Space Museum, quoted there, gives the
-  old Beijing meridian as 116°23′E, where the module has 116°25′E from
-  Reingold and Dershowitz.
 - That Japan has had no summer time since 1951 and China none since 1991.
-- That the tropical and sidereal zodiacs "last agreed around the second
-  century CE" (`tropical`) and "around 285 CE" (`sidereal`); the second is
-  what the Lahiri anchor gives, and the two pages disagree.
 - That the conventional zodiac dates were settled in the English-language
   press of the early twentieth century.
 - That the 十二次 were originally the stages of Jupiter's circuit; that the
@@ -430,7 +475,8 @@ Anchors in the modules:
 `three_terms_are_written_differently_in_the_two_scripts`;
 `the_first_pentad_of_a_term_starts_on_the_terms_own_day`,
 `the_seventy_two_pentads_partition_the_year`,
-`the_two_traditions_disagree_about_most_of_the_year`;
+`the_two_traditions_disagree_about_most_of_the_year`,
+`the_chinese_list_is_traditional_and_the_japanese_shinjitai`;
 `one_instant_falls_on_two_days_at_two_meridians`,
 `the_pre_1929_chinese_meridian_is_beijing_local_mean_time`,
 `the_indian_meridian_is_exactly_five_and_a_half_hours_east`;

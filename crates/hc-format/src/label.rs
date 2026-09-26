@@ -640,7 +640,7 @@ mod tests {
         // year and English after it, and nobody implies.
         let buddhist = DynAdapter::new(hc_calendars_solar::BuddhistCalendar);
         let today = buddhist.fixed_to_fields(Rd(739_880)).unwrap();
-        assert_eq!(today.era, Some("BE"));
+        assert_eq!(today.era, Some("be"));
         assert_eq!(
             render(&buddhist, &today, "th"),
             [
@@ -653,7 +653,7 @@ mod tests {
         );
         assert_eq!(render(&buddhist, &today, "en")[1], "2569 BE");
         assert_eq!(render(&buddhist, &today, "en")[4], "September 21, 2569 BE");
-        assert_eq!(render(&buddhist, &today, "ja")[1], "BE2569年");
+        assert_eq!(render(&buddhist, &today, "ja")[1], "仏暦2569年");
     }
 
     #[test]

@@ -27,7 +27,7 @@ use crate::common;
 pub const EPOCH: Rd = Rd(201_443);
 
 /// The era code of the Armenian era.
-pub const ERA: &str = "Armenian";
+pub const ERA: &str = "armenian";
 
 /// The earliest year this implementation converts.
 pub const MIN_YEAR: i64 = 1;

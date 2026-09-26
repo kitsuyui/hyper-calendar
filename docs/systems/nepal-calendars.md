@@ -90,12 +90,15 @@ to be computed, and the question is by which Sun and which rule. The first
 answer tried was the modern one, the true Sun of `hc-astro` in the Lahiri
 ayanāṃśa, as the *Rashtriya Panchang* computes it, with a rule of the
 Indian kind: the saṅkrānti's day, unless the saṅkrānti fell after some
-hour. No hour works. The Meṣa saṅkrānti of 13 April 2024 fell at 21:21
-Nepal time and the gazette keeps Baisakh 2081 on the 13th; the Siṃha and
-Kanyā saṅkrāntis of 16 August and 16 September 2024 fell at 19:59 and
-19:58 and the gazette begins Bhadau and Asoj 2081 on the 17th; the Siṃha
-saṅkrānti of 17 August 2023 fell at 13:50 and the gazette begins Bhadau
-2080 on the 18th. That is the roadmap row's finding that "no hour-of-day
+hour. No hour works. The Meṣa saṅkrānti of 13 April 2024 fell at
+21:21:04 Nepal time and the gazette keeps Baisakh 2081 on the 13th; the
+Siṃha and Kanyā saṅkrāntis of 16 August and 16 September 2024 fell at
+19:59:20 and 19:58:11 and the gazette begins Bhadau and Asoj 2081 on the
+17th; the Siṃha saṅkrānti of 17 August 2023 fell at 13:49:46 and the
+gazette begins Bhadau 2080 on the 18th. (These instants, and those
+below, are the library's, recomputed to the second after `hc-astro`
+took its ΔT from the observed table; a figure given to the minute
+elsewhere is the instant rounded to the nearest minute.) That is the roadmap row's finding that "no hour-of-day
 rule fits the gazette", and it rules out the Vikrami rule of
 `hindu-solar-vikrami` in particular, which keeps a saṅkrānti before the
 next sunrise on its day and would have begun all three of the late months
@@ -103,22 +106,29 @@ a day early. The second answer is the Sun of the *Sūrya Siddhānta*, whose
 saṅkrāntis fall hours from the modern ones and which the traditional
 almanacs still compute by. With it, 47 of the 48 months the notices fix
 begin on the civil day, midnight to midnight, in which their saṅkrānti
-falls, at whatever hour: the library's `CivilDay`. The hour matters. Eight
-of the 48 saṅkrāntis fall between midnight and sunrise — Asar 2080 at
-01:57, Bhadau 2080 at 04:49, Asoj 2080 at 05:17, Pus 2080 at 01:07,
-Falgun 2081 at 01:42, Mangsir 2082 at 01:45, Chait 2082 at 03:37 and Magh
-2083 at 03:23 — and the gazette begins every one of those months on the
-civil day of the saṅkrānti. The rule Reingold and Dershowitz give for the
+falls, at whatever hour: the library's `CivilDay`. The hour matters. Ten
+of the 48 saṅkrāntis fall between midnight and sunrise at Kathmandu —
+Asar 2080 at 01:57:10, Bhadau 2080 at 04:48:58, Asoj 2080 at 05:16:55,
+Pus 2080 at 01:07:10, Falgun 2081 at 01:41:52, Jestha 2082 at 04:17:32,
+Kartik 2082 at 04:18:34, Mangsir 2082 at 01:45:23, Chait 2082 at
+03:36:34 and Magh 2083 at 03:23:02 — and the gazette begins every one of
+those months on the civil day of the saṅkrānti. (An earlier version of
+this document counted eight, leaving out Jestha and Kartik 2082, whose
+saṅkrāntis fall 57 minutes and an hour and three quarters before
+sunrise; the test
+`the_sankrantis_between_midnight_and_sunrise_are_gazetted_on_their_civil_day`
+now holds the list.) The rule Reingold and Dershowitz give for the
 Siddhānta's solar calendar, `hindu-solar-from-fixed`, begins a month on
 the day at whose *next* sunrise the Sun stands in the new sign, which
 they name the Orissa rule and which is the library's `SunriseDay`
-[reingold2018code]; it would have begun each of those eight months a day
+[reingold2018code]; it would have begun each of those ten months a day
 early. So the reckoning is the Siddhānta's Sun with the civil-day rule at
 Kathmandu, and the civil day is Kathmandu's local mean time, 85.32° east
 and so 5 h 41 min ahead of Universal Time, where Nepal Standard Time is
 5 h 45 min ahead [wikipedia-time-in-nepal]. The saṅkrānti nearest to
-midnight in the four years, Kanyā of 2083, falls at 23:55 Nepal time on
-17 September 2026, so the four minutes move none of them. The Siddhānta
+midnight in the four years, Kanyā of 2083, falls at 23:54:44 Nepal time
+on 17 September 2026, 23:50:44 by Kathmandu's mean time, so the four
+minutes move none of them. The Siddhānta
 itself is evaluated at Ujjain's meridian, as the book evaluates it, and
 the module notes that any clock from five to six hours ahead of Universal
 Time gives the same 48 days.
@@ -251,18 +261,16 @@ the conjunction being the return of the Moon's elongation to zero, as
     happened in Magh 2082.
   - *Lalitpur's solar Nepal Sambat*, the calendar of fixed Gregorian
     dates devised from year 1141 (2020) for administrative use, whose
-    months run from 20 October: the module's stated reason is that its
-    source gives month lengths and a leap rule "similar" to the
-    Gregorian one without saying which year's leap day lands in which
-    month. The article as re-read for this document does say more than
-    that — its table gives Chaulā 29 days in regular years and 30 in leap
-    years, between Chilā ending on 17 or 18 March and Bachhalā beginning
-    on 17 or 18 April, which puts the extra day in the Chaulā that falls
-    in a Gregorian leap year — but it still cites the scheme to a
-    calendar-maker's site and a blog, states the leap rule only as
-    following "a similar pattern" to the Gregorian one, and names no
-    body that keeps it [wikipedia-nepal-sambat]. Whether that is enough
-    to carry is for the roadmap, not this document.
+    months run from 20 October. The article's table does place the leap
+    day — Chaulā has 29 days in regular years and 30 in leap years,
+    between Chilā ending on 17 or 18 March and Bachhalā beginning on 17
+    or 18 April, which puts the extra day in the Chaulā that falls in a
+    Gregorian leap year — but it cites the scheme to a calendar-maker's
+    site and a blog, states the leap rule only as following "a similar
+    pattern" to the Gregorian one, and names no body that keeps it
+    [wikipedia-nepal-sambat]. That, and not a missing month for the leap
+    day, is the module's stated reason for not carrying it; the
+    municipality's own notice would be the source that changes it.
   - *The Malla-period dates* the calendar was made for: before 1700, out
     of the amānta engine's range.
   - *The Newar names of the tithis* (Pāru for pratipadā, and so on), and
@@ -282,6 +290,7 @@ states. The tests assert:
 | Baisakh 1 falls on the weekday item 2.1 (क) gives — Friday, Saturday, Monday, Tuesday — and on 14 April 2023, 13 April 2024, 14 April 2025, 14 April 2026 | `the_new_years_days_fall_on_the_weekdays_the_notices_give` | all |
 | Christmas 2025, "पुस १० गते बिहीबार", is Pus 10, 2082, a Thursday | `christmas_2025_is_pus_10` | yes |
 | The reckoning begins each gazetted month on the gazette's day | `the_reckoning_misses_the_gazette_once_in_forty_eight_months` | 47 of 48; Magh 2082 a day early |
+| The ten Siddhānta saṅkrāntis between midnight and sunrise begin their months on the civil day, as the gazette does, and not a day earlier as `SunriseDay` would | `the_sankrantis_between_midnight_and_sunrise_are_gazetted_on_their_civil_day` | 10 of 10 |
 | 14 January 2026 is Pus 30 by the calendar and Magh 1 by the reckoning alone | `a_day_the_reckoning_puts_in_magh_is_pus_30_by_the_gazette` | both |
 | Every day of 2020–2030 round-trips across the gazetted years and the computed ones on either side | `every_day_round_trips_across_the_gazetted_years_and_beyond` | all |
 | Months of 29 to 32 days and years of 365 or 366, 2000–2099 BS | `months_run_twenty_nine_to_thirty_two_days_and_years_365_or_366` | all |
@@ -350,7 +359,7 @@ names; that Kathmandu's local mean time is 5 h 41 min ahead of Universal
 Time, which is its longitude; and that the Siddhānta's saṅkrāntis are the
 same 48 days under any clock from five to six hours ahead of Universal
 Time, which is the module's own check. The Vikrami-rule cases and the
-eight small-hours saṅkrāntis above are this library's computations, not
+ten small-hours saṅkrāntis above are this library's computations, not
 published ones.
 
 ## Code
@@ -364,6 +373,7 @@ published ones.
 `the_new_years_days_fall_on_the_weekdays_the_notices_give`,
 `christmas_2025_is_pus_10`,
 `the_reckoning_misses_the_gazette_once_in_forty_eight_months`,
+`the_sankrantis_between_midnight_and_sunrise_are_gazetted_on_their_civil_day`,
 `a_day_the_reckoning_puts_in_magh_is_pus_30_by_the_gazette`,
 `new_years_day_is_mha_puja`, `the_year_lalitpur_began_dating_in_is_1140`,
 `each_full_moon_falls_in_the_gregorian_months_the_table_gives`,

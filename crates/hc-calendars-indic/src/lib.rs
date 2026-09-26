@@ -59,6 +59,18 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+/// How far apart the days of a day-by-day sweep in this crate's tests are:
+/// every day in a release build, every `sampled`th in a debug build.
+///
+/// The full sweeps take minutes under the coverage job's instrumentation,
+/// so a debug or coverage run takes a fixed, deterministic sample of them
+/// and CI's release-mode test job walks every day; the published anchors
+/// are checked in full either way (docs/policy.md §7).
+#[cfg(test)]
+pub(crate) const fn sweep_stride(sampled: usize) -> usize {
+    if cfg!(debug_assertions) { sampled } else { 1 }
+}
+
 pub mod bikram_sambat;
 pub mod hindu_lunar;
 pub mod hindu_old;

@@ -1007,14 +1007,16 @@ mod tests {
     fn every_system_round_trips_over_the_days_it_covers() {
         // Exhaustive for the three Edo systems, which are short, and every
         // seventh day across Senmyō-reki's 823 years, which is 43 000
-        // samples and enough to catch a systematic fault. The integration
-        // tests walk every single day of all four against the published
-        // table.
+        // samples and enough to catch a systematic fault — in a release
+        // build; a debug build takes every thirteenth of those
+        // (`crate::sweep_stride`). The integration tests walk every single
+        // day of all four against the published table.
         for (name, parameters) in systems() {
             let engine = LunisolarCalendar::new(parameters);
             let first = parameters.earliest.expect("bounded");
             let last = parameters.latest.expect("bounded");
             let stride = if parameters.id == senmyo::ID { 7 } else { 1 };
+            let stride = stride * crate::sweep_stride(13) as i64;
             let mut rd = first.0;
             while rd <= last.0 {
                 let date = engine.from_fixed(Rd(rd)).expect("in range");

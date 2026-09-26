@@ -263,7 +263,8 @@ mod tests {
     #[test]
     fn the_calendar_round_trips_over_every_day_it_covers() {
         let calendar = JapaneseTenpoCalendar;
-        for rd in EARLIEST.0..=LATEST.0 {
+        // Every day in a release build, every eleventh in a debug one.
+        for rd in (EARLIEST.0..=LATEST.0).step_by(crate::sweep_stride(11)) {
             let date = calendar.from_fixed(Rd(rd)).expect("in range");
             assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "RD {rd}");
         }

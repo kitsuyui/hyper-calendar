@@ -128,9 +128,11 @@ fixed list could be right everywhere at once.
   anchors and the 十二次** are sourced, column by column, in the document.
   Two facts worth restating here: three of the 24 terms are written
   differently in traditional Chinese and in Japanese shinjitai (驚蟄/啓蟄,
-  小滿/小満, 處暑/処暑), and **only 21 of the 72 pentads** are written
-  identically in the Chinese and the Japanese list, which is why shipping one
-  set and calling it "the 72 pentads" is the usual mistake.
+  小滿/小満, 處暑/処暑), and **only 21 of the 72 pentads** have the same
+  name in the Chinese list (traditional characters, from the 逸周書·時訓解
+  and, for nine entries, 吳澄's 月令七十二候集解) and the Japanese one (the
+  宝暦暦 revision the 略本暦 printed, in shinjitai), which is why shipping
+  one set and calling it "the 72 pentads" is the usual mistake.
 * **雑節 dates** and the **equinox-day table** are checked against the
   National Astronomical Observatory of Japan's 暦要項.
 * **土用の丑の日** is checked against the published eel days for 2023–2025,

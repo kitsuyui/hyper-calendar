@@ -50,6 +50,19 @@ pub const PASARAN: [&str; 5] = ["Legi", "Pahing", "Pon", "Wage", "Kliwon"];
 pub const PASARAN_NEPTU: [i64; 5] = [5, 9, 7, 4, 8];
 
 /// The seven Javanese weekday names, Sunday first.
+///
+/// Javanese, not Indonesian: Senen (Monday), Rebo, Kemis, Jemuwah and Setu
+/// where Indonesian has Senin, Rabu, Kamis, Jumat and Sabtu. The spellings
+/// are those of the Javanese Wikipedia's article "Senèn" (read 2026-09-26),
+/// which gives Senèn, Selasa, Rebo, Kemis, Setu for Monday to Saturday, and
+/// of Wiktionary's Javanese entry "Senèn" (read 2026-09-26), which cites
+/// the Yayasan Sastra Lestari lexicon, *Sastra Jawa* (Surakarta, 2023),
+/// for "Senen"; the diacritic is dropped as it is in the pasaran's Wage
+/// (Wagé). Jemuwah is the English Wikipedia's "Javanese calendar" table
+/// (read 2026-09-26, citing Eric Oey, *Java*, Tuttle, 2001, p. 70), which
+/// prints the Indonesian Senin for Monday; the Javanese article has
+/// Jumuwah. Ahad for Sunday, beside the Minggu both pages also give, is
+/// the form the pasaran pairs with.
 pub const DINA: [&str; 7] = [
     "Ahad", "Senen", "Selasa", "Rebo", "Kemis", "Jemuwah", "Setu",
 ];

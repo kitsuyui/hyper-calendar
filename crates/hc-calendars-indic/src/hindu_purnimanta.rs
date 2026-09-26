@@ -316,7 +316,8 @@ mod tests {
 
     #[test]
     fn every_day_of_two_years_round_trips_through_both_reckonings() {
-        for rd in ymd(2023, 3, 22).0..ymd(2025, 3, 30).0 {
+        // Every day in a release build, every eleventh in a debug one.
+        for rd in (ymd(2023, 3, 22).0..ymd(2025, 3, 30).0).step_by(crate::sweep_stride(11)) {
             let date = RASHTRIYA.from_fixed(Rd(rd)).unwrap();
             assert_eq!(RASHTRIYA.to_fixed(date), Ok(Rd(rd)), "rd {rd}: {date:?}");
             let amanta = HinduLunarCalendar::RASHTRIYA.from_fixed(Rd(rd)).unwrap();

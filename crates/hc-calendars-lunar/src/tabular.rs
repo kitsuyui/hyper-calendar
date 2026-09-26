@@ -44,7 +44,7 @@ use hc_calendar::{
 };
 
 /// The era code of the Hijri era, "anno Hegirae".
-pub const ERA: &str = "AH";
+pub const ERA: &str = "ah";
 
 /// Years in the intercalation cycle.
 pub const CYCLE_YEARS: i64 = 30;

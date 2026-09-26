@@ -1,12 +1,11 @@
 //! The Julian calendar up to a country's reform, Gregorian afterwards.
 //!
 //! The system is written up in `docs/systems/gregorian-reform.md` in the
-//! repository: the bull of 1582 and what it changed, the twelve cut-overs
+//! repository: the bull of 1582 and what it changed, the fourteen cut-overs
 //! with the decree or act behind each and which of those were read, the
 //! dropped days and the unbroken week, a British date of 1752 worked by
-//! hand across the gap, the Swedish exception as a calendar of its own, the
-//! polities deliberately not carried, and the two rows — Holland and Serbia
-//! — whose dates the sources do not support. This page summarises it and
+//! hand across the gap, the Swedish exception as a calendar of its own, and
+//! the polities deliberately not carried. This page summarises it and
 //! states the code's own facts.
 //!
 //! Neither [`crate::julian`] nor [`crate::gregorian`] tells you what was
@@ -15,8 +14,8 @@
 //! and woke up on Thursday 14 September 1752; Russia was still on the Julian
 //! calendar until 31 January 1918. A "reform calendar" is therefore
 //! parameterised by one number — the fixed day on which the Gregorian
-//! reckoning took effect — and [`ADOPTIONS`] carries that number for twelve
-//! well-known polities.
+//! reckoning took effect — and [`ADOPTIONS`] carries that number for
+//! fourteen well-known polities.
 //!
 //! Three things follow from the cut-over, and all three are modelled here:
 //!
@@ -28,13 +27,18 @@
 //!
 //! # Sources
 //!
-//! The document's sources table names the instrument behind every row:
-//! *Inter gravissimas* (1582), the Calendar (New Style) Act 1750 and the
-//! Sovnarkom decree of 24 January 1918 were read; the other nine rows rest
-//! on secondary sources. Where a state adopted the reform province by
-//! province — the Dutch Republic, the German states — the entry names the
-//! province the date belongs to rather than pretending the state moved at
-//! once.
+//! Each row's `source` names the instrument behind it, and the document's
+//! sources table says which were read: *Inter gravissimas* (1582), the
+//! Calendar (New Style) Act 1750 and the Sovnarkom decree of 24 January
+//! 1918 were read, and the operative sentence of the Kingdom of Serbs,
+//! Croats and Slovenes' law of 10 January 1919 was read as a newspaper
+//! quotes it; the other ten rows rest on secondary sources, encyclopaedia
+//! articles among them. No table of adoption dates in *Calendrical
+//! Calculations* or the *Explanatory Supplement* was read, and the
+//! published code of the former carries none. Where a state adopted the
+//! reform province by province — the Dutch Republic, the German states —
+//! the entry names the province the date belongs to rather than pretending
+//! the state moved at once.
 //!
 //! # The start of the year is a separate axis
 //!
@@ -55,10 +59,10 @@ use hc_calendar::{
 use crate::{gregorian, julian};
 
 /// The era code for a date still written in the Julian calendar.
-pub const ERA_OLD_STYLE: &str = "OS";
+pub const ERA_OLD_STYLE: &str = "os";
 
 /// The era code for a date written in the Gregorian calendar.
-pub const ERA_NEW_STYLE: &str = "NS";
+pub const ERA_NEW_STYLE: &str = "ns";
 
 /// One polity's adoption of the Gregorian calendar.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -121,13 +125,14 @@ impl Adoption {
     }
 }
 
-/// Twelve well-known national adoptions of the Gregorian calendar.
+/// Fourteen well-known national and provincial adoptions of the Gregorian
+/// calendar.
 ///
 /// The list is deliberately small and explicitly incomplete: over fifty
 /// polities reformed at over twenty different moments, and several did so
 /// twice. These are the ones a reader of European or Russian sources meets
 /// most often, in chronological order.
-pub const ADOPTIONS: [Adoption; 12] = [
+pub const ADOPTIONS: [Adoption; 14] = [
     Adoption {
         id: "julian-gregorian-catholic",
         name: "Julian–Gregorian reform (Papal States, Spain, Portugal, Poland-Lithuania)",
@@ -146,11 +151,19 @@ pub const ADOPTIONS: [Adoption; 12] = [
     },
     Adoption {
         id: "julian-gregorian-nl",
-        name: "Julian–Gregorian reform (Holland and Zeeland)",
-        region: "Holland and Zeeland",
-        source: "No instrument read; Zeeland's date in every secondary source, Holland's disputed [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]",
+        name: "Julian–Gregorian reform (Zeeland and the southern Netherlands)",
+        region: "Zeeland and the southern Netherlands",
+        source: "No instrument read; the date from secondary sources, which agree on it for Zeeland and the southern provinces [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]",
         last_julian: (1582, 12, 14),
         first_gregorian: (1582, 12, 25),
+    },
+    Adoption {
+        id: "julian-gregorian-nl-holland",
+        name: "Julian–Gregorian reform (Holland)",
+        region: "Holland",
+        source: "No instrument read; the dates from secondary sources [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list], against two that put Holland with Zeeland in December 1582 [frwiki-passage-gregorien, wikipedia-adoption-gregorian]",
+        last_julian: (1583, 1, 1),
+        first_gregorian: (1583, 1, 12),
     },
     Adoption {
         id: "julian-gregorian-de-catholic",
@@ -209,10 +222,18 @@ pub const ADOPTIONS: [Adoption; 12] = [
         first_gregorian: (1918, 2, 14),
     },
     Adoption {
+        id: "julian-gregorian-rs",
+        name: "Julian–Gregorian reform (Kingdom of Serbs, Croats and Slovenes)",
+        region: "Kingdom of Serbs, Croats and Slovenes",
+        source: "The Law on the Equalisation of the Old and New Calendar of 10 January 1919, Službene novine Kraljevstva Srba, Hrvata i Slovenaca no. 1: 14 January 1919 the last day of the old calendar, 15 January reckoned as 28 January; read as Politika quotes it [politika-gregorian-1919, srwiki-gregorijanski-kalendar]",
+        last_julian: (1919, 1, 14),
+        first_gregorian: (1919, 1, 28),
+    },
+    Adoption {
         id: "julian-gregorian-ro",
-        name: "Julian–Gregorian reform (Romania and Serbia)",
-        region: "Romania and Serbia",
-        source: "Romania's decree-law of 5/18 March 1919, not read; the dates from a secondary source [rowiki-calendarul-gregorian]; wrong for Serbia, which changed on 28 January 1919",
+        name: "Julian–Gregorian reform (Romania)",
+        region: "Romania (the Old Kingdom)",
+        source: "Romania's decree-law of 5/18 March 1919, not read; the dates from a secondary source [rowiki-calendarul-gregorian]",
         last_julian: (1919, 3, 31),
         first_gregorian: (1919, 4, 14),
     },
@@ -607,9 +628,45 @@ mod tests {
         );
     }
 
+    /// The Kingdom of Serbs, Croats and Slovenes: 14 January 1919 the last
+    /// day of the old calendar, the 15th reckoned as 28 January, by the law
+    /// of 10 January 1919 as *Politika* quotes it; RD 700 562, ten weeks
+    /// before Romania's change. Holland changed from 1 to 12 January 1583,
+    /// three weeks after Zeeland's 14 to 25 December 1582.
+    #[test]
+    fn serbia_and_holland_have_rows_of_their_own() {
+        let serbia = adoption_by_id("julian-gregorian-rs").unwrap();
+        assert_eq!(serbia.cutover(), Ok(Rd(700_562)));
+        assert_eq!(serbia.skipped_days(), Ok(13));
+        let romania = adoption_by_id("julian-gregorian-ro").unwrap();
+        assert_eq!(
+            romania.cutover().unwrap().0 - serbia.cutover().unwrap().0,
+            76
+        );
+        let calendar = ReformCalendar::new(serbia).unwrap();
+        assert!(calendar.to_fixed(ReformDate::new(1919, 1, 20)).is_err());
+        assert_eq!(
+            calendar.from_fixed(Rd(700_561)),
+            Ok(ReformDate::new(1919, 1, 14))
+        );
+
+        let holland = adoption_by_id("julian-gregorian-nl-holland").unwrap();
+        let zeeland = adoption_by_id("julian-gregorian-nl").unwrap();
+        assert_eq!(holland.skipped_days(), Ok(10));
+        assert_eq!(
+            holland.cutover().unwrap().0 - zeeland.cutover().unwrap().0,
+            18
+        );
+        // Holland wrote 1 January 1583 Old Style and then 12 January New
+        // Style, so its 25 December 1582 is the Julian one and exists.
+        let calendar = ReformCalendar::new(holland).unwrap();
+        assert!(calendar.to_fixed(ReformDate::new(1583, 1, 5)).is_err());
+        assert!(calendar.to_fixed(ReformDate::new(1582, 12, 25)).is_ok());
+    }
+
     #[test]
     fn a_custom_cutover_works_for_polities_not_in_the_table() {
-        // Alaska is why the table stops at twelve entries: when it was sold
+        // Alaska is one reason the table is not longer: when it was sold
         // to the United States in 1867 it changed calendar and side of the
         // date line in the same act, so Friday 6 October (Julian) was
         // followed by Friday 18 October (Gregorian) and a weekday repeated.

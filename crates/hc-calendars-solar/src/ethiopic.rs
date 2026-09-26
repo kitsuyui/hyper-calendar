@@ -29,10 +29,10 @@ use crate::common;
 pub const EPOCH: Rd = Rd(2_796);
 
 /// The era code of the era of the Incarnation, *Amätä Məḥrät*.
-pub const ERA_INCARNATION: &str = "AM";
+pub const ERA_INCARNATION: &str = "am";
 
 /// The era code of the era of the World, *Amätä Aläm*.
-pub const ERA_WORLD: &str = "AA";
+pub const ERA_WORLD: &str = "aa";
 
 /// How far the era of the World runs ahead of the era of the Incarnation.
 pub const WORLD_ERA_OFFSET: i64 = 5_500;

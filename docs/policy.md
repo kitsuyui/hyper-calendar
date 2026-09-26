@@ -163,6 +163,10 @@ and nothing else pays for Gregorian dates and nothing else.
 ## 7. Correctness is demonstrated, not asserted
 
 - Every conversion is round-trip tested over its whole supported range.
+  The longest of those sweeps walk every day in a release build and a
+  fixed, deterministic sample of the days in a debug one, so that the
+  instrumented coverage run stays inside its time limit; CI runs the test
+  suite both ways. The published anchors are checked in full in both.
 - Every algorithm is anchored to at least one independently published
   reference value, cited in a comment.
 - Boundaries are tested explicitly: epochs, calendar reforms, leap days, leap

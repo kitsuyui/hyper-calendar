@@ -53,7 +53,7 @@ use crate::{common, gregorian};
 pub const YEAR_OFFSET: i64 = 543;
 
 /// The era code of the Buddhist Era.
-pub const ERA: &str = "BE";
+pub const ERA: &str = "be";
 
 /// The earliest year this implementation converts, so that the year number
 /// is never zero or negative.

@@ -8,7 +8,7 @@ follows from those.
 
 ## What is in it
 
-The calendars below, plus twelve national variants of the Julian/Gregorian
+The calendars below, plus fourteen national and provincial variants of the Julian/Gregorian
 reform; [`docs/supported.md`](../../docs/supported.md) counts them, so this
 file does not:
 
@@ -137,14 +137,14 @@ modules. Every one of those epochs is cross-checked in a test against an
 independent statement of the same day — a Julian calendar date, a Julian Day
 Number, or both — rather than trusted as a constant.
 
-The Gregorian reform's twelve cut-overs, and the Swedish calendar of
+The Gregorian reform's fourteen cut-overs, and the Swedish calendar of
 1700–1712 beside them, are written up in
 [`docs/systems/gregorian-reform.md`](../../docs/systems/gregorian-reform.md):
 the decree or act behind each date and which of them were read — the bull,
-the British Act of 1750 and the Soviet decree of 1918 directly, the rest
-through secondary sources — the dropped days and the unbroken week, a
-British date of 1752 worked across the gap, the polities deliberately not
-carried, and the two rows (Holland, Serbia) the sources do not support.
+the British Act of 1750 and the Soviet decree of 1918 directly, the Serbian
+law of 1919 as a newspaper quotes it, the rest through secondary sources —
+the dropped days and the unbroken week, a British date of 1752 worked
+across the gap, and the polities deliberately not carried.
 Each table entry is checked for internal consistency: the day after the
 last Julian date must be the first Gregorian one.
 

@@ -23,8 +23,12 @@
 //! equinox, not "near the equator". Because precession carries the equinox
 //! westward about 50″ a year, a tropical sign is **not** the constellation of the same
 //! name: the Sun is in tropical Aries in late March but in front of the stars
-//! of Pisces. They last agreed around the second century CE. The division
-//! that tracks the stars instead is [`super::sidereal`].
+//! of Pisces. They last agreed in the third or fourth century CE, the year
+//! depending on where the sidereal zero point is put: 285 by Lahiri's
+//! ayanāṃśa and 389 by Raman's, the years each author gave as the Swiss
+//! Ephemeris documentation quotes them, and 221 by Fagan–Bradley's as this
+//! crate computes it. The division that tracks the stars instead is
+//! [`super::sidereal`], which holds the test.
 //!
 //! Nothing here is an astrological claim. The signs are a coordinate system
 //! with a long history of names attached to it; the element, modality and

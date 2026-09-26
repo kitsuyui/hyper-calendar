@@ -33,7 +33,7 @@ use crate::gregorian;
 pub const YEAR_OFFSET: i64 = 78;
 
 /// The era code of the Śaka era.
-pub const ERA: &str = "Saka";
+pub const ERA: &str = "saka";
 
 /// The earliest year this implementation converts.
 pub const MIN_YEAR: i64 = 1;

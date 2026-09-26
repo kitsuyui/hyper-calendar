@@ -63,7 +63,7 @@ use crate::gregorian;
 pub const ID: &str = "assyrian";
 
 /// The era code, A.Y., "Assyrian Year".
-pub const ERA: &str = "AY";
+pub const ERA: &str = "ay";
 
 /// What the era adds to the Gregorian year from 1 April: year 1 is
 /// 4750 BC.

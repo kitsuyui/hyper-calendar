@@ -215,7 +215,7 @@ pub const TAMIL: HinduSolarCalendar = HinduSolarCalendar {
     native_locales: &["ta", "sa"],
     tradition: rashi::TAMIL,
     rule: SankrantiRule::BeforeSunset,
-    era: "Tiruvalluvar",
+    era: "tiruvalluvar",
     era_offset: 31,
     location: CENTRAL_STATION,
     model: SolarModel::Modern(Ayanamsa::LAHIRI),
@@ -231,7 +231,7 @@ pub const MALAYALAM: HinduSolarCalendar = HinduSolarCalendar {
     native_locales: &["ml", "sa"],
     tradition: rashi::MALAYALAM,
     rule: SankrantiRule::BeforeAfternoon,
-    era: "Kollam",
+    era: "kollam",
     era_offset: -824,
     location: CENTRAL_STATION,
     model: SolarModel::Modern(Ayanamsa::LAHIRI),
@@ -246,7 +246,7 @@ pub const BENGALI: HinduSolarCalendar = HinduSolarCalendar {
     native_locales: &["bn", "sa"],
     tradition: rashi::BENGALI,
     rule: SankrantiRule::DayAfter,
-    era: "Bangabda",
+    era: "bangabda",
     era_offset: -593,
     location: CENTRAL_STATION,
     model: SolarModel::Modern(Ayanamsa::LAHIRI),
@@ -263,7 +263,7 @@ pub const VIKRAMI: HinduSolarCalendar = HinduSolarCalendar {
     native_locales: &["hi", "sa"],
     tradition: rashi::VIKRAMI,
     rule: SankrantiRule::SunriseDay,
-    era: "VS",
+    era: "vs",
     era_offset: 57,
     location: CENTRAL_STATION,
     model: SolarModel::Modern(Ayanamsa::LAHIRI),
@@ -314,7 +314,7 @@ impl HinduSolarCalendar {
     }
 
     /// The saṅkrānti that opens `month` of `year`, without validation.
-    fn sankranti_of(&self, year: i64, month: u8) -> Moment {
+    pub(crate) fn sankranti_of(&self, year: i64, month: u8) -> Moment {
         let opening = self.year_opening(year);
         if month == 1 {
             opening

@@ -70,7 +70,7 @@ pub const USAGE_SOURCE: &str = "The official calendar of Nepal since 1901, 1958 
 /// The calendar's identifier.
 pub const ID: CalendarId = CalendarId("bikram-sambat");
 /// The era it counts in.
-pub const ERA: &str = "Bikram Sambat";
+pub const ERA: &str = "bikram-sambat";
 
 /// The twelve months as the gazette spells them, Baisakh first.
 pub const MONTHS_DEVANAGARI: [&str; 12] = [
@@ -534,6 +534,50 @@ mod tests {
             })
             .collect();
         assert_eq!(missed, [(2082, 10, 1)]);
+    }
+
+    /// The evidence for [`SankrantiRule::CivilDay`] over
+    /// [`SankrantiRule::SunriseDay`]: ten of the 48 Siddhānta saṅkrāntis
+    /// fall between midnight and sunrise at Kathmandu, and the gazette
+    /// begins every one of those months on the saṅkrānti's civil day, where
+    /// the sunrise-to-sunrise day would have begun it a day earlier.
+    #[test]
+    fn the_sankrantis_between_midnight_and_sunrise_are_gazetted_on_their_civil_day() {
+        let before_sunrise: Vec<(i64, u8)> = GAZETTED
+            .iter()
+            .filter_map(|row| {
+                let instant = RECKONING.sankranti_of(row.year, row.month);
+                let civil = SankrantiRule::CivilDay.month_begins(instant, KATHMANDU);
+                if instant.0 >= crate::tithi::sunrise_of(civil, KATHMANDU).0 {
+                    return None;
+                }
+                let gazette = BikramSambatCalendar::gazetted_start(row.year, row.month).unwrap();
+                assert_eq!(gazette, civil, "{} {}", row.year, row.month);
+                assert_eq!(
+                    SankrantiRule::SunriseDay.month_begins(instant, KATHMANDU),
+                    Rd(civil.0 - 1),
+                    "{} {}",
+                    row.year,
+                    row.month
+                );
+                Some((row.year, row.month))
+            })
+            .collect();
+        assert_eq!(
+            before_sunrise,
+            [
+                (2080, 3),
+                (2080, 5),
+                (2080, 6),
+                (2080, 9),
+                (2081, 11),
+                (2082, 2),
+                (2082, 7),
+                (2082, 8),
+                (2082, 12),
+                (2083, 10),
+            ]
+        );
     }
 
     #[test]

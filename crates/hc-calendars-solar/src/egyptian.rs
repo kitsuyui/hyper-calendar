@@ -29,7 +29,7 @@ use crate::common;
 pub const EPOCH: Rd = Rd(-272_787);
 
 /// The era code of the era of Nabonassar.
-pub const ERA: &str = "Nabonassar";
+pub const ERA: &str = "nabonassar";
 
 /// The earliest year this implementation converts.
 pub const MIN_YEAR: i64 = 1;

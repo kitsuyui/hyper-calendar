@@ -198,7 +198,7 @@ fn the_historical_calendars_are_bounded() {
     assert_eq!(usage.standing(today), Standing::InUse);
 }
 
-/// The twelve reform calendars are told apart by name.
+/// The fourteen reform calendars are told apart by name.
 #[test]
 fn the_reform_calendars_carry_their_polity_in_the_name() {
     let registry = hyper_calendar::registry();
@@ -214,10 +214,10 @@ fn the_reform_calendars_carry_their_polity_in_the_name() {
             names.push(meta.english_name);
         }
     }
-    assert_eq!(names.len(), 12);
+    assert_eq!(names.len(), 14);
     names.sort_unstable();
     names.dedup();
-    assert_eq!(names.len(), 12, "two reform calendars share a name");
+    assert_eq!(names.len(), 14, "two reform calendars share a name");
     let france = registry
         .get_by_name("julian-gregorian-fr")
         .expect("france")

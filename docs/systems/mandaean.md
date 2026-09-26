@@ -73,7 +73,7 @@ falls in February of 479,004 BCE by the proleptic Gregorian calendar
 [haberl2021]. That is the year number carried here. It is a scholar's
 reckoning of a scriptural era, published once, and not a number Mandaeans
 write on documents; it is carried because a calendar needs a year number
-and this is the only one in print, and the era code `AA` marks it.
+and this is the only one in print, and the era code `aa` marks it.
 
 **Worked example.** What is the Mandaean date of 25 September 2026? The
 last new year was 1 Daula 481,350 AA, on 16 July 2026: from Häberl's
@@ -87,7 +87,7 @@ begins 240 days after 16 July 2026: 13 March 2027.
 ## What is carried
 
 - **Identifier** `mandaean`, with the year, the position 1–13 and the day,
-  under the era code `AA`. The thirteen position names are declared with
+  under the era code `aa`. The thirteen position names are declared with
   the shape in Drower's forms; the Babylonian names are the module's
   `BABYLONIAN_NAMES` and `MandaeanDate::babylonian_name`; the weekday the
   year is named for is `year_weekday`; `parwanaia` and `new_year` give the

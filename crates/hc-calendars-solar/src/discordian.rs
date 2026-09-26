@@ -36,7 +36,7 @@ use crate::{gregorian, ordinal};
 pub const YEAR_OFFSET: i64 = 1_166;
 
 /// The era code, the Year of Our Lady of Discord.
-pub const ERA: &str = "YOLD";
+pub const ERA: &str = "yold";
 
 /// The five seasons.
 pub const SEASONS: [&str; 5] = [

@@ -189,8 +189,11 @@ impl Ayanamsa {
     /// The ayanamsa, in degrees, at a given moment.
     ///
     /// About 24.2° in the 2020s, growing by about 0.014° — 50″ — a year, and
-    /// passing through zero around 285 CE for the Lahiri anchor, which is the
-    /// last time the two zodiacs coincided.
+    /// passing through zero in 285 CE for the Lahiri anchor, 389 for Raman's
+    /// and 221 for Fagan–Bradley's — the last time the two zodiacs
+    /// coincided, by whichever anchor. The first two are the years Lahiri
+    /// and Raman themselves gave, as the Swiss Ephemeris documentation
+    /// quotes them; the third is this crate's computation.
     ///
     /// ```
     /// use hc_seasons::zodiac::Ayanamsa;
@@ -221,6 +224,14 @@ pub struct SiderealSign(u8);
 
 /// The ways the 12 positions are named, one entry per language or
 /// convention. See [`hc_calendar::shape::Naming`].
+///
+/// There is no Devanagari column. One was carried with no source, and the
+/// source that would give it — the Hindi edition of the *Rashtriya
+/// Panchang*, or the Calendar Reform Committee's report, whose Internet
+/// Archive text prints the rāśi only in Roman letters — could not be read,
+/// so it was removed rather than left standing on nothing. The solar
+/// calendars' month names are in [`super::rashi`], each set with its own
+/// source; none of them is Devanagari either, for the same reason.
 pub mod namings {
     use hc_calendar::shape::Naming;
 
@@ -255,26 +266,6 @@ pub mod namings {
                 "Mīna",
                 ],
                 authority: "IAST transliteration with diacritics",
-            };
-            /// The `devanagari` column.
-            pub const DEVANAGARI = Naming {
-                id: "sa",
-                english_name: "Sanskrit, Devanagari",
-                names: &[
-                "मेष",
-                "वृषभ",
-                "मिथुन",
-                "कर्क",
-                "सिंह",
-                "कन्या",
-                "तुला",
-                "वृश्चिक",
-                "धनु",
-                "मकर",
-                "कुम्भ",
-                "मीन",
-                ],
-                authority: "The names in the script they are written in",
             };
             /// The `english` column.
             pub const ENGLISH = Naming {
@@ -379,12 +370,6 @@ impl SiderealSign {
     #[must_use]
     pub const fn sanskrit_name(self) -> &'static str {
         namings::SANSKRIT.names[self.0 as usize]
-    }
-
-    /// The name in Devanagari, e.g. `"वृषभ"`.
-    #[must_use]
-    pub const fn devanagari_name(self) -> &'static str {
-        namings::DEVANAGARI.names[self.0 as usize]
     }
 
     /// The emblem in English, e.g. `"the Bull"`.
@@ -750,9 +735,11 @@ mod tests {
         assert!((1.4..=1.5).contains(&gap), "the Raman gap was {gap}");
     }
 
-    /// The two zodiacs last coincided in the third century CE, which is what
-    /// "the ayanamsa passes through zero around then" means. Rata Die 103_996
-    /// is roughly the year 285.
+    /// The two zodiacs last coincided in the third or fourth century CE,
+    /// which is what "the ayanamsa passes through zero then" means: in 285
+    /// by the Lahiri anchor and 389 by Raman's, the years Lahiri and Raman
+    /// gave (Swiss Ephemeris documentation, §2.8), and in 221 by
+    /// Fagan–Bradley's.
     #[test]
     fn the_two_zodiacs_coincided_in_the_third_century() {
         let ayanamsa = LAHIRI.degrees_at(Moment(from_year_month_day(285, 3, 21).0 as f64));
@@ -760,6 +747,10 @@ mod tests {
             ayanamsa.abs() < 0.05,
             "Lahiri at 285 CE was {ayanamsa}, not near zero"
         );
+        for (anchor, year) in [(Ayanamsa::RAMAN, 389), (Ayanamsa::FAGAN_BRADLEY, 221)] {
+            let degrees = anchor.degrees_at(Moment(from_year_month_day(year, 3, 21).0 as f64));
+            assert!(degrees.abs() < 0.05, "{year}: {degrees}");
+        }
         // A thousand years earlier the sidereal zero point was ahead of the
         // equinox, so the ayanamsa is negative.
         assert!(LAHIRI.degrees_at(Moment(from_year_month_day(-715, 1, 1).0 as f64)) < -13.0);
@@ -1026,19 +1017,16 @@ mod tests {
             assert_eq!(sign.index() as usize, index);
             assert_eq!(SiderealSign::from_index(index as u8), Some(sign));
             assert!(!sign.sanskrit_name().is_empty());
-            assert!(!sign.devanagari_name().is_empty());
             assert!(sign.emblem().starts_with("the "));
             assert!(!sign.english_name().is_empty());
             assert_eq!(sign.tropical_counterpart().index(), sign.index());
             assert_eq!(sign.symbol(), sign.tropical_counterpart().symbol());
             for other in &SiderealSign::ALL[index + 1..] {
                 assert_ne!(sign.sanskrit_name(), other.sanskrit_name());
-                assert_ne!(sign.devanagari_name(), other.devanagari_name());
             }
         }
         assert_eq!(SiderealSign::from_index(12), None);
         assert_eq!(SiderealSign::MESHA.sanskrit_name(), "Meṣa");
-        assert_eq!(SiderealSign::MAKARA.devanagari_name(), "मकर");
     }
 
     /// Nine of the twelve emblems are word for word the Western ones, which

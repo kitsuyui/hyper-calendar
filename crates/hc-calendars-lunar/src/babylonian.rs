@@ -110,7 +110,7 @@ use hc_core::math::{floor, round};
 pub const ID: CalendarId = CalendarId("babylonian");
 
 /// The era code of the Seleucid era.
-pub const ERA: &str = "SE";
+pub const ERA: &str = "se";
 
 /// The fixed day of 1 Nisanu SE 1: 3 April 311 BCE Julian, which is 29 March
 /// of the proleptic Gregorian year −310.
@@ -581,11 +581,15 @@ mod tests {
 
     #[test]
     fn the_calendar_round_trips_at_both_ends_and_across_the_span() {
-        let mut days = (0..400i64)
+        // 400 days at each end and every 97th between in a release build;
+        // 40 at each end and every 776th between in a debug one
+        // (`crate::sweep_stride`).
+        let ends = 400 / crate::sweep_stride(10) as i64;
+        let mut days = (0..ends)
             .map(|offset| EARLIEST.0 + offset)
             .collect::<std::vec::Vec<_>>();
-        days.extend((0..400i64).map(|offset| LATEST.0 - offset));
-        days.extend((EARLIEST.0..=LATEST.0).step_by(97));
+        days.extend((0..ends).map(|offset| LATEST.0 - offset));
+        days.extend((EARLIEST.0..=LATEST.0).step_by(97 * crate::sweep_stride(8)));
         for rd in days.into_iter().map(Rd) {
             let (year, month, day) = from_fixed(rd).expect("in range");
             assert!(
@@ -688,7 +692,7 @@ mod tests {
             }
         );
         let fields = calendar.to_fields(date).expect("fields");
-        assert_eq!(fields.era, Some("SE"));
+        assert_eq!(fields.era, Some("se"));
         assert_eq!(fields.month, Some(month(6, true)));
         assert_eq!(calendar.from_fields(&fields), Ok(date));
         assert_eq!(

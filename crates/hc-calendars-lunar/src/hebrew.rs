@@ -58,7 +58,7 @@ use hc_calendar::{
 pub const ID: CalendarId = CalendarId("hebrew");
 
 /// The era code of the Anno Mundi era.
-pub const ERA: &str = "AM";
+pub const ERA: &str = "am";
 
 /// The fixed day of 1 Tishrei AM 1, which is 7 October 3761 BCE in the Julian
 /// calendar.

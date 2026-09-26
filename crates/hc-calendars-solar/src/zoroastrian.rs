@@ -76,7 +76,7 @@ use crate::{common, gregorian};
 
 /// The era code of the Yazdegerdi era, written Y.Z. (and also A.Y.) after
 /// a year.
-pub const ERA: &str = "YZ";
+pub const ERA: &str = "yz";
 
 /// How far the Zoroastrian Religious Era of 1990 runs ahead of the
 /// Yazdegerdi era: 1370 Y.Z. is 3738 ZRE.

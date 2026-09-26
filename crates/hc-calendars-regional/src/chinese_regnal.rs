@@ -575,7 +575,8 @@ mod tests {
     #[test]
     fn every_nineteenth_day_of_the_qing_round_trips() {
         let calendar = ChineseRegnalCalendar;
-        for rd in (EARLIEST.0..=LATEST.0).step_by(19) {
+        // Every nineteenth day in a release build, every 95th in a debug one.
+        for rd in (EARLIEST.0..=LATEST.0).step_by(19 * crate::sweep_stride(5)) {
             let date = calendar.from_fixed(Rd(rd)).expect("in range");
             assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "rd {rd}");
             let fields = calendar.to_fields(date).expect("describable");

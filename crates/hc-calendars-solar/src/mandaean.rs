@@ -76,7 +76,7 @@ use crate::{common, gregorian};
 pub const ID: &str = "mandaean";
 
 /// The era code: years after the creation of Adam.
-pub const ERA: &str = "AA";
+pub const ERA: &str = "aa";
 
 /// The length of every Mandaean year, without exception.
 pub const DAYS_IN_YEAR: u16 = 365;

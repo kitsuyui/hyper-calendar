@@ -14,6 +14,11 @@
 //! | — | UT+7:45:40 | Beijing local mean time, 116°25′E |
 //! | 1929 | UT+8 | the 120°E standard zone |
 //!
+//! Both rows are Reingold and Dershowitz's. The Chinese Wikipedia dates the
+//! 120°E standard to 1928 and quotes 116°23′E for old Beijing; the first
+//! moves no date, the second one month start, in 1687, and the tests below
+//! measure both.
+//!
 //! A conjunction or a solstice falling in the fourteen minutes between the
 //! two local midnights lands on different days under the two conventions,
 //! and that moves a month boundary or, through the zhōngqì test, a leap
@@ -235,18 +240,90 @@ mod tests {
     fn the_calendar_round_trips_over_six_thousand_modern_days() {
         let calendar = ChineseCalendar;
         let start = civil::to_rd(2000, 1, 1);
-        for offset in 0..6_000i64 {
+        // Every day in a release build, every eleventh in a debug one.
+        for offset in (0..6_000i64).step_by(crate::sweep_stride(11)) {
             let rd = Rd(start.0 + offset);
             let date = calendar.from_fixed(rd).expect("in range");
             assert_eq!(calendar.to_fixed(date), Ok(rd), "RD {rd}");
         }
     }
 
+    /// The Chinese Wikipedia dates the change to 120°E to 1928 (民國十七年)
+    /// and Reingold and Dershowitz to 1929; switching in either year gives
+    /// the same day for every date of 1926–1930, so the disagreement moves
+    /// nothing. See `docs/systems/solar-terms-and-pentads.md`.
+    #[test]
+    fn the_1928_and_1929_readings_of_the_meridian_change_agree() {
+        static FROM_1928: [MeridianEra; 2] = [
+            MERIDIANS[0],
+            MeridianEra::from_zone(1928, 8.0, "the 120°E standard zone"),
+        ];
+        static PARAMETERS_1928: LunisolarParameters = LunisolarParameters {
+            meridians: &FROM_1928,
+            ..PARAMETERS
+        };
+        let from_1928 = LunisolarCalendar::new(&PARAMETERS_1928);
+        // Every day in a release build, every fifth in a debug one: a month
+        // that began a day apart would differ on all of its days.
+        for rd in
+            (civil::to_rd(1926, 1, 1).0..civil::to_rd(1931, 1, 1).0).step_by(crate::sweep_stride(5))
+        {
+            assert_eq!(
+                ENGINE.from_fixed(Rd(rd)),
+                from_1928.from_fixed(Rd(rd)),
+                "RD {rd}"
+            );
+        }
+    }
+
+    /// The old Beijing meridian: 116°25′E, Reingold and Dershowitz's 1397⁄180
+    /// hours, which this calendar uses, or 116°23′E, the Hong Kong Space
+    /// Museum's figure as the Chinese Wikipedia quotes it. Eight seconds of
+    /// time apart, they begin one month of 1645–1929 on different days: the
+    /// second month of 4324, on 14 March 1687 at 116°25′ and 13 March at
+    /// 116°23′. A release build checks that it is the only one.
+    #[test]
+    fn the_two_readings_of_the_beijing_meridian_differ_once() {
+        static AT_116_23: [MeridianEra; 2] = [
+            MeridianEra::from_longitude(i64::MIN / 4, 116.383_333_333_333_33, "116°23′E"),
+            MERIDIANS[1],
+        ];
+        static PARAMETERS_116_23: LunisolarParameters = LunisolarParameters {
+            meridians: &AT_116_23,
+            ..PARAMETERS
+        };
+        let other = LunisolarCalendar::new(&PARAMETERS_116_23);
+        let march_14 = civil::to_rd(1687, 3, 14);
+        let second_month = ENGINE.from_fixed(march_14).expect("in range");
+        assert_eq!(
+            (
+                second_month.year,
+                second_month.month.ordinal,
+                second_month.day
+            ),
+            (4324, 2, 1)
+        );
+        let earlier = other.from_fixed(Rd(march_14.0 - 1)).expect("in range");
+        assert_eq!(
+            (earlier.year, earlier.month.ordinal, earlier.day),
+            (4324, 2, 1)
+        );
+        if cfg!(debug_assertions) {
+            return;
+        }
+        let differing = (EARLIEST.0..civil::to_rd(1930, 1, 1).0)
+            .filter(|rd| ENGINE.from_fixed(Rd(*rd)) != other.from_fixed(Rd(*rd)))
+            .count();
+        // The thirty days of that one month, 13 March to 11 April 1687.
+        assert_eq!(differing, 30);
+    }
+
     #[test]
     fn the_calendar_round_trips_across_the_1929_meridian_change() {
         let calendar = ChineseCalendar;
         let start = civil::to_rd(1925, 1, 1);
-        for offset in 0..3_000i64 {
+        // Every day in a release build, every fifth in a debug one.
+        for offset in (0..3_000i64).step_by(crate::sweep_stride(5)) {
             let rd = Rd(start.0 + offset);
             let date = calendar.from_fixed(rd).expect("in range");
             assert_eq!(calendar.to_fixed(date), Ok(rd), "RD {rd}");
@@ -257,7 +334,8 @@ mod tests {
     fn the_calendar_round_trips_at_both_ends_of_its_range() {
         let calendar = ChineseCalendar;
         for start in [EARLIEST.0, LATEST.0 - 2_000] {
-            for offset in 0..2_000i64 {
+            // Every day in a release build, every eleventh in a debug one.
+            for offset in (0..2_000i64).step_by(crate::sweep_stride(11)) {
                 let rd = Rd(start + offset);
                 let date = calendar.from_fixed(rd).expect("in range");
                 assert_eq!(calendar.to_fixed(date), Ok(rd), "RD {rd}");

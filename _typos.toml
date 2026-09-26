@@ -22,6 +22,8 @@ BSE = "BSE"
 # `phasis-on-or-before`, the first-visibility function of Reingold and
 # Dershowitz's published code, cited by name in docs/systems/hijri.md.
 phasis = "phasis"
+# Agence France-Presse, the news agency cited for Myanmar's Waso full moon.
+Presse = "Presse"
 # Garant, the Russian legal database that publishes the Government's decrees.
 Garant = "Garant"
 # St Peter Chanel, martyr of Futuna, in the General Roman Calendar.
