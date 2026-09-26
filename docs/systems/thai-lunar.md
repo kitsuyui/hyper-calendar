@@ -277,6 +277,18 @@ every published holy day is reproduced, and it is:
 | Thailand's four public holidays on the calendar, exact for 1992–2027 | `hc-holiday`'s `thailand_keeps_its_buddhist_days_on_the_thai_lunar_calendar` | 21 dates and 4 substitute Mondays |
 | The printed year: RS 108 from 1 April 1889, 2456 from 1 April 1913, 2483 nine months long, 2484 from 1 January 1941, and datelines round-trip weekly to 1960 | `buddhist`'s `a_document_before_1941_printed_january_to_march_a_year_lower`, `the_rattanakosin_era_ran_from_1889_to_march_1913`, `the_year_2483_was_nine_months_long`, `a_printed_dateline_round_trips` | all |
 
+**The rule as Cambodia applies it.** The *suryayatra* rule as Phylypo Tum
+states it for the Khmer calendar, which `khmer` computes, gives the type
+fixed by the published holy days in 34 of the 36 years 2535–2570. It
+differs only at 1994 and 1997, where it puts the leap day in 1994 and the
+published dates put it in 1997; [khmer-chhankitek.md](khmer-chhankitek.md)
+has the rule, and `khmer`'s test
+`the_rule_gives_thailands_published_types_but_for_1994_and_1997` holds the
+count. That is a different statement of the rule, measured on a different
+table, from the eight disagreements the module's documentation reports for
+Eade's against Thai Wikipedia's table, and the published table stays the
+source of the year types.
+
 Known disagreements are with a secondary source, not the published one.
 Thai Wikipedia's table of Makha Bucha dates for 2539–2574 BE
 [wikipedia-th-makha-bucha] gives 22 February 1997, 13 February 2025,
@@ -323,7 +335,9 @@ Songkran is the module's, and this document names no source for it.
 
 `crates/hc-calendars-regional/src/thai_lunar.rs`, with the table
 `YEAR_TYPES` and the constants `FIRST_YEAR`, `LAST_YEAR` and
-`MONTHS_KNOWN_AFTER_LAST_YEAR`. Anchors:
+`MONTHS_KNOWN_AFTER_LAST_YEAR`; the year types, the month layout and the
+walk over the years are `crates/hc-calendars-regional/src/southeast_asian.rs`,
+which `khmer` shares. Anchors:
 `every_published_holiday_is_reproduced`,
 `the_weekend_days_resolve_as_the_neighbouring_years_require`,
 `the_adhikamasa_year_2569_doubles_month_8`,

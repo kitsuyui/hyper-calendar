@@ -28,6 +28,10 @@
 //! does not reach is refused. [`makha_bucha`], [`visakha_bucha`],
 //! [`asalha_bucha`] and [`khao_phansa`] give the holy days.
 //!
+//! The layout is Cambodia's too, and lives in
+//! [`southeast_asian`](crate::southeast_asian), which [`khmer`](crate::khmer)
+//! gives computed year types where this module gives published ones.
+//!
 //! # Sources, per span
 //!
 //! * **2535–2549 BE (1992–2006)**: the Bank of Thailand's lists of
@@ -61,7 +65,7 @@
 //! carried through its sixth month because nothing a year type changes
 //! comes before month 7; its month 7 onward, and whether it has a doubled
 //! month 8, are unknown until Thailand publishes the year, and are refused
-//! with [`CalendarError::AfterSupportedRange`].
+//! with [`CalendarError::AfterSupportedRange`](hc_calendar::CalendarError::AfterSupportedRange).
 //!
 //! # How the year is numbered
 //!
@@ -89,9 +93,11 @@ use core::fmt;
 use hc_calendar::fields::ExtraFields;
 use hc_calendar::shape::{CycleLength, CycleShape, MONTH, WEEKDAY};
 use hc_calendar::{
-    Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd,
-    YearKind,
+    Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd, YearKind,
 };
+
+use crate::southeast_asian::Years;
+pub use crate::southeast_asian::{Fortnight, YearType};
 
 /// The Buddhist Era year minus the Gregorian year it mostly falls in.
 pub const BUDDHIST_ERA_OFFSET: i64 = 543;
@@ -142,65 +148,6 @@ static SHAPE: &[CycleShape] = &[
     CycleShape::fixed(WEEKDAY, 7),
 ];
 
-/// The three kinds of year.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum YearType {
-    /// ปกติมาส ปกติวาร: twelve months, 354 days.
-    Normal,
-    /// อธิกวาร: a 30th day in month 7, 355 days.
-    ExtraDay,
-    /// อธิกมาส: month 8 twice, 384 days.
-    ExtraMonth,
-}
-
-impl YearType {
-    /// The days in a year of this type.
-    #[must_use]
-    pub const fn days(self) -> i64 {
-        match self {
-            Self::Normal => 354,
-            Self::ExtraDay => 355,
-            Self::ExtraMonth => 384,
-        }
-    }
-
-    /// Whether the year has the doubled month 8.
-    #[must_use]
-    pub const fn has_extra_month(self) -> bool {
-        matches!(self, Self::ExtraMonth)
-    }
-
-    /// The Thai name of the year type.
-    #[must_use]
-    pub const fn thai_name(self) -> &'static str {
-        match self {
-            Self::Normal => "ปกติมาส",
-            Self::ExtraDay => "อธิกวาร",
-            Self::ExtraMonth => "อธิกมาส",
-        }
-    }
-
-    /// The length of `month` in a year of this type, or `None` when the
-    /// year has no such month.
-    #[must_use]
-    pub const fn month_length(self, month: Month) -> Option<u8> {
-        if month.ordinal == 0 || month.ordinal > 12 {
-            return None;
-        }
-        if month.leap {
-            return if month.ordinal == 8 && self.has_extra_month() {
-                Some(30)
-            } else {
-                None
-            };
-        }
-        if month.ordinal == 7 && matches!(self, Self::ExtraDay) {
-            return Some(30);
-        }
-        Some(30 - month.ordinal % 2)
-    }
-}
-
 use YearType::{ExtraDay as V, ExtraMonth as M, Normal as N};
 
 /// The year types from [`FIRST_YEAR`] to [`LAST_YEAR`], one a year, each
@@ -236,18 +183,21 @@ pub fn year_type(year: i64) -> Option<YearType> {
         .and_then(|index| YEAR_TYPES.get(index).copied())
 }
 
+/// The run of years [`YEAR_TYPES`] types, laid out from [`EPOCH`], with the
+/// first [`MONTHS_KNOWN_AFTER_LAST_YEAR`] months of the year after it.
+static YEARS: Years = Years {
+    first: FIRST_YEAR,
+    last: LAST_YEAR,
+    epoch: EPOCH,
+    months_after_last: MONTHS_KNOWN_AFTER_LAST_YEAR,
+    year_type,
+};
+
 /// The fixed day of ขึ้น 1 ค่ำ เดือนอ้าย of `year`, for every year of the
 /// table and the one after it, or `None` otherwise.
 #[must_use]
 pub fn new_year(year: i64) -> Option<Rd> {
-    if !(FIRST_YEAR..=LAST_YEAR + 1).contains(&year) {
-        return None;
-    }
-    let mut start = EPOCH.0;
-    for kind in &YEAR_TYPES[..usize::try_from(year - FIRST_YEAR).ok()?] {
-        start += kind.days();
-    }
-    Some(Rd(start))
+    YEARS.new_year(year)
 }
 
 /// The last day the lunar calendar was Thailand's official reckoning,
@@ -273,60 +223,19 @@ pub const fn earliest() -> Rd {
 /// [`MONTHS_KNOWN_AFTER_LAST_YEAR`] of the year after [`LAST_YEAR`].
 #[must_use]
 pub fn latest() -> Rd {
-    let start = new_year(LAST_YEAR + 1).map_or(EPOCH.0, |rd| rd.0);
-    let known: i64 = (1..=MONTHS_KNOWN_AFTER_LAST_YEAR)
-        .map(|ordinal| i64::from(30 - ordinal % 2))
-        .sum();
-    Rd(start + known - 1)
-}
-
-/// The months of a year of `kind` in order, with their lengths: month 1 to
-/// 7, the extra month 8 if any, and the regular month 8 to 12.
-fn months_of(kind: YearType) -> impl Iterator<Item = (Month, u8)> {
-    (1..=12u8).flat_map(move |ordinal| {
-        let extra = (ordinal == 8 && kind.has_extra_month()).then_some((Month::leap(8), 30));
-        let regular = kind
-            .month_length(Month::regular(ordinal))
-            .map(|length| (Month::regular(ordinal), length));
-        extra.into_iter().chain(regular)
-    })
+    YEARS.latest()
 }
 
 /// The number of days in `month` of `year`.
 ///
 /// # Errors
 ///
-/// Returns [`CalendarError::YearOutOfRange`] outside the years carried,
-/// [`CalendarError::MonthOutOfRange`] for a month the year does not have,
-/// and [`CalendarError::AfterSupportedRange`] for a month of the year after
+/// Returns [`CalendarError::YearOutOfRange`](hc_calendar::CalendarError::YearOutOfRange) outside the years carried,
+/// [`CalendarError::MonthOutOfRange`](hc_calendar::CalendarError::MonthOutOfRange) for a month the year does not have,
+/// and [`CalendarError::AfterSupportedRange`](hc_calendar::CalendarError::AfterSupportedRange) for a month of the year after
 /// [`LAST_YEAR`] that its unpublished type could change.
 pub fn month_length(year: i64, month: Month) -> CalendarResult<u8> {
-    if let Some(kind) = year_type(year) {
-        return kind
-            .month_length(month)
-            .ok_or(CalendarError::MonthOutOfRange);
-    }
-    if year != LAST_YEAR + 1 {
-        return Err(CalendarError::YearOutOfRange);
-    }
-    if month.ordinal == 0 || month.ordinal > 12 {
-        return Err(CalendarError::MonthOutOfRange);
-    }
-    if month.leap || month.ordinal > MONTHS_KNOWN_AFTER_LAST_YEAR {
-        return Err(CalendarError::AfterSupportedRange);
-    }
-    YearType::Normal
-        .month_length(month)
-        .ok_or(CalendarError::MonthOutOfRange)
-}
-
-/// The half of the month a day falls in.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Fortnight {
-    /// ข้างขึ้น, the waxing half: ขึ้น 1 to 15 ค่ำ.
-    Waxing,
-    /// ข้างแรม, the waning half: แรม 1 to 14 or 15 ค่ำ.
-    Waning,
+    YEARS.month_length(year, month)
 }
 
 /// A Thai lunar date.
@@ -353,21 +262,13 @@ impl ThaiLunarDate {
     /// The half of the month.
     #[must_use]
     pub const fn fortnight(&self) -> Fortnight {
-        if self.day <= 15 {
-            Fortnight::Waxing
-        } else {
-            Fortnight::Waning
-        }
+        Fortnight::of(self.day)
     }
 
     /// The day within its half, the number before ค่ำ: 1 to 15.
     #[must_use]
     pub const fn fortnight_day(&self) -> u8 {
-        if self.day <= 15 {
-            self.day
-        } else {
-            self.day - 15
-        }
+        Fortnight::day_within(self.day)
     }
 
     /// The month's name in Thai.
@@ -407,60 +308,25 @@ impl fmt::Display for ThaiLunarDate {
 ///
 /// # Errors
 ///
-/// Returns [`CalendarError::BeforeEpoch`] or
-/// [`CalendarError::AfterSupportedRange`] outside [`earliest`] to
+/// Returns [`CalendarError::BeforeEpoch`](hc_calendar::CalendarError::BeforeEpoch) or
+/// [`CalendarError::AfterSupportedRange`](hc_calendar::CalendarError::AfterSupportedRange) outside [`earliest`] to
 /// [`latest`].
 pub fn from_fixed(rd: Rd) -> CalendarResult<ThaiLunarDate> {
-    if rd < earliest() {
-        return Err(CalendarError::BeforeEpoch);
-    }
-    if rd > latest() {
-        return Err(CalendarError::AfterSupportedRange);
-    }
-    let mut year = FIRST_YEAR;
-    let mut start = EPOCH.0;
-    while let Some(kind) = year_type(year) {
-        if rd.0 < start + kind.days() {
-            break;
-        }
-        start += kind.days();
-        year += 1;
-    }
-    // Past the table only the first months of the next year are in range,
-    // and they are the same in every type of year.
-    let kind = year_type(year).unwrap_or(YearType::Normal);
-    let mut offset = rd.0 - start;
-    for (month, length) in months_of(kind) {
-        if offset < i64::from(length) {
-            let day = u8::try_from(offset + 1).map_err(|_| CalendarError::DayOutOfRange)?;
-            return Ok(ThaiLunarDate { year, month, day });
-        }
-        offset -= i64::from(length);
-    }
-    Err(CalendarError::AfterSupportedRange)
+    let (year, month, day) = YEARS.from_fixed(rd)?;
+    Ok(ThaiLunarDate { year, month, day })
 }
 
 /// The fixed day of a Thai lunar date.
 ///
 /// # Errors
 ///
-/// Returns [`CalendarError::YearOutOfRange`] outside the years carried,
-/// [`CalendarError::MonthOutOfRange`] for a month the year does not have,
-/// [`CalendarError::DayOutOfRange`] for a day the month does not have, and
-/// [`CalendarError::AfterSupportedRange`] for a day of the year after
+/// Returns [`CalendarError::YearOutOfRange`](hc_calendar::CalendarError::YearOutOfRange) outside the years carried,
+/// [`CalendarError::MonthOutOfRange`](hc_calendar::CalendarError::MonthOutOfRange) for a month the year does not have,
+/// [`CalendarError::DayOutOfRange`](hc_calendar::CalendarError::DayOutOfRange) for a day the month does not have, and
+/// [`CalendarError::AfterSupportedRange`](hc_calendar::CalendarError::AfterSupportedRange) for a day of the year after
 /// [`LAST_YEAR`] beyond its sixth month.
 pub fn to_fixed(date: ThaiLunarDate) -> CalendarResult<Rd> {
-    let length = month_length(date.year, date.month)?;
-    if date.day == 0 || date.day > length {
-        return Err(CalendarError::DayOutOfRange);
-    }
-    let start = new_year(date.year).ok_or(CalendarError::YearOutOfRange)?;
-    let kind = year_type(date.year).unwrap_or(YearType::Normal);
-    let before: i64 = months_of(kind)
-        .take_while(|(month, _)| *month != date.month)
-        .map(|(_, length)| i64::from(length))
-        .sum();
-    Ok(Rd(start.0 + before + i64::from(date.day) - 1))
+    YEARS.to_fixed(date.year, date.month, date.day)
 }
 
 /// The full moon, ขึ้น 15 ค่ำ, of an ordinary month of `year`.
@@ -470,11 +336,7 @@ fn full_moon(year: i64, ordinal: u8) -> CalendarResult<Rd> {
 
 /// The type of `year`, for a day that depends on it.
 fn known_type(year: i64) -> CalendarResult<YearType> {
-    year_type(year).ok_or(if year == LAST_YEAR + 1 {
-        CalendarError::AfterSupportedRange
-    } else {
-        CalendarError::YearOutOfRange
-    })
+    YEARS.known_type(year)
 }
 
 /// Makha Bucha, วันมาฆบูชา: the full moon of month 3, or of month 4 in an
@@ -482,8 +344,8 @@ fn known_type(year: i64) -> CalendarResult<YearType> {
 ///
 /// # Errors
 ///
-/// Returns [`CalendarError::YearOutOfRange`] outside the table and
-/// [`CalendarError::AfterSupportedRange`] for the year after it, whose type
+/// Returns [`CalendarError::YearOutOfRange`](hc_calendar::CalendarError::YearOutOfRange) outside the table and
+/// [`CalendarError::AfterSupportedRange`](hc_calendar::CalendarError::AfterSupportedRange) for the year after it, whose type
 /// decides the month and is not yet published.
 pub fn makha_bucha(year: i64) -> CalendarResult<Rd> {
     let kind = known_type(year)?;
@@ -545,11 +407,7 @@ impl Calendar for ThaiLunarCalendar {
     /// with its thirtieth day of month 7: Thailand names both as
     /// intercalations, and the table records which a year was.
     fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
-        match year_type(year) {
-            Some(kind) => Ok(!matches!(kind, YearType::Normal)),
-            None if year == LAST_YEAR + 1 => Err(CalendarError::AfterSupportedRange),
-            None => Err(CalendarError::YearOutOfRange),
-        }
+        YEARS.is_leap_year(year)
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -601,7 +459,10 @@ impl Calendar for ThaiLunarCalendar {
 mod tests {
     use hc_calendars_solar::gregorian;
 
+    use hc_calendar::CalendarError;
+
     use super::*;
+    use crate::southeast_asian::months_of;
 
     fn greg(year: i64, month: u8, day: u8) -> Rd {
         gregorian::to_fixed(year, month, day).expect("valid Gregorian date")

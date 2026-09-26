@@ -3,7 +3,7 @@
 Regional, cyclic and era calendars for `hyper-calendar`: Japanese imperial
 eras, the Chinese and Korean regnal eras, the Maya calendars, the two Aztec
 ones, the Zapotec *yza*, the Balinese Pawukon, the Javanese *pasaran*, the Akan *Adaduanan*, the
-Burmese and Thai lunar calendars, and the sexagenary cycle.
+Burmese, Thai and Khmer lunar calendars, and the sexagenary cycle.
 
 What most of them have in common is that **the day has a name before it has a
 number**. A Maya day is *4 Ahau 8 Cumku*; a Balinese day is *Buda Kliwon
@@ -11,8 +11,8 @@ Dungulan*, a position in two of ten concurrent week cycles and one of thirty
 *wuku*; a Japanese day
 belongs to an era a government proclaimed. Those are not counts of years
 from an epoch with months cut out of them, which is why they do not belong in
-`hc-calendars-solar` or `hc-calendars-lunar`. The Burmese and Thai lunar
-calendars are such counts, and are here as regional calendars.
+`hc-calendars-solar` or `hc-calendars-lunar`. The Burmese, Thai and Khmer
+lunar calendars are such counts, and are here as regional calendars.
 
 | Identifier | What it is |
 | --- | --- |
@@ -36,6 +36,7 @@ calendars are such counts, and are here as regional calendars.
 | `chinese-regnal` | The Qing eras over the lunisolar calendar, 1645–1912; the Ming and Qing era table as data |
 | `burmese` | The Burmese lunisolar calendar of the Myanmar Era: watat years, First Waso and the Nayon day, by the published arithmetic |
 | `thai-lunar` | The Thai lunar calendar as Thailand publishes it: the adhikamāsa and adhikavāra years carried as data for 2535–2570 BE (1992–2027) |
+| `khmer` | The Khmer *Chhankitek*: the leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
 | `sexagenary` | 干支 over years, months and days |
 
 `register_all(&mut CalendarRegistry)` inserts every calendar in the table,
@@ -115,6 +116,28 @@ numbered by the Buddhist Era of the Gregorian year its Makha Bucha falls in,
 a convention of this crate. The first month 8 of an adhikamāsa year, the
 extra one, is `Month::leap(8)`; the day is counted 1 to 30 through the month,
 แรม 15 ค่ำ being day 30.
+
+## The Khmer calendar, computed
+
+`khmer` has the Thai layout month for month — Asath, month 8, doubled in a
+leap-month year of 384 days and Jesth, month 7, given a 30th day in a
+leap-day year of 355, never both — and the shared module `southeast_asian`
+holds it for both calendars. Here the year types are **computed**, by the
+rule Phylypo Tum gives from Roath Kim Soeun's almanac over Gislén and Eade's
+*suryayatra* quantities: the lunar day of the solar New Year decides the
+month, its avoman the day, and a day that falls in a leap-month year moves
+to the next. The rule reproduces every Cambodian date read: the lunar dates
+of the New Years of 2022–2026, the sub-decreed Visak Bochea, Royal Ploughing
+Ceremony, Pchum Ben and Water Festival of 2024–2027, the holidays of 2015
+and 2019, and Tum's checked dates back to 1913. The range is 1900–2200, the
+span on which the three readings of the rule compared agree.
+
+A year is a run of months from Migasir to Kadeuk, numbered by the Buddhist
+Era Cambodia prints from 1 roaj Pisakh; before that day the printed year is
+one less, which `KhmerDate::printed_year` gives and the display writes, as
+«១៥កើត ខែពិសាខ ព.ស.២៥៦៨». The system, 2568 worked by hand, and why the Lao,
+Sinhalese and Tai calendars stay planned are in
+[`docs/systems/khmer-chhankitek.md`](../../docs/systems/khmer-chhankitek.md).
 
 ## Correlations, stated
 
@@ -209,6 +232,13 @@ inherits the `chinese` calendar's model, as that README describes.
   for 2027, all retrieved 2026-09-23; the structure from the *Dictionary of
   Buddhism* (พจนานุกรมพุทธศาสน์ ฉบับประมวลศัพท์) and Thai Wikipedia,
   ปฏิทินจันทรคติไทย.
+* Khmer calendar: Phylypo Tum, "Khmer Chhankitek Calendar" (cam-cc.org,
+  as the Internet Archive keeps it), for the rules, after Roath Kim Soeun;
+  Gislén and Eade, "The Calendars of Southeast Asia. 2" (*JAHH*, 2019), for
+  the *suryayatra* quantities; Khmer Wikipedia, ចន្ទគតិ, for the month
+  names; the New Year announcements and the holiday sub-decrees named in
+  [`docs/systems/khmer-chhankitek.md`](../../docs/systems/khmer-chhankitek.md),
+  keyed in `docs/references.bib`.
 * Burmese calendar: Yan Naing Aye, "Algorithm, Program and Calculation of
   Myanmar Calendar" (2013) and his `mmcal` code; Wikipedia, "Burmese
   calendar"; the 2024–2026 holiday lists named in
@@ -226,6 +256,10 @@ inherits the `chinese` calendar's model, as that README describes.
 * No Thai lunar year before 2535 BE or after 2570 BE beyond the first six
   months of 2571, and no *suriyayatra* arithmetic to extend it: a year is
   added when Thailand publishes it.
+* No Khmer year before 1900 or after 2200, no solar New Year (the Songkran
+  moment and its days), and no animal year, *sak* or Jolak Sakaraj, which
+  change at that New Year. No Lao, Sinhalese or Tai lunisolar calendar: what
+  each still needs is in `docs/calendars.md`.
 * No Javanese calendar proper here: the Sultan Agung lunar year, its
   *windu* and its *kurup* are `hc-calendars-lunar`'s `javanese`, beside
   the other lunar calendars. `tests/javanese.rs` holds its days to the

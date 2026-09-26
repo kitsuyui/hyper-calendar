@@ -1791,6 +1791,54 @@ fn cambodia_keeps_the_days_its_sub_decrees_give() {
 }
 
 #[test]
+fn cambodia_dates_its_lunar_days_where_the_khmer_calendar_puts_them() {
+    // The table carries the sub-decrees' dates, not the calendar's; this
+    // holds the two together. Visak Bochea is 15 keit Pisakh, the Royal
+    // Ploughing Ceremony 4 roaj Pisakh, Pchum Ben 14 and 15 roaj Photrobot
+    // and 1 keit Assoch, and the Water Festival 14 and 15 keit and 1 roaj
+    // Kadeuk (docs/systems/khmer-chhankitek.md).
+    use hc_calendar::Month;
+    use hc_calendars_regional::khmer::{self, KhmerDate};
+
+    let lunar = |year: i64, month: u8, day: u8| {
+        let be = year + khmer::BUDDHIST_ERA_OFFSET;
+        khmer::to_fixed(KhmerDate::new(be, Month::regular(month), day)).expect("in range")
+    };
+    let mut checked = 0;
+    for year in 2025..=2027 {
+        let calendar = HolidayCalendar::for_year(table("KH"), None, year);
+        let dated = |name: &str| -> Vec<Rd> {
+            calendar
+                .in_year(year)
+                .iter()
+                .filter(|holiday| holiday.name == name)
+                .map(|holiday| holiday.date)
+                .collect()
+        };
+        for (name, expected) in [
+            ("Visak Bochea", vec![lunar(year, 6, 15)]),
+            ("Royal Ploughing Ceremony", vec![lunar(year, 6, 19)]),
+            (
+                "Pchum Ben",
+                vec![lunar(year, 10, 29), lunar(year, 10, 30), lunar(year, 11, 1)],
+            ),
+            (
+                "Water Festival",
+                vec![
+                    lunar(year, 12, 14),
+                    lunar(year, 12, 15),
+                    lunar(year, 12, 16),
+                ],
+            ),
+        ] {
+            assert_eq!(dated(name), expected, "{year} {name}");
+            checked += expected.len();
+        }
+    }
+    assert_eq!(checked, 24);
+}
+
+#[test]
 fn cambodia_moves_nothing_off_its_sunday_weekend() {
     // Visak Bochea 2025 fell on Sunday 11 May and Independence Day on Sunday
     // 9 November; guideline No. 028/22 says a Sunday holiday is not moved.

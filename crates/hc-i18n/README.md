@@ -104,7 +104,7 @@ and haabʼ months in Yucatec, the Aztec day-signs and months in Nahuatl, the
 Zapotec *yza*'s months and year bearers in Zapotec, the
 Pawukon cycles in Balinese, the pasaran and dina in Javanese, the Mandaean
 weekdays in Mandaic, romanisations of the Coptic, Ethiopic, Burmese,
-Armenian and Persian months and of Afghanistan's Dari ones (whose own
+Khmer, Armenian and Persian months and of Afghanistan's Dari ones (whose own
 scripts the calendars carry themselves), and the zodiac animals in Chinese, Japanese, Korean, Vietnamese
 and English. The stems and branches are not spelled here: each locale names
 one of the readings `hc_calendar::cycle::readings` catalogues.
