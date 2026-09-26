@@ -34,6 +34,8 @@ The published record, not the model checking itself:
 
 * the fourteen new years France kept, An I (22 September 1792) to An XIV
   (23 September 1805), and the sextile years among them;
+* the two equinoxes the decree of 4 frimaire an II gives as observed,
+  within a minute in true time at the Paris Observatory;
 * the leap years Iran had between 1354 and 1419, and Nowruz 1404 on
   21 March 2025 — a day later than Birashk's cycle says;
 * every row of the Bahá'í World Centre's *Badíʿ dates 172 to 221 BE* that

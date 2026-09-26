@@ -78,15 +78,19 @@ names, are the *neptu*: Ahad 5, Senen 4, Selasa 3, Rebo 7, Kemis 8,
 Jemuwah 6, Setu 9; Legi 5, Pahing 9, Pon 7, Wage 4, Kliwon 8, and a
 weton's neptu is the two added [idwiki-weton].
 
-Which name the value *v* stands for is where the sources read here part.
-Reingold and Dershowitz's code gives the number only. Wikipedia names each
-day of the ten-day week by an urip and takes the day whose urip equals *v*,
-counting 0 as 10; on its list that makes *v* = 1 Pandita, 2 Pati, 3 Suka,
-4 Duka, 5 Sri, 6 Manuh, 7 Manusa, 8 Raja, 9 Dewa and 10 Raksasa
-[wikipedia-pawukon]. A Balinese published reading of Galungan, where
-*v* = 8 + 7 + 1 − 10 = 6, names the day Manuh [idntimes-galungan-2018],
-which agrees with that assignment. The same list read from zero, as the
-module reads it, makes 6 Manusa; see the accuracy section.
+Reingold and Dershowitz's code gives the value *v* as a number only.
+Wikipedia names each day of the ten-day week by an urip and takes the day
+whose urip equals *v*, counting 0 as 10; on its list that makes *v* =
+1 Pandita, 2 Pati, 3 Suka, 4 Duka, 5 Sri, 6 Manuh, 7 Manusa, 8 Raja,
+9 Dewa and 10 Raksasa [wikipedia-pawukon] — the ten names in their
+customary order [banwiki-dasawara], so *v* is the place in that list. A
+Balinese published reading of Galungan, where *v* = 8 + 7 + 1 − 10 = 6,
+names the day Manuh [idntimes-galungan-2018], which agrees with that
+assignment. The Balinese source that states the formula lists the days in
+a different order of urip — Raksasa 1, Manuh 2, Manusa 3, Duka 4, Pandita
+5, Sri 6, Pati 7, Raja 8, Dewa 9, Suka 10
+[sejarahharirayahindu-dasawara] — by which Galungan would be Sri, against
+the published reading.
 
 **The wetonan.** The pasaran runs against the ordinary week, and since 5
 and 7 are coprime every pair occurs once in 35 days. A weekday *w* (0 for
@@ -128,7 +132,7 @@ it is day 159. Then:
 | eight-day | max(6, 89 + 4) mod 8 + 1 | 6 | Brahma |
 | four-day | (6 − 1) mod 4 + 1 | 2 | Laba |
 | nine-day | 156 mod 9 + 1 | 4 | Nohan |
-| ten-day | (6 + 5 + 1) mod 10 | 2 | Pati by the urip rule; the module says Suka |
+| ten-day | (6 + 5 + 1) mod 10 | 2 | Pati |
 | two-day, one-day | 2 is even | — | Pepet; Luang |
 
 In the three cycles a Balinese date is usually written in, it is Sukra
@@ -178,6 +182,9 @@ approximation. What the tests check against a source outside the code:
 | Check | Test | Result |
 | --- | --- | --- |
 | Five Galungan dates 210 days apart, 28 February 2024 to 17 June 2026, are Buda Kliwon Dungulan, day 73 | `galungan_always_falls_on_buda_kliwon_dungulan` | Holds |
+| Galungan, 17 June 2026, is on every week as the published reading gives it, the ten-day week Manuh | `galungan_is_manuh_in_the_ten_day_week` | Holds |
+| 5 January 2021, Wikipedia's worked day, is day 184 and on every week as the article gives it, the ten-day week Dewa | `wikipedias_worked_day_comes_out_on_all_ten_weeks` | Holds |
+| The first and sixth days of the cycle are Sri and Manuh in the ten-day week, as the article works them | `the_first_and_sixth_days_are_sri_and_manuh` | Holds |
 | The seven-day week is the Gregorian weekday, Redite Sunday, over 500 days | `the_seven_day_week_never_slipped_against_the_gregorian_one` | Holds |
 | The anchor is Julian Day Number 146, a Sunday that is day 0 of Sinta | `the_epoch_is_julian_day_one_hundred_and_forty_six` | Holds |
 | 17 August 1945 is Jemuwah Legi, neptu 11 | `indonesian_independence_was_declared_on_jumat_legi` | Holds |
@@ -188,26 +195,14 @@ start, the eight-day week's pause, the four-day week's inheritance of it,
 the ten-day week's construction from the urip, the parity of the one- and
 two-day weeks, and that every day of a cycle round-trips.
 
-Checked for this document and not by a test: Wikipedia's worked day,
-5 January 2021, comes out on every week as the article gives it — Menga,
-Beteng, Jaya, Umanis, Was, Anggara, Kala, Jangur — except the ten-day
-week; and 6 May 2008 is Selasa Wage [wikipedia-pawukon,
-wikipedia-javanese-calendar].
-
-**The known disagreement is the ten-day week's names.** The number is
-Reingold and Dershowitz's and is right; the name the module gives it is
-not what the sources read here give. The module's table is the ten names
-in their customary listing order [banwiki-dasawara] indexed from zero, so
-it names the value *v* with the name the urip rule gives *v* + 1: for
-Galungan, where *v* = 6, the module says Manusa and the published reading
-says Manuh [idntimes-galungan-2018]; for 5 January 2021, where *v* = 9, the
-module says Raksasa and Wikipedia says Dewa [wikipedia-pawukon]. The
-Balinese source that states the formula lists the days in the order of
-their own urip — Raksasa 1, Manuh 2, Manusa 3, Duka 4, Pandita 5, Sri 6,
-Pati 7, Raja 8, Dewa 9, Suka 10 [sejarahharirayahindu-dasawara] — which
-disagrees with both, and Reingold and Dershowitz's book, which would say
-what their numbering means, was not read. Two independent days agree with
-Wikipedia's assignment and none with the module's.
+Checked for this document and not by a test: Wikipedia's table of all
+210 days gives, on every day, the names the module gives on all ten weeks
+and the *wuku*, save for spelling — Soma for Coma, Keliwon for Kliwon,
+Warigadian, Dunggulan and Parangbakat for Warigadean, Dungulan and
+Prangbakat; and 6 May 2008 is Selasa Wage [wikipedia-pawukon,
+wikipedia-javanese-calendar]. Reingold and Dershowitz's book, which would
+say what their numbering of the ten-day week means, was not read; their
+code carries no names.
 
 ## Sources
 
@@ -215,7 +210,7 @@ Wikipedia's assignment and none with the module's.
 | --- | --- | --- |
 | [reingold2018] | The Pawukon's arithmetic as a whole, §10.6 per the module | Not read directly; the published code was |
 | [reingold2018code] | `bali-epoch`, `bali-day-from-fixed`, the ten `bali-…-from-fixed` functions, `bali-week-from-fixed`, `bali-on-or-before`, `kajeng-keliwon`, `tumpek` | Yes, 2026-09-26 |
-| [wikipedia-pawukon] | The ten weeks and their names, the padding of the four-, eight- and nine-day weeks, the urip and the ten-day rule, the anchor's Julian date, the 5 January 2021 example | Yes, 2026-09-26; the article cites no source |
+| [wikipedia-pawukon] | The ten weeks and their names, the padding of the four-, eight- and nine-day weeks, the urip and the ten-day rule, the anchor's Julian date, the 5 January 2021 example, the table of all 210 days | Yes, 2026-09-26; the article cites no source |
 | [idntimes-galungan-2018] | Galungan as Buda Kliwon Dungulan, and all ten week names of that day | Yes, 2026-09-26; it cites no source |
 | [detik-galungan-2026] | Galungan on 17 June 2026, from the Ministry of Religious Affairs' circular | Yes, 2026-09-26 |
 | [kemenag-b253-2025] | The circular itself | Not read: the ministry's host refused the connection on 2026-09-26 |
@@ -253,6 +248,8 @@ stand in the constants' documentation and the name tables:
 `galungan_always_falls_on_buda_kliwon_dungulan`,
 `the_seven_day_week_never_slipped_against_the_gregorian_one`,
 `the_epoch_is_julian_day_one_hundred_and_forty_six`,
+`galungan_is_manuh_in_the_ten_day_week`,
+`wikipedias_worked_day_comes_out_on_all_ten_weeks`,
 `indonesian_independence_was_declared_on_jumat_legi`,
 `the_epoch_is_ahad_legi`,
 `the_pasaran_is_the_balinese_pancawara_under_other_names`. The cycles'

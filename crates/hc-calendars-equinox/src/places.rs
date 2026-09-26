@@ -27,7 +27,8 @@ pub const IRAN_STANDARD_MERIDIAN_DEGREES: f64 = 52.5;
 /// Iran Standard Time's offset from Universal Time, as a fraction of a day.
 pub const IRAN_STANDARD_OFFSET_DAYS: f64 = 3.5 / 24.0;
 
-/// The Paris Observatory: 48.836389° N, 2.336389° E, 27 m — the place the
-/// Republican calendar's decree named for its equinox
-/// (*Calendrical Calculations*, `paris`).
-pub const PARIS_OBSERVATORY: Location = Location::new(48.836_389, 2.336_389, 27.0);
+/// The Paris Observatory: 48°50′11″ N, 2°20′15″ E, 27 m — the place the
+/// Republican calendar's decree named for its equinox, as Reingold and
+/// Dershowitz give it (*Calendrical Calculations*, `paris`), the longitude
+/// tied to the 9 minutes 21 seconds between Paris time and Universal Time.
+pub const PARIS_OBSERVATORY: Location = Location::new(48.836_389, 2.337_5, 27.0);
