@@ -1,6 +1,6 @@
 [package]
 name = "hc-planetary"
-description = "Non-terrestrial time for hyper-calendar: Mars sols, MSD, MTC, the Darian calendar and other planetary bodies."
+description = "Non-terrestrial time for hyper-calendar: Mars sols, MSD, MTC, the Darian calendars, circad calendars for Titan and the Galilean moons, and other planetary bodies."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

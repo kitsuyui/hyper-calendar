@@ -1,7 +1,8 @@
 # hc-planetary
 
 Time on bodies other than Earth: the Martian sol and everything built on it,
-a data table of the solar system's major bodies, the Moon's lunation counts
+Gangale's circad calendars for Titan and the Galilean moons, a data table of
+the solar system's major bodies, the Moon's lunation counts
 and selenographic colongitude, and one generic clock over all of them.
 
 Every entry point takes an `hc_core::Instant<Tai>`. TAI is the only scale with
@@ -25,7 +26,13 @@ assert!(!titan.is_standardised());                     // no standard exists
 - **`mars`** — `MARS_SOL_SECONDS`, the Mars Sol Date, Coordinated Mars Time,
   local mean and true solar time with the full Martian equation of time,
   areocentric solar longitude `Ls`, Mars years under the Clancy convention,
-  the sol counts of all ten surface missions, and the Darian calendar.
+  the sol counts of all ten surface missions, the Darian calendar and its
+  Martiana variant (`martiana`), whose week never shortens.
+- **`circad`, `titan`, `galilean`** — calendars counted in circads, fixed
+  fractions of a tidally locked moon's solar day: the Darian calendar for
+  Titan (`darian-titan`) and the Gregorian-based calendars of Io, Europa,
+  Ganymede and Callisto (`gregorian-io` … `gregorian-callisto`), all data for
+  one engine whose `Rd` is a circad number, not an Earth day.
 - **`bodies`** — 22 bodies with sidereal rotation, synodic day, orbital period,
   axial tilt and semi-major axis, and the solar day / year-in-local-days
   derived from them.
@@ -62,6 +69,8 @@ assert!(!titan.is_standardised());                     // no standard exists
 | Mars years | boundaries solved from the same series; checked against eight published Mars-year start dates, 1998–2024, each landing inside the right Gregorian day. |
 | Mission sol numbers | ten published sol↔Earth-date anchors, all correct. |
 | Darian calendar | exact arithmetic; mean year 668.592 sols vs. the tropical 668.5921, ≈1 sol per 10 000 Mars years. |
+| Martiana calendar | exact arithmetic on the Darian sol count; mean year 668.6 sols, as its source states no century exception. |
+| Titan and Galilean circad calendars | exact arithmetic on the source's constants; the circad count is uniform in TT from the source's 2002 calibrations. Titan's page example reproduces; the Galilean ten-year sequences drift by up to 2.7 circads a decade, as the source's own residuals say. |
 | Moon | `hc-astro`'s series: ~10″ in longitude. Meeus example 53.a reproduces to 0.1° in colongitude. Conjunction instants can run ~20 min from published values. |
 | `bodies` derivations | only as good as fact sheets quoted to 4–7 significant figures — parts in 10⁵ on a rotation period. Fine for "how long is a day on Titan", useless for propagating a day count over a century. |
 
@@ -86,7 +95,19 @@ assert!(!titan.is_standardised());                     // no standard exists
 | `MARS_YEAR_1_START_MSD` | 28 892.6593 | **a seed, not a citation.** Clancy et al. 2000 *JGR* 105(E4):9553 give the date 1955-04-11 and no time. Published times of day disagree; this model, a DE430 fit and Piqueux et al. 2015 *Icarus* 251:332 all cluster near 11:00 UTC, while the widely quoted 08:31 UTC does not reproduce. The constant is this crate's own `Ls = 0` solution and is re-solved at run time |
 | mission landing times, clock meridians, sol-0/sol-1 conventions | Mars24 *Lander Mission Times*; Viking 1's site longitude via Kuchynka et al. 2014, which defines the prime meridian | landing instants are SCET where documented; several NASA-quoted times are Earth-received time, 8–13 min later |
 | Darian months, weekdays, leap rule, epoch | Gangale, "The Darian Calendar for Mars", <https://ops-alaska.com/time/gangale_mst/darian.htm>, retrieved 2026-09-26; his SAE 2006-01-2249 was not read | leap rule `(Y−1)\2 + Y\10 − Y\100 + Y\500`, which the page calls the intercalation formula. The same page's "extended intercalation scheme", `\1000` (668.5910 sols) and a series of later formulas, is offered there as an example against the vernal-equinox year and is not carried |
+| Martiana weeks and long years | Gangale, "The Darian Calendar for Mars", §1.4.1 and Table 1-13 (`t2002martiana.htm`), retrieved 2026-09-26 | leap sol in odd years, epagomenal sol every tenth year outside the week, no century exception stated or applied; Aitken's 1936 original not read |
 | `DARIAN_EPOCH_MARS_SOL_DATE` | −94 129 | reproduces the published Darian dates of the Viking 1 and Perseverance landings (14 Mina 195, 13 Sagittarius 219). Gangale's continuous "Mars Julian Sol" is noon-based and reads 94 128.511 at the MSD epoch; this crate aligns the sol boundary with Airy midnight |
+
+### Titan and the Galilean moons (the system is written up in [`docs/systems/circad-calendars.md`](../../docs/systems/circad-calendars.md))
+
+| constant | value | source and note |
+|---|---|---|
+| `titan::SOLAR_DAY_DAYS`, `titan::CIRCAD_DAYS` | 15.969 095 d, 0.998 068 439 d | Gangale, "The Darian Calendar for Titan", §§3.2–3.3, <https://ops-alaska.com/time/gangale_saturn/Darian_Titan_main.htm>, retrieved 2026-09-26; the printed circad is 1.5 × 10⁻⁹ d longer than a sixteenth of the day, and is the one the calibration uses |
+| Titan months and leap rule | 688/696 circads, `8·(Y\25 − Y\400)` | ibid., §§3.4–3.5 and Tables 3-1 to 3-3; the page's 668.32 and 668.30 are read as the 688.32 and 688.30 its arithmetic gives |
+| `titan::CALIBRATION_JULIAN_DATE_UTC`, `CALIBRATION_JULIAN_CIRCAD` | JD 2 452 626.945 83 UTC, 144 096 | ibid., §3.6, the superior conjunction of 2002-12-18 (the *Astronomical Almanac* for 2002 it cites was not read); Julian Circad 0 comes out within 3 s of the printed JD 2 308 809.276 07 |
+| Galilean solar days, circads, weeks, months | Io 1.769 860 d / 2 … Callisto 16.753 548 d / 19 | Gangale, "The Calendars of Jupiter", Tables 2-1 to 2-5, <https://ops-alaska.com/time/gangale_jupiter/jupiter.htm>, retrieved 2026-09-26 |
+| Galilean year lengths | Table 2-7 | ibid.; the extended Table 2-8 does not reproduce Table 2-7 and is not carried |
+| Galilean epochs | Table 2-9 conjunctions, UTC | ibid., §2.7, computed there with NASA Ames' Jupiter Ephemeris Generator 1.2, not read |
 
 ### Bodies (NASA NSSDC *Planetary Fact Sheets* unless noted)
 

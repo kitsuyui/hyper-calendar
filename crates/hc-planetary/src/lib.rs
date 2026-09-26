@@ -8,7 +8,13 @@
 //!   standardised and in daily operational use: the sol, the Mars Sol Date,
 //!   Coordinated Mars Time, local mean and true solar time with the Martian
 //!   equation of time, the areocentric solar longitude `Ls`, Mars years, the
-//!   sol counts of every surface mission, and the Darian calendar.
+//!   sol counts of every surface mission, the Darian calendar and its
+//!   Martiana variant.
+//! * [`titan`] and [`galilean`] — Gangale's calendars for the moons that
+//!   have no livable day: Titan's Darian calendar and the Gregorian-based
+//!   calendars of Io, Europa, Ganymede and Callisto, counted in *circads*,
+//!   fractions of each moon's solar day, through the one engine in
+//!   [`circad`].
 //! * [`bodies`] — a data table of the major bodies of the solar system, and
 //!   the solar day, the year in local days and the clock rate derived from it.
 //! * [`moon`] — lunation numbers, the age of the Moon, and the selenographic
@@ -61,17 +67,21 @@
 #![warn(missing_docs)]
 
 pub mod bodies;
+pub mod circad;
 pub mod clock;
+pub mod galilean;
 pub mod mars;
 pub mod moon;
+pub mod titan;
 
 mod util;
 
 pub use bodies::{Body, BodyKind, ClockEpoch, EpochBasis};
+pub use circad::{CircadCalendar, CircadDate, CircadRule};
 pub use clock::{BodyClock, LocalTime};
 pub use mars::{
-    DarianCalendar, DarianDate, MARS_SOL_SECONDS, MarsMoment, MarsSeason, MarsTime, Mission,
-    MissionClock, SolConvention,
+    DarianCalendar, DarianDate, MARS_SOL_SECONDS, MarsMoment, MarsSeason, MarsTime,
+    MartianaCalendar, MartianaDate, Mission, MissionClock, SolConvention,
 };
 
 pub use hc_astro;

@@ -197,22 +197,131 @@ impl DarianDate {
     }
 }
 
+/// Which years of the 24-month Darian year keep the 668th sol, the last
+/// sol of Vrishika.
+///
+/// The Darian calendar and its Martiana variant have the same months and the
+/// same epoch and differ in which years are long; everything else about the
+/// arithmetic is shared, and lives here once.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Intercalation {
+    /// Odd or divisible by ten, except divisible by 100 and not by 500.
+    Darian,
+    /// Odd or divisible by ten, with no exception: the Martiana calendar's
+    /// odd-year leap sol and decennial epagomenal sol.
+    Martiana,
+}
+
+impl Intercalation {
+    /// Whether `year` has 669 sols.
+    pub(crate) const fn is_long(self, year: i64) -> bool {
+        if year.rem_euclid(2) != 0 {
+            return true;
+        }
+        if year.rem_euclid(10) != 0 {
+            return false;
+        }
+        match self {
+            Self::Martiana => true,
+            Self::Darian => year.rem_euclid(100) != 0 || year.rem_euclid(500) == 0,
+        }
+    }
+
+    /// The number of long years in `0..year`, i.e. strictly before `year`,
+    /// negative for a negative year.
+    const fn long_years_before(self, year: i64) -> i64 {
+        match self {
+            // `long_years_through(-1)` is -2; subtracting it rebases the
+            // count on year 0, which is itself a long year.
+            Self::Darian => long_years_through(year - 1) + 2,
+            // The odd years below `year` and the multiples of ten, each
+            // counted with floor division so that negative years count
+            // backwards: `Y\2` odd years and `(Y−1)\10 + 1` decennial ones.
+            Self::Martiana => year.div_euclid(2) + (year - 1).div_euclid(10) + 1,
+        }
+    }
+
+    /// The sol number of the first sol of `year`.
+    pub(crate) const fn year_start_sol(self, year: i64) -> i64 {
+        668 * year + self.long_years_before(year)
+    }
+
+    /// The sols in `month` of `year`, or `None` for a month not in `1..=24`.
+    pub(crate) const fn sols_in_month(self, year: i64, month: u8) -> Option<u8> {
+        if month == 0 || month > 24 {
+            return None;
+        }
+        if !month.is_multiple_of(6) {
+            return Some(28);
+        }
+        if month == 24 && self.is_long(year) {
+            Some(28)
+        } else {
+            Some(27)
+        }
+    }
+
+    /// The sol number of a year, month and sol of the month.
+    pub(crate) const fn sol_from_date(self, year: i64, month: u8, day: u8) -> CalendarResult<i64> {
+        if year < MIN_YEAR || year > MAX_YEAR {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        let length = match self.sols_in_month(year, month) {
+            Some(value) => value,
+            None => return Err(CalendarError::MonthOutOfRange),
+        };
+        if day == 0 || day > length {
+            return Err(CalendarError::DayOutOfRange);
+        }
+        let mut sol = self.year_start_sol(year);
+        let mut index = 1u8;
+        while index < month {
+            sol += match self.sols_in_month(year, index) {
+                Some(value) => value as i64,
+                None => return Err(CalendarError::MonthOutOfRange),
+            };
+            index += 1;
+        }
+        Ok(sol + day as i64 - 1)
+    }
+
+    /// The year, month and sol of the month of a sol number.
+    pub(crate) const fn date_from_sol(self, sol: i64) -> CalendarResult<(i64, u8, u8)> {
+        // 668 is a lower bound on the year length, so this never overshoots
+        // by more than one year, and the correction below is a single step.
+        let mut year = sol.div_euclid(669);
+        while self.year_start_sol(year + 1) <= sol {
+            year += 1;
+        }
+        while self.year_start_sol(year) > sol {
+            year -= 1;
+        }
+        if year < MIN_YEAR || year > MAX_YEAR {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        let mut remaining = sol - self.year_start_sol(year);
+        let mut month = 1u8;
+        loop {
+            let length = match self.sols_in_month(year, month) {
+                Some(value) => value as i64,
+                None => return Err(CalendarError::MonthOutOfRange),
+            };
+            if remaining < length {
+                return Ok((year, month, (remaining + 1) as u8));
+            }
+            remaining -= length;
+            month += 1;
+        }
+    }
+}
+
 /// Whether `year` is a long Darian year of 669 sols.
 ///
 /// Odd, or divisible by ten; but not if divisible by a hundred, unless also
 /// divisible by five hundred.
 #[must_use]
 pub const fn is_leap_year(year: i64) -> bool {
-    if year.rem_euclid(2) != 0 {
-        return true;
-    }
-    if year.rem_euclid(10) != 0 {
-        return false;
-    }
-    if year.rem_euclid(100) != 0 {
-        return true;
-    }
-    year.rem_euclid(500) == 0
+    Intercalation::Darian.is_long(year)
 }
 
 /// Gangale's count of long years in `1..=year`, `(Y−1)\2 + Y\10 − Y\100 +
@@ -220,13 +329,6 @@ pub const fn is_leap_year(year: i64) -> bool {
 /// difference of two counts is always the number of long years between them.
 const fn long_years_through(year: i64) -> i64 {
     (year - 1).div_euclid(2) + year.div_euclid(10) - year.div_euclid(100) + year.div_euclid(500)
-}
-
-/// The number of long years in `0..year`, i.e. strictly before `year`.
-const fn long_years_before(year: i64) -> i64 {
-    // `long_years_through(-1)` is -2; subtracting it rebases the count on
-    // year 0, which is itself a long year.
-    long_years_through(year - 1) + 2
 }
 
 /// The number of sols in `year`.
@@ -243,23 +345,13 @@ pub const fn sols_in_year(year: i64) -> u16 {
 /// `1..=24`.
 #[must_use]
 pub const fn sols_in_month(year: i64, month: u8) -> Option<u8> {
-    if month == 0 || month > 24 {
-        return None;
-    }
-    if !month.is_multiple_of(6) {
-        return Some(28);
-    }
-    if month == 24 && is_leap_year(year) {
-        Some(28)
-    } else {
-        Some(27)
-    }
+    Intercalation::Darian.sols_in_month(year, month)
 }
 
 /// The Darian sol number of 1 Sagittarius of `year`.
 #[must_use]
 pub const fn year_start_sol(year: i64) -> i64 {
-    668 * year + long_years_before(year)
+    Intercalation::Darian.year_start_sol(year)
 }
 
 /// The Darian sol number of a date.
@@ -271,26 +363,7 @@ pub const fn year_start_sol(year: i64) -> i64 {
 /// the date does not exist — including 27 Vrishika's missing 28th sol in a
 /// common year.
 pub const fn sol_from_date(date: DarianDate) -> CalendarResult<i64> {
-    if date.year < MIN_YEAR || date.year > MAX_YEAR {
-        return Err(CalendarError::YearOutOfRange);
-    }
-    let length = match sols_in_month(date.year, date.month) {
-        Some(value) => value,
-        None => return Err(CalendarError::MonthOutOfRange),
-    };
-    if date.day == 0 || date.day > length {
-        return Err(CalendarError::DayOutOfRange);
-    }
-    let mut sol = year_start_sol(date.year);
-    let mut month = 1u8;
-    while month < date.month {
-        sol += match sols_in_month(date.year, month) {
-            Some(value) => value as i64,
-            None => return Err(CalendarError::MonthOutOfRange),
-        };
-        month += 1;
-    }
-    Ok(sol + date.day as i64 - 1)
+    Intercalation::Darian.sol_from_date(date.year, date.month, date.day)
 }
 
 /// The Darian date of a sol number.
@@ -300,30 +373,9 @@ pub const fn sol_from_date(date: DarianDate) -> CalendarResult<i64> {
 /// Returns [`CalendarError::YearOutOfRange`] for a sol outside
 /// [`MIN_YEAR`]..=[`MAX_YEAR`].
 pub const fn date_from_sol(sol: i64) -> CalendarResult<DarianDate> {
-    // 668 is a lower bound on the year length, so this never overshoots by
-    // more than one year, and the correction below is a single step.
-    let mut year = sol.div_euclid(669);
-    while year_start_sol(year + 1) <= sol {
-        year += 1;
-    }
-    while year_start_sol(year) > sol {
-        year -= 1;
-    }
-    if year < MIN_YEAR || year > MAX_YEAR {
-        return Err(CalendarError::YearOutOfRange);
-    }
-    let mut remaining = sol - year_start_sol(year);
-    let mut month = 1u8;
-    loop {
-        let length = match sols_in_month(year, month) {
-            Some(value) => value as i64,
-            None => return Err(CalendarError::MonthOutOfRange),
-        };
-        if remaining < length {
-            return Ok(DarianDate::new(year, month, (remaining + 1) as u8));
-        }
-        remaining -= length;
-        month += 1;
+    match Intercalation::Darian.date_from_sol(sol) {
+        Ok((year, month, day)) => Ok(DarianDate::new(year, month, day)),
+        Err(error) => Err(error),
     }
 }
 

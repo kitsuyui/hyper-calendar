@@ -1,10 +1,10 @@
-# Mars timekeeping: MSD, MTC, local solar time, the Mars year and mission sols
+# Mars timekeeping: MSD, MTC, local solar time, the Mars year, mission sols and the Darian calendars
 
 Time on Mars as the people who operate spacecraft there keep it: a count of
 sols, a clock on the prime meridian, local mean and true solar time at a
 site, a count of Mars years from 1955, and the sol numbers each surface
 mission runs. The Darian calendar, a proposed civil calendar on the same
-sols, is included at the end of each section.
+sols, and its Martiana variant are included at the end of each section.
 
 ## What it is
 
@@ -43,6 +43,12 @@ Mars, first described in 1986: 24 months named alternately for the zodiac in
 Latin and Sanskrit, seven-sol weeks, and years from the Martian vernal
 equinox of 1609 March 11, the Martian year of Kepler's first two laws and of
 the first telescopic observations (`gangale-darian`).
+
+The **Martiana calendar** is Gangale's variant of 2002: the same months,
+sols and epoch, with the week reconciled to the months by a modified form
+of Robert G. Aitken's scheme of 1936 instead of by shortening it. The page
+records "no popular support" for it, and the Darian calendar "remains the
+preferred solution" (`gangale-darian`, sections 1.4.1 and 1.7).
 
 ## How it works
 
@@ -117,6 +123,40 @@ years the rule gives 250 odd years, plus 50 multiples of 10 that are even
 500: 296 long years, a mean year of `668 + 296/500 = 668.592` sols against
 the 668.5921-sol tropical year.
 
+**The Martiana week.** The Darian calendar keeps every month starting on
+Sol Solis by dropping the last Sol Saturni of each 27-sol month. The
+Martiana calendar never drops a sol from the week. A quarter of five
+28-sol months and one of 27 is 167 sols, 23 weeks and six sols, so every
+month of a quarter begins on the same sol of the week and each quarter a
+sol earlier than the one before: in even years Sol Solis, Sol Saturni,
+Sol Veneris and Sol Jovis; in odd years Sol Mercurii, Sol Martis, Sol Lunae
+and Sol Solis (`gangale-darian`, section 1.4.1, and its Table 1-13). An odd
+year's leap sol, the 28th of Vrishika, is a sol of the week, so the next
+year begins on Sol Solis again and the pattern repeats every two years. The
+sol added every tenth year, also the 28th of Vrishika, is *epagomenal*,
+"not counted as part of the week, thus the two-year rotation of the sols of
+the week is not disrupted". Aitken's own scheme put both extra sols in even
+years, giving years of 668, 669 and 670 sols, and the epagomenal sol at
+mid-year; Gangale moved the leap sol to the odd years and the epagomenal
+sol to the end.
+
+The page's text says "In the even-numbered years" for both sets of quarter
+starts; the second is the odd years, as Table 1-13's "Odd-Numbered Years"
+column and the arithmetic agree: an even year's winter quarter begins on
+Sol Jovis, and 167 sols later it is Sol Mercurii.
+
+*Worked example.* On which sol of the week does 1 Gemini 219 fall? Year
+219 is odd, and Gemini is the first month of the third quarter, so it
+begins on Sol Lunae; its 1st is Sol Lunae. And Vrishika 28 of 220: 220 is
+even and decennial, so the sol exists and is epagomenal, the one sol of
+the year with no name in the week.
+
+The Martiana text gives the long years as the odd and the decennial ones
+and states no exception for the centuries, where the Darian rule makes
+years divisible by 100 and not by 500 short. Taken as written, the mean
+year is 668.6 sols, Aitken's, and the two calendars share every date of
+years 0 to 99 and then part by a sol at each century not divisible by 500.
+
 ## What is carried
 
 In `hc-planetary`:
@@ -136,6 +176,13 @@ In `hc-planetary`:
 * `mars::darian`: the Darian calendar, whose conversions are sol-indexed.
   It also implements `hc_calendar::Calendar`, where its `Rd` is a Darian sol
   count and not an Earth day.
+* `mars::martiana`: `martiana`, the Martiana calendar, on the same sol count
+  from the same epoch, so that a Darian and a Martiana date convert into
+  each other through the `Rd`. The sol of the week is `Option`al: the
+  epagomenal sol has none. The long years are taken as the text gives them,
+  every odd and every decennial year, with no century exception; if a
+  source is found that applies the Darian `\100` and `\500` terms, that
+  would be a second calendar under its own name, not a change to this one.
 
 Not carried:
 
@@ -154,8 +201,14 @@ Not carried:
   `\1000` for years 0–2000, "as an example of the accuracy that is
   achievable", not as the calendar's rule, and no dated correspondence under
   it was found to test against (`gangale-darian`, section 1.2.1).
+* **Aitken's calendar of 1936.** Section 1.4.1 describes it in a sentence —
+  both extra sols in even years, the epagomenal one at mid-year — and links
+  a page on `pweb.jps.net`, which did not answer on 2026-09-26; without its
+  epoch, its months or the position of its epagomenal sol, it is not
+  carried.
 * **Other Martian calendars and year counts.** Mars24 notes that dozens have
-  been proposed; only the Clancy count and the Darian calendar are carried.
+  been proposed; only the Clancy count, the Darian calendar and its Martiana
+  variant are carried.
 
 ## Accuracy
 
@@ -185,6 +238,11 @@ Checked against:
   landings, 14 Mina 195 and 13 Sagittarius 219, as the comparison table in
   Wikipedia's article on the calendar gives them (a secondary source), and
   the leap rule's mean year of 668.592 sols.
+* **The Martiana calendar**: the weekday on which every month of every
+  quarter begins in Table 1-13, even years and odd, the leap sol on Sol
+  Saturni and the decennial sol outside the week, and agreement with the
+  Darian calendar on every sol of years −99 to 99. No dated Martiana date
+  was found published.
 
 ## Sources
 
@@ -196,7 +254,8 @@ Checked against:
 | `allison1997`, `allison2000` | The algorithm Mars24 restates; the 0.008° accuracy claim | no |
 | `clancy2000` | The Mars Year convention from 1955 April 11 | no |
 | `piqueux2015` | The enumeration of Mars years back to the telescopic era | no |
-| `gangale-darian` | The Darian months, weeks, both intercalation schemes, the epoch | yes, retrieved 2026-09-26 |
+| `gangale-darian` | The Darian months, weeks, both intercalation schemes, the epoch; the Martiana calendar (section 1.4.1 and Table 1-13 at `t2002martiana.htm`) | yes, retrieved 2026-09-26 |
+| — | Aitken's calendar of 1936, which the Martiana page links | no |
 | `gangale2006` | Gangale's SAE paper on the Darian system | no |
 
 ## Code
@@ -213,3 +272,9 @@ Checked against:
 * `crates/hc-planetary/src/mars/darian.rs`: the Darian calendar. Tests:
   `the_leap_rule_is_gangales`, `the_published_event_conversions_reproduce`,
   `darian_years_are_mars_years_plus_one_hundred_and_eighty_three`.
+* `crates/hc-planetary/src/mars/martiana.rs`: the Martiana calendar. Tests:
+  `every_month_of_a_quarter_begins_on_the_table_1_13_weekday`,
+  `the_week_never_breaks_except_for_the_epagomenal_sol`,
+  `the_leap_sol_is_a_sol_saturni_and_the_epagomenal_sol_has_no_weekday`,
+  `martiana_and_darian_agree_before_the_first_century`,
+  `the_two_calendars_convert_through_the_shared_sol_count`.
