@@ -165,7 +165,10 @@ number is returned for it.
 All of these are in Universal Time, and use the rise-and-set geometry of
 `hc-astro::riseset`: the depressions are of the Sun's centre below the
 geometric horizon with no refraction, as the book takes them, while
-sunrise and sunset are the refracted upper limb on the visible horizon.
+sunrise and sunset are the refracted upper limb on the visible horizon of
+the default `geometric-dip` horizon, which differs from the book's by
+19″·√h of the observer's height; the horizons are in
+[rise-and-set.md](rise-and-set.md).
 
 ## Accuracy
 
@@ -174,7 +177,13 @@ time's. Against Meeus's example 28.a, +13 min 42.6 s on 1992 October 13.0
 TD, the sundial at Greenwich is within 0.5 s. At Padua on seven days of
 2024, the sundial reads 12:00 at the Sun's transit as `riseset::solar_noon`
 finds it to within 2 s, which is the agreement between the equation of time
-and the transit search, not an error of either against the sky. The
+and the transit search, not an error of either against the sky. That
+agreement holds from about 1500 CE. Before it the sundial runs ahead of
+the transit, by 38 s at Jerusalem in 586 BCE: the equation of time takes
+the mean Sun's longitude at dynamical time, mean time runs in Universal
+Time, and ΔT was then five hours. The book's `equation-of-time` is built
+the same way and its solar events carry the same drift; how it was
+measured is in [rise-and-set.md](rise-and-set.md). The
 inverses return the reading they were given to 0.1 ms.
 
 The temporal hours are as good as the sunrise and sunset under them, which

@@ -92,7 +92,11 @@ pub fn universal_from_local_mean_time(local_mean: Moment, location: Location) ->
 /// (`apparent-from-universal`, through `apparent-from-local`).
 ///
 /// It reads 12:00 when the true Sun crosses the local meridian, to the
-/// second or so the equation of time and the transit search here share.
+/// second or so the equation of time and the transit search here share,
+/// since about 1500 CE. Earlier it runs ahead of the transit, by 38 s in
+/// 586 BCE: the equation of time takes the mean Sun at dynamical time and
+/// mean time runs in Universal Time, and ΔT was hours then
+/// ([`docs/systems/rise-and-set.md`](../../../docs/systems/rise-and-set.md)).
 #[must_use]
 pub fn local_apparent_time(universal: Moment, location: Location) -> Moment {
     Moment(local_mean_time(universal, location).0 + equation_of_time(universal))

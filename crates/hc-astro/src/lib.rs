@@ -22,6 +22,8 @@
 //! * [`lunar`] — the Moon's longitude, its phase, and the conjunction search.
 //! * [`riseset`] — sunrise, sunset, twilight, moonrise and moonset for a
 //!   [`riseset::Location`].
+//! * [`horizon`] — the named horizons a rising or a setting is measured
+//!   against: the default, the USNO's and *Calendrical Calculations*'.
 //! * [`solar_time`] — local mean and local apparent (sundial) time.
 //!
 //! # What it is not
@@ -58,6 +60,7 @@
 pub mod delta_t_model;
 pub mod delta_t_table;
 pub mod earth;
+pub mod horizon;
 pub mod lunar;
 pub mod riseset;
 pub mod solar;
@@ -74,11 +77,15 @@ pub use delta_t_model::{
     DELTA_T_MODELS, DeltaTModel, ESPENAK_MEEUS_2006, MORRISON_STEPHENSON_2021,
 };
 pub use earth::{Equatorial, Nutation, Obliquity, nutation, obliquity};
+pub use horizon::{HORIZONS, Horizon};
 pub use lunar::{
     MEAN_SYNODIC_MONTH, MoonPhase, lunar_illuminated_fraction, lunar_longitude, lunar_phase,
     moon_phase_at_or_after, new_moon_at_or_after, new_moon_before, nth_new_moon,
 };
-pub use riseset::{Location, Twilight, dawn, dusk, moonrise, moonset, solar_noon, sunrise, sunset};
+pub use riseset::{
+    Location, Twilight, dawn, dusk, moonrise, moonrise_with, moonset, moonset_with, solar_noon,
+    sunrise, sunrise_with, sunset, sunset_with,
+};
 pub use solar::{
     Equinox, MEAN_TROPICAL_YEAR, Solstice, equinox, solar_longitude, solar_longitude_after,
     solstice,
