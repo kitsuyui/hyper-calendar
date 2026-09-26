@@ -8,7 +8,7 @@
 //!
 //! | | Calendar | Rule comes from |
 //! |---|---|---|
-//! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], [`hebrew`], [`tibetan`] | a counting rule, exact by definition |
+//! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], [`hebrew`], [`tibetan`], [`meyer_palmen`], [`yerm`] | a counting rule, exact by definition |
 //! | Tabulated | [`islamic_umalqura`] | a published table, exact where the table reaches |
 //! | Computed | [`chinese`], [`dangi`], [`vietnamese`], [`japanese_tenpo`], [`islamic_observational`] | an astronomical model, exact only to the model |
 //! | Historical | [`japanese_historical`] | the system's *own* period constants, exact to the bureau that published it |
@@ -23,7 +23,7 @@
 //! systems' errors on purpose, because the errors are what the surviving
 //! documents record.
 //!
-//! # Two engines, fifteen calendars
+//! # Two engines, eighteen calendars
 //!
 //! Almost nothing here is written twice.
 //!
@@ -42,8 +42,10 @@
 //!   calendars drift away from the sky exactly as they historically did.
 //!
 //! [`hebrew`] and [`tibetan`] stand alone because their rules genuinely are
-//! their own, [`islamic_umalqura`] because a table is not an algorithm, and
-//! [`islamic_observational`] because it predicts a sighting.
+//! their own, and so do the two proposals, [`meyer_palmen`], a lunisolar
+//! calendar of two remainders, and [`yerm`], a lunar one of 52-yerm
+//! cycles; [`islamic_umalqura`] stands alone because a table is not an
+//! algorithm, and [`islamic_observational`] because it predicts a sighting.
 //!
 //! # What this crate will not tell you
 //!
@@ -109,9 +111,11 @@ pub mod islamic_umalqura;
 pub mod japanese_historical;
 pub mod japanese_tenpo;
 pub mod lunisolar;
+pub mod meyer_palmen;
 pub mod tabular;
 pub mod tibetan;
 pub mod vietnamese;
+pub mod yerm;
 
 pub use babylonian::{BabylonianCalendar, BabylonianDate};
 pub use chinese::{ChineseCalendar, ChineseDate};
@@ -132,9 +136,11 @@ pub use lunisolar::{
     ConjunctionMode, LunisolarCalendar, LunisolarDate, LunisolarParameters, MeanMotionModel,
     MeridianEra, SolarTermMode,
 };
+pub use meyer_palmen::{MeyerPalmenCalendar, MeyerPalmenDate};
 pub use tabular::{IslamicDate, LeapYearRule, TabularIslamicCalendar};
 pub use tibetan::{TibetanCalendar, TibetanDate};
 pub use vietnamese::{VietnameseCalendar, VietnameseDate};
+pub use yerm::{YermCalendar, YermDate};
 
 pub use hc_astro;
 pub use hc_calendar;
@@ -187,6 +193,8 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::HebrewCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BabylonianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::TibetanCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::MeyerPalmenCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::YermCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::IslamicCivilCalendar)));
         registry.insert(Box::new(DynAdapter::new(
             crate::IslamicAstronomicalCalendar,
@@ -209,7 +217,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 16);
+        assert_eq!(registry.len(), 18);
     }
 
     #[test]
