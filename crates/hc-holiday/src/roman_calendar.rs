@@ -35,6 +35,8 @@
 //! bishops may make: England and Wales keep the Body and Blood of Christ
 //! on the Sunday after the Most Holy Trinity, and this calendar on the
 //! Thursday, as the General Roman Calendar has it.
+//! The Lectionary's Sunday and weekday cycles, which an ordo also prints,
+//! are rules and not editorial choices, and are [`crate::lectionary`]'s.
 //!
 //! Sources: the General Roman Calendar and the Universal Norms on the
 //! Liturgical Year and the General Roman Calendar (`roman-calendar-norms`),

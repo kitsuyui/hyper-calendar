@@ -245,6 +245,20 @@ constants named; only the 216 years and the 97 minutes are also quoted.
   7 April 1897, 8 April 1925 to 2093 and 9 April 2121 and 2149, are the
   list in Wikipedia's article, which cites no source for it
   [wikipedia-birkat-hachamah].
+- **Anniversaries**, in the same module: `yahrzeit` and `birthday`, the
+  day in a later year that keeps a Hebrew date, by Reingold and
+  Dershowitz's `yahrzeit` and `hebrew-birthday` [reingold2018code]. A
+  date the later year has is kept on it. 30 Ḥeshvan and 30 Kislev depend
+  on the first anniversary: if the year after the death lacked the 30th,
+  the day before 1 Kislev or 1 Ṭevet is kept every year. A death in
+  Adar II is kept in the last month of the later year; one in Adar of a
+  common year, or in Adar I, in Adar I of a leap year, and 30 Adar I in a
+  common year on 30 Shevaṭ. A birth in Adar or Adar II is kept in the
+  later year's last month, so a boy born in Adar of a common year keeps
+  his birthday in Adar II, where a yahrzeit of the same date falls in
+  Adar I. Customs differ; the rules are the book's. No published table
+  of anniversaries was read, so the tests hold the functions to the rules
+  and not to dates.
 - **Not carried, and why.**
   - The observational calendar of the Second Temple period and of the
     Sanhedrin, in which each month was declared on the testimony of
@@ -331,7 +345,10 @@ the Nisan-first internal one. Anchors:
 `rosh_hashanah_5784_was_the_sixteenth_of_september_2023`,
 `passover_5784_was_the_twenty_third_of_april_2024`,
 `rosh_hashanah_never_falls_on_sunday_wednesday_or_friday`,
-`every_year_takes_one_of_the_six_permitted_lengths`. The Omer and birkat
-hachama functions are in the same module; the holidays that sit on the
+`every_year_takes_one_of_the_six_permitted_lengths`. The Omer, birkat
+hachama, `yahrzeit` and `birthday` functions are in the same module, the
+anniversaries tested by `a_yahrzeit_in_adar_follows_the_books_rules`,
+`a_birthday_in_adar_follows_the_books_rules` and
+`the_thirtieth_of_heshvan_and_kislev_depend_on_the_first_anniversary`; the holidays that sit on the
 calendar are in `hc-holiday`. Hebrew and English month names are in
 `hc-i18n`.

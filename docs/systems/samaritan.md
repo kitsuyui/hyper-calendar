@@ -95,9 +95,15 @@ the sacrifice fell on Wednesday 6 May, as published.
   `DayBoundary::Sunset(DayNaming::ByEnd)`: the day runs from the
   preceding sunset [samaritans-net-calendar], and the computation places
   days at the civil day whose daylight they hold, as `hebrew` does.
+- **The festivals** are `hc-holiday`'s `samaritan` table, on this
+  calendar: the Passover sacrifice on 1/14, Unleavened Bread 1/15–21, the
+  Festival of the Seventh Month on 7/1, the Day of Atonement on 7/10,
+  Sukkot on 7/15 and Shemini Atseret on 7/22 [samaritans-net-calendar].
 - **Not carried.** The priesthood's own computation, which was not
-  read; the festivals as named days (they are the dates the tests
-  read); the Samaritan script.
+  read; Shavuot, whose counting rule the community's festival page gives
+  — fifty days from the day after the Sabbath in the seven days of
+  Unleavened Bread — but for which no dated Shavuot was read; the
+  Samaritan script.
 
 ## Accuracy
 

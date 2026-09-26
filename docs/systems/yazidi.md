@@ -83,9 +83,13 @@ cycle is declared.
     `julian`'s and are reachable through the extras.
   - *The Seleucid era* as a year count, for want of a source that a Yazidi
     year is written in it. It would be its own identifier.
-  - *The festivals* — the Feast of the Assembly of 23–30 September, the
-    tiwafs of Nisan, the fasts of December — which are observances on the
-    Eastern date and belong in `hc-holiday`.
+  - *The festivals* as named days. They are `hc-holiday`'s `yazidi` table
+    on the Julian calendar: Serêsal, the Forty Days of Summer from
+    10 Haziran, the Feast of the Assembly of 23–30 September, and the
+    three-day winter fast before Bêlinde on 1 December [kreyenbroek1995,
+    pp. 151–155]. The village tiwafs, the Feast of the Dead and
+    Khidr-Ilyas, which the source reports only as "said to fall" on their
+    dates, and the feasts on the Islamic calendar are not carried.
   - *The day boundary.* The celebrations begin on the Tuesday evening,
     the Yazidi day beginning at sunset [wikipedia-yazidi-new-year]; no
     source read states the calendar day's boundary as a rule, so midnight
@@ -111,7 +115,7 @@ calendar would supply.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [kreyenbroek1995] | The Eastern (Seleucid) calendar thirteen days behind the Gregorian, Nisan as the first month, Serêsal on the first Wednesday of Nisan, the Feast of the Assembly's dates | Yes, the archive.org text, 2026-09-25 |
+| [kreyenbroek1995] | The Eastern (Seleucid) calendar thirteen days behind the Gregorian, Nisan as the first month, Serêsal on the first Wednesday of Nisan, the Feast of the Assembly's dates, and the other feasts `hc-holiday` carries | Yes, the archive.org text, 2026-09-25, and pp. 150–156 again 2026-09-26 |
 | [rodziewicz2020] | The first Wednesday of Nisan; the sanctity of Wednesday | Abstract only, 2026-09-25 |
 | [wikipedia-yazidi-new-year] | The first Wednesday on or after 14 April Gregorian; the Tuesday-evening start | Yes, 2026-09-25 |
 | [bozarslan2021] | The same rule | Not read; cited by Wikipedia |

@@ -25,12 +25,13 @@ use hc_calendars_indic::{
 };
 use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
+use hc_calendars_lunar::samaritan;
 use hc_calendars_lunar::tabular::{self, LeapYearRule};
 use hc_calendars_lunar::tibetan::{self, LeapNumbering, TibetanCalendar, TibetanDate};
 use hc_calendars_lunar::{ChineseCalendar, DangiCalendar, LunisolarDate, VietnameseCalendar};
 use hc_calendars_regional::{burmese, thai_lunar};
 use hc_calendars_solar::{
-    bahai_kept, bangladeshi, coptic, ethiopic, gregorian, julian, nanakshahi, persian,
+    bahai_kept, bangladeshi, coptic, ethiopic, gregorian, julian, mandaean, nanakshahi, persian,
     revised_julian, zoroastrian,
 };
 use hc_core::math::{floor, normalize_degrees};
@@ -473,6 +474,36 @@ hc_core::catalogue! {
                 thai_lunar::to_fixed(thai_lunar::ThaiLunarDate::new(year, month, day)).ok()
             },
             |rd| thai_lunar::from_fixed(rd).ok().map(|date| date.year),
+        );
+
+        /// The Samaritan calendar by Reingold and Dershowitz's modern
+        /// calculation, in which the Samaritan festivals are dated. Months
+        /// are numbered from the Sixth, where the year number changes, so
+        /// the First Month, Passover's, is `Month::regular(8)` and the
+        /// Seventh `Month::regular(2)`; the years 3539 to 3738, autumn 1900
+        /// to autumn 2100, and a reported gap outside
+        /// (`hc_calendars_lunar::samaritan`).
+        pub const SAMARITAN = Self::new(
+            samaritan::ID,
+            |year, month, day| {
+                samaritan::to_fixed(samaritan::SamaritanDate { year, month, day }).ok()
+            },
+            |rd| samaritan::from_fixed(rd).ok().map(|date| date.year),
+        );
+
+        /// The Mandaean calendar, in which the Mandaean feasts are dated:
+        /// 365 days and no leap day, the five Parwanaia as position 9 after
+        /// the eighth month, so Qaina is position 10 and Gadia 13
+        /// (`hc_calendars_solar::mandaean`).
+        pub const MANDAEAN = Self::new(
+            CalendarId(mandaean::ID),
+            |year, month, day| {
+                if month.leap {
+                    return None;
+                }
+                mandaean::to_fixed(year, month.ordinal, day).ok()
+            },
+            |rd| mandaean::from_fixed(rd).ok().map(|(year, _, _)| year),
         );
 
         /// The Zoroastrian calendar by the Qadimi reckoning: the 365-day

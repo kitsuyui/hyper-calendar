@@ -99,10 +99,11 @@ begins 240 days after 16 July 2026: 13 March 2027.
 - **Not carried:**
   - *The seasons and their thirds*, which are names for the months already
     carried.
-  - *The feast days* other than Dehwa Rabba and the Parwanaia: Dehwa
-    Hanina on 18 Taura, Ashuriyah on 1 Sartana, Dehwa Daimana on 1 Hatia,
-    the mbattal days [drower1937, pp. 86–92]. They are fixed dates on this
-    calendar and belong in `hc-holiday`.
+  - *The feast days* as named days: Dehwa Hnina on 18 Taura, Ashuriyah on
+    1 Sartana, Dehwa Daimana on 1 Hatia, the mbattal days and the rest
+    [drower1937, pp. 60, 85–92, 211]. They are fixed dates on this
+    calendar and are `hc-holiday`'s `mandaean` table, which Drower's
+    Dehwa Hnina of 23 November 1932 and 1935 checks.
   - *The day boundary.* Drower describes the new year's vigil from sunset
     and the thirty-six hours indoors; nothing read states where the
     calendar day begins, so midnight is left as the default.
@@ -140,7 +141,7 @@ dates.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [drower1937] | The year's structure and the month table (pp. 83–85), the month names in the forms used here, the 1930s dates (pp. 82, 84, 90), Petermann's 1854 record (p. 92), the feasts (pp. 86–92) | Yes, the archive.org text, 2026-09-25 |
+| [drower1937] | The year's structure and the month table (pp. 83–85), the month names in the forms used here, the 1930s dates (pp. 82, 84, 90), Petermann's 1854 record (p. 92), the feasts and mbattal days (pp. 60, 85–92, 211) | Yes, the archive.org text, 2026-09-25, and the feasts again 2026-09-26 |
 | [haberl2021] | The Sasanian identification, the 2016–2023 new years, the Year of Wednesday, the era after Adam and its anchor and epoch | Yes, the author's proof, 2026-09-25; the figures in it are set in a font the text extraction had to be mapped for, and every figure used here was checked against a known one |
 | [wikipedia-mandaean-calendar] | The 2024 festival dates, as a check | Yes, 2026-09-25 |
 
