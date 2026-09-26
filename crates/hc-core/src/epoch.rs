@@ -5,11 +5,11 @@
 //! rediscover a magic number.
 //!
 //! Every epoch names the document that defines it in [`Epoch::source`].
-//! Three of them — FILETIME's 1601, the Modified Julian Date's 1858 and
-//! NTP's 1900 — are written with a `Z` although they predate UTC, which
-//! began in 1961: the label names the day on today's proleptic UTC
-//! calendar, and the TAI reading is the arithmetic extension of it, not
-//! what any clock read.
+//! Five of them — the UUID's 1582, FILETIME's 1601, the Modified Julian
+//! Date's 1858, NTP's 1900 and SAS's 1960 — are written with a `Z`
+//! although they predate UTC, which began in 1961: the label names the day
+//! on today's proleptic UTC calendar, and the TAI reading is the arithmetic
+//! extension of it, not what any clock read.
 
 use crate::duration::Duration;
 use crate::scale::{Instant, Tai};
@@ -181,6 +181,34 @@ pub const NTP: Epoch = Epoch {
         1900 UTC [rfc5905]",
 };
 
+/// `1582-10-15T00:00:00Z`, the origin of the timestamps in version 1 and
+/// version 6 UUIDs, the first day of the Gregorian calendar.
+///
+/// RFC 9562 counts 100-nanosecond intervals from it and gives the offset
+/// to the POSIX epoch as 122 192 928 000 000 000 intervals, which is
+/// 12 219 292 800 s; [`crate::uuid`] reads and writes the count.
+pub const UUID_GREGORIAN: Epoch = Epoch {
+    id: "uuid-gregorian",
+    description: "UUID version 1 and 6 timestamp origin, 1582-10-15T00:00:00Z",
+    tai_reading: Duration::from_secs(-12_219_292_800),
+    source: "RFC 9562, 5.1: 100-nanosecond intervals since 00:00:00.00, 15 October 1582; \
+        Appendix A: Greg_Unix_offset = 0x01b21dd213814000 [rfc9562]",
+};
+
+/// `1960-01-01T00:00:00Z`, the origin of SAS date and datetime values and
+/// of Stata's `%td`, `%tc` and `%tC`.
+///
+/// [`crate::sas_stata`] reads and writes the datetimes; the day counts are
+/// `sas-date` and `stata-date` in `hc-calendars-solar`.
+pub const SAS_STATA: Epoch = Epoch {
+    id: "sas-stata",
+    description: "SAS and Stata origin, 1960-01-01T00:00:00Z",
+    tai_reading: Duration::from_secs(-315_619_200),
+    source: "SAS 9.3 Language Reference: Concepts, About SAS Date, Time, and Datetime \
+        Values: days and seconds from January 1, 1960 [sas-lrcon-dates]; Stata, help \
+        datetime: durations from 01jan1960 [stata-help-datetime]",
+};
+
 /// `2001-01-01T00:00:00Z`, the origin of Apple's Core Foundation absolute
 /// time.
 pub const CORE_FOUNDATION: Epoch = Epoch {
@@ -207,6 +235,8 @@ pub const ALL: &[Epoch] = &[
     WINDOWS_FILETIME,
     NTP,
     CORE_FOUNDATION,
+    UUID_GREGORIAN,
+    SAS_STATA,
 ];
 
 /// Look an epoch up by its identifier.
@@ -287,6 +317,24 @@ mod tests {
         assert_eq!(navic.since_epoch(), Duration::from_secs(935_280_000));
         let beidou: Instant<BeidouTime> = BEIDOU.instant().convert();
         assert_eq!(beidou.since_epoch(), Duration::from_secs(1_136_073_600));
+    }
+
+    /// The proleptic labels are whole days before the POSIX epoch: the
+    /// UUID's 141 427 days, which RFC 9562's offset of
+    /// 122 192 928 000 000 000 intervals of 100 ns states again, and the
+    /// 3 653 days from 1960 to 1970.
+    #[test]
+    fn the_uuid_and_sas_epochs_are_whole_days_before_1970() {
+        assert_eq!(
+            UUID_GREGORIAN.tai_reading,
+            Duration::from_days(-141_427),
+            "1582-10-15 is 141 427 days before 1970-01-01"
+        );
+        assert_eq!(
+            UUID_GREGORIAN.tai_reading.whole_seconds() * 10_000_000,
+            -122_192_928_000_000_000
+        );
+        assert_eq!(SAS_STATA.tai_reading, Duration::from_days(-3_653));
     }
 
     #[test]

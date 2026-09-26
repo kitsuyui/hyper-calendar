@@ -18,6 +18,9 @@ renders into its own buffer. `String`-returning conveniences sit behind the
 * **`patterns`** — both pattern languages, formatting and parsing, with names
   routed through `hc-i18n` when a locale is supplied.
 * **`parse`** — a sniffing front door for when all you have is "a date string".
+* **`fat`** — the MS-DOS date and time words of the FAT file system, a local
+  reading from 1980 to 2107 at two-second resolution, decoded to a
+  `CivilDateTime` in no zone and encoded from one.
 
 ## ISO 8601-1:2019 coverage
 

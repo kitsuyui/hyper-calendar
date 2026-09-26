@@ -16,6 +16,9 @@
 extend-exclude = ["Cargo.lock"]
 
 [default.extend-words]
+# RFC 9562's title capitalises the D of "IDentifiers", which typos reads as
+# the misspelling "Dentifiers"; hc-core::uuid cites the title as printed.
+Dentifiers = "Dentifiers"
 # AKS, the Academy of Korean Studies, whose encyclopaedia (encykorea.aks.ac.kr)
 # is cited for the Korean folk days, and the key `aks-hansik`.
 aks = "aks"

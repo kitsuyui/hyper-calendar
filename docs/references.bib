@@ -6122,3 +6122,99 @@
   title        = {The {Astronomical Almanac} for the Year 2002},
   note         = {Not read here, and its publication details not checked. Cited by Gangale, as ``Astronomical Almanac 2002'', for the opposition of Saturn (p. A11) and the superior conjunction of Titan (p. F45) of December 2002}
 }
+
+% Day counts and timestamps of computing: SAS, Stata, MATLAB, UUIDs, NTP
+% eras, FAT, Swatch Internet Time, and the Besselian epoch's constants.
+% rfc5905 and sofa-ts, above, are cited too.
+
+@misc{sas-lrcon-dates,
+  author       = {{SAS Institute}},
+  title        = {About {SAS} Date, Time, and Datetime Values},
+  howpublished = {{SAS} 9.3 Language Reference: Concepts, Second Edition, \url{https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p1wj0wt2ebe2a0n1lv4lem9hdc0v.htm}},
+  note         = {A SAS date value is the number of days between January 1, 1960, and a specified date; SAS can perform calculations on dates ranging from A.D. 1582 to A.D. 19,900; a datetime value is the number of seconds between January 1, 1960, and an hour/minute/second within a specified date. The example '26oct02'd is 15639. The page says nothing of leap seconds. Retrieved 2026-09-26}
+}
+
+@misc{stata-help-datetime,
+  author       = {{StataCorp}},
+  title        = {help datetime},
+  howpublished = {StataNow 19 online help, \url{https://www.stata.com/help.cgi?datetime}, the text of [D] Datetime},
+  note         = {Dates as durations from 01jan1960: 20jan2010 09:15:22.120 is 1,579,598,122,120 in datetime/c (\%tc, 86,400 s/day) and 1,579,598,146,120 in datetime/C (\%tC, adjusted for leap seconds), 18,282 as a date (\%td); td(15jun2004) is 16,237 and tc(15jun2004 12:00:00) 1,402,920,000,000; 22jul2010 is 18,465 and 1,595,376,000,000. Its table gives the weekly date 2010w3 as 2,601, which help datetime\_functions' ranges put at 2010w2. Retrieved 2026-09-26}
+}
+
+@misc{stata-help-datetime-conversion,
+  author       = {{StataCorp}},
+  title        = {help datetime\_conversion},
+  howpublished = {StataNow 19 online help, \url{https://www.stata.com/help.cgi?datetime_conversion}, the text of [D] Datetime conversion},
+  note         = {Noon of 23nov2010 is 1,606,132,800,000 in datetime/c and 1,606,132,824,000 in datetime/C, 24 seconds having been inserted between 01jan1960 and 23nov2010; 31dec2005 23:59:60 is invalid in datetime/c and valid in datetime/C, 30dec2005 23:59:60 invalid in both; leap seconds since 1972; SAS ignores leap seconds; a datetime/C value more than six months ahead cannot be known. Retrieved 2026-09-26}
+}
+
+@misc{stata-help-datetime-functions,
+  author       = {{StataCorp}},
+  title        = {help datetime\_functions},
+  howpublished = {StataNow 19 online help, \url{https://www.stata.com/help.cgi?datetime_functions}, the text of [FN] Date and time functions},
+  note         = {Domains and ranges: e\_d dates 01jan0100 to 31dec9999 (integers -679,350 to 2,936,549); e\_tc and e\_tC datetimes 01jan0100 00:00:00.000 to 31dec9999 23:59:59.999; e\_w dates 0100w1 to 9999w52 (integers -96,720 to 418,079), weeks since 1960w1; dofw of 9999w52 is 24dec9999 (2,936,542); week(e\_d) is 1 to 52, the first week of a year being the first 7-day period of the year; tw(1960w2) is 1. Retrieved 2026-09-26}
+}
+
+@misc{mathworks-datenum,
+  author       = {{MathWorks}},
+  title        = {datenum: (Not recommended; use datetime or duration) Convert date and time to serial date number},
+  howpublished = {MATLAB documentation, \url{https://www.mathworks.com/help/matlab/ref/datetime.datenum.html}},
+  note         = {A serial date number represents the whole and fractional number of days from a fixed, preset date (January 0, 0000) in the proleptic ISO calendar. Examples: datenum(2001,12,19) is 731204; 19-May-2001 is 730990; 12-jun-17 is 736858, and 517712 with the pivot year 1400; 09/16/2007, 05/14/1996 and 11/29/2010 are 733301, 729159 and 734471. Read through a fetching tool on 2026-09-26, the site refusing direct requests}
+}
+
+@misc{rfc9562,
+  author       = {Davis, K. and Peabody, B. and Leach, P.},
+  title        = {Universally Unique {IDentifiers} ({UUIDs})},
+  howpublished = {RFC 9562, \url{https://www.rfc-editor.org/rfc/rfc9562}},
+  year         = {2024},
+  note         = {Section 5.1, UUIDv1: a 60-bit count of 100-nanosecond intervals since 00:00:00.00, 15 October 1582; Section 5.6, UUIDv6, the same timestamp most significant bits first; Section 6.1; Appendix A, the Gregorian-to-Unix offset 0x01b21dd213814000 and the test vectors C232AB00-9414-11EC-B3C8-9F6BDECED846 and 1EC9414C-232A-6B00-B3C8-9F6BDECED846 for 0x1EC9414C232AB00, Tuesday, February 22, 2022 2:22:22 PM GMT-05:00. Read 2026-09-26}
+}
+
+@misc{rfc9562-errata,
+  author       = {{RFC Editor}},
+  title        = {{RFC} Errata for {RFC} 9562},
+  howpublished = {\url{https://errata.rfc-editor.org/rfc9562}},
+  note         = {Erratum 7955, verified: UUIDv1's time\_high holds the most significant 12 bits, not the least. Erratum 8288, verified: the 60-bit timestamp is valid until 5236 AD, not 5623. Retrieved 2026-09-26}
+}
+
+@misc{rfc5905-errata,
+  author       = {{RFC Editor}},
+  title        = {{RFC} Errata for {RFC} 5905},
+  howpublished = {\url{https://errata.rfc-editor.org/rfc5905}},
+  note         = {Held for document update: erratum 4025, the MJD of 1 Jan 0 in Figure 4 is -678,941, not -678,491; erratum 6524, the era offset of 1 Jan 1 is 202,934,144, not 202,939,144. Retrieved 2026-09-26}
+}
+
+@misc{ms-dosdatetimetofiletime,
+  author       = {{Microsoft}},
+  title        = {DosDateTimeToFileTime function (winbase.h)},
+  howpublished = {Microsoft Learn, \url{https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-dosdatetimetofiletime}},
+  note         = {The MS-DOS date: bits 0--4 day of the month (1--31), 5--8 month, 9--15 year offset from 1980; the MS-DOS time: bits 0--4 second divided by 2, 5--10 minute (0--59), 11--15 hour (0--23). No example date. Retrieved 2026-09-26}
+}
+
+@misc{ms-file-times,
+  author       = {{Microsoft}},
+  title        = {File Times},
+  howpublished = {Microsoft Learn, \url{https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times}},
+  note         = {The FAT file system records times on disk in local time; on FAT, create time has a resolution of 10 milliseconds, write time 2 seconds and access time 1 day. Retrieved 2026-09-26}
+}
+
+@misc{swatch-internet-time,
+  author       = {{Swatch}},
+  title        = {Internet Time},
+  howpublished = {\url{https://www.swatch.com/en-us/internet-time.html}},
+  note         = {The day divided into 1000 .beats of 1 minute 26.4 seconds; a day in internet time begins at midnight BMT (@000), Central European Wintertime. Read through a fetching tool, 2026-09-26}
+}
+
+@misc{wikipedia-swatch-internet-time,
+  author       = {{Wikipedia contributors}},
+  title        = {Swatch Internet Time},
+  howpublished = {Wikipedia, \url{https://en.wikipedia.org/wiki/Swatch_Internet_Time}},
+  note         = {BMT is UTC+1, the standard time of Biel, not its mean solar time, and keeps no daylight saving time; the formula floor((3600h + 60m + s)/86.4) from UTC+1; @248 is 04:57:07.2 UTC; @000 is 23:00 GMT in London; announced 23 October 1998. Retrieved 2026-09-26}
+}
+
+@misc{erfa-epb,
+  author       = {{ERFA contributors}},
+  title        = {{ERFA} \texttt{eraEpb}: Julian Date to Besselian Epoch},
+  howpublished = {\url{https://github.com/liberfa/erfa/blob/master/src/epb.c}},
+  note         = {BSD-3-Clause; derived with permission from SOFA's iauEpb and intended to retain identical functionality. Besselian Epoch B1900.0 is JD 2415020.31352 and the year is 365.242198781 days, the conventional definition it credits to Lieske (1979, Astron. Astrophys. 73, 282, not read); D1900 = 36524.68648 days from B1900.0 to J2000.0; the JD's scale, originally ET, is TDB, indistinguishable from TT in this context. Revision of 2023 May 5. Retrieved 2026-09-26}
+}

@@ -30,13 +30,18 @@ extern crate alloc;
 pub mod catalogue;
 pub mod duration;
 pub mod epoch;
+pub mod epoch_notation;
 pub mod error;
 pub mod gnss;
+pub mod internet_time;
 pub mod leap;
 pub mod math;
+pub mod ntp;
+pub mod sas_stata;
 pub mod scale;
 pub mod tai64;
 pub mod unix;
+pub mod uuid;
 
 pub use duration::{ATTOS_PER_SEC, Duration};
 pub use error::{TimeError, TimeResult};

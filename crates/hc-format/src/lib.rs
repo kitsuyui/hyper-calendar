@@ -1,5 +1,6 @@
 //! Parsing and formatting for `hyper-calendar`: ISO 8601, RFC 3339,
-//! RFC 5322, and the two pattern vocabularies.
+//! RFC 5322, the two pattern vocabularies, and the FAT file system's packed
+//! date and time.
 //!
 //! # The three things this crate refuses to do
 //!
@@ -25,6 +26,7 @@
 //! | [`iso8601`] | ISO 8601-1:2019 in full: calendar, ordinal and week dates, basic and extended, reduced accuracy, expanded years, durations, intervals |
 //! | [`rfc3339`] | The internet profile, including `-00:00` |
 //! | [`rfc2822`] | Email and HTTP dates, obsolete syntax included |
+//! | [`fat`] | The MS-DOS date and time words of the FAT file system, a local reading at two-second resolution |
 //! | [`patterns`] | `strftime`/`strptime` and CLDR field patterns, both directions |
 //! | [`python`] | The ISO 8601 profile and `strptime` defaults of Python's `datetime` |
 //! | [`parse`] | A sniffing front door for "a date string" |
@@ -60,6 +62,7 @@ extern crate alloc;
 use core::fmt;
 
 pub mod error;
+pub mod fat;
 pub mod iso8601;
 pub mod label;
 pub mod parse;
