@@ -33,8 +33,11 @@ taken from WGS 84 [bwc-badi-dates].
 
 **The French Republican calendar**: twelve months of thirty days, each of
 three *décades*, and five complementary days, six in a *sextile* year. The
-Convention adopted it in October 1793, gave it its final form by the
-decree of 4 frimaire an II (24 November 1793), and dated its era from
+Convention adopted it by the decree of 14 vendémiaire an II (5 October
+1793), in force from the next day, 15 vendémiaire (6 October)
+[frwiki-calendrier-republicain, decret-14-vendemiaire-an-ii], gave it its
+final form by the decree of 4 frimaire an II (24 November 1793), which
+fixes no date of entry into force of its own, and dated its era from
 22 September 1792, the day of the autumn equinox that followed the
 abolition of the monarchy. It was used until 10 nivôse an XIV
 (31 December 1805); a sénatus-consulte of 22 fructidor an XIII
@@ -220,6 +223,7 @@ say so rather than claim it.
 | The fifty Twin Holy Birthdays of the table | `every_twin_birthday_of_the_world_centres_table_is_reproduced` | 50 of 50 |
 | The margin's sign and size in a clear year each way, 172 and 181 BE | `the_margin_is_measured_from_sunset` | Holds |
 | The fourteen new years France kept, An I–XIV, each by more than the tolerance | `the_fourteen_years_france_kept_begin_where_the_record_says` | 14 of 14 |
+| The decree's two observed equinoxes, 9:18:30 on 22 September 1792 and 3:11:38 in the afternoon of 22 September 1793, in true time at the Observatory | `the_decrees_two_observed_equinoxes_are_the_models_in_true_time` | Within 52 and 48 seconds |
 | The sextile years among them are III, VII and XI | `the_sextile_years_are_the_third_seventh_and_eleventh` | Holds |
 | Romme's rule begins An IV, VIII and XII a day earlier, and agrees otherwise | `romme_and_the_equinox_part_company_in_the_fourth_eighth_and_twelfth_years` | Holds |
 | The arithmetic Western calendar and the equinox part company in 173 BE | `before_172_be_the_rule_is_proleptic_and_says_so_by_its_name` | Holds |
@@ -228,13 +232,12 @@ The kept calendar's own tests check that the table's two columns, the
 Naw-Rúz and the Ayyám-i-Há, agree row by row, which is the check on the
 transcription.
 
-Checked for this document and not by a test: the decree gives the two
-equinoxes the astronomers had observed, 9:18:30 in the morning of
-22 September 1792 and 3:11:38 in the afternoon of 22 September 1793, "pour
+The decree gives the two equinoxes the astronomers had observed, "pour
 l'observatoire de Paris" [decret-4-frimaire-an-ii]. The model puts them at
 9:17:38 and 3:12:26 in true time at the Observatory, within a minute of
-both; in Paris mean time it would put them at 9:09:59 and 3:04:51, so the
-decree's times are true times, as article III's rule is.
+both. Checked for this document and not by a test: in Paris mean time the
+model would put them at about 9:10 and 3:05, so the decree's times are
+true times, as article III's rule is.
 
 ## Sources
 
@@ -245,7 +248,8 @@ decree's times are true times, as article III's rule is.
 | [decret-4-frimaire-an-ii] | Articles I, III, IV, V, VII, IX, X and XI: the era, the new-year rule, the two observed equinoxes, the months, the complementary days, the *Franciade*, the *jour de la Révolution*, decimal time | Yes, 2026-09-26, in Wikisource's transcription of the Imprimerie nationale print of 1793 |
 | [romme-an-iii-sextiles] | The proposed fixed rule and the An CXLIV example | Not read directly; read through [frwiki-calendrier-republicain], which quotes it, and [wikipedia-french-republican-calendar] |
 | [romme-1793-rapport] | The calendar's first presentation, 20 September 1793 | Not read |
-| [frwiki-calendrier-republicain] | The decrees of 14 vendémiaire, 4 frimaire and 22 fructidor, Romme's 1795 report and its rule, the mean year, Delambre's objections, the dates of use | Yes, 2026-09-26 |
+| [decret-14-vendemiaire-an-ii] | The calendar's adoption, 5 October 1793 | Not read: Gallica answered with a bot check on 2026-09-26; read through [frwiki-calendrier-republicain] |
+| [frwiki-calendrier-republicain] | The decrees of 14 vendémiaire, 4 frimaire and 22 fructidor, the entry into force on 15 vendémiaire an II, Romme's 1795 report and its rule, the mean year, Delambre's objections, the dates of use | Yes, 2026-09-26 |
 | [wikipedia-french-republican-calendar] | The rule's proposal date, the sextiles of III, VII and XI, An 144's predicted equinox, the fourteen new years | Yes, 2026-09-26 |
 | [reingold2018code] | `bahai-location`, `bahai-sunset`, `astro-bahai-new-year-on-or-before`, `birth-of-the-bab`, `bahai-new-year`, `tehran`, `paris`, `midnight-in-paris`, `french-new-year-on-or-before`, `arithmetic-french-leap-year?` | Yes, 2026-09-26 |
 | [reingold2018] | The book those functions come from | Not read directly |
@@ -261,11 +265,6 @@ are not mistaken for sourced:
   the 2026 row. Their `tehran` has 1 100 m, but the location they use for
   the Bahá'í calendar, `bahai-location`, has the module's coordinates and
   0 m. Corrected.
-- In `places`, that the Paris Observatory's position is Reingold and
-  Dershowitz's `paris`. Theirs is 2°20′15″ E, which they tie to the
-  9 minutes 21 seconds between Paris time and Universal Time; the module's
-  2.336389° is 2°20′11″. Four seconds of arc move apparent midnight by a
-  quarter of a second. The constant is unchanged.
 - In `bahai`, that the row of 183 BE is decided by the committee's
   ephemeris "which no model reproduces to that precision". The model now
   reproduces it, by six seconds. Trimmed.
@@ -288,6 +287,7 @@ equinox modules:
 `the_margin_is_measured_from_sunset`,
 `before_172_be_the_rule_is_proleptic_and_says_so_by_its_name`,
 `the_fourteen_years_france_kept_begin_where_the_record_says`,
+`the_decrees_two_observed_equinoxes_are_the_models_in_true_time`,
 `the_sextile_years_are_the_third_seventh_and_eleventh`,
 `romme_and_the_equinox_part_company_in_the_fourth_eighth_and_twelfth_years`;
 in the crate root, `the_dynamic_leap_year_is_the_module_rule`. In the

@@ -14,13 +14,13 @@
 //! nine-day week holds its first day for days 0 to 3, the eight-day week
 //! its seventh, Kala, for days 70 to 72, and the four-day week is the
 //! eight-day week modulo four; the ten-day week is the *urip* of the five-
-//! and seven-day weeks added, plus one, modulo ten, and the one- and
-//! two-day weeks are its parity.
+//! and seven-day weeks added, plus one, modulo ten, 0 counting as 10, and
+//! the one- and two-day weeks are its parity.
 //!
 //! The arithmetic and the epoch, Julian Day Number 146, are Reingold and
-//! Dershowitz's (`reingold2018code` in `docs/references.bib`). The names
-//! the module gives the ten-day week's values disagree with the sources
-//! the document read, by one place; the document gives the evidence.
+//! Dershowitz's (`reingold2018code` in `docs/references.bib`). Their code
+//! gives the ten-day week as a number only; the day it names is the one
+//! whose own *urip* is that number (`wikipedia-pawukon`).
 //!
 //! There is no Pawukon year. [`PawukonDate`] therefore carries a `round`:
 //! how many complete 210-day periods have elapsed since the epoch. Nothing
@@ -123,7 +123,9 @@ pub const SANGAWARA: [&str; 9] = [
     "Dangu", "Jangur", "Gigis", "Nohan", "Ogan", "Erangan", "Urungan", "Tulus", "Dadi",
 ];
 
-/// The ten names of the ten-day week, Dasawara.
+/// The ten names of the ten-day week, Dasawara, in their customary order,
+/// which is also the order of their own *urip*, 1 to 10: the ten-day
+/// week's value names the day at that place.
 pub const DASAWARA: [&str; 10] = [
     "Pandita", "Pati", "Suka", "Duka", "Sri", "Manuh", "Manusa", "Raja", "Dewa", "Raksasa",
 ];
@@ -250,14 +252,19 @@ impl PawukonDate {
     ///
     /// Unlike every other cycle this is not a modulo of the day number: it
     /// is one plus the *urip* of the five- and seven-day weeks, reduced
-    /// modulo ten.
+    /// modulo ten, with 0 counting as 10. The value is the place in
+    /// [`DASAWARA`], so Galungan, 1 + 8 + 7 = 16, is 6, Manuh.
     #[must_use]
     pub const fn dasawara(self) -> u8 {
-        self.dasawara_index() as u8 + 1
+        match self.dasawara_index() {
+            0 => 10,
+            value => value as u8,
+        }
     }
 
-    /// The zero-based ten-day-week position, which the one- and two-day
-    /// weeks are read from.
+    /// The ten-day week's value 0 to 9, as Reingold and Dershowitz's
+    /// `bali-dasawara-from-fixed` returns it; the one- and two-day weeks
+    /// are read from its parity.
     const fn dasawara_index(self) -> i64 {
         let five = PANCAWARA_URIP[(self.pancawara() - 1) as usize];
         let seven = SAPTAWARA_URIP[(self.saptawara() - 1) as usize];
@@ -467,6 +474,63 @@ mod tests {
         assert_eq!(greg(2024, 9, 25).0 - greg(2024, 2, 28).0, 210);
     }
 
+    fn dasawara_name(date: PawukonDate) -> &'static str {
+        DASAWARA[(date.dasawara() - 1) as usize]
+    }
+
+    #[test]
+    fn galungan_is_manuh_in_the_ten_day_week() {
+        // Galungan on Wednesday 17 June 2026: detikBali, "Kapan Hari Raya
+        // Galungan dan Kuningan 2026?", 5 June 2026, citing the Ministry of
+        // Religious Affairs' circular (`detik-galungan-2026`). The day's ten
+        // weeks — Luang, Pepet, Beteng, Menala, Kliwon, Aryang, Buda, Uma,
+        // Tulus, Manuh — are IDN Times Bali's reading of Galungan, 25
+        // December 2018 (`idntimes-galungan-2018`). Urip Kliwon 8 + Buda 7
+        // + 1 = 16, so the ten-day week is 6, Manuh.
+        let date = pawukon(2026, 6, 17);
+        assert_eq!(date.to_string(), "Buda Kliwon Dungulan");
+        assert!(date.is_luang());
+        assert_eq!(DWIWARA[(date.dwiwara() - 1) as usize], "Pepet");
+        assert_eq!(TRIWARA[(date.triwara() - 1) as usize], "Beteng");
+        assert_eq!(CATURWARA[(date.caturwara() - 1) as usize], "Menala");
+        assert_eq!(SADWARA[(date.sadwara() - 1) as usize], "Aryang");
+        assert_eq!(ASTAWARA[(date.astawara() - 1) as usize], "Uma");
+        assert_eq!(SANGAWARA[(date.sangawara() - 1) as usize], "Tulus");
+        assert_eq!(date.dasawara(), 6);
+        assert_eq!(dasawara_name(date), "Manuh");
+    }
+
+    #[test]
+    fn wikipedias_worked_day_comes_out_on_all_ten_weeks() {
+        // Tuesday 5 January 2021: Wikipedia, "Pawukon calendar", section
+        // "Correspondence with the Gregorian Calendar" (`wikipedia-pawukon`,
+        // retrieved 2026-09-26): day 185 of the cycle counted from 1, and
+        // Menga, Beteng, Jaya, Umanis, Was, Anggara, Kala, Jangur, Dewa.
+        // Urip Umanis 5 + Anggara 3 + 1 = 9, Dewa.
+        let date = pawukon(2021, 1, 5);
+        assert_eq!(date.day, 184);
+        assert!(!date.is_luang());
+        assert_eq!(DWIWARA[(date.dwiwara() - 1) as usize], "Menga");
+        assert_eq!(TRIWARA[(date.triwara() - 1) as usize], "Beteng");
+        assert_eq!(CATURWARA[(date.caturwara() - 1) as usize], "Jaya");
+        assert_eq!(PANCAWARA[(date.pancawara() - 1) as usize], "Umanis");
+        assert_eq!(SADWARA[(date.sadwara() - 1) as usize], "Was");
+        assert_eq!(SAPTAWARA[(date.saptawara() - 1) as usize], "Anggara");
+        assert_eq!(ASTAWARA[(date.astawara() - 1) as usize], "Kala");
+        assert_eq!(SANGAWARA[(date.sangawara() - 1) as usize], "Jangur");
+        assert_eq!(date.dasawara(), 9);
+        assert_eq!(dasawara_name(date), "Dewa");
+    }
+
+    #[test]
+    fn the_first_and_sixth_days_are_sri_and_manuh() {
+        // The same article's "Calculation" section: the first day, Paing 9
+        // + Redite 5 + 1 - 10 = 5, is Sri; the sixth, Paing 9 + Sukra 6 + 1
+        // - 10 = 6, is Manuh.
+        assert_eq!(dasawara_name(PawukonDate::new(0, 0)), "Sri");
+        assert_eq!(dasawara_name(PawukonDate::new(0, 5)), "Manuh");
+    }
+
     #[test]
     fn the_seven_day_week_never_slipped_against_the_gregorian_one() {
         // Redite is Sunday. If the epoch were off by a day this would fail
@@ -570,11 +634,14 @@ mod tests {
         assert_eq!(SAPTAWARA_URIP.iter().sum::<i64>(), 42);
         for day in 0..210u16 {
             let date = PawukonDate::new(0, day);
-            let expected = (1
+            let expected = match (1
                 + PANCAWARA_URIP[(date.pancawara() - 1) as usize]
                 + SAPTAWARA_URIP[(date.saptawara() - 1) as usize])
-                .rem_euclid(10) as u8
-                + 1;
+                .rem_euclid(10)
+            {
+                0 => 10,
+                value => value as u8,
+            };
             assert_eq!(date.dasawara(), expected, "day {day}");
             assert!((1..=10).contains(&date.dasawara()));
             assert_eq!(date.urip(), date.pancawara_urip() + date.saptawara_urip());

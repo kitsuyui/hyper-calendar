@@ -242,12 +242,13 @@ impl Calendar for EquinoxFrenchRepublicanCalendar {
         is_leap_year(year).ok_or(CalendarError::YearOutOfRange)
     }
 
-    /// In force from the decree of 1793 until Napoleon abolished it at the
-    /// end of An XIV, 31 December 1805 — the same span as the arithmetic
+    /// In force from 15 vendémiaire an II, 6 October 1793, the day after
+    /// the decree of 14 vendémiaire, until Napoleon abolished it at the end
+    /// of An XIV, 31 December 1805 — the same span as the arithmetic
     /// variant, since the two agree throughout it.
     fn usage(&self) -> hc_calendar::Usage {
         match (
-            gregorian::to_fixed(1793, 10, 24),
+            gregorian::to_fixed(1793, 10, 6),
             gregorian::to_fixed(1805, 12, 31),
         ) {
             (Ok(from), Ok(until)) => hc_calendar::Usage::between(
@@ -349,6 +350,31 @@ mod tests {
             assert!(
                 margin >= TOLERANCE_MINUTES,
                 "An {year} is decided within the model's tolerance: {margin} minutes"
+            );
+        }
+    }
+
+    #[test]
+    fn the_decrees_two_observed_equinoxes_are_the_models_in_true_time() {
+        // Articles I and V of the decree of 4 frimaire an II
+        // (`decret-4-frimaire-an-ii`, Wikisource's transcription of the
+        // Imprimerie nationale print, retrieved 2026-09-26): the equinox of
+        // 22 September 1792 at 9 h 18 min 30 s in the morning and that of
+        // 22 September 1793 at 3 h 11 min 38 s in the afternoon, "pour
+        // l'observatoire de Paris". The model puts them 52 and 48 seconds
+        // away, in true time: time since the Observatory's apparent
+        // midnight.
+        for (year, (y, m, d), decreed_seconds) in [
+            (1, (1792, 9, 22), 9.0 * 3_600.0 + 18.0 * 60.0 + 30.0),
+            (2, (1793, 9, 22), 15.0 * 3_600.0 + 11.0 * 60.0 + 38.0),
+        ] {
+            assert_eq!(new_year(year), Ok(ymd(y, m, d)));
+            let true_seconds =
+                (equinox_of(year).0 - solar_midnight(ymd(y, m, d), PARIS_OBSERVATORY).0) * 86_400.0;
+            let difference = true_seconds - decreed_seconds;
+            assert!(
+                difference.abs() < 55.0,
+                "An {year}: the model is {difference} s from the decree"
             );
         }
     }
