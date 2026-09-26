@@ -14,11 +14,16 @@
 //! months and days and "changes its numerical designation on a stated
 //! solar day" (*The Indian Calendar*, 1896, Art. 71, p. 44, `sewell1896`),
 //! and give no date in those months; the year and the day it changes are
-//! what the sources fix, and the Gregorian day is the one the revenue
-//! records beside it were written in. A date is the year, the Gregorian
-//! month, 1 for January, and the day, and whether it is the second day of
-//! that name in the year: a year from the Mṛgaśira ingress that opens on a
-//! later day of June than the year before holds its first day twice.
+//! what the sources fix. Swamikannu Pillai calls the Madras year one
+//! "having no divisions of its own into months and days" and writes the
+//! revenue year from 1 July 1910 to 30 June 1911 as "Fasli 1320"
+//! (*Panchang and Horoscope*, 1925, p. 11, `swamikannupillai1925`), so a
+//! Madras date is a Gregorian date under the Faṣlī year; for Bombay and the
+//! Sūr-san, whose Hijri months are not carried, the Gregorian day is this
+//! library's choice. A date is the year, the Gregorian month, 1 for
+//! January, and the day, and whether it is the second day of that name in
+//! the year: a year from the Mṛgaśira ingress that opens on a later day of
+//! June than the year before holds its first day twice.
 //!
 //! * [`MADRAS`]: the year opens on 1 July, "in A.D. 1855 altered ... to
 //!   July 1st" from the 13 July of about 1800, and Faṣlī 1302 "began ...
@@ -34,10 +39,23 @@
 //!   with the Lahiri ayanamsa, and the day it opens is the sunrise-to-sunrise
 //!   day at Ujjain in which it falls, [`SankrantiRule::SunriseDay`] — the
 //!   rule that gives Sewell and Dikshit's 5 June 1892 for an ingress at
-//!   04:41 local mean time on the 6th.
+//!   04:41 local mean time on the 6th. Sewell and Dikshit reckoned with the
+//!   *Sūrya Siddhānta*'s Sun; a Bombay year from that Sun's ingress would be
+//!   another calendar (policy §5), and it is not registered, since no day
+//!   dated in it was read to hold it to.
 //! * [`SUR_SAN`]: "nine years behind the Fasali of the Dakhan, but in
 //!   other respects ... just the same"; "to convert it to an A.D. year, add
 //!   599" (p. 45).
+//!
+//! # The ingress is in June
+//!
+//! The Mṛgaśira ingress is sought from 15 May, and with the Lahiri
+//! ayanamsa it falls between 3 and 12 June in every year converted, 1700
+//! to 2299. A day from 1 July on is therefore after its Gregorian year's
+//! opening and a day before 15 May before it, and [`FasliCalendar::from_fixed`]
+//! computes the ingress only for a day of 15 May to 30 June. An
+//! [`Opening::Mrigashira`] with another ayanamsa must put the ingress in
+//! the same window.
 
 use hc_astro::riseset::Location;
 use hc_calendar::fixed::Moment;
@@ -92,6 +110,9 @@ pub struct FasliCalendar {
     /// Where the period of use comes from.
     pub usage_source: &'static str,
 }
+
+/// The Gregorian month and day from which the Mṛgaśira ingress is sought.
+const INGRESS_SEARCH_FROM: (u8, u8) = (5, 15);
 
 /// The era code of the Faṣlī years.
 pub const FASLI_ERA: &str = "fasli";
@@ -167,9 +188,10 @@ impl FasliCalendar {
         match self.opening {
             Opening::Fixed { month, day, .. } => gregorian::to_fixed(gregorian_year, month, day),
             Opening::Mrigashira { ayanamsa, location } => {
-                // The ingress comes in late May or June; mid-May is before
-                // it in every year converted.
-                let may = gregorian::to_fixed(gregorian_year, 5, 15)?;
+                // The ingress comes in June; mid-May is before it in every
+                // year converted.
+                let (month, day) = INGRESS_SEARCH_FROM;
+                let may = gregorian::to_fixed(gregorian_year, month, day)?;
                 let ingress =
                     solar_nakshatra_ingress_after(MRIGASHIRSHA, ayanamsa, Moment(may.0 as f64));
                 Ok(SankrantiRule::SunriseDay.month_begins(ingress, location))
@@ -210,7 +232,8 @@ impl FasliCalendar {
             return Err(CalendarError::YearOutOfRange);
         }
         let opening = self.opening_in(year + self.offset)?;
-        if opening < self.earliest()? {
+        // Only the first year can open before the first day converted.
+        if year == self.min_year() && opening < self.earliest()? {
             return Err(CalendarError::YearOutOfRange);
         }
         Ok(opening)
@@ -246,21 +269,33 @@ impl FasliCalendar {
     /// [`CalendarError::BeforeEpoch`] and
     /// [`CalendarError::AfterSupportedRange`] outside the range.
     pub fn from_fixed(&self, rd: Rd) -> CalendarResult<FasliDate> {
-        if rd < self.earliest()? {
+        // The first day converted is in the first Gregorian year and the
+        // last in the year after the last, so a day between them needs
+        // neither bound computed.
+        let inner_first = gregorian::to_fixed(self.first_gregorian_year() + 1, 1, 1)?;
+        let inner_last = gregorian::to_fixed(MAX_GREGORIAN_YEAR + 1, 1, 1)?;
+        if rd < inner_first && rd < self.earliest()? {
             return Err(CalendarError::BeforeEpoch);
         }
-        if rd > self.latest()? {
+        if rd >= inner_last && rd > self.latest()? {
             return Err(CalendarError::AfterSupportedRange);
         }
         let (gregorian_year, month, day) = gregorian::from_fixed(rd)?;
-        let opened = if rd >= self.opening_in(gregorian_year)? {
+        let side = self.side_of_opening(month, day);
+        let after = match side {
+            Some(after) => after,
+            None => rd >= self.opening_in(gregorian_year)?,
+        };
+        let opened = if after {
             gregorian_year
         } else {
             gregorian_year - 1
         };
         // The same month and day in the Gregorian year the Faṣlī year
-        // opened in, if that day is in the year too, came first.
-        let repeated = gregorian_year > opened
+        // opened in, if that day is in the year too, came first. A day
+        // before 15 May is before every opening, so it cannot have.
+        let repeated = !after
+            && side.is_none()
             && gregorian::to_fixed(opened, month, day)
                 .is_ok_and(|first| first >= self.opening_in(opened).unwrap_or(first));
         Ok(FasliDate {
@@ -269,6 +304,28 @@ impl FasliCalendar {
             day,
             repeated,
         })
+    }
+
+    /// Whether a day of this month and day is on or after the opening in
+    /// its Gregorian year (`Some(true)`) or before it (`Some(false)`), where
+    /// that is known without placing the opening: for the Mṛgaśira ingress,
+    /// which is sought from 15 May and falls in June, a day from July on
+    /// and a day before 15 May.
+    const fn side_of_opening(&self, month: u8, day: u8) -> Option<bool> {
+        match self.opening {
+            Opening::Fixed { .. } => None,
+            Opening::Mrigashira { .. } => {
+                if month >= 7 {
+                    Some(true)
+                } else if month < INGRESS_SEARCH_FROM.0
+                    || (month == INGRESS_SEARCH_FROM.0 && day < INGRESS_SEARCH_FROM.1)
+                {
+                    Some(false)
+                } else {
+                    None
+                }
+            }
+        }
     }
 
     /// The fixed day of a date.
@@ -425,8 +482,8 @@ mod tests {
     fn a_year_that_opens_a_day_later_holds_its_first_day_twice() {
         // Faṣlī 1302 opened on 5 June 1892 and 1303 on 6 June 1893, the
         // ingress then falling after Ujjain's sunrise: 1302 runs 366 days
-        // with no 29 February, and 5 June 1893 is its second 5 June. The
-        // release-mode sweep found the two days converting to one.
+        // with no 29 February, and 5 June 1893 is its second 5 June: two
+        // days with the same month and day, which convert to two dates.
         assert_eq!(BOMBAY.new_year(1_303), Ok(ymd(1893, 6, 6)));
         for calendar in [BOMBAY, SUR_SAN] {
             let first = calendar.from_fixed(ymd(1892, 6, 5)).expect("in range");
@@ -471,20 +528,63 @@ mod tests {
     }
 
     #[test]
-    fn the_bombay_year_opens_on_7_or_8_june_today() {
-        // Wikipedia, "Fasli calendar": "The first day of the year is 7 or
-        // 8 June."
-        assert_eq!(BOMBAY.new_year(2024 - 590), Ok(ymd(2024, 6, 7)));
-        assert_eq!(BOMBAY.new_year(2025 - 590), Ok(ymd(2025, 6, 8)));
-        for year in 2000..2030 {
-            let (_, month, day) =
-                gregorian::from_fixed(BOMBAY.new_year(year - 590).expect("in range"))
-                    .expect("a date");
+    fn fasli_1320_is_the_revenue_year_from_1_july_1910() {
+        // Swamikannu Pillai, Panchang and Horoscope (1925), p. 11: "The
+        // agricultural or revenue year from 1st July 1910 to 30th June 1911
+        // might be expressed quite as well by the expression 'Revenue year
+        // 1910-11' as by the expression 'Fasli 1320'."
+        assert_eq!(MADRAS.new_year(1_320), Ok(ymd(1910, 7, 1)));
+        assert_eq!(
+            MADRAS.from_fixed(ymd(1911, 6, 30)).map(|d| d.year),
+            Ok(1_320)
+        );
+        assert_eq!(
+            MADRAS.from_fixed(ymd(1911, 7, 1)).map(|d| d.year),
+            Ok(1_321)
+        );
+    }
+
+    /// The Gregorian month and day on which the Bombay year opening in
+    /// Gregorian year `year` opens.
+    fn bombay_opening(year: i64) -> (u8, u8) {
+        let opening = BOMBAY.new_year(year - 590).expect("in range");
+        let (_, month, day) = gregorian::from_fixed(opening).expect("a date");
+        (month, day)
+    }
+
+    #[test]
+    fn the_bombay_year_opens_where_sewell_dikshit_and_pillai_put_it() {
+        // Sewell and Dikshit (1896), Art. 71, p. 44: "In parts of Bombay
+        // the Fasali begins when the sun enters the nakshatra Mrigasirsha,
+        // viz., (at present) about the 5th or 6th June."
+        for year in 1886..=1896 {
+            let (month, day) = bombay_opening(year);
             assert!(
-                month == 6 && (5..=9).contains(&day),
+                month == 6 && (5..=6).contains(&day),
                 "{year}: {month}-{day}"
             );
         }
+        // Swamikannu Pillai (1925), p. 11: the Dakhan fasli begins, "in
+        // parts of Bombay, when the sun enters the nakshatra Mrigasiras,
+        // i.e. (now) about 7th or 8th June". His footnote works 1911 from
+        // his tables: a solar year opening on 13 April and 56 days to the
+        // ingress give 8 June. The library's Lahiri ingress opens 1911 on
+        // 7 June, the other of his two days.
+        for year in 1911..=1925 {
+            let (month, day) = bombay_opening(year);
+            assert!(
+                month == 6 && (7..=8).contains(&day),
+                "{year}: {month}-{day}"
+            );
+        }
+        assert_eq!(bombay_opening(1911), (6, 7));
+        // Wikipedia's "The first day of the year is 7 or 8 June", which
+        // names no region and cites Pillai, is his sentence; the library's
+        // openings of 2024 and 2025, which the worked example in
+        // docs/systems/indian-eras.md uses, happen to fall on those days,
+        // but no source read dates a Bombay year today.
+        assert_eq!(bombay_opening(2024), (6, 7));
+        assert_eq!(bombay_opening(2025), (6, 8));
     }
 
     #[test]
@@ -513,16 +613,50 @@ mod tests {
     }
 
     #[test]
-    fn every_reckoning_round_trips_and_refuses_outside_its_range() {
+    fn every_year_opens_on_its_day_and_every_day_round_trips() {
         for calendar in ALL {
-            for rd in (ymd(1890, 1, 1).0..ymd(1895, 1, 1).0).step_by(crate::sweep_stride(7)) {
+            let first = calendar.earliest().expect("placed");
+            let last = calendar.latest().expect("placed");
+            // Every year's first day, and the day before it, which is the
+            // last of the year before: the days a wrong opening would move.
+            let mut openings = alloc::vec::Vec::new();
+            for year in calendar.min_year()..=calendar.max_year() {
+                let Ok(opening) = calendar.new_year(year) else {
+                    // Madras's first year, whose first day the source
+                    // leaves open.
+                    assert_eq!((calendar.id, year), (MADRAS.id, MADRAS.min_year()));
+                    continue;
+                };
+                assert_eq!(calendar.from_fixed(opening).map(|d| d.year), Ok(year));
+                if opening > first {
+                    assert_eq!(
+                        calendar.from_fixed(Rd(opening.0 - 1)).map(|d| d.year),
+                        Ok(year - 1),
+                        "{} {year}",
+                        calendar.id
+                    );
+                }
+                // A Mṛgaśira ingress in the window `from_fixed` relies on,
+                // 15 May to 30 June; a fixed opening on its day.
+                let (_, month, day) = gregorian::from_fixed(opening).expect("a date");
+                let in_window = match calendar.opening {
+                    Opening::Fixed {
+                        month: m, day: d, ..
+                    } => (month, day) == (m, d),
+                    Opening::Mrigashira { .. } => (month, day) >= INGRESS_SEARCH_FROM && month <= 6,
+                };
+                assert!(in_window, "{} {year}: {month}-{day}", calendar.id);
+                openings.push(opening.0);
+            }
+            // Every day from the first to the last in a release build; in a
+            // debug one every thirty-first day and every opening and its
+            // eve.
+            for rd in crate::sweep_days(first.0, last.0, 31, &openings) {
                 let date = calendar.from_fixed(Rd(rd)).expect("in range");
                 assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "{}", calendar.id);
                 let fields = Calendar::to_fields(calendar, date).expect("fields");
                 assert_eq!(Calendar::from_fields(calendar, &fields), Ok(date));
             }
-            let first = calendar.earliest().expect("placed");
-            let last = calendar.latest().expect("placed");
             assert_eq!(
                 calendar.from_fixed(Rd(first.0 - 1)),
                 Err(CalendarError::BeforeEpoch)

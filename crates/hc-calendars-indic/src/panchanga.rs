@@ -439,14 +439,14 @@ mod tests {
             offsets.push((exit.0 - printed.0) * 1440.0);
         }
         // Every end within a minute of the printed one, from 56 seconds
-        // before it to 14 seconds after. The karaṇas below, which need no
-        // ayanamsa, come a half to one and a half minutes after theirs, so
-        // the yogas run about a minute early against them: the Lahiri value
-        // here and Drik Panchang's stand about 20″ apart, as
-        // `crate::nakshatra`'s Sun transits show, and the yoga takes the
-        // ayanamsa twice.
+        // before it to 14 seconds after, held here to a minute before and
+        // half a minute after. The karaṇas below, which need no ayanamsa,
+        // come 35 to 94 seconds after theirs, so the yogas run about a
+        // minute early against them: the Lahiri value here and Drik
+        // Panchang's stand about 20″ apart, as `crate::nakshatra`'s Sun
+        // transits show, and the yoga takes the ayanamsa twice.
         let (low, high) = spread(&offsets);
-        assert!(low > -1.5 && high < 1.0, "{offsets:?}");
+        assert!(low > -1.0 && high < 0.5, "{offsets:?}");
     }
 
     #[test]
@@ -460,11 +460,10 @@ mod tests {
             offsets.push((exit.0 - printed.0) * 1440.0);
         }
         // The karaṇa needs no ayanamsa, so the two agree to within the
-        // minute the pages print: every end here is a half to one and a
-        // half minutes after the printed minute, which the pages appear to
-        // truncate.
+        // minute the pages print: every end here is 35 to 94 seconds after
+        // the printed minute, which the pages appear to truncate.
         let (low, high) = spread(&offsets);
-        assert!(low > 0.0 && high < 2.0, "{offsets:?}");
+        assert!(low > 0.5 && high < 1.75, "{offsets:?}");
     }
 
     #[test]
@@ -481,21 +480,37 @@ mod tests {
     }
 
     #[test]
-    fn the_sixty_halves_take_the_eleven_names_in_their_order() {
-        // Wikipedia's table: Kiṃstughna, then Bava to Viṣṭi eight times,
-        // then Śakuni, Catuṣpada and Nāga.
-        assert_eq!(karana_name(1), 0);
-        for position in 2..=57 {
-            assert_eq!(karana_name(position), (position - 2) % 7 + 1);
+    fn the_sixty_halves_take_the_names_table_viii_prints() {
+        // Sewell and Dikshit, Table VIII, cols. 4 and 5: the karaṇas of the
+        // first and second halves of each tithi. Śukla 1 is Kiṃstughna and
+        // Bava, śukla 2 Bālava and Kaulava, kṛṣṇa 14 Viṣṭi and Śakuni,
+        // amāvāsyā Catuṣpada and Nāga.
+        let name = |position: u8| KARANA_NAMES[usize::from(karana_name(position))];
+        for (tithi, first, second) in [
+            (1, "Kinstughna", "Bava"),
+            (2, "Balava", "Kaulava"),
+            (29, "Vishti", "Shakuni"),
+            (30, "Chatushpada", "Nagava"),
+        ] {
+            assert_eq!(
+                (name(2 * tithi - 1), name(2 * tithi)),
+                (first, second),
+                "{tithi}"
+            );
         }
-        assert_eq!(karana_name(2), 1);
-        assert_eq!(karana_name(8), 7);
-        assert_eq!(karana_name(57), 7);
-        assert_eq!(karana_name(58), 8);
-        assert_eq!(karana_name(59), 9);
-        assert_eq!(karana_name(60), 10);
-        let movable = (1..=60).filter(|p| (1..=7).contains(&karana_name(*p)));
-        assert_eq!(movable.count(), 56);
+        // Between them the seven movable names, Bava to Viṣṭi, run eight
+        // times round the fifty-six halves from the second half of śukla 1
+        // to the first half of kṛṣṇa 14 (Art. 40).
+        let movable = [
+            "Bava", "Balava", "Kaulava", "Taitila", "Garaja", "Vanija", "Vishti",
+        ];
+        for position in 2..=57 {
+            assert_eq!(
+                name(position),
+                movable[usize::from(position - 2) % 7],
+                "{position}"
+            );
+        }
         assert_eq!(karana_name(0), 0);
         assert_eq!(karana_name(61), 10);
     }
@@ -520,9 +535,9 @@ mod tests {
         for _ in 0..40 {
             let (entry, exit) = yoga_span(moment, Ayanamsa::LAHIRI);
             let length = exit.0 - entry.0;
-            // Wikipedia's copy of Sewell and Dikshit's Art. 9 table
-            // (`wikipedia-nityayoga`) gives 20h53m to 24h36m for the
-            // Siddhānta's Sun and Moon; the true Moon runs a little wider.
+            // Sewell and Dikshit, Art. 9, p. 3 (`sewell1896`): a yoga lasts
+            // from 20 h 52 m 48 s to 24 h 36 m 24 s, 22 h 35 m 44.7 s on
+            // the mean; the true Moon runs a little wider.
             assert!((0.85..1.06).contains(&length), "{length}");
             assert!(entry.0 <= moment.0 && moment.0 < exit.0);
             moment = Moment(exit.0 + 1e-4);

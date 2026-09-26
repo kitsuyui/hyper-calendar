@@ -361,9 +361,17 @@ pub const VIKRAMI: HinduSolarCalendar = HinduSolarCalendar {
 /// Calendar*, 1896, Art. 71, p. 45, `sewell1896`, citing Girisa Chandra's
 /// *Chronological Tables*, not read) — the Gregorian year of Boishakh less
 /// 638. The era is written up with the others of Art. 71 in
-/// `docs/systems/indian-eras.md` in the repository. No dated Magi day was
-/// read, so the tests hold it to the year equation and to the Bengali
-/// months.
+/// `docs/systems/indian-eras.md` in the repository. Irwin's *The Burmese &
+/// Arakanese Calendars* (1909, Introduction, para. 9, `irwin1909`) says
+/// only that the era of 638 "is current in Chittagong under the name of
+/// Magi-San", citing Sewell and Dikshit; Wikipedia's "Burmese calendar"
+/// (`wikipedia-burmese-calendar`) calls the Magi-San "identical to the
+/// Arakanese calendar", which is lunisolar, citing that page. The months
+/// here are Sewell and Dikshit's Bengali ones, the only months a source
+/// read gives the Magi San; a Magi San over the Arakanese lunisolar
+/// months would be another calendar (policy §5), and it is not registered,
+/// since no source read describes or dates it. No dated Magi day was read,
+/// so the tests hold it to the year equation and to the Bengali months.
 pub const MAGI: HinduSolarCalendar = HinduSolarCalendar {
     id: CalendarId("magi-san"),
     english_name: "Magi San (Chittagong)",
@@ -1151,13 +1159,28 @@ mod tests {
     fn the_magi_san_is_the_bengali_san_less_45() {
         // "Magi 1200 = Bengali 1245" (Sewell and Dikshit, Art. 71, p. 45).
         assert_eq!(BENGALI.era_offset - MAGI.era_offset, 1_245 - 1_200);
-        // Every day of 2024 carries the Bengali month and day, the year 45
-        // less.
-        for rd in (ymd(2024, 1, 1).0..ymd(2025, 1, 1).0).step_by(crate::sweep_stride(3)) {
-            let bengali = BENGALI.from_fixed(Rd(rd)).unwrap();
-            let magi = MAGI.from_fixed(Rd(rd)).unwrap();
-            assert_eq!(magi.year, bengali.year - MAGI_BEHIND_BENGALI);
+        let same_day_45_years_behind = |rd: Rd| {
+            let bengali = BENGALI.from_fixed(rd).unwrap();
+            let magi = MAGI.from_fixed(rd).unwrap();
+            assert_eq!(magi.year, bengali.year - MAGI_BEHIND_BENGALI, "{rd:?}");
             assert_eq!((magi.month, magi.day), (bengali.month, bengali.day));
+            assert_eq!(MAGI.to_fixed(magi), Ok(rd));
+            magi
+        };
+        // Every year's first day, Boishakh 1, and the day before it, the
+        // last of the year before, over the whole range.
+        let mut openings = alloc::vec::Vec::new();
+        for year in MAGI.min_year() + 1..=MAGI.max_year() {
+            let opening = MAGI.month_start(year, 1).unwrap();
+            assert_eq!(same_day_45_years_behind(opening).year, year);
+            assert_eq!(same_day_45_years_behind(Rd(opening.0 - 1)).year, year - 1);
+            openings.push(opening.0);
+        }
+        // Every day of 2024 carries the Bengali month and day, the year 45
+        // less: every day in a release build, every third and the year's
+        // boundary in a debug one.
+        for rd in crate::sweep_days(ymd(2024, 1, 1).0, ymd(2024, 12, 31).0, 3, &openings) {
+            same_day_45_years_behind(Rd(rd));
         }
         assert_eq!(MAGI.month_start(1_431 - 45, 1), Ok(ymd(2024, 4, 14)));
         let fields = Calendar::to_fields(&MAGI, MAGI.from_fixed(ymd(2024, 5, 1)).unwrap()).unwrap();

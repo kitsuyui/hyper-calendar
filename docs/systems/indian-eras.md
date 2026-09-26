@@ -9,12 +9,23 @@ Valabhī and Kalachuri eras.
 
 India has dated by many eras at once. Sewell and Dikshit's *The Indian
 Calendar* (1896) describes some thirty in its Art. 71 [sewell1896,
-pp. 40–47]; the library already carries the Kali Yuga (`hindu-old-*`), the
-Śaka (`hindu-lunar`), the Chaitrādi Vikrama (`vikrama-year`), the Bengali
-San, the Kollam era, Nepal Sambat and the Odia Anka, and this document
-adds the eras that are *offsets over months the library already has*:
-the same tithis, the same amānta or pūrṇimānta months, or the same solar
-months or civil days, with another year number that turns on another day.
+pp. 40–47]. The Kali Yuga (`hindu-old-*`), the Śaka (`hindu-lunar`), the
+Chaitrādi Vikrama (`vikrama-year`), the Bengali San and the Kollam era
+are written up in [hindu-calendars.md](hindu-calendars.md), Nepal Sambat
+in [nepal-calendars.md](nepal-calendars.md) and the Odia Anka in
+[odia-anka.md](odia-anka.md). This document covers the eras that are
+*offsets over months those calendars have*: the same tithis, the same
+amānta or pūrṇimānta months, or the same solar months or civil days, with
+another year number that turns on another day.
+
+A few terms recur. A *tithi* is a lunar day, a thirtieth of the Moon's
+cycle of phases, and the almanac names a civil day by the tithi at its
+sunrise. *Śukla* and *kṛṣṇa* are the waxing and waning fortnights, tithis
+1–15 and 16–30. *Amānta* months run from new moon to new moon,
+*pūrṇimānta* ones from full moon to full moon
+([hindu-calendars.md](hindu-calendars.md)). An *expired* year counts the
+years completed, as an age does; a *current* year counts the year in
+progress, one more.
 
 The eras fall into three groups.
 
@@ -73,7 +84,15 @@ The eras fall into three groups.
 very similar to the Bengali-san, the days and months in each being
 exactly alike. The Magi is, however, 45 years behind the Bengali year,
 e.g., Magi 1200 = Bengali 1245" [sewell1896, p. 45, citing Girisa
-Chandra's *Chronological Tables*, not read].
+Chandra's *Chronological Tables*, not read]. Irwin says of the Burmese
+era of 638 only that "the same era is current in Chittagong under the
+name of Magi-San", and cites Sewell and Dikshit for it [irwin1909,
+Introduction, para. 9, p. 2]. Wikipedia goes further: "The Magi-San
+calendar, identical to the Arakanese calendar, is still used by Chakma
+and Marma (Mogh) ethnic minorities of Bangladesh and Tripura in India"
+[wikipedia-burmese-calendar, citing Irwin, p. 2]. The Arakanese calendar
+is lunisolar. The two readings agree on the year, the Christian year
+less 638, and not on the months.
 
 **The Faṣlī years.** The *faṣl*, "harvest", year was introduced "as some
 say, by Akbar, originally derived from the Muhammadan year, and bearing
@@ -87,14 +106,26 @@ luni-solar" [sewell1896, p. 44]. The reckoning differed by region:
   Government, finding that this date then coincided with July 13th, fixed
   July 13th as the permanent initial date; and in A.D. 1855 altered this
   for convenience to July 1st, the present reckoning" [sewell1896, p. 44].
-  The revenue offices of Andhra Pradesh, Karnataka and Tamil Nadu still
-  count it, July to June, the Christian year of July being the Faṣlī year
-  plus 590: "Fasli year 1410 was from July 2000 – June 2001"
-  [wikipedia-fasli-calendar].
+  Swamikannu Pillai calls it a year "beginning on 1st July and having no
+  divisions of its own into months and days", and writes "the
+  agricultural or revenue year from 1st July 1910 to 30th June 1911" as
+  "Fasli 1320" [swamikannupillai1925, p. 11]. The revenue offices of
+  Andhra Pradesh, Karnataka and Tamil Nadu still count it, July to June,
+  the Christian year of July being the Faṣlī year plus 590: "Fasli year
+  1410 was from July 2000 – June 2001" [wikipedia-fasli-calendar].
 - *Bombay*: "In parts of Bombay the Fasali begins when the sun enters the
   nakshatra Mrigasirsha, viz., (at present) about the 5th or 6th June"
-  [sewell1896, p. 44]. Wikipedia puts the first day on 7 or 8 June
-  [wikipedia-fasli-calendar, citing Pillai 1996, not read].
+  [sewell1896, p. 44]. Swamikannu Pillai, some thirty years later, puts
+  the same opening "(now) about 7th or 8th June", and works the day for
+  1911 from his tables: a solar year that began on 13 April and the 56
+  days the Sun takes to reach Mṛgaśira give 8 June
+  [swamikannupillai1925, p. 11 and note]. Wikipedia's "The first day of
+  the year is 7 or 8 June" stands in its paragraph on how the calendar was
+  formed, names no region, and cites Pillai's page
+  [wikipedia-fasli-calendar]. Pillai also numbers this "Dakhan fasli" as
+  the Christian year less 593, "identical in number with Bengal san",
+  where Sewell and Dikshit's dated year below is the Christian year less
+  590.
 - *Bengal and the north-west*: a lunisolar pūrṇimānta year from Āśvina
   kṛṣṇa 1, its days numbered 1 to 30 from the full moon without the
   fortnights [sewell1896, p. 44].
@@ -149,17 +180,23 @@ year is the Śaka year plus 135. The Rājyābhiṣeka year 1 opened in Śaka
 year is the current Śaka year plus 3179 (S&D's Table II heads the Śaka
 year 1000 with Kali 4179 [sewell1896, Art. 103]), so the Saptarṣi year is
 the current Śaka year plus 3153, the expired one plus 3154. Gupta 0 is
-Śaka 242 current, so Gupta 1 opened in Śaka 242 expired. Valabhī 1 opened
-five months earlier, at the Kārttika of Śaka 241 expired. Chedi 1 opened
-in Āśvina of Śaka 171 current, 170 expired.
+Śaka 242 current, so Gupta 1 opened in Śaka 242 expired. Sewell and
+Dikshit's "epoch" of an era is the start of its year 0 current, so year 1
+opens a year after it. The Valabhī year was thrown back from Chaitra to
+the Kārttika before, so Valabhī 1 opened five months before Gupta 1, at
+the Kārttika of Śaka 241 expired. Chedi 1 opened in Āśvina of Śaka 171
+current, 170 expired.
 
 A year that opens at śukla 1 opens with the first month of its name,
 the intercalary one in a year that has it, as Nepal Sambat and the Vira
-Nirvana Samvat do. A year that opens in the middle of a month opens in the
-ordinary month, as the Odia Anka does ([odia-anka.md](odia-anka.md)),
-since the intercalary month precedes it and the source does not say that
-the day moves; and where the opening tithi holds no sunrise, on the first
-day after it. Neither case was found in a source.
+Nirvana Samvat do. Two cases have no source, so the library chooses:
+
+1. In a year with an intercalary month, a year that opens in the middle
+   of a month opens in the ordinary month, as the Odia Anka does
+   ([odia-anka.md](odia-anka.md)), since the intercalary month precedes
+   it and the source does not say that the day moves.
+2. When the opening tithi holds no sunrise, the year opens on the first
+   day after it.
 
 Months are numbered from the opening month where the year opens at its
 first day, as the Vira Nirvana Samvat's are, and from Chaitra where the
@@ -179,17 +216,24 @@ field gives 0 and `full_year_near` accepts either.
 
 **The Magi San** is the Bengali solar calendar of `hindu-solar-bengali`,
 its months and days exactly, with the year 45 less: the Gregorian year of
-Boishakh less 638.
+Boishakh less 638. The months are Sewell and Dikshit's, the only months a
+source read gives the Magi San. Irwin, whom Wikipedia cites for an
+Arakanese Magi San, says only that the era is the same; a Magi San over
+the Arakanese lunisolar months would be a calendar of its own under
+policy §5, and is not carried (below).
 
 **The Faṣlī years** keep no months of their own here. Sewell and Dikshit
 say that the solar Faṣlī year's "names of months, their periods of
 beginning, and the serial number of days are the same as in the Hijra
 year, but the year changes its numerical designation on a stated solar
-day" [sewell1896, p. 44], and give no example of such a date; so the
-library carries the one thing the sources pin down — the year number and
-the day it changes — over the Gregorian months and days, the reckoning the
-revenue records of British India printed beside it. A date is the Faṣlī
-year, the Gregorian month, 1 for January, and the day. A year from the
+day" [sewell1896, p. 44], and give no example of such a date. The
+library carries the one thing the sources pin down, the year number and
+the day it changes, over the Gregorian months and days. For Madras that
+is Pillai's reading: a year with no months or days of its own, named by
+the revenue year from 1 July [swamikannupillai1925, p. 11]. For Bombay
+and the Sūr-san it is the library's choice, since their Hijri months are
+not carried. A date is the Faṣlī year, the Gregorian month, 1 for
+January, and the day. A year from the
 Mṛgaśira ingress that opens on a later day of June than the one before
 holds that day twice — Faṣlī 1302 opened on 5 June 1892 and 1303 on
 6 June 1893, so 1302 has two 5 Junes and no 29 February — and the second
@@ -215,11 +259,18 @@ calendar marks a second day of the same name.
 that began at sunrise on the 5th. The library takes that day, the rule
 `SankrantiRule::SunriseDay` at Ujjain, the rule the Vikrami solar months
 use; a rule by the civil day, midnight to midnight, would give 6 June and
-disagree with the source. The same rule gives 7 June 2024 (ingress 19:37
-UT) and 8 June 2025 (01:47 UT), the "7 or 8 June" Wikipedia gives.
+disagree with the source. The same rule opens the year on 5 or 6 June in
+every year from 1886 to 1896, Sewell and Dikshit's "(at present) about
+the 5th or 6th June", and on 7 June in every year from 1911 to 1925,
+within Pillai's "(now) about 7th or 8th June"; for 1911 Pillai's tables
+give 8 June. It gives 7 June 2024 (ingress 19:37 UT) and 8 June 2025
+(01:47 UT); no source read dates a Bombay year of today.
 
 **Worked example: 22 October 2025 and 15 June 2025.** On 22 October 2025
-`hindu-lunar` gives Kārttika śukla 1 of Śaka 1947. Kārttika opens the
+`hindu-lunar` gives Kārttika śukla 1 of Śaka 1947. (The tithi at sunrise
+needs the Sun's and the Moon's longitudes, so it cannot be worked by hand
+here: take it from a printed panchang, Drik Panchang's page for
+22 October 2025, or from `hindu-lunar`.) Kārttika opens the
 Kārttikādi year, so the year is 1947 + 135 = 2082, and Kārttika is its
 month 1: 1 Kārttika 2082, Drik Panchang's "Gujarati Samvat 2082" of that
 day [drik-day-panchang-2025]. The day before is amāvāsyā of Āśvina, month
@@ -250,7 +301,7 @@ Faṣlī 1434, which opened on 1 July 2024.
   calendar would convert no day anyone wrote in them, and `Usage` has no
   honest end to give it.
 - **`magi-san`**, as `hindu_solar::MAGI`, the Bengali calendar under the
-  era code `magi-san`.
+  era code `magi-san`, on Sewell and Dikshit's months.
 - **`fasli-madras`**, **`fasli-bombay`** and **`sur-san`**, as
   `FasliCalendar` values in `fasli`, over the Gregorian months and days;
   the era codes `fasli` and `sur-san`. `new_year` gives a year's first
@@ -267,8 +318,19 @@ Faṣlī 1434, which opened on 1 July 2024.
   - *The Faṣlī and Sūr-san months*, which the source calls Hijri, and
     the Madras years before 1855, whose opening at 13 July is dated only
     "about the year 1800".
+  - *A Bombay Faṣlī year from the Sūrya Siddhānta's ingress*, the Sun
+    Sewell and Dikshit reckoned with: another calendar under policy §5,
+    with no day dated in it read to hold it to (below).
+  - *Pillai's Dakhan fasli numbered from the Christian year less 593*:
+    no day dated in that count was read, and Sewell and Dikshit's dated
+    1302 of 5 June 1892 and both sources' Sūr-san, less 599 and "nine
+    years behind the Fasali of the Dakhan", give less 590.
+  - *A Magi San over the Arakanese lunisolar months*, which Wikipedia
+    describes: Irwin, whom it cites, says only that the era is the same,
+    and no source read gives such a calendar's rules or a date in it.
   - *The Harṣa, Chālukya, Siṃha, Lakṣmaṇa Sena and Ilāhī eras* of
-    Art. 71, which the roadmap did not plan.
+    Art. 71: each has a Researching row in the roadmap, for want of a
+    secure first day or a rule for the months.
 
 ## Accuracy
 
@@ -278,14 +340,20 @@ Faṣlī 1434, which opened on 1 July 2024.
 | Sewell and Dikshit's Table II row for Āṣāḍha of Śaka 1000 current: Gupta 758, Kārttikādi Vikrama 1134, Chedi 829 (the heading; Art. 103's text prints 828), all current | `lunar_era::the_years_of_saka_1000_are_table_ii_s` | all but the text's 828 |
 | Kielhorn's Chedi 1 at Āśvina śukla 1 of Śaka 171 current, Fleet's Gupta 0 at Śaka 242 current, the Valabhī epoch at the Kārttikādi Vikrama 376 current | `lunar_era::the_ancient_epochs_are_the_sources` | all, as year arithmetic |
 | 5 September 248 (Julian) begins with tithi 1 at sunrise, and 6 June 1674 (Julian) with tithi 13, by the library's astronomy outside its calendars' range | `lunar_era::the_epoch_days_carry_their_tithis` | both |
+| The Rājyābhiṣeka years as Raigad keeps them by the tithi: 350 from 2 June 2023 [pudhari-shivrajyabhishek-2023] and 353 from 27 June 2026, a nija Jyeṣṭha after an adhika one [etvbharat-shivrajyabhishek-2026], each at Jyeṣṭha śukla 13 | `lunar_era::the_raja_saka_opens_on_the_days_raigad_keeps` | both |
 | The Rājyābhiṣeka year turns on nija Jyeṣṭha's day of śukla 13 and is the Śaka year less 1595 from it; 351 in the Jyeṣṭha of 2024 | `lunar_era::the_raja_saka_turns_at_jyeshtha_shukla_13` | all |
-| The Saptarṣi year is Kali 27 current as 1: 5100 from Chaitra 2024; the Laukika form plus 47 is the current Śaka year and plus 24 the Christian year of Chaitra, modulo 100 | `lunar_era::the_saptarshi_year_keeps_sewell_and_dikshits_equations` | all |
-| Every day of three years round-trips for each registered lunisolar era | `lunar_era::every_day_of_three_years_converts_and_converts_back` | all |
-| Magi 1200 = Bengali 1245; every day of 2024 carries the Bengali month and day | `hindu_solar::the_magi_san_is_the_bengali_san_less_45` | all |
+| The Saptarṣi year is Kali 27 current as 1: 5100 from Navreh, 9 April 2024 [risingkashmir-navreh-2024; dailyexcelsior-saptrishi-5100]; the Laukika form plus 47 is the current Śaka year, plus 24 the Christian year from Chaitra to December and plus 25 from January to Chaitra, modulo 100 | `lunar_era::the_saptarshi_year_keeps_sewell_and_dikshits_equations` | all |
+| Every day of three years round-trips for each registered lunisolar era, directly and through its fields | `lunar_era::every_day_of_three_years_converts_and_converts_back` | all in a release build; in a debug one every third day and each year's first day and eve |
+| Every year of each registered lunisolar era, Chaitra 1700 to March 2300, opens on its `new_year`, with the day before in the year before; both round-trip | `lunar_era::every_gujarati_year_opens_on_its_day`, `every_raja_saka_year_opens_on_its_day`, `every_saptarshi_year_opens_on_its_day` | all; a debug build checks the years only |
+| Magi 1200 = Bengali 1245; every year's Boishakh 1 and its eve, 1700–2299, and every day of 2024 carry the Bengali month and day, the year 45 less, and round-trip | `hindu_solar::the_magi_san_is_the_bengali_san_less_45` | all; a debug build samples 2024 |
 | Faṣlī 1302 opened on 1 July 1892 in Madras and 5 June 1892 in Bombay; Sūr-san 1293 on the same day | `fasli::fasli_1302_began_where_sewell_and_dikshit_say` | all |
 | Faṣlī 1410 was July 2000 to June 2001 | `fasli::fasli_1410_is_july_2000_to_june_2001` | all |
-| The Bombay year opens on 7 June 2024 and 8 June 2025, in Wikipedia's "7 or 8 June" | `fasli::the_bombay_year_opens_on_7_or_8_june_today` | both |
-| Faṣlī 1302 and Sūr-san 1293 hold 5 June 1892 and, repeated, 5 June 1893, the next year opening on the 6th | `fasli::a_year_that_opens_a_day_later_holds_its_first_day_twice` | both, and every day of 1890–94 round-trips |
+| Faṣlī 1320 was the revenue year from 1 July 1910 to 30 June 1911 [swamikannupillai1925, p. 11] | `fasli::fasli_1320_is_the_revenue_year_from_1_july_1910` | all |
+| The Bombay year opens on 5 or 6 June in 1886–1896, Sewell and Dikshit's "(at present) about the 5th or 6th June", and on 7 or 8 June in 1911–1925, Pillai's "(now) about 7th or 8th June"; 7 June 1911 against Pillai's 8 June from his tables; 7 June 2024 and 8 June 2025, the worked example's, which no source dates | `fasli::the_bombay_year_opens_where_sewell_dikshit_and_pillai_put_it` | all but Pillai's 8 June 1911 |
+| Faṣlī 1302 and Sūr-san 1293 hold 5 June 1892 and, repeated, 5 June 1893, the next year opening on the 6th | `fasli::a_year_that_opens_a_day_later_holds_its_first_day_twice` | both |
+| Madras begins on 13 July 1855, in Faṣlī 1265, and refuses the day before and a new year's day for 1265 | `fasli::madras_begins_where_either_reading_of_1855_agrees` | all |
+| Every year of each reckoning opens on its `new_year`, the day before it in the year before, the Mṛgaśira openings between 15 May and 30 June; every day from the first to the last round-trips, directly and through its fields, and the days either side of the range are refused | `fasli::every_year_opens_on_its_day_and_every_day_round_trips` | all in a release build; in a debug one every 31st day and every opening and its eve |
+| The worked example: 15 June 2025 is Bombay 1435, Sūr-san 1426 and Madras 1434 | `fasli::the_worked_example_of_15_june_2025` | all |
 
 **Known disagreements and limits.**
 
@@ -294,10 +362,20 @@ Faṣlī 1434, which opened on 1 July 2024.
   the same months, prints 829, which is what Kielhorn's epoch gives. The
   library follows the epoch.
 - *One dated Bombay Faṣlī day.* The rule for which civil day the ingress
-  opens rests on 5 June 1892 alone. Sewell and Dikshit reckon with the
-  *Sūrya Siddhānta*, whose Sun stands hours from the Lahiri one
-  ([hindu-calendars.md](hindu-calendars.md)); an ingress near sunrise may
-  fall on the other day in their reckoning.
+  opens rests on 5 June 1892 alone; Pillai's 8 June 1911 comes from
+  tables rounded to whole days, where the rule gives 7 June. Sewell and
+  Dikshit reckon with the *Sūrya Siddhānta*, whose Sun stands hours from
+  the Lahiri one ([hindu-calendars.md](hindu-calendars.md)); an ingress
+  near sunrise may fall on the other day in their reckoning. The library
+  takes the Lahiri ingress because the Lahiri ayanāṃśa and the modern Sun
+  are the national almanac's, over which every other solar reckoning here
+  runs; a Siddhānta Bombay year is not registered (above).
+- *Pillai's 593.* Pillai numbers the Dakhan fasli from the Christian year
+  less 593 [swamikannupillai1925, p. 11]; Sewell and Dikshit's Faṣlī 1302
+  of 5 June 1892 is less 590, as is Madras in both. The library follows
+  the dated day.
+- *The Rājyābhiṣeka years of 2024 and 2025* are not held to a source:
+  none read dates them. The rule gives 20 June 2024 and 9 June 2025.
 - *The Sūr-san's first day* is not dated by any source read; its days are
   the Bombay Faṣlī's by Sewell and Dikshit's "in other respects is just
   the same".
@@ -311,13 +389,21 @@ Faṣlī 1434, which opened on 1 July 2024.
 | --- | --- | --- |
 | [sewell1896] | Art. 71, pp. 40–47: every era above, its first month, its months and its epoch; Art. 73, Ujjain's meridian; Art. 74, the Kārttikādi and Āṣāḍhādi Vikrama years against the Chaitrādi; Art. 103 and Table II, part ii, the concurrent years of Śaka 1000 | Yes, 2026-09-26, in the Internet Archive's OCR text |
 | [drik-day-panchang-2025] | The Gujarati Samvat on 15 August 2024 and on 1 January, 10 April, 21 and 22 October 2025 | Yes, 2026-09-26 |
-| [wikipedia-fasli-calendar] | The solar Faṣlī years plus 590; Faṣlī 1410 as July 2000 to June 2001; its use in the revenue offices of Andhra Pradesh, Karnataka and Tamil Nadu; the first day on 7 or 8 June, which it cites to L. D. S. Pillai, *Panchang and Horoscope* (1996), not read | Yes, 2026-09-26 |
+| [swamikannupillai1925] | P. 11: the Dakhan fasli "in parts of Bombay" from the Mṛgaśira ingress, "(now) about 7th or 8th June", and the note working 1911; its number, the Christian year less 593; the Madras fasli from 1 July with no months or days of its own, and Fasli 1320 as the revenue year 1910–11; the Sūr-san less 599 | Yes, 2026-09-27, in the Internet Archive's OCR text of the 1985 reprint |
+| [wikipedia-fasli-calendar] | The solar Faṣlī years plus 590; Faṣlī 1410 as July 2000 to June 2001; its use in the revenue offices of Andhra Pradesh, Karnataka and Tamil Nadu; the first day on 7 or 8 June, in its paragraph on the calendar's formation, naming no region, and cited to Pillai's p. 11 | Yes, 2026-09-26, and the "7 or 8 June" paragraph again 2026-09-27 |
+| [irwin1909] | Introduction, para. 9: the era of 638 "current in Chittagong under the name of Magi-San" | Yes, paras. 5–13 only, 2026-09-27, in the Internet Archive's OCR text |
+| [wikipedia-burmese-calendar] | The Magi-San "identical to the Arakanese calendar", cited to Irwin, p. 2 | Yes, 2026-09-27 |
+| [pudhari-shivrajyabhishek-2023] | The 350th Shivrajyabhishek at Raigad on 2 June 2023 by the tithi | Yes, 2026-09-27 |
+| [etvbharat-shivrajyabhishek-2026] | The 353rd Shivrajyabhishek at Raigad on 27 June 2026 by the tithi | Yes, 2026-09-27 |
+| [risingkashmir-navreh-2024] | Navreh on 9 April 2024, "the beginning of a new century of Saptrishi Samvat 5100" | Yes, 2026-09-27 |
+| [dailyexcelsior-saptrishi-5100] | Navreh on 9 April 2024 and the Saptarṣi count of 5100 | Yes, 2026-09-27 |
 | [wikipedia-gupta-era] | The Gupta years as Chaitrādi and pūrṇimānta in the early inscriptions and the Valabhī ones as Kārttikādi and amānta, after Salomon, *Indian Epigraphy* (1998), not read | Yes, 2026-09-26 |
 | [wikipedia-kalachuri-era] | Kielhorn's September 248 and the Āśvina year, which it cites to the *Indian Antiquary* XIX, not read | Yes, 2026-09-26 |
 | [wikipedia-shivaji] | The coronation on 6 June 1674, Jyeṣṭha śukla 13 of 1596 | Yes, 2026-09-26 |
 
 The Kielhorn, Fleet and Girisa Chandra works Sewell and Dikshit cite were
-not read.
+not read, nor Htoon Chan's *The Arakanese Calendar* (1905), which Irwin
+cites.
 
 ## Code
 
@@ -330,10 +416,17 @@ Sambat and the Vira Nirvana Samvat share), `lunar_era.rs` (`LunarEra`,
 `hindu_solar.rs` (`MAGI`). Anchors: `the_gujarati_year_is_the_one_drik_panchang_prints`,
 `the_years_of_saka_1000_are_table_ii_s`, `the_ancient_epochs_are_the_sources`,
 `the_epoch_days_carry_their_tithis`,
+`the_raja_saka_opens_on_the_days_raigad_keeps`,
 `the_raja_saka_turns_at_jyeshtha_shukla_13`,
 `the_saptarshi_year_keeps_sewell_and_dikshits_equations`,
 `the_magi_san_is_the_bengali_san_less_45`,
 `fasli_1302_began_where_sewell_and_dikshit_say`,
 `fasli_1410_is_july_2000_to_june_2001`,
-`the_bombay_year_opens_on_7_or_8_june_today`,
-`a_year_that_opens_a_day_later_holds_its_first_day_twice`.
+`fasli_1320_is_the_revenue_year_from_1_july_1910`,
+`the_bombay_year_opens_where_sewell_dikshit_and_pillai_put_it`,
+`a_year_that_opens_a_day_later_holds_its_first_day_twice`,
+`madras_begins_where_either_reading_of_1855_agrees`,
+`the_worked_example_of_15_june_2025`. Sweeps:
+`every_day_of_three_years_converts_and_converts_back`, the three
+`every_*_year_opens_on_its_day` tests and
+`every_year_opens_on_its_day_and_every_day_round_trips`.

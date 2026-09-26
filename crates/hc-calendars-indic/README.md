@@ -5,13 +5,17 @@ with the one most of India dates its festivals in: the Hindu lunisolar
 calendar in its *amānta* form, computed from the true Sun and Moon the way
 the Government of India's *Rashtriya Panchang* computes it.
 
-The Hindu calendars — the amānta and pūrṇimānta months, the four solar
-reckonings, the Old Hindu arithmetic, the nakṣatras and the ayanamsa —
-are written up in [`docs/systems/hindu-calendars.md`](../../docs/systems/hindu-calendars.md):
+The Hindu calendars — the amānta and pūrṇimānta months, the four regional
+solar reckonings, the Old Hindu arithmetic, the nakṣatras, the yoga and
+karaṇa, and the ayanamsa — are written up in
+[`docs/systems/hindu-calendars.md`](../../docs/systems/hindu-calendars.md):
 what each is, how it works with a worked example, what is carried, how
 it was checked against the almanac, and where every statement comes from.
-This README summarises the crate; the module documentation summarises
-each module.
+The eras of Sewell and Dikshit's Art. 71 over those months and the Faṣlī
+years are written up the same way in
+[`docs/systems/indian-eras.md`](../../docs/systems/indian-eras.md). This
+README summarises the crate; the module documentation summarises each
+module.
 
 ## What is here
 
@@ -22,14 +26,24 @@ each module.
 | `hindu_solar` | `hindu-solar-tamil` | the Sun's stay in each sidereal sign; the month begins on the saṅkrānti's day unless it fell after sunset; Śaka years from Chithirai, each named in the southern sixty-year cycle as the extra `samvatsara`, with the Tiruvaḷḷuvar year, which turns at Thai 1, as the extra `tiruvalluvar-year` | Gregorian 1700–2299 |
 | | `hindu-solar-malayalam` | the same months from Chingam; the month begins on the saṅkrānti's day unless it fell after three fifths of the daylight; Kollam era | |
 | | `hindu-solar-bengali` | the same months from Boishakh; the month begins the day after the saṅkrānti's; Bengali San | |
-| | `hindu-solar-vikrami` | the same months from Vaiśākha; the month begins on the sunrise-to-sunrise day of the saṅkrānti; Vikrama Saṃvat — Punjab, Haryana, Odisha | |
+| | `hindu-solar-vikrami` | the same months from Vaiśākha; the month begins on the sunrise-to-sunrise day of the saṅkrānti; Vikrama Saṃvat — the months of Punjab and Haryana, which Odisha keeps under the years of `odia-anka` | |
+| | `magi-san` | the Bengali months and days under the Magi San of Chittagong, the Bengali San less 45 | |
 | `tithi` | — | the lunar day: which tithi is in progress at a moment, and which a civil day carries | |
 | `nakshatra` | — | the Moon's station among the twenty-seven: which is in progress at a moment, and when the Moon enters and leaves one; and the Sun's, the almanacs' Sūrya nakṣatra transits, by which Kerala's ñāṭṭuvēla are counted | |
+| `panchanga` | — | the yoga, from the sum of the Sun's and Moon's sidereal longitudes, and the karaṇa, the half-tithi: which is in progress at a moment or a sunrise, and when it ends | |
 | `hindu_old` | `hindu-old-solar` | the *Ārya Siddhānta*'s mean Sun: twelve months of a twelfth of a 365.258 68-day year, named for the signs; Kali Yuga years | Kali Yuga 0–10000 |
 | | `hindu-old-lunar` | its mean Moon: 29.530 58-day months named for the solar month that begins within them, the intercalary one being the month no solar month begins in, thirty mean tithis a month; Kali Yuga years | Kali Yuga 0–10000 |
 | `nepal_sambat` | `nepal-sambat` | the Newar lunisolar calendar: the amānta months under their Newar names from Kachhalā (Kārtika), the year opening at Mha Puja, the day read at Kathmandu's sunrise; Nepal Sambat years | Gregorian 1700–2299 |
 | `vira_nirvana` | `vira-nirvana-samvat` | the Jain era of Mahāvīra's nirvāṇa over the amānta months, the year opening at Kārtika śukla 1, the day after Dīpāvalī, 605 years after the Śaka year's Kārtika; the day read at the Central Station's sunrise | Gregorian 1700–2299 |
 | `odia_anka` | `odia-anka` | the regnal years of the Gajapati of Puri, Dibyasingha Deb: the *aṅka* turns at Suniā, nija Bhādrapada śukla 12, over the pūrṇimānta months, and never takes 1, a number ending in 6, or one ending in 0 but 10; an integer mapping from the full year of the reign, with the Amli year beside it — see [`docs/systems/odia-anka.md`](../../docs/systems/odia-anka.md) | Suniā 1970 to 2299 |
+| `lunar_era` | `vikram-samvat-kartikadi` | the Gujarati Vikrama year from Kārttika śukla 1 over the amānta months, numbered from Kārttika — see [`docs/systems/indian-eras.md`](../../docs/systems/indian-eras.md) | Gregorian 1700–2299 |
+| | `rajyabhisheka-saka` | Śivājī's era from Jyeṣṭha śukla 13 over the amānta months, year 1 from the coronation of 1674 | |
+| | `saptarshi` | the Saptarṣi era of Kashmir from Chaitra śukla 1 over the pūrṇimānta months, counted in full from Kali 27 current, with the Laukika year of the dropped hundreds as the extra `laukika-year` | |
+| | — | the year arithmetic of the Gupta, Valabhī and Kalachuri eras, whose inscriptions fall outside the range, as `GUPTA`, `VALABHI`, `KALACHURI` | |
+| `fasli` | `fasli-madras` | the Faṣlī revenue year of Madras from 1 July, over the Gregorian months and days | 13 July 1855 to the year from 1 July 2299 |
+| | `fasli-bombay` | the Faṣlī year of Bombay from the Sun's entry into Mṛgaśira, the sunrise-to-sunrise day at Ujjain of the Lahiri ingress, over the Gregorian months and days, a later opening repeating its day | Gregorian 1700–2299 |
+| | `sur-san` | the Maratha Sūr-san: the Bombay days, nine years behind | Gregorian 1700–2299 |
+| `year_start` | — | where an era's year opens among the amānta months, the arithmetic Nepal Sambat, the Vira Nirvana Samvat and the eras above share | |
 | `samvatsara` | — | the southern sixty-year cycle of year names, Prabhava to Kṣaya, by Sewell and Dikshit's rule on the Śaka year | |
 | `barhaspatya` | — | the northern sixty-year cycle by Jupiter's mean motion: Sewell and Dikshit's rule for the *Sūrya Siddhānta*, with and without the *bīja*, and the *Ārya Siddhānta*; the name at a Meṣa saṅkrānti, the name a year expunges, the name in progress at a moment | |
 | `bikram_sambat` | `bikram-sambat` | the solar calendar of Nepal, Baisakh to Chait: the months the Government of Nepal gazettes for 2080–2083 BS, and elsewhere the *Sūrya Siddhānta*'s saṅkrāntis on their civil day at Kathmandu; Bikram Sambat years | Gregorian 1700–2299 |
@@ -74,6 +88,15 @@ prints it. The Odia
 Anka is held to Sewell and Dikshit's rule and their four reigns' first
 days of the 2nd Anka, 1797 to 1859, and to the Anka the Gajapati declared
 at Suniā in 2011 and 2024–2026.
+
+The eras over the Hindu months are held to Sewell and Dikshit's
+equations and epochs, to the Gujarati Samvat Drik Panchang prints for
+2024–2025, to the Rājyābhiṣeka years Raigad keeps by the tithi in 2023
+and 2026, and to Saptarṣi 5100 from Navreh 2024; the Faṣlī years to
+Sewell and Dikshit's Faṣlī 1302 of 1892 in both places, Swamikannu
+Pillai's Faṣlī 1320 of 1910–11 and his and their Bombay openings, and
+Faṣlī 1410 of 2000–01. Every year boundary of each era is checked over
+the whole range, and every Faṣlī day round-trips in a release build.
 
 The two Old Hindu calendars have no such table — the *Panchang* tabulates
 the true calendars, not the mean ones they replaced — so they are held to

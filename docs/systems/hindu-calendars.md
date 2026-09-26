@@ -422,6 +422,26 @@ and a half minutes later, at 11:36.6 UT, 17:06.6 IST — the page's "upto
 `panchanga::the_yogas_of_january_2025_end_when_drik_panchang_says` holds
 all thirty-two printed ends of the month to within a minute.
 
+**Worked example: Bālava on 1 January 2025.** The karaṇa counts the
+elongation, the Moon's longitude less the Sun's, which needs no ayanāṃśa.
+At the Central Station's sunrise, 01:11 UT (06:41 IST), the library puts
+the elongation at 13.716°. A karaṇa is 6°, so this is the third
+half-tithi, 12° to 18°: the first half of śukla 2. The third half is the
+second of the fifty-six movable halves, which begin at the second half
+of śukla 1 with Bava, so its name is the second movable one, Bālava —
+Table VIII's name for the first half of śukla 2 [sewell1896, Table VIII,
+col. 4] and the page's "Karana Balava". It ends when the elongation
+reaches 18°: at 11:30 UT the longitudes above give 300.379° − 281.302° =
+19.077°, so the elongation grows by 5.361° in 10 h 19 min, about 0.52° an
+hour, and the remaining 4.284° take some 8 h 14 min, which puts the end
+near 09:25 UT, 14:55 IST. The library's search finds 14:56 IST, a minute
+after the page's "upto 02:55 PM". By 11:30 UT the elongation is in the
+fourth half, 18° to 24°: Kaulava, the page's next karaṇa. The test
+`panchanga::the_first_of_january_2025_carries_vyaghata_and_balava` holds
+the day's name, and
+`panchanga::the_karanas_of_january_2025_end_when_drik_panchang_says` the
+month's fifty-nine printed ends.
+
 **The Old Hindu calendars.** Before the true positions, the almanacs
 reckoned by mean motion, and the library carries the mean solar and
 lunisolar calendars of the *Ārya Siddhānta* as Reingold and Dershowitz
@@ -662,6 +682,7 @@ assert:
 | The moment: the Siddhānta's Meṣa saṅkrānti of 1514 against Table I's, Vṛṣa's end on 31 March 1514, the expunged Chitrabhānu and Subhānu at the next saṅkrānti; Vibhava 3.3 days and Śukla 364.3 days after the saṅkrānti of Śaka 1779 current; the worked example of 2024 | `the_moment_follows_the_rule_through_an_expunged_year`, `vibhava_begins_three_days_after_the_sankranti_of_1779`, `pingala_gives_way_to_kalayukta_a_fortnight_into_saka_1946` | the saṅkrānti of 1514 1½ minutes from the printed one, Vṛṣa's end within three minutes, the rest to the tenth of a day |
 | The Sun's twenty-seven nakṣatra entries of 2025 | `nakshatra::the_suns_nakshatra_transits_of_2025_are_the_almanacs` | every entry 7 to 10½ minutes before Drik Panchang's, the spread under two minutes |
 | The thirty-two yoga ends and fifty-nine karaṇa ends Drik Panchang prints for New Delhi, 1 to 30 January 2025 | `panchanga::the_yogas_of_january_2025_end_when_drik_panchang_says`, `the_karanas_of_january_2025_end_when_drik_panchang_says` | every yoga end from 56 seconds before the printed minute to 14 seconds after; every karaṇa end 0.6 to 1.6 minutes after it — the pages appear to truncate to the minute, and the yoga carries the two ayanāṃśas' 20″ twice |
+| The karaṇa names Table VIII, cols. 4 and 5, prints for śukla 1 (Kiṃstughna, Bava), śukla 2 (Bālava, Kaulava), kṛṣṇa 14 (Viṣṭi, Śakuni) and amāvāsyā (Catuṣpada, Nāga), and the seven movable names eight times between; forty yogas each within Art. 9's 20 h 52 m 48 s to 24 h 36 m 24 s, widened for the true Moon | `panchanga::the_sixty_halves_take_the_names_table_viii_prints`, `a_yoga_lasts_about_a_day` | all; the yogas between 0.85 and 1.06 days |
 | Puṣya in January 2024 and February 2025, Drik Panchang's Chennai times | `pushya_in_january_2024_begins_and_ends_when_the_almanac_says`, `pushya_in_february_2025_too` | within three minutes |
 | The Siddhānta's sine table holds Āryabhaṭa's twenty-four values; its Meṣa saṅkrānti of 2024 is 139 minutes after Lahiri's | `surya_siddhanta::the_table_holds_the_classical_jyas`, `the_mesha_sankranti_of_2024_is_later_than_the_lahiri_one` | all; ±1 minute |
 | The Old Hindu calendars: every one of the 3 652 952 days of the range round-trips; the epoch is Friday 18 February 3102 BCE; intercalary months come 71 in 190 years and precede their namesake; the mean months of Kali Yuga 5125 (2024–25) against the true Tamil months | `hindu_old::every_day_converts_and_converts_back` and the module's other tests, `the_mean_months_of_2024_fall_within_two_days_of_the_true_ones` | all; within two days, three days late in sum over the twelve |
@@ -737,7 +758,7 @@ for 2024 and 2025 give the times the tests hold.
 | [imd-astronomical-ephemeris] | The *Indian Astronomical Ephemeris*, its parts and its readers | Yes, 2026-09-25 |
 | [crc1955] | The Committee, its dates and members; the Central Station; tithis by modern computation; the lunar month named after the solar month of its new moon, adhika and śuddha; the 13°20′ nakṣatra divisions and the Sun's entries; the ayanāṃśa of 23°15′ on 21 March 1956; the solar-month conventions left to the pandits; the list of almanacs | Yes, 2026-09-25, in the Internet Archive's OCR text |
 | [wikipedia-indian-national-calendar] | The civil calendar's adoption on 22 March 1957 and the Śaka offset | Yes, 2026-09-25 |
-| [sewell1896] | The four regional rules and their names; kṣaya and adhika tithis; the naming of adhika and kṣaya months; the intervals between expunged months; the sixty-year cycle, its northern and southern reckonings and the southern rule, and the worked examples of 1752, 1803–04 and 1822; the northern cycle's length and expunction, the name coupled with the year, the three rules with their examples, the list of expunged names and Table I's reckoning | Yes, 2026-09-25, in the Internet Archive's OCR text; Arts. 28, 32, 45, 48 and 50; Arts. 53–62 and the worked examples that name Angiras, Rudhirodgarin and Chitrabhanu on 2026-09-26, and Arts. 54–60, 75 and 120 again that day for the northern cycle. The sixty names are read off the OCR of Table I, col. 6, and Table XII, where the diacritics are lost; Art. 60's list off the OCR of its table |
+| [sewell1896] | The four regional rules and their names; kṣaya and adhika tithis; the naming of adhika and kṣaya months; the intervals between expunged months; the sixty-year cycle, its northern and southern reckonings and the southern rule, and the worked examples of 1752, 1803–04 and 1822; the northern cycle's length and expunction, the name coupled with the year, the three rules with their examples, the list of expunged names and Table I's reckoning; the yoga and its lengths (Art. 9, p. 3), the karaṇa (Art. 10), the karaṇa names and the *Sūrya Siddhānta*'s other order of the fixed four (Art. 40 and its note) and the names of each half-tithi (Table VIII, cols. 4 and 5) | Yes, 2026-09-25, in the Internet Archive's OCR text; Arts. 28, 32, 45, 48 and 50; Arts. 53–62 and the worked examples that name Angiras, Rudhirodgarin and Chitrabhanu on 2026-09-26, and Arts. 54–60, 75 and 120 again that day for the northern cycle; Arts. 9, 10 and 40 and the Art. 40 note on 2026-09-26, and Art. 9's lengths and Table VIII, cols. 4 and 5, on 2026-09-27. The sixty names are read off the OCR of Table I, col. 6, and Table XII, where the diacritics are lost; Art. 60's list off the OCR of its table |
 | [burgess1860] | The *Sūrya Siddhānta*'s revolutions of Jupiter, from which Sewell and Dikshit's numbers come | Not read; the module takes Sewell and Dikshit's numbers as they give them |
 | [prokerala-telugu-calendar] | The Telugu year from Chaitra named Krodhi (Śaka 1946, from 9 April 2024, and its Phālguna to 29 March 2025), Viswavasu (1947, from 30 March 2025) and Parabhava (1948, from 20 March 2026) | Yes, 2026-09-26; the Telugu script on the pages was not relied on |
 | [hrishikesh-panchang-2081] | Vikrama 2081, Śaka 1946, "पिङ्गल नामाब्दः" | The almanac's title as Exotic India lists it, 2026-09-26; the almanac itself not read |
