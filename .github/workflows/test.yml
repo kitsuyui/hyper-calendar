@@ -113,6 +113,9 @@ jobs:
       # crate's README carries.
       - run: mkdir -p target/wasm-layers && scripts/wasm-layers.sh > target/wasm-layers/SIZES.md
       - run: cat target/wasm-layers/SIZES.md
+      # Each layer within 5% of the README's table, so growth is noticed and
+      # the table is refreshed on purpose.
+      - run: scripts/wasm-size-check.sh
       # The binding with the full layer's bytes inside it, for a page opened
       # from disk.
       - run: node scripts/wasm-embed.mjs
