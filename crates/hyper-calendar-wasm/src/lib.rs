@@ -48,9 +48,15 @@
 //! Functions returning a day number or a count return a negative sentinel on
 //! failure rather than trapping, because a trap tears down the instance and
 //! takes any other work in it with it. The sentinels are the `HC_ERR_*`
-//! constants, all at or below [`HC_ERR_FLOOR`], and a day number can never
-//! be that negative: [`HC_ERR_FLOOR`] is more than a thousand times the age
-//! of the universe in days.
+//! constants, all at or below [`HC_ERR_FLOOR`], and the rule is that a
+//! value-returning export never returns a number at or below
+//! [`HC_ERR_FLOOR`] except as an error. A day number never comes near it:
+//! [`HC_ERR_FLOOR`] is more than a thousand times the age of the universe
+//! in days. A count of seconds can, about 285 million years back, so the
+//! exports that answer in seconds refuse such a day with
+//! [`HC_ERR_OUT_OF_RANGE`] rather than return a number every binding would
+//! read as a sentinel, and refuse the same way a result that would
+//! overflow an `i64`. The README states the range each export answers for.
 //!
 //! # Lines and cells
 //!
@@ -77,7 +83,9 @@
 /// Any return value at or below this is an error sentinel, not a result.
 ///
 /// The age of the universe is about 5 × 10¹² days, so no legitimate fixed day
-/// number comes anywhere near this.
+/// number comes anywhere near this. A count of seconds does, about 285
+/// million years back, and an export that answers in seconds returns
+/// [`HC_ERR_OUT_OF_RANGE`] for a result that would reach it.
 pub const HC_ERR_FLOOR: i64 = -9_000_000_000_000_000;
 
 /// The date does not exist.
@@ -161,6 +169,20 @@ pub unsafe extern "C" fn hc_free(pointer: *mut u8, len: usize) {
     }
 }
 
+/// A computed value as a value-returning export may return it: the value
+/// when there is one above [`HC_ERR_FLOOR`], and [`HC_ERR_OUT_OF_RANGE`]
+/// when the arithmetic overflowed (`None`) or the value would read as a
+/// sentinel.
+///
+/// This is the one place the rule is kept: no legitimate result is ever at
+/// or below [`HC_ERR_FLOOR`].
+#[allow(dead_code)]
+fn above_floor(value: Option<i64>) -> Result<i64, i64> {
+    value
+        .filter(|value| *value > HC_ERR_FLOOR)
+        .ok_or(HC_ERR_OUT_OF_RANGE)
+}
+
 /// Copy `text` into the caller's buffer, returning the byte length written.
 ///
 /// # Safety
@@ -220,8 +242,11 @@ pub unsafe extern "C" fn hc_version(buffer: *mut u8, capacity: usize) -> i64 {
 /// dates, ISO 8601 text, POSIX time and the TAI–UTC bridge.
 #[cfg(feature = "civil")]
 mod civil {
-    use super::{HC_ERR_INVALID_DATE, HC_ERR_NO_DATA, HC_ERR_OUT_OF_RANGE, emit, text};
+    use super::{
+        HC_ERR_INVALID_DATE, HC_ERR_NO_DATA, HC_ERR_OUT_OF_RANGE, above_floor, emit, text,
+    };
     use hc::civil::Date;
+    use hc::hc_calendar::fixed::RD_OF_UNIX_EPOCH;
     use hc::hc_calendar::{Rd, Weekday};
     use hc::hc_core::unix::{self, LeapPolicy};
 
@@ -316,13 +341,22 @@ mod civil {
 
     /// Whether the UTC day containing a POSIX timestamp ends with an inserted
     /// leap second: 1, 0, or an error sentinel.
+    ///
+    /// A timestamp in a day whose start or whose end is not an `i64` — the
+    /// first and last part-days of the range — is [`HC_ERR_OUT_OF_RANGE`].
     #[unsafe(no_mangle)]
     pub extern "C" fn hc_day_has_leap_second(unix_seconds: i64) -> i64 {
-        let day_start = unix_seconds.div_euclid(86_400) * 86_400;
+        let Some((day_start, next_day)) = unix_seconds
+            .div_euclid(86_400)
+            .checked_mul(86_400)
+            .and_then(|start| Some((start, start.checked_add(86_400)?)))
+        else {
+            return HC_ERR_OUT_OF_RANGE;
+        };
         let policy = LeapPolicy::Extrapolate;
         let (Ok(before), Ok(after)) = (
             unix::tai_minus_utc_at(day_start, policy),
-            unix::tai_minus_utc_at(day_start + 86_400, policy),
+            unix::tai_minus_utc_at(next_day, policy),
         ) else {
             return HC_ERR_NO_DATA;
         };
@@ -330,9 +364,22 @@ mod civil {
     }
 
     /// The POSIX timestamp of midnight UTC on a fixed day.
+    ///
+    /// A day whose midnight would be at or below [`HC_ERR_FLOOR`] seconds —
+    /// before fixed day −104 165 947 503, about 285 million years back — or
+    /// would overflow an `i64` — after fixed day 106 751 991 886 463 — is
+    /// [`HC_ERR_OUT_OF_RANGE`].
+    ///
+    /// [`HC_ERR_FLOOR`]: super::HC_ERR_FLOOR
     #[unsafe(no_mangle)]
     pub extern "C" fn hc_unix_from_fixed(fixed: i64) -> i64 {
-        Rd(fixed).to_unix_days() * 86_400
+        let midnight = fixed
+            .checked_sub(RD_OF_UNIX_EPOCH)
+            .and_then(|days| days.checked_mul(86_400));
+        match above_floor(midnight) {
+            Ok(seconds) => seconds,
+            Err(sentinel) => sentinel,
+        }
     }
 
     /// Render a fixed day as an ISO 8601 date, returning the byte length written.
@@ -1271,7 +1318,8 @@ pub use deep_time::{hc_cosmic_events, hc_geologic_intervals, hc_place_years_ago}
 mod tz {
     use std::sync::{Mutex, PoisonError};
 
-    use super::{HC_ERR_MALFORMED, HC_ERR_OUT_OF_RANGE, HC_ERR_UNKNOWN, text};
+    use super::{HC_ERR_MALFORMED, HC_ERR_OUT_OF_RANGE, HC_ERR_UNKNOWN, above_floor, text};
+    use hc::hc_calendar::fixed::RD_OF_UNIX_EPOCH;
     use hc::hc_calendar::{CivilDateTime, Rd};
     use hc::hc_core::UnixTime;
     use hc::hc_tz::{LocalResolution, TimeZone, TzifTimeZone, builtin};
@@ -1321,6 +1369,14 @@ mod tz {
     /// The instant a day begins by a zone's wall clock: its midnight, or
     /// the first instant after a gap that swallows it, or the earlier of
     /// two midnights when the clocks fall back across it.
+    ///
+    /// # Errors
+    ///
+    /// [`HC_ERR_UNKNOWN`] for a name neither table knows, and
+    /// [`HC_ERR_OUT_OF_RANGE`] for a day whose start would overflow an
+    /// `i64` or would be at or below [`HC_ERR_FLOOR`].
+    ///
+    /// [`HC_ERR_FLOOR`]: super::HC_ERR_FLOOR
     pub(super) fn start_in_zone(fixed: i64, name: &str) -> Result<i64, i64> {
         with_zone(name, |zone| {
             let instant = match zone.resolve_local(CivilDateTime::midnight(Rd(fixed))) {
@@ -1328,8 +1384,24 @@ mod tz {
                 LocalResolution::Ambiguous { earlier, .. } => earlier,
                 LocalResolution::Nonexistent { after_gap, .. } => after_gap,
             };
-            instant.seconds()
-        })
+            above_floor(unsaturated(fixed, instant.seconds(), zone))
+        })?
+    }
+
+    /// The start of a day as `resolve_local` gave it, or `None` when that
+    /// was an `i64` bound standing in for an instant beyond it.
+    ///
+    /// `resolve_local` saturates rather than fails, so `i64::MIN` and
+    /// `i64::MAX` are its answer for every day whose start is out of reach.
+    /// Either is kept only when the day's midnight less the zone's offset
+    /// there really is that instant.
+    fn unsaturated(fixed: i64, seconds: i64, zone: &dyn TimeZone) -> Option<i64> {
+        if seconds != i64::MIN && seconds != i64::MAX {
+            return Some(seconds);
+        }
+        let midnight = (i128::from(fixed) - i128::from(RD_OF_UNIX_EPOCH)) * 86_400;
+        let offset = zone.offset_at(UnixTime::from_seconds(seconds)).seconds();
+        (midnight - i128::from(offset) == i128::from(seconds)).then_some(seconds)
     }
 
     /// Keep TZif bytes under a name, replacing any already there.
@@ -1391,6 +1463,11 @@ mod tz {
     /// begins at 01:00 EEST; when they go back across it, at the earlier of
     /// the two midnights. `zone` is as for `hc_fixed_from_unix_in_zone`,
     /// and fails the same way.
+    ///
+    /// A day whose start would be at or below `HC_ERR_FLOOR` seconds or
+    /// would overflow an `i64` is `HC_ERR_OUT_OF_RANGE`: by UTC, a day
+    /// before fixed day −104 165 947 503 or after 106 751 991 886 463, and
+    /// a zone's offset moves each end by at most a day.
     ///
     /// # Safety
     ///
@@ -2159,6 +2236,106 @@ mod tests {
             assert_eq!(hc_fixed_from_unix(0), 719_163);
             assert_eq!(hc_unix_from_fixed(719_163), 0);
             assert_eq!(hc_fixed_from_unix(-1), 719_162);
+        }
+
+        #[test]
+        fn the_gregorian_range_is_the_readmes() {
+            let earliest = -3_652_424_999;
+            let latest = 3_652_424_634;
+            assert_eq!(hc_gregorian_to_fixed(-9_999_999, 1, 1), earliest);
+            assert_eq!(hc_gregorian_to_fixed(9_999_999, 12, 31), latest);
+            assert_eq!(
+                hc_gregorian_to_fixed(-10_000_000, 12, 31),
+                HC_ERR_INVALID_DATE
+            );
+            assert_eq!(hc_gregorian_to_fixed(10_000_000, 1, 1), HC_ERR_INVALID_DATE);
+            assert_eq!(hc_gregorian_year(earliest), -9_999_999);
+            assert_eq!(hc_gregorian_year(latest), 9_999_999);
+            assert_eq!(hc_gregorian_year(earliest - 1), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(hc_gregorian_year(latest + 1), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(hc_gregorian_year(i64::MIN), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(hc_gregorian_to_fixed(i64::MIN, 1, 1), HC_ERR_INVALID_DATE);
+            assert_eq!(hc_gregorian_to_fixed(i64::MAX, 12, 31), HC_ERR_INVALID_DATE);
+            for text in [
+                "-9999999-01-01",
+                "+9999999-12-31",
+                "-10000000-12-31",
+                "+99999999999999999999-01-01",
+                "-99999999999999999999-01-01",
+            ] {
+                let parsed = unsafe { hc_parse_iso_date(text.as_ptr(), text.len()) };
+                assert!(
+                    parsed == HC_ERR_INVALID_DATE || (earliest..=latest).contains(&parsed),
+                    "{text}: {parsed}"
+                );
+            }
+            // Every day has a weekday, to both ends of an i64.
+            assert_eq!(hc_weekday(i64::MIN), 6);
+            assert_eq!(hc_weekday(i64::MAX), 7);
+        }
+
+        /// The first fixed day `hc_unix_from_fixed` answers for, and the
+        /// last: the README's range.
+        const UNIX_FROM_FIXED_FIRST: i64 = -104_165_947_503;
+        const UNIX_FROM_FIXED_LAST: i64 = 106_751_991_886_463;
+
+        #[test]
+        fn midnight_in_seconds_never_reads_as_a_sentinel() {
+            // The last day whose midnight is above the floor, and the first
+            // whose midnight would reach it.
+            let first = hc_unix_from_fixed(UNIX_FROM_FIXED_FIRST);
+            assert_eq!(first, -8_999_999_999_942_400);
+            assert!(first > HC_ERR_FLOOR);
+            assert_eq!(
+                hc_unix_from_fixed(UNIX_FROM_FIXED_FIRST - 1),
+                HC_ERR_OUT_OF_RANGE
+            );
+            // The day the report was about, some 54 billion years back.
+            assert_eq!(hc_unix_from_fixed(-19_723_095_000_000), HC_ERR_OUT_OF_RANGE);
+        }
+
+        #[test]
+        fn midnight_in_seconds_refuses_rather_than_overflows() {
+            // The last day whose midnight fits an i64, and the first that
+            // would not.
+            assert_eq!(
+                hc_unix_from_fixed(UNIX_FROM_FIXED_LAST),
+                9_223_372_036_854_720_000
+            );
+            assert_eq!(
+                hc_unix_from_fixed(UNIX_FROM_FIXED_LAST + 1),
+                HC_ERR_OUT_OF_RANGE
+            );
+            // 2^53 days, which used to wrap to 3458764451684857728.
+            assert_eq!(hc_unix_from_fixed(1 << 53), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(hc_unix_from_fixed(i64::MAX), HC_ERR_OUT_OF_RANGE);
+            // Overflow downwards too: the subtraction, then the product.
+            assert_eq!(hc_unix_from_fixed(i64::MIN), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(hc_unix_from_fixed(i64::MIN / 86_400), HC_ERR_OUT_OF_RANGE);
+        }
+
+        #[test]
+        fn every_timestamp_has_a_fixed_day_above_the_floor() {
+            assert_eq!(hc_fixed_from_unix(i64::MIN), -106_751_990_448_138);
+            assert_eq!(hc_fixed_from_unix(i64::MAX), UNIX_FROM_FIXED_LAST);
+            assert_eq!(
+                hc_unix_from_fixed(hc_fixed_from_unix(i64::MAX)),
+                9_223_372_036_854_720_000
+            );
+        }
+
+        #[test]
+        fn the_leap_second_question_refuses_a_day_with_no_i64_bounds() {
+            // The first whole day of the range, and the part-day before it.
+            let first_whole = -9_223_372_036_854_720_000;
+            assert_eq!(hc_day_has_leap_second(first_whole), 0);
+            assert_eq!(hc_day_has_leap_second(first_whole - 1), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(hc_day_has_leap_second(i64::MIN), HC_ERR_OUT_OF_RANGE);
+            // The last day whose end is an i64, and the part-day after it.
+            let last_end = 9_223_372_036_854_720_000;
+            assert_eq!(hc_day_has_leap_second(last_end - 1), 0);
+            assert_eq!(hc_day_has_leap_second(last_end), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(hc_day_has_leap_second(i64::MAX), HC_ERR_OUT_OF_RANGE);
         }
 
         #[test]
@@ -3065,6 +3242,59 @@ mod tests {
 
         fn starts(fixed: i64, zone: &str) -> i64 {
             unsafe { hc_unix_from_fixed_in_zone(fixed, zone.as_ptr(), zone.len()) }
+        }
+
+        #[test]
+        fn a_days_start_never_reads_as_a_sentinel() {
+            // By UTC the range is hc_unix_from_fixed's.
+            let first = -104_165_947_503;
+            let midnight = -8_999_999_999_942_400;
+            assert_eq!(starts(first, "UTC"), midnight);
+            assert_eq!(starts(first - 1, "UTC"), HC_ERR_OUT_OF_RANGE);
+            // An offset moves the start, not far enough here to move the
+            // first day.
+            assert_eq!(starts(first, "Asia/Tokyo"), midnight - 9 * 3_600);
+            assert_eq!(starts(first - 1, "Asia/Tokyo"), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(starts(first, "America/Sao_Paulo"), midnight + 3 * 3_600);
+            assert_eq!(starts(first - 1, "America/Sao_Paulo"), HC_ERR_OUT_OF_RANGE);
+            // Some 54 billion years back.
+            assert_eq!(
+                starts(-19_723_095_000_000, "Asia/Tokyo"),
+                HC_ERR_OUT_OF_RANGE
+            );
+            // Overflow downwards.
+            assert_eq!(starts(i64::MIN, "UTC"), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(starts(i64::MIN, "America/New_York"), HC_ERR_OUT_OF_RANGE);
+        }
+
+        #[test]
+        fn a_days_start_refuses_rather_than_saturates() {
+            let last = 106_751_991_886_463;
+            let midnight = 9_223_372_036_854_720_000;
+            assert_eq!(starts(last, "UTC"), midnight);
+            assert_eq!(starts(last + 1, "UTC"), HC_ERR_OUT_OF_RANGE);
+            // West of Greenwich the day begins later, and UTC's last day
+            // is the last; Tokyo's day after it begins nine hours before
+            // UTC's, which still fits.
+            assert_eq!(starts(last, "America/Sao_Paulo"), midnight + 3 * 3_600);
+            assert_eq!(starts(last + 1, "America/Sao_Paulo"), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(
+                starts(last + 1, "Asia/Tokyo"),
+                midnight - 9 * 3_600 + 86_400
+            );
+            assert_eq!(starts(last + 2, "Asia/Tokyo"), HC_ERR_OUT_OF_RANGE);
+            // 2^53 days, which used to saturate to i64::MAX.
+            assert_eq!(starts(1 << 53, "Asia/Tokyo"), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(starts(i64::MAX, "UTC"), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(starts(i64::MAX, "America/New_York"), HC_ERR_OUT_OF_RANGE);
+        }
+
+        #[test]
+        fn every_timestamp_has_a_zoned_day_above_the_floor() {
+            for zone in ["UTC", "Asia/Tokyo", "America/New_York"] {
+                assert!(in_zone(i64::MIN, zone) > HC_ERR_FLOOR, "{zone}");
+                assert!(in_zone(i64::MAX, zone) > HC_ERR_FLOOR, "{zone}");
+            }
         }
 
         #[test]

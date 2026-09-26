@@ -326,7 +326,8 @@ fn render_wasm(source: &str) -> String {
     let _ = writeln!(
         out,
         "A function that returns `i64` returns one of these instead of trapping. \
-         All are at or below `HC_ERR_FLOOR`, which no day number reaches.\n"
+         All are at or below `HC_ERR_FLOOR`, and no legitimate result is: the \
+         ranges above say what each export answers for.\n"
     );
     out.push_str("| Sentinel | Value | Meaning |\n| --- | --- | --- |\n");
     for code in &codes {
@@ -409,4 +410,121 @@ fn the_two_surfaces_share_their_vocabulary() {
             );
         }
     }
+}
+
+/// The first cell of every row of the generated export table: the
+/// signature or prototype, without its backticks.
+fn export_rows(readme: &str) -> Vec<String> {
+    let start = readme
+        .find(START)
+        .unwrap_or_else(|| panic!("README lacks the start marker {START}"));
+    let end = readme
+        .find(END)
+        .unwrap_or_else(|| panic!("README lacks the end marker {END}"));
+    readme[start..end]
+        .lines()
+        .filter_map(|line| line.strip_prefix("| `"))
+        .filter_map(|rest| rest.split_once("` |"))
+        .map(|(signature, _)| signature.to_owned())
+        .filter(|signature| signature.contains("hc_"))
+        .collect()
+}
+
+/// The exported name in a signature or prototype.
+fn name_in(signature: &str) -> String {
+    let before = signature
+        .split_once('(')
+        .unwrap_or_else(|| panic!("no parameter list in {signature}"))
+        .0;
+    before
+        .rsplit(' ')
+        .next()
+        .unwrap_or(before)
+        .trim_start_matches('*')
+        .to_owned()
+}
+
+/// The rows of the ranges table after `heading`: the names in each row's
+/// second cell, and its third cell.
+fn ranges(readme: &str, heading: &str) -> Vec<(Vec<String>, String)> {
+    let at = readme
+        .find(&format!("\n{heading}\n"))
+        .unwrap_or_else(|| panic!("the README has no heading {heading}"));
+    let mut rows = Vec::new();
+    for line in readme[at..]
+        .lines()
+        .skip_while(|line| !line.starts_with("| "))
+        .skip(2)
+    {
+        if !line.starts_with('|') {
+            break;
+        }
+        let cells: Vec<&str> = line.trim_matches('|').split(" | ").map(str::trim).collect();
+        assert_eq!(cells.len(), 3, "a range row has three cells: {line}");
+        let names = cells[1]
+            .split(", ")
+            .map(|name| name.trim_matches('`').to_owned())
+            .collect();
+        rows.push((names, cells[2].to_owned()));
+    }
+    assert!(!rows.is_empty(), "no ranges table after {heading}");
+    rows
+}
+
+/// Every export `returns_a_value` picks out of the README's table has
+/// exactly one row in the ranges table, saying what it answers for, and
+/// every name in that table is such an export.
+fn check_ranges(readme_path: &str, heading: &str, returns_a_value: impl Fn(&str) -> bool) {
+    let readme = read(readme_path);
+    let valued: Vec<String> = export_rows(&readme)
+        .iter()
+        .filter(|signature| returns_a_value(signature))
+        .map(|signature| name_in(signature))
+        .collect();
+    assert!(
+        !valued.is_empty(),
+        "{readme_path}: no value-returning exports"
+    );
+    let ranges = ranges(&readme, heading);
+    for name in &valued {
+        let rows: Vec<&String> = ranges
+            .iter()
+            .filter(|(names, _)| names.contains(name))
+            .map(|(_, range)| range)
+            .collect();
+        assert_eq!(
+            rows.len(),
+            1,
+            "{readme_path}: `{name}` should have one row under {heading}"
+        );
+        assert!(
+            !rows[0].is_empty(),
+            "{readme_path}: `{name}` does not say what it answers for"
+        );
+    }
+    for (names, _) in &ranges {
+        for name in names {
+            assert!(
+                valued.contains(name),
+                "{readme_path}: `{name}` is under {heading} but returns no value there"
+            );
+        }
+    }
+}
+
+#[test]
+fn every_i64_export_of_the_wasm_module_documents_its_range() {
+    // Every export but `hc_alloc` and `hc_free` returns an `i64`, and each
+    // must say what it answers for, so that a caller knows which numbers
+    // are results and which are refusals.
+    check_ranges(WASM_README, "### Ranges", |signature| {
+        signature.ends_with(") -> i64")
+    });
+}
+
+#[test]
+fn every_int64_out_parameter_of_the_c_abi_documents_its_range() {
+    check_ranges(FFI_README, "## Errors and ranges", |prototype| {
+        prototype.contains("int64_t *out_")
+    });
 }

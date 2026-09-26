@@ -47,6 +47,32 @@ if (hc_gregorian_to_fixed(2026, 9, 21, &rd) == 0) {
 }
 ```
 
+## Errors and ranges
+
+Every entry point reports failure through its `HcStatus` alone, so an
+`int64_t` it writes has the whole of its range. There are no sentinels here:
+where the WebAssembly module has to refuse a day whose POSIX time would be at
+or below its `HC_ERR_FLOOR`, about 285 million years back, this library
+answers. What an entry point cannot hold it refuses rather than wraps or
+clamps, and the only bounds that are not the calendar's own are where an
+`int64_t` runs out. The range each entry point with an `int64_t`
+out-parameter answers for:
+
+| Writes | Entry points | Answers for |
+| --- | --- | --- |
+| a fixed day | `hc_gregorian_to_fixed` | the years −9 999 999 through 9 999 999, which are the fixed days −3 652 424 999 through 3 652 424 634; any other date is `HC_ERROR_INVALID_DATE` |
+| a year, month and day | `hc_gregorian_from_fixed` | the fixed days −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_NO_DATA` |
+| TAI seconds | `hc_tai_from_unix` | every timestamp up to `INT64_MAX − 37`; TAI runs ahead of UTC, so a later one has no TAI reading an `int64_t` holds and is `HC_ERROR_OVERFLOW`; under `strict`, 1961 through the end of the announced table, else `HC_ERROR_NO_DATA` |
+| seconds | `hc_tai_minus_utc` | every timestamp; under `strict`, as for `hc_tai_from_unix` |
+| a POSIX timestamp | `hc_utc_from_tai` | every TAI reading; under `strict`, as for `hc_tai_from_unix` |
+| a fixed day | `hc_fixed_from_unix_in_zone` | every timestamp |
+| a POSIX timestamp | `hc_unix_from_fixed_in_zone` | the days whose start by the zone's clock fits an `int64_t`: by UTC, the fixed days −106 751 990 448 137 through 106 751 991 886 463, and a zone's offset moves each end by at most a day; any other is `HC_ERROR_OUT_OF_RANGE` |
+
+`hc_day_has_leap_second` writes an `int`, but it reads the day around the
+timestamp: the part-days at the two ends of the `int64_t` range, before
+−9 223 372 036 854 720 000 and from 9 223 372 036 854 720 000, begin or end
+where no `int64_t` reaches, and are `HC_ERROR_OUT_OF_RANGE`.
+
 ## Lines and cells
 
 Every entry point that answers with more than one value writes UTF-8 lines,

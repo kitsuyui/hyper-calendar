@@ -467,7 +467,13 @@ export class HyperCalendar {
   taiMinusUtc(unixSeconds: number | bigint, strict?: boolean): number;
   /** `hc_day_has_leap_second`. */
   dayHasLeapSecond(unixSeconds: number | bigint): boolean;
-  /** `hc_unix_from_fixed`: midnight UTC on a fixed day. */
+  /**
+   * `hc_unix_from_fixed`: midnight UTC on a fixed day. A day before
+   * −104 165 947 503, whose midnight would read as a sentinel, or after
+   * 106 751 991 886 463, whose midnight would overflow an `i64`, is
+   * `out-of-range`; one whose seconds a number cannot hold exactly is
+   * `unsafe-integer`.
+   */
   unixFromFixed(fixed: number | bigint): number;
   /** `hc_format_iso_date`. */
   formatIsoDate(fixed: number | bigint): string;
@@ -517,7 +523,10 @@ export class HyperCalendar {
 
   /** `hc_fixed_from_unix_in_zone`; a zone nobody knows is `unknown`. */
   fixedFromUnixInZone(unixSeconds: number | bigint, zone: string): number;
-  /** `hc_unix_from_fixed_in_zone`. */
+  /**
+   * `hc_unix_from_fixed_in_zone`: `unixFromFixed`'s range, each end moved
+   * by at most a day by the zone's offset; outside it, `out-of-range`.
+   */
   unixFromFixedInZone(fixed: number | bigint, zone: string): number;
   /** `hc_zone_load`; bytes that are not TZif are `malformed`. */
   loadZone(name: string, tzif: Uint8Array | ArrayBuffer): void;
