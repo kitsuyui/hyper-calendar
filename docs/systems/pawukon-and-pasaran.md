@@ -223,25 +223,15 @@ code carries no names.
 | [idwiki-proklamasi] | 17 August 1945 a Friday | Yes, 2026-09-26; it gives no pasaran |
 | The other four Galungan dates in the test, 2024 and 2025 | The test's other rows | Not re-read; they follow from 2026 by multiples of 210 days |
 
-Statements the module documentation and data made before this write-up
-that no source read here supports, recorded so that they are not mistaken
-for sourced. The first two are trimmed from the module header; the others
-stand in the constants' documentation and the name tables:
-
-- That the weton is used for "commemorating a death every 35 days". The
-  source read describes the 35-day recurrence as a birthday observance.
-- That Jumat Legi of 17 August 1945 is "repeated in every Indonesian
-  account of the date". Wikipedia says it is widely taught; the Indonesian
-  article on the proclamation gives the weekday only.
-- That "other regional variants exist" for the pasaran names and none
-  could be sourced: the *krama* names are sourced above, and no regional
-  variant was found.
-- The spelling Coma for the seven-day week's Monday, where the sources
-  read spell it Soma.
-- The Javanese weekday names as the module spells them — Ahad, Senen,
-  Selasa, Rebo, Kemis, Jemuwah, Setu — which no source read lists together;
-  the Indonesian article uses the Indonesian names, and Wikipedia writes
-  Jemuah.
+The seven-day week's Monday is Coma in the module's name table, a spelling
+no source read here uses; the sources read spell it Soma. The module's
+Javanese weekday names — Ahad, Senen, Selasa, Rebo, Kemis, Jemuwah, Setu —
+come from three pages together, each giving some of them, as the
+constant's documentation sets out: the Javanese Wikipedia's article
+"Senèn" and Wiktionary's Javanese entry "Senèn" for the Monday to Saturday
+forms, and [wikipedia-javanese-calendar] for Jemuwah; the Indonesian
+article on the proclamation uses the Indonesian names. Those two pages
+were read by the module's author on 2026-09-26 and not re-read here.
 
 ## Code
 

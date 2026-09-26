@@ -12,7 +12,7 @@
 //!
 //! | Module | Calendars |
 //! | --- | --- |
-//! | [`japanese`] | `japanese`, `japanese-northern`, `japanese-southern`, `japanese-proclaimed` — imperial eras (和暦), Gregorian from 1873 and lunisolar before it |
+//! | [`japanese`] | `japanese`, `japanese-northern`, `japanese-southern`, `japanese-proclaimed`, `japanese-northern-proclaimed`, `japanese-southern-proclaimed` — imperial eras (和暦), Gregorian from 1873 and lunisolar before it |
 //! | [`maya`] | `maya-longcount`, `maya-tzolkin`, `maya-haab`, `maya-round`, and the same four under the GMT+2 correlation as `maya-longcount-gmt2`, `maya-tzolkin-gmt2`, `maya-haab-gmt2`, `maya-round-gmt2`, and under Martin and Skidmore's 584 286 as `maya-longcount-584286`, `maya-tzolkin-584286`, `maya-haab-584286`, `maya-round-584286` |
 //! | [`maya_819`] | `maya-819`, `maya-819-gmt2`, `maya-819-584286` — the 819-day count's stations and colour-directions over Linden and Bricker's twenty-station cycle of 16 380 days, under the three correlations |
 //! | [`aztec`] | `aztec-tonalpohualli`, `aztec-xiuhpohualli` |
@@ -162,6 +162,12 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::NORTHERN)));
         registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::SOUTHERN)));
         registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::PROCLAIMED)));
+        registry.insert(Box::new(DynAdapter::new(
+            JapaneseCalendar::NORTHERN_PROCLAIMED,
+        )));
+        registry.insert(Box::new(DynAdapter::new(
+            JapaneseCalendar::SOUTHERN_PROCLAIMED,
+        )));
         for long_count in crate::MayaLongCountCalendar::ALL {
             registry.insert(Box::new(DynAdapter::new(long_count)));
             registry.insert(Box::new(DynAdapter::new(
@@ -197,7 +203,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 31;
+const CALENDAR_COUNT: usize = 33;
 
 #[cfg(test)]
 mod tests {

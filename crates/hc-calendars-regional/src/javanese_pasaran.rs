@@ -42,8 +42,8 @@ pub const WETONAN_CYCLE: i64 = 35;
 /// The five *pasaran* day names, in cycle order.
 ///
 /// Legi is also called Manis, which is the same word as the Balinese
-/// *Umanis*. Other regional variants exist for the remaining four; this
-/// crate ships only the names it can source, which are these.
+/// *Umanis*. The *krama* names of all five — Manis, Pait, Pethak, Cemèng,
+/// Asih (`wikipedia-javanese-calendar`) — are not carried.
 pub const PASARAN: [&str; 5] = ["Legi", "Pahing", "Pon", "Wage", "Kliwon"];
 
 /// The *neptu* of each *pasaran* day, in cycle order.

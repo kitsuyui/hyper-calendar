@@ -50,8 +50,9 @@ Second Waso's.
 
 **The eras.** The year count is the Myanmar Era (မြန်မာသက္ကရာဇ်, ME),
 also called the Kawza era, whose year 0 began on 22 March 638 CE by the
-reckoning of King Popa Sawrahan [wikipedia-burmese-calendar]. Its year is
-not the tropical year but the *Sūrya Siddhānta*'s sidereal year of
+reckoning of King Popa Sawrahan [wikipedia-burmese-calendar]. Its year,
+which the source calls the solar year, is not the tropical year: its
+length is the *Sūrya Siddhānta*'s sidereal year of
 1 577 917 828⁄4 320 000 = 365.258 756 5 days, the same constant that
 [hindu-calendars.md](hindu-calendars.md) carries for the Indian systems,
 with a mean lunation of 1 577 917 828⁄53 433 336 = 29.530 588 days
@@ -360,19 +361,8 @@ measurement.
 | [afp-waso-2022] | Waso's full moon kept on 12 July 2022 | Yes, 2026-09-26 |
 | [moip-public-holidays] | The government's holiday lists for 2025 and 2026 | Not readable: the pages returned no list |
 
-Statements the module documentation made before this write-up that no
-source read here supports, trimmed or qualified in it and recorded so that
-they are not mistaken for sourced: that the year is "sidereal" — the
-article calls it the solar year, and the word rests only on the constant's
-identity with the *Sūrya Siddhānta*'s; that the source "reconciles" the
-calendar with the published calendars "era by era" — the article says so
-of the third era and tabulates the earlier eras' exceptions without saying
-against what; that "the kings" used the Metonic cycle "to 1216 ME" — the
-article's own boundary, which Wikipedia dates differently; and that a gap
-of neither 30 nor 31 days is one "the source flags as an error in the
-record" — the article says only that such a case would be disputed. The
-Burmese script of the month names was read from Wikipedia by the module's
-author and not re-checked glyph by glyph here.
+The Burmese script of the month names was read from Wikipedia by the
+module's author and has not been re-checked glyph by glyph.
 
 ## Code
 

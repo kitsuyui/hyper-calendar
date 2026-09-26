@@ -208,27 +208,16 @@ begin at the odd hours from 23:00 [nao-rekiwiki-junishi].
 | [rr-korean-2000] | The Revised Romanization readings | Not re-read here |
 | Vietnamese almanacs (*lịch vạn niên*) | The quốc ngữ readings | Not read; the module names no edition |
 
-Statements the module documentation made before this write-up that no
-source read here supports, recorded so that they are not mistaken for
-sourced. The first two are trimmed from the module headers; the others
-stand in the documentation of the functions and constants they describe:
+The documentation of the functions and constants makes these statements,
+for which no source read here was found:
 
-- That East Asia has named "years, months, days and hours" with the cycle
-  "for more than three thousand years" (`cycle`) or "well over two
-  thousand" (`sexagenary`). The Observatory dates the day use to the Shang
-  and the continuous year count to the Later Han, and no span in years.
-- That the day cycle "has run without interruption for longer than any
-  surviving calendar". The Observatory says it counts continuously across
-  Japan's Meiji reform, not that it has never been broken.
-- That 早子時 is the majority school and 夜子時 the minority.
+- That 早子時 is the majority school and 夜子時 the minority (`ZiHourConvention`).
 - That the 1 January convention is that of "newspapers, greeting cards,
-  most software".
-- The Yellow Emperor's epoch of 2697 BCE, the numbering of 1984 as 4681,
-  and the cycle number 79 it gives.
-- That the Julian Day Number rule is "published"; no publication is named.
-  It agrees with Reingold and Dershowitz.
-- That 1 January 1900 is 甲戌 "in the published tables"; no table is named.
-  It agrees with Reingold and Dershowitz.
+  most software" (`sexagenary_year_from_gregorian_year` and the table of
+  year boundaries).
+- That the Julian Day Number rule is "published", and that 1 January 1900
+  is 甲戌 "in the published tables"; no publication or table is named.
+  Both agree with Reingold and Dershowitz.
 - The verses 五虎遁年起月訣 and 五鼠遁日起時訣 as quoted in `cycle`. The
   month table they encode is the Observatory's; the verses' text was not
   found in a source read.
@@ -238,9 +227,6 @@ stand in the documentation of the functions and constants they describe:
   Japanese and 1956 Chinese simplifications; that 金 among the five phases
   is read *gon* in the 呉音; that Vietnamese Mão is the standard form of 卯
   and Mẹo the southern one.
-- In `sexagenary_day`, that fixed day 1 "was *jia-zi* day index 14". By the
-  function's own formula fixed day 1 is at position 15, 己卯, and 甲子 is
-  fixed day −14; the module's tests assert the latter. Corrected.
 
 ## Code
 

@@ -85,12 +85,13 @@ there. The table is checked for sortedness and uniqueness by a test.
 * **First day of week** follows CLDR 48 `supplementalData.xml`
   `weekData/firstDay`, transcribed in full; only the non-Monday regions are
   tabulated, since CLDR lists Monday for `001` and every region it does not
-  name otherwise. A tag's region decides; a tag with no region takes its
-  language entry's day, which follows the region CLDR 48's likely subtags
-  give the language (for `nah`, which has none, the region its entry's
-  comment names). `und`, `en` and `pt` are the exceptions: they keep the ISO
-  8601 Monday, although their likely regions, US, US and BR, start on
-  Sunday.
+  name otherwise. A tag's region decides, so `en-GB` starts on Monday and
+  `pt-PT` on Sunday; a tag with no region takes its language entry's day,
+  which follows the region CLDR 48's likely subtags give the language (for
+  `nah`, which has none, the region its entry's comment names): `en` takes
+  US's Sunday and `pt` BR's. `und`, which names no language, takes the
+  world default, `001`, Monday, and so does a tag with no region whose
+  language has no entry and falls to root.
 * **Script from region**: a Chinese tag with no script takes the one CLDR
   48's likely subtags give it, so `zh`, `zh-CN` and `zh-SG` resolve to the
   `zh-Hans` entry and `zh-TW`, `zh-HK` and `zh-MO` to `zh-Hant`, instead of
@@ -135,7 +136,7 @@ what their sources cover and no more:
 | `my` Burmese | `burmese` | CLDR 48 `my.xml` | the twelve months (Wikipedia, "Burmese calendar") | a "Second Waso" prefix in Burmese script |
 | `bo` Tibetan | `tibetan`, `tibetan-tsurphu` | CLDR 48 `bo.xml` | the numbered months, CLDR's own ordinal month names keyed to the calendar that numbers its months | the doubled-month prefix; the sixty-year cycle, which the crate's cycle model cannot hold |
 | `ne` Nepali | `bikram-sambat`, `nepal-sambat` | CLDR 48 `ne.xml` | the Bikram Sambat months as the Nepal Rajpatra spells them, the Nepal Sambat months in Devanagari (Wikipedia, "Nepal Sambat") | either era in Devanagari; a `new` (Newar) locale, which CLDR does not have |
-| `sa` Sanskrit | `hindu-lunar`, `hindu-lunar-purnimanta`, `hindu-solar-vikrami` | CLDR 48 `sa.xml`, less the abbreviated months and the weekdays, which inherit because CLDR prints an ASCII colon for a visarga in the former and in Thursday's wide form | the twelve lunar months in Devanagari as the amānta calendar declares them (Rashtriya Panchang, Sanskrit edition; Wikipedia, "Hindu calendar"), the prefix अधिक (Wikipedia, "Adhik Maas"), the Vikrami solar months from Vaiśākha | the eras (CLDR's default forms are Latin); the rāśi names in Devanagari and the nakṣatras: no source read prints the former, no calendar declares the latter |
+| `sa` Sanskrit | `hindu-lunar`, `hindu-lunar-purnimanta`, `hindu-solar-vikrami` | CLDR 48 `sa.xml`, with the ASCII colon it prints for a visarga in the abbreviated months and in Thursday's wide form transcribed as printed | the twelve lunar months in Devanagari as the amānta calendar declares them (Rashtriya Panchang, Sanskrit edition; Wikipedia, "Hindu calendar"), the prefix अधिक (Wikipedia, "Adhik Maas"), the Vikrami solar months from Vaiśākha | the eras (CLDR's default forms are Latin); the rāśi names in Devanagari and the nakṣatras: no source read prints the former, no calendar declares the latter |
 | `hi` Hindi | `indian`, `hindu-lunar`, `hindu-lunar-purnimanta`, `hindu-solar-vikrami` | CLDR 48 `hi.xml` | the national calendar's months and era abbreviation शक (CLDR `indian`), the same twelve names keyed to the lunisolar calendars with the prefix अधिक, and from Vaiśākha to the Vikrami solar calendar | the rāśi names in Devanagari; the nakṣatras |
 | `ta` Tamil | `indian`, `hindu-solar-tamil` | CLDR 48 `ta.xml`; the *Tamil Lexicon* | the Tamil months சித்திரை … (CLDR `indian`), serving both calendars, with the era abbreviation சாகா; the sixty year names பிரபவ … அட்சய of `hindu-solar-tamil`, from the Lexicon's entry வருஷம் | day periods: CLDR's `ta` inherits root's |
 | `ml` Malayalam | `indian`, `hindu-solar-malayalam` | CLDR 48 `ml.xml` | the national calendar's months in Malayalam and the era abbreviation ശക (CLDR `indian`); the Kollam months ചിങ്ങം … (Wikipedia, "Malayalam calendar") | day periods: CLDR's `ml` inherits root's |

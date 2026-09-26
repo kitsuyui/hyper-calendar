@@ -201,12 +201,30 @@ const fn from(
 
 const SWEDEN_1699: &str = "Sweden's resolution of November 1699 to omit the eleven Julian leap days of 1700–1740 one by one, of which only the first, 29 February 1700, was omitted; not read, the dates from secondary sources [hogman-tiderakning, wikipedia-swedish-calendar]";
 const SWEDEN_1711: &str = "Charles XII's order of January 1711 returning to the Julian calendar by a 30 February 1712; not read, the dates from secondary sources [hogman-tiderakning, wikipedia-swedish-calendar]";
+const SOUTHERN_NETHERLANDS_1582: &str = "The placard of 10 December 1582 ordering the change in the night after 14 December, not read; Strubbe and Voet, De chronologie van de middeleeuwen en de moderne tijden in de Nederlanden (1960), p. 48, read 2026-09-26 [strubbe-voet-1960]: the States-General, Brabant and Zeeland went from 14 to 25 December, the Southern Netherlands from 20 to 31 December or from 21 December to 1 January 1583, and Christmas, which fell in the omitted days, was kept by the old calendar on 4 January 1583. The first of the two alternatives is the row's; [wikipedia-adoption-list] gives the same two for the provinces under Spanish rule, Artois, Brabant, Flanders, Hainaut, Limburg, Luxembourg and Namur";
+const LIEGE_1583: &str = "The prince-bishop's ordinance of 8 February 1583, published on 18 February, ordering the change from 10 to 21 February; when the change was in fact made is not known. Strubbe and Voet (1960), p. 497, read 2026-09-26 [strubbe-voet-1960], citing L. Polain, Recueil des ordonnances de la principauté de Liège, part II, p. 82, not read";
 const NETHERLANDS_1700: &str = "No instrument read; the provinces' dates from a secondary source [nlwiki-gregoriaanse-kalender]";
 const KOREA_1895: &str = "King Gojong's edict in the Official Gazette (관보) of 개국 504년 9월 9일 (lunar, 1895), making lunar 개국 504년 11월 17일 the first day of 1896, not read; the dates from Korean Wikipedia, 태양력 and 건양, retrieved 2026-09-26 [kowiki-taeyangryeok, kowiki-geonyang]";
 
 /// The steps, grouped by country in code order and in date order within a
 /// country.
 pub const REGIONAL_ADOPTIONS: &[RegionalAdoption] = &[
+    from(
+        "BE",
+        "The Southern Netherlands, the provinces under Spanish rule",
+        day(1582, 12, 31),
+        "julian",
+        Scope::Partial,
+        SOUTHERN_NETHERLANDS_1582,
+    ),
+    from(
+        "BE",
+        "The Prince-Bishopric of Liège",
+        day(1583, 2, 21),
+        "julian",
+        Scope::Partial,
+        LIEGE_1583,
+    ),
     reform("BG", "Bulgaria", "julian-gregorian-bg", Scope::Civil),
     from(
         "CN",
@@ -561,6 +579,32 @@ mod tests {
         assert_eq!(
             rows[2].last_old_day().unwrap(),
             crate::julian::to_fixed(1700, 6, 30).unwrap()
+        );
+    }
+
+    /// Strubbe and Voet (1960), pp. 48 and 497: the Southern Netherlands
+    /// from 20 to 31 December 1582, Liège ordered from 10 to 21 February
+    /// 1583, both a week and more after Zeeland's 14 to 25 December.
+    #[test]
+    fn belgium_changed_in_two_steps_after_zeeland() {
+        let rows: Vec<_> = gregorian_adoption("BE").collect();
+        assert_eq!(rows.len(), 2);
+        assert!(rows.iter().all(|row| row.scope == Scope::Partial));
+        assert_eq!(
+            rows[0].last_old_day().unwrap(),
+            crate::julian::to_fixed(1582, 12, 20).unwrap()
+        );
+        assert_eq!(rows[0].first_day().unwrap().0, fixed(1582, 12, 31));
+        assert_eq!(rows[1].polity, "The Prince-Bishopric of Liège");
+        assert_eq!(
+            rows[1].last_old_day().unwrap(),
+            crate::julian::to_fixed(1583, 2, 10).unwrap()
+        );
+        assert_eq!(rows[1].first_day().unwrap().0, fixed(1583, 2, 21));
+        let zeeland = gregorian_adoption("NL").next().unwrap();
+        assert_eq!(
+            rows[0].first_day().unwrap().0 - zeeland.first_day().unwrap().0,
+            6
         );
     }
 

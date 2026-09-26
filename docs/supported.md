@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-141 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+143 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 116 of 141 have months and 116 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 118 of 143 have months and 118 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 **Named by** is which civil day names a day that does not begin at midnight: `start` for the one it begins on, as the Julian Day that begins at noon on 1 January 2000 is that day's, and `end` for the one it ends on, as the Hebrew day that begins at sunset on a Friday is Saturday's.
 
@@ -82,9 +82,11 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `japanese-jokyo` | Japanese Jōkyō (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1685-02-04 | 1755-02-10 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `japanese-kansei` | Japanese Kansei (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1798-02-16 | 1844-02-17 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `japanese-northern` | Japanese (imperial eras, Northern Court) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0862-02-07 | 9999-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `japanese-northern-proclaimed` | Japanese (imperial eras, Northern Court, as proclaimed) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0862-02-07 | 9999-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `japanese-proclaimed` | Japanese (imperial eras, as proclaimed) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0862-02-07 | 9999-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `japanese-senmyo` | Japanese Senmyō (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0862-02-07 | 1685-02-03 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `japanese-southern` | Japanese (imperial eras, Southern Court) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0862-02-07 | 9999-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `japanese-southern-proclaimed` | Japanese (imperial eras, Southern Court, as proclaimed) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0862-02-07 | 9999-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `japanese-tenpo` | Japanese Tenpō (lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1844-02-18 | 1872-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `javanese` | Javanese (Pananggalan Jawa) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1633-07-08 | 2401-12-06 | no | no | sunset | end | month ×12, weekday ×7, taun ×8, windu ×4 | yes |
 | `javanese-aboge` | Javanese (Aboge) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1633-07-08 | 2401-12-11 | no | no | sunset | end | month ×12, weekday ×7, taun ×8, windu ×4 | yes |
