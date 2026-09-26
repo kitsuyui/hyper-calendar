@@ -1,5 +1,7 @@
 //! The cross-cutting religious cycles.
 
+use std::sync::OnceLock;
+
 use hc_calendar::Rd;
 use hc_calendars_indic::nakshatra::PUSHYA;
 use hc_calendars_solar::gregorian;
@@ -344,8 +346,8 @@ fn the_chinese_folk_year_runs_from_laba_to_the_winter_solstice() {
 
 #[test]
 fn the_lantern_festival_is_always_a_fortnight_after_the_new_year() {
-    for year in 1950..=2100 {
-        let calendar = HolidayCalendar::for_year(&CHINESE_FOLK, None, year);
+    for year in swept_years() {
+        let calendar = chinese_folk(year);
         let new_year = calendar
             .all()
             .iter()
@@ -1416,7 +1418,12 @@ fn the_armenian_year_in_etchmiadzin_and_in_jerusalem() {
 
 /// The date `name` falls on in `year` in `set`, when it falls once.
 fn only_date(set: &RuleSet, year: i64, name: &str) -> Option<Rd> {
-    let calendar = HolidayCalendar::for_year(set, None, year);
+    only_in(&HolidayCalendar::for_year(set, None, year), set, year, name)
+}
+
+/// The date `name` falls on in `calendar`, the evaluation of `set` over
+/// `year`, when it falls once.
+fn only_in(calendar: &HolidayCalendar, set: &RuleSet, year: i64, name: &str) -> Option<Rd> {
     let mut dates = calendar
         .all()
         .iter()
@@ -1425,6 +1432,42 @@ fn only_date(set: &RuleSet, year: i64, name: &str) -> Option<Rd> {
     let first = dates.next();
     assert!(dates.next().is_none(), "{} {year}: {name} twice", set.code);
     first
+}
+
+/// How many times sparser the year-by-year sweeps of the lunisolar tables
+/// in this file are in a debug build, which the coverage job runs instrumented; a
+/// release build, which CI's release-mode job runs, checks every year. The
+/// dated examples are checked in full in both.
+const SAMPLED: usize = if cfg!(debug_assertions) { 3 } else { 1 };
+
+/// The years of those sweeps: 1950 to 2100, every [`SAMPLED`]th. Every
+/// third year still holds years with and without a leap month.
+fn swept_years() -> impl Iterator<Item = i64> {
+    (1950..=2100).step_by(SAMPLED)
+}
+
+/// The Chinese folk table's evaluation of each of the [`swept_years`].
+///
+/// Four tests in this file compare a lunisolar day against it in every one of
+/// those years, and each evaluation is dozens of lunisolar conversions and
+/// solar terms: evaluated once for all four rather than once a name a test.
+fn chinese_folk(year: i64) -> &'static HolidayCalendar<'static> {
+    static YEARS: OnceLock<Vec<HolidayCalendar<'static>>> = OnceLock::new();
+    let years = YEARS.get_or_init(|| {
+        swept_years()
+            .map(|year| HolidayCalendar::for_year(&CHINESE_FOLK, None, year))
+            .collect()
+    });
+    let Ok(index) = usize::try_from(year - 1950) else {
+        panic!("{year} is before 1950");
+    };
+    assert_eq!(index % SAMPLED, 0, "{year} is not swept");
+    &years[index / SAMPLED]
+}
+
+/// [`only_in`] the Chinese folk table's evaluation of `year`.
+fn only_folk(year: i64, name: &str) -> Option<Rd> {
+    only_in(chinese_folk(year), &CHINESE_FOLK, year, name)
 }
 
 #[test]
@@ -1443,14 +1486,14 @@ fn the_chinese_folk_additions_fall_on_their_days() {
         ],
     );
     // 寒食 is the day before 清明 every year, the hc-seasons convention.
-    for year in 1950..=2100 {
+    for year in swept_years() {
+        let cold_food = only_folk(year, "Cold Food Festival");
         assert_eq!(
-            only_date(&CHINESE_FOLK, year, "Cold Food Festival"),
+            cold_food,
             Some(ColdFoodConvention::EveOfQingming.day(year)),
             "{year}"
         );
-        let qingming = only_date(&CHINESE_FOLK, year, "Qingming Festival");
-        let cold_food = only_date(&CHINESE_FOLK, year, "Cold Food Festival");
+        let qingming = only_folk(year, "Qingming Festival");
         assert_eq!(qingming.map(|day| day.0 - 1), cold_food.map(|day| day.0));
     }
 }
@@ -1475,13 +1518,13 @@ fn the_cold_food_festival_before_1645_is_105_days_after_the_solstice() {
         };
         assert_eq!(cold_food[0].date, convention.day(year), "{year}");
         assert_eq!(cold_food[0].confidence, confidence, "{year}");
-    }
-    // With the true terms the solstice count lands on 清明 or after it,
-    // which is why the day was moved.
-    for year in 1500..1645 {
-        let qingming = only_date(&CHINESE_FOLK, year, "Qingming Festival");
-        let cold_food = only_date(&CHINESE_FOLK, year, "Cold Food Festival");
-        assert!(cold_food >= qingming, "{year}");
+        // With the true terms the solstice count lands on 清明 or after it,
+        // which is why the day was moved.
+        if year < 1645 {
+            let qingming = only_in(&calendar, &CHINESE_FOLK, year, "Qingming Festival");
+            let cold_food = only_in(&calendar, &CHINESE_FOLK, year, "Cold Food Festival");
+            assert!(cold_food >= qingming, "{year}");
+        }
     }
 }
 
@@ -1520,7 +1563,7 @@ fn the_little_new_year_is_one_table_per_region() {
     );
     // The south's is the day after the north's, and the south-west's the
     // folk table's 除夕.
-    for year in 1950..=2100 {
+    for year in swept_years() {
         let north = only_date(&CHINESE_XIAONIAN_NORTH, year, "Little New Year (north)");
         let south = only_date(&CHINESE_XIAONIAN_SOUTH, year, "Little New Year (south)");
         assert_eq!(north.map(|day| day.0 + 1), south.map(|day| day.0), "{year}");
@@ -1530,7 +1573,7 @@ fn the_little_new_year_is_one_table_per_region() {
                 year,
                 "Little New Year (south-west)"
             ),
-            only_date(&CHINESE_FOLK, year, "Chinese New Year's Eve"),
+            only_folk(year, "Chinese New Year's Eve"),
             "{year}"
         );
     }
@@ -1565,14 +1608,14 @@ fn the_taoist_days_fall_on_their_lunar_dates() {
         ],
     );
     // 上元 and 中元 are the folk table's 元宵 and 中元.
-    for year in 1950..=2100 {
+    for year in swept_years() {
         assert_eq!(
             only_date(
                 &TAOIST,
                 year,
                 "Upper Yuan Festival (birthday of the Official of Heaven)"
             ),
-            only_date(&CHINESE_FOLK, year, "Lantern Festival"),
+            only_folk(year, "Lantern Festival"),
             "{year}"
         );
     }
@@ -1608,7 +1651,7 @@ fn the_korean_folk_days_are_where_the_korean_almanac_puts_them() {
         assert_eq!(holiday.confidence, Confidence::Exact, "{}", holiday.name);
     }
     // 한식 is hc-seasons' convention of the same name, every year.
-    for year in 1950..=2100 {
+    for year in swept_years() {
         assert_eq!(
             only_date(&KOREAN_FOLK, year, "Hansik"),
             Some(ColdFoodConvention::Hansik.day(year)),

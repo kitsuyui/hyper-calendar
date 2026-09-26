@@ -860,10 +860,11 @@ mod tests {
     #[test]
     fn the_only_repeats_are_the_two_reversals_a_year() {
         let mut repeats = 0;
+        // Each day's period is the day before's `following`: computed once.
+        let mut period = day_star_period(Rd(NEW_YEAR_2025), JAPAN);
         for offset in 0..3_653 {
             let day = Rd(NEW_YEAR_2025 + offset);
             let next = Rd(day.0 + 1);
-            let period = day_star_period(day, JAPAN);
             let following = day_star_period(next, JAPAN);
             if period.start != following.start {
                 repeats += 1;
@@ -878,6 +879,7 @@ mod tests {
                     );
                 }
             }
+            period = following;
         }
         // Ten years hold twenty reversals — nineteen if the December switch
         // at the end of the window has drifted into the following January,

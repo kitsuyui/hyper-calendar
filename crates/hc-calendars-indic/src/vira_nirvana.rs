@@ -334,9 +334,13 @@ mod tests {
     #[test]
     fn every_day_of_three_years_converts_and_converts_back() {
         let mut intercalary = alloc::vec::Vec::new();
-        for day in
-            VNS.new_year(2_549).expect("in range").0..VNS.new_year(2_552).expect("in range").0
-        {
+        // Every day in a release build; in a debug one, which the coverage
+        // job runs instrumented, every seventh, with each New Year and the
+        // day before it.
+        let openings: alloc::vec::Vec<i64> = (2_549..=2_552)
+            .map(|year| VNS.new_year(year).expect("in range").0)
+            .collect();
+        for day in crate::sweep_days(openings[0], openings[3] - 1, 7, &openings) {
             let rd = Rd(day);
             let date = VNS.from_fixed(rd).expect("in range");
             assert_eq!(VNS.to_fixed(date), Ok(rd), "{date:?}");

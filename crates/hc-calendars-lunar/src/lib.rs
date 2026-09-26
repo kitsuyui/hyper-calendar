@@ -139,6 +139,25 @@ pub(crate) fn sweep_days(
     )
 }
 
+/// The years of a year-by-year sweep over `first..=last` in this crate's
+/// tests, such as the years whose boundaries [`sweep_days`] is given: every
+/// year in a release build; in a debug build every `sampled`th and the
+/// last.
+///
+/// For a sweep whose year boundaries cost more than its sampled days,
+/// hundreds of years of astronomical or lunisolar conversions. `sampled`
+/// is chosen prime to the cycle the years run in, so that the sample still
+/// holds every kind of year the test is about, leap and common and the
+/// exceptions; a release build walks every year (docs/policy.md §7).
+#[cfg(test)]
+pub(crate) fn sweep_years(first: i64, last: i64, sampled: usize) -> impl Iterator<Item = i64> {
+    let stride = sweep_stride(sampled);
+    let last_is_sampled = (last - first) % stride as i64 == 0;
+    (first..=last)
+        .step_by(stride)
+        .chain((!last_is_sampled && first <= last).then_some(last))
+}
+
 pub mod archetypes;
 pub mod babylonian;
 pub mod chinese;

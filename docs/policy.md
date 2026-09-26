@@ -166,7 +166,13 @@ and nothing else pays for Gregorian dates and nothing else.
   The longest of those sweeps walk every day in a release build and a
   fixed, deterministic sample of the days in a debug one, so that the
   instrumented coverage run stays inside its time limit; CI runs the test
-  suite both ways. The published anchors are checked in full in both.
+  suite both ways. Where a sweep also checks every year's boundary and the
+  boundaries cost more than the sampled days — hundreds of years of
+  astronomical or lunisolar conversions — a debug build samples the years
+  too: every k-th year and the last, with k prime to the cycle the years
+  run in, so that the sample still holds each kind of boundary the test is
+  about, leap and common years and the exceptions. The published anchors
+  are checked in full in both.
 - Every algorithm is anchored to at least one independently published
   reference value, cited in a comment.
 - Boundaries are tested explicitly: epochs, calendar reforms, leap days, leap
