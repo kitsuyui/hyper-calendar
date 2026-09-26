@@ -93,6 +93,7 @@ pub static MERIDIANS: [MeridianEra; 5] = [
 pub static PARAMETERS: LunisolarParameters = LunisolarParameters {
     id: ID,
     english_name: "Dangi (Korean lunisolar)",
+    native_locales: &["ko"],
     meridians: &MERIDIANS,
     epoch: CHINESE_EPOCH,
     year_offset: YEAR_OFFSET,
@@ -134,6 +135,11 @@ impl Calendar for DangiCalendar {
 
     fn meta(&self) -> CalendarMeta {
         ENGINE.meta()
+    }
+
+    /// The engine's one-new-moon rule, not the trait's day-by-day walk.
+    fn days_in_month(&self, fields: &DateFields) -> CalendarResult<u16> {
+        ENGINE.days_in_month(fields)
     }
 
     fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
@@ -247,6 +253,7 @@ mod tests {
         LunisolarParameters {
             id: CalendarId("dangi-test"),
             english_name: "test",
+            native_locales: &["ko"],
             meridians,
             epoch: CHINESE_EPOCH,
             year_offset: YEAR_OFFSET,

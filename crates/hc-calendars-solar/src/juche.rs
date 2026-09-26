@@ -166,6 +166,7 @@ impl Calendar for JucheCalendar {
             is_astronomical: false,
             earliest: Some(EARLIEST),
             latest: Some(gregorian::LATEST),
+            native_locales: &["ko"],
         }
     }
 

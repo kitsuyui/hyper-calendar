@@ -184,6 +184,7 @@ impl Calendar for HinduPurnimantaCalendar {
             is_astronomical: true,
             earliest: amanta.earliest,
             latest: amanta.latest,
+            native_locales: &["sa", "hi"],
         }
     }
 

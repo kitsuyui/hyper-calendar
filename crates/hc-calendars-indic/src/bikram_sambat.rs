@@ -100,6 +100,7 @@ pub const MONTHS: [&str; 12] = [
 pub const RECKONING: HinduSolarCalendar = HinduSolarCalendar {
     id: ID,
     english_name: "Bikram Sambat",
+    native_locales: &["ne"],
     tradition: rashi::VIKRAMI,
     rule: SankrantiRule::CivilDay,
     era: ERA,
@@ -349,6 +350,7 @@ impl Calendar for BikramSambatCalendar {
             is_astronomical: true,
             earliest: Some(self.earliest()),
             latest: Some(self.latest()),
+            native_locales: &["ne"],
         }
     }
 

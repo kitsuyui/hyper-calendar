@@ -198,6 +198,7 @@ impl Calendar for CopticCalendar {
             is_astronomical: false,
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
+            native_locales: &["cop", "ar"],
         }
     }
 

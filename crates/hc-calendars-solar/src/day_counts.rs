@@ -264,6 +264,7 @@ impl Calendar for DayCountCalendar {
             is_astronomical: false,
             earliest: Some(Rd(-MAX_MAGNITUDE)),
             latest: Some(Rd(MAX_MAGNITUDE)),
+            native_locales: &[],
         }
     }
 

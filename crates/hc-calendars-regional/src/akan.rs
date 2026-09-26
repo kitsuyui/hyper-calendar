@@ -239,6 +239,7 @@ impl Calendar for AkanCalendar {
             is_astronomical: false,
             earliest: None,
             latest: None,
+            native_locales: &["ak"],
         }
     }
 

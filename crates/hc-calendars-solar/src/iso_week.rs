@@ -195,6 +195,7 @@ impl Calendar for IsoWeekCalendar {
             is_astronomical: false,
             earliest: Some(Rd(gregorian::EARLIEST.0 + 400)),
             latest: Some(Rd(gregorian::LATEST.0 - 400)),
+            native_locales: &[],
         }
     }
 

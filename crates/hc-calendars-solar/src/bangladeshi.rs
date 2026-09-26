@@ -289,6 +289,7 @@ impl Calendar for BangladeshiCalendar {
             is_astronomical: false,
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
+            native_locales: &["bn"],
         }
     }
 

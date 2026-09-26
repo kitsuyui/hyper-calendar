@@ -59,6 +59,9 @@ export const METHODS = Object.freeze([
   { method: "formatIsoDate", export: "hc_format_iso_date", feature: "civil" },
   { method: "parseIsoDate", export: "hc_parse_iso_date", feature: "civil" },
   { method: "describeDay", export: "hc_describe_day", feature: "calendars" },
+  { method: "calendarUnits", export: "hc_calendar_units", feature: "calendars" },
+  { method: "calendars", export: "hc_calendars", feature: "calendars" },
+  { method: "locales", export: "hc_locales", feature: "calendars" },
   { method: "holidayIsDayOff", export: "hc_holiday_is_day_off", feature: "holiday" },
   { method: "holidaysInYear", export: "hc_holidays_in_year", feature: "holiday" },
   { method: "holidayCodes", export: "hc_holiday_codes", feature: "holiday" },
@@ -97,7 +100,18 @@ export const COLUMNS = Object.freeze({
   describeDay: Object.freeze([
     "id", "name", "era", "era label", "year", "month", "leap month", "month label",
     "day", "leap day", "extras", "error code", "error name", "standing",
-    "day boundary", "formatted",
+    "day boundary", "formatted", "locale used",
+  ]),
+  calendarUnits: Object.freeze([
+    "start", "end", "label", "leap", "standing", "error code", "error name", "locale used",
+  ]),
+  calendars: Object.freeze([
+    "id", "name", "english name", "earliest", "latest", "has era", "has year", "has month",
+    "has day", "native locales", "standing",
+  ]),
+  locales: Object.freeze([
+    "tag", "english name", "native name", "gregorian months", "weekdays", "gregorian eras",
+    "calendars",
   ]),
   holidaysInYear: Object.freeze([
     "date", "name", "local name", "kind", "confidence", "substitute", "observed for",
@@ -126,6 +140,12 @@ export const COLUMNS = Object.freeze({
 
 /** The geologic ranks `hc_geologic_intervals` numbers, coarsest first. */
 export const GEOLOGIC_RANKS = Object.freeze(["eon", "era", "period", "epoch", "age"]);
+
+/** The units `hc_calendar_units` numbers, largest first. */
+export const UNITS = Object.freeze(["era", "year", "month", "day"]);
+
+/** The locale that asks for each calendar's own language. */
+export const NATIVE = "native";
 
 /**
  * What the module refused, or what the binding could not do.
@@ -378,7 +398,7 @@ function optionalFlag(cell, what) {
 function describedDay(cells) {
   const [
     id, name, era, eraLabel, year, month, leapMonth, monthLabel, day, leapDay,
-    extras, errorCode, errorName, standing, dayBoundary, formatted,
+    extras, errorCode, errorName, standing, dayBoundary, formatted, localeUsed,
   ] = cells;
   /** @type {Record<string, string>} */
   const extra = {};
@@ -407,6 +427,78 @@ function describedDay(cells) {
     standing: /** @type {import("./hyper-calendar.d.ts").Standing | null} */ (optional(standing)),
     dayBoundary,
     formatted: optional(formatted),
+    localeUsed,
+  };
+}
+
+/**
+ * One row of `hc_calendar_units`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").CalendarUnit}
+ */
+function calendarUnit(cells) {
+  const [start, end, label, leap, standing, errorCode, errorName, localeUsed] = cells;
+  return {
+    start: integer(start, "start"),
+    end: integer(end, "end"),
+    label: optional(label),
+    leap: optionalFlag(leap, "leap"),
+    standing: /** @type {import("./hyper-calendar.d.ts").Standing | null} */ (optional(standing)),
+    error: errorCode === "" ? null : { code: integer(errorCode, "error code"), name: errorName },
+    localeUsed,
+  };
+}
+
+/**
+ * A `;`-joined cell as a list, empty for an empty cell.
+ *
+ * @param {string} cell
+ * @returns {string[]}
+ */
+function list(cell) {
+  return cell === "" ? [] : cell.split(";");
+}
+
+/**
+ * One row of `hc_calendars`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").CalendarEntry}
+ */
+function calendarEntry(cells) {
+  const [id, name, englishName, earliest, latest, hasEra, hasYear, hasMonth, hasDay, nativeLocales, standing] = cells;
+  return {
+    id,
+    name: optional(name),
+    englishName,
+    earliest: optionalInteger(earliest, "earliest"),
+    latest: optionalInteger(latest, "latest"),
+    hasEra: flag(hasEra, "has era"),
+    hasYear: flag(hasYear, "has year"),
+    hasMonth: flag(hasMonth, "has month"),
+    hasDay: flag(hasDay, "has day"),
+    nativeLocales: list(nativeLocales),
+    standing: /** @type {import("./hyper-calendar.d.ts").Standing} */ (standing),
+  };
+}
+
+/**
+ * One row of `hc_locales`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").LocaleEntry}
+ */
+function localeEntry(cells) {
+  const [tag, englishName, nativeName, gregorianMonths, weekdays, gregorianEras, calendars] = cells;
+  return {
+    tag,
+    englishName,
+    nativeName,
+    gregorianMonths: flag(gregorianMonths, "gregorian months"),
+    weekdays: flag(weekdays, "weekdays"),
+    gregorianEras: flag(gregorianEras, "gregorian eras"),
+    calendars: list(calendars),
   };
 }
 
@@ -967,9 +1059,12 @@ export class HyperCalendar {
 
   /**
    * One fixed day in every registered calendar, in registry order, with
-   * the locale's vocabulary. `locale` is a BCP 47 tag; one that does not
-   * parse, or names no data, falls back to the root locale `und`, as the
-   * module does — ask for `en` for English.
+   * the locale's vocabulary and the date as the locale writes it. `locale`
+   * is a BCP 47 tag, or {@link NATIVE} for each calendar's own language;
+   * a calendar the tag's data does not name is rendered in its own
+   * language, else in English, and `localeUsed` says which. A tag that
+   * does not parse falls back to the root locale `und`, as the module
+   * does — ask for `en` for English.
    *
    * @param {number | bigint} fixed
    * @param {string} [locale]
@@ -981,6 +1076,63 @@ export class HyperCalendar {
     const text = this.#withText(locale, "locale", (pointer, len) =>
       this.#text("hc_describe_day", (buffer, capacity) => fn(day, pointer, len, buffer, capacity), true));
     return rows(text, COLUMNS.describeDay, "hc_describe_day").map(describedDay);
+  }
+
+  /**
+   * The days from `from` up to but not including `to` as one calendar's
+   * eras, years, months or days: spans touching end to start, each with
+   * its label in the locale, from the start of the unit containing `from`
+   * to at least `to`. A span the calendar refuses carries the refusal in
+   * `error` instead of a label. `unit` is one of {@link UNITS} or its index.
+   *
+   * @param {string} id
+   * @param {import("./hyper-calendar.d.ts").Unit | number} unit
+   * @param {number | bigint} from
+   * @param {number | bigint} to
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").CalendarUnit[]}
+   */
+  calendarUnits(id, unit, from, to, locale = "und") {
+    const fn = this.#export("hc_calendar_units");
+    const index = typeof unit === "string" ? UNITS.indexOf(unit) : unit;
+    if (!Number.isInteger(index) || index < 0 || index >= UNITS.length) {
+      raise(`unit must be one of ${UNITS.join(", ")} or its index, got ${String(unit)}`);
+    }
+    const start = toI64(from, "from");
+    const end = toI64(to, "to");
+    const text = this.#withText(id, "id", (idPointer, idLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_calendar_units", (buffer, capacity) =>
+          fn(idPointer, idLen, index, start, end, localePointer, localeLen, buffer, capacity), true)));
+    return rows(text, COLUMNS.calendarUnits, "hc_calendar_units").map(calendarUnit);
+  }
+
+  /**
+   * Every registered calendar, in registry order: what the locale calls
+   * it, its range, which units it has, the languages its sources are
+   * written in, and its standing on `today`.
+   *
+   * @param {number | bigint} today
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").CalendarEntry[]}
+   */
+  calendars(today, locale = "und") {
+    const fn = this.#export("hc_calendars");
+    const day = toI64(today, "today");
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_calendars", (buffer, capacity) => fn(day, pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.calendars, "hc_calendars").map(calendarEntry);
+  }
+
+  /**
+   * Every locale the module carries, in tag order, with what each names.
+   *
+   * @returns {import("./hyper-calendar.d.ts").LocaleEntry[]}
+   */
+  locales() {
+    const fn = this.#export("hc_locales");
+    const text = this.#text("hc_locales", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(text, COLUMNS.locales, "hc_locales").map(localeEntry);
   }
 
   /**

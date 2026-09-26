@@ -616,6 +616,7 @@ impl Calendar for BurmeseCalendar {
             is_astronomical: false,
             earliest: Some(earliest()),
             latest: Some(latest()),
+            native_locales: &["my"],
         }
     }
 

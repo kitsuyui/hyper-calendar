@@ -643,6 +643,25 @@ impl Calendar for JapaneseCalendar {
         }
     }
 
+    /// Resolves the era first: the fields count years within it, and the
+    /// leap rule counts calendar years.
+    fn is_leap_year_of(&self, fields: &DateFields) -> CalendarResult<bool> {
+        match fields.era {
+            Some(name) => {
+                let era = nengo::find(name).ok_or(CalendarError::UnknownEra)?;
+                self.is_leap_year(era.start_year + fields.year - 1)
+            }
+            None => self.is_leap_year(fields.year),
+        }
+    }
+
+    /// Every nengō in the table, in kanji with its Hepburn romanisation,
+    /// so that an era a locale's data does not list — anything before 明治
+    /// — is still written as itself.
+    fn era_name(&self, code: &str) -> Option<hc_calendar::EraName> {
+        nengo::find(code).map(|era| hc_calendar::EraName::new(era.kanji, era.romaji))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: self.id(),
@@ -655,6 +674,7 @@ impl Calendar for JapaneseCalendar {
             is_astronomical: true,
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
+            native_locales: &["ja"],
         }
     }
 

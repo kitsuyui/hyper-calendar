@@ -76,7 +76,11 @@ const hc = await load(fetch("hyper_calendar_wasm.wasm"));
 const rd = hc.gregorianToFixed(2026, 9, 21);        // 739880
 hc.formatIsoDate(rd);                                // "2026-09-21"
 hc.describeDay(rd, "ja-JP").find((row) => row.id === "japanese");
-// { id: "japanese", era: "reiwa", eraLabel: "令和", year: 8, month: 9, day: 21, ... }
+// { id: "japanese", era: "reiwa", eraLabel: "令和", year: 8, month: 9, day: 21,
+//   formatted: "令和8年9月21日", localeUsed: "ja", ... }
+hc.calendarUnits("chinese", "month", rd, rd + 90, "zh-Hans");
+// [{ start: 739870, end: 739899, label: "八月", leap: false, ... }, ...]
+hc.calendars(rd, "native").find((row) => row.id === "hebrew")?.name;   // "לוח השנה העברי"
 hc.holidaysOn(rd);                                   // [{ table: "JP", name: ..., kind: "public", ... }, ...]
 hc.fixedFromUnixInZone(Date.now() / 1000 | 0, "Asia/Tokyo");
 
@@ -105,6 +109,9 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `fixedFromUnix(unix)`, `unixFromFixed(rd)`, `taiMinusUtc(unix, strict)` | `hc_fixed_from_unix`, `hc_unix_from_fixed`, `hc_tai_minus_utc` | a number |
 | `formatIsoDate(rd)`, `parseIsoDate(text)` | `hc_format_iso_date`, `hc_parse_iso_date` | a string; a fixed day number |
 | `describeDay(rd, locale)` | `hc_describe_day` | `DescribedDay[]`, one per calendar |
+| `calendarUnits(id, unit, from, to, locale)` | `hc_calendar_units` | `CalendarUnit[]`, one per span |
+| `calendars(today, locale)` | `hc_calendars` | `CalendarEntry[]`, one per calendar |
+| `locales()` | `hc_locales` | `LocaleEntry[]`, one per locale |
 | `holidayIsDayOff(code, region, rd)` | `hc_holiday_is_day_off` | a boolean |
 | `holidaysInYear(code, region, year)` | `hc_holidays_in_year` | `HolidayInYear[]` |
 | `holidayCodes()` | `hc_holiday_codes` | `string[]` |
@@ -218,14 +225,14 @@ before it loads the holiday tables.
 | Feature | Exports | Brings in | Bytes | Size |
 | --- | --- | --- | ---: | ---: |
 | `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,495 | 35 KiB |
-| `calendars` | `hc_describe_day`: one day in every registered calendar, in a locale | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n` | 425,560 | 416 KiB |
+| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; and the locales | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 522,470 | 510 KiB |
 | `holiday` | the four `hc_holiday*` exports and `hc_holidays_on` | `hc-holiday` and everything it dates by | 1,026,042 | 1,002 KiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 88,259 | 86 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 101,842 | 99 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,414 | 56 KiB |
 | `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between` | `hc-astro`, `hc-seasons` | 96,550 | 94 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 63,961 | 62 KiB |
-| `full` | all of the above | everything | 1,494,019 | 1.42 MiB |
+| `full` | all of the above | everything | 1,589,614 | 1.52 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -261,7 +268,7 @@ not pass CI.
 
 ### Exports
 
-34 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+37 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -282,6 +289,9 @@ not pass CI.
 | `hc_format_iso_date(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `civil` | Render a fixed day as an ISO 8601 date, returning the byte length written. |
 | `hc_parse_iso_date(buffer: *const u8, len: usize) -> i64` | `civil` | Parse an ISO 8601 date from UTF-8, returning its fixed day number. |
 | `hc_describe_day(fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | One fixed day in every registered calendar, as UTF-8 lines, returning the byte length written. |
+| `hc_calendar_units(id: *const u8, id_len: usize, unit: u32, from_fixed: i64, to_fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The days from `from_fixed` up to but not including `to_fixed` as one calendar's eras, years, months or days, as UTF-8 lines, returning the byte length written. |
+| `hc_calendars(today: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every registered calendar, as UTF-8 lines, returning the byte length written. |
+| `hc_locales(buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every locale the module carries, as UTF-8 lines, returning the byte length written. |
 | `hc_holiday_is_day_off(code: *const u8, code_len: usize, region: *const u8, region_len: usize, fixed: i64) -> i64` | `holiday` | Whether a fixed day is a day off in a holiday table: 1, 0, or an error sentinel. |
 | `hc_holidays_in_year(code: *const u8, code_len: usize, region: *const u8, region_len: usize, year: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The holidays of a Gregorian year in a table, as UTF-8 lines, returning the byte length written. |
 | `hc_holiday_codes(buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The identifier of every holiday table, one per line, returning the byte length written. |
@@ -322,18 +332,26 @@ A function that returns `i64` returns one of these instead of trapping. All are 
 `hc_describe_day(fixed, locale_ptr, locale_len, buffer, capacity)` needs the
 `calendars` feature and writes one line per calendar the facade registers,
 in registry order — the Gregorian family first, then the lunar, equinox,
-Indic and regional calendars. `locale` is a BCP 47 tag such as `ja-JP` or
-`zh-Hans`; a tag that does not parse, or that no data answers for, falls
-back to the root locale `und`, as `hc-i18n` does, whose month names are
-CLDR's `M01`..`M12` — ask for `en` for English. A null pointer with a zero
-length is `und` too.
+Indic and regional calendars.
+
+`locale` is a BCP 47 tag such as `ja-JP` or `zh-Hans`, or the word
+`native`. Each calendar is rendered in the locale that answers for it: the
+one asked for when its data names the calendar; else the calendar's own
+language where the module carries it (`he` for the Hebrew calendar, `ar`
+for the Hijri, `zh-Hans` for the Chinese), so that a Japanese page shows
+the Hebrew months in Hebrew rather than as numbers; else English. `native`
+asks for each calendar's own language outright, and the last column of
+every line names the locale data that answered. A tag that does not parse
+falls back to the root locale `und`, as `hc-i18n` does, whose month names
+are CLDR's `M01`..`M12` — ask for `en` for English. A null pointer with a
+zero length is `und` too.
 
 | # | Column | Holds |
 | --- | --- | --- |
 | 1 | id | the calendar's identifier, `gregory`, `chinese`, `japanese`, ... |
 | 2 | name | its English name |
 | 3 | era | the era code, `reiwa`, `AD`, `AH`, `roc`, ..., or empty for a calendar without eras |
-| 4 | era label | the era's name in the locale, 令和, or empty |
+| 4 | era label | the era's name in the locale, 令和, or the calendar's own name for it, 嘉永 or `Kaei`, or empty |
 | 5 | year | the year, as the calendar counts it |
 | 6 | month | the month's ordinal from 1, or empty for a calendar without months |
 | 7 | leap month | `1` for an intercalary month, else `0` |
@@ -345,11 +363,12 @@ length is `und` too.
 | 13 | error name | empty when the day converted; otherwise its name |
 | 14 | standing | `in-use`, `proleptic`, `extended` or `unrecorded`; empty on a refusal |
 | 15 | day boundary | where the calendar's day begins: `midnight`, `noon`, `sunset`, `sunrise` or `local-time HH:MM:SS` |
-| 16 | formatted | reserved; empty until hc-format renders calendar dates generally |
+| 16 | formatted | the date as the locale writes it — 令和8年9月21日, 癸卯年闰二月初一, `September 21, 2026` — from `hc_format::label`; empty on a refusal |
+| 17 | locale used | the tag of the locale data that answered: `ja`, `he`, `und` |
 
 **Refusals are answers.** A calendar that cannot name the day — the Rumi
 calendar for a day after 1925, the Tenpō calendar for one after 1872 — is
-still a line, with columns 3 to 11 and 14 empty and columns 12 and 13
+still a line, with columns 3 to 11, 14 and 16 empty and columns 12 and 13
 carrying the code and name `CalendarError` gives every refusal:
 
 | Code | Name | Meaning |
@@ -375,6 +394,90 @@ period its sources record, with the source named in `Usage::source`;
 `unrecorded` is what the day counts, the proposals and the calendars whose
 sources give no span say, and `crates/hyper-calendar/tests/usage.rs` lists
 which those are.
+
+**The formatted date** (column 16) is `hc_format::label::date`, and the
+labels of the units below are `hc_format::label::label`: the same
+renderer, over the same per-locale templates in `hc-i18n`. Each locale
+states how it writes a year with its era (`{era}{year}年`, `{year} {era}`),
+a day and a whole date, and a calendar family states what differs for it —
+the Chinese calendar's year by its stem and branch, 癸卯年, and its days
+by their Han names, 初一 … 三十; the Japanese first year of an era as 元年.
+Every template names the CLDR pattern it was read from. A locale that has
+stated none gets the fields in order, separated by spaces, in the names
+the library already has; nothing is invented. An era's name is the
+locale's, else the calendar's own (every nengō, 嘉永, romanised as *Kaei*
+for a Latin-script locale), else its code; a month's is the locale's, else
+the calendar's own shape name, else its number; the Gregorian family's
+`AD` and the Hebrew calendar's `AM` are left unwritten, as those calendars
+are printed.
+
+## Units of a calendar
+
+`hc_calendar_units(id_ptr, id_len, unit, from_fixed, to_fixed, locale_ptr, locale_len, buffer, capacity)`
+needs the `calendars` feature and writes the days from `from_fixed` up to
+but not including `to_fixed` as one calendar's eras (`unit` 0), years (1),
+months (2) or days (3): one line per span, in order, each span touching
+the next, from the start of the unit that contains `from_fixed` to at
+least `to_fixed` — the first and last spans are whole units and may reach
+outside the range asked for. This is what a timeline draws as a lane. The
+walk goes by the calendar's own lengths, not day by day, and thirty years
+of Chinese months come back in well under a second. `locale` is as for
+`hc_describe_day`, `native` included; an identifier or unit the module
+does not know is `HC_ERR_UNKNOWN`, and an empty range writes nothing.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | start | the first fixed day of the span |
+| 2 | end | the day after the span's last, so that `end - start` is its length and one span's `end` is the next's `start` |
+| 3 | label | the span's label in the locale: 令和元年, 令和6年, `5784`, `1445 AH`, 癸卯年, `Adar I`, 閏二月, 初四; empty on a refusal |
+| 4 | leap | `1` for an intercalary unit — a leap year, a leap month, a repeated day — else `0`; empty on a refusal |
+| 5 | standing | the standing of the span's first day; empty on a refusal |
+| 6 | error code | empty for a unit; otherwise the code of the calendar's refusal of every day in the span |
+| 7 | error name | empty for a unit; otherwise its name |
+| 8 | locale used | the tag of the locale data that answered |
+
+A refusal is a span like any other: the days before a calendar's epoch
+(`before-epoch`), the days past its table (`after-supported-range`), the
+years of the Japanese schism the unified stream declines, or the whole
+range for a unit the calendar does not have — the months of a calendar
+without months, the years of a day count (`unsupported-field`) — so that
+a lane can show *this calendar does not reach here* rather than a gap.
+
+## The calendars
+
+`hc_calendars(today, locale_ptr, locale_len, buffer, capacity)` needs the
+`calendars` feature and writes one line per registered calendar, in
+registry order. `locale` is as for `hc_describe_day`; `today` is the fixed
+day the standing is judged on, because the module has no clock.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | the calendar's identifier |
+| 2 | name | what the locale calls the calendar — 和暦, `Hebrew Calendar` — or empty where it has no name for it |
+| 3 | english name | its English name |
+| 4 | earliest | the earliest fixed day it converts, or empty where unbounded |
+| 5 | latest | the latest fixed day it converts, or empty where unbounded |
+| 6 | has era | `1` when its dates carry an era |
+| 7 | has year | `1` when its dates carry a year |
+| 8 | has month | `1` when it has months |
+| 9 | has day | `1` when its dates carry a day of the month |
+| 10 | native locales | the languages its sources are written in, as BCP 47 tags joined by `;`, primary first — `he`, `zh-Hans;zh-Hant`, `sa;hi;ta` — or empty for a day count, a proposal or the Gregorian family |
+| 11 | standing | its standing on `today` |
+
+## The locales
+
+`hc_locales(buffer, capacity)` needs the `calendars` feature and writes one
+line per locale the module carries, in tag order.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | tag | the BCP 47 tag: `ja`, `zh-Hans` |
+| 2 | english name | the language's name in English |
+| 3 | native name | the language's name in itself: 日本語 |
+| 4 | gregorian months | `1` when the locale's own data names the Gregorian months |
+| 5 | weekdays | `1` when it names the weekdays |
+| 6 | gregorian eras | `1` when it names the Gregorian eras |
+| 7 | calendars | the identifiers of the calendars it has vocabulary of its own for beyond the shared Gregorian months, joined by `;` |
 
 ## Holidays
 
@@ -726,10 +829,10 @@ hc.orbitSeries(0, 100_000, 1_000).map((sample) => [sample.yearsBefore1950, sampl
 
 ## What is not here
 
-Formatting a date of any calendar in a locale's own way — 令和8年9月25日,
-丙午年八月初四 — waits on `hc-format` rendering calendars other than the
-Gregorian; column 16 of `hc_describe_day` is reserved for it. The C ABI in
+Formatting is by template, and a template is only as wide as its locale's
+data: a locale that has stated none writes a date as its fields in order,
+and a month no locale names comes back as a number. The C ABI in
 [`hyper-calendar-ffi`](../hyper-calendar-ffi) covers the same ground with
 NUL-terminated strings, out-parameters and status codes instead of
 sentinels; a name that appears in both means the same thing in both, and
-the lines are the same lines.
+the lines are the same lines, made once in `hyper_calendar::lines`.

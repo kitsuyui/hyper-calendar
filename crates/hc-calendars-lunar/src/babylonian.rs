@@ -416,6 +416,7 @@ impl Calendar for BabylonianCalendar {
             is_astronomical: true,
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
+            native_locales: &["akk"],
         }
     }
 

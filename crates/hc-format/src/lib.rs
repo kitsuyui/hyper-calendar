@@ -27,6 +27,7 @@
 //! | [`rfc2822`] | Email and HTTP dates, obsolete syntax included |
 //! | [`patterns`] | `strftime`/`strptime` and CLDR field patterns, both directions |
 //! | [`parse`] | A sniffing front door for "a date string" |
+//! | [`label`] | A calendar's eras, years, months, days and dates, written as a locale writes them |
 //!
 //! ```
 //! use hc_format::{ZoneInfo, iso8601};
@@ -59,6 +60,7 @@ use core::fmt;
 
 pub mod error;
 pub mod iso8601;
+pub mod label;
 pub mod parse;
 pub mod patterns;
 pub mod rfc2822;

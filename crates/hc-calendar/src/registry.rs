@@ -139,6 +139,7 @@ mod tests {
                 is_astronomical: false,
                 earliest: None,
                 latest: None,
+                native_locales: &[],
             }
         }
 
@@ -227,6 +228,7 @@ mod tests {
                     is_astronomical: false,
                     earliest: Some(Rd(1_000)),
                     latest: None,
+                    native_locales: &[],
                 }
             }
 

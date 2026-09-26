@@ -18,7 +18,7 @@ nothing else in the workspace hard-codes a localised string.
 | `locale` | `language[-Script][-REGION][-variant]` plus the `-u-ca`, `-u-nu`, `-u-fw` and `-u-hc` keys; parse, render, and the CLDR inheritance chain as an iterator |
 | `numbering` | 9 positional digit systems (`latn`, `arab`, `arabext`, `deva`, `beng`, `thai`, `mymr`, `hanidec`, `fullwide`) and 4 algorithmic Han styles (`jpan`, `jpanfin`, `hans`, `hant`), rendered and parsed back |
 | `plural` | CLDR cardinal categories and the full operand set (`n i v w f t`) for 30 languages |
-| `names` | Months, weekdays, day periods, eras, quarters and the sexagenary cycle, keyed by (locale, calendar, width, context) |
+| `names` | Months, weekdays, day periods, eras, quarters and the sexagenary cycle, keyed by (locale, calendar, width, context); each locale's names for the calendars, and the templates by which `hc-format` writes a year with its era, a day and a date |
 | `direction` | Script direction and the bidi isolation a formatter needs to embed a date in text running the other way |
 | `casing` | Turkish dotted/dotless i, and whether a language capitalises month names at all |
 
@@ -88,22 +88,24 @@ Locales shipped: `am ar ban bn bo cop cs de en es fa fr he hi id it ja jv
 kab ko mid ml my nah ne nl pl pt ru sa syr ta th tr vi yua zgh zh-Hans
 zh-Hant`, plus the `und` root. Non-Gregorian vocabulary: Hijri months
 (Arabic, English), Hebrew months (Hebrew, English), Babylonian months
-(English), the numbered lunisolar months in both Chinese scripts, in Tibetan
-and in English, their Japanese traditional names (睦月 … 師走), Japanese era
-names, the Ethiopic months in Amharic, the Coptic months in Coptic and in
-Egyptian Arabic, the Burmese months in Burmese, the Bikram Sambat and Nepal
-Sambat months in Devanagari, the Hindu lunisolar and Vikrami solar months in
-Devanagari (Sanskrit and Hindi), the Indian national calendar's months in
-Hindi, Tamil, Malayalam and Bengali, the Tamil, Malayalam and Bengali solar
-months in their own scripts, the Assyrian months in Syriac, the Berber
-months in Kabyle and in Tifinagh, the Maya day-signs and haabʼ months in
-Yucatec, the Aztec day-signs and months in Nahuatl, the Pawukon cycles in
-Balinese, the pasaran and dina in Javanese, the Mandaean weekdays in Mandaic,
-romanisations of the Coptic, Ethiopic, Burmese, Armenian and Persian months
-(whose own scripts the calendars carry themselves), and the zodiac animals
-in Chinese, Japanese, Korean, Vietnamese and English. The stems and branches
-are not spelled here: each locale names one of the readings
-`hc_calendar::cycle::readings` catalogues.
+(English), the Chinese calendar's months in both Chinese scripts, in
+Japanese (正月, 二月 … 十二月) and in Korean, the Tibetan months in Tibetan,
+the numbered lunisolar months in English, the Japanese lunisolar calendars'
+traditional names (睦月 … 師走, which serve those five calendars and no
+other), Japanese era names, the Ethiopic months in Amharic, the Coptic
+months in Coptic and in Egyptian Arabic, the Burmese months in Burmese, the
+Bikram Sambat and Nepal Sambat months in Devanagari, the Hindu lunisolar and
+Vikrami solar months in Devanagari (Sanskrit and Hindi), the Indian national
+calendar's months in Hindi, Tamil, Malayalam and Bengali, the Tamil,
+Malayalam and Bengali solar months in their own scripts, the Assyrian months
+in Syriac, the Berber months in Kabyle and in Tifinagh, the Maya day-signs
+and haabʼ months in Yucatec, the Aztec day-signs and months in Nahuatl, the
+Pawukon cycles in Balinese, the pasaran and dina in Javanese, the Mandaean
+weekdays in Mandaic, romanisations of the Coptic, Ethiopic, Burmese,
+Armenian and Persian months (whose own scripts the calendars carry
+themselves), and the zodiac animals in Chinese, Japanese, Korean, Vietnamese
+and English. The stems and branches are not spelled here: each locale names
+one of the readings `hc_calendar::cycle::readings` catalogues.
 
 Eighteen of the locales exist for a calendar's own language, and they cover
 what their sources cover and no more:
@@ -134,9 +136,11 @@ pt ro ru sl sv th tr uk vi zh`.
 
 ## What it deliberately does not do
 
-* **No collation, no message formatting, no date patterns.** Assembling
-  `{month} {day}, {year}` is `hc-format`'s job; this crate supplies the
-  pieces.
+* **No collation, no message formatting, no general date patterns.** The
+  templates here are a locale's way of writing a year with its era, a day
+  and one whole date — `{month} {day}, {year}` — read from CLDR's `Gy`,
+  `d` and `yMMMMd` items and rendered by `hc-format`; skeletons, interval
+  patterns and time patterns are not here.
 * **No number formatting beyond integers.** No grouping separators, no
   decimal separator, no currency, no sign other than an ASCII hyphen.
 * **No compact-notation plural operands (`c`/`e`).** Where a CLDR rule has an

@@ -199,6 +199,7 @@ impl Calendar for KokiCalendar {
             is_astronomical: false,
             earliest: Some(EARLIEST),
             latest: Some(gregorian::LATEST),
+            native_locales: &["ja"],
         }
     }
 

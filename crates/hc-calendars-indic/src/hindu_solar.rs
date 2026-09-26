@@ -187,6 +187,9 @@ pub struct HinduSolarCalendar {
     pub id: CalendarId,
     /// The English name.
     pub english_name: &'static str,
+    /// The languages the calendar's sources are written in; see
+    /// [`CalendarMeta::native_locales`].
+    pub native_locales: &'static [&'static str],
     /// The month names and the month that opens the year.
     pub tradition: SolarMonthTradition,
     /// Which civil day a month begins on.
@@ -209,6 +212,7 @@ pub struct HinduSolarCalendar {
 pub const TAMIL: HinduSolarCalendar = HinduSolarCalendar {
     id: CalendarId("hindu-solar-tamil"),
     english_name: "Tamil solar",
+    native_locales: &["ta", "sa"],
     tradition: rashi::TAMIL,
     rule: SankrantiRule::BeforeSunset,
     era: "Tiruvalluvar",
@@ -224,6 +228,7 @@ pub const TAMIL: HinduSolarCalendar = HinduSolarCalendar {
 pub const MALAYALAM: HinduSolarCalendar = HinduSolarCalendar {
     id: CalendarId("hindu-solar-malayalam"),
     english_name: "Malayalam (Kollam era)",
+    native_locales: &["ml", "sa"],
     tradition: rashi::MALAYALAM,
     rule: SankrantiRule::BeforeAfternoon,
     era: "Kollam",
@@ -238,6 +243,7 @@ pub const MALAYALAM: HinduSolarCalendar = HinduSolarCalendar {
 pub const BENGALI: HinduSolarCalendar = HinduSolarCalendar {
     id: CalendarId("hindu-solar-bengali"),
     english_name: "Bengali solar (Bangabda)",
+    native_locales: &["bn", "sa"],
     tradition: rashi::BENGALI,
     rule: SankrantiRule::DayAfter,
     era: "Bangabda",
@@ -254,6 +260,7 @@ pub const BENGALI: HinduSolarCalendar = HinduSolarCalendar {
 pub const VIKRAMI: HinduSolarCalendar = HinduSolarCalendar {
     id: CalendarId("hindu-solar-vikrami"),
     english_name: "Vikrami solar",
+    native_locales: &["hi", "sa"],
     tradition: rashi::VIKRAMI,
     rule: SankrantiRule::SunriseDay,
     era: "VS",
@@ -537,6 +544,7 @@ impl Calendar for HinduSolarCalendar {
             is_astronomical: true,
             earliest: Some(self.earliest()),
             latest: Some(self.latest()),
+            native_locales: self.native_locales,
         }
     }
 

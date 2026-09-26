@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { before, describe, test } from "node:test";
 
-import { COLUMNS, GEOLOGIC_RANKS, HcError, HyperCalendar, METHODS, SENTINELS, load } from "./hyper-calendar.js";
+import { COLUMNS, GEOLOGIC_RANKS, HcError, HyperCalendar, METHODS, NATIVE, SENTINELS, UNITS, load } from "./hyper-calendar.js";
 import { FULL_WASM, TZIF_V2_EASTERN, moduleBytes, rawRows } from "./support.js";
 
 const HOW = "cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --release --features full";
@@ -191,13 +191,15 @@ describe("describeDay", () => {
     // its day begins either way.
     for (const row of rows) {
       assert.ok(row.dayBoundary.length > 0, row.id);
-      assert.equal(row.formatted, null, row.id);
+      assert.ok(row.localeUsed.length > 0, row.id);
       if (row.error === null) {
         assert.ok(["in-use", "proleptic", "extended", "unrecorded"].includes(row.standing ?? ""), row.id);
         assert.equal(typeof row.year, "number", row.id);
+        assert.equal(typeof row.formatted, "string", row.id);
       } else {
         assert.equal(row.standing, null, row.id);
         assert.equal(row.year, null, row.id);
+        assert.equal(row.formatted, null, row.id);
         assert.match(row.error.name, /^[a-z-]+$/, row.id);
       }
     }
@@ -223,14 +225,26 @@ describe("describeDay", () => {
       error: null,
       standing: "in-use",
       dayBoundary: "midnight",
-      formatted: null,
+      formatted: "令和8年9月21日",
+      localeUsed: "ja",
     });
     const gregorian = rows.find((row) => row.id === "gregory");
     assert.ok(gregorian);
     assert.equal(gregorian.name, "Gregorian");
     assert.equal(gregorian.year, 2026);
     assert.equal(gregorian.standing, "in-use");
+    assert.equal(gregorian.formatted, "2026年9月21日");
+    // Japanese has no words for the Hebrew months, so the Hebrew calendar
+    // answers in Hebrew and says so.
+    const hebrew = rows.find((row) => row.id === "hebrew");
+    assert.equal(hebrew?.localeUsed, "he");
     assert.equal(hc.describeDay(739_880, "en").find((row) => row.id === "gregory")?.monthLabel, "September");
+    assert.equal(hc.describeDay(739_880, "en").find((row) => row.id === "gregory")?.formatted, "September 21, 2026");
+    // `native` renders each calendar in its own language.
+    const native = hc.describeDay(739_880, NATIVE);
+    assert.equal(native.find((row) => row.id === "japanese")?.localeUsed, "ja");
+    assert.equal(native.find((row) => row.id === "chinese")?.localeUsed, "zh-Hans");
+    assert.equal(native.find((row) => row.id === "gregory")?.localeUsed, "en");
     // A tag with no data, or one that does not parse, falls back to the
     // root locale, whose month names are CLDR's M01..M12; so does the default.
     assert.equal(hc.describeDay(739_880, "tlh").find((row) => row.id === "gregory")?.monthLabel, "M09");
@@ -248,6 +262,7 @@ describe("describeDay", () => {
     assert.equal(chinese.monthLabel, "闰二月");
     assert.equal(chinese.day, 1);
     assert.equal(chinese.leapDay, false);
+    assert.equal(chinese.formatted, "癸卯年闰二月初一");
     assert.ok("cycle" in chinese.extras, JSON.stringify(chinese.extras));
     assert.ok(Object.keys(chinese.extras).length > 1, JSON.stringify(chinese.extras));
     for (const value of Object.values(chinese.extras)) {
@@ -274,6 +289,7 @@ describe("describeDay", () => {
       standing: null,
       dayBoundary: "midnight",
       formatted: null,
+      localeUsed: "en",
     });
     // And in 1900 it converts, so the refusal is about the day.
     const then = hc.describeDay(hc.gregorianToFixed(1900, 3, 14), "en").find((row) => row.id === "rumi");
@@ -283,6 +299,118 @@ describe("describeDay", () => {
 
   test("the locale is text", () => {
     assert.throws(() => hc.describeDay(739_880, /** @type {any} */ (12)), TypeError);
+  });
+});
+
+describe("calendarUnits", () => {
+  test("walks a calendar's eras, years, months and days as labelled spans", () => {
+    const id = new TextEncoder().encode("gregory");
+    const pointer = hc.alloc(id.length);
+    new Uint8Array(hc.memory.buffer, pointer, id.length).set(id);
+    try {
+      const raw = rawRows(hc, (buffer, capacity) =>
+        hc.exports.hc_calendar_units(pointer, id.length, 1, 739_000n, 739_880n, 0, 0, buffer, capacity));
+      assert.equal(raw.length, 3);
+      for (const cells of raw) {
+        assert.equal(cells.length, COLUMNS.calendarUnits.length, JSON.stringify(cells));
+      }
+    } finally {
+      hc.free(pointer, id.length);
+    }
+    // The Japanese eras from 1989 to 2019.
+    const eras = hc.calendarUnits("japanese", "era", hc.gregorianToFixed(1989, 1, 1), hc.gregorianToFixed(2019, 12, 31), "ja");
+    assert.deepEqual(eras.map((span) => span.label), ["昭和", "平成", "令和"]);
+    assert.deepEqual(eras[2], {
+      start: hc.gregorianToFixed(2019, 5, 1),
+      end: eras[2].end,
+      label: "令和",
+      leap: false,
+      standing: "in-use",
+      error: null,
+      localeUsed: "ja",
+    });
+    for (let index = 1; index < eras.length; index += 1) {
+      assert.equal(eras[index - 1].end, eras[index].start, "spans touch");
+    }
+    // A first year is 元年; a unit may be named by its index.
+    const years = hc.calendarUnits("japanese", 1, hc.gregorianToFixed(2019, 5, 1), hc.gregorianToFixed(2020, 1, 2), "ja");
+    assert.deepEqual(years.map((span) => span.label), ["令和元年", "令和2年"]);
+    // The Chinese months of 2023 carry the leap second month.
+    const months = hc.calendarUnits("chinese", "month", hc.gregorianToFixed(2023, 1, 22), hc.gregorianToFixed(2024, 2, 10), "zh-Hans");
+    assert.equal(months.length, 13);
+    const leap = months.find((span) => span.leap);
+    assert.equal(leap?.label, "闰二月");
+    assert.equal(leap?.start, hc.gregorianToFixed(2023, 3, 22));
+    // A leap year is flagged.
+    const gregorian = hc.calendarUnits("gregory", "year", hc.gregorianToFixed(2023, 6, 1), hc.gregorianToFixed(2025, 6, 1), "en");
+    assert.deepEqual(gregorian.map((span) => [span.label, span.leap]), [["2023", false], ["2024", true], ["2025", false]]);
+    // A calendar's edge is a refusal with the calendar's own error.
+    const rumi = hc.calendarUnits("rumi", "year", hc.gregorianToFixed(1925, 1, 1), hc.gregorianToFixed(1927, 1, 1), "en");
+    const last = rumi[rumi.length - 1];
+    assert.deepEqual(last.error, { code: 7, name: "after-supported-range" });
+    assert.equal(last.label, null);
+    assert.equal(last.standing, null);
+    // A unit the calendar does not have is one refusal.
+    const noMonths = hc.calendarUnits("maya-longcount", "month", 0, 1000, "en");
+    assert.equal(noMonths.length, 1);
+    assert.deepEqual(noMonths[0].error, { code: 5, name: "unsupported-field" });
+    assert.deepEqual(hc.calendarUnits("gregory", "day", 10, 10, "en"), []);
+  });
+
+  test("refuses what it does not know", () => {
+    refused(() => hc.calendarUnits("no-such-calendar", "year", 0, 10, "en"), "unknown");
+    assert.throws(() => hc.calendarUnits("gregory", /** @type {any} */ ("week"), 0, 10, "en"), TypeError);
+    assert.throws(() => hc.calendarUnits("gregory", 4, 0, 10, "en"), TypeError);
+    assert.deepEqual([...UNITS], ["era", "year", "month", "day"]);
+  });
+});
+
+describe("calendars and locales", () => {
+  test("every calendar is listed with what the locale calls it", () => {
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_calendars(739_880n, 0, 0, buffer, capacity));
+    for (const cells of raw) {
+      assert.equal(cells.length, COLUMNS.calendars.length, JSON.stringify(cells));
+    }
+    const rows = hc.calendars(739_880, "ja");
+    assert.equal(rows.length, raw.length);
+    assert.deepEqual(rows.map((row) => row.id), hc.describeDay(739_880).map((row) => row.id), "registry order");
+    const gregorian = rows.find((row) => row.id === "gregory");
+    assert.ok(gregorian);
+    assert.equal(gregorian.name, "西暦(グレゴリオ暦)");
+    assert.equal(gregorian.englishName, "Gregorian");
+    assert.equal(typeof gregorian.earliest, "number");
+    assert.deepEqual([gregorian.hasEra, gregorian.hasYear, gregorian.hasMonth, gregorian.hasDay], [false, true, true, true]);
+    assert.deepEqual(gregorian.nativeLocales, []);
+    assert.equal(gregorian.standing, "in-use");
+    const japanese = rows.find((row) => row.id === "japanese");
+    assert.equal(japanese?.name, "和暦");
+    assert.deepEqual(japanese?.nativeLocales, ["ja"]);
+    assert.equal(japanese?.hasEra, true);
+    const chinese = rows.find((row) => row.id === "chinese");
+    assert.deepEqual(chinese?.nativeLocales, ["zh-Hans", "zh-Hant"]);
+    const longCount = rows.find((row) => row.id === "maya-longcount");
+    assert.deepEqual([longCount?.hasEra, longCount?.hasYear, longCount?.hasMonth, longCount?.hasDay], [false, false, false, false]);
+    assert.equal(hc.calendars(739_880, "tlh").find((row) => row.id === "gregory")?.name, null);
+  });
+
+  test("every locale is listed with what it names", () => {
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_locales(buffer, capacity));
+    for (const cells of raw) {
+      assert.equal(cells.length, COLUMNS.locales.length, JSON.stringify(cells));
+    }
+    const rows = hc.locales();
+    assert.ok(rows.length >= 27, `${rows.length} locales`);
+    assert.deepEqual(rows.map((row) => row.tag), [...rows.map((row) => row.tag)].sort(), "tag order");
+    const ja = rows.find((row) => row.tag === "ja");
+    assert.ok(ja);
+    assert.equal(ja.englishName, "Japanese");
+    assert.equal(ja.nativeName, "日本語");
+    assert.deepEqual([ja.gregorianMonths, ja.weekdays, ja.gregorianEras], [true, true, true]);
+    assert.ok(ja.calendars.includes("japanese") && ja.calendars.includes("chinese"), ja.calendars.join(","));
+    assert.ok(!ja.calendars.includes("gregory"));
+    const coptic = rows.find((row) => row.tag === "cop");
+    assert.deepEqual([coptic?.gregorianMonths, coptic?.weekdays, coptic?.gregorianEras], [false, false, false]);
+    assert.deepEqual(coptic?.calendars, ["coptic"]);
   });
 });
 
@@ -833,6 +961,9 @@ describe("the buffer protocol", () => {
     assert.equal(small.version(), hc.version());
     assert.equal(small.formatIsoDate(739_880), "2026-09-21");
     assert.deepEqual(small.describeDay(739_880, "ja-JP"), hc.describeDay(739_880, "ja-JP"));
+    assert.deepEqual(small.calendars(739_880, "ja"), hc.calendars(739_880, "ja"));
+    assert.deepEqual(small.locales(), hc.locales());
+    assert.deepEqual(small.calendarUnits("gregory", "year", 10, 10), []);
     assert.deepEqual(small.holidayCodes(), hc.holidayCodes());
     assert.deepEqual(small.holidaysOn(739_880), hc.holidaysOn(739_880));
     assert.deepEqual(small.termInEffect(739_880, "japan"), hc.termInEffect(739_880, "japan"));

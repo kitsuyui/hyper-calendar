@@ -377,6 +377,7 @@ impl Calendar for BalinesePawukonCalendar {
             is_astronomical: false,
             earliest: None,
             latest: None,
+            native_locales: &["ban"],
         }
     }
 

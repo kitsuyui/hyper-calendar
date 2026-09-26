@@ -77,6 +77,7 @@ pub static MERIDIANS: [MeridianEra; 2] = [
 pub static PARAMETERS: LunisolarParameters = LunisolarParameters {
     id: ID,
     english_name: "Chinese",
+    native_locales: &["zh-Hans", "zh-Hant"],
     meridians: &MERIDIANS,
     epoch: CHINESE_EPOCH,
     year_offset: 0,
@@ -123,6 +124,11 @@ impl Calendar for ChineseCalendar {
 
     fn meta(&self) -> CalendarMeta {
         ENGINE.meta()
+    }
+
+    /// The engine's one-new-moon rule, not the trait's day-by-day walk.
+    fn days_in_month(&self, fields: &DateFields) -> CalendarResult<u16> {
+        ENGINE.days_in_month(fields)
     }
 
     fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {

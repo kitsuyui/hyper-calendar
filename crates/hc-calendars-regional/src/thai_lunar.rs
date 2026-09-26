@@ -561,6 +561,7 @@ impl Calendar for ThaiLunarCalendar {
             is_astronomical: false,
             earliest: Some(earliest()),
             latest: Some(latest()),
+            native_locales: &["th"],
         }
     }
 

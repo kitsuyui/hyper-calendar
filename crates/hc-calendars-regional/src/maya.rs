@@ -578,6 +578,7 @@ impl Calendar for MayaLongCountCalendar {
             is_astronomical: false,
             earliest: Some(self.epoch()),
             latest: Some(Rd(self.epoch().0 + 20 * 144_000 - 1)),
+            native_locales: &["yua"],
         }
     }
 
@@ -654,6 +655,7 @@ impl Calendar for MayaTzolkinCalendar {
             is_astronomical: false,
             earliest: None,
             latest: None,
+            native_locales: &["yua"],
         }
     }
 
@@ -729,6 +731,7 @@ impl Calendar for MayaHaabCalendar {
             is_astronomical: false,
             earliest: None,
             latest: None,
+            native_locales: &["yua"],
         }
     }
 
@@ -853,6 +856,7 @@ impl Calendar for MayaCalendarRoundCalendar {
             is_astronomical: false,
             earliest: Some(self.epoch()),
             latest: Some(Rd(self.epoch().0 + 20 * 144_000 - 1)),
+            native_locales: &["yua"],
         }
     }
 

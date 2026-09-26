@@ -402,6 +402,23 @@ impl Calendar for ChineseRegnalCalendar {
         chinese::PARAMETERS.is_leap_year(year + YEAR_OFFSET)
     }
 
+    /// Resolves the era first: the fields count years within it, and the
+    /// leap rule counts Common Era years.
+    fn is_leap_year_of(&self, fields: &DateFields) -> CalendarResult<bool> {
+        match fields.era {
+            Some(name) => {
+                let era = find(name).ok_or(CalendarError::UnknownEra)?;
+                self.is_leap_year(era.start_year + fields.year - 1)
+            }
+            None => self.is_leap_year(fields.year),
+        }
+    }
+
+    /// The era in traditional characters with its pinyin.
+    fn era_name(&self, code: &str) -> Option<hc_calendar::EraName> {
+        find(code).map(|era| hc_calendar::EraName::new(era.hanzi, era.pinyin))
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("chinese-regnal"),
@@ -411,6 +428,7 @@ impl Calendar for ChineseRegnalCalendar {
             is_astronomical: true,
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
+            native_locales: &["zh-Hant", "zh-Hans"],
         }
     }
 

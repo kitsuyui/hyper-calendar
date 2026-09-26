@@ -145,6 +145,7 @@ impl Calendar for Symmetry454Calendar {
             is_astronomical: false,
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
+            native_locales: &[],
         }
     }
 

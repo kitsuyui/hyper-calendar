@@ -83,7 +83,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-27 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+30 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -97,6 +97,9 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_day_has_leap_second(int64_t unix_seconds, int *out_has_leap);` | `civil` | Whether a POSIX timestamp names a day that ends with an inserted leap second. |
 | `HcStatus hc_utc_from_tai(int64_t tai_seconds, int strict, int64_t *out_unix_seconds, int *out_is_leap_second);` | `civil` | Convert a TAI reading back to a UTC label, naming a leap second when the instant falls inside one. |
 | `HcStatus hc_describe_day(int64_t fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | One fixed day in every registered calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_calendar_units(const char *id, uint32_t unit, int64_t from_fixed, int64_t to_fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The days from `from_fixed` up to but not including `to_fixed` as one calendar's eras, years, months or days, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_calendars(int64_t today, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Every registered calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_locales(char *buffer, size_t capacity, size_t *written);` | `calendars` | Every locale the library carries, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_is_day_off(const char *code, const char *region, int64_t fixed, int *out_is_day_off);` | `holiday` | Whether a fixed day is a day off in a holiday table. |
 | `HcStatus hc_holidays_in_year(const char *code, const char *region, int64_t year, char *buffer, size_t capacity, size_t *written);` | `holiday` | The holidays of a Gregorian year in a table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_codes(char *buffer, size_t capacity, size_t *written);` | `holiday` | The identifier of every holiday table, one per line, NUL-terminated. |
@@ -137,16 +140,35 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 `hc_describe_day(fixed, locale, buffer, capacity, written)` needs the
 `calendars` feature and writes one line per calendar the facade registers,
-in registry order, in the sixteen columns the WebAssembly module's README
+in registry order, in the seventeen columns the WebAssembly module's README
 lists: identifier, English name, era code, era label, year, month ordinal,
 leap-month flag, month label, day, leap-day flag, extras, error code, error
-name, standing, day boundary and the reserved `formatted` column. A calendar
-that cannot name the day is still a line, with its date columns and standing
-empty and the error code and name — the stable ones `CalendarError` gives
-every refusal — saying why. `locale` is a NUL-terminated BCP 47 tag or null;
-a tag that does not parse, or that no data answers for, falls back to the
-root locale `und`, whose month names are CLDR's `M01`..`M12`, so ask for
-`en` for English.
+name, standing, day boundary, the date as the locale writes it and the
+locale used. A calendar that cannot name the day is still a line, with its
+date columns, standing and formatted date empty and the error code and
+name — the stable ones `CalendarError` gives every refusal — saying why.
+`locale` is a NUL-terminated BCP 47 tag, the word `native` for each
+calendar's own language, or null; a calendar the tag's data does not name
+is rendered in its own language where the library carries it, else in
+English, and the last column says which. A tag that does not parse, or
+that no data answers for, falls back to the root locale `und`, whose month
+names are CLDR's `M01`..`M12`, so ask for `en` for English.
+
+`hc_calendar_units(id, unit, from_fixed, to_fixed, locale, buffer, capacity, written)`
+writes the days from `from_fixed` up to but not including `to_fixed` as
+one calendar's eras (`unit` 0), years (1), months (2) or days (3), one
+line per span in the eight columns the WebAssembly module's README lists:
+start, end (exclusive), label, leap flag, standing, error code, error name
+and locale used. A null `id` is `HC_ERROR_NULL_POINTER`; an identifier or
+unit the library does not know is `HC_ERROR_UNKNOWN`; an empty range is an
+empty string. `hc_calendars(today, locale, buffer, capacity, written)`
+lists every registered calendar in its eleven columns — identifier, the
+locale's name for it, English name, earliest, latest, the four has-unit
+flags, native locales and standing on `today` — and
+`hc_locales(buffer, capacity, written)` every locale in its seven: tag,
+English name, native name, the three Gregorian coverage flags and the
+calendars it names. The columns are the same as the module's, and the
+README there describes each.
 
 ## Holidays
 
@@ -289,8 +311,7 @@ table's horizon.
 The default surface is the civil calendar and the TAI–UTC bridge: enough to
 turn a POSIX timestamp or a Gregorian date into a fixed day and back, name a
 weekday, and ask about leap seconds honestly; the other layers are features,
-above. Formatting a date of any calendar in a locale's own way waits on
-`hc-format` rendering calendars other than the Gregorian, and the last
-column of `hc_describe_day` is reserved for it. Before 1.0 the only
-stability promise is the status codes, whose meanings do not change, and
-the column orders, which only grow at the end.
+above. Formatting is by template and only as wide as a locale's data: a
+locale that has stated none writes a date as its fields in order. Before
+1.0 the only stability promise is the status codes, whose meanings do not
+change, and the column orders, which only grow at the end.
