@@ -31,8 +31,9 @@ third of the third month [vnplus-tet-am-lich].
 Observatory of Japan's statement of the old 七夕 — the seventh day of the
 seventh lunisolar month — for a country that no longer keeps an official
 lunisolar calendar [nao-faq-kyureki]. It is a count from the new moon
-nearest 処暑, not a date in a month, so it does not depend on which of the
-unofficial lunisolar reckonings is followed [nao-faq-tanabata].
+on or before 処暑's day and nearest to it, not a date in a month, so it
+does not depend on which of the unofficial lunisolar reckonings is
+followed [nao-faq-tanabata].
 
 ## How it works
 
@@ -89,8 +90,12 @@ Universal Time, the new moon's day would be the 12th and the answer the
 `hc-seasons::cold_food::ColdFoodConvention` has the three conventions of
 the table, each with its identifier, its name and its meridian, and gives
 the day of any Gregorian year; `DAYS_AFTER_SOLSTICE` is the 105. In
-`hc-holiday`, `chinese-folk` carries 寒食 as the day before 清明, the
-reckoning kept today, and `korean-folk` carries 한식 as an offset of 105
+`hc-holiday`, `chinese-folk` carries 寒食 as the day before 清明 from 1645,
+the reckoning kept today, and as 105 days after the winter solstice
+before 1645, the one the 時憲曆 replaced; the older entry is marked
+approximate, because its solstice is the one this library computes from
+today's astronomy and the calendars before 1645 reckoned their own, which
+is not modelled. `korean-folk` carries 한식 as an offset of 105
 days from 동지 at the Korean meridian, the same day as `Hansik`. The
 106-day count is not carried: the source mentions it, "亦有去冬至一百六日
 者", without saying who kept it. Vietnam's Tết Hàn thực is a lunar date and
@@ -112,8 +117,9 @@ solstice count falls one or two days after the eve of 清明 for the same
 years.
 
 伝統的七夕 reproduces all forty dates of the Observatory's table,
-2011–2050, and for 1990–2099 the day six before it is a new-moon day at
-noon on or before 処暑. A new moon or 処暑 within about a minute of
+2011–2050. For 1990–2099 the day six before it holds the conjunction
+itself, in Japan Standard Time, on or before 処暑's day, and the next
+conjunction falls after 処暑's day. A new moon or 処暑 within about a minute of
 midnight could be put on the wrong day, as for every solar-term date.
 
 ## Sources
@@ -148,4 +154,6 @@ Anchors in `cold_food`: `hansik_falls_where_the_korean_almanac_puts_it`,
 In `hc-holiday`'s `tests/traditions.rs`:
 `the_korean_folk_days_are_where_the_korean_almanac_puts_them` and
 `the_chinese_folk_additions_fall_on_their_days`, which check both tables
-against `ColdFoodConvention` for 1950–2100.
+against `ColdFoodConvention` for 1950–2100, and
+`the_cold_food_festival_before_1645_is_105_days_after_the_solstice`, which
+checks the change of reckoning at 1645 for 1500–1700.

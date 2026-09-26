@@ -515,13 +515,16 @@ mod tests {
             let end_of_heat = crate::solar_terms::term_day(year, END_OF_HEAT, JAPAN);
             // The new moon's day is on or before 処暑's, and less than a
             // lunation before it.
-            let new_moon_day = day.0 - 6;
-            assert!(new_moon_day <= end_of_heat.0, "{year}");
-            assert!(end_of_heat.0 - new_moon_day < 30, "{year}");
-            assert!(
-                matches!(phase_name(Rd(new_moon_day), JAPAN), PhaseName::NewMoon),
-                "{year}"
-            );
+            let new_moon_day = Rd(day.0 - 6);
+            assert!(new_moon_day <= end_of_heat, "{year}");
+            assert!(end_of_heat.0 - new_moon_day.0 < 30, "{year}");
+            // The conjunction itself falls on that JST day, not merely a
+            // day the phase name calls new, and the next one falls after
+            // 処暑's day, so it is the last on or before it.
+            let conjunction = moon_phase_at_or_after(0.0, JAPAN.midnight(new_moon_day));
+            assert_eq!(JAPAN.day_of(conjunction), new_moon_day, "{year}");
+            let next = moon_phase_at_or_after(0.0, Moment(conjunction.0 + 1.0));
+            assert!(JAPAN.day_of(next) > end_of_heat, "{year}");
         }
     }
 

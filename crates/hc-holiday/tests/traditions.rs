@@ -1185,6 +1185,65 @@ fn the_common_worship_traditional_ember_weeks() {
 }
 
 #[test]
+fn the_common_worship_ember_days_the_church_and_a_diocese_printed() {
+    // The Church of England's Common Worship: Daily Prayer marks "Ember
+    // Day" on 24, 26 and 27 June and 23, 25 and 26 September 2026, and not
+    // on the 16th, 18th or 19th, the week after 14 September
+    // (`cofe-daily-prayer-2026`); the Diocese of London's calendar for
+    // Advent 2024 on 11, 13 and 14 December 2024 (`london-kalendar-2024-25`).
+    expect(
+        &EMBER_COMMON_WORSHIP,
+        &[
+            (2026, 6, 24, "Ember Wednesday (June)"),
+            (2026, 6, 26, "Ember Friday (June)"),
+            (2026, 6, 27, "Ember Saturday (June)"),
+            (2026, 9, 23, "Ember Wednesday (September)"),
+            (2026, 9, 25, "Ember Friday (September)"),
+            (2026, 9, 26, "Ember Saturday (September)"),
+            (2024, 12, 11, "Ember Wednesday (Advent)"),
+            (2024, 12, 13, "Ember Friday (Advent)"),
+            (2024, 12, 14, "Ember Saturday (Advent)"),
+        ],
+    );
+    for day in [16, 18, 19, 22, 24] {
+        let calendar = HolidayCalendar::for_year(&EMBER_COMMON_WORSHIP, None, 2026);
+        assert!(calendar.on(ymd(2026, 9, day)).is_empty(), "2026-09-{day}");
+    }
+    // The Prayer Book's week that year is the one Common Worship leaves.
+    expect(
+        &EMBER_BCP1662,
+        &[
+            (2026, 9, 16, "Ember Wednesday (September)"),
+            (2026, 9, 18, "Ember Friday (September)"),
+            (2026, 9, 19, "Ember Saturday (September)"),
+        ],
+    );
+}
+
+#[test]
+fn the_prayer_book_september_week_is_one_week_after_holy_cross() {
+    // A Thursday 14 September, as in 2023: read as one week, the
+    // Wednesday after the 14th and the Friday and Saturday after it, the
+    // 20th, 22nd and 23rd; read day by day, "the Friday and Saturday after
+    // September 14" would be the 15th and 16th, which is not carried.
+    expect(
+        &EMBER_BCP1662,
+        &[
+            (2023, 9, 20, "Ember Wednesday (September)"),
+            (2023, 9, 22, "Ember Friday (September)"),
+            (2023, 9, 23, "Ember Saturday (September)"),
+        ],
+    );
+    expect_not(
+        &EMBER_BCP1662,
+        &[
+            (2023, 9, 15, "Ember Friday (September)"),
+            (2023, 9, 16, "Ember Saturday (September)"),
+        ],
+    );
+}
+
+#[test]
 fn the_greater_litanies_leave_easter_and_easter_monday() {
     // Code of Rubrics 1960, no. 80: 25 April, or the Tuesday after when
     // Easter Sunday (2038) or Easter Monday (2011) falls on it.
@@ -1393,6 +1452,36 @@ fn the_chinese_folk_additions_fall_on_their_days() {
         let qingming = only_date(&CHINESE_FOLK, year, "Qingming Festival");
         let cold_food = only_date(&CHINESE_FOLK, year, "Cold Food Festival");
         assert_eq!(qingming.map(|day| day.0 - 1), cold_food.map(|day| day.0));
+    }
+}
+
+#[test]
+fn the_cold_food_festival_before_1645_is_105_days_after_the_solstice() {
+    // "冬至後一百五日" until the 時憲曆 of 1645, the day before 清明 from
+    // it (Wikipedia zh, "寒食节"); one entry a year either side of the
+    // change, and the older one marked approximate.
+    for year in 1500..=1700 {
+        let calendar = HolidayCalendar::for_year(&CHINESE_FOLK, None, year);
+        let cold_food: Vec<_> = calendar
+            .all()
+            .iter()
+            .filter(|holiday| holiday.name == "Cold Food Festival")
+            .collect();
+        assert_eq!(cold_food.len(), 1, "{year}");
+        let (convention, confidence) = if year < 1645 {
+            (ColdFoodConvention::SolsticePlus105, Confidence::Approximate)
+        } else {
+            (ColdFoodConvention::EveOfQingming, Confidence::Exact)
+        };
+        assert_eq!(cold_food[0].date, convention.day(year), "{year}");
+        assert_eq!(cold_food[0].confidence, confidence, "{year}");
+    }
+    // With the true terms the solstice count lands on 清明 or after it,
+    // which is why the day was moved.
+    for year in 1500..1645 {
+        let qingming = only_date(&CHINESE_FOLK, year, "Qingming Festival");
+        let cold_food = only_date(&CHINESE_FOLK, year, "Cold Food Festival");
+        assert!(cold_food >= qingming, "{year}");
     }
 }
 
