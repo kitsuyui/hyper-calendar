@@ -112,6 +112,31 @@ fn united_states_federal_holidays() {
 }
 
 #[test]
+fn the_united_states_carries_the_executive_order_closures_from_2018() {
+    expect(
+        "US",
+        None,
+        &[
+            (2018, 12, 5, "National Day of Mourning"),
+            (2018, 12, 24, "Closing of Executive Departments"),
+            (2019, 12, 24, "Closing of Executive Departments"),
+            (2020, 12, 24, "Closing of Executive Departments"),
+            (2024, 12, 24, "Closing of Executive Departments"),
+            (2025, 1, 9, "National Day of Mourning"),
+            (2025, 12, 24, "Closing of Executive Departments"),
+            (2025, 12, 26, "Closing of Executive Departments"),
+        ],
+    );
+    // No order closed 24 December 2021, 2022 or 2023, and a year's order
+    // is not repeated.
+    expect_working(
+        "US",
+        None,
+        &[(2023, 12, 26), (2026, 12, 24), (2019, 12, 26)],
+    );
+}
+
+#[test]
 fn the_united_states_observes_a_saturday_holiday_on_the_friday_before() {
     // 4 July 2020 was a Saturday, observed Friday 3 July; 25 December 2022
     // was a Sunday, observed Monday 26 December.
@@ -426,6 +451,34 @@ fn italy_and_spain() {
     );
     // Republic Day was not a day off between 1977 and 2000.
     expect_working("IT", None, &[(1990, 6, 2)]);
+    // Law 54/1977, in force 8 March 1977: Epiphany kept in 1977 and back
+    // from 1986; St Joseph, the Ascension, Corpus Domini, Saints Peter and
+    // Paul and 4 November carried to 1976.
+    expect(
+        "IT",
+        None,
+        &[
+            (1977, 1, 6, "Epiphany"),
+            (1986, 1, 6, "Epiphany"),
+            (1976, 3, 19, "St Joseph's Day"),
+            (1976, 5, 27, "Ascension"),
+            (1976, 6, 17, "Corpus Domini"),
+            (1976, 6, 29, "Saints Peter and Paul"),
+            (1976, 11, 4, "National Unity Day"),
+        ],
+    );
+    expect_working(
+        "IT",
+        None,
+        &[
+            (1978, 1, 6),
+            (1985, 1, 6),
+            (1977, 3, 19),
+            (1977, 6, 29),
+            (1977, 11, 4),
+            (2024, 5, 9),
+        ],
+    );
     // No substitution: 2 June 2024 was a Sunday and stayed one.
     expect_working("IT", None, &[(2024, 6, 3)]);
     expect(
@@ -510,7 +563,19 @@ fn the_low_countries_and_the_alps() {
             (2025, 8, 15, "Assumption"),
         ],
     );
-    expect_working("AT", None, &[(1960, 10, 26), (2024, 12, 9)]);
+    // 26 October was a day without Feiertagsruhe under BGBl. 298/1965 and a
+    // day of rest from the 1967 amendment; 26 October 1967 was a Thursday.
+    expect_working(
+        "AT",
+        None,
+        &[
+            (1960, 10, 26),
+            (1965, 10, 26),
+            (1966, 10, 26),
+            (2024, 12, 9),
+        ],
+    );
+    expect("AT", None, &[(1967, 10, 26, "National Day")]);
 }
 
 #[test]
@@ -2564,6 +2629,35 @@ fn afghanistan_keeps_the_emirates_solar_days_and_reports_the_announced_eid_days(
     expect_working("AF", None, &[(2026, 3, 21), (2025, 3, 21), (2022, 8, 19)]);
 }
 
+#[test]
+fn north_korea_keeps_the_2020_calendars_days_off_on_kcnas_dates() {
+    expect(
+        "KP",
+        None,
+        &[
+            // KCNA: 설명절 on 17 February, 정월대보름 on 3 March and 추석 on
+            // 25 September 2026.
+            (2026, 2, 17, "Lunar New Year"),
+            (2026, 3, 3, "First Full Moon"),
+            (2026, 9, 25, "Chuseok"),
+            (2026, 2, 16, "Day of the Shining Star"),
+            (2026, 4, 15, "Day of the Sun"),
+            (2026, 4, 16, "Day of the Sun"),
+            (2025, 10, 10, "Day of the Foundation of the Party"),
+            (2025, 12, 27, "Constitution Day"),
+            (2020, 1, 25, "Lunar New Year"),
+        ],
+    );
+    // 8 February and 25 April are anniversaries without a confirmed day
+    // off; Saturday is a working day and Sunday the rest day.
+    expect_working("KP", None, &[(2026, 2, 9), (2026, 4, 25)]);
+    let calendar = HolidayCalendar::for_year(table("KP"), None, 2026);
+    assert!(calendar.is_weekend(ymd(2026, 4, 26)));
+    assert!(!calendar.is_weekend(ymd(2026, 4, 25)));
+    // No swap or substitution: 9 September 2029 is a Sunday.
+    expect_working("KP", None, &[(2029, 9, 10)]);
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // The Middle East and Africa
 // ─────────────────────────────────────────────────────────────────────────
@@ -2965,6 +3059,26 @@ fn ethiopia_keeps_its_days_on_the_ethiopian_calendar() {
     expect_working("ET", None, &[(2024, 1, 7), (2027, 9, 11)]);
     // Proclamation 1334/2024 leaves the Downfall of the Derg out.
     expect_working("ET", None, &[(2025, 5, 28), (2026, 5, 28)]);
+    // The Derg fell on 28 May 1991; its first anniversary was 1992, and the
+    // last kept 2024.
+    expect(
+        "ET",
+        None,
+        &[
+            (1992, 5, 28, "Downfall of the Derg"),
+            (2024, 5, 28, "Downfall of the Derg"),
+        ],
+    );
+    expect_working("ET", None, &[(1991, 5, 28)]);
+    // The memorial days of article 5 are observances, not days off.
+    let memorial = HolidayCalendar::for_year(table("ET"), None, 2025);
+    assert!(
+        memorial
+            .on(ymd(2025, 12, 8))
+            .iter()
+            .any(|holiday| holiday.kind == Kind::Observance)
+    );
+    expect_working("ET", None, &[(2025, 12, 8)]);
 }
 
 #[test]
@@ -3669,6 +3783,34 @@ fn ecuador_moves_holidays_off_midweek_and_off_the_weekend_and_resolves_november(
             (2022, 11, 2),
             (2022, 12, 25),
         ],
+    );
+}
+
+#[test]
+fn uruguay_moved_19_june_and_2_november_under_the_1996_law_until_2001() {
+    // Ley 16.805 as first enacted: Thursday 19 June 1997 to Monday 23 June,
+    // Friday 1998 to Monday 22, Tuesday 2001 to Monday 18; 2 November 1999
+    // (Tuesday) to Monday 1 November, 2000 (Thursday) to Monday 6, 2001
+    // (Friday) to Monday 5. 19 April 2001, a Thursday, to Monday 23 April.
+    expect(
+        "UY",
+        None,
+        &[
+            (1997, 6, 23, "Birth of Artigas"),
+            (1998, 6, 22, "Birth of Artigas"),
+            (2001, 6, 18, "Birth of Artigas"),
+            (1999, 11, 1, "All Souls' Day"),
+            (2000, 11, 6, "All Souls' Day"),
+            (2001, 11, 5, "All Souls' Day"),
+            (2001, 4, 23, "Landing of the Thirty-Three Orientals"),
+            (1996, 6, 19, "Birth of Artigas"),
+            (2002, 6, 19, "Birth of Artigas"),
+        ],
+    );
+    expect_working(
+        "UY",
+        None,
+        &[(1997, 6, 19), (2001, 6, 19), (2000, 11, 2), (2001, 4, 19)],
     );
 }
 
@@ -7720,12 +7862,23 @@ fn the_emirates_changed_its_weekend_in_2022() {
         &[
             (2024, 1, 1, "New Year's Day"),
             (2024, 12, 2, "National Day"),
-            (2025, 12, 1, "Commemoration Day"),
-            (2025, 12, 3, "National Day"),
+            (2024, 12, 1, "Commemoration Day"),
+            (2025, 12, 1, "National Day"),
+            (2025, 12, 2, "National Day"),
+            (2026, 12, 3, "National Day"),
         ],
     );
-    // Commemoration Day was 30 November from 2015 to 2018.
+    // Commemoration Day was 30 November from 2015 to 2018, and is off the
+    // list from 2025; the circular for 2025 put work back on 3 December.
     expect("AE", None, &[(2017, 11, 30, "Commemoration Day")]);
+    expect_working("AE", None, &[(2025, 12, 3), (2026, 12, 1)]);
+    let national_day = HolidayCalendar::for_year(country, None, 2025);
+    assert!(
+        !national_day
+            .on(ymd(2025, 12, 1))
+            .iter()
+            .any(|holiday| holiday.name == "Commemoration Day")
+    );
 }
 
 #[test]
@@ -7749,6 +7902,13 @@ fn turkey_national_and_religious_holidays() {
     // Labour Day was restored in 2009 and 15 July added in 2017.
     expect_working("TR", None, &[(2008, 5, 1), (2016, 7, 15)]);
     expect("TR", None, &[(2009, 5, 1, "Labour and Solidarity Day")]);
+    // Kanun 4500's one-off full day, Friday 31 December 1999, and no other.
+    expect(
+        "TR",
+        None,
+        &[(1999, 12, 31, "General holiday of 31 December 1999")],
+    );
+    expect_working("TR", None, &[(1998, 12, 31), (2002, 12, 31)]);
 }
 
 #[test]
@@ -8365,6 +8525,310 @@ fn liberia_keeps_its_acts_and_moves_a_sunday_holiday_to_the_monday() {
             .any(|gap| gap.name == "National Unification Day")
     );
     assert!(HolidayCalendar::for_year(table("LR"), None, 2026).is_complete());
+}
+
+/// The names of the gaps of a country's calendar for a year.
+fn gap_names(code: &str, year: i64) -> Vec<&'static str> {
+    HolidayCalendar::for_year(table(code), None, year)
+        .gaps()
+        .iter()
+        .map(|gap| gap.name)
+        .collect()
+}
+
+#[test]
+fn somalia_keeps_the_labour_code_of_2024_and_its_friday() {
+    expect(
+        "SO",
+        None,
+        &[
+            (2025, 1, 21, "Somali Language Writing Day"),
+            (2025, 6, 26, "Independence Day"),
+            (2025, 7, 1, "Union Day"),
+            (2026, 1, 21, "Somali Language Writing Day"),
+            (2026, 5, 1, "Labour Day"),
+            (2026, 7, 1, "Union Day"),
+        ],
+    );
+    // Eid al-Adha 1447 on the tabular calendar: 10 to 12 Dhu al-Hijjah,
+    // three days, approximate.
+    let eid = HolidayCalendar::for_year(table("SO"), None, 2026);
+    let adha: Vec<Holiday> = eid
+        .in_year(2026)
+        .into_iter()
+        .filter(|holiday| holiday.name == "Eid al-Adha")
+        .collect();
+    assert_eq!(adha.len(), 3);
+    assert!(
+        adha.iter()
+            .all(|holiday| holiday.confidence == Confidence::Approximate)
+    );
+    // Friday is the weekend and nothing moves off it: 26 June 2026 is a
+    // Friday, and Saturday the 27th is a working day.
+    assert!(eid.is_weekend(ymd(2026, 6, 26)));
+    assert!(!eid.is_weekend(ymd(2026, 6, 27)));
+    expect_working("SO", None, &[(2026, 6, 27)]);
+    // The 1972 Code's 21 October is not carried, and nothing before 2025.
+    expect_working("SO", None, &[(2025, 10, 21), (2024, 7, 1)]);
+}
+
+#[test]
+fn south_sudan_keeps_the_ministrys_days_and_reports_the_unread_spans() {
+    expect(
+        "SS",
+        None,
+        &[
+            (2022, 1, 1, "New Year"),
+            (2022, 4, 15, "Easter Holiday"),
+            (2022, 5, 3, "Eid al-Fitr"),
+            (2022, 5, 16, "SPLA Day"),
+            (2022, 7, 12, "Eid al-Adha"),
+            (2022, 12, 27, "Christmas Holiday"),
+            (2024, 7, 30, "Martyrs' Day"),
+            (2025, 4, 1, "Eid al-Fitr"),
+            (2025, 4, 21, "Easter Holiday"),
+            (2026, 4, 3, "Easter Holiday"),
+            (2026, 4, 6, "Easter Holiday"),
+            (2026, 7, 9, "Independence Day"),
+        ],
+    );
+    // Section 61(1)'s calendar days: 1 May 2022 was a Sunday and the
+    // Monday a working day.
+    expect_working("SS", None, &[(2022, 5, 2), (2025, 4, 2), (2026, 4, 7)]);
+    assert!(HolidayCalendar::for_year(table("SS"), None, 2022).is_complete());
+    assert_eq!(
+        gap_names("SS", 2024),
+        [
+            "Easter Holiday",
+            "Eid al-Fitr",
+            "Eid al-Adha",
+            "Christmas Holiday"
+        ]
+    );
+    assert_eq!(
+        gap_names("SS", 2026),
+        ["Eid al-Fitr", "Eid al-Adha", "Christmas Holiday"]
+    );
+}
+
+#[test]
+fn sudan_carries_the_council_of_ministers_announcements_it_read() {
+    expect(
+        "SD",
+        None,
+        &[
+            (2025, 12, 25, "Christmas"),
+            (2026, 1, 1, "Independence Day"),
+            (2026, 3, 19, "Eid al-Fitr"),
+            (2026, 3, 24, "Eid al-Fitr"),
+            (2026, 5, 26, "Eid al-Adha"),
+            (2026, 5, 30, "Eid al-Adha"),
+            (2026, 6, 17, "Islamic New Year"),
+            (2026, 8, 25, "Prophet's Birthday"),
+        ],
+    );
+    // Work resumed on Wednesday 25 March and Sunday 31 May 2026.
+    expect_working("SD", None, &[(2026, 3, 25), (2026, 5, 31), (2026, 1, 7)]);
+    assert_eq!(gap_names("SD", 2026), ["Christmas"]);
+    assert!(gap_names("SD", 2025).contains(&"Eid al-Fitr"));
+    // Friday–Saturday from 26 January 2008, Friday alone before.
+    let before = HolidayCalendar::for_year(table("SD"), None, 2007);
+    assert!(before.is_weekend(ymd(2007, 12, 7)));
+    assert!(!before.is_weekend(ymd(2007, 12, 8)));
+    let after = HolidayCalendar::for_year(table("SD"), None, 2026);
+    assert!(after.is_weekend(ymd(2026, 3, 27)));
+    assert!(after.is_weekend(ymd(2026, 3, 28)));
+    assert!(!after.is_weekend(ymd(2026, 3, 29)));
+}
+
+#[test]
+fn guinea_bissau_keeps_decree_1_2023_and_the_eid_days_read() {
+    expect(
+        "GW",
+        None,
+        &[
+            (2023, 1, 20, "National Heroes' Day"),
+            (2024, 9, 24, "Independence Day"),
+            (2025, 6, 7, "Tabaski"),
+            (2025, 12, 25, "Christmas Day"),
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 5, 1, "International Workers' Day"),
+        ],
+    );
+    // 23 January and 3 August were dropped in 2023; the Saturday Tabaski of
+    // 2025 gave no Monday.
+    expect_working("GW", None, &[(2024, 1, 23), (2024, 8, 3), (2025, 6, 9)]);
+    assert_eq!(gap_names("GW", 2025), ["Easter", "Eid al-Fitr"]);
+    assert_eq!(gap_names("GW", 2026), ["Easter", "Tabaski"]);
+}
+
+#[test]
+fn sierra_leone_moves_a_sunday_holiday_to_the_monday_as_the_notices_do() {
+    expect(
+        "SL",
+        None,
+        &[
+            (2020, 2, 18, "Armed Forces Day"),
+            (2020, 3, 9, "International Women's Day"),
+            (2020, 5, 25, "Eid al-Fitr"),
+            (2022, 7, 11, "Eid al-Adha"),
+            (2022, 12, 26, "Boxing Day"),
+            (2023, 2, 22, "Armed Forces Day"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 12, 25, "Christmas Day"),
+        ],
+    );
+    // Notice 517: Sunday 1 January 2023 gave Monday 2 January; Sunday
+    // Christmas 2022 gave nothing beyond Boxing Day on the Monday.
+    expect_substitute("SL", None, 2023, (1, 1), (1, 2));
+    expect_working("SL", None, &[(2022, 12, 27), (2023, 2, 18)]);
+    assert!(gap_names("SL", 2021).contains(&"Armed Forces Day"));
+    let gaps = gap_names("SL", 2026);
+    assert!(gaps.contains(&"Independence Day") && gaps.contains(&"Eid al-Fitr"));
+}
+
+#[test]
+fn the_gambia_is_its_presidents_declarations_year_by_year() {
+    expect(
+        "GM",
+        None,
+        &[
+            (2021, 7, 21, "Eid al-Adha"),
+            (2022, 1, 3, "New Year's Day"),
+            (2022, 10, 10, "Mawlid al-Nabi"),
+            (2024, 2, 19, "Independence Day"),
+            (2025, 5, 26, "Africa Day"),
+            (2025, 6, 7, "Eid al-Adha"),
+            (2025, 7, 5, "Ashura"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 8, 15, "Assumption Day"),
+            (2026, 8, 26, "Mawlid al-Nabi"),
+        ],
+    );
+    // A Saturday kept on the Saturday in 2025 and 2026; Ashura 2025 and
+    // Assumption 2026 gave no Monday.
+    expect_working("GM", None, &[(2025, 7, 7), (2026, 8, 17), (2022, 1, 1)]);
+    let gaps = gap_names("GM", 2026);
+    assert!(gaps.contains(&"Independence Day") && gaps.contains(&"Eid al-Adha"));
+    assert!(gap_names("GM", 2023).contains(&"Eid al-Fitr"));
+    let calendar = HolidayCalendar::for_year(table("GM"), None, 2026);
+    assert!(calendar.is_weekend(ymd(2026, 8, 15)));
+}
+
+#[test]
+fn eswatini_keeps_the_act_and_the_notices_read() {
+    expect(
+        "SZ",
+        None,
+        &[
+            (2008, 4, 19, "King's Birthday"),
+            (2022, 7, 22, "Public Holiday of 22 July"),
+            (2025, 3, 10, "Lutsango Day"),
+            (2025, 4, 25, "National Flag Day"),
+            (2025, 9, 6, "Somhlolo (Independence Day)"),
+            (2025, 9, 8, "Umhlanga"),
+            (2026, 4, 24, "King's Birthday"),
+            (2026, 5, 14, "Ascension Day"),
+        ],
+    );
+    // Section 2: a Sunday Christmas to the Monday, and Boxing Day then on
+    // to the Tuesday; a Sunday New Year to the Monday.
+    expect_substitute("SZ", None, 2022, (12, 25), (12, 27));
+    expect_substitute("SZ", None, 2023, (1, 1), (1, 2));
+    // 2026's King's Birthday went to the Friday and the Monday stayed a
+    // working day; Saturday is a working day; 22 July is Lutsango Day from
+    // 2025.
+    expect_working("SZ", None, &[(2026, 4, 20), (2026, 4, 19), (2025, 7, 22)]);
+    let saturday = HolidayCalendar::for_year(table("SZ"), None, 2025);
+    assert!(!saturday.is_weekend(ymd(2025, 9, 6)));
+    let gaps = gap_names("SZ", 2026);
+    assert!(gaps.contains(&"Umhlanga") && gaps.contains(&"Incwala Day"));
+    assert!(gap_names("SZ", 2001).contains(&"King's Birthday"));
+}
+
+#[test]
+fn togo_reports_the_laws_days_and_carries_the_communiques_read() {
+    expect(
+        "TG",
+        None,
+        &[
+            (2025, 4, 27, "Independence Day"),
+            (2025, 5, 2, "Day off"),
+            (2025, 6, 6, "Tabaski"),
+            (2025, 6, 9, "Whit Monday"),
+            (2026, 1, 2, "Day off"),
+            (2026, 3, 20, "Eid al-Fitr"),
+            (2026, 4, 27, "Independence Day"),
+            (2026, 5, 27, "Tabaski"),
+        ],
+    );
+    // 27 April 2025 was kept on the Sunday; the Monday was worked.
+    expect_working("TG", None, &[(2025, 4, 28)]);
+    let gaps = gap_names("TG", 2026);
+    assert!(gaps.contains(&"New Year's Day") && gaps.contains(&"Christmas"));
+    assert!(!gaps.contains(&"Tabaski"));
+    assert!(gap_names("TG", 2025).contains(&"Eid al-Fitr"));
+    let calendar = HolidayCalendar::for_year(table("TG"), None, 2026);
+    assert!(!calendar.is_weekend(ymd(2026, 5, 30)));
+    assert!(calendar.is_weekend(ymd(2026, 5, 31)));
+}
+
+#[test]
+fn niger_follows_the_amendments_of_2023_to_2026() {
+    expect(
+        "NE",
+        None,
+        &[
+            (2023, 12, 18, "Proclamation of the Republic"),
+            (2024, 1, 1, "New Year's Day"),
+            (2024, 7, 26, "Anniversary of 26 July"),
+            (2025, 8, 3, "National Day"),
+            (2025, 12, 25, "Christmas"),
+            (2026, 3, 26, "Day of the Refoundation"),
+            (2026, 4, 6, "Easter Monday"),
+            (2026, 5, 28, "Tabaski"),
+        ],
+    );
+    // 26 July from 2024, 26 March from 2026.
+    expect_working("NE", None, &[(2023, 7, 26), (2025, 3, 26)]);
+    // Eid al-Fitr is two days from 2026, a prediction; before, a gap.
+    let fitr = HolidayCalendar::for_year(table("NE"), None, 2026);
+    let days: Vec<Holiday> = fitr
+        .in_year(2026)
+        .into_iter()
+        .filter(|holiday| holiday.name == "Eid al-Fitr")
+        .collect();
+    assert_eq!(days.len(), 2);
+    assert!(
+        days.iter()
+            .all(|holiday| holiday.confidence == Confidence::Approximate)
+    );
+    assert!(gap_names("NE", 2025).contains(&"Eid al-Fitr"));
+    assert_eq!(gap_names("NE", 2026), ["Labour Day"]);
+}
+
+#[test]
+fn gabon_carries_the_communiques_as_reproduced() {
+    expect(
+        "GA",
+        None,
+        &[
+            (2024, 8, 16, "Independence Day"),
+            (2024, 8, 17, "Independence Day"),
+            (2024, 8, 30, "Liberation Day"),
+            (2025, 6, 6, "Eid al-Adha"),
+            (2025, 6, 9, "Whit Monday"),
+            (2025, 12, 26, "Day off"),
+            (2026, 1, 2, "Day off"),
+            (2026, 5, 14, "Ascension"),
+        ],
+    );
+    expect_working("GA", None, &[(2023, 8, 30), (2025, 6, 10)]);
+    let gaps = gap_names("GA", 2026);
+    assert!(gaps.contains(&"Independence Day") && gaps.contains(&"Labour Day"));
+    assert!(!gaps.contains(&"Ascension"));
 }
 
 #[test]

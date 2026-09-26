@@ -84,13 +84,63 @@ static US_RULES: &[HolidayRule] = &[
     HolidayRule::public("Thanksgiving Day", "", Rule::nth(11, 4, Weekday::Thursday))
         .years(Some(1942), None),
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)).years(Some(1871), None),
-    // State funerals closed the federal government for a day by executive
-    // order.
+    // Every full day an executive order closed the executive departments
+    // from 2018: two state funerals and the Christmas closures.
     HolidayRule::fixed_public("National Day of Mourning", "", Rule::gregorian(12, 5))
-        .years(Some(2018), Some(2018)),
+        .years(Some(2018), Some(2018))
+        .cited("Executive Order 13852 of 1 December 2018, 83 FR 62687"),
+    us_closure(
+        12,
+        24,
+        2018,
+        "Executive Order 13854 of 18 December 2018, 83 FR 65481",
+    ),
+    us_closure(
+        12,
+        24,
+        2019,
+        "Executive Order 13900 of 17 December 2019, 84 FR 69983",
+    ),
+    us_closure(
+        12,
+        24,
+        2020,
+        "Executive Order 13965 of 11 December 2020, 85 FR 81337",
+    ),
+    us_closure(
+        12,
+        24,
+        2024,
+        "Executive Order 14129 of 18 December 2024, 89 FR 104857",
+    ),
     HolidayRule::fixed_public("National Day of Mourning", "", Rule::gregorian(1, 9))
-        .years(Some(2025), Some(2025)),
+        .years(Some(2025), Some(2025))
+        .cited("Executive Order 14133 of 30 December 2024, 90 FR 187"),
+    us_closure(
+        12,
+        24,
+        2025,
+        "Executive Order 14371 of 18 December 2025, 90 FR 60545",
+    ),
+    us_closure(
+        12,
+        26,
+        2025,
+        "Executive Order 14371 of 18 December 2025, 90 FR 60545",
+    ),
 ];
+
+/// A day an executive order closed the executive departments and excused
+/// their employees, in the one year it names.
+const fn us_closure(month: u8, day: u8, year: i32, order: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(
+        "Closing of Executive Departments",
+        "",
+        Rule::gregorian(month, day),
+    )
+    .years(Some(year), Some(year))
+    .cited(order)
+}
 
 /// The federal "in lieu of" rule: Executive Order 11582 of 1971 codified
 /// what Executive Order 10358 had begun in 1959 — a Saturday holiday is kept
@@ -120,8 +170,12 @@ pub static UNITED_STATES: RuleSet = RuleSet {
               Act), Pub. L. 94-97 (1975) restoring Veterans Day, Pub. L. 98-144 (1983) for \
               Martin Luther King Jr. Day and Pub. L. 117-17 (2021) for Juneteenth, not read; \
               Executive Orders 10358 and 11582 on the in-lieu-of rule before it was in the \
-              statute, not read. Closures by executive order for a single year are not \
-              carried. State holidays are not modelled: there are no national public holidays \
+              statute, not read. The full-day closures by executive order from 2018 — \
+              Executive Orders 13852, 13854, 13900, 13965, 14129, 14133 and 14371 — from the \
+              Federal Register's documents API (federalregister.gov/api/v1), retrieved \
+              2026-09-26, each cited on its entry; the closures before 2018, the Christmas \
+              ones listed there from 1997 and the funeral days alike, and the half-day \
+              closures, are not carried. State holidays are not modelled: there are no national public holidays \
               in the United States, only federal ones",
 };
 
@@ -1405,6 +1459,14 @@ pub static ECUADOR: RuleSet = RuleSet {
 static UY_APRIL_19: Rule = Rule::gregorian(4, 19);
 static UY_MAY_18: Rule = Rule::gregorian(5, 18);
 static UY_OCTOBER_12: Rule = Rule::gregorian(10, 12);
+static UY_JUNE_19: Rule = Rule::gregorian(6, 19);
+static UY_NOVEMBER_2: Rule = Rule::gregorian(11, 2);
+
+/// The years under Ley 16.805 as first enacted, whose article 2 left 19 June
+/// and 2 November to article 1's moves: 1997, the first year after its
+/// publication on 31 December 1996, to 2001, when Ley 17.414 of 8 November
+/// named them immovable — after 19 June and 2 November had both moved.
+const UY_ORIGINAL_16805: (i32, i32) = (1997, 2001);
 
 /// A feriado común: banks and public offices close, private employers may
 /// require work.
@@ -1436,7 +1498,7 @@ static UY_RULES: &[HolidayRule] = &[
         "Desembarco de los Treinta y Tres Orientales",
         Rule::moved_by_weekday(&UY_APRIL_19, TO_ADJACENT_MONDAY),
     )
-    .years(Some(2002), None),
+    .years(Some(UY_ORIGINAL_16805.0), None),
     HolidayRule::fixed_public(
         "Workers' Day",
         "Día de los Trabajadores",
@@ -1447,12 +1509,25 @@ static UY_RULES: &[HolidayRule] = &[
         "Batalla de Las Piedras",
         Rule::moved_by_weekday(&UY_MAY_18, TO_ADJACENT_MONDAY),
     )
-    .years(Some(2002), None),
+    .years(Some(UY_ORIGINAL_16805.0), None),
     uy_common(
         "Birth of Artigas",
         "Natalicio de Artigas",
         Rule::gregorian(6, 19),
-    ),
+    )
+    .years(None, Some(UY_ORIGINAL_16805.0 - 1)),
+    uy_common(
+        "Birth of Artigas",
+        "Natalicio de Artigas",
+        Rule::moved_by_weekday(&UY_JUNE_19, TO_ADJACENT_MONDAY),
+    )
+    .years(Some(UY_ORIGINAL_16805.0), Some(UY_ORIGINAL_16805.1)),
+    uy_common(
+        "Birth of Artigas",
+        "Natalicio de Artigas",
+        Rule::gregorian(6, 19),
+    )
+    .years(Some(UY_ORIGINAL_16805.1 + 1), None),
     HolidayRule::fixed_public(
         "Constitution Day",
         "Jura de la Constitución",
@@ -1468,12 +1543,25 @@ static UY_RULES: &[HolidayRule] = &[
         "Día de la Raza",
         Rule::moved_by_weekday(&UY_OCTOBER_12, TO_ADJACENT_MONDAY),
     )
-    .years(Some(2002), None),
+    .years(Some(UY_ORIGINAL_16805.0), None),
     uy_common(
         "All Souls' Day",
         "Día de los Difuntos",
         Rule::gregorian(11, 2),
-    ),
+    )
+    .years(None, Some(UY_ORIGINAL_16805.0 - 1)),
+    uy_common(
+        "All Souls' Day",
+        "Día de los Difuntos",
+        Rule::moved_by_weekday(&UY_NOVEMBER_2, TO_ADJACENT_MONDAY),
+    )
+    .years(Some(UY_ORIGINAL_16805.0), Some(UY_ORIGINAL_16805.1)),
+    uy_common(
+        "All Souls' Day",
+        "Día de los Difuntos",
+        Rule::gregorian(11, 2),
+    )
+    .years(Some(UY_ORIGINAL_16805.1 + 1), None),
     HolidayRule::fixed_public("Family Day", "Día de la Familia", Rule::gregorian(12, 25)),
 ];
 
@@ -1486,10 +1574,15 @@ static UY_RULES: &[HolidayRule] = &[
 /// Tourism Week among them. Three holidays move: 19 April, 18 May and
 /// 12 October go to the Monday before from a Tuesday or Wednesday and the
 /// Monday after from a Thursday or Friday, the same table Argentina uses;
-/// the rest the amended law names as immovable. The three moved rules
-/// start in 2002, the first year under the amendment; what the 1996 law
-/// moved before it is not carried, and the sector holidays and the
-/// one-off days are not carried either.
+/// the rest the amended law names as immovable. The moves start in 1997,
+/// the first year under the law as first enacted, whose article 2 excepted
+/// only 1 and 6 January, 1 May, 18 July, 25 August, 25 December, Carnival
+/// and Tourism Week, so that 19 June and 2 November moved too until Ley
+/// 17.414 added them to the exceptions in November 2001. 19 June has been
+/// a holiday since Ley 9.935 of 1940, which is not what 17.414's
+/// "restablecerse" restores: it restores the day's own date. Before 1997
+/// no move is carried; the sector holidays and the one-off days are not
+/// carried either.
 pub static URUGUAY: RuleSet = RuleSet {
     code: "UY",
     english_name: "Uruguay",
@@ -1499,10 +1592,12 @@ pub static URUGUAY: RuleSet = RuleSet {
     includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 26),
-    sources: "Ley N° 16.805 de 24 de diciembre de 1996, arts. 1 and 2, art. 2 as worded by Ley \
-              N° 17.414 de 8 de noviembre de 2001, and Ley N° 12.590 de 23 de diciembre de \
-              1958, art. 18, on IMPO (impo.com.uy/bases/leyes/16805-1996, 17414-2001 and \
-              12590-1958), retrieved 2026-09-26; the Spanish Wikipedia, \"Días feriados de \
+    sources: "Ley N° 16.805 de 24 de diciembre de 1996, arts. 1 and 2, art. 2 as first enacted \
+              (impo.com.uy/bases/leyes-originales/16805-1996) and as worded by Ley N° 17.414 de \
+              8 de noviembre de 2001, published 14 November 2001, Ley N° 9.935 of 1940, art. 1, \
+              for 19 June, and Ley N° 12.590 de 23 de diciembre de 1958, art. 18, on IMPO \
+              (impo.com.uy/bases/leyes/16805-1996, 17414-2001, 9935-1940 and 12590-1958), \
+              retrieved 2026-09-26; the Spanish Wikipedia, \"Días feriados de \
               Uruguay\", retrieved 2026-09-22, for Carnival and Tourism Week; Wikipedia, \
               \"Public holidays in Uruguay\", for the English names",
 };

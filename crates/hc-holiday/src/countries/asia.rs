@@ -6095,3 +6095,108 @@ pub static AFGHANISTAN: RuleSet = RuleSet {
               Press, 10 April 2024, on its Eid al-Fitr notice; all retrieved 2026-09-26. See \
               docs/systems/afghanistan-holidays.md",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// North Korea
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Sunday: article 64 of the Socialist Labour Law, "Sundays shall be days
+/// of rest".
+static KP_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Sunday],
+    valid_from: None,
+    valid_from_day: None,
+    valid_until: None,
+    valid_until_day: None,
+}];
+
+/// The year of the wall calendar whose days off are this table's.
+const KP_FROM: i32 = 2020;
+
+const fn kp_fixed(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, Rule::gregorian(month, day)).years(Some(KP_FROM), None)
+}
+
+/// A folk holiday on the Korean lunar calendar: KCNA's "해마다 음력으로".
+const fn kp_lunar(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::DANGI, month, day),
+    )
+    .years(Some(KP_FROM), None)
+}
+
+static KP_RULES: &[HolidayRule] = &[
+    kp_fixed("New Year's Day", "양력설", 1, 1),
+    kp_lunar("Lunar New Year", "설명절", 1, 1),
+    kp_lunar("First Full Moon", "정월대보름", 1, 15),
+    kp_fixed("Day of the Shining Star", "광명성절", 2, 16),
+    kp_fixed("International Women's Day", "", 3, 8),
+    kp_fixed("Day of the Sun", "태양절", 4, 15),
+    kp_fixed("Day of the Sun", "태양절", 4, 16),
+    kp_fixed("May Day", "5.1절", 5, 1),
+    kp_fixed(
+        "Day of Victory in the Fatherland Liberation War",
+        "조국해방전쟁승리의 날",
+        7,
+        27,
+    ),
+    kp_fixed(
+        "Day of the Liberation of the Fatherland",
+        "조국해방의 날",
+        8,
+        15,
+    ),
+    kp_lunar("Chuseok", "추석", 8, 15),
+    kp_fixed(
+        "Day of the Foundation of the Republic",
+        "공화국창건일",
+        9,
+        9,
+    ),
+    kp_fixed("Day of the Foundation of the Party", "당창건일", 10, 10),
+    kp_fixed("Constitution Day", "헌법절", 12, 27),
+];
+
+/// North Korea, from 2020.
+///
+/// The names, the dates and the rule for the lunar days are the state
+/// news agency's: KCNA's reports of 2026 of each holiday as it
+/// was kept — 설명절 on 17 February and 정월대보름 on 3 March 2026, "해마다
+/// 음력으로 8월 15일인 추석" on 25 September 2026, and the anniversaries on
+/// their days. Which of them are days off no state-media source read says;
+/// that is the printed wall calendar of 2020, 《백두산》 of the Foreign
+/// Languages Publishing House, as Seoul National University's Institute
+/// for Peace and Unification Studies transcribes it, the calendar itself
+/// not seen. So the table is that calendar's thirteen holidays, 15 and 16
+/// April both, from 2020; International Women's Day and Constitution Day
+/// rest on the transcription alone. The lunar days are on `dangi`, the
+/// Korean calendar at UT+9, which gives KCNA's three dates of 2026;
+/// whether the North's own almanac ever differs from it was not checked.
+/// The calendar's other anniversaries — 8 February, 25 April, 8 July and
+/// 28 August — and 청명 are not carried, their days off unconfirmed. The
+/// swaps of a working Sunday for a day beside a holiday, which the
+/// Institute describes and no KCNA notice read dates, are not carried
+/// either; article 64's compensatory rest is for work on a rest day, not a
+/// rule for holidays.
+pub static NORTH_KOREA: RuleSet = RuleSet {
+    code: "KP",
+    english_name: "North Korea",
+    rules: KP_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: KP_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Korean Central News Agency (kcna.kp), reports of 6 January, 1, 9, 17 and 18 \
+              February, 4 March, 1, 16, 17 and 26 April, 28 July, 16 August, 2, 10 and 26 \
+              September 2026, retrieved 2026-09-26, for the names, the anniversaries and the \
+              lunar rule; Rodong Sinmun and Naenara not reachable; 안주영 et al., Seoul \
+              National University Institute for Peace and Unification Studies, 2020 \
+              unification report, pp. 11–13 (ipus.snu.ac.kr), transcribing the 2020 wall \
+              calendar 《백두산》, for which days are days off (secondary, the calendar not \
+              seen); the Socialist Labour Law of 1978 as amended to 30 June 2015, article 64, \
+              in Daye Gang's English translation on Law and North Korea \
+              (lawandnorthkorea.com), as the Internet Archive holds it (captured 2023-04-08)",
+};

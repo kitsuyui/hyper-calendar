@@ -205,7 +205,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Country | Note |
 | --- | --- |
 | Japan 🇯🇵 | Complete from 1948 (祝日法) to the present with every amendment, the 振替休日 and 国民の休日 as policies and the equinox days computed; the law, its amendments and how the table was checked are in [systems/japan-holidays.md](systems/japan-holidays.md) |
-| United States 🇺🇸 | Federal holidays with the Saturday/Sunday observed rule, the Uniform Monday Holiday Act, Veterans Day's 1971–77 detour, Juneteenth from 2021, Inauguration Day for the capital region, and the two state-funeral days |
+| United States 🇺🇸 | Federal holidays with the Saturday/Sunday observed rule, the Uniform Monday Holiday Act, Veterans Day's 1971–77 detour, Juneteenth from 2021, Inauguration Day for the capital region, and every full-day closure by executive order from 2018 — the two state-funeral days and the Christmas closures, 24 and 26 December 2025 among them; the closures before 2018 not carried |
 | United Kingdom 🇬🇧 | England and Wales, Scotland and Northern Ireland as separate regions, with the royal one-offs and the three jubilee moves of the Spring Bank Holiday |
 | Ireland 🇮🇪 | Including St Brigid's Day and its conditional rule and the one-off of 18 March 2022; a holiday on the weekend moves nothing, as section 21 of the 1997 Act gives a benefit and not a next working day |
 | Germany 🇩🇪 | Federal plus all 16 *Länder*, including Buß- und Bettag before and after 1995 |
@@ -238,7 +238,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Brazil 🇧🇷 | Including Consciência Negra from 2024 |
 | Mexico 🇲🇽 | Including the 2006 Monday reform and the six-yearly presidential handover |
 | Saudi Arabia 🇸🇦 | Article 24 of the Labour Law's executive regulation on the Umm al-Qura calendar: four days of each Eid, National Day and Founding Day; the weekend change of 29 June 2013 on its day |
-| United Arab Emirates 🇦🇪 | With the weekends by their dates: Thursday–Friday to 31 August 2006, Friday–Saturday to 2021, Saturday–Sunday from 1 January 2022 |
+| United Arab Emirates 🇦🇪 | With the weekends by their dates: Thursday–Friday to 31 August 2006, Friday–Saturday to 2021, Saturday–Sunday from 1 January 2022; Commemoration Day to 2024, off the list of Cabinet Resolution 27 of 2024, the Prophet's Birthday still on it, National Day 2025 on the 1 and 2 December the circular gave, and Eid al-Fitr from 30 Ramadan |
 | Israel 🇮🇱 | Hebrew-dated and therefore exact, with Yom HaAtzmaut's Sabbath-avoidance rule |
 | Iran 🇮🇷 | Civil holidays on the astronomical `persian` calendar, so exact — Nowruz 1404 on 21 March 2025, where the arithmetic cycle says the 20th; the lunar Hijri days flagged `Approximate`, since Iran declares them on its own sighting; Friday weekend |
 | Albania 🇦🇱 | Law 7651's fifteen holidays with both Easters, approximate Eids and the weekend rule that gives each holiday its own working day after |
@@ -281,7 +281,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Bolivia 🇧🇴 | Decreto Supremo 2750 with the Sunday rule and the four days it excepts; departmental holidays and yearly bridges not carried |
 | Chile 🇨🇱 | Every move a rule of its own: Ley 19.668's Mondays, Ley 20.299's Fridays, the computed 2 January and 17/20 September days, the solstice at Chile's meridian; Arica's day as `CL-AP` |
 | Ecuador 🇪🇨 | Art. 65 as reformed in 2016: the moves per holiday, the weekend-only moves of the three excepted days, and the 2/3 November pair as the Government resolved it |
-| Uruguay 🇺🇾 | Ley 16.805 as amended in 2001: paid holidays public, common ones bank, Tourism Week's six days, three holidays to the adjacent Monday |
+| Uruguay 🇺🇾 | Ley 16.805 as amended in 2001: paid holidays public, common ones bank, Tourism Week's six days, three holidays to the adjacent Monday from 1997, and 19 June and 2 November too under the law as first enacted, 1997–2001 |
 | Venezuela 🇻🇪 | LOTTT art. 184 with Carnival, Holy Week and the whole days of 24 and 31 December, and the 1971 Ley de Fiestas Nacionales' five days, 12 October renamed in 2002; the declared days not carried |
 | Paraguay 🇵🇾 | Ley 7544/2025 with 14 May from 2012, 29 September from 1995 and 20 June from 2026; the 2026 decrees' three Monday moves and the additional days read for 2025 and 2026, earlier decreed moves not carried |
 | Jamaica 🇯🇲 | The Holidays (Public General) Act's Schedule: Sunday moves, Labour Day off a Saturday too, a Sunday Christmas giving the 26th and 27th; a Sunday Boxing Day's Monday only from the Minister's 2021 appointment |
@@ -297,7 +297,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Suriname 🇸🇷 | The Besluit Vrije Dagen 1971 as S.B. 2021 no. 27 left it, the 2007 and 2012 additions by year and 25 February for 2012–2020; Holi, Divali, the Ieds and Chinese New Year approximate; nothing moves |
 | Argentina 🇦🇷 | From Decreto 1584/2010 in 2011: the *inamovibles* where they fall, the *trasladables* on the decree's Mondays to 2016 and by the weekday rule of Ley 27.399 from 2018; the annual tourist holidays not carried; Holy Thursday and the days of the Jewish and Islamic faiths as observances |
 | Colombia 🇨🇴 | Ley 51 de 1983 from 1984: ten holidays to the following Monday, eight where they fall |
-| Ethiopia 🇪🇹 | The national and Orthodox holidays on the Ethiopian calendar (`ethiopic`), where they are kept; Fasika by the Julian computus; the Islamic days approximate; the Downfall of the Derg to 2024, which Proclamation 1334/2024 leaves out |
+| Ethiopia 🇪🇹 | Proclamation 1334/2024 from the Negarit Gazeta: the national and Orthodox holidays on the Ethiopian calendar (`ethiopic`), where they are kept; Fasika by the Julian computus; the Islamic days approximate; the Downfall of the Derg from 1992 to 2024, which the proclamation leaves out, and its two memorial days as observances |
 | Ghana 🇬🇭 | The Act as amended in 2019 and 2025, from 2019: Founders' Day and Kwame Nkrumah Memorial Day by their years, Republic Day back from 2025, Shaqq Day from 2026; the year-by-year Monday declarations not carried |
 | Bahrain 🇧🇭 | The Council of Ministers' fourteen days under art. 64 of Law 36/2012: three of each Eid, two of Ashura, Hijri dates approximate; nothing moves; Friday–Saturday weekend from September 2006 |
 | Jordan 🇯🇴 | The list with four days of Eid al-Fitr and five from Arafat, Christmas for all, the Christian employees' Eastern Easter days as `Kind::Religious`, the working commemorations as observances; Friday–Saturday weekend from 2000 |
@@ -338,6 +338,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Djibouti 🇩🇯 | Arrêté 77-347 of 1977 as its 1981 rectificatif quotes it, from 1978: two days of each Eid, the first of Muharram, the Mouloud and Isra and Mi'raj approximate, Christmas by arrêté 77-609, Independence two days from 1981 and 28 June 1980 a gap; nothing moves; the Friday weekend of the Labour Code |
 | Comoros 🇰🇲 | Decree 25-147/PR of 19 December 2025 from 2026: six civil days and the seven religious days approximate, the end of Ramadan as the three days after 29 Ramadan and Eid al-Kabir with its morrow; the earlier decrees it repeals unread; article 3's bridge days a decision each time, not carried; nothing moves |
 | Equatorial Guinea 🇬🇶 | Decree 9/2007's ten days from 2007, with article 4's first working day after a feast on a Saturday or Sunday; the ministerial orders of article 5, Easter Monday among them, not carried |
+| Somalia 🇸🇴 | Labour Code, Law 36 of 2024, from 2025: 21 January, 1 May, 26 June and 1 July, the Prophet's Birthday, two days of Eid al-Fitr and three of Eid al-Adha approximate; the Friday weekend of article 64, nothing moved; the Eids' "working days" counted as calendar days |
 | Liberia 🇱🇷 | The Acts the President's proclamations cite: eleven days, Flag Day from 1916, Decoration Day from 1917, 1883 and 1960 as gap years for their Acts; a Sunday holiday on the Monday as every proclamation read from 2014 gives it, a Saturday one where it falls; the Sunday weekend of the Decent Work Act |
 | Cameroon 🇨🇲 | Law 73/5 of 1973: four civil and six religious days, the Eids approximate, and the next day for a civil holiday on a Sunday or on another holiday, from 1974; the President's declared days not carried |
 | Republic of the Congo 🇨🇬 | Law 2-94 of 1994's nine days with the Easter and Pentecost Mondays; nothing moves; 28 November and the Minister's declared days not carried |
@@ -373,12 +374,33 @@ Ordered by how well the sources can be cited, not by importance.
 | Fiji 🇫🇯 | The Ministry of Information's yearly lists for 2019–2026, every day of each as listed — Constitution Day to 2022, Girmit Day and Ratu Sir Lala Sukuna Day from 2023, the Prophet's Birthday and Diwali, and the weekend moves the lists make in some years and not others — a year outside reported as a gap; Good Friday, Easter Saturday and Easter Monday by rule from Cap. 101's Schedule |
 | Kiribati 🇰🇮 | The Beretitenti's orders under Cap. 81 for 2025 (revised) and 2026, every day of each as ordered, the "in honour of" days included, a year outside reported as a gap; Good Friday and Easter Monday by rule; the Schedule days an order keeps without listing not carried |
 | Afghanistan 🇦🇫 | The Islamic Emirate's days from 2023, as the 1444 AH calendar and the Ministry of Labour's notices give them: 24 and 28 Asad and 26 Dalw exact on `persian-afghan`, Eid al-Fitr's first day and Arafah with Eid al-Adha's first three days approximate, 13 Dhu al-Hijjah in the three years whose notices were read and a gap otherwise, Eid al-Fitr's further days a gap every year; the Friday weekend; the system in [systems/afghanistan-holidays.md](systems/afghanistan-holidays.md) |
+| South Sudan 🇸🇸 | The Ministry of Labour's calendar for 2022 under section 61 of the Labour Act: five single days from 2022, nothing moved; Easter, the Eids and Christmas, whose length the Ministry sets, for 2022, 2025 and 2026 as the calendar and notices read give them, a gap otherwise; the weekend not sourced |
+| Sudan 🇸🇩 | The Council of Ministers' announcements, one holiday at a time: Christmas 2025 and the 2026 days, every other year a gap; Friday–Saturday from 26 January 2008, from the press |
+| Guinea-Bissau 🇬🇼 | Decree 1/2023 as the press quotes it, from 2023: five fixed days; Tabaski 2025 and Eid al-Fitr 2026 as declared; Easter, which the decree does not date, a gap every year |
+| Sierra Leone 🇸🇱 | Cap. 58 and the Gazette notices of 2020–2023: the Schedule's Christian days by rule with the Sunday-to-Monday rule as the notices apply it, Armed Forces Day, Women's Day and the Eids for the years read; Independence Day, Labour Day and the Moulid a gap every year |
+| Gambia 🇬🇲 | The President's declarations of 2021–2026, every day as declared and a gap for any year not read; no weekend policy, since the declarations stopped moving Saturday holidays in 2025 |
+| Eswatini 🇸🇿 | The Act of 1938 as consolidated to 1998, with section 2's Sunday proviso; Umhlanga, Incwala and Labour Day for the years whose notices were read, a gap otherwise; the King's Birthday of 2026 on the Friday; Lutsango Day for 22 July from 2025, from the press; the Sunday weekend |
+| Togo 🇹🇬 | Loi 87-08's fêtes légales as a gap every year from 1987, the list the Code du travail of 2021 leaves to a decree not found; 27 April, Whit Monday, the Eids, Labour Day and the declared days off for the communiqués of 2024–2026 read |
+| Niger 🇳🇪 | Loi 97-20's days as its amendments and the communiqués of 2023–2026 give them, from 2023: 3 August from 2023, 26 July from 2024, 26 March and a second day of Eid al-Fitr from 2026; Easter Monday and Tabaski for 2026; Labour Day a gap |
+| Gabon 🇬🇦 | The Ministry of Labour's communiqués of 2024–2026 as the press reproduces them, each year's days as declared and a gap otherwise; Liberation Day, 30 August, from 2024 |
+| North Korea 🇰🇵 | KCNA's names and dates, the 2020 wall calendar's days off as Seoul National University transcribes it, from 2020: the lunar days on `dangi`, the Sunday rest of the Labour Law; the swapped working days not carried |
 
 **Planned** — the United Nations member states without a table, the
-Central African Republic, Eritrea, Eswatini, Gabon, the Gambia,
-Guinea-Bissau, Niger, North Korea, São Tomé and Príncipe, Sierra Leone,
-Somalia, South Sudan, Sudan and Togo, plus the subdivisions that have their own legal holidays. Tracked as
-one issue per country so that each lands with a citable source.
+Central African Republic, Eritrea and São Tomé and Príncipe, plus the
+subdivisions that have their own legal holidays. Tracked as one issue per
+country so that each lands with a citable source.
+
+The three are left out because no list could be read. The Central African
+Republic's Code du travail puts the weekly rest on Sunday and lists no
+holiday; the law of 10 January 2020 that fixes the fêtes légales was not
+found, and what is known of it is from the press and an embassy calendar.
+Eritrea's Labour Proclamation 118/2001 makes every holiday "recognized by
+law" a paid one and names none, and the instrument that lists them was not
+found; the Ministry of Information reports the feasts as they are kept,
+which says nothing of the days off. São Tomé and Príncipe's Lei n.º 8/2025
+of 29 December 2025 is known only from the state news agency's quotation of
+its article 2, which makes Ash Wednesday a movable holiday from 2026; which
+days the law kept, added and removed is not, and one day is not a table.
 
 Where a country's dates are announced each year by decree rather than fixed
 in law, its table carries the notices that were read and reports any other
