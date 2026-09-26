@@ -1,8 +1,9 @@
 //! Tables for the Middle East and Africa.
 //!
 //! Most of the crate's **Friday–Saturday weekends** are in this file, and so
-//! are most of its weekend changes: Saudi Arabia moved from Thursday–Friday
-//! in June 2013, and the United Arab Emirates to Saturday–Sunday on
+//! are most of its weekend changes, each on the day it took effect where
+//! the source gives one: Saudi Arabia moved from Thursday–Friday on
+//! 29 June 2013, and the United Arab Emirates to Saturday–Sunday on
 //! 1 January 2022. So is **Israel's Independence Day**, whose statute is a
 //! sentence rather than a pattern and which is therefore a
 //! [`Rule::Computed`] rule.
@@ -23,12 +24,95 @@ use crate::rule::{
     SourceDate, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
 };
 
-/// The Friday–Saturday weekend, as most of the Arab world keeps it.
+/// The Friday–Saturday weekend, as most of the Arab world keeps it, for a
+/// table whose sources give no date it began.
 static FRIDAY_SATURDAY: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday, Weekday::Saturday],
     valid_from: None,
+    valid_from_day: None,
     valid_until: None,
+    valid_until_day: None,
 }];
+
+/// Bahrain: Thursday–Friday until the Government moved the public sector
+/// to Friday–Saturday from Saturday 2 September 2006, as Gulf News reported
+/// the next day.
+static BH_WEEKEND: &[WeekendPolicy] = &[
+    WeekendPolicy {
+        days: &[Weekday::Thursday, Weekday::Friday],
+        valid_from: None,
+        valid_from_day: None,
+        valid_until: Some(2006),
+        valid_until_day: Some((8, 31)),
+    },
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday],
+        valid_from: Some(2006),
+        valid_from_day: Some((9, 1)),
+        valid_until: None,
+        valid_until_day: None,
+    },
+];
+
+/// Jordan: Thursday–Friday until the Government made it Friday–Saturday in
+/// January 2000, as Al Wakeel News reports; the day is not in the report,
+/// so the policy begins with 2000.
+static JO_WEEKEND: &[WeekendPolicy] = &[
+    WeekendPolicy {
+        days: &[Weekday::Thursday, Weekday::Friday],
+        valid_from: None,
+        valid_from_day: None,
+        valid_until: Some(1999),
+        valid_until_day: None,
+    },
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday],
+        valid_from: Some(2000),
+        valid_from_day: None,
+        valid_until: None,
+        valid_until_day: None,
+    },
+];
+
+/// Kuwait: Thursday–Friday until the Cabinet's decision of 27 May 2007
+/// moved the Government's offices to Friday–Saturday from Saturday
+/// 1 September 2007, as Arab News reported it from KUNA.
+static KW_WEEKEND: &[WeekendPolicy] = &[
+    WeekendPolicy {
+        days: &[Weekday::Thursday, Weekday::Friday],
+        valid_from: None,
+        valid_from_day: None,
+        valid_until: Some(2007),
+        valid_until_day: Some((8, 31)),
+    },
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday],
+        valid_from: Some(2007),
+        valid_from_day: Some((9, 1)),
+        valid_until: None,
+        valid_until_day: None,
+    },
+];
+
+/// Qatar: Thursday–Friday until the Cabinet's decision announced on
+/// 20 July 2003 moved the public sector to Friday–Saturday from 1 August
+/// 2003, as Arab News reported it.
+static QA_WEEKEND: &[WeekendPolicy] = &[
+    WeekendPolicy {
+        days: &[Weekday::Thursday, Weekday::Friday],
+        valid_from: None,
+        valid_from_day: None,
+        valid_until: Some(2003),
+        valid_until_day: Some((7, 31)),
+    },
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday],
+        valid_from: Some(2003),
+        valid_from_day: Some((8, 1)),
+        valid_until: None,
+        valid_until_day: None,
+    },
+];
 
 const EID_AL_FITR: Rule = Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1);
 const EID_AL_ADHA: Rule = Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10);
@@ -149,7 +233,9 @@ static IL_RULES: &[HolidayRule] = &[
 static IL_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Saturday],
     valid_from: None,
+    valid_from_day: None,
     valid_until: None,
+    valid_until_day: None,
 }];
 
 /// Israel.
@@ -183,7 +269,9 @@ pub static ISRAEL: RuleSet = RuleSet {
 static IR_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday],
     valid_from: None,
+    valid_from_day: None,
     valid_until: None,
+    valid_until_day: None,
 }];
 
 /// A civil holiday dated in the Solar Hijri calendar as Iran keeps it —
@@ -309,52 +397,57 @@ pub static IRAN: RuleSet = RuleSet {
               sighting, and the tabular civil calendar here is a prediction",
 };
 
-/// Saudi Arabia moved its weekend from Thursday–Friday to Friday–Saturday
-/// by royal decree in June 2013, to lose one fewer working day of overlap
-/// with the rest of the world.
+/// Saudi Arabia moved the Government's weekend from Thursday–Friday to
+/// Friday–Saturday by a royal order of 23 June 2013, "starting from
+/// Saturday, 20/08/1434 corresponding to 29/6/2013", as the Saudi Press
+/// Agency published it; Friday 28 June was a weekend day under both. The
+/// Ministry of Labour said at the time that the private sector's statutory
+/// weekly rest is Friday alone, which is not carried.
 static SA_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
         valid_from: None,
-        valid_until: Some(2012),
+        valid_from_day: None,
+        valid_until: Some(2013),
+        valid_until_day: Some((6, 28)),
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
         valid_from: Some(2013),
+        valid_from_day: Some((6, 29)),
         valid_until: None,
+        valid_until_day: None,
     },
 ];
+
+/// 29 Ramadan on the Umm al-Qurā calendar.
+static SA_RAMADAN_29: Rule = Rule::in_calendar(CalendarSystem::ISLAMIC_UMM_AL_QURA, 9, 29);
+
+/// The `day`th of the four days of Eid al-Fitr.
+const fn sa_fitr(day: i16) -> HolidayRule {
+    HolidayRule::fixed_public(
+        "Eid al-Fitr",
+        "عيد الفطر",
+        Rule::Offset {
+            base: &SA_RAMADAN_29,
+            days: day,
+        },
+    )
+    .approximate()
+}
 
 static SA_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("Founding Day", "يوم التأسيس", Rule::gregorian(2, 22))
         .years(Some(2022), None),
     // The Umm al-Qurā calendar is Saudi Arabia's own civil calendar, so its
     // holidays are dated in it. It remains a computation: the Eid dates are
-    // proclaimed on a sighting.
-    HolidayRule::fixed_public(
-        "Eid al-Fitr",
-        "عيد الفطر",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_UMM_AL_QURA, 9, 30),
-    )
-    .approximate(),
-    HolidayRule::fixed_public(
-        "Eid al-Fitr",
-        "عيد الفطر",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_UMM_AL_QURA, 10, 1),
-    )
-    .approximate(),
-    HolidayRule::fixed_public(
-        "Eid al-Fitr",
-        "عيد الفطر",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_UMM_AL_QURA, 10, 2),
-    )
-    .approximate(),
-    HolidayRule::fixed_public(
-        "Eid al-Fitr",
-        "عيد الفطر",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_UMM_AL_QURA, 10, 3),
-    )
-    .approximate(),
+    // proclaimed on a sighting. Article 24 of the Labour Law's executive
+    // regulation: Eid al-Fitr "أربعة أيام تبدأ من اليوم التالي لليوم التاسع
+    // والعشرين من شهر رمضان", four days from the day after 29 Ramadan.
+    sa_fitr(1),
+    sa_fitr(2),
+    sa_fitr(3),
+    sa_fitr(4),
     HolidayRule::fixed_public(
         "Day of Arafah",
         "يوم عرفة",
@@ -384,6 +477,16 @@ static SA_RULES: &[HolidayRule] = &[
 ];
 
 /// Saudi Arabia.
+///
+/// The days of article 24 of the Labour Law's executive regulation, under
+/// article 112 of the Law: four days of Eid al-Fitr from the day after
+/// 29 Ramadan and four of Eid al-Adha from the Day of Arafah, on the Umm
+/// al-Qurā calendar as approximations of the proclaimed dates; National
+/// Day, which the regulation puts on the first day of Libra, on its
+/// Gregorian 23 September, from 2005; and Founding Day from 2022, by Royal
+/// Order A/371. The regulation compensates an Eid day that falls on the
+/// weekend, which is not carried; the Government's own Eid holidays, set by
+/// royal decree each year and usually longer, are not either.
 pub static SAUDI_ARABIA: RuleSet = RuleSet {
     code: "SA",
     english_name: "Saudi Arabia",
@@ -392,31 +495,49 @@ pub static SAUDI_ARABIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SA_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Royal decrees; Umm al-Qura gazette; the June 2013 royal order \
-              moving the weekend. APPROXIMATE BY NATURE: the Eid holidays \
-              are announced by royal decree each year, usually longer than \
-              the statutory span given here, and their start depends on a \
-              crescent sighting. The Umm al-Qurā table covers 1300–1600 AH \
-              only, so this calendar answers for roughly 1882–2174 CE",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "The Labour Law's executive regulation, article 24, as the Ministry of Human \
+              Resources and Social Development publishes it (hrsd.gov.sa, \"اللائحة التنفيذية \
+              لنظام العمل وملحقاتها\", April 2025), retrieved 2026-09-26, the ministerial \
+              decision issuing it not read; Royal Order A/371 of 24/6/1443 AH (27 January \
+              2022) for Founding Day, the Saudi Press Agency's headline (spa.gov.sa/2324646) \
+              and Sobra News for its number and date (secondary); the Arab Gulf States \
+              Institute for National Day as a holiday from 2005 (secondary), its instrument \
+              not found; the royal order of 23 June 2013 moving the weekend from 29 June 2013, \
+              from the Saudi Press Agency (spa.gov.sa/en/bee255bdbb), and its number, A/185, \
+              from Al Eqtisadiah (secondary); all retrieved 2026-09-26. The Umm al-Qurā table \
+              covers 1300–1600 AH only, so this calendar answers for roughly 1882–2174 CE",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
 // United Arab Emirates
 // ─────────────────────────────────────────────────────────────────────────
 
-/// The Emirates moved to a Saturday–Sunday weekend, with a half-day Friday,
-/// on 1 January 2022 — the first Gulf state to do so.
+/// Thursday–Friday until 31 August 2006; Friday–Saturday for the federal
+/// Government and the schools from Friday 1 September 2006, by the Cabinet
+/// decision WAM reported on 16 May 2006; Saturday–Sunday, with a half-day
+/// Friday, from 1 January 2022, as the Government portal states.
 static AE_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
+        days: &[Weekday::Thursday, Weekday::Friday],
         valid_from: None,
+        valid_from_day: None,
+        valid_until: Some(2006),
+        valid_until_day: Some((8, 31)),
+    },
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday],
+        valid_from: Some(2006),
+        valid_from_day: Some((9, 1)),
         valid_until: Some(2021),
+        valid_until_day: None,
     },
     WeekendPolicy {
         days: &[Weekday::Saturday, Weekday::Sunday],
         valid_from: Some(2022),
+        valid_from_day: None,
         valid_until: None,
+        valid_until_day: None,
     },
 ];
 
@@ -493,12 +614,20 @@ pub static UNITED_ARAB_EMIRATES: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: AE_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Cabinet Resolution 4-3 of 2019 and the yearly Cabinet circular \
-              announcing the holiday table; the December 2021 Cabinet \
-              decision on the working week. APPROXIMATE BY NATURE: every \
-              Islamic date is announced by the Emirates Astronomy Society \
-              and confirmed by the Cabinet, per year",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Federal Decree-Law No. 33 of 2021, article 28, on the public holidays the \
+              Cabinet sets, as Gulf News reports it (secondary); Cabinet Resolution No. 27 of \
+              2024 on the public holidays, Official Gazette No. 775, in force 1 January 2025, \
+              repealing Cabinet Resolution No. 27 of 2019, as legal-wires.com summarises it \
+              (secondary; uaelegislation.gov.ae refused access); the Government portal's \
+              \"Public holidays\" and \"Working hours in the public sector\" pages (u.ae), for \
+              the Eid spans, the rule that the Eids are not moved, and the Saturday–Sunday \
+              weekend from 1 January 2022; Gulf News and The National on the Friday–Saturday \
+              weekend from 1 September 2006; all retrieved 2026-09-26. The Islamic dates are \
+              announced each year by the UAE Moon-Sighting Committee, and the tabular calendar \
+              here predicts them. Whether the 2024 resolution moved Commemoration Day to 30 \
+              November, as the summary says, and whether the Prophet's Birthday is still on \
+              the list were not confirmed from a primary source",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -580,12 +709,15 @@ pub static TURKEY: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "2429 sayılı Ulusal Bayram ve Genel Tatiller Hakkında Kanun. \
-              Türkiye's Islamic dates come from the Diyanet's precomputed \
-              calendar rather than from sighting, so they are firmer than \
-              most; the tabular computation here can still differ by a day, \
-              which is why they stay flagged approximate",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "2429 sayılı Ulusal Bayram ve Genel Tatiller Hakkında Kanun (17/3/1981, Resmî \
+              Gazete 19/3/1981, sayı 17284), maddeler 1 and 2, as amended by the Kanunlar \
+              2818, 4500, 5892 (1 Mayıs from 2009) and 6752 (15 Temmuz from 2017), on Mevzuat \
+              Bilgi Sistemi (mevzuat.gov.tr/mevzuatmetin/1.5.2429.pdf), retrieved 2026-09-26. \
+              The arife half-days from 13:00 and the one-off 31 December 1999 are not carried. \
+              Türkiye's Islamic dates come from the Diyanet's precomputed calendar rather than \
+              from sighting, so they are firmer than most; the tabular computation here can \
+              still differ by a day, which is why they stay flagged approximate",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -630,6 +762,8 @@ static EG_RULES: &[HolidayRule] = &[
         "عيد القوات المسلحة",
         Rule::gregorian(10, 6),
     ),
+    // Decree 294 of 2025: two days of Eid al-Fitr, and the Day of Arafat
+    // with the first two of Eid al-Adha.
     HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", EID_AL_FITR).approximate(),
     HolidayRule::fixed_public(
         "Eid al-Fitr",
@@ -638,9 +772,9 @@ static EG_RULES: &[HolidayRule] = &[
     )
     .approximate(),
     HolidayRule::fixed_public(
-        "Eid al-Fitr",
-        "عيد الفطر",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 3),
+        "Day of Arafat",
+        "يوم عرفة",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 9),
     )
     .approximate(),
     HolidayRule::fixed_public("Eid al-Adha", "عيد الأضحى", EID_AL_ADHA).approximate(),
@@ -650,18 +784,19 @@ static EG_RULES: &[HolidayRule] = &[
         Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
     )
     .approximate(),
-    HolidayRule::fixed_public(
-        "Eid al-Adha",
-        "عيد الأضحى",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 12),
-    )
-    .approximate(),
     HolidayRule::fixed_public("Islamic New Year", "رأس السنة الهجرية", HIJRI_NEW_YEAR)
         .approximate(),
     HolidayRule::fixed_public("Prophet's Birthday", "المولد النبوي", MAWLID).approximate(),
 ];
 
 /// Egypt.
+///
+/// The twelve paid occasions the Minister of Labour fixed for the private
+/// sector by Decree 294 of 2025, under the Labour Law of 2025: among them
+/// two days of Eid al-Fitr and the Day of Arafat with the first two days of
+/// Eid al-Adha, on the tabular calendar as approximations. The Government
+/// sector's longer Eid periods, which the Prime Minister sets by decree for
+/// each occasion, are not carried.
 pub static EGYPT: RuleSet = RuleSet {
     code: "EG",
     english_name: "Egypt",
@@ -670,11 +805,15 @@ pub static EGYPT: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: FRIDAY_SATURDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Labour Law 12 of 2003 and the Cabinet's annual holiday \
-              decision. Egypt routinely moves a mid-week holiday to the \
-              nearest Thursday by Cabinet decision, which is an annual act \
-              and is not modelled",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Labour Law No. 14 of 2025 (الجريدة الرسمية العدد 18 تابع، 3 May 2025; in force 1 \
+              September 2025, repealing Law 12 of 2003), in Wikisource's text of the \
+              promulgating articles, and Minister of Labour Decree No. 294 of 2025 fixing the \
+              twelve paid occasions, as youm7.com and parlmany.com report it (secondary), \
+              retrieved 2026-09-26; the official gazettes, and the law's article on paid \
+              holidays, not read; for the Government sector, the Prime Minister's per-occasion \
+              decrees, not read. Egypt routinely moves a mid-week holiday to the nearest \
+              Thursday by Cabinet decision, which is an annual act and is not modelled",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -705,7 +844,8 @@ static NG_RULES: &[HolidayRule] = &[
     HolidayRule::public("Independence Day", "", Rule::gregorian(10, 1)).years(Some(1960), None),
     HolidayRule::public("Mawlid", "Eid-el-Mawlid", MAWLID).approximate(),
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    // Not in the Schedule: the Minister's declarations add it each year.
+    HolidayRule::fixed_public("Boxing Day", "", Rule::gregorian(12, 26)).approximate(),
 ];
 
 static SUNDAY_FORWARD: &[SubstitutionPolicy] = &[SubstitutionPolicy {
@@ -718,19 +858,31 @@ static SUNDAY_FORWARD: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 }];
 
 /// Nigeria.
+///
+/// The Schedule of the Public Holidays Act gives one day for each of Id el
+/// Fitr, Id el Kabir and Id el Maulud, "such day as the Minister may
+/// declare", and section 5 keeps a holiday on the weekend there: "only the
+/// Saturday or Sunday concerned and no other day in lieu". The Minister of
+/// Interior's declarations under section 3 add days each year — a second
+/// day for each of the two Eids, Boxing Day, a Monday for a weekend
+/// holiday — and were not read, so those days are carried approximate, as
+/// announced days are, and no weekend rule is.
 pub static NIGERIA: RuleSet = RuleSet {
     code: "NG",
     english_name: "Nigeria",
     rules: NG_RULES,
-    substitution: SUNDAY_FORWARD,
+    substitution: &[],
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Public Holidays Act, Cap. P40, Laws of the Federation of \
-              Nigeria 2004, and the Minister of Interior's annual \
-              declaration. The Islamic dates are declared on sighting and \
-              the declaration frequently adds a day",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Public Holidays Act, Cap. P40, Laws of the Federation of Nigeria 2004 \
+              (originally Act No. 31 of 1979), section 1 and the Schedule, section 3 and \
+              section 5, as reproduced by the Policy and Legal Advocacy Centre \
+              (placng.org/lawsofnigeria/print.php?sn=467), retrieved 2026-09-26; the Public \
+              Holidays (Amendment) Act 2019 for Democracy Day on 12 June, not read; the \
+              Minister of Interior's annual declarations, not read. The Islamic dates are \
+              declared on sighting",
 };
 
 static ZA_RULES: &[HolidayRule] = &[
@@ -758,11 +910,13 @@ pub static SOUTH_AFRICA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Public Holidays Act 36 of 1994, section 2(1) for the Sunday \
-              rule. Days declared under section 2A — election days and the \
-              occasional national day of mourning — are one-offs by \
-              proclamation and are not modelled",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Public Holidays Act 36 of 1994 (Government Gazette 16136 of 7 December 1994; in \
+              force 1 January 1995), section 2(1) and Schedule 1, as gazetted, on gov.za \
+              (gov.za/sites/default/files/gcis_document/201409/act36of1994.pdf), retrieved \
+              2026-09-26; section 2A, inserted by Act 48 of 1995, not read. Days declared \
+              under section 2A — election days and the occasional national day of mourning — \
+              are one-offs by proclamation and are not modelled",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -958,7 +1112,8 @@ static ET_RULES: &[HolidayRule] = &[
     // Miyazya 27: 5 May.
     et_ethiopic("Patriots' Victory Day", "የአርበኞች ቀን", 8, 27),
     // Ginbot 20: 28 May.
-    et_ethiopic("Downfall of the Derg", "ደርግ የወደቀበት ቀን", 9, 20),
+    // Not in Proclamation 1334/2024's list of the days offices close.
+    et_ethiopic("Downfall of the Derg", "ደርግ የወደቀበት ቀን", 9, 20).years(None, Some(2024)),
     // Mäskäräm 1: 11 September, and 12 September before a Gregorian leap
     // year.
     et_ethiopic("Enkutatash", "እንቁጣጣሽ", 1, 1),
@@ -979,7 +1134,11 @@ static ET_RULES: &[HolidayRule] = &[
 /// the Ethiopian Orthodox Tewahedo Church does; the three Islamic holidays
 /// are on the tabular Hijri calendar and approximate, Mawlid on 12 Rabi'
 /// al-Awwal, the Sunni date the source gives first. The source says
-/// nothing of a holiday on the weekend, and nothing is done with one.
+/// nothing of a holiday on the weekend, and nothing is done with one. The
+/// Public Holidays and Celebration of Public Holidays Proclamation No.
+/// 1334/2024, in force from 14 August 2024, leaves the Downfall of the Derg
+/// out of the days offices close, so it is carried to 2024; its new working
+/// memorial days, Martyrs' Day and National Unity Day, are not carried.
 pub static ETHIOPIA: RuleSet = RuleSet {
     code: "ET",
     english_name: "Ethiopia",
@@ -988,10 +1147,12 @@ pub static ETHIOPIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "Wikipedia, \"Public holidays in Ethiopia\", retrieved 2026-09-22, for the \
-              list, the Amharic names and the Gregorian dates with their leap-year \
-              alternatives, which the Ethiopian dates here reproduce",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Public Holidays and Celebration of Public Holidays Proclamation No. 1334/2024, \
+              in force 14 August 2024, not read, as EthioData summarises it (ethiodata.et, \
+              secondary), retrieved 2026-09-26; Wikipedia, \"Public holidays in Ethiopia\", \
+              retrieved 2026-09-22, for the Amharic names and the Gregorian dates with their \
+              leap-year alternatives, which the Ethiopian dates here reproduce",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1121,9 +1282,10 @@ static BH_RULES: &[HolidayRule] = &[
 /// two days of Ashura, the Hijri New Year and the Prophet's Birthday, the
 /// Hijri dates on the tabular calendar as an approximation of the
 /// sighting. Wikipedia's table adds Arafat Day; the 2026 list does not,
-/// and it is not carried. The weekend is Friday and Saturday, and what a
-/// holiday on it gives is the year's circular, not a rule, so nothing
-/// moves; the Cabinet's Sports Day is not carried.
+/// and it is not carried. The weekend is Friday and Saturday from
+/// September 2006 and Thursday and Friday before, and what a holiday on it
+/// gives is the year's circular, not a rule, so nothing moves; the
+/// Cabinet's Sports Day is not carried.
 pub static BAHRAIN: RuleSet = RuleSet {
     code: "BH",
     english_name: "Bahrain",
@@ -1131,13 +1293,16 @@ pub static BAHRAIN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: FRIDAY_SATURDAY,
+    weekend: BH_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Law 36 of 2012, Labour Law for the Private Sector, art. 64, per the Labour \
-              Market Regulatory Authority; HONO's 2026 list of Bahrain's fourteen public \
+              Market Regulatory Authority; HONO, a private aggregator (secondary), for its \
+              2026 list of Bahrain's fourteen public \
               holidays, retrieved 2026-09-22; Wikipedia and the Arabic Wikipedia, \
               \"Public holidays in Bahrain\" and \"قائمة العطل الرسمية في البحرين\", \
-              retrieved the same day, for the names",
+              retrieved the same day, for the names; Gulf News (3 September 2006) on the \
+              public sector's Friday and Saturday weekend from 2 September 2006, retrieved \
+              2026-09-26",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1229,7 +1394,8 @@ static JO_RULES: &[HolidayRule] = &[
 /// unifying the Christian feasts gives Christian employees, 26 December
 /// and Palm Sunday, Easter Sunday and Easter Monday by the Eastern
 /// computus, are [`Kind::Religious`]; the commemorations kept at work are
-/// observances. The weekend is Friday and Saturday. The Government's
+/// observances. The weekend is Friday and Saturday from 2000 and Thursday
+/// and Friday before. The Government's
 /// habit of moving a holiday to lengthen a weekend — 2026's Labour Day on
 /// Thursday 30 April — is not carried.
 pub static JORDAN: RuleSet = RuleSet {
@@ -1239,13 +1405,17 @@ pub static JORDAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: FRIDAY_SATURDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "The Arabic Wikipedia, \"العطل الرسمية في الأردن\", retrieved 2026-09-22, for \
-              the list, the day counts, the working commemorations and the \
-              Christian employees' days; the Securities Depository Center, \"أيام \
-              العطل 2026\", retrieved the same day, for the 2026 dates; Wikipedia, \
-              \"Public holidays in Jordan\", for the English names",
+    weekend: JO_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "The Prime Minister's Official Bulletin No. 6 of 2007 on the official religious \
+              and national holidays, and Official Bulletin No. 18 of 2023, 16 December 2023 \
+              (pm.gov.jo/Ar/Pages/PublicNoticeDetails/2720), for 26 December, both on \
+              pm.gov.jo, retrieved 2026-09-26; the Arabic Wikipedia, \"العطل الرسمية في \
+              الأردن\", retrieved 2026-09-22, for the Christian employees' Easter days, which \
+              neither bulletin gives; the Securities Depository Center, \"أيام العطل 2026\", \
+              retrieved the same day, for the 2026 dates; Wikipedia, \"Public holidays in \
+              Jordan\", for the English names; Al Wakeel News on the Friday and Saturday \
+              weekend from January 2000, retrieved 2026-09-26",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1278,7 +1448,8 @@ static KW_RULES: &[HolidayRule] = &[
 /// thirteen paid official holidays, three of each Eid, the Day of Arafat,
 /// Isra and Mi'raj, the Hijri New Year and the Prophet's Birthday on the
 /// tabular calendar as an approximation of the sighting, and three fixed
-/// days. The weekend is Friday and Saturday; the article compensates work
+/// days. The weekend is Friday and Saturday from September 2007 and
+/// Thursday and Friday before; the article compensates work
 /// on a holiday, and the Civil Service Commission's extra days for the
 /// public sector are not carried.
 pub static KUWAIT: RuleSet = RuleSet {
@@ -1288,12 +1459,14 @@ pub static KUWAIT: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: FRIDAY_SATURDAY,
+    weekend: KW_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Law 6 of 2010, the Private Sector Labour Law, art. 68, as published in \
               English by the Public Authority of Manpower and summarised by Kuwait \
               Up To Date, retrieved 2026-09-22; the Arabic Wikipedia, \"قائمة العطل \
-              الرسمية في الكويت\", retrieved the same day, for the names",
+              الرسمية في الكويت\", retrieved the same day, for the names; Arab News \
+              (28 May 2007, arabnews.com/node/298933) on the Cabinet's weekend decision, \
+              retrieved 2026-09-26",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1516,7 +1689,8 @@ pub static TANZANIA: RuleSet = RuleSet {
     sources: "Public Holidays Act, Cap. 35, sections 2 to 4 and the Schedule, as \
               reproduced by tanzanialaws.com, retrieved 2026-09-22; Wikipedia, \
               \"Public holidays in Tanzania\", retrieved the same day, for the Swahili \
-              names and the presidential days; sikukuu.co.tz for the 2026 list",
+              names and the presidential days; sikukuu.co.tz, a private aggregator \
+              (secondary), for the 2026 list, the Government's gazette notices not read",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1630,7 +1804,8 @@ pub static ZAMBIA: RuleSet = RuleSet {
               Wikipedia, \"Public holidays in Zambia\" and \"National Day of Prayer, \
               Fasting, Repentance and Reconciliation (Zambia)\", retrieved the same \
               day; Lusaka Times, 28 April 2022, for Kenneth Kaunda Day's first \
-              observance; HONO's 2026 list for the in-lieu Mondays",
+              observance; HONO's 2026 list, a private aggregator (secondary), for the \
+              in-lieu Mondays, the Government's gazette notices not read",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1708,23 +1883,32 @@ pub static ZIMBABWE: RuleSet = RuleSet {
 // Algeria
 // ─────────────────────────────────────────────────────────────────────────
 
-/// Saturday–Sunday until the ordinances of 1976 made it Thursday–Friday,
-/// and Friday–Saturday from 14 August 2009.
+/// Saturday–Sunday until the ordinances of 1976 made it Thursday–Friday
+/// — ordonnance no. 76-77 of 11 August 1976 on the weekly rest, known here
+/// by its title only, so the change is carried from 1 January 1976 — and
+/// Friday–Saturday from Friday 14 August 2009, by the Council of Ministers'
+/// decision of 21 July 2009.
 static DZ_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Saturday, Weekday::Sunday],
         valid_from: None,
+        valid_from_day: None,
         valid_until: Some(1975),
+        valid_until_day: None,
     },
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
         valid_from: Some(1976),
-        valid_until: Some(2008),
+        valid_from_day: None,
+        valid_until: Some(2009),
+        valid_until_day: Some((8, 13)),
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
         valid_from: Some(2009),
+        valid_from_day: Some((8, 14)),
         valid_until: None,
+        valid_until_day: None,
     },
 ];
 
@@ -1819,7 +2003,9 @@ pub static ALGERIA: RuleSet = RuleSet {
               \"Les jours fériés en Algérie\", for articles 1, 3 and 4 of law 63-278 and \
               law 18-12 of 2 July 2018; APS and algerie-eco.com on the two Aïd el-Adha \
               days of 2019 and 2022; Wikipedia (fr), \"Fêtes et jours fériés en Algérie\" \
-              and \"Yennayer\", and France 24 (22 July 2009) for the weekend",
+              and \"Yennayer\", and France 24 (22 July 2009) and the BBC (14 August 2009) \
+              for the weekend, retrieved 2026-09-26; ordonnance no. 76-77 of 11 August \
+              1976 on the weekly rest, known by its title in NATLEX and not read",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2614,17 +2800,24 @@ pub static MALI: RuleSet = RuleSet {
 // Oman
 // ─────────────────────────────────────────────────────────────────────────
 
-/// Thursday–Friday until 30 April 2013, Friday–Saturday from 1 May 2013.
+/// Thursday–Friday until 30 April 2013, Friday–Saturday from 1 May 2013,
+/// for the public and private sectors alike, as Gulf News and Al Riyadh
+/// reported the Council of Ministers' statement of April 2013; the decree's
+/// number and text were not read.
 static OM_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
         valid_from: None,
-        valid_until: Some(2012),
+        valid_from_day: None,
+        valid_until: Some(2013),
+        valid_until_day: Some((4, 30)),
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
         valid_from: Some(2013),
+        valid_from_day: Some((5, 1)),
         valid_until: None,
+        valid_until_day: None,
     },
 ];
 
@@ -2772,8 +2965,9 @@ pub static OMAN: RuleSet = RuleSet {
     sources: "Royal Decree 88/2022 Determining the Official Holidays and Royal Decree \
               15/2025 amending it, in Decree's translations (decree.om), retrieved \
               2026-09-22; Royal Decree 56/2020 on the same site; the Arabian Stories \
-              (20 April 2020) on Renaissance Day's end; Arab News and Gulf News \
-              (April 2013) on the weekend; Wikipedia, \"Public holidays in Oman\"",
+              (20 April 2020) on Renaissance Day's end; Gulf News (7 April 2013) and \
+              Al Riyadh on the weekend from 1 May 2013, retrieved 2026-09-26; Wikipedia, \
+              \"Public holidays in Oman\"",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2827,7 +3021,8 @@ static QA_RULES: &[HolidayRule] = &[
 ///
 /// Emiri Decision 57/2025 determining the working days, occasions and
 /// official holidays of the State, from Al Meezan: Sunday to Thursday
-/// with Friday and Saturday the weekend; National Day on 18 December;
+/// with Friday and Saturday the weekend, as it has been since August 2003
+/// and Thursday and Friday before; National Day on 18 December;
 /// National Sport Day on the second Tuesday of February; Eid al-Fitr
 /// "from the twenty-eighth of Ramadan to the end of the fourth of
 /// Shawwal" and Eid al-Adha "from the ninth to the end of the thirteenth
@@ -2848,14 +3043,15 @@ pub static QATAR: RuleSet = RuleSet {
     substitution: &[],
     bridges: QA_BRIDGES,
     includes: &[],
-    weekend: FRIDAY_SATURDAY,
+    weekend: QA_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Emiri Decision No. 57 of 2025 determining the working days, occasions and \
               official holidays in the State, and Cabinet Decision No. 18 of 2025 amending \
               Cabinet Decision No. 6 of 2008, as Al Meezan publishes them (almeezan.qa), \
               retrieved 2026-09-22; Al Meezan on Emiri Resolution No. 80 of 2011 on Sports \
               Day; Wikipedia, \"National Day (Qatar)\" and \"Public holidays in Qatar\", \
-              for 2007 and 2009",
+              for 2007 and 2009; Arab News (21 July 2003, arabnews.com/node/234601) on the \
+              Friday and Saturday weekend from 1 August 2003, retrieved 2026-09-26",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3084,7 +3280,8 @@ pub static BOTSWANA: RuleSet = RuleSet {
     sources: "Public Holidays Act, Cap. 03:07 (Act 17 of 2006), sections 2 and 3 and the \
               Schedule, from the NATLEX copy (BWA76156), retrieved 2026-09-22; Wikipedia, \
               \"Public holidays in Botswana\", for the names; Office Holidays, \"National \
-              Holidays in Botswana in 2023\", for the days kept in 2023",
+              Holidays in Botswana in 2023\", a private aggregator (secondary), for the \
+              days kept in 2023, the Government Gazette's notices not read",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3341,17 +3538,23 @@ pub static MALAWI: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 /// Friday alone, and Friday and Saturday from February 2004, when the
-/// Council of Ministers added Saturday for the State's offices.
+/// Council of Ministers added Saturday for the State's offices. The day in
+/// February is not in the report read, so the policy begins with 2004 and
+/// is a month early for January of that year.
 static SY_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Friday],
         valid_from: None,
+        valid_from_day: None,
         valid_until: Some(2003),
+        valid_until_day: None,
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
         valid_from: Some(2004),
+        valid_from_day: None,
         valid_until: None,
+        valid_until_day: None,
     },
 ];
 
@@ -3641,17 +3844,23 @@ pub static PALESTINE: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 /// Friday alone, and Friday and Saturday for the Government's offices from
-/// January 2006; schools and hospitals kept Friday alone.
+/// January 2006; schools and hospitals kept Friday alone. The Government's
+/// statement of 2 January 2006 gives no day of effect, so the policy
+/// begins with 2006.
 static LY_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Friday],
         valid_from: None,
+        valid_from_day: None,
         valid_until: Some(2005),
+        valid_until_day: None,
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
         valid_from: Some(2006),
+        valid_from_day: None,
         valid_until: None,
+        valid_until_day: None,
     },
 ];
 
@@ -3717,17 +3926,24 @@ pub static LIBYA: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 /// Thursday and Friday until Council of Ministers resolution 179 of 2013
-/// made Saturday the second day in Thursday's place from 15 August 2013.
+/// made Saturday the second day in Thursday's place: from 15 August 2013,
+/// as Yemen Post reported it the next day. Al Khaleej reported the change
+/// as applied from Saturday 17 August; the two readings differ only on
+/// Thursday 15 August, which is carried as a working day.
 static YE_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
         valid_from: None,
-        valid_until: Some(2012),
+        valid_from_day: None,
+        valid_until: Some(2013),
+        valid_until_day: Some((8, 14)),
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
         valid_from: Some(2013),
+        valid_from_day: Some((8, 15)),
         valid_until: None,
+        valid_until_day: None,
     },
 ];
 
@@ -3820,8 +4036,9 @@ pub static YEMEN: RuleSet = RuleSet {
     sources: "Law No. 2 of 2000 determining the official leave and holidays, articles 3 to \
               7, from the Public Prosecution's legislation library (agoyemen.net), \
               retrieved 2026-09-23; Yemen Post (16 August 2013) on Council of Ministers \
-              resolution No. 179 of 2013 and the Friday and Saturday weekend; Wikipedia, \
-              \"Public holidays in Yemen\", for the English names",
+              resolution No. 179 of 2013 and the Friday and Saturday weekend; Al Khaleej \
+              (18 August 2013) on the change applied from 17 August, retrieved \
+              2026-09-26; Wikipedia, \"Public holidays in Yemen\", for the English names",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4959,19 +5176,21 @@ pub static CHAD: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 /// Friday–Saturday until the decree the Council of Ministers adopted on
-/// 11 September 2014, and Saturday–Sunday from 1 October 2014. The crate
-/// keeps a weekend by whole years, so 2014 is given the new one, as
-/// Algeria's 2009 is.
+/// 11 September 2014, and Saturday–Sunday from Wednesday 1 October 2014.
 static MR_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
         valid_from: None,
-        valid_until: Some(2013),
+        valid_from_day: None,
+        valid_until: Some(2014),
+        valid_until_day: Some((9, 30)),
     },
     WeekendPolicy {
         days: &[Weekday::Saturday, Weekday::Sunday],
         valid_from: Some(2014),
+        valid_from_day: Some((10, 1)),
         valid_until: None,
+        valid_until_day: None,
     },
 ];
 
@@ -5037,7 +5256,9 @@ pub static MAURITANIA: RuleSet = RuleSet {
 static DJ_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday],
     valid_from: None,
+    valid_from_day: None,
     valid_until: None,
+    valid_until_day: None,
 }];
 
 /// Nothing: whether arrêté 80-0931, published in 1981, already governed
@@ -5365,7 +5586,9 @@ pub static EQUATORIAL_GUINEA: RuleSet = RuleSet {
 static LR_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
     valid_from: None,
+    valid_from_day: None,
     valid_until: None,
+    valid_until_day: None,
 }];
 
 /// A Sunday holiday is kept on the Monday. No statute read says so; the

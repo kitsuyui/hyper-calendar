@@ -40,6 +40,9 @@ None of the three repeats another.
 | The Chinese and Korean regnal eras: 踰年改元 and its exceptions, restored and withdrawn eras, the concurrent regimes of 1644–1683, the Korean Empire's three eras | [east-asian-eras.md](east-asian-eras.md) | `chinese-regnal`, `korean-regnal` |
 | South Korea's public holidays and the substitute holiday, with the collision rule | [korea-holidays.md](korea-holidays.md) | `hc-holiday`'s `SOUTH_KOREA` and `engine::collisions`; `XKRX` |
 | Russia's public holidays and the transfers of days off | [russia-transfers.md](russia-transfers.md) | `hc-holiday`'s `RUSSIA`; `MISX` |
+| Taiwan's holidays: the 條例 of 2025, the make-up day before a Saturday and after a Sunday, and the swapped Saturdays of the calendars to 2025 | [taiwan-holidays.md](taiwan-holidays.md) | `hc-holiday`'s `TAIWAN` |
+| Vietnam's holidays: the Labour Code's list, the make-up day, and each year's notices of Tết, National Day and the swapped Saturdays | [vietnam-holidays.md](vietnam-holidays.md) | `hc-holiday`'s `VIETNAM` |
+| Hong Kong's general and statutory holidays: the Sunday and coincidence rules, the eve rule of 1983 to 2011, and the phasing of 2021 | [hong-kong-holidays.md](hong-kong-holidays.md) | `hc-holiday`'s `HONG_KONG`; `XHKG` |
 | Afghanistan's holidays under the Islamic Emirate: the official lunar calendar, the Ministry of Labour's notices, the solar days on `persian-afghan` | [afghanistan-holidays.md](afghanistan-holidays.md) | `hc-holiday`'s `AFGHANISTAN`; `CalendarSystem::SOLAR_HIJRI_AFGHAN` |
 | Japan's holiday law and its amendments | [japan-holidays.md](japan-holidays.md) | `hc-holiday`'s `JAPAN`; `XJPX` |
 | The 24 solar terms and 72 pentads, and the zodiac conventions: 定気, the meridian, the ayanāṃśa | [solar-terms-and-pentads.md](solar-terms-and-pentads.md) | `hc-seasons`: `solar_terms`, `pentads`, `meridian`, `zodiac` |
@@ -97,4 +100,3 @@ after it is coded is listed here until it has one
 | The Japanese almanac notes, 暦注 and 選日 | Publishers' conventions, the reversal of the nine stars, the leap month, and the anchor of the twelve directs | `hc-almanac` |
 | The 雑節 and 六曜, with the lunisolar months they rest on | Days defined from the solar terms and from a minimal lunisolar calendar | `hc-seasons`: `zassetsu`, `rokuyo`, `lunisolar` |
 | Mars timekeeping | The sol, Coordinated Mars Time, local mean and true solar time, the Mars year, mission sol counts and the Darian calendar | `hc-planetary`: `mars`, `mars::missions`, `mars::darian` |
-| Taiwan's, Vietnam's and Hong Kong's holiday regimes | Annual notices, make-up working days and swapped Saturdays, and Hong Kong's collision and eve rules | `hc-holiday`'s `TAIWAN`, `VIETNAM`, `HONG_KONG` |

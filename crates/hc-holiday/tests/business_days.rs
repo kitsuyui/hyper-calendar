@@ -231,7 +231,9 @@ fn a_caller_can_supply_their_own_rule_set_and_get_the_same_engine() {
     static WEEKEND: [WeekendPolicy; 1] = [WeekendPolicy {
         days: &[Weekday::Wednesday, Weekday::Saturday, Weekday::Sunday],
         valid_from: None,
+        valid_from_day: None,
         valid_until: None,
+        valid_until_day: None,
     }];
     static SUBSTITUTION: [SubstitutionPolicy; 1] = [SubstitutionPolicy {
         trigger: &[Weekday::Saturday, Weekday::Sunday],

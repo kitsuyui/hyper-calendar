@@ -346,13 +346,10 @@ impl<'a> HolidayCalendar<'a> {
     }
 
     /// Whether `day` falls on the weekend, under the weekend law in force
-    /// that year.
+    /// that day.
     #[must_use]
     pub fn is_weekend(&self, day: Rd) -> bool {
-        let Ok(year) = gregorian::year_from_fixed(day) else {
-            return false;
-        };
-        self.rules.weekend_in(year).contains(&Weekday::from_rd(day))
+        self.rules.weekend_on(day).contains(&Weekday::from_rd(day))
     }
 
     /// Whether `day` is a weekend day the calendar makes a working day — a
@@ -847,7 +844,9 @@ mod tests {
     static FRIDAY_SATURDAY: [WeekendPolicy; 1] = [WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
         valid_from: None,
+        valid_from_day: None,
         valid_until: None,
+        valid_until_day: None,
     }];
 
     static GULF: RuleSet = RuleSet {

@@ -24,8 +24,11 @@ use crate::hindu::{
     VIJAYA_DASHAMI,
 };
 use crate::rule::{
-    CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    SubstituteDirection, SubstitutionPolicy, TibetanMonth, WeekendPolicy, WhenTwice,
+    CalendarSystem, Confidence, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY,
+    SourceDate, SubstituteDirection, SubstitutionPolicy, TibetanMonth, WeekendPolicy, WhenTwice,
+};
+use crate::traditions::{
+    THAI_ASALHA_BUCHA, THAI_KHAO_PHANSA, THAI_MAKHA_BUCHA, THAI_VISAKHA_BUCHA,
 };
 
 /// 清明, the fifth solar term, at solar longitude 15°.
@@ -814,6 +817,28 @@ const TW_MADE_UP_DAYS: Rule = Rule::Tabulated {
     last_year: TW_ADJUSTED_LAST,
 };
 
+/// The first year a weekend holiday other than the Lunar New Year days was
+/// made up: the 辦法's article 5-1 of 11 June 2014, in force from
+/// 1 January 2015. Before, article 3 of the 公務人員週休二日實施辦法 made
+/// up only 除夕 and 春節.
+const TW_WEEKEND_MAKE_UP_FROM: i32 = 2015;
+
+/// A holiday made up when it falls on the weekend, from 2015.
+const fn tw_public(name: &'static str, local_name: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::public(name, local_name, rule).substituted_from(TW_WEEKEND_MAKE_UP_FROM)
+}
+
+fn tw_unread(_: i64) -> Days {
+    Days::new()
+}
+
+/// A year whose day the sources read do not give: every year a gap.
+const TW_UNREAD: Rule = Rule::Tabulated {
+    function: tw_unread,
+    first_year: 1,
+    last_year: 0,
+};
+
 /// The Lunar New Year days are made up after, whichever weekend day they
 /// fall on.
 const fn tw_new_year_day(name: &'static str, local_name: &'static str, rule: Rule) -> HolidayRule {
@@ -821,7 +846,7 @@ const fn tw_new_year_day(name: &'static str, local_name: &'static str, rule: Rul
 }
 
 static TW_RULES: &[HolidayRule] = &[
-    HolidayRule::public(
+    tw_public(
         "Founding Day of the Republic of China",
         "中華民國開國紀念日",
         Rule::gregorian(1, 1),
@@ -859,37 +884,38 @@ static TW_RULES: &[HolidayRule] = &[
         "春節",
         Rule::in_calendar(CalendarSystem::CHINESE, 1, 3),
     ),
-    HolidayRule::public("Peace Memorial Day", "和平紀念日", Rule::gregorian(2, 28))
-        .years(Some(1997), None),
-    HolidayRule::public("Children's Day", "兒童節", Rule::Computed(tw_childrens_day))
-        .years(Some(2011), None),
+    tw_public("Peace Memorial Day", "和平紀念日", Rule::gregorian(2, 28)).years(Some(1997), None),
+    // The coincidence rule entered the 辦法 on 25 September 2012, after
+    // that year's 4 April, which was also 清明; what 2012 gave is not in
+    // the sources read, so it is a gap.
+    tw_public("Children's Day", "兒童節", Rule::gregorian(4, 4)).years(Some(2011), Some(2011)),
+    tw_public("Children's Day", "兒童節", TW_UNREAD).years(Some(2012), Some(2012)),
+    tw_public("Children's Day", "兒童節", Rule::Computed(tw_childrens_day)).years(Some(2013), None),
     // 民族掃墓節 under the 辦法, 清明節 under the 條例.
-    HolidayRule::public("Tomb Sweeping Day", "民族掃墓節", TW_QINGMING).years(None, Some(2025)),
-    HolidayRule::public("Qingming Festival", "清明節", TW_QINGMING).years(Some(2026), None),
+    tw_public("Tomb Sweeping Day", "民族掃墓節", TW_QINGMING).years(None, Some(2025)),
+    tw_public("Qingming Festival", "清明節", TW_QINGMING).years(Some(2026), None),
     // A day off for everyone only since the 條例; before, for workers under
     // the 勞動基準法 and not for government offices.
-    HolidayRule::public("Labour Day", "勞動節", Rule::gregorian(5, 1)).years(Some(2026), None),
-    HolidayRule::public(
+    tw_public("Labour Day", "勞動節", Rule::gregorian(5, 1)).years(Some(2026), None),
+    tw_public(
         "Dragon Boat Festival",
         "端午節",
         Rule::in_calendar(CalendarSystem::CHINESE, 5, 5),
     ),
-    HolidayRule::public(
+    tw_public(
         "Mid-Autumn Festival",
         "中秋節",
         Rule::in_calendar(CalendarSystem::CHINESE, 8, 15),
     ),
-    HolidayRule::public("Teachers' Day", "孔子誕辰紀念日", Rule::gregorian(9, 28))
-        .years(Some(2025), None),
-    HolidayRule::public("National Day", "國慶日", Rule::gregorian(10, 10)),
-    HolidayRule::public(
+    tw_public("Teachers' Day", "孔子誕辰紀念日", Rule::gregorian(9, 28)).years(Some(2025), None),
+    tw_public("National Day", "國慶日", Rule::gregorian(10, 10)),
+    tw_public(
         "Taiwan Retrocession and Guningtou Victory Memorial Day",
         "臺灣光復暨金門古寧頭大捷紀念日",
         Rule::gregorian(10, 25),
     )
     .years(Some(2025), None),
-    HolidayRule::public("Constitution Day", "行憲紀念日", Rule::gregorian(12, 25))
-        .years(Some(2025), None),
+    tw_public("Constitution Day", "行憲紀念日", Rule::gregorian(12, 25)).years(Some(2025), None),
     // The swaps of each year's calendar, until they ended.
     HolidayRule::fixed_public("Adjusted day off", "調整放假", TW_ADJUSTED)
         .years(None, Some(TW_ADJUSTED_LAST as i32)),
@@ -899,7 +925,13 @@ static TW_RULES: &[HolidayRule] = &[
 
 /// Taiwan's adjustment rule: a Saturday holiday is made up the working day
 /// before, a Sunday holiday the working day after, and the Lunar New Year
-/// days always after.
+/// days after. From 2012, the first year the calendars read quote it, to
+/// 2014 it reached only 除夕 and 春節; the other holidays from 2015, as
+/// [`TW_WEEKEND_MAKE_UP_FROM`] says. Since the 處理要點 of 13 June 2025
+/// the Lunar New Year days "得於前一個或次一個上班日補假", may be made up
+/// before or after, and the Peace Memorial Day make-up may be moved to
+/// the Friday after the Lunar New Year break; the calendars for 2026 and
+/// 2027 took the day after and did not move it, which is what is carried.
 static TW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     trigger: &[Weekday::Saturday, Weekday::Sunday],
     direction: SubstituteDirection::NearestWorkingDay,
@@ -910,6 +942,13 @@ static TW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 }];
 
 /// Taiwan.
+///
+/// The holidays of the 紀念日及節日實施條例 of 2025 and the 辦法 before it,
+/// made up on the working day before a Saturday and after a Sunday — the
+/// Lunar New Year days after the run, and from 2012 to 2014 only they —
+/// and the swapped days of the Executive Yuan's calendars for 2017 to
+/// 2025, the last year with any; a year before 2017 is a gap. The regime is
+/// written up in `docs/systems/taiwan-holidays.md`.
 pub static TAIWAN: RuleSet = RuleSet {
     code: "TW",
     english_name: "Taiwan",
@@ -918,13 +957,16 @@ pub static TAIWAN: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 23),
-    sources: "紀念日及節日實施條例 (28 May 2025) and the 紀念日及節日實施辦法 \
-              it replaced, articles 5 and 5-1 for Children's Day and the \
-              making-up of a weekend holiday; 行政院人事行政總處, \
-              政府行政機關辦公日曆表 for 2017 to 2027 (data.gov.tw dataset \
-              14718), retrieved 2026-09-23, for the adjusted days and the \
-              Saturdays worked",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "紀念日及節日實施條例 (華總一義字第11400053171號, 28 May 2025), articles 4, 6 and 8, and the \
+              紀念日及節日實施辦法 it replaced, articles 5 and 5-1 in their versions of 25 September \
+              2012 and 11 June 2014, on the 全國法規資料庫 (law.moj.gov.tw, pcode D0020095 and \
+              D0020033); 行政院人事行政總處, the 政府機關配合紀念日與節日補假及調整放假處理要點 as amended on 13 June 2025 and \
+              its press release of that day, and its calendars for 2012 to 2014 for the \
+              公務人員週休二日實施辦法's article 3, on dgpa.gov.tw; all retrieved 2026-09-26; the \
+              政府行政機關辦公日曆表 for 2017 to 2027 (data.gov.tw dataset 14718), retrieved 2026-09-23, \
+              for the adjusted days and the Saturdays worked. The system is written up in \
+              docs/systems/taiwan-holidays.md",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1336,65 +1378,26 @@ pub static INDIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Department of Personnel and Training, \"List of Holidays\", \
-              issued annually, for the list; the Rashtriya Panchang for the \
-              Hindu, Jain, Buddhist and Sikh dates, computed on the \
-              `hindu-lunar` calendar as it keeps them. The Hijri-dated days \
-              are approximate, as everywhere",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Department of Personnel and Training, O.M. F.No.12/2/2023-JCA of 3 July 2025, \
+              \"Holidays to be observed in Central Government Offices during the year 2026\", \
+              Annexure-I, and the O.M. of the same file number of 9 July 2024 for 2025; the \
+              dopt.gov.in PDFs could not be reached on 2026-09-26 and were read as reproduced \
+              by govtstaff.com and staffnews.in (secondary), retrieved 2026-09-26. The table \
+              is the Delhi and New Delhi list: the fourteen compulsory holidays and three of \
+              the twelve optional ones, Holi, Ram Navami and Janmashtami; offices elsewhere \
+              choose their own three. The Hindu, Jain, Buddhist and Sikh dates are computed on \
+              the `hindu-lunar` calendar as the Rashtriya Panchang keeps it. The Hijri-dated \
+              days are approximate, as everywhere",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
 // Thailand
 // ─────────────────────────────────────────────────────────────────────────
 
-/// Thai Buddhist observances are dated by the Thai lunar calendar,
-/// `thai-lunar`, which carries the year types Thailand published for 2535–
-/// 2570 BE and so answers exactly for 1992–2027 and not at all outside
-/// them: there the four days are reported as gaps.
-///
-/// Asalha Bucha is the full moon of month 8 — in an adhikamāsa year the
-/// second month 8, which the calendar writes as the regular one — and Khao
-/// Phansa the day after, so both are plain dates in it. Makha and
-/// Visakha Bucha move a month instead: to the full moon of month 4 and of
-/// month 7 in an adhikamāsa year, from 3 and 6. A date in a calendar names
-/// one month, so those two are the calendar's own functions, answered for
-/// the same years.
-static TH_ASALHA: Rule = Rule::in_calendar(CalendarSystem::THAI_LUNAR, 8, 15);
-
-/// แรม 1 ค่ำ เดือน 8, the day after Asalha Bucha.
-static TH_KHAO_PHANSA: Rule = Rule::in_calendar(CalendarSystem::THAI_LUNAR, 8, 16);
-
-/// A day the Thai lunar calendar computes for a Buddhist Era year, in the
-/// Gregorian year its Makha Bucha falls in.
-fn th_lunar_day(year: i64, day: fn(i64) -> hc_calendar::CalendarResult<Rd>) -> Days {
-    match day(year + hc_calendars_regional::thai_lunar::BUDDHIST_ERA_OFFSET) {
-        Ok(rd) => Days::one(rd),
-        Err(_) => Days::new(),
-    }
-}
-
-fn th_makha_bucha(year: i64) -> Days {
-    th_lunar_day(year, hc_calendars_regional::thai_lunar::makha_bucha)
-}
-
-fn th_visakha_bucha(year: i64) -> Days {
-    th_lunar_day(year, hc_calendars_regional::thai_lunar::visakha_bucha)
-}
-
-/// A Thai lunar day that moves in an adhikamāsa year, over the years the
-/// calendar's table answers for.
-const fn th_lunar(function: fn(i64) -> Days) -> Rule {
-    Rule::Tabulated {
-        function,
-        first_year: hc_calendars_regional::thai_lunar::FIRST_GREGORIAN_YEAR,
-        last_year: hc_calendars_regional::thai_lunar::LAST_GREGORIAN_YEAR,
-    }
-}
-
 static TH_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "วันขึ้นปีใหม่", Rule::gregorian(1, 1)),
-    HolidayRule::public("Makha Bucha", "วันมาฆบูชา", th_lunar(th_makha_bucha)),
+    HolidayRule::public("Makha Bucha", "วันมาฆบูชา", THAI_MAKHA_BUCHA),
     HolidayRule::public("Chakri Memorial Day", "วันจักรี", Rule::gregorian(4, 6)),
     HolidayRule::fixed_public("Songkran", "วันสงกรานต์", Rule::gregorian(4, 13)),
     HolidayRule::fixed_public("Songkran", "วันสงกรานต์", Rule::gregorian(4, 14)),
@@ -1402,15 +1405,15 @@ static TH_RULES: &[HolidayRule] = &[
     HolidayRule::public("Labour Day", "วันแรงงานแห่งชาติ", Rule::gregorian(5, 1)),
     HolidayRule::public("Coronation Day", "วันฉัตรมงคล", Rule::gregorian(5, 4))
         .years(Some(2019), None),
-    HolidayRule::public("Visakha Bucha", "วันวิสาขบูชา", th_lunar(th_visakha_bucha)),
+    HolidayRule::public("Visakha Bucha", "วันวิสาขบูชา", THAI_VISAKHA_BUCHA),
     HolidayRule::public(
         "Queen Suthida's Birthday",
         "วันเฉลิมพระชนมพรรษาสมเด็จพระนางเจ้าฯ",
         Rule::gregorian(6, 3),
     )
     .years(Some(2019), None),
-    HolidayRule::public("Asalha Bucha", "วันอาสาฬหบูชา", TH_ASALHA),
-    HolidayRule::fixed_public("Khao Phansa", "วันเข้าพรรษา", TH_KHAO_PHANSA),
+    HolidayRule::public("Asalha Bucha", "วันอาสาฬหบูชา", THAI_ASALHA_BUCHA),
+    HolidayRule::fixed_public("Khao Phansa", "วันเข้าพรรษา", THAI_KHAO_PHANSA),
     HolidayRule::public(
         "King Vajiralongkorn's Birthday",
         "วันเฉลิมพระชนมพรรษา",
@@ -1448,6 +1451,10 @@ static TH_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 }];
 
 /// Thailand.
+///
+/// The four Buddhist holy days are the Thai lunar ones the
+/// [`crate::traditions::BUDDHIST_THAI`] table carries, on `thai-lunar`,
+/// exact for 1992–2027 and reported as gaps outside those years.
 pub static THAILAND: RuleSet = RuleSet {
     code: "TH",
     english_name: "Thailand",
@@ -1490,7 +1497,7 @@ enum VnFestival {
 use VnFestival::{NationalDay, NewYearsDay, Tet, VictoryAndLabour};
 
 /// The first year the notices carried here cover: the first under the
-/// 2019 Labour Code, which made Tết five days and National Day two.
+/// 2019 Labour Code, whose article 112 gives National Day two days.
 const VN_NOTICES_FIRST: i64 = 2021;
 /// The last.
 const VN_NOTICES_LAST: i64 = 2026;
@@ -1529,7 +1536,7 @@ static VN_DAYS_OFF: &[(VnFestival, i64, u8, u8, u8, u8)] = &[
     // Thông báo 1570/TB-LĐTBXH, 12 April 2024: Monday 29 April off, for
     // Saturday 4 May.
     (VictoryAndLabour, 2024, 4, 29, 4, 29),
-    // Thông báo 6150/TB-LĐTBXH, 3 December 2024: Tết from 27 to
+    // Thông báo 6150/TB-BLĐTBXH, 3 December 2024: Tết from 27 to
     // 31 January, between two weekends; Friday 2 May off, for Saturday
     // 26 April; National Day on 1 and 2 September.
     (Tet, 2025, 1, 27, 1, 31),
@@ -1721,7 +1728,8 @@ static VN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 /// and the swapped working days from the notices for the civil service
 /// for 2021 to 2026, which the Labour Code leaves to the Prime Minister
 /// each year. A year outside them is a gap. Private employers may choose
-/// their own Tết split and are not modelled.
+/// their own Tết split and are not modelled. The regime is written up in
+/// `docs/systems/vietnam-holidays.md`.
 pub static VIETNAM: RuleSet = RuleSet {
     code: "VN",
     english_name: "Vietnam",
@@ -1737,19 +1745,183 @@ pub static VIETNAM: RuleSet = RuleSet {
               binh và Xã hội's Thông báo 4875/TB-LĐTBXH (2021), \
               119/TB-LĐTBXH (2022), 5034/TB-LĐTBXH (2023), \
               5015/TB-LĐTBXH and 1570/TB-LĐTBXH (2024) and \
-              6150/TB-LĐTBXH (2025), and for 2026 the Bộ Nội vụ's Thông \
+              6150/TB-BLĐTBXH (2025), and for 2026 the Bộ Nội vụ's Thông \
               báo 9441/TB-BNV, the Văn phòng Chính phủ's Công văn \
               12729/VPCP-KGVX, and the Bộ Nội vụ's Công văn 3383/BNV-CVL \
               that no swap was made around 30 April; all read on \
               23 September 2026, mostly as the government portals and law \
               databases reproduce them. The notices for 2027 had not been \
               issued, and no swap around 24 November 2026 had been \
-              decided",
+              decided. The system is written up in \
+              docs/systems/vietnam-holidays.md",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// The published lists of Indonesia, Singapore, Malaysia and the Philippines
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year of the lists read for the four countries' announced days.
+const SEA_LISTED_FIRST: i32 = 2020;
+/// The last year whose list is final.
+const SEA_LISTED_SETTLED: i32 = 2026;
+/// The last year a list read announces ahead, subject to change.
+const SEA_LISTED_ANNOUNCED: i32 = 2027;
+
+/// A day the lists date, in three parts: exactly for `first..=settled`,
+/// the years whose lists are final; as announced for the years after it
+/// to `announced`, a list published ahead of its year and subject to
+/// change, and so approximate; and by `base`, flagged approximate, before
+/// and after. For a Hijri-dated day `base` is the tabular prediction.
+const fn listed(
+    base: HolidayRule,
+    function: fn(i64) -> Days,
+    first: i32,
+    settled: i32,
+    announced: i32,
+) -> [HolidayRule; 4] {
+    let read = Rule::Tabulated {
+        function,
+        first_year: first as i64,
+        last_year: announced as i64,
+    };
+    [
+        HolidayRule {
+            rule: read,
+            confidence: Confidence::Exact,
+            ..base
+        }
+        .years(Some(first), Some(settled)),
+        HolidayRule {
+            rule: read,
+            confidence: Confidence::Approximate,
+            ..base
+        }
+        .years(Some(settled + 1), Some(announced)),
+        base.approximate().years(None, Some(first - 1)),
+        base.approximate().years(Some(announced + 1), None),
+    ]
+}
+
+/// The lookups into one country's list, as the `fn(i64) -> Days` a
+/// [`Rule::Tabulated`] takes.
+macro_rules! listed_days {
+    ($table:ident: $($function:ident => $entry:literal),* $(,)?) => {
+        $(
+            fn $function(year: i64) -> Days {
+                announced($table, year, $entry)
+            }
+        )*
+    };
+}
 
 // ─────────────────────────────────────────────────────────────────────────
 // Indonesia
 // ─────────────────────────────────────────────────────────────────────────
+
+/// The Surat Keputusan Bersama of the Ministers of Religious Affairs, of
+/// Manpower and of Administrative Reform on the national holidays and
+/// cuti bersama, as amended, for 2020 to 2027 — 391/02/02 of 2020 (the
+/// second amendment of 728/213/01 of 2019), 712/1/3 of 2021 (the second
+/// amendment of 642/4/4 of 2020, which moved the Islamic New Year and the
+/// Mawlid a day), 963/3/4 of 2021, 1066/3/3 of 2022, 855/3/4 of 2023,
+/// 1017/2/2 of 2024, 1497/2/5 of 2025 and 1205/3/2 of 2026: the days they
+/// date by a calendar or a sighting. Each says that the Minister of
+/// Religious Affairs fixes Eid al-Fitr and Eid al-Adha by his own decree;
+/// for 2022 his sighting put Eid al-Adha on Sunday 10 July, and the SKB's
+/// holiday stayed on Saturday 9 July. 2027 has two Isra and Mi'raj, of
+/// 1448 and 1449 AH.
+#[rustfmt::skip]
+static ID_LISTED: &[(i64, u8, u8, &str)] = &[
+    (2020, 3, 22, "isra"), (2020, 3, 25, "nyepi"), (2020, 5, 24, "fitr1"), (2020, 5, 25, "fitr2"),
+    (2020, 5, 7, "waisak"), (2020, 7, 31, "adha"), (2020, 8, 20, "muharram"), (2020, 10, 29, "mawlid"),
+    (2021, 3, 11, "isra"), (2021, 3, 14, "nyepi"), (2021, 5, 13, "fitr1"), (2021, 5, 14, "fitr2"),
+    (2021, 5, 26, "waisak"), (2021, 7, 20, "adha"), (2021, 8, 11, "muharram"), (2021, 10, 20, "mawlid"),
+    (2022, 2, 28, "isra"), (2022, 3, 3, "nyepi"), (2022, 5, 2, "fitr1"), (2022, 5, 3, "fitr2"),
+    (2022, 5, 16, "waisak"), (2022, 7, 9, "adha"), (2022, 7, 30, "muharram"), (2022, 10, 8, "mawlid"),
+    (2023, 2, 18, "isra"), (2023, 3, 22, "nyepi"), (2023, 4, 22, "fitr1"), (2023, 4, 23, "fitr2"),
+    (2023, 6, 4, "waisak"), (2023, 6, 29, "adha"), (2023, 7, 19, "muharram"), (2023, 9, 28, "mawlid"),
+    (2024, 2, 8, "isra"), (2024, 3, 11, "nyepi"), (2024, 4, 10, "fitr1"), (2024, 4, 11, "fitr2"),
+    (2024, 5, 23, "waisak"), (2024, 6, 17, "adha"), (2024, 7, 7, "muharram"), (2024, 9, 16, "mawlid"),
+    (2025, 1, 27, "isra"), (2025, 3, 29, "nyepi"), (2025, 3, 31, "fitr1"), (2025, 4, 1, "fitr2"),
+    (2025, 5, 12, "waisak"), (2025, 6, 6, "adha"), (2025, 6, 27, "muharram"), (2025, 9, 5, "mawlid"),
+    (2026, 1, 16, "isra"), (2026, 3, 19, "nyepi"), (2026, 3, 21, "fitr1"), (2026, 3, 22, "fitr2"),
+    (2026, 5, 31, "waisak"), (2026, 5, 27, "adha"), (2026, 6, 16, "muharram"), (2026, 8, 25, "mawlid"),
+    (2027, 1, 5, "isra"), (2027, 12, 26, "isra"), (2027, 3, 8, "nyepi"), (2027, 3, 10, "fitr1"),
+    (2027, 3, 11, "fitr2"), (2027, 5, 20, "waisak"), (2027, 5, 17, "adha"), (2027, 6, 6, "muharram"),
+    (2027, 8, 15, "mawlid"),
+];
+
+listed_days! { ID_LISTED:
+    id_isra => "isra",
+    id_nyepi => "nyepi",
+    id_fitr_1 => "fitr1",
+    id_fitr_2 => "fitr2",
+    id_waisak => "waisak",
+    id_adha => "adha",
+    id_muharram => "muharram",
+    id_mawlid => "mawlid",
+}
+
+const fn id_listed(base: HolidayRule, function: fn(i64) -> Days) -> [HolidayRule; 4] {
+    listed(
+        base,
+        function,
+        SEA_LISTED_FIRST,
+        SEA_LISTED_SETTLED,
+        SEA_LISTED_ANNOUNCED,
+    )
+}
+
+const ID_ISRA: [HolidayRule; 4] = id_listed(
+    HolidayRule::fixed_public(
+        "Isra and Mi'raj",
+        "Isra Mikraj",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 7, 27),
+    ),
+    id_isra,
+);
+const ID_WAISAK: [HolidayRule; 4] = id_listed(
+    HolidayRule::fixed_public(
+        "Vesak",
+        "Hari Raya Waisak",
+        Rule::in_calendar(CalendarSystem::CHINESE, 4, 15),
+    ),
+    id_waisak,
+);
+const ID_FITR_1: [HolidayRule; 4] = id_listed(
+    HolidayRule::fixed_public("Eid al-Fitr", "Idul Fitri", EID_AL_FITR),
+    id_fitr_1,
+);
+const ID_FITR_2: [HolidayRule; 4] = id_listed(
+    HolidayRule::fixed_public(
+        "Eid al-Fitr",
+        "Idul Fitri",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
+    ),
+    id_fitr_2,
+);
+const ID_ADHA: [HolidayRule; 4] = id_listed(
+    HolidayRule::fixed_public("Eid al-Adha", "Idul Adha", EID_AL_ADHA),
+    id_adha,
+);
+const ID_MUHARRAM: [HolidayRule; 4] = id_listed(
+    HolidayRule::fixed_public("Islamic New Year", "Tahun Baru Islam", HIJRI_NEW_YEAR),
+    id_muharram,
+);
+const ID_MAWLID: [HolidayRule; 4] = id_listed(
+    HolidayRule::fixed_public("Mawlid", "Maulid Nabi Muhammad", MAWLID),
+    id_mawlid,
+);
+
+/// Nyepi, the Balinese Śaka new year, as the SKBs date it. Its calendar,
+/// the Balinese Śaka lunisolar one, is not carried — `balinese-pawukon` is
+/// the 210-day wuku cycle, a different reckoning — so a year outside the
+/// lists read is a gap.
+const ID_NYEPI_RULE: Rule = Rule::Tabulated {
+    function: id_nyepi,
+    first_year: SEA_LISTED_FIRST as i64,
+    last_year: SEA_LISTED_ANNOUNCED as i64,
+};
 
 static ID_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("New Year's Day", "Tahun Baru Masehi", Rule::gregorian(1, 1)),
@@ -1759,12 +1931,15 @@ static ID_RULES: &[HolidayRule] = &[
         Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
     )
     .years(Some(2003), None),
-    HolidayRule::fixed_public(
-        "Isra and Mi'raj",
-        "Isra Mikraj",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 7, 27),
-    )
-    .approximate(),
+    ID_ISRA[0],
+    ID_ISRA[1],
+    ID_ISRA[2],
+    ID_ISRA[3],
+    HolidayRule::fixed_public("Nyepi", "Hari Suci Nyepi", ID_NYEPI_RULE)
+        .years(None, Some(SEA_LISTED_SETTLED)),
+    HolidayRule::fixed_public("Nyepi", "Hari Suci Nyepi", ID_NYEPI_RULE)
+        .approximate()
+        .years(Some(SEA_LISTED_SETTLED + 1), None),
     HolidayRule::fixed_public(
         "Good Friday",
         "Wafat Isa Almasih",
@@ -1773,38 +1948,56 @@ static ID_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("Labour Day", "Hari Buruh", Rule::gregorian(5, 1))
         .years(Some(2014), None),
     HolidayRule::fixed_public("Ascension", "Kenaikan Isa Almasih", Rule::easter(ASCENSION)),
-    HolidayRule::fixed_public(
-        "Vesak",
-        "Hari Raya Waisak",
-        Rule::in_calendar(CalendarSystem::CHINESE, 4, 15),
-    )
-    .approximate(),
+    ID_WAISAK[0],
+    ID_WAISAK[1],
+    ID_WAISAK[2],
+    ID_WAISAK[3],
     HolidayRule::fixed_public(
         "Pancasila Day",
         "Hari Lahir Pancasila",
         Rule::gregorian(6, 1),
     )
     .years(Some(2017), None),
-    HolidayRule::fixed_public("Eid al-Fitr", "Idul Fitri", EID_AL_FITR).approximate(),
-    HolidayRule::fixed_public(
-        "Eid al-Fitr",
-        "Idul Fitri",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
-    )
-    .approximate(),
-    HolidayRule::fixed_public("Eid al-Adha", "Idul Adha", EID_AL_ADHA).approximate(),
-    HolidayRule::fixed_public("Islamic New Year", "Tahun Baru Islam", HIJRI_NEW_YEAR).approximate(),
+    ID_FITR_1[0],
+    ID_FITR_1[1],
+    ID_FITR_1[2],
+    ID_FITR_1[3],
+    ID_FITR_2[0],
+    ID_FITR_2[1],
+    ID_FITR_2[2],
+    ID_FITR_2[3],
+    ID_ADHA[0],
+    ID_ADHA[1],
+    ID_ADHA[2],
+    ID_ADHA[3],
+    ID_MUHARRAM[0],
+    ID_MUHARRAM[1],
+    ID_MUHARRAM[2],
+    ID_MUHARRAM[3],
     HolidayRule::fixed_public(
         "Independence Day",
         "Hari Kemerdekaan",
         Rule::gregorian(8, 17),
     )
     .years(Some(1945), None),
-    HolidayRule::fixed_public("Mawlid", "Maulid Nabi Muhammad", MAWLID).approximate(),
+    ID_MAWLID[0],
+    ID_MAWLID[1],
+    ID_MAWLID[2],
+    ID_MAWLID[3],
     HolidayRule::fixed_public("Christmas Day", "Hari Raya Natal", Rule::gregorian(12, 25)),
 ];
 
 /// Indonesia.
+///
+/// The national holidays of the three ministers' joint decree, the SKB.
+/// The days it dates by a calendar or a sighting — the Islamic ones,
+/// Vesak and Nyepi — are the SKBs' dates for 2020 to 2026, and for 2027
+/// the dates of the SKB issued in September 2026, which are
+/// announcements and flagged approximate; outside those years the Islamic
+/// days are the tabular prediction and Vesak the full moon of the fourth
+/// Chinese month, both approximate, and Nyepi, whose calendar the crate
+/// does not carry, a gap. The cuti bersama, the collective leave days
+/// the SKBs add, are not days off by statute and are not carried.
 pub static INDONESIA: RuleSet = RuleSet {
     code: "ID",
     english_name: "Indonesia",
@@ -1813,18 +2006,75 @@ pub static INDONESIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Surat Keputusan Bersama of the three ministries, issued \
-              annually. The Islamic dates are the civil tabular computation, \
-              not the sighting Indonesia actually follows, and Nyepi — the \
-              Balinese Saka new year — is absent because this crate has no \
-              Balinese calendar. The cuti bersama days are an annual \
-              decision and are not modelled",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "The SKBs on libur nasional dan cuti bersama: for 2020, 391/02/02 of \
+              9 April 2020 (setda.kalteng.go.id); for 2021, 712/1/3 of 18 June 2021 \
+              (setda.kalteng.go.id); for 2022, 963/3/4 of 22 September 2021 and its \
+              amendment 375/1/1 of 7 April 2022; for 2023, 1066/3/3 of 11 October 2022; \
+              for 2024, 855/3/4 of 12 September 2023; for 2025, 1017/2/2 of 14 October \
+              2024; for 2026, 1497/2/5 of 19 September 2025; for 2027, 1205/3/2 of \
+              15 September 2026; the 2022 to 2027 texts from the Coordinating Ministry \
+              for Human Development and Culture (kemenkopmk.go.id/sites/default/files/\
+              pengumuman/); the Ministry of Religious Affairs' Central Java office on \
+              the sighting of Eid al-Adha 2022 and of Eid al-Fitr 2026 \
+              (jateng.kemenag.go.id); all retrieved 2026-09-26. The later amendments \
+              for 2020 and 2023, reported to change only the cuti bersama, were not \
+              read",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
 // Singapore, Malaysia, the Philippines
 // ─────────────────────────────────────────────────────────────────────────
+
+/// The Ministry of Manpower's "Public Holidays for" 2020 to 2027 press
+/// releases, with the revisions of 21 October 2021 (Hari Raya Puasa and
+/// Hari Raya Haji 2022) and 29 September 2022 (Vesak Day 2023): the days
+/// they date by the Hijri calendar or the Buddhist one. A Sunday among
+/// them gives the Monday, as the releases say, by the table's
+/// substitution.
+#[rustfmt::skip]
+static SG_LISTED: &[(i64, u8, u8, &str)] = &[
+    (2020, 5, 24, "puasa"), (2020, 7, 31, "haji"), (2020, 5, 7, "vesak"),
+    (2021, 5, 13, "puasa"), (2021, 7, 20, "haji"), (2021, 5, 26, "vesak"),
+    (2022, 5, 3, "puasa"), (2022, 7, 10, "haji"), (2022, 5, 15, "vesak"),
+    (2023, 4, 22, "puasa"), (2023, 6, 29, "haji"), (2023, 6, 2, "vesak"),
+    (2024, 4, 10, "puasa"), (2024, 6, 17, "haji"), (2024, 5, 22, "vesak"),
+    (2025, 3, 31, "puasa"), (2025, 6, 7, "haji"), (2025, 5, 12, "vesak"),
+    (2026, 3, 21, "puasa"), (2026, 5, 27, "haji"), (2026, 5, 31, "vesak"),
+    (2027, 3, 10, "puasa"), (2027, 5, 17, "haji"), (2027, 5, 20, "vesak"),
+];
+
+listed_days! { SG_LISTED:
+    sg_puasa => "puasa",
+    sg_haji => "haji",
+    sg_vesak => "vesak",
+}
+
+const SG_PUASA: [HolidayRule; 4] = listed(
+    HolidayRule::public("Hari Raya Puasa", "", EID_AL_FITR),
+    sg_puasa,
+    SEA_LISTED_FIRST,
+    SEA_LISTED_SETTLED,
+    SEA_LISTED_ANNOUNCED,
+);
+const SG_HAJI: [HolidayRule; 4] = listed(
+    HolidayRule::public("Hari Raya Haji", "", EID_AL_ADHA),
+    sg_haji,
+    SEA_LISTED_FIRST,
+    SEA_LISTED_SETTLED,
+    SEA_LISTED_ANNOUNCED,
+);
+const SG_VESAK: [HolidayRule; 4] = listed(
+    HolidayRule::public(
+        "Vesak Day",
+        "",
+        Rule::in_calendar(CalendarSystem::CHINESE, 4, 15),
+    ),
+    sg_vesak,
+    SEA_LISTED_FIRST,
+    SEA_LISTED_SETTLED,
+    SEA_LISTED_ANNOUNCED,
+);
 
 static SG_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
@@ -1839,15 +2089,19 @@ static SG_RULES: &[HolidayRule] = &[
         Rule::in_calendar(CalendarSystem::CHINESE, 1, 2),
     ),
     HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Hari Raya Puasa", "", EID_AL_FITR).approximate(),
+    SG_PUASA[0],
+    SG_PUASA[1],
+    SG_PUASA[2],
+    SG_PUASA[3],
     HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::public(
-        "Vesak Day",
-        "",
-        Rule::in_calendar(CalendarSystem::CHINESE, 4, 15),
-    )
-    .approximate(),
-    HolidayRule::public("Hari Raya Haji", "", EID_AL_ADHA).approximate(),
+    SG_VESAK[0],
+    SG_VESAK[1],
+    SG_VESAK[2],
+    SG_VESAK[3],
+    SG_HAJI[0],
+    SG_HAJI[1],
+    SG_HAJI[2],
+    SG_HAJI[3],
     HolidayRule::public("National Day", "", Rule::gregorian(8, 9)).years(Some(1965), None),
     HolidayRule::public("Deepavali", "", DIWALI).approximate(),
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
@@ -1873,13 +2127,99 @@ pub static SINGAPORE: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Holidays Act 1998, schedule; Ministry of Manpower's annual \
-              list (mom.gov.sg), whose Deepavali for 2020 to 2026 the crate's \
-              Dīpāvalī rule gives, carried approximate as the Ministry \
-              announces the day; the two Islamic days are the tabular \
-              computation and not the MUIS announcement",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Holidays Act 1998, schedule; the Ministry of Manpower's \"Public \
+              Holidays for\" 2020 to 2027 press releases (mom.gov.sg/newsroom/\
+              press-releases/, `mom-public-holidays`) and its revisions of 21 October \
+              2021 and 29 September 2022, retrieved 2026-09-26, for Hari Raya Puasa, \
+              Hari Raya Haji and Vesak Day in those years, the 2027 ones as announced \
+              and outside them the tabular Hijri computation and the Chinese calendar's \
+              full moon, approximate; the same lists' Deepavali for 2020 to 2026, which \
+              the crate's Dīpāvalī rule gives, carried approximate as the Ministry \
+              announces the day",
 };
+
+/// The Prime Minister's Department's "Jadual Hari Kelepasan Am
+/// Persekutuan" for 2020 to 2027: the federal days it dates by the Hijri
+/// calendar or the Buddhist one. The lists mark the two Hari Raya "tertakluk
+/// kepada perubahan", subject to change; in the years read none was
+/// changed. For 2026 the Prime Minister added Friday 20 March to Hari Raya
+/// Aidilfitri, announced on 15 March for the case that the festival fell on
+/// the Saturday, which the Keeper of the Rulers' Seal confirmed on 19 March.
+/// The special holiday of 21 April 2023, gazetted separately, was not read
+/// and is not carried.
+#[rustfmt::skip]
+static MY_LISTED: &[(i64, u8, u8, &str)] = &[
+    (2020, 5, 24, "fitr1"), (2020, 5, 25, "fitr2"), (2020, 7, 31, "adha"), (2020, 8, 20, "muharram"),
+    (2020, 10, 29, "mawlid"), (2020, 5, 7, "wesak"),
+    (2021, 5, 13, "fitr1"), (2021, 5, 14, "fitr2"), (2021, 7, 20, "adha"), (2021, 8, 10, "muharram"),
+    (2021, 10, 19, "mawlid"), (2021, 5, 26, "wesak"),
+    (2022, 5, 3, "fitr1"), (2022, 5, 4, "fitr2"), (2022, 7, 10, "adha"), (2022, 7, 30, "muharram"),
+    (2022, 10, 9, "mawlid"), (2022, 5, 15, "wesak"),
+    (2023, 4, 22, "fitr1"), (2023, 4, 23, "fitr2"), (2023, 6, 29, "adha"), (2023, 7, 19, "muharram"),
+    (2023, 9, 28, "mawlid"), (2023, 5, 4, "wesak"),
+    (2024, 4, 10, "fitr1"), (2024, 4, 11, "fitr2"), (2024, 6, 17, "adha"), (2024, 7, 7, "muharram"),
+    (2024, 9, 16, "mawlid"), (2024, 5, 22, "wesak"),
+    (2025, 3, 31, "fitr1"), (2025, 4, 1, "fitr2"), (2025, 6, 7, "adha"), (2025, 6, 27, "muharram"),
+    (2025, 9, 5, "mawlid"), (2025, 5, 12, "wesak"),
+    (2026, 3, 21, "fitr1"), (2026, 3, 22, "fitr2"), (2026, 5, 27, "adha"), (2026, 6, 17, "muharram"),
+    (2026, 8, 25, "mawlid"), (2026, 5, 31, "wesak"), (2026, 3, 20, "fitr-added"),
+    (2027, 3, 10, "fitr1"), (2027, 3, 11, "fitr2"), (2027, 5, 17, "adha"), (2027, 6, 6, "muharram"),
+    (2027, 8, 15, "mawlid"), (2027, 5, 20, "wesak"),
+];
+
+listed_days! { MY_LISTED:
+    my_fitr_1 => "fitr1",
+    my_fitr_2 => "fitr2",
+    my_fitr_added => "fitr-added",
+    my_adha => "adha",
+    my_muharram => "muharram",
+    my_mawlid => "mawlid",
+    my_wesak => "wesak",
+}
+
+const fn my_listed(base: HolidayRule, function: fn(i64) -> Days) -> [HolidayRule; 4] {
+    listed(
+        base,
+        function,
+        SEA_LISTED_FIRST,
+        SEA_LISTED_SETTLED,
+        SEA_LISTED_ANNOUNCED,
+    )
+}
+
+const MY_FITR_1: [HolidayRule; 4] = my_listed(
+    HolidayRule::public("Hari Raya Aidilfitri", "", EID_AL_FITR),
+    my_fitr_1,
+);
+const MY_FITR_2: [HolidayRule; 4] = my_listed(
+    HolidayRule::public(
+        "Hari Raya Aidilfitri",
+        "",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
+    ),
+    my_fitr_2,
+);
+const MY_WESAK: [HolidayRule; 4] = my_listed(
+    HolidayRule::public(
+        "Wesak Day",
+        "Hari Wesak",
+        Rule::in_calendar(CalendarSystem::CHINESE, 4, 15),
+    ),
+    my_wesak,
+);
+const MY_ADHA: [HolidayRule; 4] = my_listed(
+    HolidayRule::public("Hari Raya Haji", "", EID_AL_ADHA),
+    my_adha,
+);
+const MY_MUHARRAM: [HolidayRule; 4] = my_listed(
+    HolidayRule::public("Awal Muharram", "", HIJRI_NEW_YEAR),
+    my_muharram,
+);
+const MY_MAWLID: [HolidayRule; 4] = my_listed(
+    HolidayRule::public("Mawlid", "Maulidur Rasul", MAWLID),
+    my_mawlid,
+);
 
 static MY_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "Tahun Baru", Rule::gregorian(1, 1)),
@@ -1893,33 +2233,51 @@ static MY_RULES: &[HolidayRule] = &[
         "Tahun Baru Cina",
         Rule::in_calendar(CalendarSystem::CHINESE, 1, 2),
     ),
-    HolidayRule::public("Hari Raya Aidilfitri", "", EID_AL_FITR).approximate(),
+    MY_FITR_1[0],
+    MY_FITR_1[1],
+    MY_FITR_1[2],
+    MY_FITR_1[3],
+    MY_FITR_2[0],
+    MY_FITR_2[1],
+    MY_FITR_2[2],
+    MY_FITR_2[3],
     HolidayRule::public(
-        "Hari Raya Aidilfitri",
-        "",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
+        "Additional Hari Raya Aidilfitri holiday",
+        "Cuti tambahan Hari Raya Aidilfitri",
+        Rule::Tabulated {
+            function: my_fitr_added,
+            first_year: 2026,
+            last_year: 2026,
+        },
     )
-    .approximate(),
+    .years(Some(2026), Some(2026)),
     HolidayRule::public("Labour Day", "Hari Pekerja", Rule::gregorian(5, 1)),
-    HolidayRule::public(
-        "Wesak Day",
-        "Hari Wesak",
-        Rule::in_calendar(CalendarSystem::CHINESE, 4, 15),
-    )
-    .approximate(),
+    MY_WESAK[0],
+    MY_WESAK[1],
+    MY_WESAK[2],
+    MY_WESAK[3],
     HolidayRule::public(
         "Agong's Birthday",
         "Hari Keputeraan Agong",
         Rule::nth(6, 1, Weekday::Monday),
     )
     .years(Some(2017), None),
-    HolidayRule::public("Hari Raya Haji", "", EID_AL_ADHA).approximate(),
-    HolidayRule::public("Awal Muharram", "", HIJRI_NEW_YEAR).approximate(),
+    MY_ADHA[0],
+    MY_ADHA[1],
+    MY_ADHA[2],
+    MY_ADHA[3],
+    MY_MUHARRAM[0],
+    MY_MUHARRAM[1],
+    MY_MUHARRAM[2],
+    MY_MUHARRAM[3],
     HolidayRule::public("National Day", "Hari Kebangsaan", Rule::gregorian(8, 31))
         .years(Some(1957), None),
     HolidayRule::public("Malaysia Day", "Hari Malaysia", Rule::gregorian(9, 16))
         .years(Some(2010), None),
-    HolidayRule::public("Mawlid", "Maulidur Rasul", MAWLID).approximate(),
+    MY_MAWLID[0],
+    MY_MAWLID[1],
+    MY_MAWLID[2],
+    MY_MAWLID[3],
     HolidayRule::public("Deepavali", "Hari Deepavali", DIWALI).approximate(),
     HolidayRule::public("Christmas Day", "Hari Krismas", Rule::gregorian(12, 25)),
 ];
@@ -1942,16 +2300,62 @@ pub static MALAYSIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Holidays Act 1951, schedule; the federal gazette's annual \
-              list, with Office Holidays' copies of it for 2023 to 2025. \
-              Deepavali, which the schedule keeps everywhere but Sarawak, is \
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Holidays Act 1951, schedule; the Prime Minister's Department's \
+              \"Jadual Hari Kelepasan Am Persekutuan\" for 2020 to 2027 (kabinet.gov.my, \
+              bkpp/pdf/hari_kelepasan_am/hka_2020.pdf to hka_2025.pdf, storage/2025/08/\
+              HKA-2026.pdf and storage/2026/08/HKA_2027.pdf), through web.archive.org, \
+              retrieved 2026-09-26, for the Hijri-dated days and Wesak Day, the 2027 \
+              ones as announced, and outside those years the tabular Hijri \
+              computation and the Chinese calendar's full moon, approximate; RTM \
+              (berita.rtm.gov.my) on the Prime Minister's added day of 15 March 2026 \
+              and the Keeper of the Rulers' Seal's announcement of 19 March 2026, \
+              retrieved the same day. Deepavali, which the schedule keeps everywhere \
+              but Sarawak, is \
               the crate's Dīpāvalī rule, carried approximate as the gazette \
               announces the day. State holidays are not modelled — Thaipusam \
-              among them, though the crate now has its rule — and neither is \
+              among them, whose rule is `hindu::THAIPUSAM` — and neither is \
               the Friday–Saturday weekend of Johor, Kedah, Kelantan and \
               Terengganu",
 };
+
+/// The President's proclamations of Eid'l Fitr and Eid'l Adha as regular
+/// holidays, on the National Commission on Muslim Filipinos'
+/// recommendation, for 2020 to 2026: Proclamations 944 and 985 (2020),
+/// 1142 and 1189 (2021), 1356 and 2 (2022), 201 and 258 (2023), 514 and
+/// 579 (2024), 839 and 911 (2025), and for 2026 the proclamation of 12
+/// March (No. 1189 by the titles of its reports) and No. 1264. The 2027
+/// proclamations had not been issued.
+#[rustfmt::skip]
+static PH_LISTED: &[(i64, u8, u8, &str)] = &[
+    (2020, 5, 25, "fitr"), (2020, 7, 31, "adha"),
+    (2021, 5, 13, "fitr"), (2021, 7, 20, "adha"),
+    (2022, 5, 3, "fitr"), (2022, 7, 9, "adha"),
+    (2023, 4, 21, "fitr"), (2023, 6, 28, "adha"),
+    (2024, 4, 10, "fitr"), (2024, 6, 17, "adha"),
+    (2025, 4, 1, "fitr"), (2025, 6, 6, "adha"),
+    (2026, 3, 20, "fitr"), (2026, 5, 27, "adha"),
+];
+
+listed_days! { PH_LISTED:
+    ph_fitr => "fitr",
+    ph_adha => "adha",
+}
+
+const PH_FITR: [HolidayRule; 4] = listed(
+    HolidayRule::fixed_public("Eid'l Fitr", "", EID_AL_FITR),
+    ph_fitr,
+    SEA_LISTED_FIRST,
+    SEA_LISTED_SETTLED,
+    SEA_LISTED_SETTLED,
+);
+const PH_ADHA: [HolidayRule; 4] = listed(
+    HolidayRule::fixed_public("Eid'l Adha", "", EID_AL_ADHA),
+    ph_adha,
+    SEA_LISTED_FIRST,
+    SEA_LISTED_SETTLED,
+    SEA_LISTED_SETTLED,
+);
 
 static PH_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("New Year's Day", "Bagong Taon", Rule::gregorian(1, 1)),
@@ -1976,8 +2380,14 @@ static PH_RULES: &[HolidayRule] = &[
         "Araw ng Kalayaan",
         Rule::gregorian(6, 12),
     ),
-    HolidayRule::fixed_public("Eid'l Fitr", "", EID_AL_FITR).approximate(),
-    HolidayRule::fixed_public("Eid'l Adha", "", EID_AL_ADHA).approximate(),
+    PH_FITR[0],
+    PH_FITR[1],
+    PH_FITR[2],
+    PH_FITR[3],
+    PH_ADHA[0],
+    PH_ADHA[1],
+    PH_ADHA[2],
+    PH_ADHA[3],
     HolidayRule::public("Ninoy Aquino Day", "", Rule::gregorian(8, 21)).of_kind(Kind::Bank),
     HolidayRule::fixed_public(
         "National Heroes Day",
@@ -2016,13 +2426,15 @@ pub static PHILIPPINES: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Administrative Code of 1987 as amended by Republic Act 9492 \
               and Republic Act 9849; the annual Malacañang proclamation. \
-              Special (non-working) days are recorded as bank holidays; the \
-              two Islamic days are the tabular computation, while the \
-              proclaimed dates follow the National Commission on Muslim \
-              Filipinos",
+              Special (non-working) days are recorded as bank holidays. The two \
+              Islamic days are the proclaimed dates for 2020 to 2026, from the \
+              Official Gazette (officialgazette.gov.ph, through web.archive.org), \
+              the Presidential Communications Office and the Philippine News Agency \
+              (pna.gov.ph), retrieved 2026-09-26, and the tabular computation, \
+              approximate, outside them",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2044,20 +2456,22 @@ pub static PHILIPPINES: RuleSet = RuleSet {
 /// spokesperson as starting the next day. The first Sunday off was 12 April
 /// 2026.
 ///
-/// A weekend policy here is valid for whole Gregorian years, so 2026 is
-/// carried as a Saturday–Sunday year: that is right from 12 April and wrong
-/// for the fourteen Sundays from 4 January to 5 April, which were working
-/// days.
+/// So the Saturday-only weekend runs to Sunday 5 April 2026, a working day,
+/// and Saturday and Sunday from Monday 6 April.
 static NP_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Saturday],
         valid_from: None,
-        valid_until: Some(2025),
+        valid_from_day: None,
+        valid_until: Some(2026),
+        valid_until_day: Some((4, 5)),
     },
     WeekendPolicy {
         days: &[Weekday::Saturday, Weekday::Sunday],
         valid_from: Some(2026),
+        valid_from_day: Some((4, 6)),
         valid_until: None,
+        valid_until_day: None,
     },
 ];
 
@@ -2557,11 +2971,15 @@ pub static PAKISTAN: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "Wikipedia, \"Public holidays in Pakistan\", retrieved 2026-09-22, for \
-              the state holidays and their Urdu names; Wikipedia, \"Iqbal Day\", \
-              retrieved 2026-09-22, for the withdrawal of 2015 and the \
-              restoration of 2022",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Cabinet Division, Government of Pakistan, \"Public and Optional Holidays for the \
+              Year 2026\", its number and date not read, the PDF on cabinet.gov.pk being a \
+              scanned image, as reported by Business Recorder, 19 January 2026 (secondary), \
+              retrieved 2026-09-26; Wikipedia, \"Public holidays in Pakistan\", retrieved \
+              2026-09-22, for the state holidays and their Urdu names; Wikipedia, \"Iqbal \
+              Day\", retrieved 2026-09-22, for the withdrawal of 2015 and the restoration of \
+              2022. The Christian holidays of 25 and 26 December for Christians only are not \
+              carried",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2575,7 +2993,9 @@ pub static PAKISTAN: RuleSet = RuleSet {
 static BD_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday, Weekday::Saturday],
     valid_from: None,
+    valid_from_day: None,
     valid_until: None,
+    valid_until_day: None,
 }];
 
 /// The first year of the notifications carried for the festivals.
@@ -2808,6 +3228,57 @@ pub static BANGLADESH: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 /// A holiday on a day of the Burmese calendar.
+/// The first year of the Government's Deepavali notices read.
+const MM_DEEPAVALI_FIRST: i32 = 2020;
+/// The last.
+const MM_DEEPAVALI_LAST: i32 = 2025;
+
+/// Deepavali as the Government's notices, printed in the Global New Light
+/// of Myanmar, date it: Union Government Order 76/2020 (Saturday 14 November
+/// 2020, with Friday 13 November given in its place), State Administration
+/// Council Order 337/2021, Notification 168/2022, Notification 220/2023 and
+/// Order 175/2024, and the National Defence and Security Council's
+/// Notification 190/2025. The day is the new moon that ends Thadingyut in
+/// 2020, 2023 and 2025 and the first waxing of Tazaungmon in the other
+/// years, so it follows no one Burmese date.
+#[rustfmt::skip]
+static MM_DEEPAVALI_NOTIFIED: &[(i64, u8, u8, &str)] = &[
+    (2020, 11, 14, "deepavali"), (2020, 11, 13, "substituted"),
+    (2021, 11, 4, "deepavali"),
+    (2022, 10, 24, "deepavali"),
+    (2023, 11, 12, "deepavali"),
+    (2024, 11, 1, "deepavali"),
+    (2025, 10, 20, "deepavali"),
+];
+
+fn mm_deepavali(year: i64) -> Days {
+    announced(MM_DEEPAVALI_NOTIFIED, year, "deepavali")
+}
+
+fn mm_deepavali_substituted(year: i64) -> Days {
+    announced(MM_DEEPAVALI_NOTIFIED, year, "substituted")
+}
+
+/// Deepavali: the notices' day for 2020 to 2025, and outside them the
+/// crate's Dīpāvalī rule, which gives five of those six days — not 2024's —
+/// flagged approximate.
+const MM_DEEPAVALI: [HolidayRule; 3] = {
+    let base = HolidayRule::fixed_public("Deepavali", "ဒီပါဝလီ", DIWALI);
+    [
+        HolidayRule {
+            rule: Rule::Tabulated {
+                function: mm_deepavali,
+                first_year: MM_DEEPAVALI_FIRST as i64,
+                last_year: MM_DEEPAVALI_LAST as i64,
+            },
+            ..base
+        }
+        .years(Some(MM_DEEPAVALI_FIRST), Some(MM_DEEPAVALI_LAST)),
+        base.approximate().years(None, Some(MM_DEEPAVALI_FIRST - 1)),
+        base.approximate().years(Some(MM_DEEPAVALI_LAST + 1), None),
+    ]
+};
+
 const fn mm_burmese(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
     HolidayRule::fixed_public(
         name,
@@ -2901,9 +3372,19 @@ static MM_RULES: &[HolidayRule] = &[
     // The first waxing day of Pyatho.
     mm_burmese("Kayin New Year", "ကရင်နှစ်သစ်ကူး", 10, 1),
     HolidayRule::fixed_public("Eid al-Adha", "", EID_AL_ADHA).approximate(),
-    // As the source states it: "based on the traditional Burmese calendar
-    // (1st waxing day of Tazaungmon)".
-    mm_burmese("Deepavali", "ဒီပါဝလီ", 8, 1),
+    MM_DEEPAVALI[0],
+    MM_DEEPAVALI[1],
+    MM_DEEPAVALI[2],
+    HolidayRule::fixed_public(
+        "Deepavali holiday, substituted",
+        "ဒီပါဝလီ",
+        Rule::Tabulated {
+            function: mm_deepavali_substituted,
+            first_year: MM_DEEPAVALI_FIRST as i64,
+            last_year: MM_DEEPAVALI_LAST as i64,
+        },
+    )
+    .years(Some(MM_DEEPAVALI_FIRST), Some(MM_DEEPAVALI_LAST)),
 ];
 
 /// Myanmar.
@@ -2911,9 +3392,9 @@ static MM_RULES: &[HolidayRule] = &[
 /// The public holidays as the source lists them, dated on the Burmese
 /// calendar where the source dates them there: the full moons of Tabaung,
 /// Kason, Waso, Thadingyut and Tazaungmon, National Day on the tenth waning
-/// of Tazaungmon, the Kayin New Year on the first waxing of Pyatho, and
-/// Deepavali on the first waxing of Tazaungmon, which is how the source
-/// says Myanmar fixes it. Thingyan is five days from the calendar's own
+/// of Tazaungmon and the Kayin New Year on the first waxing of Pyatho.
+/// Deepavali is the Government's notified day for 2020 to 2025, which
+/// is not one Burmese date, and a prediction outside those years. Thingyan is five days from the calendar's own
 /// *akya* and *atat* moments: the eve, the first day, the day or two
 /// between, the last day of the old year, and the New Year's day. The
 /// gazette extends several of these — nine days for Thadingyut in recent
@@ -2927,10 +3408,13 @@ pub static MYANMAR: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "Wikipedia, \"Public holidays in Myanmar\", retrieved 2026-09-22, for \
-              the list and the Burmese dates it gives; the Thingyan moments from \
-              Yan Naing Aye's arithmetic as `hc-calendars-regional::burmese` \
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Wikipedia, \"Public holidays in Myanmar\" (secondary), retrieved 2026-09-22, for \
+              the list and the Burmese dates it gives; for Deepavali, the Government's notices \
+              for 2020 to 2025 as the Global New Light of Myanmar printed them \
+              (moi.gov.mm/nlm) and the President's Office \
+              (presoffministry.gov.mm/en/news/14906), retrieved 2026-09-26; the Thingyan \
+              moments from Yan Naing Aye's arithmetic as `hc-calendars-regional::burmese` \
               carries it",
 };
 
@@ -2960,8 +3444,10 @@ static HK_DECEMBER_26: Rule = Rule::gregorian(12, 26);
 /// From 1983 to 2011 a Lunar New Year day on a Sunday was made up on the
 /// day before Lunar New Year's Day, so that the eve rather than the fourth
 /// day was the day off — 17 February 2007 and 13 February 2010 among
-/// them. The make-up ran forward before 1983 and again from the amendment
-/// of 14 December 2011, which first bit on 13 February 2013.
+/// them. The make-up ran forward before 1983 and again from the General
+/// Holidays and Employment Legislation (Substitution of Holidays)
+/// (Amendment) Ordinance 2011, No. 23 of 2011, in force from 24 February
+/// 2012, which first bit on 13 February 2013.
 fn hk_lunar_new_year_eve(year: i64) -> Days {
     let days = HK_LUNAR_NEW_YEAR.days_in_year(year);
     let Some(&first) = days.as_slice().first() else {
@@ -3153,7 +3639,8 @@ static HK_RULES: &[HolidayRule] = &[
 /// Birthday and Liberation Day among them, are not carried, so a year
 /// before 1997 is answered incompletely. The Chinese Winter Solstice
 /// Festival is an observance because an employer may give it in place of
-/// Christmas Day.
+/// Christmas Day. The two ordinances and their substitution rules are
+/// written up in `docs/systems/hong-kong-holidays.md`.
 pub static HONG_KONG: RuleSet = RuleSet {
     code: "HK",
     english_name: "Hong Kong",
@@ -3162,15 +3649,19 @@ pub static HONG_KONG: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "GovHK, \"General holidays for 2022\", \"2026\" and \"2027\", retrieved \
-              2026-09-22, for the gazetted lists and the Government's stated \
-              substitution reasoning; the Chinese Wikipedia, \"香港節日與公眾假期\", \
-              retrieved the same day, for the 1968, 1983, 1997, 1999 and 2011 \
-              changes and the 1983–2011 eve rule; Labour Department, \"Statutory \
-              holidays\" FAQ and \"Increase of statutory holidays\", for the \
-              Employment Ordinance's list, its phasing-in and the Winter \
-              Solstice option",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "General Holidays Ordinance (Cap. 149), section 3, section 6(2) and the Schedule, \
+              in the current version and those in force from 18 September 1998 and 24 February \
+              2012, and Employment Ordinance (Cap. 57), section 39, in the versions in force \
+              from 1 January 2022, 2024 and 2026, as HKLII reproduces them (hklii.hk; \
+              elegislation.gov.hk rendering by script), retrieved 2026-09-26; the Labour \
+              Department's notices on the Substitution of Holidays Ordinance of 2011 and on \
+              the Employment (Amendment) Ordinance 2021 (No. 21 of 2021), retrieved the same \
+              day; GovHK, \"General holidays for 2022\", \"2026\" and \"2027\", retrieved \
+              2026-09-22, for the gazetted lists and the Government's stated substitution \
+              reasoning; the Chinese Wikipedia, \"香港節日與公眾假期\", retrieved the same day, for the \
+              1968, 1983, 1997 and 1999 changes (secondary). The system is written up in \
+              docs/systems/hong-kong-holidays.md",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4642,7 +5133,9 @@ const fn kh_decreed(
 static KH_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
     valid_from: None,
+    valid_from_day: None,
     valid_until: None,
+    valid_until_day: None,
 }];
 
 static KH_RULES: &[HolidayRule] = &[
@@ -4875,7 +5368,9 @@ pub static LAOS: RuleSet = RuleSet {
 static BN_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday, Weekday::Sunday],
     valid_from: None,
+    valid_from_day: None,
     valid_until: None,
+    valid_until_day: None,
 }];
 
 /// The circulars' "sebagai ganti": a holiday on a Friday or a Sunday is
@@ -4988,7 +5483,9 @@ pub static BRUNEI: RuleSet = RuleSet {
 static TL_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
     valid_from: None,
+    valid_from_day: None,
     valid_until: None,
+    valid_until_day: None,
 }];
 
 static TL_RULES: &[HolidayRule] = &[
@@ -5396,7 +5893,9 @@ pub static BHUTAN: RuleSet = RuleSet {
 static MV_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday, Weekday::Saturday],
     valid_from: None,
+    valid_from_day: None,
     valid_until: None,
+    valid_until_day: None,
 }];
 
 /// A day of the Hijri calendar, on the tabular calendar and approximate:
@@ -5484,7 +5983,9 @@ pub static MALDIVES: RuleSet = RuleSet {
 static AF_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday],
     valid_from: None,
+    valid_from_day: None,
     valid_until: None,
+    valid_until_day: None,
 }];
 
 /// A holiday on the Solar Hijri calendar as Afghanistan keeps it, from
