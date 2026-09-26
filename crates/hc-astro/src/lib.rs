@@ -12,7 +12,9 @@
 //!   predictions to 2033, that [`time`] reads before falling back to its
 //!   polynomials.
 //! * [`ut1`] — the UT1 time scale, from ΔT or from a published DUT1 series.
-//! * [`earth`] — obliquity, nutation, sidereal time.
+//! * [`ut_variants`] — UT2, UT1R and UT1S, the smoothed readings of UT1.
+//! * [`earth`] — obliquity, nutation, the Earth Rotation Angle, and
+//!   sidereal time by the IAU 1982 and the IAU 2006 conventions.
 //! * [`vsop87`] — the Earth's heliocentric position from VSOP87, truncated
 //!   to a measured quarter of a second of arc.
 //! * [`solar`] — the Sun's apparent longitude, the search that solar terms
@@ -20,6 +22,7 @@
 //! * [`lunar`] — the Moon's longitude, its phase, and the conjunction search.
 //! * [`riseset`] — sunrise, sunset, twilight, moonrise and moonset for a
 //!   [`riseset::Location`].
+//! * [`solar_time`] — local mean and local apparent (sundial) time.
 //!
 //! # What it is not
 //!
@@ -58,8 +61,10 @@ pub mod earth;
 pub mod lunar;
 pub mod riseset;
 pub mod solar;
+pub mod solar_time;
 pub mod time;
 pub mod ut1;
+pub mod ut_variants;
 pub mod vsop87;
 
 mod search;

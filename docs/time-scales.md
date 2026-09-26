@@ -130,6 +130,61 @@ Since 1972 the IERS has kept `|UT1 − UTC| < 0.9 s` (ITU-R TF.460-6), so past
 the observed table UTC itself is a closer reading of UT1 than the model;
 only a DUT1 series does better there.
 
+### UT2, UT1R and UT1S
+
+Before VLBI, the time services published UT1 with some of its known
+variation smoothed out, and each smoothing has its own name.
+`hc-astro::ut_variants` takes the caller's UT1 and returns each of them,
+so that a historical reading labelled with one can be put back on UT1;
+none is disseminated now, and the IERS recommends exchanging UT1 and the
+length of day only [iers-tn36, ch. 8].
+
+| Reading | Function | What is removed | Source |
+| --- | --- | --- | --- |
+| **UT2** | `ut2`, `ut2_minus_ut1` | The conventional seasonal variation: UT2 − UT1 = 0.022 sin 2π*T* − 0.012 cos 2π*T* − 0.006 sin 4π*T* + 0.007 cos 4π*T* s, *T* = 2000.000 + (MJD − 51 544.03)/365.2422, at most ±0.031 s | [usno-eo-values]; SOFA calls it "no longer used" [sofa-ts] |
+| **UT1R** | `ut1r_iers2010`, `ut1r_minus_ut1_iers2010` | The zonal tides with periods under 35 days, as the IAU adopted in 1982: the 41 short terms of Table 8.1, at most 2.75 ms | [iers-tn36], ch. 8, Table 8.1 and footnote 1 |
+| **UT1S** | `ut1s_iers2010`, `ut1s_minus_ut1_iers2010` | All the zonal tides, to the 18.6-year nodal term: the table's 62 terms, at most 0.173 s | [iers-tn36], ch. 8, Table 8.1 |
+
+The tidal model is part of the name. Table 8.1 is the IERS 2010 model,
+Yoder, Williams and Parke's 1981 elastic tide with an inelastic body tide
+and an ocean tide added, and it differs from Yoder's 1981 tables, which the
+IAU's definition of UT1R names, by about 6 µs at the fortnightly term; a
+UT1R from those tables would be a separate function. The whole-table sum
+reproduces the test case printed in the IERS routine `RG_ZONT2.F` to
+10⁻¹² s [iers-rg-zont2]; the routine's header was read for the test
+case, and the table and the Delaunay arguments (ch. 5, eq. 5.43) were
+taken from the Conventions' text.
+
+## Sidereal time and the Earth Rotation Angle
+
+UT1 is defined by the Earth's rotation, and the rotation is measured by an
+angle. Two conventions for that angle are in use, and `hc-astro::earth`
+carries both under their own names, as [policy.md](policy.md) §5 asks.
+
+| Quantity | Function | Convention | Argument |
+| --- | --- | --- | --- |
+| **ERA**, the Earth Rotation Angle | `earth_rotation_angle` | IAU 2000: ERA = 2π(0.779 057 273 264 0 + 1.002 737 811 911 354 48 *T*u), *T*u = JD(UT1) − 2 451 545.0 (IERS Conventions 2010 [iers-tn36], ch. 5, eqs 5.14–5.15) | UT1 |
+| **GMST**, IAU 2006 | `mean_sidereal_time_iau2006`, `mean_sidereal_time_iau2006_at` | ERA plus the precession in right ascension, 0.014 506″ + 4612.156 534″ *t* + … (ch. 5, eq. 5.32) | UT1 for the ERA, TT centuries *t* for the polynomial |
+| **GMST**, IAU 1982 | `mean_sidereal_time` | Meeus's (12.4), a polynomial in UT1 alone [meeus1998] | UT1 |
+| **GAST**, from IAU 1982 | `apparent_sidereal_time` | IAU 1982 GMST plus the equation of the equinoxes Δψ cos ε from Meeus's abridged nutation | UT1 |
+
+The ERA is the angle between the Celestial and Terrestrial Intermediate
+Origins, and is linear in UT1 by definition: it is what UT1 *is* in the
+IAU 2000 framework. Mean sidereal time is measured from the equinox instead,
+and the equinox moves with precession, so the IAU 2006 GMST is the ERA plus
+a polynomial in TT. The IAU 1982 GMST folds both into one polynomial in UT1.
+The two GMSTs differ by 0.14 ms of time on 2006-01-01 and part slowly over
+the centuries. The rise, set and transit code uses the IAU 1982 pair.
+
+The apparent sidereal time here is not the IAU 2006/2000A GAST, which needs
+the full nutation series; Meeus's four-term nutation holds it to about
+0.5″, or 0.03 s of time, against ERFA's `eraGst94`.
+
+The IAU 2006 functions reproduce ERFA's test values for `eraEra00` and
+`eraGmst06` to 10⁻⁹ degree, and the IAU 1982 GMST ERFA's `eraGmst82` to
+0.7 µs of time [erfa]. ERFA is the BSD-licensed derivative of the IAU's
+SOFA library; its test file was read, not its routines.
+
 ## ΔT
 
 `hc-astro` needs `TT − UT1` (ΔT) to place astronomical events on a civil

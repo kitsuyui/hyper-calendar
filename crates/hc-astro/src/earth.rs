@@ -1,11 +1,33 @@
-//! The orientation of the Earth: obliquity, nutation and sidereal time.
+//! The orientation of the Earth: obliquity, nutation, the Earth Rotation
+//! Angle and sidereal time.
 //!
-//! These three are what turn a position on the ecliptic into a position in
-//! the sky over a particular place, so the solar-term, lunar-phase and
+//! These are what turn a position on the ecliptic into a position in the
+//! sky over a particular place, so the solar-term, lunar-phase and
 //! rise/set code all funnel through here.
 //!
 //! Sources: Meeus, *Astronomical Algorithms*, 2nd ed., chapters 12 (sidereal
 //! time), 13 (coordinate transformation) and 22 (nutation and obliquity).
+//!
+//! # Two conventions for sidereal time
+//!
+//! Greenwich mean sidereal time has been defined twice, and under
+//! `docs/policy.md` §5 each definition is its own function:
+//!
+//! * [`mean_sidereal_time`] is the **IAU 1982** expression, a polynomial in
+//!   UT1 alone, as Meeus prints it in (12.4). [`apparent_sidereal_time`]
+//!   adds Meeus's equation of the equinoxes to it. Every rise, set and
+//!   transit in this crate uses this pair.
+//! * [`mean_sidereal_time_iau2006`] is the **IAU 2006** expression: the
+//!   [`earth_rotation_angle`], a linear function of UT1, plus the
+//!   accumulated precession in right ascension, a polynomial in TT (IERS
+//!   Conventions 2010, TN 36, chapter 5, equations 5.14, 5.15 and 5.32).
+//!
+//! The two agree to 0.14 ms of time on 2006-01-01 and part by the
+//! difference between the precession models over the centuries;
+//! `docs/time-scales.md` explains which to use. The IAU 2006 functions are checked against the
+//! ERFA test suite's values for `eraEra00` and `eraGmst06` (ERFA is the
+//! BSD-licensed derivative of the IAU's SOFA library; its file
+//! `t_erfa_c.c` was read), and the IAU 1982 one against `eraGmst82`.
 //! The nutation series is Meeus's abridged one — four terms in Δψ and four
 //! in Δε — which he states as good to 0.5″ in longitude and 0.1″ in
 //! obliquity. That is two orders of magnitude finer than anything a calendar
@@ -152,11 +174,18 @@ pub fn obliquity_at_centuries(centuries: f64) -> Obliquity {
     }
 }
 
-/// Mean sidereal time at Greenwich, in degrees, for a Universal Time moment.
+/// Mean sidereal time at Greenwich by the **IAU 1982** convention, in
+/// degrees, for a Universal Time moment.
 ///
-/// Meeus (12.4). Sidereal time is a measure of the Earth's rotation, so
-/// unlike everything else in this crate it takes Universal Time directly and
-/// must not be handed a TT moment.
+/// Meeus (12.4), his form of the IAU 1982 expression of Aoki et al. (not
+/// read here) for GMST as a polynomial in UT1 alone. It agrees with
+/// ERFA's `eraGmst82` to 0.7 µs of time on 2006-01-01, and with the IAU
+/// 2006 convention, [`mean_sidereal_time_iau2006`], to 0.14 ms; see the
+/// [module documentation](self).
+///
+/// Sidereal time is a measure of the Earth's rotation, so unlike
+/// everything else in this crate it takes Universal Time directly and must
+/// not be handed a TT moment.
 #[must_use]
 pub fn mean_sidereal_time(moment: Moment) -> f64 {
     let days = moment.0 - J2000.0;
@@ -167,14 +196,93 @@ pub fn mean_sidereal_time(moment: Moment) -> f64 {
     )
 }
 
-/// Apparent sidereal time at Greenwich, in degrees: mean sidereal time
-/// corrected for nutation (the "equation of the equinoxes").
+/// Apparent sidereal time at Greenwich, in degrees: the IAU 1982 mean
+/// sidereal time, [`mean_sidereal_time`], corrected for nutation by the
+/// equation of the equinoxes `Δψ cos ε` (Meeus, chapter 12).
+///
+/// The nutation is Meeus's abridged series, good to 0.5″ in Δψ, so this is
+/// good to about 0.03 s of time; it is not the IAU 2006/2000A apparent
+/// sidereal time, which needs the full nutation series this crate does not
+/// carry.
 #[must_use]
 pub fn apparent_sidereal_time(moment: Moment) -> f64 {
     let centuries = julian_centuries(moment);
     let correction = nutation_at_centuries(centuries).longitude_degrees
         * cos_deg(true_obliquity_at_centuries(centuries));
     normalize_degrees(mean_sidereal_time(moment) + correction)
+}
+
+/// The constant of the Earth Rotation Angle, in turns: the angle at
+/// J2000.0 UT1 (IERS Conventions 2010, equation 5.14).
+const ERA_AT_J2000_TURNS: f64 = 0.779_057_273_264_0;
+
+/// The Earth Rotation Angle's excess over one turn a day, in turns per UT1
+/// day: the fractional part of 1.002 737 811 911 354 48 (IERS Conventions
+/// 2010, equation 5.15).
+const ERA_EXCESS_TURNS_PER_DAY: f64 = 0.002_737_811_911_354_48;
+
+/// The Earth Rotation Angle, in degrees in `[0, 360)`, at a UT1 moment.
+///
+/// ERA = 2π(0.779 057 273 264 0 + 1.002 737 811 911 354 48 *T*u), with
+/// *T*u = JD(UT1) − 2 451 545.0, the angle between the Celestial and the
+/// Terrestrial Intermediate Origins along the equator (IERS Conventions
+/// 2010, TN 36, chapter 5, §5.5.3, equation 5.14, from Capitaine et al.
+/// 2000, not read here). It is computed as equation 5.15 has it, the
+/// fraction of the UT1 day plus the constant plus the excess rate, which
+/// keeps the whole turns out of the product.
+///
+/// The angle is linear in UT1 by definition; the moment must be UT1, not
+/// TT. Anchored to ERFA's `eraEra00` test value to 10⁻⁹ degree.
+#[must_use]
+pub fn earth_rotation_angle(ut1: Moment) -> f64 {
+    let days = ut1.0 - J2000.0;
+    let day_fraction = crate::util::modulo(days, 1.0);
+    let turns = day_fraction + ERA_AT_J2000_TURNS + ERA_EXCESS_TURNS_PER_DAY * days;
+    normalize_degrees(360.0 * crate::util::modulo(turns, 1.0))
+}
+
+/// Mean sidereal time at Greenwich by the **IAU 2006** convention, in
+/// degrees in `[0, 360)`, for a UT1 moment.
+///
+/// The Earth Rotation Angle of the UT1 reading plus the polynomial of
+/// IERS Conventions 2010, equation 5.32, in Julian centuries of TT; the TT
+/// is this crate's `UT1 + ΔT`. The polynomial moves by 1.5 µas for each
+/// second of error in ΔT, so ΔT's error matters to it only where ΔT is
+/// unknown by hours. To give TT exactly, use
+/// [`mean_sidereal_time_iau2006_at`].
+///
+/// This is not [`mean_sidereal_time`], which is the IAU 1982 convention;
+/// see the [module documentation](self).
+#[must_use]
+pub fn mean_sidereal_time_iau2006(ut1: Moment) -> f64 {
+    mean_sidereal_time_iau2006_at(ut1, julian_centuries(ut1))
+}
+
+/// Mean sidereal time at Greenwich by the **IAU 2006** convention, in
+/// degrees in `[0, 360)`, for a UT1 moment and the same instant in Julian
+/// centuries of TT since J2000.0.
+///
+/// GMST = ERA(UT1) + 0.014 506″ + 4612.156 534″ *t* + 1.391 581 7″ *t*²
+/// − 0.000 000 44″ *t*³ − 0.000 029 956″ *t*⁴ − 0.000 000 036 8″ *t*⁵
+/// (IERS Conventions 2010, TN 36, chapter 5, §5.5.7, equation 5.32, from
+/// Capitaine, Wallace and Chapront 2003). The two arguments are separate
+/// because the two parts are functions of different time scales; this is
+/// the form ERFA's `eraGmst06` takes, and its test value anchors this
+/// function to 10⁻⁹ degree.
+#[must_use]
+pub fn mean_sidereal_time_iau2006_at(ut1: Moment, tt_centuries: f64) -> f64 {
+    let precession_arcseconds = poly(
+        tt_centuries,
+        &[
+            0.014_506,
+            4_612.156_534,
+            1.391_581_7,
+            -0.000_000_44,
+            -0.000_029_956,
+            -0.000_000_036_8,
+        ],
+    );
+    normalize_degrees(earth_rotation_angle(ut1) + precession_arcseconds * ARCSECOND)
 }
 
 /// Convert an ecliptic longitude and latitude into equatorial coordinates.
@@ -332,6 +440,91 @@ mod tests {
             (actual - 128.737_873).abs() < 1e-5,
             "sidereal time was {actual}"
         );
+    }
+
+    /// ERFA's `t_erfa_c.c`, `t_era00`: `eraEra00(2400000.5, 54388.0)` is
+    /// 0.402 283 724 002 815 810 2 rad, JD 2 454 388.5 UT1.
+    #[test]
+    fn the_earth_rotation_angle_matches_erfa() {
+        let moment = Moment::from_julian_date(2_400_000.5 + 54_388.0);
+        let expected = 0.402_283_724_002_815_8 * RAD_TO_DEG;
+        let actual = earth_rotation_angle(moment);
+        assert!(
+            (actual - expected).abs() < 1e-9,
+            "ERA was {actual}, expected {expected}"
+        );
+    }
+
+    /// At J2000.0 UT1 the angle is the constant of equation 5.14, and a
+    /// UT1 day later it has turned once and 0.002 737 811 911 354 48 more.
+    #[test]
+    fn the_earth_rotation_angle_starts_at_its_constant_and_turns_at_its_rate() {
+        let at_epoch = earth_rotation_angle(J2000);
+        assert!((at_epoch - 0.779_057_273_264_0 * 360.0).abs() < 1e-9);
+        let next = earth_rotation_angle(Moment(J2000.0 + 1.0));
+        let advance = crate::util::modulo(next - at_epoch, 360.0);
+        assert!((advance - 0.002_737_811_911_354_48 * 360.0).abs() < 1e-9);
+    }
+
+    /// ERFA's `t_gmst06`: `eraGmst06(2400000.5, 53736.0, 2400000.5,
+    /// 53736.0)` is 1.754 174 971 870 091 203 rad, with UT1 and TT both
+    /// JD 2 453 736.5.
+    #[test]
+    fn the_iau2006_mean_sidereal_time_matches_erfa() {
+        let moment = Moment::from_julian_date(2_400_000.5 + 53_736.0);
+        let centuries = crate::time::julian_centuries_from_dynamical(moment);
+        let expected = 1.754_174_971_870_091_2 * RAD_TO_DEG;
+        let actual = mean_sidereal_time_iau2006_at(moment, centuries);
+        assert!(
+            (actual - expected).abs() < 1e-9,
+            "GMST was {actual}, expected {expected}"
+        );
+        // With TT from the ΔT model, 64.8 s after UT1, the polynomial
+        // moves by 4612″ × 64.8 s / a Julian century, 95 µas, or
+        // 2.6 × 10⁻⁸ degree.
+        let modelled = mean_sidereal_time_iau2006(moment);
+        let moved = (modelled - expected) * 3600.0e6;
+        assert!((moved - 95.0).abs() < 2.0, "GMST moved {moved} µas");
+    }
+
+    /// ERFA's `t_gmst82`: `eraGmst82(2400000.5, 53736.0)` is
+    /// 1.754 174 981 860 675 096 rad. Meeus's (12.4) is his form of the
+    /// same IAU 1982 expression.
+    #[test]
+    fn the_meeus_mean_sidereal_time_is_the_iau1982_convention() {
+        let moment = Moment::from_julian_date(2_400_000.5 + 53_736.0);
+        let expected = 1.754_174_981_860_675 * RAD_TO_DEG;
+        let actual = mean_sidereal_time(moment);
+        // 10⁻⁸ degree is 2.4 µs of time; the two differ by 0.7 µs.
+        assert!(
+            (actual - expected).abs() < 1e-8,
+            "GMST was {actual}, expected {expected}"
+        );
+    }
+
+    /// The two conventions differ by 10⁻⁸ rad at 2006-01-01, ERFA's
+    /// `eraGmst82` and `eraGmst06` values above, about 0.14 ms of time,
+    /// and both functions reproduce that.
+    #[test]
+    fn the_two_mean_sidereal_times_differ_by_a_fraction_of_a_millisecond() {
+        let moment = Moment::from_julian_date(2_400_000.5 + 53_736.0);
+        let difference = (mean_sidereal_time(moment) - mean_sidereal_time_iau2006(moment)) * 240.0;
+        assert!(
+            (difference - 0.000_137).abs() < 0.000_03,
+            "difference {difference} s"
+        );
+    }
+
+    /// ERFA's `t_gst94`: `eraGst94(2400000.5, 53736.0)`, the IAU 1982 mean
+    /// time plus the IAU 1994 equation of the equinoxes, is
+    /// 1.754 166 136 020 645 203 rad. The abridged nutation here is
+    /// quoted to 0.5″ in Δψ, so the apparent time agrees to 0.5″.
+    #[test]
+    fn the_apparent_sidereal_time_agrees_with_erfa_gst94_within_the_abridged_nutation() {
+        let moment = Moment::from_julian_date(2_400_000.5 + 53_736.0);
+        let expected = 1.754_166_136_020_645_3 * RAD_TO_DEG;
+        let difference = (apparent_sidereal_time(moment) - expected) * 3600.0;
+        assert!(difference.abs() < 0.5, "difference {difference}\"");
     }
 
     #[test]

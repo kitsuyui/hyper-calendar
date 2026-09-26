@@ -5597,3 +5597,27 @@
   howpublished = {Hermetic Systems, \url{https://www.hermetic.ch/cal_stud/jdn.htm}},
   note         = {The chronological Julian day number, a count of days beginning at midnight GMT from the one that began at midnight on -4712-01-01 Julian; the local chronological Julian date; chronological day 2452952 from midnight on 2003-11-08. Retrieved 2026-09-26}
 }
+
+% --- Earth rotation, sidereal time and the UT variants (docs/time-scales.md) ---
+% iers-tn36, sofa-ts and meeus1998, above, are cited too.
+
+@misc{erfa,
+  author       = {{ERFA contributors}},
+  title        = {{ERFA} (Essential Routines for Fundamental Astronomy): test suite \texttt{t\_erfa\_c.c}},
+  howpublished = {\url{https://github.com/liberfa/erfa/blob/master/src/t_erfa_c.c}},
+  note         = {BSD-3-Clause; derived from the IAU SOFA library. The test values of \texttt{eraEra00} at JD 2400000.5 + 54388.0 (0.4022837240028158102 rad), \texttt{eraGmst06} with UT1 and TT at JD 2400000.5 + 53736.0 (1.754174971870091203 rad), \texttt{eraGmst82} (1.754174981860675096 rad) and \texttt{eraGst94} (1.754166136020645203 rad). Only the test file was read. Retrieved 2026-09-26}
+}
+
+@misc{usno-eo-values,
+  author       = {{United States Naval Observatory}},
+  title        = {Common Units and Conversions in Earth Orientation},
+  howpublished = {\url{https://maia.usno.navy.mil/information/eo-values}},
+  note         = {IERS Rapid Service/Prediction Center. UT2 $-$ UT1 $= 0.022 \sin 2\pi T - 0.012 \cos 2\pi T - 0.006 \sin 4\pi T + 0.007 \cos 4\pi T$ with the Besselian date $T = 2000.000 + (\mathrm{MJD} - 51544.03)/365.2422$. Retrieved 2026-09-26}
+}
+
+@misc{iers-rg-zont2,
+  author       = {Stetzler, B. E.},
+  title        = {{RG\_ZONT2.F}: the effects of zonal Earth tides on the rotation of the Earth},
+  howpublished = {IERS Conventions software, chapter 8, \url{https://iers-conventions.obspm.fr/content/chapter8/software/RG_ZONT2.F}},
+  note         = {IERS Conventions Software License. Only the header was used: its test case, $T = 0.07995893223819302$ Julian centuries of TT (MJD 54465), DUT $= 7.983287678576557467 \times 10^{-2}$ s over the whole of Table 8.1. The routine's code was not copied. Retrieved 2026-09-26}
+}
