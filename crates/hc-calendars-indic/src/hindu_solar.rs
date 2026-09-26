@@ -44,10 +44,19 @@
 //! second with a fifth rule, [`CivilDay`](SankrantiRule::CivilDay), and is
 //! [`crate::bikram_sambat`].
 //!
+//! # The Tamil year's name
+//!
+//! The Tamil year also carries a name from the southern sixty-year cycle,
+//! Prabhava to Kṣaya ([`crate::samvatsara`]): [`TAMIL`] writes its position,
+//! 1 to 60, as the extra field `samvatsara` and declares the sixty names as
+//! a cycle of that kind, and [`HinduSolarCalendar::samvatsara_of`] gives it
+//! for a year. The Tamil year of 2024–25 is the 38th, Krodhin, குரோதி.
+//!
 //! # What is not here
 //!
-//! The Odia year counts (*aṅka*) and the sixty-year names of the Tamil year
-//! are extras this crate does not yet carry.
+//! The Odia year counts are [`crate::odia_anka`]'s, not this reckoning's;
+//! the Amli and Vilayati years of Odisha, whose months are these solar ones
+//! under another year, are not carried yet.
 
 use hc_astro::riseset::Location;
 use hc_calendar::fixed::Moment;
@@ -203,6 +212,9 @@ pub struct HinduSolarCalendar {
     pub location: Location,
     /// Whose Sun: which instants the saṅkrāntis are.
     pub model: SolarModel,
+    /// Whether the reckoning names its years in the southern sixty-year
+    /// cycle ([`crate::samvatsara`]), as the Tamil year does.
+    pub samvatsara: bool,
 }
 
 /// The Tamil solar calendar: Chithirai to Panguni from the Meṣa saṅkrānti,
@@ -219,6 +231,7 @@ pub const TAMIL: HinduSolarCalendar = HinduSolarCalendar {
     era_offset: 31,
     location: CENTRAL_STATION,
     model: SolarModel::Modern(Ayanamsa::LAHIRI),
+    samvatsara: true,
 };
 
 /// The Malayalam calendar of Kerala: Chingam to Karkadakam from the Siṃha
@@ -235,6 +248,7 @@ pub const MALAYALAM: HinduSolarCalendar = HinduSolarCalendar {
     era_offset: -824,
     location: CENTRAL_STATION,
     model: SolarModel::Modern(Ayanamsa::LAHIRI),
+    samvatsara: false,
 };
 
 /// The Bengali calendar of West Bengal and Assam: Boishakh to Choitro from
@@ -250,6 +264,7 @@ pub const BENGALI: HinduSolarCalendar = HinduSolarCalendar {
     era_offset: -593,
     location: CENTRAL_STATION,
     model: SolarModel::Modern(Ayanamsa::LAHIRI),
+    samvatsara: false,
 };
 
 /// The Vikrami solar calendar of Punjab, Haryana and Odisha: Vaiśākha to
@@ -267,6 +282,7 @@ pub const VIKRAMI: HinduSolarCalendar = HinduSolarCalendar {
     era_offset: 57,
     location: CENTRAL_STATION,
     model: SolarModel::Modern(Ayanamsa::LAHIRI),
+    samvatsara: false,
 };
 
 /// Every solar reckoning this crate registers.
@@ -283,6 +299,22 @@ impl HinduSolarCalendar {
             model,
             ..self
         }
+    }
+
+    /// The position, 1 for Prabhava through 60 for Kṣaya, of a year in the
+    /// southern sixty-year cycle, for a reckoning that names its years in
+    /// it: Sewell and Dikshit's rule on the Śaka year the solar year begins
+    /// in ([`crate::samvatsara::southern_of_saka`]). `None` for the other
+    /// reckonings.
+    #[must_use]
+    pub const fn samvatsara_of(&self, year: i64) -> Option<u8> {
+        if !self.samvatsara {
+            return None;
+        }
+        let gregorian_year = year - self.era_offset;
+        Some(crate::samvatsara::southern_of_saka(
+            gregorian_year - crate::hindu_lunar::GREGORIAN_YEAR_OFFSET,
+        ))
     }
 
     /// The earliest year of the era this calendar converts.
@@ -492,7 +524,7 @@ impl Calendar for HinduSolarCalendar {
     }
 
     /// Twelve named months, in the tradition's own names, and the seven-day
-    /// week.
+    /// week; for the Tamil year, the sixty year names too.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
         use hc_calendar::shape::{CycleShape, MONTH, WEEKDAY};
         // A `const` per tradition, so that the names are the tradition's
@@ -500,6 +532,7 @@ impl Calendar for HinduSolarCalendar {
         const TAMIL_SHAPE: &[CycleShape] = &[
             CycleShape::named(MONTH, rashi::TAMIL.months),
             CycleShape::fixed(WEEKDAY, 7),
+            CycleShape::named(crate::samvatsara::CYCLE, &crate::samvatsara::NAMES),
         ];
         const MALAYALAM_SHAPE: &[CycleShape] = &[
             CycleShape::named(MONTH, MALAYALAM_MONTHS),
@@ -558,8 +591,15 @@ impl Calendar for HinduSolarCalendar {
         HinduSolarCalendar::from_fixed(self, rd)
     }
 
+    /// The year in the era, the month and the day; for a reckoning that
+    /// names its years, the position in the sixty-year cycle as the extra
+    /// `samvatsara`, derived from the year and ignored on input.
     fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
-        Ok(DateFields::ymd(date.year, date.month, date.day).with_era(self.era))
+        let fields = DateFields::ymd(date.year, date.month, date.day).with_era(self.era);
+        match self.samvatsara_of(date.year) {
+            Some(position) => fields.with_extra(crate::samvatsara::CYCLE, i64::from(position)),
+            None => Ok(fields),
+        }
     }
 
     fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
@@ -826,6 +866,72 @@ mod tests {
         assert_eq!(VIKRAMI.month_start(2081, 1), Ok(ymd(2024, 4, 13)));
         assert_eq!(TAMIL.month_start(2054, 1), Ok(ymd(2023, 4, 14)));
         assert_eq!(TAMIL.month_start(2055, 1), Ok(ymd(2024, 4, 14)));
+    }
+
+    /// The name of the Tamil year a day is in.
+    fn tamil_year_name(rd: Rd) -> Option<&'static str> {
+        let date = TAMIL.from_fixed(rd).unwrap();
+        crate::samvatsara::name(TAMIL.samvatsara_of(date.year)?)
+    }
+
+    #[test]
+    fn the_tamil_years_carry_their_printed_names() {
+        // Sewell and Dikshit's worked examples: "Monday, 19th Vaiyasi of
+        // the year Rudhirodgarin" is 30 May 1803 and "Friday 20th Panguni of
+        // the year Rudhirodgarin" 30 March 1804. Prokerala's Tamil calendar
+        // heads Chithirai 2024 "Krodhi", from Tamil New Year's Day on
+        // 14 April; the Pan South African Language Board greets "Tamil New
+        // Year (5127 – Visuvasuva)" on 14 April 2025.
+        for ((year, month, day), name) in [
+            ((1803, 5, 30), "Rudhirodgarin"),
+            ((1804, 3, 30), "Rudhirodgarin"),
+            ((2024, 4, 13), "Sobhana"),
+            ((2024, 4, 14), "Krodhin"),
+            ((2025, 3, 31), "Krodhin"),
+            ((2025, 4, 14), "Visvavasu"),
+            ((2026, 4, 14), "Parabhava"),
+        ] {
+            assert_eq!(
+                tamil_year_name(ymd(year, month, day)),
+                Some(name),
+                "{year}-{month}-{day}"
+            );
+        }
+        // The month and day of Sewell and Dikshit's two days. Their tables
+        // follow the old almanac's Sun, and the modern one begins both
+        // Vaikasi of 1803 and Panguni of 1804 a day later: the days are the
+        // 18th and the 19th, not the 19th and the 20th. The name of the year
+        // is the same either way.
+        assert_eq!(
+            TAMIL.from_fixed(ymd(1803, 5, 30)).map(|d| (d.month, d.day)),
+            Ok((2, 18))
+        );
+        assert_eq!(
+            TAMIL.from_fixed(ymd(1804, 3, 30)).map(|d| (d.month, d.day)),
+            Ok((12, 19))
+        );
+    }
+
+    #[test]
+    fn only_the_tamil_reckoning_names_its_years() {
+        let day = ymd(2024, 6, 1);
+        let date = TAMIL.from_fixed(day).unwrap();
+        let fields = Calendar::to_fields(&TAMIL, date).unwrap();
+        assert_eq!(fields.extra.get(crate::samvatsara::CYCLE), Some(38));
+        assert!(Calendar::cycles(&TAMIL).iter().any(|cycle| cycle.kind
+            == crate::samvatsara::CYCLE
+            && cycle.name(37) == Some("Krodhin")));
+        for calendar in [MALAYALAM, BENGALI, VIKRAMI] {
+            let date = calendar.from_fixed(day).unwrap();
+            assert_eq!(calendar.samvatsara_of(date.year), None);
+            let fields = Calendar::to_fields(&calendar, date).unwrap();
+            assert_eq!(fields.extra.get(crate::samvatsara::CYCLE), None);
+            assert!(
+                !Calendar::cycles(&calendar)
+                    .iter()
+                    .any(|cycle| cycle.kind == crate::samvatsara::CYCLE)
+            );
+        }
     }
 
     #[test]

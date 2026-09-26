@@ -107,6 +107,7 @@ pub const RECKONING: HinduSolarCalendar = HinduSolarCalendar {
     era_offset: 57,
     location: KATHMANDU,
     model: SolarModel::SuryaSiddhanta,
+    samvatsara: false,
 };
 
 /// The first day of a month, as a notice in the gazette fixes it.
