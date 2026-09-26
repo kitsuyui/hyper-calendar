@@ -73,7 +73,7 @@
 //! # Layers
 //!
 //! The exports come in layers that a page can load as it needs them, each a
-//! Cargo feature: `civil` (the default), `calendars`, `holiday`, `seasons`,
+//! Cargo feature: `civil` (the default), `timestamps`, `calendars`, `holiday`, `seasons`,
 //! `deep-time`, `tz`, `sky` and `orbital`, with `full` for all of them.
 //! Which feature each export needs is in the README's table.
 
@@ -224,6 +224,52 @@ fn push_cell(out: &mut String, text: &str) {
             '\t' | '\n' | '\r' => ' ',
             other => other,
         });
+    }
+}
+
+/// The sentinel a refusal of the shared line-makers in `hyper_calendar`
+/// is: an overflow is [`HC_ERR_OUT_OF_RANGE`], since the module has no
+/// sentinel of its own for it.
+#[allow(dead_code)]
+const fn sentinel(refusal: hc::boundary::Refusal) -> i64 {
+    use hc::boundary::Refusal;
+    match refusal {
+        Refusal::OutOfRange | Refusal::Overflow => HC_ERR_OUT_OF_RANGE,
+        Refusal::NoData => HC_ERR_NO_DATA,
+        Refusal::Unknown => HC_ERR_UNKNOWN,
+        Refusal::Malformed => HC_ERR_MALFORMED,
+        Refusal::InvalidDate => HC_ERR_INVALID_DATE,
+    }
+}
+
+/// A shared line-maker's answer, measured or copied into the caller's
+/// buffer as [`emit_or_measure`] does, or its refusal as a sentinel.
+///
+/// # Safety
+///
+/// As [`emit_or_measure`].
+#[allow(dead_code)]
+unsafe fn emit_answer(
+    answer: hc::boundary::Answer<String>,
+    buffer: *mut u8,
+    capacity: usize,
+) -> i64 {
+    match answer {
+        // SAFETY: forwarded to the caller's contract above.
+        Ok(text) => unsafe { emit_or_measure(&text, buffer, capacity) },
+        Err(refusal) => sentinel(refusal),
+    }
+}
+
+/// A shared number as a value-returning export returns it: the number
+/// when it is above [`HC_ERR_FLOOR`], else a sentinel.
+#[allow(dead_code)]
+fn value(answer: hc::boundary::Answer<i64>) -> i64 {
+    match answer
+        .map_err(sentinel)
+        .and_then(|value| above_floor(Some(value)))
+    {
+        Ok(value) | Err(value) => value,
     }
 }
 
@@ -429,6 +475,299 @@ pub use civil::{
     hc_day_has_leap_second, hc_day_of_year, hc_fixed_from_unix, hc_format_iso_date,
     hc_gregorian_day, hc_gregorian_month, hc_gregorian_to_fixed, hc_gregorian_year,
     hc_is_leap_year, hc_parse_iso_date, hc_tai_minus_utc, hc_unix_from_fixed, hc_weekday,
+};
+
+/// Time scales and day counts, behind the `timestamps` feature: TAI64 labels,
+/// GNSS weeks, GLONASS dates, OLE Automation dates and Excel 1900 serials.
+/// The lines are `hyper_calendar::time_lines`', shared with the C library.
+/// A TAI instant is whole seconds from 1970-01-01 00:00:00 TAI and the
+/// attoseconds into that second, from 0 to 10¹⁸ − 1.
+#[cfg(feature = "timestamps")]
+mod time_scales {
+    use super::{emit_answer, text, value};
+    use hc::time_lines;
+
+    /// A TAI instant as a TAI64, TAI64N or TAI64NA label in lower-case
+    /// hexadecimal, as one UTF-8 line, returning the byte length written.
+    ///
+    /// `format` is `tai64` (16 digits: the second), `tai64n` (24: the
+    /// nanosecond) or `tai64na` (32: the attosecond), in any case; anything
+    /// else is `HC_ERR_UNKNOWN`. TAI64 and TAI64N name the second or the
+    /// nanosecond that contains the instant, and TAI64NA the instant
+    /// itself. Attoseconds from 10¹⁸, or a second outside the labels below
+    /// 2⁶³, is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length
+    /// the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `format` must be readable for `format_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless
+    /// it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_tai64_encode(
+        tai_seconds: i64,
+        attoseconds: u64,
+        format: *const u8,
+        format_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let format = match unsafe { text(format, format_len) } {
+            Ok(format) => format,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = time_lines::tai64_encode_line(tai_seconds, attoseconds, format);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// A TAI64, TAI64N or TAI64NA label in hexadecimal read back, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// Tab-separated: the format (`tai64`, `tai64n` or `tai64na`, by the
+    /// label's length), the TAI seconds and the attoseconds of the instant
+    /// it names. Text that is not 16, 24 or 32 hexadecimal digits, in
+    /// either case, is `HC_ERR_MALFORMED`; a reserved label, from 2⁶³, or a
+    /// counter above 999 999 999 is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
+    /// returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `hex` must be readable for `hex_len` bytes unless null with a zero
+    /// length; `buffer` must be writable for `capacity` bytes unless it is
+    /// null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_tai64_decode(
+        hex: *const u8,
+        hex_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let hex = match unsafe { text(hex, hex_len) } {
+            Ok(hex) => hex,
+            Err(sentinel) => return sentinel,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(time_lines::tai64_decode_line(hex), buffer, capacity) }
+    }
+
+    /// The GNSS week and time of week of a TAI instant, as one UTF-8 line,
+    /// returning the byte length written.
+    ///
+    /// `numbering` names the broadcast week field: `gps-lnav-week` (ten
+    /// bits), `gps-cnav-week` (thirteen), `galileo-week` (twelve),
+    /// `beidou-week` (thirteen) or `navic-week` (ten), in any case; anything
+    /// else is `HC_ERR_UNKNOWN`. Tab-separated: the full week since the
+    /// field's week zero, the week as the field broadcasts it (the full
+    /// week modulo 2 to the field's bits), and the time of week in whole
+    /// seconds and attoseconds. An instant before week zero is
+    /// `HC_ERR_NO_DATA`; attoseconds from 10¹⁸, or a week past 2³² − 1, is
+    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `numbering` must be readable for `numbering_len` bytes unless null
+    /// with a zero length; `buffer` must be writable for `capacity` bytes
+    /// unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gnss_week(
+        numbering: *const u8,
+        numbering_len: usize,
+        tai_seconds: i64,
+        attoseconds: u64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let numbering = match unsafe { text(numbering, numbering_len) } {
+            Ok(numbering) => numbering,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = time_lines::gnss_week_line(numbering, tai_seconds, attoseconds);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The TAI instant of a full GNSS week and a time of week, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// `numbering` is as for `hc_gnss_week`. Tab-separated: the TAI seconds
+    /// and the attoseconds. A time of week from 604 800 s, or attoseconds
+    /// from 10¹⁸, is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the
+    /// length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_gnss_week`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gnss_to_tai(
+        numbering: *const u8,
+        numbering_len: usize,
+        week: u32,
+        tow_seconds: u32,
+        tow_attoseconds: u64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let numbering = match unsafe { text(numbering, numbering_len) } {
+            Ok(numbering) => numbering,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = time_lines::gnss_to_tai_line(numbering, week, tow_seconds, tow_attoseconds);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The full GNSS week a broadcast week names, by a rollover rule and a
+    /// reference instant, or an error sentinel.
+    ///
+    /// `numbering` is as for `hc_gnss_week`. `rule` is `not-before`, the
+    /// first full week at or after the reference's week — for a date the
+    /// receiver knows it is not before, such as its firmware's build date —
+    /// or `nearest`, the one within half a rollover period of it, in any
+    /// case; anything else is `HC_ERR_UNKNOWN`. `reference_tai_seconds` is
+    /// the reference as whole TAI seconds; one before week zero counts as
+    /// week zero. A broadcast week that does not fit the field, or an
+    /// answer past week 2³² − 1, is `HC_ERR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `numbering` must be readable for `numbering_len` bytes and `rule`
+    /// for `rule_len`, unless null with a zero length.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gnss_resolve_week(
+        numbering: *const u8,
+        numbering_len: usize,
+        broadcast: u32,
+        rule: *const u8,
+        rule_len: usize,
+        reference_tai_seconds: i64,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let numbering = match unsafe { text(numbering, numbering_len) } {
+            Ok(numbering) => numbering,
+            Err(sentinel) => return sentinel,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        let rule = match unsafe { text(rule, rule_len) } {
+            Ok(rule) => rule,
+            Err(sentinel) => return sentinel,
+        };
+        value(
+            time_lines::gnss_resolve_week(numbering, broadcast, rule, reference_tai_seconds)
+                .map(i64::from),
+        )
+    }
+
+    /// GLONASS's four-year interval N4 and day N_T at a TAI instant, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// Tab-separated: N4, 1 for 1996–1999, and N_T, 1 on 1 January of the
+    /// interval's leap year, of GLONASS time, UTC(SU) + 3 h. The instant
+    /// goes to UTC through the leap-second table: `strict` non-zero refuses
+    /// outside it with `HC_ERR_NO_DATA`, zero holds the last published
+    /// offset. An instant before 1996 or from 2100, where the intervals are
+    /// not counted, or attoseconds from 10¹⁸, is `HC_ERR_OUT_OF_RANGE`. A
+    /// null `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_glonass_date(
+        tai_seconds: i64,
+        attoseconds: u64,
+        strict: i32,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = time_lines::glonass_date_line(tai_seconds, attoseconds, strict != 0);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The fixed day and the time of day of an OLE Automation date, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// Tab-separated: the fixed day and the seconds into it. The integer
+    /// part counts days from 30 December 1899 and the fraction is the time
+    /// of day, read as a magnitude when the value is negative, as
+    /// `DateTime.ToOADate` writes it: −1.25 is 06:00 on 29 December 1899. A
+    /// value that is not finite, or outside 1 January 100 to 31 December
+    /// 9999, is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length
+    /// the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_fixed_from_ole_automation(
+        value: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = time_lines::fixed_from_ole_automation_line(value);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The OLE Automation date of a fixed day and a time of day, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// The one cell is the value, in plain decimal notation; before
+    /// 30 December 1899 the time is subtracted, so 06:00 on 29 December 1899
+    /// is −1.25. A time of day that is not finite, negative or not below
+    /// 86 400 s, or a day outside 1 January 100 to 31 December 9999, is
+    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_ole_automation_from_fixed(
+        fixed: i64,
+        seconds_of_day: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = time_lines::ole_automation_from_fixed_line(fixed, seconds_of_day);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// What an Excel 1900 serial names, as one UTF-8 line, returning the
+    /// byte length written.
+    ///
+    /// Tab-separated: the fixed day, and `1` for serial 60, which Excel
+    /// counts as 29 February 1900, a day that never was, else `0`. Serial 60
+    /// has an empty first cell: it is named, not given a date. A serial
+    /// below 1 or above 2 958 465, 31 December 9999, is
+    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_excel_1900_day(
+        serial: i64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(time_lines::excel_1900_day_line(serial), buffer, capacity) }
+    }
+}
+
+#[cfg(feature = "timestamps")]
+pub use time_scales::{
+    hc_excel_1900_day, hc_fixed_from_ole_automation, hc_glonass_date, hc_gnss_resolve_week,
+    hc_gnss_to_tai, hc_gnss_week, hc_ole_automation_from_fixed, hc_tai64_decode, hc_tai64_encode,
 };
 
 /// Every calendar, behind the `calendars` feature: the registry the facade
@@ -682,6 +1021,177 @@ pub use calendars::{
     hc_locales,
 };
 
+/// Days in the calendars, behind the `calendars` feature: the pañcāṅga's
+/// yoga and karaṇa, the modern Olympiad of a year, and the Hebrew
+/// anniversaries. The lines and numbers are `hyper_calendar`'s
+/// `panchanga_lines` and `calendar_values`, shared with the C library.
+#[cfg(feature = "calendars")]
+mod calendar_days {
+    use super::{emit_answer, sentinel, text, value};
+    use hc::{astro_lines, calendar_values, panchanga_lines};
+
+    /// The yoga and the karaṇa in progress at a POSIX timestamp, as two
+    /// UTF-8 lines, returning the byte length written.
+    ///
+    /// The yoga's line first, then the karaṇa's, tab-separated alike: the
+    /// limb (`yoga` or `karana`), its number (the yoga 1 for Viṣkambha
+    /// through 27, the karaṇa the half-tithi 1 through 60), its name as
+    /// Drik Panchang spells it in English and in Devanagari, the instants
+    /// it began and ends and the instant it was read at as whole POSIX
+    /// seconds, rounded down, in Universal Time, and the ayanamsa the yoga
+    /// was reckoned with (empty for the karaṇa, which needs none).
+    /// `ayanamsa` is `Lahiri (Chitrapaksha)`, `Raman`, `Krishnamurti` or
+    /// `Fagan-Bradley`, or the first word of one, in any case; anything
+    /// else, the empty string included, is `HC_ERR_UNKNOWN`. An instant
+    /// outside the years −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`. A null
+    /// `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `ayanamsa` must be readable for `ayanamsa_len` bytes unless null with
+    /// a zero length; `buffer` must be writable for `capacity` bytes unless
+    /// it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_panchanga_at(
+        unix_seconds: i64,
+        ayanamsa: *const u8,
+        ayanamsa_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let ayanamsa = match unsafe { text(ayanamsa, ayanamsa_len) } {
+            Ok(ayanamsa) => ayanamsa,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = panchanga_lines::panchanga_at_lines(unix_seconds, ayanamsa);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The yoga and the karaṇa a fixed day carries at a place, the ones in
+    /// progress at its sunrise, as two UTF-8 lines, returning the byte
+    /// length written.
+    ///
+    /// The lines of `hc_panchanga_at`, read at the day's sunrise at the
+    /// latitude and longitude in degrees, north and east positive, and the
+    /// elevation in metres. A day on which the Sun does not rise there is
+    /// `HC_ERR_NO_DATA`: no other moment is put in its place. A place off
+    /// the globe, or a day outside the years −1000 to 3000, is
+    /// `HC_ERR_OUT_OF_RANGE`; `ayanamsa` is as for `hc_panchanga_at`. A null
+    /// `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_panchanga_at`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_panchanga_of_day(
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        ayanamsa: *const u8,
+        ayanamsa_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let ayanamsa = match unsafe { text(ayanamsa, ayanamsa_len) } {
+            Ok(ayanamsa) => ayanamsa,
+            Err(sentinel) => return sentinel,
+        };
+        let place = match astro_lines::location(latitude, longitude, elevation) {
+            Ok(place) => place,
+            Err(refusal) => return sentinel(refusal),
+        };
+        let answer = panchanga_lines::panchanga_of_day_lines(fixed, place, ayanamsa);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The number of the modern Olympiad a Gregorian year belongs to, or an
+    /// error sentinel.
+    ///
+    /// 1 for 1896–1899, under the Olympic Charter's definition, whether or
+    /// not its Games were held; a year before 1896 is
+    /// `HC_ERR_OUT_OF_RANGE`.
+    #[unsafe(no_mangle)]
+    pub extern "C" fn hc_ioc_olympiad(gregorian_year: i64) -> i64 {
+        value(calendar_values::ioc_olympiad(gregorian_year))
+    }
+
+    /// The fixed day of the yahrzeit in a Hebrew year of a death on the
+    /// Hebrew date a fixed day names, or an error sentinel.
+    ///
+    /// `death_fixed` is the fixed day whose daylight carries the Hebrew
+    /// date of the death — a death after sunset is the next fixed day — and
+    /// the rules for the dates a later year may lack (30 Ḥeshvan, 30 Kislev,
+    /// Adar) are Reingold and Dershowitz's. A day or a year outside the
+    /// Hebrew years 1 to 9999 is `HC_ERR_OUT_OF_RANGE`.
+    #[unsafe(no_mangle)]
+    pub extern "C" fn hc_hebrew_yahrzeit(death_fixed: i64, hebrew_year: i64) -> i64 {
+        value(calendar_values::hebrew_yahrzeit(death_fixed, hebrew_year))
+    }
+
+    /// The fixed day of the birthday in a Hebrew year of a birth on the
+    /// Hebrew date a fixed day names, or an error sentinel.
+    ///
+    /// As `hc_hebrew_yahrzeit`, by Reingold and Dershowitz's
+    /// `hebrew-birthday`: a birth in the last month of a year is kept in the
+    /// last month of the later one.
+    #[unsafe(no_mangle)]
+    pub extern "C" fn hc_hebrew_birthday(birth_fixed: i64, hebrew_year: i64) -> i64 {
+        value(calendar_values::hebrew_birthday(birth_fixed, hebrew_year))
+    }
+
+    /// A person's age as the Chinese count reckons it on a fixed day, or an
+    /// error sentinel.
+    ///
+    /// One at birth and one more at each Chinese New Year after, whatever
+    /// the day of birth, as Reingold and Dershowitz's `chinese-age` counts
+    /// it and Wikipedia gives the pre-modern *suì* of China; nothing here
+    /// says how any other country counts. The birth crosses as its fixed
+    /// day. A day before the birth has no age and is `HC_ERR_NO_DATA`; a
+    /// day outside the Chinese calendar's range is `HC_ERR_OUT_OF_RANGE`.
+    #[unsafe(no_mangle)]
+    pub extern "C" fn hc_chinese_reckoned_age(birth_fixed: i64, on_fixed: i64) -> i64 {
+        value(calendar_values::chinese_reckoned_age(birth_fixed, on_fixed).map(i64::from))
+    }
+
+    /// The marriage augury of a Chinese year, as one UTF-8 line, returning
+    /// the byte length written.
+    ///
+    /// Tab-separated: the augury by the published code's names — `widow`
+    /// for a year without 立春, `blind` for one only near its end, `bright`
+    /// for one only near its start, `double-bright` for both — then `1` or
+    /// `0` for whether 立春 falls after the year's New Year and whether
+    /// another falls before the next. `chinese_year` is the year as the
+    /// Chinese calendar counts it, 4661 for the one that began on
+    /// 10 February 2024. A year that begins, or whose next begins, outside
+    /// the calendar's range is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
+    /// returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_chinese_marriage_augury(
+        chinese_year: i64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = calendar_values::chinese_marriage_augury_line(chinese_year);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+}
+
+#[cfg(feature = "calendars")]
+pub use calendar_days::{
+    hc_chinese_marriage_augury, hc_chinese_reckoned_age, hc_hebrew_birthday, hc_hebrew_yahrzeit,
+    hc_ioc_olympiad, hc_panchanga_at, hc_panchanga_of_day,
+};
+
 /// The holiday tables, behind the `holiday` feature: every country,
 /// exchange, tradition and international set of `hc-holiday`, looked up by
 /// identifier and rendered as tab-separated lines.
@@ -711,12 +1221,7 @@ mod holiday {
     /// countries, then the exchanges, the traditions and the international
     /// sets.
     pub(super) fn tables() -> impl Iterator<Item = &'static RuleSet> {
-        countries::ALL
-            .iter()
-            .chain(exchanges::ALL)
-            .chain(traditions::ALL)
-            .chain(international::ALL)
-            .copied()
+        hc::holiday_lines::tables()
     }
 
     /// The table and region two strings in linear memory name.
@@ -999,6 +1504,90 @@ mod holiday {
 
 #[cfg(feature = "holiday")]
 pub use holiday::{hc_holiday_codes, hc_holiday_is_day_off, hc_holidays_in_year, hc_holidays_on};
+
+/// The tables and the liturgical year, behind the `holiday` feature: every
+/// holiday table described, the lectionary cycles of a day and the
+/// astronomical Easter. The lines are `hyper_calendar::holiday_lines`',
+/// shared with the C library.
+#[cfg(feature = "holiday")]
+mod observances {
+    use super::{emit_answer, emit_or_measure, text, value};
+    use hc::holiday_lines;
+
+    /// Every holiday table with its kind, names and sources, as UTF-8
+    /// lines, returning the byte length written.
+    ///
+    /// One line per table, in the order `hc_holiday_codes` lists them,
+    /// tab-separated: the code; the kind (`country`, `subdivision`,
+    /// `exchange`, `tradition` or `observance`), read from the list the
+    /// table is in; the name in the locale; the English name; the locale
+    /// that answered; the sources the table names; and, for a subdivision
+    /// or an exchange, the ISO 3166-1 country it belongs to as its table
+    /// records it, else empty. The tables carry English names only, so a
+    /// tag whose language is `en` has the English name in column 3 and `en`
+    /// in column 5, and every other tag has both empty. The locale argument
+    /// fails as `hc_parse_iso_date` does. A null `buffer` returns the
+    /// length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be readable for `locale_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless
+    /// it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_holiday_tables(
+        locale: *const u8,
+        locale_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale, locale_len) } {
+            Ok(tag) => tag,
+            Err(sentinel) => return sentinel,
+        };
+        let text = holiday_lines::holiday_tables(tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_or_measure(&text, buffer, capacity) }
+    }
+
+    /// The lectionary cycles of a fixed day, as one UTF-8 line, returning
+    /// the byte length written.
+    ///
+    /// Tab-separated: the liturgical year, named by the civil year of its
+    /// Easter and begun on the First Sunday of Advent before it; the Sunday
+    /// cycle of the Roman Lectionary and the Revised Common Lectionary, `A`,
+    /// `B` or `C`; the Roman weekday cycle, `I` or `II`; and the RCL's
+    /// numbered Proper, 3 to 29, for a Sunday after Trinity Sunday, else
+    /// empty. A day outside the liturgical years 1583 to 4099 is
+    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_lectionary(fixed: i64, buffer: *mut u8, capacity: usize) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(holiday_lines::lectionary_line(fixed), buffer, capacity) }
+    }
+
+    /// The fixed day of Easter Sunday of a Gregorian year by the
+    /// astronomical reckoning at the meridian of Jerusalem, or an error
+    /// sentinel.
+    ///
+    /// The first Sunday after the day, by apparent solar time at
+    /// Jerusalem, of the first full moon at or after the March equinox, as
+    /// the World Council of Churches' Aleppo statement of 1997 proposed. A
+    /// year outside 1583 to 2150 is `HC_ERR_OUT_OF_RANGE`.
+    #[unsafe(no_mangle)]
+    pub extern "C" fn hc_astronomical_easter(year: i64) -> i64 {
+        value(holiday_lines::astronomical_easter(year))
+    }
+}
+
+#[cfg(feature = "holiday")]
+pub use observances::{hc_astronomical_easter, hc_holiday_tables, hc_lectionary};
 
 /// The almanac, behind the `seasons` feature: the 24 solar terms and the 72
 /// pentads of `hc-seasons`, judged at a named meridian.
@@ -1891,6 +2480,226 @@ mod sky {
 #[cfg(feature = "sky")]
 pub use sky::{hc_moon_phases_between, hc_sky_at, hc_solar_terms_between};
 
+/// The Earth's rotation and the Sun's hours, behind the `sky` feature: the
+/// Earth Rotation Angle, the Greenwich mean sidereal time by two
+/// conventions, UT2 − UT1, and the clocks and named times of day of
+/// `hc_astro::solar_time`. The lines are `hyper_calendar::astro_lines`',
+/// shared with the C library, and answer for the years −1000 to 3000.
+#[cfg(feature = "sky")]
+mod earth_and_sun {
+    use super::{emit_answer, sentinel, text};
+    use hc::astro_lines;
+
+    /// The Earth Rotation Angle at a UT1 instant, as one UTF-8 line,
+    /// returning the byte length written.
+    ///
+    /// The one cell is the angle in degrees, 0 to 360, by IERS Conventions
+    /// 2010, equation 5.14. `ut1_unix_seconds` counts UT1 as POSIX time
+    /// counts UTC, 86 400 seconds a day from 1970-01-01 00:00 UT1, with a
+    /// fraction. A value that is not finite, or outside the years −1000 to
+    /// 3000, is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length
+    /// the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_earth_rotation_angle(
+        ut1_unix_seconds: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = astro_lines::earth_rotation_angle_line(ut1_unix_seconds);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The Greenwich mean sidereal time by the IAU 2006 convention at a UT1
+    /// instant, as one UTF-8 line, returning the byte length written.
+    ///
+    /// The one cell is the angle in degrees, 0 to 360: the Earth Rotation
+    /// Angle plus the polynomial of IERS Conventions 2010, equation 5.32,
+    /// in TT taken as UT1 + ΔT. The instant is as for
+    /// `hc_earth_rotation_angle`, and fails as it does. A null `buffer`
+    /// returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_earth_rotation_angle`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gmst_iau2006(
+        ut1_unix_seconds: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe {
+            emit_answer(
+                astro_lines::gmst_iau2006_line(ut1_unix_seconds),
+                buffer,
+                capacity,
+            )
+        }
+    }
+
+    /// The Greenwich mean sidereal time by the IAU 1982 convention at a UT1
+    /// instant, as one UTF-8 line, returning the byte length written.
+    ///
+    /// The one cell is the angle in degrees, 0 to 360, by Meeus's (12.4),
+    /// a polynomial in UT1 alone; it differs from `hc_gmst_iau2006` by
+    /// about 0.14 ms of time in 2006. The instant is as for
+    /// `hc_earth_rotation_angle`, and fails as it does. A null `buffer`
+    /// returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_earth_rotation_angle`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gmst_iau1982(
+        ut1_unix_seconds: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe {
+            emit_answer(
+                astro_lines::gmst_iau1982_line(ut1_unix_seconds),
+                buffer,
+                capacity,
+            )
+        }
+    }
+
+    /// UT2 − UT1 at a UT1 instant, as one UTF-8 line, returning the byte
+    /// length written.
+    ///
+    /// The one cell is the conventional seasonal variation in seconds,
+    /// 0.022 sin 2πT − 0.012 cos 2πT − 0.006 sin 4πT + 0.007 cos 4πT with T
+    /// the Besselian year, as the USNO states the formula; its extremes are
+    /// ±0.031 s. The instant is as for `hc_earth_rotation_angle`, and fails
+    /// as it does. A null `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_earth_rotation_angle`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_ut2_minus_ut1(
+        ut1_unix_seconds: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe {
+            emit_answer(
+                astro_lines::ut2_minus_ut1_line(ut1_unix_seconds),
+                buffer,
+                capacity,
+            )
+        }
+    }
+
+    /// A local clock's reading at a POSIX timestamp and a place, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// `clock` is `local-mean`, `local-apparent` (the sundial), `temporal`
+    /// (unequal hours: 6 at sunrise, 18 at sunset) or `italian` (hours since
+    /// the zero hour, half an hour after the sunset of the evening before),
+    /// in any case; anything else is `HC_ERR_UNKNOWN`. The place is the
+    /// latitude and longitude in degrees, north and east positive, and the
+    /// elevation in metres. Tab-separated: the fixed day of the local date
+    /// the reading belongs to, the hours into it, and three cells naming a
+    /// solar event the reading needs that does not happen — `sunrise`,
+    /// `sunset` or `depression`, the local day it is missing on, and the
+    /// depression sought in arcminutes — which are empty when the reading
+    /// exists; when it does not, the first two cells are empty instead. The
+    /// timestamp is read as Universal Time. A place off the globe, or an
+    /// instant outside the years −1000 to 3000, is `HC_ERR_OUT_OF_RANGE`. A
+    /// null `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `clock` must be readable for `clock_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless
+    /// it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_solar_time(
+        clock: *const u8,
+        clock_len: usize,
+        unix_seconds: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let clock = match unsafe { text(clock, clock_len) } {
+            Ok(clock) => clock,
+            Err(sentinel) => return sentinel,
+        };
+        let place = match astro_lines::location(latitude, longitude, elevation) {
+            Ok(place) => place,
+            Err(refusal) => return sentinel(refusal),
+        };
+        let answer = astro_lines::solar_time_line(clock, unix_seconds, place);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// A named time of day on a fixed day at a place, as one UTF-8 line,
+    /// returning the byte length written.
+    ///
+    /// `event` is `asr-shafii` or `asr-hanafi`, the afternoon prayer when a
+    /// shadow is its noon length plus once or twice the object's height;
+    /// `jewish-dusk-vilna-gaon`, the Sun 4°40′ below the horizon;
+    /// `jewish-sabbath-ends-cohn`, 7°5′; or `italian-zero-hour`, half an
+    /// hour after the Sun's centre is 16′ down; in any case, and anything
+    /// else is `HC_ERR_UNKNOWN`. The place is as for `hc_solar_time`.
+    /// Tab-separated: the instant as whole POSIX seconds of Universal Time,
+    /// rounded down, and the three cells of `hc_solar_time` naming a
+    /// missing solar event (`sunset`, `depression` or `no-noon-shadow`),
+    /// empty when the time exists; when it does not, the first cell is
+    /// empty instead. A place off the globe, or a day outside the years
+    /// −1000 to 3000, is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the
+    /// length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `event` must be readable for `event_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless
+    /// it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_solar_event(
+        event: *const u8,
+        event_len: usize,
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let event = match unsafe { text(event, event_len) } {
+            Ok(event) => event,
+            Err(sentinel) => return sentinel,
+        };
+        let place = match astro_lines::location(latitude, longitude, elevation) {
+            Ok(place) => place,
+            Err(refusal) => return sentinel(refusal),
+        };
+        let answer = astro_lines::solar_event_line(event, fixed, place);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+}
+
+#[cfg(feature = "sky")]
+pub use earth_and_sun::{
+    hc_earth_rotation_angle, hc_gmst_iau1982, hc_gmst_iau2006, hc_solar_event, hc_solar_time,
+    hc_ut2_minus_ut1,
+};
+
 /// The orbit, behind the `orbital` feature: Earth's orbital elements and
 /// the June insolation at 65° N they set, a million years either side of
 /// 1950, from Berger's 1978 series in `hc-orbital`.
@@ -2132,6 +2941,7 @@ mod tests {
     /// Call a line-writing export the way a page does: measure with a null
     /// buffer, refuse a buffer that is too small, then read the text.
     #[cfg(any(
+        feature = "timestamps",
         feature = "calendars",
         feature = "holiday",
         feature = "seasons",
@@ -4056,6 +4866,396 @@ mod tests {
             }
             // 10 000 samples is the most.
             assert!(unsafe { hc_orbit_series(0.0, 9_999.0, 1.0, null, 0) } > 0);
+        }
+    }
+
+    #[cfg(feature = "timestamps")]
+    mod time_scales {
+        use super::super::*;
+        use super::read_lines;
+
+        fn line(call: impl Fn(*mut u8, usize) -> i64) -> Vec<String> {
+            let text = read_lines(call);
+            let line = text.strip_suffix('\n').expect("one line");
+            assert!(!line.contains('\n'), "{text:?}");
+            line.split('\t').map(str::to_owned).collect()
+        }
+
+        #[test]
+        fn a_tai64_label_crosses_both_ways_and_refuses_by_name() {
+            let label = line(|buffer, capacity| unsafe {
+                hc_tai64_encode(0, 0, "tai64n".as_ptr(), 6, buffer, capacity)
+            });
+            assert_eq!(label, ["400000000000000000000000"]);
+            let hex = "3FFFFFFFFFFFFFFF3B9AC9FF3B9AC9FF";
+            let decoded = line(|buffer, capacity| unsafe {
+                hc_tai64_decode(hex.as_ptr(), hex.len(), buffer, capacity)
+            });
+            assert_eq!(decoded, ["tai64na", "-1", "999999999999999999"]);
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_tai64_encode(0, 0, "tai32".as_ptr(), 5, null, 0) },
+                HC_ERR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe {
+                    hc_tai64_encode(0, 1_000_000_000_000_000_000, "tai64".as_ptr(), 5, null, 0)
+                },
+                HC_ERR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe { hc_tai64_decode("40".as_ptr(), 2, null, 0) },
+                HC_ERR_MALFORMED
+            );
+            assert_eq!(
+                unsafe { hc_tai64_decode(core::ptr::null(), 1, null, 0) },
+                HC_ERR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe { hc_tai64_decode([0xffu8; 16].as_ptr(), 16, null, 0) },
+                HC_ERR_NOT_UTF8
+            );
+        }
+
+        /// GPS week 2048 began at 2019-04-06 23:59:42 UTC, TAI second
+        /// 1 554 595 219.
+        #[test]
+        fn the_april_2019_rollover_crosses_the_boundary() {
+            let tai = 1_554_595_219;
+            let id = "gps-lnav-week";
+            let week = line(|buffer, capacity| unsafe {
+                hc_gnss_week(id.as_ptr(), id.len(), tai, 0, buffer, capacity)
+            });
+            assert_eq!(week, ["2048", "0", "0", "0"]);
+            let back = line(|buffer, capacity| unsafe {
+                hc_gnss_to_tai(id.as_ptr(), id.len(), 2048, 0, 0, buffer, capacity)
+            });
+            assert_eq!(back, [tai.to_string(), "0".to_owned()]);
+            let resolve = |broadcast: u32, rule: &str| unsafe {
+                hc_gnss_resolve_week(
+                    id.as_ptr(),
+                    id.len(),
+                    broadcast,
+                    rule.as_ptr(),
+                    rule.len(),
+                    tai,
+                )
+            };
+            assert_eq!(resolve(0, "not-before"), 2048);
+            assert_eq!(resolve(1023, "nearest"), 2047);
+            assert_eq!(resolve(1024, "nearest"), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(resolve(0, "latest"), HC_ERR_UNKNOWN);
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_gnss_week(id.as_ptr(), id.len(), 0, 0, null, 0) },
+                HC_ERR_NO_DATA
+            );
+            assert_eq!(
+                unsafe { hc_gnss_to_tai(id.as_ptr(), id.len(), 0, 604_800, 0, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+        }
+
+        #[test]
+        fn glonass_ole_and_excel_dates_cross_the_boundary() {
+            // 2024-01-01 00:00 UTC: N4 = 8, N_T = 1.
+            let tai = 1_704_067_200 + 37;
+            let date =
+                line(|buffer, capacity| unsafe { hc_glonass_date(tai, 0, 1, buffer, capacity) });
+            assert_eq!(date, ["8", "1"]);
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_glonass_date(0, 0, 0, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+            let new_year_1900 = hc_gregorian_to_fixed(1900, 1, 1);
+            let ole = line(|buffer, capacity| unsafe {
+                hc_fixed_from_ole_automation(-1.25, buffer, capacity)
+            });
+            assert_eq!(ole, [(new_year_1900 - 3).to_string(), "21600".to_owned()]);
+            let value = line(|buffer, capacity| unsafe {
+                hc_ole_automation_from_fixed(new_year_1900 - 3, 21_600.0, buffer, capacity)
+            });
+            assert_eq!(value, ["-1.25"]);
+            assert_eq!(
+                unsafe { hc_fixed_from_ole_automation(f64::INFINITY, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+            let phantom =
+                line(|buffer, capacity| unsafe { hc_excel_1900_day(60, buffer, capacity) });
+            assert_eq!(phantom, ["", "1"]);
+            let march = line(|buffer, capacity| unsafe { hc_excel_1900_day(61, buffer, capacity) });
+            assert_eq!(
+                march,
+                [
+                    hc_gregorian_to_fixed(1900, 3, 1).to_string(),
+                    "0".to_owned()
+                ]
+            );
+            assert_eq!(
+                unsafe { hc_excel_1900_day(0, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+        }
+    }
+
+    #[cfg(feature = "calendars")]
+    mod calendar_days {
+        use super::super::*;
+        use super::read_lines;
+
+        /// Drik Panchang for 1 January 2025, read at sunrise: Vyaghata and
+        /// Balava.
+        #[test]
+        fn the_panchanga_of_the_first_of_january_2025_decodes_column_by_column() {
+            let day = hc_gregorian_to_fixed(2025, 1, 1);
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_panchanga_of_day(
+                    day,
+                    23.183_333,
+                    82.5,
+                    0.0,
+                    "Lahiri".as_ptr(),
+                    6,
+                    buffer,
+                    capacity,
+                )
+            });
+            let rows: Vec<Vec<&str>> = text
+                .lines()
+                .map(|line| line.split('\t').collect())
+                .collect();
+            assert_eq!(rows.len(), 2);
+            assert!(rows.iter().all(|row| row.len() == 8), "{rows:?}");
+            assert_eq!(rows[0][..4], ["yoga", "13", "Vyaghata", "व्याघात"]);
+            assert_eq!(rows[1][2..4], ["Balava", "बालव"]);
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_panchanga_of_day(day, 89.0, 0.0, 0.0, "Lahiri".as_ptr(), 6, null, 0) },
+                HC_ERR_NO_DATA
+            );
+            assert_eq!(
+                unsafe {
+                    hc_panchanga_of_day(day, f64::NAN, 0.0, 0.0, "Lahiri".as_ptr(), 6, null, 0)
+                },
+                HC_ERR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe { hc_panchanga_at(0, core::ptr::null(), 0, null, 0) },
+                HC_ERR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe { hc_panchanga_at(i64::MAX, "Raman".as_ptr(), 5, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+        }
+
+        #[test]
+        fn the_olympiads_and_the_hebrew_anniversaries_are_numbers_above_the_floor() {
+            assert_eq!(hc_ioc_olympiad(2021), 32);
+            assert_eq!(hc_ioc_olympiad(i64::MAX), 2_305_843_009_213_693_478);
+            assert_eq!(hc_ioc_olympiad(1895), HC_ERR_OUT_OF_RANGE);
+            // 10 Tevet 5780 was 7 January 2020; 10 Tevet 5781, 25 December.
+            let death = hc_gregorian_to_fixed(2020, 1, 7);
+            assert_eq!(
+                hc_hebrew_yahrzeit(death, 5781),
+                hc_gregorian_to_fixed(2020, 12, 25)
+            );
+            assert_eq!(
+                hc_hebrew_birthday(death, 5781),
+                hc_gregorian_to_fixed(2020, 12, 25)
+            );
+            assert_eq!(hc_hebrew_yahrzeit(death, 0), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(hc_hebrew_birthday(i64::MIN, 5781), HC_ERR_OUT_OF_RANGE);
+        }
+
+        /// Wikipedia's child born in June 2000, 13 *suì* from the lunar new
+        /// year of 2012; the South China Morning Post's widow year of 2024.
+        #[test]
+        fn the_chinese_reckonings_cross_the_boundary() {
+            let birth = hc_gregorian_to_fixed(2000, 6, 15);
+            assert_eq!(
+                hc_chinese_reckoned_age(birth, hc_gregorian_to_fixed(2012, 1, 23)),
+                13
+            );
+            assert_eq!(hc_chinese_reckoned_age(birth, birth - 1), HC_ERR_NO_DATA);
+            assert_eq!(
+                hc_chinese_reckoned_age(i64::MIN, birth),
+                HC_ERR_OUT_OF_RANGE
+            );
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_chinese_marriage_augury(4_661, buffer, capacity)
+            });
+            assert_eq!(text, "widow\t0\t0\n");
+            assert_eq!(
+                unsafe { hc_chinese_marriage_augury(i64::MAX, core::ptr::null_mut(), 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+        }
+    }
+
+    #[cfg(feature = "holiday")]
+    mod observances {
+        use super::super::*;
+        use super::read_lines;
+
+        #[test]
+        fn every_table_is_described_in_the_order_of_the_codes() {
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_holiday_tables("en".as_ptr(), 2, buffer, capacity)
+            });
+            let codes =
+                read_lines(|buffer, capacity| unsafe { hc_holiday_codes(buffer, capacity) });
+            let rows: Vec<Vec<&str>> = text
+                .lines()
+                .map(|line| line.split('\t').collect())
+                .collect();
+            assert!(rows.iter().all(|row| row.len() == 7));
+            assert_eq!(
+                rows.iter().map(|row| row[0]).collect::<Vec<_>>(),
+                codes.lines().collect::<Vec<_>>()
+            );
+            let xhkg = rows
+                .iter()
+                .find(|row| row[0] == "XHKG")
+                .expect("Hong Kong's exchange");
+            assert_eq!(xhkg[1], "exchange");
+            assert_eq!(xhkg[6], "HK");
+            assert_eq!(
+                unsafe { hc_holiday_tables(core::ptr::null(), 1, core::ptr::null_mut(), 0) },
+                HC_ERR_NULL_POINTER
+            );
+        }
+
+        #[test]
+        fn the_lectionary_and_the_astronomical_easter_cross_the_boundary() {
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_lectionary(hc_gregorian_to_fixed(2026, 11, 22), buffer, capacity)
+            });
+            assert_eq!(text, "2026\tA\tII\t29\n");
+            assert_eq!(
+                unsafe {
+                    hc_lectionary(hc_gregorian_to_fixed(4100, 1, 1), core::ptr::null_mut(), 0)
+                },
+                HC_ERR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                hc_astronomical_easter(2001),
+                hc_gregorian_to_fixed(2001, 4, 15)
+            );
+            assert_eq!(hc_astronomical_easter(2151), HC_ERR_OUT_OF_RANGE);
+        }
+    }
+
+    #[cfg(feature = "sky")]
+    mod earth_and_sun {
+        use super::super::*;
+        use super::read_lines;
+
+        fn number(call: impl Fn(*mut u8, usize) -> i64) -> f64 {
+            read_lines(call).trim_end().parse().expect("one number")
+        }
+
+        /// ERFA's test values, which `hc-astro`'s own tests read:
+        /// `eraEra00` at JD 2 454 388.5 UT1 and `eraGmst82` at MJD 53 736.
+        #[test]
+        fn the_rotation_is_erfas_and_refuses_off_the_era() {
+            let era = number(|buffer, capacity| unsafe {
+                hc_earth_rotation_angle(1_192_406_400.0, buffer, capacity)
+            });
+            assert!(
+                (era - 0.402_283_724_002_815_8_f64.to_degrees()).abs() < 1e-8,
+                "{era}"
+            );
+            let gmst = number(|buffer, capacity| unsafe {
+                hc_gmst_iau1982(1_136_073_600.0, buffer, capacity)
+            });
+            assert!(
+                (gmst - 1.754_174_981_860_675_f64.to_degrees()).abs() < 1e-8,
+                "{gmst}"
+            );
+            let gmst06 = number(|buffer, capacity| unsafe {
+                hc_gmst_iau2006(1_136_073_600.0, buffer, capacity)
+            });
+            assert!(
+                (gmst06 - 1.754_174_971_870_091_2_f64.to_degrees()).abs() < 1e-7,
+                "{gmst06}"
+            );
+            let ut2 = number(|buffer, capacity| unsafe {
+                hc_ut2_minus_ut1(946_684_800.0 + 0.03 * 86_400.0, buffer, capacity)
+            });
+            assert!((ut2 + 0.005).abs() < 1e-6, "{ut2}");
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_earth_rotation_angle(f64::NAN, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe { hc_gmst_iau2006(1e15, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+        }
+
+        /// NAOJ: sunrise in Tokyo on 2024-01-01 at 06:50 JST, the temporal
+        /// hour 6; and Tromsø's polar night, which has no temporal hour.
+        #[test]
+        fn a_clock_reads_or_names_what_it_misses() {
+            let clock = "temporal";
+            let sunrise =
+                hc_unix_from_fixed(hc_gregorian_to_fixed(2023, 12, 31)) + 21 * 3_600 + 50 * 60;
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_solar_time(
+                    clock.as_ptr(),
+                    clock.len(),
+                    sunrise,
+                    35.6581,
+                    139.7414,
+                    0.0,
+                    buffer,
+                    capacity,
+                )
+            });
+            let cells: Vec<&str> = text.trim_end_matches('\n').split('\t').collect();
+            assert_eq!(cells.len(), 5);
+            assert_eq!(cells[0], hc_gregorian_to_fixed(2024, 1, 1).to_string());
+            let hours: f64 = cells[1].parse().expect("hours");
+            assert!((hours - 6.0).abs() < 0.03, "{hours}");
+            assert_eq!(cells[2..], ["", "", ""]);
+            let midwinter = hc_gregorian_to_fixed(2024, 12, 21);
+            let event = "asr-hanafi";
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_solar_event(
+                    event.as_ptr(),
+                    event.len(),
+                    midwinter,
+                    69.6496,
+                    18.956,
+                    0.0,
+                    buffer,
+                    capacity,
+                )
+            });
+            assert_eq!(text, format!("\tno-noon-shadow\t{midwinter}\t\n"));
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_solar_event("dhuhr".as_ptr(), 5, midwinter, 0.0, 0.0, 0.0, null, 0) },
+                HC_ERR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe {
+                    hc_solar_time(
+                        clock.as_ptr(),
+                        clock.len(),
+                        sunrise,
+                        0.0,
+                        181.0,
+                        0.0,
+                        null,
+                        0,
+                    )
+                },
+                HC_ERR_OUT_OF_RANGE
+            );
         }
     }
 }

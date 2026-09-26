@@ -58,16 +58,35 @@ export const METHODS = Object.freeze([
   { method: "unixFromFixed", export: "hc_unix_from_fixed", feature: "civil" },
   { method: "formatIsoDate", export: "hc_format_iso_date", feature: "civil" },
   { method: "parseIsoDate", export: "hc_parse_iso_date", feature: "civil" },
+  { method: "tai64Encode", export: "hc_tai64_encode", feature: "timestamps" },
+  { method: "tai64Decode", export: "hc_tai64_decode", feature: "timestamps" },
+  { method: "gnssWeek", export: "hc_gnss_week", feature: "timestamps" },
+  { method: "gnssToTai", export: "hc_gnss_to_tai", feature: "timestamps" },
+  { method: "gnssResolveWeek", export: "hc_gnss_resolve_week", feature: "timestamps" },
+  { method: "glonassDate", export: "hc_glonass_date", feature: "timestamps" },
+  { method: "fixedFromOleAutomation", export: "hc_fixed_from_ole_automation", feature: "timestamps" },
+  { method: "oleAutomationFromFixed", export: "hc_ole_automation_from_fixed", feature: "timestamps" },
+  { method: "excel1900Day", export: "hc_excel_1900_day", feature: "timestamps" },
   { method: "describeDay", export: "hc_describe_day", feature: "calendars" },
   { method: "calendarUnits", export: "hc_calendar_units", feature: "calendars" },
   { method: "calendars", export: "hc_calendars", feature: "calendars" },
   { method: "locales", export: "hc_locales", feature: "calendars" },
   { method: "firstDayOfWeek", export: "hc_first_day_of_week", feature: "calendars" },
   { method: "gregorianAdoption", export: "hc_gregorian_adoption", feature: "calendars" },
+  { method: "panchangaAt", export: "hc_panchanga_at", feature: "calendars" },
+  { method: "panchangaOfDay", export: "hc_panchanga_of_day", feature: "calendars" },
+  { method: "iocOlympiad", export: "hc_ioc_olympiad", feature: "calendars" },
+  { method: "hebrewYahrzeit", export: "hc_hebrew_yahrzeit", feature: "calendars" },
+  { method: "hebrewBirthday", export: "hc_hebrew_birthday", feature: "calendars" },
+  { method: "chineseReckonedAge", export: "hc_chinese_reckoned_age", feature: "calendars" },
+  { method: "chineseMarriageAugury", export: "hc_chinese_marriage_augury", feature: "calendars" },
   { method: "holidayIsDayOff", export: "hc_holiday_is_day_off", feature: "holiday" },
   { method: "holidaysInYear", export: "hc_holidays_in_year", feature: "holiday" },
   { method: "holidayCodes", export: "hc_holiday_codes", feature: "holiday" },
   { method: "holidaysOn", export: "hc_holidays_on", feature: "holiday" },
+  { method: "holidayTables", export: "hc_holiday_tables", feature: "holiday" },
+  { method: "lectionary", export: "hc_lectionary", feature: "holiday" },
+  { method: "astronomicalEaster", export: "hc_astronomical_easter", feature: "holiday" },
   { method: "termInEffect", export: "hc_term_in_effect", feature: "seasons" },
   { method: "pentadInEffect", export: "hc_pentad_in_effect", feature: "seasons" },
   { method: "placeYearsAgo", export: "hc_place_years_ago", feature: "deep-time" },
@@ -79,6 +98,12 @@ export const METHODS = Object.freeze([
   { method: "skyAt", export: "hc_sky_at", feature: "sky" },
   { method: "solarTermsBetween", export: "hc_solar_terms_between", feature: "sky" },
   { method: "moonPhasesBetween", export: "hc_moon_phases_between", feature: "sky" },
+  { method: "earthRotationAngle", export: "hc_earth_rotation_angle", feature: "sky" },
+  { method: "gmstIau2006", export: "hc_gmst_iau2006", feature: "sky" },
+  { method: "gmstIau1982", export: "hc_gmst_iau1982", feature: "sky" },
+  { method: "ut2MinusUt1", export: "hc_ut2_minus_ut1", feature: "sky" },
+  { method: "solarTime", export: "hc_solar_time", feature: "sky" },
+  { method: "solarEvent", export: "hc_solar_event", feature: "sky" },
   { method: "orbitAt", export: "hc_orbit_at", feature: "orbital" },
   { method: "orbitSeries", export: "hc_orbit_series", feature: "orbital" },
 ].map(Object.freeze));
@@ -142,6 +167,23 @@ export const COLUMNS = Object.freeze({
   skyEvent: Object.freeze(["angle", "instant", "name", "japanese name"]),
   orbit: ORBIT_COLUMNS,
   orbitSeries: Object.freeze(["years before 1950", ...ORBIT_COLUMNS]),
+  tai64: Object.freeze(["format", "tai seconds", "attoseconds"]),
+  gnssWeek: Object.freeze(["week", "broadcast week", "tow seconds", "tow attoseconds"]),
+  taiInstant: Object.freeze(["tai seconds", "attoseconds"]),
+  glonassDate: Object.freeze(["four-year interval", "day"]),
+  oleAutomation: Object.freeze(["fixed", "seconds of day"]),
+  excel1900Day: Object.freeze(["fixed", "phantom"]),
+  panchanga: Object.freeze([
+    "limb", "number", "name", "devanagari", "began", "ends", "read at", "ayanamsa",
+  ]),
+  marriageAugury: Object.freeze(["augury", "lichun at start", "lichun at end"]),
+  holidayTables: Object.freeze([
+    "code", "kind", "name", "english name", "locale used", "source", "country",
+  ]),
+  lectionary: Object.freeze(["liturgical year", "sunday cycle", "weekday cycle", "proper"]),
+  value: Object.freeze(["value"]),
+  solarTime: Object.freeze(["day", "hours", "missing", "missing day", "depression"]),
+  solarEvent: Object.freeze(["instant", "missing", "missing day", "depression"]),
 });
 
 /** The geologic ranks `hc_geologic_intervals` numbers, coarsest first. */
@@ -266,6 +308,25 @@ function toU32(value, what) {
 }
 
 /**
+ * A `u64` argument: a safe non-negative integer or a `BigInt`.
+ *
+ * @param {number | bigint} value
+ * @param {string} what
+ * @returns {bigint}
+ */
+function toU64(value, what) {
+  if (typeof value === "bigint") {
+    return BigInt.asUintN(64, value) === value
+      ? value
+      : raise(`${what} must fit a u64, got ${value}`);
+  }
+  if (typeof value === "number" && Number.isSafeInteger(value) && value >= 0) {
+    return BigInt(value);
+  }
+  return raise(`${what} must be a non-negative integer, got ${String(value)}`);
+}
+
+/**
  * An `f64` argument.
  *
  * @param {number} value
@@ -350,6 +411,21 @@ function integer(cell, what) {
  */
 function optionalInteger(cell, what) {
   return cell === "" ? null : integer(cell, what);
+}
+
+/**
+ * A cell holding an integer that need not fit a JavaScript number: a TAI
+ * second, an attosecond.
+ *
+ * @param {string} cell
+ * @param {string} what
+ * @returns {bigint}
+ */
+function bigInteger(cell, what) {
+  if (!/^-?\d+$/.test(cell)) {
+    throw new HcError("malformed", { message: `${what} is not an integer: ${JSON.stringify(cell)}` });
+  }
+  return BigInt(cell);
 }
 
 /**
@@ -729,6 +805,199 @@ function orbit(cells) {
 function orbitSample(cells) {
   const [yearsBefore1950, ...rest] = cells;
   return { yearsBefore1950: decimal(yearsBefore1950, "years before 1950"), ...orbit(rest) };
+}
+
+/**
+ * The one line of `hc_tai64_decode`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Tai64Label}
+ */
+function tai64Label(cells) {
+  const [format, seconds, attoseconds] = cells;
+  return {
+    format: /** @type {import("./hyper-calendar.d.ts").Tai64Format} */ (format),
+    seconds: bigInteger(seconds, "tai seconds"),
+    attoseconds: bigInteger(attoseconds, "attoseconds"),
+  };
+}
+
+/**
+ * The one line of `hc_gnss_week`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").GnssWeek}
+ */
+function gnssWeek(cells) {
+  const [week, broadcastWeek, towSeconds, towAttoseconds] = cells;
+  return {
+    week: integer(week, "week"),
+    broadcastWeek: integer(broadcastWeek, "broadcast week"),
+    towSeconds: integer(towSeconds, "tow seconds"),
+    towAttoseconds: bigInteger(towAttoseconds, "tow attoseconds"),
+  };
+}
+
+/**
+ * The one line of `hc_gnss_to_tai`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").TaiInstant}
+ */
+function taiInstant(cells) {
+  const [seconds, attoseconds] = cells;
+  return { seconds: bigInteger(seconds, "tai seconds"), attoseconds: bigInteger(attoseconds, "attoseconds") };
+}
+
+/**
+ * The one line of `hc_glonass_date`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").GlonassDate}
+ */
+function glonassDate(cells) {
+  const [fourYearInterval, day] = cells;
+  return { fourYearInterval: integer(fourYearInterval, "four-year interval"), day: integer(day, "day") };
+}
+
+/**
+ * The one line of `hc_fixed_from_ole_automation`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").OleAutomationDay}
+ */
+function oleAutomationDay(cells) {
+  const [fixed, secondsOfDay] = cells;
+  return { fixed: integer(fixed, "fixed"), secondsOfDay: decimal(secondsOfDay, "seconds of day") };
+}
+
+/**
+ * The one line of `hc_excel_1900_day`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Excel1900Day}
+ */
+function excel1900Day(cells) {
+  const [fixed, phantom] = cells;
+  return { fixed: optionalInteger(fixed, "fixed"), phantom: flag(phantom, "phantom") };
+}
+
+/**
+ * One line of `hc_panchanga_at` or `hc_panchanga_of_day`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").PanchangaLimb}
+ */
+function panchangaLimb(cells) {
+  const [limb, number, name, devanagari, began, ends, readAt, ayanamsa] = cells;
+  return {
+    limb: /** @type {"yoga" | "karana"} */ (limb),
+    number: integer(number, "number"),
+    name,
+    devanagari,
+    began: integer(began, "began"),
+    ends: integer(ends, "ends"),
+    readAt: integer(readAt, "read at"),
+    ayanamsa: optional(ayanamsa),
+  };
+}
+
+/**
+ * The one line of `hc_chinese_marriage_augury`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").MarriageAugury}
+ */
+function marriageAugury(cells) {
+  const [augury, atStart, atEnd] = cells;
+  return {
+    augury: /** @type {import("./hyper-calendar.d.ts").MarriageAuguryName} */ (augury),
+    lichunAtStart: flag(atStart, "lichun at start"),
+    lichunAtEnd: flag(atEnd, "lichun at end"),
+  };
+}
+
+/**
+ * One line of `hc_holiday_tables`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").HolidayTable}
+ */
+function holidayTable(cells) {
+  const [code, kind, name, englishName, localeUsed, source, country] = cells;
+  return {
+    code,
+    kind: /** @type {import("./hyper-calendar.d.ts").HolidayTableKind} */ (kind),
+    name: optional(name),
+    englishName,
+    localeUsed: optional(localeUsed),
+    source: optional(source),
+    country: optional(country),
+  };
+}
+
+/**
+ * The one line of `hc_lectionary`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Lectionary}
+ */
+function lectionaryLine(cells) {
+  const [liturgicalYear, sundayCycle, weekdayCycle, proper] = cells;
+  return {
+    liturgicalYear: integer(liturgicalYear, "liturgical year"),
+    sundayCycle: /** @type {"A" | "B" | "C"} */ (sundayCycle),
+    weekdayCycle: /** @type {"I" | "II"} */ (weekdayCycle),
+    proper: optionalInteger(proper, "proper"),
+  };
+}
+
+/**
+ * The three cells naming a missing solar event, or `null` where none is.
+ *
+ * @param {string} missing
+ * @param {string} day
+ * @param {string} depression
+ * @returns {import("./hyper-calendar.d.ts").MissingSolarEvent | null}
+ */
+function missingSolarEvent(missing, day, depression) {
+  if (missing === "") {
+    return null;
+  }
+  return {
+    event: /** @type {import("./hyper-calendar.d.ts").MissingSolarEventName} */ (missing),
+    day: integer(day, "missing day"),
+    depressionArcminutes: optionalInteger(depression, "depression"),
+  };
+}
+
+/**
+ * The one line of `hc_solar_time`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").SolarTime}
+ */
+function solarTime(cells) {
+  const [day, hours, missing, missingDay, depression] = cells;
+  return {
+    day: optionalInteger(day, "day"),
+    hours: hours === "" ? null : decimal(hours, "hours"),
+    missing: missingSolarEvent(missing, missingDay, depression),
+  };
+}
+
+/**
+ * The one line of `hc_solar_event`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").SolarEvent}
+ */
+function solarEvent(cells) {
+  const [instant, missing, missingDay, depression] = cells;
+  return {
+    instant: optionalInteger(instant, "instant"),
+    missing: missingSolarEvent(missing, missingDay, depression),
+  };
 }
 
 /** The capacity a text read starts with unless `load` was told otherwise. */
@@ -1534,6 +1803,426 @@ export class HyperCalendar {
     const step = toF64(stepYears, "stepYears");
     const text = this.#text("hc_orbit_series", (buffer, capacity) => fn(from, to, step, buffer, capacity), true);
     return rows(text, COLUMNS.orbitSeries, "hc_orbit_series").map(orbitSample);
+  }
+
+  /**
+   * The one line an export wrote, as cells, or `malformed` for any other
+   * number of lines.
+   *
+   * @param {string} exportName
+   * @param {string} text
+   * @param {ReadonlyArray<string>} columns
+   * @returns {string[]}
+   */
+  #oneLine(exportName, text, columns) {
+    const lines = rows(text, columns, exportName);
+    if (lines.length !== 1) {
+      throw new HcError("malformed", {
+        export: exportName,
+        message: `${exportName} wrote ${lines.length} lines, not one`,
+      });
+    }
+    return lines[0];
+  }
+
+  /**
+   * A TAI instant — whole seconds from 1970-01-01 00:00:00 TAI and the
+   * attoseconds into that second — as a TAI64 (`tai64`), TAI64N (`tai64n`)
+   * or TAI64NA (`tai64na`) label in lower-case hexadecimal.
+   *
+   * @param {number | bigint} taiSeconds
+   * @param {number | bigint} attoseconds
+   * @param {import("./hyper-calendar.d.ts").Tai64Format} format
+   * @returns {string}
+   */
+  tai64Encode(taiSeconds, attoseconds, format) {
+    const fn = this.#export("hc_tai64_encode");
+    const seconds = toI64(taiSeconds, "taiSeconds");
+    const attos = toU64(attoseconds, "attoseconds");
+    const text = this.#withText(format, "format", (pointer, len) =>
+      this.#text("hc_tai64_encode", (buffer, capacity) => fn(seconds, attos, pointer, len, buffer, capacity), true));
+    return this.#oneLine("hc_tai64_encode", text, ["label"])[0];
+  }
+
+  /**
+   * A TAI64, TAI64N or TAI64NA label in hexadecimal read back: its format
+   * and the TAI instant it names, both parts as `BigInt`s.
+   *
+   * @param {string} hex
+   * @returns {import("./hyper-calendar.d.ts").Tai64Label}
+   */
+  tai64Decode(hex) {
+    const fn = this.#export("hc_tai64_decode");
+    const text = this.#withText(hex, "hex", (pointer, len) =>
+      this.#text("hc_tai64_decode", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return tai64Label(this.#oneLine("hc_tai64_decode", text, COLUMNS.tai64));
+  }
+
+  /**
+   * The full GNSS week, the broadcast week and the time of week of a TAI
+   * instant under a week-number field: `gps-lnav-week`, `gps-cnav-week`,
+   * `galileo-week`, `beidou-week` or `navic-week`.
+   *
+   * @param {import("./hyper-calendar.d.ts").GnssNumbering} numbering
+   * @param {number | bigint} taiSeconds
+   * @param {number | bigint} [attoseconds]
+   * @returns {import("./hyper-calendar.d.ts").GnssWeek}
+   */
+  gnssWeek(numbering, taiSeconds, attoseconds = 0) {
+    const fn = this.#export("hc_gnss_week");
+    const seconds = toI64(taiSeconds, "taiSeconds");
+    const attos = toU64(attoseconds, "attoseconds");
+    const text = this.#withText(numbering, "numbering", (pointer, len) =>
+      this.#text("hc_gnss_week", (buffer, capacity) => fn(pointer, len, seconds, attos, buffer, capacity), true));
+    return gnssWeek(this.#oneLine("hc_gnss_week", text, COLUMNS.gnssWeek));
+  }
+
+  /**
+   * The TAI instant of a full GNSS week and a time of week.
+   *
+   * @param {import("./hyper-calendar.d.ts").GnssNumbering} numbering
+   * @param {number} week
+   * @param {number} towSeconds
+   * @param {number | bigint} [towAttoseconds]
+   * @returns {import("./hyper-calendar.d.ts").TaiInstant}
+   */
+  gnssToTai(numbering, week, towSeconds, towAttoseconds = 0) {
+    const fn = this.#export("hc_gnss_to_tai");
+    const w = toU32(week, "week");
+    const tow = toU32(towSeconds, "towSeconds");
+    const attos = toU64(towAttoseconds, "towAttoseconds");
+    const text = this.#withText(numbering, "numbering", (pointer, len) =>
+      this.#text("hc_gnss_to_tai", (buffer, capacity) => fn(pointer, len, w, tow, attos, buffer, capacity), true));
+    return taiInstant(this.#oneLine("hc_gnss_to_tai", text, COLUMNS.taiInstant));
+  }
+
+  /**
+   * The full GNSS week a broadcast week names: by `not-before`, the first
+   * at or after the reference's week; by `nearest`, the one within half a
+   * rollover of it. The reference is whole TAI seconds.
+   *
+   * @param {import("./hyper-calendar.d.ts").GnssNumbering} numbering
+   * @param {number} broadcast
+   * @param {import("./hyper-calendar.d.ts").RolloverRule} rule
+   * @param {number | bigint} referenceTaiSeconds
+   * @returns {number}
+   */
+  gnssResolveWeek(numbering, broadcast, rule, referenceTaiSeconds) {
+    const fn = this.#export("hc_gnss_resolve_week");
+    const b = toU32(broadcast, "broadcast");
+    const reference = toI64(referenceTaiSeconds, "referenceTaiSeconds");
+    return this.#withText(numbering, "numbering", (numberingPointer, numberingLen) =>
+      this.#withText(rule, "rule", (rulePointer, ruleLen) =>
+        toNumber(fn(numberingPointer, numberingLen, b, rulePointer, ruleLen, reference), "hc_gnss_resolve_week")));
+  }
+
+  /**
+   * GLONASS's four-year interval N4 and day N_T at a TAI instant. `strict`
+   * refuses outside the leap-second table with `no-data`.
+   *
+   * @param {number | bigint} taiSeconds
+   * @param {number | bigint} [attoseconds]
+   * @param {boolean} [strict]
+   * @returns {import("./hyper-calendar.d.ts").GlonassDate}
+   */
+  glonassDate(taiSeconds, attoseconds = 0, strict = false) {
+    const fn = this.#export("hc_glonass_date");
+    const seconds = toI64(taiSeconds, "taiSeconds");
+    const attos = toU64(attoseconds, "attoseconds");
+    const text = this.#text("hc_glonass_date", (buffer, capacity) =>
+      fn(seconds, attos, strict ? 1 : 0, buffer, capacity), true);
+    return glonassDate(this.#oneLine("hc_glonass_date", text, COLUMNS.glonassDate));
+  }
+
+  /**
+   * The fixed day and the seconds into it of an OLE Automation date; a
+   * negative value's fraction is a magnitude, so −1.25 is 06:00 on
+   * 29 December 1899.
+   *
+   * @param {number} value
+   * @returns {import("./hyper-calendar.d.ts").OleAutomationDay}
+   */
+  fixedFromOleAutomation(value) {
+    const fn = this.#export("hc_fixed_from_ole_automation");
+    const v = toF64(value, "value");
+    const text = this.#text("hc_fixed_from_ole_automation", (buffer, capacity) => fn(v, buffer, capacity), true);
+    return oleAutomationDay(this.#oneLine("hc_fixed_from_ole_automation", text, COLUMNS.oleAutomation));
+  }
+
+  /**
+   * The OLE Automation date of a fixed day and a time of day in seconds.
+   *
+   * @param {number | bigint} fixed
+   * @param {number} [secondsOfDay]
+   * @returns {number}
+   */
+  oleAutomationFromFixed(fixed, secondsOfDay = 0) {
+    const fn = this.#export("hc_ole_automation_from_fixed");
+    const day = toI64(fixed, "fixed");
+    const seconds = toF64(secondsOfDay, "secondsOfDay");
+    const text = this.#text("hc_ole_automation_from_fixed", (buffer, capacity) => fn(day, seconds, buffer, capacity), true);
+    return decimal(this.#oneLine("hc_ole_automation_from_fixed", text, COLUMNS.value)[0], "value");
+  }
+
+  /**
+   * What an Excel 1900 serial names: its fixed day, or, for serial 60,
+   * which Excel counts as 29 February 1900, `phantom` and no day.
+   *
+   * @param {number | bigint} serial
+   * @returns {import("./hyper-calendar.d.ts").Excel1900Day}
+   */
+  excel1900Day(serial) {
+    const fn = this.#export("hc_excel_1900_day");
+    const s = toI64(serial, "serial");
+    const text = this.#text("hc_excel_1900_day", (buffer, capacity) => fn(s, buffer, capacity), true);
+    return excel1900Day(this.#oneLine("hc_excel_1900_day", text, COLUMNS.excel1900Day));
+  }
+
+  /**
+   * The yoga and the karaṇa in progress at a POSIX instant, read as
+   * Universal Time, the yoga reckoned with an ayanamsa: `Lahiri`, `Raman`,
+   * `Krishnamurti` or `Fagan-Bradley`.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {string} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").PanchangaLimb[]}
+   */
+  panchangaAt(unixSeconds, ayanamsa) {
+    const fn = this.#export("hc_panchanga_at");
+    const instant = toI64(unixSeconds, "unixSeconds");
+    const text = this.#withText(ayanamsa, "ayanamsa", (pointer, len) =>
+      this.#text("hc_panchanga_at", (buffer, capacity) => fn(instant, pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.panchanga, "hc_panchanga_at").map(panchangaLimb);
+  }
+
+  /**
+   * The yoga and the karaṇa a fixed day carries at a place, read at its
+   * sunrise; a day without one there is `no-data`.
+   *
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} elevation
+   * @param {string} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").PanchangaLimb[]}
+   */
+  panchangaOfDay(fixed, latitude, longitude, elevation, ayanamsa) {
+    const fn = this.#export("hc_panchanga_of_day");
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(ayanamsa, "ayanamsa", (pointer, len) =>
+      this.#text("hc_panchanga_of_day", (buffer, capacity) =>
+        fn(day, lat, lon, elev, pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.panchanga, "hc_panchanga_of_day").map(panchangaLimb);
+  }
+
+  /**
+   * The number of the modern Olympiad a Gregorian year belongs to, from 1
+   * for 1896–1899; an earlier year is `out-of-range`.
+   *
+   * @param {number | bigint} gregorianYear
+   * @returns {number}
+   */
+  iocOlympiad(gregorianYear) {
+    return toNumber(this.#export("hc_ioc_olympiad")(toI64(gregorianYear, "gregorianYear")), "hc_ioc_olympiad");
+  }
+
+  /**
+   * The fixed day of the yahrzeit in a Hebrew year of a death on the Hebrew
+   * date a fixed day names; a death after sunset is the next fixed day.
+   *
+   * @param {number | bigint} deathFixed
+   * @param {number | bigint} hebrewYear
+   * @returns {number}
+   */
+  hebrewYahrzeit(deathFixed, hebrewYear) {
+    const fn = this.#export("hc_hebrew_yahrzeit");
+    return toNumber(fn(toI64(deathFixed, "deathFixed"), toI64(hebrewYear, "hebrewYear")), "hc_hebrew_yahrzeit");
+  }
+
+  /**
+   * The fixed day of the birthday in a Hebrew year of a birth on the Hebrew
+   * date a fixed day names, as {@link hebrewYahrzeit}.
+   *
+   * @param {number | bigint} birthFixed
+   * @param {number | bigint} hebrewYear
+   * @returns {number}
+   */
+  hebrewBirthday(birthFixed, hebrewYear) {
+    const fn = this.#export("hc_hebrew_birthday");
+    return toNumber(fn(toI64(birthFixed, "birthFixed"), toI64(hebrewYear, "hebrewYear")), "hc_hebrew_birthday");
+  }
+
+  /**
+   * A person's age as the Chinese count reckons it on a fixed day: one at
+   * birth and one more at each Chinese New Year. A day before the birth
+   * has no age and is `no-data`.
+   *
+   * @param {number | bigint} birthFixed
+   * @param {number | bigint} onFixed
+   * @returns {number}
+   */
+  chineseReckonedAge(birthFixed, onFixed) {
+    const fn = this.#export("hc_chinese_reckoned_age");
+    return toNumber(fn(toI64(birthFixed, "birthFixed"), toI64(onFixed, "onFixed")), "hc_chinese_reckoned_age");
+  }
+
+  /**
+   * The marriage augury of a Chinese year, counted as the Chinese calendar
+   * counts it (4661 began on 10 February 2024): `widow`, `blind`, `bright`
+   * or `double-bright`, by where 立春 falls in it.
+   *
+   * @param {number | bigint} chineseYear
+   * @returns {import("./hyper-calendar.d.ts").MarriageAugury}
+   */
+  chineseMarriageAugury(chineseYear) {
+    const fn = this.#export("hc_chinese_marriage_augury");
+    const year = toI64(chineseYear, "chineseYear");
+    const text = this.#text("hc_chinese_marriage_augury", (buffer, capacity) => fn(year, buffer, capacity), true);
+    return marriageAugury(this.#oneLine("hc_chinese_marriage_augury", text, COLUMNS.marriageAugury));
+  }
+
+  /**
+   * Every holiday table, in {@link holidayCodes} order, with its kind, its
+   * names, its sources and the country of an exchange where its table
+   * records one. The tables carry English names only: `name` is filled
+   * for a tag whose language is `en` and `null` for any other.
+   *
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").HolidayTable[]}
+   */
+  holidayTables(locale = "und") {
+    const fn = this.#export("hc_holiday_tables");
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_holiday_tables", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.holidayTables, "hc_holiday_tables").map(holidayTable);
+  }
+
+  /**
+   * The lectionary cycles of a fixed day: the liturgical year, the Sunday
+   * cycle, the Roman weekday cycle and the RCL Proper of a Sunday after
+   * Trinity Sunday.
+   *
+   * @param {number | bigint} fixed
+   * @returns {import("./hyper-calendar.d.ts").Lectionary}
+   */
+  lectionary(fixed) {
+    const fn = this.#export("hc_lectionary");
+    const day = toI64(fixed, "fixed");
+    const text = this.#text("hc_lectionary", (buffer, capacity) => fn(day, buffer, capacity), true);
+    return lectionaryLine(this.#oneLine("hc_lectionary", text, COLUMNS.lectionary));
+  }
+
+  /**
+   * The fixed day of Easter by the astronomical reckoning at the meridian
+   * of Jerusalem, for 1583 to 2150.
+   *
+   * @param {number | bigint} year
+   * @returns {number}
+   */
+  astronomicalEaster(year) {
+    return toNumber(this.#export("hc_astronomical_easter")(toI64(year, "year")), "hc_astronomical_easter");
+  }
+
+  /**
+   * @param {string} exportName
+   * @param {number} ut1UnixSeconds
+   * @returns {number}
+   */
+  #rotation(exportName, ut1UnixSeconds) {
+    const fn = this.#export(exportName);
+    const seconds = toF64(ut1UnixSeconds, "ut1UnixSeconds");
+    const text = this.#text(exportName, (buffer, capacity) => fn(seconds, buffer, capacity), true);
+    return decimal(this.#oneLine(exportName, text, COLUMNS.value)[0], "value");
+  }
+
+  /**
+   * The Earth Rotation Angle in degrees at a UT1 instant, counted as POSIX
+   * seconds are, from 1970-01-01 00:00 UT1.
+   *
+   * @param {number} ut1UnixSeconds
+   * @returns {number}
+   */
+  earthRotationAngle(ut1UnixSeconds) {
+    return this.#rotation("hc_earth_rotation_angle", ut1UnixSeconds);
+  }
+
+  /**
+   * The Greenwich mean sidereal time in degrees by the IAU 2006 convention,
+   * at a UT1 instant as {@link earthRotationAngle}.
+   *
+   * @param {number} ut1UnixSeconds
+   * @returns {number}
+   */
+  gmstIau2006(ut1UnixSeconds) {
+    return this.#rotation("hc_gmst_iau2006", ut1UnixSeconds);
+  }
+
+  /**
+   * The Greenwich mean sidereal time in degrees by the IAU 1982 convention,
+   * at a UT1 instant as {@link earthRotationAngle}.
+   *
+   * @param {number} ut1UnixSeconds
+   * @returns {number}
+   */
+  gmstIau1982(ut1UnixSeconds) {
+    return this.#rotation("hc_gmst_iau1982", ut1UnixSeconds);
+  }
+
+  /**
+   * UT2 − UT1 in seconds at a UT1 instant as {@link earthRotationAngle}.
+   *
+   * @param {number} ut1UnixSeconds
+   * @returns {number}
+   */
+  ut2MinusUt1(ut1UnixSeconds) {
+    return this.#rotation("hc_ut2_minus_ut1", ut1UnixSeconds);
+  }
+
+  /**
+   * A local clock's reading at a POSIX instant, read as Universal Time, at
+   * a place: `local-mean`, `local-apparent`, `temporal` or `italian`. A
+   * reading that needs a solar event that does not happen has `day` and
+   * `hours` `null` and names the event in `missing`.
+   *
+   * @param {import("./hyper-calendar.d.ts").SolarClock} clock
+   * @param {number | bigint} unixSeconds
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @returns {import("./hyper-calendar.d.ts").SolarTime}
+   */
+  solarTime(clock, unixSeconds, latitude, longitude, elevation = 0) {
+    const fn = this.#export("hc_solar_time");
+    const instant = toI64(unixSeconds, "unixSeconds");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(clock, "clock", (pointer, len) =>
+      this.#text("hc_solar_time", (buffer, capacity) =>
+        fn(pointer, len, instant, lat, lon, elev, buffer, capacity), true));
+    return solarTime(this.#oneLine("hc_solar_time", text, COLUMNS.solarTime));
+  }
+
+  /**
+   * A named time of day on a fixed day at a place — `asr-shafii`,
+   * `asr-hanafi`, `jewish-dusk-vilna-gaon`, `jewish-sabbath-ends-cohn` or
+   * `italian-zero-hour` — as POSIX seconds of Universal Time, or `null`
+   * with the missing solar event named.
+   *
+   * @param {import("./hyper-calendar.d.ts").SolarEventName} event
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @returns {import("./hyper-calendar.d.ts").SolarEvent}
+   */
+  solarEvent(event, fixed, latitude, longitude, elevation = 0) {
+    const fn = this.#export("hc_solar_event");
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(event, "event", (pointer, len) =>
+      this.#text("hc_solar_event", (buffer, capacity) =>
+        fn(pointer, len, day, lat, lon, elev, buffer, capacity), true));
+    return solarEvent(this.#oneLine("hc_solar_event", text, COLUMNS.solarEvent));
   }
 }
 

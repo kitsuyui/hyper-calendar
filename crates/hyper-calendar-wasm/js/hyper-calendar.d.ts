@@ -52,7 +52,7 @@ export type BindingErrorName =
   | "unrecognised-sentinel";
 
 /** The Cargo features the exports are gated by. */
-export type Feature = "civil" | "calendars" | "holiday" | "seasons" | "deep-time" | "tz" | "sky" | "orbital";
+export type Feature = "civil" | "timestamps" | "calendars" | "holiday" | "seasons" | "deep-time" | "tz" | "sky" | "orbital";
 
 /** One method of `HyperCalendar` and the export it stands for. */
 export interface MethodEntry {
@@ -74,6 +74,19 @@ export const COLUMNS: {
   readonly skyEvent: ReadonlyArray<string>;
   readonly orbit: ReadonlyArray<string>;
   readonly orbitSeries: ReadonlyArray<string>;
+  readonly tai64: ReadonlyArray<string>;
+  readonly gnssWeek: ReadonlyArray<string>;
+  readonly taiInstant: ReadonlyArray<string>;
+  readonly glonassDate: ReadonlyArray<string>;
+  readonly oleAutomation: ReadonlyArray<string>;
+  readonly excel1900Day: ReadonlyArray<string>;
+  readonly panchanga: ReadonlyArray<string>;
+  readonly marriageAugury: ReadonlyArray<string>;
+  readonly holidayTables: ReadonlyArray<string>;
+  readonly lectionary: ReadonlyArray<string>;
+  readonly value: ReadonlyArray<string>;
+  readonly solarTime: ReadonlyArray<string>;
+  readonly solarEvent: ReadonlyArray<string>;
 };
 export const UNITS: readonly Unit[];
 export const NATIVE: "native";
@@ -418,6 +431,161 @@ export interface OrbitSample extends Orbit {
   yearsBefore1950: number;
 }
 
+/** A TAI64 label's format. */
+export type Tai64Format = "tai64" | "tai64n" | "tai64na";
+
+/**
+ * A TAI instant: whole seconds from 1970-01-01 00:00:00 TAI, floored, and
+ * the attoseconds into that second, 0 to 10¹⁸ − 1. Both are `BigInt`s:
+ * attoseconds do not fit a number, and a TAI64 label's seconds need not.
+ */
+export interface TaiInstant {
+  seconds: bigint;
+  attoseconds: bigint;
+}
+
+/** The one line of `hc_tai64_decode`: a label's format and the instant it names. */
+export interface Tai64Label extends TaiInstant {
+  format: Tai64Format;
+}
+
+/** A GNSS broadcast week field, as `hc-core`'s `gnss` names it. */
+export type GnssNumbering = "gps-lnav-week" | "gps-cnav-week" | "galileo-week" | "beidou-week" | "navic-week";
+
+/** How a broadcast week is resolved against a reference. */
+export type RolloverRule = "not-before" | "nearest";
+
+/** The one line of `hc_gnss_week`. */
+export interface GnssWeek {
+  /** The full week since the field's week zero. */
+  week: number;
+  /** The week as the field broadcasts it: `week` modulo 2 to the field's bits. */
+  broadcastWeek: number;
+  /** Whole seconds into the week, 0 to 604 799. */
+  towSeconds: number;
+  /** Attoseconds into that second. */
+  towAttoseconds: bigint;
+}
+
+/** The one line of `hc_glonass_date`. */
+export interface GlonassDate {
+  /** *N*4, 1 for 1996–1999. */
+  fourYearInterval: number;
+  /** *N*T, 1 on 1 January of the interval's leap year. */
+  day: number;
+}
+
+/** The one line of `hc_fixed_from_ole_automation`. */
+export interface OleAutomationDay {
+  fixed: number;
+  /** The seconds into the day, as the double carries them. */
+  secondsOfDay: number;
+}
+
+/** The one line of `hc_excel_1900_day`. */
+export interface Excel1900Day {
+  /** The fixed day, or `null` for serial 60. */
+  fixed: number | null;
+  /** Serial 60, the 29 February 1900 that Excel counts and no calendar has. */
+  phantom: boolean;
+}
+
+/** One line of `hc_panchanga_at` or `hc_panchanga_of_day`. */
+export interface PanchangaLimb {
+  limb: "yoga" | "karana";
+  /** The yoga, 1 to 27; the karaṇa's half-tithi, 1 to 60. */
+  number: number;
+  /** Drik Panchang's English spelling. */
+  name: string;
+  /** Drik Panchang's Hindi edition's Devanagari. */
+  devanagari: string;
+  /** POSIX seconds, rounded down. */
+  began: number;
+  ends: number;
+  /** The instant read: the one asked for, or the sunrise. */
+  readAt: number;
+  /** The yoga's ayanamsa by its full name; `null` for the karaṇa. */
+  ayanamsa: string | null;
+}
+
+/** The published code's names for where 立春 falls in a Chinese year. */
+export type MarriageAuguryName = "widow" | "blind" | "bright" | "double-bright";
+
+/** The one line of `hc_chinese_marriage_augury`. */
+export interface MarriageAugury {
+  augury: MarriageAuguryName;
+  /** Whether the year's first 立春 comes after its New Year. */
+  lichunAtStart: boolean;
+  /** Whether another 立春 comes before the next New Year. */
+  lichunAtEnd: boolean;
+}
+
+/** What a holiday table is, by the list it is in. */
+export type HolidayTableKind = "country" | "subdivision" | "exchange" | "tradition" | "observance";
+
+/** One line of `hc_holiday_tables`. */
+export interface HolidayTable {
+  code: string;
+  kind: HolidayTableKind;
+  /** The name in the locale: the English name for an `en` tag, else `null`. */
+  name: string | null;
+  englishName: string;
+  /** `en` where `name` is filled, else `null`. */
+  localeUsed: string | null;
+  /** The sources the table names. */
+  source: string | null;
+  /** The ISO 3166-1 country of a subdivision, or of an exchange whose table records one. */
+  country: string | null;
+}
+
+/** The one line of `hc_lectionary`. */
+export interface Lectionary {
+  /** The civil year of the liturgical year's Easter. */
+  liturgicalYear: number;
+  sundayCycle: "A" | "B" | "C";
+  weekdayCycle: "I" | "II";
+  /** The RCL Proper, 3 to 29, of a Sunday after Trinity Sunday; else `null`. */
+  proper: number | null;
+}
+
+/** A local clock `hc_solar_time` reads. */
+export type SolarClock = "local-mean" | "local-apparent" | "temporal" | "italian";
+
+/** A named time of day `hc_solar_event` answers. */
+export type SolarEventName =
+  | "asr-shafii"
+  | "asr-hanafi"
+  | "jewish-dusk-vilna-gaon"
+  | "jewish-sabbath-ends-cohn"
+  | "italian-zero-hour";
+
+/** The solar event a reckoning needs and does not have. */
+export type MissingSolarEventName = "sunrise" | "sunset" | "depression" | "no-noon-shadow";
+
+export interface MissingSolarEvent {
+  event: MissingSolarEventName;
+  /** The local day it is missing on, as a fixed day. */
+  day: number;
+  /** For `depression`, the depression sought in arcminutes; else `null`. */
+  depressionArcminutes: number | null;
+}
+
+/** The one line of `hc_solar_time`. */
+export interface SolarTime {
+  /** The fixed day of the local date, or `null` when there is no reading. */
+  day: number | null;
+  /** The hours into it on the clock, or `null`. */
+  hours: number | null;
+  missing: MissingSolarEvent | null;
+}
+
+/** The one line of `hc_solar_event`. */
+export interface SolarEvent {
+  /** POSIX seconds of Universal Time, rounded down, or `null` when the time does not happen. */
+  instant: number | null;
+  missing: MissingSolarEvent | null;
+}
+
 /**
  * An instantiated module, one method per export. Every `i64` result is a
  * number; an `i64` argument may be a number or a `BigInt`. A method whose
@@ -479,6 +647,24 @@ export class HyperCalendar {
   formatIsoDate(fixed: number | bigint): string;
   /** `hc_parse_iso_date`; text that is not a date is `invalid-date`. */
   parseIsoDate(text: string): number;
+  /** `hc_tai64_encode`: the label in lower-case hexadecimal; an unknown format is `unknown`. */
+  tai64Encode(taiSeconds: number | bigint, attoseconds: number | bigint, format: Tai64Format): string;
+  /** `hc_tai64_decode`; text that is not 16, 24 or 32 hex digits is `malformed`. */
+  tai64Decode(hex: string): Tai64Label;
+  /** `hc_gnss_week`; an instant before week zero is `no-data`. */
+  gnssWeek(numbering: GnssNumbering, taiSeconds: number | bigint, attoseconds?: number | bigint): GnssWeek;
+  /** `hc_gnss_to_tai`; a time of week from 604 800 s is `out-of-range`. */
+  gnssToTai(numbering: GnssNumbering, week: number, towSeconds: number, towAttoseconds?: number | bigint): TaiInstant;
+  /** `hc_gnss_resolve_week`: the full week a broadcast week names by a rule and a reference in whole TAI seconds. */
+  gnssResolveWeek(numbering: GnssNumbering, broadcast: number, rule: RolloverRule, referenceTaiSeconds: number | bigint): number;
+  /** `hc_glonass_date`; before 1996 or from 2100 is `out-of-range`. */
+  glonassDate(taiSeconds: number | bigint, attoseconds?: number | bigint, strict?: boolean): GlonassDate;
+  /** `hc_fixed_from_ole_automation`. */
+  fixedFromOleAutomation(value: number): OleAutomationDay;
+  /** `hc_ole_automation_from_fixed`. */
+  oleAutomationFromFixed(fixed: number | bigint, secondsOfDay?: number): number;
+  /** `hc_excel_1900_day`: serial 60 is `phantom`, with no fixed day. */
+  excel1900Day(serial: number | bigint): Excel1900Day;
 
   /**
    * `hc_describe_day`: the day in every registered calendar, in registry
@@ -499,6 +685,20 @@ export class HyperCalendar {
   firstDayOfWeek(locale?: string): number;
   /** `hc_gregorian_adoption`: the steps by which a country adopted the Gregorian calendar, by ISO 3166-1 alpha-2 code; none for a code the module does not know. */
   gregorianAdoption(region: string): GregorianAdoption[];
+  /** `hc_panchanga_at`: the yoga's line, then the karaṇa's; an ayanamsa nobody knows is `unknown`. */
+  panchangaAt(unixSeconds: number | bigint, ayanamsa: string): PanchangaLimb[];
+  /** `hc_panchanga_of_day`: read at the day's sunrise at the place; no sunrise is `no-data`. */
+  panchangaOfDay(fixed: number | bigint, latitude: number, longitude: number, elevation: number, ayanamsa: string): PanchangaLimb[];
+  /** `hc_ioc_olympiad`; a year before 1896 is `out-of-range`. */
+  iocOlympiad(gregorianYear: number | bigint): number;
+  /** `hc_hebrew_yahrzeit`: the date of death as the fixed day that carries it. */
+  hebrewYahrzeit(deathFixed: number | bigint, hebrewYear: number | bigint): number;
+  /** `hc_hebrew_birthday`. */
+  hebrewBirthday(birthFixed: number | bigint, hebrewYear: number | bigint): number;
+  /** `hc_chinese_reckoned_age`: one at birth, one more each Chinese New Year; before the birth is `no-data`. */
+  chineseReckonedAge(birthFixed: number | bigint, onFixed: number | bigint): number;
+  /** `hc_chinese_marriage_augury`: by the Chinese calendar's year count, 4661 from 10 February 2024. */
+  chineseMarriageAugury(chineseYear: number | bigint): MarriageAugury;
 
   /** `hc_holiday_is_day_off`; `region` may be empty. A code naming no table is `unknown`. */
   holidayIsDayOff(code: string, region: string, fixed: number | bigint): boolean;
@@ -508,6 +708,12 @@ export class HyperCalendar {
   holidayCodes(): string[];
   /** `hc_holidays_on`: every entry on one day across every table, in `holidayCodes()` order. A day with no Gregorian year is `out-of-range`. */
   holidaysOn(fixed: number | bigint): HolidayOn[];
+  /** `hc_holiday_tables`: every table, in `holidayCodes()` order; `und` unless given. */
+  holidayTables(locale?: string): HolidayTable[];
+  /** `hc_lectionary`; outside the liturgical years 1583 to 4099 is `out-of-range`. */
+  lectionary(fixed: number | bigint): Lectionary;
+  /** `hc_astronomical_easter`; outside 1583 to 2150 is `out-of-range`. */
+  astronomicalEaster(year: number | bigint): number;
 
   /** `hc_term_in_effect`; a meridian nobody knows is `unknown`. */
   termInEffect(fixed: number | bigint, meridian?: Meridian): TermInEffect;
@@ -537,6 +743,18 @@ export class HyperCalendar {
   solarTermsBetween(fromUnix: number | bigint, toUnix: number | bigint): SkyEvent[];
   /** `hc_moon_phases_between`: the phases in `[from, to)`, as `solarTermsBetween`. */
   moonPhasesBetween(fromUnix: number | bigint, toUnix: number | bigint): SkyEvent[];
+  /** `hc_earth_rotation_angle`: degrees, at UT1 counted as POSIX seconds are; outside −1000 through 3000 is `out-of-range`. */
+  earthRotationAngle(ut1UnixSeconds: number): number;
+  /** `hc_gmst_iau2006`: degrees. */
+  gmstIau2006(ut1UnixSeconds: number): number;
+  /** `hc_gmst_iau1982`: degrees. */
+  gmstIau1982(ut1UnixSeconds: number): number;
+  /** `hc_ut2_minus_ut1`: seconds. */
+  ut2MinusUt1(ut1UnixSeconds: number): number;
+  /** `hc_solar_time`; a missing solar event is an answer, not an error. */
+  solarTime(clock: SolarClock, unixSeconds: number | bigint, latitude: number, longitude: number, elevation?: number): SolarTime;
+  /** `hc_solar_event`. */
+  solarEvent(event: SolarEventName, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): SolarEvent;
 
   /** `hc_orbit_at`; an epoch beyond a million years either side of 1950 is `out-of-range`. */
   orbitAt(yearsBefore1950: number): Orbit;

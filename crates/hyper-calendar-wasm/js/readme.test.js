@@ -161,6 +161,53 @@ test("orbitSeries reads the epoch, then orbitAt's columns, as the README says", 
   assert.match(README, /with the epoch in years before 1950 as a first\s+column before the eleven above/);
 });
 
+/**
+ * The column names of the `| # | Column | Holds |` table whose first row
+ * names `first`.
+ *
+ * @param {string} first
+ * @returns {string[]}
+ */
+function columnsOfTableStarting(first) {
+  const at = README.indexOf(`\n| 1 | ${first} |`);
+  assert.ok(at >= 0, `no table whose first column is ${first}`);
+  const names = [];
+  for (const line of README.slice(at + 1).split("\n")) {
+    if (!line.startsWith("|")) {
+      break;
+    }
+    const cells = line.slice(1, -1).split(" | ").map((cell) => cell.trim());
+    assert.equal(cells[0], String(names.length + 1), line);
+    names.push(cells[1]);
+  }
+  return names;
+}
+
+test("the time-scale lines read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.tai64], columnsAfter("### TAI64 labels"));
+  assert.deepEqual([...COLUMNS.gnssWeek], columnsAfter("### GNSS weeks"));
+  assert.deepEqual([...COLUMNS.glonassDate], columnsAfter("### GLONASS dates"));
+  assert.deepEqual([...COLUMNS.oleAutomation], columnsAfter("### OLE Automation dates"));
+  assert.deepEqual([...COLUMNS.excel1900Day], columnsAfter("### Excel 1900 serials"));
+  // hc_gnss_to_tai's two cells are stated in prose, as the last two of
+  // hc_tai64_decode's line.
+  assert.match(README, /one line of two\s+cells, the TAI seconds and the attoseconds/);
+  assert.deepEqual([...COLUMNS.taiInstant], COLUMNS.tai64.slice(1));
+});
+
+test("the pañcāṅga, the tables and the lectionary read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.panchanga], columnsAfter("## The pañcāṅga"));
+  assert.deepEqual([...COLUMNS.marriageAugury], columnsAfter("### The marriage augury"));
+  assert.deepEqual([...COLUMNS.holidayTables], columnsAfter("### The tables"));
+  assert.deepEqual([...COLUMNS.lectionary], columnsAfter("### The liturgical year"));
+});
+
+test("the Earth's rotation and the Sun's hours read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.value], columnsAfter("## The Earth's rotation"));
+  assert.deepEqual([...COLUMNS.solarTime], columnsAfter("## The Sun's hours"));
+  assert.deepEqual([...COLUMNS.solarEvent], columnsOfTableStarting("instant"));
+});
+
 test("the layer table names every feature the binding knows", () => {
   const features = new Set(METHODS.map((entry) => entry.feature).filter((feature) => feature !== null));
   for (const feature of features) {
