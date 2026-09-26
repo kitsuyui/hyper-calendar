@@ -1,6 +1,10 @@
 //! A minimal lunisolar month-and-day derivation, here only because 六曜 and
 //! 十五夜 cannot be computed without one.
 //!
+//! The derivation, how it differs from the full calculation and where the
+//! differences fall are written up with 六曜 in
+//! `docs/systems/zassetsu-and-rokuyo.md` in the repository.
+//!
 //! # This is not the lunisolar calendar
 //!
 //! `hc-calendars-lunar` owns the Chinese, Dangi and Japanese lunisolar
@@ -22,7 +26,10 @@
 //! Japanese 旧暦 and the test at the bottom counts how often the two differ.
 //! It is a comparison, not a substitution: nothing routes through it.
 //!
-//! What is implemented is the modern 定気 rule in its textbook form:
+//! What is implemented is the 中気 rule in its plainest form, as the
+//! 暦Wiki's 「太陰太陽暦/置閏法」 states it (`nao-rekiwiki-chijun`,
+//! <https://eco.mtk.nao.ac.jp/koyomi/wiki/C2C0B1A2C2C0CDDBCEF12FC3D6B1BCCBA1.html>,
+//! retrieved 2026-09-26), with the 定気 terms:
 //!
 //! * A month begins on the day containing a new moon, read at the caller's
 //!   meridian.
@@ -31,19 +38,31 @@
 //!   the twelfth.
 //! * A month containing no 中気 is a leap month and repeats the number of the
 //!   month before it.
+//! * New moons and 中気 are compared by day, not by time of day.
 //!
 //! # What that rule gets wrong
 //!
-//! Japan's 天保暦 and the modern Chinese rule both add conditions this does
-//! not implement. The leap month is properly the *first* 中気-less month
-//! after the eleventh, determined by looking at the whole year between two
-//! winter solstices; a month can occasionally contain two 中気, which the
-//! 天保暦 handles by a rule that has been known since 1844 to be ambiguous
-//! and which is why Japan's own official calendar has no legal lunisolar
-//! definition today. Neither case is handled here: this code decides month by
-//! month, takes the later 中気 when a month holds two, and says so.
+//! Under 定気 a month can contain two 中気, and the plain rule does not say
+//! which names it; this code takes the later, month by month. The 天保暦 adds
+//! that the months containing 冬至, 春分, 夏至 and 秋分 must be the eleventh,
+//! second, fifth and eighth, which settles most such months; the Chinese
+//! rule instead takes the first 中気-less month between two winter
+//! solstices thirteen months apart as the leap month (国立天文台 暦計算室,
+//! 「旧暦2033年問題について」, `nao-topics-2014-2033`,
+//! <https://eco.mtk.nao.ac.jp/koyomi/topics/html/topics2014.html>, retrieved
+//! 2026-09-26). In 2033–34 no numbering satisfies the 天保暦 rule: the months
+//! holding 秋分 and 冬至 are only one month apart. This is the 旧暦2033年問題,
+//! the first such case since the 天保暦 took effect in 1844, and since the
+//! calendar is abolished no public body will choose among the three
+//! resolutions the Observatory tabulates (暦Wiki 「太陰太陽暦/2033年問題」,
+//! `nao-rekiwiki-2033`,
+//! <https://eco.mtk.nao.ac.jp/koyomi/wiki/C2C0B1A2C2C0CDDBCEF12F2033C7AFCCE4C2EA.html>,
+//! retrieved 2026-09-26). No official lunisolar calculation is made in Japan
+//! today (国立天文台, 「「旧暦」ってなに？」, `nao-faq-kyureki`,
+//! <https://www.nao.ac.jp/faq/a0304.html>, retrieved 2026-09-26). None of
+//! these rules is implemented here.
 //!
-//! When those edge cases bite, a whole month is numbered differently, and
+//! When the two-中気 case bites, a whole month is numbered differently, and
 //! every 六曜 in it moves: the test at the bottom counts 89 of the 3,653 days
 //! of 2024–2033, all in one run from 25 August to 21 November 2033. The
 //! caller who needs them right wants `hc-calendars-lunar`.
@@ -105,9 +124,9 @@ pub fn next_month_start(start: Rd, meridian: Meridian) -> Rd {
 /// longitude, or `None` when the month contains none and is therefore a leap
 /// month.
 ///
-/// When a month contains two — which the true solar terms make possible by a
-/// hair near perihelion — this returns the later, which is a simplification;
-/// see the module documentation.
+/// When a month contains two — which the true solar terms make possible
+/// near perihelion, where the 中気 are closest together — this returns the
+/// later, which is a simplification; see the module documentation.
 #[must_use]
 pub fn principal_term_index(start: Rd, next_start: Rd, meridian: Meridian) -> Option<u8> {
     let opening = solar_longitude(meridian.midnight(start));
@@ -424,6 +443,120 @@ mod tests {
         }
     }
 
+    /// One month start from a table of the Observatory's: the Gregorian
+    /// day, the month number and whether it is a leap month.
+    type TabulatedMonth = ((i64, u8, u8), u8, bool);
+
+    /// The months of 2014, as the 暦Wiki's 「太陰太陽暦/置閏法」
+    /// (`nao-rekiwiki-chijun`) and the Observatory's 「旧暦2033年問題について」
+    /// (`nao-topics-2014-2033`) both tabulate them, with the leap ninth month.
+    const MONTHS_2014: [TabulatedMonth; 14] = [
+        ((2014, 1, 1), 12, false),
+        ((2014, 1, 31), 1, false),
+        ((2014, 3, 1), 2, false),
+        ((2014, 3, 31), 3, false),
+        ((2014, 4, 29), 4, false),
+        ((2014, 5, 29), 5, false),
+        ((2014, 6, 27), 6, false),
+        ((2014, 7, 27), 7, false),
+        ((2014, 8, 25), 8, false),
+        ((2014, 9, 24), 9, false),
+        ((2014, 10, 24), 9, true),
+        ((2014, 11, 22), 10, false),
+        ((2014, 12, 22), 11, false),
+        ((2015, 1, 20), 12, false),
+    ];
+
+    /// The months of 1984–85 in the Observatory's table
+    /// (`nao-topics-2014-2033`): the month from 22 December 1984 holds both
+    /// 冬至 and 大寒, and the 天保暦 rule makes it the eleventh.
+    const MONTHS_1984: [TabulatedMonth; 8] = [
+        ((1984, 8, 27), 8, false),
+        ((1984, 9, 25), 9, false),
+        ((1984, 10, 24), 10, false),
+        ((1984, 11, 23), 10, true),
+        ((1984, 12, 22), 11, false),
+        ((1985, 1, 21), 12, false),
+        ((1985, 2, 20), 1, false),
+        ((1985, 3, 21), 2, false),
+    ];
+
+    #[test]
+    fn the_months_of_2014_are_the_ones_the_observatory_tabulates() {
+        for ((year, month, day), number, leap) in MONTHS_2014 {
+            let start = from_year_month_day(year, month, day);
+            assert_eq!(month_start_containing(start, JAPAN), start, "{start}");
+            assert_eq!(month_number(start, JAPAN), (number, leap), "{start}");
+        }
+    }
+
+    /// The known disagreement, pinned: in the month that holds two 中気
+    /// this derivation takes the later, 大寒, and numbers it the twelfth
+    /// where the Observatory's table has the eleventh, and the error runs
+    /// on until the next month with a single 中気. The months before it,
+    /// the leap tenth month included, agree.
+    #[test]
+    fn a_month_with_two_principal_terms_is_numbered_after_the_later() {
+        // What this derivation gives for the same eight months.
+        let here = [
+            (8, false),
+            (9, false),
+            (10, false),
+            (10, true),
+            (12, false),
+            (1, false),
+            (1, true),
+            (2, false),
+        ];
+        let mut disagreements = Vec::new();
+        for (((year, month, day), number, leap), expected) in MONTHS_1984.into_iter().zip(here) {
+            let start = from_year_month_day(year, month, day);
+            assert_eq!(month_start_containing(start, JAPAN), start, "{start}");
+            assert_eq!(month_number(start, JAPAN), expected, "{start}");
+            if (number, leap) != expected {
+                disagreements.push(start);
+            }
+        }
+        assert_eq!(
+            disagreements,
+            [
+                from_year_month_day(1984, 12, 22),
+                from_year_month_day(1985, 1, 21),
+                from_year_month_day(1985, 2, 20),
+            ]
+        );
+    }
+
+    /// 2033–34, the 旧暦2033年問題: the Observatory's three resolutions
+    /// number the months from 25 August 2033 as 8, 9, 10, 11, 閏11, 12, 1
+    /// (案1), 閏7, 8, 9, 10, 11, 12, 閏1 (案2) or 8, 9, 10, 11, 12, 1, 閏1
+    /// (案3) (`nao-rekiwiki-2033`). Month by month, taking the later 中気,
+    /// this derivation gives none of them: it has no tenth month and two
+    /// leap months. Its eighth month is 案2's, so its 中秋の名月 is 案2's 7
+    /// October and not 案1's 8 September (`nao-topics-2014-2033`).
+    #[test]
+    fn the_months_of_2033_follow_none_of_the_observatorys_resolutions() {
+        let expected = [
+            ((2033, 8, 25), 7, true),
+            ((2033, 9, 23), 8, false),
+            ((2033, 10, 23), 9, false),
+            ((2033, 11, 22), 11, false),
+            ((2033, 12, 22), 11, true),
+            ((2034, 1, 20), 1, false),
+            ((2034, 2, 19), 1, true),
+            ((2034, 3, 20), 2, false),
+        ];
+        for ((year, month, day), number, leap) in expected {
+            let start = from_year_month_day(year, month, day);
+            assert_eq!(month_start_containing(start, JAPAN), start, "{start}");
+            assert_eq!(month_number(start, JAPAN), (number, leap), "{start}");
+        }
+        assert_eq!(
+            ordinary_date_in_gregorian_year(2033, 8, 15, JAPAN),
+            Some(from_year_month_day(2033, 10, 7))
+        );
+    }
+
     /// The meridian matters for the lunisolar calendar in exactly the way it
     /// matters for the solar terms: a conjunction near local midnight lands
     /// on different days in Tokyo and Beijing, and the whole month then
@@ -446,11 +579,16 @@ mod tests {
     }
 }
 
-/// The same day read from the Japanese 旧暦, for comparison.
+/// The same day read from `hc-calendars-lunar`'s unbounded Japanese Tenpō
+/// engine, for comparison.
 ///
-/// The Tenpō rules continued past their 1872 abolition, which is what
-/// Japanese almanacs have keyed 六曜 to ever since, so this is the
-/// authoritative answer where the two disagree.
+/// That engine numbers the months from the winter solstice and takes the
+/// first 中気-less month of a thirteen-month year as the leap month, at the
+/// Japanese meridian. In 2033–34 it gives 閏11月, the first of the three
+/// resolutions the Observatory tabulates, and it agrees with the
+/// Observatory's tables of 2014 and 1984–85 (`nao-topics-2014-2033`); it is
+/// the better answer where the two derivations disagree, but not an
+/// official one, since there is none.
 ///
 /// **Nothing in this crate routes through it.** See the module documentation
 /// for why. It exists so the difference can be counted instead of guessed,
@@ -510,6 +648,40 @@ mod divergence_tests {
             (60..=120).contains(&differing),
             "expected roughly ninety differing days, got {differing} of {compared}"
         );
+    }
+
+    /// The full calculation agrees with the Observatory's tables: 2014, with
+    /// its leap ninth month, as this derivation does too; 1984–85, with its
+    /// two-中気 month, where this derivation does not; and 2033–34, where it
+    /// gives the first resolution, 閏11月 (`nao-topics-2014-2033`,
+    /// `nao-rekiwiki-2033`).
+    #[test]
+    fn the_full_calculation_follows_the_observatorys_tables() {
+        let months = [
+            ((2014, 9, 24), 9, false),
+            ((2014, 10, 24), 9, true),
+            ((2014, 11, 22), 10, false),
+            ((1984, 11, 23), 10, true),
+            ((1984, 12, 22), 11, false),
+            ((1985, 1, 21), 12, false),
+            ((1985, 2, 20), 1, false),
+            ((2033, 8, 25), 8, false),
+            ((2033, 9, 23), 9, false),
+            ((2033, 10, 23), 10, false),
+            ((2033, 11, 22), 11, false),
+            ((2033, 12, 22), 11, true),
+            ((2034, 1, 20), 12, false),
+            ((2034, 2, 19), 1, false),
+        ];
+        for ((year, month, day), number, leap) in months {
+            let start = hc_calendar::gregorian::to_fixed(year, month, day).unwrap();
+            let exact = exact_lunisolar_day(start).unwrap();
+            assert_eq!(
+                (exact.month, exact.leap_month, exact.day),
+                (number, leap, 1),
+                "{start}"
+            );
+        }
     }
 
     #[test]

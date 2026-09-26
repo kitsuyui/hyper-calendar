@@ -148,7 +148,9 @@ pub static OLD_ENGLISH_BEDE: MonthNameSet = MonthNameSet::new(
             provenance: Provenance::Recorded,
             source: "Bede, De temporum ratione (725), ch. 15, tr. Faith Wallis, The Reckoning \
                      of Time (Liverpool University Press, 1999); Old English forms per \
-                     Gerhard Köbler, Althochdeutsches Wörterbuch",
+                     Gerhard Köbler, Altenglisches Wörterbuch, online at \
+                     https://www.koeblergerhard.de/ae/ (hāligmōnaþ, \"heiliger Monat\", \
+                     September, checked 2026-09-26 at ae_h.html; the other forms not re-read)",
             caveat: Some(
                 "A lunar month list shown against Gregorian months. The year had two Giuli and \
                  two Litha, and an embolismic year had a third Litha, so the mapping to twelve \
@@ -284,7 +286,8 @@ pub static FINNISH: MonthNameSet = MonthNameSet::new(
             revised: None,
             validity: Validity::UNKNOWN,
             provenance: Provenance::Vernacular,
-            source: "Standard Finnish usage; etymologies per Uusi kielemme, \"The Meaning of \
+            source: "Month names as Unicode CLDR 48 common/main/fi.xml prints them stand-alone \
+                     (compared 2026-09-26); etymologies per Uusi kielemme, \"The Meaning of \
                      the Finnish Months\", and the Institute for the Languages of Finland \
                      (Kotus) material summarised in Wiktionary's Finnish month entries",
             caveat: Some(

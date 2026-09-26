@@ -64,8 +64,7 @@ impl Location {
 /// How far the Sun must be below the horizon for a twilight to have ended.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Twilight {
-    /// 6° — bright enough to read outdoors, the legal "lighting-up time" in
-    /// many jurisdictions.
+    /// 6° — the Sun's centre six degrees below the horizon.
     Civil,
     /// 12° — the sea horizon is still discernible for a sextant sight.
     Nautical,
@@ -93,6 +92,11 @@ pub const HORIZONTAL_REFRACTION_DEGREES: f64 = 34.0 / 60.0;
 pub const SOLAR_SEMIDIAMETER_DEGREES: f64 = 16.0 / 60.0;
 
 /// The Earth's radius in metres, as used for the dip of the horizon.
+///
+/// A round mean radius, this library's choice and not a published
+/// constant: the dip goes as the square root of height over radius, so the
+/// 0.1 % between this and the WGS 84 equatorial radius changes it by 0.05 %,
+/// a fraction of an arcsecond at any height a person stands at.
 const EARTH_RADIUS_METRES: f64 = 6_372_000.0;
 
 /// How far below the geometric horizon the visible horizon lies, in degrees,
@@ -311,9 +315,9 @@ mod tests {
     use crate::solar::{Solstice, solstice};
     use crate::time::gregorian_new_year;
 
-    /// Tokyo, at the coordinates of the old observatory in Azabu that the
-    /// Japanese national ephemeris still quotes.
-    const TOKYO: Location = Location::new(35.6895, 139.6917, 0.0);
+    /// Tokyo, at the point NAOJ's 暦計算室 computes 「東京(東京都)」 for:
+    /// latitude 35.6581°, longitude 139.7414°, elevation 0 m (`nao-koyomi-dni-tokyo-2024`).
+    const TOKYO: Location = Location::new(35.6581, 139.7414, 0.0);
     /// Greenwich, where the prime meridian is by definition.
     const GREENWICH: Location = Location::new(51.4779, -0.0015, 0.0);
     /// Tromsø, well inside the Arctic circle.
@@ -337,16 +341,18 @@ mod tests {
         assert_eq!(gregorian_new_year(2024), NEW_YEAR_2024);
     }
 
-    /// The Japanese national ephemeris gives sunrise in Tokyo on
-    /// 2024-01-01 as 06:51 JST and sunset as 16:38 JST.
+    /// NAOJ's 暦計算室, 「日の出入り＠東京(東京都) 令和6年(2024)01月」
+    /// (`nao-koyomi-dni-tokyo-2024`), gives sunrise in Tokyo on 2024-01-01
+    /// as 06:50 JST and sunset as 16:38 JST, for the Sun's upper limb on the
+    /// horizon.
     #[test]
     fn sunrise_in_tokyo_on_new_years_day_matches_the_national_ephemeris() {
         let moment = sunrise(NEW_YEAR_2024, TOKYO).expect("Tokyo sees the Sun in January");
         assert_eq!(moment.day(), Rd(738_885), "sunrise is 2023-12-31 in UT");
         let local = local_hours(moment, 9.0);
-        let error_minutes = (local - (6.0 + 51.0 / 60.0)) * 60.0;
+        let error_minutes = (local - (6.0 + 50.0 / 60.0)) * 60.0;
         assert!(
-            error_minutes.abs() < 2.0,
+            error_minutes.abs() < 1.0,
             "sunrise was {local} JST, off by {error_minutes} minutes"
         );
     }
@@ -357,7 +363,7 @@ mod tests {
         let local = local_hours(moment, 9.0);
         let error_minutes = (local - (16.0 + 38.0 / 60.0)) * 60.0;
         assert!(
-            error_minutes.abs() < 2.0,
+            error_minutes.abs() < 1.0,
             "sunset was {local} JST, off by {error_minutes} minutes"
         );
     }

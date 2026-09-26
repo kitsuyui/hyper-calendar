@@ -76,7 +76,7 @@ pub static ZODIAC_STONES_KUNZ: SignTable = SignTable::new(
         revised: None,
         validity: Validity::UNKNOWN,
         provenance: Provenance::Recorded,
-        source: "George F. Kunz, The Curious Lore of Precious Stones (Lippincott, 1913), \
+        source: "George F. Kunz, The Curious Lore of Precious Stones (Lippincott, 1913; kunz1913), \
                  pp. 345–347; sign dates per Bruce G. Knuth, Gems in Myth, Legend and Lore \
                  (rev. ed., Jewelers Press, 2007), p. 318",
         caveat: Some(

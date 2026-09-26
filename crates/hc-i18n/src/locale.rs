@@ -3,8 +3,9 @@
 //! A [`Locale`] here is `language[-Script][-REGION][-variant]` plus the four
 //! `-u-` extension keys that change how a date is printed: `ca` (calendar),
 //! `nu` (numbering system), `fw` (first day of week) and `hc` (hour cycle).
-//! Those keys are defined in Unicode TR 35 §3.6; the tag grammar itself is
-//! RFC 5646.
+//! Those keys are defined in UTS #35 version 48.2, Part 1, "Unicode BCP 47
+//! U Extension" (`uts35-v48`); the tag grammar itself is RFC 5646
+//! (Phillips and Davis, September 2009, BCP 47).
 //!
 //! Anything else in a tag — other singletons (`-t-`, `-x-`), other `-u-`
 //! keys, `-u-` attributes — is **rejected rather than dropped**. A formatter
@@ -107,11 +108,16 @@ pub const fn weekday_extension_value(weekday: Weekday) -> &'static str {
 
 /// Regions whose week does not start on Monday.
 ///
-/// CLDR carries this as `weekData/firstDay` in `supplementalData.xml`. Only
-/// the exceptions are listed; everything absent from the table starts its
-/// week on Monday, which is both the ISO 8601 rule and the CLDR default.
+/// Transcribed in full from Unicode CLDR 48, `common/supplemental/
+/// supplementalData.xml`, `weekData/firstDay` (`cldr48-supplemental`, tag
+/// `release-48`, retrieved 2026-09-26), leaving out the `alt="variant"`
+/// entry for GB. CLDR lists Monday for `001` and for every other region not
+/// named here, so only the Friday, Saturday and Sunday lists are carried;
+/// everything absent starts its week on Monday, which is also the ISO 8601
+/// rule. The rows keep CLDR's order: Friday, then Saturday, then Sunday,
+/// each alphabetical.
 const REGION_FIRST_DAY: &[(&str, Weekday)] = &[
-    ("AE", Weekday::Saturday),
+    ("MV", Weekday::Friday),
     ("AF", Weekday::Saturday),
     ("BH", Weekday::Saturday),
     ("DJ", Weekday::Saturday),
@@ -126,22 +132,91 @@ const REGION_FIRST_DAY: &[(&str, Weekday)] = &[
     ("QA", Weekday::Saturday),
     ("SD", Weekday::Saturday),
     ("SY", Weekday::Saturday),
-    ("MV", Weekday::Friday),
+    ("AG", Weekday::Sunday),
+    ("AS", Weekday::Sunday),
+    ("BD", Weekday::Sunday),
     ("BR", Weekday::Sunday),
+    ("BS", Weekday::Sunday),
+    ("BT", Weekday::Sunday),
+    ("BW", Weekday::Sunday),
+    ("BZ", Weekday::Sunday),
     ("CA", Weekday::Sunday),
     ("CO", Weekday::Sunday),
+    ("DM", Weekday::Sunday),
+    ("DO", Weekday::Sunday),
+    ("ET", Weekday::Sunday),
+    ("GT", Weekday::Sunday),
+    ("GU", Weekday::Sunday),
     ("HK", Weekday::Sunday),
+    ("HN", Weekday::Sunday),
+    ("ID", Weekday::Sunday),
     ("IL", Weekday::Sunday),
     ("IN", Weekday::Sunday),
+    ("IS", Weekday::Sunday),
+    ("JM", Weekday::Sunday),
     ("JP", Weekday::Sunday),
+    ("KE", Weekday::Sunday),
+    ("KH", Weekday::Sunday),
     ("KR", Weekday::Sunday),
+    ("LA", Weekday::Sunday),
+    ("MH", Weekday::Sunday),
+    ("MM", Weekday::Sunday),
+    ("MO", Weekday::Sunday),
+    ("MT", Weekday::Sunday),
     ("MX", Weekday::Sunday),
+    ("MZ", Weekday::Sunday),
+    ("NI", Weekday::Sunday),
+    ("NP", Weekday::Sunday),
+    ("PA", Weekday::Sunday),
     ("PE", Weekday::Sunday),
     ("PH", Weekday::Sunday),
+    ("PK", Weekday::Sunday),
+    ("PR", Weekday::Sunday),
+    ("PT", Weekday::Sunday),
+    ("PY", Weekday::Sunday),
     ("SA", Weekday::Sunday),
+    ("SG", Weekday::Sunday),
+    ("SV", Weekday::Sunday),
+    ("TH", Weekday::Sunday),
+    ("TT", Weekday::Sunday),
     ("TW", Weekday::Sunday),
+    ("UM", Weekday::Sunday),
     ("US", Weekday::Sunday),
+    ("VE", Weekday::Sunday),
+    ("VI", Weekday::Sunday),
+    ("WS", Weekday::Sunday),
+    ("YE", Weekday::Sunday),
     ("ZA", Weekday::Sunday),
+    ("ZW", Weekday::Sunday),
+];
+
+/// The script a script-less tag takes, for the languages whose data this
+/// crate carries per script.
+///
+/// From Unicode CLDR 48, `common/supplemental/likelySubtags.xml`
+/// (`cldr48-supplemental`, tag `release-48`, retrieved 2026-09-26): `zh`
+/// maximises to `zh_Hans_CN`, and each region listed with `Hant` below
+/// maximises to `zh_Hant_<region>`. Any other region takes the language's
+/// own row, the one with an empty region. Only Chinese is listed, because
+/// it is the only language here whose entries are keyed by script
+/// (`zh-Hans`, `zh-Hant`) rather than by language alone.
+pub const LIKELY_SCRIPTS: &[(&str, &str, &str)] = &[
+    ("zh", "", "Hans"),
+    ("zh", "AU", "Hant"),
+    ("zh", "BN", "Hant"),
+    ("zh", "GB", "Hant"),
+    ("zh", "GF", "Hant"),
+    ("zh", "HK", "Hant"),
+    ("zh", "ID", "Hant"),
+    ("zh", "MO", "Hant"),
+    ("zh", "PA", "Hant"),
+    ("zh", "PF", "Hant"),
+    ("zh", "PH", "Hant"),
+    ("zh", "SR", "Hant"),
+    ("zh", "TH", "Hant"),
+    ("zh", "TW", "Hant"),
+    ("zh", "US", "Hant"),
+    ("zh", "VN", "Hant"),
 ];
 
 /// The first day of the week customary in a region, if it is not Monday.
@@ -436,8 +511,11 @@ impl Locale {
     /// The next locale up the CLDR inheritance chain, or `None` from root.
     ///
     /// Extensions go first — they are a request, not an identity — then the
-    /// identity subtags are truncated from the right, which is the
-    /// "truncation inheritance" rule of Unicode TR 35 §4.1.3.
+    /// identity subtags are truncated from the right, which is the rule of
+    /// UTS #35 version 48.2, Part 1, "Truncation" (`uts35-v48`). CLDR 48's
+    /// `parentLocales` exceptions are not applied. The one that touches a
+    /// locale carried here, `zh_Hant` to root, would skip only a bare `zh`,
+    /// and there is no bare `zh` entry to skip.
     #[must_use]
     pub fn parent(&self) -> Option<Self> {
         if self.has_extensions() {
@@ -463,10 +541,43 @@ impl Locale {
     }
 
     /// The fallback chain, starting with this locale and ending at root.
+    ///
+    /// A tag whose language this crate carries only per script, and which
+    /// names no script, first takes the script CLDR's likely subtags give
+    /// it (see [`LIKELY_SCRIPTS`]): `zh-TW` walks `zh-Hant-TW`, `zh-Hant`,
+    /// `zh`, `und`, and a bare `zh` walks `zh-Hans`, `zh`, `und`. Every
+    /// other tag starts with itself.
     #[must_use]
-    pub const fn fallback(&self) -> Fallback {
+    pub fn fallback(&self) -> Fallback {
         Fallback {
-            current: Some(*self),
+            current: Some(self.with_likely_script()),
+        }
+    }
+
+    /// This locale with the script CLDR's likely subtags supply, where
+    /// [`LIKELY_SCRIPTS`] has a row for it and the tag names no script.
+    #[must_use]
+    pub fn with_likely_script(&self) -> Self {
+        if self.script.is_some() {
+            return *self;
+        }
+        let language = self.language.as_str();
+        let region = self.region().unwrap_or("");
+        let row = LIKELY_SCRIPTS
+            .iter()
+            .find(|(lang, reg, _)| *lang == language && *reg == region)
+            .or_else(|| {
+                LIKELY_SCRIPTS
+                    .iter()
+                    .find(|(lang, reg, _)| *lang == language && reg.is_empty())
+            });
+        match row {
+            Some((_, _, script)) => {
+                let mut next = *self;
+                next.script = Some(Subtag::literal(script));
+                next
+            }
+            None => *self,
         }
     }
 
@@ -556,7 +667,7 @@ impl fmt::Display for Locale {
         if !self.has_extensions() {
             return Ok(());
         }
-        // TR 35 canonical order for `-u-` keys is alphabetical.
+        // UTS #35 canonical order for `-u-` keys is alphabetical.
         f.write_str("-u")?;
         if let Some(calendar) = &self.calendar {
             write!(f, "-ca-{calendar}")?;
@@ -724,6 +835,11 @@ mod tests {
             ["ja-JP-u-ca-japanese", "ja-JP", "ja", "und"]
         );
         assert_eq!(chain("zh-Hant-TW"), ["zh-Hant-TW", "zh-Hant", "zh", "und"]);
+        assert_eq!(chain("zh-TW"), ["zh-Hant-TW", "zh-Hant", "zh", "und"]);
+        assert_eq!(chain("zh-HK"), ["zh-Hant-HK", "zh-Hant", "zh", "und"]);
+        assert_eq!(chain("zh-CN"), ["zh-Hans-CN", "zh-Hans", "zh", "und"]);
+        assert_eq!(chain("zh"), ["zh-Hans", "zh", "und"]);
+        assert_eq!(chain("zh-Latn"), ["zh-Latn", "zh", "und"]);
         assert_eq!(chain("en"), ["en", "und"]);
         assert_eq!(chain("und"), ["und"]);
     }
@@ -786,6 +902,15 @@ mod tests {
         assert_eq!(region_first_day_of_week("EG"), Some(Weekday::Saturday));
         assert_eq!(region_first_day_of_week("MV"), Some(Weekday::Friday));
         assert_eq!(region_first_day_of_week("DE"), None);
+        // CLDR 48 lists these four as Sunday regions.
+        for region in ["ET", "ID", "BD", "CA"] {
+            assert_eq!(region_first_day_of_week(region), Some(Weekday::Sunday));
+        }
+        // And these under Monday, with `001`.
+        for region in ["CN", "AE", "VN", "001"] {
+            assert_eq!(region_first_day_of_week(region), None);
+        }
+        assert_eq!(REGION_FIRST_DAY.len(), 1 + 14 + 56);
     }
 
     #[test]

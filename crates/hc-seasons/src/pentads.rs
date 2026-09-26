@@ -866,11 +866,9 @@ mod tests {
     use super::*;
     use crate::gregorian::{from_year_month_day, new_year};
 
-    /// Transposing the table cost a guarantee the old shape gave for free.
-    ///
-    /// `[PentadNames; PENTADS_PER_YEAR]` could not hold 71 rows; a slice
-    /// can. So the length is asserted here instead of by the type, which is
-    /// the price of a tradition being an entry rather than two columns.
+    /// A tradition's names are a slice, which could hold 71 rows where a
+    /// `[PentadNames; PENTADS_PER_YEAR]` could not, so the length is
+    /// asserted here instead of by the type.
     #[test]
     fn every_tradition_names_all_seventy_two_pentads() {
         for tradition in PENTAD_TRADITIONS {

@@ -66,8 +66,9 @@ pub static WEEKDAY_PLANETS_GRECO_ROMAN: WeekdayTable = WeekdayTable::new(
         revised: None,
         validity: Validity::UNKNOWN,
         provenance: Provenance::Recorded,
-        source: "Standard Latin usage; Constantine made dies Solis a legal holiday, per Philip \
-                 Schaff, History of the Christian Church, vol. III (T&T Clark, 1884), p. 380",
+        source: "Day names as Unicode CLDR 48 common/main/la.xml prints them (compared \
+                 2026-09-26); Constantine made dies Solis a legal holiday, per Philip Schaff, \
+                 History of the Christian Church, vol. III (T&T Clark, 1884), p. 380",
         caveat: None,
     },
     [
@@ -134,8 +135,8 @@ pub static WEEKDAY_NAMES_OLD_ENGLISH: WeekdayTable = WeekdayTable::new(
         revised: None,
         validity: Validity::between(500, 1100),
         provenance: Provenance::Recorded,
-        source: "Standard Old English usage, as set out in Grimm, Teutonic Mythology, and the \
-                 Oxford English Dictionary's entries for the day names",
+        source: "Old English forms as Grimm, Teutonic Mythology, and the Oxford English \
+                 Dictionary's entries for the day names give them",
         caveat: Some(
             "Old English forms, superseded by their own descendants: Modern English Sunday \
              through Saturday come directly from these and are hc-i18n's business, not this \
@@ -174,8 +175,9 @@ pub static WEEKDAY_LUMINARIES_JAPANESE: WeekdayTable = WeekdayTable::new(
         revised: None,
         validity: Validity::UNKNOWN,
         provenance: Provenance::Vernacular,
-        source: "Standard Japanese usage; the 七曜 as an almanac annotation are implemented in \
-                 hc-almanac's seven_luminaries module",
+        source: "Day names as Unicode CLDR 48 common/main/ja.xml prints them (compared \
+                 2026-09-26); the 七曜 as an almanac annotation are implemented in hc-almanac's \
+                 seven_luminaries module",
         caveat: None,
     },
     [
@@ -276,8 +278,8 @@ pub static WEEKDAY_DEITIES_THAI: WeekdayTable = WeekdayTable::new(
         revised: None,
         validity: Validity::UNKNOWN,
         provenance: Provenance::Vernacular,
-        source: "Denis Segaller, Thai Ways (Silkworm Books, 2005); day names per standard Thai \
-                 usage",
+        source: "Denis Segaller, Thai Ways (Silkworm Books, 2005); day names as Unicode CLDR 48 \
+                 common/main/th.xml prints them (compared 2026-09-26)",
         caveat: None,
     },
     [
@@ -307,7 +309,7 @@ pub static WEEKDAY_STONES_KUNZ: WeekdayTable = WeekdayTable::new(
         revised: None,
         validity: Validity::UNKNOWN,
         provenance: Provenance::Recorded,
-        source: "George F. Kunz, The Curious Lore of Precious Stones (Lippincott, 1913)",
+        source: "George F. Kunz, The Curious Lore of Precious Stones (Lippincott, 1913; kunz1913)",
         caveat: Some(
             "A third system, distinct from both the month birthstones and the zodiacal stones. \
              \"Birthday stone\" is sometimes used for all three.",

@@ -21,12 +21,16 @@
 //!   gives the value with its error. The file's rows begin in 2022 and
 //!   overlap the observations, where the observation wins. They are not
 //!   extrapolated either.
-//! * Outside both, the NASA/Espenak–Meeus "Polynomial Expressions for
-//!   Delta T" (Espenak & Meeus, *Five Millennium Canon of Solar Eclipses*,
-//!   NASA/TP-2006-214141, and the derived polynomial set), which covers
-//!   −1999 to +3000 in fifteen segments, with the parabola
+//! * Outside both, a named model of the historical record. [`delta_t`]
+//!   uses [`ESPENAK_MEEUS_2006`]: the NASA/Espenak–Meeus "Polynomial
+//!   Expressions for Delta T" (Espenak & Meeus, *Five Millennium Canon of
+//!   Solar Eclipses*, NASA/TP-2006-214141, `espenak-meeus-2006`), which
+//!   covers −1999 to +3000 in fifteen segments, with the parabola
 //!   ΔT = −20 + 32u², u = (year − 1820)/100, used outside −500…+2150.
-//!   [`delta_t_polynomial`] is that fit alone.
+//!   [`delta_t_polynomial`] is that fit alone. [`delta_t_with`] takes the
+//!   model by name instead; [`crate::delta_t_model`] lists the models,
+//!   says why this one is the default, and carries the other,
+//!   [`MORRISON_STEPHENSON_2021`].
 //!
 //! The polynomial segments meet at their joins to a few tenths of a second,
 //! which is well inside the uncertainty of the underlying eclipse-timing
@@ -44,6 +48,9 @@
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
 
+use crate::delta_t_model::DeltaTModel;
+#[cfg(doc)]
+use crate::delta_t_model::{ESPENAK_MEEUS_2006, MORRISON_STEPHENSON_2021};
 use crate::delta_t_table::{
     DeltaTPredictionSample, DeltaTSample, PREDICTED_DELTA_T, TABULATED_DELTA_T,
 };
@@ -151,6 +158,10 @@ pub struct PredictedDeltaT {
 
 /// ΔT = TT − UT1 in seconds, for a moment in Universal Time.
 ///
+/// Outside the USNO's tables this is the [`ESPENAK_MEEUS_2006`] model, the
+/// default because it is the one model carried that answers for every
+/// year; [`delta_t_with`] names another.
+///
 /// The argument is nominally a UT moment, but ΔT changes by at most a second
 /// or two per year, so feeding it a TT moment instead changes the answer by
 /// far less than the fit's own error.
@@ -174,6 +185,27 @@ pub fn delta_t_for_year(year: f64) -> f64 {
     delta_t_tabulated(year)
         .or_else(|| delta_t_predicted(year).map(|predicted| predicted.seconds))
         .unwrap_or_else(|| delta_t_polynomial(year))
+}
+
+/// ΔT = TT − UT1 in seconds, for a moment in Universal Time, with a named
+/// model outside the USNO's tables.
+///
+/// Inside the observed table and the predictions this is the same as
+/// [`delta_t`]; outside them it is `model`'s value, or `None` where the
+/// model does not answer. `delta_t_with(moment, &ESPENAK_MEEUS_2006)` is
+/// `Some(delta_t(moment))` for every moment.
+#[must_use]
+pub fn delta_t_with(moment: Moment, model: &DeltaTModel) -> Option<f64> {
+    delta_t_for_year_with(decimal_year(moment), model)
+}
+
+/// ΔT for a decimal Gregorian year, with a named model outside the USNO's
+/// tables; see [`delta_t_with`].
+#[must_use]
+pub fn delta_t_for_year_with(year: f64, model: &DeltaTModel) -> Option<f64> {
+    delta_t_tabulated(year)
+        .or_else(|| delta_t_predicted(year).map(|predicted| predicted.seconds))
+        .or_else(|| model.seconds(year))
 }
 
 /// Which source [`delta_t_for_year`] answers from for a decimal year.
@@ -375,7 +407,8 @@ pub fn delta_t_polynomial(year: f64) -> f64 {
         poly(t, &[62.92, 0.322_17, 0.005_589])
     } else if year < 2150.0 {
         // The 2050…2150 branch is the long-term parabola pulled back onto the
-        // observed 2050 value, so that the two meet without a step.
+        // 2005–2050 segment's forecast value for 2050, so that the two meet
+        // without a step.
         let u = (year - 1820.0) / 100.0;
         -20.0 + 32.0 * u * u - 0.5628 * (2150.0 - year)
     } else {

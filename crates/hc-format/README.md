@@ -14,7 +14,7 @@ renders into its own buffer. `String`-returning conveniences sit behind the
   written shape preserved so that parse → format is byte-identical.
 * **`rfc3339`** — the internet profile, including the `-00:00` of §4.3.
 * **`rfc2822`** — RFC 5322 §3.3, with the obsolete syntax §4.3 requires a
-  parser to accept, plus RFC 7231 `IMF-fixdate` output.
+  parser to accept, plus RFC 9110 `IMF-fixdate` output.
 * **`patterns`** — both pattern languages, formatting and parsing, with names
   routed through `hc-i18n` when a locale is supplied.
 * **`parse`** — a sniffing front door for when all you have is "a date string".
@@ -157,11 +157,15 @@ year outside it.
 
 ## Reference data
 
-* ISO 8601-1:2019 and ISO 8601-2:2019 (the signed duration, accepted as a
-  documented extension).
+* ISO 8601-1:2019 with Amendment 1:2022 (which restores `24:00` for the end
+  of a day) and ISO 8601-2:2019 (the signed duration, accepted as a
+  documented extension). The ISO texts were not read; what each allows is
+  taken from Wikipedia's "ISO 8601", read 2026-09-26.
+* Roman dates: Reingold and Dershowitz, *Calendrical Calculations*, 4th ed.
+  (2018), chapter 3, as their code (`reingold2018code`) states the rules.
 * RFC 3339 (§4.2 offsets, §4.3 unknown local offset, §5.6 grammar).
-* RFC 5322 §3.3 and §4.3; RFC 7231 §7.1.1.1 for `IMF-fixdate`.
-* Unicode TR 35, *Date Field Symbol Table*, for the CLDR pattern letters.
+* RFC 5322 §3.3 and §4.3; RFC 9110 §5.6.7 for `IMF-fixdate`.
+* UTS #35 (version 48.2), Part 4, *Date Field Symbol Table*, for the CLDR pattern letters.
 * POSIX.1-2017 `strftime`/`strptime`, plus the GNU flag extensions.
 * IERS Bulletin C for the leap second of 30 June 1972, which the tests anchor
   against.

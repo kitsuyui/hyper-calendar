@@ -35,8 +35,10 @@ Each is a published figure and each is a test:
 | ISS-altitude circular orbit | −24.5 µs/day | this model; see below |
 
 The GPS figures come out right because the ground clock is placed at the WGS 84
-equatorial radius and the satellite at the nominal 26 561 750 m semi-major
-axis, and because `GM_EARTH` is the value the GPS control segment itself uses.
+equatorial radius and the satellite at the 26 561 750 m semi-major axis of a
+half-sidereal-day orbit, and because `GM_EARTH` is the IERS and WGS 84 value
+that Ashby's review of relativity in GPS (*Living Reviews in Relativity* 6:1, 2003)
+uses for these figures.
 The exact Schwarzschild computation and the weak-field expansion are both
 implemented and agree to 8·10⁻⁹ of themselves — 3·10⁻⁷ µs/day — which is one
 of the tests.
@@ -90,12 +92,17 @@ of the tests.
 - `c`, standard gravity, the Julian year, the light-year, the astronomical
   unit and the WGS 84 equatorial radius are **defined** values (2019 SI, 3rd
   CGPM 1901, IAU 2012 Resolution B2, WGS 84).
-- `G` = 6.674 30(15)·10⁻¹¹, CODATA 2018 — relative uncertainty 2.2·10⁻⁵, by
-  far the worst number here, which is why every formula takes a `GM`.
-- `GM☉` — IAU 2015 Resolution B3 nominal value. `GM⊕` — IERS Conventions
-  (2010) and WGS 84. Moon — JPL DE430. Mars and Jupiter systems — JPL DE440.
-- Sagittarius A\* — (4.297 ± 0.013)·10⁶ M☉, GRAVITY Collaboration, A&A 625,
-  L10 (2019). Good to three figures, and `GravitatingBody::source` says so.
+- `G` = 6.674 30(15)·10⁻¹¹, CODATA 2022 (the same value as CODATA 2018) —
+  relative uncertainty 2.2·10⁻⁵, by far the worst number here, which is why
+  every formula takes a `GM`.
+- `GM☉`, the Moon and the Mars and Jupiter systems — JPL DE440 (Park et al.,
+  *AJ* 161:105, 2021), as NAIF's `gm_de440.tpc` prints them. `GM⊕` — IERS
+  Conventions (2010) and WGS 84. The IAU 2015 Resolution B3 nominal
+  `(GM)☉ᴺ` = 1.327 124 4·10²⁰, a defined conversion constant, is carried
+  separately as `GM_SUN_NOMINAL_IAU_2015`.
+- Sagittarius A\* — (4.297 ± 0.012 stat.)·10⁶ M☉, with a systematic error of
+  about 0.04·10⁶, GRAVITY Collaboration, A&A 657, L12 (2022). Good to two
+  figures, and `GravitatingBody::source` says where it came from.
 - The transverse Doppler shift as a confirmation of time dilation: Ives and
   Stilwell (1938).
 

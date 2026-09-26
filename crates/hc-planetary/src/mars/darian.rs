@@ -22,9 +22,15 @@
 //!   mean year of **668.592 sols** against Mars's tropical year of 668.5921 —
 //!   an error of about one sol in ten thousand Mars years.
 //!
-//!   Some secondary sources state the last term as `Y\1000`, giving 668.591;
-//!   this module follows the `\500` form published on Gangale's own site,
-//!   which is the better fit.
+//!   Gangale's page gives a second scheme beside it, under "An Extended
+//!   Intercalation Scheme": `(Y−1)\2 + Y\10 − Y\100 + Y\1000`, a mean year
+//!   of 668.5910 sols, fitted to the *vernal-equinox* year of 668.5907 sols
+//!   rather than the tropical year, and followed by a series of formulas for
+//!   later ranges of years (his Table 1-1). The page presents that series
+//!   "as an example of the accuracy that is achievable", not as the
+//!   calendar's rule, and no dated correspondence under it was found to test
+//!   against, so it is not carried; the `\500` form is the one the page
+//!   calls "the intercalation formula" and is the library's choice.
 //! * Epoch: the northern spring equinox of **1609**, chosen for the telescopic
 //!   era. Year 0 sol 1 — 1 Sagittarius 0 — is the sol at Mars Sol Date
 //!   **−94 129**, so Darian year `Y` corresponds to Clancy Mars Year `Y − 183`.
@@ -53,9 +59,13 @@
 //! boundary will produce nonsense. To cross that boundary, go through
 //! [`sol_mars_sol_date`] and [`super::MarsMoment`], which know what a sol is.
 //!
-//! Source: Gangale, T., "The Architecture of Time, Part 2: The Darian System
-//! for Mars", SAE 2006-01-2249, and the calendar description at
-//! `ops-alaska.com/time/gangale_mst/darian.htm`.
+//! Sources: Gangale, T., "The Darian Calendar for Mars",
+//! <https://ops-alaska.com/time/gangale_mst/darian.htm>, retrieved 2026-09-26
+//! (`gangale-darian`): the months, the weeks, both intercalation schemes and
+//! the epoch at the Martian vernal equinox of 1609 March 11; and Gangale,
+//! "The Architecture of Time, Part 2: The Darian System for Mars", SAE
+//! Technical Paper 2006-01-2249 (2006) (`gangale2006`, not read here). The
+//! Mars side is described in `docs/systems/mars-timekeeping.md`.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,

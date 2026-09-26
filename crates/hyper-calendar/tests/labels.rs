@@ -488,7 +488,8 @@ fn a_japanese_request_writes_the_umm_al_qura_calendar_in_english() {
             .expect("islamic-umalqura")
     };
     let japanese = row("ja");
-    assert_eq!(japanese[15..17], ["Rabi II 15, 1448 AH", "en"]);
+    // The English month name as CLDR 48 `en.xml` spells it.
+    assert_eq!(japanese[15..17], ["Rabiʻ II 15, 1448 AH", "en"]);
     assert!(
         !japanese[15]
             .chars()

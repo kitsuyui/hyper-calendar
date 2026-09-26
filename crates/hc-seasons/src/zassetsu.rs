@@ -1,36 +1,70 @@
-//! 雑節 — the "miscellaneous seasonal days" of the Japanese almanac.
+//! 雑節 — the other seasonal days of the Japanese almanac.
 //!
-//! The 24 terms and the 72 pentads are Chinese imports describing the
-//! climate of the Yellow River valley. The 雑節 are what Japan added on top
-//! of them for its own agricultural year: when to expect the last frost, when
-//! the rainy season starts, when the typhoons come.
+//! The 雑節 are the seasonal markers a Japanese almanac prints besides the
+//! 24 solar terms: 節分, 彼岸, 社日, 八十八夜, 入梅, 半夏生, 土用, 二百十日 and
+//! 二百二十日. Some are Chinese in origin — 土用 comes from five-phase
+//! theory, 社日 from the Chinese cult of the god of the soil — and some,
+//! 八十八夜 and 二百十日, are Japanese additions. They are a ragbag of rule
+//! shapes: some are pinned to a solar longitude, some count days from 立春,
+//! some are an offset from a term, and 社日 is pinned to the sexagenary day
+//! cycle. [`ZassetsuRule`] makes each one explicit, so that [`day_of`] is a
+//! single `match` over data.
 //!
-//! They are a ragbag of rule shapes, and that is the interesting part. Some
-//! are pinned to a solar longitude, some count days from 立春, some are an
-//! offset from a term, and 社日 is pinned to the sexagenary day cycle — a
-//! rule with no astronomy in it at all. [`ZassetsuRule`] makes each one
-//! explicit, so that [`day_of`] is a single `match` over data rather than
-//! twenty special cases.
+//! The system is written up in `docs/systems/zassetsu-and-rokuyo.md` in the
+//! repository: the rules with their sources, a worked example, which days
+//! the 暦要項 prints and how the crate agrees with it, and the readings that
+//! are and are not carried.
 //!
 //! # Which definitions these are
 //!
-//! Where a rule has both a classical and a modern form, the modern one — the
-//! one the National Astronomical Observatory of Japan publishes in the
-//! 暦要項 — is what [`ZassetsuRule`] carries, because that is what a Japanese
-//! calendar prints today. 入梅 and 半夏生 are the two that changed, and both
-//! classical forms are available separately as [`classical_nyubai`] and
-//! [`classical_hangesho`].
+//! [`ZassetsuRule`] carries the rule each day is printed under today, or
+//! was last printed under. Three days have an older rule, and each is a
+//! separate function beside [`day_of`] rather than a setting of it:
+//! [`classical_nyubai`], [`classical_hangesho`] and [`classical_shanichi`].
+//! Their doc comments say which almanacs used which rule and why a third
+//! reading is not carried where one exists.
 //!
-//! These are Japanese observances. China and Korea have their own 雜節 and
-//! they are not the same list; nothing here should be read as describing
-//! them.
+//! The list is the Japanese almanac's; nothing here describes the days a
+//! Chinese or Korean almanac prints.
+//!
+//! # Sources
+//!
+//! * `nao-rekiwiki-zassetsu`: 国立天文台 暦計算室, 暦Wiki 「季節/雑節とは？」,
+//!   <https://eco.mtk.nao.ac.jp/koyomi/wiki/B5A8C0E12FBBA8C0E1A4C8A4CFA1A9.html>,
+//!   retrieved 2026-09-26. Every rule here: the four 節分, the 土用 at 297°,
+//!   27°, 117° and 207° and its 17 to 19 days, 彼岸 as the equinox and three
+//!   days either side, 八十八夜 and 二百十日 as the 88th and 210th day
+//!   counting 立春 as the first, 入梅 at 80° from the 明治9年暦 and as a 壬
+//!   day before it, 半夏生 at 100°, 社日 as the 戊 day nearest the equinox
+//!   and its two tie rules.
+//! * `nao-rekiwiki-zassetsu-shanichi`: the same page's attachment 「社日の選び方」,
+//!   <https://eco.mtk.nao.ac.jp/koyomi/wiki/B5A8C0E12FBBA8C0E1A4C8A4CFA1A9BCD2C6FC.pdf>,
+//!   retrieved 2026-09-26: the equinoxes and 社日 the almanacs printed for
+//!   1842–1946, which the tests below carry for 1873–1946.
+//! * `nao-rekiwiki-72ko`: 暦Wiki 「季節/七十二候」,
+//!   <https://eco.mtk.nao.ac.jp/koyomi/wiki/B5A8C0E12FBCB7BDBDC6F3B8F5.html>,
+//!   re-read 2026-09-26 for how 半夏生 was placed before and under 天保暦.
+//! * `nao-rekiyoko-2024`, `nao-rekiyoko-2025`, `nao-rekiyoko-2026` and
+//!   `nao-rekiyoko-2027-sekki`: the 暦要項's 「二十四節気および雑節」 for
+//!   those years,
+//!   <https://eco.mtk.nao.ac.jp/koyomi/yoko/2024/rekiyou242.html> and the
+//!   `2025/rekiyou252`, `2026/rekiyou262` and `2027/rekiyou272` pages,
+//!   retrieved 2026-09-26: the published days and times the tests below
+//!   carry.
+//! * `wikipedia-ja-shanichi` and `wikipedia-ja-hangesho`: Japanese
+//!   Wikipedia, 「社日」 (revision 97115432) and 「半夏生」 (revision
+//!   110148992), retrieved 2026-09-26, as secondary sources for the two 社日
+//!   rules and for the whole-day 半夏生 rule; the sources they cite were not
+//!   read.
+//!
+//! The keys are those of `docs/references.bib` in the repository.
 
 use hc_calendar::Rd;
 use hc_calendar::cycle::sexagenary_day;
 
 use crate::meridian::Meridian;
 use crate::seasons::Season;
-use crate::solar_terms::{SolarTerm, term_day};
+use crate::solar_terms::{SolarTerm, term_day, term_moment};
 
 /// The heavenly stem 戊 (tsuchinoe), the fifth, which 社日 is pinned to.
 const STEM_TSUCHINOE: u8 = 4;
@@ -50,8 +84,10 @@ const BRANCH_USHI: u8 = 1;
 pub enum ZassetsuRule {
     /// The day on which the Sun reaches a given apparent longitude.
     ///
-    /// This is how the four 土用 entries, 入梅 and 半夏生 are defined in the
-    /// modern almanac.
+    /// This is how the four 土用 entries (297°, 27°, 117°, 207°), 入梅 (80°)
+    /// and 半夏生 (100°) are defined in the modern almanac, and the 暦要項
+    /// prints each with its longitude and the instant to the minute
+    /// (`nao-rekiwiki-zassetsu`, `nao-rekiyoko-2024`).
     SolarLongitude(f64),
     /// A whole-day offset from the day a solar term falls on.
     ///
@@ -66,10 +102,19 @@ pub enum ZassetsuRule {
     /// A count of days from 立春, in the traditional inclusive reckoning
     /// where 立春 itself is day 1.
     ///
-    /// 八十八夜 is day 88, 二百十日 is day 210, 二百二十日 is day 220.
+    /// 八十八夜 is day 88 and 二百十日 day 210, 「立春から数えて88日目」 and
+    /// 「210日目」 (`nao-rekiwiki-zassetsu`); 二百二十日, which the same page
+    /// says some count among the 雑節, is day 220.
     NightsFromBeginningOfSpring(i64),
-    /// The day nearest a term whose sexagenary stem is a given one, ties
-    /// going to the earlier day.
+    /// The day nearest a term whose sexagenary stem is a given one.
+    ///
+    /// When the term's day is exactly between two such days — five days
+    /// from each, which for 戊 is when the equinox falls on a 癸 day — the
+    /// earlier is taken if the term's instant falls before local noon and
+    /// the later if it falls at or after it. That is the rule the almanacs
+    /// printed from the 明治14年暦 (1881) (`nao-rekiwiki-zassetsu`); the
+    /// earlier rule, which always took the earlier day, is
+    /// [`classical_shanichi`].
     ///
     /// Only 社日 uses this, and only with 戊.
     NearestStemDay {
@@ -163,7 +208,8 @@ hc_core::catalogue! {
             romaji: "doyō no iri",
             english_name: "start of the winter earth period",
         };
-        /// 節分 before 立春, around 3 February: the one everyone means.
+        /// 節分 before 立春, around 3 February: the only one of the four the
+        /// modern almanac prints.
         pub const SPRING_SETSUBUN = Self {
             id: "spring-setsubun",
             rule: ZassetsuRule::OffsetFromTerm {
@@ -431,7 +477,8 @@ pub fn day_of(kind: Zassetsu, year: i64, meridian: Meridian) -> Rd {
             Rd(term_day(year, SolarTerm::BEGINNING_OF_SPRING, meridian).0 + count - 1)
         }
         ZassetsuRule::NearestStemDay { term, stem } => {
-            nearest_stem_day(term_day(year, term, meridian), stem)
+            let afternoon = meridian.local_hours(term_moment(year, term)) >= 12.0;
+            nearest_stem_day(term_day(year, term, meridian), stem, afternoon)
         }
     }
 }
@@ -486,18 +533,16 @@ impl ExactSizeIterator for ZassetsuInYear {}
 /// The day nearest `centre` whose sexagenary stem is `stem`.
 ///
 /// The stems repeat every ten days, so there is always one within five days
-/// either side. When the centre is exactly five days from both — which
-/// happens when the equinox falls on a 癸 day — this returns the earlier,
-/// which is the reading the Japanese almanacs use. Sources do differ on that
-/// tie, and this is the one place in the module where a caller might
-/// legitimately want the other answer.
-fn nearest_stem_day(centre: Rd, stem: u8) -> Rd {
+/// either side. When the centre is exactly five days from both, `later_on_tie`
+/// picks between them; the two public 社日 rules, [`shanichi`] and
+/// [`classical_shanichi`], are the two ways of setting it.
+fn nearest_stem_day(centre: Rd, stem: u8, later_on_tie: bool) -> Rd {
     let here = sexagenary_day(centre).stem_index();
     let forward = i64::from((stem + 10 - here) % 10);
     let backward = i64::from((here + 10 - stem) % 10);
     if forward == 0 {
         centre
-    } else if backward <= forward {
+    } else if backward < forward || (backward == forward && !later_on_tie) {
         Rd(centre.0 - backward)
     } else {
         Rd(centre.0 + forward)
@@ -603,9 +648,11 @@ pub const fn setsubun_opening(season: Season) -> Zassetsu {
 /// season.
 ///
 /// In five-phase cosmology the four seasons are wood, fire, metal and water;
-/// earth has no season of its own, so it is given the last eighteen days of
-/// each. The modern rule makes the arc exact — 18° of solar longitude — and
-/// lets the number of days vary from 17 to 19 with the Earth's orbital speed.
+/// earth has no season of its own, so it is given the last fifth of each,
+/// eighteen days of a 平気 season. The modern rule, which the almanacs have
+/// used since the 明治二年暦, makes the arc exact — 18° of solar longitude —
+/// and lets the number of days vary from 17 to 19 with the Earth's orbital
+/// speed (`nao-rekiwiki-zassetsu`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DoyoPeriod {
     /// Which season this period closes.
@@ -721,11 +768,19 @@ pub fn setsubun(year: i64, season: Season, meridian: Meridian) -> Rd {
     day_of(setsubun_opening(season), year, meridian)
 }
 
-/// 社日 under the classical rule, for whichever equinox is nearer.
+/// 社日, the 戊 day nearest an equinox, under the rule the almanacs printed
+/// from the 明治14年暦 (1881): when the equinox falls on a 癸 day and the
+/// two 戊 days are five days either side, the earlier if the equinox
+/// instant is before local noon and the later if it is at or after it.
 ///
-/// Exposed separately from [`day_of`] because the tie-breaking matters and
-/// the doc comment on the private `nearest_stem_day` is where it is
-/// explained.
+/// This is [`day_of`] for [`Zassetsu::SPRING_SHANICHI`] and
+/// [`Zassetsu::AUTUMN_SHANICHI`]. The 暦Wiki states both this rule and the
+/// older one (`nao-rekiwiki-zassetsu`), and its table of the days the
+/// almanacs printed (`nao-rekiwiki-zassetsu-shanichi`) anchors the tests.
+/// When the rule changed between the 明治8年暦 and the 明治13年暦 is not
+/// known, and the table has no tie the two rules decide differently in
+/// those years. 社日 was printed in the 本暦 and is not among the 雑節 of the
+/// post-war 暦象年表 or the 暦要項, so no almanac after 1946 was read for it.
 #[must_use]
 pub fn shanichi(year: i64, season: HiganSeason, meridian: Meridian) -> Rd {
     let kind = match season {
@@ -735,11 +790,35 @@ pub fn shanichi(year: i64, season: HiganSeason, meridian: Meridian) -> Rd {
     day_of(kind, year, meridian)
 }
 
+/// 社日 under the rule of the 貞享暦 to the 明治7年暦: the 戊 day nearest the
+/// equinox, and the earlier of the two when they are equally near.
+///
+/// The two rules differ only when the equinox falls on a 癸 day in the
+/// afternoon, which the 暦Wiki puts at about twice in twenty years
+/// (`nao-rekiwiki-zassetsu-shanichi`). The rule is applied here to the
+/// 定気 equinox at the given meridian; almanacs before 1844 placed the
+/// equinox by 平気 and dated it in the lunisolar calendar, so a day this
+/// returns for those years is the rule's answer and not the almanac's.
+#[must_use]
+pub fn classical_shanichi(year: i64, season: HiganSeason, meridian: Meridian) -> Rd {
+    let equinox = match season {
+        HiganSeason::Spring => SolarTerm::SPRING_EQUINOX,
+        HiganSeason::Autumn => SolarTerm::AUTUMN_EQUINOX,
+    };
+    nearest_stem_day(term_day(year, equinox, meridian), STEM_TSUCHINOE, false)
+}
+
 /// 入梅 under the pre-modern rule: the first 壬 day on or after 芒種.
 ///
-/// Japanese almanacs used this until the Meiji reform and some regional
-/// calendars still print it. It can differ from the modern 80° rule by
-/// several days.
+/// The almanacs printed 入梅 as the first 壬 day after entering 芒種 from the
+/// 貞享三年暦 (1686), and at 80° from the 明治9年暦 (1876)
+/// (`nao-rekiwiki-zassetsu`). This is the reading printed from the 元文五年暦
+/// (1740), which takes 芒種 itself when it is a 壬 day. The 貞享 reading,
+/// which then took the next 壬 day, ten days later, is not carried: it was
+/// superseded by this one, and no almanac date of 1686–1739 was read to
+/// anchor a test of it. Japanese Wikipedia's 「入梅」 dates the 80° rule to
+/// 天保暦, 1844; the 暦Wiki's 明治9年暦 is the one followed here. It can
+/// differ from the modern rule by several days.
 #[must_use]
 pub fn classical_nyubai(year: i64, meridian: Meridian) -> Rd {
     stem_day_at_or_after(
@@ -751,9 +830,17 @@ pub fn classical_nyubai(year: i64, meridian: Meridian) -> Rd {
 /// 半夏生 under the pre-modern rule: the eleventh day counting 夏至 as the
 /// first, i.e. ten days after the solstice.
 ///
-/// The count is inclusive, as 「夏至から数えて11日目」 is in Japanese. The
-/// modern rule puts 半夏生 at 100° of solar longitude instead; the Sun is at
-/// its slowest near the June solstice and covers those ten degrees in about
+/// The count is inclusive, 「夏至から数えて11日目」, as Japanese Wikipedia's
+/// 「半夏生」 gives it (`wikipedia-ja-hangesho`, a secondary source). The
+/// 暦Wiki (`nao-rekiwiki-72ko`) describes the placing more exactly: before
+/// 天保暦 by 平気, a seventy-second of the year per pentad, which this crate
+/// does not carry; in the first 天保暦 almanac, of 1844, as the 夏至 instant
+/// plus two seventy-seconds of the year; and from 1848 at 100°, or at the
+/// second third of the interval from 夏至 to 小暑, which the almanacs of
+/// 1848–1872 do not tell apart. The 1844 reading is not carried: it was printed in one
+/// almanac year, and no date from it was read to anchor a test. The modern
+/// rule puts 半夏生 at 100° of solar longitude instead; the Sun is at its
+/// slowest near the June solstice and covers those ten degrees in about
 /// 10.5 days, so the two rules land on the same day rather more than half
 /// the time and never differ by more than one.
 #[must_use]
@@ -768,32 +855,197 @@ mod tests {
 
     const JAPAN: Meridian = Meridian::JAPAN;
 
-    /// The National Astronomical Observatory of Japan's 暦要項 for 2024.
+    /// One 雑節 as the 暦要項 prints it: the entry, then the JST month and
+    /// day.
+    type PublishedDay = (Zassetsu, u8, u8);
+
+    /// The eleven 雑節 the 暦要項 prints in each year, in its order: the
+    /// four 土用の入り, 節分, the two 彼岸入り, 八十八夜, 入梅, 半夏生 and
+    /// 二百十日. It prints no other; 二百二十日, 社日 and the other three
+    /// 節分 are not in it, and 彼岸 appears only as its first day.
+    const REKIYOKO: [(i64, [PublishedDay; 11]); 4] = [
+        (
+            2024,
+            [
+                (Zassetsu::WINTER_DOYO_ENTRY, 1, 18),
+                (Zassetsu::SPRING_SETSUBUN, 2, 3),
+                (Zassetsu::SPRING_HIGAN_ENTRY, 3, 17),
+                (Zassetsu::SPRING_DOYO_ENTRY, 4, 16),
+                (Zassetsu::HACHIJUHACHIYA, 5, 1),
+                (Zassetsu::NYUBAI, 6, 10),
+                (Zassetsu::HANGESHO, 7, 1),
+                (Zassetsu::SUMMER_DOYO_ENTRY, 7, 19),
+                (Zassetsu::NIHYAKUTOKA, 8, 31),
+                (Zassetsu::AUTUMN_HIGAN_ENTRY, 9, 19),
+                (Zassetsu::AUTUMN_DOYO_ENTRY, 10, 20),
+            ],
+        ),
+        (
+            2025,
+            [
+                (Zassetsu::WINTER_DOYO_ENTRY, 1, 17),
+                (Zassetsu::SPRING_SETSUBUN, 2, 2),
+                (Zassetsu::SPRING_HIGAN_ENTRY, 3, 17),
+                (Zassetsu::SPRING_DOYO_ENTRY, 4, 17),
+                (Zassetsu::HACHIJUHACHIYA, 5, 1),
+                (Zassetsu::NYUBAI, 6, 11),
+                (Zassetsu::HANGESHO, 7, 1),
+                (Zassetsu::SUMMER_DOYO_ENTRY, 7, 19),
+                (Zassetsu::NIHYAKUTOKA, 8, 31),
+                (Zassetsu::AUTUMN_HIGAN_ENTRY, 9, 20),
+                (Zassetsu::AUTUMN_DOYO_ENTRY, 10, 20),
+            ],
+        ),
+        (
+            2026,
+            [
+                (Zassetsu::WINTER_DOYO_ENTRY, 1, 17),
+                (Zassetsu::SPRING_SETSUBUN, 2, 3),
+                (Zassetsu::SPRING_HIGAN_ENTRY, 3, 17),
+                (Zassetsu::SPRING_DOYO_ENTRY, 4, 17),
+                (Zassetsu::HACHIJUHACHIYA, 5, 2),
+                (Zassetsu::NYUBAI, 6, 11),
+                (Zassetsu::HANGESHO, 7, 2),
+                (Zassetsu::SUMMER_DOYO_ENTRY, 7, 20),
+                (Zassetsu::NIHYAKUTOKA, 9, 1),
+                (Zassetsu::AUTUMN_HIGAN_ENTRY, 9, 20),
+                (Zassetsu::AUTUMN_DOYO_ENTRY, 10, 20),
+            ],
+        ),
+        (
+            2027,
+            [
+                (Zassetsu::WINTER_DOYO_ENTRY, 1, 17),
+                (Zassetsu::SPRING_SETSUBUN, 2, 3),
+                (Zassetsu::SPRING_HIGAN_ENTRY, 3, 18),
+                (Zassetsu::SPRING_DOYO_ENTRY, 4, 17),
+                (Zassetsu::HACHIJUHACHIYA, 5, 2),
+                (Zassetsu::NYUBAI, 6, 11),
+                (Zassetsu::HANGESHO, 7, 2),
+                (Zassetsu::SUMMER_DOYO_ENTRY, 7, 20),
+                (Zassetsu::NIHYAKUTOKA, 9, 1),
+                (Zassetsu::AUTUMN_HIGAN_ENTRY, 9, 20),
+                (Zassetsu::AUTUMN_DOYO_ENTRY, 10, 21),
+            ],
+        ),
+    ];
+
+    /// The 暦要項's 「二十四節気および雑節」 for 2024 to 2027
+    /// (`nao-rekiyoko-2024`, `nao-rekiyoko-2025`, `nao-rekiyoko-2026`,
+    /// `nao-rekiyoko-2027-sekki`), read 2026-09-26: all forty-four printed
+    /// days.
     #[test]
-    fn the_zassetsu_of_2024_fall_where_the_japanese_almanac_puts_them() {
-        let expected = [
-            (Zassetsu::SPRING_SETSUBUN, (2024, 2, 3)),
-            (Zassetsu::SPRING_HIGAN_ENTRY, (2024, 3, 17)),
-            (Zassetsu::SPRING_HIGAN_MIDDLE, (2024, 3, 20)),
-            (Zassetsu::SPRING_HIGAN_EXIT, (2024, 3, 23)),
-            (Zassetsu::HACHIJUHACHIYA, (2024, 5, 1)),
-            (Zassetsu::NYUBAI, (2024, 6, 10)),
-            (Zassetsu::HANGESHO, (2024, 7, 1)),
-            (Zassetsu::NIHYAKUTOKA, (2024, 8, 31)),
-            (Zassetsu::NIHYAKUHATSUKA, (2024, 9, 10)),
-            (Zassetsu::AUTUMN_HIGAN_ENTRY, (2024, 9, 19)),
-            (Zassetsu::AUTUMN_HIGAN_MIDDLE, (2024, 9, 22)),
-            (Zassetsu::AUTUMN_HIGAN_EXIT, (2024, 9, 25)),
-        ];
-        for (kind, (year, month, day)) in expected {
-            assert_eq!(
-                day_of(kind, 2024, JAPAN),
-                from_year_month_day(year, month, day),
-                "{} ({})",
-                kind.japanese_name(),
-                kind.english_name()
-            );
+    fn the_zassetsu_of_2024_to_2027_fall_where_the_rekiyoko_puts_them() {
+        let mut checked = 0;
+        for (year, days) in REKIYOKO {
+            for (kind, month, day) in days {
+                assert_eq!(
+                    day_of(kind, year, JAPAN),
+                    from_year_month_day(year, month, day),
+                    "{} ({}) of {year}",
+                    kind.japanese_name(),
+                    kind.english_name()
+                );
+                checked += 1;
+            }
         }
+        assert_eq!(checked, 44);
+    }
+
+    /// A published instant: the longitude, then the JST month, day, hour
+    /// and minute.
+    type PublishedInstant = (f64, u8, u8, u8, u8);
+
+    /// The six longitude 雑節 the 暦要項 prints with an instant, for 2024 to
+    /// 2027.
+    const REKIYOKO_INSTANTS: [(i64, [PublishedInstant; 6]); 4] = [
+        (
+            2024,
+            [
+                (297.0, 1, 18, 0, 24),
+                (27.0, 4, 16, 21, 20),
+                (80.0, 6, 10, 18, 33),
+                (100.0, 7, 1, 17, 31),
+                (117.0, 7, 19, 13, 17),
+                (207.0, 10, 20, 6, 51),
+            ],
+        ),
+        (
+            2025,
+            [
+                (297.0, 1, 17, 6, 16),
+                (27.0, 4, 17, 3, 16),
+                (80.0, 6, 11, 0, 24),
+                (100.0, 7, 1, 23, 13),
+                (117.0, 7, 19, 19, 5),
+                (207.0, 10, 20, 12, 29),
+            ],
+        ),
+        (
+            2026,
+            [
+                (297.0, 1, 17, 12, 3),
+                (27.0, 4, 17, 9, 1),
+                (80.0, 6, 11, 6, 14),
+                (100.0, 7, 2, 5, 4),
+                (117.0, 7, 20, 0, 48),
+                (207.0, 10, 20, 18, 13),
+            ],
+        ),
+        (
+            2027,
+            [
+                (297.0, 1, 17, 17, 46),
+                (27.0, 4, 17, 14, 36),
+                (80.0, 6, 11, 11, 50),
+                (100.0, 7, 2, 10, 49),
+                (117.0, 7, 20, 6, 37),
+                (207.0, 10, 21, 0, 10),
+            ],
+        ),
+    ];
+
+    /// The same pages print the instant of each longitude 雑節 to the
+    /// minute, and the instant is the one the solar terms are found by, so
+    /// it is measured the same way: computed less published, in seconds.
+    /// Three of the twenty-four fall within thirty minutes of midnight. The
+    /// eighteen of 2024–2026 are all on the published minute; in 2027,
+    /// computed like 2026 after April with the USNO's predicted ΔT, three
+    /// of the six fall just outside it, by 30 to 33 seconds. Run with `--nocapture` for the
+    /// residuals.
+    #[test]
+    fn the_longitude_zassetsu_of_2024_to_2027_are_on_the_published_minute() {
+        let mut residuals = Vec::new();
+        let mut before_2027 = 0;
+        for (year, instants) in REKIYOKO_INSTANTS {
+            for (degrees, month, day, hour, minute) in instants {
+                let moment = hc_astro::solar::seasonal_event(year, degrees);
+                let published_day = from_year_month_day(year, month, day);
+                assert_eq!(JAPAN.day_of(moment), published_day, "{degrees}° of {year}");
+                let published =
+                    published_day.0 as f64 + (f64::from(hour) + f64::from(minute) / 60.0) / 24.0;
+                let seconds = (JAPAN.local(moment).0 - published) * 86_400.0;
+                println!("{year} {degrees:>5}°: {seconds:+.0} s");
+                if year < 2027 {
+                    assert!(
+                        seconds.abs() <= 30.0,
+                        "{degrees}° of {year}: {seconds:+.0} s"
+                    );
+                    before_2027 += 1;
+                }
+                residuals.push(seconds);
+            }
+        }
+        let on_minute = residuals.iter().filter(|s| s.abs() <= 30.0).count();
+        let mean = residuals.iter().sum::<f64>() / residuals.len() as f64;
+        println!(
+            "{on_minute} of {} on the published minute, mean {mean:+.1} s",
+            residuals.len()
+        );
+        assert_eq!(residuals.len(), 24);
+        assert_eq!(before_2027, 18);
+        assert!(residuals.iter().all(|s| s.abs() <= 40.0));
+        assert!(on_minute >= 21, "only {on_minute} on the published minute");
     }
 
     /// 2024 was a leap year, so 八十八夜 and 二百十日 came a day earlier than
@@ -854,12 +1106,34 @@ mod tests {
         }
     }
 
-    /// 節分 has not always been 3 February. It was 4 February from 1985 to
-    /// 2020 in a quarter of years, and 2021 was the first 2 February since
-    /// 1897 — a fact worth pinning because it is the kind of thing a
-    /// hard-coded "3 February" gets wrong.
+    /// 節分 has not always been 3 February. It was 3 February in every year
+    /// from 1985 to 2020, 4 February in 1984, and 2 February in 2021, the
+    /// first 2 February since 1897 — the kind of thing a hard-coded
+    /// "3 February" gets wrong. The four facts are the Observatory's
+    /// (`nao-topics-2021-setsubun`: 国立天文台 暦計算室, 「節分の日が動き出す」,
+    /// <https://eco.mtk.nao.ac.jp/koyomi/topics/html/topics2021_2.html>,
+    /// retrieved 2026-09-26), which gives 2021 as the first year since 1984
+    /// that was not the third and the first since 1897 that was the second.
     #[test]
     fn setsubun_was_the_second_of_february_in_2021() {
+        for year in 1985..=2020 {
+            assert_eq!(
+                day_of(Zassetsu::SPRING_SETSUBUN, year, JAPAN),
+                from_year_month_day(year, 2, 3),
+                "{year}"
+            );
+        }
+        for year in 1898..=2020 {
+            assert_ne!(
+                day_of(Zassetsu::SPRING_SETSUBUN, year, JAPAN),
+                from_year_month_day(year, 2, 2),
+                "{year}"
+            );
+        }
+        assert_eq!(
+            day_of(Zassetsu::SPRING_SETSUBUN, 1897, JAPAN),
+            from_year_month_day(1897, 2, 2)
+        );
         assert_eq!(
             day_of(Zassetsu::SPRING_SETSUBUN, 2021, JAPAN),
             from_year_month_day(2021, 2, 2)
@@ -902,54 +1176,238 @@ mod tests {
         }
     }
 
-    /// 社日 is the 戊 day nearest the equinox, so it is never more than five
-    /// days away and always has 戊 as its stem.
+    /// 社日 is the 戊 day nearest the equinox under either rule, so it is
+    /// never more than five days away and always has 戊 as its stem.
     #[test]
     fn shanichi_is_always_a_tsuchinoe_day_near_the_equinox() {
         for year in 1900..2100 {
             for season in [HiganSeason::Spring, HiganSeason::Autumn] {
-                let day = shanichi(year, season, JAPAN);
-                assert_eq!(
-                    sexagenary_day(day).stem_index(),
-                    STEM_TSUCHINOE,
-                    "{day} in {year} was not a 戊 day"
-                );
-                assert_eq!(sexagenary_day(day).stem_name(), "wu");
-                let equinox = higan(year, season, JAPAN).middle;
-                assert!(
-                    (day.0 - equinox.0).abs() <= 5,
-                    "{} days from the equinox in {year}",
-                    day.0 - equinox.0
-                );
+                for day in [
+                    shanichi(year, season, JAPAN),
+                    classical_shanichi(year, season, JAPAN),
+                ] {
+                    assert_eq!(
+                        sexagenary_day(day).stem_index(),
+                        STEM_TSUCHINOE,
+                        "{day} in {year} was not a 戊 day"
+                    );
+                    assert_eq!(sexagenary_day(day).stem_name(), "wu");
+                    let equinox = higan(year, season, JAPAN).middle;
+                    assert!(
+                        (day.0 - equinox.0).abs() <= 5,
+                        "{} days from the equinox in {year}",
+                        day.0 - equinox.0
+                    );
+                }
             }
         }
     }
 
-    /// The tie-break is a real case, not a hypothetical: over two centuries
-    /// the equinox lands on a 癸 day often enough to exercise it, and when it
-    /// does this crate takes the earlier 戊.
+    /// The 社日 the almanacs printed, from the 暦Wiki's table 「社日の選び方」
+    /// (`nao-rekiwiki-zassetsu-shanichi`, read 2026-09-26), for the years it
+    /// gives in the Gregorian calendar: the year, then the March day of the
+    /// spring equinox and of 春社, then the September day of the autumn
+    /// equinox and of 秋社. Every row's difference column was checked
+    /// against its dates when it was transcribed.
+    const PRINTED_SHANICHI: [(i64, u8, u8, u8, u8); 74] = [
+        (1873, 20, 17, 23, 23),
+        (1874, 21, 22, 23, 18),
+        (1875, 21, 17, 23, 23),
+        (1876, 20, 21, 23, 27),
+        (1877, 20, 16, 23, 22),
+        (1878, 21, 21, 23, 27),
+        (1879, 21, 16, 23, 22),
+        (1880, 20, 20, 23, 26),
+        (1881, 20, 25, 23, 21),
+        (1882, 21, 20, 23, 26),
+        (1883, 21, 25, 23, 21),
+        (1884, 20, 19, 23, 25),
+        (1885, 20, 24, 23, 20),
+        (1886, 21, 19, 23, 25),
+        (1887, 21, 24, 23, 20),
+        (1888, 20, 18, 22, 24),
+        (1889, 20, 23, 23, 19),
+        (1890, 21, 18, 23, 24),
+        (1891, 21, 23, 23, 19),
+        (1892, 20, 17, 22, 23),
+        (1893, 20, 22, 23, 18),
+        (1894, 20, 17, 23, 23),
+        (1895, 21, 22, 23, 28),
+        (1896, 20, 16, 22, 22),
+        (1897, 20, 21, 23, 27),
+        (1898, 20, 16, 23, 22),
+        (1899, 21, 21, 23, 27),
+        (1900, 21, 16, 23, 22),
+        (1901, 21, 21, 24, 27),
+        (1902, 21, 26, 24, 22),
+        (1903, 22, 21, 24, 27),
+        (1904, 21, 25, 23, 21),
+        (1905, 21, 20, 24, 26),
+        (1906, 21, 25, 24, 21),
+        (1907, 22, 20, 24, 26),
+        (1908, 21, 24, 23, 20),
+        (1909, 21, 19, 24, 25),
+        (1910, 21, 24, 24, 20),
+        (1911, 22, 19, 24, 25),
+        (1912, 21, 23, 23, 19),
+        (1913, 21, 18, 24, 24),
+        (1914, 21, 23, 24, 19),
+        (1915, 22, 18, 24, 24),
+        (1916, 21, 22, 23, 28),
+        (1917, 21, 17, 24, 23),
+        (1918, 21, 22, 24, 28),
+        (1919, 22, 17, 24, 23),
+        (1920, 21, 21, 23, 27),
+        (1921, 21, 26, 23, 22),
+        (1922, 21, 21, 24, 27),
+        (1923, 22, 26, 24, 22),
+        (1924, 21, 20, 23, 26),
+        (1925, 21, 25, 23, 21),
+        (1926, 21, 20, 24, 26),
+        (1927, 21, 25, 24, 21),
+        (1928, 21, 19, 23, 25),
+        (1929, 21, 24, 23, 20),
+        (1930, 21, 19, 24, 25),
+        (1931, 21, 24, 24, 20),
+        (1932, 21, 18, 23, 24),
+        (1933, 21, 23, 23, 19),
+        (1934, 21, 18, 24, 24),
+        (1935, 21, 23, 24, 19),
+        (1936, 21, 17, 23, 23),
+        (1937, 21, 22, 23, 28),
+        (1938, 21, 17, 24, 23),
+        (1939, 21, 22, 24, 28),
+        (1940, 21, 16, 23, 22),
+        (1941, 21, 21, 23, 27),
+        (1942, 21, 26, 24, 22),
+        (1943, 21, 21, 24, 27),
+        (1944, 21, 25, 23, 21),
+        (1945, 21, 20, 23, 26),
+        (1946, 21, 25, 24, 21),
+    ];
+
+    /// Against the printed days: the 貞享 rule through the 明治7年暦, the
+    /// 明治14年 rule from 1881, and both in the years between, when the
+    /// change was made at a date the 暦Wiki does not know and no tie falls
+    /// that the two rules decide differently. The equinoxes in the table
+    /// are checked too, since the whole rule hangs off them; before 1888
+    /// the table's times are Tokyo local time, about nineteen minutes ahead
+    /// of 135°E, and no equinox of these years is near enough midnight for
+    /// that to move its day.
     #[test]
-    fn the_shanichi_tie_break_takes_the_earlier_day() {
+    fn the_shanichi_of_1873_to_1946_are_the_days_the_almanacs_printed() {
         let mut ties = 0;
-        for year in 1800..2200 {
-            for season in [HiganSeason::Spring, HiganSeason::Autumn] {
+        for (year, spring_equinox, spring, autumn_equinox, autumn) in PRINTED_SHANICHI {
+            for (season, month, equinox_day, printed_day) in [
+                (HiganSeason::Spring, 3, spring_equinox, spring),
+                (HiganSeason::Autumn, 9, autumn_equinox, autumn),
+            ] {
+                let printed = from_year_month_day(year, month, printed_day);
                 let equinox = higan(year, season, JAPAN).middle;
-                if sexagenary_day(equinox).stem_index() == (STEM_TSUCHINOE + 5) % 10 {
+                assert_eq!(
+                    equinox,
+                    from_year_month_day(year, month, equinox_day),
+                    "the {season:?} equinox of {year}"
+                );
+                if (printed.0 - equinox.0).abs() == 5 {
                     ties += 1;
-                    assert_eq!(shanichi(year, season, JAPAN).0, equinox.0 - 5);
+                }
+                if year <= 1874 {
+                    assert_eq!(classical_shanichi(year, season, JAPAN), printed, "{year}");
+                } else if year >= 1881 {
+                    assert_eq!(shanichi(year, season, JAPAN), printed, "{year}");
+                } else {
+                    assert_eq!(classical_shanichi(year, season, JAPAN), printed, "{year}");
+                    assert_eq!(shanichi(year, season, JAPAN), printed, "{year}");
                 }
             }
         }
+        assert_eq!(ties, 15);
+    }
+
+    /// The row that shows the old rule: the autumn equinox of 1874 fell on
+    /// a 癸 day in the afternoon, and the 明治7年暦 printed the earlier 戊,
+    /// 18 September, where the later rule takes 28 September.
+    #[test]
+    fn the_almanac_of_1874_took_the_earlier_day_on_an_afternoon_tie() {
+        assert_eq!(
+            classical_shanichi(1874, HiganSeason::Autumn, JAPAN),
+            from_year_month_day(1874, 9, 18)
+        );
+        assert_eq!(
+            shanichi(1874, HiganSeason::Autumn, JAPAN),
+            from_year_month_day(1874, 9, 28)
+        );
+    }
+
+    /// The worked example of the system document. The spring equinox of
+    /// 2024 fell on 20 March, a 癸未 day, at 12:06 JST (`nao-rekiyoko-2024`):
+    /// six minutes after noon, so the rule of 1881 takes the later 戊, 戊子
+    /// on 25 March, and the older rule the earlier, 戊寅 on 15 March.
+    #[test]
+    fn the_spring_shanichi_of_2024_is_decided_by_six_minutes() {
+        let equinox = higan(2024, HiganSeason::Spring, JAPAN).middle;
+        assert_eq!(equinox, from_year_month_day(2024, 3, 20));
+        assert_eq!(sexagenary_day(equinox).stem_index(), 9);
+        let hours = JAPAN.local_hours(term_moment(2024, SolarTerm::SPRING_EQUINOX));
+        assert!((12.0..12.2).contains(&hours), "{hours}");
+        assert_eq!(
+            shanichi(2024, HiganSeason::Spring, JAPAN),
+            from_year_month_day(2024, 3, 25)
+        );
+        assert_eq!(
+            classical_shanichi(2024, HiganSeason::Spring, JAPAN),
+            from_year_month_day(2024, 3, 15)
+        );
+    }
+
+    /// The two rules differ on an afternoon tie and only there, which the
+    /// 暦Wiki puts at about twice in twenty years; over four centuries the
+    /// ties exercise both branches of both rules.
+    #[test]
+    fn the_two_shanichi_rules_differ_only_on_an_afternoon_tie() {
+        let mut ties = 0;
+        let mut differences = 0;
+        for year in 1800..2200 {
+            for season in [HiganSeason::Spring, HiganSeason::Autumn] {
+                let equinox = higan(year, season, JAPAN).middle;
+                let modern = shanichi(year, season, JAPAN);
+                let classical = classical_shanichi(year, season, JAPAN);
+                if sexagenary_day(equinox).stem_index() == (STEM_TSUCHINOE + 5) % 10 {
+                    ties += 1;
+                    assert_eq!(classical.0, equinox.0 - 5);
+                    let term = match season {
+                        HiganSeason::Spring => SolarTerm::SPRING_EQUINOX,
+                        HiganSeason::Autumn => SolarTerm::AUTUMN_EQUINOX,
+                    };
+                    let afternoon = JAPAN.local_hours(term_moment(year, term)) >= 12.0;
+                    let expected = if afternoon { 5 } else { -5 };
+                    assert_eq!(modern.0 - equinox.0, expected, "{year}");
+                    if afternoon {
+                        differences += 1;
+                    }
+                } else {
+                    assert_eq!(modern, classical, "{year}");
+                }
+            }
+        }
+        println!("{ties} ties and {differences} differences in 1800-2199");
         assert!(ties > 20, "only {ties} ties in four centuries");
+        assert!(
+            (20..=60).contains(&differences),
+            "{differences} differences in four centuries is not about two in twenty years"
+        );
     }
 
     #[test]
     fn a_stem_day_search_lands_on_the_stem_it_asked_for() {
         for offset in 0..200 {
             let start = Rd(739_000 + offset);
-            let found = nearest_stem_day(start, STEM_TSUCHINOE);
-            assert_eq!(sexagenary_day(found).stem_index(), STEM_TSUCHINOE);
-            assert!((found.0 - start.0).abs() <= 5);
+            for later_on_tie in [false, true] {
+                let found = nearest_stem_day(start, STEM_TSUCHINOE, later_on_tie);
+                assert_eq!(sexagenary_day(found).stem_index(), STEM_TSUCHINOE);
+                assert!((found.0 - start.0).abs() <= 5);
+            }
             let after = stem_day_at_or_after(start, STEM_MIZUNOE);
             assert_eq!(sexagenary_day(after).stem_index(), STEM_MIZUNOE);
             assert!((0..10).contains(&(after.0 - start.0)));

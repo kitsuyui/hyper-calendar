@@ -65,9 +65,9 @@ pub static BIRTH_FLOWERS_ANGLO_AMERICAN: MonthTable = MonthTable::new(
         validity: Validity::UNKNOWN,
         provenance: Provenance::Vernacular,
         source: "The Old Farmer's Almanac, \"Birth Flowers by Month\", \
-                 https://www.almanac.com/content/birth-month-flowers-and-their-meanings; \
-                 the underlying flower meanings are Victorian floriography, for which see \
-                 the \"Language of flowers\" literature of the 1800s",
+                 https://www.almanac.com/content/birth-month-flowers-and-their-meanings, \
+                 retrieved 2026-09-26; the flower meanings the page gives are Victorian \
+                 floriography, for which no source was read",
         caveat: Some(
             "No body ever adopted this list. It is what almanacs and florists print, and it \
              has no promulgation date to cite.",
@@ -91,7 +91,8 @@ pub static BIRTH_FLOWERS_ANGLO_AMERICAN: MonthTable = MonthTable::new(
 
 /// The same list as the British florist trade prints it.
 ///
-/// Two months differ, and both differences are small and instructive.
+/// Three months differ, and all three differences are small and
+/// instructive.
 /// February's secondary is iris rather than primrose. July's primary is
 /// printed as delphinium rather than larkspur — which is not a different
 /// flower at all but a different name for it, the British trade using the
@@ -113,7 +114,8 @@ pub static BIRTH_FLOWERS_BRITISH_TRADE: MonthTable = MonthTable::new(
         provenance: Provenance::Vernacular,
         source: "Bloom & Wild, \"Birth Month Flowers\", \
                  https://www.bloomandwild.com/the-blog/birth-month-flowers-guide-whats-my-birth-flower, \
-                 as representative of British florists' usage",
+                 as representative of British florists' usage; the page served on 2026-09-26 \
+                 did not render its list, so the table was not re-read that day",
         caveat: Some(
             "A trade usage, not a standard. \"Delphinium\" for July is the same plant the \
              American list calls larkspur.",

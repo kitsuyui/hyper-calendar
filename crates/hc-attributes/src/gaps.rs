@@ -173,7 +173,7 @@ pub const HEBREW_BREASTPLATE_STONES: Gap = Gap {
          differ widely and Josephus gave two lists himself. Kunz argues Josephus was describing \
          the Second Temple breastplate rather than the one Exodus describes. Modern birthstone \
          lists have, in any case, little to do with it.",
-    sources: "George F. Kunz, The Curious Lore of Precious Stones (Lippincott, 1913), \
+    sources: "George F. Kunz, The Curious Lore of Precious Stones (Lippincott, 1913; kunz1913), \
               pp. 275–306; Rupert Gleadow, The Origin of the Zodiac, pp. 130–131",
 };
 

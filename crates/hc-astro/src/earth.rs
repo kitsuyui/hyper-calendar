@@ -9,8 +9,9 @@
 //! The nutation series is Meeus's abridged one — four terms in Δψ and four
 //! in Δε — which he states as good to 0.5″ in longitude and 0.1″ in
 //! obliquity. That is two orders of magnitude finer than anything a calendar
-//! rule can notice, so the full 63-term IAU 1980 table is deliberately not
-//! carried here.
+//! rule can notice, so neither Meeus's Table 22.A — the 63 largest terms of
+//! the 106-term IAU 1980 nutation series — nor the full series is carried
+//! here.
 
 use hc_calendar::fixed::Moment;
 use hc_core::math::{DEG_TO_RAD, RAD_TO_DEG, asin, atan2, cos_deg, normalize_degrees, sin_deg};
@@ -103,7 +104,8 @@ pub fn mean_obliquity(moment: Moment) -> f64 {
 /// The mean obliquity of the ecliptic, in degrees, for a count of Julian
 /// centuries of TT since J2000.0.
 ///
-/// Meeus (22.3), the Laskar expansion in `U = T/100`. Laskar quotes 0.01″
+/// Meeus (22.3), the expansion in `U = T/100` of J. Laskar, *A&A* 157, 59
+/// (1986) (`laskar1986`, not read here). Laskar quotes 0.01″
 /// over 1000 years either side of J2000 and a few arcseconds over 10 000
 /// years; outside ±10 000 years the series diverges and this function must
 /// not be believed.

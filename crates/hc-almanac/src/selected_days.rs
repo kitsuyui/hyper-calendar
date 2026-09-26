@@ -27,14 +27,22 @@
 //!
 //! # Sources
 //!
-//! * National Diet Library, 「日本の暦」, 暦注の項 (<https://www.ndl.go.jp/koyomi/chapter3/s6.html>)
-//!   for 八専, 十方暮, 天一天上, 一粒万倍日 and their meanings.
-//! * National Astronomical Observatory of Japan, 暦Wiki 「節月」, for the
-//!   節切り / 月切り distinction and the numbering of the 節月.
-//! * 岡田芳朗『現代こよみ読み解き事典』(柏書房, 1993), relayed through
-//!   こよみのページ (<https://koyomi8.com/sub/rekicyuu_doc03.html>), for the
-//!   rule tables.
-//! * Printed date lists used as checks are cited in the tests.
+//! * National Diet Library, 「日本の暦」, 吉凶を表す言葉④その他
+//!   (<https://www.ndl.go.jp/koyomi/chapter3/s6.html>), read 2026-09-26, for
+//!   八専, 十方暮, 天一天上, 三隣亡, the two 一粒万倍日 methods, 不成就日 as
+//!   月切り, the 犯土 and their meanings.
+//! * National Astronomical Observatory of Japan, 暦Wiki 「節月」
+//!   (<https://eco.mtk.nao.ac.jp/koyomi/wiki/C0E1B7EE.html>), read
+//!   2026-09-26, for the 節切り / 月切り distinction and the numbering of
+//!   the 節月.
+//! * 岡田芳朗・阿久根末忠 (編著)『現代こよみ読み解き事典』(柏書房, 1993),
+//!   not read: its rule tables are taken at second hand, through Japanese
+//!   Wikipedia 一粒万倍日 (<https://ja.wikipedia.org/wiki/一粒万倍日>, read
+//!   2026-09-26), which lists it as its reference, and こよみのページ
+//!   (<https://koyomi8.com/sub/rekicyuu_doc02.html>), which names it as the
+//!   basis of its rules.
+//! * Printed date lists used as checks are cited in the tests; those from
+//!   arachne.jp, JAL SKYWARD+ and こよみる were not re-read on 2026-09-26.
 
 use hc_calendar::Rd;
 use hc_seasons::Meridian;
@@ -44,11 +52,15 @@ use crate::rules::{AlmanacRule, rule_applies};
 
 /// 一粒万倍日, by 節月, as earthly branches.
 ///
-/// Source: 岡田芳朗『現代こよみ読み解き事典』, as tabulated by the Japanese
-/// Wikipedia article 一粒万倍日 and by the almanac publisher 交通図書協会.
-/// Checked against the published 2024, 2025 and 2026 date lists in the
-/// tests; note in particular that the 亥月 row is 酉・戌 and not 酉・午, which
-/// is a common error in circulated tables.
+/// The National Diet Library gives the table as two rows, one per 選日法,
+/// and says that two methods once existed and are now used together
+/// (「2通りの選日法があったが、現在では両者を併用している」); the table here
+/// is their union, as the NDL prints it. Japanese Wikipedia 一粒万倍日 and
+/// こよみる give the same twelve pairs. The 亥月 row, for instance, is 酉 by
+/// the first method and 戌 by the second. Either method alone is a reading
+/// the NDL names but no publisher read here prints, and no date list tests
+/// it, so neither is registered. Checked against the published 2024, 2025
+/// and 2026 date lists in the tests.
 static ICHIRYU_MANBAI: [&[u8]; 12] = [
     &[1, 6],  // 寅月 (立春〜): 丑・午
     &[2, 9],  // 卯月 (啓蟄〜): 寅・酉
@@ -66,8 +78,9 @@ static ICHIRYU_MANBAI: [&[u8]; 12] = [
 
 /// 三隣亡, by 節月, as earthly branches.
 ///
-/// Source: Japanese Wikipedia 三隣亡, こよみのページ 「暦注の話・三隣亡」
-/// (2007-08-04). The pattern is a three-month repeat: 亥 for 節月 1, 4, 7 and
+/// Source: the National Diet Library, 吉凶を表す言葉④その他, read
+/// 2026-09-26; Japanese Wikipedia 三隣亡 and こよみのページ 「暦注の話・三隣亡」
+/// (2007-08-04), not re-read on 2026-09-26. The pattern is a three-month repeat: 亥 for 節月 1, 4, 7 and
 /// 10; 寅 for 2, 5, 8 and 11; 午 for 3, 6, 9 and 12.
 static SANRINBO: [&[u8]; 12] = [
     &[11],
@@ -86,8 +99,10 @@ static SANRINBO: [&[u8]; 12] = [
 
 /// 不成就日, by lunisolar month, as days of that month.
 ///
-/// Source: 岡田芳朗『現代こよみ読み解き事典』 via Japanese Wikipedia 不成就日.
-/// The one 選日 keyed to the lunisolar date rather than the 節月; a leap
+/// Source: the National Diet Library, which states it is 月切り and gives
+/// the same six pairs of months (read 2026-09-26); 岡田芳朗・阿久根末忠
+/// (1993), not read, via Japanese Wikipedia 不成就日, not re-read on
+/// 2026-09-26. The one 選日 keyed to the lunisolar date rather than the 節月; a leap
 /// month uses the row of the month it follows, and a 29-day month simply
 /// never reaches a rule day of 30.
 static FUJOJU: [&[u8]; 12] = [
@@ -621,6 +636,22 @@ mod tests {
                 expected.contains(&day),
                 "2025-12-{day:02}"
             );
+        }
+    }
+
+    /// The National Diet Library prints 一粒万倍日 as two rows by 節月, one
+    /// per 選日法, and says both are now used together. The table is their
+    /// union, month by month.
+    #[test]
+    fn the_grain_table_is_the_union_of_the_two_ndl_methods() {
+        // 丑 酉 子 卯 巳 酉 子 卯 酉 酉 亥 卯
+        let first: [u8; 12] = [1, 9, 0, 3, 5, 9, 0, 3, 9, 9, 11, 3];
+        // 午 寅 卯 辰 午 午 未 申 午 戌 子 子
+        let second: [u8; 12] = [6, 2, 3, 4, 6, 6, 7, 8, 6, 10, 0, 0];
+        for month in 0..12 {
+            let mut row = [first[month], second[month]];
+            row.sort_unstable();
+            assert_eq!(ICHIRYU_MANBAI[month], &row[..], "節月 {}", month + 1);
         }
     }
 

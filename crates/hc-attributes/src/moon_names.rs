@@ -121,8 +121,9 @@ pub static MOON_NAMES_OFA_CURRENT: MonthTable = MonthTable::new(
         validity: Validity::since(1964),
         provenance: Provenance::Contested,
         source: "The Old Farmer's Almanac, \"Full Moon Names\", https://www.almanac.com/\
-                 full-moon-names; publication history per History.com, \"How Full Moons Got \
-                 Their Names\", and Sky & Telescope, \"Native American Full Moon Names\"",
+                 full-moon-names, retrieved 2026-09-26; publication history per History.com, \
+                 \"How Full Moons Got Their Names\", and Sky & Telescope, \"Native American Full \
+                 Moon Names\", for which no URL or retrieval date is recorded",
         caveat: Some(
             "Published as Native American moon names. The attribution is contested: nine of \
              the twelve descend from Jonathan Carver's 1778 list, which names no nation, and \
@@ -212,8 +213,8 @@ pub static MOON_NAMES_MAINE_1937: MonthTable = MonthTable::new(
         revised: None,
         validity: Validity::between(1937, 1937),
         provenance: Provenance::Recorded,
-        source: "Maine Farmers' Almanac (1937), as transcribed in \
-                 https://www.projectpluto.com/bluemoon.htm",
+        source: "Maine Farmers' Almanac (1937), not read, as transcribed in \
+                 https://www.projectpluto.com/bluemoon.htm, retrieved 2026-09-26",
         caveat: Some(
             "Keyed to the four seasons from the winter solstice, three moons to a season, not \
              to Gregorian months. The index here is the usual month for each, which is an \

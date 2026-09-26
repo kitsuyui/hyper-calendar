@@ -39,14 +39,18 @@
 //!
 //! The mansion list, the 四象 grouping and the 二十七宿 reset table are from
 //! the National Astronomical Observatory of Japan's 暦Wiki, 二十八宿
-//! (<https://eco.mtk.nao.ac.jp/koyomi/wiki/C6F3BDBDC8ACBDC9.html>), which is
-//! also the source for "貞享暦以降…年・月・日に対してそれぞれ連続的に割り当て
+//! (<https://eco.mtk.nao.ac.jp/koyomi/wiki/C6F3BDBDC8ACBDC9.html>, read
+//! 2026-09-26), which is also the source for "貞享暦以降…年・月・日に対してそれぞれ連続的に割り当て
 //! ます" — the statement that the almanac mansion is a counter and not an
 //! ephemeris. The Japanese star names (和名) follow 上原貞治「二十八宿和名考」
 //! and 精選版日本国語大辞典 via コトバンク; several have variant readings and
 //! the article says outright that they differ between manuscripts, so the
-//! commoner form is used and the variants are noted. The 吉凶 attribution is
-//! a commercial-almanac one and publishers disagree; see [`Mansion::fortune`].
+//! commoner form is used and the variants are noted; neither was re-read on
+//! 2026-09-26. The 1685 epoch is from Japanese Wikipedia 二十八宿
+//! (<https://ja.wikipedia.org/wiki/二十八宿>, read 2026-09-26). The 吉凶
+//! attribution is a commercial-almanac one and publishers disagree; see
+//! [`Mansion::fortune`]. The date lists the tests cite (こよみる, 暦注下段ナビ,
+//! KOYOMI NOTE) were not re-read on 2026-09-26.
 //!
 //! Readings that genuinely vary between sources: 斗 is *hikitsuboshi* here
 //! and *hitsukiboshi* in 精選版日本国語大辞典; 箕 is *miboshi* here and

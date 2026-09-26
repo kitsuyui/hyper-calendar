@@ -1,19 +1,38 @@
 //! The geological time scale, as data.
 //!
-//! Boundary ages come from the **International Chronostratigraphic Chart
-//! v2026/06**, published by the International Commission on Stratigraphy at
-//! <http://www.stratigraphy.org/ICSchart/ChronostratChart2026-06.pdf> and
-//! cited as Cohen, K.M., Harper, D.A.T., Gibbard, P.L. & Car, N. (2025,
-//! updated), *The ICS international chronostratigraphic chart this decade*,
-//! Episodes 48, 105–115. The chart in turn takes most of its numerical ages
-//! from Gradstein et al., *A Geologic Time Scale 2020*, with revisions from
-//! the relevant ICS subcommissions.
+//! Boundary ages come from the **International Chronostratigraphic Chart**
+//! published by the International Commission on Stratigraphy, in two named
+//! editions:
 //!
-//! Version matters. Between v2024/12 and v2026/06 three boundaries moved —
-//! the Anisian from 246.7 to 247.0 Ma, the Olenekian from 249.9 to 250.8 Ma
-//! and the Wuchiapingian from 259.51 ± 0.21 to 259.857 ± 0.084 Ma — so a
-//! chronology quoted without a chart version is a chronology that cannot be
-//! checked. [`CHART_VERSION`] is part of the public API for that reason.
+//! | Edition | Identifier | Source |
+//! |---|---|---|
+//! | v2026/06 | [`ICS_CHART_2026_06`], `ics-chart-2026-06` | the chart at <http://www.stratigraphy.org/ICSchart/ChronostratChart2026-06.pdf> (`ics-chart-2026-06`), which asks to be cited as Cohen, Harper, Gibbard & Car, *The ICS international chronostratigraphic chart this decade*, Episodes 48, 105–115 (2025) (`cohen2025`) |
+//! | v2024/12 | [`ICS_CHART_2024_12`], `ics-chart-2024-12` | the chart at <https://stratigraphy.org/ICSchart/ChronostratChart2024-12.pdf> (`ics-chart-2024-12`), which asks to be cited as Cohen, Finney, Gibbard & Fan, *The ICS International Chronostratigraphic Chart*, Episodes 36, 199–204 (2013; updated) (`cohen2013`) |
+//!
+//! The chart in turn takes most of its numerical ages from Gradstein et
+//! al., *A Geologic Time Scale 2020* (`gradstein2020`, not read here), with
+//! revisions from the relevant ICS subcommissions. The ICS's own
+//! machine-readable form of the chart, `chart.ttl` in
+//! <https://github.com/i-c-stratigraphy/chart> (`ics-chart-ttl`), departs
+//! from the printed v2026/06 chart in a few places (0.9 against 1.0 Ma for
+//! the uncertainty at 443.1 Ma, 23.04 against 23.03 Ma for the base of the
+//! Aquitanian, 422.7 against 419.62 Ma for the top of the Ludlow); the
+//! arrays follow the printed chart.
+//!
+//! An edition is an authority's revision, and §10 of the project policy
+//! keeps each under its own name rather than replacing the older. The
+//! arrays below ([`EONS`] to [`AGES`], and the free functions over them)
+//! are v2026/06; [`ICS_CHART_2024_12`] is the same intervals with the three
+//! boundaries that the 2026-06 chart moved put back where v2024/12 prints
+//! them — the Anisian base at 246.7 Ma (now 247.0), the Olenekian base at
+//! 249.9 Ma (now 250.8) and the Wuchiapingian base at 259.51 ± 0.21 Ma (now
+//! 259.857 ± 0.084). Those three are every age on which the two printed
+//! charts differ, compared number by number on 2026-09-26; `chart.ttl` at
+//! commit `00cb4f7`, whose `owl:versionInfo` is `2024-12`, differs from the
+//! 2026-06 file at the same three and no others, and the 2026-06 file lists
+//! them in its `skos:changeNote`s. A chronology quoted without a chart version is
+//! a chronology that cannot be checked; [`CHART_VERSION`] and
+//! [`ChartEdition::version`] are part of the public API for that reason.
 //!
 //! # What a zero uncertainty means here
 //!
@@ -59,13 +78,162 @@
 use crate::error::DeepTimeResult;
 use crate::magnitude::{DeepTime, DeepUnit};
 
-/// The chart edition every age in this module comes from.
+/// The chart edition the arrays and free functions of this module carry.
 pub const CHART_VERSION: &str = "v2026/06";
 
 /// The full citation for [`CHART_VERSION`].
 pub const CHART_CITATION: &str = "Cohen, K.M., Harper, D.A.T., Gibbard, P.L. & Car, N. (2025, updated), The ICS \
      international chronostratigraphic chart this decade, Episodes 48: 105-115; chart \
      v2026/06 at stratigraphy.org";
+
+/// One boundary an edition prints differently from [`CHART_VERSION`].
+///
+/// A boundary is shared by the interval below it and the one above, at every
+/// rank that has it, so it is keyed by the age v2026/06 gives it and applies
+/// wherever that age appears as a top or a base.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BoundaryAmendment {
+    /// The boundary's age in v2026/06, in Ma.
+    pub current_ma: f64,
+    /// The age this edition prints, in Ma.
+    pub ma: f64,
+    /// The uncertainty this edition prints, or zero where it gives none.
+    pub std_dev_ma: f64,
+    /// How many digits of `ma` this edition prints.
+    pub figures: u8,
+}
+
+/// A named edition of the International Chronostratigraphic Chart.
+#[derive(Debug, Clone, Copy)]
+pub struct ChartEdition {
+    /// A stable identifier, lowercase and hyphenated.
+    pub id: &'static str,
+    /// The version as the ICS writes it: `v2026/06`.
+    pub version: &'static str,
+    /// Where the edition's ages come from.
+    pub source: &'static str,
+    /// The boundaries this edition prints differently from
+    /// [`CHART_VERSION`]; empty for that edition itself.
+    pub amendments: &'static [BoundaryAmendment],
+}
+
+impl PartialEq for ChartEdition {
+    /// Two editions are the same when they carry the same identifier.
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for ChartEdition {}
+
+impl ChartEdition {
+    /// A boundary of [`CHART_VERSION`] as this edition prints it: age,
+    /// uncertainty and printed figures.
+    fn boundary(&self, ma: f64, std_dev_ma: f64, figures: u8) -> (f64, f64, u8) {
+        self.amendments
+            .iter()
+            .find(|amendment| amendment.current_ma.to_bits() == ma.to_bits())
+            .map_or((ma, std_dev_ma, figures), |amendment| {
+                (amendment.ma, amendment.std_dev_ma, amendment.figures)
+            })
+    }
+
+    /// An interval of [`CHART_VERSION`] as this edition bounds it.
+    #[must_use]
+    pub fn amend(&self, interval: &GeologicInterval) -> GeologicInterval {
+        let (top_ma, top_std_dev_ma, top_figures) = self.boundary(
+            interval.top_ma,
+            interval.top_std_dev_ma,
+            interval.top_figures,
+        );
+        let (base_ma, base_std_dev_ma, base_figures) = self.boundary(
+            interval.base_ma,
+            interval.base_std_dev_ma,
+            interval.base_figures,
+        );
+        GeologicInterval {
+            top_ma,
+            top_std_dev_ma,
+            top_figures,
+            base_ma,
+            base_std_dev_ma,
+            base_figures,
+            ..*interval
+        }
+    }
+
+    /// The intervals of one rank in this edition, youngest first.
+    pub fn intervals(&self, rank: GeologicRank) -> impl Iterator<Item = GeologicInterval> + '_ {
+        intervals(rank).iter().map(|interval| self.amend(interval))
+    }
+
+    /// Which interval of `rank` this edition puts `ma` megayears before
+    /// present in; see [`interval_at`].
+    #[must_use]
+    pub fn interval_at(&self, ma: f64, rank: GeologicRank) -> Option<GeologicInterval> {
+        self.intervals(rank)
+            .find(|interval| interval.contains_ma(ma))
+    }
+
+    /// An interval of this edition by name, at any rank; see [`by_name`].
+    #[must_use]
+    pub fn by_name(&self, name: &str) -> Option<GeologicInterval> {
+        by_name(name).map(|interval| self.amend(interval))
+    }
+}
+
+hc_core::catalogue! {
+    type: ChartEdition,
+    id: |edition| edition.id,
+    provenance: |edition| edition.source,
+    tests: chart_edition_catalogue,
+
+    /// Every edition of the chart this crate carries, newest first.
+    pub const CHART_EDITIONS;
+
+    /// The edition with this identifier.
+    pub fn edition_by_id;
+
+    entries: {
+        /// Chart v2026/06, the edition the module's arrays carry.
+        pub const ICS_CHART_2026_06 = ChartEdition {
+            id: "ics-chart-2026-06",
+            version: "v2026/06",
+            source: "ICS, International Chronostratigraphic Chart v2026/06, \
+                     stratigraphy.org/ICSchart/ChronostratChart2026-06.pdf, retrieved 2026-09-26",
+            amendments: &[],
+        };
+
+        /// Chart v2024/12: v2026/06 with three boundaries where v2024/12
+        /// prints them.
+        pub const ICS_CHART_2024_12 = ChartEdition {
+            id: "ics-chart-2024-12",
+            version: "v2024/12",
+            source: "ICS, International Chronostratigraphic Chart v2024/12, \
+                     stratigraphy.org/ICSchart/ChronostratChart2024-12.pdf, retrieved 2026-09-26",
+            amendments: &[
+                BoundaryAmendment {
+                    current_ma: 247.0,
+                    ma: 246.7,
+                    std_dev_ma: 0.0,
+                    figures: 4,
+                },
+                BoundaryAmendment {
+                    current_ma: 250.8,
+                    ma: 249.9,
+                    std_dev_ma: 0.0,
+                    figures: 4,
+                },
+                BoundaryAmendment {
+                    current_ma: 259.857,
+                    ma: 259.51,
+                    std_dev_ma: 0.21,
+                    figures: 5,
+                },
+            ],
+        };
+    }
+}
 
 /// Where an interval sits in the chronostratigraphic hierarchy.
 ///
@@ -2916,6 +3084,72 @@ mod tests {
         let hadean = EONS.last().unwrap();
         assert_eq!(hadean.name, "Hadean");
         assert!((hadean.base_ma - OLDEST_BOUNDARY_MA).abs() < 1e-9);
+    }
+
+    #[test]
+    fn chart_v2024_12_keeps_its_own_three_boundaries() {
+        let old = edition_by_id("ics-chart-2024-12").unwrap();
+        let anisian = old.by_name("Anisian").unwrap();
+        assert!((anisian.base_ma - 246.7).abs() < 1e-9);
+        let olenekian = old.by_name("Olenekian").unwrap();
+        assert!((olenekian.top_ma - 246.7).abs() < 1e-9);
+        assert!((olenekian.base_ma - 249.9).abs() < 1e-9);
+        assert!((old.by_name("Induan").unwrap().top_ma - 249.9).abs() < 1e-9);
+        let wuchiapingian = old.by_name("Wuchiapingian").unwrap();
+        assert!((wuchiapingian.base_ma - 259.51).abs() < 1e-9);
+        assert!((wuchiapingian.base_std_dev_ma - 0.21).abs() < 1e-9);
+        assert_eq!(wuchiapingian.base_figures, 5);
+        // 250 Ma is Olenekian in v2026/06 and Induan in v2024/12.
+        assert_eq!(
+            interval_at(250.0, GeologicRank::Age).map(|i| i.name),
+            Some("Olenekian")
+        );
+        assert_eq!(
+            old.interval_at(250.0, GeologicRank::Age).map(|i| i.name),
+            Some("Induan")
+        );
+    }
+
+    #[test]
+    fn the_two_editions_differ_in_exactly_the_intervals_the_2026_06_file_notes() {
+        // The nine intervals bounded by the three moved ages, which are also
+        // the nine carrying a 2026-06 `skos:changeNote` in the ICS's
+        // chart.ttl.
+        let mut changed: Vec<&str> = Vec::new();
+        for rank in GeologicRank::ALL {
+            for (new, old) in intervals(*rank)
+                .iter()
+                .zip(ICS_CHART_2024_12.intervals(*rank))
+            {
+                if *new != old {
+                    changed.push(new.name);
+                }
+            }
+        }
+        changed.sort_unstable();
+        assert_eq!(
+            changed,
+            [
+                "Anisian",
+                "Capitanian",
+                "Guadalupian",
+                "Induan",
+                "Lopingian",
+                "Lower Triassic",
+                "Middle Triassic",
+                "Olenekian",
+                "Wuchiapingian"
+            ]
+        );
+        // v2026/06 amends nothing.
+        for rank in GeologicRank::ALL {
+            assert!(
+                intervals(*rank)
+                    .iter()
+                    .zip(ICS_CHART_2026_06.intervals(*rank))
+                    .all(|(a, b)| *a == b)
+            );
+        }
     }
 
     #[test]

@@ -15,10 +15,17 @@
 //! divinatory cycle rather than a civil one — the 七曜 column sat beside the
 //! 十二直 and the 二十八宿, which is why it belongs in an almanac crate at
 //! all. See the National Diet Library's 「日本の暦」exhibition, 具注暦
-//! section. It became the civil week in April 1876, when 太政官達第27号 of
-//! 明治9年3月12日 made Sunday a day off and Saturday afternoon a half-day
-//! from that month, replacing the days ending in 1 and 6 (NAOJ 暦計算室, 暦Wiki
-//! 「日曜日」 and 「明治以降の休日」).
+//! section, not re-read on 2026-09-26; the NAOJ 暦Wiki 「曜日の名前」
+//! (<https://eco.mtk.nao.ac.jp/koyomi/wiki/CDD7C1C72F1BDB5B4D6A4C8A4CFA1A92FCDCBC6FCA4CECCBEC1B0.html>,
+//! read 2026-09-26) has 弘法大師 bringing the 七曜 with the 宿曜経 and the
+//! 七曜 used with the 二十七宿 for divination rather than as a week. It
+//! became the civil week in April 1876, when 太政官達第27号 of 明治9年3月12日
+//! made Sunday a day off and Saturday afternoon a half-day from that month,
+//! replacing the days ending in 1 and 6 (NAOJ 暦計算室, 暦Wiki 「日曜日」,
+//! <https://eco.mtk.nao.ac.jp/koyomi/wiki/CDD7C1C72F1BDB5B4D6A4C8A4CFA1A92FC6FCCDCBC6FC.html>,
+//! and 「明治以降の休日」,
+//! <https://eco.mtk.nao.ac.jp/koyomi/wiki/CEF2BBCB2FCCC0BCA3B0CAB9DFA4CEB5D9C6FC.html>,
+//! both read 2026-09-26).
 //!
 //! # The names differ by country more than the associations do
 //!

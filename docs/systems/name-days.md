@@ -69,6 +69,33 @@ layout is the leap year's and the leap year is the one that has moved. A
 date that does not exist — 29 February of a common year included — is an
 error, not a substitution.
 
+*Worked example: Hungary's leap day.* Hungary is a gap in this crate, not a
+vendored list, but its calendar is the textbook case of
+`ShiftAfter24February`, and Hungarian Wikipedia's day pages state it
+[huwiki-februar-24]: 24 February is Mátyás, 25 February Géza and 28 February
+Elemér, and in a leap year 24 February is the *szökőnap*, the leap day,
+which carries no names, while the names of 24–28 February move one day on,
+Mátyás to the 25th and Elemér to the 29th ("Mátyás ugrása"). Laid out as a
+leap year's 366 slots, the list therefore reads:
+
+| Slot | Names |
+| --- | --- |
+| 24 February | — |
+| 25 February | Mátyás |
+| 26 February | Géza |
+| 29 February | Elemér |
+
+and the arithmetic, by hand:
+
+1. **2024, a leap year, 25 February.** The date exists and the year is
+   leap, so it reads its own slot, 25 February: Mátyás.
+2. **2024, 24 February.** Its own slot, which is empty: nobody's name day.
+3. **2025, a common year, 24 February.** Under `ShiftAfter24February` a
+   common year's 24–28 February read the slot one day later, so this reads
+   the 25 February slot: Mátyás, on the 24th, as in every common year.
+4. **2025, 28 February.** Reads the 29 February slot: Elemér.
+5. **2025, 29 February.** Does not exist: an error.
+
 **One evaluator, two kinds of list.** `names_on(list, year, month, day)` and
 `days_of(list, name, year)` read anything implementing `NameDays`: the
 vendored `NameDayList` tables and the `OwnedNameDayList` a caller loads from
@@ -174,6 +201,7 @@ carries the later file.
 | [culture-sk-kalendarium] | Slovakia's list and commission | no, via the research report |
 | [ptejteseknihovny-kalendarium] | Czechia | no, via the research report |
 | [huwiki-nevnap], [dawiki-navnedag], [stat-ee-nimepaevad], [ltwiki-vardadienis], [plwiki-imieniny] | Hungary, Denmark, Estonia, Lithuania, Poland | no, via the research report |
+| [huwiki-februar-24] | the worked example: the Hungarian names of 24, 25, 28 and 29 February and the leap-year shift | yes, 2026-09-26 |
 | [bg-patriarshia-calendar], [elwiki-eortologio], [ruwiki-imeniny] | the Orthodox countries and the movable rules | no, via the research report |
 | [frwiki-fleuristes], [ktabkbih-imendanski], [dewiki-namenstage] | France, Croatia, Germany and Austria | no, via the research report |
 

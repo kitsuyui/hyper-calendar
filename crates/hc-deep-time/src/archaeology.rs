@@ -344,8 +344,11 @@ impl ArchaeologicalPeriod {
 ///
 /// Boundaries are round numbers on purpose. The Younger Dryas termination at
 /// 11 700 b2k (11 650 BP) is the one hard date in the list, ratified as the
-/// base of the Holocene from the NGRIP ice core; the rest are handbook
-/// conventions and their error bars say so.
+/// base of the Holocene from the NGRIP ice core. The other boundaries are
+/// this library's choice of round numbers for divisions in common use; no
+/// handbook was read for them, so no handbook is cited, and their error
+/// bars are wide to say so. Where a named work fixes one side of a period,
+/// its `source` names it.
 pub const PERIODS: &[ArchaeologicalPeriod] = &[
     ArchaeologicalPeriod {
         name: "Modern period",
@@ -353,7 +356,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
                       one; included so that the sequence reaches the present and a query for a \
                       recent date has an answer.",
         region: "Europe and Southwest Asia",
-        source: "Conventional historical periodisation",
+        source: "This library's round-number boundaries; no handbook read",
         begins_bp: 450.0,
         begins_std_dev_bp: 50.0,
         ends_bp: 0.0,
@@ -365,7 +368,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
                       than dates, and the fifty-year error bars understate how much they are \
                       argued about.",
         region: "Europe",
-        source: "Conventional historical periodisation",
+        source: "This library's round-number boundaries; no handbook read",
         begins_bp: 1400.0,
         begins_std_dev_bp: 100.0,
         ends_bp: 450.0,
@@ -377,7 +380,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
                       documents rather than by radiocarbon, which is why it is the only stretch \
                       of this table whose dates are better than its error bars suggest.",
         region: "Mediterranean",
-        source: "Conventional historical periodisation",
+        source: "This library's round-number boundaries; no handbook read",
         begins_bp: 2500.0,
         begins_std_dev_bp: 100.0,
         ends_bp: 1400.0,
@@ -388,7 +391,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
         description: "From the Late Bronze Age collapse around 1200 BCE. Iron working spread \
                       over centuries and the transition is a gradient, not a line.",
         region: "Southwest Asia and the eastern Mediterranean",
-        source: "Conventional; Thomsen's Three-Age System (1836) as since refined",
+        source: "Thomsen's Three-Age System (1836); boundaries this library's round numbers",
         begins_bp: 3150.0,
         begins_std_dev_bp: 100.0,
         ends_bp: 2500.0,
@@ -401,7 +404,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
                       centuries later, which is the clearest illustration of why this table \
                       names a region.",
         region: "Southwest Asia",
-        source: "Conventional; Thomsen's Three-Age System (1836) as since refined",
+        source: "Thomsen's Three-Age System (1836); boundaries this library's round numbers",
         begins_bp: 5250.0,
         begins_std_dev_bp: 100.0,
         ends_bp: 3150.0,
@@ -413,7 +416,8 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
                       Not recognised as a separate period by every tradition, which is part of \
                       why its boundaries are the softest in the table.",
         region: "Southwest Asia",
-        source: "Conventional Levantine and Mesopotamian periodisation",
+        source: "The Levantine and Mesopotamian division in common use; boundaries this \
+                 library's round numbers, no handbook read",
         begins_bp: 6450.0,
         begins_std_dev_bp: 200.0,
         ends_bp: 5250.0,
@@ -439,7 +443,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
                       and draws it differently; the two terms are not interchangeable, and this \
                       table uses the Southwest Asian one throughout.",
         region: "Southwest Asia",
-        source: "Conventional; Bar-Yosef, Evolutionary Anthropology 6, 159 (1998)",
+        source: "Bar-Yosef, Evolutionary Anthropology 6, 159 (1998); boundaries this library's round numbers",
         begins_bp: 23_000.0,
         begins_std_dev_bp: 1000.0,
         ends_bp: 11_650.0,
@@ -452,7 +456,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
                       years the remaining 14C is below what accelerator mass spectrometry can \
                       separate from contamination.",
         region: "Europe and Southwest Asia",
-        source: "Conventional; the radiocarbon limit is instrumental, not conventional",
+        source: "This library's round numbers; the radiocarbon limit is instrumental, not a convention",
         begins_bp: 45_000.0,
         begins_std_dev_bp: 3000.0,
         ends_bp: 23_000.0,
@@ -465,7 +469,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
                       argon-argon, never from radiocarbon, so \"BP\" here means calendar years \
                       and nothing else.",
         region: "Europe, Southwest Asia and Africa",
-        source: "Conventional; the 300 ka boundary follows the Middle Stone Age transition",
+        source: "This library's round numbers; the 300 ka boundary follows the Middle Stone Age transition",
         begins_bp: 300_000.0,
         begins_std_dev_bp: 50_000.0,
         ends_bp: 45_000.0,

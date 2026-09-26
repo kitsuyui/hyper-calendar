@@ -33,23 +33,46 @@
 //!
 //! NAOJ publishes **no** per-item 下段 rule. Nor does the 暦要項. The
 //! National Diet Library's 「日本の暦」exhibition does, and so do several
-//! well-known web references — but 岡田芳朗・阿久根末忠『現代こよみ読み解き
-//! 事典』(柏書房, 1993) is the common ancestor of most of the latter, so
-//! four agreeing websites are frequently *one* witness. The genuinely
-//! independent checks used here are the National Diet Library and
-//! 精選版日本国語大辞典 / デジタル大辞泉 via コトバンク, plus published
-//! almanac date lists, which the tests carry.
+//! well-known web references — but 岡田芳朗・阿久根末忠 (編著)『現代こよみ
+//! 読み解き事典』(柏書房, 1993) is the common ancestor of several of the
+//! latter: Japanese Wikipedia 暦注下段 lists it as its reference, and
+//! こよみのページ names it, with 岡田芳朗『旧暦読本』, as the basis of its
+//! rules. Neither book was read here; every rule this module takes from
+//! them is taken at second hand, through those two pages. Four agreeing
+//! websites are therefore frequently *one* witness. The independent checks
+//! are the National Diet Library, 精選版日本国語大辞典 via コトバンク, and
+//! published almanac date lists, which the tests carry.
 //!
 //! # Sources
 //!
+//! Web pages were read on the date given; the date lists cited in the
+//! tests from 吉日カレンダー and zired were not re-read on 2026-09-26.
+//!
 //! * National Diet Library, 「日本の暦」, 吉凶を表す言葉③下段
-//!   (<https://www.ndl.go.jp/koyomi/chapter3/s5.html>) — the three 悪日 table,
-//!   往亡日, 天赦日, 帰忌日, 母倉日, 月徳日 and the glosses.
-//! * NAOJ 暦Wiki 「暦注」 and 「節月」 — the 上段/中段/下段 division, the
-//!   撰日法 vocabulary, and the 節月 numbering.
-//! * Japanese Wikipedia 暦注下段, which enumerates the 干支 lists and gives
-//!   the 凶会日 tables for both the 宣明暦 and the 貞享暦.
-//! * こよみのページ 「暦注の説明（その３）下段」.
+//!   (<https://www.ndl.go.jp/koyomi/chapter3/s5.html>), read 2026-09-26 —
+//!   the three 悪日 by birth year, 往亡日, 天赦日, 帰忌日, 母倉日, 月徳日,
+//!   its 凶会日 and 五墓日 lists, and the glosses.
+//! * NAOJ 暦Wiki 「暦注」 (<https://eco.mtk.nao.ac.jp/koyomi/wiki/CEF1C3ED.html>)
+//!   and 「節月」 (<https://eco.mtk.nao.ac.jp/koyomi/wiki/C0E1B7EE.html>),
+//!   read 2026-09-26 — the 上段/中段/下段 division, the 撰日法 vocabulary,
+//!   and the 節月 numbering.
+//! * Japanese Wikipedia 暦注下段
+//!   (<https://ja.wikipedia.org/wiki/暦注下段>), read 2026-09-26, which
+//!   enumerates the 干支 lists and gives the 凶会日 table with the entries
+//!   the 貞享暦 struck in brackets.
+//! * こよみのページ 「暦注の説明（その３）・下段について」
+//!   (<https://koyomi8.com/sub/rekicyuu_doc03.html>), read 2026-09-26.
+//! * 精選版日本国語大辞典 via コトバンク, 「五墓日」
+//!   (<https://kotobank.jp/word/%E4%BA%94%E5%A2%93%E6%97%A5-504678>) and
+//!   「凶会日」 (<https://kotobank.jp/word/%E5%87%B6%E4%BC%9A%E6%97%A5-482697>),
+//!   read 2026-09-26.
+//! * こよみる 「凶会日」 (<https://koyomil.com/kuenichi/>), 「大明日」
+//!   (<https://koyomil.com/daimyounichi/>), 「五墓日」
+//!   (<https://koyomil.com/gomunichi/>) and 「大禍日」
+//!   (<https://koyomil.com/taikanichi/>); うまずたゆまず 「凶会日」
+//!   (<https://www.linderabell.com/entry/gedan/kue>); 歳事暦 「暦の吉凶 下段」
+//!   (<https://saijigoyomi.com/kadan/>) — publishers' statements of which
+//!   reading they print, all read 2026-09-26.
 
 use hc_calendar::Rd;
 use hc_seasons::Meridian;
@@ -64,10 +87,14 @@ use crate::rules::{AlmanacRule, rule_applies};
 /// 丁亥 23, 壬辰 28, 乙未 31, 壬寅 38, 甲辰 40, 乙巳 41, 丙午 42, 丁未 43,
 /// 己酉 45, 庚戌 46, 辛亥 47, 丙辰 52, 戊午 54, 己未 55, 庚申 56, 辛酉 57.
 ///
-/// Japanese Wikipedia 暦注下段 records a 21-day variant that drops 己巳, 庚午,
-/// 丁未 and 戊午. The 25-day list is the one published almanacs use and is
-/// the one implemented; 2024-01-06 is 己巳 and is printed as 大明日, which
-/// settles it against the 21-day variant.
+/// Three lists are published. The 25 above are Japanese Wikipedia 暦注下段's
+/// list, こよみる's and 歳事暦's. Japanese Wikipedia and こよみる record a
+/// 21-day list that drops 己巳, 庚午, 丁未 and 戊午, and こよみる a 19-day list
+/// that keeps fifteen of the 25 and adds 乙丑, 丁卯, 戊辰 and 癸巳. The 25 are
+/// carried because they are the only list a printed date anchors: 2024-01-06
+/// is 己巳 and 吉日カレンダー prints it as 大明日. Neither shorter list is
+/// registered as a reading of its own, because no printed date for either
+/// has been found to test it against.
 static DAIMYONICHI: [u8; 25] = [
     5, 6, 7, 8, 9, 13, 15, 18, 20, 23, 28, 31, 38, 40, 41, 42, 43, 45, 46, 47, 52, 54, 55, 56, 57,
 ];
@@ -94,20 +121,29 @@ static KAMIYOSHINICHI: [u8; 33] = [
 
 /// 五墓日 — 戊辰 4, 丙戌 22, 壬辰 28, 乙丑 1, 辛未 7.
 ///
-/// Two things about this one are genuinely contested.
+/// Two things about this one are contested, and each reading is named here.
 ///
-/// **Which 干支.** 精選版日本国語大辞典 and the National Diet Library give
-/// 乙未 and 辛丑 where the 岡田芳朗 lineage and every almanac calculator give
-/// 乙丑 and 辛未 — a 丑/未 swap on two of the five. The five above are the
-/// calculator reading, because that is what Japanese almanacs print.
+/// **Which 干支.** Three sets are in print, each one day per 納音 phase:
+///
+/// * 乙丑, 丙戌, 戊辰, 辛未, 壬辰 — Japanese Wikipedia 暦注下段 (木 乙丑,
+///   火 丙戌, 土 戊辰, 金 辛未, 水 壬辰), こよみる and 歳事暦. Carried.
+/// * 乙未, 丙戌, 戊辰, 辛丑, 壬辰 — 精選版日本国語大辞典: a 丑/未 swap on
+///   the wood and metal days.
+/// * 乙未, 丙辰, 戊辰, 辛丑, 壬辰 — the National Diet Library's list, whose
+///   own prose names 戊辰 and 丙戌 as examples.
+///
+/// The first set is carried because the publishers read here print it. No
+/// printed date anchors any of the three, so the other two are named rather
+/// than registered.
 ///
 /// **Whether it applies to everyone.** The older rule is per-person, by the
 /// 納音 of one's birth year: Japanese Wikipedia says 「その日取りは人によって
-/// 異なり」 and 精選版日本国語大辞典 phrases every entry as 「木性の**人**は
-/// 乙未の日」. こよみのページ records that modern practice dropped the
-/// distinction — 「近年は区別をしなくなっている」 — and computes it for
-/// everyone. This crate does the same. A caller who wants the per-person
-/// form must filter by 納音 itself; the crate does not model 納音.
+/// 異なり」, 精選版日本国語大辞典 phrases every entry as 「木性の**人**は
+/// 乙未の日」, and 歳事暦 and こよみる give the same per-person rule.
+/// こよみのページ records that modern practice dropped the distinction —
+/// 「近年は区別をしなくなっている」 — and computes it for everyone. This
+/// crate does the same. A caller who wants the per-person form must filter
+/// by 納音 itself; the crate does not model 納音.
 static GOMUNICHI: [u8; 5] = [1, 4, 7, 22, 28];
 
 /// 母倉日, by 節月, as earthly branches.
@@ -153,7 +189,7 @@ static TSUKITOKUNICHI: [&[u8]; 12] = [
 ///
 /// 春 (節月 1–3, 立春 to the eve of 立夏) 戊寅 14; 夏 (4–6) 甲午 30; 秋 (7–9)
 /// 戊申 44; 冬 (10–12) 甲子 0. Source: NDL 日本の暦, which states the
-/// boundaries as 節気 rather than as months.
+/// boundaries as 節気 rather than as months (「春（立春～立夏)」).
 static TENSHANICHI: [&[u8]; 12] = [
     &[14],
     &[14],
@@ -169,7 +205,8 @@ static TENSHANICHI: [&[u8]; 12] = [
     &[0],
 ];
 
-/// 大禍日, by 節月, as earthly branches. One of the 三箇の悪日.
+/// 大禍日, by 節月, as earthly branches. One of the 三箇の悪日; see
+/// [`LowerRegister::THREE_EVIL_DAYS`] for the birth-year reading.
 static TAIKANICHI: [&[u8]; 12] = [
     &[11],
     &[6],
@@ -366,14 +403,22 @@ static JIKANICHI: [&[u8]; 12] = [
     &[4],
 ];
 
-/// 凶会日, by 節月, as sexagenary days — the 貞享暦 table.
+/// 凶会日, by month, as sexagenary days — the 貞享暦 table.
 ///
-/// Seventy entries. The 宣明暦 had eighty-two; the 貞享 reform struck twelve
-/// out. Source: Japanese Wikipedia 暦注下段, whose table marks the struck
-/// entries in parentheses, corroborated by the identical 貞享暦 tables
-/// published by 歳事暦 and うまずたゆまず.
+/// Seventy distinct entries: Japanese Wikipedia 暦注下段's table less the
+/// twelve entries it brackets as struck by the 貞享 reform. (Its 辰節 row
+/// prints 甲辰 twice, so the table has 82 distinct entries in all.) 歳事暦
+/// and うまずたゆまず print the same seventy. Japanese Wikipedia's prose,
+/// こよみる and うまずたゆまず say the 貞享暦 has 72; no table read here has
+/// 72, and the crate follows the tables.
 ///
-/// See [`LowerRegister::KUENICHI`] for the 節切り / 月切り dispute.
+/// The 宣明暦 table — the seventy with the twelve struck entries restored —
+/// is not carried: no printed date anchors it. The National Diet Library's
+/// table is close to it; see the test
+/// `the_ndl_evil_gathering_table_is_the_jokyo_table_and_eleven_more`.
+///
+/// Which month indexes the table is disputed too; see
+/// [`LowerRegister::KUENICHI`] and [`KUENICHI_BY_LUNISOLAR_MONTH`].
 static KUENICHI: [&[u8]; 12] = [
     &[27, 50],                                       // 寅節
     &[15, 51, 57],                                   // 卯節
@@ -633,22 +678,25 @@ hc_core::catalogue! {
         };
         /// 凶会日 — the gathering of ills; the two breaths fail to harmonise.
         ///
-        /// # The one rule this crate had to choose
+        /// # Two readings of the month, both named
         ///
-        /// Sources contradict each other about whether 凶会日 is 節切り or 月切り,
-        /// and the contradiction is inside single documents. Japanese
+        /// Sources contradict each other about whether 凶会日 is 節切り or
+        /// 月切り, and the contradiction is inside single documents. Japanese
         /// Wikipedia's prose says 「宣明暦時代は節切りで、貞享暦以降は月切り（旧
         /// 暦）による」 but its own table is headed 「注：節切り。」 with rows
-        /// labelled 寅節 through 丑節. こよみる computes it by 旧暦月;
-        /// うまずたゆまず and 歳事暦 by 節月; 精選版日本国語大辞典 phrases it as
-        /// 旧暦正月.
+        /// labelled 寅節 through 丑節. Publishers split: 歳事暦 heads the 貞享暦
+        /// table 「凶会日に当たる日（節切り）」 and うまずたゆまず 「節切りの月毎」,
+        /// while こよみる lists five readings in use and prints the one it calls
+        /// 「貞享暦の旧暦月によるもの」. 精選版日本国語大辞典 phrases its example
+        /// as 旧暦正月; the National Diet Library heads its table 節季.
         ///
-        /// **This crate uses the 節月**, because the table it ships is the one
-        /// Japanese Wikipedia prints and that table is labelled 節切り, and
-        /// because every other 節-or-month rule in this module is 節切り. A
-        /// caller who needs the 月切り reading must build the rule itself from
-        /// [`LowerRegister::rule`]'s table and evaluate it against
-        /// [`DayContext::lunisolar`].
+        /// **This entry uses the 節月**, as 歳事暦 and うまずたゆまず do, and
+        /// as every other 節-or-month rule in this module does. The 旧暦月
+        /// reading is [`KUENICHI_BY_LUNISOLAR_MONTH`], the same table under
+        /// [`AlmanacRule::SexagenaryByLunarMonth`], anchored to こよみる's
+        /// published 2025 dates. It is a named rule rather than a second entry
+        /// in [`LowerRegister::ALL`] so that a day's lower register does not
+        /// print 凶会日 twice.
         pub const KUENICHI = Self {
             id: "kuenichi",
             rule: AlmanacRule::SexagenaryBySolarMonth(&KUENICHI),
@@ -758,6 +806,21 @@ impl LowerRegister {
     }
 
     /// The three 悪日, which an almanac prints together.
+    ///
+    /// Two readings are in print, and this crate computes the second:
+    ///
+    /// * **By birth year.** Each person has one 節月 of 悪日: the one whose
+    ///   branch is the branch of their birth year, so someone born in a 巳
+    ///   year keeps 大禍 on 申, 狼藉 on 酉 and 滅門 on 寅 days in 巳月 only.
+    ///   The National Diet Library, Japanese Wikipedia, こよみのページ, 歳事暦
+    ///   and こよみる all give the table in this form.
+    /// * **For everyone.** Every row applies to every reader. こよみのページ
+    ///   says 「現在は生まれ年とは無関係の悪日とされることが多い」; Japanese
+    ///   Wikipedia and 歳事暦 that some commercial almanacs print it so; and
+    ///   こよみる gives both, about 30 days a year against two or three.
+    ///
+    /// A caller who wants the birth-year form keeps a day only when
+    /// [`crate::SolarMonth::branch_index`] equals the birth year's branch.
     pub const THREE_EVIL_DAYS: [Self; 3] =
         [Self::TAIKANICHI, Self::ROJAKUNICHI, Self::METSUMONNICHI];
 
@@ -824,6 +887,16 @@ impl LowerRegister {
         rule_applies(self.rule(), context)
     }
 }
+
+/// 凶会日 read by the lunisolar month: the 貞享暦 table of
+/// [`LowerRegister::KUENICHI`], indexed by the 旧暦 month instead of the
+/// 節月, a leap month taking the row of the month it follows.
+///
+/// This is the reading こよみる prints, which it calls 「貞享暦の旧暦月による
+/// もの」 (<https://koyomil.com/kuenichi/>, read 2026-09-26), and the one
+/// Japanese Wikipedia 暦注下段's prose ascribes to the 貞享暦 onward.
+/// Evaluate it with [`rule_applies`].
+pub const KUENICHI_BY_LUNISOLAR_MONTH: AlmanacRule = AlmanacRule::SexagenaryByLunarMonth(&KUENICHI);
 
 /// Every 暦注下段 in force on a day, as a bit set.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -1065,8 +1138,8 @@ mod tests {
         // 2024-01-06 is 己巳 in 節月 十二月: 大明日 and 神吉日.
         assert!(holds(LowerRegister::DAIMYONICHI, rd_2024(1, 6)));
         assert!(holds(LowerRegister::KAMIYOSHINICHI, rd_2024(1, 6)));
-        // 2024-02-21 is 乙卯 in 節月 正月: 神吉日 but *not* 大明日. This is
-        // what rules out the circulated 大明日 list that contains 乙卯.
+        // 2024-02-21 is 乙卯 in 節月 正月: 神吉日 but *not* 大明日. None of
+        // the 25-, 21- or 19-day lists read contains 乙卯.
         assert!(holds(LowerRegister::KAMIYOSHINICHI, rd_2024(2, 21)));
         assert!(!holds(LowerRegister::DAIMYONICHI, rd_2024(2, 21)));
         // 2024-01-01 is 甲子: 天恩日. 2024-02-15 is 己酉: 天恩日 and 十死日.
@@ -1175,6 +1248,125 @@ mod tests {
                 assert!(*entry < 60);
             }
         }
+    }
+
+    /// The National Diet Library's 凶会日 table, headed 節季, has 81
+    /// entries. It holds every one of the crate's seventy and eleven more:
+    /// ten of the twelve Japanese Wikipedia brackets as struck by the 貞享
+    /// reform, and 甲辰 in its ninth month where Wikipedia's bracketed
+    /// entry is 庚寅. Wikipedia's twelfth bracketed entry, 癸丑 in 丑節, is
+    /// not in it.
+    #[test]
+    fn the_ndl_evil_gathering_table_is_the_jokyo_table_and_eleven_more() {
+        let ndl: [&[u8]; 12] = [
+            &[27, 46, 50],
+            &[15, 51, 57],
+            &[0, 1, 2, 3, 4, 8, 16, 20, 32, 40, 44, 56, 59],
+            &[4, 5, 7, 19, 31, 35, 42, 43, 53, 54, 55, 59],
+            &[42, 48, 54],
+            &[5, 42, 43, 49, 53, 54, 55],
+            &[21, 40, 56],
+            &[45, 51, 57],
+            &[2, 10, 14, 27, 28, 29, 30, 31, 32, 33, 34, 38, 40, 46, 50],
+            &[1, 5, 13, 24, 25, 34, 35, 37, 48, 49, 53, 59],
+            &[24, 42, 48],
+            &[24, 43, 48, 59],
+        ];
+        let extra: [&[u8]; 12] = [
+            &[46],
+            &[],
+            &[59],
+            &[5, 53],
+            &[48],
+            &[49, 54],
+            &[],
+            &[],
+            &[2, 14, 38, 40],
+            &[],
+            &[],
+            &[],
+        ];
+        let mut total = 0;
+        for month in 0..12 {
+            total += ndl[month].len();
+            for entry in KUENICHI[month] {
+                assert!(ndl[month].contains(entry), "month {}: {entry}", month + 1);
+            }
+            for entry in ndl[month] {
+                assert_eq!(
+                    KUENICHI[month].contains(entry),
+                    !extra[month].contains(entry),
+                    "month {}: {entry}",
+                    month + 1
+                );
+            }
+        }
+        assert_eq!(total, 81);
+    }
+
+    /// こよみる prints the 貞享暦 凶会日 by the 旧暦 month, and publishes the
+    /// 2025 dates (<https://koyomil.com/kuenichi/>, read 2026-09-26):
+    /// thirty-three days, including four in the leap sixth month, which
+    /// takes the sixth month's row. The named rule reproduces all of them
+    /// and no other day of the year.
+    #[test]
+    fn the_lunisolar_reading_of_the_evil_gathering_matches_the_published_2025_dates() {
+        const NEW_YEAR_2025: i64 = 739_252;
+        let published = [
+            (1usize, 19i64),
+            (2, 14),
+            (3, 11),
+            (4, 5),
+            (4, 9),
+            (4, 21),
+            (4, 25),
+            (4, 26),
+            (4, 27),
+            (4, 29),
+            (5, 2),
+            (5, 14),
+            (5, 26),
+            (6, 6),
+            (6, 18),
+            (6, 29),
+            (8, 5),
+            (8, 6),
+            (8, 16),
+            (8, 18),
+            (9, 13),
+            (10, 7),
+            (10, 13),
+            (10, 19),
+            (11, 1),
+            (11, 18),
+            (11, 19),
+            (11, 25),
+            (11, 26),
+            (11, 28),
+            (12, 9),
+            (12, 10),
+            (12, 14),
+        ];
+        let mut differs = 0;
+        for month in 1..=12usize {
+            for day in 1..=DAYS_IN_MONTH[month - 1] {
+                let rd = NEW_YEAR_2025 + CUMULATIVE_COMMON[month - 1] + day - 1;
+                let context = DayContext::new(Rd(rd), JAPAN);
+                let lunar = rule_applies(KUENICHI_BY_LUNISOLAR_MONTH, &context) == Some(true);
+                assert_eq!(
+                    lunar,
+                    published.contains(&(month, day)),
+                    "2025-{month:02}-{day:02}"
+                );
+                if lunar != holds(LowerRegister::KUENICHI, rd) {
+                    differs += 1;
+                }
+            }
+        }
+        // The two readings share the table and differ in the month: the 節月
+        // reading gives thirty days in 2025, twenty-two of them shared, so
+        // nineteen days of the year carry 凶会日 under one reading only.
+        assert_eq!(differs, 19);
     }
 
     /// Every sexagenary list must be sorted, distinct and in range — a

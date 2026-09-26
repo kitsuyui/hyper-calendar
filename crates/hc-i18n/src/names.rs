@@ -505,10 +505,10 @@ pub struct CalendarNames {
     ///
     /// These are [`CalendarId`]s and not CLDR strings, which is what makes
     /// a wrong one a test failure: `hyper-calendar`'s vocabulary test
-    /// asserts every identifier here is a calendar the registry answers to.
-    /// Three were not — `persian`, `islamic` and `iso8601` were written,
-    /// tested and unreachable, because the registry calls them
-    /// `persian-arithmetic`, `islamic-civil` and `iso8601-week`.
+    /// asserts every identifier here is a calendar the registry answers to,
+    /// so an entry keyed to a CLDR name the registry spells differently
+    /// (CLDR's `islamic` for the registry's `islamic-civil`, say) cannot
+    /// sit unreachable.
     pub calendars: &'static [CalendarId],
     /// The names of each positional cycle, keyed by the cycle kind the
     /// calendar declares in [`hc_calendar::Calendar::cycles`].
@@ -671,6 +671,10 @@ impl CalendarDisplayName {
 pub struct LocaleData {
     /// The canonical tag this entry answers for, such as `zh-Hans`.
     pub tag: &'static str,
+    /// Where the entry's vocabulary comes from: the CLDR release and file,
+    /// or, for a language CLDR does not carry, the sources the entry's
+    /// comment names, keyed as in `docs/references.bib`.
+    pub sources: &'static str,
     /// The language's name in English: *Japanese*.
     pub english_name: &'static str,
     /// The language's name in itself: 日本語.
@@ -711,9 +715,8 @@ impl LocaleData {
     /// More than one may: a calendar can take its months from the shared
     /// Gregorian entry and its eras from an entry of its own. Thai is the
     /// case — the Buddhist calendar counts years differently and names the
-    /// months identically — and the old code expressed it with a fallback
-    /// from `buddhist` to `gregory`. This is that fallback generalised to
-    /// every cycle instead of only months.
+    /// months identically — so the lookup takes each cycle from the first
+    /// entry that names it, for every cycle and not only months.
     pub fn entries_for(&self, id: CalendarId) -> impl Iterator<Item = &CalendarNames> {
         self.calendars.iter().filter(move |entry| entry.serves(id))
     }
@@ -2042,6 +2045,29 @@ mod tests {
         );
         // With no region, the language's data entry decides.
         assert_eq!(first_day_of_week(&locale("de")), Weekday::Monday);
+        // CLDR 48 `weekData/firstDay`: ET, ID and BD are Sunday regions, CN
+        // a Monday one, and the region outranks the language.
+        assert_eq!(first_day_of_week(&locale("am-ET")), Weekday::Sunday);
+        assert_eq!(first_day_of_week(&locale("en-ID")), Weekday::Sunday);
+        assert_eq!(first_day_of_week(&locale("bn-BD")), Weekday::Sunday);
+        assert_eq!(first_day_of_week(&locale("zh-CN")), Weekday::Monday);
+        assert_eq!(first_day_of_week(&locale("zh-TW")), Weekday::Sunday);
+        assert_eq!(first_day_of_week(&locale("zh")), Weekday::Monday);
+    }
+
+    #[test]
+    fn a_chinese_tag_without_a_script_takes_the_likely_one() {
+        for tag in ["zh", "zh-CN", "zh-SG"] {
+            assert_eq!(
+                gregorian_month(tag, 1, NameWidth::Wide, NameContext::Format),
+                "一月",
+                "{tag}"
+            );
+        }
+        for tag in ["zh-TW", "zh-HK", "zh-MO"] {
+            assert_eq!(locale_data(&locale(tag)).tag, "zh-Hant", "{tag}");
+        }
+        assert_eq!(locale_data(&locale("zh")).tag, "zh-Hans");
     }
 
     #[test]

@@ -2,10 +2,12 @@
 //!
 //! Every number in this module is the CODATA 2022 recommended value, taken
 //! from the NIST *Fundamental Physical Constants — Complete Listing* table at
-//! <https://physics.nist.gov/cuu/Constants/Table/allascii.txt>, which is the
-//! machine-readable form of Mohr, Newell, Taylor & Tiesinga, *CODATA
-//! Recommended Values of the Fundamental Physical Constants: 2022*
-//! (arXiv:2409.03787).
+//! <https://physics.nist.gov/cuu/Constants/Table/allascii.txt> ("2022 CODATA
+//! adjustment"; the Planck time, length, mass, temperature, GeV equivalent
+//! and `G` checked against it 2026-09-26), which is the machine-readable
+//! form of Mohr, Newell, Taylor & Tiesinga, *CODATA Recommended Values of
+//! the Fundamental Physical Constants: 2022* (arXiv:2409.03787,
+//! `codata2022`).
 //!
 //! # Why the Planck units are not exact
 //!
