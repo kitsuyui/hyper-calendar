@@ -261,6 +261,7 @@ macro_rules! parameter_sets {
             epoch: CHINESE_EPOCH,
             year_offset: YEAR_OFFSET,
             solar_term_mode: SolarTermMode::Mean,
+            month_start_corrections: &[],
             mean_motion: Some(MODEL),
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
@@ -282,6 +283,7 @@ macro_rules! parameter_sets {
         /// rather than deleted, because the gap between the two is the most
         /// informative number this module produces.
         pub static PARAMETERS_TABULATED: LunisolarParameters = LunisolarParameters {
+            month_start_corrections: &[],
             mean_motion: Some(MODEL_TABULATED),
             ..TEMPLATE
         };
@@ -1105,6 +1107,7 @@ mod tests {
             epoch: CHINESE_EPOCH,
             year_offset: YEAR_OFFSET,
             solar_term_mode: SolarTermMode::Mean,
+            month_start_corrections: &[],
             mean_motion: Some(MeanMotionModel {
                 conjunction_mode: ConjunctionMode::Mean,
                 advance_limit: None,

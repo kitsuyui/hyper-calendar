@@ -1195,7 +1195,7 @@
   author       = {{한국천문연구원}},
   title        = {음양력변환계산 (생활천문관, 천문우주지식정보)},
   howpublished = {\url{https://astro.kasi.re.kr/life/pageView/8}},
-  note         = {KASI's conversion service, −59-02-13 to 2050-12-31; the Gregorian calendar as the official one under 천문법 제5조 (법률 제14906호, 2017-10-24). Retrieved 2026-09-25; the institute's FAQ on the calendar and its 월력요항 page returned server errors the same day}
+  note         = {KASI's conversion service, −59-02-13 to 2050-12-31; the Gregorian calendar as the official one under 천문법 제5조 (법률 제14906호, 2017-10-24). Retrieved 2026-09-25; the institute's FAQ on the calendar and its 월력요항 page returned server errors the same day. Dates queried 2026-09-27 through the service's own solar-to-lunar lookup, \url{https://astro.kasi.re.kr/life/solc}: every first day of a month of 1900--1913, both days of each Seoul--Beijing disagreement of 1653--1911, 1906-04-23 and 24, and Seollal 1988 and 2024}
 }
 
 @misc{vn-decision-121-cp,
@@ -1280,8 +1280,8 @@
 @misc{hko-conversion-tables,
   author       = {{Hong Kong Observatory}},
   title        = {Gregorian-Lunar Calendar Conversion Table of \emph{year}, text format},
-  howpublished = {\url{https://www.hko.gov.hk/en/gts/time/calendar/text/files/T1985e.txt} and the same path for 1968, 1988, 2000 and 2020--2026},
-  note         = {The first day of the 1st lunar month of each year read; the 12th month of 1985 from 21 January; the leap 2nd month of 2023 from 22 March. Retrieved 2026-09-25}
+  howpublished = {\url{https://www.hko.gov.hk/en/gts/time/calendar/text/files/T1985e.txt} and the same path for 1906, 1914, 1916, 1920, 1968, 1988, 2000 and 2020--2026},
+  note         = {The first day of the 1st lunar month of each year read; the 12th month of 1985 from 21 January; the leap 2nd month of 2023 from 22 March. Retrieved 2026-09-25. The 4th month of 1906 from 24 April, the 10th of 1914 from 17 November, the 1st of 1916 from 3 February and the 10th of 1920 from 10 November, retrieved 2026-09-27}
 }
 
 % --- The Zapotec yza and the Mesoamerican years (docs/systems/mesoamerican-years.md) ---
@@ -6374,4 +6374,27 @@
   title        = {Unicode {CLDR} 48, \texttt{common/main/<locale>.xml}, \texttt{localeDisplayNames/territories}},
   howpublished = {\url{https://github.com/unicode-org/cldr/tree/release-48/common/main}},
   note         = {What each locale calls each territory; the plain values of the 195 regions with a holiday table, carried at the approved and contributed levels only. Tag release-48, read 2026-09-27}
+}
+
+% --- The promulgated Chinese and Korean calendars (docs/systems/east-asian-lunisolar.md) ---
+
+@misc{pmo-calendar-1900-2025,
+  author       = {{中国科学院紫金山天文台}},
+  title        = {1900—2025年日历},
+  howpublished = {\url{http://www.pmo.cas.cn/xwdt2019/kpdt2019/202203/P020250414456381274062.pdf}},
+  note         = {380 pages, three a year: every day of 1900--2025 with its lunar date, sexagenary day and weekday, and the solar terms to the minute. 编制说明: 1900--1911 follow the 《时宪书》 published by the Qing, 1912--1948 the 《中华民国历书》 of the former Central Observatory and the 《国民历》 of the former Academia Sinica, and 1949--2025 the model of GB/T 33661-2017, the old almanacs' dates kept where they differ from a modern computation; the solar-term times are modern Beijing time, with differences from the old almanacs marked. 光绪三十二年四月初一 on 戊戌, 1906-04-24. Retrieved and read as text 2026-09-27; the site's HTTPS certificate did not verify, and the file was taken over HTTP}
+}
+
+@misc{liu-chinese-calendar-computation,
+  author       = {Liu, Yuk Tung},
+  title        = {Calendar Calculation},
+  howpublished = {Chinese Calendars, \url{https://ytliu0.github.io/ChineseCalendar/computation.html}; the conversion-table data in \url{https://ytliu0.github.io/ChineseCalendar/table_c.js}},
+  note         = {First draft October 2018, last major update 24 December 2025. § The Qing Period (1645 -- 1911): the modern rules, but times for the Beijing meridian and in apparent solar time, the calculation from the Lìxiàng Kǎochéng Hòubiān (1742); more than 200 corrections of a modern computation to match the official Qing calendars, taken from the Purple Mountain Observatory's New Edition of Perpetual Calendar and Zhang Peiyu's 3500 Years of Calendars and Astronomy, which agree from 1840 to 1911 (neither read here). § Modern Period: 1912--1928 from the Beiyang government's calendars, on Beijing mean time after 1913; from 1929 on 120°E. Retrieved 2026-09-27}
+}
+
+@misc{icu4x-issue-6455,
+  author       = {fabon-f},
+  title        = {Comment of 11 September 2025 on ICU4X issue 6455},
+  howpublished = {\url{https://github.com/unicode-org/icu4x/issues/6455#issuecomment-3282175550}},
+  note         = {Reports that the calendars published by Joseon, the Korean Empire and the colonial government, as KASI's site shows them (\url{https://astro.kasi.re.kr/almanac/pageView/27}), give astronomical events in Beijing time until 1912 and match the Qing calendar, and that the official calendar is on Korea Standard Time only from 1913. A secondary report, retrieved 2026-09-27; the KASI page returned a server error the same day}
 }

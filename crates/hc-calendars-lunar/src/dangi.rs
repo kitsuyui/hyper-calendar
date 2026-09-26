@@ -9,21 +9,28 @@
 //! worked by hand and what was checked against which publication are in
 //! `docs/systems/east-asian-lunisolar.md`.
 //!
-//! # The meridian, and why it has five entries
+//! # The meridian, and why it has four entries
 //!
 //! | From | Offset | |
 //! |---|---|---|
-//! | — | UT+8:27:52 | Seoul local mean time, 126°58′E |
-//! | 1908 | UT+8:30 | the 127°30′E zone, adopted by the Korean Empire |
+//! | — | UT+7:45:40 | Beijing local mean time, 116°25′E: the Qing calendar |
 //! | 1912 | UT+9 | the 135°E zone, under the Governor-General |
-//! | 1954 | UT+8:30 | back to 127°30′E |
+//! | 1954 | UT+8:30 | the 127°30′E zone |
 //! | 1961 | UT+9 | back to 135°E, where it remains |
 //!
-//! A calendar that simply used 135°E from 1908 onward would get the
-//! twentieth century wrong in places, because the two half-hour periods
-//! really did move the day boundary. The meridian is the whole of the
-//! difference from the Chinese calendar, and it is enough: over 1900–2049
-//! the two new years fall on different days nine times, 1988 among them.
+//! Before 1912 Korea kept the Qing calendar itself, not the Qing rules at
+//! Seoul: KASI's conversion data (`kasi-lunisolar-conversion`) give the
+//! Chinese first day for every month of 1900–1911, including the five
+//! months — in 1903, 1904, 1905, 1908 and 1911 — whose conjunction fell
+//! after midnight at Seoul and before it at Beijing, and the almanac's day
+//! for the fourth month of 1906. So the calendar reads Beijing's meridian
+//! and [`crate::chinese::ALMANAC_CORRECTIONS`] until 1912, where the
+//! published code's `korean-location` reads Seoul mean time to 1908 and
+//! the Korean Empire's 127°30′E zone from 1908 (`reingold2018code`). The
+//! 1908 zone was the clock's, not the calendar's. From 1912 the calendar is
+//! computed on Korean standard time, and the two half-hour periods really
+//! did move its day boundary: over 1900–2049 the Korean and Chinese new
+//! years fall on different days nine times, 1988 among them.
 //!
 //! # Year numbering
 //!
@@ -79,22 +86,22 @@ pub const EARLIEST: Rd = civil::to_rd(1645, 1, 1);
 pub const LATEST: Rd = civil::to_rd(2150, 12, 31);
 
 /// Where [`MERIDIANS`] comes from.
-pub const MERIDIAN_SOURCES: &str = "Seoul local mean time, 3809/450 hours, and the zones of 1908, 1912, 1954 \
-    and 1961, as korean-location in the published code of Calendrical Calculations \
-    [reingold2018code]; the years corroborated by the history of Korean standard time \
-    [wikipedia-en-time-in-south-korea]";
+pub const MERIDIAN_SOURCES: &str = "Beijing local mean time, 1397/180 hours, before 1912, the meridian of the \
+    Qing calendar that KASI's conversion data follow for 1900-1911 [kasi-lunisolar-conversion], \
+    as chinese-location in the published code of Calendrical Calculations [reingold2018code]; \
+    the zones of 1912, 1954 and 1961 as korean-location there, the years corroborated by the \
+    history of Korean standard time [wikipedia-en-time-in-south-korea]";
 
 /// The meridian history of the Korean calendar. Sources:
 /// [`MERIDIAN_SOURCES`].
 ///
 /// The eras are keyed by year where the published code changes on
-/// 1 April 1908, 1 January 1912, 21 March 1954 and 10 August 1961; the
-/// test `the_year_keyed_eras_give_the_days_the_day_keyed_changes_give`
-/// shows that no new moon and no zhōngqì in the three partial years falls
-/// on a different day under either offset.
-pub static MERIDIANS: [MeridianEra; 5] = [
-    MeridianEra::from_zone(i64::MIN / 4, 3_809.0 / 450.0, "Seoul local mean time"),
-    MeridianEra::from_zone(1908, 8.5, "the 127°30′E zone"),
+/// 21 March 1954 and 10 August 1961; the test
+/// `the_year_keyed_eras_give_the_days_the_day_keyed_changes_give` shows
+/// that no new moon and no zhōngqì in the two partial years falls on a
+/// different day under either offset.
+pub static MERIDIANS: [MeridianEra; 4] = [
+    crate::chinese::MERIDIANS[0],
     MeridianEra::from_zone(1912, 9.0, "the 135°E zone"),
     MeridianEra::from_zone(1954, 8.5, "the 127°30′E zone"),
     MeridianEra::from_zone(1961, 9.0, "the 135°E zone"),
@@ -109,6 +116,9 @@ pub static PARAMETERS: LunisolarParameters = LunisolarParameters {
     epoch: CHINESE_EPOCH,
     year_offset: YEAR_OFFSET,
     solar_term_mode: SolarTermMode::Apparent,
+    // Keyed by the days the rules give at Beijing, which is the meridian
+    // this calendar reads in the years they cover.
+    month_start_corrections: &crate::chinese::ALMANAC_CORRECTIONS,
     mean_motion: None,
     earliest: Some(EARLIEST),
     latest: Some(LATEST),
@@ -240,8 +250,11 @@ mod tests {
     #[test]
     fn the_half_hour_zones_are_read_from_the_table() {
         for (year, hours) in [
-            (1900i64, 3_809.0 / 450.0),
-            (1908, 8.5),
+            (1900i64, 1_397.0 / 180.0),
+            // The Korean Empire's 127°30′E zone of 1908 was the clock's;
+            // the calendar stayed on Beijing's.
+            (1908, 1_397.0 / 180.0),
+            (1911, 1_397.0 / 180.0),
             (1912, 9.0),
             (1930, 9.0),
             (1954, 8.5),
@@ -269,6 +282,7 @@ mod tests {
             epoch: CHINESE_EPOCH,
             year_offset: YEAR_OFFSET,
             solar_term_mode: SolarTermMode::Apparent,
+            month_start_corrections: &[],
             mean_motion: None,
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
@@ -277,17 +291,13 @@ mod tests {
 
     #[test]
     fn the_year_keyed_eras_give_the_days_the_day_keyed_changes_give() {
-        // The published code's `korean-location` changes offset on 1 April
-        // 1908, 1 January 1912, 21 March 1954 and 10 August 1961; this
-        // table changes at the start of each of those years. In the three
-        // windows where the two disagree, every new moon and every
-        // zhōngqì must fall on the same day under either offset, or a date
-        // would differ. (The winter solstice is outside all three.)
-        static SEOUL: [MeridianEra; 1] = [MeridianEra::from_zone(
-            i64::MIN / 4,
-            3_809.0 / 450.0,
-            "Seoul local mean time",
-        )];
+        // The published code's `korean-location` changes offset on
+        // 21 March 1954 and 10 August 1961; this table changes at the start
+        // of each of those years. In the two windows where the two
+        // disagree, every new moon and every zhōngqì must fall on the same
+        // day under either offset, or a date would differ. (The winter
+        // solstice is outside both.) Its 1908 change is not this
+        // calendar's, and its 1912 one falls on 1 January, as here.
         static HALF: [MeridianEra; 1] = [MeridianEra::from_zone(
             i64::MIN / 4,
             8.5,
@@ -295,18 +305,9 @@ mod tests {
         )];
         static NINE: [MeridianEra; 1] =
             [MeridianEra::from_zone(i64::MIN / 4, 9.0, "the 135°E zone")];
-        static AT_SEOUL: LunisolarParameters = at_offset(&SEOUL);
         static AT_HALF: LunisolarParameters = at_offset(&HALF);
         static AT_NINE: LunisolarParameters = at_offset(&NINE);
-        let windows: [(&LunisolarParameters, &LunisolarParameters, Rd, Rd); 3] = [
-            // 1 January to 31 March 1908: the code reads Seoul mean time,
-            // the table UT+8:30.
-            (
-                &AT_SEOUL,
-                &AT_HALF,
-                civil::to_rd(1908, 1, 1),
-                civil::to_rd(1908, 3, 31),
-            ),
+        let windows: [(&LunisolarParameters, &LunisolarParameters, Rd, Rd); 2] = [
             // 1 January to 20 March 1954: UT+9 against UT+8:30.
             (
                 &AT_NINE,
@@ -341,17 +342,9 @@ mod tests {
                 assert_eq!(published.from_fixed(rd), table.from_fixed(rd), "{rd}");
             }
         }
-        // The windows hold about a year of lunations between them.
-        assert!(events >= 12, "{events} new moons checked");
+        // The windows hold about ten lunations between them.
+        assert!(events >= 10, "{events} new moons checked");
         // And the table does read the offsets the windows assume.
-        assert!(
-            (PARAMETERS
-                .meridian_era(civil::to_rd(1908, 2, 1))
-                .offset_hours
-                - 8.5)
-                .abs()
-                < 1e-9
-        );
         assert!(
             (PARAMETERS
                 .meridian_era(civil::to_rd(1954, 2, 1))
@@ -368,6 +361,62 @@ mod tests {
                 .abs()
                 < 1e-9
         );
+    }
+
+    #[test]
+    fn before_1912_the_months_begin_where_kasi_has_them_and_not_where_seoul_would() {
+        // KASI's conversion data, read 2026-09-27
+        // (`kasi-lunisolar-conversion`): each of these days is the first of
+        // a lunar month, and the next day the second. They are the five
+        // months of 1900–1911 whose conjunction fell before midnight at
+        // Beijing and after it at Seoul, and the fourth month of 1906, which
+        // the Qing almanac began a day after the rules do at Beijing.
+        static SEOUL: [MeridianEra; 1] = [MeridianEra::from_zone(
+            i64::MIN / 4,
+            3_809.0 / 450.0,
+            "Seoul local mean time",
+        )];
+        static AT_SEOUL: LunisolarParameters = at_offset(&SEOUL);
+        for ((year, month, day), dangi_year, ordinal, seoul_is_a_day_late) in [
+            ((1904, 1, 17), 4_236, 12, true),
+            ((1904, 11, 7), 4_237, 10, true),
+            ((1905, 5, 4), 4_238, 4, true),
+            ((1906, 4, 24), 4_239, 4, false),
+            ((1908, 4, 30), 4_241, 4, true),
+            ((1911, 12, 20), 4_244, 11, true),
+        ] {
+            let rd = civil::to_rd(year, month, day);
+            assert_eq!(
+                DangiCalendar.from_fixed(rd),
+                Ok(LunisolarDate::new(dangi_year, Month::regular(ordinal), 1)),
+                "{year}-{month}-{day}"
+            );
+            assert_eq!(
+                chinese::PARAMETERS.new_moon_on_or_after(rd),
+                rd,
+                "the Chinese calendar agrees on {year}-{month}-{day}"
+            );
+            if seoul_is_a_day_late {
+                assert_eq!(
+                    AT_SEOUL.new_moon_on_or_after(rd),
+                    Rd(rd.0 + 1),
+                    "{year}-{month}-{day}"
+                );
+            }
+        }
+        // And the two calendars are one before 1912: every day of 1900–1911
+        // has the same month and day in both.
+        for rd in
+            (civil::to_rd(1900, 1, 1).0..civil::to_rd(1912, 1, 1).0).step_by(crate::sweep_stride(7))
+        {
+            let korean = DangiCalendar.from_fixed(Rd(rd)).expect("in range");
+            let chinese_date = ChineseCalendar.from_fixed(Rd(rd)).expect("in range");
+            assert_eq!(
+                (korean.month, korean.day),
+                (chinese_date.month, chinese_date.day),
+                "RD {rd}"
+            );
+        }
     }
 
     #[test]

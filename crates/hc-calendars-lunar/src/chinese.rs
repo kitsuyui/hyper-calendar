@@ -26,6 +26,22 @@
 //! and that moves a month boundary or, through the zhōngqì test, a leap
 //! month.
 //!
+//! # The almanac, where it was read
+//!
+//! Before 1912 the calendar was the Qing 時憲書, computed by the Bureau of
+//! Astronomy with the methods of the *Lìxiàng kǎochéng hòubiān* of 1742
+//! in Beijing apparent time (`liu-chinese-calendar-computation`), not by
+//! modern astronomy; where one of its conjunctions lies minutes from
+//! midnight the rules here can put the month on the other day.
+//! [`ALMANAC_CORRECTIONS`] carries the months where a published table of
+//! the promulgated calendar says so. From 1900 the table is the Purple
+//! Mountain Observatory's 1900–2025 calendar (`pmo-calendar-1900-2025`),
+//! which follows the 時憲書 to 1911, and it differs from the rules in one
+//! month: the fourth of 1906, which the rules begin on 23 April and the
+//! almanac on 24 April. Before 1900 no table was read and nothing is
+//! corrected, so a date there is the rule's; the document measures how
+//! often that is not the almanac's.
+//!
 //! # Year numbering
 //!
 //! Years are counted continuously from the 2637 BCE epoch of Reingold and
@@ -51,7 +67,7 @@ use hc_calendar::{Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields
 use crate::civil;
 use crate::lunisolar::{
     CHINESE_EPOCH, LunisolarCalendar, LunisolarDate, LunisolarParameters, MeridianEra,
-    SolarTermMode,
+    MonthStartCorrection, SolarTermMode,
 };
 
 /// The machine identifier CLDR uses for this calendar.
@@ -79,6 +95,24 @@ pub const MERIDIAN_SOURCES: &str = "Beijing at 116°25′E, 1397/180 hours, befo
     [reingold2018code]; the reference recorded as moving to UT+8 in 1928-1929 \
     [wikipedia-en-time-in-china], and 1928 with 116°23′E in [wikipedia-zh-nongli]";
 
+/// Where [`ALMANAC_CORRECTIONS`] comes from.
+pub const ALMANAC_CORRECTION_SOURCES: &str = "The 《时宪书》 of 光绪三十二年 as the Purple Mountain Observatory's \
+    1900-2025 calendar gives it, 四月初一 on 戊戌, 24 April 1906 [pmo-calendar-1900-2025]; the same day \
+    in the Hong Kong Observatory's table for 1906 [hko-conversion-tables] and in KASI's conversion \
+    service [kasi-lunisolar-conversion]";
+
+/// The months of 1900–2025 that the promulgated calendar began on another
+/// day than the rules do. Sources: [`ALMANAC_CORRECTION_SOURCES`].
+///
+/// One entry: 光緒三十二年四月, whose conjunction the rules place at 23:52
+/// Beijing mean time on 23 April 1906 and whose first day the 時憲書 gives
+/// as 戊戌, 24 April. The third month runs thirty days with it and the
+/// fourth twenty-nine.
+pub static ALMANAC_CORRECTIONS: [MonthStartCorrection; 1] = [MonthStartCorrection::new(
+    civil::to_rd(1906, 4, 23),
+    civil::to_rd(1906, 4, 24),
+)];
+
 /// The meridian history of the Chinese calendar. Sources:
 /// [`MERIDIAN_SOURCES`].
 pub static MERIDIANS: [MeridianEra; 2] = [
@@ -99,6 +133,7 @@ pub static PARAMETERS: LunisolarParameters = LunisolarParameters {
     epoch: CHINESE_EPOCH,
     year_offset: 0,
     solar_term_mode: SolarTermMode::Apparent,
+    month_start_corrections: &ALMANAC_CORRECTIONS,
     mean_motion: None,
     earliest: Some(EARLIEST),
     latest: Some(LATEST),
@@ -323,6 +358,73 @@ mod tests {
         );
         assert_eq!(PARAMETERS.months_in_year(4_660), Ok(13));
         assert_eq!(PARAMETERS.is_leap_year(4_660), Ok(true));
+    }
+
+    #[test]
+    fn the_fourth_month_of_1906_began_on_the_day_the_almanac_gave() {
+        // 光緒三十二年: 三月 of thirty days ending on 丁酉, 23 April, and
+        // 四月初一 on 戊戌, 24 April, in the Purple Mountain Observatory's
+        // table from the 時憲書 (`pmo-calendar-1900-2025`); 閏四月 from
+        // 23 May, 五月 from 22 June.
+        let year = 4_543;
+        assert_eq!(new_year(year), Ok(civil::to_rd(1906, 1, 25)));
+        assert_eq!(
+            ChineseCalendar.to_fixed(LunisolarDate::new(year, Month::regular(4), 1)),
+            Ok(civil::to_rd(1906, 4, 24))
+        );
+        assert_eq!(
+            ChineseCalendar.from_fixed(civil::to_rd(1906, 4, 23)),
+            Ok(LunisolarDate::new(year, Month::regular(3), 30))
+        );
+        assert_eq!(PARAMETERS.days_in_month(year, Month::regular(3)), Some(30));
+        assert_eq!(PARAMETERS.days_in_month(year, Month::regular(4)), Some(29));
+        assert_eq!(PARAMETERS.leap_month(year), Ok(Some(4)));
+        assert_eq!(
+            ChineseCalendar.to_fixed(LunisolarDate::new(year, Month::leap(4), 1)),
+            Ok(civil::to_rd(1906, 5, 23))
+        );
+        assert_eq!(
+            PARAMETERS.sexagenary_day(civil::to_rd(1906, 4, 24)).index(),
+            34,
+            "戊戌 is the 35th day of the cycle"
+        );
+    }
+
+    #[test]
+    fn the_almanac_corrections_are_live_and_move_a_day_at_most() {
+        // Each correction names a first day the rules really give, so an
+        // entry cannot outlive a change to the astronomy unnoticed, and none
+        // moves further than the engine's search allows.
+        static RULES: LunisolarParameters = LunisolarParameters {
+            month_start_corrections: &[],
+            ..PARAMETERS
+        };
+        for correction in &ALMANAC_CORRECTIONS {
+            assert_eq!(
+                RULES.new_moon_on_or_after(correction.computed),
+                correction.computed
+            );
+            assert_ne!(correction.computed, correction.promulgated);
+            assert!(
+                (correction.promulgated.0 - correction.computed.0).abs()
+                    <= MonthStartCorrection::MAX_SHIFT
+            );
+            // The corrected calendar has a month on the almanac's day and
+            // none on the rules'.
+            assert_eq!(
+                PARAMETERS.new_moon_on_or_after(correction.computed.min(correction.promulgated)),
+                correction.promulgated
+            );
+            assert_eq!(
+                PARAMETERS.new_moon_before(Rd(correction.promulgated.0 + 1)),
+                correction.promulgated
+            );
+        }
+        // Without the table the rules give 23 April 1906.
+        assert_eq!(
+            RULES.new_moon_on_or_after(civil::to_rd(1906, 4, 20)),
+            civil::to_rd(1906, 4, 23)
+        );
     }
 
     #[test]
