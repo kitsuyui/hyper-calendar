@@ -31,12 +31,17 @@ pub mod catalogue;
 pub mod duration;
 pub mod epoch;
 pub mod error;
+pub mod gnss;
 pub mod leap;
 pub mod math;
 pub mod scale;
+pub mod tai64;
 pub mod unix;
 
 pub use duration::{ATTOS_PER_SEC, Duration};
 pub use error::{TimeError, TimeResult};
-pub use scale::{Gps, Instant, Tai, Tcb, Tcg, Tdb, TimeScale, TimeScaleId, Tt};
+pub use scale::{
+    BeidouTime, GalileoTime, Gps, Instant, NavicTime, Tai, Tcb, Tcg, Tdb, TimeScale, TimeScaleId,
+    Tt,
+};
 pub use unix::UnixTime;

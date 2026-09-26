@@ -4299,7 +4299,7 @@
 @misc{wikipedia-julian-day,
   title        = {Julian day},
   howpublished = {\url{https://en.wikipedia.org/wiki/Julian_day}},
-  note         = {Wikipedia. The table of variants: Reduced JD = JD - 2400000, citing Hopkins 2013; Truncated JD from 24 May 1968, NASA 1979; Dublin JD = JD - 2415020, IAU 1955; CNES JD = JD - 2433282.5 and CCSDS JD = JD - 2436204.5, citing Theveny 2001, not read. Retrieved 2026-09-26}
+  note         = {Wikipedia. The table of variants: Reduced JD = JD - 2400000, citing Hopkins 2013; Truncated JD from 24 May 1968, NASA 1979; Dublin JD = JD - 2415020, IAU 1955; CNES JD = JD - 2433282.5 and CCSDS JD = JD - 2436204.5, citing Theveny 2001, not read; MJD2000 = JD - 2451544.5, the European Space Agency's, whose document was not read. Retrieved 2026-09-26}
 }
 
 % --- Science crates, hc-i18n, hc-format, hc-attributes (audit 2026-09-26) ---
@@ -5544,4 +5544,56 @@
   title        = {Egyptian to Julian conversion: Civil calendar structure; Lunar calendar structure; the Ptolemaic financial year},
   howpublished = {\url{https://www.instonebrewer.com/TyndaleSites/Egypt/ptolemies/chron/egyptian/}, pages \texttt{chron\_eg\_cal}, the lunar calendar page and \texttt{chron\_eg\_anl\_financial}},
   note         = {The Era of Philip from 12 November 324 BC; the Dionysian calendar; the Era of Augustus; the Macedonian months on the Egyptian year; the 25-year lunar cycle of P.~Carlsberg 9; the financial year from about 1 Mecheir. Retrieved 2026-09-26}
+}
+
+% --- GNSS system times (docs/systems/gnss-time.md) ---
+% is-gps-200g, galileo-os-sis-icd-2-1, bds-sis-icd-b1i-1-0, glonass-icd-5-1,
+% irnss-sps-icd-1-1, arl-gps-time-2019, sofa-ts and iana-leap-seconds-list,
+% above, are cited too.
+
+@misc{gps-gov-rollover,
+  author       = {{National Coordination Office for Space-Based Positioning, Navigation, and Timing}},
+  title        = {{GPS} Week Number Rollover},
+  howpublished = {GPS.gov},
+  note         = {The legacy ten-bit week number's rollovers of August 1999 and 6 April 2019. Cited from the survey row in docs/calendars.md; the page was not reachable on 2026-09-26 and was not read. The rollover instants are derived from the week arithmetic of is-gps-200g and tested}
+}
+
+% --- TAI64 labels (hc-core::tai64) ---
+
+@misc{bernstein-tai64,
+  author       = {Bernstein, Daniel J.},
+  title        = {{TAI64}, {TAI64N}, and {TAI64NA}},
+  howpublished = {\url{https://cr.yp.to/libtai/tai64.html}},
+  year         = {1997},
+  note         = {Defined July 1997. A label below $2^{63}$ names a TAI second, $2^{62} + s$ the one beginning $s$ seconds after the beginning of 1970 TAI; labels from $2^{63}$ reserved; eight big-endian bytes, then four of nanoseconds and four of attoseconds, each 0 to 999999999; the examples 3fffffffffffffff, 4000000000000000 and 400000002a2b2c2d = 1992-06-02 08:07:09 TAI = 08:06:43 UTC. Retrieved 2026-09-26}
+}
+
+% --- Spreadsheet dates and the Chronological Julian Day (docs/systems/spreadsheet-dates.md) ---
+
+@misc{ms-excel-1900-leap,
+  author       = {{Microsoft}},
+  title        = {Excel incorrectly assumes that the year 1900 is a leap year},
+  howpublished = {Microsoft Learn, \url{https://learn.microsoft.com/en-us/troubleshoot/microsoft-365-apps/excel/wrongly-assumes-1900-is-leap-year}},
+  note         = {Lotus 1-2-3 treated 1900 as a leap year, and Multiplan and Excel kept its serial dates; correcting it would move almost every date by a day; WEEKDAY returns incorrect values for dates before 1 March 1900. Retrieved 2026-09-26}
+}
+
+@misc{ms-excel-date-systems,
+  author       = {{Microsoft}},
+  title        = {Date systems in {Excel}},
+  howpublished = {Microsoft Support, \url{https://support.microsoft.com/en-us/office/date-systems-in-excel-e7fe7167-48a9-4b96-bb53-5612a800b487}},
+  note         = {The 1900 and 1904 date systems; the 1900 serial always 1462 days greater than the 1904 serial; 5 July 2011 as 40729 and 39267. Retrieved 2026-09-26}
+}
+
+@misc{ms-tooadate,
+  author       = {{Microsoft}},
+  title        = {{DateTime.ToOADate} Method},
+  howpublished = {Microsoft Learn, .NET API reference, \url{https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tooadate}},
+  note         = {Days before or after midnight, 30 December 1899, with the time of day as the fraction; the examples 1.0, 2.25, -1.0 and -1.25; the range from midnight 1 January 0100 to the end of 31 December 9999. Retrieved 2026-09-26}
+}
+
+@misc{meyer-jdn,
+  author       = {Meyer, Peter},
+  title        = {Julian Day Numbers},
+  howpublished = {Hermetic Systems, \url{https://www.hermetic.ch/cal_stud/jdn.htm}},
+  note         = {The chronological Julian day number, a count of days beginning at midnight GMT from the one that began at midnight on -4712-01-01 Julian; the local chronological Julian date; chronological day 2452952 from midnight on 2003-11-08. Retrieved 2026-09-26}
 }

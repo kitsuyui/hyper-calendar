@@ -25,7 +25,8 @@ file does not:
 | `iso_week` | ISO 8601 week date | `iso8601-week` |
 | `ordinal` | ISO 8601 ordinal date | `iso8601-ordinal` |
 | `julian_day` | Julian Day Number, Modified Julian Date | `julian-day`, `modified-julian-day` |
-| `day_counts` | Lilian, ANSI, Dublin, Reduced, Truncated, CNES and CCSDS day counts | `lilian`, `ansi-date`, `dublin-julian-day`, `reduced-julian-day`, `truncated-julian-day`, `cnes-julian-day`, `ccsds-day` |
+| `day_counts` | Lilian, ANSI, Dublin, Reduced, Truncated, CNES, CCSDS, Chronological Julian and MJD2000 day counts; the Excel 1904 serial and the OLE Automation day | `lilian`, `ansi-date`, `dublin-julian-day`, `reduced-julian-day`, `truncated-julian-day`, `cnes-julian-day`, `ccsds-day`, `chronological-julian-day`, `modified-julian-day-2000`, `excel-1904`, `ole-automation-date` |
+| `spreadsheet` | The Excel 1900 serial, refusing the phantom 29 February 1900, and the OLE Automation date's fractional time | `excel-1900` |
 | `coptic` | Coptic (Era of the Martyrs) | `coptic` |
 | `ethiopic` | Ethiopian (Incarnation and World eras) | `ethiopic` |
 | `egyptian` | Ancient Egyptian wandering year | `egyptian` |

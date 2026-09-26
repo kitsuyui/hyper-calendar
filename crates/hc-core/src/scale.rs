@@ -33,8 +33,14 @@ pub enum TimeScaleId {
     Tdb,
     /// Barycentric Coordinate Time.
     Tcb,
-    /// GPS time, TAI retarded by exactly 19 s.
+    /// GPS time, TAI retarded by 19 s, exactly by convention.
     Gps,
+    /// Galileo System Time, TAI retarded by 19 s like GPS.
+    Galileo,
+    /// BeiDou Time, TAI retarded by 33 s.
+    Beidou,
+    /// NavIC (IRNSS) system time, TAI retarded by 19 s like GPS.
+    Navic,
     /// Universal Time, tied to the Earth's actual rotation angle. Its
     /// marker type lives in `hc-astro`, which has the ΔT model it needs.
     Ut1,
@@ -53,6 +59,10 @@ impl TimeScaleId {
             Self::Tdb => "TDB",
             Self::Tcb => "TCB",
             Self::Gps => "GPS",
+            // The ICD's abbreviation; not Greenwich sidereal time.
+            Self::Galileo => "GST",
+            Self::Beidou => "BDT",
+            Self::Navic => "NavIC",
             Self::Ut1 => "UT1",
             Self::Utc => "UTC",
         }
@@ -66,7 +76,7 @@ impl fmt::Display for TimeScaleId {
 }
 
 /// A time scale whose reading is a function of the TAI reading of the same
-/// event: an exact offset for TT and GPS, a smooth model for TCG, TDB and
+/// event: an exact offset for TT and the GNSS times, a smooth model for TCG, TDB and
 /// TCB.
 ///
 /// Implementors are zero-sized markers. The two required functions are
@@ -110,15 +120,58 @@ pub struct Tdb;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Tcb;
 
-/// GPS time. `GPS = TAI - 19 s`, exactly.
+/// GPS time. `GPS = TAI - 19 s`, exactly by convention.
+///
+/// GPS time is steered to UTC(USNO), not to TAI (IS-GPS-200G, §3.3.4,
+/// `is-gps-200g`), so the time a receiver recovers differs from TAI − 19 s
+/// by the steering residual, which SOFA puts below a microsecond
+/// (`sofa-ts`). The offset here is the nominal relation; the residual is an
+/// observation and is not carried. See `docs/systems/gnss-time.md`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Gps;
+
+/// Galileo System Time. `GST = TAI - 19 s`, exactly by convention.
+///
+/// Set at 1999-08-22 00:00:00 UTC less 13 s, the GPS − UTC of that day,
+/// and continuous since (Galileo OS SIS ICD, Issue 2.1, 2023, §5.1.2,
+/// `galileo-os-sis-icd-2-1`), so it reads GPS time. Its abbreviation, GST,
+/// is not Greenwich sidereal time. See `docs/systems/gnss-time.md`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct GalileoTime;
+
+/// BeiDou Time. `BDT = TAI - 33 s`, exactly by convention.
+///
+/// SI seconds from 2006-01-01 00:00:00 UTC with no leap seconds
+/// (BDS-SIS-ICD-B1I-1.0, 2012, §3.3, `bds-sis-icd-b1i-1-0`). `TAI − UTC`
+/// was 33 s that day, so BDT is 14 s behind GPS time. See
+/// `docs/systems/gnss-time.md`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct BeidouTime;
+
+/// NavIC (IRNSS) system time. `NavIC = TAI - 19 s`, exactly by convention.
+///
+/// From 00:00 on 1999-08-22 of its own reckoning, 1999-08-21 23:59:47 UTC,
+/// thirteen seconds ahead of UTC (ISRO, IRNSS SIS ICD for SPS, version 1.1,
+/// 2017, `irnss-sps-icd-1-1`), so it reads GPS time. See
+/// `docs/systems/gnss-time.md`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct NavicTime;
 
 /// `TT - TAI`, an exact defined constant.
 pub const TT_MINUS_TAI: Duration = Duration::from_attos(32_184_000_000_000_000_000);
 
-/// `TAI - GPS`, an exact defined constant.
+/// `TAI - GPS`, exact by convention.
 pub const TAI_MINUS_GPS: Duration = Duration::from_secs(19);
+
+/// `TAI - GST`, exact by convention: `TAI − UTC` of 32 s at the Galileo
+/// epoch less the 13 s GST was set ahead of UTC.
+pub const TAI_MINUS_GALILEO: Duration = Duration::from_secs(19);
+
+/// `TAI - BDT`, exact by convention: `TAI − UTC` at 2006-01-01.
+pub const TAI_MINUS_BEIDOU: Duration = Duration::from_secs(33);
+
+/// `TAI - NavIC`, exact by convention, as for Galileo.
+pub const TAI_MINUS_NAVIC: Duration = Duration::from_secs(19);
 
 /// `L_G`, the defining constant relating TCG to TT (IAU 2000 Resolution B1.9).
 pub const L_G: f64 = 6.969_290_134e-10;
@@ -157,17 +210,27 @@ impl TimeScale for Tt {
     }
 }
 
-impl TimeScale for Gps {
-    const ID: TimeScaleId = TimeScaleId::Gps;
+/// A scale that is TAI less a constant: GPS and the GNSS times like it.
+macro_rules! behind_tai {
+    ($scale:ty, $id:expr, $offset:expr) => {
+        impl TimeScale for $scale {
+            const ID: TimeScaleId = $id;
 
-    fn from_tai(tai: Duration) -> Duration {
-        tai.checked_sub(TAI_MINUS_GPS).unwrap_or(Duration::MIN)
-    }
+            fn from_tai(tai: Duration) -> Duration {
+                tai.checked_sub($offset).unwrap_or(Duration::MIN)
+            }
 
-    fn to_tai(value: Duration) -> Duration {
-        value.checked_add(TAI_MINUS_GPS).unwrap_or(Duration::MAX)
-    }
+            fn to_tai(value: Duration) -> Duration {
+                value.checked_add($offset).unwrap_or(Duration::MAX)
+            }
+        }
+    };
 }
+
+behind_tai!(Gps, TimeScaleId::Gps, TAI_MINUS_GPS);
+behind_tai!(GalileoTime, TimeScaleId::Galileo, TAI_MINUS_GALILEO);
+behind_tai!(BeidouTime, TimeScaleId::Beidou, TAI_MINUS_BEIDOU);
+behind_tai!(NavicTime, TimeScaleId::Navic, TAI_MINUS_NAVIC);
 
 /// `TCG - TT` in seconds, given a TT reading in seconds from the 1970 epoch.
 fn tcg_minus_tt_secs(tt_secs: f64) -> f64 {
@@ -435,6 +498,26 @@ mod tests {
         let tai = Instant::<Tai>::from_epoch(Duration::from_secs(1_000));
         let gps: Instant<Gps> = tai.convert();
         assert_eq!(gps.since_epoch(), Duration::from_secs(981));
+    }
+
+    #[test]
+    fn the_gnss_times_are_their_stated_offsets_from_tai() {
+        let tai = Instant::<Tai>::from_epoch(Duration::from_secs(1_000_000_000));
+        let gps: Instant<Gps> = tai.convert();
+        let galileo: Instant<GalileoTime> = tai.convert();
+        let beidou: Instant<BeidouTime> = tai.convert();
+        let navic: Instant<NavicTime> = tai.convert();
+        assert_eq!(galileo.since_epoch(), gps.since_epoch());
+        assert_eq!(navic.since_epoch(), gps.since_epoch());
+        // BDT is 14 s behind GPS time.
+        assert_eq!(
+            gps.since_epoch() - beidou.since_epoch(),
+            Duration::from_secs(14)
+        );
+        let back: Instant<Tai> = beidou.convert();
+        assert_eq!(back, tai);
+        assert_eq!(TimeScaleId::Galileo.abbreviation(), "GST");
+        assert_eq!(TimeScaleId::Beidou.to_string(), "BDT");
     }
 
     #[test]
