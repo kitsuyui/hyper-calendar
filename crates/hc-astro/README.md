@@ -103,6 +103,11 @@ of the same measurement.
 | Sunrise / sunset | **under a minute** | NAOJ 暦計算室, 「日の出入り＠東京(東京都)」, 2024-01-01, at its point 35.6581° N, 139.7414° E, published to the minute |
 | Mean obliquity | **0.01″** near J2000, arcseconds over ±10 000 years | Meeus example 22.a |
 | Nutation | **0.5″** in Δψ, **0.1″** in Δε | Meeus example 22.a |
+| Earth Rotation Angle, IAU 2006 GMST | **10⁻⁹ degree** of the published expressions | ERFA's `eraEra00` and `eraGmst06` test values |
+| IAU 1982 GMST (Meeus 12.4) | **0.7 µs** of time of ERFA's `eraGmst82` | ERFA's test value at 2006-01-01 |
+| UT2, UT1R, UT1S corrections to the caller's UT1 | exact as conventions; the tidal sum to **10⁻¹² s** of the IERS model | the USNO formula by hand; the test case of the IERS routine `RG_ZONT2.F` |
+| Local apparent (sundial) time | the equation of time's, **under a second** | Meeus example 28.a, within 0.5 s |
+| Temporal hours | the sunrise and sunset's, **under a minute** over twelve | NAOJ 暦計算室, Tokyo, 2024-01-01 |
 
 The era over which all of this holds is roughly **1000 BCE to 3000 CE**.
 Inside it the limiting factor is the series; outside it the limiting factor is

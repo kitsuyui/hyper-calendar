@@ -184,7 +184,12 @@ pub fn solar_midnight(day: Rd, location: Location) -> Moment {
 ///
 /// Returns `None` when it does not: the Sun stays below that altitude all
 /// day, or never drops to it.
-fn sun_crossing(day: Rd, location: Location, target_altitude: f64, rising: bool) -> Option<Moment> {
+pub(crate) fn sun_crossing(
+    day: Rd,
+    location: Location,
+    target_altitude: f64,
+    rising: bool,
+) -> Option<Moment> {
     let noon = solar_noon(day, location).0;
     let altitude = |moment: Moment| solar_altitude(moment, location) - target_altitude;
     if rising {
