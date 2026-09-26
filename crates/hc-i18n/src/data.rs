@@ -177,6 +177,12 @@ const BUDDHIST_CALENDARS: &[CalendarId] = &[CalendarId("buddhist")];
 /// The lunisolar calendars whose months are numbered rather than named, and
 /// so share one set of English ordinals: First Month, Second Month.
 ///
+/// The Mongolian calendar is here by Janson's numbers. Its months are
+/// named rather than numbered, by season and by animal, month 1 being the
+/// first month of spring (Janson, "Tibetan calendar mathematics", 2014,
+/// Appendix A.3) — the "хаврын тэргүүн сар" of the Mongolian holiday law —
+/// and those names are not carried.
+///
 /// English is the one locale that serves all of them from a single list,
 /// because an ordinal is not anybody's word for a month. A locale with
 /// words of its own states them for one family at a time —
@@ -187,6 +193,9 @@ const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("chinese"),
     CalendarId("chinese-regnal"),
     CalendarId("tibetan"),
+    CalendarId("tibetan-tsurphu"),
+    CalendarId("tibetan-bhutan"),
+    CalendarId("mongolian"),
     CalendarId("dangi"),
     CalendarId("vietnamese"),
     CalendarId("japanese-tenpo"),
@@ -1732,9 +1741,11 @@ const BN: LocaleData = LocaleData {
 // mathematics", 2014, Section 5, which `hc_calendars_lunar::tibetan`
 // follows), so the CLDR ordinal month names are keyed to it as English's
 // "First Month" is keyed to the numbered lunisolar calendars — the same
-// twelve words for the same twelve numbers, and not a translation. CLDR
-// has no `tibetan` calendar and no word for the doubled month, so the
-// leap-month prefix is empty. The sixty-year names are not here: the
+// twelve words for the same twelve numbers, and not a translation. The
+// Tsurphu version numbers them the same way (Janson, Appendix A.2) and
+// shares them; the Bhutanese is written in Dzongkha, which is not this
+// locale, and is not keyed here. CLDR has no `tibetan` calendar and no word
+// for the doubled month, so the leap-month prefix is empty. The sixty-year names are not here: the
 // calendar module carries them in English, and this crate's cycle model
 // names stems and branches, not elements.
 
@@ -1802,7 +1813,7 @@ const BO_CALENDARS: &[CalendarNames] = &[
         )),
     ),
     lunisolar(
-        &[CalendarId("tibetan")],
+        &[CalendarId("tibetan"), CalendarId("tibetan-tsurphu")],
         &[month_cycle(ContextualNames {
             format: widths(BO_MONTHS, BO_MONTHS_ABBREVIATED, &[]),
             standalone: widths(BO_MONTHS_STANDALONE, &[], &[]),

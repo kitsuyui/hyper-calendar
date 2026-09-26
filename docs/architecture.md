@@ -90,7 +90,7 @@ dependencies. A crate depends only on crates in rows above it.
 | `hc-format` | ISO 8601, RFC 3339, RFC 2822, patterns, Python's ISO profile | `hc-calendars-solar`, `hc-tz`, `hc-i18n` |
 | `hc-humanize` | Relative times, spelled-out durations, Python `humanize`'s phrasing | `hc-i18n`, `hc-units`, `hc-format` |
 | `hc-planetary` | Mars sols, MTC, Darian | `hc-astro` |
-| `hc-calendars-lunar` | Hijri, Hebrew, Samaritan, Chinese, Tibetan, Javanese, the Japanese lunisolar systems | `hc-astro`, `hc-calendars-solar` |
+| `hc-calendars-lunar` | Hijri, Hebrew, Samaritan, Chinese, Tibetan and Mongolian, Javanese, the Japanese lunisolar systems | `hc-astro`, `hc-calendars-solar` |
 | `hc-calendars-equinox` | Solar Hijri, Badíʿ and French Republican by the equinox | `hc-astro`, `hc-calendars-solar` |
 | `hc-seasons` | 24 terms, 72 pentads | `hc-astro`, optionally `hc-calendars-lunar` |
 | `hc-calendars-regional` | Japanese eras, Maya, Aztec, Zapotec, Pawukon, Burmese, Thai and Khmer lunar | `hc-calendars-solar`, `hc-calendars-lunar` |

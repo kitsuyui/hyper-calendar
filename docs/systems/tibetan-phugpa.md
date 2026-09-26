@@ -1,6 +1,8 @@
 # The Tibetan calendar: the Phugpa arithmetic
 
-Backs the identifier `tibetan` in `hc-calendars-lunar`.
+Backs the identifier `tibetan` in `hc-calendars-lunar`, and the arithmetic
+the other versions share with it; what they change is in
+[tibetan-variants.md](tibetan-variants.md).
 
 ## What it is
 
@@ -25,8 +27,10 @@ traditions, by the Dalai Lama, and in the almanacs published at
 Dharamsala; and the *Tsurphu* (*mtshur-lugs*), also from 1447, of the Karma
 Kagyu, published from Rumtek. Bhutan and Mongolia keep versions of their
 own. The versions "frequently differ by a day or a month" [janson2014, §1
-and Appendix A]. This document and the library carry the Phugpa version,
-which Janson calls the standard one.
+and Appendix A]. This document describes the Phugpa version, which Janson
+calls the standard one; the Tsurphu, Bhutanese and Mongolian versions run
+on the same engine and are described in
+[tibetan-variants.md](tibetan-variants.md).
 
 **Years.** A Tibetan year is named in the sixty-year cycle by element,
 gender and animal — Wood, Fire, Earth, Iron or Water, each for two years,
@@ -216,8 +220,10 @@ day 18; there is no day 19, and 12 March is day 20. The module marks the
   arithmetic from 806, and no source names 1000 or 3000; the lower bound
   keeps the range inside the era the first *rab byung* cycle opens, and the
   upper is where the other arithmetic calendars here stop.
-- **Not carried**: the Tsurphu, Mongolian and Bhutanese versions and the
-  *Kālacakra* *karaṇa* calculation, as below; Henning's exact *a*₂; the
+- **Not carried** here: the Tsurphu, Mongolian and Bhutanese versions,
+  which are `tibetan-tsurphu`, `mongolian` and `tibetan-bhutan`, and the
+  *Kālacakra* *karaṇa* calculation, which is not carried at all
+  ([tibetan-variants.md](tibetan-variants.md)); Henning's exact *a*₂; the
   almanac's other components — the five *lnga-bsdus* are the day of week,
   the lunar day, the lunar mansion, the *yoga* and the *karaṇa*, and the
   almanac also prints the true date's fraction, the true solar longitude
@@ -245,9 +251,11 @@ days a year; the Bhutanese changes all three epoch values and numbers its
 leap months differently; the *karaṇa* calculation of the *Kālacakra Tantra*
 uses other solar constants, and some Tsurphu almanacs have used its solar
 equation in the true date, which shifts a skipped or repeated day about
-five times a year [janson2014, Appendix A]. Each is a parameter set over
-this engine — an epoch, three epoch values and a leap rule — and none is
-carried until its almanacs can be checked.
+five times a year [janson2014, Appendix A]. The Tsurphu, Mongolian and
+Bhutanese are each a parameter set over this engine — an epoch, three
+epoch values and a leap rule — and are carried as such; the *karaṇa*
+calculation is not. Both are written up in
+[tibetan-variants.md](tibetan-variants.md).
 
 ## Accuracy
 
@@ -313,17 +321,19 @@ order and agree.
 
 ## Code
 
-`crates/hc-calendars-lunar/src/tibetan.rs`: the constants `EPOCH_YEAR`,
-`EPOCH_MONTH`, `EPOCH_INDEX`, `INVERSE_CONSTANT`, `DAWN`, the rationals
-`M1`, `M2`, `M0`, `S1`, `S2`, `S0`, `A1`, `A2`, `A0` and the tables
-`MOON_TABLE` and `SUN_TABLE`; the functions `true_month_count`,
-`month_of_count`, `is_leap_year`, `leap_month_of`, `new_year`,
-`year_name`, `prabhava`, `from_fixed` and `to_fixed`. Anchors:
+`crates/hc-calendars-lunar/src/tibetan.rs`: the value `TIBETAN`, a
+`TibetanCalendar` holding the epoch year 806, the epoch index 61, the leap
+index 48 and the epoch values `m0`, `s0`, `a0`; the shared constants `DAWN`,
+`EPOCH_MONTH`, the rationals `M1`, `M2`, `S1`, `S2`, `A1`, `A2` and the
+tables `MOON_TABLE` and `SUN_TABLE`; the methods `true_month_count`,
+`month_of_count`, `inverse_constant`, `is_leap_year`, `leap_month_of`,
+`new_year`, `date_from_fixed` and `date_to_fixed`, and the functions
+`year_name` and `prabhava`. Anchors:
 `the_day_begins_at_mean_daybreak`,
 `losar_begins_at_the_dawn_of_its_civil_day`,
 `the_sources_own_dates_and_losar_of_2000_are_reproduced`,
 `losar_falls_on_the_published_days_of_recent_years`,
 `leap_years_follow_the_sixty_five_year_rule`,
 `every_day_of_four_decades_round_trips_and_years_have_the_five_lengths`,
-`impossible_dates_are_refused`. The Tsurphu, Mongolian and Bhutanese rows
-of the roadmap in [calendars.md](../calendars.md) wait on this engine.
+`impossible_dates_are_refused`. The other versions' anchors are listed in
+[tibetan-variants.md](tibetan-variants.md).

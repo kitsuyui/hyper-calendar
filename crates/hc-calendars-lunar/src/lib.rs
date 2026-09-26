@@ -23,7 +23,7 @@
 //! systems' errors on purpose, because the errors are what the surviving
 //! documents record.
 //!
-//! # Two engines, twenty-one calendars
+//! # Two engines, twenty-four calendars
 //!
 //! Almost nothing here is written twice.
 //!
@@ -42,7 +42,8 @@
 //!   calendars drift away from the sky exactly as they historically did.
 //!
 //! [`hebrew`] and [`tibetan`] stand alone because their rules genuinely are
-//! their own; so does [`javanese`], whose months are the tabular Hijri
+//! their own, though [`tibetan`] is itself one engine under four versions'
+//! data — the Phugpa, the Tsurphu, the Bhutanese and the Mongolian; so does [`javanese`], whose months are the tabular Hijri
 //! months but whose years run in eight-year *windu* and 120-year *kurup*,
 //! three reckonings of one rule; and so do the two proposals, [`meyer_palmen`], a lunisolar
 //! calendar of two remainders, and [`yerm`], a lunar one of 52-yerm
@@ -199,7 +200,10 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::HebrewCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::SamaritanCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BabylonianCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::TibetanCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::tibetan::TIBETAN)));
+        registry.insert(Box::new(DynAdapter::new(crate::tibetan::TIBETAN_TSURPHU)));
+        registry.insert(Box::new(DynAdapter::new(crate::tibetan::TIBETAN_BHUTAN)));
+        registry.insert(Box::new(DynAdapter::new(crate::tibetan::MONGOLIAN)));
         registry.insert(Box::new(DynAdapter::new(crate::javanese::JAVANESE)));
         registry.insert(Box::new(DynAdapter::new(
             crate::javanese::JAVANESE_YOGYAKARTA,
@@ -229,7 +233,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 22);
+        assert_eq!(registry.len(), 25);
     }
 
     #[test]
@@ -276,8 +280,8 @@ mod registration_tests {
 
         use crate::{
             BabylonianCalendar, ChineseCalendar, HebrewCalendar, IslamicCivilCalendar,
-            IslamicUmmAlQuraCalendar, TibetanCalendar, babylonian, chinese, hebrew,
-            islamic_umalqura, tabular, tibetan,
+            IslamicUmmAlQuraCalendar, babylonian, chinese, hebrew, islamic_umalqura, tabular,
+            tibetan,
         };
 
         for year in (1..=400).step_by(3) {
@@ -285,10 +289,17 @@ mod registration_tests {
                 DynAdapter::new(HebrewCalendar).is_leap_year(5_700 + year),
                 Ok(hebrew::is_leap_year(5_700 + year))
             );
-            assert_eq!(
-                DynAdapter::new(TibetanCalendar).is_leap_year(1_900 + year),
-                Ok(tibetan::is_leap_year(1_900 + year))
-            );
+            for calendar in [
+                tibetan::TIBETAN,
+                tibetan::TIBETAN_TSURPHU,
+                tibetan::TIBETAN_BHUTAN,
+                tibetan::MONGOLIAN,
+            ] {
+                assert_eq!(
+                    DynAdapter::new(calendar).is_leap_year(1_900 + year),
+                    Ok(calendar.is_leap_year(1_900 + year))
+                );
+            }
             assert_eq!(
                 DynAdapter::new(BabylonianCalendar).is_leap_year(year),
                 Ok(babylonian::is_leap_year(year))

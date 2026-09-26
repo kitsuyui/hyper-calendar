@@ -2,7 +2,8 @@
 
 Lunar and lunisolar calendars for [`hyper-calendar`]: the Hijri family, the
 Hebrew calendar, the Babylonian calendar of the Seleucid era, the Tibetan
-Phugpa calendar, the Javanese calendar of Sultan Agung in its three
+calendar in its Phugpa, Tsurphu and Bhutanese versions and the Mongolian
+calendar on the same engine, the Javanese calendar of Sultan Agung in its three
 reckonings, the East Asian lunisolar calendars of China, Korea and
 Vietnam, the five successive lunisolar calendars Japan used between 862
 and 1872, and two arithmetic proposals, the Meyer–Palmen Solilunar and
@@ -24,7 +25,10 @@ others exist.
 | `hebrew` | `hebrew` | arithmetic | AM 1–9999 |
 | `samaritan` | `samaritan` | astronomical | Samaritan 3539–3738 (1900–2100 CE) |
 | `babylonian` | `babylonian` | astronomical | SE −71 to 386 (383 BCE to 76 CE) |
-| `tibetan` | `tibetan` | arithmetic (Phugpa) | 1000–3000 |
+| `tibetan::TIBETAN` | `tibetan` | arithmetic (Phugpa) | 1000–3000 |
+| `tibetan::TIBETAN_TSURPHU` | `tibetan-tsurphu` | arithmetic (Tsurphu) | 1000–3000 |
+| `tibetan::TIBETAN_BHUTAN` | `tibetan-bhutan` | arithmetic (Bhutanese) | 1000–3000 |
+| `tibetan::MONGOLIAN` | `mongolian` | arithmetic (New Genden) | 1000–3000 |
 | `javanese::JAVANESE` | `javanese` | arithmetic | 1555–2346 AJ (1633–2401 CE) |
 | `javanese::JAVANESE_YOGYAKARTA` | `javanese-yogyakarta` | arithmetic | 1555–2346 AJ (1633–2401 CE) |
 | `javanese::JAVANESE_ABOGE` | `javanese-aboge` | arithmetic | 1555–2346 AJ (1633–2401 CE) |
@@ -188,10 +192,25 @@ figures. The module reproduces all 120 Losar dates of Janson's Table 1
 day of 2012, the paper's own datelines, Losar 2000 on the first day of a
 leap month, and the published Losars of 2023–2026.
 
+`tibetan-tsurphu`, `tibetan-bhutan` and `mongolian` are the same engine
+under other data — an epoch, the index at which a leap month is inserted,
+which month a leap month is numbered after, and three epoch values — and
+are written up in
+[`docs/systems/tibetan-variants.md`](../../docs/systems/tibetan-variants.md).
+For all four versions the module reproduces Janson's comparison tables —
+Losar 2000–2030, the leap months 2000–2019, every skipped and repeated day
+of 2012, the epoch values at 806 — and every epoch value is Henning's
+mixed-radix digits. Beyond Janson: the Tsurphu matches Henning's 2013
+calendar and the Karmapa's office's Losar of 2014; the Mongolian matches the
+Government's Tsagaan Sar of 2025, whose first day was omitted, and
+MONTSAME's of 2020 and 2026; the Bhutanese matches every day of the
+Ministry of Home Affairs' calendars for 2025 and 2026, and disagrees with
+the government's Losar of 2003 by a day, as Janson reports.
+
 ## Accuracy
 
-**Arithmetic calendars — exact.** The tabular Hijri, Hebrew, Tibetan and
-Javanese calendars are counting rules, and this is those rules. The tabular
+**Arithmetic calendars — exact.** The tabular Hijri, Hebrew, Tibetan,
+Mongolian and Javanese calendars are counting rules, and this is those rules. The tabular
 Hijri, Tibetan and Javanese checks are in the sections above; the Hebrew ones — two
 published dates of 5784, Rosh Hashanah off Sunday, Wednesday and Friday for
 all 9 999 years, every year one of the six permitted lengths — are
