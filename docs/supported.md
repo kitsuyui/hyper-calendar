@@ -605,9 +605,9 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | --- | --- |
 | `units` | hc-units |
 | `civil` | hc-calendar, hc-calendars-solar |
-| `lunar` | civil, hc-astro, hc-calendars-lunar |
-| `equinox` | astro, hc-calendars-equinox |
-| `indic` | seasons, hc-calendars-indic |
+| `lunar` | civil, hc-astro, hc-calendars-lunar, hc-core/memo |
+| `equinox` | astro, hc-calendars-equinox, hc-core/memo |
+| `indic` | seasons, hc-calendars-indic, hc-core/memo |
 | `regional` | lunar, hc-calendars-regional |
 | `astro` | civil, hc-astro |
 | `seasons` | astro, hc-seasons |

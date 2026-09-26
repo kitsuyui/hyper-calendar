@@ -234,6 +234,14 @@ impl OdiaAnkaCalendar {
     /// [`CalendarError::YearOutOfRange`] for a reign outside the lunar
     /// calendar's range.
     pub fn earliest(&self) -> CalendarResult<Rd> {
+        match NAMED_EARLIEST.iter().find(|(calendar, _)| calendar == self) {
+            Some(&(_, earliest)) => Ok(earliest),
+            None => self.computed_earliest(),
+        }
+    }
+
+    /// [`OdiaAnkaCalendar::earliest`] as the lunar calendar finds it.
+    fn computed_earliest(&self) -> CalendarResult<Rd> {
         self.suniya(self.reign.first_saka)
     }
 
@@ -345,6 +353,14 @@ pub fn suniya_of(lunar: &HinduPurnimantaCalendar, saka: i64) -> CalendarResult<R
     Err(last_error)
 }
 
+/// The first day of the registered calendar, as
+/// [`OdiaAnkaCalendar::earliest`] computes it: a search for the Suniā of
+/// the reign's first year, which the calendar's standing and metadata ask
+/// for on every day described, so it is written down here and computed for
+/// any other reign; `tests::the_named_earliest_day_is_the_computed_one`
+/// computes it again.
+const NAMED_EARLIEST: [(OdiaAnkaCalendar, Rd); 1] = [(OdiaAnkaCalendar::PURI, Rd(719_418))];
+
 impl Calendar for OdiaAnkaCalendar {
     type Date = OdiaAnkaDate;
 
@@ -453,6 +469,13 @@ impl Calendar for OdiaAnkaCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_named_earliest_day_is_the_computed_one() {
+        for (calendar, earliest) in NAMED_EARLIEST {
+            assert_eq!(calendar.computed_earliest(), Ok(earliest));
+        }
+    }
 
     const ANKA: OdiaAnkaCalendar = OdiaAnkaCalendar::PURI;
 

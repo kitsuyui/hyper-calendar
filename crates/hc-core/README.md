@@ -77,6 +77,7 @@ this table's future, not its past.
 | `std` (default) | platform floating-point math; implies `alloc` |
 | `alloc` | the parts that need an allocator |
 | `libm` | portable software floating-point math for `no_std` targets |
+| `memo` | with `std`, the per-call memo of the `memo` module: a caller opens a `memo::scope`, and the astronomy the calendar crates memoize — a sunrise of a day at a place, the conjunction after a moment — is computed once inside it; without it every call computes. The facade turns it on with its astronomical calendars, and `hyper_calendar::lines` opens a scope for each description of a day |
 
 A build with neither `std` nor `libm` is a compile error, deliberately: a
 missing feature is a fact about the build, not about the input, and belongs

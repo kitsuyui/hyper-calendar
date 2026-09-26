@@ -1259,6 +1259,43 @@ mod calendars {
         unsafe { emit_or_measure(&text, buffer, capacity) }
     }
 
+    /// Every registered calendar by name alone, as UTF-8 lines, returning
+    /// the byte length written.
+    ///
+    /// One line per calendar, in registry order, tab-separated: the
+    /// identifier, what the locale calls the calendar (和暦, or empty where
+    /// it has no name), its English name, the locale used (the tag of the
+    /// data entry the name came from, empty where the name is), and the
+    /// crate that registers it (`hc-calendars-solar`, `hc-calendars-lunar`,
+    /// `hc-calendars-equinox`, `hc-calendars-indic` or
+    /// `hc-calendars-regional`). The names are `hc_calendars`', without the
+    /// range, the units and the standing on a day, so nothing is converted:
+    /// for a menu of calendars, which a page asks for far more often than it
+    /// describes a day. `locale` is as for `hc_describe_day`. A null
+    /// `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be readable for `locale_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless it
+    /// is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_calendar_list(
+        locale: *const u8,
+        locale_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale, locale_len) } {
+            Ok(tag) => tag,
+            Err(sentinel) => return sentinel,
+        };
+        let text = lines::calendar_list(&hc::registry(), tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_or_measure(&text, buffer, capacity) }
+    }
+
     /// Every locale the module carries, as UTF-8 lines, returning the byte
     /// length written.
     ///
@@ -1350,8 +1387,8 @@ mod calendars {
 
 #[cfg(feature = "calendars")]
 pub use calendars::{
-    hc_calendar_units, hc_calendars, hc_describe_day, hc_first_day_of_week, hc_gregorian_adoption,
-    hc_locales,
+    hc_calendar_list, hc_calendar_units, hc_calendars, hc_describe_day, hc_first_day_of_week,
+    hc_gregorian_adoption, hc_locales,
 };
 
 /// Days in the calendars, behind the `calendars` feature: the pañcāṅga's
@@ -4233,6 +4270,60 @@ mod tests {
             let coptic = rows.iter().find(|row| row[0] == "cop").expect("cop");
             assert_eq!(coptic[3..6], ["0", "0", "0"]);
             assert_eq!(coptic[6], "coptic");
+        }
+
+        #[test]
+        fn the_calendar_list_is_the_calendars_names_without_the_day() {
+            let split = |text: &str| -> Vec<Vec<String>> {
+                text.lines()
+                    .map(|line| line.split('\t').map(str::to_owned).collect())
+                    .collect()
+            };
+            for locale in ["ja", "en", "he", "und", "native"] {
+                let list = split(&read_lines(|buffer, capacity| unsafe {
+                    hc_calendar_list(locale.as_ptr(), locale.len(), buffer, capacity)
+                }));
+                let calendars = split(&read_lines(|buffer, capacity| unsafe {
+                    hc_calendars(739_880, locale.as_ptr(), locale.len(), buffer, capacity)
+                }));
+                assert_eq!(list.len(), hc::registry().len(), "{locale}");
+                assert!(list.iter().all(|row| row.len() == 5), "{list:?}");
+                for (row, full) in list.iter().zip(&calendars) {
+                    assert_eq!(row[..3], full[..3], "{locale}");
+                    assert_eq!(row[1].is_empty(), row[3].is_empty(), "{row:?}");
+                }
+            }
+            let list = split(&read_lines(|buffer, capacity| unsafe {
+                hc_calendar_list("ja".as_ptr(), 2, buffer, capacity)
+            }));
+            let row = |id: &str| list.iter().find(|row| row[0] == id).expect(id).clone();
+            assert_eq!(
+                row("japanese")[1..],
+                [
+                    "和暦",
+                    "Japanese (imperial eras)",
+                    "ja",
+                    "hc-calendars-regional"
+                ]
+            );
+            assert_eq!(row("gregory")[3..], ["ja", "hc-calendars-solar"]);
+            assert_eq!(row("chinese")[4], "hc-calendars-lunar");
+            assert_eq!(row("persian")[4], "hc-calendars-equinox");
+            assert_eq!(row("hindu-lunar")[4], "hc-calendars-indic");
+            let native = split(&read_lines(|buffer, capacity| unsafe {
+                hc_calendar_list("native".as_ptr(), 6, buffer, capacity)
+            }));
+            let hebrew = native
+                .iter()
+                .find(|row| row[0] == "hebrew")
+                .expect("hebrew");
+            assert_eq!(hebrew[1], "לוח השנה העברי");
+            assert_eq!(hebrew[3], "he");
+            let not_utf8 = [0xffu8];
+            assert_eq!(
+                unsafe { hc_calendar_list(not_utf8.as_ptr(), 1, core::ptr::null_mut(), 0) },
+                HC_ERR_NOT_UTF8
+            );
         }
 
         #[test]

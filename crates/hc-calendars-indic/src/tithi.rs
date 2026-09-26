@@ -80,9 +80,17 @@ pub fn sunrise_of(day: Rd, location: Location) -> Moment {
 }
 
 /// The tithi a day carries: the one in progress at its sunrise.
+///
+/// Inside a [`hc_core::memo::scope`] each day and place is read once: the
+/// calendars built on the Hindu lunar one read the same sunrises.
 #[must_use]
 pub fn tithi_of_day(day: Rd, location: Location) -> u8 {
-    tithi_number_at(sunrise_of(day, location))
+    enum TithiOfDay {}
+    let [latitude, longitude, elevation] = location.key();
+    hc_core::memo::cached::<TithiOfDay, _, 4>(
+        [day.0 as u64, latitude, longitude, elevation],
+        || tithi_number_at(sunrise_of(day, location)),
+    )
 }
 
 /// Sunset on a day at a location, in Universal Time, with the same

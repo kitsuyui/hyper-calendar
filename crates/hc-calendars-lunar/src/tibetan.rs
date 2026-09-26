@@ -297,6 +297,19 @@ pub const MONGOLIAN_USAGE_SOURCE: &str = "Janson 2014, Appendix A.3 [janson2014]
     in the 1920s and kept for Tsagaan Sar and the lunar holidays since; the year only, so its \
     Losar is taken";
 
+/// The earliest and latest days of the registered calendars, as
+/// [`TibetanCalendar::earliest`] and [`TibetanCalendar::latest`] compute
+/// them from the new-year arithmetic, which every conversion's range check
+/// and every description's metadata ask for; any other calendar computes
+/// them. `tests::the_named_ranges_are_the_computed_ones` computes these
+/// again.
+const NAMED_RANGES: [(TibetanCalendar, Rd, Rd); 4] = [
+    (TIBETAN, Rd(364_892), Rd(1_095_802)),
+    (TIBETAN_TSURPHU, Rd(364_892), Rd(1_095_802)),
+    (TIBETAN_BHUTAN, Rd(364_892), Rd(1_095_803)),
+    (MONGOLIAN, Rd(364_892), Rd(1_095_802)),
+];
+
 /// The Phugpa version, from the epoch of month 3 of 806: `β* = 61`, a leap
 /// month where the intercalation index is 48 or 49, and Janson's epoch
 /// values (5.2), (7.2), (7.6), (7.12).
@@ -574,13 +587,33 @@ impl TibetanCalendar {
     /// [`MIN_YEAR`].
     #[must_use]
     pub fn earliest(&self) -> Rd {
+        self.named_range()
+            .map_or_else(|| self.computed_earliest(), |(earliest, _)| earliest)
+    }
+
+    /// [`TibetanCalendar::earliest`], computed.
+    fn computed_earliest(&self) -> Rd {
         Rd(self.new_year_jdn(MIN_YEAR) - JDN_OFFSET)
+    }
+
+    /// The range of a calendar [`NAMED_RANGES`] holds.
+    fn named_range(&self) -> Option<(Rd, Rd)> {
+        NAMED_RANGES
+            .iter()
+            .find(|(calendar, _, _)| calendar == self)
+            .map(|&(_, earliest, latest)| (earliest, latest))
     }
 
     /// The latest fixed day this implementation converts, the day before
     /// Losar of the year after [`MAX_YEAR`].
     #[must_use]
     pub fn latest(&self) -> Rd {
+        self.named_range()
+            .map_or_else(|| self.computed_latest(), |(_, latest)| latest)
+    }
+
+    /// [`TibetanCalendar::latest`], computed.
+    fn computed_latest(&self) -> Rd {
         Rd(self.new_year_jdn(MAX_YEAR + 1) - 1 - JDN_OFFSET)
     }
 
@@ -814,6 +847,14 @@ impl Calendar for TibetanCalendar {
 mod tests {
     use super::*;
     use crate::civil;
+
+    #[test]
+    fn the_named_ranges_are_the_computed_ones() {
+        for (calendar, earliest, latest) in NAMED_RANGES {
+            assert_eq!(calendar.computed_earliest(), earliest, "{calendar:?}");
+            assert_eq!(calendar.computed_latest(), latest, "{calendar:?}");
+        }
+    }
 
     const VERSIONS: [TibetanCalendar; 4] = [TIBETAN, TIBETAN_TSURPHU, MONGOLIAN, TIBETAN_BHUTAN];
 

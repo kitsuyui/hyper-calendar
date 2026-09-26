@@ -79,6 +79,7 @@ export const COLUMNS: {
   readonly describeDay: ReadonlyArray<string>;
   readonly calendarUnits: ReadonlyArray<string>;
   readonly calendars: ReadonlyArray<string>;
+  readonly calendarList: ReadonlyArray<string>;
   readonly locales: ReadonlyArray<string>;
   readonly gregorianAdoption: ReadonlyArray<string>;
   readonly holidaysInYear: ReadonlyArray<string>;
@@ -234,6 +235,28 @@ export interface CalendarEntry {
   nativeLocales: string[];
   /** Its standing on the day asked about. */
   standing: Standing;
+}
+
+/** The crates whose calendars the module registers. */
+export type CalendarCrate =
+  | "hc-calendars-solar"
+  | "hc-calendars-lunar"
+  | "hc-calendars-equinox"
+  | "hc-calendars-indic"
+  | "hc-calendars-regional";
+
+/** One row of `hc_calendar_list`. */
+export interface CalendarListEntry {
+  /** The calendar's identifier. */
+  id: string;
+  /** What the locale calls the calendar, as `CalendarEntry.name` has it, or `null` where it has no name for it. */
+  name: string | null;
+  /** Its English name. */
+  englishName: string;
+  /** The tag of the locale data the name came from, or `null` with the name. */
+  localeUsed: string | null;
+  /** The crate that registers it. */
+  crate: CalendarCrate | null;
 }
 
 /** How far one step of a Gregorian adoption reached. */
@@ -989,6 +1012,8 @@ export class HyperCalendar {
   calendarUnits(id: string, unit: Unit | number, from: number | bigint, to: number | bigint, locale?: string): CalendarUnit[];
   /** Every registered calendar, with what the locale calls it and its standing on `today`. */
   calendars(today: number | bigint, locale?: string): CalendarEntry[];
+  /** `hc_calendar_list`: every registered calendar by name alone, with nothing that depends on a day. */
+  calendarList(locale?: string): CalendarListEntry[];
   /** Every locale the module carries. */
   locales(): LocaleEntry[];
   /**

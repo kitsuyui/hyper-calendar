@@ -224,14 +224,31 @@ pub fn gregorian_adoption(
 #[must_use]
 pub fn registry() -> hc_calendar::CalendarRegistry {
     let mut registry = hc_calendar::CalendarRegistry::new();
-    hc_calendars_solar::register_all(&mut registry);
-    #[cfg(feature = "lunar")]
-    hc_calendars_lunar::register_all(&mut registry);
-    #[cfg(feature = "equinox")]
-    hc_calendars_equinox::register_all(&mut registry);
-    #[cfg(feature = "indic")]
-    hc_calendars_indic::register_all(&mut registry);
-    #[cfg(feature = "regional")]
-    hc_calendars_regional::register_all(&mut registry);
+    for (_, register) in CALENDAR_CRATES {
+        register(&mut registry);
+    }
     registry
 }
+
+/// A calendar crate's `register_all`: what [`CALENDAR_CRATES`] pairs with
+/// each crate's name.
+#[cfg(all(feature = "civil", feature = "alloc"))]
+pub type Register = fn(&mut hc_calendar::CalendarRegistry);
+
+/// The crates whose calendars [`registry`] registers, by package name, with
+/// the function that registers each crate's, in the order [`registry`]
+/// calls them: the enabled features' share of `hc-calendars-solar`,
+/// `hc-calendars-lunar`, `hc-calendars-equinox`, `hc-calendars-indic` and
+/// `hc-calendars-regional`.
+#[cfg(all(feature = "civil", feature = "alloc"))]
+pub const CALENDAR_CRATES: &[(&str, Register)] = &[
+    ("hc-calendars-solar", hc_calendars_solar::register_all),
+    #[cfg(feature = "lunar")]
+    ("hc-calendars-lunar", hc_calendars_lunar::register_all),
+    #[cfg(feature = "equinox")]
+    ("hc-calendars-equinox", hc_calendars_equinox::register_all),
+    #[cfg(feature = "indic")]
+    ("hc-calendars-indic", hc_calendars_indic::register_all),
+    #[cfg(feature = "regional")]
+    ("hc-calendars-regional", hc_calendars_regional::register_all),
+];

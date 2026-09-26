@@ -81,6 +81,7 @@ export const METHODS = Object.freeze([
   { method: "describeDay", export: "hc_describe_day", feature: "calendars" },
   { method: "calendarUnits", export: "hc_calendar_units", feature: "calendars" },
   { method: "calendars", export: "hc_calendars", feature: "calendars" },
+  { method: "calendarList", export: "hc_calendar_list", feature: "calendars" },
   { method: "locales", export: "hc_locales", feature: "calendars" },
   { method: "firstDayOfWeek", export: "hc_first_day_of_week", feature: "calendars" },
   { method: "gregorianAdoption", export: "hc_gregorian_adoption", feature: "calendars" },
@@ -156,6 +157,7 @@ export const COLUMNS = Object.freeze({
     "id", "name", "english name", "earliest", "latest", "has era", "has year", "has month",
     "has day", "native locales", "standing",
   ]),
+  calendarList: Object.freeze(["id", "name", "english name", "locale used", "crate"]),
   locales: Object.freeze([
     "tag", "english name", "native name", "gregorian months", "weekdays", "gregorian eras",
     "calendars",
@@ -635,6 +637,23 @@ function calendarEntry(cells) {
     hasDay: flag(hasDay, "has day"),
     nativeLocales: list(nativeLocales),
     standing: /** @type {import("./hyper-calendar.d.ts").Standing} */ (standing),
+  };
+}
+
+/**
+ * One row of `hc_calendar_list`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").CalendarListEntry}
+ */
+function calendarListEntry(cells) {
+  const [id, name, englishName, localeUsed, crate] = cells;
+  return {
+    id,
+    name: optional(name),
+    englishName,
+    localeUsed: optional(localeUsed),
+    crate: /** @type {import("./hyper-calendar.d.ts").CalendarCrate | null} */ (optional(crate)),
   };
 }
 
@@ -1810,6 +1829,23 @@ export class HyperCalendar {
     const text = this.#withText(locale, "locale", (pointer, len) =>
       this.#text("hc_calendars", (buffer, capacity) => fn(day, pointer, len, buffer, capacity), true));
     return rows(text, COLUMNS.calendars, "hc_calendars").map(calendarEntry);
+  }
+
+  /**
+   * Every registered calendar by name alone, in registry order: what the
+   * locale calls it, as {@link HyperCalendar#calendars} has it, its
+   * English name, the locale the name is in, and the crate that registers
+   * it. Nothing is converted, so this is the call for a menu of calendars,
+   * which a page asks for far more often than it describes a day.
+   *
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").CalendarListEntry[]}
+   */
+  calendarList(locale = "und") {
+    const fn = this.#export("hc_calendar_list");
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_calendar_list", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.calendarList, "hc_calendar_list").map(calendarListEntry);
   }
 
   /**

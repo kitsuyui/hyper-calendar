@@ -466,6 +466,38 @@ describe("calendars and locales", () => {
     assert.equal(hc.calendars(739_880, "zh-Hant").find((row) => row.id === "dangi")?.name, "檀紀曆");
   });
 
+  test("the calendar list is the calendars' names without the day", () => {
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_calendar_list(0, 0, buffer, capacity));
+    for (const cells of raw) {
+      assert.equal(cells.length, COLUMNS.calendarList.length, JSON.stringify(cells));
+    }
+    for (const locale of ["ja", "en", "he", "tlh", NATIVE]) {
+      const list = hc.calendarList(locale);
+      const full = hc.calendars(739_880, locale);
+      assert.deepEqual(
+        list.map((row) => [row.id, row.name, row.englishName]),
+        full.map((row) => [row.id, row.name, row.englishName]),
+        locale,
+      );
+      for (const row of list) {
+        assert.equal(row.localeUsed === null, row.name === null, JSON.stringify(row));
+        assert.ok(row.crate?.startsWith("hc-calendars-"), JSON.stringify(row));
+      }
+    }
+    const ja = hc.calendarList("ja");
+    assert.deepEqual(ja.find((row) => row.id === "japanese"), {
+      id: "japanese",
+      name: "和暦",
+      englishName: "Japanese (imperial eras)",
+      localeUsed: "ja",
+      crate: "hc-calendars-regional",
+    });
+    assert.equal(ja.find((row) => row.id === "chinese")?.crate, "hc-calendars-lunar");
+    assert.equal(ja.find((row) => row.id === "hindu-lunar")?.crate, "hc-calendars-indic");
+    const hebrew = hc.calendarList(NATIVE).find((row) => row.id === "hebrew");
+    assert.deepEqual([hebrew?.name, hebrew?.localeUsed], ["לוח השנה העברי", "he"]);
+  });
+
   test("every locale is listed with what it names", () => {
     const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_locales(buffer, capacity));
     for (const cells of raw) {

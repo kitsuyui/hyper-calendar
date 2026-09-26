@@ -111,6 +111,16 @@ const TISHREI: u8 = 7;
 /// [`CalendarError::AstronomicalModelFailure`] when the Sun does not set at
 /// Haifa or no crescent is found, which would be a failure of the model.
 pub fn first_of_nisan(gregorian_year: i64) -> CalendarResult<Rd> {
+    // Inside a memo scope, once a year: a date, whether its year is leap
+    // and its month's name each ask for the Nisans around it.
+    enum FirstOfNisan {}
+    hc_core::memo::cached::<FirstOfNisan, _, 1>([gregorian_year as u64], || {
+        computed_first_of_nisan(gregorian_year)
+    })
+}
+
+/// [`first_of_nisan`], searched for.
+fn computed_first_of_nisan(gregorian_year: i64) -> CalendarResult<Rd> {
     let spring = equinox(gregorian_year, Equinox::March);
     let day = Rd(floor(spring.0) as i64);
     let set = sunset(day, HAIFA).ok_or(CalendarError::AstronomicalModelFailure)?;

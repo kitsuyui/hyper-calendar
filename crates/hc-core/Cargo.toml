@@ -16,6 +16,11 @@ keywords.workspace = true
 default = ["std"]
 std = ["alloc"]
 alloc = []
+# The per-call memo of `memo`: without it, or without `std`, every memoized
+# function computes every time. Off by default so that a WebAssembly layer
+# that never opens a memo scope does not carry the memo's code; the facade
+# turns it on with the calendars that search the sky.
+memo = []
 # Floating-point math for `no_std` builds. Enable this instead of `std` when
 # targeting bare metal or a minimal WebAssembly runtime.
 libm = ["dep:libm"]

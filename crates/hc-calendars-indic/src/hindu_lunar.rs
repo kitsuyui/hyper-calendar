@@ -255,7 +255,21 @@ impl HinduLunarCalendar {
     }
 
     /// The lunar month beginning after the conjunction `start`.
+    ///
+    /// The place plays no part: the conjunctions and saṅkrāntis are the
+    /// same instants everywhere. So inside a [`hc_core::memo::scope`] a
+    /// month is found once for every calendar with the same ayanamsa,
+    /// wherever its sunrise is read.
     fn month_from(&self, start: Moment) -> LunarMonth {
+        enum MonthFrom {}
+        let [anchor, degrees] = self.ayanamsa.key();
+        hc_core::memo::cached::<MonthFrom, _, 3>([anchor, degrees, start.0.to_bits()], || {
+            self.computed_month_from(start)
+        })
+    }
+
+    /// [`HinduLunarCalendar::month_from`], found.
+    fn computed_month_from(&self, start: Moment) -> LunarMonth {
         let end = conjunction_at_or_after(Moment(start.0 + 1.0));
         let sign_at_start = sign_at_moment(start, self.ayanamsa);
         let sign_at_end = sign_at_moment(end, self.ayanamsa);
@@ -295,9 +309,26 @@ impl HinduLunarCalendar {
         }
     }
 
+    /// The calendar and one more word as a [`hc_core::memo`] key: its place
+    /// and its ayanamsa, bit for bit, then `word`.
+    fn key_with(&self, word: u64) -> [u64; 6] {
+        let [latitude, longitude, elevation] = self.location.key();
+        let [anchor, degrees] = self.ayanamsa.key();
+        [latitude, longitude, elevation, anchor, degrees, word]
+    }
+
     /// The label — month number and intercalary flag — of the month after
-    /// the one containing `day`, for the pūrṇimānta renaming.
+    /// the one containing `day`, for the pūrṇimānta renaming; inside a
+    /// [`hc_core::memo::scope`], once a day.
     pub(crate) fn next_month_label(&self, day: Rd) -> (u8, bool) {
+        enum NextMonthLabel {}
+        hc_core::memo::cached::<NextMonthLabel, _, 6>(self.key_with(day.0 as u64), || {
+            self.computed_next_month_label(day)
+        })
+    }
+
+    /// [`HinduLunarCalendar::next_month_label`], computed.
+    fn computed_next_month_label(&self, day: Rd) -> (u8, bool) {
         let current = self.month_containing(sunrise_of(day, self.location));
         let next = self.month_from(current.end);
         (next.month, next.leap)
@@ -432,7 +463,20 @@ impl HinduLunarCalendar {
     /// not have, or for a name a kṣaya month lost; and
     /// [`CalendarError::DayOutOfRange`] for a tithi outside 1–30, a tithi
     /// the month skips, or a repeated tithi the month does not repeat.
+    ///
+    /// Inside a [`hc_core::memo::scope`] each date is converted once: the
+    /// calendars built on this one convert the same dates.
     pub fn to_fixed(&self, date: HinduLunarDate) -> CalendarResult<Rd> {
+        enum ToFixed {}
+        let mut key = [0; 8];
+        key[..6].copy_from_slice(&self.key_with(date.year as u64));
+        key[6] = u64::from(date.month) << 8 | u64::from(date.day);
+        key[7] = u64::from(date.leap_month) << 1 | u64::from(date.leap_day);
+        hc_core::memo::cached::<ToFixed, _, 8>(key, || self.computed_to_fixed(date))
+    }
+
+    /// [`HinduLunarCalendar::to_fixed`], computed.
+    fn computed_to_fixed(&self, date: HinduLunarDate) -> CalendarResult<Rd> {
         if date.day == 0 || date.day > TITHIS_PER_MONTH {
             return Err(CalendarError::DayOutOfRange);
         }
@@ -448,7 +492,18 @@ impl HinduLunarCalendar {
     /// Returns [`CalendarError::BeforeEpoch`] or
     /// [`CalendarError::AfterSupportedRange`] outside the years this
     /// calendar converts.
+    ///
+    /// Inside a [`hc_core::memo::scope`] each day is converted once: the
+    /// calendars built on this one convert the same days.
     pub fn from_fixed(&self, rd: Rd) -> CalendarResult<HinduLunarDate> {
+        enum FromFixed {}
+        hc_core::memo::cached::<FromFixed, _, 6>(self.key_with(rd.0 as u64), || {
+            self.computed_from_fixed(rd)
+        })
+    }
+
+    /// [`HinduLunarCalendar::from_fixed`], computed.
+    fn computed_from_fixed(&self, rd: Rd) -> CalendarResult<HinduLunarDate> {
         let sunrise = sunrise_of(rd, self.location);
         let month = self.month_containing(sunrise);
         if month.year < MIN_YEAR {
@@ -509,7 +564,17 @@ impl HinduLunarCalendar {
     ///
     /// Returns [`CalendarError::YearOutOfRange`] outside
     /// [`MIN_YEAR`]..=[`MAX_YEAR`].
+    ///
+    /// Inside a [`hc_core::memo::scope`] each year is searched once.
     pub fn leap_month_of(&self, year: i64) -> CalendarResult<Option<(u8, Rd, Rd)>> {
+        enum LeapMonthOf {}
+        hc_core::memo::cached::<LeapMonthOf, _, 6>(self.key_with(year as u64), || {
+            self.computed_leap_month_of(year)
+        })
+    }
+
+    /// [`HinduLunarCalendar::leap_month_of`], searched for.
+    fn computed_leap_month_of(&self, year: i64) -> CalendarResult<Option<(u8, Rd, Rd)>> {
         if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
             return Err(CalendarError::YearOutOfRange);
         }
@@ -557,6 +622,14 @@ impl HinduLunarCalendar {
     /// Returns an error only if the astronomy cannot place the year, which
     /// it can.
     pub fn earliest(&self) -> CalendarResult<Rd> {
+        match self.named_range() {
+            Some((earliest, _)) => Ok(earliest),
+            None => self.computed_earliest(),
+        }
+    }
+
+    /// [`HinduLunarCalendar::earliest`] as the astronomy finds it.
+    fn computed_earliest(&self) -> CalendarResult<Rd> {
         self.new_year(MIN_YEAR)
     }
 
@@ -568,13 +641,50 @@ impl HinduLunarCalendar {
     /// Returns an error only if the astronomy cannot place the year, which
     /// it can.
     pub fn latest(&self) -> CalendarResult<Rd> {
+        match self.named_range() {
+            Some((_, latest)) => Ok(latest),
+            None => self.computed_latest(),
+        }
+    }
+
+    /// [`HinduLunarCalendar::latest`] as the astronomy finds it.
+    fn computed_latest(&self) -> CalendarResult<Rd> {
         let first = self
             .months_of_year(MAX_YEAR + 1)
             .next()
             .ok_or(CalendarError::YearOutOfRange)?;
         Ok(Rd(self.first_day_of(first).0 - 1))
     }
+
+    /// The range of a calendar [`NAMED_RANGES`] holds.
+    fn named_range(&self) -> Option<(Rd, Rd)> {
+        NAMED_RANGES
+            .iter()
+            .find(|(calendar, _, _)| calendar == self)
+            .map(|&(_, earliest, latest)| (earliest, latest))
+    }
 }
+
+/// The earliest and latest days of the calendars the crate names, as
+/// [`HinduLunarCalendar::earliest`] and [`HinduLunarCalendar::latest`]
+/// compute them.
+///
+/// Each is a search for the conjunctions and the Meṣa saṅkrānti of a year,
+/// most of a millisecond for the two, and every calendar built on this one
+/// asks for them in its metadata and its range checks, several times for
+/// every day a page describes. So they are written down for the
+/// calendars that are registered or named here, and computed for any other;
+/// `tests::the_named_ranges_are_the_computed_ones` computes these again.
+/// Kathmandu's is Nepal Sambat's.
+const NAMED_RANGES: [(HinduLunarCalendar, Rd, Rd); 3] = [
+    (HinduLunarCalendar::RASHTRIYA, Rd(620_627), Rd(839_773)),
+    (HinduLunarCalendar::UJJAIN, Rd(620_627), Rd(839_773)),
+    (
+        HinduLunarCalendar::new(crate::places::KATHMANDU, Ayanamsa::LAHIRI),
+        Rd(620_627),
+        Rd(839_773),
+    ),
+];
 
 /// The months of one Śaka year, in order.
 struct MonthsOfYear {
@@ -695,6 +805,14 @@ impl Calendar for HinduLunarCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_named_ranges_are_the_computed_ones() {
+        for (calendar, earliest, latest) in NAMED_RANGES {
+            assert_eq!(calendar.computed_earliest(), Ok(earliest), "{calendar:?}");
+            assert_eq!(calendar.computed_latest(), Ok(latest), "{calendar:?}");
+        }
+    }
 
     #[test]
     fn a_month_begins_where_its_first_tithi_does() {

@@ -415,9 +415,46 @@ impl ObservationSite {
     /// begins the day `rd`.
     ///
     /// That evening is the dusk of `rd - 1`, because the day begins at
-    /// sunset.
+    /// sunset. Inside a [`hc_core::memo::scope`] each evening at a site is
+    /// judged once: a month's start is found by walking the evenings, and
+    /// the searches of one day's date overlap.
     #[must_use]
     pub fn crescent_visible_on_the_eve_of(&self, rd: Rd) -> bool {
+        enum CrescentVisible {}
+        let mut key = [0; 10];
+        key[..9].copy_from_slice(&self.key());
+        key[9] = rd.0 as u64;
+        hc_core::memo::cached::<CrescentVisible, _, 10>(key, || {
+            self.computed_crescent_visible_on_the_eve_of(rd)
+        })
+    }
+
+    /// The site as words of a [`hc_core::memo`] key: its place and its
+    /// criterion's numbers, bit for bit, with which criterion it is.
+    fn key(&self) -> [u64; 9] {
+        let (kind, numbers) = match self.criterion {
+            VisibilityCriterion::ArcOfLight(criterion) => (
+                0,
+                [
+                    criterion.evaluation_depression_degrees,
+                    criterion.minimum_arc_of_light_degrees,
+                    criterion.minimum_altitude_degrees,
+                    0.0,
+                    0.0,
+                ],
+            ),
+            VisibilityCriterion::QTest(criterion) => {
+                let [a, b, c, d] = criterion.coefficients;
+                (1, [a, b, c, d, criterion.minimum_q])
+            }
+        };
+        let [latitude, longitude, elevation] = self.location.key();
+        let [a, b, c, d, e] = numbers.map(f64::to_bits);
+        [latitude, longitude, elevation, kind, a, b, c, d, e]
+    }
+
+    /// [`ObservationSite::crescent_visible_on_the_eve_of`], judged.
+    fn computed_crescent_visible_on_the_eve_of(&self, rd: Rd) -> bool {
         let Some(moment) = self.evaluation_moment(Rd(rd.0 - 1)) else {
             return false;
         };

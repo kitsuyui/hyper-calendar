@@ -36,6 +36,7 @@ pub mod gnss;
 pub mod internet_time;
 pub mod leap;
 pub mod math;
+pub mod memo;
 pub mod ntp;
 pub mod sas_stata;
 pub mod scale;

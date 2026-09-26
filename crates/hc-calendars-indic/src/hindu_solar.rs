@@ -387,6 +387,24 @@ pub const MAGI_BEHIND_BENGALI: i64 = 45;
 /// Every solar reckoning this crate registers.
 pub const ALL: &[HinduSolarCalendar] = &[TAMIL, MALAYALAM, BENGALI, VIKRAMI, MAGI];
 
+/// The earliest and latest days of the reckonings the crate names, as
+/// [`HinduSolarCalendar::earliest`] and [`HinduSolarCalendar::latest`]
+/// compute them.
+///
+/// Each is a search for the saṅkrānti that opens a year, and every
+/// conversion checks its day against both, so they are written down for
+/// the reckonings that are registered or named here, and computed for any
+/// other; `tests::the_named_ranges_are_the_computed_ones` computes these
+/// again.
+const NAMED_RANGES: [(HinduSolarCalendar, Rd, Rd); 6] = [
+    (TAMIL, Rd(620_647), Rd(839_799)),
+    (MALAYALAM, Rd(620_772), Rd(839_924)),
+    (BENGALI, Rd(620_647), Rd(839_800)),
+    (VIKRAMI, Rd(620_646), Rd(839_799)),
+    (MAGI, Rd(620_647), Rd(839_800)),
+    (crate::bikram_sambat::RECKONING, Rd(620_646), Rd(839_800)),
+];
+
 impl HinduSolarCalendar {
     /// The same reckoning judged at another place, or with another Sun,
     /// under an identifier of the caller's.
@@ -545,13 +563,33 @@ impl HinduSolarCalendar {
     /// The earliest fixed day this calendar converts.
     #[must_use]
     pub fn earliest(&self) -> Rd {
-        self.month_start_raw(self.min_year(), 1)
+        self.named_range()
+            .map_or_else(|| self.computed_earliest(), |(earliest, _)| earliest)
     }
 
     /// The latest fixed day this calendar converts.
     #[must_use]
     pub fn latest(&self) -> Rd {
+        self.named_range()
+            .map_or_else(|| self.computed_latest(), |(_, latest)| latest)
+    }
+
+    /// [`HinduSolarCalendar::earliest`] as the astronomy finds it.
+    fn computed_earliest(&self) -> Rd {
+        self.month_start_raw(self.min_year(), 1)
+    }
+
+    /// [`HinduSolarCalendar::latest`] as the astronomy finds it.
+    fn computed_latest(&self) -> Rd {
         Rd(self.month_start_raw(self.max_year() + 1, 1).0 - 1)
+    }
+
+    /// The range of a calendar [`NAMED_RANGES`] holds.
+    fn named_range(&self) -> Option<(Rd, Rd)> {
+        NAMED_RANGES
+            .iter()
+            .find(|(calendar, _, _)| calendar == self)
+            .map(|&(_, earliest, latest)| (earliest, latest))
     }
 
     /// The date of a fixed day.
@@ -768,6 +806,14 @@ const MALAYALAM_MONTHS: &[&str] = &[
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_named_ranges_are_the_computed_ones() {
+        for (calendar, earliest, latest) in NAMED_RANGES {
+            assert_eq!(calendar.computed_earliest(), earliest, "{:?}", calendar.id);
+            assert_eq!(calendar.computed_latest(), latest, "{:?}", calendar.id);
+        }
+    }
 
     fn ymd(year: i64, month: u8, day: u8) -> Rd {
         gregorian::to_fixed(year, month, day).unwrap()

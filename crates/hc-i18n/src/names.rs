@@ -802,8 +802,13 @@ where
     F: Fn(&'static LocaleData) -> Option<T>,
 {
     for candidate in locale.fallback() {
+        // Rendered once, not once for every entry it is compared with: this
+        // is the inner loop of every name looked up.
+        let Some(rendered) = candidate.rendered() else {
+            continue;
+        };
         for data in LOCALES {
-            if candidate.matches_tag(data.tag)
+            if rendered.as_str() == data.tag
                 && let Some(value) = pick(data)
             {
                 return Some(value);
@@ -1111,6 +1116,19 @@ pub fn calendar_display_name(locale: &Locale, calendar: CalendarId) -> Option<&'
     resolve(locale, |data| data.calendar_name(calendar))
 }
 
+/// [`calendar_display_name`] with the tag of the data entry the name came
+/// from: `ja` for 和暦 asked for in `ja-JP`, so that a caller knows what
+/// language the name is in.
+#[must_use]
+pub fn calendar_display_name_with_tag(
+    locale: &Locale,
+    calendar: CalendarId,
+) -> Option<(&'static str, &'static str)> {
+    resolve(locale, |data| {
+        data.calendar_name(calendar).map(|name| (name, data.tag))
+    })
+}
+
 /// Whether some locale in the chain names `calendar` at all: has months,
 /// eras or templates for it.
 #[must_use]
@@ -1122,10 +1140,10 @@ pub fn names_calendar(locale: &Locale, calendar: CalendarId) -> bool {
 /// one that falls through to the root.
 #[must_use]
 pub fn is_carried(locale: &Locale) -> bool {
-    LOCALES.iter().any(|data| {
-        locale
-            .fallback()
-            .any(|candidate| candidate.matches_tag(data.tag))
+    locale.fallback().any(|candidate| {
+        candidate
+            .rendered()
+            .is_some_and(|rendered| LOCALES.iter().any(|data| rendered.as_str() == data.tag))
     })
 }
 
@@ -1722,6 +1740,14 @@ mod tests {
         );
         assert_eq!(
             calendar_display_name(&locale("de"), CalendarId("maya-haab")),
+            None
+        );
+        assert_eq!(
+            calendar_display_name_with_tag(&locale("ja-JP"), CalendarId("japanese")),
+            Some(("和暦", "ja"))
+        );
+        assert_eq!(
+            calendar_display_name_with_tag(&locale("de"), CalendarId("maya-haab")),
             None
         );
         assert_eq!(sexagenary_joiner(&locale("en")), " ");

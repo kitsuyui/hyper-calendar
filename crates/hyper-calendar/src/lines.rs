@@ -21,9 +21,11 @@
 //! then English. A tag that does not parse is the root locale `und`. The last cell of
 //! every line that was rendered in a locale names the data entry that
 //! answered — `ja`, `zh-Hans`, `he`, `und` — so that a page knows what
-//! language it is showing.
+//! language it is showing; in [`calendar_list`]'s lines, whose last cell
+//! is the crate, the one before it does.
 
 use alloc::borrow::ToOwned;
+use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt::Write;
@@ -49,6 +51,8 @@ pub const DESCRIBE_DAY_COLUMNS: usize = 18;
 pub const CALENDAR_UNITS_COLUMNS: usize = 8;
 /// How many columns [`calendars`] writes.
 pub const CALENDARS_COLUMNS: usize = 11;
+/// How many columns [`calendar_list`] writes.
+pub const CALENDAR_LIST_COLUMNS: usize = 5;
 /// How many columns [`locales`] writes.
 pub const LOCALES_COLUMNS: usize = 7;
 /// How many columns [`gregorian_adoption`] writes.
@@ -267,6 +271,11 @@ fn push_extras(out: &mut String, fields: &DateFields) {
 /// formatted date are empty and the error code and name say why.
 #[must_use]
 pub fn describe_day(registry: &CalendarRegistry, day: Rd, locale: &str) -> String {
+    hc_core::memo::scope(|| describe_day_in_scope(registry, day, locale))
+}
+
+/// [`describe_day`], with the memo open.
+fn describe_day_in_scope(registry: &CalendarRegistry, day: Rd, locale: &str) -> String {
     let mut out = String::new();
     for (id, described) in registry.describe_day(day) {
         let Some(calendar) = registry.get(id) else {
@@ -394,6 +403,11 @@ fn has_units(calendar: &dyn DynCalendar, probe: Rd) -> (bool, bool, bool, bool) 
 /// `tests/distinct_names.rs` holds every locale to that.
 #[must_use]
 pub fn calendars(registry: &CalendarRegistry, today: Rd, locale: &str) -> String {
+    hc_core::memo::scope(|| calendars_in_scope(registry, today, locale))
+}
+
+/// [`calendars`], with the memo open.
+fn calendars_in_scope(registry: &CalendarRegistry, today: Rd, locale: &str) -> String {
     let requested = requested_locale(locale);
     let mut out = String::new();
     for meta in registry.metas() {
@@ -429,6 +443,66 @@ pub fn calendars(registry: &CalendarRegistry, today: Rd, locale: &str) -> String
         out.push('\n');
     }
     out
+}
+
+/// Every registered calendar, one line each, in registry order, with
+/// nothing that depends on a day.
+///
+/// The columns: the identifier, what the locale calls the calendar (or
+/// empty), its English name, the locale used — the tag of the data entry
+/// the name came from, empty where the name is — and the crate that
+/// registers it (`hc-calendars-solar`, `hc-calendars-lunar`,
+/// `hc-calendars-equinox`, `hc-calendars-indic`, `hc-calendars-regional`),
+/// as [`crate::CALENDAR_CRATES`] names them, or empty for a calendar none of
+/// them registers.
+///
+/// The name is the one [`calendars`] writes in its second column, by the
+/// same rule: the requested locale's own or empty, never borrowed from the
+/// calendar's own language, and under [`NATIVE`] the calendar's own. What
+/// [`calendars`] adds is the range, the units and the standing on a day,
+/// which cost a conversion of that day in every calendar; a page that only
+/// lists the calendars, which it does far more often than it describes a
+/// day, asks for this instead, which converts nothing.
+#[must_use]
+pub fn calendar_list(registry: &CalendarRegistry, locale: &str) -> String {
+    let requested = requested_locale(locale);
+    let crates = calendar_crates();
+    let mut out = String::new();
+    for meta in registry.metas() {
+        let Some(calendar) = registry.get(meta.id) else {
+            continue;
+        };
+        let named_in = requested.unwrap_or_else(|| label::locale_for(calendar, None));
+        let (name, tag) =
+            names::calendar_display_name_with_tag(&named_in, meta.id).unwrap_or(("", ""));
+        push_cell(&mut out, meta.id.as_str());
+        out.push('\t');
+        push_cell(&mut out, name);
+        out.push('\t');
+        push_cell(&mut out, meta.english_name);
+        out.push('\t');
+        out.push_str(tag);
+        out.push('\t');
+        if let Some(krate) = crates.get(meta.id.as_str()) {
+            out.push_str(krate);
+        }
+        out.push('\n');
+    }
+    out
+}
+
+/// Which of [`crate::CALENDAR_CRATES`] registers each identifier: the last
+/// to register it, since a later registration replaces an earlier one.
+fn calendar_crates() -> BTreeMap<&'static str, &'static str> {
+    let mut crates = BTreeMap::new();
+    for (krate, register) in crate::CALENDAR_CRATES {
+        let mut registry = CalendarRegistry::new();
+        register(&mut registry);
+        for meta in registry.metas() {
+            crates.insert(meta.id.as_str(), *krate);
+        }
+    }
+    crates
 }
 
 /// Every locale `hc-i18n` carries, one line each, in tag order.

@@ -165,8 +165,20 @@ pub fn equation_of_time(moment: Moment) -> f64 {
 /// If `moment` is itself the answer to within floating-point noise, the
 /// search may step a whole year forward; callers who need "on or before"
 /// semantics should search from slightly earlier.
+///
+/// Inside a [`hc_core::memo::scope`] each target and moment is searched for
+/// once.
 #[must_use]
 pub fn solar_longitude_after(target_degrees: f64, moment: Moment) -> Moment {
+    enum SolarLongitudeAfter {}
+    hc_core::memo::cached::<SolarLongitudeAfter, _, 2>(
+        [target_degrees.to_bits(), moment.0.to_bits()],
+        || computed_solar_longitude_after(target_degrees, moment),
+    )
+}
+
+/// [`solar_longitude_after`], searched for.
+fn computed_solar_longitude_after(target_degrees: f64, moment: Moment) -> Moment {
     let rate = MEAN_TROPICAL_YEAR / 360.0;
     let to_go = modulo(target_degrees - solar_longitude(moment), 360.0);
     let estimate = moment.0 + rate * to_go;

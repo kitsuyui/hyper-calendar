@@ -1535,6 +1535,43 @@ mod calendars {
         unsafe { write_text(&text, buffer, capacity, written) }
     }
 
+    /// Every registered calendar by name alone, as NUL-terminated UTF-8
+    /// lines in a caller-owned buffer.
+    ///
+    /// One line per calendar, in registry order, tab-separated: the
+    /// identifier, what the locale calls the calendar (和暦, or empty where
+    /// it has no name), its English name, the locale used (the tag of the
+    /// data entry the name came from, empty where the name is), and the
+    /// crate that registers it (`hc-calendars-solar`, `hc-calendars-lunar`,
+    /// `hc-calendars-equinox`, `hc-calendars-indic` or
+    /// `hc-calendars-regional`). The names are `hc_calendars`', without the
+    /// range, the units and the standing on a day, so nothing is converted:
+    /// for a menu of calendars, which is asked for far more often than a
+    /// day is described. `locale` is as for `hc_describe_day`. Writes the
+    /// required length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be null or point to a NUL-terminated string; `buffer`
+    /// must be writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_calendar_list(
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale) } {
+            Ok(tag) => tag.unwrap_or(""),
+            Err(status) => return status,
+        };
+        let text = lines::calendar_list(&hc::registry(), tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&text, buffer, capacity, written) }
+    }
+
     /// Every locale the library carries, as NUL-terminated UTF-8 lines in a
     /// caller-owned buffer.
     ///
@@ -1642,8 +1679,8 @@ mod calendars {
 
 #[cfg(feature = "calendars")]
 pub use calendars::{
-    hc_calendar_units, hc_calendars, hc_describe_day, hc_first_day_of_week, hc_gregorian_adoption,
-    hc_locales,
+    hc_calendar_list, hc_calendar_units, hc_calendars, hc_describe_day, hc_first_day_of_week,
+    hc_gregorian_adoption, hc_locales,
 };
 
 /// Days in the calendars, behind the `calendars` feature: the pañcāṅga's
@@ -4297,6 +4334,42 @@ mod tests {
             assert_eq!(
                 unsafe { hc_first_day_of_week(c"en".as_ptr(), core::ptr::null_mut()) },
                 HC_ERROR_NULL_POINTER
+            );
+        }
+
+        #[test]
+        fn the_calendar_list_is_the_calendars_names_without_the_day() {
+            let rows = |text: &str| -> Vec<Vec<String>> {
+                text.lines()
+                    .map(|line| line.split('\t').map(str::to_owned).collect())
+                    .collect()
+            };
+            let list = rows(&read_lines(|buffer, capacity, written| unsafe {
+                hc_calendar_list(c"ja-JP".as_ptr(), buffer, capacity, written)
+            }));
+            let calendars = rows(&read_lines(|buffer, capacity, written| unsafe {
+                hc_calendars(739_880, c"ja-JP".as_ptr(), buffer, capacity, written)
+            }));
+            assert_eq!(list.len(), hc::registry().len());
+            assert!(list.iter().all(|row| row.len() == 5), "{list:?}");
+            for (row, full) in list.iter().zip(&calendars) {
+                assert_eq!(row[..3], full[..3]);
+            }
+            let japanese = list
+                .iter()
+                .find(|row| row[0] == "japanese")
+                .expect("japanese");
+            assert_eq!(japanese[3..], ["ja", "hc-calendars-regional"]);
+            assert_eq!(
+                unsafe {
+                    hc_calendar_list(
+                        c"\xff".as_ptr(),
+                        core::ptr::null_mut(),
+                        0,
+                        core::ptr::null_mut(),
+                    )
+                },
+                HC_ERROR_NOT_UTF8
             );
         }
 

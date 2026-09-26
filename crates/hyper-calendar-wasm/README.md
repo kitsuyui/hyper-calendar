@@ -102,7 +102,7 @@ out of range is `out-of-range`, never an unrecognised number.
 | 0 | `hc_zone_load` | any name and bytes; bytes that are not TZif are `HC_ERR_MALFORMED` |
 | a byte length | `hc_circad_date` | no `i64` input: the instants within 100 Julian years of J2000.0 (1900-01-01T12:00 to 2100-01-01T12:00 TT), as for `hc_mars_time`; any other, or one not finite, is `HC_ERR_OUT_OF_RANGE`, and a calendar not listed `HC_ERR_UNKNOWN` |
 | a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERR_NO_DATA`, and a mission the table does not carry `HC_ERR_UNKNOWN` |
-| a byte length | `hc_version`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_mars_time`, `hc_missions`, `hc_bodies`, `hc_body_time`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
+| a byte length | `hc_version`, `hc_calendar_list`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_mars_time`, `hc_missions`, `hc_bodies`, `hc_body_time`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
 
 [`crates/hyper-calendar/tests/abi.rs`](../hyper-calendar/tests/abi.rs)
 walks every `i64` export in the source and fails when one has no row
@@ -181,6 +181,9 @@ hc.describeDay(rd, "ja-JP").find((row) => row.id === "japanese");
 hc.calendarUnits("chinese", "month", rd, rd + 90, "zh-Hans");
 // [{ start: 739870, end: 739899, label: "八月", leap: false, ... }, ...]
 hc.calendars(rd, "native").find((row) => row.id === "hebrew")?.name;   // "לוח השנה העברי"
+hc.calendarList("ja").find((row) => row.id === "japanese");
+// { id: "japanese", name: "和暦", englishName: "Japanese (imperial eras)",
+//   localeUsed: "ja", crate: "hc-calendars-regional" }
 hc.holidaysOn(rd);                                   // [{ table: "JP", name: ..., kind: "public", ... }, ...]
 hc.fixedFromUnixInZone(Math.floor(Date.now() / 1000), "Asia/Tokyo");
 
@@ -221,6 +224,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `describeDay(fixed, locale)` | `hc_describe_day` | `DescribedDay[]`, one per calendar |
 | `calendarUnits(id, unit, from, to, locale)` | `hc_calendar_units` | `CalendarUnit[]`, one per span |
 | `calendars(today, locale)` | `hc_calendars` | `CalendarEntry[]`, one per calendar |
+| `calendarList(locale)` | `hc_calendar_list` | `CalendarListEntry[]`, one per calendar |
 | `locales()` | `hc_locales` | `LocaleEntry[]`, one per locale |
 | `firstDayOfWeek(locale)` | `hc_first_day_of_week` | a number, Monday = 1 through Sunday = 7 |
 | `gregorianAdoption(region)` | `hc_gregorian_adoption` | `GregorianAdoption[]`, one per step |
@@ -355,16 +359,16 @@ one job a layer.
 | --- | --- | --- | ---: | ---: |
 | `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,663 | 35 KiB |
 | `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, and Julian and Besselian epochs | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time` and `epoch_notation`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` | 104,440 | 102 KiB |
-| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; and when each country adopted the Gregorian calendar; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury` | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 783,168 | 765 KiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter` | `hc-holiday` and everything it dates by | 1,143,705 | 1.09 MiB |
-| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 89,751 | 88 KiB |
+| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; and when each country adopted the Gregorian calendar; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury` | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 821,587 | 802 KiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter` | `hc-holiday` and everything it dates by | 1,163,807 | 1.11 MiB |
+| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 89,072 | 87 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 152,767 | 149 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,666 | 56 KiB |
-| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event` | `hc-astro`, `hc-seasons` | 109,346 | 107 KiB |
+| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event` | `hc-astro`, `hc-seasons` | 108,913 | 106 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 63,961 | 62 KiB |
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 96,090 | 94 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 52,367 | 51 KiB |
-| `full` | all of the above | everything | 2,059,906 | 1.96 MiB |
+| `full` | all of the above | everything | 2,098,075 | 2.00 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -404,7 +408,7 @@ not pass CI.
 
 ### Exports
 
-84 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+85 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -447,6 +451,7 @@ not pass CI.
 | `hc_describe_day(fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | One fixed day in every registered calendar, as UTF-8 lines, returning the byte length written. |
 | `hc_calendar_units(id: *const u8, id_len: usize, unit: u32, from_fixed: i64, to_fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The days from `from_fixed` up to but not including `to_fixed` as one calendar's eras, years, months or days, as UTF-8 lines, returning the byte length written. |
 | `hc_calendars(today: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every registered calendar, as UTF-8 lines, returning the byte length written. |
+| `hc_calendar_list(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every registered calendar by name alone, as UTF-8 lines, returning the byte length written. |
 | `hc_locales(buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every locale the module carries, as UTF-8 lines, returning the byte length written. |
 | `hc_first_day_of_week(locale: *const u8, locale_len: usize) -> i64` | `calendars` | The ISO weekday of the first day of the week in a locale, Monday = 1 through Sunday = 7, or an error sentinel. |
 | `hc_gregorian_adoption(region: *const u8, region_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The steps by which a country adopted the Gregorian calendar, as UTF-8 lines, returning the byte length written. |
@@ -948,6 +953,82 @@ says how.
 | 9 | has day | `1` when its dates carry a day of the month |
 | 10 | native locales | the languages its sources are written in, as BCP 47 tags joined by `;`, primary first — `he`, `zh-Hans;zh-Hant`, `sa;hi;ta` — or empty for a day count, a proposal or the Gregorian family |
 | 11 | standing | its standing on `today` |
+
+## The calendar list
+
+`hc_calendar_list(locale_ptr, locale_len, buffer, capacity)` needs the
+`calendars` feature and writes one line per registered calendar, in
+registry order, with nothing that depends on a day: the names
+`hc_calendars` writes, by the same rule, without the range, the units and
+the standing. Those cost a conversion of the day in every calendar, some
+of them searches of the sky; a menu of calendars needs none of it, and a
+page lists the calendars far more often than it describes a day, so this
+converts nothing and answers in under a millisecond. `locale` is as
+for `hc_describe_day`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | the calendar's identifier |
+| 2 | name | what the locale calls the calendar, as column 2 of `hc_calendars` has it, or empty |
+| 3 | english name | its English name, as column 3 of `hc_calendars` |
+| 4 | locale used | the tag of the locale data the name came from, `ja` for 和暦 asked for in `ja-JP`; empty where the name is |
+| 5 | crate | the crate that registers it: `hc-calendars-solar`, `hc-calendars-lunar`, `hc-calendars-equinox`, `hc-calendars-indic` or `hc-calendars-regional` |
+
+### What the calls cost
+
+A description of a day is one conversion in each of the 186 calendars,
+and a few dozen of them search the sky to convert: the Hindu lunar
+calendar and the seven built on it for conjunctions and saṅkrāntis at
+sunrise, the observational Hebrew and Hijri calendars for crescents
+evening by evening, the Hindu solar, Faṣlī and equinox calendars for
+ingresses, the Chinese family for new moons and solar terms. Many of
+them used to compute their own range, one or two further searches, every time its metadata was asked
+for, which the lines do several times a calendar; and each did its
+astronomy afresh, although the calendars of one family read the same
+sunrises and conjunctions on the same day. So the ranges of the
+registered calendars are written down, each beside the test that computes
+it again; `hc_describe_day` and `hc_calendars` open one
+`hc_core::memo::scope` for the call, inside which a sunrise, a
+conjunction, a saṅkrānti, a tithi, a crescent or a Hindu lunar month is
+computed once, keyed by its exact arguments, so every value is the one
+the calculation gives; ΔT's sample years are compiled in rather than
+recomputed at every step of a search; and a locale is rendered once per
+name looked up rather than once per locale compared.
+`crates/hyper-calendar/tests/line_digests.rs` holds both calls, for 14
+days and 5 locales, to digests of the text written before any of it, so
+the text is byte for byte what it was.
+
+Measured on 2026-09-27 with rustc 1.98.1 in the `release-compact`
+profile, on a machine at a load average of about 5, each figure the
+shortest of seven calls, before (the tree of `d0b4be6`) and after; a
+dash is a figure not taken, or a call that did not exist:
+
+| Asked for | Export | Natively, before | after | Under Node 22, before | after |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 2026-09-27, `ja` | `hc_describe_day` | 89.0 ms | 6.0 ms | 230 ms | 13.9 ms |
+| 2026-01-01, `ja` | `hc_describe_day` | — | — | 220 ms | 13.2 ms |
+| 1900-06-15, `ja` | `hc_describe_day` | — | — | 201 ms | 14.3 ms |
+| 2026-09-27, `ja` | `hc_calendars` | 74.4 ms | 8.9 ms | 184 ms | 22.9 ms |
+| 2026-09-27, `native` | `hc_calendars` | — | — | 216 ms | 23.0 ms |
+| `ja` | `hc_calendar_list` | — | 0.31 ms | — | 0.62 ms |
+| `native` | `hc_calendar_list` | — | — | — | 0.83 ms |
+
+`hc_describe_day` is some 15 times faster and `hc_calendars` 8 times;
+`hc_calendars` keeps more of its cost because it converts a day inside
+each calendar's range and asks whether its year is leap, a whole year of
+months for a lunisolar calendar, only to learn whether the calendar has
+years. The native figures are
+[`examples/calendar_timing.rs`](../hyper-calendar/examples/calendar_timing.rs),
+which also prints the ten costliest calendars step by step, alone and
+inside the call's memo; the WebAssembly ones are
+[`scripts/wasm-calendar-timing.mjs`](../../scripts/wasm-calendar-timing.mjs)
+over the `full` layer `scripts/wasm-layers.sh` builds:
+
+```sh
+cargo run -p hyper-calendar --example calendar_timing --profile release-compact \
+    --features lunar,equinox,indic,regional,i18n,format
+scripts/wasm-layers.sh && node scripts/wasm-calendar-timing.mjs
+```
 
 ## The locales
 

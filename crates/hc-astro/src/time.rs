@@ -222,27 +222,48 @@ pub fn delta_t_regime(year: f64) -> DeltaTRegime {
     }
 }
 
-/// Linear interpolation in a series of samples ordered by `year_of`, or
-/// `None` outside it. The ends are the samples themselves.
-fn interpolate<T: Copy>(
-    samples: &[T],
-    year: f64,
-    year_of: impl Fn(T) -> f64,
-    value_of: impl Fn(T) -> f64,
-) -> Option<f64> {
-    let (&first, &last) = (samples.first()?, samples.last()?);
-    if !(year_of(first)..=year_of(last)).contains(&year) {
+/// The decimal year of every observed sample, [`decimal_year_of_sample`]
+/// evaluated once, when the crate is compiled, rather than at each step of
+/// every search [`delta_t`] is asked for.
+const TABULATED_DELTA_T_YEARS: [f64; TABULATED_DELTA_T.len()] = {
+    let mut years = [0.0; TABULATED_DELTA_T.len()];
+    let mut index = 0;
+    while index < years.len() {
+        years[index] = decimal_year_of_sample(TABULATED_DELTA_T[index]);
+        index += 1;
+    }
+    years
+};
+
+/// The decimal year of every prediction row, as
+/// [`TABULATED_DELTA_T_YEARS`] is of the samples.
+const PREDICTED_DELTA_T_YEARS: [f64; PREDICTED_DELTA_T.len()] = {
+    let mut years = [0.0; PREDICTED_DELTA_T.len()];
+    let mut index = 0;
+    while index < years.len() {
+        years[index] = decimal_year_of_prediction(PREDICTED_DELTA_T[index]);
+        index += 1;
+    }
+    years
+};
+
+/// Linear interpolation in a series of samples whose decimal years are
+/// `years`, in order, or `None` outside it. The ends are the samples
+/// themselves; `value_of` reads the sample at an index.
+fn interpolate(years: &[f64], year: f64, value_of: impl Fn(usize) -> f64) -> Option<f64> {
+    let (&first, &last) = (years.first()?, years.last()?);
+    if !(first..=last).contains(&year) {
         return None;
     }
-    let index = samples.partition_point(|&sample| year_of(sample) <= year);
+    let index = years.partition_point(|&sample| sample <= year);
     if index == 0 {
-        return Some(value_of(first));
+        return Some(value_of(0));
     }
-    if index == samples.len() {
-        return Some(value_of(last));
+    if index == years.len() {
+        return Some(value_of(years.len() - 1));
     }
-    let (lower, upper) = (samples[index - 1], samples[index]);
-    let (x0, x1) = (year_of(lower), year_of(upper));
+    let (lower, upper) = (index - 1, index);
+    let (x0, x1) = (years[lower], years[upper]);
     if x1 <= x0 {
         return Some(value_of(lower));
     }
@@ -256,8 +277,8 @@ fn interpolate<T: Copy>(
 /// not the last value carried forward.
 #[must_use]
 pub fn delta_t_tabulated(year: f64) -> Option<f64> {
-    interpolate(TABULATED_DELTA_T, year, decimal_year_of_sample, |sample| {
-        sample.seconds
+    interpolate(&TABULATED_DELTA_T_YEARS, year, |index| {
+        TABULATED_DELTA_T[index].seconds
     })
 }
 
@@ -272,18 +293,12 @@ pub fn delta_t_tabulated(year: f64) -> Option<f64> {
 /// extrapolated: a year past the last row gets `None`.
 #[must_use]
 pub fn delta_t_predicted(year: f64) -> Option<PredictedDeltaT> {
-    let seconds = interpolate(
-        PREDICTED_DELTA_T,
-        year,
-        decimal_year_of_prediction,
-        |sample| sample.seconds,
-    )?;
-    let uncertainty = interpolate(
-        PREDICTED_DELTA_T,
-        year,
-        decimal_year_of_prediction,
-        |sample| sample.uncertainty,
-    )?;
+    let seconds = interpolate(&PREDICTED_DELTA_T_YEARS, year, |index| {
+        PREDICTED_DELTA_T[index].seconds
+    })?;
+    let uncertainty = interpolate(&PREDICTED_DELTA_T_YEARS, year, |index| {
+        PREDICTED_DELTA_T[index].uncertainty
+    })?;
     Some(PredictedDeltaT {
         seconds,
         uncertainty,
@@ -522,6 +537,21 @@ pub fn decimal_year(moment: Moment) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The years the crate compiled in are the ones computed at run time,
+    /// bit for bit, so interpolating in them answers what it always did.
+    #[test]
+    fn the_compiled_sample_years_are_the_computed_ones() {
+        for (sample, year) in TABULATED_DELTA_T.iter().zip(TABULATED_DELTA_T_YEARS) {
+            assert_eq!(decimal_year_of_sample(*sample).to_bits(), year.to_bits());
+        }
+        for (sample, year) in PREDICTED_DELTA_T.iter().zip(PREDICTED_DELTA_T_YEARS) {
+            assert_eq!(
+                decimal_year_of_prediction(*sample).to_bits(),
+                year.to_bits()
+            );
+        }
+    }
 
     /// 2000-01-01 is RD 730120 and the J2000 epoch is noon that day.
     #[test]

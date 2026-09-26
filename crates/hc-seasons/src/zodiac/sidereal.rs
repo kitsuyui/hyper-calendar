@@ -168,6 +168,17 @@ impl Ayanamsa {
         }
     }
 
+    /// The scheme as words of a [`hc_core::memo`] key: its anchor, bit for
+    /// bit, which is all its value at any instant depends on; the name is
+    /// a label.
+    #[must_use]
+    pub const fn key(self) -> [u64; 2] {
+        [
+            self.anchor_julian_date.to_bits(),
+            self.degrees_at_anchor.to_bits(),
+        ]
+    }
+
     /// The name of the scheme, e.g. `"Lahiri (Chitrapaksha)"`.
     #[must_use]
     pub const fn name(self) -> &'static str {
