@@ -1,10 +1,10 @@
-# The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, ayanāṃśa, the sixty year names
+# The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, ayanāṃśa, the sixty year names north and south
 
 Backs the identifiers `hindu-lunar`, `hindu-lunar-purnimanta`,
 `hindu-solar-tamil`, `hindu-solar-malayalam`, `hindu-solar-bengali`,
 `hindu-solar-vikrami`, `hindu-old-solar` and `hindu-old-lunar` in
 `hc-calendars-indic`, and the crate's `tithi`, `nakshatra`,
-`surya_siddhanta`, `samvatsara` and `places` modules. Nepal's Bikram Sambat and Nepal
+`surya_siddhanta`, `samvatsara`, `barhaspatya` and `places` modules. Nepal's Bikram Sambat and Nepal
 Sambat are in the same crate and have their own,
 [nepal-calendars.md](nepal-calendars.md).
 
@@ -217,7 +217,82 @@ the 39th, Viśvāvasu, printed Visuvasuva [pansalb-tamil-new-year-2025].
 The names in Tamil script are the University of Madras's *Tamil Lexicon*,
 whose entry வருஷம் lists all sixty in their three twenties, from பிரபவ to
 அட்சய, and has each as a headword glossed "the Nth year of the Jupiter
-cycle" [tamil-lexicon].
+cycle" [tamil-lexicon]. The lunisolar year that opens at Chaitra śukla 1
+carries the same name, and the Telugu almanac prints it so: Prokerala's
+Telugu calendar heads the Chaitra of Śaka 1946, from 9 April 2024,
+"Krodhi Nama Samvatsaram", its Phālguna, to 29 March 2025, still Krodhi,
+and the Chaitra of 1947, from 30 March 2025, "Viswavasu", and of 1948,
+from 20 March 2026, "Parabhava" [prokerala-telugu-calendar].
+
+**The northern cycle.** North of the Narmada the names keep Jupiter's
+pace. A *Bārhaspatya* saṃvatsara is "the period during which the planet
+Jupiter enters one sign of the zodiac and passes completely through it
+with reference to his mean motion", about 361.026721 days by the
+*Sūrya Siddhānta*, "about 4.232 days less than a solar year"; so each
+year the next name begins 4.232 days earlier in it, and "when two
+Barhaspatya samvatsaras begin during one solar year the first is said to
+be expunged", which happens to a name that begins within about 4.232
+days of a Meṣa saṅkrānti, the interval between expunctions being "sometimes
+85 and sometimes 86 years" [sewell1896, Arts. 53 and 54]. The name
+current at the beginning of a year is "in practice coupled with all the
+days of that year", though inscriptions sometimes quote the one actually
+current [sewell1896, Art. 55], and the year is the solar one: Sewell and
+Dikshit's Table I gives the name "current at the beginning of the solar
+year, i.e., at the true (or apparent) Mesha sankranti" [sewell1896,
+Arts. 75 and 120]. Where lunisolar years were in use the expunction could
+follow them instead — "there is evidence to show that in some places at
+least, such was actually the case for a time" [sewell1896, Art. 57] — and
+the different Siddhāntas, with their different years of Jupiter, expunge
+different names [sewell1896, Art. 56].
+
+Sewell and Dikshit give one procedure with each authority's numbers
+[sewell1896, Art. 59]. Take the expired Kali year *K*, the expired Śaka
+year plus 3179; multiply it by *m*, subtract *s* and divide by *d*. The
+whole quotient, plus *K*, plus 27, divided by sixty, leaves the name
+current at the apparent Meṣa saṅkrānti, counted from Prabhava as 1. The
+remainder *r* of the first division gives the rest of that name's life:
+(*d* − *r*) × 361 ⁄ *d* days, plus a few palas, after the saṅkrānti.
+
+| Authority | *m* | *s* | *d* | palas added | Sewell and Dikshit's example |
+| --- | --- | --- | --- | --- | --- |
+| *Sūrya Siddhānta* | 211 | 108 | 18 000 | 15 | Śaka 233 expired: Raktākṣin, ending 3 d 32 gh 2.2 pa after the saṅkrānti; Krodhana, beginning within four days, expunged |
+| First *Ārya Siddhānta* | 22 | 11 | 1 875 | 105 (1 gh 45 pa) | Śaka 230 expired: Durmati, ending 2 d 31 gh 55.56 pa after; Dundubhi expunged |
+| *Sūrya Siddhānta* with the *bīja*, "for years after about 1500 A.D." | 117 | 60 | 10 000 | 15 | Śaka 1436 expired: Vṛṣa, ending 3 d 47 gh 40.8 pa after the saṅkrānti of 27 March 1514 (Julian), 44 gh 25 pa after mean sunrise at Ujjain; Chitrabhānu expunged |
+
+Leaving out *s* and the palas gives the name at the mean saṅkrānti
+instead, two days and a few hours after the apparent one [sewell1896,
+Art. 59, notes]; the *Jyotiṣatattva* rule is the Ārya one at the mean
+saṅkrānti, written for the current Śaka year. The 27 is the name current
+at the Kali Yuga epoch, Vijaya, and *m* ⁄ *d* the Jovian years a solar
+year holds beyond one; Sewell and Dikshit give the numbers and not their
+derivation from the Siddhānta's revolutions of Jupiter, which Burgess's
+translation of the *Sūrya Siddhānta* states [burgess1860, not read]. Their
+Table I uses the Siddhānta without the *bīja* to A.D. 1500 and with it
+after [sewell1896, Art. 58], and Art. 60 lists the names each rule
+expunges from Śaka 232 to 1779, at the mean saṅkrānti; by that list the
+last three the Siddhānta expunged are Yuvan in Śaka 1608 current (1685–86), Plava in
+1693 (1770–71) and Vibhava in 1779 (1856–57). So in 1822 the north was
+eleven names ahead of the south, Vijaya against Chitrabhānu, and from
+1856–57 twelve, "at present the northern samvatsara has advanced by 12
+on the southern" [sewell1896, Art. 62]. The rule expunged Manmatha in
+Śaka 1864 expired (1942–43) and will expunge Durmati in 1949 (2027–28), so
+the gap is thirteen from 1943 and fourteen from 2028.
+
+**Worked example: Śaka 1946 in the north.** The Hrishikesh Panchang of
+Varanasi titles its almanac for 2024–25 "श्री संवत् २०८१ शकः १९४६ पिङ्गल
+नामाब्दः", Vikrama 2081, Śaka 1946, the year named Pingala
+[hrishikesh-panchang-2081]. By the rule with the *bīja*: *K* = 1946 +
+3179 = 5125; 117 × 5125 = 599 625, less 60 is 599 565, which divided by
+10 000 is 59 remainder 9 565; 59 + 5125 + 27 = 5211, which leaves 51 on
+division by sixty, and the 51st name is Pingala. Then (10 000 − 9 565) ×
+361 ⁄ 10 000 = 15.7035 days, 15 d 42 gh 12.6 pa, and 15 palas more make
+15 d 42 gh 27.6 pa. The Siddhānta's Meṣa saṅkrānti of 2024, by
+`surya_siddhanta`, is 13 April at 17:55 Universal Time; Pingala ends
+15.7077 days later, on 29 April at 10:54, and Kalayukta, the 52nd, begins.
+Pingala itself had begun in May 2023, twenty days into the year the rule
+names Anala. So the year is Pingala from its Chaitra śukla 1, 9 April
+2024, although Kalayukta is in progress from 29 April: the name of the
+year and the name of the day part company for most of every year.
 
 **The Tiruvaḷḷuvar year.** Tamil Nadu's official count is the
 Tiruvaḷḷuvar year, the Gregorian year plus 31, gazetted in 1971 and in
@@ -401,17 +476,40 @@ weeks.
   place or with the *Sūrya Siddhānta*'s Sun, under an identifier of the
   caller's. A fifth rule, `CivilDay`, the midnight-to-midnight day of the
   saṅkrānti, exists for the Bikram Sambat and is that document's.
-  `TAMIL` alone names its years: `samvatsara_of` gives the position, 1 to
-  60, and the date's fields carry it as the extra `samvatsara`, derived
-  and ignored on input; the calendar declares the sixty names as a cycle of
-  kind `samvatsara`, in Sewell and Dikshit's Sanskrit forms without
-  diacritics (Krodhin, Visvavasu), and `hc-i18n`'s Tamil gives them in the
-  Lexicon's Tamil script. The Lexicon's spellings are kept where almanacs
+  `TAMIL` alone of the four names its years: `samvatsara_of` gives the
+  position, 1 to 60, and the date's fields carry it as the extra
+  `samvatsara`, derived and ignored on input; the calendar declares the
+  sixty names as a cycle of kind `samvatsara`, in Sewell and Dikshit's
+  Sanskrit forms without diacritics (Krodhin, Visvavasu), and `hc-i18n`'s
+  Tamil gives them in the Lexicon's Tamil script. The Lexicon's spellings are kept where almanacs
   now print others — ஶ்ரீமுக for ஸ்ரீமுக, தாருண for தாரண, பார்த்திவ for
   பார்த்திப; Wikipedia's Tamil list [wikipedia-tamil-calendar] was read and
   not used, for spellings such as விசுவாசுவ that no other source read has.
+- **The year's name on the lunisolar calendars.** `hindu-lunar` carries
+  the southern name as the extra `samvatsara`, the Tamil year's rule on
+  its own Śaka year, so that the year from Ugādi is named as the Telugu
+  and Kannada almanacs name it; `hindu-lunar-purnimanta` carries the
+  northern name under the same key, the name current at the apparent Meṣa
+  saṅkrānti that falls in the year's Chaitra by the *Sūrya Siddhānta*
+  with the *bīja*, as Table I gives it after 1500. Both declare the sixty
+  names as a cycle and ignore the field on input;
+  `HinduLunarCalendar::samvatsara_of` and
+  `HinduPurnimantaCalendar::samvatsara_of` give it for a year. The same
+  key holds different names on the two calendars on the same day, because
+  the two reckonings are different, and a date says which calendar it is
+  in.
 - **`samvatsara`**: `NAMES`, `southern_of_saka` and `name`, the southern
-  cycle only.
+  cycle.
+- **`barhaspatya`**: the northern cycle. The three rules of Art. 59 as
+  `MeanSignRule` data, `SURYA_SIDDHANTA`, `ARYA_SIDDHANTA` and
+  `SURYA_SIDDHANTA_BIJA`, each with `current_at_sankranti`, `days_to_end`
+  and `expunged_in` on the expired Kali year and `at_mean_sankranti` for
+  the mean form; `northern_of_saka`, the name Table I couples with a year;
+  and `in_progress_at`, the name in progress at a moment by a rule, from
+  the Siddhānta's apparent Meṣa saṅkrānti. In a year that expunges a name,
+  the rule gives the end of the first name and, from the next year's
+  saṅkrānti, the end of the third; the expunged name is taken to begin at
+  the one and to end 361 days, the rule's Jovian year, before the other.
 - **`hindu-old-solar`** and **`hindu-old-lunar`**, as
   `OldHinduSolarCalendar` and `OldHinduLunarCalendar`, in the Kali Yuga
   era, arithmetic and not astronomical.
@@ -450,10 +548,15 @@ weeks.
   - *Regional almanacs' own readings*: a calendar read at another place
     or with another ayanāṃśa is a `new` away, but no local almanac's
     tables are carried, so none is registered.
-  - *The sixty year names on the lunisolar year*, the south's Ugādi year,
-    and *the northern Bārhaspatya cycle* with its expunged years: planned,
-    and listed in `docs/calendars.md`. The Odia Anka is
-    [odia-anka.md](odia-anka.md)'s.
+  - *The names in Telugu and Kannada script*: no list of the sixty in
+    either script was read, so only the Sanskrit forms and the Tamil
+    Lexicon's are carried.
+  - *The expunction reckoned on the lunisolar year*, which Sewell and
+    Dikshit say some places kept for a time (Art. 57), and the
+    *Bṛhatsaṃhitā* rule, whose reading they dispute (Art. 59 d): neither
+    has a table or example to hold it to. Nor the twelve-year cycle of
+    Jupiter (Art. 63).
+  - The Odia Anka is [odia-anka.md](odia-anka.md)'s.
   - *Festival observance*: which part of the day a tithi must hold, and
     the Smārta and Vaiṣṇava readings, are `hc-holiday`'s rules, not
     dates.
@@ -491,6 +594,14 @@ assert:
 | The southern rule on Sewell and Dikshit's worked examples: Angiras (Śaka 1674, 1752), Rudhirodgarin (1725, 1803–04), Chitrabhanu (1744, 1822) | `samvatsara::sewell_and_dikshits_rule_names_their_own_examples` | all |
 | The Tamil year's name on printed days: Rudhirodgarin on 30 May 1803 and 30 March 1804; Śobhana (Śobhakṛt) on 13 April 2024 and Krodhin from the 14th; Viśvāvasu from 14 April 2025; Parābhava from 14 April 2026 | `the_tamil_years_carry_their_printed_names` | all names; Sewell and Dikshit's two days are a day earlier in the month by the modern Sun, 18 Vaikasi and 19 Panguni for their 19th and 20th |
 | குரோதி in Tamil and Krodhin in English on 14 April 2024, சோபகிருது the day before | `hyper-calendar`'s `the_tamil_year_is_named_in_tamil_and_through_the_fallback` | all |
+| The Ugādi year's name as the Telugu almanac prints it: Śobhana (Śobhakṛt) on 8 April 2024, Krodhin from 9 April to 29 March 2025, Viśvāvasu from 30 March 2025, Parābhava from 20 March 2026, the day `hindu-lunar` opens Śaka 1948 | `hindu_lunar::the_ugadi_years_carry_their_printed_names` | all |
+| The three rules on Sewell and Dikshit's three examples: the name, the days to its end to the hundredth of a pala, and the name expunged | `barhaspatya::the_three_rules_work_sewell_and_dikshits_examples` | all |
+| Every expunction by the *Sūrya Siddhānta* from Śaka 200 to 1800 at the mean saṅkrānti, without the *bīja* to 1500 and with it after, against Art. 60's nineteen | `the_siddhantas_expunged_names_are_sewell_and_dikshits_list` | 19 of 19, and no others |
+| The same at the apparent saṅkrānti, Table I's: the seven years Art. 60 marks with an asterisk a year later, on the next name, the other twelve the same | `table_i_counts_from_the_apparent_sankranti_and_differs_where_marked` | all |
+| Art. 60's Ārya column | `the_arya_column_of_the_list_is_a_year_after_the_arya_rule` | 0 of 19: see below |
+| Vijaya in the north and Chitrabhānu in the south in 1822; the gap of 11, 12 from Śaka 1779 current, 13 from 1865 expired, 14 from 1950 | `the_northern_and_southern_names_stand_eleven_then_twelve_then_thirteen_apart`, `hindu_purnimanta::the_northern_years_carry_the_names_sewell_and_dikshit_and_the_almanacs_print` | all |
+| Pingala for Śaka 1946, as the Hrishikesh Panchang prints it, from 9 April 2024 to 29 March 2025 on `hindu-lunar-purnimanta`; Anala the day before | `printed_northern_years_carry_the_rules_names`, `the_northern_years_carry_the_names_sewell_and_dikshit_and_the_almanacs_print` | all |
+| The moment: the Siddhānta's Meṣa saṅkrānti of 1514 against Table I's, Vṛṣa's end on 31 March 1514, the expunged Chitrabhānu and Subhānu at the next saṅkrānti; Vibhava 3.3 days and Śukla 364.3 days after the saṅkrānti of Śaka 1779 current; the worked example of 2024 | `the_moment_follows_the_rule_through_an_expunged_year`, `vibhava_begins_three_days_after_the_sankranti_of_1779`, `pingala_gives_way_to_kalayukta_a_fortnight_into_saka_1946` | the saṅkrānti of 1514 1½ minutes from the printed one, Vṛṣa's end within three minutes, the rest to the tenth of a day |
 | The Sun's twenty-seven nakṣatra entries of 2025 | `nakshatra::the_suns_nakshatra_transits_of_2025_are_the_almanacs` | every entry 7 to 10½ minutes before Drik Panchang's, the spread under two minutes |
 | Puṣya in January 2024 and February 2025, Drik Panchang's Chennai times | `pushya_in_january_2024_begins_and_ends_when_the_almanac_says`, `pushya_in_february_2025_too` | within three minutes |
 | The Siddhānta's sine table holds Āryabhaṭa's twenty-four values; its Meṣa saṅkrānti of 2024 is 139 minutes after Lahiri's | `surya_siddhanta::the_table_holds_the_classical_jyas`, `the_mesha_sankranti_of_2024_is_later_than_the_lahiri_one` | all; ±1 minute |
@@ -520,6 +631,27 @@ assert:
   are right; the observance is `hc-holiday`'s rule, and the test
   `a_festival_kept_on_an_afternoon_tithi_is_a_holiday_rule_not_a_date`
   holds both.
+- *Art. 60's Ārya column.* The Ārya rule puts each of the column's
+  nineteen expunctions a year earlier, on the name before: Dundubhi, the
+  56th, in Śaka 231 current, where the column has Rudhirodgārin, the 57th,
+  in 232. Sewell and Dikshit's own Example 2 is on the rule's side — in
+  Śaka 230 expired, 231 current, "Dundubhi commences within four days of
+  the Mesha sankranti" and "will be expunged" — and a year at the mean
+  saṅkrānti cannot expunge later than at the apparent one, which comes two
+  days before it. Their note to the list gives Śaka 231 and the 56th, 998
+  and the 52nd, and 1339 and the 37th as others' reading of the
+  *Bṛhatsaṃhitā* rule; the Ārya rule gives those three and the other
+  sixteen one earlier too. The module carries the rule as stated and the
+  test records the offset; the page image of the list was not read, only
+  its OCR text.
+- *Prokerala's northern names* follow the southern cycle thirteen names on
+  in every year its list covers, from Vikrama 1995 on, without an
+  expunction: Kalayukta for 2082 and Siddhārthin for 2083, as the rule
+  has them, but Manmatha for 1999, where the rule, which expunged Manmatha
+  that year, has Jaya, and Durmati for 2085 (2028–29), where it has
+  Dundubhi [prokerala-hindu-calendar]. The two agree from Vikrama 2000 to
+  2084 only; no almanac of 2028 exists yet to say which the north will
+  print.
 - *The Old Hindu calendars* have no published table for a modern year,
   because the almanac tabulates the true calendars and not the mean ones
   they replaced; they are held to what an arithmetic calendar must do and
@@ -546,7 +678,11 @@ for 2024 and 2025 give the times the tests hold.
 | [imd-astronomical-ephemeris] | The *Indian Astronomical Ephemeris*, its parts and its readers | Yes, 2026-09-25 |
 | [crc1955] | The Committee, its dates and members; the Central Station; tithis by modern computation; the lunar month named after the solar month of its new moon, adhika and śuddha; the 13°20′ nakṣatra divisions and the Sun's entries; the ayanāṃśa of 23°15′ on 21 March 1956; the solar-month conventions left to the pandits; the list of almanacs | Yes, 2026-09-25, in the Internet Archive's OCR text |
 | [wikipedia-indian-national-calendar] | The civil calendar's adoption on 22 March 1957 and the Śaka offset | Yes, 2026-09-25 |
-| [sewell1896] | The four regional rules and their names; kṣaya and adhika tithis; the naming of adhika and kṣaya months; the intervals between expunged months; the sixty-year cycle, its northern and southern reckonings and the southern rule, and the worked examples of 1752, 1803–04 and 1822 | Yes, 2026-09-25, in the Internet Archive's OCR text; Arts. 28, 32, 45, 48 and 50; Arts. 53–62 and the worked examples that name Angiras, Rudhirodgarin and Chitrabhanu on 2026-09-26. The sixty names are read off the OCR of Table I, col. 6, and Table XII, where the diacritics are lost |
+| [sewell1896] | The four regional rules and their names; kṣaya and adhika tithis; the naming of adhika and kṣaya months; the intervals between expunged months; the sixty-year cycle, its northern and southern reckonings and the southern rule, and the worked examples of 1752, 1803–04 and 1822; the northern cycle's length and expunction, the name coupled with the year, the three rules with their examples, the list of expunged names and Table I's reckoning | Yes, 2026-09-25, in the Internet Archive's OCR text; Arts. 28, 32, 45, 48 and 50; Arts. 53–62 and the worked examples that name Angiras, Rudhirodgarin and Chitrabhanu on 2026-09-26, and Arts. 54–60, 75 and 120 again that day for the northern cycle. The sixty names are read off the OCR of Table I, col. 6, and Table XII, where the diacritics are lost; Art. 60's list off the OCR of its table |
+| [burgess1860] | The *Sūrya Siddhānta*'s revolutions of Jupiter, from which Sewell and Dikshit's numbers come | Not read; the module takes Sewell and Dikshit's numbers as they give them |
+| [prokerala-telugu-calendar] | The Telugu year from Chaitra named Krodhi (Śaka 1946, from 9 April 2024, and its Phālguna to 29 March 2025), Viswavasu (1947, from 30 March 2025) and Parabhava (1948, from 20 March 2026) | Yes, 2026-09-26; the Telugu script on the pages was not relied on |
+| [hrishikesh-panchang-2081] | Vikrama 2081, Śaka 1946, "पिङ्गल नामाब्दः" | The almanac's title as Exotic India lists it, 2026-09-26; the almanac itself not read |
+| [prokerala-hindu-calendar] | The northern names it gives from Vikrama 1995 on, without expunction | Yes, 2026-09-26 |
 | [tamil-lexicon] | The sixty year names in Tamil script, entry வருஷம், sense 2, and each as a headword | Yes, 2026-09-26, in the Digital Dictionaries of South Asia edition |
 | [prokerala-tamil-2024] | Chithirai 2024 headed "Krodhi", Tamil New Year's Day 14 April | Yes, 2026-09-26 |
 | [pansalb-tamil-new-year-2025] | "Tamil New Year (5127 – Visuvasuva)", 14 April 2025 | Yes, 2026-09-26 |
@@ -587,7 +723,9 @@ phrase; the module states the coordinates only.
 `MIN_YEAR`, `MAX_YEAR`, `MONTHS`), `hindu_purnimanta.rs`,
 `hindu_solar.rs` (`SankrantiRule`, `SolarModel`, `TAMIL`, `MALAYALAM`,
 `BENGALI`, `VIKRAMI`, `ALL`, `samvatsara_of`), `samvatsara.rs` (`NAMES`,
-`southern_of_saka`), `hindu_old.rs` (`HINDU_EPOCH`,
+`southern_of_saka`), `barhaspatya.rs` (`MeanSignRule`, `SURYA_SIDDHANTA`,
+`ARYA_SIDDHANTA`, `SURYA_SIDDHANTA_BIJA`, `northern_of_saka`,
+`in_progress_at`), `hindu_old.rs` (`HINDU_EPOCH`,
 `ARYA_SOLAR_YEAR`, `ARYA_LUNAR_MONTH`), `tithi.rs`, `nakshatra.rs`,
 `surya_siddhanta.rs` (`SIDEREAL_YEAR`, `ANOMALISTIC_YEAR`,
 `UJJAIN_LONGITUDE_DEGREES`) and `places.rs`. Anchors:
@@ -600,6 +738,12 @@ phrase; the module states the coordinates only.
 `the_tiruvalluvar_year_turns_at_thai_and_the_saka_year_at_chithirai`,
 `the_tamil_years_carry_their_printed_names`,
 `sewell_and_dikshits_rule_names_their_own_examples`,
+`the_ugadi_years_carry_their_printed_names`,
+`the_three_rules_work_sewell_and_dikshits_examples`,
+`the_siddhantas_expunged_names_are_sewell_and_dikshits_list`,
+`table_i_counts_from_the_apparent_sankranti_and_differs_where_marked`,
+`the_moment_follows_the_rule_through_an_expunged_year`,
+`the_northern_years_carry_the_names_sewell_and_dikshit_and_the_almanacs_print`,
 `the_suns_nakshatra_transits_of_2025_are_the_almanacs`,
 `pushya_in_january_2024_begins_and_ends_when_the_almanac_says`,
 `the_table_holds_the_classical_jyas`,

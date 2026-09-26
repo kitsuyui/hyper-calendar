@@ -320,8 +320,8 @@ pub const REGIONAL_ADOPTIONS: &[RegionalAdoption] = &[
     ),
     reform(
         "NL",
-        "Zeeland and the southern Netherlands",
-        "julian-gregorian-nl",
+        "The States-General, Brabant and Zeeland",
+        "julian-gregorian-nl-states-general",
         Scope::Partial,
     ),
     reform(
@@ -565,9 +565,12 @@ mod tests {
         let rows: Vec<_> = gregorian_adoption("NL").collect();
         assert_eq!(rows.len(), 6);
         assert!(rows.iter().all(|row| row.scope == Scope::Partial));
-        // Zeeland on 25 December 1582, Holland on 12 January 1583, both
-        // the reform table's.
-        assert_eq!(rows[0].step, Step::Reform("julian-gregorian-nl"));
+        // The States-General, Brabant and Zeeland on 25 December 1582,
+        // Holland on 12 January 1583, both the reform table's.
+        assert_eq!(
+            rows[0].step,
+            Step::Reform("julian-gregorian-nl-states-general")
+        );
         assert_eq!(rows[0].first_day().unwrap().0, fixed(1582, 12, 25));
         assert_eq!(rows[1].polity, "Holland");
         assert_eq!(rows[1].step, Step::Reform("julian-gregorian-nl-holland"));

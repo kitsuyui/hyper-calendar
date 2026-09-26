@@ -5,10 +5,12 @@
 //!   sidereal zodiac of `hc-seasons`, the way the Government of India's
 //!   *Rashtriya Panchang* computes it. Months run new moon to new moon and
 //!   are named for the saṅkrānti they contain, a month without one is
-//!   intercalary, and the day is the tithi at sunrise. `hindu-lunar`.
+//!   intercalary, and the day is the tithi at sunrise; the year is named in
+//!   the southern sixty-year cycle, as at Ugādi. `hindu-lunar`.
 //! * [`hindu_purnimanta`] — the same tithis under the north's month names:
 //!   a month ends at the full moon, so the dark fortnight comes first and
-//!   takes the following bright fortnight's name. `hindu-lunar-purnimanta`.
+//!   takes the following bright fortnight's name; the year is named in the
+//!   northern, Bārhaspatya, cycle. `hindu-lunar-purnimanta`.
 //! * [`hindu_solar`] — the solar reckonings of Tamil Nadu, Kerala, Bengal
 //!   and the Vikrami regions (Punjab and Haryana, whose months Odisha
 //!   shares under its own years): a month is the Sun's stay in a sidereal
@@ -34,7 +36,11 @@
 //!   months, and never take a number ending in 6, or in 0 but 10, or 1.
 //!   `odia-anka`.
 //! * [`samvatsara`] — the southern sixty-year cycle of year names,
-//!   Prabhava to Kṣaya, which the Tamil solar year carries.
+//!   Prabhava to Kṣaya, which the Tamil solar year and the amānta
+//!   lunisolar year carry.
+//! * [`barhaspatya`] — the northern sixty-year cycle, the same names
+//!   reckoned by Jupiter's mean motion, by Sewell and Dikshit's rules, with
+//!   the names they expunge.
 //! * [`bikram_sambat`] — the solar calendar of Nepal: the months the
 //!   Government of Nepal gazettes for 2080–2083, and elsewhere the
 //!   *Sūrya Siddhānta*'s saṅkrāntis on their civil day. `bikram-sambat`.
@@ -51,9 +57,9 @@
 //! pūrṇimānta form is the north's naming of the same days; the four solar
 //! reckonings are the civil calendars of the south, the east and the
 //! north-west; the Bikram Sambat is Nepal's. What is still to come — the
-//! Odia Vilayati year, the sixty-year names on the southern
-//! lunisolar year and the northern Bārhaspatya cycle, the Bikram Sambat's
-//! gazetted months outside 2080–2083 — `docs/calendars.md` lists.
+//! Odia Amli and Vilayati years with their solar months, the Bikram
+//! Sambat's gazetted months outside 2080–2083 — `docs/calendars.md`
+//! lists.
 //!
 //! # Why a crate of its own
 //!
@@ -82,6 +88,7 @@ pub(crate) const fn sweep_stride(sampled: usize) -> usize {
     if cfg!(debug_assertions) { sampled } else { 1 }
 }
 
+pub mod barhaspatya;
 pub mod bikram_sambat;
 pub mod hindu_lunar;
 pub mod hindu_old;

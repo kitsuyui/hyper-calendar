@@ -150,10 +150,10 @@ pub const ADOPTIONS: [Adoption; 14] = [
         first_gregorian: (1582, 12, 20),
     },
     Adoption {
-        id: "julian-gregorian-nl",
-        name: "Julian–Gregorian reform (Zeeland and the southern Netherlands)",
-        region: "Zeeland and the southern Netherlands",
-        source: "The placard of 10 December 1582, not read; the date from secondary sources, which give it to Zeeland and the southern provinces [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list] or to the States-General, Brabant and Zeeland, the Southern Netherlands under Spanish rule changing from 20 to 31 December or 21 December to 1 January instead [strubbe-voet-1960, p. 48]",
+        id: "julian-gregorian-nl-states-general",
+        name: "Julian–Gregorian reform (the States-General, Brabant and Zeeland)",
+        region: "The States-General, Brabant and Zeeland",
+        source: "The placard of 10 December 1582, not read; Strubbe and Voet give the date to the States-General, Brabant and Zeeland, the Southern Netherlands under Spanish rule changing later, from 20 to 31 December or 21 December to 1 January [strubbe-voet-1960, p. 48]; two other secondary sources give it to Zeeland and the southern provinces [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]",
         last_julian: (1582, 12, 14),
         first_gregorian: (1582, 12, 25),
     },
@@ -632,7 +632,8 @@ mod tests {
     /// day of the old calendar, the 15th reckoned as 28 January, by the law
     /// of 10 January 1919 as *Politika* quotes it; RD 700 562, ten weeks
     /// before Romania's change. Holland changed from 1 to 12 January 1583,
-    /// three weeks after Zeeland's 14 to 25 December 1582.
+    /// three weeks after the States-General's, Brabant's and Zeeland's 14 to
+    /// 25 December 1582.
     #[test]
     fn serbia_and_holland_have_rows_of_their_own() {
         let serbia = adoption_by_id("julian-gregorian-rs").unwrap();
@@ -651,7 +652,7 @@ mod tests {
         );
 
         let holland = adoption_by_id("julian-gregorian-nl-holland").unwrap();
-        let zeeland = adoption_by_id("julian-gregorian-nl").unwrap();
+        let zeeland = adoption_by_id("julian-gregorian-nl-states-general").unwrap();
         assert_eq!(holland.skipped_days(), Ok(10));
         assert_eq!(
             holland.cutover().unwrap().0 - zeeland.cutover().unwrap().0,

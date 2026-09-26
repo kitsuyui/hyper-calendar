@@ -1,5 +1,5 @@
 //! The southern sixty-year cycle of year names, Prabhava to Kṣaya: the
-//! *saṃvatsara* the Tamil solar year carries.
+//! *saṃvatsara* the Tamil solar year and the amānta lunisolar year carry.
 //!
 //! The cycle, its two reckonings and the checks are written up in
 //! `docs/systems/hindu-calendars.md` in the repository, under "The sixty
@@ -16,10 +16,12 @@
 //! (Art. 62): "add 11 to the current Saka year, and divide by 60; the
 //! remainder is the corresponding luni-solar cycle year", counted from
 //! Prabhava as 1; and "at present the northern samvatsara has advanced by
-//! 12 on the southern". Only the southern cycle is here, and only the Tamil
-//! solar calendar carries it ([`crate::hindu_solar::TAMIL`]); the Tamil
-//! year of 2024–25 is Krodhin, the 38th, which Tamil almanacs print as
-//! Krodhi, குரோதி.
+//! 12 on the southern". The southern cycle is here, carried by the Tamil
+//! solar calendar ([`crate::hindu_solar::TAMIL`]) and the amānta lunisolar
+//! calendar ([`crate::hindu_lunar`]); the northern is
+//! [`crate::barhaspatya`]. The Tamil year of 2024–25 and the Ugādi year
+//! that opened on 9 April 2024 are Krodhin, the 38th, which Tamil and
+//! Telugu almanacs print as Krodhi, குரோதி.
 //!
 //! [`NAMES`] are the Sanskrit names as Sewell and Dikshit list them, without
 //! their diacritics; the Tamil names are `hc-i18n`'s, from the University of

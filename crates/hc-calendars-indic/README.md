@@ -17,8 +17,8 @@ each module.
 
 | Module | Identifier | What it is | Range |
 |---|---|---|---|
-| `hindu_lunar` | `hindu-lunar` | months new moon to new moon, named for the saṅkrānti they contain; the day is the tithi at sunrise; Śaka years | Gregorian 1700–2299 |
-| `hindu_purnimanta` | `hindu-lunar-purnimanta` | the same tithis under the north's names: the dark fortnight first, named for the bright one that follows; the intercalary month inserted whole | Gregorian 1700–2299 |
+| `hindu_lunar` | `hindu-lunar` | months new moon to new moon, named for the saṅkrānti they contain; the day is the tithi at sunrise; Śaka years from Chaitra śukla 1, each named in the southern sixty-year cycle as the extra `samvatsara`, as at the Telugu and Kannada Ugādi | Gregorian 1700–2299 |
+| `hindu_purnimanta` | `hindu-lunar-purnimanta` | the same tithis under the north's names: the dark fortnight first, named for the bright one that follows; the intercalary month inserted whole; each year named in the northern Bārhaspatya cycle as the extra `samvatsara` | Gregorian 1700–2299 |
 | `hindu_solar` | `hindu-solar-tamil` | the Sun's stay in each sidereal sign; the month begins on the saṅkrānti's day unless it fell after sunset; Śaka years from Chithirai, each named in the southern sixty-year cycle as the extra `samvatsara`, with the Tiruvaḷḷuvar year, which turns at Thai 1, as the extra `tiruvalluvar-year` | Gregorian 1700–2299 |
 | | `hindu-solar-malayalam` | the same months from Chingam; the month begins on the saṅkrānti's day unless it fell after three fifths of the daylight; Kollam era | |
 | | `hindu-solar-bengali` | the same months from Boishakh; the month begins the day after the saṅkrānti's; Bengali San | |
@@ -31,6 +31,7 @@ each module.
 | `vira_nirvana` | `vira-nirvana-samvat` | the Jain era of Mahāvīra's nirvāṇa over the amānta months, the year opening at Kārtika śukla 1, the day after Dīpāvalī, 605 years after the Śaka year's Kārtika; the day read at the Central Station's sunrise | Gregorian 1700–2299 |
 | `odia_anka` | `odia-anka` | the regnal years of the Gajapati of Puri, Dibyasingha Deb: the *aṅka* turns at Suniā, nija Bhādrapada śukla 12, over the pūrṇimānta months, and never takes 1, a number ending in 6, or one ending in 0 but 10; an integer mapping from the full year of the reign, with the Amli year beside it — see [`docs/systems/odia-anka.md`](../../docs/systems/odia-anka.md) | Suniā 1970 to 2299 |
 | `samvatsara` | — | the southern sixty-year cycle of year names, Prabhava to Kṣaya, by Sewell and Dikshit's rule on the Śaka year | |
+| `barhaspatya` | — | the northern sixty-year cycle by Jupiter's mean motion: Sewell and Dikshit's rule for the *Sūrya Siddhānta*, with and without the *bīja*, and the *Ārya Siddhānta*; the name at a Meṣa saṅkrānti, the name a year expunges, the name in progress at a moment | |
 | `bikram_sambat` | `bikram-sambat` | the solar calendar of Nepal, Baisakh to Chait: the months the Government of Nepal gazettes for 2080–2083 BS, and elsewhere the *Sūrya Siddhānta*'s saṅkrāntis on their civil day at Kathmandu; Bikram Sambat years | Gregorian 1700–2299 |
 | `surya_siddhanta` | — | the Sun of the *Sūrya Siddhānta*: its sidereal longitude, the sign it stands in, and its saṅkrāntis | |
 | `places` | — | the Central Station of the national calendar (82°30′ E), Ujjain, New Delhi, Kathmandu | |
@@ -64,7 +65,12 @@ Sun for how far its saṅkrāntis fall from the Lahiri ones.
 
 The Tamil year names are held to Sewell and Dikshit's worked examples of
 1752, 1803–04 and 1822, to the Tamil New Year of 2024 (Krodhi) and 2025
-(Visvavasu), and in Tamil script to the *Tamil Lexicon*'s list. The Odia
+(Visvavasu), and in Tamil script to the *Tamil Lexicon*'s list; the same
+names on the lunisolar year to the Telugu almanac's Ugādi years of 2024
+to 2026. The northern cycle is held to Sewell and Dikshit's three worked
+examples of the rule, to their list of expunged names, to Table I's
+saṅkrānti of 1514, and to Pingala for Vikrama 2081 as a Varanasi almanac
+prints it. The Odia
 Anka is held to Sewell and Dikshit's rule and their four reigns' first
 days of the 2nd Anka, 1797 to 1859, and to the Anka the Gajapati declared
 at Suniā in 2011 and 2024–2026.
@@ -76,10 +82,10 @@ what an arithmetic calendar must do instead, and to the true months of
 
 ## What is not here yet
 
-The Odia Amli and Vilayati years with their solar months; the sixty-year
-names on the southern lunisolar year, and the northern Bārhaspatya cycle
-with its expunged years; the Bikram Sambat's gazetted months before 2080
-and after 2083, which would replace the reckoning in those years.
+The Odia Amli and Vilayati years with their solar months, which Sewell and
+Dikshit do not give enough to reproduce; the Bikram Sambat's gazetted
+months before 2080 and after 2083, which would replace the reckoning in
+those years.
 `docs/calendars.md` tracks each.
 
 ## Features

@@ -129,7 +129,7 @@ const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("world-calendar"),
     CalendarId("julian-gregorian-catholic"),
     CalendarId("julian-gregorian-fr"),
-    CalendarId("julian-gregorian-nl"),
+    CalendarId("julian-gregorian-nl-states-general"),
     CalendarId("julian-gregorian-nl-holland"),
     CalendarId("julian-gregorian-de-catholic"),
     CalendarId("julian-gregorian-hu"),
@@ -2925,7 +2925,7 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &[
             CalendarId("julian-gregorian-catholic"),
             CalendarId("julian-gregorian-fr"),
-            CalendarId("julian-gregorian-nl"),
+            CalendarId("julian-gregorian-nl-states-general"),
             CalendarId("julian-gregorian-nl-holland"),
             CalendarId("julian-gregorian-de-catholic"),
             CalendarId("julian-gregorian-hu"),
