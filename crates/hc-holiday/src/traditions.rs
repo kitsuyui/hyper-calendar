@@ -1095,6 +1095,12 @@ static QINGMING_IN_CHINA: Rule = Rule::SolarTerm {
     meridian: Meridian::CHINA,
 };
 
+/// 冬至 at the Chinese meridian.
+static WINTER_SOLSTICE_IN_CHINA: Rule = Rule::SolarTerm {
+    term: SolarTerm::WINTER_SOLSTICE,
+    meridian: Meridian::CHINA,
+};
+
 static CHINESE_FOLK_RULES: &[HolidayRule] = &[
     feast(
         "Chinese New Year's Eve",
@@ -1127,9 +1133,22 @@ static CHINESE_FOLK_RULES: &[HolidayRule] = &[
         "上巳節",
         Rule::in_calendar(CalendarSystem::CHINESE, 3, 3),
     ),
-    // The day before 清明, as kept after the 時憲曆 of 1645; the older
-    // reckoning, 105 days after the winter solstice, is
-    // `hc_seasons::ColdFoodConvention::SolsticePlus105`.
+    // 冬至後一百五日 until the 時憲曆 of 1645,
+    // `hc_seasons::ColdFoodConvention::SolsticePlus105`; approximate,
+    // because the solstice is today's astronomy, not the day the older
+    // calendars' own reckoning of it gave.
+    feast(
+        "Cold Food Festival",
+        "寒食節",
+        Rule::Offset {
+            base: &WINTER_SOLSTICE_IN_CHINA,
+            days: hc_seasons::cold_food::DAYS_AFTER_SOLSTICE as i16,
+        },
+    )
+    .years(None, Some(1644))
+    .approximate(),
+    // The day before 清明 from 1645, when the 時憲曆 shortened the
+    // interval from the solstice, `ColdFoodConvention::EveOfQingming`.
     feast(
         "Cold Food Festival",
         "寒食節",
@@ -1137,7 +1156,8 @@ static CHINESE_FOLK_RULES: &[HolidayRule] = &[
             base: &QINGMING_IN_CHINA,
             days: -1,
         },
-    ),
+    )
+    .years(Some(1645), None),
     feast("Qingming Festival", "清明節", QINGMING_IN_CHINA),
     feast(
         "Dragon Boat Festival",
@@ -1169,32 +1189,30 @@ static CHINESE_FOLK_RULES: &[HolidayRule] = &[
         "臘八節",
         Rule::in_calendar(CalendarSystem::CHINESE, 12, 8),
     ),
-    feast(
-        "Winter Solstice Festival",
-        "冬至",
-        Rule::SolarTerm {
-            term: SolarTerm::WINTER_SOLSTICE,
-            meridian: Meridian::CHINA,
-        },
-    ),
+    feast("Winter Solstice Festival", "冬至", WINTER_SOLSTICE_IN_CHINA),
 ];
 
 /// Chinese folk religion and the festivals of the Chinese year.
 ///
 /// 人日 on the seventh of the first month; 上巳 on the third of the third,
 /// where it has been fixed since the Wei–Jin; and 寒食 on the day before
-/// 清明, as it has been kept since the 時憲曆 of 1645 shortened the
-/// interval from the winter solstice, beside the festivals of the year.
+/// 清明 from 1645, when the 時憲曆 shortened the interval from the winter
+/// solstice, and 105 days after the solstice before it, beside the
+/// festivals of the year. The 寒食 of the years before 1645 is
+/// [`Confidence::Approximate`](crate::Confidence::Approximate): its
+/// solstice is the one this library computes, and the calendars of those
+/// years reckoned their own, which is not modelled here.
 ///
 /// Not carried: 上巳 in its older form, "三月上旬的巳日", the 巳 day of the
 /// first ten days of the third month, which the source puts before the
 /// Han–Wei change. It is not quite "the first 巳 day" — when that falls on
 /// the eleventh or twelfth there is no 巳 day in the first ten — and it was
 /// kept centuries before 1645, where `chinese` begins, so there is no year
-/// in the calendar's range it would be true of. The older 寒食, 105 days
-/// after the winter solstice, is a named convention of its own in
-/// `hc-seasons` (`ColdFoodConvention::SolsticePlus105`), not a day of this
-/// table, and 小年 is in the regional tables beside it, one per region.
+/// in the calendar's range it would be true of. Both reckonings of 寒食
+/// are named conventions of `hc-seasons` (`ColdFoodConvention`), which
+/// gives either for any year; the count of 106 days that some texts give
+/// is not carried. 小年 is in the regional tables beside this one, one per
+/// region.
 pub static CHINESE_FOLK: RuleSet = RuleSet {
     code: "chinese-folk",
     english_name: "Chinese folk tradition",
@@ -1220,9 +1238,11 @@ pub static CHINESE_FOLK: RuleSet = RuleSet {
 /// Where every 小年 table takes its day from.
 const XIAONIAN_SOURCES: &str = "Wikipedia (zh), \"小年\", retrieved 2026-09-26 \
     (`wikipedia-zh-xiaonian`, secondary), for the regions and their days; 新华社, \
-    republished by 共产党员网 (12371.gov.cn) on 10 February 2026, \"今天，腊月二十三是\
-    北方小年，明天，腊月二十四是南方小年\", retrieved 2026-09-26, for the northern and \
-    southern days of 2026";
+    \"今天明天，都是小年！\", republished by 共产党员网 on 10 February 2026, \
+    https://m.12371.gov.cn/content/2026-02/10/content_506756.html \
+    (`xinhua-xiaonian-2026`), \"今天，腊月二十三是北方小年，明天，腊月二十四是南方小年\", \
+    retrieved 2026-09-26 and re-read 2026-09-27, for the northern and southern days \
+    of 2026";
 
 /// A 小年 table: one day of the Chinese calendar, kept as the Little New
 /// Year in one region.
@@ -1359,9 +1379,10 @@ pub static TAOIST: RuleSet = RuleSet {
     sources: "Secondary sources only, all retrieved 2026-09-26: Wikipedia (zh), \
               \"下元節\", for the Three Officials' birthdays on 正月十五, 七月十五 and \
               十月十五; Wikipedia, \"Mazu\", for her birthday on the 23rd day of the 3rd \
-              month and her death on the Double Ninth; TVBS News, 18 April 2025, for \
-              \"媽祖生日日期落在農曆3月23日即是國曆4月20日\". A temple's own calendar \
-              would be the primary",
+              month and her death on the Double Ninth; TVBS News, 18 April 2025, \
+              https://news.tvbs.com.tw/life/2836258 (`tvbs-mazu-2025`), for \
+              \"媽祖生日日期落在農曆3月23日即是國曆4月20日\", re-read 2026-09-27. A \
+              temple's own calendar would be the primary",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1493,9 +1514,10 @@ pub static VIETNAMESE_FOLK: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Ngô Trọng Bình, \"Ý nghĩa của những ngày tết tính theo âm lịch\", TTXVN/Vietnam+ \
               (vietnamplus.vn), 21 January 2012 (`vnplus-tet-am-lich`), for the days; \
-              Vietnam+, 15 January 2025, for Ông Táo on 22 January 2025, and VietNamNet, \
-              28 September 2025, for Trung Thu on 6 October 2025, as checks; all retrieved \
-              2026-09-26",
+              Vietnam+, 15 January 2025 (`vnplus-ong-tao-2025`), for Ông Táo on 22 January \
+              2025, and VietNamNet, 28 September 2025 (`vietnamnet-trung-thu-2025`), for \
+              Trung Thu on 6 October 2025, as checks; all retrieved 2026-09-26, the two \
+              checks re-read 2026-09-27 at the URLs their entries give",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1764,14 +1786,18 @@ pub static PLOUGH_DAYS: RuleSet = RuleSet {
     includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 26),
-    sources: "William Hone, The Every-Day Book, vol. 1 (London: William Tegg, 1825), \
-              \"Plough Monday\", read in the transcription at \
-              hymnsandcarolsofchristmas.com (`hone1825`), for \"The first Monday after \
+    sources: "William Hone, The Every-Day Book, vol. 1 (London: Hunt and Clarke, 1826; \
+              read in William Tegg and Co.'s reissue as Project Gutenberg's eBook 53275 \
+              transcribes it, and in the transcription at hymnsandcarolsofchristmas.com; \
+              `hone1826`), cols. 71-72, for \"The first Monday after Twelfth-day\", \
+              and cols. 61-62, for \"St. Distaff's day, or the morrow after \
               Twelfth-day\"; Wikipedia, \"Plough Monday\", \"Plough Sunday\" and \
-              \"Distaff Day\" (secondary), for the Sunday between 7 and 13 January, \
-              Distaff Day on 7 January and the regional variants; Liz Gwedhan, \
-              \"13th January: Plough Monday\", 12 January 2025, as the dated check of a \
-              Monday Twelfth-day; all retrieved 2026-09-26",
+              \"Distaff Day\" (`wikipedia-plough-monday`, `wikipedia-plough-sunday`, \
+              `wikipedia-distaff-day`, secondary), for the Sunday between 7 and 13 \
+              January, Distaff Day on 7 January and the regional variants, retrieved \
+              2026-09-26; Liz Gwedhan, \"13th January: Plough Monday\", 12 January \
+              2025, https://lizgwedhan.substack.com/p/13th-january-plough-monday, \
+              retrieved 2026-09-27, as the dated check of a Monday Twelfth-day",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1826,9 +1852,11 @@ pub static CHAHARSHANBE_SURI: RuleSet = RuleSet {
     sources: "Wikipedia (fa), \"چهارشنبه‌سوری\", for the night of the last Wednesday of \
               the year from Tuesday's sunset and 28 Esfand 1404, 17 March 2026; Wikipedia, \
               \"Chaharshanbe Suri\", for 18 March 2025, 17 March 2026 and 16 March 2027 \
-              (both secondary); an Eventbrite listing of a Chahar Shanbe Suri on Tuesday \
-              12 March 2024, the year Nowruz was a Wednesday, as a weak check; all \
-              retrieved 2026-09-26",
+              (both secondary), retrieved 2026-09-26; an Eventbrite listing of a Chahar \
+              Shanbe Suri on Tuesday 12 March 2024 at Richmond Hill, Ontario, the year \
+              Nowruz was a Wednesday, \
+              https://www.eventbrite.com/e/chahar-shanbe-suri-tickets-853218709127, \
+              retrieved 2026-09-27, as a weak check",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2495,6 +2523,9 @@ static EMBER_BCP1662_RULES: &[HolidayRule] = &{
 /// The same table's vigils, and its note moving a vigil off a Sunday, are
 /// not carried: they are the eves of feasts, not Ember or Rogation Days.
 /// Days of fasting are not days off, so every entry is religious.
+///
+/// The three churches' tables, the two readings of "after September 14"
+/// and a worked example are in `docs/systems/ember-and-rogation-days.md`.
 pub static EMBER_BCP1662: RuleSet = RuleSet {
     code: "ember-bcp1662",
     english_name: "Ember and Rogation Days (Book of Common Prayer, 1662)",

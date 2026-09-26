@@ -424,7 +424,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `buddhist-tibetan` | Buddhism (Tibetan) | 5 |
 | `buddhist-uposatha-thai` | Buddhism (Thai uposatha days) | 4 |
 | `chaharshanbe-suri` | Chaharshanbe Suri | 1 |
-| `chinese-folk` | Chinese folk tradition | 14 |
+| `chinese-folk` | Chinese folk tradition | 15 |
 | `chinese-xiaonian-jiangnan` | Little New Year (Jiangnan, Fujian and Taiwan) | 1 |
 | `chinese-xiaonian-nanjing` | Little New Year (Nanjing) | 1 |
 | `chinese-xiaonian-north` | Little New Year (north) | 1 |

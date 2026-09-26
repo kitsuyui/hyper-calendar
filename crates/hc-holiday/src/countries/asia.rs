@@ -6161,17 +6161,27 @@ static KP_RULES: &[HolidayRule] = &[
 
 /// North Korea, from 2020.
 ///
-/// The names, the dates and the rule for the lunar days are the state
-/// news agency's: KCNA's reports of 2026 of each holiday as it
-/// was kept — 설명절 on 17 February and 정월대보름 on 3 March 2026, "해마다
-/// 음력으로 8월 15일인 추석" on 25 September 2026, and the anniversaries on
-/// their days. Which of them are days off no state-media source read says;
-/// that is the printed wall calendar of 2020, 《백두산》 of the Foreign
-/// Languages Publishing House, as Seoul National University's Institute
-/// for Peace and Unification Studies transcribes it, the calendar itself
-/// not seen. So the table is that calendar's thirteen holidays, 15 and 16
-/// April both, from 2020; International Women's Day and Constitution Day
-/// rest on the transcription alone. The lunar days are on `dangi`, the
+/// The holidays and their local names are the printed wall calendar's of
+/// 2020, 《백두산》 of the Foreign Languages Publishing House, as Seoul
+/// National University's Institute for Peace and Unification Studies
+/// transcribes it (its 표 1 and the list of 법정 공휴일 beside it), the
+/// calendar itself not seen: that calendar's thirteen holidays, 15 and 16
+/// April both, from 2020. The dates and the rule for the lunar days are
+/// also the state news agency's: KCNA's reports of 2026 of each holiday as
+/// it was kept — 설명절 on 17 February and 정월대보름 on 3 March 2026,
+/// "해마다 음력으로 8월 15일인 추석" on 25 September 2026, and the
+/// anniversaries on their days. Which of them are days off no state-media
+/// source read says. International Women's Day and Constitution Day rest
+/// on the transcription alone.
+///
+/// The names 태양절 and 광명성절 are the 2020 calendar's. State media have
+/// since stopped using them: from February 2024 the 15 April holiday is
+/// "4월의 명절" or "4.15" (SBS, 19 April 2024; Radio Free Asia, 15 April
+/// 2024), and the 16 February one "2월16" (SBS, 31 January 2026). That is
+/// the authority's own revision, and these tables carry one local name per
+/// day, so the calendar's name is kept and the newer usage is recorded
+/// here; none of the KCNA reports' own wording of 2026 was re-read to
+/// confirm it. The lunar days are on `dangi`, the
 /// Korean calendar at UT+9, which gives KCNA's three dates of 2026;
 /// whether the North's own almanac ever differs from it was not checked.
 /// The calendar's other anniversaries — 8 February, 25 April, 8 July and
@@ -6192,14 +6202,19 @@ pub static NORTH_KOREA: RuleSet = RuleSet {
     includes: &[],
     weekend: KP_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
-    sources: "Korean Central News Agency (kcna.kp), reports of 6 January, 1, 9, 17 and 18 \
-              February, 4 March, 1, 16, 17 and 26 April, 28 July, 16 August, 2, 10 and 26 \
-              September 2026, retrieved 2026-09-26, for the names, the anniversaries and the \
-              lunar rule; Rodong Sinmun and Naenara not reachable; 안주영 et al., Seoul \
-              National University Institute for Peace and Unification Studies, 2020 \
-              unification report, pp. 11–13 (ipus.snu.ac.kr), transcribing the 2020 wall \
-              calendar 《백두산》, for which days are days off (secondary, the calendar not \
-              seen); the Socialist Labour Law of 1978 as amended to 30 June 2015, article 64, \
+    sources: "안주영 et al., Seoul National University Institute for Peace and \
+              Unification Studies, 2020 unification report, pp. 11–13 (ipus.snu.ac.kr, \
+              `kp-wall-calendar-2020-snu`), transcribing the 2020 wall calendar 《백두산》, \
+              for the holidays, their names and which days are days off (secondary, the \
+              calendar not seen; re-read 2026-09-27); Korean Central News Agency \
+              (kcna.kp), reports of 6 January, 1, 9, 17 and 18 February, 4 March, 1, 16, \
+              17 and 26 April, 28 July, 16 August, 2, 10 and 26 September 2026, retrieved \
+              2026-09-26, for the dates, the anniversaries and the lunar rule; Rodong \
+              Sinmun and Naenara not reachable; SBS, 19 April 2024, and Radio Free Asia, \
+              15 April 2024 (`sbs-kp-april-holiday-2024`, `rfa-kp-day-of-the-sun-2024`), \
+              and SBS, 31 January 2026, as Nate News carries it \
+              (https://m.news.nate.com/view/20260131n03400), for state media's dropping \
+              태양절 and 광명성절 (secondary, retrieved 2026-09-27); the Socialist Labour Law of 1978 as amended to 30 June 2015, article 64, \
               in Daye Gang's English translation on Law and North Korea \
               (lawandnorthkorea.com), as the Internet Archive holds it (captured 2023-04-08)",
 };

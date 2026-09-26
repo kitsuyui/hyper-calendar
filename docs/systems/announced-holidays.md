@@ -109,8 +109,14 @@ checks each step.
 **North Korea** is the one table here with no tabulated day. Its
 instrument, the wall calendar, was read only for 2020, in a transcription,
 and it is carried by rule from 2020 on the assumption that the list has not
-changed; KCNA's reports of 2026 confirm the names and the dates, not which
-days are days off.
+changed; KCNA's reports of 2026 confirm the dates, not which days are days
+off. The local names are the 2020 calendar's. Two of them are no longer
+state media's: from February 2024 the 15 April holiday is "4월의 명절" or
+"4.15" rather than 태양절 [sbs-kp-april-holiday-2024]
+[rfa-kp-day-of-the-sun-2024], and the 16 February one "2월16" rather than
+광명성절 (SBS, 31 January 2026, in a news portal's copy). That is the
+authority's revision; the table keeps the calendar's names, one per day,
+and the KCNA wording of 2026 was not re-read to confirm it.
 
 **The weekends.** Five are from a labour law read: Liberia's Decent Work
 Act, Togo's and Gabon's Codes du travail ("en principe le dimanche",
@@ -172,7 +178,7 @@ each was read. The instrument each table rests on, and its class:
 | Eswatini | [eswatini-gazette-notices] | The Gazette notices of 2001–2013 and the Government's notice of 2026 | Official gazette; Umhlanga 2025 and Lutsango Day from the press |
 | Guinea-Bissau | [guinea-bissau-decree-1-2023-press] | Decree 1/2023 and the Eid decrees of 2025 and 2026 | Secondary for the decree, quoted by the press; the state news agency for 2026 |
 | South Sudan | [south-sudan-mol-calendar-2022] | The Ministry of Labour's calendar of 2022 and notices of 2024–2026 | Official, from the NGO Forum's copies and mol.gov.ss |
-| North Korea | [kp-wall-calendar-2020-snu] | The 2020 wall calendar | Secondary: Seoul National University's transcription; KCNA's reports of 2026 for names and dates |
+| North Korea | [kp-wall-calendar-2020-snu] | The 2020 wall calendar | Secondary: Seoul National University's transcription, for the holidays and their names; KCNA's reports of 2026 for the dates; [sbs-kp-april-holiday-2024] and [rfa-kp-day-of-the-sun-2024] for the names state media dropped |
 
 The weekend sources read for this document are
 [gabon-code-travail-2021], article 220; [niger-code-travail-2012],

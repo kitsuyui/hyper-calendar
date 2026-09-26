@@ -680,10 +680,9 @@ impl Phase {
 ///
 /// A variant holds a calendar, a computus or an ayanamsa by `&'static`
 /// reference, never by value. Every [`HolidayRule`] of every table holds a
-/// `Rule`, so the largest variant sets the size of all of them: a
-/// [`TibetanCalendar`] held by value once made each `Rule` 224 bytes on a
-/// 64-bit target, where 40 do, and the WebAssembly holiday layer 0.7 MB
-/// larger.
+/// `Rule`, so the largest variant sets the size of all of them: a variant
+/// holding a [`TibetanCalendar`] by value would make each `Rule` 224 bytes
+/// on a 64-bit target instead of 40.
 ///
 /// Deliberately not `PartialEq`: [`Rule::Computed`] holds a function
 /// pointer, and comparing function pointers is not meaningful — two

@@ -32,9 +32,10 @@
 //!   Regel die heisseste Zeit des Jahres", MeteoSchweiz-Blog, 22 July 2025,
 //!   retrieved 2026-09-26: "Morgen, den 23. Juli, beginnen die sogenannten
 //!   Hundstage und dauern bis zum 23. August"; the German Wikipedia,
-//!   "Hundstage", retrieved 2026-09-26, gives the same span and cites it.
-//! * Wikipedia, "Dog days", retrieved 2026-09-26, for the Prayer Book
-//!   spans not carried.
+//!   "Hundstage" (`wikipedia-de-hundstage`), retrieved 2026-09-26, gives
+//!   the same span and cites it.
+//! * `wikipedia-dog-days`: Wikipedia, "Dog days", retrieved 2026-09-26,
+//!   for the Prayer Book spans not carried.
 
 use hc_calendar::Rd;
 

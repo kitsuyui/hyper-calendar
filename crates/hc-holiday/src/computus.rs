@@ -257,8 +257,9 @@ pub fn astronomical_paschal_full_moon(year: i64) -> Option<Rd> {
 ///
 /// A full moon on a Sunday puts Easter a week later. The Aleppo statement
 /// says "the Sunday following the first vernal full moon" and no more, but
-/// its table settles the case it contains: the full moon of 8 April 2001,
-/// a Sunday, with Easter on 15 April (`wcc-aleppo-1997`). Reingold and
+/// its table settles the case in the three years it holds one: the full
+/// moons of 8 April 2001, 28 March 2021 and 13 April 2025, Sundays, with
+/// Easter on 15 April, 4 April and 20 April (`wcc-aleppo-1997`). Reingold and
 /// Dershowitz's `kday-after` gives the same.
 ///
 /// Returns `None` outside [`ASTRONOMICAL_EASTER_FIRST_YEAR`] to
@@ -431,7 +432,7 @@ mod tests {
     fn the_gregorian_computus_matches_published_easter_dates() {
         // 1818 and 1886, the earliest and latest possible dates, as Meeus
         // gives them in chapter 8 (`meeus1998`), and 5 April 2026, as the
-        // Liturgy Office's summary of 2026 gives it (`roman_calendar`). The
+        // Liturgy Office's summary of 2026 gives it (`liturgyoffice-calendar`). The
         // other years are not from a printed calendar read for this test.
         let published = [
             (1818, 3, 22), // the earliest possible Easter, and Meeus's example
@@ -624,10 +625,63 @@ mod tests {
 
     #[test]
     fn a_full_moon_on_a_sunday_puts_easter_a_week_later() {
-        // 8 April 2001 was a Sunday, and the table has Easter on the 15th.
-        let full_moon = astronomical_paschal_full_moon(2001).expect("in range");
-        assert_eq!(Weekday::from_rd(full_moon), Weekday::Sunday);
-        assert_eq!(astronomical_easter(2001), Some(Rd(full_moon.0 + 7)));
+        // The table's full moons of 8 April 2001, 28 March 2021 and 13
+        // April 2025 are Sundays, and its Easters are the Sundays after:
+        // 15 April, 4 April and 20 April.
+        for (year, month, day) in [(2001, 4, 8), (2021, 3, 28), (2025, 4, 13)] {
+            let full_moon = astronomical_paschal_full_moon(year).expect("in range");
+            assert_eq!(full_moon, greg(year, month, day), "{year}");
+            assert_eq!(Weekday::from_rd(full_moon), Weekday::Sunday, "{year}");
+            assert_eq!(
+                astronomical_easter(year),
+                Some(Rd(full_moon.0 + 7)),
+                "{year}"
+            );
+        }
+        // And they are the only three of the 25.
+        let sundays: Vec<i64> = ALEPPO_TABLE
+            .iter()
+            .filter(|(year, _, (month, day))| {
+                Weekday::from_rd(greg(*year, *month, *day)) == Weekday::Sunday
+            })
+            .map(|(year, _, _)| *year)
+            .collect();
+        assert_eq!(sundays, [2001, 2021, 2025]);
+    }
+
+    /// The astronomical Easter of `year` with the full moon dated at
+    /// Universal Time plus `offset_days`, a fixed offset, instead of in
+    /// apparent time.
+    fn easter_at_fixed_offset(year: i64, offset_days: f64) -> Rd {
+        let equinox = term_moment(year, SolarTerm::SPRING_EQUINOX);
+        let full_moon = hc_astro::lunar::moon_phase_at_or_after(180.0, equinox);
+        Weekday::Sunday.after(Moment(full_moon.0 + offset_days).day())
+    }
+
+    #[test]
+    fn the_measured_agreements_of_1583_to_2150_hold() {
+        // astronomical-easter.md: the astronomical Easter equals the
+        // Gregorian in 516 of the 568 years and the Julian in 202; local
+        // mean time at Jerusalem gives the same Easter as apparent time in
+        // every year, and Israel Standard Time, UTC+2, differs in 1653,
+        // 1775 and 1873 only. Measurements of this implementation, not
+        // published values.
+        let years = ASTRONOMICAL_EASTER_FIRST_YEAR..=ASTRONOMICAL_EASTER_LAST_YEAR;
+        let (mut gregorian_same, mut julian_same) = (0, 0);
+        let mut standard_time_differs = Vec::new();
+        for year in years.clone() {
+            let astronomical = astronomical_easter(year).expect("in range");
+            gregorian_same += usize::from(gregorian_easter(year) == Some(astronomical));
+            julian_same += usize::from(orthodox_easter(year) == Some(astronomical));
+            let mean_time = easter_at_fixed_offset(year, JERUSALEM_LONGITUDE_DEGREES / 360.0);
+            assert_eq!(mean_time, astronomical, "local mean time {year}");
+            if easter_at_fixed_offset(year, 2.0 / 24.0) != astronomical {
+                standard_time_differs.push(year);
+            }
+        }
+        assert_eq!(years.count(), 568);
+        assert_eq!((gregorian_same, julian_same), (516, 202));
+        assert_eq!(standard_time_differs, [1653, 1775, 1873]);
     }
 
     #[test]

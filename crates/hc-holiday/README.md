@@ -9,6 +9,16 @@ source, and adding a country adds no branch to the engine. A caller who wants
 a company calendar, a school year or a fictional setting supplies their own
 `RuleSet` and gets the same machinery.
 
+```rust
+use hc_holiday::countries::JAPAN;
+use hc_holiday::holidays_in_year;
+
+let holidays = holidays_in_year(&JAPAN, None, 2026);
+assert_eq!(holidays.len(), 18);
+// Tuesday 22 September, a working day between two holidays.
+assert_eq!(holidays[13].local_name, "国民の休日");
+```
+
 | Module | What it holds |
 | --- | --- |
 | `rule` | the rule vocabulary and the observance modifiers |
@@ -74,12 +84,12 @@ Every Japanese public holiday from the 祝日法 (昭和23年法律第178号, in
 | In force | Change |
 | --- | --- |
 | 1948 | the nine original holidays — and only the three that follow 20 July are holidays in 1948 |
-| 1966 / 1967 | 敬老の日, 体育の日, and 建国記念の日 once its 政令 fixed the date |
-| 1973 | 振替休日, from 12 April — so 1973-02-12 is *not* a holiday and 1973-04-30 is the first one ever |
-| 1986 | 国民の休日; the first actual occurrence is 1988-05-04 |
+| 1966 / 1967 | 敬老の日, 体育の日, and 建国記念の日 once its 政令 (a cabinet order) fixed the date |
+| 1973 | 振替休日 (the substitute holiday for one on a Sunday), from 12 April — so 1973-02-12 is *not* a holiday and 1973-04-30 is the first one ever |
+| 1986 | 国民の休日 (the citizens' holiday, a working day between two holidays); the first actual occurrence is 1988-05-04 |
 | 1989 | 天皇誕生日 4/29 → 12/23, 4/29 becomes みどりの日 |
 | 1996 | 海の日 |
-| 2000, 2003 | ハッピーマンデー, in two waves |
+| 2000, 2003 | ハッピーマンデー (the "Happy Monday" system, which moved four holidays to Mondays), in two waves |
 | 2007 | 昭和の日, みどりの日 → 5/4, and 振替休日 becomes "the nearest following non-holiday" |
 | 2016 | 山の日 |
 | 2019 | 天皇の即位の日 and 即位礼正殿の儀, which bridge 4/30 and 5/2 into a ten-day Golden Week; no 天皇誕生日 at all that year |
@@ -90,13 +100,13 @@ The 1959, 1989, 1990 and 1993 imperial one-offs are there too.
 **春分の日 and 秋分の日 are computed, not tabulated.** The statute defines them
 as the day of the equinox; the National Astronomical Observatory of Japan
 computes the instant in JST and the Cabinet Office prints the resulting date
-in the 官報 a year ahead. So this crate carries `Rule::SolarTerm` at
-`Meridian::JAPAN` and lets `hc-seasons` answer. Against the 102 equinox days
-the Observatory published for 1980 to 2030, transcribed into `hc-seasons`'s
-test, that disagrees nowhere; the Observatory publishes one year ahead, so
-for 2031–2099 the same test compares the computation with a floor formula
-that reproduces the published table — a prediction, not a publication, and
-the formula is the test's own. The underlying solar
+in the 官報 (the official gazette) a year ahead. So this crate carries
+`Rule::SolarTerm` at `Meridian::JAPAN` and lets `hc-seasons` answer. The
+computation agrees with all 102 equinox days the Observatory published for
+1980 to 2030, transcribed into `hc-seasons`'s test. The Observatory
+publishes one year ahead, so for 2031–2099 the same test compares the
+computation with a floor formula that reproduces the published table — a
+prediction, not a publication, and the formula is the test's own. The underlying solar
 longitude is VSOP87, good to about 1″, so an equinox lands within the minute
 the almanacs round to; only an equinox within about a minute of JST midnight
 could still be given the wrong *day*, and the tightest case in the modern
@@ -194,14 +204,20 @@ claims to be complete back to its own founding.
 `exchanges` carries the trading calendars of stock exchanges as rule sets
 keyed by ISO 10383 Market Identifier Code: the days an exchange is closed, as
 public-kind entries that stop business-day arithmetic, and the days it closes
-early or opens late, as observances that do not. Forty-two so far, each
-from the exchange's own published calendar: the New York Stock Exchange (`XNYS`)
-and Nasdaq (`XNAS`) on one calendar, which closes on
-Good Friday, which no statute makes a holiday, trades on Columbus Day and
-Veterans Day, moves a Saturday holiday to the Friday before except a New
-Year's Day, whose Friday is the last day of the year, and closes at 1:00 p.m.
-the day after Thanksgiving and on 3 July and Christmas Eve when those fall on
-a Monday to Thursday; the Toronto Stock Exchange (`XTSE`); the Frankfurt
+early or opens late, as observances that do not. Forty-two, each from the
+exchange's own published calendar.
+
+The New York Stock Exchange (`XNYS`) and Nasdaq (`XNAS`) share one
+calendar, which:
+
+* closes on Good Friday, which no statute makes a holiday;
+* trades on Columbus Day and Veterans Day;
+* moves a Saturday holiday to the Friday before, except New Year's Day,
+  whose Friday is the last day of the year;
+* closes at 1:00 p.m. on the day after Thanksgiving, and on 3 July and
+  Christmas Eve when those fall on a Monday to Thursday.
+
+The others: the Toronto Stock Exchange (`XTSE`); the Frankfurt
 Stock Exchange on Xetra (`XETR`), which closes on Christmas Eve and New Year's
 Eve, trades on Ascension Day and Corpus Christi and moves nothing off a
 weekend; SIX in Zurich (`XSWX`), which closes on Berchtoldstag, Ascension Day
