@@ -1203,13 +1203,24 @@ mod tests {
         // Every day of four decades is walked below; across the whole range
         // this takes every 29th day in a release build and every 319th in a
         // debug one, strides prime to 7 and to 30 so that every weekday and
-        // every day of the month is visited, and in both builds every New
-        // Year and the day before it, where the year's months turn.
+        // every day of the month is visited, and every New Year and the day
+        // before it, where the year's months turn: of every year in a
+        // release build, and in a debug one, which the coverage job runs
+        // instrumented, of every seventh year and the last
+        // (`crate::sweep_years`), a sample that still holds New Years after
+        // years of twelve months and of thirteen.
         let stride = if cfg!(debug_assertions) { 319 } else { 29 };
         for calendar in VERSIONS {
             let id = calendar.meta().id;
             let (first, last) = (calendar.earliest().0, calendar.latest().0);
-            let new_years = (MIN_YEAR..=MAX_YEAR)
+            for leap in [false, true] {
+                assert!(
+                    crate::sweep_years(MIN_YEAR, MAX_YEAR, 7)
+                        .any(|year| year > MIN_YEAR && calendar.is_leap_year(year - 1) == leap),
+                    "{id}"
+                );
+            }
+            let new_years = crate::sweep_years(MIN_YEAR, MAX_YEAR, 7)
                 .map(|year| calendar.new_year(year).unwrap().0)
                 .chain([last + 1])
                 .flat_map(|day| [day - 1, day])
@@ -1223,10 +1234,15 @@ mod tests {
 
     #[test]
     fn every_day_of_four_decades_round_trips_and_years_have_the_five_lengths() {
+        // Four decades in a release build. A debug build, which the coverage
+        // job runs instrumented, walks the first of them, which still holds
+        // skipped and repeated days in every version; the year lengths
+        // below are checked over all four in both.
+        let last_year = if cfg!(debug_assertions) { 2000 } else { 2031 };
         for calendar in VERSIONS {
             let id = calendar.meta().id;
             let start = greg(1990, 1, 1).0;
-            let end = greg(2031, 1, 1).0;
+            let end = greg(last_year, 1, 1).0;
             let mut previous: Option<TibetanDate> = None;
             let mut skipped = 0;
             let mut repeated = 0;

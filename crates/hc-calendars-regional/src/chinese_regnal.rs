@@ -598,23 +598,24 @@ mod tests {
                     .0
             })
             .collect();
-        // The round trip: every day in a release build; every 19th in a
-        // debug one, with the New Years and the days before them.
-        for rd in crate::sweep_days(EARLIEST.0, LATEST.0, 19, new_years.iter().copied()) {
+        // The round trip: every day in a release build; every 37th in a
+        // debug one, with the New Years and the days before them. The
+        // fields, which cost two more lunisolar conversions a day, on every
+        // 19th day in a release build, every 37th in a debug one, and the
+        // New Years and the days before them in both: in a debug build, the
+        // same days as the round trip, so each is converted once.
+        let stride = if cfg!(debug_assertions) { 37 } else { 19 };
+        let boundary = |rd: i64| {
+            new_years.binary_search(&rd).is_ok() || new_years.binary_search(&(rd + 1)).is_ok()
+        };
+        for rd in crate::sweep_days(EARLIEST.0, LATEST.0, 37, new_years.iter().copied()) {
             let date = calendar.from_fixed(Rd(rd)).expect("in range");
             assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "rd {rd}");
-        }
-        // The fields, which cost two more lunisolar conversions a day: every
-        // 19th day, the New Years and the days before them, in both builds.
-        let boundaries = new_years.iter().flat_map(|&day| [day - 1, day]);
-        for rd in (EARLIEST.0..=LATEST.0)
-            .step_by(19)
-            .chain(boundaries.filter(|&day| (EARLIEST.0..=LATEST.0).contains(&day)))
-        {
-            let date = calendar.from_fixed(Rd(rd)).expect("in range");
-            let fields = calendar.to_fields(date).expect("describable");
-            assert_eq!(fields.era, Some(date.era.id));
-            assert_eq!(calendar.from_fields(&fields), Ok(date), "rd {rd}");
+            if (rd - EARLIEST.0) % stride == 0 || boundary(rd) {
+                let fields = calendar.to_fields(date).expect("describable");
+                assert_eq!(fields.era, Some(date.era.id));
+                assert_eq!(calendar.from_fields(&fields), Ok(date), "rd {rd}");
+            }
         }
         let plain = DateFields::ymd(1700, 3, 3);
         assert_eq!(

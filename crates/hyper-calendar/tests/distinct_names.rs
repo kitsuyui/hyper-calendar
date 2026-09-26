@@ -61,12 +61,20 @@ fn every_calendar_has_an_english_name_of_its_own() {
     assert!(english.is_empty(), "shared English names: {english:?}");
 }
 
+/// How many times sparser the locales of the page below are in a debug
+/// build, which the coverage job runs instrumented. Each page converts a day
+/// through every calendar besides naming it, which is most of its cost; a
+/// release build, which CI's release-mode job runs, reads every locale's
+/// page, and in both builds every locale's names are held to the same rule
+/// by the next test, read from `hc-i18n` directly.
+const SAMPLED: usize = if cfg!(debug_assertions) { 4 } else { 1 };
+
 #[test]
 fn no_two_calendars_share_a_name_in_any_locale() {
     let registry = hyper_calendar::registry();
     let tags = ["en", lines::NATIVE]
         .into_iter()
-        .chain(LOCALES.iter().map(|data| data.tag));
+        .chain(LOCALES.iter().step_by(SAMPLED).map(|data| data.tag));
     for tag in tags {
         let text = lines::calendars(&registry, TODAY, tag);
         let clashes = shared(shown(&text));

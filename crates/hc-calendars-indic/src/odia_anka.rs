@@ -579,7 +579,13 @@ mod tests {
         let start = ANKA.new_year(67).expect("in range");
         let end = ANKA.new_year(71).expect("in range");
         let mut intercalary = alloc::vec::Vec::new();
-        for day in (start.0..end.0).step_by(crate::sweep_stride(3)) {
+        // Every day in a release build; in a debug one every eleventh, with
+        // each Suniā, where the anka turns, and the day before it.
+        let openings: alloc::vec::Vec<i64> = (67..=71)
+            .filter_map(|anka| ANKA.new_year(anka).ok())
+            .map(|rd| rd.0)
+            .collect();
+        for day in crate::sweep_days(start.0, end.0 - 1, 11, &openings) {
             let rd = Rd(day);
             let date = ANKA.from_fixed(rd).expect("in range");
             assert_eq!(ANKA.to_fixed(date), Ok(rd), "{date:?}");

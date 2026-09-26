@@ -120,6 +120,25 @@ pub(crate) fn sweep_days(
     )
 }
 
+/// The years of a year-by-year sweep over `first..=last` in this crate's
+/// tests, such as the years whose boundaries [`sweep_days`] is given: every
+/// year in a release build; in a debug build every `sampled`th and the
+/// last.
+///
+/// For a sweep whose year boundaries cost more than its sampled days,
+/// hundreds of years of astronomical or lunisolar conversions. `sampled`
+/// is chosen prime to the cycle the years run in, so that the sample still
+/// holds every kind of year the test is about, leap and common and the
+/// exceptions; a release build walks every year (docs/policy.md §7).
+#[cfg(test)]
+pub(crate) fn sweep_years(first: i64, last: i64, sampled: usize) -> impl Iterator<Item = i64> {
+    let stride = sweep_stride(sampled);
+    let last_is_sampled = (last - first) % stride as i64 == 0;
+    (first..=last)
+        .step_by(stride)
+        .chain((!last_is_sampled && first <= last).then_some(last))
+}
+
 pub mod akan;
 pub mod arsacid;
 pub mod aztec;
@@ -289,8 +308,11 @@ mod tests {
     #[test]
     fn every_calendar_round_trips_every_day_of_a_shared_range() {
         // The step is deliberately coprime with 210, 260, 365 and 60 so that
-        // the sweep does not land on the same cycle position every time.
-        for rd in (-1_100_000..=800_000).step_by(1_009) {
+        // the sweep does not land on the same cycle position every time:
+        // 1 009 in a release build, and 3 001 in a debug one, which the
+        // coverage job runs instrumented.
+        let step = if cfg!(debug_assertions) { 3_001 } else { 1_009 };
+        for rd in (-1_100_000..=800_000).step_by(step) {
             round_trip_every_calendar!(
                 Rd(rd),
                 MayaLongCountCalendar::GMT,
@@ -357,11 +379,15 @@ mod tests {
 
         // Every era boundary, from forty days before to forty days after.
         // An era change lands mid-month and sometimes mid-intercalary-month,
-        // which is where the year-within-era arithmetic goes wrong.
+        // which is where the year-within-era arithmetic goes wrong. A debug
+        // build takes the three days either side of each and every
+        // twentieth day of the rest; at every fifth day this window was the
+        // costliest part of the test there.
+        let era_sampled = if sampled == 1 { 1 } else { 4 * sampled };
         for era in crate::nengo::stream(crate::nengo::Court::Unified) {
             let Some(start) = era.start else { continue };
             for offset in
-                (-40..=40).filter(|offset: &i64| offset.abs() <= 3 || offset % sampled == 0)
+                (-40..=40).filter(|offset: &i64| offset.abs() <= 3 || offset % era_sampled == 0)
             {
                 let rd = Rd(start.0 + offset);
                 if rd < first || rd > last || crate::nengo::is_nanbokucho(rd) {
@@ -391,9 +417,13 @@ mod tests {
             }
         }
 
-        // The Gregorian half in full (every fifth day in a debug build): it
-        // is what callers actually ask for.
-        for rd in (crate::japanese::GREGORIAN_ADOPTION.0..=last.0).step_by(crate::sweep_stride(5)) {
+        // The Gregorian half in full: it is what callers actually ask for.
+        // A debug build takes every seventeenth day, and each 1 January and
+        // the day before it, where the year of the era turns
+        // (`crate::sweep_days`).
+        let new_years =
+            (1_874..=2_100).map(|year| gregorian::to_fixed(year, 1, 1).expect("a date").0);
+        for rd in crate::sweep_days(crate::japanese::GREGORIAN_ADOPTION.0, last.0, 17, new_years) {
             check_japanese_day(Rd(rd));
         }
 

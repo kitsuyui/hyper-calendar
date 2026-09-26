@@ -43,6 +43,15 @@ testExecutionTime:
   # days there and walk every day only in the release-mode `sweeps` job of
   # tests.yml (docs/policy.md §7). That cut the suite's debug test time from
   # about 234 to 85 seconds on one machine, so the ceiling stays where it is.
+  #
+  # By #205 the instrumented run was back at 27m30s: newer sweeps checked
+  # every year boundary of six hundred years in a debug build too, and those
+  # boundaries cost more than the sampled days. A debug build now samples
+  # the years as well, every k-th with k prime to the calendar's cycle
+  # (docs/policy.md §7), and a few tests stopped repeating conversions
+  # another had just made. On one machine the plain debug suite went from
+  # 202 to 130 seconds and this job's command from 27m34s to 20m33s, build
+  # included, with the same line coverage; the ceiling stays where it is.
   acceptable: 30min
 diff:
   datastores:

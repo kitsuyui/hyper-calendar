@@ -390,14 +390,21 @@ mod tests {
 
     #[test]
     fn passover_eve_is_the_fourteenth_of_the_first_month() {
-        for year in 1_900..=2_100i64 {
+        // Every year in a release build; in a debug one, which the coverage
+        // job runs instrumented, every third and the last
+        // (`crate::sweep_years`), which still holds leap years and common
+        // ones.
+        let mut kinds = [false; 2];
+        for year in crate::sweep_years(1_900, 2_100, 3) {
             let first = first_of_nisan(year).expect("converges");
             let eve = classical_passover_eve(year).expect("converges");
             let hebrew_year = hebrew::year_from_fixed(first).expect("in range");
             assert_eq!(from_fixed(first), Ok((hebrew_year, NISAN, 1)), "{year}");
             assert_eq!(from_fixed(eve), Ok((hebrew_year, NISAN, 14)), "{year}");
             assert_eq!(SITE.month_start_on_or_before(first), Ok(first));
+            kinds[usize::from(is_leap_year(hebrew_year).expect("converges"))] = true;
         }
+        assert_eq!(kinds, [true; 2]);
     }
 
     #[test]
@@ -479,17 +486,22 @@ mod tests {
 
     #[test]
     fn years_run_twelve_or_thirteen_months() {
-        for year in (5_750..5_790i64).chain(3_661..3_700) {
-            let start = to_fixed(year, Month::regular(1), 1).expect("Tishrei exists");
-            let next = to_fixed(year + 1, Month::regular(1), 1).expect("Tishrei exists");
-            let length = next.0 - start.0;
-            let leap = is_leap_year(year).expect("converges");
-            let expected = if leap { 383..=386 } else { 353..=356 };
-            assert!(
-                expected.contains(&length),
-                "{year} ran {length} days, leap {leap}"
-            );
-            assert_eq!(to_fixed(year, Month::leap(5), 1).is_ok(), leap, "{year}");
+        // Each year's 1 Tishrei is the year before's `next`: placed once.
+        let tishrei = |year| to_fixed(year, Month::regular(1), 1).expect("Tishrei exists");
+        for years in [5_750..5_790i64, 3_661..3_700] {
+            let mut start = tishrei(years.start);
+            for year in years {
+                let next = tishrei(year + 1);
+                let length = next.0 - start.0;
+                let leap = is_leap_year(year).expect("converges");
+                let expected = if leap { 383..=386 } else { 353..=356 };
+                assert!(
+                    expected.contains(&length),
+                    "{year} ran {length} days, leap {leap}"
+                );
+                assert_eq!(to_fixed(year, Month::leap(5), 1).is_ok(), leap, "{year}");
+                start = next;
+            }
         }
     }
 

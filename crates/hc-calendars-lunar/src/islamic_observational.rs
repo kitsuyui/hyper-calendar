@@ -1114,7 +1114,16 @@ mod tests {
             ),
             (haifa, VisibilityCriterion::YALLOP, [568, 644, 0], vec![]),
         ];
-        for (place, criterion, lengths, long_months) in cases {
+        // Each case walks 1 212 months of crescent searches. A release build
+        // checks all six; a debug build, which the coverage job runs
+        // instrumented, one of each kind, Cairo by Shaukat's criterion with
+        // its month of 31 days and Haifa by Yallop's with none. Mecca's
+        // months under both criteria are composed month by month in the
+        // Umm al-Qura and Yallop comparisons above, in both builds.
+        for (index, (place, criterion, lengths, long_months)) in cases.into_iter().enumerate() {
+            if cfg!(debug_assertions) && ![2, 5].contains(&index) {
+                continue;
+            }
             let site = ObservationSite::new(place, criterion);
             assert_eq!(
                 month_lengths_1400_to_1500(site),
