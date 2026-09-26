@@ -28,6 +28,20 @@
 //! the Śaka year and turns at Chaitra śukla 1 in both, so the dark
 //! fortnight the north calls Chaitra kṛṣṇa, in March, is the last of the
 //! old year.
+//!
+//! # The year's name
+//!
+//! The year is also named in the northern sixty-year cycle, the
+//! *Bārhaspatya saṃvatsara* of [`crate::barhaspatya`], which has run
+//! thirteen names ahead of the southern one the amānta calendar carries
+//! since 1943 and will run fourteen ahead from 2028: the extra
+//! field `samvatsara` is the name current at the Meṣa saṅkrānti that
+//! falls in the year's Chaitra, by the *Sūrya Siddhānta* with the *bīja*,
+//! as Sewell and Dikshit's Table I gives it from 1501 to 1900. The
+//! Bārhaspatya year itself does not begin at the New Year: its names turn
+//! whenever Jupiter's mean place enters a sign, and one is expunged about
+//! every 85 years. Śaka 1946, Vikrama 2081, is Pingala, as the Hrishikesh
+//! Panchang of Varanasi prints it.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd,
@@ -63,6 +77,20 @@ impl HinduPurnimantaCalendar {
     pub const RASHTRIYA: Self = Self {
         amanta: HinduLunarCalendar::RASHTRIYA,
     };
+
+    /// The position, 1 for Prabhava through 60 for Kṣaya, of a Śaka year's
+    /// name in the northern, Bārhaspatya, cycle: the name current at the
+    /// apparent Meṣa saṅkrānti of the solar year that begins in the year's
+    /// Chaitra, by the *Sūrya Siddhānta* with the *bīja*
+    /// ([`crate::barhaspatya::northern_of_saka`]). The name in progress
+    /// changes during the year, a fortnight after the saṅkrānti in 2024;
+    /// the year keeps the one current at its beginning, as Sewell and
+    /// Dikshit say the north does (`sewell1896`, Art. 55), and
+    /// [`crate::barhaspatya::in_progress_at`] gives the other.
+    #[must_use]
+    pub const fn samvatsara_of(year: i64) -> u8 {
+        crate::barhaspatya::northern_of_saka(year)
+    }
 
     /// The pūrṇimānta calendar over any amānta one.
     #[must_use]
@@ -161,7 +189,13 @@ impl Calendar for HinduPurnimantaCalendar {
     /// Twelve months with a thirteenth in an intercalary year, and the
     /// seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        hc_calendar::shape::LUNISOLAR_TWELVE
+        use hc_calendar::shape::{CycleShape, MONTH, WEEKDAY};
+        const SHAPE: &[CycleShape] = &[
+            CycleShape::intercalary(MONTH, 12, 13),
+            CycleShape::fixed(WEEKDAY, 7),
+            CycleShape::named(crate::samvatsara::CYCLE, &crate::samvatsara::NAMES),
+        ];
+        SHAPE
     }
 
     /// A year with an adhika māsa, which is the amānta year's.
@@ -207,7 +241,12 @@ impl Calendar for HinduPurnimantaCalendar {
         let mut fields = DateFields::ymd(date.year, date.month, date.day).with_era(ERA);
         fields.month = Some(month);
         fields.leap_day = date.leap_day;
-        fields.with_extra("vikrama-year", date.vikrama_year())
+        fields
+            .with_extra("vikrama-year", date.vikrama_year())?
+            .with_extra(
+                crate::samvatsara::CYCLE,
+                i64::from(Self::samvatsara_of(date.year)),
+            )
     }
 
     fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
@@ -342,5 +381,37 @@ mod tests {
         assert_eq!(label(2023, 7, 18), (5, true, 1));
         assert_eq!(label(2023, 8, 2), (5, true, 16));
         assert_eq!(label(2023, 8, 17), (5, false, 1));
+    }
+
+    #[test]
+    fn the_northern_years_carry_the_names_sewell_and_dikshit_and_the_almanacs_print() {
+        use crate::samvatsara::name;
+        let named = |rd: Rd| {
+            let date = RASHTRIYA.from_fixed(rd).unwrap();
+            let fields = Calendar::to_fields(&RASHTRIYA, date).unwrap();
+            let position = fields.extra.get(crate::samvatsara::CYCLE).unwrap();
+            name(u8::try_from(position).unwrap())
+        };
+        // Sewell and Dikshit's worked example of 1822: Saka 1744 expired,
+        // whose Chaitra śukla 1 was "Sunday, March 24th, 1822", is "Vijaya"
+        // in the Bṛhaspati cycle, where the amānta calendar's southern name
+        // is Chitrabhanu.
+        assert_eq!(named(ymd(1822, 3, 24)), Some("Vijaya"));
+        assert_eq!(named(ymd(1822, 11, 1)), Some("Vijaya"));
+        let amanta = HinduLunarCalendar::RASHTRIYA;
+        let southern = Calendar::to_fields(&amanta, amanta.from_fixed(ymd(1822, 11, 1)).unwrap())
+            .unwrap()
+            .extra
+            .get(crate::samvatsara::CYCLE);
+        assert_eq!(southern, Some(16));
+        // The Hrishikesh Panchang of Varanasi for Vikrama 2081, Śaka 1946:
+        // "पिङ्गल नामाब्दः", the year named Pingala, from Chaitra śukla 1,
+        // 9 April 2024, to the last day of its Chaitra kṛṣṇa, in March 2025,
+        // although Kalayukta is in progress from 29 April 2024.
+        assert_eq!(named(ymd(2024, 4, 8)), Some("Anala"));
+        assert_eq!(named(ymd(2024, 4, 9)), Some("Pingala"));
+        assert_eq!(named(ymd(2024, 5, 1)), Some("Pingala"));
+        assert_eq!(named(ymd(2025, 3, 29)), Some("Pingala"));
+        assert_eq!(named(ymd(2025, 3, 30)), Some("Kalayukta"));
     }
 }

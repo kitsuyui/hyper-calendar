@@ -32,7 +32,7 @@ None of the three repeats another.
 | The Khmer *Chhankitek*: the *suryayatra* rule for the leap month and the leap day as Cambodia applies it, the Buddhist Era changing at Pisakh, and why the Lao, Sinhalese and Tai calendars are not carried | [khmer-chhankitek.md](khmer-chhankitek.md) | `khmer`; `southeast_asian` |
 | China's annual holiday arrangements and working weekends | [china-holiday-arrangements.md](china-holiday-arrangements.md) | `hc-holiday`'s `CHINA`; `XSHG`, `XSHE` |
 | The Hijri calendars: the tabular schemes, the Umm al-Qura table and the observational prediction | [hijri.md](hijri.md) | `islamic-civil`, `islamic-tbla`, `islamic-fatimid`, `islamic-umalqura`, `islamic-rgsa`; `tabular` |
-| The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, ayanāṃśa, the sixty year names | [hindu-calendars.md](hindu-calendars.md) | `hindu-lunar`, `hindu-lunar-purnimanta`, `hindu-solar-tamil`, `hindu-solar-malayalam`, `hindu-solar-bengali`, `hindu-solar-vikrami`, `hindu-old-solar`, `hindu-old-lunar`; `tithi`, `nakshatra`, `surya_siddhanta`, `samvatsara` |
+| The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, ayanāṃśa, the sixty year names in the south and the Bārhaspatya cycle of the north with its expunged names | [hindu-calendars.md](hindu-calendars.md) | `hindu-lunar`, `hindu-lunar-purnimanta`, `hindu-solar-tamil`, `hindu-solar-malayalam`, `hindu-solar-bengali`, `hindu-solar-vikrami`, `hindu-old-solar`, `hindu-old-lunar`; `tithi`, `nakshatra`, `surya_siddhanta`, `samvatsara`, `barhaspatya` |
 | The Maya and Aztec counts: the Long Count under three correlations, the Tzolkʼin, Haabʼ and Calendar Round, the 819-day count's stations and colour-directions over twenty stations, the tonalpohualli and xiuhpohualli | [mesoamerican-counts.md](mesoamerican-counts.md) | `maya-longcount`, `maya-longcount-gmt2`, `maya-longcount-584286`, `maya-tzolkin`, `maya-haab`, `maya-round`, `maya-tzolkin-gmt2`, `maya-haab-gmt2`, `maya-round-gmt2`, `maya-tzolkin-584286`, `maya-haab-584286`, `maya-round-584286`, `maya-819`, `maya-819-gmt2`, `maya-819-584286`, `aztec-tonalpohualli`, `aztec-xiuhpohualli` |
 | The Zapotec *yza* of Villa Alta: the months of Manuscript 85, the years named by their first day, the correlation of 1695; and why the Purépecha, Zoque and Mixtec years are not carried | [mesoamerican-years.md](mesoamerican-years.md) | `zapotec-yza` |
 | The East Asian lunisolar calendars: China, Korea and Vietnam on their meridians | [east-asian-lunisolar.md](east-asian-lunisolar.md) | `chinese`, `dangi`, `vietnamese`; `lunisolar` |
@@ -82,21 +82,7 @@ None of the three repeats another.
 
 ## Systems that need a document
 
-These systems are implemented and need a document they do not yet have. A
-system not yet coded is written up from its sources before it is coded, with
-the sections above and a row in the table above; one found to need a document
-after it is coded is listed here until it has one
-([policy.md §12](../policy.md)).
-
-| System | Why it needs a document | Backs |
-| --- | --- | --- |
-| The Japanese era names: the unified stream, the two courts of 1331–1392, and eras read from the start of the year or from the day proclaimed | A court split, eras backdated to the start of the year against the reckoning as proclaimed, and the gaps of 655–686 and 687–701 | `japanese`, `japanese-northern`, `japanese-southern`, `japanese-proclaimed`; `hc-calendars-regional::nengo` |
-| The Chinese and Korean regnal eras | Eras from the year after accession (踰年改元), restored and withdrawn eras, and regimes proclaiming at the same time | `chinese-regnal`, `korean-regnal` |
-| The Solar Hijri calendar in Iran and Afghanistan | The new year by the equinox against noon at a named place, the laws of 1925, 1957 and 2022, and competing arithmetic schemes | `persian`, `persian-afghan`, `persian-arithmetic` |
-| The Zoroastrian calendars | The intercalations, the split of 1745, the Fasli reform, and the era's epoch | `zoroastrian-qadimi`, `zoroastrian-shahanshahi`, `zoroastrian-fasli` |
-| The Armenian calendar | The wandering year, and Sarkawag's fixed year and its extension backwards | `armenian`, `armenian-fixed` |
-| The Bangladeshi calendar | Decrees that change the rule inside one identifier | `bangladeshi` |
-| The Nanakshahi calendar | Versions that change the rule inside one identifier | `nanakshahi` |
-| The Japanese almanac notes, 暦注 and 選日 | Publishers' conventions, the reversal of the nine stars, the leap month, and the anchor of the twelve directs | `hc-almanac` |
-| The 雑節 and 六曜, with the lunisolar months they rest on | Days defined from the solar terms and from a minimal lunisolar calendar | `hc-seasons`: `zassetsu`, `rokuyo`, `lunisolar` |
-| Mars timekeeping | The sol, Coordinated Mars Time, local mean and true solar time, the Mars year, mission sol counts and the Darian calendar | `hc-planetary`: `mars`, `mars::missions`, `mars::darian` |
+Every implemented system that needs a document has one. The next is
+written up from its sources before it is coded, with the sections above and
+a row in the table above; one found to need a document after it is coded is
+listed here until it has one ([policy.md §12](../policy.md)).

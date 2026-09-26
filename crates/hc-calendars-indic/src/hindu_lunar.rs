@@ -36,7 +36,11 @@
 //!    (`sewell1896`, Art. 50). Neither year the tests check has one.
 //! 5. **The year is the Śaka era**, counted from Chaitra śukla 1; a
 //!    Gregorian year *g* holds the turn of Śaka *g* − 78. The Vikrama year,
-//!    135 greater, is carried as an extra field.
+//!    135 greater, is carried as an extra field, and so is the year's name
+//!    in the southern sixty-year cycle, `samvatsara`: the year that opens
+//!    at Chaitra śukla 1 is the Telugu and Kannada Ugādi year, which south
+//!    of the Narmada takes the same name as the Tamil solar year that
+//!    begins in it (`sewell1896`, Art. 62; [`crate::samvatsara`]).
 //!
 //! # Whose sunrise
 //!
@@ -227,6 +231,15 @@ impl HinduLunarCalendar {
     #[must_use]
     pub const fn new(location: Location, ayanamsa: Ayanamsa) -> Self {
         Self { location, ayanamsa }
+    }
+
+    /// The position, 1 for Prabhava through 60 for Kṣaya, of a Śaka year's
+    /// name in the southern sixty-year cycle: the name of the Telugu and
+    /// Kannada year that opens at Ugādi, Chaitra śukla 1, which is the Tamil
+    /// solar year's too ([`crate::samvatsara::southern_of_saka`]).
+    #[must_use]
+    pub const fn samvatsara_of(year: i64) -> u8 {
+        crate::samvatsara::southern_of_saka(year)
     }
 
     /// The month number a saṅkrānti into `sign` gives: Meṣa's is Chaitra.
@@ -600,10 +613,16 @@ impl Calendar for HinduLunarCalendar {
         hc_calendar::Usage::undated(USAGE_SOURCE)
     }
 
-    /// Twelve months with a thirteenth in an intercalary year, and the
-    /// seven-day week.
+    /// Twelve months with a thirteenth in an intercalary year, the
+    /// seven-day week, and the sixty year names of the southern cycle.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        hc_calendar::shape::LUNISOLAR_TWELVE
+        use hc_calendar::shape::{CycleShape, MONTH, WEEKDAY};
+        const SHAPE: &[CycleShape] = &[
+            CycleShape::intercalary(MONTH, 12, 13),
+            CycleShape::fixed(WEEKDAY, 7),
+            CycleShape::named(crate::samvatsara::CYCLE, &crate::samvatsara::NAMES),
+        ];
+        SHAPE
     }
 
     /// A year with an adhika māsa.
@@ -648,7 +667,12 @@ impl Calendar for HinduLunarCalendar {
         let mut fields = DateFields::ymd(date.year, date.month, date.day).with_era(ERA);
         fields.month = Some(month);
         fields.leap_day = date.leap_day;
-        fields.with_extra("vikrama-year", date.vikrama_year())
+        fields
+            .with_extra("vikrama-year", date.vikrama_year())?
+            .with_extra(
+                crate::samvatsara::CYCLE,
+                i64::from(Self::samvatsara_of(date.year)),
+            )
     }
 
     fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
@@ -978,5 +1002,34 @@ mod tests {
             ..date
         };
         assert_eq!(RASHTRIYA.to_fixed(date), Err(CalendarError::DayOutOfRange));
+    }
+
+    #[test]
+    fn the_ugadi_years_carry_their_printed_names() {
+        // Prokerala's Telugu calendar: "Chaitra Masam 2024 Telugu Calendar |
+        // Krodhi Nama Samvatsaram", Shalivahana Śaka 1946, from 9 April;
+        // Phalguna of the same year, to 29 March 2025, still Krodhi;
+        // Chaitra 2025, Viswavasu, 1947, from 30 March; Chaitra 2026,
+        // Parabhava, 1948, from 20 March, which is the day this calendar's
+        // year 1948 opens too (`prokerala-telugu-calendar`, retrieved
+        // 2026-09-26). The names are Sewell and Dikshit's southern cycle on
+        // the Śaka year (Art. 62), the Tamil year's.
+        let named = |rd: Rd| {
+            let date = RASHTRIYA.from_fixed(rd).unwrap();
+            let fields = Calendar::to_fields(&RASHTRIYA, date).unwrap();
+            let position = fields.extra.get(crate::samvatsara::CYCLE).unwrap();
+            crate::samvatsara::name(u8::try_from(position).unwrap())
+        };
+        assert_eq!(named(ymd(2024, 4, 8)), Some("Sobhana"));
+        assert_eq!(named(ymd(2024, 4, 9)), Some("Krodhin"));
+        assert_eq!(named(ymd(2025, 3, 29)), Some("Krodhin"));
+        assert_eq!(named(ymd(2025, 3, 30)), Some("Visvavasu"));
+        assert_eq!(RASHTRIYA.new_year(1_948), Ok(ymd(2026, 3, 20)));
+        assert_eq!(named(ymd(2026, 3, 19)), Some("Visvavasu"));
+        assert_eq!(named(ymd(2026, 3, 20)), Some("Parabhava"));
+        assert_eq!(HinduLunarCalendar::samvatsara_of(1_946), 38);
+        assert!(Calendar::cycles(&RASHTRIYA).iter().any(|cycle| {
+            cycle.kind == crate::samvatsara::CYCLE && cycle.name(38) == Some("Visvavasu")
+        }));
     }
 }

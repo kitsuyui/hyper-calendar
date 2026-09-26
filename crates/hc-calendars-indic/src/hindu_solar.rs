@@ -82,7 +82,9 @@
 //! the Vikrama Saṃvat's, which Odisha does not count in. The Odia year
 //! counts are [`crate::odia_anka`]'s: the Gajapati's *aṅka*, and the Amli
 //! year that opens at the same Suniā, as that calendar's `amli-year` field.
-//! The Vilayati year is not carried.
+//! The Amli year's own solar months and the Vilayati year are not
+//! carried: Sewell and Dikshit do not give enough to reproduce them, as
+//! `docs/calendars.md` states.
 
 use hc_astro::riseset::Location;
 use hc_calendar::fixed::Moment;

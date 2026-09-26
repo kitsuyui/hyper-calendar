@@ -76,7 +76,7 @@ behind the date and the Sources section says which were read.
 | --- | --- | --- | --- | --- | --- |
 | `julian-gregorian-catholic` | Papal States, Spain, Portugal, Poland-Lithuania | Thursday 4 October 1582 | Friday 15 October 1582 | 10 | *Inter gravissimas*, 24 February 1582 [inter-gravissimas]; that Spain, Portugal and Poland-Lithuania changed on the bull's own day rests on secondary sources [wikipedia-adoption-list], which note local resistance in Poland |
 | `julian-gregorian-fr` | France | Sunday 9 December 1582 | Monday 20 December 1582 | 10 | An edict of Henri III, not read; the dates are from secondary sources [frwiki-passage-gregorien, wikipedia-adoption-gregorian], which exclude Alsace and Lorraine (Lorraine changed in 1760) |
-| `julian-gregorian-nl` | Zeeland and the southern Netherlands | Friday 14 December 1582 | Saturday 25 December 1582 | 10 | The placard of 10 December 1582, not read. Two sources give the date to Zeeland and the southern provinces [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]; Strubbe and Voet give it to the States-General, Brabant and Zeeland, and a later one to the Southern Netherlands under Spanish rule [strubbe-voet-1960, p. 48], see below. Holland is a row of its own |
+| `julian-gregorian-nl-states-general` | The States-General, Brabant and Zeeland | Friday 14 December 1582 | Saturday 25 December 1582 | 10 | The placard of 10 December 1582, not read. Strubbe and Voet give the date to the States-General, Brabant and Zeeland, and a later one to the Southern Netherlands under Spanish rule [strubbe-voet-1960, p. 48]; two other sources give it to Zeeland and the southern provinces [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list], see below. Holland is a row of its own |
 | `julian-gregorian-nl-holland` | Holland | Saturday 1 January 1583 | Wednesday 12 January 1583 | 10 | No instrument read — the States of Holland's placard is the one that would settle it. The dates from secondary sources [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]; two others put Holland with Zeeland in December 1582 [frwiki-passage-gregorien, wikipedia-adoption-gregorian], see below |
 | `julian-gregorian-de-catholic` | Catholic Germany (Bavaria) | Saturday 5 October 1583 | Sunday 16 October 1583 | 10 | A ducal order, not read; the dates from a secondary source [dewiki-gregorianischer-kalender]. Bavaria only: the other Catholic territories of the Empire changed on dates of their own |
 | `julian-gregorian-hu` | Hungary | Saturday 21 October 1587 | Sunday 1 November 1587 | 10 | A law of the diet of 1587/88, not read; the dates from secondary sources [wikipedia-adoption-list, frwiki-passage-gregorien]; the Hungarian encyclopaedia's own dating is less definite [huwiki-gergely-naptar] |
@@ -101,9 +101,11 @@ them, and the reasoning is this:
   of adoption dates gives the same two dates for the provinces under
   Spanish rule — Artois, Brabant, Flanders, Hainaut, Limburg, Luxembourg
   and Namur — and 14 to 25 December for Flanders under Anjou's edict
-  [wikipedia-adoption-list]. So "the southern Netherlands" of
-  `julian-gregorian-nl`'s name is the southern provinces that followed
-  the States-General, not the Spanish ones, which are the regional
+  [wikipedia-adoption-list]. So the calendar of 14 to 25 December is
+  `julian-gregorian-nl-states-general`, named for the States-General,
+  Brabant and Zeeland as Strubbe and Voet name them, and not for "the
+  southern Netherlands" of the two encyclopaedias, which would take in
+  the Spanish provinces that changed a week later. Those are the regional
   table's Belgian row below and are not a calendar of their own: the
   source gives two dates for them and no way to choose.
 
@@ -114,9 +116,9 @@ them, and the reasoning is this:
   wikipedia-adoption-list]; the French encyclopaedia and the English
   narrative article put Holland and Zeeland together in December
   [frwiki-passage-gregorien, wikipedia-adoption-gregorian]. No primary
-  source was read. So `julian-gregorian-nl` is Zeeland and the southern
-  Netherlands, whose December date no source read disputes for Zeeland,
-  and Holland is
+  source was read. So `julian-gregorian-nl-states-general` is the
+  States-General, Brabant and Zeeland, whose December date no source read
+  disputes for Zeeland, and Holland is
   `julian-gregorian-nl-holland` on the two sources that date it
   separately — the ones that distinguish the provinces rather than the
   ones that summarise them. Its dates rest on
@@ -173,7 +175,7 @@ row yet uses, because no source for such a step has been read.
 | HU | Hungary | 21 October 1587 (Julian) | 1 November 1587 | `julian` → `gregory` | civil | as `julian-gregorian-hu` |
 | JP | Japan | 明治5年12月2日 (31 December 1872) | 1 January 1873 | `japanese-tenpo` → `gregory` | civil | Dajōkan Proclamation No. 337 of 明治5年11月9日 (9 December 1872), its terms read at [nao-rekiwiki-meiji, wikipedia-ja-meiji-kaireki], the proclamation itself not read |
 | KP, KR | Joseon | 개국 504년 11월 16일 (31 December 1895) | 1 January 1896 | `dangi` → `gregory` | civil | King Gojong's edict in the Official Gazette of 개국 504년 9월 9일 (lunar), not read [kowiki-taeyangryeok, kowiki-geonyang] |
-| NL | Zeeland and the southern Netherlands | 14 December 1582 (Julian) | 25 December 1582 | `julian` → `gregory` | partial | as `julian-gregorian-nl` |
+| NL | The States-General, Brabant and Zeeland | 14 December 1582 (Julian) | 25 December 1582 | `julian` → `gregory` | partial | as `julian-gregorian-nl-states-general` |
 | NL | Holland | 1 January 1583 (Julian) | 12 January 1583 | `julian` → `gregory` | partial | as `julian-gregorian-nl-holland`, whose date is disputed (above) |
 | NL | Gelderland | 30 June 1700 (Julian) | 12 July 1700 | `julian` → `gregory` | partial | none read [nlwiki-gregoriaanse-kalender] |
 | NL | Utrecht and Overijssel | 30 November 1700 (Julian) | 12 December 1700 | `julian` → `gregory` | partial | none read [nlwiki-gregoriaanse-kalender] |
