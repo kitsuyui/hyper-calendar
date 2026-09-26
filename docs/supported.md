@@ -188,7 +188,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `BO` | Bolivia | 11 | yes | stated | 2026-09-22 |
 | `BR` | Brazil | 14 | none | stated | 2026-09-21 |
 | `BS` | Bahamas | 13 | yes | stated | 2026-09-22 |
-| `BT` | Bhutan | 17 | none | stated | 2026-09-23 |
+| `BT` | Bhutan | 33 | none | stated | 2026-09-26 |
 | `BW` | Botswana | 14 | yes | stated | 2026-09-22 |
 | `BY` | Belarus | 16 | none | stated | 2026-09-22 |
 | `BZ` | Belize | 16 | yes | stated | 2026-09-22 |
@@ -275,7 +275,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `MK` | North Macedonia | 29 | yes | stated | 2026-09-22 |
 | `ML` | Mali | 13 | none | stated | 2026-09-23 |
 | `MM` | Myanmar | 26 | none | stated | 2026-09-22 |
-| `MN` | Mongolia | 16 | none | stated | 2026-09-23 |
+| `MN` | Mongolia | 20 | none | stated | 2026-09-26 |
 | `MO` | Macau | 22 | yes | stated | 2026-09-22 |
 | `MR` | Mauritania | 8 | none | stated | 2026-09-23 |
 | `MT` | Malta | 14 | none | stated | 2026-09-22 |

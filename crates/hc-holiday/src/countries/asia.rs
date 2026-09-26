@@ -10,6 +10,7 @@
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_indic::places::KATHMANDU;
 use hc_calendars_indic::{HinduLunarCalendar, Prevalence};
+use hc_calendars_lunar::tibetan;
 use hc_calendars_solar::gregorian;
 use hc_seasons::SolarTerm;
 use hc_seasons::zodiac::Ayanamsa;
@@ -24,7 +25,7 @@ use crate::hindu::{
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    SubstituteDirection, SubstitutionPolicy, WeekendPolicy, WhenTwice,
+    SubstituteDirection, SubstitutionPolicy, TibetanMonth, WeekendPolicy, WhenTwice,
 };
 
 /// 清明, the fifth solar term, at solar longitude 15°.
@@ -4353,42 +4354,99 @@ pub static TURKMENISTAN: RuleSet = RuleSet {
 // Mongolia
 // ─────────────────────────────────────────────────────────────────────────
 
-/// A day the laws date in the lunar calendar (билгийн тооллын), which the
-/// crate does not have: the Mongolian reckoning is not the Tibetan Phugpa
-/// one that `hc_calendars_lunar::tibetan` carries, and no year's official
-/// dates were read to tabulate. The table covers no year, so every year
-/// reports the day as a gap rather than as a day that does not occur.
-const fn mn_lunar(name: &'static str, local: &'static str) -> HolidayRule {
-    HolidayRule::fixed_public(
-        name,
-        local,
-        Rule::Tabulated {
-            function: mn_lunar_unread,
-            first_year: 1,
-            last_year: 0,
-        },
+/// A day of the Mongolian lunar calendar (билгийн тооллын), the New Genden
+/// version of the Tibetan: `month` 1 is the first spring month, 4 the first
+/// summer month, 10 the first winter month (Janson, "Tibetan calendar
+/// mathematics", Appendix A.3). A year in which the day is skipped or
+/// repeated is a gap; see [`Rule::TibetanDay`].
+const fn mn_lunar(month: TibetanMonth, day: u8) -> Rule {
+    Rule::tibetan(tibetan::MONGOLIAN, month, day)
+}
+
+/// A lunar holiday of the law, predicted by the calendar: the days are
+/// settled each year, by resolution where the Government has to
+/// (`docs/systems/tibetan-calendar-holidays.md`).
+const fn mn_predicted(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, rule).approximate()
+}
+
+/// Day `day` of Tsagaan Sar, the first month of the year, predicted.
+const fn mn_tsagaan_sar(day: u8) -> HolidayRule {
+    mn_predicted(
+        "Tsagaan Sar",
+        "Цагаан сар",
+        mn_lunar(TibetanMonth::First, day),
     )
 }
 
-/// No date has been read for any year.
-const fn mn_lunar_unread(_year: i64) -> Days {
-    Days::new()
+/// The first year of Tsagaan Sar's days read from an official source.
+const MN_READ_FIRST: i32 = 2025;
+/// The last.
+const MN_READ_LAST: i32 = 2026;
+
+/// The days of Tsagaan Sar the official sources give: Government
+/// resolution No. 109 of 26 February 2025, which finds the first day of
+/// the first spring month omitted ("шинийн 1 тасарч") and the second and
+/// third on Saturday 1 and Sunday 2 March; and MONTSAME, the state news
+/// agency, for "Tsagaan Sar holidays: days 1–3" on 18, 19 and 20 February
+/// 2026. The resolution's rest days of 3 to 5 March 2025, to be worked back
+/// within the year, are a transfer, which the table does not carry.
+static MN_TSAGAAN_SAR_READ: &[(i64, u8, u8)] = &[
+    (2025, 3, 1),
+    (2025, 3, 2),
+    (2026, 2, 18),
+    (2026, 2, 19),
+    (2026, 2, 20),
+];
+
+/// The days of [`MN_TSAGAAN_SAR_READ`] in `year`.
+fn mn_tsagaan_sar_read(year: i64) -> Days {
+    let mut out = Days::new();
+    for &(y, month, day) in MN_TSAGAAN_SAR_READ {
+        if y == year
+            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
+        {
+            out.push(fixed);
+        }
+    }
+    out
 }
 
 static MN_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("New Year's Day", "Шинэ жил", Rule::gregorian(1, 1)),
-    // The first, second and third days of the first spring month.
-    mn_lunar("Tsagaan Sar", "Цагаан сар"),
-    mn_lunar("Tsagaan Sar", "Цагаан сар"),
-    mn_lunar("Tsagaan Sar", "Цагаан сар"),
+    // "Цагаан сар: билгийн тооллын хаврын тэргүүн сарын шинийн 1, 2, 3",
+    // article 4.1.3: the first, second and third days of the first spring
+    // month. The years read are taken as read; the others are predicted.
+    HolidayRule::fixed_public(
+        "Tsagaan Sar",
+        "Цагаан сар",
+        Rule::Tabulated {
+            function: mn_tsagaan_sar_read,
+            first_year: MN_READ_FIRST as i64,
+            last_year: MN_READ_LAST as i64,
+        },
+    )
+    .years(Some(MN_READ_FIRST), Some(MN_READ_LAST)),
+    mn_tsagaan_sar(1).years(None, Some(MN_READ_FIRST - 1)),
+    mn_tsagaan_sar(2).years(None, Some(MN_READ_FIRST - 1)),
+    mn_tsagaan_sar(3).years(None, Some(MN_READ_FIRST - 1)),
+    mn_tsagaan_sar(1).years(Some(MN_READ_LAST + 1), None),
+    mn_tsagaan_sar(2).years(Some(MN_READ_LAST + 1), None),
+    mn_tsagaan_sar(3).years(Some(MN_READ_LAST + 1), None),
     HolidayRule::fixed_public(
         "International Women's Day",
         "Олон улсын эмэгтэйчүүдийн өдөр",
         Rule::gregorian(3, 8),
     ),
-    // The fifteenth day of the first summer month; added by the law of
+    // "билгийн тооллын зуны тэргүүн сарын шинийн 15", article 4.1.10: the
+    // fifteenth day of the first summer month; added by the law of
     // 20 December 2019, after that year's.
-    mn_lunar("Buddha's Birthday", "Бурхан багшийн Их дүйчин өдөр").years(Some(2020), None),
+    mn_predicted(
+        "Buddha's Birthday",
+        "Бурхан багшийн Их дүйчин өдөр",
+        mn_lunar(TibetanMonth::Regular(4), 15),
+    )
+    .years(Some(2020), None),
     HolidayRule::fixed_public("Children's Day", "Хүүхдийн баяр", Rule::gregorian(6, 1)),
     HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 10)),
     HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 11)),
@@ -4396,9 +4454,16 @@ static MN_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 13)),
     HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 14)),
     HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 15)),
-    // The first day of the first winter month; added by the law of
-    // 8 November 2012.
-    mn_lunar("Chinggis Khaan Day", "Их Эзэн Чингис хааны өдөр").years(Some(2012), None),
+    // "Их Эзэн Чингис хаан мэндэлсэн билгийн тооллын өвлийн тэргүүн сарын
+    // шинийн 1", article 4.1.8: the first day of the first winter month;
+    // added by the law of 8 November 2012, before that year's, on
+    // 14 November.
+    mn_predicted(
+        "Chinggis Khaan Day",
+        "Их Эзэн Чингис хааны өдөр",
+        mn_lunar(TibetanMonth::Regular(10), 1),
+    )
+    .years(Some(2012), None),
     // Added to the holidays by the law of 18 November 2016.
     HolidayRule::fixed_public(
         "Republic Day",
@@ -4430,11 +4495,19 @@ static MN_RULES: &[HolidayRule] = &[
 /// content, so no earlier form of either is stated.
 ///
 /// The three days of Tsagaan Sar, Buddha's Birthday and Chinggis Khaan
-/// Day are dated in the lunar calendar, which the crate does not have, and
-/// are carried as gaps in every year: a calendar for Mongolia is never
-/// complete, and says so. The weekend is Saturday and Sunday, under
-/// article 96.1 of the Labour Law, and neither law moves a holiday off it;
-/// the Government's occasional transfers of working days are not carried.
+/// Day are dated by the law in the lunar calendar, and are computed in
+/// `mongolian`, the New Genden version of the Tibetan calendar that
+/// Mongolia keeps, as predictions: the days are settled each year, and the
+/// calendar skips or repeats a day number now and then, where practice has
+/// not been one: three days off were reported for 2022, its third number
+/// skipped, and Resolution No. 109 counted two in 2025, its first skipped.
+/// A year in which one of the days is skipped or repeated is a gap. Tsagaan Sar of 2025 and 2026, whose days were
+/// read from Resolution No. 109 and from MONTSAME, is carried as read. The
+/// rule is written up in `docs/systems/tibetan-calendar-holidays.md`.
+///
+/// The weekend is Saturday and Sunday, under article 96.1 of the Labour
+/// Law, and neither law moves a holiday off it; the Government's
+/// occasional transfers of working days are not carried.
 pub static MONGOLIA: RuleSet = RuleSet {
     code: "MN",
     english_name: "Mongolia",
@@ -4443,13 +4516,19 @@ pub static MONGOLIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Law of Mongolia on Public Holidays and Days of Observance (Нийтээр тэмдэглэх \
               баярын болон тэмдэглэлт өдрүүдийн тухай хууль, 18 December 2003, as amended), \
-              articles 3.1.1 and 4.1 with the notes of the amending laws, and the Labour \
-              Law (Хөдөлмөрийн тухай хууль, revised 2 July 2021, as amended), articles \
-              96.1 and 97.1, both from legalinfo.mn, retrieved 2026-09-23, with the \
-              Mongolian names",
+              articles 3.1.1 and 4.1 with the notes of the amending laws, retrieved \
+              2026-09-23 and again 2026-09-26 for the lunar items 4.1.3, 4.1.8 and 4.1.10, \
+              and the Labour Law (Хөдөлмөрийн тухай хууль, revised 2 July 2021, as \
+              amended), articles 96.1 and 97.1, both from legalinfo.mn, with the \
+              Mongolian names; Government Resolution No. 109 of 26 February 2025, \
+              legalinfo.mn, and MONTSAME, \"Road border crossings to temporarily close on \
+              Lunar New Year\" (23 January 2026), for Tsagaan Sar 2025 and 2026, and \
+              iKon.mn (1 February 2022) for 2022, retrieved 2026-09-26; the months by \
+              season from Janson, \"Tibetan calendar mathematics\" (arXiv:1401.6285), \
+              Appendix A.3",
 };
 
 /// The days a table of announced dates names `name` for in `year`: the
@@ -5106,7 +5185,10 @@ bt_listed! {
     bt_descending_day => "Descending Day of Lord Buddha",
 }
 
-/// A day the lists date, for the years they cover.
+/// A day the lists date, taken from them for the years they cover. Alone,
+/// as for the Winter Solstice, the Blessed Rainy Day and Dassain, every
+/// other year is a gap; beside [`bt_predicted`], it is restricted to the
+/// lists' years and the rule answers the rest.
 const fn bt(name: &'static str, function: fn(i64) -> Days) -> HolidayRule {
     HolidayRule::fixed_public(
         name,
@@ -5119,9 +5201,68 @@ const fn bt(name: &'static str, function: fn(i64) -> Days) -> HolidayRule {
     )
 }
 
+/// [`bt`], restricted to the lists' years.
+const fn bt_read(name: &'static str, function: fn(i64) -> Days) -> HolidayRule {
+    bt(name, function).years(Some(BT_FIRST as i32), Some(BT_LAST as i32))
+}
+
+/// A day the lists print as a Bhutanese date, predicted on `tibetan-bhutan`
+/// for the years before the lists (`before`) or after them: the Ministry
+/// publishes each year's list, and in 2003 its calendar put Losar a day
+/// before the arithmetic. A year in which the day is skipped or repeated
+/// is a gap; see [`Rule::TibetanDay`].
+const fn bt_predicted(
+    name: &'static str,
+    month: TibetanMonth,
+    day: u8,
+    before: bool,
+) -> HolidayRule {
+    let rule =
+        HolidayRule::fixed_public(name, "", Rule::tibetan(tibetan::TIBETAN_BHUTAN, month, day))
+            .approximate();
+    if before {
+        rule.years(None, Some(BT_FIRST as i32 - 1))
+    } else {
+        rule.years(Some(BT_LAST as i32 + 1), None)
+    }
+}
+
+/// The first Bhutanese month, Losar's.
+const BT_FIRST_MONTH: TibetanMonth = TibetanMonth::First;
+/// The third, Zhabdrung Kuchoe's.
+const BT_THIRD: TibetanMonth = TibetanMonth::Regular(3);
+/// The fourth, the Parinirvana's.
+const BT_FOURTH: TibetanMonth = TibetanMonth::Regular(4);
+/// The fifth, Guru Rinpoche's.
+const BT_FIFTH: TibetanMonth = TibetanMonth::Regular(5);
+/// The sixth, the First Sermon's.
+const BT_SIXTH: TibetanMonth = TibetanMonth::Regular(6);
+/// The ninth, the Descending Day's.
+const BT_NINTH: TibetanMonth = TibetanMonth::Regular(9);
+/// The twelfth, the Traditional Day of Offering's.
+const BT_TWELFTH: TibetanMonth = TibetanMonth::Regular(12);
+
+/// The names of the days the lists print on the Bhutanese calendar.
+const BT_OFFERING: &str = "Traditional Day of Offering";
+/// Losar.
+const BT_LOSAR: &str = "Losar";
+/// Zhabdrung Kuchoe.
+const BT_ZHABDRUNG: &str = "Death Anniversary of Zhabdrung";
+/// The Parinirvana.
+const BT_PARINIRVANA: &str = "Lord Buddha's Parinirvana";
+/// Guru Rinpoche's birthday.
+const BT_GURU_RINPOCHE: &str = "Birth Anniversary of Guru Rinpoche";
+/// The First Sermon.
+const BT_FIRST_SERMON: &str = "First Sermon of Lord Buddha";
+/// The Descending Day.
+const BT_DESCENDING_DAY: &str = "Descending Day of Lord Buddha";
+
 static BT_RULES: &[HolidayRule] = &[
     bt("Winter Solstice", bt_winter_solstice),
-    bt("Traditional Day of Offering", bt_offering),
+    // 1st day of the 12th month.
+    bt_read(BT_OFFERING, bt_offering),
+    bt_predicted(BT_OFFERING, BT_TWELFTH, 1, true),
+    bt_predicted(BT_OFFERING, BT_TWELFTH, 1, false),
     HolidayRule::fixed_public(
         "Birth Anniversary of His Majesty the King",
         "",
@@ -5137,16 +5278,33 @@ static BT_RULES: &[HolidayRule] = &[
         "",
         Rule::gregorian(2, 23),
     ),
-    bt("Losar", bt_losar),
+    // 1st and 2nd days of the 1st month.
+    bt_read(BT_LOSAR, bt_losar),
+    bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 1, true),
+    bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 2, true),
+    bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 1, false),
+    bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 2, false),
     HolidayRule::fixed_public(
         "Birth Anniversary of the Third Druk Gyalpo",
         "",
         Rule::gregorian(5, 2),
     ),
-    bt("Death Anniversary of Zhabdrung", bt_zhabdrung),
-    bt("Lord Buddha's Parinirvana", bt_parinirvana),
-    bt("Birth Anniversary of Guru Rinpoche", bt_guru_rinpoche),
-    bt("First Sermon of Lord Buddha", bt_first_sermon),
+    // 10th day of the 3rd month.
+    bt_read(BT_ZHABDRUNG, bt_zhabdrung),
+    bt_predicted(BT_ZHABDRUNG, BT_THIRD, 10, true),
+    bt_predicted(BT_ZHABDRUNG, BT_THIRD, 10, false),
+    // 15th day of the 4th month.
+    bt_read(BT_PARINIRVANA, bt_parinirvana),
+    bt_predicted(BT_PARINIRVANA, BT_FOURTH, 15, true),
+    bt_predicted(BT_PARINIRVANA, BT_FOURTH, 15, false),
+    // 10th day of the 5th month.
+    bt_read(BT_GURU_RINPOCHE, bt_guru_rinpoche),
+    bt_predicted(BT_GURU_RINPOCHE, BT_FIFTH, 10, true),
+    bt_predicted(BT_GURU_RINPOCHE, BT_FIFTH, 10, false),
+    // 4th day of the 6th month.
+    bt_read(BT_FIRST_SERMON, bt_first_sermon),
+    bt_predicted(BT_FIRST_SERMON, BT_SIXTH, 4, true),
+    bt_predicted(BT_FIRST_SERMON, BT_SIXTH, 4, false),
     bt("Blessed Rainy Day", bt_rainy_day),
     bt("Dassain", bt_dassain),
     HolidayRule::fixed_public(
@@ -5154,7 +5312,10 @@ static BT_RULES: &[HolidayRule] = &[
         "",
         Rule::gregorian(11, 1),
     ),
-    bt("Descending Day of Lord Buddha", bt_descending_day),
+    // 22nd day of the 9th month.
+    bt_read(BT_DESCENDING_DAY, bt_descending_day),
+    bt_predicted(BT_DESCENDING_DAY, BT_NINTH, 22, true),
+    bt_predicted(BT_DESCENDING_DAY, BT_NINTH, 22, false),
     HolidayRule::fixed_public(
         "Birth Anniversary of the Fourth Druk Gyalpo – Constitution Day",
         "",
@@ -5171,16 +5332,34 @@ static BT_RULES: &[HolidayRule] = &[
 /// Third Druk Gyalpo's on 2 May, the Coronation on 1 November, the Fourth
 /// Druk Gyalpo's birthday and Constitution Day on 11 November, and National
 /// Day on 17 December. They are the present reign's, and no years are
-/// claimed for them. Everything else — Losar, the Buddhist days, the
-/// Traditional Day of Offering and Dassain on the Bhutanese lunar calendar,
-/// which the crate does not have, and the Winter Solstice and the Blessed
-/// Rainy Day, which fall on the same dates in both years but for which no
-/// rule was read — is taken from the two lists, and a year outside 2025–
-/// 2026 reports them as a gap. The lists' Thimphu Drubchoe and Thimphu
-/// Tshechu are for Thimphu only, and the other districts' tshechu days are
-/// "confirmed by the respective Dzongkhag Administration"; none is carried.
-/// The names are the lists' English ones, the 2025 list's "Losar Wood
-/// Female Dragon Year" among them shortened to Losar.
+/// claimed for them.
+///
+/// The days the lists' Dzongkha text dates on the Bhutanese calendar are
+/// taken from the lists in 2025 and 2026, and predicted in the other years
+/// on `tibetan-bhutan`, the calendar the Ministry prints, from the
+/// Bhutanese dates both lists give them: the Traditional Day of Offering on
+/// the 1st day of the 12th month, Losar on the 1st and 2nd of the 1st,
+/// Zhabdrung Kuchoe on the 10th of the 3rd, the Parinirvana on the 15th of
+/// the 4th, Guru Rinpoche's birthday on the 10th of the 5th, the First
+/// Sermon on the 4th of the 6th and the Descending Day on the 22nd of the
+/// 9th. The predictions are approximate — the Ministry settles each year's
+/// list, and its calendar of 2003 had Losar a day before the arithmetic —
+/// and a year in which one of those days is skipped or repeated is a gap,
+/// no list read showing where the Ministry then puts it. The rule is
+/// written up in `docs/systems/tibetan-calendar-holidays.md`.
+///
+/// The Winter Solstice and the Blessed Rainy Day fall on 2 January and
+/// 23 September in both lists, on different Bhutanese days, so they are
+/// solar; the solstice's definition, the mean Sun at 250°, is Janson's
+/// report of Henning's program, which could not be read, and no rule was
+/// read for the Rainy Day. Dassain is Vijayadashami, which the crate's
+/// Indian rule puts on 20 October 2026, a day before the list. The three
+/// are taken from the lists, and a year outside 2025–2026 reports them as
+/// a gap. The lists' Thimphu Drubchoe and Thimphu Tshechu are for Thimphu
+/// only, and the other districts' tshechu days are "confirmed by the
+/// respective Dzongkhag Administration"; none is carried. The names are the
+/// lists' English ones, the 2025 list's "Losar Wood Female Dragon Year"
+/// among them shortened to Losar.
 ///
 /// The weekend is Saturday and Sunday, the civil service's "weekly off
 /// days (Saturdays and Sundays)" of the Bhutan Civil Service Rules; the
@@ -5194,13 +5373,16 @@ pub static BHUTAN: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Ministry of Home Affairs, \"Government Holidays list\" for the Wood Female \
               Snake year 2025 and for the Wood Female Snake and Fire Male Horse years \
               2025-2026, in the Ministry's calendars Calendar_2025.pdf and calender-2026.pdf \
-              (moha.gov.bt); Royal Civil Service Commission, Bhutan Civil Service Rules and \
-              Regulations 2023, section 8.7.5, as the Internet Archive holds it, captured \
-              2024-01-18, rcsc.gov.bt refusing this session's requests; retrieved 2026-09-23",
+              (moha.gov.bt), with the lists' Bhutanese dates, read again 2026-09-26; Royal \
+              Civil Service Commission, Bhutan Civil Service Rules and Regulations 2023, \
+              section 8.7.5, as the Internet Archive holds it, captured 2024-01-18, \
+              rcsc.gov.bt refusing this session's requests; retrieved 2026-09-23; Janson, \
+              \"Tibetan calendar mathematics\" (arXiv:1401.6285), Appendix A.4, A.13 and \
+              section 11, for the calendar, the Winter Solstice and Losar 2003",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

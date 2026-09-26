@@ -21,7 +21,7 @@
 
 use std::collections::BTreeSet;
 
-use hyper_calendar::hc_calendar::{CalendarId, Rd};
+use hyper_calendar::hc_calendar::{Calendar as _, CalendarId, Rd};
 use hyper_calendar::hc_calendars_solar::gregorian;
 use hyper_calendar::hc_holiday::{CalendarSystem, Rule, countries, traditions};
 
@@ -125,6 +125,7 @@ fn every_table_dates_its_holidays_in_a_registered_calendar() {
     fn systems(rule: &Rule, out: &mut Vec<CalendarId>) {
         match rule {
             Rule::FixedInCalendar { system, .. } => out.push(system.id),
+            Rule::TibetanDay { calendar, .. } => out.push(calendar.meta().id),
             Rule::Offset { base, .. } => systems(base, out),
             _ => {}
         }
