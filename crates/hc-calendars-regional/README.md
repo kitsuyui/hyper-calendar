@@ -2,7 +2,7 @@
 
 Regional, cyclic and era calendars for `hyper-calendar`: Japanese imperial
 eras, the Chinese and Korean regnal eras, the Maya calendars, the two Aztec
-ones, the Balinese Pawukon, the Javanese *pasaran*, the Akan *Adaduanan*, the
+ones, the Zapotec *yza*, the Balinese Pawukon, the Javanese *pasaran*, the Akan *Adaduanan*, the
 Burmese and Thai lunar calendars, and the sexagenary cycle.
 
 What most of them have in common is that **the day has a name before it has a
@@ -28,6 +28,7 @@ calendars are such counts, and are here as regional calendars.
 | `maya-819`, `maya-819-gmt2` | The 819-day count: the station, its colour-direction and the days since it, over Linden and Bricker's twenty stations of 16 380 days, under each correlation |
 | `aztec-tonalpohualli` | 260 days |
 | `aztec-xiuhpohualli` | 365 days |
+| `zapotec-yza` | 365 days: eighteen months of twenty and a *quicholla* of five, the years named by the day they begin on |
 | `balinese-pawukon` | Thirty *wuku* and ten concurrent week cycles over 210 days |
 | `javanese-pasaran` | The 5-day market week and the 35-day *wetonan* |
 | `akan` | The Akan 6-day week and the 42-day *Adaduanan*, with the four *dabɔne* |
@@ -129,6 +130,15 @@ extra one, is `Month::leap(8)`; the day is counted 1 to 30 through the month,
 
 The history of the constants, the worked readings and the sources are in
 [`docs/systems/mesoamerican-counts.md`](../../docs/systems/mesoamerican-counts.md).
+
+* **Zapotec**: the year 11 Earthquake began on **23 February 1695
+  (Gregorian)**, Justeson and Tavárez's correlation of the Villa Alta
+  calendars, whose 260-day count is Caso's Mexica one; the months'
+  regular lengths are this library's reading of the one month list known,
+  and Cline's different reading of the same manuscript is recorded, not
+  registered. The sources and the three Mesoamerican years still planned
+  are in
+  [`docs/systems/mesoamerican-years.md`](../../docs/systems/mesoamerican-years.md).
 * **Balinese Pawukon**: Julian Day Number 146.
 * **Javanese pasaran**: anchored through the Pawukon, because they are the
   same five-day cycle; fixed day 0 works out as Ahad Legi.
@@ -187,6 +197,11 @@ inherits the `chinese` calendar's model, as that README describes.
   irregular cycles: Reingold and Dershowitz, *Calendrical Calculations*
   (4th ed., 2018), chapters 9, 10 and 11; the Maya and Aztec sources in
   full in [`docs/systems/mesoamerican-counts.md`](../../docs/systems/mesoamerican-counts.md).
+* Zapotec year: Tavárez and Justeson, "Eclipse Records in a Corpus of
+  Colonial Zapotec 260-Day Calendars", *Ancient Mesoamerica* 19 (2008),
+  for the correlation and the year bearers; Urcid, *Zapotec Hieroglyphic
+  Writing* (2001), Table 3.5, for the month names; in full in
+  [`docs/systems/mesoamerican-years.md`](../../docs/systems/mesoamerican-years.md).
 * Thai lunar year types: the Bank of Thailand's lists of financial-institution
   holidays for 1992–2022 as the Internet Archive keeps them, its
   notifications FPG 3/2565, FPG 8/2566, FPG 5/2567 and 31/2568 for
@@ -201,7 +216,8 @@ inherits the `chinese` calendar's model, as that README describes.
   `docs/references.bib`.
 * Checked independently against five published Galungan dates (each must be
   Buda Kliwon Dungulan), the weton of 17 August 1945 (Jumat Legi, neptu 11),
-  a published modern long count and Aztec date, and five Bakumatsu events
+  a published modern long count and Aztec date, six Villa Alta days and
+  the Zapotec new years of the 1690s, and five Bakumatsu events
   whose 和暦 and Western dates are both in the standard histories.
 
 ## Deliberate omissions

@@ -35,14 +35,15 @@
 //!   the Tibetan, Nepali for the Bikram Sambat and Nepal Sambat, Sanskrit
 //!   and Hindi for the Hindu lunisolar and Vikrami solar calendars, Tamil,
 //!   Malayalam and Bengali for the regional solar calendars, Yucatec Maya
-//!   and Nahuatl for the Mesoamerican counts, Balinese and Javanese for the
-//!   Pawukon and the pasaran, Syriac for the Assyrian calendar, Kabyle and
-//!   Standard Moroccan Tamazight for the Berber calendar, and Mandaic for
-//!   the Mandaean. Their Gregorian vocabulary is CLDR's where CLDR has the
-//!   locale (CLDR 48, `common/main/<locale>.xml`, read 2026-09-25 and
-//!   2026-09-26 from the `release-48` tag of github.com/unicode-org/cldr);
-//!   CLDR has no `cop`, `ban`, `yua`, `nah` or `mid`, so those entries state
-//!   only what the calendars' own sources say. Where a CLDR value is the
+//!   and Nahuatl for the Mesoamerican counts, Zapotec for the Zapotec year,
+//!   Balinese and Javanese for the Pawukon and the pasaran, Syriac for the
+//!   Assyrian calendar, Kabyle and Standard Moroccan Tamazight for the
+//!   Berber calendar, and Mandaic for the Mandaean. Their Gregorian
+//!   vocabulary is CLDR's where CLDR has the locale (CLDR 48,
+//!   `common/main/<locale>.xml`, read 2026-09-25 and 2026-09-26 from the
+//!   `release-48` tag of github.com/unicode-org/cldr); CLDR has no `cop`,
+//!   `ban`, `yua`, `nah`, `zap` or `mid`, so those entries state only what
+//!   the calendars' own sources say. Where a CLDR value is the
 //!   inheritance marker `↑↑↑`, the value it resolves to under CLDR's aliases
 //!   (abbreviated to wide, format narrow to stand-alone narrow) is what is
 //!   written here, and a width that resolves to the wide form is left empty.
@@ -362,7 +363,7 @@ const JAPANESE_ERA_NARROW: &[&str] = &["M", "T", "S", "H", "R"];
 // loses the point with it. A locale whose patterns were not read (`am`,
 // `bo`, `cop`, `my`, `ne`), whose CLDR patterns no template here matches
 // yet (`bn`, `jv`, `kab`, `ml`, `syr`, `ta`, `zgh`) or which has no CLDR
-// locale (`ban`, `mid`, `nah`, `yua`) states none and takes
+// locale (`ban`, `mid`, `nah`, `yua`, `zap`) states none and takes
 // `DateTemplates::DEFAULT`.
 //
 // The era is written wherever the date carries one and the locale has not
@@ -4158,6 +4159,79 @@ const NAH: LocaleData = LocaleData {
     calendars: NAH_CALENDARS,
 };
 
+// --- Zapotec --------------------------------------------------------------
+//
+// The language of the Zapotec yza. CLDR has no `zap` locale (CLDR 48 has no
+// `common/main/zap.xml`, checked 2026-09-26), so this entry has no
+// Gregorian vocabulary, weekdays, day periods or eras. The nineteen months
+// and the four year bearers are the forms `hc_calendars_regional::zapotec`
+// declares with its shape: the months of Manuscript 85 of the Villa Alta
+// corpus in the lower-case spelling Urcid, *Zapotec Hieroglyphic Writing*
+// (2001), Table 3.5, prints from Alcina Franch's transcription, and the
+// bearers as the colonial Northern Zapotec roots Tavárez and Justeson,
+// *Ancient Mesoamerica* 19 (2008), Table 1, give, as
+// docs/systems/mesoamerican-years.md sets out; the locale restates them so
+// that the language, and not only the calendar, claims them. The week
+// begins on Sunday (CLDR 48 `weekData/firstDay`, MX) and numbering is
+// `latn`, as for `nah`.
+// The names: Zapotec, as the calendar's sources call it. Zapotec has no one
+// name for itself — "the name of the language in Zapotec itself varies
+// according to the geographical variant" (Wikipedia, "Zapotec languages",
+// read 2026-09-26) — and the town Manuscript 85 comes from is not known, so
+// the English name stands for the native one. No CLDR locale, so no
+// templates.
+
+const ZAP_CALENDARS: &[CalendarNames] = &[
+    gregorian(&[], EraNames::EMPTY, ContextualNames::EMPTY),
+    dated(
+        &[CalendarId("zapotec-yza")],
+        &[
+            months(&[
+                "toohua",
+                "huistao",
+                "begag",
+                "lohuec",
+                "yagqueo",
+                "gabena",
+                "golagoo",
+                "cheag",
+                "gogaa",
+                "gonaa",
+                "gaha",
+                "tina",
+                "zaha",
+                "zadii",
+                "zohuao",
+                "yetilla",
+                "yeche",
+                "gohui",
+                "quicholla",
+            ]),
+            cycle("year-bearer", &["xoo", "ee", "china", "biaa"]),
+        ],
+        &[],
+        &[],
+    ),
+];
+
+const ZAP: LocaleData = LocaleData {
+    tag: "zap",
+    english_name: "Zapotec",
+    native_name: "Zapotec",
+    script: "Latn",
+    templates: DateTemplates::NONE,
+    calendar_names: &[],
+    direction: Direction::LeftToRight,
+    numbering: "latn",
+    first_day_of_week: Weekday::Sunday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: false,
+    weekdays: ContextualNames::EMPTY,
+    day_periods: ContextualNames::EMPTY,
+    cycle: SexagenaryNames::EMPTY,
+    calendars: ZAP_CALENDARS,
+};
+
 // --- Nepali ---------------------------------------------------------------
 //
 // The language of the Bikram Sambat, and the language Nepal Sambat is
@@ -5559,7 +5633,7 @@ const ZH_HANT: LocaleData = LocaleData {
 /// lookup falls to when nothing here claims the locale.
 pub static LOCALES: &[LocaleData] = &[
     AM, AR, BAN, BN, BO, COP, CS, DE, EN, ES, FA, FR, HE, HI, ID, IT, JA, JV, KAB, KO, MID, ML, MY,
-    NAH, NE, NL, PL, PT, RU, SA, SYR, TA, TH, TR, VI, YUA, ZGH, ZH_HANS, ZH_HANT,
+    NAH, NE, NL, PL, PT, RU, SA, SYR, TA, TH, TR, VI, YUA, ZAP, ZGH, ZH_HANS, ZH_HANT,
 ];
 
 #[cfg(test)]
@@ -6008,8 +6082,8 @@ mod tests {
             [
                 "am", "ar", "ban", "bn", "bo", "cop", "cs", "de", "en", "es", "fa", "fr", "he",
                 "hi", "id", "it", "ja", "jv", "kab", "ko", "mid", "ml", "my", "nah", "ne", "nl",
-                "pl", "pt", "ru", "sa", "syr", "ta", "th", "tr", "vi", "yua", "zgh", "zh-Hans",
-                "zh-Hant"
+                "pl", "pt", "ru", "sa", "syr", "ta", "th", "tr", "vi", "yua", "zap", "zgh",
+                "zh-Hans", "zh-Hant"
             ]
         );
         assert_eq!(ROOT.tag.to_string(), "und");

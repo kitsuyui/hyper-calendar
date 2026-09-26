@@ -16,6 +16,7 @@
 //! | [`maya`] | `maya-longcount`, `maya-tzolkin`, `maya-haab`, `maya-round`, and the same four under the GMT+2 correlation as `maya-longcount-gmt2`, `maya-tzolkin-gmt2`, `maya-haab-gmt2`, `maya-round-gmt2` |
 //! | [`maya_819`] | `maya-819`, `maya-819-gmt2` — the 819-day count's stations and colour-directions over Linden and Bricker's twenty-station cycle of 16 380 days, under the two correlations |
 //! | [`aztec`] | `aztec-tonalpohualli`, `aztec-xiuhpohualli` |
+//! | [`zapotec`] | `zapotec-yza` — the Zapotec 365-day year of the Villa Alta calendars, its months in the order of Manuscript 85 and its years named by the day they begin on |
 //! | [`balinese_pawukon`] | `balinese-pawukon` — thirty *wuku* and ten concurrent week cycles over 210 days |
 //! | [`javanese_pasaran`] | `javanese-pasaran` — the five-day market week and the 35-day wetonan |
 //! | [`akan`] | `akan` — the Akan six-day week and the 42-day Adaduanan it makes with the seven-day one |
@@ -102,6 +103,8 @@ pub mod maya_819;
 pub mod nengo;
 pub mod sexagenary;
 pub mod thai_lunar;
+mod vague_year;
+pub mod zapotec;
 
 pub use akan::{AkanCalendar, AkanDate};
 pub use aztec::{
@@ -122,6 +125,7 @@ pub use maya_819::{Maya819Calendar, Maya819Date};
 pub use nengo::{Certainty, Court, Nengo, WesternScale};
 pub use sexagenary::{SexagenaryCalendar, SexagenaryDayDate};
 pub use thai_lunar::{ThaiLunarCalendar, ThaiLunarDate};
+pub use zapotec::{ZapotecYzaCalendar, ZapotecYzaDate};
 
 pub use hc_calendar;
 pub use hc_calendars_lunar;
@@ -176,6 +180,7 @@ mod registration {
         )));
         registry.insert(Box::new(DynAdapter::new(crate::AztecTonalpohualliCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::AztecXiuhpohualliCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::ZapotecYzaCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BalinesePawukonCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::JavanesePasaranCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::AkanCalendar)));
@@ -192,7 +197,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 24;
+const CALENDAR_COUNT: usize = 25;
 
 #[cfg(test)]
 mod tests {
@@ -258,6 +263,7 @@ mod tests {
                 MayaCalendarRoundCalendar::GMT_PLUS_TWO,
                 AztecTonalpohualliCalendar,
                 AztecXiuhpohualliCalendar,
+                ZapotecYzaCalendar,
                 BalinesePawukonCalendar,
                 JavanesePasaranCalendar,
                 AkanCalendar,
@@ -476,8 +482,8 @@ mod tests {
     }
 
     /// The calendars that declare a month cycle and still have no counted
-    /// year: the Haab and the xiuhpohualli run eighteen months and the five
-    /// days, the calendar round carries the Haab's, and the Pawukon declares
+    /// year: the Haab, the xiuhpohualli and the Zapotec yza run eighteen
+    /// months and the five days, the calendar round carries the Haab's, and the Pawukon declares
     /// its thirty wuku as its month cycle; in each the `year` field is a
     /// position in a round, not a count, and nothing is ever intercalated
     /// into it.
@@ -487,6 +493,7 @@ mod tests {
         "maya-haab-gmt2",
         "maya-round-gmt2",
         "aztec-xiuhpohualli",
+        "zapotec-yza",
         "balinese-pawukon",
     ];
 

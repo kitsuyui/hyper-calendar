@@ -35,7 +35,7 @@ use hyper_calendar::hc_calendars_solar::gregorian;
 /// whose sources, as read, give no span: the Egyptian wandering year under
 /// Ptolemy's era, the Roman era of later historians, the Yazidi year, the
 /// observational Hijri prediction, the Old Hindu mean reckonings, the Aztec
-/// counts, the Maya 819-day count, the Javanese and Akan weeks, and the
+/// counts and the Zapotec year, the Maya 819-day count, the Javanese and Akan weeks, and the
 /// Qumran 364-day year, whose days this library places by a convention of
 /// its own.
 const UNRECORDED: &[&str] = &[
@@ -76,6 +76,7 @@ const UNRECORDED: &[&str] = &[
     "qumran",
     "roman-auc",
     "yazidi",
+    "zapotec-yza",
 ];
 
 #[test]

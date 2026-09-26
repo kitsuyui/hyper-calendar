@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-124 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+125 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 102 of 124 have months and 102 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 103 of 125 have months and 103 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 **Named by** is which civil day names a day that does not begin at midnight: `start` for the one it begins on, as the Julian Day that begins at noon on 1 January 2000 is that day's, and `end` for the one it ends on, as the Hebrew day that begins at sunset on a Friday is Saturday's.
 
@@ -144,6 +144,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `world-calendar` | The World Calendar | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `yazidi` | Yazidi | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -4749-02-22 | +995270-09-09 | no | no | midnight | — | day-of-year ×364–371, weekday ×7 | — |
 | `yerm` | Yerm Lunar | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0622-05-19 | +10931-01-03 | no | no | noon | start | month ×15–17, weekday ×7 | yes |
+| `zapotec-yza` | Zapotec yza | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | month ×19, year-bearer ×4 | yes |
 | `zoroastrian-fasli` | Zoroastrian (Fasli) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0631-03-21 | +100630-03-20 | no | no | midnight | — | month ×13, weekday ×7 | yes |
 | `zoroastrian-qadimi` | Zoroastrian (Qadimi) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0632-06-19 | +100565-01-25 | no | no | midnight | — | month ×13, weekday ×7 | yes |
 | `zoroastrian-shahanshahi` | Zoroastrian (Shahanshahi) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1129-03-21 | +100565-02-24 | no | no | midnight | — | month ×13, weekday ×7 | yes |

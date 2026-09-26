@@ -305,13 +305,14 @@ name independently.
     and the Maya and Aztec *year bearers* as fields: both are derivable
     from what is carried (the year bearer is the Tzolkʼin of 0 Pop, or the
     tonalpohualli of 20 Tititl), and neither is exposed.
-  - *The other Mesoamerican 365-day years* — the Zapotec, Purépecha and
-    Zoque years — and the *Mixtec year bearer*, which names the same solar
-    year one number lower than the Aztec one: the same arithmetic under
-    other name tables and other anchors, listed in the roadmap as
-    `zapotec-yza`, `purepecha-year`, `zoque-hame` and `mixtec-year`, and
-    kept out of `aztec-xiuhpohualli` because reading a Mixtec codex
-    through it would give a silently wrong year name.
+  - *The other Mesoamerican 365-day years*: kept out of
+    `aztec-xiuhpohualli`, because reading a Mixtec codex through it would
+    give a silently wrong year name, and written up in
+    [mesoamerican-years.md](mesoamerican-years.md) — the Zapotec year as
+    `zapotec-yza`, over the same vague-year arithmetic and the
+    tonalpohualli above, and the Purépecha and Zoque years and the
+    *Mixtec year bearer*, which names the same solar year one number lower
+    than the Aztec one, with what each still lacks.
   - *The living highland counts* (Kʼicheʼ, Kaqchikel, Ixil, Mixe): their
     modern anchor differs between communities and is the whole question;
     the roadmap row `cholqij` is still researching it.
