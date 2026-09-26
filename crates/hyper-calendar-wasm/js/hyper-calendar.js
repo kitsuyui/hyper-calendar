@@ -62,6 +62,7 @@ export const METHODS = Object.freeze([
   { method: "calendarUnits", export: "hc_calendar_units", feature: "calendars" },
   { method: "calendars", export: "hc_calendars", feature: "calendars" },
   { method: "locales", export: "hc_locales", feature: "calendars" },
+  { method: "gregorianAdoption", export: "hc_gregorian_adoption", feature: "calendars" },
   { method: "holidayIsDayOff", export: "hc_holiday_is_day_off", feature: "holiday" },
   { method: "holidaysInYear", export: "hc_holidays_in_year", feature: "holiday" },
   { method: "holidayCodes", export: "hc_holiday_codes", feature: "holiday" },
@@ -113,6 +114,9 @@ export const COLUMNS = Object.freeze({
     "tag", "english name", "native name", "gregorian months", "weekdays", "gregorian eras",
     "calendars",
   ]),
+  gregorianAdoption: Object.freeze([
+    "last old day", "first day", "old calendar", "scope", "source", "new calendar", "polity",
+  ]),
   holidaysInYear: Object.freeze([
     "date", "name", "local name", "kind", "confidence", "substitute", "observed for",
   ]),
@@ -127,6 +131,7 @@ export const COLUMNS = Object.freeze({
   deepTime: Object.freeze([
     "kind", "name", "scope", "start", "start σ", "start figures", "start approximate",
     "end", "end σ", "end figures", "end approximate", "unit", "description", "source",
+    "localised name",
   ]),
   sky: Object.freeze([
     "sun longitude", "sun distance", "moon longitude", "moon latitude", "moon distance",
@@ -503,6 +508,25 @@ function localeEntry(cells) {
 }
 
 /**
+ * One row of `hc_gregorian_adoption`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").GregorianAdoption}
+ */
+function gregorianAdoption(cells) {
+  const [lastOldDay, firstDay, oldCalendar, scope, source, newCalendar, polity] = cells;
+  return {
+    lastOldDay: integer(lastOldDay, "last old day"),
+    firstDay: integer(firstDay, "first day"),
+    oldCalendar,
+    scope: /** @type {import("./hyper-calendar.d.ts").AdoptionScope} */ (scope),
+    source,
+    newCalendar,
+    polity,
+  };
+}
+
+/**
  * One row of `hc_holidays_in_year`.
  *
  * @param {string[]} cells
@@ -593,7 +617,7 @@ function bound(value, stdDev, figures, approximate, what) {
 function deepTimeRow(cells) {
   const [
     kind, name, scope, start, startStdDev, startFigures, startApproximate,
-    end, endStdDev, endFigures, endApproximate, unit, description, source,
+    end, endStdDev, endFigures, endApproximate, unit, description, source, localisedName,
   ] = cells;
   return {
     kind: /** @type {import("./hyper-calendar.d.ts").DeepTimeKind} */ (kind),
@@ -604,6 +628,7 @@ function deepTimeRow(cells) {
     unit: /** @type {import("./hyper-calendar.d.ts").DeepTimeUnit} */ (unit),
     description: optional(description),
     source,
+    localisedName: optional(localisedName),
   };
 }
 
@@ -1061,8 +1086,9 @@ export class HyperCalendar {
    * One fixed day in every registered calendar, in registry order, with
    * the locale's vocabulary and the date as the locale writes it. `locale`
    * is a BCP 47 tag, or {@link NATIVE} for each calendar's own language;
-   * a calendar the tag's data does not name is rendered in its own
-   * language, else in English, and `localeUsed` says which. A tag that
+   * a calendar the tag's data does not name is rendered in English, else
+   * in the tag with the calendar's own names, never in the calendar's own
+   * language, and `localeUsed` says which. A tag that
    * does not parse falls back to the root locale `und`, as the module
    * does — ask for `en` for English.
    *
@@ -1133,6 +1159,21 @@ export class HyperCalendar {
     const fn = this.#export("hc_locales");
     const text = this.#text("hc_locales", (buffer, capacity) => fn(buffer, capacity), true);
     return rows(text, COLUMNS.locales, "hc_locales").map(localeEntry);
+  }
+
+  /**
+   * The steps by which a country adopted the Gregorian calendar, oldest
+   * first. `region` is an ISO 3166-1 alpha-2 code, in either case; a code
+   * the module does not know answers with no steps.
+   *
+   * @param {string} region
+   * @returns {import("./hyper-calendar.d.ts").GregorianAdoption[]}
+   */
+  gregorianAdoption(region) {
+    const fn = this.#export("hc_gregorian_adoption");
+    const text = this.#withText(region, "region", (pointer, len) =>
+      this.#text("hc_gregorian_adoption", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.gregorianAdoption, "hc_gregorian_adoption").map(gregorianAdoption);
   }
 
   /**
@@ -1246,48 +1287,57 @@ export class HyperCalendar {
   /**
    * A moment some years before the present — the present as `hc-deep-time`
    * defines it, the Planck 2018 age of the universe — placed in every
-   * chronology at once. Negative years are the future.
+   * chronology at once. Negative years are the future; a moment up to a
+   * century ahead is still in the intervals that end at the present. The
+   * geologic rows carry the chart's own name in `locale` where it has one.
    *
    * @param {number} yearsAgo
    * @param {number} [stdDevYears]
+   * @param {string} [locale]
    * @returns {import("./hyper-calendar.d.ts").DeepTimeRow[]}
    */
-  placeYearsAgo(yearsAgo, stdDevYears = 0) {
+  placeYearsAgo(yearsAgo, stdDevYears = 0, locale = "und") {
     const fn = this.#export("hc_place_years_ago");
     const years = toF64(yearsAgo, "yearsAgo");
     const stdDev = toF64(stdDevYears, "stdDevYears");
-    const text = this.#text("hc_place_years_ago", (buffer, capacity) => fn(years, stdDev, buffer, capacity), true);
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_place_years_ago", (buffer, capacity) => fn(years, stdDev, pointer, len, buffer, capacity), true));
     return rows(text, COLUMNS.deepTime, "hc_place_years_ago").map(deepTimeRow);
   }
 
   /**
    * Every cosmic epoch, Big Bang to the present, then every dated cosmic
-   * event, oldest first.
+   * event, oldest first. No cosmic name has a translation, so
+   * `localisedName` is `null` on every row whatever `locale` is.
    *
+   * @param {string} [locale]
    * @returns {import("./hyper-calendar.d.ts").DeepTimeRow[]}
    */
-  cosmicEvents() {
+  cosmicEvents(locale = "und") {
     const fn = this.#export("hc_cosmic_events");
-    const text = this.#text("hc_cosmic_events", (buffer, capacity) => fn(buffer, capacity), true);
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_cosmic_events", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
     return rows(text, COLUMNS.deepTime, "hc_cosmic_events").map(deepTimeRow);
   }
 
   /**
    * Every interval of one rank of the geologic time scale, youngest first.
    * `rank` is a name (`eon`, `era`, `period`, `epoch`, `age`) or its number
-   * from 0.
+   * from 0. Each carries the chart's own name in `locale` where it has one.
    *
    * @param {import("./hyper-calendar.d.ts").GeologicRank | number} rank
+   * @param {string} [locale]
    * @returns {import("./hyper-calendar.d.ts").DeepTimeRow[]}
    */
-  geologicIntervals(rank) {
+  geologicIntervals(rank, locale = "und") {
     const fn = this.#export("hc_geologic_intervals");
     const number = typeof rank === "string" ? GEOLOGIC_RANKS.indexOf(rank) : rank;
     if (number === -1) {
       raise(`rank must be one of ${GEOLOGIC_RANKS.join(", ")} or 0 to 4, got ${JSON.stringify(rank)}`);
     }
     const r = toU32(number, "rank");
-    const text = this.#text("hc_geologic_intervals", (buffer, capacity) => fn(r, buffer, capacity), true);
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_geologic_intervals", (buffer, capacity) => fn(r, pointer, len, buffer, capacity), true));
     return rows(text, COLUMNS.deepTime, "hc_geologic_intervals").map(deepTimeRow);
   }
 

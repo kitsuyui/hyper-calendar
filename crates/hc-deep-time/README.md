@@ -22,7 +22,8 @@ system stops the error bars being dropped on the way.
 | `geologic` | 175 intervals of the ICS chart in five ranks, queryable as a tree |
 | `archaeology` | The BP convention, the calibrated/uncalibrated distinction, eleven conventional periods |
 | `periods` | Two long astronomical recurrences, the precession of the equinoxes and the galactic year, with their spreads and whether they drift |
-| `timeline` | All four chronologies queried together, with the uncertainty carried through |
+| `names` | The chart's interval names in fourteen other languages, from the ICS's own translations |
+| `timeline` | All four chronologies queried together, with the uncertainty carried through; a moment up to a century ahead (`PRESENT_HORIZON_YEARS`) is still in the intervals that end at the present |
 
 Highlights:
 
@@ -86,6 +87,15 @@ version is part of the public API (`geologic::CHART_VERSION`) because
 boundaries move: between v2024/12 and v2026/06 the Anisian went from 246.7 to
 247.0 Ma, the Olenekian from 249.9 to 250.8 Ma and the Wuchiapingian from
 259.51 ± 0.21 to 259.857 ± 0.084 Ma.
+
+**Interval names in other languages** — the ICS's chart vocabulary,
+`chart.ttl` at <https://github.com/i-c-stratigraphy/chart> (commit
+`81618a8`, 2026-07-27, CC BY 4.0), for Czech, German, Spanish, French,
+Indonesian, Italian, Japanese, Korean, Dutch, Polish, Portuguese, Russian,
+Turkish and simplified Chinese; the Japanese checked against the Geological
+Society of Japan's 国際年代層序表 v2024/12 and the Chinese against the ICS's
+国际年代地层表 v2023/09. The cosmic, future and archaeological names are not
+translated, because no published translation of them was read.
 
 **Archaeology** — Stuiver & Polach, *Radiocarbon* 19, 355 (1977), for the
 conventions behind a reported radiocarbon age; Reimer et al., *Radiocarbon* 62,

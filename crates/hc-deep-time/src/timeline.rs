@@ -26,6 +26,32 @@
 //! The seventy-six years between the BP datum of 1950 and the present are
 //! ignored. They are four decades below the smallest uncertainty in any table
 //! here, and they matter only inside the Modern period, where nobody uses BP.
+//!
+//! # Where the future begins
+//!
+//! Three of the chronologies end at the present rather than at a date: the
+//! geological chart's youngest intervals — the Meghalayan, the Holocene, the
+//! Quaternary, the Cenozoic and the Phanerozoic — have a top of 0 Ma, the
+//! archaeological Modern period ends at 0 BP, and the last cosmic epoch ends
+//! at the age of the universe. None of them has a future boundary; the
+//! present is simply the youngest thing each can name. So a moment a few
+//! hours or a few years ahead is not *outside* them in any sense the tables
+//! support, and [`place`] treats it as inside: a moment up to
+//! [`PRESENT_HORIZON_YEARS`] ahead is placed in the present intervals of all
+//! three, as well as in its future era.
+//!
+//! The horizon is a century because that is the resolution of the chart at
+//! its young end. The chart prints the base of the Meghalayan as 0.0042 Ma,
+//! to a tenth of a millennium; a moment within a century of the present is
+//! indistinguishable from it at the precision any interval here is stated
+//! with, which is the same reasoning that lets this module ignore the
+//! seventy-six years since 1950. Beyond a century ahead the future begins
+//! for placement: the moment has a future era and a last cosmic event, and
+//! no epoch, interval or period, because naming the Meghalayan for a
+//! moment the chart cannot yet have classified would be guessing
+//! ([`policy.md` §4](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/policy.md)).
+//! [`Placement::is_in_the_future`] still says whether the moment lies ahead
+//! at all.
 
 use crate::archaeology::{self, ArchaeologicalPeriod};
 use crate::error::DeepTimeResult;
@@ -88,6 +114,12 @@ impl Placement {
     }
 }
 
+/// How far ahead of the present, in Julian years, a moment is still placed in
+/// the intervals that end at the present: the geological chart's youngest
+/// chain, the archaeological Modern period and the last cosmic epoch. See the
+/// module documentation for why it is a century.
+pub const PRESENT_HORIZON_YEARS: f64 = 100.0;
+
 /// Place a moment, given as a span since the Big Bang.
 ///
 /// # Errors
@@ -125,6 +157,19 @@ fn assemble(since_big_bang: DeepTime, before_present: DeepTime) -> DeepTimeResul
     let years_ago = before_present.central_seconds() / DeepUnit::JulianYear.seconds();
     let megayears_ago = before_present.central_seconds() / DeepUnit::Megayear.seconds();
 
+    // A moment no further ahead than the horizon is read as the present by
+    // the three chronologies that end there.
+    let within_the_present = years_ago < 0.0 && -years_ago <= PRESENT_HORIZON_YEARS;
+    let (chart_seconds, chart_years_ago, chart_megayears_ago) = if within_the_present {
+        (
+            universe::AGE_OF_UNIVERSE.deep_time()?.central_seconds(),
+            0.0,
+            0.0,
+        )
+    } else {
+        (seconds, years_ago, megayears_ago)
+    };
+
     let future_era = if before_present.central_seconds() < 0.0 {
         // The decade is measured from the Big Bang, as Adams & Laughlin do.
         let decade = since_big_bang.log10_seconds()?.value
@@ -137,11 +182,11 @@ fn assemble(since_big_bang: DeepTime, before_present: DeepTime) -> DeepTimeResul
     Ok(Placement {
         since_big_bang,
         before_present,
-        cosmic_epoch: universe::epoch_at(seconds),
+        cosmic_epoch: universe::epoch_at(chart_seconds),
         cosmic_event: universe::event_before(seconds),
         future_era,
-        geologic: geologic::chain_at(megayears_ago),
-        archaeological: archaeology::period_at_bp(years_ago),
+        geologic: geologic::chain_at(chart_megayears_ago),
+        archaeological: archaeology::period_at_bp(chart_years_ago),
     })
 }
 
@@ -208,6 +253,68 @@ mod tests {
         );
         assert!(placement.future_era.is_none());
         assert!(!placement.is_in_the_future());
+    }
+
+    fn assert_in_the_present(placement: &Placement) {
+        let chain = placement.geologic.map(|entry| entry.map_or("", |i| i.name));
+        assert_eq!(
+            chain,
+            [
+                "Phanerozoic",
+                "Cenozoic",
+                "Quaternary",
+                "Holocene",
+                "Meghalayan"
+            ]
+        );
+        assert_eq!(
+            placement.cosmic_epoch.map(|e| e.name),
+            Some("Era of galaxies")
+        );
+        assert_eq!(
+            placement.archaeological.map(|p| p.name),
+            Some("Modern period")
+        );
+        assert_eq!(placement.cosmic_event.map(|e| e.name), Some("The present"));
+    }
+
+    #[test]
+    fn a_moment_hours_ahead_is_still_in_the_present_intervals() {
+        let six_hours = 6.0 / (24.0 * 365.25);
+        let placement = place_years_ago(-six_hours, 0.0).unwrap();
+        assert!(placement.is_in_the_future());
+        assert_in_the_present(&placement);
+        assert_eq!(
+            placement.future_era.map(|e| e.name),
+            Some("Stelliferous Era")
+        );
+    }
+
+    #[test]
+    fn a_moment_years_ahead_is_still_in_the_present_intervals() {
+        for years in [1.0, 5.0, 50.0, PRESENT_HORIZON_YEARS] {
+            let placement = place_years_ago(-years, 0.0).unwrap();
+            assert!(placement.is_in_the_future(), "{years}");
+            assert_in_the_present(&placement);
+            assert_eq!(
+                placement.future_era.map(|e| e.name),
+                Some("Stelliferous Era")
+            );
+        }
+    }
+
+    #[test]
+    fn the_future_begins_beyond_the_present_horizon() {
+        let placement = place_years_ago(-(PRESENT_HORIZON_YEARS + 1.0), 0.0).unwrap();
+        assert!(placement.is_in_the_future());
+        assert!(placement.geologic.iter().all(Option::is_none));
+        assert!(placement.archaeological.is_none());
+        assert!(placement.cosmic_epoch.is_none());
+        assert_eq!(placement.cosmic_event.map(|e| e.name), Some("The present"));
+        assert_eq!(
+            placement.future_era.map(|e| e.name),
+            Some("Stelliferous Era")
+        );
     }
 
     #[test]

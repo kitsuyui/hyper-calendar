@@ -397,3 +397,10 @@ nepreryvka = "nepreryvka"
 shestidnevka = "shestidnevka"
 Sovnarkom = "Sovnarkom"
 Malyavin = "Malyavin"
+# The geological chart's own interval names in German, Spanish, Italian and
+# Dutch, "Serie 2" for the Cambrian's Series 2 (hc-deep-time's `names`), and
+# CLDR 48's calendar names in Javanese, "Tanggalan Hijriah (tabel, ...)", and
+# Dutch, "Japanse kalender" (hc-i18n).
+Serie = "Serie"
+tabel = "tabel"
+Japanse = "Japanse"

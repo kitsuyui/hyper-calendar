@@ -11,16 +11,19 @@
 //!
 //! # Locales
 //!
-//! Every function here that takes a locale takes a BCP 47 tag, and each
-//! calendar is rendered in the locale [`hc_format::label::locale_for`]
-//! resolves for it: the one asked for when it names the calendar, else
-//! the calendar's own language where `hc-i18n` carries it, else English.
-//! The tag [`NATIVE`] asks for each calendar's own language outright. A
-//! tag that does not parse is the root locale `und`. The last cell of
+//! Every function here that takes a locale takes a BCP 47 tag, and every
+//! rendered cell follows one rule, the one [`hc_format::label::locale_for`]
+//! resolves: the locale asked for when it names the calendar, else
+//! English, else the locale asked for with the calendar's own names from
+//! its shape. A named locale never borrows the calendar's own language —
+//! under `ja` the Umm al-Qura calendar is written in English, not Arabic.
+//! Only the tag [`NATIVE`] asks for each calendar's own language first,
+//! then English. A tag that does not parse is the root locale `und`. The last cell of
 //! every line that was rendered in a locale names the data entry that
 //! answered — `ja`, `zh-Hans`, `he`, `und` — so that a page knows what
 //! language it is showing.
 
+use alloc::borrow::ToOwned;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt::Write;
@@ -45,6 +48,8 @@ pub const CALENDAR_UNITS_COLUMNS: usize = 8;
 pub const CALENDARS_COLUMNS: usize = 11;
 /// How many columns [`locales`] writes.
 pub const LOCALES_COLUMNS: usize = 7;
+/// How many columns [`gregorian_adoption`] writes.
+pub const GREGORIAN_ADOPTION_COLUMNS: usize = 7;
 
 /// The locale a tag asks for: `None` for [`NATIVE`], the root locale for
 /// a tag that does not parse.
@@ -326,19 +331,27 @@ fn has_units(calendar: &dyn DynCalendar, probe: Rd) -> (bool, bool, bool, bool) 
 /// (empty where unbounded), whether it has eras, years, months and days
 /// (`1` or `0` each), the languages its sources are written in as BCP 47
 /// tags joined by `;`, and its standing on `today`.
+///
+/// The name follows the rule of the module's `# Locales`, with its English
+/// step left to the page: it is the requested locale's own, or empty, so
+/// that a page knows the locale has no word and falls back to the English
+/// name of the next column itself. As with the dates of [`describe_day`],
+/// it is never borrowed from the calendar's own language; only [`NATIVE`]
+/// asks for each calendar's name in its own language.
 #[must_use]
 pub fn calendars(registry: &CalendarRegistry, today: Rd, locale: &str) -> String {
+    let requested = requested_locale(locale);
     let mut out = String::new();
     for meta in registry.metas() {
         let Some(calendar) = registry.get(meta.id) else {
             continue;
         };
-        let locale = locale_for(calendar, locale);
+        let named_in = requested.unwrap_or_else(|| label::locale_for(calendar, None));
         push_cell(&mut out, meta.id.as_str());
         out.push('\t');
         push_cell(
             &mut out,
-            names::calendar_display_name(&locale, meta.id).unwrap_or(""),
+            names::calendar_display_name(&named_in, meta.id).unwrap_or(""),
         );
         out.push('\t');
         push_cell(&mut out, meta.english_name);
@@ -406,6 +419,42 @@ pub fn locales() -> String {
             }
         }
         push_cell(&mut out, &named.join(";"));
+        out.push('\n');
+    }
+    out
+}
+
+/// The steps by which a country adopted the Gregorian calendar, one line
+/// each, oldest first; nothing for an ISO 3166-1 alpha-2 code the table
+/// does not know.
+///
+/// The columns: the last day of the old reckoning and the first day of the
+/// new, as fixed days, the registry identifier of the old calendar
+/// (`julian`, `japanese-tenpo`, `dangi`, `chinese`, `islamic-umalqura`,
+/// `rumi`, `swedish-1700`), the scope (`civil`, `ecclesiastical` or
+/// `partial`), the instrument behind the step with its date and whether it
+/// was read, the registry identifier of the new calendar (`gregory`, but
+/// `swedish-1700` and then `julian` for Sweden's steps of 1700 and 1712),
+/// and who took the step, in English. See
+/// [`hc_calendars_solar::adoption`].
+#[must_use]
+pub fn gregorian_adoption(region: &str) -> String {
+    let mut out = String::new();
+    for row in hc_calendars_solar::adoption::gregorian_adoption(region) {
+        if let (Ok(last), Ok(first)) = (row.last_old_day(), row.first_day()) {
+            let _ = write!(out, "{}\t{}\t", last.0, first.0);
+        } else {
+            out.push_str("\t\t");
+        }
+        push_cell(&mut out, row.old_calendar);
+        out.push('\t');
+        out.push_str(row.scope.as_str());
+        out.push('\t');
+        push_cell(&mut out, row.source());
+        out.push('\t');
+        push_cell(&mut out, row.new_calendar);
+        out.push('\t');
+        push_cell(&mut out, row.polity);
         out.push('\n');
     }
     out

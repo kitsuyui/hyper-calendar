@@ -182,6 +182,27 @@ export interface CalendarEntry {
   standing: Standing;
 }
 
+/** How far one step of a Gregorian adoption reached. */
+export type AdoptionScope = "civil" | "ecclesiastical" | "partial";
+
+/** One row of `hc_gregorian_adoption`: one step of one country's adoption. */
+export interface GregorianAdoption {
+  /** The last day of the old reckoning, as a fixed day. */
+  lastOldDay: number;
+  /** The first day of the new reckoning, as a fixed day: the next day. */
+  firstDay: number;
+  /** The registry identifier of the calendar kept until then: `julian`, `japanese-tenpo`, `dangi`, `chinese`, `islamic-umalqura`, `rumi` or `swedish-1700`. */
+  oldCalendar: string;
+  /** `civil` for the whole polity's civil calendar; `partial` for part of the country, some purposes or part of the calendar; `ecclesiastical` for a church's alone. */
+  scope: AdoptionScope;
+  /** The instrument behind the step, with its date, and whether it was read. */
+  source: string;
+  /** The registry identifier of the calendar kept from then: `gregory`, but `swedish-1700` and then `julian` for Sweden's steps of 1700 and 1712. */
+  newCalendar: string;
+  /** Who took the step, in English. */
+  polity: string;
+}
+
 /** One row of `hc_locales`. */
 export interface LocaleEntry {
   /** The BCP 47 tag. */
@@ -303,6 +324,8 @@ export interface DeepTimeRow {
   unit: DeepTimeUnit;
   description: string | null;
   source: string;
+  /** The geological chart's own name for an interval in the locale's language, or `null`: always `null` for the cosmic, future and archaeological rows. */
+  localisedName: string | null;
 }
 
 /** Which source ΔT was answered from. */
@@ -452,6 +475,8 @@ export class HyperCalendar {
   calendars(today: number | bigint, locale?: string): CalendarEntry[];
   /** Every locale the module carries. */
   locales(): LocaleEntry[];
+  /** `hc_gregorian_adoption`: the steps by which a country adopted the Gregorian calendar, by ISO 3166-1 alpha-2 code; none for a code the module does not know. */
+  gregorianAdoption(region: string): GregorianAdoption[];
 
   /** `hc_holiday_is_day_off`; `region` may be empty. A code naming no table is `unknown`. */
   holidayIsDayOff(code: string, region: string, fixed: number | bigint): boolean;
@@ -467,12 +492,12 @@ export class HyperCalendar {
   /** `hc_pentad_in_effect`. */
   pentadInEffect(fixed: number | bigint, meridian?: Meridian): TermInEffect;
 
-  /** `hc_place_years_ago`; a value the crate refuses is `out-of-range`. */
-  placeYearsAgo(yearsAgo: number, stdDevYears?: number): DeepTimeRow[];
+  /** `hc_place_years_ago`; a value the crate refuses is `out-of-range`. `locale` names the geologic rows, `und` unless given. */
+  placeYearsAgo(yearsAgo: number, stdDevYears?: number, locale?: string): DeepTimeRow[];
   /** `hc_cosmic_events`. */
-  cosmicEvents(): DeepTimeRow[];
+  cosmicEvents(locale?: string): DeepTimeRow[];
   /** `hc_geologic_intervals`; the rank by name or by number from 0. */
-  geologicIntervals(rank: GeologicRank | number): DeepTimeRow[];
+  geologicIntervals(rank: GeologicRank | number, locale?: string): DeepTimeRow[];
 
   /** `hc_fixed_from_unix_in_zone`; a zone nobody knows is `unknown`. */
   fixedFromUnixInZone(unixSeconds: number | bigint, zone: string): number;

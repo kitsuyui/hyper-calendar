@@ -112,12 +112,13 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `calendarUnits(id, unit, from, to, locale)` | `hc_calendar_units` | `CalendarUnit[]`, one per span |
 | `calendars(today, locale)` | `hc_calendars` | `CalendarEntry[]`, one per calendar |
 | `locales()` | `hc_locales` | `LocaleEntry[]`, one per locale |
+| `gregorianAdoption(region)` | `hc_gregorian_adoption` | `GregorianAdoption[]`, one per step |
 | `holidayIsDayOff(code, region, rd)` | `hc_holiday_is_day_off` | a boolean |
 | `holidaysInYear(code, region, year)` | `hc_holidays_in_year` | `HolidayInYear[]` |
 | `holidayCodes()` | `hc_holiday_codes` | `string[]` |
 | `holidaysOn(rd)` | `hc_holidays_on` | `HolidayOn[]` |
 | `termInEffect(rd, meridian)`, `pentadInEffect(rd, meridian)` | `hc_term_in_effect`, `hc_pentad_in_effect` | a `TermInEffect` |
-| `placeYearsAgo(years, stdDev)`, `cosmicEvents()`, `geologicIntervals(rank)` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `DeepTimeRow[]` |
+| `placeYearsAgo(years, stdDev, locale)`, `cosmicEvents(locale)`, `geologicIntervals(rank, locale)` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `DeepTimeRow[]` |
 | `fixedFromUnixInZone(unix, zone)`, `unixFromFixedInZone(rd, zone)` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone` | a number |
 | `loadZone(name, tzif)` | `hc_zone_load` | nothing |
 | `skyAt(unix)` | `hc_sky_at` | a `Sky` |
@@ -186,7 +187,7 @@ the module's bytes inside it as base64, decoded with `atob` and bound by a
 `load(options)` that takes no source and fetches nothing. It is one
 self-contained ES module; `hyper-calendar.embedded.d.ts` types it. It is
 generated, not committed — CI uploads it with the layered builds below —
-and it is 1.94 MiB (2,032,112 bytes) for the `full` layer of 2026-09-26,
+and it is 2.22 MiB (2,332,109 bytes) for the `full` layer of 2026-09-26,
 base64 being four thirds of the module.
 
 ### tzdata beside the module
@@ -224,15 +225,15 @@ before it loads the holiday tables.
 
 | Feature | Exports | Brings in | Bytes | Size |
 | --- | --- | --- | ---: | ---: |
-| `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,495 | 35 KiB |
-| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; and the locales | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 522,470 | 510 KiB |
-| `holiday` | the four `hc_holiday*` exports and `hc_holidays_on` | `hc-holiday` and everything it dates by | 1,026,042 | 1,002 KiB |
-| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 88,259 | 86 KiB |
-| `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 101,842 | 99 KiB |
-| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,414 | 56 KiB |
-| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between` | `hc-astro`, `hc-seasons` | 96,550 | 94 KiB |
+| `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,534 | 35 KiB |
+| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`, `hc_gregorian_adoption`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales; and when each country adopted the Gregorian calendar | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 595,249 | 581 KiB |
+| `holiday` | the four `hc_holiday*` exports and `hc_holidays_on` | `hc-holiday` and everything it dates by | 1,026,172 | 1,002 KiB |
+| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 88,795 | 87 KiB |
+| `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 152,550 | 149 KiB |
+| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,462 | 56 KiB |
+| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between` | `hc-astro`, `hc-seasons` | 96,589 | 94 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 63,961 | 62 KiB |
-| `full` | all of the above | everything | 1,589,614 | 1.52 MiB |
+| `full` | all of the above | everything | 1,704,491 | 1.63 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -268,7 +269,7 @@ not pass CI.
 
 ### Exports
 
-37 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+38 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -292,15 +293,16 @@ not pass CI.
 | `hc_calendar_units(id: *const u8, id_len: usize, unit: u32, from_fixed: i64, to_fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The days from `from_fixed` up to but not including `to_fixed` as one calendar's eras, years, months or days, as UTF-8 lines, returning the byte length written. |
 | `hc_calendars(today: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every registered calendar, as UTF-8 lines, returning the byte length written. |
 | `hc_locales(buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every locale the module carries, as UTF-8 lines, returning the byte length written. |
+| `hc_gregorian_adoption(region: *const u8, region_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The steps by which a country adopted the Gregorian calendar, as UTF-8 lines, returning the byte length written. |
 | `hc_holiday_is_day_off(code: *const u8, code_len: usize, region: *const u8, region_len: usize, fixed: i64) -> i64` | `holiday` | Whether a fixed day is a day off in a holiday table: 1, 0, or an error sentinel. |
 | `hc_holidays_in_year(code: *const u8, code_len: usize, region: *const u8, region_len: usize, year: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The holidays of a Gregorian year in a table, as UTF-8 lines, returning the byte length written. |
 | `hc_holiday_codes(buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The identifier of every holiday table, one per line, returning the byte length written. |
 | `hc_holidays_on(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | Every holiday on one fixed day across every table, as UTF-8 lines, returning the byte length written. |
 | `hc_term_in_effect(fixed: i64, meridian: *const u8, meridian_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `seasons` | The solar term in effect on a fixed day at a meridian, as one UTF-8 line, returning the byte length written. |
 | `hc_pentad_in_effect(fixed: i64, meridian: *const u8, meridian_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `seasons` | The pentad (候) in effect on a fixed day at a meridian, as one UTF-8 line, returning the byte length written. |
-| `hc_place_years_ago(years_ago: f64, std_dev_years: f64, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | A moment some years before the present, placed in every chronology at once, as UTF-8 lines, returning the byte length written. |
-| `hc_cosmic_events(buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every cosmic epoch and every dated cosmic event, as UTF-8 lines, returning the byte length written. |
-| `hc_geologic_intervals(rank: u32, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every interval of one rank of the geologic time scale, as UTF-8 lines, returning the byte length written. |
+| `hc_place_years_ago(years_ago: f64, std_dev_years: f64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | A moment some years before the present, placed in every chronology at once, as UTF-8 lines, returning the byte length written. |
+| `hc_cosmic_events(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every cosmic epoch and every dated cosmic event, as UTF-8 lines, returning the byte length written. |
+| `hc_geologic_intervals(rank: u32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every interval of one rank of the geologic time scale, as UTF-8 lines, returning the byte length written. |
 | `hc_fixed_from_unix_in_zone(unix_seconds: i64, zone: *const u8, zone_len: usize) -> i64` | `tz` | The fixed day a POSIX timestamp falls on by the wall clock of a zone, or an error sentinel. |
 | `hc_unix_from_fixed_in_zone(fixed: i64, zone: *const u8, zone_len: usize) -> i64` | `tz` | The POSIX timestamp at which a fixed day begins by the wall clock of a zone, or an error sentinel. |
 | `hc_zone_load(name: *const u8, name_len: usize, tzif: *const u8, tzif_len: usize) -> i64` | `tz` | Give the module a zone's TZif data under an IANA name, returning 0. |
@@ -335,13 +337,14 @@ in registry order — the Gregorian family first, then the lunar, equinox,
 Indic and regional calendars.
 
 `locale` is a BCP 47 tag such as `ja-JP` or `zh-Hans`, or the word
-`native`. Each calendar is rendered in the locale that answers for it: the
-one asked for when its data names the calendar; else the calendar's own
-language where the module carries it (`he` for the Hebrew calendar, `ar`
-for the Hijri, `zh-Hans` for the Chinese), so that a Japanese page shows
-the Hebrew months in Hebrew rather than as numbers; else English. `native`
-asks for each calendar's own language outright, and the last column of
-every line names the locale data that answered. A tag that does not parse
+`native`. Every rendered cell follows one rule: the locale asked for when
+its data names the calendar; else English, so that a Japanese page shows
+the Hebrew and Hijri months in English rather than in a script the page did
+not ask for; else the locale asked for, with the calendar's own names from
+its shape. A named locale never borrows the calendar's own language. Only
+`native` asks for each calendar's own language first (`he` for the Hebrew
+calendar, `ar` for the Hijri, `zh-Hans` for the Chinese), then English, and
+the last column of every line names the locale data that answered. A tag that does not parse
 falls back to the root locale `und`, as `hc-i18n` does, whose month names
 are CLDR's `M01`..`M12` — ask for `en` for English. A null pointer with a
 zero length is `und` too.
@@ -448,12 +451,15 @@ a lane can show *this calendar does not reach here* rather than a gap.
 `hc_calendars(today, locale_ptr, locale_len, buffer, capacity)` needs the
 `calendars` feature and writes one line per registered calendar, in
 registry order. `locale` is as for `hc_describe_day`; `today` is the fixed
-day the standing is judged on, because the module has no clock.
+day the standing is judged on, because the module has no clock. The names
+are CLDR 48's, `localeDisplayNames/types/type[@key="calendar"]`, at its
+`approved` and `contributed` levels; a calendar CLDR does not name in the
+locale has an empty name.
 
 | # | Column | Holds |
 | --- | --- | --- |
 | 1 | id | the calendar's identifier |
-| 2 | name | what the locale calls the calendar — 和暦, `Hebrew Calendar` — or empty where it has no name for it |
+| 2 | name | what the locale calls the calendar — 和暦, `Hebrew Calendar` — or empty where it has no name for it, so that a page falls back to column 3 itself; the name is never borrowed from the calendar's own language, which only `native` asks for |
 | 3 | english name | its English name |
 | 4 | earliest | the earliest fixed day it converts, or empty where unbounded |
 | 5 | latest | the latest fixed day it converts, or empty where unbounded |
@@ -478,6 +484,29 @@ line per locale the module carries, in tag order.
 | 5 | weekdays | `1` when it names the weekdays |
 | 6 | gregorian eras | `1` when it names the Gregorian eras |
 | 7 | calendars | the identifiers of the calendars it has vocabulary of its own for beyond the shared Gregorian months, joined by `;` |
+
+## Gregorian adoption
+
+`hc_gregorian_adoption(region_ptr, region_len, buffer, capacity)` needs the
+`calendars` feature and writes one line per step by which a country took the
+Gregorian calendar, oldest first. `region` is an ISO 3166-1 alpha-2 code, in
+either case. A staged adoption is several lines: China's declaration of 1912
+and its nationwide order of 1929, Sweden's omitted leap day of 1700, its
+return to the Julian calendar in 1712 and its change of 1753, the Dutch
+provinces one by one, Turkey's Gregorian days of 1917 and Gregorian year of
+1926. A code the table does not know writes nothing, which says only that
+the table does not know it. The table, its sources and what it leaves out are
+in [`docs/systems/gregorian-reform.md`](../../docs/systems/gregorian-reform.md).
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | last old day | the last day of the old reckoning, as a fixed day |
+| 2 | first day | the first day of the new reckoning, as a fixed day: always the next day, since no step broke the week |
+| 3 | old calendar | the registry identifier of the calendar kept until then: `julian`, `japanese-tenpo`, `dangi`, `chinese`, `islamic-umalqura`, `rumi` or `swedish-1700` |
+| 4 | scope | `civil` for the civil calendar of the whole polity as it then was; `partial` for part of the country, some purposes only, or part of the calendar; `ecclesiastical` for a church's calendar alone, which no row carries yet |
+| 5 | source | the instrument behind the step — decree, act, law — with its date, and whether it was read |
+| 6 | new calendar | the registry identifier of the calendar kept from then: `gregory`, but `swedish-1700` for Sweden's step of 1700 and `julian` for its step of 1712 |
+| 7 | polity | who took the step, in English: the polity then governing, and the part of the country where the scope is partial |
 
 ## Holidays
 
@@ -580,8 +609,9 @@ writes one line:
 ## Deep time
 
 `hc_place_years_ago`, `hc_cosmic_events` and `hc_geologic_intervals` need the
-`deep-time` feature. All three write lines of the same fourteen columns, so
-a page parses them once:
+`deep-time` feature. All three take a locale, a BCP 47 tag, after their
+other arguments, and write lines of the same fifteen columns, so a page
+parses them once:
 
 | # | Column | Holds |
 | --- | --- | --- |
@@ -599,6 +629,15 @@ a page parses them once:
 | 12 | unit | what columns 4 to 11 are in, below |
 | 13 | description | the table's description of the entry, or empty |
 | 14 | source | where the numbers came from |
+| 15 | localised name | the geological chart's own name for an interval in the locale's language — 第四系／紀, 显生宇, `Quartär` — or empty: for a language the chart has no names in, for the handful of intervals it names in no language, and for every cosmic, future and archaeological row, which have no published translation this module carries |
+
+The localised names are the International Commission on Stratigraphy's own
+translations, from the chart's vocabulary (`chart.ttl`, CC BY 4.0) in
+fourteen of the module's locales — `cs`, `de`, `es`, `fr`, `id`, `it`, `ja`,
+`ko`, `nl`, `pl`, `pt`, `ru`, `tr` and `zh-Hans` — with the Japanese checked
+against the Geological Society of Japan's chart and the Chinese against the
+ICS's Chinese chart; `hc_deep_time::names` says what was left out and why.
+The English name stays in column 2.
 
 A point in time — an event, the moment itself — has the same start and end.
 The unit is the one each table counts in, so the values are the tables' own
@@ -609,22 +648,29 @@ chart's rows, `years-before-1950` for the archaeological rows and
 `log10-years-from-now` for a future era.
 
 **What "present" means.** `hc_place_years_ago(years_ago, std_dev_years,
-buffer, capacity)` counts `years_ago` back from the present as `hc-deep-time`
+locale_ptr, locale_len, buffer, capacity)` counts `years_ago` back from the present as `hc-deep-time`
 defines it: the Planck 2018 age of the universe, its `AGE_OF_UNIVERSE` — not
 from the BP datum of 1950 and not from the caller's clock. Its archaeological
 table counts from 1950 and the geologic chart from its own present, and the
 crate ignores the difference between the three, which lies below the smallest
 uncertainty in any of its tables; this module does not change that. Negative
-years are the future. The lines are the moment itself as `since-big-bang` and
+years are the future, and the near future is still the present: the chart's
+youngest intervals, the Modern period and the last cosmic epoch end at the
+present with no future boundary, so a moment up to a century ahead — six
+hours, three years — is placed in all of them as well as in its future era.
+The century is the chart's resolution at its young end, where it prints the
+Meghalayan's base as 0.0042 Ma; beyond it the future begins, and the moment
+has its future era and the last cosmic event alone. The lines are the moment itself as `since-big-bang` and
 `before-present`, its cosmic epoch and the last dated cosmic event before it,
 its future era if it lies ahead, its geologic chain from eon down to age, and
 its archaeological period, each present only where that chronology reaches. A
 value the crate refuses — not finite, a negative uncertainty, beyond its range
 — is `HC_ERR_OUT_OF_RANGE`.
 
-`hc_cosmic_events(buffer, capacity)` lists every cosmic epoch, Big Bang to the
-present, then every dated cosmic event, oldest first.
-`hc_geologic_intervals(rank, buffer, capacity)` lists every interval of one
+`hc_cosmic_events(locale_ptr, locale_len, buffer, capacity)` lists every
+cosmic epoch, Big Bang to the present, then every dated cosmic event, oldest
+first. `hc_geologic_intervals(rank, locale_ptr, locale_len, buffer, capacity)`
+lists every interval of one
 rank of the ICS chart, youngest first, with the chart as the source; `rank`
 is `0` for the eons, `1` for the eras, `2` for the periods, `3` for the
 epochs and `4` for the ages, and anything else is `HC_ERR_UNKNOWN`.

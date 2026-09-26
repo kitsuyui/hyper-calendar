@@ -15,6 +15,7 @@
 //! | [`universe`] | The chronology of the universe as data, on Planck 2018 parameters |
 //! | [`future`] | The far future as data, out to 10¹⁰⁰ years and past it |
 //! | [`geologic`] | The ICS International Chronostratigraphic Chart as a queryable tree |
+//! | [`names`] | The chart's interval names in fourteen other languages, from the ICS's own vocabulary |
 //! | [`archaeology`] | The `BP` convention, and the calibrated/uncalibrated distinction |
 //! | [`periods`] | Long astronomical recurrences: the precession of the equinoxes and the galactic year |
 //! | [`timeline`] | All of the above, queried together |
@@ -62,6 +63,7 @@ pub mod error;
 pub mod future;
 pub mod geologic;
 pub mod magnitude;
+pub mod names;
 pub mod periods;
 pub mod timeline;
 pub mod universe;
@@ -74,7 +76,9 @@ pub use constants::PhysicalConstant;
 pub use future::{FutureEra, FutureEvent, Prediction};
 pub use geologic::{GeologicInterval, GeologicRank};
 pub use periods::{AstronomicalPeriod, GALACTIC_YEAR, Stability};
-pub use timeline::{Placement, place, place_megayears_ago, place_years_ago, span_between};
+pub use timeline::{
+    PRESENT_HORIZON_YEARS, Placement, place, place_megayears_ago, place_years_ago, span_between,
+};
 pub use universe::{CosmicEpoch, CosmicEvent};
 
 pub use hc_core;

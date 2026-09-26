@@ -82,6 +82,8 @@ pub use hc_calendar::{
 
 #[cfg(feature = "civil")]
 pub mod civil;
+#[cfg(all(feature = "alloc", feature = "deep-time"))]
+pub mod deep_time_lines;
 #[cfg(all(
     feature = "alloc",
     feature = "civil",
@@ -178,6 +180,20 @@ pub mod prelude {
 
     #[cfg(feature = "units")]
     pub use hc_units::{Quantity, Ratio, Tempo, Unit};
+}
+
+/// The steps by which a country adopted the Gregorian calendar, oldest
+/// first, by ISO 3166-1 alpha-2 code: none for a code the table does not
+/// know.
+///
+/// The table is [`hc_calendars_solar::adoption`]'s, beside the reform
+/// calendars whose cut-overs most of its rows share; see there for what a
+/// row and its scope mean.
+#[cfg(feature = "civil")]
+pub fn gregorian_adoption(
+    region: &str,
+) -> impl Iterator<Item = &'static hc_calendars_solar::adoption::RegionalAdoption> + '_ {
+    hc_calendars_solar::adoption::gregorian_adoption(region)
 }
 
 /// A registry populated with every calendar the enabled features provide.

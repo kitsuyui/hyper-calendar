@@ -19,6 +19,7 @@ file does not:
 | `julian_gregorian` | Julian before a country's reform, Gregorian after | `julian-gregorian-*` |
 | `swedish` | Swedish, 1700–1712: the Julian calendar a day early, and 30 February 1712 | `swedish-1700` |
 | `year_style` | Where the year began: Lady Day, Annunciation (Florentine, Pisan), Nativity, more veneto, Greek | *(not calendars; a year-number conversion)* |
+| `adoption` | When each country took the Gregorian calendar, by ISO 3166-1 alpha-2 code, one row per step, with its instrument | *(not a calendar; a table of cut-overs)* |
 | `cycles` | The computus cycles: golden number, dominical letter, epact, solar cycle, indiction, Julian Period | *(not calendars; year numbers)* |
 | `iso_week` | ISO 8601 week date | `iso8601-week` |
 | `ordinal` | ISO 8601 ordinal date | `iso8601-ordinal` |

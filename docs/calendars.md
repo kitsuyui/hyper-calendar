@@ -36,7 +36,7 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | --- | --- | --- | --- |
 | Proleptic Gregorian | `gregory` | `hc-calendars-solar` | Done |
 | Proleptic Julian | `julian` | `hc-calendars-solar` | Done |
-| Julian→Gregorian reform (per country) | `julian-gregorian-<polity>`, 12 of them | `hc-calendars-solar` | Done — twelve cut-overs, three of them on a document read and nine on secondary sources, with Serbia's row known to be wrong; see [systems/gregorian-reform.md](systems/gregorian-reform.md) |
+| Julian→Gregorian reform (per country) | `julian-gregorian-<polity>`, 14 of them | `hc-calendars-solar` | Done — fourteen cut-overs, three of them on a document read, Serbia's on its law as a newspaper quotes it and ten on secondary sources, with a regional table of adoptions by country beside them; see [systems/gregorian-reform.md](systems/gregorian-reform.md) |
 | ISO 8601 week date | `iso8601-week` | `hc-calendars-solar` | Done |
 | ISO 8601 ordinal date | `iso8601-ordinal` | `hc-calendars-solar` | Done |
 | Julian Day Number | `julian-day` | `hc-calendars-solar` | Done |

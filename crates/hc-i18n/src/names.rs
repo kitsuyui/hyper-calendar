@@ -1149,32 +1149,29 @@ pub fn english() -> Locale {
 /// The locale a calendar is rendered in, given the one that was asked for
 /// or, with `None`, a request for the calendar's own.
 ///
-/// The requested locale answers when it names the calendar. When it does
-/// not — Japanese has no words for the Hebrew months — the calendar's
-/// native locale answers if the crate carries it, then English, so that a
-/// month is named in *some* language before it is numbered; and when no
-/// locale names the calendar, the requested one (or English) is kept for
-/// its numbering and its general templates, with the names coming from
-/// the calendar's own shape. The tag of the data that answered is
-/// [`locale_data`] of the result.
+/// One rule for every rendered cell. A named locale answers when it names
+/// the calendar; when it does not — Japanese has no words for the Hebrew
+/// months — English answers, so that a month is named in a language the
+/// reader asked for or the common fallback, never in a script the request
+/// did not choose; and when English does not name the calendar either,
+/// the requested locale is kept for its numbering and its general
+/// templates, with the names coming from the calendar's own shape. Only a
+/// request for the calendar's own (`None`) reaches for its native locale
+/// first, where the crate carries it and it names the calendar, then
+/// English. The tag of the data that answered is [`locale_data`] of the
+/// result.
 #[must_use]
 pub fn locale_for_calendar(requested: Option<&Locale>, meta: &CalendarMeta) -> Locale {
     let names = |locale: &Locale| names_calendar(locale, meta.id);
-    if let Some(requested) = requested
-        && names(requested)
-    {
-        return *requested;
-    }
-    if let Some(native) = native_locale(meta)
-        && names(&native)
-    {
-        return native;
-    }
     let english = english();
-    if names(&english) {
-        return english;
+    match requested {
+        Some(requested) if names(requested) => *requested,
+        Some(requested) if !names(&english) => *requested,
+        Some(_) => english,
+        None => native_locale(meta)
+            .filter(|native| names(native))
+            .unwrap_or(english),
     }
-    requested.copied().unwrap_or(english)
 }
 
 /// The name of a quarter, numbered 1 to 4.
@@ -1570,7 +1567,8 @@ mod tests {
     }
 
     #[test]
-    fn a_calendar_the_locale_does_not_name_is_rendered_in_its_own_language_then_english() {
+    fn a_calendar_the_locale_does_not_name_is_rendered_in_english_and_only_native_asks_for_its_own()
+    {
         use hc_calendar::{CalendarMeta, Rd, YearKind};
         let meta = |id: &'static str, native: &'static [&'static str]| CalendarMeta {
             id: CalendarId(id),
@@ -1584,15 +1582,15 @@ mod tests {
         };
         let ja = locale("ja");
         // Japanese has no words for the Hebrew months, so the Hebrew
-        // calendar answers in Hebrew.
+        // calendar answers in English, not in Hebrew.
         let hebrew = meta("hebrew", &["he"]);
-        assert_eq!(locale_for_calendar(Some(&ja), &hebrew).to_string(), "he");
+        assert_eq!(locale_for_calendar(Some(&ja), &hebrew).to_string(), "en");
         assert_eq!(
             lunisolar_month("ja", "hebrew", Month::regular(1)),
             None,
             "ja itself still has no name"
         );
-        assert!(
+        assert_eq!(
             month_label(
                 &locale_for_calendar(Some(&ja), &hebrew),
                 CalendarId("hebrew"),
@@ -1600,12 +1598,18 @@ mod tests {
                 NameWidth::Wide,
                 NameContext::Standalone
             )
-            .is_some()
+            .map(|label| label.name),
+            Some("Tishri")
         );
-        // The crate carries the haabʼ's own language, so the calendar
-        // answers in Yucatec.
+        // The same for the Umm al-Qura calendar: English, not Arabic.
+        let umalqura = meta("islamic-umalqura", &["ar"]);
+        assert_eq!(locale_for_calendar(Some(&ja), &umalqura).to_string(), "en");
+        // The crate carries the haabʼ's own language, but only a request
+        // for the calendar's own reaches for it; English has no names for
+        // it either, so the request stands, with the calendar's own names.
         let maya = meta("maya-haab", &["yua"]);
-        assert_eq!(locale_for_calendar(Some(&ja), &maya).to_string(), "yua");
+        assert_eq!(locale_for_calendar(Some(&ja), &maya).to_string(), "ja");
+        assert_eq!(locale_for_calendar(None, &maya).to_string(), "yua");
         // When no locale names the calendar at all, the request stands for
         // its numbering.
         let akan = meta("akan", &["ak"]);
@@ -1614,7 +1618,6 @@ mod tests {
             "ja",
             "no locale names the Akan calendar, so the request stands for numbering"
         );
-        // A native locale the crate does not carry falls to English.
         let babylonian = meta("babylonian", &["akk"]);
         assert_eq!(
             locale_for_calendar(Some(&ja), &babylonian).to_string(),
@@ -1622,6 +1625,7 @@ mod tests {
         );
         // Asked for the native locale outright.
         assert_eq!(locale_for_calendar(None, &hebrew).to_string(), "he");
+        assert_eq!(locale_for_calendar(None, &umalqura).to_string(), "ar");
         assert_eq!(locale_for_calendar(None, &babylonian).to_string(), "en");
         let gregorian = meta("gregory", &[]);
         assert_eq!(locale_for_calendar(None, &gregorian).to_string(), "en");
