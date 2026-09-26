@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-177 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+182 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 147 of 177 have months and 147 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 152 of 182 have months and 152 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 **Named by** is which civil day names a day that does not begin at midnight: `start` for the one it begins on, as the Julian Day that begins at noon on 1 January 2000 is that day's, and `end` for the one it ends on, as the Hebrew day that begins at sunset on a Friday is Saturday's.
 
@@ -26,9 +26,12 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `ada` | After the Development of Agriculture | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -7999-01-01 | +9999999-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `akan` | Akan Adaduanan (42-day cycle) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | nnanson ×6, weekday ×7 | — |
 | `ansi-date` | ANSI date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | none | — |
+| `antioch-caesarean-era` | Caesarean era of Antioch (from 1 October) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -48-09-29 | 9951-12-12 | no | no | midnight | — | month ×12, weekday ×7 | yes |
+| `antioch-caesarean-era-september` | Caesarean era of Antioch (from 1 September) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -48-08-30 | 9951-11-12 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `archetypes` | Archetypes | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | -7664-02-07 | 6760-02-04 | no | yes | midnight | — | month ×12–13, tweek-day ×10 | yes |
 | `armenian` | Armenian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0552-07-13 | +999887-08-03 | no | no | midnight | — | month ×13, weekday ×7 | yes |
 | `armenian-fixed` | Armenian (fixed, Sarkawag 1084) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0552-08-13 | +10551-10-26 | no | no | midnight | — | month ×13, weekday ×7 | yes |
+| `arsacid-era` | Arsacid era (Babylonian) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -246-04-11 | 0076-03-22 | yes | yes | sunset | end | month ×12–13, weekday ×7 | yes |
 | `assyrian` | Assyrian (modern) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -4749-04-01 | +995250-03-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `aztec-tonalpohualli` | Aztec tonalpōhualli | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | trecena ×13, day-sign ×20 | — |
 | `aztec-xiuhpohualli` | Aztec xiuhpōhualli | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | month ×19 | yes |
@@ -65,6 +68,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `french-republican-arithmetic` | French Republican (arithmetic) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1792-09-22 | +11791-09-19 | no | no | midnight | — | month ×13, decade-day ×10 | yes |
 | `french-republican-arithmetic-richards` | French Republican (Richards's arithmetic) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1792-09-22 | +11791-09-22 | no | no | midnight | — | month ×13, decade-day ×10 | yes |
 | `french-republican-equinox` | French Republican (equinox) | [`hc-calendars-equinox`](../crates/hc-calendars-equinox) | `equinox` | 1792-09-22 | 3001-09-21 | yes | no | midnight | — | month ×13, decade-day ×10 | yes |
+| `gaza-era` | Era of Gaza | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -60-10-26 | 9940-01-08 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `gregory` | Gregorian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `hanke-henry` | Hanke–Henry Permanent | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0001-01-01 | +100000-01-02 | no | no | midnight | — | month ×12–13, weekday ×7 | yes |
 | `hebrew` | Hebrew | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | -3760-09-07 | 6239-09-25 | no | yes | sunset | end | month ×12–13, weekday ×7 | yes |
@@ -176,6 +180,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `rumi` | Rumi | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1840-03-13 | 1925-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `samaritan` | Samaritan | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1900-08-25 | 2100-09-03 | yes | yes | sunset | end | month ×12–13, weekday ×7 | yes |
 | `saptarshi` | Saptarshi (Laukika, Kashmir) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | start | month ×12–13, weekday ×7 | yes |
+| `seleucid-syrian` | Seleucid era (Syrian, from 1 October) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -311-09-26 | 9688-12-09 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `sexagenary` | Sexagenary cycle (干支) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | stem ×10, branch ×12 | — |
 | `soviet-week` | Soviet revolutionary weeks (1929–1940) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1929-10-01 | 1940-06-26 | no | no | midnight | — | month ×12, five-day-week ×5, six-day-week ×6, weekday ×7 | yes |
 | `spanish-era` | Spanish era | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -38-12-30 | Rd(3652499632) | no | no | midnight | — | month ×12, weekday ×7 | yes |

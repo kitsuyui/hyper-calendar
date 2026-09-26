@@ -33,6 +33,7 @@ file does not:
 | `egyptian` | Ancient Egyptian wandering year, in the era of Nabonassar | `egyptian` |
 | `philip_era` | The same wandering year in the Era of Philip of Ptolemy's *Handy Tables*, 424 years less | `philip-era` |
 | `bostran` | The Bostran era of the province of Arabia: Macedonian months from 1 Xanthikos, 22 March, a sixth epagomenal day in years 2, 6, 10 | `bostran-era` |
+| `syro_macedonian` | The Julian year of Roman Syria and Palestine under its eras: the Seleucid era from 1 October 312 BC and Antioch's Caesarean era from 1 October and from 1 September 49 BC, on the Antiochene months, and the era of Gaza from 28 October 61 BC on the Julian months ([docs/systems/seleucid-eras.md](../../docs/systems/seleucid-eras.md)) | `seleucid-syrian`, `antioch-caesarean-era`, `antioch-caesarean-era-september`, `gaza-era` |
 | `armenian` | Ancient Armenian | `armenian` |
 | `armenian_fixed` | Armenian (fixed, Sarkawag 1084) | `armenian-fixed` |
 | `jalali_tusi` | Jalālī (Malekī), **arithmetic**: Ṭūsī's table of long years for years 1–295 from 15 March 1079, the extra days after the twelfth month; refuses the years after the table ([docs/systems/jalali.md](../../docs/systems/jalali.md)) | `jalali-tusi` |

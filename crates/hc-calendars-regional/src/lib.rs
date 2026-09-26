@@ -28,6 +28,7 @@
 //! | [`southeast_asian`] | No calendar: the year layout `thai-lunar` and `khmer` share, and the *suryayatra* quantities of the solar New Year |
 //! | [`sexagenary`] | `sexagenary` — 干支 over years, months and days |
 //! | [`olympiad`] | `olympiad` — the ancient Olympiads over the Julian year, and the IOC's modern Olympiad number as a function |
+//! | [`arsacid`] | `arsacid-era` — the Parthian era on the Babylonian months, the Seleucid year less 64 |
 //!
 //! # Cyclic calendars and the round-trip contract
 //!
@@ -94,6 +95,7 @@ pub(crate) const fn sweep_stride(sampled: usize) -> usize {
 }
 
 pub mod akan;
+pub mod arsacid;
 pub mod aztec;
 pub mod balinese_pawukon;
 pub mod burmese;
@@ -113,6 +115,7 @@ mod vague_year;
 pub mod zapotec;
 
 pub use akan::{AkanCalendar, AkanDate};
+pub use arsacid::{ArsacidCalendar, ArsacidDate};
 pub use aztec::{
     AztecTonalpohualliCalendar, AztecTonalpohualliDate, AztecXiuhpohualliCalendar,
     AztecXiuhpohualliDate,
@@ -199,6 +202,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::ThaiLunarCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::KhmerCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::OlympiadCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::ArsacidCalendar)));
     }
 }
 
@@ -207,7 +211,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 34;
+const CALENDAR_COUNT: usize = 35;
 
 #[cfg(test)]
 mod tests {
@@ -288,6 +292,7 @@ mod tests {
                 ThaiLunarCalendar,
                 KhmerCalendar,
                 OlympiadCalendar,
+                ArsacidCalendar,
             );
         }
     }
@@ -449,7 +454,8 @@ mod tests {
         let rd = gregorian::to_fixed(2026, 9, 21).expect("in range");
         let rendered = registry.describe_day(rd);
         // Every calendar answers; the ones that refuse the day are the
-        // Korean Empire's, kept only from 1896 to 1910, and the Qing eras'.
+        // Korean Empire's, kept only from 1896 to 1910, the Qing eras', and
+        // the Arsacid era's, which ends with `babylonian`'s record in 76 CE.
         assert_eq!(rendered.len(), registry.len());
         let converted = rendered.iter().filter(|(_, fields)| fields.is_ok()).count();
         let supporting = registry.metas().filter(|meta| meta.supports(rd)).count();
@@ -459,7 +465,7 @@ mod tests {
             .filter(|(_, fields)| fields.is_err())
             .map(|(id, _)| id.0)
             .collect();
-        assert_eq!(refusing, ["korean-regnal", "chinese-regnal"]);
+        assert_eq!(refusing, ["korean-regnal", "chinese-regnal", "arsacid-era"]);
 
         let japanese = registry
             .get(CalendarId("japanese"))
@@ -482,12 +488,13 @@ mod tests {
             assert!(!meta.english_name.is_empty());
             // Only the era calendars over a lunisolar year carry intercalary
             // months — the Japanese, in the lunisolar half of its range, and
-            // the Qing eras over the Chinese calendar — and the three Theravada
-            // lunisolar calendars.
+            // the Qing eras over the Chinese calendar, the Arsacid era over the
+            // Babylonian — and the three Theravada lunisolar calendars.
             assert!(
                 !meta.has_leap_months
                     || meta.id.as_str().starts_with("japanese")
                     || meta.id.as_str() == "chinese-regnal"
+                    || meta.id.as_str() == "arsacid-era"
                     || meta.id.as_str() == "burmese"
                     || meta.id.as_str() == "thai-lunar"
                     || meta.id.as_str() == "khmer"

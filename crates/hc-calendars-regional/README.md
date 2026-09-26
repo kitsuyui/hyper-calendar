@@ -43,6 +43,7 @@ lunar calendars are such counts, and are here as regional calendars.
 | `khmer` | The Khmer *Chhankitek*: the leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
 | `sexagenary` | 干支 over years, months and days |
 | `olympiad` | The ancient Olympiads over the Julian year, from 776 BC, as Reingold and Dershowitz count them; the IOC's modern Olympiad number from 1896 as a function ([docs/systems/olympiads.md](../../docs/systems/olympiads.md)) |
+| `arsacid` | The Arsacid era on the Babylonian months, `babylonian`'s Seleucid year less 64, AE 1 to 322 ([docs/systems/seleucid-eras.md](../../docs/systems/seleucid-eras.md)) |
 
 `register_all(&mut CalendarRegistry)` inserts every calendar in the table,
 behind the `alloc` feature, exactly as `hc-calendars-solar` does;

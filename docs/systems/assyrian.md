@@ -87,8 +87,10 @@ year 6776 ends on 31 Adar, 31 March 2027, and 6777 opens on 1 April 2027.
 - **Not carried:**
   - *The ancient Assyrian calendar* of *limmu* years and lunar months,
     which the roadmap lists separately and which is a reconstruction.
-  - *The Seleucid era*, which is a year count on the same months and
-    would be its own identifier if a source were read for its use.
+  - *The Seleucid era*, which is a year count on the Julian year and is
+    its own identifier, `seleucid-syrian`, under the Macedonian month names
+    of its Greek inscriptions; the Syriac month names it was also written
+    with are not carried there ([seleucid-eras.md](seleucid-eras.md)).
   - *The Akitu festival's length and rites*, which are an observance.
 
 ## Accuracy

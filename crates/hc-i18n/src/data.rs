@@ -159,6 +159,7 @@ const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("masonic-anno-ordinis"),
     CalendarId("ada"),
     CalendarId("olympiad"),
+    CalendarId("gaza-era"),
 ];
 
 /// A month cycle from names already shaped into widths and contexts.
@@ -190,8 +191,9 @@ const ISLAMIC_CALENDARS: &[CalendarId] = &[
 /// predecessor, which numbers its months and years the same way.
 const HEBREW_CALENDARS: &[CalendarId] = &[CalendarId("hebrew"), CalendarId("hebrew-observational")];
 
-/// The Babylonian calendar of the Seleucid era.
-const BABYLONIAN_CALENDARS: &[CalendarId] = &[CalendarId("babylonian")];
+/// The Babylonian calendar of the Seleucid era, and the Arsacid era on
+/// the same months, which names its era for itself.
+const BABYLONIAN_CALENDARS: &[CalendarId] = &[CalendarId("babylonian"), CalendarId("arsacid-era")];
 
 /// The Thai Buddhist calendar, which counts years its own way and names
 /// the months as the Gregorian calendar does — so it appears both here,
@@ -2374,7 +2376,7 @@ const EN_CALENDARS: &[CalendarNames] = &[
         eras: EraNames {
             codes: &["se"],
             names: widths(&["SE"], &[], &[]),
-            calendars: &[],
+            calendars: &[CalendarId("babylonian")],
         },
         quarters: ContextualNames::EMPTY,
         templates: DateTemplates::NONE,
@@ -3070,6 +3072,25 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &[],
         &["bostran"],
         &["Bostran era"],
+    ),
+    // The Julian eras of Syria and Palestine and the Parthian era; the
+    // Antiochene months are the calendars' own shape names.
+    dated(&[CalendarId("seleucid-syrian")], &[], &["se"], &["SE"]),
+    dated(
+        &[
+            CalendarId("antioch-caesarean-era"),
+            CalendarId("antioch-caesarean-era-september"),
+        ],
+        &[],
+        &["antioch"],
+        &["Era of Antioch"],
+    ),
+    dated(&[CalendarId("gaza-era")], &[], &["gaza"], &["Era of Gaza"]),
+    dated(
+        &[CalendarId("arsacid-era")],
+        &[],
+        &["arsacid"],
+        &["Arsacid era"],
     ),
     dated(&[CalendarId("era-fascista")], &[], &["ef"], &["E.F."]),
     dated(&[CalendarId("masonic-anno-lucis")], &[], &["al"], &["A.L."]),
