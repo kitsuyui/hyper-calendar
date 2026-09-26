@@ -19,16 +19,23 @@
 //! # Days, not instants
 //!
 //! A Julian Date proper has a fraction: JD 2440587.5 is midnight and
-//! JD 2440588.0 is noon, because Scaliger's day starts at noon. A *day
+//! JD 2440588.0 is noon, because the Julian Day is counted "since noon
+//! Universal Time on January 1, 4713 BC" (U.S. Naval Observatory, "Julian
+//! Date Converter", <https://aa.usno.navy.mil/data/JulianDate>, retrieved
+//! 2026-09-26; keyed in `docs/references.bib` as `usno-julian-date`). A *day
 //! number* has no fraction, and the conversion here maps a whole JDN to the
-//! whole calendar day that *begins* at the preceding midnight — the
-//! convention of `Rd::to_julian_day_number`. For fractional work use
+//! civil day on whose noon it begins — the convention of
+//! `Rd::to_julian_day_number`, and the one the day boundary states as
+//! [`DayNaming::ByStart`]: JDN 2 451 545 begins at noon on 1 January 2000
+//! and is that civil day, so 13:00 that afternoon is JDN 2 451 545 and
+//! 11:00 that morning is still JDN 2 451 544. For fractional work use
 //! [`hc_calendar::fixed::Moment::to_julian_date`], which keeps the half-day
 //! offset. MJD needs no such care: it was defined with a half-day shift
 //! precisely so that it rolls over at midnight.
 
 use hc_calendar::{
-    Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
+    Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, DayBoundary,
+    DayNaming, Rd, YearKind,
 };
 
 /// The Julian Day Number of the Rata Die epoch, `0001-01-01` Gregorian.
@@ -104,9 +111,10 @@ impl Calendar for JulianDayCalendar {
 
     /// The Julian Day begins at noon, not midnight. Astronomers count that
     /// way so that one night's observations carry a single date, and the
-    /// convention has outlived the reason.
-    fn day_boundary(&self) -> hc_calendar::DayBoundary {
-        hc_calendar::DayBoundary::Noon
+    /// convention has outlived the reason. It is named by the civil day on
+    /// whose noon it begins, as the module documentation sets out.
+    fn day_boundary(&self) -> DayBoundary {
+        DayBoundary::Noon(DayNaming::ByStart)
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -159,8 +167,8 @@ impl Calendar for ModifiedJulianDayCalendar {
     /// shift. It is recorded here because the neighbouring calendar
     /// differs, and because half the confusion between the two counts is
     /// about which half of the day they mean.
-    fn day_boundary(&self) -> hc_calendar::DayBoundary {
-        hc_calendar::DayBoundary::Midnight
+    fn day_boundary(&self) -> DayBoundary {
+        DayBoundary::Midnight
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -229,6 +237,41 @@ mod tests {
             ModifiedJulianDayCalendar.from_fixed(rd),
             Ok(ModifiedJulianDay(51_544))
         );
+    }
+
+    #[test]
+    fn one_pm_on_the_first_of_january_2000_is_julian_day_2451545() {
+        use hc_calendar::CivilTime;
+        use hc_calendar::fixed::Moment;
+
+        let civil = gregorian::to_fixed(2000, 1, 1).unwrap();
+        let boundary = JulianDayCalendar.day_boundary();
+        assert_eq!(boundary, DayBoundary::Noon(DayNaming::ByStart));
+        // 13:00 UT is JD 2451545.04…: the Julian Day that began at noon of
+        // the same civil day.
+        let one_pm = CivilTime::hms(13, 0, 0).unwrap();
+        let offset = boundary.civil_day_offset(one_pm).unwrap();
+        assert_eq!(offset, 0);
+        assert_eq!(
+            JulianDayCalendar.from_fixed(civil + offset),
+            Ok(JulianDayNumber(2_451_545))
+        );
+        let jd = Moment(civil.0 as f64 + one_pm.day_fraction()).to_julian_date();
+        assert_eq!(hc_core::math::floor(jd) as i64, 2_451_545);
+        // 11:00 UT is JD 2451544.95…, the Julian Day of 31 December 1999.
+        let eleven_am = CivilTime::hms(11, 0, 0).unwrap();
+        let offset = boundary.civil_day_offset(eleven_am).unwrap();
+        assert_eq!(offset, -1);
+        assert_eq!(
+            JulianDayCalendar.from_fixed(civil + offset),
+            Ok(JulianDayNumber(2_451_544))
+        );
+        let jd = Moment(civil.0 as f64 + eleven_am.day_fraction()).to_julian_date();
+        assert_eq!(hc_core::math::floor(jd) as i64, 2_451_544);
+        // The Modified Julian Date turns at midnight and needs no offset.
+        let mjd = ModifiedJulianDayCalendar.day_boundary();
+        assert_eq!(mjd.civil_day_offset(eleven_am), Some(0));
+        assert_eq!(mjd.civil_day_offset(one_pm), Some(0));
     }
 
     #[test]

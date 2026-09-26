@@ -329,7 +329,12 @@ weeks.
 - **`hindu-lunar`**, the amānta calendar, as `HinduLunarCalendar`, with
   the month as `Month { ordinal, leap }` — adhika Śrāvaṇa is
   `Month::leap(5)` — the tithi 1 to 30 as the day, and `leap_day` for the
-  second day to carry a tithi. `RASHTRIYA`, the registered one, reads the
+  second day to carry a tithi. The day begins at sunrise and is named by
+  the civil day on whose sunrise it begins,
+  `DayBoundary::Sunrise(DayNaming::ByStart)`, as Reingold and Dershowitz
+  read a fixed day at "Sunrise that day" [reingold2018code,
+  `hindu-lunar-from-fixed`]; every calendar of this document that begins
+  at sunrise says the same. `RASHTRIYA`, the registered one, reads the
   day at the Central Station's sunrise with the Lahiri ayanāṃśa; `UJJAIN`
   reads it at Ujjain; `new` takes any place and any ayanāṃśa. The era is
   `Saka`, and `vikrama-year` is an extra field. `new_year`,
@@ -480,7 +485,7 @@ for 2024 and 2025 give the times the tests hold.
 | [wikipedia-indian-national-calendar] | The civil calendar's adoption on 22 March 1957 and the Śaka offset | Yes, 2026-09-25 |
 | [sewell1896] | The four regional rules and their names; kṣaya and adhika tithis; the naming of adhika and kṣaya months; the intervals between expunged months | Yes, 2026-09-25, in the Internet Archive's OCR text; Arts. 28, 32, 45, 48 and 50 |
 | [reingold2018] | The Old Hindu calendars, the Siddhānta's Sun, the amānta rules, Ujjain | Not read directly; the published code was |
-| [reingold2018code] | `hindu-epoch`, `arya-solar-year`, `arya-lunar-month`, `old-hindu-lunar-leap-year?`, `hindu-sine-table`, `hindu-sidereal-year`, `hindu-anomalistic-year`, `hindu-true-position`, `ujjain`, `sidereal-start`, `hindu-lunar-station` | Yes, 2026-09-25 |
+| [reingold2018code] | `hindu-epoch`, `arya-solar-year`, `arya-lunar-month`, `old-hindu-lunar-leap-year?`, `hindu-sine-table`, `hindu-sidereal-year`, `hindu-anomalistic-year`, `hindu-true-position`, `ujjain`, `sidereal-start`, `hindu-lunar-station`, and `hindu-lunar-from-fixed` for the day read at sunrise | Yes, 2026-09-25; `hindu-lunar-from-fixed` 2026-09-26 |
 | [calcal-modern-hindu] | The line-by-line check of the Siddhānta constants the module records | Yes, 2026-09-25: the constants of `modern_hindu.R` are the book's |
 | [wikipedia-hindu-calendar] | The twelve month names in Devanagari | Yes, 2026-09-25 |
 | [wikipedia-adhik-maas] | The 32½-month average, the adhika and nija names, the pūrṇimānta placing of the adhika month | Yes, 2026-09-25 |

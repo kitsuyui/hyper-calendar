@@ -73,7 +73,7 @@ pub mod weekday;
 pub mod registry;
 pub mod shape;
 
-pub use daystart::{DayBoundary, Standing, Usage};
+pub use daystart::{DayBoundary, DayNaming, Standing, Usage};
 pub use error::{CalendarError, CalendarResult};
 pub use fields::{DateFields, Month, YearKind};
 pub use fixed::{Rd, moment_to_rd, rd_to_moment};

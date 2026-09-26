@@ -91,8 +91,10 @@ the sacrifice fell on Wednesday 6 May, as published.
   calculation is of the twentieth century. Outside it the conversion
   refuses.
 - **Native locales** `smp`, Samaritan Hebrew, and `he`.
-- **Day boundary** sunset; the computation places days at the civil day
-  whose daylight they hold, as `hebrew` does.
+- **Day boundary** sunset, named by the civil day the day ends on,
+  `DayBoundary::Sunset(DayNaming::ByEnd)`: the day runs from the
+  preceding sunset [samaritans-net-calendar], and the computation places
+  days at the civil day whose daylight they hold, as `hebrew` does.
 - **Not carried.** The priesthood's own computation, which was not
   read; the festivals as named days (they are the dates the tests
   read); the Samaritan script.

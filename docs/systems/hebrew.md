@@ -213,7 +213,10 @@ constants named; only the 216 years and the 97 minutes are also quoted.
 - **Identifier** `hebrew`, in `hc-calendars-lunar`, with the date as
   `HebrewDate { year, month, day }`, the era code `am`, months numbered from
   Tishrei with Adar I as `Month::leap(5)`, and the day beginning at
-  sunset (`DayBoundary::Sunset`).
+  sunset and named by the civil day it ends on
+  (`DayBoundary::Sunset(DayNaming::ByEnd)`): Rosh Hashanah 5784 begins at
+  sunset on Friday 15 September 2023 and is Saturday the 16th
+  [hebcal-5784].
 - **Range** AM 1 to AM 9 999: RD −1 373 427 (7 October 3761 BCE Julian)
   to the last day of Elul 9 999 (25 September 6239). The lower bound is
   the epoch; the upper is the library's choice and not a limit of the
@@ -308,7 +311,7 @@ bound, which is a choice rather than a finding.
 | [maimonides-kiddush-hachodesh] | Chapter 6: the molad interval and the part, the solar year and the deficit of a lunar year, BaHaRaD, the seven leap years. Chapter 7: the four dehiyyot with their thresholds (halachot 1, 2, 4 and 5) and the reason (7). Chapter 8: the six year lengths, the two months that vary and the month order (halachot 5 and 8) | Yes, 2026-09-25, in Sefaria's English translation |
 | [reingold2018] | The arithmetic: the closed forms and the year-length formulation of the last two dehiyyot | Not read directly; the published code was |
 | [reingold2018code] | `birkath-ha-hama`, `fixed-from-coptic`, `coptic-epoch`, `hebrew-epoch`, `hebrew-leap-year?`, `last-month-of-hebrew-year`, `molad`, `hebrew-calendar-elapsed-days`, `hebrew-year-length-correction`, `hebrew-new-year`, `days-in-hebrew-year`, `long-marheshvan?`, `short-kislev?`, `last-day-of-hebrew-month`, `fixed-from-hebrew`, `hebrew-from-fixed`, `mean-synodic-month`, and the month constants | Yes, 2026-09-25; `birkath-ha-hama`, `fixed-from-coptic` and `coptic-epoch` 2026-09-26 |
-| [hebcal-5784] | Rosh Hashanah and Pesach of 5784; that 5784 has Adar I and Adar II | Yes, 2026-09-25 |
+| [hebcal-5784] | Rosh Hashanah and Pesach of 5784, each from the sunset before its day; that 5784 has Adar I and Adar II | Yes, 2026-09-25 |
 | [wikipedia-hebrew-calendar] | The epoch's Julian date; the six year lengths and their names; the mean year of 365.2468 days and the day per 216 years; the 97 minutes of molad drift | Yes, 2026-09-25 |
 | [wikipedia-birkat-hachamah] | The birkat hachama dates of 1897 to 2149 and their weekday | Yes, 2026-09-26 |
 | [wikipedia-hillel-ii] | The tradition of 358/9 CE and its source; the Geniza letter of 835/6; the final form by 922–924; Stern's reading | Yes, 2026-09-25 |

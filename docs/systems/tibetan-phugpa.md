@@ -199,8 +199,15 @@ day 18; there is no day 19, and 12 March is day 20. The module marks the
   that the same calendar is produced as from Henning's epoch of 1927 or the
   almanacs' of 1987, as Janson shows (Remark 5).
 - **The day boundary** at 05:00 local mean solar time, `DAWN`, reported
-  through `Calendar::day_boundary` so that a caller placing an instant
-  knows when the Tibetan day turns.
+  through `Calendar::day_boundary` as
+  `DayBoundary::LocalTime(DAWN, DayNaming::ByStart)` so that a caller
+  placing an instant knows when the Tibetan day turns and which civil day
+  names it: the one on whose dawn it begins. Janson numbers a calendar day
+  by the Julian Day Number of that civil day [janson2014, §2] and treats
+  the true date as a local Julian date whose integer values fall at mean
+  dawn, as the astronomical one's fall at noon [janson2014, Remark 6], so
+  Losar 2024 runs from the dawn of 10 February to the dawn of the 11th,
+  and the small hours of 10 February are still the last day of 2023.
 - **The year's names**: `year_name` gives element, gender and animal,
   `prabhava` the cycle and the year in it; the Sanskrit and Tibetan names
   of the sixty years are not carried.
@@ -287,7 +294,7 @@ depend on the choice.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [janson2014] | The whole arithmetic: the epoch, (5.1)–(5.41), the mean motions and tables (7.1)–(7.24), the day rule (8.1), Remarks 5, 6, 8, 14, 15 and 17, the sixty-year cycle, the mean year, Appendix A on the other traditions, and Tables 1, 7 and 8 | Yes, 2026-09-25, from the TeX source on arXiv, the PDF not being renderable here; the module read the PDF 2026-09-22. Equation numbers are those of the arXiv version |
+| [janson2014] | The whole arithmetic: the epoch, (5.1)–(5.41), the mean motions and tables (7.1)–(7.24), the day rule (8.1), the Julian Day Number of each day in §2, Remarks 5, 6, 8, 14, 15 and 17, the sixty-year cycle, the mean year, Appendix A on the other traditions, and Tables 1, 7 and 8 | Yes, 2026-09-25, from the TeX source on arXiv, the PDF not being renderable here; the module read the PDF 2026-09-22. Equation numbers are those of the arXiv version |
 | [henning2007] | Mean daybreak at 5 a.m., the Phugpa and Tsurphu histories and epoch data, the holidays of Appendix II | Not read; cited through Janson |
 | [kalacakra-org] | Henning's epoch data, calendar archive and open-source Phugpa and Tsurphu programs | Not read: on 2026-09-25 the host presented a certificate for another domain |
 | [tnp-losar] | Losar 2023–2027 with the year names, Saga Dawa Düchen 2024 | Yes, 2026-09-25 |
@@ -313,6 +320,7 @@ order and agree.
 `month_of_count`, `is_leap_year`, `leap_month_of`, `new_year`,
 `year_name`, `prabhava`, `from_fixed` and `to_fixed`. Anchors:
 `the_day_begins_at_mean_daybreak`,
+`losar_begins_at_the_dawn_of_its_civil_day`,
 `the_sources_own_dates_and_losar_of_2000_are_reproduced`,
 `losar_falls_on_the_published_days_of_recent_years`,
 `leap_years_follow_the_sixty_five_year_rule`,

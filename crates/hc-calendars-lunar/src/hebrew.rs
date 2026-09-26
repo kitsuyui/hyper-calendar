@@ -610,9 +610,12 @@ impl Calendar for HebrewCalendar {
     }
 
     /// The Hebrew day begins at sunset, so a Hebrew date covers the second
-    /// half of one civil day and the first half of the next.
+    /// half of one civil day and the first half of the next, and is named
+    /// by the next: Rosh Hashanah 5784 began at sunset on Friday
+    /// 15 September 2023 and is Saturday the 16th (Hebcal, "Jewish Holidays
+    /// 5784", retrieved 2026-09-25), the fixed day this calendar gives it.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
-        hc_calendar::DayBoundary::Sunset
+        hc_calendar::DayBoundary::Sunset(hc_calendar::DayNaming::ByEnd)
     }
 
     fn meta(&self) -> CalendarMeta {

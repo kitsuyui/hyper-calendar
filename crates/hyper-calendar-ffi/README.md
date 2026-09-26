@@ -141,11 +141,12 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 `hc_describe_day(fixed, locale, buffer, capacity, written)` needs the
 `calendars` feature and writes one line per calendar the facade registers,
-in registry order, in the seventeen columns the WebAssembly module's README
+in registry order, in the eighteen columns the WebAssembly module's README
 lists: identifier, English name, era code, era label, year, month ordinal,
 leap-month flag, month label, day, leap-day flag, extras, error code, error
-name, standing, day boundary, the date as the locale writes it and the
-locale used. A calendar that cannot name the day is still a line, with its
+name, standing, day boundary, the date as the locale writes it, the
+locale used, and which civil day names a day that does not begin at
+midnight — `start`, `end`, or empty for midnight. A calendar that cannot name the day is still a line, with its
 date columns, standing and formatted date empty and the error code and
 name — the stable ones `CalendarError` gives every refusal — saying why.
 `locale` is a NUL-terminated BCP 47 tag, the word `native` for each

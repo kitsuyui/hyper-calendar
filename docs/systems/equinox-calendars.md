@@ -191,8 +191,8 @@ without translation.
 
 **What each carries.** The Badíʿ calendars carry the nineteen months and
 Ayyám-i-Há as month 0, the Váḥid and Kull-i-Shayʼ cycles, the fast, and a
-day boundary at sunset; a date names the Gregorian day the Badíʿ day ends
-in. The astronomical one also carries the Twin Holy Birthdays and
+day boundary at sunset, `DayBoundary::Sunset(DayNaming::ByEnd)`; a date
+names the Gregorian day the Badíʿ day ends in. The astronomical one also carries the Twin Holy Birthdays and
 `new_year_margin`, the minutes between the equinox and the deciding
 sunset. The French calendars carry the twelve months with the
 complementary days as month 13, the *décade* and its day names, and the

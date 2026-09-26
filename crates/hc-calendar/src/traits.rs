@@ -284,12 +284,15 @@ pub trait Calendar {
         None
     }
 
-    /// Where this calendar's day begins.
+    /// Where this calendar's day begins, and which civil day names it.
     ///
     /// Defaults to midnight, which is right for most calendars and for every
     /// purely arithmetic one. Override it where it is not: the Julian Day
-    /// begins at noon, the Hebrew and Islamic days at sunset, the traditional
-    /// Chinese day at 23:00.
+    /// begins at noon and is named by the civil day it begins on, the Hebrew
+    /// and Islamic days begin at sunset and are named by the civil day they
+    /// end on, the Tibetan day begins at dawn. An override states the
+    /// [`DayNaming`](crate::DayNaming) with the boundary and cites the source
+    /// for it.
     ///
     /// This names the convention. Resolving a solar boundary to an instant
     /// needs a location and an ephemeris, which is `hc-astro`'s job — see

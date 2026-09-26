@@ -408,7 +408,10 @@ mod calendars {
     /// code, the error name, the standing (`in-use`, `proleptic`, `extended`
     /// or `unrecorded`), where the calendar's day begins (`midnight`, `noon`,
     /// `sunset`, `sunrise` or `local-time HH:MM:SS`), the date as the locale
-    /// writes it (令和8年9月21日, 癸卯年闰二月初一), and the locale used. A
+    /// writes it (令和8年9月21日, 癸卯年闰二月初一), the locale used, and
+    /// which civil day names a day that does not begin at midnight (`start`
+    /// for the one it begins on, `end` for the one it ends on, empty for
+    /// midnight). A
     /// calendar that refuses the day is still a line: its date columns,
     /// standing and formatted date are empty and the error code and name say
     /// why. `locale` is a BCP 47 tag, or `native` for each calendar's own
@@ -2175,14 +2178,17 @@ mod tests {
         }
 
         #[test]
-        fn every_registered_calendar_is_a_line_with_seventeen_columns() {
+        fn every_registered_calendar_is_a_line_with_eighteen_columns() {
             let rows = describe("en");
             assert_eq!(rows.len(), hc::registry().len());
             let ids: Vec<&str> = hc::registry().metas().map(|meta| meta.id.0).collect();
             let listed: Vec<&str> = rows.iter().map(|row| row[0].as_str()).collect();
             assert_eq!(listed, ids, "registry order");
             for row in &rows {
-                assert_eq!(row.len(), 17, "{row:?}");
+                assert_eq!(row.len(), 18, "{row:?}");
+                // A midnight start needs no naming; every other one has it.
+                assert_eq!(row[17].is_empty(), row[14] == "midnight", "{row:?}");
+                assert!(["", "start", "end"].contains(&row[17].as_str()), "{row:?}");
                 // Every calendar states where its day begins and which
                 // locale answered.
                 assert!(!row[14].is_empty(), "{row:?}");
@@ -2217,7 +2223,8 @@ mod tests {
                     "in-use",
                     "midnight",
                     "令和8年9月21日",
-                    "ja"
+                    "ja",
+                    ""
                 ]
             );
             let gregorian = row(&rows, "gregory");
@@ -2230,6 +2237,23 @@ mod tests {
             let hebrew = row(&rows, "hebrew");
             assert_eq!(hebrew[16], "en");
             assert!(hebrew[7].is_ascii(), "{hebrew:?}");
+            // The last column names the civil day a day is named after: the
+            // Hebrew day that begins at sunset by the one it ends on, the
+            // Julian Day that begins at noon by the one it begins on.
+            assert_eq!(
+                (hebrew[14].as_str(), hebrew[17].as_str()),
+                ("sunset", "end")
+            );
+            let julian_day = row(&rows, "julian-day");
+            assert_eq!(
+                (julian_day[14].as_str(), julian_day[17].as_str()),
+                ("noon", "start")
+            );
+            let tibetan = row(&rows, "tibetan");
+            assert_eq!(
+                (tibetan[14].as_str(), tibetan[17].as_str()),
+                ("local-time 05:00:00", "start")
+            );
             let rows = describe("en");
             assert_eq!(row(&rows, "gregory")[7], "September");
             assert_eq!(row(&rows, "gregory")[15..17], ["September 21, 2026", "en"]);

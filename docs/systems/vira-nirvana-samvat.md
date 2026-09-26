@@ -64,6 +64,9 @@ Kārtika. The date is 13 Chaitra 2551, which is how the calendar heads it.
 - **Identifier** `vira-nirvana-samvat`, `ViraNirvanaCalendar::RASHTRIYA`:
   the amānta calendar of `hindu-lunar` read at the Central Station's
   sunrise with the Lahiri ayanamsa, the *Rashtriya Panchang*'s reckoning.
+  The day begins at sunrise and is named by the civil day on whose
+  sunrise it begins, `DayBoundary::Sunrise(DayNaming::ByStart)`, as the
+  amānta calendar's is [reingold2018code, `hindu-lunar-from-fixed`].
   `ViraNirvanaCalendar::new` takes any other amānta calendar — another
   city's sunrise, for a local almanac.
 - **Months** 1 for Kārtika through 12 for Āśvina, an intercalary month as
@@ -109,6 +112,7 @@ can be read a day apart by an almanac computed elsewhere, as
 | [sircar1965] | The same, as Wikipedia cites it | Not read |
 | [jain-sagarmal-nirvana] | The other intervals of the *Tiloya-paṇṇatti*; the argument for 467 BCE; Mukhtar and Kalyāṇa Vijaya upholding 527 BCE | A summary of the paper, 2026-09-26; the paper itself was not read |
 | [oshwal-2025] | The year numbers 2551 and 2552, New Year's Day 2025 and the festivals' tithis | Yes, the PDF, 2026-09-26 |
+| [reingold2018code] | `hindu-lunar-from-fixed`: a fixed day's date read at its own sunrise | Yes, 2026-09-26 |
 
 ## Code
 

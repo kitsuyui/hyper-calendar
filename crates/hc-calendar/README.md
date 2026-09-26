@@ -51,7 +51,12 @@ behind one interface.
 - **Where its day begins, and when it was in use.** `day_boundary` and `usage`
   default to midnight and "unrecorded"; a calendar that differs — the Julian
   Day at noon, the Hebrew day at sunset, the Hindu day at sunrise — overrides
-  them, so the override itself is the documentation. A period of use names
+  them, so the override itself is the documentation. A boundary other than
+  midnight carries a `DayNaming`, because a day that straddles two civil
+  days is named by one of them: the Julian Day by the civil day on whose
+  noon it begins, the Hebrew day by the civil day on which it ends.
+  `DayBoundary::civil_day_offset` turns a wall-clock reading into the
+  calendar's day from that. A period of use names
   its source, and can end twice: the Chinese calendar's civil use ended in
   1912 and its use for the festivals has not, which `Usage::civil_until`
   carries beside `Usage::until`.

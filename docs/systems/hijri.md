@@ -241,7 +241,12 @@ module's own functions and are the ones the tests rely on.
 
 - **Identifiers**, all in `hc-calendars-lunar`, all with the date as
   `IslamicDate { year, month, day }`, the era code `ah`, and the day beginning at
-  sunset:
+  sunset and named by the civil day it ends on,
+  `DayBoundary::Sunset(DayNaming::ByEnd)`: the crescent that opens a month
+  is judged "on eve of" its first day, at the sunset of the civil day
+  before [reingold2018code, `phasis-on-or-before`, `saudi-criterion`]. The
+  tabular calendars have no observed evening and state the same boundary,
+  so every variant agrees:
 
   | Identifier | What it is | Parameters |
   | --- | --- | --- |

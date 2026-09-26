@@ -59,9 +59,12 @@ impl Calendar for IslamicAstronomicalCalendar {
     }
 
     /// The Islamic day begins at sunset, which is also why the month begins
-    /// with a crescent seen after one.
+    /// with a crescent seen after one. It is named by the civil day it ends
+    /// on: the crescent is looked for "on eve of" the month's first day, at
+    /// the sunset of the civil day before (Reingold and Dershowitz,
+    /// `calendar-code2`, `phasis-on-or-before` and `saudi-criterion`).
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
-        hc_calendar::DayBoundary::Sunset
+        hc_calendar::DayBoundary::Sunset(hc_calendar::DayNaming::ByEnd)
     }
 
     fn meta(&self) -> CalendarMeta {

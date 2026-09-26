@@ -495,13 +495,16 @@ impl Calendar for TabularIslamicCalendar {
     }
 
     /// The Islamic day begins at sunset, which is also why the month begins
-    /// with a crescent seen after one.
+    /// with a crescent seen after one. It is named by the civil day it ends
+    /// on: the crescent is looked for "on eve of" the month's first day, at
+    /// the sunset of the civil day before (Reingold and Dershowitz,
+    /// `calendar-code2`, `phasis-on-or-before` and `saudi-criterion`).
     ///
     /// Declared here, on the engine, rather than only on the wrappers in
     /// `islamic_civil` and `islamic_astronomical`, so that every tabular
     /// variant a caller builds, or this crate registers, says sunset too.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
-        hc_calendar::DayBoundary::Sunset
+        hc_calendar::DayBoundary::Sunset(hc_calendar::DayNaming::ByEnd)
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -583,11 +586,14 @@ mod tests {
     /// wrapper type.
     #[test]
     fn a_tabular_hijri_day_begins_at_sunset() {
-        use hc_calendar::DayBoundary;
-        assert_eq!(FATIMID.day_boundary(), DayBoundary::Sunset);
+        use hc_calendar::{DayBoundary, DayNaming};
+        assert_eq!(
+            FATIMID.day_boundary(),
+            DayBoundary::Sunset(DayNaming::ByEnd)
+        );
         assert_eq!(
             TabularIslamicCalendar::default().day_boundary(),
-            DayBoundary::Sunset
+            DayBoundary::Sunset(DayNaming::ByEnd)
         );
         let custom = TabularIslamicCalendar::new(
             CalendarId("test-only"),
@@ -595,7 +601,7 @@ mod tests {
             CIVIL_EPOCH,
             LeapYearRule::HABASH_AL_HASIB,
         );
-        assert_eq!(custom.day_boundary(), DayBoundary::Sunset);
+        assert_eq!(custom.day_boundary(), DayBoundary::Sunset(DayNaming::ByEnd));
     }
 
     /// The rule the community states: divide by 30, and these eleven

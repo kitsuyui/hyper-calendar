@@ -101,7 +101,7 @@ export const COLUMNS = Object.freeze({
   describeDay: Object.freeze([
     "id", "name", "era", "era label", "year", "month", "leap month", "month label",
     "day", "leap day", "extras", "error code", "error name", "standing",
-    "day boundary", "formatted", "locale used",
+    "day boundary", "formatted", "locale used", "day named by",
   ]),
   calendarUnits: Object.freeze([
     "start", "end", "label", "leap", "standing", "error code", "error name", "locale used",
@@ -403,7 +403,7 @@ function optionalFlag(cell, what) {
 function describedDay(cells) {
   const [
     id, name, era, eraLabel, year, month, leapMonth, monthLabel, day, leapDay,
-    extras, errorCode, errorName, standing, dayBoundary, formatted, localeUsed,
+    extras, errorCode, errorName, standing, dayBoundary, formatted, localeUsed, dayNamedBy,
   ] = cells;
   /** @type {Record<string, string>} */
   const extra = {};
@@ -433,7 +433,24 @@ function describedDay(cells) {
     dayBoundary,
     formatted: optional(formatted),
     localeUsed,
+    dayNamedBy: dayNaming(dayNamedBy),
   };
+}
+
+/**
+ * The `day named by` cell: `start`, `end`, or `null` for a midnight start.
+ *
+ * @param {string} cell
+ * @returns {import("./hyper-calendar.d.ts").DayNamedBy | null}
+ */
+function dayNaming(cell) {
+  if (cell === "") {
+    return null;
+  }
+  if (cell === "start" || cell === "end") {
+    return cell;
+  }
+  throw new HcError("malformed", { message: `a day naming that is neither start nor end: ${JSON.stringify(cell)}` });
 }
 
 /**

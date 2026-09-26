@@ -233,9 +233,13 @@ impl Calendar for OldHinduSolarCalendar {
         Ok(false)
     }
 
-    /// The day begins at mean sunrise, a quarter day after midnight.
+    /// The day begins at mean sunrise, a quarter day after midnight, and is
+    /// named by the civil day on whose sunrise it begins: a fixed day's date
+    /// is read at "Sunrise on Hindu date", six hours after its midnight
+    /// (Reingold and Dershowitz, `calendar-code2`,
+    /// `old-hindu-solar-from-fixed`).
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
-        hc_calendar::DayBoundary::Sunrise
+        hc_calendar::DayBoundary::Sunrise(hc_calendar::DayNaming::ByStart)
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -471,9 +475,11 @@ impl Calendar for OldHinduLunarCalendar {
         Ok(OldHinduLunarCalendar::is_leap_year(*self, year))
     }
 
-    /// The day begins at mean sunrise, a quarter day after midnight.
+    /// The day begins at mean sunrise, a quarter day after midnight, and is
+    /// named by the civil day on whose sunrise it begins (Reingold and
+    /// Dershowitz, `calendar-code2`, `old-hindu-lunar-from-fixed`).
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
-        hc_calendar::DayBoundary::Sunrise
+        hc_calendar::DayBoundary::Sunrise(hc_calendar::DayNaming::ByStart)
     }
 
     fn meta(&self) -> CalendarMeta {

@@ -45,7 +45,7 @@ use core::fmt;
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, CivilTime, DateFields,
-    DayBoundary, Month, Rd, YearKind,
+    DayBoundary, DayNaming, Month, Rd, YearKind,
 };
 
 /// Mean daybreak, 05:00 local mean solar time, when the Tibetan calendar day
@@ -486,9 +486,16 @@ impl Calendar for TibetanCalendar {
         Ok(is_leap_year(year))
     }
 
-    /// Mean daybreak, [`DAWN`]: the Tibetan day runs from dawn to dawn.
+    /// Mean daybreak, [`DAWN`]: the Tibetan day runs from dawn to dawn, and
+    /// is named by the civil day on whose dawn it begins. Janson numbers
+    /// each calendar day by the Julian Day Number of that civil day and
+    /// treats the true date as "a kind of local Julian date" that takes
+    /// "integer values at local (mean) dawn" where the astronomical one
+    /// takes them at noon (Janson, "Tibetan calendar mathematics", Section 2 and
+    /// Remark 6), so the hours before dawn belong to the day before, as the
+    /// morning belongs to the previous Julian Day.
     fn day_boundary(&self) -> DayBoundary {
-        DayBoundary::LocalTime(DAWN)
+        DayBoundary::LocalTime(DAWN, DayNaming::ByStart)
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -540,8 +547,27 @@ mod tests {
     fn the_day_begins_at_mean_daybreak() {
         assert_eq!(
             TibetanCalendar.day_boundary(),
-            DayBoundary::LocalTime(CivilTime::hms(5, 0, 0).unwrap())
+            DayBoundary::LocalTime(CivilTime::hms(5, 0, 0).unwrap(), DayNaming::ByStart)
         );
+    }
+
+    /// Losar 2024 is 10 February: from its dawn on, and until the next
+    /// dawn, but not in the small hours before it, which are still the last
+    /// day of 2023.
+    #[test]
+    fn losar_begins_at_the_dawn_of_its_civil_day() {
+        let boundary = TibetanCalendar.day_boundary();
+        let tibetan = |civil: Rd, hour: u8| {
+            let offset = boundary
+                .civil_day_offset(CivilTime::hms(hour, 0, 0).unwrap())
+                .unwrap();
+            let date = from_fixed(civil + offset).expect("in range");
+            (date.year, date.month.ordinal, date.day)
+        };
+        assert_eq!(tibetan(greg(2024, 2, 10), 5), (2024, 1, 1));
+        assert_eq!(tibetan(greg(2024, 2, 10), 23), (2024, 1, 1));
+        assert_eq!(tibetan(greg(2024, 2, 11), 4), (2024, 1, 1));
+        assert_eq!(tibetan(greg(2024, 2, 10), 4).0, 2023);
     }
 
     fn greg(year: i64, month: u8, day: u8) -> Rd {

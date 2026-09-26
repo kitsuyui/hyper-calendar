@@ -14,9 +14,10 @@
 //! The day, or "night", begins at noon, "so that the night is not
 //! interrupted by a date change". This library maps a yerm date to the
 //! civil day on whose noon it begins, which is how Palmen's tables give it
-//! ("begins noon 2016-09-02") and how the Julian Day Number maps its own
-//! noon-to-noon days: the morning of the next civil day belongs to the
-//! same yerm date. The day boundary says noon.
+//! ("begins noon 2016-09-02", "2002-06-10 pm = 21-05(03(30") and how the
+//! Julian Day Number maps its own noon-to-noon days: the morning of the
+//! next civil day belongs to the same yerm date. The day boundary says
+//! noon, named by its start ([`DayNaming::ByStart`]).
 //!
 //! Palmen numbers the cycles from cycle 1 on Julian Day 1 948 379, noon of
 //! 16 May 622 Julian, so that the cycle of the present day, which began at
@@ -48,8 +49,8 @@
 
 use hc_calendar::shape::{CycleShape, MONTH, WEEKDAY};
 use hc_calendar::{
-    Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, DayBoundary, Rd,
-    YearKind,
+    Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, DayBoundary,
+    DayNaming, Rd, YearKind,
 };
 
 /// The calendar identifier.
@@ -329,9 +330,11 @@ impl Calendar for YermCalendar {
         Ok(is_inserted_yerm(year))
     }
 
-    /// Noon, so that a night carries one date.
+    /// Noon, so that a night carries one date, and the date is the civil
+    /// day on whose noon the night begins: Palmen writes "2002-06-10 pm =
+    /// 21-05(03(30".
     fn day_boundary(&self) -> DayBoundary {
-        DayBoundary::Noon
+        DayBoundary::Noon(DayNaming::ByStart)
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -670,10 +673,35 @@ mod tests {
         );
     }
 
+    /// Palmen's "2002-06-10 pm = 21-05(03(30": the afternoon of 10 June and
+    /// the morning of 11 June are the same night, and the morning of 10 June
+    /// is the night before.
+    #[test]
+    fn a_night_is_named_by_the_civil_day_on_whose_noon_it_begins() {
+        use hc_calendar::CivilTime;
+
+        let calendar = YermCalendar;
+        let boundary = calendar.day_boundary();
+        let night = |civil: Rd, hour: u8| {
+            let offset = boundary
+                .civil_day_offset(CivilTime::hms(hour, 0, 0).unwrap())
+                .unwrap();
+            let date = calendar.from_fixed(civil + offset).unwrap();
+            let (cycle, yerm) = cycle_and_yerm(date.year);
+            (cycle, yerm, date.month, date.day)
+        };
+        assert_eq!(night(day(2_002, 6, 10), 13), (21, 5, 3, 30));
+        assert_eq!(night(day(2_002, 6, 11), 11), (21, 5, 3, 30));
+        assert_eq!(night(day(2_002, 6, 10), 11), (21, 5, 3, 29));
+    }
+
     #[test]
     fn the_night_begins_at_noon_and_the_calendar_speaks_its_cycle() {
         let calendar = YermCalendar;
-        assert_eq!(calendar.day_boundary(), DayBoundary::Noon);
+        assert_eq!(
+            calendar.day_boundary(),
+            DayBoundary::Noon(DayNaming::ByStart)
+        );
         let date = calendar.from_fixed(day(2_002, 6, 10)).unwrap();
         let fields = calendar.to_fields(date).unwrap();
         assert_eq!(fields.year, 1_045);
