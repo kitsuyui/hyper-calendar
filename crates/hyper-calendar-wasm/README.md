@@ -499,13 +499,20 @@ registry order. `locale` is as for `hc_describe_day`; `today` is the fixed
 day the standing is judged on, because the module has no clock. The names
 are CLDR 48's, `localeDisplayNames/types/type[@key="calendar"]`, at its
 `approved` and `contributed` levels; a calendar CLDR does not name in the
-locale has an empty name.
+locale has an empty name. No two rows share a name, in column 2 or in
+column 3, so a reader can choose a calendar by what the page shows:
+calendars that differ only in a convention are named for it, the Maya
+counts for their correlation — `Maya long count (GMT, 584283)`,
+`(GMT+2, 584285)`, `(Martin and Skidmore, 584286)` — and
+`persian-arithmetic` for its cycle, CLDR's `persian` name followed by
+`(2820)`; [docs/i18n.md](../../docs/i18n.md#what-a-locale-calls-a-calendar)
+says how.
 
 | # | Column | Holds |
 | --- | --- | --- |
 | 1 | id | the calendar's identifier |
 | 2 | name | what the locale calls the calendar — 和暦, `Hebrew Calendar` — or empty where it has no name for it, so that a page falls back to column 3 itself; the name is never borrowed from the calendar's own language, which only `native` asks for |
-| 3 | english name | its English name |
+| 3 | english name | its English name, which names the convention where the registry carries a calendar under several — `Maya haab (GMT+2, 584285)` |
 | 4 | earliest | the earliest fixed day it converts, or empty where unbounded |
 | 5 | latest | the latest fixed day it converts, or empty where unbounded |
 | 6 | has era | `1` when its dates carry an era |

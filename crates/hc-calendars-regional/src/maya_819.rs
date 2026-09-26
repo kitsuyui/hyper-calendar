@@ -171,6 +171,7 @@ pub struct Maya819Calendar {
 
 correlated!(
     Maya819Calendar,
+    "Maya 819-day count",
     "maya-819",
     "maya-819-gmt2",
     "maya-819-584286"
@@ -227,7 +228,7 @@ impl Calendar for Maya819Calendar {
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: self.id(),
-            english_name: "Maya 819-day count",
+            english_name: self.english_name(),
             year_kind: YearKind::Astronomical,
             has_leap_months: false,
             is_astronomical: false,

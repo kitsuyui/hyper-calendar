@@ -368,6 +368,10 @@ fn has_units(calendar: &dyn DynCalendar, probe: Rd) -> (bool, bool, bool, bool) 
 /// name of the next column itself. As with the dates of [`describe_day`],
 /// it is never borrowed from the calendar's own language; only [`NATIVE`]
 /// asks for each calendar's name in its own language.
+///
+/// No two rows share a name, in the locale's column or in the English one:
+/// calendars that differ only in a convention are named for it, and
+/// `tests/distinct_names.rs` holds every locale to that.
 #[must_use]
 pub fn calendars(registry: &CalendarRegistry, today: Rd, locale: &str) -> String {
     let requested = requested_locale(locale);
