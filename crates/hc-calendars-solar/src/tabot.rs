@@ -381,7 +381,10 @@ mod tests {
             let fields = TabotCalendar.to_fields(date).unwrap();
             assert_eq!(TabotCalendar.from_fields(&fields), Ok(date));
         }
-        for rd in (EARLIEST.0..=LATEST.0).step_by(9_973) {
+        // Every day in a release build; every 9 973rd in a debug one, with
+        // each year's first and last day.
+        let year_starts = (MIN_YEAR..=MAX_YEAR).map(|year| new_year(year).unwrap().0);
+        for rd in crate::sweep_days(EARLIEST.0, LATEST.0, 9_973, year_starts) {
             let (year, month, day) = from_fixed(Rd(rd)).unwrap();
             assert_eq!(to_fixed(year, month, day), Ok(Rd(rd)));
         }

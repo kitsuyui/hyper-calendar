@@ -48,9 +48,10 @@ pub const CALIBRATION_JULIAN_CIRCAD: i64 = 144_096;
 const CALIBRATION_TAI_MINUS_UTC: f64 = 32.0;
 
 /// The Julian Date of Julian Circad 0 as the page prints it: 1609 March 15,
-/// 18:37:32 (§3.6). The count here is anchored at the calibration, from
-/// which the page's own rounded chain gives a value 2.3 s earlier; this
-/// constant is what the test compares with.
+/// 18:37:32 (§3.6), from the page's chain of rounded Julian Days. The count
+/// here is anchored at the calibration instead: counting 144 096 printed
+/// circads back from it gives JD 2 308 809.276 04, about 2.3 s before this
+/// printed value. This constant is what the test compares with.
 pub const PRINTED_JULIAN_CIRCAD_ZERO_JULIAN_DATE: f64 = 2_308_809.276_07;
 
 /// The position in the solar day, `0..16` from midnight on the prime

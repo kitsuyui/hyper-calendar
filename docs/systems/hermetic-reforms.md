@@ -3,7 +3,7 @@
 Backs the identifiers `dee-cecil`, `dee`, `hermetic-leap-week`,
 `week-and-month` and `tabot` in `hc-calendars-solar`.
 
-## What they are
+## What it is
 
 Proposals for calendar reform published on Peter Meyer's Hermetic Systems
 site, each a single rule over the Gregorian months or the seven-day week,
@@ -31,7 +31,7 @@ none adopted by anyone:
   fixed in 2006 at the ministry's request: the year from 2 November, the
   coronation day of Haile Selassie in 1930 [meyer-tabot].
 
-## How they work
+## How it works
 
 **The 33-year rule.** "A year is a leap year if (and only if) the year
 number, when divided by 33, yields a non-zero remainder which is a multiple
@@ -130,7 +130,7 @@ make 300, and 29 more is the thirtieth of the eleventh month: Sawwara 30,
 
 | Check | Test | Result |
 | --- | --- | --- |
-| Meyer's `IsDeeLeapYear`, `Dee2JDN` and `JDN2Dee`, run as published, over JDN 1 000 000 to 3 000 000 in both correlations | `meyers_conversion_functions_are_the_reference` | all 41 238 days |
+| Meyer's `IsDeeLeapYear`, `Dee2JDN` and `JDN2Dee`, run as published, over JDN 1 000 000 to 3 000 000 in both correlations | `meyers_conversion_functions_are_the_reference` | every day, 2 000 001 in each correlation, in a release build; every 97th and each year's first and last in a debug one |
 | Dee–Cecil and Gregorian agree from 1 March 1980 to 28 February 2016 and part on 29 February 2016 | `dee_cecil_agrees_with_the_gregorian_calendar_from_1980_to_2016` | every day |
 | Cassidy's spans 1981–2015 and 1585–1619 and his reductions of 1996, 2012 and 2016 | `cassidys_rule_is_this_rule_and_his_spans_hold` | all |
 | 13 200 Dee years are a day short of 13 200 Gregorian ones | `thirteen_thousand_two_hundred_years_are_a_day_short_of_the_gregorian` | exact |

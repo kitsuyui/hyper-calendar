@@ -36,13 +36,16 @@
 //!
 //! `hc-astro` offers dusk only at the three standard twilight depressions,
 //! so the 4.5° instant is interpolated linearly between sunset and civil
-//! dusk, from the depression the Sun has at sunset. At Mecca's latitude the
-//! depression grows close enough to linearly over that stretch for the
-//! error to be well under a minute, which is far inside the tolerance of a
-//! criterion whose real uncertainty is the weather; no test measures it.
+//! dusk, from the depression the Sun has at sunset. Over the evenings of
+//! 2000–2030 that misses the true instant by at most 2.9 s at Mecca and
+//! 7.7 s at Haifa, the observational Hebrew calendar's site, and by more
+//! away from the equator, where the Sun sets at a shallower angle: 105 s at
+//! 55° N. The crate's tests bound all three. Seconds are far inside the
+//! tolerance of a criterion whose real uncertainty is the weather; at high
+//! latitudes a site should expect the minute and more.
 //!
 //! [`VisibilityCriterion::YALLOP`] is B. D. Yallop's *q*-test, read in his
-//! NAO Technical Note 69 (1997): at Bruin's best time, five ninths of the
+//! NAO Technical Note 69 (1997): at Bruin's best time, four ninths of the
 //! way from sunset to moonset ([`bruin_best_time`]), the arc of vision
 //! ([`arc_of_vision`]) less a cubic in the topocentric width of the
 //! crescent ([`crescent_width_arcminutes`]), divided by ten, is `q`
@@ -322,7 +325,7 @@ pub fn crescent_width_arcminutes(moment: Moment, location: Location) -> f64 {
 }
 
 /// Bruin's best time for seeing the young crescent on the evening of a
-/// local day: `(5 Ts + 4 Tm) / 9`, five ninths of the way from sunset to
+/// local day: `(5 Ts + 4 Tm) / 9`, four ninths of the way from sunset to
 /// moonset (Yallop, NAO Technical Note 69, equation 4.1, from Bruin 1977;
 /// `bruin-best-view` in the published code of *Calendrical Calculations*).
 ///
@@ -688,6 +691,52 @@ mod tests {
             assert!(judged.0 > set.0, "before sunset at RD {rd}");
             assert!(judged.0 < civil_dusk.0, "after civil dusk at RD {rd}");
         }
+    }
+
+    /// The largest error, in seconds, of the interpolated 4.5° moment at a
+    /// place over every thirteenth evening of 2000–2030, against the moment
+    /// the Sun's geometric altitude actually reaches −4.5°, found by
+    /// bisection between sunset and civil dusk.
+    fn worst_interpolation_error_seconds(location: Location) -> f64 {
+        let mut worst = 0.0f64;
+        let first = civil::to_rd(2_000, 1, 1).0;
+        let last = civil::to_rd(2_030, 12, 31).0;
+        for day in (first..=last).step_by(13) {
+            let rd = Rd(day);
+            let (Some(set), Some(civil_dusk)) =
+                (sunset(rd, location), dusk(rd, location, Twilight::Civil))
+            else {
+                continue;
+            };
+            let interpolated = depression_moment(rd, location, 4.5).expect("sunset and dusk exist");
+            let (mut low, mut high) = (set.0, civil_dusk.0);
+            for _ in 0..60 {
+                let middle = 0.5 * (low + high);
+                if solar_altitude(Moment(middle), location) > -4.5 {
+                    low = middle;
+                } else {
+                    high = middle;
+                }
+            }
+            worst = worst.max((interpolated.0 - low).abs() * 86_400.0);
+        }
+        worst
+    }
+
+    #[test]
+    fn the_interpolated_evaluation_moment_is_seconds_from_the_true_one() {
+        // The module documentation's claim, measured: the linear
+        // interpolation between sunset and civil dusk misses the moment the
+        // Sun is 4.5° down by a few seconds at Mecca and at Haifa, the
+        // observational Hebrew calendar's site, and by more the farther the
+        // place is from the equator, where the Sun sets at a shallower angle.
+        let mecca = worst_interpolation_error_seconds(MECCA);
+        let haifa = worst_interpolation_error_seconds(crate::hebrew_observational::HAIFA);
+        let north = worst_interpolation_error_seconds(Location::new(55.0, 0.0, 0.0));
+        // Measured: 2.9 s at Mecca, 7.7 s at Haifa, 105 s at 55° N.
+        assert!(mecca < 5.0, "{mecca} s at Mecca");
+        assert!(haifa < 10.0, "{haifa} s at Haifa");
+        assert!((60.0..150.0).contains(&north), "{north} s at 55° N");
     }
 
     #[test]
@@ -1100,6 +1149,36 @@ mod tests {
             mecca.compose(1_464, 10, 31),
             Err(CalendarError::DayOutOfRange)
         );
+    }
+
+    #[test]
+    fn every_day_of_the_months_of_thirty_one_days_round_trips() {
+        // The two 31-day months of 1400–1500 AH, Muḥarram 1409 at Cairo and
+        // Shawwāl 1464 at Haifa, both under Shaukat's criterion, are the
+        // months where reading a date back is likeliest to go wrong; every
+        // day of each, with the last day of the month before and the first
+        // of the month after, converts both ways.
+        let cairo = Location::new(30.1, 31.3, 200.0);
+        let haifa = crate::hebrew_observational::HAIFA;
+        for (place, first) in [
+            (cairo, civil::to_rd(1_988, 8, 14)),
+            (haifa, civil::to_rd(2_042, 9, 16)),
+        ] {
+            let calendar = IslamicObservationalCalendar::new(ObservationSite::new(
+                place,
+                VisibilityCriterion::SHAUKAT,
+            ));
+            let (year, month, _) = calendar.decompose(first).expect("in range");
+            for offset in -1..=31i64 {
+                let rd = Rd(first.0 + offset);
+                let date = calendar.from_fixed(rd).expect("in range");
+                assert_eq!(calendar.to_fixed(date), Ok(rd), "RD {rd} at {place:?}");
+                if (0..31).contains(&offset) {
+                    assert_eq!((date.year, date.month), (year, month), "RD {rd}");
+                    assert_eq!(i64::from(date.day), offset + 1, "RD {rd}");
+                }
+            }
+        }
     }
 
     #[test]

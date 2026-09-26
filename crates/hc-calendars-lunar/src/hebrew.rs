@@ -560,7 +560,9 @@ pub const BIRKAT_HACHAMA_ANCHOR: Rd = Rd(733_505);
 /// - **Adar of a common year, or Adar I.** Kept in Adar I in a leap year and
 ///   Adar in a common one; 30 Adar I, in a common year, on 30 Shevaṭ.
 ///
-/// Customs differ, and the rules are the book's, not a ruling.
+/// Customs differ, and the rules are the published code's, not a ruling;
+/// one yahrzeit and one Adar birthday are checked against Hebcal's
+/// anniversary calculator (`hebcal-yahrzeit`, queried 2026-09-27).
 ///
 /// # Errors
 ///
@@ -1192,6 +1194,32 @@ mod tests {
         for year in 5781..=5800 {
             assert_eq!(yahrzeit(death, year), to_fixed(year, Month::regular(4), 10));
             assert_eq!(birthday(death, year), to_fixed(year, Month::regular(4), 10));
+        }
+    }
+
+    #[test]
+    fn the_adar_anniversaries_agree_with_hebcals_calculator() {
+        // A check against a published calculator, not a source of the
+        // rules: Hebcal's Hebrew anniversary calculator (`hebcal-yahrzeit`),
+        // queried 2026-09-27 for a death and a birth on 8 March 2023,
+        // 15 Adar 5783, in a common year. In the leap year 5787 it keeps the
+        // yahrzeit on 15 Adar I, 22 February 2027, and the birthday on
+        // 15 Adar II, 24 March 2027; in the common years 5786 and 5788 both
+        // on 15 Adar, 4 March 2026 and 13 March 2028.
+        let date = HebrewDate::new(5783, Month::regular(6), 15).expect("15 Adar 5783");
+        assert_eq!(
+            to_fixed(5783, Month::regular(6), 15),
+            Ok(civil::to_rd(2023, 3, 8))
+        );
+        for (year, yahrzeit_day, birthday_day) in [
+            (5786, (2026, 3, 4), (2026, 3, 4)),
+            (5787, (2027, 2, 22), (2027, 3, 24)),
+            (5788, (2028, 3, 13), (2028, 3, 13)),
+        ] {
+            let (y, m, d) = yahrzeit_day;
+            assert_eq!(yahrzeit(date, year), Ok(civil::to_rd(y, m, d)), "{year}");
+            let (y, m, d) = birthday_day;
+            assert_eq!(birthday(date, year), Ok(civil::to_rd(y, m, d)), "{year}");
         }
     }
 

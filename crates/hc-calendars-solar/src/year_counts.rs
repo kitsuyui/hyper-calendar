@@ -525,7 +525,19 @@ mod tests {
             let calendar = YearCountCalendar(*count);
             let meta = calendar.meta();
             let first = meta.earliest.unwrap().0;
-            for rd in (first..first + 3_000_000).step_by(997) {
+            // Every day of the first 3 000 000 in a release build; every
+            // 997th in a debug one, with each year's first and last day.
+            let year_starts = (1..=8_300).map(|year| {
+                calendar
+                    .to_fixed(YearCountDate {
+                        year,
+                        month: 1,
+                        day: 1,
+                    })
+                    .unwrap()
+                    .0
+            });
+            for rd in crate::sweep_days(first, first + 3_000_000, 997, year_starts) {
                 let date = calendar.from_fixed(Rd(rd)).unwrap();
                 assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "{} {rd}", count.id);
                 let fields = calendar.to_fields(date).unwrap();

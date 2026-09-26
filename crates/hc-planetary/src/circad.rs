@@ -537,19 +537,31 @@ mod tests {
 
     #[test]
     fn every_rule_round_trips_through_circad_numbers() {
+        // Every circad of 1 200 years either side of the epoch in a release
+        // build, 120 in a debug one; and in both, every circad of each
+        // year of an exception to the leap rule in that span and of the
+        // years either side of it, such as Titan's common year 400.
+        let span = if cfg!(debug_assertions) { 120 } else { 1_200 };
         for calendar in all() {
             let rule = calendar.rule();
-            let mut circad = rule.year_start(rule.epoch_year - 120);
-            let end = rule.year_start(rule.epoch_year + 120);
-            while circad < end {
-                let date = calendar.date_from_circad(circad).unwrap();
-                assert_eq!(
-                    calendar.circad_from_date(date).unwrap(),
-                    circad,
-                    "{} {date:?}",
-                    rule.id
-                );
-                circad += 1;
+            let round_trip = |first: i64, last: i64| {
+                for circad in rule.year_start(first)..rule.year_start(last + 1) {
+                    let date = calendar.date_from_circad(circad).unwrap();
+                    assert_eq!(
+                        calendar.circad_from_date(date).unwrap(),
+                        circad,
+                        "{} {date:?}",
+                        rule.id
+                    );
+                }
+            };
+            round_trip(rule.epoch_year - span, rule.epoch_year + span - 1);
+            if let YearCycle::EveryExcept { except, .. } = rule.year_cycle {
+                let reach = 1_200 / except + 1;
+                for multiple in -reach..=reach {
+                    let year = rule.epoch_year + multiple * except;
+                    round_trip(year - 1, year + 1);
+                }
             }
             // And at the far ends of the range, where the estimate of the year
             // is furthest from exact.

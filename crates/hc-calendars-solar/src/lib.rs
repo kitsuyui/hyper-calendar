@@ -63,6 +63,44 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+/// How far apart the days of a day-by-day sweep in this crate's tests are:
+/// every day in a release build, every `sampled`th in a debug build.
+///
+/// The full sweeps take minutes under the coverage job's instrumentation,
+/// so a debug or coverage run takes a fixed, deterministic sample of them
+/// and CI's release-mode test job walks every day; the published anchors
+/// are checked in full either way (docs/policy.md §7).
+#[cfg(test)]
+pub(crate) const fn sweep_stride(sampled: usize) -> usize {
+    if cfg!(debug_assertions) { sampled } else { 1 }
+}
+
+/// The days of a day-by-day sweep over `first..=last` in this crate's
+/// tests: every day in a release build; in a debug build every `sampled`th
+/// day ([`sweep_stride`]) and, besides the sample, each of `boundaries` and
+/// the day before it, where they fall in the range.
+///
+/// The boundaries are the days a year or a cycle begins, so that the
+/// sample always holds the first and last day of every year it spans: an
+/// error that falls on a year's first or last day cannot slip between the
+/// sampled days (docs/policy.md §7).
+#[cfg(test)]
+pub(crate) fn sweep_days(
+    first: i64,
+    last: i64,
+    sampled: usize,
+    boundaries: impl IntoIterator<Item = i64>,
+) -> impl Iterator<Item = i64> {
+    let debug = cfg!(debug_assertions);
+    (first..=last).step_by(sweep_stride(sampled)).chain(
+        boundaries
+            .into_iter()
+            .filter(move |_| debug)
+            .flat_map(|day| [day - 1, day])
+            .filter(move |day| (first..=last).contains(day)),
+    )
+}
+
 mod common;
 mod leap_week;
 

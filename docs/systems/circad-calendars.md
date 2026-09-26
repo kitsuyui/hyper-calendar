@@ -79,7 +79,7 @@ later and is read the same way.
 
 Every Titan year is a whole number of weeks, so every year begins on the
 first circad of the week and the week runs on across months without a
-break. The solar day does not: a leap year is 43⅓ solar days, so a year
+break. The solar day does not: a leap year is 43½ solar days, so a year
 that begins at solar midnight on the prime meridian ends at solar noon and
 the common years after it begin at noon, until the next leap year swaps
 them back. The page's Table 3-3 lists the position in the solar day
@@ -274,6 +274,10 @@ Checked against:
   Solis.
 * The structure: Table 2-7's per-decade totals, Table 2-5's names and month
   lengths, and Ganymede's Junius of 24 circads in Table 2-6.
+* The round trip: every circad of 1 200 years either side of each epoch in
+  a release build (120 in a debug one), every circad of Titan's common
+  years 400, 800 and 1 200 either side of year 0 and of the years beside
+  them in both, and the first and last circad of the range.
 
 No date in any of these calendars other than the page's own calibrations was
 found published, so nothing else could be checked.

@@ -256,9 +256,13 @@ constants named; only the 216 years and the 97 minutes are also quoted.
   common year on 30 Shevaṭ. A birth in Adar or Adar II is kept in the
   later year's last month, so a boy born in Adar of a common year keeps
   his birthday in Adar II, where a yahrzeit of the same date falls in
-  Adar I. Customs differ; the rules are the book's. No published table
-  of anniversaries was read, so the tests hold the functions to the rules
-  and not to dates.
+  Adar I. Customs differ; the rules are the published code's, which was
+  read, not the book's prose, which was not. Beside the rules, the tests
+  hold one yahrzeit and one Adar birthday to Hebcal's anniversary
+  calculator [hebcal-yahrzeit], as a check rather than an authority: a
+  death and a birth on 15 Adar 5783, of a common year, are kept on
+  15 Adar I (22 February 2027) and 15 Adar II (24 March 2027) in the leap
+  year 5787.
 - **Not carried, and why.**
   - The observational calendar of the Second Temple period and of the
     Sanhedrin, in which each month was declared on the testimony of
@@ -306,6 +310,7 @@ what the anchors check.
 | Birkat hachama on a Wednesday every 10 227 days | As stated | `birkat_hachama_falls_on_a_wednesday_every_twenty_eight_years` |
 | Birkat hachama on 30 Paremhat of every Coptic year 17 modulo 28, and on no other 30 Paremhat, Coptic years 1–2 999 [reingold2018code] | 2 999 of 2 999 | `birkat_hachama_is_reingold_and_dershowitzs_thirtieth_of_paremhat` |
 | Birkat hachama from 7 April 1897 to 9 April 2149 [wikipedia-birkat-hachamah] | 10 of 10 | `the_recent_and_next_birkat_hachama_are_the_published_ones` |
+| A yahrzeit and a birthday of 15 Adar 5783 in 5786, 5787 and 5788 against Hebcal's calculator [hebcal-yahrzeit] | 6 of 6 | `the_adar_anniversaries_agree_with_hebcals_calculator` |
 
 Two published dates anchor the calendar, both from Hebcal for 5784: Rosh
 Hashanah from sunset on Friday 15 September 2023, so its first day is
@@ -329,7 +334,8 @@ bound, which is a choice rather than a finding.
 | --- | --- | --- |
 | [maimonides-kiddush-hachodesh] | Chapter 6: the molad interval and the part, the solar year and the deficit of a lunar year, BaHaRaD, the seven leap years. Chapter 7: the four dehiyyot with their thresholds (halachot 1, 2, 4 and 5) and the reason (7). Chapter 8: the six year lengths, the two months that vary and the month order (halachot 5 and 8) | Yes, 2026-09-25, in Sefaria's English translation |
 | [reingold2018] | The arithmetic: the closed forms and the year-length formulation of the last two dehiyyot | Not read directly; the published code was |
-| [reingold2018code] | `birkath-ha-hama`, `fixed-from-coptic`, `coptic-epoch`, `hebrew-epoch`, `hebrew-leap-year?`, `last-month-of-hebrew-year`, `molad`, `hebrew-calendar-elapsed-days`, `hebrew-year-length-correction`, `hebrew-new-year`, `days-in-hebrew-year`, `long-marheshvan?`, `short-kislev?`, `last-day-of-hebrew-month`, `fixed-from-hebrew`, `hebrew-from-fixed`, `mean-synodic-month`, and the month constants | Yes, 2026-09-25; `birkath-ha-hama`, `fixed-from-coptic` and `coptic-epoch` 2026-09-26 |
+| [reingold2018code] | `birkath-ha-hama`, `fixed-from-coptic`, `coptic-epoch`, `hebrew-epoch`, `hebrew-leap-year?`, `last-month-of-hebrew-year`, `molad`, `hebrew-calendar-elapsed-days`, `hebrew-year-length-correction`, `hebrew-new-year`, `days-in-hebrew-year`, `long-marheshvan?`, `short-kislev?`, `last-day-of-hebrew-month`, `fixed-from-hebrew`, `hebrew-from-fixed`, `mean-synodic-month`, and the month constants; `yahrzeit` and `hebrew-birthday` for the anniversaries; `observational-hebrew-first-of-nisan`, cited for the calendar not carried here | Yes, 2026-09-25; `birkath-ha-hama`, `fixed-from-coptic` and `coptic-epoch` 2026-09-26; `yahrzeit`, `hebrew-birthday` and `observational-hebrew-first-of-nisan` 2026-09-26 |
+| [hebcal-yahrzeit] | One yahrzeit and one birthday of 15 Adar 5783, as a check | Yes, 2026-09-27 |
 | [hebcal-5784] | Rosh Hashanah and Pesach of 5784, each from the sunset before its day; that 5784 has Adar I and Adar II | Yes, 2026-09-25 |
 | [wikipedia-hebrew-calendar] | The epoch's Julian date; the six year lengths and their names; the mean year of 365.2468 days and the day per 216 years; the 97 minutes of molad drift | Yes, 2026-09-25 |
 | [wikipedia-birkat-hachamah] | The birkat hachama dates of 1897 to 2149 and their weekday | Yes, 2026-09-26 |
@@ -352,7 +358,7 @@ the Nisan-first internal one. Anchors:
 `rosh_hashanah_never_falls_on_sunday_wednesday_or_friday`,
 `every_year_takes_one_of_the_six_permitted_lengths`. The Omer, birkat
 hachama, `yahrzeit` and `birthday` functions are in the same module, the
-anniversaries tested by `a_yahrzeit_in_adar_follows_the_books_rules`,
+anniversaries tested by `the_adar_anniversaries_agree_with_hebcals_calculator`, `a_yahrzeit_in_adar_follows_the_books_rules`,
 `a_birthday_in_adar_follows_the_books_rules` and
 `the_thirtieth_of_heshvan_and_kislev_depend_on_the_first_anniversary`; the holidays that sit on the
 calendar are in `hc-holiday`. Hebrew and English month names are in

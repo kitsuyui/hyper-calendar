@@ -587,12 +587,31 @@ mod tests {
     }
 
     #[test]
-    fn every_nineteenth_day_of_the_qing_round_trips() {
+    fn every_day_of_the_qing_round_trips() {
         let calendar = ChineseRegnalCalendar;
-        // Every nineteenth day in a release build, every 95th in a debug one.
-        for rd in (EARLIEST.0..=LATEST.0).step_by(19 * crate::sweep_stride(5)) {
+        // Each lunar New Year, where the era year turns, and the day before.
+        let new_years: Vec<i64> = (1_645..=1_912)
+            .map(|year| {
+                chinese::PARAMETERS
+                    .to_fixed(year + YEAR_OFFSET, Month::regular(1), 1)
+                    .unwrap()
+                    .0
+            })
+            .collect();
+        // The round trip: every day in a release build; every 19th in a
+        // debug one, with the New Years and the days before them.
+        for rd in crate::sweep_days(EARLIEST.0, LATEST.0, 19, new_years.iter().copied()) {
             let date = calendar.from_fixed(Rd(rd)).expect("in range");
             assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "rd {rd}");
+        }
+        // The fields, which cost two more lunisolar conversions a day: every
+        // 19th day, the New Years and the days before them, in both builds.
+        let boundaries = new_years.iter().flat_map(|&day| [day - 1, day]);
+        for rd in (EARLIEST.0..=LATEST.0)
+            .step_by(19)
+            .chain(boundaries.filter(|&day| (EARLIEST.0..=LATEST.0).contains(&day)))
+        {
+            let date = calendar.from_fixed(Rd(rd)).expect("in range");
             let fields = calendar.to_fields(date).expect("describable");
             assert_eq!(fields.era, Some(date.era.id));
             assert_eq!(calendar.from_fields(&fields), Ok(date), "rd {rd}");

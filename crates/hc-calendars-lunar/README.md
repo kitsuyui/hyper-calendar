@@ -127,8 +127,9 @@ calendar the fixed one replaced, written up in
 each month from the first evening the crescent should be seen at Haifa,
 each year from the first month whose fifteenth day is not before the
 equinox, with `first_of_nisan` and `classical_passover_eve`. No declared
-date survives to check it against, so its tests check the rule and measure
-it against the fixed calendar: over 1900–2100 the prediction's 1 Nisan is
+date survives to check it against, and the book's sample values for it, in
+its Appendix C, were not read, so its tests check the rule and measure it
+against the fixed calendar: over 1900–2100 the prediction's 1 Nisan is
 the fixed calendar's or up to two days later in 150 springs and a lunation
 earlier in 51.
 

@@ -386,7 +386,11 @@ mod tests {
     fn meyers_conversion_functions_are_the_reference() {
         for calendar in ALL {
             let jdn111 = calendar.epoch.to_julian_day_number();
-            for jdn in (1_000_000..=3_000_000).step_by(97) {
+            // Every day in a release build; every 97th in a debug one, with
+            // each year's first and last day.
+            let year_starts = (-1_975..=3_500)
+                .map(|year| calendar.new_year(year).unwrap().to_julian_day_number());
+            for jdn in crate::sweep_days(1_000_000, 3_000_000, 97, year_starts) {
                 let (year, month, day) = calendar
                     .fixed_to_ymd(Rd::from_julian_day_number(jdn))
                     .unwrap();
@@ -490,7 +494,9 @@ mod tests {
         let leap_day = gregorian(2000, 2, 29);
         assert_eq!(DEE_CECIL.fixed_to_ymd(leap_day), Ok((2000, 2, 29)));
         assert_eq!(DEE.fixed_to_ymd(leap_day), Ok((2000, 3, 1)));
-        for rd in (gregorian(1900, 1, 1).0..gregorian(2100, 1, 1).0).step_by(13) {
+        for rd in
+            (gregorian(1900, 1, 1).0..gregorian(2100, 1, 1).0).step_by(crate::sweep_stride(13))
+        {
             assert_eq!(DEE.fixed_to_ymd(Rd(rd)), DEE_CECIL.fixed_to_ymd(Rd(rd + 1)));
         }
     }
@@ -507,7 +513,10 @@ mod tests {
     #[test]
     fn the_calendar_round_trips_and_refuses_what_does_not_exist() {
         for calendar in ALL {
-            for rd in (-2_000_000..=2_000_000).step_by(211) {
+            // Every day in a release build; every 211th in a debug one, with
+            // each year's first and last day.
+            let year_starts = (-5_480..=5_480).map(|year| calendar.new_year(year).unwrap().0);
+            for rd in crate::sweep_days(-2_000_000, 2_000_000, 211, year_starts) {
                 let date = Calendar::from_fixed(&calendar, Rd(rd)).unwrap();
                 assert_eq!(Calendar::to_fixed(&calendar, date), Ok(Rd(rd)));
                 let fields = calendar.to_fields(date).unwrap();

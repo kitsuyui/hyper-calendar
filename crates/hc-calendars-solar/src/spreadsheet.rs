@@ -1,9 +1,11 @@
 //! The Excel 1900 date system, and the fractional day numbers of the OLE
 //! Automation date and MATLAB's `datenum`.
 //!
-//! Excel's 1900 system counts serial 1 as 1 January 1900 and gives serial
-//! 60 to 29 February 1900, a day that never was: Lotus 1-2-3 treated 1900
-//! as a leap year, and Excel kept the count for compatibility. Every
+//! Excel's 1900 system counts serial 1 as 1 January 1900 (Microsoft
+//! Support, "DATEVALUE function", `ms-datevalue`, read 2026-09-27) and so
+//! gives serial 60 to 29 February 1900, a day that never was: Lotus 1-2-3
+//! treated 1900 as a leap year, and Excel kept the count for compatibility
+//! (`ms-excel-1900-leap`). Every
 //! serial from 61 is therefore one more than a true count from the same
 //! epoch would give. [`Excel1900Calendar`] refuses serial 60 rather than
 //! invent a date for it; [`excel_1900_day`] names it instead, for a caller
@@ -36,7 +38,9 @@ use crate::gregorian;
 /// does not have.
 pub const PHANTOM_SERIAL: i64 = 60;
 
-/// The last serial Excel's 1900 system supports, 31 December 9999.
+/// The last serial Excel's 1900 system supports, 31 December 9999, the last
+/// day DATEVALUE accepts (`ms-datevalue`); the serial is counted on from
+/// serial 1, not printed by Microsoft.
 pub const LAST_SERIAL: i64 = 2_958_465;
 
 /// 31 December 1899, the day before serial 1: serials 1 to 59 count from
@@ -345,7 +349,13 @@ mod tests {
             excel.from_fixed(day(1899, 12, 31)),
             Err(CalendarError::BeforeEpoch)
         );
-        for serial in (1..=LAST_SERIAL).step_by(997).chain([59, 61]) {
+        // Every serial but the phantom 60 in a release build; every 997th
+        // in a debug one, with the phantom day's neighbours and each year's
+        // first and last serial.
+        let year_starts =
+            (1900..=9999).map(|year| Excel1900Calendar::serial_of(day(year, 1, 1)).unwrap());
+        let serials = crate::sweep_days(1, LAST_SERIAL, 997, year_starts).chain([59, 61]);
+        for serial in serials.filter(|&serial| serial != 60) {
             let rd = excel.to_fixed(DayNumber(serial)).expect("a real day");
             assert_eq!(excel.from_fixed(rd), Ok(DayNumber(serial)));
         }
@@ -357,7 +367,10 @@ mod tests {
     fn the_1904_system_is_1462_behind() {
         assert_eq!(Excel1900Calendar::serial_of(day(2011, 7, 5)), Ok(40_729));
         let excel_1904 = DayCountCalendar(EXCEL_1904);
-        for rd in (day(1904, 1, 1).0..day(9999, 12, 31).0).step_by(10_007) {
+        // Every day in a release build; every 10 007th in a debug one, with
+        // each year's first and last day.
+        let year_starts = (1904..=9999).map(|year| day(year, 1, 1).0);
+        for rd in crate::sweep_days(day(1904, 1, 1).0, day(9999, 12, 31).0, 10_007, year_starts) {
             let serial_1900 = Excel1900Calendar::serial_of(Rd(rd)).expect("in range");
             let serial_1904 = excel_1904.from_fixed(Rd(rd)).expect("in range").0;
             assert_eq!(serial_1900 - serial_1904, 1_462);

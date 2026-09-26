@@ -583,7 +583,10 @@ mod tests {
                 Err(CalendarError::YearOutOfRange)
             );
             assert_eq!(era.to_fixed(1, 13, 1), Err(CalendarError::MonthOutOfRange));
-            for rd in (first.0..=last.0).step_by(97) {
+            // Every day in a release build; every 97th in a debug one, with
+            // each year's first day and the day before it.
+            let year_starts = (1..=MAX_YEAR).map(|year| era.new_year_day(year).unwrap().0);
+            for rd in crate::sweep_days(first.0, last.0, 97, year_starts) {
                 let date = calendar.from_fixed(Rd(rd)).unwrap();
                 assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "{} {rd}", era.id);
                 let fields = calendar.to_fields(date).unwrap();

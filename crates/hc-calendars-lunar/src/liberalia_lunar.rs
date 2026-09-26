@@ -514,7 +514,10 @@ mod tests {
 
     #[test]
     fn every_day_round_trips() {
-        for rd in (EARLIEST.0..=LATEST.0).step_by(1_013) {
+        // Every day in a release build; every 1 013th in a debug one, with
+        // each year's first and last day.
+        let year_starts = (MIN_YEAR..=MAX_YEAR).map(|year| new_year(year).unwrap().0);
+        for rd in crate::sweep_days(EARLIEST.0, LATEST.0, 1_013, year_starts) {
             let date = LiberaliaLunarCalendar.from_fixed(Rd(rd)).unwrap();
             assert_eq!(LiberaliaLunarCalendar.to_fixed(date), Ok(Rd(rd)));
             let fields = LiberaliaLunarCalendar.to_fields(date).unwrap();
