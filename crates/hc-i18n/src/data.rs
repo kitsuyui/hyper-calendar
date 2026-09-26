@@ -130,6 +130,8 @@ const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("julian-gregorian-ro"),
     CalendarId("julian-gregorian-gr"),
     CalendarId("swedish-1700"),
+    CalendarId("hanke-henry"),
+    CalendarId("soviet-week"),
 ];
 
 /// A month cycle from names already shaped into widths and contexts.
@@ -216,6 +218,9 @@ const JAPANESE_LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("japanese-jokyo"),
     CalendarId("japanese-senmyo"),
 ];
+
+/// The Qumran 364-day year, whose months the scrolls number.
+const QUMRAN_CALENDARS: &[CalendarId] = &[CalendarId("qumran")];
 
 /// The Solar Hijri calendar.
 ///
@@ -1745,6 +1750,27 @@ const EN_CALENDARS: &[CalendarNames] = &[
             "Twelfth Month",
         ])],
         "leap ",
+    ),
+    // The scrolls number the months of the 364-day year, "the first
+    // month", "the seventh month", as Talmon translates them in the
+    // Encyclopedia of the Dead Sea Scrolls (2000), p. 110.
+    lunisolar(
+        QUMRAN_CALENDARS,
+        &[months(&[
+            "First Month",
+            "Second Month",
+            "Third Month",
+            "Fourth Month",
+            "Fifth Month",
+            "Sixth Month",
+            "Seventh Month",
+            "Eighth Month",
+            "Ninth Month",
+            "Tenth Month",
+            "Eleventh Month",
+            "Twelfth Month",
+        ])],
+        "",
     ),
     // Four calendars whose own names are in another script, romanised the
     // way English-language sources print them. Each is an override of the

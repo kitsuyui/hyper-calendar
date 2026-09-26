@@ -25,12 +25,13 @@
 //!
 //! | Family | Calendars |
 //! | --- | --- |
-//! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`swedish`], [`revised_julian`], [`byzantine`], [`roman`], [`rumi`], [`berber`], [`yazidi`] |
-//! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`koki`], [`indian`], [`nanakshahi`], [`bangladeshi`], [`discordian`], [`assyrian`] |
+//! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`swedish`], [`revised_julian`], [`byzantine`], [`roman`], [`rumi`], [`berber`], [`yazidi`], [`icelandic`] |
+//! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`koki`], [`indian`], [`nanakshahi`], [`bangladeshi`], [`discordian`], [`assyrian`], [`soviet_week`] |
 //! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`armenian`], [`armenian_fixed`], [`french_republican`], [`zoroastrian`], [`mandaean`] |
 //! | Day counts | [`julian_day`], [`day_counts`] |
 //! | Cycle-based | [`persian`], [`bahai`], [`bahai_kept`] |
-//! | Proposed reforms | [`symmetry454`], [`symmetry010`] (both on [`symmetry`]), [`world_calendar`], [`international_fixed`], [`positivist`] |
+//! | Proposed reforms | [`symmetry454`], [`symmetry010`] (both on [`symmetry`]), [`world_calendar`], [`international_fixed`], [`positivist`], [`hanke_henry`] |
+//! | A pure week cycle | [`qumran`] |
 //! | Not calendars | [`cycles`] (the computus cycles), [`year_style`] (where the year began) |
 //!
 //! Everything converts through [`hc_calendar::Rd`], so any two of them can
@@ -73,7 +74,9 @@ pub mod egyptian;
 pub mod ethiopic;
 pub mod french_republican;
 pub mod gregorian;
+pub mod hanke_henry;
 pub mod holocene;
+pub mod icelandic;
 pub mod indian;
 pub mod international_fixed;
 pub mod iso_week;
@@ -88,9 +91,11 @@ pub mod nanakshahi;
 pub mod ordinal;
 pub mod persian;
 pub mod positivist;
+pub mod qumran;
 pub mod revised_julian;
 pub mod roman;
 pub mod rumi;
+pub mod soviet_week;
 pub mod swedish;
 pub mod symmetry;
 pub mod symmetry010;
@@ -115,7 +120,9 @@ pub use egyptian::{EgyptianCalendar, EgyptianDate};
 pub use ethiopic::{EthiopicCalendar, EthiopicDate};
 pub use french_republican::{ArithmeticFrenchRepublicanCalendar, FrenchRepublicanDate};
 pub use gregorian::{GregorianCalendar, GregorianDate};
+pub use hanke_henry::{HankeHenryCalendar, HankeHenryDate};
 pub use holocene::{HoloceneCalendar, HoloceneDate};
+pub use icelandic::{IcelandicCalendar, IcelandicDate};
 pub use indian::{IndianCalendar, IndianDate};
 pub use international_fixed::{InternationalFixedCalendar, InternationalFixedDate};
 pub use iso_week::{IsoWeekCalendar, IsoWeekDate};
@@ -132,9 +139,11 @@ pub use nanakshahi::{NanakshahiCalendar, NanakshahiDate};
 pub use ordinal::{OrdinalCalendar, OrdinalDate};
 pub use persian::{ArithmeticPersianCalendar, PersianDate};
 pub use positivist::{PositivistCalendar, PositivistDate};
+pub use qumran::{QumranCalendar, QumranDate};
 pub use revised_julian::{RevisedJulianCalendar, RevisedJulianDate};
 pub use roman::{RomanCalendar, RomanDate};
 pub use rumi::{RumiCalendar, RumiDate};
+pub use soviet_week::{SovietWeekCalendar, SovietWeekDate};
 pub use swedish::{SwedishCalendar, SwedishDate};
 pub use symmetry010::{Symmetry010Calendar, Symmetry010Date};
 pub use symmetry454::{Symmetry454Calendar, Symmetry454Date};
@@ -207,6 +216,12 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::MandaeanCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::AssyrianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::YazidiCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::HankeHenryCalendar)));
+        for icelandic in crate::IcelandicCalendar::ALL {
+            registry.insert(Box::new(DynAdapter::new(icelandic)));
+        }
+        registry.insert(Box::new(DynAdapter::new(crate::QumranCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::SovietWeekCalendar)));
         for zoroastrian in crate::ZoroastrianCalendar::ALL {
             registry.insert(Box::new(DynAdapter::new(zoroastrian)));
         }
@@ -225,7 +240,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 48;
+const CALENDAR_COUNT: usize = 53;
 
 #[cfg(test)]
 mod tests {
@@ -314,6 +329,11 @@ mod tests {
                 MandaeanCalendar,
                 AssyrianCalendar,
                 YazidiCalendar,
+                HankeHenryCalendar,
+                IcelandicCalendar::GREGORIAN,
+                IcelandicCalendar::JULIAN,
+                QumranCalendar,
+                SovietWeekCalendar,
                 ZoroastrianCalendar::QADIMI,
                 ZoroastrianCalendar::SHAHANSHAHI,
                 ZoroastrianCalendar::FASLI,
@@ -347,6 +367,11 @@ mod tests {
             MandaeanCalendar.meta(),
             AssyrianCalendar.meta(),
             YazidiCalendar.meta(),
+            HankeHenryCalendar.meta(),
+            IcelandicCalendar::GREGORIAN.meta(),
+            IcelandicCalendar::JULIAN.meta(),
+            QumranCalendar.meta(),
+            SovietWeekCalendar.meta(),
         ] {
             let first = meta.earliest.expect("bounded below");
             let last = meta.latest.expect("bounded above");
@@ -413,8 +438,8 @@ mod tests {
         let rd = gregorian::to_fixed(2026, 9, 21).unwrap();
         let rendered = registry.describe_day(rd);
         // Every calendar answers; the ones that refuse the day are the Rumi
-        // calendar, kept only from 1840 to 1925, and the Swedish calendar
-        // of 1700 to 1712.
+        // calendar, kept only from 1840 to 1925, the Swedish calendar of 1700
+        // to 1712 and the Soviet weeks of 1929 to 1940.
         assert_eq!(rendered.len(), registry.len());
         let converted = rendered.iter().filter(|(_, fields)| fields.is_ok()).count();
         let supporting = registry.metas().filter(|meta| meta.supports(rd)).count();
@@ -424,7 +449,7 @@ mod tests {
             .filter(|(_, fields)| fields.is_err())
             .map(|(id, _)| id.0)
             .collect();
-        assert_eq!(refusing, ["rumi", "swedish-1700"]);
+        assert_eq!(refusing, ["rumi", "swedish-1700", "soviet-week"]);
 
         let gregorian_fields = registry
             .get(CalendarId("gregory"))
@@ -549,6 +574,14 @@ mod tests {
             assert_eq!(
                 DynAdapter::new(IsoWeekCalendar).is_leap_year(year),
                 iso_week::is_long_year(year)
+            );
+            assert_eq!(
+                DynAdapter::new(HankeHenryCalendar).is_leap_year(year),
+                iso_week::is_long_year(year)
+            );
+            assert_eq!(
+                DynAdapter::new(IcelandicCalendar::GREGORIAN).is_leap_year(year),
+                Ok(icelandic::Rule::Gregorian.is_leap_year(year))
             );
             // Julian until 1752 in Britain, Gregorian after.
             let expected = if year < 1752 {
