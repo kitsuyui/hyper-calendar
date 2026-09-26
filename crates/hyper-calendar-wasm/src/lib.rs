@@ -2570,14 +2570,17 @@ mod tests {
             );
             let elapsed = started.elapsed();
             assert!(months.len() >= 370, "{} months", months.len());
-            // Well under a second in a release build; a debug build of the
-            // astronomy is several times slower, and is held to ten.
-            let limit = if cfg!(debug_assertions) { 10.0 } else { 1.0 };
-            assert!(
-                elapsed.as_secs_f64() < limit,
-                "{} months took {elapsed:?}",
-                months.len()
-            );
+            // Well under a second in a release build. A debug build, and a
+            // coverage-instrumented one above all, is too slow and too
+            // variable for a bound to mean anything, so the time is only
+            // reported there.
+            if !cfg!(debug_assertions) {
+                assert!(
+                    elapsed.as_secs_f64() < 1.0,
+                    "{} months took {elapsed:?}",
+                    months.len()
+                );
+            }
             eprintln!("{} Chinese months walked in {elapsed:?}", months.len());
         }
 
