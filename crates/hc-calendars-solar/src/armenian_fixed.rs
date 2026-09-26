@@ -7,10 +7,13 @@
 //! epagomenal day every fourth year, so the mean year became 365.25 days
 //! and the calendar stopped moving against the Julian one.
 //!
-//! He anchored it by working backwards: 1 Nawasardi had fallen on 11 August
-//! in the time of Maštocʿ, in 428, so 11 August is where he put it. The
-//! reform takes effect from Armenian year 533, which begins on 11 August
-//! 1084 in the Julian calendar.
+//! His year always begins on 11 August. It is counted from 1084, when the
+//! first 532-year Easter cycle of the Great Era ran out, and was used
+//! beside the Great Era rather than in its place; no church council
+//! confirmed it. This module numbers its years in the Great Era, from which
+//! Sarkawag took one year more than the cycle to absorb the drift: Armenian
+//! year 533 begins on 11 August 1084 in the Julian calendar. The system
+//! document is `docs/systems/armenian.md`.
 //!
 //! # How the year is defined here
 //!
@@ -20,21 +23,31 @@
 //! whose 11 August is 366 days after the last, which happens exactly when
 //! the Julian 29 February falls inside it.
 //!
-//! # The reform re-anchored the year; it did not merely stop it
+//! # The fixed year re-anchored the date; it did not merely stop it
 //!
 //! This is the same era as [`crate::armenian`], so Armenian year 533 is 533
 //! in both — but they do not meet. By 1084 the wandering 1 Nawasardi had
-//! drifted back to 29 February, and Sarkawag moved it forward 164 days to
-//! 11 August rather than fixing it where it lay.
+//! drifted back to 29 February, as that calendar's arithmetic places it,
+//! and the fixed year begins 164 days later, on 11 August.
 //!
-//! The arithmetic recovers his reason exactly. 11 August is 31 days later
-//! in the Julian year than the era's own epoch position of 11 July, and 31
-//! days is 124 years of drift at a day per four years — which is 552 − 428,
-//! the interval back to Maštocʿ. A test asserts all of it.
+//! Why 11 August, no source read says. The arithmetic offers a reading,
+//! which is this library's and not a source's: 11 August is 31 days later
+//! in the Julian year than the era's epoch position of 11 July, 31 days is
+//! 124 years of drift at a day per four years, and 552 − 124 is 428. A
+//! test states the arithmetic; nothing here claims it was Sarkawag's
+//! reason.
 //!
-//! **Sources:** the reform is treated in the standard Armenian
-//! chronological literature; the anchor is Sarkawag's own retrojection of
-//! 1 Nawasardi to 11 August.
+//! **Sources:** Armenian Wikipedia, «Հայոց փոքր թվական» (the Lesser
+//! Armenian Era), retrieved 2026-09-26 (`hywiki-hayots-poqr-tvakan`): the
+//! era from 1084 by Yovhannēs Sarkawag, the year always from 11 August and
+//! of 365.25 days, 366 in every fourth year, the 533 years subtracted, its
+//! limited use beside the Great Era and the lack of a council's approval.
+//! It cites Julieta Eynatyan's article in the encyclopaedia *Christian
+//! Armenia* and the *Armenian Soviet Encyclopedia*, vol. 6, p. 201, neither
+//! read here. English Wikipedia, "Hovhannes Imastaser", retrieved
+//! 2026-09-26 (`wikipedia-hovhannes-imastaser`), for 1084 and the added
+//! day. É. Dulaurier, *Recherches sur la chronologie arménienne* (Paris,
+//! 1859; `dulaurier1859`), the standard treatment, was not read.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, Usage,
@@ -124,8 +137,9 @@ pub const EARLIEST: Rd = Rd(new_year_raw(MIN_YEAR));
 pub const LATEST: Rd = Rd(new_year_raw(MAX_YEAR + 1) - 1);
 
 /// Where the period of use comes from.
-pub const USAGE_SOURCE: &str = "Sarkawag's reform of 1084 as the standard Armenian chronological \
-    literature dates it: in force from Armenian year 533, which begins on 11 August 1084 Julian";
+pub const USAGE_SOURCE: &str = "Sarkawag's fixed year from 1084 [hywiki-hayots-poqr-tvakan, \
+    wikipedia-hovhannes-imastaser]: from Armenian year 533, which begins on 11 August 1084 \
+    Julian, in limited use beside the Great Era and never confirmed by a council";
 
 /// The first day the reform was in force.
 pub const REFORM: Rd = Rd(new_year_raw(REFORM_YEAR));
@@ -254,9 +268,8 @@ impl Calendar for ArmenianFixedCalendar {
         }
     }
 
-    /// In use from the reform of 1084, and proleptic before it. The
-    /// wandering calendar is the one that was in use then, and the two
-    /// disagree by months.
+    /// In use from 1084, beside the wandering Great Era, and proleptic
+    /// before it; the two disagree by months.
     fn usage(&self) -> Usage {
         Usage::since(REFORM, USAGE_SOURCE)
     }
@@ -309,17 +322,16 @@ mod tests {
         }
     }
 
-    /// The reform was a *re-anchoring*, not a continuation, and this
-    /// recovers Sarkawag's own reasoning from the arithmetic.
+    /// The fixed year was a *re-anchoring*, not a continuation.
     ///
-    /// By 1084 the wandering 1 Nawasardi had drifted back to 29 February.
-    /// Sarkawag did not fix it there; he moved it forward to 11 August,
-    /// where it had stood in the time of Maštocʿ. That is 31 days later
-    /// than the era's own epoch position of 11 July — and 31 days is
-    /// exactly 124 years of drift at a day per four years, 552 − 428. The
-    /// calendar's arithmetic and the historical account agree to the day.
+    /// By 1084 the wandering 1 Nawasardi had drifted back to 29 February,
+    /// and the fixed year begins on 11 August, 164 days later. 11 August is
+    /// 31 days after the era's epoch position of 11 July, and 31 days is
+    /// 124 years of drift at a day per four years, so the fixed new year is
+    /// where the wandering one stood in 428. That last step is this
+    /// library's arithmetic; no source read gives Sarkawag's reason.
     #[test]
-    fn the_reform_restored_the_new_year_to_where_it_stood_in_four_twenty_eight() {
+    fn the_fixed_new_year_is_where_the_wandering_one_stood_in_four_twenty_eight() {
         let wandering = armenian::to_fixed(REFORM_YEAR, 1, 1).expect("in range");
         let fixed = to_fixed(REFORM_YEAR, 1, 1).expect("in range");
 

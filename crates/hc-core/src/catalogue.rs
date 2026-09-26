@@ -25,11 +25,12 @@
 //! stay written out where a reader finds them; the macro re-emits the
 //! attributes untouched.
 //!
-//! And it cannot check that a value is *right*. Every transcription error
-//! this library has caught was caught by stating the same fact two
-//! independent ways — an epoch date against a classical offset, an epact
-//! against a computus that shares no code with it. That second statement is
-//! domain knowledge and has to be written. What the macro removes is the
+//! And it cannot check that a value is *right*. The rule for that is to
+//! state the same fact two independent ways — an epoch date against a
+//! classical offset, an epact against a computus that shares no code with
+//! it — so that a transcription error in one shows up as a disagreement
+//! with the other. That second statement is domain knowledge and has to be
+//! written. What the macro removes is the
 //! ceremony around it, so that the anchors are what is left.
 
 /// Declare a catalogue: its entries, the slice of all of them, its lookup,

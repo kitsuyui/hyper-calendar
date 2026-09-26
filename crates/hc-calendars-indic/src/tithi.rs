@@ -102,6 +102,18 @@ pub fn sunset_of(day: Rd, location: Location) -> Moment {
 /// Navamī at midday, Vijayā Daśamī in the afternoon, Dīpāvalī in the
 /// evening, Janmāṣṭamī and Śivarātri at midnight. Each variant names the
 /// instant it probes, in the day's own sunrise-to-sunrise terms.
+///
+/// The parts of the day are the *dharmaśāstra*'s, whose standard survey is
+/// P. V. Kane, *History of Dharmaśāstra*, vol. V, part 1 (Poona, 1958;
+/// `kane1958`), and whose medieval digest is Kamalākara Bhaṭṭa's
+/// *Nirṇayasindhu*; neither was read here, and the definitions below are
+/// the library's statement of them. The single instant each variant
+/// probes is the library's choice, not a source's: a part of the day is
+/// an interval, and the rules for a tithi that holds only some of it are
+/// not modelled. The length of *pradoṣa* is disputed: two *muhūrta*s
+/// after sunset here, while Wikipedia, "Pradosha", retrieved 2026-09-26
+/// (`wikipedia-pradosha`), gives the worship window as an hour and a half
+/// either side of sunset. The probe an hour after sunset lies inside both.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Prevalence {
     /// At sunrise: the tithi the civil day carries.

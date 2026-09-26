@@ -3,6 +3,13 @@
 //! Systems disagree about where time starts, and most of those choices are
 //! historical accidents. Collecting them here means a conversion never has to
 //! rediscover a magic number.
+//!
+//! Every epoch names the document that defines it in [`Epoch::source`].
+//! Three of them — FILETIME's 1601, the Modified Julian Date's 1858 and
+//! NTP's 1900 — are written with a `Z` although they predate UTC, which
+//! began in 1961: the label names the day on today's proleptic UTC
+//! calendar, and the TAI reading is the arithmetic extension of it, not
+//! what any clock read.
 
 use crate::duration::Duration;
 use crate::scale::{Instant, Tai};
@@ -16,6 +23,9 @@ pub struct Epoch {
     pub description: &'static str,
     /// The TAI reading of the epoch, measured from `1970-01-01T00:00:00 TAI`.
     pub tai_reading: Duration,
+    /// The document that defines the epoch, keyed to `docs/references.bib`
+    /// where it has an entry.
+    pub source: &'static str,
 }
 
 impl Epoch {
@@ -31,6 +41,9 @@ pub const UNIX: Epoch = Epoch {
     id: "unix",
     description: "POSIX time_t origin, 1970-01-01T00:00:00Z",
     tai_reading: Duration::from_attos(8_000_082_000_000_000_000),
+    source: "IEEE Std 1003.1-2024 (POSIX), Base Definitions, 4.19 Seconds Since the Epoch \
+        [posix-2024]; TAI - UTC of 8.000082 s from USNO tai-utc.dat, 1968 FEB 1 segment \
+        [usno-tai-utc]",
 };
 
 /// `1980-01-06T00:00:00Z`, the GPS epoch.
@@ -38,6 +51,9 @@ pub const GPS: Epoch = Epoch {
     id: "gps",
     description: "GPS week zero, 1980-01-06T00:00:00Z",
     tai_reading: Duration::from_secs(315_964_800 + 19),
+    source: "IS-GPS-200, 3.3.4 GPS Time and SV Z-Count: zero time-point at midnight of \
+        5/6 January 1980, UTC(USNO), as quoted by the ARL memorandum of 15 August 2019 \
+        [arl-gps-time-2019]; 19 s behind TAI [rots2015]",
 };
 
 /// `2000-01-01T12:00:00 TT`, the J2000.0 fundamental epoch of modern
@@ -50,6 +66,9 @@ pub const J2000: Epoch = Epoch {
     // same event's TAI label is 11:59:27.816, because TT - TAI is 32.184 s
     // exactly, so the TAI reading is 32.184 s less.
     tai_reading: Duration::from_attos(946_727_967_816_000_000_000_000_000),
+    source: "J2000.0 = 2000-01-01T12:00:00, JD 2451545.0 [rots2015, Table 1, which gives it \
+        in TDB]; read here in TT, as hc-astro counts Julian centuries of TT from it; \
+        TT = TAI + 32.184 s [rots2015, Table 2]",
 };
 
 /// `1977-01-01T00:00:00 TAI`, the origin of TCG and TCB.
@@ -57,6 +76,9 @@ pub const TCG_TCB_ORIGIN: Epoch = Epoch {
     id: "tcg-tcb-origin",
     description: "1977-01-01T00:00:00 TAI, the defining origin of TCG and TCB",
     tai_reading: Duration::from_secs(220_924_800),
+    source: "JD0 = 2443144.5003725 TT, 1977-01-01T00:00:00 TAI, in the TCG and TDB relations \
+        of IAU 1991 Resolution A4 and IAU 2006 Resolution B3 as Rots et al. state them \
+        [rots2015]; the resolutions themselves not read",
 };
 
 /// `1858-11-17T00:00:00 UT`, the origin of the Modified Julian Date.
@@ -64,6 +86,7 @@ pub const MJD: Epoch = Epoch {
     id: "mjd",
     description: "Modified Julian Date zero, 1858-11-17T00:00:00 UT",
     tai_reading: Duration::from_secs(-3_506_716_800),
+    source: "MJD = JD - 2400000.5, citing IAU 1997 [rots2015]",
 };
 
 /// `-4712-01-01T12:00:00 UT` (Julian proleptic), the origin of the Julian Day.
@@ -75,6 +98,8 @@ pub const JULIAN_DAY: Epoch = Epoch {
     id: "julian-day",
     description: "Julian Day zero, -4712-01-01T12:00:00 UT (proleptic Julian)",
     tai_reading: Duration::from_secs(-210_866_760_000),
+    source: "Julian Dates counted from noon, 1 January 4713 BCE, proleptic Julian \
+        [rots2015, usno-julian-date]",
 };
 
 /// `0001-01-01T00:00:00`, the origin of .NET ticks and Rata Die day 1.
@@ -82,6 +107,8 @@ pub const RATA_DIE: Epoch = Epoch {
     id: "rata-die",
     description: "Rata Die day 1, 0001-01-01 (proleptic Gregorian)",
     tai_reading: Duration::from_secs(-62_135_596_800),
+    source: "Rata Die day 1 is 1 January 1 of the proleptic Gregorian calendar, \
+        gregorian-epoch in reingold2018code",
 };
 
 /// `1601-01-01T00:00:00Z`, the origin of the Windows `FILETIME`.
@@ -89,6 +116,8 @@ pub const WINDOWS_FILETIME: Epoch = Epoch {
     id: "windows-filetime",
     description: "Windows FILETIME origin, 1601-01-01T00:00:00Z",
     tai_reading: Duration::from_secs(-11_644_473_600),
+    source: "Microsoft Learn, FILETIME structure (minwinbase.h): 100-nanosecond intervals \
+        since January 1, 1601 (UTC), retrieved 2026-09-26 [ms-filetime]",
 };
 
 /// `1900-01-01T00:00:00Z`, the origin of NTP time.
@@ -96,6 +125,8 @@ pub const NTP: Epoch = Epoch {
     id: "ntp",
     description: "NTP era zero, 1900-01-01T00:00:00Z",
     tai_reading: Duration::from_secs(-2_208_988_800),
+    source: "RFC 5905, section 6: the prime epoch, or base date of era 0, is 0 h 1 January \
+        1900 UTC [rfc5905]",
 };
 
 /// `2001-01-01T00:00:00Z`, the origin of Apple's Core Foundation absolute
@@ -104,6 +135,8 @@ pub const CORE_FOUNDATION: Epoch = Epoch {
     id: "core-foundation",
     description: "Core Foundation absolute time origin, 2001-01-01T00:00:00Z",
     tai_reading: Duration::from_secs(978_307_200 + 32),
+    source: "Apple Developer Documentation, CFAbsoluteTime: the absolute reference date of \
+        1 Jan 2001 00:00:00 GMT, retrieved 2026-09-26 [apple-cfabsolutetime]",
 };
 
 /// Every epoch this crate knows about.
@@ -189,6 +222,7 @@ mod tests {
 crate::catalogue_tests! {
     type: Epoch,
     id: |epoch| epoch.id,
+    provenance: |epoch| epoch.source,
     tests: epoch_table_tests,
     all: ALL,
     lookup: by_id,

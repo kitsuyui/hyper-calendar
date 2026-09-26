@@ -51,13 +51,17 @@ pub struct RateEntry {
 /// The integer leap-second table, ascending by `start_unix`.
 ///
 /// Source: the IANA `leap-seconds.list` distributed with the time zone
-/// database, which mirrors IERS Bulletin C. The last entry is 2017-01-01; no
-/// leap second has been announced since, and the file checked when this table
-/// was written declared an expiry of 2027-06-28 (see
-/// [`table_valid_until_unix`]).
+/// database, <https://data.iana.org/time-zones/tzdb/leap-seconds.list>,
+/// which is updated through IERS Bulletin C (`iana-leap-seconds-list`).
+/// Checked 2026-09-26 against the copy whose `#$` line, its last update,
+/// is NTP 3 992 312 697 (2026-07-06) and whose `#@` expiry is NTP
+/// 4 023 129 600, 28 June 2027 (see [`table_valid_until_unix`]). The last
+/// entry is 2017-01-01; no leap second has been announced since.
 ///
-/// The 2022 CGPM resolution to retire the leap second by 2035 will change
-/// this table's future, not its past. When it lands, the data changes and the
+/// The 27th CGPM (2022), Resolution 4, decided that the maximum value of
+/// UT1 − UTC will be increased in, or before, 2035 (`cgpm2022-res4`, read
+/// 2026-09-26 at <https://www.bipm.org/en/cgpm-2022/resolution-4>). That
+/// will change this table's future, not its past: the data changes and the
 /// conversion code does not — which is the whole reason this is a table.
 pub const TABLE: &[LeapEntry] = &[
     LeapEntry {
@@ -207,8 +211,11 @@ pub const TABLE: &[LeapEntry] = &[
 /// Before 1972, UTC was kept close to UT1 by running its seconds at a
 /// deliberately different *rate* and applying occasional fractional steps, so
 /// `TAI - UTC` is piecewise linear rather than an integer. The coefficients
-/// are the `tai-utc.dat` series published by the USNO and mirrored by the
-/// IERS Earth Orientation Centre.
+/// are the `tai-utc.dat` series published by the USNO,
+/// <https://maia.usno.navy.mil/ser7/tai-utc.dat>, checked 2026-09-26
+/// (`usno-tai-utc`): 1961 JAN 1, 1.422 818 0 s + (MJD − 37 300) × 0.001 296 s,
+/// to 1968 FEB 1, 4.213 170 0 s + (MJD − 39 126) × 0.002 592 s, which gives
+/// the 8.000 082 s of 1970-01-01.
 ///
 /// A UTC second in this era was not an SI second, so conversions here are
 /// exact in the sense that they reproduce the published relation, not in the

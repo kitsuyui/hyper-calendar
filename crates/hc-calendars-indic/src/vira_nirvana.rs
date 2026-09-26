@@ -28,10 +28,10 @@
 //!
 //! # One identifier, not two
 //!
-//! The roadmap planned a second era for the Digambara, from 662 BCE. No
-//! source read gives that date or any other Digambara epoch for the era in
-//! use: the ones read put the Digambara scholars behind 527 BCE too. A
-//! second identifier would name no disagreement, so there is one. The
+//! No source read gives a separate Digambara epoch for the era in use,
+//! 662 BCE or any other: the ones read put the Digambara scholars behind
+//! 527 BCE too. A second identifier would name no disagreement, so there
+//! is one. The
 //! scholarly redatings of the nirvāṇa — 467 BCE, from Mahāvīra's relation
 //! to Candragupta Maurya — are arguments about history, not eras anyone
 //! dates in, and are not carried.
@@ -202,7 +202,7 @@ impl Calendar for ViraNirvanaCalendar {
     /// The day begins at sunrise and is named by the civil day on whose
     /// sunrise it begins, the amānta calendar's reading: Reingold and
     /// Dershowitz read a fixed day's date at "Sunrise that day"
-    /// (`calendar-code2`, `hindu-lunar-from-fixed`).
+    /// (`reingold2018code`, `hindu-lunar-from-fixed`).
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Sunrise(hc_calendar::DayNaming::ByStart)
     }

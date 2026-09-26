@@ -1,10 +1,19 @@
 //! The Revised Julian calendar of Milutin Milanković, 1923.
 //!
-//! The only calendar reform of the twentieth century that anyone adopted.
-//! The Pan-Orthodox Congress of Constantinople accepted it in May 1923, and
-//! eight autocephalous Orthodox churches still keep their fixed feasts by
-//! it — Constantinople, Alexandria, Antioch, Greece, Cyprus, Romania,
-//! Bulgaria and Albania among them.
+//! The Pan-Orthodox Congress of Constantinople adopted Milanković's leap
+//! rule in 1923 and proposed that the coming 1 October Julian be called
+//! 14 October. The churches took the calendar up one at a time, for their
+//! fixed feasts, and this library dates its use from the first adoption
+//! that lasted — Constantinople and Greece on 10/23 March 1924, Cyprus
+//! with them ([`ADOPTION`]) — not from the proposal, nor from the Russian
+//! Church's acceptance of 15 October 1923, which Patriarch Tikhon reversed
+//! twenty-four days later. Then Romania on 1/14 October 1924,
+//! Alexandria and Antioch in 1928, Albania in 1937, Bulgaria on
+//! 20 December 1968, and the Orthodox Church of Ukraine on 1 September
+//! 2023; the Polish Orthodox Church, which adopted it on 1/14 October 1924
+//! though few of its parishes changed, returned to the Julian calendar on
+//! 15 June 2014
+//! (`wikipedia-revised-julian-calendar`).
 //!
 //! # The rule
 //!
@@ -44,8 +53,13 @@
 //! Western date. A calendar cannot express that split; `hc-holiday`'s
 //! computus can, and does.
 //!
-//! **Sources:** the Pan-Orthodox Congress of Constantinople (1923);
-//! Milanković's own account of the 900-year cycle.
+//! **Sources:** Wikipedia, "Revised Julian calendar", retrieved 2026-09-26
+//! (`wikipedia-revised-julian-calendar`), for the Congress's decision and
+//! the dated list of adopting churches, which it cites to Clogg (2002) and
+//! news reports, not read here; M. Milankovitch, *Astronomische
+//! Nachrichten* 220 (1924) 379–384 (`milankovitch1924`), Milanković's own
+//! account of the 900-year rule, not read here. The rule itself is stated
+//! above and tested below.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, Usage,
@@ -67,13 +81,30 @@ pub const CYCLE_YEARS: i64 = 900;
 pub const LEAPS_PER_CYCLE: i64 = 218;
 
 /// Where the period of use comes from.
-pub const USAGE_SOURCE: &str = "The Pan-Orthodox Congress of Constantinople (May 1923): \
-    in use from 1 October 1923 Julian, which is 14 October 1923";
+pub const USAGE_SOURCE: &str = "In use from 10 March 1924 Julian, called 23 March, when the \
+    Ecumenical Patriarchate and the Church of Greece adopted it, the first churches to do so; \
+    the Pan-Orthodox Congress of Constantinople had proposed 1/14 October 1923 \
+    [wikipedia-revised-julian-calendar]";
 
-/// The day the Pan-Orthodox Congress put the calendar into use: 1 October
-/// 1923 Julian, which this calendar and the Gregorian one both call
-/// 14 October 1923.
-pub const ADOPTION: Rd = match gregorian::to_fixed(1923, 10, 14) {
+/// The first day any church kept the calendar: 10 March 1924 in the Julian
+/// calendar, which the Ecumenical Patriarchate and the Church of Greece
+/// called 23 March 1924, as this calendar and the Gregorian one both do.
+///
+/// The Pan-Orthodox Congress had proposed 1 October 1923 Julian, called
+/// 14 October, which [`PROPOSED`] records; the Russian Church's acceptance
+/// of the next day lasted twenty-four days and is not counted as the start
+/// (`wikipedia-revised-julian-calendar`).
+pub const ADOPTION: Rd = match gregorian::to_fixed(1924, 3, 23) {
+    Ok(rd) => rd,
+    // Unreachable: the date is a valid Gregorian one, and a `const` cannot
+    // unwrap.
+    Err(_) => Rd(0),
+};
+
+/// The day the Pan-Orthodox Congress of Constantinople proposed to put the
+/// calendar into use: 1 October 1923 Julian, to be called 14 October
+/// (`wikipedia-revised-julian-calendar`).
+pub const PROPOSED: Rd = match gregorian::to_fixed(1923, 10, 14) {
     Ok(rd) => rd,
     // Unreachable: the date is a valid Gregorian one, and a `const` cannot
     // unwrap.
@@ -287,8 +318,8 @@ impl Calendar for RevisedJulianCalendar {
         }
     }
 
-    /// In use since the Pan-Orthodox Congress of 1923, and proleptic before
-    /// it — which matters, because the proleptic form disagrees with the
+    /// In use since the first lasting adoption in March 1924, and
+    /// proleptic before — which matters, because the proleptic form disagrees with the
     /// Gregorian calendar before 1 March 1600 and no church ever used it
     /// there.
     fn usage(&self) -> Usage {
@@ -419,12 +450,16 @@ mod tests {
     }
 
     #[test]
-    fn the_adoption_day_is_the_fourteenth_of_october_nineteen_twenty_three() {
-        assert_eq!(from_fixed(ADOPTION), Ok((1923, 10, 14)));
-        assert_eq!(gregorian::from_fixed(ADOPTION), Ok((1923, 10, 14)));
-        // The Julian calendar called it 1 October, which is what the
-        // Congress was replacing.
-        assert_eq!(crate::julian::from_fixed(ADOPTION), Ok((1923, 10, 1)));
+    fn the_first_church_changed_on_the_twenty_third_of_march_1924() {
+        // "10/23 March 1924: Constantinople, Cyprus and Greece"
+        // (wikipedia-revised-julian-calendar).
+        assert_eq!(from_fixed(ADOPTION), Ok((1924, 3, 23)));
+        assert_eq!(gregorian::from_fixed(ADOPTION), Ok((1924, 3, 23)));
+        assert_eq!(crate::julian::from_fixed(ADOPTION), Ok((1924, 3, 10)));
+        // The Congress's proposed day, which no church kept.
+        assert_eq!(from_fixed(PROPOSED), Ok((1923, 10, 14)));
+        assert_eq!(crate::julian::from_fixed(PROPOSED), Ok((1923, 10, 1)));
+        assert!(PROPOSED < ADOPTION);
     }
 
     #[test]
@@ -450,14 +485,15 @@ mod tests {
     }
 
     #[test]
-    fn a_date_before_the_congress_is_proleptic_and_says_so() {
+    fn a_date_before_the_first_adoption_is_proleptic_and_says_so() {
         use hc_calendar::Standing;
         let calendar = RevisedJulianCalendar;
         assert_eq!(calendar.standing(ADOPTION), Standing::InUse);
         assert_eq!(
             calendar.standing(Rd(ADOPTION.0 - 1)),
             Standing::Proleptic,
-            "the churches adopted it in 1923, not before"
+            "the first churches adopted it in March 1924, not before"
         );
+        assert_eq!(calendar.standing(PROPOSED), Standing::Proleptic);
     }
 }

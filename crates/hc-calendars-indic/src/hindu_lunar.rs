@@ -613,7 +613,7 @@ impl Calendar for HinduLunarCalendar {
 
     /// The Hindu day begins at sunrise and is named by the civil day on
     /// whose sunrise it begins: Reingold and Dershowitz read a fixed day's
-    /// date at "Sunrise that day" (`calendar-code2`, `hindu-lunar-from-fixed`).
+    /// date at "Sunrise that day" (`reingold2018code`, `hindu-lunar-from-fixed`).
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Sunrise(hc_calendar::DayNaming::ByStart)
     }

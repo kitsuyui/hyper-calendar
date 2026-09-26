@@ -56,11 +56,21 @@
 //! it says nothing of the *Denkard*'s intercalation of a month every 120
 //! years, which no community has practised since the 1120s.
 //!
+//! The calendars, the split of 1745, the Fasli proposal and the era are
+//! written up in `docs/systems/zoroastrian.md` in the repository.
+//!
 //! # Sources
 //!
-//! * Wikipedia, "Zoroastrian calendar", retrieved 2026-09-22: the epoch, the
-//!   two Julian Day Number formulas, the 1129 and 2000 dates, the day and
-//!   month dedications, and the history above.
+//! * Wikipedia, "Zoroastrian calendar", retrieved 2026-09-22 and
+//!   2026-09-26 (`wikipedia-zoroastrian-calendar`): the epoch, the two
+//!   Julian Day Number formulas, the 1129 and 2000 dates, the day and month
+//!   dedications, the Zarathushtrian Religious Era of 1990 counted from the
+//!   March equinox of 1738 BCE, and the history above.
+//! * Antonio Panaino, "Calendars iv. Other modern calendars",
+//!   *Encyclopaedia Iranica* IV/6–7 (1990) (`panaino1990`), read
+//!   2026-09-26 in the Wayback Machine's copy of 5 September 2026: the
+//!   Parsi split of 17 June 1745, or 1746 by Boyce and Hinnells, *qadīm*
+//!   against *rasmī* or *Shenshai*, and the Fasli of 1906.
 //! * Rohinton Erach Kadva, *Compendium of Fasli Zoroastrian Calendars 1379
 //!   AY through 1400 AY*, Bangalore, 2009
 //!   (zoroastrian.ru/files/eng/zoroastrian-calendars-1379-ay-1400-ay-fasli.pdf,
@@ -79,7 +89,10 @@ use crate::{common, gregorian};
 pub const ERA: &str = "yz";
 
 /// How far the Zoroastrian Religious Era of 1990 runs ahead of the
-/// Yazdegerdi era: 1370 Y.Z. is 3738 ZRE.
+/// Yazdegerdi era: 1370 Y.Z. is 3738 ZRE, the year that began at the March
+/// equinox of 2000 (`wikipedia-zoroastrian-calendar`). The ZRE turns at the
+/// equinox, so the pairing is nearly exact for the Fasli year and a pairing
+/// of year numbers only for the wandering ones.
 pub const ZRE_OFFSET: i64 = 2_368;
 
 /// The first day of Fasli 1276, 21 March 1906, the year of the Bombay
@@ -90,10 +103,11 @@ pub const FASLI_PROPOSED: Rd = match gregorian::to_fixed(1906, 3, 21) {
 };
 
 /// Where the periods of use come from.
-pub const USAGE_SOURCE: &str = "Wikipedia, \"Zoroastrian calendar\", retrieved 2026-09-22: the wandering year from the \
-    accession of Yazdegerd III, 16 June 632 Julian, continued in Iran and adopted as Kadmi \
-    by some Parsis in 1745; the Shahanshahi a month behind it from 498 Y.Z., 1129; the \
-    Fasli proposed by a Bombay society in 1906, the year only, so its first Nowruz is taken";
+pub const USAGE_SOURCE: &str = "Wikipedia, \"Zoroastrian calendar\" [wikipedia-zoroastrian-calendar]: the wandering \
+    year from the accession of Yazdegerd III, 16 June 632 Julian, continued in Iran and \
+    adopted as Kadmi by some Parsis in 1745 [panaino1990]; the Shahanshahi a month behind it \
+    from 498 Y.Z., 1129; the Fasli proposed by a Bombay society in 1906, the year only, so \
+    its first Nowruz is taken";
 
 /// The fixed day of 1 Fravardin 1 Y.Z. by the Qadimi reckoning: 16 June
 /// 632 in the Julian calendar, Julian Day Number 1 952 063.

@@ -240,19 +240,28 @@ const YERM_CALENDARS: &[CalendarId] = &[CalendarId("yerm")];
 
 /// The Solar Hijri calendar.
 ///
-/// The registry has it twice: `persian-arithmetic`, the Birashk
-/// arithmetic calendar, and `persian`, the astronomical calendar of
-/// `hc-calendars-equinox`. Their months have the same names.
-const PERSIAN_CALENDARS: &[CalendarId] = &[CalendarId("persian-arithmetic"), CalendarId("persian")];
+/// The registry has it four times with Iran's month names: the two
+/// arithmetic calendars, `persian-arithmetic` (Birashk's cycle) and
+/// `persian-arithmetic-33`, and the two astronomical ones of
+/// `hc-calendars-equinox`, `persian` and `persian-apparent-noon`. Their
+/// months have the same names.
+const PERSIAN_CALENDARS: &[CalendarId] = &[
+    CalendarId("persian-arithmetic"),
+    CalendarId("persian-arithmetic-33"),
+    CalendarId("persian"),
+    CalendarId("persian-apparent-noon"),
+];
 
 /// The Solar Hijri calendar under every name the registry has for it: the
-/// two Iranian ones and `persian-afghan`, the same days under the Arabic
+/// four Iranian ones and `persian-afghan`, the same days under the Arabic
 /// names of the zodiac signs. They share an era, and CLDR's one `persian`
-/// calendar is all three, so a locale that follows CLDR's month names for
-/// it — Pashto — serves all three too.
+/// calendar is all of them, so a locale that follows CLDR's month names
+/// for it — Pashto — serves all of them too.
 const SOLAR_HIJRI_CALENDARS: &[CalendarId] = &[
     CalendarId("persian-arithmetic"),
+    CalendarId("persian-arithmetic-33"),
     CalendarId("persian"),
+    CalendarId("persian-apparent-noon"),
     CalendarId("persian-afghan"),
 ];
 

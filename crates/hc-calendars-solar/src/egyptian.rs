@@ -17,6 +17,14 @@
 //! usable. The Egyptians themselves numbered years by the reigning king, and
 //! this crate does not attempt to model regnal years; a caller who needs
 //! them should map a regnal year to a Nabonassar year and convert.
+//!
+//! Sources for the epoch: Reingold and Dershowitz's `egyptian-epoch`, "JD
+//! 1448638 = February 26, 747 BCE (Julian)" (`reingold2018code`); and
+//! Wikipedia, "Nabonassar", retrieved 2026-09-26
+//! (`wikipedia-nabonassar`), for Ptolemy's *Almagest* counting the era
+//! from noon on 26 February 747 BC, which it cites to Brinkman in the
+//! *Reallexikon der Assyriologie*, not read here. The *Almagest* itself
+//! was not read.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,

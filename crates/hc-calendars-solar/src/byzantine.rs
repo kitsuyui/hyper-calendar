@@ -22,6 +22,15 @@
 //! years, and several Byzantine sources start the year on 1 March or at
 //! Easter. Only the 1 September / 5509 BC combination — the "Byzantine era"
 //! proper — is implemented.
+//!
+//! Sources: Wikipedia, "Byzantine calendar", retrieved 2026-09-26
+//! (`wikipedia-byzantine-calendar`): the era from 1 September 5509 BC,
+//! fixed there since at least the mid-seventh century and found in the
+//! Acts of the Quinisext Council of 691; its replacement in the Orthodox
+//! church by the Christian era, formally in 1728; its use in Russia until
+//! Peter I changed the calendar in 1700. It lists V. Grumel, *La
+//! chronologie* (Paris, 1958; `grumel1958`), the standard treatment, which
+//! was not read, and neither was Peter I's decree of 20 December 7208.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
@@ -105,9 +114,10 @@ pub const LAST_CIVIL: Rd = match julian::to_fixed(1699, 12, 31) {
 };
 
 /// Where the period of use comes from.
-pub const USAGE_SOURCE: &str = "The civil calendar of the Eastern Roman Empire from the seventh century, of the Orthodox \
-    church afterwards, and of Russia until Peter I replaced it on 1 January 1700, as this \
-    module states; the beginning is not dated closer by any source read";
+pub const USAGE_SOURCE: &str = "Wikipedia, \"Byzantine calendar\" [wikipedia-byzantine-calendar]: the era fixed at \
+    1 September 5509 BC since at least the mid-seventh century, in the Acts of the Quinisext \
+    Council of 691, and kept in Russia until Peter I replaced it on 1 January 1700; the \
+    beginning is not dated closer by any source read";
 
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = match new_year(MIN_YEAR) {

@@ -25,7 +25,9 @@
 //! # Whose arithmetic
 //!
 //! The functions of Reingold and Dershowitz, *Calendrical Calculations*
-//! (4th ed., 2018), in the section on the Old Hindu calendars:
+//! (4th ed., 2018), in the section on the Old Hindu calendars, as their
+//! published code gives them (`reingold2018code`; the book, `reingold2018`,
+//! not read here):
 //! `old-hindu-solar-from-fixed`, `fixed-from-old-hindu-solar`,
 //! `old-hindu-lunar-from-fixed`, `fixed-from-old-hindu-lunar` and
 //! `old-hindu-lunar-leap-year?`, with the epoch, the year and month
@@ -236,8 +238,7 @@ impl Calendar for OldHinduSolarCalendar {
     /// The day begins at mean sunrise, a quarter day after midnight, and is
     /// named by the civil day on whose sunrise it begins: a fixed day's date
     /// is read at "Sunrise on Hindu date", six hours after its midnight
-    /// (Reingold and Dershowitz, `calendar-code2`,
-    /// `old-hindu-solar-from-fixed`).
+    /// (`reingold2018code`, `old-hindu-solar-from-fixed`).
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Sunrise(hc_calendar::DayNaming::ByStart)
     }
@@ -476,8 +477,8 @@ impl Calendar for OldHinduLunarCalendar {
     }
 
     /// The day begins at mean sunrise, a quarter day after midnight, and is
-    /// named by the civil day on whose sunrise it begins (Reingold and
-    /// Dershowitz, `calendar-code2`, `old-hindu-lunar-from-fixed`).
+    /// named by the civil day on whose sunrise it begins
+    /// (`reingold2018code`, `old-hindu-lunar-from-fixed`).
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
         hc_calendar::DayBoundary::Sunrise(hc_calendar::DayNaming::ByStart)
     }

@@ -67,6 +67,10 @@ None of the three repeats another.
 | The Javanese calendar: Sultan Agung's lunar year, the windu and the kurup, and the Yogyakarta and Aboge reckonings | [javanese.md](javanese.md) | `javanese`, `javanese-yogyakarta`, `javanese-aboge` |
 | The Balinese Pawukon's ten concurrent weeks, and the Javanese pasaran and wetonan | [pawukon-and-pasaran.md](pawukon-and-pasaran.md) | `balinese-pawukon`, `javanese-pasaran` |
 | The Badíʿ calendar from 2015 and the French Republican decree, against their arithmetic siblings | [equinox-calendars.md](equinox-calendars.md) | `bahai-astronomical`, `french-republican-equinox`; `bahai`, `bahai-arithmetic`, `french-republican-arithmetic` |
+| The Solar Hijri calendar: Nowruz by the clock's noon and by the Sun's at Tehran, the 33-year rule and the 2 820-year cycle | [solar-hijri.md](solar-hijri.md) | `persian`, `persian-apparent-noon`, `persian-afghan`, `persian-arithmetic`, `persian-arithmetic-33` |
+| The Zoroastrian calendars: the Parsi intercalation of the 1120s, the split of 1745, the Fasli of 1906, the ZRE | [zoroastrian.md](zoroastrian.md) | `zoroastrian-qadimi`, `zoroastrian-shahanshahi`, `zoroastrian-fasli` |
+| The Armenian calendar: the Great Era's wandering year and Sarkawag's fixed year of 1084 | [armenian.md](armenian.md) | `armenian`, `armenian-fixed` |
+| The Bangladeshi and Nanakshahi calendars: fixed month lengths by decree, and their revisions | [fixed-solar-namings.md](fixed-solar-namings.md) | `bangladeshi`, `nanakshahi` |
 | The sexagenary cycle for year, month, day and hour, its three year boundaries and its readings | [sexagenary-cycle.md](sexagenary-cycle.md) | `sexagenary`; `hc-calendar::cycle`, `cycle::readings` |
 | The Swedish runestaff: the day-letter runes, and the golden-number runes on the new moons of the Julian ecclesiastical lunar calendar | [runic-calendar.md](runic-calendar.md) | `hc-calendars-solar::cycles::runic` |
 

@@ -34,9 +34,14 @@
 //! three it is better absent than guessed. Policy §4.
 //!
 //! **Sources:** C. R. Cheney, *A Handbook of Dates for Students of British
-//! History* (Royal Historical Society); Adriano Cappelli, *Cronologia,
-//! Cronografia e Calendario Perpetuo*; Grotefend, *Zeitrechnung des
-//! deutschen Mittelalters*.
+//! History*, revised by Michael Jones (Cambridge, 2000; `cheney2000`);
+//! Adriano Cappelli, *Cronologia, Cronografia e Calendario Perpetuo*
+//! (7th ed., Milan, 1998; `cappelli1998`); H. Grotefend, *Zeitrechnung des
+//! deutschen Mittelalters und der Neuzeit* (Hanover, 1891–1898;
+//! `grotefend1891`); V. Grumel, *La chronologie* (Paris, 1958;
+//! `grumel1958`), none of them read here: they are named as the authority
+//! for each style below. The last English year to begin on 25 March is
+//! fixed by the Calendar (New Style) Act 1750 (`uk-calendar-act-1750`).
 
 use hc_calendar::{CalendarError, CalendarResult, Rd};
 
@@ -162,7 +167,7 @@ hc_core::catalogue! {
         start_day: 25,
         offset_from_start: 0,
         offset_before_start: -1,
-        authority: "Cappelli, Cronologia; the Florentine stile dell'Incarnazione",
+        authority: "Cappelli, Cronologia [cappelli1998]; the Florentine stile dell'Incarnazione",
     };
 
     /// The Annunciation style as Pisa used it: the year begins on 25 March and
@@ -177,13 +182,16 @@ hc_core::catalogue! {
         start_day: 25,
         offset_from_start: 1,
         offset_before_start: 0,
-        authority: "Cappelli, Cronologia; the Pisan stile dell'Incarnazione",
+        authority: "Cappelli, Cronologia [cappelli1998]; the Pisan stile dell'Incarnazione",
     };
 
-    /// The English legal year, which began on 25 March until 1752.
+    /// The English legal year, which began on 25 March to 1751.
     ///
     /// The same arithmetic as the Florentine style, under the name English
-    /// records use. A document dated 12 February 1721 means 1722.
+    /// records use. A document dated 12 February 1721 means 1722. The
+    /// Calendar (New Style) Act 1750 began the year 1752 on 1 January, so
+    /// 1751, which began on 25 March and ended on 31 December, is the last
+    /// year of the style (`uk-calendar-act-1750`).
     pub const LADY_DAY = YearStyle {
         id: "lady-day",
         english_name: "Lady Day style (25 March, behind)",
@@ -191,7 +199,8 @@ hc_core::catalogue! {
         start_day: 25,
         offset_from_start: 0,
         offset_before_start: -1,
-        authority: "Cheney, Handbook of Dates; the English legal year to 1752",
+        authority: "Cheney, Handbook of Dates [cheney2000]; the English legal year to 1751, \
+            ended by the Calendar (New Style) Act 1750 [uk-calendar-act-1750]",
     };
 
     /// The Nativity style: the year begins on 25 December, a week early.
@@ -205,7 +214,7 @@ hc_core::catalogue! {
         start_day: 25,
         offset_from_start: 1,
         offset_before_start: 0,
-        authority: "Grotefend, Zeitrechnung; the stilus nativitatis",
+        authority: "Grotefend, Zeitrechnung [grotefend1891]; the stilus nativitatis",
     };
 
     /// The Venetian *more veneto*: the year begins on 1 March.
@@ -219,7 +228,7 @@ hc_core::catalogue! {
         start_day: 1,
         offset_from_start: 0,
         offset_before_start: -1,
-        authority: "Cappelli, Cronologia; the Venetian chancery",
+        authority: "Cappelli, Cronologia [cappelli1998]; the Venetian chancery",
     };
 
     /// The Greek or Constantinopolitan style: the year begins on 1 September.
@@ -233,7 +242,7 @@ hc_core::catalogue! {
         start_day: 1,
         offset_from_start: 1,
         offset_before_start: 0,
-        authority: "Grumel, La chronologie; the Byzantine civil year",
+        authority: "Grumel, La chronologie [grumel1958]; the Byzantine civil year",
     };
     }
 }

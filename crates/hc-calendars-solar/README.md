@@ -32,7 +32,8 @@ file does not:
 | `armenian` | Ancient Armenian | `armenian` |
 | `armenian_fixed` | Armenian (fixed, Sarkawag 1084) | `armenian-fixed` |
 | `zoroastrian` | Zoroastrian: the Qadimi and Shahanshahi wandering years, and the Fasli with its leap day | `zoroastrian-qadimi`, `zoroastrian-shahanshahi`, `zoroastrian-fasli` |
-| `persian` | Solar Hijri, **arithmetic** variant | `persian-arithmetic` |
+| `persian` | Solar Hijri, **arithmetic** variant: Birashk's 2 820-year cycle | `persian-arithmetic` |
+| `persian_33` | Solar Hijri, **arithmetic** variant: the 33-year rule | `persian-arithmetic-33` |
 | `indian` | Indian national civil (Śaka) | `indian` |
 | `nanakshahi` | Nanakshahi, the Sikh solar calendar of 2003 | `nanakshahi` |
 | `bangladeshi` | the Bangladeshi national calendar: the Bengali months from 14 April, the 1987 lengths to 1425 and the 2019 revision's from 1426 | `bangladeshi` |
@@ -77,10 +78,13 @@ implemented here in their arithmetic form, under names that say so; the
 astronomical forms are in `hc-calendars-equinox`:
 
 * **Solar Hijri.** The official Iranian calendar begins the year at the
-  observed March equinox. Implemented here is the 2 820-year cyclic rule
-  associated with Birashk, which disagrees with the observation in a handful
-  of years even inside the range where it is at its best. The CLDR identifier
-  `persian` belongs to the astronomical calendar in `hc-calendars-equinox`.
+  observed March equinox. Implemented here are the two published cycles:
+  the 2 820-year rule associated with Birashk, `persian-arithmetic`, which
+  already disagrees with the equinox at Nowruz 1404, and the 33-year rule,
+  `persian-arithmetic-33`, which agrees with it on every Nowruz from 1178 to
+  1634. The CLDR identifier `persian` belongs to the astronomical calendar
+  in `hc-calendars-equinox`; all of them are written up in
+  [`docs/systems/solar-hijri.md`](../../docs/systems/solar-hijri.md).
 * **French Republican.** The decree of 1793 used the true autumn equinox at
   Paris. Implemented here is Romme's proposed arithmetic rule, which puts the
   sextile day at the end of An IV where France put it at the end of An III —
@@ -133,7 +137,8 @@ against the Gregorian 365.2425.
 ## Reference data
 
 Formulae are those of Reingold and Dershowitz, *Calendrical Calculations*
-(4th ed., Cambridge, 2018), which is also the source of the epochs used by the
+(4th ed., Cambridge, 2018; `reingold2018`), read through its published code
+(`reingold2018code`), which is also the source of the epochs used by the
 Coptic, Ethiopic, Egyptian, Armenian, Persian, Indian and French Republican
 modules. Every one of those epochs is cross-checked in a test against an
 independent statement of the same day — a Julian calendar date, a Julian Day

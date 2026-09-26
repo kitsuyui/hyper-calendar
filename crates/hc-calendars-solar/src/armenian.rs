@@ -3,15 +3,25 @@
 //! The same wandering year as [`crate::egyptian`] — twelve months of thirty
 //! days, five *aweleacʿ* days, and no intercalation — moved to a different
 //! epoch. The Armenian era begins on 11 July AD 552 in the Julian calendar
-//! ([`EPOCH`]), the year the Armenian church broke with the Byzantine
-//! computus and started its own reckoning.
+//! ([`EPOCH`]), the day the Easter tables of Andreas of Byzantium, in use
+//! in Armenia since 352, ran out and the church began its own reckoning.
 //!
 //! Because the year is 365 days flat, the calendar wanders against the
 //! seasons exactly as the Egyptian one does, and an Armenian date is a fixed
 //! offset from the Egyptian date with the same year and month number. This
-//! module implements the original wandering form; Yovhannēs Sarkawag's
-//! fixed year of 1084 is [`crate::armenian_fixed`], and modern Armenia uses
-//! the Gregorian calendar.
+//! module implements the original wandering form, the Great Armenian Era;
+//! Yovhannēs Sarkawag's fixed year of 1084, which was used beside it rather
+//! than in its place, is [`crate::armenian_fixed`], and modern Armenia uses
+//! the Gregorian calendar. Both are written up in
+//! `docs/systems/armenian.md` in the repository.
+//!
+//! Sources: Wikipedia, "Armenian calendar", retrieved 2026-09-26
+//! (`wikipedia-armenian-calendar`), for the epoch of 11 July 552 Julian,
+//! when the Easter tables of Andreas of Byzantium ran out, citing
+//! Tumanian, not read; Armenian Wikipedia, «Հայոց մեծ թվական», retrieved
+//! 2026-09-26 (`hywiki-hayots-mets-tvakan`), for the same day, the Council
+//! of Dvin's examination of the era in 554 and its adoption in 584; and
+//! `armenian-epoch`, RD 201 443, in `reingold2018code`.
 //!
 //! The month names in Armenian script are [`MONTHS`], declared with the
 //! calendar's shape; transliterations are a locale's and belong to `hc-i18n`.
@@ -45,9 +55,11 @@ pub const fn days_in_month(month: u8) -> Option<u8> {
 }
 
 /// Where the period of use comes from.
-pub const USAGE_SOURCE: &str = "The era's first day, 1 Nawasardi 1 = 11 July 552 Julian, when the Armenian church \
-    began its own reckoning, as this module states it; superseded by Sarkawag's fixed \
-    year from 11 August 1084, as `armenian_fixed` states it";
+pub const USAGE_SOURCE: &str = "The Great Armenian Era from 1 Nawasardi 1 = 11 July 552 Julian, examined at the \
+    Council of Dvin in 554 and adopted in 584 [hywiki-hayots-mets-tvakan, \
+    wikipedia-armenian-calendar]; kept beside Sarkawag's fixed year after 1084, which had \
+    limited use [hywiki-hayots-poqr-tvakan], and in cultural and religious use today \
+    [wikipedia-armenian-calendar]";
 
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = Rd(common::wandering_to_fixed(EPOCH.0, MIN_YEAR, 1, 1));
@@ -154,16 +166,11 @@ const SHAPE: &[hc_calendar::shape::CycleShape] = &[
 impl Calendar for ArmenianCalendar {
     type Date = ArmenianDate;
 
-    /// From the era's first day, 11 July 552, until the day before Sarkawag's
-    /// fixed year took effect on 11 August 1084. The wandering year lingered
-    /// in use beside the fixed one afterwards; no source read dates that, so
-    /// it is not carried.
+    /// From the era's first day, 11 July 552, with no end: the Great Era
+    /// stayed the main reckoning after Sarkawag's fixed year appeared in
+    /// 1084, and is kept for cultural and religious purposes today.
     fn usage(&self) -> hc_calendar::Usage {
-        hc_calendar::Usage::between(
-            EPOCH,
-            hc_calendar::Rd(crate::armenian_fixed::REFORM.0 - 1),
-            USAGE_SOURCE,
-        )
+        hc_calendar::Usage::since(EPOCH, USAGE_SOURCE)
     }
 
     /// Thirteen months, named in Armenian script, and the seven-day week.

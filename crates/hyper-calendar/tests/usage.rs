@@ -59,6 +59,7 @@ const UNRECORDED: &[&str] = &[
     "holocene",
     "meyer-palmen",
     "persian-arithmetic",
+    "persian-arithmetic-33",
     "positivist",
     "symmetry010",
     "symmetry454",

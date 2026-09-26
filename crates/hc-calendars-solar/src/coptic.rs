@@ -2,19 +2,36 @@
 //!
 //! Twelve months of thirty days and a thirteenth month of five days, six in
 //! every fourth year. That is the Egyptian civil year with the leap day the
-//! decree of Canopus proposed in 238 BC and Augustus finally imposed in
-//! 25 BC, which is why the Coptic year keeps step with the Julian one
-//! exactly: 1 Thout falls on 29 August Julian, or 30 August in the year
-//! before a Coptic leap year.
+//! decree of Canopus proposed in 238 BC and Augustus imposed on Egypt, which
+//! is why the Coptic year keeps step with the Julian one
+//! exactly: 1 Thout falls on 29 August Julian, or on 30 August in the
+//! Julian year before a Julian leap year, the Coptic year that ends then
+//! having taken its sixth epagomenal day.
 //!
 //! The era is the Era of the Martyrs, *Anno Martyrum*, counted from the
 //! accession of Diocletian: 1 Thout 1 A.M. is 29 August AD 284 in the Julian
 //! calendar, [`EPOCH`].
 //!
-//! Because the calendar tracks the Julian year, it has drifted with it: the
-//! Coptic new year has fallen on 11 September Gregorian since 1900, and will
-//! move to 12 September in 2100. That drift is a fact about the calendar,
-//! not an error in this implementation.
+//! Because the calendar tracks the Julian year, it has drifted with it:
+//! from 1900 to 2099 the Coptic new year falls on 11 September Gregorian,
+//! or on 12 September in the year before a Julian leap year — 2023, 2027
+//! and so on — and from 2100 a day later again. That drift is a fact about
+//! the calendar, not an error in this implementation, and the tests state
+//! it year by year from the two conversions.
+//!
+//! The year of Augustus's reform, the Alexandrian reform, is not recorded.
+//! Chris Bennett's survey weighs 30, 26, 25 and 22 BC and follows Theon of
+//! Alexandria: the reform from 26 BC, the first sixth epagomenal day at the
+//! end of 23/22 BC (`bennett-alexandrian-reform`). This calendar does not
+//! depend on the choice: its epoch is 284, and its leap rule is the
+//! reformed one throughout.
+//!
+//! Sources: Wikipedia, "Coptic calendar", retrieved 2026-09-26
+//! (`wikipedia-coptic-calendar`), for the decree of Canopus, the epoch of
+//! 29 August 284, the Era of the Martyrs and the new year's Gregorian
+//! dates; it cites Reingold and Dershowitz, *Calendrical Calculations*,
+//! 3rd ed., pp. 73–75, for the epoch, not read here, and the epoch is the
+//! one `reingold2018code` gives as `coptic-epoch`.
 //!
 //! The month names in Coptic script are [`MONTHS`], declared with the
 //! calendar's shape; the romanised and Arabic forms are words of a language
@@ -63,9 +80,9 @@ pub const fn days_in_year(year: i64) -> u16 {
 
 /// Where the period of use comes from.
 pub const USAGE_SOURCE: &str = "The era of the Martyrs counted from Diocletian's accession, 1 Thout 1 A.M. = 29 August \
-    284 Julian, on the Alexandrian year Augustus fixed in 25 BC, as this module states \
-    them; the calendar of the Coptic Orthodox Church and of the Egyptian agricultural year \
-    today";
+    284 Julian [wikipedia-coptic-calendar], on the Alexandrian year with the leap day \
+    Augustus imposed, in a year not recorded [bennett-alexandrian-reform]; the calendar of \
+    the Coptic Orthodox Church and of the Egyptian agricultural year today";
 
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = Rd(common::coptic_style_to_fixed(EPOCH.0, MIN_YEAR, 1, 1));
@@ -242,9 +259,10 @@ mod tests {
 
     #[test]
     fn the_new_year_tracks_the_julian_calendar_exactly() {
-        // 1 Thout falls on 29 August Julian, except in the year before a
-        // Coptic leap year, when the extra epagomenal day pushes it to the
-        // 30th and the Julian leap day pulls it back.
+        // 1 Thout falls on 29 August Julian, except in the Julian year
+        // before a Julian leap year, when the extra epagomenal day that has
+        // just ended the Coptic year pushes it to the 30th and the Julian
+        // leap day pulls it back.
         for year in 1500..1600i64 {
             let new_year = to_fixed(year, 1, 1).unwrap();
             let (_, month, day) = julian::from_fixed(new_year).unwrap();
@@ -255,12 +273,32 @@ mod tests {
 
     #[test]
     fn the_coptic_new_year_is_the_eleventh_of_september_in_our_century() {
-        // Nayrouz has fallen on 11 September Gregorian since 1900 and falls
-        // on 12 September in the year before a Coptic leap year.
-        let new_year = to_fixed(1742, 1, 1).unwrap();
-        let (gregorian_year, month, day) = gregorian::from_fixed(new_year).unwrap();
-        assert_eq!((gregorian_year, month), (2025, 9));
-        assert!(day == 11 || day == 12);
+        // From 1900 to 2099 Nayrouz falls on 11 September Gregorian, or on
+        // 12 September in the year before a Julian leap year; from 2100 the
+        // Julian calendar is a day further behind.
+        for gregorian_year in 1900..=2100i64 {
+            let coptic_year = gregorian_year - 283;
+            let new_year = to_fixed(coptic_year, 1, 1).unwrap();
+            let before_julian_leap = julian::is_leap_year(gregorian_year + 1);
+            let expected = match (gregorian_year, before_julian_leap) {
+                (2100, _) => 12,
+                (_, true) => 12,
+                (_, false) => 11,
+            };
+            assert_eq!(
+                gregorian::from_fixed(new_year),
+                Ok((gregorian_year, 9, expected)),
+                "Coptic year {coptic_year}"
+            );
+        }
+        assert_eq!(
+            gregorian::from_fixed(to_fixed(1740, 1, 1).unwrap()),
+            Ok((2023, 9, 12))
+        );
+        assert_eq!(
+            gregorian::from_fixed(to_fixed(1741, 1, 1).unwrap()),
+            Ok((2024, 9, 11))
+        );
     }
 
     #[test]

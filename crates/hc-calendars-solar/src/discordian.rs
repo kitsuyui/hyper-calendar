@@ -17,13 +17,25 @@
 //! in every year, and Afflux, The Aftermath 50, is 8 December.
 //!
 //! Only those eleven days are named in the *Principia*; the holydays
-//! Discordians have added since are not carried. Some users hold the
-//! calendar to the Julian leap rule, on which it would part from the
-//! Gregorian in 3266 YOLD (AD 2100); this module follows the Gregorian,
-//! which is what `ddate` did.
+//! Discordians have added since are not carried.
 //!
-//! Source: Wikipedia, "Discordian calendar", retrieved 2026-09-22, for the
-//! seasons, the week, St. Tib's Day, the era and the table of holydays.
+//! # Why there is no Julian-leap Discordian calendar
+//!
+//! St. Tib's Day comes "every fourth year", starting in 2 YOLD, and the
+//! source adds that "some users of the calendar believe that it is tied to
+//! the Julian calendar", on which it would part from the Gregorian in
+//! 3266 YOLD (AD 2100). Policy §5 would give that reading its own name if
+//! it were a convention anyone had published: it is not carried because
+//! no source read states it as a rule, dates a St. Tib's Day by it, or
+//! names who keeps it — Wikipedia reports the belief without a citation —
+//! so a second calendar would have no reference to be tested against, and
+//! inside 1901–2099 it would give exactly this one's days. This module
+//! follows the Gregorian rule, which is what `ddate` did.
+//!
+//! Source: Wikipedia, "Discordian calendar", retrieved 2026-09-22 and
+//! 2026-09-26 (`wikipedia-discordian-calendar`), for the seasons, the week,
+//! St. Tib's Day and its leap rule, the era, the table of holydays and
+//! `ddate`. The *Principia Discordia* itself was not read.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
