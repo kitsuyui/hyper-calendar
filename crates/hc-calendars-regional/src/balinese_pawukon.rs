@@ -1,45 +1,26 @@
 //! The Balinese Pawukon: ten week cycles running at once over 210 days.
 //!
-//! The Pawukon is not a calendar of years. It is a 210-day period divided
-//! simultaneously by weeks of one, two, three, four, five, six, seven,
-//! eight, nine and ten days, and a Balinese day is named by its position in
-//! several of them at once — *Buda Kliwon Dungulan* is the Wednesday
-//! (4th of seven) that is also Kliwon (5th of five) in the *wuku*
-//! Dungulan. Religious observances key off particular coincidences, which
-//! is the whole point: Galungan falls on Buda Kliwon Dungulan, once every
-//! 210 days.
+//! The system is written up in `docs/systems/pawukon-and-pasaran.md` in the
+//! repository: the ten concurrent weeks and the thirty *wuku*, the padding
+//! of the four-, eight- and nine-day weeks, the ten-day week built from the
+//! *urip*, the anchor, 17 August 1945 worked by hand, what is carried and
+//! not, and how the cycle was checked. This page summarises it and states
+//! the code's own facts.
 //!
-//! # Why 210, and what the irregular cycles are for
+//! A day is named by its position in several of the weeks at once —
+//! *Buda Kliwon Dungulan*, the day Galungan falls on, is the Wednesday that
+//! is also Kliwon in the *wuku* Dungulan, day 73 of the cycle. The three-,
+//! five-, six- and seven-day weeks divide 210 and are plain modulos; the
+//! nine-day week holds its first day for days 0 to 3, the eight-day week
+//! its seventh, Kala, for days 70 to 72, and the four-day week is the
+//! eight-day week modulo four; the ten-day week is the *urip* of the five-
+//! and seven-day weeks added, plus one, modulo ten, and the one- and
+//! two-day weeks are its parity.
 //!
-//! 210 = 2 × 3 × 5 × 7, so the 1-, 2-, 3-, 5-, 6-, 7- and 10-day weeks
-//! divide it evenly and simply repeat. The 4-, 8- and 9-day weeks do not,
-//! and the tradition patches each one differently:
-//!
-//! * The **nine-day** week (Sangawara) does not start until day 4, so days
-//!   0 to 3 all count as its first day.
-//! * The **eight-day** week (Astawara) pauses for three days in the wuku
-//!   Dungulan: days 70, 71 and 72 all count as its seventh day, Kala.
-//! * The **four-day** week (Caturwara) has no rule of its own; it is the
-//!   eight-day week taken modulo four, so it inherits the pause.
-//!
-//! The **two-day** week (Dwiwara) and the **one-day** week (Ekawara) are
-//! not counted at all: they are read off the ten-day week's parity. The
-//! ten-day week is itself computed by adding the *urip* — the numerological
-//! weights — of the five- and seven-day weeks, which is why it is the only
-//! cycle here that is not a modulo.
-//!
-//! # Sources
-//!
-//! The arithmetic, the epoch and the three irregular rules follow Reingold
-//! and Dershowitz, *Calendrical Calculations* (4th ed., 2018), §10.6, which
-//! anchors the Pawukon at Julian Day Number 146. The urip values are the
-//! standard ones, and are the same numbers the Javanese *neptu* uses.
-//!
-//! The implementation was checked against five published Galungan dates —
-//! 2024-02-28, 2024-09-25, 2025-04-23, 2025-11-19 and 2026-06-17 — each of
-//! which must come out as Buda Kliwon Dungulan, day 73 of the Pawukon.
-//!
-//! # A cycle, not a calendar
+//! The arithmetic and the epoch, Julian Day Number 146, are Reingold and
+//! Dershowitz's (`reingold2018code` in `docs/references.bib`). The names
+//! the module gives the ten-day week's values disagree with the sources
+//! the document read, by one place; the document gives the evidence.
 //!
 //! There is no Pawukon year. [`PawukonDate`] therefore carries a `round`:
 //! how many complete 210-day periods have elapsed since the epoch. Nothing

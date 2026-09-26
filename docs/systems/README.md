@@ -48,20 +48,13 @@ None of the three repeats another.
 | The Burmese calendar: the eras of the Myanmar Era, watat and yat-ngyin, the record's exceptions as data | [burmese.md](burmese.md) | `burmese`; `hc-holiday`'s Thingyan days |
 | The Tibetan calendar: the Phugpa arithmetic, the lunar day with its skipped and extra days, the leap-month rule, the sixty-year names | [tibetan-phugpa.md](tibetan-phugpa.md) | `tibetan` |
 | The Milankovitch orbital elements and daily insolation, from Berger's 1978 series | [orbital-elements.md](orbital-elements.md) | `hc-orbital` |
+| The Balinese Pawukon's ten concurrent weeks, and the Javanese pasaran and wetonan | [pawukon-and-pasaran.md](pawukon-and-pasaran.md) | `balinese-pawukon`, `javanese-pasaran` |
+| The Badíʿ calendar from 2015 and the French Republican decree, against their arithmetic siblings | [equinox-calendars.md](equinox-calendars.md) | `bahai-astronomical`, `french-republican-equinox`; `bahai`, `bahai-arithmetic`, `french-republican-arithmetic` |
+| The sexagenary cycle for year, month, day and hour, its three year boundaries and its readings | [sexagenary-cycle.md](sexagenary-cycle.md) | `sexagenary`; `hc-calendar::cycle`, `cycle::readings` |
 
 ## Systems that need a document
 
-These are implemented and their explanation is still only in module
-documentation and crate READMEs, which is where the document will be drawn
-from. Each is a task of its own; the order is by how far the module's
-explanation is from what a reader needs.
-
-| System | Where the explanation is now |
-| --- | --- |
-| The Burmese calendar's eras and exceptions | `burmese` |
-| The Tibetan Phugpa arithmetic | `tibetan` |
-| Bikram Sambat as gazetted, and Nepal Sambat | `bikram_sambat`, `nepal_sambat` |
-| The Hebrew calendar's dehiyyot | `hebrew` |
-| The Balinese Pawukon and the Javanese pasaran | `balinese_pawukon`, `javanese_pasaran` |
-| The Badíʿ calendar and the French Republican equinox rule | `hc-calendars-equinox` |
-| The sexagenary cycle and its year boundaries | `sexagenary` |
+Every implemented system that needs a document has one. The next is
+written up from its sources before it is coded, with the sections above and
+a row in the table above; one found to need a document after it is coded is
+listed here until it has one ([policy.md §12](../policy.md)).

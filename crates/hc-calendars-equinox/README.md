@@ -22,6 +22,12 @@ kept* form `bahai` there, which carries the Bahá'í World Centre's published
 table for 172–221 BE. The date types and the calendars' own month names are
 shared, so a date converts between variants without ceremony.
 
+The Badíʿ and French Republican calendars, with their siblings, are
+written up in
+[`docs/systems/equinox-calendars.md`](../../docs/systems/equinox-calendars.md):
+the 2015 rules and the decree of 4 frimaire an II, Naw-Rúz 183 BE and
+1 vendémiaire An IV worked by hand, and the years too close to call.
+
 ## What the tests are
 
 The published record, not the model checking itself:
@@ -35,7 +41,8 @@ The published record, not the model checking itself:
   new moon, and forty-eight of the fifty Naw-Rúzes. The two others fell
   within a sunset's tolerance — one of them, 2026, is an equinox within
   seconds of Tehran's sunset — and the test names them rather than claims
-  them, because a row like that is the table's to decide.
+  them, because a row like that is the table's to decide. The model agrees
+  with the table on both.
 
 ## What it is not
 

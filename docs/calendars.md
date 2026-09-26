@@ -62,9 +62,9 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | Rumi (Ottoman civil, 1840–1925) | `rumi` | `hc-calendars-solar` | Done — Julian days with the year on 1 Mart to 15 Şubat 1332, Gregorian days from 1 Mart 1333 (1 March 1917), the year less 584 throughout; bounded to the years it was kept |
 | Byzantine / Anno Mundi world era | `byzantine` | `hc-calendars-solar` | Done |
 | Roman *ab urbe condita* | `roman-auc` | `hc-calendars-solar` | Done |
-| French Republican, arithmetic (Romme) | `french-republican-arithmetic` | `hc-calendars-solar` | Done — Romme's proposal; the decree's rule is `french-republican-equinox`, stage 3 |
-| Bahá'í (Badíʿ), arithmetic Western rule | `bahai-arithmetic` | `hc-calendars-solar` | Done — the rule kept until 171 BE, continued proleptically |
-| Bahá'í (Badíʿ), as kept | `bahai` | `hc-calendars-solar` | Done through 221 BE (19 March 2065) — the arithmetic rule to 171 BE, the Bahá'í World Centre's published table for 172–221 BE; refuses after, until `hc-astro` extends it |
+| French Republican, arithmetic (Romme) | `french-republican-arithmetic` | `hc-calendars-solar` | Done — Romme's proposed rule of 1795, never adopted; see [systems/equinox-calendars.md](systems/equinox-calendars.md) |
+| Bahá'í (Badíʿ), arithmetic Western rule | `bahai-arithmetic` | `hc-calendars-solar` | Done — the Western rule kept until 171 BE, continued; see [systems/equinox-calendars.md](systems/equinox-calendars.md) |
+| Bahá'í (Badíʿ), as kept | `bahai` | `hc-calendars-solar` | Done through 221 BE — the Western rule to 171 BE and the World Centre's table after; see [systems/equinox-calendars.md](systems/equinox-calendars.md) |
 | Symmetry454 | `symmetry454` | `hc-calendars-solar` | Done |
 | Symmetry010 | `symmetry010` | `hc-calendars-solar` | Done |
 | Revised Julian (Milanković, 1923) | `revised-julian` | `hc-calendars-solar` | Done |
@@ -151,8 +151,8 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Calendar | Id | Status |
 | --- | --- | --- |
 | Solar Hijri, astronomical (noon, Iran Standard Time) | `persian` | Done, in `hc-calendars-equinox` — Nowruz 1404 on 21 March 2025, where Birashk's cycle says the 20th |
-| French Republican, autumn equinox at Paris | `french-republican-equinox` | Done, in `hc-calendars-equinox` — the fourteen new years France kept |
-| Bahá'í, Naw-Rúz from the Tehran equinox for any year | `bahai-astronomical` | Done, in `hc-calendars-equinox` — reproduces every row of the 172–221 BE table `bahai` carries, Twin Holy Birthdays included |
+| French Republican, autumn equinox at Paris | `french-republican-equinox` | Done, in `hc-calendars-equinox` — the decree's rule, reproducing the fourteen new years France kept; see [systems/equinox-calendars.md](systems/equinox-calendars.md) |
+| Bahá'í, Naw-Rúz from the Tehran equinox for any year | `bahai-astronomical` | Done, in `hc-calendars-equinox` — the 2015 rule, reproducing the World Centre's table for 172–221 BE; see [systems/equinox-calendars.md](systems/equinox-calendars.md) |
 | Solar Hijri as kept in Afghanistan | `persian-afghan` | Planned, in `hc-calendars-equinox` — `persian` under Arabic month names where Iran's are Zoroastrian, official from 1957. In 2022 the administration moved official business to the lunar Hijri from 1 Muharram 1444, so which calendar is Afghanistan's official one is a dated fact, a `ValidFrom` for `hc-holiday` |
 | Ethiopian Easter-linked movable cycle (Bahire Hasab) | — | Done, in `hc-holiday`; see [observances.md](observances.md) |
 | Coptic Easter-linked movable cycle | — | Done, in `hc-holiday`; see [observances.md](observances.md) |
@@ -165,7 +165,7 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Japanese eras, Northern Court (北朝) | `japanese-northern` | `hc-calendars-regional` | Done |
 | Japanese eras, Southern Court (南朝) | `japanese-southern` | `hc-calendars-regional` | Done |
 | Japanese eras, as proclaimed (改元当時) | `japanese-proclaimed` | `hc-calendars-regional` | Done |
-| Chinese sexagenary cycle (干支), incl. the four pillars (四柱/八字) | `sexagenary` | `hc-calendars-regional` (arithmetic in `hc-calendar::cycle`) | Done |
+| Chinese sexagenary cycle (干支), incl. the four pillars (四柱/八字) | `sexagenary` | `hc-calendars-regional` (arithmetic in `hc-calendar::cycle`) | Done — days, years under three named boundaries, months and hours, with nine readings; see [systems/sexagenary-cycle.md](systems/sexagenary-cycle.md) |
 | Chinese regnal eras (年号) | `chinese-regnal` | `hc-calendars-regional` | Partial — the Qing eras day by day over `chinese` from 1645 to the abdication of 1912, and the Ming, Southern Ming, Shun and Qing eras as year data with the backdated reading; the eras before the Ming wait on a source that dates them |
 | Korean regnal eras | `korean-regnal` | `hc-calendars-regional` | Partial — the Korean Empire's 建陽, 光武 and 隆熙 on their proclamation days, 1896–1910; Joseon's use of the Chinese eras waits on `chinese-regnal`, and the 開國 count is a helper |
 | Maya long count (GMT 584283) | `maya-longcount` | `hc-calendars-regional` | Done — twenty baktun under 584 283, reading Chiapa de Corzo Stela 2's 7.16.3.2.13 through to 13.0.0.0.0; the constants, the worked readings and the sources are in [systems/mesoamerican-counts.md](systems/mesoamerican-counts.md) |
@@ -190,8 +190,8 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Khmer (*Chhankitek*), Lao, Sinhalese and Tai/Shan/Dai lunisolar | `khmer`, `lao`, `sinhalese-lunar`, `shan` | `hc-calendars-regional` | Planned — siblings of `burmese` and `thai-lunar`, each with its own rule: Khmer always doubles Ashadha and always adds the leap day in Jyestha; the Tai and Shan systems number their months rather than naming them, about two ordinals ahead of the Burmese sequence, a silent cross-conversion trap. Gislén and Eade, "The Calendars of Southeast Asia 2", *JAHH* 22(3), 2019, and Eade, *The Calendrical Systems of Mainland South-East Asia* (Brill, 1995), treat the family as one system; the English Wikipedia has no article for the Lao, Shan or Dai calendars |
 | Cham *Sakawi* and Sundanese *Kala Sunda* | — | `hc-calendars-regional` | Researching — the Cham keep two calendars for one people, the Ahier lunisolar and the Awal of Islamic months on an eight-year intercalation cycle, reconciled by priestly decision; the Sundanese keep a lunar and a solar system side by side, with no English account to carry them from |
 | Turkic twelve-year animal cycle | — | `hc-calendar::cycle` | Researching — a bare twelve-year naming cycle without the sixty-year stem product, riding on whatever local reckoning applied, from the Old Turkic khaganates to twentieth-century Azerbaijan, and attached to different year boundaries, Nowruz in Azerbaijani use; the animal substitutions are regionally diagnostic, the dragon a fish or a crocodile (Kāshgarī, *Dīwān Lughāt al-Turk*). A labelling cycle beside `sexagenary`, not a calendar; the anchoring is the open question |
-| Balinese Pawukon (thirty *wuku*, ten concurrent weeks) | `balinese-pawukon` | `hc-calendars-regional` | Done |
-| Javanese Pasaran (five-day market week) | `javanese-pasaran` | `hc-calendars-regional` | Done |
+| Balinese Pawukon (thirty *wuku*, ten concurrent weeks) | `balinese-pawukon` | `hc-calendars-regional` | Done — Reingold and Dershowitz's arithmetic, with the ten-day week's names in question; see [systems/pawukon-and-pasaran.md](systems/pawukon-and-pasaran.md) |
+| Javanese Pasaran (five-day market week) | `javanese-pasaran` | `hc-calendars-regional` | Done — the pasaran, the 35-day wetonan and the neptu; see [systems/pawukon-and-pasaran.md](systems/pawukon-and-pasaran.md) |
 | Javanese Pranata Mangsa (twelve agricultural seasons) | `pranata-mangsa` | `hc-seasons` | Researching — the two tables read disagree by a day throughout, and neither adds up. The Indonesian Wikipedia starts Kasa on 22 June; the English one starts Kaso on 23 June. The Indonesian table leaves 22 December in no season, between Kanem's end on the 21st and Kapitu's start on the 23rd. It also gives Kawolu 26 days in a common year, while its dates, 4 to 28 February, span 25. The English table starts Kanem on 11 November, where Kalima's 27 days end on the 9th. Neither names the text it follows, so there is no source to carry the table from |
 | The Sun's nakṣatra (Kerala's ñāṭṭuvēla, the Deccan's rain nakṣatras) | — | `hc-calendars-indic` | Done — `nakshatra::solar_nakshatra_at` and its ingress and span functions, eight to ten minutes from Drik Panchang's 2025 transits; the periods' regional names and lore are not carried; see [systems/hindu-calendars.md](systems/hindu-calendars.md) |
 | Igbo four-day week (Izu) | `igbo` | `hc-calendars-regional` | Researching — the source says the calendar is "neither universal nor synchronized" between communities and dates no market day, so there is no anchor to carry |
@@ -210,13 +210,8 @@ disagree with the arithmetic form by a day, which is exactly why both exist.
 | Pentecontad | — | `hc-calendars-regional` | Researching — seven periods of fifty days, seven weeks and an *atzeret* each, 350 days with a fifteen- or sixteen-day supplement, identified by Julius and Hildegard Lewy in the 1940s; later work on the Old Assyrian and Babylonian material finds no evidence for the Amorite origin, so reconstruction, sources conflict |
 | Inca | `inca` | `hc-calendars-regional` | Researching — two incompatible reconstructions rather than none: a state lunisolar year of twelve thirty-day months and five days, and Zuidema's reading of the *ceque* system, 328 *huacas* on 41 radial lines as a 328-day sidereal-lunar year, twelve months of 27⅓ days, plus 37 days of the Pleiades' invisibility, a calendar laid out in space (Zuidema in Ruggles, ed., *Handbook of Archaeoastronomy and Ethnoastronomy*, 2015). The literature is substantial and disagrees with itself |
 
-The sexagenary cycle covers the year, month, day and hour pillars, the twelve
-double-hours (十二時辰) beginning at 23:00, and the 五虎遁 and 五鼠遁 rules
-that derive the month and hour stems. Its three rival year boundaries — 立春,
-the lunisolar new year, and 1 January — each have their own separately named
-function, because they share their arithmetic and differ only in which days
-they cover. The solar terms that fix the month pillar and the 立春 boundary
-are taken as arguments, from `hc-seasons`: `hc-calendar` carries no ephemeris.
+The sexagenary cycle's pillars, its three year boundaries and its readings
+are written up in [systems/sexagenary-cycle.md](systems/sexagenary-cycle.md).
 
 ## Stage 5 — Seasonal subdivisions
 

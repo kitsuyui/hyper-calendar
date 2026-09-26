@@ -24,6 +24,12 @@
 //! the calendars' own month names are shared with those siblings, so a date
 //! converts between variants without ceremony.
 //!
+//! The Badíʿ and French Republican calendars, with their siblings, are
+//! written up in `docs/systems/equinox-calendars.md` in the repository:
+//! the rules and their sources, a worked new year of each, the years too
+//! close to call, and why each is a separately named calendar in this
+//! crate rather than a switch on its sibling.
+//!
 //! # What "astronomical" buys, and what it costs
 //!
 //! The arithmetic siblings are exact about their own rule and wrong about
@@ -42,8 +48,9 @@
 //! actually kept, the leap years Iran actually had, and every row of the
 //! Bahá'í World Centre's fifty-year table — every row the model can claim,
 //! which is all but the two Naw-Rúzes within a sunset's tolerance, one of
-//! them, 183 BE, an equinox within seconds of Tehran's sunset. The test
-//! names them, because a row like that is the table's to decide, not a
+//! them, 183 BE, an equinox within seconds of Tehran's sunset. The model
+//! agrees with the table on both, and the test names them rather than
+//! claims them, because a row like that is the table's to decide, not a
 //! model's.
 //!
 //! # Why a crate of its own

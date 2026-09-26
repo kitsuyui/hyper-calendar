@@ -1,46 +1,29 @@
 //! The sexagenary cycle (干支) as a calendar over years, months and days.
 //!
-//! Ten Heavenly Stems against twelve Earthly Branches give sixty pairs, and
-//! East Asia has named years, months, days and two-hour periods with them
-//! for well over two thousand years. [`hc_calendar::cycle`] holds the
-//! arithmetic and the readings; this module turns it into a [`Calendar`].
+//! The system is written up in `docs/systems/sexagenary-cycle.md` in the
+//! repository: the stems and branches, their use for days, years, months
+//! and hours, the three year boundaries, the 五虎遁 and 五鼠遁 rules, the
+//! readings, the four pillars of an instant worked by hand, what is carried
+//! and not, and how it was checked. This page summarises it and states the
+//! code's own facts; [`hc_calendar::cycle`] holds the arithmetic and the
+//! readings, and this module turns it into a [`Calendar`].
 //!
-//! # The day cycle is the one that never broke
+//! Only the **day** is a function of the fixed day alone, which is why
+//! [`SexagenaryCalendar`] is a calendar of days: it round-trips without
+//! borrowing any calendar's year numbering. The **year** and **month** are
+//! exposed as [`pillars`], which asks [`hc_calendars_lunar::chinese`] what
+//! year and month a day falls in and names them, and so inherits that
+//! calendar's supported range, 1645 to 2150.
 //!
-//! Of the three, only the **day** cycle is independent of any calendar. It
-//! has run without interruption for longer than any surviving calendar, and
-//! it survived every reform, so a fixed day determines it outright. That is
-//! why [`SexagenaryCalendar`] is a calendar of days: it is the only one of
-//! the three that can round-trip to a fixed day without borrowing a
-//! calendar's year numbering.
+//! The month [`pillars`] names is the *lunar* month's, because that is
+//! what the Chinese calendar counts; it follows 甲己之年丙作首, which
+//! [`hc_calendars_lunar::lunisolar`] implements, and a leap month takes the
+//! pair of the month it repeats. A chart's month pillar follows the solar
+//! terms instead, 寅 from 立春, and disagrees for up to a fortnight around
+//! each boundary: for that, [`hc_calendar::cycle::month_pillar`].
 //!
-//! The **year** and **month** cycles belong to the Chinese calendar, so
-//! they are exposed here as [`pillars`], which asks
-//! [`hc_calendars_lunar::chinese`] what year and month a day falls in and
-//! names them. That call inherits the Chinese calendar's supported range,
-//! 1645 to 2150.
-//!
-//! # A warning about the month pillar
-//!
-//! In Chinese astrology the month pillar properly follows the **solar
-//! terms** (節): the 寅 month begins at 立春, not at a new moon. This module
-//! names the *lunar* month instead, because that is what the Chinese
-//! calendar in this workspace counts. The two agree for most of each month
-//! and disagree for up to a fortnight around the boundaries. If you are
-//! casting a chart rather than reading a date, this is not the function you
-//! want: [`hc_calendar::cycle::month_pillar`] takes the solar-term month.
-//!
-//! The rule the month pillar does follow here is the traditional mnemonic
-//! 甲己之年丙作首 — in a year whose stem is 甲 or 己, the first month is
-//! 丙寅 — which [`hc_calendars_lunar::lunisolar`] already implements and
-//! tests.
-//!
-//! # Readings
-//!
-//! The sixty names in characters, kana, Hangul, quốc ngữ and the
-//! romanisations are [`hc_calendar::cycle::readings`]; this crate adds
-//! none. [`SexagenaryDayDate`] displays in characters, the one spelling
-//! every language shares.
+//! [`SexagenaryDayDate`] displays in characters, the one spelling every
+//! language shares; the other readings are [`hc_calendar::cycle::readings`].
 
 use core::fmt;
 

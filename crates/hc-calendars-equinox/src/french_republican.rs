@@ -1,33 +1,31 @@
 //! The French Republican calendar as decreed — `french-republican-equinox`.
 //!
-//! "Each year begins at midnight, with the day on which the true autumnal
-//! equinox falls for the Paris Observatory": the decree of 4 Frimaire An II
-//! (24 November 1793), article III, as Wikipedia, "French Republican
-//! calendar" (retrieved 2026-09-22) renders it. *True* time is apparent
-//! solar time, so the day runs from the Sun's lower transit at the
-//! Observatory to the next, and 1 Vendémiaire is the such day in which the
-//! September equinox falls. The year is 365 or 366 days accordingly; the
-//! sixth complementary day, the *jour de la Révolution*, exists in the long
-//! ones.
+//! The system is written up in `docs/systems/equinox-calendars.md` in the
+//! repository, with the Badíʿ calendar and the arithmetic siblings: the
+//! decree's rule and Romme's proposed replacement, 1 vendémiaire An IV
+//! worked from the equinox and the Paris apparent midnight, the years too
+//! close to call, what is carried and not, and how the model was checked
+//! against the fourteen years France kept. This page summarises it and
+//! states the code's own facts.
 //!
-//! # What this is
+//! "Chaque année commence à minuit, avec le jour où tombe l'équinoxe vrai
+//! d'automne, pour l'observatoire de Paris": the decree of 4 frimaire an II
+//! (24 November 1793), article III (`decret-4-frimaire-an-ii` in
+//! `docs/references.bib`). *True* time is apparent solar time, so the day
+//! runs from the Sun's lower transit at the Observatory to the next, and
+//! 1 vendémiaire is the one such day in which the September equinox falls.
+//! The year is 365 or 366 days accordingly; the sixth complementary day,
+//! the *jour de la Révolution*, exists in the long ones.
 //!
-//! The calendar France actually kept from 1793 until Napoleon abolished it
-//! at the end of An XIV (31 December 1805), which is why the tests are the
-//! fourteen historical new years. The arithmetic sibling
-//! `french-republican-arithmetic` in `hc-calendars-solar` is Romme's
-//! proposal for replacing this rule with a Gregorian-style one, which the
-//! Convention never adopted; the two disagree at once, since Romme's rule
-//! puts the sextile day at the end of An IV, VIII and XII where the
-//! equinox put it at the end of An III, VII and XI, so those three years
-//! begin a day apart.
-//!
-//! Past An XIV it is the decree's rule continued, which is what a
-//! proleptic calendar is. Not exact beyond the astronomy: a year whose
-//! equinox falls within [`TOLERANCE_MINUTES`] of Paris midnight is decided
-//! here by a model where the Bureau des longitudes decided by its own
-//! tables — the objection Romme raised against the rule in the first
-//! place. [`new_year_margin`] says how close the call was.
+//! This is the calendar France kept until the end of An XIV (31 December
+//! 1805), which is why the tests are the fourteen historical new years.
+//! The arithmetic sibling `french-republican-arithmetic` in
+//! `hc-calendars-solar` is the fixed rule Romme proposed in 1795 and the
+//! Convention never adopted; the two disagree at once, An IV, VIII and XII
+//! beginning a day apart. Past An XIV this is the decree's rule continued;
+//! a year whose equinox falls within [`TOLERANCE_MINUTES`] of Paris's
+//! apparent midnight is decided here by a model, and [`new_year_margin`]
+//! says how close the call was.
 //!
 //! The month and *décade*-day names are the arithmetic module's own,
 //! [`hc_calendars_solar::french_republican::MONTHS`] and
