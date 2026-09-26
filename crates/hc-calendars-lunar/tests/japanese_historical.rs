@@ -269,6 +269,90 @@ fn the_four_named_anchors_from_the_documents_come_out_right() {
     );
 }
 
+/// 明徳3年 = 元中9年, the year of the reunion of 1392: the record puts it
+/// on 閏10月5日 = 1392-11-19 (Julian), and this Senmyō-reki puts the same
+/// day on 11月5日. Pinned, so that the disagreement is stated rather than
+/// discovered.
+///
+/// The record: the table here (Wikipedia's 明徳 era table, after 内田正男
+/// 『日本暦日原典』) gives the year thirteen months with 閏10月 from
+/// 1392-11-15 and 11月 from 1392-12-14 (Julian); the National Astronomical
+/// Observatory of Japan's 日本の暦日データベース, which cites the same
+/// book, gives 閏10月1日 = 1392-11-15, 閏10月5日 = 1392-11-19 and 11月1日 =
+/// 1392-12-14 (read 2026-09-26).
+///
+/// The rule is not what differs. Both calendars place the intercalary
+/// month in the first month with no 中気, and the model's 冬至 falls on
+/// 1392-12-14 in both. What differs is the first day of the month after
+/// 閏10月: the record begins it on 1392-12-14, the day of the 冬至, which
+/// makes that month the eleventh and leaves the month before it with no
+/// 中気; the model's conjunction falls after the 進朔 limit on that day by
+/// either reckoning — 00:32 on the 15th by modern astronomy, 22:07 on the
+/// 14th by the single-sine reading of Senmyō-reki's own tables — so the
+/// month begins on the 15th, the 冬至 falls in the month before it, and
+/// the month without a 中気 is the one after. One month boundary, a day
+/// apart, moves the intercalary month from the tenth to the eleventh and
+/// changes the name of the 59 days from 1392-11-15 to 1393-01-12; the
+/// twelfth month begins on the same day in both.
+#[test]
+fn senmyo_puts_the_reunion_of_1392_in_the_eleventh_month_where_the_record_has_the_tenth_intercalary()
+ {
+    let reunion = julian(1392, 11, 19);
+    let row = table()
+        .into_iter()
+        .find(|year| year.start == julian(1392, 1, 25).0)
+        .expect("the table has 1392");
+    assert_eq!(row.leap, 10);
+    let record: Vec<(i64, Month)> = row.months().iter().map(|m| (m.0, m.1)).collect();
+    assert!(record.contains(&(julian(1392, 11, 15).0, Month::leap(10))));
+    assert!(record.contains(&(julian(1392, 12, 14).0, Month::regular(11))));
+    assert!(record.contains(&(julian(1393, 1, 13).0, Month::regular(12))));
+
+    // The model: the eleventh month from the 15th of November, the
+    // intercalary eleventh from the 15th of December.
+    assert_eq!(senmyo::PARAMETERS.leap_month(1_392), Ok(Some(11)));
+    assert_eq!(
+        senmyo::SenmyoCalendar.from_fixed(reunion),
+        Ok(date(1_392, Month::regular(11), 5))
+    );
+    assert_eq!(
+        senmyo::SenmyoCalendar.from_fixed(julian(1392, 12, 14)),
+        Ok(date(1_392, Month::regular(11), 30))
+    );
+    assert_eq!(
+        senmyo::SenmyoCalendar.from_fixed(julian(1392, 12, 15)),
+        Ok(date(1_392, Month::leap(11), 1))
+    );
+    // The two agree up to the eve of 閏10月 and again from 12月.
+    assert_eq!(
+        senmyo::SenmyoCalendar.from_fixed(julian(1392, 11, 14)),
+        Ok(date(1_392, Month::regular(10), 29))
+    );
+    assert_eq!(
+        senmyo::SenmyoCalendar.from_fixed(julian(1393, 1, 13)),
+        Ok(date(1_392, Month::regular(12), 1))
+    );
+
+    // Why: the conjunction that opens the record's eleventh month is held
+    // over to the next day by both parameter sets, the 冬至 is on the 14th,
+    // and the month from the 15th has no 中気.
+    for parameters in [&senmyo::PARAMETERS, &senmyo::PARAMETERS_TABULATED] {
+        assert_eq!(
+            parameters.new_moon_on_or_after(julian(1392, 12, 14)),
+            julian(1392, 12, 15)
+        );
+        assert!(parameters.has_no_major_solar_term(julian(1392, 12, 15)));
+        assert!(!parameters.has_no_major_solar_term(julian(1392, 11, 15)));
+    }
+    let model = senmyo::PARAMETERS
+        .mean_motion
+        .expect("Senmyō has its constants");
+    assert_eq!(
+        model.winter_solstice_on_or_before(julian(1392, 12, 31)),
+        julian(1392, 12, 14)
+    );
+}
+
 #[test]
 fn dated_events_scattered_over_nine_centuries_come_out_right() {
     // Dates taken from Japanese Wikipedia articles on individual events and

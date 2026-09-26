@@ -1,8 +1,9 @@
 # The Japanese era system
 
-Backs the identifiers `japanese`, `japanese-northern`, `japanese-southern`
-and `japanese-proclaimed` in `hc-calendars-regional`, and the era table
-`nengo` they read.
+Backs the identifiers `japanese`, `japanese-northern`, `japanese-southern`,
+`japanese-proclaimed`, `japanese-northern-proclaimed` and
+`japanese-southern-proclaimed` in `hc-calendars-regional`, and the era
+table `nengo` they read.
 
 ## What it is
 
@@ -95,6 +96,12 @@ proclaimed, and for 19 November 1392 (Julian) in the Southern stream give
   from the reunion.
 - **`japanese-proclaimed`** — the unified stream with each era from its
   proclamation.
+- **`japanese-northern-proclaimed`**, **`japanese-southern-proclaimed`** —
+  each court's stream with each era from its proclamation, and the
+  Northern stream from the reunion: 建武5年 runs in the North to the
+  proclamation of 暦応 on 建武5年8月28日 = 1338-10-11 (Julian), and 延元5年
+  in the South to that of 興国 on 延元5年4月28日 = 1340-05-25 (Julian)
+  [wikipedia-ja-gengo-list].
 - **Range.** 862-02-07, the first day of Senmyō-reki, to 9999-12-31. The
   eras reach back to 645, and `nengo::era_at` names the era in force, or
   none, on any day from then; the calendar refuses a day before 862 because
@@ -103,12 +110,6 @@ proclaimed, and for 19 November 1392 (Julian) in the Southern stream give
   romanisation and identifier, court, proclamation day in Julian or
   Gregorian as the source gives it, 元年, how firmly the day is known, and
   the two lapses. `nengo::era_at` answers under the proclaimed reading.
-- **Constructible but not registered.** `JapaneseCalendar::with_reckoning`
-  also builds the Northern and Southern streams read as proclaimed, with the
-  identifiers `japanese-northern-proclaimed` and
-  `japanese-southern-proclaimed`. They are not in the registry, because a
-  registered calendar needs its month names in `hc-i18n`, which does not yet
-  list them.
 - **Not carried.** The 改元当時 reading's shared changeover day from 大正 on,
   under which 1912-07-30 is both 明治45年 and 大正元年; `japanese-proclaimed`
   follows 改元当時 for 明治 and the 公式 dates from 大正. The eras' own
@@ -166,6 +167,7 @@ cites give the sixth month, the seventh or the first [wikipedia-ja-taika].
 `no_era_is_in_force_after_hakuchi_and_shucho_lapse`,
 `the_sakuradamon_incident_has_two_correct_dates`,
 `meiji_as_proclaimed_begins_on_the_day_of_the_edict`,
+`each_courts_proclaimed_stream_changes_era_on_the_day_it_was_proclaimed`,
 `the_southern_calendar_follows_meitoku_from_the_reunion`,
 `every_modern_era_boundary_holds_on_both_sides`,
 `the_solar_calendar_began_the_day_after_meiji_five_twelfth_month_second`.

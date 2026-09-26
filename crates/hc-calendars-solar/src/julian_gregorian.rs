@@ -153,7 +153,7 @@ pub const ADOPTIONS: [Adoption; 14] = [
         id: "julian-gregorian-nl",
         name: "Julian–Gregorian reform (Zeeland and the southern Netherlands)",
         region: "Zeeland and the southern Netherlands",
-        source: "No instrument read; the date from secondary sources, which agree on it for Zeeland and the southern provinces [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]",
+        source: "The placard of 10 December 1582, not read; the date from secondary sources, which give it to Zeeland and the southern provinces [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list] or to the States-General, Brabant and Zeeland, the Southern Netherlands under Spanish rule changing from 20 to 31 December or 21 December to 1 January instead [strubbe-voet-1960, p. 48]",
         last_julian: (1582, 12, 14),
         first_gregorian: (1582, 12, 25),
     },

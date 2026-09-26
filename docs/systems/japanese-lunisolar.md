@@ -360,6 +360,31 @@ The gap is largest for Kansei-reki, for a reason worth recording: it solved
 Kepler's equation, so a single sine reproduces it worse than it reproduces
 the ninth-century system.
 
+**A disagreement pinned: the reunion of 1392.** The Northern and Southern
+Courts were reunited on 明徳3年 = 元中9年閏10月5日, 19 November 1392
+(Julian); the table and the National Astronomical Observatory's database
+of Japanese calendar dates, both after Uchida, give that year 閏10月 from
+15 November and 11月 from 14 December [wikipedia-ja-era-tables,
+nao-caldb]. This Senmyō-reki puts the day on 11月5日, with the
+intercalary month after the eleventh. The intercalation rule is not what
+differs: both place the leap month in the first month with no 中気, and
+the model's 冬至 falls on 14 December as the record's must. What differs
+is one month boundary. The conjunction that should open the eleventh month
+on 14 December falls, in Kyoto local mean time, at 00:32 on the 15th by
+modern astronomy and at 22:07 on the 14th by the single-sine reading of
+Senmyō-reki's own tables, past the 進朔 limit either way, so the model
+begins the month on the 15th; the 冬至 then falls in the month before it,
+which becomes the eleventh, and the month from the 15th, with no 中気,
+becomes the intercalary eleventh. The bureau's own 定朔 for that month
+must have fallen before the limit on the 14th, at least four hours
+earlier than the tabulated model puts it, and without the full 日躔 and
+月離 tables the library cannot say why. The 59 days from 15 November
+1392 to 12 January 1393 are named differently; the twelfth month begins
+on 13 January in both.
+`senmyo_puts_the_reunion_of_1392_in_the_eleventh_month_where_the_record_has_the_tenth_intercalary`
+pins every part of this, so that a change to the model that moves it is
+seen.
+
 **The meridian for Senmyō-reki.** With the sourced limit of 0.75 and a
 Chang'an meridian, Senmyō-reki agrees with the table on 95.6% of days; with
 Kyoto and the fitted 0.80, on 96.4%. Both are measured in the integration
@@ -372,6 +397,7 @@ tests, so the trade is visible rather than asserted.
 | [xintangshu] | Senmyō-reki's 統法 8400, 章歳 3068055, 章月 248057, 曆周 231458 秒 19; the 日躔 table's peak 1526 at 春分 and 秋分; the 月離 table's 3172 at the seventh day plus 53, which is the 3225 the module carries; the 進朔 rule 「秋分後，四分之三已上，進一日」 and its spring-half and eclipse conditions | Yes, 2026-09-25, on Wikisource |
 | [songshu-lulizhi] | 元嘉暦's 紀法, 紀日, 日法 and 通數 | Yes, 2026-09-26, on Wikisource |
 | [xintangshu-linde], [xintangshu-wuji], [xintangshu-dayan] | The period constants of 麟德暦 (儀鳳暦), 五紀暦 and 大衍暦 | Yes, 2026-09-26, on Wikisource |
+| [nao-caldb] | 明徳3年閏10月1日 = 1392-11-15, 閏10月5日 = 1392-11-19 and 11月1日 = 1392-12-14 (Julian), for the reunion of 1392 | Yes, 2026-09-26 |
 | [nao-rekiwiki-senmyo] | The decimal constants, 27.554546 for 曆周; 822 and 892 in China, 862 to 1684 in Japan, 823 years; Shibukawa's 「天に後る二日」; the remark that a 里差 of 7刻 would bring it near the modern calendar | Yes, 2026-09-25 |
 | [nao-rekiwiki-jokyo] | 365.241696, 29.530590, 27.554600, the sidereal year 365.256696; 定朔、平気; the 里差 of 5刻 from 大都 to Kyoto; 授時暦 with 消長法 | Yes, 2026-09-25 |
 | [nao-rekiwiki-horyaku] | 365.241556 and 365.256556 as promulgated, 365.241626 for 修正宝暦暦 from 1771; 選者 安倍泰邦 (土御門泰邦); 1755 to 1797 | Yes, 2026-09-25 |
@@ -433,4 +459,5 @@ The measurement, in `crates/hc-calendars-lunar/tests/japanese_historical.rs`:
 `the_systems_own_conjunction_tables_do_worse_than_the_true_conjunction`,
 `the_four_named_anchors_from_the_documents_come_out_right`,
 `dated_events_scattered_over_nine_centuries_come_out_right`,
+`senmyo_puts_the_reunion_of_1392_in_the_eleventh_month_where_the_record_has_the_tenth_intercalary`,
 `the_four_systems_and_tenpo_tile_the_millennium_without_a_gap`.

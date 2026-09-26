@@ -1245,17 +1245,17 @@ pub fn sexagenary_joiner(locale: &Locale) -> &'static str {
 
 /// The first day of the week for a locale.
 ///
-/// `-u-fw-` wins, then the region's own convention, then the language's data
-/// entry, which defaults to Monday as ISO 8601 says.
+/// `-u-fw-` wins; then a tag's region decides, by CLDR 48
+/// `weekData/firstDay`, where a region CLDR does not list takes the world's
+/// Monday (`001`); a tag with no region takes its language's data entry,
+/// whose day follows the region CLDR's likely subtags give the language.
 #[must_use]
 pub fn first_day_of_week(locale: &Locale) -> Weekday {
     if let Some(explicit) = locale.first_day_of_week() {
         return explicit;
     }
-    if let Some(region) = locale.region()
-        && let Some(day) = region_first_day_of_week(region)
-    {
-        return day;
+    if let Some(region) = locale.region() {
+        return region_first_day_of_week(region).unwrap_or(Weekday::Monday);
     }
     locale_data(locale).first_day_of_week
 }
@@ -1278,6 +1278,54 @@ mod tests {
             context,
         )
         .unwrap()
+    }
+
+    /// The abbreviated, short and stand-alone forms of six languages, as
+    /// CLDR 48 `common/main/*.xml` (tag `release-48`, read 2026-09-26)
+    /// resolves them: its inheritance marker and root's aliases followed,
+    /// a stand-alone width falling to the format one only where CLDR's
+    /// does.
+    #[test]
+    fn six_languages_abbreviate_and_stand_alone_as_cldr_48_does() {
+        use NameContext::{Format, Standalone};
+        use NameWidth::{Abbreviated, Short, Wide};
+        let day = |tag: &str, weekday, width, context| {
+            weekday_name(&locale(tag), weekday, width, context).unwrap()
+        };
+        for context in [Format, Standalone] {
+            assert_eq!(gregorian_month("he", 1, Abbreviated, context), "ינו׳");
+            assert_eq!(gregorian_month("he", 3, Abbreviated, context), "מרץ");
+            assert_eq!(day("he", Weekday::Sunday, Short, context), "א׳");
+            assert_eq!(day("th", Weekday::Thursday, Abbreviated, context), "พฤหัส");
+            assert_eq!(day("th", Weekday::Thursday, Short, context), "พฤ.");
+            assert_eq!(day("vi", Weekday::Monday, Abbreviated, context), "Thứ 2");
+            assert_eq!(day("vi", Weekday::Monday, Short, context), "T2");
+            assert_eq!(day("bn", Weekday::Sunday, Short, context), "রঃ");
+            assert_eq!(day("bn", Weekday::Saturday, Short, context), "শনি");
+            assert_eq!(day("de", Weekday::Sunday, Short, context), "So.");
+            assert_eq!(gregorian_month("sa", 1, Abbreviated, context), "जनवरी:");
+            assert_eq!(gregorian_month("sa", 5, Abbreviated, context), "मई");
+            assert_eq!(day("sa", Weekday::Sunday, Wide, context), "रविवासरः");
+            assert_eq!(day("sa", Weekday::Thursday, Wide, context), "गुरुवासर:");
+            assert_eq!(day("sa", Weekday::Sunday, Abbreviated, context), "रवि");
+            assert_eq!(day("sa", Weekday::Monday, NameWidth::Narrow, context), "सो");
+        }
+        assert_eq!(gregorian_month("vi", 1, Wide, Format), "tháng 1");
+        assert_eq!(gregorian_month("vi", 1, Wide, Standalone), "Tháng 1");
+        assert_eq!(gregorian_month("vi", 1, Abbreviated, Format), "thg 1");
+        assert_eq!(gregorian_month("vi", 1, Abbreviated, Standalone), "Tháng 1");
+        assert_eq!(gregorian_month("bn", 4, Abbreviated, Format), "এপ্রি");
+        assert_eq!(gregorian_month("bn", 4, Abbreviated, Standalone), "এপ্রিল");
+        assert_eq!(gregorian_month("bn", 9, Abbreviated, Standalone), "সেপ্ট");
+        assert_eq!(gregorian_month("de", 3, Abbreviated, Format), "März");
+        assert_eq!(gregorian_month("de", 3, Abbreviated, Standalone), "Mär");
+        assert_eq!(gregorian_month("de", 9, Abbreviated, Standalone), "Sep");
+        assert_eq!(day("de", Weekday::Sunday, Abbreviated, Format), "So.");
+        assert_eq!(day("de", Weekday::Sunday, Abbreviated, Standalone), "So");
+        assert_eq!(
+            day("de", Weekday::Sunday, NameWidth::Narrow, Standalone),
+            "S"
+        );
     }
 
     #[test]
@@ -2043,8 +2091,17 @@ mod tests {
             first_day_of_week(&locale("en-US-u-fw-mon")),
             Weekday::Monday
         );
-        // With no region, the language's data entry decides.
+        // With no region, the language's data entry decides, and it
+        // follows the region CLDR 48's likely subtags give the language:
+        // `en` → US and `pt` → BR, both Sunday. `und` takes the world's
+        // Monday, `001`.
         assert_eq!(first_day_of_week(&locale("de")), Weekday::Monday);
+        assert_eq!(first_day_of_week(&locale("en")), Weekday::Sunday);
+        assert_eq!(first_day_of_week(&locale("pt")), Weekday::Sunday);
+        assert_eq!(first_day_of_week(&locale("und")), Weekday::Monday);
+        assert_eq!(first_day_of_week(&locale("pt-PT")), Weekday::Sunday);
+        assert_eq!(first_day_of_week(&locale("pt-AO")), Weekday::Monday);
+        assert_eq!(first_day_of_week(&locale("en-AU")), Weekday::Monday);
         // CLDR 48 `weekData/firstDay`: ET, ID and BD are Sunday regions, CN
         // a Monday one, and the region outranks the language.
         assert_eq!(first_day_of_week(&locale("am-ET")), Weekday::Sunday);

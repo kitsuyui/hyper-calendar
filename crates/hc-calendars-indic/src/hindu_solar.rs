@@ -23,8 +23,9 @@
 //!
 //! Each is a [`HinduSolarCalendar`] value here — [`TAMIL`], [`MALAYALAM`],
 //! [`BENGALI`], [`VIKRAMI`] — with the era each counts its years in:
-//! the Tiruvaḷḷuvar year's number (which turns in Thai, not Chithirai; see
-//! [`TAMIL`]), the Kollam era, the Bengali San, the Vikrama Saṃvat. The
+//! the Śaka era, the Kollam era, the Bengali San, the Vikrama Saṃvat. The
+//! Tamil date also carries the Tiruvaḷḷuvar year, which turns at Thai 1
+//! and not at Chithirai 1, as an extra field (see [`TAMIL`]). The
 //! rules were read off the almanac's tables, twenty-four months of each,
 //! and the tests are those tables.
 //!
@@ -63,6 +64,16 @@
 //! 1 to 60, as the extra field `samvatsara` and declares the sixty names as
 //! a cycle of that kind, and [`HinduSolarCalendar::samvatsara_of`] gives it
 //! for a year. The Tamil year of 2024–25 is the 38th, Krodhin, குரோதி.
+//!
+//! # The Tiruvaḷḷuvar year
+//!
+//! Tamil Nadu's official year count, the Gregorian year plus 31, begins at
+//! Thai 1, in mid-January, not at Chithirai 1, so it cannot be the year of
+//! a calendar whose year opens at Chithirai. [`TAMIL`] counts its years in
+//! the Śaka era, the count Sewell and Dikshit reckon the Tamil year's name
+//! from, and writes the Tiruvaḷḷuvar year as the extra field
+//! [`TIRUVALLUVAR_YEAR_FIELD`], which changes at Thai 1:
+//! [`HinduSolarCalendar::tiruvalluvar_year_of`] gives it for a date.
 //!
 //! # What is not here
 //!
@@ -230,35 +241,60 @@ pub struct HinduSolarCalendar {
     /// Whether the reckoning names its years in the southern sixty-year
     /// cycle ([`crate::samvatsara`]), as the Tamil year does.
     pub samvatsara: bool,
+    /// Whether the date carries the Tiruvaḷḷuvar year as the extra field
+    /// [`TIRUVALLUVAR_YEAR_FIELD`], as the Tamil date does.
+    pub tiruvalluvar: bool,
 }
+
+/// The extra field that carries the Tiruvaḷḷuvar year of a Tamil date.
+pub const TIRUVALLUVAR_YEAR_FIELD: &str = "tiruvalluvar-year";
+
+/// What to add to the Gregorian year in which Thai 1 falls to get the
+/// Tiruvaḷḷuvar year that begins on it.
+///
+/// Wikipedia, "Valluvar year" (retrieved 2026-09-26,
+/// `wikipedia-valluvar-year`), gives the count as the Gregorian year plus
+/// 31, gazetted by Tamil Nadu in 1971 and in force from 1972 (the Gazette
+/// not read); the Tamil Wikipedia's "திருவள்ளுவர் ஆண்டு" (retrieved
+/// 2026-09-26, `tawiki-tiruvalluvar-aandu`) says it was introduced on
+/// Thiruvalluvar Day, moved to Thai 1 in 1971; and Tamizhvalai's report of
+/// 14 January 2021, Thai 1, "இன்று 2052 ஆம் ஆண்டு தொடங்குகிறது", works it as
+/// 2021 + 31 = 2052 (`tamizhvalai-2052`). Tamil Nadu's Act 2 of 2008 made
+/// the Tamil year run from Thai 1 to the end of Margazhi
+/// (`tn-act-2-2008`); that act was repealed in 2011 and the new year
+/// returned to Chithirai 1 (`wikipedia-puthandu`), which moved the new year
+/// and not the Tiruvaḷḷuvar count.
+pub const TIRUVALLUVAR_OFFSET: i64 = 31;
 
 /// The Tamil solar calendar: Chithirai to Panguni from the Meṣa saṅkrānti,
 /// the month beginning on the saṅkrānti's day unless it fell after sunset,
-/// years numbered as the Gregorian year the Chithirai falls in plus 31,
-/// under the era code of the Tiruvaḷḷuvar year.
+/// years in the Śaka era — the Gregorian year the Chithirai falls in less
+/// 78, as for [`crate::hindu_lunar`] — each named in the southern
+/// sixty-year cycle, and the Tiruvaḷḷuvar year carried beside the date as
+/// the extra field [`TIRUVALLUVAR_YEAR_FIELD`].
 ///
-/// That number is the Tiruvaḷḷuvar year only from Chithirai to the end of
-/// Margazhi. The Tiruvaḷḷuvar year, 31 years ahead of the Gregorian, was
-/// gazetted by Tamil Nadu in 1971 and inaugurated on Thiruvalluvar Day, in
-/// Thai (Wikipedia, "Valluvar year", retrieved 2026-09-26,
-/// `wikipedia-valluvar-year`; the Gazette not read), so from Thai to the
-/// end of Panguni it is one more than the year carried here. Tamil Nadu
-/// also declared Thai 1 the Tamil New Year by an act of 29 January 2008
-/// and repealed it on 23 August 2011, returning the new year to Chithirai
-/// 1 (Wikipedia, "Puthandu", retrieved 2026-09-26, `wikipedia-puthandu`;
-/// the acts not read). No source read numbers the Chithirai year in the
-/// Tiruvaḷḷuvar era.
+/// The Śaka count is the one Sewell and Dikshit reckon the Tamil year's
+/// name from (`sewell1896`, Arts. 53–62): the year that opened on 14 April
+/// 2024 is Śaka 1946 expired, Krodhin. The Tiruvaḷḷuvar year is Tamil
+/// Nadu's official count; it begins at Thai 1, so it is the Śaka year plus
+/// 109 from Chithirai to the end of Margazhi and plus 110 from Thai to the
+/// end of Panguni ([`TIRUVALLUVAR_OFFSET`] gives the sources). Tamil
+/// Nadu's Act 2 of 2008 also made Thai 1 the Tamil New Year; it was
+/// repealed in 2011 and the new year returned to Chithirai 1 (Wikipedia,
+/// "Puthandu", retrieved 2026-09-26, `wikipedia-puthandu`; the repealing
+/// act not read), which is the year this calendar keeps.
 pub const TAMIL: HinduSolarCalendar = HinduSolarCalendar {
     id: CalendarId("hindu-solar-tamil"),
     english_name: "Tamil solar",
     native_locales: &["ta", "sa"],
     tradition: rashi::TAMIL,
     rule: SankrantiRule::BeforeSunset,
-    era: "tiruvalluvar",
-    era_offset: 31,
+    era: crate::hindu_lunar::ERA,
+    era_offset: -crate::hindu_lunar::GREGORIAN_YEAR_OFFSET,
     location: CENTRAL_STATION,
     model: SolarModel::Modern(Ayanamsa::LAHIRI),
     samvatsara: true,
+    tiruvalluvar: true,
 };
 
 /// The Malayalam calendar of Kerala: Chingam to Karkadakam from the Siṃha
@@ -276,6 +312,7 @@ pub const MALAYALAM: HinduSolarCalendar = HinduSolarCalendar {
     location: CENTRAL_STATION,
     model: SolarModel::Modern(Ayanamsa::LAHIRI),
     samvatsara: false,
+    tiruvalluvar: false,
 };
 
 /// The Bengali calendar of West Bengal and Assam: Boishakh to Choitro from
@@ -292,6 +329,7 @@ pub const BENGALI: HinduSolarCalendar = HinduSolarCalendar {
     location: CENTRAL_STATION,
     model: SolarModel::Modern(Ayanamsa::LAHIRI),
     samvatsara: false,
+    tiruvalluvar: false,
 };
 
 /// The Vikrami solar calendar of Punjab and Haryana: Vaiśākha to Chaitra
@@ -311,6 +349,7 @@ pub const VIKRAMI: HinduSolarCalendar = HinduSolarCalendar {
     location: CENTRAL_STATION,
     model: SolarModel::Modern(Ayanamsa::LAHIRI),
     samvatsara: false,
+    tiruvalluvar: false,
 };
 
 /// Every solar reckoning this crate registers.
@@ -343,6 +382,29 @@ impl HinduSolarCalendar {
         Some(crate::samvatsara::southern_of_saka(
             gregorian_year - crate::hindu_lunar::GREGORIAN_YEAR_OFFSET,
         ))
+    }
+
+    /// The Tiruvaḷḷuvar year of a date, for a reckoning that carries it:
+    /// the Gregorian year in which the last Thai 1 fell, plus
+    /// [`TIRUVALLUVAR_OFFSET`]. It turns at Thai 1, the Makara saṅkrānti's
+    /// month, and not at the opening of the calendar's own year. `None` for
+    /// the other reckonings.
+    #[must_use]
+    pub const fn tiruvalluvar_year_of(&self, date: HinduSolarDate) -> Option<i64> {
+        if !self.tiruvalluvar {
+            return None;
+        }
+        // The Gregorian year the calendar's year opened in, and the month
+        // number of Thai, the Makara saṅkrānti's month, in this reckoning.
+        let opened = date.year - self.era_offset;
+        let thai = (SiderealSign::MAKARA.index() + MONTHS_IN_YEAR
+            - self.tradition.year_opens_at.index())
+            % MONTHS_IN_YEAR
+            + 1;
+        // Thai and the months after it fall in the next Gregorian year,
+        // after that year's Thai 1.
+        let after_thai = date.month >= thai && thai > 1;
+        Some(opened + after_thai as i64 + TIRUVALLUVAR_OFFSET)
     }
 
     /// The earliest year of the era this calendar converts.
@@ -621,13 +683,18 @@ impl Calendar for HinduSolarCalendar {
 
     /// The year in the era, the month and the day; for a reckoning that
     /// names its years, the position in the sixty-year cycle as the extra
-    /// `samvatsara`, derived from the year and ignored on input.
+    /// `samvatsara`, and for the Tamil one the Tiruvaḷḷuvar year as the
+    /// extra [`TIRUVALLUVAR_YEAR_FIELD`], both derived from the date and
+    /// ignored on input.
     fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
-        let fields = DateFields::ymd(date.year, date.month, date.day).with_era(self.era);
-        match self.samvatsara_of(date.year) {
-            Some(position) => fields.with_extra(crate::samvatsara::CYCLE, i64::from(position)),
-            None => Ok(fields),
+        let mut fields = DateFields::ymd(date.year, date.month, date.day).with_era(self.era);
+        if let Some(position) = self.samvatsara_of(date.year) {
+            fields = fields.with_extra(crate::samvatsara::CYCLE, i64::from(position))?;
         }
+        if let Some(year) = self.tiruvalluvar_year_of(date) {
+            fields = fields.with_extra(TIRUVALLUVAR_YEAR_FIELD, year)?;
+        }
+        Ok(fields)
     }
 
     fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
@@ -885,15 +952,61 @@ mod tests {
     fn the_eras_begin_where_the_almanac_says() {
         // Bengali San 1430 from 15 April 2023, Kollam 1199 from 18 August
         // 2023, Vikrama 2080 from 14 April 2023, and the Tamil year of 2023
-        // is Tiruvaḷḷuvar 2054.
+        // is Śaka 1945.
         assert_eq!(BENGALI.month_start(1430, 1), Ok(ymd(2023, 4, 15)));
         assert_eq!(BENGALI.month_start(1431, 1), Ok(ymd(2024, 4, 14)));
         assert_eq!(MALAYALAM.month_start(1199, 1), Ok(ymd(2023, 8, 18)));
         assert_eq!(MALAYALAM.month_start(1200, 1), Ok(ymd(2024, 8, 17)));
         assert_eq!(VIKRAMI.month_start(2080, 1), Ok(ymd(2023, 4, 14)));
         assert_eq!(VIKRAMI.month_start(2081, 1), Ok(ymd(2024, 4, 13)));
-        assert_eq!(TAMIL.month_start(2054, 1), Ok(ymd(2023, 4, 14)));
-        assert_eq!(TAMIL.month_start(2055, 1), Ok(ymd(2024, 4, 14)));
+        assert_eq!(TAMIL.month_start(1945, 1), Ok(ymd(2023, 4, 14)));
+        assert_eq!(TAMIL.month_start(1946, 1), Ok(ymd(2024, 4, 14)));
+    }
+
+    /// The Tiruvaḷḷuvar year turns at Thai 1, not at Chithirai 1: 2052
+    /// began on 14 January 2021, Thai 1, as Tamizhvalai's report of that
+    /// day says ("இன்று 2052 ஆம் ஆண்டு தொடங்குகிறது", 2021 + 31 = 2052;
+    /// `tamizhvalai-2052`), and the Śaka year does not turn until
+    /// Chithirai 1, 14 April 2021.
+    #[test]
+    fn the_tiruvalluvar_year_turns_at_thai_and_the_saka_year_at_chithirai() {
+        let tiruvalluvar = |rd: Rd| {
+            let date = TAMIL.from_fixed(rd).unwrap();
+            let fields = Calendar::to_fields(&TAMIL, date).unwrap();
+            assert_eq!(
+                fields.extra.get(TIRUVALLUVAR_YEAR_FIELD),
+                TAMIL.tiruvalluvar_year_of(date)
+            );
+            (
+                date.year,
+                date.month,
+                date.day,
+                TAMIL.tiruvalluvar_year_of(date),
+            )
+        };
+        assert_eq!(TAMIL.month_start(1942, 10), Ok(ymd(2021, 1, 14)));
+        assert_eq!(tiruvalluvar(ymd(2021, 1, 13)), (1942, 9, 29, Some(2051)));
+        assert_eq!(tiruvalluvar(ymd(2021, 1, 14)), (1942, 10, 1, Some(2052)));
+        assert_eq!(tiruvalluvar(ymd(2021, 4, 13)).3, Some(2052));
+        assert_eq!(tiruvalluvar(ymd(2021, 4, 14)), (1943, 1, 1, Some(2052)));
+        assert_eq!(tiruvalluvar(ymd(2021, 12, 31)).3, Some(2052));
+        // From Chithirai to Margazhi the Tiruvaḷḷuvar year is the Gregorian
+        // year plus 31; from Thai to Panguni it is already the next.
+        for (month, gregorian_year) in (1..=12).zip([2024; 9].into_iter().chain([2025; 3])) {
+            let start = TAMIL.month_start(1946, month).unwrap();
+            let date = TAMIL.from_fixed(start).unwrap();
+            assert_eq!(
+                TAMIL.tiruvalluvar_year_of(date),
+                Some(gregorian_year + TIRUVALLUVAR_OFFSET),
+                "month {month}"
+            );
+        }
+        for calendar in [MALAYALAM, BENGALI, VIKRAMI] {
+            let date = calendar.from_fixed(ymd(2024, 6, 1)).unwrap();
+            assert_eq!(calendar.tiruvalluvar_year_of(date), None);
+            let fields = Calendar::to_fields(&calendar, date).unwrap();
+            assert_eq!(fields.extra.get(TIRUVALLUVAR_YEAR_FIELD), None);
+        }
     }
 
     /// The name of the Tamil year a day is in.

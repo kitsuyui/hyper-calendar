@@ -3,9 +3,8 @@
 Backs the identifiers `bahai-astronomical` and `french-republican-equinox`
 in `hc-calendars-equinox`, and explains their siblings `bahai`,
 `bahai-arithmetic` and `french-republican-arithmetic` in
-`hc-calendars-solar`. The third calendar in the crate, the Solar Hijri
-`persian`, is not covered here; it is listed among the
-[systems that need a document](README.md#systems-that-need-a-document).
+`hc-calendars-solar`. The crate's Solar Hijri calendars, `persian` among
+them, are written up in [solar-hijri.md](solar-hijri.md).
 
 ## What it is
 
@@ -120,10 +119,10 @@ row in the table, and two modelling choices decide it:
 - *ΔT.* The equinox is computed in dynamical time and converted to
   Universal Time by ΔT. With the published ΔT of 2026, about 69.1 seconds
   [usno-deltat, usno-deltat-preds], the equinox falls six seconds after
-  the sunset. With the Espenak–Meeus polynomial, five seconds larger, it
-  fell under a second before, and the model said 20 March. The year that
-  this library once could not reproduce is now reproduced because ΔT is
-  taken from the measurements.
+  the sunset. With the Espenak–Meeus polynomial [espenak-meeus-2006],
+  five seconds larger, it would fall under a second before, and the model
+  would say 20 March; `hc-astro` takes ΔT from the measurements over this
+  span, and the polynomial only outside it.
 - *The horizon.* Tehran stands about 1 100 m high, the elevation Reingold
   and Dershowitz give the city in their `tehran`, used for the Persian
   calendar; a horizon dipped by that height puts the sunset about five
@@ -255,24 +254,11 @@ true times, as article III's rule is.
 | [reingold2018code] | `bahai-location`, `bahai-sunset`, `astro-bahai-new-year-on-or-before`, `birth-of-the-bab`, `bahai-new-year`, `tehran`, `paris`, `midnight-in-paris`, `french-new-year-on-or-before`, `arithmetic-french-leap-year?` | Yes, 2026-09-26 |
 | [reingold2018] | The book those functions come from | Not read directly |
 | [usno-deltat], [usno-deltat-preds] | ΔT in 2026 | Read for `hc-astro` on 2026-09-25; not re-read here |
+| [espenak-meeus-2006] | The ΔT polynomial against which 2026's measured ΔT is compared | Read for `hc-astro` on 2026-09-26; not re-read here |
 
-Statements the module documentation made before this write-up that no
-source read here supports, or that the sources read contradict, corrected
-or trimmed in it where the fix is documentation and recorded so that they
-are not mistaken for sourced:
-
-- In `places`, that Reingold and Dershowitz give Tehran its 1 100 m of
-  elevation and that the sea-level horizon rests only on the evidence of
-  the 2026 row. Their `tehran` has 1 100 m, but the location they use for
-  the Bahá'í calendar, `bahai-location`, has the module's coordinates and
-  0 m. Corrected.
-- In `bahai`, that the row of 183 BE is decided by the committee's
-  ephemeris "which no model reproduces to that precision". The model now
-  reproduces it, by six seconds. Trimmed.
-- In `bahai_kept`, that the equinox rule for any year "is for `hc-astro`
-  to add"; it is `bahai-astronomical`. Corrected.
-- That the complementary days were called *jours complémentaires* from
-  An III; not checked here.
+The solar module's statement that the complementary days were the
+*sansculottides* in the decree of 1793 and the *jours complémentaires*
+from An III was not checked against a source here.
 
 ## Code
 

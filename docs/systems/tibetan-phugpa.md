@@ -310,14 +310,8 @@ depend on the choice.
 | Salden, *The story of Losar* | Losar 2000 on Sunday 6 February | Not read; Janson's citation, the page gone by 2013 |
 | Men-Tsee-Khang, *Tibetan Annual Almanac 2013* | Janson's own check | Not read |
 
-Statements the module documentation made before this write-up that no
-source read here supports, trimmed in it and recorded so that they are not
-mistaken for sourced: that the Gregorian numbering is how Tibetans
-"commonly" number the year — Janson says it is common "especially among
-Westerners" and that Tibetans use both it and the 127 BCE count; and the
-range 1000–3000, which is this library's choice. The equation, remark and
-section numbers the module cites were checked against the TeX source's
-order and agree.
+The equation, remark and section numbers the module cites were checked
+against the TeX source's order and agree.
 
 ## Code
 

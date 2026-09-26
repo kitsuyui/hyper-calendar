@@ -19,6 +19,7 @@ lunar calendars are such counts, and are here as regional calendars.
 | `japanese` | Imperial era years (和暦); Gregorian from 1873, the five lunisolar calendars back to 862 before it |
 | `japanese-northern`, `japanese-southern` | The same, with the Northern or the Southern Court's eras during the 南北朝 split; both read 明徳 from the reunion of 1392 |
 | `japanese-proclaimed` | The same, with each era from the day it was proclaimed rather than backdated to the first day of its year: 明治 from 1868-10-23 |
+| `japanese-northern-proclaimed`, `japanese-southern-proclaimed` | Each court's stream with each era from the day it was proclaimed: 暦応 from 1338-10-11 and 興国 from 1340-05-25 (Julian) |
 | `maya-longcount` | `baktun.katun.tun.uinal.kin`, in `DateFields::extra`, under the GMT correlation |
 | `maya-longcount-gmt2` | The same under the GMT+2 correlation |
 | `maya-longcount-584286` | The same under Martin and Skidmore's 584 286 |

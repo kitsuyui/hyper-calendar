@@ -183,8 +183,9 @@ column shows and what the library does. The Orissa rule, on the same
 sunrise-to-sunrise day, is the library's `SunriseDay`; the almanac
 prints one column for Punjab, Haryana and Odisha, and the library
 registers it under the Vikrami name. Each reckoning has its own month
-names and year: Tamil Chithirai to Panguni from the Meṣa saṅkrānti in the
-Tiruvaḷḷuvar year; Malayalam Chingam to Karkadakam from the Siṃha
+names and year: Tamil Chithirai to Panguni from the Meṣa saṅkrānti,
+the year that Sewell and Dikshit count in the Śaka era (below);
+Malayalam Chingam to Karkadakam from the Siṃha
 saṅkrānti in August in the Kollam era, whose epoch is 825 CE
 [wikipedia-malayalam-calendar]; Bengali Boishakh to Choitro from Meṣa in
 the Bengali San, 593 less than the Gregorian year from Pohela Boishakh
@@ -217,6 +218,22 @@ The names in Tamil script are the University of Madras's *Tamil Lexicon*,
 whose entry வருஷம் lists all sixty in their three twenties, from பிரபவ to
 அட்சய, and has each as a headword glossed "the Nth year of the Jupiter
 cycle" [tamil-lexicon].
+
+**The Tiruvaḷḷuvar year.** Tamil Nadu's official count is the
+Tiruvaḷḷuvar year, the Gregorian year plus 31, gazetted in 1971 and in
+force from 1972 [wikipedia-valluvar-year; the Gazette not read]. It was
+introduced on Thiruvalluvar Day, which was moved to Thai 1 in 1971
+[tawiki-tiruvalluvar-aandu], and it begins at Thai 1, the Makara
+saṅkrānti's month, in mid-January: Tamizhvalai's report of Thai 1,
+14 January 2021, says that the year 2052 begins that day and works it as
+2021 + 31 [tamizhvalai-2052]. Tamil Nadu's Act 2 of 2008 declared Thai 1
+the Tamil New Year and made the Tamil year run from Thai 1 to the end of
+Margazhi [tn-act-2-2008]; the act was repealed in 2011 and the new year
+returned to Chithirai 1 [wikipedia-puthandu; the repealing act not
+read]. So the Tiruvaḷḷuvar year and the Tamil year that opens at
+Chithirai overlap for nine months: the Chithirai year of 14 April 2024 is
+Tiruvaḷḷuvar 2055 until the end of Margazhi and 2056 from Thai 1,
+14 January 2025.
 
 **True Sun and mean Sun.** The registered solar calendars take their
 saṅkrāntis from the true Sun of modern astronomy — `hc-astro`'s VSOP87
@@ -373,9 +390,14 @@ weeks.
 - **The four solar calendars**, as `HinduSolarCalendar` values `TAMIL`,
   `MALAYALAM`, `BENGALI` and `VIKRAMI`, each a month-name tradition from
   `hc-seasons`, a `SankrantiRule`, an era and offset, a place and a
-  `SolarModel`. The eras are `tiruvalluvar` (Gregorian year plus 31),
-  `kollam` (the Gregorian year of Chingam less 824), `bangabda` (less
-  593) and `vs` (plus 57). `new` gives the same reckoning at another
+  `SolarModel`. The eras are `saka` for the Tamil year (the Gregorian year
+  of Chithirai less 78, as for the lunisolar calendars), `kollam` (the
+  Gregorian year of Chingam less 824), `bangabda` (less 593) and `vs`
+  (plus 57). The Tamil date carries the Tiruvaḷḷuvar year beside it as
+  the extra field `tiruvalluvar-year`, derived and ignored on input:
+  `tiruvalluvar_year_of` gives the Gregorian year of the last Thai 1 plus
+  31, so it turns at Thai 1 while the calendar's own year turns at
+  Chithirai 1. `new` gives the same reckoning at another
   place or with the *Sūrya Siddhānta*'s Sun, under an identifier of the
   caller's. A fifth rule, `CivilDay`, the midnight-to-midnight day of the
   saṅkrānti, exists for the Bikram Sambat and is that document's.
@@ -406,18 +428,15 @@ weeks.
   `ingress_after` for the Siddhānta's Sun, read at Ujjain's meridian,
   75°46′6″ E as the book gives it.
 - **`places`**: `CENTRAL_STATION` (23.183 333° N, 82.5° E), `UJJAIN`,
-  `NEW_DELHI`, `KATHMANDU`, all at sea level so that sunrise is the
-  almanac's. `UJJAIN` is the book's `ujjain`, 23°9′ N, 75°46′6″ E
-  [reingold2018code], the longitude `surya_siddhanta` uses. Until
-  2026-09-25 the constant carried the city's modern coordinates,
-  23.1765° N, 75.7885° E, under the same citation; the two differ by about
-  a minute of arc, five seconds of sunrise, and over 1700–2299 the change
-  moves the sunrise tithi at Ujjain on sixteen days — 17 June 1770,
+  `KATHMANDU`, all at sea level so that sunrise is the almanac's. `UJJAIN` is the book's `ujjain`, 23°9′ N, 75°46′6″ E
+  [reingold2018code], the longitude `surya_siddhanta` uses. The city's
+  modern coordinates, 23.1765° N, 75.7885° E, lie about a minute of arc
+  away, five seconds of sunrise; over 1700–2299 reading at them instead
+  would move the sunrise tithi at Ujjain on sixteen days — 17 June 1770,
   22 February 1802, 17 January 1831, 20 May 1859, 26 August 1867,
   7 January 1995, 23 September 2089, 15 October 2097 and eight days after
-  2100 — measured for this document by comparing `tithi_of_day` at the two
-  places on every day of the range. No registered calendar reads at
-  Ujjain, so no test moved.
+  2100 — measured by comparing `tithi_of_day` at the two places on every
+  day of the range. No registered calendar reads at Ujjain.
 - **Range** Gregorian 1700 to 2299 for the true calendars — Śaka 1622 to
   2221 for the lunisolar ones, the era years the offsets give for the
   solar ones — "as far back as the lunar theory is worth asking", and
@@ -467,7 +486,8 @@ assert:
 | The pūrṇimānta name of every dark fortnight of the two years, 25 *vadi* rows | `hindu_purnimanta::every_dark_fortnight_carries_the_name_the_rashtriya_panchang_gives_it` | 25 of 25 |
 | The first day of every solar month of both years, Tamil, Bengali and Vikrami | `hindu_solar::the_tamil_months_begin_where_the_rashtriya_panchang_says` and the Bengali and Vikrami tests | 24 of 24 each |
 | The first day of every Malayalam month of both years | `the_malayalam_months_begin_where_the_rashtriya_panchang_says_save_medam` | 22 of 24; see below |
-| Bengali San 1430, Kollam 1199, Vikrama 2080 and Tiruvaḷḷuvar 2054 open on the almanac's days | `the_eras_begin_where_the_almanac_says` | all |
+| Bengali San 1430, Kollam 1199, Vikrama 2080 and the Tamil Śaka 1945 open on the almanac's days | `the_eras_begin_where_the_almanac_says` | all |
+| The Tiruvaḷḷuvar year 2052 begins on Thai 1, 14 January 2021, as reported that day, three months before the Tamil Śaka year 1943 at Chithirai 1; Chithirai to Margazhi carry the Gregorian year plus 31 and Thai to Panguni one more | `the_tiruvalluvar_year_turns_at_thai_and_the_saka_year_at_chithirai` | all |
 | The southern rule on Sewell and Dikshit's worked examples: Angiras (Śaka 1674, 1752), Rudhirodgarin (1725, 1803–04), Chitrabhanu (1744, 1822) | `samvatsara::sewell_and_dikshits_rule_names_their_own_examples` | all |
 | The Tamil year's name on printed days: Rudhirodgarin on 30 May 1803 and 30 March 1804; Śobhana (Śobhakṛt) on 13 April 2024 and Krodhin from the 14th; Viśvāvasu from 14 April 2025; Parābhava from 14 April 2026 | `the_tamil_years_carry_their_printed_names` | all names; Sewell and Dikshit's two days are a day earlier in the month by the modern Sun, 18 Vaikasi and 19 Panguni for their 19th and 20th |
 | குரோதி in Tamil and Krodhin in English on 14 April 2024, சோபகிருது the day before | `hyper-calendar`'s `the_tamil_year_is_named_in_tamil_and_through_the_fallback` | all |
@@ -530,6 +550,11 @@ for 2024 and 2025 give the times the tests hold.
 | [tamil-lexicon] | The sixty year names in Tamil script, entry வருஷம், sense 2, and each as a headword | Yes, 2026-09-26, in the Digital Dictionaries of South Asia edition |
 | [prokerala-tamil-2024] | Chithirai 2024 headed "Krodhi", Tamil New Year's Day 14 April | Yes, 2026-09-26 |
 | [pansalb-tamil-new-year-2025] | "Tamil New Year (5127 – Visuvasuva)", 14 April 2025 | Yes, 2026-09-26 |
+| [wikipedia-valluvar-year] | The Tiruvaḷḷuvar year as the Gregorian year plus 31; the Gazette of 1971 and its use from 1972 | Yes, 2026-09-26; the Gazette not read |
+| [tawiki-tiruvalluvar-aandu] | Thiruvalluvar Day moved to Thai 1 in 1971, and the count introduced on it | Yes, 2026-09-26 |
+| [tamizhvalai-2052] | The Tiruvaḷḷuvar year 2052 beginning on Thai 1, 14 January 2021 | Yes, 2026-09-26 |
+| [tn-act-2-2008] | The Tamil year from Thai 1 to the end of Margazhi, section 3 | Yes, 2026-09-26, in PRS Legislative Research's copy of the Gazette Extraordinary |
+| [wikipedia-puthandu] | The repeal of 2011 and the new year's return to Chithirai 1 | Yes, 2026-09-26; the repealing act not read |
 | [reingold2018] | The Old Hindu calendars, the Siddhānta's Sun, the amānta rules, Ujjain | Not read directly; the published code was |
 | [reingold2018code] | `hindu-epoch`, `arya-solar-year`, `arya-lunar-month`, `old-hindu-lunar-leap-year?`, `hindu-sine-table`, `hindu-sidereal-year`, `hindu-anomalistic-year`, `hindu-true-position`, `ujjain`, `sidereal-start`, `hindu-lunar-station`, and `hindu-lunar-from-fixed` for the day read at sunrise | Yes, 2026-09-25; `hindu-lunar-from-fixed` 2026-09-26 |
 | [calcal-modern-hindu] | The line-by-line check of the Siddhānta constants the module records | Yes, 2026-09-25: the constants of `modern_hindu.R` are the book's |
@@ -540,7 +565,7 @@ for 2024 and 2025 give the times the tests hold.
 | [wikipedia-vikram-samvat] | The epoch of 57 BCE and the offset of 57 | Yes, 2026-09-25 |
 | [wikipedia-malayalam-calendar] | The Kollam epoch of 825 CE, Chingam as the first month, Vishu in Medam | Yes, 2026-09-25 |
 | [wikipedia-bengali-calendars] | The Bengali San's offset of 593, Boishakh first, the West Bengal reckoning as sidereal | Yes, 2026-09-25 |
-| [wikipedia-tamil-calendar] | The month names Chithirai to Panguni and the year at the Meṣa saṅkrānti; its sixty-year table was compared with the Lexicon's and not used | Yes, 2026-09-25 and 2026-09-26; it does not give the Tiruvaḷḷuvar year |
+| [wikipedia-tamil-calendar] | The month names Chithirai to Panguni and the year at the Meṣa saṅkrānti; its sixty-year table was compared with the Lexicon's and not used | Yes, 2026-09-25 and 2026-09-26 |
 | [wikipedia-aryabhata-sine-table] | The twenty-four values of the sine table | Yes, 2026-09-25 |
 | [wikipedia-thaipusam] | Thaipusam on Puṣya in Thai | Yes, 2026-09-25 |
 | [wikipedia-onam] | Onam on Thiruvonam in Chingam | Yes, 2026-09-25 |
@@ -550,8 +575,7 @@ for 2024 and 2025 give the times the tests hold.
 | [drik-thaipusam-2024], [drik-thaipusam-2025] | Puṣya's beginning and end at Chennai, 25–26 January 2024 and 10–11 February 2025 | Yes, 2026-09-25 |
 
 Statements in the module documentation for which this document names no
-source: that the Tiruvaḷḷuvar year is the Gregorian year plus 31 "as the
-Tamil Nadu government's almanac counts them"; the modern mean sidereal
+source: the modern mean sidereal
 year of 365.256 36 days; and that Drik Panchang's Lahiri anchor is about
 20″ from the library's, which is inferred from the measured offset. The
 Central Station's latitude as "the latitude of Ujjain" is the Committee's
@@ -573,6 +597,7 @@ phrase; the module states the coordinates only.
 `the_tamil_months_begin_where_the_rashtriya_panchang_says`,
 `the_malayalam_months_begin_where_the_rashtriya_panchang_says_save_medam`,
 `the_eras_begin_where_the_almanac_says`,
+`the_tiruvalluvar_year_turns_at_thai_and_the_saka_year_at_chithirai`,
 `the_tamil_years_carry_their_printed_names`,
 `sewell_and_dikshits_rule_names_their_own_examples`,
 `the_suns_nakshatra_transits_of_2025_are_the_almanacs`,

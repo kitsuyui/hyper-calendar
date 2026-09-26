@@ -108,14 +108,9 @@ pub const ID_SOUTHERN: CalendarId = CalendarId("japanese-southern");
 pub const ID_PROCLAIMED: CalendarId = CalendarId("japanese-proclaimed");
 
 /// The identifier of the Northern Court stream read as proclaimed.
-///
-/// Built by [`JapaneseCalendar::with_reckoning`] and not registered: a
-/// registered calendar needs its month names in `hc-i18n`, which lists the
-/// four registered Japanese identifiers and not this one.
 pub const ID_NORTHERN_PROCLAIMED: CalendarId = CalendarId("japanese-northern-proclaimed");
 
-/// The identifier of the Southern Court stream read as proclaimed; built
-/// and not registered, as [`ID_NORTHERN_PROCLAIMED`] is.
+/// The identifier of the Southern Court stream read as proclaimed.
 pub const ID_SOUTHERN_PROCLAIMED: CalendarId = CalendarId("japanese-southern-proclaimed");
 
 /// Where the period of use comes from.
@@ -320,6 +315,20 @@ impl JapaneseCalendar {
     /// See [`EraReckoning`] for which question each answers.
     pub const PROCLAIMED: Self = Self {
         court: Court::Unified,
+        reckoning: EraReckoning::Proclaimed,
+    };
+
+    /// The Northern Court (北朝) stream with eras beginning when they were
+    /// proclaimed.
+    pub const NORTHERN_PROCLAIMED: Self = Self {
+        court: Court::Northern,
+        reckoning: EraReckoning::Proclaimed,
+    };
+
+    /// The Southern Court (南朝) stream with eras beginning when they were
+    /// proclaimed.
+    pub const SOUTHERN_PROCLAIMED: Self = Self {
+        court: Court::Southern,
         reckoning: EraReckoning::Proclaimed,
     };
 
@@ -1095,20 +1104,84 @@ mod tests {
         }
     }
 
+    /// Each court's stream read as proclaimed changes era on the day the
+    /// era was proclaimed: 暦応 in the North on 建武5年8月28日 =
+    /// 1338-10-11 (Julian), 興国 in the South on 延元5年4月28日 = 1340-05-25
+    /// (Julian), as 元号一覧 (日本) gives them (`wikipedia-ja-gengo-list`,
+    /// read 2026-09-26). The backdated streams give the new era the whole
+    /// year.
+    ///
+    /// The month and day are Senmyō-reki's as `hc-calendars-lunar`
+    /// computes it, which begins the eighth month of 1338 a day after the
+    /// record, so the North's day reads 8月27日; that calendar's
+    /// disagreement with the record is measured in
+    /// `docs/systems/japanese-lunisolar.md`.
+    #[test]
+    fn each_courts_proclaimed_stream_changes_era_on_the_day_it_was_proclaimed() {
+        let julian = |y, m, d| hc_calendars_solar::julian::to_fixed(y, m, d).expect("valid");
+        for (proclaimed, backdated, day, before, (year_before, month, date), after) in [
+            (
+                JapaneseCalendar::NORTHERN_PROCLAIMED,
+                JapaneseCalendar::NORTHERN,
+                julian(1338, 10, 11),
+                "建武",
+                (5, 8, 27),
+                "暦応",
+            ),
+            (
+                JapaneseCalendar::SOUTHERN_PROCLAIMED,
+                JapaneseCalendar::SOUTHERN,
+                julian(1340, 5, 25),
+                "延元",
+                (5, 4, 28),
+                "興国",
+            ),
+        ] {
+            let on = proclaimed.from_fixed(day).expect("in range");
+            assert_eq!(on.era.kanji, after, "{}", proclaimed.id());
+            assert_eq!(on.year, 1);
+            assert_eq!(
+                (on.month.ordinal, on.day),
+                (month, date),
+                "{}",
+                proclaimed.id()
+            );
+            let eve = proclaimed.from_fixed(Rd(day.0 - 1)).expect("in range");
+            assert_eq!(eve.era.kanji, before, "{}", proclaimed.id());
+            assert_eq!(eve.year, year_before);
+            assert_eq!(proclaimed.to_fixed(eve), Ok(Rd(day.0 - 1)));
+            assert_eq!(proclaimed.to_fixed(on), Ok(day));
+            let backdated_eve = backdated.from_fixed(Rd(day.0 - 1)).expect("in range");
+            assert_eq!(backdated_eve.era.kanji, after, "{}", backdated.id());
+            assert_eq!(backdated_eve.year, 1);
+        }
+        assert_eq!(
+            JapaneseCalendar::NORTHERN_PROCLAIMED.id(),
+            ID_NORTHERN_PROCLAIMED
+        );
+        assert_eq!(
+            JapaneseCalendar::SOUTHERN_PROCLAIMED.id(),
+            ID_SOUTHERN_PROCLAIMED
+        );
+    }
+
     /// 元中 was abolished at the reunion of 元中9年閏10月5日 = 1392-11-19
     /// Julian and the Northern era 明徳 kept (`wikipedia-ja-genchu`), so the
     /// Southern calendar answers 明徳 from that day and there is no 元中10年.
     ///
     /// The month and day are Senmyō-reki's as `hc-calendars-lunar` computes
     /// it, which puts that day in the eleventh month rather than the
-    /// intercalary tenth the source gives; the era and the year are what
-    /// this test is about.
+    /// intercalary tenth the source gives, because it begins the next month
+    /// a day late; `hc-calendars-lunar`'s
+    /// `senmyo_puts_the_reunion_of_1392_in_the_eleventh_month_where_the_record_has_the_tenth_intercalary`
+    /// pins the disagreement. The era and the year are what this test is
+    /// about.
     #[test]
     fn the_southern_calendar_follows_meitoku_from_the_reunion() {
         let union = nengo::NANBOKUCHO_END;
         for calendar in [
             JapaneseCalendar::SOUTHERN,
-            JapaneseCalendar::with_reckoning(Court::Southern, EraReckoning::Proclaimed),
+            JapaneseCalendar::SOUTHERN_PROCLAIMED,
         ] {
             let eve = calendar.from_fixed(Rd(union.0 - 1)).expect("in range");
             assert_eq!(eve.era.kanji, "元中", "{}", calendar.id());

@@ -76,7 +76,7 @@ behind the date and the Sources section says which were read.
 | --- | --- | --- | --- | --- | --- |
 | `julian-gregorian-catholic` | Papal States, Spain, Portugal, Poland-Lithuania | Thursday 4 October 1582 | Friday 15 October 1582 | 10 | *Inter gravissimas*, 24 February 1582 [inter-gravissimas]; that Spain, Portugal and Poland-Lithuania changed on the bull's own day rests on secondary sources [wikipedia-adoption-list], which note local resistance in Poland |
 | `julian-gregorian-fr` | France | Sunday 9 December 1582 | Monday 20 December 1582 | 10 | An edict of Henri III, not read; the dates are from secondary sources [frwiki-passage-gregorien, wikipedia-adoption-gregorian], which exclude Alsace and Lorraine (Lorraine changed in 1760) |
-| `julian-gregorian-nl` | Zeeland and the southern Netherlands | Friday 14 December 1582 | Saturday 25 December 1582 | 10 | No instrument read. The date is Zeeland's and the southern provinces' in every source [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]. Holland is a row of its own |
+| `julian-gregorian-nl` | Zeeland and the southern Netherlands | Friday 14 December 1582 | Saturday 25 December 1582 | 10 | The placard of 10 December 1582, not read. Two sources give the date to Zeeland and the southern provinces [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]; Strubbe and Voet give it to the States-General, Brabant and Zeeland, and a later one to the Southern Netherlands under Spanish rule [strubbe-voet-1960, p. 48], see below. Holland is a row of its own |
 | `julian-gregorian-nl-holland` | Holland | Saturday 1 January 1583 | Wednesday 12 January 1583 | 10 | No instrument read — the States of Holland's placard is the one that would settle it. The dates from secondary sources [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]; two others put Holland with Zeeland in December 1582 [frwiki-passage-gregorien, wikipedia-adoption-gregorian], see below |
 | `julian-gregorian-de-catholic` | Catholic Germany (Bavaria) | Saturday 5 October 1583 | Sunday 16 October 1583 | 10 | A ducal order, not read; the dates from a secondary source [dewiki-gregorianischer-kalender]. Bavaria only: the other Catholic territories of the Empire changed on dates of their own |
 | `julian-gregorian-hu` | Hungary | Saturday 21 October 1587 | Sunday 1 November 1587 | 10 | A law of the diet of 1587/88, not read; the dates from secondary sources [wikipedia-adoption-list, frwiki-passage-gregorien]; the Hungarian encyclopaedia's own dating is less definite [huwiki-gergely-naptar] |
@@ -89,8 +89,23 @@ behind the date and the Sources section says which were read.
 | `julian-gregorian-ro` | Romania (the Old Kingdom) | Sunday 31 March 1919 | Monday 14 April 1919 | 13 | The decree-law of 5/18 March 1919, not read; the dates from a secondary source [rowiki-calendarul-gregorian], for the Old Kingdom only. Serbia is `julian-gregorian-rs` |
 | `julian-gregorian-gr` | Greece | Wednesday 15 February 1923 | Thursday 1 March 1923 | 13 | A royal decree under which 16 February 1923 was reckoned as 1 March 1923, not read; the dates from secondary sources [elwiki-gregoriano-imerologio, wikipedia-adoption-list], which except Mount Athos. The Church of Greece went instead to the Revised Julian calendar in 1924 |
 
-Two rows split a polity that some sources treat as one, and the reasoning
-is this:
+Three polities are divided more finely here than some sources divide
+them, and the reasoning is this:
+
+- **The Southern Netherlands.** Strubbe and Voet's handbook says that the
+  placard of 10 December 1582 ordered the change in the night after
+  14 December, that the States-General, Brabant and Zeeland obeyed it,
+  and that the Southern Netherlands went instead from 20 to 31 December or
+  from 21 December to 1 January 1583, keeping Christmas by the old
+  calendar on 4 January 1583 [strubbe-voet-1960, p. 48]; the English list
+  of adoption dates gives the same two dates for the provinces under
+  Spanish rule — Artois, Brabant, Flanders, Hainaut, Limburg, Luxembourg
+  and Namur — and 14 to 25 December for Flanders under Anjou's edict
+  [wikipedia-adoption-list]. So "the southern Netherlands" of
+  `julian-gregorian-nl`'s name is the southern provinces that followed
+  the States-General, not the Spanish ones, which are the regional
+  table's Belgian row below and are not a calendar of their own: the
+  source gives two dates for them and no way to choose.
 
 - **Holland.** The Dutch encyclopaedia and the English list of adoption
   dates put Holland's change at 1 January followed by 12 January 1583,
@@ -100,7 +115,8 @@ is this:
   narrative article put Holland and Zeeland together in December
   [frwiki-passage-gregorien, wikipedia-adoption-gregorian]. No primary
   source was read. So `julian-gregorian-nl` is Zeeland and the southern
-  Netherlands, whose date no source disputes, and Holland is
+  Netherlands, whose December date no source read disputes for Zeeland,
+  and Holland is
   `julian-gregorian-nl-holland` on the two sources that date it
   separately — the ones that distinguish the provinces rather than the
   ones that summarise them. Its dates rest on
@@ -139,6 +155,8 @@ row yet uses, because no source for such a step has been read.
 
 | Code | Polity | Last old day | First new day | Old → new | Scope | Instrument |
 | --- | --- | --- | --- | --- | --- | --- |
+| BE | The Southern Netherlands, the provinces under Spanish rule | 20 December 1582 (Julian) | 31 December 1582 | `julian` → `gregory` | partial | The placard of 10 December 1582, not read; the dates from [strubbe-voet-1960, p. 48], which gives 21 December followed by 1 January 1583 as the alternative, and [wikipedia-adoption-list] |
+| BE | The Prince-Bishopric of Liège | 10 February 1583 (Julian) | 21 February 1583 | `julian` → `gregory` | partial | The ordinance of 8 February 1583, published on the 18th, which ordered the change; when it was made is not known [strubbe-voet-1960, p. 497, citing Polain's *Recueil des ordonnances de la principauté de Liège*, not read] |
 | BG | Bulgaria | 31 March 1916 (Julian) | 14 April 1916 | `julian` → `gregory` | civil | as `julian-gregorian-bg` |
 | CN | Republic of China, the provisional government at Nanjing | 31 December 1911 | 1 January 1912 | `chinese` → `gregory` | partial | Sun Yat-sen's order to use the solar calendar of 1 January 1912 and his circular telegram of 2 January, not read [zhwiki-minguo-jinian, zhwiki-gongli]; partial because the Qing held the north until 12 February and the lunisolar calendar stayed in popular and much official use |
 | CN | Republic of China, the Nationalist Government | 31 December 1928 | 1 January 1929 | `chinese` → `gregory` | civil | The Nationalist Government's resolution of 10 October 1928 for nationwide use from 1 January 1929, not read [zhwiki-gongli] |
@@ -359,12 +377,13 @@ among them on two sources against two. The published code of
 | [wikipedia-swedish-calendar] | The leap days of 1704 and 1708 kept; 30 February 1712 = 29 February Julian = 11 March Gregorian; the 1753 change; the sources it cites, Hildebrand 1882 and Lamont 1920, not read | Yes, 2026-09-25 |
 | [wikipedia-gregorian-calendar] | The mean year of 365.2425 days; the adoption dates in summary | Yes, 2026-09-25 |
 | [wikipedia-adoption-gregorian] | The narrative of adoption: France, Holland and Zeeland, Britain, Sweden; Saudi Arabia's public-sector pay from 1 October 2016 | Yes, 2026-09-25, and for Saudi Arabia 2026-09-26 |
-| [wikipedia-adoption-list] | The per-country table: Spain, Portugal and Poland; Holland and Zeeland separately; Hungary; Denmark–Norway; Serbia; Greece; Turkey 1917; Japan; China; Alaska; Egypt | Yes, 2026-09-25 |
+| [wikipedia-adoption-list] | The per-country table: Spain, Portugal and Poland; Holland and Zeeland separately; Hungary; Denmark–Norway; Serbia; Greece; Turkey 1917; Japan; China; Alaska; Egypt; for Belgium, Flanders, Liège and the Southern Netherlands under Spanish rule | Yes, 2026-09-25; the Belgian rows 2026-09-26 |
 | [wikipedia-alaska-purchase] | Alaska's transfer on 18 October 1867 with the change of calendar | Yes, 2026-09-25 |
 | [dewiki-gregorianischer-kalender] | Bavaria 1583 by ducal order; the *Corpus Evangelicorum* and the *Verbesserter Reichskalender* of 1700; Denmark with them | Yes, 2026-09-25 |
 | [dawiki-gregorianske-kalender] | Denmark: 18 February followed by 1 March 1700, prepared by Rømer | Yes, 2026-09-25 |
 | [frwiki-passage-gregorien] | France under Henri III; Holland and Zeeland; Hungary; Lorraine 1760 | Yes, 2026-09-25 |
 | [nlwiki-gregoriaanse-kalender] | Holland on 12 January 1583 and Zeeland on 25 December 1582; the other provinces 1700–1701 | Yes, 2026-09-25 |
+| [strubbe-voet-1960] | The placard of 10 December 1582; the States-General, Brabant and Zeeland on 25 December 1582, the Southern Netherlands on 31 December 1582 or 1 January 1583; Liège's ordinance of 8 February 1583 for 10 to 21 February (pp. 48, 497) | Yes, 2026-09-26, in the Royal Historical Commission's scans |
 | [huwiki-gergely-naptar] | The diet of 1587/88 | Yes, 2026-09-25 |
 | [bgwiki-grigorianski-kalendar] | Decree No. 8 of 1916 and the gazette; 31 March followed by 14 April 1916 | Yes, 2026-09-25 |
 | [rowiki-calendarul-gregorian] | The decree-law of 5/18 March 1919; 31 March followed by 14 April 1919 in the Old Kingdom; Transylvania and Bukovina | Yes, 2026-09-25 |
@@ -411,5 +430,6 @@ as `hyper_calendar::gregorian_adoption` and renders as lines in
 `hyper_calendar::lines::gregorian_adoption`. Anchors:
 `every_row_resolves_and_names_its_source`,
 `sweden_went_there_and_back_before_it_went_for_good`,
-`serbia_has_its_own_date`, and in the facade
+`serbia_has_its_own_date`, `belgium_changed_in_two_steps_after_zeeland`,
+and in the facade
 `the_east_asian_rows_end_where_the_lunisolar_calendars_stopped_being_civil`.

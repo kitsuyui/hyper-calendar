@@ -19,7 +19,7 @@ each module.
 |---|---|---|---|
 | `hindu_lunar` | `hindu-lunar` | months new moon to new moon, named for the saṅkrānti they contain; the day is the tithi at sunrise; Śaka years | Gregorian 1700–2299 |
 | `hindu_purnimanta` | `hindu-lunar-purnimanta` | the same tithis under the north's names: the dark fortnight first, named for the bright one that follows; the intercalary month inserted whole | Gregorian 1700–2299 |
-| `hindu_solar` | `hindu-solar-tamil` | the Sun's stay in each sidereal sign; the month begins on the saṅkrānti's day unless it fell after sunset; Tiruvaḷḷuvar years, each named in the southern sixty-year cycle as the extra `samvatsara` | Gregorian 1700–2299 |
+| `hindu_solar` | `hindu-solar-tamil` | the Sun's stay in each sidereal sign; the month begins on the saṅkrānti's day unless it fell after sunset; Śaka years from Chithirai, each named in the southern sixty-year cycle as the extra `samvatsara`, with the Tiruvaḷḷuvar year, which turns at Thai 1, as the extra `tiruvalluvar-year` | Gregorian 1700–2299 |
 | | `hindu-solar-malayalam` | the same months from Chingam; the month begins on the saṅkrānti's day unless it fell after three fifths of the daylight; Kollam era | |
 | | `hindu-solar-bengali` | the same months from Boishakh; the month begins the day after the saṅkrānti's; Bengali San | |
 | | `hindu-solar-vikrami` | the same months from Vaiśākha; the month begins on the sunrise-to-sunrise day of the saṅkrānti; Vikrama Saṃvat — Punjab, Haryana, Odisha | |
