@@ -5743,6 +5743,9 @@ static LR_RULES: &[HolidayRule] = &[
 /// days a proclamation declares — an election, a "working holiday" for a
 /// United Nations day — are not carried. The weekend is the Sunday of the
 /// Decent Work Act's weekly rest.
+///
+/// This table is written up with the other twelve whose days are
+/// announced year by year in `docs/systems/announced-holidays.md`.
 pub static LIBERIA: RuleSet = RuleSet {
     code: "LR",
     english_name: "Liberia",
@@ -5854,6 +5857,68 @@ const fn so_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -
     .years(Some(SO_FROM), None)
 }
 
+/// The days of an Eid of `working_days` working days, in Gregorian `year`:
+/// its first day, `month` and `day` of the tabular Hijri calendar, and each
+/// day after it until that many days that are not the Friday rest of
+/// article 64(1) have been counted, the Fridays among them included, as
+/// the rest day they are. Article 65(4) counts the Eids in working days.
+fn so_eid(year: i64, month: u8, day: u8, working_days: u8) -> Days {
+    let mut out = Days::new();
+    let system = CalendarSystem::ISLAMIC_CIVIL;
+    let (Ok(january), Ok(december)) = (
+        gregorian::to_fixed(year, 1, 1),
+        gregorian::to_fixed(year, 12, 31),
+    ) else {
+        return out;
+    };
+    // An Eid that begins in the last days of December can run into
+    // January, so the Hijri year of a few days before is looked at too.
+    let (Some(first), Some(last)) = (
+        system.year_containing(Rd(january.0 - 7)),
+        system.year_containing(december),
+    ) else {
+        return out;
+    };
+    for hijri in first..=last {
+        let Some(start) = system.to_fixed(hijri, Month::regular(month), day) else {
+            continue;
+        };
+        let mut cursor = start;
+        let mut counted = 0;
+        while counted < working_days {
+            if (january..=december).contains(&cursor) {
+                out.push(cursor);
+            }
+            if Weekday::from_rd(cursor) != Weekday::Friday {
+                counted += 1;
+            }
+            cursor = Rd(cursor.0 + 1);
+        }
+    }
+    out
+}
+
+/// "Two working days" of Eid al-Fitr from 1 Shawwal.
+fn so_fitr(year: i64) -> Days {
+    so_eid(year, 10, 1, 2)
+}
+
+/// "Three working days" of Eid al-Adha from 10 Dhu al-Hijjah.
+fn so_adha(year: i64) -> Days {
+    so_eid(year, 12, 10, 3)
+}
+
+/// An Eid counted in working days, approximate as [`so_hijri`] is.
+const fn so_eid_rule(
+    name: &'static str,
+    local: &'static str,
+    function: fn(i64) -> Days,
+) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, Rule::Computed(function))
+        .approximate()
+        .years(Some(SO_FROM), None)
+}
+
 static SO_RULES: &[HolidayRule] = &[
     // "21ka Jannaayo": the committee's report on the bill records the
     // change from 21 October.
@@ -5872,11 +5937,8 @@ static SO_RULES: &[HolidayRule] = &[
         3,
         12,
     ),
-    so_hijri("Eid al-Fitr", "Maalinta Ciidul-Fitri", 10, 1),
-    so_hijri("Eid al-Fitr", "Maalinta Ciidul-Fitri", 10, 2),
-    so_hijri("Eid al-Adha", "Maalinta Ciidul-Adxaa", 12, 10),
-    so_hijri("Eid al-Adha", "Maalinta Ciidul-Adxaa", 12, 11),
-    so_hijri("Eid al-Adha", "Maalinta Ciidul-Adxaa", 12, 12),
+    so_eid_rule("Eid al-Fitr", "Maalinta Ciidul-Fitri", so_fitr),
+    so_eid_rule("Eid al-Adha", "Maalinta Ciidul-Adxaa", so_adha),
 ];
 
 /// Somalia, from 2025.
@@ -5885,10 +5947,15 @@ static SO_RULES: &[HolidayRule] = &[
 /// force on the President's signature and gazetted on 31 December 2024:
 /// the four national days on fixed dates, the Prophet's Birthday on 12
 /// Rabiʿ al-Awwal, "two working days" of Eid al-Fitr and three of Eid
-/// al-Adha, the Hijri days approximate on the tabular calendar. The Eid
-/// spans are carried as two and three calendar days from 1 Shawwal and
-/// 10 Dhu al-Hijjah, so a span that the statute's "working days" lengthen
-/// over a Friday is a day short here. The other days the Government may
+/// al-Adha, the Hijri days approximate on the tabular calendar. The Eids
+/// are counted in working days, as the Ministry of Labour's English version
+/// words them ("Two Working Days", "Three Working Days"): from 1 Shawwal
+/// and 10 Dhu al-Hijjah until two and three days that are not the Friday
+/// rest have been counted, so that an Eid with a Friday in it runs a day
+/// longer, the Friday carried with it. The Code as read defines no
+/// "working day", so the count is the plain reading of those words against
+/// article 64's Friday; an employer whose rest day is another, under
+/// article 64(5), is not modelled. The other days the Government may
 /// grant in the Official Bulletin are not carried. The Code moves nothing
 /// off the Friday; the Civil Service Law No. 11 of 2006, article 30(2),
 /// moves a holiday on the weekly rest day to the next day for the civil
@@ -6006,8 +6073,14 @@ static SS_RULES: &[HolidayRule] = &[
 /// Annex II "observed holidays", the Prophet's Birthday among them, do not
 /// say whether work stops and are not carried; the Public Holiday Bill,
 /// 2026, is not law. Section 59 gives a weekly rest "on such day as is
-/// customary" without naming it; the Saturday–Sunday weekend here is not
-/// sourced.
+/// customary" without naming it, and the Civil Service Act, 2011, speaks of
+/// "the standard 40 hour working week" (section 54) without naming its
+/// days either. No source read names the weekend: the Saturday–Sunday
+/// weekend here is an assumption, which no source read states or
+/// contradicts.
+///
+/// This table is written up with the other twelve whose days are
+/// announced year by year in `docs/systems/announced-holidays.md`.
 pub static SOUTH_SUDAN: RuleSet = RuleSet {
     code: "SS",
     english_name: "South Sudan",
@@ -6025,7 +6098,9 @@ pub static SOUTH_SUDAN: RuleSet = RuleSet {
               %20Holidays%202022HR.pdf); the Ministry's notices of 26 July 2024 (Martyrs' Day), \
               27 March 2025 (Eid al-Fitr), 14 April 2025 and 1 April 2026 (Easter), as listed \
               at mol.gov.ss/page/documents/circulars; all retrieved 2026-09-26. The notices for \
-              Eid al-Fitr and Easter 2024 were not read, and no calendar after 2022 was found",
+              Eid al-Fitr and Easter 2024 were not read, and no calendar after 2022 was found; the \
+              Civil Service Act, 2011, section 54 (docs.southsudanngoforum.org), retrieved \
+              2026-09-26, which names no weekend",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6117,6 +6192,9 @@ static SD_RULES: &[HolidayRule] = &[
 /// days announced for one rite only — 24 and 26 December 2025 for the
 /// Western churches, 6 to 8 January 2026 for the Eastern — are not
 /// carried. No announcement read moves a day off the weekend.
+///
+/// This table is written up with the other twelve whose days are
+/// announced year by year in `docs/systems/announced-holidays.md`.
 pub static SUDAN: RuleSet = RuleSet {
     code: "SD",
     english_name: "Sudan",
@@ -6142,6 +6220,19 @@ pub static SUDAN: RuleSet = RuleSet {
 
 /// The first year under Decree 1/2023.
 const GW_FROM: i32 = 2023;
+
+/// Sunday: article 123(1) of the Lei Geral do Trabalho, as the Portuguese
+/// Public Prosecutor's cooperation department summarises it, "um dia de
+/// descanso por semana que, em princípio, é ao domingo"; article 124 lets
+/// a half or whole day of complementary rest be added, which is not the
+/// weekly rest and is not carried.
+static GW_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Sunday],
+    valid_from: None,
+    valid_from_day: None,
+    valid_until: None,
+    valid_until_day: None,
+}];
 
 /// The Eid days the Ministry of Public Administration declared, as read.
 static GW_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
@@ -6198,7 +6289,12 @@ static GW_RULES: &[HolidayRule] = &[
 /// time under the decree: Tabaski 2025, kept on Saturday 7 June, and Eid
 /// al-Fitr 2026 on Friday 20 March are the two read; every other year of
 /// either is a gap, and so is Easter in every year. No source read moves a
-/// holiday off the weekend. The Saturday–Sunday weekend is not sourced.
+/// holiday off the weekend. The weekend is the Sunday of article 123 of the
+/// Lei Geral do Trabalho, Lei n.º 2/86, read in a summary: the law itself
+/// is a scan whose text could not be read here.
+///
+/// This table is written up with the other twelve whose days are
+/// announced year by year in `docs/systems/announced-holidays.md`.
 pub static GUINEA_BISSAU: RuleSet = RuleSet {
     code: "GW",
     english_name: "Guinea-Bissau",
@@ -6206,7 +6302,7 @@ pub static GUINEA_BISSAU: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: GW_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Decreto n.º 1/2023 de 18 de Janeiro, not read, its list as O Democrata GB \
               quotes it (odemocratagb.com/?p=42600, 19 January 2023, secondary) and VOA \
@@ -6215,7 +6311,12 @@ pub static GUINEA_BISSAU: RuleSet = RuleSet {
               cross-check; Agência de Notícias da Guiné, 19 March 2026 \
               (ang.gw/religiao-governo-decreta-feriado-nacional-a-20-de-marco-por-ocasiao-do-\
               fim-de-ramadao/), for Eid al-Fitr 2026; Lusa via SAPO, 5 June 2025, for Tabaski \
-              2025 (secondary); all retrieved 2026-09-26",
+              2025 (secondary); all retrieved 2026-09-26; for the weekend, the Lei Geral do \
+              Trabalho, Lei n.º 2/86 de 5 de Abril, articles 123 and 124, as the Departamento \
+              de Cooperação Judiciária e Relações Internacionais of the Portuguese Public \
+              Prosecutor summarises them (dcjri.ministeriopublico.pt/faq/\
+              periodo-normal-de-trabalho, secondary), retrieved 2026-09-26, the law's own scan \
+              on the same site not read",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6299,6 +6400,9 @@ static SL_RULES: &[HolidayRule] = &[
 /// notices do; the notices also moved the Saturday Eid al-Adha of 2022 and
 /// Armed Forces Day of 2023, which are carried as declared, and on that
 /// evidence the weekend is Saturday and Sunday.
+///
+/// This table is written up with the other twelve whose days are
+/// announced year by year in `docs/systems/announced-holidays.md`.
 pub static SIERRA_LEONE: RuleSet = RuleSet {
     code: "SL",
     english_name: "Sierra Leone",
@@ -6421,6 +6525,9 @@ static GM_RULES: &[HolidayRule] = &[
 /// advisory's "weekend (Saturday or Sunday)" is the weekend here. The 22
 /// July holiday, which secondary sources say was dropped in 2017, is not
 /// carried, no primary source having been read for it.
+///
+/// This table is written up with the other twelve whose days are
+/// announced year by year in `docs/systems/announced-holidays.md`.
 pub static GAMBIA: RuleSet = RuleSet {
     code: "GM",
     english_name: "The Gambia",
@@ -6545,6 +6652,9 @@ static SZ_RULES: &[HolidayRule] = &[
 /// Schedule's Commonwealth Day on the second Monday of June is in no
 /// notice or order read after 1998 and is not carried, though no notice
 /// deleting it was found.
+///
+/// This table is written up with the other twelve whose days are
+/// announced year by year in `docs/systems/announced-holidays.md`.
 pub static ESWATINI: RuleSet = RuleSet {
     code: "SZ",
     english_name: "Eswatini",
@@ -6681,6 +6791,9 @@ static TG_RULES: &[HolidayRule] = &[
 /// no other is carried. No communiqué read moves a holiday off the Sunday:
 /// 27 April 2025 was kept on it. Easter Monday, which secondary lists give,
 /// is not carried.
+///
+/// This table is written up with the other twelve whose days are
+/// announced year by year in `docs/systems/announced-holidays.md`.
 pub static TOGO: RuleSet = RuleSet {
     code: "TG",
     english_name: "Togo",
@@ -6800,7 +6913,20 @@ static NE_RULES: &[HolidayRule] = &[
 /// days secondary lists add — 24 April, the Islamic New Year, the day
 /// after the Mawlid and the day after Laylat al-Qadr — are not carried, and
 /// nor are the afternoons the communiqués give for the wrestling
-/// championships. The Saturday–Sunday weekend is not sourced.
+/// championships. The weekend is Saturday and Sunday, on the partie
+/// réglementaire of the Code du travail, décret n° 2017-682 of 10 August
+/// 2017: from 1 May to 30 September its article 135 spreads the forty-hour
+/// week over five working days "avec repos consécutif les samedi et
+/// dimanche", and from 1 October to 30 April it lets the week be worked in
+/// days of eight hours or over six days; article 184 puts the weekly rest
+/// "en principe" on Sunday, and the Code's own article 114 names no day.
+/// So Saturday–Sunday is the rule for five months, and for the other seven
+/// depends on the arrangement an employer chooses; the table carries it
+/// all year. The decree was read in a copy whose text is incomplete in
+/// places, article 135's first paragraph among them.
+///
+/// This table is written up with the other twelve whose days are
+/// announced year by year in `docs/systems/announced-holidays.md`.
 pub static NIGER: RuleSet = RuleSet {
     code: "NE",
     english_name: "Niger",
@@ -6819,7 +6945,12 @@ pub static NIGER: RuleSet = RuleSet {
               Eid al-Fitr (anp.ne); the Ministère de la Fonction publique, du Travail et de \
               l'Emploi's communiqués of 13 and 28 December 2023 and 15 and 17 December 2025 \
               (lesahel.org), the last two citing ordonnance 2024-33; Kaweru, 1 April 2026, \
-              and Niger Diaspora, 21 May 2026 (secondary); all retrieved 2026-09-26",
+              and Niger Diaspora, 21 May 2026 (secondary); all retrieved 2026-09-26; for the \
+              weekend, Loi n° 2012-45 du 25 septembre 2012 portant Code du travail, article \
+              114, from NATLEX's copy (natlex.ilo.org, NER-91382.pdf), and Décret n° \
+              2017-682/PRN/MET/PS du 10 août 2017 portant partie réglementaire du Code du \
+              Travail, articles 135 and 184, from FAOLEX's copy (faolex.fao.org, \
+              Ner184162.pdf), both retrieved 2026-09-26",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6899,6 +7030,18 @@ static GA_RULES: &[HolidayRule] = &[
     .years(Some(2025), Some(2026)),
 ];
 
+/// Sunday: article 220 of the Code du travail, loi n° 022/2021 of 19
+/// November 2021, "Le repos hebdomadaire est obligatoire ... Il a lieu en
+/// principe le dimanche"; article 223 counts as working days "tous les
+/// jours autres que le dimanche" and the holidays.
+static GA_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Sunday],
+    valid_from: None,
+    valid_from_day: None,
+    valid_until: None,
+    valid_until_day: None,
+}];
+
 /// Gabon: the Ministry of Labour's communiqués, as the press reproduces
 /// them.
 ///
@@ -6916,7 +7059,11 @@ static GA_RULES: &[HolidayRule] = &[
 /// then; its number was not found. The two days "fériés, chômés et
 /// récupérables" of 26 December 2025 and 2 January 2026 are days off whose
 /// hours are made up later. A Saturday or Sunday holiday was declared on
-/// its day, not moved. The Saturday–Sunday weekend is not sourced.
+/// its day, not moved. The weekend is the Sunday of the Code du travail of
+/// 2021, article 220.
+///
+/// This table is written up with the other twelve whose days are
+/// announced year by year in `docs/systems/announced-holidays.md`.
 pub static GABON: RuleSet = RuleSet {
     code: "GA",
     english_name: "Gabon",
@@ -6924,12 +7071,16 @@ pub static GABON: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: GA_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Décret n° 00727/PR/MTEFP du 29 juin 1998 modifié par le décret n° \
               000484/PR/MTE du 26 mai 2004, not read, as the communiqués cite it; the \
               Ministry of Labour's communiqués as reproduced by Gabonactu24 (12 August 2024), \
               Gabonreview (3 June 2025), Gabonclic (23 December 2025) and TV+ Afrique (12 May \
               2026), and Gabonactu (6 August 2024) on the decree for 30 August, all secondary; \
-              WageIndicator's summary of the decree (secondary); all retrieved 2026-09-26",
+              WageIndicator's summary of the decree (secondary); all retrieved 2026-09-26; Loi \
+              n° 022/2021 du 19 novembre 2021 portant Code du Travail, articles 220 and 223, \
+              Journal officiel de la République gabonaise n° 139, 16 to 23 November 2021, from \
+              NATLEX's copy (natlex.ilo.org, GAB-109996.pdf), retrieved 2026-09-26, for the \
+              weekend",
 };

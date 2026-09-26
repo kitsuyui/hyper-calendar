@@ -1180,6 +1180,9 @@ static FJ_RULES: &[HolidayRule] = &[
 /// days the Minister appoints, such as an election day, are not carried.
 /// The weekend is Saturday and Sunday, the days the lists move a holiday
 /// off when they move one.
+///
+/// This table is written up with the other twelve whose days are
+/// announced year by year in `docs/systems/announced-holidays.md`.
 pub static FIJI: RuleSet = RuleSet {
     code: "FJ",
     english_name: "Fiji",
@@ -1332,6 +1335,9 @@ static KI_RULES: &[HolidayRule] = &[
 /// orders' lists is carried. The Public Service Office's page for 2025,
 /// which puts National Police Day on "Friday, 23rd June" and lacks days the
 /// revised order has, was not used.
+///
+/// This table is written up with the other twelve whose days are
+/// announced year by year in `docs/systems/announced-holidays.md`.
 pub static KIRIBATI: RuleSet = RuleSet {
     code: "KI",
     english_name: "Kiribati",

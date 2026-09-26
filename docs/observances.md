@@ -340,7 +340,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Djibouti 🇩🇯 | Arrêté 77-347 of 1977 as its 1981 rectificatif quotes it, from 1978: two days of each Eid, the first of Muharram, the Mouloud and Isra and Mi'raj approximate, Christmas by arrêté 77-609, Independence two days from 1981 and 28 June 1980 a gap; nothing moves; the Friday weekend of the Labour Code |
 | Comoros 🇰🇲 | Decree 25-147/PR of 19 December 2025 from 2026: six civil days and the seven religious days approximate, the end of Ramadan as the three days after 29 Ramadan and Eid al-Kabir with its morrow; the earlier decrees it repeals unread; article 3's bridge days a decision each time, not carried; nothing moves |
 | Equatorial Guinea 🇬🇶 | Decree 9/2007's ten days from 2007, with article 4's first working day after a feast on a Saturday or Sunday; the ministerial orders of article 5, Easter Monday among them, not carried |
-| Somalia 🇸🇴 | Labour Code, Law 36 of 2024, from 2025: 21 January, 1 May, 26 June and 1 July, the Prophet's Birthday, two days of Eid al-Fitr and three of Eid al-Adha approximate; the Friday weekend of article 64, nothing moved; the Eids' "working days" counted as calendar days |
+| Somalia 🇸🇴 | Labour Code, Law 36 of 2024, from 2025: 21 January, 1 May, 26 June and 1 July, the Prophet's Birthday, two days of Eid al-Fitr and three of Eid al-Adha approximate; the Friday weekend of article 64, nothing moved; the Eids counted in working days, as article 65(4) words them, so that an Eid with a Friday in it runs a day longer |
 | Liberia 🇱🇷 | The Acts the President's proclamations cite: eleven days, Flag Day from 1916, Decoration Day from 1917, 1883 and 1960 as gap years for their Acts; a Sunday holiday on the Monday as every proclamation read from 2014 gives it, a Saturday one where it falls; the Sunday weekend of the Decent Work Act |
 | Cameroon 🇨🇲 | Law 73/5 of 1973: four civil and six religious days, the Eids approximate, and the next day for a civil holiday on a Sunday or on another holiday, from 1974; the President's declared days not carried |
 | Republic of the Congo 🇨🇬 | Law 2-94 of 1994's nine days with the Easter and Pentecost Mondays; nothing moves; 28 November and the Minister's declared days not carried |
@@ -376,15 +376,15 @@ Ordered by how well the sources can be cited, not by importance.
 | Fiji 🇫🇯 | The Ministry of Information's yearly lists for 2019–2026, every day of each as listed — Constitution Day to 2022, Girmit Day and Ratu Sir Lala Sukuna Day from 2023, the Prophet's Birthday and Diwali, and the weekend moves the lists make in some years and not others — a year outside reported as a gap; Good Friday, Easter Saturday and Easter Monday by rule from Cap. 101's Schedule |
 | Kiribati 🇰🇮 | The Beretitenti's orders under Cap. 81 for 2025 (revised) and 2026, every day of each as ordered, the "in honour of" days included, a year outside reported as a gap; Good Friday and Easter Monday by rule; the Schedule days an order keeps without listing not carried |
 | Afghanistan 🇦🇫 | The Islamic Emirate's days from 2023, as the 1444 AH calendar and the Ministry of Labour's notices give them: 24 and 28 Asad and 26 Dalw exact on `persian-afghan`, Eid al-Fitr's first day and Arafah with Eid al-Adha's first three days approximate, 13 Dhu al-Hijjah in the three years whose notices were read and a gap otherwise, Eid al-Fitr's further days a gap every year; the Friday weekend; the system in [systems/afghanistan-holidays.md](systems/afghanistan-holidays.md) |
-| South Sudan 🇸🇸 | The Ministry of Labour's calendar for 2022 under section 61 of the Labour Act: five single days from 2022, nothing moved; Easter, the Eids and Christmas, whose length the Ministry sets, for 2022, 2025 and 2026 as the calendar and notices read give them, a gap otherwise; the weekend not sourced |
+| South Sudan 🇸🇸 | The Ministry of Labour's calendar for 2022 under section 61 of the Labour Act: five single days from 2022, nothing moved; Easter, the Eids and Christmas, whose length the Ministry sets, for 2022, 2025 and 2026 as the calendar and notices read give them, a gap otherwise; the Saturday–Sunday weekend an assumption, neither the Labour Act nor the Civil Service Act naming the days ([systems/announced-holidays.md](systems/announced-holidays.md)) |
 | Sudan 🇸🇩 | The Council of Ministers' announcements, one holiday at a time: Christmas 2025 and the 2026 days, every other year a gap; Friday–Saturday from 26 January 2008, from the press |
-| Guinea-Bissau 🇬🇼 | Decree 1/2023 as the press quotes it, from 2023: five fixed days; Tabaski 2025 and Eid al-Fitr 2026 as declared; Easter, which the decree does not date, a gap every year |
+| Guinea-Bissau 🇬🇼 | Decree 1/2023 as the press quotes it, from 2023: five fixed days; Tabaski 2025 and Eid al-Fitr 2026 as declared; Easter, which the decree does not date, a gap every year; the Sunday weekend of article 123 of the Lei Geral do Trabalho, from a summary |
 | Sierra Leone 🇸🇱 | Cap. 58 and the Gazette notices of 2020–2023: the Schedule's Christian days by rule with the Sunday-to-Monday rule as the notices apply it, Armed Forces Day, Women's Day and the Eids for the years read; Independence Day, Labour Day and the Moulid a gap every year |
 | Gambia 🇬🇲 | The President's declarations of 2021–2026, every day as declared and a gap for any year not read; no weekend policy, since the declarations stopped moving Saturday holidays in 2025 |
 | Eswatini 🇸🇿 | The Act of 1938 as consolidated to 1998, with section 2's Sunday proviso; Umhlanga, Incwala and Labour Day for the years whose notices were read, a gap otherwise; the King's Birthday of 2026 on the Friday; Lutsango Day for 22 July from 2025, from the press; the Sunday weekend |
 | Togo 🇹🇬 | Loi 87-08's fêtes légales as a gap every year from 1987, the list the Code du travail of 2021 leaves to a decree not found; 27 April, Whit Monday, the Eids, Labour Day and the declared days off for the communiqués of 2024–2026 read |
-| Niger 🇳🇪 | Loi 97-20's days as its amendments and the communiqués of 2023–2026 give them, from 2023: 3 August from 2023, 26 July from 2024, 26 March and a second day of Eid al-Fitr from 2026; Easter Monday and Tabaski for 2026; Labour Day a gap |
-| Gabon 🇬🇦 | The Ministry of Labour's communiqués of 2024–2026 as the press reproduces them, each year's days as declared and a gap otherwise; Liberation Day, 30 August, from 2024 |
+| Niger 🇳🇪 | Loi 97-20's days as its amendments and the communiqués of 2023–2026 give them, from 2023: 3 August from 2023, 26 July from 2024, 26 March and a second day of Eid al-Fitr from 2026; Easter Monday and Tabaski for 2026; Labour Day a gap; the Saturday–Sunday weekend of décret 2017-682, article 135, mandatory from May to September and one of its arrangements for the rest of the year |
+| Gabon 🇬🇦 | The Ministry of Labour's communiqués of 2024–2026 as the press reproduces them, each year's days as declared and a gap otherwise; Liberation Day, 30 August, from 2024; the Sunday weekend of article 220 of the Code du travail of 2021 |
 | North Korea 🇰🇵 | KCNA's names and dates, the 2020 wall calendar's days off as Seoul National University transcribes it, from 2020: the lunar days on `dangi`, the Sunday rest of the Labour Law; the swapped working days not carried |
 
 **Planned** — the United Nations member states without a table, the
@@ -407,7 +407,12 @@ days the law kept, added and removed is not, and one day is not a table.
 Where a country's dates are announced each year by decree rather than fixed
 in law, its table carries the notices that were read and reports any other
 year as a gap, as Sri Lanka's, Cambodia's and Fiji's do, or predicts the date
-with an explicit `Approximate` flag, as every Hijri-dated entry does. A caller
+with an explicit `Approximate` flag, as every Hijri-dated entry does. Thirteen
+tables of that kind — Fiji, Kiribati, Liberia, The Gambia, Sudan, Togo,
+Niger, Gabon, Sierra Leone, Eswatini, Guinea-Bissau, South Sudan and North
+Korea — are written up together, with the years each carries and the class
+of each source, in
+[systems/announced-holidays.md](systems/announced-holidays.md). A caller
 holding an announced table can build a `RuleSet` of their own, which the
 engine takes on the same terms as its own.
 

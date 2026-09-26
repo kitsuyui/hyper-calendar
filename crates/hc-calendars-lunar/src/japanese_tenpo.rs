@@ -37,15 +37,28 @@
 //! | From | Offset | |
 //! |---|---|---|
 //! | — | UT+9:03:04 | Kyoto local mean time, 135°46′E |
+//! | 1873 | UT+9:19:01 | Tokyo time, the old keep of Edo Castle (東京天守台) |
 //! | 1888 | UT+9 | Japan Standard Time, 135°E |
 //!
-//! The Japanese lunisolar calendars were computed for Kyoto, and Japan
-//! Standard Time was not established until 1888, sixteen years after the
-//! Tenpō calendar ended — so in practice only the first row is ever used
-//! here. The second is kept so that the table states the whole history and
-//! so that a caller extending the range past 1888 gets the right offset.
-//! Three minutes is small but not nothing: a conjunction in that window
-//! lands on different days under the two.
+//! The Japanese lunisolar calendars were computed for Kyoto, so
+//! [`JapaneseTenpoCalendar`], which ends with 1872, uses only the first
+//! row. The other two are the official almanacs' after the reform, and
+//! they matter to [`UNBOUNDED`], which continues the rules: the almanacs
+//! went on printing the old calendar beside the new to 明治42年暦 (1909)
+//! (`nao-rekiwiki-meiji`), and their times were Tokyo's from 明治6年暦 to
+//! 明治20年暦 and the standard meridian's from 明治21年暦, 1888
+//! (`nao-rekiwiki-meridian`, which puts Tokyo about 9h19m01s from
+//! Greenwich, with changes of a second or two in the reference point that
+//! are not modelled). That is also the convention of the published code of
+//! *Calendrical Calculations*, whose `japanese-location` is Tokyo before
+//! 1888 and 135°E from it; the code keeps Tokyo for the years before 1873
+//! as well, where the calendar was Kyoto's, and that is not followed.
+//!
+//! For the years 1873–1887 the choice moves no date: measured on
+//! 2026-09-26, Kyoto and Tokyo time give the same first day for every month
+//! of the continued calendar. Before 1873 they do not, in seven months of
+//! 1844–1872 (the first in 1850), which is why the historical calendar
+//! keeps Kyoto.
 //!
 //! # Year numbering
 //!
@@ -90,17 +103,25 @@ pub const LATEST: Rd = civil::to_rd(1872, 12, 31);
 
 /// Where [`MERIDIANS`] comes from.
 pub const MERIDIAN_SOURCES: &str = "Kyoto as the reference of the Edo calendars, at 135°46′E \
-    [nao-rekiwiki-meridian]; Japan Standard Time on 135°E from 1888, as the published code of \
-    Calendrical Calculations switches in its japanese-location [reingold2018code], which puts \
-    the years before 1888 at Tokyo, 139°46′E, rather than Kyoto";
+    [nao-rekiwiki-meridian]; Tokyo time, about 9h19m01s from Greenwich, on the official almanacs \
+    of 明治6年暦 to 明治20年暦, and the standard meridian from 明治21年暦 [nao-rekiwiki-meridian], \
+    the almanacs printing the old calendar beside the new to 明治42年暦 [nao-rekiwiki-meiji]; \
+    Japan Standard Time on 135°E from 1888 is also where the published code of Calendrical \
+    Calculations switches in its japanese-location [reingold2018code], which puts all the \
+    years before 1888 at Tokyo, 139°46′E, rather than Kyoto";
 
 /// The meridian history of the Japanese calendar. Sources:
 /// [`MERIDIAN_SOURCES`].
-pub static MERIDIANS: [MeridianEra; 2] = [
+pub static MERIDIANS: [MeridianEra; 3] = [
     MeridianEra::from_longitude(
         i64::MIN / 4,
         135.0 + 46.0 / 60.0,
         "Kyoto local mean time, 135°46′E",
+    ),
+    MeridianEra::from_zone(
+        1873,
+        9.0 + 19.0 / 60.0 + 1.0 / 3_600.0,
+        "Tokyo time, 東京天守台, 9h19m01s",
     ),
     MeridianEra::from_zone(1888, 9.0, "Japan Standard Time, 135°E"),
 ];
@@ -216,6 +237,7 @@ pub static UNBOUNDED: LunisolarCalendar = LunisolarCalendar::new(&UNBOUNDED_PARA
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::lunisolar::MeridianEra;
     use hc_calendar::{CalendarError, Month};
 
     #[test]
@@ -323,6 +345,68 @@ mod tests {
         assert!((standard.offset_hours - 9.0).abs() < 1e-12);
         let minutes = (kyoto.offset_hours - standard.offset_hours) * 60.0;
         assert!((minutes - 3.066_666).abs() < 1e-3, "{minutes} minutes");
+    }
+
+    /// The first day of every month of the years `years`, under a
+    /// parameter set.
+    fn month_starts(
+        parameters: &LunisolarParameters,
+        years: std::ops::RangeInclusive<i64>,
+    ) -> Vec<Rd> {
+        let mut starts = Vec::new();
+        for year in years {
+            let leap = parameters.leap_month(year).expect("in range");
+            let mut cursor = parameters.new_year(year).expect("in range");
+            for ordinal in 1..=12u8 {
+                let mut months = vec![Month::regular(ordinal)];
+                if leap == Some(ordinal) {
+                    months.push(Month::leap(ordinal));
+                }
+                for month in months {
+                    starts.push(cursor);
+                    let length = parameters.days_in_month(year, month).expect("exists");
+                    cursor = Rd(cursor.0 + i64::from(length));
+                }
+            }
+        }
+        starts
+    }
+
+    #[test]
+    fn tokyo_time_after_the_reform_moves_no_month_and_would_have_before_it() {
+        // The continued calendar takes Tokyo time for 1873-1887, as the
+        // almanacs did. Kyoto time over the same years gives the same first
+        // day for every month; over 1844-1872 the two part in seven months,
+        // the first in the ninth month of 1850, so the historical calendar
+        // keeps Kyoto.
+        static KYOTO: [MeridianEra; 2] = [MERIDIANS[0], MERIDIANS[2]];
+        static KYOTO_ONLY: LunisolarParameters = LunisolarParameters {
+            meridians: &KYOTO,
+            ..UNBOUNDED_PARAMETERS
+        };
+        static TOKYO: [MeridianEra; 2] = [
+            MeridianEra::from_zone(i64::MIN / 4, MERIDIANS[1].offset_hours, "Tokyo time"),
+            MERIDIANS[2],
+        ];
+        static TOKYO_ONLY: LunisolarParameters = LunisolarParameters {
+            meridians: &TOKYO,
+            ..UNBOUNDED_PARAMETERS
+        };
+        assert_eq!(
+            month_starts(&UNBOUNDED_PARAMETERS, 1_873..=1_887),
+            month_starts(&KYOTO_ONLY, 1_873..=1_887)
+        );
+        let kyoto = month_starts(&KYOTO_ONLY, 1_844..=1_872);
+        let tokyo = month_starts(&TOKYO_ONLY, 1_844..=1_872);
+        assert_eq!(kyoto.len(), tokyo.len());
+        let apart: Vec<_> = kyoto
+            .iter()
+            .zip(&tokyo)
+            .filter(|(k, t)| k != t)
+            .map(|(k, _)| civil::from_rd(*k))
+            .collect();
+        assert_eq!(apart.len(), 7, "{apart:?}");
+        assert_eq!(apart[0], (1_850, 10, 5));
     }
 
     #[test]

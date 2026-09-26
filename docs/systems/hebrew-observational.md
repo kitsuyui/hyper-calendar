@@ -144,11 +144,17 @@ functions.
     [maimonides-kiddush-hachodesh-1-4, 1:4]. The prediction judges each
     evening by itself, so a month runs 31 days when a first evening that
     just clears the criterion is followed thirty evenings later by one that
-    just misses: four times in 1900–2100. The published code has an
-    alternative that caps months at thirty
+    just misses: four times in 1900–2100. The published code's main
+    version keeps such months, its `month-length` typed `1..31`, and it has
+    an alternative that caps months at thirty
     (`alt-fixed-from-observational-hebrew`,
-    `alt-observational-hebrew-from-fixed`, `early-month?`), and it is not
-    carried.
+    `alt-observational-hebrew-from-fixed`, `early-month?`), which is not
+    carried. **The rule here is the main version's: a predicted month of 31
+    days is allowed, and its 31st is a date that converts both ways.** The
+    observational Hijri prediction follows the same rule, for the same
+    reason, and [hijri.md](hijri.md) counts how often it happens there by
+    place and criterion; Shawwāl 1464, from 16 September 2042, is 31 days
+    long at Haifa in both.
   - The court's own reckoning of the equinox, which Maimonides gives by
     the *tekufah* of his chapter 9, not read here; the prediction uses the
     true equinox.
@@ -168,7 +174,7 @@ fixed calendar where both can be computed.
 | --- | --- | --- |
 | 15 Nisan never before the equinox's day, and the month before it too early, 1900–2100 and 383–283 BCE | All | `the_fifteenth_of_nisan_is_the_first_on_or_after_the_equinox` |
 | The eve of Passover is 14 Nisan and 1 Nisan is a month start, every year of 1900–2100 | All | `passover_eve_is_the_fourteenth_of_the_first_month` |
-| Month lengths, the 2 486 months of 1900–2100 | 1 171 of 29 days, 1 311 of 30, 4 of 31 (from 21 July 1917, 24 July 1933, 24 July 1971 and 16 September 2042), none shorter | `months_run_twenty_nine_or_thirty_days_but_for_a_few_of_thirty_one` |
+| Month lengths, the 2 486 months of 1900–2100 | 1 171 of 29 days, 1 311 of 30, 4 of 31 (from 21 July 1917, 24 July 1933, 24 July 1971 and 16 September 2042), none shorter; the 31st of each of the four converts both ways | `months_run_twenty_nine_or_thirty_days_but_for_a_few_of_thirty_one` |
 | Years of 12 or 13 months, 353–356 or 383–386 days, and Adar I exactly in the thirteen-month years, AM 5750–5789 and 3661–3699 | All | `years_run_twelve_or_thirteen_months` |
 | Round trips over four years of modern days and at both ends of the range | All | `the_calendar_round_trips_over_four_years_of_days`, `the_calendar_round_trips_at_both_ends_of_its_range` |
 | The worked example: 1 Nisan on 12 March 2024, Passover eve on 25 March, 5784 of twelve months and 5785 of thirteen | Reproduced | `nisan_2024_is_worked_in_the_document` |
