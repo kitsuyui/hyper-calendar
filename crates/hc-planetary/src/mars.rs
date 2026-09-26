@@ -4,16 +4,28 @@
 //! # Where the numbers come from
 //!
 //! Everything in this module is the Allison–McEwen formulation as published by
-//! NASA GISS in the *Mars24 Sunclock — Algorithm and Worked Examples* note,
-//! which is itself a restatement of
+//! NASA GISS in *Mars24 Sunclock — Algorithm and Worked Examples*
+//! (<https://www.giss.nasa.gov/tools/mars24/help/algorithm.html>, updated
+//! 2025-01-07, retrieved 2026-09-26, `mars24-algorithm`) and the *Technical
+//! Notes on Mars Solar Time*
+//! (<https://www.giss.nasa.gov/tools/mars24/help/notes.html>, retrieved
+//! 2026-09-26, `mars24-notes`), which restate, with later revisions by
+//! Allison (the note's equations B-1, B-2, C-2 and D-2 were changed in
+//! 2015),
 //!
 //! * Allison, M. (1997), "Accurate analytic representations of solar time and
 //!   seasons on Mars with applications to the Pathfinder/Surveyor missions",
-//!   *Geophysical Research Letters* **24**, 1967–1970; and
+//!   *Geophysical Research Letters* **24**, 1967–1970 (`allison1997`, not
+//!   read here); and
 //! * Allison, M., and M. McEwen (2000), "A post-Pathfinder evaluation of
 //!   areocentric solar coordinates with improved timing recipes for Mars
 //!   seasonal/diurnal climate studies", *Planetary and Space Science* **48**,
-//!   215–235, doi:10.1016/S0032-0633(99)00092-6.
+//!   215–235, doi:10.1016/S0032-0633(99)00092-6 (`allison2000`, not read
+//!   here).
+//!
+//! The whole system — MSD, MTC, local mean and true solar time, the Mars
+//! year and the mission sol counts — is written up in
+//! `docs/systems/mars-timekeeping.md`.
 //!
 //! Allison and McEwen state a maximum error in the areocentric solar longitude
 //! of about **0.008°** over ±100 years of J2000, which is about **three
@@ -87,8 +99,11 @@ pub const MSD_AT_EPOCH: f64 = 44_796.0;
 /// 44 796.0 at 2000-01-06T00:00 UTC; Mars24 carries the revised `0.0009626`.
 /// The two differ by 0.000 242 6 sol, **21.5 Martian seconds** — the "21
 /// Mars-seconds away from also being mean midnight" of the GISS worked
-/// example. This crate uses the revised value; [`MSD_MIDNIGHT_ADJUSTMENT_2000`]
-/// is provided for callers who need to reproduce the 2000 paper.
+/// example. Using the revised value is this library's choice, made so that
+/// [`mars_sol_date`] and MTC agree with Mars24 and its worked examples;
+/// [`MSD_MIDNIGHT_ADJUSTMENT_2000`] is provided for callers who need to
+/// reproduce the 2000 paper. The 2000 value is stated here as the Mars24
+/// history gives it; the paper itself was not read.
 pub const MSD_MIDNIGHT_ADJUSTMENT: f64 = 0.000_962_6;
 
 /// The midnight adjustment as first published in Allison and McEwen (2000).
@@ -114,7 +129,8 @@ pub const MEAN_SOLAR_LONGITUDE_RATE: f64 = 360.0 / MARS_TROPICAL_YEAR_SOLS;
 /// The Mars Sol Date of the `Ls = 0` crossing that begins Mars Year 1 under
 /// the Clancy convention.
 ///
-/// Clancy et al. (2000), *J. Geophys. Res.* **105**(E4), 9553–9571, number
+/// Clancy et al. (2000), *J. Geophys. Res.* **105**(E4), 9553–9571
+/// (`clancy2000`, not read here), number
 /// Mars years from the northern spring equinox of **1955 April 11**, chosen so
 /// that the 1956 planet-encircling dust storm falls in Mars Year 1. The paper
 /// gives the date but no time of day, and published times of day disagree: the

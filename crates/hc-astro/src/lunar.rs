@@ -3,7 +3,9 @@
 //!
 //! Two independent algorithms live here, and that is deliberate.
 //!
-//! * [`lunar_longitude`] evaluates the abridged ELP-2000/82 series printed in
+//! * [`lunar_longitude`] evaluates the abridged ELP-2000/82 series (M.
+//!   Chapront-Touzé and J. Chapront, "The lunar ephemeris ELP 2000", *A&A*
+//!   124, 50, 1983, `chapront1983`, not read here) printed in
 //!   Meeus, *Astronomical Algorithms*, 2nd ed., tables 47.A and 47.B — sixty
 //!   periodic terms in longitude and distance, sixty in latitude. Meeus
 //!   states it as good to about 10″ in longitude and 4″ in latitude, and it
@@ -39,10 +41,13 @@ pub const MEAN_SYNODIC_MONTH: f64 = 29.530_588_861;
 /// distance series (Meeus, chapter 47).
 const MEAN_LUNAR_DISTANCE_KM: f64 = 385_000.56;
 
-/// The Earth's equatorial radius in kilometres, used for horizontal parallax.
+/// The Earth's equatorial radius in kilometres, used for horizontal parallax:
+/// the IAU 1976 value 6 378.140 km, which Meeus uses throughout
+/// (`meeus1998`, ch. 11).
 const EARTH_RADIUS_KM: f64 = 6_378.14;
 
-/// The astronomical unit in kilometres (IAU 2012 definition), used to put the
+/// The astronomical unit in kilometres (IAU 2012 Resolution B2,
+/// `iau-2012-b2`: 149 597 870 700 m exactly), used to put the
 /// Earth–Sun and Earth–Moon distances into the same units.
 const ASTRONOMICAL_UNIT_KM: f64 = 149_597_870.7;
 

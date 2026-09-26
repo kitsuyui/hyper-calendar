@@ -12,7 +12,8 @@ and the list is always named.
 
 There is the American list adopted in Kansas City in August 1912 and revised in
 1952, 2002 and 2016. There is the British list the National Association of
-Goldsmiths standardised in 1937. There is Japan's list of 1958, substantially
+Goldsmiths standardised in 1937, carried as the association printed it in 2007
+(`birthstones-uk-2007`). There is Japan's list of 1958, substantially
 revised on 20 December 2021 — ten stones added after sixty-three years, the most
 recent such change anywhere. There are the older European stones all three
 replaced. **They disagree in eleven months out of twelve.** Only January is
@@ -79,7 +80,7 @@ stones, and the order inside an entry is the publishing body's, not a ranking.
 
 | Module | Authorities |
 |---|---|
-| `birthstones` | pre-1912 Western (Kunz), US 1912, UK 1937, JP 1958, US 2016, JP 2021 |
+| `birthstones` | pre-1912 Western (Kunz), US 1912, UK as printed in 2007, JP 1958, US 2016, JP 2021 |
 | `zodiac_stones` | the Western lapidary tradition by tropical sign (Kunz, 1913) |
 | `birth_flowers` | Anglo-American, British florists' |
 | `moon_names` | Carver 1778, Maine Farmers' Almanac 1937, Old Farmer's Almanac 1964 and current, plus the Harvest Moon *rule* |

@@ -1,7 +1,9 @@
 //! The Earth's heliocentric position from VSOP87, truncated for a calendar's
 //! needs.
 //!
-//! VSOP87 (Bretagnon and Francou, *Astronomy and Astrophysics* 202, 1988) is
+//! VSOP87 (Bretagnon and Francou, "Planetary theories in rectangular and
+//! spherical variables: VSOP87 solutions", *Astronomy and Astrophysics* 202,
+//! 309–315, 1988, `bretagnon1988`, not read here) is
 //! the planetary theory behind every modern almanac's Sun. Series D gives
 //! heliocentric spherical coordinates referred to the ecliptic and equinox of
 //! date: longitude and latitude in radians, distance in astronomical units,
@@ -24,10 +26,13 @@
 //!
 //! # Provenance
 //!
-//! The coefficients are the file `VSOP87D.ear` of the IMCCE distribution
-//! (Bureau des longitudes, Paris; obtained from the mirror at
-//! `github.com/ctdk/vsop87`, retrieved 2026-09-22), copied verbatim in the
-//! file's own precision; the selection was scripted, not typed.
+//! The coefficients are the file `VSOP87D.ear` of the Bureau des
+//! longitudes distribution, as the CDS publishes it in VizieR catalogue
+//! VI/81, <https://cdsarc.cds.unistra.fr/ftp/VI/81/VSOP87D.ear>, copied
+//! verbatim in the file's own precision; the selection was scripted, not
+//! typed. On 2026-09-26 every one of the 213 terms was checked against that
+//! file, and the check also confirmed that they are exactly the file's
+//! terms with *A* ≥ 10⁻⁷.
 
 // The coefficients below are the file's, verbatim, in the file's own
 // precision; rounding them to what f64 distinguishes would be a second

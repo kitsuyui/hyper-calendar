@@ -1,7 +1,7 @@
-//! The date format of email and HTTP: `Tue, 21 Sep 2026 14:30:05 +0900`.
+//! The date format of email and HTTP: `Mon, 21 Sep 2026 14:30:05 +0900`.
 //!
 //! The format is RFC 5322 §3.3 (which obsoletes RFC 2822, which obsoleted
-//! RFC 822; the name has stuck). RFC 7231's `IMF-fixdate`, the HTTP `Date`
+//! RFC 822; the name has stuck). RFC 9110 §5.6.7's `IMF-fixdate`, the HTTP `Date`
 //! header, is a fixed-width subset of it, and [`write_imf_fixdate`] produces
 //! exactly that.
 //!
@@ -43,7 +43,9 @@ const WEEKDAYS: [&str; 7] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 /// The obsolete named zones of RFC 5322 §4.3, with the offsets it assigns.
 ///
-/// The list is exactly the one in the RFC. Every other alphabetic zone name,
+/// The list is the RFC's `obs-zone` names plus `UTC`, which the RFC does not
+/// list and this library accepts as its own extension, at offset zero,
+/// because mail generators write it. Every other alphabetic zone name,
 /// including the single-letter military zones, is to be treated as `-0000`,
 /// because the military ones were defined with the wrong sign in RFC 822 and
 /// cannot be trusted.
@@ -173,10 +175,10 @@ pub fn write<W: fmt::Write>(out: &mut W, value: OffsetDateTime) -> FormatResult<
     write_zone(out, value.zone)
 }
 
-/// Write a UTC reading as an HTTP `IMF-fixdate`: `Tue, 21 Sep 2026 14:30:05
+/// Write a UTC reading as an HTTP `IMF-fixdate`: `Mon, 21 Sep 2026 14:30:05
 /// GMT`.
 ///
-/// RFC 7231 §7.1.1.1 requires exactly this shape, with the literal `GMT`
+/// RFC 9110 (June 2022) §5.6.7 requires exactly this shape, with the literal `GMT`
 /// rather than a numeric offset, and requires the reading to be in UTC. The
 /// caller is responsible for having converted; this writes what it is given.
 ///

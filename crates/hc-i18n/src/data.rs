@@ -7,12 +7,18 @@
 //!
 //! # Provenance
 //!
-//! The vocabulary follows the Unicode CLDR common locale data (the
-//! `main/<locale>.xml` `calendars` sections) and is hand-checked, not
-//! generated: it is a subset chosen for calendar work, and where CLDR offers
-//! several alternatives the most widely used one is taken. Fields a locale
-//! does not state are left empty on purpose, because an empty field
-//! inherits, and inheriting is more correct than copying.
+//! The vocabulary follows Unicode CLDR 48, the `common/main/<locale>.xml`
+//! `calendars` sections at tag `release-48` (`cldr48-main`), and is
+//! hand-checked, not generated: it is a subset chosen for calendar work.
+//! Each entry's [`LocaleData::sources`] names the file it follows; on
+//! 2026-09-26 the Gregorian months and weekdays of the 35 entries that
+//! follow CLDR were compared with those files. An entry carries its
+//! language's own file and CLDR's default (non-`alt`) values: regional
+//! files are not carried, so Arabic has `ar.xml`'s يناير… and not the
+//! كانون الثاني… of `ar_SY.xml` and the other Levantine files. Where an
+//! entry departs from its file, its comment says so. Fields a locale does
+//! not state are left empty on purpose, because an empty field inherits,
+//! and inheriting is more correct than copying.
 //!
 //! What that means in practice:
 //!
@@ -1202,6 +1208,7 @@ const ZH_HANT_CALENDAR_NAMES: &[CalendarDisplayName] = &[
 /// plainly that no language claimed the field.
 pub static ROOT: LocaleData = LocaleData {
     tag: "und",
+    sources: "Unicode CLDR 48, common/main/root.xml (cldr48-main)",
     english_name: "Root",
     native_name: "",
     script: "Latn",
@@ -1315,6 +1322,7 @@ const AM_CALENDARS: &[CalendarNames] = &[
 
 const AM: LocaleData = LocaleData {
     tag: "am",
+    sources: "Unicode CLDR 48, common/main/am.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Amharic",
     native_name: "አማርኛ",
     script: "Ethi",
@@ -1361,6 +1369,7 @@ const AR_CALENDARS: &[CalendarNames] = &[
         gregorian_eras(&["قبل الميلاد", "ميلادي"], &["ق.م", "م"], &[]),
         ContextualNames::EMPTY,
     ),
+    // CLDR 48 `ar.xml`, `calendar type="islamic"`, compared 2026-09-26.
     dated(
         ISLAMIC_CALENDARS,
         &[months(&[
@@ -1408,6 +1417,7 @@ const AR_CALENDARS: &[CalendarNames] = &[
 
 const AR: LocaleData = LocaleData {
     tag: "ar",
+    sources: "Unicode CLDR 48, common/main/ar.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Arabic",
     native_name: "العربية",
     script: "Arab",
@@ -1550,6 +1560,7 @@ const BAN_CALENDARS: &[CalendarNames] = &[
 
 const BAN: LocaleData = LocaleData {
     tag: "ban",
+    sources: "none from CLDR, which has no ban locale: the Pawukon vocabulary from Reingold and Dershowitz (reingold2018) and wikipedia-pawukon, as the entry states",
     english_name: "Balinese",
     native_name: "Basa Bali",
     script: "Latn",
@@ -1706,6 +1717,7 @@ const BN_CALENDARS: &[CalendarNames] = &[
 
 const BN: LocaleData = LocaleData {
     tag: "bn",
+    sources: "Unicode CLDR 48, common/main/bn.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Bangla",
     native_name: "বাংলা",
     script: "Beng",
@@ -1743,8 +1755,10 @@ const BN: LocaleData = LocaleData {
 // stand-alone form with a closing tsheg, which is kept, as are the tshegs
 // that end the weekday, day-period and era names. Only `eraAbbr` is
 // stated, and CLDR's `eraNames` alias to it, so the abbreviations stand as
-// the wide names too. The week begins on Sunday (CLDR 48 `weekData`, CN
-// and IN alike) and the default numbering system inherits root's `latn`.
+// the wide names too. The week begins on Monday: CLDR 48's likely subtags
+// give `bo` the region CN, which `weekData/firstDay` lists under Monday
+// (a caller in India asks for `bo-IN` and gets Sunday from the region). The
+// default numbering system inherits root's `latn`.
 //
 // The Tibetan calendar numbers its months (Janson, "Tibetan calendar
 // mathematics", 2014, Section 5, which `hc_calendars_lunar::tibetan`
@@ -1833,6 +1847,7 @@ const BO_CALENDARS: &[CalendarNames] = &[
 
 const BO: LocaleData = LocaleData {
     tag: "bo",
+    sources: "Unicode CLDR 48, common/main/bo.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Tibetan",
     native_name: "བོད་སྐད་",
     script: "Tibt",
@@ -1840,7 +1855,7 @@ const BO: LocaleData = LocaleData {
     calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
-    first_day_of_week: Weekday::Sunday,
+    first_day_of_week: Weekday::Monday,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -1894,6 +1909,7 @@ const BO: LocaleData = LocaleData {
 
 const COP: LocaleData = LocaleData {
     tag: "cop",
+    sources: "none from CLDR, which has no cop locale: the Bohairic months from Wikipedia, \"Coptic calendar\", as the entry states",
     english_name: "Coptic",
     native_name: "Ϯⲙⲉⲧⲣⲉⲙⲛ̀ⲭⲏⲙⲓ",
     script: "Copt",
@@ -1939,6 +1955,7 @@ const COP: LocaleData = LocaleData {
 
 const CS: LocaleData = LocaleData {
     tag: "cs",
+    sources: "Unicode CLDR 48, common/main/cs.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Czech",
     native_name: "čeština",
     script: "Latn",
@@ -2020,6 +2037,7 @@ const CS: LocaleData = LocaleData {
 
 const DE: LocaleData = LocaleData {
     tag: "de",
+    sources: "Unicode CLDR 48, common/main/de.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "German",
     native_name: "Deutsch",
     script: "Latn",
@@ -2136,7 +2154,10 @@ const EN_CALENDARS: &[CalendarNames] = &[
         eras: EraNames {
             codes: JAPANESE_ERA_CODES,
             names: widths(
-                &["Meiji", "Taisho", "Showa", "Heisei", "Reiwa"],
+                // CLDR 48 `root.xml`, `calendar type="japanese"`, `eraAbbr`,
+                // which `en.xml` inherits: the macron spellings, as the
+                // English `japanese-imperial` era writes Kōki.
+                &["Meiji", "Taishō", "Shōwa", "Heisei", "Reiwa"],
                 &[],
                 JAPANESE_ERA_NARROW,
             ),
@@ -2146,21 +2167,23 @@ const EN_CALENDARS: &[CalendarNames] = &[
         templates: DateTemplates::NONE,
         leap_names: LeapMonthNames::NONE,
     },
+    // CLDR 48 `en.xml`, `calendar type="islamic"`, compared 2026-09-26,
+    // with its ʻ (U+02BB) where an ASCII apostrophe is often printed.
     dated(
         ISLAMIC_CALENDARS,
         &[months(&[
             "Muharram",
             "Safar",
-            "Rabi I",
-            "Rabi II",
+            "Rabiʻ I",
+            "Rabiʻ II",
             "Jumada I",
             "Jumada II",
             "Rajab",
-            "Sha'ban",
+            "Shaʻban",
             "Ramadan",
             "Shawwal",
-            "Dhu al-Qi'dah",
-            "Dhu al-Hijjah",
+            "Dhuʻl-Qiʻdah",
+            "Dhuʻl-Hijjah",
         ])],
         &["ah"],
         &["AH"],
@@ -2301,12 +2324,16 @@ const EN_CALENDARS: &[CalendarNames] = &[
         ])],
         "",
     ),
-    // Four calendars whose own names are in another script, romanised the
-    // way English-language sources print them. Each is an override of the
-    // names the calendar declares for itself: Coptic-derived rather than
-    // Arabic-derived for the Coptic months; the Encyclopaedia Aethiopica
-    // transliteration for the Ethiopic; Hübschmann-Meillet-Benveniste for
-    // the Armenian; the usual romanisation for the Persian.
+    // Calendars whose own names are in another script, romanised as
+    // English-language sources print them; each overrides the names the
+    // calendar declares for itself. The Coptic months are the Coptic-derived
+    // forms Wikipedia, "Coptic calendar" (`wikipedia-coptic-calendar`),
+    // prints, read 2026-09-26, and not the Arabic-derived Tout, Baba… of
+    // CLDR 48 `root.xml`. The Ethiopic follow the transliteration system of
+    // the *Encyclopaedia Aethiopica* and the Armenian the
+    // Hübschmann–Meillet–Benveniste one; no source that prints these two
+    // lists is recorded. The Persian are CLDR 48 `root.xml`'s, which
+    // `en.xml` inherits, compared 2026-09-26.
     dated(
         COPTIC_CALENDARS,
         &[months(&[
@@ -2347,6 +2374,8 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &[],
         &[],
     ),
+    // Wikipedia, "Burmese calendar" (`wikipedia-burmese-calendar`),
+    // compared 2026-09-26.
     dated(
         BURMESE_CALENDARS,
         &[months(&[
@@ -2401,6 +2430,8 @@ const EN_CALENDARS: &[CalendarNames] = &[
             in_leap_years: &[],
         },
     },
+    // Wikipedia, "Rumi calendar" (`wikipedia-rumi-calendar`), compared
+    // 2026-09-26.
     dated(
         RUMI_CALENDARS,
         &[months(&[
@@ -2420,6 +2451,8 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &[],
         &[],
     ),
+    // Wikipedia, "Nanakshahi calendar" (`wikipedia-nanakshahi-calendar`),
+    // compared 2026-09-26.
     dated(
         NANAKSHAHI_CALENDARS,
         &[months(&[
@@ -2501,13 +2534,6 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &[],
         &[],
     ),
-    // Badíʿ has nineteen months, which the old twelve-or-thirteen assertion
-    // rejected; it is ordinary data now, checked against the length the
-    // calendar declares. Its month names are the Bahá'í transliteration
-    // English-language texts use, which is why they are a locale's and not
-    // the calendar's own. (The French Republican months and décade days,
-    // which once sat beside these, are the calendar's own French and are
-    // declared with its shape in `hc-calendars-solar`.)
     // The Hindu lunisolar months, Chaitra first, in the English
     // transliteration the Rashtriya Panchang's English edition uses; the
     // calendar's own names are Devanagari, declared in `hc-calendars-indic`.
@@ -2691,6 +2717,12 @@ const EN_CALENDARS: &[CalendarNames] = &[
         templates: DateTemplates::NONE,
         leap_names: LeapMonthNames::NONE,
     },
+    // The nineteen Badíʿ months, checked against the length the calendar
+    // declares, in the Bahá'í transliteration English-language texts use,
+    // which is why they are a locale's and not the calendar's own. No
+    // source is recorded for these spellings: `bwc-badi-dates` and
+    // `uhj-2014-07-10`, which the calendar follows, were read for its dates
+    // and not for its month names.
     CalendarNames {
         calendars: &[
             CalendarId("bahai-arithmetic"),
@@ -2852,6 +2884,7 @@ const EN_CALENDARS: &[CalendarNames] = &[
 
 const EN: LocaleData = LocaleData {
     tag: "en",
+    sources: "Unicode CLDR 48, common/main/en.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "English",
     native_name: "English",
     script: "Latn",
@@ -2893,6 +2926,7 @@ const EN: LocaleData = LocaleData {
 
 const ES: LocaleData = LocaleData {
     tag: "es",
+    sources: "Unicode CLDR 48, common/main/es.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Spanish",
     native_name: "español",
     script: "Latn",
@@ -2962,6 +2996,7 @@ const ES: LocaleData = LocaleData {
 
 const FA: LocaleData = LocaleData {
     tag: "fa",
+    sources: "Unicode CLDR 48, common/main/fa.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Persian",
     native_name: "فارسی",
     script: "Arab",
@@ -2990,24 +3025,46 @@ const FA: LocaleData = LocaleData {
     cycle: SexagenaryNames::EMPTY,
     calendars: &[
         gregorian(
-            &[month_cycle(ContextualNames::same(widths(
-                &[
-                    "ژانویه",
-                    "فوریه",
-                    "مارس",
-                    "آوریل",
-                    "مه",
-                    "ژوئن",
-                    "ژوئیه",
-                    "اوت",
-                    "سپتامبر",
-                    "اکتبر",
-                    "نوامبر",
-                    "دسامبر",
-                ],
-                &[],
-                &[],
-            )))],
+            // CLDR 48 `fa.xml`: the format months carry the ezafe (ژانویهٔ, as
+            // in «۵ ژانویهٔ ۲۰۲۴»), the stand-alone ones do not.
+            &[month_cycle(ContextualNames {
+                format: widths(
+                    &[
+                        "ژانویهٔ",
+                        "فوریهٔ",
+                        "مارس",
+                        "آوریل",
+                        "مهٔ",
+                        "ژوئن",
+                        "ژوئیهٔ",
+                        "اوت",
+                        "سپتامبر",
+                        "اکتبر",
+                        "نوامبر",
+                        "دسامبر",
+                    ],
+                    &[],
+                    &[],
+                ),
+                standalone: widths(
+                    &[
+                        "ژانویه",
+                        "فوریه",
+                        "مارس",
+                        "آوریل",
+                        "مه",
+                        "ژوئن",
+                        "ژوئیه",
+                        "اوت",
+                        "سپتامبر",
+                        "اکتبر",
+                        "نوامبر",
+                        "دسامبر",
+                    ],
+                    &[],
+                    &[],
+                ),
+            })],
             gregorian_eras(&["قبل از میلاد", "میلادی"], &["ق.م.", "م."], &[]),
             ContextualNames::EMPTY,
         ),
@@ -3024,6 +3081,7 @@ const FA: LocaleData = LocaleData {
 
 const FR: LocaleData = LocaleData {
     tag: "fr",
+    sources: "Unicode CLDR 48, common/main/fr.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "French",
     native_name: "français",
     script: "Latn",
@@ -3142,6 +3200,7 @@ const HE_CALENDARS: &[CalendarNames] = &[
 
 const HE: LocaleData = LocaleData {
     tag: "he",
+    sources: "Unicode CLDR 48, common/main/he.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Hebrew",
     native_name: "עברית",
     script: "Hebr",
@@ -3244,23 +3303,23 @@ const HI_CALENDARS: &[CalendarNames] = &[
                 "जुलाई",
                 "अगस्त",
                 "सितंबर",
-                "अक्तूबर",
+                "अक्टूबर",
                 "नवंबर",
                 "दिसंबर",
             ],
             &[
-                "जन",
-                "फ़र",
+                "जन॰",
+                "फ़र॰",
                 "मार्च",
                 "अप्रैल",
                 "मई",
                 "जून",
-                "जुल",
-                "अग",
-                "सित",
-                "अक्तू",
-                "नव",
-                "दिस",
+                "जुल॰",
+                "अग॰",
+                "सित॰",
+                "अक्टू॰",
+                "नव॰",
+                "दिस॰",
             ],
             &[],
         )))],
@@ -3291,6 +3350,7 @@ const HI_CALENDARS: &[CalendarNames] = &[
 
 const HI: LocaleData = LocaleData {
     tag: "hi",
+    sources: "Unicode CLDR 48, common/main/hi.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Hindi",
     native_name: "हिन्दी",
     script: "Deva",
@@ -3324,6 +3384,7 @@ const HI: LocaleData = LocaleData {
 
 const ID: LocaleData = LocaleData {
     tag: "id",
+    sources: "Unicode CLDR 48, common/main/id.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Indonesian",
     native_name: "Indonesia",
     script: "Latn",
@@ -3374,6 +3435,7 @@ const ID: LocaleData = LocaleData {
 
 const IT: LocaleData = LocaleData {
     tag: "it",
+    sources: "Unicode CLDR 48, common/main/it.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Italian",
     native_name: "italiano",
     script: "Latn",
@@ -3470,6 +3532,7 @@ const JA_CALENDARS: &[CalendarNames] = &[
         leap_month_prefix: "",
         eras: EraNames {
             codes: JAPANESE_ERA_CODES,
+            // CLDR 48 `ja.xml`, `calendar type="japanese"`, `eraAbbr`.
             names: widths(
                 &["明治", "大正", "昭和", "平成", "令和"],
                 &[],
@@ -3483,7 +3546,9 @@ const JA_CALENDARS: &[CalendarNames] = &[
     },
     // The traditional month names of the Japanese lunisolar calendars,
     // still used for seasonal and literary dates: 師走 is December in
-    // feeling, the twelfth lunar month in fact. They are Japan's words for
+    // feeling, the twelfth lunar month in fact. The twelve as NAOJ's 暦Wiki,
+    // 「月の和名」 (`nao-rekiwiki-tsuki-no-wamei`, read 2026-09-26), prints
+    // them for the months of the lunisolar calendar. They are Japan's words for
     // Japan's months and serve nothing else — the Chinese calendar is
     // below, by number.
     lunisolar(
@@ -3531,6 +3596,7 @@ const JA_LUNAR_MONTHS: &[CycleNames] = &[months(&[
 
 const JA: LocaleData = LocaleData {
     tag: "ja",
+    sources: "Unicode CLDR 48, common/main/ja.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Japanese",
     native_name: "日本語",
     script: "Jpan",
@@ -3647,6 +3713,7 @@ const JV_CALENDARS: &[CalendarNames] = &[
 
 const JV: LocaleData = LocaleData {
     tag: "jv",
+    sources: "Unicode CLDR 48, common/main/jv.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Javanese",
     native_name: "Jawa",
     script: "Latn",
@@ -3754,6 +3821,7 @@ const KAB_CALENDARS: &[CalendarNames] = &[
 
 const KAB: LocaleData = LocaleData {
     tag: "kab",
+    sources: "Unicode CLDR 48, common/main/kab.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Kabyle",
     native_name: "Taqbaylit",
     script: "Latn",
@@ -3783,6 +3851,7 @@ const KAB: LocaleData = LocaleData {
 
 const KO: LocaleData = LocaleData {
     tag: "ko",
+    sources: "Unicode CLDR 48, common/main/ko.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Korean",
     native_name: "한국어",
     script: "Kore",
@@ -3883,6 +3952,7 @@ const KO: LocaleData = LocaleData {
 
 const MID: LocaleData = LocaleData {
     tag: "mid",
+    sources: "none from CLDR, which has no mid locale: the weekdays from wikipedia-mandaean-calendar",
     english_name: "Mandaic",
     native_name: "ࡋࡉࡔࡀࡍࡀ ࡖ ࡌࡀࡍࡃࡀࡉࡉࡀ",
     script: "Mand",
@@ -4031,6 +4101,7 @@ const ML_CALENDARS: &[CalendarNames] = &[
 
 const ML: LocaleData = LocaleData {
     tag: "ml",
+    sources: "Unicode CLDR 48, common/main/ml.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Malayalam",
     native_name: "മലയാളം",
     script: "Mlym",
@@ -4143,6 +4214,7 @@ const MY_CALENDARS: &[CalendarNames] = &[
 
 const MY: LocaleData = LocaleData {
     tag: "my",
+    sources: "Unicode CLDR 48, common/main/my.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Burmese",
     native_name: "မြန်မာ",
     script: "Mymr",
@@ -4258,6 +4330,7 @@ const NAH_CALENDARS: &[CalendarNames] = &[
 
 const NAH: LocaleData = LocaleData {
     tag: "nah",
+    sources: "none from CLDR, which has no nah locale: the day-signs and months from wikipedia-tonalpohualli and Reingold and Dershowitz (reingold2018)",
     english_name: "Nahuatl",
     native_name: "Nahuatl",
     script: "Latn",
@@ -4331,6 +4404,7 @@ const ZAP_CALENDARS: &[CalendarNames] = &[
 
 const ZAP: LocaleData = LocaleData {
     tag: "zap",
+    sources: "none from CLDR, which has no zap locale: the months and year bearers from urcid2001 (Table 3.5) and tavarez2008 (Table 1)",
     english_name: "Zapotec",
     native_name: "Zapotec",
     script: "Latn",
@@ -4476,6 +4550,7 @@ const NE_CALENDARS: &[CalendarNames] = &[
 
 const NE: LocaleData = LocaleData {
     tag: "ne",
+    sources: "Unicode CLDR 48, common/main/ne.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Nepali",
     native_name: "नेपाली",
     script: "Deva",
@@ -4509,6 +4584,7 @@ const NE: LocaleData = LocaleData {
 
 const NL: LocaleData = LocaleData {
     tag: "nl",
+    sources: "Unicode CLDR 48, common/main/nl.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Dutch",
     native_name: "Nederlands",
     script: "Latn",
@@ -4569,6 +4645,7 @@ const NL: LocaleData = LocaleData {
 
 const PL: LocaleData = LocaleData {
     tag: "pl",
+    sources: "Unicode CLDR 48, common/main/pl.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Polish",
     native_name: "polski",
     script: "Latn",
@@ -4761,6 +4838,7 @@ const PS_CALENDARS: &[CalendarNames] = &[
 
 const PS: LocaleData = LocaleData {
     tag: "ps",
+    sources: "Unicode CLDR 48, common/main/ps.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Pashto",
     native_name: "پښتو",
     script: "Arab",
@@ -4786,6 +4864,7 @@ const PS: LocaleData = LocaleData {
 
 const PT: LocaleData = LocaleData {
     tag: "pt",
+    sources: "Unicode CLDR 48, common/main/pt.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Portuguese",
     native_name: "português",
     script: "Latn",
@@ -4850,6 +4929,7 @@ const PT: LocaleData = LocaleData {
 
 const RU: LocaleData = LocaleData {
     tag: "ru",
+    sources: "Unicode CLDR 48, common/main/ru.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Russian",
     native_name: "русский",
     script: "Cyrl",
@@ -5072,6 +5152,7 @@ const SA_CALENDARS: &[CalendarNames] = &[
 
 const SA: LocaleData = LocaleData {
     tag: "sa",
+    sources: "Unicode CLDR 48, common/main/sa.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Sanskrit",
     native_name: "संस्कृत भाषा",
     script: "Deva",
@@ -5180,6 +5261,7 @@ const SYR_CALENDARS: &[CalendarNames] = &[
 
 const SYR: LocaleData = LocaleData {
     tag: "syr",
+    sources: "Unicode CLDR 48, common/main/syr.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Syriac",
     native_name: "ܣܘܪܝܝܐ",
     script: "Syrc",
@@ -5379,6 +5461,7 @@ const TA_CALENDARS: &[CalendarNames] = &[
 
 const TA: LocaleData = LocaleData {
     tag: "ta",
+    sources: "Unicode CLDR 48, common/main/ta.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Tamil",
     native_name: "தமிழ்",
     script: "Taml",
@@ -5404,6 +5487,7 @@ const TA: LocaleData = LocaleData {
 
 const TH: LocaleData = LocaleData {
     tag: "th",
+    sources: "Unicode CLDR 48, common/main/th.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Thai",
     native_name: "ไทย",
     script: "Thai",
@@ -5486,6 +5570,7 @@ const TH: LocaleData = LocaleData {
 
 const TR: LocaleData = LocaleData {
     tag: "tr",
+    sources: "Unicode CLDR 48, common/main/tr.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Turkish",
     native_name: "Türkçe",
     script: "Latn",
@@ -5533,6 +5618,7 @@ const TR: LocaleData = LocaleData {
 
 const VI: LocaleData = LocaleData {
     tag: "vi",
+    sources: "Unicode CLDR 48, common/main/vi.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Vietnamese",
     native_name: "Tiếng Việt",
     script: "Latn",
@@ -5657,6 +5743,7 @@ const YUA_CALENDARS: &[CalendarNames] = &[
 
 const YUA: LocaleData = LocaleData {
     tag: "yua",
+    sources: "none from CLDR, which has no yua locale: the day-signs and months from Reingold and Dershowitz (reingold2018), wikipedia-tzolkin and wikipedia-maya-calendar",
     english_name: "Yucatec Maya",
     native_name: "mayaʼ tʼaan",
     script: "Latn",
@@ -5753,6 +5840,7 @@ const ZGH_CALENDARS: &[CalendarNames] = &[
 
 const ZGH: LocaleData = LocaleData {
     tag: "zgh",
+    sources: "Unicode CLDR 48, common/main/zgh.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Standard Moroccan Tamazight",
     native_name: "ⵜⴰⵎⴰⵣⵉⵖⵜ",
     script: "Tfng",
@@ -5843,6 +5931,7 @@ const ZH_HANS_LUNAR_MONTHS: &[CycleNames] = &[months(&[
 
 const ZH_HANS: LocaleData = LocaleData {
     tag: "zh-Hans",
+    sources: "Unicode CLDR 48, common/main/zh.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Chinese (Simplified)",
     native_name: "简体中文",
     script: "Hans",
@@ -5850,7 +5939,9 @@ const ZH_HANS: LocaleData = LocaleData {
     calendar_names: ZH_HANS_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
-    first_day_of_week: Weekday::Sunday,
+    // CLDR 48's likely subtags give `zh-Hans` the region CN, which
+    // `weekData/firstDay` lists under Monday.
+    first_day_of_week: Weekday::Monday,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -5919,6 +6010,7 @@ const ZH_HANT_LUNAR_MONTHS: &[CycleNames] = &[months(&[
 
 const ZH_HANT: LocaleData = LocaleData {
     tag: "zh-Hant",
+    sources: "Unicode CLDR 48, common/main/zh_Hant.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
     english_name: "Chinese (Traditional)",
     native_name: "繁體中文",
     script: "Hant",
@@ -5926,6 +6018,8 @@ const ZH_HANT: LocaleData = LocaleData {
     calendar_names: ZH_HANT_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
+    // CLDR 48's likely subtags give `zh-Hant` the region TW, a Sunday
+    // region in `weekData/firstDay`.
     first_day_of_week: Weekday::Sunday,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
@@ -5994,6 +6088,18 @@ mod tests {
             sets.push(("eras", &calendar.eras.names));
         }
         sets
+    }
+
+    #[test]
+    fn every_entry_names_its_sources() {
+        for data in every_entry() {
+            assert!(!data.sources.is_empty(), "{}", data.tag);
+            assert!(
+                data.sources.contains("CLDR"),
+                "{} should say whether CLDR is its source",
+                data.tag
+            );
+        }
     }
 
     #[test]

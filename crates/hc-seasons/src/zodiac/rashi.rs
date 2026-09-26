@@ -57,16 +57,11 @@ pub type Rashi = SiderealSign;
 ///
 /// # Why this is a struct and not an enum
 ///
-/// It was an enum of four, with a `MonthNames { tamil, bengali, malayalam }`
-/// struct behind it holding twelve rows. Adding Telugu meant a variant, a
-/// field, two match arms, and an edit to every one of those twelve rows —
-/// and the field list was a claim that the Indian solar month traditions are
-/// these and no others, which is not this crate's to make. Telugu, Kannada,
-/// Odia, Assamese and Nepali all name the same twelve intervals.
-///
-/// So the table is transposed. A tradition is one entry carrying its own
-/// twelve names, rather than a column spread across twelve rows, and adding
-/// one is adding one entry.
+/// An enum, or a struct with one field per tradition, would be a claim that
+/// the Indian solar month traditions are these and no others, which is not
+/// this crate's to make: Telugu, Kannada, Odia, Assamese and Nepali all
+/// name the same twelve intervals. So a tradition is one entry carrying its
+/// own twelve names, and adding one is adding one entry.
 ///
 /// The months are the same twelve intervals in every tradition; only the
 /// names differ, and which of them opens the year.

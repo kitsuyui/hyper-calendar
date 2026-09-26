@@ -42,15 +42,17 @@ Highlights:
 
 **Planck units and constants** — CODATA 2022, from the NIST *Fundamental
 Physical Constants — Complete Listing*,
-<https://physics.nist.gov/cuu/Constants/Table/allascii.txt>; the underlying
-paper is Mohr, Newell, Taylor & Tiesinga, arXiv:2409.03787. Planck time
+<https://physics.nist.gov/cuu/Constants/Table/allascii.txt>, retrieved
+2026-09-26; the underlying paper is Mohr, Newell, Taylor & Tiesinga,
+arXiv:2409.03787 (`codata2022`). Planck time
 5.391247(60)×10⁻⁴⁴ s, length 1.616255(18)×10⁻³⁵ m, mass 2.176434(24)×10⁻⁸ kg,
 temperature 1.416784(16)×10³² K, `G` = 6.67430(15)×10⁻¹¹ m³ kg⁻¹ s⁻². The
 Planck energy in joules is derived as `m_P c²` and checked against NIST's
 tabulated 1.220890(14)×10¹⁹ GeV.
 
 **Cosmic chronology** — Planck Collaboration, *Planck 2018 results. VI.
-Cosmological parameters*, A&A 641, A6 (2020), arXiv:1807.06209, Table 2,
+Cosmological parameters*, A&A 641, A6 (2020), arXiv:1807.06209
+(`planck2018-vi`), Table 2,
 `TT,TE,EE+lowE+lensing+BAO` throughout: age 13.787 ± 0.020 Gyr, `H0` = 67.66 ±
 0.42, `Ωm` = 0.3111 ± 0.0056, `z*` = 1089.80 ± 0.21, `z_eq` = 3387 ± 21. Ages
 in years for matter–radiation equality (5.14×10⁴ yr), recombination (3.72×10⁵
@@ -79,14 +81,20 @@ of 2.4×10³⁴ years at 90 % confidence. Hawking (1974) and Page, Phys. Rev. D 
 
 **Geological time scale** — International Chronostratigraphic Chart
 **v2026/06**, <http://www.stratigraphy.org/ICSchart/ChronostratChart2026-06.pdf>,
-cited as Cohen, Harper, Gibbard & Car (2025, updated), *The ICS international
-chronostratigraphic chart this decade*, Episodes 48, 105–115. Every boundary
-age and every published uncertainty is transcribed from that chart, whose own
-ages come largely from Gradstein et al., *A Geologic Time Scale 2020*. The
-version is part of the public API (`geologic::CHART_VERSION`) because
-boundaries move: between v2024/12 and v2026/06 the Anisian went from 246.7 to
-247.0 Ma, the Olenekian from 249.9 to 250.8 Ma and the Wuchiapingian from
-259.51 ± 0.21 to 259.857 ± 0.084 Ma.
+retrieved 2026-09-26 (`ics-chart-2026-06`), cited as Cohen, Harper, Gibbard &
+Car (2025, updated), *The ICS international chronostratigraphic chart this
+decade*, Episodes 48, 105–115 (`cohen2025`). Every boundary age and every
+published uncertainty is transcribed from that chart, whose own ages come
+largely from Gradstein et al., *A Geologic Time Scale 2020* (not read here).
+The version is part of the public API (`geologic::CHART_VERSION`) because
+boundaries move, and each edition carried has its own name:
+`geologic::ICS_CHART_2026_06` (`ics-chart-2026-06`) and
+`geologic::ICS_CHART_2024_12` (`ics-chart-2024-12`), the chart v2024/12,
+<https://stratigraphy.org/ICSchart/ChronostratChart2024-12.pdf>, retrieved
+2026-09-26. The two printed charts differ in three numbers and no others: the
+Anisian base at 246.7 against 247.0 Ma, the Olenekian base at 249.9 against
+250.8 Ma, and the Wuchiapingian base at 259.51 ± 0.21 against 259.857 ± 0.084
+Ma.
 
 **Interval names in other languages** — the ICS's chart vocabulary,
 `chart.ttl` at <https://github.com/i-c-stratigraphy/chart> (commit

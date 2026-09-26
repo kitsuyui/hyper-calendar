@@ -36,13 +36,19 @@
 //! tables.
 //!
 //! So: every rule names its source in a comment; every place two authorities
-//! genuinely disagree is stated in the doc comment with one reading picked
-//! explicitly; every table is checked against *published date lists* in the
-//! tests, because a citation cannot catch a transcription error and a
-//! printed calendar can. Where no rule could be established the annotation
-//! is left out rather than invented, and the README lists the gaps;
-//! [`AlmanacRule::Undetermined`] is the value an entry without an
+//! genuinely disagree names each reading in the doc comment, registers a
+//! reading of its own where a published date can test it — the 旧暦-month
+//! 凶会日 and the two readings of a 九星 switch on 癸巳 — and says which one
+//! the plain functions use; every table is checked against *published date
+//! lists* in the tests, because a citation cannot catch a transcription
+//! error and a printed calendar can. Where no rule could be established the
+//! annotation is left out rather than invented, and the README lists the
+//! gaps; [`AlmanacRule::Undetermined`] is the value an entry without an
 //! established rule would carry.
+//!
+//! The system document `docs/systems/japanese-almanac-notes.md` explains
+//! the annotations, where publishers differ, and how the tables were
+//! checked.
 //!
 //! # Accuracy
 //!

@@ -1,8 +1,15 @@
 //! 六曜 — re-exported, because the implementation belongs somewhere else.
 //!
-//! 六曜 is the 暦注 everyone in Japan can name: 大安 for weddings, 友引 for
-//! the day the crematoria close. It plainly belongs in an almanac crate, and
-//! a caller looking for 暦注 should find it here.
+//! 六曜 is the 暦注 everyone in Japan can name: 大安 for weddings, and 友引
+//! the day funerals are avoided, when some crematoria close. The National
+//! Diet Library gives 大安 as 「特に婚礼に良い」 and 友引 as a day that
+//! 「葬式などの凶事を忌む」 (「日本の暦」, 吉凶を表す言葉①六曜,
+//! <https://www.ndl.go.jp/koyomi/chapter3/s3.html>, read 2026-09-26);
+//! Japanese Wikipedia 六曜 adds that funeral businesses and crematoria are
+//! sometimes closed on 友引 (「友引の日は葬祭関連業や火葬場が休業となって
+//! いることがある」, <https://ja.wikipedia.org/wiki/六曜>, read 2026-09-26).
+//! It plainly belongs in an almanac crate, and a caller looking for 暦注
+//! should find it here.
 //!
 //! It is nonetheless implemented in [`hc_seasons::rokuyo`], and this module
 //! is a re-export rather than a second implementation. The reason is that

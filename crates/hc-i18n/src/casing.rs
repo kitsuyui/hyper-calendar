@@ -6,11 +6,13 @@
 //!   letters where English has two: `i`/`İ` carry a dot in both cases and
 //!   `ı`/`I` carry none. Uppercasing the Turkish month `iyi` with the
 //!   default mapping gives `IYI`, which is a different word. The Unicode
-//!   default case conversion (UAX 21) is explicitly overridden for `tr` and
-//!   `az`, and [`to_uppercase`] and [`to_lowercase`] here honour that.
+//!   default case conversion (The Unicode Standard, version 17.0, §3.13
+//!   "Default Case Algorithms") is overridden for `tr` and `az` by the
+//!   language-sensitive rows of `SpecialCasing-17.0.0.txt`, and
+//!   [`to_uppercase`] and [`to_lowercase`] here honour them.
 //! * **Whether a month name is a capitalised word at all.** English,
-//!   German, Dutch, Turkish and Indonesian capitalise month and weekday
-//!   names; French, Spanish, Italian, Portuguese, Russian, Polish and Czech
+//!   German, Turkish and Indonesian capitalise month and weekday names;
+//!   French, Spanish, Italian, Portuguese, Russian, Polish, Czech and Dutch
 //!   do not. German is the strict case: the names are nouns, so they are
 //!   capitalised wherever they stand. CLDR carries this as
 //!   `contextTransforms`; here it is one boolean per locale.

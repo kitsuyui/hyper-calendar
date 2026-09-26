@@ -9,7 +9,12 @@
 //! calendar, ordinal and week dates, in basic and extended format, at any
 //! permitted accuracy, with expanded years, with a decimal fraction on the
 //! lowest-order component, with `24:00` and `23:59:60`, and with every zone
-//! designator the standard admits.
+//! designator the standard admits. `24:00`, the end of a calendar day, is
+//! the one form taken from ISO 8601-1:2019/Amd 1:2022 rather than from the
+//! 2019 text, which had removed it; the amendment restores it. Neither ISO
+//! text was read here (both are sold by ISO); the account of what each
+//! allows is Wikipedia's, "ISO 8601" (`wikipedia-iso-8601`), read
+//! 2026-09-26.
 //!
 //! # Strictness is the caller's decision
 //!
@@ -83,11 +88,13 @@ pub struct Strictness {
 }
 
 impl Strictness {
-    /// Everything ISO 8601-1:2019 allows, and nothing it does not.
+    /// Everything ISO 8601-1:2019 with its Amendment 1:2022 allows, and
+    /// nothing it does not.
     ///
-    /// The one extension beyond the 2019 text is the signed duration, which
-    /// comes from ISO 8601-2; it is accepted here because a duration that
-    /// cannot be negative cannot express "three days ago".
+    /// `24:00` is allowed by the amendment, not by the 2019 text. The one
+    /// extension beyond ISO 8601-1 is the signed duration, which comes from
+    /// ISO 8601-2; it is accepted here because a duration that cannot be
+    /// negative cannot express "three days ago".
     pub const ISO: Self = Self {
         allow_basic: true,
         allow_reduced_date: true,

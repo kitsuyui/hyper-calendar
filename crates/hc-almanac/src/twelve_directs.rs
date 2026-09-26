@@ -32,11 +32,15 @@
 //!
 //! # Sources
 //!
-//! The rule and the readings are as given by the National Astronomical
-//! Observatory of Japan's 暦Wiki (暦の雑節・暦注 → 十二直) and by the National
-//! Diet Library's 「日本の暦」exhibition, 具注暦 section. The 吉凶 glosses
-//! follow 岡田芳朗『現代こよみ読み解き事典』; they vary in wording between
-//! almanac publishers and nothing in this crate depends on them.
+//! The rule, the 「おどる」 repeat and the readings are as given by the
+//! National Astronomical Observatory of Japan's 暦Wiki, 十二直
+//! (<https://eco.mtk.nao.ac.jp/koyomi/wiki/BDBDC6F3C4BE.html>), and by the
+//! National Diet Library's 「日本の暦」, 吉凶を表す言葉②中段
+//! (<https://www.ndl.go.jp/koyomi/chapter3/s4.html>), both read 2026-09-26.
+//! The 吉凶 glosses follow 岡田芳朗・阿久根末忠 (編著)『現代こよみ読み解き
+//! 事典』(柏書房, 1993), not read here and taken at second hand; they vary in
+//! wording between almanac publishers and nothing in this crate depends on
+//! them.
 
 use hc_calendar::Rd;
 use hc_seasons::Meridian;

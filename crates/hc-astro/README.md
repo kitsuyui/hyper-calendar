@@ -52,12 +52,21 @@ which answered:
   up to 0.12 s, and from late 2023 to early 2025 by up to 2.7 times the
   error the file stated, so the error column is the USNO's estimate and
   not a bound. The predictions are not extrapolated either.
-* **Fitted, outside both.** The Espenak–Meeus NASA polynomial set:
-  thirteen segments over −500…+2150, and the parabola ΔT = −20 + 32u²,
+* **Fitted, outside both.** A named model of the historical record, from
+  the table `delta_t_model::DELTA_T_MODELS`. `time::delta_t` uses
+  `espenak-meeus-2006`, the Espenak–Meeus NASA polynomial set: thirteen
+  segments over −500…+2150, and the parabola ΔT = −20 + 32u²,
   u = (year − 1820)/100, outside that, fifteen expressions in all. The
   segments are independent least-squares fits and meet at the joins to
   within a couple of tenths of a second, which this crate does not smooth.
-  `time::delta_t_polynomial` is this fit alone, for any year.
+  `time::delta_t_polynomial` is this fit alone, for any year. It is the
+  default because it is the one model carried that answers for every year.
+  `time::delta_t_with` takes a model by name instead, and the other one
+  carried is `morrison-stephenson-2021`, the cubic spline of Morrison,
+  Stephenson, Hohenkerk and Zawilski's Table S15 (v. 2020) over
+  −720…2019, which answers `None` outside that span. The two differ by
+  264 s at −500; over 1974–2019 the spline stays within 0.24 s of the
+  USNO's observations.
 
 The observations meet the polynomial to 0.1 s at their start, where the
 polynomial was fitted to the same observations, and the predictions to
@@ -91,7 +100,7 @@ of the same measurement.
 | Lunar distance | **~0.2 km** on 368 000 | Meeus example 47.a |
 | New moon / quarter times | **~2 s of the published series** | Meeus examples 49.a and 49.b |
 | Illuminated fraction | **~0.001** | Meeus example 48.a |
-| Sunrise / sunset | **~2 minutes** | the Japanese national ephemeris for Tokyo, 2024-01-01 |
+| Sunrise / sunset | **under a minute** | NAOJ 暦計算室, 「日の出入り＠東京(東京都)」, 2024-01-01, at its point 35.6581° N, 139.7414° E, published to the minute |
 | Mean obliquity | **0.01″** near J2000, arcseconds over ±10 000 years | Meeus example 22.a |
 | Nutation | **0.5″** in Δψ, **0.1″** in Δε | Meeus example 22.a |
 
@@ -161,8 +170,22 @@ by the sky, and the calendars built on top of this say so where it matters.
 * Edward M. Reingold and Nachum Dershowitz, *Calendrical Calculations*, 4th
   ed., Cambridge 2018 — the Rata Die pivot, the wrap-aware angular inversion,
   and the mean tropical year and synodic month used to seed the searches.
-* Fred Espenak and Jean Meeus, "Polynomial Expressions for Delta T", derived
-  from *Five Millennium Canon of Solar Eclipses*, NASA/TP-2006-214141.
+* P. Bretagnon and G. Francou, VSOP87, *A&A* 202, 309 (1988) (not read
+  here), as the file `VSOP87D.ear` of CDS VizieR catalogue VI/81,
+  <https://cdsarc.cds.unistra.fr/ftp/VI/81/VSOP87D.ear>, retrieved
+  2026-09-26 (`bretagnon1988`).
+* Fred Espenak and Jean Meeus, "Polynomial Expressions for Delta T",
+  <https://eclipse.gsfc.nasa.gov/SEhelp/deltatpoly2004.html>, retrieved
+  2026-09-26, adapted from *Five Millennium Canon of Solar Eclipses*,
+  NASA/TP-2006-214141 (not read here) (`espenak-meeus-2006`). The page
+  states the 2005–2050 segment as derived from *estimated* values for 2010
+  and 2050: a forecast.
+* L. V. Morrison, F. R. Stephenson, C. Y. Hohenkerk and M. Zawilski,
+  "Addendum 2020 to 'Measurement of the Earth's rotation: 720 BC to AD
+  2015'", *Proc. R. Soc. A* 477 (2021) 20200776, Table S15 v. 2020
+  (`morrison2021`), read as the file `Table-S15.2020.txt`; the analysis it
+  revises is Stephenson, Morrison and Hohenkerk, *Proc. R. Soc. A* 472
+  (2016) 20160404 (`stephenson2016`, not read here).
 * United States Naval Observatory, *Delta T: deltat.data*,
   <https://maia.usno.navy.mil/ser7/deltat.data>, retrieved 2026-09-25 — the
   observed ΔT of 1974–2026; checked against the IERS EOP 20 C04 series,
@@ -171,9 +194,10 @@ by the sky, and the calendars built on top of this say so where it matters.
 * United States Naval Observatory, *Delta T: deltat.preds*,
   <https://maia.usno.navy.mil/ser7/deltat.preds>, retrieved 2026-09-25 —
   the predicted ΔT of 2022–2033 with its stated error.
-* Reference event times: the USNO "Earth's Seasons" table, the IMCCE, and the
-  National Astronomical Observatory of Japan's ephemeris for the Tokyo
-  rise/set anchors.
+* Reference event times: the USNO "Earth's Seasons" table, the IMCCE, and
+  NAOJ 暦計算室, 「日の出入り＠東京(東京都) 令和6年(2024)01月」,
+  <https://eco.mtk.nao.ac.jp/koyomi/dni/2024/s1301.html>, retrieved
+  2026-09-26 (`nao-koyomi-dni-tokyo-2024`), for the Tokyo rise/set anchors.
 
 Every reference value in the test suite is taken from one of these. None of
 them was produced by this crate.

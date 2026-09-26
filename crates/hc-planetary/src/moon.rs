@@ -3,17 +3,29 @@
 //!
 //! # On Coordinated Lunar Time
 //!
-//! **There is no Coordinated Lunar Time in this crate, because there is not
-//! yet one to implement.**
+//! **There is no Coordinated Lunar Time in this crate, because none had been
+//! defined as of 2026-09-26, the date this was last checked.**
 //!
 //! A clock on the Moon does not tick at the same rate as one on Earth: the
-//! weaker gravitational potential and the relative motion make a lunar clock
-//! gain roughly 56 microseconds a day, and that is before anyone decides where
+//! weaker gravitational potential and the relative motion make an Earth
+//! clock, seen from the Moon, lose on average 58.7 microseconds per Earth
+//! day (`ostp-2024-celestial-time`), and that is before anyone decides where
 //! the origin is or which point on the Moon the scale is referred to. The
-//! United States Office of Science and Technology Policy directed NASA in
-//! April 2024 to deliver a standard, Coordinated Lunar Time (LTC), by the end
-//! of 2026, and the IAU and the CCTF have work in progress. At the time this
-//! module was written no definition had been published.
+//! United States Office of Science and Technology Policy's memorandum of
+//! 2 April 2024, *Policy on Celestial Time Standardization in Support of the
+//! National Cislunar Science and Technology (S&T) Strategy*, describes
+//! Coordinated Lunar Time (LTC) as the standard to be established and
+//! directs NASA to provide a finalized strategy to implement lunar timing
+//! standardization no later than 31 December 2026. The IAU's
+//! XXXII General Assembly adopted on 15 August 2024 Resolution II, which
+//! defines the *coordinate* time of a Lunar Celestial Reference System,
+//! Lunar Coordinate Time (TCL), by the relations of IAU 2000 Resolutions
+//! B1.3 and B1.5 with lunar quantities (`iau-2024-resolution-ii`), and
+//! Resolution III, "on the establishment of a coordinated lunar time
+//! standard by international agreement" (`iau-2024-press-release`). TCL is
+//! a relativistic coordinate time like TCG, not a civil lunar time scale;
+//! the coordinated scale Resolution III asks for is the one not yet
+//! defined.
 //!
 //! So this module offers the things that *are* defined — lunation numbers, the
 //! Moon's age, the selenographic position of the Sun — and refuses to invent a
@@ -44,8 +56,9 @@ use crate::util::{j2000_offset_days, signed_degrees};
 
 /// A one-sentence statement of where Coordinated Lunar Time stands, for
 /// callers that want to display something rather than silently omit it.
-pub const COORDINATED_LUNAR_TIME_STATUS: &str = "Coordinated Lunar Time (LTC) is being standardised and is not yet defined; \
-     this crate deliberately does not provide one.";
+pub const COORDINATED_LUNAR_TIME_STATUS: &str = "As of 2026-09-26, no Coordinated Lunar Time (LTC) scale was yet defined: the \
+     OSTP memorandum of 2 April 2024 asks NASA for a strategy by 31 December 2026, and IAU 2024 \
+     Resolution III calls for one by international agreement; this crate does not provide one.";
 
 /// The inclination of the Moon's equator to the ecliptic, in degrees. Meeus,
 /// chapter 53.
@@ -248,7 +261,8 @@ fn lunar_clock() -> BodyClock {
     }
 }
 
-/// The astronomical unit in kilometres, IAU 2012 definition.
+/// The astronomical unit in kilometres: 149 597 870 700 m exactly by IAU 2012
+/// Resolution B2 (`iau-2012-b2`).
 const ASTRONOMICAL_UNIT_KM: f64 = 149_597_870.7;
 
 /// Horner evaluation of a polynomial in `x`.
@@ -444,7 +458,8 @@ mod tests {
 
     #[test]
     fn the_crate_says_plainly_that_coordinated_lunar_time_does_not_exist_yet() {
-        assert!(COORDINATED_LUNAR_TIME_STATUS.contains("not yet defined"));
+        assert!(COORDINATED_LUNAR_TIME_STATUS.contains("no Coordinated Lunar Time"));
+        assert!(COORDINATED_LUNAR_TIME_STATUS.contains("2026-09-26"));
     }
 
     #[test]

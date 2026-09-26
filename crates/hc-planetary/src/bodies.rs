@@ -4,7 +4,10 @@
 //! # The data
 //!
 //! Every number is measured, not computed, and every row says where it came
-//! from. The bulk is the NASA NSSDC *Planetary Fact Sheets*, supplemented by
+//! from. The bulk is the NASA NSSDC *Planetary Fact Sheets*
+//! (<https://nssdc.gsfc.nasa.gov/planetary/factsheet/>, `nssdc-factsheets`;
+//! the comparison table retrieved 2026-09-26, the per-body sheets it links
+//! not re-read that day), supplemented by
 //! the IAU Working Group on Cartographic Coordinates and Rotational Elements
 //! (Archinal et al., 2018, *Celest. Mech. Dyn. Astr.* **130**:22) for
 //! satellite rotation rates and by Konopliv et al. (2018, *Icarus* **299**,
@@ -249,7 +252,7 @@ pub(crate) fn whole_and_fraction(index: f64) -> (i64, f64) {
     (whole as i64, index - whole)
 }
 
-const NSSDC: &str = "NASA NSSDC Planetary Fact Sheet";
+const NSSDC: &str = "NASA NSSDC Planetary Fact Sheet, nssdc.gsfc.nasa.gov/planetary/factsheet";
 
 /// Every body this crate carries data for, ordered outward from the Sun with
 /// each planet's moons following it.

@@ -32,7 +32,11 @@
 //! time of sol for those two rovers is LMST, not HLST.
 //!
 //! Sources: NASA GISS, *Mars24 Sunclock — Lander Mission Times* and
-//! *Technical Notes*; landing coordinates from the Mars24 lander table.
+//! *Technical Notes* (`mars24-notes`); landing coordinates from the Mars24
+//! lander list, *Mars Lander Missions*
+//! (<https://www.giss.nasa.gov/tools/mars24/help/landers.html>, updated
+//! 2023-12-09, retrieved 2026-09-26, `mars24-landers`). The conventions are
+//! written up in `docs/systems/mars-timekeeping.md`.
 
 use hc_core::TimeResult;
 use hc_core::math::floor;

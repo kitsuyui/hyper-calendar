@@ -10,7 +10,8 @@
 //!   not `二三年`, and the first year of an era is `元年` rather than
 //!   `一年`.
 //!
-//! The identifiers are the CLDR `numberingSystems.xml` ones, so a
+//! The identifiers are those of Unicode CLDR 48,
+//! `common/supplemental/numberingSystems.xml` (`cldr48-supplemental`), so a
 //! `-u-nu-` extension value can be looked up directly.
 //!
 //! # What is deliberately absent

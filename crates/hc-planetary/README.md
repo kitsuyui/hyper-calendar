@@ -36,12 +36,15 @@ assert!(!titan.is_standardised());                     // no standard exists
 
 ## What it deliberately does not do
 
-- **No Coordinated Lunar Time.** LTC is being standardised and is not yet
-  defined. The crate says so and provides no substitute. `moon::mean_solar_time`
+- **No Coordinated Lunar Time.** As of 2026-09-26 no LTC scale was defined:
+  the OSTP memorandum of 2 April 2024 asks NASA for a strategy by 31 December
+  2026, and IAU 2024 Resolution III calls for one by international agreement
+  (Resolution II defines Lunar Coordinate Time, TCL, a relativistic coordinate
+  time, not a civil scale). The crate says so and provides no substitute. `moon::mean_solar_time`
   gives a *mean solar* clock for the Moon under a zero point this crate
   declares and labels as declared; it is not LTC.
-- **No relativity.** A lunar clock gains ~56 µs/day on a terrestrial one. That
-  is `hc-relativity`'s subject.
+- **No relativity.** Seen from the Moon, an Earth clock loses on average 58.7 µs
+  per Earth day (the OSTP memorandum). That is `hc-relativity`'s subject.
 - **No ephemeris.** Mars's orbit is the only planetary orbit modelled. The
   `bodies` table is data, not a propagator.
 - **No invented standards.** Where no zero point has been agreed,
@@ -64,7 +67,7 @@ assert!(!titan.is_standardised());                     // no standard exists
 
 ## Sources, constant by constant
 
-### Mars (all from NASA GISS, *Mars24 Sunclock — Algorithm and Worked Examples* and its *Technical Notes*, restating Allison 1997 *GRL* 24:1967 and Allison & McEwen 2000 *Planet. Space Sci.* 48:215)
+### Mars (all from NASA GISS, *Mars24 Sunclock — Algorithm and Worked Examples* and its *Technical Notes*, retrieved 2026-09-26, restating Allison 1997 *GRL* 24:1967 and Allison & McEwen 2000 *Planet. Space Sci.* 48:215, which were not read; the system is written up in [`docs/systems/mars-timekeeping.md`](../../docs/systems/mars-timekeeping.md))
 
 | constant | value | note |
 |---|---|---|
@@ -72,7 +75,7 @@ assert!(!titan.is_standardised());                     // no standard exists
 | `MARS_SIDEREAL_DAY_SECONDS` | 88 642.663 s | 24h37m22.663s |
 | `SOL_IN_DAYS` | 1.027 491 251 7 | Mars24 eq. C-2. `88775.244/86400` is 1.0274912500 exactly; the crate carries the published ratio and documents the 1.5 × 10⁻⁷ s/sol gap |
 | `MSD_EPOCH_JULIAN_DATE_TT` / `MSD_AT_EPOCH` | JD 2 451 549.5 TT / 44 796.0 | MSD 0 falls on 1873-12-29 |
-| `MSD_MIDNIGHT_ADJUSTMENT` | 0.000 962 6 | Mars24's revised value |
+| `MSD_MIDNIGHT_ADJUSTMENT` | 0.000 962 6 | Mars24's revised value (its eq. C-2, revised 2015); carrying it rather than the 0.000 72 of 2000 is this library's choice, so that MSD and MTC match Mars24 |
 | `MSD_MIDNIGHT_ADJUSTMENT_2000` | 0.000 72 | as first published in AM2000; the two differ by 21.5 Martian seconds |
 | mean anomaly / fictitious mean Sun | 19.3871 + 0.52402073 Δt / 270.3871 + 0.524038496 Δt | eqs. B-1, B-2 |
 | 7 perturbation terms | see `PERTURBERS` | eq. B-3 |
@@ -82,7 +85,7 @@ assert!(!titan.is_standardised());                     // no standard exists
 | `MARS_SIDEREAL_YEAR_SOLS` / `_DAYS` | 668.5991 / 686.9797 | technical notes |
 | `MARS_YEAR_1_START_MSD` | 28 892.6593 | **a seed, not a citation.** Clancy et al. 2000 *JGR* 105(E4):9553 give the date 1955-04-11 and no time. Published times of day disagree; this model, a DE430 fit and Piqueux et al. 2015 *Icarus* 251:332 all cluster near 11:00 UTC, while the widely quoted 08:31 UTC does not reproduce. The constant is this crate's own `Ls = 0` solution and is re-solved at run time |
 | mission landing times, clock meridians, sol-0/sol-1 conventions | Mars24 *Lander Mission Times*; Viking 1's site longitude via Kuchynka et al. 2014, which defines the prime meridian | landing instants are SCET where documented; several NASA-quoted times are Earth-received time, 8–13 min later |
-| Darian months, weekdays, leap rule, epoch | Gangale, *The Architecture of Time, Part 2*, SAE 2006-01-2249, and `ops-alaska.com/time/gangale_mst/darian.htm` | leap rule `(Y−1)\2 + Y\10 − Y\100 + Y\500`; some secondary sources say `\1000`, giving 668.591 — the `\500` form is the better fit and is Gangale's own |
+| Darian months, weekdays, leap rule, epoch | Gangale, "The Darian Calendar for Mars", <https://ops-alaska.com/time/gangale_mst/darian.htm>, retrieved 2026-09-26; his SAE 2006-01-2249 was not read | leap rule `(Y−1)\2 + Y\10 − Y\100 + Y\500`, which the page calls the intercalation formula. The same page's "extended intercalation scheme", `\1000` (668.5910 sols) and a series of later formulas, is offered there as an example against the vernal-equinox year and is not carried |
 | `DARIAN_EPOCH_MARS_SOL_DATE` | −94 129 | reproduces the published Darian dates of the Viking 1 and Perseverance landings (14 Mina 195, 13 Sagittarius 219). Gangale's continuous "Mars Julian Sol" is noon-based and reads 94 128.511 at the MSD epoch; this crate aligns the sol boundary with Airy midnight |
 
 ### Bodies (NASA NSSDC *Planetary Fact Sheets* unless noted)

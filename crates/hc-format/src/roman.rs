@@ -1,10 +1,18 @@
 //! Dates the way a Roman wrote them: *a.d. III Kal. Apr.*
 //!
-//! `hc_calendars_solar::roman` implements years *ab urbe condita* and says
-//! in its own doc comment that it does not count days by kalends, nones and
-//! ides, because "that is a formatting question rather than a calendar one,
-//! and it belongs with the other presentation logic in `hc-format`". It was
-//! not here. So a `roman-auc` date rendered in a form no Roman could read.
+//! `hc_calendars_solar::roman` implements years *ab urbe condita* and
+//! leaves the counting of days by kalends, nones and ides to this module,
+//! as a formatting question rather than a calendar one.
+//!
+//! The rules are those of Reingold and Dershowitz, *Calendrical
+//! Calculations* (`reingold2018`), chapter 3 (the Julian calendar), as
+//! their `roman-from-fixed`, `fixed-from-roman`, `ides-of-month` and
+//! `nones-of-month` state them (`reingold2018code`, `calendar.l`, read
+//! 2026-09-26): the Ides on the 15th of March, May, July and October and
+//! the 13th otherwise, the Nones eight days earlier, and in a Julian leap
+//! year the 25th of February as the repeated day. The *bis sextum* reading
+//! of the leap day is the one the jurist Celsus gives in the *Digest*,
+//! 50.16.98 (not read here).
 //!
 //! # The system
 //!

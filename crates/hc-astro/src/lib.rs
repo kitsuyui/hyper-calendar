@@ -52,6 +52,7 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+pub mod delta_t_model;
 pub mod delta_t_table;
 pub mod earth;
 pub mod lunar;
@@ -64,6 +65,9 @@ pub mod vsop87;
 mod search;
 mod util;
 
+pub use delta_t_model::{
+    DELTA_T_MODELS, DeltaTModel, ESPENAK_MEEUS_2006, MORRISON_STEPHENSON_2021,
+};
 pub use earth::{Equatorial, Nutation, Obliquity, nutation, obliquity};
 pub use lunar::{
     MEAN_SYNODIC_MONTH, MoonPhase, lunar_illuminated_fraction, lunar_longitude, lunar_phase,
@@ -74,7 +78,7 @@ pub use solar::{
     Equinox, MEAN_TROPICAL_YEAR, Solstice, equinox, solar_longitude, solar_longitude_after,
     solstice,
 };
-pub use time::{delta_t, dynamical_time, julian_centuries, universal_time};
+pub use time::{delta_t, delta_t_with, dynamical_time, julian_centuries, universal_time};
 pub use ut1::{Ut1, Ut1Offsets};
 
 pub use hc_calendar;

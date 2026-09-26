@@ -2,7 +2,8 @@
 //!
 //! **There is no such thing as "the" birthstone for a month.** There is the
 //! American list, which has been revised three times since 1912; the British
-//! list of 1937; Japan's list of 1958, substantially revised in 2021; and
+//! list the National Association of Goldsmiths standardised in 1937, carried
+//! as the association printed it in 2007; Japan's list of 1958, substantially revised in 2021; and
 //! the older Western stones that all three replaced. They disagree, the
 //! disagreements are recent and documented, and this module's job is to make
 //! them visible rather than to pick a winner.
@@ -31,7 +32,7 @@
 //! | [`BIRTHSTONES_TRADITIONAL`] | none; Kunz's reconstruction of 15th–20th century usage | 1913 (recorded) |
 //! | [`BIRTHSTONES_US_1912`] | National Association of Jewelers | August 1912 |
 //! | [`BIRTHSTONES_US_2016`] | Jewelers of America / AGTA, as the GIA prints it | 1912, rev. 1952, 2002, 2016 |
-//! | [`BIRTHSTONES_UK`] | National Association of Goldsmiths | 1937 |
+//! | [`BIRTHSTONES_UK`] | National Association of Goldsmiths, as its web page printed the list | 1937, as printed in 2007 |
 //! | [`BIRTHSTONES_JP_1958`] | 全国宝石商協同組合 | 1958 |
 //! | [`BIRTHSTONES_JP_2021`] | 全国宝石卸商協同組合, with JJA and YJA | 1958, rev. 20 December 2021 |
 //!
@@ -75,7 +76,7 @@ pub static BIRTHSTONES_TRADITIONAL: MonthTable = MonthTable::new(
         revised: None,
         validity: Validity::between(1400, 1912),
         provenance: Provenance::Recorded,
-        source: "George F. Kunz, The Curious Lore of Precious Stones (Lippincott, 1913), p. 315",
+        source: "George F. Kunz, The Curious Lore of Precious Stones (Lippincott, 1913; kunz1913), p. 315",
         caveat: Some(
             "A reconstruction of European usage across five centuries, not a list any body \
              adopted. Usage varied by country and by century within the span it covers.",
@@ -118,7 +119,7 @@ pub static BIRTHSTONES_US_1912: MonthTable = MonthTable::new(
         revised: None,
         validity: Validity::between(1912, 1951),
         provenance: Provenance::Promulgated,
-        source: "George F. Kunz, The Curious Lore of Precious Stones (Lippincott, 1913), \
+        source: "George F. Kunz, The Curious Lore of Precious Stones (Lippincott, 1913; kunz1913), \
                  pp. 317, 319–320",
         caveat: Some("Superseded in 1952. Shipped so the revisions can be measured."),
     },
@@ -161,7 +162,8 @@ pub static BIRTHSTONES_US_2016: MonthTable = MonthTable::new(
         validity: Validity::since(2016),
         provenance: Provenance::Promulgated,
         source: "Gemological Institute of America, \"Birthstones by Month\", \
-                 https://www.gia.edu/birthstones; spinel added per National Jeweler, \
+                 https://www.gia.edu/birthstones (the page served on 2026-09-26 did not \
+                 render its chart, so it was not re-read that day); spinel added per National Jeweler, \
                  \"JA, AGTA Add Spinel as August Birthstone\" (2016); tanzanite per Grande & \
                  Augustyn, Gems and Gemstones (Univ. of Chicago Press, 2009), p. 335",
         caveat: None,
@@ -182,8 +184,15 @@ pub static BIRTHSTONES_US_2016: MonthTable = MonthTable::new(
     ],
 );
 
-/// The British list, standardised by the National Association of Goldsmiths
-/// in 1937.
+/// The British list of the National Association of Goldsmiths, as the
+/// association's web page printed it in the copy archived in 2007.
+///
+/// The association standardised a list in 1937 (Osborne, below), but this
+/// is not that list: it gives December tanzanite, which the American trade
+/// added to its own list only in 2002. The 1937 list is not carried,
+/// because no printing of it from the 1930s was read; when one is, it is a
+/// separate table under its own identifier, as §10 of the project policy
+/// asks of every revision.
 ///
 /// Four months differ from the American list in ways that are not merely a
 /// matter of which stone is printed first: April carries rock crystal, May
@@ -193,18 +202,21 @@ pub static BIRTHSTONES_US_2016: MonthTable = MonthTable::new(
 /// where the American list has had tourmaline beside it since 1912.
 pub static BIRTHSTONES_UK: MonthTable = MonthTable::new(
     Authority {
-        id: "birthstones-uk-1937",
-        english_name: "British birthstones",
+        id: "birthstones-uk-2007",
+        english_name: "British birthstones, as printed in 2007",
         body: Some("National Association of Goldsmiths"),
         region: Region::UNITED_KINGDOM,
         established: Some(AttributionDate::year(1937)),
         revised: None,
-        validity: Validity::since(1937),
+        validity: Validity::since(2007),
         provenance: Provenance::Promulgated,
         source: "The National Association of Goldsmiths, \"Tips & Tools: Birthstones\", \
                  jewellers-online.org (archived 2007); standardisation date per Harold Osborne \
                  (ed.), The Oxford Companion to the Decorative Arts (OUP, 1985), p. 513",
-        caveat: None,
+        caveat: Some(
+            "The list as printed in 2007, not as standardised in 1937: when and how often it \
+             was revised in between is not recorded in any source read.",
+        ),
     },
     [
         &["garnet"],
@@ -243,9 +255,16 @@ pub static BIRTHSTONES_JP_1958: MonthTable = MonthTable::new(
         revised: None,
         validity: Validity::between(1958, 2021),
         provenance: Provenance::Promulgated,
-        source: "全国宝石卸商協同組合, 組織沿革, https://zho.or.jp/history/; rationale for coral \
-                 and jade per 巽忠春, あなたの宝石 (徳間書店, 1962), p. 77",
-        caveat: Some("Superseded by the 2021 revision. Shipped so the revision can be measured."),
+        source: "全国宝石卸商協同組合, 組織沿革, https://zho.or.jp/history/, retrieved 2026-09-26; \
+                 the nineteen stones as the 2021 revision notice implies them; rationale for \
+                 coral and jade per 巽忠春, あなたの宝石 (徳間書店, 1962), p. 77",
+        caveat: Some(
+            "Superseded by the 2021 revision. Shipped so the revision can be measured. These are \
+             the nineteen stones the 2021 notice revised: its twenty-nine less the ten it names \
+             as added. The association's history page lists fifteen for the 1958 announcement, \
+             without sardonyx, tourmaline, citrine and lapis lazuli; when those four joined is \
+             not recorded in any source read.",
+        ),
     },
     [
         &["garnet"],
@@ -296,7 +315,8 @@ pub static BIRTHSTONES_JP_2021: MonthTable = MonthTable::new(
         validity: Validity::since(2021),
         provenance: Provenance::Promulgated,
         source: "全国宝石卸商協同組合, 誕生石改訂事業 (20 December 2021), \
-                 https://zho.or.jp/wp-content/uploads/2021/12/誕生石の改訂.pdf; reported by NHK \
+                 https://zho.or.jp/wp-content/uploads/2021/12/誕生石の改訂.pdf, retrieved \
+                 2026-09-26; reported by NHK \
                  and まいどなニュース, 20 December 2021",
         caveat: None,
     },

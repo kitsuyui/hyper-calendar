@@ -18,7 +18,10 @@
 //!
 //! Every gap is present tense: it describes the sources as they were read
 //! on the date in [`SURVEYED`], and a country leaves the table when its
-//! entry in the table of lists arrives.
+//! entry in the table of lists arrives. A `sources` string names each
+//! source by its `docs/references.bib` key where it has one and by URL
+//! where it does not; the survey and its sources are described in
+//! `docs/systems/name-days.md`.
 //!
 //! ```
 //! use hc_name_days::gaps::{ALL, GapReason, for_reason};
@@ -113,7 +116,8 @@ hc_core::catalogue! {
                  name days (Цветница on Palm Sunday, Великден, Тодоровден on the Saturday of the \
                  first week of Lent, Спасовден on Ascension) follow the Julian computus and are \
                  not yet carried.",
-            sources: "bg-patriarshia.bg/calendar; bg.wikipedia, Имен ден",
+            sources: "bg-patriarshia-calendar; bg.wikipedia, \"Имен ден\", \
+                      https://bg.wikipedia.org/wiki/Имен_ден",
         };
         /// Czechia's jmeniny.
         pub const CZECHIA = Gap {
@@ -126,7 +130,8 @@ hc_core::catalogue! {
                  is not codified, and that the widely used calendarium is the one in Miloslava \
                  Knappová's Jak se bude vaše dítě jmenovat? (2017), which is not binding. A \
                  copyrighted book with no binding force is not an authority to name.",
-            sources: "ptejteseknihovny.cz, Tvorba kalendária; cs.wikipedia, Jmeniny v Česku",
+            sources: "ptejteseknihovny-kalendarium; cs.wikipedia, \"Jmeniny v Česku\", \
+                      https://cs.wikipedia.org/wiki/Jmeniny_v_Česku",
         };
         /// Germany's and Austria's Namenstag.
         pub const GERMANY_AUSTRIA = Gap {
@@ -138,7 +143,7 @@ hc_core::catalogue! {
                  Regionalkalender für das deutsche Sprachgebiet and the Martyrologium Romanum, \
                  and the Orthodox and Evangelical calendars differ from them. The Regionalkalender \
                  is a liturgical calendar and belongs beside hc_holiday::roman_calendar, not here.",
-            sources: "de.wikipedia, Liste der Namenstage; namenstage.katholisch.de",
+            sources: "dewiki-namenstage; https://namenstage.katholisch.de",
         };
         /// Denmark's navnedag.
         pub const DENMARK = Gap {
@@ -152,7 +157,7 @@ hc_core::catalogue! {
                  carrying it is marked as having no sources, and the Copenhagen University Almanac \
                  does not mention name days on its contents page. A claim of an official register \
                  under Copenhagen University is unsupported by any page read.",
-            sources: "da.wikipedia, Navnedag; science.ku.dk/fakultetet/almanak",
+            sources: "dawiki-navnedag; https://science.ku.dk/fakultetet/almanak",
         };
         /// Estonia's nimepäev.
         pub const ESTONIA = Gap {
@@ -164,7 +169,8 @@ hc_core::catalogue! {
                  Mäeniit's Eesti Nimed (2011), as its source. Commercial sites claim the University \
                  of Tartu's institute of Estonian and general linguistics keeps an official calendar \
                  revised every five years; no university page confirming this was found.",
-            sources: "stat.ee/nimed/NIMEPAEVAD; et.wikipedia, Nimepäev",
+            sources: "stat-ee-nimepaevad; et.wikipedia, \"Nimepäev\", \
+                      https://et.wikipedia.org/wiki/Nimepäev",
         };
         /// Spain's santo.
         pub const SPAIN = Gap {
@@ -190,8 +196,7 @@ hc_core::catalogue! {
                  are published at a time; publishing the whole year, as a library would, is always \
                  subject to a royalty per copy. A caller who holds a licence loads the list with \
                  hc_name_days::load.",
-            sources: "almanakka.helsinki.fi/en/name-days/copyright-to-name-days; \
-                      almanakka.helsinki.fi/en/name-days/name-day-pricing; jkorpela.fi/tekoik/almanakka.html",
+            sources: "helsinki-copyright; helsinki-pricing; kko-2000-56",
         };
         /// France's fête.
         pub const FRANCE = Gap {
@@ -204,7 +209,7 @@ hc_core::catalogue! {
                  Church's own reference, Nominis of the Conférence des évêques de France, publishes \
                  calendars for download and its terms were not retrieved. The General Roman \
                  Calendar behind both is already in hc_holiday::roman_calendar.",
-            sources: "fr.wikipedia, Calendrier français des fleuristes; nominis.cef.fr",
+            sources: "frwiki-fleuristes; https://nominis.cef.fr",
         };
         /// Greece's ονομαστική εορτή.
         pub const GREECE = Gap {
@@ -217,7 +222,7 @@ hc_core::catalogue! {
                  Sunday (Pascha + 7) for Θωμάς and Θωμαΐς, All Saints (Pascha + 56) for names with no \
                  saint of their own, and St George moved to Easter Monday when 23 April falls before \
                  Pascha — and are not yet carried.",
-            sources: "el.wikipedia, Ορθόδοξο εορτολόγιο; eortologio.gr/assist/about_gr.php",
+            sources: "elwiki-eortologio; https://eortologio.gr/assist/about_gr.php",
         };
         /// Croatia's imendan.
         pub const CROATIA = Gap {
@@ -229,7 +234,7 @@ hc_core::catalogue! {
                  name-day list. The only compiled imendanski kalendar found is the Bishops' \
                  Conference of Bosnia and Herzegovina's, issued for its own territory, with no terms \
                  stated and a publisher's notice of all rights reserved.",
-            sources: "hbk.hr/nacionalni-liturgijski-kalendar; ktabkbih.net, Imendanski kalendar 2025",
+            sources: "https://hbk.hr/nacionalni-liturgijski-kalendar; ktabkbih-imendanski",
         };
         /// Hungary's névnap.
         pub const HUNGARY = Gap {
@@ -243,7 +248,7 @@ hc_core::catalogue! {
                  Ladó and Bíró's Magyar utónévkönyv (1998), a copyrighted book. The convention \
                  leaves 24 February empty in a leap year and moves the names of 24-28 February one \
                  day later.",
-            sources: "hu.wikipedia, Névnap; archive.nytud.hu, utónevek; hun-ren.hu, 2023 news",
+            sources: "huwiki-nevnap; https://archive.nytud.hu, utónevek; https://hun-ren.hu, 2023 news",
         };
         /// Lithuania's vardadienis.
         pub const LITHUANIA = Gap {
@@ -255,7 +260,7 @@ hc_core::catalogue! {
                  consultation pages could not be retrieved, and the encyclopaedic account is that \
                  name days come from church calendars, with the Catholic and Orthodox saints' \
                  calendars differing.",
-            sources: "lt.wikipedia, Vardadienis; vlkk.lt (HTTP 403 when read)",
+            sources: "ltwiki-vardadienis; https://vlkk.lt (HTTP 403 when read)",
         };
         /// Norway's navnedag.
         pub const NORWAY = Gap {
@@ -268,7 +273,8 @@ hc_core::catalogue! {
                  credited as source, that commercial use requires contacting it for terms, and that \
                  the calendar is protected under the copyright act. A caller who holds a licence \
                  loads the list with hc_name_days::load.",
-            sources: "almanakkforlaget.no/pages/navnedager; no.wikipedia, Navnedag",
+            sources: "almanakkforlaget-navnedager; no.wikipedia, \"Navnedag\", \
+                      https://no.wikipedia.org/wiki/Navnedag",
         };
         /// Poland's imieniny.
         pub const POLAND = Gap {
@@ -279,7 +285,7 @@ hc_core::catalogue! {
             explanation: "No body keeps a list; publishers differ and state that the dates are not \
                  regulated. The Catholic liturgical calendar behind the custom is already in \
                  hc_holiday::roman_calendar.",
-            sources: "pl.wikipedia, Imieniny",
+            sources: "plwiki-imieniny",
         };
         /// Russia's именины.
         pub const RUSSIA = Gap {
@@ -291,7 +297,7 @@ hc_core::catalogue! {
                  after one's birthday, read from the Church's Месяцеслов on the Julian calendar. A \
                  name maps to many dates, the rule needs the caller's birthday rather than a list, \
                  and a name-to-dates table would transcribe a copyrighted Patriarchate calendar.",
-            sources: "ru.wikipedia, Именины; azbyka.ru/imeniny",
+            sources: "ruwiki-imeniny; https://azbyka.ru/imeniny",
         };
         /// Sweden's namnsdag.
         pub const SWEDEN = Gap {
@@ -305,8 +311,8 @@ hc_core::catalogue! {
                  list of their own. Neither the Academy's page nor the Institute's asserts or waives \
                  copyright, and Swedish catalogue protection can apply to a compiled list; nobody \
                  has said whether it does. The list is not carried until the committee is asked.",
-            sources: "svenskaakademien.se, Namnlängden; isof.se, Namnsdagar i almanackan; \
-                      data.riksdagen.se, 1993/94:KrU4 and 2006/07:Kr238",
+            sources: "svenska-akademien-namnlangden; isof-namnsdagar; riksdagen-kru4 (1993/94:KrU4); \
+                      data.riksdagen.se, 2006/07:Kr238",
         };
         /// Slovakia's meniny.
         pub const SLOVAKIA = Gap {
@@ -319,7 +325,7 @@ hc_core::catalogue! {
                  Slovak copyright law excludes official works from protection, and whether the \
                  calendarium is one under Zákon č. 185/2015 Z. z. § 5 has not been checked; the \
                  list is not carried until it is.",
-            sources: "culture.gov.sk/sk/oficialne-kalendarium; culture.gov.sk/sk/kalendarova-komisia",
+            sources: "culture-sk-kalendarium; https://www.culture.gov.sk/sk/kalendarova-komisia",
         };
     }
 }

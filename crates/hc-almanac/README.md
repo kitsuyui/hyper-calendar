@@ -56,24 +56,30 @@ which is a different answer from `Some(false)`, "the almanac says no".
 
 **None of this is official.** The National Astronomical Observatory of Japan
 publishes the solar terms, the 雑節 and the public holidays in the 暦要項 and
-nothing else in this crate; its 暦Wiki covers 十二直, 二十八宿, 六曜 and the
-節切り/月切り vocabulary but publishes no 暦注下段 or 選日 rule at all. The 中段
+nothing else in this crate; its 暦Wiki covers 暦注 in general, 十二直, 二十八宿,
+the 節月 and the 節切り/月切り vocabulary but publishes no 暦注下段 or 選日 rule
+at all. The 中段
 and 下段 were struck from the official calendar at the Meiji reform of 1873 as
 superstition, and survived in commercial almanacs and, for a while, in illegally
 printed おばけ暦.
 
-Sources used, in rough order of weight:
+Sources used, in rough order of weight. The system document
+[`docs/systems/japanese-almanac-notes.md`](../../docs/systems/japanese-almanac-notes.md)
+gives each with what it was used for and the date it was read.
 
 * **国立天文台 暦計算室 暦Wiki** — 十二直 (the rule and the 「おどる」 repeat),
   二十八宿 (the continuous-counter statement and the 二十七宿 reset table), 節月,
   暦注. <https://eco.mtk.nao.ac.jp/koyomi/wiki/>
 * **国立国会図書館「日本の暦」** — the 三箇の悪日 table, 往亡日, 天赦日, 帰忌日,
-  母倉日, 月徳日, 八専, 十方暮, 天一天上, and the glosses.
-  <https://www.ndl.go.jp/koyomi/>
+  母倉日, 月徳日, the two 一粒万倍日 methods, 八専, 十方暮, 天一天上, its own
+  凶会日 and 五墓日 lists, and the glosses. <https://www.ndl.go.jp/koyomi/>
 * **精選版日本国語大辞典 / デジタル大辞泉 via コトバンク** — the mansion 和名,
   the 鬼宿日 marriage exception, the 五墓日 variant.
-* **岡田芳朗・阿久根末忠『現代こよみ読み解き事典』(柏書房, 1993)** — the rule
-  tables, reached through Japanese Wikipedia 暦注下段 and こよみのページ.
+* **岡田芳朗・阿久根末忠 (編著)『現代こよみ読み解き事典』(柏書房, 1993)** — the
+  rule tables. Not read: reached only through Japanese Wikipedia 暦注下段 and
+  こよみのページ, which both name it.
+* **Publishers' own statements of which reading they print** — こよみる, 歳事暦,
+  うまずたゆまず.
 * **Published almanac date lists** — こよみる, 暦職人, 吉日カレンダー, arachne.jp,
   暦注下段ナビ, 開運道 and KOYOMI NOTE, used as *checks* and cited in the tests.
 
@@ -81,11 +87,11 @@ A warning worth repeating: most of the well-known Japanese 暦注 websites desce
 from the same 岡田芳朗 lineage, so four agreeing pages are often one witness. The
 tests therefore anchor on printed date lists as well as on rule statements,
 because a citation cannot catch a transcription error and a published calendar
-can. Three circulated tables disagree with the printed lists, and the crate
-follows the lists:
+can. Where a table could be read two ways, the crate follows the lists:
 
-* 一粒万倍日, 亥月 row: **酉・戌**, not the widely copied 酉・午.
-* 大明日: the **25**-entry list, which includes 己巳 and excludes 乙卯.
+* 一粒万倍日, 亥月 row: **酉・戌**, one branch from each of the two methods the
+  National Diet Library says are now used together.
+* 大明日: the **25**-entry list, which includes 己巳.
 * 復日: the 節月 → stem mapping is a **cross product** (正月 takes 甲 *and* 庚),
   not a pairwise one.
 
@@ -96,10 +102,11 @@ follows the lists:
 | 二十八宿 vs 二十七宿 | Japan used the 27 of 宿曜道 until 渋川春海's 貞享 reform of 1685 replaced them with the Chinese 28. Both are printed today. 牛宿 is the one the 27 drops. |
 | Mansion 吉凶 | Publishers disagree on roughly a third of the entries. Only 鬼宿 and 牛宿 are agreed by every source; `Mansion::fortune_is_undisputed` says which. |
 | 三隣亡 | The day-selection rule is unchanged from the Edo period; what flipped is the *meaning*. It was 三輪宝, 「屋立てよし」 — auspicious for building — until a copyist's よ/あ slip inverted it. |
-| 五墓日 | Two 干支 sets in print (乙丑・辛未 vs 乙未・辛丑) and two scopes (everyone, or only those whose birth-year 納音 matches). The crate uses the calculator reading, unconditionally, and says so. |
-| 三箇の悪日 | Originally birth-year restricted; modern printed calendars apply them to everyone, and so does this crate. |
-| 大明日 | 25-entry and 21-entry lists are both published. The 25 is implemented and a published date settles it. |
-| 凶会日 | 82 entries under the 宣明暦, 70 after the 貞享 reform. The 貞享 table is implemented. |
+| 五墓日 | Three 干支 sets in print (乙丑・辛未 in Wikipedia and the publishers, 乙未・辛丑 in 精選版日本国語大辞典, 乙未・丙辰・辛丑 in the National Diet Library) and two scopes (everyone, or only those whose birth-year 納音 matches). The crate uses the publishers' set, unconditionally, and names the others. |
+| 三箇の悪日 | Given by birth year in every table read; applied to everyone by many commercial almanacs, and by this crate. |
+| 大明日 | 25-, 21- and 19-entry lists are published. The 25 is implemented and a published date settles it. |
+| 凶会日 | The 宣明暦 table and the 貞享暦 table, each read by 節月 or by 旧暦 month. The 貞享 table by 節月 is `LowerRegister::KUENICHI`; by 旧暦 month it is `lower_register::KUENICHI_BY_LUNISOLAR_MONTH`, checked against こよみる's 2025 dates. |
+| 日家九星 | A solstice on 癸巳 switches on the preceding 甲子 in one school and the following in another; both are `nine_stars::SwitchReading` entries. |
 | 七曜 names | The 七曜 weekday names survive as living usage only in Japanese and Korean. Mainland China replaced them with 星期 (coined 1905); Taiwan used them under Japanese rule and now uses 星期 too. Both Chinese columns are given. |
 | Meridian | Every 節月-keyed and Moon-keyed annotation takes a `Meridian`, because Tokyo and Beijing put the same solar-term instant on different days several times a century. |
 
@@ -145,16 +152,14 @@ re-exported for callers who want the fuller article.
 
 Things this crate deliberately does not do, rather than guessing:
 
-* **The 日家九星 閏.** The 陽遁/陰遁 switch is the 甲子 day *nearest* each
-  solstice, and a period is normally 180 days — twenty nines, which is why the
-  star repeats across every reversal. About one period in twenty-three runs **240
-  days** instead, and 240 is not a multiple of nine, so an almanac inserts a 閏.
-  There is no agreed rule for it: こよみのページ states 「日家九星の閏にはいくつも
-  の計算方式が乱立している状態」 and labels its own scheme 「独自に考案した方式」.
-  This crate counts continuously and applies no correction;
-  `DayStarPeriod::is_leap_period` tells a caller when its answer will differ from
-  a publisher's. Under the nearest-甲子 rule, 240-day periods open on 23
-  November 2019, 24 May 2031 and 26 May 2042.
+* **A third placement of the 日家九星 閏.** The 陽遁/陰遁 switch is the 甲子 day
+  *nearest* each solstice, and a period is normally 180 days. About one period
+  in twenty-three runs **240 days** instead and holds a 閏, which the crate
+  places as こよみのページ and Japanese Wikipedia both describe it. Wikipedia
+  records a further placement — wherever a 甲午 falls within a day of a
+  solstice — and says that rule alone leaves places that need adjusting,
+  without saying how; it is not implemented. `DayStarPeriod::is_leap_period`
+  tells a caller when a day is in a period that holds a 閏.
 * **Per-mansion 吉凶 lists.** The 吉/凶 flag is shipped; the per-mansion lists of
   favoured and forbidden undertakings are not, because published tables diverge
   enough that picking one would be inventing a tradition. Only the two statements
@@ -164,10 +169,12 @@ Things this crate deliberately does not do, rather than guessing:
   the rule gives, because a 神吉日 overlapping certain 凶日 was dropped. Which
   ones is not known: Japanese Wikipedia says 「その規則は完全には判明していない」.
   All 33 are emitted.
-* **凶会日 as 月切り.** Sources contradict each other, and one contradicts itself.
-  The 節月 reading is implemented and the reason is stated in
-  `LowerRegister::KUENICHI`; a caller wanting the 旧暦月 reading must evaluate the
-  shipped table against `DayContext::lunisolar` itself.
+* **凶会日 in the lower register twice.** Sources contradict each other about 節切り
+  and 月切り, and one contradicts itself. `LowerRegister::KUENICHI` is the 節月
+  reading and is what a day's lower register holds; the 旧暦月 reading is the
+  named rule `lower_register::KUENICHI_BY_LUNISOLAR_MONTH`, evaluated with
+  `rule_applies`, so that a page does not print 凶会日 twice. The 宣明暦 table
+  is not carried: no printed date tests it.
 * **臘日.** At least four incompatible definitions are in print and many almanacs
   omit it. Not implemented.
 * **三伏 (初伏・中伏・末伏).** A period counted from the summer solstice and 立秋

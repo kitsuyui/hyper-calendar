@@ -4,11 +4,15 @@
 //! landing on 大安. The first day of the first month is therefore always
 //! 先勝, the first of the second month always 友引, and so on: the cycle
 //! restarts at every new moon, which is why a Japanese calendar's 六曜 column
-//! jumps a step at apparently random intervals. It is not a weekday.
+//! jumps a step at apparently random intervals. It is not a weekday. A leap
+//! month runs as the month before it did.
 //!
-//! The consequence people notice is 仏滅 and 大安: wedding halls charge more
-//! on 大安 and funeral parlours close on 友引, so a library that gets this
-//! wrong is wrong about something with money attached.
+//! The consequence people notice is 仏滅 and 大安: weddings are most often
+//! held on 大安 and some wedding halls discount 仏滅, and funerals are
+//! avoided on 友引, when some crematoria and funeral businesses close.
+//!
+//! The rule, the lunisolar date it needs and a worked example are in
+//! `docs/systems/zassetsu-and-rokuyo.md` in the repository.
 //!
 //! # Where the lunisolar date comes from
 //!
@@ -23,11 +27,31 @@
 //!
 //! # Before 1873
 //!
-//! 六曜 as a daily cycle is a Meiji-era popularisation; earlier forms had
-//! different names, a different order and, in the Muromachi period, a
-//! different length. Nothing here is historical before the Gregorian
-//! adoption in 1873, and the pre-1873 answers this module gives are
-//! extrapolations of the modern rule, not what any surviving almanac says.
+//! The six names in their modern form are first found in the 『万暦両面鑑』
+//! of about 1747; a table of 1688 has a six-day cycle under other names, and
+//! in the Edo period the cycle was one 暦注 among many. The Meiji reform of
+//! 1872 banned the notes of lucky and unlucky days from the official
+//! almanac; almanacs full of them circulated privately from about 1882. Nothing here is
+//! historical before the Gregorian adoption in 1873, and the pre-1873
+//! answers this module gives are extrapolations of the modern rule over the
+//! 定気 lunisolar date, not what any surviving almanac says.
+//!
+//! # Sources
+//!
+//! * `wikipedia-ja-rokuyo`: Japanese Wikipedia, 「六曜」, revision 110850826
+//!   (2026-08-31), <https://ja.wikipedia.org/wiki/%E5%85%AD%E6%9B%9C>, retrieved
+//!   2026-09-26, a secondary source: the rule as 「旧暦の月の数字と旧暦の日の
+//!   数字の和が6の倍数であれば大安」, the fixed 六曜 of the first of each
+//!   month with a leap month as the month before, the readings, 友引 and
+//!   funerals, and the history above. The works it cites — 『頭書長暦』,
+//!   『万暦両面鑑』, Kanda Shigeru's study — were not read.
+//! * `nao-rekiwiki-rekichu`: 国立天文台 暦計算室, 暦Wiki 「暦注」,
+//!   <https://eco.mtk.nao.ac.jp/koyomi/wiki/CEF1C3ED.html>, retrieved
+//!   2026-09-26: the 暦注 as the notes of good and bad days, and the
+//!   abolition of the middle and lower registers in the Meiji reform. The
+//!   暦Wiki has no page on 六曜 and the 暦要項 does not print it; the
+//!   Observatory does not compute the lunisolar calendar it depends on
+//!   (`nao-faq-kyureki`).
 
 use hc_calendar::Rd;
 
@@ -42,13 +66,14 @@ use crate::meridian::Meridian;
 pub enum Rokuyo {
     /// 先勝: haste brings fortune. Lucky in the morning, unlucky after noon.
     Sensho,
-    /// 友引: "pulling friends". Funerals are not held; crematoria close.
+    /// 友引: "pulling friends". Funerals are avoided, and some crematoria and
+    /// funeral businesses close.
     Tomobiki,
     /// 先負: the opposite of 先勝. Act late, not early.
     Senbu,
     /// 仏滅: "the Buddha's death", the unluckiest of the six.
     Butsumetsu,
-    /// 大安: "great peace", the luckiest. Weddings cost more.
+    /// 大安: "great peace", the luckiest; the day most weddings are held on.
     Taian,
     /// 赤口: "the red mouth". Unlucky except around noon.
     Shakko,
@@ -122,9 +147,9 @@ impl Rokuyo {
 
     /// The name in Hepburn romaji.
     ///
-    /// Several have two readings in ordinary use — 先勝 is *senshō* or
-    /// *sakigachi*, 赤口 *shakkō* or *shakku* — and the form given here is the
-    /// one the printed calendars use.
+    /// Several have more than one reading — 先勝 is *senshō* or *senkachi*,
+    /// 先負 *senpu*, *senbu* or *senmake*, 赤口 *shakkō* or *shakku*
+    /// (`wikipedia-ja-rokuyo`) — and one of them is given here.
     #[must_use]
     pub const fn romaji(self) -> &'static str {
         match self {
@@ -183,8 +208,8 @@ mod tests {
     const JAPAN: Meridian = Meridian::JAPAN;
 
     /// The first day of each lunisolar month has a fixed 六曜, and the twelve
-    /// of them are the six taken twice. This table is printed in every
-    /// explanation of the cycle.
+    /// of them are the six taken twice; Japanese Wikipedia's 「六曜」 prints
+    /// this table (`wikipedia-ja-rokuyo`).
     const FIRST_OF_MONTH: [(u8, Rokuyo); 12] = [
         (1, Rokuyo::Sensho),
         (2, Rokuyo::Tomobiki),
@@ -243,10 +268,11 @@ mod tests {
         assert_eq!(indices, [0, 1, 2, 3, 4, 5]);
     }
 
-    /// Anchors that can be checked against a printed calendar. 1 January
-    /// 2024 was 赤口; the lunar new years are the first of the first month
-    /// and so are always 先勝; 中秋の名月 is the fifteenth of the eighth
-    /// month, 8 + 15 = 23, remainder 5, so it is always 仏滅.
+    /// Anchors derived from the rule. 1 January 2024 was the twentieth of
+    /// the eleventh month, 11 + 20 = 31, remainder 1, so 赤口; the lunar new
+    /// years are the first of the first month and so are always 先勝; 中秋の
+    /// 名月 is the fifteenth of the eighth month, 8 + 15 = 23, remainder 5, so
+    /// it is always 仏滅, as `wikipedia-ja-rokuyo` also works it.
     #[test]
     fn published_rokuyo_dates_come_out_right() {
         let expected = [
@@ -375,8 +401,7 @@ mod tests {
     }
 
     /// 大安 follows 仏滅 immediately in the cycle, always: the unluckiest day
-    /// of the six is the eve of the luckiest. That is the property wedding
-    /// halls and funeral parlours price off.
+    /// of the six is the eve of the luckiest.
     #[test]
     fn the_luckiest_day_always_follows_the_unluckiest() {
         assert_eq!(

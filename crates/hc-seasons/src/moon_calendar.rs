@@ -12,10 +12,16 @@
 //! elongation grows by about 12° a day — so a single number for a whole day
 //! has to be quoted for some instant inside it. This module uses **local
 //! noon**, and says so in every doc comment. That is the convention of
-//! Japan's National Astronomical Observatory, whose 暦要項 prints 正午月齢,
-//! the age at 12:00 Japan Standard Time (NAOJ 暦計算室, 「月齢について」,
-//! 2017), so at [`Meridian::JAPAN`] the two agree. [`moon_age_at`] takes any
-//! instant for callers who need to match a source that quotes another.
+//! Japan's National Astronomical Observatory, whose 暦象年表 prints 正午月齢,
+//! the Moon's age at noon of the day to a tenth of a day (国立天文台
+//! 暦計算室, 「月齢について」, from the 暦象年表 2017,
+//! `nao-topics-2017-getsurei`,
+//! <https://eco.mtk.nao.ac.jp/koyomi/topics/html/topics2017_1.html>,
+//! retrieved 2026-09-26). That page does not name the time scale of the
+//! noon; the Observatory's 暦要項 gives its times in 中央標準時, Japan
+//! Standard Time, and at [`Meridian::JAPAN`] this module's noon is noon
+//! JST. [`moon_age_at`] takes any instant for callers who need to match a
+//! source that quotes another.
 //!
 //! # 十五夜 and 十三夜
 //!

@@ -8,7 +8,7 @@
 //! All ages are on the **Planck 2018 base-ΛCDM parameters**, specifically the
 //! `TT,TE,EE+lowE+lensing+BAO` column of Table 2 of Planck Collaboration,
 //! *Planck 2018 results. VI. Cosmological parameters*, A&A 641, A6 (2020),
-//! arXiv:1807.06209:
+//! arXiv:1807.06209 (`planck2018-vi`):
 //!
 //! | Parameter | Value |
 //! | --- | --- |

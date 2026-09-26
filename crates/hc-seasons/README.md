@@ -13,8 +13,10 @@ The solar terms, the pentads, the meridians and the zodiac are written up in
 the rules from the sources, a worked example against the 暦要項, what is
 carried and what is not, how the instants compare with the published
 almanacs, and the sources, keyed in
-[`docs/references.bib`](../../docs/references.bib). This README summarises it
-and states the crate's own facts.
+[`docs/references.bib`](../../docs/references.bib). The 雑節, 六曜 and the
+minimal lunisolar derivation they rest on are written up the same way in
+[`docs/systems/zassetsu-and-rokuyo.md`](../../docs/systems/zassetsu-and-rokuyo.md).
+This README summarises both and states the crate's own facts.
 
 | Module | Covers |
 | --- | --- |
@@ -110,8 +112,8 @@ Terms are 15 days apart, pentads 5 and signs 30, so the *term*, *pentad* or
 *sign* is never wrong; only its day, and only at a midnight boundary. Lunar
 conjunctions land within about a minute, so month boundaries, phase dates,
 十五夜 and 六曜 are firmer than the solar-term dates. 月齢 and the illuminated
-fraction are quoted for **local noon**, as NAOJ quotes its 正午月齢 for 12:00
-JST; `moon_age_at` takes any instant. The sidereal boundaries carry a second,
+fraction are quoted for **local noon**, as NAOJ's 暦象年表 quotes its 正午月齢
+for noon; `moon_age_at` takes any instant. The sidereal boundaries carry a second,
 independent uncertainty, the few tens of arcseconds by which published values
 of a named ayanamsa disagree.
 
@@ -133,8 +135,10 @@ fixed list could be right everywhere at once.
   and, for nine entries, 吳澄's 月令七十二候集解) and the Japanese one (the
   宝暦暦 revision the 略本暦 printed, in shinjitai), which is why shipping
   one set and calling it "the 72 pentads" is the usual mistake.
-* **雑節 dates** and the **equinox-day table** are checked against the
-  National Astronomical Observatory of Japan's 暦要項.
+* **雑節 dates**: the forty-four the 暦要項 prints for 2024–2027, and the
+  twenty-four instants among them to the minute; **社日** against the days
+  the almanacs printed in 1873–1946, from the Observatory's 暦Wiki. The
+  **equinox-day table** against the 暦要項.
 * **土用の丑の日** is checked against the published eel days for 2023–2025,
   two of which had a 二の丑.
 * **中秋の名月 and 十三夜** against the published dates for 2020–2025.
@@ -152,7 +156,7 @@ None of these reference values was produced by this crate.
 | `SolarLongitude(deg)` | the four 土用 entries (27°, 117°, 207°, 297°), 入梅 (80°), 半夏生 (100°) |
 | `OffsetFromTerm { term, days }` | 節分 (−1 from a 立 term), the three 彼岸 days (−3, 0, +3 from an equinox) |
 | `NightsFromBeginningOfSpring(n)` | 八十八夜 (88), 二百十日 (210), 二百二十日 (220) |
-| `NearestStemDay { term, stem }` | 社日, the 戊 day nearest an equinox |
+| `NearestStemDay { term, stem }` | 社日, the 戊 day nearest an equinox, the tie decided by the equinox's half of the day |
 
 `Ayanamsa` is the same idea in the other module: an anchor value at an anchor
 Julian date and nothing else, so Lahiri, Raman, Krishnamurti and Fagan–Bradley
@@ -210,9 +214,10 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
   data of a naming scheme with citations. The crate makes no claim about what
   any of it means, and there is no interpretation, compatibility or forecast
   anywhere in it.
-* **No pre-1873 六曜.** The daily six-day cycle is a Meiji-era popularisation;
-  earlier forms had different names, order and length. Answers before 1873 are
-  extrapolations of the modern rule, not what any surviving almanac says.
+* **No pre-1873 六曜.** The six names in their modern form are first found
+  in an almanac of about 1747, and in the Edo period the cycle was one 暦注
+  among many. Answers before 1873 are extrapolations of the modern rule, not
+  what any surviving almanac says.
 
 ## Known gaps
 
@@ -227,18 +232,25 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
   of the 3,653 days of 2024–2033 differ, all in one run from 25 August to 21
   November 2033.
 
-  What the derivation does not implement: the leap month is properly the
-  *first* 中気-less month after the eleventh, decided by looking at the whole
-  year between two winter solstices, and a month can occasionally hold two
-  中気 — the case that has made 天保暦's rule formally ambiguous since 1844
-  and is why Japan's official calendar has no legal lunisolar definition
-  today. This code decides month by month and takes the later 中気 when a
-  month holds two. It reproduces every lunar new year 2015–2026 and the 2023
-  閏二月, and it puts the winter solstice in month 11 for every year
-  1990–2039.
-* **社日's tie-break.** When the equinox falls on a 癸 day the two 戊 days are
-  exactly five days either side. This crate takes the earlier; sources differ,
-  and there is no switch for it.
+  What the derivation does not implement: a month can occasionally hold two
+  中気, and the 天保暦 then requires the months of the solstices and
+  equinoxes to be the eleventh, second, fifth and eighth, while the Chinese
+  rule takes the first 中気-less month between two winter solstices as the
+  leap month. This code decides month by month and takes the later 中気
+  when a month holds two. In 2033–34 no numbering satisfies the 天保暦 rule
+  at all — the 旧暦2033年問題, the first such case since the calendar took
+  effect in 1844 — and no official lunisolar calculation is made in Japan
+  today to settle it. The derivation reproduces every lunar new year
+  2015–2026, the 2023 閏二月 and the Observatory's table of 2014, and puts
+  the winter solstice in month 11 for every year 1990–2039; it disagrees
+  with the Observatory's table of 1984–85, whose December month holds two
+  中気.
+* **社日 has two tie rules, and both are carried.** When the equinox falls on
+  a 癸 day the two 戊 days are exactly five days either side. The almanacs
+  took the earlier through the 明治7年暦, and from the 明治14年暦 the earlier
+  if the equinox fell before noon and the later if after; `shanichi` (and
+  `day_of`) is the second rule and `classical_shanichi` the first, each
+  anchored to the days the almanacs printed.
 * **`pentad_moment` near 280°.** A leap year whose 1 January falls just before
   the 280° crossing contains that pentad twice, and `pentad_moment` returns
   the first. `pentads_in_year` walks the year instead and cannot
@@ -278,7 +290,11 @@ document, with keys in `docs/references.bib`. The rest of the crate cites:
   `gregorian.rs` adapts from `hc_calendar::gregorian`.
 * National Astronomical Observatory of Japan, 暦要項 (*Calendar Essentials*),
   published annually in the *Official Gazette* — the 雑節 dates and the
-  春分の日 / 秋分の日 table.
+  春分の日 / 秋分の日 table. The 雑節, 六曜 and lunisolar sources are listed
+  in their document.
+* The Term and Quarter Days (Scotland) Act 1990 and the Removal Terms
+  (Scotland) Act 1886, on legislation.gov.uk, for the Scottish days in
+  `quarter_days`.
 
 ## Testing
 

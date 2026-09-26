@@ -26,7 +26,7 @@
 //! which of three groups the year's earthly branch falls in. 子午卯酉 years
 //! open at 八白, 辰戌丑未 years at 五黄, 寅申巳亥 years at 二黒.
 //!
-//! # 日家九星 — the day star, and where this crate stops
+//! # 日家九星 — the day star
 //!
 //! The day star reverses twice a year.
 //!
@@ -35,16 +35,15 @@
 //! * **陰遁** — backward counting — begins on the 甲子 day nearest the June
 //!   solstice, and that day is 九紫.
 //!
-//! "Nearest" is doing real work and is the part most sources get wrong. The
-//! December solstice of 2023 fell on 22 December; the last 甲子 on or before
-//! it was 2 November, fifty days earlier, and the nearest was 1 January
-//! 2024, ten days later. Published almanacs print 一白水星 against 1 January
-//! 2024, so the rule is *nearest*, not *last*. こよみのページ states it
-//! operationally: take the solstice day's sexagenary position; if it is in
-//! the first half of the cycle (甲子 0 through 癸巳 29) the switch is the
-//! preceding 甲子, otherwise the following one. That is implemented in
-//! [`switch_day_near`], and the tests check it against five published switch
-//! dates from 2024 to 2026.
+//! "Nearest" is doing real work. The December solstice of 2023 fell on 22
+//! December; the last 甲子 on or before it was 2 November, fifty days
+//! earlier, and the nearest was 1 January 2024, ten days later. Published
+//! almanacs print 一白水星 against 1 January 2024, so the rule is *nearest*,
+//! not *last*. こよみのページ states it operationally: take the solstice
+//! day's sexagenary position; if it is in the first half of the cycle (甲子 0
+//! through 癸巳 29) the switch is the preceding 甲子, otherwise the following
+//! one. That is implemented in [`switch_day_near`], and the tests check it
+//! against five published switch dates from 2024 to 2026.
 //!
 //! ## The doubled star at each reversal
 //!
@@ -54,37 +53,71 @@
 //! printed twice running. The tests check both directions against published
 //! almanac pages (2025-12-20/21 and 2026-06-18/19).
 //!
-//! ## The 閏, which this crate does not implement
+//! ## A solstice on 癸巳: two readings, both registered
+//!
+//! A solstice on 癸巳, position 29, is twenty-nine days after one 甲子 and
+//! thirty-one before the next. Japanese Wikipedia 九星 records that schools
+//! differ here: some switch on the preceding 甲子 and some on the following
+//! one, while a solstice on 甲午 always switches on the following 甲子. Each
+//! reading is a [`SwitchReading`]:
+//!
+//! * [`SwitchReading::MIZUNOTO_MI_BACK`], `mizunoto-mi-back`: 癸巳 looks
+//!   back. This is こよみのページ's procedure, and it is the reading
+//!   [`switch_day_near`], [`day_star_period`] and [`day_star`] use.
+//! * [`SwitchReading::MIZUNOTO_MI_FORWARD`], `mizunoto-mi-forward`: 癸巳
+//!   looks forward. This is the reading Japanese Wikipedia's list of 閏
+//!   seasons takes as its base. [`day_star_by`] and [`day_star_period_by`]
+//!   take either reading.
+//!
+//! The two give the same star except in the periods either side of a
+//! solstice on 癸巳, where they put the 閏 in different half-years. The
+//! anchor is that list, twenty seasons from 1882 to 2100: the forward
+//! reading reproduces all twenty, and the back reading reproduces fifteen
+//! and gives, for each of the other five, the alternative the list prints
+//! in parentheses.
+//!
+//! ## The 閏
 //!
 //! Solstice to solstice is about 182.6 days but a period is 180, so the
 //! switch day drifts roughly 2.6 days earlier each half-year. Every eleven
 //! or twelve years the drift passes thirty days, the nearest 甲子 jumps to
 //! the next one, and that period runs **240 days instead of 180**. 240 is
-//! not a multiple of nine, so the star sequence cannot close, and almanacs
-//! insert a 閏.
+//! not a multiple of nine, so the count cannot simply continue: the last
+//! sixty days of the period are the 閏.
 //!
-//! **There is no agreed rule for that 閏.** こよみのページ says so in as many
-//! words — 「日家九星の閏にはいくつもの計算方式が乱立している状態」 — and
-//! labels its own scheme 「この計算は独自に考案した方式です」, a method it
-//! devised itself. Other published descriptions of the 閏 are not equivalent
-//! to it.
+//! こよみのページ and Japanese Wikipedia describe the same 閏. Its first
+//! thirty days continue the period's count. From the 甲午 thirty days before
+//! the next switch the count runs the other way, so that it arrives at the
+//! next period's opening star on the next switch day; the 甲午 repeats the
+//! star before it — 七赤 in a 閏 before a December switch, 三碧 in one before
+//! a June switch. [`DayStarPeriod::star_on`] does exactly that, under either
+//! reading.
 //!
-//! So this crate **counts continuously from the switch day and applies no
-//! 閏 correction**. In a 180-day period — which is every period except
-//! roughly one in twenty-three — the answers match published almanacs, and
-//! the tests demonstrate that. In a 240-day period the last sixty days will
-//! differ from any given publisher, and this crate does not pretend
-//! otherwise: [`DayStarPeriod::is_leap_period`] reports when a caller is in
-//! one. Under the nearest-甲子 rule, 240-day periods open on 23 November
-//! 2019, 24 May 2031 and 26 May 2042.
+//! Neither source claims this is universal. こよみのページ says that the 閏
+//! differs between schools (「流派による違があり」) and calls its procedure
+//! one it devised itself (「この計算は独自に考案した方式です」). Japanese
+//! Wikipedia records a further way of placing the 閏 — wherever a 甲午 falls
+//! within a day of a solstice — and says that this condition alone leaves
+//! places undetermined that need adjusting. That reading is not carried,
+//! because the source does not say how the adjustment is made and there is
+//! nothing to test it against. [`DayStarPeriod::is_leap_period`] tells a
+//! caller when a day is in a period that holds a 閏; under the back reading
+//! such periods open on 23 November 2019, 24 May 2031 and 26 May 2042.
 //!
 //! # Sources
 //!
-//! Japanese Wikipedia 九星 for the 五行, colour and 後天定位 attributions;
-//! こよみのページ 「九星の陰遁と陽遁」and its 九星表作成 tool for the three
-//! rules and the 節切り year; published almanac pages (こよみる) and 開運道's
-//! switch-day tool, which states it follows 天象学会『萬年暦』, for the
-//! checks in the tests.
+//! * Japanese Wikipedia 九星 (<https://ja.wikipedia.org/wiki/九星>), read
+//!   2026-09-26: the 五行, colour, direction and 八卦 attributions; the
+//!   nearest-甲子 switch; the two readings of a 癸巳 solstice; the 閏 and its
+//!   doubled 七赤 or 三碧; the list of 閏 seasons from 1882 to 2100.
+//! * こよみのページ, 「暦注の説明（その１）」
+//!   (<https://koyomi8.com/sub/rekicyuu_doc01.html>) and 「年家九星・月家九星・
+//!   日家九星表作成」 (<https://koyomi8.com/sub/9sei.html>), both read
+//!   2026-09-26: the three rules, the 定気 節切り year, the switch procedure
+//!   and its 閏.
+//! * Published almanac pages (こよみる, <https://koyomil.com/>) and 開運道's
+//!   switch-day tool, which states it follows 天象学会『萬年暦』 (not read),
+//!   for the dated checks in the tests. Neither was re-read on 2026-09-26.
 
 use hc_calendar::Rd;
 use hc_calendar::cycle::sexagenary_day;
@@ -102,9 +135,68 @@ pub const STAR_COUNT: u8 = 9;
 /// Twenty nines, which is why the star repeats across a reversal.
 pub const NORMAL_PERIOD_DAYS: i64 = 180;
 
-/// The sexagenary position above which the *following* 甲子 is nearer than
-/// the preceding one.
-const NEAREST_CYCLE_MIDPOINT: u8 = 30;
+/// How many days before the next switch the count reverses inside a 閏.
+///
+/// The 閏 is the last sixty days of a 240-day period; the first thirty
+/// continue the period's count and the last thirty run the other way.
+pub const LEAP_REVERSAL_DAYS: i64 = 30;
+
+/// Which 甲子 a solstice switches on: one reading of the nearest-甲子 rule.
+///
+/// The readings agree everywhere except on a solstice that falls on 癸巳,
+/// sexagenary position 29, where schools differ. See the module
+/// documentation. The set is a table rather than an `enum` because the
+/// schools are a discovery, not a decision (ADR 0007).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SwitchReading {
+    /// A short identifier, e.g. `mizunoto-mi-back`.
+    pub id: &'static str,
+    /// The last sexagenary position whose switch is the *preceding* 甲子;
+    /// every later position switches on the following one.
+    last_position_looking_back: u8,
+    /// Where the reading is stated.
+    pub source: &'static str,
+}
+
+hc_core::catalogue! {
+    type: SwitchReading,
+    id: |reading| reading.id,
+    provenance: |reading| reading.source,
+    tests: switch_reading_tests,
+    associated;
+
+    /// Both readings, the one the crate's plain functions use first.
+    pub const ALL;
+    /// The reading with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// 癸巳 switches on the preceding 甲子: positions 甲子 0 through 癸巳
+        /// 29 look back, 甲午 30 onward look forward.
+        pub const MIZUNOTO_MI_BACK = Self {
+            id: "mizunoto-mi-back",
+            last_position_looking_back: 29,
+            source: "こよみのページ, 「暦注の説明（その１）」 and 「年家九星・月家九星・日家九星表作成」, \
+                     read 2026-09-26; one of the two schools in Japanese Wikipedia 九星",
+        };
+        /// 癸巳 switches on the following 甲子: positions 甲子 0 through 壬辰
+        /// 28 look back, 癸巳 29 onward look forward.
+        pub const MIZUNOTO_MI_FORWARD = Self {
+            id: "mizunoto-mi-forward",
+            last_position_looking_back: 28,
+            source: "Japanese Wikipedia 九星, read 2026-09-26: the base of its list of \
+                     閏 seasons, 1882 to 2100",
+        };
+    }
+}
+
+impl SwitchReading {
+    /// The last sexagenary position whose switch is the preceding 甲子.
+    #[must_use]
+    pub const fn last_position_looking_back(self) -> u8 {
+        self.last_position_looking_back
+    }
+}
 
 /// One of the nine stars.
 ///
@@ -257,8 +349,9 @@ impl NineStar {
 
     /// The trigram of the 後天定位盤, e.g. `"坎"`.
     ///
-    /// `None` for 五黄土星, which sits at the centre and has none. The
-    /// tradition leaves that empty; this crate does not fill it in.
+    /// `None` for 五黄土星, which sits at the centre. Japanese Wikipedia 九星
+    /// puts 太極, the undivided origin, in that column; it is not one of the
+    /// eight trigrams, so it is not returned here.
     #[must_use]
     pub const fn trigram(self) -> Option<&'static str> {
         match self {
@@ -324,21 +417,33 @@ impl DayStarPeriod {
     }
 
     /// Whether this is one of the roughly one-in-twenty-three periods that
-    /// runs 240 days instead of 180 and therefore needs a 閏.
+    /// runs 240 days instead of 180 and so holds a 閏 in its last sixty
+    /// days.
     ///
-    /// This crate applies no 閏 correction, so a `true` here means its day
-    /// stars for the last sixty days of the period will differ from a
-    /// published almanac's. See the module documentation for why no
-    /// correction is applied.
+    /// The 閏 is where schools differ most; see the module documentation
+    /// for the one this crate carries and the one it does not.
     #[must_use]
     pub const fn is_leap_period(self) -> bool {
         self.length_days() != NORMAL_PERIOD_DAYS
     }
 
     /// The star on a day inside this period.
+    ///
+    /// In a period that holds a 閏, the last [`LEAP_REVERSAL_DAYS`] days
+    /// count the other way, backward from the next period's opening star,
+    /// so the count arrives at that star on the next switch day. The day
+    /// the reversal begins — a 甲午 — repeats the star before it.
     #[must_use]
     pub const fn star_on(self, day: Rd) -> NineStar {
         let elapsed = day.0 - self.start.0;
+        let remaining = self.end.0 - day.0;
+        if self.is_leap_period() && remaining <= LEAP_REVERSAL_DAYS {
+            // The next period runs the other way and opens on its own star.
+            return match self.dun {
+                Dun::Yang => NineStar::from_number(9 + remaining),
+                Dun::Yin => NineStar::from_number(1 - remaining),
+            };
+        }
         match self.dun {
             Dun::Yang => NineStar::from_number(1 + elapsed),
             Dun::Yin => NineStar::from_number(9 - elapsed),
@@ -346,29 +451,43 @@ impl DayStarPeriod {
     }
 }
 
-/// The 甲子 day nearest a given day, ties resolved toward the later.
+/// The 甲子 day nearest a given day, under the `mizunoto-mi-back` reading.
 ///
 /// The sexagenary cycle is sixty days, so a 甲子 always lies within thirty
 /// days either way. こよみのページ states the rule operationally: if the
 /// day's own position is in the first half of the cycle the preceding 甲子
-/// is nearer, otherwise the following one. Position 30 — 癸巳 is 29 — is
-/// exactly equidistant and goes forward under this reading.
+/// is nearer, otherwise the following one. Position 30, 甲午, is exactly
+/// equidistant and goes forward; position 29, 癸巳, goes back. See
+/// [`switch_day_near_by`] for the other reading of 癸巳.
 #[must_use]
 pub const fn switch_day_near(day: Rd) -> Rd {
+    switch_day_near_by(day, SwitchReading::MIZUNOTO_MI_BACK)
+}
+
+/// The 甲子 day a solstice on `day` switches on, under a reading.
+#[must_use]
+pub const fn switch_day_near_by(day: Rd, reading: SwitchReading) -> Rd {
     let position = sexagenary_day(day).index();
-    if position < NEAREST_CYCLE_MIDPOINT {
+    if position <= reading.last_position_looking_back {
         Rd(day.0 - position as i64)
     } else {
         Rd(day.0 + (60 - position as i64))
     }
 }
 
-/// The 陽遁 or 陰遁 period a day falls in, at a meridian.
+/// The 陽遁 or 陰遁 period a day falls in, at a meridian, under the
+/// `mizunoto-mi-back` reading.
 ///
 /// The meridian decides which day each solstice falls on, and so which 甲子
 /// is nearest it.
 #[must_use]
 pub fn day_star_period(day: Rd, meridian: Meridian) -> DayStarPeriod {
+    day_star_period_by(day, meridian, SwitchReading::MIZUNOTO_MI_BACK)
+}
+
+/// The 陽遁 or 陰遁 period a day falls in, at a meridian, under a reading.
+#[must_use]
+pub fn day_star_period_by(day: Rd, meridian: Meridian, reading: SwitchReading) -> DayStarPeriod {
     let year = gregorian::year_from_fixed(day);
     // Four candidate switches bracket any day: the December solstice of the
     // previous year can reach into late January, and the December solstice
@@ -378,20 +497,18 @@ pub fn day_star_period(day: Rd, meridian: Meridian) -> DayStarPeriod {
     let mut count = 0;
     for offset in -1..=1 {
         switches[count] = (
-            switch_day_near(term_day(
-                year + offset,
-                SolarTerm::WINTER_SOLSTICE,
-                meridian,
-            )),
+            switch_day_near_by(
+                term_day(year + offset, SolarTerm::WINTER_SOLSTICE, meridian),
+                reading,
+            ),
             Dun::Yang,
         );
         count += 1;
         switches[count] = (
-            switch_day_near(term_day(
-                year + offset,
-                SolarTerm::SUMMER_SOLSTICE,
-                meridian,
-            )),
+            switch_day_near_by(
+                term_day(year + offset, SolarTerm::SUMMER_SOLSTICE, meridian),
+                reading,
+            ),
             Dun::Yin,
         );
         count += 1;
@@ -414,13 +531,20 @@ pub fn day_star_period(day: Rd, meridian: Meridian) -> DayStarPeriod {
     }
 }
 
-/// 日家九星 — the day star, at a meridian.
+/// 日家九星 — the day star, at a meridian, under the `mizunoto-mi-back`
+/// reading.
 ///
-/// See the module documentation for the 陽遁 / 陰遁 reversal and for the 閏
-/// this crate deliberately does not implement.
+/// See the module documentation for the 陽遁 / 陰遁 reversal, the two
+/// readings of a solstice on 癸巳, and the 閏.
 #[must_use]
 pub fn day_star(day: Rd, meridian: Meridian) -> NineStar {
-    day_star_period(day, meridian).star_on(day)
+    day_star_by(day, meridian, SwitchReading::MIZUNOTO_MI_BACK)
+}
+
+/// 日家九星 — the day star, at a meridian, under a reading.
+#[must_use]
+pub fn day_star_by(day: Rd, meridian: Meridian, reading: SwitchReading) -> NineStar {
+    day_star_period_by(day, meridian, reading).star_on(day)
 }
 
 /// The 九星 year a day belongs to: the Gregorian year whose 立春 last
@@ -731,8 +855,8 @@ mod tests {
         }
     }
 
-    /// The two reversals a year are the only days the star fails to step,
-    /// and on those days it repeats rather than skipping.
+    /// Outside a 閏, the two reversals a year are the only days the star
+    /// fails to step, and on those days it repeats rather than skipping.
     #[test]
     fn the_only_repeats_are_the_two_reversals_a_year() {
         let mut repeats = 0;
@@ -765,9 +889,9 @@ mod tests {
     }
 
     /// Every period runs 180 days, except the roughly one in twenty-three
-    /// that runs 240 and needs a 閏 this crate does not implement. Over
-    /// 2021–2030 there should be none; under the nearest-甲子 rule the
-    /// 240-day periods either side open on 23 November 2019 and 24 May 2031.
+    /// that runs 240 and holds a 閏. Over 2021–2030 there is none; under
+    /// the `mizunoto-mi-back` reading the 240-day periods either side open
+    /// on 23 November 2019 and 24 May 2031, and the next on 26 May 2042.
     #[test]
     fn periods_run_a_hundred_and_eighty_days_except_at_a_leap() {
         // RD 737_791 is 2021-01-01; the loop runs to the end of 2030.
@@ -789,6 +913,182 @@ mod tests {
         assert!(inside_2020.is_leap_period());
         assert_eq!(inside_2020.length_days(), 240);
         assert_eq!(inside_2020.start, Rd(737_386));
+        for (inside, start) in [(741_600, 741_586), (745_620, 745_606)] {
+            let period = day_star_period(Rd(inside), JAPAN);
+            assert_eq!(period.start, Rd(start));
+            assert_eq!(period.length_days(), 240);
+        }
+    }
+
+    /// The day on which a 閏 reverses the count: the 甲午 thirty days before
+    /// the switch that closes a 240-day period, as a year and a season.
+    fn leap_seasons(reading: SwitchReading) -> ([(i64, bool); 24], usize) {
+        let mut seasons = [(0, false); 24];
+        let mut count = 0;
+        let mut day = Rd(687_000); // 1881-11-26
+        loop {
+            let period = day_star_period_by(day, JAPAN, reading);
+            if period.is_leap_period() {
+                let reversal = Rd(period.end.0 - LEAP_REVERSAL_DAYS);
+                assert_eq!(
+                    sexagenary_day(reversal).index(),
+                    30,
+                    "the reversal is on 甲午"
+                );
+                let (year, month, _) = gregorian::from_fixed(reversal).unwrap();
+                let winter = !(4..=9).contains(&month);
+                if (1882..=2100).contains(&year) {
+                    seasons[count] = (year, winter);
+                    count += 1;
+                }
+            }
+            if gregorian::year_from_fixed(period.end) > 2101 {
+                return (seasons, count);
+            }
+            day = period.end;
+        }
+    }
+
+    /// Japanese Wikipedia 九星 lists where the 閏 falls from 1882 to 2100,
+    /// taking a solstice on 癸巳 to switch on the following 甲子, and gives
+    /// in parentheses where another school puts it. The forward reading
+    /// reproduces the list; the back reading, こよみのページ's, reproduces
+    /// it except in five seasons, and in each of those it lands on the
+    /// parenthesised alternative.
+    #[test]
+    fn both_readings_put_the_leap_where_the_published_list_does() {
+        const W: bool = true;
+        const S: bool = false;
+        let listed = [
+            (1882, W),
+            (1894, S),
+            (1905, W),
+            (1916, W),
+            (1928, S),
+            (1939, W),
+            (1951, S),
+            (1962, W),
+            (1974, S),
+            (1985, W),
+            (1997, S),
+            (2008, W),
+            (2019, W),
+            (2031, W),
+            (2042, W),
+            (2054, S),
+            (2065, W),
+            (2077, S),
+            (2088, W),
+            (2100, S),
+        ];
+        let (seasons, count) = leap_seasons(SwitchReading::MIZUNOTO_MI_FORWARD);
+        assert_eq!(&seasons[..count], &listed[..]);
+
+        // The parenthesised alternatives the back reading takes, keyed by
+        // the listed season they replace. The list also gives 1940 summer
+        // for 1939 and 2043 summer for 2042; the back reading keeps those
+        // two as listed.
+        let alternatives = [
+            ((1916, W), (1917, S)),
+            ((1928, S), (1928, W)),
+            ((1951, S), (1951, W)),
+            ((2019, W), (2020, S)),
+            ((2054, S), (2054, W)),
+        ];
+        let mut expected = listed;
+        for season in &mut expected {
+            if let Some((_, alternative)) = alternatives.iter().find(|(from, _)| from == season) {
+                *season = *alternative;
+            }
+        }
+        let (seasons, count) = leap_seasons(SwitchReading::MIZUNOTO_MI_BACK);
+        assert_eq!(&seasons[..count], &expected[..]);
+    }
+
+    /// Japanese Wikipedia 九星: a 閏 at the December solstice opens the
+    /// 陽遁 on its 甲午 with 七赤, which is printed two days running; one
+    /// at the June solstice opens the 陰遁 on its 甲午 with 三碧. こよみの
+    /// ページ: 「閏の前半・後半の切り替え部分は、おなじ九星（三碧か七赤）が
+    /// 連続する」. The winter case is the forward reading's 閏 of 2019, the
+    /// summer case the back reading's of 2020.
+    #[test]
+    fn a_leap_doubles_seven_red_in_winter_and_three_jade_in_summer() {
+        let forward = SwitchReading::MIZUNOTO_MI_FORWARD;
+        let winter_reversal = Rd(737_416); // 2019-12-23, 甲午
+        assert_eq!(sexagenary_day(winter_reversal).index(), 30);
+        let period = day_star_period_by(winter_reversal, JAPAN, forward);
+        assert_eq!((period.start, period.end), (Rd(737_206), Rd(737_446)));
+        assert_eq!(period.dun, Dun::Yin);
+        for (rd, star) in [
+            (737_415, NineStar::SevenRed),
+            (737_416, NineStar::SevenRed),
+            (737_417, NineStar::EightWhite),
+            (737_445, NineStar::NinePurple),
+            (737_446, NineStar::OneWhite),
+        ] {
+            assert_eq!(day_star_by(Rd(rd), JAPAN, forward), star, "RD {rd}");
+        }
+
+        let summer_reversal = Rd(737_596); // 2020-06-20, 甲午
+        assert_eq!(sexagenary_day(summer_reversal).index(), 30);
+        let period = day_star_period(summer_reversal, JAPAN);
+        assert_eq!((period.start, period.end), (Rd(737_386), Rd(737_626)));
+        assert_eq!(period.dun, Dun::Yang);
+        for (rd, star) in [
+            (737_595, NineStar::ThreeJade),
+            (737_596, NineStar::ThreeJade),
+            (737_597, NineStar::TwoBlack),
+            (737_625, NineStar::OneWhite),
+            (737_626, NineStar::NinePurple),
+        ] {
+            assert_eq!(day_star(Rd(rd), JAPAN), star, "RD {rd}");
+        }
+    }
+
+    /// The first thirty days of a 閏 continue the period's count; the last
+    /// thirty repeat the star once and then count the other way.
+    #[test]
+    fn the_last_thirty_days_of_a_leap_period_count_the_other_way() {
+        let period = day_star_period(Rd(737_425), JAPAN); // 2020-01-01
+        assert!(period.is_leap_period());
+        assert_eq!(period.dun, Dun::Yang);
+        let reversal = period.length_days() - LEAP_REVERSAL_DAYS;
+        let star = |elapsed: i64| i64::from(period.star_on(Rd(period.start.0 + elapsed)).number());
+        for elapsed in 0..reversal {
+            assert_eq!(
+                period.star_on(Rd(period.start.0 + elapsed)),
+                NineStar::from_number(1 + elapsed),
+                "day {elapsed} of the period"
+            );
+        }
+        assert_eq!(star(reversal), star(reversal - 1));
+        for elapsed in reversal + 1..period.length_days() {
+            assert_eq!(
+                NineStar::from_number(star(elapsed)),
+                NineStar::from_number(star(elapsed - 1) - 1),
+                "day {elapsed} of the period"
+            );
+        }
+    }
+
+    /// The two readings differ only on a solstice that falls on 癸巳.
+    #[test]
+    fn the_readings_differ_only_on_the_mizunoto_mi_position() {
+        for rd in 738_886..738_886 + 60 {
+            let day = Rd(rd);
+            let same = switch_day_near_by(day, SwitchReading::MIZUNOTO_MI_BACK)
+                == switch_day_near_by(day, SwitchReading::MIZUNOTO_MI_FORWARD);
+            assert_eq!(same, sexagenary_day(day).index() != 29, "RD {rd}");
+        }
+        assert_eq!(SwitchReading::ALL[0], SwitchReading::MIZUNOTO_MI_BACK);
+        assert_eq!(
+            SwitchReading::MIZUNOTO_MI_BACK.last_position_looking_back(),
+            29
+        );
+        assert_eq!(
+            SwitchReading::by_id("mizunoto-mi-forward"),
+            Some(SwitchReading::MIZUNOTO_MI_FORWARD)
+        );
     }
 
     /// Both opening days are 甲子, and each carries its period's opening

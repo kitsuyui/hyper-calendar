@@ -17,7 +17,7 @@ nothing else in the workspace hard-codes a localised string.
 |---|---|
 | `locale` | `language[-Script][-REGION][-variant]` plus the `-u-ca`, `-u-nu`, `-u-fw` and `-u-hc` keys; parse, render, and the CLDR inheritance chain as an iterator |
 | `numbering` | 9 positional digit systems (`latn`, `arab`, `arabext`, `deva`, `beng`, `thai`, `mymr`, `hanidec`, `fullwide`) and 4 algorithmic Han styles (`jpan`, `jpanfin`, `hans`, `hant`), rendered and parsed back |
-| `plural` | CLDR cardinal categories and the full operand set (`n i v w f t`) for 30 languages |
+| `plural` | CLDR cardinal categories and the full operand set (`n i v w f t`) for 43 languages and `pt-PT` |
 | `names` | Months, weekdays, day periods, eras, quarters and the sexagenary cycle, keyed by (locale, calendar, width, context); each locale's names for the calendars, and the templates by which `hc-format` writes a year with its era, a day and a date |
 | `direction` | Script direction and the bidi isolation a formatter needs to embed a date in text running the other way |
 | `casing` | Turkish dotted/dotless i, and whether a language capitalises month names at all |
@@ -70,19 +70,35 @@ there. The table is checked for sortedness and uniqueness by a test.
 
 ## Reference data and accuracy
 
-* **Vocabulary** follows the Unicode CLDR common locale data (the
-  `main/<locale>.xml` `calendars` sections). It is **hand-checked, not
-  generated**: a subset chosen for calendar work, with the most widely used
-  alternative taken where CLDR offers several. It will not track a CLDR
-  release automatically, and it is not a drop-in replacement for ICU.
-* **Plural rules** follow `supplemental/plurals.xml`. They are implemented
-  from the published rule text, and the tests assert the published sample
-  values, not values derived from this implementation.
-* **First day of week** follows `supplementalData.xml` `weekData/firstDay`;
-  only the non-Monday exceptions are tabulated.
+* **Vocabulary** follows Unicode CLDR 48 (`common/main/<locale>.xml`, the
+  `calendars` sections, tag `release-48`). It is **hand-checked, not
+  generated**: a subset chosen for calendar work. Each entry's
+  `LocaleData::sources` names the file it follows; the language's own file
+  and CLDR's default values are carried, not the regional files (Arabic is
+  `ar.xml`'s يناير…, not the Levantine كانون الثاني… of `ar_SY.xml`). It will
+  not track a CLDR release automatically, and it is not a drop-in
+  replacement for ICU.
+* **Plural rules** follow CLDR 48 `supplemental/plurals.xml`, with the
+  operands of UTS #35 Part 3. They are implemented from the published rule
+  text, and the tests assert the published sample values, not values
+  derived from this implementation.
+* **First day of week** follows CLDR 48 `supplementalData.xml`
+  `weekData/firstDay`, transcribed in full; only the non-Monday regions are
+  tabulated, since CLDR lists Monday for `001` and every region it does not
+  name otherwise. A tag's region decides; a tag with no region takes its
+  language entry's day, which follows the region CLDR 48's likely subtags
+  give the language (for `nah`, which has none, the region its entry's
+  comment names). `und`, `en` and `pt` are the exceptions: they keep the ISO
+  8601 Monday, although their likely regions, US, US and BR, start on
+  Sunday.
+* **Script from region**: a Chinese tag with no script takes the one CLDR
+  48's likely subtags give it, so `zh`, `zh-CN` and `zh-SG` resolve to the
+  `zh-Hans` entry and `zh-TW`, `zh-HK` and `zh-MO` to `zh-Hant`, instead of
+  falling to root's `M01`…`M12`.
 * **Bidi** follows UAX 9 §2.4 (isolates) and §P2–P3 (first-strong).
-* **Casing** follows UAX 21 plus the Turkic tailoring that Unicode itself
-  specifies for `tr` and `az`.
+* **Casing** follows the default case algorithms of The Unicode Standard 17.0
+  §3.13 plus the Turkic tailoring of `SpecialCasing-17.0.0.txt` for `tr` and
+  `az`.
 
 Locales shipped: `am ar ban bn bo cop cs de en es fa fr he hi id it ja jv
 kab ko mid ml my nah ne nl pl ps pt ru sa syr ta th tr vi yua zap zgh zh-Hans
@@ -135,8 +151,10 @@ what their sources cover and no more:
 | `ps` Pashto | `persian-afghan`, `persian`, `persian-arithmetic` | CLDR 48 `ps.xml`, less the narrow weekdays and stand-alone narrow months, which resolve to root's Latin letters and numerals | the twelve Solar Hijri months وری … کب (CLDR `persian`, which keys them to its one Solar Hijri calendar and so to all three here), in CLDR's spelling where Wikipedia's "Solar Hijri calendar" has ګ, ي and ك in four | the Solar Hijri era in Pashto: CLDR's `ps` inherits root's; date templates, which `ps.xml` inherits |
 | `mid` Mandaic | `mandaean` | none: CLDR has no `mid`, so it inherits | the seven weekdays in Mandaic script (Wikipedia, "Mandaean calendar") | the months: that page prints the twelve zodiacal names but no Mandaic Parwanaia, and the calendar's month cycle has thirteen positions; day periods, eras |
 
-Plural languages: `ar cs cy da de en es fi fr ga he hi id it ja ko lt lv nl pl
-pt ro ru sl sv th tr uk vi zh`.
+Plural languages: `am ar bn bo cs cy da de en es fa fi fr ga he hi id it ja jv
+kab ko lt lv ml my nah ne nl pl ps pt pt-PT ro ru sl sv syr ta th tr uk vi zh`.
+`ban cop mid sa yua zap zgh` are not in CLDR 48's `plurals.xml` and take
+root's rule, `other` for everything.
 
 ## What it deliberately does not do
 
@@ -171,7 +189,7 @@ claim:
 * Numbering systems **round-trip**: `parse_integer(format_integer(n)) == n`
   for every `n` in `i64` for positional systems, and for every `|n| < 10^16`
   for the Han styles (bigger values need 京 and are refused).
-* Plural categories match the CLDR sample values for the 30 languages
+* Plural categories match the CLDR 48 sample values for the languages
   implemented.
 * The vocabulary is as accurate as CLDR and a careful hand-check; where a
   language has forms this crate does not model (finer day periods, Dutch

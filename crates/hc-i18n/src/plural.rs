@@ -1,5 +1,10 @@
 //! CLDR cardinal plural rules.
 //!
+//! The rule text is that of Unicode CLDR 48, `common/supplemental/
+//! plurals.xml` (`cldr48-supplemental`, tag `release-48`, retrieved
+//! 2026-09-26); the operands and rule syntax are those of UTS #35 version
+//! 48, Part 3 (Numbers), §5 "Language Plural Rules" (`uts35-v48`).
+//!
 //! "3 days" is easy; "3 дня", "5 дней" and "21 день" are why this module
 //! exists. A formatter that wants to say "in 2 months" has to ask the
 //! language which of up to six forms the surrounding message should use, and
@@ -8,7 +13,7 @@
 //!
 //! # Operands
 //!
-//! Unicode TR 35 §5.1 defines six operands on the *source string*, not on
+//! UTS #35 Part 3 §5.1 defines six operands on the *source string*, not on
 //! the number:
 //!
 //! | operand | meaning |
@@ -299,7 +304,8 @@ pub struct PluralRules {
 }
 
 impl PluralRules {
-    /// The rules for a language subtag, if this crate carries them.
+    /// The rules for a language subtag, or for one of the regional rows
+    /// such as `pt-PT`, if this crate carries them.
     #[must_use]
     pub fn for_language(language: &str) -> Option<Self> {
         RULES
@@ -313,11 +319,23 @@ impl PluralRules {
 
     /// The rules for a locale, walking its fallback chain.
     ///
-    /// A language this crate has no rules for gets the root behaviour, which
-    /// is CLDR's: everything is `other`.
+    /// Each step of the chain is matched against the whole row key first,
+    /// so `pt-PT` finds its own row before `pt`. A language this crate has
+    /// no rules for gets the root behaviour, which is CLDR's: everything is
+    /// `other`.
     #[must_use]
     pub fn for_locale(locale: &Locale) -> Self {
         for candidate in locale.fallback() {
+            let identity = candidate.without_extensions();
+            if let Some((subtag, rule)) = RULES
+                .iter()
+                .find(|(subtag, _)| subtag.contains('-') && identity.matches_tag(subtag))
+            {
+                return Self {
+                    language: subtag,
+                    rule: *rule,
+                };
+            }
             if let Some(rules) = Self::for_language(candidate.language()) {
                 return rules;
             }
@@ -361,14 +379,25 @@ impl PluralRules {
 /// Languages sharing a rule share its function: CLDR's own rule text for
 /// Russian and Ukrainian is identical, and so is the text for the whole
 /// `i = 1 and v = 0` group. Adding a language is one row here.
+///
+/// Every locale with names in [`crate::data::LOCALES`] has a row here when
+/// CLDR 48 lists its language in `plurals.xml`. Balinese, Coptic,
+/// Mandaic, Sanskrit, Yucatec Maya, Zapotec and Standard Moroccan Tamazight
+/// are not listed there, so they take root's rule, which is also `other`
+/// for everything. `pt-PT` is the one regional row: CLDR 48 gives Portugal
+/// the Italian rule, not Brazil's `i = 0..1`.
 pub static RULES: &[(&str, RuleFn)] = &[
+    ("am", rule_hindi),
     ("ar", rule_arabic),
+    ("bn", rule_hindi),
+    ("bo", rule_other_only),
     ("cs", rule_czech),
     ("cy", rule_welsh),
     ("da", rule_danish),
     ("de", rule_one_if_i_is_one_and_v_is_zero),
     ("en", rule_one_if_i_is_one_and_v_is_zero),
     ("es", rule_spanish),
+    ("fa", rule_hindi),
     ("fi", rule_one_if_i_is_one_and_v_is_zero),
     ("fr", rule_french),
     ("ga", rule_irish),
@@ -377,18 +406,28 @@ pub static RULES: &[(&str, RuleFn)] = &[
     ("id", rule_other_only),
     ("it", rule_italian),
     ("ja", rule_other_only),
+    ("jv", rule_other_only),
+    ("kab", rule_one_if_i_is_zero_or_one),
     ("ko", rule_other_only),
     ("lt", rule_lithuanian),
     ("lv", rule_latvian),
+    ("ml", rule_one_if_n_is_one),
+    ("my", rule_other_only),
+    ("nah", rule_one_if_n_is_one),
+    ("ne", rule_one_if_n_is_one),
     ("nl", rule_one_if_i_is_one_and_v_is_zero),
     ("pl", rule_polish),
+    ("ps", rule_one_if_n_is_one),
     ("pt", rule_portuguese),
+    ("pt-PT", rule_italian),
     ("ro", rule_romanian),
     ("ru", rule_east_slavic),
     ("sl", rule_slovenian),
     ("sv", rule_one_if_i_is_one_and_v_is_zero),
+    ("syr", rule_one_if_n_is_one),
+    ("ta", rule_one_if_n_is_one),
     ("th", rule_other_only),
-    ("tr", rule_turkish),
+    ("tr", rule_one_if_n_is_one),
     ("uk", rule_east_slavic),
     ("vi", rule_other_only),
     ("zh", rule_other_only),
@@ -419,8 +458,9 @@ fn rule_danish(operands: &PluralOperands) -> PluralCategory {
     }
 }
 
-/// Turkish: `one: n = 1`.
-fn rule_turkish(operands: &PluralOperands) -> PluralCategory {
+/// `one: n = 1` — Turkish, Malayalam, Nahuatl, Nepali, Pashto, Syriac,
+/// Tamil.
+fn rule_one_if_n_is_one(operands: &PluralOperands) -> PluralCategory {
     if operands.n_is(1) {
         PluralCategory::One
     } else {
@@ -445,6 +485,15 @@ fn rule_french(operands: &PluralOperands) -> PluralCategory {
         PluralCategory::One
     } else if operands.is_exact_million() {
         PluralCategory::Many
+    } else {
+        PluralCategory::Other
+    }
+}
+
+/// Kabyle: `one: i = 0,1`, the French `one` without its `many`.
+fn rule_one_if_i_is_zero_or_one(operands: &PluralOperands) -> PluralCategory {
+    if operands.i() <= 1 {
+        PluralCategory::One
     } else {
         PluralCategory::Other
     }
@@ -483,7 +532,7 @@ fn rule_hebrew(operands: &PluralOperands) -> PluralCategory {
     }
 }
 
-/// Hindi: `one: i = 0 or n = 1`.
+/// `one: i = 0 or n = 1` — Hindi, Amharic, Bengali, Persian.
 fn rule_hindi(operands: &PluralOperands) -> PluralCategory {
     if operands.i() == 0 || operands.n_is(1) {
         PluralCategory::One
@@ -580,7 +629,8 @@ fn rule_czech(operands: &PluralOperands) -> PluralCategory {
 /// Romanian: `one: i = 1 and v = 0`;
 /// `few: v != 0 or n = 0 or n != 1 and n % 100 = 1..19`.
 ///
-/// The `few` form is the one that takes "de": *21 de zile* but *19 zile*.
+/// The `other` form is the one that takes "de": *21 de zile*, against the
+/// `few` form *19 zile*.
 fn rule_romanian(operands: &PluralOperands) -> PluralCategory {
     if operands.i() == 1 && operands.v() == 0 {
         return PluralCategory::One;
@@ -1032,6 +1082,57 @@ mod tests {
     }
 
     #[test]
+    fn the_name_locales_take_their_cldr_48_rules() {
+        // `i = 0 or n = 1`, samples from CLDR 48 for `am bn fa`.
+        for language in ["am", "bn", "fa"] {
+            assert_samples(
+                language,
+                &[
+                    (One, &["0", "1", "0.0", "0.5", "1.0", "0.04"]),
+                    (Other, &["2", "17", "100", "1.1", "2.6", "10.0"]),
+                ],
+            );
+        }
+        // `n = 1`, samples from CLDR 48 for `ml nah ne ps syr ta`.
+        for language in ["ml", "nah", "ne", "ps", "syr", "ta"] {
+            assert_samples(
+                language,
+                &[
+                    (One, &["1", "1.0", "1.00", "1.000"]),
+                    (Other, &["0", "2", "16", "0.9", "1.1", "10.0"]),
+                ],
+            );
+        }
+        // `i = 0,1`, samples from CLDR 48 for `kab`.
+        assert_samples(
+            "kab",
+            &[
+                (One, &["0", "1", "0.0", "1.5"]),
+                (Other, &["2", "17", "100", "2.0", "3.5"]),
+            ],
+        );
+        for language in ["bo", "jv", "my"] {
+            assert_samples(language, &[(Other, &["0", "1", "15", "1.0", "1.5"])]);
+        }
+    }
+
+    #[test]
+    fn portugal_takes_its_own_row_and_brazil_the_language_one() {
+        let portugal = PluralRules::for_locale(&Locale::parse("pt-PT").unwrap());
+        assert_eq!(portugal.language(), "pt-PT");
+        // CLDR 48 `pt_PT`: `one` is `i = 1 and v = 0` only.
+        assert_eq!(portugal.select_integer(0), Other);
+        assert_eq!(portugal.select_integer(1), One);
+        assert_eq!(portugal.select_decimal("1.5").unwrap(), Other);
+        assert_eq!(portugal.select_integer(1_000_000), Many);
+        let brazil = PluralRules::for_locale(&Locale::parse("pt-BR-u-ca-gregory").unwrap());
+        assert_eq!(brazil.language(), "pt");
+        assert_eq!(brazil.select_integer(0), One);
+        let extended = PluralRules::for_locale(&Locale::parse("pt-PT-u-ca-gregory").unwrap());
+        assert_eq!(extended.language(), "pt-PT");
+    }
+
+    #[test]
     fn a_locale_finds_its_rules_through_the_fallback_chain() {
         let locale = Locale::parse("ru-RU-u-ca-gregory").unwrap();
         assert_eq!(PluralRules::for_locale(&locale).language(), "ru");
@@ -1052,7 +1153,7 @@ mod tests {
         for pair in RULES.windows(2) {
             assert!(pair[0].0 < pair[1].0, "{} !< {}", pair[0].0, pair[1].0);
         }
-        assert_eq!(RULES.len(), 30);
+        assert_eq!(RULES.len(), 44);
     }
 
     #[test]
