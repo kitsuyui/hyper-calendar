@@ -8,7 +8,7 @@
 //!
 //! | | Calendar | Rule comes from |
 //! |---|---|---|
-//! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], [`hebrew`], [`tibetan`], [`meyer_palmen`], [`yerm`] | a counting rule, exact by definition |
+//! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], [`hebrew`], [`tibetan`], [`javanese`], [`meyer_palmen`], [`yerm`] | a counting rule, exact by definition |
 //! | Tabulated | [`islamic_umalqura`] | a published table, exact where the table reaches |
 //! | Computed | [`chinese`], [`dangi`], [`vietnamese`], [`japanese_tenpo`], [`islamic_observational`], [`samaritan`] | an astronomical model, exact only to the model |
 //! | Historical | [`japanese_historical`] | the system's *own* period constants, exact to the bureau that published it |
@@ -23,7 +23,7 @@
 //! systems' errors on purpose, because the errors are what the surviving
 //! documents record.
 //!
-//! # Two engines, eighteen calendars
+//! # Two engines, twenty-one calendars
 //!
 //! Almost nothing here is written twice.
 //!
@@ -42,7 +42,9 @@
 //!   calendars drift away from the sky exactly as they historically did.
 //!
 //! [`hebrew`] and [`tibetan`] stand alone because their rules genuinely are
-//! their own, and so do the two proposals, [`meyer_palmen`], a lunisolar
+//! their own; so does [`javanese`], whose months are the tabular Hijri
+//! months but whose years run in eight-year *windu* and 120-year *kurup*,
+//! three reckonings of one rule; and so do the two proposals, [`meyer_palmen`], a lunisolar
 //! calendar of two remainders, and [`yerm`], a lunar one of 52-yerm
 //! cycles; [`islamic_umalqura`] stands alone because a table is not an
 //! algorithm, and [`islamic_observational`] because it predicts a sighting.
@@ -110,6 +112,7 @@ pub mod islamic_observational;
 pub mod islamic_umalqura;
 pub mod japanese_historical;
 pub mod japanese_tenpo;
+pub mod javanese;
 pub mod lunisolar;
 pub mod meyer_palmen;
 pub mod samaritan;
@@ -133,6 +136,7 @@ pub use japanese_historical::jokyo::JokyoCalendar;
 pub use japanese_historical::kansei::KanseiCalendar;
 pub use japanese_historical::senmyo::SenmyoCalendar;
 pub use japanese_tenpo::{JapaneseTenpoCalendar, JapaneseTenpoDate};
+pub use javanese::{JavaneseCalendar, JavaneseDate};
 pub use lunisolar::{
     ConjunctionMode, LunisolarCalendar, LunisolarDate, LunisolarParameters, MeanMotionModel,
     MeridianEra, SolarTermMode,
@@ -196,6 +200,11 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::SamaritanCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BabylonianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::TibetanCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::javanese::JAVANESE)));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::javanese::JAVANESE_YOGYAKARTA,
+        )));
+        registry.insert(Box::new(DynAdapter::new(crate::javanese::JAVANESE_ABOGE)));
         registry.insert(Box::new(DynAdapter::new(crate::MeyerPalmenCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::YermCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::IslamicCivilCalendar)));
@@ -220,7 +229,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 19);
+        assert_eq!(registry.len(), 22);
     }
 
     #[test]

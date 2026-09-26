@@ -247,9 +247,26 @@ pub const fn days_in_year(rule: LeapYearRule, year: i64) -> u16 {
 /// Days elapsed in the year before the first of `month`.
 ///
 /// `29 · (m − 1) + ⌊m / 2⌋` is the closed form of "alternating 30 and 29
-/// starting at 30".
-const fn days_before_month(month: u8) -> i64 {
+/// starting at 30". The Javanese year lays its months out the same way
+/// ([`crate::javanese`]), so it shares this and [`month_and_day`].
+pub(crate) const fn days_before_month(month: u8) -> i64 {
     29 * (month as i64 - 1) + (month as i64) / 2
+}
+
+/// The month and day of the day `within` days after the first of a year
+/// whose months alternate 30 and 29 from the first, the twelfth taking any
+/// thirtieth day.
+///
+/// Months alternate 30 and 29, so two days per 59 gives the month index
+/// directly; only the intercalary 30th of the twelfth month overflows it.
+pub(crate) const fn month_and_day(within: i64) -> (u8, u8) {
+    let month_index = (2 * within) / 59 + 1;
+    let month = if month_index > 12 {
+        12
+    } else {
+        month_index as u8
+    };
+    (month, (within - days_before_month(month) + 1) as u8)
 }
 
 /// The fixed day of a tabular Hijri date, without validation.
@@ -337,15 +354,7 @@ pub const fn from_fixed(epoch: Rd, rule: LeapYearRule, rd: Rd) -> CalendarResult
         position += 1;
     }
     let year = 1 + cycles * CYCLE_YEARS + position as i64 - 1;
-    // Months alternate 30 and 29, so two days per 59 gives the month index
-    // directly; only the intercalary 30th of the twelfth month overflows it.
-    let month_index = (2 * within) / 59 + 1;
-    let month = if month_index > 12 {
-        12
-    } else {
-        month_index as u8
-    };
-    let day = (within - days_before_month(month) + 1) as u8;
+    let (month, day) = month_and_day(within);
     Ok((year, month, day))
 }
 

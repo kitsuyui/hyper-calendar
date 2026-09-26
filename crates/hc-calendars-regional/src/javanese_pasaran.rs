@@ -20,10 +20,10 @@
 //!
 //! Neither the pasaran nor the wetonan counts anything larger than itself,
 //! so [`WetonDate`] carries a `round` for the reason the crate
-//! documentation gives. This module does **not** implement the Javanese
-//! calendar proper (the Sultan Agung lunar year with its windu and its era
-//! Anno Javanico); that is a different calendar and is not in this
-//! workspace.
+//! documentation gives. The Javanese calendar proper, Sultan Agung's lunar
+//! year with its windu and its kurup, is `hc_calendars_lunar::javanese`,
+//! and `tests/javanese.rs` here holds its days to this week and to the
+//! Pawukon's *wuku* (docs/systems/javanese.md).
 
 use core::fmt;
 

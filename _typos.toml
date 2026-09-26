@@ -408,3 +408,6 @@ Japanse = "Japanse"
 # Antropología e Historia and UNAM's Instituto de Investigaciones
 # Históricas, publishers of the Mesoamerican sources in references.bib.
 Instituto = "Instituto"
+# Van Dorp, whose Javanese almanac of 1865 the Indonesian Wikipedia cites for
+# Yogyakarta's kurup (docs/systems/javanese.md).
+Dorp = "Dorp"

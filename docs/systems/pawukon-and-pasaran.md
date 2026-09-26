@@ -172,7 +172,9 @@ names.
   are observances, the province of `hc-holiday`; the urip and meanings of
   the ten-day week's own days and the rest of the divination; the *krama*
   pasaran names; any year count, Balinese or Javanese. The Javanese lunar
-  calendar the pasaran belongs to is a roadmap row of its own.
+  calendar the pasaran belongs to is written up in
+  [javanese.md](javanese.md), and its tests hold its days to the pasaran
+  and the *wuku* here.
 
 ## Accuracy
 
