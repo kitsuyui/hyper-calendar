@@ -101,6 +101,10 @@ pub mod holiday_lines;
 pub mod lines;
 #[cfg(all(feature = "alloc", feature = "indic"))]
 pub mod panchanga_lines;
+#[cfg(all(feature = "alloc", feature = "planetary"))]
+pub mod planetary_lines;
+#[cfg(all(feature = "alloc", feature = "relativity"))]
+pub mod relativity_lines;
 #[cfg(all(feature = "alloc", feature = "civil"))]
 pub mod time_lines;
 

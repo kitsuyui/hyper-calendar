@@ -69,7 +69,8 @@ out of range is `out-of-range`, never an unrecognised number.
 | an age, from 1 | `hc_chinese_reckoned_age` | the days of the Chinese calendar's range, 1645 through 2150, a birth before or on the day asked; a day before the birth is `HC_ERR_NO_DATA`, and a day outside the range `HC_ERR_OUT_OF_RANGE` |
 | a fixed day | `hc_astronomical_easter` | the years 1583 through 2150, Easter falling between the fixed days 577 913 and 785 015; any other year is `HC_ERR_OUT_OF_RANGE` |
 | 0 | `hc_zone_load` | any name and bytes; bytes that are not TZif are `HC_ERR_MALFORMED` |
-| a byte length | `hc_version`, `hc_format_iso_date`, `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`, `hc_gregorian_adoption`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals`, `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_orbit_at`, `hc_orbit_series`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_chinese_marriage_augury`, `hc_holiday_tables`, `hc_lectionary`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event` | whatever inputs the export's own documentation accepts; a length is never negative, so it never nears the floor |
+| a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERR_NO_DATA`, and a mission the table does not carry `HC_ERR_UNKNOWN` |
+| a byte length | `hc_version`, `hc_format_iso_date`, `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`, `hc_gregorian_adoption`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals`, `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_orbit_at`, `hc_orbit_series`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_chinese_marriage_augury`, `hc_holiday_tables`, `hc_lectionary`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_mars_time`, `hc_missions`, `hc_bodies`, `hc_body_time`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | whatever inputs the export's own documentation accepts; a length is never negative, so it never nears the floor |
 
 [`crates/hyper-calendar/tests/abi.rs`](../hyper-calendar/tests/abi.rs)
 walks every `i64` export in the table of exports below and fails when one
@@ -179,6 +180,9 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `earthRotationAngle(ut1)`, `gmstIau2006(ut1)`, `gmstIau1982(ut1)`, `ut2MinusUt1(ut1)` | `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1` | a number |
 | `solarTime(clock, unix, latitude, longitude, elevation)`, `solarEvent(event, rd, latitude, longitude, elevation)` | `hc_solar_time`, `hc_solar_event` | a `SolarTime`; a `SolarEvent` |
 | `orbitAt(years)`, `orbitSeries(from, to, step)` | `hc_orbit_at`, `hc_orbit_series` | an `Orbit`; `OrbitSample[]` |
+| `marsTime(unix, eastLongitude)`, `missions()`, `missionSol(mission, unix)` | `hc_mars_time`, `hc_missions`, `hc_mission_sol` | a `MarsTime`; `Mission[]`; a number |
+| `bodies()`, `bodyTime(body, unix, eastLongitude)` | `hc_bodies`, `hc_body_time` | `Body[]`; a `BodyTime` |
+| `properTime(speed, coordinateSeconds)`, `gravitationalDilation(body, radius)`, `gravitatingBodies()` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | a `ProperTime`; a `GravitationalDilation`; `GravitatingBody[]` |
 
 Each method does what a page would otherwise write by hand:
 
@@ -244,7 +248,7 @@ the module's bytes inside it as base64, decoded with `atob` and bound by a
 `load(options)` that takes no source and fetches nothing. It is one
 self-contained ES module; `hyper-calendar.embedded.d.ts` types it. It is
 generated, not committed — CI uploads it with the layered builds below —
-and it is 2.48 MiB (2,596,378 bytes) for the `full` layer of 2026-09-26,
+and it is 2.53 MiB (2,648,364 bytes) for the `full` layer of 2026-09-26,
 base64 being four thirds of the module.
 
 ### tzdata beside the module
@@ -291,7 +295,9 @@ before it loads the holiday tables.
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,822 | 56 KiB |
 | `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`; the Earth's rotation and the Sun's hours | `hc-astro`, `hc-seasons` | 109,483 | 107 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 63,961 | 62 KiB |
-| `full` | all of the above | everything | 1,881,593 | 1.79 MiB |
+| `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`: Mars time, the Darian date, the surface missions' sols, and the solar day and local time of every body in `hc-planetary`'s table | `hc-planetary`, `hc-astro` | 87,632 | 86 KiB |
+| `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 52,367 | 51 KiB |
+| `full` | all of the above | everything | 1,911,837 | 1.82 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -304,7 +310,7 @@ scripts/wasm-layers.sh
 
 The script leaves each layer at `target/wasm-layers/hyper_calendar_wasm.<feature>.wasm`
 and prints the table; CI runs it on every pull request and uploads the
-ten files, the embedded module and `tzdata/` as one workflow artifact.
+twelve files, the embedded module and `tzdata/` as one workflow artifact.
 CI then runs [`scripts/wasm-size-check.sh`](../../scripts/wasm-size-check.sh),
 which fails when any layer is more than 5% larger or smaller than the table
 above: a layer that grows by accident is caught, and a change that moves a
@@ -331,7 +337,7 @@ not pass CI.
 
 ### Exports
 
-64 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+72 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -399,6 +405,14 @@ not pass CI.
 | `hc_solar_event(event: *const u8, event_len: usize, fixed: i64, latitude: f64, longitude: f64, elevation: f64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | A named time of day on a fixed day at a place, as one UTF-8 line, returning the byte length written. |
 | `hc_orbit_at(years_before_1950: f64, buffer: *mut u8, capacity: usize) -> i64` | `orbital` | Earth's orbital elements and the June insolation at 65° N at an epoch, as one UTF-8 line, returning the byte length written. |
 | `hc_orbit_series(from_years_before_1950: f64, to_years_before_1950: f64, step_years: f64, buffer: *mut u8, capacity: usize) -> i64` | `orbital` | The line of `hc_orbit_at` at every epoch from `from_years_before_1950` to `to_years_before_1950` in steps of `step_years`, each with the epoch as a first column, as UTF-8 lines, returning the byte length written. |
+| `hc_mars_time(unix_seconds: f64, east_longitude_deg: f64, buffer: *mut u8, capacity: usize) -> i64` | `planetary` | Mars at a POSIX instant and an east longitude, as one UTF-8 line, returning the byte length written. |
+| `hc_missions(buffer: *mut u8, capacity: usize) -> i64` | `planetary` | Every surface mission on Mars and the rules of its sol count, as UTF-8 lines, returning the byte length written. |
+| `hc_mission_sol(mission: *const u8, mission_len: usize, unix_seconds: f64) -> i64` | `planetary` | The sol number of a Mars surface mission at a POSIX instant, by the mission's own clock, or an error sentinel. |
+| `hc_bodies(buffer: *mut u8, capacity: usize) -> i64` | `planetary` | Every body `hc-planetary` carries, with its solar day, as UTF-8 lines, returning the byte length written. |
+| `hc_body_time(body: *const u8, body_len: usize, unix_seconds: f64, east_longitude_deg: f64, buffer: *mut u8, capacity: usize) -> i64` | `planetary` | Local mean solar time on a body at a POSIX instant and an east longitude, as one UTF-8 line, returning the byte length written. |
+| `hc_proper_time(speed_metres_per_second: f64, coordinate_seconds: f64, buffer: *mut u8, capacity: usize) -> i64` | `relativity` | A clock moving at a constant speed while some coordinate time passes, as one UTF-8 line, returning the byte length written. |
+| `hc_gravitational_dilation(body: *const u8, body_len: usize, radius_metres: f64, buffer: *mut u8, capacity: usize) -> i64` | `relativity` | A clock held still at a radius from a body's centre, against one far from every mass, as one UTF-8 line, returning the byte length written. |
+| `hc_gravitating_bodies(buffer: *mut u8, capacity: usize) -> i64` | `relativity` | Every body `hc-relativity` carries a gravitational parameter for, as UTF-8 lines, returning the byte length written. |
 
 ### Error sentinels
 
@@ -1303,6 +1317,270 @@ lgm.obliquity;                            // 22.949
 lgm.climaticPrecession;                   // 0.01729
 lgm.insolation65NJune;                    // 468.8, against 477.6 at 1950
 hc.orbitSeries(0, 100_000, 1_000).map((sample) => [sample.yearsBefore1950, sample.insolation65NJune]);
+```
+
+## Mars time
+
+`hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies` and
+`hc_body_time` need the `planetary` feature and answer from
+`hc-planetary`. Every instant is POSIX time in seconds as a double, so a
+page passes `Date.now() / 1000` as it is; it is read as UTC and carried to
+TAI through the leap-second table with the last published offset held
+into the future, and UTC taken as TAI before 1961, as `hc-planetary` reads
+a landing. Every longitude is planetocentric and east-positive, in
+degrees, and wraps. The layer answers for the instants within 100 Julian
+years of J2000.0, 1900-01-01T12:00 to 2100-01-01T12:00 TT, the span over
+which Allison and McEwen state their series good to about 0.008° of `Ls`,
+three seconds of true solar time; outside it the series extrapolates with
+no secular change of Mars's orbit, and an instant there is
+`HC_ERR_OUT_OF_RANGE`, never a number. The body table states no span of
+its own, and its README calls a century of propagation already more than
+its fact-sheet figures bear, so the same span holds for it.
+
+`hc_mars_time(unix_seconds, east_longitude_deg, buffer, capacity)` writes
+one line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | mars sol date | the Mars Sol Date, sols from 1873-12-29, as Mars24's equation C-2 counts them |
+| 2 | mtc | Coordinated Mars Time, the mean solar time at Airy-0, as `HH:MM:SS` on the 24-hour Martian clock, truncated so that a sol never reads 24:00:00 |
+| 3 | mtc hours | the same in decimal Martian hours |
+| 4 | lmst | local mean solar time at the longitude, `HH:MM:SS` |
+| 5 | lmst hours | the same in decimal Martian hours |
+| 6 | ltst | local true solar time at the longitude, `HH:MM:SS`: what a sundial there reads |
+| 7 | ltst hours | the same in decimal Martian hours |
+| 8 | equation of time | true minus mean solar time, in Martian minutes; −51 to +40 over a Mars year |
+| 9 | ls | the areocentric solar longitude `Ls`, in degrees: 0 at the northern spring equinox |
+| 10 | mars year | the Mars year under the Clancy convention, year 1 from the `Ls = 0` of 1955-04-11 |
+| 11 | darian year | the Darian year at Airy-0, 183 more than the Mars year |
+| 12 | darian month | the Darian month, 1 to 24 |
+| 13 | darian sol | the sol of the month, 1 to 28 |
+| 14 | darian month name | the month's name, Sagittarius to Vrishika |
+| 15 | darian sol of week | the sol's name, Sol Solis to Sol Saturni |
+| 16 | source | the series and the constants, by name |
+
+A Martian hour is a twenty-fourth of a sol, 3 699 SI seconds, and its
+minutes and seconds are sixtieths of it, as every Mars mission has kept
+them. The Darian date is the prime meridian's, turning at mean midnight at
+Airy-0; it is Gangale's proposal, not a calendar anyone keeps, and it is
+carried as `hc-planetary` carries it.
+
+The constants, as `hc-planetary` names them, and where each is from:
+
+| Constant | Value | Source |
+| --- | --- | --- |
+| `MSD_EPOCH_JULIAN_DATE_TT`, `MSD_AT_EPOCH` | JD 2 451 549.5 TT, 44 796.0 | NASA GISS, *Mars24 Sunclock — Algorithm and Worked Examples*, eq. C-2 |
+| `SOL_IN_DAYS` | 1.027 491 251 7 | the same, eq. C-2 |
+| `MSD_MIDNIGHT_ADJUSTMENT` | 0.000 962 6 | the same, as revised in 2015; Allison and McEwen's 2000 value, 0.000 72, is `MSD_MIDNIGHT_ADJUSTMENT_2000` and is not used here |
+| the mean anomaly, the fictitious mean Sun, `PERTURBERS`, the equation of centre and of time | eqs. B-1 to C-1 | the same |
+| `MARS_SOL_SECONDS` | 88 775.244 s | Mars24, *Technical Notes on Mars Solar Time* |
+| `MARS_TROPICAL_YEAR_SOLS` | 668.5921 | the same |
+| `MARS_YEAR_1_START_MSD` | 28 892.6593 | a seed, not a citation: Clancy et al. (2000) date Mars Year 1 to 1955-04-11 without a time of day, and this is `hc-planetary`'s own `Ls = 0` solution there, re-solved at every year boundary |
+| `DARIAN_EPOCH_MARS_SOL_DATE`, the months, the week and the leap rule | −94 129 | Gangale, "The Darian Calendar for Mars"; the epoch reproduces the published Darian dates of the Viking 1 and Perseverance landings |
+
+`hc-planetary`'s README gives each constant's derivation and
+`docs/systems/mars-timekeeping.md` the system. Mars24's two worked
+examples reproduce through the export: 2000-01-06T00:00:00Z at the prime
+meridian is MSD 44 795.999 76, MTC 23:59:39, `Ls` 277.187 58°, and LTST
+23:38:54; 2004-01-03T13:46:31Z at 184.702° W, Spirit's planned site, is
+LTST 00:00:00.
+
+```js
+const landing = hc.marsTime(1_613_681_028, 77.45);   // Perseverance, 2021-02-18T20:43:48Z
+landing.lmst;                                         // "15:53:25"
+landing.darian;                                       // { year: 219, month: 1, sol: 13, monthName: "Sagittarius", ... }
+landing.marsYear;                                     // 36
+```
+
+A calendar `hc-planetary` gains later — Titan's, the Galilean moons', a
+second Martian one — comes as one more export beside `hc_mars_time`, with
+its own line, and not as columns of this one.
+
+### Mission sols
+
+`hc_missions(buffer, capacity)` writes one line per surface mission, in
+landing order:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | the name in lower case, a hyphen for each space: `viking-1`, `mars-pathfinder` |
+| 2 | name | the name the mission is usually called by |
+| 3 | landing utc | the landing instant in UTC, spacecraft event time where the distinction is documented |
+| 4 | landing unix | the same as a POSIX timestamp |
+| 5 | landing sol | the number the mission gave its landing sol, 0 or 1; empty where no convention was published |
+| 6 | clock | the clock's midnight: `local-mean-solar-time`, or `local-true-solar-time-at-landing`, a true solar midnight on the landing sol after which the clock ticked at the mean rate; empty where no convention was published |
+| 7 | clock longitude | the east longitude the clock was built on, the planned site rather than the achieved one; empty where no convention was published |
+| 8 | site longitude | the achieved site's east longitude |
+| 9 | published | `1` where the operators published the convention, `0` otherwise |
+| 10 | note | what is worth knowing about the clock |
+| 11 | source | where the row is from |
+
+`hc_mission_sol(mission, mission_len, unix_seconds)` returns the sol by
+that mission's clock, `mission` being an identifier or a name the list
+gives, in any ASCII case. The conventions are the ones NASA GISS's
+*Mars24 Technical Notes* state under "Lander Mission Times": Viking 1 and
+2, Phoenix, Curiosity, InSight and Perseverance number the landing sol 0,
+Pathfinder, Spirit and Opportunity 1; Viking and Pathfinder clocks began
+at local true solar midnight, the rest at local mean solar midnight, each
+on its planned meridian. The landings and sites are Mars24's *Mars Lander
+Missions*. None is invented: Zhurong's operators published no clock and
+no sol numbering, so its row leaves those cells empty and its sol is
+`HC_ERR_NO_DATA`, although `hc-planetary` states a choice of its own for
+it. Spirit's and Opportunity's operational "hybrid local solar time" ran
+more than 41 and 37 minutes from site LMST; their sol numbers are the
+missions', which the offset does not change. An instant before the
+landing sol began is `HC_ERR_OUT_OF_RANGE`: the count does not reach back
+past it.
+
+```js
+hc.missionSol("curiosity", 1_344_230_277);   // 0: landed 2012-08-06T05:17:57Z, on sol 0
+hc.missionSol("Mars Pathfinder", 868_035_415);   // 1
+hc.missionSol("zhurong", Date.now() / 1000);   // throws HcError "no-data"
+```
+
+## Other bodies
+
+`hc_bodies(buffer, capacity)` writes one line per body `hc-planetary`
+carries, outward from the Sun with each planet's moons after it:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | the name in lower case: `titan` |
+| 2 | name | the English name |
+| 3 | kind | `star`, `planet`, `dwarf-planet` or `moon` |
+| 4 | primary | the identifier of the body it orbits; empty for the Sun |
+| 5 | sidereal rotation | the sidereal rotation period in hours, negative for a retrograde rotator |
+| 6 | solar day | the solar day in SI seconds; empty for the Sun, which has none |
+| 7 | solar day origin | `measured` where the day is itself a published constant (Earth's 86 400 s, the Mars24 sol, the Moon's mean synodic month), `derived` where it follows from `1/P_solar = 1/P_sidereal − 1/P_year` with the year around the Sun; empty for the Sun |
+| 8 | year in local days | the year around the Sun in the body's own solar days; empty for the Sun |
+| 9 | zero point | `standard` where the clock's zero is an international one (Earth, Mars) and `convention` where it is a zero this library declares |
+| 10 | zero point note | what the zero point is |
+| 11 | source | where the row's figures are from, and what is contested about them |
+| 12 | status | the status of a timekeeping standard still being drawn up: on the Moon's row, `hc-planetary`'s statement that no Coordinated Lunar Time was yet defined as of 2026-09-26; empty on every other row |
+
+The figures are the NASA NSSDC *Planetary Fact Sheets*, with satellite
+rotation rates from the IAU WGCCRE (Archinal et al. 2018) and Ceres from
+Konopliv et al. (2018), each row's source cell saying which; the Moon's
+solar day is `hc-astro`'s `MEAN_SYNODIC_MONTH`. They are quoted to four to
+seven figures, which is fine for how long a day on Titan is and not for a
+day count carried across a century.
+
+### Local time on a body
+
+`hc_body_time(body, body_len, unix_seconds, east_longitude_deg, buffer,
+capacity)` writes one line of local **mean** solar time:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | day | the local day number, counted from the body's zero point: the Rata Die on Earth, the Mars Sol Date on Mars, the Meeus lunation on the Moon, and a day this library declares elsewhere |
+| 2 | fraction | the fraction of the local day elapsed, 0 to 1 |
+| 3 | time | the reading as `HH:MM:SS` on a 24-hour local face, truncated |
+| 4 | hours | the same in decimal local hours |
+| 5 | solar day | the solar day in SI seconds |
+| 6 | local hour | a twenty-fourth of it, in SI seconds |
+| 7 | zero point | `standard` or `convention`, as in `hc_bodies` |
+| 8 | zero point note | what the zero point is |
+
+Only the rate is physical wherever the zero point is a `convention`: the
+library declares J2000.0 local mean midnight at the prime meridian, which
+is reproducible and nobody's standard. A retrograde rotator's longitude
+needs no care from the caller — east is east, and the Sun rises in the
+west. `body` is an identifier or a name `hc_bodies` gives, in any ASCII
+case; another is `HC_ERR_UNKNOWN`, and the Sun, which has no solar day,
+`HC_ERR_NO_DATA`. The Moon's clock is a mean solar clock under a declared
+zero and is not Coordinated Lunar Time.
+
+```js
+hc.bodyTime("titan", Date.now() / 1000).localHourSeconds / 3600;   // 15.97
+hc.bodyTime("mars", 947_116_800).time;   // "23:59:39", Coordinated Mars Time at Airy-0
+```
+
+## Relativity
+
+`hc_proper_time`, `hc_gravitational_dilation` and `hc_gravitating_bodies`
+need the `relativity` feature and answer from `hc-relativity`, whose
+metric is Schwarzschild's: non-rotating, uncharged, spherically
+symmetric, with no quadrupole, no frame dragging and no Sagnac term. Each
+line names the `hc-relativity` constants it was computed with, separated
+by `;`, so a figure can be traced to its source. A rate's offset from 1 is
+computed without cancellation, by `√(1 − x) − 1 = −x / (1 + √(1 − x))`,
+since a rate of 1 − 3·10⁻¹⁰ written as a double keeps only six figures of
+its distance from 1.
+
+`hc_proper_time(speed_metres_per_second, coordinate_seconds, buffer,
+capacity)` writes one line for a clock moving at a constant speed while
+the coordinate time passes in the frame it moves through:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | beta | the speed as a fraction of the speed of light |
+| 2 | lorentz factor | γ = 1/√(1 − β²) |
+| 3 | proper seconds | the time the moving clock records, in seconds |
+| 4 | rate | dτ/dt = 1/γ |
+| 5 | microseconds per day | the rate's offset from 1 in microseconds per 86 400-second day; negative, the moving clock runs slow |
+| 6 | constants | `SPEED_OF_LIGHT` |
+| 7 | source | the functions used |
+
+A speed at or beyond the speed of light either way, or a value that is not
+finite, is `HC_ERR_OUT_OF_RANGE`.
+
+### A clock at a radius
+
+`hc_gravitational_dilation(body, body_len, radius_metres, buffer,
+capacity)` writes one line for a clock held still at a radius from a
+body's centre, against one far from every mass:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | the body's identifier |
+| 2 | gm | its standard gravitational parameter GM, in m³ s⁻² |
+| 3 | gm constant | the `hc-relativity` constant that holds it |
+| 4 | schwarzschild radius | 2GM/c², in metres |
+| 5 | factor | the static dilation factor dτ/dt = √(1 − r_s/r) |
+| 6 | microseconds per day | the factor's offset from 1 in microseconds per 86 400-second day; negative, the deeper clock runs slow |
+| 7 | constants | the constants used: the body's `GM_*` and `SPEED_OF_LIGHT_SQUARED` |
+| 8 | source | where the body's GM is from |
+
+Two radii compare by their offsets: a clock at `hc-relativity`'s
+`GPS_ORBIT_RADIUS`, 26 561 750 m, gains 45.65 µs a day on one at
+`EARTH_EQUATORIAL_RADIUS`, 6 378 137 m, before its motion is counted; its
+circular speed through `hc_proper_time` loses 7.21, and the net 38.4 is
+the textbook GPS figure the crate anchors. A radius that is not finite,
+not positive, or at or inside the Schwarzschild radius is
+`HC_ERR_OUT_OF_RANGE`, and a body without a GM `HC_ERR_UNKNOWN`.
+
+### The gravitating bodies
+
+`hc_gravitating_bodies(buffer, capacity)` writes one line per body
+`hc-relativity` carries a GM for:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | the identifier `hc_gravitational_dilation` takes |
+| 2 | name | the English name |
+| 3 | gm | GM, in m³ s⁻² |
+| 4 | gm constant | the `hc-relativity` constant that holds it |
+| 5 | source | where the value is from |
+
+The constants, as `hc-relativity` names them, and where each is from:
+
+| Constant | Value | Source |
+| --- | --- | --- |
+| `SPEED_OF_LIGHT`, `SPEED_OF_LIGHT_SQUARED` | 299 792 458 m/s, and its square | exact by the 2019 SI |
+| `GM_SUN` | 1.327 124 400 412 794 2·10²⁰ m³ s⁻² | JPL DE440 (Park et al. 2021), `BODY10_GM` of NAIF's `gm_de440.tpc` |
+| `GM_EARTH` | 3.986 004 418·10¹⁴ m³ s⁻² | IERS Conventions (2010) and WGS 84 |
+| `GM_MOON` | 4.902 800 118 457 55·10¹² m³ s⁻² | JPL DE440, `BODY301_GM` |
+| `GM_MARS` | 4.282 837·10¹³ m³ s⁻² | JPL DE440, the Mars system, `BODY4_GM` to seven figures |
+| `GM_JUPITER` | 1.267 127 64·10¹⁷ m³ s⁻² | JPL DE440, the Jupiter system, `BODY5_GM` |
+| `GM_SAGITTARIUS_A_STAR` | 4.297·10⁶ × `GM_SUN` | GRAVITY Collaboration, A&A 657, L12 (2022); good to about 1 % with the systematic error |
+
+`hc-relativity`'s README says how well each is known and why every
+formula takes a GM rather than a mass.
+
+```js
+hc.properTime(0.6 * 299_792_458, 10).properSeconds;   // 8
+hc.gravitationalDilation("earth", 26_561_750).microsecondsPerDay
+  - hc.gravitationalDilation("earth", 6_378_137).microsecondsPerDay;   // 45.65
 ```
 
 ## What is not here

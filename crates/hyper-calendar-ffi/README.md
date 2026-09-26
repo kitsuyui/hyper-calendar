@@ -75,6 +75,7 @@ out-parameter answers for:
 | an Olympiad | `hc_ioc_olympiad` | the years from 1896; an earlier one is `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_hebrew_yahrzeit`, `hc_hebrew_birthday` | the days and years of the Hebrew years 1 through 9999, the fixed days −1 373 427 through 2 278 650; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_astronomical_easter` | the years 1583 through 2150; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERROR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERROR_NO_DATA`, and a mission the table does not carry `HC_ERROR_UNKNOWN` |
 
 `hc_day_has_leap_second` writes an `int`, but it reads the day around the
 timestamp: the part-days at the two ends of the `int64_t` range, before
@@ -147,7 +148,8 @@ are NUL-terminated and may be null, and the length comes back through
 
 The entry points come in layers, each a Cargo feature, the same layers as
 the WebAssembly module's: `civil` (the default), `timestamps`, `calendars`, `holiday`,
-`seasons`, `deep-time`, `tz`, `sky`, `orbital` and `full`. Each builds on its own —
+`seasons`, `deep-time`, `tz`, `sky`, `orbital`, `planetary`, `relativity` and `full`.
+Each builds on its own —
 `calendars` does not need `holiday` — and the table below names the one
 each entry point needs.
 
@@ -166,7 +168,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-57 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+65 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -227,6 +229,14 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_solar_event(const char *event, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `sky` | A named time of day on a fixed day at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_orbit_at(double years_before_1950, char *buffer, size_t capacity, size_t *written);` | `orbital` | Earth's orbital elements and the June insolation at 65° N at an epoch, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_orbit_series(double from_years_before_1950, double to_years_before_1950, double step_years, char *buffer, size_t capacity, size_t *written);` | `orbital` | The line of `hc_orbit_at` at every epoch from `from_years_before_1950` to `to_years_before_1950` in steps of `step_years`, each with the epoch as a first column, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_mars_time(double unix_seconds, double east_longitude_deg, char *buffer, size_t capacity, size_t *written);` | `planetary` | Mars at a POSIX instant and an east longitude, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_missions(char *buffer, size_t capacity, size_t *written);` | `planetary` | Every surface mission on Mars and the rules of its sol count, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_mission_sol(const char *mission, double unix_seconds, int64_t *out_sol);` | `planetary` | The sol number of a Mars surface mission at a POSIX instant, by the mission's own clock. |
+| `HcStatus hc_bodies(char *buffer, size_t capacity, size_t *written);` | `planetary` | Every body `hc-planetary` carries, with its solar day, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_body_time(const char *body, double unix_seconds, double east_longitude_deg, char *buffer, size_t capacity, size_t *written);` | `planetary` | Local mean solar time on a body at a POSIX instant and an east longitude, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_proper_time(double speed_metres_per_second, double coordinate_seconds, char *buffer, size_t capacity, size_t *written);` | `relativity` | A clock moving at a constant speed while some coordinate time passes, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_gravitational_dilation(const char *body, double radius_metres, char *buffer, size_t capacity, size_t *written);` | `relativity` | A clock held still at a radius from a body's centre, against one far from every mass, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_gravitating_bodies(char *buffer, size_t capacity, size_t *written);` | `relativity` | Every body `hc-relativity` carries a gravitational parameter for, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 
 ### Status codes
 
@@ -492,6 +502,47 @@ as a first column before those eleven. An epoch beyond a million years
 either side of 1950 is `HC_ERROR_OUT_OF_RANGE`, never a number; so is a
 step that is not finite and positive, or a series of more than 10 000
 samples. A `to` before `from` is an empty answer.
+
+## Time on other bodies
+
+`hc_mars_time(unix_seconds, east_longitude_deg, buffer, capacity,
+written)`, `hc_missions(buffer, capacity, written)`,
+`hc_mission_sol(mission, unix_seconds, out_sol)`, `hc_bodies(buffer,
+capacity, written)` and `hc_body_time(body, unix_seconds,
+east_longitude_deg, buffer, capacity, written)` need the `planetary`
+feature and write the lines the WebAssembly module's README tabulates,
+from `hc-planetary`: Mars time — the Mars Sol Date, Coordinated Mars
+Time, local mean and true solar time, the equation of time, `Ls`, the
+Clancy Mars year and the Darian date at Airy-0, from NASA GISS's Mars24
+restatement of Allison and McEwen — the surface missions and the rules of
+their sol counts, and the solar day and local mean solar time of every
+body in the table. The instant is POSIX seconds as a `double`, read as
+UTC through the leap-second table with the last offset held; the longitude
+is planetocentric, east-positive, and wraps. An instant more than 100
+Julian years from J2000.0, where the series is an extrapolation, is
+`HC_ERROR_OUT_OF_RANGE`. `mission` and `body` are NUL-terminated
+identifiers or names, in any ASCII case. No mission convention is
+invented: Zhurong's operators published no sol numbering, so its row
+leaves the landing sol, the clock and its meridian empty and its sol is
+`HC_ERROR_NO_DATA`. The Moon's row carries `hc-planetary`'s statement that
+no Coordinated Lunar Time was yet defined, and its clock is a mean solar
+clock under a declared zero, not that scale.
+
+## Relativity
+
+`hc_proper_time(speed_metres_per_second, coordinate_seconds, buffer,
+capacity, written)`, `hc_gravitational_dilation(body, radius_metres,
+buffer, capacity, written)` and `hc_gravitating_bodies(buffer, capacity,
+written)` need the `relativity` feature and write the WebAssembly
+module's lines, from `hc-relativity`'s Schwarzschild formulas: β, γ, the
+proper time and the rate of a clock at a constant speed; the GM, the
+Schwarzschild radius and the static dilation factor of a clock held still
+at a radius; each rate's offset in microseconds per day, computed without
+cancellation; and the `hc-relativity` constants each line was computed
+with, by name (`SPEED_OF_LIGHT`, `SPEED_OF_LIGHT_SQUARED` and the body's
+`GM_*`). A speed at or beyond light, or a radius at or inside the
+Schwarzschild radius, is `HC_ERROR_OUT_OF_RANGE`; the WebAssembly module's
+README names each constant's source.
 
 ## Leap seconds, and the `strict` flag
 

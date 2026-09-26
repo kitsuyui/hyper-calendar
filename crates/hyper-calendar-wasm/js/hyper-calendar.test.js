@@ -96,7 +96,10 @@ describe("load", () => {
 
   test("names the version and the layers", () => {
     assert.match(hc.version(), /^\d+\.\d+\.\d+/);
-    assert.deepEqual(hc.layers(), ["civil", "timestamps", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital"]);
+    assert.deepEqual(hc.layers(), [
+      "civil", "timestamps", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital",
+      "planetary", "relativity",
+    ]);
     for (const entry of METHODS) {
       assert.ok(hc.has(entry.method), entry.method);
       assert.equal(typeof hc[entry.method], "function", entry.method);
@@ -1376,6 +1379,143 @@ describe("the Earth's rotation and the Sun's hours", () => {
   });
 });
 
+describe("time on other bodies", () => {
+  test("Mars24's worked examples decode column by column", () => {
+    // Worked example A, 2000-01-06T00:00:00Z at the prime meridian: MSD
+    // 44795.99976, MTC 23:59:39, Ls 277.18758°, EOT −5.18774° (−20.75
+    // Martian minutes), LTST 23:38:54.
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_mars_time(947_116_800, 0, buffer, capacity));
+    assert.equal(raw.length, 1);
+    assert.equal(raw[0].length, COLUMNS.marsTime.length);
+    const a = hc.marsTime(947_116_800);
+    assert.ok(Math.abs(a.marsSolDate - 44_795.999_760_4) < 1e-6, `${a.marsSolDate}`);
+    assert.equal(a.mtc, "23:59:39");
+    assert.equal(a.lmst, "23:59:39");
+    assert.equal(a.ltst, "23:38:54");
+    assert.ok(Math.abs(a.solarLongitude - 277.187_58) < 1e-5, `${a.solarLongitude}`);
+    assert.ok(Math.abs(a.equationOfTimeMinutes - -5.187_74 * 4) < 1e-3, `${a.equationOfTimeMinutes}`);
+    assert.equal(a.marsYear, 24);
+    assert.equal(a.darian.year, 207);
+    assert.match(a.source, /Mars24/);
+    // Worked example B, 2004-01-03T13:46:31Z at Spirit's planned site,
+    // 184.702° W: LTST 00:00:00.
+    const b = hc.marsTime(1_073_137_591, -184.702);
+    assert.equal(b.ltst, "00:00:00");
+    assert.ok(Math.abs(b.solarLongitude - 327.324_16) < 1e-4, `${b.solarLongitude}`);
+    // Perseverance's landing is 13 Sagittarius 219 in the Darian calendar.
+    const landing = hc.marsTime(1_613_681_028, 77.45);
+    assert.deepEqual([landing.darian.sol, landing.darian.monthName, landing.darian.year], [13, "Sagittarius", 219]);
+    assert.equal(landing.lmst.slice(0, 5), "15:53");
+  });
+
+  test("the span is a century either side of J2000", () => {
+    assert.equal(hc.marsTime(-2_208_902_400).marsYear < 0, true);
+    for (const unix of [-2_240_524_800, 4_133_980_800, Number.NaN, Number.POSITIVE_INFINITY]) {
+      const error = refused(() => hc.marsTime(unix), "out-of-range");
+      assert.equal(error.export, "hc_mars_time");
+    }
+    refused(() => hc.marsTime(0, Number.NaN), "out-of-range");
+    assert.throws(() => hc.marsTime(/** @type {any} */ ("0")), TypeError);
+  });
+
+  test("a mission sol follows the mission's own clock, and an unpublished one is refused", () => {
+    const missions = hc.missions();
+    assert.equal(missions.length, 10);
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_missions(buffer, capacity));
+    assert.ok(raw.every((cells) => cells.length === COLUMNS.missions.length));
+    assert.deepEqual(missions.map((entry) => entry.id), [
+      "viking-1", "viking-2", "mars-pathfinder", "spirit", "opportunity", "phoenix",
+      "curiosity", "insight", "perseverance", "zhurong",
+    ]);
+    const zhurong = missions[9];
+    assert.equal(zhurong.published, false);
+    assert.equal(zhurong.landingSol, null);
+    assert.equal(zhurong.clock, null);
+    assert.equal(zhurong.clockEastLongitude, null);
+    assert.equal(missions[0].clock, "local-true-solar-time-at-landing");
+    assert.equal(missions[6].landingSol, 0);
+    assert.equal(missions[2].landingSol, 1);
+    assert.equal(hc.missionSol("curiosity", missions[6].landingUnix), 0);
+    assert.equal(hc.missionSol("Spirit", missions[3].landingUnix), 1);
+    // Curiosity's sol 1000 fell within 2015-05-30 UTC.
+    const day = 1_432_944_000;
+    const first = hc.missionSol("curiosity", day);
+    const last = hc.missionSol("curiosity", day + 86_399);
+    assert.ok(first <= 1_000 && 1_000 <= last, `${first}..${last}`);
+    refused(() => hc.missionSol("zhurong", 1_700_000_000), "no-data");
+    refused(() => hc.missionSol("beagle-2", 1_700_000_000), "unknown");
+    refused(() => hc.missionSol("curiosity", missions[6].landingUnix - 86_400), "out-of-range");
+  });
+
+  test("every body lists, and a body's clock reads", () => {
+    const bodies = hc.bodies();
+    assert.equal(bodies.length, 22);
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_bodies(buffer, capacity));
+    assert.ok(raw.every((cells) => cells.length === COLUMNS.bodies.length));
+    const byId = Object.fromEntries(bodies.map((entry) => [entry.id, entry]));
+    assert.equal(byId.sun.solarDaySeconds, null);
+    assert.equal(byId.earth.solarDaySeconds, 86_400);
+    assert.equal(byId.mars.solarDayOrigin, "measured");
+    assert.equal(byId.mars.zeroPoint, "standard");
+    // Mercury's 3:2 resonance: two Mercurian years to its solar day.
+    assert.ok(Math.abs(byId.mercury.yearInLocalDays - 0.5) < 1e-3, `${byId.mercury.yearInLocalDays}`);
+    assert.ok(byId.venus.siderealRotationHours < 0);
+    assert.equal(byId.titan.primary, "saturn");
+    assert.match(byId.moon.status ?? "", /Coordinated Lunar Time/);
+    assert.equal(byId.titan.status, null);
+    const titan = hc.bodyTime("Titan", 947_116_800);
+    assert.ok(Math.abs(titan.localHourSeconds / 3_600 - 15.97) < 0.01, `${titan.localHourSeconds}`);
+    assert.equal(titan.zeroPoint, "convention");
+    const mars = hc.bodyTime("mars", 947_116_800);
+    assert.equal(mars.day, 44_795);
+    assert.equal(mars.time, hc.marsTime(947_116_800).mtc);
+    refused(() => hc.bodyTime("sun", 947_116_800), "no-data");
+    refused(() => hc.bodyTime("arrakis", 947_116_800), "unknown");
+  });
+});
+
+describe("relativity", () => {
+  test("six tenths of c is five quarters, and a GPS orbit speed loses 7.2 µs a day", () => {
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_proper_time(0.6 * 299_792_458, 10, buffer, capacity));
+    assert.equal(raw[0].length, COLUMNS.properTime.length);
+    const fast = hc.properTime(0.6 * 299_792_458, 10);
+    assert.ok(Math.abs(fast.lorentzFactor - 1.25) < 1e-12);
+    assert.ok(Math.abs(fast.properSeconds - 8) < 1e-9);
+    assert.deepEqual(fast.constants, ["SPEED_OF_LIGHT"]);
+    const gps = hc.properTime(Math.sqrt(3.986_004_418e14 / 26_561_750), 86_400);
+    assert.ok(Math.abs(gps.microsecondsPerDay - -7.21) < 0.01, `${gps.microsecondsPerDay}`);
+    refused(() => hc.properTime(299_792_458, 1), "out-of-range");
+    refused(() => hc.properTime(-3e8, 1), "out-of-range");
+  });
+
+  test("a GPS clock gains 45.7 µs a day over one on the ground, before its motion", () => {
+    const ground = hc.gravitationalDilation("earth", 6_378_137);
+    const orbit = hc.gravitationalDilation("Earth", 26_561_750);
+    const raw = rawRows(hc, (buffer, capacity) => {
+      const name = new TextEncoder().encode("earth");
+      const pointer = hc.alloc(name.length);
+      new Uint8Array(hc.memory.buffer, pointer, name.length).set(name);
+      try {
+        return hc.exports.hc_gravitational_dilation(pointer, name.length, 6_378_137, buffer, capacity);
+      } finally {
+        hc.free(pointer, name.length);
+      }
+    });
+    assert.equal(raw[0].length, COLUMNS.gravitationalDilation.length);
+    assert.equal(ground.gmConstant, "GM_EARTH");
+    assert.deepEqual(ground.constants, ["GM_EARTH", "SPEED_OF_LIGHT_SQUARED"]);
+    const gain = orbit.microsecondsPerDay - ground.microsecondsPerDay;
+    assert.ok(Math.abs(gain - 45.65) < 0.01, `${gain}`);
+    const sun = hc.gravitationalDilation("sun", 6.957e8);
+    assert.ok(Math.abs(sun.schwarzschildRadius - 2_953.25) < 0.01, `${sun.schwarzschildRadius}`);
+    refused(() => hc.gravitationalDilation("sun", 2_000), "out-of-range");
+    refused(() => hc.gravitationalDilation("vulcan", 1e7), "unknown");
+    const bodies = hc.gravitatingBodies();
+    assert.deepEqual(bodies.map((entry) => entry.id), ["sun", "earth", "moon", "mars", "jupiter", "sagittarius-a-star"]);
+    assert.ok(bodies.every((entry) => entry.gmConstant.startsWith("GM_")));
+  });
+});
+
 describe("the buffer protocol", () => {
   /**
    * The module with its exports counted.
@@ -1418,6 +1558,13 @@ describe("the buffer protocol", () => {
     assert.deepEqual(small.moonPhasesBetween(0, 0), []);
     assert.deepEqual(small.orbitAt(21_000), hc.orbitAt(21_000));
     assert.deepEqual(small.orbitSeries(0, 21_000, 7_000), hc.orbitSeries(0, 21_000, 7_000));
+    assert.deepEqual(small.marsTime(947_116_800, 137.44), hc.marsTime(947_116_800, 137.44));
+    assert.deepEqual(small.missions(), hc.missions());
+    assert.deepEqual(small.bodies(), hc.bodies());
+    assert.deepEqual(small.bodyTime("titan", 947_116_800), hc.bodyTime("titan", 947_116_800));
+    assert.deepEqual(small.properTime(7_800, 86_400), hc.properTime(7_800, 86_400));
+    assert.deepEqual(small.gravitationalDilation("moon", 1.7374e6), hc.gravitationalDilation("moon", 1.7374e6));
+    assert.deepEqual(small.gravitatingBodies(), hc.gravitatingBodies());
   });
 
   test("an export that measures is measured once, then read", async () => {

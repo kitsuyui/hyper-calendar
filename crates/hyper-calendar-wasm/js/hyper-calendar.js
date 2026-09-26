@@ -106,6 +106,14 @@ export const METHODS = Object.freeze([
   { method: "solarEvent", export: "hc_solar_event", feature: "sky" },
   { method: "orbitAt", export: "hc_orbit_at", feature: "orbital" },
   { method: "orbitSeries", export: "hc_orbit_series", feature: "orbital" },
+  { method: "marsTime", export: "hc_mars_time", feature: "planetary" },
+  { method: "missions", export: "hc_missions", feature: "planetary" },
+  { method: "missionSol", export: "hc_mission_sol", feature: "planetary" },
+  { method: "bodies", export: "hc_bodies", feature: "planetary" },
+  { method: "bodyTime", export: "hc_body_time", feature: "planetary" },
+  { method: "properTime", export: "hc_proper_time", feature: "relativity" },
+  { method: "gravitationalDilation", export: "hc_gravitational_dilation", feature: "relativity" },
+  { method: "gravitatingBodies", export: "hc_gravitating_bodies", feature: "relativity" },
 ].map(Object.freeze));
 
 /** The columns of `hc_orbit_at`, which `hc_orbit_series` writes after the epoch. */
@@ -184,6 +192,30 @@ export const COLUMNS = Object.freeze({
   value: Object.freeze(["value"]),
   solarTime: Object.freeze(["day", "hours", "missing", "missing day", "depression"]),
   solarEvent: Object.freeze(["instant", "missing", "missing day", "depression"]),
+  marsTime: Object.freeze([
+    "mars sol date", "mtc", "mtc hours", "lmst", "lmst hours", "ltst", "ltst hours",
+    "equation of time", "ls", "mars year", "darian year", "darian month", "darian sol",
+    "darian month name", "darian sol of week", "source",
+  ]),
+  missions: Object.freeze([
+    "id", "name", "landing utc", "landing unix", "landing sol", "clock", "clock longitude",
+    "site longitude", "published", "note", "source",
+  ]),
+  bodies: Object.freeze([
+    "id", "name", "kind", "primary", "sidereal rotation", "solar day", "solar day origin",
+    "year in local days", "zero point", "zero point note", "source", "status",
+  ]),
+  bodyTime: Object.freeze([
+    "day", "fraction", "time", "hours", "solar day", "local hour", "zero point", "zero point note",
+  ]),
+  properTime: Object.freeze([
+    "beta", "lorentz factor", "proper seconds", "rate", "microseconds per day", "constants", "source",
+  ]),
+  gravitationalDilation: Object.freeze([
+    "id", "gm", "gm constant", "schwarzschild radius", "factor", "microseconds per day",
+    "constants", "source",
+  ]),
+  gravitatingBodies: Object.freeze(["id", "name", "gm", "gm constant", "source"]),
 });
 
 /** The geologic ranks `hc_geologic_intervals` numbers, coarsest first. */
@@ -998,6 +1030,159 @@ function solarEvent(cells) {
     instant: optionalInteger(instant, "instant"),
     missing: missingSolarEvent(missing, missingDay, depression),
   };
+}
+
+/**
+ * The one line of `hc_mars_time`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").MarsTime}
+ */
+function marsTime(cells) {
+  const [
+    msd, mtc, mtcHours, lmst, lmstHours, ltst, ltstHours, equationOfTime, ls, marsYear,
+    darianYear, darianMonth, darianSol, darianMonthName, darianSolOfWeek, source,
+  ] = cells;
+  return {
+    marsSolDate: decimal(msd, "mars sol date"),
+    mtc,
+    mtcHours: decimal(mtcHours, "mtc hours"),
+    lmst,
+    lmstHours: decimal(lmstHours, "lmst hours"),
+    ltst,
+    ltstHours: decimal(ltstHours, "ltst hours"),
+    equationOfTimeMinutes: decimal(equationOfTime, "equation of time"),
+    solarLongitude: decimal(ls, "ls"),
+    marsYear: integer(marsYear, "mars year"),
+    darian: {
+      year: integer(darianYear, "darian year"),
+      month: integer(darianMonth, "darian month"),
+      sol: integer(darianSol, "darian sol"),
+      monthName: darianMonthName,
+      solOfWeek: darianSolOfWeek,
+    },
+    source,
+  };
+}
+
+/**
+ * One line of `hc_missions`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Mission}
+ */
+function mission(cells) {
+  const [id, name, landingUtc, landingUnix, landingSol, clock, clockLongitude, siteLongitude, published, note, source] = cells;
+  return {
+    id,
+    name,
+    landingUtc,
+    landingUnix: integer(landingUnix, "landing unix"),
+    landingSol: optionalInteger(landingSol, "landing sol"),
+    clock: /** @type {import("./hyper-calendar.d.ts").MissionClock | null} */ (optional(clock)),
+    clockEastLongitude: clockLongitude === "" ? null : decimal(clockLongitude, "clock longitude"),
+    siteEastLongitude: decimal(siteLongitude, "site longitude"),
+    published: flag(published, "published"),
+    note,
+    source,
+  };
+}
+
+/**
+ * One line of `hc_bodies`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Body}
+ */
+function body(cells) {
+  const [
+    id, name, kind, primary, siderealRotation, solarDay, solarDayOrigin, yearInLocalDays,
+    zeroPoint, zeroPointNote, source, status,
+  ] = cells;
+  return {
+    id,
+    name,
+    kind: /** @type {import("./hyper-calendar.d.ts").BodyKind} */ (kind),
+    primary: optional(primary),
+    siderealRotationHours: decimal(siderealRotation, "sidereal rotation"),
+    solarDaySeconds: solarDay === "" ? null : decimal(solarDay, "solar day"),
+    solarDayOrigin: /** @type {"measured" | "derived" | null} */ (optional(solarDayOrigin)),
+    yearInLocalDays: yearInLocalDays === "" ? null : decimal(yearInLocalDays, "year in local days"),
+    zeroPoint: /** @type {import("./hyper-calendar.d.ts").ZeroPoint} */ (zeroPoint),
+    zeroPointNote,
+    source,
+    status: optional(status),
+  };
+}
+
+/**
+ * The one line of `hc_body_time`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").BodyTime}
+ */
+function bodyTime(cells) {
+  const [day, fraction, time, hours, solarDay, localHour, zeroPoint, zeroPointNote] = cells;
+  return {
+    day: integer(day, "day"),
+    fraction: decimal(fraction, "fraction"),
+    time,
+    hours: decimal(hours, "hours"),
+    solarDaySeconds: decimal(solarDay, "solar day"),
+    localHourSeconds: decimal(localHour, "local hour"),
+    zeroPoint: /** @type {import("./hyper-calendar.d.ts").ZeroPoint} */ (zeroPoint),
+    zeroPointNote,
+  };
+}
+
+/**
+ * The one line of `hc_proper_time`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").ProperTime}
+ */
+function properTime(cells) {
+  const [beta, lorentzFactor, properSeconds, rate, micros, constants, source] = cells;
+  return {
+    beta: decimal(beta, "beta"),
+    lorentzFactor: decimal(lorentzFactor, "lorentz factor"),
+    properSeconds: decimal(properSeconds, "proper seconds"),
+    rate: decimal(rate, "rate"),
+    microsecondsPerDay: decimal(micros, "microseconds per day"),
+    constants: list(constants),
+    source,
+  };
+}
+
+/**
+ * The one line of `hc_gravitational_dilation`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").GravitationalDilation}
+ */
+function gravitationalDilation(cells) {
+  const [id, gm, gmConstant, schwarzschildRadius, factor, micros, constants, source] = cells;
+  return {
+    id,
+    gm: decimal(gm, "gm"),
+    gmConstant,
+    schwarzschildRadius: decimal(schwarzschildRadius, "schwarzschild radius"),
+    factor: decimal(factor, "factor"),
+    microsecondsPerDay: decimal(micros, "microseconds per day"),
+    constants: list(constants),
+    source,
+  };
+}
+
+/**
+ * One line of `hc_gravitating_bodies`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").GravitatingBody}
+ */
+function gravitatingBody(cells) {
+  const [id, name, gm, gmConstant, source] = cells;
+  return { id, name, gm: decimal(gm, "gm"), gmConstant, source };
 }
 
 /** The capacity a text read starts with unless `load` was told otherwise. */
@@ -2223,6 +2408,128 @@ export class HyperCalendar {
       this.#text("hc_solar_event", (buffer, capacity) =>
         fn(pointer, len, day, lat, lon, elev, buffer, capacity), true));
     return solarEvent(this.#oneLine("hc_solar_event", text, COLUMNS.solarEvent));
+  }
+
+  /**
+   * Mars at a POSIX instant and an east longitude: the Mars Sol Date,
+   * Coordinated Mars Time, local mean and true solar time, the equation of
+   * time, `Ls`, the Clancy Mars year and the Darian date at Airy-0, from
+   * the Mars24 restatement of Allison and McEwen. An instant more than
+   * 100 Julian years from J2000.0 is `out-of-range`.
+   *
+   * @param {number} unixSeconds
+   * @param {number} [eastLongitude]
+   * @returns {import("./hyper-calendar.d.ts").MarsTime}
+   */
+  marsTime(unixSeconds, eastLongitude = 0) {
+    const fn = this.#export("hc_mars_time");
+    const instant = toF64(unixSeconds, "unixSeconds");
+    const east = toF64(eastLongitude, "eastLongitude");
+    const text = this.#text("hc_mars_time", (buffer, capacity) => fn(instant, east, buffer, capacity), true);
+    return marsTime(this.#oneLine("hc_mars_time", text, COLUMNS.marsTime));
+  }
+
+  /**
+   * Every surface mission on Mars, in landing order, with its landing, its
+   * clock and the numbering of its landing sol; `null` where the
+   * operators published no convention.
+   *
+   * @returns {import("./hyper-calendar.d.ts").Mission[]}
+   */
+  missions() {
+    const fn = this.#export("hc_missions");
+    const text = this.#text("hc_missions", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(text, COLUMNS.missions, "hc_missions").map(mission);
+  }
+
+  /**
+   * A mission's sol number at a POSIX instant by its own clock. A mission
+   * with no published sol numbering is `no-data`; an instant before its
+   * landing sol began is `out-of-range`.
+   *
+   * @param {string} mission
+   * @param {number} unixSeconds
+   * @returns {number}
+   */
+  missionSol(mission, unixSeconds) {
+    const fn = this.#export("hc_mission_sol");
+    const instant = toF64(unixSeconds, "unixSeconds");
+    return this.#withText(mission, "mission", (pointer, len) =>
+      toNumber(fn(pointer, len, instant), "hc_mission_sol"));
+  }
+
+  /**
+   * Every body `hc-planetary` carries, with its solar day.
+   *
+   * @returns {import("./hyper-calendar.d.ts").Body[]}
+   */
+  bodies() {
+    const fn = this.#export("hc_bodies");
+    const text = this.#text("hc_bodies", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(text, COLUMNS.bodies, "hc_bodies").map(body);
+  }
+
+  /**
+   * Local mean solar time on a body at a POSIX instant and an east
+   * longitude. The Sun, which has no solar day, is `no-data`.
+   *
+   * @param {string} body
+   * @param {number} unixSeconds
+   * @param {number} [eastLongitude]
+   * @returns {import("./hyper-calendar.d.ts").BodyTime}
+   */
+  bodyTime(body, unixSeconds, eastLongitude = 0) {
+    const fn = this.#export("hc_body_time");
+    const instant = toF64(unixSeconds, "unixSeconds");
+    const east = toF64(eastLongitude, "eastLongitude");
+    const text = this.#withText(body, "body", (pointer, len) =>
+      this.#text("hc_body_time", (buffer, capacity) => fn(pointer, len, instant, east, buffer, capacity), true));
+    return bodyTime(this.#oneLine("hc_body_time", text, COLUMNS.bodyTime));
+  }
+
+  /**
+   * A clock moving at a constant speed in metres per second while
+   * `coordinateSeconds` pass: β, γ, its proper time and its rate. A speed
+   * at or beyond the speed of light is `out-of-range`.
+   *
+   * @param {number} speedMetresPerSecond
+   * @param {number} coordinateSeconds
+   * @returns {import("./hyper-calendar.d.ts").ProperTime}
+   */
+  properTime(speedMetresPerSecond, coordinateSeconds) {
+    const fn = this.#export("hc_proper_time");
+    const speed = toF64(speedMetresPerSecond, "speedMetresPerSecond");
+    const coordinate = toF64(coordinateSeconds, "coordinateSeconds");
+    const text = this.#text("hc_proper_time", (buffer, capacity) => fn(speed, coordinate, buffer, capacity), true);
+    return properTime(this.#oneLine("hc_proper_time", text, COLUMNS.properTime));
+  }
+
+  /**
+   * A clock held still at a radius in metres from a body's centre, against
+   * one far from every mass. A radius at or inside the Schwarzschild
+   * radius is `out-of-range`.
+   *
+   * @param {string} body
+   * @param {number} radiusMetres
+   * @returns {import("./hyper-calendar.d.ts").GravitationalDilation}
+   */
+  gravitationalDilation(body, radiusMetres) {
+    const fn = this.#export("hc_gravitational_dilation");
+    const radius = toF64(radiusMetres, "radiusMetres");
+    const text = this.#withText(body, "body", (pointer, len) =>
+      this.#text("hc_gravitational_dilation", (buffer, capacity) => fn(pointer, len, radius, buffer, capacity), true));
+    return gravitationalDilation(this.#oneLine("hc_gravitational_dilation", text, COLUMNS.gravitationalDilation));
+  }
+
+  /**
+   * Every body `hc-relativity` carries a gravitational parameter for.
+   *
+   * @returns {import("./hyper-calendar.d.ts").GravitatingBody[]}
+   */
+  gravitatingBodies() {
+    const fn = this.#export("hc_gravitating_bodies");
+    const text = this.#text("hc_gravitating_bodies", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(text, COLUMNS.gravitatingBodies, "hc_gravitating_bodies").map(gravitatingBody);
   }
 }
 

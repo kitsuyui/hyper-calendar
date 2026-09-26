@@ -47,9 +47,9 @@
 //! # Layers
 //!
 //! The entry points come in layers, each a Cargo feature: `civil` (the
-//! default), `timestamps`, `calendars`, `holiday`, `seasons`, `deep-time`, `tz`, `sky` and
-//! `orbital`, with `full` for all of them. Which feature each needs is in
-//! the README's table.
+//! default), `timestamps`, `calendars`, `holiday`, `seasons`, `deep-time`,
+//! `tz`, `sky`, `orbital`, `planetary` and `relativity`, with `full` for
+//! all of them. Which feature each needs is in the README's table.
 
 #![allow(unsafe_code)]
 #![warn(missing_docs)]
@@ -82,6 +82,7 @@ pub const HC_ERROR_NOT_UTF8: HcStatus = -8;
 /// Data was not in the format the call expects.
 pub const HC_ERROR_MALFORMED: HcStatus = -9;
 
+#[allow(dead_code)]
 fn status_from_time(error: TimeError) -> HcStatus {
     match error {
         TimeError::Overflow => HC_ERROR_OVERFLOW,
@@ -3133,6 +3134,304 @@ mod orbital {
 #[cfg(feature = "orbital")]
 pub use orbital::{hc_orbit_at, hc_orbit_series};
 
+/// Time on other bodies, behind the `planetary` feature: Mars time, the
+/// surface missions' sol counts, and the solar day and local mean solar
+/// time of every body in `hc-planetary`'s table.
+///
+/// A calendar `hc-planetary` gains later is one more entry point here
+/// beside [`hc_mars_time`], with its own line, not a new column of an
+/// existing one.
+#[cfg(feature = "planetary")]
+mod planetary {
+    use core::ffi::c_char;
+
+    use hc::planetary_lines;
+
+    use super::{HC_ERROR_NULL_POINTER, HC_OK, HcStatus, name, status, write_answer};
+
+    /// Mars at a POSIX instant and an east longitude, as one NUL-terminated
+    /// UTF-8 line in a caller-owned buffer.
+    ///
+    /// The line is the WebAssembly module's: the Mars Sol Date;
+    /// Coordinated Mars Time, local mean solar time and local true solar
+    /// time at the longitude, each as `HH:MM:SS` on the 24-hour Martian
+    /// clock (truncated) and in decimal Martian hours; the equation of time
+    /// in Martian minutes; the areocentric solar longitude `Ls` in degrees;
+    /// the Mars year under the Clancy convention; the Darian year, month,
+    /// sol of the month, month name and sol-of-week name at Airy-0; and the
+    /// source. `unix_seconds` is POSIX time with a fraction, read through
+    /// the leap-second table with the last offset held;
+    /// `east_longitude_deg` is planetocentric, east-positive, and wraps. An
+    /// instant more than 100 Julian years from J2000.0, where Allison and
+    /// McEwen's series is an extrapolation, or a value that is not finite,
+    /// is `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including
+    /// the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_mars_time(
+        unix_seconds: f64,
+        east_longitude_deg: f64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let answer = planetary_lines::mars_time_line(unix_seconds, east_longitude_deg);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// Every surface mission on Mars and the rules of its sol count, as
+    /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+    ///
+    /// The lines are the WebAssembly module's, one per mission in landing
+    /// order: the identifier, the name, the landing instant as UTC text and
+    /// as a POSIX timestamp, the number of the landing sol (0 or 1), the
+    /// clock's midnight (`local-mean-solar-time`, or
+    /// `local-true-solar-time-at-landing`), the clock meridian's east
+    /// longitude, the achieved site's east longitude, `1` where the
+    /// operators published the convention and `0` otherwise, the note and
+    /// the source. Where no convention was published the landing sol, the
+    /// clock and its meridian are empty. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_missions(
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let answer = Ok(planetary_lines::missions_lines());
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The sol number of a Mars surface mission at a POSIX instant, by the
+    /// mission's own clock.
+    ///
+    /// `mission` is a NUL-terminated identifier or name `hc_missions`
+    /// lists, in any ASCII case. The sol is counted as the mission counted
+    /// it: from the midnight, mean or true, on the mission's clock meridian
+    /// that began the landing sol, which is sol 0 or sol 1 as the operators
+    /// numbered it. A mission the table does not carry is
+    /// `HC_ERROR_UNKNOWN`; one whose operators published no sol numbering
+    /// is `HC_ERROR_NO_DATA`; an instant before the landing sol began, or
+    /// outside `hc_mars_time`'s span, is `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `mission` must be null or NUL-terminated, and `out_sol` must be
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_mission_sol(
+        mission: *const c_char,
+        unix_seconds: f64,
+        out_sol: *mut i64,
+    ) -> HcStatus {
+        if out_sol.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        // SAFETY: forwarded to the caller's contract above.
+        let mission = match unsafe { name(mission) } {
+            Ok(mission) => mission,
+            Err(status) => return status,
+        };
+        match planetary_lines::mission_sol(mission, unix_seconds) {
+            Ok(sol) => {
+                // SAFETY: checked non-null above.
+                unsafe { *out_sol = sol };
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+
+    /// Every body `hc-planetary` carries, with its solar day, as
+    /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+    ///
+    /// The lines are the WebAssembly module's, one per body outward from
+    /// the Sun with each planet's moons after it: the identifier, the name,
+    /// the kind (`star`, `planet`, `dwarf-planet` or `moon`), the
+    /// identifier of the body it orbits, the sidereal rotation period in
+    /// hours (negative for a retrograde rotator), the solar day in SI
+    /// seconds, `measured` or `derived`, the year in local solar days,
+    /// whether the clock's zero point is a `standard` or a `convention`
+    /// this library declares, what the zero point is, the source, and the
+    /// status of a standard still being drawn up (the Moon's Coordinated
+    /// Lunar Time). The Sun's three day cells are empty. Writes the
+    /// required length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_bodies(
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let answer = Ok(planetary_lines::bodies_lines());
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// Local mean solar time on a body at a POSIX instant and an east
+    /// longitude, as one NUL-terminated UTF-8 line in a caller-owned
+    /// buffer.
+    ///
+    /// The line is the WebAssembly module's: the local day number, the
+    /// fraction of it elapsed, the reading as `HH:MM:SS` (truncated) and in
+    /// decimal local hours on a 24-hour face, the solar day and the local
+    /// hour in SI seconds, whether the zero point is a `standard` or a
+    /// `convention`, and what it is. `body` is a NUL-terminated identifier
+    /// or name `hc_bodies` lists, in any ASCII case; a body it does not
+    /// list is `HC_ERROR_UNKNOWN`, and the Sun, which has no solar day,
+    /// `HC_ERROR_NO_DATA`. The instant and the longitude fail as for
+    /// `hc_mars_time`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `body` must be null or NUL-terminated; `buffer` must be writable for
+    /// `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_body_time(
+        body: *const c_char,
+        unix_seconds: f64,
+        east_longitude_deg: f64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let body = match unsafe { name(body) } {
+            Ok(body) => body,
+            Err(status) => return status,
+        };
+        let answer = planetary_lines::body_time_line(body, unix_seconds, east_longitude_deg);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+}
+
+#[cfg(feature = "planetary")]
+pub use planetary::{hc_bodies, hc_body_time, hc_mars_time, hc_mission_sol, hc_missions};
+
+/// Relativistic time dilation, behind the `relativity` feature: a clock
+/// at a constant velocity, and a clock held still at a radius from a
+/// mass, from `hc-relativity`'s Schwarzschild formulas and named
+/// constants.
+#[cfg(feature = "relativity")]
+mod relativity {
+    use core::ffi::c_char;
+
+    use hc::relativity_lines;
+
+    use super::{HcStatus, name, write_answer};
+
+    /// A clock moving at a constant speed while some coordinate time
+    /// passes, as one NUL-terminated UTF-8 line in a caller-owned buffer.
+    ///
+    /// The line is the WebAssembly module's: β, the Lorentz factor γ, the
+    /// proper time the moving clock records in seconds, its rate
+    /// dτ/dt = 1/γ, that rate's offset from 1 in microseconds per
+    /// 86 400-second day (negative, computed without cancellation), the
+    /// `hc-relativity` constant used (`SPEED_OF_LIGHT`), and the source. A
+    /// speed at or beyond the speed of light either way, or a value that is
+    /// not finite, is `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_proper_time(
+        speed_metres_per_second: f64,
+        coordinate_seconds: f64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let answer =
+            relativity_lines::proper_time_line(speed_metres_per_second, coordinate_seconds);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// A clock held still at a radius from a body's centre, against one far
+    /// from every mass, as one NUL-terminated UTF-8 line in a caller-owned
+    /// buffer.
+    ///
+    /// The line is the WebAssembly module's: the body's identifier, its GM
+    /// in m³ s⁻², the name of the `hc-relativity` constant that holds it,
+    /// the Schwarzschild radius in metres, the static dilation factor
+    /// dτ/dt = √(1 − r_s/r), that factor's offset from 1 in microseconds
+    /// per 86 400-second day (negative, computed without cancellation), the
+    /// constants used, separated by `;`, and the body's source. `body` is a NUL-terminated
+    /// identifier or name `hc_gravitating_bodies` lists, in any ASCII case;
+    /// another is `HC_ERROR_UNKNOWN`. A radius that is not finite, not
+    /// positive, or at or inside the Schwarzschild radius is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `body` must be null or NUL-terminated; `buffer` must be writable for
+    /// `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gravitational_dilation(
+        body: *const c_char,
+        radius_metres: f64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let body = match unsafe { name(body) } {
+            Ok(body) => body,
+            Err(status) => return status,
+        };
+        let answer = relativity_lines::gravitational_dilation_line(body, radius_metres);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// Every body `hc-relativity` carries a gravitational parameter for, as
+    /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+    ///
+    /// The lines are the WebAssembly module's, one per body: the
+    /// identifier, the English name, GM in m³ s⁻², the name of the
+    /// `hc-relativity` constant that holds it, and the source. Writes the
+    /// required length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gravitating_bodies(
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let answer = Ok(relativity_lines::gravitating_bodies_lines());
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+}
+
+#[cfg(feature = "relativity")]
+pub use relativity::{hc_gravitating_bodies, hc_gravitational_dilation, hc_proper_time};
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -3162,7 +3461,9 @@ mod tests {
         feature = "seasons",
         feature = "deep-time",
         feature = "sky",
-        feature = "orbital"
+        feature = "orbital",
+        feature = "planetary",
+        feature = "relativity"
     ))]
     fn read_lines(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> String {
         let mut written = 0usize;
@@ -4719,6 +5020,143 @@ mod tests {
                     )
                 },
                 HC_ERROR_NULL_POINTER
+            );
+        }
+    }
+
+    #[cfg(feature = "planetary")]
+    mod planetary {
+        use super::super::*;
+        use super::read_lines;
+
+        fn row(text: &str) -> Vec<String> {
+            text.trim_end().split('\t').map(str::to_owned).collect()
+        }
+
+        #[test]
+        fn mars_time_and_a_mission_sol_cross_the_boundary() {
+            // Mars24's worked example A: 2000-01-06T00:00:00Z.
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_mars_time(947_116_800.0, 0.0, buffer, capacity, written)
+            });
+            let cells = row(&text);
+            assert_eq!(cells.len(), 16, "{cells:?}");
+            assert_eq!(cells[1], "23:59:39");
+            assert_eq!(cells[5], "23:38:54");
+            let mut sol = -1i64;
+            assert_eq!(
+                unsafe { hc_mission_sol(c"Curiosity".as_ptr(), 1_344_230_277.0, &mut sol) },
+                HC_OK
+            );
+            assert_eq!(sol, 0);
+            assert_eq!(
+                unsafe { hc_mission_sol(c"zhurong".as_ptr(), 1_700_000_000.0, &mut sol) },
+                HC_ERROR_NO_DATA
+            );
+            assert_eq!(
+                unsafe { hc_mission_sol(c"beagle-2".as_ptr(), 1_700_000_000.0, &mut sol) },
+                HC_ERROR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe { hc_mission_sol(core::ptr::null(), 0.0, &mut sol) },
+                HC_ERROR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe { hc_mission_sol(c"curiosity".as_ptr(), 0.0, core::ptr::null_mut()) },
+                HC_ERROR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe {
+                    hc_mars_time(
+                        f64::NAN,
+                        0.0,
+                        core::ptr::null_mut(),
+                        0,
+                        core::ptr::null_mut(),
+                    )
+                },
+                HC_ERROR_OUT_OF_RANGE
+            );
+        }
+
+        #[test]
+        fn the_tables_and_a_body_clock_are_the_modules_lines() {
+            let missions = read_lines(|buffer, capacity, written| unsafe {
+                hc_missions(buffer, capacity, written)
+            });
+            assert_eq!(missions, hc::planetary_lines::missions_lines());
+            let bodies = read_lines(|buffer, capacity, written| unsafe {
+                hc_bodies(buffer, capacity, written)
+            });
+            assert_eq!(bodies, hc::planetary_lines::bodies_lines());
+            let titan = read_lines(|buffer, capacity, written| unsafe {
+                hc_body_time(
+                    c"Titan".as_ptr(),
+                    947_116_800.0,
+                    0.0,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(row(&titan).len(), 8, "{titan:?}");
+            assert_eq!(
+                unsafe {
+                    hc_body_time(
+                        c"sun".as_ptr(),
+                        0.0,
+                        0.0,
+                        core::ptr::null_mut(),
+                        0,
+                        core::ptr::null_mut(),
+                    )
+                },
+                HC_ERROR_NO_DATA
+            );
+        }
+    }
+
+    #[cfg(feature = "relativity")]
+    mod relativity {
+        use super::super::*;
+        use super::read_lines;
+
+        fn row(text: &str) -> Vec<String> {
+            text.trim_end().split('\t').map(str::to_owned).collect()
+        }
+
+        #[test]
+        fn dilation_crosses_the_boundary() {
+            let moving = read_lines(|buffer, capacity, written| unsafe {
+                hc_proper_time(0.6 * 299_792_458.0, 10.0, buffer, capacity, written)
+            });
+            let cells = row(&moving);
+            assert_eq!(cells.len(), 7, "{cells:?}");
+            assert_eq!(cells[5], "SPEED_OF_LIGHT");
+            let still = read_lines(|buffer, capacity, written| unsafe {
+                hc_gravitational_dilation(c"earth".as_ptr(), 6_378_137.0, buffer, capacity, written)
+            });
+            assert_eq!(row(&still)[2], "GM_EARTH");
+            let listed = read_lines(|buffer, capacity, written| unsafe {
+                hc_gravitating_bodies(buffer, capacity, written)
+            });
+            assert_eq!(listed, hc::relativity_lines::gravitating_bodies_lines());
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_proper_time(3e8, 1.0, null, 0, core::ptr::null_mut()) },
+                HC_ERROR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe {
+                    hc_gravitational_dilation(
+                        c"vulcan".as_ptr(),
+                        1e7,
+                        null,
+                        0,
+                        core::ptr::null_mut(),
+                    )
+                },
+                HC_ERROR_UNKNOWN
             );
         }
     }
