@@ -37,12 +37,20 @@
 //! Thursday, as the General Roman Calendar has it.
 //!
 //! Sources: the General Roman Calendar and the Universal Norms on the
-//! Liturgical Year and the General Roman Calendar, as published by the
-//! Liturgy Office of the Bishops' Conference of England and Wales
-//! (liturgyoffice.org.uk/Calendar/Info/), retrieved 2026-09-23; the
-//! decrees of the Congregation, now Dicastery, for Divine Worship and the
-//! Discipline of the Sacraments cited at each later entry, from
-//! vatican.va, retrieved 2026-09-23.
+//! Liturgical Year and the General Roman Calendar (`roman-calendar-norms`),
+//! which Paul VI approved by the motu proprio *Mysterii Paschalis* of
+//! 14 February 1969 (`mysterii-paschalis-1969`), as the Liturgy Office of
+//! the Bishops' Conference of England and Wales publishes them
+//! (liturgyoffice.org.uk/Calendar/Info/, `liturgyoffice-calendar`),
+//! retrieved 2026-09-23: a secondary copy, since the primary, the calendar
+//! printed in the *Missale Romanum*, editio typica tertia (2002), was not
+//! read. The decrees of the Congregation, now Dicastery, for Divine Worship
+//! and the Discipline of the Sacraments cited at each later entry with its
+//! Prot. N., from vatican.va, retrieved 2026-09-23; the Prot. N. of the
+//! decree of 11 February 2018 is from a copy of the Italian decree, the
+//! vatican.va page printing none, and that of 9 November 2025 from the
+//! Dicastery's notice of 3 February 2026 on cultodivino.va, both read
+//! 2026-09-26.
 
 use alloc::vec::Vec;
 
@@ -267,7 +275,8 @@ general_roman_calendar! {
     // Decree of 25 January 2019, Prot. N. 29/19.
     "St Paul VI, Pope", OptionalMemorial, Rule::gregorian(5, 29), since 2019;
     "The Visitation of the Blessed Virgin Mary", Feast, Rule::gregorian(5, 31);
-    // Decree of 11 February 2018: the Monday after Pentecost.
+    // Decree of 11 February 2018, Prot. N. 10/18: the Monday after
+    // Pentecost.
     "The Blessed Virgin Mary, Mother of the Church", Memorial, Rule::easter(50), since 2018;
     "The Most Holy Trinity", Solemnity, Rule::easter(56);
     "The Most Holy Body and Blood of Christ", Solemnity, Rule::easter(60);
@@ -305,7 +314,8 @@ general_roman_calendar! {
     "St Apollinaris, Bishop and Martyr", OptionalMemorial, Rule::gregorian(7, 20);
     "St Lawrence of Brindisi, Priest and Doctor of the Church", OptionalMemorial, Rule::gregorian(7, 21);
     "St Mary Magdalene", Memorial, Rule::gregorian(7, 22), until 2015;
-    // Decree of 3 June 2016: "the rank of Feast rather than Memorial".
+    // Decree of 3 June 2016, Prot. N. 257/16: "the rank of Feast rather
+    // than Memorial".
     "St Mary Magdalene", Feast, Rule::gregorian(7, 22), since 2016;
     "St Bridget, Religious", OptionalMemorial, Rule::gregorian(7, 23);
     "St Sharbel Makhlūf, Priest", OptionalMemorial, Rule::gregorian(7, 24);
@@ -379,9 +389,9 @@ general_roman_calendar! {
     "Our Lady of the Rosary", Memorial, Rule::gregorian(10, 7);
     "St Denis, Bishop, and Companions, Martyrs", OptionalMemorial, Rule::gregorian(10, 9);
     "St John Leonardi, Priest", OptionalMemorial, Rule::gregorian(10, 9);
-    // Decree of 9 November 2025.
+    // Decree of 9 November 2025, Prot. N. 760/25.
     "St John Henry Newman, Priest and Doctor of the Church", OptionalMemorial, Rule::gregorian(10, 9), since 2026;
-    // Decree of 29 May 2014.
+    // Decree of 29 May 2014, Prot. N. 309/14.
     "St John XXIII, Pope", OptionalMemorial, Rule::gregorian(10, 11), since 2014;
     "St Callistus I, Pope and Martyr", OptionalMemorial, Rule::gregorian(10, 14);
     "St Teresa of Jesus, Virgin and Doctor of the Church", Memorial, Rule::gregorian(10, 15);
@@ -391,7 +401,7 @@ general_roman_calendar! {
     "St Luke, Evangelist", Feast, Rule::gregorian(10, 18);
     "Sts John de Brébeuf and Isaac Jogues, Priests, and Companions, Martyrs", OptionalMemorial, Rule::gregorian(10, 19);
     "St Paul of the Cross, Priest", OptionalMemorial, Rule::gregorian(10, 19);
-    // Decree of 29 May 2014.
+    // Decree of 29 May 2014, Prot. N. 309/14.
     "St John Paul II, Pope", OptionalMemorial, Rule::gregorian(10, 22), since 2014;
     "St John of Capestrano, Priest", OptionalMemorial, Rule::gregorian(10, 23);
     "St Anthony Mary Claret, Bishop", OptionalMemorial, Rule::gregorian(10, 24);
@@ -453,13 +463,17 @@ pub static GENERAL_ROMAN_CALENDAR: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "General Roman Calendar and Universal Norms on the Liturgical Year and the General \
-              Roman Calendar, Liturgy Office of the Bishops' Conference of England and Wales; \
-              decrees of the Congregation (Dicastery) for Divine Worship and the Discipline of the \
-              Sacraments of 29 May 2014, 3 June 2016, 11 February 2018, 25 January 2019, \
-              7 October 2019, 18 May 2020, 25 and 26 January 2021, 24 December 2024 and \
-              9 November 2025",
+              Roman Calendar (approved by Mysterii Paschalis, 14 February 1969), as the Liturgy \
+              Office of the Bishops' Conference of England and Wales publishes them \
+              (liturgyoffice.org.uk/Calendar/Info/, secondary; the Missale Romanum, editio \
+              typica tertia, 2002, not read), retrieved 2026-09-23; decrees of the Congregation \
+              (Dicastery) for Divine Worship and the Discipline of the Sacraments of 29 May 2014 \
+              (Prot. N. 309/14), 3 June 2016 (257/16), 11 February 2018 (10/18), 25 January 2019 \
+              (29/19), 7 October 2019 (404/19), 18 May 2020 (229/20), 25 January 2021 (40/21), \
+              26 January 2021 (35/21), 24 December 2024 (703/24) and 9 November 2025 (760/25), \
+              from vatican.va and cultodivino.va, retrieved 2026-09-23 and 2026-09-26",
 };
 
 /// The celebrations the calendar lists on a day, in its order: every one

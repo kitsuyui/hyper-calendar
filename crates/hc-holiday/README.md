@@ -47,7 +47,8 @@ Computed(fn)                          the handful that really are bespoke
 Modifiers are data too: `SubstitutionPolicy` (which weekdays move a holiday,
 which way, whether the search steps past a day already taken, and whether two
 holidays colliding count), `BridgePolicy` (Japan's 国民の休日),
-`WeekendPolicy` (which days are the weekend, over stated years),
+`WeekendPolicy` (which days are the weekend, over stated years and, where
+the law changed mid-year, from the day it took effect),
 `valid_from` / `valid_until` on every rule, `regions` for subdivision scoping,
 and `Kind` for public / bank / religious / observance. A set can also
 `include` other sets — an exchange on its country's calendar — each evaluated
@@ -131,14 +132,19 @@ Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
 States, Uruguay, Uzbekistan, Vanuatu, Vatican City, Venezuela, Vietnam, Yemen,
 Zambia, Zimbabwe.
 
-**Twenty traditions.** Christianity under both computations, the General
-Roman Calendar with the rank of every celebration (`roman_calendar`), the
+**Twenty-two traditions.** Western Christianity on the Gregorian computus,
+the General Roman Calendar with the rank of every celebration
+(`roman_calendar`), Orthodox Christianity with its fixed feasts on the
+Julian calendar and, as a second table, on the Revised Julian, the
 Ethiopian Orthodox Tewahedo and the Coptic Orthodox Churches, Islam,
 Judaism, the Bahá'í Faith, Hinduism, Jainism (Paryuṣaṇa and Daśa Lakṣaṇa
 counted back from their last days), Sikhism on the Nanakshahi calendar of
-2003, Buddhism (partial), Chinese folk tradition, Shinto with the imperial
-court rites beside it, the Wheel of the Year in both hemispheres, and the
-Zoroastrian schedule of feasts on each of its three reckonings.
+2003 (`sikh-nanakshahi-2003`), Buddhism as Thailand dates its four holy days
+on `thai-lunar` (`buddhist-thai`) and as Japan and the Chinese calendar date
+the East Asian days (`buddhist-east-asian`), Chinese folk tradition, Shinto
+with the imperial court rites beside it, the Wheel of the Year in both
+hemispheres, and the Zoroastrian schedule of feasts on each of its three
+reckonings.
 
 The Ethiopian entry is worth a word. Its fixed feasts are ordinary dates —
 29 Tahsas, 11 Tirr — in the Ethiopic calendar, which a rule can name because
@@ -329,8 +335,8 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 
 | Entry | Why |
 | --- | --- |
-| Every Hijri-dated holiday, in sixty-nine countries and the Islamic tradition table | the observed date is a sighting decision, per country |
-| Vesak (Indonesia, Singapore, Malaysia) and the Buddhist table's Magha Puja, Vesak, Asalha Puja, Vassa and Pavarana | approximated as the full moon of Chinese lunar month *n* − 2, which against the Thai dates is right in 2022, 2024 and 2025, a day out in 2023 and a month out in a Thai adhikamāsa year. Thailand's own four are exact on `thai-lunar` for 1992–2027 and gaps outside |
+| Every Hijri-dated holiday, in sixty-nine countries and the Islamic tradition table | the observed date is a sighting decision, per country. Indonesia's, Singapore's and Malaysia's are the published lists' for 2020–2026 and exact, and for 2027 the lists' announcements; the Philippines' the proclamations' for 2020–2026 |
+| Vesak in Indonesia, Singapore and Malaysia outside 2020–2027 | the full moon of the fourth Chinese month, which is Singapore's date in every year of 2020–2027 and misses the others' in some: Malaysia's Wesak Day 2023 was 4 May, a month before it, and Indonesia's Waisak a day or two after it in 2022–2024. Inside those years it is the lists' date. Thailand's four Buddhist days, and the `buddhist-thai` table's, are exact on `thai-lunar` for 1992–2027 and gaps outside |
 | Nepal's festivals — Buddha Jayanti, Dashain, Tihar and the rest | each is a tithi read at Kathmandu, and the part of the day it must hold is fitted to the notices of 2080–2083 BS, which it reproduces, rather than quoted from the almanac |
 | Bangladesh's Buddha Purnima | the notifications' own dates for 2025 and 2026, which they star as depending on the moon |
 | Mongolia's Tsagaan Sar, Buddha's Birthday and Chinggis Khaan Day; Bhutan's Losar, Buddhist days and Traditional Day of Offering | the day the law or the Ministry's list states on the Tibetan calendar, `mongolian` or `tibetan-bhutan`, outside the years read (Tsagaan Sar 2025–2026, Bhutan's lists 2025–2026); the Government or the Ministry settles each year, and Bhutan's calendar of 2003 had Losar a day before the arithmetic |
@@ -341,9 +347,10 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   Holi, Ram Navami, Mahavir Jayanti, Buddha Purnima, Janmashtami, Dussehra,
   Diwali and Guru Nanak's Birthday computed on `hindu-lunar`; the states' own
   days are not carried. Singapore's and Malaysia's Deepavali is the same
-  Dīpāvalī rule. Nyepi is missing from Indonesia: the Balinese Saka
-  calendar that dates it is not in the crate, and the crate will not tabulate
-  what it cannot compute.
+  Dīpāvalī rule. Indonesia's Nyepi is dated by the Balinese Śaka lunisolar
+  calendar, which is not in the crate (`balinese-pawukon` is the 210-day
+  wuku cycle, a different reckoning): it is carried from the joint decrees
+  for 2020–2027 and is a gap in any other year.
 * **Nepal** carries the holidays of its Home Ministry's notices for every
   office in the country, except Chhath, which no one tithi rule puts where all
   four notices do. The holidays for one community, region or group — the
@@ -389,11 +396,12 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 
 The weekend is data. Saturday–Sunday is the common case; Friday–Saturday holds
 in Bangladesh, the Maldives and most of the Arab states today;
-Thursday–Friday held in Saudi Arabia until its June 2013 royal order; the
-Emirates moved to Saturday–Sunday on 1 January 2022; Nepal kept a one-day
-Saturday weekend until 6 April 2026, which the table carries from 1 January
-2026 because a weekend rule is valid for whole years; and Brunei rests on Friday and Sunday
-and works the Saturday between. All six are exercised by the test suite. A
+Thursday–Friday held in Saudi Arabia until its royal order took effect on
+29 June 2013; the Emirates moved to Saturday–Sunday on 1 January 2022; Nepal
+kept a one-day Saturday weekend until 6 April 2026; and Brunei rests on
+Friday and Sunday and works the Saturday between. A weekend rule carries the
+day it took effect where the source gives one, so a change in the middle of
+a year changes the arithmetic on that day and not on 1 January. All six are exercised by the test suite. A
 few tables rest on one day: Iran and Djibouti the Friday, Israel the
 Saturday, which is its only statutory day of rest, and Cuba, Cambodia,
 Timor-Leste and the Vatican the Sunday.

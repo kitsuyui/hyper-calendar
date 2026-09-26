@@ -167,8 +167,10 @@ impl Weekday {
     /// Saturday-Sunday convention.
     ///
     /// Weekends are a *civil* convention, not a property of the week: Friday
-    /// and Saturday in much of the Middle East, Sunday alone in Nepal and
-    /// historically in Israel. Use `hc-holiday`'s per-region weekend rules
+    /// and Saturday in much of the Middle East, the Sabbath alone as Israel's
+    /// statutory day of rest, Saturday alone in Nepal until April 2026,
+    /// Friday alone in Iran. Use `hc-holiday`'s
+    /// `WeekendPolicy`, which each country table carries with its dates,
     /// when correctness matters.
     #[must_use]
     pub const fn is_saturday_sunday_weekend(self) -> bool {

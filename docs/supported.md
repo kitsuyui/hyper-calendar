@@ -172,20 +172,20 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
 | `AD` | Andorra | 14 | none | stated | 2026-09-22 |
-| `AE` | United Arab Emirates | 16 | none | stated | 2026-09-21 |
+| `AE` | United Arab Emirates | 16 | none | stated | 2026-09-26 |
 | `AF` | Afghanistan | 13 | none | stated | 2026-09-26 |
 | `AG` | Antigua and Barbuda | 14 | yes | stated | 2026-09-23 |
 | `AL` | Albania | 15 | yes | stated | 2026-09-22 |
 | `AM` | Armenia | 34 | none | stated | 2026-09-22 |
 | `AO` | Angola | 22 | yes | stated | 2026-09-23 |
 | `AR` | Argentina | 30 | none | stated | 2026-09-22 |
-| `AT` | Austria | 13 | none | stated | 2026-09-21 |
-| `AU` | Australia | 24 | yes | stated | 2026-09-21 |
+| `AT` | Austria | 13 | none | stated | 2026-09-26 |
+| `AU` | Australia | 23 | yes | stated | 2026-09-26 |
 | `AZ` | Azerbaijan | 25 | yes | stated | 2026-09-22 |
 | `BA` | Bosnia and Herzegovina | 40 | yes | stated | 2026-09-23 |
 | `BB` | Barbados | 12 | yes | stated | 2026-09-22 |
 | `BD` | Bangladesh | 28 | none | stated | 2026-09-23 |
-| `BE` | Belgium | 12 | none | stated | 2026-09-21 |
+| `BE` | Belgium | 10 | none | stated | 2026-09-26 |
 | `BF` | Burkina Faso | 25 | yes | stated | 2026-09-23 |
 | `BG` | Bulgaria | 15 | yes | stated | 2026-09-22 |
 | `BH` | Bahrain | 14 | none | stated | 2026-09-22 |
@@ -193,66 +193,66 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `BJ` | Benin | 18 | none | stated | 2026-09-23 |
 | `BN` | Brunei | 15 | yes | stated | 2026-09-23 |
 | `BO` | Bolivia | 11 | yes | stated | 2026-09-22 |
-| `BR` | Brazil | 14 | none | stated | 2026-09-21 |
+| `BR` | Brazil | 14 | none | stated | 2026-09-26 |
 | `BS` | Bahamas | 13 | yes | stated | 2026-09-22 |
 | `BT` | Bhutan | 33 | none | stated | 2026-09-26 |
 | `BW` | Botswana | 14 | yes | stated | 2026-09-22 |
 | `BY` | Belarus | 16 | none | stated | 2026-09-22 |
 | `BZ` | Belize | 16 | yes | stated | 2026-09-22 |
-| `CA` | Canada | 19 | yes | stated | 2026-09-21 |
+| `CA` | Canada | 19 | yes | stated | 2026-09-26 |
 | `CD` | Democratic Republic of the Congo | 17 | yes | stated | 2026-09-23 |
 | `CG` | Republic of the Congo | 9 | none | stated | 2026-09-23 |
-| `CH` | Switzerland | 8 | none | stated | 2026-09-21 |
+| `CH` | Switzerland | 8 | none | stated | 2026-09-26 |
 | `CI` | Côte d'Ivoire | 14 | yes | stated | 2026-09-22 |
-| `CL` | Chile | 28 | none | stated | 2026-09-22 |
+| `CL` | Chile | 28 | none | stated | 2026-09-26 |
 | `CM` | Cameroon | 10 | yes | stated | 2026-09-23 |
 | `CN` | China | 36 | none | stated | 2026-09-23 |
 | `CO` | Colombia | 18 | none | stated | 2026-09-22 |
 | `CR` | Costa Rica | 13 | none | stated | 2026-09-22 |
 | `CU` | Cuba | 10 | yes | stated | 2026-09-22 |
 | `CV` | Cabo Verde | 11 | none | stated | 2026-09-23 |
-| `CY` | Cyprus | 17 | none | stated | 2026-09-22 |
-| `CZ` | Czechia | 13 | none | stated | 2026-09-21 |
-| `DE` | Germany | 22 | none | stated | 2026-09-21 |
+| `CY` | Cyprus | 17 | none | stated | 2026-09-26 |
+| `CZ` | Czechia | 13 | none | stated | 2026-09-26 |
+| `DE` | Germany | 24 | none | stated | 2026-09-26 |
 | `DJ` | Djibouti | 13 | none | stated | 2026-09-23 |
-| `DK` | Denmark | 13 | none | stated | 2026-09-21 |
+| `DK` | Denmark | 13 | none | stated | 2026-09-26 |
 | `DM` | Dominica | 12 | yes | stated | 2026-09-23 |
 | `DO` | Dominican Republic | 17 | none | stated | 2026-09-22 |
 | `DZ` | Algeria | 22 | none | stated | 2026-09-22 |
 | `EC` | Ecuador | 19 | none | stated | 2026-09-22 |
 | `EE` | Estonia | 26 | none | stated | 2026-09-22 |
-| `EG` | Egypt | 16 | none | stated | 2026-09-21 |
-| `ES` | Spain | 10 | none | stated | 2026-09-21 |
-| `ET` | Ethiopia | 13 | none | stated | 2026-09-22 |
-| `FI` | Finland | 15 | none | stated | 2026-09-21 |
+| `EG` | Egypt | 15 | none | stated | 2026-09-26 |
+| `ES` | Spain | 10 | none | stated | 2026-09-26 |
+| `ET` | Ethiopia | 13 | none | stated | 2026-09-26 |
+| `FI` | Finland | 15 | none | stated | 2026-09-26 |
 | `FJ` | Fiji | 12 | none | stated | 2026-09-23 |
 | `FM` | Micronesia | 9 | yes | stated | 2026-09-23 |
-| `FR` | France | 14 | none | stated | 2026-09-21 |
-| `GB` | United Kingdom | 32 | yes | stated | 2026-09-21 |
+| `FR` | France | 14 | none | stated | 2026-09-26 |
+| `GB` | United Kingdom | 34 | yes | stated | 2026-09-26 |
 | `GD` | Grenada | 16 | yes | stated | 2026-09-23 |
 | `GE` | Georgia | 18 | none | stated | 2026-09-22 |
 | `GH` | Ghana | 16 | none | stated | 2026-09-22 |
 | `GN` | Guinea | 12 | yes | stated | 2026-09-23 |
 | `GQ` | Equatorial Guinea | 10 | yes | stated | 2026-09-25 |
-| `GR` | Greece | 13 | none | stated | 2026-09-21 |
-| `GT` | Guatemala | 18 | none | stated | 2026-09-22 |
+| `GR` | Greece | 12 | none | stated | 2026-09-26 |
+| `GT` | Guatemala | 18 | none | stated | 2026-09-26 |
 | `GY` | Guyana | 15 | yes | stated | 2026-09-22 |
-| `HK` | Hong Kong | 37 | yes | stated | 2026-09-22 |
+| `HK` | Hong Kong | 37 | yes | stated | 2026-09-26 |
 | `HN` | Honduras | 14 | none | stated | 2026-09-23 |
-| `HR` | Croatia | 17 | none | stated | 2026-09-22 |
+| `HR` | Croatia | 17 | none | stated | 2026-09-26 |
 | `HT` | Haiti | 18 | none | stated | 2026-09-22 |
 | `HU` | Hungary | 11 | none | stated | 2026-09-22 |
-| `ID` | Indonesia | 15 | none | stated | 2026-09-21 |
-| `IE` | Ireland | 11 | yes | stated | 2026-09-21 |
+| `ID` | Indonesia | 38 | none | stated | 2026-09-26 |
+| `IE` | Ireland | 11 | none | stated | 2026-09-26 |
 | `IL` | Israel | 13 | none | stated | 2026-09-23 |
-| `IN` | India | 17 | none | stated | 2026-09-21 |
+| `IN` | India | 17 | none | stated | 2026-09-26 |
 | `IQ` | Iraq | 32 | none | stated | 2026-09-22 |
 | `IR` | Iran | 27 | none | stated | 2026-09-22 |
-| `IS` | Iceland | 16 | none | stated | 2026-09-22 |
-| `IT` | Italy | 13 | none | stated | 2026-09-21 |
+| `IS` | Iceland | 16 | none | stated | 2026-09-26 |
+| `IT` | Italy | 14 | none | stated | 2026-09-26 |
 | `JM` | Jamaica | 11 | yes | stated | 2026-09-22 |
-| `JO` | Jordan | 25 | none | stated | 2026-09-22 |
-| `JP` | Japan | 38 | yes | stated | 2026-09-21 |
+| `JO` | Jordan | 25 | none | stated | 2026-09-26 |
+| `JP` | Japan | 38 | yes | stated | 2026-09-26 |
 | `KE` | Kenya | 13 | yes | stated | 2026-09-22 |
 | `KG` | Kyrgyzstan | 30 | yes | stated | 2026-09-22 |
 | `KH` | Cambodia | 16 | none | stated | 2026-09-23 |
@@ -281,7 +281,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `MH` | Marshall Islands | 10 | yes | stated | 2026-09-23 |
 | `MK` | North Macedonia | 29 | yes | stated | 2026-09-22 |
 | `ML` | Mali | 13 | none | stated | 2026-09-23 |
-| `MM` | Myanmar | 26 | none | stated | 2026-09-22 |
+| `MM` | Myanmar | 29 | none | stated | 2026-09-26 |
 | `MN` | Mongolia | 20 | none | stated | 2026-09-26 |
 | `MO` | Macau | 22 | yes | stated | 2026-09-22 |
 | `MR` | Mauritania | 8 | none | stated | 2026-09-23 |
@@ -289,26 +289,26 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `MU` | Mauritius | 16 | none | stated | 2026-09-22 |
 | `MV` | Maldives | 19 | none | stated | 2026-09-23 |
 | `MW` | Malawi | 13 | yes | stated | 2026-09-22 |
-| `MX` | Mexico | 11 | none | stated | 2026-09-21 |
-| `MY` | Malaysia | 15 | yes | stated | 2026-09-21 |
+| `MX` | Mexico | 11 | none | stated | 2026-09-26 |
+| `MY` | Malaysia | 34 | yes | stated | 2026-09-26 |
 | `MZ` | Mozambique | 9 | none | stated | 2026-09-23 |
 | `NA` | Namibia | 14 | yes | stated | 2026-09-22 |
-| `NG` | Nigeria | 14 | yes | stated | 2026-09-21 |
+| `NG` | Nigeria | 14 | none | stated | 2026-09-26 |
 | `NI` | Nicaragua | 11 | none | stated | 2026-09-23 |
-| `NL` | Netherlands | 12 | none | stated | 2026-09-21 |
-| `NO` | Norway | 12 | none | stated | 2026-09-21 |
+| `NL` | Netherlands | 10 | none | stated | 2026-09-26 |
+| `NO` | Norway | 12 | none | stated | 2026-09-26 |
 | `NP` | Nepal | 23 | none | stated | 2026-09-23 |
 | `NR` | Nauru | 21 | yes | stated | 2026-09-23 |
-| `NZ` | New Zealand | 13 | yes | stated | 2026-09-21 |
+| `NZ` | New Zealand | 13 | yes | stated | 2026-09-26 |
 | `OM` | Oman | 20 | yes | stated | 2026-09-22 |
 | `PA` | Panama | 15 | yes | stated | 2026-09-22 |
-| `PE` | Peru | 16 | none | stated | 2026-09-22 |
+| `PE` | Peru | 16 | none | stated | 2026-09-26 |
 | `PG` | Papua New Guinea | 9 | yes | stated | 2026-09-23 |
-| `PH` | Philippines | 18 | none | stated | 2026-09-21 |
-| `PK` | Pakistan | 13 | none | stated | 2026-09-22 |
-| `PL` | Poland | 15 | none | stated | 2026-09-21 |
+| `PH` | Philippines | 24 | none | stated | 2026-09-26 |
+| `PK` | Pakistan | 13 | none | stated | 2026-09-26 |
+| `PL` | Poland | 15 | none | stated | 2026-09-26 |
 | `PS` | Palestine | 39 | none | stated | 2026-09-23 |
-| `PT` | Portugal | 18 | none | stated | 2026-09-21 |
+| `PT` | Portugal | 18 | none | stated | 2026-09-26 |
 | `PW` | Palau | 9 | yes | stated | 2026-09-23 |
 | `PY` | Paraguay | 24 | none | stated | 2026-09-23 |
 | `QA` | Qatar | 16 | none | stated | 2026-09-22 |
@@ -316,13 +316,13 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `RS` | Serbia | 26 | yes | stated | 2026-09-22 |
 | `RU` | Russia | 19 | none | stated | 2026-09-23 |
 | `RW` | Rwanda | 17 | yes | stated | 2026-09-23 |
-| `SA` | Saudi Arabia | 10 | none | stated | 2026-09-21 |
+| `SA` | Saudi Arabia | 10 | none | stated | 2026-09-26 |
 | `SB` | Solomon Islands | 8 | yes | stated | 2026-09-23 |
 | `SC` | Seychelles | 16 | yes | stated | 2026-09-23 |
-| `SE` | Sweden | 17 | none | stated | 2026-09-21 |
-| `SG` | Singapore | 11 | yes | stated | 2026-09-21 |
-| `SI` | Slovenia | 16 | none | stated | 2026-09-22 |
-| `SK` | Slovakia | 20 | none | stated | 2026-09-22 |
+| `SE` | Sweden | 17 | none | stated | 2026-09-26 |
+| `SG` | Singapore | 20 | yes | stated | 2026-09-26 |
+| `SI` | Slovenia | 16 | none | stated | 2026-09-26 |
+| `SK` | Slovakia | 22 | none | stated | 2026-09-26 |
 | `SM` | San Marino | 20 | none | stated | 2026-09-22 |
 | `SN` | Senegal | 16 | yes | stated | 2026-09-22 |
 | `SR` | Suriname | 16 | none | stated | 2026-09-23 |
@@ -335,15 +335,15 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `TM` | Turkmenistan | 15 | yes | stated | 2026-09-22 |
 | `TN` | Tunisia | 23 | none | stated | 2026-09-22 |
 | `TO` | Tonga | 11 | yes | stated | 2026-09-23 |
-| `TR` | Türkiye | 14 | none | stated | 2026-09-21 |
+| `TR` | Türkiye | 14 | none | stated | 2026-09-26 |
 | `TT` | Trinidad and Tobago | 17 | yes | stated | 2026-09-22 |
 | `TV` | Tuvalu | 10 | yes | stated | 2026-09-23 |
-| `TW` | Taiwan | 19 | yes | stated | 2026-09-23 |
+| `TW` | Taiwan | 21 | yes | stated | 2026-09-26 |
 | `TZ` | Tanzania | 17 | yes | stated | 2026-09-22 |
-| `UA` | Ukraine | 16 | yes | stated | 2026-09-22 |
+| `UA` | Ukraine | 27 | yes | stated | 2026-09-26 |
 | `UG` | Uganda | 14 | none | stated | 2026-09-22 |
-| `US` | United States | 18 | yes | stated | 2026-09-21 |
-| `UY` | Uruguay | 19 | none | stated | 2026-09-22 |
+| `US` | United States | 18 | yes | stated | 2026-09-26 |
+| `UY` | Uruguay | 19 | none | stated | 2026-09-26 |
 | `UZ` | Uzbekistan | 10 | yes | stated | 2026-09-22 |
 | `VA` | Vatican City | 27 | none | stated | 2026-09-23 |
 | `VC` | Saint Vincent and the Grenadines | 13 | yes | stated | 2026-09-23 |
@@ -352,20 +352,22 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `VU` | Vanuatu | 14 | yes | stated | 2026-09-23 |
 | `WS` | Samoa | 11 | yes | stated | 2026-09-23 |
 | `YE` | Yemen | 19 | none | stated | 2026-09-23 |
-| `ZA` | South Africa | 12 | yes | stated | 2026-09-21 |
+| `ZA` | South Africa | 12 | yes | stated | 2026-09-26 |
 | `ZM` | Zambia | 15 | yes | stated | 2026-09-22 |
 | `ZW` | Zimbabwe | 14 | yes | stated | 2026-09-22 |
 
 ## Religious and cultural traditions
 
-20 tables, feature `holiday`.
+22 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
 | `bahai` | Bahá'í Faith | 15 |
-| `buddhist` | Buddhism | 9 |
+| `buddhist-east-asian` | Buddhism (East Asian) | 4 |
+| `buddhist-thai` | Buddhism (Thai Theravāda) | 4 |
 | `chinese-folk` | Chinese folk tradition | 11 |
 | `christian-orthodox` | Christianity (Julian computus) | 18 |
+| `christian-orthodox-revised-julian` | Christianity (Julian computus, Revised Julian fixed feasts) | 18 |
 | `christian-western` | Christianity (Western computus) | 30 |
 | `coptic-orthodox` | Coptic Orthodox | 23 |
 | `ethiopian-orthodox` | Ethiopian Orthodox Tewahedo | 14 |
@@ -376,7 +378,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `kyuchu-saishi` | Imperial court rites (宮中祭祀) | 60 |
 | `roman-general` | General Roman Calendar | 232 |
 | `shinto` | Shinto | 5 |
-| `sikh` | Sikhism | 39 |
+| `sikh-nanakshahi-2003` | Sikhism (Nanakshahi calendar of 2003) | 39 |
 | `wheel-of-the-year` | Wheel of the Year | 8 |
 | `wheel-of-the-year-south` | Wheel of the Year (southern hemisphere) | 8 |
 | `zoroastrian-fasli` | Zoroastrian (Fasli) | 62 |
@@ -434,7 +436,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `XSHG` | Shanghai Stock Exchange | 1 |
 | `XSTO` | Nasdaq Stockholm | 17 |
 | `XSWX` | SIX Swiss Exchange | 10 |
-| `XTAE` | Tel Aviv Stock Exchange | 24 |
+| `XTAE` | Tel Aviv Stock Exchange | 23 |
 | `XTAI` | Taiwan Stock Exchange | 2 |
 | `XTSE` | Toronto Stock Exchange | 11 |
 | `XWAR` | Warsaw Stock Exchange (GPW) | 3 |

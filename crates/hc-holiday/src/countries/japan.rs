@@ -127,7 +127,8 @@ static RULES: &[HolidayRule] = &[
         Rule::FixedGregorian { month: 12, day: 23 },
     )
     .years(Some(1989), Some(2018)),
-    // 令和: 23 February, 平成30年法律第99号.
+    // 令和: 23 February, by the 天皇の退位等に関する皇室典範特例法
+    // (平成29年法律第63号), which amended the Act from 1 May 2019.
     HolidayRule::public(
         "The Emperor's Birthday",
         "天皇誕生日",
@@ -380,8 +381,14 @@ pub static JAPAN: RuleSet = RuleSet {
     bridges: BRIDGES,
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "国民の祝日に関する法律 (昭和23年法律第178号) and every amending \
-              act through 令和2年法律第68号; 内閣府「国民の祝日について」; the \
-              equinox days are computed, not taken from the 官報",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "国民の祝日に関する法律 (昭和23年法律第178号), as last amended by \
+              平成30年法律第57号 (in force 1 January 2020), with the amending acts its \
+              supplementary provisions list, 平成29年法律第63号 among them, on e-Gov \
+              法令検索 (laws.e-gov.go.jp/law/323AC1000000178, read through its API), \
+              retrieved 2026-09-26; the one-off acts, 平成30年法律第99号 for 2019, and \
+              the Olympic special measures for 2020 and 2021, among them \
+              令和2年法律第68号, as docs/systems/japan-holidays.md cites them; \
+              内閣府「国民の祝日について」; the equinox days are computed, not \
+              taken from the 官報",
 };

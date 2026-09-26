@@ -214,9 +214,11 @@ pub static NEW_YORK_STOCK_EXCHANGE: RuleSet = RuleSet {
               2026-09-22, for the closed days and early closings of 2026 to 2028 and the note \
               that no holiday is observed for Saturday, 1 January 2028; Wikipedia, \"New York \
               Stock Exchange\", for the closures after the September 11 attacks and for \
-              Hurricane Sandy; Wikipedia, \"Death and state funeral of George H. W. Bush\", \
-              for 5 December 2018; Wikipedia, \"Trading day\", for Juneteenth's first \
-              observance as a market holiday on 20 June 2022",
+              Hurricane Sandy; Wikipedia, \"Death and state funeral of George H. W. Bush\" \
+              (`wikipedia-bush-funeral`), for 5 December 2018; Wikipedia, \"Trading day\", for \
+              Juneteenth's first observance as a market holiday on 20 June 2022; the Wikipedia \
+              pages retrieved 2026-09-22 and secondary, the exchange's own notices of the \
+              closures not having been found",
 };
 
 /// Nasdaq.
@@ -242,7 +244,9 @@ pub static NASDAQ: RuleSet = RuleSet {
               attacks\", for the closure to 17 September 2001 (\"The Nasdaq also canceled \
               trading\"); Wikipedia, \"Effects of Hurricane Sandy in New York\", for 29 and \
               30 October 2012 (\"U.S. stock trading was suspended\"); Wikipedia, \"Death and \
-              state funeral of George H. W. Bush\", for 5 December 2018",
+              state funeral of George H. W. Bush\" (`wikipedia-bush-funeral`), for 5 December \
+              2018; the Wikipedia pages retrieved 2026-09-23 and secondary, Nasdaq's own trader \
+              alerts for the closures not having been found",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -612,8 +616,8 @@ static EURONEXT_CORE_RULES: &[HolidayRule] = &[
 ];
 
 const EURONEXT_SOURCES: &str = "Euronext, \"Trading hours & holidays\" \
-    (euronext.com/en/trade/trading-hours-holidays), retrieved 2026-09-23, the tables for \
-    2021 to 2026";
+    (euronext.com/en/trade/trading-hours-holidays, `euronext-trading-hours-holidays`), \
+    retrieved 2026-09-23, the tables for 2021 to 2026";
 
 /// A market on the calendar the four share.
 const fn euronext_core(code: &'static str, english_name: &'static str) -> RuleSet {
@@ -1126,8 +1130,8 @@ pub static KOREA_EXCHANGE: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 const NORDIC_SOURCES: &str = "Nasdaq, \"European Markets Trading Hours\" \
-    (nasdaqomxnordic.com/tradinghours), retrieved 2026-09-23, the trading calendars for \
-    2025 to 2027";
+    (nasdaqomxnordic.com/tradinghours, `nasdaq-nordic-trading-hours`), retrieved \
+    2026-09-23, the trading calendars for 2025 to 2027";
 
 const NORDIC_MAUNDY_THURSDAY: HolidayRule =
     HolidayRule::fixed_public("Maundy Thursday", "", Rule::easter(MAUNDY_THURSDAY));
@@ -1662,18 +1666,24 @@ pub static BOLSA_MEXICANA_DE_VALORES: RuleSet = RuleSet {
 // Tel Aviv Stock Exchange
 // ─────────────────────────────────────────────────────────────────────────
 
-/// Sunday to Thursday until the end of 2025, Monday to Friday from
-/// 5 January 2026.
+/// Sunday to Thursday to Thursday 1 January 2026, Monday to Friday from
+/// Monday 5 January 2026: Friday 2 January was a weekend day of the old
+/// week and Sunday 4 January one of the new, with no session, as Solactive's
+/// notice of 8 January 2026 records.
 static XTAE_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
         valid_from: None,
-        valid_until: Some(2025),
+        valid_from_day: None,
+        valid_until: Some(2026),
+        valid_until_day: Some((1, 3)),
     },
     WeekendPolicy {
         days: &[Weekday::Saturday, Weekday::Sunday],
         valid_from: Some(2026),
+        valid_from_day: Some((1, 4)),
         valid_until: None,
+        valid_until_day: None,
     },
 ];
 
@@ -1698,7 +1708,6 @@ static XTAE_DAYS: &[(i64, u8, u8, u8)] = &[
     (2025, 10, 13, 17), (2025, 10, 14, 18),
     (2025, 4, 14, 21), (2025, 4, 15, 21), (2025, 4, 16, 21), (2025, 4, 17, 21),
     (2025, 10, 8, 22), (2025, 10, 9, 22), (2025, 10, 12, 22),
-    (2026, 1, 2, 23),
     (2026, 3, 3, 0), (2026, 4, 1, 1), (2026, 4, 2, 2), (2026, 4, 7, 3), (2026, 4, 8, 4),
     (2026, 4, 21, 5), (2026, 4, 22, 6), (2026, 5, 21, 7), (2026, 5, 22, 8), (2026, 7, 23, 9),
     (2026, 9, 11, 10), (2026, 9, 13, 12), (2026, 9, 18, 20), (2026, 9, 20, 13), (2026, 9, 21, 14),
@@ -1769,7 +1778,6 @@ static XTAE_RULES: &[HolidayRule] = &[
             last_year: XTAE_LAST,
         },
     ),
-    xtae_closed::<23>("Friday before the first Monday-to-Friday week", ""),
 ];
 
 /// The Tel Aviv Stock Exchange.
@@ -1777,10 +1785,9 @@ static XTAE_RULES: &[HolidayRule] = &[
 /// The exchange's vacation schedules for 2024 to 2027. It traded Sunday to
 /// Thursday until the end of 2025, and from "the trading week beginning
 /// Monday, January 5, 2026" trades Monday to Friday, with no trading on
-/// Sunday 4 January; Friday 2 January 2026, the last Friday of the old
-/// week, is carried as a closure, which the change implies and no list
-/// states. Friday is a shortened day every week under the new schedule,
-/// and is not marked.
+/// Sunday 4 January; the weekend changes on that day, so Friday 2 January
+/// is the old week's weekend and Sunday 4 January the new one's. Friday is
+/// a shortened day every week under the new schedule, and is not marked.
 ///
 /// The market is closed on each festival and on its eve, on Purim, Memorial
 /// Day, Independence Day and Tisha B'Av, on election days, and from 2026 on
@@ -1801,14 +1808,16 @@ pub static TEL_AVIV_STOCK_EXCHANGE: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: XTAE_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "TASE, \"Trading Vacation Schedule\" \
               (tase.co.il/en/content/knowledge_center/trading_vacation_schedule and the Hebrew \
               page), for 2025 to 2028, and the vacation schedule for 2024 (content.tase.co.il, \
               file_0010_vacation_schedule_2024_heb.pdf, the English file stopping at October); \
               TASE, \"Changing the trading days\" (tase.co.il/en/content/about/tradingdays_change/ \
               and the Hebrew FAQ), for the Monday-to-Friday week from 5 January 2026; all \
-              retrieved 2026-09-23, read in a browser",
+              retrieved 2026-09-23, read in a browser; Solactive's announcement of \
+              8 January 2026 (solactive.com/announcements/56778), retrieved 2026-09-26, for \
+              no session on Sunday 4 January",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1816,20 +1825,24 @@ pub static TEL_AVIV_STOCK_EXCHANGE: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 /// Sunday to Thursday, as the exchange's "Trading Days: Sunday to
-/// Thursday" has it, since the kingdom's working week moved in June 2013;
-/// Saturday to Wednesday before, taken by whole years as the
-/// [`SAUDI_ARABIA`](crate::countries::SAUDI_ARABIA) table takes it. Every
-/// year before 2023 is a gap here in any case.
+/// Thursday" has it, since the royal order of 23 June 2013 moved the
+/// kingdom's working week and named the exchange among those it bound,
+/// from Saturday 29 June 2013; Saturday to Wednesday before. Every year
+/// before 2023 is a gap here in any case.
 static XSAU_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
         valid_from: None,
-        valid_until: Some(2012),
+        valid_from_day: None,
+        valid_until: Some(2013),
+        valid_until_day: Some((6, 28)),
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
         valid_from: Some(2013),
+        valid_from_day: Some((6, 29)),
         valid_until: None,
+        valid_until_day: None,
     },
 ];
 
@@ -2740,7 +2753,8 @@ pub static SINGAPORE_EXCHANGE: RuleSet = RuleSet {
               Trading\" blocks, live on 2026-09-23 for 2025 and 2026 and in web.archive.org \
               copies of 6 August 2020, 17 December 2021, 16 December 2022, 8 December 2023 and \
               7 December 2024 for 2020 to 2024; Ministry of Manpower, press releases \"Public \
-              Holidays for 2020\" to \"…for 2026\" (mom.gov.sg/newsroom/press-releases/, 8 April \
+              Holidays for 2020\" to \"…for 2026\" (mom.gov.sg/newsroom/press-releases/, \
+              `mom-public-holidays`, 8 April \
               2019, 24 June 2020, 6 April and 21 October 2021, 8 April and 29 September 2022, \
               24 May 2023, 5 August 2024, 16 June 2025) and \"Public Holiday on Polling Day\" of \
               24 June 2020, 22 August 2023 and 15 April 2025; all retrieved 2026-09-23",
@@ -2784,8 +2798,8 @@ static XKLS_DAYS: &[(i64, u8, u8, u8)] = &[
     (2025, 3, 31, 5), (2025, 4, 1, 5), (2025, 5, 1, 6), (2025, 5, 12, 7), (2025, 6, 2, 8),
     (2025, 6, 27, 10), (2025, 9, 1, 28), (2025, 9, 5, 13), (2025, 9, 15, 16), (2025, 9, 16, 12),
     (2025, 10, 20, 14), (2025, 12, 25, 15),
-    (2026, 1, 1, 0), (2026, 2, 2, 26), (2026, 2, 17, 3), (2026, 2, 18, 3), (2026, 3, 20, 5),
-    (2026, 3, 23, 5), (2026, 5, 1, 6), (2026, 5, 27, 9), (2026, 6, 1, 8), (2026, 6, 17, 10),
+    (2026, 1, 1, 0), (2026, 2, 2, 26), (2026, 2, 17, 3), (2026, 2, 18, 3), (2026, 3, 20, 16),
+    (2026, 3, 23, 19), (2026, 5, 1, 6), (2026, 5, 27, 9), (2026, 6, 1, 8), (2026, 6, 17, 10),
     (2026, 8, 25, 13), (2026, 8, 31, 11), (2026, 9, 16, 12), (2026, 11, 9, 27), (2026, 12, 25, 15),
 ];
 
@@ -2861,9 +2875,10 @@ static XKLS_RULES: &[HolidayRule] = &[
 /// 2025 and 2026: the federal holidays and the Federal Territory's —
 /// New Year's Day, Thaipusam, Federal Territory Day and Nuzul Al-Quran —
 /// on their weekdays, the special public holidays the government declared
-/// (3 December 2021, 28 November 2022, 21 April 2023, 15 September 2025)
-/// and the Hari Raya Puasa closure of Friday 20 and Monday 23 March 2026
-/// from the notice of 18 March 2026, following the gazette; and, derived
+/// (3 December 2021, 28 November 2022, 21 April 2023, 15 September 2025,
+/// and 20 March 2026, the Prime Minister's added Hari Raya Aidilfitri day)
+/// and Monday 23 March 2026 for Sunday 22 March, the second day of Hari
+/// Raya, from the notice of 18 March 2026, following the gazette; and, derived
 /// from the rule the page prints, "when a public holiday falls on Sunday,
 /// the following Monday will be observed as a holiday" — to 2024 with "if
 /// this day is already a holiday, then the next day" — the Mondays for a

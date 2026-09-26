@@ -16,13 +16,15 @@
 //! | Tradition | Dating | Firmness |
 //! | --- | --- | --- |
 //! | Christian, Western | Gregorian computus, Gregorian fixed feasts | exact |
-//! | Christian, Orthodox | Julian computus, Julian fixed feasts | exact as stated; churches on the Revised Julian calendar keep the fixed feasts thirteen days earlier |
+//! | Christian, Orthodox | Julian computus, Julian fixed feasts | exact |
+//! | Christian, Orthodox, Revised Julian | Julian computus, fixed feasts in the Revised Julian calendar | exact |
 //! | Ethiopian Orthodox | Ethiopic calendar; the Bahire Hasab cycle as offsets from the Julian-computus Pascha | exact as stated; a feast kept on a fixed Gregorian date by practice is not modelled |
 //! | Coptic Orthodox | Coptic calendar; the paschal cycle as offsets from the Julian-computus Pascha | exact |
 //! | Islamic | tabular civil Hijri | **approximate** — the observed date is a sighting decision |
 //! | Jewish | arithmetic Hebrew calendar | exact; the day begins at the preceding sunset, which this crate does not model |
 //! | Bahá'í | the Badíʿ calendar as kept — arithmetic to 171 BE, the Bahá'í World Centre's table for 172–221 BE; the Twin Holy Birthdays from the same table | exact through 19 March 2065, and a reported gap after, where the table ends |
-//! | Buddhist | approximated from the Chinese lunisolar calendar | **approximate** — see [`BUDDHIST`] |
+//! | Buddhist, Thai | the Thai lunar calendar, `thai-lunar`, as Thailand publishes its year types | exact for 1992–2027, and reported gaps outside |
+//! | Buddhist, East Asian | the Gregorian dates Japan keeps, and the Chinese lunisolar calendar for the lunar Birthday | exact |
 //! | Chinese folk | Chinese lunisolar calendar and the solar terms | exact to the astronomical model |
 //! | Hindu | the amānta Hindu lunisolar calendar at the national almanac's sunrise; each festival on the part of the day its tithi must hold | exact to the astronomical model, and to the conventions [`crate::hindu`] states — a regional almanac may keep a day differently |
 //! | Wheel of the Year | the solstices and equinoxes on their Universal Time day; the cross-quarter days on their fixed Gregorian dates | exact as stated; a group may keep a quarter day on its local date or the nearest weekend, and the eve convention for Samhain is not modelled |
@@ -32,7 +34,7 @@
 //! | Sikh | the Nanakshahi calendar of 2003 for the gurpurabs; the amānta Hindu lunisolar calendar for the three the 2003 calendar left on the Bikrami | exact: the Nanakshahi dates are fixed Gregorian dates, and the lunar three follow the same model as the Hindu table; the SGPC's post-2010 dates are not carried |
 //! | Zoroastrian | the Parsi schedule of feasts on each of the three reckonings — Fasli, Shahanshahi, Qadimi — as three tables | exact: every feast is a fixed day of a fixed month, and each reckoning is arithmetic; the Iranian community's dates on the civil calendar are not carried |
 
-use hc_calendar::Weekday;
+use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::{bahai, gregorian};
 use hc_seasons::{Meridian, SolarTerm};
 
@@ -128,83 +130,87 @@ pub static CHRISTIAN_WESTERN: RuleSet = RuleSet {
     includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "General Roman Calendar (1969, as revised); the movable feasts \
-              are offsets from the Gregorian computus and nothing else",
+    sources: "The General Roman Calendar and the Universal Norms on the Liturgical \
+              Year and the General Roman Calendar, as `roman_calendar` cites them \
+              (`roman-calendar-norms`); the movable feasts are offsets from the \
+              Gregorian computus and nothing else",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
 // Christianity, Orthodox
 // ─────────────────────────────────────────────────────────────────────────
 
-static CHRISTIAN_ORTHODOX_RULES: &[HolidayRule] = &[
-    // The fixed feasts are stated in the Julian calendar, so they appear
-    // thirteen days later on a civil calendar for as long as the two
-    // calendars are thirteen days apart, which is until 2100.
-    feast(
-        "Nativity of Christ",
-        "",
-        Rule::in_calendar(CalendarSystem::JULIAN, 12, 25),
-    ),
-    feast(
-        "Theophany",
-        "",
-        Rule::in_calendar(CalendarSystem::JULIAN, 1, 6),
-    ),
-    feast(
-        "Meeting of the Lord",
-        "",
-        Rule::in_calendar(CalendarSystem::JULIAN, 2, 2),
-    ),
-    feast(
-        "Annunciation",
-        "",
-        Rule::in_calendar(CalendarSystem::JULIAN, 3, 25),
-    ),
-    feast(
-        "Transfiguration",
-        "",
-        Rule::in_calendar(CalendarSystem::JULIAN, 8, 6),
-    ),
-    feast(
-        "Dormition of the Theotokos",
-        "",
-        Rule::in_calendar(CalendarSystem::JULIAN, 8, 15),
-    ),
-    feast(
-        "Nativity of the Theotokos",
-        "",
-        Rule::in_calendar(CalendarSystem::JULIAN, 9, 8),
-    ),
-    feast(
-        "Exaltation of the Cross",
-        "",
-        Rule::in_calendar(CalendarSystem::JULIAN, 9, 14),
-    ),
-    feast(
-        "Presentation of the Theotokos",
-        "",
-        Rule::in_calendar(CalendarSystem::JULIAN, 11, 21),
-    ),
-    // The movable cycle, from the Julian computus.
-    feast("Clean Monday", "", Rule::paschal(ASH_WEDNESDAY - 2)),
-    feast("Lazarus Saturday", "", Rule::paschal(-8)),
-    feast("Palm Sunday", "", Rule::paschal(PALM_SUNDAY)),
-    feast("Holy Friday", "", Rule::paschal(GOOD_FRIDAY)),
-    feast("Pascha", "", Rule::paschal(EASTER_SUNDAY)),
-    feast("Bright Monday", "", Rule::paschal(EASTER_MONDAY)),
-    feast("Ascension", "", Rule::paschal(ASCENSION)),
-    feast("Pentecost", "", Rule::paschal(PENTECOST)),
-    feast("All Saints", "", Rule::paschal(TRINITY_SUNDAY)),
-];
+/// The Great Feasts fixed in the calendar, in the calendar a church keeps
+/// them by, and the movable cycle from the Julian computus, which every
+/// Orthodox church keeps whichever calendar it dates the fixed feasts in.
+macro_rules! orthodox_feasts {
+    ($system:expr) => {
+        &[
+            feast("Nativity of Christ", "", Rule::in_calendar($system, 12, 25)),
+            feast("Theophany", "", Rule::in_calendar($system, 1, 6)),
+            feast("Meeting of the Lord", "", Rule::in_calendar($system, 2, 2)),
+            feast("Annunciation", "", Rule::in_calendar($system, 3, 25)),
+            feast("Transfiguration", "", Rule::in_calendar($system, 8, 6)),
+            feast(
+                "Dormition of the Theotokos",
+                "",
+                Rule::in_calendar($system, 8, 15),
+            ),
+            feast(
+                "Nativity of the Theotokos",
+                "",
+                Rule::in_calendar($system, 9, 8),
+            ),
+            feast(
+                "Exaltation of the Cross",
+                "",
+                Rule::in_calendar($system, 9, 14),
+            ),
+            feast(
+                "Presentation of the Theotokos",
+                "",
+                Rule::in_calendar($system, 11, 21),
+            ),
+            feast("Clean Monday", "", Rule::paschal(ASH_WEDNESDAY - 2)),
+            feast("Lazarus Saturday", "", Rule::paschal(-8)),
+            feast("Palm Sunday", "", Rule::paschal(PALM_SUNDAY)),
+            feast("Holy Friday", "", Rule::paschal(GOOD_FRIDAY)),
+            feast("Pascha", "", Rule::paschal(EASTER_SUNDAY)),
+            feast("Bright Monday", "", Rule::paschal(EASTER_MONDAY)),
+            feast("Ascension", "", Rule::paschal(ASCENSION)),
+            feast("Pentecost", "", Rule::paschal(PENTECOST)),
+            feast("All Saints", "", Rule::paschal(TRINITY_SUNDAY)),
+        ]
+    };
+}
 
-/// Orthodox Christianity: the Julian computus, and fixed feasts dated in the
-/// Julian calendar.
+// The fixed feasts are stated in the Julian calendar, so they appear
+// thirteen days later on a civil calendar for as long as the two calendars
+// are thirteen days apart, which is until 2100.
+static CHRISTIAN_ORTHODOX_RULES: &[HolidayRule] = orthodox_feasts!(CalendarSystem::JULIAN);
+
+// The same feasts in the Revised Julian calendar, which gives them the
+// Gregorian dates until 2800.
+static CHRISTIAN_ORTHODOX_REVISED_JULIAN_RULES: &[HolidayRule] =
+    orthodox_feasts!(CalendarSystem::REVISED_JULIAN);
+
+/// Where every Orthodox table here takes its rules from, and what is not
+/// read.
+const ORTHODOX_SOURCES: &str = "Wikipedia, \"Great Feasts\", retrieved 2026-09-26, for \
+    the nine fixed Great Feasts with their Old Style dates (secondary); the primary that \
+    states them, the Menaion — for instance The Menaion, translated from the Greek by the \
+    Holy Transfiguration Monastery (Boston, 2005–), whose publisher's brochure \
+    (bostonmonks.com/pdfs/b045.pdf) was read the same day — was not read. The movable \
+    cycle is offsets from the Julian-computus Pascha, which `computus` computes by \
+    Delambre's formula as Meeus gives it (`meeus1998`)";
+
+/// Orthodox Christianity on the Julian calendar: the Julian computus, and
+/// the fixed feasts dated in the Julian calendar, as the churches that did
+/// not take up the Revised Julian calendar keep them.
 ///
-/// Churches that adopted the Revised Julian calendar in 1923 — the
-/// Ecumenical Patriarchate, Greece, Romania, Bulgaria and others — keep the
-/// *fixed* feasts on dates that coincide with the Gregorian ones, while
-/// still computing Pascha by the Julian computus. To model those, take the
-/// movable entries here and the fixed entries from [`CHRISTIAN_WESTERN`].
+/// The churches that date the fixed feasts in the Revised Julian calendar
+/// have their own table, [`CHRISTIAN_ORTHODOX_REVISED_JULIAN`]; both keep
+/// the same Pascha.
 pub static CHRISTIAN_ORTHODOX: RuleSet = RuleSet {
     code: "christian-orthodox",
     english_name: "Christianity (Julian computus)",
@@ -213,10 +219,44 @@ pub static CHRISTIAN_ORTHODOX: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "The Menaion and Pentecostarion as kept on the Julian calendar; \
-              the Paschalion of the Council of Nicaea as Delambre's rule \
-              computes it",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: ORTHODOX_SOURCES,
+};
+
+/// Orthodox Christianity on the Revised Julian calendar: the fixed feasts
+/// dated in it, which gives them the Gregorian dates from 1600 to 2800,
+/// and Pascha still by the Julian computus.
+///
+/// The Pan-Orthodox Congress of Constantinople of May–June 1923 proposed
+/// the calendar, to begin by calling the coming 1 October 14 October. The
+/// churches took it up one by one and not on that day: Constantinople,
+/// Greece and Cyprus on 10/23 March 1924, Romania and Poland on 1/14
+/// October 1924, Alexandria in 1928, Albania in 1937, Bulgaria in
+/// December 1968, the Orthodox Church in America on 1 September 1982, and
+/// the Orthodox Church of Ukraine on 1 September 2023, the Ukrainian Greek
+/// Catholic Church with it. Poland returned most of its parishes to the
+/// Julian calendar in 2014, and Antioch's year of adoption is given as
+/// 1928 and as 1948 by the sources read. So the table is the convention,
+/// with no years: which church keeps it in a given year is not a thing a
+/// rule set here says.
+pub static CHRISTIAN_ORTHODOX_REVISED_JULIAN: RuleSet = RuleSet {
+    code: "christian-orthodox-revised-julian",
+    english_name: "Christianity (Julian computus, Revised Julian fixed feasts)",
+    rules: CHRISTIAN_ORTHODOX_REVISED_JULIAN_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "As christian-orthodox for the feasts and the Pascha. For the calendar's \
+              adoption: Wikipedia, \"Revised Julian calendar\" (secondary, citing Clogg \
+              2002, not read), retrieved 2026-09-26, for the dates by church; Orthochristian \
+              (1 April 2014) on the Polish Synod's decision of 18 March 2014; holy-trinity.org's \
+              reprint of The Dawn (October 1982) for the Orthodox Church in America; Interfax \
+              (27 July 2023) for the Orthodox Church of Ukraine; the Ukrainian Greek Catholic \
+              Church's announcement of 6 February 2023 (ugcc.ua); all retrieved 2026-09-26. \
+              Milanković's own account in Astronomische Nachrichten no. 5279 (1924) was not \
+              read",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -319,10 +359,17 @@ pub static ETHIOPIAN_ORTHODOX: RuleSet = RuleSet {
     includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "The fixed feasts of the Ethiopian Orthodox Tewahedo Church as \
-              dated in the Ethiopic calendar; the movable cycle as the tewsak \
-              of Bahire Hasab, offsets from Tinsae, which coincides with the \
-              Julian-computus Pascha",
+    sources: "The calendar page of ethiopianorthodox.org (ethiopianorthodox.org/english/\
+              calendar.html, \"©2003 Ethiopian Orthodox Tewahedo Church\"), retrieved \
+              2026-09-26, for Genna on 29 Tahsas, Timkat on 11 Tirr and Meskel on \
+              17 Meskerem, the Fast of Nineveh in the third week before the Great Lent \
+              of 56 days, and Easter reckoned by the Alexandrian rule; Enkutatash on \
+              1 Meskerem and Debre Tabor on 13 Nehasse, and the tewsak of Mid-Lent and \
+              Mid-Pentecost, are not from a document read here. The scholarly account, \
+              O. Neugebauer, Ethiopic Astronomy and Computus (Vienna: Österreichische \
+              Akademie der Wissenschaften, 1979), and Aymro Wondmagegnehu and Joachim \
+              Motovu (eds.), The Ethiopian Orthodox Church (Addis Ababa: The Ethiopian \
+              Orthodox Mission, 1970), were not read",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -824,10 +871,10 @@ pub static WHEEL_OF_THE_YEAR: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia, \"Wheel of the Year\", retrieved 2026-09-22, for the eight \
               festivals, their dates in each hemisphere and the cycle's \
-              mid-twentieth-century origin",
+              mid-twentieth-century origin. Secondary: no body defines the Wheel of the Year for all who keep it, so there is no primary to replace it",
 };
 
 /// The Wheel of the Year, as kept in the southern hemisphere: the same
@@ -841,51 +888,105 @@ pub static WHEEL_OF_THE_YEAR_SOUTH: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia, \"Wheel of the Year\", retrieved 2026-09-22, southern-hemisphere \
-              column",
+              column. Secondary: no body defines the Wheel of the Year for all who keep it, so there is no primary to replace it",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
-// Buddhism
+// Buddhism, as Thailand keeps it
 // ─────────────────────────────────────────────────────────────────────────
 
-static BUDDHIST_RULES: &[HolidayRule] = &[
-    // Theravada, approximated: the Thai lunar month n is usually the
-    // Chinese lunar month n − 2, and these are all full moons.
-    feast(
-        "Magha Puja",
-        "วันมาฆบูชา",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 15),
-    )
-    .approximate(),
-    feast(
-        "Vesak",
-        "วันวิสาขบูชา",
-        Rule::in_calendar(CalendarSystem::CHINESE, 4, 15),
-    )
-    .approximate(),
-    feast(
-        "Asalha Puja",
-        "วันอาสาฬหบูชา",
-        Rule::in_calendar(CalendarSystem::CHINESE, 6, 15),
-    )
-    .approximate(),
-    feast(
-        "Vassa (Rains Retreat) begins",
-        "วันเข้าพรรษา",
-        Rule::in_calendar(CalendarSystem::CHINESE, 6, 16),
-    )
-    .approximate(),
-    feast(
-        "Pavarana (Rains Retreat) ends",
-        "วันออกพรรษา",
-        Rule::in_calendar(CalendarSystem::CHINESE, 9, 15),
-    )
-    .approximate(),
-    // Mahayana, East Asian: fixed in the Gregorian calendar in Japan since
-    // the 1873 adoption, and on the eighth of the fourth lunar month in
-    // China, Korea and Vietnam.
+/// Asalha Bucha, the full moon of month 8 of the Thai lunar calendar — in
+/// an adhikamāsa year the second month 8, which `thai-lunar` writes as the
+/// regular one — so a plain date in it.
+pub(crate) static THAI_ASALHA_BUCHA: Rule = Rule::in_calendar(CalendarSystem::THAI_LUNAR, 8, 15);
+
+/// Khao Phansa, แรม 1 ค่ำ เดือน 8, the day after Asalha Bucha.
+pub(crate) static THAI_KHAO_PHANSA: Rule = Rule::in_calendar(CalendarSystem::THAI_LUNAR, 8, 16);
+
+/// A day the Thai lunar calendar computes for a Buddhist Era year, in the
+/// Gregorian year its Makha Bucha falls in.
+fn thai_lunar_day(year: i64, day: fn(i64) -> hc_calendar::CalendarResult<Rd>) -> Days {
+    match day(year + hc_calendars_regional::thai_lunar::BUDDHIST_ERA_OFFSET) {
+        Ok(rd) => Days::one(rd),
+        Err(_) => Days::new(),
+    }
+}
+
+fn thai_makha_bucha(year: i64) -> Days {
+    thai_lunar_day(year, hc_calendars_regional::thai_lunar::makha_bucha)
+}
+
+fn thai_visakha_bucha(year: i64) -> Days {
+    thai_lunar_day(year, hc_calendars_regional::thai_lunar::visakha_bucha)
+}
+
+/// A Thai lunar day that moves a month in an adhikamāsa year, over the
+/// years the calendar's table answers for.
+const fn thai_moving(function: fn(i64) -> Days) -> Rule {
+    Rule::Tabulated {
+        function,
+        first_year: hc_calendars_regional::thai_lunar::FIRST_GREGORIAN_YEAR,
+        last_year: hc_calendars_regional::thai_lunar::LAST_GREGORIAN_YEAR,
+    }
+}
+
+/// Makha Bucha, the full moon of month 3, or of month 4 in an adhikamāsa
+/// year: the calendar's own function, since a date names one month.
+pub(crate) const THAI_MAKHA_BUCHA: Rule = thai_moving(thai_makha_bucha);
+
+/// Visakha Bucha, the full moon of month 6, or of month 7 in an
+/// adhikamāsa year.
+pub(crate) const THAI_VISAKHA_BUCHA: Rule = thai_moving(thai_visakha_bucha);
+
+static BUDDHIST_THAI_RULES: &[HolidayRule] = &[
+    feast("Makha Bucha", "วันมาฆบูชา", THAI_MAKHA_BUCHA),
+    feast("Visakha Bucha", "วันวิสาขบูชา", THAI_VISAKHA_BUCHA),
+    feast("Asalha Bucha", "วันอาสาฬหบูชา", THAI_ASALHA_BUCHA),
+    feast("Khao Phansa", "วันเข้าพรรษา", THAI_KHAO_PHANSA),
+];
+
+/// Theravāda Buddhism's four holy days as Thailand dates them, on the Thai
+/// lunar calendar, `thai-lunar`.
+///
+/// The calendar carries the year types Thailand published for 2535–2570 BE
+/// and so answers exactly for 1992–2027 and not at all outside them, where
+/// the four days are reported as gaps; the year types and how the days
+/// move in an adhikamāsa year are in
+/// `docs/systems/thai-lunar.md`.
+/// These are the days the Bank of Thailand's lists date and the Thailand
+/// table gives off.
+///
+/// Burma, Cambodia, Laos and Sri Lanka keep the same full moons on
+/// calendars of their own, which do not always agree with the Thai one:
+/// their days are in the Myanmar table on `burmese`, the Cambodian on
+/// `khmer`, and the Lao and Sri Lankan tables, and no set here stands for
+/// all of them. The end of the rains retreat, Ok Phansa, is not carried,
+/// because no list read dates it.
+pub static BUDDHIST_THAI: RuleSet = RuleSet {
+    code: "buddhist-thai",
+    english_name: "Buddhism (Thai Theravāda)",
+    rules: BUDDHIST_THAI_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "The Makha, Visakha and Asalha Bucha (to 2006 Khao Phansa) dates of \
+              the Bank of Thailand's financial-institution holiday lists for \
+              1992-2022, as the Internet Archive keeps them, and of its \
+              notifications FPG 3/2565, FPG 8/2566, FPG 5/2567, 31/2568 and \
+              37/2569 for 2023-2027, from which `thai-lunar`'s year types are \
+              read (docs/systems/thai-lunar.md; bot-fiholiday and the bot-* keys \
+              in references.bib), retrieved 2026-09-23",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Buddhism, East Asian
+// ─────────────────────────────────────────────────────────────────────────
+
+static BUDDHIST_EAST_ASIAN_RULES: &[HolidayRule] = &[
     feast("Nirvana Day", "涅槃会", Rule::gregorian(2, 15)),
     feast("Buddha's Birthday", "灌仏会", Rule::gregorian(4, 8)),
     feast(
@@ -896,36 +997,33 @@ static BUDDHIST_RULES: &[HolidayRule] = &[
     feast("Bodhi Day", "成道会", Rule::gregorian(12, 8)),
 ];
 
-/// Buddhism — **partial**, and honest about it.
+/// East Asian Mahāyāna Buddhism: the Japanese days on the Gregorian
+/// calendar, and Buddha's Birthday on the eighth of the fourth month of the
+/// Chinese calendar, as China, Korea, Vietnam and the Chinese communities
+/// keep it.
 ///
-/// Theravada observances are dated by the Thai, Burmese, Sinhalese or Lao
-/// lunar calendars, which do not agree with one another, so a table that is
-/// no one country's cannot take any of them; Thailand's own table uses the
-/// Thai one, `thai-lunar`, which in any case reaches only 1992–2027. What
-/// this table uses is the Chinese lunisolar calendar, whose month *n* is
-/// usually the Thai month *n + 2*; that relation puts Vesak on the full
-/// moon of Chinese month 4,
-/// which matched the Thai date in 2022, 2024 and 2025, missed by a day in
-/// 2023 and would miss by a month in a Thai intercalary year. Every
-/// Theravada entry is therefore [`Confidence::Approximate`](crate::rule::Confidence::Approximate).
-///
-/// The Mahayana entries are firmer: Japan fixed its Buddhist observances to
-/// the Gregorian calendar when it adopted it in 1873, and the East Asian
-/// lunar reckoning of Buddha's Birthday is an ordinary Chinese-calendar
-/// date.
-pub static BUDDHIST: RuleSet = RuleSet {
-    code: "buddhist",
-    english_name: "Buddhism",
-    rules: BUDDHIST_RULES,
+/// Japan keeps 灌仏会 on 8 April and 成道会 on 8 December, the lunar days
+/// moved to the same Gregorian dates in the Meiji era, and 涅槃会 mostly
+/// on 15 February. Some temples keep 涅槃会 on 15 March, a month late, and
+/// some on 8 February; those are not carried. Hong Kong's and South
+/// Korea's public holidays for the Birthday are the lunar reckoning here,
+/// and their tables cite the ordinances.
+pub static BUDDHIST_EAST_ASIAN: RuleSet = RuleSet {
+    code: "buddhist-east-asian",
+    english_name: "Buddhism (East Asian)",
+    rules: BUDDHIST_EAST_ASIAN_RULES,
     substitution: &[],
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Thai and Japanese Buddhist calendars. PARTIAL: the Theravada \
-              dates are approximated from the Chinese lunisolar calendar \
-              because the Thai, Burmese and Sinhalese reckonings differ and \
-              the Thai one is carried only for 1992-2027",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Secondary sources only, all retrieved 2026-09-26: the Japanese \
+              Wikipedia, \"灌仏会\", for 8 April in Japan and the Chinese \
+              calendar's 4/8 elsewhere; Wikipedia, \"Bodhi Day\", for 8 December \
+              in Japan since the Meiji era; Wikipedia, \"Parinirvana Day\", for \
+              15 February as the date most keep; the Japanese Wikipedia, \
+              \"涅槃会\", for 15 March in some temples. A temple's or a school's \
+              own calendar would be the primary",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1112,7 +1210,7 @@ pub static JAIN: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia, \"Paryushana\", retrieved 2026-09-22, for the eight \
               Śvetāmbara days ending with Saṃvatsarī on Bhadrapada śukla 4, the \
               ten Digambara days that start right after, and the sects' \
@@ -1120,7 +1218,7 @@ pub static JAIN: RuleSet = RuleSet {
               2026-09-22, for the day not carried; Wikipedia, \"Diwali\", \
               retrieved 2026-09-22, for the Jain observance; the Rashtriya \
               Panchang for Mahāvīra Jayantī and Akṣaya Tṛtīyā, as `hindu` \
-              states",
+              states. All secondary; a Śvetāmbara or Digambara pañcāṅga, which would be the primary, was not read",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1172,12 +1270,12 @@ pub static SHINTO: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia (ja), \"節分\", retrieved 2026-09-22, for the rule — the \
               day before 立春, the Sun at longitude 315° — and its dates by \
               period; \"七五三\", for 15 November since the Meiji reform; \
-              \"初詣\", for the New Year visit; \"宮中祭祀\", for 大祓 on \
-              30 June and 31 December",
+              \"初詣\", for the New Year visit; \"宮中祭祀\" (`wikipedia-ja-kyuchu-saishi`), for 大祓 on \
+              30 June and 31 December. All secondary: no shrine's or the Association of Shinto Shrines' calendar was read",
 };
 
 /// A rite of the imperial court on a fixed Gregorian date.
@@ -1282,10 +1380,14 @@ pub static KYUCHU_SAISHI: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "Wikipedia (ja), \"宮中祭祀\", retrieved 2026-09-22, for the table \
-              of 恒例祭 and the 旬祭; \"天皇誕生日\", retrieved 2026-09-22, for \
-              23 February from 2020",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "宮内庁, \"主要祭儀一覧\" (kunaicho.go.jp/about/gokomu/kyuchu/saishi/saishi01.html, \
+              `kunaicho-saishi`), \
+              retrieved 2026-09-26, for the 大祭 and 小祭 with their dates; Wikipedia (ja), \
+              \"宮中祭祀\" (`wikipedia-ja-kyuchu-saishi`), retrieved 2026-09-22, for the 旬祭 and the \
+              三殿御拝 of 11 February, which \
+              the Agency's list of the principal rites does not include, and \"天皇誕生日\", \
+              retrieved 2026-09-22, for 23 February from 2020",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1352,7 +1454,8 @@ static SIKH_RULES: &[HolidayRule] = &[
     feast("Parkash of Guru Nanak", "", GURU_NANAK_JAYANTI),
 ];
 
-/// Sikhism, on the Nanakshahi calendar of 2003.
+/// Sikhism, on the Nanakshahi calendar of 2003 — the *Mool* Nanakshahi —
+/// and named for it, because the Sikh bodies do not keep one calendar.
 ///
 /// The gurpurabs on the fixed dates that calendar gave them — Guru Gobind
 /// Singh's Parkash on 23 Poh, 5 January; Guru Arjan's Shaheedi on 2 Harh,
@@ -1362,16 +1465,22 @@ static SIKH_RULES: &[HolidayRule] = &[
 /// Purnima in the Hindu table, whose dates the SGPC's own 2003–2020 list
 /// matches.
 ///
-/// **This is the 2003 calendar, the *Mool* Nanakshahi.** The SGPC's 2010
-/// amendments returned several gurpurabs to lunar dates and its 2014
-/// calendar is the Bikrami calendar under the Nanakshahi name; the dates it
-/// publishes since are not carried, and the 2017 resolution of the Mool
-/// calendar's supporters to fix the three lunar days as well is not either.
+/// **This is the 2003 calendar.** Pal Singh Purewal's calendar was adopted
+/// by the SGPC's general house and the Akal Takht in 2003. The SGPC's 2010
+/// amendments returned the sangrands and four gurpurabs to Bikrami dates,
+/// and by 2015 it had gone back to the Bikrami calendar under the
+/// Nanakshahi name; the Pakistan Sikh Gurdwara Parbandhak Committee, the
+/// American Gurdwara Parbandhak Committee and many other gurdwara
+/// committees keep the 2003 version. The SGPC's own dates are not carried
+/// as a second set: they are the Bikrami calendar's as its yearly jantri
+/// prints them, and no jantri was read. The 2017 resolution of the Mool
+/// calendar's supporters to fix the three lunar days as well is not
+/// carried either.
 /// The Akal Takht's foundation day is omitted: the source's row gives
 /// 18 Harh against 16 June, which is 2 Harh, and the table does not guess.
-pub static SIKH: RuleSet = RuleSet {
-    code: "sikh",
-    english_name: "Sikhism",
+pub static SIKH_NANAKSHAHI_2003: RuleSet = RuleSet {
+    code: "sikh-nanakshahi-2003",
+    english_name: "Sikhism (Nanakshahi calendar of 2003)",
     rules: SIKH_RULES,
     substitution: &[],
     bridges: &[],
@@ -1381,7 +1490,10 @@ pub static SIKH: RuleSet = RuleSet {
     sources: "Wikipedia, \"Nanakshahi calendar\", retrieved 2026-09-22: the table \
               of festivals and events of the 2003 version for every fixed \
               date, and its table of the movable dates 2003–2020 for the three \
-              lunar observances",
+              lunar observances (secondary; the SGPC's 2003 calendar itself was \
+              not read); The Tribune (15 April 2019; 14 March 2015, Perneet Singh; \
+              24 May 2015) and Asia Samachar (2 October 2022) for the adoption, the \
+              2010 amendments and who keeps the 2003 version, retrieved 2026-09-26",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1554,20 +1666,22 @@ pub static ALL: &[&RuleSet] = &[
     &CHRISTIAN_WESTERN,
     &crate::roman_calendar::GENERAL_ROMAN_CALENDAR,
     &CHRISTIAN_ORTHODOX,
+    &CHRISTIAN_ORTHODOX_REVISED_JULIAN,
     &ETHIOPIAN_ORTHODOX,
     &COPTIC_ORTHODOX,
     &ISLAMIC,
     &JEWISH,
     &BAHAI,
     &HINDU,
-    &BUDDHIST,
+    &BUDDHIST_THAI,
+    &BUDDHIST_EAST_ASIAN,
     &CHINESE_FOLK,
     &WHEEL_OF_THE_YEAR,
     &WHEEL_OF_THE_YEAR_SOUTH,
     &JAIN,
     &SHINTO,
     &KYUCHU_SAISHI,
-    &SIKH,
+    &SIKH_NANAKSHAHI_2003,
     &ZOROASTRIAN_FASLI,
     &ZOROASTRIAN_SHAHANSHAHI,
     &ZOROASTRIAN_QADIMI,

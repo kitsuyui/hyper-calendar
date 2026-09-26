@@ -15,12 +15,28 @@
 //!
 //! The Gregorian computus is the "anonymous Gregorian" or Butcher algorithm
 //! as Meeus gives it in *Astronomical Algorithms*, 2nd edition, chapter 8,
-//! which is itself Butcher's 1876 arrangement of Gauss's rule. The Julian
-//! computus is Meeus's Julian variant in the same chapter, due to Delambre.
-//! Both are exact arithmetic, not astronomy: the ecclesiastical moon of the
-//! computus is a table, and it drifts from the real one by up to two days.
+//! "Date of Easter" (`meeus1998`), which is itself Butcher's 1876
+//! arrangement of Gauss's rule. The Julian computus is Meeus's Julian
+//! variant in the same chapter, due to Delambre. Both are exact
+//! arithmetic, not astronomy: the ecclesiastical moon of the computus is a
+//! table, and how far it sits from the real one differs between the two.
+//!
+//! - The Gregorian tables were built to stop "any progressive departure"
+//!   from the Moon (Richards in the *Explanatory Supplement*, 3rd edition,
+//!   §15.4.3, `richards2013`). Their paschal full moon is usually within
+//!   a day of the astronomical one and never more than three days from it,
+//!   as the Astronomical Society of South Australia's Easter Dating Method
+//!   states (`assa-easter`).
+//! - The Julian computus's nineteen-year cycle has no such correction. By
+//!   the sixteenth century its new moons fell four days before the dates
+//!   its tables assumed (Richards §15.4.1), and the error grows by about a
+//!   day in three centuries (Wikipedia, "Computus", secondary); and its
+//!   equinox, 21 March in the Julian calendar, falls thirteen days after
+//!   the astronomical one, as the World Council of Churches' Aleppo
+//!   statement of 1997 says (`wcc-aleppo-1997`).
+//!
 //! Easter is therefore *exactly* what these functions say, and only
-//! approximately a full moon.
+//! approximately the Sunday after a full moon.
 
 use hc_calendar::Rd;
 use hc_calendars_solar::{gregorian, julian};
@@ -121,16 +137,29 @@ pub const GREGORIAN_COMPUTUS_FIRST_YEAR: i64 = 1583;
 
 /// The first Gregorian year the Julian computus is defined for.
 ///
-/// The Council of Nicaea settled the rule in 325; 326 is the first year it
-/// could have governed.
+/// 326 is the first year after the Council of Nicaea, the year the
+/// Astronomical Society of South Australia's method starts from
+/// (`assa-easter`). Nicaea laid down no algorithm: it endorsed the rule of
+/// the equinox and published no computation, as Mosshammer argues
+/// (`mosshammer2008`, through its review in the *Bryn Mawr Classical
+/// Review*) and the Aleppo statement says (`wcc-aleppo-1997`). The
+/// Alexandrian nineteen-year cycle this computus is was authoritative in
+/// the East from the late fourth century, and was taken up in the West over
+/// the sixth to eighth — Dionysius Exiguus's table of 525, Whitby in 664.
+/// So the years from 326 to the late fourth century are the rule applied
+/// backwards, and not the Easters every church kept.
 pub const JULIAN_COMPUTUS_FIRST_YEAR: i64 = 326;
 
 /// The last year either computus is computed for here.
 ///
 /// Both algorithms are pure integer arithmetic and would keep answering
-/// forever, but the Gregorian computus is known to need amendment before its
-/// lunar table drifts further, and no church has legislated one. Refusing
-/// past 4099 is a way of not pretending otherwise.
+/// forever, and the Gregorian rules themselves have no last year. 4099 is
+/// the end of the range the Astronomical Society of South Australia states
+/// for its method, "all years 326 to 4099 A.D.", because "one additional
+/// February 29 date will need to be removed in about 4140 A.D." — its
+/// assumption about a calendar amendment no church has made
+/// (`assa-easter`). Refusing past it is this library's choice, taken from
+/// that range.
 pub const COMPUTUS_LAST_YEAR: i64 = 4099;
 
 /// Easter Sunday, as a fixed day, under the chosen computus.
@@ -294,8 +323,10 @@ mod tests {
 
     #[test]
     fn the_gregorian_computus_matches_published_easter_dates() {
-        // Meeus, Astronomical Algorithms, chapter 8, worked examples plus the
-        // Roman Catholic liturgical calendars for the modern years.
+        // 1818 and 1886, the earliest and latest possible dates, as Meeus
+        // gives them in chapter 8 (`meeus1998`), and 5 April 2026, as the
+        // Liturgy Office's summary of 2026 gives it (`roman_calendar`). The
+        // other years are not from a printed calendar read for this test.
         let published = [
             (1818, 3, 22), // the earliest possible Easter, and Meeus's example
             (1886, 4, 25), // the latest possible Easter
@@ -324,7 +355,8 @@ mod tests {
 
     #[test]
     fn the_julian_computus_matches_published_orthodox_easter_dates() {
-        // Stated in the Julian calendar, as the churches state them.
+        // Stated in the Julian calendar, as the churches state them; not
+        // from a printed paschalion read for this test.
         let published = [
             (2008, 4, 14),
             (2010, 3, 22),
@@ -344,7 +376,8 @@ mod tests {
 
     #[test]
     fn orthodox_easter_lands_on_the_right_civil_date() {
-        // The civil dates Greek and Russian church calendars print.
+        // The civil dates of the same Sundays; not from a printed church
+        // calendar read for this test.
         let civil = [
             (2021, 5, 2),
             (2022, 4, 24),

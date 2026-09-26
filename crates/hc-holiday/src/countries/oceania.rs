@@ -52,9 +52,19 @@ static AU_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("Anzac Day", "", Rule::gregorian(4, 25)).years(Some(1921), None),
     HolidayRule::public("Labour Day", "", Rule::nth(5, 1, Weekday::Monday))
         .in_regions(AU_MAY_LABOUR),
-    HolidayRule::public("Reconciliation Day", "", Rule::nth(5, 4, Weekday::Monday))
-        .in_regions(AU_ACT)
-        .years(Some(2018), None),
+    // The first Monday on or after 27 May, as the secondary sources state it;
+    // the ACT's Holidays Act 1958 was not read.
+    HolidayRule::public(
+        "Reconciliation Day",
+        "",
+        Rule::WeekdayOnOrAfter {
+            month: 5,
+            day: 27,
+            weekday: Weekday::Monday,
+        },
+    )
+    .in_regions(AU_ACT)
+    .years(Some(2018), None),
     HolidayRule::public(
         "Western Australia Day",
         "",
@@ -64,12 +74,6 @@ static AU_RULES: &[HolidayRule] = &[
     HolidayRule::public("Sovereign's Birthday", "", Rule::nth(6, 2, Weekday::Monday))
         .in_regions(AU_JUNE_SOVEREIGN),
     HolidayRule::public("Picnic Day", "", Rule::nth(8, 1, Weekday::Monday)).in_regions(AU_NT),
-    HolidayRule::public(
-        "Royal Queensland Show",
-        "",
-        Rule::nth(8, 2, Weekday::Wednesday),
-    )
-    .in_regions(AU_QLD),
     HolidayRule::public(
         "Sovereign's Birthday",
         "",
@@ -105,12 +109,17 @@ pub static AUSTRALIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "State and territory public holiday acts and the annual \
-              gazettals; Fair Work Ombudsman's published list. Western \
-              Australia's Sovereign's Birthday is proclaimed each year and \
-              is not modelled; nor are regional show days other than \
-              Queensland's",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Fair Work Act 2009 (Cth), s 115, compilation C2026C00355 of 7 July 2026, its \
+              text not read; the Holidays Act 1983 (Qld) and the Statutory Holidays Act 2000 \
+              (Tas), read on legislation.qld.gov.au and legislation.tas.gov.au, retrieved \
+              2026-09-26; the Public Holidays Act 2010 (NSW), Public Holidays Act 1993 (Vic), \
+              Public Holidays Act 2023 (SA), Public and Bank Holidays Act 1972 (WA), Holidays \
+              Act 1958 (ACT) and Public Holidays Act 1981 (NT), and the annual gazettals, not \
+              read. Western Australia's Sovereign's Birthday is proclaimed each year and is \
+              not modelled; nor are the show days, the Royal Queensland Show's among them, \
+              which s 4(5)(a) of the Queensland Act lets the Minister appoint for the City of \
+              Brisbane only; nor the part-day holidays of Christmas Eve",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -199,12 +208,15 @@ pub static NEW_ZEALAND: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Holidays Act 2003, sections 44 and 45 for mondayisation; \
-              Holidays (Full Recognition of Waitangi Day and ANZAC Day) \
-              Amendment Act 2013; Te Kāhui o Matariki Public Holiday Act \
-              2022 for the Matariki schedule. Regional anniversary days are \
-              set by provincial custom and are not modelled",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Holidays Act 2003, sections 44, 45 and 45A, and the Holidays (Full Recognition \
+              of Waitangi Day and ANZAC Day) Amendment Act 2013; Te Kāhui o Matariki Public \
+              Holiday Act 2022, Schedule 1, for the Matariki dates; legislation.govt.nz \
+              refused access on 2026-09-26, so the Acts were not read, and the dates were \
+              checked against Employment New Zealand's \"Public holidays and anniversary \
+              dates\" (employment.govt.nz), retrieved 2026-09-26, and for Matariki 2028 to \
+              2035 Wikipedia, \"Matariki\" (secondary). Regional anniversary days are set by \
+              provincial custom and are not modelled",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

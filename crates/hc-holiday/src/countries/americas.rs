@@ -113,12 +113,16 @@ pub static UNITED_STATES: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "5 U.S.C. § 6103; Uniform Monday Holiday Act (Pub. L. 90-363); \
-              Pub. L. 94-97 restoring Veterans Day; Pub. L. 117-17 for \
-              Juneteenth; Executive Orders 10358 and 11582 for the in-lieu-of \
-              rule. State holidays are not modelled: there are no national \
-              public holidays in the United States, only federal ones",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "5 U.S.C. § 6103(a) to (c), on the Legal Information Institute \
+              (law.cornell.edu/uscode/text/5/6103), retrieved 2026-09-26, whose subsection (b) \
+              states the in-lieu-of rule; Pub. L. 90-363 (1968, the Uniform Monday Holiday \
+              Act), Pub. L. 94-97 (1975) restoring Veterans Day, Pub. L. 98-144 (1983) for \
+              Martin Luther King Jr. Day and Pub. L. 117-17 (2021) for Juneteenth, not read; \
+              Executive Orders 10358 and 11582 on the in-lieu-of rule before it was in the \
+              statute, not read. Closures by executive order for a single year are not \
+              carried. State holidays are not modelled: there are no national public holidays \
+              in the United States, only federal ones",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -226,12 +230,14 @@ pub static CANADA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Canada Labour Code s. 166 and the Holidays Act (R.S.C. 1985, \
-              c. H-5); provincial employment-standards acts for the \
-              subdivision entries. Remembrance Day is federal and is not \
-              statutory in every province; the provincial variation is not \
-              modelled",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Canada Labour Code (R.S.C. 1985, c. L-2), s. 166, and the Holidays Act (R.S.C. \
+              1985, c. H-5), both current to 2026-09-03, on the Justice Laws Website \
+              (laws-lois.justice.gc.ca), retrieved 2026-09-26; the Holidays Act moves only a \
+              Sunday Canada Day, and the Code's s. 195 on a holiday falling on a non-working \
+              day was not read; the provincial employment-standards acts for the subdivision \
+              entries, not read. Remembrance Day is federal and is not statutory in every \
+              province; the provincial variation is not modelled",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -317,10 +323,14 @@ pub static MEXICO: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Ley Federal del Trabajo, artículo 74, as reformed in 2006 and \
-              2024. Religious days — Semana Santa, 12 December — are not \
-              días de descanso obligatorio and are not listed",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Ley Federal del Trabajo, artículo 74, as reformed in 2006 and by the decree \
+              reforming fracción VII (DOF 30 September 2024); the Cámara de Diputados text \
+              (diputados.gob.mx/LeyesBiblio/pdf/LFT.pdf) could not be reached on 2026-09-26, \
+              and the article was read in a secondary copy (conceptosjuridicos.com), retrieved \
+              2026-09-26. Election days under fracción IX are not modelled. Religious days — \
+              Semana Santa, 12 December — are not días de descanso obligatorio and are not \
+              listed",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -395,11 +405,17 @@ pub static BRAZIL: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Lei 662/1949 and lei 10.607/2002; lei 6.802/1980 for Nossa \
-              Senhora Aparecida; lei 14.759/2023 making Consciência Negra a \
-              national holiday from 2024. Carnival and Corpus Christi are \
-              pontos facultativos, recorded here as bank holidays",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Lei nº 662, de 6 de abril de 1949, art. 1, in the wording of Lei nº 10.607, de \
+              19 de dezembro de 2002; Lei nº 6.802, de 30 de junho de 1980, for Nossa Senhora \
+              Aparecida; Lei nº 14.759, de 21 de dezembro de 2023 (DOU 22 December 2023), \
+              making Consciência Negra a national holiday from 2024, its title and publication \
+              only; Lei nº 9.093, de 12 de setembro de 1995, art. 2, under which Good Friday \
+              is a municipal religious holiday; all on the Câmara dos Deputados' legislation \
+              site (camara.leg.br/legin), retrieved 2026-09-26, the Planalto being \
+              unreachable. Good Friday is carried nationwide although the federal law makes it \
+              the municipalities' to declare. Carnival and Corpus Christi are pontos \
+              facultativos, recorded here as bank holidays",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -830,10 +846,12 @@ pub static PERU: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "Wikipedia (es), \"Anexo:Días festivos en Perú\", retrieved 2026-09-22, \
-              which tabulates the 2026 holidays under Decreto Legislativo 713 \
-              and marks the irrenunciable ones",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Decreto Legislativo 713, art. 6, as amended by Leyes 31381 (2021), 31530 (2022), \
+              31788 (2023) and 31822 (2023), not read, El Peruano and gob.pe refusing access; \
+              the Spanish Wikipedia, \"Anexo:Días festivos en Perú\" (secondary), retrieved \
+              2026-09-22, which tabulates the 2026 holidays under the decree and marks the \
+              irrenunciable ones",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1164,12 +1182,15 @@ pub static CHILE: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "Wikipedia, \"Public holidays in Chile\", and the Spanish Wikipedia, \
-              \"Anexo:Días feriados en Chile\", both retrieved 2026-09-22, for the \
-              list and the laws with their dates; feriadoschilenos.cl, retrieved the \
-              same day, for the law behind each holiday; Ley 21.357 of 19 June 2021, \
-              artículo único and artículo transitorio, as published at vlex.cl",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Ley 2.977 (1915), Ley 19.668 (2000), Ley 20.215 (2007; Código del Trabajo art. \
+              35 ter), Ley 20.299 (2008), Ley 20.983 (2016) and Ley 21.357 (2021), on \
+              LeyChile, Biblioteca del Congreso Nacional \
+              (leychile.cl/Consulta/obtxml?opt=7&idNorma=23639, 160270, 264651, 279294, \
+              1098384 and 1161743), retrieved 2026-09-26; Leyes 3.810, 18.432, 20.148, 20.629 \
+              and 20.663 as feriadoschilenos.cl lists them, not read; Wikipedia, \"Public \
+              holidays in Chile\", and the Spanish Wikipedia, \"Anexo:Días feriados en \
+              Chile\", retrieved 2026-09-22, for the years before 2000",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1477,12 +1498,13 @@ pub static URUGUAY: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "The Spanish Wikipedia, \"Días feriados de Uruguay\", retrieved 2026-09-22, \
-              for Ley 16.805 and Ley 17.414, the paid and common holidays, the \
-              moved and immovable ones and the days of Tourism Week; Wikipedia, \
-              \"Public holidays in Uruguay\", retrieved the same day, for the \
-              English names",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Ley N° 16.805 de 24 de diciembre de 1996, arts. 1 and 2, art. 2 as worded by Ley \
+              N° 17.414 de 8 de noviembre de 2001, and Ley N° 12.590 de 23 de diciembre de \
+              1958, art. 18, on IMPO (impo.com.uy/bases/leyes/16805-1996, 17414-2001 and \
+              12590-1958), retrieved 2026-09-26; the Spanish Wikipedia, \"Días feriados de \
+              Uruguay\", retrieved 2026-09-22, for Carnival and Tourism Week; Wikipedia, \
+              \"Public holidays in Uruguay\", for the English names",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1870,13 +1892,15 @@ pub static GUATEMALA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "Wikipedia, \"Public holidays in Guatemala\", retrieved 2026-09-22, for \
-              article 127's list; Decreto 19-2018, Diario de Centro América of \
-              10 October 2018, and Lexology and Prensa Libre on the Constitutional \
-              Court's ruling of 17 March 2020, for the moves and their years; Prensa \
-              Libre, 13 August 2026, for the Assumption as Guatemala City's \
-              festivity outside the law",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Código de Trabajo (Decreto 1441), artículo 127, not read (mintrabajo.gob.gt and \
+              congreso.gob.gt refusing access), as Wikipedia, \"Public holidays in Guatemala\" \
+              (secondary), retrieved 2026-09-22, gives its list; Decreto 19-2018, emitido 25 \
+              de septiembre de 2018, Diario de Centro América of 10 October 2018, as \
+              transcribed at cuasiabogadosgt.blogspot.com, retrieved 2026-09-26, and Lexology \
+              and Prensa Libre on the Constitutional Court's ruling of 17 March 2020, for the \
+              moves and their years; Prensa Libre, 13 August 2026, for the Assumption as \
+              Guatemala City's festivity outside the law",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2299,7 +2323,9 @@ pub static BAHAMAS: RuleSet = RuleSet {
 static CU_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
     valid_from: None,
+    valid_from_day: None,
     valid_until: None,
+    valid_until_day: None,
 }];
 
 /// Article 97: a Sunday 1 May or 10 October moves the Sunday rest to the

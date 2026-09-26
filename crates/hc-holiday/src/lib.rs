@@ -2,11 +2,15 @@
 //!
 //! **A holiday is data, never code.** This crate provides one evaluator and
 //! one rule vocabulary; every country and every religious tradition in it is
-//! a table of rule values and nothing else. There is no function named after
-//! a country anywhere in the source, and adding a country adds no branch to
-//! the engine. A caller who wants a company calendar, a school year or a
-//! fictional setting supplies their own [`RuleSet`] and gets the same
-//! machinery.
+//! a table of rule values, and adding a country adds no branch to the
+//! engine. Where a country's law says something the vocabulary has no
+//! shape for — Oman's compensation days, Russia's transfers, the days
+//! Vietnam's notices give — the table carries it as a [`Rule::Computed`]
+//! or [`Rule::Tabulated`] function beside the table, named after the
+//! country it serves, and the engine calls it like any other rule without
+//! knowing whose it is. A caller who wants a company calendar, a school
+//! year or a fictional setting supplies their own [`RuleSet`] and gets the
+//! same machinery.
 //!
 //! | Module | What it holds |
 //! | --- | --- |
@@ -30,7 +34,10 @@
 //!   whose weekend-substitution law is not in front of the author carries no
 //!   policy, and its holidays fall on the weekend and stay there.
 //! * **It will not pretend a holiday list is current.** Every table carries
-//!   a [`SourceDate`] and names its statute or gazette.
+//!   a [`SourceDate`] and names its sources: the statute, gazette or
+//!   official list where one was read, and, where the only source read was
+//!   secondary — an encyclopaedia, a newspaper, an aggregator — a `sources`
+//!   string that says so.
 //! * **It will not guess outside the span it evaluated.** Business-day
 //!   arithmetic that walks off the end of a [`HolidayCalendar`] returns
 //!   `None`.

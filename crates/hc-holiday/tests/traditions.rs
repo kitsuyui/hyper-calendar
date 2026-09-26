@@ -7,10 +7,10 @@ use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::hindu::THAIPUSAM;
 use hc_holiday::rule::{Confidence, Kind, Rule, RuleSet};
 use hc_holiday::traditions::{
-    self, BAHAI, BUDDHIST, CHINESE_FOLK, CHRISTIAN_ORTHODOX, CHRISTIAN_WESTERN, COPTIC_ORTHODOX,
-    ETHIOPIAN_ORTHODOX, HINDU, ISLAMIC, JAIN, JEWISH, KYUCHU_SAISHI, SHINTO, SIKH,
-    WHEEL_OF_THE_YEAR, WHEEL_OF_THE_YEAR_SOUTH, ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI,
-    ZOROASTRIAN_SHAHANSHAHI,
+    self, BAHAI, BUDDHIST_EAST_ASIAN, BUDDHIST_THAI, CHINESE_FOLK, CHRISTIAN_ORTHODOX,
+    CHRISTIAN_ORTHODOX_REVISED_JULIAN, CHRISTIAN_WESTERN, COPTIC_ORTHODOX, ETHIOPIAN_ORTHODOX,
+    HINDU, ISLAMIC, JAIN, JEWISH, KYUCHU_SAISHI, SHINTO, SIKH_NANAKSHAHI_2003, WHEEL_OF_THE_YEAR,
+    WHEEL_OF_THE_YEAR_SOUTH, ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI, ZOROASTRIAN_SHAHANSHAHI,
 };
 use hc_seasons::Meridian;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
@@ -95,6 +95,37 @@ fn the_orthodox_fixed_feasts_sit_thirteen_days_after_the_western_ones() {
             (2025, 9, 21, "Nativity of the Theotokos"),
         ],
     );
+}
+
+#[test]
+fn the_revised_julian_fixed_feasts_are_the_gregorian_dates_and_pascha_the_julian() {
+    // The Revised Julian calendar agrees with the Gregorian from 1600 to
+    // 2800, so the Nativity is on 25 December; Pascha is the same Sunday as
+    // on the Julian calendar, 12 April in 2026.
+    expect(
+        &CHRISTIAN_ORTHODOX_REVISED_JULIAN,
+        &[
+            (2025, 12, 25, "Nativity of Christ"),
+            (2026, 1, 6, "Theophany"),
+            (2026, 3, 25, "Annunciation"),
+            (2026, 8, 15, "Dormition of the Theotokos"),
+            (2026, 2, 23, "Clean Monday"),
+            (2026, 4, 12, "Pascha"),
+            (2026, 5, 31, "Pentecost"),
+        ],
+    );
+    let julian = HolidayCalendar::for_year(&CHRISTIAN_ORTHODOX, None, 2026);
+    let revised = HolidayCalendar::for_year(&CHRISTIAN_ORTHODOX_REVISED_JULIAN, None, 2026);
+    assert!(revised.on(ymd(2026, 1, 7)).is_empty());
+    assert!(!julian.on(ymd(2026, 1, 7)).is_empty());
+    let pascha = |calendar: &HolidayCalendar| {
+        calendar
+            .all()
+            .iter()
+            .find(|holiday| holiday.name == "Pascha")
+            .map(|holiday| holiday.date)
+    };
+    assert_eq!(pascha(&julian), pascha(&revised));
 }
 
 #[test]
@@ -326,23 +357,43 @@ fn the_lantern_festival_is_always_a_fortnight_after_the_new_year() {
 }
 
 #[test]
-fn the_buddhist_table_separates_what_it_knows_from_what_it_approximates() {
-    // The Mahayana dates Japan fixed to the Gregorian calendar in 1873 are
-    // exact; the Theravada full moons are approximated from the Chinese
-    // lunisolar calendar and say so.
-    let calendar = HolidayCalendar::for_year(&BUDDHIST, None, 2024);
+fn the_thai_buddhist_days_are_the_bank_of_thailand_dates() {
+    // 2012 and 2023 are adhikamāsa years: Makha and Visakha Bucha a month
+    // later, Asalha Bucha on the second month 8.
+    expect(
+        &BUDDHIST_THAI,
+        &[
+            (2012, 3, 7, "Makha Bucha"),
+            (2012, 6, 4, "Visakha Bucha"),
+            (2012, 8, 2, "Asalha Bucha"),
+            (2012, 8, 3, "Khao Phansa"),
+            (2023, 3, 6, "Makha Bucha"),
+            (2023, 6, 3, "Visakha Bucha"),
+            (2025, 2, 12, "Makha Bucha"),
+            (2025, 5, 11, "Visakha Bucha"),
+            (2025, 7, 10, "Asalha Bucha"),
+            (2025, 7, 11, "Khao Phansa"),
+        ],
+    );
+    let calendar = HolidayCalendar::for_year(&BUDDHIST_THAI, None, 2025);
     for holiday in calendar.all() {
-        let expected = match holiday.name {
-            "Nirvana Day"
-            | "Buddha's Birthday"
-            | "Bodhi Day"
-            | "Buddha's Birthday (lunar reckoning)" => Confidence::Exact,
-            _ => Confidence::Approximate,
-        };
-        assert_eq!(holiday.confidence, expected, "{}", holiday.name);
+        assert_eq!(holiday.confidence, Confidence::Exact, "{}", holiday.name);
+        assert_eq!(holiday.kind, Kind::Religious, "{}", holiday.name);
+    }
+    // Outside the years Thailand published, a gap and not a guess.
+    let outside = HolidayCalendar::for_year(&BUDDHIST_THAI, None, 2030);
+    assert!(outside.all().is_empty());
+    assert!(!outside.is_complete());
+}
+
+#[test]
+fn the_east_asian_buddhist_days_are_exact() {
+    let calendar = HolidayCalendar::for_year(&BUDDHIST_EAST_ASIAN, None, 2024);
+    for holiday in calendar.all() {
+        assert_eq!(holiday.confidence, Confidence::Exact, "{}", holiday.name);
     }
     expect(
-        &BUDDHIST,
+        &BUDDHIST_EAST_ASIAN,
         &[
             (2024, 2, 15, "Nirvana Day"),
             (2024, 4, 8, "Buddha's Birthday"),
@@ -792,7 +843,7 @@ fn the_three_zoroastrian_tables_are_one_schedule() {
 #[test]
 fn the_sikh_gurpurabs_fall_on_the_nanakshahi_tables_fixed_dates() {
     expect(
-        &SIKH,
+        &SIKH_NANAKSHAHI_2003,
         &[
             (2019, 1, 5, "Parkash of Guru Gobind Singh"),
             (2019, 1, 31, "Parkash of Guru Har Rai"),
@@ -825,7 +876,7 @@ fn the_sikh_gurpurabs_fall_on_the_nanakshahi_tables_fixed_dates() {
 fn the_three_lunar_sikh_days_match_the_sgpc_list() {
     // The article's table of movable dates, 2018 to 2020.
     expect(
-        &SIKH,
+        &SIKH_NANAKSHAHI_2003,
         &[
             (2018, 3, 2, "Hola Mohalla"),
             (2018, 11, 7, "Bandi Chhor Divas"),
@@ -838,7 +889,7 @@ fn the_three_lunar_sikh_days_match_the_sgpc_list() {
             (2020, 11, 30, "Parkash of Guru Nanak"),
         ],
     );
-    for rule in SIKH.rules {
+    for rule in SIKH_NANAKSHAHI_2003.rules {
         assert_eq!(rule.kind, Kind::Religious, "{}", rule.name);
         assert_eq!(rule.confidence, Confidence::Exact, "{}", rule.name);
     }

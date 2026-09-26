@@ -132,6 +132,12 @@ pont = "pont"
 Lieve = "Lieve"
 Lov = "Lov"
 lov = "lov"
+# LOV, the prefix of Lovdata's identifiers for a Norwegian act, as in
+# LOV-1995-02-24-12, the act on holidays.
+LOV = "LOV"
+# Norwegian and Swedish "dokument", a path segment of the Lovdata and Riksdag
+# addresses cited for the Norwegian and Swedish holiday acts.
+dokument = "dokument"
 som = "som"
 Nam = "Nam"
 # A tuplet is a group of notes played in the time of a different number of

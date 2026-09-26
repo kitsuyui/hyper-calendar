@@ -30,7 +30,8 @@ use hc_calendars_lunar::tibetan::{self, LeapNumbering, TibetanCalendar, TibetanD
 use hc_calendars_lunar::{ChineseCalendar, DangiCalendar, LunisolarDate, VietnameseCalendar};
 use hc_calendars_regional::{burmese, thai_lunar};
 use hc_calendars_solar::{
-    bahai_kept, bangladeshi, coptic, ethiopic, gregorian, julian, nanakshahi, persian, zoroastrian,
+    bahai_kept, bangladeshi, coptic, ethiopic, gregorian, julian, nanakshahi, persian,
+    revised_julian, zoroastrian,
 };
 use hc_core::math::{floor, normalize_degrees};
 use hc_seasons::solar_terms::term_moment;
@@ -216,6 +217,16 @@ hc_core::catalogue! {
             CalendarId("julian"),
             |year, month, day| julian::to_fixed(year, month.ordinal, day).ok(),
             |rd| julian::from_fixed(rd).ok().map(|(year, _, _)| year),
+        );
+
+        /// The Revised Julian calendar, in which the Orthodox churches that
+        /// adopted it from 1924 date their fixed feasts: the Gregorian dates
+        /// from 1 March 1600 to 28 February 2800, and a day apart at times
+        /// after.
+        pub const REVISED_JULIAN = Self::new(
+            CalendarId("revised-julian"),
+            |year, month, day| revised_julian::to_fixed(year, month.ordinal, day).ok(),
+            |rd| revised_julian::from_fixed(rd).ok().map(|(year, _, _)| year),
         );
 
         /// The tabular civil Hijri calendar, the arithmetic approximation.
@@ -711,8 +722,9 @@ pub enum Rule {
     /// The first occurrence of a lunar phase on or after a fixed Gregorian
     /// date, at a stated meridian.
     ///
-    /// This is the crude way to date a Buddhist observance, and the crate
-    /// says so: see [`crate::traditions::BUDDHIST`].
+    /// This is the crude way to date a lunar observance: a table that has
+    /// the calendar the observance is kept by, as
+    /// [`crate::traditions::BUDDHIST_THAI`] has `thai-lunar`, uses it.
     LunarPhase {
         /// Which phase.
         phase: Phase,
@@ -2135,25 +2147,53 @@ impl BridgePolicy {
 
 /// Which days of the week are the weekend, and when.
 ///
-/// Friday–Saturday is the weekend in much of the Middle East, Saturday alone
-/// in Nepal until 2026, and Saudi Arabia (2013), the United Arab Emirates
-/// (2022) and Nepal (2026) all changed theirs within living memory, so this
-/// carries years like everything else.
+/// Friday–Saturday is the weekend in much of the Middle East and Friday
+/// alone in Iran, and Saudi Arabia (2013), the United Arab Emirates (2022)
+/// and Nepal (2026) all changed theirs within living memory, so a policy
+/// carries the years it is in force like everything else — and, because
+/// most of those changes took effect in the middle of a year, the day in
+/// its first and last year where the source gives one. A bound with a
+/// year and no day covers that year from 1 January or to 31 December, and
+/// the table that carries it says what its source did not date.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WeekendPolicy {
     /// The weekend days.
     pub days: &'static [Weekday],
     /// The first Gregorian year the policy applies to.
     pub valid_from: Option<i32>,
+    /// The month and day in `valid_from`'s year on which the policy takes
+    /// effect, or `None` for 1 January.
+    pub valid_from_day: Option<(u8, u8)>,
     /// The last Gregorian year the policy applies to.
     pub valid_until: Option<i32>,
+    /// The month and day in `valid_until`'s year that is the policy's last,
+    /// or `None` for 31 December.
+    pub valid_until_day: Option<(u8, u8)>,
 }
 
 impl WeekendPolicy {
-    /// Whether this policy is in force in `year`.
+    /// Whether this policy is in force on `day`.
     #[must_use]
-    pub const fn applies_in(&self, year: i64) -> bool {
-        year_in_range(year, self.valid_from, self.valid_until)
+    pub fn applies_on(&self, day: Rd) -> bool {
+        let Ok((year, month, day_of_month)) = gregorian::from_fixed(day) else {
+            return false;
+        };
+        let here = (month, day_of_month);
+        if let Some(first) = self.valid_from {
+            let first = i64::from(first);
+            if year < first
+                || (year == first && self.valid_from_day.is_some_and(|start| here < start))
+            {
+                return false;
+            }
+        }
+        if let Some(last) = self.valid_until {
+            let last = i64::from(last);
+            if year > last || (year == last && self.valid_until_day.is_some_and(|end| here > end)) {
+                return false;
+            }
+        }
+        true
     }
 }
 
@@ -2161,7 +2201,9 @@ impl WeekendPolicy {
 pub const SATURDAY_SUNDAY: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Saturday, Weekday::Sunday],
     valid_from: None,
+    valid_from_day: None,
     valid_until: None,
+    valid_until_day: None,
 }];
 
 /// One holiday, as a value.
@@ -2463,15 +2505,17 @@ impl RuleSet {
             .find(|policy| policy.applies_in(year))
     }
 
-    /// The weekend days in force in `year`.
+    /// The weekend days in force on `day`.
     ///
-    /// Falls back to Saturday–Sunday when the table states nothing, because
-    /// a table that states nothing has not made a claim.
+    /// Asked of a day rather than a year, because a weekend law can change
+    /// in the middle of one. Falls back to Saturday–Sunday when the table
+    /// states nothing, because a table that states nothing has not made a
+    /// claim.
     #[must_use]
-    pub fn weekend_in(&self, year: i64) -> &'static [Weekday] {
+    pub fn weekend_on(&self, day: Rd) -> &'static [Weekday] {
         self.weekend
             .iter()
-            .find(|policy| policy.applies_in(year))
+            .find(|policy| policy.applies_on(day))
             .map_or(&[Weekday::Saturday, Weekday::Sunday], |policy| policy.days)
     }
 

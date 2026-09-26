@@ -46,18 +46,31 @@ const EAW_NIR: &[&str] = &[GB_ENGLAND_AND_WALES, GB_NORTHERN_IRELAND];
 
 static UK_RULES: &[HolidayRule] = &[
     // New Year's Day became a bank holiday in England, Wales and Northern
-    // Ireland only in 1974; Scotland has kept it since 1871.
+    // Ireland only in 1974, by proclamation; in Scotland it and 2 January
+    // are in the 1971 Act's schedule. The years before 1971, under the
+    // Bank Holidays Act 1871, are not carried.
     HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)).years(Some(1974), None),
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1))
+        .in_regions(SCT)
+        .years(Some(1971), Some(1973)),
     HolidayRule::public("2 January", "", Rule::gregorian(1, 2))
         .in_regions(SCT)
-        .years(Some(1974), None),
+        .years(Some(1971), None),
     HolidayRule::public("St Patrick's Day", "", Rule::gregorian(3, 17)).in_regions(NIR),
     HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
     // Scotland has never had Easter Monday as a bank holiday.
     HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)).in_regions(EAW_NIR),
-    // The Early May Bank Holiday dates from 1978. It was moved to 8 May in
-    // 1995 and again in 2020 for the fiftieth and seventy-fifth
-    // anniversaries of VE Day.
+    // The Early May Bank Holiday dates from 1978 in England, Wales and
+    // Northern Ireland, by proclamation; in Scotland the first Monday in May
+    // is in the 1971 schedule. It was moved to 8 May in 1995 and again in
+    // 2020 for the fiftieth and seventy-fifth anniversaries of VE Day.
+    HolidayRule::public(
+        "Early May Bank Holiday",
+        "",
+        Rule::nth(5, 1, Weekday::Monday),
+    )
+    .in_regions(SCT)
+    .years(Some(1971), Some(1977)),
     HolidayRule::public(
         "Early May Bank Holiday",
         "",
@@ -110,7 +123,8 @@ static UK_RULES: &[HolidayRule] = &[
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
     HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
     // Royal and national one-offs, each proclaimed under section 1(3) of the
-    // Banking and Financial Dealings Act 1971.
+    // Banking and Financial Dealings Act 1971; the proclamations were not
+    // read.
     HolidayRule::fixed_public("Silver Jubilee of Elizabeth II", "", Rule::gregorian(6, 7))
         .years(Some(1977), Some(1977)),
     HolidayRule::fixed_public("Wedding of the Prince of Wales", "", Rule::gregorian(7, 29))
@@ -144,10 +158,16 @@ pub static UNITED_KINGDOM: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Banking and Financial Dealings Act 1971, schedule 1, together \
-              with the royal proclamations made under section 1(3); GOV.UK \
-              \"UK bank holidays\"",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Banking and Financial Dealings Act 1971 (c. 80), section 1 and schedule 1, \
+              as amended by the St Andrew's Day Bank Holiday (Scotland) Act 2007 (asp 2), \
+              on legislation.gov.uk (legislation.gov.uk/ukpga/1971/80/schedule/1), \
+              retrieved 2026-09-26; New Year's Day and the Early May bank holiday in \
+              England, Wales and Northern Ireland, the Battle of the Boyne and the one-off \
+              days by royal proclamation under section 1(2) and (3), the proclamations \
+              not read; Christmas Day and Good Friday in England, Wales and Northern \
+              Ireland as common-law holidays; GOV.UK, \"UK bank holidays\" \
+              (gov.uk/bank-holidays), retrieved 2026-09-26",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -156,11 +176,12 @@ pub static UNITED_KINGDOM: RuleSet = RuleSet {
 
 /// St Brigid's Day, the one Irish rule that is a sentence and not a pattern.
 ///
-/// The Organisation of Working Time (Amendment) Act 2022 puts it on the
-/// first Monday of February, "except where St Brigid's Day, being the first
-/// day of February, falls on a Friday, in which case that Friday". Nothing
-/// in the vocabulary expresses a conditional between two shapes, so this is
-/// a [`Rule::Computed`] rule.
+/// It is the first Monday of February, except that when 1 February is a
+/// Friday that Friday is the holiday, as Wikipedia states the rule; the
+/// Workplace Relations Commission's list gives only "the first Monday in
+/// February", and the regulations of 2022 that prescribe the day were not
+/// read. Nothing in the vocabulary expresses a conditional between two
+/// shapes, so this is a [`Rule::Computed`] rule.
 fn st_brigids_day(year: i64) -> Days {
     let first_of_february = Rule::gregorian(2, 1).days_in_year(year);
     let Some(first) = first_of_february.as_slice().first().copied() else {
@@ -197,24 +218,41 @@ static IE_RULES: &[HolidayRule] = &[
         "Lá Fhéile Stiofáin",
         Rule::gregorian(12, 26),
     ),
-    // 2020 and 2021 each had a one-off day marking the pandemic response;
-    // 2022-03-18 was proclaimed for the same reason.
-    HolidayRule::fixed_public("National Day of Commemoration", "", Rule::gregorian(3, 18))
+    // The one-off of 18 March 2022, prescribed by the Organisation of
+    // Working Time (Covid-19 Commemoration) Regulations 2022.
+    HolidayRule::fixed_public("Covid-19 commemoration holiday", "", Rule::gregorian(3, 18))
         .years(Some(2022), Some(2022)),
 ];
 
 /// Ireland.
+///
+/// The public holidays of the Second Schedule of the Organisation of
+/// Working Time Act 1997 and the days prescribed under it. A public holiday
+/// on a Saturday or a Sunday moves nothing: section 21 gives an employee a
+/// benefit for it — a paid day off within the month, an extra day of annual
+/// leave or a day's pay — and, as the Workplace Relations Commission puts
+/// it, "there is no legal entitlement to have the next working day off
+/// work". The one-off days of 31 December 1999 and 14 September 2001 are
+/// not carried.
 pub static IRELAND: RuleSet = RuleSet {
     code: "IE",
     english_name: "Ireland",
     rules: IE_RULES,
-    substitution: BRITISH_SUBSTITUTION,
+    substitution: &[],
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Organisation of Working Time Act 1997, second schedule, as \
-              amended by the Organisation of Working Time (Amendment) Act 2022",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Organisation of Working Time Act 1997 (No. 20 of 1997), section 21 and \
+              the Second Schedule, revised to 20 January 2025, on the Law Reform \
+              Commission's Revised Acts (revisedacts.lawreform.ie/eli/1997/act/20/\
+              revised/en/html); the Workplace Relations Commission, \"Public \
+              Holidays\" (workplacerelations.ie/en/what_you_should_know/\
+              public-holidays/); both retrieved 2026-09-26. St Brigid's Day and \
+              18 March 2022 prescribed by the Organisation of Working Time (Covid-19 \
+              Commemoration) Regulations 2022 (S.I. No. 50 of 2022), not read, the \
+              Irish Statute Book refusing access; Wikipedia, \"Public holidays in \
+              Ireland\", retrieved 2026-09-26, for the Friday exception",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -278,9 +316,14 @@ pub static FRANCE: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Code du travail, article L3133-1; loi du 2 octobre 1981 for 8 \
-              May; Code du travail local d'Alsace-Moselle, articles 105a-105i",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Code du travail, article L3133-1, in force since 10 August 2016 (loi n° \
+              2016-1088 du 8 août 2016, art. 8), on Légifrance \
+              (legifrance.gouv.fr/codes/article_lc/LEGIARTI000033020901), and article L3134-13 \
+              (ordonnance n° 2007-329 du 12 mars 2007, in force 1 May 2008) for Moselle, \
+              Bas-Rhin and Haut-Rhin \
+              (legifrance.gouv.fr/codes/article_lc/LEGIARTI000006902635), both retrieved \
+              2026-09-26; loi n° 81-893 du 2 octobre 1981 for 8 May, not read",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -297,6 +340,7 @@ const DE_SAXONY: &[&str] = &["DE-SN"];
 const DE_BERLIN: &[&str] = &["DE-BE"];
 const DE_MECKLENBURG: &[&str] = &["DE-MV"];
 const DE_THURINGIA: &[&str] = &["DE-TH"];
+const DE_BRANDENBURG: &[&str] = &["DE-BB"];
 
 static DE_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "Neujahrstag", Rule::gregorian(1, 1)),
@@ -317,6 +361,9 @@ static DE_RULES: &[HolidayRule] = &[
     .in_regions(DE_MECKLENBURG)
     .years(Some(2023), None),
     HolidayRule::public("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
+    // Brandenburg's § 2 Abs. 1 lists Easter Sunday and Whit Sunday too.
+    HolidayRule::public("Easter Sunday", "Ostersonntag", Rule::easter(EASTER_SUNDAY))
+        .in_regions(DE_BRANDENBURG),
     HolidayRule::public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
     HolidayRule::public("Labour Day", "Tag der Arbeit", Rule::gregorian(5, 1)),
     // Berlin gave a single extra day for the seventy-fifth and eightieth
@@ -328,6 +375,8 @@ static DE_RULES: &[HolidayRule] = &[
         .in_regions(DE_BERLIN)
         .years(Some(2025), Some(2025)),
     HolidayRule::public("Ascension", "Christi Himmelfahrt", Rule::easter(ASCENSION)),
+    HolidayRule::public("Whit Sunday", "Pfingstsonntag", Rule::easter(PENTECOST))
+        .in_regions(DE_BRANDENBURG),
     HolidayRule::public("Whit Monday", "Pfingstmontag", Rule::easter(WHIT_MONDAY)),
     HolidayRule::public(
         "Corpus Christi",
@@ -411,13 +460,17 @@ pub static GERMANY: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Feiertagsgesetze of the sixteen Länder; \
-              Einigungsvertrag Art. 2 for 3 October; \
-              Pflege-Versicherungsgesetz 1994 for Buß- und Bettag. \
-              Mariä Himmelfahrt is listed for Saarland only; in Bavaria it \
-              applies in predominantly Catholic municipalities, which is a \
-              parish-level distinction this crate does not model",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Einigungsvertrag, Art. 2 Abs. 2, for 3 October, on gesetze-im-internet.de \
+              (gesetze-im-internet.de/einigvtr/art_2.html); Brandenburg's Feiertagsgesetz \
+              (FTG) of 21 March 1991 (GVBl. I/91, S. 44), § 2, as amended to 30 April 2015, on \
+              BRAVORS (bravors.brandenburg.de/gesetze/ftg_2015); Berlin's Feiertagsgesetz as \
+              the Senatsverwaltung für Inneres lists it on berlin.de; all retrieved \
+              2026-09-26. The Feiertagsgesetze of the other fourteen Länder were not read, and \
+              nor was the Pflege-Versicherungsgesetz 1994 for Buß- und Bettag. Mariä \
+              Himmelfahrt is listed for Saarland only; in Bavaria it applies in predominantly \
+              Catholic municipalities, which is a parish-level distinction this crate does not \
+              model",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -455,6 +508,13 @@ static IT_RULES: &[HolidayRule] = &[
     )
     .years(Some(2001), None),
     HolidayRule::public("Assumption", "Ferragosto", Rule::gregorian(8, 15)),
+    // Added to article 2 by legge n. 151/2025, from 2026.
+    HolidayRule::public(
+        "St Francis of Assisi, Patron of Italy",
+        "Festa nazionale di San Francesco d'Assisi, patrono d'Italia",
+        Rule::gregorian(10, 4),
+    )
+    .years(Some(2026), None),
     HolidayRule::public("All Saints' Day", "Ognissanti", Rule::gregorian(11, 1)),
     HolidayRule::public(
         "Immaculate Conception",
@@ -474,10 +534,13 @@ pub static ITALY: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Legge 27 maggio 1949 n. 260 and its amendments; legge 20 \
-              novembre 2000 n. 336 for Republic Day. Municipal patron-saint \
-              days are real holidays but are not modelled",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Legge 27 maggio 1949, n. 260, Disposizioni in materia di ricorrenze festive, \
+              articles 1 and 2, in the text in force updated to 10 October 2025, on Normattiva \
+              (normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1949-05-27;260), retrieved \
+              2026-09-26, with 4 October from 2026 as legge n. 151/2025 (GU n. 236 del 10 \
+              ottobre 2025) added it; legge 20 novembre 2000, n. 336, for Republic Day, not \
+              read. Municipal patron-saint days are real holidays but are not modelled",
 };
 
 static ES_RULES: &[HolidayRule] = &[
@@ -527,13 +590,17 @@ pub static SPAIN: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Estatuto de los Trabajadores art. 37.2 and the annual \
-              Resolución de la Dirección General de Trabajo. Maundy \
-              Thursday and the autonomous communities' own days are not \
-              modelled: each community may move a Sunday holiday to the \
-              following Monday and substitute two of its own, which is a \
-              yearly administrative act rather than a rule",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Real Decreto 2001/1983, de 28 de julio, art. 45, as amended by Real Decreto \
+              2403/1985 and Real Decreto 1346/1989, on the BOE \
+              (boe.es/buscar/act.php?id=BOE-A-1983-20906); the Resoluciones de la Dirección \
+              General de Trabajo of 15 October 2024 (BOE-A-2024-21316) and 17 October 2025 \
+              (BOE-A-2025-21667) publishing the fiestas laborales of 2025 and 2026; all \
+              retrieved 2026-09-26; the Estatuto de los Trabajadores (Real Decreto Legislativo \
+              2/2015), art. 37.2, not read. Maundy Thursday and the autonomous communities' \
+              own days are not modelled: each community may move a Sunday holiday to the \
+              following Monday and substitute two of its own, which is a yearly administrative \
+              act rather than a rule",
 };
 
 static PT_RULES: &[HolidayRule] = &[
@@ -613,9 +680,13 @@ pub static PORTUGAL: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Código do Trabalho art. 234; lei 23/2012 for the suspension \
-              and lei 8/2016 for the restoration of the four holidays",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Código do Trabalho (Lei n.º 7/2009, de 12 de fevereiro), artigo 234.º, in the \
+              wording of Lei n.º 8/2016, de 1 de abril, consolidated to Lei n.º 32/2025, de 27 \
+              de março, on the Procuradoria-Geral Distrital de Lisboa's legislation site \
+              (pgdlisboa.pt), retrieved 2026-09-26, the Diário da República's consolidated \
+              page not readable; Lei n.º 23/2012, de 25 de junho, for the 2013 to 2015 \
+              suspension, not read",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -646,11 +717,6 @@ static NL_RULES: &[HolidayRule] = &[
     // day off, so it is recorded as an observance rather than a day off.
     HolidayRule::observance("Good Friday", "Goede Vrijdag", Rule::easter(GOOD_FRIDAY)),
     HolidayRule::public(
-        "Easter Sunday",
-        "Eerste Paasdag",
-        Rule::easter(EASTER_SUNDAY),
-    ),
-    HolidayRule::public(
         "Easter Monday",
         "Tweede Paasdag",
         Rule::easter(EASTER_MONDAY),
@@ -666,7 +732,6 @@ static NL_RULES: &[HolidayRule] = &[
     // Liberation Day is a day off for most only in years divisible by five.
     HolidayRule::observance("Liberation Day", "Bevrijdingsdag", Rule::gregorian(5, 5)),
     HolidayRule::public("Ascension", "Hemelvaartsdag", Rule::easter(ASCENSION)),
-    HolidayRule::public("Pentecost", "Eerste Pinksterdag", Rule::easter(PENTECOST)),
     HolidayRule::public(
         "Whit Monday",
         "Tweede Pinksterdag",
@@ -685,16 +750,19 @@ pub static NETHERLANDS: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Algemene termijnenwet art. 3; Wet van 2013 for Koningsdag. \
-              Goede Vrijdag and Bevrijdingsdag are official but are a paid \
-              day off only by collective agreement, so they are recorded as \
-              observances",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Algemene termijnenwet, artikel 3, in force from 10 October 2010 \
+              (wetten.overheid.nl/BWBR0002448), and the Besluit van 30 januari 2013, nr. \
+              13.000173, fixing 27 April as Koningsdag from 1 January 2014 \
+              (wetten.overheid.nl/BWBR0032908), both retrieved 2026-09-26; the rule moving a \
+              Sunday royal day to the Saturday is not in the text of the decree read. The \
+              Netherlands gives no statutory right to a day off on these days: Goede Vrijdag \
+              and Bevrijdingsdag are a paid day off only by collective agreement, so they are \
+              recorded as observances",
 };
 
 static BE_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "Nieuwjaar", Rule::gregorian(1, 1)),
-    HolidayRule::public("Easter Sunday", "Pasen", Rule::easter(EASTER_SUNDAY)),
     HolidayRule::public("Easter Monday", "Paasmaandag", Rule::easter(EASTER_MONDAY)),
     HolidayRule::public("Labour Day", "Dag van de Arbeid", Rule::gregorian(5, 1)),
     HolidayRule::public(
@@ -702,7 +770,6 @@ static BE_RULES: &[HolidayRule] = &[
         "Onze-Lieve-Heer-Hemelvaart",
         Rule::easter(ASCENSION),
     ),
-    HolidayRule::public("Pentecost", "Pinksteren", Rule::easter(PENTECOST)),
     HolidayRule::public("Whit Monday", "Pinkstermaandag", Rule::easter(WHIT_MONDAY)),
     HolidayRule::public("National Day", "Nationale feestdag", Rule::gregorian(7, 21)),
     HolidayRule::public(
@@ -716,6 +783,10 @@ static BE_RULES: &[HolidayRule] = &[
 ];
 
 /// Belgium.
+///
+/// The ten days of article 1 of the royal decree of 18 April 1974. Easter
+/// Sunday and Whit Sunday, which the decree does not list, are Sundays and
+/// are not carried.
 pub static BELGIUM: RuleSet = RuleSet {
     code: "BE",
     english_name: "Belgium",
@@ -727,9 +798,14 @@ pub static BELGIUM: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Koninklijk besluit van 18 april 1974 / arrêté royal du 18 \
-              avril 1974, article 1",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Arrêté royal du 18 avril 1974 déterminant les modalités générales d'exécution de \
+              la loi du 4 janvier 1974 relative aux jours fériés / koninklijk besluit van 18 \
+              april 1974, article 1, on Justel \
+              (ejustice.just.fgov.be/eli/arrete/1974/04/18/1974041801/justel), and the SPF \
+              Emploi, Travail et Concertation sociale, \"Jours fériés\" (emploi.belgique.be), \
+              for the replacement day, both retrieved 2026-09-26; the loi du 4 janvier 1974 \
+              itself not read",
 };
 
 static CH_RULES: &[HolidayRule] = &[
@@ -753,12 +829,15 @@ pub static SWITZERLAND: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Bundesverfassung Art. 110 Abs. 3 makes 1 August the only \
-              federal holiday; the rest of this list is cantonal law and is \
-              kept in all or nearly all 26 cantons. The cantons' own days — \
-              Berchtoldstag, Fronleichnam, Jeûne genevois and the rest — are \
-              not modelled",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Bundesverfassung (SR 101), Art. 110 Abs. 3, and the Verordnung vom 30. Mai 1994 \
+              über den Bundesfeiertag, for 1 August, not read, Fedlex rendering by script; the \
+              rest of this list is cantonal law under Arbeitsgesetz (SR 822.11) Art. 20a Abs. \
+              1, checked only against the German Wikipedia, \"Feiertage in der Schweiz\" \
+              (secondary), retrieved 2026-09-26, which shows that not every canton keeps each \
+              of them — Valais keeps neither Good Friday, Easter Monday, Whit Monday nor St \
+              Stephen's Day. The cantons' own days — Berchtoldstag, Fronleichnam, Jeûne \
+              genevois and the rest — are not modelled",
 };
 
 static AT_RULES: &[HolidayRule] = &[
@@ -795,9 +874,11 @@ pub static AUSTRIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Arbeitsruhegesetz § 7 Abs. 2; Bundesgesetz BGBl. 263/1967 for \
-              the National Day",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Arbeitsruhegesetz, BGBl. Nr. 144/1983, § 7 Abs. 2, as amended by BGBl. I Nr. \
+              22/2019, which repealed Abs. 3 on Good Friday, read on jusline.at (secondary; \
+              RIS, Gesetzesnummer 10008541, not reachable), retrieved 2026-09-26; Bundesgesetz \
+              BGBl. Nr. 263/1967 for the National Day as a day of rest, not read",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -874,11 +955,13 @@ pub static SWEDEN: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Lag (1989:253) om allmänna helgdagar; lag 2004:1042 traded \
-              Annandag pingst for the National Day. Midsummer Eve, Christmas \
-              Eve and New Year's Eve are not allmänna helgdagar but are \
-              de facto closed days, so they are recorded as bank holidays",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Lag (1989:253) om allmänna helgdagar, §§ 1 and 2, as amended by lag (2004:1320), \
+              which traded Annandag pingst for the National Day, on riksdagen.se \
+              (riksdagen.se/sv/dokument-och-lagar/dokument/svensk-forfattningssamling/lag-1989253-om-allmanna-helgdagar_sfs-1989-253/), \
+              retrieved 2026-09-26. Midsummer Eve, Christmas Eve and New Year's Eve are not \
+              allmänna helgdagar but are de facto closed days, so they are recorded as bank \
+              holidays",
 };
 
 static NO_RULES: &[HolidayRule] = &[
@@ -921,9 +1004,11 @@ pub static NORWAY: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Lov om helligdager og helligdagsfred (1995-02-24 nr. 12) § 2; \
-              lov om 1. og 17. mai som høgtidsdager (1947)",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Lov om helligdager og helligdagsfred (LOV-1995-02-24-12), § 2, as amended to \
+              LOV-2021-05-07-34, and lov om 1. og 17. mai som høgtidsdager (LOV-1947-04-26-1), \
+              § 1, on Lovdata (lovdata.no/dokument/NL/lov/1995-02-24-12 and 1947-04-26-1), \
+              retrieved 2026-09-26",
 };
 
 static DK_RULES: &[HolidayRule] = &[
@@ -967,10 +1052,12 @@ pub static DENMARK: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Lov om helligdage; lov nr. 214 af 28. februar 2023 abolishing \
-              Store bededag from 2024. Grundlovsdag is not a public holiday \
-              and is recorded as an observance",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Lov nr. 214 af 6. marts 2023 om konsekvenser ved afskaffelsen af store bededag \
+              som helligdag, in force 1 January 2024, known from Retsinformation's search \
+              result and jurabibliotek.ai (secondary), its text not read, retrieved \
+              2026-09-26; the statute listing the other helligdage not read. Grundlovsdag is \
+              not a public holiday and is recorded as an observance",
 };
 
 static FI_RULES: &[HolidayRule] = &[
@@ -1038,10 +1125,13 @@ pub static FINLAND: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Laki juhlapäivistä (1937/205) and laki itsenäisyyspäivän \
-              viettämisestä (1937/388). Midsummer Eve and Christmas Eve are \
-              not statutory but are universally closed",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Laki itsenäisyyspäivän viettämisestä yleisenä juhla- ja vapaapäivänä (388/1937), \
+              whose Finlex page (finlex.fi/en/legislation/1937/388) did not display its text, \
+              and laki vapunpäivän järjestämisestä työntekijäin vapaapäiväksi (272/1944), not \
+              read; the church holidays of kirkkolaki (1054/1993), 4 luku 3 §, as the Finnish \
+              Wikipedia, \"Pyhäpäivä\", gives them (secondary), retrieved 2026-09-26. \
+              Midsummer Eve and Christmas Eve are not statutory but are universally closed",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1107,10 +1197,13 @@ pub static POLAND: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Ustawa z dnia 18 stycznia 1951 r. o dniach wolnych od pracy, \
-              as amended — including the 2010 amendment adding Epiphany and \
-              the 2024 amendment adding Christmas Eve from 2025",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Ustawa z dnia 18 stycznia 1951 r. o dniach wolnych od pracy (Dz.U. 1951 nr 4 \
+              poz. 28; consolidated text Dz.U. 2025 poz. 296), art. 1, as amended by the \
+              ustawa z dnia 24 września 2010 r. (Dz.U. 2010 poz. 1459), Epiphany from 2011, \
+              and the ustawa z dnia 6 grudnia 2024 r. (Dz.U. 2024 poz. 1965), Christmas Eve \
+              from 2025, read through the Sejm's ELI service \
+              (api.sejm.gov.pl/eli/acts/DU/1951/28 and DU/2024/1965), retrieved 2026-09-26",
 };
 
 static CZ_RULES: &[HolidayRule] = &[
@@ -1171,9 +1264,11 @@ pub static CZECHIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Zákon č. 245/2000 Sb. o státních svátcích, as amended by zákon \
-              č. 359/2015 Sb. adding Good Friday",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Zákon č. 245/2000 Sb., o státních svátcích, o ostatních svátcích, o významných \
+              dnech a o dnech pracovního klidu, §§ 1 and 2, as amended by zákon č. 359/2015 \
+              Sb. adding Good Friday, on Zákony pro lidi (zakonyprolidi.cz/cs/2000-245, the \
+              version of 13 May 2026), retrieved 2026-09-26",
 };
 
 static GR_RULES: &[HolidayRule] = &[
@@ -1181,11 +1276,14 @@ static GR_RULES: &[HolidayRule] = &[
     HolidayRule::public("Epiphany", "Θεοφάνεια", Rule::gregorian(1, 6)),
     // Greece keeps the fixed feasts on the civil calendar but computes
     // Easter by the Julian computus, so Clean Monday is Orthodox Easter −48.
+    // Clean Monday, Good Friday and Whit Monday are days off for the public
+    // sector and not mandatory holidays under article 60.
     HolidayRule::public(
         "Clean Monday",
         "Καθαρά Δευτέρα",
         Rule::paschal(ASH_WEDNESDAY - 2),
-    ),
+    )
+    .of_kind(Kind::Bank),
     HolidayRule::public(
         "Independence Day",
         "Εικοστή Πέμπτη Μαρτίου",
@@ -1195,19 +1293,16 @@ static GR_RULES: &[HolidayRule] = &[
         "Good Friday",
         "Μεγάλη Παρασκευή",
         Rule::paschal(GOOD_FRIDAY),
-    ),
-    HolidayRule::public(
-        "Easter Sunday",
-        "Κυριακή του Πάσχα",
-        Rule::paschal(EASTER_SUNDAY),
-    ),
+    )
+    .of_kind(Kind::Bank),
     HolidayRule::public(
         "Easter Monday",
         "Δευτέρα του Πάσχα",
         Rule::paschal(EASTER_MONDAY),
     ),
     HolidayRule::public("Labour Day", "Εργατική Πρωτομαγιά", Rule::gregorian(5, 1)),
-    HolidayRule::public("Whit Monday", "Αγίου Πνεύματος", Rule::paschal(WHIT_MONDAY)),
+    HolidayRule::public("Whit Monday", "Αγίου Πνεύματος", Rule::paschal(WHIT_MONDAY))
+        .of_kind(Kind::Bank),
     HolidayRule::public(
         "Dormition of the Theotokos",
         "Κοίμηση της Θεοτόκου",
@@ -1231,10 +1326,13 @@ pub static GREECE: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Νόμος 4808/2021 art. 60 and the ΥΑ setting the yearly list; \
-              Easter follows the Julian computus, the fixed feasts the civil \
-              calendar",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Νόμος 4808/2021, άρθρο 60, the mandatory holidays, read on taxheaven.gr \
+              (secondary; the ΦΕΚ not read), and the Ministry of Labour's circular \
+              64597/3.9.2021 (ypergasias.gov.gr), retrieved 2026-09-26; alfavita.gr (18 \
+              February 2026, secondary) for Clean Monday, Good Friday and Whit Monday as \
+              public-sector days off. Easter follows the Julian computus, the fixed feasts the \
+              civil calendar",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1679,103 +1777,212 @@ pub static RUSSIA: RuleSet = RuleSet {
 // Ukraine
 // ─────────────────────────────────────────────────────────────────────────
 
+/// A holiday of article 73 as a day off, until martial law suspended it.
+const fn ua_day_off(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::public(name, local, rule)
+}
+
+/// The same holiday while martial law suspends article 73: still the
+/// holiday the Code names, and not a day off.
+const fn ua_suspended(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::observance(name, local, rule)
+}
+
+/// The last year a holiday falling before 24 March was a day off, and the
+/// first year one falling after it was not.
+const UA_LAST_BEFORE: i32 = 2022;
+const UA_FIRST_SUSPENDED: i32 = 2022;
+
 static UA_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Новий рік", Rule::gregorian(1, 1)),
-    HolidayRule::public(
+    // 1 January, 7 January and 8 March 2022 came before the suspension of
+    // 24 March 2022 and were days off.
+    ua_day_off("New Year's Day", "Новий рік", Rule::gregorian(1, 1))
+        .years(None, Some(UA_LAST_BEFORE)),
+    ua_suspended("New Year's Day", "Новий рік", Rule::gregorian(1, 1))
+        .years(Some(UA_LAST_BEFORE + 1), None),
+    ua_day_off(
         "Orthodox Christmas",
         "Різдво Христове",
         Rule::gregorian(1, 7),
     )
-    .years(Some(1991), Some(2022)),
-    HolidayRule::public(
+    .years(Some(1991), Some(UA_LAST_BEFORE)),
+    // Still in article 73 on 7 January 2023; law 3258-IX removed it from
+    // 30 July 2023.
+    ua_suspended(
+        "Orthodox Christmas",
+        "Різдво Христове",
+        Rule::gregorian(1, 7),
+    )
+    .years(Some(UA_LAST_BEFORE + 1), Some(2023)),
+    ua_day_off(
         "International Women's Day",
         "Міжнародний жіночий день",
         Rule::gregorian(3, 8),
-    ),
+    )
+    .years(None, Some(UA_LAST_BEFORE)),
+    ua_suspended(
+        "International Women's Day",
+        "Міжнародний жіночий день",
+        Rule::gregorian(3, 8),
+    )
+    .years(Some(UA_LAST_BEFORE + 1), None),
     // The Orthodox Church of Ukraine keeps the Julian computus for Easter
     // even after moving its fixed feasts to the Revised Julian calendar.
-    HolidayRule::public("Easter", "Великдень", Rule::paschal(EASTER_SUNDAY)),
-    HolidayRule::public("Labour Day", "День праці", Rule::gregorian(5, 1)),
-    HolidayRule::public("Labour Day", "День праці", Rule::gregorian(5, 2)).years(None, Some(2017)),
-    HolidayRule::public(
+    ua_day_off("Easter", "Великдень", Rule::paschal(EASTER_SUNDAY))
+        .years(None, Some(UA_FIRST_SUSPENDED - 1)),
+    ua_suspended("Easter", "Великдень", Rule::paschal(EASTER_SUNDAY))
+        .years(Some(UA_FIRST_SUSPENDED), None),
+    ua_day_off("Labour Day", "День праці", Rule::gregorian(5, 1))
+        .years(None, Some(UA_FIRST_SUSPENDED - 1)),
+    ua_suspended("Labour Day", "День праці", Rule::gregorian(5, 1))
+        .years(Some(UA_FIRST_SUSPENDED), None),
+    ua_day_off("Labour Day", "День праці", Rule::gregorian(5, 2)).years(None, Some(2017)),
+    // Law 3107-IX put 8 May in 9 May's place from 15 June 2023, after both
+    // days of that year.
+    ua_suspended(
         "Day of Remembrance and Victory over Nazism",
         "День пам'яті та перемоги над нацизмом у Другій світовій війні",
         Rule::gregorian(5, 8),
     )
-    .years(Some(2023), None),
-    HolidayRule::public("Victory Day", "День перемоги", Rule::gregorian(5, 9))
-        .years(None, Some(2022)),
-    HolidayRule::public("Trinity", "Трійця", Rule::paschal(PENTECOST)),
-    HolidayRule::public(
+    .years(Some(2024), None),
+    ua_day_off("Victory Day", "День перемоги", Rule::gregorian(5, 9))
+        .years(None, Some(UA_FIRST_SUSPENDED - 1)),
+    ua_suspended("Victory Day", "День перемоги", Rule::gregorian(5, 9))
+        .years(Some(UA_FIRST_SUSPENDED), Some(2023)),
+    ua_day_off("Trinity", "Трійця", Rule::paschal(PENTECOST))
+        .years(None, Some(UA_FIRST_SUSPENDED - 1)),
+    ua_suspended("Trinity", "Трійця", Rule::paschal(PENTECOST))
+        .years(Some(UA_FIRST_SUSPENDED), None),
+    ua_day_off(
         "Constitution Day",
         "День Конституції",
         Rule::gregorian(6, 28),
     )
-    .years(Some(1997), None),
-    HolidayRule::public(
+    .years(Some(1997), Some(UA_FIRST_SUSPENDED - 1)),
+    ua_suspended(
+        "Constitution Day",
+        "День Конституції",
+        Rule::gregorian(6, 28),
+    )
+    .years(Some(UA_FIRST_SUSPENDED), None),
+    // Added by law 2295-IX from 9 June 2022, under martial law, so never
+    // yet a day off.
+    ua_suspended(
         "Statehood Day",
         "День Української Державності",
         Rule::gregorian(7, 28),
     )
     .years(Some(2022), Some(2023)),
-    HolidayRule::public(
+    ua_suspended(
         "Statehood Day",
         "День Української Державності",
         Rule::gregorian(7, 15),
     )
     .years(Some(2024), None),
-    HolidayRule::public(
+    ua_day_off(
         "Independence Day",
         "День Незалежності",
         Rule::gregorian(8, 24),
     )
-    .years(Some(1992), None),
-    HolidayRule::public(
+    .years(Some(1992), Some(UA_FIRST_SUSPENDED - 1)),
+    ua_suspended(
+        "Independence Day",
+        "День Незалежності",
+        Rule::gregorian(8, 24),
+    )
+    .years(Some(UA_FIRST_SUSPENDED), None),
+    ua_day_off(
         "Defenders of Ukraine Day",
         "День захисників і захисниць України",
         Rule::gregorian(10, 14),
     )
-    .years(Some(2015), Some(2022)),
-    HolidayRule::public(
+    .years(Some(2015), Some(UA_FIRST_SUSPENDED - 1)),
+    ua_suspended(
+        "Defenders of Ukraine Day",
+        "День захисників і захисниць України",
+        Rule::gregorian(10, 14),
+    )
+    .years(Some(UA_FIRST_SUSPENDED), Some(2022)),
+    ua_suspended(
         "Defenders of Ukraine Day",
         "День захисників і захисниць України",
         Rule::gregorian(10, 1),
     )
     .years(Some(2023), None),
-    HolidayRule::public("Christmas", "Різдво Христове", Rule::gregorian(12, 25))
-        .years(Some(2017), None),
+    ua_day_off("Christmas", "Різдво Христове", Rule::gregorian(12, 25))
+        .years(Some(2017), Some(UA_FIRST_SUSPENDED - 1)),
+    ua_suspended("Christmas", "Різдво Христове", Rule::gregorian(12, 25))
+        .years(Some(UA_FIRST_SUSPENDED), None),
 ];
+
+/// Article 67, part 3: a holiday on a weekend day moves the weekend day to
+/// the next working day — the British bank-holiday shift. Suspended with
+/// article 73 from 24 March 2022, so it last moved a day for 1 January
+/// 2022.
+static UA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Saturday, Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: Some(UA_LAST_BEFORE),
+}];
 
 /// Ukraine.
 ///
 /// The holidays of article 73 of the Labour Code, with the changes of the
 /// last decade by year: Defenders Day from 2015 on 14 October and from
 /// 2023 on 1 October, Christmas on 25 December from 2017 beside 7 January
-/// and alone from 2023, 2 May dropped after 2017, Statehood Day from 2022
-/// on 28 July and from 2024 on 15 July, 8 May in place of 9 May from 2023.
+/// and alone from 2024, 2 May dropped after 2017, Statehood Day from 2022
+/// on 28 July and from 2024 on 15 July, 8 May in place of 9 May from 2024.
 /// Easter and Trinity follow the Julian computus.
 ///
-/// Article 67 moves a holiday that falls on a weekend to the next working
-/// day, and that is carried. **Under martial law, in force since
-/// 24 February 2022, no holiday is a day off**; the table states the law
-/// and not the suspension, which has no end date to state.
+/// **Under martial law none of them is a day off.** Article 6, part 6, of
+/// the law on labour relations under martial law, No. 2136-IX, disapplies
+/// article 73 and part 3 of article 67 for as long as martial law lasts,
+/// from its entry into force on 24 March 2022; the part's present wording
+/// is law 2352-IX's, in force from 19 July 2022, and disapplies the same
+/// two. So each holiday is a day off up to 2021, or to 2022 for the three
+/// that fell before 24 March that year — 1 January, 7 January and 8 March
+/// — and an observance after: the holiday the Code names, with no day off
+/// and nothing moved. That 8 March 2022 was a day off rests on a secondary
+/// source, since no official statement for it was found.
+///
+/// The suspension is carried with no end, because martial law has none to
+/// state: it was declared on 24 February 2022 by Decree 64/2022 and has
+/// been extended every ninety days since, most recently by Decree
+/// 596/2026 to 31 October 2026. When it ends article 73 applies again,
+/// and this table has to change; `sources_checked` says when that was
+/// last looked for.
 pub static UKRAINE: RuleSet = RuleSet {
     code: "UA",
     english_name: "Ukraine",
     rules: UA_RULES,
-    // The next working day, as article 67 says: the same policy as the
-    // British bank-holiday shift.
-    substitution: BRITISH_SUBSTITUTION,
+    substitution: UA_SUBSTITUTION,
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "Кодекс законів про працю України, статті 67 and 73, as amended \
-              by the laws of 2015 (Defenders Day), 2017 (25 December), 2021 \
-              (Statehood Day) and 2023 (8 May, 15 July, 1 October, 7 January \
-              removed); Wikipedia, \"Public holidays in Ukraine\", retrieved \
-              2026-09-22. Under martial law since 2022 holidays are not days \
-              off, which the table does not model",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Кодекс законів про працю України, статті 67 and 73, in the \
+              Verkhovna Rada's consolidated text of 31 July 2026 \
+              (zakon.rada.gov.ua/laws/show/322-08), as amended by laws \
+              238-VIII (14 October, from 25 March 2015), 2211-VIII \
+              (25 December, and 2 May dropped, from 2 December 2017), \
+              2295-IX (Statehood Day, from 9 June 2022), 3107-IX (8 May for \
+              9 May, from 15 June 2023) and 3258-IX (15 July, 1 October, \
+              7 January removed, from 30 July 2023), each on its \
+              zakon.rada.gov.ua card; Закон України \"Про організацію \
+              трудових відносин в умовах воєнного стану\" No. 2136-IX of \
+              15 March 2022, стаття 6, частина 6, in its first wording \
+              (zakon.rada.gov.ua/laws/show/2136-20/ed20220315) and as law \
+              2352-IX of 1 July 2022 restated it (zakon.rada.gov.ua/laws/\
+              show/2136-20); Указ Президента No. 64/2022 and No. 596/2026 \
+              on martial law, on zakon.rada.gov.ua; the State Labour \
+              Service's Zhytomyr office, 15 April 2022 \
+              (zt.dsp.gov.ua), on 25 April 2022 as a working day; all \
+              retrieved 2026-09-26. That 8 March 2022 stayed a day off is \
+              from a secondary source, ibuhgalter.net (26 March 2022), \
+              retrieved the same day",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1852,10 +2059,13 @@ pub static CROATIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "Zakon o blagdanima, spomendanima i neradnim danima, as summarised by \
-              Wikipedia, \"Public holidays in Croatia\", retrieved 2026-09-22, \
-              with its note on the 2020 change",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Zakon o blagdanima, spomendanima i neradnim danima u Republici Hrvatskoj, NN \
+              110/2019 and 72/2025, članak 1, on zakon.hr (secondary; narodne-novine.nn.hr not \
+              read for the current text), retrieved 2026-09-26; for 2002 to 2019 the act of \
+              the same name, NN 33/1996 as amended by NN 96/2001, consolidated in NN 136/2002, \
+              on narodne-novine.nn.hr, retrieved 2026-09-26; Wikipedia, \"Public holidays in \
+              Croatia\", retrieved 2026-09-22, with its note on the 2020 change",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1878,6 +2088,42 @@ const fn sk_demoted(
     ]
 }
 
+/// A state holiday that is not a day off in one year only: § 4b's "V roku
+/// 2026 nie sú sviatky … dňami pracovného pokoja" for 8 May and
+/// 15 September.
+const fn sk_working_in(
+    name: &'static str,
+    local: &'static str,
+    month: u8,
+    day: u8,
+    year: i32,
+) -> [HolidayRule; 3] {
+    [
+        HolidayRule::fixed_public(name, local, Rule::gregorian(month, day))
+            .years(None, Some(year - 1)),
+        HolidayRule::observance(name, local, Rule::gregorian(month, day))
+            .years(Some(year), Some(year)),
+        HolidayRule::fixed_public(name, local, Rule::gregorian(month, day))
+            .years(Some(year + 1), None),
+    ]
+}
+
+const SK_VICTORY: [HolidayRule; 3] = sk_working_in(
+    "Day of Victory over Fascism",
+    "Deň víťazstva nad fašizmom",
+    5,
+    8,
+    2026,
+);
+
+const SK_SEVEN_SORROWS: [HolidayRule; 3] = sk_working_in(
+    "Our Lady of the Seven Sorrows",
+    "Sviatok Panny Márie Sedembolestnej",
+    9,
+    15,
+    2026,
+);
+
 static SK_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public(
         "Day of the Establishment of the Slovak Republic",
@@ -1896,20 +2142,9 @@ static SK_RULES: &[HolidayRule] = &[
         Rule::easter(EASTER_MONDAY),
     ),
     HolidayRule::fixed_public("Labour Day", "Sviatok práce", Rule::gregorian(5, 1)),
-    sk_demoted(
-        "Day of Victory over Fascism",
-        "Deň víťazstva nad fašizmom",
-        5,
-        8,
-        2025,
-    )[0],
-    sk_demoted(
-        "Day of Victory over Fascism",
-        "Deň víťazstva nad fašizmom",
-        5,
-        8,
-        2025,
-    )[1],
+    SK_VICTORY[0],
+    SK_VICTORY[1],
+    SK_VICTORY[2],
     HolidayRule::fixed_public(
         "Saints Cyril and Methodius Day",
         "Sviatok svätého Cyrila a Metoda",
@@ -1934,20 +2169,9 @@ static SK_RULES: &[HolidayRule] = &[
         1,
         2023,
     )[1],
-    sk_demoted(
-        "Our Lady of the Seven Sorrows",
-        "Sviatok Panny Márie Sedembolestnej",
-        9,
-        15,
-        2025,
-    )[0],
-    sk_demoted(
-        "Our Lady of the Seven Sorrows",
-        "Sviatok Panny Márie Sedembolestnej",
-        9,
-        15,
-        2025,
-    )[1],
+    SK_SEVEN_SORROWS[0],
+    SK_SEVEN_SORROWS[1],
+    SK_SEVEN_SORROWS[2],
     // A state holiday since 2021, and a working day.
     HolidayRule::observance(
         "Day of the Establishment of an Independent Czecho-Slovak State",
@@ -1989,11 +2213,14 @@ static SK_RULES: &[HolidayRule] = &[
 
 /// Slovakia.
 ///
-/// The state holidays and the days off, which have parted company: since
-/// 2024 Constitution Day, since 2025 17 November, and since 2026 8 May and
-/// 15 September are state holidays on which work goes on, and 28 October
-/// has been one since 2021. Each is carried as a day off to its last year
-/// as one and an observance after. No substitution.
+/// The state holidays and the days off, which have parted company: § 2(3)
+/// of the act makes 1 September, 28 October and 17 November state
+/// holidays on which work goes on — Constitution Day since 2024,
+/// 17 November since 2025, 28 October since it became a state holiday in
+/// 2021 — and § 4b makes 8 May and 15 September working days in 2026
+/// only, so they are days off again from 2027. Each is carried as a day
+/// off in its years as one and an observance in the others. No
+/// substitution.
 pub static SLOVAKIA: RuleSet = RuleSet {
     code: "SK",
     english_name: "Slovakia",
@@ -2002,9 +2229,14 @@ pub static SLOVAKIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "Wikipedia, \"Public holidays in Slovakia\", retrieved 2026-09-22, for \
-              the list, and for the years each state holiday became a working day",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Zákon č. 241/1993 Z. z. o štátnych sviatkoch, dňoch pracovného pokoja a \
+              pamätných dňoch, § 1, § 2 and § 4b, as amended last by zákon č. 261/2025 \
+              Z. z., in the version in force from 1 November 2025 on Slov-Lex \
+              (static.slov-lex.sk/static/SK/ZZ/1993/241/20251101.html), retrieved \
+              2026-09-26; Wikipedia, \"Public holidays in Slovakia\", retrieved \
+              2026-09-22, for the years 1 September and 17 November became working days, \
+              which the consolidated text does not date",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2080,11 +2312,14 @@ pub static SLOVENIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "Wikipedia, \"Public holidays in Slovenia\", retrieved 2026-09-22, \
-              summarising the Holidays and Days off in the Republic of Slovenia \
-              Act, with the years each day became work-free and the 2012 and \
-              2017 changes to 2 January",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Zakon o praznikih in dela prostih dnevih v Republiki Sloveniji (ZPDPD), Uradni \
+              list RS, št. 26/91, as amended last by ZPDPD-H, Uradni list RS, št. 12/26, členi \
+              1 and 2, as consolidated at racunovodstvo.net (secondary; the PISRS \
+              consolidation, pisrs.si/pregledPredpisa?id=ZAKO865, not read), retrieved \
+              2026-09-26; Wikipedia, \"Public holidays in Slovenia\", retrieved 2026-09-22, \
+              for the years each day became work-free and the 2012 and 2017 changes to 2 \
+              January",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2136,6 +2371,7 @@ static IS_RULES: &[HolidayRule] = &[
         "Þjóðhátíðardagurinn",
         Rule::gregorian(6, 17),
     ),
+    // "Frá og með árinu 1983 skal fyrsti mánudagur í ágúst vera frídagur."
     HolidayRule::fixed_public(
         "Commerce Day",
         "Frídagur verslunarmanna",
@@ -2144,7 +2380,8 @@ static IS_RULES: &[HolidayRule] = &[
             n: 1,
             weekday: Weekday::Monday,
         },
-    ),
+    )
+    .years(Some(1983), None),
     // Holidays from 13:00; half days, as in Sweden and Denmark.
     HolidayRule::fixed_public("Christmas Eve", "Aðfangadagur", Rule::gregorian(12, 24))
         .of_kind(Kind::Bank),
@@ -2160,11 +2397,13 @@ static IS_RULES: &[HolidayRule] = &[
 
 /// Iceland.
 ///
-/// The public holidays the parliament's act establishes: the Easter and
-/// Whitsun cycle from Maundy Thursday, the First Day of Summer on the
-/// first Thursday after 18 April, Commerce Day on the first Monday of
-/// August, and Christmas Eve and New Year's Eve, holidays from 13:00 and
-/// carried as `Kind::Bank` half days as Sweden's and Denmark's are. The
+/// The holidays of article 6 of the act on the forty-hour week: the
+/// Church's holy days, which the act on peace for worship lists — the
+/// Easter and Whitsun cycle from Maundy Thursday, Christmas and New Year —
+/// the First Day of Summer on the first Thursday after 18 April, 1 May,
+/// 17 June, Commerce Day on the first Monday of August from 1983, and
+/// Christmas Eve and New Year's Eve from 13:00, carried as `Kind::Bank`
+/// half days as Sweden's and Denmark's are. The
 /// flag days are not carried. No substitution.
 pub static ICELAND: RuleSet = RuleSet {
     code: "IS",
@@ -2174,10 +2413,12 @@ pub static ICELAND: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "Wikipedia, \"Public holidays in Iceland\", retrieved 2026-09-22, for \
-              the list and the half days, and \"First day of summer (Iceland)\", \
-              retrieved the same day, for the Thursday rule",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Lög um 40 stunda vinnuviku nr. 88/1971, 6. gr., and lög nr. 32/1997 um frið \
+              vegna helgihalds, 2. gr., in Lagasafn 157c (1 September 2026) on althingi.is \
+              (althingi.is/lagas/nuna/1971088.html and 1997032.html), retrieved \
+              2026-09-26; Wikipedia, \"First day of summer (Iceland)\", retrieved \
+              2026-09-22, for the Thursday rule, which the acts do not state",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2383,11 +2624,15 @@ pub static CYPRUS: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "The Greek Wikipedia, \"Δημόσιες αργίες στην Κύπρο\", retrieved \
-              2026-09-22, for the list and the names; Central Bank of Cyprus, \
-              \"Bank holidays to be observed in Cyprus during 2026\", dated \
-              7 June 2024, for Easter Tuesday and the 2026 dates",
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Ο περί Τραπεζικών Αργιών Νόμος του 1996 (13(I)/1996), άρθρο 5, on CyLaw \
+              (cylaw.org/nomoi/enop/non-ind/1996_1_13/full.html), retrieved 2026-09-26, for \
+              the bank holidays and Easter Tuesday; the Greek Wikipedia, \"Δημόσιες αργίες \
+              στην Κύπρο\", retrieved 2026-09-22, for the public list and the names \
+              (secondary; no statute listing the public holidays and no list of the Public \
+              Administration and Personnel Department was found); Central Bank of Cyprus, \
+              \"Bank holidays to be observed in Cyprus during 2026\", dated 7 June 2024, for \
+              the 2026 dates",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4228,7 +4473,8 @@ pub static MOLDOVA: RuleSet = RuleSet {
     includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "Codul muncii al Republicii Moldova, art. 111, as listed by zilelibere.md, \
+    sources: "Codul muncii al Republicii Moldova, art. 111, as listed by zilelibere.md, a \
+              private aggregator (secondary; the Code on legis.md not read), \
               retrieved 2026-09-22; contabilitate.md for 1 June from 2024; Radio \
               Moldova and Timpul for Europe Day from 2017; Wikipedia, \"Public \
               holidays in Moldova\", retrieved the same day, for Christmas by the new \
@@ -4710,7 +4956,9 @@ pub static VATICAN_CITY: RuleSet = RuleSet {
 static VA_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
     valid_from: None,
+    valid_from_day: None,
     valid_until: None,
+    valid_until_day: None,
 }];
 
 // ─────────────────────────────────────────────────────────────────────────

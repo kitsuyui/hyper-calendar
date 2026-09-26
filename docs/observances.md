@@ -62,9 +62,10 @@ Rules then pass through **observance modifiers**, which are themselves data:
 - `Kind` — public holiday, bank holiday, school holiday, observance without a
   day off, religious day of obligation, and a weekend day made a working day
   (China's 调休上班).
-- `WeekendPolicy` — which days are the weekend, over stated years, because
-  Saudi Arabia (2013), the United Arab Emirates (2022) and Nepal (2026) all
-  changed theirs inside living memory.
+- `WeekendPolicy` — which days are the weekend, over stated years and from
+  the day a change took effect, because Saudi Arabia (29 June 2013), the
+  United Arab Emirates (1 January 2022) and Nepal (6 April 2026) all changed
+  theirs inside living memory.
 
 Because the rule set is data, a caller can supply their own table — a company
 calendar, a school year, a fictional setting — and get the same engine.
@@ -96,9 +97,10 @@ depends on the weekday or on another holiday. New Zealand's Matariki is
   days worked alike ([ADR 0009](adr/0009-a-working-day-is-an-entry.md)). A
   year past them is a gap. Elsewhere the statutory days are listed and the
   bridging days are not.
-- **It will not tabulate what it cannot compute.** Indonesia's Nyepi is
-  absent because the Balinese Saka calendar it is dated in is not in the
-  crate. India's Hindu, Sikh and Jain gazetted holidays and Singapore's and
+- **It will not guess a day it cannot compute.** Indonesia's Nyepi is dated
+  in the Balinese Śaka calendar, which is not in the crate, so it is carried
+  from the joint decrees for the years read, 2020–2027, and is a gap in any
+  other. India's Hindu, Sikh and Jain gazetted holidays and Singapore's and
   Malaysia's Deepavali are computed on `hindu-lunar` and `nanakshahi`.
 - **It will not pretend a holiday list is current.** Every country table
   carries the date its sources were checked.
@@ -119,14 +121,16 @@ The cross-cutting ones, because national tables depend on them.
 | --- | --- | --- |
 | Christian, Gregorian computus | Easter and the feasts keyed to it — 22 offsets from Septuagesima to the Sacred Heart — plus Advent, Christmas, Epiphany, Candlemas, All Saints | Done |
 | Christian, Julian computus (Orthodox) | Orthodox Pascha and its cycle, Julian-dated fixed feasts; the Julian date and the civil date are both available | Done |
+| Christian, Julian computus with Revised Julian fixed feasts | The same Pascha and cycle, with the fixed feasts dated in the Revised Julian calendar, as the churches that took it up from 1924 keep them (`christian-orthodox-revised-julian`) | Done — which church kept it in which year is not carried |
 | Ethiopian Orthodox Tewahedo | Enkutatash, Meskel, Genna, Timkat and Debre Tabor dated in the Ethiopic calendar; the Bahire Hasab movable cycle from the Fast of Nineveh to Paraclete as *tewsak* offsets from Tinsae, which is the Julian-computus Pascha | Done — the calendrical date is given; where a feast is kept on a fixed Gregorian date by practice, as Genna is outside Lalibela in leap years, that is not modelled |
 | Coptic Orthodox | The fourteen feasts of the Lord, Nayrouz, both Feasts of the Cross, the Apostles and St Mary's Dormition and Assumption dated in the Coptic calendar; the paschal cycle from the Fast of Nineveh to Pentecost on the Alexandrian computus | Done — Arabic names; the Coptic-language names are not carried |
 | Islamic | Ras as-Sanah, Ashura, Mawlid, Isra and Miraj, Mid-Sha'ban, Ramadan, Laylat al-Qadr, Eid al-Fitr, Eid al-Adha, Day of Arafah | Done — flagged `Approximate` |
 | Jewish | Rosh Hashanah, Fast of Gedaliah, Yom Kippur, Sukkot, Hoshana Rabbah, Shemini Atzeret, Simchat Torah, Hanukkah, Tenth of Tevet, Tu BiShvat, Purim, Shushan Purim, Passover, Lag BaOmer, Shavuot, Seventeenth of Tammuz, Tisha B'Av | Done — the Omer count itself lives in `hc-calendars-lunar::hebrew`; the Sabbath postponements of the minor fasts are not modelled |
-| Buddhist | Vesak, Magha Puja, Asalha Puja, Vassa, Pavarana, Bodhi Day, Nirvana Day, Buddha's Birthday in both reckonings | Partial — the Theravada full moons are approximated from the Chinese lunisolar calendar and flagged `Approximate`; the Mahayana dates are exact |
+| Buddhist, Thai (`buddhist-thai`) | Makha, Visakha and Asalha Bucha and Khao Phansa on `thai-lunar` | Done for 1992–2027, the years whose year types Thailand published, and gaps outside; the Burmese, Khmer, Lao and Sinhalese reckonings are in their countries' tables |
+| Buddhist, East Asian (`buddhist-east-asian`) | Nirvana Day, Buddha's Birthday and Bodhi Day on Japan's Gregorian dates, and Buddha's Birthday on the eighth of the fourth Chinese month | Done — from secondary sources |
 | Chinese folk | 除夕, 春節, 元宵, 清明, 端午, 七夕, 中元, 中秋, 重陽, 臘八, 冬至 | Done |
 | Hindu | Makar Sankranti, Maha Shivaratri, Holika Dahan and Holi, Ugadi, Rama Navami, Mahavir Jayanti, Mesha Sankranti, Akshaya Tritiya, Buddha Purnima, Guru Purnima, Raksha Bandhan, Krishna Janmashtami, Ganesh Chaturthi, Navaratri, Durga Ashtami, Vijaya Dashami, Diwali, Guru Nanak Jayanti, Thaipusam | Done — each on the part of the day its tithi must hold, at the national almanac's sunrise; reproduces the Rashtriya Panchang's festival lists for 2023–2025. Thaipusam is a nakṣatra rule, Puṣya in Thai, fitted to the days Malaysia and Mauritius gazetted for 2020–2026 |
-| Sikh | The gurpurabs — Parkash, Gurgaddi, Joti Jot and Shaheedi of the Gurus, the Sahibzadas, the Guru Granth Sahib — Vaisakhi, Hola Mohalla, Bandi Chhor Divas | Done — on the Nanakshahi calendar of 2003 (`nanakshahi`, see [calendars.md](calendars.md)), fixed Gregorian dates, with the three days that calendar left lunar on the same rules as Holi, Diwali and Kartik Purnima. The SGPC's post-2010 dates, which are the Bikrami calendar's, are not carried |
+| Sikh (`sikh-nanakshahi-2003`) | The gurpurabs — Parkash, Gurgaddi, Joti Jot and Shaheedi of the Gurus, the Sahibzadas, the Guru Granth Sahib — Vaisakhi, Hola Mohalla, Bandi Chhor Divas | Done — on the Nanakshahi calendar of 2003 (`nanakshahi`, see [calendars.md](calendars.md)), fixed Gregorian dates, with the three days that calendar left lunar on the same rules as Holi, Diwali and Kartik Purnima. The SGPC's post-2010 dates, which are the Bikrami calendar's, are not carried |
 | Jain | Mahavir Jayanti, Akshaya Tritiya, Paryushana and Samvatsari, Das Lakshana and Anant Chaturdashi, Diwali | Done — the Śvetāmbara eight days and the Digambara ten counted back from Samvatsari and Anant Chaturdashi on `hindu-lunar`; every entry approximate, since the sects' almanacs can differ from the national one by a day; Kshamavani not carried where its source contradicts itself |
 | Bahá'í | The nine holy days — Naw-Rúz, the three days of Riḍván, the Declaration of the Báb, the Ascension of Bahá'u'lláh, the Martyrdom of the Báb, the Twin Holy Birthdays — with the Day of the Covenant and the Ascension of ʻAbdu'l-Bahá, and the first days of Ayyám-i-Há and of the Fast | Done — dated in the Badíʿ calendar as kept (`bahai`, see [calendars.md](calendars.md)), so exact through 19 March 2065 and a reported gap after, where the Bahá'í World Centre's table ends; the Twin Holy Birthdays follow the same table, 2015–2064 |
 | Zoroastrian | Nowruz, Khordad Sal, the name-day feasts (Tiragan, Mehregan …), the six Gahambars, Zartosht No-Diso, Muktad | Done — the Parsi schedule of feasts as three tables, one per reckoning (`zoroastrian-fasli`, `zoroastrian-shahanshahi`, `zoroastrian-qadimi`, see [calendars.md](calendars.md)), every feast a fixed day of a fixed month, so exact. The Iranian community's dates on the civil calendar, and Sadeh and Yalda, which are Iranian festivals rather than days of the schedule, are not carried |
@@ -146,7 +150,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Japan 🇯🇵 | Complete from 1948 (祝日法) to the present with every amendment, the 振替休日 and 国民の休日 as policies and the equinox days computed; the law, its amendments and how the table was checked are in [systems/japan-holidays.md](systems/japan-holidays.md) |
 | United States 🇺🇸 | Federal holidays with the Saturday/Sunday observed rule, the Uniform Monday Holiday Act, Veterans Day's 1971–77 detour, Juneteenth from 2021, Inauguration Day for the capital region, and the two state-funeral days |
 | United Kingdom 🇬🇧 | England and Wales, Scotland and Northern Ireland as separate regions, with the royal one-offs and the three jubilee moves of the Spring Bank Holiday |
-| Ireland 🇮🇪 | Including St Brigid's Day and its conditional rule |
+| Ireland 🇮🇪 | Including St Brigid's Day and its conditional rule and the one-off of 18 March 2022; a holiday on the weekend moves nothing, as section 21 of the 1997 Act gives a benefit and not a next working day |
 | Germany 🇩🇪 | Federal plus all 16 *Länder*, including Buß- und Bettag before and after 1995 |
 | France 🇫🇷 | Métropole plus Alsace-Moselle, with 8 May's 1959–81 absence |
 | Armenia 🇦🇲 | The 2001 law's thirteen non-working days with 27 January from 2026, its working holidays as observances; the Government's Merelots decisions not carried |
@@ -160,7 +164,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Hong Kong 🇭🇰 | The seventeen general holidays with the statutory subset as `Kind::Public` and the 2021 phasing-in as years; Sunday and coincidence made up on the next free day, the 1983–2011 eve rule computed; complete from 1997 |
 | Macau 🇲🇴 | Executive Order 60/2000 with the ten obligatory holidays of Law 7/2008 as `Kind::Public`; the public administration's compensatory rest days from 2019; the eves as observances |
 | China 🇨🇳 | The statutory days by rule across the 1999, 2007, 2013 and 2024 revisions and the State Council's arrangement for each year from 2008 to 2026 as data, days off and working weekend days alike; how the notices are read, carried and checked is in [systems/china-holiday-arrangements.md](systems/china-holiday-arrangements.md) |
-| Taiwan 🇹🇼 | The 紀念日及節日實施條例 of May 2025 and the 辦法 before it: the making-up of a weekend holiday on the nearer working day and of the Lunar New Year days after them, Children's Day when 清明 falls on it, and the five days the 條例 added; the swaps of each office calendar from 2017 until they ended in 2025. Checked against the government office calendar for 2017–2027 |
+| Taiwan 🇹🇼 | The 紀念日及節日實施條例 of May 2025 and the 辦法 before it: the making-up of a weekend holiday on the nearer working day and of the Lunar New Year days after them, Children's Day when 清明 falls on it, and the five days the 條例 added; the swaps of each office calendar from 2017 until they ended in 2025; before 2015 only the Lunar New Year days made up. Checked against the government office calendar for 2017–2027; written up in [systems/taiwan-holidays.md](systems/taiwan-holidays.md) |
 | South Korea 🇰🇷 | The decree's days keyed to the `dangi` calendar, the 대체공휴일 in its three steps with the collision rule, the election days from 2007 and the designated days from 2009; the rules, the engine's part and the check against the Korea Exchange's lists are in [systems/korea-holidays.md](systems/korea-holidays.md) |
 | Canada 🇨🇦 | Federal plus the provincial days fixed by statute |
 | Australia 🇦🇺 | National plus all six states and both territories |
@@ -176,8 +180,8 @@ Ordered by how well the sources can be cited, not by importance.
 | Samoa 🇼🇸 | The 2008 Act with the Monday, and Tuesday, for a Sunday, Independence Day on 1 June as the Ministry's calendar gives it, the three Mondays after the second Sundays of May, August and October |
 | Brazil 🇧🇷 | Including Consciência Negra from 2024 |
 | Mexico 🇲🇽 | Including the 2006 Monday reform and the six-yearly presidential handover |
-| Saudi Arabia 🇸🇦 | Umm al-Qura based, with the 2013 weekend change |
-| United Arab Emirates 🇦🇪 | With the 2022 move to a Saturday–Sunday weekend |
+| Saudi Arabia 🇸🇦 | Article 24 of the Labour Law's executive regulation on the Umm al-Qura calendar: four days of each Eid, National Day and Founding Day; the weekend change of 29 June 2013 on its day |
+| United Arab Emirates 🇦🇪 | With the weekends by their dates: Thursday–Friday to 31 August 2006, Friday–Saturday to 2021, Saturday–Sunday from 1 January 2022 |
 | Israel 🇮🇱 | Hebrew-dated and therefore exact, with Yom HaAtzmaut's Sabbath-avoidance rule |
 | Iran 🇮🇷 | Civil holidays on the astronomical `persian` calendar, so exact — Nowruz 1404 on 21 March 2025, where the arithmetic cycle says the 20th; the lunar Hijri days flagged `Approximate`, since Iran declares them on its own sighting; Friday weekend |
 | Albania 🇦🇱 | Law 7651's fifteen holidays with both Easters, approximate Eids and the weekend rule that gives each holiday its own working day after |
@@ -200,9 +204,9 @@ Ordered by how well the sources can be cited, not by importance.
 | Latvia 🇱🇻 | The law as in force from 2025: holidays, the two one-off days, the remembrance days as observances, and the weekend rule that reaches three holidays only |
 | Lithuania 🇱🇹 | Labour Code art. 123 with the years each day became a day off; no substitution |
 | Croatia 🇭🇷 | The Act with the 2020 change: Statehood Day on 30 May, 25 June and 8 October demoted, Remembrance Day new; no substitution |
-| Slovakia 🇸🇰 | The state holidays, each carried as a day off to its last year as one and an observance after; no substitution |
+| Slovakia 🇸🇰 | Act 241/1993: the state holidays that are working days as observances — 28 October, 1 September from 2024, 17 November from 2025 — and 8 May and 15 September as working days in 2026 only, by § 4b; no substitution |
 | Slovenia 🇸🇮 | The work-free days with the years the source gives, 2 January by its two spans; no substitution |
-| Iceland 🇮🇸 | The act's list with the First Day of Summer and Commerce Day by their weekday rules, the two eves as half days; no substitution |
+| Iceland 🇮🇸 | Article 6 of the forty-hour-week act with the First Day of Summer and Commerce Day, from 1983, by their weekday rules, the two eves as half days; no substitution |
 | Hungary 🇭🇺 | With Good Friday from 2017; the annual rearrangement of working days by decree is not carried |
 | Romania 🇷🇴 | Orthodox Easter and Pentecost by the Julian computus; the additions of the last decade by year, Epiphany and Saint John from 2024 |
 | Russia 🇷🇺 | Article 112's holidays and the Government's transfer decrees for 2013–2027 as data, with the working Saturdays and the carry-over computed from them; the article, the decrees and the check against the production calendars are in [systems/russia-transfers.md](systems/russia-transfers.md) |
@@ -236,19 +240,19 @@ Ordered by how well the sources can be cited, not by importance.
 | Suriname 🇸🇷 | The Besluit Vrije Dagen 1971 as S.B. 2021 no. 27 left it, the 2007 and 2012 additions by year and 25 February for 2012–2020; Holi, Divali, the Ieds and Chinese New Year approximate; nothing moves |
 | Argentina 🇦🇷 | From Decreto 1584/2010 in 2011: the *inamovibles* where they fall, the *trasladables* on the decree's Mondays to 2016 and by the weekday rule of Ley 27.399 from 2018; the annual tourist holidays not carried; Holy Thursday and the days of the Jewish and Islamic faiths as observances |
 | Colombia 🇨🇴 | Ley 51 de 1983 from 1984: ten holidays to the following Monday, eight where they fall |
-| Ethiopia 🇪🇹 | The national and Orthodox holidays on the Ethiopian calendar (`ethiopic`), where they are kept; Fasika by the Julian computus; the Islamic days approximate |
+| Ethiopia 🇪🇹 | The national and Orthodox holidays on the Ethiopian calendar (`ethiopic`), where they are kept; Fasika by the Julian computus; the Islamic days approximate; the Downfall of the Derg to 2024, which Proclamation 1334/2024 leaves out |
 | Ghana 🇬🇭 | The Act as amended in 2019 and 2025, from 2019: Founders' Day and Kwame Nkrumah Memorial Day by their years, Republic Day back from 2025, Shaqq Day from 2026; the year-by-year Monday declarations not carried |
-| Bahrain 🇧🇭 | The Council of Ministers' fourteen days under art. 64 of Law 36/2012: three of each Eid, two of Ashura, Hijri dates approximate; nothing moves |
-| Jordan 🇯🇴 | The list with four days of Eid al-Fitr and five from Arafat, Christmas for all, the Christian employees' Eastern Easter days as `Kind::Religious`, the working commemorations as observances |
-| Kuwait 🇰🇼 | Art. 68 of Law 6/2010's thirteen paid holidays with Arafat and Isra and Mi'raj, Hijri dates approximate |
-| Oman 🇴🇲 | Royal Decree 88/2022 as amended in 2025: the single days with a weekend day compensated, the National Day pair's one computed day, the two Eid spans with a Friday start compensated, approximate; the 2013 weekend change |
-| Qatar 🇶🇦 | Emiri Decision 57/2025: the two Eid spans approximate, National Day, Sport Day, the one-day bridge from 2025, the bank days of article 4 |
+| Bahrain 🇧🇭 | The Council of Ministers' fourteen days under art. 64 of Law 36/2012: three of each Eid, two of Ashura, Hijri dates approximate; nothing moves; Friday–Saturday weekend from September 2006 |
+| Jordan 🇯🇴 | The list with four days of Eid al-Fitr and five from Arafat, Christmas for all, the Christian employees' Eastern Easter days as `Kind::Religious`, the working commemorations as observances; Friday–Saturday weekend from 2000 |
+| Kuwait 🇰🇼 | Art. 68 of Law 6/2010's thirteen paid holidays with Arafat and Isra and Mi'raj, Hijri dates approximate; Friday–Saturday weekend from 1 September 2007 |
+| Oman 🇴🇲 | Royal Decree 88/2022 as amended in 2025: the single days with a weekend day compensated, the National Day pair's one computed day, the two Eid spans with a Friday start compensated, approximate; the weekend change of 1 May 2013 |
+| Qatar 🇶🇦 | Emiri Decision 57/2025: the two Eid spans approximate, National Day, Sport Day, the one-day bridge from 2025, the bank days of article 4; Friday–Saturday weekend from 1 August 2003 |
 | Iraq 🇮🇶 | Law 12 of 2024 from the Gazette: eleven days with Ghadir and 16 March new, Christmas for all over 2020–2023, and article 2's Christian and Yazidi days as religious, the Julian-dated ones on the Julian calendar |
 | Lebanon 🇱🇧 | Decree 15215 of 2005 from the Council of Ministers' own table: both Good Fridays and the Saturday they share, two-day Eids approximate, Labour Day alone moved off a Sunday, the May commemorations on their Sundays |
 | Syria 🇸🇾 | Decree 188 of 2025 for the State's workers: both Easters on their Sundays, Liberation Day from 2025 and the Revolution from 2026, Nowruz from 2026 by Decree 13, Eids of three and four days approximate; the weekend by its two eras |
 | Palestine 🇵🇸 | The Council of Ministers' tables for the Government sector: the Eids with their eves, the Eastern Easter for all, the Eastern and Western Christian employees' days as `Kind::Religious`; the Samaritan table not carried |
-| Libya 🇱🇾 | Law 5 of 2012's table: Arafah and three days of each Eid approximate, the two days of 2011 from 2012; the Prime Minister's yearly decisions not carried; the 2006 weekend change |
-| Yemen 🇾🇪 | Law 2 of 2000: five-day Eids approximate, the five national days, article 3(b)'s days as observances; article 4's replacement day not carried; the 2013 weekend change |
+| Libya 🇱🇾 | Law 5 of 2012's table: Arafah and three days of each Eid approximate, the two days of 2011 from 2012; the Prime Minister's yearly decisions not carried; the 2006 weekend change, from 1 January as no day was read |
+| Yemen 🇾🇪 | Law 2 of 2000: five-day Eids approximate, the five national days, article 3(b)'s days as observances; article 4's replacement day not carried; the weekend change of 15 August 2013 |
 | Tanzania 🇹🇿 | Cap. 35's Schedule with two days of Eid al-Fitr, section 4's Saturday-and-Sunday rule, and the two presidential days kept every year |
 | Uganda 🇺🇬 | Cap. 255's list with Luwum Day from 2016 and Heroes' Day from 2001, one day of each Eid; substitutes by designation not carried |
 | Zambia 🇿🇲 | Cap. 272 with the three declared days by their years, the Monday and Tuesday holidays, the Act's Sunday-to-Monday rule |
@@ -263,7 +267,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Burundi 🇧🇮 | Decree 100/150 of 2021's fourteen days, 8 June from 2021, the Eids approximate; article 4's discretionary Sunday move not carried |
 | Seychelles 🇸🇨 | Cap. 190 as amended in 1994, 2014 and 2017: National Day from 1994 and the 2015 names, Liberation Day to 2016 and Easter Monday from 2017, section 4's next free day for a Sunday; the President's orders not carried |
 | Mozambique 🇲🇿 | Article 105 of Lei 13/2023's nine days, where they fall — paragraph 6's Sunday sentence is published without its consequence; the tolerâncias de ponto not carried |
-| Algeria 🇩🇿 | Law 63-278 as amended: the five civil days, Yennayer from 2018, the Eids two days until 2022 and three from law 23-10 of 2023, approximate; the Christian and Jewish community days as religious; the weekend by its three eras |
+| Algeria 🇩🇿 | Law 63-278 as amended: the five civil days, Yennayer from 2018, the Eids two days until 2022 and three from law 23-10 of 2023, approximate; the Christian and Jewish community days as religious; the weekend by its three eras, the last from 14 August 2009 |
 | Tunisia 🇹🇳 | Decree 2021-223's list for the public service, Aïd el-Fitr three days and Aïd el-Idha two, approximate; the decrees of 1961 to 2021 by their years |
 | Senegal 🇸🇳 | Law 74-52 with Easter and Pentecost on their Sundays, the Monday after a Sunday Korité or Tabaski only, and the Grand Magal from 2012 |
 | Côte d'Ivoire 🇨🇮 | Decree 96-205 as rewritten in 2011: twelve days and the day after a Sunday national holiday, Labour Day, Aïd el-Fitr, Christmas or Tabaski, from 2011; the two lendemain days approximate |
@@ -273,7 +277,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Guinea 🇬🇳 | Decree D/2022/0526 as the press reproduced it: twelve days, the lendemain days approximate, and the next working day for a weekend Independence Day, New Year's Day or Aïd el-Fitr from 2023 |
 | Mali 🇲🇱 | Law 05-040's eleven days with the Birth and Baptism of Maouloud approximate, 14 January from 2023; article 2's declared extra days and Achoura not carried; nothing moves |
 | Chad 🇹🇩 | Decree 97-413 of 1997: article 1's seven days off unpaid and unmoved, article 2's paid days with the Monday after a Sunday from 1997, 8 March from 2019 by decree 273 as the press gives it; 11 August 2010, replaced by a decree not read, a gap; the Islamic days approximate |
-| Mauritania 🇲🇷 | Law 92-018's national day and seven legal holidays, the four Islamic days one day each and approximate, "Mouharram" read as its first day; the President's declared days not carried; nothing moves; Friday–Saturday weekend to 2013, Saturday–Sunday from 2014 |
+| Mauritania 🇲🇷 | Law 92-018's national day and seven legal holidays, the four Islamic days one day each and approximate, "Mouharram" read as its first day; the President's declared days not carried; nothing moves; Friday–Saturday weekend to 30 September 2014, Saturday–Sunday from 1 October 2014 |
 | Djibouti 🇩🇯 | Arrêté 77-347 of 1977 as its 1981 rectificatif quotes it, from 1978: two days of each Eid, the first of Muharram, the Mouloud and Isra and Mi'raj approximate, Christmas by arrêté 77-609, Independence two days from 1981 and 28 June 1980 a gap; nothing moves; the Friday weekend of the Labour Code |
 | Comoros 🇰🇲 | Decree 25-147/PR of 19 December 2025 from 2026: six civil days and the seven religious days approximate, the end of Ramadan as the three days after 29 Ramadan and Eid al-Kabir with its morrow; the earlier decrees it repeals unread; article 3's bridge days a decision each time, not carried; nothing moves |
 | Equatorial Guinea 🇬🇶 | Decree 9/2007's ten days from 2007, with article 4's first working day after a feast on a Saturday or Sunday; the ministerial orders of article 5, Easter Monday among them, not carried |
@@ -284,13 +288,13 @@ Ordered by how well the sources can be cited, not by importance.
 | Angola 🇦🇴 | Law 10/11 as amended by law 11/18: 23 March from 2019, the Sunday rule to 2017 and the Monday or Friday bridges from 28 September 2018; the celebration dates as observances |
 | Pakistan 🇵🇰 | The state holidays, the Hijri ones approximate; Iqbal Day only in the years it was a holiday; the notification's extra Eid days not carried |
 | Peru 🇵🇪 | The sixteen days of the 2026 list from 2024, where they fall; the laws of the four recent additions not read, so nothing before is stated |
-| Ukraine 🇺🇦 | The 2023 list — 8 May, 15 July, 1 October, Christmas on 25 December alone — with the earlier dates by year; the next-working-day rule of article 67; the martial-law suspension of days off is noted, not modelled |
+| Ukraine 🇺🇦 | Article 73's list — 8 May, 15 July, 1 October, Christmas on 25 December alone from 2024 — with the earlier dates by year, and the next-working-day rule of article 67; under martial law, from 24 March 2022, law 2136-IX disapplies both, so every holiday since is an observance with no day off, carried with no end date |
 | Thailand 🇹🇭 | The Bank of Thailand's list with the Monday for a weekend holiday; Makha, Visakha and Asalha Bucha and Khao Phansa exact on the Thai lunar calendar (`thai-lunar`), a month later in an adhikamāsa year, for 1992–2027, the years Thailand has published, and gaps outside them; the Royal Ploughing Ceremony not carried |
 | Vietnam 🇻🇳 | Article 112 of the 2019 Labour Code, Hùng Kings' day on the `vietnamese` calendar, and article 111(3)'s next working day for a fixed holiday on a weekend; Tết, the second National Day holiday and the working days swapped for a Saturday from the civil-service notices for 2021 to 2026, the Saturdays worked as working days; Vietnamese Culture Day from 2026 |
 | Brunei 🇧🇳 | The Prime Minister's Office's circulars for 2023–2026: New Year, National Day, Armed Forces Day, the Sultan's Birthday and Christmas fixed, Chinese New Year on `chinese`, Isra' and Mi'raj, Awal Ramadhan, Nuzul Al-Qur'an, the three days of Hari Raya Aidil Fitri, Hari Raya Aidil Adha, the Islamic New Year and the Prophet's Birthday approximate; the Friday–Sunday weekend, a Friday or Sunday holiday replaced by the next working day as each circular names it |
 | Timor-Leste 🇹🇱 | Law 10/2005 art. 2 as amended by Laws 3/2016 and 10/2023: Veterans' Day from 2017, 7 December renamed Memorial Day and National Heroes' Day on 31 December from 2016, National Women's Day from 2023; Good Friday and Corpus Christi by the Western computus, Idul Fitri and Idul Adha approximate; the commemorative dates not carried; the Labour Code's Sunday weekend, nothing moved |
 | Maldives 🇲🇻 | Section 97 of the Employment Act, dated as the Maldives Monetary Authority's lists for 2016–2026: New Year, Labour Day, Independence Day's two days, Victory Day and Republic Day fixed; the first of Ramadan, Eid al-Fitr's three days, Hajj Day, Eid al-Adha's four (three in 2016), the Islamic New Year, National Day, the Prophet's Birthday and the Day the Maldives Embraced Islam approximate; the Friday–Saturday weekend, nothing moved off it; the President's declared government holidays not carried |
-| Indonesia 🇮🇩 | The national days of the three ministries' joint decree: Chinese New Year on `chinese` from 2003, Labour Day from 2014, Pancasila Day from 2017, Vesak on the Chinese calendar and the Islamic days, all approximate; Nyepi and the *cuti bersama* not carried |
+| Indonesia 🇮🇩 | The national days of the three ministries' joint decree: Chinese New Year on `chinese` from 2003, Labour Day from 2014, Pancasila Day from 2017; the Islamic days, Vesak and Nyepi as the SKBs date them for 2020–2026, and for 2027 as announced, and outside those years the Islamic days and Vesak predicted, approximate, and Nyepi a gap; the *cuti bersama* not carried |
 | Spain 🇪🇸, Italy 🇮🇹, Netherlands 🇳🇱, Poland 🇵🇱, Türkiye 🇹🇷, Egypt 🇪🇬, Nigeria 🇳🇬, South Africa 🇿🇦, Singapore 🇸🇬, Malaysia 🇲🇾, Philippines 🇵🇭, Switzerland 🇨🇭, Austria 🇦🇹, Belgium 🇧🇪, Sweden 🇸🇪, Norway 🇳🇴, Denmark 🇩🇰, Finland 🇫🇮, Portugal 🇵🇹, Greece 🇬🇷, Czechia 🇨🇿 | Core national list |
 
 **Partial**
@@ -298,7 +302,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Country | Note |
 | --- | --- |
 | India 🇮🇳 | The three national holidays and the gazetted list — Holi, Ram Navami, Mahavir Jayanti, Buddha Purnima, Janmashtami, Dussehra, Diwali and Guru Nanak's Birthday computed on `hindu-lunar`, the Hijri days approximate |
-| Myanmar 🇲🇲 | The full moons, National Day, the Kayin New Year and Deepavali on the Burmese calendar (`burmese`), Thingyan from the calendar's own akya and atat moments; the gazette's annual extensions not carried; Eid al-Adha approximate |
+| Myanmar 🇲🇲 | The full moons, National Day and the Kayin New Year on the Burmese calendar (`burmese`), Thingyan from the calendar's own akya and atat moments; Deepavali as the Government notified it for 2020–2025 and predicted outside; the gazette's annual extensions not carried; Eid al-Adha approximate |
 | Nepal 🇳🇵 | The public holidays on a fixed date, from the Ministry of Home Affairs' notices for 2082 and 2083 BS: New Year, Republic Day, Constitution Day, Prithvi Jayanti, Maghe Sankranti, Martyrs' Day and Democracy Day on `bikram-sambat`, and Labour Day, Christmas and Women's Day on their Gregorian dates, as the notices give them. The festivals on `hindu-lunar` read at Kathmandu — Buddha Jayanti, Janai Purnima, Janmashtami, Ghatasthapana, Dashain and Tihar for as many days as each year's notice gives, Dhanya Purnima, Sonam and Gyalpo Lhosar, Maha Shivaratri — with Tamu Lhosar on Pus 15; the part of the day each tithi holds is fitted to the notices of 2080–2083 BS, so they are approximate, as are the two Eids. Chhath, which no single rule fits, and the holidays for one community or region are not carried. The one-day weekend until April 2026 |
 | Papua New Guinea 🇵🇬 | Chapter 321's own days — New Year, the Easter weekend, Remembrance Day, Christmas and Boxing Day — with the Sunday rule; Independence Day, the Sovereign's Birthday and the other gazetted days not carried |
 | Sri Lanka 🇱🇰 | The Holidays Act orders for 2023–2027, every day of each: the full-moon Poya days, *adhi* ones included, Thai Pongal, Maha Shivarathri, the Sinhala and Tamil New Year, the three Muslim days and Deepavali as the gazettes date them, a year beyond reported as a gap; Independence Day, May Day, Christmas and Good Friday by rule. No computed rule reproduces the Poya days, so none is used |
