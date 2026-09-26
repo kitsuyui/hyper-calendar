@@ -5354,3 +5354,133 @@ pub static EQUATORIAL_GUINEA: RuleSet = RuleSet {
               \"Declarados festivos los días 27 de diciembre 2021 y 3 de enero 2022\" \
               (25 December 2021), on the Ministry of Labour's application of article 4",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Liberia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The weekly rest of section 17.10 of the Decent Work Act, 2015: "at least
+/// 36 consecutive hours which, unless otherwise agreed in writing, shall
+/// include Sunday". Sunday is the one day the Act names.
+static LR_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Sunday],
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// A Sunday holiday is kept on the Monday. No statute read says so; the
+/// President's proclamations do, holiday by holiday, in every Sunday case
+/// read from 2014 to 2026, and a Saturday holiday stays where it falls.
+static LR_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: false,
+    on_collision: false,
+    valid_from: Some(2014),
+    valid_until: None,
+}];
+
+fn lr_unread(_: i64) -> Days {
+    Days::new()
+}
+
+/// The year an Act was passed, when the proclamation names the year and not
+/// the day, so that whether the day was kept that year is not known.
+const LR_ACT_YEAR: Rule = Rule::Tabulated {
+    function: lr_unread,
+    first_year: 1,
+    last_year: 0,
+};
+
+static LR_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::public("Armed Forces Day", "", Rule::gregorian(2, 11)),
+    // The Act of 24 October 1916.
+    HolidayRule::fixed_public("Decoration Day", "", Rule::nth(3, 2, Weekday::Wednesday))
+        .years(Some(1917), None),
+    HolidayRule::public(
+        "Birth Anniversary of Joseph Jenkins Roberts",
+        "",
+        Rule::gregorian(3, 15),
+    ),
+    // The Act of 1883.
+    HolidayRule::fixed_public(
+        "National Fast and Prayer Day",
+        "",
+        Rule::nth(4, 2, Weekday::Friday),
+    )
+    .years(Some(1884), None),
+    HolidayRule::fixed_public("National Fast and Prayer Day", "", LR_ACT_YEAR)
+        .years(Some(1883), Some(1883)),
+    // The Act of 1960.
+    HolidayRule::public("National Unification Day", "", Rule::gregorian(5, 14))
+        .years(Some(1961), None),
+    HolidayRule::fixed_public("National Unification Day", "", LR_ACT_YEAR)
+        .years(Some(1960), Some(1960)),
+    HolidayRule::public("Independence Day", "", Rule::gregorian(7, 26)),
+    // The Act of 25 October 1915.
+    HolidayRule::public("National Flag Day", "", Rule::gregorian(8, 24)).years(Some(1916), None),
+    // The Act of 1883.
+    HolidayRule::fixed_public(
+        "National Thanksgiving Day",
+        "",
+        Rule::nth(11, 1, Weekday::Thursday),
+    )
+    .years(Some(1884), None),
+    HolidayRule::fixed_public("National Thanksgiving Day", "", LR_ACT_YEAR)
+        .years(Some(1883), Some(1883)),
+    HolidayRule::public(
+        "Birth Anniversary of William V. S. Tubman",
+        "",
+        Rule::gregorian(11, 29),
+    ),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+];
+
+/// Liberia.
+///
+/// Each national holiday is an Act of the Legislature, and each year the
+/// President proclaims it, citing the Act; the Ministry of Foreign Affairs
+/// publishes the proclamations, and they are this table's source. New
+/// Year's Day and Independence Day are the Patriotic and Cultural
+/// Observances Law of the Liberian Code of Laws of 1956 — "Title 25" in
+/// one release and "Title 26" in another; Armed Forces Day, the birth
+/// anniversaries of Joseph Jenkins Roberts and William V. S. Tubman, the
+/// latter two of the third session of the Forty-Second Legislature, are
+/// Acts whose year the releases do not give, so no year is claimed for
+/// them. The releases date four Acts: Fast and Prayer Day and Thanksgiving
+/// Day of 1883, National Flag Day approved on 25 October 1915, Decoration
+/// Day passed on 24 October 1916, and Unification Day of 1960; the first
+/// year each could have been kept follows, and the year of an Act that the
+/// releases give without a day is a gap. Christmas is on the Embassy in
+/// Tokyo's list and in no proclamation read. Section 17.12 of the Decent
+/// Work Act, 2015 makes the days of "section 1 of the Patriotic
+/// Observances Law" paid holidays; that law's own text was not read.
+///
+/// A Sunday holiday is proclaimed for the Monday: Flag Day in 2014 and
+/// 2025, Roberts's anniversary in 2015 and 2026, Tubman's in 2015 and
+/// 2020, Armed Forces Day in 2018 and Independence Day in 2020 and 2026 —
+/// every Sunday case read, and a practice of the proclamations, not of a
+/// statute read, so the policy starts with the earliest of them, 2014. A
+/// Saturday holiday stays: Tubman's in 2014 and 2025, Unification Day in
+/// 2016, Armed Forces Day in 2017, Independence Day in 2025. The New Year,
+/// Unification Day and Christmas were not read on a Sunday. The one-off
+/// days a proclamation declares — an election, a "working holiday" for a
+/// United Nations day — are not carried. The weekend is the Sunday of the
+/// Decent Work Act's weekly rest.
+pub static LIBERIA: RuleSet = RuleSet {
+    code: "LR",
+    english_name: "Liberia",
+    rules: LR_RULES,
+    substitution: LR_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: LR_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Ministry of Foreign Affairs, the President's holiday proclamations as its press \
+              releases give them, 2012 to 2026 (mofa.gov.lr/media/press-releases), retrieved \
+              2026-09-26; Decent Work Act, 2015, sections 17.10 and 17.12, from the Ministry of \
+              Labour's printing (liberiahrjobs.com copy); Embassy of the Republic of Liberia \
+              in Japan, \"National Holidays to Be Observed\" (liberianembassyjp.org), for \
+              Christmas; the Patriotic and Cultural Observances Law not read",
+};

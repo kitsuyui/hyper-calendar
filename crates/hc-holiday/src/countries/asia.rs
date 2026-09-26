@@ -5290,3 +5290,122 @@ pub static MALDIVES: RuleSet = RuleSet {
               (IUL)101-AS/1/2024/34 of 27 March 2024 (gazette.gov.mv), for the working week; \
               retrieved 2026-09-23",
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Afghanistan
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Friday. The Ministry of Labour and Social Affairs' notice for Arafah and
+/// Eid al-Adha 1447 counts "four working days" from Tuesday 9 Dhu al-Hijjah
+/// to a return on Sunday the 14th, passing over the Friday and counting the
+/// Thursday and the Saturday.
+static AF_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Friday],
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// A holiday on the Solar Hijri calendar as Afghanistan keeps it, from
+/// 2023, exact: the calendar is `persian-afghan`, month 5 Asad and month 11
+/// Dalw.
+const fn af_solar(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::SOLAR_HIJRI_AFGHAN, month, day),
+    )
+    .years(Some(2023), None)
+}
+
+/// A day of an Eid on the tabular Hijri calendar, approximate: the Supreme
+/// Court declares the month on the sighting.
+const fn af_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, month, day),
+    )
+    .approximate()
+}
+
+fn af_unread(_: i64) -> Days {
+    Days::new()
+}
+
+/// Days the Ministry announces Eid by Eid, in a year whose notice was not
+/// read.
+const AF_ANNOUNCED: Rule = Rule::Tabulated {
+    function: af_unread,
+    first_year: 1,
+    last_year: 0,
+};
+
+static AF_RULES: &[HolidayRule] = &[
+    af_solar(
+        "Victory Day",
+        "روز پیروزی جهاد ملت افغانستان و شکست امریکا",
+        5,
+        24,
+    ),
+    af_solar("Independence Day", "روز استرداد استقلال کشور", 5, 28),
+    af_solar(
+        "Liberation Day",
+        "سالروز خروج ارتش سرخ شوروی از کشور",
+        11,
+        26,
+    ),
+    af_hijri("Eid al-Fitr", "عید سعید فطر", 10, 1).years(Some(2023), None),
+    // How many working days follow the first is the notice's to say, and
+    // it has lengthened them in some years.
+    HolidayRule::fixed_public("Eid al-Fitr", "عید سعید فطر", AF_ANNOUNCED).years(Some(2023), None),
+    af_hijri("Day of Arafah", "روز عرفه", 12, 9).years(Some(2023), None),
+    af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 10).years(Some(2023), None),
+    af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 11).years(Some(2023), None),
+    af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 12).years(Some(2023), None),
+    // 13 Dhu al-Hijjah: added in 1444 on 30 June 2023, and in the notices
+    // of 1446 and 1447; 1445's notice was not read.
+    af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 13).years(Some(2023), Some(2023)),
+    HolidayRule::fixed_public("Eid al-Adha", "عید سعید اضحی", AF_ANNOUNCED)
+        .years(Some(2024), Some(2024)),
+    af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 13).years(Some(2025), Some(2026)),
+    HolidayRule::fixed_public("Eid al-Adha", "عید سعید اضحی", AF_ANNOUNCED).years(Some(2027), None),
+];
+
+/// Afghanistan, under the Islamic Emirate, from 2023.
+///
+/// No statute lists the days. Each year's official calendar of the
+/// Ministry of Information and Culture, dated by the lunar Hijri year since
+/// 1444 AH, names them, and the Ministry of Labour and Social Affairs
+/// announces each before it falls; the calendar itself was not read, only
+/// Rukhshana Media's account of the first, and the notices as the press
+/// and the Emirate's own site give them. The system — the two
+/// calendars, what the 1444 calendar kept and dropped, the notices read —
+/// is written up in `docs/systems/afghanistan-holidays.md`. In short: the
+/// three solar days, 24 Asad for the takeover of 2021, 28 Asad for
+/// independence and 26 Dalw for the Soviet withdrawal, are exact on
+/// `persian-afghan`; Eid al-Fitr's first day and Arafah with the first
+/// three days of Eid al-Adha are approximate on the tabular Hijri calendar;
+/// the further Eid days are the notices' — 13 Dhu al-Hijjah in the three
+/// years read, a gap in the others, and Eid al-Fitr's after the first a
+/// gap in every year. The table starts in 2023, the first year wholly
+/// under the Emirate's calendars; the Republic's list, Nowruz, Ashura and
+/// the Prophet's Birthday among it, is not carried, nor is 31 August,
+/// which the press reports declared a holiday in 2023 but no notice read
+/// confirms. Nothing moves off the Friday weekend.
+pub static AFGHANISTAN: RuleSet = RuleSet {
+    code: "AF",
+    english_name: "Afghanistan",
+    rules: AF_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: AF_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Rukhshana Media, 2 August 2022, on the Ministry of Information and Culture's \
+              calendar of 1444 AH, the calendar itself not read; the Islamic Emirate's site \
+              (alemarahdari.af) on the holidays of 24 and 28 Asad 1403 announced by the Ministry \
+              of Labour and Social Affairs; Pajhwok, 30 June 2023, Anis Daily, 3 June 2025, and \
+              Bakhtar, 21 May 2026, on that Ministry's notices for Arafah and Eid al-Adha; Khaama \
+              Press, 10 April 2024, on its Eid al-Fitr notice; all retrieved 2026-09-26. See \
+              docs/systems/afghanistan-holidays.md",
+};

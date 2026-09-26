@@ -19,7 +19,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `international` | the United Nations international days, each citing its resolution |
 | `exchanges` | 42 exchange calendars: New York, Nasdaq, Toronto, Mexico City, São Paulo, London, Frankfurt, Zurich, Vienna, Madrid, Warsaw, Moscow, Istanbul, Euronext's seven markets, Nasdaq's four Nordic markets, Johannesburg, Tel Aviv, Riyadh, Tokyo, Seoul, Shanghai, Shenzhen, Taipei, Hong Kong, Mumbai's NSE and BSE, Bangkok, Singapore, Kuala Lumpur, Jakarta, Manila, Sydney, NZX |
-| `countries` | 182 national tables |
+| `countries` | 184 national tables |
 
 ## The vocabulary
 
@@ -101,7 +101,7 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**182 countries.** Albania, Algeria, Andorra, Angola, Antigua and Barbuda,
+**184 countries.** Afghanistan, Albania, Algeria, Andorra, Angola, Antigua and Barbuda,
 Argentina, Armenia, Australia (eight states and territories), Austria,
 Azerbaijan, the Bahamas, Bahrain, Bangladesh, Barbados, Belarus, Belgium,
 Belize, Benin, Bhutan, Bolivia, Bosnia and Herzegovina, Botswana, Brazil,
@@ -114,7 +114,7 @@ plus Alsace-Moselle), Georgia, Germany (all 16 *Länder*), Ghana, Greece,
 Grenada, Guatemala, Guinea, Guyana, Haiti, Honduras, Hong Kong, Hungary,
 Iceland, India, Indonesia, Iran, Iraq, Ireland, Israel, Italy, Jamaica, Japan,
 Jordan, Kazakhstan, Kenya, Kiribati, Kuwait, Kyrgyzstan, Laos, Latvia, Lebanon,
-Lesotho, Libya, Liechtenstein, Lithuania, Luxembourg, Macau, Madagascar, Malawi,
+Lesotho, Liberia, Libya, Liechtenstein, Lithuania, Luxembourg, Macau, Madagascar, Malawi,
 Malaysia, the Maldives, Mali, Malta, the Marshall Islands, Mauritania,
 Mauritius, Mexico, Micronesia, Moldova, Monaco, Mongolia, Montenegro, Morocco,
 Mozambique, Myanmar, Namibia, Nauru, Nepal, the Netherlands, New Zealand,
@@ -328,7 +328,7 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 
 | Entry | Why |
 | --- | --- |
-| Every Hijri-dated holiday, in sixty-seven countries and the Islamic tradition table | the observed date is a sighting decision, per country |
+| Every Hijri-dated holiday, in sixty-nine countries and the Islamic tradition table | the observed date is a sighting decision, per country |
 | Vesak (Indonesia, Singapore, Malaysia) and the Buddhist table's Magha Puja, Vesak, Asalha Puja, Vassa and Pavarana | approximated as the full moon of Chinese lunar month *n* − 2, which against the Thai dates is right in 2022, 2024 and 2025, a day out in 2023 and a month out in a Thai adhikamāsa year. Thailand's own four are exact on `thai-lunar` for 1992–2027 and gaps outside |
 | Nepal's festivals — Buddha Jayanti, Dashain, Tihar and the rest | each is a tithi read at Kathmandu, and the part of the day it must hold is fitted to the notices of 2080–2083 BS, which it reproduces, rather than quoted from the almanac |
 | Bangladesh's Buddha Purnima | the notifications' own dates for 2025 and 2026, which they star as depending on the moon |
