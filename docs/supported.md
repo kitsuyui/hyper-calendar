@@ -116,21 +116,21 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `korean-regnal` | Korean Empire eras | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 1896-01-01 | 1910-08-29 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `lilian` | Lilian date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | none | — |
 | `mandaean` | Mandaean | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -479003-02-15 | +520332-03-08 | no | no | midnight | — | month ×13, weekday ×7 | yes |
-| `maya-819` | Maya 819-day count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | direction ×4, colour ×4 | — |
-| `maya-819-584286` | Maya 819-day count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | direction ×4, colour ×4 | — |
-| `maya-819-gmt2` | Maya 819-day count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | direction ×4, colour ×4 | — |
-| `maya-haab` | Maya haab | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | month ×19 | yes |
-| `maya-haab-584286` | Maya haab | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | month ×19 | yes |
-| `maya-haab-gmt2` | Maya haab | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | month ×19 | yes |
-| `maya-longcount` | Maya long count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-11 | 4772-10-12 | no | no | midnight | — | none | — |
-| `maya-longcount-584286` | Maya long count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-14 | 4772-10-15 | no | no | midnight | — | none | — |
-| `maya-longcount-gmt2` | Maya long count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-13 | 4772-10-14 | no | no | midnight | — | none | — |
-| `maya-round` | Maya Calendar Round | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-11 | 4772-10-12 | no | no | midnight | — | trecena ×13, day-sign ×20, month ×19 | yes |
-| `maya-round-584286` | Maya Calendar Round | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-14 | 4772-10-15 | no | no | midnight | — | trecena ×13, day-sign ×20, month ×19 | yes |
-| `maya-round-gmt2` | Maya Calendar Round | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-13 | 4772-10-14 | no | no | midnight | — | trecena ×13, day-sign ×20, month ×19 | yes |
-| `maya-tzolkin` | Maya tzolk'in | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | trecena ×13, day-sign ×20 | — |
-| `maya-tzolkin-584286` | Maya tzolk'in | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | trecena ×13, day-sign ×20 | — |
-| `maya-tzolkin-gmt2` | Maya tzolk'in | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | trecena ×13, day-sign ×20 | — |
+| `maya-819` | Maya 819-day count (GMT, 584283) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | direction ×4, colour ×4 | — |
+| `maya-819-584286` | Maya 819-day count (Martin and Skidmore, 584286) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | direction ×4, colour ×4 | — |
+| `maya-819-gmt2` | Maya 819-day count (GMT+2, 584285) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | direction ×4, colour ×4 | — |
+| `maya-haab` | Maya haab (GMT, 584283) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | month ×19 | yes |
+| `maya-haab-584286` | Maya haab (Martin and Skidmore, 584286) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | month ×19 | yes |
+| `maya-haab-gmt2` | Maya haab (GMT+2, 584285) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | month ×19 | yes |
+| `maya-longcount` | Maya long count (GMT, 584283) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-11 | 4772-10-12 | no | no | midnight | — | none | — |
+| `maya-longcount-584286` | Maya long count (Martin and Skidmore, 584286) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-14 | 4772-10-15 | no | no | midnight | — | none | — |
+| `maya-longcount-gmt2` | Maya long count (GMT+2, 584285) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-13 | 4772-10-14 | no | no | midnight | — | none | — |
+| `maya-round` | Maya Calendar Round (GMT, 584283) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-11 | 4772-10-12 | no | no | midnight | — | trecena ×13, day-sign ×20, month ×19 | yes |
+| `maya-round-584286` | Maya Calendar Round (Martin and Skidmore, 584286) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-14 | 4772-10-15 | no | no | midnight | — | trecena ×13, day-sign ×20, month ×19 | yes |
+| `maya-round-gmt2` | Maya Calendar Round (GMT+2, 584285) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-13 | 4772-10-14 | no | no | midnight | — | trecena ×13, day-sign ×20, month ×19 | yes |
+| `maya-tzolkin` | Maya tzolk'in (GMT, 584283) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | trecena ×13, day-sign ×20 | — |
+| `maya-tzolkin-584286` | Maya tzolk'in (Martin and Skidmore, 584286) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | trecena ×13, day-sign ×20 | — |
+| `maya-tzolkin-gmt2` | Maya tzolk'in (GMT+2, 584285) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | trecena ×13, day-sign ×20 | — |
 | `meyer-palmen` | Meyer–Palmen Solilunar | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | -10985-04-09 | +16375-04-05 | no | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `modified-julian-day` | Modified Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | none | — |
 | `modified-julian-day-2000` | Modified Julian Day 2000 (ESA) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | none | — |

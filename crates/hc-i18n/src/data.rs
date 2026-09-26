@@ -581,7 +581,7 @@ const KO_CHINESE_TEMPLATES: DateTemplates = DateTemplates {
 // every locale below: `zh.xml` for `zh-Hans`, `zh_Hant.xml` for `zh-Hant`,
 // and the file of the same tag for the rest. Keyed to the registry: CLDR's
 // `gregorian` is `gregory`, its `iso8601` is `iso8601-week`, its `persian`
-// serves both `persian` and `persian-arithmetic`, and its `islamic-civil`,
+// is `persian` and, qualified, `persian-arithmetic` (below), and its `islamic-civil`,
 // `islamic-tbla`, `islamic-umalqura` and `islamic-rgsa` are the registry's
 // own. CLDR's bare `islamic` names a tradition rather than one of the four
 // tabular and observational conventions here, and its
@@ -594,6 +594,26 @@ const KO_CHINESE_TEMPLATES: DateTemplates = DateTemplates {
 // Balinese, Yucatec Maya, Nahuatl and Mandaic, which have none or no file,
 // without a table. A calendar a locale has no CLDR name for is left
 // unnamed, never filled from another language [cldr48-calendar-names].
+//
+// No two calendars share a name in a locale: a reader choosing a calendar
+// from a list has to be able to tell them apart, and the facade's
+// `tests/distinct_names.rs` holds every locale to it. CLDR has one
+// `persian`, and the registry two calendars it could name: `persian`, the
+// equinox calendar of Iran in `hc-calendars-equinox`, to which the
+// documentation of `hc-calendars-solar`'s `persian` module says the CLDR
+// identifier belongs, and `persian-arithmetic`, that module's 2 820-year
+// cycle of Behruz and Birashk. `persian` keeps CLDR's name. For
+// `persian-arithmetic` CLDR gives no qualified form in any locale, and the
+// crate does not translate one: each locale's CLDR name for `persian`
+// carries the cycle's length, "(2820)", a number that needs no
+// translation, written as that locale's CLDR names write their own
+// qualifiers — after a space in parentheses, as "Hijri Calendar (Umm
+// al-Qura)"; with no space in Japanese and Korean, as
+// "イスラム暦(ウンム・アルクラー)"; in full-width parentheses in Chinese,
+// as "伊斯兰历（乌姆库拉）". The digits are ASCII in every script, as the
+// correlation numbers of the Maya counts are. English alone says what the
+// number is, "Persian Calendar (2820-year cycle)", in the words of
+// `docs/systems/solar-hijri.md`.
 
 const AM_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("buddhist", "የቡዲስት ቀን አቆጣጠር"),
@@ -609,7 +629,7 @@ const AM_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "ISO-8601 የቀን አቆጣጠር"),
     CalendarDisplayName::new("japanese", "የጃፓን የቀን አቆጣጠር"),
     CalendarDisplayName::new("persian", "የፐርሽያ የቀን አቆጣጠር"),
-    CalendarDisplayName::new("persian-arithmetic", "የፐርሽያ የቀን አቆጣጠር"),
+    CalendarDisplayName::new("persian-arithmetic", "የፐርሽያ የቀን አቆጣጠር (2820)"),
     CalendarDisplayName::new("roc", "የሚንጉ የቀን አቆጣጠር"),
 ];
 
@@ -629,7 +649,7 @@ const AR_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "تقويم ISO-8601"),
     CalendarDisplayName::new("japanese", "التقويم الياباني"),
     CalendarDisplayName::new("persian", "التقويم الفارسي"),
-    CalendarDisplayName::new("persian-arithmetic", "التقويم الفارسي"),
+    CalendarDisplayName::new("persian-arithmetic", "التقويم الفارسي (2820)"),
     CalendarDisplayName::new("roc", "تقويم مينجو"),
 ];
 
@@ -649,7 +669,7 @@ const BN_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "গ্রেগরীয় ক্যালেন্ডার (প্রথম বর্ষ)"),
     CalendarDisplayName::new("japanese", "জাপানি ক্যালেন্ডার"),
     CalendarDisplayName::new("persian", "ফারসি ক্যালেন্ডার"),
-    CalendarDisplayName::new("persian-arithmetic", "ফারসি ক্যালেন্ডার"),
+    CalendarDisplayName::new("persian-arithmetic", "ফারসি ক্যালেন্ডার (2820)"),
     CalendarDisplayName::new("roc", "মিঙ্গুও ক্যালেন্ডার"),
 ];
 
@@ -667,7 +687,7 @@ const CS_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "Kalendář ISO-8601"),
     CalendarDisplayName::new("japanese", "Japonský kalendář"),
     CalendarDisplayName::new("persian", "Perský kalendář"),
-    CalendarDisplayName::new("persian-arithmetic", "Perský kalendář"),
+    CalendarDisplayName::new("persian-arithmetic", "Perský kalendář (2820)"),
     CalendarDisplayName::new("roc", "Kalendář Čínské republiky"),
 ];
 
@@ -688,7 +708,7 @@ const DE_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "ISO-8601-Kalender"),
     CalendarDisplayName::new("japanese", "Japanischer Kalender"),
     CalendarDisplayName::new("persian", "Persischer Kalender"),
-    CalendarDisplayName::new("persian-arithmetic", "Persischer Kalender"),
+    CalendarDisplayName::new("persian-arithmetic", "Persischer Kalender (2820)"),
     CalendarDisplayName::new("roc", "Minguo-Kalender"),
 ];
 
@@ -711,7 +731,7 @@ const EN_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "Gregorian Calendar (ISO 8601 Weeks)"),
     CalendarDisplayName::new("japanese", "Japanese Calendar"),
     CalendarDisplayName::new("persian", "Persian Calendar"),
-    CalendarDisplayName::new("persian-arithmetic", "Persian Calendar"),
+    CalendarDisplayName::new("persian-arithmetic", "Persian Calendar (2820-year cycle)"),
     CalendarDisplayName::new("roc", "Minguo Calendar"),
 ];
 
@@ -729,7 +749,7 @@ const ES_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "calendario ISO-8601"),
     CalendarDisplayName::new("japanese", "calendario japonés"),
     CalendarDisplayName::new("persian", "calendario persa"),
-    CalendarDisplayName::new("persian-arithmetic", "calendario persa"),
+    CalendarDisplayName::new("persian-arithmetic", "calendario persa (2820)"),
     CalendarDisplayName::new("roc", "calendario de la República de China"),
 ];
 
@@ -749,7 +769,7 @@ const FA_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "تقویم ایزو ۸۶۰۱"),
     CalendarDisplayName::new("japanese", "تقویم ژاپنی"),
     CalendarDisplayName::new("persian", "تقویم هجری شمسی"),
-    CalendarDisplayName::new("persian-arithmetic", "تقویم هجری شمسی"),
+    CalendarDisplayName::new("persian-arithmetic", "تقویم هجری شمسی (2820)"),
     CalendarDisplayName::new("roc", "تقویم جمهوری چین (تایوان)"),
 ];
 
@@ -774,7 +794,7 @@ const FR_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "calendrier ISO 8601"),
     CalendarDisplayName::new("japanese", "calendrier japonais"),
     CalendarDisplayName::new("persian", "calendrier persan"),
-    CalendarDisplayName::new("persian-arithmetic", "calendrier persan"),
+    CalendarDisplayName::new("persian-arithmetic", "calendrier persan (2820)"),
     CalendarDisplayName::new("roc", "calendrier républicain chinois"),
 ];
 
@@ -794,7 +814,7 @@ const HE_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "לוח שנה ISO-8601"),
     CalendarDisplayName::new("japanese", "לוח השנה היפני"),
     CalendarDisplayName::new("persian", "לוח השנה הפרסי"),
-    CalendarDisplayName::new("persian-arithmetic", "לוח השנה הפרסי"),
+    CalendarDisplayName::new("persian-arithmetic", "לוח השנה הפרסי (2820)"),
     CalendarDisplayName::new("roc", "לוח השנה הטייוואני"),
 ];
 
@@ -812,7 +832,7 @@ const HI_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "आईएसओ-8601 कैलेंडर"),
     CalendarDisplayName::new("japanese", "जापानी पंचांग"),
     CalendarDisplayName::new("persian", "फ़ारसी कैलेंडर"),
-    CalendarDisplayName::new("persian-arithmetic", "फ़ारसी कैलेंडर"),
+    CalendarDisplayName::new("persian-arithmetic", "फ़ारसी कैलेंडर (2820)"),
     CalendarDisplayName::new("roc", "चीनी गणतंत्र पंचांग"),
 ];
 
@@ -832,7 +852,7 @@ const ID_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "Kalender ISO-8601"),
     CalendarDisplayName::new("japanese", "Kalender Jepang"),
     CalendarDisplayName::new("persian", "Kalender Persia"),
-    CalendarDisplayName::new("persian-arithmetic", "Kalender Persia"),
+    CalendarDisplayName::new("persian-arithmetic", "Kalender Persia (2820)"),
     CalendarDisplayName::new("roc", "Kalender Min-guo"),
 ];
 
@@ -850,7 +870,7 @@ const IT_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "Calendario ISO-8601"),
     CalendarDisplayName::new("japanese", "Calendario giapponese"),
     CalendarDisplayName::new("persian", "Calendario persiano"),
-    CalendarDisplayName::new("persian-arithmetic", "Calendario persiano"),
+    CalendarDisplayName::new("persian-arithmetic", "Calendario persiano (2820)"),
     CalendarDisplayName::new("roc", "Calendario minguo"),
 ];
 
@@ -868,7 +888,7 @@ const JA_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "ISO-8601"),
     CalendarDisplayName::new("japanese", "和暦"),
     CalendarDisplayName::new("persian", "ペルシア暦"),
-    CalendarDisplayName::new("persian-arithmetic", "ペルシア暦"),
+    CalendarDisplayName::new("persian-arithmetic", "ペルシア暦(2820)"),
     CalendarDisplayName::new("roc", "中華民国暦"),
 ];
 
@@ -889,7 +909,7 @@ const JV_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "Tanggalan ISO-8601"),
     CalendarDisplayName::new("japanese", "Tanggalan Jepang"),
     CalendarDisplayName::new("persian", "Tanggalan Persia"),
-    CalendarDisplayName::new("persian-arithmetic", "Tanggalan Persia"),
+    CalendarDisplayName::new("persian-arithmetic", "Tanggalan Persia (2820)"),
     CalendarDisplayName::new("roc", "Tanggalan Minguo"),
 ];
 
@@ -907,7 +927,7 @@ const KO_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "ISO-8601 달력"),
     CalendarDisplayName::new("japanese", "일본력"),
     CalendarDisplayName::new("persian", "페르시안력"),
-    CalendarDisplayName::new("persian-arithmetic", "페르시안력"),
+    CalendarDisplayName::new("persian-arithmetic", "페르시안력(2820)"),
     CalendarDisplayName::new("roc", "대만력"),
 ];
 
@@ -927,7 +947,7 @@ const ML_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "ഐഎസ്ഓ 8601 കലണ്ടർ"),
     CalendarDisplayName::new("japanese", "ജാപ്പനീസ് കലണ്ടർ"),
     CalendarDisplayName::new("persian", "പേർഷ്യൻ കലണ്ടർ"),
-    CalendarDisplayName::new("persian-arithmetic", "പേർഷ്യൻ കലണ്ടർ"),
+    CalendarDisplayName::new("persian-arithmetic", "പേർഷ്യൻ കലണ്ടർ (2820)"),
     CalendarDisplayName::new("roc", "മിംഗ്വോ കലണ്ടർ"),
 ];
 
@@ -945,7 +965,7 @@ const MY_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "ISO-8601 ပြက္ခဒိန်"),
     CalendarDisplayName::new("japanese", "ဂျပန် ပြက္ခဒိန်"),
     CalendarDisplayName::new("persian", "ပါရှား ပြက္ခဒိန်"),
-    CalendarDisplayName::new("persian-arithmetic", "ပါရှား ပြက္ခဒိန်"),
+    CalendarDisplayName::new("persian-arithmetic", "ပါရှား ပြက္ခဒိန် (2820)"),
     CalendarDisplayName::new("roc", "မင်ဂုအို ပြက္ခဒိန်"),
 ];
 
@@ -963,7 +983,7 @@ const NE_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "ISO-8601 पात्रो"),
     CalendarDisplayName::new("japanese", "जापानी पात्रो"),
     CalendarDisplayName::new("persian", "फारसी पात्रो"),
-    CalendarDisplayName::new("persian-arithmetic", "फारसी पात्रो"),
+    CalendarDisplayName::new("persian-arithmetic", "फारसी पात्रो (2820)"),
     CalendarDisplayName::new("roc", "चिनियाँ गणतन्त्रको पात्रो"),
 ];
 
@@ -983,7 +1003,7 @@ const NL_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "ISO-8601-kalender"),
     CalendarDisplayName::new("japanese", "Japanse kalender"),
     CalendarDisplayName::new("persian", "Perzische kalender"),
-    CalendarDisplayName::new("persian-arithmetic", "Perzische kalender"),
+    CalendarDisplayName::new("persian-arithmetic", "Perzische kalender (2820)"),
     CalendarDisplayName::new("roc", "Kalender van de Chinese Republiek"),
 ];
 
@@ -1012,7 +1032,7 @@ const PL_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "kalendarz ISO-8601"),
     CalendarDisplayName::new("japanese", "kalendarz japoński"),
     CalendarDisplayName::new("persian", "kalendarz perski"),
-    CalendarDisplayName::new("persian-arithmetic", "kalendarz perski"),
+    CalendarDisplayName::new("persian-arithmetic", "kalendarz perski (2820)"),
     CalendarDisplayName::new("roc", "kalendarz Republiki Chińskiej"),
 ];
 
@@ -1033,7 +1053,7 @@ const PT_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "Calendário ISO-8601"),
     CalendarDisplayName::new("japanese", "Calendário Japonês"),
     CalendarDisplayName::new("persian", "Calendário Persa"),
-    CalendarDisplayName::new("persian-arithmetic", "Calendário Persa"),
+    CalendarDisplayName::new("persian-arithmetic", "Calendário Persa (2820)"),
     CalendarDisplayName::new("roc", "Calendário da República da China"),
 ];
 
@@ -1056,7 +1076,7 @@ const RU_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "григорианский (сначала год)"),
     CalendarDisplayName::new("japanese", "японский календарь"),
     CalendarDisplayName::new("persian", "персидский календарь"),
-    CalendarDisplayName::new("persian-arithmetic", "персидский календарь"),
+    CalendarDisplayName::new("persian-arithmetic", "персидский календарь (2820)"),
     CalendarDisplayName::new("roc", "календарь Миньго"),
 ];
 
@@ -1076,7 +1096,7 @@ const SYR_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "ܣܘܪܓܕܐ ISO-8601"),
     CalendarDisplayName::new("japanese", "ܣܘܪܓܕܐ ܝܦܢܝܐ"),
     CalendarDisplayName::new("persian", "ܣܘܪܓܕܐ ܦܪܣܝܐ"),
-    CalendarDisplayName::new("persian-arithmetic", "ܣܘܪܓܕܐ ܦܪܣܝܐ"),
+    CalendarDisplayName::new("persian-arithmetic", "ܣܘܪܓܕܐ ܦܪܣܝܐ (2820)"),
     CalendarDisplayName::new("roc", "ܣܘܪܓܕܐ ܡܝܢܓܘ"),
 ];
 
@@ -1095,7 +1115,7 @@ const TA_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "கிரிகோரிய நாள்காட்டி"),
     CalendarDisplayName::new("japanese", "ஜப்பானிய நாள்காட்டி"),
     CalendarDisplayName::new("persian", "பாரசீக நாள்காட்டி"),
-    CalendarDisplayName::new("persian-arithmetic", "பாரசீக நாள்காட்டி"),
+    CalendarDisplayName::new("persian-arithmetic", "பாரசீக நாள்காட்டி (2820)"),
     CalendarDisplayName::new("roc", "மின்கோ நாள்காட்டி"),
 ];
 
@@ -1113,7 +1133,7 @@ const TH_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "ปฏิทิน ISO-8601"),
     CalendarDisplayName::new("japanese", "ปฏิทินญี่ปุ่น"),
     CalendarDisplayName::new("persian", "ปฏิทินเปอร์เชีย"),
-    CalendarDisplayName::new("persian-arithmetic", "ปฏิทินเปอร์เชีย"),
+    CalendarDisplayName::new("persian-arithmetic", "ปฏิทินเปอร์เชีย (2820)"),
     CalendarDisplayName::new("roc", "ปฏิทินไต้หวัน"),
 ];
 
@@ -1133,7 +1153,7 @@ const TR_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "ISO-8601 Takvimi"),
     CalendarDisplayName::new("japanese", "Japon Takvimi"),
     CalendarDisplayName::new("persian", "İran Takvimi"),
-    CalendarDisplayName::new("persian-arithmetic", "İran Takvimi"),
+    CalendarDisplayName::new("persian-arithmetic", "İran Takvimi (2820)"),
     CalendarDisplayName::new("roc", "Çin Cumhuriyeti Takvimi"),
 ];
 
@@ -1154,7 +1174,7 @@ const VI_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "Lịch ISO-8601"),
     CalendarDisplayName::new("japanese", "Lịch Nhật Bản"),
     CalendarDisplayName::new("persian", "Lịch Ba Tư"),
-    CalendarDisplayName::new("persian-arithmetic", "Lịch Ba Tư"),
+    CalendarDisplayName::new("persian-arithmetic", "Lịch Ba Tư (2820)"),
     CalendarDisplayName::new("roc", "Lịch Trung Hoa Dân Quốc"),
 ];
 
@@ -1179,7 +1199,7 @@ const ZH_HANS_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "国际标准历法"),
     CalendarDisplayName::new("japanese", "和历"),
     CalendarDisplayName::new("persian", "波斯历"),
-    CalendarDisplayName::new("persian-arithmetic", "波斯历"),
+    CalendarDisplayName::new("persian-arithmetic", "波斯历（2820）"),
     CalendarDisplayName::new("roc", "民国纪年"),
 ];
 
@@ -1199,7 +1219,7 @@ const ZH_HANT_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("iso8601-week", "ISO 8601 國際曆法"),
     CalendarDisplayName::new("japanese", "和曆"),
     CalendarDisplayName::new("persian", "波斯曆"),
-    CalendarDisplayName::new("persian-arithmetic", "波斯曆"),
+    CalendarDisplayName::new("persian-arithmetic", "波斯曆（2820）"),
     CalendarDisplayName::new("roc", "國曆"),
 ];
 

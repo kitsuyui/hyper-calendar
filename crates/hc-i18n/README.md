@@ -96,6 +96,22 @@ there. The table is checked for sortedness and uniqueness by a test.
   48's likely subtags give it, so `zh`, `zh-CN` and `zh-SG` resolve to the
   `zh-Hans` entry and `zh-TW`, `zh-HK` and `zh-MO` to `zh-Hant`, instead of
   falling to root's `M01`…`M12`.
+* **Calendar names** — what a locale calls a calendar,
+  `names::calendar_display_name` — are CLDR 48's
+  `localeDisplayNames/types/type[@key="calendar"]` at its `approved` and
+  `contributed` levels, keyed to the registry, and a calendar CLDR does not
+  name in a locale is left unnamed. No two registered calendars share a
+  name in a locale, nor in the English names the calendars declare
+  themselves (`CalendarMeta::english_name`); the facade's
+  `tests/distinct_names.rs` holds every locale to it. Where CLDR's one
+  name would serve two calendars, the one CLDR's identifier belongs to keeps
+  it and the other carries a qualifier that needs no translation: CLDR's
+  `persian` names `persian`, the equinox calendar, and `persian-arithmetic`,
+  the 2 820-year cycle, is that name followed by "(2820)", in parentheses as
+  the locale's own CLDR names write a qualifier (`ペルシア暦(2820)`,
+  `波斯历（2820）`), with ASCII digits in every script. No qualified form is
+  translated; English alone spells it out, "Persian Calendar (2820-year
+  cycle)". `data.rs` says so beside the tables.
 * **Bidi** follows UAX 9 §2.4 (isolates) and §P2–P3 (first-strong).
 * **Casing** follows the default case algorithms of The Unicode Standard 17.0
   §3.13 plus the Turkic tailoring of `SpecialCasing-17.0.0.txt` for `tr` and

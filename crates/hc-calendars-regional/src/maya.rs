@@ -60,6 +60,27 @@ pub const MARTIN_SKIDMORE_CORRELATION: i64 = 584_286;
 /// The fixed day of long count `0.0.0.0.0` under [`GMT_CORRELATION`].
 pub const EPOCH: Rd = Rd(GMT_CORRELATION - hc_calendar::fixed::JDN_OF_RD_ZERO);
 
+/// A count's English name under a correlation: the count, then the
+/// correlation as `docs/systems/mesoamerican-counts.md` and the constants
+/// above label it — its name and its constant, "GMT, 584283", "GMT+2,
+/// 584285", "Martin and Skidmore, 584286". The three calendars of a count
+/// are the same count read under three constants, so the correlation is
+/// what a reader choosing among them has to see. GMT is the initialism of
+/// Goodman–Martínez–Thompson, kept as the literature writes it.
+macro_rules! correlated_name {
+    ($count:literal, $correlation:expr) => {
+        match $correlation {
+            $crate::maya::GMT_PLUS_TWO_CORRELATION => concat!($count, " (GMT+2, 584285)"),
+            $crate::maya::MARTIN_SKIDMORE_CORRELATION => {
+                concat!($count, " (Martin and Skidmore, 584286)")
+            }
+            _ => concat!($count, " (GMT, 584283)"),
+        }
+    };
+}
+
+pub(crate) use correlated_name;
+
 /// Days in a tzolk'in cycle: 13 numbers by 20 day-names.
 pub const TZOLKIN_CYCLE: i64 = 260;
 
@@ -448,6 +469,12 @@ impl MayaLongCountCalendar {
             _ => CalendarId("maya-longcount"),
         }
     }
+
+    /// This calendar's English name, which names its correlation.
+    #[must_use]
+    pub const fn english_name(self) -> &'static str {
+        correlated_name!("Maya long count", self.correlation)
+    }
 }
 
 /// The cycles are anchored the same way as the long count: a correlation
@@ -461,7 +488,13 @@ impl MayaLongCountCalendar {
 /// ever one of the three: there is no constructor for any other. This macro
 /// writes the shared part.
 macro_rules! correlated {
-    ($calendar:ident, $gmt:literal, $plus_two:literal, $martin_skidmore:literal) => {
+    (
+        $calendar:ident,
+        $name:literal,
+        $gmt:literal,
+        $plus_two:literal,
+        $martin_skidmore:literal
+    ) => {
         impl Default for $calendar {
             fn default() -> Self {
                 Self::GMT
@@ -516,6 +549,12 @@ macro_rules! correlated {
                     _ => CalendarId($gmt),
                 }
             }
+
+            /// This calendar's English name, which names its correlation.
+            #[must_use]
+            pub const fn english_name(self) -> &'static str {
+                crate::maya::correlated_name!($name, self.correlation)
+            }
         }
     };
 }
@@ -530,6 +569,7 @@ pub struct MayaTzolkinCalendar {
 
 correlated!(
     MayaTzolkinCalendar,
+    "Maya tzolk'in",
     "maya-tzolkin",
     "maya-tzolkin-gmt2",
     "maya-tzolkin-584286"
@@ -543,6 +583,7 @@ pub struct MayaHaabCalendar {
 
 correlated!(
     MayaHaabCalendar,
+    "Maya haab",
     "maya-haab",
     "maya-haab-gmt2",
     "maya-haab-584286"
@@ -556,6 +597,7 @@ pub struct MayaCalendarRoundCalendar {
 
 correlated!(
     MayaCalendarRoundCalendar,
+    "Maya Calendar Round",
     "maya-round",
     "maya-round-gmt2",
     "maya-round-584286"
@@ -612,7 +654,7 @@ impl Calendar for MayaLongCountCalendar {
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: self.id(),
-            english_name: "Maya long count",
+            english_name: self.english_name(),
             year_kind: YearKind::EpochForward,
             has_leap_months: false,
             is_astronomical: false,
@@ -689,7 +731,7 @@ impl Calendar for MayaTzolkinCalendar {
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: self.id(),
-            english_name: "Maya tzolk'in",
+            english_name: self.english_name(),
             year_kind: YearKind::Astronomical,
             has_leap_months: false,
             is_astronomical: false,
@@ -765,7 +807,7 @@ impl Calendar for MayaHaabCalendar {
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: self.id(),
-            english_name: "Maya haab",
+            english_name: self.english_name(),
             year_kind: YearKind::Astronomical,
             has_leap_months: false,
             is_astronomical: false,
@@ -890,7 +932,7 @@ impl Calendar for MayaCalendarRoundCalendar {
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: self.id(),
-            english_name: "Maya Calendar Round",
+            english_name: self.english_name(),
             year_kind: YearKind::EpochForward,
             has_leap_months: false,
             is_astronomical: false,
@@ -1149,6 +1191,41 @@ mod correlation_tests {
                 calendar.correlation()
             );
         }
+    }
+
+    /// The three calendars of each count are told apart by name, and the
+    /// name says which constant: a list of calendars shows a reader
+    /// "Maya long count (GMT+2, 584285)", not three "Maya long count"s.
+    #[test]
+    fn each_constant_names_its_calendars() {
+        let names = MayaLongCountCalendar::ALL.map(|calendar| calendar.meta().english_name);
+        assert_eq!(
+            names,
+            [
+                "Maya long count (GMT, 584283)",
+                "Maya long count (GMT+2, 584285)",
+                "Maya long count (Martin and Skidmore, 584286)",
+            ]
+        );
+        for (calendar, suffix) in MayaLongCountCalendar::ALL.into_iter().zip([
+            " (GMT, 584283)",
+            " (GMT+2, 584285)",
+            " (Martin and Skidmore, 584286)",
+        ]) {
+            for name in [
+                MayaTzolkinCalendar::beside(calendar).meta().english_name,
+                MayaHaabCalendar::beside(calendar).meta().english_name,
+                MayaCalendarRoundCalendar::beside(calendar)
+                    .meta()
+                    .english_name,
+            ] {
+                assert!(name.ends_with(suffix), "{name}");
+            }
+        }
+        assert_eq!(
+            MayaHaabCalendar::GMT_PLUS_TWO.meta().english_name,
+            "Maya haab (GMT+2, 584285)"
+        );
     }
 
     /// Martin and Skidmore: the Poco Uinic eclipse of 16 July 790 (Julian),
