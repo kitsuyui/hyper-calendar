@@ -617,6 +617,35 @@ mod tests {
     }
 
     #[test]
+    fn the_raja_saka_opens_on_the_days_raigad_keeps() {
+        // The coronation is kept at Raigad on its tithi as well as on
+        // 6 June. Pudhari, 1 June 2023: the 350th Shivrajyabhishek "on
+        // Friday (2 June)", "by the tithi of the Marathi panchang"
+        // (`pudhari-shivrajyabhishek-2023`). ETV Bharat, 27 June 2026: the
+        // 353rd held at Raigad "on Saturday (the 27th) by the tithi"
+        // (`etvbharat-shivrajyabhishek-2026`), a nija Jyeṣṭha, the adhika
+        // one having run from May. The ceremony's ordinal is the era's
+        // year, year 1 having opened at the coronation.
+        let era = RAJYABHISHEKA_SAKA;
+        for (year, (y, m, d)) in [(350, (2023, 6, 2)), (353, (2026, 6, 27))] {
+            let opening = era.new_year(year).expect("in range");
+            assert_eq!(opening, ymd(y, m, d), "{year}");
+            let lunar = AMANTA.from_fixed(opening).expect("in range");
+            assert_eq!(
+                (lunar.year, lunar.month, lunar.leap_month, lunar.day),
+                (year + 1_595, 3, false, 13)
+            );
+            assert_eq!(era.from_fixed(opening).map(|d| d.year), Ok(year));
+            assert_eq!(
+                era.from_fixed(Rd(opening.0 - 1)).map(|d| d.year),
+                Ok(year - 1)
+            );
+        }
+        let intercalary = AMANTA.from_fixed(ymd(2026, 6, 1)).expect("in range");
+        assert_eq!((intercalary.month, intercalary.leap_month), (3, true));
+    }
+
+    #[test]
     fn the_raja_saka_turns_at_jyeshtha_shukla_13() {
         let era = RAJYABHISHEKA_SAKA;
         let opening = era.new_year(351).expect("in range");
@@ -672,24 +701,38 @@ mod tests {
     fn the_saptarshi_year_keeps_sewell_and_dikshits_equations() {
         let era = SAPTARSHI;
         // Chaitra śukla 1 of Śaka 1946, 9 April 2024: Kali 5126 current,
-        // Saptarṣi 5126 − 26 = 5100.
+        // Saptarṣi 5126 − 26 = 5100. Rising Kashmir, 9 April 2024: Navreh
+        // "falls on April 9, 2024", "the beginning of a new century of
+        // Saptrishi Samvat 5100" (`risingkashmir-navreh-2024`); the Daily
+        // Excelsior of 10 February 2024 gives the same Navreh and day
+        // (`dailyexcelsior-saptrishi-5100`).
         let navreh = AMANTA.new_year(1_946).expect("in range");
         assert_eq!(navreh, ymd(2024, 4, 9));
         let date = era.from_fixed(navreh).expect("in range");
         assert_eq!((date.year, date.month, date.day), (5_100, 1, 1));
         assert_eq!(era.from_fixed(Rd(navreh.0 - 1)).map(|d| d.year), Ok(5_099));
-        for (rd, current_saka, christian) in [
+        // "Add 47 to the Saptarshi year to find the corresponding current
+        // Saka year, and 24–25 for the corresponding Christian year", the
+        // hundreds disregarded: 24 for a day from Chaitra to December, 25
+        // for one from January to the next Chaitra, the Christian year
+        // having turned while the Saptarṣi year had not.
+        for (rd, current_saka, christian_of_chaitra) in [
             (navreh, 1_947, 2_024),
+            (ymd(2025, 3, 1), 1_947, 2_024),
             (ymd(2025, 4, 1), 1_948, 2_025),
             (ymd(2027, 1, 10), 1_949, 2_026),
         ] {
             let year = era.from_fixed(rd).expect("in range").year;
             let laukika = saptarshi::laukika_year(year);
-            // "Add 47 to the Saptarshi year to find the corresponding
-            // current Saka year, and 24–25 for the corresponding Christian
-            // year", the hundreds disregarded.
             assert_eq!((laukika + 47) % 100, current_saka % 100);
-            assert_eq!((laukika + 24) % 100, christian % 100);
+            assert_eq!((laukika + 24) % 100, christian_of_chaitra % 100);
+            let (christian, _, _) = gregorian::from_fixed(rd).expect("a date");
+            let add = if christian == christian_of_chaitra {
+                24
+            } else {
+                25
+            };
+            assert_eq!((laukika + add) % 100, christian % 100, "{rd:?}");
         }
         let fields = Calendar::to_fields(&era, date).expect("fields");
         assert_eq!(
@@ -705,16 +748,33 @@ mod tests {
         assert_eq!(saptarshi::full_year_near(-1, 5_100), None);
     }
 
+    /// Every opening of `era`'s years in `range`, as fixed days.
+    fn openings(era: &LunarEra, range: core::ops::RangeInclusive<i64>) -> alloc::vec::Vec<i64> {
+        range
+            .filter_map(|year| era.new_year(year).ok().map(|day| day.0))
+            .collect()
+    }
+
+    /// The date on `rd` converts back, directly and through its fields.
+    fn round_trips(era: &LunarEra, rd: Rd) -> LunarEraDate {
+        let date = era.from_fixed(rd).expect("in range");
+        assert_eq!(era.to_fixed(date), Ok(rd), "{}: {date:?}", era.id);
+        let fields = Calendar::to_fields(era, date).expect("fields");
+        assert_eq!(Calendar::from_fields(era, &fields), Ok(date), "{}", era.id);
+        date
+    }
+
     #[test]
     fn every_day_of_three_years_converts_and_converts_back() {
         for era in ALL {
             let mut intercalary = alloc::vec::Vec::new();
-            for day in (ymd(2022, 11, 1).0..ymd(2025, 11, 1).0).step_by(crate::sweep_stride(3)) {
-                let rd = Rd(day);
-                let date = era.from_fixed(rd).expect("in range");
-                assert_eq!(era.to_fixed(date), Ok(rd), "{}: {date:?}", era.id);
-                let fields = Calendar::to_fields(era, date).expect("fields");
-                assert_eq!(Calendar::from_fields(era, &fields), Ok(date));
+            let (first, last) = (ymd(2022, 11, 1).0, ymd(2025, 11, 1).0 - 1);
+            let year = |day: i64| era.from_fixed(Rd(day)).expect("in range").year;
+            // Every day in a release build; in a debug one every third and
+            // each year's first day and the day before it.
+            let openings = openings(era, year(first)..=year(last));
+            for day in crate::sweep_days(first, last, 3, &openings) {
+                let date = round_trips(era, Rd(day));
                 if date.leap_month && !intercalary.contains(&date.year) {
                     intercalary.push(date.year);
                 }
@@ -725,6 +785,52 @@ mod tests {
             assert_eq!(Calendar::is_leap_year(era, intercalary[0]), Ok(true));
             assert_eq!(Calendar::is_leap_year(era, intercalary[0] + 1), Ok(false));
         }
+    }
+
+    /// Every year of `era` in the engine's range opens where `new_year`
+    /// says: its first day is in it and the day before in the year before;
+    /// in a release build both also convert back, directly and through
+    /// their fields, which a debug build leaves to the sweep above for the
+    /// time it takes.
+    fn every_year_boundary_of(era: &LunarEra) {
+        let meta = Calendar::meta(era);
+        let (first, last) = (
+            meta.earliest.expect("bounded"),
+            meta.latest.expect("bounded"),
+        );
+        let year = |day: Rd| era.from_fixed(day).expect("in range").year;
+        let mut count = 0;
+        let date = |day: i64| {
+            if cfg!(debug_assertions) {
+                era.from_fixed(Rd(day)).expect("in range")
+            } else {
+                round_trips(era, Rd(day))
+            }
+        };
+        for day in openings(era, year(first) + 1..=year(last)) {
+            let opening = date(day);
+            let eve = date(day - 1);
+            assert_eq!(eve.year + 1, opening.year, "{}: {opening:?}", era.id);
+            assert_eq!(era.new_year(opening.year), Ok(Rd(day)));
+            count += 1;
+        }
+        // Chaitra 1700 to March 2300: some six hundred years.
+        assert!(count >= 598, "{}: {count}", era.id);
+    }
+
+    #[test]
+    fn every_gujarati_year_opens_on_its_day() {
+        every_year_boundary_of(&VIKRAM_SAMVAT_KARTIKADI);
+    }
+
+    #[test]
+    fn every_raja_saka_year_opens_on_its_day() {
+        every_year_boundary_of(&RAJYABHISHEKA_SAKA);
+    }
+
+    #[test]
+    fn every_saptarshi_year_opens_on_its_day() {
+        every_year_boundary_of(&SAPTARSHI);
     }
 
     #[test]

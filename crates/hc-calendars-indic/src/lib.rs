@@ -68,7 +68,7 @@
 //!
 //! The amānta lunisolar calendar is the one festival dates are stated in
 //! across most of India and the one the national almanac carries; the
-//! pūrṇimānta form is the north's naming of the same days; the four solar
+//! pūrṇimānta form is the north's naming of the same days; the five solar
 //! reckonings are the civil calendars of the south, the east and the
 //! north-west; the Bikram Sambat is Nepal's. What is still to come — the
 //! Odia Amli and Vilayati years with their solar months, the Bikram
@@ -100,6 +100,31 @@ extern crate alloc;
 #[cfg(test)]
 pub(crate) const fn sweep_stride(sampled: usize) -> usize {
     if cfg!(debug_assertions) { sampled } else { 1 }
+}
+
+/// The fixed days of a sweep from `first` to `last`, both included: every
+/// day in a release build; in a debug build every `sampled`th day and, so
+/// that the sample cannot pass over a year boundary, each day of
+/// `openings` and the day before it, the first and last days of a year.
+#[cfg(all(test, feature = "alloc"))]
+pub(crate) fn sweep_days(
+    first: i64,
+    last: i64,
+    sampled: usize,
+    openings: &[i64],
+) -> alloc::vec::Vec<i64> {
+    let mut days: alloc::vec::Vec<i64> = (first..=last).step_by(sweep_stride(sampled)).collect();
+    if cfg!(debug_assertions) {
+        days.extend(
+            openings
+                .iter()
+                .flat_map(|&day| [day - 1, day])
+                .filter(|day| (first..=last).contains(day)),
+        );
+        days.sort_unstable();
+        days.dedup();
+    }
+    days
 }
 
 pub mod barhaspatya;
