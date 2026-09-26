@@ -32,6 +32,20 @@
 //! fifteenth day only about half the time, and 中秋の名月 can be a day or two
 //! off. That is not an error in this crate or in the tradition; the
 //! observance is dated by the calendar, not by the sky.
+//!
+//! # 伝統的七夕
+//!
+//! The National Astronomical Observatory's 伝統的七夕 is the old 七夕,
+//! the seventh day of the seventh month, restated without a lunisolar
+//! calendar: the seventh day counted from the day holding the new moon
+//! nearest 処暑, on or before the day holding 処暑 itself — "処暑を含む日か
+//! それよりも前で、処暑に最も近い朔の瞬間を含む日から数えて7日目"
+//! (国立天文台, よくある質問 3-10, `nao-faq-tanabata`,
+//! <https://www.nao.ac.jp/faq/a0310.html>, retrieved 2026-09-26). The new
+//! moon's day is the first of the seven, so the day is six after it.
+//! [`traditional_tanabata`] reproduces the forty dates the page gives for
+//! 2011–2050 at [`Meridian::JAPAN`]; the rule and its worked example are in
+//! `docs/systems/solar-term-counts.md`.
 
 use hc_astro::lunar::{MoonPhase, lunar_illuminated_fraction, lunar_phase, moon_phase_at_or_after};
 use hc_astro::new_moon_before;
@@ -412,11 +426,104 @@ pub fn thirteenth_night(year: i64, meridian: Meridian) -> Option<Rd> {
     ordinary_date_in_gregorian_year(year, 9, 13, meridian)
 }
 
+/// 処暑, the solar term at 150°, which 伝統的七夕 is counted from.
+const END_OF_HEAT: crate::SolarTerm = match crate::SolarTerm::from_degrees(150) {
+    Some(term) => term,
+    None => crate::SolarTerm::AUTUMN_EQUINOX,
+};
+
+/// 伝統的七夕, the National Astronomical Observatory's traditional
+/// Tanabata: the seventh day counted from the day holding the new moon
+/// nearest 処暑, on or before the day holding 処暑.
+///
+/// The days are read at `meridian`; the Observatory's are
+/// [`Meridian::JAPAN`]'s. It falls between late July and the end of
+/// August — 10 August 2024, 29 August 2025, 19 August 2026.
+#[must_use]
+pub fn traditional_tanabata(year: i64, meridian: Meridian) -> Rd {
+    let end_of_heat = crate::solar_terms::term_day(year, END_OF_HEAT, meridian);
+    // The last new moon before the midnight that ends 処暑's day.
+    let new_moon = new_moon_before(meridian.midnight(Rd(end_of_heat.0 + 1)));
+    Rd(meridian.day_of(new_moon).0 + 6)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::gregorian::from_year_month_day;
     use hc_astro::lunar::MEAN_SYNODIC_MONTH;
+
+    /// Every date of the National Astronomical Observatory's table,
+    /// 2011–2050 (よくある質問 3-10).
+    #[test]
+    fn the_traditional_tanabata_falls_on_the_observatorys_forty_dates() {
+        let table: [(i64, u8, u8); 40] = [
+            (2011, 8, 6),
+            (2012, 8, 24),
+            (2013, 8, 13),
+            (2014, 8, 2),
+            (2015, 8, 20),
+            (2016, 8, 9),
+            (2017, 8, 28),
+            (2018, 8, 17),
+            (2019, 8, 7),
+            (2020, 8, 25),
+            (2021, 8, 14),
+            (2022, 8, 4),
+            (2023, 8, 22),
+            (2024, 8, 10),
+            (2025, 8, 29),
+            (2026, 8, 19),
+            (2027, 8, 8),
+            (2028, 8, 26),
+            (2029, 8, 16),
+            (2030, 8, 5),
+            (2031, 8, 24),
+            (2032, 8, 12),
+            (2033, 8, 1),
+            (2034, 8, 20),
+            (2035, 8, 10),
+            (2036, 8, 28),
+            (2037, 8, 17),
+            (2038, 8, 7),
+            (2039, 8, 26),
+            (2040, 8, 14),
+            (2041, 8, 3),
+            (2042, 8, 22),
+            (2043, 8, 11),
+            (2044, 7, 31),
+            (2045, 8, 19),
+            (2046, 8, 8),
+            (2047, 8, 27),
+            (2048, 8, 16),
+            (2049, 8, 5),
+            (2050, 8, 23),
+        ];
+        for (year, month, day) in table {
+            assert_eq!(
+                traditional_tanabata(year, JAPAN),
+                from_year_month_day(year, month, day),
+                "伝統的七夕 of {year}"
+            );
+        }
+    }
+
+    #[test]
+    fn the_traditional_tanabata_is_the_seventh_day_from_a_new_moon_before_the_end_of_heat() {
+        for year in 1990..2100 {
+            let day = traditional_tanabata(year, JAPAN);
+            let end_of_heat = crate::solar_terms::term_day(year, END_OF_HEAT, JAPAN);
+            // The new moon's day is on or before 処暑's, and less than a
+            // lunation before it.
+            let new_moon_day = day.0 - 6;
+            assert!(new_moon_day <= end_of_heat.0, "{year}");
+            assert!(end_of_heat.0 - new_moon_day < 30, "{year}");
+            assert!(
+                matches!(phase_name(Rd(new_moon_day), JAPAN), PhaseName::NewMoon),
+                "{year}"
+            );
+        }
+    }
 
     const JAPAN: Meridian = Meridian::JAPAN;
 

@@ -25,8 +25,10 @@ This README summarises both and states the crate's own facts.
 | `zassetsu` | 節分, 彼岸, 社日, 八十八夜, 入梅, 半夏生, 土用 + 丑の日, 二百十日, 二百二十日 |
 | `rokuyo` | 六曜: 先勝 友引 先負 仏滅 大安 赤口 |
 | `san_fu` | 三伏 (初伏, 中伏, 末伏) counted in 庚 days from the summer solstice and 立秋, and 數九, the nine nines from the winter solstice |
+| `cold_food` | 寒食, the Cold Food Day, one convention per reckoning: 105 days after the winter solstice, the eve of 清明 after 1645, and Korea's 한식 |
 | `quarter_days` | the quarter days and term days of England and Wales, Ireland and Scotland, traditional and under the 1990 Act |
-| `moon_calendar` | phase names, 月齢, illuminated fraction, a month's four principal phases, 十五夜, 十三夜 |
+| `dog_days` | the European dog days, one convention per source: *The Old Farmer's Almanac*'s 3 July to 11 August and the *Hundstage* of 23 July to 23 August |
+| `moon_calendar` | phase names, 月齢, illuminated fraction, a month's four principal phases, 十五夜, 十三夜, and the National Astronomical Observatory's 伝統的七夕 |
 | `seasons` | astronomical, meteorological and East Asian seasons |
 | `zodiac` | 黄道十二宮: the tropical Western signs, the sidereal rāśi with the ayanamsa, the Indian solar months, and the Chinese 十二次 |
 | `lunisolar` | a minimal month/day derivation for 六曜 and the moon-viewing nights — see Known gaps |
@@ -141,7 +143,11 @@ fixed list could be right everywhere at once.
   **equinox-day table** against the 暦要項.
 * **土用の丑の日** is checked against the published eel days for 2023–2025,
   two of which had a 二の丑.
-* **中秋の名月 and 十三夜** against the published dates for 2020–2025.
+* **中秋の名月 and 十三夜** against the published dates for 2020–2025, and
+  **伝統的七夕** against the forty dates the Observatory gives for 2011–2050.
+* **한식** against the Korea Astronomy and Space Science Institute's dates
+  for 2024–2026, which settle that the 105 days are counted after the
+  solstice's day (`docs/systems/solar-term-counts.md`).
 * **Lunar new year** for 2015–2026, which every almanac agrees about, anchors
   the lunisolar derivation.
 
@@ -295,6 +301,11 @@ document, with keys in `docs/references.bib`. The rest of the crate cites:
 * The Term and Quarter Days (Scotland) Act 1990 and the Removal Terms
   (Scotland) Act 1886, on legislation.gov.uk, for the Scottish days in
   `quarter_days`.
+* The Korea Astronomy and Space Science Institute's 월력요항, the
+  Observatory's よくある質問 3-10, *The Old Farmer's Almanac* and
+  MeteoSchweiz, for `cold_food`, 伝統的七夕 and `dog_days`; they are listed
+  in [`docs/systems/solar-term-counts.md`](../../docs/systems/solar-term-counts.md)
+  and the module pages.
 
 ## Testing
 

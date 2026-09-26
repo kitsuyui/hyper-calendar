@@ -397,14 +397,22 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-30 tables, feature `holiday`.
+43 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
 | `bahai` | Bahá'í Faith | 15 |
 | `buddhist-east-asian` | Buddhism (East Asian) | 4 |
 | `buddhist-thai` | Buddhism (Thai Theravāda) | 4 |
-| `chinese-folk` | Chinese folk tradition | 11 |
+| `buddhist-tibetan` | Buddhism (Tibetan) | 5 |
+| `buddhist-uposatha-thai` | Buddhism (Thai uposatha days) | 4 |
+| `chaharshanbe-suri` | Chaharshanbe Suri | 1 |
+| `chinese-folk` | Chinese folk tradition | 14 |
+| `chinese-xiaonian-jiangnan` | Little New Year (Jiangnan, Fujian and Taiwan) | 1 |
+| `chinese-xiaonian-nanjing` | Little New Year (Nanjing) | 1 |
+| `chinese-xiaonian-north` | Little New Year (north) | 1 |
+| `chinese-xiaonian-south` | Little New Year (south) | 1 |
+| `chinese-xiaonian-southwest` | Little New Year (south-west) | 1 |
 | `christian-armenian` | Armenian Apostolic Church (Gregorian calendar) | 16 |
 | `christian-armenian-jerusalem` | Armenian Apostolic Church (Patriarchate of Jerusalem, Julian calendar) | 16 |
 | `christian-orthodox` | Christianity (Julian computus) | 18 |
@@ -414,17 +422,22 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `ember-bcp1662` | Ember and Rogation Days (Book of Common Prayer, 1662) | 15 |
 | `ember-common-worship` | Ember and Rogation Days (Common Worship, traditional weeks) | 15 |
 | `ethiopian-orthodox` | Ethiopian Orthodox Tewahedo | 14 |
+| `gosekku` | The five seasonal festivals of Japan (五節句) | 5 |
 | `hindu` | Hinduism | 19 |
 | `islamic` | Islam | 10 |
 | `jain` | Jainism | 23 |
 | `jewish` | Judaism | 21 |
+| `korean-folk` | Korean folk days | 11 |
 | `kyuchu-saishi` | Imperial court rites (宮中祭祀) | 60 |
 | `mandaean` | Mandaean feasts | 20 |
+| `plough-days` | Plough Monday, Plough Sunday and Distaff Day | 3 |
 | `rogation-roman-1960` | Rogation Days (Roman Rite, Code of Rubrics of 1960) | 4 |
 | `roman-general` | General Roman Calendar | 232 |
 | `samaritan` | Samaritan festivals | 6 |
 | `shinto` | Shinto | 5 |
 | `sikh-nanakshahi-2003` | Sikhism (Nanakshahi calendar of 2003) | 39 |
+| `taoist` | Taoism | 5 |
+| `vietnamese-folk` | Vietnamese folk days | 10 |
 | `wheel-of-the-year` | Wheel of the Year | 8 |
 | `wheel-of-the-year-south` | Wheel of the Year (southern hemisphere) | 8 |
 | `yazidi` | Yazidi feasts | 12 |

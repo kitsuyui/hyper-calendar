@@ -7,13 +7,17 @@ use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::hindu::THAIPUSAM;
 use hc_holiday::rule::{Confidence, Kind, Rule, RuleSet};
 use hc_holiday::traditions::{
-    self, BAHAI, BUDDHIST_EAST_ASIAN, BUDDHIST_THAI, CHINESE_FOLK, CHRISTIAN_ARMENIAN,
+    self, BAHAI, BUDDHIST_EAST_ASIAN, BUDDHIST_THAI, BUDDHIST_TIBETAN, BUDDHIST_UPOSATHA_THAI,
+    CHAHARSHANBE_SURI, CHINESE_FOLK, CHINESE_XIAONIAN_JIANGNAN, CHINESE_XIAONIAN_NANJING,
+    CHINESE_XIAONIAN_NORTH, CHINESE_XIAONIAN_SOUTH, CHINESE_XIAONIAN_SOUTHWEST, CHRISTIAN_ARMENIAN,
     CHRISTIAN_ARMENIAN_JERUSALEM, CHRISTIAN_ORTHODOX, CHRISTIAN_ORTHODOX_REVISED_JULIAN,
     CHRISTIAN_WESTERN, COPTIC_ORTHODOX, EMBER_BCP1662, EMBER_COMMON_WORSHIP, ETHIOPIAN_ORTHODOX,
-    HINDU, ISLAMIC, JAIN, JEWISH, KYUCHU_SAISHI, MANDAEAN, ROGATION_ROMAN_1960, SAMARITAN, SHINTO,
-    SIKH_NANAKSHAHI_2003, WHEEL_OF_THE_YEAR, WHEEL_OF_THE_YEAR_SOUTH, YAZIDI, ZOROASTRIAN_FASLI,
-    ZOROASTRIAN_QADIMI, ZOROASTRIAN_SHAHANSHAHI,
+    GOSEKKU, HINDU, ISLAMIC, JAIN, JEWISH, KOREAN_FOLK, KYUCHU_SAISHI, MANDAEAN, PLOUGH_DAYS,
+    ROGATION_ROMAN_1960, SAMARITAN, SHINTO, SIKH_NANAKSHAHI_2003, TAOIST, VIETNAMESE_FOLK,
+    WHEEL_OF_THE_YEAR, WHEEL_OF_THE_YEAR_SOUTH, YAZIDI, ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI,
+    ZOROASTRIAN_SHAHANSHAHI,
 };
+use hc_seasons::ColdFoodConvention;
 use hc_seasons::Meridian;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
@@ -1348,5 +1352,391 @@ fn the_armenian_year_in_etchmiadzin_and_in_jerusalem() {
                 }
             }
         }
+    }
+}
+
+/// The date `name` falls on in `year` in `set`, when it falls once.
+fn only_date(set: &RuleSet, year: i64, name: &str) -> Option<Rd> {
+    let calendar = HolidayCalendar::for_year(set, None, year);
+    let mut dates = calendar
+        .all()
+        .iter()
+        .filter(|holiday| holiday.name == name)
+        .map(|holiday| holiday.date);
+    let first = dates.next();
+    assert!(dates.next().is_none(), "{} {year}: {name} twice", set.code);
+    first
+}
+
+#[test]
+fn the_chinese_folk_additions_fall_on_their_days() {
+    // 2025: 春節 29 January, 清明 4 April; 2026: 春節 17 February, 清明 5
+    // April.
+    expect(
+        &CHINESE_FOLK,
+        &[
+            (2025, 2, 4, "Human Day"),
+            (2025, 3, 31, "Shangsi Festival"),
+            (2025, 4, 3, "Cold Food Festival"),
+            (2026, 2, 23, "Human Day"),
+            (2026, 4, 19, "Shangsi Festival"),
+            (2026, 4, 4, "Cold Food Festival"),
+        ],
+    );
+    // 寒食 is the day before 清明 every year, the hc-seasons convention.
+    for year in 1950..=2100 {
+        assert_eq!(
+            only_date(&CHINESE_FOLK, year, "Cold Food Festival"),
+            Some(ColdFoodConvention::EveOfQingming.day(year)),
+            "{year}"
+        );
+        let qingming = only_date(&CHINESE_FOLK, year, "Qingming Festival");
+        let cold_food = only_date(&CHINESE_FOLK, year, "Cold Food Festival");
+        assert_eq!(qingming.map(|day| day.0 - 1), cold_food.map(|day| day.0));
+    }
+}
+
+#[test]
+fn the_little_new_year_is_one_table_per_region() {
+    // 新华社, 10 February 2026: "今天，腊月二十三是北方小年，明天，腊月二十四是
+    // 南方小年". 除夕 was 16 February 2026 and 元宵 3 March.
+    expect(
+        &CHINESE_XIAONIAN_NORTH,
+        &[(2026, 2, 10, "Little New Year (north)")],
+    );
+    expect(
+        &CHINESE_XIAONIAN_SOUTH,
+        &[(2026, 2, 11, "Little New Year (south)")],
+    );
+    expect(
+        &CHINESE_XIAONIAN_JIANGNAN,
+        &[(2026, 2, 15, "Little New Year (Jiangnan, Fujian and Taiwan)")],
+    );
+    expect(
+        &CHINESE_XIAONIAN_NANJING,
+        &[(2026, 3, 3, "Little New Year (Nanjing)")],
+    );
+    expect(
+        &CHINESE_XIAONIAN_SOUTHWEST,
+        &[(2026, 2, 16, "Little New Year (south-west)")],
+    );
+    // 2025: 腊月廿三 of 甲辰 was 22 January, 除夕 28 January.
+    expect(
+        &CHINESE_XIAONIAN_NORTH,
+        &[(2025, 1, 22, "Little New Year (north)")],
+    );
+    expect(
+        &CHINESE_XIAONIAN_SOUTHWEST,
+        &[(2025, 1, 28, "Little New Year (south-west)")],
+    );
+    // The south's is the day after the north's, and the south-west's the
+    // folk table's 除夕.
+    for year in 1950..=2100 {
+        let north = only_date(&CHINESE_XIAONIAN_NORTH, year, "Little New Year (north)");
+        let south = only_date(&CHINESE_XIAONIAN_SOUTH, year, "Little New Year (south)");
+        assert_eq!(north.map(|day| day.0 + 1), south.map(|day| day.0), "{year}");
+        assert_eq!(
+            only_date(
+                &CHINESE_XIAONIAN_SOUTHWEST,
+                year,
+                "Little New Year (south-west)"
+            ),
+            only_date(&CHINESE_FOLK, year, "Chinese New Year's Eve"),
+            "{year}"
+        );
+    }
+}
+
+#[test]
+fn the_taoist_days_fall_on_their_lunar_dates() {
+    // TVBS, 18 April 2025: 媽祖生日 on 農曆3月23日, 國曆4月20日.
+    expect(
+        &TAOIST,
+        &[
+            (2025, 4, 20, "Birthday of Mazu"),
+            (
+                2025,
+                2,
+                12,
+                "Upper Yuan Festival (birthday of the Official of Heaven)",
+            ),
+            (
+                2025,
+                9,
+                6,
+                "Middle Yuan Festival (birthday of the Official of Earth)",
+            ),
+            (2025, 10, 29, "Ascension of Mazu"),
+            (
+                2025,
+                12,
+                4,
+                "Lower Yuan Festival (birthday of the Official of Water)",
+            ),
+        ],
+    );
+    // 上元 and 中元 are the folk table's 元宵 and 中元.
+    for year in 1950..=2100 {
+        assert_eq!(
+            only_date(
+                &TAOIST,
+                year,
+                "Upper Yuan Festival (birthday of the Official of Heaven)"
+            ),
+            only_date(&CHINESE_FOLK, year, "Lantern Festival"),
+            "{year}"
+        );
+    }
+}
+
+#[test]
+fn the_korean_folk_days_are_where_the_korean_almanac_puts_them() {
+    // KASI's 월력요항 for 2024, 2025 and 2026: 한식 5 April, 5 April and
+    // 6 April; 단오 10 June, 31 May and 19 June; 칠석 10 August, 29 August
+    // and 19 August.
+    expect(
+        &KOREAN_FOLK,
+        &[
+            (2024, 4, 5, "Hansik"),
+            (2024, 6, 10, "Dano"),
+            (2024, 8, 10, "Chilseok"),
+            (2025, 4, 5, "Hansik"),
+            (2025, 5, 31, "Dano"),
+            (2025, 8, 29, "Chilseok"),
+            (2026, 4, 6, "Hansik"),
+            (2026, 6, 19, "Dano"),
+            (2026, 8, 19, "Chilseok"),
+            // 설날 2025 was 29 January, so 섣달그믐 the 28th and 대보름
+            // 12 February.
+            (2025, 1, 28, "Seotdal Geumeum"),
+            (2025, 2, 12, "Jeongwol Daeboreum"),
+        ],
+    );
+    let calendar = HolidayCalendar::for_year(&KOREAN_FOLK, None, 2025);
+    assert_eq!(calendar.all().len(), 11);
+    for holiday in calendar.all() {
+        assert!(!holiday.kind.is_day_off(), "{}", holiday.name);
+        assert_eq!(holiday.confidence, Confidence::Exact, "{}", holiday.name);
+    }
+    // 한식 is hc-seasons' convention of the same name, every year.
+    for year in 1950..=2100 {
+        assert_eq!(
+            only_date(&KOREAN_FOLK, year, "Hansik"),
+            Some(ColdFoodConvention::Hansik.day(year)),
+            "{year}"
+        );
+    }
+}
+
+#[test]
+fn the_vietnamese_folk_days_fall_on_their_lunar_dates() {
+    // Vietnam+, 15 January 2025: Ông Táo "vào thứ Tư, ngày 22/1/2025";
+    // VietNamNet, 28 September 2025: Trung Thu "thứ Hai, ngày 6/10".
+    expect(
+        &VIETNAMESE_FOLK,
+        &[
+            (2025, 1, 22, "Kitchen Gods' Day"),
+            (2025, 10, 6, "Mid-Autumn Festival"),
+            (2025, 3, 31, "Cold Food Festival"),
+            (2025, 5, 31, "Double Fifth Festival"),
+            (2025, 9, 6, "Vu Lan (Ghost Festival)"),
+        ],
+    );
+    let calendar = HolidayCalendar::for_year(&VIETNAMESE_FOLK, None, 2025);
+    for holiday in calendar.all() {
+        assert!(!holiday.kind.is_day_off(), "{}", holiday.name);
+    }
+}
+
+#[test]
+fn the_five_sekku_are_on_their_gregorian_dates_from_1873() {
+    expect(
+        &GOSEKKU,
+        &[
+            (2026, 1, 7, "Jinjitsu (Festival of Seven Herbs)"),
+            (2026, 3, 3, "Joshi (Peach Festival)"),
+            (2026, 5, 5, "Tango (Iris Festival)"),
+            (2026, 7, 7, "Tanabata (Bamboo Festival)"),
+            (2026, 9, 9, "Choyo (Chrysanthemum Festival)"),
+            (1873, 1, 7, "Jinjitsu (Festival of Seven Herbs)"),
+        ],
+    );
+    // Before 1873 they were lunar dates, which this table does not carry.
+    assert!(
+        HolidayCalendar::for_year(&GOSEKKU, None, 1872)
+            .all()
+            .is_empty()
+    );
+}
+
+#[test]
+fn the_tibetan_duchen_are_the_tibetan_nuns_projects_2024_dates() {
+    expect(
+        &BUDDHIST_TIBETAN,
+        &[
+            (2024, 2, 10, "Losar"),
+            (2024, 5, 23, "Saga Dawa Düchen"),
+            (2024, 6, 22, "Universal Prayer Day"),
+            (2024, 11, 22, "Lhabab Düchen"),
+        ],
+    );
+    // The list's Chökhor Düchen of 9 July 2024 is the first of two fourth
+    // days of the Phugpa leap month 6; the regular month's fourth is 8
+    // August. Neither the month nor the day is settled, so 2024 reports it
+    // as a gap, and gives neither date.
+    let calendar = HolidayCalendar::for_year(&BUDDHIST_TIBETAN, None, 2024);
+    assert_eq!(calendar.all().len(), 4);
+    assert!(
+        calendar
+            .gaps()
+            .iter()
+            .any(|gap| gap.name == "Chökhor Düchen" && gap.year == 2024)
+    );
+    assert!(calendar.on(ymd(2024, 7, 9)).is_empty());
+    assert!(calendar.on(ymd(2024, 8, 8)).is_empty());
+    // In 2025, a year with no leap month 6, it is dated.
+    assert!(
+        HolidayCalendar::for_year(&BUDDHIST_TIBETAN, None, 2025)
+            .all()
+            .iter()
+            .any(|holiday| holiday.name == "Chökhor Düchen")
+    );
+}
+
+#[test]
+fn a_skipped_or_repeated_tibetan_day_is_a_gap_and_not_a_guess() {
+    // Over half a century some of the five fall on a number the calendar
+    // skips or repeats; each such year reports that day as a gap and gives
+    // no date for it, and every other year gives exactly one.
+    let names = [
+        "Losar",
+        "Saga Dawa Düchen",
+        "Universal Prayer Day",
+        "Chökhor Düchen",
+        "Lhabab Düchen",
+    ];
+    let mut gaps = 0;
+    for year in 2000..=2050 {
+        let calendar = HolidayCalendar::for_year(&BUDDHIST_TIBETAN, None, year);
+        for name in names {
+            let dated = calendar
+                .all()
+                .iter()
+                .filter(|holiday| holiday.name == name)
+                .count();
+            let gap = calendar.gaps().iter().any(|gap| gap.name == name);
+            if gap {
+                gaps += 1;
+                assert_eq!(dated, 0, "{year} {name}: a gap and a date");
+            } else {
+                assert_eq!(dated, 1, "{year} {name}");
+            }
+        }
+    }
+    assert!(gaps > 0, "no skipped or repeated day in fifty years");
+}
+
+#[test]
+fn the_thai_uposatha_days_are_the_published_wan_phra_of_2025() {
+    // Thai PBS, "ปฏิทินวันพระ 2568": January, a month of 30 days, ends on
+    // แรม 15 ค่ำ on the 28th; February's month of 29 on แรม 14 ค่ำ on the
+    // 26th; the month 7 of June, 30 days in an adhikavāra year, on แรม 15
+    // ค่ำ on the 25th; and August's on แรม 14 ค่ำ on the 23rd.
+    let published: &[(u8, &[u8])] = &[
+        (1, &[6, 13, 21, 28]),
+        (2, &[5, 12, 20, 26]),
+        (4, &[5, 12, 20, 26]),
+        (5, &[4, 11, 19, 26]),
+        (6, &[3, 10, 18, 25]),
+        (7, &[3, 10, 18, 25]),
+        (8, &[2, 9, 17, 23, 31]),
+    ];
+    let calendar = HolidayCalendar::for_year(&BUDDHIST_UPOSATHA_THAI, None, 2025);
+    assert!(calendar.is_complete());
+    for (month, days) in published {
+        let found: Vec<Rd> = calendar
+            .all()
+            .iter()
+            .map(|holiday| holiday.date)
+            .filter(|date| gregorian::from_fixed(*date).is_ok_and(|(_, m, _)| m == *month))
+            .collect();
+        let expected: Vec<Rd> = days.iter().map(|day| ymd(2025, *month, *day)).collect();
+        assert_eq!(found, expected, "2025-{month:02}");
+    }
+    expect(
+        &BUDDHIST_UPOSATHA_THAI,
+        &[
+            (2025, 2, 26, "Uposatha (new moon)"),
+            (2025, 1, 28, "Uposatha (new moon)"),
+            (2025, 5, 11, "Uposatha (full moon)"),
+        ],
+    );
+    // Every full moon is the Buddhist table's where they share one.
+    for (month, day) in [(2, 12), (5, 11), (7, 10)] {
+        assert!(
+            calendar
+                .on(ymd(2025, month, day))
+                .iter()
+                .any(|holiday| holiday.name == "Uposatha (full moon)")
+        );
+    }
+    // Outside the published years, gaps.
+    let outside = HolidayCalendar::for_year(&BUDDHIST_UPOSATHA_THAI, None, 2030);
+    assert!(outside.all().is_empty());
+    assert!(!outside.is_complete());
+}
+
+#[test]
+fn plough_monday_follows_twelfth_day() {
+    expect(
+        &PLOUGH_DAYS,
+        &[
+            // 6 January 2025 was a Monday: Plough Monday the 13th.
+            (2025, 1, 13, "Plough Monday"),
+            (2025, 1, 12, "Plough Sunday"),
+            (2025, 1, 7, "Distaff Day"),
+            // 6 January 2026 was a Tuesday.
+            (2026, 1, 12, "Plough Monday"),
+            (2026, 1, 11, "Plough Sunday"),
+            // 6 January 2027 is a Wednesday: "In 2027 Plough Monday falls on
+            // Monday January 11th" (calendarcustoms.com).
+            (2027, 1, 11, "Plough Monday"),
+            // 6 January 2030 is a Sunday: Plough Sunday is the 13th, after
+            // Plough Monday on the 7th, which is also Distaff Day.
+            (2030, 1, 13, "Plough Sunday"),
+            (2030, 1, 7, "Plough Monday"),
+            (2030, 1, 7, "Distaff Day"),
+        ],
+    );
+    for year in 1800..=2100 {
+        let monday = only_date(&PLOUGH_DAYS, year, "Plough Monday").expect("every year");
+        let (_, month, day) = gregorian::from_fixed(monday).expect("in range");
+        assert_eq!(month, 1);
+        assert!((7..=13).contains(&day), "{year}");
+    }
+}
+
+#[test]
+fn chaharshanbe_suri_is_the_eve_of_the_last_wednesday_of_the_year() {
+    expect(
+        &CHAHARSHANBE_SURI,
+        &[
+            // Nowruz 1403 was Wednesday 20 March 2024: the year's last
+            // Wednesday was the 13th, its eve the 12th.
+            (2024, 3, 12, "Chaharshanbe Suri"),
+            (2025, 3, 18, "Chaharshanbe Suri"),
+            (2026, 3, 17, "Chaharshanbe Suri"),
+            (2027, 3, 16, "Chaharshanbe Suri"),
+        ],
+    );
+    for year in 1950..=2100 {
+        let day = only_date(&CHAHARSHANBE_SURI, year, "Chaharshanbe Suri").expect("every year");
+        assert_eq!(
+            hc_calendar::Weekday::from_rd(day),
+            hc_calendar::Weekday::Tuesday
+        );
+        let (_, month, date) = gregorian::from_fixed(day).expect("in range");
+        assert_eq!(month, 3, "{year}");
+        assert!((12..=20).contains(&date), "{year}: {date}");
     }
 }

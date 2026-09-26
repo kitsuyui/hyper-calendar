@@ -16,6 +16,9 @@
 extend-exclude = ["Cargo.lock"]
 
 [default.extend-words]
+# AKS, the Academy of Korean Studies, whose encyclopaedia (encykorea.aks.ac.kr)
+# is cited for the Korean folk days, and the key `aks-hansik`.
+aks = "aks"
 # The English ordinal suffix of "2nd", as a data entry in hc-humanize's
 # `natural` module.
 nd = "nd"

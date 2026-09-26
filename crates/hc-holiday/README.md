@@ -133,7 +133,7 @@ Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
 States, Uruguay, Uzbekistan, Vanuatu, Vatican City, Venezuela, Vietnam, Yemen,
 Zambia, Zimbabwe.
 
-**Thirty traditions.** Western Christianity on the Gregorian computus,
+**Forty-three traditions.** Western Christianity on the Gregorian computus,
 the General Roman Calendar with the rank of every celebration
 (`roman_calendar`), Orthodox Christianity with its fixed feasts on the
 Julian calendar and, as a second table, on the Revised Julian, the
@@ -149,10 +149,20 @@ on `mandaean`, the Yazidi feasts on the Eastern calendar, the Bahá'í Faith,
 Hinduism, Jainism (Paryuṣaṇa and Daśa Lakṣaṇa counted back from their last
 days), Sikhism on the Nanakshahi calendar of 2003 (`sikh-nanakshahi-2003`),
 Buddhism as Thailand dates its four holy days on `thai-lunar`
-(`buddhist-thai`) and as Japan and the Chinese calendar date the East Asian
-days (`buddhist-east-asian`), Chinese folk tradition, Shinto with the
+(`buddhist-thai`) and its uposatha days, แรม 14 or 15 ค่ำ by the month's
+length (`buddhist-uposatha-thai`), as Japan and the Chinese calendar date the
+East Asian days (`buddhist-east-asian`) and as the Tibetan calendar dates the
+*düchen* (`buddhist-tibetan`), a skipped or doubled day or month reported as
+a gap, Chinese folk tradition with 人日, 上巳 and 寒食, the Little New Year in
+five regional tables (`chinese-xiaonian-north`, `-south`, `-jiangnan`,
+`-nanjing`, `-southwest`), Taoism's three Yuan and Mazu's days (`taoist`),
+the Korean folk days on `dangi` with 한식 105 days after 동지
+(`korean-folk`), the Vietnamese on `vietnamese` (`vietnamese-folk`), Japan's
+五節句 on their Gregorian dates from 1873 (`gosekku`), Shinto with the
 imperial court rites beside it, the Wheel of the Year in both hemispheres,
-and the Zoroastrian schedule of feasts on each of its three reckonings.
+the Zoroastrian schedule of feasts on each of its three reckonings, Plough
+Monday, Plough Sunday and Distaff Day (`plough-days`), and Chaharshanbe Suri
+on `persian`, the eve of the year's last Wednesday (`chaharshanbe-suri`).
 
 Beside the tables, `computus` carries a third reckoning of Easter, the
 astronomical one at the meridian of Jerusalem that the World Council of

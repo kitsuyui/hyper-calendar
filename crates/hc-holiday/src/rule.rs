@@ -643,6 +643,13 @@ pub enum TibetanMonth {
     /// The leap month of this number, which a year without it does not
     /// have.
     Leap(u8),
+    /// The month of this number in a year that has it once. In a year that
+    /// repeats the number, which of the two months keeps the holiday is not
+    /// settled — Janson's "usually not celebrated in leap months" against
+    /// the Tibetan Nuns Project's Chökhor Düchen of 9 July 2024, in the
+    /// Phugpa leap month 6 — so a Gregorian year that either month reaches
+    /// is not answered, and reported as a gap.
+    Unrepeated(u8),
 }
 
 /// A lunar phase a [`Rule::LunarPhase`] can key to.
@@ -1811,6 +1818,33 @@ fn tibetan_days(
             TibetanMonth::Regular(number) => Month::regular(number),
             TibetanMonth::Leap(number) if leap_month == Some(number) => Month::leap(number),
             TibetanMonth::Leap(_) => continue,
+            TibetanMonth::Unrepeated(number) if leap_month == Some(number) => {
+                // The first and last calendar days of the two months: a
+                // number can be skipped, so the second and the twenty-ninth
+                // stand in for a missing first and thirtieth.
+                let bound = |copy: Month, days: [u8; 2]| {
+                    days.into_iter().find_map(|day| {
+                        calendar
+                            .date_to_fixed(TibetanDate {
+                                year: tibetan_year,
+                                month: copy,
+                                day,
+                                leap_day: false,
+                            })
+                            .ok()
+                    })
+                };
+                let copies = [Month::leap(number), Month::regular(number)];
+                let starts = copies.map(|copy| bound(copy, [1, 2]));
+                let ends = copies.map(|copy| bound(copy, [30, 29]));
+                let start = starts.into_iter().flatten().min()?;
+                let end = ends.into_iter().flatten().max()?;
+                if start <= last && first <= end {
+                    return None;
+                }
+                continue;
+            }
+            TibetanMonth::Unrepeated(number) => Month::regular(number),
         };
         let date = |day: u8, leap_day: bool| {
             calendar

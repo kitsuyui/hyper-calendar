@@ -167,6 +167,15 @@ later.
   `fortnight-day`; the module documentation gives the layout. The functions
   `makha_bucha`, `visakha_bucha`, `asalha_bucha` and `khao_phansa` give the
   holy days, and `hc-holiday` dates Thailand's public holidays on them.
+- **The uposatha days**, วันพระ, in `hc-holiday`'s `buddhist-uposatha-thai`:
+  ขึ้น 8 ค่ำ, ขึ้น 15 ค่ำ, แรม 8 ค่ำ, and the last day of the month, which is
+  แรม 15 ค่ำ in a month of 30 days and แรม 14 ค่ำ in one of 29, a เดือนขาด
+  (Wikipedia (th), "วันพระ"). The month's length is this calendar's, so an
+  adhikavāra year's month 7 ends on แรม 15 ค่ำ and each copy of an
+  adhikamāsa year's month 8 has its four days; Thai PBS's วันพระ of 2025,
+  which credits กรมการศาสนา, are reproduced for the months whose weekdays it
+  prints correctly [thaipbs-wanphra-2568], among them 25 June on แรม 15 ค่ำ
+  of the adhikavāra month 7 and 26 February and 23 August on แรม 14 ค่ำ.
 - **Year number** the Buddhist Era of the Gregorian year the year's Makha
   Bucha falls in. A year runs from ขึ้น 1 ค่ำ เดือนอ้าย, in November or
   December, to the end of month 12, so the number changes some weeks before
