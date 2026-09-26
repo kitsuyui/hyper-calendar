@@ -288,6 +288,21 @@ mod tests {
     }
 
     #[test]
+    fn new_year_refuses_the_ends_of_i64_instead_of_overflowing() {
+        for year in [i64::MIN, i64::MAX] {
+            assert_eq!(new_year(year), Err(CalendarError::YearOutOfRange));
+            assert_eq!(
+                ChineseCalendar.is_leap_year(year),
+                Err(CalendarError::YearOutOfRange)
+            );
+            assert_eq!(
+                ChineseCalendar.to_fixed(LunisolarDate::new(year, Month::regular(1), 1)),
+                Err(CalendarError::YearOutOfRange)
+            );
+        }
+    }
+
+    #[test]
     fn the_year_that_began_in_2024_is_jia_chen_the_wood_dragon() {
         let cycle = PARAMETERS.sexagenary_year(4_661);
         assert_eq!(cycle.stem_name(), "jia");

@@ -227,9 +227,10 @@ dated event in the Wikipedia articles is 正治2年閏2月11日 = 1200-03-27 Jul
 - **Year numbering**: the Gregorian year in which the lunisolar year begins,
   a convention of this library and labelled as one; the sexagenary year is
   the shared East Asian cycle. Nengō are not carried here.
-- **The meridian**: Kyoto local mean time, 135°46′E, for all five; a second
-  row for Japan Standard Time from 1888 exists only so that the table states
-  the whole history.
+- **The meridian**: Kyoto local mean time, 135°46′E, for all five, to the
+  end of 1872. Two further rows serve only the continuation past the
+  abolition, below: Tokyo time from 1873 and Japan Standard Time from
+  1888.
 - **Two parameter sets per pre-Tenpō system.** `PARAMETERS`, the default,
   takes the conjunction from `hc-astro` and everything else — the solstice,
   the 恒気 terms, the intercalation, 進朔 — from the system's own constants.
@@ -252,7 +253,26 @@ dated event in the Wikipedia articles is 正治2年閏2月11日 = 1200-03-27 Jul
   abolition. `UNBOUNDED_PARAMETERS` continues the same rule past 1872, which
   is what modern almanacs do and what the 旧暦 of 六曜 and 十五夜 is keyed to;
   it is not a historical calendar and is named so it cannot be mistaken for
-  one.
+  one. Its meridian after 1872 is the official almanacs': they printed the
+  old calendar beside the new until 明治42年暦 [nao-rekiwiki-meiji], and
+  their times were Tokyo's, about 9h19m01s east of Greenwich at the old
+  keep of Edo Castle, from 明治6年暦 to 明治20年暦, and the standard
+  meridian's from 明治21年暦, 1888 [nao-rekiwiki-meridian]. So the
+  continuation reckons 1873–1887 in Tokyo time and 1888 on in Japan
+  Standard Time. That is also the convention of the published code of
+  *Calendrical Calculations*, whose `japanese-location` is Tokyo before
+  1888 and 135°E from it [reingold2018code]; the code applies Tokyo to the
+  years before 1873 too, where the calendar was Kyoto's, and no source read
+  supports that for the Edo systems, so it gets no identifier of its own.
+  The choice moves no date: over 1873–1887 Kyoto and Tokyo time give the
+  same first day for every month. Over 1844–1872 they part in seven months,
+  the first beginning on 5 October 1850 at Kyoto and a day later at Tokyo
+  (`tokyo_time_after_the_reform_moves_no_month_and_would_have_before_it`).
+  The page does not say at which meridian the almanacs computed their old
+  calendar column, only their times; that the column followed the times is
+  this library's reading. 日本暦日原典 covers only 445 to 1872
+  [wikipedia-ja-nihon-rekijitsu-genten] and was not read, so it could not
+  settle the years after.
 - **Not carried:** 元嘉暦 (604–697), 儀鳳暦 (697–764), 大衍暦 (764–862) and
   五紀暦 (858–862, used alongside 大衍暦). The validation table begins in
   862, the adoption dates before it are uncertain by years
@@ -405,9 +425,9 @@ tests, so the trade is visible rather than asserted.
 | [nao-rekiwiki-tenpo] | 定朔、定気 and apparent solar time; 1844 to 1872; 選者 渋川景佑; the constants this library does not use | Yes, 2026-09-25 |
 | [nao-rekiwiki-shinsaku] | What 進朔 is for; the limit 6300 of 8400; its abolition in 授時暦 | Yes, 2026-09-25 |
 | [nao-rekiwiki-getsuri] | The lunar correction as (A − B)·sin *l* with A = 6.29°, B = 1.27°, peaking at 0.38 days | Yes, 2026-09-25 |
-| [nao-rekiwiki-meridian] | Kyoto as the reference meridian of the Edo calendars; Shibukawa's figures of 5刻 to 大都 and 7刻 to Chang'an | Yes, 2026-09-25 |
+| [nao-rekiwiki-meridian] | Kyoto as the reference meridian of the Edo calendars; Shibukawa's figures of 5刻 to 大都 and 7刻 to Chang'an; Tokyo time on the almanacs of 明治6年暦 to 明治20年暦, about 9h19m01s from Greenwich, and the standard meridian from 明治21年暦 | Yes, 2026-09-25; the Tokyo sections 2026-09-26 |
 | [nao-rekiwiki-history1] | The sequence 元嘉暦, 儀鳳暦, 大衍暦, 五紀暦; that their adoption dates are uncertain; 儀鳳暦's introduction of 定朔 | Yes, 2026-09-25 |
-| [nao-rekiwiki-meiji] | The decree of 明治5年11月9日; 布告第374号 and the unpaid twelfth month | Yes, 2026-09-25 |
+| [nao-rekiwiki-meiji] | The decree of 明治5年11月9日; 布告第374号 and the unpaid twelfth month; the old calendar printed beside the new to 明治42年暦 | Yes, 2026-09-25; re-read 2026-09-26 |
 | [wikipedia-ja-era-tables] | The 西暦との対照表 of every era article from 貞観 to 天保, the origin of the validation table; 貞享's row for 1685 | Yes; harvested for the table, and 貞享 re-read 2026-09-25 |
 | [uchida1975] | The reconstruction the era tables transcribe | Not read directly |
 | [wikipedia-ja-nihon-rekijitsu-genten] | Uchida's coverage, 445 to 1872, and editions | Yes, 2026-09-25 |
@@ -417,6 +437,7 @@ tests, so the trade is visible rather than asserted.
 | [wikipedia-ja-kansei] | 高橋至時 and 間重富, 麻田剛立's pupils; 暦象考成後編 and the ellipse for Sun and Moon | Yes, 2026-09-25 |
 | [wikipedia-ja-tenpo] | 渋川景佑; adoption 1844-02-18; 定気; the abolition | Yes, 2026-09-25 |
 | [wikipedia-ja-meiji-kaireki] | 太政官布告第337号; Ōkuma's account; the old calendar in almanacs to 1910 | Yes, 2026-09-25 |
+| [reingold2018code] | `japanese-location`: Tokyo, 139°46′E, before 1888 and 135°E from it | Yes, 2026-09-26 |
 | [reingold2018] | The lunisolar structure: the suì, month 11, the no-中気 rule, the sexagenary cycle | Not re-read for this document; the engine cites it |
 | [meeus1998] | The equation-of-centre amplitudes 1.9148°, 6.2886° and 1.2740° substituted for the Edo systems' tables | Not read for this document; the module cites it |
 

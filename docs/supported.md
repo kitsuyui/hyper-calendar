@@ -377,7 +377,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `SL` | Sierra Leone | 14 | yes | stated | 2026-09-26 |
 | `SM` | San Marino | 20 | none | stated | 2026-09-22 |
 | `SN` | Senegal | 16 | yes | stated | 2026-09-22 |
-| `SO` | Somalia | 10 | none | stated | 2026-09-26 |
+| `SO` | Somalia | 7 | none | stated | 2026-09-26 |
 | `SR` | Suriname | 16 | none | stated | 2026-09-23 |
 | `SS` | South Sudan | 11 | none | stated | 2026-09-26 |
 | `SV` | El Salvador | 14 | none | stated | 2026-09-23 |

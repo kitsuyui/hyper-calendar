@@ -595,7 +595,8 @@ mod tests {
 /// and so a caller who wants the exact article knows where to get it.
 ///
 /// It takes no meridian: the Tenpō calendar carries its own, Kyoto's
-/// 135°46′E before 1888 and Japan Standard Time's 135°E from then on.
+/// 135°46′E to 1872, the almanacs' Tokyo time for 1873–1887 and Japan
+/// Standard Time's 135°E from 1888 on.
 #[cfg(feature = "lunar")]
 #[must_use]
 pub fn exact_lunisolar_day(day: Rd) -> Option<LunisolarDay> {

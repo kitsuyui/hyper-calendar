@@ -53,7 +53,7 @@ Every entry point reports failure through its `HcStatus` alone, so an
 `int64_t` it writes has the whole of its range. There are no sentinels here:
 where the WebAssembly module has to refuse a day whose POSIX time would be at
 or below its `HC_ERR_FLOOR`, about 285 million years back, this library
-answers. What an entry point cannot hold it refuses rather than wraps or
+answers, as the section below explains. What an entry point cannot hold it refuses rather than wraps or
 clamps, and the only bounds that are not the calendar's own are where an
 `int64_t` runs out. The range each entry point with an `int64_t`
 out-parameter answers for:
@@ -80,6 +80,55 @@ out-parameter answers for:
 timestamp: the part-days at the two ends of the `int64_t` range, before
 −9 223 372 036 854 720 000 and from 9 223 372 036 854 720 000, begin or end
 where no `int64_t` reaches, and are `HC_ERROR_OUT_OF_RANGE`.
+
+### No floor here, a floor there: a deliberate difference
+
+The two interfaces answer different questions for the same far-past day,
+and that is by design, not drift.
+
+The WebAssembly module returns its answer and its error in the same `i64`:
+a value-returning export gives either the result or an `HC_ERR_*` sentinel,
+because a WebAssembly function has one return value and a trap would tear
+down the instance. So every sentinel sits at or below `HC_ERR_FLOOR`,
+−9 × 10¹⁵, and an export that answers in seconds must refuse a result that
+would reach it, or a binding would read the answer as an error. Its
+`hc_unix_from_fixed` and `hc_unix_from_fixed_in_zone` therefore refuse every
+day before fixed day −104 165 947 503, about 285 million years back, with
+`HC_ERR_OUT_OF_RANGE` ([its README](../hyper-calendar-wasm/README.md#ranges)).
+
+This library returns the error as an `HcStatus` and the answer through an
+out-parameter, so no value of the answer is reserved, and a floor would
+refuse days for no reason a C caller has. `hc_unix_from_fixed_in_zone` here
+answers down to where an `int64_t` runs out: by UTC, fixed day
+−106 751 990 448 137, about 292 billion years back. For the days from there
+to fixed day −104 165 947 504, this library writes a timestamp and the
+WebAssembly module refuses.
+
+The price of each choice is the other's benefit. Here, every call costs a
+status check and a pointer, and the whole `int64_t` range is usable; there,
+a call is one value, and every result at or below −9 × 10¹⁵ is given up,
+which for a count of seconds is everything before about 285 million years
+ago. A program that uses both and compares them should expect the
+WebAssembly module's refusal below its floor, and not read it as a
+disagreement.
+
+### `HC_ERROR_OVERFLOW` and `HC_ERROR_OUT_OF_RANGE` for an answer too large
+
+The entry points above that can be asked for an answer an `int64_t`
+cannot hold do not all say so with the same code:
+
+- `hc_tai_from_unix` reports `HC_ERROR_OVERFLOW` for a timestamp after
+  `INT64_MAX − 37`: the timestamp is valid, and adding TAI − UTC to it
+  leaves the range. `hc_tai_minus_utc` would report the same code on the
+  same path, though an offset in whole seconds never comes near it.
+- `hc_unix_from_fixed_in_zone` reports `HC_ERROR_OUT_OF_RANGE` for a day
+  whose start overflows, and `hc_day_has_leap_second` the same for the
+  part-days at the ends of the range.
+
+The status values are stable, so the difference is stated here rather than
+changed. For these entry points the two codes mean the same thing: the
+answer exists and is not an `int64_t`. A caller that needs to tell "too
+large to hold" from other failures should test for both.
 
 ## Lines and cells
 

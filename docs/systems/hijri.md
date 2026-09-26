@@ -209,6 +209,32 @@ observing place is a parameter: the book's sample location is Cairo, and
 module has a default site or criterion; each is named where it is
 chosen.
 
+**Months of 31 days.** Each evening is judged by itself, so a month whose
+first evening just clears the criterion and whose thirtieth evening just
+misses it runs to 31 days, and the prediction numbers its last day the
+31st. The published code keeps such months in its main observational
+calendar: `month-length` is typed `1..31`, and
+`fixed-from-observational-islamic` and `observational-islamic-from-fixed`
+count days from the last crescent without a cap. It also has alternatives
+that cap every month at thirty, by moving the start of a month that
+follows a long one a day earlier (`alt-fixed-from-observational-islamic`,
+`alt-observational-islamic-from-fixed`, `early-month?`)
+[reingold2018code]. The practice they model is the one the hadith states:
+fast on seeing the crescent, stop on seeing it, "and if the sky is
+overcast (and you cannot see it), complete thirty days of Sha'ban"
+[bukhari-1909]. This library follows the main version, in this calendar and
+in the observational Hebrew one alike ([hebrew-observational.md](hebrew-observational.md)):
+**a predicted month of 31 days is allowed, and its 31st is a date that
+converts both ways.** The cap is a second rule layered on the prediction,
+and carrying it would move a month start away from the evening the
+criterion chose. How often it matters depends on the place more than on
+the criterion. Over the 1 212 months of 1400–1500 AH it never happens at
+Mecca, under Shaukat's criterion or Yallop's; at Cairo, the book's sample
+location, it happens once under Shaukat's, Muḥarram 1409 from 14 August
+1988; at Haifa once, Shawwāl 1464 from 16 September 2042, the month the
+observational Hebrew calendar also makes 31 days long; and under Yallop's
+test at neither.
+
 **The 4.5° interpolation.** `hc-astro` gives dusk only at the three standard
 twilight depressions, so the module does not solve for the 4.5° instant.
 It takes the depression the Sun has at sunset — not zero, since the upper
@@ -384,6 +410,11 @@ a test (`yallops_q_follows_from_his_own_arcs_and_widths`).
     computation would be presenting a guess as the Saudi calendar.
   - The astrolabe pattern and the eight-year cycle, for which no user and no
     anchor were found.
+  - The capped observational calendar, `alt-fixed-from-observational-islamic`
+    and `alt-observational-islamic-from-fixed` [reingold2018code], which
+    keeps every month to thirty days. The main version is carried, and a
+    predicted month runs 31 days where the crescents say so; at Mecca that
+    is no month of 1400–1500 AH.
   - Any claim about the observational calendar beyond what the 322-of-552
     figure below says: it is the rate at which one criterion at one place
     lands a day after one table, and it says nothing about how often the
@@ -404,6 +435,8 @@ a test (`yallops_q_follows_from_his_own_arcs_and_widths`).
 | Yallop's Table 4 from the date and the place alone, ten evenings of 1921–1996, one or more of each type A to F [yallop1997] | 10 of 10: ARCL, ARCV and π within 0.06, W′ within 0.03′, *q* within 0.005, the same type, and visible under the criterion exactly for types A and B | `the_q_test_at_bruins_best_time_reproduces_yallops_table_4` |
 | Equation 6.1 on Yallop's printed ARCV and W′, and his cut-off of +0.216 at ARCL = 12° | Within rounding | `yallops_q_follows_from_his_own_arcs_and_widths` |
 | Yallop's test against Shaukat's at Mecca, the 552 months of 1400–1445 AH | 21 differ by a day: 6 earlier under Yallop's, 15 later | `yallops_test_and_shaukats_disagree_at_mecca_and_the_crate_says_how_often` |
+| Months of 31 days in the 1 212 months of 1400–1500 AH, by place and criterion | Mecca: none under either (568 of 29 days, 644 of 30). Cairo (30.1° N, 31.3° E, 200 m): one under Shaukat's, from 14 August 1988, none under Yallop's. Haifa: one under Shaukat's, from 16 September 2042, none under Yallop's | `months_of_thirty_one_days_by_criterion_and_place_in_1400_to_1500_ah` |
+| The 31st of Shawwāl 1464 at Haifa, 16 October 2042, converts both ways, and the 31st of a shorter month is refused as a day out of range | Both | `a_predicted_month_of_thirty_one_days_has_a_thirty_first_day` |
 
 **What the five announcements check.** They are the Supreme Court's
 sighting-based decisions [spa-ramadan-1445, spa-eid-alfitr-1445,
@@ -440,7 +473,8 @@ at the end of the next section.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [reingold2018] | The scheme II closed forms, the observational calendar, the criterion | Not read directly; the published code was |
-| [reingold2018code] | `islamic-epoch`, `islamic-leap-year?`, `fixed-from-islamic`, `islamic-from-fixed`, `mean-synodic-month`, `mecca`, `islamic-location`, `shaukat-criterion`, `simple-best-view`, `arc-of-light`, `visible-crescent`, `phasis-on-or-before`, `fixed-from-observational-islamic`, `observational-islamic-from-fixed`, `saudi-criterion`; `yallop-criterion`, `bruin-best-view`, `arc-of-vision`, `lunar-semi-diameter`, `lunar-parallax`, `phasis-on-or-after` | Yes, 2026-09-25; the Yallop functions 2026-09-26 |
+| [reingold2018code] | `islamic-epoch`, `islamic-leap-year?`, `fixed-from-islamic`, `islamic-from-fixed`, `mean-synodic-month`, `mecca`, `islamic-location`, `shaukat-criterion`, `simple-best-view`, `arc-of-light`, `visible-crescent`, `phasis-on-or-before`, `fixed-from-observational-islamic`, `observational-islamic-from-fixed`, `month-length`, `saudi-criterion`; the capped `alt-fixed-from-observational-islamic`, `alt-observational-islamic-from-fixed` and `early-month?`, named as not carried; `yallop-criterion`, `bruin-best-view`, `arc-of-vision`, `lunar-semi-diameter`, `lunar-parallax`, `phasis-on-or-after` | Yes, 2026-09-25; the Yallop functions 2026-09-26 |
+| [bukhari-1909] | The hadith on completing Shaʿbān to thirty days when the crescent is hidden, the practice the capped alternative models | Yes, 2026-09-26, in the English translation served by IslamicFinder; sunnah.com refused automated access |
 | [yallop1997] | The *q*-test, its cubic and its six types; ARCV and the topocentric width; Bruin's best time; the rows of Table 4 the tests check | Yes, 2026-09-26, in the copy served at astronomycenter.net, a 2004 rendering of the 1997 note |
 | [bruin1977] | The curves Yallop draws the best time from | Not read; cited through Yallop |
 | [vangent-tabcal] | The origin of the tabular calendar, the four schemes and their attributions, the astrolabe pattern, the eight-year cycle, the two epochs | Yes, 2026-09-25 |
@@ -487,8 +521,11 @@ Anchors: in `tabular`,
 `the_prediction_disagrees_with_the_saudi_table_and_the_crate_says_by_how_much`,
 `the_site_is_configurable_and_the_answer_depends_on_it`,
 `the_q_test_at_bruins_best_time_reproduces_yallops_table_4`,
-`yallops_test_and_shaukats_disagree_at_mecca_and_the_crate_says_how_often`.
-The same module holds `ArcOfLightCriterion`, `QTestCriterion`,
+`yallops_test_and_shaukats_disagree_at_mecca_and_the_crate_says_how_often`,
+`months_of_thirty_one_days_by_criterion_and_place_in_1400_to_1500_ah`,
+`a_predicted_month_of_thirty_one_days_has_a_thirty_first_day`.
+The same module holds `MAXIMUM_MONTH_LENGTH`, the 31-day rule shared with
+the observational Hebrew calendar, and `ArcOfLightCriterion`, `QTestCriterion`,
 `YallopVisibility`, `bruin_best_time`, `arc_of_vision`,
 `crescent_width_arcminutes` and `yallop_q`. The registry entry
 for the prediction is Mecca's, and `register_all` in `lib.rs` says why the

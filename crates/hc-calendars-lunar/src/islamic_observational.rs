@@ -98,6 +98,34 @@ pub const EARLIEST: Rd = civil::to_rd(1900, 1, 1);
 /// The latest fixed day this calendar converts.
 pub const LATEST: Rd = civil::to_rd(2100, 12, 31);
 
+/// The longest month a prediction can produce: 31 days.
+///
+/// Each evening is judged by itself, so a month whose first evening just
+/// clears the criterion and whose thirtieth evening just misses it runs to
+/// 31 days. The main observational calendars of the published code of
+/// *Calendrical Calculations* keep such months, their `month-length` being
+/// typed `1..31` (`fixed-from-observational-islamic`,
+/// `observational-islamic-from-fixed`, `month-length`,
+/// `reingold2018code`), and so do this module and
+/// [`crate::hebrew_observational`]. The code's alternatives that cap a
+/// month at thirty, as the practice of completing a month to thirty days
+/// when the crescent is not seen would (`alt-fixed-from-observational-islamic`,
+/// `early-month?`), are not carried. How often it happens, by criterion and
+/// place, is in `docs/systems/hijri.md`: never at Mecca in 1400–1500 AH.
+pub const MAXIMUM_MONTH_LENGTH: u8 = 31;
+
+/// The error for a date whose day, counted on from the first of its month,
+/// reads back as another month: [`CalendarError::DayOutOfRange`] when the
+/// month itself exists and the day is past its end, and
+/// [`CalendarError::MonthOutOfRange`] when there is no such month.
+pub(crate) const fn read_back_error(month_exists: bool) -> CalendarError {
+    if month_exists {
+        CalendarError::DayOutOfRange
+    } else {
+        CalendarError::MonthOutOfRange
+    }
+}
+
 /// Mecca: 21°25′24″N, 39°49′24″E, 298 m, the `mecca` constant of the
 /// published code of *Calendrical Calculations* (`reingold2018code`), which
 /// its observational Islamic calendar uses.
@@ -518,13 +546,17 @@ impl IslamicObservationalCalendar {
     /// # Errors
     ///
     /// Returns [`CalendarError::MonthOutOfRange`],
-    /// [`CalendarError::DayOutOfRange`], the range errors, or
+    /// [`CalendarError::DayOutOfRange`] for a day past the predicted
+    /// month's last, the range errors, or
     /// [`CalendarError::AstronomicalModelFailure`].
+    ///
+    /// A predicted month can run to 31 days, as `decompose` numbers it: see
+    /// [`MAXIMUM_MONTH_LENGTH`].
     pub fn compose(&self, year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
         if month == 0 || month > 12 {
             return Err(CalendarError::MonthOutOfRange);
         }
-        if day == 0 || day > 30 {
+        if day == 0 || day > MAXIMUM_MONTH_LENGTH {
             return Err(CalendarError::DayOutOfRange);
         }
         let elapsed_months = (year - 1) * 12 + month as i64 - 1;
@@ -536,7 +568,10 @@ impl IslamicObservationalCalendar {
         // date is validated by reading it back.
         let (round_year, round_month, round_day) = self.decompose(rd)?;
         if (round_year, round_month) != (year, month) {
-            return Err(CalendarError::MonthOutOfRange);
+            return Err(read_back_error(
+                self.decompose(start)
+                    .is_ok_and(|(y, m, _)| (y, m) == (year, month)),
+            ));
         }
         if round_day != day {
             return Err(CalendarError::DayOutOfRange);
@@ -559,9 +594,9 @@ impl Calendar for IslamicObservationalCalendar {
         hc_calendar::shape::SOLAR_TWELVE
     }
 
-    /// A year of 355 days: seven of its twelve predicted months ran to
-    /// thirty. Nothing is intercalated by rule, so the answer is read off
-    /// the crescents like everything else here.
+    /// A year of 355 days, the length of the tabular calendar's long year.
+    /// Nothing is intercalated by rule, so the answer is read off the
+    /// crescents like everything else here.
     fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
         let start = self.compose(year, 1, 1)?;
         let next = self.compose(year + 1, 1, 1)?;
@@ -962,6 +997,93 @@ mod tests {
         // 21 of 552: Yallop's test begins the month a day earlier in 6 and
         // a day later in 15. Stated exactly, as the Umm al-Qura figure is.
         assert_eq!((earlier, later), (6, 15));
+    }
+
+    /// The month lengths from 1 Muḥarram 1400 to 1 Muḥarram 1501, the
+    /// 1 212 months of 1400–1500 AH, at a site: how many ran 29, 30 and
+    /// 31 days, and the first days of those of 31.
+    fn month_lengths_1400_to_1500(site: ObservationSite) -> ([u32; 3], Vec<(i64, u8, u8)>) {
+        let calendar = IslamicObservationalCalendar::new(site);
+        let mut cursor = calendar.compose(1_400, 1, 1).expect("in range");
+        let last = calendar.compose(1_501, 1, 1).expect("in range");
+        let mut lengths = [0u32; 3];
+        let mut long_months = Vec::new();
+        while cursor < last {
+            let next = site
+                .month_start_on_or_after(Rd(cursor.0 + 1))
+                .expect("converges");
+            let length = next.0 - cursor.0;
+            assert!((29..=31).contains(&length), "{cursor} ran {length}");
+            lengths[(length - 29) as usize] += 1;
+            if length == 31 {
+                long_months.push(civil::from_rd(cursor));
+            }
+            cursor = next;
+        }
+        (lengths, long_months)
+    }
+
+    #[test]
+    fn months_of_thirty_one_days_by_criterion_and_place_in_1400_to_1500_ah() {
+        // Stated exactly, as in docs/systems/hijri.md. Mecca, the registered
+        // site, has none under either criterion; Cairo, the book's sample
+        // location, and Haifa, the observational Hebrew calendar's, have one
+        // each under Shaukat's and none under Yallop's.
+        let cairo = Location::new(30.1, 31.3, 200.0);
+        let haifa = crate::hebrew_observational::HAIFA;
+        let cases = [
+            (MECCA, VisibilityCriterion::SHAUKAT, [568, 644, 0], vec![]),
+            (MECCA, VisibilityCriterion::YALLOP, [568, 644, 0], vec![]),
+            (
+                cairo,
+                VisibilityCriterion::SHAUKAT,
+                [569, 642, 1],
+                vec![(1_988, 8, 14)],
+            ),
+            (cairo, VisibilityCriterion::YALLOP, [568, 644, 0], vec![]),
+            (
+                haifa,
+                VisibilityCriterion::SHAUKAT,
+                [569, 642, 1],
+                vec![(2_042, 9, 16)],
+            ),
+            (haifa, VisibilityCriterion::YALLOP, [568, 644, 0], vec![]),
+        ];
+        for (place, criterion, lengths, long_months) in cases {
+            let site = ObservationSite::new(place, criterion);
+            assert_eq!(
+                month_lengths_1400_to_1500(site),
+                (lengths, long_months),
+                "{place:?} {criterion:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_predicted_month_of_thirty_one_days_has_a_thirty_first_day() {
+        // Shawwāl 1464 at Haifa by Shaukat's criterion runs from
+        // 16 September 2042 to 16 October, the same month the observational
+        // Hebrew calendar makes 31 days long. Its last day must round-trip.
+        let haifa = IslamicObservationalCalendar::new(ObservationSite::new(
+            crate::hebrew_observational::HAIFA,
+            VisibilityCriterion::SHAUKAT,
+        ));
+        let first = civil::to_rd(2_042, 9, 16);
+        let last = civil::to_rd(2_042, 10, 16);
+        assert_eq!(haifa.decompose(first), Ok((1_464, 10, 1)));
+        assert_eq!(haifa.decompose(last), Ok((1_464, 10, 31)));
+        assert_eq!(haifa.compose(1_464, 10, 31), Ok(last));
+        assert_eq!(haifa.decompose(Rd(last.0 + 1)), Ok((1_464, 11, 1)));
+        assert_eq!(
+            haifa.compose(1_464, 10, 32),
+            Err(CalendarError::DayOutOfRange)
+        );
+        // At Mecca the same month is shorter, and its 31st is past the end.
+        let mecca = IslamicObservationalCalendar::MECCA;
+        assert_eq!(
+            mecca.compose(1_464, 10, 31),
+            Err(CalendarError::DayOutOfRange)
+        );
     }
 
     #[test]

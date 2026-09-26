@@ -36,6 +36,12 @@
 //! calendar's: [`HebrewDate::new`] validates against the fixed calendar,
 //! so a date of this one is validated by [`to_fixed`] instead.
 //!
+//! A predicted month runs 29 or 30 days, or 31 when a first evening that
+//! just clears the criterion is followed thirty evenings later by one that
+//! just misses; the published code's main version keeps such months, and
+//! so does this one, with the observational Hijri calendar
+//! ([`MAXIMUM_MONTH_LENGTH`]). The 31st of such a month is a date here.
+//!
 //! # Range
 //!
 //! From [`EARLIEST`], 1 January 383 BCE, the year from which this library
@@ -54,7 +60,9 @@ use hc_core::math::{floor, round};
 
 use crate::civil;
 use crate::hebrew::{self, ERA, HebrewDate};
-use crate::islamic_observational::{ObservationSite, VisibilityCriterion};
+use crate::islamic_observational::{
+    MAXIMUM_MONTH_LENGTH, ObservationSite, VisibilityCriterion, read_back_error,
+};
 
 /// The machine identifier of this calendar. CLDR has none for it.
 pub const ID: CalendarId = CalendarId("hebrew-observational");
@@ -222,7 +230,7 @@ pub fn to_fixed(year: i64, month: Month, day: u8) -> CalendarResult<Rd> {
     if month.ordinal == 0 || month.ordinal > 12 || (month.leap && month.ordinal != 5) {
         return Err(CalendarError::MonthOutOfRange);
     }
-    if day == 0 || day > 31 {
+    if day == 0 || day > MAXIMUM_MONTH_LENGTH {
         return Err(CalendarError::DayOutOfRange);
     }
     let winter = month.leap || (1..=6).contains(&month.ordinal);
@@ -238,7 +246,9 @@ pub fn to_fixed(year: i64, month: Month, day: u8) -> CalendarResult<Rd> {
     // validated by reading it back.
     let (round_year, round_month, round_day) = from_fixed(rd)?;
     if (round_year, round_month) != (year, month) {
-        return Err(CalendarError::MonthOutOfRange);
+        return Err(read_back_error(
+            from_fixed(start).is_ok_and(|(y, m, _)| (y, m) == (year, month)),
+        ));
     }
     if round_day != day {
         return Err(CalendarError::DayOutOfRange);
@@ -422,6 +432,13 @@ mod tests {
                 (2_042, 9, 16)
             ]
         );
+        // The 31st of each is a date, and round-trips.
+        for (year, month, day) in long_months {
+            let last = Rd(civil::to_rd(year, month, day).0 + 30);
+            let (hebrew_year, hebrew_month, hebrew_day) = from_fixed(last).expect("in range");
+            assert_eq!(hebrew_day, 31, "{year}-{month}-{day}");
+            assert_eq!(to_fixed(hebrew_year, hebrew_month, 31), Ok(last));
+        }
     }
 
     #[test]
@@ -523,6 +540,12 @@ mod tests {
         );
         assert_eq!(
             to_fixed(5_785, Month::regular(1), 32),
+            Err(CalendarError::DayOutOfRange)
+        );
+        // A day past the end of a month that exists is a wrong day, not a
+        // wrong month.
+        assert_eq!(
+            to_fixed(5_785, Month::regular(1), 31),
             Err(CalendarError::DayOutOfRange)
         );
         let calendar = ObservationalHebrewCalendar;

@@ -62,6 +62,7 @@ use hc_astro::solar::Solstice;
 use hc_astro::{MEAN_SYNODIC_MONTH, MEAN_TROPICAL_YEAR};
 use hc_calendar::cycle::{Sexagenary, sexagenary_day, sexagenary_year};
 use hc_calendar::fixed::Moment;
+use hc_calendar::gregorian;
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd,
     YearKind,
@@ -700,10 +701,49 @@ impl LunisolarParameters {
     /// Returns [`CalendarError::YearOutOfRange`] when the year's start falls
     /// outside the supported range.
     pub fn new_year(&self, year: i64) -> CalendarResult<Rd> {
+        self.check_year(year)?;
         let start = self.year_start(year);
         self.check_range(start)
             .map_err(|_| CalendarError::YearOutOfRange)?;
         Ok(start)
+    }
+
+    /// Refuse a year whose start cannot lie near the supported range, before
+    /// any integer arithmetic is done on it.
+    ///
+    /// [`LunisolarParameters::year_start`] subtracts the offset and turns
+    /// the estimated start into a day number; near either end of `i64` both
+    /// overflow, and a debug build panics before the precise range check
+    /// can run. The estimate is taken in floating point here, where it
+    /// cannot overflow, and a year whose estimated middle is more than two
+    /// mean years outside the range is refused. Two years is loose on
+    /// purpose: the precise check on the day the rules produce still
+    /// decides every year near the ends. A calendar with no bound of its
+    /// own is held to the Gregorian conversion range of
+    /// [`hc_calendar::gregorian::MIN_YEAR`] to
+    /// [`hc_calendar::gregorian::MAX_YEAR`], which the meridian lookup
+    /// reads every day through.
+    fn check_year(&self, year: i64) -> CalendarResult<()> {
+        let first = self
+            .earliest
+            .unwrap_or(gregorian::new_year(gregorian::MIN_YEAR));
+        let last = self
+            .latest
+            .unwrap_or(gregorian::new_year(gregorian::MAX_YEAR));
+        let elapsed = year as f64 - self.year_offset as f64;
+        let mid_year = self.epoch.0 as f64 + (elapsed - 0.5) * MEAN_TROPICAL_YEAR;
+        let margin = 2.0 * MEAN_TROPICAL_YEAR;
+        if mid_year < first.0 as f64 - margin || mid_year > last.0 as f64 + margin {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        Ok(())
+    }
+
+    /// The elapsed-year count of `year` reduced modulo sixty, which is all
+    /// the sexagenary cycles read and which cannot overflow as
+    /// `year - year_offset` can near the ends of `i64`.
+    const fn elapsed_mod_sixty(&self, year: i64) -> i64 {
+        (year.rem_euclid(60) - self.year_offset.rem_euclid(60)).rem_euclid(60)
     }
 
     /// Check a fixed day against the supported range.
@@ -777,6 +817,7 @@ impl LunisolarParameters {
         if day == 0 || day > 30 {
             return Err(CalendarError::DayOutOfRange);
         }
+        self.check_year(year)?;
         let month_start = self
             .month_start(year, month)
             .ok_or(CalendarError::MonthOutOfRange)?;
@@ -803,6 +844,7 @@ impl LunisolarParameters {
         if month.ordinal == 0 || month.ordinal > 12 {
             return None;
         }
+        self.check_year(year).ok()?;
         let start = self.year_start(year);
         let approximate = self.new_moon_on_or_after(Rd(start.0 + 29 * (month.ordinal as i64 - 1)));
         let (found_year, found, _) = self.decompose(approximate);
@@ -877,7 +919,7 @@ impl LunisolarParameters {
     /// *jiǎ-chén*.
     #[must_use]
     pub fn sexagenary_year(&self, year: i64) -> Sexagenary {
-        sexagenary_year(year - self.year_offset)
+        sexagenary_year(self.elapsed_mod_sixty(year))
     }
 
     /// The sexagenary term of a month.
@@ -886,7 +928,7 @@ impl LunisolarParameters {
     /// term of the month it repeats, which is what this returns.
     #[must_use]
     pub fn sexagenary_month(&self, year: i64, month: Month) -> Sexagenary {
-        let elapsed = year - self.year_offset;
+        let elapsed = self.elapsed_mod_sixty(year);
         Sexagenary::from_index(
             12 * (elapsed - 1) + month.ordinal as i64 - 1 + SEXAGENARY_MONTH_ANCHOR,
         )
@@ -1006,7 +1048,10 @@ impl Calendar for LunisolarCalendar {
     }
 
     fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
-        let elapsed = date.year - self.parameters.year_offset;
+        let elapsed = date
+            .year
+            .checked_sub(self.parameters.year_offset)
+            .ok_or(CalendarError::YearOutOfRange)?;
         let mut fields = DateFields::new(date.year);
         fields.month = Some(date.month);
         fields.day = Some(date.day);
@@ -1067,6 +1112,89 @@ mod tests {
         latest: None,
         native_locales: &[],
     };
+
+    /// Every lunisolar parameter set in the crate, bounded and unbounded.
+    fn every_parameter_set() -> [&'static LunisolarParameters; 14] {
+        use crate::japanese_historical::{horyaku, jokyo, kansei, senmyo};
+        [
+            &ENGINE_TEST,
+            &crate::chinese::PARAMETERS,
+            &crate::dangi::PARAMETERS,
+            &crate::vietnamese::PARAMETERS,
+            &crate::japanese_tenpo::PARAMETERS,
+            &crate::japanese_tenpo::UNBOUNDED_PARAMETERS,
+            &senmyo::PARAMETERS,
+            &senmyo::PARAMETERS_TABULATED,
+            &jokyo::PARAMETERS,
+            &jokyo::PARAMETERS_TABULATED,
+            &horyaku::PARAMETERS,
+            &horyaku::PARAMETERS_TABULATED,
+            &kansei::PARAMETERS,
+            &kansei::PARAMETERS_TABULATED,
+        ]
+    }
+
+    #[test]
+    fn years_at_the_ends_of_i64_are_refused_before_any_arithmetic() {
+        // Each of these used to subtract the offset or turn the estimated
+        // start into a day number first, and overflowed in a debug build.
+        for parameters in every_parameter_set() {
+            for year in [i64::MIN, i64::MIN + 1, i64::MAX - 1, i64::MAX] {
+                let id = parameters.id.0;
+                assert_eq!(
+                    parameters.new_year(year),
+                    Err(CalendarError::YearOutOfRange),
+                    "{id} {year}"
+                );
+                assert_eq!(
+                    parameters.months_in_year(year),
+                    Err(CalendarError::YearOutOfRange),
+                    "{id} {year}"
+                );
+                assert_eq!(
+                    parameters.leap_month(year),
+                    Err(CalendarError::YearOutOfRange),
+                    "{id} {year}"
+                );
+                assert_eq!(
+                    parameters.to_fixed(year, Month::regular(1), 1),
+                    Err(CalendarError::YearOutOfRange),
+                    "{id} {year}"
+                );
+                assert_eq!(parameters.days_in_month(year, Month::regular(1)), None);
+                // The cycles are total, and agree with a year sixty away.
+                let near = year - 60 * year.signum();
+                assert_eq!(
+                    parameters.sexagenary_year(year),
+                    parameters.sexagenary_year(near),
+                    "{id} {year}"
+                );
+                assert_eq!(
+                    parameters.sexagenary_month(year, Month::regular(3)),
+                    parameters.sexagenary_month(near, Month::regular(3)),
+                    "{id} {year}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn the_coarse_year_check_leaves_the_ends_of_the_range_to_the_precise_one() {
+        // The first and last years of the bounded calendars are still
+        // answered or refused by the day the rules produce.
+        let chinese = &crate::chinese::PARAMETERS;
+        assert_eq!(chinese.new_year(4_661), Ok(civil::to_rd(2024, 2, 10)));
+        let first = chinese.from_fixed(crate::chinese::EARLIEST).unwrap().0;
+        let last = chinese.from_fixed(crate::chinese::LATEST).unwrap().0;
+        // The year containing the first supported day began before it.
+        assert_eq!(chinese.new_year(first), Err(CalendarError::YearOutOfRange));
+        assert!(chinese.new_year(first + 1).is_ok());
+        assert!(chinese.new_year(last).is_ok());
+        assert_eq!(
+            chinese.new_year(last + 1),
+            Err(CalendarError::YearOutOfRange)
+        );
+    }
 
     #[test]
     fn adjusted_modulo_lands_in_one_through_n() {

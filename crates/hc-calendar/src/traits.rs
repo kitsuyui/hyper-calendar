@@ -12,9 +12,12 @@ use crate::shape::{CycleShape, EraName};
 /// A stable machine identifier for a calendar.
 ///
 /// Where the Unicode CLDR already has a name — `gregory`, `islamic-civil`,
-/// `japanese`, `chinese` — this crate uses it, so that `hyper-calendar`
-/// values interoperate with `Intl.DateTimeFormat` and ICU without a
-/// translation table.
+/// `japanese`, `chinese` — this crate uses it, so that a CLDR-aware caller
+/// can name a calendar with the word it already uses. The word does not
+/// always name the same days in ICU: `islamic-rgsa` is a different
+/// calendar in ICU4C and in ICU4X, and others, `gregory` and `persian`
+/// among them, differ in some ranges or years. `docs/calendars.md` in the
+/// repository says, identifier by identifier, where they agree.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct CalendarId(pub &'static str);
 

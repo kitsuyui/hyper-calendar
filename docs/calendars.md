@@ -23,8 +23,34 @@ Status values:
 | **Researching** | In scope, but the rules are contested or the sources disagree |
 | **Out of scope** | Deliberately excluded, with a reason |
 
-Identifiers follow Unicode CLDR where CLDR has one, so that values interoperate
-with `Intl.DateTimeFormat` and ICU without a translation table.
+Identifiers follow Unicode CLDR where CLDR has one, so that a CLDR-aware
+caller can name a calendar here with the word it already uses. The same
+word does not always name the same days in ICU, though, so an identifier is
+a starting point for interchange and not a promise of agreement. The table
+says, for each CLDR identifier registered here, where ICU4C and ICU4X give
+the same days and where they do not. It was drawn from ICU4C 79.1 and ICU4X
+2.3.0, both read from their `main` branches on 2026-09-26
+[icu4c-calendar-sources, icu4x-calendar-sources]; where a row says
+"measured", the figures come from a comparison run that day against
+ICU4X's own year tables and ICU's leap-year rule, and are not kept as a
+test.
+
+| Id | ICU4C | ICU4X |
+| --- | --- | --- |
+| `gregory` | Agrees from 15 October 1582. Before it ICU4C's `GregorianCalendar` switches to the Julian calendar, its default cutover, where this library's is proleptic | Agrees: proleptic |
+| `buddhist`, `roc`, `iso8601` | As `gregory`: each is a subclass of `GregorianCalendar`, so the Julian calendar before 15 October 1582 | Agrees: built on the proleptic ISO calendar |
+| `japanese` | Agrees from 1 January 1873 (明治6年). Before it ICU4C is "identical to the Gregorian calendar in all respects except for the year and era", numbering Gregorian days, Julian before 1582, by era back to 645; this library gives the date of the lunisolar calendar then in force and refuses before 862 | Agrees from 1 January 1873. Before it ICU4X counts proleptic Gregorian days, and it carries the five eras from Meiji only |
+| `coptic`, `ethiopic`, `hebrew`, `indian` | Agrees: the same arithmetic rules, over this library's range | Agrees, likewise |
+| `islamic-civil`, `islamic-tbla` | Agrees: scheme II on the Friday and the Thursday epoch | Agrees |
+| `islamic-umalqura` | Agrees for 1300–1600 AH, the same table compared bit for bit ([systems/hijri.md](systems/hijri.md)). Outside it ICU4C falls back to the civil arithmetic and this library refuses | Agrees for 1300–1600 AH: ICU4X's table is ICU4C's, with a test of the agreement. Outside it ICU4X falls back to the civil arithmetic |
+| `islamic-rgsa` | **Differs.** ICU4C's `IslamicRGSACalendar` is "currently identical to IslamicCalendar", its bare `islamic`, which begins a month on the day after the Moon's age turns positive, with no visibility test; this library's is Shaukat's crescent criterion at Mecca | **Differs.** ICU4X resolves `islamic-rgsa` to the region's default Hijri calendar; its own example resolves `und-US-u-ca-islamic-rgsa` to the tabular type II Friday calendar, this library's `islamic-civil` |
+| `persian` | **Differs in some years.** ICU4C uses the 33-year rule corrected by a table of 78 years from 1502. Measured against this library's astronomical calendar, Nowruz agrees in every year of 1178–2379 AP except 1503, 1602, 1701 and 2159, where ICU's falls a day earlier and that whole year is a day apart; before 1178 it differs in 81 years | **Differs in the same years:** the same rule and the same 78-year table |
+| `chinese` | **Different rule, not measured.** ICU4C computes with its own astronomy at UTC+8 in every year: "Some sources use a different historically accurate offset of GMT+7:45:40 for years before 1929; we do not do this". This library uses Beijing local mean time before 1929 | Measured: the new year, every month length and the leap month agree in all 191 years beginning in 1912–2102. Of the twelve years 1900–1911, which ICU4X tabulates under the Qing rules, 1906 differs: its fourth month begins a day apart. Before 1900 ICU4X uses a simplified calculation, not measured |
+| `dangi` | **Different rule, not measured.** ICU4C's zones are UTC+8 to 1896, +7 in 1897, +8 in 1898–1911 and +9 from 1912; this library's are Seoul local mean time to 1907, +8:30 from 1908, +9 from 1912, +8:30 in 1954–1960 and +9 from 1961 | Measured: all 191 years beginning in 1912–2102 agree. For 1900–1911 ICU4X uses the Chinese Qing-rule table, and five years differ in the lengths of their months: 1903, 1904, 1905, 1908 and 1911 |
+
+CLDR's bare `islamic` and `ethioaa` are not registered here: the first is
+Researching below, as ICU4C's astronomical `islamic`, and the second is the
+`amete-alem-year` field of `ethiopic`.
 
 ---
 

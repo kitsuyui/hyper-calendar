@@ -8550,19 +8550,47 @@ fn somalia_keeps_the_labour_code_of_2024_and_its_friday() {
             (2026, 7, 1, "Union Day"),
         ],
     );
-    // Eid al-Adha 1447 on the tabular calendar: 10 to 12 Dhu al-Hijjah,
-    // three days, approximate.
-    let eid = HolidayCalendar::for_year(table("SO"), None, 2026);
-    let adha: Vec<Holiday> = eid
-        .in_year(2026)
-        .into_iter()
-        .filter(|holiday| holiday.name == "Eid al-Adha")
-        .collect();
-    assert_eq!(adha.len(), 3);
-    assert!(
-        adha.iter()
-            .all(|holiday| holiday.confidence == Confidence::Approximate)
+    // The Eids are counted in working days, article 65(4): Eid al-Adha
+    // 1446 on the tabular calendar, 10 Dhu al-Hijjah on Saturday 7 June
+    // 2025, runs Saturday to Monday, three days; that of 1447, from
+    // Wednesday 27 May 2026, has a Friday in it and runs to Saturday the
+    // 30th, and Eid al-Fitr 1447, from Friday 20 March 2026, to Sunday the
+    // 22nd. All approximate.
+    let eid_days = |year: i64, name: &str| -> Vec<Rd> {
+        let calendar = HolidayCalendar::for_year(table("SO"), None, year);
+        let days: Vec<Holiday> = calendar
+            .in_year(year)
+            .into_iter()
+            .filter(|holiday| holiday.name == name)
+            .collect();
+        assert!(
+            days.iter()
+                .all(|holiday| holiday.confidence == Confidence::Approximate)
+        );
+        days.iter().map(|holiday| holiday.date).collect()
+    };
+    assert_eq!(
+        eid_days(2025, "Eid al-Adha"),
+        [ymd(2025, 6, 7), ymd(2025, 6, 8), ymd(2025, 6, 9)]
     );
+    assert_eq!(
+        eid_days(2025, "Eid al-Fitr"),
+        [ymd(2025, 3, 31), ymd(2025, 4, 1)]
+    );
+    assert_eq!(
+        eid_days(2026, "Eid al-Adha"),
+        [
+            ymd(2026, 5, 27),
+            ymd(2026, 5, 28),
+            ymd(2026, 5, 29),
+            ymd(2026, 5, 30)
+        ]
+    );
+    assert_eq!(
+        eid_days(2026, "Eid al-Fitr"),
+        [ymd(2026, 3, 20), ymd(2026, 3, 21), ymd(2026, 3, 22)]
+    );
+    let eid = HolidayCalendar::for_year(table("SO"), None, 2026);
     // Friday is the weekend and nothing moves off it: 26 June 2026 is a
     // Friday, and Saturday the 27th is a working day.
     assert!(eid.is_weekend(ymd(2026, 6, 26)));
@@ -8661,6 +8689,12 @@ fn guinea_bissau_keeps_decree_1_2023_and_the_eid_days_read() {
     expect_working("GW", None, &[(2024, 1, 23), (2024, 8, 3), (2025, 6, 9)]);
     assert_eq!(gap_names("GW", 2025), ["Easter", "Eid al-Fitr"]);
     assert_eq!(gap_names("GW", 2026), ["Easter", "Tabaski"]);
+    // The weekly rest of article 123 of the Lei Geral do Trabalho is the
+    // Sunday: Saturday 26 September 2026 is a working day.
+    let week = HolidayCalendar::for_year(table("GW"), None, 2026);
+    assert!(week.is_weekend(ymd(2026, 9, 27)));
+    assert!(!week.is_weekend(ymd(2026, 9, 26)));
+    expect_working("GW", None, &[(2026, 9, 26)]);
 }
 
 #[test]
@@ -8829,6 +8863,13 @@ fn gabon_carries_the_communiques_as_reproduced() {
     let gaps = gap_names("GA", 2026);
     assert!(gaps.contains(&"Independence Day") && gaps.contains(&"Labour Day"));
     assert!(!gaps.contains(&"Ascension"));
+    // Article 220 of the Code du travail of 2021 puts the weekly rest on
+    // the Sunday, and Saturday 17 August 2024, the second day of the Fête
+    // nationale, is a holiday on a working day.
+    let week = HolidayCalendar::for_year(table("GA"), None, 2024);
+    assert!(week.is_weekend(ymd(2024, 8, 18)));
+    assert!(!week.is_weekend(ymd(2024, 8, 17)));
+    expect_working("GA", None, &[(2024, 8, 24)]);
 }
 
 #[test]

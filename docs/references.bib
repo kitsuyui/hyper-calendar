@@ -111,7 +111,7 @@
   author       = {国立天文台 暦計算室},
   title        = {暦Wiki: 時刻/日本の本初子午線},
   howpublished = {\url{https://eco.mtk.nao.ac.jp/koyomi/wiki/BBFEB9EF2FC6FCCBDCA4CECBDCBDE9BBD2B8E1C0FE.html}},
-  note         = {Kyoto as the reference of the Edo calendars; Shibukawa's 里差 figures, citing his 貞享暦 p. 76. Retrieved 2026-09-25}
+  note         = {Kyoto as the reference of the Edo calendars; Shibukawa's 里差 figures, citing his 貞享暦 p. 76. Retrieved 2026-09-25. Its sections 東京, 内務省地理局時代 and グリニジ基準へ: Tokyo time on the almanacs from 明治6年暦 to 明治20年暦, about 9時間19分1秒 from Greenwich, and standard time from 明治21年暦. Read 2026-09-26}
 }
 
 @misc{nao-rekiwiki-history1,
@@ -125,7 +125,7 @@
   author       = {国立天文台 暦計算室},
   title        = {暦Wiki: 歴史/日本の暦/6.明治維新と太陽暦},
   howpublished = {\url{https://eco.mtk.nao.ac.jp/koyomi/wiki/CEF2BBCB2FC6FCCBDCA4CECEF12F6.CCC0BCA3B0DDBFB7A4C8C2C0CDDBCEF1.html}},
-  note         = {The decree of 明治5年11月9日 and 布告第374号. Retrieved 2026-09-25}
+  note         = {The decree of 明治5年11月9日 and 布告第374号; 旧暦の併記は明治42年暦まで続けられる. Retrieved 2026-09-25, re-read 2026-09-26}
 }
 
 @book{uchida1975,
@@ -6217,4 +6217,154 @@
   title        = {{ERFA} \texttt{eraEpb}: Julian Date to Besselian Epoch},
   howpublished = {\url{https://github.com/liberfa/erfa/blob/master/src/epb.c}},
   note         = {BSD-3-Clause; derived with permission from SOFA's iauEpb and intended to retain identical functionality. Besselian Epoch B1900.0 is JD 2415020.31352 and the year is 365.242198781 days, the conventional definition it credits to Lieske (1979, Astron. Astrophys. 73, 282, not read); D1900 = 36524.68648 days from B1900.0 to J2000.0; the JD's scale, originally ET, is TDB, indistinguishable from TT in this context. Revision of 2023 May 5. Retrieved 2026-09-26}
+}
+
+@misc{bukhari-1909,
+  author       = {{Muhammad al-Bukhari}},
+  title        = {Sahih al-Bukhari, Book of as-Saum (the Fasting), Hadith 1909},
+  howpublished = {English translation served by IslamicFinder, \url{https://www.islamicfinder.org/hadith/bukhari/as-saum-the-fasting/1909/}},
+  note         = {Start fasting on seeing the crescent (of Ramadan), and give up fasting on seeing the crescent (of Shawwal), and if the sky is overcast (and you cannot see it), complete thirty days of Sha'ban. The sunnah.com page refused automated access. Retrieved 2026-09-26}
+}
+
+@misc{icu4c-calendar-sources,
+  author       = {{Unicode, Inc.}},
+  title        = {ICU4C 79.1 calendar sources},
+  howpublished = {\url{https://github.com/unicode-org/icu/tree/main/icu4c/source/i18n}: \texttt{calendar.cpp}, \texttt{gregocal.cpp}, \texttt{unicode/gregocal.h}, \texttt{japancal.h}, \texttt{buddhcal.cpp}, \texttt{taiwncal.cpp}, \texttt{iso8601cal.cpp}, \texttt{coptccal.cpp}, \texttt{ethpccal.cpp}, \texttt{indiancal.cpp}, \texttt{hebrwcal.cpp}, \texttt{islamcal.h}, \texttt{islamcal.cpp}, \texttt{persncal.cpp}, \texttt{chnsecal.cpp}, \texttt{dangical.cpp}},
+  note         = {The calendar types and their classes; the default Julian cutover of 15 October 1582; IslamicRGSACalendar currently identical to IslamicCalendar, and trueMonthStart from the Moon's age; the Umm al-Qura table for 1300--1600 with the civil fallback; the Persian 33-year rule with its 78-year correction table from 1502; CHINA\_OFFSET of 8 hours in every year; the Korean zones of 1897, 1898--1911 and from 1912. The \texttt{main} branch, U\_ICU\_VERSION 79.1. Retrieved 2026-09-26}
+}
+
+@misc{icu4x-calendar-sources,
+  author       = {{Unicode, Inc.}},
+  title        = {ICU4X 2.3.0 \texttt{icu\_calendar} sources},
+  howpublished = {\url{https://github.com/unicode-org/icu4x/tree/main/components/calendar/src}: \texttt{any\_calendar.rs}, \texttt{cal/japanese.rs}, \texttt{cal/buddhist.rs}, \texttt{cal/ethiopian.rs}, \texttt{cal/hijri.rs}, \texttt{cal/hijri/ummalqura\_data.rs}, \texttt{cal/persian.rs}, \texttt{cal/east\_asian\_traditional.rs} and its \texttt{china\_data.rs}, \texttt{korea\_data.rs} and \texttt{qing\_data.rs}; and \url{https://github.com/unicode-org/icu4x/blob/main/utils/calendrical_calculations/src/persian.rs}},
+  note         = {islamic-rgsa resolved to the region's default Hijri calendar, und-US to the tabular type II Friday one; the Umm al-Qura table taken from ICU4C for 1300--1600 with the civil fallback; the Persian 33-year rule with the same 78-year correction table; the Japanese calendar with the modern eras only, proleptic Gregorian before 1873; the Chinese and Korean year tables for 1912--2102 and the Qing table for 1900--1911. The \texttt{main} branch, workspace version 2.3.0. Retrieved 2026-09-26}
+}
+
+% The instruments of the tables announced year by year, cited from
+% systems/announced-holidays.md; each table's sources string has them in full.
+
+@misc{fiji-moi-public-holidays,
+  author       = {{Fiji, Ministry of Information}},
+  title        = {Public Holidays},
+  howpublished = {\url{https://www.fiji.gov.fj/About-Fiji/Public-Holidays}, the lists for 2019 to 2026 as the Internet Archive holds them, and \url{https://www.fiji.gov.fj/public-holidays} for 2026},
+  note         = {The days Cabinet approves each year. fiji.gov.fj refused the session's requests. Retrieved 2026-09-23}
+}
+
+@misc{kiribati-ph-orders,
+  author       = {{Kiribati, Office of the Beretitenti}},
+  title        = {Orders declaring the public holidays for 2025 (revised) and 2026},
+  howpublished = {\url{https://www.president.gov.ki}, Gazettes \& Instruments, PH\_2025\_revised\_181225.pdf and PH\_2026\_181225.pdf},
+  note         = {Under sections 6 and 9 of the Public Holidays Ordinance (Cap. 81), dated 18 December 2025. Retrieved 2026-09-23}
+}
+
+@misc{liberia-mofa-proclamations,
+  author       = {{Liberia, Ministry of Foreign Affairs}},
+  title        = {Press releases of the President's holiday proclamations, 2012--2026},
+  howpublished = {\url{https://mofa.gov.lr/media/press-releases}},
+  note         = {Each proclamation citing the holiday's Act. Retrieved 2026-09-26}
+}
+
+@misc{gambia-op-declarations,
+  author       = {{The Gambia, Office of the President}},
+  title        = {Media Advisory on Public Holidays, 19 July 2021, and the public-holiday declarations of 2021 to August 2026},
+  howpublished = {\url{https://op.gov.gm}},
+  note         = {Each holiday declared under section 76 of the 1997 Constitution. Retrieved 2026-09-26}
+}
+
+@misc{sudan-cabinet-announcements,
+  author       = {{Sudan, General Secretariat of the Council of Ministers}},
+  title        = {Holiday announcements of 23 and 30 December 2025 and 13 March, 19 May, 16 June and 23 August 2026},
+  howpublished = {\url{https://sudan.gov.sd}, read through the site's post index},
+  note         = {Retrieved 2026-09-26}
+}
+
+@misc{togo-communiques,
+  author       = {{Togo, Ministère de la fonction publique, du travail et du dialogue social; Gouvernement}},
+  title        = {Communiqués of 23 and 29 April and 26 May 2026, and the Government portal's notices of 31 December 2023, 1 May 2025, 31 December 2025 and 19 March 2026},
+  howpublished = {\url{https://bk.fonctionpublique.gouv.tg} and \url{https://republiquetogolaise.tg}},
+  note         = {Loi n° 87-08 du 9 juin 1987 from the Journal officiel, as the table's sources string gives it. Retrieved 2026-09-26}
+}
+
+@misc{niger-communiques,
+  author       = {{Niger, Ministère de la Fonction publique, du Travail et de l'Emploi; Conseil des Ministres}},
+  title        = {Communiqués of 13 and 28 December 2023 and 15 and 17 December 2025; the Council of Ministers' texts of 25 May 2023, 22 July 2024 and 3 March 2026},
+  howpublished = {As printed by Le Sahel (\url{https://lesahel.org}) and the Agence Nigérienne de Presse (\url{https://anp.ne})},
+  note         = {Loi n° 97-20 du 20 juin 1997 not read. Retrieved 2026-09-26}
+}
+
+@misc{gabon-communiques-press,
+  author       = {{Gabon, Ministère du Travail}},
+  title        = {Holiday communiqués of 2024 to 2026, as the press reproduces them},
+  howpublished = {Gabonactu24, 12 August 2024; Gabonreview, 3 June 2025; Gabonclic, 23 December 2025; TV+ Afrique, 12 May 2026},
+  note         = {Secondary. The décret n° 00727/PR/MTEFP du 29 juin 1998 they cite not read. Retrieved 2026-09-26}
+}
+
+@misc{sierra-leone-gazette-notices,
+  author       = {{Sierra Leone Gazette}},
+  title        = {Government Notices 4, 25, 26 and 80 of 2020, 274 of 2022, and 517 and 34 of 2023},
+  howpublished = {\url{https://archive.gazettes.africa}, and the Internet Archive's captures of gazettes.africa},
+  note         = {The holidays declared under the Public Holidays Act, Cap. 58. Retrieved 2026-09-26}
+}
+
+@misc{eswatini-gazette-notices,
+  author       = {{Swaziland Government Gazette; Government of Eswatini}},
+  title        = {Government Notices 19 of 2001, 28 of 2005, 58 of 2006, 73 of 2007 and 23 of 2008, Legal Notice 45 of 2013, and the Government's notice of 10 April 2026},
+  howpublished = {\url{https://archive.gazettes.africa}; the 2026 notice at 40years.gov.sz as the Internet Archive holds it},
+  note         = {Retrieved 2026-09-26}
+}
+
+@misc{guinea-bissau-decree-1-2023-press,
+  author       = {{O Democrata GB}},
+  title        = {The list of Decreto n.º 1/2023 de 18 de Janeiro},
+  howpublished = {\url{https://odemocratagb.com/?p=42600}, 19 January 2023; with Agência de Notícias da Guiné, 19 March 2026, for Eid al-Fitr 2026},
+  note         = {Secondary; the decree not read. Retrieved 2026-09-26}
+}
+
+@misc{south-sudan-mol-calendar-2022,
+  author       = {{South Sudan, Ministry of Labour}},
+  title        = {Public Holidays Calendar 2022, and the notices of 26 July 2024, 27 March 2025, 14 April 2025 and 1 April 2026},
+  howpublished = {\url{https://docs.southsudanngoforum.org/sites/default/files/2022-03/HRPublic%20Holidays%202022HR.pdf}; the notices listed at \url{https://mol.gov.ss/page/documents/circulars}},
+  note         = {Retrieved 2026-09-26}
+}
+
+@misc{kp-wall-calendar-2020-snu,
+  author       = {안주영 and others},
+  title        = {2020 통일보고서},
+  howpublished = {Seoul National University Institute for Peace and Unification Studies, \url{https://ipus.snu.ac.kr}, pp. 11--13},
+  note         = {Transcribing the 2020 wall calendar 《백두산》 of the Foreign Languages Publishing House, which was not seen. Secondary. Retrieved 2026-09-26}
+}
+
+@misc{gabon-code-travail-2021,
+  author       = {{République gabonaise}},
+  title        = {Loi n° 022/2021 du 19 novembre 2021 portant Code du Travail en République Gabonaise},
+  howpublished = {Journal officiel de la République gabonaise n° 139, 16 to 23 November 2021, NATLEX's copy, \url{https://natlex.ilo.org/dyn/natlex2/natlex2/files/download/109996/GAB-109996.pdf}},
+  note         = {Article 220: Le repos hebdomadaire est obligatoire. Il est au minimum de vingt-quatre (24) heures consécutives par semaine. Il a lieu en principe le dimanche. Article 223 on working days. Retrieved 2026-09-26}
+}
+
+@misc{niger-code-travail-2012,
+  author       = {{République du Niger}},
+  title        = {Loi n° 2012-45 du 25 septembre 2012 portant Code du travail de la République du Niger},
+  howpublished = {NATLEX's copy, \url{https://natlex.ilo.org/dyn/natlex2/natlex2/files/download/91382/NER-91382.pdf}},
+  note         = {Article 114: a weekly rest of at least twenty-four consecutive hours, no day named. Retrieved 2026-09-26}
+}
+
+@misc{niger-decret-2017-682,
+  author       = {{République du Niger}},
+  title        = {Décret n° 2017-682/PRN/MET/PS du 10 août 2017 portant partie réglementaire du Code du Travail},
+  howpublished = {FAOLEX's copy, \url{https://faolex.fao.org/docs/pdf/Ner184162.pdf}},
+  note         = {Article 135: from 1 May to 30 September the forty-hour week over five working days avec repos consécutif les samedi et dimanche; article 184: the weekly rest en principe le dimanche. The copy's text layer is incomplete in places. Retrieved 2026-09-26}
+}
+
+@misc{guinea-bissau-lgt-dcjri,
+  author       = {{Ministério Público (Portugal), Departamento de Cooperação Judiciária e Relações Internacionais}},
+  title        = {Período normal de trabalho},
+  howpublished = {\url{https://dcjri.ministeriopublico.pt/faq/periodo-normal-de-trabalho}, the section on Guiné-Bissau},
+  note         = {The Lei Geral do Trabalho, articles 89, 123 and 124: um dia de descanso por semana que, em princípio, é ao domingo. Secondary; Lei n.º 2/86's own scan on the same site not read. Retrieved 2026-09-26}
+}
+
+@misc{south-sudan-civil-service-act-2011,
+  author       = {{Southern Sudan}},
+  title        = {The Civil Service Act, 2011},
+  howpublished = {\url{https://docs.southsudanngoforum.org/sites/default/files/2016-06/01.A.1.10.%20Civil%20Service%20Act%202011.pdf}},
+  note         = {Section 54 on the standard 40 hour working week; no weekend named. Retrieved 2026-09-26}
 }

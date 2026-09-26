@@ -6180,6 +6180,9 @@ static KP_RULES: &[HolidayRule] = &[
 /// Institute describes and no KCNA notice read dates, are not carried
 /// either; article 64's compensatory rest is for work on a rest day, not a
 /// rule for holidays.
+///
+/// This table is written up with the other twelve whose days are
+/// announced year by year in `docs/systems/announced-holidays.md`.
 pub static NORTH_KOREA: RuleSet = RuleSet {
     code: "KP",
     english_name: "North Korea",
