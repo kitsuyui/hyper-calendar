@@ -246,7 +246,8 @@ constants named; only the 216 years and the 97 minutes are also quoted.
     projects the present rules back and says so.
   - The Samaritan calendar, a sibling of this one on the priesthood's own
     conjunction computation and epoch, without the dehiyyot. It is a
-    separate row of the roadmap, `samaritan`, and a calendar of its own.
+    calendar of its own, `samaritan`, written up in
+    [samaritan.md](samaritan.md).
   - The Karaite calendar, which keeps the observational rule.
   - The sabbatical (*shemittah*) year count and the Jubilee, which are
     year classifications and not dates.

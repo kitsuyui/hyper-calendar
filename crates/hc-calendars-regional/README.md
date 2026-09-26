@@ -25,6 +25,7 @@ calendars are such counts, and are here as regional calendars.
 | `maya-haab` | 18 months of 20 days plus the 5-day Uayeb |
 | `maya-round` | The 18 980-day Calendar Round |
 | `maya-tzolkin-gmt2`, `maya-haab-gmt2`, `maya-round-gmt2` | The three cycles anchored to the GMT+2 correlation, to read beside `maya-longcount-gmt2` |
+| `maya-819`, `maya-819-gmt2` | The 819-day count: the station, its colour-direction and the days since it, over Linden and Bricker's twenty stations of 16 380 days, under each correlation |
 | `aztec-tonalpohualli` | 260 days |
 | `aztec-xiuhpohualli` | 365 days |
 | `balinese-pawukon` | Thirty *wuku* and ten concurrent week cycles over 210 days |
@@ -211,8 +212,8 @@ inherits the `chinese` calendar's model, as that README describes.
   added when Thailand publishes it.
 * No Javanese calendar proper: the Sultan Agung lunar year, its *windu* and
   its Anno Javanico era are a different calendar and are not here.
-* No Maya "lord of the night" glyph cycle, no 819-day count, no Maya or
-  Aztec year bearer as a field; the reasons are in
+* No Maya "lord of the night" glyph cycle, no Maya or Aztec year bearer as
+  a field; the reasons are in
   [`docs/systems/mesoamerican-counts.md`](../../docs/systems/mesoamerican-counts.md).
 * The sexagenary **month** pillar follows the lunar month, not the solar
   terms. If you are casting a chart rather than reading a date, it is not

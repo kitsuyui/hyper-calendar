@@ -64,6 +64,7 @@ version = "0.1.0"
 dependencies = [
  "hc-astro",
  "hc-calendar",
+ "hc-calendars-solar",
  "hc-core",
 ]
 

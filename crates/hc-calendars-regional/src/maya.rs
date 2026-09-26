@@ -497,6 +497,8 @@ macro_rules! correlated {
     };
 }
 
+pub(crate) use correlated;
+
 /// The 260-day tzolk'in, under a correlation constant.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MayaTzolkinCalendar {

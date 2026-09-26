@@ -2,8 +2,9 @@
 
 Backs the identifiers `maya-longcount`, `maya-tzolkin`, `maya-haab`,
 `maya-round`, their GMT+2 counterparts `maya-longcount-gmt2`,
-`maya-tzolkin-gmt2`, `maya-haab-gmt2` and `maya-round-gmt2`, and
-`aztec-tonalpohualli` and `aztec-xiuhpohualli` in `hc-calendars-regional`.
+`maya-tzolkin-gmt2`, `maya-haab-gmt2` and `maya-round-gmt2`, the 819-day
+count as `maya-819` and `maya-819-gmt2`, and `aztec-tonalpohualli` and
+`aztec-xiuhpohualli` in `hc-calendars-regional`.
 
 ## What it is
 
@@ -26,6 +27,19 @@ fallen out of use by Landa's time and is retained by scholars for
 calculation [martin2012]; the 260-day count never stopped, and is still kept by
 communities in the Guatemalan highlands for planting, divination and ritual
 [wikipedia-tzolkin, wikipedia-maya-calendar].
+
+**The 819-day count.** Some Classic inscriptions, at Palenque and
+Yaxchilan above all, add to the Initial Series a short distance back to a
+*station* of a count of 819 days, 7 × 9 × 13, each station standing under
+one of the four quarters and its colour [wikipedia-maya-calendar,
+macleod2012, vanlaningham-819]; the count was identified by Thompson
+(1943) and its colour-direction scheme by Berlin and Kelley (1961), both
+known here through the sources that cite them [thompson1943, berlin1961].
+Linden and Bricker read it as twenty stations, 16 380 days, over which
+the synodic periods of all five visible planets come round to stations
+[linden2023]; the press account of the paper gives the fit as Mercury
+every station, Venus every five, Saturn every six, Jupiter every nineteen
+and Mars every twenty [scinews-linden2023].
 
 **The Aztec calendars.** The Mexica of Tenochtitlan and their neighbours
 kept the same two cycles under Nahuatl names: the **tonalpohualli**, 260
@@ -176,6 +190,37 @@ ordinal 59 (8 Ahau), Haabʼ ordinal 13 (13 Pop), and JDN 1 941 383 under
 603" the literature gives, which is therefore a Gregorian date under
 584 283; 584 285 makes it 26 March.
 
+**The 819-day count.** The count runs from a base three days before
+0.0.0.0.0, the day 1 Caban 5 Cumku, an eastern station, so a day *d* days
+after 0.0.0.0.0 is (*d* + 3) mod 819 days past its station
+[vanlaningham-819, macleod2012]. Each station is 819 days after the last
+and stands under the next quarter: east and red, *likin* and *chak*; south
+and yellow, *nohol* and *kan*; west and black, *chikin* and *ek*; north
+and white, *xaman* and *sak* [vanlaningham-819, wikipedia-maya-calendar].
+819 is a multiple of 13, so every station is a Tzolkʼin day numbered 1,
+and one less than 820, so each station's day-sign is the one before the
+last station's [vanlaningham-819]; twenty stations take the twenty
+day-signs, and 20 × 819 = 16 380 is the least common multiple of 819 and
+260.
+
+**Worked example: the Temple of the Cross.** The tablet's Initial Series
+is 12.19.13.4.0 8 Ahau 18 Zec, a date in the era before the current one
+[lounsbury1976]. That era ended at 13.0.0.0.0, the current 0.0.0.0.0, so
+the date is 13 × 144 000 − (12 × 144 000 + 19 × 7 200 + 13 × 360 + 4 × 20)
+= 1 872 000 − 1 869 560 = **2 440** days before 0.0.0.0.0. Then
+(−2 440 + 3) mod 819 = −2 437 + 3 × 819 = **20**: the day is twenty days
+after a station, and −2 437 = −3 × 819 + 20 puts that station three
+before the base. −3 mod 4 = 1, the second quarter: **south**. Its Tzolkʼin
+number is 1, and since each station takes the day-sign before the last
+one's, three stations before Caban, the seventeenth sign, is the
+twentieth: **1 Ahau**. Lounsbury gives the
+initial date as "20 days after a south station in the 4x819-day cycle",
+and notes that this "duplicates exactly the position of Pacal's birth
+date", 9.8.9.13.0: (1 357 100 + 3) mod 819 = 20, station 1 657, and
+1 657 mod 4 = 1, south [lounsbury1976]. Under 584 283 the Temple of the
+Cross date is JDN 581 843; under 584 285, two days later; the count's
+position does not change with the constant, only its Western day.
+
 **Worked example: the fall of Tenochtitlan.** 13 August 1521 Julian is
 fixed day 555 403 (23 August 1521 in the proleptic Gregorian calendar).
 The tonalpohualli count is 555 403 − (555 403 − 104) = 104: number
@@ -221,6 +266,20 @@ name independently.
   declares, as the 584 283 one's do, so `hc-i18n` names the `-gmt2` months
   without any locale entry, and `hyper-calendar`'s vocabulary test counts
   both.
+- **`maya-819`**, **`maya-819-gmt2`** — the 819-day count under 584 283
+  and 584 285, `Maya819Calendar::GMT` and `GMT_PLUS_TWO` in
+  `hc_calendars_regional::maya_819`, over Linden and Bricker's
+  twenty-station cycle: `year` is the round of 16 380 days since the base,
+  and the extra fields `station`, 1 to 20 from the base's, `elapsed`, the
+  0 to 818 days an inscription counts back, and `direction`, 1 to 4 for
+  east, south, west and north. The shape declares the four directions and
+  the four colours as named cycles, in the Yucatec forms Van Laningham
+  prints [vanlaningham-819]; the stations and days are numbered. Numbering
+  the stations from the base is this library's choice, since Linden and
+  Bricker's own numbering was not read. `Maya819Date::station_tzolkin`
+  gives the station's day, 1 and a day-sign; `Maya819Calendar::station_day`
+  its fixed day. Unbounded, and `usage` unrecorded: the sources read say
+  where the count is found, not over what span.
 - **`aztec-tonalpohualli`**, **`aztec-xiuhpohualli`** — the two Aztec
   cycles under Caso's anchor, `CORRELATION` = RD 555 403, unbounded in
   both directions. Xiuhpohualli days are 1-based in the position and the
@@ -235,17 +294,13 @@ name independently.
   demands a bijection, and a bare position is not one.
 - **Leap years.** None of these counts has one, and none has a counted
   year to ask about: the `year` field of the Tzolkʼin, the Haabʼ, the
-  Calendar Round, the tonalpohualli and the xiuhpohualli is a position in
-  a round, and the Long Count has no year at all. Each therefore answers
+  Calendar Round, the 819-day count, the tonalpohualli and the
+  xiuhpohualli is a position in a round, and the Long Count has no year
+  at all. Each therefore answers
   `Calendar::is_leap_year` with `UnsupportedField("year")`, and the dynamic
   `days_in_year` passes that answer through rather than probing for a
   first month; a caller should treat it as "the question does not apply".
 - **Not carried, and why.**
-  - *The 819-day count*, four stations of 819 days tied to colours and
-    directions, which Linden and Bricker extend to twenty stations,
-    16 380 days, to fit the synodic periods of the visible planets
-    [linden2023, wikipedia-maya-calendar]. It is pure arithmetic beside
-    these four and is a row of its own in the roadmap, `maya-819`.
   - *The Lords of the Night*, the nine-day cycle [wikipedia-maya-calendar],
     and the Maya and Aztec *year bearers* as fields: both are derivable
     from what is carried (the year bearer is the Tzolkʼin of 0 Pop, or the
@@ -280,6 +335,10 @@ anchor. The tests hold these published readings:
 | 21 September 2026 = 13.0.13.17.2 | [azteccalendar] | `a_published_modern_long_count_matches` |
 | 13 August 1521 (Julian) = 1 Coatl, 2 Xocotlhuetzi | [reingold2018code] | `the_correlation_is_the_fall_of_tenochtitlan`, `tenochtitlan_fell_on_one_coatl_two_xocotlhuetzi` |
 | 21 September 2026 = 8 Ehecatl, 14 Tititl | [azteccalendar] | `a_published_modern_date_matches` |
+| The 819-day base is 1 Caban 5 Cumku, three days before 0.0.0.0.0, an eastern station | [vanlaningham-819], [macleod2012] | `the_base_is_one_caban_five_cumku_an_eastern_station` |
+| The Temple of the Cross's 12.19.13.4.0 8 Ahau 18 Zec and Pakal's birth 9.8.9.13.0 both 20 days after a south station, 1 Ahau, under either constant | [lounsbury1976] | `the_temple_of_the_cross_stands_twenty_days_after_a_south_station` |
+| JDN 2 450 765 under 584 285 is 801 days past a western, black station, 1 Cauac 7 Mol | [vanlaningham-819] | `van_laningham_s_worked_example_under_584_285` |
+| The twenty stations are the twenty day-signs numbered 1; 16 380 is the least common multiple of 819 and 260 | the arithmetic above | `the_twenty_stations_are_the_twenty_day_signs_numbered_one` |
 | 7.16.3.2.13 = 6 Ben 16 Xul, round 59, under either constant read consistently, and not when mixed; 13.0.0.0.0 = 4 Ahau 3 Kankin on 23 December 2012 under 584 285; the `-gmt2` cycles two days on everywhere | the worked example above; [famsi-vanstone-2012] | `the_cycles_follow_their_long_count_under_each_correlation` |
 
 Beyond the anchors, the tests check that exactly 18 980 of the 94 900
@@ -322,7 +381,13 @@ and Dershowitz tabulate it.
 | [wikipedia-pakal] | 9.8.9.13.0 8 Ajaw 13 Pop = 24 March 603 | Yes, 2026-09-25; the article does not say whether its Western dates are Julian or Gregorian, and the arithmetic shows them to be Gregorian under 584 283 |
 | [martin2012] | The history of 584 285, 584 284 and 584 283 from Landa's 12 Kʼan 1 Pop of 16 July 1553; the Poco Uinic eclipse and 584 286; the Long Count's disuse after the Classic | Yes, 2026-09-25, from the PDF's text; the figures were not seen |
 | [kennett2013] | The Tikal lintel dated 658–696 CE, "strongly supports" the GMT correlation | The abstract only, 2026-09-25, in Europe PMC; the article's pages did not open |
-| [linden2023] | The 819-day count extended to twenty stations, 16 380 days | The abstract only, 2026-09-25 |
+| [linden2023] | The 819-day count extended to twenty stations, 16 380 days, commensurate with the synodic periods of the visible planets | The abstract only, 2026-09-25 and 2026-09-26; the full text is behind the publisher's login |
+| [scinews-linden2023] | The press account of the paper: Mercury every station, Venus every five, Saturn every six, Jupiter every nineteen, Mars every twenty | Yes, 2026-09-26 |
+| [lounsbury1976] | The Temple of the Cross's initial date, 12.19.13.4.0 8 Ahau 18 Zec, 20 days after a south station, in the same position as Pakal's birth; the 819-day cycle's importance at Palenque | Yes, the PDF's text, 2026-09-26 |
+| [vanlaningham-819] | The base 1 Caban 5 Cumku three days before 0.0.0.0.0; (*d* + 3) mod 819; the station always numbered 1; the day-sign one back at each station; the colours and directions with their day-signs; the worked example under 584 285 | Yes, the archive.org copy, 2026-09-26; the live site refused the connection |
+| [macleod2012] | The base 1 Kaban before the era base as an eastern station; Palenque and Yaxchilan as the sites with most 819-day records | Yes, 2026-09-26 |
+| [berlin1961] | The colour-direction scheme | Not read; cited by the three above |
+| [thompson1943] | The identification of the cycle | Not read; cited by [lounsbury1976] and [vanlaningham-819] |
 | [caso1971] | The Aztec anchor as Reingold and Dershowitz attribute it | Not read directly; the bibliographic details from the publisher's listing |
 | [wikipedia-aztec-calendar] | The day-signs; Sahagún's and Durán's first months; the four year bearers Tochtli, Acatl, Tecpatl, Calli; the *xiuhmolpilli*; 13 August 1521 = 1 Coatl; Caso as the basis of later reconstructions; the leap-day dispute | Yes, 2026-09-25 |
 | [wikipedia-xiuhpohualli] | The eighteen *veintenas* and the nemontemi; the disagreement over the year's first month; the vague year | Yes, 2026-09-25 |
@@ -358,7 +423,8 @@ name, and that 584 283 is the value the literature calls GMT.
 `GMT_PLUS_TWO_CORRELATION`, `EPOCH`, `MayaLongCountCalendar`,
 `MayaTzolkinCalendar`, `MayaHaabCalendar`, `MayaCalendarRoundCalendar`,
 `calendar_round_ordinal`, the `GMT` and `GMT_PLUS_TWO` constants of the
-three cycle types) and `aztec.rs` (`CORRELATION`,
+three cycle types), `maya_819.rs` (`Maya819Calendar`, `Maya819Date`,
+`Direction`, `STATION_DAYS`, `CYCLE_DAYS`, `BASE_BEFORE_EPOCH`) and `aztec.rs` (`CORRELATION`,
 `AztecTonalpohualliCalendar`, `AztecXiuhpohualliCalendar`). Anchors:
 `the_correlation_puts_the_epoch_where_the_constant_says`,
 `the_cycles_under_each_correlation_are_separate_calendars`,
@@ -370,12 +436,17 @@ three cycle types) and `aztec.rs` (`CORRELATION`,
 `a_published_modern_long_count_matches`,
 `the_correlation_is_the_fall_of_tenochtitlan`,
 `tenochtitlan_fell_on_one_coatl_two_xocotlhuetzi`,
-`a_published_modern_date_matches`; the structure:
+`a_published_modern_date_matches`,
+`the_base_is_one_caban_five_cumku_an_eastern_station`,
+`the_temple_of_the_cross_stands_twenty_days_after_a_south_station`,
+`van_laningham_s_worked_example_under_584_285`; the structure:
 `only_one_tzolkin_haab_pairing_in_five_can_occur`,
 `every_day_of_a_whole_calendar_round_round_trips`,
 `the_two_correlations_differ_by_exactly_two_days`,
 `both_cycles_round_trip_over_a_full_calendar_round`,
-`the_vague_year_drifts_one_day_every_four_years`. The round-number
+`the_vague_year_drifts_one_day_every_four_years`,
+`the_twenty_stations_are_the_twenty_day_signs_numbered_one`,
+`every_day_of_a_whole_cycle_round_trips_and_steps_by_one`. The round-number
 convention is explained in the crate documentation of
 `hc-calendars-regional`; the roadmap rows for the counts not carried are in
 [`calendars.md`](../calendars.md).

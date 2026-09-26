@@ -14,6 +14,7 @@
 //! | --- | --- |
 //! | [`japanese`] | `japanese`, `japanese-northern`, `japanese-southern`, `japanese-proclaimed` — imperial eras (和暦), Gregorian from 1873 and lunisolar before it |
 //! | [`maya`] | `maya-longcount`, `maya-tzolkin`, `maya-haab`, `maya-round`, and the same four under the GMT+2 correlation as `maya-longcount-gmt2`, `maya-tzolkin-gmt2`, `maya-haab-gmt2`, `maya-round-gmt2` |
+//! | [`maya_819`] | `maya-819`, `maya-819-gmt2` — the 819-day count's stations and colour-directions over Linden and Bricker's twenty-station cycle of 16 380 days, under the two correlations |
 //! | [`aztec`] | `aztec-tonalpohualli`, `aztec-xiuhpohualli` |
 //! | [`balinese_pawukon`] | `balinese-pawukon` — thirty *wuku* and ten concurrent week cycles over 210 days |
 //! | [`javanese_pasaran`] | `javanese-pasaran` — the five-day market week and the 35-day wetonan |
@@ -97,6 +98,7 @@ pub mod japanese;
 pub mod javanese_pasaran;
 pub mod korean_regnal;
 pub mod maya;
+pub mod maya_819;
 pub mod nengo;
 pub mod sexagenary;
 pub mod thai_lunar;
@@ -116,6 +118,7 @@ pub use maya::{
     MayaCalendarRoundCalendar, MayaCalendarRoundDate, MayaHaabCalendar, MayaHaabDate,
     MayaLongCountCalendar, MayaLongCountDate, MayaTzolkinCalendar, MayaTzolkinDate,
 };
+pub use maya_819::{Maya819Calendar, Maya819Date};
 pub use nengo::{Certainty, Court, Nengo, WesternScale};
 pub use sexagenary::{SexagenaryCalendar, SexagenaryDayDate};
 pub use thai_lunar::{ThaiLunarCalendar, ThaiLunarDate};
@@ -167,6 +170,10 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(
             crate::MayaCalendarRoundCalendar::GMT_PLUS_TWO,
         )));
+        registry.insert(Box::new(DynAdapter::new(crate::Maya819Calendar::GMT)));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::Maya819Calendar::GMT_PLUS_TWO,
+        )));
         registry.insert(Box::new(DynAdapter::new(crate::AztecTonalpohualliCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::AztecXiuhpohualliCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BalinesePawukonCalendar)));
@@ -185,7 +192,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 22;
+const CALENDAR_COUNT: usize = 24;
 
 #[cfg(test)]
 mod tests {

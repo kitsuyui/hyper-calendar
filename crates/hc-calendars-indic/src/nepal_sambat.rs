@@ -68,6 +68,7 @@ use hc_calendar::{
 use hc_seasons::zodiac::Ayanamsa;
 
 use crate::hindu_lunar::{HinduLunarCalendar, HinduLunarDate};
+use crate::kartikadi;
 use crate::places::KATHMANDU;
 
 /// Where the period of use comes from.
@@ -82,12 +83,9 @@ pub const ID: CalendarId = CalendarId("nepal-sambat");
 /// The era it counts in.
 pub const ERA: &str = "nepal-sambat";
 
-/// The amānta month, 1 for Chaitra, of Kachhalā: Kārtika.
-const KACHHALA: u8 = 8;
-/// Śaka year minus Nepal Sambat year for Kachhalā to Chilā.
-const SAKA_OFFSET_AUTUMN: i64 = 801;
-/// Śaka year minus Nepal Sambat year for Chaulā to Kaulā.
-const SAKA_OFFSET_SPRING: i64 = 802;
+/// Śaka year minus Nepal Sambat year for Kachhalā to Chilā; Chaulā to
+/// Kaulā are a Śaka year later.
+const SAKA_OFFSET: i64 = 801;
 
 /// The twelve months in Devanagari, Kachhalā first (Wikipedia, "Nepal
 /// Sambat", the table of months).
@@ -144,14 +142,9 @@ pub struct NepalSambatDate {
 impl NepalSambatDate {
     /// The amānta date of the same day.
     const fn to_amanta(self) -> HinduLunarDate {
-        let month = (self.month + 6) % 12 + 1;
-        let offset = if month >= KACHHALA {
-            SAKA_OFFSET_AUTUMN
-        } else {
-            SAKA_OFFSET_SPRING
-        };
+        let month = kartikadi::amanta_month(self.month);
         HinduLunarDate {
-            year: self.year + offset,
+            year: kartikadi::saka_year(self.year, month, SAKA_OFFSET),
             month,
             leap_month: self.leap_month,
             day: self.day,
@@ -161,14 +154,9 @@ impl NepalSambatDate {
 
     /// The Nepal Sambat date of an amānta date.
     const fn from_amanta(date: HinduLunarDate) -> Self {
-        let offset = if date.month >= KACHHALA {
-            SAKA_OFFSET_AUTUMN
-        } else {
-            SAKA_OFFSET_SPRING
-        };
         Self {
-            year: date.year - offset,
-            month: (date.month + 4) % 12 + 1,
+            year: kartikadi::era_year(date.year, date.month, SAKA_OFFSET),
+            month: kartikadi::kartikadi_month(date.month),
             leap_month: date.leap_month,
             day: date.day,
             leap_day: date.leap_day,
@@ -224,11 +212,7 @@ impl NepalSambatCalendar {
     ///
     /// [`CalendarError::YearOutOfRange`] outside the engine's range.
     pub fn new_year(&self, year: i64) -> CalendarResult<Rd> {
-        let saka = year + SAKA_OFFSET_AUTUMN;
-        self.lunar
-            .month_span(saka, KACHHALA, true)
-            .or_else(|_| self.lunar.month_span(saka, KACHHALA, false))
-            .map(|(first, _)| first)
+        kartikadi::new_year(&self.lunar, year, SAKA_OFFSET)
     }
 
     /// The first day converted, the engine's.
@@ -272,16 +256,7 @@ impl Calendar for NepalSambatCalendar {
     /// A year with an adhika māsa. The year runs from Kachhalā of one Śaka
     /// year into the next, so the month may fall in either.
     fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
-        let saka = year + SAKA_OFFSET_AUTUMN;
-        let autumn = self
-            .lunar
-            .leap_month_of(saka)?
-            .is_some_and(|(month, _, _)| month >= KACHHALA);
-        let spring = self
-            .lunar
-            .leap_month_of(saka + 1)?
-            .is_some_and(|(month, _, _)| month < KACHHALA);
-        Ok(autumn || spring)
+        kartikadi::is_leap_year(&self.lunar, year, SAKA_OFFSET)
     }
 
     /// The day begins at sunrise.
