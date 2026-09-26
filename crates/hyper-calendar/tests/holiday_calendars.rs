@@ -149,3 +149,35 @@ fn every_table_dates_its_holidays_in_a_registered_calendar() {
     assert!(!used.is_empty(), "no table dates anything in a calendar?");
     let _ = Rd(0);
 }
+
+/// Easter read off a runestaff — the golden number's first new moon on or
+/// after 8 March, its fourteenth day, and the next day carrying the year's
+/// Sunday letter — is the Julian computus `hc-holiday` states by
+/// Delambre's rule, which shares no code or table with the staff, in every
+/// year the computus is defined for up to the Gregorian reform
+/// (`docs/systems/runic-calendar.md`).
+#[test]
+fn easter_read_off_the_runestaff_is_the_julian_computus() {
+    use hyper_calendar::hc_calendars_solar::cycles::{julian_dominical_letter, runic};
+    use hyper_calendar::hc_calendars_solar::julian;
+    use hyper_calendar::hc_holiday::computus::orthodox_easter_julian_date;
+
+    let mut checked = 0;
+    for year in 326..=1582 {
+        let (first, second) = julian_dominical_letter(year);
+        let sunday = second.unwrap_or(first);
+        let full_moon = runic::paschal_new_moon(year).expect("a paschal moon").0 + 13;
+        let easter = (1..=7)
+            .map(|offset| Rd(full_moon + offset))
+            .find(|&day| runic::stave_day(day).expect("in range").letter == Some(sunday))
+            .expect("a Sunday within the week");
+        let (_, month, day) = julian::from_fixed(easter).expect("in range");
+        assert_eq!(
+            Some((month, day)),
+            orthodox_easter_julian_date(year),
+            "Julian {year}"
+        );
+        checked += 1;
+    }
+    assert_eq!(checked, 1_257);
+}

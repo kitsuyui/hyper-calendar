@@ -85,7 +85,7 @@ there. The table is checked for sortedness and uniqueness by a test.
   specifies for `tr` and `az`.
 
 Locales shipped: `am ar ban bn bo cop cs de en es fa fr he hi id it ja jv
-kab ko mid ml my nah ne nl pl pt ru sa syr ta th tr vi yua zap zgh zh-Hans
+kab ko mid ml my nah ne nl pl ps pt ru sa syr ta th tr vi yua zap zgh zh-Hans
 zh-Hant`, plus the `und` root. Non-Gregorian vocabulary: Hijri months
 (Arabic, English), Hebrew months (Hebrew, English), Babylonian months
 (English), the Chinese calendar's months in both Chinese scripts, in
@@ -98,17 +98,18 @@ Bikram Sambat and Nepal Sambat months in Devanagari, the Hindu lunisolar and
 Vikrami solar months in Devanagari (Sanskrit and Hindi), the Indian national
 calendar's months in Hindi, Tamil, Malayalam and Bengali, the Tamil,
 Malayalam and Bengali solar months in their own scripts, the Assyrian months
-in Syriac, the Berber months in Kabyle and in Tifinagh, the Maya day-signs
+in Syriac, the Berber months in Kabyle and in Tifinagh, the Solar Hijri
+months in Pashto, the Maya day-signs
 and haabʼ months in Yucatec, the Aztec day-signs and months in Nahuatl, the
 Zapotec *yza*'s months and year bearers in Zapotec, the
 Pawukon cycles in Balinese, the pasaran and dina in Javanese, the Mandaean
 weekdays in Mandaic, romanisations of the Coptic, Ethiopic, Burmese,
-Armenian and Persian months (whose own scripts the calendars carry
-themselves), and the zodiac animals in Chinese, Japanese, Korean, Vietnamese
+Armenian and Persian months and of Afghanistan's Dari ones (whose own
+scripts the calendars carry themselves), and the zodiac animals in Chinese, Japanese, Korean, Vietnamese
 and English. The stems and branches are not spelled here: each locale names
 one of the readings `hc_calendar::cycle::readings` catalogues.
 
-Nineteen of the locales exist for a calendar's own language, and they cover
+Twenty of the locales exist for a calendar's own language, and they cover
 what their sources cover and no more:
 
 | Locale | Calendar | Gregorian vocabulary | Calendar vocabulary | Not carried |
@@ -131,6 +132,7 @@ what their sources cover and no more:
 | `syr` Syriac | `assyrian` | CLDR 48 `syr.xml` | the twelve Assyrian months in vocalised East Syriac (Wikipedia, "Assyrian calendar"), Neesan first, ܛܲܒܵܚ for Tabakh | the era AY in Syriac |
 | `kab` Kabyle | `berber` | CLDR 48 `kab.xml` | the Gregorian months, which are the agrarian calendar's under the same Latin-derived names (Encyclopédie berbère, "Calendrier"); CLDR spells Fuṛar and Nunembeṛ where the calendar has Furar and Wambeṛ | — |
 | `zgh` Standard Moroccan Tamazight | `berber` | CLDR 48 `zgh.xml` | the Gregorian months in Tifinagh, ⵉⵏⵏⴰⵢⵔ …, keyed to the agrarian calendar for the same reason | Kabyle forms in Tifinagh: no source read prints them |
+| `ps` Pashto | `persian-afghan`, `persian`, `persian-arithmetic` | CLDR 48 `ps.xml`, less the narrow weekdays and stand-alone narrow months, which resolve to root's Latin letters and numerals | the twelve Solar Hijri months وری … کب (CLDR `persian`, which keys them to its one Solar Hijri calendar and so to all three here), in CLDR's spelling where Wikipedia's "Solar Hijri calendar" has ګ, ي and ك in four | the Solar Hijri era in Pashto: CLDR's `ps` inherits root's; date templates, which `ps.xml` inherits |
 | `mid` Mandaic | `mandaean` | none: CLDR has no `mid`, so it inherits | the seven weekdays in Mandaic script (Wikipedia, "Mandaean calendar") | the months: that page prints the twelve zodiacal names but no Mandaic Parwanaia, and the calendar's month cycle has thirteen positions; day periods, eras |
 
 Plural languages: `ar cs cy da de en es fi fr ga he hi id it ja ko lt lv nl pl

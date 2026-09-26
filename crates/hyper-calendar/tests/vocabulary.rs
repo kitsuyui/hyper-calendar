@@ -428,12 +428,12 @@ fn the_vocabulary_gap_is_measured_and_not_growing() {
 
     assert_eq!(
         registered.len(),
-        126,
+        127,
         "the registry changed; update the coverage numbers deliberately"
     );
     assert_eq!(
         with_months.len(),
-        104,
+        105,
         "calendars with a month cycle — changes only when a calendar's shape does"
     );
     assert!(
@@ -523,4 +523,71 @@ fn the_tamil_year_is_named_in_tamil_and_through_the_fallback() {
     assert_eq!(name(&tamil, new_year), Some("குரோதி"));
     assert_eq!(name(&english, new_year), Some("Krodhin"));
     assert_eq!(name(&tamil, Rd(new_year.0 - 1)), Some("சோபகிருது"));
+}
+
+/// The Solar Hijri calendar as Afghanistan kept it, under the fallback: a
+/// request for its own language finds Dari, the calendar's declared names,
+/// through `fa-AF`; Pashto names the months itself, as CLDR 48 `ps.xml`
+/// does; English carries Wikipedia's romanisation; and a locale that names
+/// none of them falls back to English, not to Iran's month names.
+#[cfg(feature = "equinox")]
+#[test]
+fn the_afghan_months_are_named_in_dari_pashto_and_english() {
+    use hyper_calendar::hc_i18n::Locale;
+    use hyper_calendar::hc_i18n::names::{
+        NameContext, NameWidth, english, locale_for_calendar, position_name,
+    };
+
+    let registry = registry();
+    let calendar = registry.get_by_name("persian-afghan").expect("registered");
+    let meta = calendar.meta();
+    let months = calendar
+        .cycles()
+        .iter()
+        .find(|cycle| cycle.kind == MONTH)
+        .expect("a month cycle");
+    let name = |locale: &Locale, index| {
+        position_name(
+            locale,
+            meta.id,
+            months,
+            index,
+            NameWidth::Wide,
+            NameContext::Format,
+        )
+    };
+    let own = locale_for_calendar(None, &meta);
+    assert_eq!(own.to_string(), "fa-AF");
+    assert_eq!((name(&own, 0), name(&own, 11)), (Some("حمل"), Some("حوت")));
+    let pashto: Locale = "ps".parse().expect("ps is a locale");
+    assert_eq!(locale_for_calendar(Some(&pashto), &meta), pashto);
+    assert_eq!(
+        (name(&pashto, 0), name(&pashto, 11)),
+        (Some("وری"), Some("کب"))
+    );
+    assert_eq!(
+        (name(&english(), 0), name(&english(), 11)),
+        (Some("Hamal"), Some("Hūt"))
+    );
+    let japanese: Locale = "ja".parse().expect("ja is a locale");
+    assert_eq!(locale_for_calendar(Some(&japanese), &meta), english());
+    // Iran's calendar keeps its own names in Persian.
+    let persian = registry.get_by_name("persian").expect("registered");
+    let farsi: Locale = "fa".parse().expect("fa is a locale");
+    let iranian = persian
+        .cycles()
+        .iter()
+        .find(|cycle| cycle.kind == MONTH)
+        .expect("a month cycle");
+    assert_eq!(
+        position_name(
+            &farsi,
+            persian.meta().id,
+            iranian,
+            0,
+            NameWidth::Wide,
+            NameContext::Format
+        ),
+        Some("فروردین")
+    );
 }
