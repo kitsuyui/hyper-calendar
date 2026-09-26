@@ -7,8 +7,8 @@
 //! *wuku*; a Japanese day belongs to an era that a government proclaimed.
 //! Those are not counts of years from an epoch with months cut out of them,
 //! which is why they do not fit in [`hc_calendars_solar`] or
-//! [`hc_calendars_lunar`]. The Burmese and Thai lunar calendars are such
-//! counts, and are here as regional calendars.
+//! [`hc_calendars_lunar`]. The Burmese, Thai and Khmer lunar calendars are
+//! such counts, and are here as regional calendars.
 //!
 //! | Module | Calendars |
 //! | --- | --- |
@@ -24,6 +24,8 @@
 //! | [`chinese_regnal`] | `chinese-regnal` — the Qing eras over the Chinese lunisolar calendar, 1645 to the abdication of 1912, with the Ming and Qing era table as data |
 //! | [`burmese`] | `burmese` — the Myanmar Era's lunisolar calendar, its watat years and full moons by the Calendar Advisory Board's arithmetic and the record's exceptions |
 //! | [`thai_lunar`] | `thai-lunar` — the Thai lunar calendar, its adhikamāsa and adhikavāra years carried as published for 2535–2570 BE (1992–2027) |
+//! | [`khmer`] | `khmer` — the Khmer *Chhankitek*, its leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
+//! | [`southeast_asian`] | No calendar: the year layout `thai-lunar` and `khmer` share, and the *suryayatra* quantities of the solar New Year |
 //! | [`sexagenary`] | `sexagenary` — 干支 over years, months and days |
 //!
 //! # Cyclic calendars and the round-trip contract
@@ -97,11 +99,13 @@ pub mod burmese;
 pub mod chinese_regnal;
 pub mod japanese;
 pub mod javanese_pasaran;
+pub mod khmer;
 pub mod korean_regnal;
 pub mod maya;
 pub mod maya_819;
 pub mod nengo;
 pub mod sexagenary;
+pub mod southeast_asian;
 pub mod thai_lunar;
 mod vague_year;
 pub mod zapotec;
@@ -116,6 +120,7 @@ pub use burmese::{BurmeseCalendar, BurmeseDate, MoonPhase, Thingyan, YearType};
 pub use chinese_regnal::{ChineseEra, ChineseRegnalCalendar, ChineseRegnalDate, Dynasty};
 pub use japanese::{JapaneseCalendar, JapaneseDate};
 pub use javanese_pasaran::{JavanesePasaranCalendar, WetonDate};
+pub use khmer::{KhmerCalendar, KhmerDate};
 pub use korean_regnal::{KoreanEra, KoreanRegnalCalendar, KoreanRegnalDate};
 pub use maya::{
     MayaCalendarRoundCalendar, MayaCalendarRoundDate, MayaHaabCalendar, MayaHaabDate,
@@ -189,6 +194,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::BurmeseCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::SexagenaryCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ThaiLunarCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::KhmerCalendar)));
     }
 }
 
@@ -197,7 +203,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 25;
+const CALENDAR_COUNT: usize = 26;
 
 #[cfg(test)]
 mod tests {
@@ -272,6 +278,7 @@ mod tests {
                 BurmeseCalendar,
                 SexagenaryCalendar,
                 ThaiLunarCalendar,
+                KhmerCalendar,
             );
         }
     }
@@ -466,7 +473,7 @@ mod tests {
             assert!(!meta.english_name.is_empty());
             // Only the era calendars over a lunisolar year carry intercalary
             // months — the Japanese, in the lunisolar half of its range, and
-            // the Qing eras over the Chinese calendar — and the two Theravada
+            // the Qing eras over the Chinese calendar — and the three Theravada
             // lunisolar calendars.
             assert!(
                 !meta.has_leap_months
@@ -474,6 +481,7 @@ mod tests {
                     || meta.id.as_str() == "chinese-regnal"
                     || meta.id.as_str() == "burmese"
                     || meta.id.as_str() == "thai-lunar"
+                    || meta.id.as_str() == "khmer"
             );
             if let (Some(first), Some(last)) = (meta.earliest, meta.latest) {
                 assert!(first < last, "{} has an empty range", meta.id);

@@ -163,6 +163,7 @@ fn the_calendars_in_use_today_say_so() {
         "thai-lunar",
         "javanese",
         "javanese-aboge",
+        "khmer",
         "maya-tzolkin",
         "icelandic",
     ] {

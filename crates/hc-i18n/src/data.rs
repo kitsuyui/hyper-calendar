@@ -259,6 +259,9 @@ const ETHIOPIC_CALENDARS: &[CalendarId] = &[CalendarId("ethiopic")];
 /// The Burmese calendar.
 const BURMESE_CALENDARS: &[CalendarId] = &[CalendarId("burmese")];
 
+/// The Khmer lunar calendar.
+const KHMER_CALENDARS: &[CalendarId] = &[CalendarId("khmer")];
+
 /// The Rumi calendar.
 const RUMI_CALENDARS: &[CalendarId] = &[CalendarId("rumi")];
 
@@ -2343,6 +2346,41 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &[],
         &[],
     ),
+    // The Khmer months in the UNGEGN romanisation of Wikipedia, "Month",
+    // section "Khmer calendar" (revision of 24 September 2026, read
+    // 2026-09-26), month 6 as Pĭsakh of the page's "Vĭsakh/Pĭsakh", the
+    // form ពិសាខ that Khmer Wikipedia and the New Year announcements use,
+    // and the extra Asath of a leap-month year as the page's Bâthâmôsath.
+    // The page names the second Tŭtĕyéasath, which is not given as a
+    // leap-year name: a leap year here is any year that `is_leap_year`
+    // answers for, a year with a 30th day of Jesth among them, which has one
+    // Asath. The Khmer script is declared with the calendar's shape
+    // (`hc_calendars_regional::khmer::MONTHS`); no `km` locale is shipped.
+    CalendarNames {
+        calendars: KHMER_CALENDARS,
+        cycles: &[months(&[
+            "Mĭkôsĕr",
+            "Bŏss",
+            "Méakh",
+            "Phâlkŭn",
+            "Chétr",
+            "Pĭsakh",
+            "Chésth",
+            "Asath",
+            "Srapôn",
+            "Phôtrôbât",
+            "Âssŏch",
+            "Kâtdĕk",
+        ])],
+        leap_month_prefix: "",
+        eras: EraNames::EMPTY,
+        quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames {
+            intercalary: &[(8, "Bâthâmôsath")],
+            in_leap_years: &[],
+        },
+    },
     dated(
         RUMI_CALENDARS,
         &[months(&[

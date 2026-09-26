@@ -93,7 +93,7 @@ dependencies. A crate depends only on crates in rows above it.
 | `hc-calendars-lunar` | Hijri, Hebrew, Samaritan, Chinese, Tibetan, Javanese, the Japanese lunisolar systems | `hc-astro`, `hc-calendars-solar` |
 | `hc-calendars-equinox` | Solar Hijri, Badíʿ and French Republican by the equinox | `hc-astro`, `hc-calendars-solar` |
 | `hc-seasons` | 24 terms, 72 pentads | `hc-astro`, optionally `hc-calendars-lunar` |
-| `hc-calendars-regional` | Japanese eras, Maya, Aztec, Zapotec, Pawukon, Burmese, Thai lunar | `hc-calendars-solar`, `hc-calendars-lunar` |
+| `hc-calendars-regional` | Japanese eras, Maya, Aztec, Zapotec, Pawukon, Burmese, Thai and Khmer lunar | `hc-calendars-solar`, `hc-calendars-lunar` |
 | `hc-calendars-indic` | Hindu lunisolar and solar calendars, Bikram and Nepal Sambat | `hc-astro`, `hc-calendars-solar`, `hc-seasons` |
 | `hc-almanac` | 暦注 | `hc-astro`, `hc-calendars-lunar`, `hc-seasons` |
 | `hc-attributes` | Birthstones and the like | `hc-seasons` |
