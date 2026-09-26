@@ -25,11 +25,18 @@
 //! | Bahá'í | the Badíʿ calendar as kept — arithmetic to 171 BE, the Bahá'í World Centre's table for 172–221 BE; the Twin Holy Birthdays from the same table | exact through 19 March 2065, and a reported gap after, where the table ends |
 //! | Buddhist, Thai | the Thai lunar calendar, `thai-lunar`, as Thailand publishes its year types | exact for 1992–2027, and reported gaps outside |
 //! | Buddhist, East Asian | the Gregorian dates Japan keeps, and the Chinese lunisolar calendar for the lunar Birthday | exact |
+//! | Buddhist, Tibetan | the Phugpa calendar, `tibetan`, on the day that bears the number | exact to the arithmetic; a year in which the number is skipped or repeated is a reported gap |
+//! | Buddhist, Thai uposatha | `thai-lunar`, the month's length deciding แรม 14 or 15 ค่ำ | exact for 1992–2027, and reported gaps outside |
 //! | Chinese folk | Chinese lunisolar calendar and the solar terms | exact to the astronomical model |
+//! | 小年, five regional tables | Chinese lunisolar calendar | exact to the astronomical model; which region keeps which day is the source's |
+//! | Taoist | Chinese lunisolar calendar | exact to the astronomical model; from secondary sources |
+//! | Korean folk | the Korean lunisolar calendar, `dangi`, and 동지 at the Korean meridian | exact to the astronomical model |
+//! | Vietnamese folk | the Vietnamese lunisolar calendar, `vietnamese` | exact to the astronomical model |
 //! | Hindu | the amānta Hindu lunisolar calendar at the national almanac's sunrise; each festival on the part of the day its tithi must hold | exact to the astronomical model, and to the conventions [`crate::hindu`] states — a regional almanac may keep a day differently |
 //! | Wheel of the Year | the solstices and equinoxes on their Universal Time day; the cross-quarter days on their fixed Gregorian dates | exact as stated; a group may keep a quarter day on its local date or the nearest weekend, and the eve convention for Samhain is not modelled |
 //! | Jain | the amānta Hindu lunisolar calendar at the national almanac's sunrise; Paryuṣaṇa and Daśa Lakṣaṇa counted back from their last days | **approximate** — Jain almanacs differ from the national one by a day in some years, as the source says |
 //! | Shinto | fixed Gregorian dates, and 節分 as the day before 立春 at the Japanese meridian | exact; a shrine's own festival dates are not carried |
+//! | 五節句 | fixed Gregorian dates, from 1873 | exact |
 //! | Imperial court rites (宮中祭祀) | fixed Gregorian dates and the two equinox days at the Japanese meridian | exact for the Reiwa-era schedule the source gives; the rites tied to a reign change with it |
 //! | Sikh | the Nanakshahi calendar of 2003 for the gurpurabs; the amānta Hindu lunisolar calendar for the three the 2003 calendar left on the Bikrami | exact: the Nanakshahi dates are fixed Gregorian dates, and the lunar three follow the same model as the Hindu table; the SGPC's post-2010 dates are not carried |
 //! | Zoroastrian | the Parsi schedule of feasts on each of the three reckonings — Fasli, Shahanshahi, Qadimi — as three tables | exact: every feast is a fixed day of a fixed month, and each reckoning is arithmetic; the Iranian community's dates on the civil calendar are not carried |
@@ -38,8 +45,11 @@
 //! | Samaritan | the `samaritan` calendar, a modern calculation of the priesthood's | exact to that calculation, which puts one Passover of 2016–2020 a day late; a reported gap outside 1900–2100 |
 //! | Mandaean | the `mandaean` calendar of 365 days | exact: arithmetic |
 //! | Yazidi | the Eastern calendar, which is the Julian, and Serêsal by its weekday rule | exact |
+//! | Plough Monday, Plough Sunday, Distaff Day | fixed Gregorian dates and the weekday after one | exact as stated; the regional variants are not carried |
+//! | Chaharshanbe Suri | the Solar Hijri calendar, `persian`: the Tuesday before the year's last Wednesday | exact to the calendar |
 
 use hc_calendar::{Rd, Weekday};
+use hc_calendars_lunar::tibetan;
 use hc_calendars_solar::{bahai, gregorian, yazidi};
 use hc_seasons::{Meridian, SolarTerm};
 
@@ -56,6 +66,7 @@ use crate::hindu::{
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
+    TibetanMonth,
 };
 
 /// 清明, the fifth solar term.
@@ -1078,6 +1089,12 @@ pub static BUDDHIST_EAST_ASIAN: RuleSet = RuleSet {
 
 static CHINESE_NEW_YEAR: Rule = Rule::in_calendar(CalendarSystem::CHINESE, 1, 1);
 
+/// 清明 at the Chinese meridian.
+static QINGMING_IN_CHINA: Rule = Rule::SolarTerm {
+    term: QINGMING,
+    meridian: Meridian::CHINA,
+};
+
 static CHINESE_FOLK_RULES: &[HolidayRule] = &[
     feast(
         "Chinese New Year's Eve",
@@ -1092,19 +1109,36 @@ static CHINESE_FOLK_RULES: &[HolidayRule] = &[
         "春節",
         Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
     ),
+    // "正月一日為雞……七日為人": the seventh day of the first month.
+    feast(
+        "Human Day",
+        "人日",
+        Rule::in_calendar(CalendarSystem::CHINESE, 1, 7),
+    ),
     feast(
         "Lantern Festival",
         "元宵節",
         Rule::in_calendar(CalendarSystem::CHINESE, 1, 15),
     ),
+    // Fixed at 三月初三 from the Wei–Jin; the earlier 三月上旬的巳日 is
+    // not carried, see the set's documentation.
     feast(
-        "Qingming Festival",
-        "清明節",
-        Rule::SolarTerm {
-            term: QINGMING,
-            meridian: Meridian::CHINA,
+        "Shangsi Festival",
+        "上巳節",
+        Rule::in_calendar(CalendarSystem::CHINESE, 3, 3),
+    ),
+    // The day before 清明, as kept after the 時憲曆 of 1645; the older
+    // reckoning, 105 days after the winter solstice, is
+    // `hc_seasons::ColdFoodConvention::SolsticePlus105`.
+    feast(
+        "Cold Food Festival",
+        "寒食節",
+        Rule::Offset {
+            base: &QINGMING_IN_CHINA,
+            days: -1,
         },
     ),
+    feast("Qingming Festival", "清明節", QINGMING_IN_CHINA),
     feast(
         "Dragon Boat Festival",
         "端午節",
@@ -1146,6 +1180,21 @@ static CHINESE_FOLK_RULES: &[HolidayRule] = &[
 ];
 
 /// Chinese folk religion and the festivals of the Chinese year.
+///
+/// 人日 on the seventh of the first month; 上巳 on the third of the third,
+/// where it has been fixed since the Wei–Jin; and 寒食 on the day before
+/// 清明, as it has been kept since the 時憲曆 of 1645 shortened the
+/// interval from the winter solstice, beside the festivals of the year.
+///
+/// Not carried: 上巳 in its older form, "三月上旬的巳日", the 巳 day of the
+/// first ten days of the third month, which the source puts before the
+/// Han–Wei change. It is not quite "the first 巳 day" — when that falls on
+/// the eleventh or twelfth there is no 巳 day in the first ten — and it was
+/// kept centuries before 1645, where `chinese` begins, so there is no year
+/// in the calendar's range it would be true of. The older 寒食, 105 days
+/// after the winter solstice, is a named convention of its own in
+/// `hc-seasons` (`ColdFoodConvention::SolsticePlus105`), not a day of this
+/// table, and 小年 is in the regional tables beside it, one per region.
 pub static CHINESE_FOLK: RuleSet = RuleSet {
     code: "chinese-folk",
     english_name: "Chinese folk tradition",
@@ -1154,10 +1203,632 @@ pub static CHINESE_FOLK: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "The Chinese lunisolar calendar and the 24 solar terms, both \
               computed at the Beijing meridian by `hc-calendars-lunar` and \
-              `hc-seasons`",
+              `hc-seasons`; Wikipedia (zh), \"人日\", for 正月初七 after 董勛's \
+              答問禮俗說; Wikipedia (zh), \"上巳節\", for 三月初三 and the earlier \
+              三月上旬的巳日; Wikipedia (zh), \"寒食节\", for 清明前一日 after the \
+              時憲曆 of 1645 (`wikipedia-zh-hanshi`), all retrieved 2026-09-26 \
+              (secondary)",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// 小年, one table per region
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Where every 小年 table takes its day from.
+const XIAONIAN_SOURCES: &str = "Wikipedia (zh), \"小年\", retrieved 2026-09-26 \
+    (`wikipedia-zh-xiaonian`, secondary), for the regions and their days; 新华社, \
+    republished by 共产党员网 (12371.gov.cn) on 10 February 2026, \"今天，腊月二十三是\
+    北方小年，明天，腊月二十四是南方小年\", retrieved 2026-09-26, for the northern and \
+    southern days of 2026";
+
+/// A 小年 table: one day of the Chinese calendar, kept as the Little New
+/// Year in one region.
+macro_rules! xiaonian {
+    ($(#[$doc:meta])* $set:ident, $rules:ident, $code:literal, $region:literal, $rule:expr) => {
+        static $rules: &[HolidayRule] = &[feast(
+            concat!("Little New Year (", $region, ")"),
+            "小年",
+            $rule,
+        )];
+
+        $(#[$doc])*
+        pub static $set: RuleSet = RuleSet {
+            code: $code,
+            english_name: concat!("Little New Year (", $region, ")"),
+            rules: $rules,
+            substitution: &[],
+            bridges: &[],
+            includes: &[],
+            weekend: SATURDAY_SUNDAY,
+            sources_checked: SourceDate::new(2026, 9, 26),
+            sources: XIAONIAN_SOURCES,
+        };
+    };
+}
+
+xiaonian!(
+    /// 小年 in the north: 腊月廿三, the Kitchen God's day as the court kept
+    /// it, which "北方受官方祭祀影响，渐以廿三过小年为多".
+    CHINESE_XIAONIAN_NORTH,
+    CHINESE_XIAONIAN_NORTH_RULES,
+    "chinese-xiaonian-north",
+    "north",
+    Rule::in_calendar(CalendarSystem::CHINESE, 12, 23)
+);
+
+xiaonian!(
+    /// 小年 in much of the south: 腊月廿四, where "南方多地则延续廿四旧俗".
+    CHINESE_XIAONIAN_SOUTH,
+    CHINESE_XIAONIAN_SOUTH_RULES,
+    "chinese-xiaonian-south",
+    "south",
+    Rule::in_calendar(CalendarSystem::CHINESE, 12, 24)
+);
+
+xiaonian!(
+    /// 小年 in Jiangnan and the Wu-speaking area, where 除夕 is 大年夜 and
+    /// the night before it 小年夜, and in most of Fujian and in Taiwan,
+    /// which keep the same day: two days before the New Year.
+    CHINESE_XIAONIAN_JIANGNAN,
+    CHINESE_XIAONIAN_JIANGNAN_RULES,
+    "chinese-xiaonian-jiangnan",
+    "Jiangnan, Fujian and Taiwan",
+    Rule::Offset {
+        base: &CHINESE_NEW_YEAR,
+        days: -2,
+    }
+);
+
+xiaonian!(
+    /// 小年 around Nanjing, which gives the name to 正月十五, the Lantern
+    /// Festival.
+    CHINESE_XIAONIAN_NANJING,
+    CHINESE_XIAONIAN_NANJING_RULES,
+    "chinese-xiaonian-nanjing",
+    "Nanjing",
+    Rule::in_calendar(CalendarSystem::CHINESE, 1, 15)
+);
+
+xiaonian!(
+    /// 小年 in parts of Sichuan, Chongqing, Guizhou and Yunnan, where 除夕
+    /// itself is "过小年".
+    CHINESE_XIAONIAN_SOUTHWEST,
+    CHINESE_XIAONIAN_SOUTHWEST_RULES,
+    "chinese-xiaonian-southwest",
+    "south-west",
+    Rule::Offset {
+        base: &CHINESE_NEW_YEAR,
+        days: -1,
+    }
+);
+
+// ─────────────────────────────────────────────────────────────────────────
+// Taoism
+// ─────────────────────────────────────────────────────────────────────────
+
+static TAOIST_RULES: &[HolidayRule] = &[
+    feast(
+        "Upper Yuan Festival (birthday of the Official of Heaven)",
+        "上元節",
+        Rule::in_calendar(CalendarSystem::CHINESE, 1, 15),
+    ),
+    feast(
+        "Birthday of Mazu",
+        "媽祖生日",
+        Rule::in_calendar(CalendarSystem::CHINESE, 3, 23),
+    ),
+    feast(
+        "Middle Yuan Festival (birthday of the Official of Earth)",
+        "中元節",
+        Rule::in_calendar(CalendarSystem::CHINESE, 7, 15),
+    ),
+    feast(
+        "Ascension of Mazu",
+        "",
+        Rule::in_calendar(CalendarSystem::CHINESE, 9, 9),
+    ),
+    feast(
+        "Lower Yuan Festival (birthday of the Official of Water)",
+        "下元節",
+        Rule::in_calendar(CalendarSystem::CHINESE, 10, 15),
+    ),
+];
+
+/// Taoist days on the Chinese calendar: the three Yuan festivals, the
+/// birthdays of the Three Officials, 三官大帝 — 天官 on the fifteenth of the
+/// first month, 地官 of the seventh and 水官 of the tenth — and Mazu's
+/// birthday on the twenty-third of the third month and her death, her
+/// ascension, on the Double Ninth, the ninth of the ninth.
+///
+/// 上元 and 中元 fall on the days of the Chinese folk table's 元宵 and
+/// 中元; they are the same days under their Taoist names. The other
+/// deities' days are not carried: they want a temple's or an almanac's
+/// list, and none was read.
+pub static TAOIST: RuleSet = RuleSet {
+    code: "taoist",
+    english_name: "Taoism",
+    rules: TAOIST_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Secondary sources only, all retrieved 2026-09-26: Wikipedia (zh), \
+              \"下元節\", for the Three Officials' birthdays on 正月十五, 七月十五 and \
+              十月十五; Wikipedia, \"Mazu\", for her birthday on the 23rd day of the 3rd \
+              month and her death on the Double Ninth; TVBS News, 18 April 2025, for \
+              \"媽祖生日日期落在農曆3月23日即是國曆4月20日\". A temple's own calendar \
+              would be the primary",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Korean folk days
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A day of the Korean lunar calendar, `dangi`.
+const fn dangi(month: u8, day: u8) -> Rule {
+    Rule::in_calendar(CalendarSystem::DANGI, month, day)
+}
+
+/// 설날, the first day of the Korean year.
+static SEOLLAL: Rule = dangi(1, 1);
+
+/// 동지, the winter solstice, at the Korean meridian.
+static DONGJI: Rule = Rule::SolarTerm {
+    term: SolarTerm::WINTER_SOLSTICE,
+    meridian: Meridian::KOREA,
+};
+
+static KOREAN_FOLK_RULES: &[HolidayRule] = &[
+    HolidayRule::observance("Jeongwol Daeboreum", "정월대보름", dangi(1, 15)),
+    HolidayRule::observance("Yeongdeung Day", "영등날", dangi(2, 1)),
+    HolidayRule::observance("Samjinnal", "삼짇날", dangi(3, 3)),
+    // 105 days after 동지, the solstice not counted, as the Korea Astronomy
+    // and Space Science Institute dates it; `hc_seasons::ColdFoodConvention::Hansik`.
+    HolidayRule::observance(
+        "Hansik",
+        "한식",
+        Rule::Offset {
+            base: &DONGJI,
+            days: hc_seasons::cold_food::DAYS_AFTER_SOLSTICE as i16,
+        },
+    ),
+    HolidayRule::observance("Dano", "단오", dangi(5, 5)),
+    HolidayRule::observance("Yudu", "유두", dangi(6, 15)),
+    HolidayRule::observance("Chilseok", "칠석", dangi(7, 7)),
+    HolidayRule::observance("Baekjung", "백중", dangi(7, 15)),
+    HolidayRule::observance("Jungyangjeol", "중양절", dangi(9, 9)),
+    HolidayRule::observance("Siwol Boreum", "시월보름", dangi(10, 15)),
+    HolidayRule::observance(
+        "Seotdal Geumeum",
+        "섣달그믐",
+        Rule::Offset {
+            base: &SEOLLAL,
+            days: -1,
+        },
+    ),
+];
+
+/// The Korean folk days, 명절 and 세시 days, on the Korean lunar calendar,
+/// `dangi`: 정월대보름, the first full moon, on 1/15; 영등날 on 2/1;
+/// 삼짇날 on 3/3; 단오 on 5/5; 유두 on 6/15; 칠석 on 7/7; 백중 on 7/15;
+/// 중양절 on 9/9; 시월보름, the 下元, on 10/15; 섣달그믐, the last day of
+/// the year, the eve of 설날; and 한식, 105 days after 동지.
+///
+/// None is a day off; South Korea's table carries 설날 and 추석, which are.
+/// 한식 is counted from the solstice's day at the Korean meridian, the
+/// solstice not counted: the Korea Astronomy and Space Science Institute's
+/// 한식 of 5 April 2024, 5 April 2025 and 6 April 2026 require that, and
+/// counting the solstice as the first day would put each a day early
+/// (`docs/systems/solar-term-counts.md`). The lunar days are in the ordinary
+/// month of their number when the year repeats it.
+pub static KOREAN_FOLK: RuleSet = RuleSet {
+    code: "korean-folk",
+    english_name: "Korean folk days",
+    rules: KOREAN_FOLK_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Wikipedia (ko), \"한국의 명절\", for the lunar days, including 영등날 on \
+              2/1 and 시월보름 on 10/15 (secondary); Encyclopedia of Korean Culture \
+              (한국민족문화대백과사전, encykorea.aks.ac.kr), \"명절\" (임동권), \"세시풍속\" \
+              (김명자) and \"한식\" (김선풍), for the days and for 한식 \"동지로부터 105일째 되는 \
+              날\" on 청명 or the day after (`aks-hansik`); the Korea Astronomy and Space \
+              Science Institute's 월력요항 notices for 2024, 2025 and 2026 (kasi.re.kr), \
+              for 한식, 단오 and 칠석 in those years (`kasi-wollyeok`); all retrieved \
+              2026-09-26",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Vietnamese folk days
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A day of the Vietnamese lunar calendar, `vietnamese`.
+const fn am_lich(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::observance(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::VIETNAMESE, month, day),
+    )
+}
+
+static VIETNAMESE_FOLK_RULES: &[HolidayRule] = &[
+    am_lich("Khai Ha Festival", "Tết Khai Hạ", 1, 7),
+    am_lich("Lantern Festival", "Tết Nguyên Tiêu", 1, 15),
+    am_lich("Cold Food Festival", "Tết Hàn Thực", 3, 3),
+    am_lich("Double Fifth Festival", "Tết Đoan Ngọ", 5, 5),
+    am_lich("Vu Lan (Ghost Festival)", "Tết Trung Nguyên", 7, 15),
+    am_lich("Mid-Autumn Festival", "Tết Trung Thu", 8, 15),
+    am_lich("Double Ninth Festival", "Tết Trùng Cửu", 9, 9),
+    am_lich("Double Tenth Festival", "Tết Trùng Thập", 10, 10),
+    am_lich("Lower Yuan Festival (new rice)", "Tết Hạ Nguyên", 10, 15),
+    am_lich("Kitchen Gods' Day", "Ông Công Ông Táo", 12, 23),
+];
+
+/// The Vietnamese folk days on the Vietnamese lunar calendar, `vietnamese`,
+/// as the Vietnam News Agency lists "những ngày tết tính theo âm lịch":
+/// Khai Hạ on 1/7, Nguyên Tiêu on 1/15, Hàn Thực on 3/3, Đoan Ngọ on 5/5,
+/// Trung Nguyên, the Vu Lan, on 7/15, Trung Thu on 8/15, Trùng Cửu on 9/9,
+/// Trùng Thập on 10/10, Hạ Nguyên on 10/15, and Ông Táo on 12/23.
+///
+/// None is a day off; Vietnam's table carries Tết, which is. Vietnam's Tết
+/// Hàn Thực is the lunar third of the third, not a count from a solar term
+/// as the Chinese and Korean Cold Food days are. The list's Tết Thanh Minh,
+/// "trong tháng Ba", in the third month, is a solar term and not given a
+/// date by it; it is the Chinese table's 清明 at the Chinese meridian, and
+/// is not repeated here at Vietnam's.
+pub static VIETNAMESE_FOLK: RuleSet = RuleSet {
+    code: "vietnamese-folk",
+    english_name: "Vietnamese folk days",
+    rules: VIETNAMESE_FOLK_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Ngô Trọng Bình, \"Ý nghĩa của những ngày tết tính theo âm lịch\", TTXVN/Vietnam+ \
+              (vietnamplus.vn), 21 January 2012 (`vnplus-tet-am-lich`), for the days; \
+              Vietnam+, 15 January 2025, for Ông Táo on 22 January 2025, and VietNamNet, \
+              28 September 2025, for Trung Thu on 6 October 2025, as checks; all retrieved \
+              2026-09-26",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// The Japanese 五節句
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A 節句 on its Gregorian date, from 1873, when Japan took up the
+/// Gregorian calendar and the Council of State abolished the five as
+/// official festivals.
+const fn sekku(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::observance(name, local, Rule::gregorian(month, day)).years(Some(1873), None)
+}
+
+static GOSEKKU_RULES: &[HolidayRule] = &[
+    sekku("Jinjitsu (Festival of Seven Herbs)", "人日", 1, 7),
+    sekku("Joshi (Peach Festival)", "上巳", 3, 3),
+    sekku("Tango (Iris Festival)", "端午", 5, 5),
+    sekku("Tanabata (Bamboo Festival)", "七夕", 7, 7),
+    sekku("Choyo (Chrysanthemum Festival)", "重陽", 9, 9),
+];
+
+/// The five seasonal festivals of Japan, the 五節句, on the Gregorian dates
+/// they have been kept on since 1873: 人日, 七草の節句, on 7 January; 上巳,
+/// 桃の節句, on 3 March; 端午, 菖蒲の節句, on 5 May; 七夕, 笹の節句, on 7
+/// July; 重陽, 菊の節句, on 9 September.
+///
+/// The Council of State's notice No. 1 of 4 January 1873, 「五節ヲ廃シ祝日ヲ
+/// 定ム」, abolished them as official festivals, and the year before they
+/// were the lunar dates of the Tenpō calendar, so the table starts in 1873.
+/// 端午 is also こどもの日, a public holiday in Japan's table. The National
+/// Astronomical Observatory's 伝統的七夕, the old 七夕 restated as a count
+/// from 処暑, is `hc_seasons::moon_calendar::traditional_tanabata`; the 月遅れ
+/// reckoning a month later is in no source read and not carried.
+pub static GOSEKKU: RuleSet = RuleSet {
+    code: "gosekku",
+    english_name: "The five seasonal festivals of Japan (五節句)",
+    rules: GOSEKKU_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Wikipedia (ja), \"節句\", retrieved 2026-09-26, for the five, their \
+              names and dates, and their abolition by 太政官第1号布告 of 4 January 1873 \
+              (the notice itself not read; secondary)",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Tibetan Buddhism
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A numbered day of the Phugpa calendar, `tibetan`; a year in which the
+/// day is skipped or repeated is a gap, see [`Rule::TibetanDay`].
+const fn duchen(name: &'static str, month: TibetanMonth, day: u8) -> HolidayRule {
+    feast(name, "", Rule::tibetan(&tibetan::TIBETAN, month, day))
+}
+
+static BUDDHIST_TIBETAN_RULES: &[HolidayRule] = &[
+    duchen("Losar", TibetanMonth::First, 1),
+    duchen("Saga Dawa Düchen", TibetanMonth::Unrepeated(4), 15),
+    duchen("Universal Prayer Day", TibetanMonth::Unrepeated(5), 15),
+    duchen("Chökhor Düchen", TibetanMonth::Unrepeated(6), 4),
+    duchen("Lhabab Düchen", TibetanMonth::Unrepeated(9), 22),
+];
+
+/// Tibetan Buddhism's *düchen* and the New Year on the Phugpa calendar,
+/// `tibetan`: Losar on the first day of the year, Saga Dawa Düchen on
+/// 4/15, the Universal Prayer Day on 5/15, Chökhor Düchen, the first
+/// teaching, on 6/4, and Lhabab Düchen, the descent from heaven, on 9/22.
+///
+/// A holiday is on the calendar day that bears its number. Where the
+/// calendar skips that number, or repeats it, the day is reported as a gap
+/// rather than guessed, as for Mongolia's and Bhutan's lunar holidays: which
+/// neighbouring day is kept is not settled. So is a year that repeats the
+/// month: the list keeps Chökhor Düchen of 2024 on 9 July, the first of two
+/// fourth days of the leap month 6, where Janson's rule would keep it in the
+/// regular month, on 8 August, so a year in which the month is doubled is a
+/// gap too ([`TibetanMonth::Unrepeated`];
+/// `docs/systems/tibetan-calendar-holidays.md`). The days are those of the
+/// Tibetan Nuns Project's 2024 list, which names no almanac; Chötrul Düchen
+/// on 1/15 and the other *düchen* it does not list are not carried.
+pub static BUDDHIST_TIBETAN: RuleSet = RuleSet {
+    code: "buddhist-tibetan",
+    english_name: "Buddhism (Tibetan)",
+    rules: BUDDHIST_TIBETAN_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Tibetan Nuns Project, \"Important Tibetan Buddhist Holidays in 2024\" \
+              (tnp.org, `tnp-losar`), retrieved 2026-09-26, for the days, their lunar \
+              dates and their 2024 dates: Losar 10 February, Saga Dawa Düchen 23 May, \
+              the Universal Prayer Day 22 June, Chökhor Düchen 9 July, Lhabab Düchen \
+              22 November; the lunar days as `hc_calendars_lunar::tibetan::TIBETAN` \
+              computes them",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Uposatha, as Thailand keeps it
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The days of `year` whose Thai lunar day `pick` accepts, given the day
+/// and the length of its month.
+fn thai_lunar_days(year: i64, pick: fn(u8, u8) -> bool) -> Days {
+    let mut out = Days::new();
+    let (Ok(first), Ok(last)) = (
+        gregorian::to_fixed(year, 1, 1),
+        gregorian::to_fixed(year, 12, 31),
+    ) else {
+        return out;
+    };
+    for day in first.0..=last.0 {
+        let Ok(date) = hc_calendars_regional::thai_lunar::from_fixed(Rd(day)) else {
+            continue;
+        };
+        let Ok(length) = hc_calendars_regional::thai_lunar::month_length(date.year, date.month)
+        else {
+            continue;
+        };
+        if pick(date.day, length) {
+            out.push(Rd(day));
+        }
+    }
+    out
+}
+
+/// ขึ้น 8 ค่ำ.
+fn uposatha_waxing_eighth(year: i64) -> Days {
+    thai_lunar_days(year, |day, _| day == 8)
+}
+
+/// ขึ้น 15 ค่ำ, the full moon.
+fn uposatha_full_moon(year: i64) -> Days {
+    thai_lunar_days(year, |day, _| day == 15)
+}
+
+/// แรม 8 ค่ำ, the twenty-third day of the month.
+fn uposatha_waning_eighth(year: i64) -> Days {
+    thai_lunar_days(year, |day, _| day == 23)
+}
+
+/// The last day of the month: แรม 15 ค่ำ, or แรม 14 ค่ำ in a month of 29
+/// days, a เดือนขาด.
+fn uposatha_new_moon(year: i64) -> Days {
+    thai_lunar_days(year, |day, length| day == length)
+}
+
+/// A Thai uposatha day, over the years `thai-lunar` answers for.
+const fn wan_phra(
+    name: &'static str,
+    local: &'static str,
+    function: fn(i64) -> Days,
+) -> HolidayRule {
+    feast(
+        name,
+        local,
+        Rule::Tabulated {
+            function,
+            first_year: hc_calendars_regional::thai_lunar::FIRST_GREGORIAN_YEAR,
+            last_year: hc_calendars_regional::thai_lunar::LAST_GREGORIAN_YEAR,
+        },
+    )
+}
+
+static BUDDHIST_UPOSATHA_THAI_RULES: &[HolidayRule] = &[
+    wan_phra(
+        "Uposatha (waxing half moon)",
+        "วันพระ ขึ้น 8 ค่ำ",
+        uposatha_waxing_eighth,
+    ),
+    wan_phra("Uposatha (full moon)", "วันพระ ขึ้น 15 ค่ำ", uposatha_full_moon),
+    wan_phra(
+        "Uposatha (waning half moon)",
+        "วันพระ แรม 8 ค่ำ",
+        uposatha_waning_eighth,
+    ),
+    wan_phra(
+        "Uposatha (new moon)",
+        "วันพระ แรม 14 หรือ 15 ค่ำ",
+        uposatha_new_moon,
+    ),
+];
+
+/// The Theravāda *uposatha* days as Thailand keeps them, วันพระ, on the
+/// Thai lunar calendar, `thai-lunar`: ขึ้น 8 ค่ำ, ขึ้น 15 ค่ำ, แรม 8 ค่ำ,
+/// and the last day of the month, แรม 15 ค่ำ, or แรม 14 ค่ำ in a month of
+/// 29 days, a เดือนขาด.
+///
+/// Which months are short is the calendar's: the odd months have 29 days
+/// and the even 30, month 7 has 30 in an adhikavāra year, and an
+/// adhikamāsa year repeats month 8, each copy with its own days
+/// (`docs/systems/thai-lunar.md`). The days are exact for 1992–2027, the
+/// years whose types Thailand published, and reported gaps outside. The
+/// Dhammayuttika Nikāya may keep slightly different days, as Wikipedia's
+/// "Uposatha" notes, and no reckoning of its own is carried; the Burmese,
+/// Sri Lankan and Mahāyāna sets are other tables, not carried yet.
+pub static BUDDHIST_UPOSATHA_THAI: RuleSet = RuleSet {
+    code: "buddhist-uposatha-thai",
+    english_name: "Buddhism (Thai uposatha days)",
+    rules: BUDDHIST_UPOSATHA_THAI_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Wikipedia (th), \"วันพระ\", for \"วันขึ้น 8 ค่ำ, วันขึ้น 15 ค่ำ (วันเพ็ญ), วันแรม \
+              8 ค่ำ และวันแรม 15 ค่ำ (หากเดือนใดเป็นเดือนขาด ถือเอาวันแรม 14 ค่ำ)\"; Wikipedia, \
+              \"Uposatha\", for the four days and the orders' differences (both \
+              secondary); Thai PBS, \"ปฏิทินวันพระ 2568\" (thaipbs.or.th, \
+              `thaipbs-wanphra-2568`), which credits กรมการศาสนา, for the days of 2025 \
+              as checks; all retrieved 2026-09-26; the month lengths from the year \
+              types of `thai-lunar` (docs/systems/thai-lunar.md)",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Plough Monday, Plough Sunday and Distaff Day
+// ─────────────────────────────────────────────────────────────────────────
+
+static PLOUGH_DAYS_RULES: &[HolidayRule] = &[
+    HolidayRule::observance("Distaff Day", "St Distaff's Day", Rule::gregorian(1, 7)),
+    // "The Sunday between 7 January and 13 January".
+    feast(
+        "Plough Sunday",
+        "",
+        Rule::WeekdayOnOrAfter {
+            month: 1,
+            day: 7,
+            weekday: Weekday::Sunday,
+        },
+    ),
+    // "The first Monday after Twelfth-day": after 6 January, so 13 January
+    // when the 6th is itself a Monday, as in 2025.
+    HolidayRule::observance(
+        "Plough Monday",
+        "",
+        Rule::WeekdayOnOrAfter {
+            month: 1,
+            day: 7,
+            weekday: Weekday::Monday,
+        },
+    ),
+];
+
+/// The English folk days that end Christmas: Distaff Day, St Distaff's
+/// Day, on 7 January, "the day after Epiphany", when the women went back
+/// to their spinning; Plough Monday, "the first Monday after Twelfth-day",
+/// when the men went back to the plough; and Plough Sunday, "the Sunday
+/// between 7 January and 13 January", on which a plough is blessed.
+///
+/// A Monday 6 January is not "after Twelfth-day", so Plough Monday is then
+/// 13 January, the date it was kept on in 2025. When 6 January is a
+/// Sunday, Plough Sunday is the 13th and Plough Monday the 7th, six days
+/// before it: the Plough Monday article's "the day before Plough Monday",
+/// said of the twentieth-century revival, is true only in the other six
+/// years, and the Plough Sunday article's rule, which states a date, is
+/// the one carried. The regional first- or second-Monday variants are not
+/// carried. All three are Gregorian dates; the accounts are of England
+/// after 1752.
+pub static PLOUGH_DAYS: RuleSet = RuleSet {
+    code: "plough-days",
+    english_name: "Plough Monday, Plough Sunday and Distaff Day",
+    rules: PLOUGH_DAYS_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "William Hone, The Every-Day Book, vol. 1 (London: William Tegg, 1825), \
+              \"Plough Monday\", read in the transcription at \
+              hymnsandcarolsofchristmas.com (`hone1825`), for \"The first Monday after \
+              Twelfth-day\"; Wikipedia, \"Plough Monday\", \"Plough Sunday\" and \
+              \"Distaff Day\" (secondary), for the Sunday between 7 and 13 January, \
+              Distaff Day on 7 January and the regional variants; Liz Gwedhan, \
+              \"13th January: Plough Monday\", 12 January 2025, as the dated check of a \
+              Monday Twelfth-day; all retrieved 2026-09-26",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Chaharshanbe Suri
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Nowruz, 1 Farvardin.
+static NOWRUZ: Rule = Rule::in_calendar(CalendarSystem::SOLAR_HIJRI, 1, 1);
+
+/// The last day of the Solar Hijri year, the day before Nowruz.
+static LAST_DAY_OF_THE_YEAR: Rule = Rule::Offset {
+    base: &NOWRUZ,
+    days: -1,
+};
+
+/// From the last day of the year to the Tuesday before the last Wednesday
+/// on or before it: a year that ends on a Tuesday has its last Wednesday a
+/// week before its last day.
+const TO_EVE_OF_LAST_WEDNESDAY: &[(Weekday, i16)] = &[
+    (Weekday::Wednesday, -1),
+    (Weekday::Thursday, -2),
+    (Weekday::Friday, -3),
+    (Weekday::Saturday, -4),
+    (Weekday::Sunday, -5),
+    (Weekday::Monday, -6),
+    (Weekday::Tuesday, -7),
+];
+
+static CHAHARSHANBE_SURI_RULES: &[HolidayRule] = &[HolidayRule::observance(
+    "Chaharshanbe Suri",
+    "چهارشنبه‌سوری",
+    Rule::moved_by_weekday(&LAST_DAY_OF_THE_YEAR, TO_EVE_OF_LAST_WEDNESDAY),
+)];
+
+/// Chaharshanbe Suri, the Iranian fire festival: "شبِ آخرین چهارشنبهٔ سال
+/// (از غروب سه‌شنبه)", the night of the last Wednesday of the year, from
+/// Tuesday's sunset, on the Solar Hijri calendar, `persian`.
+///
+/// The date given is the Tuesday whose evening it is. The Wednesday is the
+/// last *of the year*, so when Nowruz is itself a Wednesday — the year
+/// ending on a Tuesday — the festival is on the Tuesday a week before the
+/// last day, as it was on 12 March 2024, and not on the eve of Nowruz.
+pub static CHAHARSHANBE_SURI: RuleSet = RuleSet {
+    code: "chaharshanbe-suri",
+    english_name: "Chaharshanbe Suri",
+    rules: CHAHARSHANBE_SURI_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Wikipedia (fa), \"چهارشنبه‌سوری\", for the night of the last Wednesday of \
+              the year from Tuesday's sunset and 28 Esfand 1404, 17 March 2026; Wikipedia, \
+              \"Chaharshanbe Suri\", for 18 March 2025, 17 March 2026 and 16 March 2027 \
+              (both secondary); an Eventbrite listing of a Chahar Shanbe Suri on Tuesday \
+              12 March 2024, the year Nowruz was a Wednesday, as a weak check; all \
+              retrieved 2026-09-26",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2454,12 +3125,23 @@ pub static ALL: &[&RuleSet] = &[
     &HINDU,
     &BUDDHIST_THAI,
     &BUDDHIST_EAST_ASIAN,
+    &BUDDHIST_TIBETAN,
+    &BUDDHIST_UPOSATHA_THAI,
     &CHINESE_FOLK,
+    &CHINESE_XIAONIAN_NORTH,
+    &CHINESE_XIAONIAN_SOUTH,
+    &CHINESE_XIAONIAN_JIANGNAN,
+    &CHINESE_XIAONIAN_NANJING,
+    &CHINESE_XIAONIAN_SOUTHWEST,
+    &TAOIST,
+    &KOREAN_FOLK,
+    &VIETNAMESE_FOLK,
     &WHEEL_OF_THE_YEAR,
     &WHEEL_OF_THE_YEAR_SOUTH,
     &JAIN,
     &SHINTO,
     &KYUCHU_SAISHI,
+    &GOSEKKU,
     &SIKH_NANAKSHAHI_2003,
     &ZOROASTRIAN_FASLI,
     &ZOROASTRIAN_SHAHANSHAHI,
@@ -2472,6 +3154,8 @@ pub static ALL: &[&RuleSet] = &[
     &YAZIDI,
     &CHRISTIAN_ARMENIAN,
     &CHRISTIAN_ARMENIAN_JERUSALEM,
+    &PLOUGH_DAYS,
+    &CHAHARSHANBE_SURI,
 ];
 
 /// The table for a tradition's identifier.

@@ -16,10 +16,15 @@
 //! * [`rokuyo`] — 六曜, the six-day cycle Japanese calendars print.
 //! * [`san_fu`] — 三伏 and 數九, the Chinese dog days and the nine nines,
 //!   counted in 庚 days and in nines from the solstices.
+//! * [`cold_food`] — 寒食, the Cold Food Day, under each reckoning: 105
+//!   days after the winter solstice, the eve of 清明, and Korea's 한식.
 //! * [`quarter_days`] — the quarter days and term days of England and
 //!   Wales, Ireland and Scotland, each tradition's four fixed dates.
+//! * [`dog_days`] — the European dog days, under each convention that
+//!   dates them.
 //! * [`moon_calendar`] — phase names, 月齢, illuminated fraction, the four
-//!   principal phases of a month, 十五夜 and 十三夜.
+//!   principal phases of a month, 十五夜 and 十三夜, and the National
+//!   Astronomical Observatory's 伝統的七夕.
 //! * [`seasons`] — the four seasons, astronomical, meteorological and East
 //!   Asian.
 //! * [`zodiac`] — 黄道十二宮: the ecliptic cut into twelve, tropically
@@ -78,6 +83,8 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+pub mod cold_food;
+pub mod dog_days;
 pub mod lunisolar;
 pub mod meridian;
 pub mod moon_calendar;
@@ -92,6 +99,8 @@ pub mod zodiac;
 
 mod gregorian;
 
+pub use cold_food::ColdFoodConvention;
+pub use dog_days::DogDaysConvention;
 pub use lunisolar::LunisolarDay;
 pub use meridian::Meridian;
 pub use moon_calendar::PhaseName;

@@ -1,7 +1,8 @@
-# Holidays on the Tibetan calendar: Mongolia and Bhutan
+# Holidays on the Tibetan calendar: Mongolia, Bhutan and the *düchen*
 
 Backs the lunar days of the `MONGOLIA` (`MN`) and `BHUTAN` (`BT`) tables in
-`hc-holiday`, the rule shape `Rule::TibetanDay` with its `TibetanMonth`, and
+`hc-holiday` and its `buddhist-tibetan` tradition table, the rule shape
+`Rule::TibetanDay` with its `TibetanMonth`, and
 the calendar systems `CalendarSystem::MONGOLIAN` and
 `CalendarSystem::TIBETAN_BHUTAN`, which name the `mongolian` and
 `tibetan-bhutan` calendars of `hc-calendars-lunar`. The calendars
@@ -57,6 +58,17 @@ and Tsagaan Sar are dated in the *first* month of the year, which in the
 Mongolian year 2006 is the leap month 1, from 30 January, and not the
 regular month 1, from 1 March. `TibetanMonth` says which: `First`,
 `Regular(n)` or `Leap(n)`.
+
+Janson's "usually" is not always. The Tibetan Nuns Project's list for
+2024 keeps Chökhor Düchen, "Fourth day of the sixth lunar month", on 9
+July [tnp-losar], and in the Phugpa calendar that is a day of the *leap*
+month 6, which runs from 6 July to 4 August before the regular month 6 —
+and the first of its two fourth days besides. The regular month's fourth
+is 8 August. So for the *düchen* of `buddhist-tibetan` neither rule is
+taken on trust: `TibetanMonth::Unrepeated(n)` is month *n* in a year that
+has it once, and a Gregorian year that either copy of a repeated month
+reaches is not answered, as a skipped or repeated day is not. Mongolia's
+and Bhutan's days keep `Regular(n)`, which their lists and laws bear out.
 
 **Which day.** A calendar day takes the number of the lunar day current at
 its dawn, so now and then a number is skipped and another is repeated
@@ -175,6 +187,14 @@ in 15 years — Tsagaan Sar in 11 — and of the Bhutanese in 23
 (`mongolia_reports_a_skipped_or_repeated_lunar_day_as_a_gap_and_moves_nothing`,
 `bhutan_predicts_its_bhutanese_calendar_days_beyond_the_lists`).
 
+**The *düchen*** (`the_tibetan_duchen_are_the_tibetan_nuns_projects_2024_dates`,
+`a_skipped_or_repeated_tibetan_day_is_a_gap_and_not_a_guess`). Losar,
+Saga Dawa Düchen, the Universal Prayer Day and Lhabab Düchen of 2024 are
+the Tibetan Nuns Project's 10 February, 23 May, 22 June and 22 November;
+its Chökhor Düchen of 9 July is the leap-month day above, and 2024 reports
+it as a gap and gives neither 9 July nor 8 August. Over 2000–2100 one of
+the five is a gap 27 times, in 26 years.
+
 ## Sources
 
 | Key | Used for | Read |
@@ -184,6 +204,7 @@ in 15 years — Tsagaan Sar in 11 — and of the Bhutanese in 23
 | [ikon-tsagaan-sar-2022] | Tsagaan Sar 2022, its third day skipped | Yes, 2026-09-26 |
 | [montsame-tsagaan-sar-2020], [montsame-tsagaan-sar-2021], [montsame-tsagaan-sar-2026] | Tsagaan Sar 2020, 2021 and 2026 | Yes, 2026-09-26 |
 | [moha-bt-calendar-2025], [moha-bt-calendar-2026] | The holiday lists and their Bhutanese dates | Yes, 2026-09-26 (the transcription in `hc-calendars-lunar`'s tests) |
+| [tnp-losar] | The *düchen* of 2024 and their lunar dates, Chökhor Düchen in the leap month 6 | Yes, 2026-09-26 |
 | [janson2014] | The months by season, holidays not in leap months, the New Year in a leap month, Berzin's rule for skipped and repeated dates, the Bhutanese holidays and Winter Solstice, Losar 2003 | Yes, from the TeX source |
 | [kalacakra-org] | Henning's Bhutanese program and holiday list | Not reachable on 2026-09-26 for this document; cited through Janson |
 | Berzin, *Tibetan Astro Science* (1986) | The rule for skipped and repeated dates | Not read; cited through Janson |
@@ -194,4 +215,6 @@ in 15 years — Tsagaan Sar in 11 — and of the Bhutanese in 23
   `CalendarSystem::MONGOLIAN`, `CalendarSystem::TIBETAN_BHUTAN`, and the
   unit test `a_tibetan_day_is_a_gap_where_its_number_is_skipped_or_repeated`.
 - `crates/hc-holiday/src/countries/asia.rs`: `MONGOLIA` and `BHUTAN`.
-- `crates/hc-holiday/tests/countries.rs`: the tests named above.
+- `crates/hc-holiday/src/traditions.rs`: `BUDDHIST_TIBETAN`, on `tibetan`.
+- `crates/hc-holiday/tests/countries.rs` and `tests/traditions.rs`: the
+  tests named above.
