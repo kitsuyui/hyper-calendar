@@ -109,6 +109,7 @@ the sacrifice fell on Wednesday 6 May, as published.
 
 | Check | Source | Test | Result |
 | --- | --- | --- | --- |
+| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `samaritan`, the months relabelled from where the year turns to the month of Passover | [reingold2018code] | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) | 9 of the 9 in 1900–2100; the 24 before refused |
 | The Passover sacrifice on 10 April 2017, 29 April 2018, 18 April 2019 and 6 May 2020 | [samaritan-institute-calendar] | `the_published_passover_sacrifices_of_2017_to_2020` | all four |
 | The Passover sacrifice on 20 April 2016 | [samaritan-institute-calendar] | `the_rule_puts_the_passover_of_2016_a_day_after_the_community` | **one day late**: 21 April |
 | The Sixth Month on 11 September 2026, the Seventh on 11 October, the Day of Atonement on 20 October, Sukkot on 25 October, the Eighth and Ninth Months on 9 November and 9 December | [samaritans-net-calendar] | `the_months_of_autumn_2026_are_the_published_ones` | all six |

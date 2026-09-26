@@ -259,6 +259,15 @@ calculation is not. Both are written up in
 
 ## Accuracy
 
+**The sample dates of *Calendrical Calculations*.** The book's 33 sample
+dates, as its published code computes them [reingold2018code, `dates.l`],
+include its Phugpa calendar, and `tibetan` gives all 26 of those from
+1000 on: month, leap month, day and leap day, the year once the book's
+count, 127 more than the Western year the Tibetan one begins in, is
+allowed for; the 7 before 1000 are refused
+(`every_sample_date_agrees_or_is_refused_or_is_a_known_difference` in
+`crates/hyper-calendar/tests/rd_sample_dates.rs`).
+
 **What the tests check.** Janson's own datelines: 31 December 2007 is
 "Sunday 23, month 11, Fire–Pig year" and 8 January 2014 "Wednesday 8,
 month 11, Water–Snake year" [janson2014, title page]; 2007 is the 21st year

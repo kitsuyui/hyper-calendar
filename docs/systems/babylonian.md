@@ -87,6 +87,7 @@ Gent's transcription [vangent2011], over the 5 664 months from SE −71:
 
 | Measure | Result |
 | --- | --- |
+| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `babylonian` | 2 of the 2 in its range (−382 to 76); the other 31 refused, in `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) |
 | Intercalary months in the year and place the rule gives | 168 of 168 |
 | First day of the month on the table's day | 4 694 of 5 664 (82.9%) |
 | A day later than the table | 941 (16.6%) |

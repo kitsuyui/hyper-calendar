@@ -171,6 +171,7 @@ code:
 
 | Check | Test | Result |
 | --- | --- | --- |
+| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: the book's `chinese-day-name` against `sexagenary`'s stem and branch | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) | 33 of 33 |
 | The day cycle's constant agrees with the Julian Day Number form, stem `(JDN + 9) mod 10`, branch `(JDN + 1) mod 12` | `the_day_pillar_agrees_with_the_julian_day_number_rule` | Holds |
 | 1 January 1900 is 甲戌, 1 January 1970 辛巳 | `the_first_day_of_nineteen_hundred_was_a_jia_xu_day`, `the_unix_epoch_was_a_xin_si_day` | Holds |
 | 1984 is 甲子 and 2024 甲辰 by every convention; the lunisolar new year of 2024, 10 February, is the first day of 甲辰 | `nineteen_eighty_four_is_jia_zi_by_every_route`, `two_thousand_and_twenty_four_is_jia_chen`, `the_year_of_the_wood_dragon_began_in_2024` | Holds |

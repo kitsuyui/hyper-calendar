@@ -572,6 +572,7 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
 
 | Measure | Result | Test |
 | --- | --- | --- |
+| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `chinese`, cycle, year, month, leap and day | 15 of the 15 in 1645–2150; the 18 before refused. The book's day names are `sexagenary`'s, 33 of 33 | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) |
 | Chinese New Year 2000, 2020, 2021, 2022, 2023, 2024, 2025 and 2026 against the Hong Kong Observatory's tables [hko-conversion-tables], and 1900 = 31 January against the date in general circulation | 9 of 9 | `other_published_new_years_are_reproduced`, `chinese_new_year_2024_was_the_tenth_of_february` |
 | 閏二月 of 2023 beginning 22 March | Reproduced [hko-conversion-tables] | `twenty_twenty_three_had_a_leap_second_month` |
 | A child born in June 2000 is 13 *suì* from the lunar new year of 2012 [wikipedia-en-east-asian-age-reckoning]; one at birth, two the day after a New Year's Eve birth | Reproduced | `a_child_born_in_june_2000_turns_thirteen_at_the_new_year_of_2012`, `a_child_born_on_new_years_eve_is_two_the_next_day` |

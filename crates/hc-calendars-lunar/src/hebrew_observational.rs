@@ -20,9 +20,10 @@
 //! code's sample choices, not a claim about where the court sat; another
 //! place or criterion would be another calendar. It is a forecast of an
 //! observation, of the kind [`crate::islamic_observational`] is. No declared
-//! date survives to test it against; the book's sample values in its
-//! Appendix C include this calendar and were not read, so no test holds
-//! them.
+//! date survives to test it against. The book's sample dates include this
+//! calendar, and the facade's `tests/rd_sample_dates.rs` holds them as the
+//! published code computes them: 31 of the 32 in range agree, and the 70 CE
+//! one begins its month a day later, the crescent on the criterion's edge.
 //!
 //! The rule is `observational-hebrew-first-of-nisan`,
 //! `fixed-from-observational-hebrew`, `observational-hebrew-from-fixed` and
@@ -542,8 +543,8 @@ mod tests {
 
     #[test]
     fn the_prediction_and_the_fixed_calendar_and_the_crate_says_how_far_apart() {
-        // The book's Appendix C, the one published table of this calendar,
-        // was not read; this is the measure the document reports instead.
+        // The measure the document reports beside the book's sample dates,
+        // which the facade's tests/rd_sample_dates.rs holds.
         let mut differences = [0u32; 4];
         for year in 1_900..=2_100i64 {
             let predicted = first_of_nisan(year).expect("converges");

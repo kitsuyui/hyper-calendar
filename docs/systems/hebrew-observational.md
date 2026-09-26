@@ -175,15 +175,25 @@ functions.
 
 ## Accuracy
 
-**A published anchor exists and was not read.** No declared date of the
-Second Temple calendar survives in a form that could be checked, but the
-prediction itself is tabulated. The published code says the book's sample
-values are in its Appendix C, and its `dates.l`, which writes the
-sample-date tables out as TeX, gives them an `observational-hebrew` column
-(and an `observational-islamic` one) [reingold2018code, `dates.l`]. The
-appendix was not read, so no test holds its values; a test against it is the anchor this
-calendar still lacks. What the tests check is that the module is the rule,
-and how far the rule is from the fixed calendar where both can be
+**The published anchor.** No declared date of the Second Temple calendar
+survives in a form that could be checked, but the prediction itself is
+tabulated: the book's sample dates, whose tables the published code's
+`dates.l` writes with an `observational-hebrew` column by running
+`calendar.l` [reingold2018code, `dates.l`]. `dates.l` holds the program
+and the 33 dates, not the values, so the values were computed from that
+code at its commit of 2022 and are carried as test data, with the
+licence and the method in the data file's header
+(`crates/hyper-calendar/tests/data/calendrica_sample_dates.txt`). The
+book's printed appendix was not read. Of the 33 dates, 32 are in this
+calendar's range, and 31 of them agree exactly, month, day and the
+Adar of a leap year included. The one that does not is a crescent on the
+criterion's edge: on the evening that begins Tishri 3831 (70 CE) the
+code's Moon stands 4.13° high at its 4.5° moment, against the 4.1° the
+criterion asks; this module judges the evening 20 s later, from its
+interpolated 4.5° instant and its ΔT, finds the Moon at 4.06°, and begins
+the month a day later. The earliest date, 586 BCE, is before the range and
+is refused. Beyond that, what the tests check is that the module is the
+rule, and how far the rule is from the fixed calendar where both can be
 computed.
 
 | Measure | Result | Test |
@@ -194,6 +204,7 @@ computed.
 | Years of 12 or 13 months, 353–356 or 383–386 days, and Adar I exactly in the thirteen-month years, AM 5750–5789 and 3661–3699 | All | `years_run_twelve_or_thirteen_months` |
 | Round trips over four years of modern days and at both ends of the range | All | `the_calendar_round_trips_over_four_years_of_days`, `the_calendar_round_trips_at_both_ends_of_its_range` |
 | Round trips over every day of the four 31-day months of 1900–2100, with a day either side | All | `every_day_of_the_months_of_thirty_one_days_round_trips` |
+| The 33 sample dates of *Calendrical Calculations*, as its published code computes them | 31 of the 32 in range agree; Tishri 3831 (70 CE) begins a day later, on the criterion's edge; 586 BCE is refused | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) |
 | The worked example: 1 Nisan on 12 March 2024, Passover eve on 25 March, 5784 of twelve months and 5785 of thirteen | Reproduced | `nisan_2024_is_worked_in_the_document` |
 | 1 Nisan against the fixed calendar's, 201 springs of 1900–2100 | The same day in 48, one day later in 58, two days later in 44, 27 to 29 days earlier in 51 | `the_prediction_and_the_fixed_calendar_and_the_crate_says_how_far_apart` |
 | Leap years against the fixed calendar's, AM 5661–5860 | 99 of 200 agree | the same test |
@@ -218,8 +229,8 @@ as the module's own, is the range, which is a choice.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [reingold2018code] | `hebrew-location`, `observational-hebrew-first-of-nisan`, `fixed-from-observational-hebrew`, `observational-hebrew-from-fixed`, `classical-passover-eve`, `phasis-on-or-before`, `phasis-on-or-after`, `visible-crescent`, `shaukat-criterion`; `dates.l`, for the columns of the sample-date tables (read 2026-09-27); the capped alternative `alt-fixed-from-observational-hebrew`, `alt-observational-hebrew-from-fixed`, `early-month?`, `month-length`, named as not carried | Yes, 2026-09-26 |
-| [reingold2018] | The book's account of the calendar and its sample values in Appendix C, the anchor the tests lack | Not read |
+| [reingold2018code] | `hebrew-location`, `observational-hebrew-first-of-nisan`, `fixed-from-observational-hebrew`, `observational-hebrew-from-fixed`, `classical-passover-eve`, `phasis-on-or-before`, `phasis-on-or-after`, `visible-crescent`, `shaukat-criterion`; `dates.l`, its 33 dates and the program that writes the sample-date tables, run at commit `9afc1f3` to compute them (read 2026-09-27); the capped alternative `alt-fixed-from-observational-hebrew`, `alt-observational-hebrew-from-fixed`, `early-month?`, `month-length`, named as not carried | Yes, 2026-09-26 |
+| [reingold2018] | The book's account of the calendar and its sample values in Appendix C | Not read; the values the tests hold are the published code's own output |
 | [maimonides-kiddush-hachodesh] | The months declared by the court on witnesses' testimony, in the Land of Israel; months of 29 and 30 days; the three grounds for a leap year and the equinox on 16 Nisan or later | Yes, 2026-09-26, in Eliyahu Touger's English translation on Sefaria, chapters 1 and 4 |
 | [hebcal-5784] | 1 Nisan and Pesach of 5784 on the fixed calendar | Yes, 2026-09-25 |
 

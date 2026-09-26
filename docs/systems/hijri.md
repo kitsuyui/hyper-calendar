@@ -441,6 +441,7 @@ a test (`yallops_q_follows_from_his_own_arcs_and_widths`).
 | Months of 31 days in the 1 212 months of 1400–1500 AH, by place and criterion | Mecca: none under either (568 of 29 days, 644 of 30). Cairo (30.1° N, 31.3° E, 200 m): one under Shaukat's, from 14 August 1988, none under Yallop's. Haifa: one under Shaukat's, from 16 September 2042, none under Yallop's | `months_of_thirty_one_days_by_criterion_and_place_in_1400_to_1500_ah` |
 | The 31st of Shawwāl 1464 at Haifa, 16 October 2042, converts both ways, and the 31st of a shorter month is refused as a day out of range | Both | `a_predicted_month_of_thirty_one_days_has_a_thirty_first_day` |
 | Every day of those two 31-day months, at Cairo and at Haifa, with a day either side, converts both ways | All | `every_day_of_the_months_of_thirty_one_days_round_trips` |
+| The 33 sample dates of *Calendrical Calculations*, as its published code computes them, the 9 of 1900–2100 in range [reingold2018code, `dates.l`] | Shaukat's criterion at Cairo, the book's place: 9 of 9. `islamic-rgsa`, at Mecca: 8 of 9, Rabīʿ II 1362 (1943) beginning a day later. `islamic-civil` against the book's arithmetic calendar: 27 of 27 in its range, the 6 before 622 refused. The Umm al-Qura table against the book's `saudi-islamic`, the Saudi rule computed: 6 of 9 (below) | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) |
 | The interpolated 4.5° moment against the bisected one, every thirteenth evening of 2000–2030 | At most 2.9 s at Mecca, 7.7 s at Haifa, 105 s at 55° N | `the_interpolated_evaluation_moment_is_seconds_from_the_true_one` |
 
 **What the five announcements check.** They are the Supreme Court's
@@ -470,6 +471,25 @@ measure that should not be expected to match. The number is asserted
 exactly in the test so that a change to `hc-astro` or to the criterion
 cannot move it unnoticed.
 
+**What the sample dates check.** They are the published anchor for the
+prediction. `dates.l` holds the 33 dates and the program that writes the book's
+tables, not the tables, so the values were computed from the code itself
+and are carried with its licence and the method in the data file's header
+(`crates/hyper-calendar/tests/data/calendrica_sample_dates.txt`); the
+book's printed appendix was not read. At Cairo the module gives every one
+of the nine dates in its range, so the criterion, the search and the
+month count are the code's. At Mecca one of the nine moves by a day, which
+is the place and not an error. The book's `saudi-islamic` is not the Umm
+al-Qura table but the table's post-1423 rule computed from the book's own
+astronomy — conjunction before sunset, the Moon setting after the Sun, at
+Mecca [reingold2018code, `saudi-criterion`] — and the table disagrees
+with it three times: in 1360 and 1362 AH (1941 and 1943), rows from before
+1392 AH, the first year the rules are known for [vangent-ummalqura],
+which follow no stated rule; and in 1518 AH (2094), when on the evening of
+12 July the code's Moon sets 4.3 minutes after the Sun and the table
+begins Rabīʿ I a day later. No row of the table is shown wrong by that:
+the rule, applied by two computations, splits on a margin of minutes.
+
 **What the module documentation states on its own authority** is listed
 at the end of the next section.
 
@@ -477,8 +497,8 @@ at the end of the next section.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [reingold2018] | The scheme II closed forms, the observational calendar, the criterion; the sample values of its Appendix C, which include the observational calendar (the published code's `dates.l` writes them with an `observational-islamic` column) and would anchor `islamic-rgsa`'s prediction to the book's own | Not read directly; the published code was |
-| [reingold2018code] | `islamic-epoch`, `islamic-leap-year?`, `fixed-from-islamic`, `islamic-from-fixed`, `mean-synodic-month`, `mecca`, `islamic-location`, `shaukat-criterion`, `simple-best-view`, `arc-of-light`, `visible-crescent`, `phasis-on-or-before`, `fixed-from-observational-islamic`, `observational-islamic-from-fixed`, `month-length`, `saudi-criterion`; the capped `alt-fixed-from-observational-islamic`, `alt-observational-islamic-from-fixed` and `early-month?`, named as not carried; `yallop-criterion`, `bruin-best-view`, `arc-of-vision`, `lunar-semi-diameter`, `lunar-parallax`, `phasis-on-or-after` | Yes, 2026-09-25; the Yallop functions 2026-09-26 |
+| [reingold2018] | The scheme II closed forms, the observational calendar, the criterion; the sample values of its Appendix C, which include the observational calendar | Not read directly; the published code was, and the sample values the tests hold are that code's own output (`dates.l`) |
+| [reingold2018code] | `islamic-epoch`, `islamic-leap-year?`, `fixed-from-islamic`, `islamic-from-fixed`, `mean-synodic-month`, `mecca`, `islamic-location`, `shaukat-criterion`, `simple-best-view`, `arc-of-light`, `visible-crescent`, `phasis-on-or-before`, `fixed-from-observational-islamic`, `observational-islamic-from-fixed`, `month-length`, `saudi-criterion`; `dates.l`, its 33 sample dates and the program that writes their tables, run at commit `9afc1f3` to compute them (2026-09-27); the capped `alt-fixed-from-observational-islamic`, `alt-observational-islamic-from-fixed` and `early-month?`, named as not carried; `yallop-criterion`, `bruin-best-view`, `arc-of-vision`, `lunar-semi-diameter`, `lunar-parallax`, `phasis-on-or-after` | Yes, 2026-09-25; the Yallop functions 2026-09-26 |
 | [bukhari-1909] | The hadith on completing Shaʿbān to thirty days when the crescent is hidden, the practice the capped alternative models | Yes, 2026-09-26, in the English translation served by IslamicFinder; sunnah.com refused automated access |
 | [yallop1997] | The *q*-test, its cubic and its six types; ARCV and the topocentric width; Bruin's best time; the rows of Table 4 the tests check | Yes, 2026-09-26, in the copy served at astronomycenter.net, a 2004 rendering of the 1997 note |
 | [bruin1977] | The curves Yallop draws the best time from | Not read; cited through Yallop |

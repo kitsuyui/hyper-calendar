@@ -295,6 +295,7 @@ what the anchors check.
 
 | Measure | Result | Test |
 | --- | --- | --- |
+| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `hebrew`, the months relabelled from Tishri to Nisan | 33 of 33, 586 BCE to 2094 | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) |
 | 1 Tishrei 5784 = Saturday 16 September 2023 [hebcal-5784] | Reproduced, both ways | `rosh_hashanah_5784_was_the_sixteenth_of_september_2023` |
 | 15 Nisan 5784 = Tuesday 23 April 2024 [hebcal-5784] | Reproduced, both ways | `passover_5784_was_the_twenty_third_of_april_2024` |
 | 5784 a deficient leap year of 383 days, Ḥeshvan and Kislev 29 | As stated | `the_year_5784_was_a_deficient_leap_year_of_383_days` |
