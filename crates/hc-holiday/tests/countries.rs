@@ -6,10 +6,11 @@
 //! as "this holiday moves to the Monday", and the crate makes it deliberately.
 
 use hc_calendar::Rd;
+use hc_calendars_lunar::tibetan;
 use hc_calendars_solar::gregorian;
 use hc_holiday::countries::{self, CountryRules};
 use hc_holiday::engine::{Holiday, HolidayCalendar};
-use hc_holiday::rule::{Confidence, Kind};
+use hc_holiday::rule::{Confidence, Kind, Rule, TibetanMonth};
 
 /// Panics rather than returning a `Result`, because every date in this file
 /// is a literal the author typed and a bad one is a bug in the test.
@@ -1721,23 +1722,105 @@ fn mongolia_keeps_the_gregorian_days_of_its_holidays_law() {
     expect_working("MN", None, &[(2015, 11, 26), (2010, 12, 29), (2026, 1, 13)]);
 }
 
+/// The confidence of the day-off holiday named `name` on a date.
+fn confidence_of(code: &str, year: i64, month: u8, day: u8, name: &str) -> Confidence {
+    let calendar = HolidayCalendar::for_year(table(code), None, year);
+    match calendar
+        .on(ymd(year, month, day))
+        .into_iter()
+        .find(|holiday| holiday.name == name)
+    {
+        Some(holiday) => holiday.confidence,
+        None => panic!("{code} {year}-{month:02}-{day:02}: no {name}"),
+    }
+}
+
 #[test]
-fn mongolia_reports_its_lunar_holidays_as_gaps_and_moves_nothing() {
-    let calendar = HolidayCalendar::for_year(table("MN"), None, 2026);
-    assert!(!calendar.is_complete());
-    let missing: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
-    for name in ["Tsagaan Sar", "Buddha's Birthday", "Chinggis Khaan Day"] {
-        assert!(
-            missing.contains(&name),
-            "{name} should be a gap: {missing:?}"
+fn mongolia_dates_its_lunar_holidays_in_the_mongolian_calendar() {
+    expect(
+        "MN",
+        None,
+        &[
+            // Resolution No. 109: the first day omitted, the second and
+            // third on Saturday 1 and Sunday 2 March 2025.
+            (2025, 3, 1, "Tsagaan Sar"),
+            (2025, 3, 2, "Tsagaan Sar"),
+            // MONTSAME: days 1–3 on 18, 19 and 20 February 2026.
+            (2026, 2, 18, "Tsagaan Sar"),
+            (2026, 2, 20, "Tsagaan Sar"),
+            // Predicted, and what MONTSAME reported for 2020 and 2021.
+            (2020, 2, 24, "Tsagaan Sar"),
+            (2020, 2, 26, "Tsagaan Sar"),
+            (2021, 2, 12, "Tsagaan Sar"),
+            (2021, 2, 14, "Tsagaan Sar"),
+            // Predicted beyond the years read.
+            (2027, 2, 7, "Tsagaan Sar"),
+            (2027, 2, 9, "Tsagaan Sar"),
+            (2028, 2, 26, "Tsagaan Sar"),
+            (2030, 2, 5, "Tsagaan Sar"),
+            (2025, 6, 11, "Buddha's Birthday"),
+            (2026, 5, 31, "Buddha's Birthday"),
+            (2027, 5, 20, "Buddha's Birthday"),
+            (2012, 11, 14, "Chinggis Khaan Day"),
+            (2025, 11, 21, "Chinggis Khaan Day"),
+            (2026, 11, 10, "Chinggis Khaan Day"),
+            (2027, 11, 29, "Chinggis Khaan Day"),
+            // 2006 begins with a leap month 1, and Tsagaan Sar with it.
+            (2006, 1, 30, "Tsagaan Sar"),
+            (2006, 2, 1, "Tsagaan Sar"),
+        ],
+    );
+    // The bituun before Tsagaan Sar 2025 is not a holiday, nor is Monday
+    // 3 March, a rest day of the resolution's transfer; Buddha's Birthday
+    // and Chinggis Khaan Day before the laws that added them.
+    expect_working(
+        "MN",
+        None,
+        &[(2025, 2, 28), (2025, 3, 3), (2019, 5, 18), (2011, 11, 26)],
+    );
+    assert_eq!(
+        confidence_of("MN", 2025, 3, 1, "Tsagaan Sar"),
+        Confidence::Exact
+    );
+    assert_eq!(
+        confidence_of("MN", 2026, 2, 19, "Tsagaan Sar"),
+        Confidence::Exact
+    );
+    for (year, month, day, name) in [
+        (2027, 2, 8, "Tsagaan Sar"),
+        (2024, 2, 10, "Tsagaan Sar"),
+        (2026, 5, 31, "Buddha's Birthday"),
+        (2026, 11, 10, "Chinggis Khaan Day"),
+    ] {
+        assert_eq!(
+            confidence_of("MN", year, month, day, name),
+            Confidence::Approximate,
+            "{year}-{month}-{day}"
         );
     }
-    // Before the laws that added them, the two are not even gaps.
-    let early = HolidayCalendar::for_year(table("MN"), None, 2011);
-    let missing: Vec<&str> = early.gaps().iter().map(|gap| gap.name).collect();
-    assert!(missing.contains(&"Tsagaan Sar"));
-    assert!(!missing.contains(&"Buddha's Birthday"));
-    assert!(!missing.contains(&"Chinggis Khaan Day"));
+    for year in [2025, 2026, 2027] {
+        assert!(
+            HolidayCalendar::for_year(table("MN"), None, year).is_complete(),
+            "{year}"
+        );
+    }
+}
+
+#[test]
+fn mongolia_reports_a_skipped_or_repeated_lunar_day_as_a_gap_and_moves_nothing() {
+    // 2022 skips the third day of the first spring month: the first and
+    // second are given, and the third is a gap, iKon.mn having reported
+    // three days off and the Government then deciding nothing.
+    let calendar = HolidayCalendar::for_year(table("MN"), None, 2022);
+    let missing: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+    assert_eq!(missing, ["Tsagaan Sar"]);
+    assert_eq!(calendar.name_on(ymd(2022, 2, 2)), Some("Tsagaan Sar"));
+    assert_eq!(calendar.name_on(ymd(2022, 2, 3)), Some("Tsagaan Sar"));
+    assert!(!calendar.is_holiday(ymd(2022, 2, 4)));
+    // 2034 repeats the fifteenth of the first summer month.
+    let calendar = HolidayCalendar::for_year(table("MN"), None, 2034);
+    let missing: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+    assert_eq!(missing, ["Buddha's Birthday"]);
     // Children's Day 2024 fell on a Saturday and stays there.
     let calendar = HolidayCalendar::for_year(table("MN"), None, 2024);
     assert!(calendar.is_weekend(ymd(2024, 6, 1)));
@@ -2066,14 +2149,146 @@ fn bhutan_keeps_the_days_of_the_ministry_of_home_affairs_lists() {
     assert!(calendar.is_business_day(ymd(2026, 2, 20)));
 }
 
+/// Each day the lists print as a Bhutanese date, its month and day, and
+/// the Gregorian days of the lists for 2025 and 2026.
+#[allow(clippy::type_complexity)]
+const BT_LUNAR: &[(&str, TibetanMonth, u8, &[(i64, u8, u8)])] = &[
+    (
+        "Traditional Day of Offering",
+        TibetanMonth::Regular(12),
+        1,
+        &[(2025, 1, 30), (2026, 1, 19)],
+    ),
+    (
+        "Losar",
+        TibetanMonth::First,
+        1,
+        &[(2025, 2, 28), (2026, 2, 18)],
+    ),
+    (
+        "Losar",
+        TibetanMonth::First,
+        2,
+        &[(2025, 3, 1), (2026, 2, 19)],
+    ),
+    (
+        "Death Anniversary of Zhabdrung",
+        TibetanMonth::Regular(3),
+        10,
+        &[(2025, 5, 7), (2026, 4, 26)],
+    ),
+    (
+        "Lord Buddha's Parinirvana",
+        TibetanMonth::Regular(4),
+        15,
+        &[(2025, 6, 11), (2026, 5, 31)],
+    ),
+    (
+        "Birth Anniversary of Guru Rinpoche",
+        TibetanMonth::Regular(5),
+        10,
+        &[(2025, 7, 5), (2026, 6, 24)],
+    ),
+    (
+        "First Sermon of Lord Buddha",
+        TibetanMonth::Regular(6),
+        4,
+        &[(2025, 7, 28), (2026, 7, 18)],
+    ),
+    (
+        "Descending Day of Lord Buddha",
+        TibetanMonth::Regular(9),
+        22,
+        &[(2025, 11, 11), (2026, 11, 1)],
+    ),
+];
+
 #[test]
-fn bhutan_reports_the_years_its_lists_do_not_cover_as_gaps() {
-    assert!(HolidayCalendar::for_year(table("BT"), None, 2025).is_complete());
-    assert!(HolidayCalendar::for_year(table("BT"), None, 2026).is_complete());
+fn the_bhutanese_calendar_rule_reproduces_both_lists() {
+    for &(name, month, day, listed) in BT_LUNAR {
+        let rule = Rule::tibetan(tibetan::TIBETAN_BHUTAN, month, day);
+        for &(year, m, d) in listed {
+            assert!(rule.is_resolvable_in(year), "{name} {year}");
+            assert_eq!(
+                rule.days_in_year(year).as_slice(),
+                [ymd(year, m, d)],
+                "{name} {year}"
+            );
+            // And the table gives the list's day, as read, exactly.
+            assert_eq!(confidence_of("BT", year, m, d, name), Confidence::Exact);
+        }
+    }
+}
+
+#[test]
+fn bhutan_predicts_its_bhutanese_calendar_days_beyond_the_lists() {
+    expect(
+        "BT",
+        None,
+        &[
+            (2027, 1, 8, "Traditional Day of Offering"),
+            (2027, 2, 7, "Losar"),
+            (2027, 2, 8, "Losar"),
+            (2027, 4, 16, "Death Anniversary of Zhabdrung"),
+            (2027, 5, 20, "Lord Buddha's Parinirvana"),
+            (2027, 8, 6, "First Sermon of Lord Buddha"),
+            (2027, 11, 20, "Descending Day of Lord Buddha"),
+            (2028, 1, 27, "Traditional Day of Offering"),
+            (2028, 2, 26, "Losar"),
+            (2028, 7, 1, "Birth Anniversary of Guru Rinpoche"),
+            (2028, 11, 9, "Descending Day of Lord Buddha"),
+            // Before the lists: 2024.
+            (2024, 2, 10, "Losar"),
+            (2024, 5, 23, "Lord Buddha's Parinirvana"),
+        ],
+    );
+    for (year, month, day, name) in [
+        (2027, 2, 7, "Losar"),
+        (2028, 11, 9, "Descending Day of Lord Buddha"),
+        (2024, 2, 10, "Losar"),
+    ] {
+        assert_eq!(
+            confidence_of("BT", year, month, day, name),
+            Confidence::Approximate
+        );
+    }
     let beyond = HolidayCalendar::for_year(table("BT"), None, 2027);
-    assert!(beyond.gaps().iter().any(|gap| gap.name == "Losar"));
+    let mut missing: Vec<&str> = beyond.gaps().iter().map(|gap| gap.name).collect();
+    missing.sort_unstable();
+    // The solar days and Dassain, taken from the lists alone, and Guru
+    // Rinpoche's birthday, whose 10th day of the 5th month 2027 skips or
+    // repeats.
+    assert_eq!(
+        missing,
+        [
+            "Birth Anniversary of Guru Rinpoche",
+            "Blessed Rainy Day",
+            "Dassain",
+            "Winter Solstice"
+        ]
+    );
     // The royal and national days are Gregorian and remain known.
     assert_eq!(beyond.name_on(ymd(2027, 12, 17)), Some("National Day"));
+    assert!(HolidayCalendar::for_year(table("BT"), None, 2025).is_complete());
+    assert!(HolidayCalendar::for_year(table("BT"), None, 2026).is_complete());
+}
+
+/// Bhutan's Losar of 2003: Henning reports that the Government's calendar
+/// had the first day of the first month on both 3 and 4 March, where the
+/// arithmetic makes 3 March a repeated 30th of the leap 12th month of 2002
+/// (Janson, "Tibetan calendar mathematics", Appendix A.13). The table's
+/// prediction is the arithmetic's, 4 and 5 March, and is marked as one;
+/// the difference is the reason every year outside the lists is.
+#[test]
+fn bhutans_losar_of_2003_is_predicted_by_the_arithmetic_a_day_after_the_governments() {
+    let calendar = HolidayCalendar::for_year(table("BT"), None, 2003);
+    assert_eq!(calendar.name_on(ymd(2003, 3, 4)), Some("Losar"));
+    assert_eq!(calendar.name_on(ymd(2003, 3, 5)), Some("Losar"));
+    assert!(!calendar.is_holiday(ymd(2003, 3, 3)));
+    assert_eq!(
+        confidence_of("BT", 2003, 3, 4, "Losar"),
+        Confidence::Approximate
+    );
 }
 
 #[test]

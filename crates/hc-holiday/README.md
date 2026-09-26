@@ -36,6 +36,7 @@ LunarPhase { phase, month, day, mer } the first full moon on or after a date
 Tithi { month, tithi, prevails, wt }  Rāma Navamī, Chaitra śukla 9 at midday
 Sankranti { sign, ayanamsa, mer }     Makar Sankranti, the Sun's entry into Makara
 Nakshatra { n, sign, tithi, ay, mer } Thaipusam, Puṣya in Thai
+TibetanDay { calendar, month, day }   Tsagaan Sar, days 1–3 of the first month in mongolian
 Offset { base, days }                 Seollal's eve, 除夕
 Span { from, to }                     Dashain, Phūlpātī to Āśvina śukla 12, six or seven days
 MovedByWeekday { base, moves }        Argentina's feriados trasladables, Colombia's Ley Emiliani
@@ -332,6 +333,7 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 | Vesak (Indonesia, Singapore, Malaysia) and the Buddhist table's Magha Puja, Vesak, Asalha Puja, Vassa and Pavarana | approximated as the full moon of Chinese lunar month *n* − 2, which against the Thai dates is right in 2022, 2024 and 2025, a day out in 2023 and a month out in a Thai adhikamāsa year. Thailand's own four are exact on `thai-lunar` for 1992–2027 and gaps outside |
 | Nepal's festivals — Buddha Jayanti, Dashain, Tihar and the rest | each is a tithi read at Kathmandu, and the part of the day it must hold is fitted to the notices of 2080–2083 BS, which it reproduces, rather than quoted from the almanac |
 | Bangladesh's Buddha Purnima | the notifications' own dates for 2025 and 2026, which they star as depending on the moon |
+| Mongolia's Tsagaan Sar, Buddha's Birthday and Chinggis Khaan Day; Bhutan's Losar, Buddhist days and Traditional Day of Offering | the day the law or the Ministry's list states on the Tibetan calendar, `mongolian` or `tibetan-bhutan`, outside the years read (Tsagaan Sar 2025–2026, Bhutan's lists 2025–2026); the Government or the Ministry settles each year, and Bhutan's calendar of 2003 had Losar a day before the arithmetic |
 
 ## Deliberate gaps
 
@@ -353,10 +355,14 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   notifications' dates for 2025 and 2026 — the Indian rules miss each by a
   day in one of the two years — and a later year reports them as gaps. The
   optional holidays are not carried.
-* **Mongolia** carries the Gregorian days of its holidays law. Tsagaan Sar,
-  Buddha's Birthday and Chinggis Khaan Day are dated in the Mongolian lunar
-  calendar, which the crate does not have and which is not the Tibetan
-  Phugpa one it does; they are reported as gaps in every year.
+* **Mongolia** and **Bhutan** date their lunar days on the Tibetan
+  calendar, `mongolian` and `tibetan-bhutan`, with `TibetanDay`. Where the
+  calendar skips or repeats the day's number, the sources read do not say
+  where the holiday goes — three days off were reported for Mongolia's 2022,
+  its third number skipped, and two were counted in 2025, its first
+  skipped — so that year is a gap. Bhutan's Winter Solstice, Blessed Rainy Day
+  and Dassain are its Ministry's lists for 2025 and 2026, and gaps in other
+  years.
 * **Cambodia** carries the days off of the Royal Government's sub-decrees
   for 2025, 2026 and 2027. Khmer New Year, Visak Bochea, the Royal Ploughing
   Ceremony, Pchum Ben and the Water Festival are dated on the Khmer calendar,

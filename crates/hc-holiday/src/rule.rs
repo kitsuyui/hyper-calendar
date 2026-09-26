@@ -26,6 +26,7 @@ use hc_calendars_indic::{
 use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
 use hc_calendars_lunar::tabular::{self, LeapYearRule};
+use hc_calendars_lunar::tibetan::{self, LeapNumbering, TibetanCalendar, TibetanDate};
 use hc_calendars_lunar::{ChineseCalendar, DangiCalendar, LunisolarDate, VietnameseCalendar};
 use hc_calendars_regional::{burmese, thai_lunar};
 use hc_calendars_solar::{
@@ -288,6 +289,39 @@ hc_core::catalogue! {
             |rd| VietnameseCalendar.from_fixed(rd).ok().map(|date| date.year),
         );
 
+        /// The Mongolian calendar, the New Genden version of the Tibetan
+        /// (`hc_calendars_lunar::tibetan::MONGOLIAN`), in which Mongolia's
+        /// law dates Tsagaan Sar, Buddha's Birthday and Chinggis Khaan Day.
+        /// Month 1 is the first spring month; a leap month is
+        /// `Month::leap` and comes before the regular month of its number.
+        /// A day number the calendar skips has no day, and one it repeats
+        /// gives the second of its two days, the one not marked extra — so
+        /// a holiday table wants [`Rule::TibetanDay`], which reports such a
+        /// year as a gap instead.
+        pub const MONGOLIAN = Self::new(
+            CalendarId("mongolian"),
+            |year, month, day| tibetan_date(tibetan::MONGOLIAN, year, month, day),
+            |rd| tibetan::MONGOLIAN.date_from_fixed(rd).ok().map(|date| date.year),
+        );
+
+        /// The Bhutanese version of the Tibetan calendar
+        /// (`hc_calendars_lunar::tibetan::TIBETAN_BHUTAN`), which the
+        /// Ministry of Home Affairs prints beside the Gregorian days and in
+        /// which Bhutan dates Losar and its Buddhist holidays. A leap month
+        /// is `Month::leap` and comes *after* the regular month of its
+        /// number. Skipped and repeated day numbers are as for
+        /// [`Self::MONGOLIAN`].
+        pub const TIBETAN_BHUTAN = Self::new(
+            CalendarId("tibetan-bhutan"),
+            |year, month, day| tibetan_date(tibetan::TIBETAN_BHUTAN, year, month, day),
+            |rd| {
+                tibetan::TIBETAN_BHUTAN
+                    .date_from_fixed(rd)
+                    .ok()
+                    .map(|date| date.year)
+            },
+        );
+
         /// The Ethiopic calendar, in which the Ethiopian Orthodox Tewahedo
         /// Church dates its fixed feasts and Ethiopia its civil year.
         ///
@@ -535,6 +569,40 @@ impl CalendarSystem {
     }
 }
 
+/// The day a Tibetan date names, the second of two when the number is
+/// repeated, for [`CalendarSystem::MONGOLIAN`] and
+/// [`CalendarSystem::TIBETAN_BHUTAN`].
+fn tibetan_date(calendar: TibetanCalendar, year: i64, month: Month, day: u8) -> Option<Rd> {
+    calendar
+        .date_to_fixed(TibetanDate {
+            year,
+            month,
+            day,
+            leap_day: false,
+        })
+        .ok()
+}
+
+/// Which month of a Tibetan year a [`Rule::TibetanDay`] names.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum TibetanMonth {
+    /// The first month of the year: month 1, or the leap month 1 in a year
+    /// that begins with one. The Phugpa, Tsurphu and Mongolian versions put
+    /// a leap month before the regular month of its number, and the New
+    /// Year is the first day of the year even when that is a leap month
+    /// (Janson, "Tibetan calendar mathematics", Remark 17); the
+    /// Bhutanese puts it after, so its first month is always the regular
+    /// month 1. Losar and Tsagaan Sar are dated here.
+    First,
+    /// The regular month of this number, 1 to 12: in a year that repeats
+    /// the number, the month that is not the leap one. Holidays "are
+    /// usually not celebrated in leap months" (Janson, §11).
+    Regular(u8),
+    /// The leap month of this number, which a year without it does not
+    /// have.
+    Leap(u8),
+}
+
 /// A lunar phase a [`Rule::LunarPhase`] can key to.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Phase {
@@ -757,6 +825,27 @@ pub enum Rule {
         /// The meridian whose local midnight cuts the day.
         meridian: Meridian,
     },
+    /// A numbered day of a month of a version of the Tibetan calendar, on
+    /// the calendar day that bears the number: Mongolia's Tsagaan Sar and
+    /// Chinggis Khaan Day, Bhutan's Losar and Buddhist days.
+    ///
+    /// The calendar names a day by the lunar day current at its dawn, so
+    /// now and then a number is skipped and another is repeated, and where
+    /// a holiday dated on such a number is kept is not settled: Janson
+    /// reports a general rule from Berzin — the day before for a skipped
+    /// date, the first of the two for a repeated one — which he did not
+    /// check against published calendars, and Mongolia's own practice has
+    /// varied. A Gregorian year in which the day is skipped or repeated is
+    /// therefore not answered, and reported as a gap. See
+    /// `docs/systems/tibetan-calendar-holidays.md`.
+    TibetanDay {
+        /// The version of the calendar.
+        calendar: TibetanCalendar,
+        /// The month.
+        month: TibetanMonth,
+        /// The day number, 1 to 30.
+        day: u8,
+    },
     /// The genuine handful that resist everything else — a one-off statute,
     /// a rule stated as a sentence and not as a pattern.
     ///
@@ -829,6 +918,17 @@ impl Rule {
         }
     }
 
+    /// A numbered day of a month of the Tibetan calendar; see
+    /// [`Rule::TibetanDay`].
+    #[must_use]
+    pub const fn tibetan(calendar: TibetanCalendar, month: TibetanMonth, day: u8) -> Self {
+        Self::TibetanDay {
+            calendar,
+            month,
+            day,
+        }
+    }
+
     /// The longest [`Rule::Span`], in days: a week.
     pub const MAX_SPAN: i64 = 7;
 
@@ -888,6 +988,13 @@ impl Rule {
             Self::Tithi { .. } => (hindu_lunar::MIN_YEAR + hindu_lunar::GREGORIAN_YEAR_OFFSET + 1
                 ..hindu_lunar::MAX_YEAR + hindu_lunar::GREGORIAN_YEAR_OFFSET)
                 .contains(&year),
+            // A Tibetan day is unanswerable where it is skipped or repeated,
+            // as well as outside the calendar's years.
+            Self::TibetanDay {
+                calendar,
+                month,
+                day,
+            } => tibetan_days(*calendar, *month, *day, year).is_some(),
             Self::Offset { base, .. } | Self::MovedByWeekday { base, .. } => {
                 base.is_resolvable_with(year, lookups)
             }
@@ -1113,6 +1220,11 @@ impl Rule {
                 }
                 out
             }
+            Self::TibetanDay {
+                calendar,
+                month,
+                day,
+            } => tibetan_days(*calendar, *month, *day, year).unwrap_or_default(),
             Self::Computed(function) => function(year).clamped(first, last),
             Self::Tabulated { function, .. } => function(year).clamped(first, last),
         }
@@ -1609,6 +1721,81 @@ fn fixed_in_calendar<L: Lookups>(
         candidate += 1;
     }
     out
+}
+
+/// The days a [`Rule::TibetanDay`] falls on in Gregorian `year`, or `None`
+/// when the year cannot be answered: the day is skipped or repeated in a
+/// Tibetan year whose occurrence lies within it, or the Tibetan years it
+/// needs lie outside the calendar's range.
+///
+/// A Tibetan year begins between late January and March, so the two that
+/// can reach Gregorian `year` are those numbered `year - 1` and `year`. A
+/// skipped day lies, for this purpose, on the calendar day its lunar day
+/// ends in: the day before the next number's first day, or, for a skipped
+/// 30, the day numbered 29.
+fn tibetan_days(
+    calendar: TibetanCalendar,
+    month: TibetanMonth,
+    day: u8,
+    year: i64,
+) -> Option<Days> {
+    let first = gregorian::to_fixed(year, 1, 1).ok()?;
+    let last = gregorian::to_fixed(year, 12, 31).ok()?;
+    let within = |rd: Rd| first <= rd && rd <= last;
+    let mut out = Days::new();
+    for tibetan_year in [year - 1, year] {
+        if !(tibetan::MIN_YEAR..=tibetan::MAX_YEAR).contains(&tibetan_year) {
+            return None;
+        }
+        let leap_month = calendar.leap_month_of(tibetan_year);
+        let month = match month {
+            TibetanMonth::First
+                if leap_month == Some(1)
+                    && calendar.leap_numbering() == LeapNumbering::Following =>
+            {
+                Month::leap(1)
+            }
+            TibetanMonth::First => Month::regular(1),
+            TibetanMonth::Regular(number) => Month::regular(number),
+            TibetanMonth::Leap(number) if leap_month == Some(number) => Month::leap(number),
+            TibetanMonth::Leap(_) => continue,
+        };
+        let date = |day: u8, leap_day: bool| {
+            calendar
+                .date_to_fixed(TibetanDate {
+                    year: tibetan_year,
+                    month,
+                    day,
+                    leap_day,
+                })
+                .ok()
+        };
+        match (date(day, false), date(day, true)) {
+            (Some(regular), None) => {
+                if within(regular) {
+                    out.push(regular);
+                }
+            }
+            (Some(regular), Some(extra)) => {
+                if within(regular) || within(extra) {
+                    return None;
+                }
+            }
+            (None, _) => {
+                let ends = if day < 30 {
+                    date(day + 1, true)
+                        .or_else(|| date(day + 1, false))
+                        .map(|next| Rd(next.0 - 1))
+                } else {
+                    date(29, false)
+                };
+                if ends.is_none_or(within) {
+                    return None;
+                }
+            }
+        }
+    }
+    Some(out)
 }
 
 /// The first `phase` at or after a fixed Gregorian date, as a local day.
@@ -2459,5 +2646,52 @@ mod tests {
             days.push(Rd(offset));
         }
         assert_eq!(days.len(), Days::CAPACITY);
+    }
+
+    #[test]
+    fn a_tibetan_day_is_a_gap_where_its_number_is_skipped_or_repeated() {
+        use hc_calendars_lunar::tibetan::{MONGOLIAN, TIBETAN_BHUTAN};
+        // Tsagaan Sar 2025: the first number is skipped, and Saturday
+        // 1 March is the second (Resolution No. 109).
+        let first = Rule::tibetan(MONGOLIAN, TibetanMonth::First, 1);
+        assert!(!first.is_resolvable_in(2025));
+        assert!(first.days_in_year(2025).is_empty());
+        let second = Rule::tibetan(MONGOLIAN, TibetanMonth::First, 2);
+        assert_eq!(second.days_in_year(2025).as_slice(), &[ymd(2025, 3, 1)]);
+        // The calendar system has no day for the skipped number.
+        let system = CalendarSystem::MONGOLIAN;
+        assert_eq!(system.to_fixed(2025, Month::regular(1), 1), None);
+        assert_eq!(
+            system.to_fixed(2025, Month::regular(1), 2),
+            Some(ymd(2025, 3, 1))
+        );
+        // The fifteenth of the fourth month of 2034 is repeated, on 1 and
+        // 2 June; the system gives the second.
+        let fifteenth = Rule::tibetan(MONGOLIAN, TibetanMonth::Regular(4), 15);
+        assert!(!fifteenth.is_resolvable_in(2034));
+        assert_eq!(
+            system.to_fixed(2034, Month::regular(4), 15),
+            Some(ymd(2034, 6, 2))
+        );
+        // Mongolian 2006 opens with a leap month 1, which holds the New
+        // Year; the regular month 1 follows it.
+        assert_eq!(first.days_in_year(2006).as_slice(), &[ymd(2006, 1, 30)]);
+        let leap_first = Rule::tibetan(MONGOLIAN, TibetanMonth::Leap(1), 1);
+        assert_eq!(
+            leap_first.days_in_year(2006).as_slice(),
+            &[ymd(2006, 1, 30)]
+        );
+        assert!(leap_first.is_resolvable_in(2007));
+        assert!(leap_first.days_in_year(2007).is_empty());
+        // The Bhutanese leap month 12 of 2021 follows the regular one.
+        let regular = Rule::tibetan(TIBETAN_BHUTAN, TibetanMonth::Regular(12), 1);
+        let leap = Rule::tibetan(TIBETAN_BHUTAN, TibetanMonth::Leap(12), 1);
+        assert_eq!(regular.days_in_year(2022).as_slice(), &[ymd(2022, 1, 3)]);
+        let after = leap.days_in_year(2022);
+        assert_eq!(after.len(), 1);
+        assert!(after.as_slice()[0] > ymd(2022, 1, 3) && after.as_slice()[0] < ymd(2022, 3, 3));
+        // The calendar converts from 1000; Gregorian 1000 needs 999.
+        assert!(!first.is_resolvable_in(1000));
+        assert!(first.is_resolvable_in(1001));
     }
 }
