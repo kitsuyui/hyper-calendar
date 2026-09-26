@@ -224,6 +224,9 @@ const JAPANESE_LUNISOLAR_CALENDARS: &[CalendarId] = &[
 /// The Qumran 364-day year, whose months the scrolls number.
 const QUMRAN_CALENDARS: &[CalendarId] = &[CalendarId("qumran")];
 
+/// Palmen's Yerm lunar calendar, whose months are numbered.
+const YERM_CALENDARS: &[CalendarId] = &[CalendarId("yerm")];
+
 /// The Solar Hijri calendar.
 ///
 /// The registry has it twice: `persian-arithmetic`, the Birashk
@@ -2213,6 +2216,18 @@ const EN_CALENDARS: &[CalendarNames] = &[
             "Tenth Month",
             "Eleventh Month",
             "Twelfth Month",
+        ])],
+        "",
+    ),
+    // Palmen numbers the months of a yerm and writes them "Month 5",
+    // "Night 26 Month 2 Yerm 3" (hermetic.ch/cal_stud/palmen/yerm1.htm,
+    // read 2026-09-26); a yerm has fifteen or seventeen.
+    lunisolar(
+        YERM_CALENDARS,
+        &[months(&[
+            "Month 1", "Month 2", "Month 3", "Month 4", "Month 5", "Month 6", "Month 7", "Month 8",
+            "Month 9", "Month 10", "Month 11", "Month 12", "Month 13", "Month 14", "Month 15",
+            "Month 16", "Month 17",
         ])],
         "",
     ),

@@ -3,8 +3,9 @@
 Lunar and lunisolar calendars for [`hyper-calendar`]: the Hijri family, the
 Hebrew calendar, the Babylonian calendar of the Seleucid era, the Tibetan
 Phugpa calendar, the East Asian lunisolar calendars of China, Korea and
-Vietnam, and the five successive lunisolar calendars Japan used between 862
-and 1872.
+Vietnam, the five successive lunisolar calendars Japan used between 862
+and 1872, and two arithmetic proposals, the Meyer–Palmen Solilunar and
+Palmen's Yerm lunar calendar.
 
 Every calendar implements `hc_calendar::Calendar`, so every one of them
 converts through `Rd`, the Rata Die fixed day, and none of them knows the
@@ -30,6 +31,8 @@ others exist.
 | `japanese_historical::horyaku` | `japanese-horyaku` | historical | 1755-02-11 to 1798-02-15 |
 | `japanese_historical::kansei` | `japanese-kansei` | historical | 1798-02-16 to 1844-02-17 |
 | `japanese_tenpo` | `japanese-tenpo` | astronomical | 1844-02-18 to **1872-12-31** |
+| `meyer_palmen` | `meyer-palmen` | arithmetic (proposal) | 10986 BCE to 16375 CE |
+| `yerm` | `yerm` | arithmetic (proposal) | 622 to 10931 CE |
 
 The five Japanese ranges abut exactly. Between them they name every Japanese
 day from the adoption of Senmyō-reki to the abolition of the lunisolar
@@ -75,6 +78,19 @@ calendar of the Second Temple and the Samaritan calendar among the latter —
 and the sources, Maimonides first. The module keeps the month-numbering
 convention, Tishrei first with Adar I as `Month::leap(5)`, and the Omer and
 *birkat hachama* functions beside the calendar.
+
+## The two proposals
+
+`meyer-palmen` and `yerm` are calendars nobody adopted, carried because
+their rules are complete and their authors publish the tables to check
+them against. `meyer-palmen` is lunisolar: two remainders over a
+6840-year era decide the long years and the 31-day Metons, and it
+reproduces every correspondence row, Palmen's table of twenty years and
+the frequency table of 4001 New Year's Days on its authors' pages
+([`docs/systems/meyer-palmen.md`](../../docs/systems/meyer-palmen.md)).
+`yerm` is purely lunar, yerms of 17 and 15 months in cycles of 52, its
+night beginning at noon, and reproduces Palmen's tables of new yerms,
+cycles and months ([`docs/systems/yerm.md`](../../docs/systems/yerm.md)).
 
 ## Japan's historical calendars
 

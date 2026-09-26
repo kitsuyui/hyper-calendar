@@ -46,6 +46,8 @@ None of the three repeats another.
 | The Old Icelandic calendar: the misseri, the sumarauki and the Julian and Gregorian rules | [icelandic.md](icelandic.md) | `icelandic`, `icelandic-julian` |
 | The Qumran and Jubilees 364-day year and the mishmarot, on an epoch of this library's | [qumran.md](qumran.md) | `qumran` |
 | The Soviet revolutionary weeks of 1929–1940, from the decrees | [soviet-week.md](soviet-week.md) | `soviet-week` |
+| The Meyer–Palmen Solilunar Calendar: two remainders over a 6840-year era, and Meton | [meyer-palmen.md](meyer-palmen.md) | `meyer-palmen` |
+| Palmen's Yerm lunar calendar: yerms of 17 and 15 months, 52 to a cycle, the night from noon | [yerm.md](yerm.md) | `yerm` |
 | Nepal's calendars: the Bikram Sambat as gazetted, and Nepal Sambat | [nepal-calendars.md](nepal-calendars.md) | `bikram-sambat`, `nepal-sambat` |
 | The Hebrew calendar: the molad, the nineteen-year cycle and the four dehiyyot | [hebrew.md](hebrew.md) | `hebrew` |
 | The Gregorian reform, country by country, and the Swedish exception | [gregorian-reform.md](gregorian-reform.md) | `julian-gregorian-<polity>`, twelve of them; `swedish-1700`; the adoption table by country, `adoption` |

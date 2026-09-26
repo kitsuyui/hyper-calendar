@@ -364,12 +364,12 @@ fn the_vocabulary_gap_is_measured_and_not_growing() {
 
     assert_eq!(
         registered.len(),
-        118,
+        120,
         "the registry changed; update the coverage numbers deliberately"
     );
     assert_eq!(
         with_months.len(),
-        98,
+        100,
         "calendars with a month cycle — changes only when a calendar's shape does"
     );
     assert!(
@@ -377,4 +377,45 @@ fn the_vocabulary_gap_is_measured_and_not_growing() {
         "calendars whose months English cannot name — a calendar with months \
          declares their names with its shape, or a locale supplies them: {unnamed:?}"
     );
+}
+
+/// The two Palmen calendars under the locale fallback: a locale that does
+/// not name the Yerm months falls back to English, which numbers them as
+/// Palmen does; nobody's locale names the Meyer–Palmen months, so the
+/// requested locale is kept and the names come from the calendar's shape.
+#[test]
+fn the_palmen_calendars_are_named_through_the_fallback() {
+    use hyper_calendar::hc_i18n::Locale;
+    use hyper_calendar::hc_i18n::names::{
+        NameContext, NameWidth, english, locale_for_calendar, position_name,
+    };
+
+    let registry = registry();
+    let japanese: Locale = "ja".parse().expect("ja is a locale");
+    for (id, expected_locale, first, last) in [
+        ("yerm", english(), "Month 1", "Month 17"),
+        ("meyer-palmen", japanese, "Aristarchus", "Meton"),
+    ] {
+        let calendar = registry.get_by_name(id).expect("registered");
+        let meta = calendar.meta();
+        let locale = locale_for_calendar(Some(&japanese), &meta);
+        assert_eq!(locale, expected_locale, "{id}");
+        let months = calendar
+            .cycles()
+            .iter()
+            .find(|cycle| cycle.kind == MONTH)
+            .expect("a month cycle");
+        let name = |index| {
+            position_name(
+                &locale,
+                meta.id,
+                months,
+                index,
+                NameWidth::Wide,
+                NameContext::Format,
+            )
+        };
+        let top = usize::from(months.length.maximum()) - 1;
+        assert_eq!((name(0), name(top)), (Some(first), Some(last)), "{id}");
+    }
 }

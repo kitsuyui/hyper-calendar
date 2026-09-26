@@ -56,11 +56,13 @@ const UNRECORDED: &[&str] = &[
     "discordian",
     "hanke-henry",
     "holocene",
+    "meyer-palmen",
     "persian-arithmetic",
     "positivist",
     "symmetry010",
     "symmetry454",
     "world-calendar",
+    "yerm",
     // Sources that give no span.
     "aztec-tonalpohualli",
     "aztec-xiuhpohualli",
