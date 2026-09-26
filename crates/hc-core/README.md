@@ -6,7 +6,7 @@ The time primitives every other crate uses and none may redefine.
 
 | Module | What it is |
 | --- | --- |
-| `duration` | `Duration`: an exact span of SI seconds, `i128` whole seconds and `u64` attoseconds, of either sign. No floating point. |
+| `duration` | `Duration`: an exact span of SI seconds, `i128` whole seconds and `u64` attoseconds, of either sign. No floating point. It also carries what Python's `timedelta` needs: weeks, floor division and a remainder with the divisor's sign (`checked_div_floor`, `checked_rem`, `checked_div_rem`), the normalised `(days, seconds, attoseconds)` split, and `days_and_clock`, the `-1 day, 19:00:00` string form. |
 | `scale` | `Instant<S>`: a reading on a uniform time scale, the scale being a zero-sized type parameter, so a TAI reading cannot be passed where a TT reading is expected. The scales are TAI, TT, TCG, TCB, TDB and GPS; UT1, which is measured rather than defined, is in `hc-astro` beside the ΔT model it is computed from. |
 | `leap` | The UTC leap-second table, as data. |
 | `unix` | POSIX time (`UnixTime`), UTC with the leap second made explicit (`UtcInstant`), and the conversions between them and TAI under a `LeapPolicy`. |
@@ -29,7 +29,7 @@ The time primitives every other crate uses and none may redefine.
 
 | Claim | |
 | --- | --- |
-| `Duration` | exact to the attosecond over a range of about 5 × 10³⁰ years; arithmetic reports overflow rather than wrapping |
+| `Duration` | exact to the attosecond over a range of about 5 × 10³⁰ years; arithmetic reports overflow rather than wrapping. The operators `+ - * / %` panic on overflow or a zero divisor, and each has a `checked_*` twin (policy §8) |
 | TAI − TT | exactly 32.184 s |
 | TAI − UTC, 1972 onward | exact, a whole number of seconds from the IANA `leap-seconds.list`, which mirrors IERS Bulletin C; the last entry is the leap second of 2017-01-01 |
 | TAI − UTC, 1961 to 1971 | the official rate-offset coefficients of that era, in `RATE_ERA` |

@@ -142,6 +142,7 @@ version = "0.1.0"
 dependencies = [
  "hc-calendar",
  "hc-core",
+ "hc-format",
  "hc-i18n",
  "hc-units",
 ]

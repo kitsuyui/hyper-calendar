@@ -14,14 +14,17 @@ keywords.workspace = true
 
 [features]
 default = ["std"]
-std = ["alloc", "hc-core/std", "hc-units/std", "hc-calendar/std", "hc-i18n/std"]
-alloc = ["hc-core/alloc", "hc-units/alloc", "hc-calendar/alloc", "hc-i18n/alloc"]
+std = ["alloc", "hc-core/std", "hc-units/std", "hc-calendar/std", "hc-i18n/std", "hc-format/std"]
+alloc = ["hc-core/alloc", "hc-units/alloc", "hc-calendar/alloc", "hc-i18n/alloc", "hc-format/alloc"]
 # Floating-point math for `no_std` builds: `hc-core` refuses to compile with
 # neither `std` nor `libm`.
-libm = ["hc-core/libm"]
+libm = ["hc-core/libm", "hc-format/libm"]
 
 [dependencies]
 hc-core = { workspace = true }
 hc-units = { workspace = true }
 hc-calendar = { workspace = true }
 hc-i18n = { workspace = true }
+# `naturalday` writes a day that is not today, tomorrow or yesterday with a
+# `strftime` pattern.
+hc-format = { workspace = true }

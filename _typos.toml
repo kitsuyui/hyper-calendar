@@ -16,6 +16,9 @@
 extend-exclude = ["Cargo.lock"]
 
 [default.extend-words]
+# The English ordinal suffix of "2nd", as a data entry in hc-humanize's
+# `natural` module.
+nd = "nd"
 # BSE, the Bombay Stock Exchange's own name for itself, and the identifier
 # of its rule set.
 BSE = "BSE"

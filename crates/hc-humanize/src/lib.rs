@@ -29,6 +29,10 @@
 //!
 //! | [`unit_choice`] | Which unit, and rounded how? | 90 min → *2 hours* or *an hour and a half* |
 //!
+//! [`natural`] answers the same questions in a second convention: the
+//! thresholds and English strings of the Python `humanize` package —
+//! *a moment*, *1 year, 3 months*, *1.2 billion* — for code ported from it.
+//!
 //! # Data is not code
 //!
 //! Every locale is one [`pattern::LocaleData`] value of `&'static` strings
@@ -61,7 +65,8 @@
 //! # Scope
 //!
 //! This crate phrases *spans*. It does not format dates or times — that is
-//! `hc-format` — and it does not know what "now" is: every entry point takes
+//! `hc-format`, which [`natural`]'s `naturalday` hands a date to, as Python's
+//! `humanize` hands it to `strftime` — and it does not know what "now" is: every entry point takes
 //! both ends, or a span, from the caller. A humaniser that read a clock
 //! could not be tested.
 //!
@@ -83,6 +88,7 @@ pub mod data;
 pub mod duration;
 pub mod error;
 pub mod lookup;
+pub mod natural;
 pub mod pattern;
 pub mod relative;
 pub mod unit;

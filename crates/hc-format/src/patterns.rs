@@ -518,13 +518,18 @@ pub struct ParsedFields {
     pub unix_seconds: Option<i64>,
     /// The era index, from `%` nothing or CLDR `G`: 0 before year 1, 1 after.
     pub era: Option<usize>,
+    /// The week of the year counted from the first Sunday, from `%U`.
+    pub week_of_year_sunday: Option<u8>,
+    /// The week of the year counted from the first Monday, from `%W`.
+    pub week_of_year_monday: Option<u8>,
 }
 
 impl ParsedFields {
     /// Resolve the fields into a reading plus whatever zone was stated.
     ///
     /// The date is taken from the first of these that is complete: a POSIX
-    /// timestamp, an ISO week date, an ordinal date, a calendar date.
+    /// timestamp, an ISO week date, an ordinal date, a `%U` or `%W` week
+    /// number with a weekday and a year, a calendar date.
     ///
     /// # Errors
     ///
@@ -580,9 +585,67 @@ impl ParsedFields {
         if let Some(day_of_year) = self.day_of_year {
             return Ok(hc_calendars_solar::ordinal::to_fixed(year, day_of_year)?);
         }
+        if let Some(day) = self.resolve_week_of_year(year)? {
+            return Ok(day);
+        }
         let month = self.month.ok_or(ValueError::MissingField("month"))?;
         let day = self.day.ok_or(ValueError::MissingField("day"))?;
         Ok(gregorian::to_fixed(year, month, day)?)
+    }
+
+    /// The day named by a `%U` or `%W` week number and a weekday.
+    ///
+    /// Week 1 starts on the year's first Sunday (`%U`) or Monday (`%W`), and
+    /// the days before it are week 0, so week 0 may reach back into the
+    /// previous year — which is what Python's `strptime` computes too.
+    fn resolve_week_of_year(&self, year: i64) -> ValueResult<Option<hc_calendar::Rd>> {
+        let Some(iso_weekday) = self.iso_weekday else {
+            return Ok(None);
+        };
+        let (week, first_weekday) = match (self.week_of_year_sunday, self.week_of_year_monday) {
+            (Some(week), _) => (week, Weekday::Sunday),
+            (None, Some(week)) => (week, Weekday::Monday),
+            (None, None) => return Ok(None),
+        };
+        let weekday = Weekday::from_iso_number(iso_weekday).ok_or(ValueError::Calendar(
+            hc_calendar::CalendarError::DayOutOfRange,
+        ))?;
+        let week_one = first_weekday.on_or_after(gregorian::to_fixed(year, 1, 1)?);
+        let into_week = match first_weekday {
+            Weekday::Sunday => weekday.sunday_first_number(),
+            _ => weekday.monday_first_number(),
+        };
+        let offset = 7 * (i64::from(week) - 1) + i64::from(into_week);
+        Ok(Some(week_one.checked_add_days(offset)?))
+    }
+
+    /// The same fields with a date filled in wherever the text named none,
+    /// which is how Python's `strptime` resolves a pattern such as `%H:%M`:
+    /// against 1900-01-01.
+    ///
+    /// Only a field that nothing else determines is filled: a year when no
+    /// year, century or ISO year was read, a month and a day when no day of
+    /// the year was, and neither when an ISO week date or a POSIX timestamp
+    /// is complete.
+    #[must_use]
+    pub const fn with_default_date(mut self, year: i64, month: u8, day: u8) -> Self {
+        if self.unix_seconds.is_some()
+            || (self.iso_year.is_some() && self.iso_week.is_some() && self.iso_weekday.is_some())
+        {
+            return self;
+        }
+        if self.year.is_none() && self.year_of_century.is_none() && self.century.is_none() {
+            self.year = Some(year);
+        }
+        if self.day_of_year.is_none() {
+            if self.month.is_none() {
+                self.month = Some(month);
+            }
+            if self.day.is_none() {
+                self.day = Some(day);
+            }
+        }
+        self
     }
 
     fn resolve_time(&self) -> ValueResult<hc_calendar::CivilTime> {

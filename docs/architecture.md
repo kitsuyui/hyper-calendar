@@ -87,8 +87,8 @@ dependencies. A crate depends only on crates in rows above it.
 | `hc-tz` | Offsets, POSIX TZ, TZif | — |
 | `hc-i18n` | Locales, plurals, names | — |
 | `hc-astro` | ΔT, solar longitude, new moon, rise and set | — |
-| `hc-humanize` | Relative times and spelled-out durations | `hc-i18n`, `hc-units` |
-| `hc-format` | ISO 8601, RFC 3339, RFC 2822, patterns | `hc-calendars-solar`, `hc-tz`, `hc-i18n` |
+| `hc-format` | ISO 8601, RFC 3339, RFC 2822, patterns, Python's ISO profile | `hc-calendars-solar`, `hc-tz`, `hc-i18n` |
+| `hc-humanize` | Relative times, spelled-out durations, Python `humanize`'s phrasing | `hc-i18n`, `hc-units`, `hc-format` |
 | `hc-planetary` | Mars sols, MTC, Darian | `hc-astro` |
 | `hc-calendars-lunar` | Hijri, Hebrew, Chinese, Tibetan, the Japanese lunisolar systems | `hc-astro` |
 | `hc-calendars-equinox` | Solar Hijri, Badíʿ and French Republican by the equinox | `hc-astro`, `hc-calendars-solar` |

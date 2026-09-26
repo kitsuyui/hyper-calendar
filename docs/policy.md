@@ -182,11 +182,15 @@ embedded in a WebAssembly runtime or behind an FFI boundary. Fallible
 operations return `Result`; infallible ones are proved infallible by
 construction.
 
-The `Add`, `Sub` and `Neg` operators on `Duration`, and the `AddAssign` and
-`SubAssign` built on them, are the deliberate exception, together with the
-`Add` and `Sub` operators on `Rd` and `Rd::days_since`: they panic on
-overflow, in release builds too, so that ordinary arithmetic reads normally,
-and each has a `checked_*` twin.
+The arithmetic operators are the deliberate exception: on `Duration`, `Add`,
+`Sub`, `Neg`, `Mul<i64>`, `Div<i64>` and `Rem`, and the `AddAssign` and
+`SubAssign` built on them; the `Add` and `Sub` operators on `Rd` and
+`Rd::days_since`; and in the facade's `civil` layer, the same operators on
+`TimeDelta`, `TimeDelta::abs`, and `Date` and `DateTime` plus or minus a
+`TimeDelta`. They panic on overflow — and `/` and `%` on a zero divisor, as
+integer division does — in release builds too, so that ordinary arithmetic
+reads normally, and as Python's `datetime` reads, and each has a `checked_*`
+twin.
 
 ## 9. No dependencies without a reason
 
