@@ -32,11 +32,12 @@
 //!
 //! # Which locale
 //!
-//! [`locale_for`] answers that: the one asked for when it names the
-//! calendar, else the calendar's own language where the crate carries it,
-//! else English, so that a month is named in *some* language before it is
-//! numbered. A caller that wants each calendar in its own language passes
-//! `None`.
+//! [`locale_for`] answers that, with one rule for every rendered cell: the
+//! one asked for when it names the calendar, else English, else the one
+//! asked for with the calendar's own names from its shape. A named locale
+//! never borrows the calendar's own language. A caller that wants each
+//! calendar in its own language passes `None`, which reaches for it first,
+//! then English.
 
 use core::fmt::{self, Write};
 
@@ -49,7 +50,8 @@ use hc_i18n::names::{self, DateTemplates, NameContext, NameWidth, TemplateChain}
 use hc_i18n::numbering::{self, NumberingSystem};
 
 /// The locale a calendar is rendered in: the one asked for when it names
-/// the calendar, else the calendar's own, else English.
+/// the calendar, else English, else the one asked for with the calendar's
+/// own names; only `None` asks for the calendar's own language first.
 ///
 /// See [`hc_i18n::names::locale_for_calendar`], which this wraps.
 #[must_use]
@@ -691,8 +693,9 @@ mod tests {
         assert_eq!(render(&toy, &plain, "zh-Hans")[1], "4660年");
         assert_eq!(render(&toy, &plain, "zh-Hans")[3], "初四");
         // A German request does not name the Chinese calendar, so the
-        // resolved locale is the calendar's own.
-        assert_eq!(locale_for(&toy, Some(&locale("de"))).to_string(), "zh-Hans");
+        // resolved locale is English; only `None` asks for the calendar's
+        // own.
+        assert_eq!(locale_for(&toy, Some(&locale("de"))).to_string(), "en");
         assert_eq!(locale_for(&toy, None).to_string(), "zh-Hans");
         assert_eq!(locale_for(&toy, Some(&locale("ja"))).to_string(), "ja");
     }

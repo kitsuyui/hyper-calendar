@@ -32,7 +32,7 @@
 //! | Cycle-based | [`persian`], [`bahai`], [`bahai_kept`] |
 //! | Proposed reforms | [`symmetry454`], [`symmetry010`] (both on [`symmetry`]), [`world_calendar`], [`international_fixed`], [`positivist`], [`hanke_henry`] |
 //! | A pure week cycle | [`qumran`] |
-//! | Not calendars | [`cycles`] (the computus cycles), [`year_style`] (where the year began) |
+//! | Not calendars | [`cycles`] (the computus cycles), [`year_style`] (where the year began), [`adoption`] (when each country took the Gregorian calendar) |
 //!
 //! Everything converts through [`hc_calendar::Rd`], so any two of them can
 //! be put side by side without either knowing the other exists:
@@ -57,6 +57,7 @@ extern crate alloc;
 
 mod common;
 
+pub mod adoption;
 pub mod armenian;
 pub mod armenian_fixed;
 pub mod assyrian;

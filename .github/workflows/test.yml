@@ -59,6 +59,8 @@ jobs:
       # compiles and then fails at run time is exactly the bug this replaced.
       - run: cargo test -p hc-core --no-default-features --features alloc,libm
       - run: cargo build -p hyper-calendar --no-default-features --features alloc,libm
+      # The line writers the boundary crates share, without `std`.
+      - run: cargo build -p hyper-calendar --no-default-features --features alloc,libm,civil,i18n,format
       # Each crate on its own as well: the facade enables features across the
       # graph, so a crate that cannot build alone without `std` passes there.
       - run: |

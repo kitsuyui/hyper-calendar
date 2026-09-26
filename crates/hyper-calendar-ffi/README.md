@@ -83,7 +83,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-30 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+31 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -100,15 +100,16 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_calendar_units(const char *id, uint32_t unit, int64_t from_fixed, int64_t to_fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The days from `from_fixed` up to but not including `to_fixed` as one calendar's eras, years, months or days, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_calendars(int64_t today, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Every registered calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_locales(char *buffer, size_t capacity, size_t *written);` | `calendars` | Every locale the library carries, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_gregorian_adoption(const char *region, char *buffer, size_t capacity, size_t *written);` | `calendars` | The steps by which a country adopted the Gregorian calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_is_day_off(const char *code, const char *region, int64_t fixed, int *out_is_day_off);` | `holiday` | Whether a fixed day is a day off in a holiday table. |
 | `HcStatus hc_holidays_in_year(const char *code, const char *region, int64_t year, char *buffer, size_t capacity, size_t *written);` | `holiday` | The holidays of a Gregorian year in a table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_codes(char *buffer, size_t capacity, size_t *written);` | `holiday` | The identifier of every holiday table, one per line, NUL-terminated. |
 | `HcStatus hc_holidays_on(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | Every holiday on one fixed day across every table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_term_in_effect(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The solar term in effect on a fixed day at a meridian, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_pentad_in_effect(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The pentad (候) in effect on a fixed day at a meridian, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
-| `HcStatus hc_place_years_ago(double years_ago, double std_dev_years, char *buffer, size_t capacity, size_t *written);` | `deep-time` | A moment some years before the present, placed in every chronology at once, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
-| `HcStatus hc_cosmic_events(char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every cosmic epoch and every dated cosmic event, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
-| `HcStatus hc_geologic_intervals(uint32_t rank, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every interval of one rank of the geologic time scale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_place_years_ago(double years_ago, double std_dev_years, const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | A moment some years before the present, placed in every chronology at once, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_cosmic_events(const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every cosmic epoch and every dated cosmic event, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_geologic_intervals(uint32_t rank, const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every interval of one rank of the geologic time scale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_fixed_from_unix_in_zone(int64_t unix_seconds, const char *zone, int64_t *out_fixed);` | `tz` | The fixed day a POSIX timestamp falls on by the wall clock of a zone. |
 | `HcStatus hc_unix_from_fixed_in_zone(int64_t fixed, const char *zone, int64_t *out_unix_seconds);` | `tz` | The POSIX timestamp at which a fixed day begins by the wall clock of a zone. |
 | `HcStatus hc_zone_load(const char *name, const uint8_t *tzif, size_t tzif_len);` | `tz` | Give the library a zone's TZif data under an IANA name. |
@@ -149,8 +150,9 @@ date columns, standing and formatted date empty and the error code and
 name — the stable ones `CalendarError` gives every refusal — saying why.
 `locale` is a NUL-terminated BCP 47 tag, the word `native` for each
 calendar's own language, or null; a calendar the tag's data does not name
-is rendered in its own language where the library carries it, else in
-English, and the last column says which. A tag that does not parse, or
+is rendered in English, else in the tag with the calendar's own names, and
+never in the calendar's own language, which only `native` asks for; the
+last column says which. A tag that does not parse, or
 that no data answers for, falls back to the root locale `und`, whose month
 names are CLDR's `M01`..`M12`, so ask for `en` for English.
 
@@ -163,12 +165,21 @@ and locale used. A null `id` is `HC_ERROR_NULL_POINTER`; an identifier or
 unit the library does not know is `HC_ERROR_UNKNOWN`; an empty range is an
 empty string. `hc_calendars(today, locale, buffer, capacity, written)`
 lists every registered calendar in its eleven columns — identifier, the
-locale's name for it, English name, earliest, latest, the four has-unit
-flags, native locales and standing on `today` — and
+locale's name for it (empty where the locale has none: only `native` names
+a calendar in its own language), English name, earliest, latest, the four
+has-unit flags, native locales and standing on `today` —
 `hc_locales(buffer, capacity, written)` every locale in its seven: tag,
 English name, native name, the three Gregorian coverage flags and the
-calendars it names. The columns are the same as the module's, and the
-README there describes each.
+calendars it names — and `hc_gregorian_adoption(region, buffer, capacity,
+written)` the steps by which the country with the ISO 3166-1 alpha-2 code
+`region` adopted the Gregorian calendar, one line per step in seven
+columns: the last day of the old reckoning and the first of the new as
+fixed days, the old calendar's identifier, the scope (`civil`,
+`ecclesiastical` or `partial`), the instrument with its date, the new
+calendar's identifier and the polity. A code the library does not know is
+an empty string, and a null `region` is `HC_ERROR_NULL_POINTER`. The
+columns are the same as the module's, and the README there describes
+each.
 
 ## Holidays
 
@@ -232,16 +243,23 @@ anything else is `HC_ERROR_UNKNOWN`.
 ## Deep time
 
 `hc_place_years_ago`, `hc_cosmic_events` and `hc_geologic_intervals` need
-the `deep-time` feature and write lines of the same fourteen columns: kind,
-name, scope, the older bound's value, uncertainty, significant figures and
-approximate flag, the same four for the younger bound, the unit, the
-description and the source. `hc_place_years_ago(years_ago, std_dev_years,
-...)` counts back from the present as `hc-deep-time` defines it — the
+the `deep-time` feature, take a NUL-terminated BCP 47 `locale` (or null)
+after their other arguments, and write lines of the same fifteen columns:
+kind, name, scope, the older bound's value, uncertainty, significant figures
+and approximate flag, the same four for the younger bound, the unit, the
+description, the source, and the geological chart's own name for an
+interval in the locale's language, from the ICS's translations, empty for
+every other row and every language the chart has no names in.
+`hc_place_years_ago(years_ago, std_dev_years, locale, ...)` counts back from the present as `hc-deep-time` defines it — the
 Planck 2018 age of the universe, not the BP datum of 1950 and not the
 caller's clock; the crate ignores the difference, which lies below the
 smallest uncertainty in its tables — and places the moment in its cosmic
 epoch, the last dated cosmic event, its future era if it lies ahead, its
-geologic chain and its archaeological period. `hc_geologic_intervals` takes
+geologic chain and its archaeological period. A moment up to a century
+ahead is still placed in the intervals that end at the present — the
+chart's youngest chain, the Modern period, the last cosmic epoch — as well
+as in its future era; beyond a century it has its future era alone.
+`hc_geologic_intervals` takes
 `rank` as `0` for the eons through `4` for the ages.
 
 ## Time zones

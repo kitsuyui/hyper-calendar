@@ -235,9 +235,13 @@ describe("describeDay", () => {
     assert.equal(gregorian.standing, "in-use");
     assert.equal(gregorian.formatted, "2026年9月21日");
     // Japanese has no words for the Hebrew months, so the Hebrew calendar
-    // answers in Hebrew and says so.
+    // answers in English, not Hebrew, and says so; only `native` borrows a
+    // calendar's own language.
     const hebrew = rows.find((row) => row.id === "hebrew");
-    assert.equal(hebrew?.localeUsed, "he");
+    assert.equal(hebrew?.localeUsed, "en");
+    const umalqura = rows.find((row) => row.id === "islamic-umalqura");
+    assert.equal(umalqura?.localeUsed, "en");
+    assert.ok(!/[\u0600-\u06FF]/.test(umalqura?.formatted ?? ""), umalqura?.formatted);
     assert.equal(hc.describeDay(739_880, "en").find((row) => row.id === "gregory")?.monthLabel, "September");
     assert.equal(hc.describeDay(739_880, "en").find((row) => row.id === "gregory")?.formatted, "September 21, 2026");
     // `native` renders each calendar in its own language.
@@ -245,6 +249,7 @@ describe("describeDay", () => {
     assert.equal(native.find((row) => row.id === "japanese")?.localeUsed, "ja");
     assert.equal(native.find((row) => row.id === "chinese")?.localeUsed, "zh-Hans");
     assert.equal(native.find((row) => row.id === "gregory")?.localeUsed, "en");
+    assert.equal(native.find((row) => row.id === "hebrew")?.localeUsed, "he");
     // A tag with no data, or one that does not parse, falls back to the
     // root locale, whose month names are CLDR's M01..M12; so does the default.
     assert.equal(hc.describeDay(739_880, "tlh").find((row) => row.id === "gregory")?.monthLabel, "M09");
@@ -391,6 +396,12 @@ describe("calendars and locales", () => {
     const longCount = rows.find((row) => row.id === "maya-longcount");
     assert.deepEqual([longCount?.hasEra, longCount?.hasYear, longCount?.hasMonth, longCount?.hasDay], [false, false, false, false]);
     assert.equal(hc.calendars(739_880, "tlh").find((row) => row.id === "gregory")?.name, null);
+    // A locale without a name for a calendar leaves it unnamed rather than
+    // borrowing the calendar's own language; only `native` does that.
+    assert.equal(hc.calendars(739_880, "bo").find((row) => row.id === "japanese")?.name, null);
+    assert.equal(hc.calendars(739_880, NATIVE).find((row) => row.id === "japanese")?.name, "和暦");
+    assert.equal(hc.calendars(739_880, "zh-Hans").find((row) => row.id === "dangi")?.name, "檀纪历");
+    assert.equal(hc.calendars(739_880, "zh-Hant").find((row) => row.id === "dangi")?.name, "檀紀曆");
   });
 
   test("every locale is listed with what it names", () => {
@@ -411,6 +422,80 @@ describe("calendars and locales", () => {
     const coptic = rows.find((row) => row.tag === "cop");
     assert.deepEqual([coptic?.gregorianMonths, coptic?.weekdays, coptic?.gregorianEras], [false, false, false]);
     assert.deepEqual(coptic?.calendars, ["coptic"]);
+  });
+});
+
+describe("gregorianAdoption", () => {
+  /**
+   * @param {number} year
+   * @param {number} month
+   * @param {number} day
+   */
+  const fixed = (year, month, day) => hc.gregorianToFixed(year, month, day);
+
+  test("every step is a line of the README's columns", () => {
+    const raw = rawRows(hc, (buffer, capacity) => {
+      const pointer = hc.alloc(2);
+      new Uint8Array(hc.memory.buffer, pointer, 2).set([0x43, 0x4e]); // "CN"
+      try {
+        return hc.exports.hc_gregorian_adoption(pointer, 2, buffer, capacity);
+      } finally {
+        hc.free(pointer, 2);
+      }
+    });
+    assert.equal(raw.length, 2);
+    for (const cells of raw) {
+      assert.equal(cells.length, COLUMNS.gregorianAdoption.length, JSON.stringify(cells));
+    }
+  });
+
+  test("Japan, Russia, Greece and Britain changed in one step", () => {
+    const [japan, ...moreJapan] = hc.gregorianAdoption("JP");
+    assert.deepEqual(moreJapan, []);
+    assert.equal(japan.lastOldDay, fixed(1872, 12, 31));
+    assert.equal(japan.firstDay, fixed(1873, 1, 1));
+    assert.equal(japan.oldCalendar, "japanese-tenpo");
+    assert.equal(japan.newCalendar, "gregory");
+    assert.equal(japan.scope, "civil");
+    assert.match(japan.source, /337/);
+    const [russia] = hc.gregorianAdoption("ru");
+    assert.deepEqual([russia.lastOldDay, russia.firstDay], [fixed(1918, 2, 13), fixed(1918, 2, 14)]);
+    assert.equal(russia.oldCalendar, "julian");
+    assert.equal(russia.polity, "Soviet Russia");
+    const [greece] = hc.gregorianAdoption("GR");
+    assert.equal(greece.firstDay, fixed(1923, 3, 1));
+    const [britain] = hc.gregorianAdoption("GB");
+    assert.equal(britain.firstDay, fixed(1752, 9, 14));
+    assert.match(britain.source, /Calendar \(New Style\) Act 1750/);
+  });
+
+  test("a staged adoption is several steps", () => {
+    const china = hc.gregorianAdoption("CN");
+    assert.deepEqual(china.map((row) => [row.firstDay, row.scope]), [
+      [fixed(1912, 1, 1), "partial"],
+      [fixed(1929, 1, 1), "civil"],
+    ]);
+    assert.ok(china.every((row) => row.oldCalendar === "chinese"));
+    const sweden = hc.gregorianAdoption("SE");
+    assert.deepEqual(sweden.map((row) => [row.oldCalendar, row.newCalendar]), [
+      ["julian", "swedish-1700"],
+      ["swedish-1700", "julian"],
+      ["julian", "gregory"],
+    ]);
+    assert.ok(sweden.every((row) => row.firstDay === row.lastOldDay + 1));
+  });
+
+  test("Saudi Arabia's step was partial, from the Umm al-Qura calendar", () => {
+    const [saudi, ...more] = hc.gregorianAdoption("SA");
+    assert.deepEqual(more, []);
+    assert.equal(saudi.firstDay, fixed(2016, 10, 1));
+    assert.equal(saudi.oldCalendar, "islamic-umalqura");
+    assert.equal(saudi.scope, "partial");
+  });
+
+  test("a region the module does not know has no steps", () => {
+    assert.deepEqual(hc.gregorianAdoption("ZZ"), []);
+    assert.deepEqual(hc.gregorianAdoption(""), []);
   });
 });
 
@@ -617,7 +702,7 @@ describe("deep time", () => {
 
   test("a moment is placed in every chronology", () => {
     // The end-Cretaceous extinction, 66 million years ago.
-    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_place_years_ago(66.0e6, 0.0, buffer, capacity));
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_place_years_ago(66.0e6, 0.0, 0, 0, buffer, capacity));
     const rows = hc.placeYearsAgo(66.0e6);
     sameShape(rows, raw);
     assert.deepEqual(
@@ -638,6 +723,11 @@ describe("deep time", () => {
     assert.equal(age.unit, "megayears-before-present");
     assert.equal(age.description, null);
     assert.match(age.source, /v2026\/06/);
+    assert.equal(age.localisedName, null, "no locale, no localised name");
+    const inJapanese = hc.placeYearsAgo(66.0e6, 0, "ja");
+    assert.equal(inJapanese[8].localisedName, "マーストリヒチアン");
+    assert.equal(inJapanese[8].name, "Maastrichtian", "the English column stays");
+    assert.equal(inJapanese[2].localisedName, null, "no cosmic translation");
     assert.deepEqual(hc.placeYearsAgo(66.0e6, 1.0e6).map((row) => row.kind), rows.map((row) => row.kind));
   });
 
@@ -656,6 +746,24 @@ describe("deep time", () => {
     assert.equal(ahead[3].unit, "log10-years-from-now");
   });
 
+  test("the near future is still in the present intervals", () => {
+    const hours = hc.placeYearsAgo(-6 / (24 * 365.25));
+    const years = hc.placeYearsAgo(-3);
+    for (const rows of [hours, years]) {
+      assert.deepEqual(rows.map((row) => row.kind), [
+        "moment", "moment", "cosmic-epoch", "cosmic-event", "future-era",
+        "eon", "era", "period", "epoch", "age", "archaeological",
+      ]);
+      assert.equal(rows[9].name, "Meghalayan");
+      assert.equal(rows[10].name, "Modern period");
+    }
+    assert.deepEqual(
+      hc.placeYearsAgo(-101).map((row) => row.kind),
+      ["moment", "moment", "cosmic-event", "future-era"],
+      "beyond a century the future begins",
+    );
+  });
+
   test("a value the crate refuses is thrown", () => {
     refused(() => hc.placeYearsAgo(Number.NaN), "out-of-range");
     refused(() => hc.placeYearsAgo(1, -1), "out-of-range");
@@ -663,7 +771,7 @@ describe("deep time", () => {
   });
 
   test("the cosmic tables are listed with their sources", () => {
-    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_cosmic_events(buffer, capacity));
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_cosmic_events(0, 0, buffer, capacity));
     const rows = hc.cosmicEvents();
     sameShape(rows, raw);
     const epochs = rows.filter((row) => row.kind === "cosmic-epoch");
@@ -676,6 +784,7 @@ describe("deep time", () => {
     // Values are written in plain decimal notation, however small.
     assert.ok(rows[0].end && rows[0].end.value > 0 && rows[0].end.value < 1e-40);
     assert.doesNotMatch(raw[0][7], /e/);
+    assert.ok(hc.cosmicEvents("ja").every((row) => row.localisedName === null));
   });
 
   test("the geologic ranks are numbered coarsest first", () => {
@@ -686,13 +795,16 @@ describe("deep time", () => {
       assert.ok(byName.length > 3, name);
       assert.ok(byName.every((row) => row.kind === name), name);
     });
-    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_geologic_intervals(0, buffer, capacity));
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_geologic_intervals(0, 0, 0, buffer, capacity));
     const eons = hc.geologicIntervals("eon");
     sameShape(eons, raw);
     assert.equal(eons[0].name, "Phanerozoic");
     assert.equal(eons[0].scope, null);
     assert.deepEqual(eons[0].start, { value: 538.8, stdDev: 0.6, figures: 4, approximate: false });
     assert.deepEqual(eons[0].end, { value: 0, stdDev: 0, figures: 1, approximate: false });
+    assert.equal(eons[0].localisedName, null);
+    assert.equal(hc.geologicIntervals("eon", "zh-Hans")[0].localisedName, "显生宇");
+    assert.equal(hc.geologicIntervals("period", "de").find((row) => row.name === "Quaternary")?.localisedName, "Quartär");
     refused(() => hc.geologicIntervals(5), "unknown");
     assert.throws(() => hc.geologicIntervals(/** @type {any} */ ("eons")), TypeError);
   });

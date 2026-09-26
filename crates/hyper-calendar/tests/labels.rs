@@ -150,12 +150,13 @@ fn the_hebrew_and_hijri_calendars_are_labelled_as_their_sources_write_them() {
     assert_eq!(label_on(hebrew, rosh_hashanah, Unit::Year, "he"), "5784");
     assert_eq!(label_on(hebrew, rosh_hashanah, Unit::Month, "he"), "תשרי");
     // Japanese has no words for the Hebrew months, so a Japanese request
-    // is answered in Hebrew.
+    // is answered in English, not in Hebrew; only `native` asks for Hebrew.
     assert_eq!(
         label::locale_for(hebrew, Some(&locale("ja"))).to_string(),
-        "he"
+        "en"
     );
-    assert_eq!(label_on(hebrew, rosh_hashanah, Unit::Month, "ja"), "תשרי");
+    assert_eq!(label_on(hebrew, rosh_hashanah, Unit::Month, "ja"), "Tishri");
+    assert_eq!(label::locale_for(hebrew, None).to_string(), "he");
     let adar_i = day(2024, 2, 11);
     assert_eq!(label_on(hebrew, adar_i, Unit::Month, "en"), "Adar I");
     // Up to the eve of 1 Tishri 5785, 2024-10-03.
@@ -191,8 +192,9 @@ fn the_hebrew_and_hijri_calendars_are_labelled_as_their_sources_write_them() {
     assert_eq!(label_on(hijri, ramadan, Unit::Year, "ar"), "١٤٤٥ هـ");
     assert_eq!(label_on(hijri, ramadan, Unit::Month, "ar"), "رمضان");
     assert_eq!(date_on(hijri, ramadan, "ar"), "١ رمضان ١٤٤٥ هـ");
-    // Japanese names neither, so a Japanese request is answered in Arabic.
-    assert_eq!(label_on(hijri, ramadan, Unit::Month, "ja"), "رمضان");
+    // Japanese names neither, so a Japanese request is answered in
+    // English, not in Arabic.
+    assert_eq!(label_on(hijri, ramadan, Unit::Month, "ja"), "Ramadan");
 }
 
 #[test]
@@ -369,8 +371,10 @@ fn the_lines_carry_the_labels_and_name_the_locale_used() {
         .find(|row| row[0] == "japanese")
         .expect("japanese");
     assert_eq!(japanese[15..17], ["令和8年9月21日", "ja"]);
+    // Japanese does not name the Hebrew calendar, so it is English, not
+    // Hebrew: a named locale never borrows the calendar's own language.
     let hebrew = rows.iter().find(|row| row[0] == "hebrew").expect("hebrew");
-    assert_eq!(hebrew[16], "he");
+    assert_eq!(hebrew[16], "en");
     let text = lines::describe_day(&registry, day(2026, 9, 21), lines::NATIVE);
     let rows: Vec<Vec<&str>> = text
         .lines()
@@ -386,6 +390,8 @@ fn the_lines_carry_the_labels_and_name_the_locale_used() {
         .find(|row| row[0] == "gregory")
         .expect("gregory");
     assert_eq!(gregorian[16], "en");
+    let hebrew = rows.iter().find(|row| row[0] == "hebrew").expect("hebrew");
+    assert_eq!(hebrew[16], "he");
 
     let japanese = registry.get_by_name("japanese").expect("japanese");
     let text = lines::calendar_units(
@@ -427,4 +433,70 @@ fn the_lines_carry_the_labels_and_name_the_locale_used() {
         rows.iter()
             .any(|row| row[0] == "zh-Hans" && row[2] == "简体中文")
     );
+}
+
+/// The second cell of `lines::calendars` for one calendar in one locale.
+fn calendar_name(tag: &str, id: &str) -> String {
+    let registry = registry();
+    lines::calendars(&registry, day(2026, 9, 21), tag)
+        .lines()
+        .map(|line| line.split('\t').collect::<Vec<_>>())
+        .find(|row| row[0] == id)
+        .map(|row| row[1].to_owned())
+        .expect("a listed calendar")
+}
+
+#[test]
+fn a_calendar_the_locale_has_no_name_for_is_named_nothing() {
+    // Tibetan has no CLDR calendar names, so neither the Japanese nor the
+    // Hebrew calendar is named in it; before, each came back in its own
+    // language, which is what `native` asks for and `bo` does not.
+    assert_eq!(calendar_name("bo", "japanese"), "");
+    assert_eq!(calendar_name("bo", "hebrew"), "");
+    // German names the Japanese calendar and not the Tibetan one.
+    assert_eq!(calendar_name("de", "japanese"), "Japanischer Kalender");
+    assert_eq!(calendar_name("de", "tibetan"), "");
+    // A tag that does not parse is the root locale, which names nothing.
+    assert_eq!(calendar_name("not a tag", "gregory"), "");
+    // Only `native` asks for the calendar's own language.
+    assert_eq!(calendar_name(lines::NATIVE, "japanese"), "和暦");
+    assert_eq!(calendar_name(lines::NATIVE, "hebrew"), "לוח השנה העברי");
+}
+
+#[test]
+fn the_dangi_calendar_is_named_as_cldr_names_it_in_both_chinese_scripts() {
+    // CLDR 48 `zh.xml` and `zh_Hant.xml`, type `dangi`.
+    assert_eq!(calendar_name("zh-Hans", "dangi"), "檀纪历");
+    assert_eq!(calendar_name("zh-Hant", "dangi"), "檀紀曆");
+    assert_eq!(calendar_name("ko", "dangi"), "단기력");
+    assert_eq!(calendar_name("ja", "dangi"), "ダンギ暦");
+}
+
+#[test]
+fn a_japanese_request_writes_the_umm_al_qura_calendar_in_english() {
+    let registry = registry();
+    let on = day(2026, 9, 26);
+    let row = |tag: &str| -> Vec<String> {
+        lines::describe_day(&registry, on, tag)
+            .lines()
+            .map(|line| line.split('\t').map(str::to_owned).collect::<Vec<_>>())
+            .find(|row| row[0] == "islamic-umalqura")
+            .expect("islamic-umalqura")
+    };
+    let japanese = row("ja");
+    assert_eq!(japanese[15..17], ["Rabi II 15, 1448 AH", "en"]);
+    assert!(
+        !japanese[15]
+            .chars()
+            .any(|c| ('\u{0600}'..='\u{06FF}').contains(&c)),
+        "no Arabic script under ja: {}",
+        japanese[15]
+    );
+    // Only `native` reaches for Arabic.
+    assert_eq!(row(lines::NATIVE)[16], "ar");
+    let umalqura = registry
+        .get_by_name("islamic-umalqura")
+        .expect("islamic-umalqura");
+    let units = lines::calendar_units(umalqura, Unit::Month, on, day(2026, 9, 27), "ja");
+    assert!(units.trim_end().ends_with("\ten"), "{units}");
 }

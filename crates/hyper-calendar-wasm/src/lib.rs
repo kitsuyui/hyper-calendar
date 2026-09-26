@@ -386,9 +386,9 @@ pub use civil::{
 
 /// Every calendar, behind the `calendars` feature: the registry the facade
 /// populates, described for one day, walked as eras, years, months and
-/// days, and listed, in the vocabulary of a locale; and the locales
-/// themselves. The lines are `hyper_calendar::lines`', shared with the C
-/// library.
+/// days, and listed, in the vocabulary of a locale; the locales
+/// themselves; and when each country adopted the Gregorian calendar. The
+/// lines are `hyper_calendar::lines`', shared with the C library.
 #[cfg(feature = "calendars")]
 mod calendars {
     use super::{HC_ERR_UNKNOWN, emit_or_measure, text};
@@ -412,9 +412,9 @@ mod calendars {
     /// calendar that refuses the day is still a line: its date columns,
     /// standing and formatted date are empty and the error code and name say
     /// why. `locale` is a BCP 47 tag, or `native` for each calendar's own
-    /// language; a calendar the tag's data does not name is rendered in its
-    /// own language where the module carries it, else in English, and the
-    /// last column says which. A tag that does not parse is the root locale
+    /// language; a calendar the tag's data does not name is rendered in
+    /// English, else in the tag with the calendar's own names, never in the
+    /// calendar's own language, and the last column says which. A tag that does not parse is the root locale
     /// `und`, whose month names are CLDR's `M01`..`M12` — ask for `en` for
     /// English. A null `buffer` returns the length the text needs. The locale
     /// argument fails as `hc_parse_iso_date` does.
@@ -556,10 +556,55 @@ mod calendars {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_or_measure(&text, buffer, capacity) }
     }
+
+    /// The steps by which a country adopted the Gregorian calendar, as
+    /// UTF-8 lines, returning the byte length written.
+    ///
+    /// `region` is an ISO 3166-1 alpha-2 code, in either case. One line per
+    /// step, oldest first, tab-separated: the last day of the old reckoning
+    /// and the first day of the new as fixed days, the old calendar's
+    /// registry identifier (`julian`, `japanese-tenpo`, `dangi`, `chinese`,
+    /// `islamic-umalqura`, `rumi`, `swedish-1700`), the scope (`civil` for
+    /// the civil calendar of the whole polity as it then was, `partial` for
+    /// part of the country, some purposes or part of the calendar, and
+    /// `ecclesiastical` for a church's calendar alone), the instrument
+    /// behind the step with its date and whether it was read, the new
+    /// calendar's identifier (`gregory`, except for Sweden's steps of 1700
+    /// to `swedish-1700` and of 1712 back to `julian`), and who took the
+    /// step, in English. A staged adoption is several lines — China in 1912
+    /// and 1929, Sweden in 1700, 1712 and 1753, the Dutch provinces — and a
+    /// code the table does not know writes nothing, which is not a claim
+    /// that the country never adopted the calendar. The region argument
+    /// fails as `hc_parse_iso_date` does. A null `buffer` returns the
+    /// length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `region` must be readable for `region_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless it
+    /// is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gregorian_adoption(
+        region: *const u8,
+        region_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let region = match unsafe { text(region, region_len) } {
+            Ok(region) => region,
+            Err(sentinel) => return sentinel,
+        };
+        let text = lines::gregorian_adoption(region);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_or_measure(&text, buffer, capacity) }
+    }
 }
 
 #[cfg(feature = "calendars")]
-pub use calendars::{hc_calendar_units, hc_calendars, hc_describe_day, hc_locales};
+pub use calendars::{
+    hc_calendar_units, hc_calendars, hc_describe_day, hc_gregorian_adoption, hc_locales,
+};
 
 /// The holiday tables, behind the `holiday` feature: every country,
 /// exchange, tradition and international set of `hc-holiday`, looked up by
@@ -1053,265 +1098,8 @@ pub use seasons::{hc_pentad_in_effect, hc_term_in_effect};
 /// all of them at once.
 #[cfg(feature = "deep-time")]
 mod deep_time {
-    use super::{HC_ERR_OUT_OF_RANGE, HC_ERR_UNKNOWN, emit_or_measure, push_cell};
-    use hc::hc_deep_time::geologic::{self, GeologicInterval, GeologicRank};
-    use hc::hc_deep_time::universe::{self, CosmicEpoch, CosmicEvent};
-    use hc::hc_deep_time::{ArchaeologicalPeriod, DeepTime, FutureEra, place_years_ago};
-
-    /// One entry's figures: the value, its standard uncertainty, the
-    /// significant figures claimed (empty when the table claims none) and
-    /// whether the chart marks it approximate.
-    struct Bound {
-        value: f64,
-        std_dev: f64,
-        figures: Option<u8>,
-        approximate: bool,
-    }
-
-    impl Bound {
-        const fn exact(value: f64, std_dev: f64, figures: u8) -> Self {
-            Self {
-                value,
-                std_dev,
-                figures: Some(figures),
-                approximate: false,
-            }
-        }
-
-        fn of(time: DeepTime) -> Self {
-            Self::exact(time.central_seconds(), time.std_dev(), time.figures())
-        }
-    }
-
-    /// The shape every line of the deep-time exports has.
-    struct Row<'a> {
-        kind: &'a str,
-        name: &'a str,
-        scope: &'a str,
-        start: Option<Bound>,
-        end: Option<Bound>,
-        unit: &'a str,
-        description: &'a str,
-        source: &'a str,
-    }
-
-    fn push_bound(out: &mut String, bound: Option<&Bound>) {
-        use core::fmt::Write;
-        match bound {
-            Some(bound) => {
-                let _ = write!(out, "{}\t{}\t", bound.value, bound.std_dev);
-                if let Some(figures) = bound.figures {
-                    let _ = write!(out, "{figures}");
-                }
-                let _ = write!(out, "\t{}\t", u8::from(bound.approximate));
-            }
-            None => out.push_str("\t\t\t\t"),
-        }
-    }
-
-    fn push_row(out: &mut String, row: &Row<'_>) {
-        push_cell(out, row.kind);
-        out.push('\t');
-        push_cell(out, row.name);
-        out.push('\t');
-        push_cell(out, row.scope);
-        out.push('\t');
-        push_bound(out, row.start.as_ref());
-        push_bound(out, row.end.as_ref());
-        push_cell(out, row.unit);
-        out.push('\t');
-        push_cell(out, row.description);
-        out.push('\t');
-        push_cell(out, row.source);
-        out.push('\n');
-    }
-
-    /// The unit of every cosmic figure: seconds after the Big Bang.
-    const SINCE_BIG_BANG: &str = "seconds-since-big-bang";
-
-    fn push_epoch(out: &mut String, epoch: &CosmicEpoch) {
-        push_row(
-            out,
-            &Row {
-                kind: "cosmic-epoch",
-                name: epoch.name,
-                scope: "",
-                start: epoch.start().ok().map(Bound::of),
-                end: epoch.end().ok().map(Bound::of),
-                unit: SINCE_BIG_BANG,
-                description: epoch.description,
-                source: epoch.source,
-            },
-        );
-    }
-
-    fn push_event(out: &mut String, event: &CosmicEvent) {
-        let when = event.deep_time().ok().map(Bound::of);
-        push_row(
-            out,
-            &Row {
-                kind: "cosmic-event",
-                name: event.name,
-                scope: "",
-                start: event.deep_time().ok().map(Bound::of),
-                end: when,
-                unit: SINCE_BIG_BANG,
-                description: event.description,
-                source: event.source,
-            },
-        );
-    }
-
-    fn push_interval(out: &mut String, interval: &GeologicInterval) {
-        push_row(
-            out,
-            &Row {
-                kind: interval.rank.english_name(),
-                name: interval.name,
-                scope: interval.parent.unwrap_or(""),
-                start: Some(Bound {
-                    value: interval.base_ma,
-                    std_dev: interval.base_std_dev_ma,
-                    figures: Some(interval.base_figures),
-                    approximate: interval.base_approximate,
-                }),
-                end: Some(Bound {
-                    value: interval.top_ma,
-                    std_dev: interval.top_std_dev_ma,
-                    figures: Some(interval.top_figures),
-                    approximate: interval.top_approximate,
-                }),
-                unit: "megayears-before-present",
-                description: "",
-                source: geologic::CHART_CITATION,
-            },
-        );
-    }
-
-    fn push_period(out: &mut String, period: &ArchaeologicalPeriod) {
-        let bound = |bp: Result<hc::hc_deep_time::Bp, _>| {
-            bp.ok().map(|bp| Bound {
-                value: bp.years().value,
-                std_dev: bp.years().std_dev,
-                figures: None,
-                approximate: false,
-            })
-        };
-        push_row(
-            out,
-            &Row {
-                kind: "archaeological",
-                name: period.name,
-                scope: period.region,
-                start: bound(period.begins()),
-                end: bound(period.ends()),
-                unit: "years-before-1950",
-                description: period.description,
-                source: period.source,
-            },
-        );
-    }
-
-    fn push_future_era(out: &mut String, era: &FutureEra) {
-        push_row(
-            out,
-            &Row {
-                kind: "future-era",
-                name: era.name,
-                scope: "",
-                start: Some(Bound::exact(era.start_decade, 0.0, 2)),
-                end: era.end_decade.map(|decade| Bound::exact(decade, 0.0, 2)),
-                unit: "log10-years-from-now",
-                description: era.description,
-                source: era.source,
-            },
-        );
-    }
-
-    /// A moment placed in every chronology, one line each; see
-    /// [`hc_place_years_ago`] for the columns.
-    ///
-    /// # Errors
-    ///
-    /// [`HC_ERR_OUT_OF_RANGE`] for a value the crate refuses: not finite,
-    /// or beyond what it can represent.
-    pub(super) fn placement_lines(years_ago: f64, std_dev_years: f64) -> Result<String, i64> {
-        let placement =
-            place_years_ago(years_ago, std_dev_years).map_err(|_| HC_ERR_OUT_OF_RANGE)?;
-        let mut out = String::new();
-        let moment = |name, time: DeepTime, unit| Row {
-            kind: "moment",
-            name,
-            scope: "",
-            start: Some(Bound::of(time)),
-            end: Some(Bound::of(time)),
-            unit,
-            description: "",
-            source: universe::PRESENT_DAY.source,
-        };
-        push_row(
-            &mut out,
-            &moment("since-big-bang", placement.since_big_bang, SINCE_BIG_BANG),
-        );
-        push_row(
-            &mut out,
-            &moment(
-                "before-present",
-                placement.before_present,
-                "seconds-before-present",
-            ),
-        );
-        if let Some(epoch) = placement.cosmic_epoch {
-            push_epoch(&mut out, epoch);
-        }
-        if let Some(event) = placement.cosmic_event {
-            push_event(&mut out, event);
-        }
-        if let Some(era) = placement.future_era {
-            push_future_era(&mut out, era);
-        }
-        for interval in placement.geologic.iter().flatten() {
-            push_interval(&mut out, interval);
-        }
-        if let Some(period) = placement.archaeological {
-            push_period(&mut out, period);
-        }
-        Ok(out)
-    }
-
-    /// Every cosmic epoch, then every dated cosmic event, one line each.
-    pub(super) fn cosmic_lines() -> String {
-        let mut out = String::new();
-        for epoch in universe::EPOCHS {
-            push_epoch(&mut out, epoch);
-        }
-        for event in universe::EVENTS {
-            push_event(&mut out, event);
-        }
-        out
-    }
-
-    /// The rank a number names: 0 eon, 1 era, 2 period, 3 epoch, 4 age.
-    ///
-    /// # Errors
-    ///
-    /// [`HC_ERR_UNKNOWN`] for any other number.
-    fn rank(number: u32) -> Result<GeologicRank, i64> {
-        usize::try_from(number)
-            .ok()
-            .and_then(|index| GeologicRank::ALL.get(index))
-            .copied()
-            .ok_or(HC_ERR_UNKNOWN)
-    }
-
-    /// Every interval of one rank, youngest first, one line each.
-    pub(super) fn interval_lines(rank: GeologicRank) -> String {
-        let mut out = String::new();
-        for interval in geologic::intervals(rank) {
-            push_interval(&mut out, interval);
-        }
-        out
-    }
+    use super::{HC_ERR_OUT_OF_RANGE, HC_ERR_UNKNOWN, emit_or_measure, text};
+    use hc::deep_time_lines;
 
     /// A moment some years before the present, placed in every chronology
     /// at once, as UTF-8 lines, returning the byte length written.
@@ -1323,10 +1111,11 @@ mod deep_time {
     /// a geologic interval, the region for an archaeological period), the
     /// older bound's value, standard uncertainty, significant figures and
     /// `1` where the chart marks it approximate, the same four for the
-    /// younger bound, the unit the values are in, the description and the
-    /// source. A point in time has the same start and end. The units are
-    /// what each table counts in: `seconds-since-big-bang` for the cosmic
-    /// rows, `megayears-before-present` for the geologic chart's, the
+    /// younger bound, the unit the values are in, the description, the
+    /// source, and the name in the locale. A point in time has the same
+    /// start and end. The units are what each table counts in:
+    /// `seconds-since-big-bang` for the cosmic rows,
+    /// `megayears-before-present` for the geologic chart's, the
     /// `years-before-1950` of the BP convention for the archaeological
     /// rows, `log10-years-from-now` for a future era. The lines are the
     /// moment itself as `since-big-bang` and `before-present`, its cosmic
@@ -1337,23 +1126,39 @@ mod deep_time {
     /// defines it — the Planck 2018 age of the universe — not from 1950 and
     /// not from the caller's clock; the crate ignores the difference
     /// between the three, which lies below the smallest uncertainty in any
-    /// of its tables. Negative years are the future. A value the crate
-    /// refuses — not finite, beyond its range — is `HC_ERR_OUT_OF_RANGE`.
-    /// A null `buffer` returns the length the text needs.
+    /// of its tables. Negative years are the future: a moment up to a
+    /// century ahead is still in the present intervals — the chart's
+    /// youngest chain, the Modern period, the last cosmic epoch — as well
+    /// as in its future era, and beyond a century it is in its future era
+    /// alone. `locale` is a BCP 47 tag; the last column is the geologic
+    /// chart's own name for an interval in that language, from the ICS's
+    /// translations, and empty for every other row and for a language the
+    /// chart has no names in. A value the crate refuses — not finite,
+    /// beyond its range — is `HC_ERR_OUT_OF_RANGE`; the locale argument
+    /// fails as `hc_parse_iso_date` does. A null `buffer` returns the
+    /// length the text needs.
     ///
     /// # Safety
     ///
-    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    /// `locale` must be readable for `locale_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless it
+    /// is null.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn hc_place_years_ago(
         years_ago: f64,
         std_dev_years: f64,
+        locale: *const u8,
+        locale_len: usize,
         buffer: *mut u8,
         capacity: usize,
     ) -> i64 {
-        let text = match placement_lines(years_ago, std_dev_years) {
-            Ok(text) => text,
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale, locale_len) } {
+            Ok(tag) => tag,
             Err(sentinel) => return sentinel,
+        };
+        let Ok(text) = deep_time_lines::placement(years_ago, std_dev_years, tag) else {
+            return HC_ERR_OUT_OF_RANGE;
         };
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_or_measure(&text, buffer, capacity) }
@@ -1364,15 +1169,28 @@ mod deep_time {
     ///
     /// The epochs first, Big Bang to the present, then the events, oldest
     /// first, each a line of the columns `hc_place_years_ago` writes, in
-    /// `seconds-since-big-bang`. A null `buffer` returns the length the
-    /// text needs.
+    /// `seconds-since-big-bang`. `locale` is as for `hc_place_years_ago`;
+    /// no cosmic name has a translation this module carries, so the last
+    /// column is empty. A null `buffer` returns the length the text needs.
     ///
     /// # Safety
     ///
-    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    /// `locale` must be readable for `locale_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless it
+    /// is null.
     #[unsafe(no_mangle)]
-    pub unsafe extern "C" fn hc_cosmic_events(buffer: *mut u8, capacity: usize) -> i64 {
-        let text = cosmic_lines();
+    pub unsafe extern "C" fn hc_cosmic_events(
+        locale: *const u8,
+        locale_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale, locale_len) } {
+            Ok(tag) => tag,
+            Err(sentinel) => return sentinel,
+        };
+        let text = deep_time_lines::cosmic(tag);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_or_measure(&text, buffer, capacity) }
     }
@@ -1384,23 +1202,32 @@ mod deep_time {
     /// the epochs and 4 for the ages; anything else is `HC_ERR_UNKNOWN`.
     /// The intervals come youngest first, each a line of the columns
     /// `hc_place_years_ago` writes, in `megayears-before-present` with the
-    /// chart's own figures and uncertainties and the chart as the source. A
-    /// null `buffer` returns the length the text needs.
+    /// chart's own figures and uncertainties, the chart as the source and
+    /// the chart's name in `locale` last. A null `buffer` returns the
+    /// length the text needs.
     ///
     /// # Safety
     ///
-    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    /// `locale` must be readable for `locale_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless it
+    /// is null.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn hc_geologic_intervals(
         rank: u32,
+        locale: *const u8,
+        locale_len: usize,
         buffer: *mut u8,
         capacity: usize,
     ) -> i64 {
-        let rank = match self::rank(rank) {
-            Ok(rank) => rank,
+        let Some(rank) = deep_time_lines::rank(rank) else {
+            return HC_ERR_UNKNOWN;
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale, locale_len) } {
+            Ok(tag) => tag,
             Err(sentinel) => return sentinel,
         };
-        let text = interval_lines(rank);
+        let text = deep_time_lines::intervals(rank, tag);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_or_measure(&text, buffer, capacity) }
     }
@@ -2399,10 +2226,10 @@ mod tests {
             assert_eq!(gregorian[11..14], ["", "", "in-use"]);
             assert_eq!(gregorian[15..17], ["2026年9月21日", "ja"]);
             // Japanese has no words for the Hebrew months, so the Hebrew
-            // calendar answers in Hebrew, and says so.
+            // calendar answers in English, not Hebrew, and says so.
             let hebrew = row(&rows, "hebrew");
-            assert_eq!(hebrew[16], "he");
-            assert!(hebrew[7].chars().all(|c| !c.is_ascii()), "{hebrew:?}");
+            assert_eq!(hebrew[16], "en");
+            assert!(hebrew[7].is_ascii(), "{hebrew:?}");
             let rows = describe("en");
             assert_eq!(row(&rows, "gregory")[7], "September");
             assert_eq!(row(&rows, "gregory")[15..17], ["September 21, 2026", "en"]);
@@ -2655,6 +2482,35 @@ mod tests {
                     )
                 },
                 HC_ERR_NOT_UTF8
+            );
+        }
+
+        #[test]
+        fn the_gregorian_adoption_is_one_line_per_step() {
+            let region = |code: &str| {
+                read_lines(|buffer, capacity| unsafe {
+                    hc_gregorian_adoption(code.as_ptr(), code.len(), buffer, capacity)
+                })
+            };
+            let japan = region("JP");
+            let rows: Vec<Vec<&str>> = japan
+                .lines()
+                .map(|line| line.split('\t').collect())
+                .collect();
+            assert_eq!(rows.len(), 1);
+            assert_eq!(rows[0].len(), 7);
+            // 1872-12-31 was the Tenpō calendar's last day.
+            assert_eq!(
+                rows[0][..4],
+                ["683734", "683735", "japanese-tenpo", "civil"]
+            );
+            assert!(rows[0][4].contains("337"), "{rows:?}");
+            assert_eq!(rows[0][5..], ["gregory", "Japan"]);
+            assert_eq!(region("se").lines().count(), 3);
+            assert_eq!(
+                unsafe { hc_gregorian_adoption("ZZ".as_ptr(), 2, core::ptr::null_mut(), 0) },
+                0,
+                "an unknown region writes nothing"
             );
         }
 
@@ -3245,7 +3101,7 @@ mod tests {
                 .lines()
                 .map(|line| line.split('\t').collect())
                 .collect();
-            assert!(rows.iter().all(|row| row.len() == 14), "{rows:?}");
+            assert!(rows.iter().all(|row| row.len() == 15), "{rows:?}");
             rows
         }
 
@@ -3253,7 +3109,7 @@ mod tests {
         fn a_moment_is_placed_in_every_chronology() {
             // The end-Cretaceous extinction, 66 million years ago.
             let text = read_lines(|buffer, capacity| unsafe {
-                hc_place_years_ago(66.0e6, 0.0, buffer, capacity)
+                hc_place_years_ago(66.0e6, 0.0, "ja".as_ptr(), 2, buffer, capacity)
             });
             let rows = cells(&text);
             let kinds: Vec<&str> = rows.iter().map(|row| row[0]).collect();
@@ -3283,12 +3139,17 @@ mod tests {
             assert_eq!(age[7..11], ["66", "0", "4", "0"]);
             assert_eq!(age[11], "megayears-before-present");
             assert!(age[13].contains("v2026/06"), "{age:?}");
+            // The chart's Japanese name, from the Geological Society of
+            // Japan's translation; the cosmic rows have none.
+            assert_eq!(age[14], "マーストリヒチアン");
+            assert_eq!(rows[6][14], "白亜系／紀");
+            assert_eq!(rows[2][14], "");
         }
 
         #[test]
         fn the_present_and_the_future_are_placed_too() {
             let text = read_lines(|buffer, capacity| unsafe {
-                hc_place_years_ago(0.0, 0.0, buffer, capacity)
+                hc_place_years_ago(0.0, 0.0, core::ptr::null(), 0, buffer, capacity)
             });
             let rows = cells(&text);
             let archaeological = rows
@@ -3301,7 +3162,7 @@ mod tests {
             // Eight billion years ahead the Sun is a red giant and the
             // cosmic history tables have ended.
             let text = read_lines(|buffer, capacity| unsafe {
-                hc_place_years_ago(-8.0e9, 0.0, buffer, capacity)
+                hc_place_years_ago(-8.0e9, 0.0, core::ptr::null(), 0, buffer, capacity)
             });
             let rows = cells(&text);
             let kinds: Vec<&str> = rows.iter().map(|row| row[0]).collect();
@@ -3314,20 +3175,80 @@ mod tests {
         }
 
         #[test]
+        fn the_near_future_keeps_the_whole_chain() {
+            // Six hours and three years ahead: still the Meghalayan, the
+            // Modern period and the era of galaxies, and the future era too.
+            for years_ago in [-6.0 / (24.0 * 365.25), -3.0] {
+                let text = read_lines(|buffer, capacity| unsafe {
+                    hc_place_years_ago(years_ago, 0.0, "en".as_ptr(), 2, buffer, capacity)
+                });
+                let rows = cells(&text);
+                let kinds: Vec<&str> = rows.iter().map(|row| row[0]).collect();
+                assert_eq!(
+                    kinds,
+                    [
+                        "moment",
+                        "moment",
+                        "cosmic-epoch",
+                        "cosmic-event",
+                        "future-era",
+                        "eon",
+                        "era",
+                        "period",
+                        "epoch",
+                        "age",
+                        "archaeological"
+                    ],
+                    "{years_ago}"
+                );
+                assert_eq!(rows[2][1], "Era of galaxies");
+                assert_eq!(rows[9][1], "Meghalayan");
+                assert_eq!(rows[10][1], "Modern period");
+            }
+            // Beyond a century ahead the future begins.
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_place_years_ago(-101.0, 0.0, core::ptr::null(), 0, buffer, capacity)
+            });
+            let kinds: Vec<Vec<&str>> = cells(&text);
+            let kinds: Vec<&str> = kinds.iter().map(|row| row[0]).collect();
+            assert_eq!(kinds, ["moment", "moment", "cosmic-event", "future-era"]);
+        }
+
+        #[test]
         fn a_value_the_crate_refuses_is_a_sentinel() {
             assert_eq!(
-                unsafe { hc_place_years_ago(f64::NAN, 0.0, core::ptr::null_mut(), 0) },
+                unsafe {
+                    hc_place_years_ago(
+                        f64::NAN,
+                        0.0,
+                        core::ptr::null(),
+                        0,
+                        core::ptr::null_mut(),
+                        0,
+                    )
+                },
                 HC_ERR_OUT_OF_RANGE
             );
             assert_eq!(
-                unsafe { hc_place_years_ago(1.0, -1.0, core::ptr::null_mut(), 0) },
+                unsafe {
+                    hc_place_years_ago(1.0, -1.0, core::ptr::null(), 0, core::ptr::null_mut(), 0)
+                },
                 HC_ERR_OUT_OF_RANGE
+            );
+            let not_utf8 = [0xff_u8];
+            assert_eq!(
+                unsafe {
+                    hc_place_years_ago(0.0, 0.0, not_utf8.as_ptr(), 1, core::ptr::null_mut(), 0)
+                },
+                HC_ERR_NOT_UTF8
             );
         }
 
         #[test]
         fn the_cosmic_tables_are_listed_with_their_sources() {
-            let text = read_lines(|buffer, capacity| unsafe { hc_cosmic_events(buffer, capacity) });
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_cosmic_events("ja".as_ptr(), 2, buffer, capacity)
+            });
             let rows = cells(&text);
             let epochs = rows.iter().filter(|row| row[0] == "cosmic-epoch").count();
             let events = rows.iter().filter(|row| row[0] == "cosmic-event").count();
@@ -3337,6 +3258,7 @@ mod tests {
                 rows.iter().all(|row| !row[13].is_empty()),
                 "every row cites"
             );
+            assert!(rows.iter().all(|row| row[14].is_empty()), "no translations");
             let planck = &rows[0];
             assert_eq!(planck[1], "Planck epoch");
             assert_eq!(planck[3], "0");
@@ -3356,7 +3278,7 @@ mod tests {
                 (4, "age"),
             ] {
                 let text = read_lines(|buffer, capacity| unsafe {
-                    hc_geologic_intervals(number, buffer, capacity)
+                    hc_geologic_intervals(number, "zh-Hans".as_ptr(), 7, buffer, capacity)
                 });
                 let rows = cells(&text);
                 assert!(
@@ -3365,14 +3287,19 @@ mod tests {
                 );
             }
             let eons = read_lines(|buffer, capacity| unsafe {
-                hc_geologic_intervals(0, buffer, capacity)
+                hc_geologic_intervals(0, core::ptr::null(), 0, buffer, capacity)
             });
             assert!(
                 eons.starts_with("eon\tPhanerozoic\t\t538.8\t0.6\t4\t0\t0\t0\t1\t0\t"),
                 "{eons}"
             );
+            assert!(cells(&eons).iter().all(|row| row[14].is_empty()));
+            let eons = read_lines(|buffer, capacity| unsafe {
+                hc_geologic_intervals(0, "zh-Hans".as_ptr(), 7, buffer, capacity)
+            });
+            assert_eq!(cells(&eons)[0][14], "显生宇");
             assert_eq!(
-                unsafe { hc_geologic_intervals(5, core::ptr::null_mut(), 0) },
+                unsafe { hc_geologic_intervals(5, core::ptr::null(), 0, core::ptr::null_mut(), 0) },
                 HC_ERR_UNKNOWN
             );
         }

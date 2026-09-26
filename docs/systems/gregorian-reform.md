@@ -1,7 +1,9 @@
 # The Gregorian reform, country by country
 
 Backs the fourteen identifiers `julian-gregorian-<polity>` in
-`hc-calendars-solar`, and the Swedish exception `swedish-1700` beside them.
+`hc-calendars-solar`, the Swedish exception `swedish-1700` beside them, and
+the table of adoptions by country, `adoption::REGIONAL_ADOPTIONS`, that the
+WebAssembly module and the C library export as `hc_gregorian_adoption`.
 
 ## What it is
 
@@ -113,6 +115,67 @@ Two rows were corrected on 2026-09-26, and the reasoning is kept here:
   label nobody in Belgrade wrote. It is now two rows, `julian-gregorian-rs`
   from RD 700 562 and `julian-gregorian-ro`, Romania's alone.
 
+### By country
+
+The fourteen cut-overs are calendars; a page that asks *when did this country
+change, and from what?* wants a different table, keyed by country and with
+one row per step, because a country's change was often several. The
+regional table answers by ISO 3166-1 alpha-2 code. Each row is a pair of
+consecutive fixed days — the last of the old reckoning, the first of the new
+— the old and new calendars by registry identifier, a scope, the instrument,
+and the polity that took the step. A row whose instrument is one of the
+fourteen cut-overs shares that row's dates and source rather than restating
+them, so that each date has one source, and every one of the fourteen is
+the step of at least one row. The code is today's country and the polity
+whoever governed it then, so Finland's rows are Sweden's and Norway's
+Denmark–Norway's.
+
+The scope is `civil` where the step changed the civil calendar of the whole
+polity as it then was; `partial` where it changed it for part of the
+country, for some purposes only, or in part of the calendar; and
+`ecclesiastical` for a church's calendar alone, a word the table has and no
+row yet uses, because no source for such a step has been read.
+
+| Code | Polity | Last old day | First new day | Old → new | Scope | Instrument |
+| --- | --- | --- | --- | --- | --- | --- |
+| BG | Bulgaria | 31 March 1916 (Julian) | 14 April 1916 | `julian` → `gregory` | civil | as `julian-gregorian-bg` |
+| CN | Republic of China, the provisional government at Nanjing | 31 December 1911 | 1 January 1912 | `chinese` → `gregory` | partial | Sun Yat-sen's order to use the solar calendar of 1 January 1912 and his circular telegram of 2 January, not read [zhwiki-minguo-jinian, zhwiki-gongli]; partial because the Qing held the north until 12 February and the lunisolar calendar stayed in popular and much official use |
+| CN | Republic of China, the Nationalist Government | 31 December 1928 | 1 January 1929 | `chinese` → `gregory` | civil | The Nationalist Government's resolution of 10 October 1928 for nationwide use from 1 January 1929, not read [zhwiki-gongli] |
+| DE | Catholic Germany (Bavaria) | 5 October 1583 (Julian) | 16 October 1583 | `julian` → `gregory` | partial | as `julian-gregorian-de-catholic` |
+| DE | Protestant Germany | 18 February 1700 (Julian) | 1 March 1700 | `julian` → `gregory` | partial | as `julian-gregorian-de-protestant` |
+| DK, NO | Denmark–Norway | 18 February 1700 (Julian) | 1 March 1700 | `julian` → `gregory` | civil | as `julian-gregorian-de-protestant` |
+| ES, PT, PL | Spain, Portugal, Poland | 4 October 1582 (Julian) | 15 October 1582 | `julian` → `gregory` | civil | as `julian-gregorian-catholic` |
+| FI, SE | Sweden (with Finland) | 28 February 1700 (Julian) | 1 March 1700 (Swedish) | `julian` → `swedish-1700` | civil | Sweden's resolution of November 1699 to omit the leap days of 1700–1740, not read [hogman-tiderakning, wikipedia-swedish-calendar] |
+| FI, SE | Sweden (with Finland) | 30 February 1712 (Swedish) | 1 March 1712 (Julian) | `swedish-1700` → `julian` | civil | Charles XII's order of January 1711, not read [hogman-tiderakning, wikipedia-swedish-calendar] |
+| FI, SE | Sweden (with Finland) | 17 February 1753 (Julian) | 1 March 1753 | `julian` → `gregory` | civil | as `julian-gregorian-se` |
+| FR | France | 9 December 1582 (Julian) | 20 December 1582 | `julian` → `gregory` | civil | as `julian-gregorian-fr` |
+| GB | Great Britain and its colonies | 2 September 1752 (Julian) | 14 September 1752 | `julian` → `gregory` | civil | as `julian-gregorian-gb` |
+| GR | Greece | 15 February 1923 (Julian) | 1 March 1923 | `julian` → `gregory` | civil | as `julian-gregorian-gr` |
+| HU | Hungary | 21 October 1587 (Julian) | 1 November 1587 | `julian` → `gregory` | civil | as `julian-gregorian-hu` |
+| JP | Japan | 明治5年12月2日 (31 December 1872) | 1 January 1873 | `japanese-tenpo` → `gregory` | civil | Dajōkan Proclamation No. 337 of 明治5年11月9日 (9 December 1872), its terms read at [nao-rekiwiki-meiji, wikipedia-ja-meiji-kaireki], the proclamation itself not read |
+| KP, KR | Joseon | 개국 504년 11월 16일 (31 December 1895) | 1 January 1896 | `dangi` → `gregory` | civil | King Gojong's edict in the Official Gazette of 개국 504년 9월 9일 (lunar), not read [kowiki-taeyangryeok, kowiki-geonyang] |
+| NL | Zeeland and the southern Netherlands | 14 December 1582 (Julian) | 25 December 1582 | `julian` → `gregory` | partial | as `julian-gregorian-nl` |
+| NL | Holland | 1 January 1583 (Julian) | 12 January 1583 | `julian` → `gregory` | partial | as `julian-gregorian-nl-holland`, whose date is disputed (above) |
+| NL | Gelderland | 30 June 1700 (Julian) | 12 July 1700 | `julian` → `gregory` | partial | none read [nlwiki-gregoriaanse-kalender] |
+| NL | Utrecht and Overijssel | 30 November 1700 (Julian) | 12 December 1700 | `julian` → `gregory` | partial | none read [nlwiki-gregoriaanse-kalender] |
+| NL | Friesland and Groningen | 31 December 1700 (Julian) | 12 January 1701 | `julian` → `gregory` | partial | none read [nlwiki-gregoriaanse-kalender] |
+| NL | Drenthe | 30 April 1701 (Julian) | 12 May 1701 | `julian` → `gregory` | partial | none read [nlwiki-gregoriaanse-kalender] |
+| RO | Romania (the Old Kingdom) | 31 March 1919 (Julian) | 14 April 1919 | `julian` → `gregory` | civil | as `julian-gregorian-ro` |
+| RS | Kingdom of Serbs, Croats and Slovenes | 14 January 1919 (Julian) | 28 January 1919 | `julian` → `gregory` | civil | as `julian-gregorian-rs` |
+| RU | Soviet Russia | 31 January 1918 (Julian) | 14 February 1918 | `julian` → `gregory` | civil | as `julian-gregorian-ru` |
+| SA | Saudi Arabia, the pay of the public sector | 30 September 2016 | 1 October 2016 | `islamic-umalqura` → `gregory` | partial | A decision of the Council of Ministers of September 2016, not read; the date from [wikipedia-adoption-gregorian], which cites two newspapers not read; [wikipedia-islamic-calendar] says 14 February 2016 instead |
+| TR | Ottoman Empire | 15 Şubat 1332 (28 February 1917) | 1 Mart 1333 (1 March 1917) | `rumi` → `gregory` | partial | An Ottoman law of 1917 whose number and date were not found [wikipedia-rumi-calendar]; partial because the days changed and the Rumi year did not |
+| TR | Republic of Turkey | 31 December 1925 | 1 January 1926 | `rumi` → `gregory` | civil | Law No. 698 of 26 December 1925, not read [trwiki-miladi-takvim] |
+
+Serbia's and Holland's rows were once written out here, when the cut-over
+table had no calendar for either; now that it has `julian-gregorian-rs` and
+`julian-gregorian-nl-holland`, they share those dates like every other
+Julian row. The regional table's Japanese, Korean and Chinese rows end on the days the lunisolar modules say
+those calendars stopped being civil — `japanese_tenpo::LATEST`,
+`dangi::LAST_CIVIL`, `chinese::LAST_CIVIL` — and a test in the facade holds
+them to it. A code with no row is one the table does not know; that is not
+a claim that the country never changed.
+
 ### Worked example: a British date across 1752
 
 The Act of 1750 says the natural day after 2 September 1752 is to be
@@ -190,6 +253,11 @@ gap in the middle, which is not what the identifier claims to be.
   `Adoption { id, region, last_julian, first_gregorian }` from which the
   cut-over and the dropped days are computed rather than stored. The
   default `ReformCalendar` is the Catholic one, the reform itself.
+- **The adoption by country**, as `adoption::REGIONAL_ADOPTIONS` and
+  `adoption::gregorian_adoption(code)`, the table above: the fourteen
+  cut-overs under the country codes they cover, the four later Dutch
+  steps, Sweden's three, Japan, both Koreas, China's
+  two, Saudi Arabia and Turkey's two.
 - **Any other cut-over** through `ReformCalendar::with_cutover`, which
   takes an identifier, a region and the fixed day of the first Gregorian
   date. That is how a polity not in the table is reached, and the test
@@ -205,10 +273,11 @@ gap in the middle, which is not what the identifier claims to be.
   Bavaria, and a polity that dropped the last days of February 1700 —
   Protestant Germany — has no 29 February that year at all.
 - **Not carried, and why.**
-  - The other Dutch provinces, which changed one by one — Gelderland on
-    12 July 1700, Utrecht and Overijssel on 12 December 1700, Friesland
-    and Groningen on 12 January 1701, Drenthe on 12 May 1701
-    [nlwiki-gregoriaanse-kalender] — and the other territories of the
+  - The other Dutch provinces as calendars, which changed one by one —
+    Gelderland on 12 July 1700, Utrecht and Overijssel on 12 December
+    1700, Friesland and Groningen on 12 January 1701, Drenthe on 12 May
+    1701 [nlwiki-gregoriaanse-kalender]; they are rows of the regional
+    table, as `NL` with a partial scope — and the other territories of the
     Empire, Catholic and Protestant, each on its own day; Lorraine in
     1760 [frwiki-passage-gregorien]; Transylvania in 1590 and Bukovina in
     1773 [rowiki-calendarul-gregorian]; Mount Athos, which never changed.
@@ -232,11 +301,12 @@ gap in the middle, which is not what the identifier claims to be.
   - **Japan**, which went to the Gregorian calendar on 1 January 1873
     (Meiji 6) from a lunisolar calendar, not a Julian one
     [wikipedia-ja-gregorio-reki]; the last lunisolar day is where
-    `japanese-tenpo` ends. The proclamation's number and date were not
-    confirmed from any page reachable for this document. **China** in
-    1912 and **Egypt** in 1875 likewise changed from a lunisolar and a
-    Coptic fiscal calendar respectively [wikipedia-adoption-list], and
-    are not Julian cut-overs.
+    `japanese-tenpo` ends. **China** in 1912 and **Egypt** in 1875
+    likewise changed from a lunisolar and a Coptic fiscal calendar
+    respectively [wikipedia-adoption-list], and are not Julian cut-overs.
+    Japan, Korea, China and Turkey are rows of the regional table, with
+    the proclamation, edict, order and laws the pages read name; Egypt is
+    not, because no page read names its instrument.
   - The Orthodox churches' Revised Julian calendar of 1923, which is
     `revised-julian`; the year-start conventions, which are
     `year_style`; and the Swedish years 1700–1712, which are
@@ -262,6 +332,12 @@ cut-overs are reproduced.
 | Round trips over 2 400 days around each of the fourteen cut-overs, and over a million days for Britain | All | `every_day_around_every_cutover_round_trips`, `a_wide_range_round_trips_for_the_british_calendar` |
 | Alaska, 6 October followed by 18 October 1867, through `with_cutover` | Reproduced | `a_custom_cutover_works_for_polities_not_in_the_table` |
 | The Swedish calendar a day ahead of `julian-gregorian-se` on every one of its 4 384 days | 4 384 of 4 384 | `every_day_is_one_ahead_of_julian_and_ten_behind_gregorian`, in `swedish` |
+| Every regional row resolves, names a source and a polity, and is a pair of consecutive days; the table is grouped by code in date order | All rows | `every_row_resolves_and_names_its_source`, `the_table_is_grouped_by_country_and_in_date_order`, in `adoption` |
+| Sweden's three steps: 28 February 1700 Julian then 1 March Swedish; 30 February 1712 Swedish then 1 March Julian; 1 March 1753 Gregorian | As stated | `sweden_went_there_and_back_before_it_went_for_good` |
+| Every one of the fourteen cut-overs is the step of a regional row | 14 of 14 | `every_cutover_is_the_step_of_a_row` |
+| Serbia's 14 January 1919 Julian followed by 28 January, RD 700 562, shared with `julian-gregorian-rs` | Reproduced | `serbia_has_its_own_date` |
+| Japan's, Korea's and China's last lunisolar days are the lunisolar modules' own | 3 of 3 | `the_east_asian_rows_end_where_the_lunisolar_calendars_stopped_being_civil`, in the facade's `tests/adoption.rs` |
+| Every old and new calendar a row names is registered | All rows | `every_calendar_a_row_names_is_registered` |
 
 What the tests do not check is the table itself against its sources: no
 test names a decree. Of the fourteen rows, three rest on a document read
@@ -286,7 +362,7 @@ instead.
 | [hogman-tiderakning] | Sweden's decision of 1699, the leap day of 1700 omitted, the reversal of 1711, 30 February 1712, and 17 February followed by 1 March 1753; Finland with Sweden | Yes, 2026-09-25 |
 | [wikipedia-swedish-calendar] | The leap days of 1704 and 1708 kept; 30 February 1712 = 29 February Julian = 11 March Gregorian; the 1753 change; the sources it cites, Hildebrand 1882 and Lamont 1920, not read | Yes, 2026-09-25 |
 | [wikipedia-gregorian-calendar] | The mean year of 365.2425 days; the adoption dates in summary | Yes, 2026-09-25 |
-| [wikipedia-adoption-gregorian] | The narrative of adoption: France, Holland and Zeeland, Britain, Sweden | Yes, 2026-09-25 |
+| [wikipedia-adoption-gregorian] | The narrative of adoption: France, Holland and Zeeland, Britain, Sweden; Saudi Arabia's public-sector pay from 1 October 2016 | Yes, 2026-09-25, and for Saudi Arabia 2026-09-26 |
 | [wikipedia-adoption-list] | The per-country table: Spain, Portugal and Poland; Holland and Zeeland separately; Hungary; Denmark–Norway; Serbia; Greece; Turkey 1917; Japan; China; Alaska; Egypt | Yes, 2026-09-25 |
 | [wikipedia-alaska-purchase] | Alaska's transfer on 18 October 1867 with the change of calendar | Yes, 2026-09-25 |
 | [dewiki-gregorianischer-kalender] | Bavaria 1583 by ducal order; the *Corpus Evangelicorum* and the *Verbesserter Reichskalender* of 1700; Denmark with them | Yes, 2026-09-25 |
@@ -302,6 +378,12 @@ instead.
 | [trwiki-miladi-takvim] | Law No. 698 of 26 December 1925, in force 1 January 1926 | Yes, 2026-09-25 |
 | [wikipedia-ja-gregorio-reki] | Japan's change on 1 January 1873 | Yes, 2026-09-25; the proclamation's number was not on the page |
 | [reingold2018code] | `fixed-from-julian`, `fixed-from-gregorian`, `julian-epoch`; that the code carries no adoption table | Yes, 2026-09-25 |
+| [kowiki-taeyangryeok] | Korea: the edict in the Official Gazette of 1895-09-09 (lunar), lunar 1895-11-17 made 1 January 1896 | Yes, 2026-09-26 |
+| [kowiki-geonyang] | Korea: the era 建陽 from 1 January 1896 with the change of calendar | Yes, 2026-09-26 |
+| [zhwiki-minguo-jinian] | China: Sun Yat-sen's circular telegram of 2 January 1912 | Yes, 2026-09-26 |
+| [zhwiki-gongli] | China: the order of 1 January 1912; the resolution of 10 October 1928 for 1 January 1929 | Yes, 2026-09-26 |
+| [wikipedia-rumi-calendar] | Turkey: the Rumi calendar on the Gregorian days from 1 March 1917, no instrument named | Yes, 2026-09-26 |
+| [wikipedia-islamic-calendar] | Saudi Arabia: the conflicting date of 14 February 2016 | Yes, 2026-09-26 |
 | [reingold2018] | Once cited by the module for an appendix of adoption dates; no longer cited | Not read |
 | [explanatory-supplement-2013] | Once cited by the module for §15.3; no longer cited | Not read |
 
@@ -328,3 +410,12 @@ calendar is `swedish.rs`, with `DOUBLE_LEAP_DAY`, `EARLIEST` and
 `thirty_february_1712_returns_it_to_the_julian_calendar` and
 `every_day_is_one_ahead_of_julian_and_ten_behind_gregorian`. The year
 starts are `year_style.rs`; the Rumi calendar is `rumi.rs`.
+
+The regional table is `adoption.rs`: `RegionalAdoption`, `Step`, `Scope`,
+`REGIONAL_ADOPTIONS` and `gregorian_adoption`, which the facade re-exports
+as `hyper_calendar::gregorian_adoption` and renders as lines in
+`hyper_calendar::lines::gregorian_adoption`. Anchors:
+`every_row_resolves_and_names_its_source`,
+`sweden_went_there_and_back_before_it_went_for_good`,
+`serbia_has_its_own_date`, and in the facade
+`the_east_asian_rows_end_where_the_lunisolar_calendars_stopped_being_civil`.
