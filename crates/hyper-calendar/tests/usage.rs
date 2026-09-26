@@ -40,7 +40,9 @@ use hyper_calendar::hc_calendars_solar::gregorian;
 /// its own. Last, calendars whose sources date their use by the year and
 /// never the day — the Bostran era, the Era Fascista, the Olympiads and
 /// the Spanish era, whose modules carry the years — since a period of use
-/// is a pair of days and a year is not one.
+/// is a pair of days and a year is not one; and the Julian eras of Syria
+/// and Palestine and the Arsacid era, which the sources date by the century
+/// or by single documents.
 const UNRECORDED: &[&str] = &[
     // Day counts.
     "ansi-date",
@@ -99,9 +101,14 @@ const UNRECORDED: &[&str] = &[
     "yazidi",
     "zapotec-yza",
     // Sources that date use by the year only.
+    "antioch-caesarean-era",
+    "antioch-caesarean-era-september",
+    "arsacid-era",
     "bostran-era",
     "era-fascista",
+    "gaza-era",
     "olympiad",
+    "seleucid-syrian",
     "spanish-era",
 ];
 
