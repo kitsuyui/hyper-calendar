@@ -114,6 +114,16 @@ pub const USAGE_SOURCE: &str = "In force from 15 Vendémiaire An II (6 October 1
     4 Frimaire An II fixing no date of its own; abolished from 1 January 1806 at the end of \
     An XIV, as Wikipedia, \"French Republican calendar\" (retrieved 2026-09-22) renders it";
 
+/// The twelve years the calendar was in force, 15 Vendémiaire An II
+/// (6 October 1793) to 31 December 1805, on [`USAGE_SOURCE`]'s authority.
+pub const KEPT: hc_calendar::Usage = match (
+    gregorian::to_fixed(1793, 10, 6),
+    gregorian::to_fixed(1805, 12, 31),
+) {
+    (Ok(from), Ok(until)) => hc_calendar::Usage::between(from, until, USAGE_SOURCE),
+    _ => hc_calendar::Usage::UNRECORDED,
+};
+
 /// The earliest fixed day this implementation converts.
 pub const EARLIEST: Rd = Rd(to_fixed_raw(MIN_YEAR, 1, 1));
 
@@ -251,17 +261,8 @@ impl Calendar for ArithmeticFrenchRepublicanCalendar {
     type Date = FrenchRepublicanDate;
 
     /// Twelve months of thirty days, a thirteenth of complementary days,
-    /// and a *décade* of ten — not a week of seven.
-    ///
-    /// The ten-day cycle is the other reason `hc_calendar::shape` exists:
-    /// the seven-valued `hc_calendar::Weekday` has nowhere to put Primidi
-    /// through Décadi, so the *décade* is declared as a cycle of its own.
+    /// and a *décade* of ten.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        use hc_calendar::shape::{CycleShape, MONTH};
-        const SHAPE: &[CycleShape] = &[
-            CycleShape::named(MONTH, &MONTHS),
-            CycleShape::named("decade-day", &DECADE_DAYS),
-        ];
         SHAPE
     }
 
@@ -276,13 +277,7 @@ impl Calendar for ArithmeticFrenchRepublicanCalendar {
     /// those twelve years is the arithmetic extension of an idea, which is
     /// what this module is for.
     fn usage(&self) -> hc_calendar::Usage {
-        match (
-            gregorian::to_fixed(1793, 10, 6),
-            gregorian::to_fixed(1805, 12, 31),
-        ) {
-            (Ok(from), Ok(until)) => hc_calendar::Usage::between(from, until, USAGE_SOURCE),
-            _ => hc_calendar::Usage::UNRECORDED,
-        }
+        KEPT
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -308,25 +303,49 @@ impl Calendar for ArithmeticFrenchRepublicanCalendar {
     }
 
     fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
-        let fields = DateFields::ymd(date.year, date.month, date.day).with_era(ERA);
-        match date.decade() {
-            None => Ok(fields),
-            Some((decade, day)) => fields
-                .with_extra("decade", i64::from(decade))?
-                .with_extra("day-of-decade", i64::from(day)),
-        }
+        date_fields(date)
     }
 
     fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
-        if fields.era.is_some_and(|era| era != ERA) {
-            return Err(CalendarError::UnknownEra);
-        }
-        let month = fields.require_month()?;
-        if month.leap {
-            return Err(CalendarError::MonthOutOfRange);
-        }
-        FrenchRepublicanDate::new(fields.year, month.ordinal, fields.require_day()?)
+        let (year, month, day) = fields_date(fields)?;
+        FrenchRepublicanDate::new(year, month, day)
     }
+}
+
+/// Twelve months of thirty days, a thirteenth of complementary days, and a
+/// *décade* of ten — not a week of seven — shared by every Republican
+/// calendar.
+///
+/// The ten-day cycle is the other reason `hc_calendar::shape` exists: the
+/// seven-valued `hc_calendar::Weekday` has nowhere to put Primidi through
+/// Décadi, so the *décade* is declared as a cycle of its own.
+pub(crate) const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+    hc_calendar::shape::CycleShape::named(hc_calendar::shape::MONTH, &MONTHS),
+    hc_calendar::shape::CycleShape::named("decade-day", &DECADE_DAYS),
+];
+
+/// The fields of a Republican date, with its *décade* and day within it.
+pub(crate) fn date_fields(date: FrenchRepublicanDate) -> CalendarResult<DateFields> {
+    let fields = DateFields::ymd(date.year, date.month, date.day).with_era(ERA);
+    match date.decade() {
+        None => Ok(fields),
+        Some((decade, day)) => fields
+            .with_extra("decade", i64::from(decade))?
+            .with_extra("day-of-decade", i64::from(day)),
+    }
+}
+
+/// The year, month and day that fields name, before either rule validates
+/// them.
+pub(crate) fn fields_date(fields: &DateFields) -> CalendarResult<(i64, u8, u8)> {
+    if fields.era.is_some_and(|era| era != ERA) {
+        return Err(CalendarError::UnknownEra);
+    }
+    let month = fields.require_month()?;
+    if month.leap {
+        return Err(CalendarError::MonthOutOfRange);
+    }
+    Ok((fields.year, month.ordinal, fields.require_day()?))
 }
 
 #[cfg(test)]

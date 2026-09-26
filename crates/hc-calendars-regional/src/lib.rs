@@ -27,6 +27,7 @@
 //! | [`khmer`] | `khmer` — the Khmer *Chhankitek*, its leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
 //! | [`southeast_asian`] | No calendar: the year layout `thai-lunar` and `khmer` share, and the *suryayatra* quantities of the solar New Year |
 //! | [`sexagenary`] | `sexagenary` — 干支 over years, months and days |
+//! | [`olympiad`] | `olympiad` — the ancient Olympiads over the Julian year, and the IOC's modern Olympiad number as a function |
 //!
 //! # Cyclic calendars and the round-trip contract
 //!
@@ -104,6 +105,7 @@ pub mod korean_regnal;
 pub mod maya;
 pub mod maya_819;
 pub mod nengo;
+pub mod olympiad;
 pub mod sexagenary;
 pub mod southeast_asian;
 pub mod thai_lunar;
@@ -128,6 +130,7 @@ pub use maya::{
 };
 pub use maya_819::{Maya819Calendar, Maya819Date};
 pub use nengo::{Certainty, Court, Nengo, WesternScale};
+pub use olympiad::{OlympiadCalendar, OlympiadDate};
 pub use sexagenary::{SexagenaryCalendar, SexagenaryDayDate};
 pub use thai_lunar::{ThaiLunarCalendar, ThaiLunarDate};
 pub use zapotec::{ZapotecYzaCalendar, ZapotecYzaDate};
@@ -195,6 +198,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::SexagenaryCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ThaiLunarCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::KhmerCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::OlympiadCalendar)));
     }
 }
 
@@ -203,7 +207,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 33;
+const CALENDAR_COUNT: usize = 34;
 
 #[cfg(test)]
 mod tests {
@@ -283,6 +287,7 @@ mod tests {
                 SexagenaryCalendar,
                 ThaiLunarCalendar,
                 KhmerCalendar,
+                OlympiadCalendar,
             );
         }
     }

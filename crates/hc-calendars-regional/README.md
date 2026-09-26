@@ -3,7 +3,8 @@
 Regional, cyclic and era calendars for `hyper-calendar`: Japanese imperial
 eras, the Chinese and Korean regnal eras, the Maya calendars, the two Aztec
 ones, the Zapotec *yza*, the Balinese Pawukon, the Javanese *pasaran*, the Akan *Adaduanan*, the
-Burmese, Thai and Khmer lunar calendars, and the sexagenary cycle.
+Burmese, Thai and Khmer lunar calendars, the sexagenary cycle and the
+Olympiads.
 
 What most of them have in common is that **the day has a name before it has a
 number**. A Maya day is *4 Ahau 8 Cumku*; a Balinese day is *Buda Kliwon
@@ -41,6 +42,7 @@ lunar calendars are such counts, and are here as regional calendars.
 | `thai-lunar` | The Thai lunar calendar as Thailand publishes it: the adhikamāsa and adhikavāra years carried as data for 2535–2570 BE (1992–2027) |
 | `khmer` | The Khmer *Chhankitek*: the leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
 | `sexagenary` | 干支 over years, months and days |
+| `olympiad` | The ancient Olympiads over the Julian year, from 776 BC, as Reingold and Dershowitz count them; the IOC's modern Olympiad number from 1896 as a function ([docs/systems/olympiads.md](../../docs/systems/olympiads.md)) |
 
 `register_all(&mut CalendarRegistry)` inserts every calendar in the table,
 behind the `alloc` feature, exactly as `hc-calendars-solar` does;

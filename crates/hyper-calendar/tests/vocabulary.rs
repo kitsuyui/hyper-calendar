@@ -428,12 +428,12 @@ fn the_vocabulary_gap_is_measured_and_not_growing() {
 
     assert_eq!(
         registered.len(),
-        148,
+        161,
         "the registry changed; update the coverage numbers deliberately"
     );
     assert_eq!(
         with_months.len(),
-        118,
+        131,
         "calendars with a month cycle — changes only when a calendar's shape does"
     );
     assert!(
