@@ -15,11 +15,12 @@
 //! | Module | What it holds |
 //! | --- | --- |
 //! | [`rule`] | the rule vocabulary and the observance modifiers |
-//! | [`computus`] | Easter, Gregorian and Julian, and the offsets keyed to it |
+//! | [`computus`] | Easter, Gregorian and Julian, the astronomical reckoning at Jerusalem, and the offsets keyed to it |
 //! | [`engine`] | evaluation, and business-day arithmetic |
 //! | [`hindu`] | the Hindu festival rules the traditions and the national tables share |
 //! | [`traditions`] | the cross-cutting religious cycles |
 //! | [`roman_calendar`] | the General Roman Calendar, every celebration with its rank |
+//! | [`lectionary`] | the lectionary cycles: the Sunday and weekday years and the RCL's Propers |
 //! | [`international`] | the United Nations international days, each citing its resolution |
 //! | [`countries`] | the national tables |
 //! | [`exchanges`] | the trading calendars of stock exchanges |
@@ -82,6 +83,7 @@ extern crate alloc;
 pub mod computus;
 pub mod hindu;
 pub mod international;
+pub mod lectionary;
 pub mod rule;
 
 #[cfg(feature = "alloc")]

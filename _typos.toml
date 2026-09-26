@@ -431,3 +431,23 @@ patriotes = "patriotes"
 # SPLA, the Sudan People's Liberation Army, whose day South Sudan's Ministry
 # of Labour lists on 16 May.
 SPLA = "SPLA"
+# RCL, the Revised Common Lectionary, and CCT, the Consultation on Common
+# Texts that publishes it, cited in hc-holiday's `lectionary`.
+RCL = "RCL"
+CCT = "CCT"
+# Latin of the Code of Rubrics of 1960: *Litaniae maiores*, the Greater
+# Litanies, and *Rubricarum instructum*, the motu proprio.
+maiores = "maiores"
+Rubricarum = "Rubricarum"
+# Mandaic feast names as Drower transliterates them: Dehwa Hnina, the Little
+# Feast; Kanshia uZahla, New Year's Eve; the mbattal (inauspicious) days.
+Hnina = "Hnina"
+uZahla = "uZahla"
+mbattal = "mbattal"
+# Hisnag, the Armenian Advent, and Varak, the mountain of the Holy Cross of
+# Varak.
+Hisnag = "Hisnag"
+Varak = "Varak"
+# Shemini Atseret, the Samaritan Day of Assembly as the-samaritans.net
+# spells it.
+Atseret = "Atseret"

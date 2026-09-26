@@ -33,9 +33,14 @@
 //! | Imperial court rites (宮中祭祀) | fixed Gregorian dates and the two equinox days at the Japanese meridian | exact for the Reiwa-era schedule the source gives; the rites tied to a reign change with it |
 //! | Sikh | the Nanakshahi calendar of 2003 for the gurpurabs; the amānta Hindu lunisolar calendar for the three the 2003 calendar left on the Bikrami | exact: the Nanakshahi dates are fixed Gregorian dates, and the lunar three follow the same model as the Hindu table; the SGPC's post-2010 dates are not carried |
 //! | Zoroastrian | the Parsi schedule of feasts on each of the three reckonings — Fasli, Shahanshahi, Qadimi — as three tables | exact: every feast is a fixed day of a fixed month, and each reckoning is arithmetic; the Iranian community's dates on the civil calendar are not carried |
+//! | Armenian Apostolic | Gregorian calendar and computus (Etchmiadzin), or Julian (the Patriarchate of Jerusalem), as two tables; the feasts on the Sunday nearest a date as a moved date | exact; the saints' days are not carried |
+//! | Ember and Rogation Days | the Gregorian computus and fixed Gregorian dates, one table per church: the 1662 Prayer Book, *Common Worship*'s traditional weeks, the Roman rubrics of 1960 | exact as stated; *Common Worship*'s week before an ordination is the bishop's and not computed |
+//! | Samaritan | the `samaritan` calendar, a modern calculation of the priesthood's | exact to that calculation, which puts one Passover of 2016–2020 a day late; a reported gap outside 1900–2100 |
+//! | Mandaean | the `mandaean` calendar of 365 days | exact: arithmetic |
+//! | Yazidi | the Eastern calendar, which is the Julian, and Serêsal by its weekday rule | exact |
 
 use hc_calendar::{Rd, Weekday};
-use hc_calendars_solar::{bahai, gregorian};
+use hc_calendars_solar::{bahai, gregorian, yazidi};
 use hc_seasons::{Meridian, SolarTerm};
 
 use crate::computus::offsets::{
@@ -531,6 +536,19 @@ const fn hebrew_day(name: &'static str, local: &'static str, month: u8, day: u8)
     )
 }
 
+/// Purim, 14 Adar — Adar II in a leap year.
+const PURIM: Rule = Rule::in_calendar(CalendarSystem::HEBREW, 6, 14);
+
+/// The day before Purim.
+const PURIM_EVE: Rule = Rule::Offset {
+    base: &PURIM,
+    days: -1,
+};
+
+/// Ta'anit Esther: the day before Purim, or the Thursday before when Purim
+/// is a Sunday, so that the fast is not kept on the Sabbath.
+const TAANIT_ESTHER: Rule = Rule::moved_by_weekday(&PURIM_EVE, &[(Weekday::Saturday, -2)]);
+
 static JEWISH_RULES: &[HolidayRule] = &[
     hebrew_day("Rosh Hashanah", "ראש השנה", 1, 1),
     hebrew_day("Rosh Hashanah (second day)", "ראש השנה", 1, 2),
@@ -543,6 +561,7 @@ static JEWISH_RULES: &[HolidayRule] = &[
     hebrew_day("Hanukkah", "חנוכה", 3, 25),
     hebrew_day("Tenth of Tevet", "עשרה בטבת", 4, 10),
     hebrew_day("Tu BiShvat", "ט\"ו בשבט", 5, 15),
+    feast("Ta'anit Esther", "תענית אסתר", TAANIT_ESTHER),
     hebrew_day("Purim", "פורים", 6, 14),
     hebrew_day("Shushan Purim", "שושן פורים", 6, 15),
     hebrew_day("Passover", "פסח", 7, 15),
@@ -551,6 +570,13 @@ static JEWISH_RULES: &[HolidayRule] = &[
     hebrew_day("Shavuot", "שבועות", 9, 6),
     hebrew_day("Seventeenth of Tammuz", "שבעה עשר בתמוז", 10, 17),
     hebrew_day("Tisha B'Av", "תשעה באב", 11, 9),
+    // Sh'ela, the first day of the prayer for rain outside the Land of
+    // Israel: 26 Hatur, in the Coptic calendar's third month.
+    feast(
+        "Sh'ela (prayer for rain, outside the Land of Israel)",
+        "שאלה",
+        Rule::in_calendar(CalendarSystem::COPTIC, 3, 26),
+    ),
 ];
 
 /// Judaism.
@@ -560,7 +586,22 @@ static JEWISH_RULES: &[HolidayRule] = &[
 /// evening, and several of these dates are *postponed* when they would fall
 /// on the Sabbath — the Fast of Gedaliah and Tisha B'Av move to the Sunday,
 /// the Tenth of Tevet never can. Those postponements are liturgical rules
-/// this crate has not encoded.
+/// this crate has not encoded; the one it has is Ta'anit Esther's, which
+/// moves back to the Thursday when Purim is a Sunday, as Reingold and
+/// Dershowitz's `ta-anit-esther` gives it.
+///
+/// *Sh'ela*, the day the prayer for rain begins outside the Land of Israel,
+/// is "60 days after the onset of tekufat Tishrei", the autumn *tekufah* of
+/// a year of 365¼ days, which Reingold and Dershowitz's `sh-ela` puts on
+/// 26 Hatur of the Coptic calendar: 5 December, or 6 December in the year
+/// before a Gregorian leap year, until 2100, when it moves a day later. The
+/// prayer is first said on the evening before, which begins that day, as
+/// Chabad.org puts it: "on the night of December 4, and in the year before
+/// a (civil) leap year … on the night of December 5".
+///
+/// A yahrzeit or a Hebrew birthday is not a table entry but a function of
+/// the date it keeps: `hc_calendars_lunar::hebrew::yahrzeit` and
+/// `hebrew::birthday`.
 pub static JEWISH: RuleSet = RuleSet {
     code: "jewish",
     english_name: "Judaism",
@@ -572,7 +613,12 @@ pub static JEWISH: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "The arithmetic Hebrew calendar as `hc-calendars-lunar` \
               implements it, following Dershowitz and Reingold, \
-              Calendrical Calculations, chapter 8",
+              Calendrical Calculations, chapter 8; Ta'anit Esther and Sh'ela \
+              as `ta-anit-esther` and `sh-ela` in their calendar.l \
+              (`reingold2018code`), read 2026-09-26; Yehuda Shurpin, \"Why Is the \
+              Prayer for Rain Based on the Civil Calendar?\", Chabad.org, retrieved \
+              2026-09-26, for the dates of Sh'ela to 2100; Hebcal, \"Ta'anit Esther\", \
+              retrieved 2026-09-26, for the fast's dates of 2024–2031 as a check",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1661,6 +1707,739 @@ pub static ZOROASTRIAN_QADIMI: RuleSet = RuleSet {
     sources: ZOROASTRIAN_SOURCES,
 };
 
+// ─────────────────────────────────────────────────────────────────────────
+// Ember and Rogation Days
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Three Ember Days — a Wednesday, the Friday and the Saturday after it —
+/// named for their season.
+macro_rules! ember_days {
+    ($season:literal, $wednesday:expr, $friday:expr, $saturday:expr) => {
+        [
+            feast(concat!("Ember Wednesday (", $season, ")"), "", $wednesday),
+            feast(concat!("Ember Friday (", $season, ")"), "", $friday),
+            feast(concat!("Ember Saturday (", $season, ")"), "", $saturday),
+        ]
+    };
+}
+
+/// The Monday, Tuesday and Wednesday before the Ascension.
+macro_rules! rogation_days {
+    ($monday:literal, $tuesday:literal, $wednesday:literal) => {
+        [
+            feast($monday, "", Rule::easter(ASCENSION - 3)),
+            feast($tuesday, "", Rule::easter(ASCENSION - 2)),
+            feast($wednesday, "", Rule::easter(ASCENSION - 1)),
+        ]
+    };
+}
+
+/// The Sunday after Ash Wednesday, the first Sunday in Lent.
+const FIRST_SUNDAY_IN_LENT: i16 = ASH_WEDNESDAY + 4;
+
+/// The Wednesday after 14 September, Holy Cross Day.
+const WEDNESDAY_AFTER_HOLY_CROSS: Rule = Rule::WeekdayOnOrAfter {
+    month: 9,
+    day: 15,
+    weekday: Weekday::Wednesday,
+};
+
+/// The Wednesday after 13 December, St Lucy's Day.
+const WEDNESDAY_AFTER_ST_LUCY: Rule = Rule::WeekdayOnOrAfter {
+    month: 12,
+    day: 14,
+    weekday: Weekday::Wednesday,
+};
+
+static EMBER_BCP1662_RULES: &[HolidayRule] = &{
+    let lent = ember_days!(
+        "Lent",
+        Rule::easter(FIRST_SUNDAY_IN_LENT + 3),
+        Rule::easter(FIRST_SUNDAY_IN_LENT + 5),
+        Rule::easter(FIRST_SUNDAY_IN_LENT + 6)
+    );
+    let whitsun = ember_days!(
+        "Whitsun",
+        Rule::easter(PENTECOST + 3),
+        Rule::easter(PENTECOST + 5),
+        Rule::easter(PENTECOST + 6)
+    );
+    let september = ember_days!(
+        "September",
+        WEDNESDAY_AFTER_HOLY_CROSS,
+        Rule::Offset {
+            base: &WEDNESDAY_AFTER_HOLY_CROSS,
+            days: 2,
+        },
+        Rule::Offset {
+            base: &WEDNESDAY_AFTER_HOLY_CROSS,
+            days: 3,
+        }
+    );
+    let december = ember_days!(
+        "December",
+        WEDNESDAY_AFTER_ST_LUCY,
+        Rule::Offset {
+            base: &WEDNESDAY_AFTER_ST_LUCY,
+            days: 2,
+        },
+        Rule::Offset {
+            base: &WEDNESDAY_AFTER_ST_LUCY,
+            days: 3,
+        }
+    );
+    let rogation = rogation_days!("Rogation Monday", "Rogation Tuesday", "Rogation Wednesday");
+    [
+        lent[0],
+        lent[1],
+        lent[2],
+        rogation[0],
+        rogation[1],
+        rogation[2],
+        whitsun[0],
+        whitsun[1],
+        whitsun[2],
+        september[0],
+        september[1],
+        september[2],
+        december[0],
+        december[1],
+        december[2],
+    ]
+};
+
+/// The Ember and Rogation Days of the *Book of Common Prayer* of 1662.
+///
+/// "The Ember Days at the Four Seasons, being the Wednesday, Friday and
+/// Saturday after" the First Sunday in Lent, the Feast of Pentecost,
+/// 14 September and 13 December, and "The three Rogation Days, being the
+/// Monday, Tuesday, and Wednesday before Holy Thursday, or the Ascension
+/// of our Lord", as the Prayer Book's table of vigils, fasts and days of
+/// abstinence lists them. "The Wednesday, Friday and Saturday after
+/// September 14" is read as one week: the first Wednesday after the day,
+/// and the Friday and Saturday after that Wednesday, so that a Tuesday
+/// 14 September gives the 15th, 17th and 18th, as Wikipedia's "Ember
+/// days" states the older Western rule.
+///
+/// The same table's vigils, and its note moving a vigil off a Sunday, are
+/// not carried: they are the eves of feasts, not Ember or Rogation Days.
+/// Days of fasting are not days off, so every entry is religious.
+pub static EMBER_BCP1662: RuleSet = RuleSet {
+    code: "ember-bcp1662",
+    english_name: "Ember and Rogation Days (Book of Common Prayer, 1662)",
+    rules: EMBER_BCP1662_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Church of England, Book of Common Prayer (1662), \"A Table of the Vigils, \
+              Fasts, and Days of Abstinence, to be observed in the year\" \
+              (churchofengland.org/sites/default/files/2017-10/5-table-vigils-fasts.pdf, \
+              `bcp1662-vigils`), retrieved 2026-09-26; Wikipedia, \"Ember days\", \
+              retrieved 2026-09-26, for the reading of the September and December weeks \
+              (secondary)",
+};
+
+/// The Third Sunday of Advent, the Sunday between 11 and 17 December: two
+/// weeks after the First, which falls 27 November to 3 December.
+const THIRD_SUNDAY_OF_ADVENT: Rule = Rule::WeekdayOnOrAfter {
+    month: 12,
+    day: 11,
+    weekday: Weekday::Sunday,
+};
+
+/// The Sunday nearest 29 June, which falls 26 June to 2 July.
+const SUNDAY_NEAREST_29_JUNE: Rule = Rule::WeekdayOnOrAfter {
+    month: 6,
+    day: 26,
+    weekday: Weekday::Sunday,
+};
+
+/// The Sunday nearest 29 September, which falls 26 September to 2 October.
+const SUNDAY_NEAREST_29_SEPTEMBER: Rule = Rule::WeekdayOnOrAfter {
+    month: 9,
+    day: 26,
+    weekday: Weekday::Sunday,
+};
+
+/// The Wednesday, Friday and Saturday of the week before a Sunday.
+macro_rules! ember_week_before {
+    ($season:literal, $sunday:expr) => {
+        ember_days!(
+            $season,
+            Rule::Offset {
+                base: &$sunday,
+                days: -4,
+            },
+            Rule::Offset {
+                base: &$sunday,
+                days: -2,
+            },
+            Rule::Offset {
+                base: &$sunday,
+                days: -1,
+            }
+        )
+    };
+}
+
+static EMBER_COMMON_WORSHIP_RULES: &[HolidayRule] = &{
+    // The Second Sunday of Lent is a week after the first.
+    let lent = ember_days!(
+        "Lent",
+        Rule::easter(FIRST_SUNDAY_IN_LENT + 3),
+        Rule::easter(FIRST_SUNDAY_IN_LENT + 5),
+        Rule::easter(FIRST_SUNDAY_IN_LENT + 6)
+    );
+    let june = ember_week_before!("June", SUNDAY_NEAREST_29_JUNE);
+    let september = ember_week_before!("September", SUNDAY_NEAREST_29_SEPTEMBER);
+    let advent = ember_week_before!("Advent", THIRD_SUNDAY_OF_ADVENT);
+    let rogation = rogation_days!("Rogation Monday", "Rogation Tuesday", "Rogation Wednesday");
+    [
+        lent[0],
+        lent[1],
+        lent[2],
+        rogation[0],
+        rogation[1],
+        rogation[2],
+        june[0],
+        june[1],
+        june[2],
+        september[0],
+        september[1],
+        september[2],
+        advent[0],
+        advent[1],
+        advent[2],
+    ]
+};
+
+/// The Ember and Rogation Days of the Church of England's *Common Worship*,
+/// on the traditional weeks its rules name.
+///
+/// *Common Worship*'s "Rules to Order the Christian Year" say that "Ember
+/// Days should be kept, under the bishop's directions, in the week before
+/// an ordination", and that "Traditionally they have been observed on the
+/// Wednesdays, Fridays and Saturdays within the weeks before the Third
+/// Sunday of Advent, the Second Sunday of Lent and the Sundays nearest to
+/// 29 June and 29 September"; and that "Rogation Days are the three days
+/// before Ascension Day". **The first rule cannot be computed**: an
+/// ordination's date is the bishop's, and no table of them is read. This
+/// table is the second, the traditional weeks, and a diocese that keeps
+/// its Ember Days before an ordination keeps them on other days.
+///
+/// It differs from [`EMBER_BCP1662`] in three seasons: the week before the
+/// Sunday nearest 29 June rather than after Pentecost, before the Sunday
+/// nearest 29 September rather than after 14 September, and before the
+/// Third Sunday of Advent rather than after 13 December. The Lent week is
+/// the same.
+pub static EMBER_COMMON_WORSHIP: RuleSet = RuleSet {
+    code: "ember-common-worship",
+    english_name: "Ember and Rogation Days (Common Worship, traditional weeks)",
+    rules: EMBER_COMMON_WORSHIP_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Church of England, Common Worship, \"Rules to Order the Christian Year\", \
+              \"Ember Days\" and \"Eastertide\" (churchofengland.org, prayer-and-worship/\
+              worship-texts-and-resources/common-worship/churchs-year/rules, `cw-rules`), \
+              retrieved 2026-09-26. The Third Sunday of Advent is two weeks after the First, \
+              whose window is the Consultation on Common Texts' (`cct-rcl`)",
+};
+
+/// The Greater Litanies: 25 April, or the Tuesday after Easter when Easter
+/// Sunday or Easter Monday falls on 25 April.
+fn greater_litanies(year: i64) -> Days {
+    let (Ok(day), Some(easter)) = (
+        gregorian::to_fixed(year, 4, 25),
+        crate::computus::gregorian_easter(year),
+    ) else {
+        return Days::new();
+    };
+    if day == easter || day.0 == easter.0 + 1 {
+        Days::one(Rd(easter.0 + 2))
+    } else {
+        Days::one(day)
+    }
+}
+
+static ROGATION_ROMAN_1960_RULES: &[HolidayRule] = &{
+    let lesser = rogation_days!(
+        "Lesser Litanies (Rogation Monday)",
+        "Lesser Litanies (Rogation Tuesday)",
+        "Lesser Litanies (Rogation Wednesday)"
+    );
+    [
+        feast(
+            "Greater Litanies (Major Rogation)",
+            "Litaniae maiores",
+            Rule::Computed(greater_litanies),
+        ),
+        lesser[0],
+        lesser[1],
+        lesser[2],
+    ]
+};
+
+/// The Rogation Days of the Roman Rite under the Code of Rubrics of 1960.
+///
+/// "The Greater Litanies are fixed on 25th April; but if Easter Sunday or
+/// Monday after Easter falls on that day, they are transferred to the
+/// following Tuesday" (no. 80); "The Lesser Litanies or Rogations are
+/// normally (per se) fixed on the Monday, Tuesday and Wednesday before the
+/// feast of our Lord's Ascension" (no. 87), which a local Ordinary may
+/// move to three other days — a local decision this table does not know.
+/// The Ember Days of the same rubrics are not carried: the text read names
+/// them without the rule that dates the September week.
+pub static ROGATION_ROMAN_1960: RuleSet = RuleSet {
+    code: "rogation-roman-1960",
+    english_name: "Rogation Days (Roman Rite, Code of Rubrics of 1960)",
+    rules: ROGATION_ROMAN_1960_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Code of Rubrics, approved by John XXIII's motu proprio Rubricarum instructum \
+              of 25 July 1960, General Rubrics nos. 80 and 87, in the English translation \
+              The New Rubrics of the Roman Breviary and Missal (1960), read in the copy at \
+              cdn.restorethe54.com/media/pdf/the-new-rubrics-of-the-roman-missal-and-breviary-1960.pdf, \
+              retrieved 2026-09-26 (`rubrics-1960`); Wikipedia, \"Rogation days\", \
+              retrieved 2026-09-26, which pointed to no. 80",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// The Samaritans
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A Samaritan festival, by the sources' month — the First Month is
+/// Passover's — and day.
+const fn samaritan(
+    name: &'static str,
+    local: &'static str,
+    biblical_month: u8,
+    day: u8,
+) -> HolidayRule {
+    // The calendar numbers its months from the Sixth, where the year
+    // changes: the First to Fifth are public months 8 to 12, the Sixth to
+    // Twelfth 1 to 7.
+    let month = if biblical_month >= 6 {
+        biblical_month - 5
+    } else {
+        biblical_month + 7
+    };
+    feast(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::SAMARITAN, month, day),
+    )
+}
+
+/// The first and last days of the Feast of Unleavened Bread, 15 and 21 of
+/// the First Month.
+const UNLEAVENED_BREAD_FIRST: Rule = Rule::in_calendar(CalendarSystem::SAMARITAN, 8, 15);
+const UNLEAVENED_BREAD_LAST: Rule = Rule::in_calendar(CalendarSystem::SAMARITAN, 8, 21);
+
+static SAMARITAN_RULES: &[HolidayRule] = &[
+    samaritan("Passover sacrifice", "פסח", 1, 14),
+    feast(
+        "Feast of Unleavened Bread",
+        "חג המצות",
+        Rule::span(&UNLEAVENED_BREAD_FIRST, &UNLEAVENED_BREAD_LAST),
+    ),
+    samaritan("Festival of the Seventh Month", "", 7, 1),
+    samaritan("Day of Atonement", "יום הכפורים", 7, 10),
+    samaritan("Festival of Sukkot (Tabernacles)", "סוכות", 7, 15),
+    samaritan("Shemini Atseret (Day of Assembly)", "שמיני עצרת", 7, 22),
+];
+
+/// The festivals of the Israelite Samaritans, on the Samaritan calendar.
+///
+/// The Passover sacrifice on the fourteenth of the First Month and the
+/// seven days of Unleavened Bread that follow it, the Festival of the
+/// Seventh Month on its first day, the Day of Atonement on the tenth,
+/// Sukkot on the fifteenth and Shemini Atseret on the twenty-second, as
+/// the community's calendar and festival pages give them. They are dated
+/// on `samaritan`, Reingold and Dershowitz's modern calculation, not the
+/// priesthood's own, which is not published; its accuracy — the published
+/// Passovers of 2017–2020 and autumn 2026 agree, and 2016's is a day late —
+/// is [`hc_calendars_lunar::samaritan`]'s, and outside its years, autumn
+/// 1900 to autumn 2100, every festival is a reported gap. A Samaritan day
+/// begins at the preceding sunset, so each festival begins on the evening
+/// before the date given.
+///
+/// Shavuot is not carried. The community's page on it gives a counting
+/// rule — fifty days from the day after the Sabbath that falls in the
+/// seven days of Unleavened Bread, so always a Sunday — but no dated
+/// Shavuot was read to check the rule against.
+pub static SAMARITAN: RuleSet = RuleSet {
+    code: "samaritan",
+    english_name: "Samaritan festivals",
+    rules: SAMARITAN_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "The Samaritans, \"The Samaritan Calendar\" and its upcoming festivals of \
+              2026, and the festival pages \"The Festival of the Matzot\", \"The Festival \
+              of the Seventh Month\", \"The Festival of Yom Kippur\", \"The Festival of \
+              Succoth\" and \"The Festival of Shmini Atseret\" (the-samaritans.net, \
+              `samaritans-net-calendar`), retrieved 2026-09-26; the Passover sacrifice on \
+              the fourteenth of the First Month as `hc_calendars_lunar::samaritan` dates \
+              it, checked against the Israelite Samaritan Information Institute's dates \
+              (`samaritan-institute-calendar`)",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// The Mandaeans
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A day of the Mandaean calendar, by its position — the Parwanaia are
+/// position 9, so Qaina is 10 and Gadia 13 — and day.
+const fn mandaean(month: u8, day: u8) -> Rule {
+    Rule::in_calendar(CalendarSystem::MANDAEAN, month, day)
+}
+
+/// An inauspicious day, on which no enterprise or religious ceremony
+/// should be undertaken.
+const fn mbattal(rule: Rule) -> HolidayRule {
+    HolidayRule::observance("Mbattal day", "", rule).of_kind(Kind::Religious)
+}
+
+const DEHWA_HNINA_FIRST: Rule = mandaean(4, 18);
+const DEHWA_HNINA_LAST: Rule = mandaean(4, 20);
+const PANJA_FIRST: Rule = mandaean(9, 1);
+const PANJA_LAST: Rule = mandaean(9, 5);
+const TAURA_FIRST: Rule = mandaean(4, 1);
+const TAURA_FOURTH: Rule = mandaean(4, 4);
+const SHUMBULTA_26: Rule = mandaean(8, 26);
+const SHUMBULTA_30: Rule = mandaean(8, 30);
+const GADIA_27: Rule = mandaean(13, 27);
+const GADIA_29: Rule = mandaean(13, 29);
+
+static MANDAEAN_RULES: &[HolidayRule] = &[
+    feast("Dehwa Rabba (New Year)", "", mandaean(1, 1)),
+    feast("Dehwa d Shishlam Rba (Nauruz Zota)", "", mandaean(1, 6)),
+    feast("Dehwa d Shishlam Rba (Nauruz Zota)", "", mandaean(1, 7)),
+    feast(
+        "Dehwa Hnina",
+        "",
+        Rule::span(&DEHWA_HNINA_FIRST, &DEHWA_HNINA_LAST),
+    ),
+    feast("Ashuriyah", "", mandaean(6, 1)),
+    feast(
+        "Panja (Parwanaia)",
+        "",
+        Rule::span(&PANJA_FIRST, &PANJA_LAST),
+    ),
+    feast("Dehwa Daimana", "", mandaean(12, 1)),
+    feast("Kanshia uZahla (New Year's Eve)", "", mandaean(13, 30)),
+    mbattal(mandaean(1, 6)),
+    mbattal(mandaean(1, 7)),
+    mbattal(mandaean(1, 22)),
+    mbattal(mandaean(2, 25)),
+    mbattal(Rule::span(&TAURA_FIRST, &TAURA_FOURTH)),
+    mbattal(mandaean(6, 9)),
+    mbattal(mandaean(6, 15)),
+    mbattal(mandaean(6, 23)),
+    mbattal(Rule::span(&SHUMBULTA_26, &SHUMBULTA_30)),
+    mbattal(mandaean(10, 1)),
+    mbattal(mandaean(12, 2)),
+    mbattal(Rule::span(&GADIA_27, &GADIA_29)),
+];
+
+/// The feasts and *mbattal* days of the Mandaeans, on the Mandaean
+/// calendar, as Drower recorded them.
+///
+/// The feasts: Dehwa Rabba, the New Year, on 1 Daula, and Kanshia uZahla,
+/// its eve, on the last day of Gadia; the Little New Year, Nauruz Zota or
+/// Dehwa d Shishlam Rba, on 6 and 7 Daula; Dehwa Hnina, the Little Feast,
+/// on 18 Taura, which "lasts for three days"; Ashuriyah on 1 Sartana;
+/// Panja, the five Parwanaia days; and Dehwa Daimana on 1 Hatia. The
+/// mbattal days, "useless, inauspicious": 22 Daula, 25 Nuna, the first four
+/// of Taura, the 9th, 15th and 23rd of Sartana, the last five of Shumbulta,
+/// the three before Kanshia uZahla (pp. 85–92); the day after Panja (p. 60);
+/// and the day after Dehwa Daimana and the sixth and seventh of the New
+/// Year, among the "major mbattal days" (p. 211). "All Moslem festivals are
+/// mbattal days" too (p. 92); they are the Islamic table's, and are not
+/// repeated here.
+///
+/// Drower also says Dehwa Daimana "falls ninety days after Panja"; by her
+/// own month table, 1 Hatia is 65 days after the first day of Panja, and
+/// the day named is what is carried. The calendar has no leap day, so every
+/// date drifts a day earlier against the Gregorian every four years. The
+/// Mandaean day begins at dawn (p. 87); the date given is the civil day
+/// that holds its daylight.
+pub static MANDAEAN: RuleSet = RuleSet {
+    code: "mandaean",
+    english_name: "Mandaean feasts",
+    rules: MANDAEAN_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "E. S. Drower, The Mandaeans of Iraq and Iran (Oxford: Clarendon Press, \
+              1937), pp. 60, 84–92 and 211, read in the archive.org text \
+              (`drower1937`), retrieved 2026-09-26, with the month names in her forms; \
+              Wikipedia, \"Mandaean calendar\", retrieved 2026-09-26, for the 2024 dates \
+              as a check (secondary)",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// The Yazidis
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Serêsal, the Yazidi New Year: the first Wednesday of Nisan, the Eastern
+/// April, in the Gregorian year's Julian year.
+fn seresal(year: i64) -> Days {
+    yazidi::new_year(year + yazidi::YEAR_OFFSET).map_or_else(|_| Days::new(), Days::one)
+}
+
+/// A Yazidi feast on its Eastern date, which is the Julian one.
+const fn eastern(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    feast(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::JULIAN, month, day),
+    )
+}
+
+const WINTER_FAST_FIRST: Rule = Rule::in_calendar(CalendarSystem::JULIAN, 11, 28);
+const WINTER_FAST_LAST: Rule = Rule::in_calendar(CalendarSystem::JULIAN, 11, 30);
+
+static YAZIDI_RULES: &[HolidayRule] = &[
+    feast("Serêsal (New Year)", "Serêsal", Rule::Computed(seresal)),
+    eastern(
+        "Chilleyê Havînan (Forty Days of Summer) begins",
+        "Chilleyê Havînan",
+        6,
+        10,
+    ),
+    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 23),
+    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 24),
+    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 25),
+    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 26),
+    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 27),
+    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 28),
+    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 29),
+    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 30),
+    feast(
+        "Winter fast",
+        "",
+        Rule::span(&WINTER_FAST_FIRST, &WINTER_FAST_LAST),
+    ),
+    eastern("Bêlinde", "Bêlinde", 12, 1),
+];
+
+/// The Yazidi feasts that Kreyenbroek dates, on the Eastern calendar.
+///
+/// "In calculating the dates of their festivals Yezidis generally use the
+/// Seleucid or 'Eastern' calendar, which in this century is thirteen days
+/// behind the Gregorian" (p. 164 n. 53), which is the Julian calendar, so
+/// the feasts are Julian dates: Serêsal, the New Year, "on the first
+/// Wednesday of Nisan" (p. 151), as `yazidi` computes it; the Forty Days of
+/// Summer, when "On the tenth day of Haziran (June)" the religious leaders
+/// go to Sheykh Adi to fast (pp. 151–152); the Festival of the Assembly,
+/// "the principal and central occasion of the Yezidi religious year",
+/// "held from 23 to 30 September (Seleucid)" (p. 152); and the three-day
+/// winter fast that "immediately precedes the Festival of Bêlinde on the
+/// first of December" (p. 155).
+///
+/// Not carried: the Feast of the Dead "said to fall on 10 December" and
+/// Khidr-Ilyas "said to fall on the first of February" (p. 156), which
+/// the source reports with doubt, and which some Yazidis deny; the
+/// *tiwafs*, which are each village's; and the "mobile" feasts, which
+/// "follow the Islamic lunar calendar" (p. 150) and for which no dates
+/// were read.
+pub static YAZIDI: RuleSet = RuleSet {
+    code: "yazidi",
+    english_name: "Yazidi feasts",
+    rules: YAZIDI_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Philip G. Kreyenbroek, Yezidism: Its Background, Observances and Textual \
+              Tradition (Lewiston: Edwin Mellen Press, 1995), pp. 150–156 and 164 n. 53, \
+              read in the archive.org text (`kreyenbroek1995`), retrieved 2026-09-26, with \
+              the names in his forms; Serêsal as `hc_calendars_solar::yazidi` computes it",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// The Armenian Apostolic Church
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The moves that take a day to the Sunday on or after it.
+const TO_SUNDAY_ON_OR_AFTER: &[(Weekday, i16)] = &[
+    (Weekday::Monday, 6),
+    (Weekday::Tuesday, 5),
+    (Weekday::Wednesday, 4),
+    (Weekday::Thursday, 3),
+    (Weekday::Friday, 2),
+    (Weekday::Saturday, 1),
+];
+
+/// The Armenian year in the calendar a see keeps and on its computus: the
+/// six fixed feasts, the feasts on the Sunday nearest a date, and the
+/// paschal cycle.
+macro_rules! armenian_table {
+    ($module:ident, $system:expr, $paschal:path) => {
+        mod $module {
+            use super::*;
+
+            /// The Sunday nearest 15 August falls 12–18 August.
+            const ASSUMPTION_EARLIEST: Rule = Rule::in_calendar($system, 8, 12);
+            const ASSUMPTION: Rule =
+                Rule::moved_by_weekday(&ASSUMPTION_EARLIEST, TO_SUNDAY_ON_OR_AFTER);
+            /// The Sunday nearest 14 September falls 11–17 September.
+            const EXALTATION_EARLIEST: Rule = Rule::in_calendar($system, 9, 11);
+            const EXALTATION: Rule =
+                Rule::moved_by_weekday(&EXALTATION_EARLIEST, TO_SUNDAY_ON_OR_AFTER);
+            /// The Sunday nearest 7 May falls 4–10 May.
+            const APPARITION_EARLIEST: Rule = Rule::in_calendar($system, 5, 4);
+            const APPARITION: Rule =
+                Rule::moved_by_weekday(&APPARITION_EARLIEST, TO_SUNDAY_ON_OR_AFTER);
+            /// The Sunday nearest 18 November falls 15–21 November.
+            const ADVENT_SUNDAY_EARLIEST: Rule = Rule::in_calendar($system, 11, 15);
+            const ADVENT_SUNDAY: Rule =
+                Rule::moved_by_weekday(&ADVENT_SUNDAY_EARLIEST, TO_SUNDAY_ON_OR_AFTER);
+
+            pub(super) static RULES: &[HolidayRule] = &[
+                feast(
+                    "Theophany (Nativity and Baptism of Christ)",
+                    "",
+                    Rule::in_calendar($system, 1, 6),
+                ),
+                feast(
+                    "Presentation of the Lord to the Temple",
+                    "",
+                    Rule::in_calendar($system, 2, 14),
+                ),
+                feast("Annunciation", "", Rule::in_calendar($system, 4, 7)),
+                feast(
+                    "Nativity of the Mother of God",
+                    "",
+                    Rule::in_calendar($system, 9, 8),
+                ),
+                feast(
+                    "Presentation of the Mother of God to the Temple",
+                    "",
+                    Rule::in_calendar($system, 11, 21),
+                ),
+                feast(
+                    "Conception of the Mother of God",
+                    "",
+                    Rule::in_calendar($system, 12, 9),
+                ),
+                feast("Fast of the Catechumens begins", "", $paschal(-69)),
+                feast("Great Lent begins", "", $paschal(-48)),
+                feast("Easter", "", $paschal(EASTER_SUNDAY)),
+                feast("Apparition of the Cross", "", APPARITION),
+                feast("Transfiguration (Vardavar)", "Վարդավառ", $paschal(98)),
+                feast("Assumption of the Mother of God", "", ASSUMPTION),
+                feast("Exaltation of the Holy Cross", "", EXALTATION),
+                feast(
+                    "Holy Cross of Varak",
+                    "",
+                    Rule::Offset {
+                        base: &EXALTATION,
+                        days: 21,
+                    },
+                ),
+                feast(
+                    "Discovery of the Holy Cross",
+                    "",
+                    Rule::Offset {
+                        base: &EXALTATION,
+                        days: 49,
+                    },
+                ),
+                feast(
+                    "Advent (Hisnag) begins",
+                    "",
+                    Rule::Offset {
+                        base: &ADVENT_SUNDAY,
+                        days: 1,
+                    },
+                ),
+            ];
+        }
+    };
+}
+
+armenian_table!(armenian_gregorian, CalendarSystem::GREGORIAN, Rule::easter);
+armenian_table!(armenian_julian, CalendarSystem::JULIAN, Rule::paschal);
+
+/// Where both Armenian tables take their rules from.
+const ARMENIAN_SOURCES: &str = "Armenian Apostolic Church of Holy Resurrection, Sydney, \
+    \"Liturgical Year of the Armenian Apostolic Church\" \
+    (armenianchurchsydney.org.au/liturgical-year-of-the-armenian-apostolic-church/, \
+    `armenian-church-sydney`), retrieved 2026-09-26, which credits Bishop Daniel \
+    Findikyan by way of encyclopaedia.com (not read), for the fixed feasts, the Sundays nearest a \
+    date, the feasts of the Cross, Lent, the Fast of the Catechumens, Advent and the \
+    calendars; Wikipedia, \"Vardavar\", retrieved 2026-09-26, for the Transfiguration \
+    98 days after Easter and its dates of 2010–2026 (secondary)";
+
+/// The Armenian Apostolic Church as the Mother See of Holy Etchmiadzin
+/// keeps its year: the Gregorian calendar and computus, which it adopted
+/// "in 1923 for civil and liturgical use".
+///
+/// The six fixed feasts — Theophany, the Nativity and Baptism kept
+/// together on 6 January, the Presentation on 14 February, the Annunciation
+/// on 7 April, and the Nativity, Presentation and Conception of the Mother
+/// of God on 8 September, 21 November and 9 December; the feasts kept on
+/// the Sunday nearest a date — the Assumption to 15 August, the Exaltation
+/// of the Cross to 14 September, the Apparition of the Cross to 7 May —
+/// and those counted from the Exaltation, the Holy Cross of Varak on the
+/// third Sunday after it and the Discovery of the Cross on the seventh;
+/// Advent from the day after the Sunday nearest 18 November; and the
+/// paschal cycle, the Fast of the Catechumens from "the third Monday before
+/// Lent", Great Lent from "the seventh Monday before Easter", Easter, and
+/// the Transfiguration, Vardavar, 98 days after it.
+///
+/// The saints' days, which fall "exclusively on Mondays, Tuesdays,
+/// Thursdays, and Saturdays" and are "defined in relation to the closest
+/// major feast and a day of the week", are not carried: no list of them was
+/// read. The table has no years: which dioceses kept the Julian calendar
+/// after 1923 is not a thing it says, and before 1923 the whole Church kept
+/// the reckoning of [`CHRISTIAN_ARMENIAN_JERUSALEM`].
+pub static CHRISTIAN_ARMENIAN: RuleSet = RuleSet {
+    code: "christian-armenian",
+    english_name: "Armenian Apostolic Church (Gregorian calendar)",
+    rules: armenian_gregorian::RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: ARMENIAN_SOURCES,
+};
+
+/// The Armenian Apostolic Church as the Armenian Patriarchate of Jerusalem
+/// keeps its year: the same feasts on the Julian calendar and the Julian
+/// computus, since "Only the Armenian Patriarchate of Jerusalem follows the
+/// Julian calendar because of the status quo of the Holy Places". Theophany
+/// is therefore 19 January on a civil calendar until 2100, and a Sunday
+/// nearest a Julian date is the Sunday nearest the civil date thirteen days
+/// later.
+pub static CHRISTIAN_ARMENIAN_JERUSALEM: RuleSet = RuleSet {
+    code: "christian-armenian-jerusalem",
+    english_name: "Armenian Apostolic Church (Patriarchate of Jerusalem, Julian calendar)",
+    rules: armenian_julian::RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: ARMENIAN_SOURCES,
+};
+
 /// Every tradition table in the crate.
 pub static ALL: &[&RuleSet] = &[
     &CHRISTIAN_WESTERN,
@@ -1685,6 +2464,14 @@ pub static ALL: &[&RuleSet] = &[
     &ZOROASTRIAN_FASLI,
     &ZOROASTRIAN_SHAHANSHAHI,
     &ZOROASTRIAN_QADIMI,
+    &EMBER_BCP1662,
+    &EMBER_COMMON_WORSHIP,
+    &ROGATION_ROMAN_1960,
+    &SAMARITAN,
+    &MANDAEAN,
+    &YAZIDI,
+    &CHRISTIAN_ARMENIAN,
+    &CHRISTIAN_ARMENIAN_JERUSALEM,
 ];
 
 /// The table for a tradition's identifier.

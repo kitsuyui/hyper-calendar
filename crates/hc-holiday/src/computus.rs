@@ -37,19 +37,37 @@
 //!
 //! Easter is therefore *exactly* what these functions say, and only
 //! approximately the Sunday after a full moon.
+//!
+//! # The astronomical reckoning
+//!
+//! A third entry, [`Computus::ASTRONOMICAL_JERUSALEM`], is the proposal of
+//! the World Council of Churches and the Middle East Council of Churches
+//! at Aleppo in 1997 (`wcc-aleppo-1997`): the Sunday after the first full
+//! moon after the March equinox, both computed astronomically and dated at
+//! the meridian of Jerusalem. No church adopted it, and nothing keeps
+//! Easter by it; it is here so that the two ecclesiastical reckonings can
+//! be compared with the sky they approximate. It is not arithmetic but
+//! `hc-astro`'s ephemeris, dated in apparent solar time at Jerusalem as
+//! Reingold and Dershowitz's `astronomical-easter` dates it, and it
+//! reproduces the consultation's table of 2001–2025 in every year.
+//! `docs/systems/astronomical-easter.md` explains the rule, the full moon
+//! that falls on a Sunday, the choice of solar time and the range.
 
-use hc_calendar::Rd;
+use hc_calendar::fixed::Moment;
+use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::{gregorian, julian};
+use hc_seasons::SolarTerm;
+use hc_seasons::solar_terms::term_moment;
 
 /// A paschal reckoning: a rule that gives Easter Sunday for a year.
 ///
-/// Two ship, and they are the two that govern nearly every church. A third
-/// — the astronomical Easter of the 1997 Aleppo proposal, say — is an entry
-/// with its own function, not a variant this crate has to be taught
-/// (ADR 0007). Two reckonings are equal when they have the same identifier.
+/// Three ship: the two that govern nearly every church, and the
+/// astronomical Easter of the 1997 Aleppo proposal, which is an entry with
+/// its own function, not a variant this crate had to be taught (ADR 0007).
+/// Two reckonings are equal when they have the same identifier.
 #[derive(Debug, Clone, Copy)]
 pub struct Computus {
-    /// A short identifier: `gregorian`, `julian`.
+    /// A short identifier: `gregorian`, `julian`, `astronomical-jerusalem`.
     pub id: &'static str,
     /// The name in English.
     pub english_name: &'static str,
@@ -125,6 +143,16 @@ hc_core::catalogue! {
             JULIAN_COMPUTUS_FIRST_YEAR,
             orthodox_easter,
         );
+        /// The astronomical reckoning at the meridian of Jerusalem that
+        /// the World Council of Churches and the Middle East Council of
+        /// Churches proposed at Aleppo in 1997, which no church adopted:
+        /// see [`astronomical_easter`].
+        pub const ASTRONOMICAL_JERUSALEM = Self::new(
+            "astronomical-jerusalem",
+            "Astronomical computus at Jerusalem (Aleppo, 1997)",
+            ASTRONOMICAL_EASTER_FIRST_YEAR,
+            astronomical_easter,
+        );
     }
 }
 
@@ -161,6 +189,84 @@ pub const JULIAN_COMPUTUS_FIRST_YEAR: i64 = 326;
 /// (`assa-easter`). Refusing past it is this library's choice, taken from
 /// that range.
 pub const COMPUTUS_LAST_YEAR: i64 = 4099;
+
+/// The first Gregorian year the astronomical reckoning is computed for.
+///
+/// The Aleppo statement proposes the rule for the future and tabulates
+/// 2001–2025 (`wcc-aleppo-1997`); it puts no bound on it, and neither does
+/// Reingold and Dershowitz's `astronomical-easter`. 1583 is this library's
+/// choice: the first year of [`GREGORIAN_COMPUTUS_FIRST_YEAR`], so that
+/// the astronomical Easter can be set beside the Gregorian one in every
+/// year either answers. An astronomical Easter before 1997 is the rule
+/// applied backwards, not a date anyone kept.
+pub const ASTRONOMICAL_EASTER_FIRST_YEAR: i64 = 1583;
+
+/// The last Gregorian year the astronomical reckoning is computed for.
+///
+/// `hc-astro`'s ΔT follows Espenak and Meeus's fitted segments to 2150 and
+/// a parabola after it, whose error grows by hours over the following
+/// centuries; a full moon within that error of midnight at Jerusalem could
+/// then fall on either day. Refusing past 2150 is this library's choice,
+/// taken from where the fitted ΔT ends.
+pub const ASTRONOMICAL_EASTER_LAST_YEAR: i64 = 2150;
+
+/// The longitude of Jerusalem, 35.24° east, as Reingold and Dershowitz's
+/// `jerusalem` location gives it (`reingold2018code`). The Aleppo
+/// statement names the meridian and not a longitude.
+pub const JERUSALEM_LONGITUDE_DEGREES: f64 = 35.24;
+
+/// Apparent solar time at Jerusalem of a moment in Universal Time: local
+/// mean time at [`JERUSALEM_LONGITUDE_DEGREES`] plus the equation of time,
+/// as `apparent-from-universal` computes it (`reingold2018code`).
+fn apparent_at_jerusalem(universal: Moment) -> Moment {
+    Moment(
+        universal.0
+            + JERUSALEM_LONGITUDE_DEGREES / 360.0
+            + hc_astro::solar::equation_of_time(universal),
+    )
+}
+
+/// The day, in apparent solar time at Jerusalem, of the first full moon at
+/// or after the March equinox of a Gregorian year: the paschal full moon of
+/// the astronomical reckoning.
+///
+/// The equinox is the Sun's arrival at longitude 0°, which `hc-seasons`
+/// computes, and the full moon the Moon's arrival at 180° of elongation,
+/// which `hc-astro` searches for. The two instants are compared, not their
+/// dates, so a full moon a few hours after the equinox on the same day
+/// counts, as the consultation's 2019 does: both fall on 21 March at
+/// Jerusalem, the full moon about four hours after the equinox by
+/// `hc-astro`, and the table has the full moon on the 21st and Easter on
+/// the 24th.
+///
+/// Returns `None` outside [`ASTRONOMICAL_EASTER_FIRST_YEAR`] to
+/// [`ASTRONOMICAL_EASTER_LAST_YEAR`].
+#[must_use]
+pub fn astronomical_paschal_full_moon(year: i64) -> Option<Rd> {
+    if !(ASTRONOMICAL_EASTER_FIRST_YEAR..=ASTRONOMICAL_EASTER_LAST_YEAR).contains(&year) {
+        return None;
+    }
+    let equinox = term_moment(year, SolarTerm::SPRING_EQUINOX);
+    let full_moon = hc_astro::lunar::moon_phase_at_or_after(180.0, equinox);
+    Some(apparent_at_jerusalem(full_moon).day())
+}
+
+/// Easter Sunday by the astronomical reckoning at the meridian of
+/// Jerusalem: the first Sunday strictly after
+/// [`astronomical_paschal_full_moon`].
+///
+/// A full moon on a Sunday puts Easter a week later. The Aleppo statement
+/// says "the Sunday following the first vernal full moon" and no more, but
+/// its table settles the case it contains: the full moon of 8 April 2001,
+/// a Sunday, with Easter on 15 April (`wcc-aleppo-1997`). Reingold and
+/// Dershowitz's `kday-after` gives the same.
+///
+/// Returns `None` outside [`ASTRONOMICAL_EASTER_FIRST_YEAR`] to
+/// [`ASTRONOMICAL_EASTER_LAST_YEAR`].
+#[must_use]
+pub fn astronomical_easter(year: i64) -> Option<Rd> {
+    astronomical_paschal_full_moon(year).map(|full_moon| Weekday::Sunday.after(full_moon))
+}
 
 /// Easter Sunday, as a fixed day, under the chosen computus.
 ///
@@ -461,5 +567,103 @@ mod tests {
             Rd(easter_2024.0 + i64::from(offsets::CORPUS_CHRISTI)),
             greg(2024, 5, 30)
         );
+    }
+
+    /// A month and day.
+    type MonthDay = (u8, u8);
+
+    /// The consultation's table: the astronomical Easter and the vernal
+    /// full moon of every year 2001–2025 (`wcc-aleppo-1997`).
+    const ALEPPO_TABLE: [(i64, MonthDay, MonthDay); 25] = [
+        (2001, (4, 15), (4, 8)),
+        (2002, (3, 31), (3, 28)),
+        (2003, (4, 20), (4, 16)),
+        (2004, (4, 11), (4, 5)),
+        (2005, (3, 27), (3, 25)),
+        (2006, (4, 16), (4, 13)),
+        (2007, (4, 8), (4, 2)),
+        (2008, (3, 23), (3, 21)),
+        (2009, (4, 12), (4, 9)),
+        (2010, (4, 4), (3, 30)),
+        (2011, (4, 24), (4, 18)),
+        (2012, (4, 8), (4, 6)),
+        (2013, (3, 31), (3, 27)),
+        (2014, (4, 20), (4, 15)),
+        (2015, (4, 5), (4, 4)),
+        (2016, (3, 27), (3, 23)),
+        (2017, (4, 16), (4, 11)),
+        (2018, (4, 1), (3, 31)),
+        (2019, (3, 24), (3, 21)),
+        (2020, (4, 12), (4, 8)),
+        (2021, (4, 4), (3, 28)),
+        (2022, (4, 17), (4, 16)),
+        (2023, (4, 9), (4, 6)),
+        (2024, (3, 31), (3, 25)),
+        (2025, (4, 20), (4, 13)),
+    ];
+
+    #[test]
+    fn the_astronomical_reckoning_reproduces_the_aleppo_table() {
+        for (year, (month, day), (moon_month, moon_day)) in ALEPPO_TABLE {
+            assert_eq!(
+                astronomical_easter(year),
+                Some(greg(year, month, day)),
+                "astronomical Easter {year}"
+            );
+            assert_eq!(
+                astronomical_paschal_full_moon(year),
+                Some(greg(year, moon_month, moon_day)),
+                "vernal full moon {year}"
+            );
+            assert_eq!(
+                easter(Computus::ASTRONOMICAL_JERUSALEM, year),
+                astronomical_easter(year)
+            );
+        }
+    }
+
+    #[test]
+    fn a_full_moon_on_a_sunday_puts_easter_a_week_later() {
+        // 8 April 2001 was a Sunday, and the table has Easter on the 15th.
+        let full_moon = astronomical_paschal_full_moon(2001).expect("in range");
+        assert_eq!(Weekday::from_rd(full_moon), Weekday::Sunday);
+        assert_eq!(astronomical_easter(2001), Some(Rd(full_moon.0 + 7)));
+    }
+
+    #[test]
+    fn the_table_agrees_with_the_gregorian_computus_except_in_2019() {
+        // The table's own Gregorian column differs from its astronomical
+        // one only in 2019, 21 April against 24 March.
+        for (year, _, _) in ALEPPO_TABLE {
+            let same = astronomical_easter(year) == gregorian_easter(year);
+            assert_eq!(same, year != 2019, "{year}");
+        }
+    }
+
+    #[test]
+    fn the_equinox_and_the_full_moon_of_2019_share_a_day_at_jerusalem() {
+        let equinox = term_moment(2019, SolarTerm::SPRING_EQUINOX);
+        let full_moon = hc_astro::lunar::moon_phase_at_or_after(180.0, equinox);
+        assert_eq!(apparent_at_jerusalem(equinox).day(), greg(2019, 3, 21));
+        assert_eq!(apparent_at_jerusalem(full_moon).day(), greg(2019, 3, 21));
+        let hours = (full_moon.0 - equinox.0) * 24.0;
+        assert!((3.0..5.0).contains(&hours), "{hours} hours");
+    }
+
+    #[test]
+    fn the_astronomical_reckoning_is_always_a_sunday_and_refuses_outside_its_range() {
+        for year in (1583..=2150).step_by(7) {
+            let sunday = astronomical_easter(year).expect("in range");
+            assert_eq!(Weekday::from_rd(sunday), Weekday::Sunday, "{year}");
+            let (month, day) = (
+                gregorian::from_fixed(sunday).expect("valid").1,
+                gregorian::from_fixed(sunday).expect("valid").2,
+            );
+            let ordinal = if month == 3 { day } else { day + 31 };
+            assert!((21..=57).contains(&ordinal), "{year}: {month}/{day}");
+        }
+        assert_eq!(astronomical_easter(1582), None);
+        assert_eq!(astronomical_easter(2151), None);
+        assert_eq!(astronomical_paschal_full_moon(2151), None);
     }
 }

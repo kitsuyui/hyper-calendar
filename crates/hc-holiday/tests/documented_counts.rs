@@ -107,7 +107,7 @@ fn hijri_dates_appear_in_the_number_of_countries_the_readme_states() {
 
 #[test]
 fn the_tradition_count_is_the_one_the_readme_states() {
-    assert_eq!(traditions::ALL.len(), 22);
+    assert_eq!(traditions::ALL.len(), 30);
     assert!(
         readme_states(traditions::ALL.len(), "traditions"),
         "the README should say \"{} traditions\"",

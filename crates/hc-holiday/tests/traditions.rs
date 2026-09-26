@@ -7,10 +7,12 @@ use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::hindu::THAIPUSAM;
 use hc_holiday::rule::{Confidence, Kind, Rule, RuleSet};
 use hc_holiday::traditions::{
-    self, BAHAI, BUDDHIST_EAST_ASIAN, BUDDHIST_THAI, CHINESE_FOLK, CHRISTIAN_ORTHODOX,
-    CHRISTIAN_ORTHODOX_REVISED_JULIAN, CHRISTIAN_WESTERN, COPTIC_ORTHODOX, ETHIOPIAN_ORTHODOX,
-    HINDU, ISLAMIC, JAIN, JEWISH, KYUCHU_SAISHI, SHINTO, SIKH_NANAKSHAHI_2003, WHEEL_OF_THE_YEAR,
-    WHEEL_OF_THE_YEAR_SOUTH, ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI, ZOROASTRIAN_SHAHANSHAHI,
+    self, BAHAI, BUDDHIST_EAST_ASIAN, BUDDHIST_THAI, CHINESE_FOLK, CHRISTIAN_ARMENIAN,
+    CHRISTIAN_ARMENIAN_JERUSALEM, CHRISTIAN_ORTHODOX, CHRISTIAN_ORTHODOX_REVISED_JULIAN,
+    CHRISTIAN_WESTERN, COPTIC_ORTHODOX, EMBER_BCP1662, EMBER_COMMON_WORSHIP, ETHIOPIAN_ORTHODOX,
+    HINDU, ISLAMIC, JAIN, JEWISH, KYUCHU_SAISHI, MANDAEAN, ROGATION_ROMAN_1960, SAMARITAN, SHINTO,
+    SIKH_NANAKSHAHI_2003, WHEEL_OF_THE_YEAR, WHEEL_OF_THE_YEAR_SOUTH, YAZIDI, ZOROASTRIAN_FASLI,
+    ZOROASTRIAN_QADIMI, ZOROASTRIAN_SHAHANSHAHI,
 };
 use hc_seasons::Meridian;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
@@ -1027,6 +1029,324 @@ fn the_imperial_rites_fall_on_the_sources_schedule() {
                 set.code,
                 rule.name
             );
+        }
+    }
+}
+
+/// Assert that `name` is not on the given date in the given tradition.
+fn expect_not(set: &RuleSet, days: &[(i64, u8, u8, &str)]) {
+    for (year, month, day, name) in days {
+        let calendar = HolidayCalendar::for_year(set, None, *year);
+        assert!(
+            calendar
+                .on(ymd(*year, *month, *day))
+                .iter()
+                .all(|holiday| holiday.name != *name),
+            "{} {year}-{month:02}-{day:02}: {name} should not be there",
+            set.code
+        );
+    }
+}
+
+#[test]
+fn taanit_esther_is_the_day_before_purim_or_the_thursday_before() {
+    // Hebcal's dates of 2024–2028. Purim 2024 and 2028 fell on a Sunday,
+    // so the fast went back to the Thursday.
+    expect(
+        &JEWISH,
+        &[
+            (2024, 3, 21, "Ta'anit Esther"),
+            (2025, 3, 13, "Ta'anit Esther"),
+            (2026, 3, 2, "Ta'anit Esther"),
+            (2027, 3, 22, "Ta'anit Esther"),
+            (2028, 3, 9, "Ta'anit Esther"),
+        ],
+    );
+    expect_not(&JEWISH, &[(2024, 3, 23, "Ta'anit Esther")]);
+}
+
+#[test]
+fn shela_is_the_fifth_of_december_or_the_sixth_before_a_leap_year() {
+    // Chabad.org: the night of 4 December, or 5 December in the year before
+    // a civil leap year (2023, 2027 …), which begins the day named here.
+    expect(
+        &JEWISH,
+        &[
+            (
+                2023,
+                12,
+                6,
+                "Sh'ela (prayer for rain, outside the Land of Israel)",
+            ),
+            (
+                2024,
+                12,
+                5,
+                "Sh'ela (prayer for rain, outside the Land of Israel)",
+            ),
+            (
+                2025,
+                12,
+                5,
+                "Sh'ela (prayer for rain, outside the Land of Israel)",
+            ),
+            (
+                2026,
+                12,
+                5,
+                "Sh'ela (prayer for rain, outside the Land of Israel)",
+            ),
+            (
+                2027,
+                12,
+                6,
+                "Sh'ela (prayer for rain, outside the Land of Israel)",
+            ),
+        ],
+    );
+}
+
+#[test]
+fn the_prayer_book_ember_and_rogation_days() {
+    // BCP 1662: the Wednesday, Friday and Saturday after Lent 1, Pentecost,
+    // 14 September and 13 December; Rogation the three days before the
+    // Ascension. 2025: Lent 1 on 9 March, the Ascension 29 May, Pentecost
+    // 8 June, 14 September a Sunday, 13 December a Saturday.
+    expect(
+        &EMBER_BCP1662,
+        &[
+            (2025, 3, 12, "Ember Wednesday (Lent)"),
+            (2025, 3, 14, "Ember Friday (Lent)"),
+            (2025, 3, 15, "Ember Saturday (Lent)"),
+            (2025, 5, 26, "Rogation Monday"),
+            (2025, 5, 27, "Rogation Tuesday"),
+            (2025, 5, 28, "Rogation Wednesday"),
+            (2025, 6, 11, "Ember Wednesday (Whitsun)"),
+            (2025, 6, 13, "Ember Friday (Whitsun)"),
+            (2025, 6, 14, "Ember Saturday (Whitsun)"),
+            (2025, 9, 17, "Ember Wednesday (September)"),
+            (2025, 9, 19, "Ember Friday (September)"),
+            (2025, 9, 20, "Ember Saturday (September)"),
+            (2025, 12, 17, "Ember Wednesday (December)"),
+            (2025, 12, 19, "Ember Friday (December)"),
+            (2025, 12, 20, "Ember Saturday (December)"),
+            // 14 September 2027 is a Tuesday: the 15th, 17th and 18th, as
+            // Wikipedia's "Ember days" gives the rule.
+            (2027, 9, 15, "Ember Wednesday (September)"),
+            (2027, 9, 17, "Ember Friday (September)"),
+            (2027, 9, 18, "Ember Saturday (September)"),
+        ],
+    );
+    // A Wednesday 14 September is not its own Ember Day.
+    expect(
+        &EMBER_BCP1662,
+        &[(2022, 9, 21, "Ember Wednesday (September)")],
+    );
+    expect_not(
+        &EMBER_BCP1662,
+        &[(2022, 9, 14, "Ember Wednesday (September)")],
+    );
+}
+
+#[test]
+fn the_common_worship_traditional_ember_weeks() {
+    // The weeks before the Second Sunday of Lent, the Sundays nearest
+    // 29 June and 29 September, and the Third Sunday of Advent. 2025: Lent 2
+    // on 16 March, 29 June a Sunday, the Sunday nearest 29 September the
+    // 28th, Advent 3 on 14 December.
+    expect(
+        &EMBER_COMMON_WORSHIP,
+        &[
+            (2025, 3, 12, "Ember Wednesday (Lent)"),
+            (2025, 3, 15, "Ember Saturday (Lent)"),
+            (2025, 5, 27, "Rogation Tuesday"),
+            (2025, 6, 25, "Ember Wednesday (June)"),
+            (2025, 6, 27, "Ember Friday (June)"),
+            (2025, 6, 28, "Ember Saturday (June)"),
+            (2025, 9, 24, "Ember Wednesday (September)"),
+            (2025, 9, 26, "Ember Friday (September)"),
+            (2025, 9, 27, "Ember Saturday (September)"),
+            (2025, 12, 10, "Ember Wednesday (Advent)"),
+            (2025, 12, 12, "Ember Friday (Advent)"),
+            (2025, 12, 13, "Ember Saturday (Advent)"),
+            // 29 June 2026 is a Monday, so the nearest Sunday is the 28th.
+            (2026, 6, 24, "Ember Wednesday (June)"),
+        ],
+    );
+    // The two churches part in three seasons out of four.
+    expect_not(
+        &EMBER_COMMON_WORSHIP,
+        &[(2025, 12, 17, "Ember Wednesday (December)")],
+    );
+}
+
+#[test]
+fn the_greater_litanies_leave_easter_and_easter_monday() {
+    // Code of Rubrics 1960, no. 80: 25 April, or the Tuesday after when
+    // Easter Sunday (2038) or Easter Monday (2011) falls on it.
+    expect(
+        &ROGATION_ROMAN_1960,
+        &[
+            (2025, 4, 25, "Greater Litanies (Major Rogation)"),
+            (2011, 4, 26, "Greater Litanies (Major Rogation)"),
+            (2038, 4, 27, "Greater Litanies (Major Rogation)"),
+            (2025, 5, 26, "Lesser Litanies (Rogation Monday)"),
+            (2025, 5, 28, "Lesser Litanies (Rogation Wednesday)"),
+        ],
+    );
+    expect_not(
+        &ROGATION_ROMAN_1960,
+        &[
+            (2011, 4, 25, "Greater Litanies (Major Rogation)"),
+            (2038, 4, 25, "Greater Litanies (Major Rogation)"),
+        ],
+    );
+}
+
+#[test]
+fn the_samaritan_festivals_of_the_published_calendar() {
+    // the-samaritans.net's festivals of autumn 2026, and the Institute's
+    // Passover sacrifices of 2017–2020.
+    expect(
+        &SAMARITAN,
+        &[
+            (2026, 10, 11, "Festival of the Seventh Month"),
+            (2026, 10, 20, "Day of Atonement"),
+            (2026, 10, 25, "Festival of Sukkot (Tabernacles)"),
+            (2026, 11, 1, "Shemini Atseret (Day of Assembly)"),
+            (2017, 4, 10, "Passover sacrifice"),
+            (2018, 4, 29, "Passover sacrifice"),
+            (2019, 4, 18, "Passover sacrifice"),
+            (2020, 5, 6, "Passover sacrifice"),
+            (2019, 4, 19, "Feast of Unleavened Bread"),
+            (2019, 4, 25, "Feast of Unleavened Bread"),
+        ],
+    );
+    expect_not(&SAMARITAN, &[(2019, 4, 26, "Feast of Unleavened Bread")]);
+    // Outside the calendar's years the table says it cannot answer.
+    assert!(HolidayCalendar::for_year(&SAMARITAN, None, 2026).is_complete());
+    assert!(!HolidayCalendar::for_year(&SAMARITAN, None, 2150).is_complete());
+}
+
+#[test]
+fn the_mandaean_feasts_fall_where_drower_saw_them() {
+    // Drower: Dehwa Hnina on 23 November 1932 and 1935, Panja from 5 April
+    // in 1932–1935 and 4 April in 1936, the New Year on 8 August 1935.
+    expect(
+        &MANDAEAN,
+        &[
+            (1932, 11, 23, "Dehwa Hnina"),
+            (1935, 11, 23, "Dehwa Hnina"),
+            (1935, 11, 25, "Dehwa Hnina"),
+            (1932, 4, 5, "Panja (Parwanaia)"),
+            (1935, 4, 5, "Panja (Parwanaia)"),
+            (1936, 4, 4, "Panja (Parwanaia)"),
+            (1935, 8, 8, "Dehwa Rabba (New Year)"),
+            (1935, 8, 7, "Kanshia uZahla (New Year's Eve)"),
+        ],
+    );
+    expect_not(&MANDAEAN, &[(1935, 11, 26, "Dehwa Hnina")]);
+    // Wikipedia's 2024 dates, as a check: Parwanaya 13–17 March, Dehwa
+    // Daimana 17 May, Kanshi u-Zahli 15 July, Dehwa Rabba 16 July, Dehwa
+    // Hanina 31 October, Ashoriya 13 December.
+    expect(
+        &MANDAEAN,
+        &[
+            (2024, 3, 13, "Panja (Parwanaia)"),
+            (2024, 3, 17, "Panja (Parwanaia)"),
+            (2024, 5, 17, "Dehwa Daimana"),
+            (2024, 7, 15, "Kanshia uZahla (New Year's Eve)"),
+            (2024, 7, 16, "Dehwa Rabba (New Year)"),
+            (2024, 10, 31, "Dehwa Hnina"),
+            (2024, 12, 13, "Ashuriyah"),
+            // The day after Panja and the first of Taura are mbattal.
+            (2024, 3, 18, "Mbattal day"),
+            (2024, 10, 14, "Mbattal day"),
+        ],
+    );
+}
+
+#[test]
+fn the_yazidi_feasts_are_eastern_dates() {
+    // Serêsal on 19 April 2023, 17 April 2024 and 15 April 2026; the
+    // Festival of the Assembly on Eastern 23–30 September, which in 2024
+    // is 6–13 October; Bêlinde on Eastern 1 December, 14 December, after
+    // the three days' fast.
+    expect(
+        &YAZIDI,
+        &[
+            (2023, 4, 19, "Serêsal (New Year)"),
+            (2024, 4, 17, "Serêsal (New Year)"),
+            (2026, 4, 15, "Serêsal (New Year)"),
+            (2024, 10, 6, "Festival of the Assembly"),
+            (2024, 10, 13, "Festival of the Assembly"),
+            (2024, 12, 11, "Winter fast"),
+            (2024, 12, 13, "Winter fast"),
+            (2024, 12, 14, "Bêlinde"),
+            (
+                2024,
+                6,
+                23,
+                "Chilleyê Havînan (Forty Days of Summer) begins",
+            ),
+        ],
+    );
+    expect_not(&YAZIDI, &[(2024, 10, 14, "Festival of the Assembly")]);
+}
+
+#[test]
+fn the_armenian_year_in_etchmiadzin_and_in_jerusalem() {
+    // Vardavar 98 days after Easter: 7 July 2024, 27 July 2025, 12 July
+    // 2026 (Wikipedia, "Vardavar"); Theophany on 6 January; the Sundays
+    // nearest 15 August and 14 September; Great Lent from the seventh
+    // Monday before Easter, 16 February 2026.
+    expect(
+        &CHRISTIAN_ARMENIAN,
+        &[
+            (2024, 7, 7, "Transfiguration (Vardavar)"),
+            (2025, 7, 27, "Transfiguration (Vardavar)"),
+            (2026, 7, 12, "Transfiguration (Vardavar)"),
+            (2026, 1, 6, "Theophany (Nativity and Baptism of Christ)"),
+            (2026, 2, 16, "Great Lent begins"),
+            (2026, 4, 5, "Easter"),
+            (2026, 8, 16, "Assumption of the Mother of God"),
+            (2026, 9, 13, "Exaltation of the Holy Cross"),
+            (2026, 10, 4, "Holy Cross of Varak"),
+            (2026, 11, 1, "Discovery of the Holy Cross"),
+            (2026, 11, 16, "Advent (Hisnag) begins"),
+            (2026, 5, 10, "Apparition of the Cross"),
+            (2026, 2, 14, "Presentation of the Lord to the Temple"),
+            (2026, 4, 7, "Annunciation"),
+        ],
+    );
+    // Jerusalem keeps the Julian calendar and computus: Theophany on
+    // 19 January, Easter 2026 on 12 April and Vardavar 98 days later.
+    expect(
+        &CHRISTIAN_ARMENIAN_JERUSALEM,
+        &[
+            (2026, 1, 19, "Theophany (Nativity and Baptism of Christ)"),
+            (2026, 4, 12, "Easter"),
+            (2026, 7, 19, "Transfiguration (Vardavar)"),
+        ],
+    );
+    use hc_calendar::Weekday;
+    for set in [&CHRISTIAN_ARMENIAN, &CHRISTIAN_ARMENIAN_JERUSALEM] {
+        for year in 2000..=2040 {
+            let calendar = HolidayCalendar::for_year(set, None, year);
+            for holiday in calendar.all() {
+                if holiday.name.starts_with("Assumption")
+                    || holiday.name.starts_with("Exaltation")
+                    || holiday.name.starts_with("Apparition")
+                {
+                    assert_eq!(
+                        Weekday::from_rd(holiday.date),
+                        Weekday::Sunday,
+                        "{} {year} {}",
+                        set.code,
+                        holiday.name
+                    );
+                }
+            }
         }
     }
 }

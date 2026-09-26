@@ -12,10 +12,11 @@ a company calendar, a school year or a fictional setting supplies their own
 | Module | What it holds |
 | --- | --- |
 | `rule` | the rule vocabulary and the observance modifiers |
-| `computus` | Easter, Gregorian and Julian, and the offsets keyed to it |
+| `computus` | Easter, Gregorian and Julian, the astronomical reckoning at Jerusalem, and the offsets keyed to it |
 | `engine` | evaluation, and business-day arithmetic |
 | `hindu` | the Hindu festival rules the traditions and the national tables share |
 | `traditions` | the cross-cutting religious cycles |
+| `lectionary` | the lectionary cycles: the Sunday and weekday years and the RCL's Propers |
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `international` | the United Nations international days, each citing its resolution |
 | `exchanges` | 42 exchange calendars: New York, Nasdaq, Toronto, Mexico City, São Paulo, London, Frankfurt, Zurich, Vienna, Madrid, Warsaw, Moscow, Istanbul, Euronext's seven markets, Nasdaq's four Nordic markets, Johannesburg, Tel Aviv, Riyadh, Tokyo, Seoul, Shanghai, Shenzhen, Taipei, Hong Kong, Mumbai's NSE and BSE, Bangkok, Singapore, Kuala Lumpur, Jakarta, Manila, Sydney, NZX |
@@ -132,19 +133,34 @@ Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
 States, Uruguay, Uzbekistan, Vanuatu, Vatican City, Venezuela, Vietnam, Yemen,
 Zambia, Zimbabwe.
 
-**Twenty-two traditions.** Western Christianity on the Gregorian computus,
+**Thirty traditions.** Western Christianity on the Gregorian computus,
 the General Roman Calendar with the rank of every celebration
 (`roman_calendar`), Orthodox Christianity with its fixed feasts on the
 Julian calendar and, as a second table, on the Revised Julian, the
-Ethiopian Orthodox Tewahedo and the Coptic Orthodox Churches, Islam,
-Judaism, the Bahá'í Faith, Hinduism, Jainism (Paryuṣaṇa and Daśa Lakṣaṇa
-counted back from their last days), Sikhism on the Nanakshahi calendar of
-2003 (`sikh-nanakshahi-2003`), Buddhism as Thailand dates its four holy days
-on `thai-lunar` (`buddhist-thai`) and as Japan and the Chinese calendar date
-the East Asian days (`buddhist-east-asian`), Chinese folk tradition, Shinto
-with the imperial court rites beside it, the Wheel of the Year in both
-hemispheres, and the Zoroastrian schedule of feasts on each of its three
-reckonings.
+Ethiopian Orthodox Tewahedo and the Coptic Orthodox Churches, the Armenian
+Apostolic Church on the Gregorian calendar of Etchmiadzin
+(`christian-armenian`) and the Julian of the Patriarchate of Jerusalem
+(`christian-armenian-jerusalem`), the Ember and Rogation Days of the 1662
+Prayer Book (`ember-bcp1662`) and of *Common Worship*'s traditional weeks
+(`ember-common-worship`) and the Rogation Days of the Roman rubrics of 1960
+(`rogation-roman-1960`), Islam, Judaism with Ta'anit Esther and Sh'ela, the
+Samaritan festivals on `samaritan`, the Mandaean feasts and *mbattal* days
+on `mandaean`, the Yazidi feasts on the Eastern calendar, the Bahá'í Faith,
+Hinduism, Jainism (Paryuṣaṇa and Daśa Lakṣaṇa counted back from their last
+days), Sikhism on the Nanakshahi calendar of 2003 (`sikh-nanakshahi-2003`),
+Buddhism as Thailand dates its four holy days on `thai-lunar`
+(`buddhist-thai`) and as Japan and the Chinese calendar date the East Asian
+days (`buddhist-east-asian`), Chinese folk tradition, Shinto with the
+imperial court rites beside it, the Wheel of the Year in both hemispheres,
+and the Zoroastrian schedule of feasts on each of its three reckonings.
+
+Beside the tables, `computus` carries a third reckoning of Easter, the
+astronomical one at the meridian of Jerusalem that the World Council of
+Churches proposed at Aleppo in 1997 (`astronomical-jerusalem`), which no
+church keeps; and `lectionary` gives the year of the Sunday cycle, A, B or
+C, the Roman weekday cycle, I or II, and the Revised Common Lectionary's
+Proper of a Sunday after Trinity — the rules, not the copyrighted
+readings.
 
 The Ethiopian entry is worth a word. Its fixed feasts are ordinary dates —
 29 Tahsas, 11 Tirr — in the Ethiopic calendar, which a rule can name because

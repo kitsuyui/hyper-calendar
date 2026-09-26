@@ -545,6 +545,105 @@ pub const BIRKAT_HACHAMA_CYCLE_DAYS: i64 = 10_227;
 /// Reingold and Dershowitz gives it.
 pub const BIRKAT_HACHAMA_ANCHOR: Rd = Rd(733_505);
 
+/// The anniversary in `year` of a death on `death`: the *yahrzeit*, by
+/// Reingold and Dershowitz's `yahrzeit` (`calendar.l`, read 2026-09-26).
+///
+/// A date the later year has is kept on that date. The four that a later
+/// year may lack follow the rules the book's code states:
+///
+/// - **30 Ḥeshvan.** If the year after the death had no 30 Ḥeshvan, the
+///   anniversary is the day before 1 Kislev every year; if it had one, the
+///   30th is kept, and in a year without it the day after the 29th.
+/// - **30 Kislev.** The same, with the day before 1 Ṭevet.
+/// - **Adar II.** Kept in Adar in a common year and Adar II in a leap one —
+///   the last month of the year.
+/// - **Adar of a common year, or Adar I.** Kept in Adar I in a leap year and
+///   Adar in a common one; 30 Adar I, in a common year, on 30 Shevaṭ.
+///
+/// Customs differ, and the rules are the book's, not a ruling.
+///
+/// # Errors
+///
+/// Returns a [`CalendarError`] when `death` is not a Hebrew date, or when
+/// `year` is outside [`MIN_YEAR`]..=[`MAX_YEAR`].
+pub fn yahrzeit(death: HebrewDate, year: i64) -> CalendarResult<Rd> {
+    let HebrewDate {
+        year: died,
+        month,
+        day,
+    } = death;
+    to_fixed(died, month, day)?;
+    if month == Month::regular(2) && day == 30 && !is_long_heshvan(died + 1) {
+        return Ok(Rd(to_fixed(year, Month::regular(3), 1)?.0 - 1));
+    }
+    if month == Month::regular(3) && day == 30 && is_short_kislev(died + 1) {
+        return Ok(Rd(to_fixed(year, Month::regular(4), 1)?.0 - 1));
+    }
+    let adar = Month::regular(6);
+    if month == adar && is_leap_year(died) {
+        return to_fixed(year, adar, day);
+    }
+    // Adar of a common year and Adar I are one month to the book's code.
+    let first_adar = month == Month::leap(5) || month == adar;
+    if first_adar && day == 30 && !is_leap_year(year) {
+        return to_fixed(year, Month::regular(5), 30);
+    }
+    anniversary(
+        year,
+        if first_adar {
+            first_adar_in(year)
+        } else {
+            month
+        },
+        day,
+    )
+}
+
+/// The anniversary in `year` of a birth on `birth`, by Reingold and
+/// Dershowitz's `hebrew-birthday` (`calendar.l`, read 2026-09-26): the
+/// same date, except that a birth in the last month of the year — Adar, or
+/// Adar II — is kept in the last month of the later year, and a birth in
+/// Adar I in Adar of a common year. A day the later month lacks runs on
+/// into the next month.
+///
+/// # Errors
+///
+/// Returns a [`CalendarError`] when `birth` is not a Hebrew date, or when
+/// `year` is outside [`MIN_YEAR`]..=[`MAX_YEAR`].
+pub fn birthday(birth: HebrewDate, year: i64) -> CalendarResult<Rd> {
+    let HebrewDate {
+        year: born,
+        month,
+        day,
+    } = birth;
+    to_fixed(born, month, day)?;
+    let adar = Month::regular(6);
+    if month == adar {
+        return to_fixed(year, adar, day);
+    }
+    let kept = if month == Month::leap(5) {
+        first_adar_in(year)
+    } else {
+        month
+    };
+    anniversary(year, kept, day)
+}
+
+/// Adar I in a leap year, Adar in a common one.
+const fn first_adar_in(year: i64) -> Month {
+    if is_leap_year(year) {
+        Month::leap(5)
+    } else {
+        Month::regular(6)
+    }
+}
+
+/// The day that is `day − 1` days after the first of `month` in `year`,
+/// which runs on into the next month when the month is shorter.
+fn anniversary(year: i64, month: Month, day: u8) -> CalendarResult<Rd> {
+    Ok(Rd(to_fixed(year, month, 1)?.0 + i64::from(day) - 1))
+}
+
 /// A Hebrew date.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct HebrewDate {
@@ -1085,5 +1184,136 @@ mod tests {
         assert!(meta.has_leap_months);
         assert!(!meta.is_astronomical);
         assert_eq!(meta.earliest, Some(EARLIEST));
+    }
+
+    #[test]
+    fn a_yahrzeit_keeps_the_date_when_the_later_year_has_it() {
+        let death = HebrewDate::new(5780, Month::regular(4), 10).expect("10 Tevet 5780");
+        for year in 5781..=5800 {
+            assert_eq!(yahrzeit(death, year), to_fixed(year, Month::regular(4), 10));
+            assert_eq!(birthday(death, year), to_fixed(year, Month::regular(4), 10));
+        }
+    }
+
+    #[test]
+    fn a_yahrzeit_in_adar_follows_the_books_rules() {
+        let leap = (5780..5800)
+            .find(|&y| is_leap_year(y))
+            .expect("a leap year");
+        let common = (5780..5800)
+            .find(|&y| !is_leap_year(y))
+            .expect("a common year");
+        // Adar II: the last month of every later year.
+        let adar_ii = HebrewDate::new(5784, Month::regular(6), 7).expect("5784 is leap");
+        assert!(is_leap_year(5784));
+        assert_eq!(
+            yahrzeit(adar_ii, leap),
+            to_fixed(leap, Month::regular(6), 7)
+        );
+        assert_eq!(
+            yahrzeit(adar_ii, common),
+            to_fixed(common, Month::regular(6), 7)
+        );
+        // Adar of a common year: Adar I in a leap year.
+        let adar = HebrewDate::new(5783, Month::regular(6), 7).expect("5783 is common");
+        assert!(!is_leap_year(5783));
+        assert_eq!(yahrzeit(adar, leap), to_fixed(leap, Month::leap(5), 7));
+        assert_eq!(
+            yahrzeit(adar, common),
+            to_fixed(common, Month::regular(6), 7)
+        );
+        // 30 Adar I: 30 Shevat when the later year has no Adar I.
+        let thirtieth = HebrewDate::new(5784, Month::leap(5), 30).expect("Adar I has 30 days");
+        assert_eq!(
+            yahrzeit(thirtieth, common),
+            to_fixed(common, Month::regular(5), 30)
+        );
+        assert_eq!(
+            yahrzeit(thirtieth, leap),
+            to_fixed(leap, Month::leap(5), 30)
+        );
+    }
+
+    #[test]
+    fn a_birthday_in_adar_follows_the_books_rules() {
+        let leap = (5780..5800)
+            .find(|&y| is_leap_year(y))
+            .expect("a leap year");
+        let common = (5780..5800)
+            .find(|&y| !is_leap_year(y))
+            .expect("a common year");
+        // Adar of a common year and Adar II: the last month, Adar II in a
+        // leap year — where Adar of a common year's yahrzeit is Adar I.
+        let adar = HebrewDate::new(5783, Month::regular(6), 7).expect("5783 is common");
+        assert_eq!(birthday(adar, leap), to_fixed(leap, Month::regular(6), 7));
+        assert_ne!(birthday(adar, leap), yahrzeit(adar, leap));
+        let adar_i = HebrewDate::new(5784, Month::leap(5), 7).expect("5784 is leap");
+        assert_eq!(
+            birthday(adar_i, common),
+            to_fixed(common, Month::regular(6), 7)
+        );
+        assert_eq!(birthday(adar_i, leap), to_fixed(leap, Month::leap(5), 7));
+        // 30 Adar I in a common year runs on to 1 Nisan.
+        let thirtieth = HebrewDate::new(5784, Month::leap(5), 30).expect("Adar I has 30 days");
+        assert_eq!(
+            birthday(thirtieth, common),
+            to_fixed(common, Month::regular(7), 1)
+        );
+    }
+
+    #[test]
+    fn the_thirtieth_of_heshvan_and_kislev_depend_on_the_first_anniversary() {
+        let long = |y: i64| is_long_heshvan(y);
+        // A death on 30 Heshvan whose first anniversary year had no 30th is
+        // kept on the day before 1 Kislev, whatever the later year.
+        let died = (5700..5800)
+            .find(|&y| long(y) && !long(y + 1))
+            .expect("such a year");
+        let death = HebrewDate::new(died, Month::regular(2), 30).expect("a long Heshvan");
+        for year in died + 1..died + 20 {
+            assert_eq!(
+                yahrzeit(death, year).map(|rd| rd.0 + 1),
+                to_fixed(year, Month::regular(3), 1).map(|rd| rd.0)
+            );
+        }
+        // One whose first anniversary had a 30th keeps the 30th, and in a
+        // year without it runs on to 1 Kislev.
+        let died = (5700..5800)
+            .find(|&y| long(y) && long(y + 1))
+            .expect("such a year");
+        let death = HebrewDate::new(died, Month::regular(2), 30).expect("a long Heshvan");
+        let short_year = (died + 2..died + 30)
+            .find(|&y| !long(y))
+            .expect("a short Heshvan");
+        assert_eq!(
+            yahrzeit(death, short_year),
+            to_fixed(short_year, Month::regular(3), 1)
+        );
+        // 30 Kislev with a short Kislev in the next year: the day before
+        // 1 Tevet.
+        let died = (5700..5800)
+            .find(|&y| !is_short_kislev(y) && is_short_kislev(y + 1))
+            .expect("such a year");
+        let death = HebrewDate::new(died, Month::regular(3), 30).expect("a full Kislev");
+        let full_year = (died + 2..died + 30)
+            .find(|&y| !is_short_kislev(y))
+            .expect("a full Kislev");
+        assert_eq!(
+            yahrzeit(death, full_year).map(|rd| rd.0 + 1),
+            to_fixed(full_year, Month::regular(4), 1).map(|rd| rd.0)
+        );
+    }
+
+    #[test]
+    fn an_anniversary_of_a_date_that_does_not_exist_is_an_error() {
+        let bad = HebrewDate {
+            year: 5783,
+            month: Month::leap(5),
+            day: 1,
+        };
+        assert!(yahrzeit(bad, 5790).is_err());
+        assert!(birthday(bad, 5790).is_err());
+        let good = HebrewDate::new(5780, Month::regular(1), 1).expect("Rosh Hashanah");
+        assert!(yahrzeit(good, MAX_YEAR + 1).is_err());
     }
 }
