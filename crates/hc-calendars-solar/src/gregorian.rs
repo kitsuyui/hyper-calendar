@@ -14,7 +14,10 @@
 //! [`crate::julian_gregorian`].
 //!
 //! The formulae are those of Reingold and Dershowitz, *Calendrical
-//! Calculations* (4th ed., 2018), chapter 2. They are exact — there is no
+//! Calculations* (4th ed., 2018), chapter 2, and the year arithmetic is
+//! [`hc_calendar::gregorian`]'s, which owns it because it defines `Rd`
+//! (policy §2); this module adds the range checks, the month split it shares
+//! with the Julian calendar, and the `Calendar` implementation. They are exact — there is no
 //! floating point anywhere in this module — for every year in
 //! [`MIN_YEAR`]..=[`MAX_YEAR`], which comfortably contains the
 //! -9999..=9999 range that callers of this crate can assume.
@@ -46,7 +49,7 @@ pub use hc_calendar::gregorian::{MAX_YEAR, MIN_YEAR};
 /// ```
 #[must_use]
 pub const fn is_leap_year(year: i64) -> bool {
-    year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+    hc_calendar::gregorian::is_leap_year(year)
 }
 
 /// The number of days in `month` of `year`, or `None` when `month` is not in
@@ -81,8 +84,7 @@ pub const fn day_of_year(year: i64, month: u8, day: u8) -> CalendarResult<u16> {
 
 /// The fixed day of 1 January of `year`, without any range check.
 const fn new_year_raw(year: i64) -> i64 {
-    let prior = year - 1;
-    365 * prior + prior.div_euclid(4) - prior.div_euclid(100) + prior.div_euclid(400) + 1
+    hc_calendar::gregorian::new_year(year).0
 }
 
 /// Where the period of use comes from: the bull that promulgated the
@@ -134,10 +136,8 @@ pub const fn to_fixed(year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
 
 /// The Gregorian year containing a fixed day.
 ///
-/// The three nested cycle lengths are 146 097 days per 400 years, 36 524 per
-/// century and 1 461 per four years; the two `== 4` tests catch the last day
-/// of a leap-century cycle, which would otherwise be attributed to a year
-/// that does not exist.
+/// The arithmetic is [`hc_calendar::gregorian::year_from_fixed`]'s; this
+/// adds the range check.
 ///
 /// # Errors
 ///
@@ -150,20 +150,7 @@ pub const fn year_from_fixed(rd: Rd) -> CalendarResult<i64> {
     if rd.0 > LATEST.0 {
         return Err(CalendarError::AfterSupportedRange);
     }
-    let elapsed = rd.0 - 1;
-    let cycles_400 = elapsed.div_euclid(146_097);
-    let within_400 = elapsed.rem_euclid(146_097);
-    let cycles_100 = within_400 / 36_524;
-    let within_100 = within_400 % 36_524;
-    let cycles_4 = within_100 / 1_461;
-    let within_4 = within_100 % 1_461;
-    let years_1 = within_4 / 365;
-    let years = 400 * cycles_400 + 100 * cycles_100 + 4 * cycles_4 + years_1;
-    if cycles_100 == 4 || years_1 == 4 {
-        Ok(years)
-    } else {
-        Ok(years + 1)
-    }
+    Ok(hc_calendar::gregorian::year_from_fixed(rd))
 }
 
 /// The proleptic Gregorian year, month and day of a fixed day.

@@ -23,10 +23,11 @@
 //!   ordinary clock, from [`hc_core::tai64`]: a convention of its own, so
 //!   functions of their own, not a flag on the true-TAI ones
 //!   (`docs/policy.md` §5).
-//! * The 60-bit timestamp of a version 1 or version 6 UUID, from
+//! * The 60-bit timestamp of a version 1 or version 6 UUID both ways, from
 //!   [`hc_core::uuid`]; an NTP timestamp placed in its era by a reference
-//!   time, from [`hc_core::ntp`]; and the FAT date and time words both
-//!   ways, from [`hc_format::fat`].
+//!   time, and the NTP date and timestamp of a POSIX instant, from
+//!   [`hc_core::ntp`]; and the FAT date and time words both ways, from
+//!   [`hc_format::fat`].
 //! * Swatch Internet Time, from [`hc_core::internet_time`], and the Julian
 //!   and Besselian epochs of a TT instant both ways, from
 //!   [`hc_core::epoch_notation`].
@@ -693,6 +694,88 @@ pub fn uuid_timestamp_line(text: &str) -> Answer<String> {
     ))
 }
 
+/// The UUID time fields of a timestamp in one version's layout: octets 0
+/// to 7, `time_low` or `time_high`, `time_mid` and the version with the
+/// remaining 12 bits, as RFC 9562's hex-and-dash form writes them, in
+/// lower case.
+fn uuid_time_fields(version: TimeVersion, timestamp: u64) -> Answer<String> {
+    // The clock sequence and node are not time; octets 8 to 15 are dropped.
+    let uuid = uuid::encode(version, timestamp, [0; 8])?;
+    let mut out = String::new();
+    for (index, byte) in uuid[..8].iter().enumerate() {
+        if index == 4 || index == 6 {
+            out.push('-');
+        }
+        let _ = write!(out, "{byte:02x}");
+    }
+    Ok(out)
+}
+
+/// The 60-bit UUID timestamp of a POSIX instant, the 100-nanosecond
+/// interval that contains it counted from 1582-10-15, and the time fields
+/// a version 1 and a version 6 UUID write it in.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for attoseconds from 10¹⁸, and for an instant
+/// before 1582-10-15 00:00 UTC or past the 60-bit field's last interval,
+/// on 5236-03-31.
+pub fn uuid_timestamp_encode(unix_seconds: i64, attoseconds: u64) -> Answer<(u64, String, String)> {
+    let timestamp = uuid::timestamp_from_unix(unix_instant(unix_seconds, attoseconds)?)?;
+    Ok((
+        timestamp,
+        uuid_time_fields(TimeVersion::V1, timestamp)?,
+        uuid_time_fields(TimeVersion::V6, timestamp)?,
+    ))
+}
+
+/// The line of `hc_uuid_timestamp_encode`: the timestamp, and the first
+/// three groups of a version 1 and of a version 6 UUID that carry it, the
+/// caller's clock sequence and node to follow.
+///
+/// # Errors
+///
+/// As [`uuid_timestamp_encode`].
+pub fn uuid_timestamp_encode_line(unix_seconds: i64, attoseconds: u64) -> Answer<String> {
+    let (timestamp, v1, v6) = uuid_timestamp_encode(unix_seconds, attoseconds)?;
+    Ok(alloc::format!("{timestamp}\t{v1}\t{v6}\n"))
+}
+
+/// The 128-bit NTP date of a POSIX instant, the fraction floored to 2⁻⁶⁴ s.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for attoseconds from 10¹⁸, and
+/// [`Refusal::Overflow`] for a second so late that its count from 1900
+/// leaves an `i64`.
+pub fn ntp_encode(unix_seconds: i64, attoseconds: u64) -> Answer<NtpDate> {
+    Ok(NtpDate::from_unix(unix_instant(
+        unix_seconds,
+        attoseconds,
+    )?)?)
+}
+
+/// The line of `hc_ntp_encode`: the era, the era offset, the fraction in
+/// units of 2⁻⁶⁴ s, the 128-bit date in RFC 5905's Figure 3 layout and the
+/// 64-bit timestamp in its wire layout, each in lower-case hexadecimal.
+///
+/// # Errors
+///
+/// As [`ntp_encode`].
+pub fn ntp_encode_line(unix_seconds: i64, attoseconds: u64) -> Answer<String> {
+    let date = ntp_encode(unix_seconds, attoseconds)?;
+    let mut out = alloc::format!("{}\t{}\t{}\t", date.era, date.offset, date.fraction);
+    for byte in date.to_bytes() {
+        let _ = write!(out, "{byte:02x}");
+    }
+    out.push('\t');
+    for byte in date.timestamp().to_bytes() {
+        let _ = write!(out, "{byte:02x}");
+    }
+    out.push('\n');
+    Ok(out)
+}
+
 /// A 64-bit NTP timestamp placed in the era that puts it within 2³¹ s of a
 /// reference POSIX second, from 2³¹ s before it, included, to 2³¹ s after
 /// it, excluded: the 128-bit date and its POSIX instant.
@@ -1131,6 +1214,86 @@ mod tests {
     /// RFC 5905's Figure 4 puts 8 February 2036 at era 1, offset 63 104:
     /// read against 2030 the timestamp is that day, against 1920 the same
     /// offset into era 0, 1 January 1900.
+    /// RFC 9562 Appendix A.1 and A.5 (`rfc9562`): Tuesday 22 February 2022
+    /// 2:22:22 PM GMT-05:00 is the timestamp 0x1EC9414C232AB00, written
+    /// `C232AB00-9414-11EC-…` in version 1 and `1EC9414C-232A-6B00-…` in
+    /// version 6.
+    #[test]
+    fn the_rfc_9562_instant_encodes_to_its_vectors_time_fields() {
+        assert_eq!(
+            uuid_timestamp_encode_line(1_645_557_742, 0).as_deref(),
+            Ok("138648505420000000\tc232ab00-9414-11ec\t1ec9414c-232a-6b00\n")
+        );
+        // A sub-tick fraction is floored into its 100 ns interval.
+        assert_eq!(
+            uuid_timestamp_encode(1_645_557_742, 99_999_999_999).map(|parts| parts.0),
+            Ok(138_648_505_420_000_000)
+        );
+        // The count begins on 1582-10-15 and ends on 5236-03-31.
+        assert_eq!(
+            uuid_timestamp_encode(-12_219_292_800, 0).map(|parts| parts.0),
+            Ok(0)
+        );
+        assert_eq!(
+            uuid_timestamp_encode(-12_219_292_801, 0),
+            Err(Refusal::OutOfRange)
+        );
+        let (last, _, _) = uuid_timestamp_encode(103_072_857_660, 684_697_500_000_000_000)
+            .expect("the last interval");
+        assert_eq!(last, uuid::MAX_TIMESTAMP);
+        assert_eq!(
+            uuid_timestamp_encode(103_072_857_660, 684_697_600_000_000_000),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            uuid_timestamp_encode(0, 1_000_000_000_000_000_000),
+            Err(Refusal::OutOfRange)
+        );
+        // The fields read back through the decoder.
+        let (_, v1, v6) = uuid_timestamp_encode(1_645_557_742, 0).expect("in range");
+        for fields in [v1, v6] {
+            let uuid = alloc::format!("{fields}-8000-000000000000");
+            assert_eq!(
+                uuid_timestamp(&uuid).map(|parts| parts.1),
+                Ok(138_648_505_420_000_000)
+            );
+        }
+    }
+
+    /// RFC 5905 Figure 4 (`rfc5905`): 1 January 1970 is era 0, offset
+    /// 2 208 988 800; 15 October 1582 is era −3, offset 2 874 597 888;
+    /// 31 December 1899 is era −1, offset 4 294 880 896; and 8 February
+    /// 2036 is era 1, offset 63 104.
+    #[test]
+    fn a_posix_instant_encodes_to_the_ntp_dates_of_figure_4() {
+        assert_eq!(
+            ntp_encode_line(0, 0).as_deref(),
+            Ok("0\t2208988800\t0\t0000000083aa7e800000000000000000\t83aa7e8000000000\n")
+        );
+        for (unix, era, offset) in [
+            (-12_219_292_800, -3, 2_874_597_888),
+            (-2_209_075_200, -1, 4_294_880_896),
+            (2_086_041_600, 1, 63_104),
+        ] {
+            let date = ntp_encode(unix, 0).expect("in range");
+            assert_eq!((date.era, date.offset), (era, offset), "{unix}");
+        }
+        // Half a second is 2⁶³ in the date and 2³¹ in the timestamp.
+        assert_eq!(
+            ntp_encode_line(0, 500_000_000_000_000_000).as_deref(),
+            Ok(
+                "0\t2208988800\t9223372036854775808\t0000000083aa7e808000000000000000\t83aa7e8080000000\n"
+            )
+        );
+        // Era 1's timestamp is the same 64 bits as era 0's, the era dropped.
+        let line = ntp_encode_line(2_086_041_600, 0).expect("in range");
+        assert!(line.ends_with("\t0000f68000000000\n"), "{line}");
+        assert!(ntp_encode(0, 1_000_000_000_000_000_000).is_err());
+        assert_eq!(ntp_encode(i64::MAX, 0), Err(Refusal::Overflow));
+        assert!(ntp_encode(i64::MAX - 2_208_988_800, 0).is_ok());
+        assert!(ntp_encode(i64::MIN, 0).is_ok());
+    }
+
     #[test]
     fn an_ntp_timestamp_is_placed_in_its_era_by_the_reference() {
         let in_2030 = 1_893_456_000;

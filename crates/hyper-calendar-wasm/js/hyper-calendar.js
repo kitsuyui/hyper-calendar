@@ -73,6 +73,8 @@ export const METHODS = Object.freeze([
   { method: "tai64PosixPlus10Decode", export: "hc_tai64_posix_plus_10_decode", feature: "timestamps" },
   { method: "uuidTimestamp", export: "hc_uuid_timestamp", feature: "timestamps" },
   { method: "ntpResolve", export: "hc_ntp_resolve", feature: "timestamps" },
+  { method: "uuidTimestampEncode", export: "hc_uuid_timestamp_encode", feature: "timestamps" },
+  { method: "ntpEncode", export: "hc_ntp_encode", feature: "timestamps" },
   { method: "fatDecode", export: "hc_fat_decode", feature: "timestamps" },
   { method: "fatEncode", export: "hc_fat_encode", feature: "timestamps" },
   { method: "swatchBeat", export: "hc_swatch_beat", feature: "timestamps" },
@@ -99,8 +101,10 @@ export const METHODS = Object.freeze([
   { method: "holidayTables", export: "hc_holiday_tables", feature: "holiday" },
   { method: "lectionary", export: "hc_lectionary", feature: "holiday" },
   { method: "astronomicalEaster", export: "hc_astronomical_easter", feature: "holiday" },
+  { method: "astronomicalPaschalFullMoon", export: "hc_astronomical_paschal_full_moon", feature: "holiday" },
   { method: "termInEffect", export: "hc_term_in_effect", feature: "seasons" },
   { method: "pentadInEffect", export: "hc_pentad_in_effect", feature: "seasons" },
+  { method: "coldFoodDay", export: "hc_cold_food_day", feature: "seasons" },
   { method: "placeYearsAgo", export: "hc_place_years_ago", feature: "deep-time" },
   { method: "cosmicEvents", export: "hc_cosmic_events", feature: "deep-time" },
   { method: "geologicIntervals", export: "hc_geologic_intervals", feature: "deep-time" },
@@ -234,6 +238,8 @@ export const COLUMNS = Object.freeze({
   tai64PosixPlus10: Object.freeze(["format", "unix seconds", "attoseconds"]),
   uuidTimestamp: Object.freeze(["version", "timestamp", "unix seconds", "attoseconds"]),
   ntpResolve: Object.freeze(["era", "era offset", "fraction", "unix seconds", "attoseconds"]),
+  uuidTimestampEncode: Object.freeze(["timestamp", "version 1 fields", "version 6 fields"]),
+  ntpEncode: Object.freeze(["era", "era offset", "fraction", "date", "timestamp"]),
   fatDecode: Object.freeze(["fixed", "seconds of day"]),
   fatEncode: Object.freeze(["date word", "time word"]),
   epoch: Object.freeze(["notation", "epoch"]),
@@ -1048,6 +1054,34 @@ function ntpDate(cells) {
     fraction: bigInteger(fraction, "fraction"),
     unixSeconds: bigInteger(unixSeconds, "unix seconds"),
     attoseconds: bigInteger(attoseconds, "attoseconds"),
+  };
+}
+
+/**
+ * The one line of `hc_uuid_timestamp_encode`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").UuidTimeFields}
+ */
+function uuidTimeFields(cells) {
+  const [timestamp, v1, v6] = cells;
+  return { timestamp: bigInteger(timestamp, "timestamp"), v1, v6 };
+}
+
+/**
+ * The one line of `hc_ntp_encode`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").NtpEncoding}
+ */
+function ntpEncoding(cells) {
+  const [era, offset, fraction, date, timestamp] = cells;
+  return {
+    era: integer(era, "era"),
+    offset: integer(offset, "era offset"),
+    fraction: bigInteger(fraction, "fraction"),
+    date,
+    timestamp,
   };
 }
 
@@ -1975,6 +2009,23 @@ export class HyperCalendar {
   pentadInEffect(fixed, meridian = "universal") {
     return this.#almanac("hc_pentad_in_effect", fixed, meridian);
   }
+  /**
+   * The fixed day of 寒食, the Cold Food Day, of a Gregorian year under a
+   * named reckoning: `hanshi-solstice-105`, `hanshi-eve-of-qingming` or
+   * `hansik`. Another name is `unknown`; a year outside −999 to 3000 is
+   * `out-of-range`.
+   *
+   * @param {import("./hyper-calendar.d.ts").ColdFoodConvention} convention
+   * @param {number | bigint} year
+   * @returns {number}
+   */
+  coldFoodDay(convention, year) {
+    const fn = this.#export("hc_cold_food_day");
+    const y = toI64(year, "year");
+    return this.#withText(convention, "convention", (pointer, len) =>
+      toNumber(fn(pointer, len, y), "hc_cold_food_day"));
+  }
+
 
   /**
    * @param {string} exportName
@@ -2455,6 +2506,42 @@ export class HyperCalendar {
   }
 
   /**
+   * The 60-bit UUID timestamp of a POSIX instant, the 100 ns interval that
+   * contains it counted from 1582-10-15, and the first three groups of a
+   * version 1 and a version 6 UUID that carry it, in lower case, for the
+   * caller's clock sequence and node to follow. Before 1582-10-15 or after
+   * 5236-03-31 is `out-of-range`.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {number | bigint} [attoseconds]
+   * @returns {import("./hyper-calendar.d.ts").UuidTimeFields}
+   */
+  uuidTimestampEncode(unixSeconds, attoseconds = 0) {
+    const fn = this.#export("hc_uuid_timestamp_encode");
+    const seconds = toI64(unixSeconds, "unixSeconds");
+    const attos = toU64(attoseconds, "attoseconds");
+    const text = this.#text("hc_uuid_timestamp_encode", (buffer, capacity) => fn(seconds, attos, buffer, capacity), true);
+    return uuidTimeFields(this.#oneLine("hc_uuid_timestamp_encode", text, COLUMNS.uuidTimestampEncode));
+  }
+
+  /**
+   * The NTP date and timestamp of a POSIX instant: the era, the era offset
+   * and the 2⁻⁶⁴ s fraction, and the 128-bit date and the 64-bit
+   * timestamp in their wire layouts as lower-case hexadecimal.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {number | bigint} [attoseconds]
+   * @returns {import("./hyper-calendar.d.ts").NtpEncoding}
+   */
+  ntpEncode(unixSeconds, attoseconds = 0) {
+    const fn = this.#export("hc_ntp_encode");
+    const seconds = toI64(unixSeconds, "unixSeconds");
+    const attos = toU64(attoseconds, "attoseconds");
+    const text = this.#text("hc_ntp_encode", (buffer, capacity) => fn(seconds, attos, buffer, capacity), true);
+    return ntpEncoding(this.#oneLine("hc_ntp_encode", text, COLUMNS.ntpEncode));
+  }
+
+  /**
    * The local reading a FAT date word and time word name: its fixed day
    * and the even seconds into it. Fields that name no day are
    * `invalid-date`.
@@ -2683,6 +2770,21 @@ export class HyperCalendar {
    */
   astronomicalEaster(year) {
     return toNumber(this.#export("hc_astronomical_easter")(toI64(year, "year")), "hc_astronomical_easter");
+  }
+
+  /**
+   * The fixed day of the paschal full moon by the astronomical reckoning at
+   * the meridian of Jerusalem, for 1583 to 2150: the day
+   * {@link astronomicalEaster} is the first Sunday after.
+   *
+   * @param {number | bigint} year
+   * @returns {number}
+   */
+  astronomicalPaschalFullMoon(year) {
+    return toNumber(
+      this.#export("hc_astronomical_paschal_full_moon")(toI64(year, "year")),
+      "hc_astronomical_paschal_full_moon",
+    );
   }
 
   /**

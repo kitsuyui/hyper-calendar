@@ -28,11 +28,14 @@
 //! * English uses `{0} and {1}` to close a list, not CLDR's `{0}, and {1}`.
 //!   The serial comma is a house-style choice, not a linguistic one, and the
 //!   comma-free form is what the rest of this workspace writes.
-//! * The `zh` entry carries Simplified Chinese, so `zh-Hans` reaches it by
-//!   truncation inheritance. `zh-Hant` is a separate entry. CLDR would do
-//!   this with likely-subtags; this crate does not model those, so `zh-TW`
-//!   and `zh-HK` resolve to Simplified and a caller who cares must spell
-//!   `zh-Hant` out.
+//! * The `zh` entry carries Simplified Chinese and is tagged `zh` rather
+//!   than `zh-Hans`, so `zh-Hans` reaches it by truncation inheritance;
+//!   `zh-Hant` is a separate entry. This is a deviation in the tagging
+//!   only, not in what a tag resolves to: a tag that names no script first
+//!   takes the one CLDR's likely subtags give it
+//!   ([`hc_i18n::locale::LIKELY_SCRIPTS`]), so `zh-TW`, `zh-HK` and `zh-MO`
+//!   resolve to Traditional (*3週前*) and `zh` and `zh-CN` to Simplified
+//!   (*3周前*), as CLDR's would.
 //! * Weekday phrases avoid agreement wherever a language inflects the
 //!   demonstrative for gender. Russian says *понедельник на прошлой неделе*
 //!   rather than *в прошлый понедельник* because the latter is wrong for

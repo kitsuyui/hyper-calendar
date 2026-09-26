@@ -111,4 +111,8 @@ misprint. It is not used.
 `JERUSALEM_LONGITUDE_DEGREES`. Anchors:
 `the_astronomical_reckoning_reproduces_the_aleppo_table`,
 `a_full_moon_on_a_sunday_puts_easter_a_week_later`,
-`the_measured_agreements_of_1583_to_2150_hold`.
+`the_measured_agreements_of_1583_to_2150_hold`. The WebAssembly module's
+and the C library's `hc_astronomical_easter` and
+`hc_astronomical_paschal_full_moon` are
+`crates/hyper-calendar/src/holiday_lines.rs`, anchored to the table's 2001
+and 2019: `the_paschal_full_moons_of_2001_and_2019_are_the_aleppo_tables`.

@@ -8,9 +8,13 @@
 //!   [`hc_seasons::pentads::pentad_in_effect`], with its name in the
 //!   Chinese and the Japanese tradition and the text each comes from.
 //!
-//! Both are judged at a meridian a name selects, [`meridian`], and answer
-//! for the days of the sky layer's era, [`crate::astro_lines::day_in_era`]:
-//! the years −1000 to 3000 over which `hc-astro` states its series hold.
+//! * 寒食, the Cold Food Day, of a year under a named reckoning, from
+//!   [`hc_seasons::cold_food`], counted from a solar term.
+//!
+//! The first two are judged at a meridian a name selects, [`meridian`];
+//! the reckonings of 寒食 each name their own. All answer for the days of
+//! the sky layer's era, [`crate::astro_lines::day_in_era`]: the years −1000
+//! to 3000 over which `hc-astro` states its series hold.
 
 use alloc::string::String;
 use core::fmt::Write;
@@ -18,10 +22,10 @@ use core::fmt::Write;
 use hc_calendar::Rd;
 use hc_seasons::hc_astro::solar::solar_longitude_after;
 use hc_seasons::solar_terms::{TermOrder, namings, term_in_effect};
-use hc_seasons::{Meridian, pentads};
+use hc_seasons::{ColdFoodConvention, Meridian, pentads};
 
-use crate::astro_lines::day_in_era;
-use crate::boundary::{Answer, Refusal, push_cell};
+use crate::astro_lines::{EARLIEST_YEAR, LATEST_YEAR, day_in_era};
+use crate::boundary::{Answer, Refusal, names, push_cell};
 
 /// How many columns [`term_line`] and [`pentad_line`] write.
 pub const ALMANAC_COLUMNS: usize = 7;
@@ -123,6 +127,40 @@ pub fn pentad_line(fixed: i64, meridian_name: &str) -> Answer<String> {
     Ok(out)
 }
 
+/// The reckoning of 寒食 an identifier names: `hanshi-solstice-105`,
+/// `hanshi-eve-of-qingming` or `hansik`, in any case, as
+/// [`ColdFoodConvention::id`] spells them.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for anything else.
+pub fn cold_food_convention(id: &str) -> Answer<ColdFoodConvention> {
+    ColdFoodConvention::ALL
+        .into_iter()
+        .find(|convention| names(id, convention.id()))
+        .ok_or(Refusal::Unknown)
+}
+
+/// The fixed day of 寒食 in Gregorian `year` under the reckoning `id`
+/// names: in April, or at the very end of March, every year.
+///
+/// The two solstice reckonings count from the winter solstice of the year
+/// before, so the years are those whose solstice and whose April are both
+/// in the era: `EARLIEST_YEAR + 1` through `LATEST_YEAR`, for every
+/// reckoning alike.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for an identifier [`cold_food_convention`] does not
+/// read, and [`Refusal::OutOfRange`] for a year outside −999 to 3000.
+pub fn cold_food_day(id: &str, year: i64) -> Answer<i64> {
+    let convention = cold_food_convention(id)?;
+    if !(EARLIEST_YEAR + 1..=LATEST_YEAR).contains(&year) {
+        return Err(Refusal::OutOfRange);
+    }
+    Ok(convention.day(year).0)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -153,6 +191,35 @@ mod tests {
         assert_eq!(pentad.len(), ALMANAC_COLUMNS);
         assert_eq!(pentad[0], "36");
         assert_eq!(pentad[3], alloc::format!("{}", day(2026, 9, 23)));
+    }
+
+    /// The Korea Astronomy and Space Science Institute's 월력요항 press
+    /// releases (`kasi-wollyeok`): "한식은 4월 5일(금)" in 2024, "4월
+    /// 5일(토)" in 2025 and "4월 6일(월)" in 2026.
+    #[test]
+    fn hansik_is_where_kasi_puts_it_and_the_chinese_reckonings_bracket_qingming() {
+        for (year, month, date) in [(2024, 4, 5), (2025, 4, 5), (2026, 4, 6)] {
+            assert_eq!(cold_food_day("hansik", year), Ok(day(year, month, date)));
+            assert_eq!(cold_food_day(" HANSIK ", year), Ok(day(year, month, date)));
+        }
+        for year in [2024, 2025, 2026] {
+            let eve = cold_food_day("hanshi-eve-of-qingming", year).expect("in the era");
+            let older = cold_food_day("hanshi-solstice-105", year).expect("in the era");
+            assert!(matches!(older - eve, 1 | 2), "{year}");
+            let qingming = hc_seasons::solar_terms::term_day(
+                year,
+                hc_seasons::SolarTerm::from_degrees(15).expect("清明"),
+                Meridian::CHINA,
+            );
+            assert_eq!(eve, qingming.0 - 1, "{year}");
+        }
+        assert_eq!(cold_food_day("hanshi", 2026), Err(Refusal::Unknown));
+        assert!(cold_food_day("hansik", -999).is_ok());
+        assert!(cold_food_day("hansik", 3000).is_ok());
+        assert_eq!(cold_food_day("hansik", -1000), Err(Refusal::OutOfRange));
+        assert_eq!(cold_food_day("hansik", 3001), Err(Refusal::OutOfRange));
+        // The identifier is read before the year.
+        assert_eq!(cold_food_day("mars", 3001), Err(Refusal::Unknown));
     }
 
     #[test]

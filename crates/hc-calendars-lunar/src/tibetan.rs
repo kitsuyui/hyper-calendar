@@ -229,7 +229,8 @@ fn table(values: &[i128], half: i128, x: Ratio) -> Ratio {
     value.scale(sign)
 }
 
-const JDN_OFFSET: i64 = 1_721_425;
+/// The Julian Day Number of `Rd(0)`, from the crate that defines `Rd`.
+const JDN_OFFSET: i64 = hc_calendar::fixed::JDN_OF_RD_ZERO;
 
 /// Which month a leap month takes its number from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

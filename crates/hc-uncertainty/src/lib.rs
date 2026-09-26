@@ -28,9 +28,11 @@
 //!
 //! It does not know about calendars. Everything here is expressed against
 //! [`hc_core::Instant`] and [`hc_core::Duration`]; turning "the third century
-//! BC" into a pair of instants is the job of a calendar crate, and the one
-//! small exception — EDTF needs proleptic Gregorian day arithmetic to parse
-//! `1984-01-01` at all — is documented in [`edtf`] and kept private.
+//! BC" into a pair of instants is the job of a calendar crate. The one
+//! exception is EDTF, which needs proleptic Gregorian day arithmetic to
+//! place `1984-01-01` at all; it takes that from
+//! [`hc_calendar::gregorian`], the one place it lives, as [`edtf`]
+//! documents.
 //!
 //! It also does not do Monte Carlo. [`Uncertain`] is a linear approximation
 //! and says so; when the relative uncertainty is large enough for that to

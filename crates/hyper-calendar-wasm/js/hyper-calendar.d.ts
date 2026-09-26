@@ -114,6 +114,8 @@ export const COLUMNS: {
   readonly tai64PosixPlus10: ReadonlyArray<string>;
   readonly uuidTimestamp: ReadonlyArray<string>;
   readonly ntpResolve: ReadonlyArray<string>;
+  readonly uuidTimestampEncode: ReadonlyArray<string>;
+  readonly ntpEncode: ReadonlyArray<string>;
   readonly fatDecode: ReadonlyArray<string>;
   readonly fatEncode: ReadonlyArray<string>;
   readonly epoch: ReadonlyArray<string>;
@@ -694,6 +696,33 @@ export interface NtpDate {
   attoseconds: bigint;
 }
 
+/** The one line of `hc_uuid_timestamp_encode`: a POSIX instant's UUID timestamp. */
+export interface UuidTimeFields {
+  /** 100-nanosecond intervals from 1582-10-15 00:00 UTC, 60 bits. */
+  timestamp: bigint;
+  /** The first three groups of a version 1 UUID, such as `c232ab00-9414-11ec`. */
+  v1: string;
+  /** The first three groups of a version 6 UUID, such as `1ec9414c-232a-6b00`. */
+  v6: string;
+}
+
+/** The one line of `hc_ntp_encode`: RFC 5905's date and timestamp of a POSIX instant. */
+export interface NtpEncoding {
+  /** 0 for 1900 to 2036, negative before 1900. */
+  era: number;
+  /** Seconds into the era. */
+  offset: number;
+  /** The fraction of the second in units of 2⁻⁶⁴ s. */
+  fraction: bigint;
+  /** The 128-bit date, era, offset and fraction, as 32 lower-case hex digits. */
+  date: string;
+  /** The 64-bit timestamp, offset and top 32 bits of the fraction, as 16. */
+  timestamp: string;
+}
+
+/** A reckoning of 寒食 `hc_cold_food_day` knows. */
+export type ColdFoodConvention = "hanshi-solstice-105" | "hanshi-eve-of-qingming" | "hansik";
+
 /** The one line of `hc_fat_decode`: a local reading, in no zone. */
 export interface FatReading {
   fixed: number;
@@ -992,6 +1021,10 @@ export class HyperCalendar {
   uuidTimestamp(uuid: string): UuidTimestamp;
   /** `hc_ntp_resolve`: the timestamp in the era within 2³¹ s of the reference; zero is `no-data`. */
   ntpResolve(seconds: number, fraction: number, referenceUnix: number | bigint): NtpDate;
+  /** `hc_uuid_timestamp_encode`; before 1582-10-15 or after 5236-03-31 is `out-of-range`. */
+  uuidTimestampEncode(unixSeconds: number | bigint, attoseconds?: number | bigint): UuidTimeFields;
+  /** `hc_ntp_encode`: the era, offset and fraction, and both wire layouts in hexadecimal. */
+  ntpEncode(unixSeconds: number | bigint, attoseconds?: number | bigint): NtpEncoding;
   /** `hc_fat_decode`; fields that name no day or time are `invalid-date`. */
   fatDecode(date: number, time: number): FatReading;
   /** `hc_fat_encode`; outside 1980 to 2107 is `out-of-range`. */
@@ -1053,11 +1086,15 @@ export class HyperCalendar {
   lectionary(fixed: number | bigint): Lectionary;
   /** `hc_astronomical_easter`; outside 1583 to 2150 is `out-of-range`. */
   astronomicalEaster(year: number | bigint): number;
+  /** `hc_astronomical_paschal_full_moon`: the day Easter is the Sunday after; outside 1583 to 2150 is `out-of-range`. */
+  astronomicalPaschalFullMoon(year: number | bigint): number;
 
   /** `hc_term_in_effect`; a meridian nobody knows is `unknown`. */
   termInEffect(fixed: number | bigint, meridian?: Meridian): TermInEffect;
   /** `hc_pentad_in_effect`. */
   pentadInEffect(fixed: number | bigint, meridian?: Meridian): TermInEffect;
+  /** `hc_cold_food_day`; a reckoning nobody knows is `unknown`, a year outside −999 to 3000 `out-of-range`. */
+  coldFoodDay(convention: ColdFoodConvention, year: number | bigint): number;
 
   /** `hc_place_years_ago`; a value the crate refuses is `out-of-range`. `locale` names the geologic rows, `und` unless given. */
   placeYearsAgo(yearsAgo: number, stdDevYears?: number, locale?: string): DeepTimeRow[];

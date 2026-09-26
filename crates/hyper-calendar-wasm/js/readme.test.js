@@ -199,6 +199,8 @@ test("the time-scale lines read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.tai64PosixPlus10], columnsAfter("### TAI64 labels on a POSIX clock"));
   assert.deepEqual([...COLUMNS.uuidTimestamp], columnsAfter("### UUID timestamps"));
   assert.deepEqual([...COLUMNS.ntpResolve], columnsAfter("### NTP eras"));
+  assert.deepEqual([...COLUMNS.uuidTimestampEncode], columnsAfter("### UUID timestamps from an instant"));
+  assert.deepEqual([...COLUMNS.ntpEncode], columnsAfter("### NTP dates from an instant"));
   assert.deepEqual([...COLUMNS.fatDecode], columnsAfter("### FAT date and time words"));
   assert.match(README, /one line of two cells, the date word and the time word/);
   assert.deepEqual([...COLUMNS.epoch], columnsAfter("### Julian and Besselian epochs"));

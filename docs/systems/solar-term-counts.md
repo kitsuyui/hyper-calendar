@@ -143,7 +143,11 @@ as a check of the computed day; the solstices themselves are
 `crates/hc-seasons/src/cold_food.rs`; `traditional_tanabata` in
 `crates/hc-seasons/src/moon_calendar.rs`. In `hc-holiday`, the 寒食 entry
 of `CHINESE_FOLK` and the 한식 entry of `KOREAN_FOLK` in
-`crates/hc-holiday/src/traditions.rs`.
+`crates/hc-holiday/src/traditions.rs`. The WebAssembly module's and the C
+library's `hc_cold_food_day`, one export taking the reckoning's identifier,
+is `cold_food_day` in `crates/hyper-calendar/src/season_lines.rs`, anchored
+to the same KASI dates:
+`hansik_is_where_kasi_puts_it_and_the_chinese_reckonings_bracket_qingming`.
 
 Anchors in `cold_food`: `hansik_falls_where_the_korean_almanac_puts_it`,
 `the_solstice_itself_is_not_the_first_of_the_105_days`,

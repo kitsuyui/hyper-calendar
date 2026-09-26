@@ -20,10 +20,23 @@
 #
 # Git hook environment variables are cleared first so that nested or sibling
 # repositories are not affected: https://git-scm.com/docs/githooks
+#
+# Only the GIT_ variables are cleared. Every other variable reaches the jobs
+# as the caller had it, CARGO_HOME, CARGO_TARGET_DIR and RUSTUP_HOME
+# included, so a sandbox that points Cargo at a writable directory keeps it
+# pointed there inside the hooks. What does not reach them is a variable the
+# caller set without exporting it (`CARGO_HOME=/x; git commit` sets a shell
+# variable, not an environment one), or one exported in an earlier shell
+# than the one that runs git. Cargo then falls back to ~/.cargo and
+# ./target, and in a sandbox that fails on the first crate it has to unpack
+# ("failed to create directory `~/.cargo/registry/...`"). The `cargo-env`
+# jobs print what the hooks were given, so that case shows in the output.
 
 pre-commit:
   parallel: true
   jobs:
+    - name: cargo-env
+      run: printf 'CARGO_HOME=%s CARGO_TARGET_DIR=%s\n' "${CARGO_HOME:-unset, so ~/.cargo}" "${CARGO_TARGET_DIR:-unset, so ./target}"
     - name: fmt
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo fmt --all -- --check
     - name: clippy
@@ -42,6 +55,8 @@ pre-push:
       run: |
         printf 'local toolchain: '; rustc --version
         printf 'local typos:     '; typos --version
+    - name: cargo-env
+      run: printf 'CARGO_HOME=%s CARGO_TARGET_DIR=%s\n' "${CARGO_HOME:-unset, so ~/.cargo}" "${CARGO_TARGET_DIR:-unset, so ./target}"
     - name: fmt
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo fmt --all -- --check
     - name: clippy
@@ -68,3 +83,12 @@ pre-push:
     # runs it. Needs Node.
     - name: test-wasm-js
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; scripts/wasm-js-test.sh
+    # Each layer of the module and the C library built and tested on its
+    # own, as CI's layer matrix does: the workspace test builds everything
+    # with --all-features, which hides a layer that does not build alone.
+    # Every layer, not a subset: on a warm target directory the twelve take
+    # 27 s alone with nothing changed and 40 s after a change to the
+    # facade. In the hook they run beside the workspace test, the longest
+    # job at about 110 s, and took 35 s there, so the push waits no longer.
+    - name: layer-tests
+      run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; scripts/layer-tests.sh
