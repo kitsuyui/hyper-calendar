@@ -42,7 +42,7 @@ use crate::common;
 pub const EPOCH: Rd = Rd(226_896);
 
 /// The era code of the Solar Hijri era.
-pub const ERA: &str = "AP";
+pub const ERA: &str = "ap";
 
 /// The length of the leap cycle in years.
 pub const CYCLE_YEARS: i64 = 2_820;

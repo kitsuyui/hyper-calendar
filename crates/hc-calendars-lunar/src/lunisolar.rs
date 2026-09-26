@@ -1179,7 +1179,8 @@ mod tests {
     #[test]
     fn the_engine_round_trips_over_four_thousand_days() {
         let start = civil::to_rd(2000, 1, 1);
-        for offset in 0..4_000i64 {
+        // Every day in a release build, every eleventh in a debug one.
+        for offset in (0..4_000i64).step_by(crate::sweep_stride(11)) {
             let rd = Rd(start.0 + offset);
             let (year, month, day) = ENGINE_TEST.from_fixed(rd).expect("unbounded");
             assert_eq!(

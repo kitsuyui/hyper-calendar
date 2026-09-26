@@ -40,7 +40,7 @@ pub const WINTER_OFFSET: i64 = 5_508;
 pub const NEW_YEAR_MONTH: u8 = 9;
 
 /// The era code of the world era.
-pub const ERA: &str = "AM";
+pub const ERA: &str = "am";
 
 /// The earliest year this implementation converts.
 pub const MIN_YEAR: i64 = 1;

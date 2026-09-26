@@ -48,7 +48,7 @@ pub const EPOCH: Rd = match gregorian::to_fixed(1792, 9, 22) {
 };
 
 /// The era code of the Republican era.
-pub const ERA: &str = "RE";
+pub const ERA: &str = "re";
 
 /// The number of days in a *décade*, the ten-day week that replaced the
 /// seven-day one.

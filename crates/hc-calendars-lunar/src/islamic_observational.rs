@@ -471,7 +471,8 @@ mod tests {
     fn the_calendar_round_trips_over_four_years_of_days() {
         let calendar = IslamicObservationalCalendar::MECCA;
         let start = civil::to_rd(2021, 6, 1);
-        for offset in 0..1_500i64 {
+        // Every day in a release build, every eleventh in a debug one.
+        for offset in (0..1_500i64).step_by(crate::sweep_stride(11)) {
             let rd = Rd(start.0 + offset);
             let date = calendar.from_fixed(rd).expect("in range");
             assert_eq!(calendar.to_fixed(date), Ok(rd), "RD {rd}");
@@ -482,7 +483,8 @@ mod tests {
     fn the_calendar_round_trips_at_both_ends_of_its_range() {
         let calendar = IslamicObservationalCalendar::MECCA;
         for start in [EARLIEST.0 + 40, LATEST.0 - 840] {
-            for offset in 0..800i64 {
+            // Every day in a release build, every eleventh in a debug one.
+            for offset in (0..800i64).step_by(crate::sweep_stride(11)) {
                 let rd = Rd(start + offset);
                 let date = calendar.from_fixed(rd).expect("in range");
                 assert_eq!(calendar.to_fixed(date), Ok(rd), "RD {rd}");

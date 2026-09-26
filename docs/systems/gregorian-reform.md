@@ -1,6 +1,6 @@
 # The Gregorian reform, country by country
 
-Backs the twelve identifiers `julian-gregorian-<polity>` in
+Backs the fourteen identifiers `julian-gregorian-<polity>` in
 `hc-calendars-solar`, and the Swedish exception `swedish-1700` beside them.
 
 ## What it is
@@ -63,7 +63,7 @@ Act that changed the calendar — is a separate axis, carried by
 `year_style`, and the reform calendar always counts the year from
 1 January.
 
-### The twelve cut-overs
+### The fourteen cut-overs
 
 Each row is one identifier. "Dropped" is the number of dates that never
 existed; the weekdays are the module's, and the day of the week is
@@ -74,7 +74,8 @@ behind the date and the Sources section says which were read.
 | --- | --- | --- | --- | --- | --- |
 | `julian-gregorian-catholic` | Papal States, Spain, Portugal, Poland-Lithuania | Thursday 4 October 1582 | Friday 15 October 1582 | 10 | *Inter gravissimas*, 24 February 1582 [inter-gravissimas]; that Spain, Portugal and Poland-Lithuania changed on the bull's own day rests on secondary sources [wikipedia-adoption-list], which note local resistance in Poland |
 | `julian-gregorian-fr` | France | Sunday 9 December 1582 | Monday 20 December 1582 | 10 | An edict of Henri III, not read; the dates are from secondary sources [frwiki-passage-gregorien, wikipedia-adoption-gregorian], which exclude Alsace and Lorraine (Lorraine changed in 1760) |
-| `julian-gregorian-nl` | Holland and Zeeland | Friday 14 December 1582 | Saturday 25 December 1582 | 10 | No instrument read. The date is Zeeland's and the southern provinces' in every source; for Holland the secondary sources disagree, see below |
+| `julian-gregorian-nl` | Zeeland and the southern Netherlands | Friday 14 December 1582 | Saturday 25 December 1582 | 10 | No instrument read. The date is Zeeland's and the southern provinces' in every source [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]. Until 2026-09-26 this row was labelled "Holland and Zeeland"; Holland is now a row of its own |
+| `julian-gregorian-nl-holland` | Holland | Saturday 1 January 1583 | Wednesday 12 January 1583 | 10 | No instrument read — the States of Holland's placard is the one that would settle it. The dates from secondary sources [nlwiki-gregoriaanse-kalender, wikipedia-adoption-list]; two others put Holland with Zeeland in December 1582 [frwiki-passage-gregorien, wikipedia-adoption-gregorian], see below |
 | `julian-gregorian-de-catholic` | Catholic Germany (Bavaria) | Saturday 5 October 1583 | Sunday 16 October 1583 | 10 | A ducal order, not read; the dates from a secondary source [dewiki-gregorianischer-kalender]. Bavaria only: the other Catholic territories of the Empire changed on dates of their own |
 | `julian-gregorian-hu` | Hungary | Saturday 21 October 1587 | Sunday 1 November 1587 | 10 | A law of the diet of 1587/88, not read; the dates from secondary sources [wikipedia-adoption-list, frwiki-passage-gregorien]; the Hungarian encyclopaedia's own dating is less definite [huwiki-gergely-naptar] |
 | `julian-gregorian-de-protestant` | Protestant Germany, Denmark and Norway | Sunday 18 February 1700 | Monday 1 March 1700 | 11 | For the Empire, the resolution of the *Corpus Evangelicorum* at the Regensburg diet of 1699 introducing the *Verbesserter Reichskalender*; for Denmark–Norway, a royal ordinance prepared by Ole Rømer. Neither read; the dates from secondary sources [dewiki-gregorianischer-kalender, dawiki-gregorianske-kalender] |
@@ -82,10 +83,11 @@ behind the date and the Sources section says which were read.
 | `julian-gregorian-se` | Sweden and Finland | Wednesday 17 February 1753 | Thursday 1 March 1753 | 11 | The Swedish decision of 1753, not read; the dates from secondary sources [hogman-tiderakning, wikipedia-swedish-calendar]. Finland was then part of Sweden and changed with it |
 | `julian-gregorian-bg` | Bulgaria | Thursday 31 March 1916 | Friday 14 April 1916 | 13 | Decree No. 8 of Tsar Ferdinand, State Gazette no. 65 of 21 March 1916, not read; the dates from a secondary source [bgwiki-grigorianski-kalendar] |
 | `julian-gregorian-ru` | Soviet Russia | Wednesday 31 January 1918 | Thursday 14 February 1918 | 13 | The Sovnarkom decree of 24 January (6 February) 1918 on the introduction of the Western European calendar, read in transcription [sovnarkom-calendar-decree-1918]: the day following 31 January Old Style "shall be counted as 14 February" New Style, with both dates to be written on documents until the end of June 1918 |
-| `julian-gregorian-ro` | Romania and Serbia | Sunday 31 March 1919 | Monday 14 April 1919 | 13 | For Romania, the decree-law of 5/18 March 1919, not read; the dates from a secondary source [rowiki-calendarul-gregorian], for the Old Kingdom only. **For Serbia the row is wrong**, see below |
+| `julian-gregorian-rs` | Kingdom of Serbs, Croats and Slovenes | Tuesday 14 January 1919 | Tuesday 28 January 1919 | 13 | The Law on the Equalisation of the Old and New Calendar of 10 January 1919, *Službene novine Kraljevstva Srba, Hrvata i Slovenaca* no. 1, read as *Politika* quotes it: "Дана 14 јануара 1919 год. по старом календару престаје да важи стари календар", the 15th reckoned as 28 January [politika-gregorian-1919, srwiki-gregorijanski-kalendar]. It changed Serbia, Montenegro and Macedonia; Croatia, Slovenia, Bosnia and Vojvodina were already Gregorian |
+| `julian-gregorian-ro` | Romania (the Old Kingdom) | Sunday 31 March 1919 | Monday 14 April 1919 | 13 | The decree-law of 5/18 March 1919, not read; the dates from a secondary source [rowiki-calendarul-gregorian], for the Old Kingdom only. Until 2026-09-26 this row was labelled "Romania and Serbia"; Serbia is now `julian-gregorian-rs` |
 | `julian-gregorian-gr` | Greece | Wednesday 15 February 1923 | Thursday 1 March 1923 | 13 | A royal decree under which 16 February 1923 was reckoned as 1 March 1923, not read; the dates from secondary sources [elwiki-gregoriano-imerologio, wikipedia-adoption-list], which except Mount Athos. The Church of Greece went instead to the Revised Julian calendar in 1924 |
 
-Two rows carry a name the sources do not support:
+Two rows were corrected on 2026-09-26, and the reasoning is kept here:
 
 - **Holland.** The Dutch encyclopaedia and the English list of adoption
   dates put Holland's change at 1 January followed by 12 January 1583,
@@ -94,20 +96,22 @@ Two rows carry a name the sources do not support:
   wikipedia-adoption-list]; the French encyclopaedia and the English
   narrative article put Holland and Zeeland together in December
   [frwiki-passage-gregorien, wikipedia-adoption-gregorian]. No primary
-  source was read. The identifier's date is right for Zeeland, and for
-  Holland it rests on the weaker pair of secondary sources.
+  source was read. The row once called "Holland and Zeeland" is now
+  `julian-gregorian-nl`, Zeeland and the southern Netherlands, whose date
+  no source disputes, and Holland is `julian-gregorian-nl-holland` on the
+  two sources that date it separately — the ones that distinguish the
+  provinces rather than the ones that summarise them. Its dates rest on
+  those two and would change with the States of Holland's own placard.
 - **Serbia.** The Kingdom of Serbs, Croats and Slovenes changed by a law
   of 10 January 1919, published in the first number of its official
   gazette, under which 15 January 1919 Old Style was reckoned as
-  28 January 1919: the last Julian date was Monday 14 January and the
-  first Gregorian one Tuesday 28 January [srwiki-gregorijanski-kalendar,
-  wikipedia-adoption-list]. That is ten weeks before Romania's change, and
-  the identifier `julian-gregorian-ro` gives every Serbian date between
-  28 January and 13 April 1919 a label nobody in Belgrade wrote. The
-  region string "Romania and Serbia" is unsupported by any source read,
-  and a `julian-gregorian-rs` of its own is the fix; until then a caller
-  can build it with `ReformCalendar::with_cutover` and the fixed day of
-  28 January 1919, RD 700 562.
+  28 January 1919: the last Julian date was Tuesday 14 January and the
+  first Gregorian one Tuesday 28 January [politika-gregorian-1919,
+  srwiki-gregorijanski-kalendar, wikipedia-adoption-list]. That is ten
+  weeks before Romania's change, so the row once called "Romania and
+  Serbia" gave every Serbian date between 28 January and 13 April 1919 a
+  label nobody in Belgrade wrote. It is now two rows, `julian-gregorian-rs`
+  from RD 700 562 and `julian-gregorian-ro`, Romania's alone.
 
 ### Worked example: a British date across 1752
 
@@ -181,8 +185,8 @@ gap in the middle, which is not what the identifier claims to be.
 ## What is carried
 
 - **Identifiers**, all in `hc-calendars-solar`, all with the date as
-  `ReformDate { year, month, day }` and the era `OS` before the cut-over
-  and `NS` from it: the twelve of the table, as `ADOPTIONS`, each an
+  `ReformDate { year, month, day }` and the era code `os` before the
+  cut-over and `ns` from it: the fourteen of the table, as `ADOPTIONS`, each an
   `Adoption { id, region, last_julian, first_gregorian }` from which the
   cut-over and the dropped days are computed rather than stored. The
   default `ReformCalendar` is the Catholic one, the reform itself.
@@ -201,9 +205,6 @@ gap in the middle, which is not what the identifier claims to be.
   Bavaria, and a polity that dropped the last days of February 1700 —
   Protestant Germany — has no 29 February that year at all.
 - **Not carried, and why.**
-  - Serbia and Holland at their own dates, for the reason given above:
-    the table's rows for them are wrong or doubtful, and a fix is a
-    change to the code.
   - The other Dutch provinces, which changed one by one — Gelderland on
     12 July 1700, Utrecht and Overijssel on 12 December 1700, Friesland
     and Groningen on 12 January 1701, Drenthe on 12 May 1701
@@ -211,7 +212,7 @@ gap in the middle, which is not what the identifier claims to be.
     Empire, Catholic and Protestant, each on its own day; Lorraine in
     1760 [frwiki-passage-gregorien]; Transylvania in 1590 and Bukovina in
     1773 [rowiki-calendarul-gregorian]; Mount Athos, which never changed.
-    The table is deliberately twelve rows, the ones a reader of European
+    The table is deliberately fourteen rows, the ones a reader of European
     and Russian sources meets; every other polity is a fixed day away
     through `with_cutover`, and a row is added when a source for it has
     been read.
@@ -250,7 +251,7 @@ cut-overs are reproduced.
 
 | Measure | Result | Test |
 | --- | --- | --- |
-| In every row, the first Gregorian date is the day after the last Julian one | 12 of 12 | `every_tabulated_adoption_is_internally_consistent` |
+| In every row, the first Gregorian date is the day after the last Julian one | 14 of 14 | `every_tabulated_adoption_is_internally_consistent` |
 | Dates dropped: 10 in 1582, 11 in 1752, 13 in 1918 and 1923 | As stated | `the_reform_skipped_ten_days_and_later_adopters_skipped_more` |
 | Wednesday 2 September 1752 followed by Thursday 14 September 1752 [uk-calendar-act-1750] | Reproduced | `the_weekday_cycle_is_unbroken_across_every_gap` |
 | 3 to 13 September 1752 refused in Britain; the 2nd and the 14th accepted | As stated | `dates_in_the_gap_never_existed` |
@@ -258,21 +259,22 @@ cut-overs are reproduced.
 | Thursday 4 October 1582 followed by Friday 15 October 1582 [inter-gravissimas] | Reproduced | `each_side_of_the_cutover_uses_the_right_calendar`, `the_default_calendar_is_the_reform_itself` |
 | 1582 of 355 days with an October of 21 in Catholic Europe; 1752 of 355 days with a September of 19 in Britain | As stated | `the_reform_year_is_short_by_the_days_it_skipped` |
 | 1700 leap in Britain, common in Catholic Europe, without a 29 February in Protestant Germany; 1900 leap and 2100 common in Russia | As stated | `a_leap_year_is_one_in_which_29_february_was_written` |
-| Round trips over 2 400 days around each of the twelve cut-overs, and over a million days for Britain | All | `every_day_around_every_cutover_round_trips`, `a_wide_range_round_trips_for_the_british_calendar` |
+| Round trips over 2 400 days around each of the fourteen cut-overs, and over a million days for Britain | All | `every_day_around_every_cutover_round_trips`, `a_wide_range_round_trips_for_the_british_calendar` |
 | Alaska, 6 October followed by 18 October 1867, through `with_cutover` | Reproduced | `a_custom_cutover_works_for_polities_not_in_the_table` |
 | The Swedish calendar a day ahead of `julian-gregorian-se` on every one of its 4 384 days | 4 384 of 4 384 | `every_day_is_one_ahead_of_julian_and_ten_behind_gregorian`, in `swedish` |
 
 What the tests do not check is the table itself against its sources: no
-test names a decree. Of the twelve rows, three rest on a document read
-for this document — the bull, the British Act and the Soviet decree — and
-nine on secondary sources, as the table above says row by row; one of
-those nine, Serbia, is contradicted by them. The module's own statement
-of its sources, that the dates are "as summarised by Reingold and
-Dershowitz, *Calendrical Calculations* (4th ed.), appendix, and by the
-*Explanatory Supplement to the Astronomical Almanac* (3rd ed., 2013),
-§15.3", could not be confirmed: neither book was read, and the published
-code of *Calendrical Calculations* carries no table of adoption dates
-[reingold2018code].
+test names a decree. Of the fourteen rows, three rest on a document read
+for this document — the bull, the British Act and the Soviet decree — one
+on the operative sentence of its law as a newspaper quotes it, Serbia's,
+and ten on secondary sources, as the table above says row by row, Holland
+among them on two sources against two. The module once said that its dates
+were "as summarised by Reingold and Dershowitz, *Calendrical Calculations*
+(4th ed.), appendix, and by the *Explanatory Supplement to the
+Astronomical Almanac* (3rd ed., 2013), §15.3"; neither book was read, the
+published code of *Calendrical Calculations* carries no table of adoption
+dates [reingold2018code], and the module now names each row's own source
+instead.
 
 ## Sources
 
@@ -294,13 +296,14 @@ code of *Calendrical Calculations* carries no table of adoption dates
 | [huwiki-gergely-naptar] | The diet of 1587/88 | Yes, 2026-09-25 |
 | [bgwiki-grigorianski-kalendar] | Decree No. 8 of 1916 and the gazette; 31 March followed by 14 April 1916 | Yes, 2026-09-25 |
 | [rowiki-calendarul-gregorian] | The decree-law of 5/18 March 1919; 31 March followed by 14 April 1919 in the Old Kingdom; Transylvania and Bukovina | Yes, 2026-09-25 |
+| [politika-gregorian-1919] | The Serbian law's operative sentence, quoted: 14 January 1919 O.S. the old calendar's last day, the 15th reckoned as 28 January | Yes, 2026-09-26; the law itself not read |
 | [srwiki-gregorijanski-kalendar] | The law of 10 January 1919 and its gazette; 15 January O.S. reckoned as 28 January 1919 | Yes, 2026-09-25 |
 | [elwiki-gregoriano-imerologio] | The royal decree; 16 February 1923 reckoned as 1 March; the Church's Revised Julian calendar of 1924 | Yes, 2026-09-25 |
 | [trwiki-miladi-takvim] | Law No. 698 of 26 December 1925, in force 1 January 1926 | Yes, 2026-09-25 |
 | [wikipedia-ja-gregorio-reki] | Japan's change on 1 January 1873 | Yes, 2026-09-25; the proclamation's number was not on the page |
 | [reingold2018code] | `fixed-from-julian`, `fixed-from-gregorian`, `julian-epoch`; that the code carries no adoption table | Yes, 2026-09-25 |
-| [reingold2018] | Cited by the module for an appendix of adoption dates | Not read |
-| [explanatory-supplement-2013] | Cited by the module for §15.3 | Not read |
+| [reingold2018] | Once cited by the module for an appendix of adoption dates; no longer cited | Not read |
+| [explanatory-supplement-2013] | Once cited by the module for §15.3; no longer cited | Not read |
 
 The pages that could not be reached on 2026-09-25: the Russian decree on
 Wikisource and the Japanese proclamation on Wikipedia and Wikisource, for

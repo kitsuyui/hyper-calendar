@@ -18,7 +18,8 @@
 //! Chinese list describes the Yellow River valley and says things that are
 //! simply false in Japan — hawks turn into doves, sparrows enter the sea and
 //! become clams — so Japan rewrote it, and the list Japanese almanacs print
-//! today shares only 21 of its 72 names with the Chinese one.
+//! today shares only 21 of its 72 names with the Chinese one, the one in
+//! traditional characters and the other in shinjitai.
 //!
 //! Both sets are shipped here, selected by [`PentadTradition`]. Neither is
 //! the default, because a library that picked one would be asserting
@@ -151,111 +152,116 @@ hc_core::catalogue! {
     pub fn by_id;
 
     entries: {
-        /// The classical Chinese set, as transmitted through the 宣明暦.
+        /// The classical Chinese set, in traditional characters.
         ///
-        /// The 逸周書·時訓解 list, in the shinjitai the Japanese references
-        /// print it in; the document records the five entries in which it
-        /// departs from the 逸周書 text.
+        /// The text of the 時訓解 chapter of the 逸周書, as Wikisource
+        /// prints it with its stray simplified characters restored, for 63
+        /// entries; for the other nine the reading of 吳澄's 月令七十二候集解,
+        /// which this list followed before it was checked against either
+        /// text. Each entry says which, and what the 時訓解 has where it is
+        /// the 集解's. This is not the list the 宣明暦 took to Japan, which
+        /// the Japanese references print in shinjitai with readings of its
+        /// own (雷乃収声, 野雉入大水為蜃, 鷙鳥厲疾); the document gives both.
         pub const CHINESE = PentadTradition {
             id: "chinese",
             english_name: "Chinese",
             names: &[
                 // 春分 (0°)
-                "玄鳥至",
-                "雷乃発声",
-                "始電",
+                "玄鳥至", // 時訓解
+                "雷乃發聲", // 時訓解
+                "始電", // 時訓解
                 // 清明 (15°)
-                "桐始華",
-                "田鼠化為鴽",
-                "虹始見",
+                "桐始華", // 時訓解
+                "田鼠化爲鴽", // 時訓解
+                "虹始見", // 時訓解
                 // 穀雨 (30°)
-                "萍始生",
-                "鳴鳩払其羽",
-                "戴勝降于桑",
+                "萍始生", // 時訓解
+                "鳴鳩拂其羽", // 時訓解
+                "戴勝降于桑", // 時訓解
                 // 立夏 (45°)
-                "螻蟈鳴",
-                "蚯蚓出",
-                "王瓜生",
-                // 小満 (60°)
-                "苦菜秀",
-                "靡草死",
-                "麦秋至",
+                "螻蟈鳴", // 時訓解
+                "蚯蚓出", // 時訓解
+                "王瓜生", // 時訓解
+                // 小滿 (60°)
+                "苦菜秀", // 時訓解
+                "靡草死", // 時訓解
+                "麥秋至", // 集解; 時訓解 小暑至
                 // 芒種 (75°)
-                "螳螂生",
-                "鵙始鳴",
-                "反舌無声",
+                "螳螂生", // 時訓解
+                "鵙始鳴", // 時訓解
+                "反舌無聲", // 時訓解
                 // 夏至 (90°)
-                "鹿角解",
-                "蜩始鳴",
-                "半夏生",
+                "鹿角解", // 時訓解
+                "蜩始鳴", // 時訓解
+                "半夏生", // 時訓解
                 // 小暑 (105°)
-                "温風至",
-                "蟋蟀居壁",
-                "鷹乃学習",
+                "溫風至", // 時訓解
+                "蟋蟀居壁", // 時訓解
+                "鷹乃學習", // 時訓解
                 // 大暑 (120°)
-                "腐草為蛍",
-                "土潤溽暑",
-                "大雨時行",
+                "腐草為螢", // 集解; 時訓解 腐草化爲螢
+                "土潤溽暑", // 時訓解
+                "大雨時行", // 時訓解
                 // 立秋 (135°)
-                "涼風至",
-                "白露降",
-                "寒蝉鳴",
-                // 処暑 (150°)
-                "鷹乃祭鳥",
-                "天地始粛",
-                "禾乃登",
+                "涼風至", // 時訓解
+                "白露降", // 時訓解
+                "寒蟬鳴", // 時訓解
+                // 處暑 (150°)
+                "鷹乃祭鳥", // 時訓解
+                "天地始肅", // 時訓解
+                "禾乃登", // 時訓解
                 // 白露 (165°)
-                "鴻雁来",
-                "玄鳥帰",
-                "群鳥養羞",
+                "鴻雁來", // 時訓解
+                "玄鳥歸", // 時訓解
+                "群鳥養羞", // 時訓解
                 // 秋分 (180°)
-                "雷乃収声",
-                "蟄虫坏戸",
-                "水始涸",
+                "雷始收聲", // 時訓解
+                "蟄蟲坏戶", // 集解; 時訓解 蟄蟲培户
+                "水始涸", // 時訓解
                 // 寒露 (195°)
-                "鴻雁来賓",
-                "雀入大水為蛤",
-                "菊有黄華",
+                "鴻雁來賓", // 時訓解
+                "雀入大水為蛤", // 集解; 時訓解 爵入大水化爲蛤
+                "菊有黃華", // 時訓解
                 // 霜降 (210°)
-                "豺乃祭獣",
-                "草木黄落",
-                "蟄虫咸俯",
+                "豺乃祭獸", // 時訓解
+                "草木黃落", // 時訓解
+                "蟄蟲咸俯", // 集解; 時訓解 蟄蟲咸附
                 // 立冬 (225°)
-                "水始氷",
-                "地始凍",
-                "野鶏入水為蜃",
+                "水始冰", // 時訓解
+                "地始凍", // 時訓解
+                "雉入大水爲蜃", // 時訓解
                 // 小雪 (240°)
-                "虹蔵不見",
-                "天気上騰地気下降",
-                "閉塞而成冬",
+                "虹藏不見", // 時訓解
+                "天氣上騰地氣下降", // 時訓解, its 土 read 上
+                "閉塞而成冬", // 時訓解
                 // 大雪 (255°)
-                "鶡鴠不鳴",
-                "虎始交",
-                "茘挺出",
+                "鶡鴠不鳴", // 集解; 時訓解 鴞鳥不鳴
+                "虎始交", // 時訓解
+                "荔挺出", // 集解; 時訓解 荔挺生
                 // 冬至 (270°)
-                "蚯蚓結",
-                "麋角解",
-                "水泉動",
+                "蚯蚓結", // 時訓解
+                "麋角解", // 時訓解
+                "水泉動", // 時訓解
                 // 小寒 (285°)
-                "雁北郷",
-                "鵲始巣",
-                "野鶏始雊",
+                "鴈北鄉", // 集解; 時訓解 雁北向
+                "鵲始巢", // 時訓解
+                "雉始雊", // 時訓解
                 // 大寒 (300°)
-                "鶏始乳",
-                "鷙鳥厲疾",
-                "水沢腹堅",
+                "鷄始乳", // 時訓解
+                "鷙鳥厲", // 時訓解
+                "水澤腹堅", // 時訓解
                 // 立春 (315°)
-                "東風解凍",
-                "蟄虫始振",
-                "魚上氷",
+                "東風解凍", // 時訓解
+                "蟄蟲始振", // 時訓解
+                "魚上冰", // 時訓解
                 // 雨水 (330°)
-                "獺祭魚",
-                "候雁北",
-                "草木萌動",
-                // 啓蟄 (345°)
-                "桃始華",
-                "倉庚鳴",
-                "鷹化為鳩",
+                "獺祭魚", // 時訓解
+                "候鴈北", // 集解; 時訓解 鴻雁來
+                "草木萌動", // 時訓解
+                // 驚蟄 (345°)
+                "桃始華", // 時訓解
+                "倉庚鳴", // 時訓解
+                "鷹化爲鳩", // 時訓解
             ],
             glosses: &[
                 // 春分 (0°)
@@ -274,7 +280,7 @@ hc_core::catalogue! {
                 "the mole crickets chirp",
                 "the earthworms surface",
                 "the royal gourd puts out shoots",
-                // 小満 (60°)
+                // 小滿 (60°)
                 "the sow thistle flowers",
                 "the tender herbs wither",
                 "the wheat harvest comes",
@@ -298,7 +304,7 @@ hc_core::catalogue! {
                 "the cool wind arrives",
                 "the white dew descends",
                 "the autumn cicadas sing",
-                // 処暑 (150°)
+                // 處暑 (150°)
                 "the hawk lays out its prey",
                 "heaven and earth begin to cool",
                 "the grain ripens",
@@ -307,7 +313,7 @@ hc_core::catalogue! {
                 "the swallows leave",
                 "the birds lay in their winter store",
                 // 秋分 (180°)
-                "the thunder ceases",
+                "the thunder begins to fall silent",
                 "the hibernating insects seal their burrows",
                 "the waters begin to dry",
                 // 寒露 (195°)
@@ -321,7 +327,7 @@ hc_core::catalogue! {
                 // 立冬 (225°)
                 "the waters begin to freeze",
                 "the ground begins to freeze",
-                "the pheasants enter the water and become clams",
+                "the pheasants enter the great water and become giant clams",
                 // 小雪 (240°)
                 "the rainbows hide away",
                 "the breath of heaven rises and that of earth sinks",
@@ -340,7 +346,7 @@ hc_core::catalogue! {
                 "the pheasants begin to call",
                 // 大寒 (300°)
                 "the hens begin to lay",
-                "the birds of prey fly fierce and fast",
+                "the birds of prey grow fierce",
                 "the ice on the waters is thick and hard",
                 // 立春 (315°)
                 "the east wind melts the ice",
@@ -350,17 +356,18 @@ hc_core::catalogue! {
                 "the otter lays out its fish",
                 "the wild geese fly north",
                 "the grasses and trees put out shoots",
-                // 啓蟄 (345°)
+                // 驚蟄 (345°)
                 "the peach trees begin to blossom",
                 "the orioles sing",
                 "the hawk turns into a dove",
             ],
-            authority: "逸周書·時訓解, as the 宣明暦 transmitted it",
+            authority: "逸周書·時訓解, in traditional characters (Wikisource), with nine readings from 吳澄's 月令七十二候集解 (Wikisource), marked entry by entry",
         };
 
-        /// The Japanese set as the 略本暦 printed it from 1874.
-        ///
-        /// In shinjitai.
+        /// The Japanese set as the 略本暦 printed it from 1874: the 宝暦暦
+        /// revision of Shibukawa's 本朝七十二候, in the shinjitai of the
+        /// National Astronomical Observatory's 暦Wiki, whose 宝暦暦以降
+        /// column it follows name for name.
         pub const JAPANESE = PentadTradition {
             id: "japanese",
             english_name: "Japanese",
@@ -386,7 +393,7 @@ hc_core::catalogue! {
                 "紅花栄",
                 "麦秋至",
                 // 芒種 (75°)
-                "螳螂生",
+                "蟷螂生",
                 "腐草為蛍",
                 "梅子黄",
                 // 夏至 (90°)
@@ -560,9 +567,50 @@ hc_core::catalogue! {
                 "the peach trees begin to smile",
                 "the caterpillars become butterflies",
             ],
-            authority: "本朝七十二候 of the 1874 略本暦",
+            authority: "The 宝暦暦 revision as the 1874 略本暦 printed it, in the 宝暦暦以降 column of the National Astronomical Observatory of Japan's 暦Wiki",
         };
     }
+}
+
+/// The traditional characters of [`CHINESE`] and the shinjitai [`JAPANESE`]
+/// writes them in, for telling the same name from a different one. 螳 and
+/// 蟷 are variants rather than a shinjitai pair; 鷄 and 雞 are both 鶏.
+pub const SHINJITAI: [(char, char); 27] = [
+    ('發', '発'),
+    ('聲', '声'),
+    ('拂', '払'),
+    ('螢', '蛍'),
+    ('肅', '粛'),
+    ('收', '収'),
+    ('氣', '気'),
+    ('黃', '黄'),
+    ('雞', '鶏'),
+    ('鷄', '鶏'),
+    ('冰', '氷'),
+    ('歸', '帰'),
+    ('學', '学'),
+    ('溫', '温'),
+    ('蟬', '蝉'),
+    ('羣', '群'),
+    ('爲', '為'),
+    ('麥', '麦'),
+    ('鄉', '郷'),
+    ('荔', '茘'),
+    ('藏', '蔵'),
+    ('獸', '獣'),
+    ('蟲', '虫'),
+    ('戶', '戸'),
+    ('澤', '沢'),
+    ('來', '来'),
+    ('螳', '蟷'),
+];
+
+/// A character of [`CHINESE`] as [`JAPANESE`] writes it.
+fn shinjitai(character: char) -> char {
+    SHINJITAI
+        .iter()
+        .find(|(traditional, _)| *traditional == character)
+        .map_or(character, |(_, japanese)| *japanese)
 }
 
 /// The internal index of 立春初候 at 315°, i.e. how far the almanac ordering
@@ -636,10 +684,13 @@ impl Pentad {
         tradition.glosses[self.0 as usize]
     }
 
-    /// Whether the two traditions write this pentad the same way.
+    /// Whether the two traditions give this pentad the same name, the
+    /// Chinese list's traditional characters read as their Japanese
+    /// shinjitai (發 as 発, 蟲 as 虫, …; [`SHINJITAI`]).
     #[must_use]
     pub fn is_shared_between_traditions(self) -> bool {
-        self.name(CHINESE) == self.name(JAPANESE)
+        let chinese = self.name(CHINESE).chars().map(shinjitai);
+        chinese.eq(self.name(JAPANESE).chars())
     }
 
     /// The next pentad, 5° further along the ecliptic, wrapping at 360°.
@@ -952,6 +1003,36 @@ mod tests {
             .copied();
         let clams = clams.unwrap();
         assert_eq!(clams.name(JAPANESE), "菊花開");
+    }
+
+    /// The Chinese list is in traditional characters and the Japanese one
+    /// in shinjitai. A downstream reader found 雷乃収声 — the Japanese form
+    /// of 秋分初候 — in the Chinese column for 26 September 2026, where the
+    /// 時訓解 has 雷始收聲; this is that day, and a check that no shinjitai
+    /// form is left in the Chinese list.
+    #[test]
+    fn the_chinese_list_is_traditional_and_the_japanese_shinjitai() {
+        let day = from_year_month_day(2026, 9, 26);
+        let pentad = pentad_on_day(day, Meridian::CHINA);
+        assert_eq!(pentad.term(), SolarTerm::AUTUMN_EQUINOX);
+        assert_eq!(pentad.name(CHINESE), "雷始收聲");
+        assert_eq!(
+            pentad_on_day(day, Meridian::JAPAN).name(JAPANESE),
+            "雷乃収声"
+        );
+        // Shinjitai forms that are not also the traditional ones. 群 and 為
+        // are both; 蟷 is the Japanese list's variant, not a shinjitai.
+        let shinjitai_only = |character: char| {
+            !['群', '為', '蟷'].contains(&character)
+                && SHINJITAI.iter().any(|(_, japanese)| *japanese == character)
+        };
+        for pentad in Pentad::all(TermOrder::SpringEquinoxFirst) {
+            let name = pentad.name(CHINESE);
+            assert!(
+                !name.chars().any(shinjitai_only),
+                "{name} is written in shinjitai"
+            );
+        }
     }
 
     #[test]

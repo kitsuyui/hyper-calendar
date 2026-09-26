@@ -15,9 +15,12 @@
 //!
 //! # What is being compared against
 //!
-//! The published days for 1980–2030 are listed explicitly below. They are
-//! also reproduced by the floor formula that Japanese references give for
-//! 1980–2099:
+//! The days for 1980–2030 are listed explicitly below. They are also
+//! reproduced by a floor formula for 1980–2099 that circulates widely on
+//! the Japanese web, in spreadsheet and programming notes, usually
+//! attributed to the National Astronomical Observatory; no source read for
+//! this crate publishes it or names its author, so it is carried as this
+//! crate's own cross-check and not as a published rule:
 //!
 //! ```text
 //! 春分の日 = floor(20.8431 + 0.242194 (Y - 1980)) - floor((Y - 1980) / 4)
@@ -26,7 +29,8 @@
 //!
 //! A test below checks the explicit table against that formula, so neither
 //! can drift without the other noticing, and the formula then extends the
-//! comparison to 2099 for free.
+//! comparison to 2099 — against a formula, not against anything the
+//! Observatory has published.
 //!
 //! # What is expected to disagree
 //!
@@ -67,7 +71,7 @@ const PUBLISHED_AUTUMNAL_EQUINOX_DAYS: [u8; 51] = [
 /// The first year the explicit table and the formula both cover.
 const FIRST_TABLE_YEAR: i64 = 1980;
 
-/// The last year the formula is documented for.
+/// The last year the formula is stated for where it circulates.
 const LAST_FORMULA_YEAR: i64 = 2099;
 
 /// The proleptic Gregorian fixed day of a year, month and day.
@@ -94,13 +98,15 @@ fn fixed_from_gregorian(year: i64, month: i64, day: i64) -> hc_calendar::Rd {
     )
 }
 
-/// The published 春分の日 day-of-month, by the documented 1980–2099 formula.
+/// The 春分の日 day-of-month by the circulating 1980–2099 floor formula
+/// (unsourced; see the module documentation).
 fn formula_vernal_day(year: i64) -> i64 {
     let elapsed = (year - 1980) as f64;
     (20.8431 + 0.242_194 * elapsed).floor() as i64 - (year - 1980).div_euclid(4)
 }
 
-/// The published 秋分の日 day-of-month, by the documented 1980–2099 formula.
+/// The 秋分の日 day-of-month by the circulating 1980–2099 floor formula
+/// (unsourced; see the module documentation).
 fn formula_autumnal_day(year: i64) -> i64 {
     let elapsed = (year - 1980) as f64;
     (23.2488 + 0.242_194 * elapsed).floor() as i64 - (year - 1980).div_euclid(4)
@@ -150,11 +156,11 @@ fn compare(first: i64, last: i64) -> (usize, usize) {
     (comparisons, disagreements)
 }
 
-/// The explicit table and the documented formula must be the same data. If
+/// The explicit table and the circulating formula must be the same data. If
 /// they ever part company, one of the two was transcribed wrong and every
 /// other test in this file is measuring the wrong thing.
 #[test]
-fn the_published_table_and_the_published_formula_agree() {
+fn the_table_and_the_circulating_formula_agree() {
     for (offset, day) in PUBLISHED_VERNAL_EQUINOX_DAYS.into_iter().enumerate() {
         let year = FIRST_TABLE_YEAR + offset as i64;
         assert_eq!(
@@ -211,7 +217,7 @@ fn the_published_equinox_days_of_1980_to_2030_are_reproduced() {
     );
 }
 
-/// The same comparison extended to the whole span the published formula
+/// The same comparison extended to the whole span the circulating formula
 /// covers: 240 days over 1980–2099.
 #[test]
 fn the_published_equinox_days_of_1980_to_2099_are_reproduced() {

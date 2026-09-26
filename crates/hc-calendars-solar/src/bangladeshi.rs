@@ -66,7 +66,7 @@ pub const YEAR_OFFSET: i64 = 593;
 pub const REVISED_FROM: i64 = 1_426;
 
 /// The era code.
-pub const ERA: &str = "Bangabda";
+pub const ERA: &str = "bangabda";
 
 /// The earliest year this implementation converts.
 pub const MIN_YEAR: i64 = 1;

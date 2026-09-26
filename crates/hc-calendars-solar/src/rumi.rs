@@ -47,7 +47,7 @@ use crate::{gregorian, julian};
 pub const YEAR_OFFSET: i64 = 584;
 
 /// The era code.
-pub const ERA: &str = "Rumi";
+pub const ERA: &str = "rumi";
 
 /// The first year the calendar was kept: 1256, from 1 Mart.
 pub const MIN_YEAR: i64 = 1_256;

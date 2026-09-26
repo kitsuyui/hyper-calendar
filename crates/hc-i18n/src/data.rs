@@ -120,6 +120,7 @@ const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("julian-gregorian-catholic"),
     CalendarId("julian-gregorian-fr"),
     CalendarId("julian-gregorian-nl"),
+    CalendarId("julian-gregorian-nl-holland"),
     CalendarId("julian-gregorian-de-catholic"),
     CalendarId("julian-gregorian-hu"),
     CalendarId("julian-gregorian-de-protestant"),
@@ -127,6 +128,7 @@ const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("julian-gregorian-se"),
     CalendarId("julian-gregorian-bg"),
     CalendarId("julian-gregorian-ru"),
+    CalendarId("julian-gregorian-rs"),
     CalendarId("julian-gregorian-ro"),
     CalendarId("julian-gregorian-gr"),
     CalendarId("swedish-1700"),
@@ -1611,6 +1613,22 @@ const DE: LocaleData = LocaleData {
 // --- English --------------------------------------------------------------
 
 const EN_CALENDARS: &[CalendarNames] = &[
+    // The Buddhist era as CLDR 48 abbreviates it (`common/main/en.xml`,
+    // `calendar[@type="buddhist"]/eras/eraAbbr`, read 2026-09-26); CLDR states
+    // no wide form, so the abbreviation serves for both.
+    CalendarNames {
+        calendars: BUDDHIST_CALENDARS,
+        cycles: &[],
+        leap_month_prefix: "",
+        eras: EraNames {
+            codes: &["be"],
+            names: widths(&["BE"], &["BE"], &[]),
+            calendars: &[],
+        },
+        quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
+    },
     gregorian(
         &[month_cycle(ContextualNames::same(widths(
             &[
@@ -2668,6 +2686,22 @@ const JA_MONTHS: &[&str] = &[
 ];
 
 const JA_CALENDARS: &[CalendarNames] = &[
+    // The Buddhist era as CLDR 48 names it (`common/main/ja.xml`,
+    // `calendar[@type="buddhist"]/eras/eraNames`, read 2026-09-26); its
+    // abbreviated and narrow forms inherit the name.
+    CalendarNames {
+        calendars: BUDDHIST_CALENDARS,
+        cycles: &[],
+        leap_month_prefix: "",
+        eras: EraNames {
+            codes: &["be"],
+            names: widths(&["仏暦"], &[], &[]),
+            calendars: &[],
+        },
+        quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
+    },
     gregorian(
         &[month_cycle(ContextualNames::same(widths(
             JA_MONTHS,
@@ -2798,8 +2832,10 @@ const JA: LocaleData = LocaleData {
 // which the "Five-day week" table of Wikipedia, "Javanese calendar", read
 // 2026-09-26, prints in the same forms; the seven dina are that page's
 // "Seven-day week" table, Ahad (Sunday) first as the module orders them,
-// which spells Monday Senin where the module has Senen and gives Minggu
-// beside Ahad for Sunday. That page also prints every one of these names
+// with Monday in the module's Javanese form Senen (Javanese Wikipedia,
+// "Senèn"; Wiktionary, "Senèn", citing Sastra Jawa, Surakarta, 2023) where
+// that table prints the Indonesian Senin; it gives Minggu beside Ahad for
+// Sunday. That page also prints every one of these names
 // in Javanese script (ꦊꦒꦶ, ꦱꦼꦤꦶꦤ꧀ …); they are not carried, because `jv` is
 // CLDR's Latin-script locale and a `jv-Java` entry would have no Gregorian
 // vocabulary of its own to stand beside them. The week begins on Sunday
@@ -2850,7 +2886,7 @@ const JV_CALENDARS: &[CalendarNames] = &[
             cycle(
                 hc_calendar::shape::WEEKDAY,
                 &[
-                    "Ahad", "Senin", "Selasa", "Rebo", "Kemis", "Jemuwah", "Setu",
+                    "Ahad", "Senen", "Selasa", "Rebo", "Kemis", "Jemuwah", "Setu",
                 ],
             ),
         ],

@@ -76,6 +76,18 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+/// How far apart the days of a day-by-day sweep in this crate's tests are:
+/// every day in a release build, every `sampled`th in a debug build.
+///
+/// The full sweeps take minutes under the coverage job's instrumentation,
+/// so a debug or coverage run takes a fixed, deterministic sample of them
+/// and CI's release-mode test job walks every day; the published anchors
+/// are checked in full either way (docs/policy.md §7).
+#[cfg(test)]
+pub(crate) const fn sweep_stride(sampled: usize) -> usize {
+    if cfg!(debug_assertions) { sampled } else { 1 }
+}
+
 pub mod akan;
 pub mod aztec;
 pub mod balinese_pawukon;
@@ -278,12 +290,19 @@ mod tests {
         let first = meta.earliest.expect("bounded below");
         let last = gregorian::to_fixed(2100, 12, 31).expect("in range");
 
+        // A debug build keeps every day within a few of each seam and
+        // samples the rest (`crate::sweep_stride`); a release build walks
+        // all of it.
+        let sampled = crate::sweep_stride(5) as i64;
+
         // Every era boundary, from forty days before to forty days after.
         // An era change lands mid-month and sometimes mid-intercalary-month,
         // which is where the year-within-era arithmetic goes wrong.
         for era in crate::nengo::stream(crate::nengo::Court::Unified) {
             let Some(start) = era.start else { continue };
-            for offset in -40..=40 {
+            for offset in
+                (-40..=40).filter(|offset: &i64| offset.abs() <= 3 || offset % sampled == 0)
+            {
                 let rd = Rd(start.0 + offset);
                 if rd < first || rd > last || crate::nengo::is_nanbokucho(rd) {
                     continue;
@@ -301,7 +320,9 @@ mod tests {
             hc_calendars_lunar::japanese_tenpo::EARLIEST,
             crate::japanese::GREGORIAN_ADOPTION,
         ] {
-            for offset in -400..=400 {
+            for offset in
+                (-400..=400).filter(|offset: &i64| offset.abs() <= 31 || offset % sampled == 0)
+            {
                 let rd = Rd(seam.0 + offset);
                 if rd < first || rd > last || crate::nengo::is_nanbokucho(rd) {
                     continue;
@@ -310,21 +331,22 @@ mod tests {
             }
         }
 
-        // The Gregorian half in full: it is cheap and it is what callers
-        // actually ask for.
-        for rd in crate::japanese::GREGORIAN_ADOPTION.0..=last.0 {
+        // The Gregorian half in full (every fifth day in a debug build): it
+        // is what callers actually ask for.
+        for rd in (crate::japanese::GREGORIAN_ADOPTION.0..=last.0).step_by(crate::sweep_stride(5)) {
             check_japanese_day(Rd(rd));
         }
 
-        // And a stride through the lunisolar centuries. Coprime with 29 and
-        // 30 so it does not land on the same position in the month twice.
+        // And a stride through the lunisolar centuries, 31 days (157 in a
+        // debug build): coprime with 29 and 30, so it does not keep landing
+        // on the same position in the month.
         let mut rd = first.0;
         while rd < crate::japanese::GREGORIAN_ADOPTION.0 {
             let day = Rd(rd);
             if !crate::nengo::is_nanbokucho(day) {
                 check_japanese_day(day);
             }
-            rd += 31;
+            rd += if sampled == 1 { 31 } else { 157 };
         }
     }
 

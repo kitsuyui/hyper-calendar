@@ -2559,7 +2559,7 @@ mod tests {
         }
 
         #[test]
-        fn thirty_years_of_chinese_months_take_well_under_a_second() {
+        fn thirty_years_of_chinese_months_are_walked_by_month_not_by_day() {
             let started = std::time::Instant::now();
             let months = walk(
                 "chinese",
@@ -2570,13 +2570,15 @@ mod tests {
             );
             let elapsed = started.elapsed();
             assert!(months.len() >= 370, "{} months", months.len());
-            // Well under a second in a release build. A debug build, and a
-            // coverage-instrumented one above all, is too slow and too
-            // variable for a bound to mean anything, so the time is only
-            // reported there.
+            // About a third of a second in a release build on a developer
+            // machine; a shared CI runner, with the suite running in
+            // parallel, has taken one and a half. The bound is a regression
+            // guard against a day-by-day walk, which takes minutes, not a
+            // benchmark. A debug build is too slow and too variable for any
+            // bound, so the time is only reported there.
             if !cfg!(debug_assertions) {
                 assert!(
-                    elapsed.as_secs_f64() < 1.0,
+                    elapsed.as_secs_f64() < 5.0,
                     "{} months took {elapsed:?}",
                     months.len()
                 );
@@ -3036,8 +3038,8 @@ mod tests {
             let columns = columns(&text);
             assert_eq!(columns.len(), 7, "{columns:?}");
             // 立春 is pentads 63, 64 and 65 from 春分; 10 February is in the
-            // second of them, 黄鶯睍睆 in Japan and 蟄虫始振 in China.
-            assert_eq!(columns[..3], ["64", "蟄虫始振", "黄鶯睍睆"]);
+            // second of them, 黄鶯睍睆 in Japan and 蟄蟲始振 in China.
+            assert_eq!(columns[..3], ["64", "蟄蟲始振", "黄鶯睍睆"]);
             assert_eq!(columns[3], hc_gregorian_to_fixed(2024, 2, 9).to_string());
             assert_eq!(columns[4], hc_gregorian_to_fixed(2024, 2, 13).to_string());
             assert!(

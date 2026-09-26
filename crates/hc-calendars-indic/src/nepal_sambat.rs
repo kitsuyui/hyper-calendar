@@ -44,10 +44,13 @@
 //! # What is not here
 //!
 //! The solar Nepal Sambat that Lalitpur Metropolitan City devised from year
-//! 1141, whose months run fixed Gregorian dates from 20 October: its source
-//! gives month lengths and a leap rule "similar" to the Gregorian one without
-//! saying which year's leap day lands in which month, and that is not enough
-//! to carry it honestly. And the range: the amānta engine answers from
+//! 1141, whose months run fixed Gregorian dates from 20 October. The one
+//! source read does place the leap day — its table gives Chaulā 29 days in
+//! regular years and 30 in leap years, so the extra day falls in the Chaulā
+//! of a Gregorian leap year — but it states the leap rule itself only as "a
+//! similar pattern" to the Gregorian one, cites the scheme to a
+//! calendar-maker's site and a blog, and names no body that keeps it. A
+//! calendar whose rule rests on that is not carried. And the range: the amānta engine answers from
 //! Gregorian 1700 to 2299, so the inscriptions dated in Malla Nepal, whose
 //! calendar this was, are out of it.
 //!
@@ -77,7 +80,7 @@ pub const USAGE_SOURCE: &str = "Established on 20 October 879 and the official c
 /// The calendar's identifier.
 pub const ID: CalendarId = CalendarId("nepal-sambat");
 /// The era it counts in.
-pub const ERA: &str = "Nepal Sambat";
+pub const ERA: &str = "nepal-sambat";
 
 /// The amānta month, 1 for Chaitra, of Kachhalā: Kārtika.
 const KACHHALA: u8 = 8;
@@ -440,9 +443,12 @@ mod tests {
         // Nepal Sambat 1138 to 1140, 2017 to 2020: three year boundaries and
         // two intercalary months, Tachhalā in 1138 and Kaulā in 1140. The
         // renaming is all this module adds to the amānta engine, which is
-        // round-tripped over its own range.
+        // round-tripped over its own range. Every day in a release build,
+        // every eleventh in a debug one, which still lands in every month.
         let mut intercalary = alloc::vec::Vec::new();
-        for day in NS.new_year(1138).expect("in range").0..NS.new_year(1141).expect("in range").0 {
+        for day in (NS.new_year(1138).expect("in range").0..NS.new_year(1141).expect("in range").0)
+            .step_by(crate::sweep_stride(11))
+        {
             let rd = Rd(day);
             let date = NS.from_fixed(rd).expect("in range");
             assert_eq!(NS.to_fixed(date), Ok(rd), "{date:?}");
@@ -456,7 +462,8 @@ mod tests {
     #[test]
     fn a_date_keeps_its_tithi_from_the_amanta_calendar_at_the_same_sunrise() {
         let amanta = HinduLunarCalendar::new(KATHMANDU, Ayanamsa::LAHIRI);
-        for day in ymd(2024, 1, 1).0..ymd(2026, 12, 31).0 {
+        // Every day in a release build, every eleventh in a debug one.
+        for day in (ymd(2024, 1, 1).0..ymd(2026, 12, 31).0).step_by(crate::sweep_stride(11)) {
             let rd = Rd(day);
             let lunar = amanta.from_fixed(rd).expect("in range");
             let ns = NS.from_fixed(rd).expect("in range");

@@ -50,7 +50,10 @@ impl Meridian {
     /// China Standard Time, UTC+8, the 120°E meridian.
     ///
     /// The modern Chinese calendar has been computed at this meridian since
-    /// 1929; before that see [`Meridian::CHINA_BEFORE_1929`].
+    /// 1928 by the Chinese Wikipedia's account (民國十七年, "農曆", read
+    /// 2026-09-25) and since 1929 by Reingold and Dershowitz's; the two give
+    /// the same day for every date, as a test of `hc-calendars-lunar`'s
+    /// `chinese` shows. Before that see [`Meridian::CHINA_BEFORE_1929`].
     pub const CHINA: Self = Self::from_seconds(8 * 3_600);
 
     /// Korea Standard Time, UTC+9, the meridian the Dangi calendar uses.
@@ -68,9 +71,14 @@ impl Meridian {
 
     /// Beijing local mean time, 116°25′E, i.e. UTC+7:45:40.
     ///
-    /// Chinese calendar dates before the 1929 switch to the 120° standard
-    /// were computed at the capital's own meridian; Reingold & Dershowitz,
-    /// *Calendrical Calculations*, 4th ed., §19.1 uses 1397/180 hours for it.
+    /// Chinese calendar dates before the switch to the 120° standard were
+    /// computed at the capital's own meridian; Reingold & Dershowitz,
+    /// *Calendrical Calculations*, 4th ed., §19.1 uses 1397/180 hours for it,
+    /// which is 116°25′. The Hong Kong Space Museum, as the Chinese
+    /// Wikipedia's "農曆" quotes it, gives the old almanac's Beijing as
+    /// 116°23′, eight seconds of time later; that moves one month start in
+    /// 1645–1929, the second month of 1687, as a test of
+    /// `hc-calendars-lunar`'s `chinese` shows. This keeps the book's.
     pub const CHINA_BEFORE_1929: Self = Self::from_seconds(27_940);
 
     /// A meridian from a whole number of seconds east of Greenwich.

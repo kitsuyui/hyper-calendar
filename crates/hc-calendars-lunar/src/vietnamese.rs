@@ -309,7 +309,8 @@ mod tests {
     fn the_calendar_round_trips_over_four_thousand_modern_days() {
         let calendar = VietnameseCalendar;
         let start = civil::to_rd(2005, 1, 1);
-        for offset in 0..4_000i64 {
+        // Every day in a release build, every eleventh in a debug one.
+        for offset in (0..4_000i64).step_by(crate::sweep_stride(11)) {
             let rd = Rd(start.0 + offset);
             let date = calendar.from_fixed(rd).expect("in range");
             assert_eq!(calendar.to_fixed(date), Ok(rd), "RD {rd}");

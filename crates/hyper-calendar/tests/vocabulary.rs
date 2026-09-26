@@ -177,6 +177,69 @@ fn every_calendar_a_locale_names_is_one_the_registry_answers_to() {
     );
 }
 
+/// An era code a calendar puts in its dates must be the code the locale
+/// data keys the era's name by, or the name is written and unreachable.
+///
+/// Both sides use lowercase codes (`saka`, `am`, `ah`). The Indian
+/// national calendar and the Hindu lunisolar calendar once declared
+/// `"Saka"` while every locale keyed `"saka"`, and no Saka era was ever
+/// named; this is the test that would have caught it.
+#[test]
+fn every_era_code_a_calendar_writes_is_one_the_locales_key() {
+    use hyper_calendar::hc_i18n::Locale;
+    use hyper_calendar::hc_i18n::names::{NameWidth, era_codes, era_name_by_code};
+
+    let registry = registry();
+    let mut unmatched: BTreeSet<String> = BTreeSet::new();
+    for id in registered() {
+        let calendar = registry.get(id).expect("registered");
+        let day = sample_day(&calendar.meta());
+        let Ok(fields) = calendar.fixed_to_fields(day) else {
+            continue;
+        };
+        let Some(code) = fields.era else { continue };
+        assert_eq!(
+            code,
+            code.to_ascii_lowercase(),
+            "{}: era codes are lowercase",
+            id.0
+        );
+        for locale in LOCALES {
+            let tag: Locale = locale.tag.parse().expect("a locale's own tag parses");
+            if let Some(codes) = era_codes(&tag, id)
+                && !codes.contains(&code)
+            {
+                unmatched.insert(format!("{} {}: {code} not in {codes:?}", locale.tag, id.0));
+            }
+        }
+    }
+    assert!(
+        unmatched.is_empty(),
+        "era codes the locales do not key: {unmatched:?}"
+    );
+
+    // The two Saka-era calendars by name: the national calendar in Hindi,
+    // which keys its era, and the lunisolar calendar in English, which
+    // keys its own.
+    let hindi: Locale = "hi".parse().expect("hi is a locale");
+    let english: Locale = "en".parse().expect("en is a locale");
+    for (calendar, locale, name) in [("indian", &hindi, "शक"), ("hindu-lunar", &english, "Saka")]
+    {
+        let id = CalendarId(calendar);
+        let fields = registry
+            .get(id)
+            .expect("registered")
+            .fixed_to_fields(Rd(740_000))
+            .expect("in range");
+        assert_eq!(fields.era, Some("saka"), "{calendar}");
+        assert_eq!(
+            era_name_by_code(locale, id, "saka", NameWidth::Wide),
+            Some(name),
+            "{calendar}"
+        );
+    }
+}
+
 /// No vocabulary may name a cycle the calendar does not have.
 #[test]
 fn every_named_cycle_is_one_the_calendar_declares() {
@@ -301,12 +364,12 @@ fn the_vocabulary_gap_is_measured_and_not_growing() {
 
     assert_eq!(
         registered.len(),
-        116,
+        118,
         "the registry changed; update the coverage numbers deliberately"
     );
     assert_eq!(
         with_months.len(),
-        96,
+        98,
         "calendars with a month cycle — changes only when a calendar's shape does"
     );
     assert!(

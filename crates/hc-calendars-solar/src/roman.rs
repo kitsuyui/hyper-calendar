@@ -40,7 +40,7 @@ use crate::julian;
 pub const YEAR_OFFSET: i64 = 753;
 
 /// The era code.
-pub const ERA: &str = "AUC";
+pub const ERA: &str = "auc";
 
 /// The earliest year this implementation converts.
 pub const MIN_YEAR: i64 = 1;

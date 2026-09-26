@@ -2861,7 +2861,7 @@ mod tests {
             });
             let columns: Vec<&str> = pentad.trim_end().split('\t').collect();
             assert_eq!(columns.len(), 7, "{columns:?}");
-            assert_eq!(columns[..3], ["64", "蟄虫始振", "黄鶯睍睆"]);
+            assert_eq!(columns[..3], ["64", "蟄蟲始振", "黄鶯睍睆"]);
             assert_eq!(
                 unsafe {
                     hc_term_in_effect(

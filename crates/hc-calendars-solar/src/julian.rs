@@ -32,10 +32,10 @@ use crate::common;
 pub const EPOCH: Rd = Rd(-1);
 
 /// The era code for years before the incarnation.
-pub const ERA_BC: &str = "BC";
+pub const ERA_BC: &str = "bc";
 
 /// The era code for years after it.
-pub const ERA_AD: &str = "AD";
+pub const ERA_AD: &str = "ad";
 
 /// The earliest astronomical year this implementation converts.
 pub const MIN_YEAR: i64 = -9_999_999;
@@ -368,10 +368,10 @@ mod tests {
         let bc = JulianDate::from_era("BC", 44, 3, 15).unwrap();
         // The Ides of March, 44 BC, is astronomical year -43.
         assert_eq!(bc.year, -43);
-        assert_eq!(bc.era_year(), ("BC", 44));
+        assert_eq!(bc.era_year(), ("bc", 44));
         let ad = JulianDate::from_era("ad", 1, 1, 1).unwrap();
         assert_eq!(ad.year, 1);
-        assert_eq!(ad.era_year(), ("AD", 1));
+        assert_eq!(ad.era_year(), ("ad", 1));
         assert_eq!(JulianDate::from_era("CE", 1, 1, 1), Ok(ad));
         assert_eq!(JulianDate::from_era("BCE", 1, 1, 1).unwrap().year, 0);
     }

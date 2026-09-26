@@ -289,6 +289,7 @@ Kason 22 May, Waso 20 July, Thadingyut 17 October and Tazaungmon
 the Thingyan of 1386 ME ran from *akyo* on 13 April to the New Year's day
 on 17 April 2024
 (`the_full_moons_of_1386_me_fall_where_the_published_calendar_puts_them`,
+`the_waso_full_moons_of_2022_and_2025_are_the_days_observed`,
 `the_thingyan_of_1386_me_ran_from_13_to_17_april_2024`). The 2024 dates
 were compared, on 2026-09-25, with Office Holidays' list for 2024
 [officeholidays-myanmar-2024], which names no source; the government's own
@@ -312,17 +313,29 @@ Tabaung (13 March), Thingyan (13–16 April, New Year 17 April), Kason
 (11 May), Thadingyut (6 October) and Tazaungmon (4 November 2025)
 [officeholidays-myanmar-2024].
 
-**Known disagreement.** For the full moon of Waso the module gives
-Wednesday 9 July 2025 and Tuesday 12 July 2022; Office Holidays gives
-Thursday 10 July 2025 and Calendar Labs' table Wednesday 13 July 2022
-[officeholidays-myanmar-2024, calendarlabs-waso], each a day later. Both
-later dates are the days of the astronomical full moon, which is what a
-secondary list may have used; the source's own code, in its version of
-9 September 2026, carries no exception for 1384 or 1387 ME [yan9a-mmcal];
-and no official notification for either year could be read. The
-disagreement is recorded here and not resolved. If the gazette kept
-10 July 2025, the module's way to carry it is a full-moon exception
-(1387, +1) in the third era's table, as 1377's is.
+**Resolved disagreement: Waso 2022 and 2025.** For the full moon of Waso
+the module gives Wednesday 9 July 2025 and Tuesday 12 July 2022; Office
+Holidays gives Thursday 10 July 2025 and Calendar Labs' table Wednesday
+13 July 2022 [officeholidays-myanmar-2024, calendarlabs-waso], each a
+day later — the days of the astronomical full moon, which is what a
+secondary list may have used. The days Myanmar kept are the module's.
+The Myanmar News Agency's reports in the *Global New Light of Myanmar* of
+Thursday 10 July 2025, from Yangon, Mandalay and Nay Pyi Taw, say that
+"yesterday was the full moon day of Waso", that the Shwedagon trustees
+held the Dhammacakka Day ceremony "at 5 am yesterday", and that "the full
+moon day of Waso is a public holiday" [gnlm-waso-2025]; AFP's photograph
+of Shwedagon Pagoda, published on 12 July 2022, is captioned "during the
+Full Moon Day of Waso in Yangon, Myanmar on July 12, 2022"
+[afp-waso-2022]. So no full-moon exception is carried for 1384 or
+1387 ME, which agrees with the source's own code, whose version of
+9 September 2026 carries none [yan9a-mmcal]
+(`the_waso_full_moons_of_2022_and_2025_are_the_days_observed`). The
+holiday notifications themselves were still not read: the *Global New
+Light of Myanmar*'s pages now sit behind a browser challenge, its archived
+report of the 2025 holiday list ("Government announces 2025 public
+holidays", 9 July 2024) gives no dates, and the Ministry's holiday pages
+return no list [moip-public-holidays]. The evidence is the reports of the
+days kept, not the gazette.
 
 **What the source measured.** Against timeanddate.com's astronomical full
 moons for the seventeen watat years 1350–1396 ME, the source reports an
@@ -339,10 +352,12 @@ measurement.
 | [irwin1909] | The constants and the Makaranta and Thandeikta history, through the two sources above | Not read |
 | [wikipedia-burmese-calendar] | The month names in Burmese script, the 29- and 30-day months, the intercalary day's placement and the rule that it needs the month, the Arakanese and Thai placements, the Makaranta and Thandeikta history with its 1838 and 1853 dates, the Metonic remainder sets, the Calendar Advisory Board, the epoch of 22 March 638 | Yes, 2026-09-25; the module read it 2026-09-22 |
 | [hindu-calendars.md](hindu-calendars.md) | The *Sūrya Siddhānta*'s sidereal year, the same constant | This repository |
-| [officeholidays-myanmar-2024] | The 2024 and 2025 holiday dates compared above; the 10 July 2025 disagreement | Yes, 2026-09-25 |
+| [officeholidays-myanmar-2024] | The 2024 and 2025 holiday dates compared above; its 10 July 2025, a day late | Yes, 2026-09-25 |
 | [scb-myanmar-holidays-2026] | The 2026 holiday dates compared above | Yes, 2026-09-25 |
 | [myanmar-national-portal-holidays] | The Thadingyut and Tazaungdaing holidays of 2026 | Yes, 2026-09-25 |
-| [calendarlabs-waso] | The 13 July 2022 disagreement, and 2023, 2024 and 2027 in agreement | Yes, 2026-09-25 |
+| [calendarlabs-waso] | Its 13 July 2022, a day late, and 2023, 2024 and 2027 in agreement | Yes, 2026-09-25 |
+| [gnlm-waso-2025] | Waso's full moon kept on 9 July 2025, a public holiday | Yes, 2026-09-26, in the Internet Archive's copies |
+| [afp-waso-2022] | Waso's full moon kept on 12 July 2022 | Yes, 2026-09-26 |
 | [moip-public-holidays] | The government's holiday lists for 2025 and 2026 | Not readable: the pages returned no list |
 
 Statements the module documentation made before this write-up that no

@@ -119,12 +119,24 @@ const DAYS_OF_2026: [(u8, u8); 24] = [
     (12, 31),
 ];
 
+/// How many times sparser the sweeps below are in a debug build, which the
+/// coverage job runs instrumented; a release build, which CI's
+/// release-mode job runs, checks every pairing.
+const SAMPLED: usize = if cfg!(debug_assertions) { 3 } else { 1 };
+
 #[test]
 fn a_day_answers_as_its_year_does_in_every_table() {
+    // Every table against every day in a release build. A debug build
+    // checks each table on every third day, a different third for
+    // neighbouring tables, so that every day is still checked against a
+    // third of the tables and every table on eight of the days.
     let mut shared = EvaluationContext::new();
-    for table in every_table() {
+    for (index, table) in every_table().enumerate() {
         let year = HolidayCalendar::for_year(table, None, 2026);
-        for (month, day) in DAYS_OF_2026 {
+        for (position, (month, day)) in DAYS_OF_2026.into_iter().enumerate() {
+            if (index + position) % SAMPLED != 0 {
+                continue;
+            }
             agree(table, &year, ymd(2026, month, day), &mut shared);
         }
     }
@@ -169,7 +181,9 @@ fn the_substitution_heavy_tables_agree_across_a_whole_year() {
     // Every third day of a year in the tables whose laws push days around
     // the most: Japan's 振替休日 and 国民の休日, Korea's 대체공휴일 with its
     // collisions, Britain's Christmas pair, and an exchange that includes
-    // its country's table.
+    // its country's table. A debug build takes every ninth day instead,
+    // and every holiday of the year with the day either side of it, which
+    // is where a substitute or a bridge lands.
     for code in ["JP", "KR", "GB", "US", "CN", "XHKG", "XNYS"] {
         let table = countries::by_code(code)
             .or_else(|| exchanges::by_code(code))
@@ -178,10 +192,17 @@ fn the_substitution_heavy_tables_agree_across_a_whole_year() {
             let calendar = HolidayCalendar::for_year(table, None, year);
             let (first, last) = (ymd(year, 1, 1), ymd(year, 12, 31));
             let mut shared = EvaluationContext::new();
-            let mut day = first;
-            while day <= last {
-                agree(table, &calendar, day, &mut shared);
-                day = Rd(day.0 + 3);
+            let mut days: Vec<i64> = (first.0..=last.0).step_by(3 * SAMPLED).collect();
+            if SAMPLED > 1 {
+                for holiday in calendar.all() {
+                    days.extend(holiday.date.0 - 1..=holiday.date.0 + 1);
+                }
+                days.retain(|day| (first.0..=last.0).contains(day));
+                days.sort_unstable();
+                days.dedup();
+            }
+            for day in days {
+                agree(table, &calendar, Rd(day), &mut shared);
             }
         }
     }

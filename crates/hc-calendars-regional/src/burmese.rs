@@ -756,6 +756,26 @@ mod tests {
         assert_eq!(month_length(1385, Month::leap(4)), 30);
     }
 
+    /// The two Waso full moons the secondary holiday lists put a day later
+    /// (13 July 2022, 10 July 2025), on the days they were observed: the
+    /// Myanmar News Agency's reports in the *Global New Light of Myanmar*
+    /// of 10 July 2025 say "yesterday was the full moon day of Waso", a
+    /// public holiday, and AFP's photograph of Shwedagon is captioned "the
+    /// Full Moon Day of Waso in Yangon, Myanmar on July 12, 2022". See
+    /// `docs/systems/burmese.md`.
+    #[test]
+    fn the_waso_full_moons_of_2022_and_2025_are_the_days_observed() {
+        for (y, m, d, year) in [(2022, 7, 12, 1384), (2025, 7, 9, 1387)] {
+            let date = from_fixed(greg(y, m, d)).expect("in range");
+            assert_eq!(
+                (date.year, date.month, date.day),
+                (year, Month::regular(4), 15),
+                "{y}-{m}-{d}"
+            );
+            assert_eq!(date.phase(), MoonPhase::FullMoon);
+        }
+    }
+
     #[test]
     fn every_day_of_three_decades_round_trips() {
         let calendar = BurmeseCalendar;

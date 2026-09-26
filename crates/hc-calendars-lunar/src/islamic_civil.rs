@@ -144,7 +144,7 @@ mod tests {
             let rd = Rd(EARLIEST.0 + offset);
             let date = calendar.from_fixed(rd).expect("inside the range");
             let fields = calendar.to_fields(date).expect("describable");
-            assert_eq!(fields.era, Some("AH"));
+            assert_eq!(fields.era, Some("ah"));
             assert_eq!(calendar.from_fields(&fields), Ok(date));
         }
     }

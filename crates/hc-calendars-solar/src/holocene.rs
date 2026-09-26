@@ -28,7 +28,7 @@ use crate::{common, gregorian};
 pub const YEAR_OFFSET: i64 = 10_000;
 
 /// The era code of the Human Era.
-pub const ERA: &str = "HE";
+pub const ERA: &str = "he";
 
 /// The earliest year this implementation converts.
 pub const MIN_YEAR: i64 = 1;

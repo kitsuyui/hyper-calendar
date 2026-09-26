@@ -574,7 +574,7 @@ describe("almanac", () => {
     // 立春 is pentads 63, 64 and 65 from 春分; 10 February is in the second.
     const pentad = hc.pentadInEffect(day, "japan");
     assert.equal(pentad.index, 64);
-    assert.equal(pentad.chineseName, "蟄虫始振");
+    assert.equal(pentad.chineseName, "蟄蟲始振");
     assert.equal(pentad.japaneseName, "黄鶯睍睆");
     assert.equal(pentad.begins, hc.gregorianToFixed(2024, 2, 9));
     assert.equal(pentad.ends, hc.gregorianToFixed(2024, 2, 13));

@@ -73,7 +73,7 @@ year 6776 ends on 31 Adar, 31 March 2027, and 6777 opens on 1 April 2027.
 ## What is carried
 
 - **Identifier** `assyrian`, with the year, the month 1–12 from Neesan and
-  the day, under the era code `AY`, and the extra field `gregorian-year`.
+  the day, under the era code `ay`, and the extra field `gregorian-year`.
   The month names are declared with the shape in AINA's forms; the Syriac
   script and the scholarly transliterations (Nīsān, ʾĪyār, Ḥzīrān, Tammūz,
   ʾĀb, ʾĪlūl, Tešrīn Qḏīm and ʾḤrāy, Kānōn Qḏīm and ʾḤrāy, Šḇāṭ, ʾĀḏar) are a

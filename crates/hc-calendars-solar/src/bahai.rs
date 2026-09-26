@@ -56,7 +56,7 @@ pub const GREGORIAN_YEAR_OFFSET: i64 = 1_843;
 pub const AYYAM_I_HA: u8 = 0;
 
 /// The era code of the Badíʿ era.
-pub const ERA: &str = "BE";
+pub const ERA: &str = "be";
 
 /// The number of months in a year, and of years in a Váḥid.
 pub const NINETEEN: i64 = 19;

@@ -1186,7 +1186,10 @@ mod tests {
         // Only over Tenpō's own period. Before 1844 the calendar in force was
         // one of the four earlier systems, and reading those years through
         // Tenpō-reki is exactly the error this wiring exists to avoid.
-        for rd in japanese_tenpo::EARLIEST.0..GREGORIAN_ADOPTION.0 {
+        // Every day in a release build, every eleventh in a debug one.
+        for rd in
+            (japanese_tenpo::EARLIEST.0..GREGORIAN_ADOPTION.0).step_by(crate::sweep_stride(11))
+        {
             let rd = Rd(rd);
             let tenpo = japanese_tenpo::ENGINE.from_fixed(rd).expect("in range");
             let date = JapaneseCalendar::UNIFIED.from_fixed(rd).expect("in range");

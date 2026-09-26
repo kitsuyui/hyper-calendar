@@ -54,7 +54,7 @@ pub const SOLAR_ID: CalendarId = CalendarId("hindu-old-solar");
 /// The identifier of the mean lunisolar calendar.
 pub const LUNAR_ID: CalendarId = CalendarId("hindu-old-lunar");
 /// The era both count in.
-pub const ERA: &str = "Kali Yuga";
+pub const ERA: &str = "kali-yuga";
 
 /// The Kali Yuga epoch: Friday, 18 February 3102 BCE (Julian), as a fixed
 /// day.

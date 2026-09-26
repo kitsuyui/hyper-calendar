@@ -76,7 +76,7 @@ use crate::tithi::{TITHIS_PER_MONTH, sunrise_of, tithi_of_day};
 pub const ID: CalendarId = CalendarId("hindu-lunar");
 
 /// The era code of the Śaka era.
-pub const ERA: &str = "Saka";
+pub const ERA: &str = "saka";
 
 /// The number of months in a common year.
 pub const MONTHS_IN_YEAR: u8 = 12;

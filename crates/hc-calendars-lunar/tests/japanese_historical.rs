@@ -570,18 +570,23 @@ fn the_systems_own_conjunction_tables_do_worse_than_the_true_conjunction() {
     }
 }
 
+/// How many times sparser the day-by-day sweep is in a debug build.
+const SAMPLED: i64 = if cfg!(debug_assertions) { 17 } else { 1 };
+
 #[test]
 fn every_day_of_every_system_round_trips() {
     // Independent of the table: whatever date the calendar gives a day, that
     // date must give the day back. Every one of the 341 000 days the four
-    // systems cover.
+    // systems cover, in a release build, which CI's release-mode job runs;
+    // a debug or coverage build takes every seventeenth of those
+    // (`SAMPLED`), the published-table checks above staying complete.
     let mut days = 0;
     for (name, parameters, first, last) in systems() {
         let engine = LunisolarCalendar::new(parameters);
         // Every day of the three Edo systems and every third day of
         // Senmyō-reki's 823 years; the module's own tests take every seventh,
         // so between them no run of six days goes unvisited.
-        let stride = if first == senmyo::EARLIEST.0 { 3 } else { 1 };
+        let stride = if first == senmyo::EARLIEST.0 { 3 } else { 1 } * SAMPLED;
         let mut rd = first;
         while rd <= last {
             let date = engine.from_fixed(Rd(rd)).expect("in range");
@@ -590,7 +595,7 @@ fn every_day_of_every_system_round_trips() {
             rd += stride;
         }
     }
-    assert!(days > 150_000, "{days} days");
+    assert!(days > 150_000 / SAMPLED, "{days} days");
 }
 
 #[test]

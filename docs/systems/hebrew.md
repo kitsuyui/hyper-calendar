@@ -211,7 +211,7 @@ constants named; only the 216 years and the 97 minutes are also quoted.
 ## What is carried
 
 - **Identifier** `hebrew`, in `hc-calendars-lunar`, with the date as
-  `HebrewDate { year, month, day }`, the era `AM`, months numbered from
+  `HebrewDate { year, month, day }`, the era code `am`, months numbered from
   Tishrei with Adar I as `Month::leap(5)`, and the day beginning at
   sunset (`DayBoundary::Sunset`).
 - **Range** AM 1 to AM 9 999: RD −1 373 427 (7 October 3761 BCE Julian)

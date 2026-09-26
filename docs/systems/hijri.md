@@ -240,7 +240,7 @@ module's own functions and are the ones the tests rely on.
 ## What is carried
 
 - **Identifiers**, all in `hc-calendars-lunar`, all with the date as
-  `IslamicDate { year, month, day }`, the era `AH`, and the day beginning at
+  `IslamicDate { year, month, day }`, the era code `ah`, and the day beginning at
   sunset:
 
   | Identifier | What it is | Parameters |

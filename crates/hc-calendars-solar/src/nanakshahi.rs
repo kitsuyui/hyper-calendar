@@ -51,7 +51,7 @@ use crate::gregorian;
 pub const YEAR_OFFSET: i64 = 1_468;
 
 /// The era code of the Nanakshahi era.
-pub const ERA: &str = "NS";
+pub const ERA: &str = "ns";
 
 /// The earliest year this implementation converts.
 pub const MIN_YEAR: i64 = 1;
