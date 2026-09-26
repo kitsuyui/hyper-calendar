@@ -1070,12 +1070,10 @@ mod tests {
     /// Reingold and Dershowitz's `birkath-ha-hama` (`reingold2018code`):
     /// the blessing falls on 30 Paremhat, Coptic month 7 day 30, in a
     /// Coptic year that is 17 modulo 28. The Coptic day is their
-    /// `fixed-from-coptic` with the epoch 29 August 284 Julian, RD 103 605.
+    /// `fixed-from-coptic`, which `hc_calendars_solar::coptic` implements.
     #[test]
     fn birkat_hachama_is_reingold_and_dershowitzs_thirtieth_of_paremhat() {
-        const COPTIC_EPOCH: i64 = 103_605;
-        let paremhat_30 =
-            |year: i64| Rd(COPTIC_EPOCH - 1 + 365 * (year - 1) + year.div_euclid(4) + 30 * 6 + 30);
+        let paremhat_30 = |year: i64| hc_calendars_solar::coptic::to_fixed(year, 7, 30).unwrap();
         assert_eq!(paremhat_30(1725), BIRKAT_HACHAMA_ANCHOR);
         for year in 1..3_000i64 {
             assert_eq!(

@@ -6,7 +6,8 @@
 //!   exchange keeps the holidays of, each read from the table's own data
 //!   but for a country's name in a locale, which is CLDR's, from
 //!   [`hc_i18n::territories`].
-//! * The lectionary cycles of a day and the astronomical Easter of a year,
+//! * The lectionary cycles of a day, and the astronomical Easter of a year
+//!   and the paschal full moon it is the Sunday after,
 //!   from [`hc_holiday::lectionary`] and [`hc_holiday::computus`].
 
 use alloc::string::String;
@@ -241,6 +242,20 @@ pub fn astronomical_easter(year: i64) -> Answer<i64> {
         .ok_or(Refusal::OutOfRange)
 }
 
+/// The paschal full moon of a Gregorian year by the astronomical
+/// reckoning, the day at Jerusalem of the first full moon at or after the
+/// March equinox, as a fixed day: the day [`astronomical_easter`] is the
+/// Sunday after.
+///
+/// # Errors
+///
+/// As [`astronomical_easter`].
+pub fn astronomical_paschal_full_moon(year: i64) -> Answer<i64> {
+    computus::astronomical_paschal_full_moon(year)
+        .map(|day| day.0)
+        .ok_or(Refusal::OutOfRange)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -440,5 +455,23 @@ mod tests {
     fn the_astronomical_easter_of_2001_is_the_fifteenth_of_april() {
         assert_eq!(astronomical_easter(2001), Ok(day(2001, 4, 15)));
         assert_eq!(astronomical_easter(1582), Err(Refusal::OutOfRange));
+    }
+
+    /// The Aleppo statement's table (`wcc-aleppo-1997`) puts the
+    /// astronomical vernal full moon of 2001 on Sunday 8 April, a week
+    /// before Easter, and that of 2019 on 21 March, the day of the equinox.
+    #[test]
+    fn the_paschal_full_moons_of_2001_and_2019_are_the_aleppo_tables() {
+        assert_eq!(astronomical_paschal_full_moon(2001), Ok(day(2001, 4, 8)));
+        assert_eq!(astronomical_paschal_full_moon(2019), Ok(day(2019, 3, 21)));
+        assert_eq!(astronomical_easter(2019), Ok(day(2019, 3, 24)));
+        assert_eq!(
+            astronomical_paschal_full_moon(2151),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            astronomical_paschal_full_moon(1582),
+            Err(Refusal::OutOfRange)
+        );
     }
 }

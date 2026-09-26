@@ -368,11 +368,11 @@ pub fn thingyan(year: i64) -> Thingyan {
 }
 
 const fn jdn_to_rd(jdn: i64) -> Rd {
-    Rd(jdn - 1_721_425)
+    Rd::from_julian_day_number(jdn)
 }
 
 const fn rd_to_jdn(rd: Rd) -> i64 {
-    rd.0 + 1_721_425
+    rd.to_julian_day_number()
 }
 
 /// Where the period of use comes from.

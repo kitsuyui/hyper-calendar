@@ -80,6 +80,8 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_tai64_posix_plus_10_decode` | every label below 2⁶³, the POSIX seconds −4 611 686 018 427 387 914 through 4 611 686 018 427 387 893; a reserved label is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_uuid_timestamp` | no `i64` input: every version 1 or version 6 UUID, whose timestamps are the POSIX seconds −12 219 292 800 (1582-10-15) through 103 072 857 660 (5236-03-31); another version is `HC_ERR_NO_DATA` |
 | a byte length | `hc_ntp_resolve` | `reference_unix` −9 223 372 034 707 292 160 through 9 223 372 032 498 303 360, within which every timestamp's date and POSIX second fit an `i64`; nearer the ends of the `i64` range some timestamps are `HC_ERR_OUT_OF_RANGE`, and the zero timestamp is `HC_ERR_NO_DATA` everywhere |
+| a byte length | `hc_uuid_timestamp_encode` | `unix_seconds` −12 219 292 800 (1582-10-15) through 103 072 857 660 (5236-03-31), up to the field's last interval, which ends at 21:21:00.6846976 UTC that day, and attoseconds below 10¹⁸; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_ntp_encode` | `unix_seconds` −9 223 372 036 854 775 808 through 9 223 372 034 645 787 007, `i64::MAX` − 2 208 988 800, the seconds whose count from 1900 fits an `i64`, and attoseconds below 10¹⁸; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_fat_decode` | no `i64` input: every pair of words whose fields name a day and a time, the fixed days 722 815 (1980-01-01) through 769 565 (2107-12-31); a word above 65 535 is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_fat_encode` | `fixed` 722 815 (1980-01-01) through 769 565 (2107-12-31) and a time of day below 86 400 s; any other is `HC_ERR_OUT_OF_RANGE` |
 | a beat, 0 through 999 | `hc_swatch_beat` | every `unix_seconds`, and attoseconds below 10¹⁸; more attoseconds are `HC_ERR_OUT_OF_RANGE` |
@@ -99,6 +101,8 @@ out of range is `out-of-range`, never an unrecognised number.
 | a fixed day | `hc_hebrew_yahrzeit`, `hc_hebrew_birthday` | `death_fixed` and `birth_fixed` −1 373 427 through 2 278 650 and `hebrew_year` 1 through 9999, the Hebrew years 1 through 9999, and the anniversary lies among those days; any other is `HC_ERR_OUT_OF_RANGE` |
 | an age, from 1 | `hc_chinese_reckoned_age` | `birth_fixed` and `on_fixed` 600 460 through 785 271, the days of the Chinese calendar's range, 1645 through 2150, a birth before or on the day asked; a day before the birth is `HC_ERR_NO_DATA`, and a day outside the range `HC_ERR_OUT_OF_RANGE` |
 | a fixed day | `hc_astronomical_easter` | `year` 1583 through 2150, Easter falling between the fixed days 577 913 and 785 015; any other year is `HC_ERR_OUT_OF_RANGE` |
+| a fixed day | `hc_astronomical_paschal_full_moon` | `year` 1583 through 2150, the years of `hc_astronomical_easter`; any other year is `HC_ERR_OUT_OF_RANGE` |
+| a fixed day | `hc_cold_food_day` | `year` −999 through 3000 under every reckoning, the years whose winter solstice before and whose April are both in the era of `hc_term_in_effect`; any other is `HC_ERR_OUT_OF_RANGE`, and a reckoning it does not name `HC_ERR_UNKNOWN` |
 | 0 | `hc_zone_load` | any name and bytes; bytes that are not TZif are `HC_ERR_MALFORMED` |
 | a byte length | `hc_circad_date` | no `i64` input: the instants within 100 Julian years of J2000.0 (1900-01-01T12:00 to 2100-01-01T12:00 TT), as for `hc_mars_time`; any other, or one not finite, is `HC_ERR_OUT_OF_RANGE`, and a calendar not listed `HC_ERR_UNKNOWN` |
 | a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERR_NO_DATA`, and a mission the table does not carry `HC_ERR_UNKNOWN` |
@@ -218,6 +222,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `fixedFromOleAutomation(value)`, `oleAutomationFromFixed(fixed, secondsOfDay)`, `excel1900Day(serial)` | `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day` | an `OleAutomationDay`; a number; an `Excel1900Day` |
 | `tai64PosixPlus10Encode(unixSeconds, attoseconds, format)`, `tai64PosixPlus10Decode(hex)` | `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode` | a string; a `PosixTai64Label` |
 | `uuidTimestamp(uuid)`, `ntpResolve(seconds, fraction, referenceUnix)` | `hc_uuid_timestamp`, `hc_ntp_resolve` | a `UuidTimestamp`; an `NtpDate` |
+| `uuidTimestampEncode(unixSeconds, attoseconds)`, `ntpEncode(unixSeconds, attoseconds)` | `hc_uuid_timestamp_encode`, `hc_ntp_encode` | `UuidTimeFields`; an `NtpEncoding` |
 | `fatDecode(date, time)`, `fatEncode(fixed, secondsOfDay)` | `hc_fat_decode`, `hc_fat_encode` | a `FatReading`; `FatWords` |
 | `swatchBeat(unixSeconds, attoseconds)` | `hc_swatch_beat` | a number, 0 through 999 |
 | `epochFromTt(notation, ttSeconds, attoseconds)`, `ttFromEpoch(notation, year)` | `hc_epoch_from_tt`, `hc_tt_from_epoch` | an `Epoch`; an `EpochInstant` |
@@ -236,8 +241,9 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `holidayCodes()` | `hc_holiday_codes` | `string[]` |
 | `holidaysOn(fixed)` | `hc_holidays_on` | `HolidayOn[]` |
 | `holidayTables(locale)` | `hc_holiday_tables` | `HolidayTable[]` |
-| `lectionary(fixed)`, `astronomicalEaster(year)` | `hc_lectionary`, `hc_astronomical_easter` | a `Lectionary`; a fixed day number |
+| `lectionary(fixed)`, `astronomicalEaster(year)`, `astronomicalPaschalFullMoon(year)` | `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon` | a `Lectionary`; a fixed day number |
 | `termInEffect(fixed, meridian)`, `pentadInEffect(fixed, meridian)` | `hc_term_in_effect`, `hc_pentad_in_effect` | a `TermInEffect` |
+| `coldFoodDay(convention, year)` | `hc_cold_food_day` | a fixed day number |
 | `placeYearsAgo(yearsAgo, stdDevYears, locale)`, `cosmicEvents(locale)`, `geologicIntervals(rank, locale)` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `DeepTimeRow[]` |
 | `fixedFromUnixInZone(unixSeconds, zone)`, `unixFromFixedInZone(fixed, zone)` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone` | a number |
 | `loadZone(name, tzif)` | `hc_zone_load` | nothing |
@@ -358,10 +364,10 @@ one job a layer.
 | Feature | Exports | Brings in | Bytes | Size |
 | --- | --- | --- | ---: | ---: |
 | `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,663 | 35 KiB |
-| `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, and Julian and Besselian epochs | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time` and `epoch_notation`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` | 104,440 | 102 KiB |
+| `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, and Julian and Besselian epochs | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time` and `epoch_notation`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` | 104,440 | 102 KiB |
 | `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; and when each country adopted the Gregorian calendar; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury` | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 821,587 | 802 KiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter` | `hc-holiday` and everything it dates by | 1,163,807 | 1.11 MiB |
-| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 89,072 | 87 KiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon` | `hc-holiday` and everything it dates by | 1,163,807 | 1.11 MiB |
+| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day` | `hc-seasons`, `hc-astro` | 89,072 | 87 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 152,767 | 149 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,666 | 56 KiB |
 | `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event` | `hc-astro`, `hc-seasons` | 108,913 | 106 KiB |
@@ -408,7 +414,7 @@ not pass CI.
 
 ### Exports
 
-85 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+89 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -443,6 +449,8 @@ not pass CI.
 | `hc_tai64_posix_plus_10_decode(hex: *const u8, hex_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | A TAI64 or TAI64N label in the `tai64-posix-plus-10` convention read back, as one UTF-8 line, returning the byte length written. |
 | `hc_uuid_timestamp(uuid: *const u8, uuid_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The timestamp of a version 1 or version 6 UUID, as one UTF-8 line, returning the byte length written. |
 | `hc_ntp_resolve(seconds: u32, fraction: u32, reference_unix: i64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | A 64-bit NTP timestamp placed in its era by a reference time, as one UTF-8 line, returning the byte length written. |
+| `hc_uuid_timestamp_encode(unix_seconds: i64, attoseconds: u64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The 60-bit UUID timestamp of a POSIX instant, and the time fields a version 1 and a version 6 UUID write it in, as one UTF-8 line, returning the byte length written. |
+| `hc_ntp_encode(unix_seconds: i64, attoseconds: u64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The NTP date and timestamp of a POSIX instant, as one UTF-8 line, returning the byte length written. |
 | `hc_fat_decode(date: u32, time: u32, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The local reading a FAT date word and time word name, as one UTF-8 line, returning the byte length written. |
 | `hc_fat_encode(fixed: i64, seconds_of_day: u32, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The FAT date and time words of a fixed day and a time of day, as one UTF-8 line, returning the byte length written. |
 | `hc_swatch_beat(unix_seconds: i64, attoseconds: u64) -> i64` | `timestamps` | The Swatch Internet Time at a POSIX instant, 0 through 999, or an error sentinel. |
@@ -469,8 +477,10 @@ not pass CI.
 | `hc_holiday_tables(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | Every holiday table with its kind, names and sources, as UTF-8 lines, returning the byte length written. |
 | `hc_lectionary(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The lectionary cycles of a fixed day, as one UTF-8 line, returning the byte length written. |
 | `hc_astronomical_easter(year: i64) -> i64` | `holiday` | The fixed day of Easter Sunday of a Gregorian year by the astronomical reckoning at the meridian of Jerusalem, or an error sentinel. |
+| `hc_astronomical_paschal_full_moon(year: i64) -> i64` | `holiday` | The fixed day of the paschal full moon of a Gregorian year by the astronomical reckoning at the meridian of Jerusalem, or an error sentinel. |
 | `hc_term_in_effect(fixed: i64, meridian: *const u8, meridian_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `seasons` | The solar term in effect on a fixed day at a meridian, as one UTF-8 line, returning the byte length written. |
 | `hc_pentad_in_effect(fixed: i64, meridian: *const u8, meridian_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `seasons` | The pentad (候) in effect on a fixed day at a meridian, as one UTF-8 line, returning the byte length written. |
+| `hc_cold_food_day(convention: *const u8, convention_len: usize, year: i64) -> i64` | `seasons` | The fixed day of 寒食, the Cold Food Day, of a Gregorian year under a named reckoning, or an error sentinel. |
 | `hc_place_years_ago(years_ago: f64, std_dev_years: f64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | A moment some years before the present, placed in every chronology at once, as UTF-8 lines, returning the byte length written. |
 | `hc_cosmic_events(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every cosmic epoch and every dated cosmic event, as UTF-8 lines, returning the byte length written. |
 | `hc_geologic_intervals(rank: u32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every interval of one rank of the geologic time scale, as UTF-8 lines, returning the byte length written. |
@@ -747,6 +757,43 @@ as the RFC's Figure 4 has it; against a clock in 1920 it is 17:31:44 on
 | 3 | fraction | the fraction of the second in units of 2⁻⁶⁴ s |
 | 4 | unix seconds | the POSIX seconds of the date |
 | 5 | attoseconds | the attoseconds into that second |
+
+### UUID timestamps from an instant
+
+The other way, from a POSIX instant, `unix_seconds` and the attoseconds
+into it: `hc_uuid_timestamp_encode(unix_seconds, attoseconds, buffer,
+capacity)` writes the 60-bit UUID timestamp, the 100 ns interval that
+contains the instant, and the first three groups of a version 1 and of a
+version 6 UUID that carry it, for a generator to follow with its own clock
+sequence and node; nothing random is made here. POSIX 1 645 557 742, RFC
+9562's example instant, is 138 648 505 420 000 000, `c232ab00-9414-11ec` and
+`1ec9414c-232a-6b00`, the groups of the RFC's two vectors in lower case.
+Before 1582-10-15 or after the field's last interval on 5236-03-31 is
+`HC_ERR_OUT_OF_RANGE`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | timestamp | the 60-bit count of 100-nanosecond intervals from 1582-10-15 00:00 UTC |
+| 2 | version 1 fields | `time_low`, `time_mid` and the version with `time_high`, hyphenated, lower case |
+| 3 | version 6 fields | `time_high`, `time_mid` and the version with `time_low`, hyphenated, lower case |
+
+### NTP dates from an instant
+
+`hc_ntp_encode(unix_seconds, attoseconds, buffer, capacity)` writes a POSIX
+instant's RFC 5905 date, its era, era offset and 2⁻⁶⁴ s fraction, and both
+wire layouts: the 128-bit date of Figure 3 and the 64-bit timestamp of the
+packet headers, which drops the era and keeps the top 32 bits of the
+fraction. POSIX 0 is era 0, offset 2 208 988 800, as the RFC's Figure 4 has
+1 January 1970; 8 February 2036 is era 1, offset 63 104, whose timestamp is
+the same 64 bits as 63 104 s into 1900's era.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | era | the era number, 0 for 1900 to 2036, negative before 1900 |
+| 2 | era offset | the seconds into the era |
+| 3 | fraction | the fraction of the second in units of 2⁻⁶⁴ s, floored |
+| 4 | date | the 128-bit date, era, offset and fraction, as 32 lower-case hexadecimal digits |
+| 5 | timestamp | the 64-bit timestamp, offset and the fraction's top 32 bits, as 16 |
 
 ### FAT date and time words
 
@@ -1299,7 +1346,9 @@ of Churches' Aleppo statement of 1997 proposed: the first Sunday after the
 day, by apparent solar time at Jerusalem, of the first full moon at or
 after the March equinox. It answers for 1583 to 2150 and is
 `HC_ERR_OUT_OF_RANGE` outside them; 2001's full moon fell on Sunday
-8 April, and its Easter on 15 April.
+8 April, and its Easter on 15 April. `hc_astronomical_paschal_full_moon(year)`
+answers that full moon's day itself, for the same years: 8 April 2001, and
+21 March 2019, the day of the equinox, as the statement's table has them.
 
 ## Almanac
 
@@ -1329,6 +1378,18 @@ writes one line:
 | 5 | the last fixed day before the next term begins | the last fixed day before the next pentad begins |
 | 6 | the authority for the Chinese names | the text the Chinese names come from |
 | 7 | the authority for the Japanese names | the text the Japanese names come from |
+
+`hc_cold_food_day(convention_ptr, convention_len, year)` answers the fixed
+day of 寒食, the Cold Food Day, which is counted from a solar term and has
+been counted three ways, each its own name (`docs/policy.md` §5):
+`hanshi-solstice-105`, 105 days after the winter solstice at 120°E, the
+Chinese reckoning before 1645; `hanshi-eve-of-qingming`, the day before
+清明 at 120°E, as kept after the 時憲曆 of 1645; and `hansik`, Korea's 한식,
+105 days after 동지 at UTC+9. Names match in any case; anything else is
+`HC_ERR_UNKNOWN`. It answers for the years −999 to 3000 and is
+`HC_ERR_OUT_OF_RANGE` outside them. 한식 fell on 5 April 2024 and 6 April
+2026, as the Korea Astronomy and Space Science Institute's 월력요항 has it.
+`docs/systems/solar-term-counts.md` works the count through.
 
 ## Deep time
 

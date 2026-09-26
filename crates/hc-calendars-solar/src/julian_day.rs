@@ -39,7 +39,7 @@ use hc_calendar::{
 };
 
 /// The Julian Day Number of the Rata Die epoch, `0001-01-01` Gregorian.
-pub const JDN_OF_RD_ONE: i64 = 1_721_426;
+pub const JDN_OF_RD_ONE: i64 = hc_calendar::fixed::JDN_OF_RD_ZERO + 1;
 
 /// The difference between a Julian Day Number and a Modified Julian Date.
 ///

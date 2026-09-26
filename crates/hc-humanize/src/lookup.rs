@@ -220,6 +220,19 @@ mod tests {
         assert_eq!(locale_data(&locale("zh-Hant-TW")).tag, "zh-Hant");
     }
 
+    /// CLDR 48's likely subtags give these regions the Hant script, so a
+    /// tag that names only the region still reaches the Traditional entry;
+    /// `zh-CN` and `zh-SG` take Hans.
+    #[test]
+    fn a_traditional_region_reaches_the_zh_hant_entry_without_naming_the_script() {
+        for tag in ["zh-TW", "zh-HK", "zh-MO"] {
+            assert_eq!(locale_data(&locale(tag)).tag, "zh-Hant", "{tag}");
+        }
+        for tag in ["zh-CN", "zh-SG"] {
+            assert_eq!(locale_data(&locale(tag)).tag, "zh", "{tag}");
+        }
+    }
+
     #[test]
     fn an_unknown_language_lands_on_the_root() {
         assert_eq!(locale_data(&locale("xx")).tag, "und");

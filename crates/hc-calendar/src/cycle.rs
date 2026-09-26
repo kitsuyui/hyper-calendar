@@ -950,7 +950,7 @@ mod tests {
     /// The Julian Day Number of a fixed day, used to check the day pillar
     /// against the published `(JDN + 9) mod 10` / `(JDN + 1) mod 12` rule.
     const fn jdn(rd: Rd) -> i64 {
-        rd.0 + 1_721_425
+        rd.to_julian_day_number()
     }
 
     #[test]

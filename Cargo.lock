@@ -211,6 +211,7 @@ dependencies = [
 name = "hc-uncertainty"
 version = "0.1.0"
 dependencies = [
+ "hc-calendar",
  "hc-core",
 ]
 

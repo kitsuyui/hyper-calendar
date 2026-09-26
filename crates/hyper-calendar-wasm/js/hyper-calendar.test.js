@@ -817,6 +817,16 @@ describe("almanac", () => {
       refused(() => hc.pentadInEffect(day, bad), "unknown");
     }
   });
+
+  test("한식 is where KASI's 월력요항 puts it, and the Chinese reckonings a day or two apart", () => {
+    assert.equal(hc.coldFoodDay("hansik", 2024), hc.gregorianToFixed(2024, 4, 5));
+    assert.equal(hc.coldFoodDay("HANSIK", 2026n), hc.gregorianToFixed(2026, 4, 6));
+    const gap = hc.coldFoodDay("hanshi-solstice-105", 2026) - hc.coldFoodDay("hanshi-eve-of-qingming", 2026);
+    assert.ok(gap === 1 || gap === 2, `${gap}`);
+    refused(() => hc.coldFoodDay(/** @type {any} */ ("hanshi"), 2026), "unknown");
+    refused(() => hc.coldFoodDay("hansik", 3001), "out-of-range");
+    refused(() => hc.coldFoodDay("hansik", -1000), "out-of-range");
+  });
 });
 
 describe("deep time", () => {
@@ -1203,6 +1213,24 @@ describe("time scales and day counts", () => {
     refused(() => hc.uuidTimestamp("919108f7-52d1-4320-9bac-f847db4148a8"), "no-data");
     refused(() => hc.uuidTimestamp("not a uuid"), "malformed");
   });
+  test("RFC 9562's example instant encodes to its vectors' time fields, and Figure 4's dates to NTP", () => {
+    assert.deepEqual(hc.uuidTimestampEncode(1_645_557_742), {
+      timestamp: 0x1EC9414C232AB00n, v1: "c232ab00-9414-11ec", v6: "1ec9414c-232a-6b00",
+    });
+    const back = hc.uuidTimestampEncode(1_645_557_742n, 0n);
+    assert.equal(hc.uuidTimestamp(`${back.v6}-8000-000000000000`).timestamp, back.timestamp);
+    refused(() => hc.uuidTimestampEncode(-12_219_292_801), "out-of-range");
+    refused(() => hc.uuidTimestampEncode(0, 10n ** 18n), "out-of-range");
+    assert.deepEqual(hc.ntpEncode(0), {
+      era: 0, offset: 2_208_988_800, fraction: 0n,
+      date: "0000000083aa7e800000000000000000", timestamp: "83aa7e8000000000",
+    });
+    const era1 = hc.ntpEncode(2_086_041_600);
+    assert.deepEqual([era1.era, era1.offset, era1.timestamp], [1, 63_104, "0000f68000000000"]);
+    assert.equal(hc.ntpEncode(0, 500_000_000_000_000_000n).fraction, 2n ** 63n);
+    refused(() => hc.ntpEncode(2n ** 63n - 1n), "out-of-range");
+  });
+
 
   test("an NTP timestamp takes its era from the reference, as RFC 5905's Figure 4 has it", () => {
     assert.deepEqual(hc.ntpResolve(63_104, 0, 1_893_456_000), {
@@ -1437,6 +1465,14 @@ describe("the holiday tables and the liturgical year", () => {
     assert.equal(hc.astronomicalEaster(2001), hc.gregorianToFixed(2001, 4, 15));
     refused(() => hc.astronomicalEaster(1582), "out-of-range");
     refused(() => hc.astronomicalEaster(2151), "out-of-range");
+  });
+
+  test("the Aleppo table's paschal full moons are 8 April 2001 and 21 March 2019", () => {
+    assert.equal(hc.astronomicalPaschalFullMoon(2001), hc.gregorianToFixed(2001, 4, 8));
+    assert.equal(hc.astronomicalEaster(2001) - hc.astronomicalPaschalFullMoon(2001), 7);
+    assert.equal(hc.astronomicalPaschalFullMoon(2019n), hc.gregorianToFixed(2019, 3, 21));
+    refused(() => hc.astronomicalPaschalFullMoon(1582), "out-of-range");
+    refused(() => hc.astronomicalPaschalFullMoon(2151), "out-of-range");
   });
 });
 

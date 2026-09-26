@@ -10,7 +10,11 @@ three digits and not eleven. A date library that can only hold exact instants
 must either refuse these or invent the missing precision. Inventing it is
 worse.
 
-It depends on `hc-core`.
+It depends on `hc-core`, and on `hc-calendar` for the proleptic Gregorian
+day arithmetic that places an EDTF date: `hc_calendar::gregorian` is the one
+implementation of it in the workspace (policy §2), and this crate adds only
+a thin adapter that reaches the years EDTF's `Y` form writes beyond its
+±9 999 999 range.
 
 ```rust
 use hc_uncertainty::{Significant, Uncertain};
@@ -54,7 +58,8 @@ Highlights:
 
 - **No calendars.** Everything is expressed against `hc_core::Instant` and
   `hc_core::Duration`. Turning "the third century BC" into a pair of instants
-  belongs to a calendar crate.
+  belongs to a calendar crate; EDTF's proleptic Gregorian dates are placed
+  with `hc-calendar`'s arithmetic, not a copy of it.
 - **No Monte Carlo.** `Uncertain` is a linear approximation and says so. It
   assumes independent inputs — `x.checked_add(x)` gives `σ√2`, not `2σ`; use
   `scaled` when the correlation is total — and it degrades once `σ/|x|` passes

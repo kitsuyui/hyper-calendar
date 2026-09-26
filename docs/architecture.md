@@ -81,7 +81,7 @@ gives each crate's other direct dependencies. The workspace manifest,
 | `hc-core` | `Duration`, `Instant<S>`, time scales, the leap-second table, epochs, timestamp formats, math | — |
 | `hc-core` | `Duration`, `Instant<S>`, time scales, the leap-second table, epochs, math, the per-call memo of pure functions | — |
 | `hc-calendar` | `Rd`, `CivilTime`, the `Calendar` trait, the registry | — |
-| `hc-uncertainty` | Significant figures, fuzzy dates, EDTF, intervals | — |
+| `hc-uncertainty` | Significant figures, fuzzy dates, EDTF, intervals | `hc-calendar` |
 | `hc-units` | Exact ratios, tempo and media rates | — |
 | `hc-deep-time` | Planck time to cosmology | `hc-uncertainty` |
 | `hc-orbital` | Milankovitch orbital elements and insolation, Berger 1978 | `hc-uncertainty` |
@@ -121,8 +121,9 @@ boundary crates do.
   `DateTime` and `TimeDelta` over `Rd`, `CivilTime` and `Duration`.
   [python-parity.md](python-parity.md) maps it row by row.
 - The `*_lines` modules (`lines`, `time_lines`, `holiday_lines`,
-  `season_lines`, `astro_lines`, `panchanga_lines`, `deep_time_lines`,
-  `planetary_lines`, `relativity_lines`) and `calendar_values` produce the
+  `season_lines`, `sky_lines`, `astro_lines`, `panchanga_lines`,
+  `deep_time_lines`, `planetary_lines`, `relativity_lines`) and
+  `calendar_values` produce the
   answers the two boundary crates return. Each answer about a set of things
   is a set of UTF-8 lines, one per entry, with tab-separated cells in a
   fixed column order. `boundary::Refusal` is the one list of reasons a

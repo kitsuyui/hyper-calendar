@@ -31,14 +31,16 @@
 //!   interval, so it cannot be represented faithfully here.
 //! * **Exponential years and significant digits** (`Y17E7S3`).
 //!
-//! # Why there is calendar arithmetic in an uncertainty crate
+//! # Where the calendar arithmetic comes from
 //!
 //! Placing `1984-01-01` on a timeline needs proleptic Gregorian day
-//! arithmetic, which properly belongs to `hc-calendar`. This crate depends
-//! only on `hc-core`, so it carries a private, round-trip-tested copy of the
-//! two Rata Die formulas from Reingold and Dershowitz, *Calendrical
-//! Calculations*, 4th ed., §2.3. It is not re-exported, and nothing else
-//! should use it.
+//! arithmetic, which belongs to `hc-calendar` (policy §2, one
+//! implementation), and this module calls
+//! [`hc_calendar::gregorian::to_fixed`] for it. The one adapter here widens
+//! the range: `hc-calendar` converts years within ±9 999 999, and the `Y`
+//! form writes years beyond that, so a year is reduced by whole 400-year
+//! Gregorian cycles into that range, converted there, and moved back. A test
+//! asserts that the adapter changes the range and nothing else.
 //!
 //! # Accuracy of the placement
 //!
@@ -56,13 +58,12 @@ use core::str::FromStr;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
+use hc_calendar::fixed::RD_OF_UNIX_EPOCH;
+use hc_calendar::gregorian;
 use hc_core::{Duration, Instant, Tai};
 
 use crate::error::{UncertaintyError, UncertaintyResult};
 use crate::fuzzy::FuzzyInstant;
-
-/// Rata Die of `1970-01-01`, the day the `hc-core` epoch falls on.
-const RD_OF_UNIX_EPOCH: i64 = 719_163;
 
 /// How sure the writer of an EDTF value was.
 ///
@@ -305,9 +306,15 @@ impl EdtfDate {
             if !(1..=31).contains(&day) {
                 return Err(UncertaintyError::InvalidSyntax("a day in 01..31"));
             }
-            if self.unspecified_year_digits == 0
-                && let Some(month) = self.month.value()
-                && day > days_in_month(self.year, month)
+            // With unspecified year digits the year could be a leap year,
+            // so the day is checked against the month's longest length.
+            let year = if self.unspecified_year_digits == 0 {
+                self.year
+            } else {
+                LEAP_YEAR
+            };
+            if let Some(month) = self.month.value()
+                && gregorian::days_in_month(year, month).is_some_and(|length| day > length)
             {
                 return Err(UncertaintyError::InvalidSyntax("a day that month has"));
             }
@@ -322,34 +329,42 @@ impl EdtfDate {
     ///
     /// Unspecified digits widen the range; an unspecified month with a
     /// specified day yields the *hull* of the twelve possibilities, which is
-    /// wider than the true support and is documented as such.
-    fn day_range(self) -> (i64, i64) {
+    /// wider than the true support and is documented as such. So does
+    /// `19XX-02-29`: where the first or last year of the span is a common
+    /// year, its end of the hull is that year's 28 February.
+    fn day_range(self) -> UncertaintyResult<(i64, i64)> {
         let span = pow10(self.unspecified_year_digits);
         let low_year = self.year;
-        let high_year = self.year + span - 1;
+        let high_year = self
+            .year
+            .checked_add(span - 1)
+            .ok_or(UncertaintyError::Overflow)?;
         let low_month = self.month.value().unwrap_or(1);
         let high_month = self.month.value().unwrap_or(12);
-        let low_day = self.day.value().unwrap_or(1);
+        let low_length = month_length(low_year, low_month)?;
+        let high_length = month_length(high_year, high_month)?;
+        let low_day = self.day.value().map_or(1, |day| day.min(low_length));
         let high_day = self
             .day
             .value()
-            .unwrap_or_else(|| days_in_month(high_year, high_month));
-        (
-            fixed_from_gregorian(low_year, low_month, low_day),
-            fixed_from_gregorian(high_year, high_month, high_day),
-        )
+            .map_or(high_length, |day| day.min(high_length));
+        Ok((
+            fixed_from_gregorian(low_year, low_month, low_day)?,
+            fixed_from_gregorian(high_year, high_month, high_day)?,
+        ))
     }
 
     /// The first instant the date could denote.
-    fn start_instant(self) -> Instant<Tai> {
-        instant_of_day(self.day_range().0)
+    fn start_instant(self) -> UncertaintyResult<Instant<Tai>> {
+        instant_of_day(self.day_range()?.0)
     }
 
     /// The instant one day after the last day the date could denote, which
     /// is the exclusive end of the range and the closed upper bound of the
     /// support.
-    fn end_instant(self) -> Instant<Tai> {
-        instant_of_day(self.day_range().1 + 1)
+    fn end_instant(self) -> UncertaintyResult<Instant<Tai>> {
+        let last = self.day_range()?.1;
+        instant_of_day(last.checked_add(1).ok_or(UncertaintyError::Overflow)?)
     }
 
     /// The date as a fuzzy instant.
@@ -364,8 +379,8 @@ impl EdtfDate {
     /// Returns [`UncertaintyError::Overflow`] when the span leaves the
     /// representable range.
     pub fn to_fuzzy_instant(self) -> UncertaintyResult<FuzzyInstant> {
-        let start = self.start_instant();
-        let end = self.end_instant();
+        let start = self.start_instant()?;
+        let end = self.end_instant()?;
         if !self.qualifier.is_approximate() {
             let resolution = end.since_epoch().checked_sub(start.since_epoch())?;
             return FuzzyInstant::resolved(start, resolution);
@@ -505,16 +520,16 @@ impl EdtfSetMember {
     ///
     /// Only reachable through a set, which needs `alloc`.
     #[cfg(feature = "alloc")]
-    fn day_range(self) -> (Option<i64>, Option<i64>) {
-        match self {
+    fn day_range(self) -> UncertaintyResult<(Option<i64>, Option<i64>)> {
+        Ok(match self {
             Self::Date(date) => {
-                let (low, high) = date.day_range();
+                let (low, high) = date.day_range()?;
                 (Some(low), Some(high))
             }
-            Self::Range { start, end } => (Some(start.day_range().0), Some(end.day_range().1)),
-            Self::EarlierThan(date) => (None, Some(date.day_range().1)),
-            Self::LaterThan(date) => (Some(date.day_range().0), None),
-        }
+            Self::Range { start, end } => (Some(start.day_range()?.0), Some(end.day_range()?.1)),
+            Self::EarlierThan(date) => (None, Some(date.day_range()?.1)),
+            Self::LaterThan(date) => (Some(date.day_range()?.0), None),
+        })
     }
 
     /// Parse one member of a set.
@@ -634,11 +649,11 @@ impl EdtfValue {
             Self::Date(date) => date.to_fuzzy_instant(),
             Self::Interval { start, end } => {
                 let earliest = match start {
-                    EdtfEndpoint::Date(date) => Some(date.start_instant()),
+                    EdtfEndpoint::Date(date) => Some(date.start_instant()?),
                     EdtfEndpoint::Open | EdtfEndpoint::Unknown => None,
                 };
                 let latest = match end {
-                    EdtfEndpoint::Date(date) => Some(date.end_instant()),
+                    EdtfEndpoint::Date(date) => Some(date.end_instant()?),
                     EdtfEndpoint::Open | EdtfEndpoint::Unknown => None,
                 };
                 Ok(match (earliest, latest) {
@@ -648,8 +663,8 @@ impl EdtfValue {
                     (None, None) => FuzzyInstant::Unknown,
                 })
             }
-            Self::EarlierThan(date) => Ok(FuzzyInstant::Before(date.end_instant())),
-            Self::LaterThan(date) => Ok(FuzzyInstant::After(date.start_instant())),
+            Self::EarlierThan(date) => Ok(FuzzyInstant::Before(date.end_instant()?)),
+            Self::LaterThan(date) => Ok(FuzzyInstant::After(date.start_instant()?)),
             #[cfg(feature = "alloc")]
             Self::OneOf(members) | Self::AllOf(members) => hull_of(members),
         }
@@ -734,7 +749,7 @@ fn hull_of(members: &[EdtfSetMember]) -> UncertaintyResult<FuzzyInstant> {
         return Err(UncertaintyError::InvalidSyntax("at least one member"));
     }
     for member in members {
-        match member.day_range() {
+        match member.day_range()? {
             (Some(start), Some(end)) => {
                 low = Some(low.map_or(start, |current: i64| current.min(start)));
                 high = Some(high.map_or(end, |current: i64| current.max(end)));
@@ -756,16 +771,19 @@ fn hull_of(members: &[EdtfSetMember]) -> UncertaintyResult<FuzzyInstant> {
     Ok(match (open_low, open_high) {
         (true, true) => FuzzyInstant::Unknown,
         (true, false) => match high {
-            Some(end) => FuzzyInstant::Before(instant_of_day(end + 1)),
+            Some(end) => FuzzyInstant::Before(instant_of_day(
+                end.checked_add(1).ok_or(UncertaintyError::Overflow)?,
+            )?),
             None => FuzzyInstant::Unknown,
         },
         (false, true) => match low {
-            Some(start) => FuzzyInstant::After(instant_of_day(start)),
+            Some(start) => FuzzyInstant::After(instant_of_day(start)?),
             None => FuzzyInstant::Unknown,
         },
         (false, false) => match (low, high) {
             (Some(start), Some(end)) => {
-                FuzzyInstant::bounded(instant_of_day(start), instant_of_day(end + 1))?
+                let past = end.checked_add(1).ok_or(UncertaintyError::Overflow)?;
+                FuzzyInstant::bounded(instant_of_day(start)?, instant_of_day(past)?)?
             }
             _ => FuzzyInstant::Unknown,
         },
@@ -885,81 +903,45 @@ const fn pow10(exponent: u8) -> i64 {
     }
 }
 
-/// Whether a proleptic Gregorian year is a leap year.
-const fn is_leap_year(year: i64) -> bool {
-    year.rem_euclid(4) == 0 && (year.rem_euclid(100) != 0 || year.rem_euclid(400) == 0)
-}
+/// A leap year, for checking a day against a month's longest length.
+const LEAP_YEAR: i64 = 2000;
 
-/// The length of a proleptic Gregorian month.
-const fn days_in_month(year: i64, month: u8) -> u8 {
-    match month {
-        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-        4 | 6 | 9 | 11 => 30,
-        2 => {
-            if is_leap_year(year) {
-                29
-            } else {
-                28
-            }
-        }
-        _ => 31,
-    }
-}
+/// Days in one 400-year Gregorian cycle, after which the calendar repeats.
+const DAYS_PER_CYCLE: i64 = gregorian::new_year(400).0 - gregorian::new_year(0).0;
 
-/// Rata Die of a proleptic Gregorian date.
+/// The length of a month of a year, for any year EDTF can write.
 ///
-/// Reingold and Dershowitz, *Calendrical Calculations*, 4th ed., equation
-/// (2.17). `Rd(1)` is `0001-01-01`.
-fn fixed_from_gregorian(year: i64, month: u8, day: u8) -> i64 {
-    let prior = year - 1;
-    let mut fixed = 365 * prior + prior.div_euclid(4) - prior.div_euclid(100)
-        + prior.div_euclid(400)
-        + (367 * i64::from(month) - 362).div_euclid(12)
-        + i64::from(day);
-    if month > 2 {
-        fixed += if is_leap_year(year) { -1 } else { -2 };
-    }
-    fixed
+/// Only February depends on the year, and only through its position in the
+/// 400-year cycle, so the year is reduced into that cycle first.
+fn month_length(year: i64, month: u8) -> UncertaintyResult<u8> {
+    gregorian::days_in_month(year.rem_euclid(400), month)
+        .ok_or(UncertaintyError::InvalidSyntax("a month in 01..12"))
 }
 
-/// The proleptic Gregorian date of a Rata Die, the inverse of
-/// [`fixed_from_gregorian`].
+/// Rata Die of a proleptic Gregorian date, for any year EDTF can write.
 ///
-/// Reingold and Dershowitz, 4th ed., equations (2.18) to (2.23). Present so
-/// that the forward formula can be round-trip tested over its whole range.
-#[cfg(test)]
-fn gregorian_from_fixed(fixed: i64) -> (i64, u8, u8) {
-    let offset = fixed - 1;
-    let cycles_400 = offset.div_euclid(146_097);
-    let remainder_400 = offset.rem_euclid(146_097);
-    let cycles_100 = remainder_400.div_euclid(36_524);
-    let remainder_100 = remainder_400.rem_euclid(36_524);
-    let cycles_4 = remainder_100.div_euclid(1_461);
-    let remainder_4 = remainder_100.rem_euclid(1_461);
-    let years = remainder_4.div_euclid(365);
-    let candidate = 400 * cycles_400 + 100 * cycles_100 + 4 * cycles_4 + years;
-    let year = if cycles_100 == 4 || years == 4 {
-        candidate
-    } else {
-        candidate + 1
-    };
-    let prior_days = fixed - fixed_from_gregorian(year, 1, 1);
-    let correction = if fixed < fixed_from_gregorian(year, 3, 1) {
-        0
-    } else if is_leap_year(year) {
-        1
-    } else {
-        2
-    };
-    let month = ((12 * (prior_days + correction) + 373).div_euclid(367)) as u8;
-    let day = (fixed - fixed_from_gregorian(year, month, 1) + 1) as u8;
-    (year, month, day)
+/// [`gregorian::to_fixed`] is the implementation. It converts years within
+/// ±9 999 999, and the `Y` form writes years beyond that (`Y-170000002`), so
+/// the year is reduced into `0..400`, converted there, and moved back by
+/// whole cycles. That widens the range and changes nothing else, which
+/// `the_adapter_agrees_with_hc_calendar_wherever_both_convert` asserts.
+fn fixed_from_gregorian(year: i64, month: u8, day: u8) -> UncertaintyResult<i64> {
+    let cycles = year.div_euclid(400);
+    let within = gregorian::to_fixed(year.rem_euclid(400), month, day)
+        .map_err(|_| UncertaintyError::InvalidSyntax("a day that month has"))?;
+    cycles
+        .checked_mul(DAYS_PER_CYCLE)
+        .and_then(|days| days.checked_add(within.0))
+        .ok_or(UncertaintyError::Overflow)
 }
 
 /// The TAI instant at the start of a fixed day, counting 86 400-second days
 /// from the 1970 epoch.
-fn instant_of_day(fixed: i64) -> Instant<Tai> {
-    Instant::from_epoch(Duration::from_days(fixed - RD_OF_UNIX_EPOCH))
+fn instant_of_day(fixed: i64) -> UncertaintyResult<Instant<Tai>> {
+    let days = fixed
+        .checked_sub(RD_OF_UNIX_EPOCH)
+        .ok_or(UncertaintyError::Overflow)?;
+    Ok(Instant::from_epoch(Duration::from_days(days)))
 }
 
 #[cfg(test)]
@@ -969,12 +951,17 @@ mod tests {
     #[cfg(feature = "alloc")]
     use alloc::string::ToString as _;
 
+    /// `fixed_from_gregorian` with the published answer unwrapped.
+    fn fixed(year: i64, month: u8, day: u8) -> i64 {
+        fixed_from_gregorian(year, month, day).unwrap()
+    }
+
     #[test]
     fn the_unix_epoch_sits_at_the_published_rata_die() {
         // Reingold and Dershowitz give RD 719163 for 1970-01-01.
-        assert_eq!(fixed_from_gregorian(1970, 1, 1), RD_OF_UNIX_EPOCH);
+        assert_eq!(fixed(1970, 1, 1), RD_OF_UNIX_EPOCH);
         assert_eq!(
-            instant_of_day(RD_OF_UNIX_EPOCH).since_epoch(),
+            instant_of_day(RD_OF_UNIX_EPOCH).unwrap().since_epoch(),
             Duration::ZERO
         );
     }
@@ -982,53 +969,54 @@ mod tests {
     #[test]
     fn published_reference_dates_land_on_their_fixed_days() {
         // Reingold and Dershowitz, Appendix C sample dates.
-        assert_eq!(fixed_from_gregorian(1, 1, 1), 1);
-        assert_eq!(fixed_from_gregorian(1945, 11, 12), 710_347);
-        assert_eq!(fixed_from_gregorian(2000, 1, 1), 730_120);
+        assert_eq!(fixed(1, 1, 1), 1);
+        assert_eq!(fixed(1945, 11, 12), 710_347);
+        assert_eq!(fixed(2000, 1, 1), 730_120);
         // The Gregorian reform: 1582-10-15 was the first Gregorian day.
-        assert_eq!(fixed_from_gregorian(1582, 10, 15), 577_736);
+        assert_eq!(fixed(1582, 10, 15), 577_736);
     }
 
+    /// Policy §2: the adapter may widen the range and must change nothing
+    /// else. Every 1 March and 28 February of four whole cycles either side
+    /// of year zero, and the edges of `hc-calendar`'s range, land where
+    /// `hc-calendar` puts them.
     #[test]
-    fn the_gregorian_conversion_round_trips_over_four_centuries() {
-        // A full 400-year cycle, day by day, is the only way to be sure the
-        // leap rules and the month table agree with each other.
-        let start = fixed_from_gregorian(1600, 1, 1);
-        let end = fixed_from_gregorian(2000, 1, 1);
-        for fixed in start..end {
-            let (year, month, day) = gregorian_from_fixed(fixed);
-            assert_eq!(
-                fixed_from_gregorian(year, month, day),
-                fixed,
-                "round trip failed at {fixed}"
-            );
+    fn the_adapter_agrees_with_hc_calendar_wherever_both_convert() {
+        let years = (-1_600..1_600).chain([
+            gregorian::MIN_YEAR,
+            gregorian::MIN_YEAR + 1,
+            gregorian::MAX_YEAR - 1,
+            gregorian::MAX_YEAR,
+        ]);
+        for year in years {
+            for (month, day) in [(1, 1), (2, 28), (3, 1), (12, 31)] {
+                assert_eq!(
+                    fixed(year, month, day),
+                    gregorian::to_fixed(year, month, day).unwrap().get(),
+                    "{year}-{month:02}-{day:02}"
+                );
+            }
+            if gregorian::is_leap_year(year) {
+                assert_eq!(
+                    fixed(year, 2, 29),
+                    gregorian::to_fixed(year, 2, 29).unwrap().get()
+                );
+            } else {
+                assert!(fixed_from_gregorian(year, 2, 29).is_err());
+            }
         }
     }
 
     #[test]
-    fn the_gregorian_conversion_round_trips_before_the_common_era() {
-        for fixed in -2_000..2_000 {
-            let (year, month, day) = gregorian_from_fixed(fixed);
-            assert_eq!(fixed_from_gregorian(year, month, day), fixed);
-        }
-    }
-
-    #[test]
-    fn the_leap_rule_matches_the_century_exceptions() {
-        assert!(is_leap_year(2000));
-        assert!(!is_leap_year(1900));
-        assert!(!is_leap_year(1800));
-        assert!(is_leap_year(1600));
-        assert!(is_leap_year(2024));
-        assert!(!is_leap_year(2023));
-    }
-
-    #[test]
-    fn february_has_twenty_nine_days_only_in_leap_years() {
-        assert_eq!(days_in_month(2024, 2), 29);
-        assert_eq!(days_in_month(2023, 2), 28);
-        assert_eq!(days_in_month(1900, 2), 28);
-        assert_eq!(days_in_month(2000, 2), 29);
+    fn the_adapter_converts_years_past_hc_calendars_range() {
+        // One cycle past the edge is one cycle's days past the edge's day.
+        let year = gregorian::MAX_YEAR - 399;
+        assert!(gregorian::to_fixed(year + 400, 1, 1).is_err());
+        assert_eq!(fixed(year + 400, 1, 1), fixed(year, 1, 1) + 146_097);
+        assert_eq!(
+            fixed_from_gregorian(i64::MAX, 1, 1),
+            Err(UncertaintyError::Overflow)
+        );
     }
 
     #[test]
@@ -1105,9 +1093,28 @@ mod tests {
     #[test]
     fn a_century_spans_a_hundred_years_of_days() {
         let century = EdtfDate::parse("19XX").unwrap();
-        let (low, high) = century.day_range();
-        assert_eq!(low, fixed_from_gregorian(1900, 1, 1));
-        assert_eq!(high, fixed_from_gregorian(1999, 12, 31));
+        let (low, high) = century.day_range().unwrap();
+        assert_eq!(low, fixed(1900, 1, 1));
+        assert_eq!(high, fixed(1999, 12, 31));
+    }
+
+    #[test]
+    fn an_unspecified_year_still_bounds_the_day_by_the_month() {
+        // April never has a 31st, whichever year of the century it is.
+        assert!(EdtfDate::parse("19XX-04-31").is_err());
+        assert!(EdtfDate::parse("19XX-02-30").is_err());
+        // Some year of the century has a 29 February. 1900 and 1999 are
+        // common years, so the hull ends on their 28 February, which
+        // encloses 1904-02-29 and 1996-02-29.
+        let leap_day = EdtfDate::parse("19XX-02-29").unwrap();
+        let (low, high) = leap_day.day_range().unwrap();
+        assert_eq!(low, fixed(1900, 2, 28));
+        assert_eq!(high, fixed(1999, 2, 28));
+        let (low, high) = EdtfDate::parse("199X-02-29").unwrap().day_range().unwrap();
+        assert_eq!(low, fixed(1990, 2, 28));
+        assert_eq!(high, fixed(1999, 2, 28));
+        let (low, _) = EdtfDate::parse("200X-02-29").unwrap().day_range().unwrap();
+        assert_eq!(low, fixed(2000, 2, 29));
     }
 
     #[test]
@@ -1131,7 +1138,7 @@ mod tests {
     #[test]
     fn a_long_year_lands_far_before_the_epoch() {
         let date = EdtfDate::parse("Y-170000002").unwrap();
-        let instant = date.start_instant();
+        let instant = date.start_instant().unwrap();
         assert!(instant.since_epoch() < Duration::from_days(-62_000_000_000));
     }
 
@@ -1164,11 +1171,11 @@ mod tests {
         let support = fuzzy.support().unwrap();
         assert_eq!(
             support.earliest,
-            Some(instant_of_day(fixed_from_gregorian(1984, 1, 1)))
+            Some(instant_of_day(fixed(1984, 1, 1)).unwrap())
         );
         assert_eq!(
             support.latest,
-            Some(instant_of_day(fixed_from_gregorian(1986, 1, 1)))
+            Some(instant_of_day(fixed(1986, 1, 1)).unwrap())
         );
     }
 
@@ -1238,7 +1245,7 @@ mod tests {
         let FuzzyInstant::Before(latest) = value.to_fuzzy_instant().unwrap() else {
             panic!("expected an open start");
         };
-        assert_eq!(latest, instant_of_day(fixed_from_gregorian(1760, 12, 4)));
+        assert_eq!(latest, instant_of_day(fixed(1760, 12, 4)).unwrap());
     }
 
     #[test]
@@ -1348,11 +1355,11 @@ mod tests {
         let support = value.to_fuzzy_instant().unwrap().support().unwrap();
         assert_eq!(
             support.earliest,
-            Some(instant_of_day(fixed_from_gregorian(1667, 1, 1)))
+            Some(instant_of_day(fixed(1667, 1, 1)).unwrap())
         );
         assert_eq!(
             support.latest,
-            Some(instant_of_day(fixed_from_gregorian(1673, 1, 1)))
+            Some(instant_of_day(fixed(1673, 1, 1)).unwrap())
         );
     }
 

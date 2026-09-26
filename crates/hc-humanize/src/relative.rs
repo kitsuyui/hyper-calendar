@@ -595,6 +595,10 @@ mod tests {
         assert_eq!(say(&numeric("pt-BR"), -3, TimeUnit::Day), "há 3 dias");
         assert_eq!(say(&numeric("zh-Hans"), -3, TimeUnit::Day), "3天前");
         assert_eq!(say(&numeric("zh-Hant"), -3, TimeUnit::Week), "3週前");
+        // Traditional by the region's likely script, not Simplified.
+        assert_eq!(say(&numeric("zh-TW"), -3, TimeUnit::Week), "3週前");
+        assert_eq!(say(&numeric("zh-HK"), -3, TimeUnit::Week), "3週前");
+        assert_eq!(say(&numeric("zh-CN"), -3, TimeUnit::Week), "3周前");
     }
 
     // --- accessors and helpers -------------------------------------------

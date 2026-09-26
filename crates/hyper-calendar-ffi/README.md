@@ -95,6 +95,8 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | POSIX seconds | `hc_tai64_posix_plus_10_decode` | every label below 2⁶³, the POSIX seconds −4 611 686 018 427 387 914 through 4 611 686 018 427 387 893; a reserved label is `HC_ERROR_OUT_OF_RANGE` |
 | POSIX seconds | `hc_uuid_timestamp` | every version 1 or version 6 UUID, whose timestamps are the POSIX seconds −12 219 292 800 (1582-10-15) through 103 072 857 660 (5236-03-31); another version is `HC_ERROR_NO_DATA` |
 | an era and POSIX seconds | `hc_ntp_resolve` | `reference_unix` −9 223 372 034 707 292 160 through 9 223 372 032 498 303 360, within which every timestamp's date and POSIX second fit an `int64_t`; nearer the ends some timestamps are `HC_ERROR_OVERFLOW`, and the zero timestamp is `HC_ERROR_NO_DATA` everywhere |
+| a line | `hc_uuid_timestamp_encode` | `unix_seconds` −12 219 292 800 (1582-10-15) through 103 072 857 660 (5236-03-31), up to the field's last interval, which ends at 21:21:00.6846976 UTC that day, and attoseconds below 10¹⁸; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_ntp_encode` | `unix_seconds` −9 223 372 036 854 775 808 through 9 223 372 034 645 787 007, `INT64_MAX` − 2 208 988 800, the seconds whose count from 1900 fits an `int64_t`; a later one is `HC_ERROR_OVERFLOW`, and attoseconds from 10¹⁸ `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_fat_decode` | every pair of words whose fields name a day and a time, the fixed days 722 815 (1980-01-01) through 769 565 (2107-12-31) |
 | two FAT words | `hc_fat_encode` | `fixed` 722 815 (1980-01-01) through 769 565 (2107-12-31) and a time of day below 86 400 s; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a beat, 0 through 999 | `hc_swatch_beat` | every `unix_seconds`, and attoseconds below 10¹⁸ |
@@ -107,6 +109,8 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | 1 or 0; lines | `hc_holiday_is_day_off`, `hc_holidays_on` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_lectionary` | `fixed` 577 780 through 1 497 096, the liturgical years 1583 to 4099; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_astronomical_easter` | `year` 1583 through 2150; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a fixed day | `hc_astronomical_paschal_full_moon` | `year` 1583 through 2150, the years of `hc_astronomical_easter`; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a fixed day | `hc_cold_food_day` | `year` −999 through 3000 under every reckoning, the years whose winter solstice before and whose April are both in the era of `hc_term_in_effect`; any other is `HC_ERROR_OUT_OF_RANGE`, and a reckoning it does not name `HC_ERROR_UNKNOWN` |
 | a line or lines | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_panchanga_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line or lines | `hc_sky_at`, `hc_solar_time`, `hc_panchanga_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_solar_terms_between`, `hc_moon_phases_between` | `from_unix` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; a `to_unix` at or before it writes no lines, and a later one must be at most 32 535 216 000 and at most 400 years after it; any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -213,7 +217,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-81 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+85 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -244,6 +248,8 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_tai64_posix_plus_10_decode(const char *hex, int64_t *out_unix_seconds, uint64_t *out_attoseconds);` | `timestamps` | A TAI64 or TAI64N label in the `tai64-posix-plus-10` convention read back into the POSIX seconds and attoseconds of the instant it names. |
 | `HcStatus hc_uuid_timestamp(const char *uuid, int *out_version, uint64_t *out_timestamp, int64_t *out_unix_seconds, uint64_t *out_attoseconds);` | `timestamps` | The version, the 60-bit timestamp and the POSIX instant of a version 1 or version 6 UUID. |
 | `HcStatus hc_ntp_resolve(uint32_t seconds, uint32_t fraction, int64_t reference_unix, int32_t *out_era, uint32_t *out_offset, uint64_t *out_fraction, int64_t *out_unix_seconds, uint64_t *out_attoseconds);` | `timestamps` | A 64-bit NTP timestamp placed in its era by a reference POSIX second: the era, the era offset, the fraction in 2⁻⁶⁴ s units, and the POSIX seconds and attoseconds. |
+| `HcStatus hc_uuid_timestamp_encode(int64_t unix_seconds, uint64_t attoseconds, char *buffer, size_t capacity, size_t *written);` | `timestamps` | The 60-bit UUID timestamp of a POSIX instant, and the time fields a version 1 and a version 6 UUID write it in, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_ntp_encode(int64_t unix_seconds, uint64_t attoseconds, char *buffer, size_t capacity, size_t *written);` | `timestamps` | The NTP date and timestamp of a POSIX instant, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_fat_decode(uint16_t date, uint16_t time, int64_t *out_fixed, uint32_t *out_seconds_of_day);` | `timestamps` | The local reading a FAT date word and time word name: its fixed day and the seconds into it, always even. |
 | `HcStatus hc_fat_encode(int64_t fixed, uint32_t seconds_of_day, uint16_t *out_date, uint16_t *out_time);` | `timestamps` | The FAT date and time words of a fixed day and a time of day in whole seconds, the second rounded down to an even one. |
 | `HcStatus hc_swatch_beat(int64_t unix_seconds, uint64_t attoseconds, uint16_t *out_beat);` | `timestamps` | The Swatch Internet Time at a POSIX instant, 0 through 999: the thousandth of the day of Biel Mean Time, UTC+1 all year, that it falls in, so @000 begins at 23:00 UTC. |
@@ -270,8 +276,10 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_holiday_tables(const char *locale, char *buffer, size_t capacity, size_t *written);` | `holiday` | Every holiday table with its kind, names and sources, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_lectionary(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | The lectionary cycles of a fixed day, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_astronomical_easter(int64_t year, int64_t *out_fixed);` | `holiday` | The fixed day of Easter Sunday of a Gregorian year by the astronomical reckoning at the meridian of Jerusalem. |
+| `HcStatus hc_astronomical_paschal_full_moon(int64_t year, int64_t *out_fixed);` | `holiday` | The fixed day of the paschal full moon of a Gregorian year by the astronomical reckoning at the meridian of Jerusalem. |
 | `HcStatus hc_term_in_effect(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The solar term in effect on a fixed day at a meridian, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_pentad_in_effect(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The pentad (候) in effect on a fixed day at a meridian, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_cold_food_day(const char *convention, int64_t year, int64_t *out_fixed);` | `seasons` | The fixed day of 寒食, the Cold Food Day, of a Gregorian year under a named reckoning. |
 | `HcStatus hc_place_years_ago(double years_ago, double std_dev_years, const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | A moment some years before the present, placed in every chronology at once, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_cosmic_events(const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every cosmic epoch and every dated cosmic event, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_geologic_intervals(uint32_t rank, const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every interval of one rank of the geologic time scale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
@@ -347,7 +355,11 @@ table; `hc_uuid_timestamp`, the version, 60-bit timestamp and POSIX
 instant of a version 1 or version 6 UUID in RFC 9562's string form;
 `hc_ntp_resolve`, an NTP timestamp placed in the era within 2³¹ s of a
 reference POSIX second, its era, era offset, 64-bit fraction and POSIX
-instant through out-parameters; `hc_fat_decode` and `hc_fat_encode`, the
+instant through out-parameters; `hc_uuid_timestamp_encode` and
+`hc_ntp_encode`, the other way, a POSIX instant's 60-bit UUID timestamp
+with the first three groups of a version 1 and a version 6 UUID that carry
+it, and its NTP era, era offset, fraction and both wire layouts in
+hexadecimal, each as the module's line; `hc_fat_decode` and `hc_fat_encode`, the
 FAT date and time words as a fixed day and the even seconds into it;
 `hc_swatch_beat`, the Swatch Internet Time beat; and `hc_epoch_from_tt`
 and `hc_tt_from_epoch`, the Julian and Besselian epochs of a TT instant,
@@ -437,7 +449,8 @@ flags.
 ## Holidays
 
 The four `hc_holiday_*` entry points, `hc_holidays_on`, `hc_holiday_tables`,
-`hc_lectionary` and `hc_astronomical_easter` need the `holiday` feature:
+`hc_lectionary`, `hc_astronomical_easter` and
+`hc_astronomical_paschal_full_moon` need the `holiday` feature:
 
 ```sh
 cargo build -p hyper-calendar-ffi --release --features holiday
@@ -507,7 +520,9 @@ data (`Hong Kong` under `en`, 香港 under `ja`), and empty elsewhere. `hc_lecti
 capacity, written)` writes the liturgical year, the Sunday cycle, the
 Roman weekday cycle and the RCL Proper of a day, and
 `hc_astronomical_easter(year, out_fixed)` the fixed day of Easter by the
-astronomical reckoning at Jerusalem, 1583 to 2150.
+astronomical reckoning at Jerusalem, 1583 to 2150, and
+`hc_astronomical_paschal_full_moon(year, out_fixed)` the day of the full
+moon it is the Sunday after.
 
 ## Almanac
 
@@ -520,6 +535,12 @@ NUL-terminated name — `universal`, `japan`, `china`, `korea`, `india` or
 `china-before-1929`, in any case — or a longitude in decimal degrees east of
 Greenwich, read as local mean solar time; null or empty is `universal`, and
 anything else is `HC_ERROR_UNKNOWN`.
+
+`hc_cold_food_day(convention, year, out_fixed)`, in the same feature,
+writes the fixed day of 寒食 under a NUL-terminated reckoning:
+`hanshi-solstice-105`, `hanshi-eve-of-qingming` or `hansik`, as the
+WebAssembly module's README describes them, in any case; another is
+`HC_ERROR_UNKNOWN`, and a year outside −999 to 3000 `HC_ERROR_OUT_OF_RANGE`.
 
 ## Deep time
 
