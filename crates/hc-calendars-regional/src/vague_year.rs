@@ -5,6 +5,12 @@
 //! The Aztec xiuhpōhualli and the Zapotec *yza* differ in their names, their
 //! anchors and the day that names the year, and in nothing else; this is the
 //! nothing else. The Maya Haabʼ counts its days from 0 and keeps its own.
+//!
+//! The structure is the one Reingold and Dershowitz give for the Aztec
+//! xihuitl, `aztec-xihuitl-ordinal` in their published code
+//! (`reingold2018code`), and the one the system documents
+//! `docs/systems/mesoamerican-counts.md` and
+//! `docs/systems/mesoamerican-years.md` describe with their sources.
 
 use hc_calendar::{CalendarError, CalendarResult};
 

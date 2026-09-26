@@ -16,8 +16,10 @@
 //!
 //! # Why the range ends where it does
 //!
-//! The Dajōkan decree of 9 November 1872 declared that **Meiji 5, twelfth
-//! month, third day would be 1 January 1873 in the solar calendar**. So the
+//! 明治5年太政官布告第337号, issued on 明治5年11月9日 (9 December 1872
+//! Gregorian), declared that **Meiji 5, twelfth month, third day would be
+//! 1 January 1873 in the solar calendar** (`wikipedia-ja-meiji-kaireki`,
+//! `nao-rekiwiki-meiji`). So the
 //! last day the Tenpō calendar ever named was Meiji 5, twelfth month, second
 //! day — Gregorian **1872-12-31** — and [`LATEST`] is that day. The next day
 //! has no Tenpō date, and this module returns
@@ -86,7 +88,14 @@ pub const EARLIEST: Rd = civil::to_rd(1844, 2, 18);
 /// there is no Tenpō date after this one.
 pub const LATEST: Rd = civil::to_rd(1872, 12, 31);
 
-/// The meridian history of the Japanese calendar.
+/// Where [`MERIDIANS`] comes from.
+pub const MERIDIAN_SOURCES: &str = "Kyoto as the reference of the Edo calendars, at 135°46′E \
+    [nao-rekiwiki-meridian]; Japan Standard Time on 135°E from 1888, as the published code of \
+    Calendrical Calculations switches in its japanese-location [reingold2018code], which puts \
+    the years before 1888 at Tokyo, 139°46′E, rather than Kyoto";
+
+/// The meridian history of the Japanese calendar. Sources:
+/// [`MERIDIAN_SOURCES`].
 pub static MERIDIANS: [MeridianEra; 2] = [
     MeridianEra::from_longitude(
         i64::MIN / 4,

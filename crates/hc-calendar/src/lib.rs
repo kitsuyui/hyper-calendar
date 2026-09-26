@@ -15,7 +15,9 @@
 //! An `n`-calendar library then needs `2n` conversions instead of `n²`, and
 //! two calendars can be displayed side by side without either knowing the
 //! other exists. This is the design from Reingold and Dershowitz's
-//! *Calendrical Calculations*, and it is what makes requirement 4 —
+//! *Calendrical Calculations* (4th ed., 2018; `reingold2018` in
+//! `docs/references.bib`), chapter 1, "Calendar Basics", and it is what
+//! makes requirement 4 —
 //! separating data from algorithm — mechanical rather than aspirational.
 //!
 //! # Two levels of interface

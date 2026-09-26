@@ -17,15 +17,17 @@ lunar calendars are such counts, and are here as regional calendars.
 | Identifier | What it is |
 | --- | --- |
 | `japanese` | Imperial era years (和暦); Gregorian from 1873, the five lunisolar calendars back to 862 before it |
-| `japanese-northern`, `japanese-southern` | The same, with the Northern or the Southern Court's eras during the 南北朝 split |
-| `japanese-proclaimed` | The same, with eras as proclaimed at the time rather than the retroactive official boundaries |
+| `japanese-northern`, `japanese-southern` | The same, with the Northern or the Southern Court's eras during the 南北朝 split; both read 明徳 from the reunion of 1392 |
+| `japanese-proclaimed` | The same, with each era from the day it was proclaimed rather than backdated to the first day of its year: 明治 from 1868-10-23 |
 | `maya-longcount` | `baktun.katun.tun.uinal.kin`, in `DateFields::extra`, under the GMT correlation |
 | `maya-longcount-gmt2` | The same under the GMT+2 correlation |
+| `maya-longcount-584286` | The same under Martin and Skidmore's 584 286 |
 | `maya-tzolkin` | 13 numbers × 20 day-names = 260 days |
 | `maya-haab` | 18 months of 20 days plus the 5-day Uayeb |
 | `maya-round` | The 18 980-day Calendar Round |
 | `maya-tzolkin-gmt2`, `maya-haab-gmt2`, `maya-round-gmt2` | The three cycles anchored to the GMT+2 correlation, to read beside `maya-longcount-gmt2` |
-| `maya-819`, `maya-819-gmt2` | The 819-day count: the station, its colour-direction and the days since it, over Linden and Bricker's twenty stations of 16 380 days, under each correlation |
+| `maya-tzolkin-584286`, `maya-haab-584286`, `maya-round-584286` | The three cycles anchored to 584 286, to read beside `maya-longcount-584286` |
+| `maya-819`, `maya-819-gmt2`, `maya-819-584286` | The 819-day count: the station, its colour-direction and the days since it, over Linden and Bricker's twenty stations of 16 380 days, under each correlation |
 | `aztec-tonalpohualli` | 260 days |
 | `aztec-xiuhpohualli` | 365 days |
 | `zapotec-yza` | 365 days: eighteen months of twenty and a *quicholla* of five, the years named by the day they begin on |
@@ -33,7 +35,7 @@ lunar calendars are such counts, and are here as regional calendars.
 | `javanese-pasaran` | The 5-day market week and the 35-day *wetonan* |
 | `akan` | The Akan 6-day week and the 42-day *Adaduanan*, with the four *dabɔne* |
 | `korean-regnal` | The Korean Empire's eras 建陽, 光武, 隆熙 on the Gregorian days of 1896–1910 |
-| `chinese-regnal` | The Qing eras over the lunisolar calendar, 1645–1912; the Ming and Qing era table as data |
+| `chinese-regnal` | The Qing eras over the lunisolar calendar, 1645–1912; the Ming, Southern Ming, Shun and Qing era table as data |
 | `burmese` | The Burmese lunisolar calendar of the Myanmar Era: watat years, First Waso and the Nayon day, by the published arithmetic |
 | `thai-lunar` | The Thai lunar calendar as Thailand publishes it: the adhikamāsa and adhikavāra years carried as data for 2535–2570 BE (1992–2027) |
 | `khmer` | The Khmer *Chhankitek*: the leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
@@ -95,7 +97,13 @@ silently aliased.
 The **Northern and Southern Courts** (1331–1392) ran two era systems at once.
 This crate does not pick one: every era carries a `Court`, and `era_at` asks
 which you mean. `Court::Unified` inside that window returns
-`CalendarError::UnknownEra`.
+`CalendarError::UnknownEra`. From the reunion every court reads the Northern
+stream, because 元中 was abolished and 明徳 kept.
+
+The era system — both reckonings, both courts, the gaps, the sources — is
+written up in [`docs/systems/japanese-eras.md`](../../docs/systems/japanese-eras.md),
+and the Chinese and Korean regnal eras in
+[`docs/systems/east-asian-eras.md`](../../docs/systems/east-asian-eras.md).
 
 ## The Thai lunar calendar, as published
 
@@ -142,14 +150,16 @@ Sinhalese and Tai calendars stay planned are in
 ## Correlations, stated
 
 * **Maya**: Goodman–Martínez–Thompson, **584 283**, as `maya-longcount`,
-  `maya-tzolkin`, `maya-haab` and `maya-round`; the alternative 584 285
-  anchors its own registered calendars, `maya-longcount-gmt2`,
-  `maya-tzolkin-gmt2`, `maya-haab-gmt2` and `maya-round-gmt2`, rather than
-  a switch on the first (policy §5), so that a Calendar Round is read under
-  the same constant as the long count beside it.
+  `maya-tzolkin`, `maya-haab` and `maya-round`; the alternatives 584 285
+  and Martin and Skidmore's 584 286 anchor registered calendars of their
+  own, the `-gmt2` and `-584286` sets, rather than a switch on the first
+  (policy §5), so that a Calendar Round is read under the same constant as
+  the long count beside it. No other constant can be chosen.
 * **Aztec**: the fall of Tenochtitlan, **13 August 1521 Julian**, dated
   *1 Coatl*, 2 Xocotlhuetzi — Caso's correlation as *Calendrical
-  Calculations* tabulates it — over an uncorrected 365-day year.
+  Calculations* tabulates it — over an uncorrected 365-day year. The
+  reconstructions of Tena, Ochoa and Medina are not registered; the module
+  says why.
 
 The history of the constants, the worked readings and the sources are in
 [`docs/systems/mesoamerican-counts.md`](../../docs/systems/mesoamerican-counts.md).

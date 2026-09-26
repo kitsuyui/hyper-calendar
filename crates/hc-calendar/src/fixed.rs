@@ -25,9 +25,16 @@ pub struct Rd(pub i64);
 
 /// The Julian Day Number of `Rd(0)`, i.e. of `0000-12-31` proleptic
 /// Gregorian.
+///
+/// Reingold and Dershowitz's `jd-epoch` is the moment RD −1 721 424.5, the
+/// noon-based Julian Day 0 (`reingold2018code`; `reingold2018`, chapter 1),
+/// so the day numbered JDN 0 is RD −1 721 425 and the offset between the
+/// two day counts is 1 721 425.
 pub const JDN_OF_RD_ZERO: i64 = 1_721_425;
 
-/// The Rata Die of the POSIX epoch, `1970-01-01`.
+/// The Rata Die of the POSIX epoch, `1970-01-01`: the `unix-epoch` of
+/// Reingold and Dershowitz's published code (`reingold2018code`), the fixed
+/// day of 1 January 1970 in the proleptic Gregorian calendar.
 pub const RD_OF_UNIX_EPOCH: i64 = 719_163;
 
 impl Rd {

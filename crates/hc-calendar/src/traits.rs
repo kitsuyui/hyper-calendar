@@ -138,8 +138,9 @@ impl CalendarMeta {
 /// both directions over their whole supported range.
 // `from_fixed` and `from_fields` take `&self` because a calendar instance can
 // carry configuration — an observation meridian, a reform date, an era table.
-// The names are the ones *Calendrical Calculations* and every port of it use,
-// so renaming them to satisfy the lint would cost more than it buys.
+// The names are the ones *Calendrical Calculations* (`reingold2018`, chapter
+// 1) and its published code use, so renaming them to satisfy the lint would
+// cost more than it buys.
 #[allow(clippy::wrong_self_convention)]
 pub trait Calendar {
     /// The calendar's own date representation.

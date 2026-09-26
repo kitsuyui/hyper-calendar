@@ -19,16 +19,15 @@
 //! | 862-02-07 to 1685-02-03 | Senmyō lunisolar | [`hc_calendars_lunar::japanese_historical::senmyo`] |
 //! | before 862-02-07 | *not supported* | — |
 //!
-//! The Dajōkan decree of 9 November 1872 declared that 明治5年12月3日 would
-//! be 1 January 1873 in the solar calendar. So 明治5年12月2日 is
-//! 1872-12-31, the day after it is 明治6年1月1日 = 1873-01-01, and 明治5年
-//! has no third day of its twelfth month. This module reproduces that: it
-//! asks the Tenpō calendar for every day up to the reform and the Gregorian
-//! calendar for every day after it, and the two meet exactly at the decree.
-//!
-//! Most implementations of `japanese` get this wrong by running the
-//! Gregorian calendar backwards through 明治 and out the far side, which
-//! produces dates like "明治5年12月15日" that nobody in Japan ever wrote.
+//! 明治5年太政官布告第337号, issued on 明治5年11月9日 (9 December 1872
+//! Gregorian), declared that 明治5年12月3日 would be 1 January 1873 in the
+//! solar calendar (`wikipedia-ja-meiji-kaireki`, `nao-rekiwiki-meiji`). So
+//! 明治5年12月2日 is 1872-12-31, the day after it is 明治6年1月1日 =
+//! 1873-01-01, and 明治5年 has no third day of its twelfth month. This
+//! module reproduces that: it asks the Tenpō calendar for every day up to
+//! the reform and the Gregorian calendar for every day after it, and the two
+//! meet exactly at the decree. A day before 1873 is therefore never a
+//! Gregorian date with an era attached: 明治5年12月15日 does not exist.
 //!
 //! # Where this implementation stops, and why
 //!
@@ -59,9 +58,16 @@
 //! never existed, so [`JapaneseCalendar::to_fixed`] rejects it rather than
 //! quietly returning the same day as 平成元年1月8日.
 //!
-//! The era table uses the 公式 (official, retroactive) boundary dates, under
-//! which an era ends the day before the next begins. See
+//! From 大正 the era table uses the 公式 boundary dates, under which an era
+//! ends the day before the next begins. See
 //! [`crate::nengo::Nengo::start`].
+//!
+//! # The system document
+//!
+//! The era system — the backdated and the proclaimed reckonings, the two
+//! courts of 1331–1392 and where each stream ends, the gaps of 655–686 and
+//! 687–701 — is written up with a worked example and its sources in
+//! [`docs/systems/japanese-eras.md`](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/systems/japanese-eras.md).
 //!
 //! # Accuracy
 //!
@@ -102,13 +108,18 @@ pub const ID_SOUTHERN: CalendarId = CalendarId("japanese-southern");
 pub const ID_PROCLAIMED: CalendarId = CalendarId("japanese-proclaimed");
 
 /// The identifier of the Northern Court stream read as proclaimed.
+///
+/// Built by [`JapaneseCalendar::with_reckoning`] and not registered: a
+/// registered calendar needs its month names in `hc-i18n`, which lists the
+/// four registered Japanese identifiers and not this one.
 pub const ID_NORTHERN_PROCLAIMED: CalendarId = CalendarId("japanese-northern-proclaimed");
 
-/// The identifier of the Southern Court stream read as proclaimed.
+/// The identifier of the Southern Court stream read as proclaimed; built
+/// and not registered, as [`ID_NORTHERN_PROCLAIMED`] is.
 pub const ID_SOUTHERN_PROCLAIMED: CalendarId = CalendarId("japanese-southern-proclaimed");
 
 /// Where the period of use comes from.
-pub const USAGE_SOURCE: &str = "元号一覧 (日本), Japanese Wikipedia: eras since 大化 (645), continuously since 大宝 (701), \
+pub const USAGE_SOURCE: &str = "元号一覧 (日本) [wikipedia-ja-gengo-list]: eras since 大化 (645), continuously since 大宝 (701), \
     and 令和 today; days converted from 貞観4年1月1日 = 862-02-07, the first day of \
     Senmyō-reki, the earliest calendar underneath the eras this crate can compute";
 
@@ -217,9 +228,10 @@ impl fmt::Display for JapaneseDate {
 /// has two era names, and which one a source uses depends on what the source
 /// is for.
 ///
-/// Chronological tables backdate. 日本暦日原典 lists 嘉永7年 and 安政元年 as
-/// the same year, and a converter that did not agree would disagree with
-/// every reference table a historian owns.
+/// Chronological tables backdate: the era tables of the Japanese Wikipedia,
+/// which transcribe 内田正男『日本暦日原典』 (`uchida1975`, not read here),
+/// give 安政元年 the whole lunisolar year that began in 1854, which
+/// documents written before the proclamation dated 嘉永7年.
 ///
 /// Narrative histories do not. 桜田門外の変 happened on 安政7年3月3日, fifteen
 /// days before 万延 was proclaimed — and partly caused the 改元. Writing it
@@ -237,10 +249,13 @@ pub enum EraReckoning {
     /// own `start_year` field describes.
     #[default]
     Backdated,
-    /// 改元当時: an era begins on the day it was proclaimed.
+    /// An era begins on the day it was proclaimed.
     ///
     /// The reading a document's dateline needs, and the one narrative
     /// histories use. `nengo::era_at` answers under this convention too.
+    /// It agrees with the source table's 改元当時 dates on when 明治 began,
+    /// and differs from them from 大正, where they give the changeover day
+    /// to both eras; see [`crate::nengo::Nengo::start`].
     Proclaimed,
 }
 
@@ -260,9 +275,10 @@ pub enum EraReckoning {
 /// one stream and are defined across the whole range, because each court's
 /// own reckoning is continuous.
 ///
-/// After the reunification of 1392 the Northern stream is the one that
-/// continues, because the union took the form of the Southern emperor
-/// abdicating and 明徳 carrying on.
+/// After the reunification of 1392 every court's calendar reads the
+/// Northern stream, because the union took the form of the Southern emperor
+/// abdicating, 元中 was abolished and 明徳 carried on; `japanese-southern`
+/// gives 明徳3年 for the day of the union, not 元中9年.
 ///
 /// The second axis is [`EraReckoning`], for the same reason: a backdated
 /// 改元 gives one lunisolar year two era names, and the two readings are
@@ -503,55 +519,98 @@ pub fn calendar_to_fixed(year: i64, month: Month, day: u8) -> CalendarResult<Rd>
     }
 }
 
-/// The half-open span of fixed days an era covers, within this calendar's
-/// supported range.
-///
-/// # Errors
-///
-/// Returns [`CalendarError::UnknownEra`] for an era whose start day the
-/// sources do not fix.
-fn era_span(era: &Nengo, court: Court, reckoning: EraReckoning) -> CalendarResult<(Rd, Rd)> {
+/// The half-open span of fixed days an era covers in one court's stream,
+/// or `None` when the stream does not contain it.
+fn stream_span(
+    era: &Nengo,
+    court: Court,
+    reckoning: EraReckoning,
+) -> CalendarResult<Option<(Rd, Rd)>> {
+    if !era.used_by(court) {
+        return Ok(None);
+    }
     let start = era_start(era, reckoning)?;
     let end = match nengo::next_in_stream(era, court).map(|next| era_start(next, reckoning)) {
         Some(Ok(next)) => next,
         Some(Err(error)) => return Err(error),
         None => Rd(LATEST.0 + 1),
     };
-    Ok((start, end))
+    Ok(Some((start, end)))
 }
 
-/// The first Japanese calendar year whose era change is dated the 公式 way.
+/// The half-open span of fixed days an era covers in `court`'s calendar,
+/// within this calendar's supported range.
 ///
-/// 明治 is the boundary in both directions and can be read either way: it
-/// was proclaimed 明治元年9月8日 but backdated to 明治元年1月1日, so its
-/// proclamation table entry already *is* the first day of its year. 大正 is
-/// the first era for which the two readings differ and the 公式 one wins —
-/// 明治45年 runs to 1912-07-29 and 大正元年 begins on the 30th.
-const FIRST_PROCLAIMED_YEAR: i64 = 1868;
+/// The calendar reads the court's own stream before the reunion of 1392 —
+/// the unified one only before the schism — and the Northern stream from
+/// it, as [`nengo::court_on`] says. So 元中 ends at the reunion in the
+/// Southern calendar, and 明徳 begins there.
+///
+/// # Errors
+///
+/// Returns [`CalendarError::UnknownEra`] for an era whose start day the
+/// sources do not fix, or which covers no day of `court`'s calendar, as
+/// 建武 covers none of the unified one.
+fn era_span(era: &Nengo, court: Court, reckoning: EraReckoning) -> CalendarResult<(Rd, Rd)> {
+    if court == Court::Northern {
+        return stream_span(era, court, reckoning)?.ok_or(CalendarError::UnknownEra);
+    }
+    let own_end = match court {
+        Court::Unified => nengo::NANBOKUCHO_START,
+        Court::Northern | Court::Southern => nengo::NANBOKUCHO_END,
+    };
+    let own = stream_span(era, court, reckoning)?;
+    let before = own
+        .map(|(start, end)| (start, Rd(end.0.min(own_end.0))))
+        .filter(|(start, end)| start < end);
+    // Only an era the court's own stream does not reach past its end can
+    // have days in the Northern stream after the reunion.
+    let reaches_on = own.is_none_or(|(_, end)| end > own_end);
+    let after = if reaches_on {
+        stream_span(era, Court::Northern, reckoning)?
+            .map(|(start, end)| (Rd(start.0.max(nengo::NANBOKUCHO_END.0)), end))
+            .filter(|(start, end)| start < end)
+    } else {
+        None
+    };
+    match (before, after) {
+        (Some((start, joint)), Some((resumed, end))) if joint == resumed => Ok((start, end)),
+        (Some(span), _) | (None, Some(span)) => Ok(span),
+        (None, None) => Err(CalendarError::UnknownEra),
+    }
+}
+
+/// The first Japanese calendar year in which an era began on the day it was
+/// proclaimed, with no backdating: 大正, from 1912-07-30.
+///
+/// Every era before it, 明治 included, was proclaimed part way through a
+/// year and renumbered that year from its first day, so under
+/// [`EraReckoning::Backdated`] it begins at the first day of its
+/// `start_year` and under [`EraReckoning::Proclaimed`] at its `start`. From
+/// 大正 the two are the same day.
+const FIRST_SAME_DAY_YEAR: i64 = 1912;
 
 /// The first day an era covers, under the convention its own period used.
 ///
 /// # Why this is not just `Nengo::start`
 ///
-/// [`Nengo`] carries two facts that disagree for every pre-Meiji era.
+/// [`Nengo`] carries two facts that disagree for every era up to 明治.
 /// `start` is the day the era was proclaimed; `start_year` is the calendar
 /// year the era's 元年 *occupies*, which is earlier, because almost every
-/// pre-Meiji 改元 was 年初改元 — announced part way through a year and
+/// such 改元 was 年初改元 — announced part way through a year and
 /// backdated to its first day.
 ///
-/// Reading the era from one and the year number from the other splits a
-/// single lunisolar year between two era names. 安政 was proclaimed on
-/// 嘉永7年11月27日; with `start` as the boundary, the first ten months of
-/// that year came back as 嘉永7年 and the last two as 安政元年12月, so
-/// 安政元年1月1日 — a date every chronological table lists — was
-/// `DayOutOfRange`, and 嘉永7年12月1日 was too. It also meant 219 of the 220
-/// convertible eras had a truncated 元年.
+/// The backdated reading has to take both the era and the year number from
+/// `start_year`. Taking the era from `start` and the year from `start_year`
+/// would split one lunisolar year between two era names: 安政 was proclaimed
+/// on 嘉永7年11月27日, and a boundary there would leave 安政元年1月1日, a
+/// date the chronological tables list, with no day.
 ///
-/// So a pre-Meiji era begins at the first day of `start_year`, and 明治
-/// onward begin at the proclamation table's day. `nengo::era_at` still
-/// reads `start` and still answers the other question — which era had been
-/// *declared* by a given day — which is the one a document's dateline
-/// needs.
+/// So under [`EraReckoning::Backdated`] an era before 大正 begins at the
+/// first day of `start_year`, and 大正 onward begin at `start`.
+/// `nengo::era_at` reads `start` and answers the other question — which era
+/// had been *declared* by a given day — which is the one a document's
+/// dateline needs.
 ///
 /// # Errors
 ///
@@ -559,7 +618,7 @@ const FIRST_PROCLAIMED_YEAR: i64 = 1868;
 /// year predates the earliest lunisolar system falls back to its
 /// proclamation day, which is the best this table can do for it.
 fn era_start(era: &Nengo, reckoning: EraReckoning) -> CalendarResult<Rd> {
-    if reckoning == EraReckoning::Proclaimed || era.start_year >= FIRST_PROCLAIMED_YEAR {
+    if reckoning == EraReckoning::Proclaimed || era.start_year >= FIRST_SAME_DAY_YEAR {
         return era.require_start();
     }
     match calendar_to_fixed(era.start_year, Month::regular(1), 1) {
@@ -576,11 +635,13 @@ fn era_start(era: &Nengo, reckoning: EraReckoning) -> CalendarResult<Rd> {
 /// between 900 and 1870.
 ///
 /// `calendar_year` is passed in rather than derived because the caller has
-/// just computed it. That is not only tidiness: a pre-Meiji era's boundary
-/// is a *year* comparison, so with the year in hand this is a scan of
-/// integers rather than 248 lunisolar new-moon searches. Computing each
-/// era's start day instead made a day lookup take longer than the whole
-/// test suite had to spare.
+/// just computed it, and because a backdated era's boundary is a *year*
+/// comparison: with the year in hand this is a scan of integers, where
+/// computing each era's start day would be a lunisolar new-moon search per
+/// era for every day looked up.
+///
+/// The court is read through [`nengo::court_on`], so every court's stream
+/// is the Northern one from the reunion of 1392.
 ///
 /// # Errors
 ///
@@ -592,14 +653,10 @@ fn era_in_force(
     court: Court,
     reckoning: EraReckoning,
 ) -> CalendarResult<&'static Nengo> {
-    let court = match court {
-        Court::Unified if nengo::is_nanbokucho(rd) => return Err(CalendarError::UnknownEra),
-        Court::Unified if rd >= nengo::NANBOKUCHO_END => Court::Northern,
-        other => other,
-    };
+    let court = nengo::court_on(rd, court)?;
     let mut found: Option<&'static Nengo> = None;
     for era in nengo::stream(court) {
-        if reckoning == EraReckoning::Proclaimed || era.start_year >= FIRST_PROCLAIMED_YEAR {
+        if reckoning == EraReckoning::Proclaimed || era.start_year >= FIRST_SAME_DAY_YEAR {
             match era.start {
                 Some(start) if start <= rd => found = Some(era),
                 Some(_) => break,
@@ -984,6 +1041,121 @@ mod tests {
         );
     }
 
+    /// 明治 was proclaimed on 慶応4年9月8日 = 1868-10-23 and backdated to the
+    /// first day of the year (`wikipedia-ja-meiji`). Read as proclaimed, the
+    /// days before the edict are 慶応4年, as the documents of those months
+    /// are dated.
+    #[test]
+    fn meiji_as_proclaimed_begins_on_the_day_of_the_edict() {
+        let may_day = greg(1868, 5, 1);
+        let proclaimed = JapaneseCalendar::PROCLAIMED
+            .from_fixed(may_day)
+            .expect("in range");
+        assert_eq!(proclaimed.era.kanji, "慶応");
+        assert_eq!(proclaimed.year, 4);
+        assert_eq!(
+            JapaneseCalendar::PROCLAIMED.to_fixed(proclaimed),
+            Ok(may_day)
+        );
+        // The same day in the backdated reading is 明治元年.
+        let backdated = JapaneseCalendar::UNIFIED
+            .from_fixed(may_day)
+            .expect("in range");
+        assert_eq!(backdated.era.kanji, "明治");
+        assert_eq!(backdated.year, 1);
+        assert_eq!(
+            (backdated.month, backdated.day),
+            (proclaimed.month, proclaimed.day)
+        );
+
+        // The first day of the year and the day before the edict are 慶応4年,
+        // the edict's own day is 明治元年9月8日.
+        let first = JapaneseCalendar::PROCLAIMED
+            .from_fixed(greg(1868, 1, 25))
+            .expect("in range");
+        assert_eq!(first.to_string(), "慶応4年1月1日");
+        let eve = JapaneseCalendar::PROCLAIMED
+            .from_fixed(greg(1868, 10, 22))
+            .expect("in range");
+        assert_eq!(eve.to_string(), "慶応4年9月7日");
+        let edict = JapaneseCalendar::PROCLAIMED
+            .from_fixed(greg(1868, 10, 23))
+            .expect("in range");
+        assert_eq!(edict.to_string(), "明治元年9月8日");
+        assert_eq!(
+            JapaneseCalendar::PROCLAIMED.to_fixed(japanese("明治", 1, 9, 7)),
+            Err(CalendarError::DayOutOfRange)
+        );
+        // From 大正 the two readings agree.
+        for day in [greg(1912, 7, 29), greg(1912, 7, 30), greg(1989, 1, 8)] {
+            assert_eq!(
+                JapaneseCalendar::PROCLAIMED.from_fixed(day),
+                JapaneseCalendar::UNIFIED.from_fixed(day)
+            );
+        }
+    }
+
+    /// 元中 was abolished at the reunion of 元中9年閏10月5日 = 1392-11-19
+    /// Julian and the Northern era 明徳 kept (`wikipedia-ja-genchu`), so the
+    /// Southern calendar answers 明徳 from that day and there is no 元中10年.
+    ///
+    /// The month and day are Senmyō-reki's as `hc-calendars-lunar` computes
+    /// it, which puts that day in the eleventh month rather than the
+    /// intercalary tenth the source gives; the era and the year are what
+    /// this test is about.
+    #[test]
+    fn the_southern_calendar_follows_meitoku_from_the_reunion() {
+        let union = nengo::NANBOKUCHO_END;
+        for calendar in [
+            JapaneseCalendar::SOUTHERN,
+            JapaneseCalendar::with_reckoning(Court::Southern, EraReckoning::Proclaimed),
+        ] {
+            let eve = calendar.from_fixed(Rd(union.0 - 1)).expect("in range");
+            assert_eq!(eve.era.kanji, "元中", "{}", calendar.id());
+            assert_eq!(eve.year, 9);
+            let day = calendar.from_fixed(union).expect("in range");
+            assert_eq!(day.era.kanji, "明徳", "{}", calendar.id());
+            assert_eq!(day.year, 3);
+            assert_eq!(calendar.to_fixed(day), Ok(union));
+            assert_eq!(
+                calendar.from_fixed(union),
+                JapaneseCalendar::NORTHERN.from_fixed(union)
+            );
+            // 元中 ends at the union in this calendar, and 明徳 does not
+            // reach back before it.
+            assert_eq!(
+                calendar.to_fixed(JapaneseDate::new(day.era, 3, eve.month, eve.day)),
+                Err(CalendarError::DayOutOfRange)
+            );
+            assert_eq!(
+                calendar.to_fixed(JapaneseDate::new(eve.era, 10, Month::regular(1), 1)),
+                Err(CalendarError::YearOutOfRange)
+            );
+            assert_eq!(
+                calendar.to_fixed(JapaneseDate::new(eve.era, 9, day.month, day.day)),
+                Err(CalendarError::DayOutOfRange)
+            );
+        }
+        // Every day from the union to the proclamation of 応永 reads as the
+        // Northern calendar reads it — 明徳, or 応永 once the backdated
+        // reading reaches its first year — and round-trips.
+        let oei = nengo::by_kanji("応永")
+            .and_then(|era| era.start)
+            .expect("dated");
+        for rd in (union.0..oei.0).step_by(crate::sweep_stride(7)) {
+            let date = JapaneseCalendar::SOUTHERN
+                .from_fixed(Rd(rd))
+                .expect("in range");
+            assert_eq!(
+                Ok(date),
+                JapaneseCalendar::NORTHERN.from_fixed(Rd(rd)),
+                "{rd}"
+            );
+            assert_ne!(date.era.kanji, "元中", "{rd}");
+            assert_eq!(JapaneseCalendar::SOUTHERN.to_fixed(date), Ok(Rd(rd)));
+        }
+    }
+
     #[test]
     fn taisho_and_showa_start_on_the_official_dates() {
         assert_eq!(
@@ -1081,8 +1253,8 @@ mod tests {
         );
         // 大化元年, the first era of all, predates Senmyō-reki by two
         // centuries and is exactly the kind of date this module will not
-        // guess at. 元禄15年12月14日 — the night of the Akō vendetta — used
-        // to be refused too, and is now answered by Jōkyō-reki.
+        // guess at. 元禄15年12月14日 — the night of the Akō vendetta — is
+        // answered by Jōkyō-reki.
         assert_eq!(
             JapaneseCalendar::UNIFIED.to_fixed(japanese("大化", 1, 1, 1)),
             Err(CalendarError::BeforeEpoch)
@@ -1229,8 +1401,7 @@ mod tests {
                     .is_some_and(|start| start >= EARLIEST && start <= LATEST)
             })
             .count();
-        // Every dated era from 貞観 onwards, now that the four pre-Tenpō
-        // systems are wired in; it was twelve when the range began in 1844.
+        // Every dated era of the unified stream from 貞観 onwards.
         assert_eq!(covered, 195);
         // 貞観 began before the supported range but covers part of it.
         let jogan = nengo::by_kanji("貞観").expect("in table");
@@ -1314,10 +1485,9 @@ mod tests {
 
     /// The whole of a lunisolar year carries one era name under backdating.
     ///
-    /// 安政 was proclaimed on 嘉永7年11月27日. Reading the era from the
-    /// proclamation and the year number from the backdated table split that
-    /// year in two, so 安政元年1月1日 — a date every chronological table
-    /// lists — came back as `DayOutOfRange`.
+    /// 安政 was proclaimed on 嘉永7年11月27日 and backdated to the first day
+    /// of that year, so 安政元年1月1日 is a date and its day is the one
+    /// 嘉永7年1月1日 names under the proclaimed reading.
     #[test]
     fn a_backdated_era_covers_the_whole_of_its_first_year() {
         let ansei = nengo::by_kanji("安政").expect("in table");

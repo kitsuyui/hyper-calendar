@@ -49,10 +49,11 @@
 //! # Correlation
 //!
 //! Like the other Maya cycles the count is fixed to the Western calendar by
-//! the correlation constant, and it is registered under both published
-//! ones, `maya-819` under [`GMT_CORRELATION`] and `maya-819-gmt2` under
-//! [`GMT_PLUS_TWO_CORRELATION`], so that the stations read beside
-//! `maya-longcount-gmt2` are anchored as it is.
+//! the correlation constant, and it is registered under each of the three
+//! published ones, `maya-819` under [`GMT_CORRELATION`], `maya-819-gmt2`
+//! under [`GMT_PLUS_TWO_CORRELATION`] and `maya-819-584286` under
+//! [`MARTIN_SKIDMORE_CORRELATION`], so that the stations read beside
+//! `maya-longcount-gmt2` or `maya-longcount-584286` are anchored as it is.
 
 use hc_calendar::fields::ExtraFields;
 use hc_calendar::shape::CycleShape;
@@ -65,7 +66,10 @@ use hc_calendar::{
     reason = "the correlated! macro's documentation links to it"
 )]
 use crate::maya::MayaLongCountCalendar;
-use crate::maya::{GMT_CORRELATION, GMT_PLUS_TWO_CORRELATION, TzolkinPosition, correlated};
+use crate::maya::{
+    GMT_CORRELATION, GMT_PLUS_TWO_CORRELATION, MARTIN_SKIDMORE_CORRELATION, TzolkinPosition,
+    correlated,
+};
 
 /// Days from one station to the next: 7 × 9 × 13.
 pub const STATION_DAYS: i64 = 819;
@@ -165,7 +169,12 @@ pub struct Maya819Calendar {
     correlation: i64,
 }
 
-correlated!(Maya819Calendar, "maya-819", "maya-819-gmt2");
+correlated!(
+    Maya819Calendar,
+    "maya-819",
+    "maya-819-gmt2",
+    "maya-819-584286"
+);
 
 impl Maya819Calendar {
     /// The fixed day of the count's base, 1 Caban 5 Cumku, three days
@@ -309,8 +318,12 @@ mod tests {
             2
         );
         assert_eq!(
-            Maya819Calendar::with_correlation(584_286).id(),
-            CalendarId("maya-819")
+            Maya819Calendar::MARTIN_SKIDMORE.id(),
+            CalendarId("maya-819-584286")
+        );
+        assert_eq!(
+            Maya819Calendar::MARTIN_SKIDMORE.base().0 - Maya819Calendar::GMT.base().0,
+            3
         );
     }
 
@@ -346,15 +359,10 @@ mod tests {
         // "duplicates exactly the position of Pacal's birth date",
         // 9.8.9.13.0 8 Ahau 13 Pop. The era before ends where this one
         // begins, so the initial date is 1.0.0.0.0 − 12.19.13.4.0 =
-        // 2 440 days before 0.0.0.0.0. Under GMT, as the correlation, and
-        // under GMT+2 alike.
-        for (count, long_count) in [
-            (Maya819Calendar::GMT, MayaLongCountCalendar::GMT),
-            (
-                Maya819Calendar::GMT_PLUS_TWO,
-                MayaLongCountCalendar::GMT_PLUS_TWO,
-            ),
-        ] {
+        // 2 440 days before 0.0.0.0.0. Under each of the three constants
+        // alike.
+        for long_count in MayaLongCountCalendar::ALL {
+            let count = Maya819Calendar::beside(long_count);
             let before_era = 13 * 144_000 - (12 * 144_000 + 19 * 7_200 + 13 * 360 + 4 * 20);
             assert_eq!(before_era, 2_440);
             let cross = Rd(long_count.epoch().0 - before_era);
@@ -369,10 +377,9 @@ mod tests {
                 let station = count.station_day(date).expect("valid");
                 assert_eq!(station, Rd(day.0 - 20));
             }
-            let tzolkin =
-                MayaTzolkinCalendar::with_correlation(count.correlation()).from_fixed(cross);
+            let tzolkin = MayaTzolkinCalendar::beside(long_count).from_fixed(cross);
             assert_eq!(tzolkin.expect("any day").position.to_string(), "8 Ahau");
-            let haab = MayaHaabCalendar::with_correlation(count.correlation())
+            let haab = MayaHaabCalendar::beside(long_count)
                 .from_fixed(cross)
                 .expect("any day");
             assert_eq!(haab.position.to_string(), "18 Tzec");
@@ -441,7 +448,7 @@ mod tests {
 
     #[test]
     fn every_day_of_a_whole_cycle_round_trips_and_steps_by_one() {
-        for calendar in [Maya819Calendar::GMT, Maya819Calendar::GMT_PLUS_TWO] {
+        for calendar in Maya819Calendar::ALL {
             let start = calendar.base().0 - 5;
             let mut previous = calendar.from_fixed(Rd(start - 1)).expect("any day");
             for day in start..start + CYCLE_DAYS + 10 {

@@ -8,13 +8,16 @@
 //!
 //! | | Calendar | Rule comes from |
 //! |---|---|---|
-//! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], [`hebrew`], [`tibetan`], [`javanese`], [`meyer_palmen`], [`yerm`] | a counting rule, exact by definition |
-//! | Tabulated | [`islamic_umalqura`] | a published table, exact where the table reaches |
-//! | Computed | [`chinese`], [`dangi`], [`vietnamese`], [`japanese_tenpo`], [`islamic_observational`], [`samaritan`] | an astronomical model, exact only to the model |
+//! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], `islamic-fatimid` ([`tabular::FATIMID`]), [`hebrew`], [`tibetan`], [`javanese`], [`meyer_palmen`], [`yerm`] | a counting rule, exact by definition |
+//! | Tabulated | [`islamic_umalqura`] | a table, exact where the table reaches |
+//! | Computed | [`chinese`], [`dangi`], [`vietnamese`], [`japanese_tenpo`], [`islamic_observational`], [`samaritan`], [`babylonian`] | an astronomical model, exact only to the model |
 //! | Historical | [`japanese_historical`] | the system's *own* period constants, exact to the bureau that published it |
 //!
 //! The four rows behave differently and the crate does not pretend
-//! otherwise. Arithmetic calendars answer for any year you like. The
+//! otherwise. Arithmetic calendars are exact over the range each states,
+//! and the range is a choice of the module rather than a limit of the
+//! rule: the Hebrew and tabular Hijri calendars convert years 1 to 9 999,
+//! the Tibetan 1000 to 3000, the Javanese its windu from 1555. The
 //! tabulated one refuses every day outside 1300–1600 AH rather than
 //! extrapolating. The computed ones carry bounded ranges, say what their
 //! model is worth, and — in the observational Hijri case — say plainly that
@@ -23,14 +26,15 @@
 //! systems' errors on purpose, because the errors are what the surviving
 //! documents record.
 //!
-//! # Two engines, twenty-four calendars
+//! # Two engines under most of the calendars
 //!
 //! Almost nothing here is written twice.
 //!
 //! * [`tabular`] is the whole arithmetic Hijri calendar, with the
 //!   intercalation scheme and the epoch as parameters. Four schemes times two
 //!   epochs is eight calendars; [`islamic_civil`] and
-//!   [`islamic_astronomical`] are the two CLDR names for them.
+//!   [`islamic_astronomical`] are the two CLDR names among them, and
+//!   `islamic-fatimid` ([`tabular::FATIMID`]) the Bohra calendar's.
 //! * [`lunisolar`] is the whole East Asian machinery — conjunction-to-
 //!   conjunction months, the winter-solstice anchor, the no-zhōngqì leap
 //!   rule — with the meridian, the epoch, the year numbering, the solar-term
@@ -43,12 +47,16 @@
 //!
 //! [`hebrew`] and [`tibetan`] stand alone because their rules genuinely are
 //! their own, though [`tibetan`] is itself one engine under four versions'
-//! data — the Phugpa, the Tsurphu, the Bhutanese and the Mongolian; so does [`javanese`], whose months are the tabular Hijri
-//! months but whose years run in eight-year *windu* and 120-year *kurup*,
-//! three reckonings of one rule; and so do the two proposals, [`meyer_palmen`], a lunisolar
-//! calendar of two remainders, and [`yerm`], a lunar one of 52-yerm
-//! cycles; [`islamic_umalqura`] stands alone because a table is not an
-//! algorithm, and [`islamic_observational`] because it predicts a sighting.
+//! data — the Phugpa, the Tsurphu, the Bhutanese and the Mongolian; so does
+//! [`javanese`], whose months are the tabular Hijri months but whose years
+//! run in eight-year *windu* and 120-year *kurup*, three reckonings of one
+//! rule; so does [`babylonian`], a nineteen-year cycle of intercalations
+//! over months begun by a computed first sighting at Babylon; so does
+//! [`samaritan`]; and so do the two proposals, [`meyer_palmen`], a
+//! lunisolar calendar of two remainders, and [`yerm`], a lunar one of
+//! 52-yerm cycles; [`islamic_umalqura`] stands alone because a table is not
+//! an algorithm, and [`islamic_observational`] because it predicts a
+//! sighting.
 //!
 //! # What this crate will not tell you
 //!
@@ -327,7 +335,7 @@ mod registration_tests {
     }
 
     /// A Hebrew common year can be longer than the year before it; that
-    /// never made it leap, and the dynamic interface no longer says so.
+    /// does not make it leap, and the dynamic interface says it is not.
     #[test]
     fn a_longer_common_year_is_not_a_leap_year() {
         use hc_calendar::{DynAdapter, DynCalendar};

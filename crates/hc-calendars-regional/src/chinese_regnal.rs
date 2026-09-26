@@ -16,8 +16,8 @@
 //!   years its year 1 and its last year fell in, and [`era_of_year`], the
 //!   backdated reading of a year — 1402 is 洪武 35, the restoration having
 //!   been backdated over 建文 4, and 1620 is 泰昌 元年 over 萬曆 48. The
-//!   two Qing eras that were proclaimed and never kept, 祺祥 and 保慶, are
-//!   in the table and marked not in use.
+//!   Qing era that was proclaimed and never kept, 祺祥, is in the table and
+//!   marked not in use.
 //! * **A calendar**, `chinese-regnal`: the Qing eras day by day, from
 //!   1 January 1645 — where the Shíxiàn calendar of `chinese` begins — to
 //!   宣統 3年 12月 25日, 12 February 1912, the abdication. The Ming eras are
@@ -30,15 +30,26 @@
 //! The eras before the Ming, in their hundreds, with 改元 in mid-year and
 //! several regimes at once; the continued use of 宣統 inside the Forbidden
 //! City after 1912 and its restoration for twelve days in 1917; the 洪憲
-//! of 1916 and the eras of Manchukuo, which ran on the Gregorian calendar.
-//! Each is a table waiting on a source that dates it, not a gap in the
-//! shape.
+//! of 1916 and the eras of Manchukuo, 大同 and 康德, which ran on the
+//! Gregorian calendar and belong to no dynasty in [`Dynasty`]; and 保慶,
+//! which rumour in 1899–1900 gave as the era of a planned successor and
+//! which was never proclaimed (`zhwiki-baoqing`). Each is a table waiting
+//! on a source that dates it, not a gap in the shape.
 //!
-//! Sources: Wikipedia (ja), 元号一覧 (中国), retrieved 2026-09-22, for the
-//! years of every era and the months of the mid-year changes; Wikipedia
-//! (ja), 宣統, retrieved 2026-09-22, for 宣統 3年 12月 25日 as 12 February
-//! 1912 and 11月 13日 as 1 January 1912; Wikipedia, "List of Chinese era
-//! names", retrieved 2026-09-22, for the Hanzi and pinyin.
+//! The era system — 踰年改元 and the mid-year exceptions, restored and
+//! withdrawn eras, the concurrent regimes of 1644–1683 — is written up with
+//! a worked example in
+//! [`docs/systems/east-asian-eras.md`](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/systems/east-asian-eras.md).
+//!
+//! Sources, as keyed in `docs/references.bib`: `wikipedia-ja-chinese-era-list`
+//! (元号一覧 (中国), retrieved 2026-09-22) for the years of every era and the
+//! months of the mid-year changes; `wikipedia-ja-xuantong` (宣統, retrieved
+//! 2026-09-22) for 宣統 3年 12月 25日 as 12 February 1912 and 11月 13日 as
+//! 1 January 1912; `wikipedia-en-chinese-era-names` ("List of Chinese era
+//! names", retrieved 2026-09-22) for the Hanzi and pinyin;
+//! `zhwiki-hongguang` and `zhwiki-chongde` (read 2026-09-26) for the
+//! beginnings of 弘光 and 崇德. The primary chronologies these pages rest on,
+//! the 實錄 of each reign and 方詩銘『中國歷史紀年表』, were not read.
 
 use core::fmt;
 
@@ -136,7 +147,7 @@ const fn noted(
 }
 
 /// Every era, dynasty by dynasty, in the order of the source.
-pub static ALL: [ChineseEra; 40] = [
+pub static ALL: [ChineseEra; 37] = [
     era("hongwu", "洪武", "Hongwu", Dynasty::Ming, 1368, 1398),
     era("jianwen", "建文", "Jianwen", Dynasty::Ming, 1399, 1402),
     noted(
@@ -186,12 +197,12 @@ pub static ALL: [ChineseEra; 40] = [
             "弘光",
             "Hongguang",
             Dynasty::SouthernMing,
-            1644,
+            1645,
             1645,
         ),
-        Some(12),
+        None,
         true,
-        "the twelfth month of 1644 to 21 August 1645",
+        "fixed in the fifth month of 1644, when the Hongguang Emperor took the throne in Nanjing, for the next year, 踰年改元; to the sixth month of 1645",
     ),
     noted(
         era(
@@ -224,8 +235,18 @@ pub static ALL: [ChineseEra; 40] = [
     ),
     era("yongchang", "永昌", "Yongchang", Dynasty::Shun, 1644, 1645),
     era("tianming", "天命", "Tianming", Dynasty::Qing, 1616, 1626),
-    era("tiancong", "天聰", "Tiancong", Dynasty::Qing, 1627, 1636),
-    era("chongde", "崇德", "Chongde", Dynasty::Qing, 1636, 1643),
+    noted(
+        era("tiancong", "天聰", "Tiancong", Dynasty::Qing, 1627, 1636),
+        None,
+        true,
+        "to the fourth month of 1636",
+    ),
+    noted(
+        era("chongde", "崇德", "Chongde", Dynasty::Qing, 1636, 1643),
+        Some(4),
+        true,
+        "from 天聰 10年 4月 11日, 15 May 1636, when the state was renamed Qing",
+    ),
     era("shunzhi", "順治", "Shunzhi", Dynasty::Qing, 1644, 1661),
     era("kangxi", "康熙", "Kangxi", Dynasty::Qing, 1662, 1722),
     era("yongzheng", "雍正", "Yongzheng", Dynasty::Qing, 1723, 1735),
@@ -242,19 +263,11 @@ pub static ALL: [ChineseEra; 40] = [
     era("tongzhi", "同治", "Tongzhi", Dynasty::Qing, 1862, 1874),
     era("guangxu", "光緒", "Guangxu", Dynasty::Qing, 1875, 1908),
     noted(
-        era("baoqing", "保慶", "Baoqing", Dynasty::Qing, 1899, 1899),
-        None,
-        false,
-        "proclaimed in 1899 and withdrawn after three days",
-    ),
-    noted(
         era("xuantong", "宣統", "Xuantong", Dynasty::Qing, 1909, 1911),
         None,
         true,
         "to the abdication on 宣統 3年 12月 25日, 12 February 1912; kept on inside the Forbidden City and restored for twelve days in 1917, neither carried",
     ),
-    era("hongxian", "洪憲", "Hongxian", Dynasty::Qing, 1916, 1916),
-    era("datong", "大同", "Datong", Dynasty::Qing, 1932, 1934),
 ];
 
 /// The eras of one dynasty, in order.
@@ -282,8 +295,8 @@ pub fn era_of_year(dynasty: Dynasty, year: i64) -> Option<&'static ChineseEra> {
 
 /// Where the period of use comes from.
 pub const USAGE_SOURCE: &str = "The Qing eras over the Shíxiàn calendar from 1 January 1645 to 宣統 3年 12月 25日, 12 February \
-    1912, the abdication (Wikipedia (ja), 宣統 and 元号一覧 (中国), retrieved 2026-09-22); the \
-    Qing eras from 1616 are year data only";
+    1912, the abdication [wikipedia-ja-xuantong, wikipedia-ja-chinese-era-list]; the Qing eras \
+    from 1616 are year data only";
 
 /// The earliest day the calendar converts: 1 January 1645, where the
 /// Shíxiàn calendar begins.
@@ -556,6 +569,8 @@ mod tests {
         check(Dynasty::Ming, 1620, "taichang", 1);
         check(Dynasty::Ming, 1644, "chongzhen", 17);
         check(Dynasty::SouthernMing, 1645, "longwu", 1);
+        check(Dynasty::Ming, 1644, "chongzhen", 17);
+        assert_eq!(era_of_year(Dynasty::SouthernMing, 1644), None);
         check(Dynasty::SouthernMing, 1683, "yongli", 37);
         check(Dynasty::Qing, 1636, "chongde", 1);
         check(Dynasty::Qing, 1861, "xianfeng", 11);
@@ -563,12 +578,11 @@ mod tests {
         check(Dynasty::Qing, 1795, "qianlong", 60);
         assert_eq!(era_of_year(Dynasty::Ming, 1367), None);
         assert!(!find("祺祥").unwrap().in_use);
-        assert!(!find("保慶").unwrap().in_use);
         assert_eq!(
             ALL.iter()
                 .filter(|era| era.dynasty == Dynasty::Qing && era.in_use)
                 .count(),
-            15
+            13
         );
     }
 

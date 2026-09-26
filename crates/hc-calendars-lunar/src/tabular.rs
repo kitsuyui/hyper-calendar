@@ -22,14 +22,16 @@
 //! * **which eleven of the thirty years are long.** Four intercalation
 //!   schemes are in circulation, and they are traditionally attributed to
 //!   different astronomers ([`LeapYearRule`]).
-//! * **which day the epoch falls on.** The Hijra is conventionally placed at
-//!   16 July 622 in the Julian calendar (the "civil" or Friday epoch) or at
-//!   15 July 622 (the "astronomical" or Thursday epoch).
+//! * **which day the epoch falls on.** The tabular calendars place 1
+//!   Muḥarram 1 AH on 16 July 622 in the Julian calendar (the "civil" or
+//!   Friday epoch) or on 15 July 622 (the "astronomical" or Thursday
+//!   epoch) (`vangent-tabcal`).
 //!
 //! So this module holds one implementation and the callers supply the two
-//! constants. [`crate::islamic_civil`] and [`crate::islamic_astronomical`]
-//! are the two named combinations; any of the eight is reachable through
-//! [`TabularIslamicCalendar::new`].
+//! constants. [`crate::islamic_civil`], [`crate::islamic_astronomical`] and
+//! [`FATIMID`] are the three registered combinations; any of the eight is
+//! reachable through [`TabularIslamicCalendar::new`], which takes both
+//! constants and has no default for either.
 //!
 //! # What this is not
 //!
@@ -64,24 +66,28 @@ pub const MAX_YEAR: i64 = 9_999;
 /// The fixed day of 16 July 622 in the Julian calendar, the Friday on which
 /// the "civil" tabular Hijri calendar places 1 Muharram 1 AH.
 ///
-/// Its Julian Day Number is 1 948 440, the value quoted throughout the
-/// literature for the civil Hijri epoch.
+/// It is `islamic-epoch` in the published code of Reingold and Dershowitz,
+/// *Calendrical Calculations* (4th ed., 2018), chapter 7
+/// (`reingold2018code`, `reingold2018`), and van Gent gives the same Friday
+/// (`vangent-tabcal`). Its Julian Day Number is 1 948 440.
 pub const CIVIL_EPOCH: Rd = Rd(227_015);
 
 /// The fixed day of 15 July 622 in the Julian calendar, the Thursday on which
 /// the "astronomical" tabular Hijri calendar places 1 Muharram 1 AH.
 ///
-/// Its Julian Day Number is 1 948 439. CLDR calls this variant
+/// Its Julian Day Number is 1 948 439. Van Gent gives this Thursday as the
+/// astronomical epoch (`vangent-tabcal`). CLDR calls this variant
 /// `islamic-tbla` and describes it as the tabular calendar on the
-/// astronomical epoch; it does not spell the abbreviation out.
+/// astronomical epoch (`cldr-bcp47-calendar`); it does not spell the
+/// abbreviation out.
 pub const ASTRONOMICAL_EPOCH: Rd = Rd(227_014);
 
 /// Which eleven years of the thirty-year cycle carry the extra day.
 ///
-/// The four schemes shipped are the ones the standard surveys of the
-/// medieval *zīj*es tabulate. The attributions are the conventional ones and
-/// name the variants rather than claim who first wrote each table down; the
-/// schemes are much better attested than their authorship. A scheme this
+/// The four schemes shipped are the four van Gent tabulates from the
+/// medieval *zīj*es, his schemes I to IV, with the attributions he gives
+/// (`vangent-tabcal`); they name the variants rather than claim who first
+/// wrote each table down. A scheme this
 /// crate has not met is an entry, not a variant (ADR 0007): the type holds
 /// eleven positions and nothing else.
 ///
@@ -98,14 +104,6 @@ pub struct LeapYearRule {
     pub attribution: &'static str,
 }
 
-impl Default for LeapYearRule {
-    /// The common scheme, which every "tabular Hijri" implementation means
-    /// unless it says otherwise.
-    fn default() -> Self {
-        Self::CIVIL
-    }
-}
-
 hc_core::catalogue! {
     type: LeapYearRule,
     id: |rule| rule.id,
@@ -119,12 +117,14 @@ hc_core::catalogue! {
     pub fn by_id;
 
     entries: {
-        /// 2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29 — the common scheme, and
-        /// the one every "tabular Hijri" implementation means unless it says
-        /// otherwise.
+        /// 2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29 — van Gent's scheme II,
+        /// the common scheme, which CLDR's `islamic-civil` and
+        /// `islamic-tbla` both carry (`vangent-tabcal`,
+        /// `cldr-bcp47-calendar`).
         ///
-        /// Equivalent to the test `(14 + 11 · year) mod 30 < 11` used by
-        /// Reingold and Dershowitz, *Calendrical Calculations*.
+        /// Equivalent to the test `(14 + 11 · year) mod 30 < 11`, the
+        /// `islamic-leap-year?` of Reingold and Dershowitz's published code
+        /// (`reingold2018code`).
         pub const CIVIL = Self {
             id: "civil",
             long_years: [2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29],
@@ -146,14 +146,16 @@ hc_core::catalogue! {
         };
         /// 2, 5, 8, 10, 13, 16, 19, 21, 24, 27, 29 — van Gent's scheme III,
         /// the Fatimid calendar, also called the Ismāʿīlī, Ṭayyibī or Bohra
-        /// calendar, and Ibn al-Ajdābī's.
+        /// calendar, and Ibn al-Ajdābī's (`vangent-tabcal`); the Bohra
+        /// community states the same eleven years (`dawoodibohras-misri`).
         pub const FATIMID = Self {
             id: "fatimid",
             long_years: [2, 5, 8, 10, 13, 16, 19, 21, 24, 27, 29],
             attribution: "the Fatimid tables; the Ṭayyibī Bohra reckoning",
         };
-        /// 2, 5, 8, 11, 13, 16, 19, 21, 24, 27, 30 — associated with Ḥabash
-        /// al-Ḥāsib, al-Bīrūnī and Elias of Nisibis.
+        /// 2, 5, 8, 11, 13, 16, 19, 21, 24, 27, 30 — van Gent's scheme IV,
+        /// which he attributes to Ḥabash al-Ḥāsib, al-Bīrūnī and Elias of
+        /// Nisibis (`vangent-tabcal`).
         ///
         /// The only scheme whose thirtieth year is long, which means the
         /// extra day falls at the very end of the cycle rather than one year
@@ -463,26 +465,16 @@ pub const USAGE_SOURCE: &str = "The Hijri count from the year of the migration, 
 /// Thursday epoch gives and the Friday epoch misses by a day. The test says
 /// so.
 ///
-/// **Source:** the Dawoodi Bohra community's published description of the
-/// Misri-Hijri calculation (thedawoodibohras.com), which states the
-/// thirty-year *qarn saghir* and its eleven *kabisa* remainders.
+/// **Source:** M. Adamjee and M. Gulamali, "The Misri-Hijri Calendar",
+/// on the Dawoodi Bohra community's site, retrieved 2026-09-25
+/// (`dawoodibohras-misri`), which states the thirty-year *qarn saghir*, its
+/// eleven *kabisa* remainders and the 1439 anchor.
 pub const FATIMID: TabularIslamicCalendar = TabularIslamicCalendar::new(
     CalendarId("islamic-fatimid"),
     "Hijri (Fatimid, Ṭayyibī Bohra \"Misri\")",
     ASTRONOMICAL_EPOCH,
     LeapYearRule::FATIMID,
 );
-
-impl Default for TabularIslamicCalendar {
-    fn default() -> Self {
-        Self::new(
-            CalendarId("islamic-civil"),
-            "Hijri (tabular, civil epoch)",
-            CIVIL_EPOCH,
-            LeapYearRule::CIVIL,
-        )
-    }
-}
 
 impl Calendar for TabularIslamicCalendar {
     type Date = IslamicDate;
@@ -601,7 +593,7 @@ mod tests {
             DayBoundary::Sunset(DayNaming::ByEnd)
         );
         assert_eq!(
-            TabularIslamicCalendar::default().day_boundary(),
+            crate::islamic_civil::PARAMETERS.day_boundary(),
             DayBoundary::Sunset(DayNaming::ByEnd)
         );
         let custom = TabularIslamicCalendar::new(
@@ -855,7 +847,7 @@ mod tests {
 
     #[test]
     fn the_calendar_trait_rejects_a_leap_month_and_an_unknown_era() {
-        let calendar = TabularIslamicCalendar::default();
+        let calendar = crate::islamic_civil::PARAMETERS;
         assert_eq!(
             calendar.from_fields(&DateFields::ymd_leap_month(1_445, 1, 1)),
             Err(CalendarError::MonthOutOfRange)

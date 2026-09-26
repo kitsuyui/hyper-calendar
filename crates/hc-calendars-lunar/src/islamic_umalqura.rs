@@ -15,14 +15,25 @@
 //! `n + 1` has 30 days rather than 29. That is the whole calendar: 301 years
 //! in 602 bytes.
 //!
-//! The data was extracted on this machine from the platform's own
-//! `islamic-umalqura` implementation (Foundation's
-//! `Calendar(identifier: .islamicUmmAlQura)`, which is ICU's `UMALQURA`
-//! table), by asking it for the first day of every month from 1300 AH to
-//! 1600 AH and differencing; it equals ICU's own table bit for bit. It was
-//! then spot-checked against six dates, five of them the Supreme Court's
-//! announced first days of 1445–1447, which the test
-//! `the_published_dates_are_reproduced` holds and the document cites.
+//! The table is ICU's `UMALQURA_MONTHLENGTH` for 1300 to 1600 AH
+//! (`icu-islamcal`), read out of Apple's Foundation, which carries it, by
+//! asking for the first day of every month and differencing, and compared
+//! with ICU's source bit for bit. That makes it another library's table,
+//! which is not a source in the sense of `docs/policy.md` §11, and it is
+//! carried as what it is:
+//!
+//! * ICU names no source for it. KACST publishes the calendar
+//!   (`kacst-ummulqura`), but its site served nothing readable when tried,
+//!   and van Gent's Umm al-Qurā converter computes its dates from the rules
+//!   rather than publishing a table (`vangent-ummalqura`), so no row has
+//!   been verified against the publisher.
+//! * Five rows are checked against the Supreme Court's announced first
+//!   days of 1445–1447, which the test `the_published_dates_are_reproduced`
+//!   holds and the document cites.
+//! * Van Gent knows the calendar's rules only from 1392 AH (1972). Rows
+//!   1300 to 1391 are therefore a computation back from rules nobody is
+//!   known to have applied then, and who computed them — ICU, or whoever
+//!   ICU took them from — is not stated anywhere read here.
 //!
 //! # The range, and why it stops
 //!
@@ -136,7 +147,7 @@ const fn year_length_from_mask(mask: u16) -> u16 {
 }
 
 /// Where the period of use comes from.
-pub const USAGE_SOURCE: &str = "The published table for 1300–1600 AH, 1882-11-12 to 2174-11-25 [icu-islamcal], which is the \
+pub const USAGE_SOURCE: &str = "ICU's table for 1300–1600 AH, 1882-11-12 to 2174-11-25 [icu-islamcal], which is the \
     span carried; Saudi Arabia's civil calendar for several decades, under rules known \
     from 1392 AH and fixed since 1423 AH [vangent-ummalqura], as docs/systems/hijri.md states";
 

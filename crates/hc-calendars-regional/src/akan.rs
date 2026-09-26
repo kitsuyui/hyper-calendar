@@ -32,9 +32,14 @@
 //! documentation gives, and nothing above it. The 28-day *bosome* month is
 //! not carried either.
 //!
-//! Source: Wikipedia, "Akan calendar", retrieved 2026-09-22, for the two
-//! weeks and their names, the 42-day table, the four *dabɔne* and the
-//! 1978 dates.
+//! Source: Wikipedia, "Akan calendar" (`wikipedia-akan-calendar`),
+//! retrieved 2026-09-22, for the two weeks and their names, the 42-day
+//! table, the four *dabɔne* and the 1978 dates. That is a secondary source;
+//! the study it rests on, K. Bartle, "Forty Days: The Akan Calendar",
+//! *Africa* 48(1), 1978, was not read, and is what would replace it. The
+//! published code of *Calendrical Calculations* carries the same 42-day
+//! cycle of six- and seven-day names (`reingold2018code`, `akan-day-name`,
+//! `akan-day-name-epoch`), without the names.
 
 use core::fmt;
 

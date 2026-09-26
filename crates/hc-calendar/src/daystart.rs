@@ -170,8 +170,10 @@ impl fmt::Display for DayBoundary {
 /// is defined.
 ///
 /// The two are rarely the same, and conflating them is how a library ends up
-/// reporting that today is Kōki 2686. The arithmetic is perfectly happy to
-/// say so; nobody has written the imperial year since 1945.
+/// reporting that today is Kōki 2686 as though it were the date in use. The
+/// arithmetic is perfectly happy to say so; the Kōki module closes the
+/// era's official use at the end of 1945, a bound it chose because no
+/// instrument abolishing the era was found, and says so in its source.
 ///
 /// # Every period names its source
 ///

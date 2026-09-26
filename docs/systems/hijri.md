@@ -171,7 +171,12 @@ from Muḥarram). The official site of the calendar is KACST's
 [kacst-ummulqura], which on 2026-09-25 served only its title, so how the
 1300–1419 years of the table were produced — from records of the calendar
 as issued, or from a reconstruction under the rules above — is not stated
-by any source read here.
+by any source read here. Van Gent's converter computes its Umm al-Qurā
+dates from the rules rather than tabulating them [vangent-ummalqura], so
+it could not serve as a check on the rows either. The table is therefore
+another library's, cross-checked against five announcements; the rows for
+1300–1391 AH, before any rule is known, are a computation whose author is
+not named.
 
 ### The visibility criterion
 
@@ -197,10 +202,10 @@ of the new moon and its own eve fails [reingold2018code,
 from the Friday epoch, rounded over the mean synodic month, split into
 twelves [reingold2018code, `observational-islamic-from-fixed`]. The
 observing place is a parameter: the book's sample location is Cairo, and
-this library's default is Mecca at 21°25′21″N, 39°49′34″E, 298 m, which
-the module states are the crate's own figures for the Great Mosque and not
-taken from a named source; the book's own `mecca` constant is 21°25′24″N,
-39°49′24″E, 298 m, a few hundred metres away.
+`islamic-rgsa` observes from Mecca at the book's own `mecca` constant,
+21°25′24″N, 39°49′24″E, 298 m [reingold2018code, `mecca`]. No type in the
+module has a default site or criterion; each is named where it is
+chosen.
 
 **The 4.5° interpolation.** `hc-astro` gives dusk only at the three standard
 twilight depressions, so the module does not solve for the 4.5° instant.
@@ -373,8 +378,6 @@ supports, and that stand as the module's own:
   from what is carried; that the result equals ICU's table can be, and was.
 - The interpolation error "well under a minute" is the module's estimate
   and is not measured by a test.
-- The Mecca coordinates 21°25′21″N, 39°49′34″E are the crate's own, as the
-  module now says; they are not the book's `mecca`.
 
 
 ## Code

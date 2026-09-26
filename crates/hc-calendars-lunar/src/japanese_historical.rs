@@ -108,9 +108,15 @@
 //!
 //! **元嘉暦 (604–697), 儀鳳暦 (697–764), 大衍暦 (764–862) and 五紀暦
 //! (858–862) are not implemented.** Their period constants are recoverable —
-//! 元嘉暦 is 日法 752 with 歳実 222070/608 and 朔実 22207/752; 儀鳳暦 and
-//! 五紀暦 share 総法 1340 with 489428/1340 and 39571/1340; 大衍暦 is 通法
-//! 3040 with 1110343/3040 and 89773/3040 — but the table this crate measures
+//! 元嘉暦 is 日法 752 with 歳実 222070/608 and 朔実 22207/752 (宋書 律暦志下,
+//! 元嘉暦法: 紀法 608, 紀日 222070, 日法 752, 通數 22207; `songshu-lulizhi`);
+//! 儀鳳暦, which is 麟德暦 under its Japanese name, and 五紀暦 share 総法
+//! 1340 with 489428/1340 and 39571/1340 (新唐書 暦志二 and 五: 總法 1340,
+//! 朞實 489428, 常朔實 39571; 五紀通法 1340, 策實 489428, 揲法 39571;
+//! `xintangshu-linde`, `xintangshu-wuji`); 大衍暦 is 通法 3040 with
+//! 1110343/3040 and 89773/3040 (新唐書 暦志四上: 通法 3040, 策實 1110343,
+//! 揲法 89773; `xintangshu-dayan`) — all four read 2026-09-26 in the
+//! Wikisource transcriptions — but the table this crate measures
 //! itself against begins in 862, the adoption dates before then are contested
 //! by years, 元嘉暦 used 平朔 where the others used 定朔, and their 進朔限
 //! differ from system to system and from Senmyō-reki's. Four more calendars
@@ -129,7 +135,8 @@ use crate::lunisolar::{
 ///
 /// Kyoto local mean time throughout; the 1888 row exists only so the table
 /// states the whole history, exactly as in [`crate::japanese_tenpo`]. No
-/// calendar in this module reaches 1888.
+/// calendar in this module reaches 1888. Sources:
+/// [`crate::japanese_tenpo::MERIDIAN_SOURCES`].
 pub static MERIDIANS: [MeridianEra; 2] = [
     MeridianEra::from_longitude(
         i64::MIN / 4,
@@ -149,7 +156,8 @@ const MEAN_ELONGATION_RATE: f64 = 360.0 / 29.530_59;
 
 /// The Sun's contribution to 定朔 for a system whose own 日躔表 is not to
 /// hand: the first-order equation of centre, 2·e·sin M with e = 0.0167,
-/// giving 1.9148° (Meeus, *Astronomical Algorithms*, ch. 25).
+/// giving 1.9148° (Meeus, *Astronomical Algorithms*, 2nd ed., 1998,
+/// ch. 25; `meeus1998`).
 ///
 /// Senmyō-reki does not use this — its own table is known, and is in
 /// [`senmyo::MODEL`]. The three Edo systems do.
@@ -161,7 +169,8 @@ const MODERN_SOLAR_EQUATION_DAYS: f64 = 1.9148 / MEAN_ELONGATION_RATE;
 /// evection, 1.2740°. Evection is 1.2740°·sin(2D − M′) and a conjunction is
 /// where D = 0, so at exactly the moment this correction is evaluated it
 /// collapses to −1.2740°·sin(M′) and simply reduces the first harmonic; the
-/// variation, 0.6583°·sin(2D), vanishes there outright. (Meeus, ch. 47.)
+/// variation, 0.6583°·sin(2D), vanishes there outright. (`meeus1998`,
+/// ch. 47.)
 ///
 /// This is why a one-term conjunction model does better than its description
 /// suggests, and it is what Senmyō-reki's own 月離 table was measuring:

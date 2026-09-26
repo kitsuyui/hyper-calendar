@@ -288,8 +288,11 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
   almanacs, the Gregorian year plus 2698, which public calendars do not use
   [wikipedia-zh-nongli]. None is official, because the calendar has no
   official era. The Dangi count runs from the traditional foundation of
-  Gojoseon in 2333 BCE and was Korea's official year number from 1945 to
-  1961 [wikipedia-en-korean-calendar]; it is not in official use now. The
+  Gojoseon in 2333 BCE and was the Republic of Korea's official year
+  number under the Act on Era Names, Act No. 4 of 25 September 1948, until
+  Act No. 775 of 2 December 1961 made the Common Era official from
+  1 January 1962 [encykorea-dangun-giwon; the statutes were not read]; it
+  is not in official use now. The
   Vietnamese number, the Gregorian year in which the lunisolar year begins,
   is this library's convention, adopted because Vietnam has no continuous
   era, and is labelled as such.
@@ -307,10 +310,16 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
   is why `is_astronomical` is true in the metadata and why the accuracy
   below is the accuracy of the astronomy at the day boundary.
 - **Constructible but not registered.** `SolarTermMode::Mean` with any
-  meridian, through `LunisolarParameters`; and the Republic of Vietnam's
-  1968 reckoning as `vietnamese::SOUTHERN_PARAMETERS` (id
-  `vietnamese-south-1968`), kept as data so that the disagreement can be
-  tested rather than described. Neither is a calendar anyone publishes.
+  meridian, through `LunisolarParameters`, which is not a calendar anyone
+  publishes; and the Republic of Vietnam's 1968 reckoning as
+  `vietnamese::SOUTHERN_PARAMETERS` (id `vietnamese-south-1968`), kept as
+  data so that the disagreement can be tested rather than described. The
+  Republic's almanacs did publish that reckoning, which is what put Tết
+  1968 on 30 January in the south; it is not registered because it differs
+  from the northern calendar only from 1968 to 1975 and what was read of it
+  is two new years, not an almanac or decree that fixes its meridian and
+  its span, so a registered calendar would claim seven years of months
+  that nothing here can check.
 - **Not carried, and why.**
   - Any calendar before 1645, or the almanac of any year: a date this
     library gives for 1700 is what the modern rule says at the modern
@@ -366,35 +375,26 @@ than the published code are tested above to contain no event that moves.
 The Chinese pre-1929 offset is a mean-time reading of a reference one
 source calls apparent; nothing checked here reaches back that far.
 
-**Statements in the module documentation that no source read here
-supports, or that a source contradicts**, as of 2026-09-25, and what was
-done about them:
+**Where the sources are thin or disagree.**
 
-- `vietnamese` said the DRV "decreed a move from UT+8 to UT+7" as if of
-  civil time, called UT+8 "the Indochina zone of 120°E", said the south
-  was "still on UT+8", and made claims about the Tết Offensive and about
-  "every Vietnamese calendar tool". The north had kept UT+7 civil time
-  since 2 September 1945, with UT+8 only in the zones of fighting from 1947
-  [wikipedia-vi-gio-viet-nam]; the 1967 decision moved the calendar's
-  meridian, which is what the published code encodes and what accounts of
-  the decision say [wikipedia-en-vietnamese-calendar], though the
-  decision's text was not read [vn-decision-121-cp]; the south's civil
-  time was UT+8 only from 1 January 1960 [tienphong-two-zones]; the zone's
-  name and the other two claims had no source. The module now says the
-  meridians are the calendar's and not the clock's, names them by
-  longitude, dates the south's UT+8 from 1960, and makes no claim about
-  other tools.
-- The crate README called Dangi 4357 "the standard Korean number"; the count
-  was official from 1945 to 1961 and is not now
-  [wikipedia-en-korean-calendar], and the README and `dangi` now say so.
-- The README said the Korean and Vietnamese courts adopted the Shíxiàn
-  rules "some years later" than 1645. It now gives Korea's 1653 and says
-  Vietnam's date is not established here.
-- `lunisolar` dated China's move from mean to true conjunctions to Li
-  Chunfeng's Línde system of 665 without a source. It now says that the
-  true conjunction was first used by the Wuyin calendar of 619, given up in
-  645 after four long months in a row, and settled by the Línde calendar of
-  665 with 進朔 against such runs [wikipedia-zh-dingshuo,
+- The meridians in `vietnamese` are the calendar's, not the civil clock's.
+  The north kept UT+7 civil time from 2 September 1945, with UT+8 only in
+  the zones of fighting from 1947 [wikipedia-vi-gio-viet-nam]; the 1967
+  decision moved the calendar's meridian, which is what the published code
+  encodes and what accounts of the decision say
+  [wikipedia-en-vietnamese-calendar], though the decision's text was not
+  read [vn-decision-121-cp]; the south's civil time was UT+8 from 1 January
+  1960 [tienphong-two-zones].
+- The years the Dangi count was official: [wikipedia-en-korean-calendar]
+  gives 1945 to 1961; [encykorea-dangun-giwon] dates it by the Act on Era
+  Names of 25 September 1948 and its replacement of 2 December 1961,
+  effective 1 January 1962, and `dangi` and this document follow the
+  statutes' dates.
+- Korea adopted the Shíxiàn rules in 1653 [wikipedia-ko-siheollyeok];
+  Vietnam's date is not established by any source read here.
+- The true conjunction was first used in China by the Wuyin calendar of
+  619, given up in 645 after four long months in a row, and settled by the
+  Línde calendar of 665 with 進朔 against such runs [wikipedia-zh-dingshuo,
   wikipedia-zh-wuyinyuanli, wikipedia-zh-lindeli]; the point bears on the
   Japanese systems, not on the three calendars here.
 - Seollal 1988 = 18 February and Tết 2024 = 10 February are reproduced by
@@ -411,7 +411,8 @@ done about them:
 | [wikipedia-zh-nongli] | The standard's rules; 順治二年 and the 定氣 reform; the 中國天文年曆; the year counts | Yes, 2026-09-25 |
 | [wikipedia-en-chongzhen-calendar] | The Chongzhen treatise, its authors, *píngqì* to *dìngqì*, the Shunzhi promulgation | Yes, 2026-09-25 |
 | [wikipedia-ko-siheollyeok] | Joseon's adoption in 1653, Kim Yuk, 정기법 | Yes, 2026-09-25 |
-| [wikipedia-en-korean-calendar] | 1653 and 1725; the calendar as maintained by the government; the Dangi count and its official use 1945–1961 | Yes, 2026-09-25 |
+| [wikipedia-en-korean-calendar] | 1653 and 1725; the calendar as maintained by the government; the Dangi count | Yes, 2026-09-25 |
+| [encykorea-dangun-giwon] | Act No. 4 of 25 September 1948 making the Dangi count official, and Act No. 775 of 2 December 1961 replacing it from 1 January 1962 | Yes, 2026-09-26; the statutes themselves were not read |
 | [wikipedia-en-time-in-south-korea] | The years 1908, 1912, 1954 and 1961 and who changed the zone | Yes, 2026-09-25 |
 | [wikipedia-en-time-in-china] | Beijing's reference before standard time; the calendar's reference moving to UT+8 in 1928–1929 | Yes, 2026-09-25 |
 | [kasi-lunisolar-conversion] | KASI as the publisher; the range of its service; the Gregorian calendar as official under the 천문법 | Yes, 2026-09-25; KASI's FAQ on the calendar and its 월력요항 page returned server errors |

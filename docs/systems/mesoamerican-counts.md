@@ -2,9 +2,11 @@
 
 Backs the identifiers `maya-longcount`, `maya-tzolkin`, `maya-haab`,
 `maya-round`, their GMT+2 counterparts `maya-longcount-gmt2`,
-`maya-tzolkin-gmt2`, `maya-haab-gmt2` and `maya-round-gmt2`, the 819-day
-count as `maya-819` and `maya-819-gmt2`, and `aztec-tonalpohualli` and
-`aztec-xiuhpohualli` in `hc-calendars-regional`.
+`maya-tzolkin-gmt2`, `maya-haab-gmt2` and `maya-round-gmt2`, their 584 286
+counterparts `maya-longcount-584286`, `maya-tzolkin-584286`,
+`maya-haab-584286` and `maya-round-584286`, the 819-day count as
+`maya-819`, `maya-819-gmt2` and `maya-819-584286`, and
+`aztec-tonalpohualli` and `aztec-xiuhpohualli` in `hc-calendars-regional`.
 
 ## What it is
 
@@ -129,12 +131,14 @@ Poco Uinic Stela 3 records what appears to be an eclipse at 9.17.19.13.16
 5 Kib 14 Chʼen, the total solar eclipse of 16 July 790 (JDN 2 009 802), and
 2 009 802 − 1 425 516 gives **584 286** [martin2012]. Which of these is
 right is a claim about history, not arithmetic; this library therefore
-registers 584 283 as `maya-longcount` and 584 285 as `maya-longcount-gmt2`,
-two calendars with two names, so that a caller can ask both and see the
-two-day difference rather than get one of them silently
-([policy.md §5](../policy.md)), and the three cycles likewise, under
-`-gmt2` names, because a Calendar Round is only the round an inscription
-pairs with its long count when both are read under the same constant.
+registers 584 283 as `maya-longcount`, 584 285 as `maya-longcount-gmt2` and
+584 286 as `maya-longcount-584286`, three calendars with three names, so
+that a caller can ask all three and see the difference rather than get one
+of them silently ([policy.md §5](../policy.md)), and the three cycles and
+the 819-day count likewise, under `-gmt2` and `-584286` names, because a
+Calendar Round is only the round an inscription pairs with its long count
+when both are read under the same constant. The three are the only
+constants a calendar can be built with.
 
 **The Aztec counts and Caso's correlation.** The tonalpohualli works
 exactly as the Tzolkʼin, with the signs Cipactli, Ehecatl, Calli,
@@ -242,9 +246,12 @@ name independently.
   Gregorian). Earlier days answer `BeforeEpoch`, later ones
   `AfterSupportedRange`; a place outside its radix, `DayOutOfRange`.
 - **`maya-longcount-gmt2`** — the same under 584 285, `MayaLongCountCalendar::GMT_PLUS_TWO`;
-  every fixed day two later. `MayaLongCountCalendar::with_correlation`
-  accepts any other constant — 584 286, say — but such a calendar reports
-  the identifier `maya-longcount` and is not registered.
+  every fixed day two later.
+- **`maya-longcount-584286`** — the same under 584 286,
+  `MayaLongCountCalendar::MARTIN_SKIDMORE`; every fixed day three later
+  than under GMT. The Poco Uinic eclipse anchors it: 9.17.19.13.16
+  5 Kib 14 Chʼen is JDN 2 009 802, 16 July 790 (Julian) [martin2012].
+  There is no constructor for any other constant.
 - **`maya-tzolkin`**, **`maya-haab`**, **`maya-round`** — the three
   cycles anchored to 584 283, as `MayaTzolkinCalendar::GMT`,
   `MayaHaabCalendar::GMT` and `MayaCalendarRoundCalendar::GMT`, and
@@ -255,9 +262,10 @@ name independently.
   through the cycles of one constant beside the long count of the other
   comes out two positions on: Chiapa de Corzo's day is 6 Ben 16 Xul under
   `maya-longcount` and `maya-round` together, or under the two `-gmt2`
-  calendars together, and 8 Men 18 Xul when the two are mixed. Each type's
-  `with_correlation` takes any other constant, unnamed as the Long Count's
-  is. The Tzolkʼin and Haabʼ are unbounded and run backwards through the
+  calendars together, and 8 Men 18 Xul when the two are mixed. The
+  `-584286` cycles, the `MARTIN_SKIDMORE` constants of the same types, are
+  anchored the same way to 584 286, and each type's `beside` gives the
+  cycle under a long count's own constant. The Tzolkʼin and Haabʼ are unbounded and run backwards through the
   epoch; the Calendar Round is bounded to the Long Count's twenty baktun
   under its own constant so that its round number stays meaningful beside
   it. The Haabʼ's generic `day` field is **1-based** as the trait
@@ -266,8 +274,9 @@ name independently.
   declares, as the 584 283 one's do, so `hc-i18n` names the `-gmt2` months
   without any locale entry, and `hyper-calendar`'s vocabulary test counts
   both.
-- **`maya-819`**, **`maya-819-gmt2`** — the 819-day count under 584 283
-  and 584 285, `Maya819Calendar::GMT` and `GMT_PLUS_TWO` in
+- **`maya-819`**, **`maya-819-gmt2`**, **`maya-819-584286`** — the
+  819-day count under 584 283, 584 285 and 584 286, `Maya819Calendar::GMT`,
+  `GMT_PLUS_TWO` and `MARTIN_SKIDMORE` in
   `hc_calendars_regional::maya_819`, over Linden and Bricker's
   twenty-station cycle: `year` is the round of 16 380 days since the base,
   and the extra fields `station`, 1 to 20 from the base's, `elapsed`, the
@@ -341,6 +350,7 @@ anchor. The tests hold these published readings:
 | JDN 2 450 765 under 584 285 is 801 days past a western, black station, 1 Cauac 7 Mol | [vanlaningham-819] | `van_laningham_s_worked_example_under_584_285` |
 | The twenty stations are the twenty day-signs numbered 1; 16 380 is the least common multiple of 819 and 260 | the arithmetic above | `the_twenty_stations_are_the_twenty_day_signs_numbered_one` |
 | 7.16.3.2.13 = 6 Ben 16 Xul, round 59, under either constant read consistently, and not when mixed; 13.0.0.0.0 = 4 Ahau 3 Kankin on 23 December 2012 under 584 285; the `-gmt2` cycles two days on everywhere | the worked example above; [famsi-vanstone-2012] | `the_cycles_follow_their_long_count_under_each_correlation` |
+| 9.17.19.13.16 = 5 Kib 14 Chʼen = JDN 2 009 802 = 16 July 790 (Julian) under 584 286; 13.0.0.0.0 on 24 December 2012 under it, by the arithmetic | [martin2012] | `the_poco_uinic_eclipse_anchors_the_martin_skidmore_constant` |
 
 Beyond the anchors, the tests check that exactly 18 980 of the 94 900
 Tzolkʼin–Haabʼ pairings are accepted, that every day of a whole Calendar
@@ -390,7 +400,7 @@ and Dershowitz tabulate it.
 | [berlin1961] | The colour-direction scheme | Not read; cited by the three above |
 | [thompson1943] | The identification of the cycle | Not read; cited by [lounsbury1976] and [vanlaningham-819] |
 | [caso1971] | The Aztec anchor as Reingold and Dershowitz attribute it | Not read directly; the bibliographic details from the publisher's listing |
-| [wikipedia-aztec-calendar] | The day-signs; Sahagún's and Durán's first months; the four year bearers Tochtli, Acatl, Tecpatl, Calli; the *xiuhmolpilli*; 13 August 1521 = 1 Coatl; Caso as the basis of later reconstructions; the leap-day dispute | Yes, 2026-09-25 |
+| [wikipedia-aztec-calendar] | The day-signs; Sahagún's and Durán's first months; the four year bearers Tochtli, Acatl, Tecpatl, Calli; the *xiuhmolpilli*; 13 August 1521 = 1 Coatl; Caso as the basis of later reconstructions; the leap-day dispute; the reconstructions of Tena, Ochoa and Medina | Yes, 2026-09-25; re-read 2026-09-26 for the three reconstructions |
 | [wikipedia-xiuhpohualli] | The eighteen *veintenas* and the nemontemi; the disagreement over the year's first month; the vague year | Yes, 2026-09-25 |
 | [wikipedia-tonalpohualli] | The twenty signs; the codices; who used it | Yes, 2026-09-25 |
 | [wikipedia-fall-of-tenochtitlan] | 13 August 1521 as a Julian date | Yes, 2026-09-25; it gives no Aztec date for the day |
@@ -413,18 +423,24 @@ those of Reingold and Dershowitz's tables (the tables were not read;
 Wikipedia's older spelling is the same); and, in the roadmap row, that
 Stela 2's two highest places are reconstructed — the Long Count article
 offers a second reading, 8.7.3.2.13, which differs in exactly those two
-places, and says no more. The `GMT` constant's documentation once read the
-radiocarbon result as supporting 584 283 as a number; it now says what the
-abstract says, that the lintel "strongly supports" the GMT correlation by
-name, and that 584 283 is the value the literature calls GMT.
+places, and says no more. The `GMT` constant's documentation says what
+the radiocarbon abstract says, that the lintel "strongly supports" the GMT
+correlation by name, and that 584 283 is the value the literature calls
+GMT; the abstract does not state the constant.
+
+The reconstructions of Tena, Ochoa and Medina, which the Aztec calendar
+article names beside Caso's [wikipedia-aztec-calendar], are not carried:
+the sources read give none of them a correlation day that differs from
+Caso's anchor, and Ochoa's and Medina's tie the year to the equinox, which
+needs a correction the uncorrected 365-day year here does not make.
 
 ## Code
 
 `crates/hc-calendars-regional/src/maya.rs` (`GMT_CORRELATION`,
-`GMT_PLUS_TWO_CORRELATION`, `EPOCH`, `MayaLongCountCalendar`,
-`MayaTzolkinCalendar`, `MayaHaabCalendar`, `MayaCalendarRoundCalendar`,
-`calendar_round_ordinal`, the `GMT` and `GMT_PLUS_TWO` constants of the
-three cycle types), `maya_819.rs` (`Maya819Calendar`, `Maya819Date`,
+`GMT_PLUS_TWO_CORRELATION`, `MARTIN_SKIDMORE_CORRELATION`, `EPOCH`,
+`MayaLongCountCalendar`, `MayaTzolkinCalendar`, `MayaHaabCalendar`,
+`MayaCalendarRoundCalendar`, `calendar_round_ordinal`, the `GMT`,
+`GMT_PLUS_TWO` and `MARTIN_SKIDMORE` constants of the three cycle types), `maya_819.rs` (`Maya819Calendar`, `Maya819Date`,
 `Direction`, `STATION_DAYS`, `CYCLE_DAYS`, `BASE_BEFORE_EPOCH`) and `aztec.rs` (`CORRELATION`,
 `AztecTonalpohualliCalendar`, `AztecXiuhpohualliCalendar`). Anchors:
 `the_correlation_puts_the_epoch_where_the_constant_says`,
@@ -440,7 +456,8 @@ three cycle types), `maya_819.rs` (`Maya819Calendar`, `Maya819Date`,
 `a_published_modern_date_matches`,
 `the_base_is_one_caban_five_cumku_an_eastern_station`,
 `the_temple_of_the_cross_stands_twenty_days_after_a_south_station`,
-`van_laningham_s_worked_example_under_584_285`; the structure:
+`van_laningham_s_worked_example_under_584_285`,
+`the_poco_uinic_eclipse_anchors_the_martin_skidmore_constant`; the structure:
 `only_one_tzolkin_haab_pairing_in_five_can_occur`,
 `every_day_of_a_whole_calendar_round_round_trips`,
 `the_two_correlations_differ_by_exactly_two_days`,
