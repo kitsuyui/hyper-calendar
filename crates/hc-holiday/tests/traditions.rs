@@ -565,7 +565,7 @@ fn thaipusam_falls_where_malaysia_and_mauritius_gazette_it() {
         nakshatra: PUSHYA,
         sign: SiderealSign::MAKARA,
         with_tithi: Some(15),
-        ayanamsa: Ayanamsa::LAHIRI,
+        ayanamsa: &Ayanamsa::LAHIRI,
         meridian,
     };
     for (year, month, day) in [

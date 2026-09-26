@@ -44,7 +44,7 @@ const fn tithi(month: u8, tithi: u8, prevails: Prevalence, when_twice: WhenTwice
         tithi,
         prevails,
         when_twice,
-        calendar: CALENDAR,
+        calendar: &CALENDAR,
     }
 }
 
@@ -113,7 +113,7 @@ pub const THAIPUSAM: Rule = Rule::Nakshatra {
     nakshatra: PUSHYA,
     sign: SiderealSign::MAKARA,
     with_tithi: Some(15),
-    ayanamsa: Ayanamsa::LAHIRI,
+    ayanamsa: &Ayanamsa::LAHIRI,
     meridian: Meridian::INDIA,
 };
 
@@ -131,7 +131,7 @@ pub const HOLI: Rule = Rule::Offset {
 /// Lahiri ayanamsa the national calendar uses.
 pub const MAKAR_SANKRANTI: Rule = Rule::Sankranti {
     sign: SiderealSign::MAKARA,
-    ayanamsa: Ayanamsa::LAHIRI,
+    ayanamsa: &Ayanamsa::LAHIRI,
     meridian: Meridian::INDIA,
 };
 
@@ -139,7 +139,7 @@ pub const MAKAR_SANKRANTI: Rule = Rule::Sankranti {
 /// Boishakh, Vishu.
 pub const MESHA_SANKRANTI: Rule = Rule::Sankranti {
     sign: SiderealSign::MESHA,
-    ayanamsa: Ayanamsa::LAHIRI,
+    ayanamsa: &Ayanamsa::LAHIRI,
     meridian: Meridian::INDIA,
 };
 

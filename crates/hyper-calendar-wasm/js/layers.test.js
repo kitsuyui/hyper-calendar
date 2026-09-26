@@ -46,6 +46,7 @@ test("a method of another layer throws not-exported when called, not at load", (
     calendarUnits: () => hc.calendarUnits("gregory", "year", 739_000, 739_880, "en"),
     calendars: () => hc.calendars(739_880, "en"),
     locales: () => hc.locales(),
+    firstDayOfWeek: () => hc.firstDayOfWeek("en"),
     gregorianAdoption: () => hc.gregorianAdoption("JP"),
     holidayIsDayOff: () => hc.holidayIsDayOff("JP", "", 739_880),
     holidaysInYear: () => hc.holidaysInYear("JP", "", 2026),

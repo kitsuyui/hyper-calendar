@@ -3391,7 +3391,7 @@ const MU_CAVADEE: Rule = Rule::Nakshatra {
     nakshatra: PUSHYA,
     sign: SiderealSign::MAKARA,
     with_tithi: Some(15),
-    ayanamsa: Ayanamsa::LAHIRI,
+    ayanamsa: &Ayanamsa::LAHIRI,
     meridian: Meridian::from_seconds(4 * 3_600),
 };
 

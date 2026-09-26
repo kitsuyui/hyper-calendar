@@ -560,6 +560,31 @@ mod calendars {
         unsafe { emit_or_measure(&text, buffer, capacity) }
     }
 
+    /// The ISO weekday of the first day of the week in a locale, Monday = 1
+    /// through Sunday = 7, or an error sentinel.
+    ///
+    /// `locale` is a BCP 47 tag, read as `hc-i18n` reads CLDR 48's week
+    /// data: a `-u-fw-` key first, then the tag's region (`en-US` is 7,
+    /// `en-GB` 1), then, for a tag without a region, the region its
+    /// language's likely subtags give (`ja` is 7, `fr` 1). A tag that does
+    /// not parse, and `native`, are the root locale `und`, whose week
+    /// begins on the world's Monday. The locale argument fails as
+    /// `hc_parse_iso_date` does; the answer is an `i64`, as every export
+    /// that can return a sentinel is.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be readable for `locale_len` bytes unless null with a
+    /// zero length.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_first_day_of_week(locale: *const u8, locale_len: usize) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        match unsafe { text(locale, locale_len) } {
+            Ok(tag) => i64::from(lines::first_day_of_week(tag)),
+            Err(sentinel) => sentinel,
+        }
+    }
+
     /// The steps by which a country adopted the Gregorian calendar, as
     /// UTF-8 lines, returning the byte length written.
     ///
@@ -606,7 +631,8 @@ mod calendars {
 
 #[cfg(feature = "calendars")]
 pub use calendars::{
-    hc_calendar_units, hc_calendars, hc_describe_day, hc_gregorian_adoption, hc_locales,
+    hc_calendar_units, hc_calendars, hc_describe_day, hc_first_day_of_week, hc_gregorian_adoption,
+    hc_locales,
 };
 
 /// The holiday tables, behind the `holiday` feature: every country,
@@ -2175,6 +2201,47 @@ mod tests {
             rows.iter()
                 .find(|row| row[0] == id)
                 .unwrap_or_else(|| panic!("no row for {id}"))
+        }
+
+        fn first_day(locale: &str) -> i64 {
+            unsafe { hc_first_day_of_week(locale.as_ptr(), locale.len()) }
+        }
+
+        #[test]
+        fn the_first_day_of_the_week_follows_the_locale() {
+            // By region, by the language's likely region, and by `-u-fw-`.
+            for (tag, day) in [
+                ("en-US", 7),
+                ("en-GB", 1),
+                ("en", 7),
+                ("ja", 7),
+                ("zh-Hans", 1),
+                ("ar-SA", 7),
+                ("ar-EG", 6),
+                ("fr", 1),
+                ("pt", 7),
+                ("pt-PT", 7),
+                ("de-u-fw-sun", 7),
+                ("und", 1),
+                ("not a tag", 1),
+                ("", 1),
+            ] {
+                assert_eq!(first_day(tag), day, "{tag}");
+            }
+            assert_eq!(
+                unsafe { hc_first_day_of_week(core::ptr::null(), 0) },
+                1,
+                "a null empty tag is the root locale"
+            );
+            assert_eq!(
+                unsafe { hc_first_day_of_week(core::ptr::null(), 2) },
+                HC_ERR_NULL_POINTER
+            );
+            let bad = [0xff_u8, 0xfe];
+            assert_eq!(
+                unsafe { hc_first_day_of_week(bad.as_ptr(), bad.len()) },
+                HC_ERR_NOT_UTF8
+            );
         }
 
         #[test]

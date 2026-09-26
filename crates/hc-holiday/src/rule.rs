@@ -640,6 +640,13 @@ impl Phase {
 /// on in a given Gregorian year — and the evaluator in [`crate::engine`]
 /// knows nothing else about any holiday.
 ///
+/// A variant holds a calendar, a computus or an ayanamsa by `&'static`
+/// reference, never by value. Every [`HolidayRule`] of every table holds a
+/// `Rule`, so the largest variant sets the size of all of them: a
+/// [`TibetanCalendar`] held by value once made each `Rule` 224 bytes on a
+/// 64-bit target, where 40 do, and the WebAssembly holiday layer 0.7 MB
+/// larger.
+///
 /// Deliberately not `PartialEq`: [`Rule::Computed`] holds a function
 /// pointer, and comparing function pointers is not meaningful — two
 /// identical functions may be merged to one address and one function may
@@ -715,7 +722,7 @@ pub enum Rule {
     /// Corpus Christi `+60`.
     EasterRelative {
         /// Which computus — Western or Orthodox.
-        computus: Computus,
+        computus: &'static Computus,
         /// The offset in days.
         offset: i16,
     },
@@ -798,7 +805,7 @@ pub enum Rule {
         /// Which of two consecutive qualifying days is the festival's.
         when_twice: WhenTwice,
         /// The calendar — its sunrise and its ayanamsa — the tithi is read in.
-        calendar: HinduLunarCalendar,
+        calendar: &'static HinduLunarCalendar,
     },
     /// The Sun's entry into a sidereal sign — a saṅkrānti — as a day at a
     /// meridian: Makara Saṅkrānti, the solar new year of Meṣa.
@@ -806,7 +813,7 @@ pub enum Rule {
         /// The sign entered.
         sign: SiderealSign,
         /// The ayanamsa that fixes the sidereal zero point.
-        ayanamsa: Ayanamsa,
+        ayanamsa: &'static Ayanamsa,
         /// The meridian whose local midnight cuts the day.
         meridian: Meridian,
     },
@@ -833,7 +840,7 @@ pub enum Rule {
         /// stays in the month.
         with_tithi: Option<u8>,
         /// The ayanamsa that fixes the sidereal zero point.
-        ayanamsa: Ayanamsa,
+        ayanamsa: &'static Ayanamsa,
         /// The meridian whose local midnight cuts the day.
         meridian: Meridian,
     },
@@ -852,7 +859,7 @@ pub enum Rule {
     /// `docs/systems/tibetan-calendar-holidays.md`.
     TibetanDay {
         /// The version of the calendar.
-        calendar: TibetanCalendar,
+        calendar: &'static TibetanCalendar,
         /// The month.
         month: TibetanMonth,
         /// The day number, 1 to 30.
@@ -906,7 +913,7 @@ impl Rule {
     #[must_use]
     pub const fn easter(offset: i16) -> Self {
         Self::EasterRelative {
-            computus: Computus::GREGORIAN,
+            computus: &Computus::GREGORIAN,
             offset,
         }
     }
@@ -915,7 +922,7 @@ impl Rule {
     #[must_use]
     pub const fn paschal(offset: i16) -> Self {
         Self::EasterRelative {
-            computus: Computus::JULIAN,
+            computus: &Computus::JULIAN,
             offset,
         }
     }
@@ -933,7 +940,7 @@ impl Rule {
     /// A numbered day of a month of the Tibetan calendar; see
     /// [`Rule::TibetanDay`].
     #[must_use]
-    pub const fn tibetan(calendar: TibetanCalendar, month: TibetanMonth, day: u8) -> Self {
+    pub const fn tibetan(calendar: &'static TibetanCalendar, month: TibetanMonth, day: u8) -> Self {
         Self::TibetanDay {
             calendar,
             month,
@@ -1006,7 +1013,7 @@ impl Rule {
                 calendar,
                 month,
                 day,
-            } => tibetan_days(*calendar, *month, *day, year).is_some(),
+            } => tibetan_days(calendar, *month, *day, year).is_some(),
             Self::Offset { base, .. } | Self::MovedByWeekday { base, .. } => {
                 base.is_resolvable_with(year, lookups)
             }
@@ -1122,7 +1129,7 @@ impl Rule {
                 *tithi,
                 *prevails,
                 *when_twice,
-                *calendar,
+                **calendar,
                 window,
                 lookups,
             )
@@ -1131,15 +1138,17 @@ impl Rule {
                 sign,
                 ayanamsa,
                 meridian,
-            } => Days::one(meridian.day_of(lookups.ingress(year, *sign, *ayanamsa))),
+            } => Days::one(meridian.day_of(lookups.ingress(year, *sign, **ayanamsa))),
             Self::Nakshatra {
                 nakshatra,
                 sign,
                 with_tithi,
                 ayanamsa,
                 meridian,
-            } => lookups.nakshatra_days(year, *nakshatra, *sign, *with_tithi, *ayanamsa, *meridian),
-            Self::EasterRelative { computus, offset } => easter(*computus, year)
+            } => {
+                lookups.nakshatra_days(year, *nakshatra, *sign, *with_tithi, **ayanamsa, *meridian)
+            }
+            Self::EasterRelative { computus, offset } => easter(**computus, year)
                 .map_or_else(Days::new, |day| Days::one(Rd(day.0 + i64::from(*offset)))),
             Self::LunarPhase {
                 phase,
@@ -1236,7 +1245,7 @@ impl Rule {
                 calendar,
                 month,
                 day,
-            } => tibetan_days(*calendar, *month, *day, year).unwrap_or_default(),
+            } => tibetan_days(calendar, *month, *day, year).unwrap_or_default(),
             Self::Computed(function) => function(year).clamped(first, last),
             Self::Tabulated { function, .. } => function(year).clamped(first, last),
         }
@@ -1746,7 +1755,7 @@ fn fixed_in_calendar<L: Lookups>(
 /// ends in: the day before the next number's first day, or, for a skipped
 /// 30, the day numbered 29.
 fn tibetan_days(
-    calendar: TibetanCalendar,
+    calendar: &TibetanCalendar,
     month: TibetanMonth,
     day: u8,
     year: i64,
@@ -2693,14 +2702,26 @@ mod tests {
     }
 
     #[test]
+    fn a_rule_is_no_larger_than_five_words() {
+        // Every table entry holds a `Rule`; a variant that holds a large
+        // value inline widens every entry of every table. Five words is
+        // `FixedInCalendar`, a calendar system and a month.
+        assert!(
+            core::mem::size_of::<Rule>() <= 5 * core::mem::size_of::<u64>(),
+            "Rule is {} bytes",
+            core::mem::size_of::<Rule>()
+        );
+    }
+
+    #[test]
     fn a_tibetan_day_is_a_gap_where_its_number_is_skipped_or_repeated() {
         use hc_calendars_lunar::tibetan::{MONGOLIAN, TIBETAN_BHUTAN};
         // Tsagaan Sar 2025: the first number is skipped, and Saturday
         // 1 March is the second (Resolution No. 109).
-        let first = Rule::tibetan(MONGOLIAN, TibetanMonth::First, 1);
+        let first = Rule::tibetan(&MONGOLIAN, TibetanMonth::First, 1);
         assert!(!first.is_resolvable_in(2025));
         assert!(first.days_in_year(2025).is_empty());
-        let second = Rule::tibetan(MONGOLIAN, TibetanMonth::First, 2);
+        let second = Rule::tibetan(&MONGOLIAN, TibetanMonth::First, 2);
         assert_eq!(second.days_in_year(2025).as_slice(), &[ymd(2025, 3, 1)]);
         // The calendar system has no day for the skipped number.
         let system = CalendarSystem::MONGOLIAN;
@@ -2711,7 +2732,7 @@ mod tests {
         );
         // The fifteenth of the fourth month of 2034 is repeated, on 1 and
         // 2 June; the system gives the second.
-        let fifteenth = Rule::tibetan(MONGOLIAN, TibetanMonth::Regular(4), 15);
+        let fifteenth = Rule::tibetan(&MONGOLIAN, TibetanMonth::Regular(4), 15);
         assert!(!fifteenth.is_resolvable_in(2034));
         assert_eq!(
             system.to_fixed(2034, Month::regular(4), 15),
@@ -2720,7 +2741,7 @@ mod tests {
         // Mongolian 2006 opens with a leap month 1, which holds the New
         // Year; the regular month 1 follows it.
         assert_eq!(first.days_in_year(2006).as_slice(), &[ymd(2006, 1, 30)]);
-        let leap_first = Rule::tibetan(MONGOLIAN, TibetanMonth::Leap(1), 1);
+        let leap_first = Rule::tibetan(&MONGOLIAN, TibetanMonth::Leap(1), 1);
         assert_eq!(
             leap_first.days_in_year(2006).as_slice(),
             &[ymd(2006, 1, 30)]
@@ -2728,8 +2749,8 @@ mod tests {
         assert!(leap_first.is_resolvable_in(2007));
         assert!(leap_first.days_in_year(2007).is_empty());
         // The Bhutanese leap month 12 of 2021 follows the regular one.
-        let regular = Rule::tibetan(TIBETAN_BHUTAN, TibetanMonth::Regular(12), 1);
-        let leap = Rule::tibetan(TIBETAN_BHUTAN, TibetanMonth::Leap(12), 1);
+        let regular = Rule::tibetan(&TIBETAN_BHUTAN, TibetanMonth::Regular(12), 1);
+        let leap = Rule::tibetan(&TIBETAN_BHUTAN, TibetanMonth::Leap(12), 1);
         assert_eq!(regular.days_in_year(2022).as_slice(), &[ymd(2022, 1, 3)]);
         let after = leap.days_in_year(2022);
         assert_eq!(after.len(), 1);

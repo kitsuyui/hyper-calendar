@@ -449,6 +449,43 @@ describe("calendars and locales", () => {
   });
 });
 
+describe("firstDayOfWeek", () => {
+  test("the week begins where CLDR's week data says for the locale", () => {
+    // By region; by the region the language's likely subtags give; and
+    // the root locale, which is also what a tag that does not parse is.
+    const expected = {
+      "en-US": 7,
+      "en-GB": 1,
+      ja: 7,
+      "zh-Hans": 1,
+      "ar-SA": 7,
+      fr: 1,
+      und: 1,
+    };
+    for (const [tag, day] of Object.entries(expected)) {
+      assert.equal(hc.firstDayOfWeek(tag), day, tag);
+    }
+    assert.equal(hc.firstDayOfWeek(), 1, "und unless given");
+    assert.equal(hc.firstDayOfWeek("not a tag"), 1);
+    assert.equal(hc.firstDayOfWeek("de-u-fw-sun"), 7, "-u-fw- wins");
+  });
+
+  test("the export answers an i64", () => {
+    const pointer = hc.alloc(2);
+    new Uint8Array(hc.memory.buffer, pointer, 2).set([0x6a, 0x61]); // "ja"
+    try {
+      assert.equal(hc.exports.hc_first_day_of_week(pointer, 2), 7n);
+      new Uint8Array(hc.memory.buffer, pointer, 2).set([0xff, 0xfe]);
+      assert.equal(
+        hc.exports.hc_first_day_of_week(pointer, 2),
+        SENTINELS.find((entry) => entry.constant === "HC_ERR_NOT_UTF8")?.code,
+      );
+    } finally {
+      hc.free(pointer, 2);
+    }
+  });
+});
+
 describe("gregorianAdoption", () => {
   /**
    * @param {number} year

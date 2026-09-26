@@ -62,6 +62,7 @@ export const METHODS = Object.freeze([
   { method: "calendarUnits", export: "hc_calendar_units", feature: "calendars" },
   { method: "calendars", export: "hc_calendars", feature: "calendars" },
   { method: "locales", export: "hc_locales", feature: "calendars" },
+  { method: "firstDayOfWeek", export: "hc_first_day_of_week", feature: "calendars" },
   { method: "gregorianAdoption", export: "hc_gregorian_adoption", feature: "calendars" },
   { method: "holidayIsDayOff", export: "hc_holiday_is_day_off", feature: "holiday" },
   { method: "holidaysInYear", export: "hc_holidays_in_year", feature: "holiday" },
@@ -1176,6 +1177,22 @@ export class HyperCalendar {
     const fn = this.#export("hc_locales");
     const text = this.#text("hc_locales", (buffer, capacity) => fn(buffer, capacity), true);
     return rows(text, COLUMNS.locales, "hc_locales").map(localeEntry);
+  }
+
+  /**
+   * The ISO weekday of the first day of the week in a locale, Monday = 1
+   * through Sunday = 7, from CLDR 48's week data: a `-u-fw-` key, else the
+   * tag's region, else the region the language's likely subtags give. A
+   * tag that does not parse is the root locale `und`, whose week begins on
+   * Monday.
+   *
+   * @param {string} [locale]
+   * @returns {number}
+   */
+  firstDayOfWeek(locale = "und") {
+    const fn = this.#export("hc_first_day_of_week");
+    return this.#withText(locale, "locale", (pointer, len) =>
+      toNumber(fn(pointer, len), "hc_first_day_of_week"));
   }
 
   /**

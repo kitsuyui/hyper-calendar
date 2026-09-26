@@ -83,7 +83,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-31 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+32 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -100,6 +100,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_calendar_units(const char *id, uint32_t unit, int64_t from_fixed, int64_t to_fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The days from `from_fixed` up to but not including `to_fixed` as one calendar's eras, years, months or days, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_calendars(int64_t today, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Every registered calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_locales(char *buffer, size_t capacity, size_t *written);` | `calendars` | Every locale the library carries, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_first_day_of_week(const char *locale, uint8_t *out_weekday);` | `calendars` | The ISO 8601 weekday of the first day of the week in a locale, Monday = 1 through Sunday = 7. |
 | `HcStatus hc_gregorian_adoption(const char *region, char *buffer, size_t capacity, size_t *written);` | `calendars` | The steps by which a country adopted the Gregorian calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_is_day_off(const char *code, const char *region, int64_t fixed, int *out_is_day_off);` | `holiday` | Whether a fixed day is a day off in a holiday table. |
 | `HcStatus hc_holidays_in_year(const char *code, const char *region, int64_t year, char *buffer, size_t capacity, size_t *written);` | `holiday` | The holidays of a Gregorian year in a table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
@@ -171,10 +172,12 @@ a calendar in its own language), English name, earliest, latest, the four
 has-unit flags, native locales and standing on `today` —
 `hc_locales(buffer, capacity, written)` every locale in its seven: tag,
 English name, native name, the three Gregorian coverage flags and the
-calendars it names — and `hc_gregorian_adoption(region, buffer, capacity,
-written)` the steps by which the country with the ISO 3166-1 alpha-2 code
-`region` adopted the Gregorian calendar, one line per step in seven
-columns: the last day of the old reckoning and the first of the new as
+calendars it names — `hc_first_day_of_week(locale, out_weekday)` the ISO
+weekday, Monday = 1 through Sunday = 7, the locale's week begins on by
+CLDR 48's week data, with a null or unparsable tag as `und`, Monday — and
+`hc_gregorian_adoption(region, buffer, capacity, written)` the steps by
+which the country with the ISO 3166-1 alpha-2 code `region` adopted the
+Gregorian calendar, one line per step in seven columns: the last day of the old reckoning and the first of the new as
 fixed days, the old calendar's identifier, the scope (`civil`,
 `ecclesiastical` or `partial`), the instrument with its date, the new
 calendar's identifier and the polity. A code the library does not know is
