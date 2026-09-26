@@ -16,12 +16,16 @@
 //!   shares under its own years): a month is the Sun's stay in a sidereal
 //!   sign, and each region has its own rule for the day the month begins.
 //!   `hindu-solar-tamil`, `hindu-solar-malayalam`, `hindu-solar-bengali`,
-//!   `hindu-solar-vikrami`.
+//!   `hindu-solar-vikrami`; and the Bengali months under the Magi San of
+//!   Chittagong, `magi-san`.
 //! * [`tithi`] — the lunar day itself: which tithi is in progress at a
 //!   moment, and which a civil day carries.
 //! * [`nakshatra`] — the Moon's station among the twenty-seven: which is
 //!   in progress at a moment, and when the Moon enters and leaves one; and
 //!   the Sun's.
+//! * [`panchanga`] — the two other limbs of the almanac: the yoga, from
+//!   the sum of the Sun's and Moon's sidereal longitudes, and the karaṇa,
+//!   the half-tithi.
 //! * [`hindu_old`] — the mean-motion solar and lunisolar calendars of the
 //!   *Ārya Siddhānta*, counted in the Kali Yuga: the arithmetic the true
 //!   calendars replaced. `hindu-old-solar`, `hindu-old-lunar`.
@@ -35,6 +39,16 @@
 //!   *aṅka*, which turn at Suniā, Bhādrapada śukla 12, over the pūrṇimānta
 //!   months, and never take a number ending in 6, or in 0 but 10, or 1.
 //!   `odia-anka`.
+//! * [`lunar_era`] — the eras of Sewell and Dikshit's Art. 71 over the
+//!   lunisolar months: the Gujarati Vikrama year from Kārttika,
+//!   Śivājī's Rājyābhiṣeka Śaka and the Saptarṣi era of Kashmir, and the
+//!   year arithmetic of the Gupta, Valabhī and Kalachuri eras.
+//!   `vikram-samvat-kartikadi`, `rajyabhisheka-saka`, `saptarshi`.
+//! * [`fasli`] — the Faṣlī revenue year of Madras from 1 July and of Bombay
+//!   from the Sun's entry into Mṛgaśira, and the Maratha Sūr-san, over the
+//!   Gregorian days. `fasli-madras`, `fasli-bombay`, `sur-san`.
+//! * [`year_start`] — where an era's year opens among the amānta months,
+//!   the arithmetic the lunisolar eras share.
 //! * [`samvatsara`] — the southern sixty-year cycle of year names,
 //!   Prabhava to Kṣaya, which the Tamil solar year and the amānta
 //!   lunisolar year carry.
@@ -90,19 +104,23 @@ pub(crate) const fn sweep_stride(sampled: usize) -> usize {
 
 pub mod barhaspatya;
 pub mod bikram_sambat;
+pub mod fasli;
 pub mod hindu_lunar;
 pub mod hindu_old;
 pub mod hindu_purnimanta;
 pub mod hindu_solar;
 mod kartikadi;
+pub mod lunar_era;
 pub mod nakshatra;
 pub mod nepal_sambat;
 pub mod odia_anka;
+pub mod panchanga;
 pub mod places;
 pub mod samvatsara;
 pub mod surya_siddhanta;
 pub mod tithi;
 pub mod vira_nirvana;
+pub mod year_start;
 
 pub use bikram_sambat::{BikramSambatCalendar, BikramSambatDate};
 pub use hindu_lunar::{HinduLunarCalendar, HinduLunarDate};
@@ -147,6 +165,12 @@ mod registration {
             crate::ViraNirvanaCalendar::RASHTRIYA,
         )));
         registry.insert(Box::new(DynAdapter::new(crate::OdiaAnkaCalendar::PURI)));
+        for calendar in crate::lunar_era::ALL {
+            registry.insert(Box::new(DynAdapter::new(*calendar)));
+        }
+        for calendar in crate::fasli::ALL {
+            registry.insert(Box::new(DynAdapter::new(*calendar)));
+        }
     }
 }
 
@@ -160,7 +184,7 @@ mod tests {
     use super::*;
 
     /// The number of calendars this crate registers.
-    const CALENDAR_COUNT: usize = 12;
+    const CALENDAR_COUNT: usize = 19;
 
     /// Every calendar the crate registers, so that neither list can drift
     /// from the registry unnoticed.
@@ -177,6 +201,8 @@ mod tests {
             OdiaAnkaCalendar::PURI.meta(),
         ];
         metas.extend(crate::hindu_solar::ALL.iter().map(Calendar::meta));
+        metas.extend(crate::lunar_era::ALL.iter().map(Calendar::meta));
+        metas.extend(crate::fasli::ALL.iter().map(Calendar::meta));
         metas
     }
 
@@ -193,12 +219,13 @@ mod tests {
     }
 
     /// The true calendars read the Sun and Moon; the two Old Hindu ones
-    /// are arithmetic, which is the whole difference between them.
+    /// are arithmetic, which is the whole difference between them, and so
+    /// is the Madras Faṣlī year, fixed to 1 July.
     #[cfg(feature = "alloc")]
     #[test]
     fn only_the_mean_calendars_are_arithmetic() {
         for meta in all_metas() {
-            let mean = meta.id.0.starts_with("hindu-old");
+            let mean = meta.id.0.starts_with("hindu-old") || meta.id.0 == "fasli-madras";
             assert_eq!(meta.is_astronomical, !mean, "{}", meta.id);
         }
     }
@@ -223,6 +250,17 @@ mod tests {
         assert!(registry.get_by_name("bikram-sambat").is_some());
         assert!(registry.get_by_name("vira-nirvana-samvat").is_some());
         assert!(registry.get_by_name("odia-anka").is_some());
+        for id in [
+            "vikram-samvat-kartikadi",
+            "rajyabhisheka-saka",
+            "saptarshi",
+            "magi-san",
+            "fasli-madras",
+            "fasli-bombay",
+            "sur-san",
+        ] {
+            assert!(registry.get_by_name(id).is_some(), "{id}");
+        }
         register_all(&mut registry);
         assert_eq!(registry.len(), CALENDAR_COUNT);
     }

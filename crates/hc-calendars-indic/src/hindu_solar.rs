@@ -23,7 +23,8 @@
 //!
 //! Each is a [`HinduSolarCalendar`] value here — [`TAMIL`], [`MALAYALAM`],
 //! [`BENGALI`], [`VIKRAMI`] — with the era each counts its years in:
-//! the Śaka era, the Kollam era, the Bengali San, the Vikrama Saṃvat. The
+//! the Śaka era, the Kollam era, the Bengali San, the Vikrama Saṃvat; and
+//! [`MAGI`], the Bengali months under the Magi San of Chittagong. The
 //! Tamil date also carries the Tiruvaḷḷuvar year, which turns at Thai 1
 //! and not at Chithirai 1, as an extra field (see [`TAMIL`]). The
 //! rules were read off the almanac's tables, twenty-four months of each,
@@ -354,8 +355,29 @@ pub const VIKRAMI: HinduSolarCalendar = HinduSolarCalendar {
     tiruvalluvar: false,
 };
 
+/// The Magi San of Chittagong: the Bengali calendar, "the days and months
+/// in each being exactly alike", its year "45 years behind the Bengali
+/// year, e.g., Magi 1200 = Bengali 1245" (Sewell and Dikshit, *The Indian
+/// Calendar*, 1896, Art. 71, p. 45, `sewell1896`, citing Girisa Chandra's
+/// *Chronological Tables*, not read) — the Gregorian year of Boishakh less
+/// 638. The era is written up with the others of Art. 71 in
+/// `docs/systems/indian-eras.md` in the repository. No dated Magi day was
+/// read, so the tests hold it to the year equation and to the Bengali
+/// months.
+pub const MAGI: HinduSolarCalendar = HinduSolarCalendar {
+    id: CalendarId("magi-san"),
+    english_name: "Magi San (Chittagong)",
+    native_locales: &["bn"],
+    era: "magi-san",
+    era_offset: BENGALI.era_offset - MAGI_BEHIND_BENGALI,
+    ..BENGALI
+};
+
+/// How far the Magi year is behind the Bengali San.
+pub const MAGI_BEHIND_BENGALI: i64 = 45;
+
 /// Every solar reckoning this crate registers.
-pub const ALL: &[HinduSolarCalendar] = &[TAMIL, MALAYALAM, BENGALI, VIKRAMI];
+pub const ALL: &[HinduSolarCalendar] = &[TAMIL, MALAYALAM, BENGALI, VIKRAMI, MAGI];
 
 impl HinduSolarCalendar {
     /// The same reckoning judged at another place, or with another Sun,
@@ -1123,6 +1145,24 @@ mod tests {
                 assert_eq!(Calendar::from_fields(calendar, &fields), Ok(date));
             }
         }
+    }
+
+    #[test]
+    fn the_magi_san_is_the_bengali_san_less_45() {
+        // "Magi 1200 = Bengali 1245" (Sewell and Dikshit, Art. 71, p. 45).
+        assert_eq!(BENGALI.era_offset - MAGI.era_offset, 1_245 - 1_200);
+        // Every day of 2024 carries the Bengali month and day, the year 45
+        // less.
+        for rd in (ymd(2024, 1, 1).0..ymd(2025, 1, 1).0).step_by(crate::sweep_stride(3)) {
+            let bengali = BENGALI.from_fixed(Rd(rd)).unwrap();
+            let magi = MAGI.from_fixed(Rd(rd)).unwrap();
+            assert_eq!(magi.year, bengali.year - MAGI_BEHIND_BENGALI);
+            assert_eq!((magi.month, magi.day), (bengali.month, bengali.day));
+        }
+        assert_eq!(MAGI.month_start(1_431 - 45, 1), Ok(ymd(2024, 4, 14)));
+        let fields = Calendar::to_fields(&MAGI, MAGI.from_fixed(ymd(2024, 5, 1)).unwrap()).unwrap();
+        assert_eq!(fields.era, Some("magi-san"));
+        assert_eq!(Calendar::cycles(&MAGI), Calendar::cycles(&BENGALI));
     }
 
     #[test]
