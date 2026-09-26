@@ -258,10 +258,12 @@ dated event in the Wikipedia articles is 正治2年閏2月11日 = 1200-03-27 Jul
   862, the adoption dates before it are uncertain by years
   [nao-rekiwiki-history1], 元嘉暦 used 平朔 where the others used 定朔, and
   the 進朔 limits differ from system to system. Four calendars nothing could
-  check would be worse than none. The module records period constants for
-  them (元嘉暦 with 日法 752, 儀鳳暦 and 五紀暦 with 総法 1340, 大衍暦 with
-  通法 3040) without naming a source; this document does not repeat them as
-  fact. Also not carried: 修正宝暦暦's revised year; the seasonal 進朔 limit
+  check would be worse than none. The module records their period
+  constants from the treatises: 元嘉暦's 紀法 608, 紀日 222070, 日法 752 and
+  通數 22207 [songshu-lulizhi]; 儀鳳暦's, which is 麟德暦, 總法 1340, 朞實
+  489428 and 常朔實 39571 [xintangshu-linde]; 五紀暦's 通法 1340, 策實
+  489428 and 揲法 39571 [xintangshu-wuji]; and 大衍暦's 通法 3040, 策實
+  1110343 and 揲法 89773 [xintangshu-dayan]. Also not carried: 修正宝暦暦's revised year; the seasonal 進朔 limit
   and its eclipse exception; the courts' adjustments by decree.
 
 ## Accuracy
@@ -368,6 +370,8 @@ tests, so the trade is visible rather than asserted.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [xintangshu] | Senmyō-reki's 統法 8400, 章歳 3068055, 章月 248057, 曆周 231458 秒 19; the 日躔 table's peak 1526 at 春分 and 秋分; the 月離 table's 3172 at the seventh day plus 53, which is the 3225 the module carries; the 進朔 rule 「秋分後，四分之三已上，進一日」 and its spring-half and eclipse conditions | Yes, 2026-09-25, on Wikisource |
+| [songshu-lulizhi] | 元嘉暦's 紀法, 紀日, 日法 and 通數 | Yes, 2026-09-26, on Wikisource |
+| [xintangshu-linde], [xintangshu-wuji], [xintangshu-dayan] | The period constants of 麟德暦 (儀鳳暦), 五紀暦 and 大衍暦 | Yes, 2026-09-26, on Wikisource |
 | [nao-rekiwiki-senmyo] | The decimal constants, 27.554546 for 曆周; 822 and 892 in China, 862 to 1684 in Japan, 823 years; Shibukawa's 「天に後る二日」; the remark that a 里差 of 7刻 would bring it near the modern calendar | Yes, 2026-09-25 |
 | [nao-rekiwiki-jokyo] | 365.241696, 29.530590, 27.554600, the sidereal year 365.256696; 定朔、平気; the 里差 of 5刻 from 大都 to Kyoto; 授時暦 with 消長法 | Yes, 2026-09-25 |
 | [nao-rekiwiki-horyaku] | 365.241556 and 365.256556 as promulgated, 365.241626 for 修正宝暦暦 from 1771; 選者 安倍泰邦 (土御門泰邦); 1755 to 1797 | Yes, 2026-09-25 |

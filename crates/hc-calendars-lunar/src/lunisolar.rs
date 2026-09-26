@@ -434,12 +434,17 @@ pub struct LunisolarParameters {
     pub native_locales: &'static [&'static str],
 }
 
-/// The Chinese epoch: 15 February 2637 BCE, the traditional first year of the
-/// Yellow Emperor's reign, from which the continuous year count runs.
+/// The Chinese epoch: RD −963 099, 15 February −2636 in the proleptic
+/// Gregorian calendar (2637 BCE), the `chinese-epoch` of Reingold and
+/// Dershowitz's published code (`reingold2018code`), from which the
+/// continuous year count runs: the start of the first sexagenary cycle of
+/// their reckoning.
 ///
 /// It is a convention of the reckoning, not a dated event, and all four
 /// calendars here measure elapsed years from it even when they display a
-/// different number.
+/// different number. The count of the Yellow Emperor's accession that
+/// almanacs print is another reckoning; `docs/systems/east-asian-lunisolar.md`
+/// sets the counts side by side.
 pub const CHINESE_EPOCH: Rd = Rd(-963_099);
 
 /// `x` reduced into `1..=n`, the "adjusted modulo" of *Calendrical

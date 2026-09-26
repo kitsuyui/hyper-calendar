@@ -351,9 +351,10 @@ Finally, year numbering. The Chinese count of 4661 for the year that began in
 2024 is the one *Calendrical Calculations* uses and the one for which
 `hc_calendar::cycle::sexagenary_year` is directly correct; other conventions
 number the same year 4721 or 4722, and none of them is official, because the
-calendar has no official continuous era. Dangi 4357 is the count from the
-foundation of Gojoseon, Korea's official year number from 1945 to 1961 and not
-in official use now. The Vietnamese and Japanese year numbers — the Gregorian year in which
+calendar has no official continuous era. The 4661 count is this crate's
+choice, not a number anyone prints. Dangi 4357 is the count from the
+foundation of Gojoseon, the Republic of Korea's official year number from the
+Act of 25 September 1948 until 1 January 1962 and not in official use now. The Vietnamese and Japanese year numbers — the Gregorian year in which
 the lunisolar year begins — are this crate's own convention and are labelled
 as such. Historical Japanese dates were written with a nengō, and nengō belong
 to `hc-calendars-regional`, not here.

@@ -24,7 +24,16 @@
 //! UT+8 — its civil time since 1960 — on **30 January**. The calendar here
 //! is the northern one, which is the calendar of unified Vietnam; the
 //! southern reckoning of that year is [`SOUTHERN_PARAMETERS`], and the
-//! crate tests both. The same hour catches the conjunction of February
+//! crate tests both.
+//!
+//! The southern reckoning is data, not a registered calendar. It differs
+//! from the northern one only between 1968 and the end of the Republic in
+//! 1975, and what is known of it here is two new years, Tết 1968 and 1969,
+//! and the zone the Republic's clocks kept; no almanac or decree of the
+//! Republic was read that fixes its calendar's meridian, its span or its
+//! end. A registered `vietnamese-south` would be a claim about seven years
+//! of months that nothing read here could check, so the crate keeps the
+//! parameters that reproduce the two attested new years and says so. The same hour catches the conjunction of February
 //! 1969: Tết Kỷ Dậu fell on 16 February in the north, the day Hồ Chí Minh
 //! planted the tree at Vật Lại "sáng 16-2-1969 (mồng 1 Tết)"
 //! (`nhandan-tet-trong-cay-2019`), and on 17 February, with Chinese New
@@ -72,7 +81,13 @@ pub const EARLIEST: Rd = civil::to_rd(1645, 1, 1);
 /// The latest fixed day this calendar converts.
 pub const LATEST: Rd = civil::to_rd(2150, 12, 31);
 
+/// Where [`MERIDIANS`] comes from.
+pub const MERIDIAN_SOURCES: &str = "UT+8 before 1968 and UT+7 from 1 January 1968, as vietnamese-location in \
+    the published code of Calendrical Calculations [reingold2018code]; the change by \
+    Decision 121-CP of 8 August 1967 [vn-decision-121-cp]";
+
 /// The meridian history of the Vietnamese calendar, northern reckoning.
+/// Sources: [`MERIDIAN_SOURCES`].
 pub static MERIDIANS: [MeridianEra; 2] = [
     MeridianEra::from_zone(i64::MIN / 4, 8.0, "the 120°E meridian"),
     MeridianEra::from_zone(1968, 7.0, "the 105°E meridian"),

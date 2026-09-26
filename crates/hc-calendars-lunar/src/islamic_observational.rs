@@ -43,9 +43,10 @@
 //!
 //! # The place
 //!
-//! [`MECCA`] by default; [`ObservationSite`] takes any location, because the
-//! whole point of an observational calendar is that the answer depends on
-//! where you stand.
+//! [`MECCA`] for the registered `islamic-rgsa`; [`ObservationSite`] takes
+//! any location, because the whole point of an observational calendar is
+//! that the answer depends on where you stand. No type here has a
+//! `Default`: a site and a criterion are named where they are chosen.
 //!
 //! # Range
 //!
@@ -81,13 +82,14 @@ pub const EARLIEST: Rd = civil::to_rd(1900, 1, 1);
 /// The latest fixed day this calendar converts.
 pub const LATEST: Rd = civil::to_rd(2100, 12, 31);
 
-/// Mecca: 21°25′21″N, 39°49′34″E, 298 m.
-///
-/// These are the crate's own figures for the Great Mosque, not taken from
-/// a named source. The `mecca` constant of the published *Calendrical
-/// Calculations* code is 21°25′24″N, 39°49′24″E, 298 m, a few hundred
-/// metres away; the document records the difference.
-pub const MECCA: Location = Location::new(21.422_5, 39.826_2, 298.0);
+/// Mecca: 21°25′24″N, 39°49′24″E, 298 m, the `mecca` constant of the
+/// published code of *Calendrical Calculations* (`reingold2018code`), which
+/// its observational Islamic calendar uses.
+pub const MECCA: Location = Location::new(
+    21.0 + 25.0 / 60.0 + 24.0 / 3_600.0,
+    39.0 + 49.0 / 60.0 + 24.0 / 3_600.0,
+    298.0,
+);
 
 /// The thresholds a young crescent must clear to count as visible.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -112,12 +114,6 @@ impl VisibilityCriterion {
         minimum_arc_of_light_degrees: 10.6,
         minimum_altitude_degrees: 4.1,
     };
-}
-
-impl Default for VisibilityCriterion {
-    fn default() -> Self {
-        Self::SHAUKAT
-    }
 }
 
 /// Where the crescent is looked for, and by what standard.
@@ -217,12 +213,6 @@ impl ObservationSite {
     }
 }
 
-impl Default for ObservationSite {
-    fn default() -> Self {
-        Self::MECCA
-    }
-}
-
 /// The predicted observational Hijri calendar.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct IslamicObservationalCalendar {
@@ -303,12 +293,6 @@ impl IslamicObservationalCalendar {
             return Err(CalendarError::DayOutOfRange);
         }
         Ok(rd)
-    }
-}
-
-impl Default for IslamicObservationalCalendar {
-    fn default() -> Self {
-        Self::MECCA
     }
 }
 
@@ -649,9 +633,6 @@ mod tests {
         assert_eq!(meta.id, CalendarId("islamic-rgsa"));
         assert!(meta.is_astronomical);
         assert!(!meta.has_leap_months);
-        assert_eq!(
-            IslamicObservationalCalendar::default().site().location,
-            MECCA
-        );
+        assert_eq!(IslamicObservationalCalendar::MECCA.site().location, MECCA);
     }
 }

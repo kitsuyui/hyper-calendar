@@ -513,11 +513,14 @@ pub const fn pillar_day(when: CivilDateTime, convention: ZiHourConvention) -> Rd
 /// calendars in `hc-calendars-lunar` use, passing the elapsed-year count of
 /// the calendar in question.
 ///
-/// Year 1 of the traditional reckoning is *jia-zi*, index 0. The commonly
-/// used anchor is that the year which began on 1984-02-02 was *jia-zi*; that
-/// year is numbered 4681 under the 2697 BCE (Huangdi) reckoning and 4621
-/// under the 2637 BCE epoch of *Calendrical Calculations*, and since the two
-/// differ by exactly sixty they name the same term.
+/// Year 1 of the count is *jia-zi*, index 0. The year which began on
+/// 1984-02-02 was *jia-zi* (`reingold2018code`, `chinese-year-name`); it is
+/// numbered 4621 under the 2637 BCE epoch of *Calendrical Calculations*
+/// (`reingold2018`, chapter 19), and 4681 under a count from 2697 BCE,
+/// which differs by exactly sixty and so names the same term. No source
+/// read states the 2697 BCE count; the almanacs' 黃帝紀元 is the Gregorian
+/// year plus 2698 (`wikipedia-zh-nongli`), one more again, and is a count
+/// this function does not align with.
 ///
 /// For the four-pillar year, which changes at 立春 instead, use
 /// [`sexagenary_year_from_solar_term_year`]. For the 1 January
@@ -603,7 +606,8 @@ pub const fn sexagenary_year_at(rd: Rd, gregorian_year: i64, start_of_spring: Rd
 ///
 /// The anchor is that RD −14 is *jia-zi*, index 0, so RD 1 (`0001-01-01`
 /// proleptic Gregorian) is index 15, *ji-mao*; *Calendrical Calculations*
-/// puts the same *jia-zi* at RD 46.
+/// puts the same *jia-zi* at RD 46, counting its names from
+/// `chinese-day-name-epoch`, RD 45 (`reingold2018code`).
 ///
 /// The same cycle is published as a Julian Day Number rule — stem
 /// `(JDN + 9) mod 10`, branch `(JDN + 1) mod 12` — and the two agree
@@ -848,13 +852,15 @@ impl fmt::Display for FourPillars {
 
 /// The number of the sixty-**year** cycle a traditional year count falls in.
 ///
-/// The cycles are conventionally numbered, and the numbering depends on the
-/// epoch the year count uses. Under the reckoning in common circulation, which
-/// counts the first cycle from 2697 BCE — the traditional accession of the
-/// Yellow Emperor, so that Gregorian 1984 is year 4681 — the year that began
-/// on 1984-02-02 opened **cycle 79**, and cycle 79 runs to 2043. Under the
-/// 2637 BCE epoch of *Calendrical Calculations*, where the same year is 4621,
-/// this returns 78.
+/// The cycles are numbered, and the numbering depends on the epoch the year
+/// count uses. Under the 2637 BCE epoch of *Calendrical Calculations*
+/// (`reingold2018`, chapter 19; `reingold2018code`, `chinese-epoch`), where
+/// the year that began on 1984-02-02 is 4621, this returns **78**, the
+/// cycle the book's own cycle-and-position form gives it. Under a count from
+/// 2697 BCE, where the same year is 4681, it returns 79, and cycle 79 runs
+/// to 2043; no source read here states that count, and the almanacs'
+/// 黃帝紀元, the Gregorian year plus 2698 (`wikipedia-zh-nongli`), is a
+/// third that does not begin its cycles on *jia-zi*.
 ///
 /// The position within the cycle is the same either way, because the two
 /// epochs differ by exactly sixty years; only the ordinal moves. That is why

@@ -14,8 +14,10 @@
 //! | — | UT+7:45:40 | Beijing local mean time, 116°25′E |
 //! | 1929 | UT+8 | the 120°E standard zone |
 //!
-//! Both rows are Reingold and Dershowitz's. The Chinese Wikipedia dates the
-//! 120°E standard to 1928 and quotes 116°23′E for old Beijing; the first
+//! Both rows are Reingold and Dershowitz's (`reingold2018code`,
+//! `chinese-location`). The Chinese Wikipedia's 农历 (`wikipedia-zh-nongli`)
+//! dates the 120°E standard to 民國十七年, 1928, and quotes 116°23′E as the
+//! Beijing local time of the Hong Kong Space Museum's almanac; the first
 //! moves no date, the second one month start, in 1687, and the tests below
 //! measure both.
 //!
@@ -26,10 +28,13 @@
 //!
 //! # Year numbering
 //!
-//! Years are counted continuously from the traditional epoch of 2637 BCE, so
-//! the year that began on 2024-02-10 is 4661: the count for which
+//! Years are counted continuously from the 2637 BCE epoch of Reingold and
+//! Dershowitz's published code ([`crate::lunisolar::CHINESE_EPOCH`]), so the
+//! year that began on 2024-02-10 is 4661: the count for which
 //! [`hc_calendar::cycle::sexagenary_year`] is directly right, 4661 being
-//! *jiǎ-chén*, the Wood Dragon. The document says how the counts 4721 and
+//! *jiǎ-chén*, the Wood Dragon. The number is this library's choice, not a
+//! count anyone prints: the book writes a year as cycle and position, and
+//! the almanacs' 黃帝紀元 is 4722. The document says how the counts 4721 and
 //! 4722 relate to it; none is official, because the calendar has no
 //! official continuous era. The cycle and position are available through
 //! [`Calendar::to_fields`], the reign eras through `hc-calendars-regional`.
@@ -59,7 +64,7 @@ pub const LAST_CIVIL: Rd = civil::to_rd(1911, 12, 31);
 /// Where the period of use comes from.
 pub const USAGE_SOURCE: &str = "The Shíxiàn calendar promulgated by the Shunzhi Emperor for 1645 [wikipedia-en-chongzhen-calendar]; \
     civil until the Republic adopted the Gregorian calendar at its founding on 1 January 1912 \
-    (Wikipedia, \"Adoption of the Gregorian calendar\", retrieved 2026-09-26); kept since for \
+    [wikipedia-adoption-gregorian]; kept since for \
     the festivals, under GB/T 33661-2017 today, as docs/systems/east-asian-lunisolar.md states";
 
 /// The earliest fixed day this calendar converts.
@@ -68,7 +73,14 @@ pub const EARLIEST: Rd = civil::to_rd(1645, 1, 1);
 /// The latest fixed day this calendar converts.
 pub const LATEST: Rd = civil::to_rd(2150, 12, 31);
 
-/// The meridian history of the Chinese calendar.
+/// Where [`MERIDIANS`] comes from.
+pub const MERIDIAN_SOURCES: &str = "Beijing at 116°25′E, 1397/180 hours, before 1929 and the 120°E zone from \
+    1929, as chinese-location in the published code of Calendrical Calculations \
+    [reingold2018code]; the reference recorded as moving to UT+8 in 1928-1929 \
+    [wikipedia-en-time-in-china], and 1928 with 116°23′E in [wikipedia-zh-nongli]";
+
+/// The meridian history of the Chinese calendar. Sources:
+/// [`MERIDIAN_SOURCES`].
 pub static MERIDIANS: [MeridianEra; 2] = [
     MeridianEra::from_longitude(
         i64::MIN / 4,
@@ -248,8 +260,8 @@ mod tests {
         }
     }
 
-    /// The Chinese Wikipedia dates the change to 120°E to 1928 (民國十七年)
-    /// and Reingold and Dershowitz to 1929; switching in either year gives
+    /// The Chinese Wikipedia dates the change to 120°E to 1928 (民國十七年;
+    /// `wikipedia-zh-nongli`) and Reingold and Dershowitz to 1929; switching in either year gives
     /// the same day for every date of 1926–1930, so the disagreement moves
     /// nothing. See `docs/systems/solar-terms-and-pentads.md`.
     #[test]
@@ -278,7 +290,8 @@ mod tests {
 
     /// The old Beijing meridian: 116°25′E, Reingold and Dershowitz's 1397⁄180
     /// hours, which this calendar uses, or 116°23′E, the Hong Kong Space
-    /// Museum's figure as the Chinese Wikipedia quotes it. Eight seconds of
+    /// Museum's figure as the Chinese Wikipedia quotes it
+    /// (`wikipedia-zh-nongli`). Eight seconds of
     /// time apart, they begin one month of 1645–1929 on different days: the
     /// second month of 4324, on 14 March 1687 at 116°25′ and 13 March at
     /// 116°23′. A release build checks that it is the only one.

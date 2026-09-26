@@ -6,14 +6,17 @@
 //! and a 365-day vague year; the Calendar Round is the pair of the last
 //! two, which repeats every 18 980 days. Nothing in any of them names a
 //! Western date: that takes a **correlation constant**, the Julian Day
-//! Number of `0.0.0.0.0`, and this module registers the two published
-//! values as two calendars of each count — [`GMT_CORRELATION`] = 584 283 as
-//! `maya-longcount`, `maya-tzolkin`, `maya-haab` and `maya-round`, and
+//! Number of `0.0.0.0.0`, and this module registers three published
+//! values as three calendars of each count — [`GMT_CORRELATION`] = 584 283
+//! as `maya-longcount`, `maya-tzolkin`, `maya-haab` and `maya-round`;
 //! [`GMT_PLUS_TWO_CORRELATION`] = 584 285 as `maya-longcount-gmt2`,
-//! `maya-tzolkin-gmt2`, `maya-haab-gmt2` and `maya-round-gmt2` — rather
-//! than as a switch, because a correlation is a claim about history, and
-//! a Calendar Round read beside a long count has to be read under the same
-//! constant or it is two positions off. The counts, the history of the
+//! `maya-tzolkin-gmt2`, `maya-haab-gmt2` and `maya-round-gmt2`; and
+//! [`MARTIN_SKIDMORE_CORRELATION`] = 584 286 as `maya-longcount-584286`,
+//! `maya-tzolkin-584286`, `maya-haab-584286` and `maya-round-584286` —
+//! rather than as a switch, because a correlation is a claim about history,
+//! and a Calendar Round read beside a long count has to be read under the
+//! same constant or it is out by the difference. No other constant can be
+//! chosen: each calendar type is built only from these three. The counts, the history of the
 //! constants, a worked reading of a monument and the sources are in
 //! [`docs/systems/mesoamerican-counts.md`](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/systems/mesoamerican-counts.md).
 //!
@@ -22,7 +25,8 @@
 //! [`EPOCH`]'s cycle began. See the crate documentation for why.
 //!
 //! The arithmetic follows Reingold and Dershowitz, *Calendrical
-//! Calculations* (4th ed., 2018), chapter 11, as their published code
+//! Calculations* (4th ed., 2018; `reingold2018`), chapter 11, "The Mayan
+//! Calendars", as their published code
 //! states it (`reingold2018code` in `docs/references.bib`); the day and
 //! month names are the sixteenth-century Yucatec spelling.
 
@@ -44,6 +48,14 @@ pub const GMT_CORRELATION: i64 = 584_283;
 /// Stated so that the difference is visible in the source rather than only
 /// in prose; the `-gmt2` calendars are anchored to it.
 pub const GMT_PLUS_TWO_CORRELATION: i64 = 584_285;
+
+/// Martin and Skidmore's correlation constant, three days after GMT.
+///
+/// Santa Elena Poco Uinic Stela 3 records what they read as the total
+/// solar eclipse of 16 July 790 (Julian), JDN 2 009 802, at 9.17.19.13.16
+/// 5 Kib 14 Chʼen, whose Maya day number is 1 425 516; the difference is
+/// 584 286 (`martin2012`). The `-584286` calendars are anchored to it.
+pub const MARTIN_SKIDMORE_CORRELATION: i64 = 584_286;
 
 /// The fixed day of long count `0.0.0.0.0` under [`GMT_CORRELATION`].
 pub const EPOCH: Rd = Rd(GMT_CORRELATION - hc_calendar::fixed::JDN_OF_RD_ZERO);
@@ -372,11 +384,12 @@ pub const USAGE_SOURCE: &str = "docs/systems/mesoamerican-counts.md: the earlies
 /// Two values are in published use and they differ by two days, which is
 /// enough to move any Maya date across a weekday boundary.
 ///
-/// Rather than take a parameter that a caller can forget, both are registered
-/// as their own calendars, as [`docs/policy.md`](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/policy.md)
-/// §5 requires: `maya-longcount` uses the GMT 584 283 correlation and
-/// `maya-longcount-gmt2` uses 584 285. Asking for both and comparing them is
-/// then a two-line loop rather than a question the caller has to know to ask.
+/// Rather than take a parameter that a caller can forget, each published
+/// value is registered as its own calendar, as [`docs/policy.md`](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/policy.md)
+/// §5 requires: `maya-longcount` uses the GMT 584 283 correlation,
+/// `maya-longcount-gmt2` uses 584 285 and `maya-longcount-584286` uses
+/// Martin and Skidmore's 584 286. Asking for all three and comparing them is
+/// then a short loop rather than a question the caller has to know to ask.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MayaLongCountCalendar {
     correlation: i64,
@@ -406,14 +419,13 @@ impl MayaLongCountCalendar {
         correlation: GMT_PLUS_TWO_CORRELATION,
     };
 
-    /// A long count under an arbitrary correlation constant.
-    ///
-    /// Provided because correlation is an open research question rather than
-    /// a closed list; the two published values above are the named ones.
-    #[must_use]
-    pub const fn with_correlation(correlation: i64) -> Self {
-        Self { correlation }
-    }
+    /// Martin and Skidmore's correlation, 584 286 (`martin2012`).
+    pub const MARTIN_SKIDMORE: Self = Self {
+        correlation: MARTIN_SKIDMORE_CORRELATION,
+    };
+
+    /// The three calendars, one per published constant.
+    pub const ALL: [Self; 3] = [Self::GMT, Self::GMT_PLUS_TWO, Self::MARTIN_SKIDMORE];
 
     /// The correlation constant this calendar uses.
     #[must_use]
@@ -430,10 +442,10 @@ impl MayaLongCountCalendar {
     /// This calendar's identifier.
     #[must_use]
     pub const fn id(self) -> CalendarId {
-        if self.correlation == GMT_PLUS_TWO_CORRELATION {
-            CalendarId("maya-longcount-gmt2")
-        } else {
-            CalendarId("maya-longcount")
+        match self.correlation {
+            GMT_PLUS_TWO_CORRELATION => CalendarId("maya-longcount-gmt2"),
+            MARTIN_SKIDMORE_CORRELATION => CalendarId("maya-longcount-584286"),
+            _ => CalendarId("maya-longcount"),
         }
     }
 }
@@ -443,11 +455,13 @@ impl MayaLongCountCalendar {
 /// on a fixed day, and the tzolk'in and haab epochs are 159 and 348 days
 /// before it (`reingold2018code`, `mayan-tzolkin-epoch`, `mayan-haab-epoch`).
 /// Each of the three cycle calendars therefore carries the constant too,
-/// as `GMT` and `GMT_PLUS_TWO`, so that a day read through `maya-round-gmt2`
-/// beside `maya-longcount-gmt2` gives the Calendar Round the inscription
-/// pairs with that long count. This macro writes the shared part.
+/// as `GMT`, `GMT_PLUS_TWO` and `MARTIN_SKIDMORE`, so that a day read
+/// through `maya-round-gmt2` beside `maya-longcount-gmt2` gives the Calendar
+/// Round the inscription pairs with that long count. The constant is only
+/// ever one of the three: there is no constructor for any other. This macro
+/// writes the shared part.
 macro_rules! correlated {
-    ($calendar:ident, $gmt:literal, $plus_two:literal) => {
+    ($calendar:ident, $gmt:literal, $plus_two:literal, $martin_skidmore:literal) => {
         impl Default for $calendar {
             fn default() -> Self {
                 Self::GMT
@@ -465,11 +479,20 @@ macro_rules! correlated {
                 correlation: GMT_PLUS_TWO_CORRELATION,
             };
 
-            /// The cycle under an arbitrary correlation constant, unnamed
-            /// as [`MayaLongCountCalendar::with_correlation`] is.
+            /// Under Martin and Skidmore's correlation, 584 286.
+            pub const MARTIN_SKIDMORE: Self = Self {
+                correlation: MARTIN_SKIDMORE_CORRELATION,
+            };
+
+            /// The three calendars, one per published constant.
+            pub const ALL: [Self; 3] = [Self::GMT, Self::GMT_PLUS_TWO, Self::MARTIN_SKIDMORE];
+
+            /// The same cycle under the constant a long count uses.
             #[must_use]
-            pub const fn with_correlation(correlation: i64) -> Self {
-                Self { correlation }
+            pub const fn beside(long_count: crate::maya::MayaLongCountCalendar) -> Self {
+                Self {
+                    correlation: long_count.correlation(),
+                }
             }
 
             /// The correlation constant this calendar uses.
@@ -487,10 +510,10 @@ macro_rules! correlated {
             /// This calendar's identifier.
             #[must_use]
             pub const fn id(self) -> CalendarId {
-                if self.correlation == GMT_PLUS_TWO_CORRELATION {
-                    CalendarId($plus_two)
-                } else {
-                    CalendarId($gmt)
+                match self.correlation {
+                    GMT_PLUS_TWO_CORRELATION => CalendarId($plus_two),
+                    MARTIN_SKIDMORE_CORRELATION => CalendarId($martin_skidmore),
+                    _ => CalendarId($gmt),
                 }
             }
         }
@@ -505,7 +528,12 @@ pub struct MayaTzolkinCalendar {
     correlation: i64,
 }
 
-correlated!(MayaTzolkinCalendar, "maya-tzolkin", "maya-tzolkin-gmt2");
+correlated!(
+    MayaTzolkinCalendar,
+    "maya-tzolkin",
+    "maya-tzolkin-gmt2",
+    "maya-tzolkin-584286"
+);
 
 /// The 365-day haab, under a correlation constant.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -513,7 +541,12 @@ pub struct MayaHaabCalendar {
     correlation: i64,
 }
 
-correlated!(MayaHaabCalendar, "maya-haab", "maya-haab-gmt2");
+correlated!(
+    MayaHaabCalendar,
+    "maya-haab",
+    "maya-haab-gmt2",
+    "maya-haab-584286"
+);
 
 /// The 18 980-day Calendar Round, under a correlation constant.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -521,7 +554,12 @@ pub struct MayaCalendarRoundCalendar {
     correlation: i64,
 }
 
-correlated!(MayaCalendarRoundCalendar, "maya-round", "maya-round-gmt2");
+correlated!(
+    MayaCalendarRoundCalendar,
+    "maya-round",
+    "maya-round-gmt2",
+    "maya-round-584286"
+);
 
 /// The last day [`MayaLongCountCalendar`] represents, `19.19.19.17.19`.
 pub const LONG_COUNT_LATEST: Rd = Rd(EPOCH.0 + 20 * 144_000 - 1);
@@ -999,8 +1037,16 @@ mod correlation_tests {
             MayaCalendarRoundCalendar::GMT
         );
         assert_eq!(
-            MayaCalendarRoundCalendar::with_correlation(584_286).id(),
-            CalendarId("maya-round")
+            MayaCalendarRoundCalendar::MARTIN_SKIDMORE.id(),
+            CalendarId("maya-round-584286")
+        );
+        assert_eq!(
+            MayaTzolkinCalendar::MARTIN_SKIDMORE.id(),
+            CalendarId("maya-tzolkin-584286")
+        );
+        assert_eq!(
+            MayaHaabCalendar::MARTIN_SKIDMORE.id(),
+            CalendarId("maya-haab-584286")
         );
     }
 
@@ -1074,13 +1120,78 @@ mod correlation_tests {
         }
     }
 
+    /// Every calendar a correlation can build names its own constant: there
+    /// is no fourth constant and no calendar that reports another's id.
     #[test]
-    fn an_arbitrary_correlation_is_available_but_unnamed() {
-        // Correlation is an open research question, so a caller may supply
-        // one; only the two published values get identifiers.
-        let custom = MayaLongCountCalendar::with_correlation(584_286);
-        assert_eq!(custom.correlation(), 584_286);
-        assert_eq!(custom.id(), CalendarId("maya-longcount"));
+    fn each_constant_has_its_own_identifier() {
+        let ids =
+            MayaLongCountCalendar::ALL.map(|calendar| (calendar.correlation(), calendar.id()));
+        assert_eq!(
+            ids,
+            [
+                (584_283, CalendarId("maya-longcount")),
+                (584_285, CalendarId("maya-longcount-gmt2")),
+                (584_286, CalendarId("maya-longcount-584286")),
+            ]
+        );
+        for calendar in MayaLongCountCalendar::ALL {
+            assert_eq!(calendar.meta().id, calendar.id());
+            assert_eq!(
+                MayaTzolkinCalendar::beside(calendar).correlation(),
+                calendar.correlation()
+            );
+            assert_eq!(
+                MayaHaabCalendar::beside(calendar).correlation(),
+                calendar.correlation()
+            );
+            assert_eq!(
+                MayaCalendarRoundCalendar::beside(calendar).correlation(),
+                calendar.correlation()
+            );
+        }
+    }
+
+    /// Martin and Skidmore: the Poco Uinic eclipse of 16 July 790 (Julian),
+    /// JDN 2 009 802, is 9.17.19.13.16 5 Kib 14 Chʼen, and 2 009 802 −
+    /// 1 425 516 = 584 286 (`martin2012`). Kib is this module's Cib and
+    /// Chʼen its Chen.
+    #[test]
+    fn the_poco_uinic_eclipse_anchors_the_martin_skidmore_constant() {
+        let eclipse = Rd(2_009_802 - hc_calendar::fixed::JDN_OF_RD_ZERO);
+        assert_eq!(
+            hc_calendars_solar::julian::from_fixed(eclipse),
+            Ok((790, 7, 16))
+        );
+        let stela = MayaLongCountDate::new(9, 17, 19, 13, 16);
+        assert_eq!(stela.days(), Ok(1_425_516));
+        let calendar = MayaLongCountCalendar::MARTIN_SKIDMORE;
+        assert_eq!(calendar.to_fixed(stela), Ok(eclipse));
+        assert_eq!(calendar.from_fixed(eclipse), Ok(stela));
+        assert_eq!(
+            MayaCalendarRoundCalendar::MARTIN_SKIDMORE
+                .from_fixed(eclipse)
+                .expect("in range")
+                .to_string(),
+            "5 Cib 14 Chen"
+        );
+        // The same long count is one day later than under GMT+2 and three
+        // later than under GMT.
+        assert_eq!(
+            MayaLongCountCalendar::GMT_PLUS_TWO.to_fixed(stela),
+            Ok(Rd(eclipse.0 - 1))
+        );
+        assert_eq!(
+            MayaLongCountCalendar::GMT.to_fixed(stela),
+            Ok(Rd(eclipse.0 - 3))
+        );
+        // 13.0.0.0.0 falls on 24 December 2012 under 584 286.
+        let thirteen = calendar
+            .to_fixed(MayaLongCountDate::from_days(13 * 144_000))
+            .expect("in range");
+        assert_eq!(
+            hc_calendars_solar::gregorian::from_fixed(thirteen),
+            Ok((2012, 12, 24))
+        );
     }
 }
 

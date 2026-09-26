@@ -8,13 +8,17 @@
 //! # Where the data comes from
 //!
 //! Every row is taken from the Japanese Wikipedia article 元号一覧 (日本)
-//! at <https://ja.wikipedia.org/wiki/元号一覧_(日本)>, which tabulates all
-//! 248 eras with both the 和暦 changeover date and its Western equivalent,
-//! and cites the primary chronologies — 『続史愚抄』, 『南朝公卿補任』,
-//! 『七巻冊子』 — where those disagree. The five modern eras were checked
-//! separately against that article's 明治以降 tables, which distinguish the
-//! 公式 (retroactive, legal) dates from the 改元当時 (as proclaimed) ones;
-//! [`Nengo::start`] says which this crate stores and why.
+//! (`wikipedia-ja-gengo-list` in `docs/references.bib`), which tabulates
+//! all 248 eras with both the 和暦 changeover date and its Western
+//! equivalent. Where the chronologies disagree the article cites
+//! 『続史愚抄』, 『南朝公卿補任』 and 『七巻冊子』; none of the three was read
+//! here, and the rows carry the article's reading of them. The five modern
+//! eras were checked separately against that article's 明治以降 tables,
+//! which set the 公式 dates, under which an era ends the day before the next
+//! begins, beside the 改元当時 dates, under which the changeover day belongs
+//! to both eras; [`Nengo::start`] says which this crate stores and why. The
+//! era system, its two courts and its two reckonings are written up in
+//! [`docs/systems/japanese-eras.md`](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/systems/japanese-eras.md).
 //!
 //! # Julian or Gregorian?
 //!
@@ -34,7 +38,10 @@
 //! crate refuses to pick one: every era carries a [`Court`] and [`era_at`]
 //! takes the court as an argument. Asking for [`Court::Unified`] inside
 //! [`NANBOKUCHO_START`]..[`NANBOKUCHO_END`] returns
-//! [`CalendarError::UnknownEra`] rather than an answer.
+//! [`CalendarError::UnknownEra`] rather than an answer. From
+//! [`NANBOKUCHO_END`] every court reads the Northern stream, because the
+//! Southern era 元中 was abolished at the reunion and the Northern 明徳 was
+//! kept (`wikipedia-ja-genchu`).
 //!
 //! # Identifiers
 //!
@@ -83,7 +90,7 @@ pub enum Certainty {
     /// The chronologies agree on the day.
     Attested,
     /// The chronologies disagree, or the promulgation date is inferred.
-    /// [`Nengo::start`] holds the conventional reading and is not a fact.
+    /// [`Nengo::start`] holds the source's reading and is not a fact.
     Disputed,
     /// Only the month is known. [`Nengo::start`] is [`None`] and
     /// [`Nengo::western_day`] is zero; this crate will not invent a day.
@@ -119,9 +126,10 @@ pub struct Nengo {
     /// but the lunisolar year it fell in had begun in 1854, so 安政元年 is
     /// year 1854 here.
     ///
-    /// Almost every pre-Meiji era change was 年初改元 — proclaimed part way
-    /// through a year but backdated to its first day — so the era's year 1
-    /// really is the whole of this year.
+    /// Almost every era change up to and including 明治 was 年初改元 —
+    /// proclaimed part way through a year but backdated to its first day —
+    /// so the era's year 1 really is the whole of this year in the
+    /// chronological tables.
     pub start_year: i64,
     /// The Western-calendar year of the changeover, in [`Nengo::scale`].
     pub western_year: i64,
@@ -134,16 +142,23 @@ pub struct Nengo {
     pub scale: WesternScale,
     /// How firmly the sources fix the changeover.
     pub certainty: Certainty,
-    /// The fixed day of the changeover, absent when the day is unknown.
+    /// The fixed day the era was proclaimed, absent when the day is
+    /// unknown.
     ///
-    /// For 明治 through 令和 this is the 公式 date — the one a Japanese
-    /// government document uses, under which an era ends the day before the
-    /// next begins. 明治 therefore starts at 明治元年1月1日 = 1868-01-25
-    /// rather than at the proclamation of 明治元年9月8日 = 1868-10-23, and
-    /// 大正 starts on 1912-07-30, 明治 having officially ended on
-    /// 1912-07-29. The 改元当時 convention, under which the changeover day
-    /// belongs to both eras, is a different table and this crate does not
-    /// carry it.
+    /// For every era up to and including 明治 this is the day of the 改元
+    /// edict. 明治 was proclaimed on 慶応4年9月8日 = 1868-10-23 and the edict
+    /// renumbered the whole of that year as 明治元年, back to its first day,
+    /// 1868-01-25 (`wikipedia-ja-meiji`); that first day is where
+    /// [`Nengo::start_year`] puts 明治元年, as it does for every earlier
+    /// backdated era, and this field keeps the proclamation.
+    ///
+    /// For 大正 through 令和 the era took effect on the day it was
+    /// proclaimed, and this is the 公式 date, under which an era ends the
+    /// day before the next begins: 大正 starts on 1912-07-30, 明治 having
+    /// officially ended on 1912-07-29. The source's 改元当時 dates count
+    /// 明治 from its proclamation, as this field does, and from 大正 give
+    /// the changeover day to both eras, 明治 running to 1912-07-30; that
+    /// shared day is not carried.
     pub start: Option<Rd>,
     /// The first day with no era in force, for an era that lapsed without a
     /// successor rather than being replaced by one.
@@ -191,8 +206,29 @@ impl Nengo {
 pub const NANBOKUCHO_START: Rd = Rd(486_034);
 
 /// 元中9年閏10月5日 = 1392-11-19 Julian, when Go-Kameyama abdicated and the
-/// two courts were reunited under the Northern court's era 明徳.
+/// two courts were reunited under the Northern court's era 明徳; 元中 was
+/// abolished that day (`wikipedia-ja-genchu`).
 pub const NANBOKUCHO_END: Rd = Rd(508_384);
+
+/// The court whose stream answers for `rd` when `court` is asked.
+///
+/// Inside the schism the unified stream has no answer. From the reunion
+/// every court reads the Northern stream, because 明徳 carried on and 元中
+/// did not: the Southern stream does not run on past its own abolition.
+///
+/// # Errors
+///
+/// [`CalendarError::UnknownEra`] for [`Court::Unified`] inside
+/// [`NANBOKUCHO_START`]..[`NANBOKUCHO_END`].
+pub const fn court_on(rd: Rd, court: Court) -> CalendarResult<Court> {
+    if rd.0 >= NANBOKUCHO_END.0 {
+        return Ok(Court::Northern);
+    }
+    match court {
+        Court::Unified if is_nanbokucho(rd) => Err(CalendarError::UnknownEra),
+        other => Ok(other),
+    }
+}
 
 /// The index of 明治 in [`ALL`].
 pub const MEIJI: usize = 243;
@@ -205,7 +241,8 @@ pub const HEISEI: usize = 246;
 /// The index of 令和 in [`ALL`].
 pub const REIWA: usize = 247;
 
-/// 明治, in force from 1868-01-25 to 1912-07-29.
+/// 明治: its 元年 begins on 1868-01-25, it was proclaimed on 1868-10-23,
+/// and it ran to 1912-07-29.
 #[must_use]
 pub fn meiji() -> &'static Nengo {
     &ALL[MEIJI]
@@ -299,9 +336,14 @@ pub fn stream(court: Court) -> impl Iterator<Item = &'static Nengo> {
     ALL.iter().filter(move |era| era.used_by(court))
 }
 
-/// The era in force on `rd` according to `court`, or `None` on a day when
-/// no era was: from the lapse of 白雉 in 655 to 朱鳥 in 686, and from the
-/// lapse of 朱鳥 in 687 to 大宝 in 701. See [`Nengo::lapsed`].
+/// The era that had been proclaimed by `rd` according to `court`, or
+/// `None` on a day when no era was in force: from the lapse of 白雉 in 655
+/// to 朱鳥 in 686, and from the lapse of 朱鳥 in 687 to 大宝 in 701. See
+/// [`Nengo::lapsed`].
+///
+/// This reads [`Nengo::start`], the proclamation, so it answers as a
+/// document's dateline does: 1868-05-01 is still 慶応, because 明治 was
+/// proclaimed on 1868-10-23.
 ///
 /// # Errors
 ///
@@ -315,8 +357,9 @@ pub fn stream(court: Court) -> impl Iterator<Item = &'static Nengo> {
 ///
 /// The union of 1392 took the form of the Southern emperor abdicating to
 /// the Northern one, so it was the Northern court's era 明徳 that carried
-/// on. A [`Court::Unified`] lookup after [`NANBOKUCHO_END`] therefore reads
-/// the Northern stream; from 応永 (1394) onward the two are the same list.
+/// on and 元中 that was abolished. Every lookup from [`NANBOKUCHO_END`]
+/// therefore reads the Northern stream, whichever court is asked
+/// ([`court_on`]); from 応永 (1394) onward the streams are the same list.
 ///
 /// # A warning about the answer
 ///
@@ -327,11 +370,7 @@ pub fn stream(court: Court) -> impl Iterator<Item = &'static Nengo> {
 /// not implemented anywhere in this workspace. See that module for exactly
 /// where the line falls.
 pub fn era_at(rd: Rd, court: Court) -> CalendarResult<Option<&'static Nengo>> {
-    let court = match court {
-        Court::Unified if is_nanbokucho(rd) => return Err(CalendarError::UnknownEra),
-        Court::Unified if rd >= NANBOKUCHO_END => Court::Northern,
-        other => other,
-    };
+    let court = court_on(rd, court)?;
     let mut found: Option<&'static Nengo> = None;
     for era in stream(court) {
         match era.start {
@@ -518,10 +557,13 @@ mod tests {
         }
     }
 
+    /// 明治 was proclaimed on 慶応4年9月8日 = 1868-10-23 and backdated to
+    /// the first day of that year (`wikipedia-ja-meiji`); the four later
+    /// eras took effect on the day they were proclaimed.
     #[test]
     fn the_modern_eras_start_on_the_days_the_government_says() {
         for (era, (year, month, day)) in [
-            (meiji(), (1868, 1, 25)),
+            (meiji(), (1868, 10, 23)),
             (taisho(), (1912, 7, 30)),
             (showa(), (1926, 12, 25)),
             (heisei(), (1989, 1, 8)),
@@ -547,8 +589,11 @@ mod tests {
     #[test]
     fn the_first_era_is_the_one_whose_start_is_disputed() {
         // 『扶桑略記』 gives the seventh month, 『元亨釈書』 the first and
-        // 『国史大辞典』 the 19th of the sixth; the table takes the
-        // conventional 大化元年7月1日 and flags it as disputed.
+        // 『国史大辞典』 the 19th of the sixth. The 大化 article reads the
+        // era as proclaimed between 皇極4年6月19日 (645-07-17) and the end of
+        // that month and in effect from 大化元年7月1日 = 645-07-29 Julian
+        // (`wikipedia-ja-taika`); the table carries that day and flags it
+        // as disputed.
         let taika = &ALL[0];
         assert_eq!(taika.kanji, "大化");
         assert_eq!(taika.certainty, Certainty::Disputed);
@@ -627,6 +672,35 @@ mod tests {
         );
     }
 
+    /// 元中 was abolished on 元中9年閏10月5日 = 1392-11-19 Julian and the
+    /// Northern era 明徳 kept (`wikipedia-ja-genchu`), so the Southern
+    /// stream reads 明徳 from that day to 応永, not a 元中10年 or 11年.
+    #[test]
+    fn the_southern_stream_ends_at_the_reunion() {
+        for court in [Court::Unified, Court::Northern, Court::Southern] {
+            assert_eq!(kanji_at(NANBOKUCHO_END, court), Ok(Some("明徳")));
+            assert_eq!(
+                kanji_at(julian::to_fixed(1393, 6, 1).expect("valid"), court),
+                Ok(Some("明徳"))
+            );
+            let oei = by_kanji("応永").and_then(|era| era.start).expect("dated");
+            assert_eq!(kanji_at(Rd(oei.0 - 1), court), Ok(Some("明徳")));
+            assert_eq!(kanji_at(oei, court), Ok(Some("応永")));
+        }
+        assert_eq!(
+            court_on(NANBOKUCHO_END, Court::Southern),
+            Ok(Court::Northern)
+        );
+        assert_eq!(
+            court_on(Rd(NANBOKUCHO_END.0 - 1), Court::Southern),
+            Ok(Court::Southern)
+        );
+        assert_eq!(
+            court_on(Rd(NANBOKUCHO_END.0 - 1), Court::Unified),
+            Err(CalendarError::UnknownEra)
+        );
+    }
+
     #[test]
     fn era_lookup_finds_the_era_in_force() {
         let cases = [
@@ -639,8 +713,9 @@ mod tests {
             ((1926, 12, 24), "大正"),
             ((1912, 7, 30), "大正"),
             ((1912, 7, 29), "明治"),
-            ((1868, 1, 25), "明治"),
-            ((1868, 1, 24), "慶応"),
+            ((1868, 10, 23), "明治"),
+            ((1868, 10, 22), "慶応"),
+            ((1868, 1, 25), "慶応"),
             ((1873, 1, 1), "明治"),
         ];
         for ((year, month, day), kanji) in cases {

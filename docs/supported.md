@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-134 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+139 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 112 of 134 have months and 112 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 114 of 139 have months and 114 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 **Named by** is which civil day names a day that does not begin at midnight: `start` for the one it begins on, as the Julian Day that begins at noon on 1 January 2000 is that day's, and `end` for the one it ends on, as the Hebrew day that begins at sunset on a Friday is Saturday's.
 
@@ -112,14 +112,19 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `lilian` | Lilian date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | none | — |
 | `mandaean` | Mandaean | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -479003-02-15 | +520332-03-08 | no | no | midnight | — | month ×13, weekday ×7 | yes |
 | `maya-819` | Maya 819-day count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | direction ×4, colour ×4 | — |
+| `maya-819-584286` | Maya 819-day count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | direction ×4, colour ×4 | — |
 | `maya-819-gmt2` | Maya 819-day count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | direction ×4, colour ×4 | — |
 | `maya-haab` | Maya haab | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | month ×19 | yes |
+| `maya-haab-584286` | Maya haab | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | month ×19 | yes |
 | `maya-haab-gmt2` | Maya haab | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | month ×19 | yes |
 | `maya-longcount` | Maya long count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-11 | 4772-10-12 | no | no | midnight | — | none | — |
+| `maya-longcount-584286` | Maya long count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-14 | 4772-10-15 | no | no | midnight | — | none | — |
 | `maya-longcount-gmt2` | Maya long count | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-13 | 4772-10-14 | no | no | midnight | — | none | — |
 | `maya-round` | Maya Calendar Round | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-11 | 4772-10-12 | no | no | midnight | — | trecena ×13, day-sign ×20, month ×19 | yes |
+| `maya-round-584286` | Maya Calendar Round | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-14 | 4772-10-15 | no | no | midnight | — | trecena ×13, day-sign ×20, month ×19 | yes |
 | `maya-round-gmt2` | Maya Calendar Round | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -3113-08-13 | 4772-10-14 | no | no | midnight | — | trecena ×13, day-sign ×20, month ×19 | yes |
 | `maya-tzolkin` | Maya tzolk'in | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | trecena ×13, day-sign ×20 | — |
+| `maya-tzolkin-584286` | Maya tzolk'in | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | trecena ×13, day-sign ×20 | — |
 | `maya-tzolkin-gmt2` | Maya tzolk'in | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | trecena ×13, day-sign ×20 | — |
 | `meyer-palmen` | Meyer–Palmen Solilunar | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | -10985-04-09 | +16375-04-05 | no | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `modified-julian-day` | Modified Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | none | — |

@@ -9,11 +9,31 @@
 //! the Gregorian calendar throughout: that is this module.
 //!
 //! An era's year 1 is the Gregorian year it was proclaimed in, so a day
-//! before the proclamation belongs to the previous era's last year:
-//! 13 August 1897 is 建陽 2年 8月 13日 and the next day is 光武 元年 8月
-//! 14日. This is the era as proclaimed, not backdated — the change did not
-//! run to the start of the year — so one reading suffices where
-//! [`crate::japanese`] needs two.
+//! before the change belongs to the previous era's last year: 13 August
+//! 1897 is 建陽 2年 8月 13日 and the next day is 光武 元年 8月 14日. This is
+//! the era from the day it was fixed, not backdated, and it is the only
+//! reading carried.
+//!
+//! # Which day an era begins on
+//!
+//! The annals separate the day an era name was chosen from the days it was
+//! announced and first used, and this module carries the day it was chosen:
+//!
+//! * **光武.** 고종실록 records the choice of 光武 over 慶德 on 고종 34년
+//!   8월 14일, the decree of the 15th that made "是年" 光武元年 and set the
+//!   proclamation for the 16th, and the proclamation at the altars on the
+//!   16th (`sillok-gojong`). The Encyclopedia of Korean Culture has the era
+//!   in use from the 16th (`encykorea-gwangmu`); the Korean Wikipedia from
+//!   the 17th (`kowiki-gwangmu`). The decree's "是年" makes the whole of
+//!   1897 光武 元年, as a chronological table would read it; the annals
+//!   head their entry of 1 January 1897 建陽 2년, as the days before the
+//!   change were dated, and that is the reading carried.
+//! * **隆熙.** 순종실록 records the choice of 隆熙 over 太始 on 순종 즉위년
+//!   8월 2일, 1907 (`sillok-sunjong`); the Korean Wikipedia has it in use
+//!   from 3 August (`kowiki-yunghui`).
+//!
+//! The three eras and their shared reading are written up in
+//! [`docs/systems/east-asian-eras.md`](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/systems/east-asian-eras.md).
 //!
 //! # What is beside it
 //!
@@ -25,9 +45,13 @@
 //! 檀君紀元 of 1948–1961 are namings of the Gregorian year and are not
 //! here.
 //!
-//! Sources: Wikipedia (ja), 建陽, 光武 (元号), 隆熙 and 開国 (李氏朝鮮),
-//! retrieved 2026-09-22, for the four dates and the 1392 epoch; Wikipedia,
-//! "Korean era name", retrieved 2026-09-22, for the sequence.
+//! Sources, as keyed in `docs/references.bib`: `kowiki-geonyang` for
+//! 建陽 from 1 January 1896; `sillok-gojong` and `sillok-sunjong` for the
+//! days 光武 and 隆熙 were chosen, read 2026-09-26; `encykorea-gwangmu`,
+//! `kowiki-gwangmu` and `kowiki-yunghui` for the days of first use;
+//! `wikipedia-ja-gaeguk` (開国 (李氏朝鮮), retrieved 2026-09-22) for the
+//! 1392 epoch; `wikipedia-en-korean-era-name` ("Korean era name", retrieved
+//! 2026-09-22) for the sequence.
 
 use core::fmt;
 
@@ -79,7 +103,8 @@ pub static GEONYANG: KoreanEra = KoreanEra {
     start: day(1896, 1, 1),
 };
 
-/// 光武, from 14 August 1897.
+/// 光武, from 14 August 1897, the day it was chosen (고종실록, 고종 34년
+/// 8월 14일).
 pub static GWANGMU: KoreanEra = KoreanEra {
     id: "gwangmu",
     hanja: "光武",
@@ -89,7 +114,8 @@ pub static GWANGMU: KoreanEra = KoreanEra {
     start: day(1897, 8, 14),
 };
 
-/// 隆熙, from 2 August 1907.
+/// 隆熙, from 2 August 1907, the day it was chosen (순종실록, 순종 즉위년
+/// 8월 2일).
 pub static YUNGHUI: KoreanEra = KoreanEra {
     id: "yunghui",
     hanja: "隆熙",
@@ -103,8 +129,8 @@ pub static YUNGHUI: KoreanEra = KoreanEra {
 pub static ALL: [&KoreanEra; 3] = [&GEONYANG, &GWANGMU, &YUNGHUI];
 
 /// Where the period of use comes from.
-pub const USAGE_SOURCE: &str = "建陽 元年 1月 1日 = 1 January 1896 to the annexation of 29 August 1910 (Wikipedia (ja), 建陽, \
-    光武 (元号), 隆熙, retrieved 2026-09-22; Wikipedia, \"Korean era name\", retrieved 2026-09-22)";
+pub const USAGE_SOURCE: &str = "建陽 元年 1月 1日 = 1 January 1896 [kowiki-geonyang] to the annexation of 29 August 1910 \
+    [wikipedia-en-korean-era-name]; the days 光武 and 隆熙 were chosen [sillok-gojong, sillok-sunjong]";
 
 /// The first day this calendar converts, 建陽 元年 1月 1日.
 pub const EARLIEST: Rd = day(1896, 1, 1);
@@ -338,8 +364,11 @@ mod tests {
         gregorian::to_fixed(year, month, day).expect("valid Gregorian date")
     }
 
+    /// 建陽 from 1 January 1896 (`kowiki-geonyang`); 光武 from 14 August
+    /// 1897 and 隆熙 from 2 August 1907, the days the annals record them
+    /// chosen (`sillok-gojong`, `sillok-sunjong`).
     #[test]
-    fn the_three_eras_begin_on_their_proclamation_days() {
+    fn the_three_eras_begin_on_the_days_carried() {
         let cases = [
             ((1896, 1, 1), "geonyang", 1),
             ((1897, 8, 13), "geonyang", 2),

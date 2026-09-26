@@ -1,7 +1,9 @@
 //! The generated nengō table.
 //!
 //! This file is data. It was transcribed from the 元号一覧 (日本) tables of
-//! the Japanese Wikipedia — see the module documentation of
+//! the Japanese Wikipedia (`wikipedia-ja-gengo-list`), with 明治's
+//! proclamation day from the 明治 article (`wikipedia-ja-meiji`) — see the
+//! module documentation of
 //! [`crate::nengo`] for the provenance, the Julian/Gregorian split and the
 //! romanisation rule — and every row's `start` is checked against its
 //! `western_*` fields by
@@ -3671,11 +3673,11 @@ pub static ALL: [Nengo; 248] = [
         court: Court::Unified,
         start_year: 1_868,
         western_year: 1_868,
-        western_month: 1,
-        western_day: 25,
+        western_month: 10,
+        western_day: 23,
         scale: WesternScale::Gregorian,
         certainty: Certainty::Attested,
-        start: Some(Rd(681_932)),
+        start: Some(Rd(682_204)),
         lapsed: None,
     },
     Nengo {

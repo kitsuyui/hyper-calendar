@@ -13,15 +13,15 @@
 //! | Module | Calendars |
 //! | --- | --- |
 //! | [`japanese`] | `japanese`, `japanese-northern`, `japanese-southern`, `japanese-proclaimed` — imperial eras (和暦), Gregorian from 1873 and lunisolar before it |
-//! | [`maya`] | `maya-longcount`, `maya-tzolkin`, `maya-haab`, `maya-round`, and the same four under the GMT+2 correlation as `maya-longcount-gmt2`, `maya-tzolkin-gmt2`, `maya-haab-gmt2`, `maya-round-gmt2` |
-//! | [`maya_819`] | `maya-819`, `maya-819-gmt2` — the 819-day count's stations and colour-directions over Linden and Bricker's twenty-station cycle of 16 380 days, under the two correlations |
+//! | [`maya`] | `maya-longcount`, `maya-tzolkin`, `maya-haab`, `maya-round`, and the same four under the GMT+2 correlation as `maya-longcount-gmt2`, `maya-tzolkin-gmt2`, `maya-haab-gmt2`, `maya-round-gmt2`, and under Martin and Skidmore's 584 286 as `maya-longcount-584286`, `maya-tzolkin-584286`, `maya-haab-584286`, `maya-round-584286` |
+//! | [`maya_819`] | `maya-819`, `maya-819-gmt2`, `maya-819-584286` — the 819-day count's stations and colour-directions over Linden and Bricker's twenty-station cycle of 16 380 days, under the three correlations |
 //! | [`aztec`] | `aztec-tonalpohualli`, `aztec-xiuhpohualli` |
 //! | [`zapotec`] | `zapotec-yza` — the Zapotec 365-day year of the Villa Alta calendars, its months in the order of Manuscript 85 and its years named by the day they begin on |
 //! | [`balinese_pawukon`] | `balinese-pawukon` — thirty *wuku* and ten concurrent week cycles over 210 days |
 //! | [`javanese_pasaran`] | `javanese-pasaran` — the five-day market week and the 35-day wetonan |
 //! | [`akan`] | `akan` — the Akan six-day week and the 42-day Adaduanan it makes with the seven-day one |
 //! | [`korean_regnal`] | `korean-regnal` — the three eras of the Korean Empire, 建陽, 光武 and 隆熙, on the Gregorian days of 1896–1910 |
-//! | [`chinese_regnal`] | `chinese-regnal` — the Qing eras over the Chinese lunisolar calendar, 1645 to the abdication of 1912, with the Ming and Qing era table as data |
+//! | [`chinese_regnal`] | `chinese-regnal` — the Qing eras over the Chinese lunisolar calendar, 1645 to the abdication of 1912, with the Ming, Southern Ming, Shun and Qing era table as data |
 //! | [`burmese`] | `burmese` — the Myanmar Era's lunisolar calendar, its watat years and full moons by the Calendar Advisory Board's arithmetic and the record's exceptions |
 //! | [`thai_lunar`] | `thai-lunar` — the Thai lunar calendar, its adhikamāsa and adhikavāra years carried as published for 2535–2570 BE (1992–2027) |
 //! | [`khmer`] | `khmer` — the Khmer *Chhankitek*, its leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
@@ -153,36 +153,30 @@ mod registration {
     /// The four Maya calendars are registered separately because they are
     /// four calendars and not four views of one: a Maya scribe who wrote a
     /// Calendar Round date had said something a long count date does not
-    /// say, and vice versa. Each is registered under both correlation
-    /// constants, so that the cycles read beside `maya-longcount-gmt2` are
-    /// anchored as it is.
+    /// say, and vice versa. Each is registered under all three published
+    /// correlation constants, so that the cycles read beside
+    /// `maya-longcount-gmt2` or `maya-longcount-584286` are anchored as it
+    /// is.
     pub fn register_all(registry: &mut CalendarRegistry) {
         registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::UNIFIED)));
         registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::NORTHERN)));
         registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::SOUTHERN)));
         registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::PROCLAIMED)));
-        registry.insert(Box::new(DynAdapter::new(crate::MayaLongCountCalendar::GMT)));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::MayaLongCountCalendar::GMT_PLUS_TWO,
-        )));
-        registry.insert(Box::new(DynAdapter::new(crate::MayaTzolkinCalendar::GMT)));
-        registry.insert(Box::new(DynAdapter::new(crate::MayaHaabCalendar::GMT)));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::MayaCalendarRoundCalendar::GMT,
-        )));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::MayaTzolkinCalendar::GMT_PLUS_TWO,
-        )));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::MayaHaabCalendar::GMT_PLUS_TWO,
-        )));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::MayaCalendarRoundCalendar::GMT_PLUS_TWO,
-        )));
-        registry.insert(Box::new(DynAdapter::new(crate::Maya819Calendar::GMT)));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::Maya819Calendar::GMT_PLUS_TWO,
-        )));
+        for long_count in crate::MayaLongCountCalendar::ALL {
+            registry.insert(Box::new(DynAdapter::new(long_count)));
+            registry.insert(Box::new(DynAdapter::new(
+                crate::MayaTzolkinCalendar::beside(long_count),
+            )));
+            registry.insert(Box::new(DynAdapter::new(crate::MayaHaabCalendar::beside(
+                long_count,
+            ))));
+            registry.insert(Box::new(DynAdapter::new(
+                crate::MayaCalendarRoundCalendar::beside(long_count),
+            )));
+            registry.insert(Box::new(DynAdapter::new(crate::Maya819Calendar::beside(
+                long_count,
+            ))));
+        }
         registry.insert(Box::new(DynAdapter::new(crate::AztecTonalpohualliCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::AztecXiuhpohualliCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ZapotecYzaCalendar)));
@@ -203,7 +197,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 26;
+const CALENDAR_COUNT: usize = 31;
 
 #[cfg(test)]
 mod tests {
@@ -267,6 +261,10 @@ mod tests {
                 MayaTzolkinCalendar::GMT_PLUS_TWO,
                 MayaHaabCalendar::GMT_PLUS_TWO,
                 MayaCalendarRoundCalendar::GMT_PLUS_TWO,
+                MayaLongCountCalendar::MARTIN_SKIDMORE,
+                MayaTzolkinCalendar::MARTIN_SKIDMORE,
+                MayaHaabCalendar::MARTIN_SKIDMORE,
+                MayaCalendarRoundCalendar::MARTIN_SKIDMORE,
                 AztecTonalpohualliCalendar,
                 AztecXiuhpohualliCalendar,
                 ZapotecYzaCalendar,
@@ -500,6 +498,8 @@ mod tests {
         "maya-round",
         "maya-haab-gmt2",
         "maya-round-gmt2",
+        "maya-haab-584286",
+        "maya-round-584286",
         "aztec-xiuhpohualli",
         "zapotec-yza",
         "balinese-pawukon",

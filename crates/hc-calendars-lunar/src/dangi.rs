@@ -30,10 +30,14 @@
 //! *Dangi* (단기) years count from the traditional foundation of Gojoseon in
 //! 2333 BCE, so the year that began on 2024-02-10 is Dangi 4357, 304 less
 //! than the Chinese count of the same year, which is what the published
-//! code's `korean-year` gives. The count was Korea's official year number
-//! from 1945 to 1961 and is not in official use now; the sexagenary term
-//! is of course identical, and [`LunisolarParameters::sexagenary_year`]
-//! corrects for the offset so that it stays so.
+//! code's `korean-year` gives. The count was the Republic of Korea's
+//! official year number under the Act on Era Names (연호에 관한 법률, Act
+//! No. 4) of 25 September 1948 until the Act of the same name, Act No. 775
+//! of 2 December 1961, made the Common Era official from 1 January 1962
+//! (`encykorea-dangun-giwon`, read 2026-09-26; the statutes themselves were
+//! not read). It is not in official use now; the sexagenary term is the
+//! same, and [`LunisolarParameters::sexagenary_year`] corrects for the
+//! offset so that it stays so.
 //!
 //! # Range
 //!
@@ -64,8 +68,8 @@ pub const LAST_CIVIL: Rd = civil::to_rd(1895, 12, 31);
 /// Where the period of use comes from.
 pub const USAGE_SOURCE: &str = "Joseon's adoption of the Shíxiàn rules in 1653 [wikipedia-ko-siheollyeok, \
     wikipedia-en-korean-calendar], the range beginning with the rules themselves in 1645; \
-    civil until Korea adopted the Gregorian calendar on 1 January 1896 (Wikipedia (ja), 建陽, \
-    retrieved 2026-09-22); kept since for Seollal and Chuseok, as \
+    civil until Korea adopted the Gregorian calendar on 1 January 1896 [kowiki-geonyang]; \
+    kept since for Seollal and Chuseok, as \
     docs/systems/east-asian-lunisolar.md states";
 
 /// The earliest fixed day this calendar converts.
@@ -74,7 +78,14 @@ pub const EARLIEST: Rd = civil::to_rd(1645, 1, 1);
 /// The latest fixed day this calendar converts.
 pub const LATEST: Rd = civil::to_rd(2150, 12, 31);
 
-/// The meridian history of the Korean calendar.
+/// Where [`MERIDIANS`] comes from.
+pub const MERIDIAN_SOURCES: &str = "Seoul local mean time, 3809/450 hours, and the zones of 1908, 1912, 1954 \
+    and 1961, as korean-location in the published code of Calendrical Calculations \
+    [reingold2018code]; the years corroborated by the history of Korean standard time \
+    [wikipedia-en-time-in-south-korea]";
+
+/// The meridian history of the Korean calendar. Sources:
+/// [`MERIDIAN_SOURCES`].
 ///
 /// The eras are keyed by year where the published code changes on
 /// 1 April 1908, 1 January 1912, 21 March 1954 and 10 August 1961; the

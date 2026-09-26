@@ -13,6 +13,21 @@
 //! seasons every four years. The anchor, the competing reconstructions,
 //! the year bearers and the sources are in
 //! [`docs/systems/mesoamerican-counts.md`](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/systems/mesoamerican-counts.md).
+//!
+//! # The alternatives, and why none is registered
+//!
+//! The Wikipedia article on the Aztec calendar (`wikipedia-aztec-calendar`,
+//! re-read 2026-09-26) names three other reconstructions. Rafael Tena's
+//! starts the year on 13 February (Julian) and builds on Caso's work. Ruben
+//! Ochoa's ties the year to the vernal equinox, beginning it on the day
+//! after, which a 365-day year without a correction cannot do year after
+//! year. José Genaro Emiliano Medina Ramos's rests on Ochoa's correlation
+//! and on Tena's assumptions. None of them is a second calendar here: the
+//! sources read give none of them a correlation day that differs from
+//! Caso's and could anchor a test, and two of the three need a leap-day
+//! correction that this module's uncorrected year does not make. Each would
+//! become its own identifier, as policy §5 asks, once a source gives its
+//! anchor.
 
 use core::fmt;
 

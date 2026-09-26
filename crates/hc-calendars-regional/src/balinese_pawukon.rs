@@ -43,8 +43,8 @@ pub const WUKU_COUNT: usize = 30;
 
 /// Where the period of use comes from.
 pub const USAGE_SOURCE: &str = "Kept in Bali today, the Galungan days of 2024–2026 this module is checked against falling \
-    on it; Reingold and Dershowitz, *Calendrical Calculations* (4th ed., 2018), §10.6; no \
-    source read dates its beginning";
+    on it; [reingold2018], chapter 12, \"The Balinese Pawukon Calendar\"; no source read dates its \
+    beginning";
 
 /// The fixed day of Pawukon day 0, Julian Day Number 146.
 pub const EPOCH: Rd = Rd(146 - hc_calendar::fixed::JDN_OF_RD_ZERO);
