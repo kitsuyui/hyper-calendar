@@ -80,7 +80,7 @@ fn hijri_dates_appear_in_the_number_of_countries_the_readme_states() {
         .collect();
     assert_eq!(
         countries_with_hijri.len(),
-        69,
+        71,
         "got {countries_with_hijri:?}"
     );
     // And the README's prose says the same number, so the two cannot drift.
@@ -94,9 +94,9 @@ fn hijri_dates_appear_in_the_number_of_countries_the_readme_states() {
     for expected in [
         "AE", "AF", "AL", "AR", "AZ", "BA", "BD", "BF", "BH", "BI", "BJ", "BN", "CI", "CM", "DJ",
         "DZ", "EG", "ET", "GH", "GN", "GY", "ID", "IN", "IQ", "IR", "JO", "KE", "KG", "KM", "KW",
-        "KZ", "LB", "LY", "MA", "ME", "MG", "MK", "ML", "MM", "MR", "MU", "MV", "MW", "MY", "NG",
-        "NP", "OM", "PH", "PK", "PS", "QA", "RS", "RW", "SA", "SG", "SN", "SR", "SY", "TD", "TJ",
-        "TL", "TM", "TN", "TR", "TT", "TZ", "UG", "UZ", "YE",
+        "KZ", "LB", "LY", "MA", "ME", "MG", "MK", "ML", "MM", "MR", "MU", "MV", "MW", "MY", "NE",
+        "NG", "NP", "OM", "PH", "PK", "PS", "QA", "RS", "RW", "SA", "SG", "SN", "SO", "SR", "SY",
+        "TD", "TJ", "TL", "TM", "TN", "TR", "TT", "TZ", "UG", "UZ", "YE",
     ] {
         assert!(
             countries_with_hijri.contains(&expected),

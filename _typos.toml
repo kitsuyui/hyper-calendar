@@ -423,3 +423,11 @@ tweeks = "tweeks"
 # German "Thema des Tages", the Deutscher Wetterdienst's daily article cited
 # for Siebenschläfer among the Lostage (docs/observances.md).
 Tages = "Tages"
+# French, in Togo's table: "en raison des commémorations successives" from
+# the Government's notice of 2 May 2025, and "Fête des patriotes martyrs de
+# Pya", the name loi n° 87-08 gives 21 June.
+raison = "raison"
+patriotes = "patriotes"
+# SPLA, the Sudan People's Liberation Army, whose day South Sudan's Ministry
+# of Labour lists on 16 May.
+SPLA = "SPLA"

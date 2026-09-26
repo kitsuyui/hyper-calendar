@@ -547,15 +547,10 @@ static AE_RULES: &[HolidayRule] = &[
         "رأس السنة الميلادية",
         Rule::gregorian(1, 1),
     ),
-    // The Cabinet circular states Eid al-Fitr as "29 Ramadan to 3 Shawwal",
-    // so both possible last days of Ramadan are listed; in a 29-day Ramadan
-    // the second simply does not exist.
-    HolidayRule::fixed_public(
-        "Eid al-Fitr",
-        "عيد الفطر",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 9, 29),
-    )
-    .approximate(),
+    // The Government portal and the FAHR circular of 17 March 2025 give
+    // Eid al-Fitr as 1 to 3 Shawwal, with 30 Ramadan too "should the holy
+    // month of Ramadan complete 30 days". The tabular calendar always gives
+    // Ramadan thirty days, so the thirtieth is always predicted.
     HolidayRule::fixed_public(
         "Eid al-Fitr",
         "عيد الفطر",
@@ -599,13 +594,36 @@ static AE_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("Prophet's Birthday", "المولد النبوي", MAWLID).approximate(),
     HolidayRule::fixed_public("Commemoration Day", "يوم الشهيد", Rule::gregorian(11, 30))
         .years(Some(2015), Some(2018)),
+    // Not on the list of Cabinet Resolution 27 of 2024 as the Government
+    // portal gives it, in force from 2025.
     HolidayRule::fixed_public("Commemoration Day", "يوم الشهيد", Rule::gregorian(12, 1))
-        .years(Some(2019), None),
-    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 2)),
-    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 3)),
+        .years(Some(2019), Some(2024)),
+    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 2))
+        .years(None, Some(2024)),
+    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 3))
+        .years(None, Some(2024)),
+    // FAHR circular 11 of 17 November 2025: Monday 1 and Tuesday 2 December,
+    // work resuming on Wednesday 3 December.
+    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 1))
+        .years(Some(2025), Some(2025)),
+    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 2))
+        .years(Some(2025), Some(2025)),
+    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 2))
+        .years(Some(2026), None),
+    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 3))
+        .years(Some(2026), None),
 ];
 
 /// The United Arab Emirates.
+///
+/// Cabinet Resolution 27 of 2024, in force from 2025, whose text was not
+/// read: its list as the Government portal gives it — the Prophet's
+/// Birthday still on it, as the Federal Authority for Government Human
+/// Resources' circular for 5 September 2025 confirms, and Commemoration
+/// Day no longer, so that day ends in 2024 and the move to 30 November a
+/// summary reported is not carried. National Day is 2 and 3 December on
+/// the portal's list; for 2025 the Authority's circular gave 1 and 2
+/// December instead, and that year is carried as it gave them.
 pub static UNITED_ARAB_EMIRATES: RuleSet = RuleSet {
     code: "AE",
     english_name: "United Arab Emirates",
@@ -622,12 +640,13 @@ pub static UNITED_ARAB_EMIRATES: RuleSet = RuleSet {
               (secondary; uaelegislation.gov.ae refused access); the Government portal's \
               \"Public holidays\" and \"Working hours in the public sector\" pages (u.ae), for \
               the Eid spans, the rule that the Eids are not moved, and the Saturday–Sunday \
-              weekend from 1 January 2022; Gulf News and The National on the Friday–Saturday \
-              weekend from 1 September 2006; all retrieved 2026-09-26. The Islamic dates are \
-              announced each year by the UAE Moon-Sighting Committee, and the tabular calendar \
-              here predicts them. Whether the 2024 resolution moved Commemoration Day to 30 \
-              November, as the summary says, and whether the Prophet's Birthday is still on \
-              the list were not confirmed from a primary source",
+              weekend from 1 January 2022, the holidays page as updated 2 July 2026 and \
+              citing article 3 of Resolution 27 of 2024; the Federal Authority for Government \
+              Human Resources' circulars No. 03 of 17 March 2025 (Eid al-Fitr), No. 08 of 26 \
+              August 2025 (the Prophet's Birthday) and No. 11 of 17 November 2025 (National \
+              Day); Gulf News and The National on the Friday–Saturday weekend from 1 September \
+              2006; all retrieved 2026-09-26. The Islamic dates are announced each year by the \
+              UAE Moon-Sighting Committee, and the tabular calendar here predicts them",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -698,6 +717,14 @@ static TR_RULES: &[HolidayRule] = &[
         Rule::gregorian(10, 29),
     )
     .years(Some(1923), None),
+    // Geçici madde 1, added by Kanun 4500 of 28 December 1999: "31 Aralık
+    // 1999 tarihi tam gün genel tatildir."
+    HolidayRule::fixed_public(
+        "General holiday of 31 December 1999",
+        "Genel tatil",
+        Rule::gregorian(12, 31),
+    )
+    .years(Some(1999), Some(1999)),
 ];
 
 /// Türkiye.
@@ -713,8 +740,10 @@ pub static TURKEY: RuleSet = RuleSet {
     sources: "2429 sayılı Ulusal Bayram ve Genel Tatiller Hakkında Kanun (17/3/1981, Resmî \
               Gazete 19/3/1981, sayı 17284), maddeler 1 and 2, as amended by the Kanunlar \
               2818, 4500, 5892 (1 Mayıs from 2009) and 6752 (15 Temmuz from 2017), on Mevzuat \
-              Bilgi Sistemi (mevzuat.gov.tr/mevzuatmetin/1.5.2429.pdf), retrieved 2026-09-26. \
-              The arife half-days from 13:00 and the one-off 31 December 1999 are not carried. \
+              Bilgi Sistemi (mevzuat.gov.tr/mevzuatmetin/1.5.2429.pdf), retrieved 2026-09-26, \
+              with geçici madde 1 as Kanun 4500 of 28/12/1999 added it, in force 30/12/1999, \
+              for the full-day general holiday of 31 December 1999; the Resmî Gazete issue \
+              that printed Kanun 4500 not read. The arife half-days from 13:00 are not carried. \
               Türkiye's Islamic dates come from the Diyanet's precomputed calendar rather than \
               from sighting, so they are firmer than most; the tabular computation here can \
               still differ by a day, which is why they stay flagged approximate",
@@ -1111,9 +1140,26 @@ static ET_RULES: &[HolidayRule] = &[
     ),
     // Miyazya 27: 5 May.
     et_ethiopic("Patriots' Victory Day", "የአርበኞች ቀን", 8, 27),
-    // Ginbot 20: 28 May.
-    // Not in Proclamation 1334/2024's list of the days offices close.
-    et_ethiopic("Downfall of the Derg", "ደርግ የወደቀበት ቀን", 9, 20).years(None, Some(2024)),
+    // Ginbot 20: 28 May. The anniversary of 28 May 1991, so not before
+    // 1992; the instrument that made it a holiday was not read. Proclamation
+    // 1334/2024, in force on its publication on 14 August 2024, does not
+    // name it at all, so 28 May 2024 was the last.
+    et_ethiopic("Downfall of the Derg", "ደርግ የወደቀበት ቀን", 9, 20).years(Some(1992), Some(2024)),
+    // Article 5's memorial national holidays, on which offices stay open
+    // (article 5(2)): Hidar 29, printed "december 09", from the first after
+    // the proclamation, and Yekatit 12, printed "february 20".
+    HolidayRule::observance(
+        "Nations, Nationalities and Peoples' Day",
+        "",
+        Rule::in_calendar(CalendarSystem::ETHIOPIC, 3, 29),
+    )
+    .years(Some(2024), None),
+    HolidayRule::observance(
+        "Martyrs' Day",
+        "",
+        Rule::in_calendar(CalendarSystem::ETHIOPIC, 6, 12),
+    )
+    .years(Some(2025), None),
     // Mäskäräm 1: 11 September, and 12 September before a Gregorian leap
     // year.
     et_ethiopic("Enkutatash", "እንቁጣጣሽ", 1, 1),
@@ -1136,9 +1182,13 @@ static ET_RULES: &[HolidayRule] = &[
 /// al-Awwal, the Sunni date the source gives first. The source says
 /// nothing of a holiday on the weekend, and nothing is done with one. The
 /// Public Holidays and Celebration of Public Holidays Proclamation No.
-/// 1334/2024, in force from 14 August 2024, leaves the Downfall of the Derg
-/// out of the days offices close, so it is carried to 2024; its new working
-/// memorial days, Martyrs' Day and National Unity Day, are not carried.
+/// 1334/2024, in force on its publication on 14 August 2024, lists the
+/// national holidays on which offices close (article 4), the memorial days
+/// on which they do not (article 5) and the religious holidays (article
+/// 6); every Ethiopian date above is its date. It leaves the Downfall of
+/// the Derg out, so that day is carried to 2024, and the two memorial days
+/// are observances. Article 19 repeals Proclamation 16/1975 and its
+/// amendments, which were not read.
 pub static ETHIOPIA: RuleSet = RuleSet {
     code: "ET",
     english_name: "Ethiopia",
@@ -1149,8 +1199,10 @@ pub static ETHIOPIA: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Public Holidays and Celebration of Public Holidays Proclamation No. 1334/2024, \
-              in force 14 August 2024, not read, as EthioData summarises it (ethiodata.et, \
-              secondary), retrieved 2026-09-26; Wikipedia, \"Public holidays in Ethiopia\", \
+              Federal Negarit Gazette, 30th Year No. 55, 14 August 2024, pp. 15780 ff., \
+              articles 4 to 7, 19 and 20, the Ministry of Justice's PDF linked from \
+              justice.gov.et/en/law/proclamation-to-determine-public-holidays-and-celebration\
+              -of-public-holidays/, retrieved 2026-09-26; Wikipedia, \"Public holidays in Ethiopia\", \
               retrieved 2026-09-22, for the Amharic names and the Gregorian dates with their \
               leap-year alternatives, which the Ethiopian dates here reproduce",
 };
@@ -5706,4 +5758,1178 @@ pub static LIBERIA: RuleSet = RuleSet {
               Labour's printing (liberiahrjobs.com copy); Embassy of the Republic of Liberia \
               in Japan, \"National Holidays to Be Observed\" (liberianembassyjp.org), for \
               Christmas; the Patriotic and Cultural Observances Law not read",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Days read from announcements
+// ─────────────────────────────────────────────────────────────────────────
+
+/// One function per holiday name, reading the days a `(year, month, day,
+/// name)` table of announcements gives it in a year.
+macro_rules! announced_days {
+    ($table:ident; $($function:ident => $name:literal),* $(,)?) => {
+        $(
+            fn $function(year: i64) -> Days {
+                let mut out = Days::new();
+                for &(y, month, day, name) in $table {
+                    if y == year && name == $name {
+                        if let Ok(fixed) = gregorian::to_fixed(y, month, day) {
+                            out.push(fixed);
+                        }
+                    }
+                }
+                out
+            }
+        )*
+    };
+}
+
+fn nothing_read(_: i64) -> Days {
+    Days::new()
+}
+
+/// A holiday whose date in a year was not read: every year it is asked
+/// for is a gap.
+const NOT_READ: Rule = Rule::Tabulated {
+    function: nothing_read,
+    first_year: 1,
+    last_year: 0,
+};
+
+/// A holiday whose announcement for `year` was not read: a gap that year.
+const fn unread_in(name: &'static str, local: &'static str, year: i32) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, NOT_READ).years(Some(year), Some(year))
+}
+
+/// A holiday the announcements read give for `first..=last`, and a gap in
+/// any other year it is asked for.
+const fn announced(
+    name: &'static str,
+    local: &'static str,
+    function: fn(i64) -> Days,
+    first: i64,
+    last: i64,
+) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::Tabulated {
+            function,
+            first_year: first,
+            last_year: last,
+        },
+    )
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Somalia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Friday: article 64(1) of the Labour Code, one day's rest a week, which
+/// "should normally fall on Friday" ("maalinta Jimcaha").
+static SO_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Friday],
+    valid_from: None,
+    valid_from_day: None,
+    valid_until: None,
+    valid_until_day: None,
+}];
+
+/// The first year under the Labour Code of 2024.
+const SO_FROM: i32 = 2025;
+
+const fn so_fixed(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, Rule::gregorian(month, day)).years(Some(SO_FROM), None)
+}
+
+/// A day on the tabular Hijri calendar, approximate: the Government
+/// declares each on the sighting.
+const fn so_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, month, day),
+    )
+    .approximate()
+    .years(Some(SO_FROM), None)
+}
+
+static SO_RULES: &[HolidayRule] = &[
+    // "21ka Jannaayo": the committee's report on the bill records the
+    // change from 21 October.
+    so_fixed(
+        "Somali Language Writing Day",
+        "Maalinta Qorista Afka Soomaaliga",
+        1,
+        21,
+    ),
+    so_fixed("Labour Day", "Maalinta Shaqaalaha", 5, 1),
+    so_fixed("Independence Day", "Maalinta Xuriyadda", 6, 26),
+    so_fixed("Union Day", "Maalinta Midowga", 7, 1),
+    so_hijri(
+        "Prophet's Birthday",
+        "Maalinta Dhalashada Nabi Muxamed",
+        3,
+        12,
+    ),
+    so_hijri("Eid al-Fitr", "Maalinta Ciidul-Fitri", 10, 1),
+    so_hijri("Eid al-Fitr", "Maalinta Ciidul-Fitri", 10, 2),
+    so_hijri("Eid al-Adha", "Maalinta Ciidul-Adxaa", 12, 10),
+    so_hijri("Eid al-Adha", "Maalinta Ciidul-Adxaa", 12, 11),
+    so_hijri("Eid al-Adha", "Maalinta Ciidul-Adxaa", 12, 12),
+];
+
+/// Somalia, from 2025.
+///
+/// Article 65(4) of the Labour Code, Law No. 36 of 24 December 2024, in
+/// force on the President's signature and gazetted on 31 December 2024:
+/// the four national days on fixed dates, the Prophet's Birthday on 12
+/// Rabiʿ al-Awwal, "two working days" of Eid al-Fitr and three of Eid
+/// al-Adha, the Hijri days approximate on the tabular calendar. The Eid
+/// spans are carried as two and three calendar days from 1 Shawwal and
+/// 10 Dhu al-Hijjah, so a span that the statute's "working days" lengthen
+/// over a Friday is a day short here. The other days the Government may
+/// grant in the Official Bulletin are not carried. The Code moves nothing
+/// off the Friday; the Civil Service Law No. 11 of 2006, article 30(2),
+/// moves a holiday on the weekly rest day to the next day for the civil
+/// service alone, and is not carried. The table starts with the Code's
+/// first year: the list of Law No. 65 of 1972, which it repeals, is not
+/// carried. Somaliland's own holidays are not either.
+pub static SOMALIA: RuleSet = RuleSet {
+    code: "SO",
+    english_name: "Somalia",
+    rules: SO_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SO_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Sharci Lr. 36, Sharciga Shaqada Soomaaliyeed (Labour Code, Law No. 36), signed \
+              24 December 2024, Faafinta Rasmiga (Official Bulletin) Year 11 No. 5, 31 \
+              December 2024, articles 64 and 65 and, in the English version, 218, from the \
+              Ministry of Labour and Social Affairs' scan \
+              (molsa.gov.so/wp-content/uploads/2025/08/Sharci_Lr.36_Sharciga_Shaqada_\
+              Soomaaliyeed_-1.pdf) and its English version with the committee's report \
+              (molsa.gov.so/wp-content/uploads/2026/03/Labour-Code-English-REVISED.pdf); \
+              Sharciga Shaqaalaha Rayidka ah, Law No. 11 of 5 December 2006, article 30 \
+              (molsa.gov.so), for the civil-service rule not carried; all retrieved \
+              2026-09-26. The Hijri dates are declared on the sighting, and the tabular \
+              calendar here predicts them",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// South Sudan
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year of the Ministry of Labour's list read, its calendar for
+/// 2022.
+const SS_FROM: i32 = 2022;
+
+/// The spans the Ministry sets year by year, as its calendar for 2022 and
+/// its notices for 2025 and 2026 give them.
+static SS_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+    // The Public Holidays Calendar 2022, Annex I.
+    (2022, 4, 15, "Easter Holiday"),
+    (2022, 4, 16, "Easter Holiday"),
+    (2022, 4, 17, "Easter Holiday"),
+    (2022, 4, 18, "Easter Holiday"),
+    (2022, 5, 3, "Eid al-Fitr"),
+    (2022, 5, 4, "Eid al-Fitr"),
+    (2022, 5, 5, "Eid al-Fitr"),
+    (2022, 5, 6, "Eid al-Fitr"),
+    (2022, 7, 9, "Eid al-Adha"),
+    (2022, 7, 10, "Eid al-Adha"),
+    (2022, 7, 11, "Eid al-Adha"),
+    (2022, 7, 12, "Eid al-Adha"),
+    (2022, 12, 24, "Christmas Holiday"),
+    (2022, 12, 25, "Christmas Holiday"),
+    (2022, 12, 26, "Christmas Holiday"),
+    (2022, 12, 27, "Christmas Holiday"),
+    // The notices of 27 March and 14 April 2025.
+    (2025, 3, 30, "Eid al-Fitr"),
+    (2025, 3, 31, "Eid al-Fitr"),
+    (2025, 4, 1, "Eid al-Fitr"),
+    (2025, 4, 18, "Easter Holiday"),
+    (2025, 4, 19, "Easter Holiday"),
+    (2025, 4, 20, "Easter Holiday"),
+    (2025, 4, 21, "Easter Holiday"),
+    // The notice of 1 April 2026.
+    (2026, 4, 3, "Easter Holiday"),
+    (2026, 4, 4, "Easter Holiday"),
+    (2026, 4, 5, "Easter Holiday"),
+    (2026, 4, 6, "Easter Holiday"),
+];
+
+announced_days! {
+    SS_ANNOUNCED;
+    ss_easter => "Easter Holiday",
+    ss_fitr => "Eid al-Fitr",
+    ss_adha => "Eid al-Adha",
+    ss_christmas => "Christmas Holiday",
+}
+
+const fn ss_fixed(name: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(name, "", Rule::gregorian(month, day)).years(Some(SS_FROM), None)
+}
+
+static SS_RULES: &[HolidayRule] = &[
+    ss_fixed("New Year", 1, 1),
+    // Good Friday to Easter Monday in 2022, 2025 and 2026; the notice for
+    // 2024 is known by its title only, and 2023's was not found.
+    announced("Easter Holiday", "", ss_easter, 2022, 2022).years(Some(SS_FROM), Some(2024)),
+    announced("Easter Holiday", "", ss_easter, 2025, 2026).years(Some(2025), None),
+    ss_fixed("International Labour Day", 5, 1),
+    ss_fixed("SPLA Day", 5, 16),
+    ss_fixed("Independence Day", 7, 9),
+    ss_fixed("Martyrs' Day", 7, 30),
+    // Four days in 2022 and three in 2025: the Ministry's to say.
+    announced("Eid al-Fitr", "", ss_fitr, 2022, 2022).years(Some(SS_FROM), Some(2024)),
+    announced("Eid al-Fitr", "", ss_fitr, 2025, 2025).years(Some(2025), None),
+    announced("Eid al-Adha", "", ss_adha, 2022, 2022).years(Some(SS_FROM), None),
+    announced("Christmas Holiday", "", ss_christmas, 2022, 2022).years(Some(SS_FROM), None),
+];
+
+/// South Sudan, from 2022.
+///
+/// Section 61 of the Labour Act, 2017: holidays "shall be observed on
+/// calendar days", and an employee is entitled to paid leave "on such days
+/// as are declared by the Ministry to be public holidays". The Act has no
+/// list; the Ministry of Labour's Public Holidays Calendar 2022 is the one
+/// list read, and its full holidays of Annex I are this table. Its five
+/// single days on fixed dates are carried from 2022 by rule, the later
+/// years' calendars not read — the Ministry's notice for Martyrs' Day 2024
+/// gives the same day. Easter, the two Eids and Christmas are spans whose
+/// length the Ministry sets each year, four days or three, so they are
+/// carried for the years whose notices were read and are a gap in any
+/// other. Nothing moves: section 61(1)'s calendar days, and the 2022 list
+/// leaves its Saturday and Sunday holidays where they fall. The calendar's
+/// Annex II "observed holidays", the Prophet's Birthday among them, do not
+/// say whether work stops and are not carried; the Public Holiday Bill,
+/// 2026, is not law. Section 59 gives a weekly rest "on such day as is
+/// customary" without naming it; the Saturday–Sunday weekend here is not
+/// sourced.
+pub static SOUTH_SUDAN: RuleSet = RuleSet {
+    code: "SS",
+    english_name: "South Sudan",
+    rules: SS_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Labour Act, 2017 (Act No. 64, 24 October 2017), sections 59 and 61, the \
+              Ministry of Justice's printing as the South Sudan NGO Forum holds it \
+              (docs.southsudanngoforum.org/sites/default/files/2018-01/Labour%20Act%202017.pdf); \
+              Ministry of Labour, \"Public Holidays Calendar 2022\", Annexes I and II, stamped \
+              February 2022 (docs.southsudanngoforum.org/sites/default/files/2022-03/HRPublic\
+              %20Holidays%202022HR.pdf); the Ministry's notices of 26 July 2024 (Martyrs' Day), \
+              27 March 2025 (Eid al-Fitr), 14 April 2025 and 1 April 2026 (Easter), as listed \
+              at mol.gov.ss/page/documents/circulars; all retrieved 2026-09-26. The notices for \
+              Eid al-Fitr and Easter 2024 were not read, and no calendar after 2022 was found",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Sudan
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Friday until the Council of Ministers added Saturday from 26 January
+/// 2008, as the Sudan Tribune reported on 6 January 2008, for "six months
+/// for studying and assessment"; the Government's notices of 2026 still
+/// put work back on the Sunday after a Saturday.
+static SD_WEEKEND: &[WeekendPolicy] = &[
+    WeekendPolicy {
+        days: &[Weekday::Friday],
+        valid_from: None,
+        valid_from_day: None,
+        valid_until: Some(2008),
+        valid_until_day: Some((1, 25)),
+    },
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday],
+        valid_from: Some(2008),
+        valid_from_day: Some((1, 26)),
+        valid_until: None,
+        valid_until_day: None,
+    },
+];
+
+/// The General Secretariat of the Council of Ministers' announcements read,
+/// December 2025 to August 2026.
+static SD_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+    (2025, 12, 25, "Christmas"),
+    (2026, 1, 1, "Independence Day"),
+    (2026, 3, 19, "Eid al-Fitr"),
+    (2026, 3, 20, "Eid al-Fitr"),
+    (2026, 3, 21, "Eid al-Fitr"),
+    (2026, 3, 22, "Eid al-Fitr"),
+    (2026, 3, 23, "Eid al-Fitr"),
+    (2026, 3, 24, "Eid al-Fitr"),
+    (2026, 5, 26, "Eid al-Adha"),
+    (2026, 5, 27, "Eid al-Adha"),
+    (2026, 5, 28, "Eid al-Adha"),
+    (2026, 5, 29, "Eid al-Adha"),
+    (2026, 5, 30, "Eid al-Adha"),
+    (2026, 6, 17, "Islamic New Year"),
+    (2026, 8, 25, "Prophet's Birthday"),
+];
+
+announced_days! {
+    SD_ANNOUNCED;
+    sd_christmas => "Christmas",
+    sd_independence => "Independence Day",
+    sd_fitr => "Eid al-Fitr",
+    sd_adha => "Eid al-Adha",
+    sd_new_year => "Islamic New Year",
+    sd_mawlid => "Prophet's Birthday",
+}
+
+static SD_RULES: &[HolidayRule] = &[
+    announced(
+        "Independence Day",
+        "ذكرى أعياد الاستقلال",
+        sd_independence,
+        2026,
+        2026,
+    ),
+    announced("Eid al-Fitr", "عيد الفطر المبارك", sd_fitr, 2026, 2026),
+    announced("Eid al-Adha", "عيد الأضحى المبارك", sd_adha, 2026, 2026),
+    announced("Islamic New Year", "العام الهجري", sd_new_year, 2026, 2026),
+    announced(
+        "Prophet's Birthday",
+        "المولد النبوي الشريف",
+        sd_mawlid,
+        2026,
+        2026,
+    ),
+    announced("Christmas", "عيد الميلاد المجيد", sd_christmas, 2025, 2025),
+];
+
+/// Sudan: the Council of Ministers' announcements, one holiday at a time.
+///
+/// No statute read lists the days: the Labour Act 1997 pays "holidays and
+/// official holidays" and the civil-service regulations leave them to "the
+/// competent authority". The General Secretariat of the Council of
+/// Ministers announces each before it falls, "in all parts of the
+/// country", and the announcements on the Government's site from December
+/// 2025 to August 2026 are this table: Christmas 2025, and Independence
+/// Day, the two Eids, the Islamic New Year and the Prophet's Birthday of
+/// 2026. Every other year of each is a gap, Christmas 2026 among them. The
+/// days announced for one rite only — 24 and 26 December 2025 for the
+/// Western churches, 6 to 8 January 2026 for the Eastern — are not
+/// carried. No announcement read moves a day off the weekend.
+pub static SUDAN: RuleSet = RuleSet {
+    code: "SD",
+    english_name: "Sudan",
+    rules: SD_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SD_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "General Secretariat of the Council of Ministers, announcements on sudan.gov.sd of \
+              23 and 30 December 2025, 13 March, 19 May, 16 June and 23 August 2026, read \
+              through the site's post index, retrieved 2026-09-26; Labour Act 1997, section \
+              45(3), in an unofficial English translation (banfablaw.com); the National Civil \
+              Service Regulations 2007, article 97, as a blog quotes it (secondary); Sudan \
+              Tribune, \"Sudan adopts two-day week end as of January 26\", 6 January 2008, as \
+              the Internet Archive holds it (captured 2019-11-19), for the weekend (secondary), \
+              the Cabinet's decision not found",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Guinea-Bissau
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year under Decree 1/2023.
+const GW_FROM: i32 = 2023;
+
+/// The Eid days the Ministry of Public Administration declared, as read.
+static GW_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+    // Lusa, 5 June 2025: "feriado nacional, no sábado, dia 07".
+    (2025, 6, 7, "Tabaski"),
+    // ANG, 19 March 2026.
+    (2026, 3, 20, "Eid al-Fitr"),
+];
+
+announced_days! {
+    GW_ANNOUNCED;
+    gw_tabaski => "Tabaski",
+    gw_fitr => "Eid al-Fitr",
+}
+
+const fn gw_fixed(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, Rule::gregorian(month, day)).years(Some(GW_FROM), None)
+}
+
+static GW_RULES: &[HolidayRule] = &[
+    gw_fixed("New Year's Day", "Novo Ano", 1, 1),
+    gw_fixed(
+        "National Heroes' Day",
+        "Dia dos Heróis Nacionais e dos Combatentes da Liberdade da Pátria",
+        1,
+        20,
+    ),
+    // The decree's "Páscoa", which the press does not date: Easter Sunday
+    // or a day beside it.
+    HolidayRule::fixed_public("Easter", "Páscoa", NOT_READ).years(Some(GW_FROM), None),
+    gw_fixed(
+        "International Workers' Day",
+        "Dia Internacional dos Trabalhadores",
+        5,
+        1,
+    ),
+    announced("Eid al-Fitr", "Ramadão", gw_fitr, 2026, 2026).years(Some(GW_FROM), None),
+    announced("Tabaski", "Tabaski", gw_tabaski, 2025, 2025).years(Some(GW_FROM), None),
+    gw_fixed("Independence Day", "Dia da Independência Nacional", 9, 24),
+    gw_fixed("Christmas Day", "Natal", 12, 25),
+];
+
+/// Guinea-Bissau, from 2023.
+///
+/// Decree 1/2023 of 18 January, which revoked Decree 1/2002 of 6 May, as O
+/// Democrata quotes its list of "feriados nacionais obrigatórios": New
+/// Year, 20 January, 1 May, 24 September and Christmas on their dates, and
+/// Easter, Ramadan and Tabaski, which it does not date. The decree itself
+/// was not read, and the Portuguese Embassy's list for 2025 marks the same
+/// days as Guinea-Bissau's, without Easter. 23 January, 8 March and 3
+/// August, holidays under the 2002 decree, are not; 8 March, 2 November,
+/// Good Friday and 24 and 31 December are "dispensas" for the public
+/// administration alone and are not carried. The Eid day is declared each
+/// time under the decree: Tabaski 2025, kept on Saturday 7 June, and Eid
+/// al-Fitr 2026 on Friday 20 March are the two read; every other year of
+/// either is a gap, and so is Easter in every year. No source read moves a
+/// holiday off the weekend. The Saturday–Sunday weekend is not sourced.
+pub static GUINEA_BISSAU: RuleSet = RuleSet {
+    code: "GW",
+    english_name: "Guinea-Bissau",
+    rules: GW_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Decreto n.º 1/2023 de 18 de Janeiro, not read, its list as O Democrata GB \
+              quotes it (odemocratagb.com/?p=42600, 19 January 2023, secondary) and VOA \
+              Português reports it (20 January 2023, secondary); Embaixada de Portugal em \
+              Bissau, \"Feriados para 2025\" (bissau.embaixadaportugal.mne.gov.pt), for the \
+              cross-check; Agência de Notícias da Guiné, 19 March 2026 \
+              (ang.gw/religiao-governo-decreta-feriado-nacional-a-20-de-marco-por-ocasiao-do-\
+              fim-de-ramadao/), for Eid al-Fitr 2026; Lusa via SAPO, 5 June 2025, for Tabaski \
+              2025 (secondary); all retrieved 2026-09-26",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Sierra Leone
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Section 2 of the Act: a Schedule day on a Sunday gives "the day next
+/// following". The Act goes on "not being itself a public holiday", but
+/// Government Notice 517 of 2022 gave nothing for Christmas on Sunday 25
+/// December 2022 beside Boxing Day on the Monday, so the Monday is taken
+/// whether free or not, as the notice took it.
+static SL_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: false,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// The days the Office of the President's notices in the Gazette declare,
+/// as read.
+static SL_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+    // Government Notices 25 and 26 of 2020.
+    (2020, 2, 18, "Armed Forces Day"),
+    (2020, 3, 9, "International Women's Day"),
+    // Government Notice 80 of 2020: Sunday 24 May, "Accordingly, Monday
+    // 25th May".
+    (2020, 5, 24, "Eid al-Fitr"),
+    (2020, 5, 25, "Eid al-Fitr"),
+    // Government Notice 274 of 2022: Saturday 9 July, and Monday 11 July.
+    (2022, 7, 9, "Eid al-Adha"),
+    (2022, 7, 11, "Eid al-Adha"),
+    // Government Notice 34 of 2023: Saturday 18 February observed on
+    // Wednesday 22 February.
+    (2023, 2, 22, "Armed Forces Day"),
+];
+
+announced_days! {
+    SL_ANNOUNCED;
+    sl_armed_forces => "Armed Forces Day",
+    sl_women => "International Women's Day",
+    sl_fitr => "Eid al-Fitr",
+    sl_adha => "Eid al-Adha",
+}
+
+static SL_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    announced("Armed Forces Day", "", sl_armed_forces, 2020, 2023),
+    // Known for 2021 and 2022 from the search index's snippets alone.
+    unread_in("Armed Forces Day", "", 2021),
+    unread_in("Armed Forces Day", "", 2022),
+    announced("International Women's Day", "", sl_women, 2020, 2020),
+    HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    HolidayRule::fixed_public("Independence Day", "", NOT_READ),
+    HolidayRule::fixed_public("Labour Day", "", NOT_READ),
+    announced("Eid al-Fitr", "", sl_fitr, 2020, 2020),
+    announced("Eid al-Adha", "", sl_adha, 2022, 2022),
+    HolidayRule::fixed_public("Moulid-un-Nabi", "", NOT_READ),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+];
+
+/// Sierra Leone.
+///
+/// The Public Holidays Act, Cap. 58, in the 1960 revised edition: New
+/// Year's Day, Good Friday, Easter Monday, Christmas and Boxing Day by
+/// rule from its Schedule, the notices of December 2019 and December 2022
+/// declaring New Year, Christmas and Boxing Day on their dates; the
+/// Schedule's Moulid-un-Nabi and single days of Eid al-Fitr and Eid
+/// al-Adha, whose dates the Office of the President announces. Armed
+/// Forces Day and International Women's Day, which the notices declare but
+/// the 1960 Schedule does not name, are carried for the years whose
+/// notices were read, and Independence Day and Labour Day, which no notice
+/// read declares, are a gap in every year, as the Moulid is; so is every
+/// Eid not read. The Schedule's Whit Monday, Sovereign's Birthday and
+/// first Monday of August appear in no notice read and are not carried,
+/// though no instrument removing them was found; nor are the special days
+/// of section 3. A Sunday holiday gives the Monday, as section 2 and the
+/// notices do; the notices also moved the Saturday Eid al-Adha of 2022 and
+/// Armed Forces Day of 2023, which are carried as declared, and on that
+/// evidence the weekend is Saturday and Sunday.
+pub static SIERRA_LEONE: RuleSet = RuleSet {
+    code: "SL",
+    english_name: "Sierra Leone",
+    rules: SL_RULES,
+    substitution: SL_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Public Holidays Act, Cap. 58, Laws of Sierra Leone 1960, sections 2 to 7 and \
+              Schedule (sierra-leone.org/Laws/Cap%2058.pdf, a copy of the revised edition); \
+              Sierra Leone Gazette, Government Notices 4, 25, 26 and 80 of 2020, as the \
+              Internet Archive holds gazettes.africa's copies (captured 2023-09-29), and 274 of \
+              2022, 517 (published 12 January 2023) and 34 of 2023 from archive.gazettes.africa; \
+              the Employment Act, 2023 (sierralii.gov.sl), which names no weekly rest day; all \
+              retrieved 2026-09-26. No notice after March 2023 was found",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// The Gambia
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Every day the Office of the President's declarations read give, under
+/// the holiday's name; a Monday declared for a weekend holiday is listed
+/// under the holiday.
+#[rustfmt::skip]
+static GM_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+    (2021, 5, 1, "labour"), (2021, 5, 12, "koriteh"), (2021, 5, 13, "koriteh"),
+    (2021, 7, 20, "tobaski"), (2021, 7, 21, "tobaski"), (2021, 8, 16, "assumption"),
+    (2021, 8, 19, "ashura"), (2021, 10, 19, "gamo"), (2021, 12, 4, "election"),
+    (2021, 12, 27, "christmas"), (2021, 12, 27, "boxing"),
+    (2022, 1, 3, "new_year"), (2022, 4, 9, "election"), (2022, 4, 15, "good_friday"),
+    (2022, 4, 18, "easter_monday"), (2022, 5, 2, "koriteh"), (2022, 5, 3, "koriteh"),
+    (2022, 5, 25, "africa"), (2022, 7, 11, "tobaski"), (2022, 8, 8, "ashura"),
+    (2022, 8, 15, "assumption"), (2022, 10, 10, "gamo"),
+    (2023, 8, 15, "assumption"), (2023, 12, 25, "christmas"), (2023, 12, 26, "boxing"),
+    (2024, 1, 1, "new_year"), (2024, 2, 19, "independence"), (2024, 3, 29, "good_friday"),
+    (2024, 4, 1, "easter_monday"), (2024, 4, 10, "koriteh"), (2024, 4, 11, "koriteh"),
+    (2024, 5, 1, "labour"), (2024, 12, 25, "christmas"), (2024, 12, 26, "boxing"),
+    (2025, 1, 1, "new_year"), (2025, 2, 18, "independence"), (2025, 3, 31, "koriteh"),
+    (2025, 4, 18, "good_friday"), (2025, 4, 21, "easter_monday"), (2025, 5, 26, "africa"),
+    (2025, 6, 6, "tobaski"), (2025, 6, 7, "tobaski"), (2025, 7, 5, "ashura"),
+    (2025, 8, 15, "assumption"), (2025, 9, 5, "gamo"), (2025, 12, 25, "christmas"),
+    (2025, 12, 26, "boxing"),
+    (2026, 1, 1, "new_year"), (2026, 3, 19, "koriteh"), (2026, 3, 20, "koriteh"),
+    (2026, 4, 3, "good_friday"), (2026, 4, 6, "easter_monday"), (2026, 5, 1, "labour"),
+    (2026, 6, 25, "ashura"), (2026, 8, 15, "assumption"), (2026, 8, 26, "gamo"),
+];
+
+announced_days! {
+    GM_ANNOUNCED;
+    gm_new_year => "new_year",
+    gm_independence => "independence",
+    gm_good_friday => "good_friday",
+    gm_easter_monday => "easter_monday",
+    gm_labour => "labour",
+    gm_africa => "africa",
+    gm_koriteh => "koriteh",
+    gm_tobaski => "tobaski",
+    gm_ashura => "ashura",
+    gm_assumption => "assumption",
+    gm_gamo => "gamo",
+    gm_christmas => "christmas",
+    gm_boxing => "boxing",
+    gm_election => "election",
+}
+
+static GM_RULES: &[HolidayRule] = &[
+    announced("New Year's Day", "", gm_new_year, 2022, 2026),
+    unread_in("New Year's Day", "", 2023),
+    announced("Independence Day", "", gm_independence, 2024, 2025),
+    announced("Good Friday", "", gm_good_friday, 2022, 2026),
+    unread_in("Good Friday", "", 2023),
+    announced("Easter Monday", "", gm_easter_monday, 2022, 2026),
+    unread_in("Easter Monday", "", 2023),
+    // 2 and 3 May 2022 were declared "to mark Labour Day and Eid-ul-Fitr"
+    // and are listed under the Eid, so 2022 is a gap here.
+    announced("International Workers' Day", "", gm_labour, 2021, 2026),
+    unread_in("International Workers' Day", "", 2022),
+    unread_in("International Workers' Day", "", 2023),
+    unread_in("International Workers' Day", "", 2025),
+    announced("Africa Day", "", gm_africa, 2022, 2025),
+    unread_in("Africa Day", "", 2023),
+    unread_in("Africa Day", "", 2024),
+    announced("Eid al-Fitr", "Koriteh", gm_koriteh, 2021, 2026),
+    unread_in("Eid al-Fitr", "Koriteh", 2023),
+    announced("Eid al-Adha", "Tobaski", gm_tobaski, 2021, 2025),
+    unread_in("Eid al-Adha", "Tobaski", 2023),
+    unread_in("Eid al-Adha", "Tobaski", 2024),
+    announced("Ashura", "Tamharit", gm_ashura, 2021, 2026),
+    unread_in("Ashura", "Tamharit", 2023),
+    unread_in("Ashura", "Tamharit", 2024),
+    announced("Assumption Day", "Sang Marie", gm_assumption, 2021, 2026),
+    unread_in("Assumption Day", "Sang Marie", 2024),
+    announced("Mawlid al-Nabi", "Gamo", gm_gamo, 2021, 2026),
+    unread_in("Mawlid al-Nabi", "Gamo", 2023),
+    unread_in("Mawlid al-Nabi", "Gamo", 2024),
+    announced("Christmas Day", "", gm_christmas, 2021, 2025),
+    unread_in("Christmas Day", "", 2022),
+    announced("Boxing Day", "", gm_boxing, 2021, 2025),
+    unread_in("Boxing Day", "", 2022),
+    // The presidential election of 4 December 2021 and the National
+    // Assembly election of 9 April 2022.
+    announced("Election Day", "", gm_election, 2021, 2022).years(Some(2021), Some(2022)),
+];
+
+/// The Gambia: the President's declarations, holiday by holiday.
+///
+/// No Public Holidays Act was found; each holiday is declared by the
+/// Office of the President "acting under section 76 of the 1997
+/// Constitution", the general executive power, and the declarations read
+/// from 2021 to August 2026 are this table, a year whose declaration for a
+/// holiday was not read a gap for that holiday — Independence Day before
+/// 2024 and in 2026, Tobaski in 2026 and Christmas in 2026 among them. The
+/// Media Advisory of 19 July 2021 made both Eids two days and said a
+/// holiday on a Saturday or Sunday would give the Monday; the declarations
+/// did so to 2024, but in 2025 and 2026 a Saturday holiday was declared on
+/// the Saturday while a Sunday one still gave the Monday, and some Eids
+/// were one day, so no policy is carried and each year is as declared. The
+/// advisory's "weekend (Saturday or Sunday)" is the weekend here. The 22
+/// July holiday, which secondary sources say was dropped in 2017, is not
+/// carried, no primary source having been read for it.
+pub static GAMBIA: RuleSet = RuleSet {
+    code: "GM",
+    english_name: "The Gambia",
+    rules: GM_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Office of the President (op.gov.gm), \"Media Advisory on Public Holidays\", 19 \
+              July 2021, and the public-holiday declarations published there for 2021 to \
+              August 2026, retrieved 2026-09-26; the Constitution of 1997, section 76, on \
+              constituteproject.org. The 2021 Easter declaration misdates Easter Monday and is \
+              not carried",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Eswatini
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Sunday. Section 2 of the Act moves a Sunday holiday, and the Ministry of
+/// Home Affairs said in September 2025 that Somhlolo Day on a Saturday
+/// "would not be shifted ... since Saturday is a normal working day".
+static SZ_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Sunday],
+    valid_from: None,
+    valid_from_day: None,
+    valid_until: None,
+    valid_until_day: None,
+}];
+
+/// Section 2's proviso: a Sunday holiday is kept on the Monday, and Boxing
+/// Day on a Monday on the Tuesday — the day after the Monday a Sunday
+/// Christmas takes, which the next free day gives.
+static SZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
+    trigger: &[Weekday::Sunday],
+    direction: SubstituteDirection::Forward,
+    skip_occupied: true,
+    on_collision: false,
+    valid_from: None,
+    valid_until: None,
+}];
+
+/// The days appointed by notice, as read.
+static SZ_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+    // Government Notice 28 of 2005: Monday 2 May "in the place of LABOUR
+    // DAY, which falls on a Sunday".
+    (2005, 5, 2, "Labour Day"),
+    // Government Notice 58 of 2006.
+    (2006, 9, 4, "Umhlanga"),
+    // Government Notice 73 of 2007.
+    (2007, 12, 28, "Incwala Day"),
+    // The Government's notice of 10 April 2026: Sunday 19 April observed on
+    // Friday 24 April, "Monday, 20 April 2026, will remain a normal working
+    // day".
+    (2026, 4, 24, "King's Birthday"),
+    // The Eswatini Observer, 4 September 2025 (secondary).
+    (2025, 9, 8, "Umhlanga"),
+    // Eswatini Positive News, 23 February 2025 and 4 March 2026
+    // (secondary).
+    (2025, 3, 10, "Lutsango Day"),
+    (2026, 3, 16, "Lutsango Day"),
+];
+
+announced_days! {
+    SZ_ANNOUNCED;
+    sz_labour => "Labour Day",
+    sz_umhlanga => "Umhlanga",
+    sz_incwala => "Incwala Day",
+    sz_kings_birthday => "King's Birthday",
+    sz_lutsango => "Lutsango Day",
+}
+
+static SZ_RULES: &[HolidayRule] = &[
+    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+    HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+    // Government Notice 19 of 2001 deleted 19 April "for this year", to be
+    // replaced "at a later stage", by a notice not read.
+    HolidayRule::public("King's Birthday", "", Rule::gregorian(4, 19)).years(None, Some(2000)),
+    unread_in("King's Birthday", "", 2001),
+    HolidayRule::public("King's Birthday", "", Rule::gregorian(4, 19))
+        .years(Some(2002), Some(2025)),
+    announced("King's Birthday", "", sz_kings_birthday, 2026, 2026).years(Some(2026), Some(2026)),
+    HolidayRule::public("King's Birthday", "", Rule::gregorian(4, 19)).years(Some(2027), None),
+    HolidayRule::public("National Flag Day", "", Rule::gregorian(4, 25)),
+    announced("Labour Day", "", sz_labour, 2005, 2005),
+    HolidayRule::public("Ascension Day", "", Rule::easter(ASCENSION)),
+    HolidayRule::public("Public Holiday of 22 July", "", Rule::gregorian(7, 22))
+        .years(None, Some(2024)),
+    announced("Lutsango Day", "", sz_lutsango, 2025, 2026).years(Some(2025), None),
+    announced("Umhlanga", "Umhlanga", sz_umhlanga, 2006, 2006).years(None, Some(2024)),
+    announced("Umhlanga", "Umhlanga", sz_umhlanga, 2025, 2025).years(Some(2025), None),
+    HolidayRule::public(
+        "Somhlolo (Independence Day)",
+        "Somhlolo",
+        Rule::gregorian(9, 6),
+    ),
+    announced("Incwala Day", "Incwala", sz_incwala, 2007, 2007),
+    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+];
+
+/// Eswatini.
+///
+/// The Public Holidays Act, 1938, whose Schedule the Minister for Home
+/// Affairs amends by notice, as consolidated to 1 December 1998: New Year,
+/// Good Friday, Easter Monday, the King's Birthday on 19 April, National
+/// Flag Day on 25 April, the Ascension, 22 July, Somhlolo on 6 September,
+/// Christmas and Boxing Day, with section 2's Sunday proviso. Umhlanga,
+/// which the Schedule dates for 1991 alone, Incwala Day, which it puts on
+/// 23 December and a notice put on 28 December in 2007, and Labour Day,
+/// which it does not name, are appointed by notice each year: the
+/// notices read are 2005's Labour Day, 2006's Umhlanga and 2007's Incwala,
+/// and 2025's Umhlanga from the press, and every other year of the three is
+/// a gap. The King's Birthday of 2001 was deleted for the year and
+/// replaced later on a day not read, a gap; the Government moved that of
+/// 2026, a Sunday, to Friday 24 April and kept the Monday a working day.
+/// From 2025 the 22 July holiday is Lutsango Day, on the Monday after the
+/// second leg of the Buganu ceremony, as the King announced in February
+/// 2025 — on the press's report alone, for 2025 and 2026, a gap after. The
+/// Schedule's Commonwealth Day on the second Monday of June is in no
+/// notice or order read after 1998 and is not carried, though no notice
+/// deleting it was found.
+pub static ESWATINI: RuleSet = RuleSet {
+    code: "SZ",
+    english_name: "Eswatini",
+    rules: SZ_RULES,
+    substitution: SZ_SUBSTITUTION,
+    bridges: &[],
+    includes: &[],
+    weekend: SZ_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Public Holidays Act, 1938 (Act No. 71 of 1938), sections 2 and 3 and Schedule, \
+              EswatiniLII's consolidation as at 1 December 1998 as the Internet Archive holds \
+              it (captured 2025-09-16), eswatinilii.org refusing this session; Swaziland \
+              Government Gazette, Government Notices 19 of 2001, 28 of 2005, 58 of 2006, 73 of \
+              2007 and 23 of 2008 and Legal Notice 45 of 2013, from archive.gazettes.africa; \
+              the High Court's notice on the holiday of 22 July 2022 (captured 2022-08-08); \
+              the Government's notice of 10 April 2026 on the King's Birthday \
+              (40years.gov.sz, captured 2026-08-07); the Eswatini Observer, 4 September 2025, \
+              and Eswatini Positive News, 23 February 2025 and 4 March 2026, for Umhlanga 2025, \
+              the weekend and Lutsango Day (secondary); all retrieved 2026-09-26",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Togo
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Sunday: article 198 of the Code du travail of 2021, the weekly rest
+/// "a lieu en principe le dimanche".
+static TG_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
+    days: &[Weekday::Sunday],
+    valid_from: None,
+    valid_from_day: None,
+    valid_until: None,
+    valid_until_day: None,
+}];
+
+/// The first year of the law of 1987 read.
+const TG_FROM: i32 = 1987;
+
+/// The days the Ministry of the Civil Service's communiqués and the
+/// Government's portal declare, as read.
+static TG_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+    (2024, 1, 2, "Day off"),
+    // "célébré le dimanche 27 avril", and Friday 2 May chômé "en raison
+    // des commémorations successives".
+    (2025, 4, 27, "Independence Day"),
+    (2025, 5, 2, "Day off"),
+    // Togo Top News, 5 June 2025, quoting the Minister's communiqué
+    // (secondary).
+    (2025, 6, 6, "Tabaski"),
+    (2025, 6, 9, "Whit Monday"),
+    (2026, 1, 2, "Day off"),
+    (2026, 3, 20, "Eid al-Fitr"),
+    (2026, 4, 27, "Independence Day"),
+    (2026, 5, 1, "Labour Day"),
+    (2026, 5, 27, "Tabaski"),
+];
+
+announced_days! {
+    TG_ANNOUNCED;
+    tg_day_off => "Day off",
+    tg_independence => "Independence Day",
+    tg_tabaski => "Tabaski",
+    tg_whit_monday => "Whit Monday",
+    tg_fitr => "Eid al-Fitr",
+    tg_labour => "Labour Day",
+}
+
+/// A fête légale of the law of 1987 whose date or standing now was not
+/// read: a gap from 1987.
+const fn tg_unread(name: &'static str, local: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, NOT_READ).years(Some(TG_FROM), None)
+}
+
+static TG_RULES: &[HolidayRule] = &[
+    tg_unread("New Year's Day", "Fête du nouvel an"),
+    tg_unread("National Day", "Fête nationale"),
+    tg_unread(
+        "Economic Liberation Day",
+        "Fête de la libération économique",
+    ),
+    announced("Eid al-Fitr", "Fête du Ramadan", tg_fitr, 2026, 2026).years(Some(TG_FROM), None),
+    tg_unread("Victory Day", "Fête de la victoire"),
+    announced(
+        "Independence Day",
+        "Fête de l'Indépendance",
+        tg_independence,
+        2025,
+        2026,
+    ),
+    announced("Labour Day", "Fête du travail", tg_labour, 2026, 2026).years(Some(TG_FROM), None),
+    tg_unread("Ascension", "Fête de l'ascension"),
+    announced(
+        "Whit Monday",
+        "Lundi de Pentecôte",
+        tg_whit_monday,
+        2025,
+        2025,
+    ),
+    announced(
+        "Tabaski",
+        "Fête de la tabaski (Fête du mouton)",
+        tg_tabaski,
+        2025,
+        2026,
+    )
+    .years(Some(TG_FROM), None),
+    tg_unread(
+        "Day of the Martyrs of Pya",
+        "Fête des patriotes martyrs de Pya",
+    ),
+    tg_unread("Assumption", "Assomption"),
+    tg_unread("All Saints' Day", "Toussaint"),
+    tg_unread("Christmas", "Noël"),
+    // The days "fériée, chômée et payée" the Government declared beside a
+    // holiday, in the years read; any other is not carried.
+    announced("Day off", "Journée chômée et payée", tg_day_off, 2024, 2026)
+        .years(Some(2024), Some(2026)),
+];
+
+/// Togo: the fêtes légales of 1987 and the Government's communiqués.
+///
+/// Loi n° 87-08 of 9 June 1987, from the Journal officiel, lists twelve
+/// fêtes légales and repeals the ordonnance of 1979, which had them with
+/// 27 April; article 199 of the Code du travail of 2021 leaves "la liste et
+/// le régime des jours fériés" to a decree, which was not found. The
+/// communiqués read, of 2024 to 2026, declare days the 1987 law does not
+/// name — 27 April again, Whit Monday — so the law is not the current list
+/// and no instrument read says what is. The table is therefore the law's
+/// days as a gap in every year from 1987, save the years a communiqué read
+/// dates one: Eid al-Fitr in 2026, Labour Day in 2026, Tabaski in 2025 and
+/// 2026. 27 April and Whit Monday, which only communiqués give, are carried
+/// for the years read and are a gap in any other; so are the days off
+/// declared beside a holiday, 2 January 2024 and 2026 and 2 May 2025, and
+/// no other is carried. No communiqué read moves a holiday off the Sunday:
+/// 27 April 2025 was kept on it. Easter Monday, which secondary lists give,
+/// is not carried.
+pub static TOGO: RuleSet = RuleSet {
+    code: "TG",
+    english_name: "Togo",
+    rules: TG_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: TG_WEEKEND,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Loi n° 87-08 du 9 juin 1987 réglementant le régime des fêtes légales, Journal \
+              officiel de la République togolaise, 30 June 1987, p. 5, from a copy of \
+              jo.gouv.tg's scan downloaded 2026-09-23, the link now broken; Ordonnance n° 79-10 \
+              du 2 mars 1979, JORT 1 April 1979, pp. 178–179 (jo.gouv.tg); Loi n° 2021-012 du \
+              18 juin 2021 portant code du travail, articles 198 and 199, JORT 18 June 2021 \
+              n° 26 ter (jo.gouv.tg); the Ministère de la fonction publique, du travail et du \
+              dialogue social's communiqués of 23 and 29 April 2026 and its post of 26 May \
+              2026 (bk.fonctionpublique.gouv.tg); the Government portal's notices of 31 \
+              December 2023, 1 May 2025, 31 December 2025 and 19 March 2026 \
+              (republiquetogolaise.tg); Togo Top News, 5 June 2025 (secondary); all retrieved \
+              2026-09-26",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Niger
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The first year of the communiqués read.
+const NE_FROM: i32 = 2023;
+
+/// The days the communiqués date, as read.
+static NE_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+    // Kaweru, 1 April 2026 (secondary).
+    (2026, 4, 6, "Easter Monday"),
+    // Niger Diaspora, 21 May 2026, citing ordonnance 2026-12 (secondary).
+    (2026, 5, 27, "Tabaski"),
+    (2026, 5, 28, "Tabaski"),
+];
+
+announced_days! {
+    NE_ANNOUNCED;
+    ne_easter_monday => "Easter Monday",
+    ne_tabaski => "Tabaski",
+}
+
+const fn ne_fixed(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, Rule::gregorian(month, day)).years(Some(NE_FROM), None)
+}
+
+const fn ne_fitr(day: u8) -> HolidayRule {
+    HolidayRule::fixed_public(
+        "Eid al-Fitr",
+        "Aïd el-Fitr",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, day),
+    )
+    .approximate()
+    .years(Some(2026), None)
+}
+
+static NE_RULES: &[HolidayRule] = &[
+    ne_fixed("New Year's Day", "Nouvel an", 1, 1),
+    // Ordonnance 2026-12 of 3 March 2026, as the Council of Ministers
+    // adopted it.
+    ne_fixed(
+        "Day of the Refoundation",
+        "Journée de la Refondation",
+        3,
+        26,
+    )
+    .years(Some(2026), None),
+    announced(
+        "Easter Monday",
+        "Lundi de Pâques",
+        ne_easter_monday,
+        2026,
+        2026,
+    )
+    .years(Some(NE_FROM), None),
+    HolidayRule::fixed_public("Labour Day", "Fête du travail", NOT_READ).years(Some(NE_FROM), None),
+    // "le jour et le lendemain", from 2026; before, not read.
+    HolidayRule::fixed_public("Eid al-Fitr", "Aïd el-Fitr", NOT_READ)
+        .years(Some(NE_FROM), Some(2025)),
+    ne_fitr(1),
+    ne_fitr(2),
+    announced("Tabaski", "Tabaski", ne_tabaski, 2026, 2026).years(Some(NE_FROM), None),
+    // Ordonnance 2024-33 of 22 July 2024.
+    ne_fixed(
+        "Anniversary of 26 July",
+        "Journée anniversaire du 26 juillet",
+        7,
+        26,
+    )
+    .years(Some(2024), None),
+    ne_fixed("National Day", "Fête nationale", 8, 3),
+    ne_fixed(
+        "Proclamation of the Republic",
+        "Proclamation de la République",
+        12,
+        18,
+    ),
+    ne_fixed("Christmas", "Noël", 12, 25),
+];
+
+/// Niger, from 2023.
+///
+/// Loi n° 97-20 of 20 June 1997 on the fêtes légales, which was not read,
+/// as its amendments and the communiqués of the Ministry of the Civil
+/// Service and Labour that apply it give it: 1 January, 18 December and
+/// Christmas by date, "chômée et payée", in the communiqués of 2023 to
+/// 2025; 3 August restored as the Fête nationale in place of 18 December
+/// by the Council of Ministers of 25 May 2023, 18 December still declared
+/// after it; 26 July from 2024 by ordonnance 2024-33; and 26 March, with a
+/// second day of Eid al-Fitr, from 2026 by ordonnance 2026-12, the Eid on
+/// the tabular Hijri calendar and approximate. The table starts in 2023,
+/// with the first communiqué read. Easter Monday and the two days of
+/// Tabaski are carried for 2026 from the press, and are a gap in any other
+/// year, as Labour Day is in every year and Eid al-Fitr before 2026. The
+/// days secondary lists add — 24 April, the Islamic New Year, the day
+/// after the Mawlid and the day after Laylat al-Qadr — are not carried, and
+/// nor are the afternoons the communiqués give for the wrestling
+/// championships. The Saturday–Sunday weekend is not sourced.
+pub static NIGER: RuleSet = RuleSet {
+    code: "NE",
+    english_name: "Niger",
+    rules: NE_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Loi n° 97-20 du 20 juin 1997 instituant les fêtes légales, not read (NATLEX \
+              record 78831 refused this session); Le Sahel, 26 May 2023, on the Council of \
+              Ministers' text restoring 3 August, and 23 July 2024, the Secrétariat général du \
+              Gouvernement's communiqué on the ordonnance of 22 July 2024 making 26 July a \
+              fête légale (lesahel.org; also gouv.ne); Agence Nigérienne de Presse, 3 March \
+              2026, on the Council of Ministers' ordonnance for 26 March and the second day of \
+              Eid al-Fitr (anp.ne); the Ministère de la Fonction publique, du Travail et de \
+              l'Emploi's communiqués of 13 and 28 December 2023 and 15 and 17 December 2025 \
+              (lesahel.org), the last two citing ordonnance 2024-33; Kaweru, 1 April 2026, \
+              and Niger Diaspora, 21 May 2026 (secondary); all retrieved 2026-09-26",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Gabon
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The days the Ministry of Labour's communiqués declare, as the press
+/// reproduces them.
+static GA_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+    (2024, 8, 15, "Assumption"),
+    (2024, 8, 16, "Independence Day"),
+    (2024, 8, 17, "Independence Day"),
+    (2025, 6, 6, "Eid al-Adha"),
+    (2025, 6, 8, "Pentecost"),
+    (2025, 6, 9, "Whit Monday"),
+    (2025, 12, 25, "Christmas"),
+    // "fériés, chômés et récupérables": the hours are to be made up.
+    (2025, 12, 26, "Day off"),
+    (2026, 1, 1, "New Year's Day"),
+    (2026, 1, 2, "Day off"),
+    (2026, 5, 14, "Ascension"),
+];
+
+announced_days! {
+    GA_ANNOUNCED;
+    ga_assumption => "Assumption",
+    ga_independence => "Independence Day",
+    ga_adha => "Eid al-Adha",
+    ga_pentecost => "Pentecost",
+    ga_whit_monday => "Whit Monday",
+    ga_christmas => "Christmas",
+    ga_day_off => "Day off",
+    ga_new_year => "New Year's Day",
+    ga_ascension => "Ascension",
+}
+
+static GA_RULES: &[HolidayRule] = &[
+    announced("New Year's Day", "Jour de l'an", ga_new_year, 2026, 2026),
+    HolidayRule::fixed_public("Easter Monday", "Lundi de Pâques", NOT_READ),
+    HolidayRule::fixed_public("Labour Day", "Fête du travail", NOT_READ),
+    announced("Ascension", "Ascension", ga_ascension, 2026, 2026),
+    announced("Pentecost", "Pentecôte", ga_pentecost, 2025, 2025),
+    announced(
+        "Whit Monday",
+        "Lundi de Pentecôte",
+        ga_whit_monday,
+        2025,
+        2025,
+    ),
+    HolidayRule::fixed_public("Eid al-Fitr", "Aïd el-Fitr", NOT_READ),
+    announced("Eid al-Adha", "Aïd el-Kébir", ga_adha, 2025, 2025),
+    announced("Assumption", "Assomption", ga_assumption, 2024, 2024),
+    announced(
+        "Independence Day",
+        "Fête nationale",
+        ga_independence,
+        2024,
+        2024,
+    ),
+    // "Chaque année, la journée du 30 août sera désormais fériée, chômée et
+    // payée."
+    HolidayRule::fixed_public(
+        "Liberation Day",
+        "Journée nationale de la libération",
+        Rule::gregorian(8, 30),
+    )
+    .years(Some(2024), None),
+    HolidayRule::fixed_public("All Saints' Day", "Toussaint", NOT_READ),
+    announced("Christmas", "Noël", ga_christmas, 2025, 2025),
+    announced(
+        "Day off",
+        "Jour férié, chômé et récupérable",
+        ga_day_off,
+        2025,
+        2026,
+    )
+    .years(Some(2025), Some(2026)),
+];
+
+/// Gabon: the Ministry of Labour's communiqués, as the press reproduces
+/// them.
+///
+/// Every communiqué read cites décret n° 00727/PR/MTEFP of 29 June 1998 as
+/// amended by décret n° 000484/PR/MTE of 26 May 2004, which were not read,
+/// and the communiqués themselves were read only as the Gabonese press
+/// reproduces them. The table is the days they declare, for the years
+/// they declare them, and a gap in every other year: the Assumption and
+/// the two days of the Fête nationale in 2024, Eid al-Adha, Pentecost and
+/// Whit Monday in 2025, Christmas 2025, New Year and the Ascension in
+/// 2026. Easter Monday, Labour Day, Eid al-Fitr and All Saints' Day, which
+/// the WageIndicator summary of the decree lists and no communiqué read
+/// dates, are a gap every year. Liberation Day, 30 August, is carried from
+/// 2024, the decree making it "chaque année" fériée having been reported
+/// then; its number was not found. The two days "fériés, chômés et
+/// récupérables" of 26 December 2025 and 2 January 2026 are days off whose
+/// hours are made up later. A Saturday or Sunday holiday was declared on
+/// its day, not moved. The Saturday–Sunday weekend is not sourced.
+pub static GABON: RuleSet = RuleSet {
+    code: "GA",
+    english_name: "Gabon",
+    rules: GA_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 26),
+    sources: "Décret n° 00727/PR/MTEFP du 29 juin 1998 modifié par le décret n° \
+              000484/PR/MTE du 26 mai 2004, not read, as the communiqués cite it; the \
+              Ministry of Labour's communiqués as reproduced by Gabonactu24 (12 August 2024), \
+              Gabonreview (3 June 2025), Gabonclic (23 December 2025) and TV+ Afrique (12 May \
+              2026), and Gabonactu (6 August 2024) on the decree for 30 August, all secondary; \
+              WageIndicator's summary of the decree (secondary); all retrieved 2026-09-26",
 };

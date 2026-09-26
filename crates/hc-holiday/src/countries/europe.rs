@@ -479,7 +479,15 @@ pub static GERMANY: RuleSet = RuleSet {
 
 static IT_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "Capodanno", Rule::gregorian(1, 1)),
-    HolidayRule::public("Epiphany", "Epifania", Rule::gregorian(1, 6)),
+    // Legge 54/1977, art. 1, in force from 8 March 1977: Epiphany, St
+    // Joseph, the Ascension, Corpus Domini and Saints Peter and Paul "cessano
+    // di essere considerati festivi agli effetti civili", and 2 June and
+    // 4 November move to Sundays. D.P.R. 792/1985 gave Epiphany back from
+    // 1986, under article 6 of the 1984 revision of the Concordat.
+    HolidayRule::public("Epiphany", "Epifania", Rule::gregorian(1, 6)).years(None, Some(1977)),
+    HolidayRule::public("Epiphany", "Epifania", Rule::gregorian(1, 6)).years(Some(1986), None),
+    HolidayRule::public("St Joseph's Day", "San Giuseppe", Rule::gregorian(3, 19))
+        .years(None, Some(1976)),
     HolidayRule::public("Easter Sunday", "Pasqua", Rule::easter(EASTER_SUNDAY)),
     HolidayRule::public(
         "Easter Monday",
@@ -493,6 +501,13 @@ static IT_RULES: &[HolidayRule] = &[
     )
     .years(Some(1946), None),
     HolidayRule::public("Labour Day", "Festa del Lavoro", Rule::gregorian(5, 1)),
+    HolidayRule::public("Ascension", "Ascensione", Rule::easter(ASCENSION)).years(None, Some(1976)),
+    HolidayRule::public(
+        "Corpus Domini",
+        "Corpus Domini",
+        Rule::easter(CORPUS_CHRISTI),
+    )
+    .years(None, Some(1976)),
     // Republic Day was a working day from 1977 to 2000, kept on the first
     // Sunday of June instead; law 336/2000 put it back on 2 June.
     HolidayRule::public(
@@ -507,6 +522,12 @@ static IT_RULES: &[HolidayRule] = &[
         Rule::gregorian(6, 2),
     )
     .years(Some(2001), None),
+    HolidayRule::public(
+        "Saints Peter and Paul",
+        "Santi Apostoli Pietro e Paolo",
+        Rule::gregorian(6, 29),
+    )
+    .years(None, Some(1976)),
     HolidayRule::public("Assumption", "Ferragosto", Rule::gregorian(8, 15)),
     // Added to article 2 by legge n. 151/2025, from 2026.
     HolidayRule::public(
@@ -517,6 +538,12 @@ static IT_RULES: &[HolidayRule] = &[
     .years(Some(2026), None),
     HolidayRule::public("All Saints' Day", "Ognissanti", Rule::gregorian(11, 1)),
     HolidayRule::public(
+        "National Unity Day",
+        "Giorno dell'Unità Nazionale",
+        Rule::gregorian(11, 4),
+    )
+    .years(None, Some(1976)),
+    HolidayRule::public(
         "Immaculate Conception",
         "Immacolata Concezione",
         Rule::gregorian(12, 8),
@@ -526,6 +553,14 @@ static IT_RULES: &[HolidayRule] = &[
 ];
 
 /// Italy.
+///
+/// Article 2 of law 260/1949 as Normattiva consolidates it still lists the
+/// five religious days and 4 November that law 54/1977 took away, because
+/// the consolidation does not apply that law; the table follows law 54/1977
+/// itself. Epiphany was a working day from 1978 to 1985, 6 January 1977
+/// having fallen before the law came into force, and the others are carried
+/// to 1976. The Sunday commemorations of 2 June and 4 November in the
+/// meantime are not carried.
 pub static ITALY: RuleSet = RuleSet {
     code: "IT",
     english_name: "Italy",
@@ -539,8 +574,12 @@ pub static ITALY: RuleSet = RuleSet {
               articles 1 and 2, in the text in force updated to 10 October 2025, on Normattiva \
               (normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1949-05-27;260), retrieved \
               2026-09-26, with 4 October from 2026 as legge n. 151/2025 (GU n. 236 del 10 \
-              ottobre 2025) added it; legge 20 novembre 2000, n. 336, for Republic Day, not \
-              read. Municipal patron-saint days are real holidays but are not modelled",
+              ottobre 2025) added it; legge 5 marzo 1977, n. 54, art. 1 (GU n. 63 del 7 marzo \
+              1977), and D.P.R. 28 dicembre 1985, n. 792, art. 1 (GU n. 306 del 31 dicembre \
+              1985), on Normattiva (urn:nir:stato:legge:1977-03-05;54 and \
+              urn:nir:presidente.repubblica:decreto:1985-12-28;792), retrieved 2026-09-26; \
+              legge 20 novembre 2000, n. 336, for Republic Day, not read. Municipal \
+              patron-saint days are real holidays but are not modelled",
 };
 
 static ES_RULES: &[HolidayRule] = &[
@@ -853,8 +892,14 @@ static AT_RULES: &[HolidayRule] = &[
         Rule::easter(CORPUS_CHRISTI),
     ),
     HolidayRule::public("Assumption", "Mariä Himmelfahrt", Rule::gregorian(8, 15)),
+    // BGBl. Nr. 298/1965, Art. II Abs. 2: "Die bundesgesetzlichen
+    // Bestimmungen über die Feiertagsruhe gelten für diesen Tag nicht." A
+    // day of observance in 1965 and 1966, and a day of rest from the
+    // Feiertagsruhegesetz as amended by BGBl. Nr. 264/1967.
+    HolidayRule::observance("National Day", "Nationalfeiertag", Rule::gregorian(10, 26))
+        .years(Some(1965), Some(1966)),
     HolidayRule::public("National Day", "Nationalfeiertag", Rule::gregorian(10, 26))
-        .years(Some(1965), None),
+        .years(Some(1967), None),
     HolidayRule::public("All Saints' Day", "Allerheiligen", Rule::gregorian(11, 1)),
     HolidayRule::public(
         "Immaculate Conception",
@@ -877,8 +922,13 @@ pub static AUSTRIA: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Arbeitsruhegesetz, BGBl. Nr. 144/1983, § 7 Abs. 2, as amended by BGBl. I Nr. \
               22/2019, which repealed Abs. 3 on Good Friday, read on jusline.at (secondary; \
-              RIS, Gesetzesnummer 10008541, not reachable), retrieved 2026-09-26; Bundesgesetz \
-              BGBl. Nr. 263/1967 for the National Day as a day of rest, not read",
+              RIS, Gesetzesnummer 10008541, not reachable), retrieved 2026-09-26; the \
+              Bundesgesetz vom 25. Oktober 1965 über den österreichischen Nationalfeiertag, \
+              BGBl. Nr. 298/1965, Art. II Abs. 2, from the RIS scan \
+              (ogd.ris.bka.gv.at/Dokumente/BgblPdf/1965_298_0/1965_298_0.pdf), and the \
+              Feiertagsruhegesetz 1957, BGBl. Nr. 153/1957 as amended by BGBl. Nr. 264/1967, \
+              § 1 in the version in force from 26 July 1967 (RIS NOR12094414), for 26 October \
+              as a day of rest from 1967; both retrieved 2026-09-26",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

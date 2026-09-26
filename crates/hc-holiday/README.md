@@ -19,7 +19,7 @@ a company calendar, a school year or a fictional setting supplies their own
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `international` | the United Nations international days, each citing its resolution |
 | `exchanges` | 42 exchange calendars: New York, Nasdaq, Toronto, Mexico City, São Paulo, London, Frankfurt, Zurich, Vienna, Madrid, Warsaw, Moscow, Istanbul, Euronext's seven markets, Nasdaq's four Nordic markets, Johannesburg, Tel Aviv, Riyadh, Tokyo, Seoul, Shanghai, Shenzhen, Taipei, Hong Kong, Mumbai's NSE and BSE, Bangkok, Singapore, Kuala Lumpur, Jakarta, Manila, Sydney, NZX |
-| `countries` | 184 national tables |
+| `countries` | 195 national tables |
 
 ## The vocabulary
 
@@ -103,7 +103,7 @@ record, the autumn equinox of 2012 at 23:49 JST, is eleven minutes clear.
 
 ## Coverage
 
-**184 countries.** Afghanistan, Albania, Algeria, Andorra, Angola, Antigua and Barbuda,
+**195 countries.** Afghanistan, Albania, Algeria, Andorra, Angola, Antigua and Barbuda,
 Argentina, Armenia, Australia (eight states and territories), Austria,
 Azerbaijan, the Bahamas, Bahrain, Bangladesh, Barbados, Belarus, Belgium,
 Belize, Benin, Bhutan, Bolivia, Bosnia and Herzegovina, Botswana, Brazil,
@@ -111,22 +111,22 @@ Brunei, Bulgaria, Burkina Faso, Burundi, Cabo Verde, Cambodia, Cameroon, Canada
 (federal plus the provincial days fixed by statute), Chad, Chile, China,
 Colombia, Comoros, Costa Rica, Côte d'Ivoire, Croatia, Cuba, Cyprus, Czechia, Democratic
 Republic of the Congo, Denmark, Djibouti, Dominica, the Dominican Republic,
-Ecuador, Egypt, El Salvador, Equatorial Guinea, Estonia, Ethiopia, Fiji, Finland, France (métropole
-plus Alsace-Moselle), Georgia, Germany (all 16 *Länder*), Ghana, Greece,
-Grenada, Guatemala, Guinea, Guyana, Haiti, Honduras, Hong Kong, Hungary,
+Ecuador, Egypt, El Salvador, Equatorial Guinea, Estonia, Eswatini, Ethiopia, Fiji, Finland, France (métropole
+plus Alsace-Moselle), Gabon, the Gambia, Georgia, Germany (all 16 *Länder*), Ghana, Greece,
+Grenada, Guatemala, Guinea, Guinea-Bissau, Guyana, Haiti, Honduras, Hong Kong, Hungary,
 Iceland, India, Indonesia, Iran, Iraq, Ireland, Israel, Italy, Jamaica, Japan,
 Jordan, Kazakhstan, Kenya, Kiribati, Kuwait, Kyrgyzstan, Laos, Latvia, Lebanon,
 Lesotho, Liberia, Libya, Liechtenstein, Lithuania, Luxembourg, Macau, Madagascar, Malawi,
 Malaysia, the Maldives, Mali, Malta, the Marshall Islands, Mauritania,
 Mauritius, Mexico, Micronesia, Moldova, Monaco, Mongolia, Montenegro, Morocco,
 Mozambique, Myanmar, Namibia, Nauru, Nepal, the Netherlands, New Zealand,
-Nicaragua, Nigeria, North Macedonia, Norway, Oman, Pakistan, Palau, Palestine,
+Nicaragua, Niger, Nigeria, North Korea, North Macedonia, Norway, Oman, Pakistan, Palau, Palestine,
 Panama, Papua New Guinea, Paraguay, Peru, the Philippines, Poland, Portugal,
 Qatar, Republic of the Congo, Romania, Russia, Rwanda, Saint Kitts and Nevis,
 Saint Lucia, Saint Vincent and the Grenadines, Samoa, San Marino, Saudi Arabia,
-Senegal, Serbia, Seychelles, Singapore, Slovakia, Slovenia, the Solomon Islands,
-South Africa, South Korea, Spain, Sri Lanka, Suriname, Sweden, Switzerland,
-Syria, Taiwan, Tajikistan, Tanzania, Thailand, Timor-Leste, Tonga, Trinidad and
+Senegal, Serbia, Seychelles, Sierra Leone, Singapore, Slovakia, Slovenia, the Solomon Islands,
+Somalia, South Africa, South Korea, South Sudan, Spain, Sri Lanka, Sudan, Suriname, Sweden, Switzerland,
+Syria, Taiwan, Tajikistan, Tanzania, Thailand, Timor-Leste, Togo, Tonga, Trinidad and
 Tobago, Tunisia, Türkiye, Turkmenistan, Tuvalu, Uganda, Ukraine, the United Arab
 Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
 States, Uruguay, Uzbekistan, Vanuatu, Vatican City, Venezuela, Vietnam, Yemen,
@@ -335,7 +335,7 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 
 | Entry | Why |
 | --- | --- |
-| Every Hijri-dated holiday, in sixty-nine countries and the Islamic tradition table | the observed date is a sighting decision, per country. Indonesia's, Singapore's and Malaysia's are the published lists' for 2020–2026 and exact, and for 2027 the lists' announcements; the Philippines' the proclamations' for 2020–2026 |
+| Every Hijri-dated holiday, in seventy-one countries and the Islamic tradition table | the observed date is a sighting decision, per country. Indonesia's, Singapore's and Malaysia's are the published lists' for 2020–2026 and exact, and for 2027 the lists' announcements; the Philippines' the proclamations' for 2020–2026 |
 | Vesak in Indonesia, Singapore and Malaysia outside 2020–2027 | the full moon of the fourth Chinese month, which is Singapore's date in every year of 2020–2027 and misses the others' in some: Malaysia's Wesak Day 2023 was 4 May, a month before it, and Indonesia's Waisak a day or two after it in 2022–2024. Inside those years it is the lists' date. Thailand's four Buddhist days, and the `buddhist-thai` table's, are exact on `thai-lunar` for 1992–2027 and gaps outside |
 | Nepal's festivals — Buddha Jayanti, Dashain, Tihar and the rest | each is a tithi read at Kathmandu, and the part of the day it must hold is fitted to the notices of 2080–2083 BS, which it reproduces, rather than quoted from the almanac |
 | Bangladesh's Buddha Purnima | the notifications' own dates for 2025 and 2026, which they star as depending on the moon |
