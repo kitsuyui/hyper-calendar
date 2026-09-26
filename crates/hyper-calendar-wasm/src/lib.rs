@@ -478,11 +478,14 @@ pub use civil::{
     hc_is_leap_year, hc_parse_iso_date, hc_tai_minus_utc, hc_unix_from_fixed, hc_weekday,
 };
 
-/// Time scales and day counts, behind the `timestamps` feature: TAI64 labels,
-/// GNSS weeks, GLONASS dates, OLE Automation dates and Excel 1900 serials.
-/// The lines are `hyper_calendar::time_lines`', shared with the C library.
-/// A TAI instant is whole seconds from 1970-01-01 00:00:00 TAI and the
-/// attoseconds into that second, from 0 to 10¹⁸ − 1.
+/// Time scales and day counts, behind the `timestamps` feature: TAI64 labels
+/// in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates,
+/// Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words,
+/// Swatch Internet Time, and Julian and Besselian epochs. The lines are
+/// `hyper_calendar::time_lines`', shared with the C library. A TAI instant
+/// is whole seconds from 1970-01-01 00:00:00 TAI and the attoseconds into
+/// that second, from 0 to 10¹⁸ − 1; a POSIX instant and a TT instant, from
+/// 1970-01-01 00:00:00 TT, cross the same way.
 #[cfg(feature = "timestamps")]
 mod time_scales {
     use super::{emit_answer, text, value};
@@ -763,12 +766,338 @@ mod time_scales {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_answer(time_lines::excel_1900_day_line(serial), buffer, capacity) }
     }
+
+    /// A POSIX timestamp as a TAI reading, as one UTF-8 line, returning the
+    /// byte length written.
+    ///
+    /// The C library's entry point of the same name, in this module's
+    /// `timestamps` layer rather than `civil`, as its 128-bit arithmetic
+    /// is: here it would grow `civil` by a sixth.
+    ///
+    /// Tab-separated: the whole TAI seconds from 1970-01-01 00:00:00 TAI and
+    /// the attoseconds into that second, the TAI instant the other exports
+    /// of this layer take. `strict` non-zero refuses before
+    /// 1961 and past the announced leap-second table with `HC_ERR_NO_DATA`;
+    /// zero holds the last published offset, and before 1961 treats UTC as
+    /// TAI. A timestamp after `i64::MAX − 37`, whose TAI seconds no `i64`
+    /// holds, is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length
+    /// the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_tai_from_unix(
+        unix_seconds: i64,
+        strict: i32,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = time_lines::tai_from_unix_line(unix_seconds, strict != 0);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// A whole TAI second as a UTC label, as one UTF-8 line, returning the
+    /// byte length written.
+    ///
+    /// Tab-separated: the POSIX second, and `1` when the TAI second is an
+    /// inserted leap second, `23:59:60`, which POSIX time cannot express
+    /// and names by the second after it, else `0`. `tai_seconds` counts
+    /// from 1970-01-01 00:00:00 TAI; `strict` is as for `hc_tai_from_unix`.
+    /// A null `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_utc_from_tai(
+        tai_seconds: i64,
+        strict: i32,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = time_lines::utc_from_tai_line(tai_seconds, strict != 0);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// A POSIX instant as a TAI64 or TAI64N label in the
+    /// `tai64-posix-plus-10` convention, in lower-case hexadecimal, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// The convention is the label daemontools' `tai64n` writes on a clock
+    /// that keeps POSIX time: 2⁶² + 10 + the POSIX seconds, with no
+    /// leap-second table, so POSIX 0 is `400000000000000a`. It is not
+    /// `hc_tai64_encode`'s true TAI, and nothing in the bytes says which
+    /// wrote them. `format` is `tai64` (16 digits, the second) or `tai64n`
+    /// (24, the nanosecond), in any case; `tai64na`, which the convention
+    /// does not write, and anything else is `HC_ERR_UNKNOWN`. Attoseconds
+    /// from 10¹⁸, or a second whose label would fall outside 0 to 2⁶³ − 1,
+    /// is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the
+    /// text needs.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_tai64_encode`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_tai64_posix_plus_10_encode(
+        unix_seconds: i64,
+        attoseconds: u64,
+        format: *const u8,
+        format_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let format = match unsafe { text(format, format_len) } {
+            Ok(format) => format,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = time_lines::tai64_posix_plus_10_encode_line(unix_seconds, attoseconds, format);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// A TAI64 or TAI64N label in the `tai64-posix-plus-10` convention read
+    /// back, as one UTF-8 line, returning the byte length written.
+    ///
+    /// Tab-separated: the format (`tai64` or `tai64n`, by the label's
+    /// length), the POSIX seconds and the attoseconds of the instant it
+    /// names. Text that is not 16 or 24 hexadecimal digits, in either case,
+    /// is `HC_ERR_MALFORMED`; a reserved label, from 2⁶³, or a nanosecond
+    /// count above 999 999 999 is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
+    /// returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_tai64_decode`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_tai64_posix_plus_10_decode(
+        hex: *const u8,
+        hex_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let hex = match unsafe { text(hex, hex_len) } {
+            Ok(hex) => hex,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = time_lines::tai64_posix_plus_10_decode_line(hex);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The timestamp of a version 1 or version 6 UUID, as one UTF-8 line,
+    /// returning the byte length written.
+    ///
+    /// `uuid` is RFC 9562's string form: 32 hexadecimal digits in either
+    /// case, bare or hyphenated 8-4-4-4-12, optionally after `urn:uuid:`;
+    /// any other text is `HC_ERR_MALFORMED`. Tab-separated: the version,
+    /// `1` or `6`; the 60-bit timestamp, 100-nanosecond intervals from
+    /// 1582-10-15 00:00 UTC; and the POSIX seconds and attoseconds of the
+    /// start of that interval. A UUID of another version or variant, which
+    /// carries no timestamp, is `HC_ERR_NO_DATA`. The count is what the
+    /// generator wrote, as POSIX time counts, with no leap second. A null
+    /// `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `uuid` must be readable for `uuid_len` bytes unless null with a zero
+    /// length; `buffer` must be writable for `capacity` bytes unless it is
+    /// null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_uuid_timestamp(
+        uuid: *const u8,
+        uuid_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let uuid = match unsafe { text(uuid, uuid_len) } {
+            Ok(uuid) => uuid,
+            Err(sentinel) => return sentinel,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(time_lines::uuid_timestamp_line(uuid), buffer, capacity) }
+    }
+
+    /// A 64-bit NTP timestamp placed in its era by a reference time, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// `seconds` and `fraction` are the timestamp's two 32-bit halves, the
+    /// seconds of an era from 1900-01-01 00:00 UTC and 2⁻³² s units of the
+    /// second; the timestamp names no era, and the era is the one that puts
+    /// it within 2³¹ s, some 68 years, of `reference_unix`, from 2³¹ s
+    /// before it, included, to 2³¹ s after it, excluded, as RFC 5905 §6
+    /// says a client set within 68 years of the server reads it.
+    /// Tab-separated: the era, 0 for 1900 to 2036; the era offset; the
+    /// fraction in 2⁻⁶⁴ s units; and the POSIX seconds and attoseconds. The
+    /// zero timestamp, which RFC 5905 reserves for unknown or
+    /// unsynchronised time, is `HC_ERR_NO_DATA`; a reference so far off
+    /// that the era or the second leaves an `i64` is `HC_ERR_OUT_OF_RANGE`.
+    /// A null `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_ntp_resolve(
+        seconds: u32,
+        fraction: u32,
+        reference_unix: i64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = time_lines::ntp_resolve_line(seconds, fraction, reference_unix);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The local reading a FAT date word and time word name, as one UTF-8
+    /// line, returning the byte length written.
+    ///
+    /// Tab-separated: the fixed day and the seconds into it, always even.
+    /// The words are a wall-clock reading in a zone they do not record, so
+    /// the day is a local one and no instant is claimed. A word above
+    /// 65 535 is `HC_ERR_OUT_OF_RANGE`, and one whose fields name no day or
+    /// no time — month 0 or above 12, day 0 or one the month lacks, hour
+    /// above 23, minute above 59, halved second above 29 — is
+    /// `HC_ERR_INVALID_DATE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_fat_decode(
+        date: u32,
+        time: u32,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(time_lines::fat_decode_line(date, time), buffer, capacity) }
+    }
+
+    /// The FAT date and time words of a fixed day and a time of day, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// Tab-separated: the date word and the time word, the second rounded
+    /// down to an even one as the word carries it. A time of day from
+    /// 86 400 s, or a day outside 1980 to 2107, the years the date word
+    /// holds, is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length
+    /// the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_fat_encode(
+        fixed: i64,
+        seconds_of_day: u32,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = time_lines::fat_encode_line(fixed, seconds_of_day);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The Swatch Internet Time at a POSIX instant, 0 through 999, or an
+    /// error sentinel.
+    ///
+    /// The day of Biel Mean Time, UTC+1 all year, in a thousand beats of
+    /// 86.4 s: @000 begins at 23:00 UTC. Attoseconds from 10¹⁸ are
+    /// `HC_ERR_OUT_OF_RANGE`.
+    #[unsafe(no_mangle)]
+    pub extern "C" fn hc_swatch_beat(unix_seconds: i64, attoseconds: u64) -> i64 {
+        value(time_lines::swatch_beat(unix_seconds, attoseconds).map(i64::from))
+    }
+
+    /// The Julian or Besselian epoch of a TT instant, as one UTF-8 line,
+    /// returning the byte length written.
+    ///
+    /// `notation` is `J` or `julian-epoch`, for Julian years of 365.25 days
+    /// of TT from J2000.0 = 2000-01-01T12:00:00 TT, or `B` or
+    /// `besselian-epoch`, for Besselian years of 365.242 198 781 days from
+    /// B1900.0 = JD 2415020.31352, in any case; anything else is
+    /// `HC_ERR_UNKNOWN`. The instant is whole seconds from
+    /// 1970-01-01 00:00:00 TT and attoseconds; TT is TAI + 32.184 s.
+    /// Tab-separated: the notation's letter and the epoch, `2000` for
+    /// J2000.0. Attoseconds from 10¹⁸ are `HC_ERR_OUT_OF_RANGE`. A null
+    /// `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `notation` must be readable for `notation_len` bytes unless null
+    /// with a zero length; `buffer` must be writable for `capacity` bytes
+    /// unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_epoch_from_tt(
+        notation: *const u8,
+        notation_len: usize,
+        tt_seconds: i64,
+        attoseconds: u64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let notation = match unsafe { text(notation, notation_len) } {
+            Ok(notation) => notation,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = time_lines::epoch_from_tt_line(notation, tt_seconds, attoseconds);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The TT instant of a Julian or Besselian epoch, as one UTF-8 line,
+    /// returning the byte length written.
+    ///
+    /// `notation` is as for `hc_epoch_from_tt`, or empty for an epoch
+    /// written without a letter, which SOFA reads as Besselian before
+    /// 1984.0 and Julian from it. Tab-separated: the letter the year was
+    /// read in, and the whole seconds from 1970-01-01 00:00:00 TT and the
+    /// attoseconds. A year that is not finite, or whose instant leaves an
+    /// `i64` of seconds, is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns
+    /// the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_epoch_from_tt`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_tt_from_epoch(
+        notation: *const u8,
+        notation_len: usize,
+        year: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let notation = match unsafe { text(notation, notation_len) } {
+            Ok(notation) => notation,
+            Err(sentinel) => return sentinel,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe {
+            emit_answer(
+                time_lines::tt_from_epoch_line(notation, year),
+                buffer,
+                capacity,
+            )
+        }
+    }
 }
 
 #[cfg(feature = "timestamps")]
 pub use time_scales::{
-    hc_excel_1900_day, hc_fixed_from_ole_automation, hc_glonass_date, hc_gnss_resolve_week,
-    hc_gnss_to_tai, hc_gnss_week, hc_ole_automation_from_fixed, hc_tai64_decode, hc_tai64_encode,
+    hc_epoch_from_tt, hc_excel_1900_day, hc_fat_decode, hc_fat_encode,
+    hc_fixed_from_ole_automation, hc_glonass_date, hc_gnss_resolve_week, hc_gnss_to_tai,
+    hc_gnss_week, hc_ntp_resolve, hc_ole_automation_from_fixed, hc_swatch_beat, hc_tai_from_unix,
+    hc_tai64_decode, hc_tai64_encode, hc_tai64_posix_plus_10_decode, hc_tai64_posix_plus_10_encode,
+    hc_tt_from_epoch, hc_utc_from_tai, hc_uuid_timestamp,
 };
 
 /// Every calendar, behind the `calendars` feature: the registry the facade
@@ -778,7 +1107,7 @@ pub use time_scales::{
 /// lines are `hyper_calendar::lines`', shared with the C library.
 #[cfg(feature = "calendars")]
 mod calendars {
-    use super::{HC_ERR_UNKNOWN, emit_or_measure, text};
+    use super::{HC_ERR_UNKNOWN, emit_answer, emit_or_measure, text};
     use hc::hc_calendar::Rd;
     use hc::hc_calendar::units::Unit;
     use hc::lines;
@@ -847,9 +1176,12 @@ mod calendars {
     /// are whole units and may reach outside the range asked for. A span the
     /// calendar refuses — days before its epoch or past its table, a unit it
     /// does not have — has an empty label, leap flag and standing and
-    /// carries the refusal's code and name. An empty range writes nothing.
-    /// `locale` is as for `hc_describe_day`, `native` included. A null
-    /// `buffer` returns the length the text needs.
+    /// carries the refusal's code and name. An empty range writes nothing,
+    /// and a range of more than 100 000 spans, `hyper_calendar::lines`'
+    /// `MAX_CALENDAR_UNITS`, is `HC_ERR_OUT_OF_RANGE`: the text would grow
+    /// without bound, one line a unit, and a caller that wants more asks in
+    /// pieces. `locale` is as for `hc_describe_day`, `native` included. A
+    /// null `buffer` returns the length the text needs.
     ///
     /// # Safety
     ///
@@ -885,9 +1217,9 @@ mod calendars {
         let Some(calendar) = registry.get_by_name(id) else {
             return HC_ERR_UNKNOWN;
         };
-        let text = lines::calendar_units(calendar, unit, Rd(from_fixed), Rd(to_fixed), tag);
+        let answer = lines::calendar_units(calendar, unit, Rd(from_fixed), Rd(to_fixed), tag);
         // SAFETY: forwarded to the caller's contract above.
-        unsafe { emit_or_measure(&text, buffer, capacity) }
+        unsafe { emit_answer(answer, buffer, capacity) }
     }
 
     /// Every registered calendar, as UTF-8 lines, returning the byte length
@@ -1524,12 +1856,16 @@ mod observances {
     /// table is in; the name in the locale; the English name; the locale
     /// that answered; the sources the table names; and, for a subdivision
     /// or an exchange, the ISO 3166-1 country it belongs to as its table
-    /// records it, else empty. A country is named by its CLDR 48 territory
+    /// records it, else empty; and the short name in the locale, else
+    /// empty. A country is named by its CLDR 48 territory
     /// name in the locale where `hc-i18n` carries one, and every other
     /// table, and a country the locale has no name for, by its English
-    /// name; column 5 is the tag that answered. The locale argument
-    /// fails as `hc_parse_iso_date` does. A null `buffer` returns the
-    /// length the text needs.
+    /// name; column 5 is the tag that answered. Column 8 is CLDR 48's
+    /// `alt="short"` name of a country column 3 names from CLDR, from the
+    /// same locale's data — `Hong Kong` for `HK` under `en`, 香港 under
+    /// `ja` — and empty where the data has none and for every table named in
+    /// English by fallback. The locale argument fails as `hc_parse_iso_date`
+    /// does. A null `buffer` returns the length the text needs.
     ///
     /// # Safety
     ///
@@ -1592,91 +1928,12 @@ mod observances {
 pub use observances::{hc_astronomical_easter, hc_holiday_tables, hc_lectionary};
 
 /// The almanac, behind the `seasons` feature: the 24 solar terms and the 72
-/// pentads of `hc-seasons`, judged at a named meridian.
+/// pentads of `hc-seasons`, judged at a named meridian. The lines are
+/// `hyper_calendar::season_lines`', shared with the C library.
 #[cfg(feature = "seasons")]
 mod seasons {
-    use super::{HC_ERR_UNKNOWN, emit_or_measure, push_cell, text};
-    use hc::hc_calendar::Rd;
-    use hc::hc_seasons::hc_astro::solar::solar_longitude_after;
-    use hc::hc_seasons::solar_terms::{TermOrder, namings, term_in_effect};
-    use hc::hc_seasons::{Meridian, pentads};
-
-    /// The meridian a string names.
-    ///
-    /// A name — `universal`, `japan`, `china`, `korea`, `india` or
-    /// `china-before-1929`, in any case, with the empty string meaning
-    /// `universal` — or a longitude in decimal degrees east of Greenwich,
-    /// read as local mean solar time.
-    ///
-    /// # Errors
-    ///
-    /// [`HC_ERR_UNKNOWN`] for anything else.
-    pub(super) fn meridian(name: &str) -> Result<Meridian, i64> {
-        let lowered = name.trim().to_ascii_lowercase();
-        Ok(match lowered.as_str() {
-            "" | "universal" => Meridian::UNIVERSAL,
-            "japan" => Meridian::JAPAN,
-            "china" => Meridian::CHINA,
-            "korea" => Meridian::KOREA,
-            "india" => Meridian::INDIA,
-            "china-before-1929" => Meridian::CHINA_BEFORE_1929,
-            degrees => degrees
-                .parse::<f64>()
-                .ok()
-                .filter(|degrees| degrees.is_finite() && (-180.0..=180.0).contains(degrees))
-                .map(Meridian::from_longitude_degrees)
-                .ok_or(HC_ERR_UNKNOWN)?,
-        })
-    }
-
-    /// The solar term in effect on a day as one line; see
-    /// [`hc_term_in_effect`] for the columns.
-    pub(super) fn term_line(fixed: i64, meridian: Meridian) -> String {
-        use core::fmt::Write;
-        let event = term_in_effect(Rd(fixed), meridian);
-        let next = solar_longitude_after(event.term.next().solar_longitude_degrees(), event.moment);
-        let end = Rd(meridian.day_of(next).0 - 1);
-        let mut out = String::new();
-        let _ = write!(
-            out,
-            "{}\t{}\t{}\t{}\t{}\t",
-            event.term.index(TermOrder::SpringEquinoxFirst),
-            event.term.chinese_name(),
-            event.term.japanese_name(),
-            event.day.0,
-            end.0
-        );
-        push_cell(&mut out, namings::TRADITIONAL_CHINESE.authority);
-        out.push('\t');
-        push_cell(&mut out, namings::JAPANESE.authority);
-        out.push('\n');
-        out
-    }
-
-    /// The pentad in effect on a day as one line; see
-    /// [`hc_pentad_in_effect`] for the columns.
-    pub(super) fn pentad_line(fixed: i64, meridian: Meridian) -> String {
-        use core::fmt::Write;
-        let event = pentads::pentad_in_effect(Rd(fixed), meridian);
-        let next =
-            solar_longitude_after(event.pentad.next().solar_longitude_degrees(), event.moment);
-        let end = Rd(meridian.day_of(next).0 - 1);
-        let mut out = String::new();
-        let _ = write!(
-            out,
-            "{}\t{}\t{}\t{}\t{}\t",
-            event.pentad.index(TermOrder::SpringEquinoxFirst),
-            event.pentad.name(pentads::CHINESE),
-            event.pentad.name(pentads::JAPANESE),
-            event.day.0,
-            end.0
-        );
-        push_cell(&mut out, pentads::CHINESE.authority);
-        out.push('\t');
-        push_cell(&mut out, pentads::JAPANESE.authority);
-        out.push('\n');
-        out
-    }
+    use super::{emit_answer, text};
+    use hc::season_lines;
 
     /// The solar term in effect on a fixed day at a meridian, as one UTF-8
     /// line, returning the byte length written.
@@ -1712,16 +1969,8 @@ mod seasons {
             Ok(name) => name,
             Err(sentinel) => return sentinel,
         };
-        let meridian = match self::meridian(name) {
-            Ok(meridian) => meridian,
-            Err(sentinel) => return sentinel,
-        };
-        if let Err(refusal) = hc::astro_lines::day_in_era(fixed) {
-            return super::sentinel(refusal);
-        }
-        let text = term_line(fixed, meridian);
         // SAFETY: forwarded to the caller's contract above.
-        unsafe { emit_or_measure(&text, buffer, capacity) }
+        unsafe { emit_answer(season_lines::term_line(fixed, name), buffer, capacity) }
     }
 
     /// The pentad (候) in effect on a fixed day at a meridian, as one UTF-8
@@ -1752,16 +2001,8 @@ mod seasons {
             Ok(name) => name,
             Err(sentinel) => return sentinel,
         };
-        let meridian = match self::meridian(name) {
-            Ok(meridian) => meridian,
-            Err(sentinel) => return sentinel,
-        };
-        if let Err(refusal) = hc::astro_lines::day_in_era(fixed) {
-            return super::sentinel(refusal);
-        }
-        let text = pentad_line(fixed, meridian);
         // SAFETY: forwarded to the caller's contract above.
-        unsafe { emit_or_measure(&text, buffer, capacity) }
+        unsafe { emit_answer(season_lines::pentad_line(fixed, name), buffer, capacity) }
     }
 }
 
@@ -2911,9 +3152,9 @@ pub use orbital::{hc_orbit_at, hc_orbit_series};
 /// surface missions' sol counts, and the solar day and local mean solar
 /// time of every body in `hc-planetary`'s table.
 ///
-/// A calendar `hc-planetary` gains later — Titan's, the Galilean moons', a
-/// second Martian one — is one more export here beside [`hc_mars_time`],
-/// with its own line, not a new column of an existing one.
+/// Titan's and the Galilean moons' circad calendars and the Martiana
+/// calendar are [`hc_circad_date`], one export with its own line beside
+/// [`hc_mars_time`], not new columns of an existing one.
 #[cfg(feature = "planetary")]
 mod planetary {
     use super::{emit_answer, text, value};
@@ -3064,10 +3305,54 @@ mod planetary {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_answer(answer, buffer, capacity) }
     }
+
+    /// The date at a POSIX instant in a calendar of another body's days, as
+    /// one UTF-8 line, returning the byte length written.
+    ///
+    /// `calendar` is `darian-titan`, `gregorian-io`, `gregorian-europa`,
+    /// `gregorian-ganymede`, `gregorian-callisto` or `martiana`, in any
+    /// ASCII case; another is `HC_ERR_UNKNOWN`. Tab-separated: the
+    /// calendar, the year, the month, the day of the month, the month's
+    /// name, the name of the day's place in the week, the day count the
+    /// date is numbered by, the fraction of that day elapsed, `1` for a
+    /// leap year, and the source. Titan's and the Galilean moons' days are
+    /// *circads*, fixed fractions of the moon's solar day in weeks of
+    /// eight, counted from the calendar's epoch by Gangale's calibration;
+    /// Martiana's are sols at Airy-0 in weeks of seven, counted as the
+    /// Darian sol number, with an empty week cell on the epagomenal sol of
+    /// every tenth year. The instant is read as for `hc_mars_time`, and one
+    /// more than 100 Julian years from J2000.0, or not finite, is
+    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `calendar` must be readable for `calendar_len` bytes unless null with
+    /// a zero length, and `buffer` must be writable for `capacity` bytes
+    /// unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_circad_date(
+        calendar: *const u8,
+        calendar_len: usize,
+        unix_seconds: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let name = match unsafe { text(calendar, calendar_len) } {
+            Ok(name) => name,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = planetary_lines::circad_date_line(name, unix_seconds);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
 }
 
 #[cfg(feature = "planetary")]
-pub use planetary::{hc_bodies, hc_body_time, hc_mars_time, hc_mission_sol, hc_missions};
+pub use planetary::{
+    hc_bodies, hc_body_time, hc_circad_date, hc_mars_time, hc_mission_sol, hc_missions,
+};
 
 /// Relativistic time dilation, behind the `relativity` feature: a clock
 /// at a constant velocity, and a clock held still at a radius from a
@@ -3815,6 +4100,29 @@ mod tests {
                 },
                 0
             );
+            // At the cap, 100 000 days as days, the text is measured; one
+            // day more, or a trillion, is refused without being built.
+            let units_of = |unit: u32, from: i64, to: i64| unsafe {
+                hc_calendar_units(
+                    id.as_ptr(),
+                    id.len(),
+                    unit,
+                    from,
+                    to,
+                    "en".as_ptr(),
+                    2,
+                    core::ptr::null_mut(),
+                    0,
+                )
+            };
+            let cap = hc::lines::MAX_CALENDAR_UNITS as i64;
+            assert_eq!(cap, 100_000);
+            assert!(units_of(3, 700_000, 700_000 + cap) > 0);
+            assert_eq!(units_of(3, 700_000, 700_000 + cap + 1), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(units_of(3, 0, 1_000_000_000_000), HC_ERR_OUT_OF_RANGE);
+            // The cap counts lines, not days: a millennium of years is a
+            // thousand lines.
+            assert!(units_of(1, 700_000, 700_000 + 365_243) > 0);
             let not_utf8 = [0xffu8];
             assert_eq!(
                 unsafe {
@@ -5214,6 +5522,195 @@ mod tests {
             );
         }
 
+        /// The leap second at the end of 2016 crosses as a line: 23:59:59
+        /// UTC was TAI + 36 s, so TAI second 1 483 228 836 is 23:59:60,
+        /// named by the POSIX second after it, and 00:00:00 is TAI + 37 s.
+        #[test]
+        fn the_tai_bridge_writes_one_line_each_way() {
+            let read = |call: &dyn Fn(*mut u8, usize) -> i64| {
+                let measured = call(core::ptr::null_mut(), 0);
+                let mut buffer = [0u8; 64];
+                let len = call(buffer.as_mut_ptr(), buffer.len());
+                assert_eq!(len, measured);
+                String::from_utf8(buffer[..len as usize].to_vec()).expect("UTF-8")
+            };
+            let new_year = 1_483_228_800;
+            assert_eq!(
+                read(&|buffer, capacity| unsafe {
+                    hc_tai_from_unix(new_year, 1, buffer, capacity)
+                }),
+                "1483228837\t0\n"
+            );
+            assert_eq!(
+                read(&|buffer, capacity| unsafe {
+                    hc_utc_from_tai(new_year + 36, 1, buffer, capacity)
+                }),
+                "1483228800\t1\n"
+            );
+            assert_eq!(
+                read(&|buffer, capacity| unsafe {
+                    hc_utc_from_tai(new_year + 37, 0, buffer, capacity)
+                }),
+                "1483228800\t0\n"
+            );
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_tai_from_unix(-400_000_000, 1, null, 0) },
+                HC_ERR_NO_DATA
+            );
+            assert_eq!(
+                unsafe { hc_tai_from_unix(i64::MAX, 0, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+            let mut small = [0u8; 4];
+            assert_eq!(
+                unsafe { hc_tai_from_unix(new_year, 1, small.as_mut_ptr(), small.len()) },
+                HC_ERR_BUFFER_TOO_SMALL
+            );
+        }
+
+        /// POSIX 0 is `@400000000000000a` on daemontools' ordinary clock,
+        /// which the true-TAI decoder reads as ten seconds after 1970 TAI.
+        #[test]
+        fn the_posix_plus_10_labels_cross_both_ways() {
+            let label = line(|buffer, capacity| unsafe {
+                hc_tai64_posix_plus_10_encode(0, 0, "TAI64".as_ptr(), 5, buffer, capacity)
+            });
+            assert_eq!(label, ["400000000000000a"]);
+            let hex = "400000000000000b1dcd6500";
+            let decoded = line(|buffer, capacity| unsafe {
+                hc_tai64_posix_plus_10_decode(hex.as_ptr(), hex.len(), buffer, capacity)
+            });
+            assert_eq!(decoded, ["tai64n", "1", "500000000000000000"]);
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_tai64_posix_plus_10_encode(0, 0, "tai64na".as_ptr(), 7, null, 0) },
+                HC_ERR_UNKNOWN
+            );
+            let na = "3fffffffffffffff3b9ac9ff3b9ac9ff";
+            assert_eq!(
+                unsafe { hc_tai64_posix_plus_10_decode(na.as_ptr(), na.len(), null, 0) },
+                HC_ERR_MALFORMED
+            );
+        }
+
+        /// RFC 9562's version 1 and version 6 vectors, Appendix A: both
+        /// 0x1EC9414C232AB00, POSIX 1 645 557 742.
+        #[test]
+        fn a_uuid_timestamp_crosses_the_boundary() {
+            for (uuid, version) in [
+                ("C232AB00-9414-11EC-B3C8-9F6BDECED846", "1"),
+                ("1EC9414C-232A-6B00-B3C8-9F6BDECED846", "6"),
+            ] {
+                let cells = line(|buffer, capacity| unsafe {
+                    hc_uuid_timestamp(uuid.as_ptr(), uuid.len(), buffer, capacity)
+                });
+                assert_eq!(cells, [version, "138648505420000000", "1645557742", "0"]);
+            }
+            let v4 = "919108f7-52d1-4320-9bac-f847db4148a8";
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_uuid_timestamp(v4.as_ptr(), v4.len(), null, 0) },
+                HC_ERR_NO_DATA
+            );
+            assert_eq!(
+                unsafe { hc_uuid_timestamp("C232AB00".as_ptr(), 8, null, 0) },
+                HC_ERR_MALFORMED
+            );
+        }
+
+        /// RFC 5905's Figure 4: 8 February 2036 is era 1, offset 63 104,
+        /// read against a clock in 2030; the zero timestamp is unknown.
+        #[test]
+        fn an_ntp_timestamp_crosses_with_its_era() {
+            let cells = line(|buffer, capacity| unsafe {
+                hc_ntp_resolve(63_104, 0, 1_893_456_000, buffer, capacity)
+            });
+            assert_eq!(cells, ["1", "63104", "0", "2086041600", "0"]);
+            assert_eq!(
+                unsafe { hc_ntp_resolve(0, 0, 0, core::ptr::null_mut(), 0) },
+                HC_ERR_NO_DATA
+            );
+        }
+
+        /// The worked example of `docs/systems/binary-timestamps.md`:
+        /// 2026-09-26 23:59:58 is the words 23 866 and 49 021.
+        #[test]
+        fn the_fat_words_cross_both_ways() {
+            let day = hc_gregorian_to_fixed(2026, 9, 26);
+            let cells =
+                line(|buffer, capacity| unsafe { hc_fat_decode(23_866, 49_021, buffer, capacity) });
+            assert_eq!(cells, [day.to_string(), "86398".to_owned()]);
+            let cells =
+                line(|buffer, capacity| unsafe { hc_fat_encode(day, 86_399, buffer, capacity) });
+            assert_eq!(cells, ["23866", "49021"]);
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_fat_decode(65_536, 0, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe { hc_fat_decode(46 << 9 | 1, 0, null, 0) },
+                HC_ERR_INVALID_DATE
+            );
+            assert_eq!(
+                unsafe { hc_fat_encode(hc_gregorian_to_fixed(1979, 12, 31), 0, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+        }
+
+        /// Wikipedia's example, @248 at 04:57:07.2 UTC; the POSIX epoch is
+        /// @041.
+        #[test]
+        fn a_swatch_beat_is_a_value() {
+            let at_248 = (4 * 60 + 57) * 60 + 7;
+            assert_eq!(hc_swatch_beat(at_248, 200_000_000_000_000_000), 248);
+            assert_eq!(hc_swatch_beat(0, 0), 41);
+            assert_eq!(
+                hc_swatch_beat(0, 1_000_000_000_000_000_000),
+                HC_ERR_OUT_OF_RANGE
+            );
+        }
+
+        /// SOFA's §2.4 example, JD 2457073.05631 TT: J2015.1349933196 and
+        /// B2015.1365941021; and J2000.0 is 946 728 000 TT seconds.
+        #[test]
+        fn the_epochs_cross_both_ways() {
+            let epoch = |notation: &str, seconds: i64, attos: u64| {
+                line(|buffer, capacity| unsafe {
+                    hc_epoch_from_tt(
+                        notation.as_ptr(),
+                        notation.len(),
+                        seconds,
+                        attos,
+                        buffer,
+                        capacity,
+                    )
+                })
+            };
+            let julian = epoch("J", 1_424_352_065, 184_000_000_000_000_000);
+            assert_eq!(julian[0], "J");
+            let year: f64 = julian[1].parse().expect("a number");
+            assert!((year - 2_015.134_993_319_6).abs() < 1e-10, "{year}");
+            let besselian = epoch("B", 1_424_352_065, 184_000_000_000_000_000);
+            let year: f64 = besselian[1].parse().expect("a number");
+            assert!((year - 2_015.136_594_102_1).abs() < 1e-10, "{year}");
+            assert_eq!(epoch("julian-epoch", 946_728_000, 0), ["J", "2000"]);
+            let back = line(|buffer, capacity| unsafe {
+                hc_tt_from_epoch("".as_ptr(), 0, 2000.0, buffer, capacity)
+            });
+            assert_eq!(back, ["J", "946728000", "0"]);
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_epoch_from_tt("X".as_ptr(), 1, 0, 0, null, 0) },
+                HC_ERR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe { hc_tt_from_epoch("J".as_ptr(), 1, f64::NAN, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+        }
+
         /// GPS week 2048 began at 2019-04-06 23:59:42 UTC, TAI second
         /// 1 554 595 219.
         #[test]
@@ -5407,7 +5904,7 @@ mod tests {
                 .lines()
                 .map(|line| line.split('\t').collect())
                 .collect();
-            assert!(rows.iter().all(|row| row.len() == 7));
+            assert!(rows.iter().all(|row| row.len() == 8));
             assert_eq!(
                 rows.iter().map(|row| row[0]).collect::<Vec<_>>(),
                 codes.lines().collect::<Vec<_>>()
@@ -5418,6 +5915,29 @@ mod tests {
                 .expect("Hong Kong's exchange");
             assert_eq!(xhkg[1], "exchange");
             assert_eq!(xhkg[6], "HK");
+            assert_eq!(xhkg[7], "");
+            // CLDR 48's short name for Hong Kong, in English and in
+            // Japanese.
+            let hong_kong = rows.iter().find(|row| row[0] == "HK").expect("HK");
+            assert_eq!(
+                hong_kong[2..],
+                [
+                    "Hong Kong SAR China",
+                    "Hong Kong",
+                    "en",
+                    hong_kong[5],
+                    "",
+                    "Hong Kong"
+                ]
+            );
+            let japanese = read_lines(|buffer, capacity| unsafe {
+                hc_holiday_tables("ja".as_ptr(), 2, buffer, capacity)
+            });
+            let hong_kong = japanese
+                .lines()
+                .find(|line| line.starts_with("HK\t"))
+                .expect("HK");
+            assert!(hong_kong.ends_with("\t\t香港"), "{hong_kong}");
             assert_eq!(
                 unsafe { hc_holiday_tables(core::ptr::null(), 1, core::ptr::null_mut(), 0) },
                 HC_ERR_NULL_POINTER
@@ -5565,6 +6085,32 @@ mod tests {
             text.lines()
                 .map(|line| line.split('\t').map(str::to_owned).collect())
                 .collect()
+        }
+
+        /// Gangale's Titan calibration: 2002-12-18 10:42 UTC, POSIX
+        /// 1 040 208 120, was 209 Aries 13, Julian Circad 144 096, Solis.
+        #[test]
+        fn a_circad_date_crosses_the_boundary() {
+            let id = "darian-titan";
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_circad_date(id.as_ptr(), id.len(), 1_040_208_120.0, buffer, capacity)
+            });
+            let rows = cells(&text);
+            assert_eq!(rows.len(), 1);
+            assert_eq!(rows[0].len(), hc::planetary_lines::CIRCAD_DATE_COLUMNS);
+            assert_eq!(
+                rows[0][..7],
+                ["darian-titan", "209", "9", "13", "Aries", "Solis", "144096"]
+            );
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_circad_date("titan".as_ptr(), 5, 0.0, null, 0) },
+                HC_ERR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe { hc_circad_date("martiana".as_ptr(), 8, 1e10, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
         }
 
         fn number(cell: &str) -> f64 {

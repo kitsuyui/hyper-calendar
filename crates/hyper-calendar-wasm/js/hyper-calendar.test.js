@@ -412,6 +412,18 @@ describe("calendarUnits", () => {
     assert.deepEqual(hc.calendarUnits("gregory", "day", 10, 10, "en"), []);
   });
 
+  test("answers up to 100 000 spans and refuses more", () => {
+    // The cap, hyper_calendar::lines::MAX_CALENDAR_UNITS: 100 000 days as
+    // days are answered, one more is refused, and so is a trillion.
+    const days = hc.calendarUnits("gregory", "day", 700_000, 800_000, "en");
+    assert.equal(days.length, 100_000);
+    assert.equal(days[99_999].end, 800_000);
+    refused(() => hc.calendarUnits("gregory", "day", 700_000, 800_001, "en"), "out-of-range");
+    refused(() => hc.calendarUnits("gregory", "day", 0, 1_000_000_000_000, "en"), "out-of-range");
+    // The cap counts lines, not days.
+    assert.equal(hc.calendarUnits("gregory", "year", 700_000, 1_100_000, "en").length, 1_096);
+  });
+
   test("refuses what it does not know", () => {
     refused(() => hc.calendarUnits("no-such-calendar", "year", 0, 10, "en"), "unknown");
     assert.throws(() => hc.calendarUnits("gregory", /** @type {any} */ ("week"), 0, 10, "en"), TypeError);
@@ -1132,6 +1144,75 @@ describe("the orbit", () => {
 });
 
 describe("time scales and day counts", () => {
+  test("the TAI bridge names the leap second at the end of 2016", () => {
+    // 23:59:59 UTC was TAI + 36 s; TAI second 1 483 228 836 is 23:59:60.
+    const newYear = 1_483_228_800;
+    assert.deepEqual(hc.taiFromUnix(newYear, true), { seconds: BigInt(newYear + 37), attoseconds: 0n });
+    assert.deepEqual(hc.utcFromTai(newYear + 36, true), { unixSeconds: BigInt(newYear), leapSecond: true });
+    assert.deepEqual(hc.utcFromTai(BigInt(newYear + 37)), { unixSeconds: BigInt(newYear), leapSecond: false });
+    refused(() => hc.taiFromUnix(-400_000_000, true), "no-data");
+    refused(() => hc.taiFromUnix(2n ** 63n - 1n), "out-of-range");
+  });
+
+  test("a label on a POSIX clock is 2⁶² + 10 + the POSIX second, daemontools' convention", () => {
+    assert.equal(hc.tai64PosixPlus10Encode(0, 0, "tai64"), "400000000000000a");
+    assert.equal(hc.tai64PosixPlus10Encode(1, 500_000_000_000_000_000n, "tai64n"), "400000000000000b1dcd6500");
+    assert.deepEqual(hc.tai64PosixPlus10Decode("400000000000000A"), { format: "tai64", seconds: 0n, attoseconds: 0n });
+    // The same bytes read as true TAI are ten seconds after 1970 TAI.
+    assert.deepEqual(hc.tai64Decode("400000000000000a"), { format: "tai64", seconds: 10n, attoseconds: 0n });
+    refused(() => hc.tai64PosixPlus10Encode(0, 0, /** @type {any} */ ("tai64na")), "unknown");
+    refused(() => hc.tai64PosixPlus10Decode("3fffffffffffffff3b9ac9ff3b9ac9ff"), "malformed");
+  });
+
+  test("RFC 9562's version 1 and version 6 vectors carry the same timestamp", () => {
+    const expected = { timestamp: 0x1EC9414C232AB00n, unixSeconds: 1_645_557_742n, attoseconds: 0n };
+    assert.deepEqual(hc.uuidTimestamp("C232AB00-9414-11EC-B3C8-9F6BDECED846"), { version: 1, ...expected });
+    assert.deepEqual(hc.uuidTimestamp("urn:uuid:1ec9414c-232a-6b00-b3c8-9f6bdeced846"), { version: 6, ...expected });
+    refused(() => hc.uuidTimestamp("919108f7-52d1-4320-9bac-f847db4148a8"), "no-data");
+    refused(() => hc.uuidTimestamp("not a uuid"), "malformed");
+  });
+
+  test("an NTP timestamp takes its era from the reference, as RFC 5905's Figure 4 has it", () => {
+    assert.deepEqual(hc.ntpResolve(63_104, 0, 1_893_456_000), {
+      era: 1, offset: 63_104, fraction: 0n, unixSeconds: 2_086_041_600n, attoseconds: 0n,
+    });
+    assert.deepEqual(hc.ntpResolve(63_104, 2 ** 31, -1_577_923_200), {
+      era: 0, offset: 63_104, fraction: 2n ** 63n, unixSeconds: -2_208_925_696n, attoseconds: 500_000_000_000_000_000n,
+    });
+    refused(() => hc.ntpResolve(0, 0, 0), "no-data");
+    assert.throws(() => hc.ntpResolve(-1, 0, 0), TypeError);
+  });
+
+  test("the FAT words of 26 September 2026 at 23:59:58 are 23 866 and 49 021", () => {
+    const day = hc.gregorianToFixed(2026, 9, 26);
+    assert.deepEqual(hc.fatDecode(23_866, 49_021), { fixed: day, secondsOfDay: 86_398 });
+    assert.deepEqual(hc.fatEncode(day, 86_399), { date: 23_866, time: 49_021 });
+    refused(() => hc.fatDecode((46 << 9) | (2 << 5) | 30, 0), "invalid-date");
+    refused(() => hc.fatDecode(65_536, 0), "out-of-range");
+    refused(() => hc.fatEncode(hc.gregorianToFixed(2108, 1, 1), 0), "out-of-range");
+  });
+
+  test("Swatch's @248 is 04:57:07.2 UTC, and the POSIX epoch @041", () => {
+    assert.equal(hc.swatchBeat(4 * 3_600 + 57 * 60 + 7, 200_000_000_000_000_000n), 248);
+    assert.equal(hc.swatchBeat(0), 41);
+    assert.equal(hc.swatchBeat(-3_600), 0);
+  });
+
+  test("SOFA's example is J2015.1349933196 and B2015.1365941021", () => {
+    // JD 2457073.05631 TT is 1 424 352 065.184 s of TT from 1970.
+    const julian = hc.epochFromTt("J", 1_424_352_065, 184_000_000_000_000_000n);
+    assert.equal(julian.notation, "J");
+    assert.ok(Math.abs(julian.epoch - 2015.1349933196) < 1e-10, `${julian.epoch}`);
+    const besselian = hc.epochFromTt("besselian-epoch", 1_424_352_065, 184_000_000_000_000_000n);
+    assert.equal(besselian.notation, "B");
+    assert.ok(Math.abs(besselian.epoch - 2015.1365941021) < 1e-10, `${besselian.epoch}`);
+    assert.deepEqual(hc.epochFromTt("J", 946_728_000), { notation: "J", epoch: 2000 });
+    assert.deepEqual(hc.ttFromEpoch("", 2000), { notation: "J", seconds: 946_728_000n, attoseconds: 0n });
+    assert.equal(hc.ttFromEpoch("", 1950).notation, "B");
+    refused(() => hc.epochFromTt(/** @type {any} */ ("X"), 0), "unknown");
+    refused(() => hc.ttFromEpoch("J", Number.NaN), "out-of-range");
+  });
+
   test("a TAI64 label is 2⁶² plus the TAI second, as Bernstein's page has it", () => {
     assert.equal(hc.tai64Encode(0, 0, "tai64"), "4000000000000000");
     assert.equal(hc.tai64Encode(0n, 0n, "TAI64N"), "4000000000000000" + "00000000");
@@ -1297,6 +1378,15 @@ describe("the holiday tables and the liturgical year", () => {
     assert.equal(inJapanese.get("XJPX")?.name, "Tokyo Stock Exchange (JPX)");
     assert.equal(inJapanese.get("XJPX")?.localeUsed, "en");
     assert.equal(inJapanese.get("XJPX")?.country, "JP");
+    // CLDR 48's short names: Hong Kong in English and in Japanese, none
+    // for Japan, none for an exchange.
+    assert.equal(byCode.get("HK")?.name, "Hong Kong SAR China");
+    assert.equal(byCode.get("HK")?.shortName, "Hong Kong");
+    assert.equal(byCode.get("GB")?.shortName, "UK");
+    assert.equal(japan?.shortName, null);
+    assert.equal(inJapanese.get("HK")?.shortName, "香港");
+    assert.equal(inJapanese.get("MO")?.shortName, "マカオ");
+    assert.equal(inJapanese.get("XHKG")?.shortName, null);
   });
 
   test("the liturgical year 2026 is Year A and Year II", () => {
@@ -1385,6 +1475,27 @@ describe("the Earth's rotation and the Sun's hours", () => {
 });
 
 describe("time on other bodies", () => {
+  test("Titan's calibration is 209 Aries 13, Julian Circad 144 096", () => {
+    // Gangale §3.6: the superior conjunction of 2002 Dec 18 at 10:42 UTC.
+    const titan = hc.circadDate("darian-titan", 1_040_208_120);
+    assert.deepEqual({ ...titan, fraction: 0, source: "" }, {
+      calendar: "darian-titan", year: 209, month: 9, day: 13, monthName: "Aries", weekName: "Solis",
+      count: 144_096, fraction: 0, leap: false, source: "",
+    });
+    assert.ok(titan.fraction >= 0 && titan.fraction < 1);
+    for (const calendar of /** @type {const} */ (["gregorian-io", "gregorian-europa", "gregorian-ganymede", "gregorian-callisto", "martiana"])) {
+      const date = hc.circadDate(calendar, 1_700_000_000);
+      assert.equal(date.calendar, calendar);
+      assert.ok(date.month >= 1 && date.day >= 1, calendar);
+    }
+    // Martiana counts the Darian sol, from 1 Sagittarius 0 on Mars Sol
+    // Date −94 129.
+    const mars = hc.marsTime(1_700_000_000);
+    assert.equal(hc.circadDate("martiana", 1_700_000_000).count, Math.floor(mars.marsSolDate) + 94_129);
+    refused(() => hc.circadDate(/** @type {any} */ ("titan"), 0), "unknown");
+    refused(() => hc.circadDate("martiana", 1e10), "out-of-range");
+  });
+
   test("Mars24's worked examples decode column by column", () => {
     // Worked example A, 2000-01-06T00:00:00Z at the prime meridian: MSD
     // 44795.99976, MTC 23:59:39, Ls 277.18758°, EOT −5.18774° (−20.75

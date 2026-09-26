@@ -441,13 +441,33 @@ fn supports(calendar: &dyn DynCalendar, unit: Unit, fields: &DateFields) -> Cale
 /// `calendar` that cover them, in order.
 ///
 /// See the module documentation for what the spans are and how their
-/// edges are found. An empty range gives no spans.
+/// edges are found. An empty range gives no spans. The walk has no bound
+/// but the range: a caller that takes the range from outside, and so
+/// cannot know how many spans it asks for, uses [`units_at_most`].
 #[cfg(feature = "alloc")]
 #[must_use]
 pub fn units(calendar: &dyn DynCalendar, unit: Unit, from: Rd, to: Rd) -> Vec<UnitSpan> {
+    units_at_most(calendar, unit, from, to, usize::MAX).unwrap_or_default()
+}
+
+/// [`units`], but `None` rather than more than `limit` spans.
+///
+/// The walk stops at the span after the `limit`th, so its cost is bounded
+/// by `limit` whatever the range: a range of a trillion days as days is
+/// refused after `limit + 1` spans, not built and then counted. A result of
+/// exactly `limit` spans is returned whole.
+#[cfg(feature = "alloc")]
+#[must_use]
+pub fn units_at_most(
+    calendar: &dyn DynCalendar,
+    unit: Unit,
+    from: Rd,
+    to: Rd,
+    limit: usize,
+) -> Option<Vec<UnitSpan>> {
     let mut out = Vec::new();
     if from >= to {
-        return out;
+        return Some(out);
     }
     let meta = calendar.meta();
     let mut walker = Walker {
@@ -469,6 +489,9 @@ pub fn units(calendar: &dyn DynCalendar, unit: Unit, from: Rd, to: Rd) -> Vec<Un
         if cursor < walker.floor {
             let end = walker.floor.min(to);
             out.push(refusal(cursor, end, CalendarError::BeforeEpoch));
+            if out.len() > limit {
+                return None;
+            }
             cursor = end;
             first = false;
             continue;
@@ -482,6 +505,9 @@ pub fn units(calendar: &dyn DynCalendar, unit: Unit, from: Rd, to: Rd) -> Vec<Un
             Err(error) => {
                 let end = walker.next_convertible(cursor, to);
                 out.push(refusal(cursor, end, error));
+                if out.len() > limit {
+                    return None;
+                }
                 cursor = end;
                 first = false;
                 continue;
@@ -524,10 +550,13 @@ pub fn units(calendar: &dyn DynCalendar, unit: Unit, from: Rd, to: Rd) -> Vec<Un
                 standing: calendar.standing(start),
             }),
         });
+        if out.len() > limit {
+            return None;
+        }
         cursor = end;
         first = false;
     }
-    out
+    (out.len() <= limit).then_some(out)
 }
 
 #[cfg(test)]
@@ -705,6 +734,32 @@ mod tests {
         assert!(spans.iter().all(|span| span.days() == 1));
         assert!(walk(Unit::Day, 13, 13).is_empty());
         assert!(walk(Unit::Year, 20, 10).is_empty());
+    }
+
+    /// A limit of `n` returns `n` spans whole and refuses `n + 1`, without
+    /// walking the rest of a range far longer than any answer.
+    #[test]
+    fn a_limit_returns_its_count_whole_and_refuses_one_more() {
+        let toy = DynAdapter::new(Toy);
+        let three = units_at_most(&toy, Unit::Day, Rd(10), Rd(13), 3).expect("three spans");
+        assert_eq!(three, walk(Unit::Day, 10, 13));
+        assert_eq!(units_at_most(&toy, Unit::Day, Rd(10), Rd(14), 3), None);
+        assert_eq!(
+            units_at_most(&toy, Unit::Day, Rd(0), Rd(2_999), 100),
+            None,
+            "stops at the hundred and first"
+        );
+        // A refusal span counts like any other.
+        let spans = units_at_most(&toy, Unit::Year, Rd(-700), Rd(-450), 4).expect("fits");
+        assert_eq!(spans, walk(Unit::Year, -700, -450));
+        assert_eq!(
+            units_at_most(&toy, Unit::Year, Rd(-700), Rd(-450), spans.len() - 1),
+            None
+        );
+        assert_eq!(
+            units_at_most(&toy, Unit::Day, Rd(5), Rd(5), 0),
+            Some(Vec::new())
+        );
     }
 
     /// A day count: no era, no year, no month.

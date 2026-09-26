@@ -22,9 +22,11 @@ default = ["civil"]
 # Proleptic Gregorian dates, ISO 8601 text, POSIX time and the TAI-UTC bridge.
 civil = ["hc/civil", "hc/format"]
 # Time-scale labels and day counts outside the civil calendar: TAI64
-# labels, GNSS weeks, GLONASS dates, OLE Automation dates and Excel 1900
-# serials. A layer of its own so that `civil`, the first a page paints
-# with, does not carry their float formatting and 128-bit arithmetic.
+# labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation
+# dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time
+# words, Swatch Internet Time, and Julian and Besselian epochs. A layer of
+# its own so that `civil`, the first a page paints with, does not carry
+# their float formatting and 128-bit arithmetic.
 timestamps = ["civil"]
 # Every calendar the facade registers, described for one day in a locale.
 calendars = ["civil", "hc/lunar", "hc/equinox", "hc/indic", "hc/regional", "hc/i18n"]
@@ -44,8 +46,9 @@ sky = ["civil", "hc/seasons"]
 # million years either side of 1950, from Berger's 1978 series.
 orbital = ["hc/orbital"]
 # Time on other bodies: Mars time and the Darian date, the surface
-# missions' sol counts, and the solar day and local mean solar time of every
-# body in hc-planetary's table.
+# missions' sol counts, the solar day and local mean solar time of every
+# body in hc-planetary's table, and the dates of the Titan, Galilean and
+# Martiana calendars.
 planetary = ["hc/planetary"]
 # Relativistic time dilation: a clock at a constant velocity, and one held
 # still at a radius from a mass, from hc-relativity. A layer of its own, not

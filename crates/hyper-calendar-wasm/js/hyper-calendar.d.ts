@@ -109,6 +109,15 @@ export const COLUMNS: {
   readonly properTime: ReadonlyArray<string>;
   readonly gravitationalDilation: ReadonlyArray<string>;
   readonly gravitatingBodies: ReadonlyArray<string>;
+  readonly utcFromTai: ReadonlyArray<string>;
+  readonly tai64PosixPlus10: ReadonlyArray<string>;
+  readonly uuidTimestamp: ReadonlyArray<string>;
+  readonly ntpResolve: ReadonlyArray<string>;
+  readonly fatDecode: ReadonlyArray<string>;
+  readonly fatEncode: ReadonlyArray<string>;
+  readonly epoch: ReadonlyArray<string>;
+  readonly ttFromEpoch: ReadonlyArray<string>;
+  readonly circadDate: ReadonlyArray<string>;
 };
 export const UNITS: readonly Unit[];
 export const NATIVE: "native";
@@ -618,6 +627,113 @@ export interface Tai64Label extends TaiInstant {
   format: Tai64Format;
 }
 
+/** The one line of `hc_utc_from_tai`: a whole TAI second as a UTC label. */
+export interface UtcLabel {
+  /** The POSIX second; for a leap second, the one after it. */
+  unixSeconds: bigint;
+  /** Whether the TAI second is an inserted `23:59:60`. */
+  leapSecond: boolean;
+}
+
+/**
+ * The one line of `hc_tai64_posix_plus_10_decode`: a label in daemontools'
+ * convention on a POSIX clock and the POSIX instant it names, both parts
+ * `BigInt`s.
+ */
+export interface PosixTai64Label {
+  format: "tai64" | "tai64n";
+  /** Whole POSIX seconds. */
+  seconds: bigint;
+  /** Attoseconds into that second, a whole number of nanoseconds. */
+  attoseconds: bigint;
+}
+
+/** The one line of `hc_uuid_timestamp`. */
+export interface UuidTimestamp {
+  version: 1 | 6;
+  /** 100-nanosecond intervals from 1582-10-15 00:00 UTC, 60 bits. */
+  timestamp: bigint;
+  /** The POSIX seconds of the start of that interval. */
+  unixSeconds: bigint;
+  /** Attoseconds into that second. */
+  attoseconds: bigint;
+}
+
+/** The one line of `hc_ntp_resolve`: RFC 5905's 128-bit date and its POSIX instant. */
+export interface NtpDate {
+  /** 0 for 1900 to 2036, negative before 1900. */
+  era: number;
+  /** Seconds into the era. */
+  offset: number;
+  /** The fraction of the second in units of 2⁻⁶⁴ s. */
+  fraction: bigint;
+  unixSeconds: bigint;
+  attoseconds: bigint;
+}
+
+/** The one line of `hc_fat_decode`: a local reading, in no zone. */
+export interface FatReading {
+  fixed: number;
+  /** Always even. */
+  secondsOfDay: number;
+}
+
+/** The one line of `hc_fat_encode`. */
+export interface FatWords {
+  date: number;
+  time: number;
+}
+
+/** The letter of a Julian or a Besselian epoch. */
+export type EpochNotation = "J" | "B";
+
+/** What names a notation: its letter or its identifier, in any case. */
+export type EpochNotationName = EpochNotation | "julian-epoch" | "besselian-epoch";
+
+/** The one line of `hc_epoch_from_tt`. */
+export interface Epoch {
+  notation: EpochNotation;
+  /** The year with its fraction: 2000 for J2000.0. */
+  epoch: number;
+}
+
+/**
+ * The one line of `hc_tt_from_epoch`: whole seconds from 1970-01-01
+ * 00:00:00 TT and attoseconds, with the notation the year was read in.
+ */
+export interface EpochInstant {
+  notation: EpochNotation;
+  seconds: bigint;
+  attoseconds: bigint;
+}
+
+/** A calendar `hc_circad_date` answers for. */
+export type CircadCalendar =
+  | "darian-titan"
+  | "gregorian-io"
+  | "gregorian-europa"
+  | "gregorian-ganymede"
+  | "gregorian-callisto"
+  | "martiana";
+
+/** The one line of `hc_circad_date`. */
+export interface CircadDate {
+  calendar: CircadCalendar;
+  year: number;
+  month: number;
+  /** The circad or sol of the month, from 1. */
+  day: number;
+  monthName: string;
+  /** The day's place in the week; `null` for Martiana's epagomenal sol. */
+  weekName: string | null;
+  /** The circad number from the calendar's epoch, or Martiana's Darian sol number. */
+  count: number;
+  /** The fraction of that circad or sol elapsed. */
+  fraction: number;
+  leap: boolean;
+  source: string;
+}
+
 /** A GNSS broadcast week field, as `hc-core`'s `gnss` names it. */
 export type GnssNumbering = "gps-lnav-week" | "gps-cnav-week" | "galileo-week" | "beidou-week" | "navic-week";
 
@@ -705,6 +821,13 @@ export interface HolidayTable {
   source: string | null;
   /** The ISO 3166-1 country of a subdivision, or of an exchange whose table records one. */
   country: string | null;
+  /**
+   * CLDR 48's `alt="short"` name beside a CLDR name, from the same locale's
+   * data: `Hong Kong` for `HK` under `en`, 香港 under `ja`; `null` where
+   * CLDR has none, which is most countries, and for a table named in English
+   * by fallback.
+   */
+  shortName: string | null;
 }
 
 /** The one line of `hc_lectionary`. */
@@ -816,6 +939,10 @@ export class HyperCalendar {
   formatIsoDate(fixed: number | bigint): string;
   /** `hc_parse_iso_date`; text that is not a date is `invalid-date`. */
   parseIsoDate(text: string): number;
+  /** `hc_tai_from_unix`; under `strict`, outside the leap-second table is `no-data`. */
+  taiFromUnix(unixSeconds: number | bigint, strict?: boolean): TaiInstant;
+  /** `hc_utc_from_tai`: a whole TAI second's POSIX second, and whether it is a leap second. */
+  utcFromTai(taiSeconds: number | bigint, strict?: boolean): UtcLabel;
   /** `hc_tai64_encode`: the label in lower-case hexadecimal; an unknown format is `unknown`. */
   tai64Encode(taiSeconds: number | bigint, attoseconds: number | bigint, format: Tai64Format): string;
   /** `hc_tai64_decode`; text that is not 16, 24 or 32 hex digits is `malformed`. */
@@ -834,6 +961,24 @@ export class HyperCalendar {
   oleAutomationFromFixed(fixed: number | bigint, secondsOfDay?: number): number;
   /** `hc_excel_1900_day`: serial 60 is `phantom`, with no fixed day. */
   excel1900Day(serial: number | bigint): Excel1900Day;
+  /** `hc_tai64_posix_plus_10_encode`: daemontools' label on a POSIX clock; `tai64na` is `unknown`. */
+  tai64PosixPlus10Encode(unixSeconds: number | bigint, attoseconds: number | bigint, format: "tai64" | "tai64n"): string;
+  /** `hc_tai64_posix_plus_10_decode`; text that is not 16 or 24 hex digits is `malformed`. */
+  tai64PosixPlus10Decode(hex: string): PosixTai64Label;
+  /** `hc_uuid_timestamp`; a UUID of another version is `no-data`, other text `malformed`. */
+  uuidTimestamp(uuid: string): UuidTimestamp;
+  /** `hc_ntp_resolve`: the timestamp in the era within 2³¹ s of the reference; zero is `no-data`. */
+  ntpResolve(seconds: number, fraction: number, referenceUnix: number | bigint): NtpDate;
+  /** `hc_fat_decode`; fields that name no day or time are `invalid-date`. */
+  fatDecode(date: number, time: number): FatReading;
+  /** `hc_fat_encode`; outside 1980 to 2107 is `out-of-range`. */
+  fatEncode(fixed: number | bigint, secondsOfDay: number): FatWords;
+  /** `hc_swatch_beat`: 0 through 999. */
+  swatchBeat(unixSeconds: number | bigint, attoseconds?: number | bigint): number;
+  /** `hc_epoch_from_tt`: the Julian or Besselian epoch of a TT instant. */
+  epochFromTt(notation: EpochNotationName, ttSeconds: number | bigint, attoseconds?: number | bigint): Epoch;
+  /** `hc_tt_from_epoch`; an empty notation is SOFA's rule for an epoch without a letter. */
+  ttFromEpoch(notation: EpochNotationName | "", year: number): EpochInstant;
 
   /**
    * `hc_describe_day`: the day in every registered calendar, in registry
@@ -944,6 +1089,8 @@ export class HyperCalendar {
   bodies(): Body[];
   /** `hc_body_time`; the Sun is `no-data`. */
   bodyTime(body: string, unixSeconds: number, eastLongitude?: number): BodyTime;
+  /** `hc_circad_date`; an instant more than 100 Julian years from J2000.0 is `out-of-range`. */
+  circadDate(calendar: CircadCalendar, unixSeconds: number): CircadDate;
   /** `hc_proper_time`; a speed at or beyond light is `out-of-range`. */
   properTime(speedMetresPerSecond: number, coordinateSeconds: number): ProperTime;
   /** `hc_gravitational_dilation`; a radius at or inside the horizon is `out-of-range`. */

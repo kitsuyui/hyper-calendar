@@ -140,4 +140,9 @@ The FAT32 specification (`fatgen103`) was not read.
 `crates/hc-core/src/ntp.rs`, `crates/hc-core/src/uuid.rs` and the epoch in
 `crates/hc-core/src/epoch.rs`, and `crates/hc-format/src/fat.rs`. Anchors:
 `figure_4_of_rfc_5905`, `the_version_1_vector`, `the_version_6_vector`,
-`each_field_is_in_its_bits`.
+`each_field_is_in_its_bits`. The WebAssembly module's and the C library's
+`hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_fat_decode` and `hc_fat_encode`
+are `crates/hyper-calendar/src/time_lines.rs`, anchored to the same
+examples: `the_rfc_9562_vectors_give_their_timestamp`,
+`an_ntp_timestamp_is_placed_in_its_era_by_the_reference`,
+`the_fat_words_of_the_last_even_second_of_26_september_2026`.

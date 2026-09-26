@@ -280,10 +280,12 @@ Checked against:
   `the_two_calendars_convert_through_the_shared_sol_count`.
 * `crates/hyper-calendar/src/planetary_lines.rs`: the lines the
   WebAssembly module and the C library write, behind their `planetary`
-  layer — `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`
-  and `hc_body_time` — answering only within 100 Julian years of J2000.0
+  layer — `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`,
+  `hc_body_time`, and `hc_circad_date` for the Martiana date and the
+  circad calendars — answering only within 100 Julian years of J2000.0
   and refusing Zhurong's sol, whose convention was not published. Tests:
   `the_first_mars24_worked_example_reproduces`,
   `the_second_worked_example_is_true_midnight_at_spirits_planned_site`,
   `a_mission_sol_follows_the_missions_own_clock`,
-  `an_unpublished_convention_is_listed_empty`.
+  `an_unpublished_convention_is_listed_empty`,
+  `titans_calibration_is_209_aries_13`, `every_circad_calendar_answers`.
