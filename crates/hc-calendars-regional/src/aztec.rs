@@ -33,7 +33,7 @@ pub const CORRELATION: Rd = Rd(555_403);
 pub const TONALPOHUALLI_CYCLE: i64 = 260;
 
 /// Days in a xiuhpōhualli year.
-pub const XIUHPOHUALLI_CYCLE: i64 = 365;
+pub const XIUHPOHUALLI_CYCLE: i64 = crate::vague_year::YEAR_DAYS;
 
 /// The twenty day-signs of the tonalpōhualli, in cycle order.
 pub const DAY_SIGNS: [&str; 20] = [
@@ -184,24 +184,14 @@ impl XiuhpohualliPosition {
     /// Returns [`CalendarError::MonthOutOfRange`] or
     /// [`CalendarError::DayOutOfRange`]; Nemontemi has only five days.
     pub const fn ordinal(self) -> CalendarResult<i64> {
-        if self.month == 0 || self.month > 19 {
-            return Err(CalendarError::MonthOutOfRange);
-        }
-        let limit = if self.month == 19 { 5 } else { 20 };
-        if self.day == 0 || self.day > limit {
-            return Err(CalendarError::DayOutOfRange);
-        }
-        Ok((self.month as i64 - 1) * 20 + self.day as i64 - 1)
+        crate::vague_year::ordinal(self.month, self.day)
     }
 
     /// The position `ordinal` days into the year.
     #[must_use]
     pub const fn from_ordinal(ordinal: i64) -> Self {
-        let ordinal = ordinal.rem_euclid(XIUHPOHUALLI_CYCLE);
-        Self {
-            month: (ordinal / 20 + 1) as u8,
-            day: (ordinal % 20 + 1) as u8,
-        }
+        let (month, day) = crate::vague_year::position(ordinal);
+        Self { month, day }
     }
 }
 
@@ -215,10 +205,10 @@ impl fmt::Display for XiuhpohualliPosition {
 }
 
 /// The fixed day whose tonalpōhualli ordinal is 0.
-const TONALPOHUALLI_EPOCH: i64 = CORRELATION.0 - 104;
+pub(crate) const TONALPOHUALLI_EPOCH: i64 = CORRELATION.0 - 104;
 
 /// The fixed day whose xiuhpōhualli ordinal is 0, the first of Izcalli.
-const XIUHPOHUALLI_EPOCH: i64 = CORRELATION.0 - 201;
+pub(crate) const XIUHPOHUALLI_EPOCH: i64 = CORRELATION.0 - 201;
 
 /// A tonalpōhualli date: a position plus the cycle it falls in.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

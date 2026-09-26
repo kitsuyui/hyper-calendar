@@ -404,3 +404,7 @@ Malyavin = "Malyavin"
 Serie = "Serie"
 tabel = "tabel"
 Japanse = "Japanse"
+# Spanish "Instituto", in the names of Mexico's Instituto Nacional de
+# Antropología e Historia and UNAM's Instituto de Investigaciones
+# Históricas, publishers of the Mesoamerican sources in references.bib.
+Instituto = "Instituto"
