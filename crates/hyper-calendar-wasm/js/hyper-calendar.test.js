@@ -96,7 +96,7 @@ describe("load", () => {
 
   test("names the version and the layers", () => {
     assert.match(hc.version(), /^\d+\.\d+\.\d+/);
-    assert.deepEqual(hc.layers(), ["civil", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital"]);
+    assert.deepEqual(hc.layers(), ["civil", "timestamps", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital"]);
     for (const entry of METHODS) {
       assert.ok(hc.has(entry.method), entry.method);
       assert.equal(typeof hc[entry.method], "function", entry.method);
@@ -1125,6 +1125,254 @@ describe("the orbit", () => {
     refused(() => hc.orbitSeries(-1_000_000, 1_000_000, 200), "out-of-range");
     assert.throws(() => hc.orbitAt(/** @type {any} */ ("21000")), TypeError);
     assert.throws(() => hc.orbitSeries(0, 1_000, /** @type {any} */ (undefined)), TypeError);
+  });
+});
+
+describe("time scales and day counts", () => {
+  test("a TAI64 label is 2⁶² plus the TAI second, as Bernstein's page has it", () => {
+    assert.equal(hc.tai64Encode(0, 0, "tai64"), "4000000000000000");
+    assert.equal(hc.tai64Encode(0n, 0n, "TAI64N"), "4000000000000000" + "00000000");
+    const last = hc.tai64Encode(-1, 999_999_999_999_999_999n, "tai64na");
+    assert.equal(last, "3fffffffffffffff3b9ac9ff3b9ac9ff");
+    assert.deepEqual(hc.tai64Decode(last.toUpperCase()), {
+      format: "tai64na", seconds: -1n, attoseconds: 999_999_999_999_999_999n,
+    });
+    // TAI64 names the second that contains the instant: the floor.
+    assert.deepEqual(hc.tai64Decode(hc.tai64Encode(1, 5n, "tai64")), { format: "tai64", seconds: 1n, attoseconds: 0n });
+    refused(() => hc.tai64Decode("400000000000000"), "malformed");
+    refused(() => hc.tai64Decode("8000000000000000"), "out-of-range");
+    refused(() => hc.tai64Encode(0, 0, /** @type {any} */ ("tai32")), "unknown");
+    refused(() => hc.tai64Encode(0, 10n ** 18n, "tai64"), "out-of-range");
+    assert.throws(() => hc.tai64Encode(0, -1, "tai64"), TypeError);
+  });
+
+  test("GPS week 2048 began at 23:59:42 UTC on 6 April 2019", () => {
+    // POSIX 1 554 595 182 with TAI − UTC 37 s: 1 554 595 219 TAI seconds.
+    const tai = 1_554_595_219;
+    assert.deepEqual(hc.gnssWeek("gps-lnav-week", tai), { week: 2048, broadcastWeek: 0, towSeconds: 0, towAttoseconds: 0n });
+    assert.deepEqual(hc.gnssWeek("gps-cnav-week", tai - 1).broadcastWeek, 2047);
+    assert.deepEqual(hc.gnssToTai("gps-lnav-week", 2048, 0), { seconds: BigInt(tai), attoseconds: 0n });
+    assert.equal(hc.gnssResolveWeek("gps-lnav-week", 0, "not-before", tai), 2048);
+    assert.equal(hc.gnssResolveWeek("gps-lnav-week", 0, "nearest", tai), 2048);
+    assert.equal(hc.gnssResolveWeek("gps-lnav-week", 1023, "nearest", tai), 2047);
+    assert.equal(hc.gnssResolveWeek("gps-lnav-week", 1023, "not-before", tai), 3071);
+    refused(() => hc.gnssResolveWeek("gps-lnav-week", 1024, "nearest", tai), "out-of-range");
+    refused(() => hc.gnssResolveWeek("gps-lnav-week", 0, /** @type {any} */ ("latest"), tai), "unknown");
+    refused(() => hc.gnssWeek(/** @type {any} */ ("gps"), tai), "unknown");
+    refused(() => hc.gnssWeek("galileo-week", 0), "no-data");
+    refused(() => hc.gnssToTai("gps-lnav-week", 0, 604_800), "out-of-range");
+  });
+
+  test("GLONASS counts 2024 as the first day of its eighth four-year interval", () => {
+    // 2024-01-01 00:00 UTC is 03:00 GLONASS: N4 = 8, the interval from
+    // 2024, and N_T = 1.
+    const tai = 1_704_067_200 + 37;
+    assert.deepEqual(hc.glonassDate(tai), { fourYearInterval: 8, day: 1 });
+    assert.deepEqual(hc.glonassDate(tai, 0, true), { fourYearInterval: 8, day: 1 });
+    refused(() => hc.glonassDate(0), "out-of-range");
+  });
+
+  test("OLE Automation dates are Microsoft Learn's examples", () => {
+    const newYear1900 = hc.gregorianToFixed(1900, 1, 1);
+    assert.deepEqual(hc.fixedFromOleAutomation(2.25), { fixed: newYear1900, secondsOfDay: 21_600 });
+    assert.deepEqual(hc.fixedFromOleAutomation(-1.25), { fixed: newYear1900 - 3, secondsOfDay: 21_600 });
+    assert.equal(hc.oleAutomationFromFixed(newYear1900 - 3, 21_600), -1.25);
+    assert.equal(hc.oleAutomationFromFixed(newYear1900 - 2), 0);
+    refused(() => hc.fixedFromOleAutomation(Number.NaN), "out-of-range");
+    refused(() => hc.oleAutomationFromFixed(newYear1900, 86_400), "out-of-range");
+  });
+
+  test("Excel's serial 60 is named, never dated", () => {
+    assert.deepEqual(hc.excel1900Day(1), { fixed: hc.gregorianToFixed(1900, 1, 1), phantom: false });
+    assert.deepEqual(hc.excel1900Day(59), { fixed: hc.gregorianToFixed(1900, 2, 28), phantom: false });
+    assert.deepEqual(hc.excel1900Day(60), { fixed: null, phantom: true });
+    assert.deepEqual(hc.excel1900Day(61), { fixed: hc.gregorianToFixed(1900, 3, 1), phantom: false });
+    assert.deepEqual(hc.excel1900Day(2_958_465), { fixed: hc.gregorianToFixed(9999, 12, 31), phantom: false });
+    refused(() => hc.excel1900Day(0), "out-of-range");
+    refused(() => hc.excel1900Day(2_958_466), "out-of-range");
+  });
+});
+
+describe("the pañcāṅga and the anniversaries", () => {
+  // Drik Panchang for 1 January 2025: "Yoga Vyaghata upto 05:07 PM" and
+  // "Karana Balava upto 02:55 PM", IST, read at sunrise.
+  const vyaghataEnds = Date.UTC(2025, 0, 1, 11, 37) / 1000;
+  const balavaEnds = Date.UTC(2025, 0, 1, 9, 25) / 1000;
+
+  test("1 January 2025 carries Vyaghata and Balava", () => {
+    const day = hc.gregorianToFixed(2025, 1, 1);
+    const [yoga, karana, ...rest] = hc.panchangaOfDay(day, 23.183_333, 82.5, 0, "Lahiri");
+    assert.equal(rest.length, 0);
+    assert.equal(yoga.limb, "yoga");
+    assert.equal(yoga.number, 13);
+    assert.equal(yoga.name, "Vyaghata");
+    assert.equal(yoga.devanagari, "व्याघात");
+    assert.equal(yoga.ayanamsa, "Lahiri (Chitrapaksha)");
+    assert.ok(Math.abs(yoga.ends - vyaghataEnds) < 90, `${yoga.ends}`);
+    assert.ok(yoga.began < yoga.readAt && yoga.readAt < yoga.ends);
+    assert.equal(karana.limb, "karana");
+    assert.equal(karana.name, "Balava");
+    assert.equal(karana.devanagari, "बालव");
+    assert.equal(karana.ayanamsa, null);
+    assert.ok(karana.ends - balavaEnds >= 0 && karana.ends - balavaEnds < 120, `${karana.ends}`);
+    assert.equal(karana.readAt, yoga.readAt);
+    const [at] = hc.panchangaAt(vyaghataEnds - 600, "lahiri (chitrapaksha)");
+    assert.equal(at.name, "Vyaghata");
+    assert.equal(at.readAt, vyaghataEnds - 600);
+    refused(() => hc.panchangaAt(vyaghataEnds, ""), "unknown");
+    refused(() => hc.panchangaOfDay(day, 89, 0, 0, "Lahiri"), "no-data");
+    refused(() => hc.panchangaOfDay(day, 91, 0, 0, "Lahiri"), "out-of-range");
+  });
+
+  test("the Olympiads and the Hebrew anniversaries", () => {
+    assert.equal(hc.iocOlympiad(1896), 1);
+    assert.equal(hc.iocOlympiad(2020), 32);
+    assert.equal(hc.iocOlympiad(2021), 32);
+    refused(() => hc.iocOlympiad(1895), "out-of-range");
+    // 10 Tevet 5780 was 7 January 2020, and 10 Tevet 5781 25 December 2020.
+    const death = hc.gregorianToFixed(2020, 1, 7);
+    assert.equal(hc.hebrewYahrzeit(death, 5781), hc.gregorianToFixed(2020, 12, 25));
+    assert.equal(hc.hebrewBirthday(death, 5781), hc.gregorianToFixed(2020, 12, 25));
+    refused(() => hc.hebrewYahrzeit(death, 10_000), "out-of-range");
+  });
+
+  test("the Chinese reckoned age and the marriage auguries", () => {
+    // Wikipedia, "East Asian age reckoning": a child born in June 2000 is
+    // 13 suì from the lunar new year of 2012, 23 January.
+    const birth = hc.gregorianToFixed(2000, 6, 15);
+    assert.equal(hc.chineseReckonedAge(birth, hc.gregorianToFixed(2012, 1, 23)), 13);
+    assert.equal(hc.chineseReckonedAge(birth, hc.gregorianToFixed(2012, 1, 22)), 12);
+    assert.equal(hc.chineseReckonedAge(birth, birth), 1);
+    refused(() => hc.chineseReckonedAge(birth, birth - 1), "no-data");
+    // The South China Morning Post: 2024's Dragon year is a widow year, and
+    // the year from 26 January 2009 holds two 立春.
+    assert.deepEqual(hc.chineseMarriageAugury(4_661), { augury: "widow", lichunAtStart: false, lichunAtEnd: false });
+    assert.deepEqual(hc.chineseMarriageAugury(4_646), { augury: "double-bright", lichunAtStart: true, lichunAtEnd: true });
+    refused(() => hc.chineseMarriageAugury(2n ** 63n - 1n), "out-of-range");
+  });
+});
+
+describe("the holiday tables and the liturgical year", () => {
+  test("every table is described, in holidayCodes order", () => {
+    const tables = hc.holidayTables("en");
+    assert.deepEqual(tables.map((table) => table.code), hc.holidayCodes());
+    for (const row of rawRows(hc, (buffer, capacity) => {
+      const pointer = hc.alloc(2);
+      new Uint8Array(hc.memory.buffer, pointer, 2).set([0x65, 0x6e]);
+      try {
+        return hc.exports.hc_holiday_tables(pointer, 2, buffer, capacity);
+      } finally {
+        hc.free(pointer, 2);
+      }
+    })) {
+      assert.equal(row.length, COLUMNS.holidayTables.length);
+    }
+    const byCode = new Map(tables.map((table) => [table.code, table]));
+    const japan = byCode.get("JP");
+    assert.equal(japan?.kind, "country");
+    assert.equal(japan?.name, "Japan");
+    assert.equal(japan?.englishName, "Japan");
+    assert.equal(japan?.localeUsed, "en");
+    assert.ok(japan?.source);
+    assert.equal(byCode.get("XJPX")?.kind, "exchange");
+    assert.equal(byCode.get("XJPX")?.country, "JP");
+    assert.equal(byCode.get("XNYS")?.country, null);
+    assert.equal(byCode.get("christian-western")?.kind, "tradition");
+    assert.equal(byCode.get("un-days")?.kind, "observance");
+    const named = new Set();
+    for (const table of tables) {
+      assert.ok(table.englishName.length > 0, table.code);
+      const key = `${table.kind}\t${table.englishName}`;
+      assert.ok(!named.has(key), `two ${table.kind} tables are called ${table.englishName}`);
+      named.add(key);
+    }
+    const japanese = hc.holidayTables("ja-JP");
+    assert.ok(japanese.every((table) => table.name === null && table.localeUsed === null));
+    assert.deepEqual(japanese.map((table) => table.englishName), tables.map((table) => table.englishName));
+  });
+
+  test("the liturgical year 2026 is Year A and Year II", () => {
+    assert.deepEqual(hc.lectionary(hc.gregorianToFixed(2025, 11, 30)), {
+      liturgicalYear: 2026, sundayCycle: "A", weekdayCycle: "II", proper: null,
+    });
+    assert.deepEqual(hc.lectionary(hc.gregorianToFixed(2025, 11, 29)), {
+      liturgicalYear: 2025, sundayCycle: "C", weekdayCycle: "I", proper: null,
+    });
+    assert.equal(hc.lectionary(hc.gregorianToFixed(2026, 11, 22)).proper, 29);
+    assert.equal(hc.lectionary(hc.gregorianToFixed(2026, 6, 7)).proper, 5);
+    refused(() => hc.lectionary(hc.gregorianToFixed(1500, 1, 1)), "out-of-range");
+  });
+
+  test("the astronomical Easter of 2001 is 15 April, a week after its Sunday full moon", () => {
+    assert.equal(hc.astronomicalEaster(2001), hc.gregorianToFixed(2001, 4, 15));
+    refused(() => hc.astronomicalEaster(1582), "out-of-range");
+    refused(() => hc.astronomicalEaster(2151), "out-of-range");
+  });
+});
+
+describe("the Earth's rotation and the Sun's hours", () => {
+  const degrees = (radians) => (radians * 180) / Math.PI;
+
+  test("the rotation angle and the sidereal times are ERFA's test values", () => {
+    // eraEra00(2400000.5, 54388.0): JD 2 454 388.5 UT1.
+    assert.ok(Math.abs(hc.earthRotationAngle(1_192_406_400) - degrees(0.4022837240028158102)) < 1e-8);
+    // eraGmst06 and eraGmst82 at MJD 53 736, 2006-01-01 UT1. The IAU 2006
+    // polynomial is in TT, here UT1 + ΔT, which moves it by 95 µas.
+    const newYear2006 = 1_136_073_600;
+    assert.ok(Math.abs(hc.gmstIau2006(newYear2006) - degrees(1.754174971870091203)) < 1e-7);
+    assert.ok(Math.abs(hc.gmstIau1982(newYear2006) - degrees(1.754174981860675096)) < 1e-8);
+    // At the Besselian epoch of the USNO's formula only the cosines count.
+    assert.ok(Math.abs(hc.ut2MinusUt1(946_684_800 + 0.03 * 86_400) + 0.005) < 1e-6);
+    refused(() => hc.earthRotationAngle(Number.NaN), "out-of-range");
+    refused(() => hc.gmstIau1982(1e15), "out-of-range");
+  });
+
+  test("the clocks read what the ephemerides print", () => {
+    // NAOJ: sunrise in Tokyo on 2024-01-01 at 06:50 JST, 21:50 UTC the day
+    // before; the temporal hour of sunrise is 6.
+    const tokyo = hc.solarTime("temporal", Date.UTC(2023, 11, 31, 21, 50) / 1000, 35.6581, 139.7414);
+    assert.equal(tokyo.day, hc.gregorianToFixed(2024, 1, 1));
+    assert.ok(Math.abs(tokyo.hours - 6) < 0.03, `${tokyo.hours}`);
+    assert.equal(tokyo.missing, null);
+    // Meeus, example 28.a: on 1992 October 13 the equation of time is
+    // +13 min 42.6 s, so the sundial at Greenwich reads 00:13:42.6.
+    const sundial = hc.solarTime("local-apparent", Date.UTC(1992, 9, 13) / 1000, 51.4769, 0);
+    assert.equal(sundial.day, hc.gregorianToFixed(1992, 10, 13));
+    assert.ok(Math.abs(sundial.hours * 3600 - 822.6) < 1, `${sundial.hours}`);
+    const mean = hc.solarTime("LOCAL-MEAN", Date.UTC(2024, 0, 1, 12) / 1000, 0, 15);
+    assert.ok(Math.abs(mean.hours - 13) < 1e-6, `${mean.hours}`);
+    const italian = hc.solarTime("italian", Date.UTC(2024, 2, 21, 12) / 1000, 45.4064, 11.8768);
+    assert.ok(italian.hours !== null && italian.hours > 14.5 && italian.hours < 19.8, `${italian.hours}`);
+    refused(() => hc.solarTime(/** @type {any} */ ("babylonian"), 0, 0, 0), "unknown");
+    refused(() => hc.solarTime("temporal", 0, 91, 0), "out-of-range");
+  });
+
+  test("a missing solar event is an answer", () => {
+    // Tromsø in the polar night and under the midnight sun.
+    const [latitude, longitude] = [69.6496, 18.956];
+    const midwinter = hc.gregorianToFixed(2024, 12, 21);
+    const night = hc.solarTime("temporal", hc.unixFromFixed(midwinter) + 43_200, latitude, longitude);
+    assert.equal(night.day, null);
+    assert.equal(night.hours, null);
+    assert.ok(night.missing && ["sunrise", "sunset"].includes(night.missing.event), JSON.stringify(night));
+    assert.deepEqual(hc.solarEvent("asr-hanafi", midwinter, latitude, longitude), {
+      instant: null, missing: { event: "no-noon-shadow", day: midwinter, depressionArcminutes: null },
+    });
+    const midsummer = hc.gregorianToFixed(2024, 6, 21);
+    assert.deepEqual(hc.solarEvent("jewish-dusk-vilna-gaon", midsummer, latitude, longitude), {
+      instant: null, missing: { event: "depression", day: midsummer, depressionArcminutes: 280 },
+    });
+    // At Padua the Shafiʿi ʿaṣr comes before the Hanafi, and both before dusk.
+    const day = hc.gregorianToFixed(2024, 4, 10);
+    const padua = [45.4064, 11.8768];
+    const shafii = hc.solarEvent("asr-shafii", day, ...padua).instant;
+    const hanafi = hc.solarEvent("asr-hanafi", day, ...padua).instant;
+    const dusk = hc.solarEvent("jewish-dusk-vilna-gaon", day, ...padua).instant;
+    const ends = hc.solarEvent("jewish-sabbath-ends-cohn", day, ...padua).instant;
+    const zero = hc.solarEvent("italian-zero-hour", day, ...padua).instant;
+    assert.ok(shafii !== null && hanafi !== null && dusk !== null && ends !== null && zero !== null);
+    assert.ok(shafii < hanafi && hanafi < dusk && dusk < ends, `${[shafii, hanafi, dusk, ends]}`);
+    refused(() => hc.solarEvent(/** @type {any} */ ("maghrib"), day, ...padua), "unknown");
   });
 });
 

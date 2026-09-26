@@ -47,7 +47,7 @@
 //! # Layers
 //!
 //! The entry points come in layers, each a Cargo feature: `civil` (the
-//! default), `calendars`, `holiday`, `seasons`, `deep-time`, `tz`, `sky` and
+//! default), `timestamps`, `calendars`, `holiday`, `seasons`, `deep-time`, `tz`, `sky` and
 //! `orbital`, with `full` for all of them. Which feature each needs is in
 //! the README's table.
 
@@ -148,6 +148,52 @@ fn push_cell(out: &mut String, text: &str) {
             other => other,
         });
     }
+}
+
+/// The status a refusal of the shared line-makers in `hyper_calendar` is.
+#[allow(dead_code)]
+const fn status(refusal: hc::boundary::Refusal) -> HcStatus {
+    use hc::boundary::Refusal;
+    match refusal {
+        Refusal::OutOfRange => HC_ERROR_OUT_OF_RANGE,
+        Refusal::Overflow => HC_ERROR_OVERFLOW,
+        Refusal::NoData => HC_ERROR_NO_DATA,
+        Refusal::Unknown => HC_ERROR_UNKNOWN,
+        Refusal::Malformed => HC_ERROR_MALFORMED,
+        Refusal::InvalidDate => HC_ERROR_INVALID_DATE,
+    }
+}
+
+/// A shared line-maker's answer, written into a caller-owned buffer as
+/// [`write_text`] does, or its refusal as a status.
+///
+/// # Safety
+///
+/// As [`write_text`].
+#[allow(dead_code)]
+unsafe fn write_answer(
+    answer: hc::boundary::Answer<String>,
+    buffer: *mut c_char,
+    capacity: usize,
+    written: *mut usize,
+) -> HcStatus {
+    match answer {
+        // SAFETY: forwarded to the caller's contract above.
+        Ok(text) => unsafe { write_text(&text, buffer, capacity, written) },
+        Err(refusal) => status(refusal),
+    }
+}
+
+/// A NUL-terminated name the call needs: [`HC_ERROR_NULL_POINTER`] for a
+/// null pointer and [`HC_ERROR_NOT_UTF8`] for bytes that are not UTF-8.
+///
+/// # Safety
+///
+/// As [`text`].
+#[allow(dead_code)]
+unsafe fn name<'a>(pointer: *const c_char) -> Result<&'a str, HcStatus> {
+    // SAFETY: forwarded to the caller's contract above.
+    unsafe { text(pointer) }?.ok_or(HC_ERROR_NULL_POINTER)
 }
 
 /// The library version, as a NUL-terminated string.
@@ -496,6 +542,371 @@ pub use civil::{
     hc_tai_from_unix, hc_tai_minus_utc, hc_utc_from_tai, hc_weekday_from_fixed,
 };
 
+/// Time scales and day counts, behind the `timestamps` feature: TAI64 labels,
+/// GNSS weeks, GLONASS dates, OLE Automation dates and Excel 1900 serials,
+/// from `hyper_calendar::time_lines`, shared with the WebAssembly module.
+/// A TAI instant is whole seconds from 1970-01-01 00:00:00 TAI and the
+/// attoseconds into that second, from 0 to 10¹⁸ − 1.
+#[cfg(feature = "timestamps")]
+mod time_scales {
+    use core::ffi::{c_char, c_int};
+
+    use hc::hc_calendars_solar::spreadsheet::Excel1900Day;
+    use hc::time_lines;
+
+    use super::{HC_ERROR_NULL_POINTER, HC_OK, HcStatus, name, status, write_answer};
+
+    /// A TAI instant as a TAI64, TAI64N or TAI64NA label in lower-case
+    /// hexadecimal, as one NUL-terminated UTF-8 line in a caller-owned
+    /// buffer.
+    ///
+    /// `format` is `tai64`, `tai64n` or `tai64na`, in any case; anything
+    /// else is `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`.
+    /// Attoseconds from 10¹⁸, or a second outside the labels below 2⁶³, is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `format` must be null or NUL-terminated; `buffer` must be writable
+    /// for `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_tai64_encode(
+        tai_seconds: i64,
+        attoseconds: u64,
+        format: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let format = match unsafe { name(format) } {
+            Ok(format) => format,
+            Err(status) => return status,
+        };
+        let answer = time_lines::tai64_encode_line(tai_seconds, attoseconds, format);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// A TAI64, TAI64N or TAI64NA label in hexadecimal read back into the
+    /// TAI seconds and attoseconds of the instant it names.
+    ///
+    /// Text that is not 16, 24 or 32 hexadecimal digits, in either case, is
+    /// `HC_ERROR_MALFORMED`; a reserved label, from 2⁶³, or a counter above
+    /// 999 999 999 is `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `hex` must be null or NUL-terminated, and both out-parameters must be
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_tai64_decode(
+        hex: *const c_char,
+        out_tai_seconds: *mut i64,
+        out_attoseconds: *mut u64,
+    ) -> HcStatus {
+        if out_tai_seconds.is_null() || out_attoseconds.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        // SAFETY: forwarded to the caller's contract above.
+        let hex = match unsafe { name(hex) } {
+            Ok(hex) => hex,
+            Err(status) => return status,
+        };
+        match time_lines::tai64_decode(hex).and_then(|(_, instant)| time_lines::tai_parts(instant))
+        {
+            Ok((seconds, attoseconds)) => {
+                // SAFETY: both were checked non-null above.
+                unsafe {
+                    *out_tai_seconds = seconds;
+                    *out_attoseconds = attoseconds;
+                }
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+
+    /// The GNSS week and time of week of a TAI instant.
+    ///
+    /// `numbering` names the broadcast week field: `gps-lnav-week`,
+    /// `gps-cnav-week`, `galileo-week`, `beidou-week` or `navic-week`, in
+    /// any case; anything else is `HC_ERROR_UNKNOWN`. Writes the full week
+    /// since the field's week zero, the week as the field broadcasts it,
+    /// and the time of week in whole seconds and attoseconds. An instant
+    /// before week zero is `HC_ERROR_NO_DATA`; attoseconds from 10¹⁸ are
+    /// `HC_ERROR_OUT_OF_RANGE`, and a week past 2³² − 1 `HC_ERROR_OVERFLOW`.
+    ///
+    /// # Safety
+    ///
+    /// `numbering` must be null or NUL-terminated, and every out-parameter
+    /// must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gnss_week(
+        numbering: *const c_char,
+        tai_seconds: i64,
+        attoseconds: u64,
+        out_week: *mut u32,
+        out_broadcast: *mut u32,
+        out_tow_seconds: *mut u32,
+        out_tow_attoseconds: *mut u64,
+    ) -> HcStatus {
+        if out_week.is_null()
+            || out_broadcast.is_null()
+            || out_tow_seconds.is_null()
+            || out_tow_attoseconds.is_null()
+        {
+            return HC_ERROR_NULL_POINTER;
+        }
+        // SAFETY: forwarded to the caller's contract above.
+        let numbering = match unsafe { name(numbering) } {
+            Ok(numbering) => numbering,
+            Err(status) => return status,
+        };
+        let answer = time_lines::gnss_week(numbering, tai_seconds, attoseconds)
+            .and_then(|(field, time)| Ok((field, time, time_lines::time_of_week_parts(time)?)));
+        match answer {
+            Ok((field, time, (seconds, attoseconds))) => {
+                // SAFETY: all four were checked non-null above.
+                unsafe {
+                    *out_week = time.week;
+                    *out_broadcast = field.broadcast(time.week);
+                    *out_tow_seconds = seconds;
+                    *out_tow_attoseconds = attoseconds;
+                }
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+
+    /// The TAI instant of a full GNSS week and a time of week.
+    ///
+    /// `numbering` is as for `hc_gnss_week`. A time of week from 604 800 s,
+    /// or attoseconds from 10¹⁸, is `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `numbering` must be null or NUL-terminated, and both out-parameters
+    /// must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gnss_to_tai(
+        numbering: *const c_char,
+        week: u32,
+        tow_seconds: u32,
+        tow_attoseconds: u64,
+        out_tai_seconds: *mut i64,
+        out_attoseconds: *mut u64,
+    ) -> HcStatus {
+        if out_tai_seconds.is_null() || out_attoseconds.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        // SAFETY: forwarded to the caller's contract above.
+        let numbering = match unsafe { name(numbering) } {
+            Ok(numbering) => numbering,
+            Err(status) => return status,
+        };
+        match time_lines::gnss_to_tai(numbering, week, tow_seconds, tow_attoseconds)
+            .and_then(time_lines::tai_parts)
+        {
+            Ok((seconds, attoseconds)) => {
+                // SAFETY: both were checked non-null above.
+                unsafe {
+                    *out_tai_seconds = seconds;
+                    *out_attoseconds = attoseconds;
+                }
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+
+    /// The full GNSS week a broadcast week names, by a rollover rule and a
+    /// reference instant.
+    ///
+    /// `numbering` is as for `hc_gnss_week`; `rule` is `not-before`, the
+    /// first full week at or after the reference's week, or `nearest`, the
+    /// one within half a rollover period of it, in any case, and anything
+    /// else is `HC_ERROR_UNKNOWN`. `reference_tai_seconds` is the reference
+    /// as whole TAI seconds; one before week zero counts as week zero. A
+    /// broadcast week that does not fit the field, or an answer past week
+    /// 2³² − 1, is `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `numbering` and `rule` must be null or NUL-terminated, and
+    /// `out_week` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gnss_resolve_week(
+        numbering: *const c_char,
+        broadcast: u32,
+        rule: *const c_char,
+        reference_tai_seconds: i64,
+        out_week: *mut u32,
+    ) -> HcStatus {
+        if out_week.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        // SAFETY: forwarded to the caller's contract above.
+        let (numbering, rule) = match unsafe { (name(numbering), name(rule)) } {
+            (Ok(numbering), Ok(rule)) => (numbering, rule),
+            (Err(status), _) | (_, Err(status)) => return status,
+        };
+        match time_lines::gnss_resolve_week(numbering, broadcast, rule, reference_tai_seconds) {
+            Ok(week) => {
+                // SAFETY: checked non-null above.
+                unsafe { *out_week = week };
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+
+    /// GLONASS's four-year interval N4 and day N_T at a TAI instant.
+    ///
+    /// N4 is 1 for 1996–1999 and N_T is 1 on 1 January of the interval's
+    /// leap year, of GLONASS time, UTC(SU) + 3 h. The instant goes to UTC
+    /// through the leap-second table: `strict` non-zero refuses outside it
+    /// with `HC_ERROR_NO_DATA`, zero holds the last published offset. An
+    /// instant before 1996 or from 2100, or attoseconds from 10¹⁸, is
+    /// `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// Both out-parameters must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_glonass_date(
+        tai_seconds: i64,
+        attoseconds: u64,
+        strict: c_int,
+        out_four_year_interval: *mut u32,
+        out_day: *mut u32,
+    ) -> HcStatus {
+        if out_four_year_interval.is_null() || out_day.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        match time_lines::glonass_date(tai_seconds, attoseconds, strict != 0) {
+            Ok(date) => {
+                // SAFETY: both were checked non-null above.
+                unsafe {
+                    *out_four_year_interval = date.four_year_interval;
+                    *out_day = date.day;
+                }
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+
+    /// The fixed day and the time of day, in seconds, of an OLE Automation
+    /// date.
+    ///
+    /// The integer part counts days from 30 December 1899 and the fraction
+    /// is the time of day, read as a magnitude when the value is negative:
+    /// −1.25 is 06:00 on 29 December 1899. A value that is not finite, or
+    /// outside 1 January 100 to 31 December 9999, is
+    /// `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// Both out-parameters must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_fixed_from_ole_automation(
+        value: f64,
+        out_fixed: *mut i64,
+        out_seconds_of_day: *mut f64,
+    ) -> HcStatus {
+        if out_fixed.is_null() || out_seconds_of_day.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        match time_lines::fixed_from_ole_automation(value) {
+            Ok((day, seconds)) => {
+                // SAFETY: both were checked non-null above.
+                unsafe {
+                    *out_fixed = day.0;
+                    *out_seconds_of_day = seconds;
+                }
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+
+    /// The OLE Automation date of a fixed day and a time of day in seconds.
+    ///
+    /// Before 30 December 1899 the time is subtracted, so 06:00 on
+    /// 29 December 1899 is −1.25. A time of day that is not finite, negative
+    /// or not below 86 400 s, or a day outside 1 January 100 to 31 December
+    /// 9999, is `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `out_value` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_ole_automation_from_fixed(
+        fixed: i64,
+        seconds_of_day: f64,
+        out_value: *mut f64,
+    ) -> HcStatus {
+        if out_value.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        match time_lines::ole_automation_from_fixed(fixed, seconds_of_day) {
+            Ok(value) => {
+                // SAFETY: checked non-null above.
+                unsafe { *out_value = value };
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+
+    /// What an Excel 1900 serial names.
+    ///
+    /// `out_phantom` receives 1 for serial 60, which Excel counts as
+    /// 29 February 1900, a day that never was, and `out_fixed` is then left
+    /// as it was: the serial is named, not given a date. Any other serial
+    /// writes its fixed day and 0. A serial below 1 or above 2 958 465,
+    /// 31 December 9999, is `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// Both out-parameters must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_excel_1900_day(
+        serial: i64,
+        out_fixed: *mut i64,
+        out_phantom: *mut c_int,
+    ) -> HcStatus {
+        if out_fixed.is_null() || out_phantom.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        match time_lines::excel_1900_day(serial) {
+            Ok(Excel1900Day::Date(day)) => {
+                // SAFETY: both were checked non-null above.
+                unsafe {
+                    *out_fixed = day.0;
+                    *out_phantom = 0;
+                }
+                HC_OK
+            }
+            Ok(Excel1900Day::Phantom29February1900) => {
+                // SAFETY: checked non-null above.
+                unsafe { *out_phantom = 1 };
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+}
+
+#[cfg(feature = "timestamps")]
+pub use time_scales::{
+    hc_excel_1900_day, hc_fixed_from_ole_automation, hc_glonass_date, hc_gnss_resolve_week,
+    hc_gnss_to_tai, hc_gnss_week, hc_ole_automation_from_fixed, hc_tai64_decode, hc_tai64_encode,
+};
+
 /// Every calendar, behind the `calendars` feature: the registry the facade
 /// populates, described for one day, walked as eras, years, months and
 /// days, and listed, in the vocabulary of a locale; the locales
@@ -769,6 +1180,233 @@ pub use calendars::{
     hc_locales,
 };
 
+/// Days in the calendars, behind the `calendars` feature: the pañcāṅga's
+/// yoga and karaṇa, the modern Olympiad of a year, and the Hebrew
+/// anniversaries, from `hyper_calendar`'s `panchanga_lines` and
+/// `calendar_values`, shared with the WebAssembly module.
+#[cfg(feature = "calendars")]
+mod calendar_days {
+    use core::ffi::c_char;
+
+    use hc::{astro_lines, calendar_values, panchanga_lines};
+
+    use super::{HC_ERROR_NULL_POINTER, HC_OK, HcStatus, name, status, write_answer};
+
+    /// One number through an out-parameter.
+    ///
+    /// # Safety
+    ///
+    /// `out` must be null or writable.
+    unsafe fn put(answer: hc::boundary::Answer<i64>, out: *mut i64) -> HcStatus {
+        if out.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        match answer {
+            Ok(value) => {
+                // SAFETY: checked non-null above.
+                unsafe { *out = value };
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+
+    /// The yoga and the karaṇa in progress at a POSIX timestamp, as two
+    /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+    ///
+    /// The lines are the WebAssembly module's: the limb, its number, its
+    /// English and Devanagari names, the instants it began and ends and the
+    /// instant it was read at, and the ayanamsa of the yoga. `ayanamsa` is
+    /// `Lahiri (Chitrapaksha)`, `Raman`, `Krishnamurti` or `Fagan-Bradley`,
+    /// or the first word of one, in any case; anything else is
+    /// `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. An instant
+    /// outside the years −1000 to 3000 is `HC_ERROR_OUT_OF_RANGE`. Writes
+    /// the required length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `ayanamsa` must be null or NUL-terminated; `buffer` must be writable
+    /// for `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_panchanga_at(
+        unix_seconds: i64,
+        ayanamsa: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let ayanamsa = match unsafe { name(ayanamsa) } {
+            Ok(ayanamsa) => ayanamsa,
+            Err(status) => return status,
+        };
+        let answer = panchanga_lines::panchanga_at_lines(unix_seconds, ayanamsa);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The yoga and the karaṇa a fixed day carries at a place, the ones in
+    /// progress at its sunrise, as two NUL-terminated UTF-8 lines in a
+    /// caller-owned buffer.
+    ///
+    /// The lines of `hc_panchanga_at`, read at the day's sunrise at the
+    /// latitude and longitude in degrees and the elevation in metres. A day
+    /// on which the Sun does not rise there is `HC_ERROR_NO_DATA`; a place
+    /// off the globe, or a day outside the years −1000 to 3000, is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_panchanga_at`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_panchanga_of_day(
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        ayanamsa: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let ayanamsa = match unsafe { name(ayanamsa) } {
+            Ok(ayanamsa) => ayanamsa,
+            Err(status) => return status,
+        };
+        let answer = astro_lines::location(latitude, longitude, elevation)
+            .and_then(|place| panchanga_lines::panchanga_of_day_lines(fixed, place, ayanamsa));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The number of the modern Olympiad a Gregorian year belongs to.
+    ///
+    /// 1 for 1896–1899, under the Olympic Charter's definition, whether or
+    /// not its Games were held; a year before 1896 is
+    /// `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `out_olympiad` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_ioc_olympiad(
+        gregorian_year: i64,
+        out_olympiad: *mut i64,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { put(calendar_values::ioc_olympiad(gregorian_year), out_olympiad) }
+    }
+
+    /// The fixed day of the yahrzeit in a Hebrew year of a death on the
+    /// Hebrew date a fixed day names.
+    ///
+    /// `death_fixed` is the fixed day whose daylight carries the Hebrew
+    /// date of the death — a death after sunset is the next fixed day —
+    /// and the rules for the dates a later year may lack are Reingold and
+    /// Dershowitz's. A day or a year outside the Hebrew years 1 to 9999 is
+    /// `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `out_fixed` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_hebrew_yahrzeit(
+        death_fixed: i64,
+        hebrew_year: i64,
+        out_fixed: *mut i64,
+    ) -> HcStatus {
+        let answer = calendar_values::hebrew_yahrzeit(death_fixed, hebrew_year);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { put(answer, out_fixed) }
+    }
+
+    /// The fixed day of the birthday in a Hebrew year of a birth on the
+    /// Hebrew date a fixed day names.
+    ///
+    /// As `hc_hebrew_yahrzeit`, by Reingold and Dershowitz's
+    /// `hebrew-birthday`: a birth in the last month of a year is kept in the
+    /// last month of the later one.
+    ///
+    /// # Safety
+    ///
+    /// `out_fixed` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_hebrew_birthday(
+        birth_fixed: i64,
+        hebrew_year: i64,
+        out_fixed: *mut i64,
+    ) -> HcStatus {
+        let answer = calendar_values::hebrew_birthday(birth_fixed, hebrew_year);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { put(answer, out_fixed) }
+    }
+
+    /// A person's age as the Chinese count reckons it on a fixed day.
+    ///
+    /// One at birth and one more at each Chinese New Year after, as
+    /// Reingold and Dershowitz's `chinese-age` counts it. The birth crosses
+    /// as its fixed day. A day before the birth has no age and is
+    /// `HC_ERROR_NO_DATA`; a day outside the Chinese calendar's range is
+    /// `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `out_age` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_chinese_reckoned_age(
+        birth_fixed: i64,
+        on_fixed: i64,
+        out_age: *mut u32,
+    ) -> HcStatus {
+        if out_age.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        match calendar_values::chinese_reckoned_age(birth_fixed, on_fixed) {
+            Ok(age) => {
+                // SAFETY: checked non-null above.
+                unsafe { *out_age = age };
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+
+    /// The marriage augury of a Chinese year, as one NUL-terminated UTF-8
+    /// line in a caller-owned buffer.
+    ///
+    /// The line is the WebAssembly module's: `widow`, `blind`, `bright` or
+    /// `double-bright`, then `1` or `0` for whether 立春 falls after the
+    /// year's New Year and whether another falls before the next.
+    /// `chinese_year` is the Chinese calendar's own count, 4661 for the year
+    /// that began on 10 February 2024; outside its range is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_chinese_marriage_augury(
+        chinese_year: i64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let answer = calendar_values::chinese_marriage_augury_line(chinese_year);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+}
+
+#[cfg(feature = "calendars")]
+pub use calendar_days::{
+    hc_chinese_marriage_augury, hc_chinese_reckoned_age, hc_hebrew_birthday, hc_hebrew_yahrzeit,
+    hc_ioc_olympiad, hc_panchanga_at, hc_panchanga_of_day,
+};
+
 /// The holiday tables, behind the `holiday` feature: every country,
 /// exchange, tradition and international set of `hc-holiday`, looked up by
 /// identifier and rendered as tab-separated lines.
@@ -801,12 +1439,7 @@ mod holiday {
     /// countries, then the exchanges, the traditions and the international
     /// sets.
     fn tables() -> impl Iterator<Item = &'static RuleSet> {
-        countries::ALL
-            .iter()
-            .chain(exchanges::ALL)
-            .chain(traditions::ALL)
-            .chain(international::ALL)
-            .copied()
+        hc::holiday_lines::tables()
     }
 
     /// The table and region two string arguments name.
@@ -1077,6 +1710,108 @@ mod holiday {
 
 #[cfg(feature = "holiday")]
 pub use holiday::{hc_holiday_codes, hc_holiday_is_day_off, hc_holidays_in_year, hc_holidays_on};
+
+/// The tables and the liturgical year, behind the `holiday` feature: every
+/// holiday table described, the lectionary cycles of a day and the
+/// astronomical Easter, from `hyper_calendar::holiday_lines`, shared with
+/// the WebAssembly module.
+#[cfg(feature = "holiday")]
+mod observances {
+    use core::ffi::c_char;
+
+    use hc::holiday_lines;
+
+    use super::{HC_ERROR_NULL_POINTER, HC_OK, HcStatus, status, text, write_answer, write_text};
+
+    /// Every holiday table with its kind, names and sources, as
+    /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+    ///
+    /// The lines are the WebAssembly module's: one per table in
+    /// `hc_holiday_codes` order, with the code, the kind (`country`,
+    /// `subdivision`, `exchange`, `tradition` or `observance`), the name in
+    /// the locale, the English name, the locale that answered, the sources,
+    /// and the ISO 3166-1 country of a subdivision or an exchange where its
+    /// table records one. The tables carry English names only, so a `locale`
+    /// whose language is `en` has the English name in column 3, and every
+    /// other, or null, has it empty. Writes the required length, including
+    /// the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be null or NUL-terminated; `buffer` must be writable
+    /// for `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_holiday_tables(
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale) } {
+            Ok(tag) => tag.unwrap_or(""),
+            Err(status) => return status,
+        };
+        let lines = holiday_lines::holiday_tables(tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&lines, buffer, capacity, written) }
+    }
+
+    /// The lectionary cycles of a fixed day, as one NUL-terminated UTF-8
+    /// line in a caller-owned buffer.
+    ///
+    /// The line is the WebAssembly module's: the liturgical year, the
+    /// Sunday cycle `A`, `B` or `C`, the Roman weekday cycle `I` or `II`,
+    /// and the RCL's Proper for a Sunday after Trinity Sunday, else empty.
+    /// A day outside the liturgical years 1583 to 4099 is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_lectionary(
+        fixed: i64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let answer = holiday_lines::lectionary_line(fixed);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The fixed day of Easter Sunday of a Gregorian year by the
+    /// astronomical reckoning at the meridian of Jerusalem.
+    ///
+    /// The first Sunday after the day, by apparent solar time at Jerusalem,
+    /// of the first full moon at or after the March equinox, as the World
+    /// Council of Churches' Aleppo statement of 1997 proposed. A year
+    /// outside 1583 to 2150 is `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `out_fixed` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_astronomical_easter(year: i64, out_fixed: *mut i64) -> HcStatus {
+        if out_fixed.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        match holiday_lines::astronomical_easter(year) {
+            Ok(day) => {
+                // SAFETY: checked non-null above.
+                unsafe { *out_fixed = day };
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+}
+
+#[cfg(feature = "holiday")]
+pub use observances::{hc_astronomical_easter, hc_holiday_tables, hc_lectionary};
 
 /// The almanac, behind the `seasons` feature: the 24 solar terms and the 72
 /// pentads of `hc-seasons`, judged at a named meridian.
@@ -1996,6 +2731,212 @@ mod sky {
 #[cfg(feature = "sky")]
 pub use sky::{hc_moon_phases_between, hc_sky_at, hc_solar_terms_between};
 
+/// The Earth's rotation and the Sun's hours, behind the `sky` feature: the
+/// Earth Rotation Angle, the Greenwich mean sidereal time by two
+/// conventions, UT2 − UT1, and the clocks and named times of day of
+/// `hc_astro::solar_time`, from `hyper_calendar::astro_lines`, shared with
+/// the WebAssembly module, for the years −1000 to 3000.
+#[cfg(feature = "sky")]
+mod earth_and_sun {
+    use core::ffi::c_char;
+
+    use hc::astro_lines;
+
+    use super::{HC_ERROR_NULL_POINTER, HC_OK, HcStatus, name, status, write_answer};
+
+    /// One number through an out-parameter.
+    ///
+    /// # Safety
+    ///
+    /// `out` must be null or writable.
+    unsafe fn put(answer: hc::boundary::Answer<f64>, out: *mut f64) -> HcStatus {
+        if out.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        match answer {
+            Ok(value) => {
+                // SAFETY: checked non-null above.
+                unsafe { *out = value };
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+
+    /// The Earth Rotation Angle at a UT1 instant, in degrees, 0 to 360.
+    ///
+    /// By IERS Conventions 2010, equation 5.14. `ut1_unix_seconds` counts
+    /// UT1 as POSIX time counts UTC, 86 400 seconds a day from 1970-01-01
+    /// 00:00 UT1, with a fraction. A value that is not finite, or outside
+    /// the years −1000 to 3000, is `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `out_degrees` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_earth_rotation_angle(
+        ut1_unix_seconds: f64,
+        out_degrees: *mut f64,
+    ) -> HcStatus {
+        let answer = astro_lines::earth_rotation_angle_degrees(ut1_unix_seconds);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { put(answer, out_degrees) }
+    }
+
+    /// The Greenwich mean sidereal time by the IAU 2006 convention at a UT1
+    /// instant, in degrees, 0 to 360.
+    ///
+    /// The Earth Rotation Angle plus the polynomial of IERS Conventions
+    /// 2010, equation 5.32, in TT taken as UT1 + ΔT. The instant is as for
+    /// `hc_earth_rotation_angle`, and fails as it does.
+    ///
+    /// # Safety
+    ///
+    /// `out_degrees` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gmst_iau2006(
+        ut1_unix_seconds: f64,
+        out_degrees: *mut f64,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe {
+            put(
+                astro_lines::gmst_iau2006_degrees(ut1_unix_seconds),
+                out_degrees,
+            )
+        }
+    }
+
+    /// The Greenwich mean sidereal time by the IAU 1982 convention at a UT1
+    /// instant, in degrees, 0 to 360.
+    ///
+    /// Meeus's (12.4), a polynomial in UT1 alone; it differs from
+    /// `hc_gmst_iau2006` by about 0.14 ms of time in 2006. The instant is as
+    /// for `hc_earth_rotation_angle`, and fails as it does.
+    ///
+    /// # Safety
+    ///
+    /// `out_degrees` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gmst_iau1982(
+        ut1_unix_seconds: f64,
+        out_degrees: *mut f64,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe {
+            put(
+                astro_lines::gmst_iau1982_degrees(ut1_unix_seconds),
+                out_degrees,
+            )
+        }
+    }
+
+    /// UT2 − UT1 at a UT1 instant, in seconds.
+    ///
+    /// The conventional seasonal variation as the USNO states the formula;
+    /// its extremes are ±0.031 s. The instant is as for
+    /// `hc_earth_rotation_angle`, and fails as it does.
+    ///
+    /// # Safety
+    ///
+    /// `out_seconds` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_ut2_minus_ut1(
+        ut1_unix_seconds: f64,
+        out_seconds: *mut f64,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe {
+            put(
+                astro_lines::ut2_minus_ut1_seconds(ut1_unix_seconds),
+                out_seconds,
+            )
+        }
+    }
+
+    /// A local clock's reading at a POSIX timestamp and a place, as one
+    /// NUL-terminated UTF-8 line in a caller-owned buffer.
+    ///
+    /// `clock` is `local-mean`, `local-apparent`, `temporal` or `italian`,
+    /// in any case; anything else is `HC_ERROR_UNKNOWN`, and null
+    /// `HC_ERROR_NULL_POINTER`. The line is the WebAssembly module's: the
+    /// local date's fixed day, the hours into it, and three cells naming a
+    /// solar event the reading needs that does not happen, empty when it
+    /// exists. A place off the globe, or an instant outside the years −1000
+    /// to 3000, is `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `clock` must be null or NUL-terminated; `buffer` must be writable for
+    /// `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_solar_time(
+        clock: *const c_char,
+        unix_seconds: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let clock = match unsafe { name(clock) } {
+            Ok(clock) => clock,
+            Err(status) => return status,
+        };
+        let answer = astro_lines::location(latitude, longitude, elevation)
+            .and_then(|place| astro_lines::solar_time_line(clock, unix_seconds, place));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// A named time of day on a fixed day at a place, as one NUL-terminated
+    /// UTF-8 line in a caller-owned buffer.
+    ///
+    /// `event` is `asr-shafii`, `asr-hanafi`, `jewish-dusk-vilna-gaon`,
+    /// `jewish-sabbath-ends-cohn` or `italian-zero-hour`, in any case;
+    /// anything else is `HC_ERROR_UNKNOWN`, and null
+    /// `HC_ERROR_NULL_POINTER`. The line is the WebAssembly module's: the
+    /// instant as whole POSIX seconds of Universal Time, and the three cells
+    /// of `hc_solar_time` naming a missing solar event. A place off the
+    /// globe, or a day outside the years −1000 to 3000, is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_solar_time`, for `event`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_solar_event(
+        event: *const c_char,
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let event = match unsafe { name(event) } {
+            Ok(event) => event,
+            Err(status) => return status,
+        };
+        let answer = astro_lines::location(latitude, longitude, elevation)
+            .and_then(|place| astro_lines::solar_event_line(event, fixed, place));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+}
+
+#[cfg(feature = "sky")]
+pub use earth_and_sun::{
+    hc_earth_rotation_angle, hc_gmst_iau1982, hc_gmst_iau2006, hc_solar_event, hc_solar_time,
+    hc_ut2_minus_ut1,
+};
+
 /// The orbit, behind the `orbital` feature: Earth's orbital elements and
 /// the June insolation at 65° N they set, a million years either side of
 /// 1950, from Berger's 1978 series in `hc-orbital`.
@@ -2215,6 +3156,7 @@ mod tests {
     /// Call a line-writing entry point the way a C caller does: measure,
     /// allocate, read, and check the terminator.
     #[cfg(any(
+        feature = "timestamps",
         feature = "calendars",
         feature = "holiday",
         feature = "seasons",
@@ -3362,6 +4304,422 @@ mod tests {
             );
             assert_eq!(written, 1);
             assert_eq!(buffer[0], 0);
+        }
+    }
+
+    #[cfg(feature = "timestamps")]
+    mod time_scales {
+        use super::super::*;
+        use super::read_lines;
+
+        #[test]
+        fn a_tai64_label_crosses_both_ways() {
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_tai64_encode(0, 0, c"TAI64".as_ptr(), buffer, capacity, written)
+            });
+            assert_eq!(text, "4000000000000000\n");
+            let (mut seconds, mut attos) = (7i64, 7u64);
+            assert_eq!(
+                unsafe {
+                    hc_tai64_decode(
+                        c"3fffffffffffffff3b9ac9ff3b9ac9ff".as_ptr(),
+                        &mut seconds,
+                        &mut attos,
+                    )
+                },
+                HC_OK
+            );
+            assert_eq!((seconds, attos), (-1, 999_999_999_999_999_999));
+            // The last label below 2⁶³ is the last second the int64_t holds.
+            assert_eq!(
+                unsafe { hc_tai64_decode(c"7fffffffffffffff".as_ptr(), &mut seconds, &mut attos) },
+                HC_OK
+            );
+            assert_eq!(seconds, 4_611_686_018_427_387_903);
+            assert_eq!(
+                unsafe { hc_tai64_decode(c"8000000000000000".as_ptr(), &mut seconds, &mut attos) },
+                HC_ERROR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe { hc_tai64_decode(c"xyz".as_ptr(), &mut seconds, &mut attos) },
+                HC_ERROR_MALFORMED
+            );
+            assert_eq!(
+                unsafe { hc_tai64_decode(core::ptr::null(), &mut seconds, &mut attos) },
+                HC_ERROR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe {
+                    hc_tai64_encode(
+                        0,
+                        0,
+                        c"tai32".as_ptr(),
+                        core::ptr::null_mut(),
+                        0,
+                        core::ptr::null_mut(),
+                    )
+                },
+                HC_ERROR_UNKNOWN
+            );
+        }
+
+        /// GPS week 2048 began at 2019-04-06 23:59:42 UTC, TAI second
+        /// 1 554 595 219.
+        #[test]
+        fn the_april_2019_rollover_crosses_the_boundary() {
+            let tai = 1_554_595_219;
+            let (mut week, mut broadcast, mut tow, mut tow_attos) = (0u32, 0u32, 0u32, 0u64);
+            let id = c"gps-lnav-week".as_ptr();
+            assert_eq!(
+                unsafe {
+                    hc_gnss_week(
+                        id,
+                        tai - 1,
+                        5,
+                        &mut week,
+                        &mut broadcast,
+                        &mut tow,
+                        &mut tow_attos,
+                    )
+                },
+                HC_OK
+            );
+            assert_eq!((week, broadcast, tow, tow_attos), (2047, 1023, 604_799, 5));
+            let (mut seconds, mut attos) = (0i64, 0u64);
+            assert_eq!(
+                unsafe { hc_gnss_to_tai(id, 2048, 0, 0, &mut seconds, &mut attos) },
+                HC_OK
+            );
+            assert_eq!((seconds, attos), (tai, 0));
+            // The latest instant the table of ranges gives.
+            assert_eq!(
+                unsafe {
+                    hc_gnss_to_tai(
+                        c"beidou-week".as_ptr(),
+                        u32::MAX,
+                        604_799,
+                        0,
+                        &mut seconds,
+                        &mut attos,
+                    )
+                },
+                HC_OK
+            );
+            assert_eq!(seconds, 2_597_597_356_694_432);
+            assert_eq!(
+                unsafe { hc_gnss_resolve_week(id, 1023, c"nearest".as_ptr(), tai, &mut week) },
+                HC_OK
+            );
+            assert_eq!(week, 2047);
+            assert_eq!(
+                unsafe { hc_gnss_resolve_week(id, 1023, core::ptr::null(), tai, &mut week) },
+                HC_ERROR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe {
+                    hc_gnss_week(
+                        id,
+                        0,
+                        0,
+                        &mut week,
+                        &mut broadcast,
+                        &mut tow,
+                        &mut tow_attos,
+                    )
+                },
+                HC_ERROR_NO_DATA
+            );
+        }
+
+        #[test]
+        fn glonass_ole_and_excel_dates_cross_the_boundary() {
+            let (mut interval, mut day) = (0u32, 0u32);
+            assert_eq!(
+                unsafe { hc_glonass_date(1_704_067_200 + 37, 0, 1, &mut interval, &mut day) },
+                HC_OK
+            );
+            assert_eq!((interval, day), (8, 1));
+            let mut new_year_1900 = 0i64;
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(1900, 1, 1, &mut new_year_1900) },
+                HC_OK
+            );
+            let (mut fixed, mut seconds) = (0i64, 0f64);
+            assert_eq!(
+                unsafe { hc_fixed_from_ole_automation(-1.25, &mut fixed, &mut seconds) },
+                HC_OK
+            );
+            assert_eq!((fixed, seconds), (new_year_1900 - 3, 21_600.0));
+            let mut value = 0f64;
+            assert_eq!(
+                unsafe { hc_ole_automation_from_fixed(new_year_1900 - 3, 21_600.0, &mut value) },
+                HC_OK
+            );
+            assert_eq!(value, -1.25);
+            let (mut serial_day, mut phantom) = (7i64, 7);
+            assert_eq!(
+                unsafe { hc_excel_1900_day(60, &mut serial_day, &mut phantom) },
+                HC_OK
+            );
+            assert_eq!((serial_day, phantom), (7, 1), "serial 60 writes no day");
+            assert_eq!(
+                unsafe { hc_excel_1900_day(1, &mut serial_day, &mut phantom) },
+                HC_OK
+            );
+            assert_eq!((serial_day, phantom), (new_year_1900, 0));
+            assert_eq!(
+                unsafe { hc_excel_1900_day(2_958_466, &mut serial_day, &mut phantom) },
+                HC_ERROR_OUT_OF_RANGE
+            );
+        }
+    }
+
+    #[cfg(feature = "calendars")]
+    mod calendar_days {
+        use super::super::*;
+        use super::read_lines;
+
+        fn fixed(year: i64, month: u8, day: u8) -> i64 {
+            let mut fixed = 0;
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(year, month, day, &mut fixed) },
+                HC_OK
+            );
+            fixed
+        }
+
+        /// Drik Panchang for 1 January 2025, read at sunrise.
+        #[test]
+        fn the_panchanga_lines_are_the_modules() {
+            let day = fixed(2025, 1, 1);
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_panchanga_of_day(
+                    day,
+                    23.183_333,
+                    82.5,
+                    0.0,
+                    c"lahiri".as_ptr(),
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            let rows: Vec<Vec<&str>> = text
+                .lines()
+                .map(|line| line.split('\t').collect())
+                .collect();
+            assert_eq!(rows.len(), 2);
+            assert_eq!(rows[0][2], "Vyaghata");
+            assert_eq!(rows[1][2], "Balava");
+            let mut written = 0usize;
+            assert_eq!(
+                unsafe {
+                    hc_panchanga_at(0, core::ptr::null(), core::ptr::null_mut(), 0, &mut written)
+                },
+                HC_ERROR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe {
+                    hc_panchanga_of_day(
+                        day,
+                        89.0,
+                        0.0,
+                        0.0,
+                        c"Lahiri".as_ptr(),
+                        core::ptr::null_mut(),
+                        0,
+                        &mut written,
+                    )
+                },
+                HC_ERROR_NO_DATA
+            );
+        }
+
+        #[test]
+        fn the_olympiads_and_the_hebrew_anniversaries_are_out_parameters() {
+            let mut out = 0i64;
+            assert_eq!(unsafe { hc_ioc_olympiad(2021, &mut out) }, HC_OK);
+            assert_eq!(out, 32);
+            assert_eq!(
+                unsafe { hc_ioc_olympiad(1895, &mut out) },
+                HC_ERROR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe { hc_ioc_olympiad(2021, core::ptr::null_mut()) },
+                HC_ERROR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe { hc_hebrew_yahrzeit(fixed(2020, 1, 7), 5781, &mut out) },
+                HC_OK
+            );
+            assert_eq!(out, fixed(2020, 12, 25));
+            assert_eq!(
+                unsafe { hc_hebrew_birthday(fixed(2020, 1, 7), 5781, &mut out) },
+                HC_OK
+            );
+            assert_eq!(out, fixed(2020, 12, 25));
+            assert_eq!(
+                unsafe { hc_hebrew_yahrzeit(fixed(2020, 1, 7), 10_000, &mut out) },
+                HC_ERROR_OUT_OF_RANGE
+            );
+        }
+
+        #[test]
+        fn the_chinese_reckonings_cross_the_boundary() {
+            let mut age = 0u32;
+            let birth = fixed(2000, 6, 15);
+            assert_eq!(
+                unsafe { hc_chinese_reckoned_age(birth, fixed(2012, 1, 23), &mut age) },
+                HC_OK
+            );
+            assert_eq!(age, 13);
+            assert_eq!(
+                unsafe { hc_chinese_reckoned_age(birth, birth - 1, &mut age) },
+                HC_ERROR_NO_DATA
+            );
+            let line = read_lines(|buffer, capacity, written| unsafe {
+                hc_chinese_marriage_augury(4_646, buffer, capacity, written)
+            });
+            assert_eq!(line, "double-bright\t1\t1\n");
+        }
+    }
+
+    #[cfg(feature = "holiday")]
+    mod observances {
+        use super::super::*;
+        use super::read_lines;
+
+        #[test]
+        fn the_tables_the_lectionary_and_easter_cross_the_boundary() {
+            let english = read_lines(|buffer, capacity, written| unsafe {
+                hc_holiday_tables(c"en-US".as_ptr(), buffer, capacity, written)
+            });
+            let none = read_lines(|buffer, capacity, written| unsafe {
+                hc_holiday_tables(core::ptr::null(), buffer, capacity, written)
+            });
+            assert_eq!(english.lines().count(), none.lines().count());
+            let japan: Vec<&str> = english
+                .lines()
+                .find(|line| line.starts_with("JP\t"))
+                .expect("Japan")
+                .split('\t')
+                .collect();
+            assert_eq!(japan[..5], ["JP", "country", "Japan", "Japan", "en"]);
+            let mut day = 0i64;
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(2025, 11, 30, &mut day) },
+                HC_OK
+            );
+            let line = read_lines(|buffer, capacity, written| unsafe {
+                hc_lectionary(day, buffer, capacity, written)
+            });
+            assert_eq!(line, "2026\tA\tII\t\n");
+            let mut easter = 0i64;
+            assert_eq!(unsafe { hc_astronomical_easter(2001, &mut easter) }, HC_OK);
+            let mut expected = 0i64;
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(2001, 4, 15, &mut expected) },
+                HC_OK
+            );
+            assert_eq!(easter, expected);
+            assert_eq!(
+                unsafe { hc_astronomical_easter(1582, &mut easter) },
+                HC_ERROR_OUT_OF_RANGE
+            );
+        }
+    }
+
+    #[cfg(feature = "sky")]
+    mod earth_and_sun {
+        use super::super::*;
+        use super::read_lines;
+
+        #[test]
+        fn the_rotation_is_erfas_through_an_out_parameter() {
+            let mut degrees = 0f64;
+            assert_eq!(
+                unsafe { hc_earth_rotation_angle(1_192_406_400.0, &mut degrees) },
+                HC_OK
+            );
+            assert!((degrees - 0.402_283_724_002_815_8_f64.to_degrees()).abs() < 1e-8);
+            assert_eq!(
+                unsafe { hc_gmst_iau1982(1_136_073_600.0, &mut degrees) },
+                HC_OK
+            );
+            assert!((degrees - 1.754_174_981_860_675_f64.to_degrees()).abs() < 1e-8);
+            assert_eq!(
+                unsafe { hc_gmst_iau2006(1_136_073_600.0, &mut degrees) },
+                HC_OK
+            );
+            assert!((degrees - 1.754_174_971_870_091_2_f64.to_degrees()).abs() < 1e-7);
+            let mut seconds = 0f64;
+            assert_eq!(
+                unsafe { hc_ut2_minus_ut1(946_684_800.0 + 2_592.0, &mut seconds) },
+                HC_OK
+            );
+            assert!((seconds + 0.005).abs() < 1e-6);
+            assert_eq!(
+                unsafe { hc_ut2_minus_ut1(f64::NAN, &mut seconds) },
+                HC_ERROR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe { hc_gmst_iau2006(0.0, core::ptr::null_mut()) },
+                HC_ERROR_NULL_POINTER
+            );
+        }
+
+        #[test]
+        fn the_solar_lines_are_the_modules() {
+            // Tromsø in the polar night: no noon shadow for ʿaṣr.
+            let mut midwinter = 0i64;
+            assert_eq!(
+                unsafe { hc_gregorian_to_fixed(2024, 12, 21, &mut midwinter) },
+                HC_OK
+            );
+            let line = read_lines(|buffer, capacity, written| unsafe {
+                hc_solar_event(
+                    c"asr-hanafi".as_ptr(),
+                    midwinter,
+                    69.6496,
+                    18.956,
+                    0.0,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(line, format!("\tno-noon-shadow\t{midwinter}\t\n"));
+            let line = read_lines(|buffer, capacity, written| unsafe {
+                hc_solar_time(
+                    c"local-mean".as_ptr(),
+                    1_704_110_400,
+                    0.0,
+                    15.0,
+                    0.0,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            let cells: Vec<&str> = line.trim_end().split('\t').collect();
+            let hours: f64 = cells[1].parse().expect("hours");
+            assert!((hours - 13.0).abs() < 1e-6, "{line:?}");
+            let mut written = 0usize;
+            assert_eq!(
+                unsafe {
+                    hc_solar_time(
+                        core::ptr::null(),
+                        0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        core::ptr::null_mut(),
+                        0,
+                        &mut written,
+                    )
+                },
+                HC_ERROR_NULL_POINTER
+            );
         }
     }
 }

@@ -21,6 +21,11 @@ crate-type = ["cdylib", "rlib"]
 default = ["civil"]
 # Proleptic Gregorian dates, ISO 8601 text, POSIX time and the TAI-UTC bridge.
 civil = ["hc/civil", "hc/format"]
+# Time-scale labels and day counts outside the civil calendar: TAI64
+# labels, GNSS weeks, GLONASS dates, OLE Automation dates and Excel 1900
+# serials. A layer of its own so that `civil`, the first a page paints
+# with, does not carry their float formatting and 128-bit arithmetic.
+timestamps = ["civil"]
 # Every calendar the facade registers, described for one day in a locale.
 calendars = ["civil", "hc/lunar", "hc/equinox", "hc/indic", "hc/regional", "hc/i18n"]
 # The holiday tables: countries, exchanges, traditions and the UN days.
@@ -39,7 +44,7 @@ sky = ["civil", "hc/seasons"]
 # million years either side of 1950, from Berger's 1978 series.
 orbital = ["hc/orbital"]
 # Every layer.
-full = ["civil", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "hc/full"]
+full = ["civil", "timestamps", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "hc/full"]
 
 [dependencies]
 hc = { package = "hyper-calendar", version = "0.1.0", path = "../hyper-calendar", default-features = false, features = ["std"] }

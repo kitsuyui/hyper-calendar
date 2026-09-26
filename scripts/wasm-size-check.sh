@@ -19,7 +19,7 @@ target_dir=${CARGO_TARGET_DIR:-target}
 out="$target_dir/wasm-layers"
 readme=crates/hyper-calendar-wasm/README.md
 tolerance=${TOLERANCE:-5}
-layers="civil calendars seasons holiday deep-time tz sky orbital full"
+layers="civil timestamps calendars seasons holiday deep-time tz sky orbital full"
 
 status=0
 for layer in $layers; do
