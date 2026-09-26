@@ -77,6 +77,10 @@ export const SENTINELS: ReadonlyArray<Sentinel>;
 export const METHODS: ReadonlyArray<MethodEntry>;
 export const COLUMNS: {
   readonly describeDay: ReadonlyArray<string>;
+  readonly calendarUnits: ReadonlyArray<string>;
+  readonly calendars: ReadonlyArray<string>;
+  readonly locales: ReadonlyArray<string>;
+  readonly gregorianAdoption: ReadonlyArray<string>;
   readonly holidaysInYear: ReadonlyArray<string>;
   readonly holidaysOn: ReadonlyArray<string>;
   readonly term: ReadonlyArray<string>;

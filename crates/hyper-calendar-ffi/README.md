@@ -1,6 +1,10 @@
 # hyper-calendar-ffi
 
-A C ABI for `hyper-calendar`, built as the shared library
+A C ABI for `hyper-calendar`: convert dates between every calendar the
+registry carries, look up the holiday tables of countries, exchanges and
+traditions, and handle TAI, UTC and leap seconds, from any language that
+can call C. Days cross as fixed days (Rata Die: day 1 is 1 January of
+year 1, proleptic Gregorian). It is built as the shared library
 `libhyper_calendar_ffi.{so,dylib}` (`hyper_calendar_ffi.dll` on Windows) and
 as a static library.
 
@@ -17,7 +21,8 @@ A C boundary has three ways to go wrong, and each is closed deliberately.
   caller owns: integers through out-parameters, text into a caller-supplied
   buffer. There is no global state to tear down.
 - **Truncation is reported, not silent.** A text function that does not fit
-  returns `HC_ERROR_BUFFER_TOO_SMALL` and writes the required length, so the
+  returns `HC_ERROR_BUFFER_TOO_SMALL` and writes the required length,
+  including the terminating NUL, so the
   caller can retry with a bigger buffer. It never writes a partial answer and
   calls it success.
 
@@ -41,9 +46,12 @@ typedef int HcStatus;
 HcStatus hc_gregorian_to_fixed(int64_t year, uint8_t month, uint8_t day,
                                int64_t *out_fixed);
 
-int64_t rd;
-if (hc_gregorian_to_fixed(2026, 9, 21, &rd) == 0) {
-    /* rd == 739880: the Rata Die, day 1 being 0001-01-01. */
+int main(void) {
+    int64_t rd;
+    if (hc_gregorian_to_fixed(2026, 9, 21, &rd) == 0) {
+        /* rd == 739880: the Rata Die, day 1 being 0001-01-01. */
+    }
+    return 0;
 }
 ```
 
@@ -55,32 +63,57 @@ where the WebAssembly module has to refuse a day whose POSIX time would be at
 or below its `HC_ERR_FLOOR`, about 285 million years back, this library
 answers, as the section below explains. What an entry point cannot hold it refuses rather than wraps or
 clamps, and the only bounds that are not the calendar's own are where an
-`int64_t` runs out. The range each entry point with an `int64_t`
-out-parameter answers for:
+`int64_t` runs out. The range each entry point that takes an `int64_t` or
+writes one answers for, naming each `int64_t` input;
+[`crates/hyper-calendar/tests/abi.rs`](../hyper-calendar/tests/abi.rs)
+fails when one has no row, or two, or a row that does not name its inputs:
 
 | Writes | Entry points | Answers for |
 | --- | --- | --- |
-| a fixed day | `hc_gregorian_to_fixed` | the years −9 999 999 through 9 999 999, which are the fixed days −3 652 424 999 through 3 652 424 634; any other date is `HC_ERROR_INVALID_DATE` |
-| a year, month and day | `hc_gregorian_from_fixed` | the fixed days −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_NO_DATA` |
-| TAI seconds | `hc_tai_from_unix` | every timestamp up to `INT64_MAX − 37`; TAI runs ahead of UTC, so a later one has no TAI reading an `int64_t` holds and is `HC_ERROR_OVERFLOW`; under `strict`, 1961 through the end of the announced table, else `HC_ERROR_NO_DATA` |
-| seconds | `hc_tai_minus_utc` | every timestamp; under `strict`, as for `hc_tai_from_unix` |
-| a POSIX timestamp | `hc_utc_from_tai` | every TAI reading; under `strict`, as for `hc_tai_from_unix` |
-| a fixed day | `hc_fixed_from_unix_in_zone` | every timestamp |
-| a POSIX timestamp | `hc_unix_from_fixed_in_zone` | the days whose start by the zone's clock fits an `int64_t`: by UTC, the fixed days −106 751 990 448 137 through 106 751 991 886 463, and a zone's offset moves each end by at most a day; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a fixed day | `hc_gregorian_to_fixed` | `year` −9 999 999 through 9 999 999, which are the fixed days −3 652 424 999 through 3 652 424 634; any other date is `HC_ERROR_INVALID_DATE` |
+| a fixed day | `hc_parse_iso_date` | the dates of the years −9 999 999 through 9 999 999; any other text is `HC_ERROR_INVALID_DATE` |
+| a year, month and day; a day of the year; 1 or 0; ISO 8601 text | `hc_gregorian_from_fixed`, `hc_day_of_year`, `hc_is_leap_year`, `hc_format_iso_date` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_NO_DATA` |
+| a weekday, 1 through 7 | `hc_weekday` | every `fixed` |
+| a fixed day | `hc_fixed_from_unix` | every `unix_seconds`; the day is between −106 751 990 448 138 and 106 751 991 886 463 |
+| a POSIX timestamp | `hc_unix_from_fixed` | `fixed` −106 751 990 448 137 through 106 751 991 886 463, the days whose midnight fits an `int64_t`; any other is `HC_ERROR_OUT_OF_RANGE` |
+| TAI seconds | `hc_tai_from_unix` | every `unix_seconds` up to `INT64_MAX − 37`; TAI runs ahead of UTC, so a later one has no TAI reading an `int64_t` holds and is `HC_ERROR_OVERFLOW`; under `strict`, 1961 through the end of the announced table, else `HC_ERROR_NO_DATA` |
+| seconds | `hc_tai_minus_utc` | every `unix_seconds`; under `strict`, as for `hc_tai_from_unix` |
+| 1 or 0 | `hc_day_has_leap_second` | `unix_seconds` −9 223 372 036 854 720 000 through 9 223 372 036 854 719 999, the whole days of the `int64_t` range; the part-days at its two ends begin or end where no `int64_t` reaches, and are `HC_ERROR_OUT_OF_RANGE` |
+| a POSIX timestamp | `hc_utc_from_tai` | every `tai_seconds`; under `strict`, as for `hc_tai_from_unix` |
+| a fixed day | `hc_fixed_from_unix_in_zone` | every `unix_seconds` |
+| a POSIX timestamp | `hc_unix_from_fixed_in_zone` | the `fixed` days whose start by the zone's clock fits an `int64_t`: by UTC, the fixed days −106 751 990 448 137 through 106 751 991 886 463, and a zone's offset moves each end by at most a day; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a TAI64 label | `hc_tai64_encode` | `tai_seconds` −4 611 686 018 427 387 904 through 4 611 686 018 427 387 903, the seconds of the labels below 2⁶³, and attoseconds below 10¹⁸; any other is `HC_ERROR_OUT_OF_RANGE` |
 | TAI seconds | `hc_tai64_decode` | every label below 2⁶³, the seconds −4 611 686 018 427 387 904 through 4 611 686 018 427 387 903; a reserved label is `HC_ERROR_OUT_OF_RANGE` |
-| a week, a broadcast week and a time of week | `hc_gnss_week` | every instant from the field's week zero to the end of week 4 294 967 295, the attoseconds 0 through 999 999 999 999 999 999; an earlier instant is `HC_ERROR_NO_DATA` and a later one `HC_ERROR_OVERFLOW` |
+| a week, a broadcast week and a time of week | `hc_gnss_week` | `tai_seconds` from the field's week zero to the end of week 4 294 967 295 (for GPS, 315 964 819 through 2 597 596 536 585 618), the attoseconds 0 through 999 999 999 999 999 999; an earlier instant is `HC_ERROR_NO_DATA` and a later one `HC_ERROR_OVERFLOW` |
 | TAI seconds | `hc_gnss_to_tai` | every week and every time of week below 604 800 s: at most 2 597 597 356 694 432, the last second of BeiDou week 4 294 967 295 |
+| a full week | `hc_gnss_resolve_week` | every broadcast week that fits the field and every `reference_tai_seconds`, one before week zero counting as week zero; a broadcast week that does not fit, or an answer past week 4 294 967 295, is `HC_ERROR_OUT_OF_RANGE` |
+| *N*4 and *N*T | `hc_glonass_date` | `tai_seconds` from 1996-01-01 00:00 to the end of 2099-12-31 by GLONASS time, 820 443 629 through 4 102 434 036 when the last published offset is held; outside is `HC_ERROR_OUT_OF_RANGE`, and under `strict` an instant past the leap-second table `HC_ERROR_NO_DATA` |
 | a fixed day | `hc_fixed_from_ole_automation` | the values −657 434 through just below 2 958 466, the fixed days 36 160 (1 January 100) through 3 652 059 (31 December 9999); any other is `HC_ERROR_OUT_OF_RANGE` |
-| a fixed day | `hc_excel_1900_day` | the serials 1 through 2 958 465, the fixed days 693 596 through 3 652 059, serial 60 writing none; any other is `HC_ERROR_OUT_OF_RANGE` |
-| an Olympiad | `hc_ioc_olympiad` | the years from 1896; an earlier one is `HC_ERROR_OUT_OF_RANGE` |
-| a fixed day | `hc_hebrew_yahrzeit`, `hc_hebrew_birthday` | the days and years of the Hebrew years 1 through 9999, the fixed days −1 373 427 through 2 278 650; any other is `HC_ERROR_OUT_OF_RANGE` |
-| a fixed day | `hc_astronomical_easter` | the years 1583 through 2150; any other is `HC_ERROR_OUT_OF_RANGE` |
+| an OLE Automation date | `hc_ole_automation_from_fixed` | `fixed` 36 160 (1 January 100) through 3 652 059 (31 December 9999) and a time of day from 0 to below 86 400 s; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a fixed day | `hc_excel_1900_day` | `serial` 1 through 2 958 465, the fixed days 693 596 through 3 652 059, serial 60 writing none; any other is `HC_ERROR_OUT_OF_RANGE` |
+| lines | `hc_describe_day` | every `fixed`; a calendar that refuses the day says so in its own line |
+| lines | `hc_calendar_units` | every `from_fixed` and `to_fixed`; a span a calendar refuses says so in its own line, a `to_fixed` at or before `from_fixed` writes no lines, and the text grows with the span, one line a unit |
+| lines | `hc_calendars` | every `today` |
+| lines | `hc_holidays_in_year` | every `year`; a year the table has no entries for writes no lines |
+| 1 or 0; lines | `hc_holiday_is_day_off`, `hc_holidays_on` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_lectionary` | `fixed` 577 780 through 1 497 096, the liturgical years 1583 to 4099; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a fixed day | `hc_astronomical_easter` | `year` 1583 through 2150; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line or lines | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_panchanga_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line or lines | `hc_sky_at`, `hc_solar_time`, `hc_panchanga_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| lines | `hc_solar_terms_between`, `hc_moon_phases_between` | `from_unix` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; a `to_unix` at or before it writes no lines, and a later one must be at most 32 535 216 000 and at most 400 years after it; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_chinese_marriage_augury` | `chinese_year` 4282 through 4786, whose New Year and the next both fall in the Chinese calendar's range (1645 through 2150); any other is `HC_ERROR_OUT_OF_RANGE` |
+| an age | `hc_chinese_reckoned_age` | `birth_fixed` and `on_fixed` 600 460 through 785 271, the days of the Chinese calendar's range, 1645 through 2150, a birth before or on the day asked; a day before the birth is `HC_ERROR_NO_DATA`, and a day outside the range `HC_ERROR_OUT_OF_RANGE` |
+| an Olympiad | `hc_ioc_olympiad` | `gregorian_year` from 1896; an earlier one is `HC_ERROR_OUT_OF_RANGE` |
+| a fixed day | `hc_hebrew_yahrzeit`, `hc_hebrew_birthday` | `death_fixed` and `birth_fixed` −1 373 427 through 2 278 650 and `hebrew_year` 1 through 9999, the Hebrew years 1 through 9999; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERROR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERROR_NO_DATA`, and a mission the table does not carry `HC_ERROR_UNKNOWN` |
 
-`hc_day_has_leap_second` writes an `int`, but it reads the day around the
-timestamp: the part-days at the two ends of the `int64_t` range, before
-−9 223 372 036 854 720 000 and from 9 223 372 036 854 720 000, begin or end
-where no `int64_t` reaches, and are `HC_ERROR_OUT_OF_RANGE`.
+A day outside the Gregorian range is `HC_ERROR_NO_DATA` from the entry
+points in the third row, as it is from every calendar here: the C library
+maps a calendar's own "after its supported range" to `HC_ERROR_NO_DATA`
+for all of them alike. The WebAssembly module's `hc_gregorian_year` and
+its neighbours answer the same day with `HC_ERR_OUT_OF_RANGE`, because
+its civil exports have one sentinel for any day they cannot place. The
+status values are stable, so the difference is stated rather than changed.
 
 ### No floor here, a floor there: a deliberate difference
 
@@ -168,14 +201,19 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-65 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+70 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
 | `HcStatus hc_version(char *buffer, size_t capacity, size_t *written);` | always | The library version, as a NUL-terminated string. |
 | `HcStatus hc_gregorian_to_fixed(int64_t year, uint8_t month, uint8_t day, int64_t *out_fixed);` | `civil` | The fixed day number of a proleptic Gregorian date. |
 | `HcStatus hc_gregorian_from_fixed(int64_t fixed, int64_t *out_year, uint8_t *out_month, uint8_t *out_day);` | `civil` | The proleptic Gregorian date on a fixed day. |
-| `HcStatus hc_weekday_from_fixed(int64_t fixed, uint8_t *out_weekday);` | `civil` | The ISO 8601 weekday of a fixed day, Monday = 1 through Sunday = 7. |
+| `HcStatus hc_weekday(int64_t fixed, uint8_t *out_weekday);` | `civil` | The ISO 8601 weekday of a fixed day, Monday = 1 through Sunday = 7. |
+| `HcStatus hc_day_of_year(int64_t fixed, uint32_t *out_day_of_year);` | `civil` | The 1-based day of the Gregorian year on a fixed day. |
+| `HcStatus hc_is_leap_year(int64_t fixed, int *out_is_leap);` | `civil` | Whether the Gregorian year on a fixed day is a leap year: writes 1 or 0. |
+| `HcStatus hc_fixed_from_unix(int64_t unix_seconds, int64_t *out_fixed);` | `civil` | The fixed day a POSIX timestamp falls on, in UTC. |
+| `HcStatus hc_unix_from_fixed(int64_t fixed, int64_t *out_unix_seconds);` | `civil` | The POSIX timestamp of midnight UTC on a fixed day. |
+| `HcStatus hc_parse_iso_date(const char *text, int64_t *out_fixed);` | `civil` | Parse an ISO 8601 date from a NUL-terminated UTF-8 string into its fixed day number. |
 | `HcStatus hc_format_iso_date(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `civil` | Render a fixed day as an ISO 8601 date into a caller-owned buffer. |
 | `HcStatus hc_tai_from_unix(int64_t unix_seconds, int strict, int64_t *out_seconds, uint64_t *out_attos);` | `civil` | Convert a POSIX timestamp to a TAI reading in seconds and attoseconds. |
 | `HcStatus hc_tai_minus_utc(int64_t unix_seconds, int strict, int64_t *out_offset);` | `civil` | `TAI - UTC` in whole seconds at a POSIX timestamp. |
@@ -249,7 +287,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HC_ERROR_OUT_OF_RANGE` | -2 | A field was outside its valid range. |
 | `HC_ERROR_INVALID_DATE` | -3 | The date does not exist in the requested calendar. |
 | `HC_ERROR_OVERFLOW` | -4 | Arithmetic left the representable range. |
-| `HC_ERROR_BUFFER_TOO_SMALL` | -5 | The supplied buffer was too small; the required length was written out. |
+| `HC_ERROR_BUFFER_TOO_SMALL` | -5 | The supplied buffer was too small; the required length, including the terminating NUL, was written out. |
 | `HC_ERROR_NO_DATA` | -6 | The value lies outside the range where the requested model has data. |
 | `HC_ERROR_UNKNOWN` | -7 | The requested calendar, table or identifier is not known. |
 | `HC_ERROR_NOT_UTF8` | -8 | A string argument was not valid UTF-8. |
@@ -290,12 +328,17 @@ midnight — `start`, `end`, or empty for midnight. A calendar that cannot name 
 date columns, standing and formatted date empty and the error code and
 name — the stable ones `CalendarError` gives every refusal — saying why.
 `locale` is a NUL-terminated BCP 47 tag, the word `native` for each
-calendar's own language, or null; a calendar the tag's data does not name
-is rendered in English, else in the tag with the calendar's own names, and
-never in the calendar's own language, which only `native` asks for; the
-last column says which. A tag that does not parse, or
-that no data answers for, falls back to the root locale `und`, whose month
-names are CLDR's `M01`..`M12`, so ask for `en` for English.
+calendar's own language, or null, and the last column says which locale
+a line was rendered in. It is chosen in this order, and a calendar's own
+language is used only when `native` asks for it:
+
+1. With `native`, each calendar's own language.
+2. Otherwise, when the tag's data names the calendar, the tag with the
+   calendar's own names.
+3. Otherwise, when the tag parses and some data answers for it, English.
+4. Otherwise — a tag that does not parse, or that no data answers for —
+   the root locale `und`, whose month names are CLDR's `M01`..`M12`; ask
+   for `en` for English.
 
 `hc_calendar_units(id, unit, from_fixed, to_fixed, locale, buffer, capacity, written)`
 writes the days from `from_fixed` up to but not including `to_fixed` as
@@ -368,13 +411,25 @@ WebAssembly module: a null `code` is `HC_ERROR_NULL_POINTER`, a `code` or
 no table is `HC_ERROR_UNKNOWN`. A null or empty `region` is no region.
 
 ```c
-size_t need = 0;
-hc_holidays_in_year("JP", NULL, 2026, NULL, 0, &need);   /* HC_ERROR_BUFFER_TOO_SMALL */
-char *lines = malloc(need);
-if (hc_holidays_in_year("JP", NULL, 2026, lines, need, &need) == HC_OK) {
-    fputs(lines, stdout);
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef int HcStatus;
+#define HC_OK 0
+HcStatus hc_holidays_in_year(const char *code, const char *region, int64_t year,
+                             char *buffer, size_t capacity, size_t *written);
+
+int main(void) {
+    size_t need = 0;
+    hc_holidays_in_year("JP", NULL, 2026, NULL, 0, &need);   /* HC_ERROR_BUFFER_TOO_SMALL */
+    char *lines = malloc(need);
+    if (lines != NULL && hc_holidays_in_year("JP", NULL, 2026, lines, need, &need) == HC_OK) {
+        fputs(lines, stdout);
+    }
+    free(lines);
+    return 0;
 }
-free(lines);
 ```
 
 `hc_holidays_on(fixed, buffer, capacity, written)` writes every entry on
@@ -552,8 +607,8 @@ README names each constant's source.
 flag. Non-zero refuses to answer before 1961, when UTC did not exist, and past
 the announced validity of the IERS leap-second table, with
 `HC_ERROR_NO_DATA`; zero holds the last published offset into the future and
-treats UTC as TAI before 1961. The difference is a forecast, which is why it
-is the caller's choice and not a default. `hc_day_has_leap_second` takes no
+treats UTC as TAI before 1961. Holding the last offset into the future is
+a forecast, which is why it is the caller's choice and not a default. `hc_day_has_leap_second` takes no
 flag and always uses the second policy. `hc-core`'s README states the
 table's horizon.
 
@@ -566,3 +621,18 @@ above. Formatting is by template and only as wide as a locale's data: a
 locale that has stated none writes a date as its fields in order. Before
 1.0 the only stability promise is the status codes, whose meanings do not
 change, and the column orders, which only grow at the end.
+
+An entry point here has a twin of the same name in the WebAssembly module
+in [`hyper-calendar-wasm`](../hyper-calendar-wasm), except for those its
+README's [twin table](../hyper-calendar-wasm/README.md#twins) lists with
+the reason: here, `hc_gregorian_from_fixed`, `hc_tai_from_unix` and
+`hc_utc_from_tai`.
+
+Neither boundary exposes these parts of the workspace, for the reasons
+that README's "What is not here" gives: `hc-planetary`'s circad calendars
+for Titan and the Galilean moons, whose day number is a circad and not an
+Earth day; `hc-humanize`, `hc-fiscal`, `hc-name-days`, `hc-almanac`,
+`hc-attributes` and `hc-units`, for which no line format has been designed;
+and the NTP eras, the UUID timestamp, the FAT words, Swatch Internet Time,
+the Julian and Besselian epochs and TAI64's `tai64-posix-plus-10`
+convention, which have no entry point yet.

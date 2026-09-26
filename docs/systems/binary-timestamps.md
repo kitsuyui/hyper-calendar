@@ -109,6 +109,7 @@ example, so this one is worked from the layout alone.
 | The version 1 and version 6 test vectors, both ways | `the_version_1_vector`, `the_version_6_vector` | exact |
 | The 60-bit field ends on 5236-03-31 21:21:00.6846975 UTC | `the_count_starts_on_15_october_1582_and_ends_in_60_bits` | exact |
 | FAT's fields in their bits, 1980 to 2107, invalid fields refused | `each_field_is_in_its_bits`, `the_years_run_from_1980_to_2107`, `fields_outside_their_range_are_refused` | exact |
+| Every FAT date from 1 January 1980 to 31 December 2107 round-trips | `every_day_from_1980_to_2107_round_trips` | all 46 751 days, in every build |
 
 Two of the sources contradict themselves, and their errata decide:
 

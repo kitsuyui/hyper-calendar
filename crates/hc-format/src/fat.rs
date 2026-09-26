@@ -210,13 +210,18 @@ mod tests {
         }
     }
 
+    /// All 46 751 days, in every build: each is a few shifts and masks, so
+    /// the whole range costs less than a sample would save.
     #[test]
     fn every_day_from_1980_to_2107_round_trips() {
         let first = day(1980, 1, 1).0;
         let last = day(2107, 12, 31).0;
-        for rd in (first..=last).step_by(7) {
+        let mut count = 0;
+        for rd in first..=last {
             let word = encode_date(Rd(rd)).expect("in range");
             assert_eq!(decode_date(word), Ok(Rd(rd)));
+            count += 1;
         }
+        assert_eq!(count, 46_751);
     }
 }

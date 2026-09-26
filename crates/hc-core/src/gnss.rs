@@ -217,8 +217,8 @@ pub const BEIDOU: WeekNumbering = WeekNumbering {
     english_name: "BeiDou Time week",
     week_zero: epoch::BEIDOU,
     bits: 13,
-    source: "BDS-SIS-ICD-B1I-1.0 (2012), 3.3: the thirteen-bit week number \
-        [bds-sis-icd-b1i-1-0]",
+    source: "BDS-SIS-ICD-B1I-1.0 (2012), 3.3: the BDT epoch; 5.2.4.4: the thirteen-bit \
+        week number [bds-sis-icd-b1i-1-0]",
 };
 
 /// The NavIC week, ten bits, from the NavIC epoch.
@@ -227,8 +227,8 @@ pub const NAVIC: WeekNumbering = WeekNumbering {
     english_name: "NavIC system time week",
     week_zero: epoch::NAVIC,
     bits: 10,
-    source: "ISRO, IRNSS SIS ICD for SPS, version 1.1 (2017): the ten-bit week number \
-        [irnss-sps-icd-1-1]",
+    source: "ISRO, IRNSS SIS ICD for SPS, version 1.1 (2017), 5.7 and 6.2.1.1: the ten-bit \
+        week number [irnss-sps-icd-1-1]",
 };
 
 /// Every broadcast week-number field.
@@ -334,7 +334,8 @@ impl GlonassTime {
     }
 
     /// The four-year interval *N*4 and the day *N*T within it (GLONASS ICD,
-    /// Edition 5.1, 2008, §4, `glonass-icd-5-1`).
+    /// Edition 5.1, 2008, §4.4 for *N*T and §4.5 for *N*4,
+    /// `glonass-icd-5-1`).
     ///
     /// # Errors
     ///
@@ -575,5 +576,32 @@ mod tests {
                 day: 1_461
             })
         );
+    }
+
+    /// The GLONASS ICD's worked example (Edition 5.1, 2008, Attachment
+    /// A.3.1.3, `glonass-icd-5-1`): *N*T = 839 is the third year of its
+    /// interval, which holds days 732 to 1 096, and with *N*4 = 2 the year
+    /// is 1996 + 4 × (2 − 1) + (3 − 1) = 2002. The ICD names no day; counting
+    /// puts *N*T = 839 on 18 April.
+    #[test]
+    fn the_icd_example_of_nt_839_is_2002() {
+        let at = |unix_label: i64| {
+            GlonassTime(UtcInstant::from_unix(UnixTime::from_seconds(unix_label))).date()
+        };
+        let day = |four_year_interval, day| {
+            Ok(GlonassDate {
+                four_year_interval,
+                day,
+            })
+        };
+        // 2002-01-01 00:00 and 2002-12-31 23:59:59, GLONASS labels: the
+        // first and last days of year 3 in the ICD's table.
+        assert_eq!(at(1_009_843_200), day(2, 732));
+        assert_eq!(at(1_041_379_199), day(2, 1_096));
+        // The neighbours: the last day of year 2 and the first of year 4.
+        assert_eq!(at(1_009_843_199), day(2, 731));
+        assert_eq!(at(1_041_379_200), day(2, 1_097));
+        // 2002-04-18 00:00, the ICD's N_T = 839.
+        assert_eq!(at(1_019_088_000), day(2, 839));
     }
 }

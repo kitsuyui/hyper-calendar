@@ -23,8 +23,8 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 # gated by one of these, and the README's table says which.
 [features]
 default = ["civil"]
-# Proleptic Gregorian dates, ISO 8601 text and the TAI-UTC bridge.
-civil = ["hc/civil"]
+# Proleptic Gregorian dates, ISO 8601 text, POSIX time and the TAI-UTC bridge.
+civil = ["hc/civil", "hc/format"]
 # Time-scale labels and day counts outside the civil calendar: TAI64
 # labels, GNSS weeks, GLONASS dates, OLE Automation dates and Excel 1900
 # serials. A layer of its own so that `civil`, the first a page paints

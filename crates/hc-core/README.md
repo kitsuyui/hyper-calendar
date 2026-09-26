@@ -1,18 +1,29 @@
 # hc-core
 
-The time primitives every other crate uses and none may redefine.
+Exact instants and durations on the physical time scales (TAI, GPS time
+and the rest), UTC with its leap seconds, and the well-known epochs: the
+primitives every other crate uses and none may redefine.
+
+```rust
+use hc_core::unix::{LeapPolicy, UnixTime, tai_from_unix};
+
+// 2017-01-01 00:00:00 UTC, the second after the last leap second.
+let tai = tai_from_unix(UnixTime::from_seconds(1_483_228_800), LeapPolicy::Strict)?;
+assert_eq!(tai.since_epoch().whole_seconds(), 1_483_228_800 + 37);
+# Ok::<(), hc_core::TimeError>(())
+```
 
 ## What it owns
 
 | Module | What it is |
 | --- | --- |
 | `duration` | `Duration`: an exact span of SI seconds, `i128` whole seconds and `u64` attoseconds, of either sign. No floating point. It also carries what Python's `timedelta` needs: weeks, floor division and a remainder with the divisor's sign (`checked_div_floor`, `checked_rem`, `checked_div_rem`), the normalised `(days, seconds, attoseconds)` split, and `days_and_clock`, the `-1 day, 19:00:00` string form. |
-| `scale` | `Instant<S>`: a reading on a uniform time scale, the scale being a zero-sized type parameter, so a TAI reading cannot be passed where a TT reading is expected. The scales are TAI, TT, TCG, TCB, TDB, and the GNSS times GPS, Galileo, BeiDou and NavIC; UT1, which is measured rather than defined, is in `hc-astro` beside the ΔT model it is computed from. |
+| `scale` | `Instant<S>`: a reading on a uniform time scale, the scale being a zero-sized type parameter, so a TAI reading cannot be passed where a TT reading is expected. The scales are TAI (International Atomic Time), TT (Terrestrial Time), TCG (Geocentric Coordinate Time), TCB (Barycentric Coordinate Time), TDB (Barycentric Dynamical Time), and the GNSS times GPS, Galileo, BeiDou and NavIC; UT1, the Earth's rotation read as a time, is measured rather than defined, so it is in `hc-astro` beside the ΔT (TT − UT1) model it is computed from. |
 | `leap` | The UTC leap-second table, as data. |
 | `unix` | POSIX time (`UnixTime`), UTC with the leap second made explicit (`UtcInstant`), and the conversions between them and TAI under a `LeapPolicy`. |
 | `gnss` | The GNSS week numbers — GPS legacy and CNAV, Galileo, BeiDou, NavIC — with the time of week and rollover resolution against a reference the caller supplies, and GLONASS time, UTC(SU) + 3 h with its leap seconds and its four-year intervals. See `docs/systems/gnss-time.md`. |
 | `epoch` | Well-known epochs as TAI readings: Unix, GPS, Galileo, BeiDou, NavIC, GLONASS, J2000, MJD, the Julian Day, Rata Die, Windows FILETIME, NTP, Core Foundation, the TCG/TCB origin, the UUID's 1582 and SAS's and Stata's 1960. |
-| `tai64` | Bernstein's TAI64, TAI64N and TAI64NA labels: 2⁶² + TAI seconds since 1970 TAI in 8, 12 or 16 big-endian bytes, encoded from and decoded to `Instant<Tai>`; TAI64NA is exact to the attosecond. |
+| `tai64` | Bernstein's TAI64, TAI64N and TAI64NA labels: 2⁶² + TAI seconds since 1970 TAI in 8, 12 or 16 big-endian bytes, encoded from and decoded to `Instant<Tai>`; TAI64NA is exact to the attosecond. Also `tai64-posix-plus-10`, the 2⁶² + 10 + POSIX seconds that daemontools' `tai64n` writes on an ordinary clock, to and from `UnixTime`. See `docs/time-scales.md`. |
 | `ntp` | NTP's 128-bit date with its era number and era offset, and the 64-bit timestamp resolved into the era within 2³¹ s of a reference time, across the 2036 wrap. See `docs/systems/binary-timestamps.md`. |
 | `uuid` | The 60-bit timestamp of UUID versions 1 and 6, 100 ns from 1582-10-15, to and from `UnixTime`, and both octet layouts. See `docs/systems/binary-timestamps.md`. |
 | `sas_stata` | SAS datetimes and Stata's `%tc` and `%tC` from 1960, the last counting leap seconds as UTC does. See `docs/systems/statistical-software-dates.md`. |
@@ -27,8 +38,8 @@ The time primitives every other crate uses and none may redefine.
   is `hc-calendar`'s job, and the day number itself is defined there.
 - **UTC is not a time scale.** Converting between the scales here never moves
   an event; it only re-reads the clock, by an offset that is a fixed constant
-  or a smooth model. UTC's labelling repeats or skips a second now and then,
-  so it cannot be that, and it lives in `leap` and `unix` instead.
+  or a smooth model. UTC's labels skip or repeat a second at each leap
+  second, so no such offset re-reads it, and it lives in `leap` and `unix`.
 - **Everything that can be exact is exact.** Floating point appears only
   where the physics is itself a fitted model.
 

@@ -26,9 +26,11 @@ about 14 minutes behind it in mid February.
 Older still are hours counted from the Sun's own events:
 
 - **Temporal (seasonal) hours**, the hours of antiquity and of Jewish
-  law: the daylight from sunrise to sunset is twelve hours and the night
-  twelve more, so that a summer day's hour is long and a summer night's
-  short.
+  law: the daylight is twelve hours and the night twelve more, so that a
+  summer day's hour is long and a summer night's short. Jewish law has two
+  reckonings of the daylight: the Vilna Gaon's (the Gra's) divides sunrise
+  to sunset into twelve, and the Magen Avraham's divides daybreak to
+  nightfall [wikipedia-zmanim].
 - **Italian hours** (*ore italiane*): 24 equal hours counted from the
   "zero hour" half an hour after sunset.
 
@@ -41,7 +43,7 @@ of the Sun below the horizon.
 
 Reingold and Dershowitz state the relations as three functions in
 `calendar-code2` [reingold2018code]; the book's chapter 14 explains them
-[reingold2018].
+(chapter 14, not read) [reingold2018].
 
 1. `local-from-universal`: local mean time = UT + λ/360°, the longitude
    λ east-positive, as a fraction of a day.
@@ -132,7 +134,15 @@ Temporal and Italian hours, and the religious times:
 - `daytime_temporal_hour`, `nighttime_temporal_hour`, as fractions of a
   day; `universal_from_temporal_time`, which returns Universal Time where
   `standard-from-sundial` returns standard time; and `temporal_time`, its
-  inverse, which the book does not have.
+  inverse, which the book does not have. These are the Vilna Gaon's
+  reckoning, sunrise to sunset, the one the book's
+  `daytime-temporal-hour` computes.
+- **Not carried: the Magen Avraham's reckoning**, daybreak to nightfall.
+  Daybreak and nightfall are each set by a depression of the Sun that
+  authorities give differently (the 4°40′ and 7°5′ above are two of the
+  nightfall angles), no source read fixes the pair the Magen Avraham's
+  hours use, and under [policy.md](../policy.md) §5 each pair would be a
+  convention of its own name, not a parameter.
 - `italian_zero_hour`, `italian_time` and `universal_from_italian_time`,
   with the 16′ and the half hour as named constants. The place is the
   caller's, where the book fixes it at Padua: a location is continuous,
@@ -184,13 +194,16 @@ are checked against their own definitions, not against a published value.
   read in `calendar.l` on 2026-09-26.
 - [reingold2018] — the book those functions come from; chapter 14 not
   read here.
-- [meeus1998] — the equation of time, (28.1), and example 28.a.
+- [meeus1998] — the equation of time, (28.1), and example 28.a. Not read
+  for this document; the values are as `hc-astro::solar` cites them.
 - [reingold2018code], again — `daytime-temporal-hour`,
   `nighttime-temporal-hour`, `standard-from-sundial`, `local-zero-hour`,
   `italian-from-local`, `local-from-italian`, `padua`, `asr`, `alt-asr`,
   `jewish-dusk`, `jewish-sabbath-ends` and `dusk`, read on 2026-09-26.
 - [nao-koyomi-dni-tokyo-2024] — Tokyo's sunrise and sunset on
-  1 January 2024, the anchor of the temporal hour.
+  1 January 2024, the anchor of the temporal hour. Read 2026-09-26.
+- [wikipedia-zmanim] — the two reckonings of the temporal hour, the Vilna
+  Gaon's and the Magen Avraham's. Read 2026-09-27.
 
 ## Code
 

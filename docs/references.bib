@@ -4226,7 +4226,7 @@
   title        = {Clarifying Continuous GPS Time},
   howpublished = {Applied Research Laboratories, University of Texas at Austin, interoffice memorandum, \url{https://archive.gps.gov/technical/icwg/meetings/2019/09/clarifying-continuous-GPS-time.pdf}},
   year         = {2019},
-  note         = {Dated 15 August 2019. Quotes IS-GPS-200, 3.3.4: GPS time's zero time-point at midnight of 5/6 January 1980, UTC(USNO). Read 2026-09-26; IS-GPS-200 itself not read}
+  note         = {Dated 15 August 2019. Quotes IS-GPS-200, 3.3.4: GPS time's zero time-point at midnight of 5/6 January 1980, UTC(USNO). Read 2026-09-26 and again 2026-09-27; IS-GPS-200G itself is read as is-gps-200g}
 }
 
 @article{rots2015,
@@ -5338,8 +5338,10 @@
 @misc{sofa-ts,
   author       = {{IAU SOFA Board}},
   title        = {{SOFA} Time Scale and Calendar Tools},
-  howpublished = {Document revision 1.4, \url{https://starlink.eao.hawaii.edu/star/share/sofa/sofa_ts_c.pdf}},
-  note         = {UT2 as ``no longer used''; TDT as the former name of TT; GPS time to sub-microsecond accuracy; \S 2.4, Julian and Besselian epochs. Retrieved 2026-09-26}
+  howpublished = {Software version 13, document revision 1.4, version for C, \url{https://starlink.eao.hawaii.edu/star/share/sofa/sofa_ts_c.pdf}},
+  year         = {2016},
+  month        = jul,
+  note         = {Dated 2016 July 14. UT2 as ``no longer used''; TDT as the former name of TT; GPS time 19 s behind TAI ``to sub-microsecond accuracy''; \S 2.4, Julian and Besselian epochs. Retrieved 2026-09-26; read again 2026-09-27}
 }
 
 @techreport{iers-tn36,
@@ -5380,7 +5382,7 @@
   month        = dec,
   year         = {2012},
   howpublished = {\url{https://www.unavco.org/help/glossary/docs/ICD_BeiDou_1.0_(2012)_en.pdf}},
-  note         = {\S 3.3: BDT from 2006-01-01 00:00:00 UTC with no leap seconds; the 13-bit week number. Read 2026-09-26}
+  note         = {\S 3.3: BDT from 2006-01-01 00:00:00 UTC with no leap seconds; \S 5.2.4.4: the 13-bit week number, 0 to 8191, from zero at that epoch. Read 2026-09-26 and 2026-09-27}
 }
 
 @techreport{glonass-icd-5-1,
@@ -5389,7 +5391,7 @@
   number       = {Edition 5.1},
   year         = {2008},
   howpublished = {\url{https://www.unavco.org/help/glossary/docs/ICD_GLONASS_5.1_(2008)_en.pdf}},
-  note         = {\S 3.3.3 and \S 4: GLONASS time as UTC(SU) + 3 h with UTC's leap seconds; the four-year interval N4 and the day number within it. Read 2026-09-26}
+  note         = {\S 3.3.3: GLONASS time as UTC(SU) + 3 h with UTC's leap seconds; \S 4.4: the day number NT within the four-year interval; \S 4.5: the four-year interval N4 from 1996; Attachment A.3.1.3: the example NT = 839, N4 = 2, year 2002. Read 2026-09-26 and 2026-09-27}
 }
 
 @techreport{irnss-sps-icd-1-1,
@@ -5398,7 +5400,7 @@
   number       = {Version 1.1},
   year         = {2017},
   howpublished = {\url{https://www.isro.gov.in/media_isro/pdf/SateliteNavigation/irnss_sps_icd_version1.1-2017.pdf}},
-  note         = {The system time's epoch, 00:00 on 22 August 1999 of its own reckoning, 1999-08-21 23:59:47 UTC; the 10-bit week number. Read 2026-09-26}
+  note         = {\S 5.7: the system time's epoch, 00:00 UT on 22 August 1999 of its own reckoning, 13 leap seconds ahead of UTC, 1999-08-21 23:59:47 UTC, and the 10-bit week number; \S 6.2.1.1: the week-number field. Read 2026-09-26 and 2026-09-27}
 }
 
 @article{eastman2010,
@@ -5554,8 +5556,8 @@
 @misc{gps-gov-rollover,
   author       = {{National Coordination Office for Space-Based Positioning, Navigation, and Timing}},
   title        = {{GPS} Week Number Rollover},
-  howpublished = {GPS.gov},
-  note         = {The legacy ten-bit week number's rollovers of August 1999 and 6 April 2019. Cited from the survey row in docs/calendars.md; the page was not reachable on 2026-09-26 and was not read. The rollover instants are derived from the week arithmetic of is-gps-200g and tested}
+  howpublished = {GPS.gov, \url{https://www.gps.gov/news/gps-week-number-rollover}},
+  note         = {The legacy ten-bit week number's first rollover in August 1999, and the last at 23:59:42 UTC on 6 April 2019; the next for LNAV-only receivers on 20 November 2038. Not reachable on 2026-09-26; read 2026-09-27}
 }
 
 % --- TAI64 labels (hc-core::tai64) ---
@@ -6528,4 +6530,47 @@
   howpublished = {Daily Excelsior, \url{https://www.dailyexcelsior.com/saptrishi-samvat-5100-living-evidence-of-civilization-of-kashmir/}},
   year         = {2024},
   note         = {Published 10 February 2024. Navreh on 9 April 2024, when the Saptrishi Samvat ``will complete five thousand and one hundred years''; ``Yugabd Samvat-5125'' current. Retrieved 2026-09-27}
+}
+
+% --- TAI64 labels written from a POSIX clock (hc-core::tai64, tai64-posix-plus-10) ---
+
+@misc{bernstein-daemontools-tai64n,
+  author       = {Bernstein, Daniel J.},
+  title        = {The tai64n program},
+  howpublished = {daemontools, \url{https://cr.yp.to/daemontools/tai64n.html}},
+  note         = {Timestamps are TAI64N labels printed as 24 hexadecimal characters; the example 4000000037c219bf2ef02e94 is the nanosecond beginning 935467455.787492500 s after the beginning of 1970 TAI; the implementation takes gettimeofday as ``the number of TAI seconds since 1970-01-01 00:00:10 TAI''. Undated. Read 2026-09-27}
+}
+
+@misc{bernstein-daemontools-tai64nlocal,
+  author       = {Bernstein, Daniel J.},
+  title        = {The tai64nlocal program},
+  howpublished = {daemontools, \url{https://cr.yp.to/daemontools/tai64nlocal.html}},
+  note         = {Prints @4000000037c219bf2ef02e94 as 1999-08-23 21:03:43.787492500 in US/Pacific; warns that some localtime implementations use ``a broken time scale that does not account for leap seconds'', fixed by the Olson right/ zones. Undated. Read 2026-09-27}
+}
+
+% --- Spreadsheet dates (docs/systems/spreadsheet-dates.md) ---
+
+@misc{ms-excel-datevalue,
+  author       = {{Microsoft}},
+  title        = {{DATEVALUE} function},
+  howpublished = {Microsoft Support, \url{https://support.microsoft.com/en-us/office/datevalue-function-df8b07d4-7761-4a93-bc33-b7471bbff252}},
+  note         = {In the default date system January 1, 1900 is serial number 1 and January 1, 2008 is 39448; date_text must lie between January 1, 1900 and December 31, 9999. Retrieved 2026-09-27}
+}
+
+% --- Hours of the day (docs/systems/hours-of-the-day.md) ---
+
+@misc{wikipedia-zmanim,
+  author       = {{Wikipedia contributors}},
+  title        = {Zmanim},
+  howpublished = {Wikipedia, \url{https://en.wikipedia.org/wiki/Zmanim}},
+  note         = {Section ``Relative hours'': the Magen Avraham divides daybreak to nightfall into 12 hours, the Vilna Gaon sunrise to sunset. Retrieved 2026-09-27}
+}
+
+% --- Earth rotation (docs/systems/earth-rotation.md) ---
+
+@misc{schlyter-time-scales,
+  author       = {Schlyter, Paul},
+  title        = {Time Scales: {UT1}, {UTC}, {TAI}, {ET}, {TT}, {GPS} time},
+  howpublished = {\url{https://stjarnhimlen.se/comp/time.html}},
+  note         = {UT2 as UT1 plus $+0.022 \sin 2\pi t - 0.017 \cos 2\pi t - 0.007 \sin 4\pi t + 0.006 \cos 4\pi t$ seconds, $t$ the fraction of the year from 1 January; ``nowadays considered obsolete''. Undated; names no authority for the coefficients. Secondary. Retrieved 2026-09-27}
 }

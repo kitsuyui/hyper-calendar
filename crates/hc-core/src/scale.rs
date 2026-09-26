@@ -152,7 +152,7 @@ pub struct BeidouTime;
 ///
 /// From 00:00 on 1999-08-22 of its own reckoning, 1999-08-21 23:59:47 UTC,
 /// thirteen seconds ahead of UTC (ISRO, IRNSS SIS ICD for SPS, version 1.1,
-/// 2017, `irnss-sps-icd-1-1`), so it reads GPS time. See
+/// 2017, §5.7, `irnss-sps-icd-1-1`), so it reads GPS time. See
 /// `docs/systems/gnss-time.md`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct NavicTime;

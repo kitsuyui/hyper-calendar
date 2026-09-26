@@ -29,7 +29,10 @@
 //!   ([`daytime_temporal_hour`], [`nighttime_temporal_hour`],
 //!   [`universal_from_temporal_time`] and [`temporal_time`];
 //!   `daytime-temporal-hour`, `nighttime-temporal-hour` and
-//!   `standard-from-sundial` in `calendar-code2`).
+//!   `standard-from-sundial` in `calendar-code2`). Of Jewish law's two
+//!   reckonings this is the Vilna Gaon's; the Magen Avraham's, daybreak
+//!   to nightfall, is not carried, for the reason the system document
+//!   gives.
 //! * **Italian hours** (*ore italiane*) count 24 hours from the "zero
 //!   hour", half an hour after sunset taken at a depression of 16′
 //!   ([`italian_zero_hour`], [`italian_time`] and

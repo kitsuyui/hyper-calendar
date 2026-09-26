@@ -495,9 +495,9 @@ mod time_scales {
     /// nanosecond) or `tai64na` (32: the attosecond), in any case; anything
     /// else is `HC_ERR_UNKNOWN`. TAI64 and TAI64N name the second or the
     /// nanosecond that contains the instant, and TAI64NA the instant
-    /// itself. Attoseconds from 10¹⁸, or a second outside the labels below
-    /// 2⁶³, is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length
-    /// the text needs.
+    /// itself. Attoseconds from 10¹⁸, or a second that no TAI64 label can
+    /// hold (the labels run below 2⁶³), is `HC_ERR_OUT_OF_RANGE`. A null
+    /// `buffer` returns the length the text needs.
     ///
     /// # Safety
     ///
@@ -1690,8 +1690,9 @@ mod seasons {
     /// `china-before-1929`, in any case, or empty for `universal` — or a
     /// longitude in decimal degrees east of Greenwich, read as local mean
     /// solar time; anything else is `HC_ERR_UNKNOWN`, and the pointer and
-    /// bytes fail as for `hc_parse_iso_date`. A null `buffer` returns the
-    /// length the text needs.
+    /// bytes fail as for `hc_parse_iso_date`. A day outside the years −1000
+    /// to 3000, the era `hc_sky_at` answers for, is `HC_ERR_OUT_OF_RANGE`.
+    /// A null `buffer` returns the length the text needs.
     ///
     /// # Safety
     ///
@@ -1715,6 +1716,9 @@ mod seasons {
             Ok(meridian) => meridian,
             Err(sentinel) => return sentinel,
         };
+        if let Err(refusal) = hc::astro_lines::day_in_era(fixed) {
+            return super::sentinel(refusal);
+        }
         let text = term_line(fixed, meridian);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_or_measure(&text, buffer, capacity) }
@@ -1728,8 +1732,9 @@ mod seasons {
     /// tradition, its name in the Japanese tradition, the fixed day the
     /// pentad began at that meridian, the last fixed day before the next
     /// pentad begins, the text the Chinese names come from and the text the
-    /// Japanese names come from. `meridian` is as for `hc_term_in_effect`.
-    /// A null `buffer` returns the length the text needs.
+    /// Japanese names come from. `meridian` and the day are as for
+    /// `hc_term_in_effect`. A null `buffer` returns the length the text
+    /// needs.
     ///
     /// # Safety
     ///
@@ -1751,6 +1756,9 @@ mod seasons {
             Ok(meridian) => meridian,
             Err(sentinel) => return sentinel,
         };
+        if let Err(refusal) = hc::astro_lines::day_in_era(fixed) {
+            return super::sentinel(refusal);
+        }
         let text = pentad_line(fixed, meridian);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_or_measure(&text, buffer, capacity) }
@@ -4282,6 +4290,32 @@ mod tests {
                 unsafe { hc_pentad_in_effect(day, not_utf8.as_ptr(), 1, core::ptr::null_mut(), 0) },
                 HC_ERR_NOT_UTF8
             );
+        }
+
+        /// The days of the years −1000 to 3000 answer, as `hc_sky_at`'s do;
+        /// the days either side of them are refused rather than computed
+        /// from a series stated for that era only.
+        #[test]
+        fn the_term_and_pentad_refuse_days_outside_the_era() {
+            let first = hc_gregorian_to_fixed(-1000, 1, 1);
+            let last = hc_gregorian_to_fixed(3000, 12, 31);
+            let null = core::ptr::null_mut();
+            for day in [first, last] {
+                assert!(unsafe { hc_term_in_effect(day, "".as_ptr(), 0, null, 0) } > 0);
+                assert!(unsafe { hc_pentad_in_effect(day, "".as_ptr(), 0, null, 0) } > 0);
+            }
+            for day in [first - 1, last + 1, i64::MIN, i64::MAX] {
+                assert_eq!(
+                    unsafe { hc_term_in_effect(day, "".as_ptr(), 0, null, 0) },
+                    HC_ERR_OUT_OF_RANGE,
+                    "{day}"
+                );
+                assert_eq!(
+                    unsafe { hc_pentad_in_effect(day, "".as_ptr(), 0, null, 0) },
+                    HC_ERR_OUT_OF_RANGE,
+                    "{day}"
+                );
+            }
         }
     }
 

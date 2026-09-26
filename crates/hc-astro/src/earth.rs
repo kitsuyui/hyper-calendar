@@ -6,7 +6,8 @@
 //! rise/set code all funnel through here.
 //!
 //! Sources: Meeus, *Astronomical Algorithms*, 2nd ed., chapters 12 (sidereal
-//! time), 13 (coordinate transformation) and 22 (nutation and obliquity).
+//! time), 13 (coordinate transformation) and 22 (nutation and obliquity)
+//! (`meeus1998`).
 //!
 //! # Two conventions for sidereal time
 //!
@@ -20,14 +21,17 @@
 //! * [`mean_sidereal_time_iau2006`] is the **IAU 2006** expression: the
 //!   [`earth_rotation_angle`], a linear function of UT1, plus the
 //!   accumulated precession in right ascension, a polynomial in TT (IERS
-//!   Conventions 2010, TN 36, chapter 5, equations 5.14, 5.15 and 5.32).
+//!   Conventions 2010, TN 36, chapter 5, equations 5.14, 5.15 and 5.32,
+//!   `iers-tn36`).
 //!
 //! The two agree to 0.14 ms of time on 2006-01-01 and part by the
 //! difference between the precession models over the centuries;
-//! `docs/time-scales.md` explains which to use. The IAU 2006 functions are checked against the
-//! ERFA test suite's values for `eraEra00` and `eraGmst06` (ERFA is the
-//! BSD-licensed derivative of the IAU's SOFA library; its file
-//! `t_erfa_c.c` was read), and the IAU 1982 one against `eraGmst82`.
+//! `docs/systems/earth-rotation.md` works the angle by hand and
+//! `docs/time-scales.md` explains which to use. The IAU 2006 functions are
+//! checked against the ERFA test suite's values for `eraEra00` and
+//! `eraGmst06` (`erfa`; ERFA is the BSD-licensed derivative of the IAU's
+//! SOFA library; its file `t_erfa_c.c` was read), and the IAU 1982 one
+//! against `eraGmst82`.
 //! The nutation series is Meeus's abridged one — four terms in Δψ and four
 //! in Δε — which he states as good to 0.5″ in longitude and 0.1″ in
 //! obliquity. That is two orders of magnitude finer than anything a calendar

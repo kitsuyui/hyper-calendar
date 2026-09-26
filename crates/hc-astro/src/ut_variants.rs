@@ -18,9 +18,10 @@
 //!   Earth Orientation", `usno-eo-values`). SOFA's *Time Scale and
 //!   Calendar Tools* calls it "no longer used" (`sofa-ts`).
 //! * **UT1R** removes the *zonal tides* with periods under 35 days, as the
-//!   IAU's 18th General Assembly (Patras, 1982) adopted it. The tides are
-//!   the 41 terms of IERS Conventions 2010, TN 36, chapter 8, Table 8.1,
-//!   with periods from 5.64 to 34.85 days.
+//!   IAU's 18th General Assembly (Patras, 1982) adopted it, as IERS
+//!   Conventions 2010 reports it (the resolution itself not read). The
+//!   tides are the 41 terms of IERS Conventions 2010, TN 36, chapter 8,
+//!   Table 8.1 (`iers-tn36`), with periods from 5.64 to 34.85 days.
 //! * **UT1S** removes *all* the zonal tides, to the 18.6-year nodal term:
 //!   the 62 terms of the same table. The Conventions name it as a past
 //!   definition beside UT1R, and Table 8.1 supports it because the table
@@ -29,22 +30,27 @@
 //! The tidal model is part of the name. Table 8.1 is the IERS 2010 model —
 //! the Yoder, Williams and Parke (1981) elastic tide with the Wahr and
 //! Bergen (1986) inelastic body tide and the Kantha et al. (1998) ocean
-//! tide — and it differs from Yoder's own 1981 tables, which the IAU's
-//! 1982 definition names, by about 6 µs at the fortnightly term. The
-//! functions are therefore [`ut1r_iers2010`] and [`ut1s_iers2010`], and a
-//! UT1R from Yoder's tables, if one is added, is a separate function
-//! (`docs/policy.md` §5). The IERS itself recommends exchanging UT1 and
-//! the length of day only, and naming the tidal model wherever a
-//! regularised value is used.
+//! tide, each cited through `iers-tn36` and not read — and it differs from
+//! the model of the Conventions 2003 by about 6 µs at the fortnightly term
+//! (`iers-tn36`, §8.1). It is not Yoder's own 1981 tables, which the IAU's
+//! 1982 definition names and which the Conventions report to hold four
+//! errors. The functions are therefore [`ut1r_iers2010`] and
+//! [`ut1s_iers2010`], and a UT1R from Yoder's tables, if one is added, is
+//! a separate function (`docs/policy.md` §5). The IERS itself recommends
+//! exchanging UT1 and the length of day only, and naming the tidal model
+//! wherever a regularised value is used.
 //!
 //! The tidal arguments are the Delaunay arguments of IERS Conventions
 //! 2010, chapter 5, equation 5.43, in Julian centuries of TDB, for which
 //! the Conventions allow TT; the TT here is this crate's `UT1 + ΔT`, and a
 //! minute's error in ΔT moves the fortnightly term by under 20 ns. The
 //! whole-table sum reproduces the test case printed in the IERS routine
-//! `RG_ZONT2.F` to 10⁻¹² s.
+//! `RG_ZONT2.F` (`iers-rg-zont2`) to 10⁻¹² s.
 //!
-//! `docs/time-scales.md` places these beside UT1 and UTC.
+//! No published value of UT2 − UT1 was found to anchor [`ut2`] against;
+//! it is checked against the formula by hand. `docs/systems/earth-rotation.md`
+//! describes the system, with worked examples, and `docs/time-scales.md`
+//! places these beside UT1 and UTC.
 
 use hc_calendar::fixed::Moment;
 use hc_core::math::{DEG_TO_RAD, cos, sin};
@@ -538,8 +544,9 @@ pub fn delaunay_arguments(centuries: f64) -> [f64; 5] {
 ///
 /// Pass [`UT1R_PERIOD_LIMIT_DAYS`] for UT1R's tides and
 /// [`f64::INFINITY`] for all of them, UT1S's. The regularised reading is
-/// UT1 *minus* this: the Conventions' tables give the tides' effect, "to be
-/// subtracted from the observed UT1".
+/// UT1 *minus* this: the Conventions' tables give the tides' effect, and
+/// "these corrections should be subtracted from the observed UT1 − UTC"
+/// (`iers-tn36`, chapter 8, §8.1).
 #[must_use]
 pub fn zonal_tide_ut1_effect(centuries: f64, period_limit_days: f64) -> f64 {
     let arguments = delaunay_arguments(centuries);
