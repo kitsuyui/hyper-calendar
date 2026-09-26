@@ -111,7 +111,9 @@ there. The table is checked for sortedness and uniqueness by a test.
   the locale's own CLDR names write a qualifier (`ペルシア暦(2820)`,
   `波斯历（2820）`), with ASCII digits in every script. No qualified form is
   translated; English alone spells it out, "Persian Calendar (2820-year
-  cycle)". `data.rs` says so beside the tables.
+  cycle)". CLDR's `iso8601` likewise names `iso8601`, and `iso8601-week`
+  is that name followed by "(W)", ISO 8601's week designator, or in English
+  ISO 8601's own "ISO 8601 week date". `data.rs` says so beside the tables.
 * **Bidi** follows UAX 9 §2.4 (isolates) and §P2–P3 (first-strong).
 * **Casing** follows the default case algorithms of The Unicode Standard 17.0
   §3.13 plus the Turkic tailoring of `SpecialCasing-17.0.0.txt` for `tr` and

@@ -22,6 +22,7 @@ file does not:
 | `adoption` | When each country took the Gregorian calendar, by ISO 3166-1 alpha-2 code, one row per step, with its instrument | *(not a calendar; a table of cut-overs)* |
 | `cycles` | The computus cycles: golden number, dominical letter, epact, solar cycle, indiction, Julian Period | *(not calendars; year numbers)* |
 | `cycles::runic` | The Swedish runestaff read against the Julian date: each day's letter rune and the golden-number rune of the new moons, old series ([docs/systems/runic-calendar.md](../../docs/systems/runic-calendar.md)) | *(a reading, not a calendar)* |
+| `iso8601` | The ISO calendar under CLDR's identifier: Gregorian days, astronomical years without an era, the ISO week-numbering year, week and weekday beside each date | `iso8601` |
 | `iso_week` | ISO 8601 week date | `iso8601-week` |
 | `ordinal` | ISO 8601 ordinal date | `iso8601-ordinal` |
 | `julian_day` | Julian Day Number, Modified Julian Date | `julian-day`, `modified-julian-day` |
@@ -29,9 +30,12 @@ file does not:
 | `spreadsheet` | The Excel 1900 serial, refusing the phantom 29 February 1900, and the OLE Automation date's fractional time | `excel-1900` |
 | `coptic` | Coptic (Era of the Martyrs) | `coptic` |
 | `ethiopic` | Ethiopian (Incarnation and World eras) | `ethiopic` |
-| `egyptian` | Ancient Egyptian wandering year | `egyptian` |
+| `egyptian` | Ancient Egyptian wandering year, in the era of Nabonassar | `egyptian` |
+| `philip_era` | The same wandering year in the Era of Philip of Ptolemy's *Handy Tables*, 424 years less | `philip-era` |
+| `bostran` | The Bostran era of the province of Arabia: Macedonian months from 1 Xanthikos, 22 March, a sixth epagomenal day in years 2, 6, 10 | `bostran-era` |
 | `armenian` | Ancient Armenian | `armenian` |
 | `armenian_fixed` | Armenian (fixed, Sarkawag 1084) | `armenian-fixed` |
+| `jalali_tusi` | Jalālī (Malekī), **arithmetic**: Ṭūsī's table of long years for years 1–295 from 15 March 1079, the extra days after the twelfth month; refuses the years after the table ([docs/systems/jalali.md](../../docs/systems/jalali.md)) | `jalali-tusi` |
 | `zoroastrian` | Zoroastrian: the Qadimi and Shahanshahi wandering years, and the Fasli with its leap day | `zoroastrian-qadimi`, `zoroastrian-shahanshahi`, `zoroastrian-fasli` |
 | `persian` | Solar Hijri, **arithmetic** variant: Birashk's 2 820-year cycle | `persian-arithmetic` |
 | `persian_33` | Solar Hijri, **arithmetic** variant: the 33-year rule | `persian-arithmetic-33` |
@@ -43,10 +47,13 @@ file does not:
 | `minguo` | Minguo, with 民國前 | `roc` |
 | `juche` | Juche | `juche` |
 | `holocene` | Human Era | `holocene` |
+| `year_counts` | Year counts over the Julian or Gregorian year, as one table: the Spanish era with the years each kingdom dropped it, the Masonic *Anno Lucis*, *Inventionis*, *Depositionis* and *Ordinis*, and After the Development of Agriculture ([docs/systems/era-counts.md](../../docs/systems/era-counts.md)) | `spanish-era`, `masonic-anno-lucis`, `masonic-anno-inventionis`, `masonic-anno-depositionis`, `masonic-anno-ordinis`, `ada` |
+| `era_fascista` | The Era Fascista: the Anno from 29 October, Anno I in 1922 to XXIII in 1945 | `era-fascista` |
 | `byzantine` | Byzantine *Anno Mundi*, September new year | `byzantine` |
 | `roman` | *Ab urbe condita* | `roman-auc` |
 | `rumi` | Rumi, the Ottoman civil calendar of 1840–1925: Julian days to 1917, Gregorian after, the year less 584 | `rumi` |
 | `french_republican` | French Republican, **arithmetic (Romme)** variant | `french-republican-arithmetic` |
+| `french_republican_richards` | French Republican, **arithmetic (Richards)** variant: the sextile years III, VII, XI as kept, from the *Explanatory Supplement*'s parameters | `french-republican-arithmetic-richards` |
 | `bahai` | Badíʿ, **arithmetic Western** variant | `bahai-arithmetic` |
 | `bahai_kept` | Badíʿ as kept: the arithmetic rule to 171 BE, the Bahá'í World Centre's table for 172–221 BE, nothing after | `bahai` |
 | `symmetry454` | Symmetry454 | `symmetry454` |
@@ -90,14 +97,22 @@ astronomical forms are in `hc-calendars-equinox`:
   Paris. Implemented here is Romme's proposed arithmetic rule, which puts the
   sextile day at the end of An IV where France put it at the end of An III —
   so the two disagree from 1795, inside the twelve years the calendar was
-  actually in force. Anyone converting a dated document needs the equinox
-  variant.
+  actually in force. Beside it is Richards's rule from the *Explanatory
+  Supplement*, `french-republican-arithmetic-richards`, which gives the
+  fourteen new years France kept and parts company with the equinox at
+  An XX. Anyone converting a dated document needs the equinox variant or
+  Richards's for those years.
 * **Badíʿ.** Since 2015 the Bahá'í calendar is unified on astronomical rules
   keyed to the Tehran equinox and sunset. Implemented here is the pre-2015
   Western form with Naw-Rúz pinned to 21 March, which is exact for what it is
   and an approximation after B.E. 171. `bahai` is the calendar as kept: this
   rule to 171 BE and the Bahá'í World Centre's published table for 172–221
   BE. It refuses later days rather than compute them.
+
+The Jalālī calendar of 1079 is defined by the equinox too, and its
+astronomical form is not carried anywhere; `jalali-tusi` is Ṭūsī's
+arithmetic table for its first 295 years and refuses the years after
+([`docs/systems/jalali.md`](../../docs/systems/jalali.md)).
 
 From 1889 to 1940 Thailand's year began on 1 April, and it was counted in
 the Rattanakosin era until March 1913. `buddhist` keeps the modern year, and

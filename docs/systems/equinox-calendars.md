@@ -2,8 +2,8 @@
 
 Backs the identifiers `bahai-astronomical` and `french-republican-equinox`
 in `hc-calendars-equinox`, and explains their siblings `bahai`,
-`bahai-arithmetic` and `french-republican-arithmetic` in
-`hc-calendars-solar`. The crate's Solar Hijri calendars, `persian` among
+`bahai-arithmetic`, `french-republican-arithmetic` and
+`french-republican-arithmetic-richards` in `hc-calendars-solar`. The crate's Solar Hijri calendars, `persian` among
 them, are written up in [solar-hijri.md](solar-hijri.md).
 
 ## What it is
@@ -171,6 +171,27 @@ table, which settles them.
 | `bahai-arithmetic` | `hc-calendars-solar` | 21 March, the Gregorian year's length, for any year | 1 to 9 999 BE |
 | `french-republican-equinox` | `hc-calendars-equinox` | Article III: the equinox at the Paris Observatory in true time | An I to the new year of Gregorian 3000 |
 | `french-republican-arithmetic` | `hc-calendars-solar` | Romme's rule of 1795 | An I to 9 999 |
+| `french-republican-arithmetic-richards` | `hc-calendars-solar` | Richards's parameters: sextile when 3 mod 4, except 99 mod 100 unless 399 mod 400 | An I to 9 999 |
+
+**Two arithmetic rules for the Republic.** Richards's conversion
+algorithms carry the Republican calendar as row 4 of Table 15.14,
+*y* = 6504, *j* = 111, *m* = 0, *n* = 13, *r* = 4, *p* = 1461, *q* = 0,
+*v* = 3, *u* = 1, *s* = 30, *t* = 0, *w* = 0, with the Gregorian-type
+corrections *A* = 396, *B* = 578 797, *C* = −51, in Algorithms 3 and 4 of
+§15.11.3, from the epoch of §15.9, JDN 2 375 840 [richards2013]. He states
+no leap rule for them in words. Worked through, ⌊1461 *g* / 4⌋ with *g* =
+*Y* + 6504 lengthens the years *Y* ≡ 3 (mod 4), and ⌊3 ⌊(*g* + 396)/100⌋ /
+4⌋ takes the day back from the years *Y* ≡ 99 (mod 100) except those ≡ 399
+(mod 400). So An III, VII and XI are sextile, as the equinox made them,
+where Romme's rule makes it IV, VIII and XII; Richards's own §15.9 has the
+first leap day "in year 4 E.R.", which his parameters contradict. The two
+rules agree on no year in which one of them puts the sixth complementary
+day, and they are two calendars under policy §5. Richards's rule gives all
+fourteen new years France kept, 24 September 1803 for An XII among them;
+it agrees with `french-republican-equinox` through An XIX and parts
+company at An XX, which the equinox begins a day earlier; to An 1200 the
+two disagree on 464 new years. That comparison was run
+for this document and is not a test.
 
 **Why separate names.** Each pair is one calendar under two rules that give
 different days — Naw-Rúz 173 BE is 20 March 2016 by the equinox and
@@ -226,6 +247,8 @@ say so rather than claim it.
 | The decree's two observed equinoxes, 9:18:30 on 22 September 1792 and 3:11:38 in the afternoon of 22 September 1793, in true time at the Observatory | `the_decrees_two_observed_equinoxes_are_the_models_in_true_time` | Within 52 and 48 seconds |
 | The sextile years among them are III, VII and XI | `the_sextile_years_are_the_third_seventh_and_eleventh` | Holds |
 | Romme's rule begins An IV, VIII and XII a day earlier, and agrees otherwise | `romme_and_the_equinox_part_company_in_the_fourth_eighth_and_twelfth_years` | Holds |
+| Richards's rule gives the fourteen kept new years, An XII on 24 September 1803 | `the_fourteen_years_france_kept_begin_where_the_record_says` (Richards's module), `the_twelfth_year_begins_on_the_twenty_fourth_of_september_1803` | 14 of 14 |
+| Richards's rule is his Algorithms 3 and 4 with Table 15.14's row 4, as printed, and its epoch is JDN 2 375 840 | `this_module_is_richards_algorithms_over_its_whole_range`, `the_epoch_is_julian_day_2375840` | Every day of An I–9 999 in a release build |
 | The arithmetic Western calendar and the equinox part company in 173 BE | `before_172_be_the_rule_is_proleptic_and_says_so_by_its_name` | Holds |
 
 The kept calendar's own tests check that the table's two columns, the
@@ -251,6 +274,7 @@ true times, as article III's rule is.
 | [decret-14-vendemiaire-an-ii] | The calendar's adoption, 5 October 1793 | Not read: Gallica answered with a bot check on 2026-09-26; read through [frwiki-calendrier-republicain] |
 | [frwiki-calendrier-republicain] | The decrees of 14 vendémiaire, 4 frimaire and 22 fructidor, the entry into force on 15 vendémiaire an II, Romme's 1795 report and its rule, the mean year, Delambre's objections, the dates of use | Yes, 2026-09-26 |
 | [wikipedia-french-republican-calendar] | The rule's proposal date, the sextiles of III, VII and XI, An 144's predicted equinox, the fourteen new years | Yes, 2026-09-26 |
+| [richards2013] | §15.9, the epoch JDN 2 375 840 and the "year 4 E.R." sentence; §15.11.3, Algorithms 3 and 4; Table 15.14, row 4 | Yes, 2026-09-26, in the U.S. Naval Observatory's online copy |
 | [reingold2018code] | `bahai-location`, `bahai-sunset`, `astro-bahai-new-year-on-or-before`, `birth-of-the-bab`, `bahai-new-year`, `tehran`, `paris`, `midnight-in-paris`, `french-new-year-on-or-before`, `arithmetic-french-leap-year?` | Yes, 2026-09-26 |
 | [reingold2018] | The book those functions come from | Not read directly |
 | [usno-deltat], [usno-deltat-preds] | ΔT in 2026 | Read for `hc-astro` on 2026-09-25; not re-read here |
@@ -266,8 +290,9 @@ from An III was not checked against a source here.
 `crates/hc-calendars-equinox/src/french_republican.rs` and
 `crates/hc-calendars-equinox/src/places.rs`; the siblings
 `crates/hc-calendars-solar/src/bahai.rs`,
-`crates/hc-calendars-solar/src/bahai_kept.rs` and
-`crates/hc-calendars-solar/src/french_republican.rs`. Anchors in the
+`crates/hc-calendars-solar/src/bahai_kept.rs`,
+`crates/hc-calendars-solar/src/french_republican.rs` and
+`crates/hc-calendars-solar/src/french_republican_richards.rs`. Anchors in the
 equinox modules:
 `every_naw_ruz_of_the_world_centres_table_the_model_can_decide_is_reproduced`,
 `every_twin_birthday_of_the_world_centres_table_is_reproduced`,
@@ -283,4 +308,6 @@ siblings: `the_two_columns_of_the_table_agree_row_by_row`,
 `naw_ruz_is_pinned_to_the_twenty_first_of_march`,
 `the_fifth_intercalary_day_appears_before_a_gregorian_leap_year`,
 `the_arithmetic_rule_diverges_from_the_equinox_at_an_iv`,
-`the_century_and_millennium_exceptions_are_both_exercised`.
+`the_century_and_millennium_exceptions_are_both_exercised`,
+`the_century_rule_is_ninety_nine_and_three_hundred_ninety_nine`,
+`this_module_is_richards_algorithms_over_its_whole_range`.

@@ -30,14 +30,17 @@ use hyper_calendar::hc_calendars_solar::gregorian;
 /// The identifiers whose period of use is deliberately unrecorded, with the
 /// reason each module gives.
 ///
-/// Three kinds are here. Day counts and bare cycles have nothing to be
-/// outside of. Proposals were adopted by nobody. The rest are calendars
-/// whose sources, as read, give no span: the Egyptian wandering year under
-/// Ptolemy's era, the Roman era of later historians, the Yazidi year, the
+/// Four kinds are here. Day counts and bare cycles have nothing to be
+/// outside of. Proposals were adopted by nobody. Then calendars whose
+/// sources, as read, give no span: the Egyptian wandering year under
+/// Ptolemy's two eras, the Roman era of later historians, the Yazidi year, the
 /// observational Hijri prediction, the Old Hindu mean reckonings, the Aztec
 /// counts and the Zapotec year, the Maya 819-day count, the Javanese and Akan weeks, and the
 /// Qumran 364-day year, whose days this library places by a convention of
-/// its own.
+/// its own. Last, calendars whose sources date their use by the year and
+/// never the day — the Bostran era, the Era Fascista, the Olympiads and
+/// the Spanish era, whose modules carry the years — since a period of use
+/// is a pair of days and a year is not one.
 const UNRECORDED: &[&str] = &[
     // Day counts.
     "ansi-date",
@@ -59,6 +62,7 @@ const UNRECORDED: &[&str] = &[
     "javanese-pasaran",
     "sexagenary",
     // Proposals.
+    "ada",
     "discordian",
     "hanke-henry",
     "holocene",
@@ -80,10 +84,16 @@ const UNRECORDED: &[&str] = &[
     "maya-819",
     "maya-819-gmt2",
     "maya-819-584286",
+    "philip-era",
     "qumran",
     "roman-auc",
     "yazidi",
     "zapotec-yza",
+    // Sources that date use by the year only.
+    "bostran-era",
+    "era-fascista",
+    "olympiad",
+    "spanish-era",
 ];
 
 #[test]
