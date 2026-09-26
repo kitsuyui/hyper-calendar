@@ -28,6 +28,12 @@
 //! * [`vira_nirvana`] — the Jain era of Mahāvīra's nirvāṇa over the same
 //!   amānta months, the year opening at Kārtika śukla 1, the day after
 //!   Dīpāvalī, 605 years before the Śaka year. `vira-nirvana-samvat`.
+//! * [`odia_anka`] — the regnal years of the Gajapati of Puri, the
+//!   *aṅka*, which turn at Suniā, Bhādrapada śukla 12, over the pūrṇimānta
+//!   months, and never take a number ending in 6, or in 0 but 10, or 1.
+//!   `odia-anka`.
+//! * [`samvatsara`] — the southern sixty-year cycle of year names,
+//!   Prabhava to Kṣaya, which the Tamil solar year carries.
 //! * [`bikram_sambat`] — the solar calendar of Nepal: the months the
 //!   Government of Nepal gazettes for 2080–2083, and elsewhere the
 //!   *Sūrya Siddhānta*'s saṅkrāntis on their civil day. `bikram-sambat`.
@@ -44,7 +50,8 @@
 //! pūrṇimānta form is the north's naming of the same days; the four solar
 //! reckonings are the civil calendars of the south, the east and the
 //! north-west; the Bikram Sambat is Nepal's. What is still to come — the
-//! Odia year counts, the Tamil sixty-year names, the Bikram Sambat's
+//! Odia Amli and Vilayati years, the sixty-year names on the southern
+//! lunisolar year and the northern Bārhaspatya cycle, the Bikram Sambat's
 //! gazetted months outside 2080–2083 — `docs/calendars.md` lists.
 //!
 //! # Why a crate of its own
@@ -82,7 +89,9 @@ pub mod hindu_solar;
 mod kartikadi;
 pub mod nakshatra;
 pub mod nepal_sambat;
+pub mod odia_anka;
 pub mod places;
+pub mod samvatsara;
 pub mod surya_siddhanta;
 pub mod tithi;
 pub mod vira_nirvana;
@@ -95,6 +104,7 @@ pub use hindu_old::{
 pub use hindu_purnimanta::HinduPurnimantaCalendar;
 pub use hindu_solar::{HinduSolarCalendar, HinduSolarDate, SankrantiRule, SolarModel};
 pub use nepal_sambat::{NepalSambatCalendar, NepalSambatDate};
+pub use odia_anka::{OdiaAnkaCalendar, OdiaAnkaDate};
 pub use tithi::{Paksha, Prevalence};
 pub use vira_nirvana::{ViraNirvanaCalendar, ViraNirvanaDate};
 
@@ -128,6 +138,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(
             crate::ViraNirvanaCalendar::RASHTRIYA,
         )));
+        registry.insert(Box::new(DynAdapter::new(crate::OdiaAnkaCalendar::PURI)));
     }
 }
 
@@ -141,7 +152,7 @@ mod tests {
     use super::*;
 
     /// The number of calendars this crate registers.
-    const CALENDAR_COUNT: usize = 11;
+    const CALENDAR_COUNT: usize = 12;
 
     /// Every calendar the crate registers, so that neither list can drift
     /// from the registry unnoticed.
@@ -155,6 +166,7 @@ mod tests {
             NepalSambatCalendar::KATHMANDU.meta(),
             BikramSambatCalendar.meta(),
             ViraNirvanaCalendar::RASHTRIYA.meta(),
+            OdiaAnkaCalendar::PURI.meta(),
         ];
         metas.extend(crate::hindu_solar::ALL.iter().map(Calendar::meta));
         metas
@@ -202,6 +214,7 @@ mod tests {
         assert!(registry.get_by_name("nepal-sambat").is_some());
         assert!(registry.get_by_name("bikram-sambat").is_some());
         assert!(registry.get_by_name("vira-nirvana-samvat").is_some());
+        assert!(registry.get_by_name("odia-anka").is_some());
         register_all(&mut registry);
         assert_eq!(registry.len(), CALENDAR_COUNT);
     }

@@ -428,12 +428,12 @@ fn the_vocabulary_gap_is_measured_and_not_growing() {
 
     assert_eq!(
         registered.len(),
-        125,
+        126,
         "the registry changed; update the coverage numbers deliberately"
     );
     assert_eq!(
         with_months.len(),
-        103,
+        104,
         "calendars with a month cycle — changes only when a calendar's shape does"
     );
     assert!(
@@ -482,4 +482,45 @@ fn the_palmen_calendars_are_named_through_the_fallback() {
         let top = usize::from(months.length.maximum()) - 1;
         assert_eq!((name(0), name(top)), (Some(first), Some(last)), "{id}");
     }
+}
+
+/// The Tamil year's name, from the extra field the calendar writes to the
+/// name a locale gives it: Tamil script in Tamil, from the *Tamil Lexicon*,
+/// and the calendar's own Sanskrit names, Sewell and Dikshit's, in English,
+/// which has none of its own. The Tamil year of 2024–25 is the 38th.
+#[cfg(feature = "indic")]
+#[test]
+fn the_tamil_year_is_named_in_tamil_and_through_the_fallback() {
+    use hyper_calendar::hc_i18n::Locale;
+    use hyper_calendar::hc_i18n::names::{NameContext, NameWidth, position_name};
+
+    let registry = registry();
+    let calendar = registry
+        .get_by_name("hindu-solar-tamil")
+        .expect("registered");
+    let cycle = calendar
+        .cycles()
+        .iter()
+        .find(|cycle| cycle.kind == "samvatsara")
+        .expect("a samvatsara cycle");
+    let tamil: Locale = "ta".parse().expect("ta is a locale");
+    let english: Locale = "en".parse().expect("en is a locale");
+    let name = |locale: &Locale, rd: Rd| {
+        let fields = calendar.fixed_to_fields(rd).expect("in range");
+        let position = fields.extra.get("samvatsara").expect("a year name");
+        let index = usize::try_from(position - 1).expect("1 to 60");
+        position_name(
+            locale,
+            calendar.meta().id,
+            cycle,
+            index,
+            NameWidth::Wide,
+            NameContext::Format,
+        )
+    };
+    // 14 April 2024, Tamil New Year's Day, and the day before.
+    let new_year = Rd(738_990);
+    assert_eq!(name(&tamil, new_year), Some("குரோதி"));
+    assert_eq!(name(&english, new_year), Some("Krodhin"));
+    assert_eq!(name(&tamil, Rd(new_year.0 - 1)), Some("சோபகிருது"));
 }

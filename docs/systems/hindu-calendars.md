@@ -1,10 +1,10 @@
-# The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, ayanāṃśa
+# The Hindu calendars: amānta and pūrṇimānta months, the solar months, the nakṣatras, ayanāṃśa, the sixty year names
 
 Backs the identifiers `hindu-lunar`, `hindu-lunar-purnimanta`,
 `hindu-solar-tamil`, `hindu-solar-malayalam`, `hindu-solar-bengali`,
 `hindu-solar-vikrami`, `hindu-old-solar` and `hindu-old-lunar` in
 `hc-calendars-indic`, and the crate's `tithi`, `nakshatra`,
-`surya_siddhanta` and `places` modules. Nepal's Bikram Sambat and Nepal
+`surya_siddhanta`, `samvatsara` and `places` modules. Nepal's Bikram Sambat and Nepal
 Sambat are in the same crate and have their own,
 [nepal-calendars.md](nepal-calendars.md).
 
@@ -194,6 +194,30 @@ Meṣa, in the Vikrama Saṃvat, 57 more than the Gregorian year from
 Vaiśākha on [wikipedia-vikram-samvat]. The month names are `hc-seasons`'s
 solar-month traditions.
 
+**The sixty year names.** A year is also named from a list of sixty,
+Prabhava to Kṣaya, "often known as the 'Brihaspati samvatsara chakra,'
+the wheel or cycle of the years of Jupiter"; in the north a *saṃvatsara*
+is the time Jupiter's mean motion takes through one sign, about 361.027
+days by the *Sūrya Siddhānta*, so that about every 85 years two begin in
+one solar year and the first of them is expunged [sewell1896, Arts. 53
+and 54]. South of the Narmada the expunction was given up from Śaka 828
+or 831, and there the names "are made to correspond with the luni-solar
+year as well as the solar": the Tamil solar year and the Telugu and
+Kannada lunisolar year that begins in it carry the same name. The rule is
+"add 11 to the current Saka year, and divide by 60; the remainder is the
+corresponding luni-solar cycle year", counted from Prabhava as 1, and "at
+present the northern samvatsara has advanced by 12 on the southern"
+[sewell1896, Art. 62]; their example of 1822 is Chitrabhanu in the south
+and Vijaya in the north. The current Śaka year is the printed, expired one
+plus one. So the Tamil year that opened on 14 April 2024, Śaka 1946
+expired, is (1947 + 11) mod 60 = 38, Krodhin, which Tamil almanacs print
+Krodhi, குரோதி [prokerala-tamil-2024]; the next, from 14 April 2025, is
+the 39th, Viśvāvasu, printed Visuvasuva [pansalb-tamil-new-year-2025].
+The names in Tamil script are the University of Madras's *Tamil Lexicon*,
+whose entry வருஷம் lists all sixty in their three twenties, from பிரபவ to
+அட்சய, and has each as a headword glossed "the Nth year of the Jupiter
+cycle" [tamil-lexicon].
+
 **True Sun and mean Sun.** The registered solar calendars take their
 saṅkrāntis from the true Sun of modern astronomy — `hc-astro`'s VSOP87
 series, good to about 1″ — in the sidereal zodiac of an ayanāṃśa, which is
@@ -356,6 +380,17 @@ weeks.
   place or with the *Sūrya Siddhānta*'s Sun, under an identifier of the
   caller's. A fifth rule, `CivilDay`, the midnight-to-midnight day of the
   saṅkrānti, exists for the Bikram Sambat and is that document's.
+  `TAMIL` alone names its years: `samvatsara_of` gives the position, 1 to
+  60, and the date's fields carry it as the extra `samvatsara`, derived
+  and ignored on input; the calendar declares the sixty names as a cycle of
+  kind `samvatsara`, in Sewell and Dikshit's Sanskrit forms without
+  diacritics (Krodhin, Visvavasu), and `hc-i18n`'s Tamil gives them in the
+  Lexicon's Tamil script. The Lexicon's spellings are kept where almanacs
+  now print others — ஶ்ரீமுக for ஸ்ரீமுக, தாருண for தாரண, பார்த்திவ for
+  பார்த்திப; Wikipedia's Tamil list [wikipedia-tamil-calendar] was read and
+  not used, for spellings such as விசுவாசுவ that no other source read has.
+- **`samvatsara`**: `NAMES`, `southern_of_saka` and `name`, the southern
+  cycle only.
 - **`hindu-old-solar`** and **`hindu-old-lunar`**, as
   `OldHinduSolarCalendar` and `OldHinduLunarCalendar`, in the Kali Yuga
   era, arithmetic and not astronomical.
@@ -397,8 +432,10 @@ weeks.
   - *Regional almanacs' own readings*: a calendar read at another place
     or with another ayanāṃśa is a `new` away, but no local almanac's
     tables are carried, so none is registered.
-  - *The Odia year counts* (the *aṅka*) and *the Tamil sixty-year names*:
-    planned, and listed in `docs/calendars.md`.
+  - *The sixty year names on the lunisolar year*, the south's Ugādi year,
+    and *the northern Bārhaspatya cycle* with its expunged years: planned,
+    and listed in `docs/calendars.md`. The Odia Anka is
+    [odia-anka.md](odia-anka.md)'s.
   - *Festival observance*: which part of the day a tithi must hold, and
     the Smārta and Vaiṣṇava readings, are `hc-holiday`'s rules, not
     dates.
@@ -432,6 +469,9 @@ assert:
 | The first day of every solar month of both years, Tamil, Bengali and Vikrami | `hindu_solar::the_tamil_months_begin_where_the_rashtriya_panchang_says` and the Bengali and Vikrami tests | 24 of 24 each |
 | The first day of every Malayalam month of both years | `the_malayalam_months_begin_where_the_rashtriya_panchang_says_save_medam` | 22 of 24; see below |
 | Bengali San 1430, Kollam 1199, Vikrama 2080 and Tiruvaḷḷuvar 2054 open on the almanac's days | `the_eras_begin_where_the_almanac_says` | all |
+| The southern rule on Sewell and Dikshit's worked examples: Angiras (Śaka 1674, 1752), Rudhirodgarin (1725, 1803–04), Chitrabhanu (1744, 1822) | `samvatsara::sewell_and_dikshits_rule_names_their_own_examples` | all |
+| The Tamil year's name on printed days: Rudhirodgarin on 30 May 1803 and 30 March 1804; Śobhana (Śobhakṛt) on 13 April 2024 and Krodhin from the 14th; Viśvāvasu from 14 April 2025; Parābhava from 14 April 2026 | `the_tamil_years_carry_their_printed_names` | all names; Sewell and Dikshit's two days are a day earlier in the month by the modern Sun, 18 Vaikasi and 19 Panguni for their 19th and 20th |
+| குரோதி in Tamil and Krodhin in English on 14 April 2024, சோபகிருது the day before | `hyper-calendar`'s `the_tamil_year_is_named_in_tamil_and_through_the_fallback` | all |
 | The Sun's twenty-seven nakṣatra entries of 2025 | `nakshatra::the_suns_nakshatra_transits_of_2025_are_the_almanacs` | every entry 7 to 10½ minutes before Drik Panchang's, the spread under two minutes |
 | Puṣya in January 2024 and February 2025, Drik Panchang's Chennai times | `pushya_in_january_2024_begins_and_ends_when_the_almanac_says`, `pushya_in_february_2025_too` | within three minutes |
 | The Siddhānta's sine table holds Āryabhaṭa's twenty-four values; its Meṣa saṅkrānti of 2024 is 139 minutes after Lahiri's | `surya_siddhanta::the_table_holds_the_classical_jyas`, `the_mesha_sankranti_of_2024_is_later_than_the_lahiri_one` | all; ±1 minute |
@@ -451,6 +491,10 @@ assert:
   `hc-seasons` describes, and not an error that grows through the year.
   The module infers the 20″ from the offset; Drik Panchang's page does
   not state its anchor.
+- *Sewell and Dikshit's Tamil days.* Their tables, computed with the old
+  almanac's Sun, give 30 May 1803 as 19 Vaikasi and 30 March 1804 as
+  20 Panguni; the registered reckoning's modern Sun begins both months a
+  day later, so it reads 18 and 19. The year and its name agree.
 - *Festivals kept on an afternoon or evening tithi.* The almanac lists
   Raksha Bandhan 2023 on 30 August and Vijayā Daśamī 2024 on 12 October,
   days on which the sunrise tithi was still the previous one. The dates
@@ -483,7 +527,10 @@ for 2024 and 2025 give the times the tests hold.
 | [imd-astronomical-ephemeris] | The *Indian Astronomical Ephemeris*, its parts and its readers | Yes, 2026-09-25 |
 | [crc1955] | The Committee, its dates and members; the Central Station; tithis by modern computation; the lunar month named after the solar month of its new moon, adhika and śuddha; the 13°20′ nakṣatra divisions and the Sun's entries; the ayanāṃśa of 23°15′ on 21 March 1956; the solar-month conventions left to the pandits; the list of almanacs | Yes, 2026-09-25, in the Internet Archive's OCR text |
 | [wikipedia-indian-national-calendar] | The civil calendar's adoption on 22 March 1957 and the Śaka offset | Yes, 2026-09-25 |
-| [sewell1896] | The four regional rules and their names; kṣaya and adhika tithis; the naming of adhika and kṣaya months; the intervals between expunged months | Yes, 2026-09-25, in the Internet Archive's OCR text; Arts. 28, 32, 45, 48 and 50 |
+| [sewell1896] | The four regional rules and their names; kṣaya and adhika tithis; the naming of adhika and kṣaya months; the intervals between expunged months; the sixty-year cycle, its northern and southern reckonings and the southern rule, and the worked examples of 1752, 1803–04 and 1822 | Yes, 2026-09-25, in the Internet Archive's OCR text; Arts. 28, 32, 45, 48 and 50; Arts. 53–62 and the worked examples that name Angiras, Rudhirodgarin and Chitrabhanu on 2026-09-26. The sixty names are read off the OCR of Table I, col. 6, and Table XII, where the diacritics are lost |
+| [tamil-lexicon] | The sixty year names in Tamil script, entry வருஷம், sense 2, and each as a headword | Yes, 2026-09-26, in the Digital Dictionaries of South Asia edition |
+| [prokerala-tamil-2024] | Chithirai 2024 headed "Krodhi", Tamil New Year's Day 14 April | Yes, 2026-09-26 |
+| [pansalb-tamil-new-year-2025] | "Tamil New Year (5127 – Visuvasuva)", 14 April 2025 | Yes, 2026-09-26 |
 | [reingold2018] | The Old Hindu calendars, the Siddhānta's Sun, the amānta rules, Ujjain | Not read directly; the published code was |
 | [reingold2018code] | `hindu-epoch`, `arya-solar-year`, `arya-lunar-month`, `old-hindu-lunar-leap-year?`, `hindu-sine-table`, `hindu-sidereal-year`, `hindu-anomalistic-year`, `hindu-true-position`, `ujjain`, `sidereal-start`, `hindu-lunar-station`, and `hindu-lunar-from-fixed` for the day read at sunrise | Yes, 2026-09-25; `hindu-lunar-from-fixed` 2026-09-26 |
 | [calcal-modern-hindu] | The line-by-line check of the Siddhānta constants the module records | Yes, 2026-09-25: the constants of `modern_hindu.R` are the book's |
@@ -494,7 +541,7 @@ for 2024 and 2025 give the times the tests hold.
 | [wikipedia-vikram-samvat] | The epoch of 57 BCE and the offset of 57 | Yes, 2026-09-25 |
 | [wikipedia-malayalam-calendar] | The Kollam epoch of 825 CE, Chingam as the first month, Vishu in Medam | Yes, 2026-09-25 |
 | [wikipedia-bengali-calendars] | The Bengali San's offset of 593, Boishakh first, the West Bengal reckoning as sidereal | Yes, 2026-09-25 |
-| [wikipedia-tamil-calendar] | The month names Chithirai to Panguni and the year at the Meṣa saṅkrānti | Yes, 2026-09-25; it does not give the Tiruvaḷḷuvar year |
+| [wikipedia-tamil-calendar] | The month names Chithirai to Panguni and the year at the Meṣa saṅkrānti; its sixty-year table was compared with the Lexicon's and not used | Yes, 2026-09-25 and 2026-09-26; it does not give the Tiruvaḷḷuvar year |
 | [wikipedia-aryabhata-sine-table] | The twenty-four values of the sine table | Yes, 2026-09-25 |
 | [wikipedia-thaipusam] | Thaipusam on Puṣya in Thai | Yes, 2026-09-25 |
 | [wikipedia-onam] | Onam on Thiruvonam in Chingam | Yes, 2026-09-25 |
@@ -516,7 +563,8 @@ phrase; the module states the coordinates only.
 `crates/hc-calendars-indic/src/hindu_lunar.rs` (`HinduLunarCalendar`,
 `MIN_YEAR`, `MAX_YEAR`, `MONTHS`), `hindu_purnimanta.rs`,
 `hindu_solar.rs` (`SankrantiRule`, `SolarModel`, `TAMIL`, `MALAYALAM`,
-`BENGALI`, `VIKRAMI`, `ALL`), `hindu_old.rs` (`HINDU_EPOCH`,
+`BENGALI`, `VIKRAMI`, `ALL`, `samvatsara_of`), `samvatsara.rs` (`NAMES`,
+`southern_of_saka`), `hindu_old.rs` (`HINDU_EPOCH`,
 `ARYA_SOLAR_YEAR`, `ARYA_LUNAR_MONTH`), `tithi.rs`, `nakshatra.rs`,
 `surya_siddhanta.rs` (`SIDEREAL_YEAR`, `ANOMALISTIC_YEAR`,
 `UJJAIN_LONGITUDE_DEGREES`) and `places.rs`. Anchors:
@@ -526,6 +574,8 @@ phrase; the module states the coordinates only.
 `the_tamil_months_begin_where_the_rashtriya_panchang_says`,
 `the_malayalam_months_begin_where_the_rashtriya_panchang_says_save_medam`,
 `the_eras_begin_where_the_almanac_says`,
+`the_tamil_years_carry_their_printed_names`,
+`sewell_and_dikshits_rule_names_their_own_examples`,
 `the_suns_nakshatra_transits_of_2025_are_the_almanacs`,
 `pushya_in_january_2024_begins_and_ends_when_the_almanac_says`,
 `the_table_holds_the_classical_jyas`,

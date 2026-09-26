@@ -2555,6 +2555,38 @@ const EN_CALENDARS: &[CalendarNames] = &[
         templates: DateTemplates::NONE,
         leap_names: LeapMonthNames::NONE,
     },
+    // The Odia Anka runs the pūrṇimānta months of `hindu-lunar-purnimanta`,
+    // numbered from Chaitra as that calendar numbers them, so they carry the
+    // same transliteration; the year opens in Bhadra. The era is the reign
+    // the Anka counts, Dibyasingha Deb's, as the Puri press names him on
+    // Suniā ("Gajapati Dibyasingha Deb entered his 69th Anka", OdishaTV,
+    // 4 September 2025).
+    CalendarNames {
+        calendars: &[CalendarId("odia-anka")],
+        cycles: &[months(&[
+            "Chaitra",
+            "Vaisakha",
+            "Jyaishtha",
+            "Ashadha",
+            "Sravana",
+            "Bhadra",
+            "Asvina",
+            "Kartika",
+            "Agrahayana",
+            "Pausha",
+            "Magha",
+            "Phalguna",
+        ])],
+        leap_month_prefix: "Adhika ",
+        eras: EraNames {
+            codes: &["dibyasingha-deb"],
+            names: widths(&["Anka of Dibyasingha Deb"], &["Anka"], &[]),
+            calendars: &[],
+        },
+        quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames::NONE,
+    },
     CalendarNames {
         calendars: &[CalendarId("bikram-sambat")],
         // The Nepali forms Wikipedia's "Vikram Samvat" lists beside the
@@ -4990,6 +5022,78 @@ const TA_SOLAR_MONTHS: &[&str] = &[
     "பங்குனி",
 ];
 
+// The sixty year names of the southern cycle, Prabhava first, which the
+// Tamil solar year carries (`hc_calendars_indic::samvatsara`, keyed to
+// `hindu-solar-tamil` as its shape declares them): the University of
+// Madras's *Tamil Lexicon* (1924–1936), entry வருஷம், sense 2, p. 3524,
+// which lists all sixty in their three twenties, read 2026-09-26 in the
+// Digital Dictionaries of South Asia edition; every one is also a headword
+// there glossed as that year of the Jupiter cycle. The Lexicon's spellings
+// are kept, ஶ்ரீமுக and தாருண among them, where some almanacs now print
+// ஸ்ரீமுக and தாரண.
+const TA_SAMVATSARA: &[&str] = &[
+    "பிரபவ",
+    "விபவ",
+    "சுக்கில",
+    "பிரமோதூத",
+    "பிரசோற்பத்தி",
+    "ஆங்கீரச",
+    "ஶ்ரீமுக",
+    "பவ",
+    "யுவ",
+    "தாது",
+    "ஈசுவர",
+    "வெகுதானிய",
+    "பிரமாதி",
+    "விக்கிரம",
+    "விஷு",
+    "சித்திரபானு",
+    "சுபானு",
+    "தாருண",
+    "பார்த்திவ",
+    "வியய",
+    "சர்வசித்து",
+    "சர்வதாரி",
+    "விரோதி",
+    "விகிருதி",
+    "கர",
+    "நந்தன",
+    "விசய",
+    "சய",
+    "மன்மத",
+    "துன்முகி",
+    "ஏவிளம்பி",
+    "விளம்பி",
+    "விகாரி",
+    "சார்வரி",
+    "பிலவ",
+    "சுபகிருது",
+    "சோபகிருது",
+    "குரோதி",
+    "விசுவாவசு",
+    "பராபவ",
+    "பிலவங்க",
+    "கீலக",
+    "சௌமிய",
+    "சாதாரண",
+    "விரோதிகிருது",
+    "பரீதாபி",
+    "பிரமாதீச",
+    "ஆனந்த",
+    "இராட்சச",
+    "நள",
+    "பிங்கள",
+    "காளயுக்தி",
+    "சித்தார்த்தி",
+    "இரௌத்திரி",
+    "துன்மதி",
+    "துந்துபி",
+    "ருதிரோற்காரி",
+    "இரத்தாட்சி",
+    "குரோதன",
+    "அட்சய",
+];
+
 const TA_CALENDARS: &[CalendarNames] = &[
     gregorian(
         &[month_cycle(ContextualNames::same(widths(
@@ -5044,7 +5148,7 @@ const TA_CALENDARS: &[CalendarNames] = &[
     ),
     dated(
         &[CalendarId("hindu-solar-tamil")],
-        &[months(TA_SOLAR_MONTHS)],
+        &[months(TA_SOLAR_MONTHS), cycle("samvatsara", TA_SAMVATSARA)],
         &[],
         &[],
     ),
