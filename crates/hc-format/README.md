@@ -105,12 +105,27 @@ input. `write_imf_fixdate` produces the HTTP `Date` shape with the literal
 
 ## Patterns
 
-`strftime` supports `%Y %C %y %G %g %m %d %e %j %H %k %I %l %M %S %u %w %U
-%W %V %a %A %b %B %h %p %P %z %:z %Z %s %n %t %% %F %T %R %D %r %c %x %X`,
+`strftime` supports `%Y %C %y %G %g %m %d %e %j %H %k %I %l %M %S %f %u %w
+%U %W %V %a %A %b %B %h %p %P %z %:z %Z %s %n %t %% %F %T %R %D %r %c %x %X`,
 the flags `-` `_` `0` `^` `#` and an explicit field width. Not implemented:
-the `%E…`/`%O…` locale-alternative modifiers. `%U` and `%W` are written but
-discarded when parsing — a Sunday- or Monday-anchored week number cannot fix
-a date on its own.
+the `%E…`/`%O…` locale-alternative modifiers. `%f` is Python's: six digits of
+microseconds, or as many as a width asks for, truncated. `%z` keeps the
+seconds of an offset that has them (`+063415`), as Python does. When
+parsing, `%U` and `%W` fix a date only together with a year and a weekday,
+Python's rule; on their own they are read and discarded, because a week
+number without a weekday names seven days.
+
+## Python's profile
+
+`python` is the ISO 8601 profile of CPython's `datetime`: `fromisoformat` for
+dates, times and date-times, accepting exactly Python's forms (not reduced,
+expanded or ordinal dates, not fractions of an hour or minute, any single
+character between date and time); `isoformat` with `TimeSpec`, the
+`timespec` argument; `ctime`; and `strptime` with Python's 1900-01-01
+defaults. It keeps up to eighteen fraction digits where Python truncates to
+six and accepts `23:59:60`; it refuses offsets with a fraction of a second,
+which Python accepts. `tests/python_directives.rs` checks every directive
+Python documents against that table's own sample.
 
 CLDR supports `G y Y u Q q M L w W d D F E e c a h H K k m s S A z Z O X x`
 and `'` quoting. Not implemented: `b`/`B` (flexible day periods, which need

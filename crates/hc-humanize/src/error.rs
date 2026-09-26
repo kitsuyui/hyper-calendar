@@ -27,6 +27,10 @@ pub enum HumanizeError {
     WriteFailed,
     /// The number could not be rendered in the locale's numbering system.
     Number(I18nError),
+    /// The options ask for something the function does not do, such as a
+    /// `naturaldelta` minimum unit above seconds, which `humanize` refuses
+    /// with a `ValueError`.
+    Unsupported(&'static str),
 }
 
 impl fmt::Display for HumanizeError {
@@ -37,6 +41,7 @@ impl fmt::Display for HumanizeError {
             Self::NoComponents => f.write_str("no components were requested"),
             Self::WriteFailed => f.write_str("the output sink refused the write"),
             Self::Number(error) => write!(f, "number formatting failed: {error}"),
+            Self::Unsupported(what) => write!(f, "not supported: {what}"),
         }
     }
 }
@@ -78,6 +83,7 @@ mod tests {
             HumanizeError::NoComponents.to_string(),
             HumanizeError::WriteFailed.to_string(),
             HumanizeError::Number(I18nError::NumberOutOfRange).to_string(),
+            HumanizeError::Unsupported("that").to_string(),
         ];
         for message in &messages {
             assert!(!message.is_empty());

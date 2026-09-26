@@ -24,6 +24,19 @@ form by comparing a number to one.
 | `calendar_relative` | Which calendar day was it? | *yesterday at 15:05*, *last Tuesday*, *next month* |
 | `approximate` | Roughly how long? | *about 3 hours*, *just over a week*, *nearly a year* |
 | `unit_choice` | Which unit, rounded how? | 90 min → *2 hours* or *an hour and a half* |
+| `natural` | What would Python's `humanize` say? | *a moment*, *1 year, 3 months*, *2 days, 1 hour and 33.12 seconds*, *1,000,000*, *1.2 billion*, *103rd* |
+
+`natural` is a second convention beside CLDR's, not a replacement for it:
+the thresholds and the English strings of the Python `humanize` package 4.x —
+`naturaldelta`, `naturaltime`, `naturalday`, `naturaldate`, `precisedelta`,
+`ordinal`, `intcomma` and `intword` — for code being ported from Python that
+depends on those exact phrases. Its tests quote `humanize`'s documented
+examples. Only English is carried: `humanize`'s gettext catalogues were not
+read, so none is reproduced, and a language is one more `NaturalPhrases`
+value whose plurals `hc_i18n::PluralRules` chooses. `naturalday` writes days
+that are not today, tomorrow or yesterday with `hc-format`'s `strftime`,
+which is why this crate depends on `hc-format`. `naturalsize` is bytes, not
+time, and is not here.
 
 `relative` follows the CLDR `relativeTime` model properly. Units are second,
 minute, hour, day, week, month, quarter and year; styles are `Long`, `Short`
@@ -80,10 +93,11 @@ and quarter means are exact integers too. A day is the nominal 86 400 s.
 
 ## What it deliberately does not do
 
-- **It does not format dates or times.** That is `hc-format`. The one
-  exception is `calendar_relative::write_clock_time`, a documented `H:MM`
-  convenience so that *yesterday at 15:05* works end to end; it has no hour
-  cycle and no day period.
+- **It does not format dates or times.** That is `hc-format`. The
+  exceptions are `calendar_relative::write_clock_time`, a documented `H:MM`
+  convenience so that *yesterday at 15:05* works end to end, with no hour
+  cycle and no day period; and `natural::Natural::naturalday`, which hands
+  a day to `hc-format`'s `strftime` as Python's `humanize` does.
 - **It does not know what "now" is.** Every entry point takes both ends, or a
   span, from the caller. A humaniser that read a clock could not be tested.
 - **It does not do calendar arithmetic on months.** A bare span has no

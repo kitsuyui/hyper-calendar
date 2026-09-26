@@ -2,7 +2,7 @@
 
 use core::cmp::Ordering;
 use core::fmt;
-use core::ops::{Add, AddAssign, Neg, Sub, SubAssign};
+use core::ops::{Add, AddAssign, Div, Mul, Neg, Rem, Sub, SubAssign};
 
 use crate::error::{TimeError, TimeResult};
 
@@ -126,6 +126,12 @@ impl Duration {
     #[must_use]
     pub const fn from_days(days: i64) -> Self {
         Self::from_secs(days as i128 * 86_400)
+    }
+
+    /// A span of whole seven-day weeks, each day 86 400 seconds.
+    #[must_use]
+    pub const fn from_weeks(weeks: i64) -> Self {
+        Self::from_secs(weeks as i128 * 604_800)
     }
 
     /// A span given in attoseconds.
@@ -338,6 +344,104 @@ impl Duration {
         }
     }
 
+    /// How many whole times `divisor` fits into the span, rounding towards
+    /// negative infinity: Python's `timedelta // timedelta`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`TimeError::DivideByZero`] for a zero divisor and
+    /// [`TimeError::Overflow`] when either span is too long to express in
+    /// attoseconds.
+    pub const fn checked_div_floor(self, divisor: Self) -> TimeResult<i128> {
+        match self.checked_div_rem(divisor) {
+            Ok((quotient, _)) => Ok(quotient),
+            Err(error) => Err(error),
+        }
+    }
+
+    /// What is left after taking whole `divisor`s out of the span, with the
+    /// sign of the divisor: Python's `timedelta % timedelta`.
+    ///
+    /// # Errors
+    ///
+    /// As [`Duration::checked_div_floor`].
+    pub const fn checked_rem(self, divisor: Self) -> TimeResult<Self> {
+        match self.checked_div_rem(divisor) {
+            Ok((_, remainder)) => Ok(remainder),
+            Err(error) => Err(error),
+        }
+    }
+
+    /// The floor quotient and the remainder together: Python's
+    /// `divmod(timedelta, timedelta)`.
+    ///
+    /// The remainder has the sign of the divisor and is smaller than it in
+    /// magnitude, so `quotient × divisor + remainder` is the span exactly.
+    ///
+    /// # Errors
+    ///
+    /// As [`Duration::checked_div_floor`].
+    pub const fn checked_div_rem(self, divisor: Self) -> TimeResult<(i128, Self)> {
+        if divisor.is_zero() {
+            return Err(TimeError::DivideByZero);
+        }
+        let numerator = match self.total_attos() {
+            Ok(value) => value,
+            Err(error) => return Err(error),
+        };
+        let denominator = match divisor.total_attos() {
+            Ok(value) => value,
+            Err(error) => return Err(error),
+        };
+        // `div_euclid` keeps the remainder non-negative. Python's floor
+        // division keeps it with the sign of the divisor, which for a negative
+        // divisor and an inexact division is one quotient step further down.
+        let mut quotient = match numerator.checked_div_euclid(denominator) {
+            Some(value) => value,
+            None => return Err(TimeError::Overflow),
+        };
+        let mut remainder = numerator.rem_euclid(denominator);
+        if denominator < 0 && remainder != 0 {
+            quotient -= 1;
+            remainder += denominator;
+        }
+        Ok((quotient, Self::from_attos(remainder)))
+    }
+
+    /// Split the span into Python's normalised `timedelta` fields: whole
+    /// 86 400-second days (rounded towards negative infinity), the seconds
+    /// left in `[0, 86 400)`, and the attoseconds left in `[0, 10¹⁸)`.
+    ///
+    /// `timedelta(microseconds=-1)` is `(-1, 86 399, 999 999 µs)`, and so is
+    /// this.
+    #[must_use]
+    pub const fn days_seconds_attos(self) -> (i128, u32, u64) {
+        (
+            self.secs.div_euclid(86_400),
+            self.secs.rem_euclid(86_400) as u32,
+            self.attos,
+        )
+    }
+
+    /// A [`fmt::Display`] view of the span as Python writes a `timedelta`:
+    /// `[D day[s], ][H]H:MM:SS[.UUUUUU]`.
+    ///
+    /// The day count is the floor, so the clock part is never negative:
+    /// minus five hours is `-1 day, 19:00:00`. A fraction is written with six
+    /// digits, as Python writes microseconds, and with more only when the
+    /// span has a part finer than a microsecond, which a Python `timedelta`
+    /// cannot.
+    ///
+    /// ```
+    /// use hc_core::Duration;
+    ///
+    /// assert_eq!(Duration::from_hours(-5).days_and_clock().to_string(), "-1 day, 19:00:00");
+    /// ```
+    #[must_use]
+    pub const fn days_and_clock(self) -> DaysAndClock {
+        DaysAndClock(self)
+    }
+
     /// The absolute value of the span.
     ///
     /// # Errors
@@ -432,6 +536,69 @@ impl Neg for Duration {
     }
 }
 
+impl Mul<i64> for Duration {
+    type Output = Self;
+
+    /// # Panics
+    ///
+    /// Panics on overflow. Use [`Duration::checked_mul_int`] to handle it.
+    fn mul(self, factor: i64) -> Self {
+        match self.checked_mul_int(factor) {
+            Ok(value) => value,
+            Err(_) => panic!("hc-core: duration multiplication overflowed"),
+        }
+    }
+}
+
+impl Mul<Duration> for i64 {
+    type Output = Duration;
+
+    /// # Panics
+    ///
+    /// Panics on overflow. Use [`Duration::checked_mul_int`] to handle it.
+    fn mul(self, span: Duration) -> Duration {
+        span * self
+    }
+}
+
+impl Div<i64> for Duration {
+    type Output = Self;
+
+    /// Division rounding towards negative infinity at the attosecond.
+    ///
+    /// # Panics
+    ///
+    /// Panics on a zero divisor, as integer division does, and when the span
+    /// is too long to express in attoseconds. Use
+    /// [`Duration::checked_div_int`] to handle either.
+    fn div(self, divisor: i64) -> Self {
+        match self.checked_div_int(divisor) {
+            Ok(value) => value,
+            Err(TimeError::DivideByZero) => panic!("hc-core: duration divided by zero"),
+            Err(_) => panic!("hc-core: duration division overflowed"),
+        }
+    }
+}
+
+impl Rem for Duration {
+    type Output = Self;
+
+    /// The remainder with the sign of the divisor, as Python's `%` on two
+    /// `timedelta`s.
+    ///
+    /// # Panics
+    ///
+    /// Panics on a zero divisor and when either span is too long to express
+    /// in attoseconds. Use [`Duration::checked_rem`] to handle either.
+    fn rem(self, divisor: Self) -> Self {
+        match self.checked_rem(divisor) {
+            Ok(value) => value,
+            Err(TimeError::DivideByZero) => panic!("hc-core: duration divided by zero"),
+            Err(_) => panic!("hc-core: duration remainder overflowed"),
+        }
+    }
+}
+
 impl AddAssign for Duration {
     fn add_assign(&mut self, other: Self) {
         *self = *self + other;
@@ -470,6 +637,51 @@ impl fmt::Display for Duration {
             }
             let mut end = digits.len();
             while end > 1 && digits[end - 1] == b'0' {
+                end -= 1;
+            }
+            f.write_str(".")?;
+            for digit in &digits[..end] {
+                f.write_fmt(format_args!("{}", *digit as char))?;
+            }
+        }
+        Ok(())
+    }
+}
+
+/// A span written as Python writes a `timedelta`; see
+/// [`Duration::days_and_clock`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DaysAndClock(Duration);
+
+impl fmt::Display for DaysAndClock {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (days, seconds, attos) = self.0.days_seconds_attos();
+        if days != 0 {
+            let unit = if days == 1 || days == -1 {
+                "day"
+            } else {
+                "days"
+            };
+            write!(f, "{days} {unit}, ")?;
+        }
+        write!(
+            f,
+            "{}:{:02}:{:02}",
+            seconds / 3_600,
+            seconds % 3_600 / 60,
+            seconds % 60
+        )?;
+        if attos != 0 {
+            // Six digits always, as Python's microseconds; more only for a
+            // part finer than a microsecond.
+            let mut digits = [0u8; 18];
+            let mut remainder = attos;
+            for slot in digits.iter_mut().rev() {
+                *slot = b'0' + (remainder % 10) as u8;
+                remainder /= 10;
+            }
+            let mut end = digits.len();
+            while end > 6 && digits[end - 1] == b'0' {
                 end -= 1;
             }
             f.write_str(".")?;
@@ -593,6 +805,140 @@ mod tests {
     fn float_round_trip_is_stable_for_typical_values() {
         let value = Duration::from_secs_f64(1234.5).unwrap();
         assert!((value.as_secs_f64() - 1234.5).abs() < 1e-9);
+    }
+
+    /// Python's documentation, `timedelta`:
+    ///
+    /// ```text
+    /// >>> d = dt.timedelta(microseconds=-1)
+    /// >>> (d.days, d.seconds, d.microseconds)
+    /// (-1, 86399, 999999)
+    /// ```
+    #[test]
+    fn the_normalised_fields_match_python_for_a_negative_microsecond() {
+        let (days, seconds, attos) = Duration::from_micros(-1).days_seconds_attos();
+        assert_eq!(
+            (days, seconds, attos / 1_000_000_000_000),
+            (-1, 86_399, 999_999)
+        );
+    }
+
+    /// Python's documentation, the "common bug" note:
+    ///
+    /// ```text
+    /// >>> duration = dt.timedelta(seconds=11235813)
+    /// >>> duration.days, duration.seconds
+    /// (130, 3813)
+    /// ```
+    #[test]
+    fn the_seconds_field_is_the_remainder_after_whole_days() {
+        let (days, seconds, _) = Duration::from_secs(11_235_813).days_seconds_attos();
+        assert_eq!((days, seconds), (130, 3_813));
+    }
+
+    /// Python's documentation:
+    ///
+    /// ```text
+    /// >>> timedelta(hours=-5)
+    /// datetime.timedelta(days=-1, seconds=68400)
+    /// >>> print(_)
+    /// -1 day, 19:00:00
+    /// ```
+    #[test]
+    fn the_python_string_form_floors_the_days() {
+        let render = |span: Duration| span.days_and_clock().to_string();
+        assert_eq!(render(Duration::from_hours(-5)), "-1 day, 19:00:00");
+        assert_eq!(render(Duration::ZERO), "0:00:00");
+        assert_eq!(render(Duration::DAY), "1 day, 0:00:00");
+        assert_eq!(render(Duration::from_days(-2)), "-2 days, 0:00:00");
+        assert_eq!(
+            render(
+                Duration::from_days(64) + Duration::from_secs(29_156) + Duration::from_micros(10)
+            ),
+            "64 days, 8:05:56.000010"
+        );
+        // Finer than a microsecond, which Python cannot hold, is written out
+        // rather than dropped.
+        assert_eq!(render(Duration::from_nanos(1_500)), "0:00:00.0000015");
+    }
+
+    /// Python's documentation:
+    ///
+    /// ```text
+    /// >>> year = dt.timedelta(days=365)
+    /// >>> ten_years = 10 * year
+    /// >>> ten_years
+    /// datetime.timedelta(days=3650)
+    /// >>> nine_years = ten_years - year
+    /// >>> three_years = nine_years // 3
+    /// >>> three_years, three_years.days // 365
+    /// (datetime.timedelta(days=1095), 3)
+    /// ```
+    #[test]
+    fn integer_multiplication_and_division_follow_the_python_example() {
+        let year = Duration::from_days(365);
+        let ten_years = 10 * year;
+        assert_eq!(ten_years, Duration::from_days(3_650));
+        let nine_years = ten_years - year;
+        assert_eq!(nine_years, Duration::from_days(3_285));
+        let three_years = nine_years / 3;
+        assert_eq!(three_years, Duration::from_days(1_095));
+        assert_eq!(three_years.checked_div_floor(year), Ok(3));
+        assert_eq!(year * 2, Duration::from_days(730));
+    }
+
+    /// `divmod(timedelta(days=1), timedelta(hours=1))` is `(24, timedelta(0))`,
+    /// and floor division by a negative divisor leaves a remainder with the
+    /// divisor's sign, as Python's `//` and `%` do: `7 s // -2 s` is `-4` and
+    /// `7 s % -2 s` is `-1 s`.
+    #[test]
+    fn floor_division_and_remainder_follow_python_signs() {
+        assert_eq!(
+            Duration::DAY.checked_div_rem(Duration::HOUR),
+            Ok((24, Duration::ZERO))
+        );
+        let seven = Duration::from_secs(7);
+        let two = Duration::from_secs(2);
+        assert_eq!(
+            seven.checked_div_rem(-two),
+            Ok((-4, Duration::from_secs(-1)))
+        );
+        assert_eq!((-seven).checked_div_rem(two), Ok((-4, Duration::SECOND)));
+        assert_eq!(
+            (-seven).checked_div_rem(-two),
+            Ok((3, Duration::from_secs(-1)))
+        );
+        assert_eq!(seven.checked_div_rem(two), Ok((3, Duration::SECOND)));
+        assert_eq!(seven % -two, Duration::from_secs(-1));
+        assert_eq!(
+            Duration::from_secs(6).checked_div_rem(-two),
+            Ok((-3, Duration::ZERO))
+        );
+        assert_eq!(
+            seven.checked_rem(Duration::ZERO),
+            Err(TimeError::DivideByZero)
+        );
+        assert_eq!(
+            seven.checked_div_floor(Duration::ZERO),
+            Err(TimeError::DivideByZero)
+        );
+    }
+
+    #[test]
+    fn a_week_is_seven_days() {
+        assert_eq!(Duration::from_weeks(2), Duration::from_days(14));
+    }
+
+    #[test]
+    #[should_panic(expected = "duration divided by zero")]
+    fn the_division_operator_panics_on_a_zero_divisor() {
+        let _ = Duration::SECOND / 0;
+    }
+
+    #[test]
+    #[should_panic(expected = "duration multiplication overflowed")]
+    fn the_multiplication_operator_panics_on_overflow() {
+        let _ = Duration::MAX * 2;
     }
 
     #[test]

@@ -11,9 +11,19 @@
 //!   implemented: they name era and numbering-system alternatives that
 //!   `hc-i18n` exposes directly and that no caller has ever wanted spelled
 //!   this way.
-//! * `%U` and `%W` are written but *ignored when parsing*: a Sunday- or
-//!   Monday-anchored week number cannot reconstruct a date without a weekday,
-//!   and silently guessing one would be worse than dropping the field.
+//! * `%U` and `%W` fix a date when parsing only together with a year and a
+//!   weekday (`%a`, `%A`, `%u` or `%w`), which is Python's rule; on their
+//!   own they are read and discarded, because a week number without a
+//!   weekday names seven days, and guessing one would be worse than dropping
+//!   the field.
+//!
+//! # From Python
+//!
+//! `%f` is Python's, not POSIX's: six digits of microseconds when writing,
+//! one to six when reading. An explicit width asks for that many digits of
+//! the fraction instead, up to the attosecond, and truncates rather than
+//! rounds, as Python does. `%z` writes the seconds of an offset that has
+//! them (`+053730`), as Python does, rather than dropping them.
 //! * `%^` upper-casing is ASCII-only. Locale-correct casing is
 //!   [`hc_i18n::casing`]'s job and needs an allocator.
 
@@ -199,6 +209,7 @@ fn write_conversion<W: fmt::Write>(
             Pad::Zero,
         ),
         'V' => number(out, i64::from(fields.iso_week), spec, 2, Pad::Zero),
+        'f' => write_fraction(out, fields.subsec_attos, spec.width_or(6)),
         'a' => text(
             out,
             weekday_name(
@@ -268,11 +279,29 @@ fn write_conversion<W: fmt::Write>(
     }
 }
 
+/// Write the leading `digits` digits of a sub-second remainder, truncated.
+fn write_fraction<W: fmt::Write>(out: &mut W, attos: u64, digits: usize) -> FormatResult<()> {
+    let digits = digits.clamp(1, 18);
+    let mut scale = hc_core::ATTOS_PER_SEC;
+    for _ in 0..digits {
+        scale /= 10;
+        let digit = (attos / scale) % 10;
+        out.write_char(char::from(b'0' + digit as u8))?;
+    }
+    Ok(())
+}
+
 fn write_offset<W: fmt::Write>(out: &mut W, zone: ZoneInfo, colon: bool) -> FormatResult<()> {
-    let style = if colon {
-        OffsetStyle::Extended
-    } else {
-        OffsetStyle::Basic
+    // An offset with seconds keeps them, as Python writes `+053730`: the
+    // minute form would state a different offset.
+    let with_seconds = zone
+        .offset()
+        .is_some_and(|offset| offset.abs_seconds() != 0);
+    let style = match (colon, with_seconds) {
+        (true, false) => OffsetStyle::Extended,
+        (true, true) => OffsetStyle::ExtendedSeconds,
+        (false, false) => OffsetStyle::Basic,
+        (false, true) => OffsetStyle::BasicSeconds,
     };
     match zone {
         // `strftime` has no designator for "no zone", and glibc writes
@@ -416,16 +445,21 @@ fn consume(
             continue;
         }
         index += 1;
-        // Flags and widths steer output only; a parser reads what is there.
+        // Flags steer output only; a parser reads what is there. A width is
+        // read too, because it bounds how many digits `%f` may take.
         while bytes
             .get(index)
             .is_some_and(|flag| matches!(flag, b'-' | b'_' | b'0' | b'^' | b'#'))
         {
             index += 1;
         }
+        let width_start = index;
         while bytes.get(index).is_some_and(u8::is_ascii_digit) {
             index += 1;
         }
+        let width = pattern
+            .get(width_start..index)
+            .and_then(|text| text.parse::<usize>().ok());
         if bytes.get(index) == Some(&b':') {
             index += 1;
         }
@@ -433,9 +467,28 @@ fn consume(
             return Err(scanner.error(ErrorKind::PatternMismatch));
         };
         index += 1;
+        if conversion == b'f' {
+            fields.subsec_attos = Some(read_fraction(scanner, width.unwrap_or(6))?);
+            continue;
+        }
         read_conversion(char::from(conversion), scanner, fields, locale, depth)?;
     }
     Ok(())
+}
+
+/// Read one to `max_digits` digits of a decimal fraction of a second.
+fn read_fraction(scanner: &mut Scanner<'_>, max_digits: usize) -> ParseResult<u64> {
+    let start = scanner.pos();
+    let run = scanner.digit_run().min(max_digits.clamp(1, 18));
+    if run == 0 {
+        return Err(Scanner::error_at(ErrorKind::Digit, start));
+    }
+    let value = scanner.take_digits(run)?;
+    let mut scale = hc_core::ATTOS_PER_SEC;
+    for _ in 0..run {
+        scale /= 10;
+    }
+    Ok(value * scale)
 }
 
 fn read_conversion(
@@ -471,10 +524,10 @@ fn read_conversion(
             let sunday_first = ranged(scanner, 1, 0, 6, "weekday")? as u8;
             fields.iso_weekday = Some(if sunday_first == 0 { 7 } else { sunday_first });
         }
-        // Read and discarded: see the module documentation.
-        'U' | 'W' => {
-            ranged(scanner, 2, 0, 53, "week")?;
-        }
+        // Used only beside a year and a weekday: see the module
+        // documentation.
+        'U' => fields.week_of_year_sunday = Some(ranged(scanner, 2, 0, 53, "week")? as u8),
+        'W' => fields.week_of_year_monday = Some(ranged(scanner, 2, 0, 53, "week")? as u8),
         'a' | 'A' => {
             let weekday = match_weekday(scanner, locale)
                 .ok_or_else(|| scanner.error(ErrorKind::UnknownName("weekday")))?;

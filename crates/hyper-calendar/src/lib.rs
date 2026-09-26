@@ -49,7 +49,9 @@
 //!
 //! # Where to start
 //!
-//! * [`civil`] for dates and times — the `datetime`-shaped layer.
+//! * [`civil`] for dates and times — the `datetime`-shaped layer. Its
+//!   correspondence with Python's `datetime` and `humanize`, row by row, is
+//!   the project's `docs/python-parity.md`.
 //! * [`hc_core`] for exact durations and physical time scales.
 //! * [`hc_calendar`] for the calendar abstraction and the registry.
 //! * The project's `docs/` directory for the design and the coverage tables.
@@ -157,7 +159,7 @@ pub mod prelude {
     pub use hc_core::{Duration, Instant, Tai, TimeScale, Tt, UnixTime};
 
     #[cfg(feature = "civil")]
-    pub use crate::civil::{Date, DateTime, Time, TimeDelta};
+    pub use crate::civil::{Date, DateTime, Replace, Time, TimeDelta, TimeDeltaParts};
     #[cfg(all(feature = "civil", feature = "alloc"))]
     pub use hc_calendar::CalendarRegistry;
     #[cfg(feature = "civil")]

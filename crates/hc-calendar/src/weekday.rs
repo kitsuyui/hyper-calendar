@@ -75,6 +75,16 @@ impl Weekday {
         self.iso_number() % 7
     }
 
+    /// The zero-based number from Monday, Monday = 0 through Sunday = 6.
+    ///
+    /// This is Python's `date.weekday()` and `struct_time.tm_wday`, which
+    /// differ from C's `tm_wday` (see [`Weekday::sunday_first_number`]) in
+    /// where the week starts.
+    #[must_use]
+    pub const fn monday_first_number(self) -> u8 {
+        self.iso_number() - 1
+    }
+
     /// Build a weekday from an ISO number.
     #[must_use]
     pub const fn from_iso_number(number: u8) -> Option<Self> {
@@ -208,6 +218,17 @@ impl DayCycle {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Python's documentation: `date(2002, 12, 4).weekday()` is `2` and
+    /// `.isoweekday()` is `3` — a Wednesday.
+    #[test]
+    fn the_monday_first_number_is_python_s_weekday() {
+        let wednesday = Weekday::from_rd(crate::gregorian::to_fixed(2002, 12, 4).unwrap());
+        assert_eq!(wednesday.monday_first_number(), 2);
+        assert_eq!(wednesday.iso_number(), 3);
+        assert_eq!(Weekday::Monday.monday_first_number(), 0);
+        assert_eq!(Weekday::Sunday.monday_first_number(), 6);
+    }
 
     #[test]
     fn the_rata_die_epoch_was_a_monday() {

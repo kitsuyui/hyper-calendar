@@ -87,7 +87,7 @@ assert!(ship < 29.0 && home > 2.5e6);
 | # | Requirement | Where |
 | --- | --- | --- |
 | 1 | Unix time, ISO 8601, TAI and the international date/weekday specifications, completely | [`hc-core`](crates/hc-core), [`hc-format`](crates/hc-format), [`docs/time-scales.md`](docs/time-scales.md) |
-| 2 | The `datetime` / `date` / `time` / `timedelta` / `humanize` surface | [`hc-calendar`](crates/hc-calendar), [`hc-format`](crates/hc-format), [`hc-humanize`](crates/hc-humanize) |
+| 2 | The `datetime` / `date` / `time` / `timedelta` / `humanize` surface | `hyper_calendar::civil`, over [`hc-core`](crates/hc-core), [`hc-calendar`](crates/hc-calendar), [`hc-format`](crates/hc-format), [`hc-tz`](crates/hc-tz) and [`hc-humanize`](crates/hc-humanize); the correspondence, row by row, is [`docs/python-parity.md`](docs/python-parity.md) |
 | 3 | Every calendar we can know — lunar, Buddhist, Hijri, Japanese eras, Human Era — plus the 24 solar terms, the 72 pentads, national holidays and religious observances, listed and covered in stages | [`docs/calendars.md`](docs/calendars.md), [`docs/observances.md`](docs/observances.md), the `hc-calendars-*`, [`hc-seasons`](crates/hc-seasons) and [`hc-holiday`](crates/hc-holiday) crates |
 | 4 | Data separated from algorithm, several calendars usable at once | [`docs/architecture.md`](docs/architecture.md), `hc-calendar`'s `Calendar` trait and `CalendarRegistry` |
 | 5 | i18n, m17n, L10n | [`hc-i18n`](crates/hc-i18n), [`docs/i18n.md`](docs/i18n.md) |
