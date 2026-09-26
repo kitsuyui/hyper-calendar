@@ -500,7 +500,7 @@ mod calendars {
     use hc::hc_calendar::units::Unit;
     use hc::lines;
 
-    use super::{HC_ERROR_NULL_POINTER, HC_ERROR_UNKNOWN, HcStatus, text, write_text};
+    use super::{HC_ERROR_NULL_POINTER, HC_ERROR_UNKNOWN, HC_OK, HcStatus, text, write_text};
 
     /// One fixed day in every registered calendar, as NUL-terminated UTF-8
     /// lines in a caller-owned buffer.
@@ -675,6 +675,39 @@ mod calendars {
         unsafe { write_text(&text, buffer, capacity, written) }
     }
 
+    /// The ISO 8601 weekday of the first day of the week in a locale, Monday
+    /// = 1 through Sunday = 7.
+    ///
+    /// `locale` is a NUL-terminated BCP 47 tag or null, read as `hc-i18n`
+    /// reads CLDR 48's week data: a `-u-fw-` key first, then the tag's
+    /// region (`en-US` is 7, `en-GB` 1), then, for a tag without a region,
+    /// the region its language's likely subtags give (`ja` is 7, `fr` 1).
+    /// A null `locale`, a tag that does not parse, and `native` are the
+    /// root locale `und`, whose week begins on the world's Monday. A
+    /// `locale` that is not UTF-8 is `HC_ERROR_NOT_UTF8`.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be null or point to a NUL-terminated string, and
+    /// `out_weekday` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_first_day_of_week(
+        locale: *const c_char,
+        out_weekday: *mut u8,
+    ) -> HcStatus {
+        if out_weekday.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale) } {
+            Ok(tag) => tag.unwrap_or(""),
+            Err(status) => return status,
+        };
+        // SAFETY: checked non-null above.
+        unsafe { *out_weekday = lines::first_day_of_week(tag) };
+        HC_OK
+    }
+
     /// The steps by which a country adopted the Gregorian calendar, as
     /// NUL-terminated UTF-8 lines in a caller-owned buffer.
     ///
@@ -723,7 +756,8 @@ mod calendars {
 
 #[cfg(feature = "calendars")]
 pub use calendars::{
-    hc_calendar_units, hc_calendars, hc_describe_day, hc_gregorian_adoption, hc_locales,
+    hc_calendar_units, hc_calendars, hc_describe_day, hc_first_day_of_week, hc_gregorian_adoption,
+    hc_locales,
 };
 
 /// The holiday tables, behind the `holiday` feature: every country,
@@ -2339,6 +2373,33 @@ mod tests {
     mod calendars {
         use super::super::*;
         use super::read_lines;
+
+        #[test]
+        fn the_first_day_of_the_week_follows_the_locale() {
+            let first_day = |locale: *const core::ffi::c_char| {
+                let mut day = 0_u8;
+                let status = unsafe { hc_first_day_of_week(locale, &raw mut day) };
+                assert_eq!(status, HC_OK);
+                day
+            };
+            assert_eq!(first_day(c"en-US".as_ptr()), 7);
+            assert_eq!(first_day(c"en-GB".as_ptr()), 1);
+            assert_eq!(first_day(c"ja".as_ptr()), 7);
+            assert_eq!(first_day(c"zh-Hans".as_ptr()), 1);
+            assert_eq!(first_day(c"ar-SA".as_ptr()), 7);
+            assert_eq!(first_day(c"fr".as_ptr()), 1);
+            assert_eq!(first_day(c"und".as_ptr()), 1);
+            assert_eq!(first_day(core::ptr::null()), 1);
+            let mut day = 0_u8;
+            assert_eq!(
+                unsafe { hc_first_day_of_week(c"\xff".as_ptr(), &raw mut day) },
+                HC_ERROR_NOT_UTF8
+            );
+            assert_eq!(
+                unsafe { hc_first_day_of_week(c"en".as_ptr(), core::ptr::null_mut()) },
+                HC_ERROR_NULL_POINTER
+            );
+        }
 
         #[test]
         fn one_day_in_every_calendar_decodes_column_by_column() {

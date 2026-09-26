@@ -2503,7 +2503,7 @@ const fn np_tithi(month: u8, tithi: u8, prevails: Prevalence, when_twice: WhenTw
         tithi,
         prevails,
         when_twice,
-        calendar: NP_LUNAR,
+        calendar: &NP_LUNAR,
     }
 }
 
@@ -4851,7 +4851,7 @@ pub static TURKMENISTAN: RuleSet = RuleSet {
 /// mathematics", Appendix A.3). A year in which the day is skipped or
 /// repeated is a gap; see [`Rule::TibetanDay`].
 const fn mn_lunar(month: TibetanMonth, day: u8) -> Rule {
-    Rule::tibetan(tibetan::MONGOLIAN, month, day)
+    Rule::tibetan(&tibetan::MONGOLIAN, month, day)
 }
 
 /// A lunar holiday of the law, predicted by the calendar: the days are
@@ -5714,9 +5714,12 @@ const fn bt_predicted(
     day: u8,
     before: bool,
 ) -> HolidayRule {
-    let rule =
-        HolidayRule::fixed_public(name, "", Rule::tibetan(tibetan::TIBETAN_BHUTAN, month, day))
-            .approximate();
+    let rule = HolidayRule::fixed_public(
+        name,
+        "",
+        Rule::tibetan(&tibetan::TIBETAN_BHUTAN, month, day),
+    )
+    .approximate();
     if before {
         rule.years(None, Some(BT_FIRST as i32 - 1))
     } else {

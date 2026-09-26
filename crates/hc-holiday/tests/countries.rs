@@ -2366,7 +2366,7 @@ const BT_LUNAR: &[(&str, TibetanMonth, u8, &[(i64, u8, u8)])] = &[
 #[test]
 fn the_bhutanese_calendar_rule_reproduces_both_lists() {
     for &(name, month, day, listed) in BT_LUNAR {
-        let rule = Rule::tibetan(tibetan::TIBETAN_BHUTAN, month, day);
+        let rule = Rule::tibetan(&tibetan::TIBETAN_BHUTAN, month, day);
         for &(year, m, d) in listed {
             assert!(rule.is_resolvable_in(year), "{name} {year}");
             assert_eq!(

@@ -69,6 +69,18 @@ pub fn locale_for(calendar: &dyn DynCalendar, tag: &str) -> Locale {
     label::locale_for(calendar, requested_locale(tag).as_ref())
 }
 
+/// The ISO weekday number of the first day of the week in the locale a tag
+/// names, Monday = 1 through Sunday = 7, as [`names::first_day_of_week`]
+/// reads CLDR 48's week data: `-u-fw-` first, then the tag's region, then,
+/// for a tag without one, the region the language's likely subtags give.
+/// A tag that does not parse, and [`NATIVE`], which names no one locale,
+/// are the root locale `und`, whose week begins on the world's Monday.
+#[must_use]
+pub fn first_day_of_week(tag: &str) -> u8 {
+    let locale = requested_locale(tag).unwrap_or(Locale::ROOT);
+    names::first_day_of_week(&locale).iso_number()
+}
+
 /// The tag of the data entry a locale resolves to: what the `locale used`
 /// cell carries.
 #[must_use]

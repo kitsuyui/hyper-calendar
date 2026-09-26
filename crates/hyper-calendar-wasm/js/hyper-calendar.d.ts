@@ -485,6 +485,12 @@ export class HyperCalendar {
   calendars(today: number | bigint, locale?: string): CalendarEntry[];
   /** Every locale the module carries. */
   locales(): LocaleEntry[];
+  /**
+   * `hc_first_day_of_week`: the ISO weekday the locale's week begins on,
+   * Monday = 1 through Sunday = 7, by CLDR 48's week data; `und` unless
+   * given, and a tag that does not parse is `und`, Monday.
+   */
+  firstDayOfWeek(locale?: string): number;
   /** `hc_gregorian_adoption`: the steps by which a country adopted the Gregorian calendar, by ISO 3166-1 alpha-2 code; none for a code the module does not know. */
   gregorianAdoption(region: string): GregorianAdoption[];
 

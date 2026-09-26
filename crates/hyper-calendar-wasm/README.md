@@ -112,6 +112,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `calendarUnits(id, unit, from, to, locale)` | `hc_calendar_units` | `CalendarUnit[]`, one per span |
 | `calendars(today, locale)` | `hc_calendars` | `CalendarEntry[]`, one per calendar |
 | `locales()` | `hc_locales` | `LocaleEntry[]`, one per locale |
+| `firstDayOfWeek(locale)` | `hc_first_day_of_week` | a number, Monday = 1 through Sunday = 7 |
 | `gregorianAdoption(region)` | `hc_gregorian_adoption` | `GregorianAdoption[]`, one per step |
 | `holidayIsDayOff(code, region, rd)` | `hc_holiday_is_day_off` | a boolean |
 | `holidaysInYear(code, region, year)` | `hc_holidays_in_year` | `HolidayInYear[]` |
@@ -187,7 +188,7 @@ the module's bytes inside it as base64, decoded with `atob` and bound by a
 `load(options)` that takes no source and fetches nothing. It is one
 self-contained ES module; `hyper-calendar.embedded.d.ts` types it. It is
 generated, not committed — CI uploads it with the layered builds below —
-and it is 2.22 MiB (2,332,109 bytes) for the `full` layer of 2026-09-26,
+and it is 2.20 MiB (2,305,440 bytes) for the `full` layer of 2026-09-26,
 base64 being four thirds of the module.
 
 ### tzdata beside the module
@@ -226,14 +227,14 @@ before it loads the holiday tables.
 | Feature | Exports | Brings in | Bytes | Size |
 | --- | --- | --- | ---: | ---: |
 | `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, the TAI–UTC bridge | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,534 | 35 KiB |
-| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`, `hc_gregorian_adoption`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales; and when each country adopted the Gregorian calendar | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 595,249 | 581 KiB |
-| `holiday` | the four `hc_holiday*` exports and `hc_holidays_on` | `hc-holiday` and everything it dates by | 1,026,172 | 1,002 KiB |
+| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; and when each country adopted the Gregorian calendar | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 675,804 | 660 KiB |
+| `holiday` | the four `hc_holiday*` exports and `hc_holidays_on` | `hc-holiday` and everything it dates by | 931,629 | 910 KiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect` | `hc-seasons`, `hc-astro` | 88,795 | 87 KiB |
-| `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 152,550 | 149 KiB |
+| `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 152,694 | 149 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,462 | 56 KiB |
 | `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between` | `hc-astro`, `hc-seasons` | 96,589 | 94 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 63,961 | 62 KiB |
-| `full` | all of the above | everything | 1,704,491 | 1.63 MiB |
+| `full` | all of the above | everything | 1,683,633 | 1.61 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -269,7 +270,7 @@ not pass CI.
 
 ### Exports
 
-38 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+39 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -293,6 +294,7 @@ not pass CI.
 | `hc_calendar_units(id: *const u8, id_len: usize, unit: u32, from_fixed: i64, to_fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The days from `from_fixed` up to but not including `to_fixed` as one calendar's eras, years, months or days, as UTF-8 lines, returning the byte length written. |
 | `hc_calendars(today: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every registered calendar, as UTF-8 lines, returning the byte length written. |
 | `hc_locales(buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every locale the module carries, as UTF-8 lines, returning the byte length written. |
+| `hc_first_day_of_week(locale: *const u8, locale_len: usize) -> i64` | `calendars` | The ISO weekday of the first day of the week in a locale, Monday = 1 through Sunday = 7, or an error sentinel. |
 | `hc_gregorian_adoption(region: *const u8, region_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The steps by which a country adopted the Gregorian calendar, as UTF-8 lines, returning the byte length written. |
 | `hc_holiday_is_day_off(code: *const u8, code_len: usize, region: *const u8, region_len: usize, fixed: i64) -> i64` | `holiday` | Whether a fixed day is a day off in a holiday table: 1, 0, or an error sentinel. |
 | `hc_holidays_in_year(code: *const u8, code_len: usize, region: *const u8, region_len: usize, year: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The holidays of a Gregorian year in a table, as UTF-8 lines, returning the byte length written. |
@@ -485,6 +487,19 @@ line per locale the module carries, in tag order.
 | 5 | weekdays | `1` when it names the weekdays |
 | 6 | gregorian eras | `1` when it names the Gregorian eras |
 | 7 | calendars | the identifiers of the calendars it has vocabulary of its own for beyond the shared Gregorian months, joined by `;` |
+
+## The first day of the week
+
+`hc_first_day_of_week(locale_ptr, locale_len)` needs the `calendars`
+feature and answers the ISO weekday a locale's week begins on, Monday = 1
+through Sunday = 7, as `hc-i18n` reads CLDR 48's `weekData/firstDay`: a
+`-u-fw-` key first, then the tag's region, then, for a tag without one, the
+region the language's likely subtags give. `en-US`, `en`, `ja` and `ar-SA`
+begin on Sunday, `en-GB`, `fr` and `zh-Hans` on Monday, and `ar-EG` on
+Saturday. A tag that does not parse is the root locale `und`, whose week
+begins on the world's Monday. It answers an `i64`, as every export that can
+return a sentinel does, and fails only as a text argument does:
+`HC_ERR_NULL_POINTER` or `HC_ERR_NOT_UTF8`.
 
 ## Gregorian adoption
 
