@@ -42,11 +42,16 @@ const UNRECORDED: &[&str] = &[
     // Day counts.
     "ansi-date",
     "ccsds-day",
+    "chronological-julian-day",
     "cnes-julian-day",
     "dublin-julian-day",
+    "excel-1900",
+    "excel-1904",
     "julian-day",
     "lilian",
     "modified-julian-day",
+    "modified-julian-day-2000",
+    "ole-automation-date",
     "reduced-julian-day",
     "truncated-julian-day",
     // Cycles with no epoch anyone kept.

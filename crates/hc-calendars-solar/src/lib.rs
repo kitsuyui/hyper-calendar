@@ -30,7 +30,7 @@
 //! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`swedish`], [`revised_julian`], [`byzantine`], [`roman`], [`rumi`], [`berber`], [`yazidi`], [`icelandic`] |
 //! | Other namings of a Gregorian day | [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`koki`], [`indian`], [`nanakshahi`], [`bangladeshi`], [`discordian`], [`assyrian`], [`soviet_week`] |
 //! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`armenian`], [`armenian_fixed`], [`french_republican`], [`zoroastrian`], [`mandaean`] |
-//! | Day counts | [`julian_day`], [`day_counts`] |
+//! | Day counts | [`julian_day`], [`day_counts`], [`spreadsheet`] |
 //! | Cycle-based | [`persian`], [`persian_33`], [`bahai`], [`bahai_kept`] |
 //! | Proposed reforms | [`symmetry454`], [`symmetry010`] (both on [`symmetry`]), [`world_calendar`], [`international_fixed`], [`positivist`], [`hanke_henry`] |
 //! | A pure week cycle | [`qumran`] |
@@ -100,6 +100,7 @@ pub mod revised_julian;
 pub mod roman;
 pub mod rumi;
 pub mod soviet_week;
+pub mod spreadsheet;
 pub mod swedish;
 pub mod symmetry;
 pub mod symmetry010;
@@ -187,6 +188,9 @@ mod registration {
                 crate::day_counts::DayCountCalendar(*count),
             )));
         }
+        registry.insert(Box::new(DynAdapter::new(
+            crate::spreadsheet::Excel1900Calendar,
+        )));
         registry.insert(Box::new(DynAdapter::new(crate::CopticCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::EthiopicCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::EgyptianCalendar)));
@@ -248,7 +252,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 54;
+const CALENDAR_COUNT: usize = 59;
 
 #[cfg(test)]
 mod tests {

@@ -30,6 +30,19 @@
 //! "1900 January 0.5" and the Reduced Julian Date's JD − 2 400 000 both
 //! say. The rest begin at midnight. A conversion between two of them that
 //! ignores that is wrong by half a day for half of each day.
+//!
+//! The Chronological Julian Day is the case that proves it: the same
+//! integer as the Julian Day Number, on the day that begins at the
+//! midnight before that number's noon, so it is a separate identifier
+//! (policy.md §5) and not a setting of `julian-day`.
+//!
+//! # Vendor counts
+//!
+//! The Excel 1904 date system and the OLE Automation date are linear day
+//! counts too, and are here with the ranges their vendor supports. The
+//! Excel 1900 system is not linear — it counts a 29 February 1900 that
+//! never was — so it is [`crate::spreadsheet`]'s, beside the OLE date's
+//! fractional time; `docs/systems/spreadsheet-dates.md` describes all three.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, DayBoundary,
@@ -59,6 +72,7 @@ pub struct DayCount {
     first_number: i64,
     boundary: DayBoundary,
     authority: &'static str,
+    range: Option<(Rd, Rd)>,
 }
 
 impl DayCount {
@@ -88,6 +102,38 @@ impl DayCount {
             first_number,
             boundary,
             authority,
+            range: None,
+        }
+    }
+
+    /// The same count, supported only from `first` to `last`, both
+    /// Gregorian dates and both included: the range its defining vendor
+    /// supports.
+    ///
+    /// # Panics
+    ///
+    /// If either date does not exist, which in a `const` is a compile
+    /// error, as for [`Self::from_gregorian`].
+    #[must_use]
+    pub const fn between(self, first: (i64, u8, u8), last: (i64, u8, u8)) -> Self {
+        let (Ok(first), Ok(last)) = (
+            gregorian::to_fixed(first.0, first.1, first.2),
+            gregorian::to_fixed(last.0, last.1, last.2),
+        ) else {
+            panic!("a day count's range must be real dates");
+        };
+        Self {
+            range: Some((first, last)),
+            ..self
+        }
+    }
+
+    /// The first and last fixed days this count supports.
+    #[must_use]
+    pub const fn range(self) -> (Rd, Rd) {
+        match self.range {
+            Some(range) => range,
+            None => (Rd(-MAX_MAGNITUDE), Rd(MAX_MAGNITUDE)),
         }
     }
 
@@ -256,6 +302,77 @@ hc_core::catalogue! {
         "CCSDS 301.0-B-4, Time Code Formats, not read; JD - 2436204.5 as Wikipedia, \
          \"Julian day\", gives it [wikipedia-julian-day]",
     );
+
+    /// The Chronological Julian Day: day 0 is the day that began at
+    /// midnight on 1 January 4713 BCE, proleptic Julian.
+    ///
+    /// Peter Meyer, "Julian Day Numbers", Hermetic Systems, read 2026-09-26
+    /// (`meyer-jdn`): "a count of nychthemerons, assumed to begin at
+    /// midnight GMT". Chronological day 2 452 952 is 8 November 2003 from
+    /// midnight, the day whose noon begins Julian Day 2 452 952, so the
+    /// number is the same and the interval is not. Meyer defines the count
+    /// at Greenwich and a local chronological date by the local midnight;
+    /// as a day count here it names a civil day in the caller's zone, as the
+    /// Modified Julian Date does.
+    pub const CHRONOLOGICAL = DayCount::from_gregorian(
+        "chronological-julian-day",
+        "Chronological Julian Day",
+        (-4713, 11, 24),
+        0,
+        DayBoundary::Midnight,
+        "Peter Meyer, Julian Day Numbers, Hermetic Systems, hermetic.ch/cal_stud/jdn.htm, \
+         retrieved 2026-09-26 [meyer-jdn]",
+    );
+
+    /// MJD2000: day 0 is 1 January 2000, JD − 2 451 544.5.
+    ///
+    /// The European Space Agency's count, as Wikipedia, "Julian day",
+    /// tabulates it (`wikipedia-julian-day`); no ESA document was read.
+    pub const MJD2000 = DayCount::from_gregorian(
+        "modified-julian-day-2000",
+        "Modified Julian Day 2000 (ESA)",
+        (2000, 1, 1),
+        0,
+        DayBoundary::Midnight,
+        "European Space Agency, not read; JD - 2451544.5 as Wikipedia, \"Julian day\", \
+         gives it [wikipedia-julian-day]",
+    );
+
+    /// The Excel 1904 date system: serial 0 is 1 January 1904, supported
+    /// to 31 December 9999.
+    ///
+    /// Microsoft Support, "Date systems in Excel", read 2026-09-26
+    /// (`ms-excel-date-systems`): the 1900 system's serial for a day is
+    /// always 1 462 more than the 1904 system's, "four years and one day
+    /// (including one leap day)"; 5 July 2011 is 40 729 in the one and
+    /// 39 267 in the other. Excel's own range ends on 9999-12-31.
+    pub const EXCEL_1904 = DayCount::from_gregorian(
+        "excel-1904",
+        "Microsoft Excel 1904 date system",
+        (1904, 1, 1),
+        0,
+        DayBoundary::Midnight,
+        "Microsoft Support, Date systems in Excel, retrieved 2026-09-26 \
+         [ms-excel-date-systems]",
+    )
+    .between((1904, 1, 1), (9999, 12, 31));
+
+    /// The OLE Automation date's day: day 0 is 30 December 1899, supported
+    /// from 1 January 100 to 31 December 9999.
+    ///
+    /// Microsoft Learn, `DateTime.ToOADate`, read 2026-09-26
+    /// (`ms-tooadate`): "the number of days before or after midnight,
+    /// 30 December 1899". The fractional time of day, which a negative
+    /// value reads as a magnitude, is [`crate::spreadsheet::ole_automation`].
+    pub const OLE_AUTOMATION = DayCount::from_gregorian(
+        "ole-automation-date",
+        "OLE Automation date",
+        (1899, 12, 30),
+        0,
+        DayBoundary::Midnight,
+        "Microsoft Learn, DateTime.ToOADate, retrieved 2026-09-26 [ms-tooadate]",
+    )
+    .between((100, 1, 1), (9999, 12, 31));
     }
 }
 
@@ -283,8 +400,8 @@ impl Calendar for DayCountCalendar {
             year_kind: YearKind::Astronomical,
             has_leap_months: false,
             is_astronomical: false,
-            earliest: Some(Rd(-MAX_MAGNITUDE)),
-            latest: Some(Rd(MAX_MAGNITUDE)),
+            earliest: Some(self.0.range().0),
+            latest: Some(self.0.range().1),
             native_locales: &[],
         }
     }
@@ -369,6 +486,10 @@ mod tests {
             (TRUNCATED, 2_440_001),
             (CNES, 2_433_283),
             (CCSDS, 2_436_205),
+            (CHRONOLOGICAL, 0),
+            (MJD2000, 2_451_545),
+            (EXCEL_1904, 2_416_481),
+            (OLE_AUTOMATION, 2_415_019),
         ] {
             assert_eq!(
                 count.number_of(day),
@@ -386,7 +507,17 @@ mod tests {
         let noon = DayBoundary::Noon(DayNaming::ByStart);
         assert_eq!(DayCountCalendar(REDUCED).day_boundary(), noon);
         assert_eq!(DayCountCalendar(DUBLIN).day_boundary(), noon);
-        for count in [LILIAN, ANSI, TRUNCATED, CNES, CCSDS] {
+        for count in [
+            LILIAN,
+            ANSI,
+            TRUNCATED,
+            CNES,
+            CCSDS,
+            CHRONOLOGICAL,
+            MJD2000,
+            EXCEL_1904,
+            OLE_AUTOMATION,
+        ] {
             assert_eq!(
                 DayCountCalendar(count).day_boundary(),
                 DayBoundary::Midnight,
@@ -446,8 +577,11 @@ mod tests {
     fn every_count_round_trips_over_a_wide_span() {
         for count in ALL {
             let calendar = DayCountCalendar(*count);
-            for offset in (-400_000..400_000).step_by(9_973) {
+            for offset in (-800_000..3_700_000).step_by(9_973) {
                 let rd = Rd(offset);
+                if !calendar.meta().supports(rd) {
+                    continue;
+                }
                 let number = calendar.from_fixed(rd).expect("in range");
                 assert_eq!(
                     calendar.to_fixed(number),
@@ -457,6 +591,68 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// Meyer's example: chronological Julian day 2 452 952 is the period
+    /// from midnight on 8 November 2003, the same number as the Julian Day
+    /// Number of that day's noon and a different interval.
+    #[test]
+    fn the_chronological_julian_day_is_the_jdn_from_the_midnight_before() {
+        let day = gregorian::to_fixed(2003, 11, 8).expect("exists");
+        assert_eq!(CHRONOLOGICAL.number_of(day), DayNumber(2_452_952));
+        assert_eq!(
+            JulianDayCalendar.from_fixed(day).map(|jdn| jdn.0),
+            Ok(2_452_952)
+        );
+        assert_eq!(
+            DayCountCalendar(CHRONOLOGICAL).day_boundary(),
+            DayBoundary::Midnight
+        );
+        assert_eq!(
+            JulianDayCalendar.day_boundary(),
+            DayBoundary::Noon(DayNaming::ByStart)
+        );
+    }
+
+    /// MJD2000 is 0 on 1 January 2000 and 51 544 behind the Modified
+    /// Julian Date.
+    #[test]
+    fn mjd2000_starts_on_1_january_2000() {
+        let day = gregorian::to_fixed(2000, 1, 1).expect("exists");
+        assert_eq!(MJD2000.number_of(day), DayNumber(0));
+        assert_eq!(day.to_modified_julian_day(), 51_544);
+    }
+
+    /// The vendor counts refuse the days their vendor does not support.
+    #[test]
+    fn the_vendor_counts_refuse_what_the_vendor_does_not_support() {
+        let excel = DayCountCalendar(EXCEL_1904);
+        let first = gregorian::to_fixed(1904, 1, 1).expect("exists");
+        let last = gregorian::to_fixed(9999, 12, 31).expect("exists");
+        assert_eq!(excel.from_fixed(first), Ok(DayNumber(0)));
+        assert_eq!(excel.from_fixed(last), Ok(DayNumber(2_957_003)));
+        assert_eq!(
+            excel.to_fixed(DayNumber(-1)),
+            Err(CalendarError::BeforeEpoch)
+        );
+        assert_eq!(
+            excel.to_fixed(DayNumber(2_957_004)),
+            Err(CalendarError::AfterSupportedRange)
+        );
+        // Microsoft Support's example: 5 July 2011 is 39 267.
+        let example = gregorian::to_fixed(2011, 7, 5).expect("exists");
+        assert_eq!(excel.from_fixed(example), Ok(DayNumber(39_267)));
+
+        let ole = DayCountCalendar(OLE_AUTOMATION);
+        assert_eq!(
+            ole.from_fixed(gregorian::to_fixed(100, 1, 1).expect("exists")),
+            Ok(DayNumber(-657_434))
+        );
+        assert_eq!(ole.from_fixed(last), Ok(DayNumber(2_958_465)));
+        assert_eq!(
+            ole.to_fixed(DayNumber(-657_435)),
+            Err(CalendarError::BeforeEpoch)
+        );
     }
 
     #[test]

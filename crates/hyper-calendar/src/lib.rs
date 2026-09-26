@@ -66,8 +66,8 @@ extern crate alloc;
 pub use hc_core;
 
 pub use hc_core::{
-    Duration, Gps, Instant, Tai, Tcb, Tcg, Tdb, TimeError, TimeResult, TimeScale, TimeScaleId, Tt,
-    UnixTime,
+    BeidouTime, Duration, GalileoTime, Gps, Instant, NavicTime, Tai, Tcb, Tcg, Tdb, TimeError,
+    TimeResult, TimeScale, TimeScaleId, Tt, UnixTime,
 };
 
 #[cfg(feature = "civil")]

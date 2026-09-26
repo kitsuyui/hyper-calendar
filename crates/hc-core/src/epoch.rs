@@ -56,6 +56,58 @@ pub const GPS: Epoch = Epoch {
         [arl-gps-time-2019]; 19 s behind TAI [rots2015]",
 };
 
+/// `1999-08-21T23:59:47Z`, week zero of Galileo System Time.
+///
+/// The ICD states it as 1999-08-22 00:00:00 UTC less 13 s; `TAI − UTC` was
+/// 32 s, so the TAI reading is the midnight's POSIX second plus 19 s, and
+/// GST reads its epoch as 1999-08-22 00:00:00.
+pub const GALILEO: Epoch = Epoch {
+    id: "galileo-system-time",
+    description: "Galileo System Time week zero, 1999-08-22T00:00:00 GST, 1999-08-21T23:59:47Z",
+    tai_reading: Duration::from_secs(935_280_000 + 19),
+    source: "Galileo OS SIS ICD, Issue 2.1 (2023), 5.1.2: GST epoch 1999-08-22 00:00:00 UTC less \
+        13 s [galileo-os-sis-icd-2-1]; TAI - UTC of 32 s from the \
+        leap-second table [iana-leap-seconds-list]",
+};
+
+/// `2006-01-01T00:00:00Z`, week zero of BeiDou Time.
+pub const BEIDOU: Epoch = Epoch {
+    id: "beidou-time",
+    description: "BeiDou Time week zero, 2006-01-01T00:00:00 UTC",
+    tai_reading: Duration::from_secs(1_136_073_600 + 33),
+    source: "BDS-SIS-ICD-B1I-1.0 (2012), 3.3: BDT from 00:00:00 on 1 January 2006 UTC, \
+        with no leap seconds [bds-sis-icd-b1i-1-0]; TAI - UTC of 33 s from the \
+        leap-second table [iana-leap-seconds-list]",
+};
+
+/// `1999-08-21T23:59:47Z`, week zero of NavIC system time: the same
+/// instant as [`GALILEO`], reached from a different document.
+pub const NAVIC: Epoch = Epoch {
+    id: "navic-time",
+    description: "NavIC (IRNSS) system time week zero, 1999-08-22T00:00:00 NavIC, \
+        1999-08-21T23:59:47Z",
+    tai_reading: Duration::from_secs(935_280_000 + 19),
+    source: "ISRO, IRNSS SIS ICD for SPS, version 1.1 (2017): 00:00 on 22 August 1999 of \
+        its own reckoning, 23:59:47 UTC on 21 August 1999 [irnss-sps-icd-1-1]",
+};
+
+/// `1995-12-31T21:00:00Z`, 00:00 on 1 January 1996 in GLONASS time,
+/// the start of the four-year interval *N*4 = 1.
+///
+/// GLONASS time is UTC(SU) + 3 h and takes leap seconds, so this is an
+/// origin for its date fields, not the zero of a uniform count. The
+/// leap second of 1996 came at the following UTC midnight, so `TAI − UTC`
+/// was still 29 s.
+pub const GLONASS: Epoch = Epoch {
+    id: "glonass-time",
+    description: "GLONASS four-year interval N4 = 1, 1996-01-01T00:00:00 UTC(SU) + 3 h, \
+        1995-12-31T21:00:00Z",
+    tai_reading: Duration::from_secs(820_443_600 + 29),
+    source: "GLONASS ICD, Edition 5.1 (2008), 3.3.3 and 4: GLONASS time is UTC(SU) + 3 h; \
+        N4 counts four-year intervals from 1996 [glonass-icd-5-1]; TAI - UTC of 29 s from \
+        the leap-second table [iana-leap-seconds-list]",
+};
+
 /// `2000-01-01T12:00:00 TT`, the J2000.0 fundamental epoch of modern
 /// astronomy.
 pub const J2000: Epoch = Epoch {
@@ -143,6 +195,10 @@ pub const CORE_FOUNDATION: Epoch = Epoch {
 pub const ALL: &[Epoch] = &[
     UNIX,
     GPS,
+    GALILEO,
+    BEIDOU,
+    NAVIC,
+    GLONASS,
     J2000,
     TCG_TCB_ORIGIN,
     MJD,
@@ -200,6 +256,37 @@ mod tests {
     fn the_gps_epoch_is_nineteen_seconds_of_tai_after_its_utc_label() {
         let gps_utc_seconds = 315_964_800i128;
         assert_eq!(GPS.tai_reading.whole_seconds() - gps_utc_seconds, 19);
+    }
+
+    /// Each GNSS epoch reached from its UTC label through the leap-second
+    /// table, the second statement of the constants above.
+    #[test]
+    fn every_gnss_epoch_is_its_utc_label_read_through_the_leap_table() {
+        use crate::scale::{BeidouTime, GalileoTime, Gps, NavicTime};
+        use crate::unix::{LeapPolicy, UnixTime, tai_from_unix};
+        let tai = |unix: i64| {
+            tai_from_unix(UnixTime::from_seconds(unix), LeapPolicy::Strict)
+                .expect("inside the table")
+        };
+        // (epoch, POSIX second of its UTC label)
+        for (epoch, unix) in [
+            (GPS, 315_964_800),
+            (GALILEO, 935_280_000 - 13),
+            (BEIDOU, 1_136_073_600),
+            (NAVIC, 935_280_000 - 13),
+            (GLONASS, 820_454_400 - 3 * 3_600),
+        ] {
+            assert_eq!(epoch.instant(), tai(unix), "{}", epoch.id);
+        }
+        // Each scale reads its own week zero as the label it was named by.
+        let gps: Instant<Gps> = GPS.instant().convert();
+        assert_eq!(gps.since_epoch(), Duration::from_secs(315_964_800));
+        let galileo: Instant<GalileoTime> = GALILEO.instant().convert();
+        assert_eq!(galileo.since_epoch(), Duration::from_secs(935_280_000));
+        let navic: Instant<NavicTime> = NAVIC.instant().convert();
+        assert_eq!(navic.since_epoch(), Duration::from_secs(935_280_000));
+        let beidou: Instant<BeidouTime> = BEIDOU.instant().convert();
+        assert_eq!(beidou.since_epoch(), Duration::from_secs(1_136_073_600));
     }
 
     #[test]

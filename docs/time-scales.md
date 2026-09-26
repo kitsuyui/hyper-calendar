@@ -30,11 +30,20 @@ confused.
 | **TCG** | Geocentric Coordinate Time. TT without the gravitational rescaling, so it runs slightly fast. | `TCG − TT = L_G/(1−L_G) · (TT − T₀)`, `L_G = 6.969290134×10⁻¹⁰` |
 | **TDB** | Barycentric Dynamical Time. TT plus the periodic terms from the Earth's orbital motion; the independent variable of solar-system ephemerides. | `TDB − TT` is a truncated Fairhead–Bretagnon series, at most about 1.7 ms |
 | **TCB** | Barycentric Coordinate Time. | `TCB − TDB` is linear in `L_B = 1.550519768×10⁻⁸` plus `TDB₀` |
-| **GPS** | GPS system time. | `GPS = TAI − 19 s`, exactly, frozen at the 1980 epoch |
+| **GPS** | GPS system time, set to UTC at its 1980 epoch and without leap seconds since. | `GPS = TAI − 19 s`, exact by convention. GPS time is steered to UTC(USNO), not to TAI (IS-GPS-200G, §3.3.4), so what a receiver recovers differs from TAI − 19 s by a steering residual SOFA puts at "sub-microsecond" [sofa-ts]; the residual is observational and not carried |
+| **GST** | Galileo System Time. Not Greenwich sidereal time. | `GST = TAI − 19 s`, by convention, as GPS |
+| **BDT** | BeiDou Time, from 2006-01-01 00:00:00 UTC. | `BDT = TAI − 33 s`, by convention; 14 s behind GPS |
+| **NavIC** | NavIC (IRNSS) system time. | `NavIC = TAI − 19 s`, by convention, as GPS |
 | **UT1** | Universal Time — the Earth's actual rotation angle. In `hc-astro`, not `hc-core`. | Observational; modelled as `TT − ΔT`, or read from a DUT1 series. See below. |
 
 `T₀` throughout is `1977-01-01T00:00:00 TAI`, the defining origin of TCG and
 TCB.
+
+GLONASS time is UTC(SU) + 3 h and takes leap seconds with UTC, so it is
+not a marker here but `hc_core::gnss::GlonassTime`, a `UtcInstant` read three
+hours ahead. The GNSS week numbers, their rollovers and GLONASS's
+four-year intervals are in `hc_core::gnss`; the systems, their epochs and
+their sources are in [systems/gnss-time.md](systems/gnss-time.md).
 
 ### Why the offsets are computed the way they are
 
@@ -160,6 +169,10 @@ as TAI readings so nothing has to rediscover a magic number:
 | --- | --- |
 | `unix` | 1970-01-01T00:00:00Z (`TAI − UTC` was 8.000082 s) |
 | `gps` | 1980-01-06T00:00:00Z |
+| `galileo-system-time` | 1999-08-22T00:00:00 GST, 1999-08-21T23:59:47Z |
+| `beidou-time` | 2006-01-01T00:00:00Z |
+| `navic-time` | 1999-08-22T00:00:00 NavIC, 1999-08-21T23:59:47Z |
+| `glonass-time` | 1996-01-01T00:00:00 UTC(SU) + 3 h, 1995-12-31T21:00:00Z, the start of *N*4 = 1 |
 | `j2000` | 2000-01-01T12:00:00 TT |
 | `tcg-tcb-origin` | 1977-01-01T00:00:00 TAI |
 | `mjd` | 1858-11-17T00:00:00 UT |
@@ -168,6 +181,17 @@ as TAI readings so nothing has to rediscover a magic number:
 | `windows-filetime` | 1601-01-01T00:00:00Z |
 | `ntp` | 1900-01-01T00:00:00Z |
 | `core-foundation` | 2001-01-01T00:00:00Z |
+
+## TAI64 labels
+
+`hc-core::tai64` reads and writes Bernstein's TAI64 family [bernstein-tai64]:
+the label `2⁶² + s` for the TAI second beginning `s` seconds after
+1970-01-01 00:00:00 TAI, in eight big-endian bytes, followed in TAI64N by
+four bytes of nanoseconds and in TAI64NA by four more of attoseconds. The
+origin is 1970 *TAI*, the origin of `Instant<Tai>`, not the POSIX epoch.
+Labels from 2⁶³ are reserved and refused. TAI64NA resolves the attosecond,
+as `Duration` does, so it round-trips exactly; TAI64 and TAI64N name the
+second and nanosecond that contain an instant.
 
 ## Duration
 
