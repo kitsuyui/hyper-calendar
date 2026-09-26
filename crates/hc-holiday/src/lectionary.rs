@@ -164,7 +164,10 @@ const TRINITY_SUNDAY: i64 = computus::offsets::TRINITY_SUNDAY as i64;
 /// Proper 29 is "Sunday between November 20 and November 26", and
 /// Propers 3 to 28 the "Second through Twenty-Sixth Sunday after
 /// Pentecost" before it (`cct-rcl`, the table of the Christian year), so a
-/// Sunday's Proper is 29 less the weeks it falls before Proper 29. Which
+/// Sunday's Proper is 29 less the weeks it falls before Proper 29. That
+/// parenthesis pairs 26 Propers with 25 Sundays: with Easter on 22 March
+/// Propers 3 to 28 are the Second to the Twenty-Seventh Sunday, and a later
+/// Easter drops the lowest Propers. Which
 /// Proper the first Sunday after Trinity is depends on Easter: "When
 /// Easter is as early as March 22, the numbered Proper for the Sunday
 /// following Trinity Sunday is Proper 3". The Ordinary Time number in the

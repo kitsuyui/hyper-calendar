@@ -39,8 +39,10 @@ questions it leaves open are settled here as follows.
   moon" could be read to include that Sunday. The table settles it: the
   full moon of 2001 is 8 April, a Sunday, and Easter is 15 April. Reingold
   and Dershowitz's `astronomical-easter` takes the Sunday after too
-  (`kday-after`) [reingold2018code]. It is the only year of the 25 in the
-  table in which the full moon falls on a Sunday.
+  (`kday-after`) [reingold2018code]. The full moon falls on a Sunday in
+  three years of the 25 — 2001, 2021 and 2025, on 8 April, 28 March and
+  13 April — and in each the table's Easter is the Sunday after: 15
+  April, 4 April and 20 April.
 - **Which time at Jerusalem.** The statement says "meridian", which is a
   longitude, not a clock. Reingold and Dershowitz date the full moon in
   apparent (sundial) time at their `jerusalem` location, 31.78° N,
@@ -79,12 +81,16 @@ its own paschal moon for that year is the one after its fixed equinox of
 | --- | --- | --- |
 | The astronomical Easter of every year 2001–2025 in the table [wcc-aleppo-1997] | `the_astronomical_reckoning_reproduces_the_aleppo_table` | 25 of 25 |
 | The vernal full moon of every year 2001–2025 in the table | the same | 25 of 25 |
-| 8 April 2001 is a Sunday and Easter a week later | `a_full_moon_on_a_sunday_puts_easter_a_week_later` | yes |
+| The full moons of 8 April 2001, 28 March 2021 and 13 April 2025 are the table's only Sundays, and each Easter is a week later | `a_full_moon_on_a_sunday_puts_easter_a_week_later` | yes |
 | The table's Gregorian column equals its astronomical one except in 2019 | `the_table_agrees_with_the_gregorian_computus_except_in_2019` | yes |
 | The equinox and the full moon of 2019 fall on 21 March at Jerusalem, a few hours apart | `the_equinox_and_the_full_moon_of_2019_share_a_day_at_jerusalem` | yes |
+| The agreements measured over 1583–2150, below | `the_measured_agreements_of_1583_to_2150_hold` | yes |
 
 Over 1583–2150 the astronomical Easter equals the Gregorian in 516 of the
-568 years and the Julian in 202, measured with this implementation.
+568 years and the Julian in 202; local mean time at Jerusalem gives the
+same Easter as apparent time in all 568, and Israel Standard Time differs
+in 1653, 1775 and 1873. These are measurements of this implementation,
+not published values, and the test keeps them from drifting.
 
 The table's Julian column gives 20 May for 2025; the Julian computus gives
 20 April, the date the Orthodox churches kept, so the table's entry is a
@@ -104,4 +110,5 @@ misprint. It is not used.
 `ASTRONOMICAL_EASTER_FIRST_YEAR`, `ASTRONOMICAL_EASTER_LAST_YEAR`,
 `JERUSALEM_LONGITUDE_DEGREES`. Anchors:
 `the_astronomical_reckoning_reproduces_the_aleppo_table`,
-`a_full_moon_on_a_sunday_puts_easter_a_week_later`.
+`a_full_moon_on_a_sunday_puts_easter_a_week_later`,
+`the_measured_agreements_of_1583_to_2150_hold`.

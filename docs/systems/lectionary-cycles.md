@@ -7,8 +7,8 @@ Backs `hc-holiday`'s `lectionary` module.
 A lectionary appoints the passages of scripture read at each service. The
 Roman Catholic Lectionary for Mass of 1969, the *Ordo Lectionum Missae*,
 arranged the Sundays in three years, "designated A, B, or C", each built
-round one synoptic gospel, Matthew, Mark and Luke, and the weekdays in a
-two-year cycle, "Cycle I and Cycle II" [wikipedia-lectionary;
+round one of the three synoptic gospels (Matthew, Mark and Luke, which
+tell the story in parallel), and the weekdays in a two-year cycle, "Cycle I and Cycle II" [wikipedia-lectionary;
 wikipedia-ordo-lectionum-missae]. The Revised Common Lectionary of 1992,
 which the Consultation on Common Texts prepared for Protestant and
 Anglican churches, keeps the Roman Sunday cycle and its calendar: "The
@@ -16,7 +16,9 @@ Revised Common Lectionary and its earlier edition of 1983 continue the
 pattern of the Roman Catholic Lectionary for Mass of 1969" [cct-rcl,
 §19]. The RCL names the Sundays after Trinity Sunday by numbered Propers,
 Proper 3 to Proper 29, with the Roman numbering of the Sundays in
-Ordinary Time beside them in brackets [cct-rcl, table].
+Ordinary Time beside them in brackets [cct-rcl, table]. A *Proper* is the
+numbered set of readings for one Sunday; *Ordinary Time* is the Roman
+name for the Sundays outside the Christmas and Easter seasons.
 
 Which readings fall on a day is therefore a question with two parts: which
 year of the cycle it is, which is arithmetic, and which Sunday of the year
@@ -51,7 +53,12 @@ the "Second through Twenty-Sixth Sunday after Pentecost" before it; "When
 Easter is as early as March 22, the numbered Proper for the Sunday
 following Trinity Sunday is Proper 3" [cct-rcl, table and its note]. So a
 Sunday after Trinity Sunday is Proper 29 less the weeks it falls before
-Proper 29. The bracketed Ordinary Time number is the Proper plus five, and
+Proper 29. The table's parenthesis pairs 26 Propers with 25 Sundays, and
+the quotation is exact, re-read in the PDF; the parenthesis is looser than
+the Propers it labels. With Easter on 22 March, Propers 3 to 28 are the
+Second to the Twenty-Seventh Sunday after Pentecost. A later Easter drops
+the lowest Propers: with Easter on 25 April the Sunday after Trinity is
+Proper 8, and Propers 3 to 7 are not used that year. The bracketed Ordinary Time number is the Proper plus five, and
 the Liturgy Office's dates for the Roman Sundays in Ordinary Time — the
 8th on 22–28 May, the 9th on 29 May–4 June, the 34th, Christ the King, on
 20–26 November [liturgyoffice-sundays] — are the same windows.
@@ -59,8 +66,9 @@ the Liturgy Office's dates for the Roman Sundays in Ordinary Time — the
 **Worked example: 2025–26.** The First Sunday of Advent of 2025 is the
 Sunday between 27 November and 3 December: 30 November. The liturgical
 year it begins is 2026. 2025 is divisible by three (675 × 3), so it is
-Year A; 2026 is even, so the weekdays are Year II. Easter 2026 is 5 April,
-Pentecost 24 May, Trinity Sunday 31 May. Christ the King is the Sunday
+Year A; 2026 is even, so the weekdays are Year II. Easter 2026 is 5 April;
+Pentecost is Easter + 49 = 24 May, and Trinity Sunday Easter + 56 = 31
+May. Christ the King is the Sunday
 between 20 and 26 November 2026, the 22nd, Proper 29. The first Sunday
 after Trinity, 7 June, is 24 weeks earlier, so it is Proper 5 [Ordinary
 10]. The Liturgy Office's table gives A and II for 2026 and 29 November
@@ -73,9 +81,9 @@ after Trinity, 7 June, is 24 weeks earlier, so it is Proper 5 [Ordinary
   (`WeekdayCycle::I`, `II`) and `rcl_proper`, which answers for a Sunday
   after Trinity Sunday up to Christ the King, and `None` otherwise.
 - **Range** the liturgical years 1583 to 4099, whose Easter the Gregorian
-  computus gives. The Roman Lectionary is of 1969 and the RCL begins with
-  Advent 1992 [cct-rcl, §8]; a letter for an earlier year is the rule
-  applied backwards.
+  computus (the rule for the date of Easter) gives. The Roman Lectionary
+  is of 1969 and the RCL begins with Advent 1992 [cct-rcl, §8]; a letter
+  for an earlier year is the rule applied backwards.
 - **Not carried.**
   - *The readings*, which are the Holy See's and the Consultation on
     Common Texts' texts under their own copyright.
@@ -87,7 +95,8 @@ after Trinity, 7 June, is 24 weeks earlier, so it is Proper 5 [Ordinary
   - *The Roman numbering of the Sundays in Ordinary Time*, which the
     Liturgy Office tabulates year by year [liturgyoffice-moveable]; after
     Trinity Sunday it is the Proper plus five.
-  - *The ordo*, the day-by-day choice between a Sunday and a feast; see
+  - *The ordo*, the yearly directory of celebrations that makes the
+    day-by-day choice between a Sunday and a feast; see
     `roman_calendar` for what that means and why it is out of scope.
 
 ## Accuracy
@@ -105,14 +114,14 @@ after Trinity, 7 June, is 24 weeks earlier, so it is Proper 5 [Ordinary
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [cct-rcl] | §8, Year A in Advent of years divisible by three and the table of Advents and years 1992–2021; §19, the RCL and the Roman Lectionary; the table of the Christian year with the Advent and Proper 29 windows and the note on Proper 3 | Yes, the PDF, 2026-09-26 |
+| [cct-rcl] | §8, Year A in Advent of years divisible by three and the table of Advents and years 1992–2021; §19, the RCL and the Roman Lectionary; the table of the Christian year with the Advent and Proper 29 windows and the note on Proper 3 | Yes, the PDF, 2026-09-26; the table of the Christian year re-read 2026-09-27 |
 | [liturgyoffice-moveable] | The Sunday and weekday cycles of 2020–2060 by liturgical year, and the Advent Sundays | Yes, 2026-09-26 |
 | [liturgyoffice-sundays] | The date windows of the Roman Sundays in Ordinary Time | Yes, 2026-09-26 |
 | [wikipedia-lectionary] | The three-year and two-year cycles, odd years Cycle I | Yes, 2026-09-26 (secondary) |
 | [wikipedia-ordo-lectionum-missae] | The Lectionary's editions of 1969 and 1981 | Yes, 2026-09-26 (secondary) |
 
-The *Ordo Lectionum Missae*'s own praenotanda, which state the cycles for
-the Roman Rite, were not read.
+The *Ordo Lectionum Missae*'s own introduction, its *praenotanda*, which
+states the cycles for the Roman Rite, was not read.
 
 ## Code
 

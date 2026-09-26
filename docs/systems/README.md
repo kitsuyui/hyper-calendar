@@ -65,6 +65,7 @@ None of the three repeats another.
 | Nepal's calendars: the Bikram Sambat as gazetted, and Nepal Sambat | [nepal-calendars.md](nepal-calendars.md) | `bikram-sambat`, `nepal-sambat` |
 | The Hebrew calendar: the molad, the nineteen-year cycle and the four dehiyyot | [hebrew.md](hebrew.md) | `hebrew` |
 | Astronomical Easter at the meridian of Jerusalem: the Aleppo proposal of 1997, the full moon on a Sunday, apparent time | [astronomical-easter.md](astronomical-easter.md) | `hc-holiday`'s `Computus::ASTRONOMICAL_JERUSALEM` |
+| The Ember and Rogation Days: the Prayer Book's weeks after Lent 1, Pentecost, 14 September and 13 December, the last two read as one week each, *Common Worship*'s traditional weeks and its uncomputable week before an ordination, the Roman Greater and Lesser Litanies of 1960 | [ember-and-rogation-days.md](ember-and-rogation-days.md) | `hc-holiday`'s `ember-bcp1662`, `ember-common-worship`, `rogation-roman-1960` |
 | The lectionary cycles: Years A, B and C, the Roman weekday Years I and II, and the Revised Common Lectionary's Propers | [lectionary-cycles.md](lectionary-cycles.md) | `hc-holiday`'s `lectionary` |
 | The observational Hebrew calendar: Reingold and Dershowitz's prediction of the Second Temple months at Haifa | [hebrew-observational.md](hebrew-observational.md) | `hebrew-observational` |
 | The Samaritan calendar: the conjunction at Mount Gerizim, the first month after Julian 11 March, the Entry Era changing at the sixth month | [samaritan.md](samaritan.md) | `samaritan` |
