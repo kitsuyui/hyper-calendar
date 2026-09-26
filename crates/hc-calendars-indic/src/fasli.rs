@@ -164,6 +164,20 @@ pub const SUR_SAN: FasliCalendar = FasliCalendar {
 /// Every Faṣlī reckoning this crate registers.
 pub const ALL: &[FasliCalendar] = &[MADRAS, BOMBAY, SUR_SAN];
 
+/// The earliest and latest days of the reckonings the crate registers, as
+/// [`FasliCalendar::earliest`] and [`FasliCalendar::latest`] compute them.
+///
+/// A Mṛgaśira opening is a search for the Sun's ingress, which every
+/// description of the calendar asks for through its metadata, so the
+/// ranges are written down for the registered reckonings and computed for
+/// any other; `tests::the_named_ranges_are_the_computed_ones` computes
+/// these again.
+const NAMED_RANGES: [(FasliCalendar, Rd, Rd); 3] = [
+    (MADRAS, Rd(677_353), Rd(839_873)),
+    (BOMBAY, Rd(620_701), Rd(839_854)),
+    (SUR_SAN, Rd(620_701), Rd(839_854)),
+];
+
 /// A date in a Faṣlī year.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct FasliDate {
@@ -245,6 +259,14 @@ impl FasliCalendar {
     ///
     /// Only if the first day cannot be placed, which it can.
     pub fn earliest(&self) -> CalendarResult<Rd> {
+        match self.named_range() {
+            Some((earliest, _)) => Ok(earliest),
+            None => self.computed_earliest(),
+        }
+    }
+
+    /// [`FasliCalendar::earliest`] as the calendar's opening finds it.
+    fn computed_earliest(&self) -> CalendarResult<Rd> {
         match self.opening {
             Opening::Fixed { first, .. } => gregorian::to_fixed(first.0, first.1, first.2),
             Opening::Mrigashira { .. } => self.opening_in(MIN_GREGORIAN_YEAR),
@@ -258,8 +280,24 @@ impl FasliCalendar {
     ///
     /// Only if the day cannot be placed, which it can.
     pub fn latest(&self) -> CalendarResult<Rd> {
+        match self.named_range() {
+            Some((_, latest)) => Ok(latest),
+            None => self.computed_latest(),
+        }
+    }
+
+    /// [`FasliCalendar::latest`] as the calendar's opening finds it.
+    fn computed_latest(&self) -> CalendarResult<Rd> {
         self.opening_in(MAX_GREGORIAN_YEAR + 1)
             .map(|next| Rd(next.0 - 1))
+    }
+
+    /// The range of a calendar [`NAMED_RANGES`] holds.
+    fn named_range(&self) -> Option<(Rd, Rd)> {
+        NAMED_RANGES
+            .iter()
+            .find(|(calendar, _, _)| calendar == self)
+            .map(|&(_, earliest, latest)| (earliest, latest))
     }
 
     /// The date on a fixed day.
@@ -437,6 +475,19 @@ impl Calendar for FasliCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_named_ranges_are_the_computed_ones() {
+        for (calendar, earliest, latest) in NAMED_RANGES {
+            assert_eq!(
+                calendar.computed_earliest(),
+                Ok(earliest),
+                "{:?}",
+                calendar.id
+            );
+            assert_eq!(calendar.computed_latest(), Ok(latest), "{:?}", calendar.id);
+        }
+    }
 
     fn ymd(year: i64, month: u8, day: u8) -> Rd {
         gregorian::to_fixed(year, month, day).expect("a date")

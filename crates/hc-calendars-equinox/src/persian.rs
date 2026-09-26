@@ -88,7 +88,7 @@ const NOON_IRST_DAY_FRACTION: f64 = 0.5 - IRAN_STANDARD_OFFSET_DAYS;
 /// ([`PersianCalendar`] and
 /// [`crate::persian_apparent_noon::ApparentNoonPersianCalendar`]), never a
 /// setting of one.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum Noon {
     /// 12:00 Iran Standard Time, 08:30 Universal Time.
     IranStandardTime,
@@ -186,14 +186,48 @@ pub(crate) fn to_fixed_by(noon: Noon, year: i64, month: u8, day: u8) -> Calendar
         - 1))
 }
 
+/// The earliest and latest days under each rule the crate's calendars
+/// follow, as [`earliest_by`] and [`latest_by`] compute them.
+///
+/// Each is a search for an equinox and a noon, and every conversion checks
+/// its day against both, so they are written down for the two rules and
+/// computed for any other; `tests::the_named_ranges_are_the_computed_ones`
+/// computes these again.
+const NAMED_RANGES: [(Noon, Rd, Rd); 2] = [
+    (Noon::IranStandardTime, Rd(226_896), Rd(1_095_806)),
+    (
+        Noon::Apparent(crate::places::TEHRAN_PERSIAN),
+        Rd(226_896),
+        Rd(1_095_806),
+    ),
+];
+
+/// The range of a rule [`NAMED_RANGES`] holds.
+fn named_range(noon: Noon) -> Option<(Rd, Rd)> {
+    NAMED_RANGES
+        .iter()
+        .find(|(rule, _, _)| *rule == noon)
+        .map(|&(_, earliest, latest)| (earliest, latest))
+}
+
 /// The earliest fixed day under `noon`.
 pub(crate) fn earliest_by(noon: Noon) -> Rd {
-    nowruz_by(noon, MIN_YEAR)
+    named_range(noon).map_or_else(|| computed_earliest_by(noon), |(earliest, _)| earliest)
 }
 
 /// The latest fixed day under `noon`: the day before the Nowruz after
 /// [`MAX_YEAR`].
 pub(crate) fn latest_by(noon: Noon) -> Rd {
+    named_range(noon).map_or_else(|| computed_latest_by(noon), |(_, latest)| latest)
+}
+
+/// [`earliest_by`] as the astronomy finds it.
+fn computed_earliest_by(noon: Noon) -> Rd {
+    nowruz_by(noon, MIN_YEAR)
+}
+
+/// [`latest_by`] as the astronomy finds it.
+fn computed_latest_by(noon: Noon) -> Rd {
     Rd(nowruz_by(noon, MAX_YEAR + 1).0 - 1)
 }
 
@@ -398,6 +432,14 @@ impl Calendar for PersianCalendar {
 mod tests {
     use super::*;
     use hc_calendars_solar::persian as arithmetic;
+
+    #[test]
+    fn the_named_ranges_are_the_computed_ones() {
+        for (noon, earliest, latest) in NAMED_RANGES {
+            assert_eq!(computed_earliest_by(noon), earliest, "{noon:?}");
+            assert_eq!(computed_latest_by(noon), latest, "{noon:?}");
+        }
+    }
 
     fn ymd(year: i64, month: u8, day: u8) -> Rd {
         gregorian::to_fixed(year, month, day).unwrap()

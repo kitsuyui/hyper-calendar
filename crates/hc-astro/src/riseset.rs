@@ -59,6 +59,17 @@ impl Location {
             elevation_metres,
         }
     }
+
+    /// The place as words of a [`hc_core::memo`] key: its three numbers,
+    /// bit for bit.
+    #[must_use]
+    pub const fn key(self) -> [u64; 3] {
+        [
+            self.latitude_degrees.to_bits(),
+            self.longitude_degrees.to_bits(),
+            self.elevation_metres.to_bits(),
+        ]
+    }
 }
 
 /// How far the Sun must be below the horizon for a twilight to have ended.
@@ -155,8 +166,19 @@ pub fn lunar_altitude(moment: Moment, location: Location) -> f64 {
 /// Unlike the rise and set functions this one always has an answer, even
 /// under the midnight sun: the Sun crosses the meridian every day whether or
 /// not it sets.
+///
+/// Inside a [`hc_core::memo::scope`] each day and place is computed once.
 #[must_use]
 pub fn solar_noon(day: Rd, location: Location) -> Moment {
+    enum SolarNoon {}
+    let [latitude, longitude, elevation] = location.key();
+    hc_core::memo::cached::<SolarNoon, _, 4>([day.0 as u64, latitude, longitude, elevation], || {
+        computed_solar_noon(day, location)
+    })
+}
+
+/// [`solar_noon`], computed.
+fn computed_solar_noon(day: Rd, location: Location) -> Moment {
     let mut moment = day.0 as f64 + 0.5 - location.longitude_degrees / 360.0;
     // Newton's method with the constant daily rate of the hour angle as the
     // derivative; the equation of time is at most 16 minutes, so four passes
@@ -183,8 +205,31 @@ pub fn solar_midnight(day: Rd, location: Location) -> Moment {
 /// on its way up.
 ///
 /// Returns `None` when it does not: the Sun stays below that altitude all
-/// day, or never drops to it.
+/// day, or never drops to it. Inside a [`hc_core::memo::scope`] each
+/// crossing is computed once.
 pub(crate) fn sun_crossing(
+    day: Rd,
+    location: Location,
+    target_altitude: f64,
+    rising: bool,
+) -> Option<Moment> {
+    enum SunCrossing {}
+    let [latitude, longitude, elevation] = location.key();
+    hc_core::memo::cached::<SunCrossing, _, 6>(
+        [
+            day.0 as u64,
+            latitude,
+            longitude,
+            elevation,
+            target_altitude.to_bits(),
+            u64::from(rising),
+        ],
+        || computed_sun_crossing(day, location, target_altitude, rising),
+    )
+}
+
+/// [`sun_crossing`], computed.
+fn computed_sun_crossing(
     day: Rd,
     location: Location,
     target_altitude: f64,

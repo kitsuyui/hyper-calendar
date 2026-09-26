@@ -242,23 +242,33 @@ fn month_start_of(year: i64, biblical: u8) -> CalendarResult<Rd> {
     Ok(month_start_before(Moment(middle)))
 }
 
-/// The first day of year [`MIN_YEAR`].
+/// The first day of year [`MIN_YEAR`], [`EARLIEST`].
 ///
 /// # Errors
 ///
-/// Returns an error only if the astronomy cannot place the year, which it
-/// can.
-pub fn earliest() -> CalendarResult<Rd> {
-    month_start_of(MIN_YEAR, SIXTH)
+/// None: the day is written down. The `Result` is the one the astronomy's
+/// placing of the year would have.
+pub const fn earliest() -> CalendarResult<Rd> {
+    Ok(EARLIEST)
 }
 
-/// The last day of year [`MAX_YEAR`].
+/// The first day of year [`MIN_YEAR`], as the astronomy places it.
+///
+/// Written down rather than computed, since every description's metadata
+/// asks for it and each computation is a search for a conjunction;
+/// `tests::the_written_range_is_the_computed_one` computes it again.
+pub const EARLIEST: Rd = Rd(693_832);
+
+/// The last day of year [`MAX_YEAR`], written down as [`EARLIEST`] is.
+pub const LATEST: Rd = Rd(766_890);
+
+/// The last day of year [`MAX_YEAR`], [`LATEST`].
 ///
 /// # Errors
 ///
-/// As [`earliest`].
-pub fn latest() -> CalendarResult<Rd> {
-    Ok(Rd(month_start_of(MAX_YEAR + 1, SIXTH)?.0 - 1))
+/// None, as [`earliest`].
+pub const fn latest() -> CalendarResult<Rd> {
+    Ok(LATEST)
 }
 
 /// The number of days in a month, in the sources' numbering, of a year,
@@ -430,6 +440,15 @@ impl Calendar for SamaritanCalendar {
 mod tests {
     use super::*;
     use crate::civil;
+
+    #[test]
+    fn the_written_range_is_the_computed_one() {
+        assert_eq!(month_start_of(MIN_YEAR, SIXTH), Ok(EARLIEST));
+        assert_eq!(
+            month_start_of(MAX_YEAR + 1, SIXTH).map(|next| Rd(next.0 - 1)),
+            Ok(LATEST)
+        );
+    }
 
     fn first_month(year: i64, day: u8) -> SamaritanDate {
         SamaritanDate {

@@ -162,9 +162,10 @@ pub fn table(tag: &str) -> Option<&'static TerritoryNames> {
 pub fn territory_name(locale: &Locale, region: &str) -> Option<TerritoryName> {
     let index = region_index(region)?;
     locale.fallback().find_map(|candidate| {
+        let rendered = candidate.rendered()?;
         TABLES
             .iter()
-            .filter(|table| candidate.matches_tag(table.tag))
+            .filter(|table| rendered.as_str() == table.tag)
             .find_map(|table| {
                 table.name_at(index).map(|name| TerritoryName {
                     name,

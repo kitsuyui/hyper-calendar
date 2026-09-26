@@ -128,16 +128,27 @@ pub fn new_year_margin(year: i64) -> CalendarResult<f64> {
 }
 
 /// The earliest fixed day this calendar converts: 1 Vendémiaire An I.
-#[must_use]
-pub fn earliest() -> Rd {
-    new_year_raw(MIN_YEAR)
-}
+///
+/// Written down rather than computed, since every conversion's range check
+/// and every description's metadata ask for it and each computation is a
+/// search for an equinox; `tests::the_written_range_is_the_computed_one`
+/// computes it again.
+pub const EARLIEST: Rd = Rd(654_415);
 
 /// The latest fixed day this calendar converts: the day before the new
-/// year after [`MAX_YEAR`].
+/// year after [`MAX_YEAR`], written down as [`EARLIEST`] is.
+pub const LATEST: Rd = Rd(1_095_991);
+
+/// The earliest fixed day this calendar converts, [`EARLIEST`].
 #[must_use]
-pub fn latest() -> Rd {
-    Rd(new_year_raw(MAX_YEAR + 1).0 - 1)
+pub const fn earliest() -> Rd {
+    EARLIEST
+}
+
+/// The latest fixed day this calendar converts, [`LATEST`].
+#[must_use]
+pub const fn latest() -> Rd {
+    LATEST
 }
 
 /// The number of days in `year`, or `None` outside [`MIN_YEAR`]..=[`MAX_YEAR`].
@@ -313,6 +324,12 @@ impl Calendar for EquinoxFrenchRepublicanCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_written_range_is_the_computed_one() {
+        assert_eq!(new_year_raw(MIN_YEAR), EARLIEST);
+        assert_eq!(Rd(new_year_raw(MAX_YEAR + 1).0 - 1), LATEST);
+    }
     use hc_calendars_solar::french_republican as arithmetic;
 
     fn ymd(year: i64, month: u8, day: u8) -> Rd {

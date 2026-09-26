@@ -80,13 +80,13 @@ units = ["dep:hc-units"]
 # Civil dates: the Gregorian family plus the calendar abstraction.
 civil = ["dep:hc-calendar", "dep:hc-calendars-solar"]
 # Lunar and lunisolar calendars, which need the astronomical engine.
-lunar = ["civil", "dep:hc-astro", "dep:hc-calendars-lunar"]
+lunar = ["civil", "dep:hc-astro", "dep:hc-calendars-lunar", "hc-core/memo"]
 # Solar calendars judged by an equinox at a place: Solar Hijri, Badíʿ and
 # French Republican computed astronomically.
-equinox = ["astro", "dep:hc-calendars-equinox"]
+equinox = ["astro", "dep:hc-calendars-equinox", "hc-core/memo"]
 # The calendars of the Indian subcontinent: the Hindu lunisolar calendar,
 # computed with the sidereal zodiac of hc-seasons.
-indic = ["seasons", "dep:hc-calendars-indic"]
+indic = ["seasons", "dep:hc-calendars-indic", "hc-core/memo"]
 # Regional and cyclic calendars.
 regional = ["lunar", "dep:hc-calendars-regional"]
 # Astronomy on its own, for solar longitude and phases.
@@ -198,3 +198,7 @@ required-features = ["deep-time"]
 [[example]]
 name = "easter"
 required-features = ["holiday"]
+
+[[example]]
+name = "calendar_timing"
+required-features = ["lunar", "equinox", "indic", "regional", "i18n", "format"]

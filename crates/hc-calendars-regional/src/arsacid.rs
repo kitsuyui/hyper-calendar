@@ -63,13 +63,23 @@ pub fn to_fixed(year: i64, month: Month, day: u8) -> CalendarResult<Rd> {
     babylonian::to_fixed(seleucid_year(year), month, day)
 }
 
-/// The first day of Arsacid year 1, 1 Nisannu SE 65.
+/// The first day of Arsacid year 1, 1 Nisannu SE 65, as `babylonian`
+/// converts it.
+///
+/// Written down rather than converted, since every conversion's range
+/// check and every description's metadata ask for it and the conversion
+/// costs about a millisecond; `tests::the_written_first_day_is_the_converted_one`
+/// converts it again.
+pub const EARLIEST: Rd = Rd(-90_114);
+
+/// The first day of Arsacid year 1, [`EARLIEST`].
 ///
 /// # Errors
 ///
-/// As `babylonian`'s conversion of that day, which it has.
-pub fn earliest() -> CalendarResult<Rd> {
-    to_fixed(MIN_YEAR, Month::regular(1), 1)
+/// None: the day is written down. The `Result` is the one `babylonian`'s
+/// conversion of the day would have.
+pub const fn earliest() -> CalendarResult<Rd> {
+    Ok(EARLIEST)
 }
 
 /// The Arsacid year, month and day of a fixed day.
@@ -177,6 +187,11 @@ impl Calendar for ArsacidCalendar {
 mod tests {
     use super::*;
     use hc_calendars_solar::julian;
+
+    #[test]
+    fn the_written_first_day_is_the_converted_one() {
+        assert_eq!(to_fixed(MIN_YEAR, Month::regular(1), 1), Ok(EARLIEST));
+    }
 
     #[test]
     fn the_arsacid_year_is_the_seleucid_less_sixty_four() {

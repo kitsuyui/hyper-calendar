@@ -587,12 +587,20 @@ impl Locale {
     /// data entry spelled `ja-JP`.
     #[must_use]
     pub fn matches_tag(&self, tag: &str) -> bool {
+        self.rendered()
+            .is_some_and(|rendered| rendered.as_str() == tag)
+    }
+
+    /// The canonical rendering [`Locale::matches_tag`] compares against, or
+    /// `None` for a tag too long to render, which matches nothing.
+    ///
+    /// A lookup that compares one locale with every data entry renders it
+    /// once with this, rather than once an entry.
+    pub(crate) fn rendered(&self) -> Option<StackString<MAX_RENDERED_TAG>> {
         use core::fmt::Write as _;
         let mut rendered = StackString::<MAX_RENDERED_TAG>::new();
-        if write!(&mut rendered, "{self}").is_err() {
-            return false;
-        }
-        rendered.as_str() == tag
+        write!(&mut rendered, "{self}").ok()?;
+        Some(rendered)
     }
 
     /// The tag string, written into a caller-supplied sink.

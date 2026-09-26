@@ -131,17 +131,29 @@ pub const USAGE_SOURCE: &str = "The Universal House of Justice, letter of 10 Jul
     astronomical rules from Naw-Rúz 172 BE, 21 March 2015 (*Badíʿ dates 172 to 221 BE*, \
     Bahá'í World Centre, 2014)";
 
-/// The earliest fixed day this calendar converts.
-#[must_use]
-pub fn earliest() -> Rd {
-    naw_ruz_raw(MIN_YEAR)
-}
+/// The earliest fixed day this calendar converts: Naw-Rúz of
+/// [`MIN_YEAR`].
+///
+/// Written down rather than computed, since every conversion's range check
+/// and every description's metadata ask for it and each computation is a
+/// search for an equinox and a sunset;
+/// `tests::the_written_range_is_the_computed_one` computes it again.
+pub const EARLIEST: Rd = Rd(673_221);
 
 /// The latest fixed day this calendar converts: the day before the Naw-Rúz
-/// after [`MAX_YEAR`].
+/// after [`MAX_YEAR`], written down as [`EARLIEST`] is.
+pub const LATEST: Rd = Rd(1_095_806);
+
+/// The earliest fixed day this calendar converts, [`EARLIEST`].
 #[must_use]
-pub fn latest() -> Rd {
-    Rd(naw_ruz_raw(MAX_YEAR + 1).0 - 1)
+pub const fn earliest() -> Rd {
+    EARLIEST
+}
+
+/// The latest fixed day this calendar converts, [`LATEST`].
+#[must_use]
+pub const fn latest() -> Rd {
+    LATEST
 }
 
 /// The number of days in `year`, or `None` outside [`MIN_YEAR`]..=[`MAX_YEAR`].
@@ -322,6 +334,12 @@ impl Calendar for AstronomicalBahaiCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_written_range_is_the_computed_one() {
+        assert_eq!(naw_ruz_raw(MIN_YEAR), EARLIEST);
+        assert_eq!(Rd(naw_ruz_raw(MAX_YEAR + 1).0 - 1), LATEST);
+    }
     use hc_calendars_solar::bahai_kept as kept;
 
     fn ymd(year: i64, month: u8, day: u8) -> Rd {

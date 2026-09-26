@@ -709,8 +709,20 @@ pub fn new_moon_at_or_after(moment: Moment) -> Moment {
 /// Unlike [`nth_new_moon`], this searches the position series directly, so it
 /// answers for any phase angle — a first quarter, a full moon, or the 14°
 /// elongation some crescent-visibility rules use.
+///
+/// Inside a [`hc_core::memo::scope`] each phase and moment is searched for
+/// once.
 #[must_use]
 pub fn moon_phase_at_or_after(phase_degrees: f64, moment: Moment) -> Moment {
+    enum MoonPhaseAtOrAfter {}
+    hc_core::memo::cached::<MoonPhaseAtOrAfter, _, 2>(
+        [phase_degrees.to_bits(), moment.0.to_bits()],
+        || computed_moon_phase_at_or_after(phase_degrees, moment),
+    )
+}
+
+/// [`moon_phase_at_or_after`], searched for.
+fn computed_moon_phase_at_or_after(phase_degrees: f64, moment: Moment) -> Moment {
     let rate = MEAN_SYNODIC_MONTH / 360.0;
     let to_go = modulo(phase_degrees - lunar_phase(moment), 360.0);
     let estimate = moment.0 + rate * to_go;

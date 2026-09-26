@@ -213,7 +213,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-80 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+81 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -252,6 +252,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_describe_day(int64_t fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | One fixed day in every registered calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_calendar_units(const char *id, uint32_t unit, int64_t from_fixed, int64_t to_fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The days from `from_fixed` up to but not including `to_fixed` as one calendar's eras, years, months or days, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_calendars(int64_t today, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Every registered calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_calendar_list(const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Every registered calendar by name alone, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_locales(char *buffer, size_t capacity, size_t *written);` | `calendars` | Every locale the library carries, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_first_day_of_week(const char *locale, uint8_t *out_weekday);` | `calendars` | The ISO 8601 weekday of the first day of the week in a locale, Monday = 1 through Sunday = 7. |
 | `HcStatus hc_gregorian_adoption(const char *region, char *buffer, size_t capacity, size_t *written);` | `calendars` | The steps by which a country adopted the Gregorian calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
@@ -394,6 +395,12 @@ lists every registered calendar in its eleven columns — identifier, the
 locale's name for it (empty where the locale has none: only `native` names
 a calendar in its own language), English name, earliest, latest, the four
 has-unit flags, native locales and standing on `today` —
+`hc_calendar_list(locale, buffer, capacity, written)` the same calendars
+by name alone in five columns — identifier, the locale's name for it as
+`hc_calendars` has it, English name, the locale used (the tag of the data
+the name came from, empty with the name) and the crate that registers it
+— converting no day, for a menu, which is asked for far more often than a
+day is described —
 `hc_locales(buffer, capacity, written)` every locale in its seven: tag,
 English name, native name, the three Gregorian coverage flags and the
 calendars it names — `hc_first_day_of_week(locale, out_weekday)` the ISO
