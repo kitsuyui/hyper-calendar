@@ -76,9 +76,8 @@ Monday 4 January.
 | No date is more than five days from its Gregorian namesake, 2024–2423 | `a_date_is_never_more_than_five_days_from_its_gregorian_namesake` | all |
 | Round trips over the whole range and on 2 800 consecutive days from December 2019, across two Xtr weeks | `every_day_round_trips` | all |
 
-Henry's own page at Johns Hopkins, which the roadmap once noted still
-placed *Xtr* between June and July in one answer, refused to be read for
-this document, so the current placement rests on the calendar site alone.
+Henry's own page at Johns Hopkins refused to be read for this document,
+so the placement of *Xtr* rests on the calendar site alone.
 
 ## Sources
 

@@ -4,7 +4,8 @@ Backs the identifiers `bahai-astronomical` and `french-republican-equinox`
 in `hc-calendars-equinox`, and explains their siblings `bahai`,
 `bahai-arithmetic` and `french-republican-arithmetic` in
 `hc-calendars-solar`. The third calendar in the crate, the Solar Hijri
-`persian`, has its own roadmap row and is not covered here.
+`persian`, is not covered here; it is listed among the
+[systems that need a document](README.md#systems-that-need-a-document).
 
 ## What it is
 

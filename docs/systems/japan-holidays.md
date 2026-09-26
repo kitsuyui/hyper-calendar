@@ -197,12 +197,10 @@ the change that is revising the solar-term code.
 
 Known points a reader may stumble on:
 
-- The module documentation's amendment table, before this document,
-  credited the 天皇誕生日 move to 平成30年法律第99号 and the 2020 Olympic
-  moves to 平成30年法律第76号. The move is in the 皇室典範特例法
-  (平成29年法律第63号), in force 1 May 2019; 第99号 gave only the two 2019
-  days; the 2020 moves are 平成30年法律第55号 and the renaming 第57号, both
-  of 20 June 2018.
+- The 天皇誕生日 move is in the 皇室典範特例法 (平成29年法律第63号), in
+  force 1 May 2019, not in 平成30年法律第99号, which gave only the two 2019
+  days; the 2020 Olympic moves are 平成30年法律第55号 and the renaming
+  第57号, both of 20 June 2018, not 平成30年法律第76号.
 - The 1985 act came into force on promulgation, 27 December 1985. The
   table dates the bridge from 1986, which is the first year a day could
   have been trapped.

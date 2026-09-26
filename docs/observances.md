@@ -47,14 +47,15 @@ Rules then pass through **observance modifiers**, which are themselves data:
   two holidays landing on one day also trigger it (Korea's 대체공휴일).
 - `BridgePolicy` — Japan's 国民の休日 (a working day trapped between two
   holidays becomes one).
-- `ValidFrom` / `ValidUntil` — a holiday that was created or abolished. Every
-  rule carries these, because "is today a holiday in Japan" has a different
+- The `valid_from` and `valid_until` fields — a holiday that was created or
+  abolished. Every `HolidayRule` carries them, and so does each policy above
+  and `WeekendPolicy`, because "is today a holiday in Japan" has a different
   answer in 1990 and 2020 and a library that ignores that is wrong for history.
-- `Region` — subdivision scoping, used for German *Länder*, Canadian
-  provinces, Australian states and territories, the United Kingdom's three
-  jurisdictions, French Alsace-Moselle, the three units of Bosnia and
-  Herzegovina, Bangladesh's hill districts, and a few single places: `US-DC`,
-  `MD-CU`, `GT-GU`, `SV-SS`, `NI-MN` and `CL-AP`. Swiss cantons, Spanish
+- The `regions` field — subdivision scoping, as ISO 3166-2 codes, used for
+  German *Länder*, Canadian provinces, Australian states and territories,
+  the United Kingdom's three jurisdictions, French Alsace-Moselle, the three
+  units of Bosnia and Herzegovina, Bangladesh's hill districts, and a few
+  single places: `US-DC`, `MD-CU`, `GT-GU`, `SV-SS`, `NI-MN` and `CL-AP`. Swiss cantons, Spanish
   autonomous communities and US states are *not* modelled: the vocabulary
   carries them, the tables do not.
 - `Kind` — public holiday, bank holiday, school holiday, observance without a

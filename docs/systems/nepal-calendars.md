@@ -112,12 +112,9 @@ Asar 2080 at 01:57:10, Bhadau 2080 at 04:48:58, Asoj 2080 at 05:16:55,
 Pus 2080 at 01:07:10, Falgun 2081 at 01:41:52, Jestha 2082 at 04:17:32,
 Kartik 2082 at 04:18:34, Mangsir 2082 at 01:45:23, Chait 2082 at
 03:36:34 and Magh 2083 at 03:23:02 — and the gazette begins every one of
-those months on the civil day of the saṅkrānti. (An earlier version of
-this document counted eight, leaving out Jestha and Kartik 2082, whose
-saṅkrāntis fall 57 minutes and an hour and three quarters before
-sunrise; the test
+those months on the civil day of the saṅkrānti; the test
 `the_sankrantis_between_midnight_and_sunrise_are_gazetted_on_their_civil_day`
-now holds the list.) The rule Reingold and Dershowitz give for the
+holds the list. The rule Reingold and Dershowitz give for the
 Siddhānta's solar calendar, `hindu-solar-from-fixed`, begins a month on
 the day at whose *next* sunrise the Sun stands in the new sign, which
 they name the Orissa rule and which is the library's `SunriseDay`

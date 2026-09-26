@@ -56,7 +56,7 @@ None of the three repeats another.
 | The Samaritan calendar: the conjunction at Mount Gerizim, the first month after Julian 11 March, the Entry Era changing at the sixth month | [samaritan.md](samaritan.md) | `samaritan` |
 | The Odia Anka: the Gajapati's regnal years from Suniā, the numbers they drop, the reign of Dibyasingha Deb | [odia-anka.md](odia-anka.md) | `odia-anka` |
 | The Vira Nirvana Samvat: the Jain era of 527 BCE on the amānta months, from Kārtika śukla 1, and why there is one era and not two | [vira-nirvana-samvat.md](vira-nirvana-samvat.md) | `vira-nirvana-samvat` |
-| The Gregorian reform, country by country, and the Swedish exception | [gregorian-reform.md](gregorian-reform.md) | `julian-gregorian-<polity>`, twelve of them; `swedish-1700`; the adoption table by country, `adoption` |
+| The Gregorian reform, country by country, and the Swedish exception | [gregorian-reform.md](gregorian-reform.md) | `julian-gregorian-<polity>`, fourteen of them; `swedish-1700`; the adoption table by country, `adoption` |
 | The Burmese calendar: the eras of the Myanmar Era, watat and yat-ngyin, the record's exceptions as data | [burmese.md](burmese.md) | `burmese`; `hc-holiday`'s Thingyan days |
 | The Tibetan calendar: the Phugpa arithmetic, the lunar day with its skipped and extra days, the leap-month rule, the sixty-year names | [tibetan-phugpa.md](tibetan-phugpa.md) | `tibetan` |
 | The Tibetan calendar's other versions: the Tsurphu, the Bhutanese with its leap month after the month it repeats, the Mongolian New Genden and Tsagaan Sar; why the Kālacakra *karaṇa* and the yellow calculation are not carried | [tibetan-variants.md](tibetan-variants.md) | `tibetan-tsurphu`, `tibetan-bhutan`, `mongolian` |
@@ -69,7 +69,22 @@ None of the three repeats another.
 
 ## Systems that need a document
 
-Every implemented system that needs a document has one. The next is
-written up from its sources before it is coded, with the sections above and
-a row in the table above; one found to need a document after it is coded is
-listed here until it has one ([policy.md §12](../policy.md)).
+These systems are implemented and need a document they do not yet have. A
+system not yet coded is written up from its sources before it is coded, with
+the sections above and a row in the table above; one found to need a document
+after it is coded is listed here until it has one
+([policy.md §12](../policy.md)).
+
+| System | Why it needs a document | Backs |
+| --- | --- | --- |
+| The Japanese era names: the unified stream, the two courts of 1331–1392, and eras read from the start of the year or from the day proclaimed | A court split, eras backdated to the start of the year against the reckoning as proclaimed, and the gaps of 655–686 and 687–701 | `japanese`, `japanese-northern`, `japanese-southern`, `japanese-proclaimed`; `hc-calendars-regional::nengo` |
+| The Chinese and Korean regnal eras | Eras from the year after accession (踰年改元), restored and withdrawn eras, and regimes proclaiming at the same time | `chinese-regnal`, `korean-regnal` |
+| The Solar Hijri calendar in Iran and Afghanistan | The new year by the equinox against noon at a named place, the laws of 1925, 1957 and 2022, and competing arithmetic schemes | `persian`, `persian-afghan`, `persian-arithmetic` |
+| The Zoroastrian calendars | The intercalations, the split of 1745, the Fasli reform, and the era's epoch | `zoroastrian-qadimi`, `zoroastrian-shahanshahi`, `zoroastrian-fasli` |
+| The Armenian calendar | The wandering year, and Sarkawag's fixed year and its extension backwards | `armenian`, `armenian-fixed` |
+| The Bangladeshi calendar | Decrees that change the rule inside one identifier | `bangladeshi` |
+| The Nanakshahi calendar | Versions that change the rule inside one identifier | `nanakshahi` |
+| The Japanese almanac notes, 暦注 and 選日 | Publishers' conventions, the reversal of the nine stars, the leap month, and the anchor of the twelve directs | `hc-almanac` |
+| The 雑節 and 六曜, with the lunisolar months they rest on | Days defined from the solar terms and from a minimal lunisolar calendar | `hc-seasons`: `zassetsu`, `rokuyo`, `lunisolar` |
+| Mars timekeeping | The sol, Coordinated Mars Time, local mean and true solar time, the Mars year, mission sol counts and the Darian calendar | `hc-planetary`: `mars`, `mars::missions`, `mars::darian` |
+| Taiwan's, Vietnam's and Hong Kong's holiday regimes | Annual notices, make-up working days and swapped Saturdays, and Hong Kong's collision and eve rules | `hc-holiday`'s `TAIWAN`, `VIETNAM`, `HONG_KONG` |
