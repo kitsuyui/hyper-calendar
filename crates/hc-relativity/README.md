@@ -4,10 +4,28 @@ Relativistic time for the `hyper-calendar` workspace: Lorentz transforms,
 special and gravitational time dilation, and worldline integration.
 
 Clocks do not agree. One in orbit runs fast, one on a fast ship runs slow, and
-the difference is large enough to matter — a GPS satellite gains 38 µs a day,
-which is ten kilometres of positioning error. This crate computes those
-differences well enough to build a timeline with: a satellite constellation's,
-or a science-fiction novel's.
+the difference is large enough to matter: a GPS satellite clock gains 38 µs
+a day, which is about ten kilometres of positioning error. This crate
+computes those differences, for a satellite constellation or for a journey
+between stars.
+
+It depends on `hc-core` and `hc-uncertainty`.
+
+```rust
+use hc_relativity::gravitational::{
+    rate_offset_to_micros_per_day, weak_field_orbit_rate_offset,
+};
+use hc_relativity::constants::{EARTH_EQUATORIAL_RADIUS, GPS_ORBIT_RADIUS};
+use hc_relativity::{GM_EARTH, lorentz_factor};
+
+assert_eq!(lorentz_factor(0.6)?, 1.25);
+
+// A GPS satellite clock against one on the ground, in µs a day.
+let offset = weak_field_orbit_rate_offset(GM_EARTH, GPS_ORBIT_RADIUS, EARTH_EQUATORIAL_RADIUS)?;
+let micros = rate_offset_to_micros_per_day(offset)?;
+assert!((micros - 38.4).abs() < 0.1);
+# Ok::<(), hc_relativity::RelativityError>(())
+```
 
 ## What it covers
 
@@ -21,17 +39,18 @@ or a science-fiction novel's.
 
 ## Anchors
 
-Each is a published figure and each is a test:
+Each row is a published figure, the value this crate computes for it, and
+where the figure comes from. Each is a test.
 
 | Quantity | Computed | Source |
 | --- | --- | --- |
-| Lorentz factor at β = 0.6 | 1.25 exactly | any textbook |
-| GPS gravitational gain | +45.65 µs/day | the standard worked example |
-| GPS kinematic loss | −7.21 µs/day | " |
-| GPS net gain | +38.44 µs/day | " |
+| Lorentz factor at β = 0.6 | 1.25 exactly | 1/√(1 − 0.6²), by hand |
+| GPS gravitational gain | +45.65 µs/day | the GPS worked example Ashby's review uses (below) |
+| GPS kinematic loss | −7.21 µs/day | the same example |
+| GPS net gain | +38.44 µs/day | the same example |
 | Schwarzschild radius of the Sun | 2 953.25 m | 2GM☉/c² |
 | 1 g flip-and-burn to Andromeda (2.5 Mly) | 28.60 years aboard, 2 500 002 at home | the relativistic-rocket relations |
-| 1 g for one year of ship time | β = 0.7748, 0.564 ly covered | " |
+| 1 g for one year of ship time | β = 0.7748, 0.564 ly covered | the relativistic-rocket relations |
 | ISS-altitude circular orbit | −24.5 µs/day | this model; see below |
 
 The GPS figures come out right because the ground clock is placed at the WGS 84
@@ -108,7 +127,11 @@ of the tests.
 
 ## Feature flags
 
-`default = ["std"]`, `std = ["alloc", ...]`, `alloc = [...]`. Nothing here
-needs a heap. A build without `std` also enables `libm`, which passes through
-to `hc-core` for floating-point math; `--no-default-features` alone stops at
-`hc-core`'s compile-time guard.
+| Feature | Effect |
+| --- | --- |
+| `std` (default) | platform floating-point math; implies `alloc` |
+| `alloc` | passed through to `hc-core` and `hc-uncertainty`; nothing here needs a heap |
+| `libm` | software floating-point math through `hc-core`, for `no_std` targets |
+
+A build with neither `std` nor `libm` does not compile: `hc-core` refuses
+it. So a `no_std` build is `--no-default-features --features libm`.

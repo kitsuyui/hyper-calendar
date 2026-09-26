@@ -10,11 +10,26 @@ three digits and not eleven. A date library that can only hold exact instants
 must either refuse these or invent the missing precision. Inventing it is
 worse.
 
+It depends on `hc-core`.
+
+```rust
+use hc_uncertainty::{Significant, Uncertain};
+
+// Three significant figures stay three when the value is written out.
+assert_eq!(Significant::new(13.8e9, 3)?.to_string(), "1.38e10");
+
+// Independent Gaussian errors add in quadrature: 0.3 and 0.4 give 0.5.
+let sum = Uncertain::new(10.0, 0.3)?.checked_add(Uncertain::new(20.0, 0.4)?)?;
+assert_eq!(sum.value, 30.0);
+assert!((sum.std_dev - 0.5).abs() < 1e-12);
+# Ok::<(), hc_uncertainty::UncertaintyError>(())
+```
+
 ## What it covers
 
 | Module | Type | What it holds |
 | --- | --- | --- |
-| `sig_figs` | `Significant` | A value plus the number of digits actually claimed, propagated through arithmetic **and through rendering**. |
+| `sig_figs` | `Significant` | A value plus the number of digits claimed, propagated through arithmetic **and through rendering**. |
 | `quantity` | `Uncertain` | A Gaussian `value ± σ`, with first-order (delta-method) propagation for `+ - * /`, `powf`, `ln`, `exp`, and the inverse-variance weighted mean. |
 | `interval` | `DurationInterval` | A closed `[lo, hi]` of `hc_core::Duration` with guaranteed-enclosure interval arithmetic. |
 | `fuzzy` | `FuzzyInstant` | Exact, resolved, bounded, Gaussian, open-ended or unknown instants, with Allen's thirteen interval relations over pairs of them. |
@@ -92,9 +107,12 @@ Highlights:
 
 ## Feature flags
 
-`default = ["std"]`, `std = ["alloc", ...]`, `alloc = [...]`. A build without
-`std` also enables `libm`, which passes through to `hc-core` for
-floating-point math; `--no-default-features --features alloc` alone stops at
-`hc-core`'s compile-time guard. The EDTF set and list forms (`[...]`, `{...}`) need
-`alloc` and report `UncertaintyError::Unsupported` without it rather than
-silently parsing less.
+| Feature | Effect |
+| --- | --- |
+| `std` (default) | platform floating-point math; implies `alloc` |
+| `alloc` | the EDTF set and list forms (`[...]`, `{...}`); without it they return `UncertaintyError::Unsupported` rather than parsing less |
+| `libm` | software floating-point math through `hc-core`, for `no_std` targets |
+
+A build with neither `std` nor `libm` does not compile: `hc-core` refuses
+it. So a `no_std` build is `--no-default-features --features libm`, with
+`alloc` added for the set and list forms.

@@ -1,7 +1,14 @@
 # Holidays and observances
 
-The second half of requirement 3: public holidays by country, and religious or
-cultural observances by tradition, listed in full and covered in stages.
+This file is the holiday roadmap: public holidays by country, religious and
+cultural observances by tradition, and the calendars of institutions such
+as exchanges. It says how holidays are modelled, what is carried, what is
+planned, and what is out of scope. The tables that exist are listed, with
+their rule counts and the date their sources were checked, in
+[`supported.md`](supported.md), which is generated from the code.
+
+A status is one of the values [calendars.md](calendars.md) defines: Done,
+Partial, Planned, Researching or Out of scope.
 
 ## How this is modelled
 
@@ -200,7 +207,10 @@ convention that differs from another gets its own table under
 
 ## Stage 2 — National public holidays
 
-Ordered by how well the sources can be cited, not by importance.
+The rows are ordered by how well the sources can be cited, not by
+importance. Each row names a country and summarises what its table carries
+and from which sources. A Partial row names the restriction that makes it
+partial.
 
 **Done**
 
@@ -387,12 +397,13 @@ Ordered by how well the sources can be cited, not by importance.
 | Gabon 🇬🇦 | The Ministry of Labour's communiqués of 2024–2026 as the press reproduces them, each year's days as declared and a gap otherwise; Liberation Day, 30 August, from 2024; the Sunday weekend of article 220 of the Code du travail of 2021 |
 | North Korea 🇰🇵 | KCNA's names and dates, the 2020 wall calendar's days off as Seoul National University transcribes it, from 2020: the lunar days on `dangi`, the Sunday rest of the Labour Law; the swapped working days not carried |
 
-**Planned** — the United Nations member states without a table, the
-Central African Republic, Eritrea and São Tomé and Príncipe, plus the
-subdivisions that have their own legal holidays. Tracked as one issue per
-country so that each lands with a citable source.
+**Planned** — the three United Nations member states without a table (the
+Central African Republic, Eritrea, and São Tomé and Príncipe), and the
+subdivisions that have their own legal holidays. Each is tracked as one
+issue per country, so that each lands with a citable source.
 
-The three are left out because no list could be read. The Central African
+The three states have no table because no list of their holidays could be
+read. The Central African
 Republic's Code du travail puts the weekly rest on Sunday and lists no
 holiday; the law of 10 January 2020 that fixes the fêtes légales was not
 found, and what is known of it is from the press and an embassy calendar.
@@ -418,12 +429,15 @@ engine takes on the same terms as its own.
 
 ## Stage 3 — Beyond public holidays
 
+Each row is a kind of calendar question beyond a country's public holidays,
+with its status.
+
 | Category | Status |
 | --- | --- |
 | Business-day calculation (weekend rules by country, including Friday–Saturday, Thursday–Friday and one-day weekends) | Done |
-| Trading-day calendars for major exchanges | In progress — `hc_holiday::exchanges`, rule sets keyed by Market Identifier Code from each exchange's own published calendar ([ADR 0008](adr/0008-exchange-calendars-are-rule-sets.md)): New York (`XNYS`) and Nasdaq (`XNAS`), Toronto (`XTSE`), Frankfurt on Xetra (`XETR`), Sydney (`XASX`), Euronext's Amsterdam, Brussels, Dublin, Lisbon, Milan, Oslo and Paris (`XAMS`, `XBRU`, `XDUB`, `XLIS`, `XMIL`, `XOSL`, `XPAR`) from its 2021–2026 tables, B3 in São Paulo (`BVMF`) from its 2021–2026 market calendars, and Nasdaq's Copenhagen, Stockholm, Helsinki and Iceland (`XCSE`, `XSTO`, `XHEL`, `XICE`) from its Nordic calendar for 2025–2027; Tokyo (`XJPX`), Hong Kong (`XHKG`), Seoul (`XKRX`, checked against its closure lists for 2009–2029) Shanghai (`XSHG`, on China's annual arrangements, checked against its notices for 2014–2026) and Taipei (`XTAI`, checked against its schedules for 2023–2026) as their countries' tables plus the exchanges' own days, through `RuleSet::includes`; SIX in Zurich (`XSWX`) from its market holidays for 2026 and 2027, 1 August and 26 December not shown by either year and not carried; London (`XLON`) as the bank holidays of England and Wales, the region its inclusion of the United Kingdom's table names, with its two half days, from its business-days table for August 2026 to January 2029; Johannesburg (`XJSE`, South Africa's table plus the declared days, from its calendars for 2024–2026, its noon closes carried for 2023–2025), Mexico City (`XMEX`, Mexico's table plus the CNBV's four closing days, from its lists for 2019–2026), Warsaw (`XWAR`, Poland's table plus three days, from its lists for 2019–2027) and NZX (`XNZE`, New Zealand's table, from its memos for 2022–2026) through `RuleSet::includes`; Vienna (`XWBO`) from its lists for 2019–2027 and Madrid (`XMAD`) from BME's calendars for 2023–2026; Moscow (`MISX`, which trades on most of Russia's days off, from its announcements for 2023–2026), Tel Aviv (`XTAE`, Sunday–Thursday to 2025 and Monday–Friday from 2026, from its schedules for 2024–2027), Riyadh (`XSAU`, from its announcements for 2023–2026) and Istanbul (`XIST`, the Bayram days from its tables for 2019–2026) tabulated as listed, a year outside them a gap; Shenzhen (`XSHE`, China's table on the Shanghai rules, checked against its notices for 2015–2026) through `RuleSet::includes`; Bangkok (`XBKK`, from its holiday pages for 2022–2027), the National Stock Exchange of India and BSE (`XNSE`, `XBOM`, one list from their circulars and notices for 2020–2026, the Muhurat and weekend sessions included), Singapore (`XSES`, the Ministry of Manpower's holidays for 2020–2026 under SGX's stated rule, with SGX's half days), Kuala Lumpur (`XKLS`, from its calendar pages for 2020–2026), Jakarta (`XIDX`, from its calendars for 2020–2022 and 2024–2026, 2023 a gap) and Manila (`XPHS`, from its memoranda for 2020–2026) tabulated as listed, a year outside them a gap |
+| Trading-day calendars for major exchanges | Partial — 42 exchanges; `hc_holiday::exchanges`, rule sets keyed by Market Identifier Code from each exchange's own published calendar ([ADR 0008](adr/0008-exchange-calendars-are-rule-sets.md)): New York (`XNYS`) and Nasdaq (`XNAS`), Toronto (`XTSE`), Frankfurt on Xetra (`XETR`), Sydney (`XASX`), Euronext's Amsterdam, Brussels, Dublin, Lisbon, Milan, Oslo and Paris (`XAMS`, `XBRU`, `XDUB`, `XLIS`, `XMIL`, `XOSL`, `XPAR`) from its 2021–2026 tables, B3 in São Paulo (`BVMF`) from its 2021–2026 market calendars, and Nasdaq's Copenhagen, Stockholm, Helsinki and Iceland (`XCSE`, `XSTO`, `XHEL`, `XICE`) from its Nordic calendar for 2025–2027; Tokyo (`XJPX`), Hong Kong (`XHKG`), Seoul (`XKRX`, checked against its closure lists for 2009–2029) Shanghai (`XSHG`, on China's annual arrangements, checked against its notices for 2014–2026) and Taipei (`XTAI`, checked against its schedules for 2023–2026) as their countries' tables plus the exchanges' own days, through `RuleSet::includes`; SIX in Zurich (`XSWX`) from its market holidays for 2026 and 2027, 1 August and 26 December not shown by either year and not carried; London (`XLON`) as the bank holidays of England and Wales, the region its inclusion of the United Kingdom's table names, with its two half days, from its business-days table for August 2026 to January 2029; Johannesburg (`XJSE`, South Africa's table plus the declared days, from its calendars for 2024–2026, its noon closes carried for 2023–2025), Mexico City (`XMEX`, Mexico's table plus the CNBV's four closing days, from its lists for 2019–2026), Warsaw (`XWAR`, Poland's table plus three days, from its lists for 2019–2027) and NZX (`XNZE`, New Zealand's table, from its memos for 2022–2026) through `RuleSet::includes`; Vienna (`XWBO`) from its lists for 2019–2027 and Madrid (`XMAD`) from BME's calendars for 2023–2026; Moscow (`MISX`, which trades on most of Russia's days off, from its announcements for 2023–2026), Tel Aviv (`XTAE`, Sunday–Thursday to 2025 and Monday–Friday from 2026, from its schedules for 2024–2027), Riyadh (`XSAU`, from its announcements for 2023–2026) and Istanbul (`XIST`, the Bayram days from its tables for 2019–2026) tabulated as listed, a year outside them a gap; Shenzhen (`XSHE`, China's table on the Shanghai rules, checked against its notices for 2015–2026) through `RuleSet::includes`; Bangkok (`XBKK`, from its holiday pages for 2022–2027), the National Stock Exchange of India and BSE (`XNSE`, `XBOM`, one list from their circulars and notices for 2020–2026, the Muhurat and weekend sessions included), Singapore (`XSES`, the Ministry of Manpower's holidays for 2020–2026 under SGX's stated rule, with SGX's half days), Kuala Lumpur (`XKLS`, from its calendar pages for 2020–2026), Jakarta (`XIDX`, from its calendars for 2020–2022 and 2024–2026, 2023 a gap) and Manila (`XPHS`, from its memoranda for 2020–2026) tabulated as listed, a year outside them a gap |
 | School terms | Out of scope — too local and too volatile |
-| Name days and the sanctorale | In progress — as named authorities rather than one list, since the Roman calendar was recast in 1969 and the Swedish *namnsdagslängd* was revised in 1901, 1993 and 2001 ([policy.md](policy.md) §5). The General Roman Calendar is done (`roman-general`, `hc_holiday::roman_calendar`): the 2002 Missal's calendar with each of the Holy See's decrees since, 2014–2025, every celebration with its rank, precedence not applied. National and diocesan calendars are not yet carried. The name-day lists are `hc-name-days`, one edition per revision, listed country by country in the table below |
+| Name days and the sanctorale | Partial — as named authorities rather than one list, since the Roman calendar was recast in 1969 and the Swedish *namnsdagslängd* was revised in 1901, 1993 and 2001 ([policy.md](policy.md) §5). The General Roman Calendar is done (`roman-general`, `hc_holiday::roman_calendar`): the 2002 Missal's calendar with each of the Holy See's decrees since, 2014–2025, every celebration with its rank, precedence not applied. National and diocesan calendars are not yet carried. The name-day lists are `hc-name-days`, one edition per revision, listed country by country in the table below |
 | Anniversaries and commemorations without a day off | Partial — `Kind::Observance` exists and a handful of tables use it. A general commemoration list is **out of scope** under [policy.md](policy.md) §10: no authority defines which commemorations belong, so its coverage could never be stated. Individual ones enter through whichever authority proclaims them |
 | Recurring events with a defining authority — the modern Olympiads ([policy.md](policy.md) §10) | Done, as a function — `olympiad::ioc_olympiad` in `hc-calendars-regional`: the Olympiad of a Gregorian year under the Charter's definition of 2004, four calendar years from 1 January of the years divisible by four, counted from 1896, with the Games that were not held keeping their numbers, VI in 1916, XII in 1940, XIII in 1944, and the XXXII's held in 2021 (Olympedia, "Olympiad"; Wikipedia, "Olympiad"); see [systems/olympiads.md](systems/olympiads.md). The pre-2004 definition, from one opening ceremony to the next, needs every opening day and is not carried; the Charter itself was not read |
 | Recurring events with a defining authority — the FIFA World Cup | Researching — every fourth year from 1930 but 1942 and 1946, a table of editions (Wikipedia, "FIFA World Cup"). FIFA's Statutes, which would be the authority, were seen only in a search summary |
@@ -469,4 +483,9 @@ not cover.
 3. Test at least five specific dates across at least two different years,
    including one that exercises the substitution rule — or, where the country
    has none, one that proves a weekend holiday stays where it falls.
-4. Move its row to **Done**.
+4. Add its code to `hc_i18n::territories::REGIONS`, with CLDR's name for it in
+   each locale table that has one. A test in the facade's `holiday_lines`
+   holds `REGIONS` to `countries::ALL`.
+5. Regenerate `docs/supported.md` with
+   `UPDATE_SUPPORTED=1 cargo test -p hyper-calendar --all-features --test supported`,
+   and move the country's row in this file to **Done** or **Partial**.

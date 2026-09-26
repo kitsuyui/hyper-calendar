@@ -6,7 +6,10 @@ Human-readable time: *3 days ago*, *in 2 hours*, *2 hours 30 minutes*,
 `hc-calendar` can say that two instants are 34 200 seconds apart. Nobody says
 that. This crate turns a `hc_core::Duration`, or a pair of `hc_calendar::Rd`
 days, into the phrase a person would use — in their language, with the
-grammar that language actually has.
+grammar that language has.
+
+It depends on `hc-core`, `hc-units`, `hc-calendar`, `hc-i18n` and
+`hc-format`.
 
 The grammar is the hard part, and it is why this crate sits on `hc-i18n`
 rather than on a table of English strings. *3 дня*, *5 дней*, *21 день*;
@@ -56,7 +59,7 @@ caller with different needs passes their own rather than forking the crate.
 
 Every locale is **one `pattern::LocaleData` value of `&'static` strings** in
 `data::LOCALES`. Lookup walks `Locale::fallback()` and takes the first entry
-that actually carries the field asked for, then degrades narrow → short →
+that carries the field asked for, then degrades narrow → short →
 long within an entry before moving up the locale chain. No function in this
 crate knows which languages exist, and none gains a branch when one is added.
 
@@ -71,8 +74,10 @@ style, every `other` pattern able to take a number, no padded strings, no
 placeholder in a special word, list patterns shaped `{0}<glue>{1}`, and a
 language `hc-i18n` has plural rules for.
 
-Locales shipped: `ar cs cy de en es fr hi id it ja ko nl pl pt ru th tr vi zh
-zh-Hant`. `zh-Hans` and `zh-CN` reach the `zh` entry by truncation.
+Locales shipped, 21 of them: `ar cs cy de en es fr hi id it ja ko nl pl pt
+ru th tr vi zh zh-Hant`. `hc-i18n`'s fallback chain applies CLDR's likely
+script to a Chinese tag, so `zh-Hans` and `zh-CN` reach the `zh` entry, and
+`zh-TW` and `zh-HK` reach `zh-Hant`.
 
 ## Accuracy and provenance
 
@@ -120,8 +125,6 @@ and quarter means are exact integers too. A day is the nominal 86 400 s.
 - **`ar`, `hi` and `th` state no compact suffixes**, so `DurationStyle::Compact`
   falls back to the root's Latin ones. Inside right-to-left text that needs
   bidi isolation the compact form does not carry; use `Narrow` there.
-- **`zh-TW` and `zh-HK` resolve to Simplified.** CLDR would fix this with
-  likely-subtags, which this workspace does not model; spell `zh-Hant` out.
 - **The root entry is language-free**, not English: an unknown locale gets
   `-3 d`, which is what CLDR's root says. An unknown locale that answered in
   English would be a bug only a speaker of the missing language could see.
@@ -144,7 +147,19 @@ let formatter = RelativeTimeFormatter::new("ru".parse::<Locale>()?);
 let mut text = String::new();
 formatter.write(-5, TimeUnit::Day, &mut text)?;
 assert_eq!(text, "5 дней назад");
+
+// A traditional-script tag reaches the zh-Hant entry.
+let mut text = String::new();
+RelativeTimeFormatter::new("zh-TW".parse::<Locale>()?).write(-3, TimeUnit::Week, &mut text)?;
+assert_eq!(text, "3週前");
+# Ok::<(), Box<dyn std::error::Error>>(())
 ```
+
+| Feature | Effect |
+| --- | --- |
+| `std` (default) | implies `alloc` |
+| `alloc` | the `String`-returning conveniences |
+| `libm` | software floating-point math through `hc-core` and `hc-format`, for `no_std` targets |
 
 ## Spell checking
 

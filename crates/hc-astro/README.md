@@ -1,17 +1,39 @@
 # hc-astro
 
-The astronomical engine under `hyper-calendar`. It answers the four questions
-a calendar actually asks of the sky:
+The astronomical engine under `hyper-calendar`. It answers the questions a
+calendar asks of the sky:
 
 * Where is the Sun on the ecliptic, and **when does it next reach a given
-  longitude**? That search is what the 24 solar terms, the equinoxes and the
-  solstices are made of.
-* Where is the Moon, and **when is the next conjunction**? That is what the
-  Chinese, Dangi, Vietnamese and observational Hijri calendars are made of.
-* How bright is the Moon?
-* When does the Sun or Moon cross the horizon at a given place?
+  longitude**? The 24 solar terms, the equinoxes and the solstices are made
+  of that search.
+* Where is the Moon, and **when is the next conjunction**? The Chinese,
+  Korean, Vietnamese and observational Hijri calendars are made of that.
+* How much of the Moon is lit?
+* When does the Sun or Moon cross the horizon at a given place, and what
+  does a sundial read there?
+* How far has the Earth turned? This is the Earth Rotation Angle and
+  sidereal time, and UT1 with its smoothed variants UT2, UT1R and UT1S.
 
 It contains no calendar. Nothing here knows what a month is.
+
+It depends on `hc-core` and `hc-calendar`, whose `Rd` and `Moment` (a
+fractional fixed day) it takes and returns.
+
+```rust
+use hc_astro::solar::{Equinox, equinox};
+
+// The March equinox of 2000 was 2000-03-20 07:35 UT.
+let moment = equinox(2000, Equinox::March);
+assert_eq!(moment.day(), hc_calendar::Rd(730_199));
+```
+
+## Feature flags
+
+| Feature | Effect |
+| --- | --- |
+| `std` (default) | platform floating-point math; implies `alloc` |
+| `alloc` | passed through to `hc-core` and `hc-calendar` |
+| `libm` | software floating-point math through `hc-core`, for `no_std` targets |
 
 ## Time scales
 

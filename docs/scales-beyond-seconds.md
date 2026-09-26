@@ -1,9 +1,10 @@
 # Scales beyond seconds, and time that is not known exactly
 
-Requirement 6 of the brief: support times that an ordinary calendar cannot
-reach — the chronology of the universe, Planck time — and, because such values
-are never exactly known, carry significant figures, error bars and vague ranges
-alongside them.
+This document covers times that an ordinary calendar cannot reach, from the
+Planck time to the chronology of the universe. Such values are never known
+exactly, so it also covers how the library carries significant figures,
+error bars and vague ranges. Three crates are involved: `hc-uncertainty`,
+`hc-deep-time` and `hc-orbital`.
 
 ## Why `Duration` is not enough
 
@@ -19,28 +20,31 @@ everything it cannot.
   435 084 600 000 000 000 s implies eighteen significant figures where there
   are five.
 
-So the library splits the problem. Exact things are exact; inexact things say
-how inexact they are.
+So the library keeps two kinds of value. An exact value is exact. An inexact
+value carries how inexact it is.
 
 ## `hc-uncertainty`
+
+Each row names a type and the question it answers.
 
 | Type | Answers |
 | --- | --- |
 | `Significant` | "13.8 billion years" has three significant figures, and arithmetic on it must not manufacture more |
 | `Uncertain { value, std_dev }` | A Gaussian, with first-order propagation through `+ − × ÷`, `ln`, `exp`, `powf`, and weighted combination |
 | `DurationInterval` | A closed `[lo, hi]` of `Duration`, with interval arithmetic |
-| `FuzzyInstant` | An instant that is exact, known to a resolution, bounded, Gaussian, open-ended, or simply unknown |
+| `FuzzyInstant` | An instant that is exact, known to a resolution, bounded, Gaussian, open-ended, or unknown |
 
 `FuzzyInstant` implements **Allen's interval algebra**: given two vague
 instants, `before`, `meets`, `overlaps`, `starts`, `during`, `finishes`,
 `equals` and their inverses are computed as the *set* of relations that remain
-possible. Asking "did A happen before B" when both are vague gets an honest
-answer — sometimes `{before, meets, overlaps}` — instead of a coin flip.
+possible. Asking "did A happen before B" when both are vague can return a
+set such as `{before, meets, overlaps}` rather than one relation.
 
 ### EDTF
 
 `hc-uncertainty::edtf` parses and renders **ISO 8601-2 / Extended Date/Time
-Format**, the standard vocabulary libraries and archives already use for this:
+Format**, the notation libraries and archives use for uncertain dates. Each
+row is a form the parser accepts:
 
 | Form | Meaning |
 | --- | --- |
@@ -55,8 +59,10 @@ Format**, the standard vocabulary libraries and archives already use for this:
 | `[1667,1668,1670..1672]` | one of these |
 | `{1960,1961-12}` | all of these |
 
-Supporting the standard rather than inventing a notation means the library can
-round-trip data from archival catalogues without loss.
+Every accepted form renders back to the same text. The forms the parser
+rejects — times of day, seasons, qualification of single components and
+exponential years — are listed in the
+[`hc-uncertainty` README](../crates/hc-uncertainty/README.md).
 
 ## `hc-deep-time`
 
@@ -86,8 +92,7 @@ representation is a magnitude with an exponent, not a count.
   and the four cosmological eras out to the Dark Era — the values that make
   the logarithmic scale necessary.
 
-Every entry in those tables carries its uncertainty. A timeline that says the
-Hadean began 4.567 Ga with no error bar is not a timeline, it is a decoration.
+Every entry in those tables carries its uncertainty and its source.
 
 ## `hc-orbital`
 
@@ -104,7 +109,7 @@ that follows from them, for a million years either side of 1950.
 - Every element is an `Uncertain` whose error bar is the measured
   disagreement with the author's later solution, in tiers that widen with
   distance.
-- Beyond ±1 Myr the crate refuses (ADR 0006); a longer solution — Laskar
+- Beyond ±1 Myr the crate refuses ([ADR 0006](adr/0006-refuse-to-extrapolate.md)); a longer solution — Laskar
   et al. 2004 — is named and not carried.
 
 The explanation and the worked example are in
@@ -112,7 +117,6 @@ The explanation and the worked example are in
 
 ## What this is not
 
-It is not a physics engine and not a cosmology solver. `hc-deep-time` carries
-published values and lets you do arithmetic on them with the error bars intact.
-Computing a value from a cosmological model is the caller's job; the library's
-job is to stop the error bars from being dropped on the way.
+It is not a physics engine and not a cosmology solver. `hc-deep-time`
+carries published values and does arithmetic on them with the error bars
+kept. Computing a value from a cosmological model is the caller's job.
