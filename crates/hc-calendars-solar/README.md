@@ -57,6 +57,10 @@ file does not:
 | `mandaean` | Mandaean: twelve thirty-day zodiacal months with the five Parwanaia after the eighth, no leap day, years after the creation of Adam | `mandaean` |
 | `assyrian` | Modern Assyrian: the Gregorian months from 1 Neesan = 1 April under Syriac names, year 1 in 4750 BC | `assyrian` |
 | `yazidi` | Yazidi: the year from Serêsal, the first Wednesday of Eastern (Julian) Nisan, in the 4750 count; the day of the year over the Julian date | `yazidi` |
+| `hanke_henry` | Hanke–Henry Permanent: quarters of 30, 30 and 31 days from Monday 1 January, the week *Xtr* after December in the years with 53 ISO weeks | `hanke-henry` |
+| `icelandic` | Old Icelandic *misseristal*: 52 weeks in two *misseri*, summer from the first Thursday on or after 19 April Gregorian, or 9 April Julian before 1700, and the leap week *sumarauki* | `icelandic`, `icelandic-julian` |
+| `qumran` | The Qumran and *Jubilees* 364-day year: quarters of 91 days from a Wednesday, no intercalation, the twenty-four priestly courses by week; the epoch a convention of this library | `qumran` |
+| `soviet_week` | The Soviet revolutionary weeks of 1929–1940: Gregorian dates under the continuous five-day week and then the six-day week of the decrees | `soviet-week` |
 
 `register_all(&mut CalendarRegistry)`, behind the `alloc` feature, inserts every
 calendar in the table.

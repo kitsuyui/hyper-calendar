@@ -35,7 +35,8 @@ use hyper_calendar::hc_calendars_solar::gregorian;
 /// whose sources, as read, give no span: the Egyptian wandering year under
 /// Ptolemy's era, the Roman era of later historians, the Yazidi year, the
 /// observational Hijri prediction, the Old Hindu mean reckonings, the Aztec
-/// counts, the Javanese and Akan weeks.
+/// counts, the Javanese and Akan weeks, and the Qumran 364-day year, whose
+/// days this library places by a convention of its own.
 const UNRECORDED: &[&str] = &[
     // Day counts.
     "ansi-date",
@@ -53,6 +54,7 @@ const UNRECORDED: &[&str] = &[
     "sexagenary",
     // Proposals.
     "discordian",
+    "hanke-henry",
     "holocene",
     "persian-arithmetic",
     "positivist",
@@ -66,6 +68,7 @@ const UNRECORDED: &[&str] = &[
     "hindu-old-lunar",
     "hindu-old-solar",
     "islamic-rgsa",
+    "qumran",
     "roman-auc",
     "yazidi",
 ];
@@ -151,6 +154,7 @@ fn the_calendars_in_use_today_say_so() {
         "bikram-sambat",
         "thai-lunar",
         "maya-tzolkin",
+        "icelandic",
     ] {
         let calendar = registry.get_by_name(id).expect(id);
         assert_eq!(calendar.standing(today), Standing::InUse, "{id}");
@@ -175,6 +179,7 @@ fn the_historical_calendars_are_bounded() {
         "maya-longcount",
         "japanese-imperial",
         "juche",
+        "soviet-week",
     ] {
         let calendar = registry.get_by_name(id).expect(id);
         let usage = calendar.usage();
