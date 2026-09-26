@@ -1,8 +1,12 @@
 # hc-core
 
-Exact instants and durations on the physical time scales (TAI, GPS time
-and the rest), UTC with its leap seconds, and the well-known epochs: the
-primitives every other crate uses and none may redefine.
+Exact instants and durations on the uniform time scales (TAI, GPS time
+and the rest), UTC with its leap seconds, the well-known epochs, and the
+timestamp formats software writes from them. Every other crate in the
+workspace uses these primitives, and none redefines them.
+
+It depends on no other workspace crate. Its one external dependency is
+`libm`, which is optional (see [Feature flags](#feature-flags)).
 
 ```rust
 use hc_core::unix::{LeapPolicy, UnixTime, tai_from_unix};
@@ -47,7 +51,7 @@ assert_eq!(tai.since_epoch().whole_seconds(), 1_483_228_800 + 37);
 
 | Claim | |
 | --- | --- |
-| `Duration` | exact to the attosecond over a range of about 5 × 10³⁰ years; arithmetic reports overflow rather than wrapping. The operators `+ - * / %` panic on overflow or a zero divisor, and each has a `checked_*` twin (policy §8) |
+| `Duration` | exact to the attosecond over a range of about 5 × 10³⁰ years; arithmetic reports overflow rather than wrapping. The operators `+ - * / %` panic on overflow or a zero divisor, and each has a `checked_*` twin ([policy §8](../../docs/policy.md)) |
 | TAI − TT | exactly 32.184 s |
 | TAI − GPS, GST, NavIC; TAI − BDT | 19 s and 33 s, exact by convention; the systems' realisations are steered to national UTCs and differ from these by sub-microsecond residuals that are not carried |
 | TAI − UTC, 1972 onward | exact, a whole number of seconds from the IANA `leap-seconds.list`, which mirrors IERS Bulletin C; the last entry is the leap second of 2017-01-01 |
@@ -62,9 +66,9 @@ assert_eq!(tai.since_epoch().whole_seconds(), 1_483_228_800 + 37);
 
 The table's validity horizon is `leap::table_valid_until_unix`, the expiry
 declared by the `leap-seconds.list` it was built from, and it is updated
-together with the table and never past what the file itself claims. The 2022
-CGPM resolution to retire the leap second by 2035 will change this table's
-future, not its past.
+together with the table and never past what the file itself claims. The
+CGPM resolved in 2022 to stop inserting leap seconds by 2035. That changes
+this table's future, not its past.
 
 ## Feature flags
 
@@ -81,5 +85,5 @@ where the person choosing the features will see it.
 ## What this crate is not
 
 Not a date library. It has no notion of a year, a month or a weekday, and
-nothing in it knows what day it is. Every number in it is a count of SI
-seconds from an epoch, or a table of when UTC decided to have one more.
+it has no clock. Every number in it is a count of SI seconds from an epoch,
+or an entry in the table of leap seconds.

@@ -1,9 +1,9 @@
 # Python parity
 
-Requirement 2 of the brief asks for "the basics of Python's `datetime`,
-`time`, `date`, `timedelta` and `humanize`". This is the correspondence, one
-table per Python class or package: the Python name, what answers it here,
-and how closely.
+This document maps Python's `datetime` module and the `humanize` package
+onto this library. There is one table per Python class or package. Each row
+gives the Python name, what answers it here, and how closely. The Status
+column takes three values:
 
 - **yes** — the same question has the same answer here.
 - **partial** — an answer exists and the note says what differs or is
@@ -167,10 +167,11 @@ directive against the documentation's table in
 | `%U` `%W` | yes | with a year and a weekday, as Python | yes (2 rows) |
 | missing fields default to 1900-01-01 | — | `hc_format::python::strptime` | yes |
 
-Two differences remain in `%Z`: parsing resolves only the names RFC 5322
-gives an offset, because an abbreviation does not name a zone (`CST` is
-three), and `%z` offsets with a fraction of a second, which Python accepts,
-are refused because `hc_tz::UtcOffset` counts whole seconds. Locale names
+Two differences from Python remain. Parsing `%Z` resolves only the names
+RFC 5322 gives an offset, because an abbreviation does not name a zone
+(`CST` names three). Parsing `%z` refuses an offset with a fraction of a
+second, which Python accepts, because `hc_tz::UtcOffset` counts whole
+seconds. Locale names
 come from `hc-i18n` when a `FormatContext` carries a locale, and are the C
 locale's otherwise, as Python's are without `setlocale`.
 

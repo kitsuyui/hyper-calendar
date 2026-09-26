@@ -4,12 +4,30 @@ The calendar abstraction shared by every calendar in the workspace: the day
 number they all convert through, the two interfaces they implement, and the
 cycles that name days without counting them.
 
+It depends on `hc-core`.
+
+```rust
+use hc_calendar::cycle::{readings::HAN, sexagenary_day};
+use hc_calendar::{Rd, Weekday, gregorian};
+
+// 1 January 2000 in the proleptic Gregorian calendar.
+let day = gregorian::to_fixed(2000, 1, 1)?;
+assert_eq!(day, Rd(730_120));
+assert_eq!(gregorian::from_fixed(day)?, (2000, 1, 1));
+assert_eq!(Weekday::from_rd(day), Weekday::Saturday);
+
+// Its place in the sixty-day stem-branch cycle, in Han characters.
+assert_eq!(HAN.pair(sexagenary_day(day)), ("戊", "午"));
+# Ok::<(), hc_calendar::CalendarError>(())
+```
+
 ## The pivot
 
 There is no useful "common calendar". What every calendar shares is a way to
 name a day, and days can be counted. `Rd`, the Rata Die fixed day number, is
-that count, with day 1 being `0001-01-01` in the proleptic Gregorian calendar.
-Every calendar implements two operations against it:
+that count. Day 1 is `0001-01-01` in the proleptic Gregorian calendar, which
+applies the Gregorian rules to the years before 1582 as well. Every calendar
+implements two operations against it:
 
 ```text
 fields  --to_fixed-->  Rd  --from_fixed-->  fields
@@ -19,10 +37,10 @@ so a library of *n* calendars needs 2*n* conversions rather than *n*², and two
 calendars can be shown side by side without either knowing the other exists.
 This is the design of Reingold and Dershowitz's *Calendrical Calculations*.
 
-Because the sentence "day 1 is `0001-01-01`" is what fixes the origin, the
+The sentence "day 1 is `0001-01-01`" fixes the origin of `Rd`. So the
 proleptic Gregorian arithmetic that implements it lives here, in `gregorian`,
-rather than in a calendar crate, where every crate below the calendars can
-reach it.
+rather than in a calendar crate. Every crate that depends on `hc-calendar`
+can reach it.
 
 ## Two interfaces
 
@@ -79,7 +97,7 @@ an argument, supplied by `hc-seasons`.
 | Claim | |
 | --- | --- |
 | `Rd` ↔ proleptic Gregorian | exact over years −9 999 999 to 9 999 999; outside that range the conversion refuses rather than wraps |
-| the weekday | `Rd` 1, 0001-01-01, is a Monday, and the seven-day cycle has never been interrupted |
+| the weekday | `Rd` 1, 0001-01-01, is a Monday, and the seven-day cycle is taken as unbroken; a calendar with another week declares it as a cycle of its own |
 | the day pillar | anchored to the published rule that the stem is (JDN + 9) mod 10 and the branch (JDN + 1) mod 12, and to 1984-02-02 as the first day of a 甲子 year |
 | the year pillar | three conventions — 立春, the lunisolar new year, 1 January — as three named functions, since they disagree for days at a time |
 | the hour pillar | both schools of the 子 hour, named, since they give different pillars for the same instant |
@@ -99,6 +117,8 @@ an argument, supplied by `hc-seasons`.
 | --- | --- |
 | `std` (default) | implies `alloc` |
 | `alloc` | `CalendarRegistry` and the dynamic interface's boxed calendars |
+| `libm` | software floating-point math through `hc-core`, for `no_std` targets |
 
-Without either, the static interface, the fixed-capacity `DateFields`, the
-Gregorian arithmetic and every cycle are all available.
+Without `alloc`, the static interface, the fixed-capacity `DateFields`, the
+Gregorian arithmetic and every cycle are available. A build with neither
+`std` nor `libm` does not compile, because `hc-core` refuses it.

@@ -1,6 +1,6 @@
 # 0006 — Refuse to extrapolate observational data
 
-**Status:** Accepted
+**Status:** Accepted; one bullet of the decision amended on 2026-09-27, see [Later changes](#later-changes)
 
 ## Context
 
@@ -46,3 +46,16 @@ Bikram Sambat as gazetted, the Sinhalese new year as published — is a third
 kind, one where a computed answer can differ from the ruling by a day and is
 most confidently wrong when it does. The tables carry the rulings and refuse
 outside them, but a caller cannot yet ask the metadata which kind it holds.
+
+## Later changes
+
+**2026-09-27.** The last bullet of the decision no longer describes the
+code. A holiday that an authority announces each year is now carried as
+the notices that were read, and any other year is reported as a gap by
+`HolidayCalendar::gaps`, as [ADR 0009](0009-a-working-day-is-an-entry.md)
+and [systems/announced-holidays.md](../systems/announced-holidays.md)
+describe. `Confidence::Approximate` marks a date the engine computes as a
+prediction of an announcement, such as every Hijri-dated entry. Both keep
+this record's decision: the library does not answer past its data without
+saying so. The open question above is still open: `CalendarMeta` has no
+field that says a calendar is decreed.

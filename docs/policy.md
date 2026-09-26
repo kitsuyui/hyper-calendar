@@ -93,7 +93,7 @@ Where authorities genuinely disagree about what a calendar does, the library
 registers **each convention as its own named calendar** rather than taking a
 parameter, picking a default, or refusing to answer.
 
-This is already how the Julian-to-Gregorian reform works: `julian-gregorian-gb`
+The Julian-to-Gregorian reform calendars follow this rule: `julian-gregorian-gb`
 and `julian-gregorian-ru` are separate calendars, because a date written in
 Britain in 1700 and the same day written in Russia belong to different
 calendars, not to one calendar with a setting. The rule generalises.
@@ -146,9 +146,9 @@ discovery or decision — and what it costs.
 
 ## 6. Modularity is a compile-time property
 
-Requirement 8 of the original brief: not everything should be compiled into
-everything. The workspace is split so that a caller who wants Gregorian dates
-and nothing else pays for Gregorian dates and nothing else.
+Not everything should be compiled into everything. The workspace is split
+so that a caller who wants Gregorian dates and nothing else pays for
+Gregorian dates and nothing else.
 
 - Each capability is its own crate.
 - The `hyper-calendar` facade exposes each as an optional feature.
@@ -181,8 +181,8 @@ and nothing else pays for Gregorian dates and nothing else.
   test that makes it do so.
 - CI runs `cargo test`, `cargo clippy -D warnings`, `cargo fmt --check`,
   `cargo doc` with warnings denied, `no_std` builds, a WebAssembly build, a
-  shared-library build and `cargo audit` on every pull request. Coverage is reported by octocov with a
-  70% floor.
+  shared-library build and `cargo audit` on every pull request. Coverage is
+  reported by octocov with a 70% floor.
 
 ## 8. `unwrap` and `expect` are forbidden outside tests
 
@@ -245,7 +245,7 @@ It is whether **a disciplined external authority defines the set**.
 The test is not "is this important" but "**could this repository be wrong about
 the list, and would anyone be able to tell?**" An externally defined set can be
 checked against its source, cited, dated, and corrected when the source
-changes — which is what `sources_checked` already exists for. A set this
+changes — which is what each holiday table's `sources_checked` date is for. A set this
 project curates cannot be checked against anything, because there is nothing
 to check it against.
 

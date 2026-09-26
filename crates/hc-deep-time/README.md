@@ -11,6 +11,17 @@ Gyr, which is five significant figures and not eighteen. So values out there
 live here instead, as *published magnitudes with error bars*, and the type
 system stops the error bars being dropped on the way.
 
+It depends on `hc-core` and `hc-uncertainty`.
+
+```rust
+use hc_deep_time::{DeepTime, universe};
+
+let now = universe::AGE_OF_UNIVERSE.deep_time().unwrap();
+let planck = DeepTime::from_planck_times(1.0, 0.0).unwrap();
+// About sixty-one decades from the Planck time to the present.
+assert!((now.orders_of_magnitude_between(planck).unwrap() - 60.9).abs() < 0.1);
+```
+
 ## What it covers
 
 | Module | Holds |
@@ -151,3 +162,15 @@ measurement.
   Southwest Asian and European and every entry names its region, because the
   Bronze Age begins eleven centuries apart in Anatolia and in Britain and never
   at all in most of the Americas.
+
+## Feature flags
+
+| Feature | Effect |
+| --- | --- |
+| `std` (default) | platform floating-point math; implies `alloc` |
+| `alloc` | passed through to `hc-core` and `hc-uncertainty` |
+| `libm` | software floating-point math through `hc-core`, for `no_std` targets |
+
+A build with neither `std` nor `libm` does not compile: `hc-core` refuses
+it, so a missing feature is reported at build time rather than at run time.
+

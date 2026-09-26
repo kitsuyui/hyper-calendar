@@ -18,6 +18,29 @@ minimal lunisolar derivation they rest on are written up the same way in
 [`docs/systems/zassetsu-and-rokuyo.md`](../../docs/systems/zassetsu-and-rokuyo.md).
 This README summarises both and states the crate's own facts.
 
+It depends on `hc-core`, `hc-calendar` and `hc-astro`, and on
+`hc-calendars-lunar` when its `lunar` feature is on.
+
+```rust
+use hc_seasons::{Meridian, SolarTerm};
+use hc_seasons::solar_terms::term_day;
+
+// 立春 2024 fell on 4 February in Japan.
+assert_eq!(
+    term_day(2024, SolarTerm::BEGINNING_OF_SPRING, Meridian::JAPAN),
+    hc_calendar::Rd(738_920)
+);
+```
+
+## Feature flags
+
+| Feature | Effect |
+| --- | --- |
+| `std` (default) | platform floating-point math; implies `alloc` |
+| `alloc` | passed through to the crates below |
+| `libm` | software floating-point math through `hc-core`, for `no_std` targets |
+| `lunar` | `lunisolar::exact_lunisolar_day`, which reads a day from `hc-calendars-lunar`'s Tenpō calendar |
+
 | Module | Covers |
 | --- | --- |
 | `solar_terms` | 二十四節気, both orderings, the 節気 / 中気 split |
@@ -51,10 +74,9 @@ offset, not a time zone: no daylight saving, no political history. That is
 
 ## One computation, three zodiacs
 
-The crate already found the 24 solar terms as the instants the Sun's apparent
-longitude reaches a multiple of 15°. A zodiac sign is the same search at a
-multiple of 30°, so `zodiac` adds naming and a zero point and no new
-astronomy. The three zero points in use are 15° and 24° apart:
+The 24 solar terms are the instants at which the Sun's apparent longitude
+reaches a multiple of 15°. A zodiac sign is the same search at a multiple of
+30°, so `zodiac` adds names and a zero point and no new astronomy. The three zero points in use are 15° and 24° apart:
 
 | Division | Zero point | Boundaries |
 | --- | --- | --- |
@@ -88,10 +110,10 @@ The Chinese zodiac **animal** of a year is not here and is not a 次. It is the
 earthly branch of the sexagenary year, a counting cycle with no angle in it,
 and it lives in `hc_calendar::cycle` — `sexagenary_year` and
 `Sexagenary::zodiac_animal`. The 次 do carry the matching 十二辰 branch, which
-runs *backwards* against them (星紀 is 丑, 玄枵 is 子), and the docs say so
-loudly enough that nobody should read a birth animal out of this module.
+runs *backwards* against them (星紀 is 丑, 玄枵 is 子). The module
+documentation warns against reading a birth animal from it.
 
-## Accuracy, and the measurement that proves it
+## Accuracy, and how it was measured
 
 `hc-astro`'s apparent solar longitude is VSOP87, good to about 1″ — under
 half a minute of solar motion — so an event within about a minute of local
@@ -212,7 +234,7 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
   finds their boundaries. It does not number days within a month, number
   years, know the Kollam, Bengali San or Śaka epochs, or implement the
   regional rule for a saṅkrānti that falls late in the day. Those are
-  `hc-calendars-regional`'s. Nor is any of it the lunisolar Hindu calendar,
+  `hc-calendars-indic`'s. Nor is any of it the lunisolar Hindu calendar,
   whose months begin at a new or full moon, or the national civil Śaka
   calendar (CLDR `indian`), which has fixed month lengths tied to the tropical
   equinox.
@@ -257,13 +279,14 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
   if the equinox fell before noon and the later if after; `shanichi` (and
   `day_of`) is the second rule and `classical_shanichi` the first, each
   anchored to the days the almanacs printed.
-* **`pentad_moment` near 280°.** A leap year whose 1 January falls just before
+* **`pentad_moment` near 280°.** A leap year whose 1 January falls shortly before
   the 280° crossing contains that pentad twice, and `pentad_moment` returns
   the first. `pentads_in_year` walks the year instead and cannot
   double-count.
 * **Southern-hemisphere East Asian seasons** are a mechanical flip. The 立
-  terms describe the Chinese agricultural year and have no southern form; the
-  flip is offered because refusing would be more annoying than useful.
+  terms describe the Chinese agricultural year and have no southern form.
+  The flip is a convenience for a southern-hemisphere caller, who would
+  otherwise get nothing.
 * **No `Calendar` impl, no registry entry.** Deliberate; see above.
 * **Ayanamsa anchors disagree at the tens-of-arcseconds level.** The values
   here are the Swiss Ephemeris ones; other published tables for the same named
@@ -310,11 +333,10 @@ document, with keys in `docs/references.bib`. The rest of the crate cites:
 ## Testing
 
 Unit tests, integration tests and documentation tests; the zodiac work
-accounts for the largest share. Exact counts are not quoted here, because a
-number in prose drifts away from the code within a release and says nothing
-a reader can use — `cargo test -p hc-seasons` is the authority.
+accounts for the largest share. Test counts are not quoted here, because a
+count in prose goes stale; `cargo test -p hc-seasons` is the authority.
 
-```
+```sh
 cargo test -p hc-seasons
 cargo clippy -p hc-seasons --all-targets --all-features -- -D warnings
 cargo fmt -p hc-seasons -- --check

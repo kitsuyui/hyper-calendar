@@ -5,9 +5,10 @@ Gangale's circad calendars for Titan and the Galilean moons, a data table of
 the solar system's major bodies, the Moon's lunation counts
 and selenographic colongitude, and one generic clock over all of them.
 
-Every entry point takes an `hc_core::Instant<Tai>`. TAI is the only scale with
-no rotational content, which is the honest place to stand when the rotation you
-care about is not the Earth's.
+Every entry point takes an `hc_core::Instant<Tai>`. TAI is the only scale
+here with no rotational content, so it favours no body's rotation.
+
+It depends on `hc-core`, `hc-calendar` and `hc-astro`.
 
 ```rust
 use hc_planetary::{BodyClock, mars};
@@ -127,7 +128,7 @@ Contested values, carried as they stand with the conflict in `Body::source`:
   says −5832.6 h and the IAU rate gives −5832.444 h.
 - **Neptune** — 16.11 h, the IAU 2009 System III value that NSSDC and JPL both
   publish. The IAU 2015 report adopts 15.9663 h after Karkoschka 2011. These
-  genuinely conflict.
+  conflict.
 - **The Sun** — 609.12 h is the Carrington rate at 16° latitude, not the
   equator; the Sun rotates differentially and has no single period.
 - **Pluto** — signed negative here because its 119.51° tilt makes the rotation
@@ -149,8 +150,19 @@ synodic month).
 - `BROWN_MINUS_MEEUS_LUNATION` = 953: Brown lunation 1 begins at the new moon of
   1923-01-17.
 - Coordinated Lunar Time: US OSTP memorandum, April 2024, directing NASA to
-  deliver a standard by the end of 2026. No definition was published at the
-  time of writing.
+  deliver a standard by the end of 2026. None had been published as of
+  2026-09-26.
+
+## Feature flags
+
+| Feature | Effect |
+| --- | --- |
+| `std` (default) | platform floating-point math; implies `alloc` |
+| `alloc` | passed through to `hc-core`, `hc-calendar` and `hc-astro` |
+| `libm` | software floating-point math through `hc-core`, for `no_std` targets |
+
+A build with neither `std` nor `libm` does not compile: `hc-core` refuses
+it.
 
 ## `hc_core::epoch::J2000`
 

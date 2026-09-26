@@ -1,19 +1,18 @@
-> **This file is the roadmap, not the inventory.** What exists is listed in
-> [`supported.md`](supported.md), which is generated from the code and cannot
-> drift from it. What is here is the part a generator cannot produce: what is
-> planned, what is being researched, what is out of scope and why, and how to
-> add a calendar. Where a row below is marked Done, `supported.md` is the
-> authority on its identifier, range and day boundary.
-
 # Calendar coverage
 
-Requirement 3 of the project brief asks for every calendar we can know about,
-covered in stages and without quietly dropping any. This file is that list. It
-is the roadmap *and* the honest status report: a calendar is only marked
-**Done** when it is implemented, round-trip tested and anchored to a published
-reference date.
+This file is the calendar roadmap. It lists every calendar the project has
+considered, with its status, and says how to add one. It is not the
+inventory: [`supported.md`](supported.md) lists what exists, is generated
+from the code, and cannot drift from it. For a row marked Done,
+`supported.md` is the authority on the identifier, range and day boundary.
 
-Status values:
+The calendars are grouped in stages. A stage is a family that shares an
+engine or a crate, not an order of work: stage 1 needs no astronomy,
+stage 2 needs the lunar engine, and so on.
+
+A calendar is marked **Done** only when it is implemented, round-trip
+tested and anchored to a published reference date. The Status column takes
+these values:
 
 | Value | Meaning |
 | --- | --- |
@@ -24,21 +23,25 @@ Status values:
 | **Out of scope** | Deliberately excluded, with a reason |
 
 In the Id columns, a Done or Partial row names an identifier the code
-registers or defines; a Planned or Researching row names the identifier
-proposed for it, which does not exist yet; and "—" means there is none,
-the row naming the functions that carry it instead.
+registers or defines. A Planned or Researching row names the identifier
+proposed for it, which does not exist yet. "—" means there is no identifier,
+and the row names the functions that carry the calendar instead. The Crate
+column names the crate that holds the calendar, or would hold it. After the
+status, a row gives its scope and the sources read.
 
-Identifiers follow Unicode CLDR where CLDR has one, so that a CLDR-aware
-caller can name a calendar here with the word it already uses. The same
-word does not always name the same days in ICU, though, so an identifier is
-a starting point for interchange and not a promise of agreement. The table
-says, for each CLDR identifier registered here, where ICU4C and ICU4X give
-the same days and where they do not. It was drawn from ICU4C 79.1 and ICU4X
-2.3.0, both read from their `main` branches on 2026-09-26
-[icu4c-calendar-sources, icu4x-calendar-sources]; where a row says
-"measured", the figures come from a comparison run that day against
-ICU4X's own year tables and ICU's leap-year rule, and are not kept as a
-test.
+## Agreement with ICU
+
+Identifiers follow Unicode CLDR where CLDR has one. A caller that already
+uses CLDR's word for a calendar can use it here. The same word does not
+always name the same days in ICU, so an identifier is a starting point for
+interchange, not a promise of agreement.
+
+The table below compares each CLDR identifier registered here with ICU4C
+79.1 and ICU4X 2.3.0, both read from their `main` branches on 2026-09-26
+[icu4c-calendar-sources, icu4x-calendar-sources]. Each cell says whether
+that library gives the same days as this one. A cell that says "measured"
+reports a comparison run that day against ICU4X's own year tables and ICU's
+leap-year rule. The comparison is not kept as a test.
 
 | Id | ICU4C | ICU4X |
 | --- | --- | --- |
@@ -129,11 +132,11 @@ rule. The Icelandic calendar has a third, older than both: the leap week
 falls wherever it keeps the First Day of Summer in a Thursday window of the
 Julian or Gregorian calendar, which under the Gregorian window also gives 71
 in 400 years, in different years from ISO's. The Qumran 364-day year, the
-same shape with no leap rule at all, drifts. The durable sources for the
+same shape with no leap rule at all, drifts. The sources cited for the
 reform family are the archive.org copy of Cotsworth and the Hermetic Systems
-pages: Bromberg's University of Toronto pages are gone, `worldcalendar.org`
-is a parked domain, and `theworldcalendar.org` is no longer the World
-Calendar Association's site and is not cited as it.
+pages. Bromberg's University of Toronto pages are offline.
+`worldcalendar.org` is a parked domain. `theworldcalendar.org` is not the
+World Calendar Association's site, and is not cited as it.
 
 ### Eras and year counts on the solar year
 
@@ -303,8 +306,9 @@ the amānta or pūrṇimānta months or on the solar ones.
 
 ## Stage 3 — Astronomical variants of stage 1 calendars
 
-Same calendars, computed from observation rather than from a cycle. They can
-disagree with the arithmetic form by a day, which is exactly why both exist.
+The same calendars, computed from the sky rather than from a cycle. The
+astronomical and arithmetic forms can disagree by a day, so each is
+registered under its own identifier.
 
 | Calendar | Id | Status |
 | --- | --- | --- |
@@ -388,7 +392,7 @@ are written up in [systems/sexagenary-cycle.md](systems/sexagenary-cycle.md).
 Reckonings of the ancient Mediterranean and Near East that the table above
 does not carry. Most are a year count on a calendar that is already here, or
 a month-name table over one; where a row says names only, nothing more can
-honestly be carried from the sources read.
+be carried from the sources read.
 
 | Calendar | Id | Crate | Status |
 | --- | --- | --- | --- |
@@ -398,7 +402,7 @@ honestly be carried from the sources read.
 | Syrian and Palestinian city eras | `antioch-caesarean-era`, `antioch-caesarean-era-september`, `gaza-era` | `hc-calendars-solar` | Done for Antioch and Gaza — Antioch's Caesarean era on the Antiochene months from 1 October 49 BC, and with the year from 1 September, Grumel's "c. 460" being no day, as two identifiers; Evagrius's dates of 457–588 are in the September year, his earthquake of 14 Gorpiaios 506 falling on Saturday 14 September 457 in the eleventh indiction, and no dated example of the October year was read. Gaza's era from 28 October 61 BC on the Julian days, the Kissufim mosaic's Loos 636 being August 576; the Gaza months are not carried, their leap day being in no text read (Grumel, "Eras, Historical"; Evagrius, tr. Walford; Bultrighini 2021; Cult of Saints E03137); see [systems/seleucid-eras.md](systems/seleucid-eras.md). "Several Syriac writers" begin Antioch's era on 1 October 48 BC, which would be its own identifier and has no dated example read. Researching for the Pompeian era of 63 BC (Khilda's 750 = 687), Sidon's of 110 or 109 BC and Ascalon's of 104 and 57 BC, which have no year start; and Tyre's, which Grumel gives as 274 and 116 BC with the year from 19 October, but whose date at Chalcedon, 10 Peritios 574 = 25 February 449 (Bultrighini 2021), puts year 1 in 126/125 BC |
 | Hemerologium city calendars (Gaza, Tyre, Ascalon, Cyprus and the rest) | — | `hc-calendars-solar` | Researching — the reformed provincial calendars in fixed relation to the Julian year that the Florence, Leiden and Vatican *hemerologia* tabulate, thirteen to fifteen of them (Bultrighini, "Calendars of the Greek East under Rome", 2021; Wikipedia, "Julian calendar", "Bostran era"). The calendar of Antioch among them, the one "of the Hellenes", is `seleucid-syrian`'s months. Bultrighini's equations for Gaza — 26 Gorpiaios = 23 September, 15 Artemisios = 10 May, 24 Apellaios = 4 Audynaios of Elousa — fit thirty-day months from 1 Dios = 28 October with five extra days after Loos, but where the leap day stood is not given. The hemerologia themselves, in Kubitschek's edition, were not read |
 | Callippic periods | `callippic` | `hc-calendars-regional` | Researching — 76-year periods from the summer solstice of 330 BC, 28 June, in which the *Almagest* dates observations, 8 Anthesterion of year 47 of the first period being 29 Athyr 465 Nabonassar (Wikipedia, "Callippic cycle"). The year count can be carried; the calendar's "complete form … is no longer known" |
-| Antikythera Metonic dial | — | `hc-calendars-regional` | Researching — a 235-month dial over five turns with Epirote or Corinthian month names, Phoinikaios to Apellaios, a proposed start just after the new moon of 23 August 205 BC, and a four-year Games dial (Wikipedia, "Antikythera mechanism"). The full and hollow month scheme is in Freeth et al. (2008) and Iversen (2017), neither read |
+| Antikythera Metonic dial | — | `hc-calendars-regional` | Researching — a 235-month dial over five turns with Epirote or Corinthian month names, Phoinikaios to Apellaios, a proposed start shortly after the new moon of 23 August 205 BC, and a four-year Games dial (Wikipedia, "Antikythera mechanism"). The full and hollow month scheme is in Freeth et al. (2008) and Iversen (2017), neither read |
 | Greek civic month tables — Macedonian, Delphic, Aetolian, Rhodian, Thessalian, Laconian, Locrian | — | `hc-i18n` | Researching — month names over lunisolar years intercalated by decision, some with the order of the months uncertain (Wikipedia, "Ancient Greek calendars"). Names only; `attic` is the one with a row of its own |
 | Hesiod's *Works and Days* and the Greek parapegmata | — | `hc-seasons` | Researching — the farmer's year by star phases: the Pleiades (l. 383), Arcturus rising at dusk sixty days after the winter solstice (l. 564), Sirius and Orion (ll. 597, 609), the crane (l. 448), and the days of the month (ll. 765–822) (Hesiod, *Works and Days*, tr. Evelyn-White, 1914); the *parapegmata* of Geminus and Ptolemy's *Phaseis* tabulate such phases and weather signs over the solar year (BMCR 2008.12.28, reviewing Lehoux, *Astronomy, Weather, and Calendars in the Ancient World*, 2007, not read; Wikipedia, "Almanac"). Computable only with a heliacal-visibility engine, *arcus visionis* and all, which the Borana, Mapuche, Carolinian and Yakut rows need too; the *Phaseis* text was not read |
 | Ptolemaic Egypt — the Dionysian calendar, the Era of Augustus, the Macedonian months on the Egyptian year | `dionysian` | `hc-calendars-solar` | Researching — the Dionysian year of zodiac-named months, eleven of 30 days and one of 35 or 36, 1 Karkinon of year 1 on 26 June 285 BC, known only from the *Almagest*; the Egyptian era of Augustus from 30 BC, its regnal year shifting until the reform of his fifth year; and the Macedonian months fixed to the Egyptian ones from Ptolemy V with equal day numbers and five exceptions (Bennett, "Egyptian to Julian conversion: Civil calendar structure", on his Egyptian chronology pages). Missing: where the Dionysian leap day falls, and the correspondence table |
@@ -425,7 +429,8 @@ honestly be carried from the sources read.
 
 ## Stage 5 — Seasonal subdivisions
 
-Not calendars in their own right, but named subdivisions layered onto one.
+Named subdivisions of the year, and other readings laid over a calendar's
+days. They are not calendars and are not in the registry.
 
 | System | Crate | Status |
 | --- | --- | --- |
@@ -556,24 +561,34 @@ time-scales.md gives for UTC.
 
 ## Adding a calendar
 
-0. If the calendar is one a maintainer cannot be expected to know — year
-   types, a reconstruction, a rule that depends on a place or an authority —
-   write it up first under [`systems/`](systems/README.md), from its sources,
-   and add those sources to [`references.bib`](references.bib). The module
-   documentation will summarise the document and name it
-   ([policy.md §12](policy.md)).
-1. Implement `hc_calendar::Calendar` in its own module in the right crate,
-   declaring its shape in `cycles` — the compiler insists — with a `month`
-   cycle exactly when its dates carry a month.
-2. Add it to `register_all` so the registry picks it up.
-3. Round-trip test it across its full supported range in a loop.
-4. Anchor it to at least one published reference date, cited in a comment.
-5. Name its positions. If its sources use one orthography that other
+0. If a maintainer cannot be expected to know the calendar — year types, a
+   reconstruction, a rule that depends on a place or an authority — write it
+   up first under [`systems/`](systems/README.md), from its sources. Index
+   the document in `systems/README.md`, and append its sources to the end of
+   [`references.bib`](references.bib). The module documentation then
+   summarises the document and names it ([policy.md §12](policy.md)).
+1. Implement `hc_calendar::Calendar` in its own module in the right crate.
+   Declare its shape in `cycles`, which has no default, with a `month`
+   cycle exactly when its dates carry a month. Era codes are lower-case and
+   kebab-case.
+2. Fill in `CalendarMeta`, including `native_locales`, the languages its
+   sources are written in. Override `day_boundary` if its day does not begin
+   at midnight, with the `DayNaming` that says which civil day names it.
+   Override `usage` with its period of use and the source for it, or add
+   the identifier, with the reason, to the list in
+   `crates/hyper-calendar/tests/usage.rs`.
+3. Add it to its crate's `register_all`, so the registry picks it up.
+4. Round-trip test it across its full supported range in a loop.
+5. Anchor it to at least one published reference date, cited in a comment.
+6. Name its positions. If its sources use one orthography that other
    languages borrow, declare the names with the shape (`CycleShape::named`)
-   and cite them; where a language has its own word, add that word to
-   `hc-i18n`. Era names go to `hc-i18n`.
-6. Regenerate `docs/supported.md` and move its row in this table to
-   **Done**.
+   and cite them. Where a language has its own word, add that word to
+   `hc-i18n`. Era names go to `hc-i18n`, with an English name.
+7. Update the counts that `crates/hyper-calendar/tests/vocabulary.rs`
+   asserts, and the count in the repository README.
+8. Regenerate `docs/supported.md` with
+   `UPDATE_SUPPORTED=1 cargo test -p hyper-calendar --all-features --test supported`,
+   and move the calendar's row in this file to **Done**.
 
 If step 1 makes you want to add a branch to shared logic, stop — see
 [policy.md](policy.md) §2.

@@ -1,7 +1,8 @@
 # Time scales
 
-Requirement 1 of the brief: support the international specifications for time
-and dates completely. That starts with being precise about what a "time" is.
+This document describes the time scales, epochs and timestamp formats the
+library carries: what each one is, how they relate, and where each lives in
+the code. Calendars are in [calendars.md](calendars.md).
 
 ## Two different questions
 
@@ -13,15 +14,14 @@ and dates completely. That starts with being precise about what a "time" is.
    something human or planetary — the Earth's rotation, a civil convention.
    UT1, UTC, local time.
 
-Mixing them is the single most common source of date bugs. `hyper-calendar`
-keeps them in different types: `Instant<S>` for the first, `UtcInstant` and
-`CivilDateTime` for the second.
+`hyper-calendar` keeps the two in different types: `Instant<S>` for the
+first, `UtcInstant` and `CivilDateTime` for the second.
 
 ## The uniform scales
 
-All of these are implemented in `hc-core::scale`. Each is a zero-sized marker
-type, so `Instant<Tai>` and `Instant<Tt>` are different types and cannot be
-confused.
+All of these but UT1 are in `hc-core::scale`. Each is a zero-sized marker
+type, so `Instant<Tai>` and `Instant<Tt>` are different types. The Relation
+column gives each scale's definition in terms of TAI or TT.
 
 | Scale | What it is | Relation |
 | --- | --- | --- |
@@ -52,8 +52,8 @@ itself: TDB by at most about 1.7 ms, TCG by about a second and TCB by about
 twenty-four seconds since 1977. So the library computes that small difference
 in `f64` and then applies it to the exact `Duration`, rather than converting
 the whole reading to `f64` and back. An `f64` near 1.7 billion seconds
-resolves only about 240 ns; an offset of a few seconds converts with
-femtosecond error, which is nothing that matters.
+resolves only about 240 ns. An offset of a few seconds converts with an
+error of about a femtosecond.
 
 ## UTC is not one of them
 
@@ -85,6 +85,8 @@ converts it to true UTC on their side, where the smear's shape is known.
 
 ### Three eras of UTC
 
+Each row gives the span of years and how `TAI − UTC` is found in it.
+
 | Era | `TAI − UTC` |
 | --- | --- |
 | Before 1961-01-01 | UTC did not exist. `LeapPolicy::Strict` refuses; `Extrapolate` returns 0 by convention. |
@@ -99,9 +101,9 @@ Past the announced validity, `LeapPolicy::Strict` returns `AfterModelEnd`.
 for it — because that answer is a forecast, and the difference matters to
 anyone scheduling across the boundary.
 
-(The 2022 CGPM resolution to abandon the leap second by 2035 will change this
-table's future, not its past. The table is data; when the decision lands, the
-data changes and the code does not.)
+The CGPM resolved in 2022 to stop inserting leap seconds by 2035. That
+changes the table's future, not its past. The table is data, so a change in
+policy changes the data and not the code.
 
 ## UT1 and DUT1
 
@@ -194,38 +196,31 @@ SOFA library; its test file was read, not its routines.
 
 ## ΔT
 
-`hc-astro` needs `TT − UT1` (ΔT) to place astronomical events on a civil
-calendar. From 1974-01-01 to 2026-04-01 it reads the value the USNO
-observed, one sample a year, interpolated between them and not
-extrapolated: `time::TABULATED_DELTA_T_FIRST` and `TABULATED_DELTA_T_LAST`
-are the ends. In the atomic era that observation is
-`32.184 s + (TAI − UTC) − DUT1`, the leap-second table above and the IERS
-DUT1 combined, and the tests check it through that identity. From there to
-2033-10-01 it reads the USNO's predictions, one a quarter, with the error
-the USNO states for each, interpolated the same way and not extrapolated
-either; `time::delta_t_predicted` gives the value with its error, and
-`PREDICTED_DELTA_T_LAST` is the end. The predictions' rows begin in 2022
-and overlap the observations, where the observation wins; over that
-overlap the predictions ran up to 0.12 s low, more than their stated
-error, which is the USNO's estimate and not a bound. Outside both
-`hc-astro` uses the Espenak–Meeus polynomial fits. Before atomic clocks
-those are reconstructed from eclipse records, and the uncertainty grows
-fast: a few seconds in 1900, minutes in 1000 CE, hours in 1000 BCE. After
-the predictions' end the fit is a forecast made in 2006 that now runs
-8.9 s high, so an instant computed there is about nine seconds early until
-the tables are extended. `hc-astro` does not attach an uncertainty to each
-value, but `time::delta_t_regime` reports whether a year is answered from
-the observations, the predictions, the fits (−500 to +2150), or the
-parabolic extrapolation beyond them.
+`hc-astro` needs ΔT (TT − UT1) to place astronomical events on a civil
+calendar. It answers from three sources, and `time::delta_t_regime` says
+which one answered a given year. Neither table is extrapolated.
 
-This is why a Chinese lunisolar date computed for 500 CE can differ by a day
-from what was actually proclaimed: the calculation is right and the Earth's
-rotation is the unknown.
+| Span | Source | How well it is known |
+| --- | --- | --- |
+| 1974-01-01 to 2026-04-01 (`time::TABULATED_DELTA_T_FIRST`, `TABULATED_DELTA_T_LAST`) | The USNO's observed values, one a year, interpolated between samples | The observation itself at each sample. In the atomic era ΔT = 32.184 s + (TAI − UTC) − DUT1, and the tests check the table against the leap-second table and the IERS DUT1 through that identity |
+| From there to 2033-10-01 (`PREDICTED_DELTA_T_LAST`) | The USNO's quarterly predictions, with the error the USNO states for each (`time::delta_t_predicted`) | Where the predictions overlap the observations, the observation wins. There the predictions ran up to 0.12 s low, more than their stated error, so the stated error is an estimate and not a bound |
+| Outside both | The Espenak–Meeus polynomial fits over −500 to +2150, and a parabola beyond | Before atomic clocks the fits rest on eclipse records: a few seconds in 1900, minutes in 1000 CE, hours in 1000 BCE. After 2033 the fit is a forecast made in 2006 that runs 8.9 s high, so an instant computed there is about nine seconds early until the tables are extended |
+
+`hc-astro` does not attach an uncertainty to each value. [Its
+README](../crates/hc-astro/README.md) gives
+the sources, the second model it carries, and the measurements behind the
+figures above.
+
+This is one reason a Chinese lunisolar date computed for 500 CE can differ
+by a day from what was proclaimed. The Sun and Moon can be computed for
+that year, but ΔT is not known well enough to say on which side of
+midnight an event fell.
 
 ## Epochs
 
-`hc-core::epoch` collects the origins that other systems chose, all expressed
-as TAI readings so nothing has to rediscover a magic number:
+`hc-core::epoch` collects the origins that other systems chose, each as a
+TAI reading. The first column is the identifier `hc_core::epoch::by_id`
+accepts:
 
 | Epoch | Origin |
 | --- | --- |
@@ -274,9 +269,8 @@ exactly that instant, 1999-08-24 04:03:43.787492500 UTC. On an ordinary
 clock, which keeps POSIX time, the label is `tai64-posix-plus-10`; POSIX 0
 is `@400000000000000a`. Read as `tai64`, such a label is `TAI − UTC − 10`
 seconds early, 22 s in 1999 and 27 s since 2017. The bytes do not say which
-clock wrote them, so the caller chooses by name. libtai's own `tai_now`,
-which the audit that raised this also names, was not read: its page is
-gone.
+clock wrote them, so the caller chooses by name. libtai's `tai_now` was
+not read: its page is no longer online.
 
 ## Computing timestamps
 

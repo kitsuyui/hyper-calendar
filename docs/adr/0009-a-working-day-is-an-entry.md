@@ -1,6 +1,6 @@
 # 0009 — A weekend day made a working day is an entry, not a weekend rule
 
-**Status:** Accepted
+**Status:** Accepted; one consequence updated on 2026-09-27, see [Later changes](#later-changes)
 
 ## Context
 
@@ -55,3 +55,9 @@ been published, and guessing it would be wrong for certain.
 - Russia's transfer decrees for 2013 to 2027 and Taiwan's office calendars
   for 2017 to 2025 use it for their working Saturdays. Vietnam can carry its
   worked days the same way, once its acts are read.
+
+## Later changes
+
+**2026-09-27.** Vietnam's acts were read. Its table carries the notices for
+2021 to 2026, the days off and the weekend days worked alike, as
+`Kind::Workday` entries. The decision is unchanged.

@@ -1,16 +1,18 @@
 # Time off Earth, and time at speed
 
-Requirement 7 of the brief: clocks on other bodies — Mars sols and the rest —
-and the time dilation of special and general relativity, with enough
-flexibility that a science-fiction timeline can actually be computed rather
-than hand-waved.
+This document describes two crates. `hc-planetary` keeps time on other
+bodies: Mars sols, mission sol counts, and calendars for Mars, Titan and the
+Galilean moons. `hc-relativity` computes the time dilation of special and
+general relativity, and integrates a journey's proper time, the time a clock
+carried along it reads.
 
 ## `hc-planetary`
 
 ### Mars
 
-Mars is the case with real operational standards behind it, so it gets the most
-detail.
+Mars is the only other body with operational timekeeping standards, so it
+has the most detail. Each row names a quantity `hc_planetary::mars`
+computes.
 
 | Quantity | Meaning |
 | --- | --- |
@@ -20,7 +22,7 @@ detail.
 | **LMST** | Local Mean Solar Time at a given west longitude |
 | **LTST** | Local True Solar Time, LMST plus the Martian equation of time (which runs from about −51 to +40 minutes, far more than Earth's −14 to +16) |
 | **Mission sol** | The landing-relative sol count each mission uses. All ten surface missions are tabulated: Viking 1 and 2, Mars Pathfinder, Spirit, Opportunity, Phoenix, Curiosity, InSight, Perseverance and Zhurong |
-| **Darian calendar** | Gangale's 24-month Martian calendar, the most developed proposal for a Martian civil calendar |
+| **Darian calendar** | Gangale's 24-month calendar for the Martian year, a proposal for Martian civil use |
 | **Martiana calendar** | Gangale's variant of it with Aitken's week: the week never shortened, every month of a quarter beginning on the same sol, a two-year cycle, and a decennial sol outside the week |
 | **Mars year** | The Clancy convention, counting from the 1955 northern spring equinox, used throughout Mars atmospheric science |
 
@@ -47,9 +49,11 @@ itself where the dates depend on it. All of them run through one engine
 whose fixed day is a circad, not an Earth day. The rules, their sources and
 their limits are in [systems/circad-calendars.md](systems/circad-calendars.md).
 
-Coordinated Lunar Time is tracked as *researching*: the 2024 US policy
-directive asked for one, the standard is still being defined, and inventing a
-definition would be worse than waiting.
+Coordinated Lunar Time (LTC) is not carried. The US Office of Science and
+Technology Policy asked for one in April 2024. As of 2026-09-26 no
+definition had been published, and the library does not invent one. The
+roadmap row in [calendars.md](calendars.md#stage-6--non-terrestrial) is
+Researching.
 
 The WebAssembly module and the C library carry Mars time, the mission sols,
 the body table, each body's local mean solar time, and the dates of the
@@ -58,8 +62,6 @@ their `planetary` layer; `crates/hyper-calendar-wasm/README.md` gives the
 lines.
 
 ## `hc-relativity`
-
-Time dilation is the part that makes an interstellar timeline computable.
 
 ### Special relativity
 
@@ -76,10 +78,10 @@ Time dilation is the part that makes an interstellar timeline computable.
 - Schwarzschild radius
 - The combined kinematic and gravitational factor for a circular orbit
 
-The canonical check is GPS: a satellite clock runs about +45.7 µs/day fast from
-the weaker gravitational potential and about −7.2 µs/day slow from its orbital
-speed, for a net +38.4 µs/day. That number is in the test suite, because if the
-library gets it wrong nothing else it says about relativity is trustworthy.
+The reference check is GPS. A satellite clock runs about 45.7 µs a day fast
+from the weaker gravitational potential, and about 7.2 µs a day slow from its
+orbital speed, for a net 38.4 µs a day fast. The test suite checks all three
+figures.
 
 The two boundary crates carry a constant-velocity clock and a clock held
 still at a radius as their `relativity` layer, a layer of its own because it
@@ -92,20 +94,19 @@ velocity profile (constant, or constant proper acceleration) and an optional
 gravitational potential. Integrating it gives the proper time elapsed along the
 path.
 
-That is what turns the library from a calculator into something you can plot a
-story against:
+A worldline answers questions such as these:
 
 - A twin paradox with a real turnaround, not an idealised instantaneous one
-- A 1g relativistic rocket: the standard closed forms for distance, coordinate
-  time, proper time and final velocity. (A 1g flip-and-burn to Andromeda,
-  2.5 Mly, is about 28.6 years of ship time and 2.5 million years of Earth
-  time — the test suite checks both.)
+- A 1 g relativistic rocket: the standard closed forms for distance,
+  coordinate time, proper time and final velocity. A 1 g flip-and-burn to
+  Andromeda, 2.5 million light-years, takes about 28.6 years of ship time
+  and 2.5 million years of Earth time. The test suite checks both.
 - A ship's clock and a planetary clock compared as `Instant`s, with
   `hc-uncertainty` carrying the error through when the inputs are uncertain
 
 ### What it is not
 
-No general-relativistic field solver, no numerical spacetime, no rotating or
-charged black holes. Schwarzschild geometry and flat-space special relativity
-cover the cases a calendar library is asked about, and anything past that
-belongs in a physics package rather than behind a date API.
+It has no general-relativistic field solver, no numerical spacetime, and no
+rotating or charged black holes. The geometry is Schwarzschild's, for a
+non-rotating mass, plus flat-space special relativity. Anything beyond that
+belongs in a physics package.
