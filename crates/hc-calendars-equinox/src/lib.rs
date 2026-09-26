@@ -2,7 +2,9 @@
 //! `hyper-calendar`.
 //!
 //! Three calendars begin their year on the day an equinox falls, judged by
-//! a clock at a named place, and no counting rule reproduces that exactly:
+//! a clock at a named place, and no counting rule reproduces that exactly;
+//! the first of them is carried twice, as Iran and as Afghanistan name its
+//! months:
 //!
 //! * [`persian`] — the Solar Hijri calendar of Iran: Nowruz is the day of
 //!   the March equinox if the equinox falls before noon, Iran Standard
@@ -71,11 +73,13 @@ extern crate alloc;
 pub mod bahai;
 pub mod french_republican;
 pub mod persian;
+pub mod persian_afghan;
 pub mod places;
 
 pub use bahai::AstronomicalBahaiCalendar;
 pub use french_republican::EquinoxFrenchRepublicanCalendar;
 pub use persian::PersianCalendar;
+pub use persian_afghan::AfghanPersianCalendar;
 
 #[cfg(feature = "alloc")]
 mod registration {
@@ -90,6 +94,7 @@ mod registration {
     /// calendar's identifier.
     pub fn register_all(registry: &mut CalendarRegistry) {
         registry.insert(Box::new(DynAdapter::new(crate::PersianCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::AfghanPersianCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::AstronomicalBahaiCalendar)));
         registry.insert(Box::new(DynAdapter::new(
             crate::EquinoxFrenchRepublicanCalendar,
@@ -107,12 +112,13 @@ mod tests {
     use super::*;
 
     /// The number of calendars this crate registers.
-    const CALENDAR_COUNT: usize = 3;
+    const CALENDAR_COUNT: usize = 4;
 
     #[test]
     fn every_calendar_here_is_astronomical_and_bounded() {
         for meta in [
             PersianCalendar.meta(),
+            AfghanPersianCalendar.meta(),
             AstronomicalBahaiCalendar.meta(),
             EquinoxFrenchRepublicanCalendar.meta(),
         ] {
@@ -141,6 +147,7 @@ mod tests {
         sorted.dedup();
         assert_eq!(sorted.len(), ids.len(), "identifiers must be distinct");
         assert!(registry.get_by_name("persian").is_some());
+        assert!(registry.get_by_name("persian-afghan").is_some());
         assert!(registry.get_by_name("bahai-astronomical").is_some());
         assert!(registry.get_by_name("french-republican-equinox").is_some());
         register_all(&mut registry);

@@ -17,8 +17,9 @@
 //! * **Dominical letter** — which of A–G, counting 1 January as A, falls on
 //!   the year's Sundays. A leap year has two, because 29 February shifts
 //!   the rest of the year back a letter.
-//! * **Epact** — the age of the ecclesiastical moon on 1 January, which
-//!   with the golden number fixes the paschal full moon.
+//! * **Epact** — the age of the ecclesiastical moon on a fixed day, which
+//!   with the golden number fixes the paschal full moon: 22 March in the
+//!   Julian (Alexandrian) computus, 1 January in the Gregorian.
 //! * **Solar cycle** — position in the 28 years after which Julian weekdays
 //!   repeat.
 //! * **Indiction** — position in the 15-year Roman tax cycle, which
@@ -30,6 +31,11 @@
 //! **Sources:** Bede, *De temporum ratione* (725); Clavius, *Explicatio
 //! Romani Calendarii* (1603) for the Gregorian epact; Scaliger, *De
 //! emendatione temporum* (1583) for the Period.
+//!
+//! [`runic`] reads the golden number and the Sunday letter the way the
+//! Swedish runestaff carves them, against every day of the Julian year.
+
+pub mod runic;
 
 use hc_calendar::{Rd, Weekday};
 
@@ -234,11 +240,20 @@ pub fn julian_dominical_letter(year: i64) -> (DominicalLetter, Option<DominicalL
 }
 
 /// The Julian (Alexandrian) epact: the age of the ecclesiastical moon on
-/// 1 January, under the unreformed computus.
+/// 22 March, under the unreformed computus — 0 in a year whose March new
+/// moon falls on the 23rd, golden number 1.
 ///
 /// 0 through 29, and a simple function of the golden number — eleven days
 /// of lunar drift per solar year, taken modulo the 30-day ecclesiastical
-/// lunation. This is the quantity Bede tabulates.
+/// lunation. This is Bede's epact in *De temporum ratione* (not read here).
+/// The day it is reckoned on is checked against the *Explanatory
+/// Supplement to the Astronomical Ephemeris* (HMSO, 1961), table 14.4, the
+/// Julian ecclesiastical new moons by golden number: for every golden
+/// number, the days from the table's March new moon to 22 March, the new
+/// moon counting as the first, are this epact
+/// (`runic::tests::the_march_new_moon_gives_the_julian_epact`). It is not
+/// the age on 1 January, which is what [`gregorian_epact`] states for the
+/// reformed computus.
 #[must_use]
 pub const fn julian_epact(year: i64) -> u8 {
     let golden = golden_number(year) as i64 - 1;

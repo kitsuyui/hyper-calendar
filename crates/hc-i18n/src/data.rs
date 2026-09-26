@@ -38,7 +38,8 @@
 //!   and Nahuatl for the Mesoamerican counts, Zapotec for the Zapotec year,
 //!   Balinese and Javanese for the Pawukon and the pasaran, Syriac for the
 //!   Assyrian calendar, Kabyle and Standard Moroccan Tamazight for the
-//!   Berber calendar, and Mandaic for the Mandaean. Their Gregorian
+//!   Berber calendar, Mandaic for the Mandaean, and Pashto for the Solar
+//!   Hijri calendar as Afghanistan kept it. Their Gregorian
 //!   vocabulary is CLDR's where CLDR has the locale (CLDR 48,
 //!   `common/main/<locale>.xml`, read 2026-09-25 and 2026-09-26 from the
 //!   `release-48` tag of github.com/unicode-org/cldr); CLDR has no `cop`,
@@ -234,6 +235,20 @@ const YERM_CALENDARS: &[CalendarId] = &[CalendarId("yerm")];
 /// arithmetic calendar, and `persian`, the astronomical calendar of
 /// `hc-calendars-equinox`. Their months have the same names.
 const PERSIAN_CALENDARS: &[CalendarId] = &[CalendarId("persian-arithmetic"), CalendarId("persian")];
+
+/// The Solar Hijri calendar under every name the registry has for it: the
+/// two Iranian ones and `persian-afghan`, the same days under the Arabic
+/// names of the zodiac signs. They share an era, and CLDR's one `persian`
+/// calendar is all three, so a locale that follows CLDR's month names for
+/// it — Pashto — serves all three too.
+const SOLAR_HIJRI_CALENDARS: &[CalendarId] = &[
+    CalendarId("persian-arithmetic"),
+    CalendarId("persian"),
+    CalendarId("persian-afghan"),
+];
+
+/// The Solar Hijri calendar as Afghanistan kept it.
+const AFGHAN_SOLAR_HIJRI_CALENDARS: &[CalendarId] = &[CalendarId("persian-afghan")];
 
 /// The Coptic calendar.
 const COPTIC_CALENDARS: &[CalendarId] = &[CalendarId("coptic")];
@@ -2416,6 +2431,18 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &[],
         &[],
     ),
+    // The Dari months of `persian-afghan` as Wikipedia's "Solar Hijri
+    // calendar" romanises them (read 2026-09-26); the calendar declares
+    // them in Persian script with its shape.
+    dated(
+        AFGHAN_SOLAR_HIJRI_CALENDARS,
+        &[months(&[
+            "Hamal", "Sawr", "Jawzā", "Saratān", "Asad", "Sunbula", "Mīzān", "ʿAqrab", "Qaws",
+            "Jadī", "Dalwa", "Hūt",
+        ])],
+        &[],
+        &[],
+    ),
     // Badíʿ has nineteen months, which the old twelve-or-thirteen assertion
     // rejected; it is ordinary data now, checked against the length the
     // calendar declares. Its month names are the Bahá'í transliteration
@@ -2651,12 +2678,7 @@ const EN_CALENDARS: &[CalendarNames] = &[
     // are the names each calendar's module documentation gives its era, from
     // the sources its system document or module cites.
     dated(&[CalendarId("indian")], &[], &["saka"], &["Saka"]),
-    dated(
-        &[CalendarId("persian"), CalendarId("persian-arithmetic")],
-        &[],
-        &["ap"],
-        &["AP"],
-    ),
+    dated(SOLAR_HIJRI_CALENDARS, &[], &["ap"], &["AP"]),
     dated(
         &[CalendarId("roc")],
         &[],
@@ -2932,8 +2954,11 @@ const FA: LocaleData = LocaleData {
             ContextualNames::EMPTY,
         ),
         // The month names are the calendar's own, declared with its shape in
-        // `hc-calendars-solar`; only the era is a Persian word.
-        dated(PERSIAN_CALENDARS, &[], &["ap"], &["ه.ش."]),
+        // `hc-calendars-solar` for Iran's and in `hc-calendars-equinox` for
+        // Afghanistan's Dari ones; only the era is a Persian word, and CLDR
+        // 48 `fa_AF.xml` states no era of its own for the calendar, so
+        // `fa-AF` takes this one.
+        dated(SOLAR_HIJRI_CALENDARS, &[], &["ap"], &["ه.ش."]),
     ],
 };
 
@@ -4559,6 +4584,146 @@ const PL: LocaleData = LocaleData {
     )],
 };
 
+// --- Pashto ---------------------------------------------------------------
+//
+// The second language of Afghanistan's calendar. Gregorian vocabulary from
+// CLDR 48 `ps.xml` (read 2026-09-26 from the `release-48` tag of
+// github.com/unicode-org/cldr): the months, whose stand-alone forms spell
+// February and September differently and whose stand-alone abbreviated
+// September is its own; the weekdays, stated only in the wide width; the
+// day periods; the eras; the wide quarters, with the narrow ones CLDR
+// resolves to root's digits. CLDR's narrow weekdays and its stand-alone
+// narrow months resolve, past the markers, to root's Latin letters and
+// numerals, which are not a Pashto spelling, so those widths are left to
+// fall back.
+//
+// The Solar Hijri months are the Pashto names of the zodiac signs CLDR's
+// `ps.xml` gives under `calendar type="persian"`: وری … کب. CLDR keys them
+// to its one `persian` calendar, so they serve `persian`,
+// `persian-arithmetic` and `persian-afghan` alike. Wikipedia's "Solar
+// Hijri calendar" (read 2026-09-26) prints the same twelve in the Pashto
+// letters ګ, ي and ك where CLDR has the Persian گ, ی and ک in four of them
+// (غبرګولی, چنګاښ, ليندۍ, كب); the CLDR spellings are the ones carried.
+// CLDR gives no Pashto name for the Solar Hijri era, so it inherits.
+//
+// The week begins on Saturday (CLDR 48 `weekData/firstDay`, AF) and the
+// numbering system is `arabext`, `ps.xml`'s `defaultNumberingSystem`.
+// The names are CLDR 48 `localeDisplayNames/languages`: Pashto in `en.xml`,
+// پښتو in `ps.xml`. No templates: `ps.xml` states none of the patterns a
+// template is read from and inherits root's.
+
+const PS_MONTHS: &[&str] = &[
+    "جنوري",
+    "فبروري",
+    "مارچ",
+    "اپریل",
+    "مۍ",
+    "جون",
+    "جولای",
+    "اګست",
+    "سېپتمبر",
+    "اکتوبر",
+    "نومبر",
+    "دسمبر",
+];
+
+const PS_MONTHS_STANDALONE: &[&str] = &[
+    "جنوري",
+    "فېبروري",
+    "مارچ",
+    "اپریل",
+    "مۍ",
+    "جون",
+    "جولای",
+    "اګست",
+    "سپتمبر",
+    "اکتوبر",
+    "نومبر",
+    "دسمبر",
+];
+
+const PS_MONTHS_STANDALONE_ABBREVIATED: &[&str] = &[
+    "جنوري",
+    "فبروري",
+    "مارچ",
+    "اپریل",
+    "مۍ",
+    "جون",
+    "جولای",
+    "اګست",
+    "سپتمبر",
+    "اکتوبر",
+    "نومبر",
+    "دسمبر",
+];
+
+const PS_MONTHS_NARROW: &[&str] = &["ج", "ف", "م", "ا", "م", "ج", "ج", "ا", "س", "ا", "ن", "د"];
+
+/// The Solar Hijri months in Pashto, CLDR 48 `ps.xml`, `calendar
+/// type="persian"`.
+const PS_SOLAR_HIJRI_MONTHS: &[&str] = &[
+    "وری",
+    "غویی",
+    "غبرگولی",
+    "چنگاښ",
+    "زمری",
+    "وږی",
+    "تله",
+    "لړم",
+    "لیندۍ",
+    "مرغومی",
+    "سلواغه",
+    "کب",
+];
+
+const PS_CALENDARS: &[CalendarNames] = &[
+    gregorian(
+        &[month_cycle(ContextualNames {
+            format: widths(PS_MONTHS, &[], PS_MONTHS_NARROW),
+            standalone: widths(PS_MONTHS_STANDALONE, PS_MONTHS_STANDALONE_ABBREVIATED, &[]),
+        })],
+        gregorian_eras(
+            &["له میلاد څخه وړاندې", "له میلاد څخه وروسته"],
+            &["له میلاد وړاندې", "م."],
+            &[],
+        ),
+        ContextualNames::same(widths(
+            &["لومړۍ ربعه", "۲مه ربعه", "۳مه ربعه", "۴مه ربعه"],
+            &[],
+            &["1", "2", "3", "4"],
+        )),
+    ),
+    dated(
+        SOLAR_HIJRI_CALENDARS,
+        &[months(PS_SOLAR_HIJRI_MONTHS)],
+        &[],
+        &[],
+    ),
+];
+
+const PS: LocaleData = LocaleData {
+    tag: "ps",
+    english_name: "Pashto",
+    native_name: "پښتو",
+    script: "Arab",
+    templates: DateTemplates::NONE,
+    calendar_names: &[],
+    direction: Direction::RightToLeft,
+    numbering: "arabext",
+    first_day_of_week: Weekday::Saturday,
+    casing: CasingStyle::Standard,
+    capitalises_month_names: false,
+    weekdays: ContextualNames::same(weekday_widths(
+        &["دونۍ", "درېنۍ", "څلرنۍ", "پينځنۍ", "جمعه", "اونۍ", "يونۍ"],
+        &[],
+        &[],
+        &[],
+    )),
+    day_periods: ContextualNames::same(widths(&["غ.م.", "غ.و."], &[], &[])),
+    cycle: SexagenaryNames::EMPTY,
+    calendars: PS_CALENDARS,
+};
+
 // --- Portuguese -----------------------------------------------------------
 
 const PT: LocaleData = LocaleData {
@@ -5737,7 +5902,7 @@ const ZH_HANT: LocaleData = LocaleData {
 /// lookup falls to when nothing here claims the locale.
 pub static LOCALES: &[LocaleData] = &[
     AM, AR, BAN, BN, BO, COP, CS, DE, EN, ES, FA, FR, HE, HI, ID, IT, JA, JV, KAB, KO, MID, ML, MY,
-    NAH, NE, NL, PL, PT, RU, SA, SYR, TA, TH, TR, VI, YUA, ZAP, ZGH, ZH_HANS, ZH_HANT,
+    NAH, NE, NL, PL, PS, PT, RU, SA, SYR, TA, TH, TR, VI, YUA, ZAP, ZGH, ZH_HANS, ZH_HANT,
 ];
 
 #[cfg(test)]
@@ -6057,7 +6222,7 @@ mod tests {
             .filter(|data| data.direction == Direction::RightToLeft)
             .map(|data| data.tag)
             .collect();
-        assert_eq!(rtl, ["ar", "fa", "he", "mid", "syr"]);
+        assert_eq!(rtl, ["ar", "fa", "he", "mid", "ps", "syr"]);
     }
 
     #[test]
@@ -6186,7 +6351,7 @@ mod tests {
             [
                 "am", "ar", "ban", "bn", "bo", "cop", "cs", "de", "en", "es", "fa", "fr", "he",
                 "hi", "id", "it", "ja", "jv", "kab", "ko", "mid", "ml", "my", "nah", "ne", "nl",
-                "pl", "pt", "ru", "sa", "syr", "ta", "th", "tr", "vi", "yua", "zap", "zgh",
+                "pl", "ps", "pt", "ru", "sa", "syr", "ta", "th", "tr", "vi", "yua", "zap", "zgh",
                 "zh-Hans", "zh-Hant"
             ]
         );

@@ -21,6 +21,7 @@ file does not:
 | `year_style` | Where the year began: Lady Day, Annunciation (Florentine, Pisan), Nativity, more veneto, Greek | *(not calendars; a year-number conversion)* |
 | `adoption` | When each country took the Gregorian calendar, by ISO 3166-1 alpha-2 code, one row per step, with its instrument | *(not a calendar; a table of cut-overs)* |
 | `cycles` | The computus cycles: golden number, dominical letter, epact, solar cycle, indiction, Julian Period | *(not calendars; year numbers)* |
+| `cycles::runic` | The Swedish runestaff read against the Julian date: each day's letter rune and the golden-number rune of the new moons, old series ([docs/systems/runic-calendar.md](../../docs/systems/runic-calendar.md)) | *(a reading, not a calendar)* |
 | `iso_week` | ISO 8601 week date | `iso8601-week` |
 | `ordinal` | ISO 8601 ordinal date | `iso8601-ordinal` |
 | `julian_day` | Julian Day Number, Modified Julian Date | `julian-day`, `modified-julian-day` |
