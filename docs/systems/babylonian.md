@@ -55,6 +55,10 @@ months.
 - **Identifier** `babylonian`, in `hc-calendars-lunar`, with the month as
   `Month { ordinal, leap }`: Ulūlu II is `Month::leap(6)`, Addāru II is
   `Month::leap(12)`, the convention the Hebrew and Chinese calendars use here.
+  The day begins at sunset and is named by the civil day it ends on,
+  `DayBoundary::Sunset(DayNaming::ByEnd)`: the criterion for a day is
+  judged "on eve of" it, at the sunset of the civil day before
+  [reingold2018code, `babylonian-criterion`].
 - **Range** SE −71 to SE 386: 1 Nīsannu of 383 BCE (RD −139 785) to 29 Addāru
   of 76 CE (RD 27 475). The lower bound is where Parker and Dubberstein's
   table starts following the nineteen-year rule without exception — its last

@@ -35,7 +35,11 @@ cannot express that in `Rd` alone. The library handles it by pairing `Rd` with
 a `CivilTime` and declaring the convention per calendar through
 `Calendar::day_boundary`, rather than by bending the pivot. The convention is
 a type, `DayBoundary`, which also distinguishes the boundaries a clock can
-resolve from the ones that need a location and an ephemeris.
+resolve from the ones that need a location and an ephemeris, and which
+carries a `DayNaming` for every boundary but midnight: a day that
+straddles two civil days is the `Rd` of the one it begins on (the Julian
+Day, the Tibetan day) or of the one it ends on (the Hebrew and Islamic
+days).
 
 A second cost: `Rd` counts days, so a calendar that
 occasionally *repeats* a day number — the Tibetan *lhag*, the Hindu *adhika

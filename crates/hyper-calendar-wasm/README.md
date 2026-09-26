@@ -368,6 +368,7 @@ zero length is `und` too.
 | 15 | day boundary | where the calendar's day begins: `midnight`, `noon`, `sunset`, `sunrise` or `local-time HH:MM:SS` |
 | 16 | formatted | the date as the locale writes it — 令和8年9月21日, 癸卯年闰二月初一, `September 21, 2026` — from `hc_format::label`; empty on a refusal |
 | 17 | locale used | the tag of the locale data that answered: `ja`, `he`, `und` |
+| 18 | day named by | which civil day names a day that does not begin at midnight: `start` for the one it begins on (the Julian Day, the Tibetan and Hindu days), `end` for the one it ends on (the Hebrew and Islamic days, whose evening is already the next date); empty for a midnight start |
 
 **Refusals are answers.** A calendar that cannot name the day — the Rumi
 calendar for a day after 1925, the Tenpō calendar for one after 1872 — is

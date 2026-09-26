@@ -277,9 +277,11 @@ impl Calendar for AstronomicalBahaiCalendar {
             .ok_or(CalendarError::YearOutOfRange)
     }
 
-    /// The Bahá'í day begins at sunset.
+    /// The Bahá'í day begins at sunset, and a date names the Gregorian day
+    /// the Badíʿ day ends in, as the Bahá'í World Centre's table of dates
+    /// does (`docs/systems/equinox-calendars.md`, `bwc-badi-dates`).
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
-        hc_calendar::DayBoundary::Sunset
+        hc_calendar::DayBoundary::Sunset(hc_calendar::DayNaming::ByEnd)
     }
 
     fn meta(&self) -> CalendarMeta {

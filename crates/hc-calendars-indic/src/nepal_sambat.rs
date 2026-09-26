@@ -259,9 +259,11 @@ impl Calendar for NepalSambatCalendar {
         kartikadi::is_leap_year(&self.lunar, year, SAKA_OFFSET)
     }
 
-    /// The day begins at sunrise.
+    /// The day begins at sunrise and is named by the civil day on
+    /// whose sunrise it begins: Reingold and Dershowitz read a fixed day's
+    /// date at "Sunrise that day" (`calendar-code2`, `hindu-lunar-from-fixed`).
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
-        hc_calendar::DayBoundary::Sunrise
+        hc_calendar::DayBoundary::Sunrise(hc_calendar::DayNaming::ByStart)
     }
 
     fn meta(&self) -> CalendarMeta {

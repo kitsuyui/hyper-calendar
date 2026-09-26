@@ -514,7 +514,10 @@ mod calendars {
     /// code, the error name, the standing (`in-use`, `proleptic`, `extended`
     /// or `unrecorded`), where the calendar's day begins (`midnight`, `noon`,
     /// `sunset`, `sunrise` or `local-time HH:MM:SS`), the date as the locale
-    /// writes it (令和8年9月21日, 癸卯年闰二月初一), and the locale used. A
+    /// writes it (令和8年9月21日, 癸卯年闰二月初一), the locale used, and
+    /// which civil day names a day that does not begin at midnight (`start`
+    /// for the one it begins on, `end` for the one it ends on, empty for
+    /// midnight). A
     /// calendar that refuses the day is still a line: its date columns,
     /// standing and formatted date are empty and the error code and name say
     /// why. `locale` is a NUL-terminated BCP 47 tag, `native` for each
@@ -2347,7 +2350,7 @@ mod tests {
                 .map(|line| line.split('\t').collect())
                 .collect();
             assert_eq!(rows.len(), hc::registry().len());
-            assert!(rows.iter().all(|row| row.len() == 17), "{rows:?}");
+            assert!(rows.iter().all(|row| row.len() == 18), "{rows:?}");
             let japanese = rows
                 .iter()
                 .find(|row| row[0] == "japanese")
@@ -2357,7 +2360,7 @@ mod tests {
                 ["reiwa", "令和", "8", "9", "0", "9月", "21", "0"]
             );
             assert_eq!(japanese[11..14], ["", "", "in-use"]);
-            assert_eq!(japanese[15..17], ["令和8年9月21日", "ja"]);
+            assert_eq!(japanese[15..18], ["令和8年9月21日", "ja", ""]);
             let rumi = rows.iter().find(|row| row[0] == "rumi").expect("rumi");
             assert_eq!(rumi[11..14], ["7", "after-supported-range", ""]);
             // Neither Japanese nor Turkish names the Rumi calendar, so it

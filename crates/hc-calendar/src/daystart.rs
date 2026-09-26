@@ -6,9 +6,13 @@
 //! calendar sit just outside it, and this module states both:
 //!
 //! * **A day does not have to begin at midnight.** The Julian Day begins at
-//!   noon, the Hebrew and Islamic day at sunset, and the traditional Chinese
-//!   day at 23:00 — which is why the sexagenary day pillar changes an hour
-//!   before the civil date does.
+//!   noon, the Hebrew and Islamic day at sunset, the Tibetan day at dawn,
+//!   and under one convention the Chinese day pillar at 23:00. Such a day
+//!   straddles two civil days, and *which of the two names it* is a second
+//!   fact the moment alone does not settle: [`DayNaming`]. The Hebrew day
+//!   that begins at sunset on Friday is Saturday's; the Julian Day that
+//!   begins at noon on 1 January 2000 is 1 January's. [`DayBoundary`]
+//!   carries both, so a boundary cannot be stated without its naming.
 //! * **A calendar has a period when it was actually used**, which is usually
 //!   much shorter than the range over which its arithmetic is defined. Both
 //!   are real and they answer different questions.
@@ -19,35 +23,66 @@
 //! As a `CalendarMeta` field it would be repeated in every calendar's struct
 //! literal, where it tells a reader nothing. A default trait method says it
 //! once, and a calendar that differs overrides it — so the override itself
-//! becomes the documentation.
+//! becomes the documentation, and it names the source for its naming.
 
 use core::fmt;
 
 use crate::fixed::Rd;
 use crate::time::CivilTime;
 
-/// The point in the day at which a calendar's date changes.
+/// Which civil day names a calendar day that does not begin at midnight.
+///
+/// A day that begins at noon, sunset, dawn or 23:00 runs across two civil
+/// days, and calendars disagree about which one it belongs to. The
+/// boundary moment does not decide it: the Julian Day and the Hebrew day
+/// both begin in the second half of a civil day, and one is named by that
+/// civil day and the other by the next.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DayNaming {
+    /// Named after the civil day on which it begins, so the hours before the
+    /// boundary belong to the calendar day before.
+    ///
+    /// The Julian Day, the counts derived from it and Palmen's yerm at noon;
+    /// the Tibetan day at dawn; the Hindu day at sunrise.
+    ByStart,
+    /// Named after the civil day on which it ends, so the hours from the
+    /// boundary onwards already belong to the next date.
+    ///
+    /// The Hebrew, Islamic, Bahá'í and Babylonian days, which begin at the
+    /// sunset of the evening before, and the Chinese day pillar under the
+    /// convention that changes it at 23:00.
+    ByEnd,
+}
+
+/// The point in the day at which a calendar's date changes, and which civil
+/// day names the calendar day that begins there.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum DayBoundary {
     /// Local midnight, the civil convention and the default.
+    ///
+    /// A day that begins at midnight lies inside one civil day and is named
+    /// by it, so it needs no [`DayNaming`].
     #[default]
     Midnight,
     /// Local noon, as the Julian Day and the astronomical day use.
     ///
     /// Astronomers counted from noon so that a single night's observations
-    /// carried one date. The Julian Day still does.
-    Noon,
-    /// Sunset, as the Hebrew, Islamic and Bahá'í days do.
+    /// carried one date. The Julian Day still does, and is named
+    /// [`DayNaming::ByStart`].
+    Noon(DayNaming),
+    /// Sunset, as the Hebrew, Islamic and Bahá'í days do, all of them
+    /// [`DayNaming::ByEnd`].
     ///
     /// The moment depends on latitude and time of year, so resolving it needs
     /// a location and an ephemeris — `hc-astro`'s `sunset`. This value names
     /// the convention; it does not compute it.
-    Sunset,
-    /// Sunrise, used by several Hindu reckonings and by the Vedic day.
-    Sunrise,
-    /// A fixed local time, such as the 23:00 start of the traditional Chinese
-    /// day.
-    LocalTime(CivilTime),
+    Sunset(DayNaming),
+    /// Sunrise, used by several Hindu reckonings and by the Vedic day, which
+    /// are [`DayNaming::ByStart`].
+    Sunrise(DayNaming),
+    /// A fixed local time, such as the 05:00 mean daybreak that begins the
+    /// Tibetan day.
+    LocalTime(CivilTime, DayNaming),
 }
 
 impl DayBoundary {
@@ -58,7 +93,7 @@ impl DayBoundary {
     /// which it is dealing with.
     #[must_use]
     pub const fn needs_observation(self) -> bool {
-        matches!(self, Self::Sunset | Self::Sunrise)
+        matches!(self, Self::Sunset(_) | Self::Sunrise(_))
     }
 
     /// The offset from midnight, for the boundaries that have a fixed one.
@@ -69,27 +104,53 @@ impl DayBoundary {
     pub const fn fixed_offset(self) -> Option<CivilTime> {
         match self {
             Self::Midnight => Some(CivilTime::MIDNIGHT),
-            Self::Noon => Some(CivilTime::NOON),
-            Self::LocalTime(time) => Some(time),
-            Self::Sunset | Self::Sunrise => None,
+            Self::Noon(_) => Some(CivilTime::NOON),
+            Self::LocalTime(time, _) => Some(time),
+            Self::Sunset(_) | Self::Sunrise(_) => None,
+        }
+    }
+
+    /// Which civil day names the calendar day that begins at this boundary.
+    ///
+    /// [`DayNaming::ByStart`] for [`DayBoundary::Midnight`], whose day is
+    /// the civil day itself.
+    #[must_use]
+    pub const fn naming(self) -> DayNaming {
+        match self {
+            Self::Midnight => DayNaming::ByStart,
+            Self::Noon(naming)
+            | Self::Sunset(naming)
+            | Self::Sunrise(naming)
+            | Self::LocalTime(_, naming) => naming,
         }
     }
 
     /// Which calendar day a wall-clock reading belongs to, relative to the
-    /// day the clock itself names.
+    /// day the clock itself names: add it to the civil day's [`Rd`] to get
+    /// the fixed day the calendar gives that moment.
     ///
-    /// Returns 0 when the reading is inside the calendar day that shares its
-    /// civil date, and 1 when the calendar has already rolled over — the
-    /// 23:00 case, where 23:30 on the 5th is already the 6th in the
-    /// traditional Chinese reckoning.
+    /// * 0 when the reading is inside the calendar day that shares its civil
+    ///   date — always, for a midnight start.
+    /// * 1 when the day is [`DayNaming::ByEnd`] and the reading is at or
+    ///   after the boundary: under a 23:00 start, 23:30 on the 5th is
+    ///   already the 6th.
+    /// * −1 when the day is [`DayNaming::ByStart`] and the reading is before
+    ///   the boundary: the Julian Day of 1 January 2000 begins at its noon,
+    ///   so 11:00 that morning is still the Julian Day of 31 December 1999.
     ///
     /// Returns `None` for the observational boundaries.
     #[must_use]
     pub fn civil_day_offset(self, time: CivilTime) -> Option<i64> {
         let start = self.fixed_offset()?;
-        Some(i64::from(
-            time.since_midnight() >= start.since_midnight() && start != CivilTime::MIDNIGHT,
-        ))
+        if start == CivilTime::MIDNIGHT {
+            return Some(0);
+        }
+        let from_start = time.since_midnight() >= start.since_midnight();
+        Some(match (self.naming(), from_start) {
+            (DayNaming::ByStart, false) => -1,
+            (DayNaming::ByEnd, true) => 1,
+            (DayNaming::ByStart, true) | (DayNaming::ByEnd, false) => 0,
+        })
     }
 }
 
@@ -97,10 +158,10 @@ impl fmt::Display for DayBoundary {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Midnight => f.write_str("midnight"),
-            Self::Noon => f.write_str("noon"),
-            Self::Sunset => f.write_str("sunset"),
-            Self::Sunrise => f.write_str("sunrise"),
-            Self::LocalTime(time) => write!(f, "{time}"),
+            Self::Noon(_) => f.write_str("noon"),
+            Self::Sunset(_) => f.write_str("sunset"),
+            Self::Sunrise(_) => f.write_str("sunrise"),
+            Self::LocalTime(time, _) => write!(f, "{time}"),
         }
     }
 }
@@ -312,42 +373,89 @@ mod tests {
 
     #[test]
     fn the_solar_boundaries_admit_they_need_an_ephemeris() {
-        assert!(DayBoundary::Sunset.needs_observation());
-        assert!(DayBoundary::Sunrise.needs_observation());
-        assert_eq!(DayBoundary::Sunset.fixed_offset(), None);
-        assert_eq!(DayBoundary::Sunrise.civil_day_offset(CivilTime::NOON), None);
+        let sunset = DayBoundary::Sunset(DayNaming::ByEnd);
+        let sunrise = DayBoundary::Sunrise(DayNaming::ByStart);
+        assert!(sunset.needs_observation());
+        assert!(sunrise.needs_observation());
+        assert_eq!(sunset.fixed_offset(), None);
+        assert_eq!(sunrise.civil_day_offset(CivilTime::NOON), None);
+        // The naming is known even where the moment is not.
+        assert_eq!(sunset.naming(), DayNaming::ByEnd);
+        assert_eq!(sunrise.naming(), DayNaming::ByStart);
     }
 
     #[test]
-    fn a_twenty_three_hundred_start_rolls_the_day_over_early() {
+    fn a_day_named_by_its_end_rolls_over_at_the_boundary() {
         let eleven_pm = CivilTime::hms(23, 0, 0).unwrap();
-        let boundary = DayBoundary::LocalTime(eleven_pm);
+        let boundary = DayBoundary::LocalTime(eleven_pm, DayNaming::ByEnd);
         // Half past eleven is already the next calendar day.
         assert_eq!(
             boundary.civil_day_offset(CivilTime::hms(23, 30, 0).unwrap()),
             Some(1)
         );
+        assert_eq!(boundary.civil_day_offset(eleven_pm), Some(1));
         // Anything earlier is not.
         assert_eq!(
             boundary.civil_day_offset(CivilTime::hms(22, 59, 59).unwrap()),
             Some(0)
         );
         assert_eq!(boundary.civil_day_offset(CivilTime::NOON), Some(0));
+        assert_eq!(boundary.civil_day_offset(CivilTime::MIDNIGHT), Some(0));
+    }
+
+    #[test]
+    fn a_day_named_by_its_start_keeps_the_hours_before_it_in_the_day_before() {
+        let dawn = CivilTime::hms(5, 0, 0).unwrap();
+        let boundary = DayBoundary::LocalTime(dawn, DayNaming::ByStart);
+        // Before dawn is still the calendar day that began yesterday.
+        assert_eq!(boundary.civil_day_offset(CivilTime::MIDNIGHT), Some(-1));
+        assert_eq!(
+            boundary.civil_day_offset(CivilTime::hms(4, 59, 59).unwrap()),
+            Some(-1)
+        );
+        // From dawn on, the calendar day and the civil day share a date.
+        assert_eq!(boundary.civil_day_offset(dawn), Some(0));
+        assert_eq!(
+            boundary.civil_day_offset(CivilTime::hms(23, 59, 59).unwrap()),
+            Some(0)
+        );
     }
 
     #[test]
     fn midnight_never_rolls_the_day_over() {
+        assert_eq!(DayBoundary::Midnight.naming(), DayNaming::ByStart);
         for hour in 0..24 {
             let time = CivilTime::hms(hour, 0, 0).unwrap();
             assert_eq!(DayBoundary::Midnight.civil_day_offset(time), Some(0));
+            for naming in [DayNaming::ByStart, DayNaming::ByEnd] {
+                let local_midnight = DayBoundary::LocalTime(CivilTime::MIDNIGHT, naming);
+                assert_eq!(local_midnight.civil_day_offset(time), Some(0));
+            }
         }
     }
 
     #[test]
-    fn noon_rolls_over_in_the_afternoon() {
-        assert_eq!(DayBoundary::Noon.civil_day_offset(CivilTime::NOON), Some(1));
+    fn a_noon_day_named_by_its_start_keeps_the_afternoon() {
+        // The Julian Day's convention: the day that begins at noon on a
+        // civil day belongs to that civil day.
+        let noon = DayBoundary::Noon(DayNaming::ByStart);
+        assert_eq!(noon.civil_day_offset(CivilTime::NOON), Some(0));
         assert_eq!(
-            DayBoundary::Noon.civil_day_offset(CivilTime::hms(11, 59, 59).unwrap()),
+            noon.civil_day_offset(CivilTime::hms(13, 0, 0).unwrap()),
+            Some(0)
+        );
+        assert_eq!(
+            noon.civil_day_offset(CivilTime::hms(11, 59, 59).unwrap()),
+            Some(-1)
+        );
+    }
+
+    #[test]
+    fn a_noon_day_named_by_its_end_rolls_over_in_the_afternoon() {
+        let noon = DayBoundary::Noon(DayNaming::ByEnd);
+        assert_eq!(noon.civil_day_offset(CivilTime::NOON), Some(1));
+        assert_eq!(
+            noon.civil_day_offset(CivilTime::hms(11, 59, 59).unwrap()),
             Some(0)
         );
     }
@@ -419,10 +527,10 @@ mod tests {
     #[test]
     fn boundaries_render_readably() {
         assert_eq!(DayBoundary::Midnight.to_string(), "midnight");
-        assert_eq!(DayBoundary::Noon.to_string(), "noon");
-        assert_eq!(DayBoundary::Sunset.to_string(), "sunset");
+        assert_eq!(DayBoundary::Noon(DayNaming::ByStart).to_string(), "noon");
+        assert_eq!(DayBoundary::Sunset(DayNaming::ByEnd).to_string(), "sunset");
         assert_eq!(
-            DayBoundary::LocalTime(CivilTime::hms(23, 0, 0).unwrap()).to_string(),
+            DayBoundary::LocalTime(CivilTime::hms(23, 0, 0).unwrap(), DayNaming::ByEnd).to_string(),
             "23:00:00"
         );
     }

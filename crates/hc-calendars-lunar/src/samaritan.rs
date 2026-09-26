@@ -378,9 +378,10 @@ impl Calendar for SamaritanCalendar {
     }
 
     /// The Samaritan day begins at the preceding sunset
-    /// (`samaritans-net-calendar`).
+    /// (`samaritans-net-calendar`), so it is named by the civil day it ends
+    /// on, as the Hebrew day is.
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
-        hc_calendar::DayBoundary::Sunset
+        hc_calendar::DayBoundary::Sunset(hc_calendar::DayNaming::ByEnd)
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -698,7 +699,7 @@ mod tests {
         assert_eq!(meta.native_locales, &["smp", "he"]);
         assert_eq!(
             SamaritanCalendar.day_boundary(),
-            hc_calendar::DayBoundary::Sunset
+            hc_calendar::DayBoundary::Sunset(hc_calendar::DayNaming::ByEnd)
         );
     }
 }

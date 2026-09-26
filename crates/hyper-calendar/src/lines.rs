@@ -31,7 +31,8 @@ use core::fmt::Write;
 use hc_calendar::shape::MONTH;
 use hc_calendar::units::{Unit, units};
 use hc_calendar::{
-    CalendarError, CalendarId, CalendarRegistry, DateFields, DayBoundary, DynCalendar, Rd, Standing,
+    CalendarError, CalendarId, CalendarRegistry, DateFields, DayBoundary, DayNaming, DynCalendar,
+    Rd, Standing,
 };
 use hc_format::label;
 use hc_i18n::Locale;
@@ -41,7 +42,7 @@ use hc_i18n::names::{self, NameContext, NameWidth};
 pub const NATIVE: &str = "native";
 
 /// How many columns [`describe_day`] writes.
-pub const DESCRIBE_DAY_COLUMNS: usize = 17;
+pub const DESCRIBE_DAY_COLUMNS: usize = 18;
 /// How many columns [`calendar_units`] writes.
 pub const CALENDAR_UNITS_COLUMNS: usize = 8;
 /// How many columns [`calendars`] writes.
@@ -101,12 +102,25 @@ pub const fn standing_name(standing: Standing) -> &'static str {
 fn push_day_boundary(out: &mut String, boundary: DayBoundary) {
     match boundary {
         DayBoundary::Midnight => out.push_str("midnight"),
-        DayBoundary::Noon => out.push_str("noon"),
-        DayBoundary::Sunset => out.push_str("sunset"),
-        DayBoundary::Sunrise => out.push_str("sunrise"),
-        DayBoundary::LocalTime(time) => {
+        DayBoundary::Noon(_) => out.push_str("noon"),
+        DayBoundary::Sunset(_) => out.push_str("sunset"),
+        DayBoundary::Sunrise(_) => out.push_str("sunrise"),
+        DayBoundary::LocalTime(time, _) => {
             let _ = write!(out, "local-time {time}");
         }
+    }
+}
+
+/// Which civil day names a day that begins at `boundary`, as the word a
+/// line carries: `start`, `end`, or nothing for a midnight start, which
+/// lies inside one civil day.
+const fn day_naming_name(boundary: DayBoundary) -> &'static str {
+    match boundary {
+        DayBoundary::Midnight => "",
+        _ => match boundary.naming() {
+            DayNaming::ByStart => "start",
+            DayNaming::ByEnd => "end",
+        },
     }
 }
 
@@ -221,9 +235,11 @@ fn push_extras(out: &mut String, fields: &DateFields) {
 /// locale (or the calendar's own, or empty), the day, `1` for a leap day,
 /// the extra fields as `name=value` pairs joined by `;`, the error code,
 /// the error name, the standing, where the calendar's day begins, the date
-/// as the locale writes it, and the locale used. A calendar that refuses
-/// the day is still a line: its date columns, standing and formatted date
-/// are empty and the error code and name say why.
+/// as the locale writes it, the locale used, and which civil day names a
+/// day that does not begin at midnight — `start` for the one it begins on,
+/// `end` for the one it ends on, empty for midnight. A calendar that
+/// refuses the day is still a line: its date columns, standing and
+/// formatted date are empty and the error code and name say why.
 #[must_use]
 pub fn describe_day(registry: &CalendarRegistry, day: Rd, locale: &str) -> String {
     let mut out = String::new();
@@ -260,6 +276,8 @@ pub fn describe_day(registry: &CalendarRegistry, day: Rd, locale: &str) -> Strin
         }
         out.push('\t');
         out.push_str(locale_used(&locale));
+        out.push('\t');
+        out.push_str(day_naming_name(calendar.day_boundary()));
         out.push('\n');
     }
     out

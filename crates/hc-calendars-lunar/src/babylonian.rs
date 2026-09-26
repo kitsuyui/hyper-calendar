@@ -402,9 +402,11 @@ impl Calendar for BabylonianCalendar {
     }
 
     /// The Babylonian day begins at sunset, which is when its month is
-    /// decided.
+    /// decided, and is named by the civil day it ends on: the crescent is
+    /// judged "on eve of" a day, at the sunset of the day before (Reingold
+    /// and Dershowitz, `calendar-code2`, `babylonian-criterion`).
     fn day_boundary(&self) -> hc_calendar::DayBoundary {
-        hc_calendar::DayBoundary::Sunset
+        hc_calendar::DayBoundary::Sunset(hc_calendar::DayNaming::ByEnd)
     }
 
     fn meta(&self) -> CalendarMeta {

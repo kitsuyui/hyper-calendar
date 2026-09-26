@@ -375,6 +375,10 @@ fn the_lines_carry_the_labels_and_name_the_locale_used() {
     // Hebrew: a named locale never borrows the calendar's own language.
     let hebrew = rows.iter().find(|row| row[0] == "hebrew").expect("hebrew");
     assert_eq!(hebrew[16], "en");
+    // The last cell names the civil day a day is named after, and is empty
+    // for a midnight start.
+    assert_eq!(hebrew[17], "end");
+    assert_eq!(japanese[17], "");
     let text = lines::describe_day(&registry, day(2026, 9, 21), lines::NATIVE);
     let rows: Vec<Vec<&str>> = text
         .lines()

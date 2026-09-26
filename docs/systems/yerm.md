@@ -65,14 +65,15 @@ of a 30-night month.
 - **Months** 1 to 15 or 17, numbered; English names them "Month 1" to
   "Month 17", as Palmen writes "Month 2". The shape declares fifteen months
   with seventeen in some yerms, and the week.
-- **The day boundary is noon**, and a yerm date maps to the civil day on
-  whose noon it begins: the night that begins at noon on 11 November 1996
+- **The day boundary is noon**, `DayBoundary::Noon(DayNaming::ByStart)`:
+  a yerm date maps to the civil day on whose noon it begins: the night that begins at noon on 11 November 1996
   is fixed day 11 November 1996, and the morning of 12 November still
   belongs to it. This is how Palmen's tables give the dates ("begins noon
   2016-09-02") and how the Julian Day Number maps its own noon-to-noon
   days onto fixed days, so Palmen's Julian Day arithmetic carries over
-  unchanged. A caller converting a wall-clock time before noon takes the
-  day before.
+  unchanged [palmen-yerm]. A caller converting a wall-clock time before
+  noon takes the day before, which `DayBoundary::civil_day_offset` gives
+  as −1.
 - **`is_leap_year`** is true for the fifty-second yerm of a cycle, the one
   Palmen inserts to correct the mean month; a 17-month yerm is not leap,
   since two in three have 17 months.
@@ -92,6 +93,7 @@ of a 30-night month.
 | Check | Test | Result |
 | --- | --- | --- |
 | 11 November 1996 as 21-01(01(01 and 2002-06-10 pm as 21-05(03(30 | `the_present_cycle_and_palmens_worked_date` | both |
+| 2002-06-10 at 13:00 and 2002-06-11 at 11:00 are both 21-05(03(30; 2002-06-10 at 11:00 is the night before | `a_night_is_named_by_the_civil_day_on_whose_noon_it_begins` | all 3 |
 | The new cycles 17 to 22, 1721-12-19 to 2065-08-02, and their weekdays | `the_cycles_begin_where_palmen_lists_them` | all 6 |
 | The new yerms 20-25 to 21-24 and their weekdays | `the_new_yerms_are_the_ones_palmen_tabulates` | all 52 |
 | The first days of the months of yerms 21-16 to 21-18 in the moon table | `the_months_of_yerms_16_to_18_begin_where_palmen_lists_them` | all 49 |

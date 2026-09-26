@@ -55,6 +55,8 @@ struct Row {
     astronomical: bool,
     leap_months: bool,
     boundary: String,
+    /// Which civil day names a day that does not begin at midnight.
+    named_by: &'static str,
     /// The cycles the calendar declares, or `None` where it declares none.
     cycles: &'static [hyper_calendar::hc_calendar::shape::CycleShape],
     /// Whether a locale can name this calendar's months in English.
@@ -136,6 +138,7 @@ fn calendar_rows() -> Vec<Row> {
                 astronomical: meta.is_astronomical,
                 leap_months: meta.has_leap_months,
                 boundary: boundary_name(calendar.day_boundary()),
+                named_by: named_by(calendar.day_boundary()),
                 cycles: calendar.cycles(),
                 named: month_names_resolve(meta.id, calendar.cycles()),
             });
@@ -186,15 +189,28 @@ fn shape_of(row: &Row) -> String {
         .join(", ")
 }
 
+/// Which civil day names the day, as a word for the table: the one it
+/// begins on or the one it ends on, or a dash for a midnight start.
+fn named_by(boundary: hyper_calendar::hc_calendar::DayBoundary) -> &'static str {
+    use hyper_calendar::hc_calendar::{DayBoundary as B, DayNaming as N};
+    match boundary {
+        B::Midnight => "—",
+        other => match other.naming() {
+            N::ByStart => "start",
+            N::ByEnd => "end",
+        },
+    }
+}
+
 /// The day boundary as a word for the table, or the local time it falls at.
 fn boundary_name(boundary: hyper_calendar::hc_calendar::DayBoundary) -> String {
     use hyper_calendar::hc_calendar::DayBoundary as B;
     match boundary {
         B::Midnight => "midnight".to_owned(),
-        B::Noon => "noon".to_owned(),
-        B::Sunset => "sunset".to_owned(),
-        B::Sunrise => "sunrise".to_owned(),
-        B::LocalTime(time) => format!("{time} local"),
+        B::Noon(_) => "noon".to_owned(),
+        B::Sunset(_) => "sunset".to_owned(),
+        B::Sunrise(_) => "sunrise".to_owned(),
+        B::LocalTime(time, _) => format!("{time} local"),
     }
 }
 
@@ -296,14 +312,21 @@ fn render() -> String {
         rows.len()
     );
     out.push_str(
+        "**Named by** is which civil day names a day that does not begin at \
+         midnight: `start` for the one it begins on, as the Julian Day that \
+         begins at noon on 1 January 2000 is that day's, and `end` for the \
+         one it ends on, as the Hebrew day that begins at sunset on a Friday \
+         is Saturday's.\n\n",
+    );
+    out.push_str(
         "| id | Name | Crate | Feature | Earliest | Latest | Astronomical | \
-         Leap months | Day begins | Cycles | Named |\n| --- | --- | --- | \
-         --- | --- | --- | --- | --- | --- | --- | --- |\n",
+         Leap months | Day begins | Named by | Cycles | Named |\n| --- | --- | \
+         --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n",
     );
     for row in &rows {
         let _ = writeln!(
             out,
-            "| `{}` | {} | [`{}`](../crates/{}) | `{}` | {} | {} | {} | {} | {} | {} | {} |",
+            "| `{}` | {} | [`{}`](../crates/{}) | `{}` | {} | {} | {} | {} | {} | {} | {} | {} |",
             row.id,
             row.english_name,
             row.krate,
@@ -314,6 +337,7 @@ fn render() -> String {
             if row.astronomical { "yes" } else { "no" },
             if row.leap_months { "yes" } else { "no" },
             row.boundary,
+            row.named_by,
             shape_of(row),
             match row.named {
                 Some(true) => "yes",

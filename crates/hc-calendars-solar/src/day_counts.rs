@@ -25,12 +25,15 @@
 //!
 //! A day number is not an instant, and these do not all start their day at
 //! the same time. The Reduced and Dublin counts inherit the Julian Day's
-//! noon; the rest begin at midnight. A conversion between two of them that
+//! noon, and with it the Julian Day's naming: a day is the civil day on
+//! whose noon it begins ([`DayNaming::ByStart`]), as the Dublin epoch
+//! "1900 January 0.5" and the Reduced Julian Date's JD − 2 400 000 both
+//! say. The rest begin at midnight. A conversion between two of them that
 //! ignores that is wrong by half a day for half of each day.
 
 use hc_calendar::{
-    Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, DayBoundary, Rd,
-    YearKind,
+    Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, DayBoundary,
+    DayNaming, Rd, YearKind,
 };
 
 use crate::gregorian;
@@ -180,7 +183,7 @@ hc_core::catalogue! {
         "Dublin Julian Date",
         (1899, 12, 31),
         0,
-        DayBoundary::Noon,
+        DayBoundary::Noon(DayNaming::ByStart),
         "IAU General Assembly, Dublin (1955)",
     );
 
@@ -194,7 +197,7 @@ hc_core::catalogue! {
         "Reduced Julian Date",
         (1858, 11, 16),
         0,
-        DayBoundary::Noon,
+        DayBoundary::Noon(DayNaming::ByStart),
         "Astronomical usage; JD − 2 400 000",
     );
 
@@ -362,8 +365,9 @@ mod tests {
     /// them is the mistake the module header warns about.
     #[test]
     fn the_counts_disagree_about_when_a_day_starts() {
-        assert_eq!(DayCountCalendar(REDUCED).day_boundary(), DayBoundary::Noon);
-        assert_eq!(DayCountCalendar(DUBLIN).day_boundary(), DayBoundary::Noon);
+        let noon = DayBoundary::Noon(DayNaming::ByStart);
+        assert_eq!(DayCountCalendar(REDUCED).day_boundary(), noon);
+        assert_eq!(DayCountCalendar(DUBLIN).day_boundary(), noon);
         for count in [LILIAN, ANSI, TRUNCATED, CNES, CCSDS] {
             assert_eq!(
                 DayCountCalendar(count).day_boundary(),
@@ -384,6 +388,39 @@ mod tests {
             let reduced = REDUCED.number_of(rd).0;
             let modified = rd.to_modified_julian_day();
             assert_eq!(reduced - modified, 1, "{rd}");
+        }
+    }
+
+    /// A noon count names its day by the civil day on whose noon it
+    /// begins, as the Julian Day does: day 0 of the Reduced count begins at
+    /// noon on 16 November 1858, so the afternoon of that day is day 0 and
+    /// its morning is day −1.
+    #[test]
+    fn a_noon_count_names_the_day_its_noon_begins() {
+        use hc_calendar::CivilTime;
+
+        for (count, epoch) in [(REDUCED, (1858, 11, 16)), (DUBLIN, (1899, 12, 31))] {
+            let calendar = DayCountCalendar(count);
+            let civil = gregorian::to_fixed(epoch.0, epoch.1, epoch.2).expect("exists");
+            let boundary = calendar.day_boundary();
+            let afternoon = boundary
+                .civil_day_offset(CivilTime::hms(13, 0, 0).unwrap())
+                .unwrap();
+            let morning = boundary
+                .civil_day_offset(CivilTime::hms(11, 0, 0).unwrap())
+                .unwrap();
+            assert_eq!(
+                calendar.from_fixed(civil + afternoon),
+                Ok(DayNumber(0)),
+                "{}",
+                count.english_name
+            );
+            assert_eq!(
+                calendar.from_fixed(civil + morning),
+                Ok(DayNumber(-1)),
+                "{}",
+                count.english_name
+            );
         }
     }
 

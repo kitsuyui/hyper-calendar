@@ -192,6 +192,8 @@ describe("describeDay", () => {
     for (const row of rows) {
       assert.ok(row.dayBoundary.length > 0, row.id);
       assert.ok(row.localeUsed.length > 0, row.id);
+      // Only a midnight start goes without a naming.
+      assert.equal(row.dayNamedBy === null, row.dayBoundary === "midnight", row.id);
       if (row.error === null) {
         assert.ok(["in-use", "proleptic", "extended", "unrecorded"].includes(row.standing ?? ""), row.id);
         assert.equal(typeof row.year, "number", row.id);
@@ -227,6 +229,7 @@ describe("describeDay", () => {
       dayBoundary: "midnight",
       formatted: "令和8年9月21日",
       localeUsed: "ja",
+      dayNamedBy: null,
     });
     const gregorian = rows.find((row) => row.id === "gregory");
     assert.ok(gregorian);
@@ -255,6 +258,26 @@ describe("describeDay", () => {
     assert.equal(hc.describeDay(739_880, "tlh").find((row) => row.id === "gregory")?.monthLabel, "M09");
     assert.equal(hc.describeDay(739_880, "!!").find((row) => row.id === "gregory")?.monthLabel, "M09");
     assert.equal(hc.describeDay(739_880).find((row) => row.id === "gregory")?.monthLabel, "M09");
+  });
+
+  test("a day that does not begin at midnight names its civil day", () => {
+    const rows = hc.describeDay(739_880, "en");
+    /** @param {string} id */
+    const naming = (id) => {
+      const row = rows.find((candidate) => candidate.id === id);
+      return [row?.dayBoundary, row?.dayNamedBy];
+    };
+    // JDN 2 451 545 begins at noon on 1 January 2000 and is that civil day.
+    assert.deepEqual(naming("julian-day"), ["noon", "start"]);
+    assert.deepEqual(naming("yerm"), ["noon", "start"]);
+    assert.deepEqual(naming("tibetan"), ["local-time 05:00:00", "start"]);
+    assert.deepEqual(naming("hindu-lunar"), ["sunrise", "start"]);
+    // The Hebrew and Islamic evening is already the next date.
+    assert.deepEqual(naming("hebrew"), ["sunset", "end"]);
+    assert.deepEqual(naming("islamic-umalqura"), ["sunset", "end"]);
+    assert.deepEqual(naming("samaritan"), ["sunset", "end"]);
+    assert.deepEqual(naming("gregory"), ["midnight", null]);
+    assert.deepEqual(naming("modified-julian-day"), ["midnight", null]);
   });
 
   test("a leap month and the extra fields are carried", () => {
@@ -295,6 +318,7 @@ describe("describeDay", () => {
       dayBoundary: "midnight",
       formatted: null,
       localeUsed: "en",
+      dayNamedBy: null,
     });
     // And in 1900 it converts, so the refusal is about the day.
     const then = hc.describeDay(hc.gregorianToFixed(1900, 3, 14), "en").find((row) => row.id === "rumi");

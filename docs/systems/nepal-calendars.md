@@ -240,7 +240,9 @@ the conjunction being the return of the Moon's elongation to zero, as
   for Kaulā, `leap_month` for Analā, the tithi 1–30 as the day, and
   `leap_day` for the second day to carry a tithi; `new_year` gives the
   first day of a year's first Kachhalā, the intercalary one in a year
-  that has one; the day boundary is sunrise. `MONTHS_DEVANAGARI` and
+  that has one; the day boundary is sunrise, named by the civil day on
+  whose sunrise the day begins, as the amānta calendar's is.
+  `MONTHS_DEVANAGARI` and
   `MONTHS_NEWA` are the article's spellings in Devanagari and the
   Prachalit script. `new` takes another place and ayanāṃśa.
 - **Range.** Both calendars answer over the amānta and solar engines'

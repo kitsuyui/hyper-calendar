@@ -99,6 +99,14 @@ export class HcError extends Error {
 /** Where a calendar stands on a day. */
 export type Standing = "in-use" | "proleptic" | "extended" | "unrecorded";
 
+/**
+ * Which civil day names a calendar day that does not begin at midnight:
+ * `start` for the one it begins on (the Julian Day, which begins at noon on
+ * the civil day it is named after), `end` for the one it ends on (the
+ * Hebrew day, which begins at the sunset of the evening before).
+ */
+export type DayNamedBy = "start" | "end";
+
 /** One line of `hc_describe_day`: a fixed day in one calendar. */
 export interface DescribedDay {
   /** The calendar's identifier: `gregory`, `chinese`, `japanese`, ... */
@@ -133,6 +141,8 @@ export interface DescribedDay {
   formatted: string | null;
   /** The tag of the locale data that answered: `ja`, `he`, `und`. */
   localeUsed: string;
+  /** Which civil day names the day, or `null` for a day that begins at midnight. */
+  dayNamedBy: DayNamedBy | null;
 }
 
 /** A unit of a calendar `calendarUnits` walks, largest first. */
