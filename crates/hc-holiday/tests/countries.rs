@@ -2135,6 +2135,60 @@ fn the_maldives_moves_nothing_off_its_friday_and_saturday_weekend() {
     assert!(calendar.is_business_day(ymd(2026, 3, 29)));
 }
 
+#[test]
+fn afghanistan_keeps_the_emirates_solar_days_and_reports_the_announced_eid_days() {
+    expect(
+        "AF",
+        None,
+        &[
+            // 24 and 28 Asad 1403, as the Ministry announced them: Wednesday
+            // 14 and Sunday 18 August 2024.
+            (2024, 8, 14, "Victory Day"),
+            (2024, 8, 18, "Independence Day"),
+            (2024, 4, 10, "Eid al-Fitr"),
+            // 26 Dalw 1403 is 14 February 2025, 26 Dalw 1404 the 15th.
+            (2025, 2, 14, "Liberation Day"),
+            (2026, 2, 15, "Liberation Day"),
+            // 1446: Arafah on the Friday and four working days, 10 to 13
+            // Dhu al-Hijjah, Saturday 7 to Tuesday 10 June.
+            (2025, 6, 7, "Eid al-Adha"),
+            (2025, 6, 10, "Eid al-Adha"),
+            // 1447: Arafah on Tuesday 26 May, back to work on Sunday 31 May.
+            (2026, 5, 26, "Day of Arafah"),
+            (2026, 5, 27, "Eid al-Adha"),
+            (2026, 5, 30, "Eid al-Adha"),
+            (2026, 8, 15, "Victory Day"),
+            (2026, 8, 19, "Independence Day"),
+        ],
+    );
+    let eid = HolidayCalendar::for_year(table("AF"), None, 2026);
+    assert!(
+        eid.on(ymd(2026, 5, 27))
+            .iter()
+            .all(|holiday| holiday.confidence == Confidence::Approximate)
+    );
+    assert!(
+        eid.on(ymd(2026, 8, 19))
+            .iter()
+            .all(|holiday| holiday.confidence == Confidence::Exact)
+    );
+    // Friday is the weekend, and Thursday a working day.
+    assert!(eid.is_weekend(ymd(2026, 5, 29)));
+    assert!(!eid.is_weekend(ymd(2026, 5, 28)));
+    // Eid al-Fitr's further days are the notices', a gap every year; the
+    // fourth day of Eid al-Adha is one only in 1445, whose notice was not
+    // read.
+    for year in [2023, 2025, 2026] {
+        let calendar = HolidayCalendar::for_year(table("AF"), None, year);
+        let missing: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+        assert_eq!(missing, ["Eid al-Fitr"], "{year}");
+    }
+    let unread = HolidayCalendar::for_year(table("AF"), None, 2024);
+    assert!(unread.gaps().iter().any(|gap| gap.name == "Eid al-Adha"));
+    // Nowruz is not a holiday; nothing before 2023 is claimed.
+    expect_working("AF", None, &[(2026, 3, 21), (2025, 3, 21), (2022, 8, 19)]);
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // The Middle East and Africa
 // ─────────────────────────────────────────────────────────────────────────
@@ -7839,4 +7893,53 @@ fn equatorial_guinea_gives_the_next_working_day_after_a_weekend_feast() {
     // Easter Monday is not in the decree; the Sunday between a Saturday
     // feast and its Monday is not a holiday; nothing before the decree.
     expect_working("GQ", None, &[(2026, 4, 6), (2026, 8, 16), (2006, 10, 12)]);
+}
+
+#[test]
+fn liberia_keeps_its_acts_and_moves_a_sunday_holiday_to_the_monday() {
+    expect(
+        "LR",
+        None,
+        &[
+            (2026, 1, 1, "New Year's Day"),
+            (2026, 2, 11, "Armed Forces Day"),
+            (2025, 3, 12, "Decoration Day"),
+            (2024, 3, 15, "Birth Anniversary of Joseph Jenkins Roberts"),
+            (2025, 4, 11, "National Fast and Prayer Day"),
+            (2024, 4, 12, "National Fast and Prayer Day"),
+            (2024, 5, 14, "National Unification Day"),
+            (2025, 7, 26, "Independence Day"),
+            (2020, 8, 24, "National Flag Day"),
+            (2025, 11, 6, "National Thanksgiving Day"),
+            (2019, 11, 29, "Birth Anniversary of William V. S. Tubman"),
+            (2026, 12, 25, "Christmas Day"),
+        ],
+    );
+    // The proclamations' Mondays: Independence Day 2026 and 2020, Flag Day
+    // 2025 and 2014, Roberts's anniversary 2026 and 2015, Tubman's 2020,
+    // Armed Forces Day 2018.
+    expect_substitute("LR", None, 2026, (7, 26), (7, 27));
+    expect_substitute("LR", None, 2020, (7, 26), (7, 27));
+    expect_substitute("LR", None, 2025, (8, 24), (8, 25));
+    expect_substitute("LR", None, 2014, (8, 24), (8, 25));
+    expect_substitute("LR", None, 2026, (3, 15), (3, 16));
+    expect_substitute("LR", None, 2015, (3, 15), (3, 16));
+    expect_substitute("LR", None, 2020, (11, 29), (11, 30));
+    expect_substitute("LR", None, 2018, (2, 11), (2, 12));
+    // A Saturday stays: Independence Day 2025, Tubman's anniversary 2025.
+    // Saturday is not the weekend, and the Monday after is a working day.
+    expect_working("LR", None, &[(2025, 7, 28), (2025, 12, 1), (2025, 7, 25)]);
+    let saturday = HolidayCalendar::for_year(table("LR"), None, 2025);
+    assert!(!saturday.is_weekend(ymd(2025, 7, 26)));
+    // Before the Acts that made them: Flag Day in 1915, Decoration Day in
+    // 1916; the Act's own year is a gap.
+    expect_working("LR", None, &[(1915, 8, 24), (1916, 3, 8)]);
+    let act_year = HolidayCalendar::for_year(table("LR"), None, 1960);
+    assert!(
+        act_year
+            .gaps()
+            .iter()
+            .any(|gap| gap.name == "National Unification Day")
+    );
+    assert!(HolidayCalendar::for_year(table("LR"), None, 2026).is_complete());
 }

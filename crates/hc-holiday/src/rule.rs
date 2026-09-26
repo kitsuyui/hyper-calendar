@@ -317,6 +317,17 @@ hc_core::catalogue! {
             |rd| solar_hijri::from_fixed(rd).ok().map(|(year, _, _)| year),
         );
 
+        /// The Solar Hijri calendar as Afghanistan keeps it, in which
+        /// Afghanistan dates its solar holidays — 28 Asad, 26 Dalw: the
+        /// same days as [`Self::SOLAR_HIJRI`] under the Arabic names of the
+        /// signs, *Hamal* … *Hut*, so month 5 is Asad and month 11 Dalw
+        /// (`hc_calendars_equinox::persian_afghan`).
+        pub const SOLAR_HIJRI_AFGHAN = Self::new(
+            hc_calendars_equinox::persian_afghan::ID,
+            |year, month, day| solar_hijri::to_fixed(year, month.ordinal, day).ok(),
+            |rd| solar_hijri::from_fixed(rd).ok().map(|(year, _, _)| year),
+        );
+
         /// The arithmetic Solar Hijri calendar, Birashk's 2 820-year cycle,
         /// for a table that wants the rule rather than the sky. It puts
         /// Nowruz 1404 a day before Iran did.

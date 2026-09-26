@@ -275,6 +275,7 @@ Ordered by how well the sources can be cited, not by importance.
 | Djibouti 🇩🇯 | Arrêté 77-347 of 1977 as its 1981 rectificatif quotes it, from 1978: two days of each Eid, the first of Muharram, the Mouloud and Isra and Mi'raj approximate, Christmas by arrêté 77-609, Independence two days from 1981 and 28 June 1980 a gap; nothing moves; the Friday weekend of the Labour Code |
 | Comoros 🇰🇲 | Decree 25-147/PR of 19 December 2025 from 2026: six civil days and the seven religious days approximate, the end of Ramadan as the three days after 29 Ramadan and Eid al-Kabir with its morrow; the earlier decrees it repeals unread; article 3's bridge days a decision each time, not carried; nothing moves |
 | Equatorial Guinea 🇬🇶 | Decree 9/2007's ten days from 2007, with article 4's first working day after a feast on a Saturday or Sunday; the ministerial orders of article 5, Easter Monday among them, not carried |
+| Liberia 🇱🇷 | The Acts the President's proclamations cite: eleven days, Flag Day from 1916, Decoration Day from 1917, 1883 and 1960 as gap years for their Acts; a Sunday holiday on the Monday as every proclamation read from 2014 gives it, a Saturday one where it falls; the Sunday weekend of the Decent Work Act |
 | Cameroon 🇨🇲 | Law 73/5 of 1973: four civil and six religious days, the Eids approximate, and the next day for a civil holiday on a Sunday or on another holiday, from 1974; the President's declared days not carried |
 | Republic of the Congo 🇨🇬 | Law 2-94 of 1994's nine days with the Easter and Pentecost Mondays; nothing moves; 28 November and the Minister's declared days not carried |
 | Democratic Republic of the Congo 🇨🇩 | Ordinances 14-010 and 23-042: 6 April from 2023, a Sunday holiday to the Saturday from 2014 to 2025, the Minister's moves for 2025 and 2026 as the communiqués give them and a gap from 2027 |
@@ -308,11 +309,12 @@ Ordered by how well the sources can be cited, not by importance.
 | Bhutan 🇧🇹 | The Ministry of Home Affairs' government holiday lists for 2025 and 2026: the King's birthday, the Third and Fourth Druk Gyalpo's birthdays, the Coronation and National Day fixed; Losar, the Buddhist days, the Traditional Day of Offering, Dassain, the Winter Solstice and the Blessed Rainy Day as the lists date them, a year beyond reported as a gap; the Thimphu-only days and the district tshechus not carried; the Saturday–Sunday weekend, nothing moved off it |
 | Fiji 🇫🇯 | The Ministry of Information's yearly lists for 2019–2026, every day of each as listed — Constitution Day to 2022, Girmit Day and Ratu Sir Lala Sukuna Day from 2023, the Prophet's Birthday and Diwali, and the weekend moves the lists make in some years and not others — a year outside reported as a gap; Good Friday, Easter Saturday and Easter Monday by rule from Cap. 101's Schedule |
 | Kiribati 🇰🇮 | The Beretitenti's orders under Cap. 81 for 2025 (revised) and 2026, every day of each as ordered, the "in honour of" days included, a year outside reported as a gap; Good Friday and Easter Monday by rule; the Schedule days an order keeps without listing not carried |
+| Afghanistan 🇦🇫 | The Islamic Emirate's days from 2023, as the 1444 AH calendar and the Ministry of Labour's notices give them: 24 and 28 Asad and 26 Dalw exact on `persian-afghan`, Eid al-Fitr's first day and Arafah with Eid al-Adha's first three days approximate, 13 Dhu al-Hijjah in the three years whose notices were read and a gap otherwise, Eid al-Fitr's further days a gap every year; the Friday weekend; the system in [systems/afghanistan-holidays.md](systems/afghanistan-holidays.md) |
 
-**Planned** — the United Nations member states without a table,
-Afghanistan, the Central African Republic, Eritrea, Eswatini, Gabon, the
-Gambia, Guinea-Bissau, Liberia, Niger, North Korea, São Tomé and Príncipe,
-Sierra Leone, Somalia, South Sudan, Sudan and Togo, plus the subdivisions that have their own legal holidays. Tracked as
+**Planned** — the United Nations member states without a table, the
+Central African Republic, Eritrea, Eswatini, Gabon, the Gambia,
+Guinea-Bissau, Niger, North Korea, São Tomé and Príncipe, Sierra Leone,
+Somalia, South Sudan, Sudan and Togo, plus the subdivisions that have their own legal holidays. Tracked as
 one issue per country so that each lands with a citable source.
 
 Where a country's dates are announced each year by decree rather than fixed

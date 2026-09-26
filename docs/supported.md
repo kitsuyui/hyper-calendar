@@ -157,12 +157,13 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Holidays by country
 
-182 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
+184 tables, feature `holiday`. "Sources checked" is the table's own field, not this file's.
 
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
 | `AD` | Andorra | 14 | none | stated | 2026-09-22 |
 | `AE` | United Arab Emirates | 16 | none | stated | 2026-09-21 |
+| `AF` | Afghanistan | 13 | none | stated | 2026-09-26 |
 | `AG` | Antigua and Barbuda | 14 | yes | stated | 2026-09-23 |
 | `AL` | Albania | 15 | yes | stated | 2026-09-22 |
 | `AM` | Armenia | 34 | none | stated | 2026-09-22 |
@@ -256,6 +257,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `LC` | Saint Lucia | 13 | yes | stated | 2026-09-23 |
 | `LI` | Liechtenstein | 20 | none | stated | 2026-09-22 |
 | `LK` | Sri Lanka | 28 | none | stated | 2026-09-23 |
+| `LR` | Liberia | 14 | yes | stated | 2026-09-26 |
 | `LS` | Lesotho | 14 | none | stated | 2026-09-23 |
 | `LT` | Lithuania | 16 | none | stated | 2026-09-22 |
 | `LU` | Luxembourg | 12 | none | stated | 2026-09-22 |
