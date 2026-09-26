@@ -99,8 +99,9 @@ year 1 is the Gregorian year it began in, and the change is not backdated:
 
 The day arithmetic under `chinese-regnal` is `chinese`'s, and is as good as
 that calendar's agreement with the published tables
-([east-asian-lunisolar.md](east-asian-lunisolar.md)); no Qing almanac was
-read to measure the Qing days against.
+([east-asian-lunisolar.md](east-asian-lunisolar.md)), which measures the
+Qing days against the first day the Veritable Records give each month of
+1645–1908; no almanac itself was read.
 The era boundaries are asserted: the backdated years of 1368, 1402, 1457,
 1620, 1636, 1644, 1645, 1683, 1795, 1861 and 1899, the abdication day, and a
 round trip of every day of the Qing range in a release build (every 19th, with

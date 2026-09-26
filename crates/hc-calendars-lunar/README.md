@@ -356,12 +356,15 @@ decision; the module says so, and the measured gap is in the Hijri section
 above and explained in the system document.
 
 The Chinese, Korean and Vietnamese calendars were promulgated by bureaux using
-their own tables and their own solar theories. A date `chinese` gives for 1700
-is what the modern rules say, not what the almanac of 1700 said. From 1900,
-where the Observatory's table of the Qing 時憲書 was read, the one month the
-almanac began on another day — the fourth of 1906, on 24 April — is carried as
-data (`chinese::ALMANAC_CORRECTIONS`); Korea kept that almanac, so `dangi` is
-the Chinese calendar until 1912. The lower
+their own tables and their own solar theories, so the modern rules alone do
+not give the Qing almanac. Where a record of it says otherwise, `chinese`
+carries the almanac as data: 29 months of 1645–1911 that it began a day away
+from the rules (`chinese::ALMANAC_CORRECTIONS`), and the solar-term days behind
+5 leap months that it placed a lunation away (`chinese::ALMANAC_TERM_CORRECTIONS`),
+each naming its source — the Veritable Records' first day of the month, Liu Yuk
+Tung's reconstruction, KASI's data, or for 1906 the Purple Mountain
+Observatory's table. Korea kept that almanac, so `dangi` is the Chinese calendar
+until 1912. The lower
 bound of 1645 is the Shíxiàn calendar, which introduced the true-solar-term
 rule implemented there; before that the terms were mean, the month numbering
 could differ, and the crate refuses those years rather than answering wrongly.

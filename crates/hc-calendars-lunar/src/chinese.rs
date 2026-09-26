@@ -29,18 +29,35 @@
 //! # The almanac, where it was read
 //!
 //! Before 1912 the calendar was the Qing 時憲書, computed by the Bureau of
-//! Astronomy with the methods of the *Lìxiàng kǎochéng hòubiān* of 1742
-//! in Beijing apparent time (`liu-chinese-calendar-computation`), not by
-//! modern astronomy; where one of its conjunctions lies minutes from
-//! midnight the rules here can put the month on the other day.
-//! [`ALMANAC_CORRECTIONS`] carries the months where a published table of
-//! the promulgated calendar says so. From 1900 the table is the Purple
-//! Mountain Observatory's 1900–2025 calendar (`pmo-calendar-1900-2025`),
-//! which follows the 時憲書 to 1911, and it differs from the rules in one
-//! month: the fourth of 1906, which the rules begin on 23 April and the
-//! almanac on 24 April. Before 1900 no table was read and nothing is
-//! corrected, so a date there is the rule's; the document measures how
-//! often that is not the almanac's.
+//! Astronomy with its own solar and lunar theory — Tycho's until the 1730s,
+//! the *Lìxiàng kǎochéng hòubiān* of 1742 after — in Beijing apparent time
+//! (`liu-chinese-calendar-computation`), not by modern astronomy. Where one
+//! of its conjunctions lies minutes from midnight the rules here can put
+//! the month on the other day, and where one of its *zhōngqì* does, the
+//! leap month in another lunation. [`ALMANAC_CORRECTIONS`] carries the
+//! first days and [`ALMANAC_TERM_CORRECTIONS`] the term days that a record
+//! of the promulgated calendar says so of:
+//!
+//! - **1645–1899**: 28 first days and the terms behind 5 leap months,
+//!   where Liu Yuk Tung's reconstruction of the Qing calendar
+//!   (`liu-chinese-calendar-computation`) differs from the rules, each
+//!   checked against the month's opening line in the Veritable Records,
+//!   《清實錄》 (`qing-shilu`), which give its first day by its sexagenary
+//!   name: every one of the 33 months stands there as Liu has it.
+//! - **1900–1911**: one first day, the fourth month of 1906, which the
+//!   rules begin on 23 April and the almanac on 24 April; the table is the
+//!   Purple Mountain Observatory's 1900–2025 calendar
+//!   (`pmo-calendar-1900-2025`), which follows the 時憲書, and the
+//!   Veritable Records have the same day.
+//!
+//! Beyond those, every month of 1645–1908 whose opening line the Records
+//! give unambiguously was read against them, 3 048 in all, and each begins
+//! on the Records' day (`tests/chinese_qing.rs`).
+//!
+//! Each entry names its source. The term days of the leap months are the
+//! weaker part: the leap months themselves are the Veritable Records', the
+//! term days behind four of them are Liu's, and the fifth, 處暑 of 1805, is
+//! inferred from its leap month, as each entry says.
 //!
 //! # Year numbering
 //!
@@ -66,8 +83,8 @@ use hc_calendar::{Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields
 
 use crate::civil;
 use crate::lunisolar::{
-    CHINESE_EPOCH, LunisolarCalendar, LunisolarDate, LunisolarParameters, MeridianEra,
-    MonthStartCorrection, SolarTermMode,
+    CHINESE_EPOCH, LunisolarCalendar, LunisolarDate, LunisolarParameters, MajorTermCorrection,
+    MeridianEra, MonthStartCorrection, SolarTermMode,
 };
 
 /// The machine identifier CLDR uses for this calendar.
@@ -95,23 +112,235 @@ pub const MERIDIAN_SOURCES: &str = "Beijing at 116°25′E, 1397/180 hours, befo
     [reingold2018code]; the reference recorded as moving to UT+8 in 1928-1929 \
     [wikipedia-en-time-in-china], and 1928 with 116°23′E in [wikipedia-zh-nongli]";
 
-/// Where [`ALMANAC_CORRECTIONS`] comes from.
-pub const ALMANAC_CORRECTION_SOURCES: &str = "The 《时宪书》 of 光绪三十二年 as the Purple Mountain Observatory's \
-    1900-2025 calendar gives it, 四月初一 on 戊戌, 24 April 1906 [pmo-calendar-1900-2025]; the same day \
-    in the Hong Kong Observatory's table for 1906 [hko-conversion-tables] and in KASI's conversion \
-    service [kasi-lunisolar-conversion]";
-
-/// The months of 1900–2025 that the promulgated calendar began on another
-/// day than the rules do. Sources: [`ALMANAC_CORRECTION_SOURCES`].
+/// The months of 1645–1911 that the promulgated calendar began on another
+/// day than the rules do, sorted by the rules' day; each entry's `source`
+/// names the record it was read in.
 ///
-/// One entry: 光緒三十二年四月, whose conjunction the rules place at 23:52
-/// Beijing mean time on 23 April 1906 and whose first day the 時憲書 gives
-/// as 戊戌, 24 April. The third month runs thirty days with it and the
-/// fourth twenty-nine.
-pub static ALMANAC_CORRECTIONS: [MonthStartCorrection; 1] = [MonthStartCorrection::new(
-    civil::to_rd(1906, 4, 23),
-    civil::to_rd(1906, 4, 24),
-)];
+/// Twenty-eight are from before 1900: the months where Liu's
+/// reconstruction of the Qing calendar (`liu-chinese-calendar-computation`)
+/// differs from the rules, each confirmed by the first day the Veritable
+/// Records (`qing-shilu`) give the month, and all but three by KASI's data
+/// for the Korean calendar (`kasi-lunisolar-conversion`), which followed
+/// the Qing almanac. Every one of them has a conjunction within 23 minutes
+/// of Beijing mean midnight. The last is 光緒三十二年四月, whose
+/// conjunction the rules place at 23:52 Beijing mean time on 23 April 1906
+/// and whose first day the 時憲書 gives as 戊戌, 24 April
+/// (`pmo-calendar-1900-2025`); the third month runs thirty days with it and
+/// the fourth twenty-nine.
+pub static ALMANAC_CORRECTIONS: [MonthStartCorrection; 29] = [
+    MonthStartCorrection::new(
+        civil::to_rd(1652, 10, 2),
+        civil::to_rd(1652, 10, 3),
+        "《清世祖實錄》, 順治九年九月庚午朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1653, 9, 21),
+        civil::to_rd(1653, 9, 22),
+        "《清世祖實錄》, 順治十年八月甲子朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1673, 11, 8),
+        civil::to_rd(1673, 11, 9),
+        "《清聖祖實錄》, 康熙十二年十月丁酉朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1686, 4, 22),
+        civil::to_rd(1686, 4, 23),
+        "《清聖祖實錄》, 康熙二十五年四月乙酉朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1687, 3, 14),
+        civil::to_rd(1687, 3, 13),
+        "《清聖祖實錄》, 康熙二十六年二月己酉朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1692, 6, 14),
+        civil::to_rd(1692, 6, 15),
+        "《清聖祖實錄》, 康熙三十一年五月庚戌朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1693, 4, 5),
+        civil::to_rd(1693, 4, 6),
+        "《清聖祖實錄》, 康熙三十二年三月乙巳朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1704, 10, 28),
+        civil::to_rd(1704, 10, 29),
+        "《清聖祖實錄》, 康熙四十三年十月戊辰朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1708, 2, 22),
+        civil::to_rd(1708, 2, 21),
+        "《清聖祖實錄》, 康熙四十七年二月戊寅朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1713, 12, 17),
+        civil::to_rd(1713, 12, 18),
+        "《清聖祖實錄》, 康熙五十二年十一月乙巳朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1715, 3, 5),
+        civil::to_rd(1715, 3, 6),
+        "《清聖祖實錄》, 康熙五十四年二月戊辰朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1728, 8, 5),
+        civil::to_rd(1728, 8, 6),
+        "《清世宗實錄》, 雍正六年七月庚戌朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1731, 6, 4),
+        civil::to_rd(1731, 6, 5),
+        "《清世宗實錄》, 雍正九年五月癸亥朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1754, 9, 16),
+        civil::to_rd(1754, 9, 17),
+        "《清高宗實錄》, 乾隆十九年八月戊申朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1789, 10, 18),
+        civil::to_rd(1789, 10, 19),
+        "《清高宗實錄》, 乾隆五十四年九月甲申朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1794, 11, 22),
+        civil::to_rd(1794, 11, 23),
+        "《清高宗實錄》, 乾隆五十九年十一月乙酉朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1813, 4, 30),
+        civil::to_rd(1813, 5, 1),
+        "《清仁宗實錄》, 嘉慶十八年四月戊戌朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1817, 10, 10),
+        civil::to_rd(1817, 10, 11),
+        "《清仁宗實錄》, 嘉慶二十二年九月壬寅朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1820, 12, 5),
+        civil::to_rd(1820, 12, 6),
+        "《清宣宗實錄》, 嘉慶二十五年十一月甲寅朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1823, 5, 10),
+        civil::to_rd(1823, 5, 11),
+        "《清宣宗實錄》, 道光三年四月庚子朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1842, 1, 12),
+        civil::to_rd(1842, 1, 11),
+        "《清宣宗實錄》, 道光二十一年十二月庚辰朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1842, 11, 2),
+        civil::to_rd(1842, 11, 3),
+        "《清宣宗實錄》, 道光二十二年十月丙子朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1849, 9, 16),
+        civil::to_rd(1849, 9, 17),
+        "《清宣宗實錄》, 道光二十九年八月丙寅朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1856, 11, 27),
+        civil::to_rd(1856, 11, 28),
+        "《清文宗實錄》, 咸豐六年十一月乙卯朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1861, 11, 2),
+        civil::to_rd(1861, 11, 3),
+        "《清穆宗實錄》, 咸豐十一年十月丙辰朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1869, 5, 11),
+        civil::to_rd(1869, 5, 12),
+        "《清穆宗實錄》, 同治八年四月癸卯朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1880, 11, 2),
+        civil::to_rd(1880, 11, 3),
+        "《清德宗實錄》, 光緒六年十月丙申朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1887, 3, 24),
+        civil::to_rd(1887, 3, 25),
+        "《清德宗實錄》, 光緒十三年三月己丑朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
+    ),
+    MonthStartCorrection::new(
+        civil::to_rd(1906, 4, 23),
+        civil::to_rd(1906, 4, 24),
+        "The 《时宪书》 of 光绪三十二年 as the Purple Mountain Observatory's 1900-2025 calendar gives it, \
+        四月初一 on 戊戌 [pmo-calendar-1900-2025]; 《清德宗實錄》, 光緒三十二年四月戊戌朔 [qing-shilu]; \
+        the Hong Kong Observatory's table for 1906 [hko-conversion-tables]; KASI \
+        [kasi-lunisolar-conversion]",
+    ),
+];
+
+/// The *zhōngqì* of 1645–1911 that the promulgated calendar reckoned to
+/// another day than the rules do, and that move a leap month, sorted by the
+/// rules' day; each entry's `source` says where the reckoning was read or
+/// what it is inferred from.
+///
+/// Each entry is one of the five years in which the Veritable Records
+/// (`qing-shilu`) place the leap month a lunation from where the rules put
+/// it, and Liu's reconstruction (`liu-chinese-calendar-computation`) with
+/// them. The terms that differ without moving a month are not carried:
+/// they change no date.
+///
+/// - **1645**, 大暑: the 時憲書 printed it on the first day of 閏六月, but
+///   before that day's conjunction, and counted it to the month before —
+///   Lǐ Tiānjīng's rule, used that one year, as Wāng Yuēzhēn explains it
+///   in Liu's account — so the term is reckoned here to 22 July, the last
+///   day of 六月.
+/// - **1651**, 春分 on 20 March, **1661**, 秋分 on 23 September, and
+///   **1727**, 穀雨 on 20 April: the bureau's own term days, from the
+///   Tychonic theory in use before 1733, as Liu's table of calendrical
+///   solar terms gives them.
+/// - **1805**, 處暑 on 24 August: no table of the almanac's terms after
+///   1733 was read. The rules put 處暑 at 23:52 Beijing mean time on
+///   23 August, eight minutes before midnight, and the Veritable Records'
+///   閏六月 from 26 July is possible only if the almanac put it after, so
+///   the day is inferred from the leap month.
+pub static ALMANAC_TERM_CORRECTIONS: [MajorTermCorrection; 5] = [
+    MajorTermCorrection::new(
+        6,
+        civil::to_rd(1645, 7, 23),
+        civil::to_rd(1645, 7, 22),
+        "閏六月辛巳朔, 順治二年, in 《清世祖實錄》 [qing-shilu]; 大暑 on its first day counted to the \
+        month before, by Wāng Yuēzhēn's account in [liu-chinese-calendar-computation]",
+    ),
+    MajorTermCorrection::new(
+        2,
+        civil::to_rd(1651, 3, 21),
+        civil::to_rd(1651, 3, 20),
+        "閏二月戊申朔, 順治八年, in 《清世祖實錄》 [qing-shilu]; 春分 on 20 March in Liu's calendrical \
+        solar terms only [liu-chinese-calendar-computation]",
+    ),
+    MajorTermCorrection::new(
+        8,
+        civil::to_rd(1661, 9, 22),
+        civil::to_rd(1661, 9, 23),
+        "閏七月戊寅朔, 順治十八年, in 《清聖祖實錄》 [qing-shilu]; 秋分 on 23 September in Liu's \
+        calendrical solar terms only [liu-chinese-calendar-computation]",
+    ),
+    MajorTermCorrection::new(
+        3,
+        civil::to_rd(1727, 4, 21),
+        civil::to_rd(1727, 4, 20),
+        "閏三月丁巳朔, 雍正五年, in 《清世宗實錄》 [qing-shilu]; 穀雨 on 20 April in Liu's calendrical \
+        solar terms only [liu-chinese-calendar-computation]",
+    ),
+    MajorTermCorrection::new(
+        7,
+        civil::to_rd(1805, 8, 23),
+        civil::to_rd(1805, 8, 24),
+        "閏六月壬午朔, 嘉慶十年, in 《清仁宗實錄》 [qing-shilu], and Liu's table \
+        [liu-chinese-calendar-computation]; 處暑 on 24 August inferred from that leap month, no \
+        record of the term day read",
+    ),
+];
 
 /// The meridian history of the Chinese calendar. Sources:
 /// [`MERIDIAN_SOURCES`].
@@ -134,6 +363,7 @@ pub static PARAMETERS: LunisolarParameters = LunisolarParameters {
     year_offset: 0,
     solar_term_mode: SolarTermMode::Apparent,
     month_start_corrections: &ALMANAC_CORRECTIONS,
+    major_term_corrections: &ALMANAC_TERM_CORRECTIONS,
     mean_motion: None,
     earliest: Some(EARLIEST),
     latest: Some(LATEST),
@@ -220,6 +450,12 @@ pub fn new_year(year: i64) -> CalendarResult<Rd> {
 /// pre-modern reckoning of *suì* in China: one at birth and one more at
 /// each lunar new year (`wikipedia-en-east-asian-age-reckoning`). Nothing
 /// here says how any other country counts.
+///
+/// The year turns at 正月初一 because that is the rule of `chinese-age`,
+/// not because it is the only boundary in use: a sexagenary year can also
+/// be taken to turn at 立春 or at 1 January
+/// (`docs/systems/sexagenary-cycle.md`), and an age counted from either of
+/// those is not carried.
 ///
 /// # Errors
 ///
@@ -390,15 +626,36 @@ mod tests {
         );
     }
 
+    /// The rules alone, at the same meridians.
+    static RULES: LunisolarParameters = LunisolarParameters {
+        month_start_corrections: &[],
+        major_term_corrections: &[],
+        ..PARAMETERS
+    };
+
+    /// The sexagenary name of a day, as the Veritable Records write it.
+    fn cjk_day(rd: Rd) -> String {
+        const STEMS: [char; 10] = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+        const BRANCHES: [char; 12] = [
+            '子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥',
+        ];
+        let day = PARAMETERS.sexagenary_day(rd);
+        [
+            STEMS[day.stem_index() as usize],
+            BRANCHES[day.branch_index() as usize],
+        ]
+        .iter()
+        .collect()
+    }
+
     #[test]
     fn the_almanac_corrections_are_live_and_move_a_day_at_most() {
         // Each correction names a first day the rules really give, so an
         // entry cannot outlive a change to the astronomy unnoticed, and none
         // moves further than the engine's search allows.
-        static RULES: LunisolarParameters = LunisolarParameters {
-            month_start_corrections: &[],
-            ..PARAMETERS
-        };
+        for pair in ALMANAC_CORRECTIONS.windows(2) {
+            assert!(pair[0].computed < pair[1].computed, "{pair:?} out of order");
+        }
         for correction in &ALMANAC_CORRECTIONS {
             assert_eq!(
                 RULES.new_moon_on_or_after(correction.computed),
@@ -419,12 +676,146 @@ mod tests {
                 PARAMETERS.new_moon_before(Rd(correction.promulgated.0 + 1)),
                 correction.promulgated
             );
+            assert!(!correction.source.is_empty());
         }
         // Without the table the rules give 23 April 1906.
         assert_eq!(
             RULES.new_moon_on_or_after(civil::to_rd(1906, 4, 20)),
             civil::to_rd(1906, 4, 23)
         );
+    }
+
+    #[test]
+    fn the_almanac_term_corrections_are_live_and_move_a_day_at_most() {
+        for pair in ALMANAC_TERM_CORRECTIONS.windows(2) {
+            assert!(pair[0].computed < pair[1].computed, "{pair:?} out of order");
+        }
+        for correction in &ALMANAC_TERM_CORRECTIONS {
+            let term = correction.term as i64;
+            let before = (term + 10).rem_euclid(12) + 1;
+            // The rules put the term on the computed day: the index turns
+            // at the midnight that ends it.
+            assert_eq!(RULES.major_solar_term(correction.computed), before);
+            assert_eq!(RULES.major_solar_term(Rd(correction.computed.0 + 1)), term);
+            assert!(
+                (correction.promulgated.0 - correction.computed.0).abs()
+                    == MajorTermCorrection::MAX_SHIFT
+            );
+            // The corrected calendar turns at the midnight that ends the
+            // almanac's day instead.
+            assert_eq!(PARAMETERS.major_solar_term(correction.promulgated), before);
+            assert_eq!(
+                PARAMETERS.major_solar_term(Rd(correction.promulgated.0 + 1)),
+                term
+            );
+            assert!(!correction.source.is_empty());
+        }
+    }
+
+    /// A Gregorian year, month and day.
+    type Ymd = (i64, u8, u8);
+
+    /// A Chinese year, a month, its sexagenary first day and that day.
+    type VeritableFirstDay = (i64, u8, &'static str, Ymd);
+
+    /// A Chinese year, its leap month, the sexagenary first days of the
+    /// month before and of the leap month, the leap month's first day, and
+    /// the month the rules make leap instead.
+    type VeritableLeapMonth = (i64, u8, &'static str, &'static str, Ymd, u8);
+
+    /// The first day of each month that the rules put elsewhere, 1645–1899,
+    /// as the month's opening line in the Veritable Records gives it
+    /// (`qing-shilu`): the Chinese year, the month, its sexagenary first
+    /// day, and that day in the Gregorian calendar, which is Liu's.
+    const VERITABLE_FIRST_DAYS: [VeritableFirstDay; 28] = [
+        (4_289, 9, "庚午", (1652, 10, 3)),
+        (4_290, 8, "甲子", (1653, 9, 22)),
+        (4_310, 10, "丁酉", (1673, 11, 9)),
+        (4_323, 4, "乙酉", (1686, 4, 23)),
+        (4_324, 2, "己酉", (1687, 3, 13)),
+        (4_329, 5, "庚戌", (1692, 6, 15)),
+        (4_330, 3, "乙巳", (1693, 4, 6)),
+        (4_341, 10, "戊辰", (1704, 10, 29)),
+        (4_345, 2, "戊寅", (1708, 2, 21)),
+        (4_350, 11, "乙巳", (1713, 12, 18)),
+        (4_352, 2, "戊辰", (1715, 3, 6)),
+        (4_365, 7, "庚戌", (1728, 8, 6)),
+        (4_368, 5, "癸亥", (1731, 6, 5)),
+        (4_391, 8, "戊申", (1754, 9, 17)),
+        (4_426, 9, "甲申", (1789, 10, 19)),
+        (4_431, 11, "乙酉", (1794, 11, 23)),
+        (4_450, 4, "戊戌", (1813, 5, 1)),
+        (4_454, 9, "壬寅", (1817, 10, 11)),
+        (4_457, 11, "甲寅", (1820, 12, 6)),
+        (4_460, 4, "庚子", (1823, 5, 11)),
+        (4_478, 12, "庚辰", (1842, 1, 11)),
+        (4_479, 10, "丙子", (1842, 11, 3)),
+        (4_486, 8, "丙寅", (1849, 9, 17)),
+        (4_493, 11, "乙卯", (1856, 11, 28)),
+        (4_498, 10, "丙辰", (1861, 11, 3)),
+        (4_506, 4, "癸卯", (1869, 5, 12)),
+        (4_517, 10, "丙申", (1880, 11, 3)),
+        (4_524, 3, "己丑", (1887, 3, 25)),
+    ];
+
+    #[test]
+    fn each_month_the_almanac_moved_begins_on_the_veritable_records_day() {
+        for (year, ordinal, name, (y, m, d)) in VERITABLE_FIRST_DAYS {
+            let first = civil::to_rd(y, m, d);
+            assert_eq!(cjk_day(first), name, "{y}-{m}-{d}");
+            assert_eq!(
+                ChineseCalendar.from_fixed(first),
+                Ok(LunisolarDate::new(year, Month::regular(ordinal), 1)),
+                "{y}-{m}-{d}"
+            );
+            // The rules begin the month a day away, and the correction that
+            // moves it names the record.
+            assert_ne!(RULES.new_moon_before(Rd(first.0 + 1)), first);
+            let correction = ALMANAC_CORRECTIONS
+                .iter()
+                .find(|correction| correction.promulgated == first)
+                .expect("a correction for the month");
+            assert!(correction.source.contains(&format!("{name}朔")));
+        }
+        // With the one month of 1906, that is the whole table.
+        assert_eq!(VERITABLE_FIRST_DAYS.len() + 1, ALMANAC_CORRECTIONS.len());
+    }
+
+    /// The five leap months that the rules put in another lunation: the
+    /// Chinese year, the leap month, the sexagenary first day of the month
+    /// before it and of the leap month in the Veritable Records
+    /// (`qing-shilu`), and the leap month's first day, which is Liu's; and
+    /// where the rules put the leap month instead.
+    const VERITABLE_LEAP_MONTHS: [VeritableLeapMonth; 5] = [
+        (4_282, 6, "壬子", "辛巳", (1645, 7, 23), 5),
+        (4_288, 2, "己卯", "戊申", (1651, 3, 21), 1),
+        (4_298, 7, "戊申", "戊寅", (1661, 8, 25), 8),
+        (4_364, 3, "戊子", "丁巳", (1727, 4, 21), 2),
+        (4_442, 6, "癸丑", "壬午", (1805, 7, 26), 7),
+    ];
+
+    #[test]
+    fn the_leap_months_the_almanac_moved_are_where_the_veritable_records_have_them() {
+        for (year, leap, before, name, (y, m, d), by_the_rules) in VERITABLE_LEAP_MONTHS {
+            let first = civil::to_rd(y, m, d);
+            assert_eq!(PARAMETERS.leap_month(year), Ok(Some(leap)), "{year}");
+            assert_eq!(RULES.leap_month(year), Ok(Some(by_the_rules)), "{year}");
+            assert_eq!(
+                ChineseCalendar.to_fixed(LunisolarDate::new(year, Month::leap(leap), 1)),
+                Ok(first),
+                "{year}"
+            );
+            assert_eq!(cjk_day(first), name, "{year}");
+            let regular = ChineseCalendar
+                .to_fixed(LunisolarDate::new(year, Month::regular(leap), 1))
+                .expect("the month before the leap month");
+            assert_eq!(cjk_day(regular), before, "{year}");
+            let correction = ALMANAC_TERM_CORRECTIONS
+                .iter()
+                .find(|correction| civil::year_from_rd(correction.computed) == y)
+                .expect("a term correction for the year");
+            assert!(correction.source.contains(&format!("{name}朔")), "{year}");
+        }
     }
 
     #[test]
@@ -502,41 +893,38 @@ mod tests {
     /// The old Beijing meridian: 116°25′E, Reingold and Dershowitz's 1397⁄180
     /// hours, which this calendar uses, or 116°23′E, the Hong Kong Space
     /// Museum's figure as the Chinese Wikipedia quotes it
-    /// (`wikipedia-zh-nongli`). Eight seconds of
-    /// time apart, they begin one month of 1645–1929 on different days: the
-    /// second month of 4324, on 14 March 1687 at 116°25′ and 13 March at
-    /// 116°23′. A release build checks that it is the only one.
+    /// (`wikipedia-zh-nongli`). Eight seconds of time apart, the rules at
+    /// the two begin one month of 1645–1929 on different days: the second
+    /// month of 4324, on 14 March 1687 at 116°25′ and 13 March at 116°23′.
+    /// The almanac had 13 March — 康熙二十六年二月己酉朔 in the Veritable
+    /// Records (`qing-shilu`) — and so does this calendar, by its
+    /// correction; a release build checks that the month is the only one.
     #[test]
     fn the_two_readings_of_the_beijing_meridian_differ_once() {
         static AT_116_23: [MeridianEra; 2] = [
             MeridianEra::from_longitude(i64::MIN / 4, 116.383_333_333_333_33, "116°23′E"),
             MERIDIANS[1],
         ];
-        static PARAMETERS_116_23: LunisolarParameters = LunisolarParameters {
+        static RULES_116_23: LunisolarParameters = LunisolarParameters {
             meridians: &AT_116_23,
-            ..PARAMETERS
+            ..RULES
         };
-        let other = LunisolarCalendar::new(&PARAMETERS_116_23);
-        let march_14 = civil::to_rd(1687, 3, 14);
-        let second_month = ENGINE.from_fixed(march_14).expect("in range");
-        assert_eq!(
-            (
-                second_month.year,
-                second_month.month.ordinal,
-                second_month.day
-            ),
-            (4324, 2, 1)
-        );
-        let earlier = other.from_fixed(Rd(march_14.0 - 1)).expect("in range");
-        assert_eq!(
-            (earlier.year, earlier.month.ordinal, earlier.day),
-            (4324, 2, 1)
-        );
+        let rules = LunisolarCalendar::new(&RULES);
+        let other = LunisolarCalendar::new(&RULES_116_23);
+        let march_13 = civil::to_rd(1687, 3, 13);
+        let march_14 = Rd(march_13.0 + 1);
+        let first = |calendar: LunisolarCalendar, rd: Rd| {
+            let date = calendar.from_fixed(rd).expect("in range");
+            (date.year, date.month.ordinal, date.day)
+        };
+        assert_eq!(first(rules, march_14), (4324, 2, 1));
+        assert_eq!(first(other, march_13), (4324, 2, 1));
+        assert_eq!(first(ENGINE, march_13), (4324, 2, 1));
         if cfg!(debug_assertions) {
             return;
         }
         let differing = (EARLIEST.0..civil::to_rd(1930, 1, 1).0)
-            .filter(|rd| ENGINE.from_fixed(Rd(*rd)) != other.from_fixed(Rd(*rd)))
+            .filter(|rd| rules.from_fixed(Rd(*rd)) != other.from_fixed(Rd(*rd)))
             .count();
         // The thirty days of that one month, 13 March to 11 April 1687.
         assert_eq!(differing, 30);

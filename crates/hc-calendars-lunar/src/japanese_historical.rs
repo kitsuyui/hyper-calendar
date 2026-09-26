@@ -262,6 +262,7 @@ macro_rules! parameter_sets {
             year_offset: YEAR_OFFSET,
             solar_term_mode: SolarTermMode::Mean,
             month_start_corrections: &[],
+            major_term_corrections: &[],
             mean_motion: Some(MODEL),
             earliest: Some(EARLIEST),
             latest: Some(LATEST),
@@ -284,6 +285,7 @@ macro_rules! parameter_sets {
         /// informative number this module produces.
         pub static PARAMETERS_TABULATED: LunisolarParameters = LunisolarParameters {
             month_start_corrections: &[],
+            major_term_corrections: &[],
             mean_motion: Some(MODEL_TABULATED),
             ..TEMPLATE
         };
@@ -1108,6 +1110,7 @@ mod tests {
             year_offset: YEAR_OFFSET,
             solar_term_mode: SolarTermMode::Mean,
             month_start_corrections: &[],
+            major_term_corrections: &[],
             mean_motion: Some(MeanMotionModel {
                 conjunction_mode: ConjunctionMode::Mean,
                 advance_limit: None,

@@ -53,8 +53,9 @@
 //! be wrong by one**, and a wrong day for a zhōngqì can move a leap month by
 //! a whole month. And a date this module produces for 1700 is what the
 //! modern rules say at the modern meridian, not what the almanac of 1700
-//! said, except in the months a calendar corrects from a table of the
-//! almanac it has read ([`MonthStartCorrection`]); the supported ranges are
+//! said, except in the months and solar terms a calendar corrects from a
+//! record of the almanac ([`MonthStartCorrection`],
+//! [`MajorTermCorrection`]); the supported ranges are
 //! set accordingly, and the crate refuses dates outside them rather than
 //! guessing. The system document says what
 //! was checked against which publication and where the margins were
@@ -132,22 +133,25 @@ impl MeridianEra {
 /// The rules are modern astronomy read at a named meridian; an almanac was
 /// computed by its own bureau, with its own tables, and when a conjunction
 /// falls minutes from midnight the two can land on either side of it. Where
-/// a table of the promulgated calendar has been read, such a month is data,
-/// not a rule: `computed` is the first day the rules give and `promulgated`
-/// the first day the table gives. The engine applies the correction to every
-/// month boundary it finds, so the month before becomes a day longer or
-/// shorter with it.
+/// a record of the promulgated calendar has been read, such a month is data,
+/// not a rule: `computed` is the first day the rules give, `promulgated`
+/// the first day the record gives and `source` the record. The engine
+/// applies the correction to every month boundary it finds, so the month
+/// before becomes a day longer or shorter with it.
 ///
 /// A correction moves a first day by at most
 /// [`MonthStartCorrection::MAX_SHIFT`] days, which is what lets the search
-/// for the next or previous month stay local; each calendar's tests assert
-/// it of its own table.
+/// for the next or previous month stay local, and a table is sorted by
+/// `computed`, which is what lets the engine find an entry by bisection;
+/// each calendar's tests assert both of its own table.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MonthStartCorrection {
     /// The first day of the month by the rules.
     pub computed: Rd,
     /// The first day of the month in the promulgated calendar.
     pub promulgated: Rd,
+    /// Where the promulgated day was read, with the bibliography keys.
+    pub source: &'static str,
 }
 
 impl MonthStartCorrection {
@@ -156,10 +160,78 @@ impl MonthStartCorrection {
 
     /// A correction from the day the rules give to the day the almanac gave.
     #[must_use]
-    pub const fn new(computed: Rd, promulgated: Rd) -> Self {
+    pub const fn new(computed: Rd, promulgated: Rd, source: &'static str) -> Self {
         Self {
             computed,
             promulgated,
+            source,
+        }
+    }
+}
+
+/// A major solar term that the calendar as promulgated reckoned to a
+/// different day from the one the rules here give.
+///
+/// Which month holds a *zhōngqì* decides which month is the leap month, so
+/// a term the almanac put across midnight from the rules' day can move a
+/// leap month by a whole lunation even where every first day agrees. The
+/// Qing bureau computed its terms with its own solar theory, and its term
+/// days are not always the modern ones.
+///
+/// `term` is numbered as [`LunisolarParameters::major_solar_term`] numbers
+/// the terms, 1 for 雨水 at 330° to 11 for 冬至 and 12 for 大寒; `computed`
+/// is the day the rules put it on, so that the index reads `term` from the
+/// midnight ending that day, and `promulgated` the day the almanac
+/// reckoned it to. At every midnight between the two the engine reads the
+/// index as the almanac would, and a correction of 冬至 moves the day of
+/// the winter solstice with it.
+///
+/// A correction moves a term by at most [`MajorTermCorrection::MAX_SHIFT`]
+/// days, and a table is sorted by `computed`, as for
+/// [`MonthStartCorrection`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MajorTermCorrection {
+    /// The term, 1 to 12, as [`LunisolarParameters::major_solar_term`]
+    /// numbers them.
+    pub term: u8,
+    /// The day the rules put the term on.
+    pub computed: Rd,
+    /// The day the promulgated calendar reckoned the term to.
+    pub promulgated: Rd,
+    /// Where the promulgated reckoning was read, or what it is inferred
+    /// from, with the bibliography keys.
+    pub source: &'static str,
+}
+
+impl MajorTermCorrection {
+    /// The furthest a correction may move a term, in days.
+    pub const MAX_SHIFT: i64 = 1;
+
+    /// A correction from the day the rules give a term to the day the
+    /// almanac reckoned it to.
+    #[must_use]
+    pub const fn new(term: u8, computed: Rd, promulgated: Rd, source: &'static str) -> Self {
+        Self {
+            term,
+            computed,
+            promulgated,
+            source,
+        }
+    }
+
+    /// The term index at the local midnight beginning `rd` once this
+    /// correction is applied to `index`, the index before it.
+    const fn apply(&self, rd: Rd, index: i64) -> i64 {
+        let term = self.term as i64;
+        if rd.0 > self.promulgated.0 && rd.0 <= self.computed.0 {
+            // Reckoned earlier than the rules have it: at these midnights
+            // the term has already passed.
+            term
+        } else if rd.0 > self.computed.0 && rd.0 <= self.promulgated.0 {
+            // Reckoned later: at these midnights it has not.
+            adjusted_modulo(term - 1, 12)
+        } else {
+            index
         }
     }
 }
@@ -470,6 +542,11 @@ pub struct LunisolarParameters {
     /// the rules do, read from a published table; empty for a calendar
     /// with no such table. See [`MonthStartCorrection`].
     pub month_start_corrections: &'static [MonthStartCorrection],
+    /// Major solar terms whose day the promulgated calendar reckoned
+    /// otherwise than the rules do, read from a record of it or inferred
+    /// from one; empty for a calendar with none. See
+    /// [`MajorTermCorrection`].
+    pub major_term_corrections: &'static [MajorTermCorrection],
     /// The earliest fixed day this calendar will convert.
     pub earliest: Option<Rd>,
     /// The latest fixed day this calendar will convert.
@@ -549,8 +626,13 @@ impl LunisolarParameters {
             // Gregorian year is the one wanted.
             return model.winter_solstice_on_or_before(civil::to_rd(gregorian_year, 12, 31));
         }
-        self.local_from_universal(hc_astro::solstice(gregorian_year, Solstice::December))
-            .day()
+        let day = self
+            .local_from_universal(hc_astro::solstice(gregorian_year, Solstice::December))
+            .day();
+        self.major_term_corrections
+            .iter()
+            .find(|correction| correction.term == 11 && correction.computed == day)
+            .map_or(day, |correction| correction.promulgated)
     }
 
     /// The last winter solstice falling on or before `rd`, as a local day.
@@ -622,9 +704,10 @@ impl LunisolarParameters {
     /// begin on `computed`.
     fn promulgated_month_start(&self, computed: Rd) -> Rd {
         self.month_start_corrections
-            .iter()
-            .find(|correction| correction.computed == computed)
-            .map_or(computed, |correction| correction.promulgated)
+            .binary_search_by_key(&computed, |correction| correction.computed)
+            .map_or(computed, |index| {
+                self.month_start_corrections[index].promulgated
+            })
     }
 
     /// The first day of the first lunar month beginning on or after `rd`, by
@@ -694,9 +777,32 @@ impl LunisolarParameters {
     /// last passed at local midnight beginning `rd`.
     ///
     /// Term 11 is *dōngzhì*, the winter solstice, which is why month 11 is
-    /// the one that must contain it.
+    /// the one that must contain it. The [`MajorTermCorrection`]s are
+    /// applied; [`LunisolarParameters::computed_major_solar_term`] is the
+    /// rules alone.
     #[must_use]
     pub fn major_solar_term(&self, rd: Rd) -> i64 {
+        let raw = self.computed_major_solar_term(rd);
+        if self.major_term_corrections.is_empty() {
+            return raw;
+        }
+        // Only a correction whose computed day lies within the largest
+        // shift of this midnight can reach it.
+        let reach = MajorTermCorrection::MAX_SHIFT + 1;
+        let first = self
+            .major_term_corrections
+            .partition_point(|correction| correction.computed.0 < rd.0 - reach);
+        self.major_term_corrections[first..]
+            .iter()
+            .take_while(|correction| correction.computed.0 <= rd.0 + reach)
+            .fold(raw, |index, correction| correction.apply(rd, index))
+    }
+
+    /// Which of the twelve major solar terms the Sun had last passed at
+    /// local midnight beginning `rd`, by the rules alone, before any
+    /// [`MajorTermCorrection`].
+    #[must_use]
+    pub fn computed_major_solar_term(&self, rd: Rd) -> i64 {
         // A system carrying its own constants that nonetheless asks for the
         // apparent Sun is not a combination history offers; the parameters
         // permit it, and it falls through to the astronomical branch.
@@ -1202,6 +1308,7 @@ mod tests {
         solar_term_mode: SolarTermMode::Apparent,
         mean_motion: None,
         month_start_corrections: &[],
+        major_term_corrections: &[],
         earliest: None,
         latest: None,
         native_locales: &[],
@@ -1342,6 +1449,51 @@ mod tests {
     }
 
     #[test]
+    fn a_term_correction_moves_the_index_and_a_solstice_correction_the_solstice() {
+        // The December solstice of 2000 and 雨水 of 2001, each reckoned a day
+        // away from where the rules put them, one later and one earlier.
+        let solstice = ENGINE_TEST.winter_solstice_day(2000);
+        let rain_water = (civil::to_rd(2001, 2, 10).0..civil::to_rd(2001, 3, 1).0)
+            .map(Rd)
+            .find(|rd| ENGINE_TEST.major_solar_term(Rd(rd.0 + 1)) == 1)
+            .expect("雨水 falls in February");
+        static CORRECTIONS: [MajorTermCorrection; 2] = [
+            MajorTermCorrection::new(11, Rd(730_475), Rd(730_476), "test"),
+            MajorTermCorrection::new(1, Rd(730_534), Rd(730_533), "test"),
+        ];
+        assert_eq!(
+            (solstice, rain_water),
+            (CORRECTIONS[0].computed, CORRECTIONS[1].computed),
+            "the test's days are the rules' days"
+        );
+        static CORRECTED: LunisolarParameters = LunisolarParameters {
+            major_term_corrections: &CORRECTIONS,
+            ..ENGINE_TEST
+        };
+        // Later: the index still reads 10 at the midnight ending the rules'
+        // day, and the solstice's day moves with it.
+        assert_eq!(ENGINE_TEST.major_solar_term(Rd(solstice.0 + 1)), 11);
+        assert_eq!(CORRECTED.major_solar_term(Rd(solstice.0 + 1)), 10);
+        assert_eq!(CORRECTED.major_solar_term(Rd(solstice.0 + 2)), 11);
+        assert_eq!(CORRECTED.winter_solstice_day(2000), Rd(solstice.0 + 1));
+        // Earlier: the index already reads 1 at the midnight beginning the
+        // rules' day.
+        assert_eq!(ENGINE_TEST.major_solar_term(rain_water), 12);
+        assert_eq!(CORRECTED.major_solar_term(rain_water), 1);
+        assert_eq!(CORRECTED.major_solar_term(Rd(rain_water.0 - 1)), 12);
+        // Every other midnight of the season is untouched.
+        for rd in (solstice.0 - 40..rain_water.0 + 40).map(Rd) {
+            if rd != Rd(solstice.0 + 1) && rd != rain_water {
+                assert_eq!(
+                    CORRECTED.major_solar_term(rd),
+                    ENGINE_TEST.major_solar_term(rd),
+                    "{rd:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
     fn month_eleven_contains_the_winter_solstice() {
         for year in 1950..2050i64 {
             let solstice = ENGINE_TEST.winter_solstice_day(year);
@@ -1387,6 +1539,7 @@ mod tests {
             solar_term_mode: SolarTermMode::Apparent,
             mean_motion: None,
             month_start_corrections: &[],
+            major_term_corrections: &[],
             earliest: None,
             latest: None,
             native_locales: &[],

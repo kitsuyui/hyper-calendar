@@ -542,7 +542,11 @@ mod tests {
     #[test]
     fn the_gujarati_year_is_the_chaitradi_year_from_karttika_and_one_less_before() {
         let era = VIKRAM_SAMVAT_KARTIKADI;
-        for day in (ymd(2023, 1, 1).0..ymd(2026, 1, 1).0).step_by(7) {
+        let (first, last) = (ymd(2023, 1, 1).0, ymd(2026, 1, 1).0 - 1);
+        // Every day in a release build; in a debug one every seventh and
+        // both boundaries the rule turns on, Kārttika 1 and Chaitra 1, with
+        // the day before each.
+        for day in crate::sweep_days(first, last, 7, &boundaries(&era, first, last)) {
             let rd = Rd(day);
             let lunar = AMANTA.from_fixed(rd).expect("in range");
             let gujarati = era.from_fixed(rd).expect("in range");
@@ -663,7 +667,11 @@ mod tests {
         assert_eq!((eve.year, eve.month), (350, 3));
         // The year is the Śaka year less 1595 from the opening, and 1596
         // less before it.
-        for day in (ymd(2024, 1, 1).0..ymd(2026, 1, 1).0).step_by(5) {
+        let (first, last) = (ymd(2024, 1, 1).0, ymd(2026, 1, 1).0 - 1);
+        // Every day in a release build; in a debug one every fifth and
+        // both boundaries the rule turns on, the era's opening and
+        // Chaitra 1, with the day before each.
+        for day in crate::sweep_days(first, last, 5, &boundaries(&era, first, last)) {
             let rd = Rd(day);
             let lunar = AMANTA.from_fixed(rd).expect("in range");
             let raja = era.from_fixed(rd).expect("in range");
@@ -746,6 +754,22 @@ mod tests {
         assert_eq!(saptarshi::full_year_near(60, 5_100), Some(5_060));
         assert_eq!(saptarshi::full_year_near(101, 5_100), None);
         assert_eq!(saptarshi::full_year_near(-1, 5_100), None);
+    }
+
+    /// The first days of `era`'s years and of the Śaka years of
+    /// [`AMANTA`] from a year before `first` to a year after `last`: the
+    /// days on which a rule relating the two counts can change.
+    fn boundaries(era: &LunarEra, first: i64, last: i64) -> alloc::vec::Vec<i64> {
+        let (from, to) = (
+            AMANTA.from_fixed(Rd(first)).expect("in range").year - 1,
+            AMANTA.from_fixed(Rd(last)).expect("in range").year + 1,
+        );
+        let mut days: alloc::vec::Vec<i64> = (from..=to)
+            .filter_map(|year| AMANTA.new_year(year).ok().map(|day| day.0))
+            .collect();
+        let years = |day: i64| era.from_fixed(Rd(day)).expect("in range").year;
+        days.extend(openings(era, years(first) - 1..=years(last) + 1));
+        days
     }
 
     /// Every opening of `era`'s years in `range`, as fixed days.
