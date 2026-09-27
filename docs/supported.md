@@ -280,7 +280,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `FM` | Micronesia | 9 | yes | stated | 2026-09-23 |
 | `FR` | France | 14 | none | stated | 2026-09-26 |
 | `GA` | Gabon | 14 | none | stated | 2026-09-26 |
-| `GB` | United Kingdom | 34 | yes | stated | 2026-09-26 |
+| `GB` | United Kingdom | 35 | yes | stated | 2026-09-27 |
 | `GD` | Grenada | 16 | yes | stated | 2026-09-23 |
 | `GE` | Georgia | 18 | none | stated | 2026-09-22 |
 | `GH` | Ghana | 16 | none | stated | 2026-09-22 |
@@ -290,7 +290,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `GR` | Greece | 12 | none | stated | 2026-09-26 |
 | `GT` | Guatemala | 18 | none | stated | 2026-09-26 |
 | `GW` | Guinea-Bissau | 8 | none | stated | 2026-09-26 |
-| `GY` | Guyana | 15 | yes | stated | 2026-09-22 |
+| `GY` | Guyana | 15 | yes | stated | 2026-09-27 |
 | `HK` | Hong Kong | 37 | yes | stated | 2026-09-26 |
 | `HN` | Honduras | 14 | none | stated | 2026-09-23 |
 | `HR` | Croatia | 17 | none | stated | 2026-09-26 |
@@ -299,7 +299,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `ID` | Indonesia | 38 | none | stated | 2026-09-26 |
 | `IE` | Ireland | 11 | none | stated | 2026-09-26 |
 | `IL` | Israel | 13 | none | stated | 2026-09-23 |
-| `IN` | India | 17 | none | stated | 2026-09-26 |
+| `IN` | India | 17 | none | stated | 2026-09-27 |
 | `IQ` | Iraq | 32 | none | stated | 2026-09-22 |
 | `IR` | Iran | 27 | none | stated | 2026-09-22 |
 | `IS` | Iceland | 16 | none | stated | 2026-09-26 |
@@ -341,11 +341,11 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `MO` | Macau | 22 | yes | stated | 2026-09-22 |
 | `MR` | Mauritania | 8 | none | stated | 2026-09-23 |
 | `MT` | Malta | 14 | none | stated | 2026-09-22 |
-| `MU` | Mauritius | 16 | none | stated | 2026-09-22 |
+| `MU` | Mauritius | 16 | none | stated | 2026-09-27 |
 | `MV` | Maldives | 19 | none | stated | 2026-09-23 |
 | `MW` | Malawi | 13 | yes | stated | 2026-09-22 |
 | `MX` | Mexico | 11 | none | stated | 2026-09-26 |
-| `MY` | Malaysia | 34 | yes | stated | 2026-09-26 |
+| `MY` | Malaysia | 34 | yes | stated | 2026-09-27 |
 | `MZ` | Mozambique | 9 | none | stated | 2026-09-23 |
 | `NA` | Namibia | 14 | yes | stated | 2026-09-22 |
 | `NE` | Niger | 12 | none | stated | 2026-09-26 |
@@ -377,14 +377,14 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `SC` | Seychelles | 16 | yes | stated | 2026-09-23 |
 | `SD` | Sudan | 6 | none | stated | 2026-09-26 |
 | `SE` | Sweden | 17 | none | stated | 2026-09-26 |
-| `SG` | Singapore | 20 | yes | stated | 2026-09-26 |
+| `SG` | Singapore | 20 | yes | stated | 2026-09-27 |
 | `SI` | Slovenia | 16 | none | stated | 2026-09-26 |
 | `SK` | Slovakia | 22 | none | stated | 2026-09-26 |
 | `SL` | Sierra Leone | 14 | yes | stated | 2026-09-26 |
 | `SM` | San Marino | 20 | none | stated | 2026-09-22 |
 | `SN` | Senegal | 16 | yes | stated | 2026-09-22 |
 | `SO` | Somalia | 7 | none | stated | 2026-09-26 |
-| `SR` | Suriname | 16 | none | stated | 2026-09-23 |
+| `SR` | Suriname | 16 | none | stated | 2026-09-27 |
 | `SS` | South Sudan | 11 | none | stated | 2026-09-26 |
 | `SV` | El Salvador | 14 | none | stated | 2026-09-23 |
 | `SY` | Syria | 19 | none | stated | 2026-09-23 |
@@ -398,7 +398,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `TN` | Tunisia | 23 | none | stated | 2026-09-22 |
 | `TO` | Tonga | 11 | yes | stated | 2026-09-23 |
 | `TR` | Türkiye | 15 | none | stated | 2026-09-26 |
-| `TT` | Trinidad and Tobago | 17 | yes | stated | 2026-09-22 |
+| `TT` | Trinidad and Tobago | 17 | yes | stated | 2026-09-27 |
 | `TV` | Tuvalu | 10 | yes | stated | 2026-09-23 |
 | `TW` | Taiwan | 21 | yes | stated | 2026-09-26 |
 | `TZ` | Tanzania | 17 | yes | stated | 2026-09-22 |
@@ -430,7 +430,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `buddhist-tibetan` | Buddhism (Tibetan) | 5 |
 | `buddhist-uposatha-thai` | Buddhism (Thai uposatha days) | 4 |
 | `chaharshanbe-suri` | Chaharshanbe Suri | 1 |
-| `chinese-folk` | Chinese folk tradition | 15 |
+| `chinese-folk` | Chinese folk tradition | 16 |
 | `chinese-xiaonian-jiangnan` | Little New Year (Jiangnan, Fujian and Taiwan) | 1 |
 | `chinese-xiaonian-nanjing` | Little New Year (Nanjing) | 1 |
 | `chinese-xiaonian-north` | Little New Year (north) | 1 |

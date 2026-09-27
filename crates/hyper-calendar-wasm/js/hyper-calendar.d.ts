@@ -891,8 +891,8 @@ export interface HolidayTable {
   /**
    * CLDR 48's `alt="short"` name beside a CLDR name, from the same locale's
    * data: `Hong Kong` for `HK` under `en`, 香港 under `ja`; `null` where
-   * CLDR has none, which is most countries, and for a table named in English
-   * by fallback.
+   * CLDR has none, which is most countries, and for a table that is not a
+   * country.
    */
   shortName: string | null;
 }

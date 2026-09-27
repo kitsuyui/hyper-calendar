@@ -20,8 +20,8 @@ use crate::computus::offsets::{
     MAUNDY_THURSDAY,
 };
 use crate::hindu::{
-    BUDDHA_PURNIMA, DIWALI, GURU_NANAK_JAYANTI, HOLI, JANMASHTAMI, MAHAVIR_JAYANTI, RAMA_NAVAMI,
-    VIJAYA_DASHAMI,
+    BUDDHA_PURNIMA, DIWALI, GURU_NANAK_JAYANTI, HOLI, JANMASHTAMI, MAHAVIR_JAYANTI,
+    NARAKA_CHATURDASHI, RAMA_NAVAMI, VIJAYA_DASHAMI,
 };
 use crate::rule::{
     CalendarSystem, Confidence, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY,
@@ -1378,7 +1378,7 @@ pub static INDIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Department of Personnel and Training, O.M. F.No.12/2/2023-JCA of 3 July 2025, \
               \"Holidays to be observed in Central Government Offices during the year 2026\", \
               Annexure-I, and the O.M. of the same file number of 9 July 2024 for 2025; the \
@@ -1388,7 +1388,10 @@ pub static INDIA: RuleSet = RuleSet {
               the twelve optional ones, Holi, Ram Navami and Janmashtami; offices elsewhere \
               choose their own three. The Hindu, Jain, Buddhist and Sikh dates are computed on \
               the `hindu-lunar` calendar as the Rashtriya Panchang keeps it. The Hijri-dated \
-              days are approximate, as everywhere",
+              days are approximate, as everywhere. Diwali is Lakṣmī Pūjā, as the O.M.s \
+              for 2017, 2018 and 2027 (F.No.12/2/2023-JCA of 16 July 2026) date it — 19 \
+              October 2017, 7 November 2018 and 29 October 2027 — read as GConnect and \
+              StaffNews reproduce them (secondary), retrieved 2026-09-27",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2103,7 +2106,7 @@ static SG_RULES: &[HolidayRule] = &[
     SG_HAJI[2],
     SG_HAJI[3],
     HolidayRule::public("National Day", "", Rule::gregorian(8, 9)).years(Some(1965), None),
-    HolidayRule::public("Deepavali", "", DIWALI).approximate(),
+    HolidayRule::public("Deepavali", "", NARAKA_CHATURDASHI).approximate(),
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
 ];
 
@@ -2127,16 +2130,22 @@ pub static SINGAPORE: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Holidays Act 1998, schedule; the Ministry of Manpower's \"Public \
               Holidays for\" 2020 to 2027 press releases (mom.gov.sg/newsroom/\
               press-releases/, `mom-public-holidays`) and its revisions of 21 October \
               2021 and 29 September 2022, retrieved 2026-09-26, for Hari Raya Puasa, \
               Hari Raya Haji and Vesak Day in those years, the 2027 ones as announced \
               and outside them the tabular Hijri computation and the Chinese calendar's \
-              full moon, approximate; the same lists' Deepavali for 2020 to 2026, which \
-              the crate's Dīpāvalī rule gives, carried approximate as the Ministry \
-              announces the day",
+              full moon, approximate; for Deepavali, the Tamil convention, Naraka \
+              Caturdaśī (`hindu::NARAKA_CHATURDASHI`), which gives the Ministry's day \
+              in every year read: the consolidated list of 2020 to 2027 on data.gov.sg \
+              (dataset d_8ef23381f9417e4d4254ee8b4dcdb176), retrieved 2026-09-27, and \
+              the press releases of 5 April 2016 and 5 April 2017 for 2017 and 2018, \
+              as the National Archives of Singapore keeps them (nas.gov.sg/\
+              archivesonline), retrieved 2026-09-27 — 18 October 2017, 6 November \
+              2018 and 28 October 2027 are each a day before Lakṣmī Pūjā. Carried \
+              approximate, as the Ministry announces the day",
 };
 
 /// The Prime Minister's Department's "Jadual Hari Kelepasan Am
@@ -2278,7 +2287,7 @@ static MY_RULES: &[HolidayRule] = &[
     MY_MAWLID[1],
     MY_MAWLID[2],
     MY_MAWLID[3],
-    HolidayRule::public("Deepavali", "Hari Deepavali", DIWALI).approximate(),
+    HolidayRule::public("Deepavali", "Hari Deepavali", NARAKA_CHATURDASHI).approximate(),
     HolidayRule::public("Christmas Day", "Hari Krismas", Rule::gregorian(12, 25)),
 ];
 
@@ -2300,7 +2309,7 @@ pub static MALAYSIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Holidays Act 1951, schedule; the Prime Minister's Department's \
               \"Jadual Hari Kelepasan Am Persekutuan\" for 2020 to 2027 (kabinet.gov.my, \
               bkpp/pdf/hari_kelepasan_am/hka_2020.pdf to hka_2025.pdf, storage/2025/08/\
@@ -2311,9 +2320,12 @@ pub static MALAYSIA: RuleSet = RuleSet {
               (berita.rtm.gov.my) on the Prime Minister's added day of 15 March 2026 \
               and the Keeper of the Rulers' Seal's announcement of 19 March 2026, \
               retrieved the same day. Deepavali, which the schedule keeps everywhere \
-              but Sarawak, is \
-              the crate's Dīpāvalī rule, carried approximate as the gazette \
-              announces the day. State holidays are not modelled — Thaipusam \
+              but Sarawak, is the Tamil convention, Naraka Caturdaśī \
+              (`hindu::NARAKA_CHATURDASHI`): the 2027 schedule's \"Hari Deepavali … \
+              28 Oktober, Khamis\" is a day before Lakṣmī Pūjā, and the rule gives \
+              the Deepavali of the 2021, 2022, 2023, 2026 and 2027 schedules, read \
+              through web.archive.org on 2026-09-27. Carried approximate, as the \
+              gazette announces the day. State holidays are not modelled — Thaipusam \
               among them, whose rule is `hindu::THAIPUSAM` — and neither is \
               the Friday–Saturday weekend of Johor, Kedah, Kelantan and \
               Terengganu",

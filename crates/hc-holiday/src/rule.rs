@@ -913,8 +913,8 @@ pub enum Rule {
     /// The function returns `None` for a year the stated rule does not
     /// settle, which is reported as a gap rather than passing for a year
     /// without the day. *Common Worship*'s St George's Day is the case: when
-    /// Easter is 17 April its Rules move the day onto St Mark's Day and do
-    /// not say which of the two is kept there.
+    /// Easter is 23 April its Rules move the day onto 1 May, the day of
+    /// Philip and James, and do not say which of the two is kept there.
     Unsettled(fn(i64) -> Option<Days>),
     /// A computed rule backed by a published table, which therefore has a
     /// last year.

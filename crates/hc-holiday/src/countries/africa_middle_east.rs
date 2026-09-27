@@ -3496,6 +3496,7 @@ static MU_RULES: &[HolidayRule] = &[
 /// Schedule's Assumption or All Saints "on an alternate basis", the
 /// Assumption in 2016 and so in even years. The notified feasts are on
 /// the crate's Chinese, tabular Hijri and Hindu rules as approximations,
+/// Divali on Lakṣmī Pūjā as the notices for 2017 and 2018 date it, and
 /// Cavadee on the Pusam rule at the island's meridian, which gives the
 /// days kept from 2020 to 2026. Abolition of Slavery and the Arrival
 /// of Indentured Labourers were declared for each year from 2001 until
@@ -3511,7 +3512,7 @@ pub static MAURITIUS: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Public Holidays Act (Act 22 of 1968) as amended to Act 22 of 2019, from \
               lawsofmauritius.govmu.org, retrieved 2026-09-22, for section 3 and the two \
               Schedules; the Public Holidays (Amendment) Bill (No. XIV of 2015) and its \
@@ -3521,7 +3522,9 @@ pub static MAURITIUS: RuleSet = RuleSet {
               pour commémorer l'abolition de l'esclavage\" and \"2-novembre: se souvenir de \
               l'arrivée des travailleurs engagés\", for the two days kept from 2001; Office \
               Holidays, Mauritius 2020 to 2023, for the Cavadee days kept; Wikipedia, \
-              \"Culture of Mauritius\"",
+              \"Culture of Mauritius\"; General Notices No. 814 of 2016 and No. 737 of 2017, the public \
+              holidays of 2017 and 2018 (pmo.govmu.org), through web.archive.org, \
+              retrieved 2026-09-27, for Divali on 19 October 2017 and 7 November 2018",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

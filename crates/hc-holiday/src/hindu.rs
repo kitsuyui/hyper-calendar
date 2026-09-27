@@ -20,6 +20,31 @@
 //! is the one listed; the Vaiṣṇava one, a day later when the two differ,
 //! is not carried.
 //!
+//! # Two Deepavalis
+//!
+//! Dīpāvalī is two days, and a government's holiday is one of them. Lakṣmī
+//! Pūjā is the new moon of Āśvina in the evening ([`DIWALI`]), the Diwali
+//! of northern India; Naraka Caturdaśī is the fourteenth tithi at dawn
+//! ([`NARAKA_CHATURDASHI`]), the Deepavali of the Tamil calendar, a day
+//! earlier in some years and the same day in others. From 2017 to 2027
+//! they parted in 2017, 2018 and 2027, and each table that carries the day
+//! follows the lists of those years that its government published:
+//!
+//! | Table | Rule | The lists read |
+//! | --- | --- | --- |
+//! | Singapore | Naraka Caturdaśī | The Ministry of Manpower: 18 October 2017, 6 November 2018 and 28 October 2027 (`mom-public-holidays-2017-2018`, `mom-public-holidays-consolidated`) |
+//! | Malaysia | Naraka Caturdaśī | The *Jadual Hari Kelepasan Am Persekutuan 2027*: "Hari Deepavali … 28 Oktober, Khamis" (`bkpp-hari-kelepasan-am`) |
+//! | Sri Lanka | tabulated | The Holidays Act order for 2027: 28 October, which the rule gives |
+//! | Guyana | Naraka Caturdaśī | The Ministry of Public Security's "National Holidays" lists: 18 October 2017, marked tentative, and 6 November 2018 (`mops-national-holidays-2017-2018`) |
+//! | Trinidad and Tobago | Naraka Caturdaśī | The President's appointment of 18 October 2017 under the Public Holidays and Festivals Act, as *Newsday* quotes it (`newsday-divali-2017`, secondary), and Legal Notice No. 135 of 2018 for 6 November 2018, known only by its title in the Judiciary's list of legal notices, not read (`tt-legal-notice-135-2018`) |
+//! | India | Lakṣmī Pūjā | The Department of Personnel and Training's lists: 19 October 2017, 7 November 2018 and 29 October 2027, each letting a state that keeps Naraka Caturdaśī alone close central offices on that day instead; read as StaffNews and GConnect reproduce them (`dopt-holidays-2017-2018-2027`, secondary) |
+//! | Mauritius | Lakṣmī Pūjā | The Prime Minister's Office's General Notices No. 814 of 2016 and No. 737 of 2017: 19 October 2017 and 7 November 2018 (`pmo-mu-public-holidays-2017-2018`) |
+//! | Suriname | Lakṣmī Pūjā | The Ministry of Home Affairs' days of 19 October 2017 and 7 November 2018, as *Waterkant* reports them (`waterkant-divali-2017-2018`, secondary) |
+//! | Myanmar, Kenya | Lakṣmī Pūjā | None: no list of 2017, 2018 or 2027 was found. Myanmar's notices of 2020 to 2025 are tabulated and agree with either rule but 2024's, which neither gives; Kenya's Act dates Diwali "depending upon the appearance of the moon" |
+//!
+//! Where no list of a parting year was found the table keeps Lakṣmī Pūjā,
+//! the day of India's national list.
+//!
 //! # Whose sunrise
 //!
 //! Every rule reads the day at the Central Station of the national
@@ -84,8 +109,27 @@ pub const DURGA_ASHTAMI: Rule = tithi(7, 8, Prevalence::Sunrise, WhenTwice::Earl
 /// Vijayā Daśamī, Dussehra: Āśvina śukla 10 in the afternoon.
 pub const VIJAYA_DASHAMI: Rule = tithi(7, 10, Prevalence::Afternoon, WhenTwice::Earlier);
 
-/// Dīpāvalī, Lakṣmī Pūjā: the new moon of Āśvina, in the evening.
+/// Dīpāvalī, Lakṣmī Pūjā: the new moon of Āśvina, in the evening — the
+/// Diwali of northern India and of the national list.
+///
+/// A holiday called Deepavali is not always this day: see
+/// [`NARAKA_CHATURDASHI`], and the module documentation for which
+/// governments keep which.
 pub const DIWALI: Rule = tithi(7, 30, Prevalence::Evening, WhenTwice::Later);
+
+/// Naraka Caturdaśī: Āśvina kṛṣṇa 14 at dawn, the first of two such days
+/// — the Deepavali of the Tamil calendar, and the day several governments
+/// outside India keep (see the module documentation).
+///
+/// The Calendar Reform Committee's list of festivals (`crc1955`) keeps
+/// Naraka Caturdaśī on the day its tithi covers "a period of 4 ghatikas
+/// before sunrise", and "if occurs on two successive days … on the first
+/// day"; Kālī Pūjā and Dīpāvalī proper are the new moon that follows.
+/// It is the day before [`DIWALI`] when the fourteenth tithi holds the
+/// dawn and the new moon holds the next evening, and the same day when
+/// the new moon begins between the two: 2017, 2018 and 2027 are years of
+/// the first kind, 2019 to 2026 all of the second.
+pub const NARAKA_CHATURDASHI: Rule = tithi(7, 29, Prevalence::Dawn, WhenTwice::Earlier);
 
 /// Guru Nānak Jayantī: the full moon of Kārtika, at midday.
 pub const GURU_NANAK_JAYANTI: Rule = tithi(8, 15, Prevalence::Midday, WhenTwice::Earlier);

@@ -7,8 +7,10 @@
 //! intervals changed — a hundred years under Boniface VIII, fifty from
 //! 1343, thirty-three under Urban VI — and the days of each jubilee are
 //! whatever its bull says, so the table is a list of bulls rather than a
-//! cycle. It holds the jubilees whose bulls were read, from Paul VI's of
-//! 1975 to Francis's of 2025:
+//! cycle. Its criterion is the bull: a jubilee is in the table when a Pope
+//! indicted it by a bull of indiction, ordinary or extraordinary. It holds
+//! the jubilees whose bulls were read, from Paul VI's of 1975 to Francis's
+//! of 2025:
 //!
 //! | Jubilee | Bull | Opens | Closes |
 //! | --- | --- | --- | --- |
@@ -37,11 +39,18 @@
 //! jubilee of 2033. All retrieved 2026-09-27.
 //!
 //! Not carried: the jubilees before 1975, whose bulls were not read; the
-//! Year of St Francis, 10 January 2026 to 10 January 2027, which the
-//! Apostolic Penitentiary's decree of 10 January 2026 proclaims as "a
-//! special Year of Saint Francis" with plenary indulgences, and with no
-//! bull of indiction or Holy Door (`penitentiary-st-francis-2026`); and the
-//! jubilee of 2033, announced and not yet indicted. [`holy_year_on`] answers only between the first
+//! jubilee of 2033, announced and not yet indicted; and the special
+//! jubilee years the Apostolic Penitentiary grants by decree. One of these
+//! runs from 10 January 2026 to 10 January 2027, under the "Decree of the
+//! Apostolic Penitentiary for the Eighth Centenary of the Death of Saint
+//! Francis of Assisi, Proclaiming a Special Jubilee Year with the
+//! Concession of Plenary Indulgences" of 10 January 2026
+//! (`penitentiary-st-francis-2026`), which names no bull of indiction and
+//! no Holy Door. It is a jubilee in the Holy See's own word, and it is
+//! left out by the table's criterion, not for want of that word: the
+//! Penitentiary grants such years by decree, for a centenary or a shrine
+//! as well as for the whole Church, and no list of them was found, so a
+//! table that carried them could not say when it was complete. [`holy_year_on`] answers only between the first
 //! opening carried and the day the sources were checked, and refuses
 //! outside it.
 

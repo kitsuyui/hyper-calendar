@@ -2253,13 +2253,12 @@ mod observances {
     /// or an exchange, the ISO 3166-1 country it belongs to as its table
     /// records it, else empty; and the short name in the locale, else
     /// empty. A country is named by its CLDR 48 territory
-    /// name in the locale where `hc-i18n` carries one, and every other
-    /// table, and a country the locale has no name for, by its English
-    /// name; column 5 is the tag that answered. Column 8 is CLDR 48's
-    /// `alt="short"` name of a country column 3 names from CLDR, from the
-    /// same locale's data — `Hong Kong` for `HK` under `en`, 香港 under
-    /// `ja` — and empty where the data has none and for every table named in
-    /// English by fallback. The locale argument fails as `hc_parse_iso_date`
+    /// name in the locale where `hc-i18n` carries one, a country the locale
+    /// has no name for by CLDR's English one, and every other table by its
+    /// English name; column 5 is the tag that answered. Column 8 is CLDR
+    /// 48's `alt="short"` name of a country, from the data that named it —
+    /// `Hong Kong` for `HK` under `en`, 香港 under `ja` — and empty where
+    /// the data has none and for every table that is not a country. The locale argument fails as `hc_parse_iso_date`
     /// does. A null `buffer` returns the length the text needs.
     ///
     /// # Safety

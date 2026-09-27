@@ -706,7 +706,10 @@ mod tests {
 
     #[test]
     fn the_astronomical_reckoning_is_always_a_sunday_and_refuses_outside_its_range() {
-        for year in (1583..=2150).step_by(7) {
+        // Every year in a release build; in a debug one, which the
+        // instrumented coverage run uses, every seventh and the last.
+        let step = if cfg!(debug_assertions) { 7 } else { 1 };
+        for year in (1583..=2150).step_by(step).chain([2150]) {
             let sunday = astronomical_easter(year).expect("in range");
             assert_eq!(Weekday::from_rd(sunday), Weekday::Sunday, "{year}");
             let (month, day) = (

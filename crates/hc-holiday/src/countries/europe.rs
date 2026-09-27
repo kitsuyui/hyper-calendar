@@ -123,8 +123,8 @@ static UK_RULES: &[HolidayRule] = &[
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
     HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
     // Royal and national one-offs, each proclaimed under section 1(3) of the
-    // Banking and Financial Dealings Act 1971; the proclamations were not
-    // read.
+    // Banking and Financial Dealings Act 1971; the proclamations up to 2023
+    // were not read.
     HolidayRule::fixed_public("Silver Jubilee of Elizabeth II", "", Rule::gregorian(6, 7))
         .years(Some(1977), Some(1977)),
     HolidayRule::fixed_public("Wedding of the Prince of Wales", "", Rule::gregorian(7, 29))
@@ -147,6 +147,13 @@ static UK_RULES: &[HolidayRule] = &[
         .years(Some(2022), Some(2022)),
     HolidayRule::fixed_public("Coronation of Charles III", "", Rule::gregorian(5, 8))
         .years(Some(2023), Some(2023)),
+    // Scotland's alone, by the proclamation of 3 February 2026 under
+    // section 1(3), which was read: "Monday, the fifteenth day of June in
+    // the year 2026 to be a bank holiday in Scotland"
+    // (`privy-council-scotland-2026`).
+    HolidayRule::fixed_public("World Cup bank holiday", "", Rule::gregorian(6, 15))
+        .in_regions(SCT)
+        .years(Some(2026), Some(2026)),
 ];
 
 /// The United Kingdom, with its three bank-holiday jurisdictions as regions.
@@ -158,7 +165,7 @@ pub static UNITED_KINGDOM: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Banking and Financial Dealings Act 1971 (c. 80), section 1 and schedule 1, \
               as amended by the St Andrew's Day Bank Holiday (Scotland) Act 2007 (asp 2), \
               on legislation.gov.uk (legislation.gov.uk/ukpga/1971/80/schedule/1), \
@@ -167,7 +174,12 @@ pub static UNITED_KINGDOM: RuleSet = RuleSet {
               days by royal proclamation under section 1(2) and (3), the proclamations \
               not read; Christmas Day and Good Friday in England, Wales and Northern \
               Ireland as common-law holidays; GOV.UK, \"UK bank holidays\" \
-              (gov.uk/bank-holidays), retrieved 2026-09-26",
+              (gov.uk/bank-holidays), retrieved 2026-09-26, and its feed \
+              (gov.uk/bank-holidays.json), retrieved 2026-09-27; the proclamation of \
+              3 February 2026 appointing Monday 15 June 2026 a bank holiday in \
+              Scotland, as the Privy Council Office publishes it \
+              (privycouncil.independent.gov.uk/wp-content/uploads/2026/02/\
+              Scotland-Bank-Holiday-Proclamation.pdf), retrieved 2026-09-27",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

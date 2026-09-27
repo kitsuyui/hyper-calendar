@@ -95,7 +95,15 @@ the reckoning kept today, and as 105 days after the winter solstice
 before 1645, the one the 時憲曆 replaced; the older entry is marked
 approximate, because its solstice is the one this library computes from
 today's astronomy and the calendars before 1645 reckoned their own, which
-is not modelled. `korean-folk` carries 한식 as an offset of 105
+is not modelled. Its 清明 follows the same split: the true term from
+1645, and before it the equal term, seven twenty-fourths of the mean
+tropical year after the same solstice — the division
+`hc-calendars-lunar` makes for its mean major terms, taken at the half
+step — marked approximate for the same reason. The two days before 1645
+are counted from one solstice, so their order does not depend on its
+error: 寒食 is 105 days after the solstice's day and the equal 清明 about
+106½ days after its instant, so 寒食 is one or two days before 清明, as
+the texts say. `korean-folk` carries 한식 as an offset of 105
 days from 동지 at the Korean meridian, the same day as `Hansik`. The
 106-day count is not carried: the source mentions it, "亦有去冬至一百六日
 者", without saying who kept it. Vietnam's Tết Hàn thực is a lunar date and
@@ -114,7 +122,11 @@ which KASI does not print. That 한식 falls on 청명 or the day after is
 checked for every year of 1900–2100 at the Korean meridian, as the
 Encyclopedia of Korean Culture says it always does, and that the Chinese
 solstice count falls one or two days after the eve of 清明 for the same
-years.
+years. In `chinese-folk`, 寒食 is one or two days before 清明 in every
+year of 1500–1644 and the day before it in every year of 1645–1700
+(`the_cold_food_festival_before_1645_is_105_days_after_the_solstice`);
+with the true terms instead, the solstice count of 1640 would be 5 April,
+the day after that year's true 清明.
 
 伝統的七夕 reproduces all forty dates of the Observatory's table,
 2011–2050. For 1990–2099 the day six before it holds the conjunction

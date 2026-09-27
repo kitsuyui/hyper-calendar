@@ -61,14 +61,29 @@ Trinity Sunday; in each case the next day is a weekday that holds no other
 Festival, so the first available day is the next day. No other Festival
 can meet a Principal Feast or a Principal Holy Day.
 
+**St George on St Mark's Day.** When Easter is 17 April, rule 3 sends St
+George to Monday 25 April, which is St Mark's Day, and St Mark, not in the
+fortnight, stays there. The Rules' paragraph on the two ends with the
+case of places keeping the Book of Common Prayer's calendar: "the
+Festival of Mark shall be observed on the second available day so that it
+will be observed on the same day as in places following alternative
+authorized Calendars, where George will have been transferred to the
+first available free day" [cw-rules]. That sentence is about George and
+Mark both in Easter Week, not this case, but it states the transfer as
+"the first available free day", and the Monday is not free. The Church
+kept it so in 2022, the last such year: its *Daily Prayer* for Tuesday
+26 April 2022 is headed "George, Martyr, Patron of England, c.304"
+[cofe-daily-prayer-2022]. The library therefore keeps St Mark on Monday
+25 April and St George on Tuesday 26 April; Philip and James, on a
+Sunday of Eastertide, goes to Monday 2 May.
+
 **What the Rules leave open.** Rule 3 sends St George and St Mark to fixed
 days without saying what happens when another Festival is already there,
 and rule 6 forbids Easter Week without naming a day. The years are those
-of an Easter on 17 April or from 22 to 25 April:
+of an Easter from 22 to 25 April:
 
 | Easter | St George | St Mark | Philip and James |
 | --- | --- | --- | --- |
-| 17 April | to Monday 25 April, which is St Mark's Day: open | open | from Sunday 1 May to Monday 2 May |
 | 22 April | Monday 30 April | to Tuesday 1 May: open | open |
 | 23 April | to Monday 1 May: open | Tuesday 2 May | open |
 | 24 April | Monday 2 May | Tuesday 3 May | on the Second Sunday of Easter, whose Monday is St George's: open |
@@ -122,12 +137,17 @@ Not carried:
 | The Visit of the Blessed Virgin Mary on Monday 1 June 2026, Trinity Sunday having been 31 May; Barnabas on 11 June and Holy Cross Day, Matthew and Michael and All Angels on their days in 2026, as the Church's *Daily Prayer* prints them [cofe-daily-prayer-2026] | `the_common_worship_transfers_are_the_ones_the_church_printed` | 6 of 6 |
 | St George on Monday 28 April 2025 [fullfact-st-george-2025] | the same | yes |
 | The Annunciation of 2024 and 2008, St Joseph of 2008, Philip and James of 2008 and St Andrew of 2025, from the rules | the same | yes |
-| The open years of 1962, 2000, 2011, 2022 and 2038 reported as gaps | `the_years_the_common_worship_rules_leave_open_are_gaps` | yes |
+| St Mark on Monday 25 April and St George on Tuesday 26 April 2022, as the Church's *Daily Prayer* keeps St George [cofe-daily-prayer-2022] | `the_years_the_common_worship_rules_leave_open_are_gaps` | yes |
+| The open years of 1962, 2000, 2011 and 2038 reported as gaps | the same | yes |
 | 1900–2100: no Festival shares its day with another celebration, none is kept on a Sunday of Advent, Lent or Eastertide or in Easter Week, and every celebration is kept once a year or reported as a gap | `no_festival_is_kept_where_the_common_worship_rules_forbid_it` | yes |
 
 The *Daily Prayer* pages of May 2026 and of the years before were no
-longer online when read, so the transfers of the paschal fortnight rest
-on the rules and one press report.
+longer online when read; the one of 26 April 2022 was read in the
+Internet Archive's copy, and no copy of 25 April 2022 or of any day of an
+open year was found. No *Common Worship Lectionary* of an open year —
+the Church House Publishing booklets for 2000, 2011 or 2038 — was read,
+so those years stay open. The other transfers of the paschal fortnight
+rest on the rules and one press report.
 
 ## Sources
 
@@ -135,6 +155,7 @@ on the rules and one press report.
 | --- | --- | --- |
 | [cw-rules] | The ranks, the celebrations of each, the transfers and the Table of Transferences | Yes, 2026-09-26 and 2026-09-27 |
 | [cofe-daily-prayer-2026] | The days of June and September 2026 | Yes, 2026-09-27 |
+| [cofe-daily-prayer-2022] | St George on Tuesday 26 April 2022 | Yes, 2026-09-27, through web.archive.org |
 | [fullfact-st-george-2025] | St George's Day 2025 | Yes, 2026-09-27 (press) |
 
 ## Code

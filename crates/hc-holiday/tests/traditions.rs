@@ -21,8 +21,8 @@ use hc_holiday::traditions::{
     ZOROASTRIAN_SHAHANSHAHI,
 };
 use hc_seasons::ColdFoodConvention;
-use hc_seasons::Meridian;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
+use hc_seasons::{Meridian, SolarTerm};
 
 /// Panics rather than returning a `Result`, because every date in this file
 /// is a literal the author typed and a bad one is a bug in the test.
@@ -1519,14 +1519,38 @@ fn the_cold_food_festival_before_1645_is_105_days_after_the_solstice() {
         };
         assert_eq!(cold_food[0].date, convention.day(year), "{year}");
         assert_eq!(cold_food[0].confidence, confidence, "{year}");
-        // With the true terms the solstice count lands on 清明 or after it,
-        // which is why the day was moved.
+        // Before 1645 清明 is the equal term of the calendars then in use,
+        // approximate as 寒食 is, and 寒食 falls "清明前一或二日", a day or
+        // two before it; from 1645 清明 is the true term and exact.
+        let qingming_entry: Vec<_> = calendar
+            .all()
+            .iter()
+            .filter(|holiday| holiday.name == "Qingming Festival")
+            .collect();
+        assert_eq!(qingming_entry.len(), 1, "{year}");
+        assert_eq!(qingming_entry[0].confidence, confidence, "{year}");
+        let before = qingming_entry[0].date.0 - cold_food[0].date.0;
         if year < 1645 {
-            let qingming = only_in(&calendar, &CHINESE_FOLK, year, "Qingming Festival");
-            let cold_food = only_in(&calendar, &CHINESE_FOLK, year, "Cold Food Festival");
-            assert!(cold_food >= qingming, "{year}");
+            assert!((1..=2).contains(&before), "{year}: {before} days");
+        } else {
+            assert_eq!(before, 1, "{year}");
         }
     }
+    // The true terms, 定氣, would have put the solstice count on 清明 or
+    // after it — which is why the 時憲曆 moved the day: 1640's true 清明
+    // was 4 April and its 寒食 5 April.
+    let true_qingming = Rule::SolarTerm {
+        term: SolarTerm::from_degrees(15).unwrap_or(SolarTerm::SPRING_EQUINOX),
+        meridian: Meridian::CHINA,
+    };
+    assert_eq!(
+        true_qingming.days_in_year(1640).as_slice(),
+        &[ymd(1640, 4, 4)]
+    );
+    assert_eq!(
+        ColdFoodConvention::SolsticePlus105.day(1640),
+        ymd(1640, 4, 5)
+    );
 }
 
 #[test]
@@ -1879,7 +1903,8 @@ fn the_shia_days_fall_on_their_tabular_dates() {
     expect(
         &ISLAMIC,
         &[
-            // 1446: Ghadir on 18 Dhu al-Hijjah 1445, 25 June 2024.
+            // Ghadir on 18 Dhu al-Hijjah 1445, 25 June 2024; Tasu'a, Ashura
+            // and Arba'een of 1446.
             (2024, 6, 25, "Eid al-Ghadir"),
             (2024, 7, 16, "Tasu'a"),
             (2024, 7, 17, "Ashura"),
@@ -1887,17 +1912,55 @@ fn the_shia_days_fall_on_their_tabular_dates() {
         ],
     );
     // Wikipedia's "Arba'in" dates it 14 August 2025, 3 August 2026 and
-    // 24 July 2027. The tabular calendar is a day later in 2025 and 2027
-    // and two days later in 2026: a prediction, flagged as one.
-    for (year, month, day, published) in [
-        (2025, 8, 15, (2025, 8, 14)),
-        (2026, 8, 5, (2026, 8, 3)),
-        (2027, 7, 25, (2027, 7, 24)),
+    // 24 July 2027, which are exactly Umm al-Qurā's 20 Safar of 1447, 1448
+    // and 1449.
+    for (hijri_year, published) in [
+        (1447, (2025, 8, 14)),
+        (1448, (2026, 8, 3)),
+        (1449, (2027, 7, 24)),
+    ] {
+        let (y, m, d) = published;
+        assert_eq!(
+            hc_calendars_lunar::islamic_umalqura::to_fixed(hijri_year, 2, 20),
+            Ok(ymd(y, m, d)),
+            "{hijri_year}"
+        );
+    }
+    // The consistency check of the tabular table against them: a day later
+    // in 2025 and 2027 and two days later in 2026. The tabular year opens a
+    // day after Umm al-Qurā's in 1447 and 1448 and on the same day in 1449,
+    // and its Muharram always has 30 days where Umm al-Qurā's of 1448 and
+    // 1449 has 29: 1 + 0, 1 + 1 and 0 + 1.
+    for (hijri_year, (year, month, day), later) in [
+        (1447, (2025, 8, 15), 1),
+        (1448, (2026, 8, 5), 2),
+        (1449, (2027, 7, 25), 1),
     ] {
         let found = only_date(&ISLAMIC, year, "Arba'een").expect("once a year");
         assert_eq!(found, ymd(year, month, day));
-        let (y, m, d) = published;
-        assert!((1..=2).contains(&(found.0 - ymd(y, m, d).0)), "{year}");
+        let umm_al_qura = hc_calendars_lunar::islamic_umalqura::to_fixed(hijri_year, 2, 20)
+            .expect("in the table");
+        assert_eq!(found.0 - umm_al_qura.0, later, "{year}");
+        let tabular_new_year = only_date(&ISLAMIC, year, "Islamic New Year").expect("once a year");
+        let umm_al_qura_new_year =
+            hc_calendars_lunar::islamic_umalqura::to_fixed(hijri_year, 1, 1).expect("in the table");
+        let opens_later = tabular_new_year.0 - umm_al_qura_new_year.0;
+        let muharram = hc_calendars_lunar::islamic_umalqura::days_in_month(hijri_year, 1)
+            .expect("in the table");
+        assert_eq!(
+            (opens_later, muharram),
+            match hijri_year {
+                1447 => (1, 30),
+                1448 => (1, 29),
+                _ => (0, 29),
+            },
+            "{hijri_year}"
+        );
+        assert_eq!(
+            opens_later + 30 - i64::from(muharram),
+            later,
+            "{hijri_year}"
+        );
     }
     for year in 2000..=2050 {
         let calendar = HolidayCalendar::for_year(&ISLAMIC, None, year);
@@ -1949,23 +2012,83 @@ fn the_tenrikyo_services_are_the_headquarters_schedule() {
     }
 }
 
+/// The book's `unlucky-fridays` for 2000–2030, as `calendar.l` computes
+/// them.
+const BOOK_UNLUCKY_FRIDAYS: &[(i64, u8, u8)] = &[
+    (2000, 10, 13),
+    (2001, 4, 13),
+    (2001, 7, 13),
+    (2002, 9, 13),
+    (2002, 12, 13),
+    (2003, 6, 13),
+    (2004, 2, 13),
+    (2004, 8, 13),
+    (2005, 5, 13),
+    (2006, 1, 13),
+    (2006, 10, 13),
+    (2007, 4, 13),
+    (2007, 7, 13),
+    (2008, 6, 13),
+    (2009, 2, 13),
+    (2009, 3, 13),
+    (2009, 11, 13),
+    (2010, 8, 13),
+    (2011, 5, 13),
+    (2012, 1, 13),
+    (2012, 4, 13),
+    (2012, 7, 13),
+    (2013, 9, 13),
+    (2013, 12, 13),
+    (2014, 6, 13),
+    (2015, 2, 13),
+    (2015, 3, 13),
+    (2015, 11, 13),
+    (2016, 5, 13),
+    (2017, 1, 13),
+    (2017, 10, 13),
+    (2018, 4, 13),
+    (2018, 7, 13),
+    (2019, 9, 13),
+    (2019, 12, 13),
+    (2020, 3, 13),
+    (2020, 11, 13),
+    (2021, 8, 13),
+    (2022, 5, 13),
+    (2023, 1, 13),
+    (2023, 10, 13),
+    (2024, 9, 13),
+    (2024, 12, 13),
+    (2025, 6, 13),
+    (2026, 2, 13),
+    (2026, 3, 13),
+    (2026, 11, 13),
+    (2027, 8, 13),
+    (2028, 10, 13),
+    (2029, 4, 13),
+    (2029, 7, 13),
+    (2030, 9, 13),
+    (2030, 12, 13),
+];
+
 #[test]
 fn friday_the_thirteenth_is_the_books_unlucky_fridays() {
-    // Reingold and Dershowitz's `unlucky-fridays`, run from `calendar.l`.
-    for (year, days) in [
-        (2024, &[(9, 13), (12, 13)][..]),
-        (2025, &[(6, 13)]),
-        (2026, &[(2, 13), (3, 13), (11, 13)]),
-        (2027, &[(8, 13)]),
-    ] {
-        let found: Vec<Rd> = HolidayCalendar::for_year(&UNLUCKY_FRIDAYS, None, year)
-            .all()
-            .iter()
-            .map(|holiday| holiday.date)
-            .collect();
-        let expected: Vec<Rd> = days.iter().map(|&(m, d)| ymd(year, m, d)).collect();
-        assert_eq!(found, expected, "{year}");
-    }
+    // Reingold and Dershowitz's `unlucky-fridays`, run from `calendar.l`:
+    // all 53 of its days of 2000–2030 and no others.
+    let book: Vec<Rd> = BOOK_UNLUCKY_FRIDAYS
+        .iter()
+        .map(|&(y, m, d)| ymd(y, m, d))
+        .collect();
+    assert_eq!(book.len(), 53);
+    let found: Vec<Rd> = (2000..=2030)
+        .flat_map(|year| {
+            HolidayCalendar::for_year(&UNLUCKY_FRIDAYS, None, year)
+                .all()
+                .iter()
+                .map(|holiday| holiday.date)
+                .collect::<Vec<_>>()
+        })
+        .collect();
+    assert_eq!(found, book);
     for year in 1900..=2100 {
         let count = HolidayCalendar::for_year(&UNLUCKY_FRIDAYS, None, year)
             .all()
@@ -2036,30 +2159,17 @@ const BOOK_SACRED_WEDNESDAYS: &[(i64, u8, u8)] = &[
 ];
 
 #[test]
-fn the_sacred_wednesdays_are_the_books_but_where_the_calendars_differ() {
-    // Days the book's Sūrya Siddhānta calendar numbers 8 and `hindu-lunar`
-    // does not, and the reverse.
-    let book_only = [
-        ymd(2003, 12, 31),
-        ymd(2007, 9, 19),
-        ymd(2019, 7, 10),
-        ymd(2025, 10, 29),
-        ymd(2026, 7, 22),
-        ymd(2029, 2, 21),
-    ];
-    let ours_only = [
-        ymd(2006, 4, 5),
-        ymd(2018, 6, 20),
-        ymd(2022, 6, 8),
-        ymd(2024, 5, 15),
-    ];
+fn the_sacred_wednesdays_are_the_books() {
+    // Every one of the book's 56 days of 2000–2030 and no other, in every
+    // year, in both builds: the table reads the book's own calendar,
+    // `hindu-lunar-surya-siddhanta`.
     let book: Vec<Rd> = BOOK_SACRED_WEDNESDAYS
         .iter()
         .map(|&(y, m, d)| ymd(y, m, d))
         .collect();
     assert_eq!(book.len(), 56);
     let mut ours = Vec::new();
-    for year in (2000..=2030).step_by(SAMPLED) {
+    for year in 2000..=2030 {
         let calendar = HolidayCalendar::for_year(&SACRED_WEDNESDAYS, None, year);
         assert!(calendar.gaps().is_empty(), "{year}");
         for holiday in calendar.all() {
@@ -2070,22 +2180,32 @@ fn the_sacred_wednesdays_are_the_books_but_where_the_calendars_differ() {
             ours.push(holiday.date);
         }
     }
-    let in_sample = |day: &Rd| {
-        let (year, _, _) = gregorian::from_fixed(*day).expect("in range");
-        (year - 2000) % SAMPLED as i64 == 0
+    assert_eq!(ours, book);
+    // The table's years are the ones the calendar converts whole, and a
+    // year outside them is a gap, not a year without the day.
+    let Rule::Tabulated {
+        first_year,
+        last_year,
+        ..
+    } = SACRED_WEDNESDAYS.rules[0].rule
+    else {
+        panic!("sacred-wednesdays is a tabulated rule");
     };
-    for day in book.iter().filter(|day| in_sample(day)) {
-        assert_eq!(ours.contains(day), !book_only.contains(day), "{day:?}");
+    let calendar = hc_calendars_indic::SiddhantaLunarCalendar::UJJAIN;
+    let (Ok(earliest), Ok(latest)) = (calendar.earliest(), calendar.latest()) else {
+        panic!("the calendar has a range");
+    };
+    let year_of = |day: Rd| gregorian::from_fixed(day).expect("in range").0;
+    assert_eq!(first_year, year_of(earliest) + 1);
+    assert_eq!(last_year, year_of(latest) - 1);
+    for year in [first_year - 1, last_year + 1] {
+        assert!(
+            !HolidayCalendar::for_year(&SACRED_WEDNESDAYS, None, year)
+                .gaps()
+                .is_empty(),
+            "{year}"
+        );
     }
-    for day in &ours {
-        assert_eq!(book.contains(day), !ours_only.contains(day), "{day:?}");
-    }
-    // A year outside `hindu-lunar` is a gap, not a year without the day.
-    assert!(
-        !HolidayCalendar::for_year(&SACRED_WEDNESDAYS, None, 1650)
-            .gaps()
-            .is_empty()
-    );
 }
 
 #[test]
@@ -2287,10 +2407,17 @@ fn the_years_the_common_worship_rules_leave_open_are_gaps() {
             .map(|gap| gap.name)
             .collect()
     };
-    // Easter on 17 April 2022: St George's Monday is St Mark's Day.
-    assert_eq!(
-        gapped(2022),
-        ["George, Martyr, Patron of England", "Mark the Evangelist"]
+    // Easter on 17 April 2022: St George's Monday is St Mark's Day, and St
+    // George goes on to the Tuesday, as the Church's Daily Prayer for
+    // 26 April 2022 keeps it.
+    assert!(gapped(2022).is_empty());
+    expect(
+        &COMMON_WORSHIP,
+        &[
+            (2022, 4, 25, "Mark the Evangelist"),
+            (2022, 4, 26, "George, Martyr, Patron of England"),
+            (2022, 5, 2, "Philip and James, Apostles"),
+        ],
     );
     // Easter on 24 April 2011: Philip and James's Monday is St George's.
     assert_eq!(gapped(2011), ["Philip and James, Apostles"]);
