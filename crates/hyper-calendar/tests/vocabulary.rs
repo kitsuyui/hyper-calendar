@@ -690,6 +690,98 @@ fn the_almanac_vocabulary_names_what_hc_almanac_computes() {
     assert_eq!(almanac::VOCABULARIES.len(), 2);
 }
 
+/// `hc-i18n`'s vocabulary of the other reckonings and the crates that
+/// compute them must agree, as the almanac's must: every term a table
+/// names is one the crates compute, and every term they compute is named
+/// in its kind's own language with the crate's own name, so that the two
+/// copies cannot drift.
+#[cfg(all(feature = "almanac", feature = "indic", feature = "format"))]
+#[test]
+fn the_reckoning_vocabulary_names_what_the_crates_compute() {
+    use hyper_calendar::hc_almanac::vietnamese_days::{NGUYET_KY_NAME, TAM_NUONG_NAME};
+    use hyper_calendar::hc_calendars_indic::choghadiya::Choghadiya;
+    use hyper_calendar::hc_calendars_indic::kumbh::KumbhYoga;
+    use hyper_calendar::hc_calendars_indic::panchak::PanchakNaming;
+    use hyper_calendar::hc_calendars_indic::pushkaram::PushkaramRiver;
+    use hyper_calendar::hc_format::night_watches::WATCH_NAMES;
+    use hyper_calendar::hc_i18n::reckonings::{
+        CHOGHADIYA, FIRST_MONTH_COUNT, FOLK_HALF, FOLK_NAMED_DAY, KUMBH_SITE, NIGHT_WATCH, PANCHAK,
+        PLANET, PLUM_RAINS, PUSHKARAM_RIVER, VIETNAMESE_DAY, VOCABULARIES, native_tag, table,
+    };
+    use hyper_calendar::hc_seasons::hizir_kasim::{Half, NamedDay};
+    use hyper_calendar::hc_seasons::zodiac::RulingPlanet;
+    use hyper_calendar::reckoning_lines::{FIRST_MONTH_COUNT_IDS, folk_named_day_id};
+    use hyper_calendar::season_lines::PLUM_RAIN_RULES;
+
+    let mut terms: Vec<(&str, String, &str)> = Vec::new();
+    let mut add = |kind: &'static str, id: String, name: &'static str| {
+        if !terms.iter().any(|(k, i, _)| *k == kind && *i == id) {
+            terms.push((kind, id, name));
+        }
+    };
+    for kind in Choghadiya::CYCLE {
+        add(CHOGHADIYA, kind.id.to_owned(), kind.english_name);
+    }
+    for naming in PanchakNaming::ALL {
+        for kind in naming.kind_by_weekday.into_iter().flatten() {
+            add(PANCHAK, kind.to_ascii_lowercase(), kind);
+        }
+    }
+    for yoga in KumbhYoga::ALL {
+        add(KUMBH_SITE, yoga.site.to_ascii_lowercase(), yoga.site);
+    }
+    for river in PushkaramRiver::ALL {
+        add(PUSHKARAM_RIVER, river.id.to_owned(), river.river);
+    }
+    for planet in RulingPlanet::CHALDEAN_ORDER {
+        add(PLANET, planet.id.to_owned(), planet.english_name());
+    }
+    for (index, name) in WATCH_NAMES.iter().enumerate() {
+        add(NIGHT_WATCH, (index + 1).to_string(), name);
+    }
+    add(VIETNAMESE_DAY, "tam-nuong".to_owned(), TAM_NUONG_NAME);
+    add(VIETNAMESE_DAY, "nguyet-ky".to_owned(), NGUYET_KY_NAME);
+    // `hc-seasons` and `hc-almanac` write these names in their
+    // documentation only: 入梅 and 出梅 in `meiyu`, the counts in
+    // `first_month_counts`.
+    for ((id, _), name) in PLUM_RAIN_RULES.iter().zip(["入梅", "入梅", "出梅"]) {
+        add(PLUM_RAINS, (*id).to_owned(), name);
+    }
+    for (id, name) in
+        FIRST_MONTH_COUNT_IDS
+            .iter()
+            .zip(["几龙治水", "几牛耕田", "几日得辛", "几人分饼"])
+    {
+        add(FIRST_MONTH_COUNT, (*id).to_owned(), name);
+    }
+    for (half, id) in [(Half::Hizir, "hizir"), (Half::Kasim, "kasim")] {
+        add(FOLK_HALF, id.to_owned(), half.turkish_name());
+    }
+    for named in NamedDay::ALL {
+        add(
+            FOLK_NAMED_DAY,
+            folk_named_day_id(named).to_owned(),
+            named.turkish_name(),
+        );
+    }
+    for (kind, id, name) in &terms {
+        let own = native_tag(kind)
+            .and_then(table)
+            .expect("a kind with its own table");
+        assert_eq!(own.name_of(kind, id), Some(*name), "{kind} {id}");
+    }
+    for vocabulary in VOCABULARIES {
+        for (kind, id, _) in vocabulary.terms {
+            assert!(
+                terms.iter().any(|(k, i, _)| k == kind && i == id),
+                "{} names {kind} {id}, which no crate computes",
+                vocabulary.tag
+            );
+        }
+    }
+    assert_eq!(terms.len(), 7 + 5 + 4 + 14 + 7 + 5 + 2 + 3 + 4 + 2 + 7);
+}
+
 /// Every horizon `hc-i18n` names is one `hc-astro` carries, so that a name
 /// keyed to a near miss of an identifier fails on the day it is written.
 #[cfg(feature = "astro")]

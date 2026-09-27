@@ -12,6 +12,8 @@
 //! * The frames of the long-wave time stations, JJY, DCF77 and both WWVB
 //!   codes, read from and written as a string of symbols, from
 //!   [`hc_format::radio`].
+//! * The IRIG serial time codes A, B, D, E, G and H, a frame read and
+//!   written in the radio codes' string form, from [`hc_format::irig`].
 //! * .NET's `DateTime.Ticks` to and from POSIX time, from
 //!   [`hc_core::dotnet`].
 //! * The Ethiopian and Swahili six-hour readings of the civil clock, from
@@ -35,6 +37,7 @@ use hc_format::ccsds::{self, AsciiPrecision, AsciiTime, AsciiVariation, CcsTime,
 use hc_format::east_african_hours::{self, Half, HourReading, Reckoning};
 #[cfg(feature = "tz")]
 use hc_format::hc_tz::TimeZone;
+use hc_format::irig::{self, IrigCode, IrigFrame};
 #[cfg(feature = "tz")]
 use hc_format::radio::dcf77::summer_time;
 use hc_format::radio::dcf77::{Dcf77Frame, Zone};
@@ -367,19 +370,19 @@ fn radio_code(name: &str) -> Answer<RadioCode> {
 /// The longest frame, a minute with an inserted leap second.
 const MAX_FRAME: usize = 61;
 
-/// A frame written one character a second: `0`, `1`, and for the codes
+/// A frame written one character a symbol: `0`, `1`, and for the codes
 /// with a marker `M`, in either case; white space around it allowed.
 ///
 /// # Errors
 ///
 /// [`Refusal::Malformed`] for any other character, a marker in a code of
-/// bits, or more than 61 seconds.
-fn frame_symbols(text: &str, markers: bool) -> Answer<([Symbol; MAX_FRAME], usize)> {
+/// bits, or more than `N` symbols: 61 seconds for a radio code.
+fn frame_symbols<const N: usize>(text: &str, markers: bool) -> Answer<([Symbol; N], usize)> {
     let text = text.trim().as_bytes();
-    if text.len() > MAX_FRAME {
+    if text.len() > N {
         return Err(Refusal::Malformed);
     }
-    let mut symbols = [Symbol::Zero; MAX_FRAME];
+    let mut symbols = [Symbol::Zero; N];
     for (symbol, character) in symbols.iter_mut().zip(text) {
         *symbol = match character {
             b'0' => Symbol::Zero,
@@ -393,7 +396,7 @@ fn frame_symbols(text: &str, markers: bool) -> Answer<([Symbol; MAX_FRAME], usiz
 
 /// The bits of a frame of a code without markers.
 fn frame_bits(text: &str) -> Answer<([bool; MAX_FRAME], usize)> {
-    let (symbols, len) = frame_symbols(text, false)?;
+    let (symbols, len) = frame_symbols::<MAX_FRAME>(text, false)?;
     Ok((symbols.map(|symbol| symbol == Symbol::One), len))
 }
 
@@ -485,7 +488,7 @@ pub fn radio_decode_line(code: &str, frame: &str, century_start: i64) -> Answer<
     let century = century(century_start)?;
     let decoded = match code {
         RadioCode::Jjy => {
-            let (symbols, len) = frame_symbols(frame, true)?;
+            let (symbols, len) = frame_symbols::<MAX_FRAME>(frame, true)?;
             let frame = JjyFrame::decode(&symbols[..len]).map_err(frame_refusal)?;
             let JjyContent::Standard { leap, .. } = frame.content else {
                 return Err(Refusal::NoData);
@@ -523,7 +526,7 @@ pub fn radio_decode_line(code: &str, frame: &str, century_start: i64) -> Answer<
             }
         }
         RadioCode::WwvbAm => {
-            let (symbols, len) = frame_symbols(frame, true)?;
+            let (symbols, len) = frame_symbols::<MAX_FRAME>(frame, true)?;
             let frame = AmFrame::decode(&symbols[..len]).map_err(frame_refusal)?;
             Decoded {
                 reading: frame.reading(century).map_err(frame_refusal)?,
@@ -836,6 +839,147 @@ fn encode_radio(
                 .map_err(range)?;
             push_symbols(&bits(frame.encode().map_err(range)?.as_slice()));
         }
+    }
+    out.push('\n');
+    Ok(out)
+}
+
+/// The IRIG code a signal designation names, a format letter and three
+/// digits as `B124`, with each digit one Table 4-1 of IRIG 200-16 permits
+/// the format ([`IrigCode::from_signal`]).
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for any other text.
+fn irig_code(signal: &str) -> Answer<IrigCode> {
+    IrigCode::from_signal(signal).map_err(|_| Refusal::Unknown)
+}
+
+/// The fixed days of the years 1 to 9999, the days `hc_irig_encode` writes
+/// a frame for and `hc_irig_decode` reads one in.
+const IRIG_DAYS: core::ops::RangeInclusive<i64> = 1..=3_652_059;
+
+/// How many columns [`irig_decode_line`] writes.
+pub const IRIG_DECODE_COLUMNS: usize = 9;
+
+/// The line of `hc_irig_decode`: one frame of an IRIG serial time code,
+/// A, B, D, E, G or H, named by its signal designation (`B124`, whose last
+/// digit, the coded expression, says which fields the frame carries), as
+/// a string of `0`, `1` and `M` for the index markers, position
+/// identifiers and reference bit, Pr first, as the radio codes are
+/// written — the reading at Pr and the fields that give it.
+///
+/// A code that carries the year's last two digits reads them in the
+/// century `year` is in (2003 for `03` with `year` 2026); a code that does
+/// not is read in `year` itself. The cells: the fixed day; the day of the
+/// year, 1 January being 1; the hour, minute and second, 60 for a leap
+/// second, and the hundredths of a second, each 0 where the format does
+/// not send it; the year's two digits, empty for a code without them; the
+/// control bits as a number, control bit 1 as its lowest bit, empty for a
+/// code without them; and the straight binary seconds of the day, empty
+/// for a code without them. The code carries no time scale, so the reading
+/// is a date and a time of whatever clock the generator was set to.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a signal designation Table 4-1 does not
+/// permit; [`Refusal::OutOfRange`] for a `year` outside 1 to 9999;
+/// [`Refusal::Malformed`] for a frame that is not the code's — a wrong
+/// length or symbol, a 1 where the code sends an index marker, a BCD digit
+/// or a time of day out of range, straight binary seconds that are not
+/// the BCD time's, a day the year does not have, a year's digits that are
+/// not `year`'s, or a leap second anywhere but at the end of a month.
+pub fn irig_decode_line(signal: &str, frame: &str, year: i64) -> Answer<String> {
+    let code = irig_code(signal)?;
+    if !(1..=9_999).contains(&year) {
+        return Err(Refusal::OutOfRange);
+    }
+    let (symbols, len) = frame_symbols::<{ irig::MAX_FRAME }>(frame, true)?;
+    let decoded = IrigFrame::decode(code, &symbols[..len]).map_err(frame_refusal)?;
+    let reading = if code.has_year() {
+        decoded.reading(year - year.rem_euclid(100))
+    } else {
+        decoded.reading_in_year(year)
+    }
+    .map_err(frame_refusal)?;
+    let mut out = String::new();
+    let _ = write!(
+        out,
+        "{}\t{}\t{}\t{}\t{}\t{}\t",
+        reading.day.0,
+        decoded.day_of_year,
+        decoded.hour,
+        decoded.minute,
+        decoded.second,
+        decoded.hundredths,
+    );
+    if let Some(digits) = decoded.year {
+        let _ = write!(out, "{digits}");
+    }
+    out.push('\t');
+    if code.has_control() {
+        let _ = write!(out, "{}", decoded.control);
+    }
+    out.push('\t');
+    if code.has_sbs() {
+        let _ = write!(out, "{}", decoded.straight_binary_seconds());
+    }
+    out.push('\n');
+    Ok(out)
+}
+
+/// The line of `hc_irig_encode`: the frame of an IRIG code, named by its
+/// signal designation as for [`irig_decode_line`], whose reference bit Pr
+/// falls at a reading of the civil clock — a fixed day, whole seconds after
+/// midnight, 86 400 being 23:59:60, and hundredths of a second — as a
+/// string of `0`, `1` and `M`, Pr first. `control` is the control bits,
+/// control bit 1 as its lowest bit, 0 for a code without them.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a signal designation Table 4-1 does not
+/// permit; [`Refusal::OutOfRange`] for a day outside the years 1 to 9999,
+/// seconds past 86 400, hundredths past 99, a reading the format has no
+/// frame at — for B one off the second, for D one off the hour — and
+/// control bits the code has no room for.
+pub fn irig_encode_line(
+    signal: &str,
+    fixed: i64,
+    seconds_of_day: u32,
+    hundredths: u32,
+    control: u32,
+) -> Answer<String> {
+    let code = irig_code(signal)?;
+    if !IRIG_DAYS.contains(&fixed) || seconds_of_day > 86_400 || hundredths > 99 {
+        return Err(Refusal::OutOfRange);
+    }
+    let (hour, minute, second) = if seconds_of_day == 86_400 {
+        (23, 59, 60)
+    } else {
+        // Each below 24, 60 and 60 by the check above.
+        (
+            (seconds_of_day / 3_600) as u8,
+            (seconds_of_day / 60 % 60) as u8,
+            (seconds_of_day % 60) as u8,
+        )
+    };
+    let time = CivilTime::new(
+        hour,
+        minute,
+        second,
+        u64::from(hundredths) * 10_000_000_000_000_000,
+    )
+    .map_err(|_| Refusal::OutOfRange)?;
+    let range = |_: FrameError| Refusal::OutOfRange;
+    let frame = IrigFrame::for_reading(code, CivilDateTime::new(Rd(fixed), time), control)
+        .map_err(range)?;
+    let mut out = String::new();
+    for symbol in frame.encode().map_err(range)?.as_slice() {
+        out.push(match symbol {
+            Symbol::Zero => '0',
+            Symbol::One => '1',
+            Symbol::Marker => 'M',
+        });
     }
     out.push('\n');
     Ok(out)
@@ -1419,6 +1563,102 @@ mod tests {
         assert_eq!(
             six_hour_clock_line("ethiopian-hours", 86_400),
             Err(Refusal::OutOfRange)
+        );
+    }
+
+    /// Figure 5-2 of IRIG 200-16 (`rcc-200-16`, as `hc-format`'s test
+    /// reads it): IRIG B, day 173 of 2003, 22 June, at 21:18:42, the year
+    /// 03, the control bits 0 and the straight binary seconds 76 722, in a
+    /// B124 frame; and Figure 5-6, IRIG H at 21:24 on the same day, which
+    /// carries no year and is read in the year given.
+    #[test]
+    fn the_standards_figures_cross_both_ways() {
+        const FIGURE_5_2: &str = "M01000001M000101000M100000100M110001110M100000000M\
+                                  110000000M000000000M000000000M010011011M101010010M";
+        const FIGURE_5_6: &str = "M00000000M001000100M100000100M110001110M100000000M000000000M";
+        let day = gregorian::to_fixed(2003, 6, 22).expect("a date").0;
+        let decoded = irig_decode_line("B124", FIGURE_5_2, 2026).expect("the figure");
+        let cells: alloc::vec::Vec<&str> = decoded.trim_end().split('\t').collect();
+        assert_eq!(cells.len(), IRIG_DECODE_COLUMNS);
+        assert_eq!(
+            cells,
+            [
+                &*day.to_string(),
+                "173",
+                "21",
+                "18",
+                "42",
+                "0",
+                "3",
+                "0",
+                "76722"
+            ]
+        );
+        let seconds = 21 * 3_600 + 18 * 60 + 42;
+        let encoded = irig_encode_line("b124", day, seconds, 0, 0).expect("a frame");
+        assert_eq!(encoded.trim_end(), FIGURE_5_2);
+        let h =
+            irig_decode_line("H001", &FIGURE_5_6.to_ascii_lowercase(), 2003).expect("the figure");
+        assert_eq!(h, alloc::format!("{day}\t173\t21\t24\t0\t0\t\t0\t\n"));
+        assert_eq!(
+            irig_encode_line("H001", day, 21 * 3_600 + 24 * 60, 0, 0)
+                .expect("a frame")
+                .trim_end(),
+            FIGURE_5_6
+        );
+        // The century of `year` reads the two digits; a year that is not
+        // the frame's is refused for a code without them.
+        let in_2100s = irig_decode_line("B124", FIGURE_5_2, 2150).expect("the figure");
+        assert!(
+            in_2100s.starts_with(
+                &gregorian::to_fixed(2103, 6, 22)
+                    .expect("a date")
+                    .0
+                    .to_string()
+            )
+        );
+        assert_eq!(
+            irig_decode_line("B112", FIGURE_5_2, 2026),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            irig_decode_line("B124", &FIGURE_5_2[1..], 2026),
+            Err(Refusal::Malformed)
+        );
+        assert_eq!(
+            irig_decode_line("B120", FIGURE_5_2, 2026),
+            Err(Refusal::Malformed)
+        );
+        assert_eq!(
+            irig_decode_line("B124", FIGURE_5_2, 0),
+            Err(Refusal::OutOfRange)
+        );
+        // Format H has no frame off the minute, B none off the second, and
+        // B124 carries 18 control bits.
+        assert_eq!(
+            irig_encode_line("H001", day, seconds, 0, 0),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            irig_encode_line("B124", day, seconds, 50, 0),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            irig_encode_line("B124", day, seconds, 0, 1 << 18),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            irig_encode_line("B124", 0, 0, 0, 0),
+            Err(Refusal::OutOfRange)
+        );
+        // 23:59:60 at the end of 2016, whose straight binary seconds reach
+        // 86 400, round-trips.
+        let leap_day = gregorian::to_fixed(2016, 12, 31).expect("a date").0;
+        let leap = irig_encode_line("B127", leap_day, 86_400, 0, 0).expect("a frame");
+        let back = irig_decode_line("B127", leap.trim_end(), 2016).expect("a frame");
+        assert_eq!(
+            back,
+            alloc::format!("{leap_day}\t366\t23\t59\t60\t0\t16\t\t86400\n")
         );
     }
 }

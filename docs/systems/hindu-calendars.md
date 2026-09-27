@@ -1173,3 +1173,9 @@ two lunisolar skies share, `Sky`, `Amanta`), `hindu_lunar_siddhanta.rs`
 ayanāṃśas and the sidereal signs are `crates/hc-seasons/src/zodiac/sidereal.rs`,
 the month-name traditions `rashi.rs` beside it; the festival rules that
 read these calendars are `crates/hc-holiday/src/hindu.rs`.
+
+The WebAssembly and C exports `hc_barhaspatya_year` and
+`hc_barhaspatya_year_at` write the northern name a rule of Art. 59
+couples with a Śaka year and the name in progress at an instant, named as
+`hc_day_extras` names the pūrṇimānta calendar's field, from
+`hyper_calendar::hindu_lines`.

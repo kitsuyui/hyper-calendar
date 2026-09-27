@@ -320,6 +320,24 @@ test("the prayer times, the zmanim and the Edo hours read the README's columns i
   assert.match(README, /give one line in the shape of `hc_solar_event`'s/);
 });
 
+test("the new reckonings read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.choghadiya], columnsAfter("### Choghadiya"));
+  assert.deepEqual([...COLUMNS.panchak], columnsAfter("### Panchak"));
+  assert.deepEqual([...COLUMNS.kumbh], columnsAfter("### The Kumbh Mela"));
+  assert.deepEqual([...COLUMNS.pushkaram], columnsAfter("### Pushkaram"));
+  assert.deepEqual([...COLUMNS.barhaspatyaYear], columnsAfter("### The northern year's name"));
+  // The name at an instant is stated in prose: columns 1, 2 and 5 above.
+  assert.match(README, /writes one line of three\s+cells, columns 1, 2 and 5 above/);
+  const year = COLUMNS.barhaspatyaYear;
+  assert.deepEqual([...COLUMNS.barhaspatyaYearAt], [year[0], year[1], year[4]]);
+  assert.deepEqual([...COLUMNS.folkDay], columnsAfter("### Folk days"));
+  assert.deepEqual([...COLUMNS.nightWatch], columnsAfter("### The night watches"));
+  assert.deepEqual([...COLUMNS.planetaryHour], columnsAfter("### Planetary hours"));
+  assert.deepEqual([...COLUMNS.gmat], columnsAfter("## Greenwich Mean Astronomical Time"));
+  assert.deepEqual([...COLUMNS.irigDecode], columnsAfter("### IRIG time codes"));
+  assert.match(README, /It\s+writes one line of one cell, the frame\./);
+});
+
 test("the relativity lines read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.properTime], columnsAfter("## Relativity"));
   assert.deepEqual([...COLUMNS.gravitationalDilation], columnsAfter("### A clock at a radius"));

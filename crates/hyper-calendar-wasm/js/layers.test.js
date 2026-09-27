@@ -158,6 +158,21 @@ test("a method of another layer throws not-exported when called, not at load", (
     zmanim: () => hc.zmanim("zmanim-gra", 739_252, 40.7, -74.0),
     edoTime: () => hc.edoTime(1_584_649_727, 35.0, 135.7),
     unixFromEdoTime: () => hc.unixFromEdoTime(737_504, 0, 0, 35.0, 135.7),
+    choghadiya: () => hc.choghadiya(739_252, 28.6, 77.2),
+    panchak: () => hc.panchak("panchak-five-kinds", 1_736_078_400, "lahiri", 19_800),
+    kumbh: () => hc.kumbh("kumbh-haridwar", 2021, "lahiri"),
+    pushkaram: () => hc.pushkaram("simha", 1_436_837_820, 28.6, 77.2),
+    folkDay: () => hc.folkDay(739_667, "china", "tr"),
+    nightWatch: () => hc.nightWatch(23 * 3_600),
+    barhaspatyaYear: () => hc.barhaspatyaYear("surya-siddhanta-bija", 1_946),
+    barhaspatyaYearAt: () => hc.barhaspatyaYearAt("surya-siddhanta", 1_743_292_800),
+    planetaryHour: () => hc.planetaryHour(0, 51.5, 0),
+    planetaryHoursOfDay: () => hc.planetaryHoursOfDay(739_880, 51.5, 0),
+    gmatFromGmt: () => hc.gmatFromGmt(702_411, 0),
+    gmtFromGmat: () => hc.gmtFromGmat(702_411, 0),
+    irigDecode: () => hc.irigDecode("B124", "M", 2026),
+    irigEncode: () => hc.irigEncode("B124", 731_388, 76_722),
+    plumRains: () => hc.plumRains("ru-mei-bing", 2026, "china"),
   };
   const gated = METHODS.filter((entry) => entry.feature !== null && entry.feature !== "civil");
   assert.deepEqual(Object.keys(calls).sort(), gated.map((entry) => entry.method).sort(), "every gated method is tried");

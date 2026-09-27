@@ -177,6 +177,32 @@ describe("civil", () => {
     refused(() => hc.unixFromFixed(2n ** 45n), "unsafe-integer");
   });
 
+  test("an integer argument past the safe range is unsafe-integer, not a TypeError", () => {
+    // 2^53 is a number the caller may have meant as 2^53 + 1: refused, and
+    // as an HcError, so that the catch that takes a refused result takes it.
+    for (const call of [
+      () => hc.gregorianYear(2 ** 53),
+      () => hc.gregorianYear(-(2 ** 60)),
+      () => hc.fixedFromUnix(Number.MAX_SAFE_INTEGER + 1),
+      () => hc.gregorianToFixed(2 ** 63, 1, 1),
+    ]) {
+      const error = refused(call, "unsafe-integer");
+      assert.ok(error instanceof HcError);
+      assert.equal(error.code, null);
+      assert.equal(error.constant, null);
+      assert.equal(error.export, null);
+    }
+    // The largest safe integer, and the same value past it as a BigInt, pass.
+    refused(() => hc.gregorianYear(Number.MAX_SAFE_INTEGER), "out-of-range");
+    refused(() => hc.gregorianYear(2n ** 53n + 1n), "out-of-range");
+    // A u64 past the safe range is refused the same way.
+    refused(() => hc.swatchBeat(0, 2 ** 60), "unsafe-integer");
+    // A fraction, a non-finite number and a BigInt outside i64 stay TypeErrors.
+    for (const value of [0.5, Number.POSITIVE_INFINITY, Number.NaN, 2n ** 63n]) {
+      assert.throws(() => hc.gregorianYear(value), TypeError);
+    }
+  });
+
   test("a day too far back for seconds is out-of-range, not an unrecognised sentinel", () => {
     // Some 54 billion years back. Its midnight, about -1.7 × 10^18 seconds,
     // is an i64 far below HC_ERR_FLOOR, which every binding reads as a
@@ -2491,5 +2517,134 @@ describe("the hours of prayer and the Edo hours", () => {
       missing: { event: "depression", day: hc.gregorianToFixed(2024, 6, 21), depressionArcminutes: null, depressionArcseconds: 26_501 },
     });
     refused(() => hc.unixFromEdoTime(day, 12, 0, kyoto[0], kyoto[1]), "out-of-range");
+  });
+});
+
+describe("the reckonings of #243 to #246", () => {
+  const delhi = [28.6356, 77.2244];
+
+  test("the choghadiya of 1 January 2025 open with Labha and Udvega", () => {
+    // Drik Panchang's New Delhi page (drik-choghadiya-2025): Labha from 07:14 IST.
+    const day = hc.gregorianToFixed(2025, 1, 1);
+    const parts = hc.choghadiya(day, delhi[0], delhi[1]);
+    assert.equal(parts.length, 16);
+    assert.deepEqual(
+      [parts[0].half, parts[0].part, parts[0].id, parts[0].name, parts[0].localeUsed, parts[0].quality, parts[0].ruler],
+      ["day", 1, "labha", "Labha", "en", "auspicious", "mercury"],
+    );
+    const minutes = (/** @type {number} */ (parts[0].start) - (hc.unixFromFixed(day) - 19_800)) / 60;
+    assert.ok(Math.abs(minutes - (7 * 60 + 14)) < 1, `${minutes}`);
+    assert.deepEqual([parts[8].half, parts[8].id], ["night", "udvega"]);
+    const polar = hc.choghadiya(hc.gregorianToFixed(2024, 12, 21), 69.6496, 18.956, 0, "native");
+    assert.deepEqual([polar[0].start, polar[0].missing?.event], [null, "sunrise"]);
+    refused(() => hc.choghadiya(day, 91, 0), "out-of-range");
+  });
+
+  test("the first Panchak of 2025 is Chor, and the kind follows the caller's clock", () => {
+    // Drik Panchang (drik-panchak): Friday 3 January 2025, 10:47 IST.
+    const within = hc.unixFromFixed(hc.gregorianToFixed(2025, 1, 5)) + 6 * 3_600;
+    const window = hc.panchak("panchak-five-kinds", within, "lahiri", 19_800, "en");
+    assert.deepEqual(
+      [window.within, window.weekday, window.kind, window.name, window.localeUsed],
+      [true, 5, "chor", "Chor", "en"],
+    );
+    const printed = hc.unixFromFixed(hc.gregorianToFixed(2025, 1, 3)) + (10 * 60 + 47) * 60 - 19_800;
+    assert.ok(Math.abs(window.opens - printed) < 90, `${window.opens - printed}`);
+    // 23 April 2025 opens at 00:31 IST: a Wednesday by India's clock, no kind
+    // in the five-kind table, and a Tuesday, Agni, by UTC's.
+    const april = hc.unixFromFixed(hc.gregorianToFixed(2025, 4, 22)) + 6 * 3_600;
+    assert.deepEqual([hc.panchak("panchak-five-kinds", april, "lahiri", 19_800).kind, hc.panchak("panchak-five-kinds", april, "lahiri").kind], [null, "agni"]);
+    assert.equal(hc.panchak("panchak-raj-midweek", april, "lahiri", 19_800).kind, "raj");
+    refused(() => hc.panchak(/** @type {any} */ ("panchak"), within, "lahiri"), "unknown");
+    refused(() => hc.panchak("panchak-five-kinds", within, "lahiri", 86_400), "out-of-range");
+    assert.throws(() => hc.panchak("panchak-five-kinds", within, "lahiri", 2 ** 31), TypeError);
+  });
+
+  test("the Kumbh of 2025 meets Prayag's condition, and the Godavari Pushkaram of 2015 is its twelve days", () => {
+    // wikipedia-kumbh-mela: the Maha Kumbh of 2025, the Sun in Makara, Jupiter in Vṛṣabha.
+    const kumbh = hc.kumbh("kumbh-prayag-vrishabha", 2025, "lahiri", "vrishabha");
+    assert.deepEqual(
+      [kumbh.site, kumbh.siteName, kumbh.river, kumbh.jupiter, kumbh.sun, kumbh.atNewMoon, kumbh.holds],
+      ["prayag", "Prayag", "Ganga and Yamuna", "vrishabha", "makara", false, true],
+    );
+    const unknown = hc.kumbh("kumbh-prayag-vrishabha", 2025, "lahiri");
+    assert.deepEqual([unknown.from, unknown.to, unknown.holds], [kumbh.from, kumbh.to, null]);
+    assert.equal(hc.kumbh("kumbh-prayag-vrishabha", 2025, "lahiri", "mesha").holds, false);
+    refused(() => hc.kumbh("kumbh-haridwar", 2025, "lahiri", /** @type {any} */ ("aries")), "unknown");
+    // wikipedia-godavari-pushkaram: Jupiter into Siṃha at 07:07 IST, 14 July 2015; 14 to 25 July.
+    const entry = hc.unixFromFixed(hc.gregorianToFixed(2015, 7, 14)) + (7 * 60 + 7) * 60 - 19_800;
+    const [godavari] = hc.pushkaram("simha", entry, delhi[0], delhi[1], 0, "india");
+    assert.deepEqual(
+      [godavari.id, godavari.name, godavari.region, godavari.sign, godavari.first, godavari.last, godavari.missing],
+      ["pushkaram-godavari", "Godavari", null, "simha", hc.gregorianToFixed(2015, 7, 14), hc.gregorianToFixed(2015, 7, 25), null],
+    );
+    assert.deepEqual(hc.pushkaram("vrishchika", entry, delhi[0], delhi[1], 0, "india").map((river) => river.region),
+      ["Maharashtra, Karnataka, Telangana", "Tamil Nadu"]);
+  });
+
+  test("the folk days, the watches and the northern year names are their sources'", () => {
+    // bilkent-cemre: Kasım 105, 20 February 2026; netease-2026-longzhishui: 七龙治水.
+    const days = hc.folkDay(hc.gregorianToFixed(2026, 2, 20), "china", "tr");
+    assert.deepEqual(days[0], { kind: "first-month-count", id: "dragons", name: "几龙治水", localeUsed: "zh-Hans", count: 7 });
+    assert.deepEqual(days.at(-1), { kind: "folk-named-day", id: "cemre-air", name: "birinci cemre", localeUsed: "tr", count: 105 });
+    const june = hc.folkDay(hc.gregorianToFixed(2026, 6, 11), "china");
+    assert.deepEqual(june.find((day) => day.kind === "plum-rains"), {
+      kind: "plum-rains", id: "ru-mei-bing", name: "入梅", localeUsed: "zh-Hans", count: null,
+    });
+    // wikipedia-zh-dian: 三更两点 is 23:48.
+    assert.deepEqual(hc.nightWatch(23 * 3_600 + 48 * 60, "zh-TW"), {
+      watch: 3, points: 2, name: "三更", localeUsed: "zh-Hant", hanName: "夜半", branch: "子",
+    });
+    assert.equal(hc.nightWatch(12 * 3_600), null);
+    refused(() => hc.nightWatch(86_400), "out-of-range");
+    // drikpanchang-day-2024-2026: Śaka 1946 is Pingala by the bīja rule; the
+    // press's Kalayukta without it.
+    assert.deepEqual(hc.barhaspatyaYear("surya-siddhanta-bija", 1_946, "en"), {
+      position: 51, name: "Pingala", expunged: null, expungedName: null, localeUsed: "en",
+    });
+    assert.equal(hc.barhaspatyaYear("surya-siddhanta", 1_946, "en").name, "Kalayukta");
+    assert.equal(hc.barhaspatyaYear("surya-siddhanta-bija", 1_949).expunged, 55);
+    const chaitra = hc.unixFromFixed(hc.gregorianToFixed(2025, 3, 30));
+    assert.equal(hc.barhaspatyaYearAt("surya-siddhanta", chaitra, "en").position, 53);
+    refused(() => hc.barhaspatyaYear("surya-siddhanta", 6_822), "out-of-range");
+    // qq-meiyu-2026: 入梅 on 11 June, 出梅 on 8 July.
+    assert.equal(hc.plumRains("ru-mei-bing", 2026, "china"), hc.gregorianToFixed(2026, 6, 11));
+    assert.equal(hc.plumRains("chu-mei-wei", 2026, "china"), hc.gregorianToFixed(2026, 7, 8));
+    refused(() => hc.plumRains(/** @type {any} */ ("ru-mei"), 2026), "unknown");
+  });
+
+  test("the planetary hours, GMAT and the IRIG frames cross the binding", () => {
+    // lilly-christian-astrology-1647: Monday 25 March 1647 at London opens with the Moon.
+    const day = hc.gregorianToFixed(1647, 3, 25);
+    const hours = hc.planetaryHoursOfDay(day, 51.5, -0.1);
+    assert.equal(hours.length, 24);
+    assert.deepEqual([hours[0].day, hours[0].hour, hours[0].ruler, hours[0].name, hours[0].daytime], [day, 1, "moon", "Moon", true]);
+    assert.deepEqual(hours.slice(0, 5).map((hour) => hour.ruler), ["moon", "saturn", "jupiter", "mars", "sun"]);
+    const at = hc.planetaryHour(/** @type {number} */ (hours[3].start) + 60, 51.5, -0.1);
+    assert.deepEqual([at.hour, at.ruler], [4, "mars"]);
+    const polar = hc.planetaryHour(hc.unixFromFixed(hc.gregorianToFixed(2024, 6, 21)) + 43_200, 69.65, 18.96);
+    // Tromsø at midsummer: the Sun neither sets nor rises, and the hour is only the missing event.
+    assert.deepEqual([polar.day, polar.ruler, polar.start], [null, null, null]);
+    assert.ok(polar.missing !== null);
+    // nautical-almanac-1924: February 20ᵈ 4ʰ 12ᵐ 25ˢ·7 from noon, 16:12:25.7 civil.
+    const eclipse = hc.gregorianToFixed(1924, 2, 20);
+    assert.deepEqual(hc.gmatFromGmt(eclipse, 58_345, 700_000_000_000_000_000n),
+      { fixed: eclipse, secondsOfDay: 15_145, attoseconds: 700_000_000_000_000_000n });
+    assert.deepEqual(hc.gmtFromGmat(eclipse, 15_145), { fixed: eclipse, secondsOfDay: 58_345, attoseconds: 0n });
+    refused(() => hc.gmatFromGmt(eclipse, 86_400), "out-of-range");
+    // rcc-200-16, Figure 5-2: B124, day 173 of 2003, 21:18:42.
+    const frame = "M01000001M000101000M100000100M110001110M100000000M110000000M000000000M000000000M010011011M101010010M";
+    assert.deepEqual(hc.irigDecode("B124", frame, 2026), {
+      fixed: hc.gregorianToFixed(2003, 6, 22), dayOfYear: 173, hour: 21, minute: 18, second: 42, hundredths: 0,
+      year: 3, control: 0, straightBinarySeconds: 76_722,
+    });
+    assert.equal(hc.irigEncode("B124", hc.gregorianToFixed(2003, 6, 22), 76_722), frame);
+    // Figure 5-6, IRIG H at 21:24, carries no year and no straight binary seconds.
+    const h = hc.irigDecode("H001", "M00000000M001000100M100000100M110001110M100000000M000000000M", 2003);
+    assert.deepEqual([h.fixed, h.hour, h.minute, h.year, h.control, h.straightBinarySeconds],
+      [hc.gregorianToFixed(2003, 6, 22), 21, 24, null, 0, null]);
+    refused(() => hc.irigDecode("B112", frame, 2026), "unknown");
+    refused(() => hc.irigDecode("B124", frame.slice(1), 2026), "malformed");
+    refused(() => hc.irigEncode("B124", hc.gregorianToFixed(2003, 6, 22), 76_722, { hundredths: 50 }), "out-of-range");
   });
 });

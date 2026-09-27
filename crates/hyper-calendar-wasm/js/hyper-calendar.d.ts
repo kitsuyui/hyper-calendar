@@ -44,7 +44,13 @@ export type SentinelName =
   | "not-utf8"
   | "malformed";
 
-/** The names the binding throws on its own account. */
+/**
+ * The names the binding throws on its own account. `unsafe-integer` is
+ * both a result a number cannot hold exactly and an `i64` or `u64`
+ * argument given as an integer number past `Number.MAX_SAFE_INTEGER`,
+ * which a `BigInt` would carry exactly; a non-integer number, a `BigInt`
+ * outside the argument's type or a value of another type is a `TypeError`.
+ */
 export type BindingErrorName =
   | "not-exported"
   | "unsafe-integer"
@@ -172,6 +178,198 @@ export interface SixHourReading {
   period: string | null;
   periodEnglish: string | null;
 }
+
+/** One of the seven classical planets, by `hc-seasons`'s identifier. */
+export type ClassicalPlanet = "sun" | "moon" | "mercury" | "venus" | "mars" | "jupiter" | "saturn";
+
+/** A kind of choghadiya. */
+export type ChoghadiyaId = "udvega" | "chara" | "labha" | "amrita" | "kala" | "shubha" | "roga";
+
+/** One line of `hc_choghadiya`: an eighth of the daylight or of the night. */
+export interface ChoghadiyaPart {
+  half: "day" | "night";
+  /** 1 to 8. */
+  part: number;
+  id: ChoghadiyaId;
+  /** Named in the locale, else English's, which is the only table. */
+  name: string;
+  localeUsed: string;
+  quality: "auspicious" | "neutral" | "inauspicious";
+  ruler: ClassicalPlanet;
+  /** POSIX seconds of UTC, rounded down; `null` where the Sun does not rise or set. */
+  start: number | null;
+  end: number | null;
+  missing: MissingSolarEvent | null;
+}
+
+/** A naming table of the Panchak kinds. */
+export type PanchakNaming = "panchak-five-kinds" | "panchak-raj-midweek";
+
+/** A kind of Panchak window. */
+export type PanchakKind = "rog" | "raj" | "agni" | "chor" | "mrityu";
+
+/** The one line of `hc_panchak`. */
+export interface PanchakWindow {
+  /** Whether the instant asked of is within the window. */
+  within: boolean;
+  /** The Moon at 300° and at 360° of sidereal longitude, POSIX seconds of UTC. */
+  opens: number;
+  closes: number;
+  /** The weekday it opens on at the offset given, Monday 1 to Sunday 7. */
+  weekday: number;
+  /** `null` on a weekday the table names no kind for. */
+  kind: PanchakKind | null;
+  name: string | null;
+  localeUsed: string | null;
+}
+
+/** A sidereal sign, by the lower-case ASCII form of its Sanskrit name. */
+export type SiderealSignId =
+  | "mesha" | "vrishabha" | "mithuna" | "karka" | "simha" | "kanya"
+  | "tula" | "vrishchika" | "dhanus" | "makara" | "kumbha" | "mina";
+
+/** A condition of the Kumbh Mela, the Mela Adhikari's seven. */
+export type KumbhYoga =
+  | "kumbh-haridwar"
+  | "kumbh-prayag-vrishabha"
+  | "kumbh-prayag-mesha"
+  | "kumbh-nashik-simha"
+  | "kumbh-nashik-karka"
+  | "kumbh-ujjain-mesha"
+  | "kumbh-ujjain-tula";
+
+/** The one line of `hc_kumbh`. */
+export interface KumbhOccasion {
+  id: KumbhYoga;
+  /** `haridwar`, `prayag`, `nashik` or `ujjain`. */
+  site: string;
+  siteName: string;
+  localeUsed: string;
+  /** In English, as the source gives it. */
+  river: string;
+  /** The sign Jupiter must be in, and the Sun. */
+  jupiter: SiderealSignId;
+  sun: SiderealSignId;
+  atNewMoon: boolean;
+  /** The Sun's entry into its sign and into the next, or the new moon twice; `null` when no new moon falls in the stay. */
+  from: number | null;
+  to: number | null;
+  /** Whether the caller's Jupiter meets the condition; `null` when none was given. */
+  holds: boolean | null;
+}
+
+/** One line of `hc_pushkaram`: a river's twelve days. */
+export interface PushkaramDays {
+  /** `pushkaram-ganga` to `pushkaram-pranahita`. */
+  id: string;
+  name: string;
+  localeUsed: string;
+  /** In English, where the source names one. */
+  region: string | null;
+  sign: SiderealSignId;
+  /** Fixed days; `null` where the Sun does not set on the day of the entry. */
+  first: number | null;
+  last: number | null;
+  missing: MissingSolarEvent | null;
+}
+
+/** A kind of line `hc_folk_day` writes. */
+export type FolkDayKind = "first-month-count" | "plum-rains" | "vietnamese-day" | "folk-half" | "folk-named-day";
+
+/** One line of `hc_folk_day`. */
+export interface FolkDay {
+  kind: FolkDayKind;
+  /** `dragons`, `ru-mei-bing`, `tam-nuong`, `kasim`, `cemre-air`, … */
+  id: string;
+  /** Named in the locale, else English, else the kind's own language. */
+  name: string;
+  localeUsed: string;
+  /** The count, the lunar day or the day of the half; `null` for `plum-rains`. */
+  count: number | null;
+}
+
+/** The one line of `hc_night_watch`. */
+export interface NightWatch {
+  /** 1 (一更) to 5 (五更). */
+  watch: number;
+  /** The points struck since it began, 0 to 4. */
+  points: number;
+  name: string;
+  localeUsed: string;
+  /** 黃昏 to 平旦, in Chinese as the source writes it. */
+  hanName: string;
+  /** 戌 to 寅. */
+  branch: string;
+}
+
+/** A rule of the northern sixty-year cycle, Sewell and Dikshit's Art. 59. */
+export type BarhaspatyaRule = "surya-siddhanta-bija" | "surya-siddhanta" | "arya-siddhanta";
+
+/** The name of a year of the northern cycle, and the tag that named it. */
+export interface BarhaspatyaName {
+  /** 1 for Prabhava through 60 for Kṣaya. */
+  position: number;
+  name: string;
+  localeUsed: string;
+}
+
+/** The one line of `hc_barhaspatya_year`. */
+export interface BarhaspatyaYear extends BarhaspatyaName {
+  /** The name the rule expunges in that solar year, or `null`. */
+  expunged: number | null;
+  expungedName: string | null;
+}
+
+/** One line of `hc_planetary_hour` and `hc_planetary_hours_of_day`. */
+export interface PlanetaryHour {
+  /** The fixed day of the sunrise the planetary day began at; `null` where a sunrise or sunset is missing. */
+  day: number | null;
+  /** 1 to 24 from sunrise. */
+  hour: number | null;
+  ruler: ClassicalPlanet | null;
+  name: string | null;
+  localeUsed: string | null;
+  daytime: boolean | null;
+  start: number | null;
+  end: number | null;
+  missing: MissingSolarEvent | null;
+}
+
+/** The one line of `hc_gmat_from_gmt` and `hc_gmt_from_gmat`. */
+export interface ClockReading {
+  fixed: number;
+  /** Whole seconds after the day's start: midnight for GMT, noon for GMAT. */
+  secondsOfDay: number;
+  /** Up to 10¹⁸, so a `bigint`. */
+  attoseconds: bigint;
+}
+
+/** The one line of `hc_irig_decode`. */
+export interface IrigReading {
+  fixed: number;
+  dayOfYear: number;
+  hour: number;
+  minute: number;
+  /** 60 for a leap second. */
+  second: number;
+  hundredths: number;
+  /** The year's two digits, `null` for a code without them. */
+  year: number | null;
+  /** The control bits, control bit 1 lowest; `null` for a code without them. */
+  control: number | null;
+  straightBinarySeconds: number | null;
+}
+
+/** What `irigEncode` puts in a frame besides the second. */
+export interface IrigEncodeOptions {
+  /** 0 to 99; the formats A and G send them. */
+  hundredths?: number;
+  /** Control bit 1 lowest. */
+  control?: number;
+}
+
+/** A rule of 入梅 or 出梅. */
+export type PlumRainRule = "ru-mei-bing" | "ru-mei-ren" | "chu-mei-wei";
 
 /** A convention of the day `hc_kalam` divides. */
 export type KalamConvention = "rahu-kalam-sunrise" | "rahu-kalam-fixed";
@@ -438,6 +636,17 @@ export const COLUMNS: {
   readonly prayerMethods: ReadonlyArray<string>;
   readonly zmanim: ReadonlyArray<string>;
   readonly edoTime: ReadonlyArray<string>;
+  readonly choghadiya: ReadonlyArray<string>;
+  readonly panchak: ReadonlyArray<string>;
+  readonly kumbh: ReadonlyArray<string>;
+  readonly pushkaram: ReadonlyArray<string>;
+  readonly folkDay: ReadonlyArray<string>;
+  readonly nightWatch: ReadonlyArray<string>;
+  readonly barhaspatyaYear: ReadonlyArray<string>;
+  readonly barhaspatyaYearAt: ReadonlyArray<string>;
+  readonly planetaryHour: ReadonlyArray<string>;
+  readonly gmat: ReadonlyArray<string>;
+  readonly irigDecode: ReadonlyArray<string>;
 };
 export const UNITS: readonly Unit[];
 export const NATIVE: "native";
@@ -1699,6 +1908,14 @@ export class HyperCalendar {
   radioDecode(code: RadioCode, frame: string, century: number | bigint): RadioMinute;
   /** `hc_radio_encode`: a frame of `0`, `1` and `M`. */
   radioEncode(code: RadioCode, unixSeconds: number | bigint, options?: RadioEncodeOptions): string;
+  /**
+   * `hc_irig_decode`: a designation Table 4-1 does not permit is `unknown`,
+   * a frame that is not the code's `malformed`; the year's two digits are
+   * read in the century of `year`.
+   */
+  irigDecode(signal: string, frame: string, year: number | bigint): IrigReading;
+  /** `hc_irig_encode`: a reading the format has no frame at is `out-of-range`. */
+  irigEncode(signal: string, fixed: number | bigint, secondsOfDay: number, options?: IrigEncodeOptions): string;
   /** `hc_dotnet_ticks_from_unix`: the ticks, which need not fit a number. */
   dotnetTicksFromUnix(unixSeconds: number | bigint, attoseconds?: number | bigint): bigint;
   /** `hc_unix_from_dotnet_ticks`. */
@@ -1759,6 +1976,10 @@ export class HyperCalendar {
   suryaSiddhantaAt(unixSeconds: number | bigint): SuryaSiddhantaSky;
   /** `hc_surya_siddhanta_sunrise`: POSIX seconds; a place beyond 65° of latitude is `out-of-range`. */
   suryaSiddhantaSunrise(fixed: number | bigint, latitude: number, longitude: number): number;
+  /** `hc_barhaspatya_year`: an expired Śaka year, −3178 to 6821. */
+  barhaspatyaYear(rule: BarhaspatyaRule, saka: number | bigint, locale?: string): BarhaspatyaYear;
+  /** `hc_barhaspatya_year_at`: the name in progress at an instant. */
+  barhaspatyaYearAt(rule: BarhaspatyaRule, unixSeconds: number | bigint, locale?: string): BarhaspatyaName;
   /** `hc_crescent_visible`: on the evening that begins the day. */
   crescentVisible(criterion: CrescentCriterion, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): CrescentVisibility;
   /** `hc_ioc_olympiad`; a year before 1896 is `out-of-range`. */
@@ -1783,6 +2004,26 @@ export class HyperCalendar {
   almanacCycles(fixed: number | bigint, meridian?: string): AlmanacCycles;
   /** `hc_almanac_day`: the solar terms and new moons at `meridian`; `und` unless a locale is given. */
   almanacDay(fixed: number | bigint, meridian?: string, locale?: string): AlmanacAnnotation[];
+  /** `hc_choghadiya`: sixteen lines, the day's eight then the night's. */
+  choghadiya(fixed: number | bigint, latitude: number, longitude: number, elevation?: number, locale?: string): ChoghadiyaPart[];
+  /** `hc_panchak`: the weekday of the opening on a clock `offsetSeconds` ahead of UTC, 0 unless given. */
+  panchak(naming: PanchakNaming, unixSeconds: number | bigint, ayanamsa: string, offsetSeconds?: number, locale?: string): PanchakWindow;
+  /** `hc_kumbh`: `jupiter` is the caller's, the library having no ephemeris of Jupiter; empty unless given. */
+  kumbh(yoga: KumbhYoga, year: number | bigint, ayanamsa: string, jupiter?: SiderealSignId | "", locale?: string): KumbhOccasion;
+  /** `hc_pushkaram`: Jupiter's sign and the moment it enters it are the caller's. */
+  pushkaram(
+    sign: SiderealSignId,
+    entryUnixSeconds: number | bigint,
+    latitude: number,
+    longitude: number,
+    elevation?: number,
+    meridian?: string,
+    locale?: string,
+  ): PushkaramDays[];
+  /** `hc_folk_day`: 入梅 and 出梅 at `meridian`, `china` for the published days. */
+  folkDay(fixed: number | bigint, meridian?: string, locale?: string): FolkDay[];
+  /** `hc_night_watch`: `null` from 05:00 to 18:59. */
+  nightWatch(secondsOfDay: number, locale?: string): NightWatch | null;
 
   /** `hc_holiday_is_day_off`; `region` may be empty. A code naming no table is `unknown`. */
   holidayIsDayOff(code: string, region: string, fixed: number | bigint): boolean;
@@ -1815,6 +2056,8 @@ export class HyperCalendar {
   pentadInEffect(fixed: number | bigint, meridian?: Meridian): TermInEffect;
   /** `hc_cold_food_day`; a reckoning nobody knows is `unknown`, a year outside −999 to 3000 `out-of-range`. */
   coldFoodDay(convention: ColdFoodConvention, year: number | bigint): number;
+  /** `hc_plum_rains`: at `meridian`, `china` for the published days; a year outside −1000 to 3000 is `out-of-range`. */
+  plumRains(rule: PlumRainRule, year: number | bigint, meridian?: string): number;
 
   /** `hc_place_years_ago`; a value the crate refuses is `out-of-range`. `locale` names the rows it has names for, `und` unless given. */
   placeYearsAgo(yearsAgo: number, stdDevYears?: number, locale?: string): DeepTimeRow[];
@@ -1883,6 +2126,10 @@ export class HyperCalendar {
   hjdTt(ttJulianDate: number, rightAscension: number, declination: number): HeliocentricJulianDate;
   /** `hc_hjd_utc`; under `strict` a date outside the leap-second table is `no-data`. */
   hjdUtc(utcJulianDate: number, rightAscension: number, declination: number, strict?: boolean): HeliocentricJulianDateUtc;
+  /** `hc_gmat_from_gmt`: 23:59:60 has no reading twelve hours earlier and is `out-of-range`. */
+  gmatFromGmt(fixed: number | bigint, secondsOfDay: number, attoseconds?: number | bigint): ClockReading;
+  /** `hc_gmt_from_gmat`. */
+  gmtFromGmat(fixed: number | bigint, secondsOfDay: number, attoseconds?: number | bigint): ClockReading;
   /** `hc_prayer_times`: eight lines; a time the Sun does not reach is an answer, not an error. */
   prayerTimes(method: string, fixed: number | bigint, latitude: number, longitude: number, elevation?: number, ramadan?: boolean): PrayerTime[];
   /** `hc_prayer_methods`. */
@@ -1893,6 +2140,10 @@ export class HyperCalendar {
   edoTime(unixSeconds: number | bigint, latitude: number, longitude: number, elevation?: number): EdoTime;
   /** `hc_unix_from_edo_time`: `hour` 0 to 11 from 明け六つ, `fraction` 0 up to 1. */
   unixFromEdoTime(fixed: number | bigint, hour: number, fraction: number, latitude: number, longitude: number, elevation?: number): SolarEvent;
+  /** `hc_planetary_hour`: every cell but `missing` is `null` where a sunrise or sunset is missing. */
+  planetaryHour(unixSeconds: number | bigint, latitude: number, longitude: number, elevation?: number, locale?: string): PlanetaryHour;
+  /** `hc_planetary_hours_of_day`: twenty-four lines. */
+  planetaryHoursOfDay(fixed: number | bigint, latitude: number, longitude: number, elevation?: number, locale?: string): PlanetaryHour[];
 
   /** `hc_orbit_at`; an epoch beyond a million years either side of 1950 is `out-of-range`. */
   orbitAt(yearsBefore1950: number): Orbit;

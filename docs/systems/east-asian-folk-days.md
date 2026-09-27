@@ -384,3 +384,9 @@ almanacs, and no printed almanac was read.
 
 The WebAssembly and C export `hc_almanac_cycles` writes 恵方, 三元九運
 and 손 없는 날 for a day, from `hyper_calendar::almanac_lines`.
+
+The WebAssembly and C export `hc_folk_day` writes a day's first-month
+counts, 入梅 and 出梅 by each rule, Tam Nương and Nguyệt Kỵ, and its day of
+the Turkish folk year of Hızır and Kasım, each named in a locale, from
+`hyper_calendar::reckoning_lines`; `hc_plum_rains` writes the day of 入梅
+or 出梅 of a year by a rule, from `hyper_calendar::season_lines`.

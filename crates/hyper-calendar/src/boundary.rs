@@ -67,3 +67,28 @@ pub fn push_cell(out: &mut String, text: &str) {
 pub fn names(given: &str, name: &str) -> bool {
     given.trim().eq_ignore_ascii_case(name)
 }
+
+/// The locale tag that asks for no locale in particular: for a vocabulary
+/// of [`hc_i18n::reckonings`], the kind's own language.
+#[cfg(feature = "i18n")]
+pub const NATIVE: &str = "native";
+
+/// Append a term's name in the locale a tag asks for and the tag of the
+/// data that named it, as two cells, by
+/// [`hc_i18n::reckonings::name_or_fallback`]: [`NATIVE`] asks for the
+/// kind's own language, and a tag that does not parse is the root locale,
+/// which names nothing and so falls to English and then to the kind's
+/// own. A term no table names leaves both cells empty.
+#[cfg(feature = "i18n")]
+pub fn push_reckoning_name(out: &mut String, tag: &str, kind: &str, id: &str) {
+    use hc_i18n::Locale;
+    let requested = (tag != NATIVE).then(|| Locale::parse(tag).unwrap_or(Locale::ROOT));
+    match hc_i18n::reckonings::name_or_fallback(requested.as_ref(), kind, id) {
+        Some(named) => {
+            push_cell(out, named.name);
+            out.push('\t');
+            push_cell(out, named.tag);
+        }
+        None => out.push('\t'),
+    }
+}

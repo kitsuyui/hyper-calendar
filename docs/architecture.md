@@ -129,7 +129,8 @@ boundary crates do.
   [python-parity.md](python-parity.md) maps it row by row.
 - The `*_lines` modules (`lines`, `time_lines`, `holiday_lines`,
   `season_lines`, `sky_lines`, `astro_lines`, `panchanga_lines`,
-  `deep_time_lines`, `planetary_lines`, `relativity_lines`) and
+  `reckoning_lines`, `deep_time_lines`, `planetary_lines`,
+  `relativity_lines`) and
   `calendar_values` produce the
   answers the two boundary crates return. Each answer about a set of things
   is a set of UTF-8 lines, one per entry, with tab-separated cells in a

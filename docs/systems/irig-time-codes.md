@@ -167,3 +167,7 @@ rule.
 `crates/hc-format/src/irig.rs`, with `Symbol`, `Frame` and the BCD
 helpers shared from `crates/hc-format/src/radio/mod.rs`. Anchors:
 `the_standards_figures`, `figure_5_4_is_not_an_e_frame`.
+
+The WebAssembly and C exports `hc_irig_decode` and `hc_irig_encode` read
+and write a frame named by its signal designation, `B124`, in the radio
+codes' string of `0`, `1` and `M`, from `hyper_calendar::time_code_lines`.
