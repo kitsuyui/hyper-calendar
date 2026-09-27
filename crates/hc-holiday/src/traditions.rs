@@ -53,9 +53,13 @@
 //! | Assyrian Church of the East | the Gregorian computus and fixed Gregorian dates, from 1965 | exact as stated; the Sundays of Moses and the order of the Elijah and Cross Sundays are not carried |
 //! | *Common Worship* | the Gregorian computus and fixed Gregorian dates, with the transfers the Rules require | exact as stated; the years the Rules leave open are reported gaps |
 
+use hc_astro::MEAN_TROPICAL_YEAR;
+use hc_calendar::fixed::Moment;
 use hc_calendar::{Rd, Weekday};
+use hc_calendars_indic::SiddhantaLunarCalendar;
 use hc_calendars_lunar::tibetan;
 use hc_calendars_solar::{bahai, gregorian, yazidi};
+use hc_seasons::solar_terms::term_moment;
 use hc_seasons::{Meridian, SolarTerm};
 
 use crate::computus::offsets::{
@@ -532,7 +536,11 @@ static ISLAMIC_RULES: &[HolidayRule] = &[
 /// Three of the days are Shia: Tasu'a on 9 Muharram, the eve of Ashura;
 /// Arba'een on 20 Safar, forty days after it; and Eid al-Ghadir on
 /// 18 Dhu al-Hijjah, the day of Ghadir Khumm, a public holiday in Iran and,
-/// from 2024, in Iraq, whose tables date it too.
+/// from 2024, in Iraq, whose tables date it too. Wikipedia's Arba'in of
+/// 14 August 2025, 3 August 2026 and 24 July 2027 are Umm al-Qurā's
+/// 20 Safar; the tabular day is one, two and one days later, because the
+/// tabular year opens a day after Umm al-Qurā's in 1447 and 1448, and its
+/// Muharram has 30 days where Umm al-Qurā's of 1448 and 1449 has 29.
 pub static ISLAMIC: RuleSet = RuleSet {
     code: "islamic",
     english_name: "Islam",
@@ -547,8 +555,9 @@ pub static ISLAMIC: RuleSet = RuleSet {
               Wikipedia, \"Tasu'a\", \"Arba'in\" and \"Eid al-Ghadir\" \
               (`wikipedia-tasua`, `wikipedia-arbaeen`, `wikipedia-eid-al-ghadir`, \
               secondary), retrieved 2026-09-27: 9 Muharram, 20 Safar with \
-              Arba'in on 14 August 2025, 3 August 2026 and 24 July 2027 as \
-              checks, and 18 Dhu al-Hijjah",
+              Arba'in on 14 August 2025, 3 August 2026 and 24 July 2027, Umm \
+              al-Qurā's 20 Safar (`islamic-umalqura`), as checks, and 18 Dhu \
+              al-Hijjah",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1119,6 +1128,23 @@ static WINTER_SOLSTICE_IN_CHINA: Rule = Rule::SolarTerm {
     meridian: Meridian::CHINA,
 };
 
+/// 清明 by 平氣, the equal terms of the calendars before the 時憲曆 of
+/// 1645: seven twenty-fourths of the mean tropical year after the winter
+/// solstice, at the Chinese meridian.
+///
+/// The division is the one `hc-calendars-lunar` makes for its
+/// [`SolarTermMode::Mean`](hc_calendars_lunar::lunisolar::SolarTermMode::Mean)
+/// major terms — equal steps of the mean year from the solstice — taken at
+/// the half step, since 清明 is a minor term. The solstice is the instant
+/// this library computes, as for 寒食's count, and not the one the older
+/// calendars' own constants gave, so the day is approximate; its order
+/// against 寒食 is not, because both are counted from the same solstice.
+fn qingming_by_mean_terms(year: i64) -> Days {
+    let solstice = term_moment(year - 1, SolarTerm::WINTER_SOLSTICE);
+    let qingming = Moment(solstice.0 + 7.0 * MEAN_TROPICAL_YEAR / 24.0);
+    Days::one(Meridian::CHINA.day_of(qingming))
+}
+
 static CHINESE_FOLK_RULES: &[HolidayRule] = &[
     feast(
         "Chinese New Year's Eve",
@@ -1154,7 +1180,8 @@ static CHINESE_FOLK_RULES: &[HolidayRule] = &[
     // 冬至後一百五日 until the 時憲曆 of 1645,
     // `hc_seasons::ColdFoodConvention::SolsticePlus105`; approximate,
     // because the solstice is today's astronomy, not the day the older
-    // calendars' own reckoning of it gave.
+    // calendars' own reckoning of it gave. It falls one or two days before
+    // the 清明 of the equal terms those calendars used.
     feast(
         "Cold Food Festival",
         "寒食節",
@@ -1176,7 +1203,16 @@ static CHINESE_FOLK_RULES: &[HolidayRule] = &[
         },
     )
     .years(Some(1645), None),
-    feast("Qingming Festival", "清明節", QINGMING_IN_CHINA),
+    // 清明 by the equal terms until 1645, approximate as 寒食's count is,
+    // and by the true ones, 定氣, from the 時憲曆.
+    feast(
+        "Qingming Festival",
+        "清明節",
+        Rule::Computed(qingming_by_mean_terms),
+    )
+    .years(None, Some(1644))
+    .approximate(),
+    feast("Qingming Festival", "清明節", QINGMING_IN_CHINA).years(Some(1645), None),
     feast(
         "Dragon Boat Festival",
         "端午節",
@@ -1991,14 +2027,21 @@ fn unlucky_fridays(year: i64) -> Days {
 }
 
 /// Reingold and Dershowitz's `sacred-wednesdays`: the Wednesdays of a
-/// Gregorian year that are day 8 of a month of `hindu-lunar`, the day whose
-/// sunrise carries the eighth tithi.
+/// Gregorian year that are day 8 of a month of
+/// `hindu-lunar-surya-siddhanta`, the day whose sunrise carries the eighth
+/// tithi, as their `hindu-lunar-from-fixed` numbers it.
 fn sacred_wednesdays(year: i64) -> Days {
-    let location = crate::hindu::CALENDAR.location;
+    let calendar = SiddhantaLunarCalendar::UJJAIN;
     weekdays_where(year, Weekday::Wednesday, |day| {
-        hc_calendars_indic::tithi::tithi_of_day(day, location) == 8
+        calendar.from_fixed(day).is_ok_and(|date| date.day == 8)
     })
 }
+
+/// The first and last Gregorian years `hindu-lunar-surya-siddhanta`
+/// converts whole: it runs from 13 January 3101 BCE (−3100) to 15 June
+/// 6900, and the test `the_sacred_wednesdays_are_the_books` checks the
+/// years against the calendar's own range.
+const SACRED_WEDNESDAYS_YEARS: (i64, i64) = (-3_099, 6_899);
 
 static UNLUCKY_FRIDAYS_RULES: &[HolidayRule] = &[HolidayRule::observance(
     "Friday the 13th",
@@ -2031,12 +2074,8 @@ static SACRED_WEDNESDAYS_RULES: &[HolidayRule] = &[HolidayRule::observance(
     "",
     Rule::Tabulated {
         function: sacred_wednesdays,
-        first_year: hc_calendars_indic::hindu_lunar::MIN_YEAR
-            + hc_calendars_indic::hindu_lunar::GREGORIAN_YEAR_OFFSET
-            + 1,
-        last_year: hc_calendars_indic::hindu_lunar::MAX_YEAR
-            + hc_calendars_indic::hindu_lunar::GREGORIAN_YEAR_OFFSET
-            - 1,
+        first_year: SACRED_WEDNESDAYS_YEARS.0,
+        last_year: SACRED_WEDNESDAYS_YEARS.1,
     },
 )];
 
@@ -2044,16 +2083,17 @@ static SACRED_WEDNESDAYS_RULES: &[HolidayRule] = &[HolidayRule::observance(
 /// day 8 of a Hindu lunar month, which is the eighth tithi of the bright
 /// fortnight, śukla aṣṭamī, on the day whose sunrise carries it.
 ///
-/// The book computes the days on its own Hindu lunar calendar, which runs
-/// on the *Sūrya Siddhānta*'s Sun and Moon at Ujjain; this table reads them
-/// on `hindu-lunar`, the *Rashtriya Panchang*'s calendar on the true Sun
-/// and Moon at its Central Station, the calendar every Hindu rule in the
-/// crate uses. Over 2000–2030 the two share 50 days; the book's code has 6
-/// more and this table 4 more, each a day the two calendars number
-/// differently, and the tests name all ten. No traditional name was found for the
-/// set: the almanacs' Budh Ashtami, seen only in search summaries, falls on
-/// an eighth tithi of either fortnight and is not this rule. The years are
-/// those `hindu-lunar` converts, and a year outside them is a reported gap.
+/// The book computes the days on its own Hindu lunar calendar, the
+/// *Sūrya Siddhānta*'s Sun and Moon at Ujjain, and so does this table:
+/// that calendar is `hindu-lunar-surya-siddhanta`, and the table gives all
+/// 56 of the days the book's code gives for 2000–2030 and no others. The
+/// same Wednesdays read on `hindu-lunar`, the true Sun and Moon at the
+/// Central Station, differ on ten of those 60 days; that reading is in no
+/// source and is not carried. No traditional name was found for the set:
+/// the almanacs' Budh Ashtami, seen only in search summaries, falls on an
+/// eighth tithi of either fortnight and is not this rule. The years are
+/// those `hindu-lunar-surya-siddhanta` converts whole, and a year outside
+/// them is a reported gap.
 pub static SACRED_WEDNESDAYS: RuleSet = RuleSet {
     code: "sacred-wednesdays",
     english_name: "Wednesdays on the eighth lunar day",
@@ -2067,8 +2107,8 @@ pub static SACRED_WEDNESDAYS: RuleSet = RuleSet {
               (`reingold2018code`), `sacred-wednesdays` and \
               `sacred-wednesdays-in-range`, read 2026-09-27 at commit \
               9afc1f3277b839db1a70c2350d6c708ac83df78f, and run for 2000–2030 as the \
-              check; the day of the month read on `hindu-lunar` \
-              (docs/systems/hindu-calendars.md)",
+              check; the day of the month read on `hindu-lunar-surya-siddhanta`, the \
+              book's own calendar (docs/systems/hindu-calendars.md)",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

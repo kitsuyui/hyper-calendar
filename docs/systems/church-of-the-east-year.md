@@ -83,8 +83,13 @@ The Church's calendar for 2026 has every one of these days
   the Transfiguration, the first Sunday of Elijah, the Feast of the Cross,
   the first Sundays of the Dedication of the Church and of the
   Annunciation, and the Nativity. Every entry is religious and none is a
-  day off. English names as the Church's calendar gives them, with its
-  Syriac names beside them.
+  day off. The English names are the library's, each saying which day
+  it is and, where a season opens, naming the season as Andrious names
+  it [andrious-liturgical-year]; the Church's calendar
+  [ace-liturgical-calendar] words them otherwise ("Feast of the Holy
+  Cross", "1st Sanctification of the Church Sunday", "Rogation of
+  Ninevites", "Feast of our lord's Ascension"). The Syriac names are
+  beside them.
 - **From 1965**, the year after the decision of 1964; the day the change
   took effect was not read, so 1964 is left out.
 

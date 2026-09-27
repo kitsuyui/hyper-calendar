@@ -2575,13 +2575,12 @@ mod observances {
     /// the ISO 3166-1 country of a subdivision or an exchange where its
     /// table records one, and the short name in the locale. A country is
     /// named by its CLDR 48 territory name
-    /// in the `locale` where `hc-i18n` carries one, and every other table,
-    /// a country the locale has no name for, and every table for a null
-    /// `locale`, by its English name, with the tag that answered in column
-    /// 5. Column 8 is CLDR 48's `alt="short"` name of a country column 3
-    /// names from CLDR, from the same locale's data — `Hong Kong` for `HK`
-    /// under `en`, 香港 under `ja` — and empty where the data has none and
-    /// for every table named in English by fallback. Writes the required
+    /// in the `locale` where `hc-i18n` carries one, and else, as for a null
+    /// `locale`, by CLDR's English one; every other table by its English
+    /// name; the tag that answered is in column 5. Column 8 is CLDR 48's
+    /// `alt="short"` name of a country, from the data that named it —
+    /// `Hong Kong` for `HK` under `en`, 香港 under `ja` — and empty where
+    /// the data has none and for every table that is not a country. Writes the required
     /// length, including the terminator, into `written`.
     ///
     /// # Safety

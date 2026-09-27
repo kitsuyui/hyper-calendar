@@ -601,9 +601,9 @@ module's README: the code, the kind, the name in the locale, the English
 name, the locale that answered, the sources, the country of a subdivision
 or an exchange where its table records one, and the short name. A country
 is named by CLDR 48's territory name in the `locale` where `hc-i18n`
-carries one, and everything else — an exchange, a tradition, a country the
-locale has no name for, and every table for a null `locale` — by the
-table's English name, with the tag that answered in column 5. Column 8 is
+carries one, and else, as for a null `locale`, by CLDR's English name;
+an exchange, a tradition and a set of observances by the table's English
+name; the tag that answered is in column 5. Column 8 is
 CLDR 48's `alt="short"` name beside a CLDR name in column 3, from the same
 data (`Hong Kong` under `en`, 香港 under `ja`), and empty elsewhere. `hc_lectionary(fixed, buffer,
 capacity, written)` writes the liturgical year, the Sunday cycle, the

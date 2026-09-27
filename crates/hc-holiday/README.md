@@ -185,7 +185,8 @@ on `persian`, the eve of the year's last Wednesday (`chaharshanbe-suri`),
 the services of Tenrikyo's Church Headquarters (`tenrikyo`), and two of
 Reingold and Dershowitz's coincidences of a weekday and a date: Friday the
 13th (`unlucky-fridays`) and the Wednesdays on the eighth day of a
-`hindu-lunar` month (`sacred-wednesdays`). The Islamic table carries three
+month of the book's own Hindu calendar, `hindu-lunar-surya-siddhanta`
+(`sacred-wednesdays`). The Islamic table carries three
 Shia days, Tasu'a, Arba'een and Eid al-Ghadir, beside the others.
 
 Beside the tables, `holy_years` lists the Catholic Holy Years from 1975

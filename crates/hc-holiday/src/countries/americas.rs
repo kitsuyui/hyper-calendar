@@ -8,7 +8,7 @@ use crate::computus::offsets::{
     ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY,
     HOLY_SATURDAY, MAUNDY_THURSDAY, SACRED_HEART, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
 };
-use crate::hindu::{DIWALI, HOLI};
+use crate::hindu::{DIWALI, HOLI, NARAKA_CHATURDASHI};
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
     SubstituteDirection, SubstitutionPolicy, TO_ADJACENT_MONDAY, TO_FOLLOWING_MONDAY,
@@ -2226,7 +2226,7 @@ static TT_RULES: &[HolidayRule] = &[
         Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
     )
     .approximate(),
-    HolidayRule::public("Divali", "", DIWALI).approximate(),
+    HolidayRule::public("Divali", "", NARAKA_CHATURDASHI).approximate(),
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
     HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
 ];
@@ -2244,7 +2244,9 @@ static TT_RULES: &[HolidayRule] = &[
 /// and the table gives it to the later of the two in name order, with the
 /// shared day as the one it is for. Eid-ul-Fitr and Divali are "date to
 /// be appointed" by the President's Notification, carried on the tabular
-/// Hijri calendar and the crate's Lakṣmī Pūjā rule as approximations.
+/// Hijri calendar and the crate's Naraka Caturdaśī rule as approximations:
+/// the President appointed 18 October 2017 and 6 November 2018, each the
+/// day before Lakṣmī Pūjā, and [`crate::hindu`] lists the evidence.
 /// Carnival Monday and Tuesday are festivals under section 5 and not
 /// public holidays, though the Office of the President notes most
 /// businesses close; they are observances. Emancipation Day came in 1985
@@ -2261,7 +2263,7 @@ pub static TRINIDAD_AND_TOBAGO: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Public Holidays and Festivals Act, Chap. 19:05, as laws.gov.tt publishes it \
               (updated to 31 December 2016), retrieved 2026-09-22, for sections 3 to 5 \
               and the Schedule; Legal Notice No. 68 of 2024, the Public Holidays and \
@@ -2269,7 +2271,11 @@ pub static TRINIDAD_AND_TOBAGO: RuleSet = RuleSet {
               African Emancipation Day; the Office of the President, \"National \
               Holidays and Festivals\" (otp.tt), for Carnival; the Trinidad Guardian on \
               Friday 31 May 2024 under section 3(2); Wikipedia, \"Emancipation Day\", \
-              \"Indian Arrival Day\" and \"Spiritual Baptist\", for 1985, 1995 and 1996",
+              \"Indian Arrival Day\" and \"Spiritual Baptist\", for 1985, 1995 and 1996; for Divali, Newsday, \"Divali holiday is officially October 18\", \
+              21 September 2017, quoting the Government Information Division \
+              (secondary), and the title of Legal Notice No. 135 of 2018 appointing \
+              Tuesday 6 November 2018, in the Judiciary's list of legal notices \
+              (ttlawcourts.org), the notice itself not read; both retrieved 2026-09-27",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2665,7 +2671,7 @@ static GY_RULES: &[HolidayRule] = &[
         Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
     )
     .approximate(),
-    HolidayRule::public("Deepavali", "", DIWALI).approximate(),
+    HolidayRule::public("Deepavali", "", NARAKA_CHATURDASHI).approximate(),
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
     HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
 ];
@@ -2686,7 +2692,9 @@ static GY_RULES: &[HolidayRule] = &[
 /// Arrival Day from 2004; Commonwealth Day on the first Monday of
 /// August, which the printed section still carries, is not. The four
 /// gazetted feasts are on the tabular Hijri calendar and the crate's
-/// Holi and Lakṣmī Pūjā rules as approximations.
+/// Holi and Naraka Caturdaśī rules as approximations: the Ministry of
+/// Public Security's lists put Deepavali on 18 October 2017 and
+/// 6 November 2018, each the day before Lakṣmī Pūjā.
 pub static GUYANA: RuleSet = RuleSet {
     code: "GY",
     english_name: "Guyana",
@@ -2695,12 +2703,14 @@ pub static GUYANA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Public Holidays Act, Chapter 19:07, L.R.O. 1/2012, as the Ministry of Legal \
               Affairs publishes it (mola.gov.gy), retrieved 2026-09-22, for sections 3 \
               and 6; Wikipedia, \"2024 in Guyana\" and \"2025 in Guyana\", and the Ministry \
               of Home Affairs' notices for the yearly lists; Kaieteur News on Arrival Day's \
-              2004 designation; Wikipedia, \"Public holidays in Guyana\", for the names",
+              2004 designation; Wikipedia, \"Public holidays in Guyana\", for the names; the Ministry of Public Security's \"National Holidays 2017\" and \"National \
+              Holidays 2018\" (mops.gov.gy), through web.archive.org, retrieved \
+              2026-09-27, for Deepavali",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4094,7 +4104,8 @@ static SR_RULES: &[HolidayRule] = &[
 /// and the two Ieds are dated by the Minister of Home Affairs each year.
 /// The crate's Holi rule, the day after Holikā Dahana, gives the days
 /// announced for 25 March 2024 and 3 March 2026, and its Lakṣmī Pūjā rule
-/// those for 4 November 2021, 24 October 2022 and 12 November 2023; the
+/// those for 4 November 2021, 24 October 2022 and 12 November 2023, and
+/// the 19 October 2017 and 7 November 2018 that *Waterkant* reported; the
 /// four are approximate, as the Ieds on the tabular Hijri calendar are,
 /// and Chinese New Year, "wisselend" in the decree and announced, is on
 /// the crate's Chinese calendar, which gives the days announced for
@@ -4111,11 +4122,12 @@ pub static SURINAME: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Besluit Vrije Dagen 1971 (G.B. 1971 no. 78) and its amendments S.B. 2007 no. \
               98, S.B. 2012 no. 21 and S.B. 2021 no. 27, from the SRIS copies (sris.sr), and \
               S.B. 2021 no. 26 amending the Besluit Rustdagen 1971 (gov.sr), retrieved \
               2026-09-23; the Ministry of Home Affairs' announcements on gov.sr of Holi-dag \
               2024 and 2026, Divali 2021, 2022 and 2023, Ied-ul-Fitr 2023 and 2024, Ied-ul-\
-              Adha 2023, Chinese New Year 2021, 2023 and 2024, and Javanese New Year 2023",
+              Adha 2023, Chinese New Year 2021, 2023 and 2024, and Javanese New Year 2023; Waterkant (waterkant.net) of 15 October 2017 and 27 October 2018 for \
+              Divali in those years (secondary), retrieved 2026-09-27",
 };

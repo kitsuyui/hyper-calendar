@@ -31,14 +31,18 @@
 //! Christi, which a church may keep as a Festival or not. The Rules move
 //! St George and St Mark to fixed days after Easter without saying what
 //! happens when another Festival is already there, and forbid Easter Week
-//! to saints' days without naming a day for one that falls in it; those
-//! years are reported as gaps ([`Rule::Unsettled`]). They are the years
-//! of an Easter on 17 April, when St George's Monday is St Mark's Day, and
-//! of an Easter from 22 to 25 April, when St George, St Mark or Philip and
-//! James is left without a day: St Mark and Philip and James on 1 May when
-//! Easter is 22 April, St George and Philip and James when it is 23 April,
-//! and Philip and James alone when it is 24 April, the Second Sunday of
-//! Easter with St George on the Monday after, or 25 April, Easter Week.
+//! to saints' days without naming a day for one that falls in it. When
+//! Easter is 17 April St George's Monday is St Mark's Day; the Rules' note
+//! on the two, that "George will have been transferred to the first
+//! available free day", and the Church's Daily Prayer for Tuesday 26 April
+//! 2022, which keeps "George, Martyr, Patron of England" that day, put St
+//! George on the Tuesday and leave St Mark on the Monday. The other years
+//! are reported as gaps ([`Rule::Unsettled`]): an Easter from 22 to 25
+//! April, when St George, St Mark or Philip and James is left without a
+//! day — St Mark and Philip and James on 1 May when Easter is 22 April,
+//! St George and Philip and James when it is 23 April, and Philip and
+//! James alone when it is 24 April, the Second Sunday of Easter with St
+//! George on the Monday after, or 25 April, Easter Week.
 //!
 //! Not carried: the Lesser Festivals and Commemorations of the calendar,
 //! which the minister may keep or not; a church's Patronal and Dedication
@@ -163,14 +167,19 @@ fn holds_another_festival(year: i64, day: Rd) -> bool {
 
 /// St George, on 23 April: from the paschal fortnight to the Monday after
 /// the Second Sunday of Easter; from a Sunday, one of Eastertide, to the
-/// Monday. Unsettled when that Monday is St Mark's Day or the day of Philip
-/// and James, which happens when Easter is 17 or 23 April.
+/// Monday. When that Monday is St Mark's Day, as when Easter is 17 April,
+/// to the Tuesday, "the first available free day", as the Church kept it
+/// on 26 April 2022. Unsettled when the Monday is the day of Philip and
+/// James, which happens when Easter is 23 April.
 fn george(year: i64) -> Option<Days> {
     let Some((easter, day)) = easter_and(year, 4, 23) else {
         return Some(Days::new());
     };
     if in_paschal_fortnight(day, easter) {
         let monday = monday_after_easter_two(easter);
+        if date(year, 4, 25) == Some(monday) {
+            return Some(Days::one(Rd(monday.0 + 1)));
+        }
         return (!holds_another_festival(year, monday)).then(|| Days::one(monday));
     }
     Some(Days::one(if is_sunday(day) { Rd(day.0 + 1) } else { day }))
@@ -178,21 +187,19 @@ fn george(year: i64) -> Option<Days> {
 
 /// St Mark, on 25 April: from the paschal fortnight to the Monday after
 /// the Second Sunday of Easter, or the Tuesday when St George is moved
-/// there too; from a Sunday, one of Eastertide, to the Monday. Unsettled
-/// when St George is moved onto 25 April, as when Easter is 17 April, and
-/// when St Mark's Tuesday is 1 May, as when Easter is 22 April.
+/// there too; from a Sunday, one of Eastertide, to the Monday. It keeps
+/// its day when St George's Monday is 25 April, St George going on to the
+/// Tuesday. Unsettled when St Mark's Tuesday is 1 May, as when Easter is
+/// 22 April.
 fn mark(year: i64) -> Option<Days> {
     let Some((easter, day)) = easter_and(year, 4, 25) else {
         return Some(Days::new());
     };
-    let monday = monday_after_easter_two(easter);
     if in_paschal_fortnight(day, easter) {
+        let monday = monday_after_easter_two(easter);
         let george_moves = in_paschal_fortnight(Rd(day.0 - 2), easter);
         let moved = Rd(monday.0 + i64::from(george_moves));
         return (!holds_another_festival(year, moved)).then(|| Days::one(moved));
-    }
-    if monday == day {
-        return None;
     }
     Some(Days::one(if is_sunday(day) { Rd(day.0 + 1) } else { day }))
 }

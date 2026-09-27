@@ -727,8 +727,10 @@ weeks.
   `OldHinduSolarCalendar` and `OldHinduLunarCalendar`, in the Kali Yuga
   era, arithmetic and not astronomical.
 - **`tithi`**: `tithi_at`, `tithi_of_day`, `paksha_of`, `sunrise_of` and
-  `sunset_of`, and `Prevalence` — sunrise, midday, afternoon (seven
-  tenths of the daylight), evening (an hour after sunset), midnight —
+  `sunset_of`, and `Prevalence` — dawn (four ghaṭikās before sunrise,
+  the Calendar Reform Committee's aruṇodaya for Naraka Caturdaśī
+  [crc1955]), sunrise, midday, afternoon (seven tenths of the daylight),
+  evening (an hour after sunset), midnight —
   the part of the day a festival's tithi must hold, which `hc-holiday`
   uses and this document does not cover.
 - **`nakshatra`**: the twenty-seven as constants `ASHVINI` to `REVATI`,
@@ -956,7 +958,7 @@ for 2024 and 2025 give the times the tests hold.
 | [pac-rashtriya-panchang] | The almanac's publisher, its first year (Śaka 1879) and its languages | Yes, 2026-09-25, past an unverified certificate |
 | [pac-history] | The Committee's office becoming the Nautical Almanac Unit in December 1955; the first *Indian Ephemeris and Nautical Almanac* for 1958 | Yes, 2026-09-25, past an unverified certificate |
 | [imd-astronomical-ephemeris] | The *Indian Astronomical Ephemeris*, its parts and its readers | Yes, 2026-09-25 |
-| [crc1955] | The Committee, its dates and members; the Central Station; tithis by modern computation; the lunar month named after the solar month of its new moon, adhika and śuddha; the 13°20′ nakṣatra divisions and the Sun's entries; the ayanāṃśa of 23°15′ on 21 March 1956; the solar-month conventions left to the pandits; the list of almanacs; Annexure VI, the questionnaire and the replies of the four almanacs that compute by the *Sūrya Siddhānta* (replies 5, 43, 47, 48, pp. 24, 30, 31), and the *bīja* the calendar makers apply to the Siddhāntas' Moon (p. 3) | Yes, 2026-09-25, in the Internet Archive's OCR text; Annexure VI and p. 3 on 2026-09-27, in the same text as saved that day |
+| [crc1955] | The Committee, its dates and members; the Central Station; tithis by modern computation; the lunar month named after the solar month of its new moon, adhika and śuddha; the 13°20′ nakṣatra divisions and the Sun's entries; the ayanāṃśa of 23°15′ on 21 March 1956; the solar-month conventions left to the pandits; the list of almanacs; Annexure VI, the questionnaire and the replies of the four almanacs that compute by the *Sūrya Siddhānta* (replies 5, 43, 47, 48, pp. 24, 30, 31), and the *bīja* the calendar makers apply to the Siddhāntas' Moon (p. 3); the General Rules for Religious Festivals and Naraka Caturdaśī's four ghaṭikās before sunrise | Yes, 2026-09-25, in the Internet Archive's OCR text; Annexure VI and p. 3 on 2026-09-27, and the festival rules the same day, in the same text as saved |
 | [wikipedia-indian-national-calendar] | The civil calendar's adoption on 22 March 1957 and the Śaka offset | Yes, 2026-09-25 |
 | [sewell1896] | The four regional rules and their names; kṣaya and adhika tithis; the naming of adhika and kṣaya months; the intervals between expunged months; the sixty-year cycle, its northern and southern reckonings and the southern rule, and the worked examples of 1752, 1803–04 and 1822; the northern cycle's length and expunction, the name coupled with the year, the three rules with their examples, the list of expunged names and Table I's reckoning; the yoga and its lengths (Art. 9, p. 3), the karaṇa (Art. 10), the karaṇa names and the *Sūrya Siddhānta*'s other order of the fixed four (Art. 40 and its note) and the names of each half-tithi (Table VIII, cols. 4 and 5) | Yes, 2026-09-25, in the Internet Archive's OCR text; Arts. 28, 32, 45, 48 and 50; Arts. 53–62 and the worked examples that name Angiras, Rudhirodgarin and Chitrabhanu on 2026-09-26, and Arts. 54–60, 75 and 120 again that day for the northern cycle; Arts. 9, 10 and 40 and the Art. 40 note on 2026-09-26, and Art. 9's lengths and Table VIII, cols. 4 and 5, on 2026-09-27. The sixty names are read off the OCR of Table I, col. 6, and Table XII, where the diacritics are lost; Art. 60's list off the OCR of its table |
 | [burgess1860] | The *Sūrya Siddhānta*'s revolutions of Jupiter, from which Sewell and Dikshit's numbers come | Not read; the module takes Sewell and Dikshit's numbers as they give them |

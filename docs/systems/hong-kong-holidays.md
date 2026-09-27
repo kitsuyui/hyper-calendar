@@ -103,6 +103,16 @@ place, where from 2012 it would have been the fourth day, Wednesday
     an employee's own rest day, not on the calendar.
   - The Government's typhoon and rainstorm closures, which are not
     holidays.
+  - The gazette's names for a substitute. The lists name the day a
+    substitute falls on by its own place — for 2026, "The day following
+    Ching Ming Festival" on 6 April and "The day following Easter Monday"
+    on 7 April; for 2027, "The fourth day of Lunar New Year" on 9 February
+    [govhk-general-holidays] — where the engine names a substitute after
+    the holiday it stands in for and records that holiday in
+    `observed_for`, so the table's 6 April 2026 is "Easter Monday" and its
+    7 April "Ching Ming Festival", substituted. The dates are the lists';
+    carrying the lists' names would need a naming rule in the shared
+    substitution engine, which no other table needs.
 
 ## Accuracy
 

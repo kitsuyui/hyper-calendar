@@ -106,10 +106,11 @@ pub fn sunset_of(day: Rd, location: Location) -> Moment {
 /// that day.
 ///
 /// A civil date carries the tithi at sunrise, but a festival is kept on
-/// the day its tithi holds the part of the day the rite belongs to: Rāma
-/// Navamī at midday, Vijayā Daśamī in the afternoon, Dīpāvalī in the
-/// evening, Janmāṣṭamī and Śivarātri at midnight. Each variant names the
-/// instant it probes, in the day's own sunrise-to-sunrise terms.
+/// the day its tithi holds the part of the day the rite belongs to:
+/// Naraka Caturdaśī at dawn, Rāma Navamī at midday, Vijayā Daśamī in the
+/// afternoon, Dīpāvalī in the evening, Janmāṣṭamī and Śivarātri at
+/// midnight. Each variant names the instant it probes, in the day's own
+/// terms: the dawn before its sunrise, and the night after its sunset.
 ///
 /// The parts of the day are the *dharmaśāstra*'s, whose standard survey is
 /// P. V. Kane, *History of Dharmaśāstra*, vol. V, part 1 (Poona, 1958;
@@ -124,6 +125,12 @@ pub fn sunset_of(day: Rd, location: Location) -> Moment {
 /// either side of sunset. The probe an hour after sunset lies inside both.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Prevalence {
+    /// At dawn, *aruṇodaya*: the four *ghaṭikā*s, 96 minutes, before
+    /// sunrise, probed at their beginning. The Calendar Reform Committee's
+    /// list of festivals (`crc1955`) keeps Naraka Caturdaśī on the day its
+    /// tithi covers "a period of 4 ghatikas before sunrise", and the first
+    /// of two such days.
+    Dawn,
     /// At sunrise: the tithi the civil day carries.
     Sunrise,
     /// At midday, *madhyāhna*: the middle of the daylight.
@@ -139,6 +146,10 @@ pub enum Prevalence {
     /// day.
     Midnight,
 }
+
+/// Four *ghaṭikā*s of 24 minutes, as a fraction of a day: the length of
+/// the dawn [`Prevalence::Dawn`] opens.
+const DAWN_DAYS: f64 = 4.0 * 24.0 / 1_440.0;
 
 impl Prevalence {
     /// The instant this prevalence probes on a day at a location, in
@@ -165,6 +176,7 @@ impl Prevalence {
     ) -> Moment {
         let (rise, set) = (rise.0, set.0);
         Moment(match self {
+            Self::Dawn => rise - DAWN_DAYS,
             Self::Sunrise => rise,
             Self::Midday => rise + (set - rise) / 2.0,
             Self::Afternoon => rise + (set - rise) * 0.7,
@@ -230,7 +242,9 @@ mod tests {
     #[test]
     fn the_prevalences_run_through_the_day_in_order() {
         let day = Rd(738_800.0 as i64);
+        let dawn = Prevalence::Dawn.moment_of(day, UJJAIN).0;
         let rise = Prevalence::Sunrise.moment_of(day, UJJAIN).0;
+        assert!((rise - dawn - 96.0 / 1_440.0).abs() < 1e-9);
         let midday = Prevalence::Midday.moment_of(day, UJJAIN).0;
         let afternoon = Prevalence::Afternoon.moment_of(day, UJJAIN).0;
         let evening = Prevalence::Evening.moment_of(day, UJJAIN).0;

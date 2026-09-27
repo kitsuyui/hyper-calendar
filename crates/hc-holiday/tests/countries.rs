@@ -339,6 +339,15 @@ fn northern_ireland_and_scotland_have_their_own_days() {
     );
     // St Andrew's Day 2024 fell on a Saturday and was kept on the Monday.
     expect_substitute("GB", Some("GB-SCT"), 2024, (11, 30), (12, 2));
+    // The World Cup bank holiday of 2026 was proclaimed for Scotland alone.
+    expect(
+        "GB",
+        Some("GB-SCT"),
+        &[(2026, 6, 15, "World Cup bank holiday")],
+    );
+    expect_working("GB", Some("GB-EAW"), &[(2026, 6, 15)]);
+    expect_working("GB", Some("GB-NIR"), &[(2026, 6, 15)]);
+    expect_working("GB", Some("GB-SCT"), &[(2027, 6, 14)]);
 }
 
 #[test]
@@ -1016,6 +1025,17 @@ fn india_central_government_holidays() {
     );
     // India has no observed-day rule: 26 January 2025 was a Sunday.
     expect_working("IN", None, &[(2025, 1, 27)]);
+    // The Department of Personnel and Training's Diwali of 2017, 2018 and
+    // 2027: Lakṣmī Pūjā, a day after Naraka Caturdaśī in each.
+    expect(
+        "IN",
+        None,
+        &[
+            (2017, 10, 19, "Diwali"),
+            (2018, 11, 7, "Diwali"),
+            (2027, 10, 29, "Diwali"),
+        ],
+    );
     expect_working("IN", None, &[(1946, 8, 15)]);
 }
 
@@ -1405,6 +1425,38 @@ fn the_philippines_keeps_the_proclaimed_eids() {
 }
 
 #[test]
+fn the_two_deepavalis_part_where_the_lists_say_they_do() {
+    use hc_holiday::hindu::{DIWALI, NARAKA_CHATURDASHI};
+    // Naraka Caturdaśī, the Tamil Deepavali, is the day before Lakṣmī Pūjā
+    // in 2017, 2018 and 2027 and the same day from 2019 to 2026.
+    for year in 2017..=2027 {
+        let tamil = NARAKA_CHATURDASHI.days_in_year(year);
+        let northern = DIWALI.days_in_year(year);
+        let (tamil, northern) = (tamil.as_slice(), northern.as_slice());
+        assert_eq!((tamil.len(), northern.len()), (1, 1), "{year}");
+        let apart = northern[0].0 - tamil[0].0;
+        let expected = i64::from(matches!(year, 2017 | 2018 | 2027));
+        assert_eq!(apart, expected, "{year}");
+    }
+    // Sri Lanka's Holidays Act orders date Deepavali for 2023 to 2027, and
+    // the Tamil rule gives every one of them.
+    let lanka = table("LK");
+    for year in 2023..=2027 {
+        let gazetted: Vec<Rd> = HolidayCalendar::for_year(lanka, None, year)
+            .all()
+            .iter()
+            .filter(|holiday| holiday.name == "Deepavali Festival Day")
+            .map(|holiday| holiday.date)
+            .collect();
+        assert_eq!(
+            gazetted.as_slice(),
+            NARAKA_CHATURDASHI.days_in_year(year).as_slice(),
+            "{year}"
+        );
+    }
+}
+
+#[test]
 fn singapore_and_malaysia() {
     expect(
         "SG",
@@ -1415,7 +1467,11 @@ fn singapore_and_malaysia() {
             (2024, 8, 9, "National Day"),
             (2025, 1, 29, "Chinese New Year"),
             (2025, 5, 1, "Labour Day"),
-            // The Ministry of Manpower's Deepavali, 2020 to 2026.
+            // The Ministry of Manpower's Deepavali: the press releases for
+            // 2017 and 2018 and the consolidated list of 2020 to 2027. 2017,
+            // 2018 and 2027 are each a day before Lakṣmī Pūjā.
+            (2017, 10, 18, "Deepavali"),
+            (2018, 11, 6, "Deepavali"),
             (2020, 11, 14, "Deepavali"),
             (2021, 11, 4, "Deepavali"),
             (2022, 10, 24, "Deepavali"),
@@ -1423,6 +1479,7 @@ fn singapore_and_malaysia() {
             (2024, 10, 31, "Deepavali"),
             (2025, 10, 20, "Deepavali"),
             (2026, 11, 8, "Deepavali"),
+            (2027, 10, 28, "Deepavali"),
         ],
     );
     // Singapore moves a Sunday holiday to the Monday and leaves a Saturday
@@ -1440,14 +1497,22 @@ fn singapore_and_malaysia() {
             (2024, 8, 31, "National Day"),
             (2024, 9, 16, "Malaysia Day"),
             (2025, 6, 2, "Agong's Birthday"),
-            // The gazetted Deepavali, 2023 to 2025.
+            // The schedules' Deepavali: 2021 to 2026 as read, and 2027, a
+            // day before Lakṣmī Pūjā.
+            (2021, 11, 4, "Deepavali"),
+            (2022, 10, 24, "Deepavali"),
             (2023, 11, 12, "Deepavali"),
             (2024, 10, 31, "Deepavali"),
             (2025, 10, 20, "Deepavali"),
+            (2026, 11, 8, "Deepavali"),
+            (2027, 10, 28, "Deepavali"),
         ],
     );
     // 31 August 2025 was a Sunday, so 1 September was the substitute.
     expect_substitute("MY", None, 2025, (8, 31), (9, 1));
+    // Lakṣmī Pūjā, the Diwali of northern India, is a working day in both.
+    expect_working("SG", None, &[(2017, 10, 19), (2018, 11, 7), (2027, 10, 29)]);
+    expect_working("MY", None, &[(2027, 10, 29)]);
     expect_working("MY", None, &[(2009, 9, 16)]);
 }
 
@@ -5082,6 +5147,14 @@ fn trinidad_and_tobago_gives_the_next_free_day_for_a_sunday_or_a_coincidence() {
     );
     expect_substitute("TT", None, 2024, (5, 30), (5, 31));
     expect_substitute("TT", None, 2025, (3, 30), (4, 1));
+    // The President's Divali of 2017 and 2018, each the day before Lakṣmī
+    // Pūjā.
+    expect(
+        "TT",
+        None,
+        &[(2017, 10, 18, "Divali"), (2018, 11, 6, "Divali")],
+    );
+    expect_working("TT", None, &[(2017, 10, 19), (2018, 11, 7)]);
     let calendar = HolidayCalendar::for_year(table("TT"), None, 2026);
     let carnival: Vec<(&str, Kind)> = calendar
         .on(ymd(2026, 2, 16))
@@ -6102,6 +6175,14 @@ fn guyana_gives_the_following_day_for_a_sunday_and_the_tuesday_after_a_sunday_ch
     );
     expect_substitute("GY", None, 2024, (5, 5), (5, 6));
     expect_substitute("GY", None, 2022, (12, 25), (12, 27));
+    // The Ministry of Public Security's Deepavali of 2017 and 2018, each the
+    // day before Lakṣmī Pūjā.
+    expect(
+        "GY",
+        None,
+        &[(2017, 10, 18, "Deepavali"), (2018, 11, 6, "Deepavali")],
+    );
+    expect_working("GY", None, &[(2017, 10, 19), (2018, 11, 7)]);
 }
 
 #[test]
@@ -6395,6 +6476,13 @@ fn suriname_keeps_the_decrees_free_days_and_moves_none() {
             (2006, 8, 9),
         ],
     );
+    // Divali of 2017 and 2018 as Waterkant reported the Ministry's days.
+    expect(
+        "SR",
+        None,
+        &[(2017, 10, 19, "Divali"), (2018, 11, 7, "Divali")],
+    );
+    expect_working("SR", None, &[(2017, 10, 18), (2018, 11, 6)]);
     let calendar = HolidayCalendar::for_year(table("SR"), None, 2024);
     assert!(
         calendar
@@ -7271,6 +7359,14 @@ fn mauritius_alternates_the_assumption_and_all_saints_from_2016() {
             (2000, 11, 2),
         ],
     );
+    // General Notices No. 814 of 2016 and No. 737 of 2017: Divali on
+    // Lakṣmī Pūjā, not the day before.
+    expect(
+        "MU",
+        None,
+        &[(2017, 10, 19, "Divali"), (2018, 11, 7, "Divali")],
+    );
+    expect_working("MU", None, &[(2017, 10, 18), (2018, 11, 6)]);
 }
 
 #[test]

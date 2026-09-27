@@ -1498,10 +1498,10 @@ year would, through one `EvaluationContext` shared by every table, so the
 astronomy the tables have in common — the sunrises the Hindu festivals are
 read at, the new moons and solar terms of the Chinese-dated ones — is done
 once, and only for the months around the day. Measured on 2026-09-27 in
-the `release-compact` profile, one 2026 day across all 281 tables takes
-about 60 ms natively on 1 January, the costliest, and 46 ms on
-25 September, against 0.28 s for every table's whole year; in WebAssembly
-under Node 22, 125 ms and 95 ms.
+the `release-compact` profile, one 2026 day across all 286 tables takes
+about 44 ms natively on 1 January, the costliest, and 30 ms on
+25 September, against 0.19 s for every table's whole year; in WebAssembly
+under Node 22, 107 ms and 78 ms.
 
 ### The tables
 
@@ -1517,13 +1517,14 @@ every locale it carries that CLDR names them in (its `territories`
 feature): 日本 under `ja`, Deutschland under `de` and `de-AT`, with the tag
 of the data that answered, `ja` or `de`, in column 5. English is CLDR's
 English too, so under `en` column 3 is `Hong Kong SAR China` where the
-table's own name in column 4 is `Hong Kong`. Everything else is named in
-English — the table's own name, with `en` in column 5: a country the
-locale has no release-level CLDR name for (Kabyle's Hong Kong, Tibetan's
-France, every country in Coptic), every exchange, tradition and set of
-observances, which CLDR does not name and the library does not translate,
-and every table under `native`, which names no one language. So column 3
-is never empty. An exchange
+table's own name in column 4 is `Hong Kong`. A country the locale has no
+release-level CLDR name for (Kabyle's Hong Kong, Tibetan's France, every
+country in Coptic), and every country under `native`, which names no one
+language, is named as CLDR's English names it, with `en` in column 5, so
+that `en` stands for one name of a country wherever it appears. Every
+exchange, tradition and set of observances, which CLDR does not name and
+the library does not translate, is named by the table's own English
+name, with `en` in column 5. So column 3 is never empty. An exchange
 names its country only where its table includes the country's for its
 days off — Tokyo, Hong Kong, Shanghai, London among them — and most list
 every closed day themselves and name none.
@@ -1537,8 +1538,9 @@ for Bosnia (`BA`), Myanmar (`MM`), South Korea (`KR`), Saudi Arabia (`SA`)
 and the United States (`US`) in a few. CLDR shortens only these, so the
 cell is empty for most countries; it is empty too where the file writes
 the short value as the inheritance marker `↑↑↑`, which resolves to the
-plain name column 3 already carries, and for every table column 3 names
-in English by fallback, whose name is the table's own and not CLDR's.
+plain name column 3 already carries, and for every table that is not a
+country, whose name is the table's own and not CLDR's. A country named
+from CLDR's English by fallback has English's short name.
 
 | # | Column | Holds |
 | --- | --- | --- |
