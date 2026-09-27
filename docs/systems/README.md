@@ -1,10 +1,14 @@
 # System documents
 
-One document per system that a maintainer cannot be expected to know already:
-what it is in the world, how it works, what this library carries of it and how
-well, and where every statement comes from. The rule is
-[policy.md §12](../policy.md); the sources they cite are in
-[`references.bib`](../references.bib).
+This directory holds one document for each *system* that a maintainer
+cannot be expected to know already. A system is a calendar, a holiday
+regime, a time code or another reckoning with rules of its own. Each
+document explains what the system is in the world, how it works, what this
+library carries of it and how well, and where every statement comes from.
+Read it before changing the code it backs.
+
+[policy.md §12](../policy.md) states the rule. The sources the documents
+cite are in [`references.bib`](../references.bib).
 
 Each document has the same sections, so that a reader knows where to look:
 
@@ -17,11 +21,17 @@ Each document has the same sections, so that a reader knows where to look:
 | **Sources** | Every source, keyed to `references.bib`, with what each was used for and whether it was read directly |
 | **Code** | The module that implements it and the tests that anchor it |
 
-The document explains; the module documentation summarises it in a paragraph
-and names it; the `sources` strings and test comments cite the same sources.
-None of the three repeats another.
+Three places describe each system, and none of them repeats another:
+
+- the document explains it;
+- the module documentation summarises it in a paragraph and names the
+  document;
+- the `sources` strings and the test comments cite the same sources.
 
 ## Documents
+
+The Backs column names what each document backs: calendar identifiers,
+crates, modules, functions or holiday tables.
 
 | System | Document | Backs |
 | --- | --- | --- |
@@ -124,46 +134,53 @@ None of the three repeats another.
 ## Systems that need a document
 
 A system is written up from its sources before it is coded, with the
-sections above and a row in the table above; one found to need a document
-after it is coded is listed here until it has one
-([policy.md §12](../policy.md)). One is:
+sections above and a row in the table above. A system found to need a
+document only after it is coded is listed here until it has one
+([policy.md §12](../policy.md)). One is listed:
 
 - **The Hindu festival days**, `hc-holiday`'s `hindu` rules and the
-  `hindu` table: the part of the day each festival's tithi must hold, the
-  Calendar Reform Committee's rules for it, the two Deepavalis, Lakṣmī
-  Pūjā and Naraka Caturdaśī, and which of the governments' tables keeps
-  which, and the central government of India's lists, with their Vaiṣṇava
-  Janmāṣṭamī. The module documentation of `hc_holiday::hindu` states it
-  until the document is written; [hindu-calendars.md](hindu-calendars.md)
+  `hindu` table. The document would cover:
+  - the part of the day each festival's tithi must hold, and the Calendar
+    Reform Committee's rules for it;
+  - the two Deepavalis, Lakṣmī Pūjā and Naraka Caturdaśī, and which of the
+    governments' tables keeps which;
+  - the central government of India's lists, with their Vaiṣṇava
+    Janmāṣṭamī.
+
+  Until the document is written, the module documentation of
+  `hc_holiday::hindu` states it. [hindu-calendars.md](hindu-calendars.md)
   covers the calendar and not the festivals.
 
 ## Systems judged not to need one
 
-Some implemented systems are one rule each, stated in full where they are
-coded and in [time-scales.md](../time-scales.md), with nothing a worked
-example would add: the TAI64 labels and their two conventions, the Julian
-and Besselian epochs, and Swatch Internet Time. They stay there unless a
-competing reading or a table of exceptions turns up.
+Some implemented systems are one rule each. The rule is stated in full
+where it is coded and in [time-scales.md](../time-scales.md), and a worked
+example would add nothing. These are the TAI64 labels and their two
+conventions, the Julian and Besselian epochs, and Swatch Internet Time.
+They stay there unless a competing reading or a table of exceptions turns
+up.
 
 Three more are judged not to need one, each for its own reason:
 
-- **The Heliocentric Julian Date**, `hc-astro::hjd`. It is one correction,
-  the Rømer delay, and its competing readings are time scales and frames,
-  which [time-scales.md](../time-scales.md) names: HJD_TT and HJD_UTC,
-  both computed; HJD′_UTC, which drifts with the leap seconds and is not
-  computed; and the mixed frame of SLALIB's rows far from 2000, measured
-  there against IDL's table. The barycentric BJD_TDB, which would need
-  the solar-system barycentre, would need a document if it were carried.
-- **TT(BIPM)**, `hc-core::tt_bipm`. The library carries no realisation,
-  only the interpolation of a series the caller supplies by name, so the
-  realisations that revise each other are the caller's data, as a DUT1
-  series is; [time-scales.md](../time-scales.md) states the rule, and
-  `hc_core::tt_bipm` the revision, up to 0.2 ns, between TT(BIPM24) and
-  TT(BIPM25).
+- **The Heliocentric Julian Date**, `hc-astro::hjd`. It is one
+  correction, the Rømer delay. Its competing readings are time scales and
+  frames, which [time-scales.md](../time-scales.md) names:
+  - HJD_TT and HJD_UTC, both computed;
+  - HJD′_UTC, which drifts with the leap seconds and is not computed;
+  - the mixed frame of SLALIB's rows far from 2000, measured there against
+    IDL's table.
+
+  The barycentric BJD_TDB would need the solar-system barycentre. It would
+  need a document if it were carried.
+- **TT(BIPM)**, `hc-core::tt_bipm`. The library carries no realisation of
+  it, only the interpolation of a series the caller supplies by name. So
+  the realisations that revise each other are the caller's data, as a DUT1
+  series is. [time-scales.md](../time-scales.md) states the rule, and
+  `hc_core::tt_bipm` states the revision, up to 0.2 ns, between TT(BIPM24)
+  and TT(BIPM25).
 - **The Turkmen month and weekday names of 2002–2008**,
-  `hc-i18n::dated::TURKMEN_2002`. It is a list of names and two dates,
-  and the one open question, the day in 2002 the law took effect, is
-  answered `Undecided` rather than resolved;
-  [i18n.md](../i18n.md) states the period and its sources. A second naming
-  period, or a source that dates the law's effect, would not change the
-  rule.
+  `hc-i18n::dated::TURKMEN_2002`. It is a list of names and two dates. The
+  one open question, the day in 2002 the law took effect, is answered
+  `Undecided` rather than resolved. [i18n.md](../i18n.md) states the
+  period and its sources. A second naming period, or a source that dates
+  the law's effect, would not change the rule.

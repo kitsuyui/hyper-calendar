@@ -1,9 +1,17 @@
 # hyper-calendar
 
-`hyper-calendar` is a calendar and time library written in Rust. It
-converts dates between calendars, answers holiday questions, and converts
-instants between time scales. It builds as a Rust library, a WebAssembly
-module and a C shared library.
+`hyper-calendar` is a calendar and time library written in Rust. Use it
+to:
+
+- convert a date between the Gregorian calendar and some two hundred
+  others, from the Hebrew and Hijri calendars to Japanese eras and the Maya
+  Long Count;
+- ask whether a day is a holiday in a country or a religious tradition, or
+  a trading day on an exchange;
+- convert an instant between time scales such as TAI, UTC and GPS time,
+  leap seconds included.
+
+It builds as a Rust library, a WebAssembly module and a C shared library.
 
 It has no user interface, no clock and no network access. The caller
 supplies the current time. The library computes and formats, and nothing
@@ -54,7 +62,8 @@ What is not carried yet, and what is out of scope, is listed in
 
 ## Two pivots
 
-The design rests on two canonical representations.
+The design rests on two canonical representations, called *pivots*. Every
+conversion passes through one of them.
 
 A **day** is a Rata Die number, `Rd`: an integer that counts days, with
 day 1 being 1 January of year 1 in the proleptic Gregorian calendar
@@ -352,6 +361,7 @@ call, in thread-local storage emptied when the call's scope ends.
 | [`docs/supported.md`](docs/supported.md) | What exists: every calendar, table, unit and feature. Generated from the code |
 | [`docs/architecture.md`](docs/architecture.md) | How the crates fit together and why |
 | [`docs/policy.md`](docs/policy.md) | The rules a change must follow |
+| [`docs/glossary.md`](docs/glossary.md) | The words the documents use in a sense of their own: pivot, layer, anchor and the rest |
 | [`docs/adr/`](docs/adr/README.md) | The design decisions that could have gone another way |
 | [`docs/calendars.md`](docs/calendars.md) | Calendars: status, plans, and what is out of scope |
 | [`docs/observances.md`](docs/observances.md) | Holidays and observances: status, plans, and what is out of scope |

@@ -63,7 +63,7 @@ Kārtika. The date is 13 Chaitra 2551, which is how the calendar heads it.
 
 - **Identifier** `vira-nirvana-samvat`, `ViraNirvanaCalendar::RASHTRIYA`:
   the amānta calendar of `hindu-lunar` read at the Central Station's
-  sunrise with the Lahiri ayanamsa, the *Rashtriya Panchang*'s reckoning.
+  sunrise with the Lahiri ayanāṃśa, the *Rashtriya Panchang*'s reckoning.
   The day begins at sunrise and is named by the civil day on whose
   sunrise it begins, `DayBoundary::Sunrise(DayNaming::ByStart)`, as the
   amānta calendar's is [reingold2018code, `hindu-lunar-from-fixed`].

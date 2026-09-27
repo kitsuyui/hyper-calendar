@@ -9,18 +9,24 @@ in [hours-of-the-day.md](hours-of-the-day.md).
 
 The five daily prayers of Islam are fixed by the Sun: *fajr* at dawn,
 *ẓuhr* after noon, *ʿaṣr* in the afternoon, *maghrib* at sunset and *ʿishāʾ*
-at nightfall. Dawn and nightfall are when the sky begins to lighten and has
-finished darkening, and the authorities that publish timetables fix each by
-a depression of the Sun below the horizon; they differ on the angles, and
-some fix *ʿishāʾ* as an interval after sunset instead. A timetable for a
-place is therefore one authority's method applied there. The methods
-compiled by Pray Times are those of the Muslim World League, the Islamic
-Society of North America, the Egyptian General Authority of Survey, Umm
-al-Qura University in Makkah, the University of Islamic Sciences in Karachi,
-the Institute of Geophysics of the University of Tehran, the Leva Research
-Institute in Qom (the Jafari method), the Muslims of France, the Spiritual
-Administration of Muslims of Russia and the Islamic Religious Council of
-Singapore (MUIS) [praytimes-methods].
+at nightfall. Dawn is when the sky begins to lighten, and nightfall is when
+it has finished darkening. The authorities that publish timetables fix each
+by a depression of the Sun below the horizon. They differ on the angles,
+and some fix *ʿishāʾ* as an interval after sunset instead. A timetable for
+a place is therefore one authority's *method* applied there.
+
+Pray Times compiles the methods of these authorities [praytimes-methods]:
+
+- the Muslim World League;
+- the Islamic Society of North America;
+- the Egyptian General Authority of Survey;
+- Umm al-Qura University in Makkah;
+- the University of Islamic Sciences in Karachi;
+- the Institute of Geophysics of the University of Tehran;
+- the Leva Research Institute in Qom (the Jafari method);
+- the Muslims of France;
+- the Spiritual Administration of Muslims of Russia;
+- the Islamic Religious Council of Singapore (MUIS).
 
 ## How it works
 
@@ -43,30 +49,38 @@ Each method gives:
 An angle is the depression of the Sun's centre below the geometric horizon,
 without refraction. Sunset and sunrise are `hc-astro`'s, the upper limb on
 the horizon with the centre 50′ below. *Ẓuhr* is solar noon, the Sun's
-transit. Pray Times notes that the Tehran method does not state its
-*ʿishāʾ* angle explicitly, and that Umm al-Qura's *fajr* was at 19° before
-Muḥarram 1430, December 2008 [praytimes-methods]; the earlier method keeps
-its own identifier, as an authority's revision is data
-(`docs/policy.md` §10).
+transit. Pray Times notes two things [praytimes-methods]:
 
-Where the Sun does not reach a method's angle — in summer at high
-latitudes, or where it does not set — the time does not exist by that
+- the Tehran method does not state its *ʿishāʾ* angle explicitly;
+- Umm al-Qura's *fajr* was at 19° before Muḥarram 1430, December 2008.
+
+The earlier Umm al-Qura method keeps its own identifier, as an authority's
+revision is data (`docs/policy.md` §10).
+
+Sometimes the Sun does not reach a method's angle: in summer at high
+latitudes, or where it does not set. Then the time does not exist by that
 method. The compilation read gives no method's own rule for those
-latitudes, the authorities' own texts were not read, and no such rule is
-carried, so the functions return `MissingSolarEvent::DawnDepression` for *fajr*,
-`MissingSolarEvent::Depression` for an evening angle, or
+latitudes, and the authorities' own texts were not read. No such rule is
+carried. So the functions return `MissingSolarEvent::DawnDepression` for
+*fajr*, `MissingSolarEvent::Depression` for an evening angle, or
 `MissingSolarEvent::Sunset`, and compute nothing in its place.
 
-**Worked example: Singapore, 1 January 2026, by the Singapore method.** At
-1°17′ N, 103°50′ E the Sun's centre rises through 20° below the horizon at
-21:43.0 UT on 31 December, 05:43.0 local time (UTC+8); MUIS prints Subuh at
-5:44. Sunset is at 19:09.7 local and MUIS's Maghrib 7:11; the Sun reaches
-18° below the horizon at 20:24.4, and Isyak is 8:25; the transit is at
-13:08.1, and Zohor 1:10 [muis-prayer-timetable-2026]. The published times
-are the computed ones rounded up, and up to a minute or so later. That is
-not a margin of caution alone: Syuruk, the sunrise that ends the time of
-Subuh, is also printed later than the computed sunrise, where caution
-would put it earlier. MUIS does not state how it rounds or adjusts.
+**Worked example: Singapore, 1 January 2026, by the Singapore method.**
+The place is 1°17′ N, 103°50′ E; local time is UTC+8. MUIS's printed times
+are from [muis-prayer-timetable-2026].
+
+| Time | Computed, local | MUIS prints |
+| --- | --- | --- |
+| *Fajr*: the Sun's centre rises through 20° below the horizon, at 21:43.0 UT on 31 December | 05:43.0 | Subuh 5:44 |
+| Transit | 13:08.1 | Zohor 1:10 |
+| Sunset | 19:09.7 | Maghrib 7:11 |
+| *ʿIshāʾ*: the Sun reaches 18° below the horizon | 20:24.4 | Isyak 8:25 |
+
+The published times are the computed ones rounded up, and up to a minute
+or so later. That is not a margin of caution alone. Syuruk, the sunrise
+that ends the time of Subuh, is also printed later than the computed
+sunrise, where caution would put it earlier. MUIS does not state how it
+rounds or adjusts.
 
 ## What is carried
 
@@ -78,16 +92,19 @@ would put it earlier. MUIS does not state how it rounds or adjusts.
   and a method, in Universal Time. `isha` takes whether the day is in
   Ramaḍān, which only Umm al-Qura's methods read; `hc-astro` has no
   calendar, so the caller says.
-- **Not carried.** The rules applications use at high latitudes — the
-  middle of the night, a seventh of the night, the angle's share of the
-  night — which Pray Times offers as general adjustments rather than as
-  any method's own. The Muslim World League's "Local Relative Estimation"
-  for latitudes 48.6° to 66.6°, which the International Astronomical
-  Center reports its Fiqh Council approved at a meeting in Mecca on
-  1 August 2009 [iac-high-latitudes]: that account is secondary, and the
-  League's own text was not read. The authorities' margins of caution and their rounding.
-  The choice between the Shafiʿi and Hanafi *ʿaṣr*, which is `asr_shafii`
-  and `asr_hanafi`, since it is separate from the method.
+- **Not carried:**
+  - The rules applications use at high latitudes: the middle of the
+    night, a seventh of the night, the angle's share of the night. Pray
+    Times offers them as general adjustments rather than as any method's
+    own.
+  - The Muslim World League's "Local Relative Estimation" for latitudes
+    48.6° to 66.6°. The International Astronomical Center reports that the
+    League's Fiqh Council approved it at a meeting in Mecca on 1 August
+    2009 [iac-high-latitudes]. That account is secondary, and the League's
+    own text was not read.
+  - The authorities' margins of caution and their rounding.
+  - The choice between the Shafiʿi and Hanafi *ʿaṣr*. It is separate from
+    the method, so it is `asr_shafii` and `asr_hanafi`.
 
 ## Accuracy
 

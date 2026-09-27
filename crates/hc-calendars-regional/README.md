@@ -1,19 +1,26 @@
 # hc-calendars-regional
 
-Regional, cyclic and era calendars for `hyper-calendar`: Japanese imperial
-eras, the Chinese and Korean regnal eras, the Maya calendars, the two Aztec
-ones, the Zapotec *yza*, the Mixtec year, the Balinese Pawukon, the Javanese *pasaran*, the Akan *Adaduanan*, the
-Burmese, Thai, Khmer and Lao lunar calendars, the sexagenary cycle and the
-Olympiads.
+Regional, cyclic and era calendars for `hyper-calendar`:
 
-What most of them have in common is that **the day has a name before it has a
-number**. A Maya day is *4 Ahau 8 Cumku*; a Balinese day is *Buda Kliwon
-Dungulan*, a position in two of ten concurrent week cycles and one of thirty
-*wuku*; a Japanese day
-belongs to an era a government proclaimed. Those are not counts of years
-from an epoch with months cut out of them, which is why they do not belong in
-`hc-calendars-solar` or `hc-calendars-lunar`. The Burmese, Thai, Khmer and
-Lao lunar calendars are such counts, and are here as regional calendars.
+- the Japanese imperial eras, and the Chinese and Korean regnal eras;
+- the Maya calendars, the two Aztec ones, the Zapotec *yza* and the Mixtec
+  year;
+- the Balinese Pawukon, the Javanese *pasaran* and the Akan *Adaduanan*;
+- the Burmese, Thai, Khmer and Lao lunar calendars;
+- the sexagenary cycle and the Olympiads.
+
+What most of them have in common is that **the day has a name before it has
+a number**:
+
+- A Maya day is *4 Ahau 8 Cumku*.
+- A Balinese day is *Buda Kliwon Dungulan*: a position in two of ten
+  concurrent week cycles, and one of thirty *wuku*.
+- A Japanese day belongs to an era a government proclaimed.
+
+Those are not counts of years from an epoch with months cut out of them.
+That is why they do not belong in `hc-calendars-solar` or
+`hc-calendars-lunar`. The Burmese, Thai, Khmer and Lao lunar calendars are
+such counts, and are here as regional calendars.
 
 | Identifier | What it is |
 | --- | --- |

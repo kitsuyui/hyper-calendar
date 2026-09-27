@@ -99,7 +99,7 @@ The article's "68 'Anka' … 1432 'Sal'" is the answer. The day before,
 
 - **Identifier** `odia-anka`, `OdiaAnkaCalendar::PURI`: the Anka of
   Dibyasingha Deb over the pūrṇimānta calendar of `hindu-lunar-purnimanta`,
-  read at the Central Station's sunrise with the Lahiri ayanamsa, as the
+  read at the Central Station's sunrise with the Lahiri ayanāṃśa, as the
   crate's other lunisolar calendars are. The day begins at sunrise and is
   named by the civil day on whose sunrise it begins, the pūrṇimānta
   calendar's own boundary, `DayBoundary::Sunrise(DayNaming::ByStart)`
