@@ -54,6 +54,7 @@ assert_eq!(
 | `moon_calendar` | phase names, 月齢, illuminated fraction, a month's four principal phases, 十五夜, 十三夜, and the National Astronomical Observatory's 伝統的七夕 |
 | `seasons` | astronomical, meteorological and East Asian seasons |
 | `zodiac` | 黄道十二宮: the tropical Western signs, the sidereal rāśi with the ayanamsa, the Indian solar months, and the Chinese 十二次; `zodiac::decans`, the 36 faces of 10°, each ruled by a planet in the Chaldean order from Mars at 0° of Aries, as al-Bīrūnī tabulates them |
+| `planetary_hours` | The twelve temporal hours of the daylight and twelve of the night, from sunrise, each ruled by a planet in the Chaldean order from the weekday's, as al-Bīrūnī states the rule and Lilly's table for London works it |
 | `lunisolar` | a minimal month/day derivation for 六曜 and the moon-viewing nights — see Known gaps |
 
 ## A day is not an instant

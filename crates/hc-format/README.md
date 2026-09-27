@@ -32,6 +32,11 @@ renders into its own buffer. `String`-returning conveniences sit behind the
   and A1 (`dcf77::summer_time`) and WWVB's summer-time bits
   (`wwvb::DstState::of_day`) can be read from a `hc_tz::TimeZone`'s rules
   instead of the caller. See `docs/systems/radio-time-codes.md`.
+* **`irig`** — a frame of the IRIG serial time codes A, B, D, E, G and H:
+  the BCD time of year, the year, the control bits and the straight binary
+  seconds, decoded with every marker and field checked and encoded, for
+  the coded expressions IRIG Standard 200-16 permits each format. See
+  `docs/systems/irig-time-codes.md`.
 * **`east_african_hours`** — the Ethiopian and Swahili hours, the civil
   clock read six hours on over a day half and a night half, as two named
   reckonings. See `docs/systems/hours-of-the-day.md`.

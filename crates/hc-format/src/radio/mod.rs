@@ -132,19 +132,21 @@ impl std::error::Error for FrameError {}
 /// The result of reading a frame.
 pub type FrameResult<T> = Result<T, FrameError>;
 
-/// A frame being written or read: up to 61 symbols.
+/// A frame being written or read: up to `N` symbols, 61 for a minute
+/// with a leap second, and 100 for the longest IRIG frame
+/// ([`crate::irig`]).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Frame<T> {
-    symbols: [T; 61],
+pub struct Frame<T, const N: usize = 61> {
+    pub(crate) symbols: [T; N],
     len: u8,
 }
 
-impl<T: Copy + Default> Frame<T> {
-    /// A frame of `len` default symbols.
-    fn filled(len: usize) -> Self {
+impl<T: Copy + Default, const N: usize> Frame<T, N> {
+    /// A frame of `len` default symbols, `len` at most `N`.
+    pub(crate) fn filled(len: usize) -> Self {
         Self {
-            symbols: [T::default(); 61],
-            len: len as u8,
+            symbols: [T::default(); N],
+            len: len.min(N) as u8,
         }
     }
 
@@ -166,7 +168,7 @@ impl<T: Copy + Default> Frame<T> {
         self.len == 0
     }
 
-    fn set(&mut self, second: usize, symbol: T) {
+    pub(crate) fn set(&mut self, second: usize, symbol: T) {
         self.symbols[second] = symbol;
     }
 }
@@ -181,7 +183,10 @@ fn check_length(length: usize) -> FrameResult<u8> {
 
 /// Read the bits at `positions`, most significant first, as a binary
 /// number.
-fn read_bits(bit: impl Fn(usize) -> FrameResult<bool>, positions: &[usize]) -> FrameResult<u32> {
+pub(crate) fn read_bits(
+    bit: impl Fn(usize) -> FrameResult<bool>,
+    positions: &[usize],
+) -> FrameResult<u32> {
     positions
         .iter()
         .try_fold(0, |value, &second| Ok(value << 1 | u32::from(bit(second)?)))
@@ -189,7 +194,10 @@ fn read_bits(bit: impl Fn(usize) -> FrameResult<bool>, positions: &[usize]) -> F
 
 /// Read a BCD number whose digits are groups of `positions`, the most
 /// significant digit first and each digit's bits most significant first.
-fn read_bcd(bit: &impl Fn(usize) -> FrameResult<bool>, digits: &[&[usize]]) -> FrameResult<u32> {
+pub(crate) fn read_bcd(
+    bit: &impl Fn(usize) -> FrameResult<bool>,
+    digits: &[&[usize]],
+) -> FrameResult<u32> {
     digits.iter().try_fold(0, |value, positions| {
         let digit = read_bits(bit, positions)?;
         if digit > 9 {
@@ -200,7 +208,7 @@ fn read_bcd(bit: &impl Fn(usize) -> FrameResult<bool>, digits: &[&[usize]]) -> F
 }
 
 /// Write `value` as BCD into `digits`, the inverse of [`read_bcd`].
-fn write_bcd(mut set: impl FnMut(usize, bool), digits: &[&[usize]], value: u32) {
+pub(crate) fn write_bcd(mut set: impl FnMut(usize, bool), digits: &[&[usize]], value: u32) {
     let mut rest = value;
     for positions in digits.iter().rev() {
         let digit = rest % 10;
@@ -222,7 +230,7 @@ fn odd_ones(
 }
 
 /// The year a two-digit year names in the century beginning `century`.
-fn year_in_century(century: i64, two_digits: u8) -> FrameResult<i64> {
+pub(crate) fn year_in_century(century: i64, two_digits: u8) -> FrameResult<i64> {
     if century.rem_euclid(100) != 0 {
         return Err(FrameError::Field("century"));
     }
@@ -230,7 +238,7 @@ fn year_in_century(century: i64, two_digits: u8) -> FrameResult<i64> {
 }
 
 /// The day a day of the year names.
-fn day_of_year(year: i64, day: u16) -> FrameResult<Rd> {
+pub(crate) fn day_of_year(year: i64, day: u16) -> FrameResult<Rd> {
     if !(1..=gregorian::days_in_year(year)).contains(&day) {
         return Err(FrameError::Field("day of year"));
     }
@@ -244,7 +252,7 @@ fn minute_reading(day: Rd, hour: u8, minute: u8) -> FrameResult<CivilDateTime> {
 }
 
 /// Whether a minute is the last of a month on the clock it is read on.
-fn is_last_minute_of_month(reading: CivilDateTime, hour: u8, minute: u8) -> bool {
+pub(crate) fn is_last_minute_of_month(reading: CivilDateTime, hour: u8, minute: u8) -> bool {
     let tomorrow = gregorian::from_fixed(Rd(reading.day.0 + 1));
     (reading.time.hour(), reading.time.minute()) == (hour, minute)
         && matches!(tomorrow, Ok((_, _, 1)))
@@ -267,12 +275,12 @@ fn unix_of(reading: CivilDateTime, offset_hours: i64) -> FrameResult<UnixTime> {
 }
 
 /// The year, month and day of a reading, for writing a frame.
-fn ymd(reading: CivilDateTime) -> FrameResult<(i64, u8, u8)> {
+pub(crate) fn ymd(reading: CivilDateTime) -> FrameResult<(i64, u8, u8)> {
     gregorian::from_fixed(reading.day).map_err(|_| FrameError::Field("date"))
 }
 
 /// The two digits of a year, and its century.
-const fn split_year(year: i64) -> (i64, u8) {
+pub(crate) const fn split_year(year: i64) -> (i64, u8) {
     (year - year.rem_euclid(100), year.rem_euclid(100) as u8)
 }
 

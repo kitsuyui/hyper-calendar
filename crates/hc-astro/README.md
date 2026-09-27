@@ -14,6 +14,8 @@ calendar asks of the sky:
   sundial read there?
 * How far has the Earth turned? This is the Earth Rotation Angle and
   sidereal time, and UT1 with its smoothed variants UT2, UT1R and UT1S.
+* What did an almanac before 1925 mean by G.M.T.? Greenwich Mean
+  Astronomical Time, the day counted from noon (`gmat`).
 * When would light that reached the Earth have reached the Sun? That is
   the Heliocentric Julian Date, as HJD_TT and HJD_UTC.
 
@@ -132,6 +134,7 @@ of the same measurement.
 | Nutation | **0.5″** in Δψ, **0.1″** in Δε | Meeus example 22.a |
 | Earth Rotation Angle, IAU 2006 GMST | **10⁻⁹ degree** of the published expressions | ERFA's `eraEra00` and `eraGmst06` test values |
 | IAU 1982 GMST (Meeus 12.4) | **0.7 µs** of time of ERFA's `eraGmst82` | ERFA's test value at 2006-01-01 |
+| GMAT to and from GMT | exact | the *Nautical Almanac* for 1924: its notice of the change of 1925, and its lunar eclipses of 20 February and 14 August 1924 against NASA's catalogue |
 | UT2, UT1R, UT1S corrections to the caller's UT1 | exact as conventions; the tidal sum to **10⁻¹² s** of the IERS model | the USNO formula by hand; the test case of the IERS routine `RG_ZONT2.F` |
 | Equation of time, local apparent (sundial) time | **0.02 s** today, **0.6 s** in 587 BCE | JPL Horizons' apparent hour angle of the Sun at Greenwich on four days, 587 BCE to 2024; Meeus example 28.a, within 0.5 s |
 | Temporal hours | the sunrise and sunset's, **under a minute** over twelve | NAOJ 暦計算室, Tokyo, 2024-01-01 |

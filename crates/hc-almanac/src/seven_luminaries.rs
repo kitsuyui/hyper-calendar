@@ -4,8 +4,8 @@
 //! not reimplement it. What a week cycle alone cannot tell you is *why*
 //! Wednesday is 水曜日: the East Asian weekday names are not ordinals, they
 //! are the Sun, the Moon and the five classical planets in the order of the
-//! planetary hours. So this module is a table over the existing `Weekday`,
-//! not a second week.
+//! planetary hours, which are `hc_seasons::planetary_hours`. So this module
+//! is a table over the existing `Weekday`, not a second week.
 //!
 //! # Where the names come from
 //!
