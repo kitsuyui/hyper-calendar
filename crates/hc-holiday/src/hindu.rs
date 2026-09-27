@@ -143,6 +143,16 @@ pub const NARAKA_CHATURDASHI: Rule = tithi(7, 29, Prevalence::Dawn, WhenTwice::E
 /// Guru Nānak Jayantī: the full moon of Kārtika, at midday.
 pub const GURU_NANAK_JAYANTI: Rule = tithi(8, 15, Prevalence::Midday, WhenTwice::Earlier);
 
+/// The Parkash of Guru Gobind Singh as the SGPC keeps it: Pauṣa śukla 7,
+/// Poh sudi 7, the day that carries it at sunrise.
+///
+/// The SGPC gives the Guru's birth as "22nd December 1666, (Poh Sudi
+/// Saptmi)" (`sgpc-gurpurbs`). Which part of the day the tithi must hold
+/// is not stated: sunrise is taken here, and gives the days the SGPC kept,
+/// 9 January and 29 December 2022 and 17 January 2024
+/// (`tribune-parkash-purb-2024`).
+pub const GURU_GOBIND_SINGH_PARKASH: Rule = tithi(10, 7, Prevalence::Sunrise, WhenTwice::Earlier);
+
 /// Mahā Śivarātri: Māgha kṛṣṇa 14 at midnight.
 pub const MAHA_SHIVARATRI: Rule = tithi(11, 29, Prevalence::Midnight, WhenTwice::Earlier);
 

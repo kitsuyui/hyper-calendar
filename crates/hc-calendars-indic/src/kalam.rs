@@ -119,8 +119,9 @@ pub struct Span {
 /// The eighths of the day into which each period falls.
 pub const PARTS_OF_THE_DAY: u8 = 8;
 
-/// The part `part`, 1 to 8, of a day from `start` to `end`.
-fn eighth(start: f64, end: f64, part: u8) -> Span {
+/// The part `part`, 1 to 8, of a day from `start` to `end`: the division
+/// [`crate::choghadiya`] shares.
+pub(crate) fn eighth(start: f64, end: f64, part: u8) -> Span {
     let length = (end - start) / f64::from(PARTS_OF_THE_DAY);
     let first = start + f64::from(part - 1) * length;
     Span {

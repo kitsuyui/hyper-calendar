@@ -85,7 +85,9 @@ The same for the Nanakshahi: 14 April 2026 is 14 March + 31 days, so
     sidereal months and is `hindu-solar-bengali` in `hc-calendars-indic`.
   - *The SGPC's calendar from 2010*, whose months begin with the Bikrami
     saṅkrāntis: that is `hindu-solar-vikrami` and, for the lunar
-    observances, `hindu-lunar`, not a variant of this one.
+    observances, `hindu-lunar`, not a variant of this one. The
+    observances whose Bikrami rule was read are `hc-holiday`'s
+    `sikh-sgpc`.
   - *The 1999 calendar* the SGPC released for the tercentenary of the
     Khalsa, "close to" the 2003 one: no table of it was read.
 

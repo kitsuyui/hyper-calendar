@@ -36,9 +36,17 @@
 //! * [`panchanga`] — the two other limbs of the almanac: the yoga, from
 //!   the sum of the Sun's and Moon's sidereal longitudes, and the karaṇa,
 //!   the half-tithi.
+//! * [`panchak`] — the Moon's passage through the last five nakṣatras,
+//!   and the kind a window takes from the weekday it begins on.
 //! * [`kalam`] — Rāhu kālam, Yamaganda and Gulika kālam, the eighths of the
 //!   day a pañcāṅga marks by the weekday: from sunrise to sunset
 //!   (`kalam::by_sunrise`) or from 06:00 to 18:00 (`kalam::by_fixed_day`).
+//! * [`kumbh`] and [`pushkaram`] — the festivals set by Jupiter's sign:
+//!   the conditions of the Kumbh Mela at its four sites, and the river of
+//!   each sign with the twelve days after Jupiter enters it. Jupiter's
+//!   position is the caller's.
+//! * [`choghadiya`] — the eighths of the daylight and of the night, each
+//!   named for one of seven kinds by the weekday.
 //! * [`hindu_old`] — the mean-motion solar and lunisolar calendars of the
 //!   *Ārya Siddhānta*, counted in the Kali Yuga: the arithmetic the true
 //!   calendars replaced. `hindu-old-solar`, `hindu-old-lunar`.
@@ -166,6 +174,7 @@ hc_core::check_days_in_parallel!();
 mod amanta;
 pub mod barhaspatya;
 pub mod bikram_sambat;
+pub mod choghadiya;
 pub mod fasli;
 pub mod hindu_lunar;
 pub mod hindu_lunar_siddhanta;
@@ -175,12 +184,15 @@ pub mod hindu_solar;
 pub mod hindu_solar_siddhanta;
 pub mod kalam;
 mod kartikadi;
+pub mod kumbh;
 pub mod lunar_era;
 pub mod nakshatra;
 pub mod nepal_sambat;
 pub mod odia_anka;
+pub mod panchak;
 pub mod panchanga;
 pub mod places;
+pub mod pushkaram;
 pub mod samvatsara;
 pub mod surya_siddhanta;
 pub mod tithi;
