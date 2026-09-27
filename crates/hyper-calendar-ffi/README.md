@@ -529,8 +529,9 @@ longitude, buffer, capacity, written)` its sunrise on a day at a place, a
 place beyond 65° of latitude being `HC_ERROR_OUT_OF_RANGE`.
 `hc_crescent_visible(criterion, fixed, latitude, longitude, elevation,
 buffer, capacity, written)` writes whether the young crescent should have
-been visible on the evening that begins the day by `shaukat`, `yallop` or
-`saudi-rule`, with the moment the evening is judged at and what the
+been visible on the evening that begins the day by `shaukat`, `yallop`,
+`saudi-rule`, `odeh`, `istanbul-2016`, `khgt`, `mabims-2021-topocentric` or
+`mabims-2021-geocentric-elongation`, with the moment the evening is judged at and what the
 criteria read there. The columns are the WebAssembly module's README's.
 
 `hc_hebrew_sabbatical_cycle_year(hebrew_year, out_place)` writes a Hebrew

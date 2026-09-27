@@ -5,7 +5,8 @@
 //! begins a day, from a place, by a named criterion — one of
 //! [`NamedCriterion::ALL`] in `hc-calendars-lunar`'s
 //! [`islamic_observational`](hc_calendars_lunar::islamic_observational),
-//! Shaukat's, Yallop's or the Saudi rule — with the quantities the
+//! Shaukat's, Yallop's, Odeh's, the Saudi rule, the Istanbul 2016 and
+//! KHGT parameters or a reading of Neo-MABIMS — with the quantities the
 //! criteria read at the moment the evening is judged. It is a forecast of
 //! an observation in a clear sky, not a record of one. The day answers for
 //! the sky layer's era, [`crate::astro_lines`].
@@ -45,9 +46,10 @@ pub fn criterion(given: &str) -> Answer<NamedCriterion> {
 /// in degrees, and the crescent's topocentric width in minutes of arc.
 ///
 /// The moment is the Sun at 4.5° below the horizon for Shaukat's
-/// criterion, Bruin's best time for Yallop's and sunset for the Saudi
-/// rule. Where there is none — the Sun does not set or twilight does not
-/// end, or for Yallop's the Moon sets before the Sun — no observation is
+/// criterion, Bruin's best time for Yallop's and Odeh's, and sunset for
+/// the Saudi rule and the criteria of thresholds at sunset. Where there is
+/// none — the Sun does not set or twilight does not end, or at Bruin's best
+/// time the Moon sets before the Sun — no observation is
 /// possible: the first cell is 0 and the other six are empty.
 ///
 /// # Errors

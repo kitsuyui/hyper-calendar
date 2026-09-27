@@ -24,7 +24,9 @@
 //!   [`riseset::Location`].
 //! * [`horizon`] — the named horizons a rising or a setting is measured
 //!   against: the default, the USNO's and *Calendrical Calculations*'.
-//! * [`solar_time`] — local mean and local apparent (sundial) time.
+//! * [`solar_time`] — local mean and local apparent (sundial) time, the
+//!   unequal hours, and religious times of day, the Islamic prayer times by
+//!   named method among them.
 //! * [`hjd`] — the Heliocentric Julian Date, HJD_TT and HJD_UTC.
 //!
 //! # What it is not

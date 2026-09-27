@@ -398,16 +398,16 @@ one job a layer.
 | --- | --- | --- | ---: | ---: |
 | `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, TAI − UTC and leap seconds | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,652 | 35 KiB |
 | `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, and TT(BIPM) from a caller's series | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation` and `tt_bipm`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` | 113,322 | 111 KiB |
-| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_asian_day` | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 872,905 | 852 KiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on` | `hc-holiday` and everything it dates by | 1,191,896 | 1.14 MiB |
+| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_asian_day` | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 900,445 | 879 KiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on` | `hc-holiday` and everything it dates by | 1,249,711 | 1.19 MiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day` | `hc-seasons`, `hc-astro` | 90,029 | 88 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 184,121 | 180 KiB |
-| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zones`, `hc_zone_location`: the day by a zone's wall clock, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 92,831 | 91 KiB |
-| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc` | `hc-astro`, `hc-seasons` | 115,479 | 113 KiB |
+| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zones`, `hc_zone_location`: the day by a zone's wall clock, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 94,297 | 92 KiB |
+| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc` | `hc-astro`, `hc-seasons` | 115,605 | 113 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 64,097 | 63 KiB |
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 96,097 | 94 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 52,505 | 51 KiB |
-| `full` | all of the above | everything | 2,396,402 | 2.29 MiB |
+| `full` | all of the above | everything | 2,482,812 | 2.37 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -1109,7 +1109,7 @@ for `hc_describe_day`.
 
 ### What the calls cost
 
-A description of a day is one conversion in each of the 194 calendars,
+A description of a day is one conversion in each of the 197 calendars,
 and a few dozen of them search the sky to convert: the Hindu lunar
 calendar and the seven built on it for conjunctions and saṅkrāntis at
 sunrise, the observational Hebrew and Hijri calendars for crescents
@@ -1363,15 +1363,20 @@ such a day begins at sunset — from a place, by a named criterion of
 `hc-calendars-lunar`: `shaukat`, the arc of light and the altitude at a
 solar depression of 4.5°, as the observational calendars `islamic-rgsa`
 and `hebrew-observational` judge; `yallop`, B. D. Yallop's *q*-test at
-Bruin's best time; or `saudi-rule`, the Moon past conjunction at sunset
-and setting after the Sun; in any case, and anything else is
+Bruin's best time; `saudi-rule`, the Moon past conjunction at sunset
+and setting after the Sun; `odeh`, M. Sh. Odeh's *V* at Bruin's best time;
+`istanbul-2016` and `khgt`, an elongation of 8° and an altitude of 5° at
+sunset, the altitude topocentric for the first and geocentric for the
+second; or `mabims-2021-topocentric` and
+`mabims-2021-geocentric-elongation`, the two readings of Neo-MABIMS's 3°
+and 6.4° at sunset; in any case, and anything else is
 `HC_ERR_UNKNOWN`. It is a forecast of an observation, not a record of
 one. It writes one line:
 
 | # | Column | Holds |
 | --- | --- | --- |
 | 1 | visible | `1` if the crescent passes the criterion; else `0` |
-| 2 | evaluated at | the moment the criterion judges the evening at, as POSIX seconds, rounded down: the Sun at 4.5° down for `shaukat`, Bruin's best time for `yallop`, sunset for `saudi-rule`; empty where there is none — the Sun does not set, twilight does not end, or for `yallop` the Moon sets first — and then column 1 is `0` |
+| 2 | evaluated at | the moment the criterion judges the evening at, as POSIX seconds, rounded down: the Sun at 4.5° down for `shaukat`, Bruin's best time for `yallop` and `odeh`, sunset for the others; empty where there is none — the Sun does not set, twilight does not end, or at Bruin's best time the Moon sets first — and then column 1 is `0` |
 | 3 | elongation | the Moon's longitude less the Sun's at that moment, 0 to 360 degrees, as column 6 of `hc_sky_at`: 0 at new moon, so just under 360 on an evening before it; else empty |
 | 4 | arc of light | the Moon's true angular separation from the Sun, 0 to 180 degrees; else empty |
 | 5 | altitude | the Moon's geocentric altitude, in degrees; else empty |

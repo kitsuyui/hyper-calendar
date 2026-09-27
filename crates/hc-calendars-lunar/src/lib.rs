@@ -170,6 +170,8 @@ pub mod hebrew;
 pub mod hebrew_observational;
 pub mod islamic_astronomical;
 pub mod islamic_civil;
+pub mod islamic_fcna;
+pub mod islamic_global;
 pub mod islamic_observational;
 pub mod islamic_umalqura;
 pub mod japanese_historical;
@@ -192,9 +194,12 @@ pub use hebrew::{HebrewCalendar, HebrewDate};
 pub use hebrew_observational::ObservationalHebrewCalendar;
 pub use islamic_astronomical::IslamicAstronomicalCalendar;
 pub use islamic_civil::IslamicCivilCalendar;
+pub use islamic_fcna::IslamicFcnaCalendar;
+pub use islamic_global::{GlobalRule, IslamicGlobalCalendar};
 pub use islamic_observational::{
-    ArcOfLightCriterion, IslamicObservationalCalendar, ObservationSite, QTestCriterion,
-    VisibilityCriterion, YallopVisibility,
+    ArcOfLightCriterion, Frame, IslamicObservationalCalendar, NewMonthRule, ObservationSite,
+    OdehZone, QTestCriterion, SunsetCriterion, VTestCriterion, VisibilityCriterion,
+    YallopVisibility,
 };
 pub use islamic_umalqura::IslamicUmmAlQuraCalendar;
 pub use japanese_historical::horyaku::HoryakuCalendar;
@@ -287,6 +292,7 @@ mod registration {
             crate::IslamicAstronomicalCalendar,
         )));
         registry.insert(Box::new(DynAdapter::new(crate::IslamicUmmAlQuraCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::IslamicFcnaCalendar)));
         registry.insert(Box::new(DynAdapter::new(
             crate::IslamicObservationalCalendar::MECCA,
         )));
@@ -295,6 +301,12 @@ mod registration {
         )));
         registry.insert(Box::new(DynAdapter::new(
             crate::IslamicObservationalCalendar::SAUDI_RULE_RD,
+        )));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::IslamicGlobalCalendar::KHGT,
+        )));
+        registry.insert(Box::new(DynAdapter::new(
+            crate::IslamicGlobalCalendar::ISTANBUL_2016,
         )));
     }
 }
@@ -310,7 +322,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 30);
+        assert_eq!(registry.len(), 33);
     }
 
     #[test]

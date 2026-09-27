@@ -1076,7 +1076,15 @@ export interface SuryaSiddhantaSky {
 }
 
 /** A crescent-visibility criterion `hc_crescent_visible` names. */
-export type CrescentCriterion = "shaukat" | "yallop" | "saudi-rule";
+export type CrescentCriterion =
+  | "shaukat"
+  | "yallop"
+  | "saudi-rule"
+  | "odeh"
+  | "istanbul-2016"
+  | "khgt"
+  | "mabims-2021-topocentric"
+  | "mabims-2021-geocentric-elongation";
 
 /** The one line of `hc_crescent_visible`. */
 export interface CrescentVisibility {

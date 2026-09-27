@@ -156,7 +156,9 @@ In `calendar-code2` [reingold2018code]:
 
 Each angle is an authority's convention, and other communities use other
 ones; the book is the source of all four, and the authorities' own texts
-were not read.
+were not read. The Islamic prayer times by named method, *fajr*, *maghrib*,
+*ʿishāʾ* and the middle of the night, are in
+[prayer-times.md](prayer-times.md).
 
 ### Jewish times in temporal hours
 

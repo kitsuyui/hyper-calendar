@@ -61,6 +61,28 @@
 //! says where the published code of *Calendrical Calculations* computes
 //! the width differently.
 //!
+//! [`VisibilityCriterion::ODEH`] is M. Sh. Odeh's criterion (*Experimental
+//! Astronomy* 18, 2004): at Bruin's best time, the airless topocentric arc
+//! of vision ([`topocentric_arc_of_vision`]) less a cubic in the
+//! topocentric width of the crescent
+//! ([`topocentric_crescent_width_arcminutes`]) is `V` ([`odeh_v`]), and the
+//! crescent counts as visible from `V ≥ 2`, the lower limit of his zone B;
+//! [`OdehZone`] carries his four zones. The equation reproduces his Table V
+//! to the tenth of a degree it prints; his 737 observations were not
+//! extracted, so no dated sighting checks it.
+//!
+//! [`SunsetCriterion`] is the shape of the thresholds judged at sunset:
+//! an elongation and an altitude, each geocentric or topocentric
+//! ([`Frame`]). [`VisibilityCriterion::ISTANBUL_2016`] and
+//! [`VisibilityCriterion::KHGT`] are the Istanbul 2016 parameters as Diyanet
+//! and Muhammadiyah compute them, which [`crate::islamic_global`] applies
+//! over the whole Earth; [`VisibilityCriterion::MABIMS_TOPOCENTRIC`] and
+//! [`VisibilityCriterion::MABIMS_GEOCENTRIC_ELONGATION`] are the two
+//! readings of the Neo-MABIMS criterion of 2021, whose text does not say
+//! which frame is meant. No calendar is registered under Neo-MABIMS: it is
+//! applied at no named place, and the member states fix their months at a
+//! sighting session. `docs/systems/unified-hijri.md` has the sources.
+//!
 //! # The place
 //!
 //! [`MECCA`] for the registered `islamic-rgsa`; [`ObservationSite`] takes
@@ -101,7 +123,9 @@
 //! well beyond that, but a two-century window is as far as it is honest to
 //! carry a prediction of a human decision.
 
-use hc_astro::riseset::{lunar_altitude, solar_altitude, sunrise_altitude_degrees};
+use hc_astro::riseset::{
+    lunar_altitude, solar_altitude, sunrise_altitude_degrees, topocentric_lunar_altitude,
+};
 use hc_astro::{Location, MEAN_SYNODIC_MONTH, Twilight, dusk, moonset, sunset};
 use hc_calendar::fixed::Moment;
 use hc_calendar::{
@@ -303,6 +327,145 @@ impl YallopVisibility {
     }
 }
 
+/// Whether a quantity is measured from the centre of the Earth or from the
+/// observer on its surface.
+///
+/// The difference is the Moon's parallax, about 0.95° at the horizon: the
+/// topocentric Moon stands lower than the geocentric one by that much, and
+/// its elongation from the Sun is smaller by about as much. Criteria that
+/// state a threshold without saying which is meant are ambiguous by that
+/// amount, which is why this is a field and not an assumption.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Frame {
+    /// From the centre of the Earth.
+    Geocentric,
+    /// From the observer, without refraction.
+    Topocentric,
+}
+
+/// Thresholds on the elongation and the altitude of the Moon, judged at
+/// sunset — the shape of the Istanbul 2016 and Neo-MABIMS criteria.
+///
+/// The elongation is the arc of light, the true angular distance of the
+/// Moon from the Sun ([`arc_of_light`] or [`topocentric_arc_of_light`]);
+/// the altitude is that of the Moon's centre without refraction
+/// ([`lunar_altitude`] or [`topocentric_lunar_altitude`]). Both thresholds
+/// are "at least": a value equal to one passes.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SunsetCriterion {
+    /// The least elongation, in degrees.
+    pub minimum_elongation_degrees: f64,
+    /// Where the elongation is measured from.
+    pub elongation: Frame,
+    /// The least altitude of the Moon's centre, in degrees.
+    pub minimum_altitude_degrees: f64,
+    /// Where the altitude is measured from.
+    pub altitude: Frame,
+}
+
+impl SunsetCriterion {
+    /// Whether the thresholds hold at `moment`, seen from `location`.
+    #[must_use]
+    pub fn holds_at(&self, moment: Moment, location: Location) -> bool {
+        let elongation = match self.elongation {
+            Frame::Geocentric => arc_of_light(moment),
+            Frame::Topocentric => topocentric_arc_of_light(moment, location),
+        };
+        let altitude = match self.altitude {
+            Frame::Geocentric => lunar_altitude(moment, location),
+            Frame::Topocentric => topocentric_lunar_altitude(moment, location),
+        };
+        elongation >= self.minimum_elongation_degrees && altitude >= self.minimum_altitude_degrees
+    }
+}
+
+/// A test on the airless topocentric arc of vision against a cubic in the
+/// topocentric width of the crescent, judged at Bruin's best time — the
+/// shape of Odeh's criterion.
+///
+/// The test value is `V = ARCV′ − f(W′)`, where ARCV′ is
+/// [`topocentric_arc_of_vision`], W′ is
+/// [`topocentric_crescent_width_arcminutes`] and `f` is the polynomial
+/// whose coefficients are carried here, constant term first.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct VTestCriterion {
+    /// The coefficients of `f(W′)`, the arc of vision in degrees at which
+    /// `V = 0`, for W′ in minutes of arc; constant term first.
+    pub coefficients: [f64; 4],
+    /// The least value of `V` that counts as visible.
+    pub minimum_v: f64,
+}
+
+impl VTestCriterion {
+    /// Odeh's criterion (*Experimental Astronomy* 18, 2004, equation 2),
+    /// with the crescent counted as visible from the lower limit of his
+    /// zone B, `V ≥ 2`: "visible by optical aid, and it could be seen by
+    /// naked eyes".
+    pub const ODEH: Self = Self {
+        coefficients: [7.1651, -6.3226, 0.7319, -0.1018],
+        minimum_v: OdehZone::LOWER_LIMITS[1],
+    };
+
+    /// The test value `V` for an arc of vision in degrees and a crescent
+    /// width in minutes of arc.
+    #[must_use]
+    pub fn v(&self, arc_of_vision_degrees: f64, width_arcminutes: f64) -> f64 {
+        let [c0, c1, c2, c3] = self.coefficients;
+        let w = width_arcminutes;
+        arc_of_vision_degrees - (c0 + w * (c1 + w * (c2 + w * c3)))
+    }
+}
+
+/// Odeh's four visibility zones, A to D, by the range `V` falls in
+/// (*Experimental Astronomy* 18, 2004, §5).
+///
+/// The set is Odeh's and fixed by his paper, so it is an `enum`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum OdehZone {
+    /// (A) `V ≥ 5.65`: visible by naked eyes.
+    NakedEye,
+    /// (B) `2 ≤ V < 5.65`: visible by optical aid, and could be seen by
+    /// naked eyes.
+    OpticalAidPerhapsNakedEye,
+    /// (C) `−0.96 ≤ V < 2`: visible by optical aid only.
+    OpticalAidOnly,
+    /// (D) `V < −0.96`: not visible even by optical aid.
+    NotVisible,
+}
+
+impl OdehZone {
+    /// The inclusive lower limits of zones A to C; D is everything below
+    /// the last.
+    pub const LOWER_LIMITS: [f64; 3] = [5.65, 2.0, -0.96];
+
+    /// The zone a value of `V` falls in.
+    #[must_use]
+    pub fn from_v(v: f64) -> Self {
+        const ORDER: [OdehZone; 3] = [
+            OdehZone::NakedEye,
+            OdehZone::OpticalAidPerhapsNakedEye,
+            OdehZone::OpticalAidOnly,
+        ];
+        for (limit, zone) in Self::LOWER_LIMITS.iter().zip(ORDER) {
+            if v >= *limit {
+                return zone;
+            }
+        }
+        Self::NotVisible
+    }
+
+    /// Odeh's letter for the zone, `'A'` to `'D'`.
+    #[must_use]
+    pub const fn letter(self) -> char {
+        match self {
+            Self::NakedEye => 'A',
+            Self::OpticalAidPerhapsNakedEye => 'B',
+            Self::OpticalAidOnly => 'C',
+            Self::NotVisible => 'D',
+        }
+    }
+}
+
 /// The test a young crescent must pass to count as visible.
 ///
 /// Each variant is a *shape* of criterion — what is measured and when —
@@ -322,6 +485,10 @@ pub enum VisibilityCriterion {
     /// *Calendrical Calculations* computes it (`saudi-criterion`), which
     /// [`VisibilityCriterion::SAUDI_RULE`] names.
     ConjunctionAndMoonset,
+    /// Elongation and altitude at sunset.
+    AtSunset(SunsetCriterion),
+    /// Odeh's *V* at Bruin's best time.
+    VTest(VTestCriterion),
 }
 
 impl VisibilityCriterion {
@@ -357,6 +524,61 @@ impl VisibilityCriterion {
     /// measurable difference. Where the Moon does not set that day the
     /// code counts the lag as a day (`moonlag`), and so does this.
     pub const SAUDI_RULE: Self = Self::ConjunctionAndMoonset;
+
+    /// The criterion of the Istanbul congress of 2016 as Diyanet applies
+    /// it: at sunset, a geocentric elongation of at least 8° and a
+    /// topocentric altitude of at least 5°. Diyanet's own statement gives
+    /// the two angles and no frame (`diyanet-ramazan-1447`); the frames are
+    /// T. Djamaluddin's account of the Turkish criterion
+    /// (`djamaluddin-khgt-turki-2025`), and the topocentric altitude is
+    /// the reading that reproduces 172 of Diyanet's 174 published month
+    /// starts of 1443–1457 AH (`docs/systems/unified-hijri.md`).
+    pub const ISTANBUL_2016: Self = Self::AtSunset(SunsetCriterion {
+        minimum_elongation_degrees: 8.0,
+        elongation: Frame::Geocentric,
+        minimum_altitude_degrees: 5.0,
+        altitude: Frame::Topocentric,
+    });
+
+    /// The parameters of Muhammadiyah's Unified Global Hijri Calendar: at
+    /// sunset, a geocentric elongation of at least 8° and a geocentric
+    /// altitude of at least 5°, "elongasi dan ketinggian hilal geosentris"
+    /// (`muhammadiyah-khgt-site`; `muhammadiyah-ughc-2025`, §C.3 and note
+    /// 31).
+    pub const KHGT: Self = Self::AtSunset(SunsetCriterion {
+        minimum_elongation_degrees: 8.0,
+        elongation: Frame::Geocentric,
+        minimum_altitude_degrees: 5.0,
+        altitude: Frame::Geocentric,
+    });
+
+    /// The Neo-MABIMS criterion of 2021, altitude at least 3° and
+    /// elongation at least 6.4°, with both quantities topocentric. The
+    /// ratified text was not read; Mufid and Djamaluddin say the formula
+    /// does not fix topocentric against geocentric quantities
+    /// (`mufid-djamaluddin-2023`), so this is one of the two readings
+    /// carried, each under its own name.
+    pub const MABIMS_TOPOCENTRIC: Self = Self::AtSunset(SunsetCriterion {
+        minimum_elongation_degrees: 6.4,
+        elongation: Frame::Topocentric,
+        minimum_altitude_degrees: 3.0,
+        altitude: Frame::Topocentric,
+    });
+
+    /// The Neo-MABIMS criterion with a geocentric elongation and a
+    /// topocentric altitude, the reading Djamaluddin applies in his
+    /// analysis of 1447 AH, "dengan modifikasi elongasi geosentrik"
+    /// (`djamaluddin-kalender-1447`).
+    pub const MABIMS_GEOCENTRIC_ELONGATION: Self = Self::AtSunset(SunsetCriterion {
+        minimum_elongation_degrees: 6.4,
+        elongation: Frame::Geocentric,
+        minimum_altitude_degrees: 3.0,
+        altitude: Frame::Topocentric,
+    });
+
+    /// M. Sh. Odeh's criterion, judged at Bruin's best time, visible from
+    /// the lower limit of zone B: [`VTestCriterion::ODEH`].
+    pub const ODEH: Self = Self::VTest(VTestCriterion::ODEH);
 }
 
 /// A crescent-visibility criterion under a name: what an [`ObservationSite`]
@@ -419,6 +641,54 @@ hc_core::catalogue! {
             source: "E. M. Reingold and N. Dershowitz, calendar-code2, calendar.l, \
                      saudi-criterion; R. H. van Gent, The Umm al-Qura Calendar of Saudi \
                      Arabia",
+        };
+
+        /// [`VisibilityCriterion::ODEH`].
+        pub const ODEH = Self {
+            id: "odeh",
+            english_name: "Odeh's V at Bruin's best time, visible from zone B's lower limit",
+            criterion: VisibilityCriterion::ODEH,
+            source: "M. Sh. Odeh, New Criterion for Lunar Crescent Visibility, Experimental \
+                     Astronomy 18 (2004) 39-64, equations 1 and 2 and section 5",
+        };
+
+        /// [`VisibilityCriterion::ISTANBUL_2016`].
+        pub const ISTANBUL_2016 = Self {
+            id: "istanbul-2016",
+            english_name: "Istanbul 2016: geocentric elongation 8° and topocentric altitude 5° at sunset",
+            criterion: VisibilityCriterion::ISTANBUL_2016,
+            source: "Diyanet Isleri Baskanligi Din Isleri Yuksek Kurulu, 1447 (2026) Yili Ramazan \
+                     Ayi Baslangicina Iliskin Aciklama, 18 February 2026; the frames from T. \
+                     Djamaluddin, KHGT Tidak Cermat Merujuk Kriteria Turki, 27 June 2025",
+        };
+
+        /// [`VisibilityCriterion::KHGT`].
+        pub const KHGT = Self {
+            id: "khgt",
+            english_name: "Muhammadiyah KHGT: geocentric elongation 8° and geocentric altitude 5° at sunset",
+            criterion: VisibilityCriterion::KHGT,
+            source: "Muhammadiyah, The Unified Global Hijri Calendar (2025), section C.3 and note \
+                     31; KHGT - Kalender Hijriah Global Tunggal, khgt.muhammadiyah.or.id, \
+                     Metodologi",
+        };
+
+        /// [`VisibilityCriterion::MABIMS_TOPOCENTRIC`].
+        pub const MABIMS_TOPOCENTRIC = Self {
+            id: "mabims-2021-topocentric",
+            english_name: "Neo-MABIMS 2021, altitude 3° and elongation 6.4° at sunset, both topocentric",
+            criterion: VisibilityCriterion::MABIMS_TOPOCENTRIC,
+            source: "A. Mufid and T. Djamaluddin, HTS Teologiese Studies 79(1) (2023) a8774; the \
+                     frames are one reading of a formula that does not fix them",
+        };
+
+        /// [`VisibilityCriterion::MABIMS_GEOCENTRIC_ELONGATION`].
+        pub const MABIMS_GEOCENTRIC_ELONGATION = Self {
+            id: "mabims-2021-geocentric-elongation",
+            english_name: "Neo-MABIMS 2021, topocentric altitude 3° and geocentric elongation 6.4° at sunset",
+            criterion: VisibilityCriterion::MABIMS_GEOCENTRIC_ELONGATION,
+            source: "A. Mufid and T. Djamaluddin, HTS Teologiese Studies 79(1) (2023) a8774; the \
+                     geocentric elongation from T. Djamaluddin, Analisis Astronomis Kalender 1447 \
+                     H, 23 June 2025",
         };
     }
 }
@@ -485,6 +755,60 @@ pub fn yallop_q(moment: Moment, location: Location) -> f64 {
     )
 }
 
+/// The arc of light seen from the observer, without refraction: the true
+/// angular distance between the Sun and the topocentric Moon, in degrees.
+///
+/// Parallax lowers the Moon in altitude and leaves its azimuth, so the
+/// difference in azimuth is recovered from the geocentric arc of light and
+/// the two geocentric altitudes, and the arc recomputed with the
+/// topocentric altitude of the Moon ([`topocentric_lunar_altitude`]). The
+/// Sun's own parallax, under 9″, is left out.
+#[must_use]
+pub fn topocentric_arc_of_light(moment: Moment, location: Location) -> f64 {
+    let sun = solar_altitude(moment, location);
+    let moon = lunar_altitude(moment, location);
+    let topocentric = topocentric_lunar_altitude(moment, location);
+    let cos_azimuth = ((cos_deg(arc_of_light(moment)) - sin_deg(sun) * sin_deg(moon))
+        / (cos_deg(sun) * cos_deg(moon)))
+    .clamp(-1.0, 1.0);
+    let cosine =
+        sin_deg(sun) * sin_deg(topocentric) + cos_deg(sun) * cos_deg(topocentric) * cos_azimuth;
+    acos(cosine.clamp(-1.0, 1.0)) * RAD_TO_DEG
+}
+
+/// The airless topocentric arc of vision: the topocentric altitude of the
+/// Moon's centre less the Sun's, in degrees (Odeh, *Experimental
+/// Astronomy* 18, 2004, §5).
+#[must_use]
+pub fn topocentric_arc_of_vision(moment: Moment, location: Location) -> f64 {
+    topocentric_lunar_altitude(moment, location) - solar_altitude(moment, location)
+}
+
+/// The topocentric width of the crescent in minutes of arc, as Odeh's
+/// criterion reads it: Yallop's topocentric semi-diameter SD′
+/// ([`crescent_width_arcminutes`]) times `1 − cos ARCL′`, with the
+/// topocentric arc of light ([`topocentric_arc_of_light`]). Odeh gives no
+/// formula for the width; this is the library's reading of "topocentric
+/// crescent width", and the computation of his *Accurate Times* was not
+/// read.
+#[must_use]
+pub fn topocentric_crescent_width_arcminutes(moment: Moment, location: Location) -> f64 {
+    let parallax = hc_astro::lunar::lunar_parallax(moment);
+    let semi_diameter = 0.272_45 * parallax * 60.0;
+    let altitude = lunar_altitude(moment, location);
+    let topocentric = semi_diameter * (1.0 + sin_deg(altitude) * sin_deg(parallax));
+    topocentric * (1.0 - cos_deg(topocentric_arc_of_light(moment, location)))
+}
+
+/// Odeh's test value `V` at a moment and place ([`VTestCriterion::ODEH`]).
+#[must_use]
+pub fn odeh_v(moment: Moment, location: Location) -> f64 {
+    VTestCriterion::ODEH.v(
+        topocentric_arc_of_vision(moment, location),
+        topocentric_crescent_width_arcminutes(moment, location),
+    )
+}
+
 /// The moment on a local day at which the Sun's centre reaches a depression
 /// between the sunset depression and civil dusk, by linear interpolation
 /// between the two.
@@ -533,12 +857,13 @@ impl ObservationSite {
 
     /// The moment, in Universal Time, at which the evening of `rd` is
     /// judged: when the Sun reaches the criterion's depression, for an
-    /// arc-of-light criterion, at Bruin's best time, for a *q*-test, or at
-    /// sunset, for the Saudi rule.
+    /// arc-of-light criterion, at Bruin's best time, for a *q*-test or
+    /// Odeh's *V*, or at sunset, for the Saudi rule and the thresholds at
+    /// sunset.
     ///
     /// `None` when there is no such moment that day — the Sun does not set
-    /// or twilight does not end, as at high latitudes, or for a *q*-test
-    /// the Moon does not set after the Sun. That is a real answer: no
+    /// or twilight does not end, as at high latitudes, or at Bruin's best
+    /// time the Moon does not set after the Sun. That is a real answer: no
     /// observation is possible.
     #[must_use]
     pub fn evaluation_moment(&self, rd: Rd) -> Option<Moment> {
@@ -546,8 +871,12 @@ impl ObservationSite {
             VisibilityCriterion::ArcOfLight(criterion) => {
                 depression_moment(rd, self.location, criterion.evaluation_depression_degrees)
             }
-            VisibilityCriterion::QTest(_) => bruin_best_time(rd, self.location),
-            VisibilityCriterion::ConjunctionAndMoonset => sunset(rd, self.location),
+            VisibilityCriterion::QTest(_) | VisibilityCriterion::VTest(_) => {
+                bruin_best_time(rd, self.location)
+            }
+            VisibilityCriterion::ConjunctionAndMoonset | VisibilityCriterion::AtSunset(_) => {
+                sunset(rd, self.location)
+            }
         }
     }
 
@@ -588,6 +917,21 @@ impl ObservationSite {
                 (1, [a, b, c, d, criterion.minimum_q])
             }
             VisibilityCriterion::ConjunctionAndMoonset => (2, [0.0; 5]),
+            VisibilityCriterion::AtSunset(criterion) => (
+                3 + u64::from(criterion.elongation == Frame::Topocentric)
+                    + 2 * u64::from(criterion.altitude == Frame::Topocentric),
+                [
+                    criterion.minimum_elongation_degrees,
+                    criterion.minimum_altitude_degrees,
+                    0.0,
+                    0.0,
+                    0.0,
+                ],
+            ),
+            VisibilityCriterion::VTest(criterion) => {
+                let [a, b, c, d] = criterion.coefficients;
+                (7, [a, b, c, d, criterion.minimum_v])
+            }
         };
         let [latitude, longitude, elevation] = self.location.key();
         let [a, b, c, d, e] = numbers.map(f64::to_bits);
@@ -624,6 +968,13 @@ impl ObservationSite {
             VisibilityCriterion::ConjunctionAndMoonset => {
                 moonset(Rd(rd.0 - 1), self.location).is_none_or(|set| set.0 > moment.0)
             }
+            VisibilityCriterion::AtSunset(criterion) => criterion.holds_at(moment, self.location),
+            VisibilityCriterion::VTest(criterion) => {
+                criterion.v(
+                    topocentric_arc_of_vision(moment, self.location),
+                    topocentric_crescent_width_arcminutes(moment, self.location),
+                ) >= criterion.minimum_v
+            }
         }
     }
 
@@ -637,22 +988,7 @@ impl ObservationSite {
     /// Returns [`CalendarError::AstronomicalModelFailure`] when no visible
     /// crescent is found within a lunation and a half.
     pub fn month_start_on_or_after(&self, rd: Rd) -> CalendarResult<Rd> {
-        let moon = floor(hc_astro::new_moon_before(Moment(rd.0 as f64)).0) as i64;
-        // Four days past the conjunction, or with the crescent already seen
-        // the evening before, this lunation's month has begun and the next
-        // one is wanted.
-        let first = if rd.0 - moon >= 4 || self.crescent_visible_on_the_eve_of(Rd(rd.0 - 1)) {
-            moon + 29
-        } else {
-            rd.0
-        };
-        for step in 0..45 {
-            let candidate = Rd(first + step);
-            if self.crescent_visible_on_the_eve_of(candidate) {
-                return Ok(candidate);
-            }
-        }
-        Err(CalendarError::AstronomicalModelFailure)
+        month_start_on_or_after(self, rd)
     }
 
     /// The most recent day whose eve carried a visible crescent, on or before
@@ -664,24 +1000,157 @@ impl ObservationSite {
     /// crescent is found within a lunation and a half, which at Mecca means
     /// the model has broken rather than that the Moon has.
     pub fn month_start_on_or_before(&self, rd: Rd) -> CalendarResult<Rd> {
-        // The day of the last mean conjunction, from the Moon's elongation.
-        let elongation = hc_astro::lunar_phase(Moment(rd.0 as f64));
-        let mean = rd.0 - floor(elongation / 360.0 * MEAN_SYNODIC_MONTH) as i64;
-        // Within three days of the conjunction the crescent may not yet have
-        // been seen, in which case the month began a lunation earlier.
-        let first = if rd.0 - mean <= 3 && !self.crescent_visible_on_the_eve_of(rd) {
-            mean - 30
-        } else {
-            mean - 2
-        };
-        for step in 0..45 {
-            let candidate = Rd(first + step);
-            if self.crescent_visible_on_the_eve_of(candidate) {
-                return Ok(candidate);
-            }
-        }
-        Err(CalendarError::AstronomicalModelFailure)
+        month_start_on_or_before(self, rd)
     }
+}
+
+/// A rule that says, of each day, whether a Hijri month begins on it.
+///
+/// An [`ObservationSite`] is one: a month begins on the day whose eve
+/// carries a visible crescent. The global rules of
+/// [`crate::islamic_global`] are others, judged over the whole Earth rather
+/// than at one place. The month search and the counting of months are the
+/// same for all of them.
+pub trait NewMonthRule {
+    /// Whether a month begins on `rd`, that is, whether the evening before
+    /// it satisfies the rule.
+    fn begins_month_on(&self, rd: Rd) -> bool;
+}
+
+impl NewMonthRule for ObservationSite {
+    fn begins_month_on(&self, rd: Rd) -> bool {
+        self.crescent_visible_on_the_eve_of(rd)
+    }
+}
+
+/// The first day on or after `rd` on which `rule` begins a month.
+///
+/// # Errors
+///
+/// [`CalendarError::AstronomicalModelFailure`] when none is found within a
+/// lunation and a half.
+pub fn month_start_on_or_after<R: NewMonthRule + ?Sized>(rule: &R, rd: Rd) -> CalendarResult<Rd> {
+    let moon = floor(hc_astro::new_moon_before(Moment(rd.0 as f64)).0) as i64;
+    // Four days past the conjunction, or with the month already begun the
+    // day before, this lunation's month has begun and the next one is
+    // wanted.
+    let first = if rd.0 - moon >= 4 || rule.begins_month_on(Rd(rd.0 - 1)) {
+        moon + 29
+    } else {
+        rd.0
+    };
+    for step in 0..45 {
+        let candidate = Rd(first + step);
+        if rule.begins_month_on(candidate) {
+            return Ok(candidate);
+        }
+    }
+    Err(CalendarError::AstronomicalModelFailure)
+}
+
+/// The most recent day on or before `rd` on which `rule` began a month:
+/// the first day of the Hijri month containing `rd`.
+///
+/// # Errors
+///
+/// [`CalendarError::AstronomicalModelFailure`] when none is found within a
+/// lunation and a half.
+pub fn month_start_on_or_before<R: NewMonthRule + ?Sized>(rule: &R, rd: Rd) -> CalendarResult<Rd> {
+    // The day of the last mean conjunction, from the Moon's elongation.
+    let elongation = hc_astro::lunar_phase(Moment(rd.0 as f64));
+    let mean = rd.0 - floor(elongation / 360.0 * MEAN_SYNODIC_MONTH) as i64;
+    // Within three days of the conjunction the month may not yet have
+    // begun, in which case it began a lunation earlier.
+    let first = if rd.0 - mean <= 3 && !rule.begins_month_on(rd) {
+        mean - 30
+    } else {
+        mean - 2
+    };
+    for step in 0..45 {
+        let candidate = Rd(first + step);
+        if rule.begins_month_on(candidate) {
+            return Ok(candidate);
+        }
+    }
+    Err(CalendarError::AstronomicalModelFailure)
+}
+
+/// Range check shared by the calendars of this shape.
+fn check_range(rd: Rd) -> CalendarResult<()> {
+    if rd < EARLIEST {
+        return Err(CalendarError::BeforeEpoch);
+    }
+    if rd > LATEST {
+        return Err(CalendarError::AfterSupportedRange);
+    }
+    Ok(())
+}
+
+/// The Hijri year, month and day of a fixed day under `rule`, counting
+/// elapsed months from the Friday epoch over the mean synodic month, as
+/// the observational calendar of *Calendrical Calculations* does
+/// (`observational-islamic-from-fixed`).
+///
+/// # Errors
+///
+/// The range errors outside [`EARLIEST`] to [`LATEST`], and
+/// [`CalendarError::AstronomicalModelFailure`] when the month search does
+/// not converge.
+pub fn decompose_with<R: NewMonthRule + ?Sized>(rule: &R, rd: Rd) -> CalendarResult<(i64, u8, u8)> {
+    check_range(rd)?;
+    let start = month_start_on_or_before(rule, rd)?;
+    let elapsed_months = round((start.0 - EPOCH.0) as f64 / MEAN_SYNODIC_MONTH) as i64;
+    let year = elapsed_months.div_euclid(12) + 1;
+    let month = elapsed_months.rem_euclid(12) as u8 + 1;
+    let day = (rd.0 - start.0 + 1) as u8;
+    Ok((year, month, day))
+}
+
+/// The fixed day of a Hijri date under `rule`, validated by reading it
+/// back: the inverse of [`decompose_with`].
+///
+/// # Errors
+///
+/// [`CalendarError::MonthOutOfRange`], [`CalendarError::DayOutOfRange`]
+/// for a day past the month's last, the range errors, or
+/// [`CalendarError::AstronomicalModelFailure`].
+pub fn compose_with<R: NewMonthRule + ?Sized>(
+    rule: &R,
+    year: i64,
+    month: u8,
+    day: u8,
+) -> CalendarResult<Rd> {
+    if month == 0 || month > 12 {
+        return Err(CalendarError::MonthOutOfRange);
+    }
+    if day == 0 || day > MAXIMUM_MONTH_LENGTH {
+        return Err(CalendarError::DayOutOfRange);
+    }
+    // The range first: the month count below overflows near the ends of
+    // `i64`, and a year outside these two has no day in range anyway.
+    if year < FIRST_YEAR {
+        return Err(CalendarError::BeforeEpoch);
+    }
+    if year > LAST_YEAR {
+        return Err(CalendarError::AfterSupportedRange);
+    }
+    let elapsed_months = (year - 1) * 12 + month as i64 - 1;
+    let midmonth = EPOCH.0 + floor((elapsed_months as f64 + 0.5) * MEAN_SYNODIC_MONTH) as i64;
+    let start = month_start_on_or_before(rule, Rd(midmonth))?;
+    let rd = Rd(start.0 + day as i64 - 1);
+    check_range(rd)?;
+    // The length of the month is not knowable in advance, so the date is
+    // validated by reading it back.
+    let (round_year, round_month, round_day) = decompose_with(rule, rd)?;
+    if (round_year, round_month) != (year, month) {
+        return Err(read_back_error(
+            decompose_with(rule, start).is_ok_and(|(y, m, _)| (y, m) == (year, month)),
+        ));
+    }
+    if round_day != day {
+        return Err(CalendarError::DayOutOfRange);
+    }
+    Ok(rd)
 }
 
 /// The predicted observational Hijri calendar.
@@ -744,17 +1213,6 @@ impl IslamicObservationalCalendar {
         self.site
     }
 
-    /// Range check.
-    fn check_range(rd: Rd) -> CalendarResult<()> {
-        if rd < EARLIEST {
-            return Err(CalendarError::BeforeEpoch);
-        }
-        if rd > LATEST {
-            return Err(CalendarError::AfterSupportedRange);
-        }
-        Ok(())
-    }
-
     /// The predicted Hijri year, month and day of a fixed day.
     ///
     /// # Errors
@@ -764,13 +1222,7 @@ impl IslamicObservationalCalendar {
     /// and [`CalendarError::AstronomicalModelFailure`] when the crescent
     /// search does not converge.
     pub fn decompose(&self, rd: Rd) -> CalendarResult<(i64, u8, u8)> {
-        Self::check_range(rd)?;
-        let start = self.site.month_start_on_or_before(rd)?;
-        let elapsed_months = round((start.0 - EPOCH.0) as f64 / MEAN_SYNODIC_MONTH) as i64;
-        let year = elapsed_months.div_euclid(12) + 1;
-        let month = elapsed_months.rem_euclid(12) as u8 + 1;
-        let day = (rd.0 - start.0 + 1) as u8;
-        Ok((year, month, day))
+        decompose_with(&self.site, rd)
     }
 
     /// The fixed day of a predicted Hijri date.
@@ -785,38 +1237,7 @@ impl IslamicObservationalCalendar {
     /// A predicted month can run to 31 days, as `decompose` numbers it: see
     /// [`MAXIMUM_MONTH_LENGTH`].
     pub fn compose(&self, year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
-        if month == 0 || month > 12 {
-            return Err(CalendarError::MonthOutOfRange);
-        }
-        if day == 0 || day > MAXIMUM_MONTH_LENGTH {
-            return Err(CalendarError::DayOutOfRange);
-        }
-        // The range first: the month count below overflows near the ends
-        // of `i64`, and a year outside these two has no day in range anyway.
-        if year < FIRST_YEAR {
-            return Err(CalendarError::BeforeEpoch);
-        }
-        if year > LAST_YEAR {
-            return Err(CalendarError::AfterSupportedRange);
-        }
-        let elapsed_months = (year - 1) * 12 + month as i64 - 1;
-        let midmonth = EPOCH.0 + floor((elapsed_months as f64 + 0.5) * MEAN_SYNODIC_MONTH) as i64;
-        let start = self.site.month_start_on_or_before(Rd(midmonth))?;
-        let rd = Rd(start.0 + day as i64 - 1);
-        Self::check_range(rd)?;
-        // The length of an observed month is not knowable in advance, so the
-        // date is validated by reading it back.
-        let (round_year, round_month, round_day) = self.decompose(rd)?;
-        if (round_year, round_month) != (year, month) {
-            return Err(read_back_error(
-                self.decompose(start)
-                    .is_ok_and(|(y, m, _)| (y, m) == (year, month)),
-            ));
-        }
-        if round_day != day {
-            return Err(CalendarError::DayOutOfRange);
-        }
-        Ok(rd)
+        compose_with(&self.site, year, month, day)
     }
 }
 
@@ -1744,5 +2165,123 @@ mod tests {
                 [934, 630, 304, 0]
             );
         }
+    }
+
+    /// Odeh's Table V from his equation 2: the arcs of vision at which `V`
+    /// reaches the lower limits of zones C, B and A, for crescent widths of
+    /// 0.1′ to 0.9′, to the tenth of a degree the table prints
+    /// (*Experimental Astronomy* 18, 2004, §5).
+    #[test]
+    fn odehs_equation_reproduces_his_table_five() {
+        const TABLE_V: [[f64; 9]; 3] = [
+            [5.6, 5.0, 4.4, 3.8, 3.2, 2.7, 2.1, 1.6, 1.0],
+            [8.5, 7.9, 7.3, 6.7, 6.2, 5.6, 5.1, 4.5, 4.0],
+            [12.2, 11.6, 11.0, 10.4, 9.8, 9.3, 8.7, 8.2, 7.6],
+        ];
+        let limits = [
+            OdehZone::LOWER_LIMITS[2],
+            OdehZone::LOWER_LIMITS[1],
+            OdehZone::LOWER_LIMITS[0],
+        ];
+        for (row, limit) in TABLE_V.iter().zip(limits) {
+            for (index, printed) in row.iter().enumerate() {
+                let width = 0.1 * (index + 1) as f64;
+                // V = ARCV − f(W), so the arc at which V is the limit is
+                // the limit plus f(W): V at an arc of zero, negated.
+                let arc = limit - VTestCriterion::ODEH.v(0.0, width);
+                assert!(
+                    (arc - printed).abs() <= 0.05 + 1e-9,
+                    "W {width}: {arc} against {printed}"
+                );
+            }
+        }
+        assert_eq!(OdehZone::from_v(5.65), OdehZone::NakedEye);
+        assert_eq!(OdehZone::from_v(5.64), OdehZone::OpticalAidPerhapsNakedEye);
+        assert_eq!(OdehZone::from_v(2.0), OdehZone::OpticalAidPerhapsNakedEye);
+        assert_eq!(OdehZone::from_v(-0.96), OdehZone::OpticalAidOnly);
+        assert_eq!(OdehZone::from_v(-0.97).letter(), 'D');
+    }
+
+    /// The topocentric quantities are the geocentric ones seen from the
+    /// surface: the Moon lower by nearly its parallax near the horizon, the
+    /// arc of light shorter, and at Bruin's best time on the evening of 8
+    /// February 1921 at Boston, Yallop's No. 91, Odeh's V in zone B.
+    #[test]
+    fn odehs_topocentric_quantities_sit_below_the_geocentric_ones() {
+        let boston = Location::new(42.3, -71.1, 0.0);
+        let moment = bruin_best_time(civil::to_rd(1921, 2, 8), boston).expect("a best time");
+        let parallax = hc_astro::lunar::lunar_parallax(moment);
+        let drop = arc_of_vision(moment, boston) - topocentric_arc_of_vision(moment, boston);
+        assert!((drop - parallax).abs() < 0.01, "{drop} against {parallax}");
+        let shorter = arc_of_light(moment) - topocentric_arc_of_light(moment, boston);
+        assert!((0.3..parallax).contains(&shorter), "{shorter}");
+        assert!(
+            topocentric_crescent_width_arcminutes(moment, boston)
+                < crescent_width_arcminutes(moment, boston)
+        );
+        let v = odeh_v(moment, boston);
+        assert_eq!(
+            OdehZone::from_v(v),
+            OdehZone::OpticalAidPerhapsNakedEye,
+            "{v}"
+        );
+    }
+
+    /// Banda Aceh and Jakarta, at the western end of Indonesia and on
+    /// Java, as Wikipedia places them.
+    const INDONESIA: [Location; 2] = [
+        Location::new(5.55, 95.3175, 0.0),
+        Location::new(-6.18, 106.83, 0.0),
+    ];
+
+    /// Djamaluddin's analysis of 1447 AH by the Neo-MABIMS criterion with a
+    /// geocentric elongation (`djamaluddin-kalender-1447`): for each month,
+    /// the evening of the 29th he judges and whether the criterion was met
+    /// in Southeast Asia. Judged at Banda Aceh and Jakarta, both readings
+    /// agree with him on eleven of the twelve. On the evening of 20
+    /// December 2025, which opens Rajab and which he finds met "di wilayah
+    /// Indonesia", Banda Aceh has the elongation and not the altitude and
+    /// Jakarta the altitude and not the elongation: the verdict turns on
+    /// the place, which the criterion does not name.
+    #[test]
+    fn the_two_mabims_readings_against_djamaluddins_1447() {
+        const EVENINGS: [((i64, u8, u8), bool); 12] = [
+            ((2025, 6, 25), false),
+            ((2025, 7, 25), true),
+            ((2025, 8, 23), false),
+            ((2025, 9, 22), true),
+            ((2025, 10, 21), false),
+            ((2025, 11, 20), false),
+            ((2025, 12, 20), true),
+            ((2026, 1, 19), true),
+            ((2026, 2, 17), false),
+            ((2026, 3, 19), false),
+            ((2026, 4, 17), false),
+            ((2026, 5, 16), false),
+        ];
+        for criterion in [
+            VisibilityCriterion::MABIMS_GEOCENTRIC_ELONGATION,
+            VisibilityCriterion::MABIMS_TOPOCENTRIC,
+        ] {
+            let disagreements: Vec<_> = EVENINGS
+                .iter()
+                .filter(|((year, month, day), met)| {
+                    let first = civil::to_rd(*year, *month, *day + 1);
+                    INDONESIA.iter().any(|place| {
+                        ObservationSite::new(*place, criterion)
+                            .crescent_visible_on_the_eve_of(first)
+                    }) != *met
+                })
+                .map(|(evening, _)| *evening)
+                .collect();
+            assert_eq!(disagreements, [(2025, 12, 20)], "{criterion:?}");
+        }
+        let evening = civil::to_rd(2025, 12, 20);
+        let [aceh, jakarta] = INDONESIA.map(|place| {
+            let set = sunset(evening, place).expect("a sunset");
+            (arc_of_light(set), topocentric_lunar_altitude(set, place))
+        });
+        assert!(aceh.0 >= 6.4 && aceh.1 < 3.0, "{aceh:?}");
+        assert!(jakarta.0 < 6.4 && jakarta.1 >= 3.0, "{jakarta:?}");
     }
 }

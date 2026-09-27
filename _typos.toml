@@ -518,3 +518,6 @@ Lern = "Lern"
 # Wisconsin-Madison's teaching page transliterates them, quoted in
 # docs/systems/hours-of-the-day.md and its references.bib entry.
 Mata = "Mata"
+# Indonesian "Analisis Astronomis Kalender 1447 H", the title of T.
+# Djamaluddin's analysis cited for the Neo-MABIMS readings.
+Analisis = "Analisis"

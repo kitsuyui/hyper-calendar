@@ -2053,7 +2053,9 @@ mod calendar_days {
     /// is judged at as POSIX seconds, and the Moon's longitude less the
     /// Sun's (0 to 360), arc of light, altitude and arc of vision and the crescent's width there,
     /// empty where there is no such moment. `criterion` is `shaukat`,
-    /// `yallop` or `saudi-rule`, in any case; anything else is
+    /// `yallop`, `saudi-rule`, `odeh`, `istanbul-2016`, `khgt`,
+    /// `mabims-2021-topocentric` or `mabims-2021-geocentric-elongation`, in
+    /// any case; anything else is
     /// `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. A place off the
     /// globe, or a day outside the years −1000 to 3000, is
     /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the

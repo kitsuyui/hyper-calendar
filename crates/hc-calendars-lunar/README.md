@@ -25,6 +25,9 @@ others exist.
 | `islamic_observational` | `islamic-rgsa` | prediction | 1900–2100 CE |
 | `islamic_observational::IslamicObservationalCalendar::CAIRO_RD` | `islamic-observational-cairo-rd` | prediction (*Calendrical Calculations*) | 1900–2100 CE |
 | `islamic_observational::IslamicObservationalCalendar::SAUDI_RULE_RD` | `islamic-saudi-rule-rd` | computed rule (*Calendrical Calculations*) | 1900–2100 CE |
+| `islamic_global::IslamicGlobalCalendar::KHGT` | `islamic-khgt` | computed rule (Muhammadiyah's Unified Global Hijri Calendar) | 1900–2100 CE |
+| `islamic_global::IslamicGlobalCalendar::ISTANBUL_2016` | `islamic-istanbul-2016` | computed rule (Diyanet's Unified Hijri Calendar) | 1900–2100 CE |
+| `islamic_fcna` | `islamic-fcna` | published table (Fiqh Council of North America) | **1440–1465 AH only** |
 | `hebrew` | `hebrew` | arithmetic | AM 1–9999 |
 | `hebrew_observational` | `hebrew-observational` | prediction | 383 BCE – 2100 CE |
 | `samaritan` | `samaritan` | astronomical | Samaritan 3539–3738 (1900–2100 CE) |
@@ -70,7 +73,14 @@ kept by sighting and the schemes beside it, the thirty-year cycle with its
 four leap-year patterns and two epochs, the Umm al-Qura rules by period and
 the table's provenance, the visibility criterion, a month worked by hand
 and a named evening on which the three disagree, and what each measurement
-below means. This section keeps the summary and the figures.
+below means. This section keeps the summary and the figures. The three
+calendars judged over the whole Earth or published as a body's table —
+`islamic-khgt`, `islamic-istanbul-2016` and `islamic-fcna` — and the Odeh
+and Neo-MABIMS criteria are written up in
+[`docs/systems/unified-hijri.md`](../../docs/systems/unified-hijri.md):
+the two bodies' calendars begin Ramaḍān 1447 a day apart, as each did, and
+reproduce every month Muhammadiyah published for 1447–1449 and 171 of the
+174 Diyanet published for 1443–1457.
 
 The tabular calendars are counting rules and are exact as such: `tabular`
 is checked against the closed form of Reingold and Dershowitz for every
