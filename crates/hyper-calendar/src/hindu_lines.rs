@@ -118,6 +118,12 @@ fn date_line(date: HinduLunarDate, sunrise: Moment) -> String {
 /// and Moon read at its own sunrise there, as
 /// `hindu-lunar-surya-siddhanta` is at Ujjain.
 ///
+/// `sky` comes first because it chooses the reckoning that reads the day,
+/// the true calendar or the Siddhānta's, as a calendar's name comes first
+/// in [`crate::planetary_lines::circad_date_line`].
+/// [`crate::panchanga_lines::panchanga_of_day_lines`] has one reckoning,
+/// and its ayanamsa, last, sets only the zodiac it reads the day in.
+///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for a sky not named. [`Refusal::OutOfRange`] on

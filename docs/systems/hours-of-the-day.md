@@ -128,7 +128,11 @@ clock; Universal Time is itself the hour angle of a mean Sun, through
 sidereal time, so this library takes the mean Sun there, at Universal
 Time, and the true Sun at Terrestrial Time, where its ephemeris is. The
 book's choice puts its mean Sun ΔT late, which makes its equation of time
-larger by ΔT times the mean Sun's rate: 0.2 s today, 38 s in 586 BCE. And the inverse from sundial time is
+larger by ΔT's worth of the mean Sun's motion, less the difference of the
+two mean-Sun polynomials, Meeus's L₀ and the IAU 1982 sidereal time's,
+chiefly their squared terms: 0.2 s today, 3 s in 1000 CE and 38 s in
+586 BCE, where the motion alone is 51 s and the polynomials take back
+12 s. And the inverse from sundial time is
 solved exactly, by iterating, where `local-from-apparent` evaluates the
 equation of time at the sundial reading as if it were mean time; that
 shortcut is off by the equation's change over its own size, up to about

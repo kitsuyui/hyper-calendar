@@ -158,7 +158,7 @@ constant.
 | [glonass-icd-5-1] | UTC(SU) + 3 h and the leap seconds (§3.3.3), *N*T (§4.4), *N*4 (§4.5), the worked example (Attachment A.3.1.3) | Yes, the PDF at its entry's URL, 2026-09-27 |
 | [irnss-sps-icd-1-1] | The NavIC epoch and the 10-bit week (§5.7, §6.2.1.1) | Yes, the PDF at its entry's URL, 2026-09-27 |
 | [sofa-ts] | GPS time's sub-microsecond relation to TAI | Yes, 2026-09-27 |
-| [iana-leap-seconds-list] | `TAI − UTC` at each epoch | Yes, as `hc_core::leap` records |
+| [iana-leap-seconds-list] | `TAI − UTC` at each epoch | Yes, 2026-09-26, as `hc_core::leap` records |
 
 ## Code
 

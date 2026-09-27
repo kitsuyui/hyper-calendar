@@ -301,6 +301,14 @@ constants named; only the 216 years and the 97 minutes are also quoted.
     for the fiftieth [wikipedia-jubilee-biblical] — so the two readings would
     be two named counts, and no source read dates a Jubilee year of the
     present count for either.
+  - A second sabbatical count. The one-year disagreement in the
+    literature is over the Second Temple period: Zuckermann's reckoning
+    of 1857, which Wikipedia calls consistent with the geonim's and with
+    the count used in Israel today, against Wacholder's of 1973, one year
+    later [wikipedia-shmita]. Neither is a count of the present years
+    that differs from the one carried, and the ancient sabbaticals are
+    reconstructions from Josephus and the Bar Kokhba documents, not a
+    rule a calendar keeps. Zuckermann and Wacholder were not read.
   - The *tekufot* other than as `birkat_hachama` uses them, and any true
     astronomy: the module calls nothing in `hc-astro`.
 
@@ -355,7 +363,7 @@ bound, which is a choice rather than a finding.
 | [reingold2018] | The arithmetic: the closed forms and the year-length formulation of the last two dehiyyot | Not read directly; the published code was |
 | [reingold2018code] | `birkath-ha-hama`, `fixed-from-coptic`, `coptic-epoch`, `hebrew-epoch`, `hebrew-leap-year?`, `last-month-of-hebrew-year`, `molad`, `hebrew-calendar-elapsed-days`, `hebrew-year-length-correction`, `hebrew-new-year`, `days-in-hebrew-year`, `long-marheshvan?`, `short-kislev?`, `last-day-of-hebrew-month`, `fixed-from-hebrew`, `hebrew-from-fixed`, `mean-synodic-month`, and the month constants; `yahrzeit` and `hebrew-birthday` for the anniversaries; `observational-hebrew-first-of-nisan`, cited for the calendar not carried here | Yes, 2026-09-25; `birkath-ha-hama`, `fixed-from-coptic` and `coptic-epoch` 2026-09-26; `yahrzeit`, `hebrew-birthday` and `observational-hebrew-first-of-nisan` 2026-09-26 |
 | [hebcal-yahrzeit] | One yahrzeit and one birthday of 15 Adar 5783, as a check | Yes, 2026-09-27 |
-| [wikipedia-shmita] | The sabbatical years 5712 to 5782, and the year counted from Rosh Hashanah | Yes, 2026-09-27 |
+| [wikipedia-shmita] | The sabbatical years 5712 to 5782, and the year counted from Rosh Hashanah; Zuckermann's and Wacholder's reckonings of the Second Temple sabbaticals | Yes, 2026-09-27; secondary |
 | [chabad-shemitah] | The sabbatical year 5789 and its span; the first year of the cycle given as 3829 | Yes, 2026-09-27 |
 | [wikipedia-jubilee-biblical] | The dispute over a Jubilee of 49 or 50 years | Yes, 2026-09-27 |
 | [hebcal-5784] | Rosh Hashanah and Pesach of 5784, each from the sunset before its day; that 5784 has Adar I and Adar II | Yes, 2026-09-25 |

@@ -839,7 +839,7 @@ fn sundial_lead(moment: Moment) -> f64 {
     let at_dynamical_time =
         solar::solar_mean_longitude_at_centuries(time::julian_centuries(moment)) - 0.005_718_3;
     let hour_angle = 360.0 * moment.0.rem_euclid(1.0) - 180.0;
-    let of_universal_time = earth::mean_sidereal_time(moment) - hour_angle;
+    let of_universal_time = earth::mean_sidereal_time_iau1982(moment) - hour_angle;
     ((at_dynamical_time - of_universal_time) / 360.0 + 0.5).rem_euclid(1.0) - 0.5
 }
 

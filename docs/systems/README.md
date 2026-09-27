@@ -86,7 +86,7 @@ None of the three repeats another.
 | The Olympiads: the ancient count from 776 BC over the Julian year, and the IOC's Olympiads from 1896 with the Games not celebrated | [olympiads.md](olympiads.md) | `olympiad`; `olympiad::ioc_olympiad` |
 | The Seleucid era and its neighbours: the calendar of Antioch, the Seleucid era from 1 October, Antioch's two year starts, the era of Gaza, the Arsacid era at Babylon, and why its Iranian form is not carried | [seleucid-eras.md](seleucid-eras.md) | `seleucid-syrian`, `antioch-caesarean-era`, `antioch-caesarean-era-september`, `gaza-era`, `arsacid-era` |
 | Year counts over another calendar's year: the Spanish era and its kingdoms, the Masonic years, ADA, the Capitoline count *ab urbe condita*, the Era of Philip, the Bostran era, the Era Fascista | [era-counts.md](era-counts.md) | `spanish-era`, `masonic-anno-lucis`, `masonic-anno-inventionis`, `masonic-anno-depositionis`, `masonic-anno-ordinis`, `ada`, `roman-auc-capitoline`, `philip-era`, `bostran-era`, `era-fascista` |
-| The calendar of the Roman province of Asia: the decree of 9 BC, the months from the ninth day before the Kalends, Sebaste and the leap Xandikos, and why the range starts in AD 4 | [asian-calendar.md](asian-calendar.md) | `asian` |
+| The calendar of the Roman province of Asia: the decree of 9/8 BC, the months from the ninth day before the Kalends, Sebaste and the leap Xandikos, and why the range starts in AD 4 | [asian-calendar.md](asian-calendar.md) | `asian` |
 | The Solar Hijri calendar: Nowruz by the clock's noon and by the Sun's at Tehran, the 33-year rule and the 2 820-year cycle | [solar-hijri.md](solar-hijri.md) | `persian`, `persian-apparent-noon`, `persian-afghan`, `persian-arithmetic`, `persian-arithmetic-33` |
 | The Zoroastrian calendars: the Parsi intercalation of the 1120s, the split of 1745, the Fasli of 1906, the ZRE | [zoroastrian.md](zoroastrian.md) | `zoroastrian-qadimi`, `zoroastrian-shahanshahi`, `zoroastrian-fasli` |
 | The Armenian calendar: the Great Era's wandering year and Sarkawag's fixed year of 1084 | [armenian.md](armenian.md) | `armenian`, `armenian-fixed` |
@@ -120,3 +120,26 @@ coded and in [time-scales.md](../time-scales.md), with nothing a worked
 example would add: the TAI64 labels and their two conventions, the Julian
 and Besselian epochs, and Swatch Internet Time. They stay there unless a
 competing reading or a table of exceptions turns up.
+
+Three more are judged not to need one, each for its own reason:
+
+- **The Heliocentric Julian Date**, `hc-astro::hjd`. It is one correction,
+  the Rømer delay, and its competing readings are time scales and frames,
+  which [time-scales.md](../time-scales.md) names: HJD_TT and HJD_UTC,
+  both computed; HJD′_UTC, which drifts with the leap seconds and is not
+  computed; and the mixed frame of SLALIB's rows far from 2000, measured
+  there against IDL's table. The barycentric BJD_TDB, which would need
+  the solar-system barycentre, would need a document if it were carried.
+- **TT(BIPM)**, `hc-core::tt_bipm`. The library carries no realisation,
+  only the interpolation of a series the caller supplies by name, so the
+  realisations that revise each other are the caller's data, as a DUT1
+  series is; [time-scales.md](../time-scales.md) states the rule, and
+  `hc_core::tt_bipm` the revision, up to 0.2 ns, between TT(BIPM24) and
+  TT(BIPM25).
+- **The Turkmen month and weekday names of 2002–2008**,
+  `hc-i18n::dated::TURKMEN_2002`. It is a list of names and two dates,
+  and the one open question, the day in 2002 the law took effect, is
+  answered `Undecided` rather than resolved;
+  [i18n.md](../i18n.md) states the period and its sources. A second naming
+  period, or a source that dates the law's effect, would not change the
+  rule.

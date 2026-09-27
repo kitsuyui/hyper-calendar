@@ -288,12 +288,11 @@ greeting names 2152 as the Wood Snake year [tibet-net-losar-2152]
 round-trips, at least one day is skipped and one repeated in the span, and
 every year has one of the five lengths, thirteen months exactly when (5.41)
 says so (`every_day_of_four_decades_round_trips_and_years_have_the_five_lengths`).
-Across the whole range, 1000–3000, every 29th day round-trips in a release
-build (every 319th in a debug one) with every New Year and the day before
-it, in all four versions
-(`the_whole_range_round_trips_at_a_stride_and_at_every_new_year`); a
-conversion costs tens of microseconds, so walking every day of the range
-would take minutes.
+Across the whole range, 1000–3000, every day round-trips in a release
+build, in all four versions (`every_day_of_the_range_round_trips`): about
+75 µs a day, three and a half minutes of one core, which the test spreads
+over the machine's threads. A debug build takes every 319th day and every
+New Year with the day before it.
 
 **Measured on 2026-09-25 against the paper's tables.** Janson prints the
 Phugpa Losar for every year of the last and current sixty-year cycles,

@@ -78,8 +78,7 @@ gives each crate's other direct dependencies. The workspace manifest,
 
 | Crate | Holds | Also depends on |
 | --- | --- | --- |
-| `hc-core` | `Duration`, `Instant<S>`, time scales, the leap-second table, epochs, timestamp formats, math | — |
-| `hc-core` | `Duration`, `Instant<S>`, time scales, the leap-second table, epochs, math, the per-call memo of pure functions | — |
+| `hc-core` | `Duration`, `Instant<S>`, time scales, the leap-second table, epochs, timestamp formats, math, the per-call memo of pure functions | — |
 | `hc-calendar` | `Rd`, `CivilTime`, the `Calendar` trait, the registry | — |
 | `hc-uncertainty` | Significant figures, fuzzy dates, EDTF, intervals | `hc-calendar` |
 | `hc-units` | Exact ratios, tempo and media rates | — |

@@ -335,6 +335,9 @@ systems that have a document, and the ones that should and do not yet.
 
 `hyper-calendar` computes and formats. It has no UI, no I/O beyond optionally
 reading a TZif file, no clock (the caller supplies the current time), no
-network access and no global state. A web front end will eventually consume it
-through the WebAssembly or C surface; that front end is not part of this
-repository.
+network access and no state that outlives a call. The one piece of state,
+`hc_core::memo`, caches the results of pure functions within one call, in
+thread-local storage that is emptied when the call's scope ends, so it
+changes how long a call takes and never what it returns. A web front end
+will eventually consume the library through the WebAssembly or C surface;
+that front end is not part of this repository.

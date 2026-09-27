@@ -142,7 +142,7 @@ pub fn solar_position(moment: Moment) -> Equatorial {
 /// ones a sundial and a clock at Greenwich keep at that instant. Mean
 /// solar time is `moment` itself: Universal Time is defined as the hour
 /// angle of a mean Sun, through the sidereal time of the UT1 moment
-/// ([`crate::earth::apparent_sidereal_time`]). Apparent solar time is the
+/// ([`crate::earth::apparent_sidereal_time_iau1982`]). Apparent solar time is the
 /// hour angle of the true Sun plus twelve hours: that sidereal time less
 /// the Sun's apparent right ascension, which the ephemeris gives in
 /// Terrestrial Time and so is taken at `moment` + ΔT. Each is on its own
@@ -150,10 +150,15 @@ pub fn solar_position(moment: Moment) -> Equatorial {
 ///
 /// Meeus's (28.1), E = L₀ − 0.005 718 3° − α + Δψ cos ε, writes the same
 /// difference with the mean Sun's right ascension as the Sun's mean
-/// longitude L₀, and evaluates every term at one instant of TT. Read
-/// against a Universal Time clock, that takes the mean Sun ΔT late, and E
-/// comes out larger by ΔT times the mean Sun's rate, 0.985 6° a day: 0.19 s
-/// in 2024, 3 s in 1000 CE and 38 s in 586 BCE, when ΔT was five hours.
+/// longitude L₀ of his (25.2), and evaluates every term at one instant of
+/// TT. Read against a Universal Time clock, that takes the mean Sun ΔT
+/// late, and E comes out larger by two parts. The first is ΔT's worth of
+/// the mean Sun's motion, 0.985 6° a day: 0.19 s in 2024, 4.3 s in 1000 CE
+/// and 50.6 s in 586 BCE, when this crate's ΔT is 18 496 s. The second,
+/// of the other sign, is where the polynomial of L₀ parts from the mean
+/// Sun of the IAU 1982 sidereal time, chiefly their squared terms,
+/// 0.000 303 2° and 0.000 387 933° a century squared: −1.5 s in 1000 CE
+/// and −12.3 s in 586 BCE. Together, 0.19 s, 2.8 s and 38.4 s.
 /// *Calendrical Calculations*' `equation-of-time` does the same
 /// (`reingold2018code`). Taken from the hour angle, this is the equation
 /// [`crate::riseset::solar_noon`] and the rise and set functions solve,
@@ -632,7 +637,9 @@ mod tests {
     ///
     /// Meeus's (28.1) with the mean Sun at TT gives +37.8 s, +3.0 s,
     /// +0.19 s and +0.18 s against the same four: the mean Sun's motion in
-    /// ΔT, which Horizons puts at 18 310 s, 1 660 s, 64 s and 69 s. Here
+    /// ΔT, which Horizons puts at 18 310 s, 1 660 s, 64 s and 69 s, less
+    /// the difference of the mean-Sun polynomials of Meeus (25.2) and the
+    /// IAU 1982 sidereal time, about 12 s in 587 BCE and 1.5 s in 1000. Here
     /// the two differ by what the ΔT models do to the true Sun's right
     /// ascension, 0.003 s for each second they disagree: 0.6 s in 587 BCE,
     /// where this crate's ΔT is 185 s above Horizons', 0.2 s in 1000.

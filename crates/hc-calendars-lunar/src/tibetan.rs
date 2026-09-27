@@ -1238,39 +1238,35 @@ mod tests {
     }
 
     #[test]
-    fn the_whole_range_round_trips_at_a_stride_and_at_every_new_year() {
-        // A Tibetan conversion costs tens of microseconds, so walking all
-        // 730 000 days of 1000–3000 in each of the four versions takes over
-        // three minutes even in a release build: no build walks every day.
-        // Every day of four decades is walked below; across the whole range
-        // this takes every 29th day in a release build and every 319th in a
-        // debug one, strides prime to 7 and to 30 so that every weekday and
-        // every day of the month is visited, and every New Year and the day
-        // before it, where the year's months turn: of every year in a
-        // release build, and in a debug one, which the coverage job runs
-        // instrumented, of every seventh year and the last
-        // (`crate::sweep_years`), a sample that still holds New Years after
-        // years of twelve months and of thirteen.
-        let stride = if cfg!(debug_assertions) { 319 } else { 29 };
+    fn every_day_of_the_range_round_trips() {
+        // A Tibetan conversion costs about 75 µs in a release build, so the
+        // 730 000 days of 1000–3000 in each of the four versions are three
+        // and a half minutes of one core; a release build walks every one,
+        // spread over the machine's threads. A debug build, which the
+        // coverage job runs instrumented, takes every 319th day, a stride
+        // prime to 7 and to 30 so that every weekday and every day of the
+        // month is visited, and every New Year with the day before it, where
+        // the year's months turn (docs/policy.md §7).
         for calendar in VERSIONS {
             let id = calendar.meta().id;
             let (first, last) = (calendar.earliest().0, calendar.latest().0);
-            for leap in [false, true] {
-                assert!(
-                    crate::sweep_years(MIN_YEAR, MAX_YEAR, 7)
-                        .any(|year| year > MIN_YEAR && calendar.is_leap_year(year - 1) == leap),
-                    "{id}"
-                );
-            }
-            let new_years = crate::sweep_years(MIN_YEAR, MAX_YEAR, 7)
-                .map(|year| calendar.new_year(year).unwrap().0)
-                .chain([last + 1])
-                .flat_map(|day| [day - 1, day])
-                .filter(|&day| (first..=last).contains(&day));
-            for rd in (first..=last).step_by(stride).chain(new_years) {
+            let new_years: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
+                (MIN_YEAR..=MAX_YEAR)
+                    .map(|year| calendar.new_year(year).unwrap().0)
+                    .chain([last + 1])
+                    .collect()
+            } else {
+                alloc::vec::Vec::new()
+            };
+            let mut days: alloc::vec::Vec<i64> =
+                crate::sweep_days(first, last, 319, new_years.iter().copied()).collect();
+            days.sort_unstable();
+            days.dedup();
+            assert!(days.contains(&first) && days.contains(&last), "{id}");
+            crate::check_days(&days, |rd| {
                 let date = calendar.from_fixed(Rd(rd)).expect("in range");
                 assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "{id} rd {rd} {date}");
-            }
+            });
         }
     }
 

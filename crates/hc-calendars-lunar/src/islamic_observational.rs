@@ -1050,6 +1050,42 @@ mod tests {
     }
 
     #[test]
+    fn every_day_of_1900_to_2100_round_trips_at_cairo_and_by_the_saudi_rule() {
+        // Every day of the 73 000 in a release build, spread over the
+        // machine's threads: about a millisecond a day, a minute of one core
+        // for each calendar. A debug build, which the coverage job runs
+        // instrumented, takes every 101st day and every 1 Muḥarram with the
+        // day before it (docs/policy.md §7). The Saudi rule is judged at
+        // sunset on conjunction and moonset, a criterion of its own shape.
+        for calendar in [
+            IslamicObservationalCalendar::CAIRO_RD,
+            IslamicObservationalCalendar::SAUDI_RULE_RD,
+        ] {
+            let openings: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
+                (FIRST_YEAR..=LAST_YEAR)
+                    .filter_map(|year| calendar.compose(year, 1, 1).ok())
+                    .map(|day| day.0)
+                    .collect()
+            } else {
+                alloc::vec::Vec::new()
+            };
+            if cfg!(debug_assertions) {
+                assert_eq!(openings.len(), (LAST_YEAR - FIRST_YEAR) as usize);
+            }
+            let mut days: alloc::vec::Vec<i64> =
+                crate::sweep_days(EARLIEST.0, LATEST.0, 101, openings.iter().copied())
+                    .chain([LATEST.0])
+                    .collect();
+            days.sort_unstable();
+            days.dedup();
+            crate::check_days(&days, |day| {
+                let date = calendar.from_fixed(Rd(day)).expect("in range");
+                assert_eq!(calendar.to_fixed(date), Ok(Rd(day)), "RD {day}: {date:?}");
+            });
+        }
+    }
+
+    #[test]
     fn years_run_to_twelve_months_of_twenty_nine_or_thirty_days() {
         let calendar = IslamicObservationalCalendar::MECCA;
         for year in 1_440..1_445i64 {

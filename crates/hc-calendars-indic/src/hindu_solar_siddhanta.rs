@@ -459,15 +459,27 @@ mod tests {
     }
 
     #[test]
-    fn a_sample_of_days_round_trips_across_the_range() {
+    fn every_day_of_the_range_round_trips() {
+        // Every day of the 3.65 million in a release build, spread over the
+        // machine's threads; a debug build, which the coverage job runs
+        // instrumented, takes every 37th day and every Meṣa 1 of the ten
+        // thousand years with the day before it (docs/policy.md §7).
         let calendar = SiddhantaSolarCalendar::UJJAIN;
         let (first, last) = (NAMED_RANGE.1.0, NAMED_RANGE.2.0);
-        for start in [first, ymd(-600, 1, 1).0, ymd(1980, 1, 1).0, last - 20_000] {
-            for day in (start..start + 20_000).step_by(crate::sweep_stride(37)) {
-                let date = calendar.from_fixed(Rd(day)).expect("in range");
-                assert_eq!(calendar.to_fixed(date), Ok(Rd(day)), "{date:?}");
-            }
-        }
+        let openings: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
+            (MIN_YEAR..=MAX_YEAR)
+                .map(|year| calendar.month_start(year, 1).expect("in range").0)
+                .chain([last + 1])
+                .collect()
+        } else {
+            alloc::vec::Vec::new()
+        };
+        let days = crate::sweep_days(first, last, 37, &openings);
+        assert!(days.contains(&first) && days.contains(&last));
+        crate::check_days(&days, |day| {
+            let date = calendar.from_fixed(Rd(day)).expect("in range");
+            assert_eq!(calendar.to_fixed(date), Ok(Rd(day)), "{date:?}");
+        });
         assert_eq!(
             calendar.from_fixed(Rd(first - 1)),
             Err(CalendarError::BeforeEpoch)

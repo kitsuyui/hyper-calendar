@@ -682,6 +682,34 @@ mod tests {
     }
 
     #[test]
+    fn every_day_of_the_range_round_trips() {
+        // The amānta engine the Siddhānta calendar and the pūrṇimānta
+        // renaming share, on the true sky. Every day of the 600 years in a
+        // release build, spread over the machine's threads: about 0.9 ms a
+        // day, three minutes of one core. A debug build, which the coverage
+        // job runs instrumented, takes every 211th day and every Chaitra
+        // śukla 1 with the day before it (docs/policy.md §7).
+        let (first, last) = (
+            RASHTRIYA.earliest().unwrap().0,
+            RASHTRIYA.latest().unwrap().0,
+        );
+        let openings: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
+            (MIN_YEAR..=MAX_YEAR)
+                .map(|year| RASHTRIYA.new_year(year).unwrap().0)
+                .chain([last + 1])
+                .collect()
+        } else {
+            alloc::vec::Vec::new()
+        };
+        let days = crate::sweep_days(first, last, 211, &openings);
+        assert!(days.contains(&first) && days.contains(&last));
+        crate::check_days(&days, |rd| {
+            let date = RASHTRIYA.from_fixed(Rd(rd)).unwrap();
+            assert_eq!(RASHTRIYA.to_fixed(date), Ok(Rd(rd)), "rd {rd}: {date:?}");
+        });
+    }
+
+    #[test]
     fn the_calendar_impl_round_trips_through_fields() {
         for rd in (ymd(2023, 3, 22).0..ymd(2024, 4, 9).0).step_by(7) {
             let date = RASHTRIYA.from_fixed(Rd(rd)).unwrap();

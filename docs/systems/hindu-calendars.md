@@ -402,7 +402,40 @@ Ujjain's clock, ten minutes after the true sunrise; the Moon then stands
 at 352.87° and the Sun at 345.28°, an elongation of 7.58°, inside the
 first tithi. So 30 March 2025 is Chaitra śukla 1 of Śaka 1947, Vikrama
 2082, the new year's day — the same day the true Sun and Moon give, at
-Ujjain and at the Central Station. The two skies do not always agree:
+Ujjain and at the Central Station.
+
+The two longitudes at that sunrise can be followed by hand, from the
+constants above and the table of sines of 24 steps of 3° 45′ in a radius
+of 3438′ [reingold2018code, `hindu-sine-table`, `hindu-true-position`]:
+
+1. *The instant.* 01:01.07 UT on RD 739 340 is 06:04.1 by Ujjain's clock,
+   75° 46′ 6″ east: RD 739 340.252 88, which is 1 872 299.252 88 days
+   after the Kali Yuga epoch, RD −1 132 959.
+2. *The mean Sun.* The days over the sidereal year, 365.258 756, are
+   5 125.953 09 revolutions; the fraction, 0.953 09 of 360°, is 343.114°.
+3. *The Sun's anomaly.* The days over the anomalistic year, 365.258 789,
+   plus the 0.785 75 of a revolution at the epoch, leave 265.818°.
+4. *Its sine.* 265.818° is 70.885 steps of the table, between the
+   entries −3409′ and −3431′; interpolated, −3428.5′, or −0.997 23 of the
+   radius.
+5. *The epicycle.* The Sun's is 14° of the deferent, shrinking by 1⁄42
+   of itself times the sine's size: 14° × (1 − 0.997 23⁄42) = 13.668°. The
+   equation's sine is −0.997 23 × 13.668⁄360 of the radius, −130.16′.
+6. *The equation.* 130.16′ lies between the table's 0′ and 225′, 0.578 5
+   of a step, 2.169°; negative, as its sine is.
+7. *The true Sun.* The mean less the equation: 343.114° + 2.169° =
+   345.283°.
+
+The Moon is the same with its own constants: 68 527.984 10 sidereal
+months give a mean Moon of 354.280°; the anomaly, with the three
+quarters at the epoch, is 163.848°, whose sine, between the entries
+1105′ and 890′, is 956.03′; the epicycle of 32° shrinks by 1⁄96 of the
+sine's size to 31.907°, the equation's sine is 84.73′, and the equation
+1.412°, so the Moon stands at 354.280° − 1.412° = 352.867°. The hand
+computation stops at the searches: the conjunction and the saṅkrānti are
+found by bisecting the elongation and the Sun's longitude, and the
+Siddhānta's sunrise by the formula above, and those three are the
+module's results, not steps worked here. The two skies do not always agree:
 over 2000–2030 they give different dates at Ujjain on 1 389 of 11 323
 days, 100 of them in another month, and in Śaka 1904 the Siddhānta's
 Pauṣa, from 15 January 1983, holds both the Makara and the Kumbha
@@ -754,8 +787,9 @@ weeks.
   day of the range. Of the registered calendars only
   `hindu-lunar-surya-siddhanta` reads at Ujjain, and at the Siddhānta's
   sunrise there, not the true one.
-- **Range** Gregorian 1700 to 2299 for the true calendars — Śaka 1622 to
-  2221 for the lunisolar ones, the era years the offsets give for the
+- **Range** roughly Gregorian 1700 to 2299 for the true calendars — Śaka
+  1622 to 2221 for the lunisolar ones, Chaitra śukla 1 in March 1700 to
+  the eve of the one in March 2300, the era years the offsets give for the
   solar ones — "as far back as the lunar theory is worth asking", and
   refused outside; Kali Yuga 0 to 10 000 for the Old Hindu ones, whose
   lunisolar year 0 lacks the intercalary Chaitra its rule promises,
@@ -824,6 +858,7 @@ assert:
 | The printed ayanāṃśa, 24°11′39″ and 24°12′35″ | `the_ayanamsa_the_panchang_prints_is_the_one_used` | within 10″ |
 | A new moon after the local sunrise (11 June 2002, 05:17 IST) starts the month a day later; a conjunction within minutes of sunrise (Kathmandu, 1 October 2016) is read where the tithi is | `a_new_moon_after_the_next_local_sunrise_starts_the_month_a_day_later`, `a_month_begins_where_its_first_tithi_does` | both |
 | Every day of the two years round-trips, with 10 to 40 repeated tithis | `a_sample_of_days_round_trips_including_repeated_tithis` | all |
+| Every day of Śaka 1622–2221, March 1700 to March 2300, round-trips on the amānta engine | `hindu_lunar::every_day_of_the_range_round_trips` | all in a release build, about three minutes of one core spread over the machine's threads; in a debug one every 211th day and every Chaitra śukla 1 with the day before it |
 | The pūrṇimānta name of every dark fortnight of the two years, 25 *vadi* rows | `hindu_purnimanta::every_dark_fortnight_carries_the_name_the_rashtriya_panchang_gives_it` | 25 of 25 |
 | The first day of every solar month of both years, Tamil, Bengali and Vikrami | `hindu_solar::the_tamil_months_begin_where_the_rashtriya_panchang_says` and the Bengali and Vikrami tests | 24 of 24 each |
 | The first day of every Malayalam month of both years | `the_malayalam_months_begin_where_the_rashtriya_panchang_says_save_medam` | 22 of 24; see below |
@@ -840,11 +875,13 @@ assert:
 | Art. 60's Ārya column | `the_arya_column_of_the_list_is_a_year_after_the_arya_rule` | 0 of 19: see below |
 | The 33 sample dates of *Calendrical Calculations*, as its published code computes them [reingold2018code, `dates.l`]: the Old Hindu solar and lunisolar calendars | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) | 33 of 33 each, 586 BCE to 2094 |
 | The same dates, the book's modern solar calendar: `hindu-solar-surya-siddhanta` | the same test, and `hindu_solar_siddhanta::the_books_sample_dates_are_reproduced_both_ways` | 33 of 33, 586 BCE to 2094, each converting back |
+| Every day of Kali Yuga 1–10000 round-trips on the Siddhānta's solar calendar | `hindu_solar_siddhanta::every_day_of_the_range_round_trips` | all in a release build; in a debug one every 37th day and every Meṣa 1 with the day before it |
 | Meṣa 1 of Śaka 1947 on the Siddhānta, worked above: the saṅkrānti at 00:08 UT on 14 April 2025, before that morning's sunrise at 00:51 UT and after the one before | `mesha_1_of_saka_1947_follows_the_siddhantas_sankranti` | all |
 | The Siddhānta's sunrise against the true one as the day's end, the same months otherwise | `the_siddhantas_sunrise_moves_two_month_starts_of_thirty_one_years` | 2 of the 372 month starts of 2000–2030, 16 November 2022 and 15 December 2024, 60 days in all, in a release build |
 | The same dates, the book's astronomical solar calendar, the Tamil rule at Ujjain on the true Sun: `TAMIL` rebuilt at `UJJAIN`, and the registered `hindu-solar-tamil` | the same test | 10 of 13 each; the other three are the reference code's time scale, below |
 | The same dates, the book's astronomical lunisolar calendar at Ujjain: `HinduLunarCalendar::UJJAIN`, and the registered `hindu-lunar` | the same test | 12 of 13 each; the other is the reference code's time scale, below |
 | The same dates, the book's modern lunisolar calendar on the Siddhānta's Sun and Moon: `hindu-lunar-surya-siddhanta` | the same test, and `hindu_lunar_siddhanta::the_books_sample_dates_are_reproduced_both_ways` | 33 of 33, 586 BCE to 2094, each converting back |
+| Every day of Kali Yuga 1–10000 round-trips on the Siddhānta's lunisolar calendar | `hindu_lunar_siddhanta::every_day_of_the_range_round_trips` | all in a release build, about four minutes of one core spread over the machine's threads; in a debug one every 181st day and every Chaitra śukla 1 with the day before it |
 | Chaitra śukla 1 of Śaka 1947 on the Siddhānta, worked above: the conjunction of 29 March 2025 at 11:18 UT in Mīna, the Meṣa saṅkrānti on 14 April, the sunrise at 01:01 UT, the elongation of 7.58° | `chaitra_sukla_1_of_saka_1947_worked_by_hand` | all |
 | The Siddhānta's sunrise at Ujjain against `hc-astro`'s, 2000–2009 | `the_siddhantas_sunrise_at_ujjain_is_minutes_from_the_true_one` | from 7.5 minutes earlier to 15.8 later |
 | The Siddhānta's dates against the true Sun and Moon at Ujjain | `the_siddhanta_and_the_true_sky_part_on_one_day_in_eight` | 44 of the 366 days of 2024; 1 389 of the 11 323 of 2000–2030, 100 in another month, in a release build |
