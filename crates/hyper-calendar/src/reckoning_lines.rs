@@ -683,6 +683,50 @@ mod tests {
         );
     }
 
+    /// Amar Ujala's window of April 2026 (`amarujala-raj-panchak-2026`):
+    /// from Monday 13 April to Friday 17 April, राज पंचक, which the Hindi
+    /// table names as the page does.
+    #[test]
+    fn the_raj_panchak_of_april_2026_is_named_in_hindi() {
+        let line = panchak_line(
+            "panchak-five-kinds",
+            ist(2026, 4, 14, 12, 0),
+            "lahiri",
+            19_800,
+            "hi",
+        )
+        .expect("in range");
+        let cells = rows(&line, PANCHAK_COLUMNS).remove(0);
+        let opens: i64 = cells[1].parse().expect("an instant");
+        let closes: i64 = cells[2].parse().expect("an instant");
+        assert!(
+            (ist(2026, 4, 13, 0, 0)..ist(2026, 4, 14, 0, 0)).contains(&opens),
+            "{opens}"
+        );
+        assert!(
+            (ist(2026, 4, 17, 0, 0)..ist(2026, 4, 18, 0, 0)).contains(&closes),
+            "{closes}"
+        );
+        assert_eq!(cells[3..], ["1", "raj", "राज पंचक", "hi"]);
+    }
+
+    /// The counts of 2021 under `zh-Hant`: NOWnews's "2021辛丑年為「二龍治水」",
+    /// the first 辰 day on 正月初二 (`nownews-er-long-zhi-shui-2020`), in the
+    /// page's own words, and 几人分饼, which no Traditional page read writes,
+    /// in the kind's own script. The third watch under `zh-Hans` is China
+    /// News Service's 三更, 23:00 to 01:00 (`chinanews-wu-geng-2014`).
+    #[test]
+    fn the_chinese_terms_are_in_each_scripts_own_words() {
+        let day = ymd(2021, 3, 1);
+        let text = folk_day_lines(day, "china", "zh-Hant").expect("in range");
+        let lines: Vec<&str> = text.lines().collect();
+        assert_eq!(lines[0], "first-month-count\tdragons\t幾龍治水\tzh-Hant\t2");
+        assert!(lines[1].starts_with("first-month-count\toxen\t幾牛耕地\tzh-Hant\t"));
+        assert!(lines[3].starts_with("first-month-count\tcakes\t几人分饼\tzh-Hans\t"));
+        let watch = night_watch_line(23 * 3_600, "zh-Hans").expect("a time");
+        assert!(watch.starts_with("3\t0\t三更\tzh-Hans\t"), "{watch}");
+    }
+
     /// Drik Panchang's windows of 2025 for New Delhi (`drik-panchak`, as
     /// `docs/systems/panchak.md` reads them): the first opens on Friday
     /// 3 January at 10:47 IST and closes on Tuesday 7 January at 17:50,

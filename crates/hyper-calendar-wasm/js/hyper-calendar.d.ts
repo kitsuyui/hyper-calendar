@@ -154,7 +154,7 @@ export interface RadioEncodeOptions {
   zoneChange?: boolean;
   /** WWVB's amplitude UT1 − UTC in tenths, −9 to 9. */
   dut1Tenths?: number;
-  /** The phase code's `dst_next` word. */
+  /** The phase code's `dst_next` word; ignored when `summer` names a zone, whose next change gives it. */
   dstNext?: number;
 }
 
@@ -191,7 +191,7 @@ export interface ChoghadiyaPart {
   /** 1 to 8. */
   part: number;
   id: ChoghadiyaId;
-  /** Named in the locale, else English's, which is the only table. */
+  /** Named in the locale, उद्वेग to रोग under `hi`, else English's. */
   name: string;
   localeUsed: string;
   quality: "auspicious" | "neutral" | "inauspicious";
@@ -360,6 +360,28 @@ export interface IrigReading {
   straightBinarySeconds: number | null;
 }
 
+/** One line of `hc_irig_formats`. */
+export interface IrigFormatInfo {
+  /** The letter, `A`, `B`, `D`, `E`, `G` or `H`. */
+  format: string;
+  /** The index count interval: 1 000 for A, 60 000 000 for D. */
+  indexCountMicroseconds: number;
+  /** The index counts in a frame, 100 or 60. */
+  indexCounts: number;
+  /** The frame's length; a frame begins at each multiple of it from midnight. */
+  frameMicroseconds: number;
+  /** The fields of the BCD time of year, most significant first: `days`, `hours`, … */
+  fields: string[];
+  /** The control bits the format has room for. */
+  controlBits: number;
+  /** The modulation digits Table 4-1 permits. */
+  modulations: number[];
+  /** The carrier digits it permits. */
+  carriers: number[];
+  /** The coded expressions it permits. */
+  expressions: number[];
+}
+
 /** What `irigEncode` puts in a frame besides the second. */
 export interface IrigEncodeOptions {
   /** 0 to 99; the formats A and G send them. */
@@ -381,6 +403,9 @@ export type KalamId = "rahu-kalam" | "yamaganda" | "gulika-kalam";
 export interface KalamPeriod {
   id: KalamId;
   englishName: string;
+  /** Named in the locale, राहुकाल under `hi`, else English's. */
+  name: string;
+  localeUsed: string;
   /** The eighth of the day, 1 to 8. */
   part: number;
   /** `universal`: POSIX seconds; `local`: seconds after the day's own midnight. */
@@ -647,6 +672,7 @@ export const COLUMNS: {
   readonly planetaryHour: ReadonlyArray<string>;
   readonly gmat: ReadonlyArray<string>;
   readonly irigDecode: ReadonlyArray<string>;
+  readonly irigFormats: ReadonlyArray<string>;
 };
 export const UNITS: readonly Unit[];
 export const NATIVE: "native";
@@ -1916,6 +1942,8 @@ export class HyperCalendar {
   irigDecode(signal: string, frame: string, year: number | bigint): IrigReading;
   /** `hc_irig_encode`: a reading the format has no frame at is `out-of-range`. */
   irigEncode(signal: string, fixed: number | bigint, secondsOfDay: number, options?: IrigEncodeOptions): string;
+  /** `hc_irig_formats`: the six formats, A first. */
+  irigFormats(): IrigFormatInfo[];
   /** `hc_dotnet_ticks_from_unix`: the ticks, which need not fit a number. */
   dotnetTicksFromUnix(unixSeconds: number | bigint, attoseconds?: number | bigint): bigint;
   /** `hc_unix_from_dotnet_ticks`. */
@@ -1999,7 +2027,14 @@ export class HyperCalendar {
   /** `hc_asian_day`; a day outside AD 4 to the Asian year 9999 is `out-of-range`. */
   asianDay(fixed: number | bigint): AsianDay;
   /** `hc_kalam`: three lines, Rāhu kālam, Yamaganda and Gulika kālam. */
-  kalam(convention: KalamConvention, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): KalamPeriod[];
+  kalam(
+    convention: KalamConvention,
+    fixed: number | bigint,
+    latitude: number,
+    longitude: number,
+    elevation?: number,
+    locale?: string,
+  ): KalamPeriod[];
   /** `hc_almanac_cycles`: 立春 at `meridian`, as for `termInEffect`. */
   almanacCycles(fixed: number | bigint, meridian?: string): AlmanacCycles;
   /** `hc_almanac_day`: the solar terms and new moons at `meridian`; `und` unless a locale is given. */

@@ -649,12 +649,13 @@ pub fn radio_encode_line(
 }
 
 /// The line of `hc_radio_encode` with the summer-time state read from a
-/// zone's rules instead of the caller, in a build with the `tz` feature: for `dcf77` the zone and A1 from
+/// zone's rules instead of the caller, in a build with the `tz` feature:
+/// for `dcf77` the zone and A1 from
 /// [`dcf77::summer_time`](hc_format::radio::dcf77::summer_time), for both
 /// WWVB codes the state of the minute's UTC day from
-/// [`DstState::of_day`]. The other arguments are
-/// [`radio_encode_line`]'s; the phase code's `dst_next` stays the caller's
-/// and must be one Table 8 lists for the direction the rules give.
+/// [`DstState::of_day`], and for `wwvb-pm` its `dst_next` word, the next
+/// change after that day, from [`DstNext::of_day`]. The other arguments
+/// are [`radio_encode_line`]'s.
 ///
 /// # Errors
 ///
@@ -669,7 +670,6 @@ pub fn radio_encode_line_by_zone(
     leap: i32,
     zone: &dyn TimeZone,
     dut1_tenths: i32,
-    dst_next: u32,
 ) -> Answer<String> {
     encode_radio(
         code,
@@ -677,7 +677,7 @@ pub fn radio_encode_line_by_zone(
         leap,
         Summer::Rules(zone),
         dut1_tenths,
-        dst_next,
+        0,
     )
 }
 
@@ -743,6 +743,27 @@ impl Summer<'_> {
             Self::Named { summer, .. } => dst_state(summer),
             #[cfg(feature = "tz")]
             Self::Rules(zone) => Ok(DstState::of_day(zone, UnixTime::from_seconds(unix_seconds))),
+        }
+    }
+
+    /// The phase code's `dst_next` for the minute beginning at
+    /// `unix_seconds`: the caller's `word` when the state is named, which
+    /// must be one Table 8 lists for the direction `dst_on` gives, or the
+    /// zone's next change.
+    fn dst_next(self, unix_seconds: i64, word: u32, dst_on: bool) -> Answer<DstNext> {
+        // Only a zone's rules read the minute.
+        #[cfg(not(feature = "tz"))]
+        let _ = unix_seconds;
+        match self {
+            Self::Named { .. } => {
+                let word = u8::try_from(word)
+                    .ok()
+                    .filter(|word| *word < 64)
+                    .ok_or(Refusal::OutOfRange)?;
+                DstNext::from_word(word, dst_on).ok_or(Refusal::OutOfRange)
+            }
+            #[cfg(feature = "tz")]
+            Self::Rules(zone) => Ok(DstNext::of_day(zone, UnixTime::from_seconds(unix_seconds))),
         }
     }
 }
@@ -828,11 +849,7 @@ fn encode_radio(
         }
         RadioCode::WwvbPm => {
             let dst = summer.wwvb(unix_seconds)?;
-            let word = u8::try_from(dst_next)
-                .ok()
-                .filter(|word| *word < 64)
-                .ok_or(Refusal::OutOfRange)?;
-            let next = DstNext::from_word(word, dst.bits().0).ok_or(Refusal::OutOfRange)?;
+            let next = summer.dst_next(unix_seconds, dst_next, dst.bits().0)?;
             let reading = minute_at(0)?;
             let year = gregorian::year_from_fixed(reading.day);
             let frame = PmFrame::for_minute(reading, year - year.rem_euclid(100), dst, leap, next)
@@ -853,6 +870,57 @@ fn encode_radio(
 /// [`Refusal::Unknown`] for any other text.
 fn irig_code(signal: &str) -> Answer<IrigCode> {
     IrigCode::from_signal(signal).map_err(|_| Refusal::Unknown)
+}
+
+/// How many columns each line of [`irig_formats_lines`] writes.
+pub const IRIG_FORMATS_COLUMNS: usize = 9;
+
+/// Write a list of digits separated by spaces.
+fn push_digits(out: &mut String, digits: &[u8]) {
+    for (index, digit) in digits.iter().enumerate() {
+        if index > 0 {
+            out.push(' ');
+        }
+        let _ = write!(out, "{digit}");
+    }
+}
+
+/// The lines of `hc_irig_formats`: every IRIG format of
+/// [`IrigFormat::ALL`](hc_format::irig::IrigFormat::ALL), A first, one a
+/// line, with what a caller needs to name a code and to find a frame.
+///
+/// The cells: the format's letter; the index count interval in
+/// microseconds, 1 000 for A's 1 000 pulses a second (Table 3-1); the
+/// index counts in a frame, 100 or 60 (Table 3-2); the frame's length in
+/// microseconds, whose multiples from midnight are the readings
+/// [`irig_encode_line`] writes a frame at; the fields of the BCD time of
+/// year, most significant first and separated by spaces, the last of which
+/// the frame's length is (`days hours minutes seconds tenths` for A); the
+/// control bits the format has room for (Table 3-4); and the modulations,
+/// the carriers and the coded expressions Table 4-1 permits it, the three
+/// digits of a signal designation, each list separated by spaces.
+#[must_use]
+pub fn irig_formats_lines() -> String {
+    let mut out = String::new();
+    for format in irig::IrigFormat::ALL {
+        let _ = write!(
+            out,
+            "{}\t{}\t{}\t{}\t",
+            format.letter(),
+            format.index_count_micros(),
+            format.frame_len(),
+            format.frame_micros(),
+        );
+        push_cell(&mut out, &format.time_fields().join(" "));
+        let _ = write!(out, "\t{}\t", format.control_bits());
+        push_digits(&mut out, format.modulations());
+        out.push('\t');
+        push_digits(&mut out, format.carriers());
+        out.push('\t');
+        push_digits(&mut out, format.expressions());
+        out.push('\n');
+    }
+    out
 }
 
 /// The fixed days of the years 1 to 9999, the days `hc_irig_encode` writes
@@ -1421,13 +1489,11 @@ mod tests {
         );
     }
 
-    /// `DateTime.MaxValue`, 23:59:59.9999999 on 9999-12-31, is 3 155 378 975
-    /// 999 999 999 ticks (`ms-datetime-maxvalue`), and 1970-01-01 is
-    /// 621 355 968 000 000 000.
     /// The stations' examples again with the summer-time state read from
     /// the zones' rules — Europe/Berlin's for DCF77, America/New_York's,
-    /// on the United States' rule as Denver, for WWVB — and the frames
-    /// announcing 2026's European changes, which carry A1.
+    /// on the United States' rule as Denver, for WWVB — the frames
+    /// announcing 2026's European changes, which carry A1, and the phase
+    /// code's `dst_next` around 2026's American changes.
     #[cfg(feature = "tz")]
     #[test]
     fn a_zones_rules_give_the_frames_the_caller_would() {
@@ -1436,22 +1502,47 @@ mod tests {
         let named = |code, unix, summer, change, dut1, next| {
             radio_encode_line(code, unix, 0, summer, change, dut1, next).expect("a minute")
         };
-        let ruled = |code, unix, zone: &dyn TimeZone, dut1, next| {
-            radio_encode_line_by_zone(code, unix, 0, zone, dut1, next).expect("a minute")
+        let ruled = |code, unix, zone: &dyn TimeZone, dut1| {
+            radio_encode_line_by_zone(code, unix, 0, zone, dut1).expect("a minute")
         };
+        assert_eq!(ruled("dcf77", 1_790_512_200, &berlin, 0).trim_end(), DCF77);
         assert_eq!(
-            ruled("dcf77", 1_790_512_200, &berlin, 0, 0).trim_end(),
-            DCF77
-        );
-        assert_eq!(
-            ruled("wwvb-am", 1_341_423_000, &new_york, 4, 0).trim_end(),
+            ruled("wwvb-am", 1_341_423_000, &new_york, 4).trim_end(),
             WWVB_AM
         );
         // Table 10's frame but for its notice and reserved bits, which
-        // `encode` leaves 0.
+        // `encode` leaves 0: its `dst_next`, 011011, is the first Sunday of
+        // November at 2 AM, which New York's rules give.
         assert_eq!(
-            ruled("wwvb-pm", 1_341_423_000, &new_york, 0, 27),
+            ruled("wwvb-pm", 1_341_423_000, &new_york, 0),
             named("wwvb-pm", 1_341_423_000, "in-effect", false, 0, 27)
+        );
+        // 2026's changes in New York: the word names 8 March until 00:00
+        // UTC that day, then 1 November, then from 00:00 UTC on 1 November
+        // the second Sunday of March 2027. The three are all 011011 and
+        // read apart by `dst_on[1]`, so the frames are the named ones.
+        for (minute, summer) in [
+            (1_772_927_940, "standard"),
+            (1_772_928_000, "begins-today"),
+            (1_793_491_140, "in-effect"),
+            (1_793_491_200, "ends-today"),
+        ] {
+            assert_eq!(
+                ruled("wwvb-pm", minute, &new_york, 0),
+                named("wwvb-pm", minute, summer, false, 0, 27),
+                "{minute}"
+            );
+        }
+        // Berlin's rules give schedules of their own: the last Sunday of
+        // March at 2 AM before summer time, 000010, and of October at 3 AM
+        // in it, 010000.
+        assert_eq!(
+            ruled("wwvb-pm", 1_768_435_200, &berlin, 0),
+            named("wwvb-pm", 1_768_435_200, "standard", false, 0, 0b000010)
+        );
+        assert_eq!(
+            ruled("wwvb-pm", 1_782_864_000, &berlin, 0),
+            named("wwvb-pm", 1_782_864_000, "in-effect", false, 0, 0b010000)
         );
         for (change, before, after) in [
             (1_774_746_000, "cet", "cest"),
@@ -1464,7 +1555,7 @@ mod tests {
                 (change + 60, after, false),
             ] {
                 assert_eq!(
-                    ruled("dcf77", minute, &berlin, 0, 0),
+                    ruled("dcf77", minute, &berlin, 0),
                     named("dcf77", minute, summer, a1, 0, 0),
                     "{minute}"
                 );
@@ -1472,7 +1563,7 @@ mod tests {
         }
         // 2026-03-08, the United States' change: bit 57 from 00:00 UTC.
         assert_eq!(
-            ruled("wwvb-am", 1_772_928_000, &new_york, 0, 0),
+            ruled("wwvb-am", 1_772_928_000, &new_york, 0),
             named("wwvb-am", 1_772_928_000, "begins-today", false, 0, 0)
         );
         assert_eq!(
@@ -1483,16 +1574,75 @@ mod tests {
         assert_eq!(radio_summer_zone("zon"), None);
         let london = hc_format::hc_tz::builtin::zone("Europe/London").expect("built in");
         assert_eq!(
-            radio_encode_line_by_zone("dcf77", 1_790_512_200, 0, &london, 0, 0),
+            radio_encode_line_by_zone("dcf77", 1_790_512_200, 0, &london, 0),
             Err(Refusal::OutOfRange)
         );
         assert_eq!(
-            radio_encode_line_by_zone("jjy", 1_080_807_900, 0, &berlin, 0, 0),
+            radio_encode_line_by_zone("jjy", 1_080_807_900, 0, &berlin, 0),
             Err(Refusal::Unknown)
         );
-        // Summer time in effect in July; 27 is a word for leaving it.
+    }
+
+    /// `DateTime.MaxValue`, 23:59:59.9999999 on 9999-12-31, is 3 155 378 975
+    /// 999 999 999 ticks (`ms-datetime-maxvalue`), and 1970-01-01 is
+    /// 621 355 968 000 000 000.
+    /// IRIG 200-16's Tables 3-1, 3-2, 3-4 and 4-1, one line a format.
+    #[test]
+    fn the_irig_formats_are_the_standards() {
+        let text = irig_formats_lines();
+        let rows: alloc::vec::Vec<alloc::vec::Vec<&str>> = text
+            .lines()
+            .map(|line| line.split('\t').collect())
+            .collect();
+        assert!(rows.iter().all(|row| row.len() == IRIG_FORMATS_COLUMNS));
         assert_eq!(
-            radio_encode_line_by_zone("wwvb-pm", 1_341_423_000, 0, &new_york, 0, 0),
+            rows.iter()
+                .map(|row| row[0])
+                .collect::<alloc::vec::Vec<_>>(),
+            ["A", "B", "D", "E", "G", "H"]
+        );
+        assert_eq!(
+            rows[1],
+            [
+                "B",
+                "10000",
+                "100",
+                "1000000",
+                "days hours minutes seconds",
+                "18",
+                "0 1 2",
+                "0 2 3 4 5",
+                "0 1 2 3 4 5 6 7"
+            ]
+        );
+        assert_eq!(
+            rows[2],
+            [
+                "D",
+                "60000000",
+                "60",
+                "3600000000",
+                "days hours",
+                "9",
+                "0 1",
+                "0 1 2",
+                "1 2"
+            ]
+        );
+        assert_eq!(
+            rows[4][3..6],
+            [
+                "10000",
+                "days hours minutes seconds tenths hundredths",
+                "27"
+            ]
+        );
+        // Figure 5-2's B124 frame, 21:18:42, is at a whole second; half a
+        // second on is no frame's reading.
+        let day = gregorian::to_fixed(2003, 6, 22).expect("a date").0;
+        assert!(irig_encode_line("B124", day, 76_722, 0, 0).is_ok());
+        assert_eq!(
+            irig_encode_line("B124", day, 76_722, 50, 0),
             Err(Refusal::OutOfRange)
         );
     }

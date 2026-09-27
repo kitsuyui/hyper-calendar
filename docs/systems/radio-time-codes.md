@@ -212,9 +212,10 @@ of November at 2 AM, `011011` with the state's first bit 1.
   - *The station's own schedule for an announcement*: each `encode` writes
     the notices it is given, as a transmitter's operator sets them. The
     one exception is summer time, which follows from a zone's rules:
-    `dcf77::summer_time` gives Z1 Z2 and A1, and `wwvb::DstState::of_day`
-    bits 57 and 58, from a `hc_tz::TimeZone`, below. WWVB's leap second
-    and the phase code's `dst_next` are still the caller's.
+    `dcf77::summer_time` gives Z1 Z2 and A1, `wwvb::DstState::of_day`
+    bits 57 and 58, and `wwvb::DstNext::of_day` the phase code's
+    `dst_next`, from a `hc_tz::TimeZone`, below. WWVB's leap second is
+    still the caller's.
   - *The analogue side*: pulse widths, carrier phase and the detection of
     a second's start are the receiver's.
   - *DCF77's omitted leap second.* PTB calls one "negligible" and adds
@@ -252,6 +253,36 @@ so they can be read from that zone's rules rather than given:
   station is near Fort Collins, America/Denver. On 8 March 2026 Denver
   changes at 09:00 UTC: the day is `begins-today` from 00:00 UTC, and
   `in-effect` from 00:00 UTC on the 9th.
+- **WWVB's `dst_next`.** "When DST is in effect (in the spring or
+  summer), the DST_NEXT field provides advance notification for the end
+  of the DST period in the fall, whereas when DST is not in effect, as is
+  the case in the winter, this field provides advance notification for
+  the beginning of the next DST period in the upcoming spring"
+  [nist-wwvb-enhanced-2013, §4.6], and the advance notice of the end is
+  "made available once the DST period started". Table 8's words are read
+  with `dst_on[1]`, which is bit 57, so the word turns with it at 00:00
+  UTC on the day of a change: it names the zone's first change of summer
+  time after the end of the minute's UTC day. Table 8 lists each change
+  by its Sunday — the first Sunday of March and the seven after it into
+  summer time, and the fourth Sunday before the first of November to the
+  third after it out of it — and its hour on the clock kept before it,
+  "after 1:59AM, skip from 2:00AM to 3:00AM" and "after 1:59AM, instead
+  of 2:00AM move back to 1:00AM" both being 2 AM. A change on another
+  day or at another hour is word 49, "DST transition occurs at different
+  time", which "will serve to convey that no advance notification can be
+  provided". A zone that changes neither way in the year after the day
+  is word 50, "no DST period scheduled this year", reserved "for the
+  possibility of DST being cancelled", or 51, "DST in effect for this
+  whole year", reserved "for the case of DST being permanently in
+  effect", as it keeps standard or summer time. For Denver in 2026 the
+  word names the second Sunday of March at 2 AM until 00:00 UTC on
+  8 March, the first Sunday of November at 2 AM, Table 8's row 37 and the
+  document's frame of 4 July 2012, until 00:00 UTC on 1 November, and the
+  second Sunday of March again, 14 March 2027, after it: all three are
+  `011011`, read into or out of summer time by `dst_on[1]`. Berlin's last
+  Sundays of March at 2 AM and of October at 3 AM are Table 8's
+  `000010` and `010000`; Sydney's first Sunday of April is word 49 and
+  Phoenix, with no summer time, word 50.
 
 The WebAssembly module and the C library read the zone by name through the
 same selection as their day in a zone — a loaded TZif file, then the
@@ -275,6 +306,7 @@ round trip of every field.
 | Tables 4 and 8 read in both directions; their words distinct | `table_4_round_trips`, `table_8_round_trips` | all 12 and 56 |
 | Every code round-trips at three or five minutes of every day, 2000–2099 | `every_code_round_trips` | exact; every day in a release build, in a debug one every 83rd to 97th and every month's first and last |
 | DCF77's A1 and zone around Europe/Berlin's two changes of 2026, and WWVB's bits 57 and 58 around Denver's; the stations' examples from Berlin's and New York's rules | `a1_is_set_for_the_hour_before_a_change`, `the_summer_time_bits_follow_the_day_of_a_change`, `a_zones_rules_give_the_frames_the_caller_would` | exact |
+| The phase code's `dst_next` from Denver's rules around its two changes of 2026 and every day of the year, from Berlin's, Sydney's and Phoenix's, and from New York's in the 2012 frame | `dst_next_follows_the_next_change`, `dst_next_of_other_rules`, `a_zones_rules_give_the_frames_the_caller_would` | exact |
 | Parity, BCD, marker and length errors are refused | `broken_frames_are_refused` | each refused |
 | Field errors: a reading off the minute, a UT1 − UTC past ±0.9 s, a stop notice, call sign, minute count or `dst_next` the code cannot carry, a DCF77 weekday of 0, 60 marks without A2, and a 1 at WWVB's phase bits 59 and 60 | `field_refusals` in `jjy`, `dcf77` and `wwvb` | each refused |
 
@@ -287,7 +319,7 @@ round trip of every field.
 | [ptb-dcf77-carrier] | DCF77's carrier, 77.5 kHz | Yes, ptb.de, the page "DCF77 carrier frequency", 2026-09-27 |
 | [nist-sp432-2002] | WWVB's amplitude code: the bits, UT1, the leap year and leap second bits, summer time, the 2001 example | Yes, the PDF, 2026-09-27 |
 | [nist-sp250-67] | The same, with the leap year bit's timing, and bits 57 and 58 at 00:00 UTC on the day of a change and the day after | Yes, the PDF, chapter 2 §2, 2026-09-27 |
-| [nist-wwvb-enhanced-2013] | The phase code: layout, minute count, parity, Tables 3, 4, 8 and 10, leap seconds in both codes | Yes, revision 1.01, the PDF, 2026-09-27 |
+| [nist-wwvb-enhanced-2013] | The phase code: layout, minute count, parity, Tables 3, 4, 8 and 10, leap seconds in both codes, and §4.6, which change `dst_next` announces | Yes, revision 1.01, the PDF, 2026-09-27; §4.6 and Table 8 again 2026-09-28 |
 
 NIST's page "WWVB Time Code Format" holds only SP 432's figure. The
 survey's secondary sources, the Wikipedia articles on the three stations,

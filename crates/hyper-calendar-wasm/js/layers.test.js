@@ -172,6 +172,7 @@ test("a method of another layer throws not-exported when called, not at load", (
     gmtFromGmat: () => hc.gmtFromGmat(702_411, 0),
     irigDecode: () => hc.irigDecode("B124", "M", 2026),
     irigEncode: () => hc.irigEncode("B124", 731_388, 76_722),
+    irigFormats: () => hc.irigFormats(),
     plumRains: () => hc.plumRains("ru-mei-bing", 2026, "china"),
   };
   const gated = METHODS.filter((entry) => entry.feature !== null && entry.feature !== "civil");

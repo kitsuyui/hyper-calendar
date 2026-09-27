@@ -115,7 +115,19 @@ pub enum ValueNames {
         /// [`crate::data::LOCALES`].
         locales: &'static [(&'static str, &'static [&'static str])],
     },
+    /// A flag, 0 or 1, named by the words [`FLAG_WORDS`] gives the locale,
+    /// else English's *no* and *yes*: whether the Burmese month is a late
+    /// one, whether a day is outside the week. A flag whose calendar has
+    /// words of its own for the two states, the Burmese half's *waxing*
+    /// and *waning*, is named by those instead.
+    Flag,
 }
+
+/// The words a flag's two values are read as, 0 first, by the tag of the
+/// locale's table in [`crate::data::LOCALES`]. Only English's are carried:
+/// they are the words of the field labels' own language, which the labels
+/// themselves are, and no source was read for another language's.
+pub static FLAG_WORDS: &[(&str, [&str; 2])] = &[("en", ["no", "yes"])];
 
 /// A field whose values are named, and what names them.
 #[derive(Debug, Clone, Copy)]
@@ -170,19 +182,20 @@ pub fn write_value_name(
         return Ok(false);
     };
     let name = match named.names {
-        ValueNames::Own(own) => own.get(index).copied(),
-        ValueNames::Localized { own, locales } => locale
-            .fallback()
-            .find_map(|candidate| {
-                let tag = candidate.rendered()?;
-                locales
-                    .iter()
-                    .find(|(name, _)| *name == tag.as_str())
-                    .map(|(_, names)| *names)
-            })
-            .unwrap_or(own)
-            .get(index)
-            .copied(),
+        ValueNames::Own(_) | ValueNames::Localized { .. } => own_name(locale, named, index),
+        ValueNames::Flag => {
+            let words = locale
+                .fallback()
+                .find_map(|candidate| {
+                    let tag = candidate.rendered()?;
+                    FLAG_WORDS
+                        .iter()
+                        .find(|(name, _)| *name == tag.as_str())
+                        .map(|(_, words)| words)
+                })
+                .or_else(|| FLAG_WORDS.first().map(|(_, words)| words));
+            words.and_then(|words| words.get(index)).copied()
+        }
         ValueNames::Cycle(kind) => {
             cycles
                 .iter()
@@ -227,6 +240,55 @@ pub fn write_value_name(
             Ok(true)
         }
         None => Ok(false),
+    }
+}
+
+/// The name of the value at `index` of a field named in the calendar's own
+/// words, [`ValueNames::Own`] or [`ValueNames::Localized`], in `locale`.
+fn own_name(locale: &Locale, named: &FieldValues, index: usize) -> Option<&'static str> {
+    match named.names {
+        ValueNames::Own(own) => own.get(index).copied(),
+        ValueNames::Localized { own, locales } => locale
+            .fallback()
+            .find_map(|candidate| {
+                let tag = candidate.rendered()?;
+                locales
+                    .iter()
+                    .find(|(name, _)| *name == tag.as_str())
+                    .map(|(_, names)| *names)
+            })
+            .unwrap_or(own)
+            .get(index)
+            .copied(),
+        _ => None,
+    }
+}
+
+/// The name a field's value has in the calendar's own words —
+/// [`ValueNames::Own`] or [`ValueNames::Localized`] — in `locale`, or
+/// `None` for a field named otherwise, or not at all. Two fields of one
+/// date with the same such name say the same thing: the Burmese phase
+/// *waning* is the half of the month *waning*, and a date that writes one
+/// has written the other.
+#[must_use]
+pub fn own_value_name(
+    locale: &Locale,
+    calendar: CalendarId,
+    field: &str,
+    value: i64,
+) -> Option<&'static str> {
+    let named = values_of(calendar, field)?;
+    let index = usize::try_from(value.checked_sub(named.first)?).ok()?;
+    own_name(locale, named, index)
+}
+
+/// A flag, 0 or 1, read as words.
+const fn flag(calendars: &'static [CalendarId], field: &'static str) -> FieldValues {
+    FieldValues {
+        calendars,
+        field,
+        first: 0,
+        names: ValueNames::Flag,
     }
 }
 
@@ -435,6 +497,27 @@ pub static VALUES: &[FieldValues] = &[
             locales: &[("en", &["waxing", "waning"])],
         },
     },
+    // The flags, read as *no* and *yes*: whether a Burmese month is the
+    // late Tagu or Kason, whether an Icelandic summer has its extra week,
+    // whether a day of the three perennial calendars is outside the week,
+    // whether an imperial-year day is before the count's adoption on
+    // 1 January 1873, and whether a day of the continuous week is its common rest
+    // day. The Burmese half is named by its own words above.
+    flag(&[CalendarId("burmese")], "late"),
+    flag(
+        &[CalendarId("icelandic"), CalendarId("icelandic-julian")],
+        "sumarauki",
+    ),
+    flag(
+        &[
+            CalendarId("international-fixed"),
+            CalendarId("positivist"),
+            CalendarId("world-calendar"),
+        ],
+        "outside-the-week",
+    ),
+    flag(&[CalendarId("japanese-imperial")], "proleptic"),
+    flag(&[CalendarId("soviet-week")], "rest-day"),
     // The Burmese phases: in English as `hc_calendars_regional::burmese`
     // writes a date, "Nayon waxing 3, 1374 ME", from yannaingaye2013, and
     // in Burmese as wikipedia-burmese-calendar names the halves and the

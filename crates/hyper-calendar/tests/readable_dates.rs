@@ -24,7 +24,7 @@
 use std::collections::BTreeSet;
 
 use hyper_calendar::hc_calendar::units::Unit;
-use hyper_calendar::hc_calendar::{CalendarMeta, DynCalendar, Rd};
+use hyper_calendar::hc_calendar::{CalendarId, CalendarMeta, DynCalendar, Rd};
 use hyper_calendar::hc_format::label;
 use hyper_calendar::hc_i18n::Locale;
 use hyper_calendar::hc_i18n::data::LOCALES;
@@ -201,16 +201,20 @@ fn no_formatted_date_holds_a_raw_extra_field_or_era_code() {
 }
 
 /// A date marks an extra field as written exactly when its text depends
-/// on the field: changing the field's value, up or down by one, changes
-/// the text of the date that writes it and of no other. Every calendar is
-/// checked in every locale, so each template that writes an extra — a
-/// notation's `{extra:FIELD}`, a locale's `{sexagenary}` — is covered.
+/// on the field — changing the field's value, up or down by one, or a flag
+/// of 0 or 1 to the other, changes the text of the date that writes it and
+/// of no other — or when the date writes a field whose value has the same
+/// name in the calendar's own words, as the Burmese half *waning* writes
+/// the phase *waning*. Every calendar is checked in every locale, so each
+/// template that writes an extra — a notation's `{extra:FIELD}`, a
+/// locale's `{sexagenary}` — is covered, and every flag.
 #[test]
 fn the_in_date_flag_says_whether_the_date_depends_on_the_field() {
     let registry = hyper_calendar::registry();
     let locales = locales();
     let mut wrong: BTreeSet<String> = BTreeSet::new();
     let mut written = 0_usize;
+    let mut flags = 0_usize;
     for meta in registry.metas() {
         let calendar = registry.get(meta.id).expect("registered");
         let days = [meta.sample_day(Rd(739_886)), meta.sample_day(Rd(730_179))];
@@ -223,16 +227,35 @@ fn the_in_date_flag_says_whether_the_date_depends_on_the_field() {
                 for requested in &locales {
                     let locale = label::locale_for(calendar, requested.as_ref());
                     let (text, marked) = label::date_marking(calendar, &fields, &locale);
+                    let own = |name: &str, value: i64| {
+                        fields::own_value_name(&locale, meta.id, name, value)
+                    };
                     for (index, extra) in fields.extra.iter().enumerate() {
-                        let depends = [extra.value + 1, extra.value - 1].into_iter().any(|value| {
-                            let mut changed = fields;
-                            changed.extra.set(extra.name, value).expect("replaces");
-                            label::date(calendar, &changed, &locale) != text
+                        // A flag steps to its other value, which ±1 leaves
+                        // for one of 2 and −1 on the other side.
+                        let flipped = matches!(extra.value, 0 | 1).then_some(1 - extra.value);
+                        let depends = [extra.value + 1, extra.value - 1]
+                            .into_iter()
+                            .chain(flipped)
+                            .any(|value| {
+                                let mut changed = fields;
+                                changed.extra.set(extra.name, value).expect("replaces");
+                                label::date(calendar, &changed, &locale) != text
+                            });
+                        let shares_a_name = own(extra.name, extra.value).is_some_and(|name| {
+                            fields.extra.iter().enumerate().any(|(other, written)| {
+                                other != index
+                                    && marked.contains(other)
+                                    && own(written.name, written.value) == Some(name)
+                            })
                         });
+                        if flipped.is_some() {
+                            flags += 1;
+                        }
                         if marked.contains(index) {
                             written += 1;
                         }
-                        if marked.contains(index) != depends {
+                        if marked.contains(index) != (depends || shares_a_name) {
                             wrong.insert(format!(
                                 "{} {locale} {} {}: marked {}, depends {depends}: {text:?}",
                                 meta.id.0,
@@ -247,7 +270,60 @@ fn the_in_date_flag_says_whether_the_date_depends_on_the_field() {
         });
     }
     assert!(written > 100, "{written}");
+    assert!(flags > 100, "{flags}");
     assert!(wrong.is_empty(), "{} wrong flags: {wrong:#?}", wrong.len());
+}
+
+/// Every extra field seen to hold 0 and 1 and nothing else is a flag with
+/// named values, so that no line reads a bare 0 or 1: the fields seen on
+/// every 61st day of 2000 to 2032, as each calendar samples it, and on the
+/// days a flag turns: the first ten days of 1930, in the continuous week;
+/// 1872's last day and 1873's first, around the adoption of the imperial
+/// year; and 20 December 2026 to 10 January 2027 and 10 to 20 June 2028,
+/// around the perennial calendars' days outside the week.
+#[test]
+fn every_flag_reads_as_words() {
+    use hyper_calendar::hc_i18n::fields::ValueNames;
+    use std::collections::BTreeMap;
+
+    let registry = hyper_calendar::registry();
+    let mut seen: BTreeMap<(&str, &str), BTreeSet<i64>> = BTreeMap::new();
+    for meta in registry.metas() {
+        let calendar = registry.get(meta.id).expect("registered");
+        let turning = (704_553..704_563)
+            .chain(683_734..683_736)
+            .chain(739_970..739_992)
+            .chain(740_508..740_518);
+        for day in (730_120..742_120).step_by(61).chain(turning) {
+            let Ok(fields) = calendar.fixed_to_fields(meta.sample_day(Rd(day))) else {
+                continue;
+            };
+            for extra in fields.extra.iter() {
+                seen.entry((meta.id.0, extra.name))
+                    .or_default()
+                    .insert(extra.value);
+            }
+        }
+    }
+    let flags: Vec<_> = seen
+        .into_iter()
+        .filter(|(_, values)| {
+            values.len() == 2 && values.iter().all(|value| matches!(value, 0 | 1))
+        })
+        .map(|(key, _)| key)
+        .collect();
+    assert!(flags.len() >= 12, "{flags:?}");
+    for (id, field) in flags {
+        let named = fields::values_of(CalendarId(id), field)
+            .unwrap_or_else(|| panic!("{id} {field} is a flag without names"));
+        assert!(
+            matches!(
+                named.names,
+                ValueNames::Flag | ValueNames::Own(_) | ValueNames::Localized { .. }
+            ),
+            "{id} {field}"
+        );
+    }
 }
 
 /// The lines list each extra field once, labelled, with its value named

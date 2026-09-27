@@ -14,7 +14,8 @@
 //! layer's era, [`crate::astro_lines`].
 //!
 //! Rāhu kālam, Yamaganda and Gulika kālam, [`hc_calendars_indic::kalam`],
-//! are three more lines of their own, one a period: [`kalam_lines`].
+//! are three more lines of their own, one a period, each named in a
+//! locale, so in a build with `i18n` too: `kalam_lines`.
 
 use alloc::string::String;
 use core::fmt::Write;
@@ -27,11 +28,14 @@ use hc_calendars_indic::panchanga::{
 };
 use hc_seasons::zodiac::Ayanamsa;
 
+#[cfg(feature = "i18n")]
 use hc_calendars_indic::kalam::{Kalam, KalamConvention, SpanClock};
 
-use crate::astro_lines::{
-    MISSING_COLUMNS, day_in_era, moment_in_era, push_missing_cells, unix_from_moment,
-};
+#[cfg(feature = "i18n")]
+use crate::astro_lines::{MISSING_COLUMNS, push_missing_cells};
+use crate::astro_lines::{day_in_era, moment_in_era, unix_from_moment};
+#[cfg(feature = "i18n")]
+use crate::boundary::push_reckoning_name;
 use crate::boundary::{Answer, Refusal, names, push_cell};
 
 /// The ayanāṃśa a name names: one of [`Ayanamsa::ALL`] by its full name,
@@ -119,15 +123,18 @@ pub fn panchanga_of_day_lines(fixed: i64, place: Location, ayanamsa_name: &str) 
 }
 
 /// How many columns each line of [`kalam_lines`] writes.
-pub const KALAM_COLUMNS: usize = 6 + MISSING_COLUMNS;
+#[cfg(feature = "i18n")]
+pub const KALAM_COLUMNS: usize = 8 + MISSING_COLUMNS;
 
 /// The lines of `hc_kalam`: Rāhu kālam, Yamaganda and Gulika kālam on a
 /// day by a convention of [`KalamConvention::ALL`], selected by its
 /// identifier in any case, one line each in the order a pañcāṅga prints
 /// them, as the period's identifier, its English name as Drik Panchang
-/// prints it, the eighth of the day it takes (1 to 8), the clock its start
-/// and end are read on, and the start and the end, then the four cells of
-/// a missing solar event.
+/// prints it, its name in a locale and the tag of the data that named it,
+/// by [`hc_i18n::reckonings::name_or_fallback`] — राहुकाल under `hi` —
+/// the eighth of the day it takes (1 to 8), the clock its start and end
+/// are read on, and the start and the end, then the four cells of a
+/// missing solar event.
 ///
 /// On `rahu-kalam-sunrise` the clock is `universal` and the start and end
 /// are whole POSIX seconds, rounded down, of the eighth of the daylight at
@@ -141,7 +148,8 @@ pub const KALAM_COLUMNS: usize = 6 + MISSING_COLUMNS;
 ///
 /// [`Refusal::Unknown`] for a convention not named, and
 /// [`Refusal::OutOfRange`] for a day outside the sky layer's era.
-pub fn kalam_lines(convention: &str, fixed: i64, place: Location) -> Answer<String> {
+#[cfg(feature = "i18n")]
+pub fn kalam_lines(convention: &str, fixed: i64, place: Location, locale: &str) -> Answer<String> {
     let convention = KalamConvention::ALL
         .iter()
         .find(|known| names(convention, known.id))
@@ -158,6 +166,8 @@ pub fn kalam_lines(convention: &str, fixed: i64, place: Location) -> Answer<Stri
         push_cell(&mut out, period.id);
         out.push('\t');
         push_cell(&mut out, period.english_name);
+        out.push('\t');
+        push_reckoning_name(&mut out, locale, hc_i18n::reckonings::KALAM, period.id);
         let part = period.part(hc_calendar::Weekday::from_rd(day));
         let _ = write!(out, "\t{part}\t{clock}\t");
         match (convention.span)(period, day, place) {
@@ -185,6 +195,7 @@ mod tests {
     /// 11:07 IST, each within a minute; on the fixed day Wednesday's Rāhu
     /// kālam is the fifth eighth, 12:00 to 13:30, as the temple table has
     /// it (`tirumala-kalam-table`).
+    #[cfg(feature = "i18n")]
     #[test]
     fn the_first_of_january_2025_has_drik_panchangs_kalams() {
         let delhi = Location::new(
@@ -195,7 +206,7 @@ mod tests {
         let day = hc_calendars_solar::gregorian::to_fixed(2025, 1, 1)
             .expect("a date")
             .0;
-        let text = kalam_lines("rahu-kalam-sunrise", day, delhi).expect("in range");
+        let text = kalam_lines("rahu-kalam-sunrise", day, delhi, "en").expect("in range");
         let rows: alloc::vec::Vec<alloc::vec::Vec<&str>> = text
             .lines()
             .map(|line| line.split('\t').collect())
@@ -208,35 +219,44 @@ mod tests {
             ("gulika-kalam", "4", 11 * 60 + 7),
         ]) {
             assert_eq!(row.len(), KALAM_COLUMNS);
-            assert_eq!((row[0], row[2], row[3]), (id, part, "universal"));
-            let at: i64 = row[4].parse().expect("an instant");
+            assert_eq!((row[0], row[4], row[5]), (id, part, "universal"));
+            assert_eq!(row[1], row[2]);
+            assert_eq!(row[3], "en");
+            let at: i64 = row[6].parse().expect("an instant");
             let minutes = (at - ist_midnight) as f64 / 60.0 - f64::from(start);
             assert!(minutes.abs() < 1.0, "{id}: {minutes} min");
-            assert_eq!(row[6..], ["", "", "", ""]);
+            assert_eq!(row[8..], ["", "", "", ""]);
         }
-        let fixed = kalam_lines("RAHU-KALAM-FIXED", day, delhi).expect("in range");
+        let fixed = kalam_lines("RAHU-KALAM-FIXED", day, delhi, "hi").expect("in range");
         let first: alloc::vec::Vec<&str> =
             fixed.lines().next().expect("a line").split('\t').collect();
-        assert_eq!(first[2..6], ["5", "local", "43200", "48600"]);
+        // Drik Panchang's Hindi day pañcāṅga labels it राहुकाल.
+        assert_eq!(
+            first[2..8],
+            ["राहुकाल", "hi", "5", "local", "43200", "48600"]
+        );
         let tromso = Location::new(69.6496, 18.9560, 0.0);
         let midwinter = hc_calendars_solar::gregorian::to_fixed(2024, 12, 21)
             .expect("a date")
             .0;
-        let polar = kalam_lines("rahu-kalam-sunrise", midwinter, tromso).expect("in range");
+        let polar = kalam_lines("rahu-kalam-sunrise", midwinter, tromso, "en").expect("in range");
         let cells: alloc::vec::Vec<&str> =
             polar.lines().next().expect("a line").split('\t').collect();
-        assert_eq!(cells[4..8], ["", "", "sunrise", &midwinter.to_string()]);
-        assert_eq!(kalam_lines("yamardha", day, delhi), Err(Refusal::Unknown));
+        assert_eq!(cells[6..10], ["", "", "sunrise", &midwinter.to_string()]);
+        assert_eq!(
+            kalam_lines("yamardha", day, delhi, "en"),
+            Err(Refusal::Unknown)
+        );
         // The names are `hc-calendars-indic`'s table's, each with its clock.
         for convention in KalamConvention::ALL {
-            let text = kalam_lines(convention.id, day, delhi).expect("in range");
+            let text = kalam_lines(convention.id, day, delhi, "en").expect("in range");
             let clock = match convention.clock {
                 SpanClock::Universal => "universal",
                 SpanClock::Local => "local",
             };
             assert!(
                 text.lines()
-                    .all(|line| line.split('\t').nth(3) == Some(clock)),
+                    .all(|line| line.split('\t').nth(5) == Some(clock)),
                 "{}",
                 convention.id
             );

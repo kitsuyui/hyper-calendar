@@ -508,6 +508,89 @@ impl DstNext {
         })
     }
 
+    /// The word a zone's rules give the UTC day a minute falls in: the
+    /// next change of summer time after that day's end, in the direction
+    /// [`DstState::of_day`]'s bit 57 (`dst_on[1]`) says it goes.
+    ///
+    /// The Enhanced WWVB Broadcast Format, §4.6
+    /// (`nist-wwvb-enhanced-2013`): "When DST is in effect (in the spring
+    /// or summer), the DST_NEXT field provides advance notification for
+    /// the end of the DST period in the fall, whereas when DST is not in
+    /// effect, as is the case in the winter, this field provides advance
+    /// notification for the beginning of the next DST period in the
+    /// upcoming spring." Table 8's words are read with `dst_on[1]`, which
+    /// turns at 00:00 UTC on the day of a change, so the word turns with
+    /// it: from that instant it names the change after the one the day
+    /// holds. The change is Table 8's schedule when it falls on one of its
+    /// Sundays — the first of March and the seven after it into summer
+    /// time, the fourth before the first of November to the third after it
+    /// out of it — at 1, 2 or 3 AM on the clock before the change, as the
+    /// table's "after 1:59AM, skip from 2:00AM to 3:00AM" and "after
+    /// 1:59AM, instead of 2:00AM move back to 1:00AM" are both 2 AM; any
+    /// other day or time is word 49, "DST transition occurs at different
+    /// time", which "will serve to convey that no advance notification can
+    /// be provided". A zone that makes no change in the year after the
+    /// day's end is word 50, "no DST period scheduled this year", which the
+    /// document reserves "for the possibility of DST being cancelled (i.e.
+    /// standard time is maintained throughout the year)", or word 51, "DST
+    /// in effect for this whole year", reserved "for the case of DST being
+    /// permanently in effect", as the zone keeps summer time or not.
+    #[must_use]
+    pub fn of_day(zone: &dyn TimeZone, minute: UnixTime) -> Self {
+        /// A year and a day: past it, a zone has scheduled no change.
+        const HORIZON: i64 = 367 * 86_400;
+        /// More changes than this in a year are not summer time.
+        const MOST_CHANGES: usize = 64;
+        let start = minute.seconds().div_euclid(86_400).saturating_mul(86_400);
+        let end = start.saturating_add(86_400);
+        let dst_on = zone.is_dst_at(UnixTime::from_seconds(end));
+        let mut at = UnixTime::from_seconds(end);
+        let mut change = None;
+        for _ in 0..MOST_CHANGES {
+            let Some(next) = zone.next_transition(at) else {
+                break;
+            };
+            if next.seconds() > end.saturating_add(HORIZON) {
+                break;
+            }
+            if zone.is_dst_at(next) != dst_on {
+                change = Some(next);
+                break;
+            }
+            at = next;
+        }
+        let Some(change) = change else {
+            return if dst_on { Self::AllYear } else { Self::NoDst };
+        };
+        Self::schedule(zone, change, !dst_on).unwrap_or(Self::DifferentTime)
+    }
+
+    /// Table 8's schedule for a change at `change`, read on the clock the
+    /// zone keeps just before it, or `None` for one the table does not
+    /// list.
+    fn schedule(zone: &dyn TimeZone, change: UnixTime, into_dst: bool) -> Option<Self> {
+        let before = zone.offset_at(UnixTime::from_seconds(change.seconds().checked_sub(1)?));
+        let local = change.seconds().checked_add(i64::from(before.seconds()))?;
+        let seconds_of_day = local.rem_euclid(86_400);
+        let day = Rd::from_unix_days(local.div_euclid(86_400));
+        if seconds_of_day % 3_600 != 0 || Weekday::from_rd(day) != Weekday::Sunday {
+            return None;
+        }
+        let hour = u8::try_from(seconds_of_day / 3_600).ok()?;
+        let (month, first_week) = if into_dst { (3, 0) } else { (11, -4) };
+        let anchor = Weekday::Sunday
+            .on_or_after(gregorian::to_fixed(gregorian::year_from_fixed(day), month, 1).ok()?);
+        let weeks = i8::try_from((day.0 - anchor.0).div_euclid(7)).ok()?;
+        if !(1..=3).contains(&hour) || !(first_week..first_week + 8).contains(&weeks) {
+            return None;
+        }
+        Some(Self::Transition(DstTransition {
+            into_dst,
+            weeks,
+            hour,
+        }))
+    }
+
     /// The word, if the table has one for this meaning.
     #[must_use]
     pub fn word(self) -> Option<u8> {
@@ -802,6 +885,101 @@ mod tests {
             DstState::of_day(&phoenix, UnixTime::from_seconds(march_8)),
             DstState::Standard
         );
+    }
+
+    /// `dst_next` from the United States' rule in Denver, 2026: before
+    /// 00:00 UTC on 8 March the word names that day, the second Sunday of
+    /// March at 2 AM; from it, the first Sunday of November at 2 AM, row 37
+    /// of Table 8, as in the document's frame of 4 July 2012; from 00:00
+    /// UTC on 1 November, the second Sunday of March 2027, the 14th. Both
+    /// words are `011011`, read one way and the other by `dst_on[1]`. Every
+    /// day's word is one Table 8 lists for the day's state.
+    #[test]
+    fn dst_next_follows_the_next_change() {
+        let denver =
+            hc_tz::PosixTimeZone::parse("America/Denver", "MST7MDT,M3.2.0,M11.1.0").expect("rules");
+        let at = |seconds: i64| DstNext::of_day(&denver, UnixTime::from_seconds(seconds));
+        let march_8 = 1_772_928_000;
+        let november_1 = 1_793_491_200;
+        let into = DstNext::Transition(DstTransition {
+            into_dst: true,
+            weeks: 1,
+            hour: 2,
+        });
+        let out = DstNext::Transition(DstTransition {
+            into_dst: false,
+            weeks: 0,
+            hour: 2,
+        });
+        let january_15 = 1_768_435_200;
+        assert_eq!(at(january_15), into);
+        assert_eq!(at(march_8 - 60), into);
+        assert_eq!(at(march_8), out);
+        assert_eq!(at(march_8 + 9 * 3_600), out);
+        assert_eq!(at(1_341_423_000), out);
+        assert_eq!(at(november_1 - 60), out);
+        assert_eq!(at(november_1), into);
+        assert_eq!(into.word(), Some(0b011011));
+        assert_eq!(out.word(), Some(0b011011));
+        let DstNext::Transition(spring) = into else {
+            unreachable!()
+        };
+        let DstNext::Transition(autumn) = out else {
+            unreachable!()
+        };
+        assert_eq!(spring.day(2026), gregorian::to_fixed(2026, 3, 8));
+        assert_eq!(autumn.day(2026), gregorian::to_fixed(2026, 11, 1));
+        assert_eq!(spring.day(2027), gregorian::to_fixed(2027, 3, 14));
+        for day in 0..365 {
+            let minute = UnixTime::from_seconds(1_767_225_600 + day * 86_400);
+            let next = DstNext::of_day(&denver, minute);
+            let (dst_on, _) = DstState::of_day(&denver, minute).bits();
+            let word = next.word().expect("a word");
+            assert_eq!(DstNext::from_word(word, dst_on), Some(next), "day {day}");
+        }
+    }
+
+    /// Other rules: Berlin's last Sundays of March at 2 AM and of October
+    /// at 3 AM, 29 March and 25 October 2026, are schedules of Table 8;
+    /// Sydney's first Sunday of April is not, and is word 49; Phoenix keeps
+    /// no summer time, word 50.
+    #[test]
+    fn dst_next_of_other_rules() {
+        let berlin = hc_tz::PosixTimeZone::parse("Europe/Berlin", "CET-1CEST,M3.5.0,M10.5.0/3")
+            .expect("rules");
+        let january_15 = UnixTime::from_seconds(1_768_435_200);
+        let july_1 = UnixTime::from_seconds(1_782_864_000);
+        let spring = DstNext::of_day(&berlin, january_15);
+        assert_eq!(
+            spring,
+            DstNext::Transition(DstTransition {
+                into_dst: true,
+                weeks: 4,
+                hour: 2,
+            })
+        );
+        assert_eq!(spring.word(), Some(0b000010));
+        let autumn = DstNext::of_day(&berlin, july_1);
+        assert_eq!(
+            autumn,
+            DstNext::Transition(DstTransition {
+                into_dst: false,
+                weeks: -1,
+                hour: 3,
+            })
+        );
+        assert_eq!(autumn.word(), Some(0b010000));
+        let DstNext::Transition(autumn) = autumn else {
+            unreachable!()
+        };
+        assert_eq!(autumn.day(2026), gregorian::to_fixed(2026, 10, 25));
+        let sydney =
+            hc_tz::PosixTimeZone::parse("Australia/Sydney", "AEST-10AEDT,M10.1.0,M4.1.0/3")
+                .expect("rules");
+        assert_eq!(DstNext::of_day(&sydney, january_15), DstNext::DifferentTime);
+        let phoenix = hc_tz::PosixTimeZone::parse("America/Phoenix", "MST7").expect("rules");
+        assert_eq!(DstNext::of_day(&phoenix, january_15), DstNext::NoDst);
+        assert_eq!(DstNext::NoDst.word(), Some(0b000111));
     }
 
     fn bits(text: &str) -> Vec<bool> {

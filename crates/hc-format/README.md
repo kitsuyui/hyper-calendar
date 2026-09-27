@@ -29,8 +29,9 @@ renders into its own buffer. `String`-returning conveniences sit behind the
 * **`radio`** — a minute's frame of the JJY, DCF77 and WWVB time codes,
   WWVB's phase code included, decoded with its parity checked and encoded,
   and read as the JST, CET or CEST, or UTC minute it names; DCF77's zone
-  and A1 (`dcf77::summer_time`) and WWVB's summer-time bits
-  (`wwvb::DstState::of_day`) can be read from a `hc_tz::TimeZone`'s rules
+  and A1 (`dcf77::summer_time`), WWVB's summer-time bits
+  (`wwvb::DstState::of_day`) and the phase code's `dst_next`
+  (`wwvb::DstNext::of_day`) can be read from a `hc_tz::TimeZone`'s rules
   instead of the caller. See `docs/systems/radio-time-codes.md`.
 * **`irig`** — a frame of the IRIG serial time codes A, B, D, E, G and H:
   the BCD time of year, the year, the control bits and the straight binary

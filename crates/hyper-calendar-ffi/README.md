@@ -265,7 +265,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-143 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+144 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -312,6 +312,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_radio_encode(const char *code, int64_t unix_seconds, int leap, const char *summer, int zone_change, int dut1_tenths, uint32_t dst_next, char *buffer, size_t capacity, size_t *written);` | `time-codes` | The frame of a long-wave radio time code for a minute, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_irig_decode(const char *signal, const char *frame, int64_t year, char *buffer, size_t capacity, size_t *written);` | `time-codes` | One frame of an IRIG serial time code read, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_irig_encode(const char *signal, int64_t fixed, uint32_t seconds_of_day, uint32_t hundredths, uint32_t control, char *buffer, size_t capacity, size_t *written);` | `time-codes` | The frame of an IRIG serial time code whose reference bit falls at a reading of the civil clock, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_irig_formats(char *buffer, size_t capacity, size_t *written);` | `time-codes` | Every IRIG format `hc_irig_decode` and `hc_irig_encode` read, with its frame's length, its rate and its fields, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_dotnet_ticks_from_unix(int64_t unix_seconds, uint64_t attoseconds, int64_t *out_ticks);` | `timestamps` | .NET's `DateTime.Ticks` of a POSIX instant as a `Utc` value, the 100-nanosecond intervals from 0001-01-01 00:00, floored to the tick. |
 | `HcStatus hc_unix_from_dotnet_ticks(int64_t ticks, char *buffer, size_t capacity, size_t *written);` | `timestamps` | The reading a count of .NET ticks names, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_six_hour_clock(const char *reckoning, uint32_t seconds_of_day, char *buffer, size_t capacity, size_t *written);` | `timestamps` | A time of the civil day on a six-hour clock, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
@@ -340,7 +341,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_asian_day(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `calendars` | A fixed day in the calendar of the Roman province of Asia as the calendar writes it, unnumbered days included, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_barhaspatya_year(const char *rule, int64_t saka, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The name of the northern sixty-year cycle a named rule couples with an expired Śaka year, and the name it expunges that year, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_barhaspatya_year_at(const char *rule, int64_t unix_seconds, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The name of the northern sixty-year cycle in progress at a POSIX timestamp by a named rule, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
-| `HcStatus hc_kalam(const char *convention, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `calendars` | Rāhu kālam, Yamaganda and Gulika kālam on a fixed day, as three NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_kalam(const char *convention, int64_t fixed, double latitude, double longitude, double elevation, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Rāhu kālam, Yamaganda and Gulika kālam on a fixed day, as three NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_almanac_cycles(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `calendars` | The almanac's cycles of a fixed day, 恵方, 三元九運 and 손 없는 날, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_almanac_day(int64_t fixed, const char *meridian, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The almanac's annotations of a fixed day, 干支 to the 選日, as NUL-terminated UTF-8 lines in a caller-owned buffer, one an annotation, each named in a locale. |
 | `HcStatus hc_choghadiya(int64_t fixed, double latitude, double longitude, double elevation, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The sixteen choghadiya of a fixed day at a place, as NUL-terminated UTF-8 lines in a caller-owned buffer, each named in a locale. |
@@ -504,7 +505,8 @@ built with `tz` too, a `summer` of `zone:` and a zone's name,
 `zone:Europe/Berlin` or `zone:America/New_York` (or another zone once
 `hc_zone_load` has its TZif file, as `America/Denver` needs), reads the
 state — and
-DCF77's A1, in place of `zone_change` — from the rules
+DCF77's A1, in place of `zone_change`, and the phase code's `dst_next`,
+in place of the caller's — from the rules
 `hc_fixed_from_unix_in_zone` reads for that name, as the WebAssembly
 module's README explains under "Radio time codes"; without `tz` it is
 `HC_ERROR_UNKNOWN`.
@@ -514,8 +516,10 @@ IRIG 200-16 signal designation such as `B124`, from a string of `0`, `1`
 and `M`, Pr first, a code with the year's two digits reading them in the
 century of `year`; and `hc_irig_encode(signal, fixed, seconds_of_day,
 hundredths, control, buffer, capacity, written)` writes the frame whose
-Pr falls at a reading of the civil clock. Both are in `time-codes`, and
-write the WebAssembly module's lines.
+Pr falls at a reading of the civil clock; `hc_irig_formats(buffer,
+capacity, written)` lists the six formats with their frame's length, their
+rate, their fields and the designations Table 4-1 permits them. All three
+are in `time-codes`, and write the WebAssembly module's lines.
 `hc_dotnet_ticks_from_unix(unix_seconds, attoseconds, out_ticks)` writes
 .NET's `DateTime.Ticks` of a POSIX instant as an `int64_t`, and
 `hc_unix_from_dotnet_ticks(ticks, buffer, capacity, written)` the reading
@@ -624,10 +628,11 @@ writes a `uint32_t`, the Chinese count's age, with a day before the birth
 capacity, written)` the module's line of the augury and its two 立春
 flags.
 
-`hc_kalam(convention, fixed, latitude, longitude, elevation, buffer,
-capacity, written)` writes the module's three lines of Rāhu kālam,
-Yamaganda and Gulika kālam on a day, by `rahu-kalam-sunrise`, the daylight
-at the place, or `rahu-kalam-fixed`, 06:00 to 18:00 of the local clock;
+`hc_kalam(convention, fixed, latitude, longitude, elevation, locale,
+buffer, capacity, written)` writes the module's three lines of Rāhu kālam,
+Yamaganda and Gulika kālam on a day, each named in the locale, by
+`rahu-kalam-sunrise`, the daylight at the place, or `rahu-kalam-fixed`,
+06:00 to 18:00 of the local clock;
 `hc_almanac_cycles(fixed, meridian, buffer, capacity, written)` the
 module's line of 恵方, 三元九運 and 손 없는 날 for a day, with 立春 at a
 meridian read as for `hc_term_in_effect`; and `hc_almanac_day(fixed,

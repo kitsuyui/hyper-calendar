@@ -1,9 +1,9 @@
 //! What a locale calls the terms of the reckonings of a day and a year
 //! outside the Japanese almanac, as data, for the lines the boundary
-//! crates write about them: the choghadiya and the Panchak kinds, the sites
-//! of the Kumbh Mela and the rivers of Pushkaram, the planets that rule
-//! the planetary hours, the Chinese night watches, and the folk days of
-//! Vietnam, China and Turkey.
+//! crates write about them: the choghadiya and the Panchak kinds, Rāhu
+//! kālam, Yamaganda and Gulika kālam, the sites of the Kumbh Mela and the
+//! rivers of Pushkaram, the planets that rule the planetary hours, the
+//! Chinese night watches, and the folk days of Vietnam, China and Turkey.
 //!
 //! The terms are other crates' — `hc-calendars-indic`, `hc-seasons`,
 //! `hc-format` and `hc-almanac` — and each gives its own name, as its
@@ -16,12 +16,13 @@
 //!
 //! # What is carried
 //!
-//! Each kind is named in the one language its source writes it in, which
-//! is the kind's own ([`NATIVE`]), with the crate's own names:
+//! Each kind is named in the language its source writes it in, which is
+//! the kind's own ([`NATIVE`]), with the crate's own names:
 //!
 //! * **`en`**: the seven choghadiya, as Drik Panchang prints them in
 //!   English [drik-choghadiya-2025]; the five Panchak kinds, as Prokerala
 //!   and India TV write them [prokerala-panchak, indiatv-panchak-2025];
+//!   the three kālam, as Drik Panchang prints them [drik-day-panchang-2025];
 //!   the four sites of the Kumbh Mela, as the Mela Adhikari of 2013 names
 //!   them [kumbh-allahabad-astrology]; the rivers of Pushkaram, as
 //!   Wikipedia's "Pushkaram" names them [wikipedia-pushkaram]; and the
@@ -35,10 +36,33 @@
 //!   günleri*, and its named days, Hıdırellez to *üçüncü cemre*
 //!   [wikipedia-tr-hidirellez, bilkent-cemre].
 //!
-//! No kind has a name in a second language: none was read, and nothing
-//! here is translated. The English glosses some crates give in their
-//! documentation — "the three maidens" for Tam Nương — are the author's
-//! renderings, not a source's names, and are not carried.
+//! A kind has a name in another language only where a source written in
+//! that language or script was read to write it; nothing here is
+//! translated, and no form is converted from one Chinese script to the
+//! other:
+//!
+//! * **`hi`**: the choghadiya, उद्वेग to रोग, and the planets that rule
+//!   them, सूर्य to शनि, as Drik Panchang's Hindi page prints them
+//!   [drik-choghadiya-hi]; Rāhu kālam, Yamaganda and Gulika kālam as its
+//!   Hindi day pañcāṅga labels them, राहुकाल, यमगण्ड, गुलिक काल
+//!   [drik-day-panchang-hi-2026]; the Panchak kinds, रोग पंचक to राज पंचक,
+//!   as Amar Ujala names the five [amarujala-raj-panchak-2026]; the four
+//!   sites of the Kumbh Mela as Webdunia writes them
+//!   [webdunia-kumbh-2027]; and the rivers of Pushkaram that Amar Ujala's
+//!   list writes, nine of the fourteen [amarujala-pushkar-kumbh-2025].
+//! * **`zh-Hant`**: three of the counts of the first month as a Taiwanese
+//!   almanac column writes them, 幾龍治水, 幾日得辛, and the oxen as
+//!   幾牛耕地, its own word, not 耕田 [nownews-er-long-zhi-shui-2020].
+//! * **`zh-Hans`**: the five night watches, 一更 to 五更, as China News
+//!   Service writes them [chinanews-wu-geng-2014].
+//!
+//! Left without a second form: 几人分饼, 入梅 and 出梅 in `zh-Hant`, which
+//! no Traditional-script page read writes; Kaveri, which Amar Ujala's list
+//! misspells as कोवरी, and Tamraparni, Brahmaputra, Sindhu and Pranahita,
+//! which it does not list; and every term in Sanskrit, which no source read
+//! writes. The English glosses some crates give in their documentation —
+//! "the three maidens" for Tam Nương — are the author's renderings, not a
+//! source's names, and are not carried.
 //!
 //! # Locales
 //!
@@ -67,6 +91,9 @@ pub const PUSHKARAM_RIVER: &str = "pushkaram-river";
 /// The seven classical planets, by `hc-seasons`'s identifiers, `sun` to
 /// `saturn`.
 pub const PLANET: &str = "planet";
+/// Rāhu kālam, Yamaganda and Gulika kālam, by `hc-calendars-indic`'s
+/// identifiers, `rahu-kalam`, `yamaganda` and `gulika-kalam`.
+pub const KALAM: &str = "kalam";
 /// The five night watches, `1` to `5`.
 pub const NIGHT_WATCH: &str = "night-watch";
 /// Tam Nương and Nguyệt Kỵ, `tam-nuong` and `nguyet-ky`.
@@ -91,6 +118,7 @@ pub const NATIVE: &[(&str, &str)] = &[
     (KUMBH_SITE, "en"),
     (PUSHKARAM_RIVER, "en"),
     (PLANET, "en"),
+    (KALAM, "en"),
     (NIGHT_WATCH, "zh-Hant"),
     (VIETNAMESE_DAY, "vi"),
     (PLUM_RAINS, "zh-Hans"),
@@ -183,14 +211,16 @@ pub fn name_or_fallback(locale: Option<&Locale>, kind: &str, id: &str) -> Option
 /// Every table, in tag order.
 pub static VOCABULARIES: &[ReckoningNames] = &[
     ENGLISH,
+    HINDI,
     TURKISH,
     VIETNAMESE,
     CHINESE_SIMPLIFIED,
     CHINESE_TRADITIONAL,
 ];
 
-/// English: the choghadiya, the Panchak kinds, the Kumbh sites, the
-/// Pushkaram rivers and the planets, as their sources write them.
+/// English: the choghadiya, the Panchak kinds, the kālam, the Kumbh
+/// sites, the Pushkaram rivers and the planets, as their sources write
+/// them.
 pub const ENGLISH: ReckoningNames = ReckoningNames {
     tag: "en",
     terms: &[
@@ -231,6 +261,60 @@ pub const ENGLISH: ReckoningNames = ReckoningNames {
         (PLANET, "mars", "Mars"),
         (PLANET, "jupiter", "Jupiter"),
         (PLANET, "saturn", "Saturn"),
+        (KALAM, "rahu-kalam", "Rahu Kalam"),
+        (KALAM, "yamaganda", "Yamaganda"),
+        (KALAM, "gulika-kalam", "Gulikai Kalam"),
+    ],
+};
+
+/// Hindi: the choghadiya and their planets, the kālam, the Panchak kinds,
+/// the Kumbh sites and nine of the Pushkaram rivers, in Devanagari as the
+/// Hindi pañcāṅga pages and the press write them.
+pub const HINDI: ReckoningNames = ReckoningNames {
+    tag: "hi",
+    terms: &[
+        // Drik Panchang, "चौघड़िया मुहूर्त", `?lang=hi`, read 2026-09-28:
+        // the kinds' table and the planet that governs each.
+        (CHOGHADIYA, "udvega", "उद्वेग"),
+        (CHOGHADIYA, "chara", "चर"),
+        (CHOGHADIYA, "labha", "लाभ"),
+        (CHOGHADIYA, "amrita", "अमृत"),
+        (CHOGHADIYA, "kala", "काल"),
+        (CHOGHADIYA, "shubha", "शुभ"),
+        (CHOGHADIYA, "roga", "रोग"),
+        (PLANET, "sun", "सूर्य"),
+        (PLANET, "moon", "चन्द्रमा"),
+        (PLANET, "mercury", "बुध"),
+        (PLANET, "venus", "शुक्र"),
+        (PLANET, "mars", "मंगल"),
+        (PLANET, "jupiter", "बृहस्पति"),
+        (PLANET, "saturn", "शनि"),
+        // Drik Panchang's Hindi day pañcāṅga of 27 September 2026.
+        (KALAM, "rahu-kalam", "राहुकाल"),
+        (KALAM, "yamaganda", "यमगण्ड"),
+        (KALAM, "gulika-kalam", "गुलिक काल"),
+        // Amar Ujala, 8 April 2026: "रोग पंचक, अग्नि पंचक, मृत्यु पंचक,
+        // चोर पंचक और राज पंचक".
+        (PANCHAK, "rog", "रोग पंचक"),
+        (PANCHAK, "raj", "राज पंचक"),
+        (PANCHAK, "agni", "अग्नि पंचक"),
+        (PANCHAK, "chor", "चोर पंचक"),
+        (PANCHAK, "mrityu", "मृत्यु पंचक"),
+        // Webdunia, 19 February 2025, on the Kumbh after Prayagraj's.
+        (KUMBH_SITE, "haridwar", "हरिद्वार"),
+        (KUMBH_SITE, "prayag", "प्रयागराज"),
+        (KUMBH_SITE, "nashik", "नासिक"),
+        (KUMBH_SITE, "ujjain", "उज्जैन"),
+        // Amar Ujala, 16 May 2025, the rivers of the Pushkar Kumbh.
+        (PUSHKARAM_RIVER, "pushkaram-ganga", "गंगा"),
+        (PUSHKARAM_RIVER, "pushkaram-narmada", "नर्मदा"),
+        (PUSHKARAM_RIVER, "pushkaram-sarasvati", "सरस्वती"),
+        (PUSHKARAM_RIVER, "pushkaram-yamuna", "यमुना"),
+        (PUSHKARAM_RIVER, "pushkaram-godavari", "गोदावरी"),
+        (PUSHKARAM_RIVER, "pushkaram-krishna", "कृष्णा"),
+        (PUSHKARAM_RIVER, "pushkaram-bhima", "भीमा"),
+        (PUSHKARAM_RIVER, "pushkaram-tapti", "ताप्ती"),
+        (PUSHKARAM_RIVER, "pushkaram-tungabhadra", "तुंगभद्रा"),
     ],
 };
 
@@ -259,7 +343,8 @@ pub const VIETNAMESE: ReckoningNames = ReckoningNames {
     ],
 };
 
-/// Simplified Chinese: 入梅 and 出梅, and the counts of the first month.
+/// Simplified Chinese: 入梅 and 出梅, the counts of the first month, and
+/// the night watches.
 pub const CHINESE_SIMPLIFIED: ReckoningNames = ReckoningNames {
     tag: "zh-Hans",
     terms: &[
@@ -270,10 +355,19 @@ pub const CHINESE_SIMPLIFIED: ReckoningNames = ReckoningNames {
         (FIRST_MONTH_COUNT, "oxen", "几牛耕田"),
         (FIRST_MONTH_COUNT, "xin", "几日得辛"),
         (FIRST_MONTH_COUNT, "cakes", "几人分饼"),
+        // China News Service, 21 November 2014: "古人的一更相当于现在的19点
+        // 到21点；二更是21点到23点；三更是23点到凌晨1点；四更是1点到3点；
+        // 五更是3点到5点", the fixed reckoning's watches.
+        (NIGHT_WATCH, "1", "一更"),
+        (NIGHT_WATCH, "2", "二更"),
+        (NIGHT_WATCH, "3", "三更"),
+        (NIGHT_WATCH, "4", "四更"),
+        (NIGHT_WATCH, "5", "五更"),
     ],
 };
 
-/// Traditional Chinese: the night watches.
+/// Traditional Chinese: the night watches, and three counts of the first
+/// month.
 pub const CHINESE_TRADITIONAL: ReckoningNames = ReckoningNames {
     tag: "zh-Hant",
     terms: &[
@@ -282,6 +376,11 @@ pub const CHINESE_TRADITIONAL: ReckoningNames = ReckoningNames {
         (NIGHT_WATCH, "3", "三更"),
         (NIGHT_WATCH, "4", "四更"),
         (NIGHT_WATCH, "5", "五更"),
+        // NOWnews 保庇網, 18 December 2020, the almanac's 歲時記事:
+        // "「幾龍治水」、「幾牛耕地」", "「幾日得辛」". 几人分饼 is not there.
+        (FIRST_MONTH_COUNT, "dragons", "幾龍治水"),
+        (FIRST_MONTH_COUNT, "oxen", "幾牛耕地"),
+        (FIRST_MONTH_COUNT, "xin", "幾日得辛"),
     ],
 };
 
@@ -371,5 +470,65 @@ mod tests {
         );
         assert_eq!(reckoning_name(&locale("fr"), PLANET, "sun"), None);
         assert_eq!(name_or_fallback(Some(&Locale::ROOT), PLANET, "pluto"), None);
+    }
+
+    /// The second forms: Hindi from its pañcāṅga pages and press, with
+    /// English for a river they do not write; each Chinese script's own
+    /// form where a page in it writes one, and the kind's own script where
+    /// none does.
+    #[test]
+    fn the_other_languages_name_what_their_sources_write() {
+        let hindi = |kind, id| name_or_fallback(Some(&locale("hi")), kind, id);
+        assert_eq!(
+            hindi(CHOGHADIYA, "amrita"),
+            Some(ReckoningName {
+                name: "अमृत",
+                tag: "hi"
+            })
+        );
+        assert_eq!(
+            hindi(PANCHAK, "raj").map(|named| named.name),
+            Some("राज पंचक")
+        );
+        assert_eq!(
+            hindi(KALAM, "rahu-kalam").map(|named| named.name),
+            Some("राहुकाल")
+        );
+        assert_eq!(
+            hindi(KUMBH_SITE, "prayag").map(|named| named.name),
+            Some("प्रयागराज")
+        );
+        assert_eq!(
+            hindi(PLANET, "jupiter").map(|named| named.name),
+            Some("बृहस्पति")
+        );
+        assert_eq!(
+            hindi(PUSHKARAM_RIVER, "pushkaram-kaveri"),
+            Some(ReckoningName {
+                name: "Kaveri",
+                tag: "en"
+            })
+        );
+        assert_eq!(
+            name_or_fallback(Some(&locale("zh-TW")), FIRST_MONTH_COUNT, "oxen"),
+            Some(ReckoningName {
+                name: "幾牛耕地",
+                tag: "zh-Hant"
+            })
+        );
+        assert_eq!(
+            name_or_fallback(Some(&locale("zh-TW")), FIRST_MONTH_COUNT, "cakes"),
+            Some(ReckoningName {
+                name: "几人分饼",
+                tag: "zh-Hans"
+            })
+        );
+        assert_eq!(
+            name_or_fallback(Some(&locale("zh-CN")), NIGHT_WATCH, "3"),
+            Some(ReckoningName {
+                name: "三更",
+                tag: "zh-Hans"
+            })
+        );
     }
 }
