@@ -213,9 +213,12 @@ describe("dayExtras", () => {
     assert.ok(rows.every((row) => row.label !== "" && row.valueLabel !== ""));
     const tamil = hc.dayExtras(739_886, "en", "hindu-solar-tamil");
     assert.deepEqual(tamil, [
-      { id: "hindu-solar-tamil", field: "samvatsara", value: 40, label: "Samvatsara", valueLabel: "Parabhava", inDate: true, localeUsed: "en" },
+      { id: "hindu-solar-tamil", field: "samvatsara", value: 40, label: "Samvatsara (southern reckoning)", valueLabel: "Parabhava", inDate: true, localeUsed: "en" },
       { id: "hindu-solar-tamil", field: "tiruvalluvar-year", value: 2057, label: "Tiruvalluvar year", valueLabel: "2057", inDate: false, localeUsed: "en" },
     ]);
+    // The north names the same year in the other cycle, under its own key.
+    assert.deepEqual(hc.dayExtras(739_886, "en", "hindu-lunar-purnimanta").find((row) => row.field !== "vikrama-year"),
+      { id: "hindu-lunar-purnimanta", field: "barhaspatya-samvatsara", value: 53, label: "Barhaspatya samvatsara (northern cycle)", valueLabel: "Siddharthin", inDate: true, localeUsed: "en" });
     // The formatted date writes the extras a source writes, and no pair.
     const described = hc.describeDay(739_886, "en");
     assert.equal(described.find((row) => row.id === "maya-longcount")?.formatted, "13.0.13.17.8");

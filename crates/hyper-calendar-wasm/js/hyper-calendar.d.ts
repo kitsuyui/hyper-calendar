@@ -479,7 +479,7 @@ export interface DayExtra {
   field: string;
   /** Its value. */
   value: number;
-  /** What the locale calls the field, else its English label: `Samvatsara`, `Julian Day Number`. */
+  /** What the locale calls the field, else its English label: `Samvatsara (southern reckoning)`, `Julian Day Number`. */
   label: string;
   /** The value as a reader reads it: the name its value holds where it is named, `Parabhava`, else the number in the locale's digits. */
   valueLabel: string;

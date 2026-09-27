@@ -34,9 +34,35 @@
 //! ([`MeanSignRule::at_mean_sankranti`]; Art. 59, note to rule c), which is
 //! the year Art. 60's list of expunged names counts in.
 //!
-//! The registered pūrṇimānta calendar names its years by
-//! [`SURYA_SIDDHANTA_BIJA`], as Table I does from 1501 to 1900
-//! ([`crate::hindu_purnimanta`]).
+//! # Two conventions in print
+//!
+//! Northern almanacs of 2024–26 name the year by one of two of these
+//! rules, and the names differ by one; each is carried under its rule's
+//! name, per policy §5, through [`MeanSignRule::of_saka`]:
+//!
+//! - [`SURYA_SIDDHANTA_BIJA`], the name current at the apparent Meṣa
+//!   saṅkrānti with the *bīja*, as Table I gives it from 1501 to 1900. Drik
+//!   Panchang heads Vikrama 2081, 2082 and 2083 Pingala, Kalayukta and
+//!   Siddharthi, and ends each name a fortnight after the saṅkrānti, some
+//!   two hours before the rule does (`drikpanchang-day-2024-2026`); the
+//!   Hrishikesh Panchang of Varanasi titles 2081 Pingala
+//!   (`hrishikesh-panchang-2081`). The registered pūrṇimānta calendar
+//!   names its years by this rule ([`crate::hindu_purnimanta`]), as
+//!   [`northern_of_saka`] does.
+//! - [`SURYA_SIDDHANTA`], the same without the *bīja*, which Table I uses to
+//!   A.D. 1500. New Year announcements in the Hindi press name the same
+//!   three years Kalayukta — "by the difference of the almanacs", one says
+//!   — Siddharthi and Raudra (`webdunia-samvat-2081`,
+//!   `dainiktribune-samvat-2082`, `aajtak-samvat-2083`), and an
+//!   astrologer's account of 2082 takes the year's name to be the one
+//!   current at Chaitra śukla pratipadā and dates its Siddharthi from about
+//!   15 March 2025 to about 10 March 2026 (`shivshakti-samvat-2082`), the
+//!   span this rule gives Siddharthi, to a day. The practice is Sewell and
+//!   Dikshit's — the name current at the year's beginning — and the
+//!   Jupiter is another, a month ahead of the *bīja*'s. No almanac house's
+//!   own print of this naming was read: the press reports name
+//!   astrologers, not almanacs, and the press is not of one mind, for
+//!   Bansal News named 2081 Pingala (`bansalnews-samvat-2081`).
 //!
 //! # The moment
 //!
@@ -57,6 +83,14 @@ use hc_calendar::fixed::Moment;
 use hc_seasons::zodiac::SiderealSign;
 
 use crate::samvatsara::LENGTH;
+
+/// The extra field a calendar that names its years in the northern cycle
+/// writes the name's position under, 1 for Prabhava through 60 for Kṣaya:
+/// a key apart from the southern cycle's `samvatsara`
+/// ([`crate::samvatsara::CYCLE`]), because the two reckonings give the
+/// same year different names. Its values are the same sixty names, a cycle
+/// of kind `samvatsara`.
+pub const FIELD: &str = "barhaspatya-samvatsara";
 
 /// What the rules add to the whole quotient and the Kali year before
 /// dividing by sixty (Art. 59): the name current at the Kali Yuga epoch is
@@ -183,6 +217,16 @@ impl MeanSignRule {
             + self.added_palas as f64 / PALAS_PER_DAY
     }
 
+    /// The position of the name this rule couples with the year that
+    /// begins in an *expired* Śaka year — the Śaka year the *Rashtriya
+    /// Panchang* prints: the name current at the apparent Meṣa saṅkrānti of
+    /// its solar year, which is the name current at the lunisolar year's
+    /// Chaitra śukla 1 as well unless a name begins between the two.
+    #[must_use]
+    pub const fn of_saka(self, saka: i64) -> u8 {
+        self.current_at_sankranti(saka + SAKA_TO_KALI)
+    }
+
     /// The name expunged in that solar year — the one that begins and ends
     /// in it, so that the year after opens two names on — or `None`.
     #[must_use]
@@ -203,7 +247,7 @@ impl MeanSignRule {
 /// the name Sewell and Dikshit's Table I, col. 7, couples with the year.
 #[must_use]
 pub const fn northern_of_saka(saka: i64) -> u8 {
-    SURYA_SIDDHANTA_BIJA.current_at_sankranti(saka + SAKA_TO_KALI)
+    SURYA_SIDDHANTA_BIJA.of_saka(saka)
 }
 
 /// The apparent Meṣa saṅkrānti of the *Sūrya Siddhānta* at or before a
@@ -459,6 +503,79 @@ mod tests {
         // named Pingala, its title as Exotic India lists it
         // (`hrishikesh-panchang-2081`; the almanac itself not read).
         assert_eq!(name(northern_of_saka(1_946)), Some("Pingala"));
+        // Drik Panchang for New Delhi heads Vikrama 2081, 2082 and 2083
+        // "2081 Pingala", "2082 Kalayukta" and "2083 Siddharthi"
+        // (`drikpanchang-day-2024-2026`).
+        assert_eq!(name(northern_of_saka(1_947)), Some("Kalayukta"));
+        assert_eq!(name(northern_of_saka(1_948)), Some("Siddharthin"));
+        assert_eq!(SURYA_SIDDHANTA_BIJA.of_saka(1_948), northern_of_saka(1_948));
+    }
+
+    /// A moment in Indian Standard Time.
+    fn ist(year: i64, month: u8, day: u8, hours: f64) -> Moment {
+        let rd = hc_calendars_solar::gregorian::to_fixed(year, month, day).unwrap();
+        Moment(rd.0 as f64 + (hours - 5.5) / 24.0)
+    }
+
+    #[test]
+    fn drik_panchangs_names_end_where_the_bija_rule_ends_them() {
+        // Drik Panchang gives each year's name with its end: "Pingala upto
+        // 02:14 PM, Apr 29, 2024", "Kalayukta upto 03:07 PM, Apr 25, 2025",
+        // "Siddharthi upto 03:53 PM, Apr 21, 2026", New Delhi time. The
+        // rule with the bīja, from the Siddhānta's saṅkrānti, ends each
+        // 128 to 132 minutes later.
+        let rule = SURYA_SIDDHANTA_BIJA;
+        for ((year, month, day, hours), ending) in [
+            ((2024, 4, 29, 14.0 + 14.0 / 60.0), 51),
+            ((2025, 4, 25, 15.0 + 7.0 / 60.0), 52),
+            ((2026, 4, 21, 15.0 + 53.0 / 60.0), 53),
+        ] {
+            // 115 and 144 minutes after the printed end.
+            let printed = ist(year, month, day, hours);
+            assert_eq!(in_progress_at(rule, Moment(printed.0 + 0.08)), ending);
+            assert_eq!(in_progress_at(rule, Moment(printed.0 + 0.1)), ending + 1);
+        }
+    }
+
+    #[test]
+    fn the_press_names_are_the_rule_without_the_bija() {
+        // The Hindi press named Vikrama 2081, 2082 and 2083 Kalayukta
+        // ("पंचांग भेद से इसका नाम कालयुक्त है", by the difference of the
+        // almanacs, Webdunia, 8 December 2023), Siddharthi ("संवत का नाम
+        // सिद्धार्थी", Dainik Tribune, 29 March 2025) and Raudra ("'रौद्र'
+        // संवत्सर", Aaj Tak, 7 March 2026): one name after the bīja rule's,
+        // and the Sūrya Siddhānta's without it (`webdunia-samvat-2081`,
+        // `dainiktribune-samvat-2082`, `aajtak-samvat-2083`). Bansal News
+        // named 2081 Pingala, as the bīja rule does
+        // (`bansalnews-samvat-2081`).
+        let rule = SURYA_SIDDHANTA;
+        assert_eq!(name(rule.of_saka(1_946)), Some("Kalayukta"));
+        assert_eq!(name(rule.of_saka(1_947)), Some("Siddharthin"));
+        assert_eq!(name(rule.of_saka(1_948)), Some("Raudra"));
+        for saka in 1_946..=1_948 {
+            assert_eq!(rule.of_saka(saka), next(northern_of_saka(saka)));
+        }
+        // Each is in progress at the year's Chaitra śukla 1, 9 April 2024,
+        // 30 March 2025 and 19 March 2026.
+        assert_eq!(in_progress_at(rule, ist(2024, 4, 9, 6.0)), 52);
+        assert_eq!(in_progress_at(rule, ist(2025, 3, 30, 6.0)), 53);
+        assert_eq!(in_progress_at(rule, ist(2026, 3, 19, 6.0)), 54);
+        // The Shiv Shakti Jyotish Kendra's account of 2082: Siddharthi
+        // began "लगभग 15 मार्च, 2025" and lasts "लगभग 10 मार्च, 2026 ई. तक";
+        // at the Meṣa saṅkrānti of 2082 it had run "०/२९/३२/५५", 0 months
+        // 29 days 32 ghaṭikās 55 palas (`shivshakti-samvat-2082`). By the
+        // rule it begins on 15 March 2025 and ends on 11 March 2026, the
+        // day after the one the account names, and at the saṅkrānti it has
+        // run the rule's 361 days less 331.36, 29 days 38 ghaṭikās, five
+        // ghaṭikās more than printed.
+        assert_eq!(in_progress_at(rule, ist(2025, 3, 15, 0.0)), 52);
+        assert_eq!(in_progress_at(rule, ist(2025, 3, 16, 0.0)), 53);
+        assert_eq!(in_progress_at(rule, ist(2026, 3, 11, 0.0)), 53);
+        assert_eq!(in_progress_at(rule, ist(2026, 3, 12, 0.0)), 54);
+        let kali = 1_947 + SAKA_TO_KALI;
+        let elapsed = RULE_YEAR_DAYS as f64 - rule.days_to_end(kali);
+        let printed = 29.0 + (32.0 + 55.0 / 60.0) / 60.0;
+        assert!((elapsed - printed).abs() < 0.1, "{elapsed}");
     }
 
     /// A moment at Ujjain: a Julian date and the ghaṭikās and palas after

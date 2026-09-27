@@ -207,11 +207,31 @@ fn every_extra_field_has_a_labelled_line() {
             "hindu-solar-tamil",
             "samvatsara",
             "40",
-            "Samvatsara",
+            "Samvatsara (southern reckoning)",
             "Parabhava",
             "1",
             "en"
         ]
+    );
+    // The amānta and pūrṇimānta calendars name the same year in the two
+    // cycles, under two keys and two labels: Parabhava, the 40th, in the
+    // southern reckoning, and Siddharthin, the 53rd, in the northern.
+    assert_eq!(
+        row("hindu-lunar", "samvatsara")[2..6],
+        ["40", "Samvatsara (southern reckoning)", "Parabhava", "1"]
+    );
+    assert_eq!(
+        row("hindu-lunar-purnimanta", "barhaspatya-samvatsara")[2..6],
+        [
+            "53",
+            "Barhaspatya samvatsara (northern cycle)",
+            "Siddharthin",
+            "1"
+        ]
+    );
+    assert!(
+        rows.iter()
+            .all(|row| !(row[0] == "hindu-lunar-purnimanta" && row[1] == "samvatsara"))
     );
     assert_eq!(
         row("hindu-solar-tamil", "tiruvalluvar-year")[2..6],
@@ -242,7 +262,9 @@ fn every_extra_field_has_a_labelled_line() {
     let tamil =
         lines::day_extras(&registry, day, Some("hindu-solar-tamil"), "ta").expect("registered");
     assert!(
-        tamil.starts_with("hindu-solar-tamil\tsamvatsara\t40\tSamvatsara\tபராபவ\t0\tta\n"),
+        tamil.starts_with(
+            "hindu-solar-tamil\tsamvatsara\t40\tSamvatsara (southern reckoning)\tபராபவ\t0\tta\n"
+        ),
         "{tamil}"
     );
     assert!(tamil.lines().all(|line| line.ends_with("\tta")), "{tamil}");
@@ -301,7 +323,17 @@ fn the_extras_a_source_writes_are_in_the_date() {
     );
     assert_eq!(
         formatted("hindu-solar-tamil", today, "en"),
-        "Purattasi 11 of the year Parabhava, 1948 Saka"
+        "Purattasi 11 of the year Parabhava in southern reckoning, 1948 Saka"
+    );
+    // The same year in the north: the pūrṇimānta month is a fortnight on,
+    // and the year is named in the Bārhaspatya cycle.
+    assert_eq!(
+        formatted("hindu-lunar", today, "en"),
+        "Bhadra 16 of the year Parabhava in southern reckoning, 1948 Saka"
+    );
+    assert_eq!(
+        formatted("hindu-lunar-purnimanta", today, "en"),
+        "Asvina 16 of the Barhaspatya year Siddharthin, 1948 Saka"
     );
     assert_eq!(
         formatted("odia-anka", today, "en"),

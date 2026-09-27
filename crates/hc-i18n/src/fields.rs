@@ -206,11 +206,14 @@ pub fn write_value_name(
     }
 }
 
-/// The four Hindu calendars that name their year in a sixty-year cycle.
+/// The three Hindu calendars that name their year in the southern
+/// sixty-year cycle, `samvatsara`. The pūrṇimānta calendar names it in the
+/// northern, Bārhaspatya, cycle, under `barhaspatya-samvatsara`: the same
+/// sixty names, reckoned differently, thirteen apart in 2026
+/// (`docs/systems/hindu-calendars.md`).
 const SAMVATSARA_CALENDARS: &[CalendarId] = &[
     CalendarId("hindu-lunar"),
     CalendarId("hindu-lunar-surya-siddhanta"),
-    CalendarId("hindu-lunar-purnimanta"),
     CalendarId("hindu-solar-tamil"),
 ];
 
@@ -302,6 +305,11 @@ const fn counts(
 /// `crate::data` carries one; each `Own` list cites where it was read.
 pub static VALUES: &[FieldValues] = &[
     counts(SAMVATSARA_CALENDARS, "samvatsara", "samvatsara"),
+    counts(
+        &[CalendarId("hindu-lunar-purnimanta")],
+        "barhaspatya-samvatsara",
+        "samvatsara",
+    ),
     counts(TZOLKIN_CALENDARS, "tzolkin_name", "day-sign"),
     counts(
         &[CalendarId("aztec-tonalpohualli")],
@@ -403,8 +411,12 @@ pub static VALUES: &[FieldValues] = &[
 /// English's labels are the words the calendars' system documents and
 /// modules use for their fields, from the sources they cite: `baktun` is
 /// the Long Count's place as `docs/systems/mesoamerican-counts.md` names
-/// it, `samvatsara` the Hindu year's name as `docs/systems/hindu-calendars.md`
-/// does, `indiction` the Byzantine cycle as `hc_calendars_solar::byzantine`
+/// it, `samvatsara` and `barhaspatya-samvatsara` the Hindu year's name in
+/// the southern and the northern cycle, in Sewell and Dikshit's words for
+/// them, a samvatsara "in luni-solar or southern reckoning" and a
+/// "Barhaspatya samvatsara" of "the northern cycle" (`sewell1896`, Art. 54
+/// and the examples of 1752 and 1822), as
+/// `docs/systems/hindu-calendars.md` names them, `indiction` the Byzantine cycle as `hc_calendars_solar::byzantine`
 /// does. No other language's table is carried yet: no source in another
 /// language naming these fields was read.
 pub static TABLES: &[FieldNames] = &[FieldNames {
@@ -415,6 +427,10 @@ pub static TABLES: &[FieldNames] = &[FieldNames {
         ("astawara", "Astawara"),
         ("astronomical-year", "Astronomical year"),
         ("baktun", "Baktun"),
+        (
+            "barhaspatya-samvatsara",
+            "Barhaspatya samvatsara (northern cycle)",
+        ),
         ("base-year", "Base year"),
         ("branch", "Earthly branch"),
         ("caturwara", "Caturwara"),
@@ -463,7 +479,7 @@ pub static TABLES: &[FieldNames] = &[FieldNames {
         ("regnal-year", "Year of the reign"),
         ("rest-day", "Common rest day"),
         ("sadwara", "Sadwara"),
-        ("samvatsara", "Samvatsara"),
+        ("samvatsara", "Samvatsara (southern reckoning)"),
         ("sangawara", "Sangawara"),
         ("season", "Misseri"),
         ("sexagenary", "Stem and branch"),

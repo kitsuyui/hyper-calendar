@@ -35,13 +35,26 @@
 //! *Bārhaspatya saṃvatsara* of [`crate::barhaspatya`], which has run
 //! thirteen names ahead of the southern one the amānta calendar carries
 //! since 1943 and will run fourteen ahead from 2028: the extra
-//! field `samvatsara` is the name current at the Meṣa saṅkrānti that
-//! falls in the year's Chaitra, by the *Sūrya Siddhānta* with the *bīja*,
-//! as Sewell and Dikshit's Table I gives it from 1501 to 1900. The
-//! Bārhaspatya year itself does not begin at the New Year: its names turn
-//! whenever Jupiter's mean place enters a sign, and one is expunged about
-//! every 85 years. Śaka 1946, Vikrama 2081, is Pingala, as the Hrishikesh
-//! Panchang of Varanasi prints it.
+//! field `barhaspatya-samvatsara` ([`crate::barhaspatya::FIELD`]) is the
+//! name current at the Meṣa saṅkrānti that falls in the year's Chaitra, by
+//! the *Sūrya Siddhānta* with the *bīja*, as Sewell and Dikshit's Table I
+//! gives it from 1501 to 1900. It is not the amānta calendar's
+//! `samvatsara`, the southern name, and has its own key so that the two are
+//! never read as one: on 28 September 2026 this calendar's year is
+//! Siddharthin and the amānta calendar's Parabhava, thirteen names apart,
+//! as they have been since the rule expunged Manmatha in 1942–43.
+//! The Bārhaspatya year itself does not begin at the New Year: its names
+//! turn whenever Jupiter's mean place enters a sign, and one is expunged
+//! about every 85 years. Śaka 1946, Vikrama 2081, is Pingala, as the
+//! Hrishikesh Panchang of Varanasi prints it, and 2082 and 2083 are
+//! Kalayukta and Siddharthi, as Drik Panchang heads them.
+//!
+//! The Hindi press's New Year announcements, citing astrologers, name the
+//! same years one later — Kalayukta, Siddharthi, Raudra — by the
+//! Siddhānta's rule without the *bīja*; that convention is
+//! [`crate::barhaspatya::SURYA_SIDDHANTA`], which
+//! [`crate::barhaspatya::MeanSignRule::of_saka`] gives for a year. This
+//! calendar does not carry it.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd,
@@ -244,7 +257,7 @@ impl Calendar for HinduPurnimantaCalendar {
         fields
             .with_extra("vikrama-year", date.vikrama_year())?
             .with_extra(
-                crate::samvatsara::CYCLE,
+                crate::barhaspatya::FIELD,
                 i64::from(Self::samvatsara_of(date.year)),
             )
     }
@@ -389,7 +402,8 @@ mod tests {
         let named = |rd: Rd| {
             let date = RASHTRIYA.from_fixed(rd).unwrap();
             let fields = Calendar::to_fields(&RASHTRIYA, date).unwrap();
-            let position = fields.extra.get(crate::samvatsara::CYCLE).unwrap();
+            assert_eq!(fields.extra.get(crate::samvatsara::CYCLE), None);
+            let position = fields.extra.get(crate::barhaspatya::FIELD).unwrap();
             name(u8::try_from(position).unwrap())
         };
         // Sewell and Dikshit's worked example of 1822: Saka 1744 expired,
@@ -413,5 +427,27 @@ mod tests {
         assert_eq!(named(ymd(2024, 5, 1)), Some("Pingala"));
         assert_eq!(named(ymd(2025, 3, 29)), Some("Pingala"));
         assert_eq!(named(ymd(2025, 3, 30)), Some("Kalayukta"));
+        // Drik Panchang for New Delhi: "2081 Pingala" on 29 March 2025,
+        // "2082 Kalayukta" from 30 March 2025 to 18 March 2026, and "2083
+        // Siddharthi" from 19 March 2026 and on 28 September 2026
+        // (`drikpanchang-day-2024-2026`). The names agree; the first day
+        // does not. The pratipadā of 2026 begins after sunrise on 19 March
+        // and ends before sunrise on the 20th, so the calendar, which reads
+        // the tithi at sunrise, keeps the 19th as the old year's amāvāsyā
+        // and opens Śaka 1948 on the 20th at śukla 2, where Drik Panchang
+        // opens the year on the day its pratipadā begins.
+        assert_eq!(named(ymd(2026, 3, 18)), Some("Kalayukta"));
+        assert_eq!(named(ymd(2026, 3, 19)), Some("Kalayukta"));
+        let first = RASHTRIYA.from_fixed(ymd(2026, 3, 20)).unwrap();
+        assert_eq!((first.year, first.month, first.day), (1_948, 1, 2));
+        assert_eq!(named(ymd(2026, 3, 20)), Some("Siddharthin"));
+        assert_eq!(named(ymd(2026, 9, 28)), Some("Siddharthin"));
+        // The amānta calendar names the same day's year Parabhava, in the
+        // southern cycle, under its own key.
+        let south = Calendar::to_fields(&amanta, amanta.from_fixed(ymd(2026, 9, 28)).unwrap())
+            .unwrap()
+            .extra;
+        assert_eq!(south.get(crate::samvatsara::CYCLE), Some(40));
+        assert_eq!(south.get(crate::barhaspatya::FIELD), None);
     }
 }
