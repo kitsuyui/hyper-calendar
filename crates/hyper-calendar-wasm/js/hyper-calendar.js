@@ -89,6 +89,10 @@ export const METHODS = Object.freeze([
   { method: "gregorianAdoption", export: "hc_gregorian_adoption", feature: "calendars" },
   { method: "panchangaAt", export: "hc_panchanga_at", feature: "calendars" },
   { method: "panchangaOfDay", export: "hc_panchanga_of_day", feature: "calendars" },
+  { method: "hinduLunarDate", export: "hc_hindu_lunar_date", feature: "calendars" },
+  { method: "suryaSiddhantaAt", export: "hc_surya_siddhanta_at", feature: "calendars" },
+  { method: "suryaSiddhantaSunrise", export: "hc_surya_siddhanta_sunrise", feature: "calendars" },
+  { method: "crescentVisible", export: "hc_crescent_visible", feature: "calendars" },
   { method: "iocOlympiad", export: "hc_ioc_olympiad", feature: "calendars" },
   { method: "hebrewYahrzeit", export: "hc_hebrew_yahrzeit", feature: "calendars" },
   { method: "hebrewBirthday", export: "hc_hebrew_birthday", feature: "calendars" },
@@ -120,6 +124,9 @@ export const METHODS = Object.freeze([
   { method: "ut2MinusUt1", export: "hc_ut2_minus_ut1", feature: "sky" },
   { method: "solarTime", export: "hc_solar_time", feature: "sky" },
   { method: "solarEvent", export: "hc_solar_event", feature: "sky" },
+  { method: "horizons", export: "hc_horizons", feature: "sky" },
+  { method: "sunrise", export: "hc_sunrise", feature: "sky" },
+  { method: "sunset", export: "hc_sunset", feature: "sky" },
   { method: "orbitAt", export: "hc_orbit_at", feature: "orbital" },
   { method: "orbitSeries", export: "hc_orbit_series", feature: "orbital" },
   { method: "marsTime", export: "hc_mars_time", feature: "planetary" },
@@ -249,6 +256,15 @@ export const COLUMNS = Object.freeze({
   circadDate: Object.freeze([
     "calendar", "year", "month", "day", "month name", "week name", "count", "fraction", "leap",
     "source",
+  ]),
+  horizons: Object.freeze(["id", "english name", "description", "source"]),
+  solarCrossing: Object.freeze(["instant", "missing", "missing day", "depression", "altitude"]),
+  hinduLunarDate: Object.freeze([
+    "saka year", "vikrama year", "month", "leap month", "tithi", "leap day", "sunrise",
+  ]),
+  suryaSiddhanta: Object.freeze(["sun", "moon", "elongation", "tithi", "sign"]),
+  crescent: Object.freeze([
+    "visible", "evaluated at", "elongation", "arc of light", "altitude", "arc of vision", "width",
   ]),
 });
 
@@ -1242,6 +1258,89 @@ function solarEvent(cells) {
   return {
     instant: optionalInteger(instant, "instant"),
     missing: missingSolarEvent(missing, missingDay, depression),
+  };
+}
+
+/**
+ * One line of `hc_horizons`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Horizon}
+ */
+function horizonLine(cells) {
+  const [id, englishName, description, source] = cells;
+  return { id, englishName, description, source };
+}
+
+/**
+ * The one line of `hc_sunrise` or `hc_sunset`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").SolarCrossing}
+ */
+function solarCrossing(cells) {
+  const [instant, missing, missingDay, depression, altitude] = cells;
+  return {
+    instant: optionalInteger(instant, "instant"),
+    missing: missingSolarEvent(missing, missingDay, depression),
+    altitudeDegrees: decimal(altitude, "altitude"),
+  };
+}
+
+/**
+ * The one line of `hc_hindu_lunar_date`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").HinduLunarDate}
+ */
+function hinduLunarDateLine(cells) {
+  const [sakaYear, vikramaYear, month, leapMonth, tithi, leapDay, sunrise] = cells;
+  return {
+    sakaYear: integer(sakaYear, "saka year"),
+    vikramaYear: integer(vikramaYear, "vikrama year"),
+    month: integer(month, "month"),
+    leapMonth: flag(leapMonth, "leap month"),
+    tithi: integer(tithi, "tithi"),
+    leapDay: flag(leapDay, "leap day"),
+    sunrise: integer(sunrise, "sunrise"),
+  };
+}
+
+/**
+ * The one line of `hc_surya_siddhanta_at`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").SuryaSiddhantaSky}
+ */
+function suryaSiddhantaSky(cells) {
+  const [sun, moon, elongation, tithi, sign] = cells;
+  return {
+    sunLongitude: decimal(sun, "sun"),
+    moonLongitude: decimal(moon, "moon"),
+    elongation: decimal(elongation, "elongation"),
+    tithi: integer(tithi, "tithi"),
+    sign: integer(sign, "sign"),
+  };
+}
+
+/**
+ * The one line of `hc_crescent_visible`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").CrescentVisibility}
+ */
+function crescentVisibility(cells) {
+  const [visible, evaluatedAt, elongation, arcOfLight, altitude, arcOfVision, width] = cells;
+  /** @param {string} cell @param {string} what */
+  const optional = (cell, what) => (cell === "" ? null : decimal(cell, what));
+  return {
+    visible: flag(visible, "visible"),
+    evaluatedAt: optionalInteger(evaluatedAt, "evaluated at"),
+    elongation: optional(elongation, "elongation"),
+    arcOfLight: optional(arcOfLight, "arc of light"),
+    altitude: optional(altitude, "altitude"),
+    arcOfVision: optional(arcOfVision, "arc of vision"),
+    widthArcminutes: optional(width, "width"),
   };
 }
 
@@ -2665,6 +2764,81 @@ export class HyperCalendar {
   }
 
   /**
+   * The Hindu lunisolar date of a fixed day at a place, read at its
+   * sunrise: on the true sky in the zodiac of a named ayanamsa, or on the
+   * *Sūrya Siddhānta*'s, `surya-siddhanta`.
+   *
+   * @param {string} sky
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @returns {import("./hyper-calendar.d.ts").HinduLunarDate}
+   */
+  hinduLunarDate(sky, fixed, latitude, longitude, elevation = 0) {
+    const fn = this.#export("hc_hindu_lunar_date");
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(sky, "sky", (pointer, len) =>
+      this.#text("hc_hindu_lunar_date", (buffer, capacity) =>
+        fn(pointer, len, day, lat, lon, elev, buffer, capacity), true));
+    return hinduLunarDateLine(this.#oneLine("hc_hindu_lunar_date", text, COLUMNS.hinduLunarDate));
+  }
+
+  /**
+   * The *Sūrya Siddhānta*'s Sun and Moon at a POSIX instant, with the
+   * tithi and the Sun's sign.
+   *
+   * @param {number | bigint} unixSeconds
+   * @returns {import("./hyper-calendar.d.ts").SuryaSiddhantaSky}
+   */
+  suryaSiddhantaAt(unixSeconds) {
+    const fn = this.#export("hc_surya_siddhanta_at");
+    const instant = toI64(unixSeconds, "unixSeconds");
+    const text = this.#text("hc_surya_siddhanta_at", (buffer, capacity) => fn(instant, buffer, capacity), true);
+    return suryaSiddhantaSky(this.#oneLine("hc_surya_siddhanta_at", text, COLUMNS.suryaSiddhanta));
+  }
+
+  /**
+   * The *Sūrya Siddhānta*'s sunrise on a fixed day at a place, as POSIX
+   * seconds of Universal Time, rounded down.
+   *
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @returns {number}
+   */
+  suryaSiddhantaSunrise(fixed, latitude, longitude) {
+    const fn = this.#export("hc_surya_siddhanta_sunrise");
+    const day = toI64(fixed, "fixed");
+    const [lat, lon] = [toF64(latitude, "latitude"), toF64(longitude, "longitude")];
+    const text = this.#text("hc_surya_siddhanta_sunrise", (buffer, capacity) => fn(day, lat, lon, buffer, capacity), true);
+    return integer(this.#oneLine("hc_surya_siddhanta_sunrise", text, ["instant"])[0], "instant");
+  }
+
+  /**
+   * Whether the young crescent should have been visible on the evening
+   * that begins a fixed day, from a place, by `shaukat`, `yallop` or
+   * `saudi-rule`.
+   *
+   * @param {import("./hyper-calendar.d.ts").CrescentCriterion} criterion
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @returns {import("./hyper-calendar.d.ts").CrescentVisibility}
+   */
+  crescentVisible(criterion, fixed, latitude, longitude, elevation = 0) {
+    const fn = this.#export("hc_crescent_visible");
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(criterion, "criterion", (pointer, len) =>
+      this.#text("hc_crescent_visible", (buffer, capacity) =>
+        fn(pointer, len, day, lat, lon, elev, buffer, capacity), true));
+    return crescentVisibility(this.#oneLine("hc_crescent_visible", text, COLUMNS.crescent));
+  }
+
+  /**
    * The number of the modern Olympiad a Gregorian year belongs to, from 1
    * for 1896–1899; an earlier year is `out-of-range`.
    *
@@ -2889,6 +3063,66 @@ export class HyperCalendar {
       this.#text("hc_solar_event", (buffer, capacity) =>
         fn(pointer, len, day, lat, lon, elev, buffer, capacity), true));
     return solarEvent(this.#oneLine("hc_solar_event", text, COLUMNS.solarEvent));
+  }
+
+  /**
+   * Every named horizon a rising or a setting can be measured against.
+   *
+   * @returns {import("./hyper-calendar.d.ts").Horizon[]}
+   */
+  horizons() {
+    const fn = this.#export("hc_horizons");
+    const text = this.#text("hc_horizons", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(text, COLUMNS.horizons, "hc_horizons").map(horizonLine);
+  }
+
+  /**
+   * Sunrise on a fixed day at a place against a named horizon, or `null`
+   * with the missing sunrise named.
+   *
+   * @param {import("./hyper-calendar.d.ts").HorizonId} horizon
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @returns {import("./hyper-calendar.d.ts").SolarCrossing}
+   */
+  sunrise(horizon, fixed, latitude, longitude, elevation = 0) {
+    return this.#crossing("hc_sunrise", horizon, fixed, latitude, longitude, elevation);
+  }
+
+  /**
+   * Sunset on a fixed day at a place against a named horizon, or `null`
+   * with the missing sunset named.
+   *
+   * @param {import("./hyper-calendar.d.ts").HorizonId} horizon
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @returns {import("./hyper-calendar.d.ts").SolarCrossing}
+   */
+  sunset(horizon, fixed, latitude, longitude, elevation = 0) {
+    return this.#crossing("hc_sunset", horizon, fixed, latitude, longitude, elevation);
+  }
+
+  /**
+   * @param {string} exportName
+   * @param {string} horizon
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} elevation
+   * @returns {import("./hyper-calendar.d.ts").SolarCrossing}
+   */
+  #crossing(exportName, horizon, fixed, latitude, longitude, elevation) {
+    const fn = this.#export(exportName);
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(horizon, "horizon", (pointer, len) =>
+      this.#text(exportName, (buffer, capacity) =>
+        fn(pointer, len, day, lat, lon, elev, buffer, capacity), true));
+    return solarCrossing(this.#oneLine(exportName, text, COLUMNS.solarCrossing));
   }
 
   /**

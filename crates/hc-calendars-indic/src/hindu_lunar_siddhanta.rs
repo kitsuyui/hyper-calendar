@@ -65,7 +65,7 @@ pub const MAX_YEAR: i64 = 10_000 - KALI_SAKA_OFFSET;
 /// The Kali Yuga epoch as a moment of Universal Time: midnight at Ujjain,
 /// Friday 18 February 3102 BCE (Julian), fixed day −1 132 959
 /// (`hindu-epoch`).
-const EPOCH: f64 = -1_132_959.0 - UJJAIN_LONGITUDE_DEGREES / 360.0;
+pub(crate) const EPOCH: f64 = -1_132_959.0 - UJJAIN_LONGITUDE_DEGREES / 360.0;
 
 /// The amānta Hindu lunisolar calendar on the *Sūrya Siddhānta*'s Sun and
 /// Moon, the day read at the Siddhānta's sunrise at a place.

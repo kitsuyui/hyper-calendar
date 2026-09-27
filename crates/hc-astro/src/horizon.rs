@@ -84,6 +84,8 @@ pub struct Horizon {
     pub id: &'static str,
     /// The English name.
     pub english_name: &'static str,
+    /// What the convention takes the visible horizon to be, in a sentence.
+    pub description: &'static str,
     /// The refraction at the horizon for an observer at sea level, in
     /// degrees.
     pub refraction_degrees: f64,
@@ -192,6 +194,9 @@ hc_core::catalogue! {
         pub const GEOMETRIC_DIP = Horizon {
             id: "geometric-dip",
             english_name: "sea-level horizon lowered by the geometric dip",
+            description: "34′ of refraction and a Sun of 16′; the horizon lowered by the \
+                          geometric dip arccos(R/(R+h)) for the observer's height; the Moon's \
+                          semidiameter 0.2725 of its horizontal parallax",
             refraction_degrees: HORIZONTAL_REFRACTION_DEGREES,
             solar_semidiameter_degrees: SOLAR_SEMIDIAMETER_DEGREES,
             dip: Dip::Geometric,
@@ -208,6 +213,9 @@ hc_core::catalogue! {
         pub const USNO = Horizon {
             id: "usno",
             english_name: "US Naval Observatory, sea level",
+            description: "34′ of refraction and a Sun of 16′, for an observer at sea level \
+                          whatever their height; the Moon's semidiameter 0.2725 of its \
+                          horizontal parallax",
             refraction_degrees: HORIZONTAL_REFRACTION_DEGREES,
             solar_semidiameter_degrees: SOLAR_SEMIDIAMETER_DEGREES,
             dip: Dip::Ignored,
@@ -222,6 +230,9 @@ hc_core::catalogue! {
         pub const CALENDRICAL_CALCULATIONS = Horizon {
             id: "calendrical-calculations",
             english_name: "Reingold and Dershowitz, Calendrical Calculations",
+            description: "34′ of refraction and a Sun of 16′; the geometric dip and 19″·√h \
+                          more for a height of h metres; a Moon of 16′ with the parallax at \
+                          its altitude",
             refraction_degrees: HORIZONTAL_REFRACTION_DEGREES,
             solar_semidiameter_degrees: SOLAR_SEMIDIAMETER_DEGREES,
             dip: Dip::GeometricAndRefraction {
@@ -248,6 +259,18 @@ mod tests {
             assert!(
                 (altitude + 50.0 / 60.0).abs() < 1e-12,
                 "{}: {altitude}",
+                horizon.id
+            );
+        }
+    }
+
+    #[test]
+    fn every_horizon_describes_itself_in_one_line() {
+        for horizon in HORIZONS {
+            assert!(!horizon.description.is_empty(), "{}", horizon.id);
+            assert!(
+                !horizon.description.contains(['\t', '\n']),
+                "{}",
                 horizon.id
             );
         }

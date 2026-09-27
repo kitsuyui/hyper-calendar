@@ -433,6 +433,11 @@ a test (`yallops_q_follows_from_his_own_arcs_and_widths`).
   on such a calendar. The shapes of criterion are an `enum`, `ArcOfLight`
   and `QTest`, because a new shape needs new code to evaluate; a new
   criterion of an existing shape is a value.
+- **The criteria by name.** `NamedCriterion::ALL` lists `shaukat`,
+  `yallop` and `saudi-rule`, each with its source, so that a criterion can
+  arrive as text: the WebAssembly and C exports' `hc_crescent_visible`
+  judges an evening at any place by one of them, with the quantities the
+  criteria read. The list is data (ADR 0007).
 - **Ranges.** The tabular calendars convert 1 to 9 999 AH, a bound chosen
   to match the rest of the library rather than anything in the sources. The
   table converts 1300 to 1600 AH, RD 687 337 (12 November 1882) to

@@ -218,6 +218,15 @@ test("the Earth's rotation and the Sun's hours read the README's columns in orde
   assert.deepEqual([...COLUMNS.value], columnsAfter("## The Earth's rotation"));
   assert.deepEqual([...COLUMNS.solarTime], columnsAfter("## The Sun's hours"));
   assert.deepEqual([...COLUMNS.solarEvent], columnsOfTableStarting("instant"));
+  assert.deepEqual([...COLUMNS.horizons], columnsAfter("### Horizons"));
+  assert.deepEqual([...COLUMNS.solarCrossing], columnsAfter("### Sunrise and sunset"));
+});
+
+test("the Hindu date, the Siddhānta's sky and the crescent read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.hinduLunarDate], columnsAfter("## The Hindu lunisolar date"));
+  assert.deepEqual([...COLUMNS.suryaSiddhanta], columnsAfter("### The Sūrya Siddhānta's sky"));
+  assert.match(README, /`hc_surya_siddhanta_sunrise\([^)]*\)`[^.]*writes one line\s+of one cell, the instant/);
+  assert.deepEqual([...COLUMNS.crescent], columnsAfter("## The young crescent"));
 });
 
 test("the planetary lines read the README's columns in order", () => {

@@ -137,7 +137,10 @@ one:
 `riseset::sunrise`, `sunset`, `moonrise` and `moonset` use
 `geometric-dip`, which is what they have always computed. The
 `riseset::sunrise_with`, `sunset_with`, `moonrise_with` and
-`moonset_with` variants take a horizon by name. At sea level the default
+`moonset_with` variants take a horizon by name. At the WebAssembly and C
+boundaries `hc_horizons` lists the horizons, each with a one-sentence
+`description`, and `hc_sunrise` and `hc_sunset` take one by its
+identifier. At sea level the default
 and `usno` are the same horizon.
 
 `riseset::dawn` and `dusk` take a `Twilight`, whose depression is the
@@ -210,14 +213,15 @@ test measures them rather than hiding them in a wide bound:
   longitude at dynamical time, while mean time runs with the Earth's
   rotation in Universal Time. In antiquity ΔT is hours, so the two
   drift apart: in 586 BCE, with ΔT = 18 496 s, the book's sundial
-  time runs 38 s ahead of the Sun's hour angle. `hc-astro`'s
-  `solar_time::local_apparent_time` is built the same way and shows the
-  same 38 s. This library's sunrise, sunset and transit solve for the
-  hour angle directly from sidereal time. The test takes the book's value
-  as this library's event less the amount by which
-  `local_apparent_time` there runs ahead of the hour angle, and the
-  remainder is within 2.8 s at every date, 586 BCE included. After about
-  1500 CE the correction is under a second.
+  time runs 38 s ahead of the Sun's hour angle. This library's sunrise,
+  sunset and transit solve for the hour angle directly from sidereal
+  time, and its equation of time, `solar::equation_of_time`, is that
+  hour angle against Universal Time. The test takes the book's value as
+  this library's event plus the book's lead: the Sun's mean longitude at
+  dynamical time less the right ascension of the mean Sun whose hour
+  angle is Universal Time, the mean sidereal time less that hour angle.
+  The remainder is within 2.8 s at every date, 586 BCE included. After
+  about 1500 CE the lead is under a second.
 - **The Moon's bisection.** The book halves a twelve-hour bracket ten
   times, to 42.2 s, and returns its midpoint, so its moonrise and moonset
   carry up to 21.1 s of the search. This library's crossing under the

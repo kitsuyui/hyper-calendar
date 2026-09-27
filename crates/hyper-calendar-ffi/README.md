@@ -111,7 +111,10 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a fixed day | `hc_astronomical_easter` | `year` 1583 through 2150; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_astronomical_paschal_full_moon` | `year` 1583 through 2150, the years of `hc_astronomical_easter`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_cold_food_day` | `year` −999 through 3000 under every reckoning, the years whose winter solstice before and whose April are both in the era of `hc_term_in_effect`; any other is `HC_ERROR_OUT_OF_RANGE`, and a reckoning it does not name `HC_ERROR_UNKNOWN` |
-| a line or lines | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_panchanga_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line or lines | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_panchanga_of_day`, `hc_sunrise`, `hc_sunset`, `hc_crescent_visible` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_hindu_lunar_date` | `fixed` in the Śaka years 1622 through 2221 on the true sky, from Chaitra śukla 1 in March 1700 to the eve of the one in March 2300, whose days move with the place and the ayanamsa (620 627 through 839 773 at the Central Station with Lahiri's); on `surya-siddhanta`, −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_surya_siddhanta_sunrise` | `fixed` −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_surya_siddhanta_at` | `unix_seconds` −159 992 668 800 through 155 590 156 799, the days of Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line or lines | `hc_sky_at`, `hc_solar_time`, `hc_panchanga_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_solar_terms_between`, `hc_moon_phases_between` | `from_unix` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; a `to_unix` at or before it writes no lines, and a later one must be at most 32 535 216 000 and at most 400 years after it; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_chinese_marriage_augury` | `chinese_year` 4282 through 4786, whose New Year and the next both fall in the Chinese calendar's range (1645 through 2150); any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -217,7 +220,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-85 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+92 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -264,6 +267,10 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_gregorian_adoption(const char *region, char *buffer, size_t capacity, size_t *written);` | `calendars` | The steps by which a country adopted the Gregorian calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_panchanga_at(int64_t unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | The yoga and the karaṇa in progress at a POSIX timestamp, as two NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_panchanga_of_day(int64_t fixed, double latitude, double longitude, double elevation, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | The yoga and the karaṇa a fixed day carries at a place, the ones in progress at its sunrise, as two NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_hindu_lunar_date(const char *sky, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `calendars` | The Hindu lunisolar date of a fixed day at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_surya_siddhanta_at(int64_t unix_seconds, char *buffer, size_t capacity, size_t *written);` | `calendars` | The *Sūrya Siddhānta*'s Sun and Moon at a POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_surya_siddhanta_sunrise(int64_t fixed, double latitude, double longitude, char *buffer, size_t capacity, size_t *written);` | `calendars` | The *Sūrya Siddhānta*'s sunrise on a fixed day at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_crescent_visible(const char *criterion, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `calendars` | Whether the young crescent should have been visible on the evening that begins a fixed day, from a place, by a named criterion, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_ioc_olympiad(int64_t gregorian_year, int64_t *out_olympiad);` | `calendars` | The number of the modern Olympiad a Gregorian year belongs to. |
 | `HcStatus hc_hebrew_yahrzeit(int64_t death_fixed, int64_t hebrew_year, int64_t *out_fixed);` | `calendars` | The fixed day of the yahrzeit in a Hebrew year of a death on the Hebrew date a fixed day names. |
 | `HcStatus hc_hebrew_birthday(int64_t birth_fixed, int64_t hebrew_year, int64_t *out_fixed);` | `calendars` | The fixed day of the birthday in a Hebrew year of a birth on the Hebrew date a fixed day names. |
@@ -289,6 +296,9 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_sky_at(int64_t unix_seconds, char *buffer, size_t capacity, size_t *written);` | `sky` | The Sun and the Moon at a POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_solar_terms_between(int64_t from_unix, int64_t to_unix, char *buffer, size_t capacity, size_t *written);` | `sky` | Every solar term whose instant falls in `[from_unix, to_unix)`, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_moon_phases_between(int64_t from_unix, int64_t to_unix, char *buffer, size_t capacity, size_t *written);` | `sky` | Every new moon, first quarter, full moon and last quarter whose instant falls in `[from_unix, to_unix)`, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_horizons(char *buffer, size_t capacity, size_t *written);` | `sky` | Every named horizon a rising or a setting can be measured against, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_sunrise(const char *horizon, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `sky` | Sunrise on a fixed day at a place against a named horizon, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_sunset(const char *horizon, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `sky` | Sunset on a fixed day at a place against a named horizon, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_earth_rotation_angle(double ut1_unix_seconds, double *out_degrees);` | `sky` | The Earth Rotation Angle at a UT1 instant, in degrees, 0 to 360. |
 | `HcStatus hc_gmst_iau2006(double ut1_unix_seconds, double *out_degrees);` | `sky` | The Greenwich mean sidereal time by the IAU 2006 convention at a UT1 instant, in degrees, 0 to 360. |
 | `HcStatus hc_gmst_iau1982(double ut1_unix_seconds, double *out_degrees);` | `sky` | The Greenwich mean sidereal time by the IAU 1982 convention at a UT1 instant, in degrees, 0 to 360. |
@@ -447,6 +457,25 @@ writes a `uint32_t`, the Chinese count's age, with a day before the birth
 `HC_ERROR_NO_DATA`, and `hc_chinese_marriage_augury(chinese_year, buffer,
 capacity, written)` the module's line of the augury and its two 立春
 flags.
+
+`hc_hindu_lunar_date(sky, fixed, latitude, longitude, elevation, buffer,
+capacity, written)` writes the module's line of the amānta lunisolar date
+of a day read at the sunrise of a place the caller gives — the Śaka and
+Vikrama years, the month, the intercalary flag, the tithi, the repeated
+flag and the sunrise — on the true sky in the zodiac of a named ayanamsa,
+as `hindu-lunar` reads it at the Central Station, or, with `sky`
+`surya-siddhanta`, on the *Sūrya Siddhānta*'s, as
+`hindu-lunar-surya-siddhanta` reads it at Ujjain.
+`hc_surya_siddhanta_at(unix_seconds, buffer, capacity, written)` writes
+the Siddhānta's Sun and Moon at an instant, with the elongation, the tithi
+and the Sun's sign, and `hc_surya_siddhanta_sunrise(fixed, latitude,
+longitude, buffer, capacity, written)` its sunrise on a day at a place, a
+place beyond 65° of latitude being `HC_ERROR_OUT_OF_RANGE`.
+`hc_crescent_visible(criterion, fixed, latitude, longitude, elevation,
+buffer, capacity, written)` writes whether the young crescent should have
+been visible on the evening that begins the day by `shaukat`, `yallop` or
+`saudi-rule`, with the moment the evening is judged at and what the
+criteria read there. The columns are the WebAssembly module's README's.
 
 ## Holidays
 
@@ -613,8 +642,15 @@ lines: a local clock's reading — `local-mean`, `local-apparent`,
 `temporal`, `italian` — or a named time of day — `asr-shafii`,
 `asr-hanafi`, `jewish-dusk-vilna-gaon`, `jewish-sabbath-ends-cohn`,
 `italian-zero-hour` — and, where the solar event it needs does not happen,
-cells naming what is missing instead of a number. All of them answer for
-the sky layer's years −1000 to 3000.
+cells naming what is missing instead of a number.
+`hc_horizons(buffer, capacity, written)` lists the named horizons a
+rising or a setting is measured against — `geometric-dip`, `usno` and
+`calendrical-calculations` — with their English names, descriptions and
+sources, and `hc_sunrise(horizon, fixed, latitude, longitude, elevation,
+buffer, capacity, written)` and `hc_sunset(...)` write the module's line
+of the crossing against the one named: the instant, the cells of a
+missing sunrise or sunset, and the altitude of the Sun's centre at the
+crossing. All of them answer for the sky layer's years −1000 to 3000.
 
 ## The orbit
 

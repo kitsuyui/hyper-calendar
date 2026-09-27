@@ -19,12 +19,15 @@
 //!   a noon shadow that does not happen answers with a line naming what is
 //!   missing, as a calendar that refuses a day is a line naming its
 //!   refusal, never with a number.
+//! * The named horizons of [`hc_astro::horizon`], and sunrise and sunset
+//!   on a local day against one of them, by its identifier.
 
 use alloc::string::String;
 use core::fmt::Write;
 
 use hc_astro::earth::{earth_rotation_angle, mean_sidereal_time, mean_sidereal_time_iau2006};
-use hc_astro::riseset::Location;
+use hc_astro::horizon::{HORIZONS, Horizon};
+use hc_astro::riseset::{self, Location};
 use hc_astro::solar_time::{self, MissingSolarEvent};
 use hc_astro::ut_variants::ut2_minus_ut1;
 use hc_calendar::Rd;
@@ -32,7 +35,7 @@ use hc_calendar::fixed::{Moment, RD_OF_UNIX_EPOCH};
 use hc_calendar::gregorian::new_year;
 use hc_core::math::floor;
 
-use crate::boundary::{Answer, Refusal, names};
+use crate::boundary::{Answer, Refusal, names, push_cell};
 
 /// The first proleptic Gregorian year the sky exports answer for.
 pub const EARLIEST_YEAR: i64 = -1000;
@@ -313,6 +316,103 @@ pub fn solar_event_line(event: &str, fixed: i64, place: Location) -> Answer<Stri
     Ok(out)
 }
 
+/// The lines of `hc_horizons`: every horizon [`HORIZONS`] carries, one a
+/// line, as its identifier, its English name, what it takes the visible
+/// horizon to be, and its source.
+#[must_use]
+pub fn horizons_lines() -> String {
+    let mut out = String::new();
+    for horizon in HORIZONS {
+        for (index, cell) in [
+            horizon.id,
+            horizon.english_name,
+            horizon.description,
+            horizon.source,
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            if index > 0 {
+                out.push('\t');
+            }
+            push_cell(&mut out, cell);
+        }
+        out.push('\n');
+    }
+    out
+}
+
+/// The horizon an identifier names, one of [`HORIZONS`], in any ASCII
+/// case.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for any other text, the empty string included: a
+/// rising is measured against a horizon, so none is assumed.
+pub fn horizon(given: &str) -> Answer<&'static Horizon> {
+    HORIZONS
+        .iter()
+        .find(|horizon| names(given, horizon.id))
+        .ok_or(Refusal::Unknown)
+}
+
+/// The line of a crossing of the horizon: the instant, the three cells of
+/// a missing solar event, and the altitude of the Sun's centre at the
+/// crossing.
+fn crossing_line(
+    event: fn(Rd, Location, &Horizon) -> Option<hc_calendar::fixed::Moment>,
+    name: &str,
+    horizon_id: &str,
+    fixed: i64,
+    place: Location,
+) -> Answer<String> {
+    let horizon = horizon(horizon_id)?;
+    let day = day_in_era(fixed)?;
+    let mut out = String::new();
+    match event(day, place, horizon) {
+        Some(moment) => {
+            let _ = write!(out, "{}\t\t\t", unix_from_moment(moment));
+        }
+        None => {
+            let _ = write!(out, "\t{name}\t{}\t", day.0);
+        }
+    }
+    let _ = writeln!(
+        out,
+        "\t{}",
+        horizon.sunrise_altitude_degrees(place.elevation_metres)
+    );
+    Ok(out)
+}
+
+/// The line of `hc_sunrise`: the Sun's upper limb rising over a named
+/// horizon on a local day at a place, as whole POSIX seconds of Universal
+/// Time, rounded down; then the three cells of a missing solar event,
+/// `sunrise`, the day and an empty depression, where the Sun does not
+/// rise that day, with the first cell empty instead; then the geometric
+/// altitude of the Sun's centre at the crossing, in degrees, which is what
+/// the horizon and the place's height make it. The local day runs from
+/// local mean midnight to local mean midnight, as
+/// [`hc_astro::riseset`]'s does.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a horizon [`horizon`] does not name, and the
+/// range errors of [`day_in_era`] and [`location`].
+pub fn sunrise_line(horizon_id: &str, fixed: i64, place: Location) -> Answer<String> {
+    crossing_line(riseset::sunrise_with, "sunrise", horizon_id, fixed, place)
+}
+
+/// The line of `hc_sunset`: as [`sunrise_line`], for the upper limb's
+/// setting, with `sunset` as the missing event.
+///
+/// # Errors
+///
+/// As [`sunrise_line`].
+pub fn sunset_line(horizon_id: &str, fixed: i64, place: Location) -> Answer<String> {
+    crossing_line(riseset::sunset_with, "sunset", horizon_id, fixed, place)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -356,5 +456,67 @@ mod tests {
             Err(Refusal::Unknown)
         );
         assert_eq!(location(91.0, 0.0, 0.0), Err(Refusal::OutOfRange));
+    }
+
+    #[test]
+    fn every_horizon_is_a_line_of_four_cells() {
+        let text = horizons_lines();
+        let rows: alloc::vec::Vec<alloc::vec::Vec<&str>> = text
+            .lines()
+            .map(|line| line.split('\t').collect())
+            .collect();
+        assert_eq!(rows.len(), HORIZONS.len());
+        for (row, horizon) in rows.iter().zip(HORIZONS) {
+            assert_eq!(row.len(), 4);
+            assert_eq!(row[0], horizon.id);
+        }
+        assert_eq!(rows[0][0], "geometric-dip");
+        assert_eq!(horizon("USNO").map(|horizon| horizon.id), Ok("usno"));
+        assert_eq!(horizon("").map(|horizon| horizon.id), Err(Refusal::Unknown));
+    }
+
+    /// The USNO's "Complete Sun and Moon Data for One Day" for Jerusalem,
+    /// 31.78° N, 35.24° E, on 2024-01-01 (`usno-api-rstt`, as
+    /// `hc_astro::riseset`'s test reads it): sunrise 06:39 and sunset
+    /// 16:46 at UT+2, 04:39 and 14:46 UTC, POSIX 1 704 083 940 and
+    /// 1 704 120 360, to the minute. The service takes no height, and its
+    /// own horizon gives its minutes at 740 m; the book's horizon, lowered
+    /// by 61′ there, rises about five minutes sooner.
+    #[test]
+    fn the_usno_horizon_rises_and_sets_on_the_usnos_minutes() {
+        let jerusalem = location(31.78, 35.24, 740.0).expect("a place");
+        let day = 738_886;
+        for (line, published) in [
+            (sunrise_line("usno", day, jerusalem), 1_704_083_940),
+            (sunset_line("usno", day, jerusalem), 1_704_120_360),
+        ] {
+            let line = line.expect("a crossing");
+            let cells = cells(&line);
+            assert_eq!(cells.len(), 5);
+            let instant: i64 = cells[0].parse().expect("an instant");
+            assert!((instant - published).abs() <= 31, "{instant}");
+            assert_eq!(cells[1..4], ["", "", ""]);
+            let altitude: f64 = cells[4].parse().expect("an altitude");
+            assert!((altitude + 50.0 / 60.0).abs() < 1e-9, "{altitude}");
+        }
+        let book = sunrise_line("calendrical-calculations", day, jerusalem).expect("a sunrise");
+        let usno = sunrise_line("usno", day, jerusalem).expect("a sunrise");
+        let earlier: i64 = cells(&usno)[0].parse::<i64>().expect("an instant")
+            - cells(&book)[0].parse::<i64>().expect("an instant");
+        assert!((270..330).contains(&earlier), "{earlier} s");
+        assert_eq!(sunrise_line("naoj", day, jerusalem), Err(Refusal::Unknown));
+    }
+
+    #[test]
+    fn a_polar_night_names_the_missing_sunrise() {
+        let tromso = location(69.6496, 18.9560, 0.0).expect("a place");
+        // 21 December 2024.
+        let line = sunrise_line("geometric-dip", 739_241, tromso).expect("an answer");
+        let cells = cells(&line);
+        assert_eq!(cells[..4], ["", "sunrise", "739241", ""]);
+        assert_eq!(
+            sunset_line("usno", 2_000_000, tromso),
+            Err(Refusal::OutOfRange)
+        );
     }
 }
