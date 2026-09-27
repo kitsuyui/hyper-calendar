@@ -1712,7 +1712,7 @@ fn nepal_keeps_dashain_and_tihar_for_as_many_days_as_the_notices_give() {
 #[test]
 fn sri_lanka_keeps_every_day_its_gazettes_list() {
     // The Holidays Act orders for 2023 to 2027, every row of each
-    // schedule, public and bank holiday alike.
+    // schedule, public and bank holiday alike, with the section 10 orders.
     expect(
         "LK",
         None,
@@ -1734,6 +1734,7 @@ fn sri_lanka_keeps_every_day_its_gazettes_list() {
             (2023, 5, 6, "Day Following Vesak Full Moon Poya Day"),
             (2023, 6, 3, "Poson Full Moon Poya Day"),
             (2023, 6, 29, "Id-Ul-Adha (Hadji Festival Day)"),
+            (2023, 6, 30, "Special Bank Holiday"),
             (2023, 7, 3, "Adhi Esala Full Moon Poya Day"),
             (2023, 8, 1, "Esala Full Moon Poya Day"),
             (2023, 8, 30, "Nikini Full Moon Poya Day"),
@@ -1764,6 +1765,7 @@ fn sri_lanka_keeps_every_day_its_gazettes_list() {
             (2024, 8, 19, "Nikini Full Moon Poya Day"),
             (2024, 9, 16, "Milad-Un-Nabi (Holy Prophet's Birthday)"),
             (2024, 9, 17, "Binara Full Moon Poya Day"),
+            (2024, 9, 23, "Public Holiday"),
             (2024, 10, 17, "Vap Full Moon Poya Day"),
             (2024, 10, 31, "Deepavali Festival Day"),
             (2024, 11, 15, "Il Full Moon Poya Day"),
@@ -1806,11 +1808,11 @@ fn sri_lanka_keeps_every_day_its_gazettes_list() {
             (2026, 4, 3, "Good Friday"),
             (2026, 4, 13, "Day Prior to Sinhala & Tamil New Year Day"),
             (2026, 4, 14, "Sinhala & Tamil New Year Day"),
-            (2026, 5, 1, "Vesak Full Moon Poya Day"),
+            (2026, 5, 1, "Full Moon Poya Day"),
             (2026, 5, 1, "May Day (International Workers' Day)"),
-            (2026, 5, 2, "Day Following Vesak Full Moon Poya Day"),
             (2026, 5, 28, "Id-Ul-Adha (Hadji Festival Day)"),
-            (2026, 5, 30, "Adhi Poson Full Moon Poya Day"),
+            (2026, 5, 30, "Vesak Full Moon Poya Day"),
+            (2026, 5, 31, "Day Following Vesak Full Moon Poya Day"),
             (2026, 6, 29, "Poson Full Moon Poya Day"),
             (2026, 7, 29, "Esala Full Moon Poya Day"),
             (2026, 8, 26, "Milad-Un-Nabi (Holy Prophet's Birthday)"),
@@ -1848,6 +1850,96 @@ fn sri_lanka_keeps_every_day_its_gazettes_list() {
             (2027, 12, 25, "Christmas Day"),
         ],
     );
+}
+
+/// Every day-off holiday of `year` in the Sri Lanka table, by date and
+/// then name.
+fn sri_lanka_days(year: i64) -> Vec<(Rd, &'static str)> {
+    let mut days: Vec<(Rd, &'static str)> = HolidayCalendar::for_year(table("LK"), None, year)
+        .in_year(year)
+        .iter()
+        .filter(|holiday| holiday.is_day_off())
+        .map(|holiday| (holiday.date, holiday.name))
+        .collect();
+    days.sort_unstable();
+    days
+}
+
+#[test]
+fn sri_lanka_keeps_vesak_2026_where_the_cabinet_put_it() {
+    // The Cabinet decision of 30 March 2026 puts Vesak on 30 May (the
+    // Department of Buddhist Affairs' letter DBA/4/5/01/2026), and Order
+    // No. 2485/14 moves the day following Vesak from 2 May to 31 May. The
+    // full moon of 1 May stays a holiday, the adhi Poya of Vesak.
+    let days = sri_lanka_days(2026);
+    let on = |month: u8, day: u8| -> Vec<&'static str> {
+        let date = ymd(2026, month, day);
+        days.iter()
+            .filter(|(d, _)| *d == date)
+            .map(|(_, name)| *name)
+            .collect()
+    };
+    assert_eq!(
+        on(5, 1),
+        ["Full Moon Poya Day", "May Day (International Workers' Day)"]
+    );
+    assert!(on(5, 2).is_empty(), "{:?}", on(5, 2));
+    assert_eq!(on(5, 30), ["Vesak Full Moon Poya Day"]);
+    assert_eq!(on(5, 31), ["Day Following Vesak Full Moon Poya Day"]);
+    // Thirteen Poya days, one Vesak among them, and no Adhi Poson.
+    let poya: Vec<(Rd, String)> = days
+        .iter()
+        .filter(|(_, name)| name.ends_with("Full Moon Poya Day") && !name.starts_with("Day "))
+        .map(|(date, name)| (*date, (*name).to_owned()))
+        .collect();
+    let expected: Vec<(Rd, String)> = [
+        (1, 3, "Duruthu"),
+        (2, 1, "Navam"),
+        (3, 2, "Medin"),
+        (4, 1, "Bak"),
+        (5, 1, ""),
+        (5, 30, "Vesak"),
+        (6, 29, "Poson"),
+        (7, 29, "Esala"),
+        (8, 27, "Nikini"),
+        (9, 26, "Binara"),
+        (10, 25, "Vap"),
+        (11, 24, "Il"),
+        (12, 23, "Unduvap"),
+    ]
+    .iter()
+    .map(|&(month, day, poya)| {
+        let name = if poya.is_empty() {
+            "Full Moon Poya Day".to_owned()
+        } else {
+            format!("{poya} Full Moon Poya Day")
+        };
+        (ymd(2026, month, day), name)
+    })
+    .collect();
+    assert_eq!(poya, expected);
+}
+
+#[test]
+fn sri_lanka_has_no_day_its_orders_do_not_list() {
+    // The whole year, not a sample: 2026's twenty-six schedule rows with 2
+    // May moved to 31 May, and 2027's twenty-five (Order No. 2493/5).
+    assert_eq!(sri_lanka_days(2026).len(), 26);
+    assert_eq!(sri_lanka_days(2027).len(), 25);
+    // The section 10 orders: 30 June 2023 for the banks alone (No.
+    // 2337/18), 23 September 2024 a public holiday (No. 2402/25).
+    let bank = HolidayCalendar::for_year(table("LK"), None, 2023)
+        .on(ymd(2023, 6, 30))
+        .into_iter()
+        .map(|holiday| (holiday.name, holiday.kind))
+        .collect::<Vec<_>>();
+    assert_eq!(bank, [("Special Bank Holiday", Kind::Bank)]);
+    let declared = HolidayCalendar::for_year(table("LK"), None, 2024)
+        .on(ymd(2024, 9, 23))
+        .into_iter()
+        .map(|holiday| (holiday.name, holiday.kind))
+        .collect::<Vec<_>>();
+    assert_eq!(declared, [("Public Holiday", Kind::Public)]);
 }
 
 #[test]
