@@ -50,9 +50,10 @@
 //!   (`pmo-calendar-1900-2025`), which follows the 時憲書, and the
 //!   Veritable Records have the same day.
 //!
-//! Beyond those, every month of 1645–1908 whose opening line the Records
-//! give unambiguously was read against them, 3 048 in all, and each begins
-//! on the Records' day (`tests/chinese_qing.rs`).
+//! Beyond those, every month of 1645–1911 whose first day the Records'
+//! transcription gives was read against them — 3 260 of the 3 303, once
+//! two lines in error are set aside — and each begins on the Records' day
+//! (`tests/chinese_qing.rs`).
 //!
 //! Each entry names its source. The term days of the leap months are the
 //! weaker part: the leap months themselves are the Veritable Records', the
@@ -291,9 +292,9 @@ pub static ALMANAC_CORRECTIONS: [MonthStartCorrection; 29] = [
 ///
 /// - **1645**, 大暑: the 時憲書 printed it on the first day of 閏六月, but
 ///   before that day's conjunction, and counted it to the month before —
-///   Lǐ Tiānjīng's rule, used that one year, as Wāng Yuēzhēn explains it
-///   in Liu's account — so the term is reckoned here to 22 July, the last
-///   day of 六月.
+///   Lǐ Tiānjīng's rule, used that one year, as Wāng Yuēzhēn's
+///   《歷代長術輯要》 explains it in Liu's account (cited by Liu, not read)
+///   — so the term is reckoned here to 22 July, the last day of 六月.
 /// - **1651**, 春分 on 20 March, **1661**, 秋分 on 23 September, and
 ///   **1727**, 穀雨 on 20 April: the bureau's own term days, from the
 ///   Tychonic theory in use before 1733, as Liu's table of calendrical
@@ -302,14 +303,21 @@ pub static ALMANAC_CORRECTIONS: [MonthStartCorrection; 29] = [
 ///   1733 was read. The rules put 處暑 at 23:52 Beijing mean time on
 ///   23 August, eight minutes before midnight, and the Veritable Records'
 ///   閏六月 from 26 July is possible only if the almanac put it after, so
-///   the day is inferred from the leap month.
+///   the day is inferred from the leap month. Aslaksen (`aslaksen2010`,
+///   §4.6) takes this month as his example of the meridian and puts the
+///   term at 0h07m on 24 August at 120°E and about seven minutes before
+///   midnight at Beijing, which supports a term within minutes of
+///   midnight; his conclusion that Beijing's meridian made the leap month
+///   the one after the sixth does not follow under the rule here, where a
+///   term on 23 August puts the leap month after the seventh.
 pub static ALMANAC_TERM_CORRECTIONS: [MajorTermCorrection; 5] = [
     MajorTermCorrection::new(
         6,
         civil::to_rd(1645, 7, 23),
         civil::to_rd(1645, 7, 22),
         "閏六月辛巳朔, 順治二年, in 《清世祖實錄》 [qing-shilu]; 大暑 on its first day counted to the \
-        month before, by Wāng Yuēzhēn's account in [liu-chinese-calendar-computation]",
+        month before, by Wāng Yuēzhēn's account in [liu-chinese-calendar-computation] \
+        (《歷代長術輯要》, cited by Liu, not read)",
     ),
     MajorTermCorrection::new(
         2,
@@ -338,7 +346,7 @@ pub static ALMANAC_TERM_CORRECTIONS: [MajorTermCorrection; 5] = [
         civil::to_rd(1805, 8, 24),
         "閏六月壬午朔, 嘉慶十年, in 《清仁宗實錄》 [qing-shilu], and Liu's table \
         [liu-chinese-calendar-computation]; 處暑 on 24 August inferred from that leap month, no \
-        record of the term day read",
+        record of the term day read; the term within minutes of midnight also in [aslaksen2010]",
     ),
 ];
 
@@ -859,6 +867,41 @@ mod tests {
             let rd = Rd(start.0 + offset);
             let date = calendar.from_fixed(rd).expect("in range");
             assert_eq!(calendar.to_fixed(date), Ok(rd), "RD {rd}");
+        }
+    }
+
+    /// The Qing years, where the engine's corrections live: every day of
+    /// 1645–1911 round-trips, in a release build; a debug build takes every
+    /// sixty-first day, and every new year, every day a correction moves a
+    /// first day or a term from or to, and the day before each.
+    #[test]
+    fn the_calendar_round_trips_over_the_qing_years() {
+        let calendar = ChineseCalendar;
+        let years: Vec<Rd> = (4_281..=4_549)
+            .filter_map(|year| new_year(year).ok())
+            .collect();
+        let corrections = ALMANAC_CORRECTIONS
+            .iter()
+            .flat_map(|c| [c.computed, c.promulgated])
+            .chain(
+                ALMANAC_TERM_CORRECTIONS
+                    .iter()
+                    .flat_map(|c| [c.computed, c.promulgated]),
+            );
+        let boundaries: Vec<i64> = years
+            .iter()
+            .copied()
+            .chain(corrections)
+            .map(|rd| rd.0)
+            .collect();
+        for rd in crate::sweep_days(EARLIEST.0, LAST_CIVIL.0, 61, boundaries) {
+            let rd = Rd(rd);
+            let date = calendar.from_fixed(rd).expect("in range");
+            assert_eq!(calendar.to_fixed(date), Ok(rd), "RD {rd}");
+        }
+        for rd in years {
+            let date = calendar.from_fixed(rd).expect("in range");
+            assert_eq!((date.month, date.day), (Month::regular(1), 1), "RD {rd}");
         }
     }
 
