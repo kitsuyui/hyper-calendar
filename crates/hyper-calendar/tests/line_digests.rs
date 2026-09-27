@@ -15,6 +15,12 @@
 //! hyper-calendar --all-features --test line_digests`, and its diff is the
 //! list of answers that moved. A change that means only to be faster must
 //! leave the file alone.
+//!
+//! With the `holiday` feature the same holds for one day across every
+//! holiday table, as `hc_holidays_on` evaluates it, in
+//! `line_digests_holidays.txt`: every entry and gap each table gives, for
+//! a spread of days. Those digests were written before the call shared an
+//! `hc_core::memo::scope` across the tables.
 
 #![cfg(all(
     feature = "alloc",
@@ -113,6 +119,87 @@ fn describe_day_and_calendars_write_what_they_always_wrote() {
     assert!(
         moved.is_empty() && expected.lines().count() == actual.lines().count(),
         "{} answers moved; first: {:?}. A change that means to alter them \
+         regenerates with UPDATE_LINE_DIGESTS=1",
+        moved.len(),
+        moved.first()
+    );
+}
+
+/// Where the holiday digests live, relative to this crate.
+#[cfg(feature = "holiday")]
+const HOLIDAY_DIGESTS: &str = "tests/line_digests_holidays.txt";
+
+/// The days every holiday table is asked about: the first Gregorian year of
+/// Japan's folk days, 1900, the Unix epoch, a leap day, a Chinese leap
+/// month, New Year's Day, 春節, an ordinary day and the day of the timing
+/// in the WebAssembly README, a 旧暦 month the 2033 problem leaves open and
+/// the first after it, and years past the Hebrew and the lunisolar tables'
+/// ranges.
+#[cfg(feature = "holiday")]
+const HOLIDAY_DAYS: [i64; 14] = [
+    683_930, // 1873-07-15
+    693_761, // 1900-06-15
+    719_163, // 1970-01-01
+    730_179, // 2000-02-29
+    738_601, // 2023-03-22, 闰二月初一
+    739_617, // 2026-01-01
+    739_664, // 2026-02-17, 春節
+    739_884, // 2026-09-25
+    739_886, // 2026-09-27
+    742_461, // 2033-10-15
+    742_598, // 2034-03-01
+    767_000, // 2101-01-01
+    784_938, // 2150-02-01
+    839_900, // 2300-07-26
+];
+
+/// Every entry and gap of every table on `day`, one line each, through one
+/// context and one memo scope, as `hc_holidays_on` evaluates them.
+#[cfg(feature = "holiday")]
+fn holidays_on(day: Rd) -> String {
+    use hyper_calendar::hc_holiday::{EvaluationContext, HolidayCalendar};
+    let mut out = String::new();
+    let mut context = EvaluationContext::new();
+    hyper_calendar::hc_core::memo::scope(|| {
+        for table in hyper_calendar::holiday_lines::tables() {
+            let calendar = HolidayCalendar::for_day_with(table, None, day, &mut context);
+            for holiday in calendar.on(day) {
+                let _ = writeln!(out, "{}\t{holiday:?}", table.code);
+            }
+            for gap in calendar.gaps() {
+                let _ = writeln!(out, "{}\tgap {gap:?}", table.code);
+            }
+        }
+    });
+    out
+}
+
+#[cfg(feature = "holiday")]
+#[test]
+fn holidays_on_writes_what_it_always_wrote() {
+    let mut actual = String::new();
+    for day in HOLIDAY_DAYS {
+        let text = holidays_on(Rd(day));
+        let _ = writeln!(
+            actual,
+            "holidays_on\t{day}\t{}\t{:016x}",
+            text.len(),
+            fnv1a(&text)
+        );
+    }
+    if std::env::var_os("UPDATE_LINE_DIGESTS").is_some() {
+        std::fs::write(HOLIDAY_DIGESTS, &actual).expect("write the digests");
+        return;
+    }
+    let expected = std::fs::read_to_string(HOLIDAY_DIGESTS).expect("read the digests");
+    let moved: Vec<(&str, &str)> = expected
+        .lines()
+        .zip(actual.lines())
+        .filter(|(want, got)| want != got)
+        .collect();
+    assert!(
+        moved.is_empty() && expected.lines().count() == actual.lines().count(),
+        "{} days' holidays moved; first: {:?}. A change that means to alter them \
          regenerates with UPDATE_LINE_DIGESTS=1",
         moved.len(),
         moved.first()

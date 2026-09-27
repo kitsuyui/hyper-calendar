@@ -143,6 +143,42 @@ fn a_day_answers_as_its_year_does_in_every_table() {
 }
 
 #[test]
+fn every_table_in_one_memo_scope_answers_as_each_year_does() {
+    // What `hc_holidays_on` does: every table for one day through one
+    // context, inside one `hc_core::memo::scope`, against each table's
+    // year evaluated outside any scope, so that nothing the memo keeps can
+    // make both sides agree. The memo is on when a crate that needs it
+    // turns on `hc-core/memo`, as the facade and the workspace test run do.
+    let years: Vec<HolidayCalendar<'_>> = every_table()
+        .map(|table| HolidayCalendar::for_year(table, None, 2026))
+        .collect();
+    let days = [(1, 1), (2, 17), (9, 25), (12, 31)];
+    for (month, day) in days.into_iter().step_by(SAMPLED) {
+        let day = ymd(2026, month, day);
+        let mut context = EvaluationContext::new();
+        hc_core::memo::scope(|| {
+            for (table, year) in every_table().zip(&years) {
+                let by_day = HolidayCalendar::for_day_with(table, None, day, &mut context);
+                assert_eq!(
+                    by_day.on(day),
+                    year.on(day),
+                    "{} on fixed day {}",
+                    table.code,
+                    day.0
+                );
+                assert_eq!(
+                    by_day.gaps(),
+                    year.gaps(),
+                    "{}: gaps for fixed day {}",
+                    table.code,
+                    day.0
+                );
+            }
+        });
+    }
+}
+
+#[test]
 fn a_day_reports_the_gaps_its_year_does_in_every_table() {
     // 2150 is past the Chinese, Korean and Vietnamese tables' range, so
     // every lunisolar-dated holiday is a gap that year, and the day must

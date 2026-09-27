@@ -446,12 +446,13 @@ layer on purpose comes with a refreshed table.
 
 The profile's `opt-level = "z"` is a measured choice, not a default. On
 2026-09-27, with rustc 1.98.1, the `full` layer built at `z` was
-2,482,812 bytes and answered `hc_holidays_on` for 2026-01-01 in 131.5 ms
-under Node 22, the shortest of seven calls after a first; at `s`,
-2,501,667 bytes and 128.8 ms; at `3`, 2,686,515 bytes and 116.9 ms. The
-12 % of time `z` costs against `3` buys 8 % of the size, and a page loads
-the module far more often than it asks the costliest question, so `z`
-stays.
+2,570,192 bytes and answered `hc_holidays_on` for 2026-01-01 in 51.7 ms
+under Node 22, the shortest of seven calls
+([`scripts/wasm-calendar-timing.mjs`](../../scripts/wasm-calendar-timing.mjs));
+at `s`, 2,591,571 bytes and 48.4 ms; at `3`, 2,804,609 bytes and 44.0 ms.
+The 18 % of time `z` costs against `3` buys 8 % of the size, and a page
+loads the module far more often than it asks the costliest question, so
+`z` stays.
 
 ## What is exported
 
@@ -1751,15 +1752,22 @@ A day with no Gregorian year is `HC_ERR_OUT_OF_RANGE`.
 
 The call evaluates each table for the one day
 (`HolidayCalendar::for_day_with`), which answers exactly what the whole
-year would, through one `EvaluationContext` shared by every table, so the
-astronomy the tables have in common — the sunrises the Hindu festivals are
-read at, the new moons and solar terms of the Chinese-dated ones — is done
-once, and only for the months around the day. Measured on 2026-09-27 in
-the `release-compact` profile, one 2026 day across all 297 tables takes
-about 57 ms natively on 1 January, the costliest, and 37 ms on
-25 September, against 0.21 s for every table's whole year; in WebAssembly
-under Node 22, 137 ms and 88 ms. These figures are for 296 of the 297
-tables, all but one, a fixed-date Roman calendar.
+year would, through one `EvaluationContext` shared by every table and
+inside one `hc_core::memo::scope`, so the astronomy the tables have in
+common is done once, and only for the months around the day. The context
+keeps the sunrises the Hindu festivals are read at and the dates the rules
+convert; the scope keeps the winter solstices and new moons that every
+conversion of a lunisolar date searches for, which the Chinese, Korean and
+Vietnamese tables and the functions that date the Japanese 旧暦 days would
+otherwise search for again for every date they convert. Measured on
+2026-09-27 in the `release-compact` profile with
+[`examples/holidays_on_timing.rs`](../hyper-calendar/examples/holidays_on_timing.rs),
+one 2026 day across all 297 tables takes about 23 ms natively on
+1 January, the costliest, and 18 ms on 25 September, against 0.19 s for
+every table's whole year; in WebAssembly under Node 22, measured with
+`scripts/wasm-calendar-timing.mjs`, 51 ms and 41 ms. Before the call opened
+the scope, the same days took 54 ms and 36 ms natively and 133 ms and
+88 ms in WebAssembly.
 
 ### The tables
 

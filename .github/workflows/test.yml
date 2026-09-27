@@ -65,9 +65,11 @@ jobs:
       # release build walks every day of them (docs/policy.md §7). Together
       # the shards are `cargo test --release --workspace --all-features`,
       # each test in exactly one: two crates' unit tests, which hold the
-      # longest sweeps, have a shard each, and `rest` runs every other test
-      # binary and the doctests, so a new crate or test file is picked up
-      # there. scripts/release-shards.sh --plan prints which shard runs what.
+      # longest sweeps, have a shard each, the lunar crate's split in two by
+      # test name, and `rest` runs every other test binary and the doctests,
+      # so a new crate or test file is picked up there.
+      # scripts/release-shards.sh --plan prints which shard runs what, and
+      # checks that the split halves hold every test of the binary once.
       - run: scripts/release-shards.sh "${{ matrix.shard }}"
 
   no-std:

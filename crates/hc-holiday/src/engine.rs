@@ -200,9 +200,9 @@ impl<'a> HolidayCalendar<'a> {
     /// fraction of the cost, because only the calendar years that can reach
     /// the day are evaluated rather than the Gregorian year and both its
     /// neighbours. A page that asks "what is today, in every table" asks
-    /// this two hundred and forty-five times, which is why it exists — and
-    /// why [`HolidayCalendar::for_day_with`] exists, so that the two
-    /// hundred and forty-five share one [`EvaluationContext`].
+    /// this once for every table, which is why it exists — and why
+    /// [`HolidayCalendar::for_day_with`] exists, so that the tables share
+    /// one [`EvaluationContext`].
     ///
     /// [`HolidayCalendar::covers`] is true for the day alone, so
     /// business-day arithmetic on the result answers `None` for every other
@@ -219,6 +219,15 @@ impl<'a> HolidayCalendar<'a> {
     /// every Hindu table the same tithis, every Chinese-dated table the
     /// same new moons — so a caller evaluating many tables for one day
     /// builds one context and passes it to each.
+    ///
+    /// The evaluation runs inside an [`hc_core::memo::scope`], which
+    /// memoises what the context does not see: the solstices and new moons
+    /// a lunisolar calendar's conversions search for, asked again for every
+    /// date the rules convert, and the conversions of rules computed by a
+    /// function, such as the Japanese 旧暦 days. A caller evaluating many
+    /// tables opens one scope around them all, so that every table shares
+    /// it, as `hc_holidays_on` does; the scope changes how long the call
+    /// takes and nothing else.
     #[must_use]
     pub fn for_day_with(
         rules: &'a RuleSet,
@@ -227,7 +236,8 @@ impl<'a> HolidayCalendar<'a> {
         context: &mut EvaluationContext,
     ) -> Self {
         let year = gregorian::year_from_fixed(day).unwrap_or(0);
-        let (holidays, gaps) = evaluate_with_includes(rules, region, day, day, 0, context);
+        let (holidays, gaps) =
+            hc_core::memo::scope(|| evaluate_with_includes(rules, region, day, day, 0, context));
         Self {
             rules,
             region,

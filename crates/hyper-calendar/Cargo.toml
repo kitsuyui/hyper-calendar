@@ -206,5 +206,9 @@ name = "easter"
 required-features = ["holiday"]
 
 [[example]]
+name = "holidays_on_timing"
+required-features = ["holiday"]
+
+[[example]]
 name = "calendar_timing"
 required-features = ["lunar", "equinox", "indic", "regional", "i18n", "format"]
