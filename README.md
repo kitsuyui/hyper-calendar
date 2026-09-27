@@ -35,7 +35,7 @@ authority when a count here is out of date.
 | Religious and cultural tradition tables | 60 | [supported.md § Religious and cultural traditions](docs/supported.md#religious-and-cultural-traditions) |
 | International observance tables (the 236 UN international days) | 1 | [supported.md § International observances](docs/supported.md#international-observances) |
 | Exchange trading calendars, keyed by ISO 10383 Market Identifier Code | 42 | [supported.md § Exchange calendars](docs/supported.md#exchange-calendars) |
-| Locales with their own vocabulary, besides the root | 41 | [docs/i18n.md](docs/i18n.md) and the [`hc-i18n` README](crates/hc-i18n) |
+| Locales with their own vocabulary, besides the root | 53 | [docs/i18n.md](docs/i18n.md) and the [`hc-i18n` README](crates/hc-i18n) |
 | Exactly defined units of time | 53 | [supported.md § Units](docs/supported.md#exactly-defined-units-of-time) |
 | Readings of the sexagenary cycle, the sixty stem-branch pairs | 9 | [supported.md § Readings](docs/supported.md#readings-of-the-sexagenary-cycle) |
 | Uniform time scales: TAI, TT, TCG, TDB, TCB, GPS, Galileo, BeiDou and NavIC time | 9 | [docs/time-scales.md](docs/time-scales.md) |

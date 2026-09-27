@@ -905,6 +905,37 @@ mod tests {
         assert_eq!(render(&gregorian(), &day, "tlh")[4], "2026 M09 21");
     }
 
+    /// The locales of the most-spoken languages, each as its CLDR 48 file's
+    /// long date writes 21 September 2026: `sw.xml` "d MMMM y", `ur.xml`
+    /// "d MMMM، y", `mr.xml` "d MMMM, y" in Devanagari digits, `fil.xml`
+    /// "MMMM d, y", `pa_Arab.xml` "d MMMM y" in Persian digits, `yue.xml`
+    /// "y年M月d日", and `pt_PT.xml` `pt.xml`'s "d 'de' MMMM 'de' y".
+    #[test]
+    fn the_most_spoken_languages_write_a_date_as_their_files_do() {
+        let day = gregorian_fields(739_880); // 2026-09-21
+        for (tag, expected) in [
+            ("sw", "21 Septemba 2026"),
+            ("ur", "21 ستمبر، 2026"),
+            ("mr", "२१ सप्टेंबर, २०२६"),
+            ("te", "21 సెప్టెంబర్, 2026"),
+            ("ha", "21 Satumba, 2026"),
+            ("pcm", "21 Sẹptẹ́mba 2026"),
+            ("fil", "Setyembre 21, 2026"),
+            ("pa", "21 ਸਤੰਬਰ 2026"),
+            ("pa-PK", "۲۱ ستمبر ۲۰۲۶"),
+            ("yue", "2026年9月21日"),
+            ("yue-CN", "2026年9月21日"),
+            ("pt-PT", "21 de setembro de 2026"),
+        ] {
+            assert_eq!(render(&gregorian(), &day, tag)[4], expected, "{tag}");
+        }
+        // `yue.xml`'s Chinese months, 閏 its leap prefix, and the Han days.
+        assert_eq!(
+            render(&DynAdapter::new(Toy), &guimao(), "yue")[4],
+            "癸卯年閏二月初一"
+        );
+    }
+
     #[test]
     fn an_era_is_written_where_the_locale_writes_one() {
         let ides = gregorian()

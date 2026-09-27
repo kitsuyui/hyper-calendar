@@ -27,7 +27,10 @@ extend-exclude = [
 [default]
 # *Shaʿot zmaniyot*, temporal hours, in hc-astro's zmanim: typos splits the
 # word at the ʿ, and its second half is not a word worth allowing everywhere.
-extend-ignore-re = ["[Ss]haʿot"]
+# Nigerian Pidgin "Puẹ́rto Ríkọ", Puerto Rico, a CLDR 48 exemplar city in
+# hc-i18n's `exemplar_cities`: typos splits the word at the combining acute
+# and reads its tail, "rto", as a misspelling.
+extend-ignore-re = ["[Ss]haʿot", "Puẹ́rto"]
 
 [default.extend-words]
 # Lilly's *Christian Astrology* (1647) spells "untill", quoted as printed by
@@ -532,3 +535,12 @@ Analisis = "Analisis"
 # "Aaj Tak", the Hindi news channel whose report names Vikrama 2083 Raudra
 # (docs/systems/hindu-calendars.md and its references.bib entry).
 Tak = "Tak"
+# CLDR 48's vocabulary for the locales of the most-spoken languages, in
+# hc-i18n and hc-humanize: Hausa "Kalandar Buddist", the Buddhist calendar,
+# Mayu, May, and yau, today; the countries Estoniya (Estonia, in Hausa) and
+# Kazakstan (Kazakhstan, in Nigerian Pidgin).
+Buddist = "Buddist"
+Mayu = "Mayu"
+yau = "yau"
+Estoniya = "Estoniya"
+Kazakstan = "Kazakstan"

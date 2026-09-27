@@ -74,23 +74,33 @@ style, every `other` pattern able to take a number, no padded strings, no
 placeholder in a special word, list patterns shaped `{0}<glue>{1}`, and a
 language `hc-i18n` has plural rules for.
 
-Locales shipped, 21 of them: `ar cs cy de en es fr hi id it ja ko nl pl pt
-ru th tr vi zh zh-Hant`. `hc-i18n`'s fallback chain applies CLDR's likely
-script to a Chinese tag, so `zh-Hans` and `zh-CN` reach the `zh` entry, and
-`zh-TW` and `zh-HK` reach `zh-Hant`.
+Locales shipped, 32 of them: `ar cs cy de en es fil fr ha hi id it ja ko mr
+nl pa-Guru pcm pl pt pt-PT ru sw te th tr ur vi yue-Hans yue-Hant zh
+zh-Hant`. `hc-i18n`'s fallback chain applies CLDR's likely script to a
+Chinese, Cantonese or Punjabi tag, so `zh-Hans` and `zh-CN` reach the `zh`
+entry, `zh-TW` and `zh-HK` reach `zh-Hant`, `yue-CN` reaches `yue-Hans`, and
+`pa` reaches `pa-Guru`; `pa-PK`, Punjabi in the Arabic script, whose CLDR
+file states no fields, reaches root.
 
 ## Accuracy and provenance
 
 The relative-time phrases follow the Unicode CLDR `<fields>` section of
 `main/<locale>.xml`, and the undirected unit phrases follow the
-`<unit type="duration-…">` section of the same file. They are **hand-checked,
-not generated**: a subset of 21 locales chosen to cover the plural systems
-that matter, not a copy of CLDR's 600.
+`<unit type="duration-…">` section of the same file. The first 21 locales are
+**hand-checked, not generated**, a subset chosen to cover the plural systems
+that matter; the eleven added for the most-spoken languages (`fil ha mr
+pa-Guru pcm pt-PT sw te ur yue-Hans yue-Hant`) were read out of their CLDR 48
+files by following CLDR's inheritance, in all three styles where the file
+states them, with the list patterns, the decimal separator and the `atTime`
+pattern of the same file. Nothing here is a copy of CLDR's 600.
 
 Three kinds of string are **not** from CLDR, because CLDR has no field for
 them, and are ordinary translations kept in the same table: the approximation
 hedges (*just over*, *nearly*), the half-unit idioms (*half an hour*,
-*anderthalb Stunden*) and the compact suffixes of *2h30m*.
+*anderthalb Stunden*) and the compact suffixes of *2h30m*. The eleven
+locales read from CLDR carry none of them: their hedges are root's
+language-free `~5` and `<5`, `pt-PT`'s are `pt`'s, and their counts are
+written with a numeral rather than an indefinite article.
 
 Unit lengths are the Gregorian means used by CLDR and ICU: 365.2425 days per
 year, 31 556 952 s, which divides exactly by 12 and by 4 so that the month

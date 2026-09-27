@@ -17,7 +17,7 @@ nothing else in the workspace hard-codes a localised string.
 |---|---|
 | `locale` | `language[-Script][-REGION][-variant]` plus the `-u-ca`, `-u-nu`, `-u-fw` and `-u-hc` keys; parse, render, and the CLDR inheritance chain as an iterator |
 | `numbering` | 9 positional digit systems (`latn`, `arab`, `arabext`, `deva`, `beng`, `thai`, `mymr`, `hanidec`, `fullwide`) and 4 algorithmic Han styles (`jpan`, `jpanfin`, `hans`, `hant`), rendered and parsed back |
-| `plural` | CLDR cardinal categories and the full operand set (`n i v w f t`) for 43 languages and `pt-PT` |
+| `plural` | CLDR cardinal categories and the full operand set (`n i v w f t`) for 53 languages and `pt-PT` |
 | `names` | Months, weekdays, day periods, eras, quarters and the sexagenary cycle, keyed by (locale, calendar, width, context); each locale's names for the calendars, and the templates by which `hc-format` writes a year with its era, a day and a date |
 | `notation` | The notations a calendar's sources write its dates in whatever the language — the Long Count's `13.0.13.17.8`, the ISO week date `2026-W39-7` — as a level of templates between a calendar's entries and a locale's general ones, each citing its source |
 | `fields` | What a calendar's extra fields are called — an English label for every field a registered calendar sets, in its system document's words — and which cycle names each one's values, for the `{extra:FIELD}` placeholder and the lines that list a day's extra fields |
@@ -104,10 +104,12 @@ there. The table is checked for sortedness and uniqueness by a test.
   US's Sunday and `pt` BR's. `und`, which names no language, takes the
   world default, `001`, Monday, and so does a tag with no region whose
   language has no entry and falls to root.
-* **Script from region**: a Chinese tag with no script takes the one CLDR
-  48's likely subtags give it, so `zh`, `zh-CN` and `zh-SG` resolve to the
-  `zh-Hans` entry and `zh-TW`, `zh-HK` and `zh-MO` to `zh-Hant`, instead of
-  falling to root's `M01`…`M12`.
+* **Script from region**: a Chinese, Cantonese or Punjabi tag with no
+  script takes the one CLDR 48's likely subtags give it, so `zh`, `zh-CN`
+  and `zh-SG` resolve to the `zh-Hans` entry and `zh-TW`, `zh-HK` and
+  `zh-MO` to `zh-Hant`, `yue` to `yue-Hant` and `yue-CN` to `yue-Hans`, and
+  `pa` to `pa-Guru` and `pa-PK` to `pa-Arab`, instead of falling to root's
+  `M01`…`M12`.
 * **Calendar names** — what a locale calls a calendar,
   `names::calendar_display_name` — are CLDR 48's
   `localeDisplayNames/types/type[@key="calendar"]` at its `approved` and
@@ -130,7 +132,7 @@ there. The table is checked for sortedness and uniqueness by a test.
   `territories::territory_name`, behind the `territories` feature — are
   CLDR 48's `localeDisplayNames/territories`, the plain value (no `alt`
   form) at the `approved` and `contributed` levels, for the 195 regions
-  `hc-holiday` keeps a country's table for and no others. Thirty-five
+  `hc-holiday` keeps a country's table for and no others. Forty-seven
   locales have a table; Coptic, whose every value is unconfirmed, and the
   five locales without a CLDR file have none, and a region a locale does
   not name is left unnamed. Each table is one string of names in the order
@@ -138,7 +140,7 @@ there. The table is checked for sortedness and uniqueness by a test.
   text and a line feed rather than a slice each; a macro checks each
   table's codes against `REGIONS` at compile time. The feature is off by
   default, and the facade's `holiday` feature turns it on, because the
-  text is about a hundred kilobytes that a build rendering only dates
+  text is about 135 kilobytes that a build rendering only dates
   does not need. The `alt="short"` values, `territories::short_name`, come
   from the same files at the same levels, as (code, name) pairs for the
   few regions each locale shortens — `Hong Kong` for `HK`, `UK` for `GB` —
@@ -152,8 +154,8 @@ there. The table is checked for sortedness and uniqueness by a test.
   is `en.xml`'s value, else `root.xml`'s, else the name UTS #35 derives
   from the zone's identifier, its last field with underscores as spaces;
   it is the `exemplar-cities` feature, about 2 kB, which the facade's `tz`
-  feature turns on. The thirty other locales with values are the
-  `localized-exemplar-cities` feature, about 170 kB of text. Where a file
+  feature turns on. The forty-one other locales with values are the
+  `localized-exemplar-cities` feature, about 230 kB of text. Where a file
   writes the inheritance marker `↑↑↑` at a release level, the table keeps
   it, and the locale answers with the root name under its own tag. Each
   table is one string of lines in the order of `exemplar_cities::ZONES`,
@@ -164,9 +166,10 @@ there. The table is checked for sortedness and uniqueness by a test.
   §3.13 plus the Turkic tailoring of `SpecialCasing-17.0.0.txt` for `tr` and
   `az`.
 
-Locales shipped: `am ar ban bn bo cop cs de en es fa fr he hi id it ja jv
-kab ko mid ml my nah ne nl pl ps pt ru sa syr ta th tr vi yua zap zgh zh-Hans
-zh-Hant`, plus the `und` root. Non-Gregorian vocabulary: Hijri months
+Locales shipped: `am ar ban bn bo cop cs de en es fa fil fr ha he hi id it ja
+jv kab ko mid ml mr my nah ne nl pa-Arab pa-Guru pcm pl ps pt pt-PT ru sa sw
+syr ta te th tr ur vi yua yue-Hans yue-Hant zap zgh zh-Hans zh-Hant`, plus the
+`und` root. Non-Gregorian vocabulary: Hijri months
 (Arabic, English), Hebrew months (Hebrew, English), Babylonian months
 (English), the Chinese calendar's months in both Chinese scripts, in
 Japanese (正月, 二月 … 十二月) and in Korean, the Tibetan months in Tibetan,
@@ -215,8 +218,32 @@ what their sources cover and no more:
 | `ps` Pashto | `persian-afghan`, `persian`, `persian-arithmetic` | CLDR 48 `ps.xml`, less the narrow weekdays and stand-alone narrow months, which resolve to root's Latin letters and numerals | the twelve Solar Hijri months وری … کب (CLDR `persian`, which keys them to its one Solar Hijri calendar and so to all three here), in CLDR's spelling where Wikipedia's "Solar Hijri calendar" has ګ, ي and ك in four | the Solar Hijri era in Pashto: CLDR's `ps` inherits root's; date templates, which `ps.xml` inherits |
 | `mid` Mandaic | `mandaean` | none: CLDR has no `mid`, so it inherits | the seven weekdays in Mandaic script (Wikipedia, "Mandaean calendar") | the months: that page prints the twelve zodiacal names but no Mandaic Parwanaia, and the calendar's month cycle has thirteen positions; day periods, eras |
 
-Plural languages: `am ar bn bo cs cy da de en es fa fi fr ga he hi id it ja jv
-kab ko lt lv ml my nah ne nl pl ps pt pt-PT ro ru sl sv syr ta th tr uk vi zh`.
+Twelve of the locales carry the languages of Ethnologue's thirty
+most-spoken that the others did not, and European Portuguese
+(`docs/i18n.md` lists the thirty and why Egyptian Arabic and Wu are not
+among them). Each is its CLDR 48 file, read by following CLDR's own
+inheritance: every group of names the file states at a release level, with
+its widths resolved through `root.xml`'s aliases, and the file's templates,
+calendar names, country names, exemplar cities and, in `hc-humanize`,
+relative-time phrases.
+
+| Locale | CLDR 48 file | Calendars named beyond the Gregorian | Not carried |
+|---|---|---|---|
+| `fil` Filipino (Tagalog) | `fil.xml` | the Minguo eras | — |
+| `ha` Hausa | `ha.xml` | the Hijri months | — |
+| `mr` Marathi | `mr.xml` | the Buddhist and Minguo eras; the Hijri, Hebrew, Coptic, Ethiopic, Persian and Indian national months; the Hijri, Hebrew and Śaka eras | — |
+| `pa-Arab` Punjabi (Shahmukhi) | `pa_Arab.xml` | none | the day periods, calendar names and cities, which the file does not state; its parent is root, not `pa` |
+| `pa-Guru` Punjabi (Gurmukhi) | `pa.xml` | the Buddhist and Minguo eras; the Hijri, Hebrew, Coptic, Ethiopic, Persian and Indian national months; the Śaka era | — |
+| `pcm` Nigerian Pidgin | `pcm.xml` | none | — |
+| `pt-PT` European Portuguese | `pt_PT.xml` over `pt.xml` | the Buddhist era | everything the file does not state itself, which `pt` answers |
+| `sw` Swahili | `sw.xml` | none | — |
+| `te` Telugu | `te.xml` | the Minguo eras; the Hebrew, Coptic, Ethiopic, Persian and Indian national months; the Śaka era | the Hijri months, whose format names the file leaves to root's Latin ones |
+| `ur` Urdu | `ur.xml` | the Minguo eras; the Hijri, Hebrew, Coptic, Ethiopic, Persian and Indian national months; the Hijri and Śaka eras | — |
+| `yue-Hans`, `yue-Hant` Cantonese | `yue_Hans.xml`, `yue.xml` | the Buddhist, Japanese, Minguo and Persian eras; the Hijri, Hebrew and Indian national months and eras; the Chinese and Dangi months and zodiac | the Persian, Coptic and Ethiopic months, which the files number (1月 …) |
+
+Plural languages: `am ar bn bo cs cy da de en es fa fi fil fr ga ha he hi id it
+ja jv kab ko lt lv ml mr my nah ne nl pa pcm pl ps pt pt-PT ro ru sl sv sw syr
+ta te th tl tr uk ur vi yue zh`.
 `ban cop mid sa yua zap zgh` are not in CLDR 48's `plurals.xml` and take
 root's rule, `other` for everything.
 

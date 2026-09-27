@@ -385,7 +385,9 @@ impl PluralRules {
 /// Mandaic, Sanskrit, Yucatec Maya, Zapotec and Standard Moroccan Tamazight
 /// are not listed there, so they take root's rule, which is also `other`
 /// for everything. `pt-PT` is the one regional row: CLDR 48 gives Portugal
-/// the Italian rule, not Brazil's `i = 0..1`.
+/// the Italian rule, not Brazil's `i = 0..1`. `tl` shares Filipino's row,
+/// as `plurals.xml` lists the two together, so that a Tagalog tag chooses
+/// its forms by the rule of the language CLDR carries it as.
 pub static RULES: &[(&str, RuleFn)] = &[
     ("am", rule_hindi),
     ("ar", rule_arabic),
@@ -399,8 +401,10 @@ pub static RULES: &[(&str, RuleFn)] = &[
     ("es", rule_spanish),
     ("fa", rule_hindi),
     ("fi", rule_one_if_i_is_one_and_v_is_zero),
+    ("fil", rule_filipino),
     ("fr", rule_french),
     ("ga", rule_irish),
+    ("ha", rule_one_if_n_is_one),
     ("he", rule_hebrew),
     ("hi", rule_hindi),
     ("id", rule_other_only),
@@ -412,10 +416,13 @@ pub static RULES: &[(&str, RuleFn)] = &[
     ("lt", rule_lithuanian),
     ("lv", rule_latvian),
     ("ml", rule_one_if_n_is_one),
+    ("mr", rule_one_if_n_is_one),
     ("my", rule_other_only),
     ("nah", rule_one_if_n_is_one),
     ("ne", rule_one_if_n_is_one),
     ("nl", rule_one_if_i_is_one_and_v_is_zero),
+    ("pa", rule_one_if_n_is_zero_to_one),
+    ("pcm", rule_hindi),
     ("pl", rule_polish),
     ("ps", rule_one_if_n_is_one),
     ("pt", rule_portuguese),
@@ -424,12 +431,17 @@ pub static RULES: &[(&str, RuleFn)] = &[
     ("ru", rule_east_slavic),
     ("sl", rule_slovenian),
     ("sv", rule_one_if_i_is_one_and_v_is_zero),
+    ("sw", rule_one_if_i_is_one_and_v_is_zero),
     ("syr", rule_one_if_n_is_one),
     ("ta", rule_one_if_n_is_one),
+    ("te", rule_one_if_n_is_one),
     ("th", rule_other_only),
+    ("tl", rule_filipino),
     ("tr", rule_one_if_n_is_one),
     ("uk", rule_east_slavic),
+    ("ur", rule_one_if_i_is_one_and_v_is_zero),
     ("vi", rule_other_only),
+    ("yue", rule_other_only),
     ("zh", rule_other_only),
 ];
 
@@ -462,6 +474,33 @@ fn rule_danish(operands: &PluralOperands) -> PluralCategory {
 /// Tamil.
 fn rule_one_if_n_is_one(operands: &PluralOperands) -> PluralCategory {
     if operands.n_is(1) {
+        PluralCategory::One
+    } else {
+        PluralCategory::Other
+    }
+}
+
+/// `one: n = 0..1` — Punjabi: 0 and 1, and 0.0 and 1.0, but no other
+/// fraction.
+fn rule_one_if_n_is_zero_to_one(operands: &PluralOperands) -> PluralCategory {
+    if operands.n_in(0, 1) {
+        PluralCategory::One
+    } else {
+        PluralCategory::Other
+    }
+}
+
+/// Filipino and Tagalog: `one: v = 0 and i = 1,2,3 or v = 0 and i % 10 !=
+/// 4,6,9 or v != 0 and f % 10 != 4,6,9` — every number but those ending in
+/// 4, 6 or 9.
+fn rule_filipino(operands: &PluralOperands) -> PluralCategory {
+    let ends_in_4_6_9 = |digit: u64| matches!(digit % 10, 4 | 6 | 9);
+    let one = if operands.v() == 0 {
+        matches!(operands.i(), 1..=3) || !ends_in_4_6_9(operands.i())
+    } else {
+        !ends_in_4_6_9(operands.f())
+    };
+    if one {
         PluralCategory::One
     } else {
         PluralCategory::Other
@@ -1116,6 +1155,64 @@ mod tests {
         }
     }
 
+    /// The samples CLDR 48 `plurals.xml` gives the rules of the languages
+    /// added for the most-spoken thirty.
+    #[test]
+    fn the_most_spoken_languages_follow_cldrs_samples() {
+        // `n = 0..1`: ak bho csw guw ln mg nso pa ti wa.
+        assert_samples(
+            "pa",
+            &[
+                (One, &["0", "1", "0.0", "1.0", "0.00", "1.000"]),
+                (
+                    Other,
+                    &["2", "17", "100", "0.1", "0.9", "1.1", "1.7", "10.0"],
+                ),
+            ],
+        );
+        // `v = 0 and i = 1,2,3 or v = 0 and i % 10 != 4,6,9 or v != 0 and
+        // f % 10 != 4,6,9`: ceb fil tl.
+        for language in ["fil", "tl"] {
+            assert_samples(
+                language,
+                &[
+                    (
+                        One,
+                        &[
+                            "0", "1", "2", "3", "5", "7", "8", "10", "13", "15", "20", "21", "100",
+                            "0.0", "0.3", "0.5", "1.0", "1.8", "2.1", "10.0",
+                        ],
+                    ),
+                    (
+                        Other,
+                        &[
+                            "4", "6", "9", "14", "16", "19", "24", "26", "104", "1004", "0.4",
+                            "0.6", "0.9", "1.4", "2.6", "1000.4",
+                        ],
+                    ),
+                ],
+            );
+        }
+        // `i = 1 and v = 0`: sw ur; `n = 1`: ha mr te; `i = 0 or n = 1`: pcm.
+        for language in ["sw", "ur"] {
+            assert_samples(
+                language,
+                &[(One, &["1"]), (Other, &["0", "2", "1.0", "0.5"])],
+            );
+        }
+        for language in ["ha", "mr", "te"] {
+            assert_samples(
+                language,
+                &[(One, &["1", "1.0"]), (Other, &["0", "2", "0.5"])],
+            );
+        }
+        assert_samples(
+            "pcm",
+            &[(One, &["0", "1", "0.5", "1.0"]), (Other, &["2", "1.5"])],
+        );
+        assert_samples("yue", &[(Other, &["0", "1", "15", "1.0", "1.5"])]);
+    }
+
     #[test]
     fn portugal_takes_its_own_row_and_brazil_the_language_one() {
         let portugal = PluralRules::for_locale(&Locale::parse("pt-PT").unwrap());
@@ -1153,7 +1250,7 @@ mod tests {
         for pair in RULES.windows(2) {
             assert!(pair[0].0 < pair[1].0, "{} !< {}", pair[0].0, pair[1].0);
         }
-        assert_eq!(RULES.len(), 44);
+        assert_eq!(RULES.len(), 54);
     }
 
     #[test]
