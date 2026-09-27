@@ -103,6 +103,7 @@ const UNRECORDED: &[&str] = &[
     "maya-819",
     "maya-819-gmt2",
     "maya-819-584286",
+    "mixtec-year",
     "philip-era",
     "qumran",
     "roman-auc",
@@ -210,6 +211,7 @@ fn the_calendars_in_use_today_say_so() {
         "javanese",
         "javanese-aboge",
         "khmer",
+        "lao",
         "maya-tzolkin",
         "icelandic",
     ] {

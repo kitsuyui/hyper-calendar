@@ -81,8 +81,16 @@ it to, and a statement from a text of how its months are numbered.
 or 30 days, adds leap months in a way "similar to, but not equivalent to,
 the Chinese", and uses "the basic calculations from Kālacakra" — Janson
 quoting Berzin, and adding that it "seems to be a version of the Chinese
-calendar … rather than the Tibetan" [janson2014, Appendix A.11]. No source
-read defines its months, so it is not carried.
+calendar … rather than the Tibetan" [janson2014, Appendix A.11]. Berzin's
+own page gives more: the doubled and omitted days are "calculated as in the
+Pugpa system, so that it is determined how many days there are in a month",
+the days are then "numbered consecutively", the months "always correspond
+in length and initial date with the Pugpa full tenet system months", and
+"if the month to be doubled works out to be the 11th, 12th or 1st month,
+the following 3rd month is doubled instead" [berzin-tibetan-calendar]. It
+does not say which month is the one to be doubled before that exception,
+and no yellow almanac was found to test a reading against, so it is not
+carried.
 
 ## How it works
 
@@ -296,6 +304,7 @@ fail it.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [janson2014] | The versions' history, epoch values, leap rules, β and γ\*, the comparison tables of Appendix A.13, the Election Act, the constitution of 1992, the Bhutan 2003 discrepancy, the *karaṇa* constants and the yellow calculation | Yes, 2026-09-26, from the TeX source on arXiv |
+| [berzin-tibetan-calendar] | The yellow calculation's months and its leap-month exception | Yes, 2026-09-27 |
 | [kalacakra-org] | "Epoch data": the digits of every epoch; "Open source Tsurphu calendar software": the 2013 month header, the *karaṇa* Sun; "Bhutan calendars" and "Bhutanese Calendar": the leap-month numbering, the weekday, the holidays; "Example Kālacakra karaṇa calculations" | Yes, 2026-09-26, over plain HTTP, the HTTPS host still presenting another domain's certificate |
 | [gantumur2026] | The same parameters stated independently, the month count in γ, Tsagaan Sar 2026 worked, Schuh's Tsurphu almanacs | Yes, 2026-09-26, from the TeX source on arXiv |
 | [moha-bt-calendar-2025], [moha-bt-calendar-2026] | Every day of 2025 and 2026, the monthly omitted and doubled days, the holiday lists with Bhutanese dates | Yes, 2026-09-26, the page images extracted from the PDFs |

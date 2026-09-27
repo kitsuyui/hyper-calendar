@@ -511,3 +511,6 @@ alos = "alos"
 # Japanese "yoru", night, in the romaji of the Edo hours 夜五つ and 夜四つ
 # (hc-astro::solar_time::EdoHour).
 yoru = "yoru"
+# Shan "Lern Jeing", the first month of the Shan year, in the Shan Herald
+# Agency's romanisation (docs/calendars.md, the `shan` row).
+Lern = "Lern"

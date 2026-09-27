@@ -319,9 +319,9 @@ name independently.
     give a silently wrong year name, and written up in
     [mesoamerican-years.md](mesoamerican-years.md) — the Zapotec year as
     `zapotec-yza`, over the same vague-year arithmetic and the
-    tonalpohualli above, and the Purépecha and Zoque years and the
-    *Mixtec year bearer*, which names the same solar year one number lower
-    than the Aztec one, with what each still lacks.
+    tonalpohualli above, the Mixtec year as `mixtec-year`, which names the
+    same solar year one number lower than the Aztec one, and the Purépecha
+    and Zoque years, with what each still lacks.
   - *The living highland counts* (Kʼicheʼ, Kaqchikel, Ixil, Mixe): their
     modern anchor differs between communities and is the whole question;
     the roadmap row `cholqij` is still researching it.

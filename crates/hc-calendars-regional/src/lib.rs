@@ -17,6 +17,7 @@
 //! | [`maya_819`] | `maya-819`, `maya-819-gmt2`, `maya-819-584286` — the 819-day count's stations and colour-directions over Linden and Bricker's twenty-station cycle of 16 380 days, under the three correlations |
 //! | [`aztec`] | `aztec-tonalpohualli`, `aztec-xiuhpohualli` |
 //! | [`zapotec`] | `zapotec-yza` — the Zapotec 365-day year of the Villa Alta calendars, its months in the order of Manuscript 85 and its years named by the day they begin on |
+//! | [`mixtec`] | `mixtec-year` — the Mixtec year as Caso reconstructs it: the Aztec months from Atemoztli, the nemontemi after Panquetzaliztli, and the year named by its 360th day |
 //! | [`balinese_pawukon`] | `balinese-pawukon` — thirty *wuku* and ten concurrent week cycles over 210 days |
 //! | [`javanese_pasaran`] | `javanese-pasaran` — the five-day market week and the 35-day wetonan |
 //! | [`akan`] | `akan` — the Akan six-day week and the 42-day Adaduanan it makes with the seven-day one |
@@ -25,7 +26,8 @@
 //! | [`burmese`] | `burmese` — the Myanmar Era's lunisolar calendar, its watat years and full moons by the Calendar Advisory Board's arithmetic and the record's exceptions |
 //! | [`thai_lunar`] | `thai-lunar` — the Thai lunar calendar, its adhikamāsa and adhikavāra years carried as published for 2535–2570 BE (1992–2027) |
 //! | [`khmer`] | `khmer` — the Khmer *Chhankitek*, its leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
-//! | [`southeast_asian`] | No calendar: the year layout `thai-lunar` and `khmer` share, and the *suryayatra* quantities of the solar New Year |
+//! | [`lao`] | `lao` — the Lao lunar calendar by the *suryayatra* rule as Dupertuis computes it, Chulasakarat 1301–1401 (1938–2039) |
+//! | [`southeast_asian`] | No calendar: the year layout `thai-lunar`, `khmer` and `lao` share, the *suryayatra* quantities of the solar New Year and the rule `khmer` and `lao` compute |
 //! | [`sexagenary`] | `sexagenary` — 干支 over years, months and days |
 //! | [`olympiad`] | `olympiad` — the ancient Olympiads over the Julian year, and the IOC's modern Olympiad number as a function |
 //! | [`arsacid`] | `arsacid-era` — the Parthian era on the Babylonian months, the Seleucid year less 64 |
@@ -134,8 +136,10 @@ pub mod japanese;
 pub mod javanese_pasaran;
 pub mod khmer;
 pub mod korean_regnal;
+pub mod lao;
 pub mod maya;
 pub mod maya_819;
+pub mod mixtec;
 pub mod nengo;
 pub mod olympiad;
 pub mod sexagenary;
@@ -157,11 +161,13 @@ pub use japanese::{JapaneseCalendar, JapaneseDate};
 pub use javanese_pasaran::{JavanesePasaranCalendar, WetonDate};
 pub use khmer::{KhmerCalendar, KhmerDate};
 pub use korean_regnal::{KoreanEra, KoreanRegnalCalendar, KoreanRegnalDate};
+pub use lao::{LaoCalendar, LaoDate};
 pub use maya::{
     MayaCalendarRoundCalendar, MayaCalendarRoundDate, MayaHaabCalendar, MayaHaabDate,
     MayaLongCountCalendar, MayaLongCountDate, MayaTzolkinCalendar, MayaTzolkinDate,
 };
 pub use maya_819::{Maya819Calendar, Maya819Date};
+pub use mixtec::{MixtecYearCalendar, MixtecYearDate};
 pub use nengo::{Certainty, Court, Nengo, WesternScale};
 pub use olympiad::{OlympiadCalendar, OlympiadDate};
 pub use sexagenary::{SexagenaryCalendar, SexagenaryDayDate};
@@ -222,6 +228,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::AztecTonalpohualliCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::AztecXiuhpohualliCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ZapotecYzaCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::MixtecYearCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BalinesePawukonCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::JavanesePasaranCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::AkanCalendar)));
@@ -231,6 +238,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::SexagenaryCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ThaiLunarCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::KhmerCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::LaoCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::OlympiadCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ArsacidCalendar)));
     }
@@ -241,7 +249,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 35;
+const CALENDAR_COUNT: usize = 37;
 
 #[cfg(test)]
 mod tests {
@@ -315,6 +323,7 @@ mod tests {
                 AztecTonalpohualliCalendar,
                 AztecXiuhpohualliCalendar,
                 ZapotecYzaCalendar,
+                MixtecYearCalendar,
                 BalinesePawukonCalendar,
                 JavanesePasaranCalendar,
                 AkanCalendar,
@@ -324,6 +333,7 @@ mod tests {
                 SexagenaryCalendar,
                 ThaiLunarCalendar,
                 KhmerCalendar,
+                LaoCalendar,
                 OlympiadCalendar,
                 ArsacidCalendar,
             );
@@ -530,7 +540,7 @@ mod tests {
             // Only the era calendars over a lunisolar year carry intercalary
             // months — the Japanese, in the lunisolar half of its range, and
             // the Qing eras over the Chinese calendar, the Arsacid era over the
-            // Babylonian — and the three Theravada lunisolar calendars.
+            // Babylonian — and the four Theravada lunisolar calendars.
             assert!(
                 !meta.has_leap_months
                     || meta.id.as_str().starts_with("japanese")
@@ -539,6 +549,7 @@ mod tests {
                     || meta.id.as_str() == "burmese"
                     || meta.id.as_str() == "thai-lunar"
                     || meta.id.as_str() == "khmer"
+                    || meta.id.as_str() == "lao"
             );
             if let (Some(first), Some(last)) = (meta.earliest, meta.latest) {
                 assert!(first < last, "{} has an empty range", meta.id);
@@ -561,6 +572,7 @@ mod tests {
         "maya-round-584286",
         "aztec-xiuhpohualli",
         "zapotec-yza",
+        "mixtec-year",
         "balinese-pawukon",
     ];
 

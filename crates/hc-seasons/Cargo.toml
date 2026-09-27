@@ -19,14 +19,16 @@ default = ["std"]
 # caller who wants only the solar terms should not compile the lunisolar
 # calendars to get them.
 lunar = ["dep:hc-calendars-lunar"]
-std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-astro/std", "hc-calendars-lunar?/std"]
-alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-astro/alloc", "hc-calendars-lunar?/alloc"]
+std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-calendars-solar/std", "hc-astro/std", "hc-calendars-lunar?/std"]
+alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-calendars-solar/alloc", "hc-astro/alloc", "hc-calendars-lunar?/alloc"]
 # Floating-point math for `no_std` builds: `hc-core` refuses to compile with
 # neither `std` nor `libm`.
-libm = ["hc-core/libm"]
+libm = ["hc-core/libm", "hc-calendars-solar/libm"]
 
 [dependencies]
 hc-core = { workspace = true }
 hc-calendar = { workspace = true }
+# The Julian calendar, for the Prayer Book's dog days.
+hc-calendars-solar = { workspace = true }
 hc-astro = { workspace = true }
 hc-calendars-lunar = { workspace = true, optional = true }

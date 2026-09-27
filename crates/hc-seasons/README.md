@@ -50,7 +50,7 @@ assert_eq!(
 | `san_fu` | 三伏 (初伏, 中伏, 末伏) counted in 庚 days from the summer solstice and 立秋, and 數九, the nine nines from the winter solstice |
 | `cold_food` | 寒食, the Cold Food Day, one convention per reckoning: 105 days after the winter solstice, the eve of 清明 after 1645, and Korea's 한식 |
 | `quarter_days` | the quarter days and term days of England and Wales, Ireland and Scotland, traditional and under the 1990 Act |
-| `dog_days` | the European dog days, one convention per source: *The Old Farmer's Almanac*'s 3 July to 11 August and the *Hundstage* of 23 July to 23 August |
+| `dog_days` | the European dog days, one convention per source: *The Old Farmer's Almanac*'s 3 July to 11 August, the *Hundstage* of 23 July to 23 August, and the 1552 and 1559 Prayer Books' 7 July to 5 September in the Julian calendar |
 | `moon_calendar` | phase names, 月齢, illuminated fraction, a month's four principal phases, 十五夜, 十三夜, and the National Astronomical Observatory's 伝統的七夕 |
 | `seasons` | astronomical, meteorological and East Asian seasons |
 | `zodiac` | 黄道十二宮: the tropical Western signs, the sidereal rāśi with the ayanamsa, the Indian solar months, and the Chinese 十二次; `zodiac::decans`, the 36 faces of 10°, each ruled by a planet in the Chaldean order from Mars at 0° of Aries, as al-Bīrūnī tabulates them |
@@ -325,8 +325,9 @@ document, with keys in `docs/references.bib`. The rest of the crate cites:
   (Scotland) Act 1886, on legislation.gov.uk, for the Scottish days in
   `quarter_days`.
 * The Korea Astronomy and Space Science Institute's 월력요항, the
-  Observatory's よくある質問 3-10, *The Old Farmer's Almanac* and
-  MeteoSchweiz, for `cold_food`, 伝統的七夕 and `dog_days`; they are listed
+  Observatory's よくある質問 3-10, *The Old Farmer's Almanac*,
+  MeteoSchweiz and the kalendars of the 1552, 1559 and 1662 Books of Common
+  Prayer, for `cold_food`, 伝統的七夕 and `dog_days`; they are listed
   in [`docs/systems/solar-term-counts.md`](../../docs/systems/solar-term-counts.md)
   and the module pages.
 

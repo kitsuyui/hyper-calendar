@@ -94,7 +94,7 @@ gives each crate's other direct dependencies. The workspace manifest,
 | `hc-planetary` | Mars sols, MTC, Darian and Martiana; Titan and Galilean circad calendars | `hc-astro` |
 | `hc-calendars-lunar` | Hijri, Hebrew, Samaritan, Babylonian, Chinese, Korean, Vietnamese, Tibetan and Mongolian, Javanese, the Japanese lunisolar systems | `hc-astro`, `hc-calendars-solar` |
 | `hc-calendars-equinox` | Solar Hijri, Badíʿ and French Republican by the equinox | `hc-astro`, `hc-calendars-solar` |
-| `hc-seasons` | 24 terms, 72 pentads, 雑節, 六曜, the zodiac | `hc-astro`; `hc-calendars-lunar` behind its own `lunar` feature |
+| `hc-seasons` | 24 terms, 72 pentads, 雑節, 六曜, the zodiac | `hc-astro`, `hc-calendars-solar`; `hc-calendars-lunar` behind its own `lunar` feature |
 | `hc-calendars-regional` | Japanese, Qing and Korean eras, Maya, Aztec, Zapotec, Pawukon, Burmese, Thai and Khmer lunar, Olympiads | `hc-calendars-solar`, `hc-calendars-lunar` |
 | `hc-calendars-indic` | Hindu lunisolar and solar calendars, Bikram and Nepal Sambat | `hc-astro`, `hc-calendars-solar`, `hc-seasons` |
 | `hc-almanac` | 暦注 | `hc-astro`, `hc-calendars-lunar`, `hc-seasons` |

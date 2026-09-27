@@ -1,11 +1,12 @@
-//! The lunisolar year of Thailand and Cambodia, which [`thai_lunar`] and
-//! [`khmer`] share, and the *suryayatra* arithmetic that decides it.
+//! The lunisolar year of Thailand, Cambodia and Laos, which [`thai_lunar`],
+//! [`khmer`] and [`lao`] share, and the *suryayatra* arithmetic that decides
+//! it.
 //!
 //! The system is written up in `docs/systems/khmer-chhankitek.md` in the
 //! repository, beside `docs/systems/thai-lunar.md`: the layout the two
 //! calendars have in common, the quantities of the solar New Year, the
-//! rules for the leap month and the leap day as Cambodia applies them, and
-//! why the Lao, Sinhalese and Tai calendars are not carried. This page
+//! rules for the leap month and the leap day as Cambodia and Laos apply
+//! them, and why the Sinhalese and Tai calendars are not carried. This page
 //! states the code's facts.
 //!
 //! Both calendars have twelve months of 29 days when the month's number is
@@ -15,7 +16,7 @@
 //! [`YearType`] is the three, [`Years`] lays a run of typed years out from
 //! its first day, and the calendars differ only in where the types come
 //! from: `thai-lunar` reads them off the holy days Thailand published,
-//! `khmer` computes them.
+//! `khmer` and `lao` compute them by [`suryayatra_year_type`].
 //!
 //! The quantities — [`ahargana`], [`kammacabala`], [`avoman`] and
 //! [`new_year_tithi`] — are those of Gislén and Eade, "The Calendars of
@@ -26,6 +27,7 @@
 //!
 //! [`thai_lunar`]: crate::thai_lunar
 //! [`khmer`]: crate::khmer
+//! [`lao`]: crate::lao
 
 use hc_calendar::{CalendarError, CalendarResult, Month, Rd};
 
@@ -362,6 +364,59 @@ pub const fn avoman(year: i64) -> i64 {
 #[must_use]
 pub const fn new_year_tithi(year: i64) -> i64 {
     (703 * ahargana(year) + 650).div_euclid(692).rem_euclid(30)
+}
+
+/// Whether the rule gives the lunar year of the Chulasakarat New Year
+/// `year` the doubled month 8: the New Year's lunar day is 25 or more or 5
+/// or less, except that a year of 24 followed by one of 6 has it and a year
+/// of 25 followed by one of 5 does not. Cambodia's rule as Tum gives it,
+/// and Laos's as Dupertuis gives it but for the 25-then-5 pair, which he
+/// leaves open (`docs/systems/khmer-chhankitek.md`).
+#[must_use]
+pub const fn suryayatra_has_leap_month(year: i64) -> bool {
+    let this = new_year_tithi(year);
+    let next = new_year_tithi(year + 1);
+    if this == 25 && next == 5 {
+        return false;
+    }
+    if this == 24 && next == 6 {
+        return true;
+    }
+    this >= 25 || this <= 5
+}
+
+/// Whether the rule calls for a 30th day of month 7 in the lunar year of
+/// the Chulasakarat New Year `year`, before a collision with the leap month
+/// is settled: the avoman is 126 or less in a 366-day solar year and 137 or
+/// less in a 365-day one, except that a year of 137 followed by one of 0
+/// does not.
+#[must_use]
+pub const fn suryayatra_has_leap_day(year: i64) -> bool {
+    let excess = avoman(year);
+    if is_solar_leap_year(year) {
+        excess <= 126
+    } else if excess == 137 && avoman(year + 1) == 0 {
+        false
+    } else {
+        excess <= 137
+    }
+}
+
+/// The type the rule gives the lunar year of the Chulasakarat New Year
+/// `year`: the leap month if it is called for; otherwise the leap day if it
+/// is called for, or if the year before was called for both; otherwise
+/// normal.
+#[must_use]
+pub const fn suryayatra_year_type(year: i64) -> YearType {
+    if suryayatra_has_leap_month(year) {
+        YearType::ExtraMonth
+    } else if suryayatra_has_leap_day(year)
+        || (suryayatra_has_leap_month(year - 1) && suryayatra_has_leap_day(year - 1))
+    {
+        YearType::ExtraDay
+    } else {
+        YearType::Normal
+    }
 }
 
 #[cfg(test)]
