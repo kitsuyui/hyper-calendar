@@ -38,6 +38,10 @@
 //!   六曜 to the 選日.
 //! * [`dated`] — month and weekday names a government gave for a period,
 //!   with the days they were in force: Turkmenistan's of 2002–2008.
+//! * [`reckonings`] — what a locale calls the terms of the other
+//!   reckonings of a day and a year: the choghadiya, the Panchak kinds, the
+//!   Kumbh sites and Pushkaram rivers, the planets of the planetary hours,
+//!   the night watches, and the Vietnamese, Chinese and Turkish folk days.
 //! * [`horizons`] — what a locale calls a horizon a rising is measured
 //!   against, where an observatory or almanac office names it.
 //! * [`direction`] — script direction and the bidi isolation a formatter
@@ -80,6 +84,7 @@ pub mod names;
 pub mod notation;
 pub mod numbering;
 pub mod plural;
+pub mod reckonings;
 #[cfg(feature = "territories")]
 pub mod territories;
 

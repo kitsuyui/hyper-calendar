@@ -22,7 +22,7 @@ use core::fmt::Write;
 use hc_calendar::Rd;
 use hc_seasons::hc_astro::solar::solar_longitude_after;
 use hc_seasons::solar_terms::{TermOrder, namings, term_in_effect};
-use hc_seasons::{ColdFoodConvention, Meridian, pentads};
+use hc_seasons::{ColdFoodConvention, Meridian, meiyu, pentads};
 
 use crate::astro_lines::{EARLIEST_YEAR, LATEST_YEAR, day_in_era};
 use crate::boundary::{Answer, Refusal, names, push_cell};
@@ -161,6 +161,40 @@ pub fn cold_food_day(id: &str, year: i64) -> Answer<i64> {
     Ok(convention.day(year).0)
 }
 
+/// A rule of 入梅 or 出梅: the day it gives in a Gregorian year, with its
+/// solar term at a meridian.
+pub type PlumRainRule = fn(i64, Meridian) -> Rd;
+
+/// The rules of 入梅 and 出梅, each with its identifier, as
+/// [`hc_seasons::meiyu`] carries them: one a function, per policy §5.
+pub const PLUM_RAIN_RULES: [(&str, PlumRainRule); 3] = [
+    ("ru-mei-bing", meiyu::ru_mei_bing),
+    ("ru-mei-ren", meiyu::ru_mei_ren),
+    ("chu-mei-wei", meiyu::chu_mei_wei),
+];
+
+/// The day of 入梅 or 出梅 in Gregorian `year` by a rule of
+/// [`PLUM_RAIN_RULES`], selected by its identifier in any case, with the
+/// solar term it counts from at a meridian [`meridian`] reads: the first
+/// 丙 or 壬 day from 芒种, or the first 未 day from 小暑, the term's own day
+/// counted.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a rule or a meridian not named, and
+/// [`Refusal::OutOfRange`] for a year outside −1000 to 3000.
+pub fn plum_rains_day(rule: &str, year: i64, meridian_name: &str) -> Answer<i64> {
+    let (_, day_of) = PLUM_RAIN_RULES
+        .iter()
+        .find(|(id, _)| names(rule, id))
+        .ok_or(Refusal::Unknown)?;
+    let meridian = meridian(meridian_name)?;
+    if !(EARLIEST_YEAR..=LATEST_YEAR).contains(&year) {
+        return Err(Refusal::OutOfRange);
+    }
+    Ok(day_of(year, meridian).0)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -239,5 +273,42 @@ mod tests {
             pentad_line(day(-1001, 12, 31), "universal"),
             Err(Refusal::OutOfRange)
         );
+    }
+
+    /// 入梅 on 11 June 2026 and 出梅 on 8 July at the Chinese meridian
+    /// (`qq-meiyu-2026`); 入梅 on 12 June 2025 by Central China's 壬 rule
+    /// (`qq-meiyu-2025`); 出梅 of 2024 on 小暑 itself, 6 July
+    /// (`qq-meiyu-2024`).
+    #[test]
+    fn the_plum_rains_fall_on_the_published_days() {
+        assert_eq!(
+            plum_rains_day("ru-mei-bing", 2026, "china"),
+            Ok(day(2026, 6, 11))
+        );
+        assert_eq!(
+            plum_rains_day("CHU-MEI-WEI", 2026, "china"),
+            Ok(day(2026, 7, 8))
+        );
+        assert_eq!(
+            plum_rains_day("ru-mei-ren", 2025, "china"),
+            Ok(day(2025, 6, 12))
+        );
+        assert_eq!(
+            plum_rains_day("chu-mei-wei", 2024, "china"),
+            Ok(day(2024, 7, 6))
+        );
+        assert_eq!(
+            plum_rains_day("ru-mei", 2026, "china"),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            plum_rains_day("ru-mei-bing", 2026, "mars"),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            plum_rains_day("ru-mei-bing", 3001, "china"),
+            Err(Refusal::OutOfRange)
+        );
+        assert!(plum_rains_day("ru-mei-bing", -1000, "").is_ok());
     }
 }

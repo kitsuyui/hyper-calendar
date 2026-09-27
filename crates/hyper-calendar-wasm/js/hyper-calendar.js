@@ -87,6 +87,8 @@ export const METHODS = Object.freeze([
   { method: "ccsdsAsciiFormat", export: "hc_ccsds_ascii_format", feature: "time-codes" },
   { method: "radioDecode", export: "hc_radio_decode", feature: "time-codes" },
   { method: "radioEncode", export: "hc_radio_encode", feature: "time-codes" },
+  { method: "irigDecode", export: "hc_irig_decode", feature: "time-codes" },
+  { method: "irigEncode", export: "hc_irig_encode", feature: "time-codes" },
   { method: "dotnetTicksFromUnix", export: "hc_dotnet_ticks_from_unix", feature: "timestamps" },
   { method: "unixFromDotnetTicks", export: "hc_unix_from_dotnet_ticks", feature: "timestamps" },
   { method: "sixHourClock", export: "hc_six_hour_clock", feature: "timestamps" },
@@ -105,6 +107,8 @@ export const METHODS = Object.freeze([
   { method: "hinduLunarDate", export: "hc_hindu_lunar_date", feature: "calendars" },
   { method: "suryaSiddhantaAt", export: "hc_surya_siddhanta_at", feature: "calendars" },
   { method: "suryaSiddhantaSunrise", export: "hc_surya_siddhanta_sunrise", feature: "calendars" },
+  { method: "barhaspatyaYear", export: "hc_barhaspatya_year", feature: "calendars" },
+  { method: "barhaspatyaYearAt", export: "hc_barhaspatya_year_at", feature: "calendars" },
   { method: "crescentVisible", export: "hc_crescent_visible", feature: "calendars" },
   { method: "iocOlympiad", export: "hc_ioc_olympiad", feature: "calendars" },
   { method: "hebrewYahrzeit", export: "hc_hebrew_yahrzeit", feature: "calendars" },
@@ -116,6 +120,12 @@ export const METHODS = Object.freeze([
   { method: "kalam", export: "hc_kalam", feature: "calendars" },
   { method: "almanacCycles", export: "hc_almanac_cycles", feature: "calendars" },
   { method: "almanacDay", export: "hc_almanac_day", feature: "calendars" },
+  { method: "choghadiya", export: "hc_choghadiya", feature: "calendars" },
+  { method: "panchak", export: "hc_panchak", feature: "calendars" },
+  { method: "kumbh", export: "hc_kumbh", feature: "calendars" },
+  { method: "pushkaram", export: "hc_pushkaram", feature: "calendars" },
+  { method: "folkDay", export: "hc_folk_day", feature: "calendars" },
+  { method: "nightWatch", export: "hc_night_watch", feature: "calendars" },
   { method: "holidayIsDayOff", export: "hc_holiday_is_day_off", feature: "holiday" },
   { method: "holidaysInYear", export: "hc_holidays_in_year", feature: "holiday" },
   { method: "holidayCodes", export: "hc_holiday_codes", feature: "holiday" },
@@ -131,6 +141,7 @@ export const METHODS = Object.freeze([
   { method: "termInEffect", export: "hc_term_in_effect", feature: "seasons" },
   { method: "pentadInEffect", export: "hc_pentad_in_effect", feature: "seasons" },
   { method: "coldFoodDay", export: "hc_cold_food_day", feature: "seasons" },
+  { method: "plumRains", export: "hc_plum_rains", feature: "seasons" },
   { method: "placeYearsAgo", export: "hc_place_years_ago", feature: "deep-time" },
   { method: "cosmicEvents", export: "hc_cosmic_events", feature: "deep-time" },
   { method: "earliestEvidence", export: "hc_earliest_evidence", feature: "deep-time" },
@@ -158,11 +169,15 @@ export const METHODS = Object.freeze([
   { method: "sunset", export: "hc_sunset", feature: "sky" },
   { method: "hjdTt", export: "hc_hjd_tt", feature: "sky" },
   { method: "hjdUtc", export: "hc_hjd_utc", feature: "sky" },
+  { method: "gmatFromGmt", export: "hc_gmat_from_gmt", feature: "sky" },
+  { method: "gmtFromGmat", export: "hc_gmt_from_gmat", feature: "sky" },
   { method: "prayerTimes", export: "hc_prayer_times", feature: "sky" },
   { method: "prayerMethods", export: "hc_prayer_methods", feature: "sky" },
   { method: "zmanim", export: "hc_zmanim", feature: "sky" },
   { method: "edoTime", export: "hc_edo_time", feature: "sky" },
   { method: "unixFromEdoTime", export: "hc_unix_from_edo_time", feature: "sky" },
+  { method: "planetaryHour", export: "hc_planetary_hour", feature: "sky" },
+  { method: "planetaryHoursOfDay", export: "hc_planetary_hours_of_day", feature: "sky" },
   { method: "orbitAt", export: "hc_orbit_at", feature: "orbital" },
   { method: "orbitSeries", export: "hc_orbit_series", feature: "orbital" },
   { method: "marsTime", export: "hc_mars_time", feature: "planetary" },
@@ -372,6 +387,32 @@ export const COLUMNS = Object.freeze({
     "day", "hour", "name", "romaji", "strokes", "branch", "tenths", "fraction", "missing",
     "missing day", "depression", "depression arcseconds",
   ]),
+  choghadiya: Object.freeze([
+    "half", "part", "id", "name", "locale used", "quality", "ruler", "start", "end", "missing",
+    "missing day", "depression", "depression arcseconds",
+  ]),
+  panchak: Object.freeze(["within", "opens", "closes", "weekday", "kind", "name", "locale used"]),
+  kumbh: Object.freeze([
+    "id", "site", "site name", "locale used", "river", "jupiter", "sun", "at new moon", "from", "to",
+    "holds",
+  ]),
+  pushkaram: Object.freeze([
+    "id", "name", "locale used", "region", "sign", "first", "last", "missing", "missing day",
+    "depression", "depression arcseconds",
+  ]),
+  folkDay: Object.freeze(["kind", "id", "name", "locale used", "count"]),
+  nightWatch: Object.freeze(["watch", "points", "name", "locale used", "han name", "branch"]),
+  barhaspatyaYear: Object.freeze(["position", "name", "expunged", "expunged name", "locale used"]),
+  barhaspatyaYearAt: Object.freeze(["position", "name", "locale used"]),
+  planetaryHour: Object.freeze([
+    "day", "hour", "ruler", "name", "locale used", "daytime", "start", "end", "missing",
+    "missing day", "depression", "depression arcseconds",
+  ]),
+  gmat: Object.freeze(["fixed", "seconds of day", "attoseconds"]),
+  irigDecode: Object.freeze([
+    "fixed", "day of year", "hour", "minute", "second", "hundredths", "year", "control",
+    "straight binary seconds",
+  ]),
 });
 
 /** The geologic ranks `hc_geologic_intervals` numbers, coarsest first. */
@@ -390,7 +431,8 @@ export const NATIVE = "native";
  * `buffer-too-small`, `no-data`, `null-pointer`, `unknown`, `not-utf8`,
  * `malformed`), or one of the binding's own: `not-exported` for a method
  * whose export is not in this build, `unsafe-integer` for an `i64` that
- * does not fit a JavaScript number, `allocation-failed` when `hc_alloc`
+ * does not fit a JavaScript number, whether a result or an integer argument
+ * given as a number past `Number.MAX_SAFE_INTEGER`, `allocation-failed` when `hc_alloc`
  * returned null, and `unrecognised-sentinel` for a sentinel newer than this
  * file. `code` is the sentinel as a `BigInt`, or `null` for the binding's
  * own; `constant` its `HC_ERR_*` name, or `null`; `export` the export
@@ -463,7 +505,25 @@ function toNumber(value, exportName) {
 }
 
 /**
- * An `i64` argument: a safe integer or a `BigInt`.
+ * An integer argument given as a number that no longer holds it exactly:
+ * past `Number.MAX_SAFE_INTEGER` the number is already rounded, so the
+ * binding refuses it as `unsafe-integer`, the name it gives a result a
+ * number cannot hold, rather than pass on a value the caller did not
+ * write. A `BigInt` carries such a value exactly.
+ *
+ * @param {number} value
+ * @param {string} what
+ * @returns {never}
+ */
+function unsafeArgument(value, what) {
+  throw new HcError("unsafe-integer", {
+    message: `${what} is ${value}, past Number.MAX_SAFE_INTEGER, which a number does not hold exactly; pass a BigInt`,
+  });
+}
+
+/**
+ * An `i64` argument: a safe integer or a `BigInt`. An integer number past
+ * the safe range is `unsafe-integer`.
  *
  * @param {number | bigint} value
  * @param {string} what
@@ -477,6 +537,9 @@ function toI64(value, what) {
   }
   if (typeof value === "number" && Number.isSafeInteger(value)) {
     return BigInt(value);
+  }
+  if (typeof value === "number" && Number.isInteger(value)) {
+    return unsafeArgument(value, what);
   }
   return raise(`${what} must be an integer, got ${String(value)}`);
 }
@@ -496,7 +559,22 @@ function toU32(value, what) {
 }
 
 /**
- * A `u64` argument: a safe non-negative integer or a `BigInt`.
+ * An `i32` argument.
+ *
+ * @param {number} value
+ * @param {string} what
+ * @returns {number}
+ */
+function toI32(value, what) {
+  if (typeof value === "number" && Number.isInteger(value) && value >= -0x8000_0000 && value <= 0x7fff_ffff) {
+    return value;
+  }
+  return raise(`${what} must be an integer from -2147483648 to 2147483647, got ${String(value)}`);
+}
+
+/**
+ * A `u64` argument: a safe non-negative integer or a `BigInt`. A positive
+ * integer number past the safe range is `unsafe-integer`, as for `toI64`.
  *
  * @param {number | bigint} value
  * @param {string} what
@@ -510,6 +588,9 @@ function toU64(value, what) {
   }
   if (typeof value === "number" && Number.isSafeInteger(value) && value >= 0) {
     return BigInt(value);
+  }
+  if (typeof value === "number" && Number.isInteger(value) && value > 0) {
+    return unsafeArgument(value, what);
   }
   return raise(`${what} must be a non-negative integer, got ${String(value)}`);
 }
@@ -1994,6 +2075,201 @@ function almanacAnnotation(cells) {
 }
 
 /**
+ * One line of `hc_choghadiya`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").ChoghadiyaPart}
+ */
+function choghadiyaPart(cells) {
+  const [half, part, id, name, localeUsed, quality, ruler, start, end, missing, missingDay, depression, arcseconds] =
+    cells;
+  return {
+    half: /** @type {"day" | "night"} */ (half),
+    part: integer(part, "part"),
+    id: /** @type {import("./hyper-calendar.d.ts").ChoghadiyaId} */ (id),
+    name,
+    localeUsed,
+    quality: /** @type {"auspicious" | "neutral" | "inauspicious"} */ (quality),
+    ruler: /** @type {import("./hyper-calendar.d.ts").ClassicalPlanet} */ (ruler),
+    start: optionalInteger(start, "start"),
+    end: optionalInteger(end, "end"),
+    missing: missingSolarEvent(missing, missingDay, depression, arcseconds),
+  };
+}
+
+/**
+ * The one line of `hc_panchak`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").PanchakWindow}
+ */
+function panchakWindow(cells) {
+  const [within, opens, closes, weekday, kind, name, localeUsed] = cells;
+  return {
+    within: flag(within, "within"),
+    opens: integer(opens, "opens"),
+    closes: integer(closes, "closes"),
+    weekday: integer(weekday, "weekday"),
+    kind: /** @type {import("./hyper-calendar.d.ts").PanchakKind | null} */ (optional(kind)),
+    name: optional(name),
+    localeUsed: optional(localeUsed),
+  };
+}
+
+/**
+ * The one line of `hc_kumbh`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").KumbhOccasion}
+ */
+function kumbhOccasion(cells) {
+  const [id, site, siteName, localeUsed, river, jupiter, sun, atNewMoon, from, to, holds] = cells;
+  return {
+    id: /** @type {import("./hyper-calendar.d.ts").KumbhYoga} */ (id),
+    site,
+    siteName,
+    localeUsed,
+    river,
+    jupiter: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (jupiter),
+    sun: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (sun),
+    atNewMoon: flag(atNewMoon, "at new moon"),
+    from: optionalInteger(from, "from"),
+    to: optionalInteger(to, "to"),
+    holds: holds === "" ? null : flag(holds, "holds"),
+  };
+}
+
+/**
+ * One line of `hc_pushkaram`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").PushkaramDays}
+ */
+function pushkaramDays(cells) {
+  const [id, name, localeUsed, region, sign, first, last, missing, missingDay, depression, arcseconds] = cells;
+  return {
+    id,
+    name,
+    localeUsed,
+    region: optional(region),
+    sign: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (sign),
+    first: optionalInteger(first, "first"),
+    last: optionalInteger(last, "last"),
+    missing: missingSolarEvent(missing, missingDay, depression, arcseconds),
+  };
+}
+
+/**
+ * One line of `hc_folk_day`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").FolkDay}
+ */
+function folkDay(cells) {
+  const [kind, id, name, localeUsed, count] = cells;
+  return {
+    kind: /** @type {import("./hyper-calendar.d.ts").FolkDayKind} */ (kind),
+    id,
+    name,
+    localeUsed,
+    count: optionalInteger(count, "count"),
+  };
+}
+
+/**
+ * The one line of `hc_night_watch`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").NightWatch}
+ */
+function nightWatch(cells) {
+  const [watch, points, name, localeUsed, hanName, branch] = cells;
+  return {
+    watch: integer(watch, "watch"),
+    points: integer(points, "points"),
+    name,
+    localeUsed,
+    hanName,
+    branch,
+  };
+}
+
+/**
+ * The one line of `hc_barhaspatya_year`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").BarhaspatyaYear}
+ */
+function barhaspatyaYear(cells) {
+  const [position, name, expunged, expungedName, localeUsed] = cells;
+  return {
+    position: integer(position, "position"),
+    name,
+    expunged: optionalInteger(expunged, "expunged"),
+    expungedName: optional(expungedName),
+    localeUsed,
+  };
+}
+
+/**
+ * One line of `hc_planetary_hour` and `hc_planetary_hours_of_day`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").PlanetaryHour}
+ */
+function planetaryHour(cells) {
+  const [day, hour, ruler, name, localeUsed, daytime, start, end, missing, missingDay, depression, arcseconds] =
+    cells;
+  return {
+    day: optionalInteger(day, "day"),
+    hour: optionalInteger(hour, "hour"),
+    ruler: /** @type {import("./hyper-calendar.d.ts").ClassicalPlanet | null} */ (optional(ruler)),
+    name: optional(name),
+    localeUsed: optional(localeUsed),
+    daytime: daytime === "" ? null : flag(daytime, "daytime"),
+    start: optionalInteger(start, "start"),
+    end: optionalInteger(end, "end"),
+    missing: missingSolarEvent(missing, missingDay, depression, arcseconds),
+  };
+}
+
+/**
+ * The one line of `hc_gmat_from_gmt` and `hc_gmt_from_gmat`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").ClockReading}
+ */
+function clockReading(cells) {
+  const [fixed, secondsOfDay, attoseconds] = cells;
+  return {
+    fixed: integer(fixed, "fixed"),
+    secondsOfDay: integer(secondsOfDay, "seconds of day"),
+    attoseconds: bigInteger(attoseconds, "attoseconds"),
+  };
+}
+
+/**
+ * The one line of `hc_irig_decode`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").IrigReading}
+ */
+function irigReading(cells) {
+  const [fixed, dayOfYear, hour, minute, second, hundredths, year, control, sbs] = cells;
+  return {
+    fixed: integer(fixed, "fixed"),
+    dayOfYear: integer(dayOfYear, "day of year"),
+    hour: integer(hour, "hour"),
+    minute: integer(minute, "minute"),
+    second: integer(second, "second"),
+    hundredths: integer(hundredths, "hundredths"),
+    year: optionalInteger(year, "year"),
+    control: optionalInteger(control, "control"),
+    straightBinarySeconds: optionalInteger(sbs, "straight binary seconds"),
+  };
+}
+
+/**
  * The one line of `hc_orthodox_fast_on`.
  *
  * @param {string[]} cells
@@ -2755,6 +3031,23 @@ export class HyperCalendar {
     return this.#withText(convention, "convention", (pointer, len) =>
       toNumber(fn(pointer, len, y), "hc_cold_food_day"));
   }
+  /**
+   * The fixed day of 入梅 or 出梅 of a Gregorian year by a rule of the
+   * Chinese almanac, with its solar term at a meridian.
+   *
+   * @param {import("./hyper-calendar.d.ts").PlumRainRule} rule
+   * @param {number | bigint} year
+   * @param {string} [meridian]
+   * @returns {number}
+   */
+  plumRains(rule, year, meridian = "") {
+    const fn = this.#export("hc_plum_rains");
+    const y = toI64(year, "year");
+    return this.#withText(rule, "rule", (rulePointer, ruleLen) =>
+      this.#withText(meridian, "meridian", (meridianPointer, meridianLen) =>
+        toNumber(fn(rulePointer, ruleLen, y, meridianPointer, meridianLen), "hc_plum_rains")));
+  }
+
 
 
   /**
@@ -3588,6 +3881,45 @@ export class HyperCalendar {
     const text = this.#text("hc_surya_siddhanta_sunrise", (buffer, capacity) => fn(day, lat, lon, buffer, capacity), true);
     return integer(this.#oneLine("hc_surya_siddhanta_sunrise", text, ["instant"])[0], "instant");
   }
+  /**
+   * The northern sixty-year cycle's name a rule couples with an expired
+   * Śaka year, and the name it expunges that year.
+   *
+   * @param {import("./hyper-calendar.d.ts").BarhaspatyaRule} rule
+   * @param {number | bigint} saka
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").BarhaspatyaYear}
+   */
+  barhaspatyaYear(rule, saka, locale = "und") {
+    const fn = this.#export("hc_barhaspatya_year");
+    const year = toI64(saka, "saka");
+    const text = this.#withText(rule, "rule", (rulePointer, ruleLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_barhaspatya_year", (buffer, capacity) =>
+          fn(rulePointer, ruleLen, year, localePointer, localeLen, buffer, capacity), true)));
+    return barhaspatyaYear(this.#oneLine("hc_barhaspatya_year", text, COLUMNS.barhaspatyaYear));
+  }
+
+  /**
+   * The northern sixty-year cycle's name in progress at an instant by a
+   * rule.
+   *
+   * @param {import("./hyper-calendar.d.ts").BarhaspatyaRule} rule
+   * @param {number | bigint} unixSeconds
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").BarhaspatyaName}
+   */
+  barhaspatyaYearAt(rule, unixSeconds, locale = "und") {
+    const fn = this.#export("hc_barhaspatya_year_at");
+    const seconds = toI64(unixSeconds, "unixSeconds");
+    const text = this.#withText(rule, "rule", (rulePointer, ruleLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_barhaspatya_year_at", (buffer, capacity) =>
+          fn(rulePointer, ruleLen, seconds, localePointer, localeLen, buffer, capacity), true)));
+    const [position, name, localeUsed] = this.#oneLine("hc_barhaspatya_year_at", text, COLUMNS.barhaspatyaYearAt);
+    return { position: integer(position, "position"), name, localeUsed };
+  }
+
 
   /**
    * Whether the young crescent should have been visible on the evening
@@ -4008,6 +4340,50 @@ export class HyperCalendar {
     const cells = this.#oneLine("hc_hjd_utc", text, COLUMNS.hjdUtc);
     return { ...heliocentricJulianDate(cells), ttMinusUtcSeconds: decimal(cells[2], "tt minus utc") };
   }
+  /**
+   * The astronomical date and the Greenwich Mean Astronomical Time of a
+   * reading of GMT: GMT − 12 h, the day beginning at noon.
+   *
+   * @param {number | bigint} fixed
+   * @param {number} secondsOfDay
+   * @param {number | bigint} [attoseconds]
+   * @returns {import("./hyper-calendar.d.ts").ClockReading}
+   */
+  gmatFromGmt(fixed, secondsOfDay, attoseconds = 0) {
+    return this.#clockReading("hc_gmat_from_gmt", fixed, secondsOfDay, attoseconds);
+  }
+
+  /**
+   * The civil date and the GMT of a reading of Greenwich Mean Astronomical
+   * Time.
+   *
+   * @param {number | bigint} fixed
+   * @param {number} secondsOfDay
+   * @param {number | bigint} [attoseconds]
+   * @returns {import("./hyper-calendar.d.ts").ClockReading}
+   */
+  gmtFromGmat(fixed, secondsOfDay, attoseconds = 0) {
+    return this.#clockReading("hc_gmt_from_gmat", fixed, secondsOfDay, attoseconds);
+  }
+
+  /**
+   * A reading of one clock as another, for the GMAT exports.
+   *
+   * @param {string} exportName
+   * @param {number | bigint} fixed
+   * @param {number} secondsOfDay
+   * @param {number | bigint} attoseconds
+   * @returns {import("./hyper-calendar.d.ts").ClockReading}
+   */
+  #clockReading(exportName, fixed, secondsOfDay, attoseconds) {
+    const fn = this.#export(exportName);
+    const day = toI64(fixed, "fixed");
+    const seconds = toU32(secondsOfDay, "secondsOfDay");
+    const attos = toU64(attoseconds, "attoseconds");
+    const text = this.#text(exportName, (buffer, capacity) => fn(day, seconds, attos, buffer, capacity), true);
+    return clockReading(this.#oneLine(exportName, text, COLUMNS.gmat));
+  }
+
 
   /**
    * Mars at a POSIX instant and an east longitude: the Mars Sol Date,
@@ -4265,6 +4641,50 @@ export class HyperCalendar {
             next, buffer, capacity), true)));
     return this.#oneLine("hc_radio_encode", text, ["frame"])[0];
   }
+  /**
+   * One frame of an IRIG serial time code read, its designation such as
+   * `B124` and its symbols `0`, `1` and `M`, Pr first; a code with the
+   * year's two digits reads them in the century of `year`, one without
+   * is read in `year`.
+   *
+   * @param {string} signal
+   * @param {string} frame
+   * @param {number | bigint} year
+   * @returns {import("./hyper-calendar.d.ts").IrigReading}
+   */
+  irigDecode(signal, frame, year) {
+    const fn = this.#export("hc_irig_decode");
+    const y = toI64(year, "year");
+    const text = this.#withText(signal, "signal", (signalPointer, signalLen) =>
+      this.#withText(frame, "frame", (framePointer, frameLen) =>
+        this.#text("hc_irig_decode", (buffer, capacity) =>
+          fn(signalPointer, signalLen, framePointer, frameLen, y, buffer, capacity), true)));
+    return irigReading(this.#oneLine("hc_irig_decode", text, COLUMNS.irigDecode));
+  }
+
+  /**
+   * The frame of an IRIG code whose reference bit falls at a reading of the
+   * civil clock: a fixed day, whole seconds after its midnight (86 400 for
+   * 23:59:60) and, in `options`, hundredths and control bits.
+   *
+   * @param {string} signal
+   * @param {number | bigint} fixed
+   * @param {number} secondsOfDay
+   * @param {import("./hyper-calendar.d.ts").IrigEncodeOptions} [options]
+   * @returns {string}
+   */
+  irigEncode(signal, fixed, secondsOfDay, options = {}) {
+    const fn = this.#export("hc_irig_encode");
+    const day = toI64(fixed, "fixed");
+    const seconds = toU32(secondsOfDay, "secondsOfDay");
+    const hundredths = toU32(options.hundredths ?? 0, "hundredths");
+    const control = toU32(options.control ?? 0, "control");
+    const text = this.#withText(signal, "signal", (pointer, len) =>
+      this.#text("hc_irig_encode", (buffer, capacity) =>
+        fn(pointer, len, day, seconds, hundredths, control, buffer, capacity), true));
+    return this.#oneLine("hc_irig_encode", text, ["frame"])[0];
+  }
+
 
   /**
    * .NET's `DateTime.Ticks` of a POSIX instant as a `Utc` value.
@@ -4378,6 +4798,138 @@ export class HyperCalendar {
         this.#text("hc_almanac_day", (buffer, capacity) =>
           fn(day, meridianPointer, meridianLen, localePointer, localeLen, buffer, capacity), true)));
     return rows(text, COLUMNS.almanacDay, "hc_almanac_day").map(almanacAnnotation);
+  }
+
+  /**
+   * The sixteen choghadiya of a day at a place, the daylight's eight and
+   * the night's, each named in a locale.
+   *
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").ChoghadiyaPart[]}
+   */
+  choghadiya(fixed, latitude, longitude, elevation = 0, locale = "und") {
+    const fn = this.#export("hc_choghadiya");
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_choghadiya", (buffer, capacity) => fn(day, lat, lon, elev, pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.choghadiya, "hc_choghadiya").map(choghadiyaPart);
+  }
+
+  /**
+   * The Panchak window in progress at an instant, or the next, and its
+   * kind under a naming table by the weekday it opens on, on a clock
+   * `offsetSeconds` ahead of UTC.
+   *
+   * @param {import("./hyper-calendar.d.ts").PanchakNaming} naming
+   * @param {number | bigint} unixSeconds
+   * @param {string} ayanamsa
+   * @param {number} [offsetSeconds]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").PanchakWindow}
+   */
+  panchak(naming, unixSeconds, ayanamsa, offsetSeconds = 0, locale = "und") {
+    const fn = this.#export("hc_panchak");
+    const seconds = toI64(unixSeconds, "unixSeconds");
+    const offset = toI32(offsetSeconds, "offsetSeconds");
+    const text = this.#withText(naming, "naming", (namingPointer, namingLen) =>
+      this.#withText(ayanamsa, "ayanamsa", (ayanamsaPointer, ayanamsaLen) =>
+        this.#withText(locale, "locale", (localePointer, localeLen) =>
+          this.#text("hc_panchak", (buffer, capacity) =>
+            fn(namingPointer, namingLen, seconds, ayanamsaPointer, ayanamsaLen, offset, localePointer, localeLen,
+              buffer, capacity), true))));
+    return panchakWindow(this.#oneLine("hc_panchak", text, COLUMNS.panchak));
+  }
+
+  /**
+   * When in a year the Sun, and the Moon where asked, stand as a Kumbh
+   * condition requires, and whether Jupiter's sign, which the caller
+   * gives because the library has no ephemeris of Jupiter, meets it.
+   *
+   * @param {import("./hyper-calendar.d.ts").KumbhYoga} yoga
+   * @param {number | bigint} year
+   * @param {string} ayanamsa
+   * @param {import("./hyper-calendar.d.ts").SiderealSignId | ""} [jupiter]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").KumbhOccasion}
+   */
+  kumbh(yoga, year, ayanamsa, jupiter = "", locale = "und") {
+    const fn = this.#export("hc_kumbh");
+    const y = toI64(year, "year");
+    const text = this.#withText(yoga, "yoga", (yogaPointer, yogaLen) =>
+      this.#withText(ayanamsa, "ayanamsa", (ayanamsaPointer, ayanamsaLen) =>
+        this.#withText(jupiter, "jupiter", (jupiterPointer, jupiterLen) =>
+          this.#withText(locale, "locale", (localePointer, localeLen) =>
+            this.#text("hc_kumbh", (buffer, capacity) =>
+              fn(yogaPointer, yogaLen, y, ayanamsaPointer, ayanamsaLen, jupiterPointer, jupiterLen, localePointer,
+                localeLen, buffer, capacity), true)))));
+    return kumbhOccasion(this.#oneLine("hc_kumbh", text, COLUMNS.kumbh));
+  }
+
+  /**
+   * The twelve days of the Ādi Pushkaram of each river of a sign, for
+   * Jupiter's entry into it at an instant the caller gives.
+   *
+   * @param {import("./hyper-calendar.d.ts").SiderealSignId} sign
+   * @param {number | bigint} entryUnixSeconds
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @param {string} [meridian]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").PushkaramDays[]}
+   */
+  pushkaram(sign, entryUnixSeconds, latitude, longitude, elevation = 0, meridian = "", locale = "und") {
+    const fn = this.#export("hc_pushkaram");
+    const entry = toI64(entryUnixSeconds, "entryUnixSeconds");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(sign, "sign", (signPointer, signLen) =>
+      this.#withText(meridian, "meridian", (meridianPointer, meridianLen) =>
+        this.#withText(locale, "locale", (localePointer, localeLen) =>
+          this.#text("hc_pushkaram", (buffer, capacity) =>
+            fn(signPointer, signLen, entry, lat, lon, elev, meridianPointer, meridianLen, localePointer, localeLen,
+              buffer, capacity), true))));
+    return rows(text, COLUMNS.pushkaram, "hc_pushkaram").map(pushkaramDays);
+  }
+
+  /**
+   * The folk reckonings of a day outside the Japanese almanac, each named
+   * in a locale: the first-month counts, 入梅 and 出梅, the Vietnamese days
+   * and the Turkish folk year.
+   *
+   * @param {number | bigint} fixed
+   * @param {string} [meridian]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").FolkDay[]}
+   */
+  folkDay(fixed, meridian = "", locale = "und") {
+    const fn = this.#export("hc_folk_day");
+    const day = toI64(fixed, "fixed");
+    const text = this.#withText(meridian, "meridian", (meridianPointer, meridianLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_folk_day", (buffer, capacity) =>
+          fn(day, meridianPointer, meridianLen, localePointer, localeLen, buffer, capacity), true)));
+    return rows(text, COLUMNS.folkDay, "hc_folk_day").map(folkDay);
+  }
+
+  /**
+   * The Chinese night watch of a time of the civil clock by the fixed
+   * reckoning, or `null` from 05:00 to 18:59.
+   *
+   * @param {number} secondsOfDay
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").NightWatch | null}
+   */
+  nightWatch(secondsOfDay, locale = "und") {
+    const fn = this.#export("hc_night_watch");
+    const seconds = toU32(secondsOfDay, "secondsOfDay");
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_night_watch", (buffer, capacity) => fn(seconds, pointer, len, buffer, capacity), true));
+    return text === "" ? null : nightWatch(this.#oneLine("hc_night_watch", text, COLUMNS.nightWatch));
   }
 
   /**
@@ -4500,6 +5052,48 @@ export class HyperCalendar {
       fn(day, h, f, lat, lon, elev, buffer, capacity), true);
     return solarEvent(this.#oneLine("hc_unix_from_edo_time", text, COLUMNS.solarEvent));
   }
+  /**
+   * The planetary hour at an instant and a place, its ruler named in a
+   * locale.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").PlanetaryHour}
+   */
+  planetaryHour(unixSeconds, latitude, longitude, elevation = 0, locale = "und") {
+    const fn = this.#export("hc_planetary_hour");
+    const seconds = toI64(unixSeconds, "unixSeconds");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_planetary_hour", (buffer, capacity) =>
+        fn(seconds, lat, lon, elev, pointer, len, buffer, capacity), true));
+    return planetaryHour(this.#oneLine("hc_planetary_hour", text, COLUMNS.planetaryHour));
+  }
+
+  /**
+   * The twenty-four planetary hours of the day that begins at a fixed
+   * day's sunrise at a place.
+   *
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").PlanetaryHour[]}
+   */
+  planetaryHoursOfDay(fixed, latitude, longitude, elevation = 0, locale = "und") {
+    const fn = this.#export("hc_planetary_hours_of_day");
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_planetary_hours_of_day", (buffer, capacity) =>
+        fn(day, lat, lon, elev, pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.planetaryHour, "hc_planetary_hours_of_day").map(planetaryHour);
+  }
+
 }
 
 /**

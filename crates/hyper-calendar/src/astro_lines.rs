@@ -619,6 +619,90 @@ pub fn hjd_utc_line(
     ))
 }
 
+/// The fixed days of the Gregorian years −9 999 999 through 9 999 999,
+/// the days the civil exports answer for, which a reading of GMT or GMAT
+/// is taken on.
+pub const CIVIL_DAYS: core::ops::RangeInclusive<i64> = -3_652_424_999..=3_652_424_634;
+
+/// A reading of a clock: a fixed day, whole seconds after its midnight,
+/// 86 400 being the leap second 23:59:60, and attoseconds.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a day outside [`CIVIL_DAYS`], seconds past
+/// 86 400 or attoseconds from 10¹⁸.
+fn clock_reading(
+    fixed: i64,
+    seconds_of_day: u32,
+    attoseconds: u64,
+) -> Answer<hc_calendar::CivilDateTime> {
+    if !CIVIL_DAYS.contains(&fixed) || seconds_of_day > 86_400 {
+        return Err(Refusal::OutOfRange);
+    }
+    let (hour, minute, second) = if seconds_of_day == 86_400 {
+        (23, 59, 60)
+    } else {
+        // Each below 24, 60 and 60 by the check above.
+        (
+            (seconds_of_day / 3_600) as u8,
+            (seconds_of_day / 60 % 60) as u8,
+            (seconds_of_day % 60) as u8,
+        )
+    };
+    let time = hc_calendar::CivilTime::new(hour, minute, second, attoseconds)
+        .map_err(|_| Refusal::OutOfRange)?;
+    Ok(hc_calendar::CivilDateTime::new(Rd(fixed), time))
+}
+
+/// A reading as a line: the fixed day, the whole seconds after midnight
+/// and the attoseconds.
+fn reading_line(reading: hc_calendar::CivilDateTime) -> String {
+    let time = reading.time;
+    let seconds =
+        u32::from(time.hour()) * 3_600 + u32::from(time.minute()) * 60 + u32::from(time.second());
+    let mut out = String::new();
+    let _ = writeln!(out, "{}\t{seconds}\t{}", reading.day.0, time.subsec_attos());
+    out
+}
+
+/// How many columns [`gmat_from_gmt_line`] and [`gmt_from_gmat_line`]
+/// write.
+pub const GMAT_COLUMNS: usize = 3;
+
+/// The line of `hc_gmat_from_gmt`: the astronomical date and the
+/// Greenwich Mean Astronomical Time of a reading of GMT, mean solar time at
+/// Greenwich counted from midnight ([`hc_astro::gmat`]). The astronomical
+/// day begins at noon and is named by the civil day it begins on, so
+/// GMAT is GMT − 12 h: the fixed day, the whole seconds after the
+/// astronomical day's noon, and the attoseconds. The *Nautical Almanac*
+/// counted G.M.T. so to 1924, and from midnight from 1925; which a
+/// document used is the document's to say.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a day outside [`CIVIL_DAYS`], seconds past
+/// 86 400, attoseconds from 10¹⁸, and for 23:59:60, 86 400 s, which has no
+/// reading twelve hours earlier.
+pub fn gmat_from_gmt_line(fixed: i64, seconds_of_day: u32, attoseconds: u64) -> Answer<String> {
+    let gmt = clock_reading(fixed, seconds_of_day, attoseconds)?;
+    let gmat = hc_astro::gmat::gmat_from_gmt(gmt).map_err(|_| Refusal::OutOfRange)?;
+    Ok(reading_line(gmat))
+}
+
+/// The line of `hc_gmt_from_gmat`: the civil date and the GMT of a reading
+/// of Greenwich Mean Astronomical Time, the inverse of
+/// [`gmat_from_gmt_line`], in its columns.
+///
+/// # Errors
+///
+/// As [`gmat_from_gmt_line`]'s, a second 60 included, which GMAT, whose
+/// day ends at noon, does not read.
+pub fn gmt_from_gmat_line(fixed: i64, seconds_of_day: u32, attoseconds: u64) -> Answer<String> {
+    let gmat = clock_reading(fixed, seconds_of_day, attoseconds)?;
+    let gmt = hc_astro::gmat::gmt_from_gmat(gmat).map_err(|_| Refusal::OutOfRange)?;
+    Ok(reading_line(gmt))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -818,5 +902,60 @@ mod tests {
         );
         let held = hjd_utc_line(before_utc, 90.0, 23.4, false).expect("held");
         assert_eq!(cells(&held)[2], "32.184");
+    }
+
+    /// The *Nautical Almanac* for 1924 (`nautical-almanac-1924`, as
+    /// `hc-astro`'s test reads it) gives the lunar eclipse of 20 February
+    /// 1924 at "February 20ᵈ 4ʰ 12ᵐ 25ˢ·7" G.M.T. reckoned from noon, 16:12
+    /// civil; and the almanac for 1925 calls 1924 December 31, 12ʰ from
+    /// noon 1925 January 1, 0ʰ.
+    #[test]
+    fn the_1924_almanacs_eclipse_is_twelve_hours_from_noon() {
+        let day = hc_calendars_solar::gregorian::to_fixed(1924, 2, 20)
+            .expect("a date")
+            .0;
+        let tenths = 700_000_000_000_000_000;
+        let civil = 16 * 3_600 + 12 * 60 + 25;
+        let astronomical = 4 * 3_600 + 12 * 60 + 25;
+        let gmat = gmat_from_gmt_line(day, civil, tenths).expect("a reading");
+        assert_eq!(
+            cells(&gmat),
+            [
+                &*day.to_string(),
+                &*astronomical.to_string(),
+                "700000000000000000"
+            ]
+        );
+        let gmt = gmt_from_gmat_line(day, astronomical, tenths).expect("a reading");
+        assert_eq!(cells(&gmt)[..2], [&*day.to_string(), &*civil.to_string()]);
+        let new_year = hc_calendars_solar::gregorian::to_fixed(1925, 1, 1)
+            .expect("a date")
+            .0;
+        let change = gmat_from_gmt_line(new_year, 0, 0).expect("a reading");
+        assert_eq!(cells(&change), [&*(new_year - 1).to_string(), "43200", "0"]);
+        assert_eq!(
+            cells(&gmat_from_gmt_line(new_year, 43_200, 0).expect("noon"))[1],
+            "0"
+        );
+        // 23:59:60 has no reading twelve hours earlier, and GMAT reads no
+        // second 60; seconds past a day and attoseconds past a second are
+        // refused.
+        assert_eq!(
+            gmat_from_gmt_line(new_year, 86_400, 0),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            gmt_from_gmat_line(new_year, 86_400, 0),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            gmat_from_gmt_line(new_year, 86_401, 0),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            gmt_from_gmat_line(new_year, 0, 1_000_000_000_000_000_000),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(gmat_from_gmt_line(i64::MIN, 0, 0), Err(Refusal::OutOfRange));
     }
 }

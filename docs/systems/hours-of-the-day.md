@@ -658,3 +658,8 @@ The WebAssembly and C exports `hc_zmanim`, `hc_edo_time`,
 `hc_civil_from_six_hour_clock` write the Jewish times, the Edo hours and
 the six-hour readings, and `hc_solar_event` the Japanese dawn and dusk, from
 `hyper_calendar`'s `hours_lines`, `astro_lines` and `time_code_lines`.
+
+The WebAssembly and C exports `hc_planetary_hour` and
+`hc_planetary_hours_of_day` write the planetary hours, from
+`hyper_calendar::sky_lines`, and `hc_night_watch` the fixed night watch of
+a time of the civil clock, from `hyper_calendar::reckoning_lines`.

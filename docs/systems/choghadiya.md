@@ -109,3 +109,7 @@ into eighths with `kalam`. The tests that anchor it:
 `the_day_takes_the_kinds_in_the_order_of_their_rulers`,
 `a_night_is_an_eighth_of_sunset_to_sunrise` and
 `there_is_no_choghadiya_where_the_sun_does_not_set`.
+
+The WebAssembly and C export `hc_choghadiya` writes the sixteen parts of
+a day at a place, each kind named in a locale by `hc_i18n::reckonings`,
+from `hyper_calendar::reckoning_lines`.

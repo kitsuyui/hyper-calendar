@@ -117,6 +117,13 @@ pub mod lines;
 pub mod panchanga_lines;
 #[cfg(all(feature = "alloc", feature = "planetary"))]
 pub mod planetary_lines;
+#[cfg(all(
+    feature = "alloc",
+    feature = "indic",
+    feature = "almanac",
+    feature = "format"
+))]
+pub mod reckoning_lines;
 #[cfg(all(feature = "alloc", feature = "relativity"))]
 pub mod relativity_lines;
 #[cfg(all(feature = "alloc", feature = "seasons"))]

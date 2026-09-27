@@ -31,10 +31,14 @@ use core::fmt::Write;
 use hc_astro::riseset::{Location, sunrise};
 use hc_calendar::fixed::{Moment, RD_OF_UNIX_EPOCH};
 use hc_calendar::{Calendar, CalendarError, CalendarId, DynAdapter, DynCalendar, Rd};
+use hc_calendars_indic::barhaspatya::{self, MeanSignRule};
 use hc_calendars_indic::surya_siddhanta::{self, MAX_SUNRISE_LATITUDE};
-use hc_calendars_indic::{HinduLunarCalendar, HinduLunarDate, SiddhantaLunarCalendar};
+use hc_calendars_indic::{
+    HinduLunarCalendar, HinduLunarDate, HinduPurnimantaCalendar, SiddhantaLunarCalendar,
+};
 use hc_core::math::floor;
-use hc_i18n::names::{self as vocabulary, NameWidth};
+use hc_i18n::Locale;
+use hc_i18n::names::{self as vocabulary, NameContext, NameWidth};
 
 use crate::astro_lines::unix_from_moment;
 use crate::boundary::{Answer, Refusal, names};
@@ -83,6 +87,21 @@ fn siddhanta_day(fixed: i64) -> Answer<Rd> {
     } else {
         Err(Refusal::OutOfRange)
     }
+}
+
+/// A Universal Time instant on a day the Siddhānta's exports answer for.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] on any other day.
+fn siddhanta_moment(universal_unix: i64) -> Answer<Moment> {
+    let day = universal_unix
+        .div_euclid(SECONDS_PER_DAY)
+        .checked_add(RD_OF_UNIX_EPOCH)
+        .ok_or(Refusal::OutOfRange)?;
+    siddhanta_day(day)?;
+    let seconds = universal_unix.rem_euclid(SECONDS_PER_DAY);
+    Ok(Moment(day as f64 + seconds as f64 / SECONDS_PER_DAY as f64))
 }
 
 /// A place where the Sun rises every day, on either sky: within
@@ -266,13 +285,7 @@ pub fn hindu_lunar_date_line(
 /// [`Refusal::OutOfRange`] for an instant outside the days
 /// [`SIDDHANTA_FIRST_DAY`] to [`SIDDHANTA_LAST_DAY`].
 pub fn surya_siddhanta_line(universal_unix: i64) -> Answer<String> {
-    let day = universal_unix
-        .div_euclid(SECONDS_PER_DAY)
-        .checked_add(RD_OF_UNIX_EPOCH)
-        .ok_or(Refusal::OutOfRange)?;
-    siddhanta_day(day)?;
-    let seconds = universal_unix.rem_euclid(SECONDS_PER_DAY);
-    let moment = Moment(day as f64 + seconds as f64 / SECONDS_PER_DAY as f64);
+    let moment = siddhanta_moment(universal_unix)?;
     let sun = surya_siddhanta::solar_longitude(moment);
     let mut out = String::new();
     let _ = writeln!(
@@ -304,6 +317,134 @@ pub fn surya_siddhanta_sunrise_line(fixed: i64, place: Location) -> Answer<Strin
         "{}",
         unix_from_moment(surya_siddhanta::sunrise(day, place))
     );
+    Ok(out)
+}
+
+/// The rule of [`barhaspatya::RULES`] a name names, in any case:
+/// `surya-siddhanta-bija`, the *Sūrya Siddhānta* with the *bīja*, by which
+/// the registered pūrṇimānta calendar names its years;
+/// `surya-siddhanta`, the same without it; or `arya-siddhanta`.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for any other name.
+pub fn barhaspatya_rule(name: &str) -> Answer<MeanSignRule> {
+    barhaspatya::RULES
+        .iter()
+        .find(|rule| names(name, rule.name))
+        .copied()
+        .ok_or(Refusal::Unknown)
+}
+
+/// The first and last Śaka years, expired, the Bārhaspatya exports answer
+/// for: Kali Yuga 1 to 10 000 expired, the years of
+/// [`SIDDHANTA_FIRST_DAY`] to [`SIDDHANTA_LAST_DAY`].
+pub const BARHASPATYA_SAKA_YEARS: core::ops::RangeInclusive<i64> =
+    1 - barhaspatya::SAKA_TO_KALI..=10_000 - barhaspatya::SAKA_TO_KALI;
+
+/// Append the name of a position of the northern cycle in the locale of
+/// the registered pūrṇimānta calendar's vocabulary, as `hc_day_extras`
+/// writes its `barhaspatya-samvatsara` field.
+fn push_samvatsara_name(
+    out: &mut String,
+    calendar: &dyn DynCalendar,
+    locale: &Locale,
+    position: u8,
+) {
+    let mut name = String::new();
+    // A `String` never refuses a write.
+    let _ = hc_i18n::fields::write_value_name(
+        locale,
+        calendar.meta().id,
+        calendar.cycles(),
+        barhaspatya::FIELD,
+        i64::from(position),
+        NameWidth::Wide,
+        NameContext::Format,
+        &mut name,
+    );
+    push_cell(out, &name);
+}
+
+/// How many columns [`barhaspatya_year_line`] writes.
+pub const BARHASPATYA_YEAR_COLUMNS: usize = 5;
+
+/// The line of `hc_barhaspatya_year`: the name of the northern sixty-year
+/// cycle a rule couples with the year that begins in an *expired* Śaka
+/// year, the year the *Rashtriya Panchang* prints — the name current at
+/// the apparent Meṣa saṅkrānti of its solar year
+/// ([`MeanSignRule::of_saka`]) — and the name the rule expunges in that
+/// solar year, if any ([`MeanSignRule::expunged_in`]).
+///
+/// The cells: the name's position, 1 for Prabhava through 60 for Kṣaya;
+/// its name in the locale; the expunged name's position and name, both
+/// empty in a year that expunges none; and the tag of the data that named
+/// them. The names are the pūrṇimānta calendar's, whose
+/// `barhaspatya-samvatsara` field `hc_day_extras` writes, resolved as
+/// [`crate::lines`] resolves every locale. `rule` is
+/// [`barhaspatya_rule`]'s: the pūrṇimānta calendar's own is
+/// `surya-siddhanta-bija`, and the Hindi press of 2024–26 named the years
+/// by `surya-siddhanta`, one name on.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a rule not named, and [`Refusal::OutOfRange`]
+/// for a Śaka year outside [`BARHASPATYA_SAKA_YEARS`].
+pub fn barhaspatya_year_line(rule: &str, saka: i64, locale: &str) -> Answer<String> {
+    let rule = barhaspatya_rule(rule)?;
+    if !BARHASPATYA_SAKA_YEARS.contains(&saka) {
+        return Err(Refusal::OutOfRange);
+    }
+    let calendar = DynAdapter::new(HinduPurnimantaCalendar::RASHTRIYA);
+    let locale = locale_for(&calendar, locale);
+    let position = rule.of_saka(saka);
+    let mut out = String::new();
+    let _ = write!(out, "{position}\t");
+    push_samvatsara_name(&mut out, &calendar, &locale, position);
+    out.push('\t');
+    if let Some(expunged) = rule.expunged_in(saka + barhaspatya::SAKA_TO_KALI) {
+        let _ = write!(out, "{expunged}\t");
+        push_samvatsara_name(&mut out, &calendar, &locale, expunged);
+    } else {
+        out.push('\t');
+    }
+    out.push('\t');
+    out.push_str(locale_used(&locale));
+    out.push('\n');
+    Ok(out)
+}
+
+/// How many columns [`barhaspatya_year_at_line`] writes.
+pub const BARHASPATYA_AT_COLUMNS: usize = 3;
+
+/// The line of `hc_barhaspatya_year_at`: the name of the northern cycle in
+/// progress at a Universal Time instant by a rule
+/// ([`barhaspatya::in_progress_at`]): the name current at the last
+/// apparent Meṣa saṅkrānti of the *Sūrya Siddhānta* until the day the rule
+/// ends it, and the names after it from then on, which Sewell and Dikshit
+/// give as correct within two ghaṭikās where the saṅkrānti is known.
+///
+/// The cells: the position, 1 to 60; its name in the locale, as
+/// [`barhaspatya_year_line`] names it; and the tag of the data that named
+/// it.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a rule not named, and [`Refusal::OutOfRange`]
+/// for an instant outside the days [`SIDDHANTA_FIRST_DAY`] to
+/// [`SIDDHANTA_LAST_DAY`].
+pub fn barhaspatya_year_at_line(rule: &str, universal_unix: i64, locale: &str) -> Answer<String> {
+    let rule = barhaspatya_rule(rule)?;
+    let moment = siddhanta_moment(universal_unix)?;
+    let calendar = DynAdapter::new(HinduPurnimantaCalendar::RASHTRIYA);
+    let locale = locale_for(&calendar, locale);
+    let position = barhaspatya::in_progress_at(rule, moment);
+    let mut out = String::new();
+    let _ = write!(out, "{position}\t");
+    push_samvatsara_name(&mut out, &calendar, &locale, position);
+    out.push('\t');
+    out.push_str(locale_used(&locale));
+    out.push('\n');
     Ok(out)
 }
 
@@ -531,5 +672,78 @@ mod tests {
         assert!((number(1) - 352.87).abs() < 0.01, "{}", cells[1]);
         assert!((number(2) - 7.58).abs() < 0.01, "{}", cells[2]);
         assert_eq!(cells[3..], ["1", "12"]);
+    }
+
+    /// The POSIX second of a reading in Indian Standard Time.
+    fn ist_unix(year: i64, month: u8, day: u8, minutes: i64) -> i64 {
+        (ymd(year, month, day) - RD_OF_UNIX_EPOCH) * 86_400 + minutes * 60 - 19_800
+    }
+
+    /// Drik Panchang heads Vikrama 2081, 2082 and 2083, Śaka 1946 to 1948,
+    /// Pingala, Kalayukta and Siddharthi, by the rule with the *bīja*; the
+    /// Hindi press names them Kalayukta, Siddharthi and Raudra, by the rule
+    /// without it (`drikpanchang-day-2024-2026`, `webdunia-samvat-2081`,
+    /// `dainiktribune-samvat-2082`, `aajtak-samvat-2083`, as
+    /// `hc-calendars-indic`'s tests read them). The rule with the *bīja*
+    /// expunges Manmatha in Śaka 1864 and Durmati in 1949.
+    #[test]
+    fn the_northern_years_of_2024_to_2026_are_named_by_their_rules() {
+        let year = |rule: &str, saka: i64| {
+            let line = barhaspatya_year_line(rule, saka, "en").expect("in range");
+            let cells: Vec<String> = cells(&line).into_iter().map(String::from).collect();
+            assert_eq!(cells.len(), BARHASPATYA_YEAR_COLUMNS);
+            cells
+        };
+        for (saka, bija, plain) in [
+            (1_946, ("51", "Pingala"), ("52", "Kalayukta")),
+            (1_947, ("52", "Kalayukta"), ("53", "Siddharthin")),
+            (1_948, ("53", "Siddharthin"), ("54", "Raudra")),
+        ] {
+            assert_eq!(year("surya-siddhanta-bija", saka)[..2], [bija.0, bija.1]);
+            assert_eq!(year("Surya-Siddhanta", saka)[..2], [plain.0, plain.1]);
+        }
+        assert_eq!(year("surya-siddhanta-bija", 1_948)[2..], ["", "", "en"]);
+        let expunged = year("surya-siddhanta-bija", 1_949);
+        assert_eq!(expunged[2], "55");
+        assert_eq!(
+            Some(expunged[3].as_str()),
+            hc_calendars_indic::samvatsara::name(55)
+        );
+        assert_eq!(year("surya-siddhanta-bija", 1_864)[2], "29");
+        assert_eq!(
+            barhaspatya_year_line("bija", 1_946, "en"),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            barhaspatya_year_line("arya-siddhanta", 6_822, "en"),
+            Err(Refusal::OutOfRange)
+        );
+        assert!(barhaspatya_year_line("arya-siddhanta", -3_178, "en").is_ok());
+    }
+
+    /// Drik Panchang ends Pingala at 14:14 IST on 29 April 2024, and the
+    /// rule with the *bīja* about two hours later; the rule without it has
+    /// Siddharthi from 15 March 2025, in progress at Chaitra śukla 1, 30
+    /// March 2025 (`drikpanchang-day-2024-2026`, `shivshakti-samvat-2082`).
+    #[test]
+    fn the_name_in_progress_follows_the_rule_within_the_year() {
+        let at = |rule: &str, unix: i64| {
+            let line = barhaspatya_year_at_line(rule, unix, "en").expect("in range");
+            let cells: Vec<String> = cells(&line).into_iter().map(String::from).collect();
+            assert_eq!(cells.len(), BARHASPATYA_AT_COLUMNS);
+            cells
+        };
+        let pingala_ends = ist_unix(2024, 4, 29, 14 * 60 + 14);
+        assert_eq!(
+            at("surya-siddhanta-bija", pingala_ends + 115 * 60),
+            ["51", "Pingala", "en"]
+        );
+        assert_eq!(at("surya-siddhanta-bija", pingala_ends + 144 * 60)[0], "52");
+        assert_eq!(at("surya-siddhanta", ist_unix(2025, 3, 30, 360))[0], "53");
+        assert_eq!(at("surya-siddhanta", ist_unix(2025, 3, 15, 0))[0], "52");
+        assert_eq!(
+            barhaspatya_year_at_line("surya-siddhanta", i64::MIN, "en"),
+            Err(Refusal::OutOfRange)
+        );
     }
 }

@@ -1758,12 +1758,91 @@ mod time_codes {
     ) -> Answer<String> {
         Err(Refusal::Unknown)
     }
+
+    /// One frame of an IRIG serial time code read, as one NUL-terminated
+    /// UTF-8 line in a caller-owned buffer.
+    ///
+    /// `signal` is a signal designation of IRIG 200-16 such as `B124` and
+    /// `frame` one character an index count, `0`, `1` and `M`, Pr first,
+    /// as for the WebAssembly module's `hc_irig_decode`; null for either is
+    /// `HC_ERROR_NULL_POINTER`, and a designation Table 4-1 does not permit
+    /// `HC_ERROR_UNKNOWN`. A code with the year's two digits reads them in
+    /// the century of `year`, and one without is read in `year`, 1 to 9999;
+    /// any other is `HC_ERROR_OUT_OF_RANGE`. The line is the module's: the
+    /// fixed day, the day of the year, the hour, minute, second and
+    /// hundredths, the year's digits, the control bits and the straight
+    /// binary seconds. A frame that is not the code's is
+    /// `HC_ERROR_MALFORMED`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `signal` and `frame` must be null or NUL-terminated; `buffer` must be
+    /// writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_irig_decode(
+        signal: *const c_char,
+        frame: *const c_char,
+        year: i64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let (signal, frame) = match unsafe { (name(signal), name(frame)) } {
+            (Ok(signal), Ok(frame)) => (signal, frame),
+            (Err(status), _) | (_, Err(status)) => return status,
+        };
+        let answer = time_code_lines::irig_decode_line(signal, frame, year);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The frame of an IRIG serial time code whose reference bit falls at a
+    /// reading of the civil clock, as one NUL-terminated UTF-8 line in a
+    /// caller-owned buffer.
+    ///
+    /// The arguments are the WebAssembly module's `hc_irig_encode`'s: the
+    /// designation, a fixed day of the years 1 to 9999, whole seconds after
+    /// its midnight, 86 400 being 23:59:60, hundredths from 0 to 99, and
+    /// the control bits. A null `signal` is `HC_ERROR_NULL_POINTER`, and a
+    /// designation not permitted `HC_ERROR_UNKNOWN`. A reading the format
+    /// has no frame at, control bits it has no room for, or a value out of
+    /// those ranges is `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `signal` must be null or NUL-terminated; `buffer` must be writable
+    /// for `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_irig_encode(
+        signal: *const c_char,
+        fixed: i64,
+        seconds_of_day: u32,
+        hundredths: u32,
+        control: u32,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let signal = match unsafe { name(signal) } {
+            Ok(signal) => signal,
+            Err(status) => return status,
+        };
+        let answer =
+            time_code_lines::irig_encode_line(signal, fixed, seconds_of_day, hundredths, control);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
 }
 
 #[cfg(feature = "time-codes")]
 pub use time_codes::{
-    hc_ccsds_ascii_format, hc_ccsds_ascii_parse, hc_ccsds_decode, hc_ccsds_encode, hc_radio_decode,
-    hc_radio_encode,
+    hc_ccsds_ascii_format, hc_ccsds_ascii_parse, hc_ccsds_decode, hc_ccsds_encode, hc_irig_decode,
+    hc_irig_encode, hc_radio_decode, hc_radio_encode,
 };
 
 /// .NET's ticks and the six-hour clocks, behind the `timestamps` feature.
@@ -2743,14 +2822,85 @@ mod calendar_days {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_answer(answer, buffer, capacity, written) }
     }
+
+    /// The name of the northern sixty-year cycle a named rule couples with
+    /// an expired Śaka year, and the name it expunges that year, as one
+    /// NUL-terminated UTF-8 line in a caller-owned buffer.
+    ///
+    /// `rule` is `surya-siddhanta-bija`, `surya-siddhanta` or
+    /// `arya-siddhanta`, as for the WebAssembly module's
+    /// `hc_barhaspatya_year`; null is `HC_ERROR_NULL_POINTER` and another
+    /// name `HC_ERROR_UNKNOWN`. The line is the module's: the position and
+    /// its name in the `locale`, the expunged position and name, and the
+    /// tag that named them. A Śaka year outside −3178 to 6821 is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `rule` and `locale` must be null or NUL-terminated; `buffer` must be
+    /// writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_barhaspatya_year(
+        rule: *const c_char,
+        saka: i64,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let (rule, tag) = match unsafe { (name(rule), text(locale)) } {
+            (Ok(rule), Ok(tag)) => (rule, tag.unwrap_or("")),
+            (Err(status), _) | (_, Err(status)) => return status,
+        };
+        let answer = hindu_lines::barhaspatya_year_line(rule, saka, tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The name of the northern sixty-year cycle in progress at a POSIX
+    /// timestamp by a named rule, as one NUL-terminated UTF-8 line in a
+    /// caller-owned buffer.
+    ///
+    /// `rule` is as for `hc_barhaspatya_year`. The line is the WebAssembly
+    /// module's: the position, its name in the `locale`, and the tag that
+    /// named it. An instant outside the days of Kali Yuga 1 to 10 000 is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `rule` and `locale` must be null or NUL-terminated; `buffer` must be
+    /// writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_barhaspatya_year_at(
+        rule: *const c_char,
+        unix_seconds: i64,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let (rule, tag) = match unsafe { (name(rule), text(locale)) } {
+            (Ok(rule), Ok(tag)) => (rule, tag.unwrap_or("")),
+            (Err(status), _) | (_, Err(status)) => return status,
+        };
+        let answer = hindu_lines::barhaspatya_year_at_line(rule, unix_seconds, tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
 }
 
 #[cfg(feature = "calendars")]
 pub use calendar_days::{
-    hc_asian_day, hc_chinese_marriage_augury, hc_chinese_reckoned_age, hc_crescent_visible,
-    hc_hebrew_birthday, hc_hebrew_sabbatical_cycle_year, hc_hebrew_yahrzeit, hc_hindu_lunar_date,
-    hc_ioc_olympiad, hc_panchanga_at, hc_panchanga_of_day, hc_surya_siddhanta_at,
-    hc_surya_siddhanta_sunrise,
+    hc_asian_day, hc_barhaspatya_year, hc_barhaspatya_year_at, hc_chinese_marriage_augury,
+    hc_chinese_reckoned_age, hc_crescent_visible, hc_hebrew_birthday,
+    hc_hebrew_sabbatical_cycle_year, hc_hebrew_yahrzeit, hc_hindu_lunar_date, hc_ioc_olympiad,
+    hc_panchanga_at, hc_panchanga_of_day, hc_surya_siddhanta_at, hc_surya_siddhanta_sunrise,
 };
 
 /// The parts of a day the calendars mark, behind the `calendars` feature:
@@ -2761,9 +2911,19 @@ pub use calendar_days::{
 mod day_periods {
     use core::ffi::c_char;
 
-    use hc::{almanac_lines, astro_lines, panchanga_lines};
+    use hc::{almanac_lines, astro_lines, panchanga_lines, reckoning_lines};
 
     use super::{HcStatus, name, text, write_answer};
+
+    /// A NUL-terminated locale tag, null being the empty tag.
+    ///
+    /// # Safety
+    ///
+    /// As [`text`].
+    unsafe fn locale<'a>(pointer: *const c_char) -> Result<&'a str, HcStatus> {
+        // SAFETY: forwarded to the caller's contract above.
+        Ok(unsafe { text(pointer) }?.unwrap_or(""))
+    }
 
     /// Rāhu kālam, Yamaganda and Gulika kālam on a fixed day, as three
     /// NUL-terminated UTF-8 lines in a caller-owned buffer.
@@ -2879,10 +3039,266 @@ mod day_periods {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_answer(answer, buffer, capacity, written) }
     }
+
+    /// The sixteen choghadiya of a fixed day at a place, as NUL-terminated
+    /// UTF-8 lines in a caller-owned buffer, each named in a locale.
+    ///
+    /// The lines are the WebAssembly module's: the half, the part, the
+    /// kind's identifier, its name in the `locale` and the tag that named
+    /// it, its quality, its ruling planet, the start and the end, and the
+    /// four cells of a missing solar event. `locale` is a NUL-terminated
+    /// BCP 47 tag, `native` or null, as for `hc_describe_day`. A place off
+    /// the globe, or a day outside the years −1000 to 3000, is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be null or NUL-terminated; `buffer` must be writable
+    /// for `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_choghadiya(
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { self::locale(locale) } {
+            Ok(tag) => tag,
+            Err(status) => return status,
+        };
+        let answer = astro_lines::location(latitude, longitude, elevation)
+            .and_then(|place| reckoning_lines::choghadiya_lines(fixed, place, tag));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The Panchak window in progress at a POSIX timestamp, or the next
+    /// one, and its kind under a naming table, as one NUL-terminated UTF-8
+    /// line in a caller-owned buffer.
+    ///
+    /// `naming` is `panchak-five-kinds` or `panchak-raj-midweek` and
+    /// `ayanamsa` as for `hc_panchanga_at`; null for either is
+    /// `HC_ERROR_NULL_POINTER` and a name not known `HC_ERROR_UNKNOWN`.
+    /// `offset_seconds` is the clock, ahead of Universal Time, on which the
+    /// weekday the window opens on is read, midnight to midnight. The line
+    /// is the WebAssembly module's: within or not, the opening and the
+    /// closing, the weekday, and the kind's identifier, its name in the
+    /// `locale` and the tag that named it. An offset of a day or more, or a
+    /// timestamp outside the years −1000 to 3000, is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `naming`, `ayanamsa` and `locale` must be null or NUL-terminated;
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_panchak(
+        naming: *const c_char,
+        unix_seconds: i64,
+        ayanamsa: *const c_char,
+        offset_seconds: i32,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let read = unsafe { (name(naming), name(ayanamsa), self::locale(locale)) };
+        let (naming, ayanamsa, tag) = match read {
+            (Ok(naming), Ok(ayanamsa), Ok(tag)) => (naming, ayanamsa, tag),
+            (Err(status), _, _) | (_, Err(status), _) | (_, _, Err(status)) => return status,
+        };
+        let answer =
+            reckoning_lines::panchak_line(naming, unix_seconds, ayanamsa, offset_seconds, tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// When in a Gregorian year the Sun, and the Moon where it is asked
+    /// for, stand as a condition of the Kumbh Mela requires, and whether
+    /// Jupiter's sign, which the caller gives, meets it, as one
+    /// NUL-terminated UTF-8 line in a caller-owned buffer.
+    ///
+    /// `yoga` is a condition's identifier and `ayanamsa` as for
+    /// `hc_panchanga_at`; null for either is `HC_ERROR_NULL_POINTER`. The
+    /// library has no ephemeris of Jupiter, so `jupiter` is the sidereal
+    /// sign Jupiter is in at the occasion's first moment, by the lower-case
+    /// ASCII form of its Sanskrit name, or null or empty for none. A name
+    /// not known is `HC_ERROR_UNKNOWN`. The line is the WebAssembly
+    /// module's: the condition, the site and its name in the `locale` with
+    /// the tag that named it, the river, the signs of Jupiter and the Sun,
+    /// the new-moon flag, the occasion's first and last moments, and
+    /// whether `jupiter` meets it. A year outside −1000 to 3000 is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `yoga`, `ayanamsa`, `jupiter` and `locale` must be null or
+    /// NUL-terminated; `buffer` must be writable for `capacity` bytes and
+    /// `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_kumbh(
+        yoga: *const c_char,
+        year: i64,
+        ayanamsa: *const c_char,
+        jupiter: *const c_char,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let read = unsafe {
+            (
+                name(yoga),
+                name(ayanamsa),
+                self::locale(jupiter),
+                self::locale(locale),
+            )
+        };
+        let (yoga, ayanamsa, jupiter, tag) = match read {
+            (Ok(yoga), Ok(ayanamsa), Ok(jupiter), Ok(tag)) => (yoga, ayanamsa, jupiter, tag),
+            (Err(status), _, _, _)
+            | (_, Err(status), _, _)
+            | (_, _, Err(status), _)
+            | (_, _, _, Err(status)) => return status,
+        };
+        let answer = reckoning_lines::kumbh_line(yoga, year, ayanamsa, jupiter, tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The twelve days of the *Ādi Pushkaram* of each river of a sidereal
+    /// sign, for Jupiter's entry into it at a POSIX timestamp, as
+    /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+    ///
+    /// The library has no ephemeris of Jupiter, so the sign, named as for
+    /// `hc_kumbh`, and the moment of the entry are the caller's. `meridian`
+    /// is as for `hc_term_in_effect`; null for it or the sign is
+    /// `HC_ERROR_NULL_POINTER`, and a name not known `HC_ERROR_UNKNOWN`.
+    /// The lines are the WebAssembly module's: the river, its name in the
+    /// `locale` and the tag that named it, its region, the sign, the first
+    /// and last days, and the four cells of a missing solar event. A place
+    /// off the globe, or a timestamp outside the years −1000 to 3000, is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `sign`, `meridian` and `locale` must be null or NUL-terminated;
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_pushkaram(
+        sign: *const c_char,
+        entry_unix_seconds: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        meridian: *const c_char,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let read = unsafe { (name(sign), name(meridian), self::locale(locale)) };
+        let (sign, meridian, tag) = match read {
+            (Ok(sign), Ok(meridian), Ok(tag)) => (sign, meridian, tag),
+            (Err(status), _, _) | (_, Err(status), _) | (_, _, Err(status)) => return status,
+        };
+        let answer = astro_lines::location(latitude, longitude, elevation).and_then(|place| {
+            reckoning_lines::pushkaram_lines(sign, entry_unix_seconds, place, meridian, tag)
+        });
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The folk reckonings of a fixed day outside the Japanese almanac, as
+    /// NUL-terminated UTF-8 lines in a caller-owned buffer, one a
+    /// reckoning, each named in a locale.
+    ///
+    /// The lines are the WebAssembly module's: the kind
+    /// (`first-month-count`, `plum-rains`, `vietnamese-day`, `folk-half`,
+    /// `folk-named-day`), the identifier, the name in the `locale` and the
+    /// tag that named it, and the count. `meridian` is as for
+    /// `hc_term_in_effect`; null is `HC_ERROR_NULL_POINTER` and a meridian
+    /// not read `HC_ERROR_UNKNOWN`. A day outside the years −1000 to 3000
+    /// is `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including
+    /// the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `meridian` and `locale` must be null or NUL-terminated; `buffer`
+    /// must be writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_folk_day(
+        fixed: i64,
+        meridian: *const c_char,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let (meridian, tag) = match unsafe { (name(meridian), self::locale(locale)) } {
+            (Ok(meridian), Ok(tag)) => (meridian, tag),
+            (Err(status), _) | (_, Err(status)) => return status,
+        };
+        let answer = reckoning_lines::folk_day_lines(fixed, meridian, tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The Chinese night watch and its points of a time of the civil clock
+    /// by the fixed reckoning, as one NUL-terminated UTF-8 line in a
+    /// caller-owned buffer, or the empty string by day.
+    ///
+    /// `seconds_of_day` is whole seconds after midnight of the caller's
+    /// wall clock. The line is the WebAssembly module's: the watch, the
+    /// points, the watch's name in the `locale` and the tag that named it,
+    /// its Han name and its double hour. A time from 86 400 s is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be null or NUL-terminated; `buffer` must be writable
+    /// for `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_night_watch(
+        seconds_of_day: u32,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { self::locale(locale) } {
+            Ok(tag) => tag,
+            Err(status) => return status,
+        };
+        let answer = reckoning_lines::night_watch_line(seconds_of_day, tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
 }
 
 #[cfg(feature = "calendars")]
-pub use day_periods::{hc_almanac_cycles, hc_almanac_day, hc_kalam};
+pub use day_periods::{
+    hc_almanac_cycles, hc_almanac_day, hc_choghadiya, hc_folk_day, hc_kalam, hc_kumbh,
+    hc_night_watch, hc_panchak, hc_pushkaram,
+};
 
 /// The holiday tables, behind the `holiday` feature: every country,
 /// exchange, tradition and international set of `hc-holiday`, looked up by
@@ -3598,10 +4014,50 @@ mod seasons {
             Err(refusal) => status(refusal),
         }
     }
+
+    /// The fixed day of 入梅 or 出梅 of a Gregorian year by a named rule of
+    /// the Chinese almanac, with the solar term it counts from at a
+    /// meridian.
+    ///
+    /// `rule` is `ru-mei-bing`, `ru-mei-ren` or `chu-mei-wei`, as for the
+    /// WebAssembly module's `hc_plum_rains`, and `meridian` as for
+    /// `hc_term_in_effect`; null for either is `HC_ERROR_NULL_POINTER`, a
+    /// name not known `HC_ERROR_UNKNOWN`, and text that is not UTF-8
+    /// `HC_ERROR_NOT_UTF8`. A year outside −1000 to 3000 is
+    /// `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `rule` and `meridian` must be null or point to NUL-terminated
+    /// strings, and `out_fixed` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_plum_rains(
+        rule: *const c_char,
+        year: i64,
+        meridian: *const c_char,
+        out_fixed: *mut i64,
+    ) -> HcStatus {
+        if out_fixed.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        // SAFETY: forwarded to the caller's contract above.
+        let (rule, meridian) = match unsafe { (name(rule), name(meridian)) } {
+            (Ok(rule), Ok(meridian)) => (rule, meridian),
+            (Err(status), _) | (_, Err(status)) => return status,
+        };
+        match season_lines::plum_rains_day(rule, year, meridian) {
+            Ok(day) => {
+                // SAFETY: checked non-null above.
+                unsafe { *out_fixed = day };
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
 }
 
 #[cfg(feature = "seasons")]
-pub use seasons::{hc_cold_food_day, hc_pentad_in_effect, hc_term_in_effect};
+pub use seasons::{hc_cold_food_day, hc_pentad_in_effect, hc_plum_rains, hc_term_in_effect};
 
 /// Deep time, behind the `deep-time` feature: the cosmic, geologic and
 /// archaeological chronologies of `hc-deep-time`, and a moment placed in
@@ -4734,12 +5190,71 @@ mod earth_and_sun {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_answer(answer, buffer, capacity, written) }
     }
+
+    /// The astronomical date and the Greenwich Mean Astronomical Time of a
+    /// reading of GMT, as one NUL-terminated UTF-8 line in a caller-owned
+    /// buffer.
+    ///
+    /// GMAT is GMT − 12 h, its day beginning at noon and named by the civil
+    /// day it begins on, as the *Nautical Almanac* counted G.M.T. to 1924.
+    /// The reading is a fixed day of the Gregorian years −9 999 999 to
+    /// 9 999 999, whole seconds after its midnight, 86 400 being 23:59:60,
+    /// and attoseconds below 10¹⁸. The line is the WebAssembly module's:
+    /// the astronomical day, the seconds after its noon and the
+    /// attoseconds. 23:59:60, which has no reading twelve hours earlier,
+    /// and a value out of those ranges are `HC_ERROR_OUT_OF_RANGE`. Writes
+    /// the required length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gmat_from_gmt(
+        fixed: i64,
+        seconds_of_day: u32,
+        attoseconds: u64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let answer = astro_lines::gmat_from_gmt_line(fixed, seconds_of_day, attoseconds);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The civil date and the GMT of a reading of Greenwich Mean
+    /// Astronomical Time, the inverse of `hc_gmat_from_gmt`, as one
+    /// NUL-terminated UTF-8 line in its columns in a caller-owned buffer.
+    ///
+    /// A second 60, which GMAT does not read, and a value out of
+    /// `hc_gmat_from_gmt`'s ranges are `HC_ERROR_OUT_OF_RANGE`. Writes the
+    /// required length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_gmt_from_gmat(
+        fixed: i64,
+        seconds_of_day: u32,
+        attoseconds: u64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let answer = astro_lines::gmt_from_gmat_line(fixed, seconds_of_day, attoseconds);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
 }
 
 #[cfg(feature = "sky")]
 pub use earth_and_sun::{
-    hc_earth_rotation_angle, hc_gmst_iau1982, hc_gmst_iau2006, hc_hjd_tt, hc_hjd_utc, hc_horizons,
-    hc_solar_event, hc_solar_time, hc_sunrise, hc_sunset, hc_ut2_minus_ut1,
+    hc_earth_rotation_angle, hc_gmat_from_gmt, hc_gmst_iau1982, hc_gmst_iau2006, hc_gmt_from_gmat,
+    hc_hjd_tt, hc_hjd_utc, hc_horizons, hc_solar_event, hc_solar_time, hc_sunrise, hc_sunset,
+    hc_ut2_minus_ut1,
 };
 
 /// The religious and traditional hours of a day, behind the `sky` feature:
@@ -4750,9 +5265,9 @@ pub use earth_and_sun::{
 mod hours {
     use core::ffi::{c_char, c_int};
 
-    use hc::{astro_lines, hours_lines};
+    use hc::{astro_lines, hours_lines, sky_lines};
 
-    use super::{HcStatus, name, write_answer};
+    use super::{HcStatus, name, text, write_answer};
 
     /// The Islamic prayer times of a fixed day at a place by a named
     /// method, as eight NUL-terminated UTF-8 lines in a caller-owned
@@ -4924,11 +5439,85 @@ mod hours {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_answer(answer, buffer, capacity, written) }
     }
+
+    /// The planetary hour at a POSIX timestamp and a place, as one
+    /// NUL-terminated UTF-8 line in a caller-owned buffer.
+    ///
+    /// The line is the WebAssembly module's: the fixed day of the sunrise
+    /// the planetary day began at, the hour, 1 to 24, the ruler's
+    /// identifier, its name in the `locale` and the tag that named it, the
+    /// daylight flag, the start and the end, and the four cells of a
+    /// missing solar event. `locale` is a NUL-terminated BCP 47 tag,
+    /// `native` or null, as for `hc_describe_day`. A place off the globe,
+    /// or a timestamp outside the years −1000 to 3000, is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be null or NUL-terminated; `buffer` must be writable
+    /// for `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_planetary_hour(
+        unix_seconds: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale) } {
+            Ok(tag) => tag.unwrap_or(""),
+            Err(status) => return status,
+        };
+        let answer = astro_lines::location(latitude, longitude, elevation)
+            .and_then(|place| sky_lines::planetary_hour_line(unix_seconds, place, tag));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The twenty-four planetary hours of the planetary day that begins at
+    /// the sunrise of a fixed day at a place, as NUL-terminated UTF-8 lines
+    /// in `hc_planetary_hour`'s columns in a caller-owned buffer.
+    ///
+    /// A place off the globe, or a day outside the years −1000 to 3000, is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be null or NUL-terminated; `buffer` must be writable
+    /// for `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_planetary_hours_of_day(
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale) } {
+            Ok(tag) => tag.unwrap_or(""),
+            Err(status) => return status,
+        };
+        let answer = astro_lines::location(latitude, longitude, elevation)
+            .and_then(|place| sky_lines::planetary_hours_of_day_lines(fixed, place, tag));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
 }
 
 #[cfg(feature = "sky")]
 pub use hours::{
-    hc_edo_time, hc_prayer_methods, hc_prayer_times, hc_unix_from_edo_time, hc_zmanim,
+    hc_edo_time, hc_planetary_hour, hc_planetary_hours_of_day, hc_prayer_methods, hc_prayer_times,
+    hc_unix_from_edo_time, hc_zmanim,
 };
 
 /// The orbit, behind the `orbital` feature: Earth's orbital elements and
@@ -5530,6 +6119,7 @@ mod tests {
     /// answers, and the refusal when it does not.
     #[cfg(any(
         feature = "timestamps",
+        feature = "time-codes",
         feature = "calendars",
         feature = "holiday",
         feature = "sky",
@@ -9251,5 +9841,311 @@ mod tests {
                 HC_ERROR_NULL_POINTER
             );
         }
+    }
+
+    /// The choghadiya, Panchak, the Jupiter festivals, the folk days, the
+    /// night watches and the northern year names, across the C boundary.
+    #[cfg(feature = "calendars")]
+    mod reckonings {
+        use super::super::*;
+        use super::{measured, read_lines};
+
+        fn first(text: &str) -> Vec<&str> {
+            text.lines().next().expect("a line").split('\t').collect()
+        }
+
+        /// Drik Panchang's New Delhi pages of 2025 (`drik-choghadiya-2025`,
+        /// `drik-panchak`), the Kumbh of 2025 (`wikipedia-kumbh-mela`) and
+        /// the Godavari Pushkaram of 2015 (`wikipedia-godavari-pushkaram`).
+        #[test]
+        fn the_indic_reckonings_cross_the_c_boundary() {
+            let day = 739_252;
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_choghadiya(
+                    day,
+                    28.6356,
+                    77.2244,
+                    0.0,
+                    c"en".as_ptr(),
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(text.lines().count(), 16);
+            assert_eq!(first(&text)[..5], ["day", "1", "labha", "Labha", "en"]);
+            // 12:00 UTC on 5 January 2025, within the first window.
+            let noon = 1_736_078_400;
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_panchak(
+                    c"panchak-five-kinds".as_ptr(),
+                    noon,
+                    c"lahiri".as_ptr(),
+                    19_800,
+                    core::ptr::null(),
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(first(&text)[3..], ["5", "chor", "Chor", "en"]);
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_kumbh(
+                    c"kumbh-prayag-vrishabha".as_ptr(),
+                    2025,
+                    c"lahiri".as_ptr(),
+                    core::ptr::null(),
+                    c"en".as_ptr(),
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!((first(&text)[1], first(&text)[10]), ("prayag", ""));
+            // 07:07 IST on 14 July 2015 is 01:37 UTC.
+            let entry = 1_436_837_820;
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_pushkaram(
+                    c"simha".as_ptr(),
+                    entry,
+                    28.6356,
+                    77.2244,
+                    0.0,
+                    c"india".as_ptr(),
+                    c"en".as_ptr(),
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(first(&text)[..2], ["pushkaram-godavari", "Godavari"]);
+            assert_eq!(first(&text)[5..7], ["735793", "735804"]);
+            assert_eq!(
+                measured(|buffer, capacity, written| unsafe {
+                    hc_pushkaram(
+                        core::ptr::null(),
+                        entry,
+                        28.6,
+                        77.2,
+                        0.0,
+                        c"india".as_ptr(),
+                        c"en".as_ptr(),
+                        buffer,
+                        capacity,
+                        written,
+                    )
+                }),
+                HC_ERROR_NULL_POINTER
+            );
+        }
+
+        /// The folk days of 20 February 2026 (`bilkent-cemre`), the third
+        /// watch at 23:48 (`wikipedia-zh-dian`) and Śaka 1946, Pingala
+        /// (`drikpanchang-day-2024-2026`).
+        #[test]
+        fn the_folk_days_watches_and_year_names_cross_the_c_boundary() {
+            let day = 739_667;
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_folk_day(
+                    day,
+                    c"china".as_ptr(),
+                    c"tr".as_ptr(),
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert!(
+                text.ends_with("folk-named-day\tcemre-air\tbirinci cemre\ttr\t105\n"),
+                "{text}"
+            );
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_night_watch(
+                    23 * 3_600 + 48 * 60,
+                    c"zh-TW".as_ptr(),
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(text, "3\t2\t三更\tzh-Hant\t夜半\t子\n");
+            let mut buffer = [7 as c_char; 4];
+            let mut written = 0usize;
+            assert_eq!(
+                unsafe {
+                    hc_night_watch(
+                        12 * 3_600,
+                        core::ptr::null(),
+                        buffer.as_mut_ptr(),
+                        4,
+                        &mut written,
+                    )
+                },
+                HC_OK
+            );
+            assert_eq!((buffer[0], written), (0, 1));
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_barhaspatya_year(
+                    c"surya-siddhanta-bija".as_ptr(),
+                    1_946,
+                    c"en".as_ptr(),
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(text, "51\tPingala\t\t\ten\n");
+            // 30 March 2025, Chaitra śukla 1: Siddharthi without the bīja.
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_barhaspatya_year_at(
+                    c"surya-siddhanta".as_ptr(),
+                    1_743_292_800,
+                    c"en".as_ptr(),
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert!(text.starts_with("53\t"), "{text}");
+        }
+    }
+
+    /// The planetary hours and GMAT, across the C boundary.
+    #[cfg(feature = "sky")]
+    mod sky_reckonings {
+        use super::super::*;
+        use super::read_lines;
+
+        /// Monday 25 March 1647 at London, the Moon's first hour
+        /// (`lilly-christian-astrology-1647`); the 1924 almanac's eclipse at
+        /// 4ʰ 12ᵐ 25ˢ from noon (`nautical-almanac-1924`).
+        #[test]
+        fn planetary_hours_and_gmat_cross_the_c_boundary() {
+            let day = 601_273;
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_planetary_hours_of_day(
+                    day,
+                    51.5,
+                    -0.1,
+                    0.0,
+                    c"en".as_ptr(),
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(text.lines().count(), 24);
+            assert!(text.starts_with("601273\t1\tmoon\tMoon\ten\t1\t"), "{text}");
+            let start: i64 = text
+                .split('\t')
+                .nth(6)
+                .expect("a cell")
+                .parse()
+                .expect("an instant");
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_planetary_hour(
+                    start + 60,
+                    51.5,
+                    -0.1,
+                    0.0,
+                    core::ptr::null(),
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert!(text.starts_with("601273\t1\tmoon\t"), "{text}");
+            let eclipse = 702_411;
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_gmat_from_gmt(eclipse, 58_345, 0, buffer, capacity, written)
+            });
+            assert_eq!(text, "702411\t15145\t0\n");
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_gmt_from_gmat(eclipse, 15_145, 0, buffer, capacity, written)
+            });
+            assert_eq!(text, "702411\t58345\t0\n");
+        }
+    }
+
+    /// The IRIG codes and the plum rains, across the C boundary.
+    #[cfg(feature = "time-codes")]
+    mod irig {
+        use super::super::*;
+        use super::{measured, read_lines};
+
+        /// Figure 5-2 of IRIG 200-16 (`rcc-200-16`): B124, 22 June 2003,
+        /// day 173, 21:18:42, both ways.
+        #[test]
+        fn figure_5_2_crosses_the_c_boundary_both_ways() {
+            let frame = c"M01000001M000101000M100000100M110001110M100000000M110000000M000000000M000000000M010011011M101010010M";
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_irig_decode(
+                    c"B124".as_ptr(),
+                    frame.as_ptr(),
+                    2026,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(text, "731388\t173\t21\t18\t42\t0\t3\t0\t76722\n");
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_irig_encode(
+                    c"B124".as_ptr(),
+                    731_388,
+                    76_722,
+                    0,
+                    0,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(text.trim_end(), frame.to_str().expect("ASCII"));
+            assert_eq!(
+                measured(|buffer, capacity, written| unsafe {
+                    hc_irig_decode(
+                        core::ptr::null(),
+                        frame.as_ptr(),
+                        2026,
+                        buffer,
+                        capacity,
+                        written,
+                    )
+                }),
+                HC_ERROR_NULL_POINTER
+            );
+        }
+    }
+
+    /// 入梅 of 2026 at the Chinese meridian, 11 June (`qq-meiyu-2026`).
+    #[cfg(feature = "seasons")]
+    #[test]
+    fn the_plum_rains_of_2026_cross_the_c_boundary() {
+        let mut day = 0i64;
+        assert_eq!(
+            unsafe { hc_plum_rains(c"ru-mei-bing".as_ptr(), 2026, c"china".as_ptr(), &mut day) },
+            HC_OK
+        );
+        assert_eq!(day, 739_778);
+        assert_eq!(
+            unsafe { hc_plum_rains(c"ru-mei".as_ptr(), 2026, c"china".as_ptr(), &mut day) },
+            HC_ERROR_UNKNOWN
+        );
+        assert_eq!(
+            unsafe { hc_plum_rains(c"ru-mei-bing".as_ptr(), 2026, core::ptr::null(), &mut day) },
+            HC_ERROR_NULL_POINTER
+        );
+        assert_eq!(
+            unsafe {
+                hc_plum_rains(
+                    c"ru-mei-bing".as_ptr(),
+                    2026,
+                    c"china".as_ptr(),
+                    core::ptr::null_mut(),
+                )
+            },
+            HC_ERROR_NULL_POINTER
+        );
     }
 }

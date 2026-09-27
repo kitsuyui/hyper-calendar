@@ -110,3 +110,8 @@ the ayanāṃśa.
 `prokerala_closes_the_autumn_windows_of_2026_with_drik_panchang_but_opens_them_earlier`,
 `the_two_tables_part_on_wednesday_and_thursday_only` and
 `a_window_holds_the_moon_in_the_last_sixty_degrees`.
+
+The WebAssembly and C export `hc_panchak` writes the window in progress
+at an instant, or the next, and its kind under either table, with the
+weekday of the opening read on a clock the caller gives, from
+`hyper_calendar::reckoning_lines`.

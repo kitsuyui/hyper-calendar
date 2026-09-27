@@ -213,3 +213,8 @@ that anchor them:
 `the_ganga_festival_of_2023_began_on_the_day_of_the_entry`,
 `two_signs_have_two_rivers` and
 `there_is_no_pushkaram_day_where_the_sun_does_not_set`.
+
+The WebAssembly and C exports `hc_kumbh` and `hc_pushkaram` write a
+condition's occasion in a year and a sign's rivers' twelve days, from
+`hyper_calendar::reckoning_lines`. With no ephemeris of Jupiter, Jupiter's
+sidereal sign and the moment of its entry are arguments the caller gives.

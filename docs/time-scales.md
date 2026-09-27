@@ -179,7 +179,9 @@ examples of UT2 and the Earth Rotation Angle, is written up in
 Almanacs before 1925 counted Greenwich mean time from noon. The
 reading is the same mean time, twelve hours behind, and the astronomical
 date is the civil date of the noon the day begins at.
-`hc-astro::gmat` converts a reading either way, exactly.
+`hc-astro::gmat` converts a reading either way, exactly, and the
+WebAssembly and C exports `hc_gmat_from_gmt` and `hc_gmt_from_gmat` write
+it as a fixed day, seconds of the day and attoseconds.
 
 | Reading | Function | Rule | Source |
 | --- | --- | --- | --- |

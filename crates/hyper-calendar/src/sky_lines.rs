@@ -278,6 +278,117 @@ pub fn decan_line(unix: i64) -> Answer<String> {
     Ok(out)
 }
 
+/// How many columns each line of [`planetary_hour_line`] and
+/// [`planetary_hours_of_day_lines`] writes.
+#[cfg(feature = "i18n")]
+pub const PLANETARY_HOUR_COLUMNS: usize = 8 + crate::astro_lines::MISSING_COLUMNS;
+
+/// One line of a planetary hour: the day, the hour, its ruler named in a
+/// locale, whether it is of the daylight, and when it begins and ends.
+#[cfg(feature = "i18n")]
+fn push_planetary_hour(
+    out: &mut String,
+    day: hc_calendar::Rd,
+    hour: u8,
+    ruler: hc_seasons::zodiac::RulingPlanet,
+    place: hc_astro::Location,
+    locale: &str,
+) {
+    use hc_seasons::planetary_hours::planetary_hour_start;
+    let _ = write!(out, "{}\t{hour}\t{}\t", day.0, ruler.id);
+    crate::boundary::push_reckoning_name(out, locale, hc_i18n::reckonings::PLANET, ruler.id);
+    let _ = write!(out, "\t{}\t", u8::from(hour <= 12));
+    let start = planetary_hour_start(day, hour, place);
+    let end = planetary_hour_start(day, hour + 1, place);
+    match (start, end) {
+        (Some(Ok(start)), Some(Ok(end))) => {
+            let _ = write!(
+                out,
+                "{}\t{}\t",
+                unix_from_moment(start),
+                unix_from_moment(end)
+            );
+            crate::astro_lines::push_missing_cells(out, None);
+        }
+        (Some(Err(missing)), _) | (_, Some(Err(missing))) => {
+            out.push_str("\t\t");
+            crate::astro_lines::push_missing_cells(out, Some(missing));
+        }
+        // Both hours are from 1 to 25, which `planetary_hour_start` answers.
+        _ => {
+            out.push_str("\t\t");
+            crate::astro_lines::push_missing_cells(out, None);
+        }
+    }
+    out.push('\n');
+}
+
+/// The line of `hc_planetary_hour`: the planetary hour at a Universal Time
+/// instant and a place ([`hc_seasons::planetary_hours`]), the twelve
+/// temporal hours of the daylight and the twelve of the night, each ruled
+/// by a planet of the Chaldean order from the weekday's own at sunrise.
+///
+/// The cells: the fixed day of the sunrise the planetary day began at — the
+/// hours after midnight and before sunrise belong to the day before; the
+/// hour, 1 to 24 from sunrise, 1 to 12 of the daylight and 13 to 24 of the
+/// night; the ruler's identifier, `sun` to `saturn`, and its name in the
+/// locale and the tag that named it, by
+/// [`hc_i18n::reckonings::name_or_fallback`]; `1` for an hour of the
+/// daylight, else `0`; the hour's start and end, as whole POSIX seconds of
+/// Universal Time, rounded down; and the four cells of a missing solar
+/// event, as `hc_solar_event` writes them. Where a sunrise or sunset
+/// around the instant does not happen, every cell but those four is empty.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for an instant outside the sky layer's era.
+#[cfg(feature = "i18n")]
+pub fn planetary_hour_line(
+    universal_unix: i64,
+    place: hc_astro::Location,
+    locale: &str,
+) -> Answer<String> {
+    let moment = moment_in_era(universal_unix)?;
+    let mut out = String::new();
+    match hc_seasons::planetary_hours::planetary_hour(moment, place) {
+        Ok(hour) => push_planetary_hour(&mut out, hour.day, hour.hour, hour.ruler, place, locale),
+        Err(missing) => {
+            out.push_str("\t\t\t\t\t\t\t\t");
+            crate::astro_lines::push_missing_cells(&mut out, Some(missing));
+            out.push('\n');
+        }
+    }
+    Ok(out)
+}
+
+/// The lines of `hc_planetary_hours_of_day`: the twenty-four planetary
+/// hours of the planetary day that begins at the sunrise of a fixed day at
+/// a place, in order, each in [`planetary_hour_line`]'s columns. The
+/// rulers are the weekday's alone; where the sunrise or sunset an hour is
+/// counted from does not happen, its start and end are empty and the
+/// missing event is named.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a day outside the sky layer's era.
+#[cfg(feature = "i18n")]
+pub fn planetary_hours_of_day_lines(
+    fixed: i64,
+    place: hc_astro::Location,
+    locale: &str,
+) -> Answer<String> {
+    use hc_seasons::planetary_hours::{HOURS_PER_DAY, ruler_of_hour};
+    let day = crate::astro_lines::day_in_era(fixed)?;
+    let weekday = hc_calendar::Weekday::from_rd(day);
+    let mut out = String::new();
+    for hour in 1..=HOURS_PER_DAY {
+        if let Some(ruler) = ruler_of_hour(weekday, hour) {
+            push_planetary_hour(&mut out, day, hour, ruler, place, locale);
+        }
+    }
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -364,6 +475,77 @@ mod tests {
         );
         assert_eq!(
             phase_lines(from, at(3001, 1, 1, 0, 1)),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
+    /// Lilly's three hours of Monday 15 March 1646, Old Style, 25 March
+    /// 1647 Gregorian, at London (`lilly-christian-astrology-1647`, as
+    /// `hc-seasons`'s test reads it): at 9:30 local apparent time the
+    /// fourth hour, Mars's; at 17:20 the twelfth, the Sun's; at 23:10 the
+    /// eighteenth, Mars's. His Sun rises at 5:47, where the first hour,
+    /// the Moon's, begins within three minutes.
+    #[cfg(feature = "i18n")]
+    #[test]
+    fn lillys_hours_of_monday_are_the_planets_he_names() {
+        use hc_astro::solar_time::universal_from_local_apparent_time;
+        let london = hc_astro::Location::new(51.5, -0.1, 0.0);
+        let day = hc_calendars_solar::gregorian::to_fixed(1647, 3, 25)
+            .expect("a date")
+            .0;
+        let apparent = |hour: u8, minute: u8| {
+            let moment = universal_from_local_apparent_time(
+                Moment(day as f64 + (f64::from(hour) + f64::from(minute) / 60.0) / 24.0),
+                london,
+            );
+            unix_from_moment(moment)
+        };
+        for ((hour, minute), number, ruler, name) in [
+            ((9, 30), "4", "mars", "Mars"),
+            ((17, 20), "12", "sun", "Sun"),
+            ((23, 10), "18", "mars", "Mars"),
+        ] {
+            let line = planetary_hour_line(apparent(hour, minute), london, "fr").expect("in range");
+            let row = rows(&line).remove(0);
+            assert_eq!(row.len(), PLANETARY_HOUR_COLUMNS);
+            assert_eq!(
+                row[..6],
+                [
+                    &*day.to_string(),
+                    number,
+                    ruler,
+                    name,
+                    "en",
+                    if number == "18" { "0" } else { "1" }
+                ]
+            );
+            assert_eq!(row[8..], ["", "", "", ""]);
+        }
+        let text = planetary_hours_of_day_lines(day, london, "native").expect("in range");
+        let hours = rows(&text);
+        assert_eq!(hours.len(), 24);
+        let rulers: Vec<&str> = hours[..5].iter().map(|row| row[2]).collect();
+        assert_eq!(rulers, ["moon", "saturn", "jupiter", "mars", "sun"]);
+        let first: i64 = hours[0][6].parse().expect("an instant");
+        assert!((first - apparent(5, 47)).abs() < 180, "{first}");
+        for pair in hours.windows(2) {
+            assert_eq!(pair[0][7], pair[1][6]);
+        }
+        // Above the polar circle at midsummer there is no sunset: the
+        // hour at noon is only the missing event.
+        let tromso = hc_astro::Location::new(69.65, 18.96, 0.0);
+        let midsummer = at(2024, 6, 21, 12, 0);
+        let polar = planetary_hour_line(midsummer, tromso, "en").expect("in range");
+        let polar = rows(&polar).remove(0);
+        assert_eq!(polar.len(), PLANETARY_HOUR_COLUMNS);
+        assert!(polar[..8].iter().all(|cell| cell.is_empty()), "{polar:?}");
+        assert!(!polar[8].is_empty());
+        assert_eq!(
+            planetary_hour_line(i64::MIN, london, "en"),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            planetary_hours_of_day_lines(i64::MAX, london, "en"),
             Err(Refusal::OutOfRange)
         );
     }
