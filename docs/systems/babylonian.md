@@ -94,6 +94,7 @@ Gent's transcription [vangent2011], over the 5 664 months from SE −71:
 | A day earlier than the table | 29 (0.5%) |
 | Further off than a day | 0 |
 | Month lengths | 29 × 2 696, 30 × 2 929, 31 × 38, 28 × 0 |
+| Every day of the range converts back to itself (`the_calendar_round_trips_every_day_of_its_range`) | All 167 261 days in a release build. A debug build takes every 776th day, 40 days at each end, and every 1 Nisanu with the day before it |
 
 The disagreement is between 13% and 19% in every fifty-year stretch of the
 range, with no trend, so it is the two visibility criteria that differ — a
@@ -123,6 +124,9 @@ among them that come out a day later are named there.
 `crates/hc-calendars-lunar/src/babylonian.rs`. Anchors:
 `the_epoch_is_the_third_of_april_311_bce`,
 `the_cited_rows_of_parker_and_dubberstein`,
-`the_range_is_the_tables_regular_span`; the measurement:
+`the_range_is_the_tables_regular_span`,
+`the_calendar_round_trips_every_day_of_its_range`, which the Arsacid era
+in `crates/hc-calendars-regional/src/arsacid.rs` also relies on for its
+own days ([seleucid-eras.md](seleucid-eras.md)); the measurement:
 `measured_against_parker_dubberstein`. English month names are in `hc-i18n`,
 with `second ` as the leap-month prefix.

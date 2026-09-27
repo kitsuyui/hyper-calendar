@@ -42,7 +42,10 @@ cargo build -p hyper-calendar-ffi --release                            # shared 
 The long day-by-day sweeps sample their days in a debug build and walk every
 day in a release one; CI runs both, so run
 `cargo test --release --workspace --all-features` too before touching a
-calendar's arithmetic ([`docs/policy.md`](docs/policy.md) §7).
+calendar's arithmetic ([`docs/policy.md`](docs/policy.md) §7). CI runs that
+command in shards, side by side;
+[`scripts/release-shards.sh`](scripts/release-shards.sh) says how they are
+cut, and `scripts/release-shards.sh --plan` which shard runs each test binary.
 
 All of these must pass. `unwrap()` and `expect()` are deny-level lints outside
 tests — see [`docs/policy.md`](docs/policy.md) §8.

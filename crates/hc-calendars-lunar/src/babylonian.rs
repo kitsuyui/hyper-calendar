@@ -582,24 +582,51 @@ mod tests {
     }
 
     #[test]
-    fn the_calendar_round_trips_at_both_ends_and_across_the_span() {
-        // 400 days at each end and every 97th between in a release build;
-        // 40 at each end and every 776th between in a debug one
-        // (`crate::sweep_stride`).
+    fn the_calendar_round_trips_every_day_of_its_range() {
+        // Every day of the 167 261 is two crescent searches to read and
+        // three to write back, about 1.5 ms of one core in a release build,
+        // so a release build walks every one spread over the machine's
+        // threads. A debug build, which the coverage job runs instrumented,
+        // takes every 776th day, 40 days at each end, and every 1 Nisanu,
+        // where the year turns, with the day before it (docs/policy.md §7).
+        // `arsacid-era` in hc-calendars-regional is this calendar renamed
+        // and rests on this sweep for its own days.
+        let openings: std::vec::Vec<i64> = if cfg!(debug_assertions) {
+            (MIN_YEAR..=MAX_YEAR)
+                .map(|year| to_fixed(year, month(1, false), 1).expect("in range").0)
+                .chain([LATEST.0 + 1])
+                .collect()
+        } else {
+            std::vec::Vec::new()
+        };
         let ends = 400 / crate::sweep_stride(10) as i64;
-        let mut days = (0..ends)
-            .map(|offset| EARLIEST.0 + offset)
-            .collect::<std::vec::Vec<_>>();
-        days.extend((0..ends).map(|offset| LATEST.0 - offset));
-        days.extend((EARLIEST.0..=LATEST.0).step_by(97 * crate::sweep_stride(8)));
-        for rd in days.into_iter().map(Rd) {
+        let mut days: std::vec::Vec<i64> =
+            crate::sweep_days(EARLIEST.0, LATEST.0, 776, openings.iter().copied())
+                .chain((0..ends).flat_map(|offset| [EARLIEST.0 + offset, LATEST.0 - offset]))
+                .collect();
+        days.sort_unstable();
+        days.dedup();
+        assert!(days.contains(&EARLIEST.0) && days.contains(&LATEST.0));
+        if cfg!(debug_assertions) {
+            // SE −71 opens on the first day, and SE 387's eve is the last.
+            let held = |day: i64| days.binary_search(&day).is_ok();
+            assert!(
+                openings
+                    .windows(2)
+                    .all(|pair| held(pair[0]) && held(pair[1] - 1))
+            );
+        } else {
+            assert_eq!(days.len() as i64, LATEST.0 - EARLIEST.0 + 1);
+        }
+        crate::check_days(&days, |day| {
+            let rd = Rd(day);
             let (year, month, day) = from_fixed(rd).expect("in range");
             assert!(
                 (MIN_YEAR..=MAX_YEAR).contains(&year),
-                "RD {rd} gave SE {year}"
+                "RD {rd:?} gave SE {year}"
             );
-            assert_eq!(to_fixed(year, month, day), Ok(rd), "RD {rd}");
-        }
+            assert_eq!(to_fixed(year, month, day), Ok(rd), "RD {rd:?}");
+        });
     }
 
     #[test]

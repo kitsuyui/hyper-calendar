@@ -11,6 +11,22 @@
 //! year 65 is 1 Nisannu of Arsacid year 1. It converts what `babylonian`
 //! converts from that day, AE 1 to 322, and refuses the rest.
 //!
+//! Its correctness on every day rests on `babylonian`'s own sweep, which
+//! walks every day of `babylonian`'s range, this one included, in a release
+//! build (docs/policy.md §7). This module adds no computation to
+//! `babylonian`'s: [`to_fixed`] and [`from_fixed`] are `babylonian`'s with
+//! the year shifted by the constant [`SELEUCID_OFFSET`], behind range
+//! checks that act only at the two ends. So inside the range an Arsacid
+//! date is the Babylonian date renamed, and it converts back to its day
+//! exactly when the Babylonian date does. Walking every day here as well
+//! would repeat `babylonian`'s crescent searches, about 500 CPU-seconds,
+//! and prove nothing new. The tests check what the wrapper itself can get
+//! wrong: the range checks at both ends; the year, the fields and the era
+//! on every 1 Nisannu and the day before it, where the year changes; and
+//! the wrapper relation itself on a sample of days. A change that makes this
+//! calendar more than `babylonian` renamed fails that last test, and would
+//! need a day-by-day sweep of its own.
+//!
 //! `babylonian` puts 1 Nisannu SE 65 on 15 April 247 BCE, a day after the
 //! article's 14 April: a disagreement of the size and direction of the 941
 //! of Parker and Dubberstein's 5 664 months that the moonlag criterion
@@ -233,22 +249,58 @@ mod tests {
             to_fixed(MAX_YEAR + 1, Month::regular(1), 1),
             Err(CalendarError::YearOutOfRange)
         );
+        // The last day is `babylonian`'s last, in AE 322.
+        assert_eq!(
+            from_fixed(babylonian::LATEST).map(|(year, _, _)| year),
+            Ok(MAX_YEAR)
+        );
+        let calendar = ArsacidCalendar;
+        for year in [MIN_YEAR - 1, MAX_YEAR + 1] {
+            assert_eq!(
+                calendar.is_leap_year(year),
+                Err(CalendarError::YearOutOfRange)
+            );
+            assert_eq!(
+                calendar.from_fields(&DateFields::ymd(year, 1, 1).with_era(ERA)),
+                Err(CalendarError::YearOutOfRange)
+            );
+        }
+        assert_eq!(
+            calendar.from_fields(&DateFields::ymd(100, 1, 1).with_era("se")),
+            Err(CalendarError::UnknownEra)
+        );
+    }
+
+    /// Checks one day inside the range: the Arsacid date is `babylonian`'s
+    /// with the year less [`SELEUCID_OFFSET`], it converts back to the day,
+    /// directly and through its fields, and its year has `babylonian`'s
+    /// leap rule. Returns the date.
+    fn is_babylonian_renamed(rd: i64) -> ArsacidDate {
+        let calendar = ArsacidCalendar;
+        let date = calendar.from_fixed(Rd(rd)).unwrap();
+        let (se, month, day) = babylonian::from_fixed(Rd(rd)).unwrap();
+        assert_eq!(
+            (date.year + SELEUCID_OFFSET, date.month, date.day),
+            (se, month, day),
+            "RD {rd}"
+        );
+        assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "RD {rd}");
+        let fields = calendar.to_fields(date).unwrap();
+        assert_eq!(fields.era, Some(ERA));
+        assert_eq!(calendar.from_fields(&fields), Ok(date), "RD {rd}");
+        assert_eq!(
+            calendar.is_leap_year(date.year),
+            Ok(babylonian::is_leap_year(se))
+        );
+        date
     }
 
     #[test]
-    fn the_calendar_is_babylonian_day_for_day_and_round_trips() {
-        let calendar = ArsacidCalendar;
-        let first = earliest().unwrap();
-        // Every day of `babylonian` is a crescent computation, about 1.5 ms
-        // for a conversion both ways in a release build, so the 167 000
-        // days are several minutes of one core; a release build walks every
-        // one, spread over the machine's threads. A debug build, which the
-        // coverage job runs instrumented, takes every 521st day and every
-        // 1 Nīsannu, where the year turns, with the day before it
-        // (docs/policy.md §7).
-        let last = babylonian::LATEST.0;
-        // The year each New Year ends: common, with a second Addaru, with a
-        // second Ulūlu.
+    fn every_new_year_and_its_eve_is_babylonians_renamed() {
+        // Every 1 Nisannu, AE 1 to 322, and the day before it, the last of
+        // the year before: the days where the wrapper's year arithmetic
+        // and range checks act. The day before AE 1 is refused, and the
+        // range ends on the eve of 1 Nisannu SE 387, `babylonian`'s last day.
         let ended = |year: i64| {
             let se = year - 1 + SELEUCID_OFFSET;
             (
@@ -256,42 +308,66 @@ mod tests {
                 babylonian::has_second_ululu(se),
             )
         };
+        // Years that end common, with a second Addaru and with a second
+        // Ulūlu are all among the eves.
         for kind in [(false, false), (true, false), (true, true)] {
             assert!((2..=MAX_YEAR).any(|year| ended(year) == kind));
         }
-        let new_years: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
-            (1..=MAX_YEAR)
-                .map(|year| to_fixed(year, Month::regular(1), 1).unwrap().0)
-                .chain([last + 1])
-                .collect()
-        } else {
-            alloc::vec::Vec::new()
-        };
-        let mut days: alloc::vec::Vec<i64> =
-            crate::sweep_days(first.0, last, 521, new_years.iter().copied()).collect();
-        days.sort_unstable();
-        days.dedup();
-        assert!(days.contains(&first.0) && days.contains(&last));
-        crate::check_days(&days, |rd| {
-            let date = calendar.from_fixed(Rd(rd)).unwrap();
-            let (se, month, day) = babylonian::from_fixed(Rd(rd)).unwrap();
+        let years: alloc::vec::Vec<i64> = (MIN_YEAR..=MAX_YEAR).collect();
+        crate::check_days(&years, |year| {
+            let opening = to_fixed(year, Month::regular(1), 1).unwrap();
             assert_eq!(
-                (date.year + SELEUCID_OFFSET, date.month, date.day),
-                (se, month, day)
+                Ok(opening),
+                babylonian::to_fixed(seleucid_year(year), Month::regular(1), 1)
             );
-            assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)));
-            let fields = calendar.to_fields(date).unwrap();
-            assert_eq!(fields.era, Some(ERA));
-            assert_eq!(calendar.from_fields(&fields), Ok(date));
+            let date = is_babylonian_renamed(opening.0);
             assert_eq!(
-                calendar.is_leap_year(date.year),
-                Ok(babylonian::is_leap_year(se))
+                (date.year, date.month, date.day),
+                (year, Month::regular(1), 1)
             );
+            if year == MIN_YEAR {
+                assert_eq!(
+                    from_fixed(Rd(opening.0 - 1)),
+                    Err(CalendarError::BeforeEpoch)
+                );
+            } else {
+                assert_eq!(is_babylonian_renamed(opening.0 - 1).year, year - 1);
+            }
         });
+        let last = is_babylonian_renamed(babylonian::LATEST.0);
+        assert_eq!(last.year, MAX_YEAR);
         assert_eq!(
-            calendar.from_fields(&DateFields::ymd(100, 1, 1).with_era("se")),
-            Err(CalendarError::UnknownEra)
+            babylonian::from_fixed(Rd(babylonian::LATEST.0 + 1)),
+            Err(CalendarError::AfterSupportedRange)
         );
-        assert_eq!(calendar.is_leap_year(0), Err(CalendarError::YearOutOfRange));
+    }
+
+    #[test]
+    fn the_calendar_is_babylonian_renamed_on_a_sample_of_days() {
+        // Pins the wrapper property the module documentation rests on: on
+        // every 97th day of the range in a release build, every 776th in a
+        // debug one, and the first and last, the Arsacid fields are
+        // `babylonian`'s with the year less 64 and the era renamed, and
+        // both calendars write the date back to the same day. A change that
+        // makes this calendar more than `babylonian` renamed fails here, and
+        // needs a day-by-day sweep of its own (docs/policy.md §7).
+        let (first, last) = (earliest().unwrap().0, babylonian::LATEST.0);
+        let mut days: alloc::vec::Vec<i64> = (first..=last)
+            .step_by(97 * crate::sweep_stride(8))
+            .chain([last])
+            .collect();
+        days.dedup();
+        let (arsacid, seleucid) = (ArsacidCalendar, babylonian::BabylonianCalendar);
+        crate::check_days(&days, |rd| {
+            let date = arsacid.from_fixed(Rd(rd)).unwrap();
+            let base = seleucid.from_fixed(Rd(rd)).unwrap();
+            let mut expected = seleucid.to_fields(base).unwrap();
+            assert_eq!(expected.era, Some(babylonian::ERA));
+            expected.year -= SELEUCID_OFFSET;
+            expected.era = Some(ERA);
+            assert_eq!(arsacid.to_fields(date), Ok(expected), "RD {rd}");
+            assert_eq!(arsacid.to_fixed(date), Ok(Rd(rd)), "RD {rd}");
+            assert_eq!(seleucid.to_fixed(base), Ok(Rd(rd)), "RD {rd}");
+        });
     }
 }
