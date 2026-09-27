@@ -149,7 +149,7 @@ Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
 States, Uruguay, Uzbekistan, Vanuatu, Vatican City, Venezuela, Vietnam, Yemen,
 Zambia, Zimbabwe.
 
-**Forty-nine traditions.** Western Christianity on the Gregorian computus,
+**Fifty-nine traditions.** Western Christianity on the Gregorian computus,
 the General Roman Calendar with the rank of every celebration
 (`roman_calendar`), the General Roman Calendar of 1960, the 1962 Missal's,
 with the class of every day (`roman_calendar_1960`), the Church of England's *Common Worship* calendar with
@@ -180,7 +180,11 @@ five regional tables (`chinese-xiaonian-north`, `-south`, `-jiangnan`,
 `-nanjing`, `-southwest`), Taoism's three Yuan and Mazu's days (`taoist`),
 the Korean folk days on `dangi` with 한식 105 days after 동지
 (`korean-folk`), the Vietnamese on `vietnamese` (`vietnamese-folk`), Japan's
-五節句 on their Gregorian dates from 1873 (`gosekku`), Shinto with the
+五節句 on their Gregorian dates from 1873 (`gosekku`), お盆 in its three
+reckonings (`obon-july`, `obon-august`, `obon-lunar`), 酉の市
+(`tori-no-ichi`), 初午 (`hatsuuma`, `hatsuuma-lunar`), 亥の子 (`inoko`,
+`inoko-november`) and 十日夜 (`tokanya`, `tokanya-november`), each on the
+Gregorian calendar or the 旧暦, Shinto with the
 imperial court rites beside it, the Wheel of the Year in both hemispheres,
 the Zoroastrian schedule of feasts on each of its three reckonings, Plough
 Monday, Plough Sunday and Distaff Day (`plough-days`), Chaharshanbe Suri

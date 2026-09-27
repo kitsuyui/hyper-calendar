@@ -21,8 +21,8 @@
 //!
 //! # Unequal hours
 //!
-//! Two older reckonings count the hours from the Sun's events rather than
-//! from midnight, and both are carried:
+//! Three older reckonings count the hours from the Sun's events rather than
+//! from midnight, and all three are carried:
 //!
 //! * **Temporal (seasonal) hours** divide the daylight, sunrise to sunset,
 //!   into twelve equal hours and the night into twelve more, so that an
@@ -40,11 +40,18 @@
 //!   [`universal_from_italian_time`]; `local-zero-hour`,
 //!   `italian-from-local` and `local-from-italian`, which fix the place at
 //!   Padua; here the place is the caller's).
+//! * **The Edo 不定時法** divides the daylight from 明け六つ to 暮れ六つ into
+//!   six hours and the night into six more, with dawn and dusk where the
+//!   Sun's centre is 7°21′41″ below the horizon, the 寛政暦's angle
+//!   ([`edo_time_kansei`], [`universal_from_edo_time_kansei`],
+//!   [`japanese_dawn_kansei`] and [`japanese_dusk_kansei`], with the hours
+//!   named in [`EdoHour`]). The Observatory's 夜明 and 日暮 at 7°21′40″ are
+//!   [`japanese_dawn_naoj`] and [`japanese_dusk_naoj`].
 //!
-//! Where the Sun does not rise or set there is no temporal hour and no
-//! zero hour, and the functions return a [`MissingSolarEvent`] rather than
-//! a number: a length of daylight that is not there is not zero, it is
-//! undefined.
+//! Where the Sun does not rise or set, or not sink far enough, there is no
+//! temporal hour, no zero hour and no Edo hour, and the functions return a
+//! [`MissingSolarEvent`] rather than a number: a length of daylight that is
+//! not there is not zero, it is undefined.
 //!
 //! # Religious times of day
 //!
@@ -78,7 +85,7 @@ use core::fmt;
 
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
-use hc_core::math::{RAD_TO_DEG, atan2, tan_deg};
+use hc_core::math::{RAD_TO_DEG, atan2, floor, round, tan_deg};
 
 use crate::riseset::{Location, solar_altitude, solar_noon, sun_crossing, sunrise, sunset};
 use crate::solar::equation_of_time;
@@ -186,6 +193,17 @@ pub enum MissingSolarEvent {
     /// nothing casts a shadow and the shadow rules for ʿaṣr have no
     /// answer.
     NoNoonShadow(Rd),
+    /// The Sun does not reach the stated depression below the horizon, in
+    /// arcseconds, on the morning or the evening of this local day: the
+    /// Japanese dawn and dusk, whose depressions are not whole arcminutes.
+    Twilight {
+        /// The local day.
+        day: Rd,
+        /// The depression sought, in arcseconds, rounded.
+        arcseconds: u32,
+        /// Whether it is the morning's crossing, rather than the evening's.
+        morning: bool,
+    },
 }
 
 impl fmt::Display for MissingSolarEvent {
@@ -210,6 +228,19 @@ impl fmt::Display for MissingSolarEvent {
                     day.0
                 )
             }
+            Self::Twilight {
+                day,
+                arcseconds,
+                morning,
+            } => write!(
+                f,
+                "the Sun does not reach {}°{}′{}″ below the horizon on the {} of RD {}",
+                arcseconds / 3_600,
+                arcseconds / 60 % 60,
+                arcseconds % 60,
+                if *morning { "morning" } else { "evening" },
+                day.0
+            ),
         }
     }
 }
@@ -411,6 +442,313 @@ pub fn universal_from_italian_time(
 ) -> Result<Moment, MissingSolarEvent> {
     let zero = italian_zero_hour(reading.day - 1, location)?;
     Ok(Moment(zero.0 + reading.hours / 24.0))
+}
+
+/// The latitude of the 改暦所 at 西三条台 in Kyoto from which the 寛政暦
+/// took its dawn and dusk, 35°00′36″ N, as the 寛政暦書 gives it
+/// (`nao-rekiwiki-yoake`; the 寛政暦書 itself not read). The 天保暦 used
+/// the same value.
+pub const KANSEI_OBSERVATORY_LATITUDE_DEGREES: f64 = 35.0 + 36.0 / 3_600.0;
+
+/// The hour angle the Sun moves through in 二刻半, two and a half of the
+/// hundred 刻 of a day: 360° × 2.5 / 100 = 9°. Before the 寛政暦 the
+/// almanacs put 明け六つ this long before sunrise and 暮れ六つ this long
+/// after sunset (`nao-rekiwiki-yoake`).
+pub const KANSEI_TWILIGHT_HOUR_ANGLE_DEGREES: f64 = 9.0;
+
+/// The depression of the Sun's centre below the geometric horizon at
+/// which the 寛政暦 and the 天保暦 put 明け六つ and 暮れ六つ, in degrees:
+/// the Sun's altitude two and a half 刻 after sunset at an equinox in
+/// Kyoto, `sin h = cos φ sin 9°` with φ the
+/// [`KANSEI_OBSERVATORY_LATITUDE_DEGREES`], which is 7°21′41″
+/// (`nao-rekiwiki-yoake`). The value is that formula evaluated, and a
+/// test evaluates it again.
+pub const KANSEI_DEPRESSION_DEGREES: f64 = 7.361_427_044_417_415;
+
+/// The depression of the Sun's centre at which the National Astronomical
+/// Observatory's almanacs and the 理科年表 put 夜明 and 日暮, in
+/// arcseconds: 7°21′40″, printed since the almanac for 1912 as the time
+/// "明治五年以前明六つ暮六つと称したる時刻に相当す" (`nao-rekiwiki-yoake`;
+/// `koyomi8-yoake-higure`, quoting the 理科年表 of 2013). It is one second
+/// of arc less than the 寛政暦's, [`KANSEI_DEPRESSION_DEGREES`], which
+/// moves the moment by about a tenth of a second.
+pub const NAOJ_DAWN_DUSK_DEPRESSION_ARCSECONDS: u32 = 7 * 3_600 + 21 * 60 + 40;
+
+/// The moment on a local day when the Sun's centre rises (`morning`) or
+/// sets through a depression in degrees below the geometric horizon, with
+/// no refraction, or the error naming the depression to the arcsecond.
+fn twilight_at(
+    day: Rd,
+    location: Location,
+    depression_degrees: f64,
+    morning: bool,
+) -> Result<Moment, MissingSolarEvent> {
+    sun_crossing(day, location, -depression_degrees, morning).ok_or(MissingSolarEvent::Twilight {
+        day,
+        arcseconds: round(depression_degrees * 3_600.0) as u32,
+        morning,
+    })
+}
+
+/// 明け六つ on a local day by the 寛政暦's rule, in Universal Time: the
+/// Sun's centre [`KANSEI_DEPRESSION_DEGREES`] below the geometric horizon
+/// in the morning.
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Twilight`] where the Sun does not get that low, or
+/// that high, that morning.
+pub fn japanese_dawn_kansei(day: Rd, location: Location) -> Result<Moment, MissingSolarEvent> {
+    twilight_at(day, location, KANSEI_DEPRESSION_DEGREES, true)
+}
+
+/// 暮れ六つ on a local day by the 寛政暦's rule, in Universal Time: the
+/// Sun's centre [`KANSEI_DEPRESSION_DEGREES`] below the geometric horizon
+/// in the evening.
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Twilight`] where the Sun does not get that low, or
+/// that high, that evening.
+pub fn japanese_dusk_kansei(day: Rd, location: Location) -> Result<Moment, MissingSolarEvent> {
+    twilight_at(day, location, KANSEI_DEPRESSION_DEGREES, false)
+}
+
+/// 夜明 on a local day as the National Astronomical Observatory computes
+/// it, in Universal Time: the Sun's centre 7°21′40″ below the horizon in
+/// the morning ([`NAOJ_DAWN_DUSK_DEPRESSION_ARCSECONDS`]).
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Twilight`] where the Sun does not get that low, or
+/// that high, that morning.
+pub fn japanese_dawn_naoj(day: Rd, location: Location) -> Result<Moment, MissingSolarEvent> {
+    twilight_at(
+        day,
+        location,
+        f64::from(NAOJ_DAWN_DUSK_DEPRESSION_ARCSECONDS) / 3_600.0,
+        true,
+    )
+}
+
+/// 日暮 on a local day as the National Astronomical Observatory computes
+/// it, in Universal Time: the Sun's centre 7°21′40″ below the horizon in
+/// the evening ([`NAOJ_DAWN_DUSK_DEPRESSION_ARCSECONDS`]).
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Twilight`] where the Sun does not get that low, or
+/// that high, that evening.
+pub fn japanese_dusk_naoj(day: Rd, location: Location) -> Result<Moment, MissingSolarEvent> {
+    twilight_at(
+        day,
+        location,
+        f64::from(NAOJ_DAWN_DUSK_DEPRESSION_ARCSECONDS) / 3_600.0,
+        false,
+    )
+}
+
+/// One of the twelve hours of the Edo 不定時法, counted from 明け六つ: six
+/// of the daylight, 明け六つ to 暮れ六つ, and six of the night.
+///
+/// An hour is named by the number of strokes of the bell that opened it,
+/// nine at noon and at midnight and one fewer at each hour after, down to
+/// four. The names follow the Observatory's list, 今暁九時, 八時, 七時,
+/// 明六時, 朝五時, 四時, 昼九時, 八時, 夕七時, 暮六時, 夜五時, 四時, in which a
+/// prefix also covers the unprefixed hour after it; here つ stands for 時
+/// and 暁 for 今暁 (`nao-rekiwiki-futeiji`). Each is also paired with an
+/// earthly branch, 卯 for 明け六つ round to 寅 (`wikipedia-ja-jikoku`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct EdoHour(u8);
+
+impl EdoHour {
+    /// The twelve, 明け六つ first.
+    pub const ALL: [Self; 12] = [
+        Self(0),
+        Self(1),
+        Self(2),
+        Self(3),
+        Self(4),
+        Self(5),
+        Self(6),
+        Self(7),
+        Self(8),
+        Self(9),
+        Self(10),
+        Self(11),
+    ];
+
+    /// 明け六つ, the first hour of the daylight.
+    pub const DAWN: Self = Self(0);
+
+    /// 昼九つ, which begins at the middle of the daylight.
+    pub const NOON: Self = Self(3);
+
+    /// 暮れ六つ, the first hour of the night.
+    pub const DUSK: Self = Self(6);
+
+    /// 暁九つ, which begins at the middle of the night.
+    pub const MIDNIGHT: Self = Self(9);
+
+    /// The hour at a place in the count from 明け六つ, 0 to 11, or `None`.
+    #[must_use]
+    pub const fn from_index(index: u8) -> Option<Self> {
+        if index < 12 { Some(Self(index)) } else { None }
+    }
+
+    /// The place in the count from 明け六つ, 0 to 11.
+    #[must_use]
+    pub const fn index(self) -> u8 {
+        self.0
+    }
+
+    /// Whether this is one of the six hours of the daylight.
+    #[must_use]
+    pub const fn is_daytime(self) -> bool {
+        self.0 < 6
+    }
+
+    /// The number the hour is named by, the strokes of the bell: 6, 5, 4
+    /// in the morning, 9, 8, 7 after noon, and the same again at night.
+    #[must_use]
+    pub const fn strokes(self) -> u8 {
+        [6, 5, 4, 9, 8, 7][(self.0 % 6) as usize]
+    }
+
+    /// The name, with the prefix that tells day from night: 明六つ, 朝五つ,
+    /// 朝四つ, 昼九つ, 昼八つ, 夕七つ, 暮六つ, 夜五つ, 夜四つ, 暁九つ, 暁八つ,
+    /// 暁七つ. The type's documentation says where the names come from.
+    #[must_use]
+    pub const fn japanese_name(self) -> &'static str {
+        [
+            "明六つ",
+            "朝五つ",
+            "朝四つ",
+            "昼九つ",
+            "昼八つ",
+            "夕七つ",
+            "暮六つ",
+            "夜五つ",
+            "夜四つ",
+            "暁九つ",
+            "暁八つ",
+            "暁七つ",
+        ][self.0 as usize]
+    }
+
+    /// The name in Hepburn romaji, e.g. `"ake mutsu"`.
+    #[must_use]
+    pub const fn romaji(self) -> &'static str {
+        [
+            "ake mutsu",
+            "asa itsutsu",
+            "asa yotsu",
+            "hiru kokonotsu",
+            "hiru yatsu",
+            "yū nanatsu",
+            "kure mutsu",
+            "yoru itsutsu",
+            "yoru yotsu",
+            "akatsuki kokonotsu",
+            "akatsuki yatsu",
+            "akatsuki nanatsu",
+        ][self.0 as usize]
+    }
+
+    /// The earthly branch the hour is paired with, 卯 for 明け六つ, 午 for
+    /// 昼九つ, 酉 for 暮れ六つ and 子 for 暁九つ (`wikipedia-ja-jikoku`).
+    ///
+    /// This is a pairing of names. The source gives each branch's hour as
+    /// about an hour either side of a clock time, not where it begins in
+    /// the unequal hours, so it says nothing about where a branch's span
+    /// begins here.
+    #[must_use]
+    pub const fn branch(self) -> &'static str {
+        [
+            "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑", "寅",
+        ][self.0 as usize]
+    }
+}
+
+/// A reading of the Edo 不定時法: the day, which begins at its 明け六つ,
+/// the hour, and how far into the hour, from 0 to 1.
+///
+/// The 天保暦 wrote the fraction in tenths, 分: its 暮六時六分 is six
+/// tenths of an hour after 暮れ六つ (`nao-rekiwiki-futeiji`).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct EdoTime {
+    /// The local date whose 明け六つ began the reading's day. The night
+    /// hours after midnight belong to the day before the civil date.
+    pub day: Rd,
+    /// The hour.
+    pub hour: EdoHour,
+    /// The part of the hour gone, from 0 to 1.
+    pub fraction: f64,
+}
+
+impl EdoTime {
+    /// The fraction in the 天保暦's tenths, 分, rounded down: 0 to 9.
+    #[must_use]
+    pub fn tenths(self) -> u8 {
+        floor(self.fraction * 10.0).clamp(0.0, 9.0) as u8
+    }
+}
+
+/// The 不定時法 reading of a Universal Time moment at a place, by the
+/// 寛政暦's 明け六つ and 暮れ六つ: the daylight from [`japanese_dawn_kansei`]
+/// to [`japanese_dusk_kansei`] cut into six equal hours, and the night from
+/// that dusk to the next dawn into six more.
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Twilight`] where a dawn or dusk around the moment
+/// does not happen.
+pub fn edo_time_kansei(
+    universal: Moment,
+    location: Location,
+) -> Result<EdoTime, MissingSolarEvent> {
+    let local_day = local_mean_time(universal, location).day();
+    let day = if universal.0 >= japanese_dawn_kansei(local_day, location)?.0 {
+        local_day
+    } else {
+        local_day - 1
+    };
+    let dawn = japanese_dawn_kansei(day, location)?;
+    let dusk = japanese_dusk_kansei(day, location)?;
+    let (start, end, first) = if universal.0 < dusk.0 {
+        (dawn, dusk, 0.0)
+    } else {
+        (dusk, japanese_dawn_kansei(day + 1, location)?, 6.0)
+    };
+    let hours = first + 6.0 * (universal.0 - start.0) / (end.0 - start.0);
+    let index = floor(hours).clamp(0.0, 11.0);
+    Ok(EdoTime {
+        day,
+        hour: EdoHour(index as u8),
+        fraction: hours - index,
+    })
+}
+
+/// The Universal Time of a 不定時法 reading at a place: the inverse of
+/// [`edo_time_kansei`].
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Twilight`] where the dawn or dusk the hour needs
+/// does not happen.
+pub fn universal_from_edo_time_kansei(
+    reading: EdoTime,
+    location: Location,
+) -> Result<Moment, MissingSolarEvent> {
+    let dawn = japanese_dawn_kansei(reading.day, location)?;
+    let dusk = japanese_dusk_kansei(reading.day, location)?;
+    let hours = f64::from(reading.hour.index()) + reading.fraction;
+    if reading.hour.is_daytime() {
+        Ok(Moment(dawn.0 + hours * (dusk.0 - dawn.0) / 6.0))
+    } else {
+        let next = japanese_dawn_kansei(reading.day + 1, location)?;
+        Ok(Moment(dusk.0 + (hours - 6.0) * (next.0 - dusk.0) / 6.0))
+    }
 }
 
 /// ʿAṣr by a shadow rule: the afternoon moment when a vertical object's
@@ -737,6 +1075,7 @@ pub fn zman_mga_16_1_degrees(
 mod tests {
     use super::*;
     use crate::time::{gregorian_new_year, universal_from_dynamical_julian_date};
+    use hc_core::math::{asin, cos_deg, sin_deg};
 
     const GREENWICH: Location = Location::new(51.4779, 0.0, 0.0);
     /// Padua, as `calendar-code2` places it: 45°24′28″ N, 11°53′9″ E.
@@ -1154,5 +1493,207 @@ mod tests {
             .expect_err("no dawn")
             .to_string();
         assert!(message.contains("morning"), "{message}");
+    }
+
+    /// Kyoto, near the old 改暦所 at 西三条台, 35°00′36″ N.
+    const KYOTO: Location = Location::new(KANSEI_OBSERVATORY_LATITUDE_DEGREES, 135.7417, 0.0);
+    /// Helsinki, where the midsummer Sun stays within 6.4° of the horizon.
+    const HELSINKI: Location = Location::new(60.1699, 24.9384, 0.0);
+
+    /// 暦Wiki 「夜明と日暮」: `sin h = − cos φ sin 9°` at φ = 35°00′36″ gives
+    /// h = −7°21′41″, the 寛政暦's and the 天保暦's depression; the
+    /// Observatory's almanacs print 7°21′40″.
+    #[test]
+    fn the_kansei_depression_is_nine_degrees_of_hour_angle_after_an_equinox_sunset_in_kyoto() {
+        let formula = asin(
+            cos_deg(KANSEI_OBSERVATORY_LATITUDE_DEGREES)
+                * sin_deg(KANSEI_TWILIGHT_HOUR_ANGLE_DEGREES),
+        ) * RAD_TO_DEG;
+        assert!((formula - KANSEI_DEPRESSION_DEGREES).abs() < 1e-12);
+        assert_eq!(
+            round(KANSEI_DEPRESSION_DEGREES * 3_600.0) as u32,
+            7 * 3_600 + 21 * 60 + 41
+        );
+        assert_eq!(NAOJ_DAWN_DUSK_DEPRESSION_ARCSECONDS, 26_500);
+        // 二刻半 is 36 minutes: at the March equinox of 2024 the 寛政暦's
+        // dusk at Kyoto falls that long after the Sun's centre reaches the
+        // geometric horizon, to the Sun's small declination that day.
+        let day = gregorian_new_year(2024) + 79;
+        let horizon = sun_crossing(day, KYOTO, 0.0, false).expect("an equinox sunset");
+        let dusk = japanese_dusk_kansei(day, KYOTO).expect("and a dusk");
+        let minutes = (dusk.0 - horizon.0) * 1_440.0;
+        assert!((minutes - 36.0).abs() < 0.2, "{minutes} min");
+        let dawn = japanese_dawn_kansei(day, KYOTO).expect("a dawn");
+        assert!((solar_altitude(dawn, KYOTO) + KANSEI_DEPRESSION_DEGREES).abs() < 1e-4);
+        let naoj = japanese_dusk_naoj(day, KYOTO).expect("the Observatory's dusk");
+        assert!((naoj.0 - dusk.0).abs() * 86_400.0 < 0.5);
+        assert!(naoj.0 < dusk.0);
+    }
+
+    /// こよみのページ, 「理科年表の「夜明」と「日暮」の角度・補稿」
+    /// (2020-02-16): at Kyoto, 夜明 by the Observatory's 7°21′40″ at
+    /// 5:28:47 JST on 20 March and 5:12:54 on 22 September, and the Sun's
+    /// centre on the geometric horizon 35 min 56 s and 36 min 0 s later,
+    /// the 二刻半 the 寛政暦 meant. The page gives no year and no
+    /// coordinates; the year is taken as 2020, the year it was written,
+    /// whose equinoxes fell on those days, and the place as the 改暦所. The
+    /// intervals hardly depend on either and agree to 2 s; the clock times
+    /// come 7 s late, as a point 26″ of longitude east of the 改暦所 would
+    /// make them, and are checked to 10 s.
+    #[test]
+    fn kyoto_dawn_at_the_equinoxes_is_two_and_a_half_koku_before_the_centre_rises() {
+        let start = gregorian_new_year(2020);
+        for (offset, dawn_jst, interval) in [
+            (79, 5.0 * 3_600.0 + 28.0 * 60.0 + 47.0, 35.0 * 60.0 + 56.0),
+            (265, 5.0 * 3_600.0 + 12.0 * 60.0 + 54.0, 36.0 * 60.0),
+        ] {
+            let day = start + offset;
+            let dawn = japanese_dawn_naoj(day, KYOTO).expect("a dawn");
+            let centre = sun_crossing(day, KYOTO, 0.0, true).expect("a sunrise");
+            let seconds = (centre.0 - dawn.0) * 86_400.0;
+            assert!(
+                (seconds - interval).abs() < 3.0,
+                "day {offset}: {seconds} s"
+            );
+            let jst = (dawn.0 + 9.0 / 24.0 - day.0 as f64) * 86_400.0;
+            assert!(
+                (jst - dawn_jst).abs() < 10.0,
+                "day {offset}: dawn at {jst} s"
+            );
+        }
+    }
+
+    /// 天文学辞典, 「不定時法」: near the summer solstice a daytime hour of
+    /// the Edo reckoning was about 2 h 39 min and a night hour about
+    /// 1 h 21 min. The entry names no place; Kyoto's, at the solstice of
+    /// 2024, are 2 h 37.8 min and 1 h 22.3 min, each within 1.5 min.
+    #[test]
+    fn a_midsummer_edo_hour_is_about_two_hours_thirty_nine_minutes() {
+        let day = gregorian_new_year(2024) + 171;
+        let dawn = japanese_dawn_kansei(day, KYOTO).expect("dawn");
+        let dusk = japanese_dusk_kansei(day, KYOTO).expect("dusk");
+        let next = japanese_dawn_kansei(day + 1, KYOTO).expect("dawn");
+        let day_hour = (dusk.0 - dawn.0) * 1_440.0 / 6.0;
+        let night_hour = (next.0 - dusk.0) * 1_440.0 / 6.0;
+        assert!((day_hour - 159.0).abs() < 1.5, "day hour {day_hour} min");
+        assert!(
+            (night_hour - 81.0).abs() < 1.5,
+            "night hour {night_hour} min"
+        );
+    }
+
+    #[test]
+    fn the_edo_hours_run_from_dawn_through_noon_and_midnight() {
+        let day = gregorian_new_year(2024) + 200;
+        let at = |hour: EdoHour, fraction: f64| {
+            universal_from_edo_time_kansei(
+                EdoTime {
+                    day,
+                    hour,
+                    fraction,
+                },
+                KYOTO,
+            )
+            .expect("defined at Kyoto")
+        };
+        let dawn = japanese_dawn_kansei(day, KYOTO).expect("dawn");
+        let dusk = japanese_dusk_kansei(day, KYOTO).expect("dusk");
+        assert!((at(EdoHour::DAWN, 0.0).0 - dawn.0).abs() < 1e-9);
+        assert!((at(EdoHour::DUSK, 0.0).0 - dusk.0).abs() < 1e-9);
+        // 昼九つ begins halfway from dawn to dusk, within a minute of the
+        // Sun's transit, and 暁九つ halfway through the night.
+        let noon = at(EdoHour::NOON, 0.0);
+        assert!((noon.0 - solar_noon(day, KYOTO).0).abs() * 1_440.0 < 1.0);
+        let midnight = at(EdoHour::MIDNIGHT, 0.0);
+        let next = japanese_dawn_kansei(day + 1, KYOTO).expect("dawn");
+        assert!((midnight.0 - (dusk.0 + next.0) / 2.0).abs() < 1e-9);
+        // The last hour of a day ends at the next day's dawn.
+        assert!((at(EdoHour::ALL[11], 1.0).0 - next.0).abs() < 1e-9);
+        // 暮六時六分 is six tenths of an hour after 暮れ六つ.
+        let reading = edo_time_kansei(at(EdoHour::DUSK, 0.65), KYOTO).expect("defined");
+        assert_eq!(reading.hour, EdoHour::DUSK);
+        assert_eq!(reading.tenths(), 6);
+        // After midnight the reading still belongs to the day that began at
+        // the last dawn.
+        let reading = edo_time_kansei(Moment(midnight.0 + 0.01), KYOTO).expect("defined");
+        assert_eq!(reading.day, day);
+        assert_eq!(reading.hour, EdoHour::MIDNIGHT);
+    }
+
+    #[test]
+    fn the_edo_hours_are_named_by_their_strokes_and_branches() {
+        let names: Vec<&str> = EdoHour::ALL
+            .iter()
+            .map(|hour| hour.japanese_name())
+            .collect();
+        assert_eq!(
+            names,
+            [
+                "明六つ",
+                "朝五つ",
+                "朝四つ",
+                "昼九つ",
+                "昼八つ",
+                "夕七つ",
+                "暮六つ",
+                "夜五つ",
+                "夜四つ",
+                "暁九つ",
+                "暁八つ",
+                "暁七つ"
+            ]
+        );
+        let strokes: Vec<u8> = EdoHour::ALL.iter().map(|hour| hour.strokes()).collect();
+        assert_eq!(strokes, [6, 5, 4, 9, 8, 7, 6, 5, 4, 9, 8, 7]);
+        assert_eq!(EdoHour::DAWN.branch(), "卯");
+        assert_eq!(EdoHour::NOON.branch(), "午");
+        assert_eq!(EdoHour::DUSK.branch(), "酉");
+        assert_eq!(EdoHour::MIDNIGHT.branch(), "子");
+        assert_eq!(
+            EdoHour::from_index(11).map(EdoHour::romaji),
+            Some("akatsuki nanatsu")
+        );
+        assert_eq!(EdoHour::from_index(12), None);
+        assert!(EdoHour::ALL[5].is_daytime() && !EdoHour::ALL[6].is_daytime());
+    }
+
+    #[test]
+    fn edo_time_inverts_its_universal_time() {
+        let start = gregorian_new_year(2024).0 as f64;
+        for step in 0..200 {
+            let universal = Moment(start + f64::from(step) * 1.83 + 0.011);
+            let reading = edo_time_kansei(universal, KYOTO).expect("defined at Kyoto");
+            assert!((0.0..1.0).contains(&reading.fraction), "{reading:?}");
+            let back = universal_from_edo_time_kansei(reading, KYOTO).expect("defined");
+            assert!(
+                (back.0 - universal.0).abs() * 86_400.0 < 1e-3,
+                "step {step}: {reading:?}"
+            );
+        }
+    }
+
+    /// At Helsinki the midsummer Sun never sinks 7°21′ below the horizon,
+    /// so there is no 明け六つ and no Edo hour: an error, not a number.
+    #[test]
+    fn the_edo_hours_are_refused_on_a_white_night() {
+        let midsummer = gregorian_new_year(2024) + 172;
+        let missing = japanese_dusk_kansei(midsummer, HELSINKI);
+        assert_eq!(
+            missing,
+            Err(MissingSolarEvent::Twilight {
+                day: midsummer,
+                arcseconds: 26_501,
+                morning: false,
+            })
+        );
+        assert!(japanese_dawn_naoj(midsummer, HELSINKI).is_err());
+        assert!(edo_time_kansei(Moment(midsummer.0 as f64 + 0.5), HELSINKI).is_err());
+        let message = missing.map(|_| ()).unwrap_err().to_string();
+        assert!(
+            message.contains("7°21′41″") && message.contains("evening"),
+            "{message}"
+        );
+        // The same day in winter has both.
+        assert!(japanese_dawn_kansei(midsummer + 180, HELSINKI).is_ok());
     }
 }

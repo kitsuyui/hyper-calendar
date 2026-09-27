@@ -31,6 +31,9 @@ assert!(notes.lower_register().contains(LowerRegister::TENSHANICHI));
 | `seven_luminaries` | 七曜 — the planetary association over `hc_calendar::Weekday` |
 | `rokuyo` | 六曜 — re-exported from `hc-seasons`, where it is implemented |
 | `day_notes` | every annotation for one day, from one shared context |
+| `lucky_direction` | 恵方, the year's direction by its stem: 甲, 庚, 丙 or 壬, with the branches and the azimuth |
+| `nine_periods` | 三元九運, the twenty-year periods from 上元一運 in 1864, turning at 立春 |
+| `days_without_son` | 손 없는 날, the Korean lunar days ending in 9 and 0, on `dangi` |
 
 **暦注下段:** 大明日, 天恩日, 母倉日, 月徳日, 神吉日, 鬼宿日, 天赦日, 大禍日,
 狼藉日, 滅門日, 帰忌日, 血忌日, 重日, 復日, 往亡日, 凶会日, 十死日, 受死日 (黒日),
@@ -114,7 +117,9 @@ can. Where a table could be read two ways, the crate follows the lists:
 
 | Class | Annotations | Exactness |
 |---|---|---|
-| Pure day count | all 干支 rules, 七曜, 二十八宿 | exact for ever |
+| Pure day count | all 干支 rules, 七曜, 二十八宿, 恵方 | exact for ever |
+| Year count from 立春 | 三元九運 | exact, the 立春 day as the 九星 year has it |
+| Korean lunisolar | 손 없는 날 | `hc-calendars-lunar`'s `dangi`, 1645–2150 |
 | 節月-keyed | 十二直, 九星, most of 下段 and 選日 | `hc-astro`'s VSOP87 solar series, good to about 1″ |
 | Lunisolar | 六曜, 不成就日, 二十七宿 | `hc-seasons`' minimal 定気 derivation |
 
@@ -175,6 +180,13 @@ Things this crate deliberately does not do, rather than guessing:
   named rule `lower_register::KUENICHI_BY_LUNISOLAR_MONTH`, evaluated with
   `rule_applies`, so that a page does not print 凶会日 twice. The 宣明暦 table
   is not carried: no printed date tests it.
+* **The day a year's 恵方 takes over.** `lucky_direction_of_year` takes the
+  year's number; the customs read use the Gregorian year, 恵方参り on New
+  Year's Day and the 恵方巻 of 節分 facing the year already begun. The other
+  方位 deities, 大将軍, 金神 and the rest, are not carried.
+* **The 大三元 of 540 years**, whose epoch the source of 三元九運 does not give,
+  and where *son* is on the days that are not 손 없는 날, for which no table
+  was found.
 * **臘日.** At least four incompatible definitions are in print and many almanacs
   omit it. Not implemented.
 * **三伏 (初伏・中伏・末伏).** A period counted from the summer solstice and 立秋

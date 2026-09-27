@@ -508,3 +508,6 @@ Commun = "Commun"
 Shema = "Shema"
 shema = "shema"
 alos = "alos"
+# Japanese "yoru", night, in the romaji of the Edo hours 夜五つ and 夜四つ
+# (hc-astro::solar_time::EdoHour).
+yoru = "yoru"
