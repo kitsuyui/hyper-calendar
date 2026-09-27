@@ -149,7 +149,7 @@ Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
 States, Uruguay, Uzbekistan, Vanuatu, Vatican City, Venezuela, Vietnam, Yemen,
 Zambia, Zimbabwe.
 
-**Fifty-nine traditions.** Western Christianity on the Gregorian computus,
+**Sixty traditions.** Western Christianity on the Gregorian computus,
 the General Roman Calendar with the rank of every celebration
 (`roman_calendar`), the General Roman Calendar of 1960, the 1962 Missal's,
 with the class of every day (`roman_calendar_1960`), the Church of England's *Common Worship* calendar with
@@ -169,7 +169,8 @@ Prayer Book (`ember-bcp1662`) and of *Common Worship*'s traditional weeks
 Samaritan festivals on `samaritan`, the Mandaean feasts and *mbattal* days
 on `mandaean`, the Yazidi feasts on the Eastern calendar, the Bahá'í Faith,
 Hinduism, Jainism (Paryuṣaṇa and Daśa Lakṣaṇa counted back from their last
-days), Sikhism on the Nanakshahi calendar of 2003 (`sikh-nanakshahi-2003`),
+days), Sikhism on the Nanakshahi calendar of 2003 (`sikh-nanakshahi-2003`)
+and the SGPC's Bikrami days whose rule was read (`sikh-sgpc`),
 Buddhism as Thailand dates its four holy days on `thai-lunar`
 (`buddhist-thai`) and its uposatha days, แรม 14 or 15 ค่ำ by the month's
 length (`buddhist-uposatha-thai`), as Japan and the Chinese calendar date the

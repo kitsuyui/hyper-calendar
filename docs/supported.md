@@ -425,7 +425,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-59 tables, feature `holiday`.
+60 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
@@ -475,6 +475,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `samaritan` | Samaritan festivals | 6 |
 | `shinto` | Shinto | 5 |
 | `sikh-nanakshahi-2003` | Sikhism (Nanakshahi calendar of 2003) | 39 |
+| `sikh-sgpc` | Sikhism (SGPC, Bikrami calendar) | 5 |
 | `taoist` | Taoism | 5 |
 | `tenrikyo` | Tenrikyo | 16 |
 | `tokanya` | Tōkanya, the tenth night of the tenth lunar month (十日夜) | 1 |

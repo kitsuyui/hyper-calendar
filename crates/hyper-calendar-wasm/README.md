@@ -1866,7 +1866,7 @@ Vietnamese tables and the functions that date the Japanese 旧暦 days would
 otherwise search for again for every date they convert. Measured on
 2026-09-27 in the `release-compact` profile with
 [`examples/holidays_on_timing.rs`](../hyper-calendar/examples/holidays_on_timing.rs),
-one 2026 day across all 297 tables takes about 23 ms natively on
+one 2026 day across all 298 tables takes about 23 ms natively on
 1 January, the costliest, and 18 ms on 25 September, against 0.19 s for
 every table's whole year; in WebAssembly under Node 22, measured with
 `scripts/wasm-calendar-timing.mjs`, 51 ms and 41 ms. Before the call opened

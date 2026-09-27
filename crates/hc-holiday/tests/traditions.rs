@@ -16,8 +16,8 @@ use hc_holiday::traditions::{
     CHRISTIAN_WESTERN, CHURCH_OF_THE_EAST, COPTIC_ORTHODOX, EMBER_BCP1662, EMBER_COMMON_WORSHIP,
     ETHIOPIAN_ORTHODOX, GOSEKKU, HINDU, ISLAMIC, JAIN, JEWISH, KOREAN_FOLK, KYUCHU_SAISHI,
     MANDAEAN, PLOUGH_DAYS, ROGATION_ROMAN_1960, SACRED_WEDNESDAYS, SAMARITAN, SHINTO,
-    SIKH_NANAKSHAHI_2003, TAOIST, TENRIKYO, UNLUCKY_FRIDAYS, VIETNAMESE_FOLK, WHEEL_OF_THE_YEAR,
-    WHEEL_OF_THE_YEAR_SOUTH, YAZIDI, ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI,
+    SIKH_NANAKSHAHI_2003, SIKH_SGPC, TAOIST, TENRIKYO, UNLUCKY_FRIDAYS, VIETNAMESE_FOLK,
+    WHEEL_OF_THE_YEAR, WHEEL_OF_THE_YEAR_SOUTH, YAZIDI, ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI,
     ZOROASTRIAN_SHAHANSHAHI,
 };
 use hc_seasons::ColdFoodConvention;
@@ -920,6 +920,60 @@ fn the_three_lunar_sikh_days_match_the_sgpc_list() {
         assert_eq!(rule.kind, Kind::Religious, "{}", rule.name);
         assert_eq!(rule.confidence, Confidence::Exact, "{}", rule.name);
     }
+}
+
+#[test]
+fn the_sgpc_keeps_guru_gobind_singhs_parkash_on_poh_sudi_seven() {
+    // The Tribune, 16 January 2024: the SGPC's Parkash of 17 January 2024,
+    // and of 9 January and 29 December 2022, twice in one year. The
+    // Nanakshahi table of 2003 keeps 5 January.
+    expect(
+        &SIKH_SGPC,
+        &[
+            (2022, 1, 9, "Parkash of Guru Gobind Singh"),
+            (2022, 12, 29, "Parkash of Guru Gobind Singh"),
+            (2024, 1, 17, "Parkash of Guru Gobind Singh"),
+            // SikhNet's list "as per SGPC Calendar": 15 January 2027,
+            // and Vaisakhi and Guru Nanak's Parkash of 2026.
+            (2027, 1, 15, "Parkash of Guru Gobind Singh"),
+            (2026, 4, 14, "Vaisakhi"),
+            (2026, 11, 24, "Parkash of Guru Nanak"),
+        ],
+    );
+    expect_not(&SIKH_SGPC, &[(2024, 1, 5, "Parkash of Guru Gobind Singh")]);
+    for rule in SIKH_SGPC.rules {
+        assert_eq!(rule.kind, Kind::Religious, "{}", rule.name);
+    }
+}
+
+#[test]
+fn the_sgpc_keeps_the_three_movable_days_of_both_versions() {
+    // Wikipedia's table of the movable dates of the 2003 and 2010
+    // versions, 2010 to 2017, which the 2003 table's test reads for 2018
+    // to 2020.
+    let mut days = Vec::new();
+    for (year, hola, bandi, nanak) in [
+        (2010, (3, 1), (11, 5), (11, 21)),
+        (2011, (3, 20), (10, 26), (11, 10)),
+        (2012, (3, 9), (11, 13), (11, 28)),
+        (2013, (3, 28), (11, 3), (11, 17)),
+        (2014, (3, 17), (10, 23), (11, 6)),
+        (2015, (3, 6), (11, 11), (11, 25)),
+        (2016, (3, 24), (10, 30), (11, 14)),
+        (2017, (3, 13), (10, 19), (11, 4)),
+    ] {
+        days.push((year, bandi.0, bandi.1, "Bandi Chhor Divas"));
+        days.push((year, nanak.0, nanak.1, "Parkash of Guru Nanak"));
+        // Hola Mohalla is kept here on the day of Holi, the day after
+        // Holika Dahan, and the table has it a day later in 2012, 2013 and
+        // 2016, as it has in no year from 2018 to 2020.
+        if [2012, 2013, 2016].contains(&year) {
+            days.push((year, hola.0, hola.1 - 1, "Hola Mohalla"));
+        } else {
+            days.push((year, hola.0, hola.1, "Hola Mohalla"));
+        }
+    }
+    expect(&SIKH_SGPC, &days);
 }
 
 #[test]
