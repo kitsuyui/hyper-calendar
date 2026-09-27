@@ -292,7 +292,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_naming_period_on(const char *calendar, int64_t fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Which month and weekday names a locale writes for a calendar on a fixed day, where a government renamed them for a period, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_panchanga_at(int64_t unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | The yoga and the karaṇa in progress at a POSIX timestamp, as two NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_panchanga_of_day(int64_t fixed, double latitude, double longitude, double elevation, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | The yoga and the karaṇa a fixed day carries at a place, the ones in progress at its sunrise, as two NUL-terminated UTF-8 lines in a caller-owned buffer. |
-| `HcStatus hc_hindu_lunar_date(const char *sky, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `calendars` | The Hindu lunisolar date of a fixed day at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_hindu_lunar_date(const char *sky, int64_t fixed, double latitude, double longitude, double elevation, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The Hindu lunisolar date of a fixed day at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_surya_siddhanta_at(int64_t unix_seconds, char *buffer, size_t capacity, size_t *written);` | `calendars` | The *Sūrya Siddhānta*'s Sun and Moon at a POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_surya_siddhanta_sunrise(int64_t fixed, double latitude, double longitude, char *buffer, size_t capacity, size_t *written);` | `calendars` | The *Sūrya Siddhānta*'s sunrise on a fixed day at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_crescent_visible(const char *criterion, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `calendars` | Whether the young crescent should have been visible on the evening that begins a fixed day, from a place, by a named criterion, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
@@ -511,11 +511,14 @@ writes a `uint32_t`, the Chinese count's age, with a day before the birth
 capacity, written)` the module's line of the augury and its two 立春
 flags.
 
-`hc_hindu_lunar_date(sky, fixed, latitude, longitude, elevation, buffer,
-capacity, written)` writes the module's line of the amānta lunisolar date
-of a day read at the sunrise of a place the caller gives — the Śaka and
-Vikrama years, the month, the intercalary flag, the tithi, the repeated
-flag and the sunrise — on the true sky in the zodiac of a named ayanamsa,
+`hc_hindu_lunar_date(sky, fixed, latitude, longitude, elevation, locale,
+buffer, capacity, written)` writes the module's line of the amānta
+lunisolar date of a day read at the sunrise of a place the caller gives —
+the Śaka and Vikrama years, the month, the intercalary flag, the tithi,
+the repeated flag and the sunrise, then in the `locale` (a tag, `native`
+or null, as for `hc_describe_day`) the month's name, the word for an
+intercalary month, the Śaka and Vikrama eras' names and the locale used —
+on the true sky in the zodiac of a named ayanamsa,
 as `hindu-lunar` reads it at the Central Station, or, with `sky`
 `surya-siddhanta`, on the *Sūrya Siddhānta*'s, as
 `hindu-lunar-surya-siddhanta` reads it at Ujjain.
@@ -700,12 +703,13 @@ loaded zone outranking a built-in one. Bytes that are not TZif are
 `HC_ERROR_MALFORMED`.
 
 `hc_zones(locale, buffer, capacity, written)` writes where each of the 312
-zones of the IANA database's `zone1970.tab` is, in the seven columns of
+zones of the IANA database's `zone1970.tab` is, in the eight columns of
 the WebAssembly module's README: the zone, the latitude and longitude of
 its principal location in decimal degrees, the table's whole arcseconds
 written to six places (multiply by 3600 and round for the arcseconds),
-its countries `;`-separated,
-the table's comment, its CLDR 48 exemplar city and the tag that named the
+its countries `;`-separated (`JP;AU` for `Asia/Tokyo`), the one country
+`zone.tab` lists it under for a label (`JP`; empty for a name `zone.tab`
+has no row for, which none of release 2026c is), the table's comment, its CLDR 48 exemplar city and the tag that named the
 city. `hc_zone_location(zone, locale, buffer, capacity, written)` writes
 the same line for one name: a zone; a link `zone.tab` gives a place of its
 own, such as `Europe/Oslo`; or another link of `backward`, such as
@@ -753,8 +757,8 @@ lines: a local clock's reading — `local-mean`, `local-apparent`,
 cells naming what is missing instead of a number.
 `hc_horizons(buffer, capacity, written)` lists the named horizons a
 rising or a setting is measured against — `geometric-dip`, `usno` and
-`calendrical-calculations` — with their English names, descriptions and
-sources, and `hc_sunrise(horizon, fixed, latitude, longitude, elevation,
+`calendrical-calculations` — with their English names, descriptions,
+sources and short names for a label, and `hc_sunrise(horizon, fixed, latitude, longitude, elevation,
 buffer, capacity, written)` and `hc_sunset(...)` write the module's line
 of the crossing against the one named: the instant, the cells of a
 missing sunrise or sunset, and the altitude of the Sun's centre at the

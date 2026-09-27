@@ -26,6 +26,17 @@
 //!   old names stay in their countries: `America/Coral_Harbour` is
 //!   answered by `America/Atikokan`, not by `backward`'s `America/Panama`.
 //!
+//! Each row also carries the one country `zone.tab` lists its name under,
+//! [`ZoneLocation::zone_tab_country`]: `JP` for `Asia/Tokyo`, which
+//! `zone1970.tab` gives as `JP,AU`. That is the country a label for the
+//! zone can name, and it is the file's, not a choice made here. It is the
+//! first of `zone1970.tab`'s countries for every zone but
+//! `Europe/Simferopol`, which `zone1970.tab` gives as `RU,UA` and
+//! `zone.tab` lists as `UA` in its `RU` section, saying that its format
+//! "cannot represent Europe/Simferopol well". Every row of release 2026c
+//! has one; a row `zone.tab` did not list would carry the empty string,
+//! since `zone.tab` is deprecated and a later release may drop rows.
+//!
 //! [`location`] answers any of these names; the system document
 //! `docs/systems/zone-locations.md` explains how, with worked examples.
 //!
@@ -35,8 +46,9 @@
 //! `the_generated_tables_are_the_vendored_files` renders from the four
 //! files and compares with the committed copy: the comment lines are
 //! dropped, `zone.tab`'s rows for zones `zone1970.tab` already lists are
-//! left out (their coordinates are the same in both files), and every link
-//! is followed to a name with a row. To take a new release, replace the
+//! left out (their coordinates are the same in both files) and their
+//! country kept beside the row, and every link is followed to a name with
+//! a row. To take a new release, replace the
 //! files, change [`TZDATA_RELEASE`] and run
 //! `UPDATE_ZONE_TABLES=1 cargo test -p hc-tz location`.
 //!
@@ -251,6 +263,12 @@ pub struct ZoneLocation {
     /// comma-separated as the table writes them: `JP,AU`. The first is the
     /// country of the principal location; see [`Self::countries`].
     pub country_codes: &'static str,
+    /// The one ISO 3166-1 alpha-2 code `zone.tab` lists the name under:
+    /// `JP` for `Asia/Tokyo`, `UA` for `Europe/Simferopol`, `NO` for
+    /// `Europe/Oslo`. For a row of `zone.tab` it is the row's own country.
+    /// Empty where `zone.tab` has no row for the name, which no row of
+    /// release 2026c is.
+    pub zone_tab_country: &'static str,
     /// The table's comment, empty where the row has none. `zone1970.tab`
     /// writes one only where a country has several zones, and it tells
     /// that country's zones apart.
@@ -274,8 +292,9 @@ impl ZoneLocation {
 pub fn rows() -> impl Iterator<Item = ZoneLocation> {
     tables::ROWS
         .lines()
+        .zip(tables::ZONE_TAB_COUNTRIES.lines())
         .enumerate()
-        .filter_map(|(row, line)| parse_row(line, row))
+        .filter_map(|(row, (line, country))| parse_row(line, country, row))
 }
 
 /// Every zone, one per row of `zone1970.tab`, in its order: by country
@@ -315,9 +334,13 @@ pub fn location(name: &str) -> Option<ZoneLocation> {
     row_of(name).or_else(|| link_target(name).and_then(row_of))
 }
 
-/// One line of [`tables::ROWS`]: `countries\tcoordinates\tname` and an
-/// optional `\tcomment`.
-fn parse_row(line: &'static str, row: usize) -> Option<ZoneLocation> {
+/// One line of [`tables::ROWS`], `countries\tcoordinates\tname` and an
+/// optional `\tcomment`, with its line of [`tables::ZONE_TAB_COUNTRIES`].
+fn parse_row(
+    line: &'static str,
+    zone_tab_country: &'static str,
+    row: usize,
+) -> Option<ZoneLocation> {
     let mut cells = line.split('\t');
     let country_codes = cells.next()?;
     let coordinates = Coordinates::parse_iso6709(cells.next()?).ok()?;
@@ -332,6 +355,7 @@ fn parse_row(line: &'static str, row: usize) -> Option<ZoneLocation> {
         zone,
         coordinates,
         country_codes,
+        zone_tab_country,
         comment,
         table,
         row,
@@ -399,6 +423,7 @@ mod tests {
     /// `location/tables.rs` as the vendored files make it.
     fn render() -> String {
         let zones = tab_rows(ZONE1970);
+        let zone_tab = tab_rows(ZONE_TAB);
         let zone_names: Vec<&str> = zones.iter().map(|cells| cells[2]).collect();
         let extra: Vec<Vec<&str>> = tab_rows(ZONE_TAB)
             .into_iter()
@@ -445,9 +470,9 @@ mod tests {
             out
         };
         let mut out = String::from(
-            "//! The rows of `data/zone1970.tab` and `data/zone.tab`, and the links of\n\
-             //! `data/backward` with their targets from `data/backzone`, as `super`\n\
-             //! reads them.\n\
+            "//! The rows of `data/zone1970.tab` and `data/zone.tab`, the country\n\
+             //! `data/zone.tab` lists each under, and the links of `data/backward`\n\
+             //! with their targets from `data/backzone`, as `super` reads them.\n\
              //!\n\
              //! Generated from the four files by the test\n\
              //! `the_generated_tables_are_the_vendored_files` in `location.rs`;\n\
@@ -466,6 +491,21 @@ mod tests {
         );
         for cells in zones.iter().chain(&extra) {
             out.push_str(&literal(&cells.join("\t")));
+        }
+        out.push_str(");\n\n");
+        out.push_str(
+            "/// The country `zone.tab` lists each of [`ROWS`] under, one line each\n\
+             /// in the same order, empty where `zone.tab` has no row for the name.\n\
+             /// One line each, so that a row's country is found by its line.\n\
+             #[rustfmt::skip]\n\
+             pub(super) const ZONE_TAB_COUNTRIES: &str = concat!(\n",
+        );
+        for cells in zones.iter().chain(&extra) {
+            let country = zone_tab
+                .iter()
+                .find(|row| row[2] == cells[2])
+                .map_or("", |row| row[0]);
+            out.push_str(&literal(country));
         }
         out.push_str(");\n\n");
         out.push_str(
@@ -505,6 +545,10 @@ mod tests {
     #[test]
     fn every_row_parses_and_the_counts_are_the_files() {
         assert_eq!(rows().count(), tables::ROWS.lines().count());
+        assert_eq!(
+            tables::ZONE_TAB_COUNTRIES.lines().count(),
+            tables::ROWS.lines().count()
+        );
         assert_eq!(zones().count(), tab_rows(ZONE1970).len());
         assert_eq!(zones().count(), 312);
         assert_eq!(rows().count(), 312 + 106);
@@ -518,7 +562,10 @@ mod tests {
             );
             if row.table == LocationTable::ZoneTab {
                 assert_eq!(row.countries().count(), 1, "{}", row.zone);
+                assert_eq!(row.zone_tab_country, row.country_codes, "{}", row.zone);
             }
+            // Release 2026c's `zone.tab` lists every name the rows give.
+            assert_eq!(row.zone_tab_country.len(), 2, "{}", row.zone);
         }
     }
 
@@ -727,11 +774,38 @@ mod tests {
         assert_eq!(Coordinates::from_arcseconds(324_001, 0), None);
     }
 
+    /// `zone.tab` 2026c lists each name once, under one country, and it is
+    /// the first of `zone1970.tab`'s countries but for Simferopol: `JP
+    /// +353916+1394441 Asia/Tokyo`, `CH +4723+00832 Europe/Zurich`, and `UA
+    /// +4457+03406 Europe/Simferopol` in its `RU` section, where
+    /// `zone1970.tab` has `RU,UA`.
+    #[test]
+    fn the_zone_tab_country_is_the_one_zone_tab_lists_the_name_under() {
+        let country = |zone: &str| location(zone).expect(zone).zone_tab_country;
+        assert_eq!(country("Asia/Tokyo"), "JP");
+        assert_eq!(country("Europe/Zurich"), "CH");
+        assert_eq!(country("Asia/Riyadh"), "SA");
+        assert_eq!(country("Europe/Simferopol"), "UA");
+        assert_eq!(country("Europe/Oslo"), "NO");
+        assert_eq!(country("Asia/Calcutta"), "IN");
+        let names: Vec<&str> = tab_rows(ZONE_TAB).iter().map(|cells| cells[2]).collect();
+        let mut unique = names.clone();
+        unique.sort_unstable();
+        unique.dedup();
+        assert_eq!(unique.len(), names.len());
+        let differ: Vec<&str> = rows()
+            .filter(|row| row.countries().next() != Some(row.zone_tab_country))
+            .map(|row| row.zone)
+            .collect();
+        assert_eq!(differ, ["Europe/Simferopol"]);
+    }
+
     #[test]
     fn a_zone_answers_with_its_own_row_and_its_columns() {
         let tokyo = location("asia/TOKYO").expect("Tokyo");
         assert_eq!(tokyo.zone, "Asia/Tokyo");
         assert_eq!(tokyo.country_codes, "JP,AU");
+        assert_eq!(tokyo.zone_tab_country, "JP");
         assert_eq!(tokyo.countries().collect::<Vec<_>>(), ["JP", "AU"]);
         assert_eq!(tokyo.comment, "Eyre Bird Observatory");
         assert_eq!(tokyo.table, LocationTable::Zone1970);

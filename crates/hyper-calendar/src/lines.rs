@@ -165,7 +165,11 @@ fn push_flag(out: &mut String, flag: bool) {
 /// The era's name for a column that is empty when nobody has one: the
 /// locale's, else the calendar's own; never the bare code, which has a
 /// column of its own.
-fn era_label_or_empty(locale: &Locale, calendar: &dyn DynCalendar, code: &str) -> &'static str {
+pub(crate) fn era_label_or_empty(
+    locale: &Locale,
+    calendar: &dyn DynCalendar,
+    code: &str,
+) -> &'static str {
     let id = calendar.meta().id;
     names::era_name_by_code(locale, id, code, NameWidth::Wide).unwrap_or_else(|| {
         calendar.era_name(code).map_or("", |own| {
@@ -180,7 +184,7 @@ fn era_label_or_empty(locale: &Locale, calendar: &dyn DynCalendar, code: &str) -
 
 /// The month's name in the locale, else the calendar's own, else nothing:
 /// a month is never numbered here as if that were its name.
-fn month_label_or_empty(
+pub(crate) fn month_label_or_empty(
     locale: &Locale,
     calendar: &dyn DynCalendar,
     fields: &DateFields,

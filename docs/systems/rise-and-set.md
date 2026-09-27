@@ -140,7 +140,10 @@ one:
 `riseset::sunrise_with`, `sunset_with`, `moonrise_with` and
 `moonset_with` variants take a horizon by name. At the WebAssembly and C
 boundaries `hc_horizons` lists the horizons, each with a one-sentence
-`description`, and `hc_sunrise` and `hc_sunset` take one by its
+`description` and a short name for a label — `geometric dip`, from
+`calendar-code2`'s `dip`, the "depression of visible horizon"; `USNO`,
+the Observatory's own abbreviation; and `Calendrical Calculations`, the
+book's title — in English only, `hc-i18n` having no words for them, and `hc_sunrise` and `hc_sunset` take one by its
 identifier. At sea level the default
 and `usno` are the same horizon.
 

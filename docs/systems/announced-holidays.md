@@ -103,7 +103,7 @@ checks each step.
 | Sierra Leone | New Year, Good Friday, Easter Monday, Christmas, Boxing Day; a Sunday holiday on the Monday | Armed Forces Day 2020 and 2023; Women's Day 2020; Eid al-Fitr 2020; Eid al-Adha 2022 | Armed Forces Day 2021–2022; Independence Day, Labour Day and the Moulid every year | Saturday–Sunday |
 | Eswatini | The Schedule's days with section 2's Sunday proviso; the King's Birthday but in 2001 and 2026; 22 July to 2024 | Labour Day 2005; Umhlanga 2006 and 2025; Incwala 2007; the King's Birthday 2026, on the Friday; Lutsango Day 2025–2026 | The King's Birthday 2001; the notice days in every other year | Sunday |
 | Guinea-Bissau | From 2023: New Year, 20 January, 1 May, 24 September, Christmas | Tabaski 2025; Eid al-Fitr 2026 | Easter every year; each Eid in any other year | Sunday, the Lei Geral do Trabalho |
-| South Sudan | From 2022: the five single days on fixed dates | Easter 2022 and 2025–2026; Eid al-Fitr 2022 and 2025; Eid al-Adha and Christmas 2022 | Each span in every other year | Saturday–Sunday, not sourced |
+| South Sudan | From 2022: the five single days on fixed dates | Easter 2022 and 2025–2026; Eid al-Fitr 2022 and 2025; Eid al-Adha and Christmas 2022 | Each span in every other year | Saturday–Sunday, the Labour Act's model contract |
 | North Korea | From 2020: the wall calendar's thirteen holidays, the lunar days on `dangi` | — | — | Sunday, the Socialist Labour Law |
 
 **North Korea** is the one table here with no tabulated day. Its
@@ -118,7 +118,7 @@ state media's: from February 2024 the 15 April holiday is "4월의 명절" or
 authority's revision; the table keeps the calendar's names, one per day,
 and the KCNA wording of 2026 was not re-read to confirm it.
 
-**The weekends.** Five are from a labour law read: Liberia's Decent Work
+**The weekends.** Six are from a labour law read: Liberia's Decent Work
 Act, Togo's and Gabon's Codes du travail ("en principe le dimanche",
 article 198 of 2021 in Togo and 220 in Gabon [gabon-code-travail-2021]),
 North Korea's Socialist Labour Law, and Niger's décret 2017-682, whose
@@ -130,10 +130,15 @@ Eswatini's is the Ministry of Home Affairs' statement, as the press reports
 it, that Saturday is "a normal working day". Fiji's and The Gambia's are
 the days their instruments move a holiday off. Sudan's is from the press.
 Sierra Leone's is inferred from notices that moved Saturday holidays.
-South Sudan's is an assumption: section 59 of its Labour Act gives a weekly
-rest "on such day as is customary" and section 54 of its Civil Service Act
-a "standard 40 hour working week" [south-sudan-civil-service-act-2011],
-and neither names a day.
+South Sudan's is its Labour Act's, though no section of it names the days
+[south-sudan-labour-act-2017]: section 59 gives "a weekend holiday" "on
+such day as is customary", section 2 defines calendar days as "regular
+days including Saturdays and Sundays", and the model contract printed as
+the Act's Appendix B puts the normal working week "Monday through to
+Friday" (clause 5.1), "or as agreed". Section 54 of the Civil Service Act
+speaks of a "standard 40 hour working week" and names no day
+[south-sudan-civil-service-act-2011], and no circular on the working week
+was found among the Ministry of Labour's.
 
 **Not carried.** The one-off days of an instrument — an election, a day of
 mourning, a "working holiday" — except where the table says otherwise;
@@ -177,15 +182,16 @@ each was read. The instrument each table rests on, and its class:
 | Sierra Leone | [sierra-leone-gazette-notices] | The Gazette notices of 2020–2023 | Official gazette, from gazettes.africa and the Internet Archive |
 | Eswatini | [eswatini-gazette-notices] | The Gazette notices of 2001–2013 and the Government's notice of 2026 | Official gazette; Umhlanga 2025 and Lutsango Day from the press |
 | Guinea-Bissau | [guinea-bissau-decree-1-2023-press] | Decree 1/2023 and the Eid decrees of 2025 and 2026 | Secondary for the decree, quoted by the press; the state news agency for 2026 |
-| South Sudan | [south-sudan-mol-calendar-2022] | The Ministry of Labour's calendar of 2022 and notices of 2024–2026 | Official, from the NGO Forum's copies and mol.gov.ss |
+| South Sudan | [south-sudan-mol-calendar-2022], [south-sudan-labour-act-2017] | The Ministry of Labour's calendar of 2022 and notices of 2024–2026 | Official, from the NGO Forum's copies and mol.gov.ss |
 | North Korea | [kp-wall-calendar-2020-snu] | The 2020 wall calendar | Secondary: Seoul National University's transcription, for the holidays and their names; KCNA's reports of 2026 for the dates; [sbs-kp-april-holiday-2024] and [rfa-kp-day-of-the-sun-2024] for the names state media dropped |
 
 The weekend sources read for this document are
 [gabon-code-travail-2021], article 220; [niger-code-travail-2012],
 article 114, and [niger-decret-2017-682], articles 135 and 184;
 [guinea-bissau-lgt-dcjri], articles 123 and 124 as summarised, the law's
-own scan not read; and [south-sudan-civil-service-act-2011], section 54.
-All were read on 2026-09-26; the Niger decree in a copy whose text layer
+own scan not read; [south-sudan-civil-service-act-2011], section 54; and
+[south-sudan-labour-act-2017], sections 2 and 59 and Appendix B, read on
+2026-09-27. The rest were read on 2026-09-26; the Niger decree in a copy whose text layer
 is incomplete in places.
 
 ## Code

@@ -1848,7 +1848,7 @@ mod calendar_days {
 
     use hc::{astro_lines, calendar_values, crescent_lines, hindu_lines, panchanga_lines};
 
-    use super::{HC_ERROR_NULL_POINTER, HC_OK, HcStatus, name, status, write_answer};
+    use super::{HC_ERROR_NULL_POINTER, HC_OK, HcStatus, name, status, text, write_answer};
 
     /// One number through an out-parameter.
     ///
@@ -1944,8 +1944,13 @@ mod calendar_days {
     ///
     /// The line is the WebAssembly module's: the Śaka year, the Vikrama
     /// year, the month, 1 or 0 for the intercalary month, the tithi, 1 or 0
-    /// for a repeated tithi, and the sunrise the day was read at as POSIX
-    /// seconds. `sky` is an ayanamsa `hc_panchanga_at` names, for the true
+    /// for a repeated tithi, the sunrise the day was read at as POSIX
+    /// seconds; then, in the `locale`, the month's name, the locale's word
+    /// for an intercalary month where it is one, the Śaka and Vikrama
+    /// eras' names, and the tag of the data that answered. `locale` is a
+    /// NUL-terminated BCP 47 tag, `native` for the calendar's own
+    /// languages, or null, as for `hc_describe_day`; one that is not UTF-8
+    /// is `HC_ERROR_NOT_UTF8`. `sky` is an ayanamsa `hc_panchanga_at` names, for the true
     /// Sun and Moon, or `surya-siddhanta`, for the *Sūrya Siddhānta*'s, in
     /// any case; anything else is `HC_ERROR_UNKNOWN`, and null
     /// `HC_ERROR_NULL_POINTER`. A place beyond 65° of latitude, where
@@ -1958,8 +1963,9 @@ mod calendar_days {
     ///
     /// # Safety
     ///
-    /// `sky` must be null or NUL-terminated; `buffer` must be writable for
-    /// `capacity` bytes and `written` must be null or writable.
+    /// `sky` and `locale` must be null or NUL-terminated; `buffer` must be
+    /// writable for `capacity` bytes and `written` must be null or
+    /// writable.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn hc_hindu_lunar_date(
         sky: *const c_char,
@@ -1967,6 +1973,7 @@ mod calendar_days {
         latitude: f64,
         longitude: f64,
         elevation: f64,
+        locale: *const c_char,
         buffer: *mut c_char,
         capacity: usize,
         written: *mut usize,
@@ -1976,8 +1983,13 @@ mod calendar_days {
             Ok(sky) => sky,
             Err(status) => return status,
         };
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale) } {
+            Ok(tag) => tag.unwrap_or(""),
+            Err(status) => return status,
+        };
         let answer = astro_lines::location(latitude, longitude, elevation)
-            .and_then(|place| hindu_lines::hindu_lunar_date_line(sky, fixed, place));
+            .and_then(|place| hindu_lines::hindu_lunar_date_line(sky, fixed, place, tag));
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_answer(answer, buffer, capacity, written) }
     }
@@ -3382,11 +3394,13 @@ mod zones {
     /// order, with the zone, the latitude in decimal degrees north, the
     /// longitude in decimal degrees east, each the table's whole arcseconds
     /// to six places, the ISO 3166-1 codes of the
-    /// countries it overlaps `;`-separated, the table's comment, the zone's
-    /// CLDR 48 exemplar city in the `locale`, and the tag of the data that
-    /// named the city. A build without the `calendars` feature, a locale
-    /// with no city for the zone, and a null `locale` name the city in
-    /// English, with `en` in column 7. Writes the required length,
+    /// countries it overlaps `;`-separated, the one country `zone.tab`
+    /// lists the zone under (empty for a zone it has no row for), the
+    /// table's comment, the zone's CLDR 48 exemplar city in the `locale`,
+    /// and the tag of the data that named the city. A build without the
+    /// `calendars` feature, a locale with no city for the zone, and a null
+    /// `locale` name the city in English, with `en` in column 8. Writes the
+    /// required length,
     /// including the terminator, into `written`.
     ///
     /// # Safety
@@ -3642,8 +3656,8 @@ mod earth_and_sun {
     ///
     /// The lines are the WebAssembly module's, one per horizon: the
     /// identifier, the English name, what it takes the visible horizon to
-    /// be, and the source. Writes the required length, including the
-    /// terminator, into `written`.
+    /// be, the source, and a short English name for a label. Writes the
+    /// required length, including the terminator, into `written`.
     ///
     /// # Safety
     ///
@@ -5745,9 +5759,10 @@ mod tests {
             });
             assert_eq!(text.lines().count(), 312);
             assert!(text.lines().any(|line| line
-                == "Asia/Tokyo\t35.654444\t139.744722\tJP;AU\tEyre Bird Observatory\tTokyo\ten"));
+                == "Asia/Tokyo\t35.654444\t139.744722\tJP;AU\tJP\tEyre Bird Observatory\tTokyo\ten"));
             assert!(
-                line(c"Europe/Oslo", c"en").starts_with("Europe/Oslo\t59.916667\t10.750000\tNO\t")
+                line(c"Europe/Oslo", c"en")
+                    .starts_with("Europe/Oslo\t59.916667\t10.750000\tNO\tNO\t\t")
             );
             assert!(line(c"Asia/Calcutta", c"en").starts_with("Asia/Kolkata\t"));
             let mut written = 0usize;
@@ -6733,12 +6748,17 @@ mod tests {
                     23.15,
                     75.768_333,
                     0.0,
+                    c"en".as_ptr(),
                     buffer,
                     capacity,
                     written,
                 )
             });
             assert!(line.starts_with("1947\t2082\t1\t0\t1\t0\t"), "{line:?}");
+            assert!(
+                line.ends_with("\tChaitra\t\tSaka\tVikrama Samvat\ten\n"),
+                "{line:?}"
+            );
             let line = read_lines(|buffer, capacity, written| unsafe {
                 hc_surya_siddhanta_sunrise(day, 23.15, 75.768_333, buffer, capacity, written)
             });
@@ -6788,6 +6808,7 @@ mod tests {
                         0.0,
                         0.0,
                         0.0,
+                        core::ptr::null(),
                         core::ptr::null_mut(),
                         0,
                         &mut written,
@@ -6830,7 +6851,17 @@ mod tests {
             // The true sky at the Central Station with Lahiri's ayanamsa.
             let hindu = |sky: *const c_char, fixed: i64, latitude: f64| {
                 measured(|buffer, capacity, written| unsafe {
-                    hc_hindu_lunar_date(sky, fixed, latitude, 82.5, 0.0, buffer, capacity, written)
+                    hc_hindu_lunar_date(
+                        sky,
+                        fixed,
+                        latitude,
+                        82.5,
+                        0.0,
+                        core::ptr::null(),
+                        buffer,
+                        capacity,
+                        written,
+                    )
                 })
             };
             let lahiri = c"lahiri".as_ptr();

@@ -1099,6 +1099,7 @@ describe("where each zone is", () => {
       latitude: 35.654444,
       longitude: 139.744722,
       countries: ["JP", "AU"],
+      country: "JP",
       comment: "Eyre Bird Observatory",
       exemplarCity: "Tokyo",
       localeUsed: "en",
@@ -1117,7 +1118,13 @@ describe("where each zone is", () => {
         assert.ok(Math.abs(arcseconds - Math.round(arcseconds)) < 0.002, `${zone.zone} ${degrees}`);
       }
       assert.ok(zone.exemplarCity.length > 0, zone.zone);
+      // zone.tab 2026c lists every zone, under one of its countries.
+      assert.ok(zone.country !== null && zone.countries.includes(zone.country), zone.zone);
     }
+    // zone.tab: UA +4457+03406 Europe/Simferopol, in its RU section, where
+    // zone1970.tab has RU,UA.
+    const simferopol = zones.find((zone) => zone.zone === "Europe/Simferopol");
+    assert.deepEqual([simferopol?.countries, simferopol?.country], [["RU", "UA"], "UA"]);
   });
 
   test("a link answers with its own row or the row it leads to, and UTC with none", () => {
@@ -1127,6 +1134,7 @@ describe("where each zone is", () => {
     assert.equal(oslo.latitude, 59.916667);
     assert.equal(oslo.longitude, 10.75);
     assert.deepEqual(oslo.countries, ["NO"]);
+    assert.equal(oslo.country, "NO");
     assert.equal(hc.zoneLocation("Asia/Calcutta").zone, "Asia/Kolkata");
     const error = refused(() => hc.zoneLocation("UTC"), "unknown");
     assert.equal(error.export, "hc_zone_location");
@@ -1678,6 +1686,7 @@ describe("the Earth's rotation and the Sun's hours", () => {
     const horizons = hc.horizons();
     assert.deepEqual(horizons.map((horizon) => horizon.id), ["geometric-dip", "usno", "calendrical-calculations"]);
     assert.ok(horizons.every((horizon) => horizon.description.length > 0 && horizon.source.length > 0));
+    assert.deepEqual(horizons.map((horizon) => horizon.shortName), ["geometric dip", "USNO", "Calendrical Calculations"]);
     // The USNO for Jerusalem on 2024-01-01: sunrise 06:39 and sunset 16:46
     // at UT+2, 04:39 and 14:46 UTC, under its sea-level horizon.
     const day = hc.gregorianToFixed(2024, 1, 1);
@@ -1712,7 +1721,28 @@ describe("the Hindu date and the crescent", () => {
         [1947, 2082, 1, false, 1, false],
         sky,
       );
+      assert.deepEqual(
+        [date.monthName, date.leapMonthWord, date.sakaEra, date.vikramaEra, date.localeUsed],
+        ["Chaitra", null, "Saka", "Vikrama Samvat", "en"],
+        sky,
+      );
     }
+    // 27 September 2026 at Tokyo: Śaka 1948, Bhādrapada, the sixteenth
+    // tithi, on every ayanamsa and on the Siddhānta's sky.
+    const autumn = hc.gregorianToFixed(2026, 9, 27);
+    for (const sky of ["Lahiri", "Raman", "Krishnamurti", "Fagan-Bradley", "surya-siddhanta"]) {
+      const date = hc.hinduLunarDate(sky, autumn, 35.654_444, 139.744_722, 0, "hi");
+      assert.deepEqual(
+        [date.sakaYear, date.month, date.tithi, date.monthName, date.sakaEra, date.vikramaEra, date.localeUsed],
+        [1948, 6, 16, "भाद्रपद", "शक", null, "hi"],
+        sky,
+      );
+    }
+    // The adhika Śrāvaṇa of Śaka 1945, 18 July to 16 August 2023, at the
+    // Central Station.
+    const adhika = hc.hinduLunarDate("Lahiri", hc.gregorianToFixed(2023, 8, 1), 23.183_333, 82.5, 0, "en");
+    assert.deepEqual([adhika.month, adhika.leapMonth, adhika.monthName, adhika.leapMonthWord], [5, true, "Adhika Sravana", "Adhika"]);
+    assert.equal(hc.hinduLunarDate("Lahiri", autumn, 35.654_444, 139.744_722, 0, "native").localeUsed, "sa");
     // At the Siddhānta's sunrise its Sun is in Mīna and its Moon 7.58°
     // ahead, in the first tithi.
     const sunrise = hc.suryaSiddhantaSunrise(day, 23.15, 75.768_333);

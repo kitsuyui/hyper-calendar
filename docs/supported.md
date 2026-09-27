@@ -385,7 +385,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `SN` | Senegal | 16 | yes | stated | 2026-09-22 |
 | `SO` | Somalia | 7 | none | stated | 2026-09-26 |
 | `SR` | Suriname | 16 | none | stated | 2026-09-27 |
-| `SS` | South Sudan | 11 | none | stated | 2026-09-26 |
+| `SS` | South Sudan | 11 | none | stated | 2026-09-27 |
 | `SV` | El Salvador | 14 | none | stated | 2026-09-23 |
 | `SY` | Syria | 19 | none | stated | 2026-09-23 |
 | `SZ` | Eswatini | 19 | yes | stated | 2026-09-26 |
