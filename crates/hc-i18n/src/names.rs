@@ -1608,6 +1608,63 @@ mod tests {
         assert_eq!(leap_month_prefix(&locale("de"), CalendarId("gregory")), "");
     }
 
+    /// CLDR 48 `yue.xml`, `calendar type="hebrew"`: month 6, 亞達月 I, and
+    /// month 7 in a leap year, 亞達月 II; `ur.xml`'s ninth Hijri month, رمضان;
+    /// `yue.xml`'s twelfth Chinese month, 臘月, and twelfth Dangi month,
+    /// 十二月; `te.xml`, whose format Hijri months are root's, names none.
+    #[test]
+    fn the_most_spoken_languages_name_the_calendars_their_files_name() {
+        let wide = |tag: &str, id: &'static str, month: Month, leap_year: bool| {
+            month_label_in(
+                &locale(tag),
+                CalendarId(id),
+                month,
+                leap_year,
+                NameWidth::Wide,
+                NameContext::Format,
+            )
+            .map(|label| label.to_string())
+        };
+        assert_eq!(
+            wide("yue", "hebrew", Month::leap(5), true).as_deref(),
+            Some("亞達月 I")
+        );
+        assert_eq!(
+            wide("yue", "hebrew", Month::regular(6), true).as_deref(),
+            Some("亞達月 II")
+        );
+        assert_eq!(
+            wide("yue", "hebrew", Month::regular(6), false).as_deref(),
+            Some("亞達月")
+        );
+        assert_eq!(
+            wide("ur", "islamic-civil", Month::regular(9), false).as_deref(),
+            Some("رمضان")
+        );
+        assert_eq!(
+            wide("yue-HK", "chinese", Month::regular(12), false).as_deref(),
+            Some("臘月")
+        );
+        assert_eq!(
+            wide("yue", "dangi", Month::regular(12), false).as_deref(),
+            Some("十二月")
+        );
+        assert_eq!(
+            wide("yue-CN", "chinese", Month::leap(2), false).as_deref(),
+            Some("闰二月")
+        );
+        assert_eq!(wide("te", "islamic-civil", Month::regular(9), false), None);
+        assert_eq!(
+            wide("mr", "gregory", Month::regular(9), false).as_deref(),
+            Some("सप्टेंबर")
+        );
+        // `pt_PT.xml` states no months, so `pt.xml`'s answer.
+        assert_eq!(
+            wide("pt-PT", "gregory", Month::regular(9), false).as_deref(),
+            Some("setembro")
+        );
+    }
+
     #[test]
     fn the_hebrew_intercalary_month_and_leap_year_adar_have_their_own_names() {
         let hebrew = CalendarId("hebrew");

@@ -292,6 +292,33 @@ mod tests {
         assert_eq!(say(&ru, -25, TimeUnit::Day), "25 дней назад");
     }
 
+    /// CLDR 48 `sw.xml`, `ur.xml`, `mr.xml`, `yue.xml`, `pa.xml` and
+    /// `pt_PT.xml` over `pt.xml`, `<fields>`: each phrase as the file states
+    /// it, in the locale's own digits.
+    #[test]
+    fn the_most_spoken_languages_say_what_their_files_say() {
+        assert_eq!(say(&numeric("sw"), -1, TimeUnit::Month), "mwezi 1 uliopita");
+        assert_eq!(
+            say(&numeric("sw"), -3, TimeUnit::Month),
+            "miezi 3 iliyopita"
+        );
+        assert_eq!(say(&numeric("sw"), 3, TimeUnit::Day), "baada ya siku 3");
+        assert_eq!(say(&auto("sw"), -1, TimeUnit::Day), "jana");
+        assert_eq!(say(&auto("sw"), 2, TimeUnit::Day), "kesho kutwa");
+        assert_eq!(say(&auto("yue"), -1, TimeUnit::Day), "尋日");
+        assert_eq!(say(&numeric("yue"), -3, TimeUnit::Day), "3 日前");
+        assert_eq!(say(&numeric("mr"), -3, TimeUnit::Day), "३ दिवसांपूर्वी");
+        assert_eq!(say(&numeric("pa"), 1, TimeUnit::Day), "1 ਦਿਨ ਵਿੱਚ");
+        // `pt_PT.xml` states its own future, "dentro de", and inherits the
+        // past, "há", from `pt.xml`.
+        assert_eq!(say(&numeric("pt-PT"), 3, TimeUnit::Day), "dentro de 3 dias");
+        assert_eq!(say(&numeric("pt-PT"), -3, TimeUnit::Day), "há 3 dias");
+        assert_eq!(say(&numeric("pt"), 3, TimeUnit::Day), "em 3 dias");
+        // A language whose file has no fields falls to root, never to the
+        // other script's entry.
+        assert_eq!(say(&numeric("pa-PK"), -3, TimeUnit::Day), "-۳ d");
+    }
+
     #[test]
     fn russian_teens_are_many_even_though_their_last_digit_says_otherwise() {
         let ru = numeric("ru");

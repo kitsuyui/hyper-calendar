@@ -316,6 +316,14 @@ describe("describeDay", () => {
     assert.equal(gregorian.year, 2026);
     assert.equal(gregorian.standing, "in-use");
     assert.equal(gregorian.formatted, "2026年9月21日");
+    // The locales of the most-spoken languages write the day as their CLDR
+    // 48 files do: sw.xml "d MMMM y", ur.xml "d MMMM، y", and mr.xml
+    // "d MMMM, y" in Devanagari digits; Urdu names the Hijri month.
+    const inLocale = (tag, id) => hc.describeDay(739_880, tag).find((row) => row.id === id);
+    assert.equal(inLocale("sw", "gregory")?.formatted, "21 Septemba 2026");
+    assert.equal(inLocale("ur", "gregory")?.formatted, "21 ستمبر، 2026");
+    assert.equal(inLocale("mr", "gregory")?.formatted, "२१ सप्टेंबर, २०२६");
+    assert.equal(inLocale("ur", "islamic-civil")?.localeUsed, "ur");
     // Japanese has no words for the Hebrew months, so the Hebrew calendar
     // answers in English, not Hebrew, and says so; only `native` borrows a
     // calendar's own language.
@@ -559,7 +567,7 @@ describe("calendars and locales", () => {
       assert.equal(cells.length, COLUMNS.locales.length, JSON.stringify(cells));
     }
     const rows = hc.locales();
-    assert.ok(rows.length >= 27, `${rows.length} locales`);
+    assert.equal(rows.length, 53, `${rows.length} locales`);
     assert.deepEqual(rows.map((row) => row.tag), [...rows.map((row) => row.tag)].sort(), "tag order");
     const ja = rows.find((row) => row.tag === "ja");
     assert.ok(ja);
@@ -571,6 +579,19 @@ describe("calendars and locales", () => {
     const coptic = rows.find((row) => row.tag === "cop");
     assert.deepEqual([coptic?.gregorianMonths, coptic?.weekdays, coptic?.gregorianEras], [false, false, false]);
     assert.deepEqual(coptic?.calendars, ["coptic"]);
+    // The locales of the most-spoken languages, from CLDR 48: Urdu names
+    // the Hijri months (ur.xml), European Portuguese states no months of
+    // its own and takes pt's (pt_PT.xml), and Cantonese is carried in both
+    // of its scripts.
+    const urdu = rows.find((row) => row.tag === "ur");
+    assert.deepEqual([urdu?.englishName, urdu?.nativeName], ["Urdu", "اردو"]);
+    assert.deepEqual([urdu?.gregorianMonths, urdu?.weekdays, urdu?.gregorianEras], [true, true, true]);
+    assert.ok(urdu?.calendars.includes("islamic-civil"), urdu?.calendars.join(","));
+    const portugal = rows.find((row) => row.tag === "pt-PT");
+    assert.deepEqual([portugal?.gregorianMonths, portugal?.weekdays], [false, true]);
+    for (const tag of ["fil", "ha", "mr", "pa-Arab", "pa-Guru", "pcm", "sw", "te", "yue-Hans", "yue-Hant"]) {
+      assert.ok(rows.some((row) => row.tag === tag), tag);
+    }
   });
 });
 

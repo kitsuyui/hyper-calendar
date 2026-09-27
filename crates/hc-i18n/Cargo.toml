@@ -21,7 +21,7 @@ alloc = ["hc-core/alloc", "hc-calendar/alloc"]
 libm = ["hc-core/libm"]
 # CLDR 48's names for the 195 regions the workspace keeps holiday tables
 # for, in every carried locale CLDR names them in (the `territories`
-# module). About a hundred kilobytes of text, so off unless a caller names
+# module). About 135 kB of text, so off unless a caller names
 # territories: the facade's `holiday` feature turns it on, and a build that
 # only renders dates does not carry it.
 territories = []
@@ -31,7 +31,7 @@ territories = []
 # `tz` feature turns it on.
 exemplar-cities = []
 # The exemplar cities in every other carried locale CLDR names them in.
-# About 170 kB of text, so a feature of its own: the facade's
+# About 230 kB of text, so a feature of its own: the facade's
 # `localized-exemplar-cities` feature turns it on, and a build that shows
 # zones in English does not carry it.
 localized-exemplar-cities = ["exemplar-cities"]

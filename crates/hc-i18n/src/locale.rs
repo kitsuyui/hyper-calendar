@@ -196,11 +196,18 @@ const REGION_FIRST_DAY: &[(&str, Weekday)] = &[
 /// From Unicode CLDR 48, `common/supplemental/likelySubtags.xml`
 /// (`cldr48-supplemental`, tag `release-48`, retrieved 2026-09-26): `zh`
 /// maximises to `zh_Hans_CN`, and each region listed with `Hant` below
-/// maximises to `zh_Hant_<region>`. Any other region takes the language's
-/// own row, the one with an empty region. Only Chinese is listed, because
-/// it is the only language here whose entries are keyed by script
-/// (`zh-Hans`, `zh-Hant`) rather than by language alone.
+/// maximises to `zh_Hant_<region>`; `pa` to `pa_Guru_IN` and `pa_PK` to
+/// `pa_Arab_PK`; `yue` to `yue_Hant_HK` and `yue_CN` to `yue_Hans_CN`. Any
+/// other region takes the language's own row, the one with an empty
+/// region. Only Chinese, Punjabi and Cantonese are listed, because they are
+/// the languages here whose entries are keyed by script (`zh-Hans`,
+/// `zh-Hant`, `pa-Guru`, `pa-Arab`, `yue-Hans`, `yue-Hant`) rather than by
+/// language alone.
 pub const LIKELY_SCRIPTS: &[(&str, &str, &str)] = &[
+    ("pa", "", "Guru"),
+    ("pa", "PK", "Arab"),
+    ("yue", "", "Hant"),
+    ("yue", "CN", "Hans"),
     ("zh", "", "Hans"),
     ("zh", "AU", "Hant"),
     ("zh", "BN", "Hant"),

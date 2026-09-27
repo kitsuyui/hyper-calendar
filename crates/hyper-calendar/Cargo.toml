@@ -107,7 +107,7 @@ name-days = ["civil", "dep:hc-name-days"]
 # English exemplar city of each zone for `zone_lines`.
 tz = ["civil", "dep:hc-tz", "dep:hc-i18n", "hc-i18n/exemplar-cities"]
 # CLDR's exemplar cities of the zones in every locale hc-i18n carries, for
-# `zone_lines`. Some 170 kB of text, so apart from `tz`: without it a
+# `zone_lines`. Some 230 kB of text, so apart from `tz`: without it a
 # zone's city is English's.
 localized-exemplar-cities = ["dep:hc-i18n", "hc-i18n/localized-exemplar-cities"]
 # ISO 8601 / RFC 3339 parsing and formatting.

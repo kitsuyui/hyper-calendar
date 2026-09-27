@@ -38,17 +38,21 @@
 //! # Every other locale
 //!
 //! With the `localized-exemplar-cities` feature, every locale `hc-i18n`
-//! carries whose CLDR file has at least one value at a release level: 30
+//! carries whose CLDR file has at least one value at a release level: 41
 //! besides English. Where a file writes CLDR's inheritance marker `↑↑↑` at
 //! a release level, the locale's own data says the name is its parent's,
-//! which for every carried locale is root's: `root.xml`'s value, else the
-//! derived name. So German's `Europe/Berlin` is `Berlin`, answered by `de`.
-//! A zone a file has no release-level value or marker for is left unnamed
-//! there, and [`exemplar_city`] falls back to English. Tibetan (`bo`),
-//! Sanskrit (`sa`) and Standard Moroccan Tamazight (`zgh`) have no
-//! exemplar cities in CLDR 48, and every Coptic (`cop`) and Kabyle
-//! (`kab`) value is unconfirmed, so those five have no table; Balinese,
-//! Middle Egyptian, Nahuatl, Yucatec Maya and Zapotec have no CLDR file.
+//! which for every carried locale but one is root's: `root.xml`'s value,
+//! else the derived name. So German's `Europe/Berlin` is `Berlin`, answered
+//! by `de`. The one is European Portuguese, whose parent is `pt.xml`: its
+//! table leaves a marker's line empty, so that the lookup goes on to the `pt`
+//! table, as CLDR's inheritance does, and keeps the 83 names `pt_PT.xml`
+//! gives of its own. A zone a file has no release-level value or marker for
+//! is left unnamed there, and [`exemplar_city`] falls back to English.
+//! Tibetan (`bo`), Sanskrit (`sa`), Standard Moroccan Tamazight (`zgh`) and
+//! Punjabi in the Arabic script (`pa-Arab`) have no exemplar cities in CLDR
+//! 48, and every Coptic (`cop`) and Kabyle (`kab`) value is unconfirmed, so
+//! those six have no table; Balinese, Middle Egyptian, Nahuatl, Yucatec Maya
+//! and Zapotec have no CLDR file.
 //!
 //! # Compact by design
 //!
@@ -57,7 +61,7 @@
 //! beside its zone through the `exemplar_cities!` macro, which checks the
 //! zones against [`ZONES`] at compile time and keeps only the names, so
 //! [`ZONES`] itself is not carried by a build that only looks names up by
-//! position. The tables of the other locales are some 170 kB of text, which
+//! position. The tables of the other locales are some 230 kB of text, which
 //! is why they are a feature of their own: a build that shows zones in
 //! English carries only English's.
 
@@ -322,8 +326,16 @@ pub static TABLES: &[ExemplarCities] = &[
         names: FA,
     },
     ExemplarCities {
+        tag: "fil",
+        names: FIL,
+    },
+    ExemplarCities {
         tag: "fr",
         names: FR,
+    },
+    ExemplarCities {
+        tag: "ha",
+        names: HA,
     },
     ExemplarCities {
         tag: "he",
@@ -358,6 +370,10 @@ pub static TABLES: &[ExemplarCities] = &[
         names: ML,
     },
     ExemplarCities {
+        tag: "mr",
+        names: MR,
+    },
+    ExemplarCities {
         tag: "my",
         names: MY,
     },
@@ -368,6 +384,14 @@ pub static TABLES: &[ExemplarCities] = &[
     ExemplarCities {
         tag: "nl",
         names: NL,
+    },
+    ExemplarCities {
+        tag: "pa-Guru",
+        names: PA_GURU,
+    },
+    ExemplarCities {
+        tag: "pcm",
+        names: PCM,
     },
     ExemplarCities {
         tag: "pl",
@@ -382,8 +406,16 @@ pub static TABLES: &[ExemplarCities] = &[
         names: PT,
     },
     ExemplarCities {
+        tag: "pt-PT",
+        names: PT_PT,
+    },
+    ExemplarCities {
         tag: "ru",
         names: RU,
+    },
+    ExemplarCities {
+        tag: "sw",
+        names: SW,
     },
     ExemplarCities {
         tag: "syr",
@@ -394,6 +426,10 @@ pub static TABLES: &[ExemplarCities] = &[
         names: TA,
     },
     ExemplarCities {
+        tag: "te",
+        names: TE,
+    },
+    ExemplarCities {
         tag: "th",
         names: TH,
     },
@@ -402,8 +438,20 @@ pub static TABLES: &[ExemplarCities] = &[
         names: TR,
     },
     ExemplarCities {
+        tag: "ur",
+        names: UR,
+    },
+    ExemplarCities {
         tag: "vi",
         names: VI,
+    },
+    ExemplarCities {
+        tag: "yue-Hans",
+        names: YUE_HANS,
+    },
+    ExemplarCities {
+        tag: "yue-Hant",
+        names: YUE_HANT,
     },
     ExemplarCities {
         tag: "zh-Hans",
@@ -14376,6 +14424,4659 @@ const ZH_HANT: &str = exemplar_cities! {
     "Africa/Harare" "哈拉雷"
 };
 
+// `common/main/fil.xml`: 13 of the 418 zones named, 405 inherited.
+#[cfg(feature = "localized-exemplar-cities")]
+const FIL: &str = exemplar_cities! {
+    "Europe/Andorra" inherited
+    "Asia/Dubai" inherited
+    "Asia/Kabul" inherited
+    "Europe/Tirane" inherited
+    "Asia/Yerevan" inherited
+    "Antarctica/Casey" inherited
+    "Antarctica/Davis" inherited
+    "Antarctica/Mawson" inherited
+    "Antarctica/Palmer" inherited
+    "Antarctica/Rothera" inherited
+    "Antarctica/Troll" inherited
+    "Antarctica/Vostok" inherited
+    "America/Argentina/Buenos_Aires" inherited
+    "America/Argentina/Cordoba" inherited
+    "America/Argentina/Salta" inherited
+    "America/Argentina/Jujuy" inherited
+    "America/Argentina/Tucuman" inherited
+    "America/Argentina/Catamarca" inherited
+    "America/Argentina/La_Rioja" inherited
+    "America/Argentina/San_Juan" inherited
+    "America/Argentina/Mendoza" inherited
+    "America/Argentina/San_Luis" inherited
+    "America/Argentina/Rio_Gallegos" inherited
+    "America/Argentina/Ushuaia" inherited
+    "Pacific/Pago_Pago" inherited
+    "Europe/Vienna" inherited
+    "Australia/Lord_Howe" inherited
+    "Antarctica/Macquarie" inherited
+    "Australia/Hobart" inherited
+    "Australia/Melbourne" inherited
+    "Australia/Sydney" inherited
+    "Australia/Broken_Hill" inherited
+    "Australia/Brisbane" inherited
+    "Australia/Lindeman" inherited
+    "Australia/Adelaide" inherited
+    "Australia/Darwin" inherited
+    "Australia/Perth" inherited
+    "Australia/Eucla" inherited
+    "Asia/Baku" inherited
+    "America/Barbados" inherited
+    "Asia/Dhaka" inherited
+    "Europe/Brussels" inherited
+    "Europe/Sofia" inherited
+    "Atlantic/Bermuda" inherited
+    "America/La_Paz" inherited
+    "America/Noronha" inherited
+    "America/Belem" inherited
+    "America/Fortaleza" inherited
+    "America/Recife" inherited
+    "America/Araguaina" inherited
+    "America/Maceio" inherited
+    "America/Bahia" inherited
+    "America/Sao_Paulo" inherited
+    "America/Campo_Grande" inherited
+    "America/Cuiaba" inherited
+    "America/Santarem" inherited
+    "America/Porto_Velho" inherited
+    "America/Boa_Vista" inherited
+    "America/Manaus" inherited
+    "America/Eirunepe" inherited
+    "America/Rio_Branco" inherited
+    "Asia/Thimphu" inherited
+    "Europe/Minsk" inherited
+    "America/Belize" inherited
+    "America/St_Johns" inherited
+    "America/Halifax" inherited
+    "America/Glace_Bay" inherited
+    "America/Moncton" inherited
+    "America/Goose_Bay" inherited
+    "America/Toronto" inherited
+    "America/Iqaluit" inherited
+    "America/Winnipeg" inherited
+    "America/Resolute" inherited
+    "America/Rankin_Inlet" "Makipot na Look ng Rankin"
+    "America/Regina" inherited
+    "America/Swift_Current" inherited
+    "America/Edmonton" inherited
+    "America/Cambridge_Bay" inherited
+    "America/Inuvik" inherited
+    "America/Vancouver" inherited
+    "America/Dawson_Creek" inherited
+    "America/Fort_Nelson" inherited
+    "America/Whitehorse" inherited
+    "America/Dawson" inherited
+    "Europe/Zurich" inherited
+    "Africa/Abidjan" inherited
+    "Pacific/Rarotonga" inherited
+    "America/Santiago" inherited
+    "America/Coyhaique" inherited
+    "America/Punta_Arenas" inherited
+    "Pacific/Easter" inherited
+    "Asia/Shanghai" inherited
+    "Asia/Urumqi" inherited
+    "America/Bogota" inherited
+    "America/Costa_Rica" inherited
+    "America/Havana" inherited
+    "Atlantic/Cape_Verde" inherited
+    "Asia/Nicosia" inherited
+    "Asia/Famagusta" inherited
+    "Europe/Prague" inherited
+    "Europe/Berlin" inherited
+    "America/Santo_Domingo" inherited
+    "Africa/Algiers" inherited
+    "America/Guayaquil" inherited
+    "Pacific/Galapagos" inherited
+    "Europe/Tallinn" inherited
+    "Africa/Cairo" inherited
+    "Africa/El_Aaiun" inherited
+    "Europe/Madrid" inherited
+    "Africa/Ceuta" inherited
+    "Atlantic/Canary" inherited
+    "Europe/Helsinki" inherited
+    "Pacific/Fiji" inherited
+    "Atlantic/Stanley" inherited
+    "Pacific/Kosrae" inherited
+    "Atlantic/Faroe" inherited
+    "Europe/Paris" inherited
+    "Europe/London" inherited
+    "Asia/Tbilisi" inherited
+    "America/Cayenne" inherited
+    "Europe/Gibraltar" inherited
+    "America/Nuuk" inherited
+    "America/Danmarkshavn" inherited
+    "America/Scoresbysund" inherited
+    "America/Thule" inherited
+    "Europe/Athens" inherited
+    "Atlantic/South_Georgia" inherited
+    "America/Guatemala" inherited
+    "Pacific/Guam" inherited
+    "Africa/Bissau" inherited
+    "America/Guyana" inherited
+    "Asia/Hong_Kong" inherited
+    "America/Tegucigalpa" inherited
+    "America/Port-au-Prince" inherited
+    "Europe/Budapest" inherited
+    "Asia/Jakarta" inherited
+    "Asia/Pontianak" inherited
+    "Asia/Makassar" inherited
+    "Asia/Jayapura" inherited
+    "Europe/Dublin" inherited
+    "Asia/Jerusalem" inherited
+    "Asia/Kolkata" inherited
+    "Indian/Chagos" inherited
+    "Asia/Baghdad" inherited
+    "Asia/Tehran" inherited
+    "Europe/Rome" inherited
+    "America/Jamaica" inherited
+    "Asia/Amman" inherited
+    "Asia/Tokyo" inherited
+    "Africa/Nairobi" inherited
+    "Asia/Bishkek" inherited
+    "Pacific/Tarawa" inherited
+    "Pacific/Kanton" "Canton Island"
+    "Pacific/Kiritimati" inherited
+    "Asia/Pyongyang" inherited
+    "Asia/Seoul" inherited
+    "Asia/Almaty" inherited
+    "Asia/Qyzylorda" inherited
+    "Asia/Qostanay" "Kostanay"
+    "Asia/Aqtobe" inherited
+    "Asia/Aqtau" inherited
+    "Asia/Atyrau" inherited
+    "Asia/Oral" inherited
+    "Asia/Beirut" inherited
+    "Asia/Colombo" inherited
+    "Africa/Monrovia" inherited
+    "Europe/Vilnius" inherited
+    "Europe/Riga" inherited
+    "Africa/Tripoli" inherited
+    "Africa/Casablanca" inherited
+    "Europe/Chisinau" inherited
+    "Pacific/Kwajalein" inherited
+    "Asia/Yangon" inherited
+    "Asia/Ulaanbaatar" inherited
+    "Asia/Hovd" inherited
+    "Asia/Macau" "Macau"
+    "America/Martinique" inherited
+    "Europe/Malta" inherited
+    "Indian/Mauritius" inherited
+    "Indian/Maldives" inherited
+    "America/Mexico_City" "Lungsod ng Mexico"
+    "America/Cancun" "Cancun"
+    "America/Merida" "Merida"
+    "America/Monterrey" inherited
+    "America/Matamoros" inherited
+    "America/Chihuahua" inherited
+    "America/Ciudad_Juarez" "Lungsod ng Juárez"
+    "America/Ojinaga" inherited
+    "America/Mazatlan" inherited
+    "America/Bahia_Banderas" "Bahia Banderas"
+    "America/Hermosillo" inherited
+    "America/Tijuana" inherited
+    "Asia/Kuching" inherited
+    "Africa/Maputo" inherited
+    "Africa/Windhoek" inherited
+    "Pacific/Noumea" inherited
+    "Pacific/Norfolk" inherited
+    "Africa/Lagos" inherited
+    "America/Managua" inherited
+    "Asia/Kathmandu" inherited
+    "Pacific/Nauru" inherited
+    "Pacific/Niue" inherited
+    "Pacific/Auckland" inherited
+    "Pacific/Chatham" inherited
+    "America/Panama" inherited
+    "America/Lima" inherited
+    "Pacific/Tahiti" inherited
+    "Pacific/Marquesas" inherited
+    "Pacific/Gambier" inherited
+    "Pacific/Port_Moresby" inherited
+    "Pacific/Bougainville" inherited
+    "Asia/Manila" inherited
+    "Asia/Karachi" inherited
+    "Europe/Warsaw" inherited
+    "America/Miquelon" inherited
+    "Pacific/Pitcairn" inherited
+    "America/Puerto_Rico" inherited
+    "Asia/Gaza" inherited
+    "Asia/Hebron" inherited
+    "Europe/Lisbon" inherited
+    "Atlantic/Madeira" inherited
+    "Atlantic/Azores" inherited
+    "Pacific/Palau" inherited
+    "America/Asuncion" inherited
+    "Asia/Qatar" inherited
+    "Europe/Bucharest" inherited
+    "Europe/Belgrade" inherited
+    "Europe/Kaliningrad" inherited
+    "Europe/Moscow" inherited
+    "Europe/Simferopol" inherited
+    "Europe/Kirov" inherited
+    "Europe/Volgograd" inherited
+    "Europe/Astrakhan" inherited
+    "Europe/Saratov" inherited
+    "Europe/Ulyanovsk" inherited
+    "Europe/Samara" inherited
+    "Asia/Yekaterinburg" inherited
+    "Asia/Omsk" inherited
+    "Asia/Novosibirsk" inherited
+    "Asia/Barnaul" inherited
+    "Asia/Tomsk" inherited
+    "Asia/Novokuznetsk" inherited
+    "Asia/Krasnoyarsk" inherited
+    "Asia/Irkutsk" inherited
+    "Asia/Chita" inherited
+    "Asia/Yakutsk" inherited
+    "Asia/Khandyga" inherited
+    "Asia/Vladivostok" inherited
+    "Asia/Ust-Nera" inherited
+    "Asia/Magadan" inherited
+    "Asia/Sakhalin" inherited
+    "Asia/Srednekolymsk" inherited
+    "Asia/Kamchatka" inherited
+    "Asia/Anadyr" inherited
+    "Asia/Riyadh" inherited
+    "Pacific/Guadalcanal" inherited
+    "Africa/Khartoum" inherited
+    "Asia/Singapore" inherited
+    "America/Paramaribo" inherited
+    "Africa/Juba" inherited
+    "Africa/Sao_Tome" inherited
+    "America/El_Salvador" inherited
+    "Asia/Damascus" inherited
+    "America/Grand_Turk" inherited
+    "Africa/Ndjamena" inherited
+    "Asia/Bangkok" inherited
+    "Asia/Dushanbe" inherited
+    "Pacific/Fakaofo" inherited
+    "Asia/Dili" inherited
+    "Asia/Ashgabat" inherited
+    "Africa/Tunis" inherited
+    "Pacific/Tongatapu" inherited
+    "Europe/Istanbul" inherited
+    "Asia/Taipei" inherited
+    "Europe/Kyiv" "Kiev"
+    "America/New_York" inherited
+    "America/Detroit" inherited
+    "America/Kentucky/Louisville" inherited
+    "America/Kentucky/Monticello" inherited
+    "America/Indiana/Indianapolis" inherited
+    "America/Indiana/Vincennes" inherited
+    "America/Indiana/Winamac" inherited
+    "America/Indiana/Marengo" inherited
+    "America/Indiana/Petersburg" inherited
+    "America/Indiana/Vevay" inherited
+    "America/Chicago" inherited
+    "America/Indiana/Tell_City" inherited
+    "America/Indiana/Knox" inherited
+    "America/Menominee" inherited
+    "America/North_Dakota/Center" inherited
+    "America/North_Dakota/New_Salem" inherited
+    "America/North_Dakota/Beulah" inherited
+    "America/Denver" inherited
+    "America/Boise" inherited
+    "America/Phoenix" inherited
+    "America/Los_Angeles" inherited
+    "America/Anchorage" inherited
+    "America/Juneau" inherited
+    "America/Sitka" inherited
+    "America/Metlakatla" inherited
+    "America/Yakutat" inherited
+    "America/Nome" inherited
+    "America/Adak" inherited
+    "Pacific/Honolulu" "Honolulu"
+    "America/Montevideo" inherited
+    "Asia/Samarkand" inherited
+    "Asia/Tashkent" inherited
+    "America/Caracas" inherited
+    "Asia/Ho_Chi_Minh" "Lungsod ng Ho Chi Minh"
+    "Pacific/Efate" inherited
+    "Pacific/Apia" inherited
+    "Africa/Johannesburg" inherited
+    "America/Antigua" inherited
+    "America/Anguilla" inherited
+    "Africa/Luanda" inherited
+    "Antarctica/McMurdo" inherited
+    "Antarctica/DumontDUrville" inherited
+    "Antarctica/Syowa" inherited
+    "America/Aruba" inherited
+    "Europe/Mariehamn" inherited
+    "Europe/Sarajevo" inherited
+    "Africa/Ouagadougou" inherited
+    "Asia/Bahrain" inherited
+    "Africa/Bujumbura" inherited
+    "Africa/Porto-Novo" inherited
+    "America/St_Barthelemy" inherited
+    "Asia/Brunei" inherited
+    "America/Kralendijk" inherited
+    "America/Nassau" inherited
+    "Africa/Gaborone" inherited
+    "America/Blanc-Sablon" inherited
+    "America/Atikokan" inherited
+    "America/Creston" inherited
+    "Indian/Cocos" inherited
+    "Africa/Kinshasa" inherited
+    "Africa/Lubumbashi" inherited
+    "Africa/Bangui" inherited
+    "Africa/Brazzaville" inherited
+    "Africa/Douala" inherited
+    "America/Curacao" inherited
+    "Indian/Christmas" inherited
+    "Europe/Busingen" inherited
+    "Africa/Djibouti" inherited
+    "Europe/Copenhagen" inherited
+    "America/Dominica" inherited
+    "Africa/Asmara" inherited
+    "Africa/Addis_Ababa" inherited
+    "Pacific/Chuuk" inherited
+    "Pacific/Pohnpei" inherited
+    "Africa/Libreville" inherited
+    "America/Grenada" inherited
+    "Europe/Guernsey" inherited
+    "Africa/Accra" inherited
+    "Africa/Banjul" inherited
+    "Africa/Conakry" inherited
+    "America/Guadeloupe" inherited
+    "Africa/Malabo" inherited
+    "Europe/Zagreb" inherited
+    "Europe/Isle_of_Man" inherited
+    "Atlantic/Reykjavik" inherited
+    "Europe/Jersey" inherited
+    "Asia/Phnom_Penh" inherited
+    "Indian/Comoro" inherited
+    "America/St_Kitts" inherited
+    "Asia/Kuwait" inherited
+    "America/Cayman" inherited
+    "Asia/Vientiane" inherited
+    "America/St_Lucia" inherited
+    "Europe/Vaduz" inherited
+    "Africa/Maseru" inherited
+    "Europe/Luxembourg" inherited
+    "Europe/Monaco" inherited
+    "Europe/Podgorica" inherited
+    "America/Marigot" inherited
+    "Indian/Antananarivo" inherited
+    "Pacific/Majuro" inherited
+    "Europe/Skopje" inherited
+    "Africa/Bamako" inherited
+    "Pacific/Saipan" inherited
+    "Africa/Nouakchott" inherited
+    "America/Montserrat" inherited
+    "Africa/Blantyre" inherited
+    "Asia/Kuala_Lumpur" inherited
+    "Africa/Niamey" inherited
+    "Europe/Amsterdam" inherited
+    "Europe/Oslo" inherited
+    "Asia/Muscat" inherited
+    "Indian/Reunion" inherited
+    "Africa/Kigali" inherited
+    "Indian/Mahe" inherited
+    "Europe/Stockholm" inherited
+    "Atlantic/St_Helena" inherited
+    "Europe/Ljubljana" inherited
+    "Arctic/Longyearbyen" inherited
+    "Europe/Bratislava" inherited
+    "Africa/Freetown" inherited
+    "Europe/San_Marino" inherited
+    "Africa/Dakar" inherited
+    "Africa/Mogadishu" inherited
+    "America/Lower_Princes" inherited
+    "Africa/Mbabane" inherited
+    "Indian/Kerguelen" inherited
+    "Africa/Lome" inherited
+    "America/Port_of_Spain" "Puwerto ng Espanya"
+    "Pacific/Funafuti" inherited
+    "Africa/Dar_es_Salaam" inherited
+    "Africa/Kampala" inherited
+    "Pacific/Midway" inherited
+    "Pacific/Wake" inherited
+    "Europe/Vatican" inherited
+    "America/St_Vincent" inherited
+    "America/Tortola" inherited
+    "America/St_Thomas" inherited
+    "Pacific/Wallis" inherited
+    "Asia/Aden" inherited
+    "Indian/Mayotte" inherited
+    "Africa/Lusaka" inherited
+    "Africa/Harare" inherited
+};
+
+// `common/main/ha.xml`: 4 of the 418 zones named, 413 inherited.
+#[cfg(feature = "localized-exemplar-cities")]
+const HA: &str = exemplar_cities! {
+    "Europe/Andorra" inherited
+    "Asia/Dubai" inherited
+    "Asia/Kabul" inherited
+    "Europe/Tirane" inherited
+    "Asia/Yerevan" inherited
+    "Antarctica/Casey" inherited
+    "Antarctica/Davis" inherited
+    "Antarctica/Mawson" inherited
+    "Antarctica/Palmer" inherited
+    "Antarctica/Rothera" inherited
+    "Antarctica/Troll" inherited
+    "Antarctica/Vostok" inherited
+    "America/Argentina/Buenos_Aires" inherited
+    "America/Argentina/Cordoba" inherited
+    "America/Argentina/Salta" inherited
+    "America/Argentina/Jujuy" inherited
+    "America/Argentina/Tucuman" inherited
+    "America/Argentina/Catamarca" inherited
+    "America/Argentina/La_Rioja" inherited
+    "America/Argentina/San_Juan" inherited
+    "America/Argentina/Mendoza" inherited
+    "America/Argentina/San_Luis" inherited
+    "America/Argentina/Rio_Gallegos" inherited
+    "America/Argentina/Ushuaia" inherited
+    "Pacific/Pago_Pago" inherited
+    "Europe/Vienna" inherited
+    "Australia/Lord_Howe" inherited
+    "Antarctica/Macquarie" inherited
+    "Australia/Hobart" inherited
+    "Australia/Melbourne" inherited
+    "Australia/Sydney" inherited
+    "Australia/Broken_Hill" inherited
+    "Australia/Brisbane" inherited
+    "Australia/Lindeman" inherited
+    "Australia/Adelaide" inherited
+    "Australia/Darwin" inherited
+    "Australia/Perth" inherited
+    "Australia/Eucla" inherited
+    "Asia/Baku" inherited
+    "America/Barbados" inherited
+    "Asia/Dhaka" inherited
+    "Europe/Brussels" inherited
+    "Europe/Sofia" inherited
+    "Atlantic/Bermuda" inherited
+    "America/La_Paz" inherited
+    "America/Noronha" inherited
+    "America/Belem" inherited
+    "America/Fortaleza" inherited
+    "America/Recife" inherited
+    "America/Araguaina" inherited
+    "America/Maceio" inherited
+    "America/Bahia" inherited
+    "America/Sao_Paulo" inherited
+    "America/Campo_Grande" inherited
+    "America/Cuiaba" inherited
+    "America/Santarem" inherited
+    "America/Porto_Velho" inherited
+    "America/Boa_Vista" inherited
+    "America/Manaus" inherited
+    "America/Eirunepe" inherited
+    "America/Rio_Branco" inherited
+    "Asia/Thimphu" inherited
+    "Europe/Minsk" inherited
+    "America/Belize" inherited
+    "America/St_Johns" inherited
+    "America/Halifax" inherited
+    "America/Glace_Bay" inherited
+    "America/Moncton" inherited
+    "America/Goose_Bay" inherited
+    "America/Toronto" inherited
+    "America/Iqaluit" inherited
+    "America/Winnipeg" inherited
+    "America/Resolute" inherited
+    "America/Rankin_Inlet" inherited
+    "America/Regina" inherited
+    "America/Swift_Current" inherited
+    "America/Edmonton" inherited
+    "America/Cambridge_Bay" inherited
+    "America/Inuvik" inherited
+    "America/Vancouver" inherited
+    "America/Dawson_Creek" inherited
+    "America/Fort_Nelson" inherited
+    "America/Whitehorse" inherited
+    "America/Dawson" inherited
+    "Europe/Zurich" inherited
+    "Africa/Abidjan" inherited
+    "Pacific/Rarotonga" inherited
+    "America/Santiago" inherited
+    "America/Coyhaique" inherited
+    "America/Punta_Arenas" inherited
+    "Pacific/Easter" inherited
+    "Asia/Shanghai" inherited
+    "Asia/Urumqi" inherited
+    "America/Bogota" inherited
+    "America/Costa_Rica" inherited
+    "America/Havana" inherited
+    "Atlantic/Cape_Verde" inherited
+    "Asia/Nicosia" inherited
+    "Asia/Famagusta" inherited
+    "Europe/Prague" inherited
+    "Europe/Berlin" inherited
+    "America/Santo_Domingo" inherited
+    "Africa/Algiers" inherited
+    "America/Guayaquil" inherited
+    "Pacific/Galapagos" inherited
+    "Europe/Tallinn" inherited
+    "Africa/Cairo" inherited
+    "Africa/El_Aaiun" inherited
+    "Europe/Madrid" inherited
+    "Africa/Ceuta" inherited
+    "Atlantic/Canary" inherited
+    "Europe/Helsinki" inherited
+    "Pacific/Fiji" inherited
+    "Atlantic/Stanley" inherited
+    "Pacific/Kosrae" inherited
+    "Atlantic/Faroe" inherited
+    "Europe/Paris" inherited
+    "Europe/London" inherited
+    "Asia/Tbilisi" inherited
+    "America/Cayenne" inherited
+    "Europe/Gibraltar" inherited
+    "America/Nuuk" inherited
+    "America/Danmarkshavn" inherited
+    "America/Scoresbysund" inherited
+    "America/Thule" inherited
+    "Europe/Athens" inherited
+    "Atlantic/South_Georgia" inherited
+    "America/Guatemala" inherited
+    "Pacific/Guam" inherited
+    "Africa/Bissau" inherited
+    "America/Guyana" inherited
+    "Asia/Hong_Kong" inherited
+    "America/Tegucigalpa" inherited
+    "America/Port-au-Prince" inherited
+    "Europe/Budapest" inherited
+    "Asia/Jakarta" inherited
+    "Asia/Pontianak" inherited
+    "Asia/Makassar" inherited
+    "Asia/Jayapura" inherited
+    "Europe/Dublin" inherited
+    "Asia/Jerusalem" inherited
+    "Asia/Kolkata" inherited
+    "Indian/Chagos" inherited
+    "Asia/Baghdad" inherited
+    "Asia/Tehran" inherited
+    "Europe/Rome" inherited
+    "America/Jamaica" inherited
+    "Asia/Amman" inherited
+    "Asia/Tokyo" inherited
+    "Africa/Nairobi" inherited
+    "Asia/Bishkek" inherited
+    "Pacific/Tarawa" inherited
+    "Pacific/Kanton" "Tsibirin Canton"
+    "Pacific/Kiritimati" inherited
+    "Asia/Pyongyang" inherited
+    "Asia/Seoul" inherited
+    "Asia/Almaty" inherited
+    "Asia/Qyzylorda" inherited
+    "Asia/Qostanay" inherited
+    "Asia/Aqtobe" inherited
+    "Asia/Aqtau" inherited
+    "Asia/Atyrau" inherited
+    "Asia/Oral" inherited
+    "Asia/Beirut" inherited
+    "Asia/Colombo" inherited
+    "Africa/Monrovia" inherited
+    "Europe/Vilnius" inherited
+    "Europe/Riga" inherited
+    "Africa/Tripoli" inherited
+    "Africa/Casablanca" inherited
+    "Europe/Chisinau" inherited
+    "Pacific/Kwajalein" inherited
+    "Asia/Yangon" inherited
+    "Asia/Ulaanbaatar" inherited
+    "Asia/Hovd" inherited
+    "Asia/Macau" inherited
+    "America/Martinique" inherited
+    "Europe/Malta" inherited
+    "Indian/Mauritius" inherited
+    "Indian/Maldives" inherited
+    "America/Mexico_City" inherited
+    "America/Cancun" inherited
+    "America/Merida" inherited
+    "America/Monterrey" inherited
+    "America/Matamoros" inherited
+    "America/Chihuahua" inherited
+    "America/Ciudad_Juarez" inherited
+    "America/Ojinaga" inherited
+    "America/Mazatlan" inherited
+    "America/Bahia_Banderas" inherited
+    "America/Hermosillo" inherited
+    "America/Tijuana" inherited
+    "Asia/Kuching" inherited
+    "Africa/Maputo" inherited
+    "Africa/Windhoek" inherited
+    "Pacific/Noumea" inherited
+    "Pacific/Norfolk" inherited
+    "Africa/Lagos" inherited
+    "America/Managua" inherited
+    "Asia/Kathmandu" inherited
+    "Pacific/Nauru" inherited
+    "Pacific/Niue" inherited
+    "Pacific/Auckland" inherited
+    "Pacific/Chatham" inherited
+    "America/Panama" inherited
+    "America/Lima" inherited
+    "Pacific/Tahiti" inherited
+    "Pacific/Marquesas" inherited
+    "Pacific/Gambier" inherited
+    "Pacific/Port_Moresby" inherited
+    "Pacific/Bougainville" inherited
+    "Asia/Manila" inherited
+    "Asia/Karachi" inherited
+    "Europe/Warsaw" inherited
+    "America/Miquelon" inherited
+    "Pacific/Pitcairn" inherited
+    "America/Puerto_Rico" inherited
+    "Asia/Gaza" inherited
+    "Asia/Hebron" inherited
+    "Europe/Lisbon" inherited
+    "Atlantic/Madeira" inherited
+    "Atlantic/Azores" inherited
+    "Pacific/Palau" inherited
+    "America/Asuncion" inherited
+    "Asia/Qatar" inherited
+    "Europe/Bucharest" inherited
+    "Europe/Belgrade" inherited
+    "Europe/Kaliningrad" inherited
+    "Europe/Moscow" inherited
+    "Europe/Simferopol" inherited
+    "Europe/Kirov" inherited
+    "Europe/Volgograd" inherited
+    "Europe/Astrakhan" inherited
+    "Europe/Saratov" inherited
+    "Europe/Ulyanovsk" inherited
+    "Europe/Samara" inherited
+    "Asia/Yekaterinburg" inherited
+    "Asia/Omsk" inherited
+    "Asia/Novosibirsk" inherited
+    "Asia/Barnaul" inherited
+    "Asia/Tomsk" inherited
+    "Asia/Novokuznetsk" inherited
+    "Asia/Krasnoyarsk" inherited
+    "Asia/Irkutsk" inherited
+    "Asia/Chita" inherited
+    "Asia/Yakutsk" inherited
+    "Asia/Khandyga" inherited
+    "Asia/Vladivostok" inherited
+    "Asia/Ust-Nera" inherited
+    "Asia/Magadan" inherited
+    "Asia/Sakhalin" inherited
+    "Asia/Srednekolymsk" inherited
+    "Asia/Kamchatka" inherited
+    "Asia/Anadyr" inherited
+    "Asia/Riyadh" inherited
+    "Pacific/Guadalcanal" inherited
+    "Africa/Khartoum" inherited
+    "Asia/Singapore" inherited
+    "America/Paramaribo" inherited
+    "Africa/Juba" inherited
+    "Africa/Sao_Tome" inherited
+    "America/El_Salvador" inherited
+    "Asia/Damascus" inherited
+    "America/Grand_Turk" inherited
+    "Africa/Ndjamena" inherited
+    "Asia/Bangkok" inherited
+    "Asia/Dushanbe" inherited
+    "Pacific/Fakaofo" inherited
+    "Asia/Dili" inherited
+    "Asia/Ashgabat" inherited
+    "Africa/Tunis" inherited
+    "Pacific/Tongatapu" inherited
+    "Europe/Istanbul" inherited
+    "Asia/Taipei" inherited
+    "Europe/Kyiv" inherited
+    "America/New_York" inherited
+    "America/Detroit" inherited
+    "America/Kentucky/Louisville" inherited
+    "America/Kentucky/Monticello" inherited
+    "America/Indiana/Indianapolis" inherited
+    "America/Indiana/Vincennes" inherited
+    "America/Indiana/Winamac" inherited
+    "America/Indiana/Marengo" inherited
+    "America/Indiana/Petersburg" inherited
+    "America/Indiana/Vevay" inherited
+    "America/Chicago" inherited
+    "America/Indiana/Tell_City" inherited
+    "America/Indiana/Knox" inherited
+    "America/Menominee" inherited
+    "America/North_Dakota/Center" "Center, Arewacin Dakota"
+    "America/North_Dakota/New_Salem" "New Salem, Arewacin Dakota"
+    "America/North_Dakota/Beulah" "Beulah, Arewacin Dakota"
+    "America/Denver" inherited
+    "America/Boise" inherited
+    "America/Phoenix" inherited
+    "America/Los_Angeles" inherited
+    "America/Anchorage" inherited
+    "America/Juneau" inherited
+    "America/Sitka" inherited
+    "America/Metlakatla" inherited
+    "America/Yakutat" inherited
+    "America/Nome" inherited
+    "America/Adak" inherited
+    "Pacific/Honolulu" ""
+    "America/Montevideo" inherited
+    "Asia/Samarkand" inherited
+    "Asia/Tashkent" inherited
+    "America/Caracas" inherited
+    "Asia/Ho_Chi_Minh" inherited
+    "Pacific/Efate" inherited
+    "Pacific/Apia" inherited
+    "Africa/Johannesburg" inherited
+    "America/Antigua" inherited
+    "America/Anguilla" inherited
+    "Africa/Luanda" inherited
+    "Antarctica/McMurdo" inherited
+    "Antarctica/DumontDUrville" inherited
+    "Antarctica/Syowa" inherited
+    "America/Aruba" inherited
+    "Europe/Mariehamn" inherited
+    "Europe/Sarajevo" inherited
+    "Africa/Ouagadougou" inherited
+    "Asia/Bahrain" inherited
+    "Africa/Bujumbura" inherited
+    "Africa/Porto-Novo" inherited
+    "America/St_Barthelemy" inherited
+    "Asia/Brunei" inherited
+    "America/Kralendijk" inherited
+    "America/Nassau" inherited
+    "Africa/Gaborone" inherited
+    "America/Blanc-Sablon" inherited
+    "America/Atikokan" inherited
+    "America/Creston" inherited
+    "Indian/Cocos" inherited
+    "Africa/Kinshasa" inherited
+    "Africa/Lubumbashi" inherited
+    "Africa/Bangui" inherited
+    "Africa/Brazzaville" inherited
+    "Africa/Douala" inherited
+    "America/Curacao" inherited
+    "Indian/Christmas" inherited
+    "Europe/Busingen" inherited
+    "Africa/Djibouti" inherited
+    "Europe/Copenhagen" inherited
+    "America/Dominica" inherited
+    "Africa/Asmara" inherited
+    "Africa/Addis_Ababa" inherited
+    "Pacific/Chuuk" inherited
+    "Pacific/Pohnpei" inherited
+    "Africa/Libreville" inherited
+    "America/Grenada" inherited
+    "Europe/Guernsey" inherited
+    "Africa/Accra" inherited
+    "Africa/Banjul" inherited
+    "Africa/Conakry" inherited
+    "America/Guadeloupe" inherited
+    "Africa/Malabo" inherited
+    "Europe/Zagreb" inherited
+    "Europe/Isle_of_Man" inherited
+    "Atlantic/Reykjavik" inherited
+    "Europe/Jersey" inherited
+    "Asia/Phnom_Penh" inherited
+    "Indian/Comoro" inherited
+    "America/St_Kitts" inherited
+    "Asia/Kuwait" inherited
+    "America/Cayman" inherited
+    "Asia/Vientiane" inherited
+    "America/St_Lucia" inherited
+    "Europe/Vaduz" inherited
+    "Africa/Maseru" inherited
+    "Europe/Luxembourg" inherited
+    "Europe/Monaco" inherited
+    "Europe/Podgorica" inherited
+    "America/Marigot" inherited
+    "Indian/Antananarivo" inherited
+    "Pacific/Majuro" inherited
+    "Europe/Skopje" inherited
+    "Africa/Bamako" inherited
+    "Pacific/Saipan" inherited
+    "Africa/Nouakchott" inherited
+    "America/Montserrat" inherited
+    "Africa/Blantyre" inherited
+    "Asia/Kuala_Lumpur" inherited
+    "Africa/Niamey" inherited
+    "Europe/Amsterdam" inherited
+    "Europe/Oslo" inherited
+    "Asia/Muscat" inherited
+    "Indian/Reunion" inherited
+    "Africa/Kigali" inherited
+    "Indian/Mahe" inherited
+    "Europe/Stockholm" inherited
+    "Atlantic/St_Helena" inherited
+    "Europe/Ljubljana" inherited
+    "Arctic/Longyearbyen" inherited
+    "Europe/Bratislava" inherited
+    "Africa/Freetown" inherited
+    "Europe/San_Marino" inherited
+    "Africa/Dakar" inherited
+    "Africa/Mogadishu" inherited
+    "America/Lower_Princes" inherited
+    "Africa/Mbabane" inherited
+    "Indian/Kerguelen" inherited
+    "Africa/Lome" inherited
+    "America/Port_of_Spain" inherited
+    "Pacific/Funafuti" inherited
+    "Africa/Dar_es_Salaam" inherited
+    "Africa/Kampala" inherited
+    "Pacific/Midway" inherited
+    "Pacific/Wake" inherited
+    "Europe/Vatican" inherited
+    "America/St_Vincent" inherited
+    "America/Tortola" inherited
+    "America/St_Thomas" inherited
+    "Pacific/Wallis" inherited
+    "Asia/Aden" inherited
+    "Indian/Mayotte" inherited
+    "Africa/Lusaka" inherited
+    "Africa/Harare" inherited
+};
+
+// `common/main/mr.xml`: 418 of the 418 zones named.
+#[cfg(feature = "localized-exemplar-cities")]
+const MR: &str = exemplar_cities! {
+    "Europe/Andorra" "अँडोरा"
+    "Asia/Dubai" "दुबई"
+    "Asia/Kabul" "काबूल"
+    "Europe/Tirane" "टिराने"
+    "Asia/Yerevan" "येरेवन"
+    "Antarctica/Casey" "कॅसे"
+    "Antarctica/Davis" "डेव्हिस"
+    "Antarctica/Mawson" "मॉसन"
+    "Antarctica/Palmer" "पामेर"
+    "Antarctica/Rothera" "रोथेरा"
+    "Antarctica/Troll" "ट्रोल"
+    "Antarctica/Vostok" "वोस्टोक"
+    "America/Argentina/Buenos_Aires" "ब्युनोस आयर्स"
+    "America/Argentina/Cordoba" "कॉर्डोबा"
+    "America/Argentina/Salta" "सॉल्ता"
+    "America/Argentina/Jujuy" "जुजुय"
+    "America/Argentina/Tucuman" "टुकुमान"
+    "America/Argentina/Catamarca" "कॅटामार्का"
+    "America/Argentina/La_Rioja" "ला रियोजा"
+    "America/Argentina/San_Juan" "सान जुआन"
+    "America/Argentina/Mendoza" "मेंदोझा"
+    "America/Argentina/San_Luis" "सान ल्युइस"
+    "America/Argentina/Rio_Gallegos" "रियो गॅलेगॉस"
+    "America/Argentina/Ushuaia" "उस्वाइया"
+    "Pacific/Pago_Pago" "पॅगो पॅगो"
+    "Europe/Vienna" "व्हिएन्ना"
+    "Australia/Lord_Howe" "लॉर्ड होवे"
+    "Antarctica/Macquarie" "मॅक्वायर"
+    "Australia/Hobart" "होबार्ट"
+    "Australia/Melbourne" "मेलबोर्न"
+    "Australia/Sydney" "सिडनी"
+    "Australia/Broken_Hill" "ब्रोकन हिल"
+    "Australia/Brisbane" "ब्रिस्बेन"
+    "Australia/Lindeman" "लिंडेमन"
+    "Australia/Adelaide" "एडलेड"
+    "Australia/Darwin" "डार्विन"
+    "Australia/Perth" "पर्थ"
+    "Australia/Eucla" "उक्ला"
+    "Asia/Baku" "बाकु"
+    "America/Barbados" "बार्बाडोस"
+    "Asia/Dhaka" "ढाका"
+    "Europe/Brussels" "ब्रुसेल्स"
+    "Europe/Sofia" "सोफिया"
+    "Atlantic/Bermuda" "बर्मुडा"
+    "America/La_Paz" "ला पाझ"
+    "America/Noronha" "नोरोन्हा"
+    "America/Belem" "बेलेम"
+    "America/Fortaleza" "फोर्टालेझा"
+    "America/Recife" "रेसिफे"
+    "America/Araguaina" "अरागायना"
+    "America/Maceio" "मेसेइओ"
+    "America/Bahia" "बहिया"
+    "America/Sao_Paulo" "साओ पावलो"
+    "America/Campo_Grande" "कॅम्पो ग्रँडे"
+    "America/Cuiaba" "कुयाबा"
+    "America/Santarem" "सँटारेम"
+    "America/Porto_Velho" "पोर्टो वेल्हो"
+    "America/Boa_Vista" "बोआ व्हिस्टा"
+    "America/Manaus" "मनौस"
+    "America/Eirunepe" "यूरुनीपे"
+    "America/Rio_Branco" "रियो ब्रांको"
+    "Asia/Thimphu" "थिंफू"
+    "Europe/Minsk" "मिन्स्क"
+    "America/Belize" "बेलिझे"
+    "America/St_Johns" "सेंट जॉन्स"
+    "America/Halifax" "हॅलिफॅक्स"
+    "America/Glace_Bay" "ग्लेस उपसागर"
+    "America/Moncton" "माँकटन"
+    "America/Goose_Bay" "गूस उपसागर"
+    "America/Toronto" "टोरोंटो"
+    "America/Iqaluit" "इकालुइत"
+    "America/Winnipeg" "विनीपेग"
+    "America/Resolute" "रेजोल्यूट"
+    "America/Rankin_Inlet" "रॅनकिन इनलेट"
+    "America/Regina" "रेजिना"
+    "America/Swift_Current" "स्विफ्ट करंट"
+    "America/Edmonton" "एडमाँटन"
+    "America/Cambridge_Bay" "केंब्रिज उपसागर"
+    "America/Inuvik" "इनुविक"
+    "America/Vancouver" "व्हॅनकुव्हर"
+    "America/Dawson_Creek" "डॉसन क्रीक"
+    "America/Fort_Nelson" "फोर्ट नेल्सन"
+    "America/Whitehorse" "व्हाइटहॉर्स"
+    "America/Dawson" "डॉसन"
+    "Europe/Zurich" "झुरिक"
+    "Africa/Abidjan" "अबिद्जान"
+    "Pacific/Rarotonga" "रारोटोंगा"
+    "America/Santiago" "सॅन्टिएगो"
+    "America/Coyhaique" "कोयाइके"
+    "America/Punta_Arenas" "पुंता अरीनास"
+    "Pacific/Easter" "ईस्टर"
+    "Asia/Shanghai" "शांघाय"
+    "Asia/Urumqi" "उरुम्की"
+    "America/Bogota" "बोगोटा"
+    "America/Costa_Rica" "कोस्टा रिका"
+    "America/Havana" "हवाना"
+    "Atlantic/Cape_Verde" "केप व्हर्डे"
+    "Asia/Nicosia" "निकोसिया"
+    "Asia/Famagusta" "फॅमगुस्ता"
+    "Europe/Prague" "प्राग"
+    "Europe/Berlin" "बर्लिन"
+    "America/Santo_Domingo" "सॅन्टो डोमिंगो"
+    "Africa/Algiers" "अल्जिअर्स"
+    "America/Guayaquil" "गयाक्विल"
+    "Pacific/Galapagos" "गॅलापागोस"
+    "Europe/Tallinn" "तालिन"
+    "Africa/Cairo" "कैरो"
+    "Africa/El_Aaiun" "एल ऐउन"
+    "Europe/Madrid" "माद्रिद"
+    "Africa/Ceuta" "सेउटा"
+    "Atlantic/Canary" "कॅनरी"
+    "Europe/Helsinki" "हेलसिंकी"
+    "Pacific/Fiji" "फिजी"
+    "Atlantic/Stanley" "स्टॅनले"
+    "Pacific/Kosrae" "कोशाय"
+    "Atlantic/Faroe" "फॅरो"
+    "Europe/Paris" "पॅरिस"
+    "Europe/London" "लंडन"
+    "Asia/Tbilisi" "बिलिसी"
+    "America/Cayenne" "कायेने"
+    "Europe/Gibraltar" "जिब्राल्टर"
+    "America/Nuuk" "नूक"
+    "America/Danmarkshavn" "डेन्मार्कशॉन"
+    "America/Scoresbysund" "इटोकॉरटॉर्मीट"
+    "America/Thule" "थुले"
+    "Europe/Athens" "अथेन्स"
+    "Atlantic/South_Georgia" "दक्षिण जॉर्जिया"
+    "America/Guatemala" "ग्वाटेमाला"
+    "Pacific/Guam" "गुआम"
+    "Africa/Bissau" "बिसाउ"
+    "America/Guyana" "गयाना"
+    "Asia/Hong_Kong" "हाँगकाँग"
+    "America/Tegucigalpa" "टेगुसिगाल्पा"
+    "America/Port-au-Prince" "पोर्ट-औ-प्रिंस"
+    "Europe/Budapest" "बुडापेस्ट"
+    "Asia/Jakarta" "जकार्ता"
+    "Asia/Pontianak" "पाँटियानाक"
+    "Asia/Makassar" "मकस्सार"
+    "Asia/Jayapura" "जयापुरा"
+    "Europe/Dublin" "डब्लिन"
+    "Asia/Jerusalem" "जेरुसलेम"
+    "Asia/Kolkata" "कोलकाता"
+    "Indian/Chagos" "चागोस"
+    "Asia/Baghdad" "बगदाद"
+    "Asia/Tehran" "तेहरान"
+    "Europe/Rome" "रोम"
+    "America/Jamaica" "जमैका"
+    "Asia/Amman" "अम्मान"
+    "Asia/Tokyo" "टोकियो"
+    "Africa/Nairobi" "नैरोबी"
+    "Asia/Bishkek" "बिश्केक"
+    "Pacific/Tarawa" "तारावा"
+    "Pacific/Kanton" "कँटन"
+    "Pacific/Kiritimati" "किरितिमाती"
+    "Asia/Pyongyang" "प्योंगयांग"
+    "Asia/Seoul" "सेउल"
+    "Asia/Almaty" "अल्माटी"
+    "Asia/Qyzylorda" "किझीलोर्डा"
+    "Asia/Qostanay" "कोस्टाने"
+    "Asia/Aqtobe" "अ‍ॅक्टोबे"
+    "Asia/Aqtau" "अ‍ॅक्टौ"
+    "Asia/Atyrau" "अतिरॉ"
+    "Asia/Oral" "ओरल"
+    "Asia/Beirut" "बैरुत"
+    "Asia/Colombo" "कोलंबो"
+    "Africa/Monrovia" "मोनरोव्हिया"
+    "Europe/Vilnius" "विलनियस"
+    "Europe/Riga" "रिगा"
+    "Africa/Tripoli" "त्रिपोली"
+    "Africa/Casablanca" "कॅसाब्लान्का"
+    "Europe/Chisinau" "चिसिनौ"
+    "Pacific/Kwajalein" "क्वाजालेईन"
+    "Asia/Yangon" "रंगून"
+    "Asia/Ulaanbaatar" "उलानबातर"
+    "Asia/Hovd" "होव्ड"
+    "Asia/Macau" "मकाऊ"
+    "America/Martinique" "मार्टिनिक"
+    "Europe/Malta" "माल्टा"
+    "Indian/Mauritius" "मॉरिशस"
+    "Indian/Maldives" "मालदीव"
+    "America/Mexico_City" "मेक्सिको सिटी"
+    "America/Cancun" "कानकुन"
+    "America/Merida" "मेरिडा"
+    "America/Monterrey" "मॉन्टेरे"
+    "America/Matamoros" "माटामोरोस"
+    "America/Chihuahua" "चिहुआहुआ"
+    "America/Ciudad_Juarez" "सिउदाद हुआरेझ"
+    "America/Ojinaga" "ओजिनागा"
+    "America/Mazatlan" "माझातलान"
+    "America/Bahia_Banderas" "बाहिया बांदेरास"
+    "America/Hermosillo" "हर्मोसिलो"
+    "America/Tijuana" "तिजुआना"
+    "Asia/Kuching" "कुचिंग"
+    "Africa/Maputo" "मापुटो"
+    "Africa/Windhoek" "विंडहोएक"
+    "Pacific/Noumea" "नौमिआ"
+    "Pacific/Norfolk" "नॉरफोक"
+    "Africa/Lagos" "लागोस"
+    "America/Managua" "मानागुआ"
+    "Asia/Kathmandu" "काठमांडू"
+    "Pacific/Nauru" "नउरु"
+    "Pacific/Niue" "न्युए"
+    "Pacific/Auckland" "ऑकलंड"
+    "Pacific/Chatham" "चॅटहॅम"
+    "America/Panama" "पनामा"
+    "America/Lima" "लीमा"
+    "Pacific/Tahiti" "ताहिती"
+    "Pacific/Marquesas" "मारक्विसास"
+    "Pacific/Gambier" "गॅम्बियर"
+    "Pacific/Port_Moresby" "पोर्ट मोरेस्बे"
+    "Pacific/Bougainville" "बॉगॅनव्हिल"
+    "Asia/Manila" "मनिला"
+    "Asia/Karachi" "कराची"
+    "Europe/Warsaw" "वॉर्सा"
+    "America/Miquelon" "मिक्वेलोन"
+    "Pacific/Pitcairn" "पिटकेर्न"
+    "America/Puerto_Rico" "प्युएर्तो रिको"
+    "Asia/Gaza" "गाझा"
+    "Asia/Hebron" "हेब्रॉन"
+    "Europe/Lisbon" "लिस्बन"
+    "Atlantic/Madeira" "मडीयरा"
+    "Atlantic/Azores" "अझोरेस"
+    "Pacific/Palau" "पलाऊ"
+    "America/Asuncion" "आसुन्सियोन"
+    "Asia/Qatar" "कतार"
+    "Europe/Bucharest" "बुखारेस्ट"
+    "Europe/Belgrade" "बेलग्रेड"
+    "Europe/Kaliningrad" "कलिनिनग्राड"
+    "Europe/Moscow" "मॉस्को"
+    "Europe/Simferopol" "सिम्फरोपोल"
+    "Europe/Kirov" "किरोव"
+    "Europe/Volgograd" "व्होल्गोग्राड"
+    "Europe/Astrakhan" "आस्त्राखान"
+    "Europe/Saratov" "सारातोव"
+    "Europe/Ulyanovsk" "उल्यानोव्स्क"
+    "Europe/Samara" "समारा"
+    "Asia/Yekaterinburg" "येक्तेरिनबर्ग"
+    "Asia/Omsk" "ओम्स्क"
+    "Asia/Novosibirsk" "नोवोसिबिर्स्क"
+    "Asia/Barnaul" "बर्नौल"
+    "Asia/Tomsk" "तोमसक"
+    "Asia/Novokuznetsk" "नोवोकुझ्नेत्स्क"
+    "Asia/Krasnoyarsk" "क्रास्नोयार्स्क"
+    "Asia/Irkutsk" "ईर्कुत्स्क"
+    "Asia/Chita" "चिता"
+    "Asia/Yakutsk" "यकुत्स्क"
+    "Asia/Khandyga" "खंदिगा"
+    "Asia/Vladivostok" "व्लादिवोस्टोक"
+    "Asia/Ust-Nera" "उस्त-नेरा"
+    "Asia/Magadan" "मेगाडन"
+    "Asia/Sakhalin" "साखालिन"
+    "Asia/Srednekolymsk" "स्रेदनेकोलीम्स्क"
+    "Asia/Kamchatka" "कॅमचाटका"
+    "Asia/Anadyr" "एनाडीयर"
+    "Asia/Riyadh" "रियाध"
+    "Pacific/Guadalcanal" "ग्वाडलकनाल"
+    "Africa/Khartoum" "खार्टुम"
+    "Asia/Singapore" "सिंगापूर"
+    "America/Paramaribo" "पारमरीबो"
+    "Africa/Juba" "जुबा"
+    "Africa/Sao_Tome" "साओ तोमे"
+    "America/El_Salvador" "एल साल्वाडोर"
+    "Asia/Damascus" "दमास्कस"
+    "America/Grand_Turk" "ग्रँड टर्क"
+    "Africa/Ndjamena" "इंजामेना"
+    "Asia/Bangkok" "बँकॉक"
+    "Asia/Dushanbe" "दुशान्बे"
+    "Pacific/Fakaofo" "फाकाओफो"
+    "Asia/Dili" "डिलि"
+    "Asia/Ashgabat" "अश्गाबात"
+    "Africa/Tunis" "टयूनिस"
+    "Pacific/Tongatapu" "टोंगाटापू"
+    "Europe/Istanbul" "इस्तंबूल"
+    "Asia/Taipei" "तैपेई"
+    "Europe/Kyiv" "कीव"
+    "America/New_York" "न्यूयॉर्क"
+    "America/Detroit" "डेट्रॉइट"
+    "America/Kentucky/Louisville" "ल्युइसव्हिल"
+    "America/Kentucky/Monticello" "माँटिसेलो, केंटुकी"
+    "America/Indiana/Indianapolis" "इंडियानापोलिस"
+    "America/Indiana/Vincennes" "विंसेनस, इंडियाना"
+    "America/Indiana/Winamac" "विनमॅक, इंडियाना"
+    "America/Indiana/Marengo" "मारेंगो, इंडियाना"
+    "America/Indiana/Petersburg" "पीटर्सबर्ग, इंडियाना"
+    "America/Indiana/Vevay" "वेवाय-इंडियाना"
+    "America/Chicago" "शिकागो"
+    "America/Indiana/Tell_City" "टेल सिटी, इंडियाना"
+    "America/Indiana/Knox" "नॉक्स, इंडियाना"
+    "America/Menominee" "मेनोमिनी"
+    "America/North_Dakota/Center" "मध्य, उत्तर डकोटा"
+    "America/North_Dakota/New_Salem" "न्यू सालेम, उत्तर डकोटा"
+    "America/North_Dakota/Beulah" "ब्युलाह, उत्तर डकोटा"
+    "America/Denver" "डेन्व्हर"
+    "America/Boise" "बोइसी"
+    "America/Phoenix" "फॉनिक्स"
+    "America/Los_Angeles" "लॉस एंजेलिस"
+    "America/Anchorage" "अँकरेज"
+    "America/Juneau" "ज्यूनौ"
+    "America/Sitka" "सिटका"
+    "America/Metlakatla" "मेतलाकतला"
+    "America/Yakutat" "यकुतात"
+    "America/Nome" "नोम"
+    "America/Adak" "अडॅक"
+    "Pacific/Honolulu" "होनोलुलू"
+    "America/Montevideo" "मोन्टेव्हिडियो"
+    "Asia/Samarkand" "समरकंद"
+    "Asia/Tashkent" "ताश्कंद"
+    "America/Caracas" "कराकास"
+    "Asia/Ho_Chi_Minh" "हो चि मिन्ह शहर"
+    "Pacific/Efate" "इफेट"
+    "Pacific/Apia" "अपिया"
+    "Africa/Johannesburg" "जोहान्सबर्ग"
+    "America/Antigua" "अँटिग्वा"
+    "America/Anguilla" "अँग्विला"
+    "Africa/Luanda" "लुआंडा"
+    "Antarctica/McMurdo" "मॅक्मुरडो"
+    "Antarctica/DumontDUrville" "ड्युमॉन्ट ड्युर्विल"
+    "Antarctica/Syowa" "स्योवा"
+    "America/Aruba" "अरुबा"
+    "Europe/Mariehamn" "मरियेहामेन"
+    "Europe/Sarajevo" "साराजेव्हो"
+    "Africa/Ouagadougou" "वागडूगू"
+    "Asia/Bahrain" "बहारिन"
+    "Africa/Bujumbura" "बुजुंबुरा"
+    "Africa/Porto-Novo" "पोर्टो-नोव्हो"
+    "America/St_Barthelemy" "सेंट बार्थेलेमी"
+    "Asia/Brunei" "ब्रुनेई"
+    "America/Kralendijk" "क्रालेंदिजिक"
+    "America/Nassau" "नसाऊ"
+    "Africa/Gaborone" "गाबोरोन"
+    "America/Blanc-Sablon" "ब्लांक सॅबलोन"
+    "America/Atikokan" "अॅटिकोकन"
+    "America/Creston" "क्रेस्टन"
+    "Indian/Cocos" "कोकोस"
+    "Africa/Kinshasa" "किन्शासा"
+    "Africa/Lubumbashi" "लुबंबाशी"
+    "Africa/Bangui" "बांगुई"
+    "Africa/Brazzaville" "ब्राझाव्हिले"
+    "Africa/Douala" "दोउआला"
+    "America/Curacao" "क्युरासाओ"
+    "Indian/Christmas" "ख्रिसमस"
+    "Europe/Busingen" "बुसिंजेन"
+    "Africa/Djibouti" "जिबौटी"
+    "Europe/Copenhagen" "कोपेनहेगन"
+    "America/Dominica" "डोमिनिका"
+    "Africa/Asmara" "एस्मारा"
+    "Africa/Addis_Ababa" "आदिस अबाबा"
+    "Pacific/Chuuk" "चूक"
+    "Pacific/Pohnpei" "पोनपेई"
+    "Africa/Libreville" "लिबरव्हिल"
+    "America/Grenada" "ग्रेनेडा"
+    "Europe/Guernsey" "ग्वेर्नसे"
+    "Africa/Accra" "अ‍ॅक्रा"
+    "Africa/Banjul" "बंजुल"
+    "Africa/Conakry" "कोनाक्रि"
+    "America/Guadeloupe" "ग्वाडेलोउपे"
+    "Africa/Malabo" "मलाबो"
+    "Europe/Zagreb" "झॅग्रेब"
+    "Europe/Isle_of_Man" "आयल ऑफ मॅन"
+    "Atlantic/Reykjavik" "रेयक्जाविक"
+    "Europe/Jersey" "जर्सी"
+    "Asia/Phnom_Penh" "प्नोम पेन्ह"
+    "Indian/Comoro" "कोमोरो"
+    "America/St_Kitts" "सेंट किट्स"
+    "Asia/Kuwait" "कुवेत"
+    "America/Cayman" "केमन"
+    "Asia/Vientiane" "व्हिएन्टाइन"
+    "America/St_Lucia" "सेंट लुसिया"
+    "Europe/Vaduz" "वडूझ"
+    "Africa/Maseru" "मसेरु"
+    "Europe/Luxembourg" "लक्झेंबर्ग"
+    "Europe/Monaco" "मोनॅको"
+    "Europe/Podgorica" "पॉडगोरिका"
+    "America/Marigot" "मेरीगोट"
+    "Indian/Antananarivo" "अंटानानारिवो"
+    "Pacific/Majuro" "मजुरो"
+    "Europe/Skopje" "स्कॉप्जे"
+    "Africa/Bamako" "बामको"
+    "Pacific/Saipan" "सैपान"
+    "Africa/Nouakchott" "नुवाकसुत"
+    "America/Montserrat" "माँन्टसेरात"
+    "Africa/Blantyre" "ब्लँटायर"
+    "Asia/Kuala_Lumpur" "क्वालालंपूर"
+    "Africa/Niamey" "नियामे"
+    "Europe/Amsterdam" "अ‍ॅमस्टरडॅम"
+    "Europe/Oslo" "ऑस्लो"
+    "Asia/Muscat" "मस्कत"
+    "Indian/Reunion" "रियुनियन"
+    "Africa/Kigali" "कीगाली"
+    "Indian/Mahe" "माहे"
+    "Europe/Stockholm" "स्टॉकहोम"
+    "Atlantic/St_Helena" "सेंट. हेलेना"
+    "Europe/Ljubljana" "लुब्लियाना"
+    "Arctic/Longyearbyen" "लाँगइयरबीयेन"
+    "Europe/Bratislava" "ब्रातिस्लाव्हा"
+    "Africa/Freetown" "फ्रीटाउन"
+    "Europe/San_Marino" "सॅन मरिनो"
+    "Africa/Dakar" "डकर"
+    "Africa/Mogadishu" "मोगादिशु"
+    "America/Lower_Princes" "लोअर प्रिन्सस क्वार्टर"
+    "Africa/Mbabane" "अंबाबाने"
+    "Indian/Kerguelen" "करग्यूलेन"
+    "Africa/Lome" "लोम"
+    "America/Port_of_Spain" "पोर्ट ऑफ स्पेन"
+    "Pacific/Funafuti" "फुनाफुती"
+    "Africa/Dar_es_Salaam" "दार ए सलाम"
+    "Africa/Kampala" "कंपाला"
+    "Pacific/Midway" "मिडवे"
+    "Pacific/Wake" "वेक"
+    "Europe/Vatican" "व्हॅटिकन"
+    "America/St_Vincent" "सेंट विन्सेंट"
+    "America/Tortola" "टोर्टोला"
+    "America/St_Thomas" "सेंट थॉमस"
+    "Pacific/Wallis" "वालिस"
+    "Asia/Aden" "एडेन"
+    "Indian/Mayotte" "मायोट्टे"
+    "Africa/Lusaka" "लुसाका"
+    "Africa/Harare" "हरारे"
+};
+
+// `common/main/pa.xml`: 418 of the 418 zones named.
+#[cfg(feature = "localized-exemplar-cities")]
+const PA_GURU: &str = exemplar_cities! {
+    "Europe/Andorra" "ਅੰਡੋਰਾ"
+    "Asia/Dubai" "ਦੁਬਈ"
+    "Asia/Kabul" "ਕਾਬੁਲ"
+    "Europe/Tirane" "ਤਿਰਾਨੇ"
+    "Asia/Yerevan" "ਯੇਰੇਵਨ"
+    "Antarctica/Casey" "ਕਾਸੇ"
+    "Antarctica/Davis" "ਡੇਵਿਸ"
+    "Antarctica/Mawson" "ਮੌਸਨ"
+    "Antarctica/Palmer" "ਪਾਮਰ"
+    "Antarctica/Rothera" "ਰੋਥੇਰਾ"
+    "Antarctica/Troll" "ਟਰੋਲ"
+    "Antarctica/Vostok" "ਵੋਸਟੋਕ"
+    "America/Argentina/Buenos_Aires" "ਬੂਈਨਸ ਆਇਰਸ"
+    "America/Argentina/Cordoba" "ਕੋਰਡੋਬਾ"
+    "America/Argentina/Salta" "ਸਾਲਟਾ"
+    "America/Argentina/Jujuy" "ਜੂਜੁਏ"
+    "America/Argentina/Tucuman" "ਟੁਕੁਮਨ"
+    "America/Argentina/Catamarca" "ਕੈਟਾਮਾਰਕਾ"
+    "America/Argentina/La_Rioja" "ਲਾ ਰਿਉਜਾ"
+    "America/Argentina/San_Juan" "ਸੇਨ ਜੁਆਨ"
+    "America/Argentina/Mendoza" "ਮੈਂਡੋਜ਼ਾ"
+    "America/Argentina/San_Luis" "ਸੇਨ ਲੂਈਸ"
+    "America/Argentina/Rio_Gallegos" "ਰਿਓ ਗੈਲੇਗੋਸ"
+    "America/Argentina/Ushuaia" "ਉਸ਼ਵਾਇਆ"
+    "Pacific/Pago_Pago" "ਪਾਗੋ ਪਾਗੋ"
+    "Europe/Vienna" "ਵਿਆਨਾ"
+    "Australia/Lord_Howe" "ਲੌਰਡ ਹੋਵੇ"
+    "Antarctica/Macquarie" "ਮੈਕਕਵੈਰੀ"
+    "Australia/Hobart" "ਹੋਬਾਰਟ"
+    "Australia/Melbourne" "ਮੈਲਬੋਰਨ"
+    "Australia/Sydney" "ਸਿਡਨੀ"
+    "Australia/Broken_Hill" "ਬ੍ਰੋਕਨ ਹਿਲ"
+    "Australia/Brisbane" "ਬ੍ਰਿਸਬੇਨ"
+    "Australia/Lindeman" "ਲਿੰਡੇਮਨ"
+    "Australia/Adelaide" "ਐਡੀਲੇਡ"
+    "Australia/Darwin" "ਡਾਰਵਿਨ"
+    "Australia/Perth" "ਪਰਥ"
+    "Australia/Eucla" "ਯੂਕਲਾ"
+    "Asia/Baku" "ਬਾਕੂ"
+    "America/Barbados" "ਬਾਰਬਾਡੋਸ"
+    "Asia/Dhaka" "ਢਾਕਾ"
+    "Europe/Brussels" "ਬਰੱਸਲਜ"
+    "Europe/Sofia" "ਸੋਫੀਆ"
+    "Atlantic/Bermuda" "ਬਰਮੂਡਾ"
+    "America/La_Paz" "ਲਾ ਪਾਜ਼"
+    "America/Noronha" "ਨੌਰੋਨਹਾ"
+    "America/Belem" "ਬੇਲੇਮ"
+    "America/Fortaleza" "ਫੋਰਟਾਲੇਜ਼ਾ"
+    "America/Recife" "ਰੇਸੀਫੇ"
+    "America/Araguaina" "ਆਰਗੁਆਇਨਾ"
+    "America/Maceio" "ਮੈਸੀਓ"
+    "America/Bahia" "ਬਾਹੀਆ"
+    "America/Sao_Paulo" "ਸਾਓ ਪੌਲੋ"
+    "America/Campo_Grande" "ਕੈਂਪੋ ਗ੍ਰਾਂਡੇ"
+    "America/Cuiaba" "ਕਯੁਏਬਾ"
+    "America/Santarem" "ਸੇਂਟਾਰਮ"
+    "America/Porto_Velho" "ਪੋਰਟੋ ਵੇਲ੍ਹੋ"
+    "America/Boa_Vista" "ਬੋਆ ਵਿਸਟਾ"
+    "America/Manaus" "ਮਨੌਸ"
+    "America/Eirunepe" "ਯੁਰੂਨੀਪੇ"
+    "America/Rio_Branco" "ਰੀਓ ਬ੍ਰਾਂਕੋ"
+    "Asia/Thimphu" "ਥਿੰਫੂ"
+    "Europe/Minsk" "ਮਿੰਸਕ"
+    "America/Belize" "ਬੇਲੀਜ਼"
+    "America/St_Johns" "ਸੇਂਟ ਜੌਹਨਸ"
+    "America/Halifax" "ਹੈਲੀਫੈਕਸ"
+    "America/Glace_Bay" "ਗਲੇਸ ਬੇ"
+    "America/Moncton" "ਮੋਂਕਟਨ"
+    "America/Goose_Bay" "ਗੂਜ਼ ਬੇ"
+    "America/Toronto" "ਟੋਰਾਂਟੋ"
+    "America/Iqaluit" "ਇਕਾਲੁਈਟ"
+    "America/Winnipeg" "ਵਿਨੀਪੈਗ"
+    "America/Resolute" "ਰੈਜ਼ੋਲਿਊਟ"
+    "America/Rankin_Inlet" "ਰੈਂਕਿਨ ਇਨਲੈਟ"
+    "America/Regina" "ਰੈਜੀਨਾ"
+    "America/Swift_Current" "ਸਵਿਫਟ ਕਰੰਟ"
+    "America/Edmonton" "ਐਡਮੋਂਟਨ"
+    "America/Cambridge_Bay" "ਕੈਮਬ੍ਰਿਜ ਬੇ"
+    "America/Inuvik" "ਇਨੁਵਿਕ"
+    "America/Vancouver" "ਵੈਨਕੂਵਰ"
+    "America/Dawson_Creek" "ਡੌਅਸਨ ਕ੍ਰੀਕ"
+    "America/Fort_Nelson" "ਫੋਰਟ ਨੈਲਸਨ"
+    "America/Whitehorse" "ਵਾਈਟਹੌਰਸ"
+    "America/Dawson" "ਡੌਅਸਨ"
+    "Europe/Zurich" "ਜਿਊਰਿਖ"
+    "Africa/Abidjan" "ਅਬੀਦਜਾਨ"
+    "Pacific/Rarotonga" "ਰਾਰੋਟੋਂਗਾ"
+    "America/Santiago" "ਸੇਂਟੀਆਗੋ"
+    "America/Coyhaique" "ਕੋਹੇਕੇ"
+    "America/Punta_Arenas" "ਪੰਟਾ ਅਰੇਨਸ"
+    "Pacific/Easter" "ਈਸਟਰ"
+    "Asia/Shanghai" "ਸ਼ੰਘਾਈ"
+    "Asia/Urumqi" "ਊਰੂਮਕੀ"
+    "America/Bogota" "ਬੋਗੋਟਾ"
+    "America/Costa_Rica" "ਕੋਸਟਾ ਰੀਕਾ"
+    "America/Havana" "ਹਵਾਨਾ"
+    "Atlantic/Cape_Verde" "ਕੇਪ ਵਰਡ"
+    "Asia/Nicosia" "ਨਿਕੋਸੀਆ"
+    "Asia/Famagusta" "ਫਾਮਾਗੁਸਟਾ"
+    "Europe/Prague" "ਪ੍ਰਾਗ"
+    "Europe/Berlin" "ਬਰਲਿਨ"
+    "America/Santo_Domingo" "ਸੇਂਟੋ ਡੋਮਿੰਗੋ"
+    "Africa/Algiers" "ਅਲਜੀਅਰਸ"
+    "America/Guayaquil" "ਗੁਆਇਕਵਿਲ"
+    "Pacific/Galapagos" "ਗਲਪੇਗੋਸ"
+    "Europe/Tallinn" "ਟੱਲਿਨ"
+    "Africa/Cairo" "ਕੈਰੋ"
+    "Africa/El_Aaiun" "ਅਲ ਅਯੂਨ"
+    "Europe/Madrid" "ਮੈਡ੍ਰਿਡ"
+    "Africa/Ceuta" "ਸੀਊਟਾ"
+    "Atlantic/Canary" "ਕੇਨੇਰੀ"
+    "Europe/Helsinki" "ਹੇਲਸਿੰਕੀ"
+    "Pacific/Fiji" "ਫ਼ਿਜੀ"
+    "Atlantic/Stanley" "ਸਟੇਨਲੀ"
+    "Pacific/Kosrae" "ਕੋਸ੍ਰਾਏ"
+    "Atlantic/Faroe" "ਫੈਰੋ"
+    "Europe/Paris" "ਪੈਰਿਸ"
+    "Europe/London" "ਲੰਡਨ"
+    "Asia/Tbilisi" "ਟਬਿਲਿਸੀ"
+    "America/Cayenne" "ਕੇਯੇਨੇ"
+    "Europe/Gibraltar" "ਜਿਬਰਾਲਟਰ"
+    "America/Nuuk" "ਨੂਕ"
+    "America/Danmarkshavn" "ਡੈਨਮਾਰਕਸ਼ੌਨ"
+    "America/Scoresbysund" "ਇੱਟੋਕੋਰਟੂਰਮੀਟ"
+    "America/Thule" "ਥੁਲੇ"
+    "Europe/Athens" "ਏਥਨਸ"
+    "Atlantic/South_Georgia" "ਦੱਖਣੀ ਜਾਰਜੀਆ"
+    "America/Guatemala" "ਗੁਆਟੇਮਾਲਾ"
+    "Pacific/Guam" "ਗੁਆਮ"
+    "Africa/Bissau" "ਬਿਸਾਉ"
+    "America/Guyana" "ਗੁਆਨਾ"
+    "Asia/Hong_Kong" "ਹਾਂਗ ਕਾਂਗ"
+    "America/Tegucigalpa" "ਟੇਗੁਸੀਗਲਪਾ"
+    "America/Port-au-Prince" "ਪੋਰਟ-ਔ-ਪ੍ਰਿੰਸ"
+    "Europe/Budapest" "ਬੁਡਾਪੈਸਟ"
+    "Asia/Jakarta" "ਜਕਾਰਤਾ"
+    "Asia/Pontianak" "ਪੌਂਟੀਆਨਾਕ"
+    "Asia/Makassar" "ਮਕਸਾਰ"
+    "Asia/Jayapura" "ਜਯਾਪੁਰਾ"
+    "Europe/Dublin" "ਡਬਲਿਨ"
+    "Asia/Jerusalem" "ਜੇਰੂਸਲਮ"
+    "Asia/Kolkata" "ਕੋਲਕਾਤਾ"
+    "Indian/Chagos" "ਚਾਗੋਸ"
+    "Asia/Baghdad" "ਬਗਦਾਦ"
+    "Asia/Tehran" "ਤੇਹਰਾਨ"
+    "Europe/Rome" "ਰੋਮ"
+    "America/Jamaica" "ਜਮਾਇਕਾ"
+    "Asia/Amman" "ਅਮਾਨ"
+    "Asia/Tokyo" "ਟੋਕੀਓ"
+    "Africa/Nairobi" "ਨੈਰੋਬੀ"
+    "Asia/Bishkek" "ਬਿਸ਼ਕੇਕ"
+    "Pacific/Tarawa" "ਟਾਰਾਵਾ"
+    "Pacific/Kanton" "ਕੈਂਟੋਨ"
+    "Pacific/Kiritimati" "ਕਿਰਿਤਿਮਤੀ"
+    "Asia/Pyongyang" "ਪਯੋਂਗਯਾਂਗ"
+    "Asia/Seoul" "ਸਿਉਲ"
+    "Asia/Almaty" "ਅਲਮੇਟੀ"
+    "Asia/Qyzylorda" "ਕਿਜ਼ੀਲੋਰਡਾ"
+    "Asia/Qostanay" "ਕੋਸਤਾਨਾਏ"
+    "Asia/Aqtobe" "ਅਕਤੋਬੇ"
+    "Asia/Aqtau" "ਅਕਤੌ"
+    "Asia/Atyrau" "ਏਤੇਰਾਓ"
+    "Asia/Oral" "ਓਰਲ"
+    "Asia/Beirut" "ਬੈਰੂਤ"
+    "Asia/Colombo" "ਕੋਲੰਬੋ"
+    "Africa/Monrovia" "ਮੋਨਰੋਵੀਆ"
+    "Europe/Vilnius" "ਵਿਲਨਿਅਸ"
+    "Europe/Riga" "ਰਿਗਾ"
+    "Africa/Tripoli" "ਤ੍ਰਿਪੋਲੀ"
+    "Africa/Casablanca" "ਕਾਸਾਬਲਾਂਕਾ"
+    "Europe/Chisinau" "ਚਿਸਿਨੌ"
+    "Pacific/Kwajalein" "ਕਵਾਜਾਲੀਨ"
+    "Asia/Yangon" "ਰੰਗੂਨ"
+    "Asia/Ulaanbaatar" "ਉਲਾਨਬਾਤਰ"
+    "Asia/Hovd" "ਹੋਵਡ"
+    "Asia/Macau" "ਮਕਾਉ"
+    "America/Martinique" "ਮਾਰਟੀਨਿਕ"
+    "Europe/Malta" "ਮਾਲਟਾ"
+    "Indian/Mauritius" "ਮੌਰਿਸ਼ਸ"
+    "Indian/Maldives" "ਮਾਲਦੀਵ"
+    "America/Mexico_City" "ਮੈਕਸੀਕੋ ਸਿਟੀ"
+    "America/Cancun" "ਕੈਨਕੁਨ"
+    "America/Merida" "ਮੇਰਿਡਾ"
+    "America/Monterrey" "ਮੋਨਟੇਰੀ"
+    "America/Matamoros" "ਮਾਟਾਮੋਰਸ"
+    "America/Chihuahua" "ਚਿਹੁਆਹੁਆ"
+    "America/Ciudad_Juarez" "ਸਿਉਡਾਡ ਹੁਆਰੇਜ਼"
+    "America/Ojinaga" "ਓਜੀਨਾਗਾ"
+    "America/Mazatlan" "ਮਜ਼ੇਤਲਾਨ"
+    "America/Bahia_Banderas" "ਬਾਹੀਆ ਬਾਂਦੇਰਸ"
+    "America/Hermosillo" "ਹਰਮੋਸਿੱਲੋ"
+    "America/Tijuana" "ਟਿਜੂਆਨਾ"
+    "Asia/Kuching" "ਕੁਚਿੰਗ"
+    "Africa/Maputo" "ਮਾਪੁਟੋ"
+    "Africa/Windhoek" "ਵਿੰਡਹੋਇਕ"
+    "Pacific/Noumea" "ਨੌਮਿਆ"
+    "Pacific/Norfolk" "ਨੋਰਫੌਕ"
+    "Africa/Lagos" "ਲਾਗੋਸ"
+    "America/Managua" "ਮਨਾਗੁਆ"
+    "Asia/Kathmandu" "ਕਾਠਮਾਂਡੂ"
+    "Pacific/Nauru" "ਨਾਉਰੂ"
+    "Pacific/Niue" "ਨਿਯੂ"
+    "Pacific/Auckland" "ਆਕਲੈਂਡ"
+    "Pacific/Chatham" "ਚੈਥਮ"
+    "America/Panama" "ਪਨਾਮਾ"
+    "America/Lima" "ਲੀਮਾ"
+    "Pacific/Tahiti" "ਤਹਿਤੀ"
+    "Pacific/Marquesas" "ਮਾਰਕਿਸਾਸ"
+    "Pacific/Gambier" "ਗੈਂਬੀਅਰ"
+    "Pacific/Port_Moresby" "ਪੋਰਟ ਮੋਰੇਸਬੀ"
+    "Pacific/Bougainville" "ਬੋਗਨਵਿਲੇ"
+    "Asia/Manila" "ਮਨੀਲਾ"
+    "Asia/Karachi" "ਕਰਾਚੀ"
+    "Europe/Warsaw" "ਵਾਰਸਾਅ"
+    "America/Miquelon" "ਮਿਕੇਲਨ"
+    "Pacific/Pitcairn" "ਪਿਟਕੈਰਨ"
+    "America/Puerto_Rico" "ਪਿਊਰਟੋ ਰੀਕੋ"
+    "Asia/Gaza" "ਗਾਜ਼ਾ"
+    "Asia/Hebron" "ਹੇਬਰਾਨ"
+    "Europe/Lisbon" "ਲਿਸਬਨ"
+    "Atlantic/Madeira" "ਮਡੀਅਰਾ"
+    "Atlantic/Azores" "ਅਜੋਰੇਸ"
+    "Pacific/Palau" "ਪਲਾਉ"
+    "America/Asuncion" "ਐਸੁੰਕੀਅਨ"
+    "Asia/Qatar" "ਕਤਰ"
+    "Europe/Bucharest" "ਬੂਕਾਰੈਸਟ"
+    "Europe/Belgrade" "ਬੈਲਗ੍ਰੇਡ"
+    "Europe/Kaliningrad" "ਕਲੀਨਿੰਗ੍ਰੇਡ"
+    "Europe/Moscow" "ਮਾਸਕੋ"
+    "Europe/Simferopol" "ਸਿਮਫਰੋਪੋਲ"
+    "Europe/Kirov" "ਕੀਰੋਵ"
+    "Europe/Volgograd" "ਵੋਲਗੋਗ੍ਰੇਡ"
+    "Europe/Astrakhan" "ਆਸਟ੍ਰਾਖਾਨ"
+    "Europe/Saratov" "ਸੈਰਾਟੋਵ"
+    "Europe/Ulyanovsk" "ਯੁਲਿਆਨੋਸਕ"
+    "Europe/Samara" "ਸਮਾਰਾ"
+    "Asia/Yekaterinburg" "ਯਕੇਤਰਿਨਬਰਗ"
+    "Asia/Omsk" "ਓਮਸਕ"
+    "Asia/Novosibirsk" "ਨੋਵੋਸਿਬੀਰਸਕ"
+    "Asia/Barnaul" "ਬਰਨੌਲ"
+    "Asia/Tomsk" "ਟੋਮਸਕ"
+    "Asia/Novokuznetsk" "ਨੋਵੋਕੁਜ਼ਨੇਟਸਕ"
+    "Asia/Krasnoyarsk" "ਕਰੈਸਨੇਜਰਸ"
+    "Asia/Irkutsk" "ਇਰਕੁਤਸਕ"
+    "Asia/Chita" "ਚਿਤਾ"
+    "Asia/Yakutsk" "ਯਕੁਤਸਕ"
+    "Asia/Khandyga" "ਖਾਨਡਿਗਾ"
+    "Asia/Vladivostok" "ਵਲਾਦੀਵੋਸਤਕ"
+    "Asia/Ust-Nera" "ਉਸਤ-ਨੇਰਾ"
+    "Asia/Magadan" "ਮੈਗੇਡਨ"
+    "Asia/Sakhalin" "ਸਖਲੀਨ"
+    "Asia/Srednekolymsk" "ਸਰਿਡਨੀਕੋਲਿਸਕ"
+    "Asia/Kamchatka" "ਕਮਚਟਕਾ"
+    "Asia/Anadyr" "ਐਨਾਡਾਇਰ"
+    "Asia/Riyadh" "ਰਿਆਧ"
+    "Pacific/Guadalcanal" "ਗੁਆਡਾਕੇਨਲ"
+    "Africa/Khartoum" "ਖਾਰਟੌਮ"
+    "Asia/Singapore" "ਸਿੰਗਾਪੁਰ"
+    "America/Paramaribo" "ਪੈਰਾਮਰੀਬੋ"
+    "Africa/Juba" "ਜੂਬਾ"
+    "Africa/Sao_Tome" "ਸਾਓ ਟੋਮ"
+    "America/El_Salvador" "ਅਲ ਸਲਵਾਡੋਰ"
+    "Asia/Damascus" "ਡੈਮਸਕਸ"
+    "America/Grand_Turk" "ਗਰਾਂਡ ਤੁਰਕ"
+    "Africa/Ndjamena" "ਐਂਜਾਮੇਨਾ"
+    "Asia/Bangkok" "ਬੈਂਕਾਕ"
+    "Asia/Dushanbe" "ਦੁਸ਼ਾਂਬੇ"
+    "Pacific/Fakaofo" "ਫਕਾਉਫੋ"
+    "Asia/Dili" "ਡਿਲੀ"
+    "Asia/Ashgabat" "ਅਸ਼ਗਾਬਾਟ"
+    "Africa/Tunis" "ਟੁਨਿਸ"
+    "Pacific/Tongatapu" "ਟੋਂਗਾਟਾਪੂ"
+    "Europe/Istanbul" "ਇਸਤਾਂਬੁਲ"
+    "Asia/Taipei" "ਤੈਪਈ"
+    "Europe/Kyiv" "ਕੀਵ"
+    "America/New_York" "ਨਿਊ ਯਾਰਕ"
+    "America/Detroit" "ਡਿਟਰੋਇਟ"
+    "America/Kentucky/Louisville" "ਲੁਈਸਵਿਲੇ"
+    "America/Kentucky/Monticello" "ਮੋਂਟੀਸੈਲੋ, ਕੈਂਟਕੀ"
+    "America/Indiana/Indianapolis" "ਇੰਡੀਆਨਾਪੋਲਿਸ"
+    "America/Indiana/Vincennes" "ਵਿੰਸੇਨੇਸ, ਇੰਡੀਆਨਾ"
+    "America/Indiana/Winamac" "ਵਿਨਮੈਕ, ਇੰਡੀਆਨਾ"
+    "America/Indiana/Marengo" "ਮਾਰੇਂਗੋ, ਇੰਡੀਆਨਾ"
+    "America/Indiana/Petersburg" "ਪੀਟਰਸਬਰਗ, ਇੰਡੀਆਨਾ"
+    "America/Indiana/Vevay" "ਵੇਵੇ, ਇੰਡੀਆਨਾ"
+    "America/Chicago" "ਸ਼ਿਕਾਗੋ"
+    "America/Indiana/Tell_City" "ਟੈਲ ਸਿਟੀ, ਇੰਡੀਆਨਾ"
+    "America/Indiana/Knox" "ਨੋਕਸ, ਇੰਡੀਆਨਾ"
+    "America/Menominee" "ਮੈਨੋਮਿਨੀ"
+    "America/North_Dakota/Center" "ਸੇਂਟਰ, ਉੱਤਰੀ ਡਕੋਟਾ"
+    "America/North_Dakota/New_Salem" "ਨਿਊ ਸਲੇਮ, ਉੱਤਰੀ ਡਕੋਟਾ"
+    "America/North_Dakota/Beulah" "ਬਿਉਲਾ, ਉੱਤਰੀ ਡਕੋਟਾ"
+    "America/Denver" "ਡੇਨਵਰ"
+    "America/Boise" "ਬੋਇਸ"
+    "America/Phoenix" "ਫਿਨਿਕਸ"
+    "America/Los_Angeles" "ਲਾਸ ਐਂਜਲਸ"
+    "America/Anchorage" "ਐਂਕਰੇਜ"
+    "America/Juneau" "ਜਯੂਨੋ"
+    "America/Sitka" "ਸਿਟਕਾ"
+    "America/Metlakatla" "ਮੇਟਲਾਕਾਟਲਾ"
+    "America/Yakutat" "ਯਕੁਤਤ"
+    "America/Nome" "ਨੋਮ"
+    "America/Adak" "ਏਡਕ"
+    "Pacific/Honolulu" "ਹੋਨੋਲੁਲੂ"
+    "America/Montevideo" "ਮੋਂਟੇਵੀਡੀਓ"
+    "Asia/Samarkand" "ਸਮਰਕੰਦ"
+    "Asia/Tashkent" "ਤਾਸ਼ਕੰਦ"
+    "America/Caracas" "ਕੈਰਾਕਾਸ"
+    "Asia/Ho_Chi_Minh" "ਹੋ ਚੀ ਮਿਨ੍ਹ ਸਿਟੀ"
+    "Pacific/Efate" "ਇਫੇਟ"
+    "Pacific/Apia" "ਐਪੀਆ"
+    "Africa/Johannesburg" "ਜੋਹਨਸਬਰਗ"
+    "America/Antigua" "ਐਂਟੀਗੁਆ"
+    "America/Anguilla" "ਅੰਗੁਇਲਾ"
+    "Africa/Luanda" "ਲੁਆਂਡਾ"
+    "Antarctica/McMurdo" "ਮੈਕਮੁਰਡੋ"
+    "Antarctica/DumontDUrville" "ਡਿਉਮੋਂਟ ਡਿਉਰਵਿਲੇ"
+    "Antarctica/Syowa" "ਸਵੋਯਾ"
+    "America/Aruba" "ਅਰੂਬਾ"
+    "Europe/Mariehamn" "ਮਾਰੀਏਹਾਮੇਨ"
+    "Europe/Sarajevo" "ਸਾਰਾਜੇਵੋ"
+    "Africa/Ouagadougou" "ਉਆਗਾਡੂਗੂ"
+    "Asia/Bahrain" "ਬਹਿਰੀਨ"
+    "Africa/Bujumbura" "ਬੁਜੁੰਬੁਰਾ"
+    "Africa/Porto-Novo" "ਪੋਰਟੋ-ਨੋਵੋ"
+    "America/St_Barthelemy" "ਸੇਂਟ ਬਾਰਥੇਲੇਮੀ"
+    "Asia/Brunei" "ਬਰੂਨੇਈ"
+    "America/Kralendijk" "ਕ੍ਰਾਲੇਂਦਿਜਕ"
+    "America/Nassau" "ਨਾਸਾਓ"
+    "Africa/Gaborone" "ਗਾਬੋਰੋਨ"
+    "America/Blanc-Sablon" "ਬਲੈਂਕ-ਸੈਬਲਾਨ"
+    "America/Atikokan" "ਐਟੀਕੋਕਨ"
+    "America/Creston" "ਕ੍ਰੈਸਟਨ"
+    "Indian/Cocos" "ਕੋਕੋਜ਼"
+    "Africa/Kinshasa" "ਕਿੰਸ਼ਾਸਾ"
+    "Africa/Lubumbashi" "ਲੁਬੁਮਬਾਸ਼ੀ"
+    "Africa/Bangui" "ਬਾਂਗੁਈ"
+    "Africa/Brazzaville" "ਬ੍ਰਾਜ਼ਾਵਿਲੇ"
+    "Africa/Douala" "ਡੌਆਲਾ"
+    "America/Curacao" "ਕੁਰਾਕਾਓ"
+    "Indian/Christmas" "ਕ੍ਰਿਸਮਸ"
+    "Europe/Busingen" "ਬੁਸਿੰਜੇਨ"
+    "Africa/Djibouti" "ਜਿਬੂਤੀ"
+    "Europe/Copenhagen" "ਕੋਪਨਹੇਗਨ"
+    "America/Dominica" "ਡੋਮੀਨਿਕਾ"
+    "Africa/Asmara" "ਅਸਮਾਰਾ"
+    "Africa/Addis_Ababa" "ਐਡਿਸ ਅਬਾਬਾ"
+    "Pacific/Chuuk" "ਚੂਕ"
+    "Pacific/Pohnpei" "ਪੋਹਨਪੇਈ"
+    "Africa/Libreville" "ਲਿਬਰਵਿਲੇ"
+    "America/Grenada" "ਗ੍ਰੇਨਾਡਾ"
+    "Europe/Guernsey" "ਗਰਨਜੀ"
+    "Africa/Accra" "ਅੱਕਰਾ"
+    "Africa/Banjul" "ਬਾਂਜੁਲ"
+    "Africa/Conakry" "ਕੋਨੇਕਰੀ"
+    "America/Guadeloupe" "ਗੁਆਡੇਲੋਪ"
+    "Africa/Malabo" "ਮਾਲਾਬੋ"
+    "Europe/Zagreb" "ਜ਼ਗਰੇਬ"
+    "Europe/Isle_of_Man" "ਆਇਲ ਆਫ ਮੈਨ"
+    "Atlantic/Reykjavik" "ਰੇਕਜਾਵਿਕ"
+    "Europe/Jersey" "ਜਰਸੀ"
+    "Asia/Phnom_Penh" "ਫਨੋਮ ਪੇਨਹ"
+    "Indian/Comoro" "ਕੋਮੋਰੋ"
+    "America/St_Kitts" "ਸੇਂਟ ਕਿਟਸ"
+    "Asia/Kuwait" "ਕੁਵੈਤ"
+    "America/Cayman" "ਕੇਮੈਨ"
+    "Asia/Vientiane" "ਵਾਏਨਟਿਆਨੇ"
+    "America/St_Lucia" "ਸੇਂਟ ਲੁਸੀਆ"
+    "Europe/Vaduz" "ਵਾਡੁਜ਼"
+    "Africa/Maseru" "ਮਸੇਰੂ"
+    "Europe/Luxembourg" "ਲਕਜ਼ਮਬਰਗ"
+    "Europe/Monaco" "ਮੋਨਾਕੋ"
+    "Europe/Podgorica" "ਪੋਡਗੋਰੀਕਾ"
+    "America/Marigot" "ਮੈਰੀਗੋਟ"
+    "Indian/Antananarivo" "ਅੰਟਾਨਨੇਰਿਵੋ"
+    "Pacific/Majuro" "ਮੇਜੁਰੋ"
+    "Europe/Skopje" "ਸਕੋਪਜੇ"
+    "Africa/Bamako" "ਬਮੇਕੋ"
+    "Pacific/Saipan" "ਸੈਪਾਨ"
+    "Africa/Nouakchott" "ਨੌਆਕਸ਼ਾਟ"
+    "America/Montserrat" "ਮੋਂਟਸੇਰਾਤ"
+    "Africa/Blantyre" "ਬਲੰਟਾਇਰ"
+    "Asia/Kuala_Lumpur" "ਕੁਆਲਾਲੰਪੁਰ"
+    "Africa/Niamey" "ਨਿਆਮੇ"
+    "Europe/Amsterdam" "ਐਮਸਟਰਡਮ"
+    "Europe/Oslo" "ਓਸਲੋ"
+    "Asia/Muscat" "ਮਸਕਟ"
+    "Indian/Reunion" "ਰਿਯੂਨੀਅਨ"
+    "Africa/Kigali" "ਕਿਗਾਲੀ"
+    "Indian/Mahe" "ਮਾਹੇ"
+    "Europe/Stockholm" "ਸਟਾਕਹੋਮ"
+    "Atlantic/St_Helena" "ਸੇਂਟ ਹੇਲੇਨਾ"
+    "Europe/Ljubljana" "ਲਜੁਬਲਜਾਨਾ"
+    "Arctic/Longyearbyen" "ਲੋਂਗਈਅਰਬਾਇਨ"
+    "Europe/Bratislava" "ਬ੍ਰਾਟਿਸਲਾਵਾ"
+    "Africa/Freetown" "ਫਰੀਟਾਉਨ"
+    "Europe/San_Marino" "ਸੈਨ ਮਰੀਨੋ"
+    "Africa/Dakar" "ਡਕਾਰ"
+    "Africa/Mogadishu" "ਮੋਗਾਦਿਸ਼ੂ"
+    "America/Lower_Princes" "ਲੋਅਰ ਪ੍ਰਿੰਸ’ਸ ਕਵਾਰਟਰ"
+    "Africa/Mbabane" "ਏਮਬਾਬਾਨੇ"
+    "Indian/Kerguelen" "ਕਰਗਯੂਲੇਨ"
+    "Africa/Lome" "ਲੋਮ"
+    "America/Port_of_Spain" "ਪੋਰਟ ਔਫ ਸਪੇਨ"
+    "Pacific/Funafuti" "ਫੁਨਾਫੁਟੀ"
+    "Africa/Dar_es_Salaam" "ਦਾਰ ਏਸ ਸਲਾਮ"
+    "Africa/Kampala" "ਕੰਪਾਲਾ"
+    "Pacific/Midway" "ਮਿਡਵੇ"
+    "Pacific/Wake" "ਵੇਕ"
+    "Europe/Vatican" "ਵੈਟਿਕਨ"
+    "America/St_Vincent" "ਸੇਂਟ ਵਿਨਸੇਂਟ"
+    "America/Tortola" "ਟੋਰਟੋਲਾ"
+    "America/St_Thomas" "ਸੇਂਟ ਥੋਮਸ"
+    "Pacific/Wallis" "ਵਾਲਿਸ"
+    "Asia/Aden" "ਅਡੇਨ"
+    "Indian/Mayotte" "ਮਾਯੋਟੀ"
+    "Africa/Lusaka" "ਲੁਸਾਕਾ"
+    "Africa/Harare" "ਹਰਾਰੇ"
+};
+
+// `common/main/pcm.xml`: 399 of the 418 zones named, 18 inherited.
+#[cfg(feature = "localized-exemplar-cities")]
+const PCM: &str = exemplar_cities! {
+    "Europe/Andorra" "Andọ́ra"
+    "Asia/Dubai" inherited
+    "Asia/Kabul" inherited
+    "Europe/Tirane" "Tiránẹ"
+    "Asia/Yerevan" "Yẹrẹ́van"
+    "Antarctica/Casey" "Kési"
+    "Antarctica/Davis" "Dévis"
+    "Antarctica/Mawson" "Mọ́sọn"
+    "Antarctica/Palmer" "Páma"
+    "Antarctica/Rothera" "Rotẹ́ra"
+    "Antarctica/Troll" "Trol"
+    "Antarctica/Vostok" "Vọ́stọk"
+    "America/Argentina/Buenos_Aires" "Buẹnos Aírẹs"
+    "America/Argentina/Cordoba" "Kórdoba"
+    "America/Argentina/Salta" "Sálta"
+    "America/Argentina/Jujuy" "Huhui"
+    "America/Argentina/Tucuman" "Túkúman"
+    "America/Argentina/Catamarca" "Katamáka"
+    "America/Argentina/La_Rioja" "La Riókha"
+    "America/Argentina/San_Juan" "Sán Hwán"
+    "America/Argentina/Mendoza" "Mẹndóza"
+    "America/Argentina/San_Luis" "Sán Luis"
+    "America/Argentina/Rio_Gallegos" "Rió Galẹ́gọs"
+    "America/Argentina/Ushuaia" "Usuáya"
+    "Pacific/Pago_Pago" "Págo Págo"
+    "Europe/Vienna" "Viẹ́na"
+    "Australia/Lord_Howe" "Lọd Haú"
+    "Antarctica/Macquarie" "Makwuéí"
+    "Australia/Hobart" "Hóbat"
+    "Australia/Melbourne" "Mẹ́lbọn"
+    "Australia/Sydney" "Sídni"
+    "Australia/Broken_Hill" "Brókún Hil"
+    "Australia/Brisbane" "Brísben"
+    "Australia/Lindeman" "Líndẹman"
+    "Australia/Adelaide" "Adleid"
+    "Australia/Darwin" "Dárwin"
+    "Australia/Perth" "Pẹrt"
+    "Australia/Eucla" "Yúkla"
+    "Asia/Baku" "Báku"
+    "America/Barbados" "Barbédọs"
+    "Asia/Dhaka" "Dáka"
+    "Europe/Brussels" "Brúsuls"
+    "Europe/Sofia" "Sofía"
+    "Atlantic/Bermuda" "Bẹmiúda"
+    "America/La_Paz" inherited
+    "America/Noronha" "Nọrónia"
+    "America/Belem" "Bẹlẹm"
+    "America/Fortaleza" "Fọtalẹ́za"
+    "America/Recife" "Rẹsífẹ"
+    "America/Araguaina" "Aragwuaína"
+    "America/Maceio" "Masẹ́io"
+    "America/Bahia" "Bahía"
+    "America/Sao_Paulo" "Sao Paúlo"
+    "America/Campo_Grande" "Kampó Grándẹ"
+    "America/Cuiaba" "Kúyábaa"
+    "America/Santarem" "Santarẹm"
+    "America/Porto_Velho" "Pọto Vẹ́lho"
+    "America/Boa_Vista" "Bóa Vísta"
+    "America/Manaus" "Manáus"
+    "America/Eirunepe" "Ẹirunẹpẹ"
+    "America/Rio_Branco" "Rió Bránko"
+    "Asia/Thimphu" "Tímfu"
+    "Europe/Minsk" inherited
+    "America/Belize" "Bẹliz"
+    "America/St_Johns" "Sent Jọn"
+    "America/Halifax" "Hálífaks"
+    "America/Glace_Bay" "Glás Bè"
+    "America/Moncton" "Mọ́nktọn"
+    "America/Goose_Bay" "Gúz Bè"
+    "America/Toronto" "Torónto"
+    "America/Iqaluit" "Ikáluit"
+    "America/Winnipeg" "Wínípẹg"
+    "America/Resolute" "Rẹ́zólut"
+    "America/Rankin_Inlet" "Ránkín Ínlẹt"
+    "America/Regina" "Rẹjína"
+    "America/Swift_Current" "Swíft Kọ́rẹnt"
+    "America/Edmonton" "Ẹ́dmọ́ntọn"
+    "America/Cambridge_Bay" "Kémbríj Bè"
+    "America/Inuvik" "Inúvik"
+    "America/Vancouver" "Vankúva"
+    "America/Dawson_Creek" "Dọ́sọn Krik"
+    "America/Fort_Nelson" "Fọt Nẹ́lson"
+    "America/Whitehorse" "Waíthọs"
+    "America/Dawson" "Dọ́sọn"
+    "Europe/Zurich" "Zúrik"
+    "Africa/Abidjan" "Ábijan"
+    "Pacific/Rarotonga" "Raratónga"
+    "America/Santiago" "Santiágo"
+    "America/Coyhaique" inherited
+    "America/Punta_Arenas" "Púntá Arẹ́nas"
+    "Pacific/Easter" "Ísta"
+    "Asia/Shanghai" "Shánghai"
+    "Asia/Urumqi" "Yurọ́mki"
+    "America/Bogota" inherited
+    "America/Costa_Rica" "Kósta Ríka"
+    "America/Havana" "Havána"
+    "Atlantic/Cape_Verde" "Kép Vẹd"
+    "Asia/Nicosia" "Nikosia"
+    "Asia/Famagusta" "Fagústa"
+    "Europe/Prague" "Prag"
+    "Europe/Berlin" "Bẹlin"
+    "America/Santo_Domingo" "Sántó Domíngo"
+    "Africa/Algiers" "Aljíẹz"
+    "America/Guayaquil" "Guáyakil"
+    "Pacific/Galapagos" "Galápágọs"
+    "Europe/Tallinn" "Tálin"
+    "Africa/Cairo" "Kaíro"
+    "Africa/El_Aaiun" "Ẹl Aiun"
+    "Europe/Madrid" inherited
+    "Africa/Ceuta" "Sẹúta"
+    "Atlantic/Canary" "Kenerí"
+    "Europe/Helsinki" "Hẹlsínki"
+    "Pacific/Fiji" "Fíji"
+    "Atlantic/Stanley" "Stánli"
+    "Pacific/Kosrae" "Kọ́sraẹ"
+    "Atlantic/Faroe" "Fáróis"
+    "Europe/Paris" "Páris"
+    "Europe/London" "Lọ́ndọn"
+    "Asia/Tbilisi" "Tiblísi"
+    "America/Cayenne" "Kayẹn"
+    "Europe/Gibraltar" "Jibrọ́lta"
+    "America/Nuuk" inherited
+    "America/Danmarkshavn" "Danmákshávun"
+    "America/Scoresbysund" "Itókotúrmit"
+    "America/Thule" "Túli"
+    "Europe/Athens" "Átẹns"
+    "Atlantic/South_Georgia" "Saút Jọ́jia"
+    "America/Guatemala" "Guátẹmála"
+    "Pacific/Guam" inherited
+    "Africa/Bissau" "Bisau"
+    "America/Guyana" "Gayána"
+    "Asia/Hong_Kong" "Họng Kọng"
+    "America/Tegucigalpa" "Tẹgúsigálpa"
+    "America/Port-au-Prince" "Pọt-o-Prins"
+    "Europe/Budapest" "Búdápẹst"
+    "Asia/Jakarta" "Jakáta"
+    "Asia/Pontianak" "Pọntiának"
+    "Asia/Makassar" "Makása"
+    "Asia/Jayapura" "Jayapúra"
+    "Europe/Dublin" "Dọ́blin"
+    "Asia/Jerusalem" "Jẹrúsálẹm"
+    "Asia/Kolkata" "Kolkáta"
+    "Indian/Chagos" "Chágọs"
+    "Asia/Baghdad" "Bágdad"
+    "Asia/Tehran" "Tẹran"
+    "Europe/Rome" "Rom"
+    "America/Jamaica" "Jamaíka"
+    "Asia/Amman" "Aman"
+    "Asia/Tokyo" "Tókyo"
+    "Africa/Nairobi" "Naíróbi"
+    "Asia/Bishkek" "Bishkẹk"
+    "Pacific/Tarawa" "Taráwa"
+    "Pacific/Kanton" inherited
+    "Pacific/Kiritimati" "Kritímáti"
+    "Asia/Pyongyang" "Piọngyang"
+    "Asia/Seoul" "Sol"
+    "Asia/Almaty" "Álmáti"
+    "Asia/Qyzylorda" "Kízilọ́da"
+    "Asia/Qostanay" "Kostánai"
+    "Asia/Aqtobe" "Aktóbẹ"
+    "Asia/Aqtau" "Aktáu"
+    "Asia/Atyrau" "Átírau"
+    "Asia/Oral" "Ọ́ral"
+    "Asia/Beirut" "Bẹrut"
+    "Asia/Colombo" "Kolómbo"
+    "Africa/Monrovia" "Monróvia"
+    "Europe/Vilnius" "Vílnius"
+    "Europe/Riga" "Ríga"
+    "Africa/Tripoli" "Trípọ́li"
+    "Africa/Casablanca" "Kasablánka"
+    "Europe/Chisinau" "Chisináu"
+    "Pacific/Kwajalein" "Kwájalẹn"
+    "Asia/Yangon" "Yangọn"
+    "Asia/Ulaanbaatar" "Ulanbáta"
+    "Asia/Hovd" inherited
+    "Asia/Macau" "Makáo"
+    "America/Martinique" "Matínik"
+    "Europe/Malta" "Mọ́lta"
+    "Indian/Mauritius" "Mọríshọs"
+    "Indian/Maldives" "Mọ́ldivs"
+    "America/Mexico_City" "Mẹ́ksíkó Síti"
+    "America/Cancun" "Kankun"
+    "America/Merida" "Mẹ́rída"
+    "America/Monterrey" "Mọntẹrẹẹ"
+    "America/Matamoros" "Mátamóros"
+    "America/Chihuahua" "Chiwuáwua"
+    "America/Ciudad_Juarez" inherited
+    "America/Ojinaga" "Okhinága"
+    "America/Mazatlan" "Mazátlan"
+    "America/Bahia_Banderas" "Bahía Bandẹ́ras"
+    "America/Hermosillo" "Hẹ́mósílo"
+    "America/Tijuana" "Tikhuána"
+    "Asia/Kuching" inherited
+    "Africa/Maputo" "Mapúto"
+    "Africa/Windhoek" "Wíndhok"
+    "Pacific/Noumea" "Númẹ́a"
+    "Pacific/Norfolk" "Nọ́rfọ́lk"
+    "Africa/Lagos" "Légos"
+    "America/Managua" "Manágua"
+    "Asia/Kathmandu" "Katmándu"
+    "Pacific/Nauru" "Naúru"
+    "Pacific/Niue" "Niú"
+    "Pacific/Auckland" "Ọ́kland"
+    "Pacific/Chatham" "Chátam"
+    "America/Panama" "Pánáma"
+    "America/Lima" "Líma"
+    "Pacific/Tahiti" "Tahíti"
+    "Pacific/Marquesas" "Makwẹ́sas"
+    "Pacific/Gambier" "Gámbiẹr"
+    "Pacific/Port_Moresby" "Pọt Mọrẹ́sbi"
+    "Pacific/Bougainville" "Bugenvília"
+    "Asia/Manila" "Maníla"
+    "Asia/Karachi" "Karáchi"
+    "Europe/Warsaw" "Wọ́sọ"
+    "America/Miquelon" "Míkẹlọn"
+    "Pacific/Pitcairn" "Pítkan"
+    "America/Puerto_Rico" "Puẹ́rto Ríkọ"
+    "Asia/Gaza" "Gáza"
+    "Asia/Hebron" "Hẹ́brọn"
+    "Europe/Lisbon" "Lísbọn"
+    "Atlantic/Madeira" "Madíra"
+    "Atlantic/Azores" "Azọz"
+    "Pacific/Palau" "Paláu"
+    "America/Asuncion" "Asunsiọn"
+    "Asia/Qatar" "Káta"
+    "Europe/Bucharest" "Búkárẹst"
+    "Europe/Belgrade" "Bẹ́lgréd"
+    "Europe/Kaliningrad" "Kalíníngrad"
+    "Europe/Moscow" "Mọ́sko"
+    "Europe/Simferopol" "Símfẹrópol"
+    "Europe/Kirov" "Kirọv"
+    "Europe/Volgograd" "Volvógrad"
+    "Europe/Astrakhan" "Ástrahán"
+    "Europe/Saratov" "Sárátov"
+    "Europe/Ulyanovsk" "Uliánọvsk"
+    "Europe/Samara" "Samára"
+    "Asia/Yekaterinburg" "Yẹketẹrínbug"
+    "Asia/Omsk" "Ọmsk"
+    "Asia/Novosibirsk" "Novosibisk"
+    "Asia/Barnaul" "Bárnául"
+    "Asia/Tomsk" inherited
+    "Asia/Novokuznetsk" "Novokuznẹ́sk"
+    "Asia/Krasnoyarsk" "Krasnoyask"
+    "Asia/Irkutsk" "Irkútsk"
+    "Asia/Chita" "Chítá"
+    "Asia/Yakutsk" "Yékútsk"
+    "Asia/Khandyga" "Kandíga"
+    "Asia/Vladivostok" "Vladivọstọk"
+    "Asia/Ust-Nera" "Ust-Nẹ́ra"
+    "Asia/Magadan" "Mágádan"
+    "Asia/Sakhalin" "Sákhalin"
+    "Asia/Srednekolymsk" "Srẹ́dnẹkolimsk"
+    "Asia/Kamchatka" "Kamchátké"
+    "Asia/Anadyr" "Ánadiar"
+    "Asia/Riyadh" "Riyád"
+    "Pacific/Guadalcanal" "Guádálkanal"
+    "Africa/Khartoum" "Kartum"
+    "Asia/Singapore" "Singapọ"
+    "America/Paramaribo" "Párámaribo"
+    "Africa/Juba" "Júba"
+    "Africa/Sao_Tome" "Sao Tómẹ"
+    "America/El_Salvador" "El Sálvádọ"
+    "Asia/Damascus" "Damáskọs"
+    "America/Grand_Turk" "Gránd Tọk"
+    "Africa/Ndjamena" "Njamẹ́na"
+    "Asia/Bangkok" "Bánkọk"
+    "Asia/Dushanbe" "Dushánbẹ"
+    "Pacific/Fakaofo" "Fakáófo"
+    "Asia/Dili" "Díli"
+    "Asia/Ashgabat" "Áshgabat"
+    "Africa/Tunis" "Túnis"
+    "Pacific/Tongatapu" "Tongatápu"
+    "Europe/Istanbul" "Ístánbul"
+    "Asia/Taipei" "Taipẹi"
+    "Europe/Kyiv" "Kiẹv"
+    "America/New_York" "Niú Yọk"
+    "America/Detroit" "Ditrọit"
+    "America/Kentucky/Louisville" "Luívil"
+    "America/Kentucky/Monticello" "Mọntẹchẹ́lo, Kẹ́ntọ́ki"
+    "America/Indiana/Indianapolis" "Indiánápọ́lis"
+    "America/Indiana/Vincennes" "Vínsẹn, Indiána"
+    "America/Indiana/Winamac" "Wínámak, Indiána"
+    "America/Indiana/Marengo" "Marẹ́ngo, Indiána"
+    "America/Indiana/Petersburg" "Pításbọg, Indiána"
+    "America/Indiana/Vevay" "Vẹ́ve, Indiána"
+    "America/Chicago" "Chikágo"
+    "America/Indiana/Tell_City" "Tẹ́l Síti, Indiána"
+    "America/Indiana/Knox" "Nọks, Indiána"
+    "America/Menominee" "Mẹnọ́minii"
+    "America/North_Dakota/Center" "Sẹ́nta, Nọ́t Dakóta"
+    "America/North_Dakota/New_Salem" "Niú Sélẹm, Nọ́t Dakóta"
+    "America/North_Dakota/Beulah" "Biúla, Nọ́t Dakóta"
+    "America/Denver" "Dẹ́nva"
+    "America/Boise" "Bọísi"
+    "America/Phoenix" "Fíniks"
+    "America/Los_Angeles" "Lọs Ánjẹ́lis"
+    "America/Anchorage" "Ánkọ́rej"
+    "America/Juneau" "Júno"
+    "America/Sitka" inherited
+    "America/Metlakatla" "Mẹtlakátla"
+    "America/Yakutat" "Yakútat"
+    "America/Nome" "Noom"
+    "America/Adak" "Ádak"
+    "Pacific/Honolulu" ""
+    "America/Montevideo" "Mọntẹvidẹo"
+    "Asia/Samarkand" "Sámákand"
+    "Asia/Tashkent" "Táshkẹnt"
+    "America/Caracas" "Karákas"
+    "Asia/Ho_Chi_Minh" "Hó Chi Mín Síti"
+    "Pacific/Efate" "Ẹfátẹ"
+    "Pacific/Apia" "Ápia"
+    "Africa/Johannesburg" "Johánísbọg"
+    "America/Antigua" "Antígwua"
+    "America/Anguilla" "Angwíla"
+    "Africa/Luanda" "Luánda"
+    "Antarctica/McMurdo" "McMọ́do"
+    "Antarctica/DumontDUrville" "Diúmọ́n-d’Uvil"
+    "Antarctica/Syowa" "Siówa"
+    "America/Aruba" "Arúba"
+    "Europe/Mariehamn" "Maríahámn"
+    "Europe/Sarajevo" "Sarayẹ́vo"
+    "Africa/Ouagadougou" "Ouagadúgu"
+    "Asia/Bahrain" "Bahrén"
+    "Africa/Bujumbura" "Bujumbúra"
+    "Africa/Porto-Novo" "Pọto-Nóvo"
+    "America/St_Barthelemy" "Sent Batẹlẹ́mi"
+    "Asia/Brunei" "Brunẹi"
+    "America/Kralendijk" "Králẹ́ndijk"
+    "America/Nassau" "Nássọu"
+    "Africa/Gaborone" "Háborónẹ"
+    "America/Blanc-Sablon" "Blank-Sáblọn"
+    "America/Atikokan" "Atíkókan"
+    "America/Creston" "Krẹ́stọn"
+    "Indian/Cocos" "Kókos"
+    "Africa/Kinshasa" "Kinshásha"
+    "Africa/Lubumbashi" "Lubumbáshi"
+    "Africa/Bangui" "Bangúi"
+    "Africa/Brazzaville" "Brázavil"
+    "Africa/Douala" "Duála"
+    "America/Curacao" "Kiurásao"
+    "Indian/Christmas" "Krísmas"
+    "Europe/Busingen" "Busíngẹn"
+    "Africa/Djibouti" "Jibúti"
+    "Europe/Copenhagen" "Kọpẹnhágẹn"
+    "America/Dominica" "Dọmíníka"
+    "Africa/Asmara" "Asmára"
+    "Africa/Addis_Ababa" "Adí Abába"
+    "Pacific/Chuuk" "Chuk"
+    "Pacific/Pohnpei" "Pọnpẹ́i"
+    "Africa/Libreville" "Líbrẹvil"
+    "America/Grenada" "Grẹnéda"
+    "Europe/Guernsey" "Guẹnzi"
+    "Africa/Accra" "Akrá"
+    "Africa/Banjul" inherited
+    "Africa/Conakry" "Kọnákri"
+    "America/Guadeloupe" "Guadalúpẹ"
+    "Africa/Malabo" "Malábo"
+    "Europe/Zagreb" "Zágrẹb"
+    "Europe/Isle_of_Man" "Aíl ọf Man"
+    "Atlantic/Reykjavik" "Rẹ́kjávik"
+    "Europe/Jersey" "Jẹ́si"
+    "Asia/Phnom_Penh" "Fnọ́m Pẹn"
+    "Indian/Comoro" "Kọ́mọ́ros"
+    "America/St_Kitts" "Sent Kits"
+    "Asia/Kuwait" "Kuwet"
+    "America/Cayman" "Kéman"
+    "Asia/Vientiane" "Viẹ́ntiẹn"
+    "America/St_Lucia" "Sent Lúshia"
+    "Europe/Vaduz" inherited
+    "Africa/Maseru" "Masẹ́ru"
+    "Europe/Luxembourg" "Lọ́ksẹ́mbọg"
+    "Europe/Monaco" "Mọ́náko"
+    "Europe/Podgorica" "Pọ́jóríka"
+    "America/Marigot" "Márígọt"
+    "Indian/Antananarivo" "Antánánarívo"
+    "Pacific/Majuro" "Majúro"
+    "Europe/Skopje" "Skọ́pyẹ"
+    "Africa/Bamako" "Bamáko"
+    "Pacific/Saipan" inherited
+    "Africa/Nouakchott" "Nouákshọt"
+    "America/Montserrat" "Mọntsẹrat"
+    "Africa/Blantyre" "Blantáya"
+    "Asia/Kuala_Lumpur" "Kuála Lúmpọ"
+    "Africa/Niamey" "Niáme"
+    "Europe/Amsterdam" "Ámstádam"
+    "Europe/Oslo" "Ọ́slo"
+    "Asia/Muscat" "Múskat"
+    "Indian/Reunion" "Riyúniọn"
+    "Africa/Kigali" "Kigáli"
+    "Indian/Mahe" "Mahẹ́"
+    "Europe/Stockholm" "Stọ́khọm"
+    "Atlantic/St_Helena" "Sent Hẹlẹ́na"
+    "Europe/Ljubljana" "Lubliána"
+    "Arctic/Longyearbyen" "Lọngyẹ́abiẹn"
+    "Europe/Bratislava" "Bratísláva"
+    "Africa/Freetown" "Frítaun"
+    "Europe/San_Marino" "San Maríno"
+    "Africa/Dakar" "Dakár"
+    "Africa/Mogadishu" "Mọgádíshu"
+    "America/Lower_Princes" "Lówá Príns Im Kwọ́ta"
+    "Africa/Mbabane" "Mbabánẹ"
+    "Indian/Kerguelen" "Kẹ́rgúlẹn"
+    "Africa/Lome" "Lómẹ"
+    "America/Port_of_Spain" "Pọ́t ọf Spen"
+    "Pacific/Funafuti" "Funafúti"
+    "Africa/Dar_es_Salaam" "Dar ẹ́s Salam"
+    "Africa/Kampala" "Kampála"
+    "Pacific/Midway" "Mídwè"
+    "Pacific/Wake" "Wek"
+    "Europe/Vatican" "Vátíkan"
+    "America/St_Vincent" "Sent Vínsẹnt"
+    "America/Tortola" "Tọtóla"
+    "America/St_Thomas" "Sent Tọmọs"
+    "Pacific/Wallis" "Wáli"
+    "Asia/Aden" "Édẹn"
+    "Indian/Mayotte" "Meyọt"
+    "Africa/Lusaka" "Lusáka"
+    "Africa/Harare" "Harárẹ"
+};
+
+// `common/main/pt_PT.xml`: 83 of the 418 zones named.
+#[cfg(feature = "localized-exemplar-cities")]
+const PT_PT: &str = exemplar_cities! {
+    "Europe/Andorra" ""
+    "Asia/Dubai" ""
+    "Asia/Kabul" ""
+    "Europe/Tirane" ""
+    "Asia/Yerevan" "Erevan"
+    "Antarctica/Casey" "Estação Casey"
+    "Antarctica/Davis" ""
+    "Antarctica/Mawson" "Estação Mawson"
+    "Antarctica/Palmer" "Terra de Palmer"
+    "Antarctica/Rothera" "Estação Rothera"
+    "Antarctica/Troll" "Estação Troll"
+    "Antarctica/Vostok" "Estação Vostok"
+    "America/Argentina/Buenos_Aires" ""
+    "America/Argentina/Cordoba" ""
+    "America/Argentina/Salta" ""
+    "America/Argentina/Jujuy" ""
+    "America/Argentina/Tucuman" "Tucumán"
+    "America/Argentina/Catamarca" ""
+    "America/Argentina/La_Rioja" ""
+    "America/Argentina/San_Juan" ""
+    "America/Argentina/Mendoza" ""
+    "America/Argentina/San_Luis" ""
+    "America/Argentina/Rio_Gallegos" ""
+    "America/Argentina/Ushuaia" ""
+    "Pacific/Pago_Pago" ""
+    "Europe/Vienna" ""
+    "Australia/Lord_Howe" "Ilha de Lord Howe"
+    "Antarctica/Macquarie" "Ilha Macquarie"
+    "Australia/Hobart" ""
+    "Australia/Melbourne" ""
+    "Australia/Sydney" ""
+    "Australia/Broken_Hill" ""
+    "Australia/Brisbane" ""
+    "Australia/Lindeman" ""
+    "Australia/Adelaide" ""
+    "Australia/Darwin" ""
+    "Australia/Perth" ""
+    "Australia/Eucla" ""
+    "Asia/Baku" ""
+    "America/Barbados" ""
+    "Asia/Dhaka" "Daca"
+    "Europe/Brussels" ""
+    "Europe/Sofia" ""
+    "Atlantic/Bermuda" ""
+    "America/La_Paz" ""
+    "America/Noronha" ""
+    "America/Belem" ""
+    "America/Fortaleza" ""
+    "America/Recife" ""
+    "America/Araguaina" ""
+    "America/Maceio" ""
+    "America/Bahia" "Baía"
+    "America/Sao_Paulo" ""
+    "America/Campo_Grande" ""
+    "America/Cuiaba" ""
+    "America/Santarem" ""
+    "America/Porto_Velho" ""
+    "America/Boa_Vista" ""
+    "America/Manaus" ""
+    "America/Eirunepe" ""
+    "America/Rio_Branco" ""
+    "Asia/Thimphu" "Timphu"
+    "Europe/Minsk" ""
+    "America/Belize" ""
+    "America/St_Johns" "St. John’s"
+    "America/Halifax" ""
+    "America/Glace_Bay" ""
+    "America/Moncton" ""
+    "America/Goose_Bay" ""
+    "America/Toronto" ""
+    "America/Iqaluit" ""
+    "America/Winnipeg" ""
+    "America/Resolute" ""
+    "America/Rankin_Inlet" ""
+    "America/Regina" ""
+    "America/Swift_Current" ""
+    "America/Edmonton" ""
+    "America/Cambridge_Bay" ""
+    "America/Inuvik" ""
+    "America/Vancouver" ""
+    "America/Dawson_Creek" ""
+    "America/Fort_Nelson" ""
+    "America/Whitehorse" ""
+    "America/Dawson" ""
+    "Europe/Zurich" ""
+    "Africa/Abidjan" ""
+    "Pacific/Rarotonga" ""
+    "America/Santiago" ""
+    "America/Coyhaique" ""
+    "America/Punta_Arenas" ""
+    "Pacific/Easter" "Ilha da Páscoa"
+    "Asia/Shanghai" ""
+    "Asia/Urumqi" ""
+    "America/Bogota" ""
+    "America/Costa_Rica" ""
+    "America/Havana" ""
+    "Atlantic/Cape_Verde" ""
+    "Asia/Nicosia" ""
+    "Asia/Famagusta" ""
+    "Europe/Prague" ""
+    "Europe/Berlin" ""
+    "America/Santo_Domingo" ""
+    "Africa/Algiers" ""
+    "America/Guayaquil" ""
+    "Pacific/Galapagos" "Ilhas Galápagos"
+    "Europe/Tallinn" "Talim"
+    "Africa/Cairo" ""
+    "Africa/El_Aaiun" ""
+    "Europe/Madrid" "Madrid"
+    "Africa/Ceuta" ""
+    "Atlantic/Canary" ""
+    "Europe/Helsinki" "Helsínquia"
+    "Pacific/Fiji" ""
+    "Atlantic/Stanley" ""
+    "Pacific/Kosrae" ""
+    "Atlantic/Faroe" "Faroé"
+    "Europe/Paris" ""
+    "Europe/London" ""
+    "Asia/Tbilisi" ""
+    "America/Cayenne" ""
+    "Europe/Gibraltar" ""
+    "America/Nuuk" ""
+    "America/Danmarkshavn" ""
+    "America/Scoresbysund" ""
+    "America/Thule" ""
+    "Europe/Athens" ""
+    "Atlantic/South_Georgia" ""
+    "America/Guatemala" ""
+    "Pacific/Guam" ""
+    "Africa/Bissau" ""
+    "America/Guyana" ""
+    "Asia/Hong_Kong" ""
+    "America/Tegucigalpa" ""
+    "America/Port-au-Prince" "Port-au-Prince"
+    "Europe/Budapest" ""
+    "Asia/Jakarta" ""
+    "Asia/Pontianak" ""
+    "Asia/Makassar" "Macassar"
+    "Asia/Jayapura" ""
+    "Europe/Dublin" ""
+    "Asia/Jerusalem" ""
+    "Asia/Kolkata" ""
+    "Indian/Chagos" "Arquipélago de Chagos"
+    "Asia/Baghdad" "Bagdade"
+    "Asia/Tehran" "Teerão"
+    "Europe/Rome" ""
+    "America/Jamaica" ""
+    "Asia/Amman" ""
+    "Asia/Tokyo" ""
+    "Africa/Nairobi" "Nairobi"
+    "Asia/Bishkek" ""
+    "Pacific/Tarawa" "Tarawa"
+    "Pacific/Kanton" "Ilha Canton"
+    "Pacific/Kiritimati" ""
+    "Asia/Pyongyang" ""
+    "Asia/Seoul" ""
+    "Asia/Almaty" ""
+    "Asia/Qyzylorda" ""
+    "Asia/Qostanay" "Kostanay"
+    "Asia/Aqtobe" "Aqtobe"
+    "Asia/Aqtau" "Aqtau"
+    "Asia/Atyrau" ""
+    "Asia/Oral" ""
+    "Asia/Beirut" ""
+    "Asia/Colombo" ""
+    "Africa/Monrovia" ""
+    "Europe/Vilnius" ""
+    "Europe/Riga" ""
+    "Africa/Tripoli" "Tripoli"
+    "Africa/Casablanca" ""
+    "Europe/Chisinau" ""
+    "Pacific/Kwajalein" "Atol de Kwajalein"
+    "Asia/Yangon" "Yangon"
+    "Asia/Ulaanbaatar" ""
+    "Asia/Hovd" ""
+    "Asia/Macau" ""
+    "America/Martinique" ""
+    "Europe/Malta" ""
+    "Indian/Mauritius" "Maurícia"
+    "Indian/Maldives" ""
+    "America/Mexico_City" ""
+    "America/Cancun" "Cancun"
+    "America/Merida" ""
+    "America/Monterrey" ""
+    "America/Matamoros" ""
+    "America/Chihuahua" ""
+    "America/Ciudad_Juarez" ""
+    "America/Ojinaga" ""
+    "America/Mazatlan" ""
+    "America/Bahia_Banderas" "Bahia Banderas"
+    "America/Hermosillo" ""
+    "America/Tijuana" ""
+    "Asia/Kuching" ""
+    "Africa/Maputo" ""
+    "Africa/Windhoek" ""
+    "Pacific/Noumea" ""
+    "Pacific/Norfolk" "Ilha Norfolk"
+    "Africa/Lagos" ""
+    "America/Managua" ""
+    "Asia/Kathmandu" "Catmandu"
+    "Pacific/Nauru" ""
+    "Pacific/Niue" ""
+    "Pacific/Auckland" ""
+    "Pacific/Chatham" "Ilhas Chatham"
+    "America/Panama" ""
+    "America/Lima" ""
+    "Pacific/Tahiti" ""
+    "Pacific/Marquesas" "Ilhas Marquesas"
+    "Pacific/Gambier" ""
+    "Pacific/Port_Moresby" ""
+    "Pacific/Bougainville" ""
+    "Asia/Manila" ""
+    "Asia/Karachi" "Carachi"
+    "Europe/Warsaw" ""
+    "America/Miquelon" ""
+    "Pacific/Pitcairn" "Ilhas Pitcairn"
+    "America/Puerto_Rico" ""
+    "Asia/Gaza" ""
+    "Asia/Hebron" ""
+    "Europe/Lisbon" ""
+    "Atlantic/Madeira" ""
+    "Atlantic/Azores" ""
+    "Pacific/Palau" ""
+    "America/Asuncion" ""
+    "Asia/Qatar" ""
+    "Europe/Bucharest" ""
+    "Europe/Belgrade" ""
+    "Europe/Kaliningrad" "Caliningrado"
+    "Europe/Moscow" "Moscovo"
+    "Europe/Simferopol" ""
+    "Europe/Kirov" ""
+    "Europe/Volgograd" ""
+    "Europe/Astrakhan" ""
+    "Europe/Saratov" ""
+    "Europe/Ulyanovsk" ""
+    "Europe/Samara" ""
+    "Asia/Yekaterinburg" ""
+    "Asia/Omsk" ""
+    "Asia/Novosibirsk" ""
+    "Asia/Barnaul" ""
+    "Asia/Tomsk" ""
+    "Asia/Novokuznetsk" ""
+    "Asia/Krasnoyarsk" ""
+    "Asia/Irkutsk" ""
+    "Asia/Chita" ""
+    "Asia/Yakutsk" ""
+    "Asia/Khandyga" ""
+    "Asia/Vladivostok" ""
+    "Asia/Ust-Nera" ""
+    "Asia/Magadan" ""
+    "Asia/Sakhalin" ""
+    "Asia/Srednekolymsk" ""
+    "Asia/Kamchatka" ""
+    "Asia/Anadyr" ""
+    "Asia/Riyadh" ""
+    "Pacific/Guadalcanal" ""
+    "Africa/Khartoum" ""
+    "Asia/Singapore" ""
+    "America/Paramaribo" ""
+    "Africa/Juba" ""
+    "Africa/Sao_Tome" ""
+    "America/El_Salvador" "Salvador"
+    "Asia/Damascus" ""
+    "America/Grand_Turk" ""
+    "Africa/Ndjamena" "Ndjamena"
+    "Asia/Bangkok" "Banguecoque"
+    "Asia/Dushanbe" ""
+    "Pacific/Fakaofo" ""
+    "Asia/Dili" ""
+    "Asia/Ashgabat" ""
+    "Africa/Tunis" "Tunes"
+    "Pacific/Tongatapu" ""
+    "Europe/Istanbul" ""
+    "Asia/Taipei" "Taipé"
+    "Europe/Kyiv" ""
+    "America/New_York" "Nova Iorque"
+    "America/Detroit" ""
+    "America/Kentucky/Louisville" ""
+    "America/Kentucky/Monticello" ""
+    "America/Indiana/Indianapolis" ""
+    "America/Indiana/Vincennes" ""
+    "America/Indiana/Winamac" ""
+    "America/Indiana/Marengo" ""
+    "America/Indiana/Petersburg" ""
+    "America/Indiana/Vevay" ""
+    "America/Chicago" ""
+    "America/Indiana/Tell_City" ""
+    "America/Indiana/Knox" ""
+    "America/Menominee" ""
+    "America/North_Dakota/Center" ""
+    "America/North_Dakota/New_Salem" ""
+    "America/North_Dakota/Beulah" ""
+    "America/Denver" ""
+    "America/Boise" ""
+    "America/Phoenix" ""
+    "America/Los_Angeles" ""
+    "America/Anchorage" ""
+    "America/Juneau" ""
+    "America/Sitka" ""
+    "America/Metlakatla" ""
+    "America/Yakutat" ""
+    "America/Nome" ""
+    "America/Adak" ""
+    "Pacific/Honolulu" ""
+    "America/Montevideo" "Montevideu"
+    "Asia/Samarkand" ""
+    "Asia/Tashkent" ""
+    "America/Caracas" ""
+    "Asia/Ho_Chi_Minh" ""
+    "Pacific/Efate" "Efate"
+    "Pacific/Apia" ""
+    "Africa/Johannesburg" ""
+    "America/Antigua" ""
+    "America/Anguilla" ""
+    "Africa/Luanda" ""
+    "Antarctica/McMurdo" "Estação McMurdo"
+    "Antarctica/DumontDUrville" "Estação Dumont-d’Urville"
+    "Antarctica/Syowa" "Estação Showa"
+    "America/Aruba" ""
+    "Europe/Mariehamn" ""
+    "Europe/Sarajevo" ""
+    "Africa/Ouagadougou" ""
+    "Asia/Bahrain" "Barém"
+    "Africa/Bujumbura" ""
+    "Africa/Porto-Novo" "Porto-Novo"
+    "America/St_Barthelemy" ""
+    "Asia/Brunei" ""
+    "America/Kralendijk" ""
+    "America/Nassau" ""
+    "Africa/Gaborone" ""
+    "America/Blanc-Sablon" ""
+    "America/Atikokan" ""
+    "America/Creston" ""
+    "Indian/Cocos" "Ilhas Cocos"
+    "Africa/Kinshasa" ""
+    "Africa/Lubumbashi" ""
+    "Africa/Bangui" ""
+    "Africa/Brazzaville" ""
+    "Africa/Douala" ""
+    "America/Curacao" "Curaçau"
+    "Indian/Christmas" "Ilha do Natal"
+    "Europe/Busingen" ""
+    "Africa/Djibouti" "Jibuti"
+    "Europe/Copenhagen" "Copenhaga"
+    "America/Dominica" "Domínica"
+    "Africa/Asmara" ""
+    "Africa/Addis_Ababa" "Adis-Abeba"
+    "Pacific/Chuuk" ""
+    "Pacific/Pohnpei" ""
+    "Africa/Libreville" ""
+    "America/Grenada" ""
+    "Europe/Guernsey" ""
+    "Africa/Accra" ""
+    "Africa/Banjul" ""
+    "Africa/Conakry" ""
+    "America/Guadeloupe" ""
+    "Africa/Malabo" ""
+    "Europe/Zagreb" ""
+    "Europe/Isle_of_Man" ""
+    "Atlantic/Reykjavik" "Reiquiavique"
+    "Europe/Jersey" ""
+    "Asia/Phnom_Penh" ""
+    "Indian/Comoro" ""
+    "America/St_Kitts" ""
+    "Asia/Kuwait" "Koweit"
+    "America/Cayman" "Caimão"
+    "Asia/Vientiane" ""
+    "America/St_Lucia" ""
+    "Europe/Vaduz" ""
+    "Africa/Maseru" ""
+    "Europe/Luxembourg" ""
+    "Europe/Monaco" "Mónaco"
+    "Europe/Podgorica" ""
+    "America/Marigot" ""
+    "Indian/Antananarivo" ""
+    "Pacific/Majuro" ""
+    "Europe/Skopje" ""
+    "Africa/Bamako" "Bamaco"
+    "Pacific/Saipan" ""
+    "Africa/Nouakchott" ""
+    "America/Montserrat" "Monserrate"
+    "Africa/Blantyre" ""
+    "Asia/Kuala_Lumpur" ""
+    "Africa/Niamey" "Niamei"
+    "Europe/Amsterdam" "Amesterdão"
+    "Europe/Oslo" ""
+    "Asia/Muscat" ""
+    "Indian/Reunion" ""
+    "Africa/Kigali" ""
+    "Indian/Mahe" ""
+    "Europe/Stockholm" ""
+    "Atlantic/St_Helena" ""
+    "Europe/Ljubljana" ""
+    "Arctic/Longyearbyen" ""
+    "Europe/Bratislava" ""
+    "Africa/Freetown" ""
+    "Europe/San_Marino" "São Marinho"
+    "Africa/Dakar" "Dacar"
+    "Africa/Mogadishu" ""
+    "America/Lower_Princes" ""
+    "Africa/Mbabane" ""
+    "Indian/Kerguelen" "Ilhas Kerguelen"
+    "Africa/Lome" ""
+    "America/Port_of_Spain" "Porto de Espanha"
+    "Pacific/Funafuti" ""
+    "Africa/Dar_es_Salaam" ""
+    "Africa/Kampala" "Campala"
+    "Pacific/Midway" "Atol de Midway"
+    "Pacific/Wake" "Ilha Wake"
+    "Europe/Vatican" ""
+    "America/St_Vincent" ""
+    "America/Tortola" ""
+    "America/St_Thomas" "St. Thomas"
+    "Pacific/Wallis" ""
+    "Asia/Aden" "Adem"
+    "Indian/Mayotte" ""
+    "Africa/Lusaka" "Lusaca"
+    "Africa/Harare" ""
+};
+
+// `common/main/sw.xml`: 11 of the 418 zones named, 407 inherited.
+#[cfg(feature = "localized-exemplar-cities")]
+const SW: &str = exemplar_cities! {
+    "Europe/Andorra" inherited
+    "Asia/Dubai" inherited
+    "Asia/Kabul" inherited
+    "Europe/Tirane" inherited
+    "Asia/Yerevan" inherited
+    "Antarctica/Casey" inherited
+    "Antarctica/Davis" inherited
+    "Antarctica/Mawson" inherited
+    "Antarctica/Palmer" inherited
+    "Antarctica/Rothera" inherited
+    "Antarctica/Troll" inherited
+    "Antarctica/Vostok" inherited
+    "America/Argentina/Buenos_Aires" inherited
+    "America/Argentina/Cordoba" inherited
+    "America/Argentina/Salta" inherited
+    "America/Argentina/Jujuy" inherited
+    "America/Argentina/Tucuman" inherited
+    "America/Argentina/Catamarca" inherited
+    "America/Argentina/La_Rioja" inherited
+    "America/Argentina/San_Juan" inherited
+    "America/Argentina/Mendoza" inherited
+    "America/Argentina/San_Luis" inherited
+    "America/Argentina/Rio_Gallegos" inherited
+    "America/Argentina/Ushuaia" inherited
+    "Pacific/Pago_Pago" inherited
+    "Europe/Vienna" inherited
+    "Australia/Lord_Howe" inherited
+    "Antarctica/Macquarie" inherited
+    "Australia/Hobart" inherited
+    "Australia/Melbourne" inherited
+    "Australia/Sydney" inherited
+    "Australia/Broken_Hill" inherited
+    "Australia/Brisbane" inherited
+    "Australia/Lindeman" inherited
+    "Australia/Adelaide" inherited
+    "Australia/Darwin" inherited
+    "Australia/Perth" inherited
+    "Australia/Eucla" inherited
+    "Asia/Baku" inherited
+    "America/Barbados" inherited
+    "Asia/Dhaka" inherited
+    "Europe/Brussels" inherited
+    "Europe/Sofia" inherited
+    "Atlantic/Bermuda" inherited
+    "America/La_Paz" inherited
+    "America/Noronha" inherited
+    "America/Belem" inherited
+    "America/Fortaleza" inherited
+    "America/Recife" inherited
+    "America/Araguaina" inherited
+    "America/Maceio" inherited
+    "America/Bahia" inherited
+    "America/Sao_Paulo" inherited
+    "America/Campo_Grande" inherited
+    "America/Cuiaba" inherited
+    "America/Santarem" inherited
+    "America/Porto_Velho" inherited
+    "America/Boa_Vista" inherited
+    "America/Manaus" inherited
+    "America/Eirunepe" inherited
+    "America/Rio_Branco" inherited
+    "Asia/Thimphu" inherited
+    "Europe/Minsk" inherited
+    "America/Belize" inherited
+    "America/St_Johns" inherited
+    "America/Halifax" inherited
+    "America/Glace_Bay" inherited
+    "America/Moncton" inherited
+    "America/Goose_Bay" inherited
+    "America/Toronto" inherited
+    "America/Iqaluit" inherited
+    "America/Winnipeg" inherited
+    "America/Resolute" inherited
+    "America/Rankin_Inlet" inherited
+    "America/Regina" inherited
+    "America/Swift_Current" inherited
+    "America/Edmonton" inherited
+    "America/Cambridge_Bay" inherited
+    "America/Inuvik" inherited
+    "America/Vancouver" inherited
+    "America/Dawson_Creek" inherited
+    "America/Fort_Nelson" inherited
+    "America/Whitehorse" inherited
+    "America/Dawson" inherited
+    "Europe/Zurich" inherited
+    "Africa/Abidjan" inherited
+    "Pacific/Rarotonga" inherited
+    "America/Santiago" inherited
+    "America/Coyhaique" inherited
+    "America/Punta_Arenas" inherited
+    "Pacific/Easter" inherited
+    "Asia/Shanghai" inherited
+    "Asia/Urumqi" inherited
+    "America/Bogota" inherited
+    "America/Costa_Rica" inherited
+    "America/Havana" inherited
+    "Atlantic/Cape_Verde" inherited
+    "Asia/Nicosia" inherited
+    "Asia/Famagusta" inherited
+    "Europe/Prague" inherited
+    "Europe/Berlin" inherited
+    "America/Santo_Domingo" inherited
+    "Africa/Algiers" inherited
+    "America/Guayaquil" inherited
+    "Pacific/Galapagos" inherited
+    "Europe/Tallinn" inherited
+    "Africa/Cairo" inherited
+    "Africa/El_Aaiun" inherited
+    "Europe/Madrid" inherited
+    "Africa/Ceuta" inherited
+    "Atlantic/Canary" inherited
+    "Europe/Helsinki" inherited
+    "Pacific/Fiji" inherited
+    "Atlantic/Stanley" inherited
+    "Pacific/Kosrae" inherited
+    "Atlantic/Faroe" inherited
+    "Europe/Paris" inherited
+    "Europe/London" inherited
+    "Asia/Tbilisi" inherited
+    "America/Cayenne" inherited
+    "Europe/Gibraltar" inherited
+    "America/Nuuk" inherited
+    "America/Danmarkshavn" inherited
+    "America/Scoresbysund" inherited
+    "America/Thule" inherited
+    "Europe/Athens" inherited
+    "Atlantic/South_Georgia" "Georgia Kusini"
+    "America/Guatemala" inherited
+    "Pacific/Guam" inherited
+    "Africa/Bissau" inherited
+    "America/Guyana" inherited
+    "Asia/Hong_Kong" inherited
+    "America/Tegucigalpa" inherited
+    "America/Port-au-Prince" inherited
+    "Europe/Budapest" inherited
+    "Asia/Jakarta" inherited
+    "Asia/Pontianak" inherited
+    "Asia/Makassar" inherited
+    "Asia/Jayapura" inherited
+    "Europe/Dublin" inherited
+    "Asia/Jerusalem" inherited
+    "Asia/Kolkata" inherited
+    "Indian/Chagos" inherited
+    "Asia/Baghdad" inherited
+    "Asia/Tehran" inherited
+    "Europe/Rome" inherited
+    "America/Jamaica" inherited
+    "Asia/Amman" inherited
+    "Asia/Tokyo" inherited
+    "Africa/Nairobi" inherited
+    "Asia/Bishkek" inherited
+    "Pacific/Tarawa" inherited
+    "Pacific/Kanton" inherited
+    "Pacific/Kiritimati" inherited
+    "Asia/Pyongyang" inherited
+    "Asia/Seoul" inherited
+    "Asia/Almaty" inherited
+    "Asia/Qyzylorda" inherited
+    "Asia/Qostanay" "Kostanay"
+    "Asia/Aqtobe" inherited
+    "Asia/Aqtau" inherited
+    "Asia/Atyrau" inherited
+    "Asia/Oral" inherited
+    "Asia/Beirut" inherited
+    "Asia/Colombo" inherited
+    "Africa/Monrovia" inherited
+    "Europe/Vilnius" inherited
+    "Europe/Riga" inherited
+    "Africa/Tripoli" inherited
+    "Africa/Casablanca" inherited
+    "Europe/Chisinau" inherited
+    "Pacific/Kwajalein" inherited
+    "Asia/Yangon" "Rangoon"
+    "Asia/Ulaanbaatar" inherited
+    "Asia/Hovd" inherited
+    "Asia/Macau" "Macau"
+    "America/Martinique" inherited
+    "Europe/Malta" inherited
+    "Indian/Mauritius" inherited
+    "Indian/Maldives" inherited
+    "America/Mexico_City" "Jiji la Mexico"
+    "America/Cancun" "Cancun"
+    "America/Merida" "Merida"
+    "America/Monterrey" inherited
+    "America/Matamoros" inherited
+    "America/Chihuahua" inherited
+    "America/Ciudad_Juarez" "Ciudad Juarez"
+    "America/Ojinaga" inherited
+    "America/Mazatlan" inherited
+    "America/Bahia_Banderas" "Bahia Banderas"
+    "America/Hermosillo" inherited
+    "America/Tijuana" inherited
+    "Asia/Kuching" inherited
+    "Africa/Maputo" inherited
+    "Africa/Windhoek" inherited
+    "Pacific/Noumea" inherited
+    "Pacific/Norfolk" inherited
+    "Africa/Lagos" inherited
+    "America/Managua" inherited
+    "Asia/Kathmandu" inherited
+    "Pacific/Nauru" inherited
+    "Pacific/Niue" inherited
+    "Pacific/Auckland" inherited
+    "Pacific/Chatham" inherited
+    "America/Panama" inherited
+    "America/Lima" inherited
+    "Pacific/Tahiti" inherited
+    "Pacific/Marquesas" inherited
+    "Pacific/Gambier" inherited
+    "Pacific/Port_Moresby" inherited
+    "Pacific/Bougainville" inherited
+    "Asia/Manila" inherited
+    "Asia/Karachi" inherited
+    "Europe/Warsaw" inherited
+    "America/Miquelon" inherited
+    "Pacific/Pitcairn" inherited
+    "America/Puerto_Rico" inherited
+    "Asia/Gaza" inherited
+    "Asia/Hebron" inherited
+    "Europe/Lisbon" inherited
+    "Atlantic/Madeira" inherited
+    "Atlantic/Azores" inherited
+    "Pacific/Palau" inherited
+    "America/Asuncion" inherited
+    "Asia/Qatar" inherited
+    "Europe/Bucharest" inherited
+    "Europe/Belgrade" inherited
+    "Europe/Kaliningrad" inherited
+    "Europe/Moscow" inherited
+    "Europe/Simferopol" inherited
+    "Europe/Kirov" inherited
+    "Europe/Volgograd" inherited
+    "Europe/Astrakhan" inherited
+    "Europe/Saratov" inherited
+    "Europe/Ulyanovsk" inherited
+    "Europe/Samara" inherited
+    "Asia/Yekaterinburg" inherited
+    "Asia/Omsk" inherited
+    "Asia/Novosibirsk" inherited
+    "Asia/Barnaul" inherited
+    "Asia/Tomsk" inherited
+    "Asia/Novokuznetsk" inherited
+    "Asia/Krasnoyarsk" inherited
+    "Asia/Irkutsk" inherited
+    "Asia/Chita" inherited
+    "Asia/Yakutsk" inherited
+    "Asia/Khandyga" inherited
+    "Asia/Vladivostok" inherited
+    "Asia/Ust-Nera" inherited
+    "Asia/Magadan" inherited
+    "Asia/Sakhalin" inherited
+    "Asia/Srednekolymsk" inherited
+    "Asia/Kamchatka" inherited
+    "Asia/Anadyr" inherited
+    "Asia/Riyadh" inherited
+    "Pacific/Guadalcanal" inherited
+    "Africa/Khartoum" inherited
+    "Asia/Singapore" inherited
+    "America/Paramaribo" inherited
+    "Africa/Juba" inherited
+    "Africa/Sao_Tome" inherited
+    "America/El_Salvador" inherited
+    "Asia/Damascus" inherited
+    "America/Grand_Turk" inherited
+    "Africa/Ndjamena" inherited
+    "Asia/Bangkok" inherited
+    "Asia/Dushanbe" inherited
+    "Pacific/Fakaofo" inherited
+    "Asia/Dili" inherited
+    "Asia/Ashgabat" inherited
+    "Africa/Tunis" inherited
+    "Pacific/Tongatapu" inherited
+    "Europe/Istanbul" inherited
+    "Asia/Taipei" inherited
+    "Europe/Kyiv" "Kiev"
+    "America/New_York" inherited
+    "America/Detroit" inherited
+    "America/Kentucky/Louisville" inherited
+    "America/Kentucky/Monticello" inherited
+    "America/Indiana/Indianapolis" inherited
+    "America/Indiana/Vincennes" inherited
+    "America/Indiana/Winamac" inherited
+    "America/Indiana/Marengo" inherited
+    "America/Indiana/Petersburg" inherited
+    "America/Indiana/Vevay" inherited
+    "America/Chicago" inherited
+    "America/Indiana/Tell_City" inherited
+    "America/Indiana/Knox" inherited
+    "America/Menominee" inherited
+    "America/North_Dakota/Center" inherited
+    "America/North_Dakota/New_Salem" inherited
+    "America/North_Dakota/Beulah" inherited
+    "America/Denver" inherited
+    "America/Boise" inherited
+    "America/Phoenix" inherited
+    "America/Los_Angeles" inherited
+    "America/Anchorage" inherited
+    "America/Juneau" inherited
+    "America/Sitka" inherited
+    "America/Metlakatla" inherited
+    "America/Yakutat" inherited
+    "America/Nome" inherited
+    "America/Adak" inherited
+    "Pacific/Honolulu" "Honolulu"
+    "America/Montevideo" inherited
+    "Asia/Samarkand" inherited
+    "Asia/Tashkent" inherited
+    "America/Caracas" inherited
+    "Asia/Ho_Chi_Minh" inherited
+    "Pacific/Efate" inherited
+    "Pacific/Apia" inherited
+    "Africa/Johannesburg" inherited
+    "America/Antigua" inherited
+    "America/Anguilla" inherited
+    "Africa/Luanda" inherited
+    "Antarctica/McMurdo" inherited
+    "Antarctica/DumontDUrville" inherited
+    "Antarctica/Syowa" inherited
+    "America/Aruba" inherited
+    "Europe/Mariehamn" inherited
+    "Europe/Sarajevo" inherited
+    "Africa/Ouagadougou" inherited
+    "Asia/Bahrain" inherited
+    "Africa/Bujumbura" inherited
+    "Africa/Porto-Novo" inherited
+    "America/St_Barthelemy" inherited
+    "Asia/Brunei" inherited
+    "America/Kralendijk" inherited
+    "America/Nassau" inherited
+    "Africa/Gaborone" inherited
+    "America/Blanc-Sablon" inherited
+    "America/Atikokan" inherited
+    "America/Creston" inherited
+    "Indian/Cocos" inherited
+    "Africa/Kinshasa" inherited
+    "Africa/Lubumbashi" inherited
+    "Africa/Bangui" inherited
+    "Africa/Brazzaville" inherited
+    "Africa/Douala" inherited
+    "America/Curacao" inherited
+    "Indian/Christmas" inherited
+    "Europe/Busingen" inherited
+    "Africa/Djibouti" inherited
+    "Europe/Copenhagen" inherited
+    "America/Dominica" inherited
+    "Africa/Asmara" inherited
+    "Africa/Addis_Ababa" inherited
+    "Pacific/Chuuk" inherited
+    "Pacific/Pohnpei" inherited
+    "Africa/Libreville" inherited
+    "America/Grenada" inherited
+    "Europe/Guernsey" inherited
+    "Africa/Accra" inherited
+    "Africa/Banjul" inherited
+    "Africa/Conakry" inherited
+    "America/Guadeloupe" inherited
+    "Africa/Malabo" inherited
+    "Europe/Zagreb" inherited
+    "Europe/Isle_of_Man" inherited
+    "Atlantic/Reykjavik" inherited
+    "Europe/Jersey" inherited
+    "Asia/Phnom_Penh" inherited
+    "Indian/Comoro" inherited
+    "America/St_Kitts" inherited
+    "Asia/Kuwait" inherited
+    "America/Cayman" inherited
+    "Asia/Vientiane" inherited
+    "America/St_Lucia" inherited
+    "Europe/Vaduz" inherited
+    "Africa/Maseru" inherited
+    "Europe/Luxembourg" inherited
+    "Europe/Monaco" inherited
+    "Europe/Podgorica" inherited
+    "America/Marigot" inherited
+    "Indian/Antananarivo" inherited
+    "Pacific/Majuro" inherited
+    "Europe/Skopje" inherited
+    "Africa/Bamako" inherited
+    "Pacific/Saipan" inherited
+    "Africa/Nouakchott" inherited
+    "America/Montserrat" inherited
+    "Africa/Blantyre" inherited
+    "Asia/Kuala_Lumpur" inherited
+    "Africa/Niamey" inherited
+    "Europe/Amsterdam" inherited
+    "Europe/Oslo" inherited
+    "Asia/Muscat" inherited
+    "Indian/Reunion" inherited
+    "Africa/Kigali" inherited
+    "Indian/Mahe" inherited
+    "Europe/Stockholm" inherited
+    "Atlantic/St_Helena" inherited
+    "Europe/Ljubljana" inherited
+    "Arctic/Longyearbyen" inherited
+    "Europe/Bratislava" inherited
+    "Africa/Freetown" inherited
+    "Europe/San_Marino" inherited
+    "Africa/Dakar" inherited
+    "Africa/Mogadishu" inherited
+    "America/Lower_Princes" inherited
+    "Africa/Mbabane" inherited
+    "Indian/Kerguelen" inherited
+    "Africa/Lome" inherited
+    "America/Port_of_Spain" inherited
+    "Pacific/Funafuti" inherited
+    "Africa/Dar_es_Salaam" inherited
+    "Africa/Kampala" inherited
+    "Pacific/Midway" inherited
+    "Pacific/Wake" inherited
+    "Europe/Vatican" inherited
+    "America/St_Vincent" inherited
+    "America/Tortola" inherited
+    "America/St_Thomas" inherited
+    "Pacific/Wallis" inherited
+    "Asia/Aden" inherited
+    "Indian/Mayotte" inherited
+    "Africa/Lusaka" inherited
+    "Africa/Harare" inherited
+};
+
+// `common/main/te.xml`: 418 of the 418 zones named.
+#[cfg(feature = "localized-exemplar-cities")]
+const TE: &str = exemplar_cities! {
+    "Europe/Andorra" "అండోరా"
+    "Asia/Dubai" "దుబాయి"
+    "Asia/Kabul" "కాబుల్"
+    "Europe/Tirane" "టిరేన్"
+    "Asia/Yerevan" "యెరెవన్"
+    "Antarctica/Casey" "కేసీ"
+    "Antarctica/Davis" "డెవిస్"
+    "Antarctica/Mawson" "మాసన్"
+    "Antarctica/Palmer" "పాల్మర్"
+    "Antarctica/Rothera" "రొతేరా"
+    "Antarctica/Troll" "ట్రోల్"
+    "Antarctica/Vostok" "వోస్టోక్"
+    "America/Argentina/Buenos_Aires" "బ్యూనోస్ ఎయిర్స్"
+    "America/Argentina/Cordoba" "కోర్డోబా"
+    "America/Argentina/Salta" "సాల్టా"
+    "America/Argentina/Jujuy" "జుజుయ్"
+    "America/Argentina/Tucuman" "టుకుమన్"
+    "America/Argentina/Catamarca" "కటమార్కా"
+    "America/Argentina/La_Rioja" "లా రియోజ"
+    "America/Argentina/San_Juan" "శాన్ జ్యూన్"
+    "America/Argentina/Mendoza" "మెండోజా"
+    "America/Argentina/San_Luis" "శాన్ లూయిస్"
+    "America/Argentina/Rio_Gallegos" "రియో గల్లేగోస్"
+    "America/Argentina/Ushuaia" "ఉష్యూయ"
+    "Pacific/Pago_Pago" "పాగో పాగో"
+    "Europe/Vienna" "వియన్నా"
+    "Australia/Lord_Howe" "లార్డ్ హౌ దీవి"
+    "Antarctica/Macquarie" "మకారీ దీవి"
+    "Australia/Hobart" "హోబర్ట్"
+    "Australia/Melbourne" "మెల్బోర్న్"
+    "Australia/Sydney" "సిడ్నీ"
+    "Australia/Broken_Hill" "బ్రోకెన్ హిల్"
+    "Australia/Brisbane" "బ్రిస్‌బెయిన్"
+    "Australia/Lindeman" "లిండెమాన్"
+    "Australia/Adelaide" "అడెలైడ్"
+    "Australia/Darwin" "డార్విన్"
+    "Australia/Perth" "పెర్త్"
+    "Australia/Eucla" "యుక్లా"
+    "Asia/Baku" "బాకు"
+    "America/Barbados" "బార్బడోస్"
+    "Asia/Dhaka" "ఢాకా"
+    "Europe/Brussels" "బ్రస్సెల్స్"
+    "Europe/Sofia" "సోఫియా"
+    "Atlantic/Bermuda" "బెర్ముడా"
+    "America/La_Paz" "లా పాజ్"
+    "America/Noronha" "నరోన్హా"
+    "America/Belem" "బెలెమ్"
+    "America/Fortaleza" "ఫోర్టలేజా"
+    "America/Recife" "రెసిఫీ"
+    "America/Araguaina" "అరాగ్వేయీనా"
+    "America/Maceio" "మాసియో"
+    "America/Bahia" "బహియ"
+    "America/Sao_Paulo" "సావో పాలో"
+    "America/Campo_Grande" "కాంపో గ్రాండ్"
+    "America/Cuiaba" "కుయబా"
+    "America/Santarem" "సాంటరెమ్"
+    "America/Porto_Velho" "పోర్టో వెల్హో"
+    "America/Boa_Vista" "బోవా విస్టా"
+    "America/Manaus" "మనాస్"
+    "America/Eirunepe" "ఇరునెప్"
+    "America/Rio_Branco" "రియో బ్రాంకో"
+    "Asia/Thimphu" "థింఫు"
+    "Europe/Minsk" "మిన్స్క్"
+    "America/Belize" "బెలీజ్"
+    "America/St_Johns" "సెయింట్ జాన్స్"
+    "America/Halifax" "హాలిఫాక్స్"
+    "America/Glace_Bay" "గ్లేస్ బే"
+    "America/Moncton" "మోన్‌క్టోన్"
+    "America/Goose_Bay" "గూస్ బే"
+    "America/Toronto" "టొరంటో"
+    "America/Iqaluit" "ఇక్వాలిట్"
+    "America/Winnipeg" "విన్నిపెగ్"
+    "America/Resolute" "రిజల్యూట్"
+    "America/Rankin_Inlet" "రన్‌కిన్ ఇన్‌లెట్"
+    "America/Regina" "రెజీనా"
+    "America/Swift_Current" "స్విఫ్ట్ కరెంట్"
+    "America/Edmonton" "ఎడ్మోంటన్"
+    "America/Cambridge_Bay" "కేంబ్రిడ్జ్ బే"
+    "America/Inuvik" "ఇనువిక్"
+    "America/Vancouver" "వాన్కూవర్"
+    "America/Dawson_Creek" "డాసన్ క్రీక్"
+    "America/Fort_Nelson" "ఫోర్ట్ నెల్సన్"
+    "America/Whitehorse" "వైట్‌హార్స్"
+    "America/Dawson" "డాసన్"
+    "Europe/Zurich" "జ్యూరిచ్"
+    "Africa/Abidjan" "అబిడ్జాన్"
+    "Pacific/Rarotonga" "రరోటోంగా"
+    "America/Santiago" "శాంటియాగో"
+    "America/Coyhaique" "కొయాయ్కె"
+    "America/Punta_Arenas" "పుంటా అరీనస్"
+    "Pacific/Easter" "ఈస్టర్"
+    "Asia/Shanghai" "షాంఘై"
+    "Asia/Urumqi" "ఉరుమ్‌కీ"
+    "America/Bogota" "బగోటా"
+    "America/Costa_Rica" "కోస్టా రికా"
+    "America/Havana" "హవానా"
+    "Atlantic/Cape_Verde" "కేప్ వెర్డె"
+    "Asia/Nicosia" "నికోసియా"
+    "Asia/Famagusta" "ఫామగుస్టా"
+    "Europe/Prague" "ప్రాగ్"
+    "Europe/Berlin" "బెర్లిన్"
+    "America/Santo_Domingo" "శాంటో డోమింగో"
+    "Africa/Algiers" "అల్జియర్స్"
+    "America/Guayaquil" "గయాక్విల్"
+    "Pacific/Galapagos" "గాలాపాగోస్"
+    "Europe/Tallinn" "తాల్లిన్"
+    "Africa/Cairo" "కైరో"
+    "Africa/El_Aaiun" "ఎల్ ఎయున్"
+    "Europe/Madrid" "మాడ్రిడ్"
+    "Africa/Ceuta" "స్యూటా"
+    "Atlantic/Canary" "కెనరీ"
+    "Europe/Helsinki" "హెల్సింకి"
+    "Pacific/Fiji" "ఫీజీ"
+    "Atlantic/Stanley" "స్టాన్లీ"
+    "Pacific/Kosrae" "కోస్రే"
+    "Atlantic/Faroe" "ఫారో"
+    "Europe/Paris" "ప్యారిస్"
+    "Europe/London" "లండన్"
+    "Asia/Tbilisi" "టిబిలిసి"
+    "America/Cayenne" "కయేన్"
+    "Europe/Gibraltar" "జిబ్రాల్టర్"
+    "America/Nuuk" "నూక్"
+    "America/Danmarkshavn" "డెన్మార్క్‌షాన్"
+    "America/Scoresbysund" "ఇటోక్కోర్టూర్మిట్"
+    "America/Thule" "థులే"
+    "Europe/Athens" "ఏథెన్స్"
+    "Atlantic/South_Georgia" "దక్షిణ జార్జియా"
+    "America/Guatemala" "గ్వాటిమాలా"
+    "Pacific/Guam" "గ్వామ్"
+    "Africa/Bissau" "బిస్సావ్"
+    "America/Guyana" "గయానా"
+    "Asia/Hong_Kong" "హాంకాంగ్"
+    "America/Tegucigalpa" "తెగుసిగల్పా"
+    "America/Port-au-Prince" "పోర్ట్-అవ్-ప్రిన్స్"
+    "Europe/Budapest" "బుడాపెస్ట్"
+    "Asia/Jakarta" "జకార్తా"
+    "Asia/Pontianak" "పొన్టియనాక్"
+    "Asia/Makassar" "మకాస్సర్"
+    "Asia/Jayapura" "జయపుర"
+    "Europe/Dublin" "డబ్లిన్"
+    "Asia/Jerusalem" "జరూసలేం"
+    "Asia/Kolkata" "కోల్‌కతా"
+    "Indian/Chagos" "చాగోస్"
+    "Asia/Baghdad" "బాగ్దాద్"
+    "Asia/Tehran" "టెహ్రాన్"
+    "Europe/Rome" "రోమ్"
+    "America/Jamaica" "జమైకా"
+    "Asia/Amman" "అమ్మన్"
+    "Asia/Tokyo" "టోక్యో"
+    "Africa/Nairobi" "నైరోబీ"
+    "Asia/Bishkek" "బిష్కెక్"
+    "Pacific/Tarawa" "టరావా"
+    "Pacific/Kanton" "క్యాంటన్ దీవి"
+    "Pacific/Kiritimati" "కిరీటిమాటి"
+    "Asia/Pyongyang" "ప్యోంగాంగ్"
+    "Asia/Seoul" "సియోల్"
+    "Asia/Almaty" "ఆల్మాటి"
+    "Asia/Qyzylorda" "క్విజిలోర్డా"
+    "Asia/Qostanay" "కోస్తానే"
+    "Asia/Aqtobe" "అక్టోబ్"
+    "Asia/Aqtau" "అక్టావ్"
+    "Asia/Atyrau" "ఆటిరా"
+    "Asia/Oral" "ఓరల్"
+    "Asia/Beirut" "బీరట్"
+    "Asia/Colombo" "కొలంబో"
+    "Africa/Monrovia" "మోన్రోవియా"
+    "Europe/Vilnius" "విల్నియస్"
+    "Europe/Riga" "రీగా"
+    "Africa/Tripoli" "ట్రిపోలి"
+    "Africa/Casablanca" "కాసాబ్లాంకా"
+    "Europe/Chisinau" "చిసినావ్"
+    "Pacific/Kwajalein" "క్వాజాలైన్"
+    "Asia/Yangon" "యాంగన్"
+    "Asia/Ulaanbaatar" "ఉలాన్బాటర్"
+    "Asia/Hovd" "హోవ్డ్"
+    "Asia/Macau" "మకావ్"
+    "America/Martinique" "మార్టినీక్"
+    "Europe/Malta" "మాల్టా"
+    "Indian/Mauritius" "మారిషస్"
+    "Indian/Maldives" "మాల్దీవులు"
+    "America/Mexico_City" "మెక్సికో నగరం"
+    "America/Cancun" "కన్‌కూన్"
+    "America/Merida" "మెరిడా"
+    "America/Monterrey" "మోంటెర్రే"
+    "America/Matamoros" "మాటమొరోస్"
+    "America/Chihuahua" "చువావా"
+    "America/Ciudad_Juarez" "సియుదాద్ హ్వారెజ్"
+    "America/Ojinaga" "ఒజినగ"
+    "America/Mazatlan" "మాసట్‌లాన్"
+    "America/Bahia_Banderas" "బహియా బండరాస్"
+    "America/Hermosillo" "హెర్మోసిల్లో"
+    "America/Tijuana" "టిజువానా"
+    "Asia/Kuching" "కుచింగ్"
+    "Africa/Maputo" "మాపుటో"
+    "Africa/Windhoek" "విండ్హోక్"
+    "Pacific/Noumea" "నౌమియా"
+    "Pacific/Norfolk" "నార్ఫక్ దీవి"
+    "Africa/Lagos" "లాగోస్"
+    "America/Managua" "మనాగువా"
+    "Asia/Kathmandu" "ఖాట్మండు"
+    "Pacific/Nauru" "నౌరు"
+    "Pacific/Niue" "నియూ"
+    "Pacific/Auckland" "ఆక్లాండ్"
+    "Pacific/Chatham" "చాథమ్ దీవులు"
+    "America/Panama" "పనామా"
+    "America/Lima" "లిమా"
+    "Pacific/Tahiti" "తహితి"
+    "Pacific/Marquesas" "మార్క్వేసాస్"
+    "Pacific/Gambier" "గాంబియేర్"
+    "Pacific/Port_Moresby" "పోర్ట్ మోరెస్బే"
+    "Pacific/Bougainville" "బొగెయిన్‌విల్లే"
+    "Asia/Manila" "మనీలా"
+    "Asia/Karachi" "కరాచీ"
+    "Europe/Warsaw" "వార్షా"
+    "America/Miquelon" "మికెలాన్"
+    "Pacific/Pitcairn" "పిట్‌కైర్న్"
+    "America/Puerto_Rico" "ప్యూర్టో రికో"
+    "Asia/Gaza" "గాజా"
+    "Asia/Hebron" "హెబ్రాన్"
+    "Europe/Lisbon" "లిస్బన్"
+    "Atlantic/Madeira" "మదైరా"
+    "Atlantic/Azores" "అజోర్స్"
+    "Pacific/Palau" "పాలావ్"
+    "America/Asuncion" "అసున్సియోన్"
+    "Asia/Qatar" "ఖతార్"
+    "Europe/Bucharest" "బుకారెస్ట్"
+    "Europe/Belgrade" "బెల్‌గ్రేడ్"
+    "Europe/Kaliningrad" "కలినిన్‌గ్రద్"
+    "Europe/Moscow" "మాస్కో"
+    "Europe/Simferopol" "సిమ్‌ఫెరోపోల్"
+    "Europe/Kirov" "కిరోవ్"
+    "Europe/Volgograd" "వోల్గోగ్రాడ్"
+    "Europe/Astrakhan" "అస్ట్రఖాన్"
+    "Europe/Saratov" "సరాటవ్"
+    "Europe/Ulyanovsk" "ఉల్యనోవ్స్క్"
+    "Europe/Samara" "సమార"
+    "Asia/Yekaterinburg" "యెకటెరింబర్గ్"
+    "Asia/Omsk" "ఓమ్స్క్"
+    "Asia/Novosibirsk" "నవోసిబిర్స్క్"
+    "Asia/Barnaul" "బార్నాల్"
+    "Asia/Tomsk" "టామ్స్క్"
+    "Asia/Novokuznetsk" "నొవొకుజ్‌నెట్‌స్క్"
+    "Asia/Krasnoyarsk" "క్రసనోయార్స్క్"
+    "Asia/Irkutsk" "ఇర్కుట్స్క్"
+    "Asia/Chita" "చితా"
+    "Asia/Yakutsk" "యకుట్స్క్"
+    "Asia/Khandyga" "కంద్యాగ"
+    "Asia/Vladivostok" "వ్లాడివోస్టోక్"
+    "Asia/Ust-Nera" "అస్ట్-నెరా"
+    "Asia/Magadan" "మగడాన్"
+    "Asia/Sakhalin" "సఖాలిన్"
+    "Asia/Srednekolymsk" "స్రెడ్నెకొలిమ్స్క్"
+    "Asia/Kamchatka" "కమ్‌చత్కా"
+    "Asia/Anadyr" "అనడైర్"
+    "Asia/Riyadh" "రియాధ్"
+    "Pacific/Guadalcanal" "గ్వాడల్కెనాల్"
+    "Africa/Khartoum" "ఖార్టోమ్"
+    "Asia/Singapore" "సింగపూర్"
+    "America/Paramaribo" "పరామారిబో"
+    "Africa/Juba" "జుబా"
+    "Africa/Sao_Tome" "సావో టోమ్"
+    "America/El_Salvador" "ఎల్ సాల్వడోర్"
+    "Asia/Damascus" "డమాస్కస్"
+    "America/Grand_Turk" "గ్రాండ్ టర్క్"
+    "Africa/Ndjamena" "డ్జామెనా"
+    "Asia/Bangkok" "బ్యాంకాక్"
+    "Asia/Dushanbe" "డుషన్బీ"
+    "Pacific/Fakaofo" "ఫాకోఫో"
+    "Asia/Dili" "డిలి"
+    "Asia/Ashgabat" "యాష్గాబాట్"
+    "Africa/Tunis" "ట్యునిస్"
+    "Pacific/Tongatapu" "టోంగాటాపు"
+    "Europe/Istanbul" "ఇస్తాంబుల్"
+    "Asia/Taipei" "తైపీ"
+    "Europe/Kyiv" "కీవ్"
+    "America/New_York" "న్యూయార్క్"
+    "America/Detroit" "డిట్రోయిట్"
+    "America/Kentucky/Louisville" "లూయివిల్"
+    "America/Kentucky/Monticello" "మోంటిసెల్లో, కెన్‌టుక్కీ"
+    "America/Indiana/Indianapolis" "ఇండియానపోలిస్"
+    "America/Indiana/Vincennes" "విన్‌సెన్నెస్, ఇండియాన"
+    "America/Indiana/Winamac" "వినామాక్, ఇండియాన"
+    "America/Indiana/Marengo" "మరెంగో, ఇండియాన"
+    "America/Indiana/Petersburg" "పీటర్స్‌బర్గ్, ఇండియాన"
+    "America/Indiana/Vevay" "వెవయ్, ఇండియాన"
+    "America/Chicago" "చికాగో"
+    "America/Indiana/Tell_City" "టెల్ నగరం, ఇండియాన"
+    "America/Indiana/Knox" "నోక్స్, ఇండియాన"
+    "America/Menominee" "మెనోమినీ"
+    "America/North_Dakota/Center" "సెంటర్, ఉత్తర డకోటా"
+    "America/North_Dakota/New_Salem" "న్యూ సలేమ్, ఉత్తర డకోట"
+    "America/North_Dakota/Beulah" "బ్యులా, ఉత్తర డకోట"
+    "America/Denver" "డెన్వెర్"
+    "America/Boise" "బొయిసీ"
+    "America/Phoenix" "ఫినిక్స్"
+    "America/Los_Angeles" "లాస్ ఏంజల్స్"
+    "America/Anchorage" "యాంకరేజ్"
+    "America/Juneau" "జూనో"
+    "America/Sitka" "సిట్కా"
+    "America/Metlakatla" "మెట్లకట్ల"
+    "America/Yakutat" "యకుటాట్"
+    "America/Nome" "నోమ్"
+    "America/Adak" "అడాక్"
+    "Pacific/Honolulu" "హోనోలులు"
+    "America/Montevideo" "మోంటెవీడియో"
+    "Asia/Samarkand" "సమర్కాండ్"
+    "Asia/Tashkent" "తాష్కెంట్"
+    "America/Caracas" "కారాకస్"
+    "Asia/Ho_Chi_Minh" "హో చి మిన్హ్ నగరం"
+    "Pacific/Efate" "ఇఫేట్"
+    "Pacific/Apia" "ఏపియా"
+    "Africa/Johannesburg" "జొహెన్స్‌బర్గ్"
+    "America/Antigua" "ఆంటిగ్వా"
+    "America/Anguilla" "ఆంగ్విల్లా"
+    "Africa/Luanda" "లువాండా"
+    "Antarctica/McMurdo" "మెక్‌ముర్డో"
+    "Antarctica/DumontDUrville" "డ్యూమాంట్ డి’ఉర్విల్లే"
+    "Antarctica/Syowa" "స్యోవా"
+    "America/Aruba" "అరుబా"
+    "Europe/Mariehamn" "మారీయుహమ్"
+    "Europe/Sarajevo" "సరాజోవో"
+    "Africa/Ouagadougou" "ఔగాడౌగోవ్"
+    "Asia/Bahrain" "బహ్రెయిన్"
+    "Africa/Bujumbura" "బుజమ్బురా"
+    "Africa/Porto-Novo" "పోర్టో-నోవో"
+    "America/St_Barthelemy" "సెయింట్ బర్తెలెమీ"
+    "Asia/Brunei" "బ్రూనై"
+    "America/Kralendijk" "క్రలెండ్జిక్"
+    "America/Nassau" "నాస్సావ్"
+    "Africa/Gaborone" "గబోరోన్"
+    "America/Blanc-Sablon" "బ్లాంక్-సబ్లోన్"
+    "America/Atikokan" "అటికోకన్"
+    "America/Creston" "క్రెస్టన్"
+    "Indian/Cocos" "కోకోస్ దీవులు"
+    "Africa/Kinshasa" "కిన్షాసా"
+    "Africa/Lubumbashi" "లుబంబాషి"
+    "Africa/Bangui" "బాంగుయ్"
+    "Africa/Brazzaville" "బ్రాజావిల్లే"
+    "Africa/Douala" "డౌలా"
+    "America/Curacao" "కురాకవో"
+    "Indian/Christmas" "క్రిస్మస్ దీవి"
+    "Europe/Busingen" "బసింజన్"
+    "Africa/Djibouti" "జిబూటి"
+    "Europe/Copenhagen" "కోపెన్హాగన్"
+    "America/Dominica" "డొమినికా"
+    "Africa/Asmara" "అస్మారా"
+    "Africa/Addis_Ababa" "యాడిస్ అబాబా"
+    "Pacific/Chuuk" "చుక్"
+    "Pacific/Pohnpei" "పోన్‌పై"
+    "Africa/Libreville" "లెబర్విల్లే"
+    "America/Grenada" "గ్రెనడా"
+    "Europe/Guernsey" "గ్వెర్న్సే"
+    "Africa/Accra" "అక్రా"
+    "Africa/Banjul" "బంజూల్"
+    "Africa/Conakry" "కోనాక్రీ"
+    "America/Guadeloupe" "గ్వాడెలోప్"
+    "Africa/Malabo" "మలాబో"
+    "Europe/Zagreb" "జాగ్రెబ్"
+    "Europe/Isle_of_Man" "ఐల్ ఆఫ్ మేన్"
+    "Atlantic/Reykjavik" "రెక్జావిక్"
+    "Europe/Jersey" "జెర్సీ"
+    "Asia/Phnom_Penh" "నోమ్‌పెన్హ్"
+    "Indian/Comoro" "కొమోరో"
+    "America/St_Kitts" "సెయింట్ కిట్స్"
+    "Asia/Kuwait" "కువైట్"
+    "America/Cayman" "కేమాన్"
+    "Asia/Vientiane" "వియన్టైన్"
+    "America/St_Lucia" "సెయింట్ లూసియా"
+    "Europe/Vaduz" "వాడుజ్"
+    "Africa/Maseru" "మసేరు"
+    "Europe/Luxembourg" "లక్సెంబర్గ్"
+    "Europe/Monaco" "మొనాకో"
+    "Europe/Podgorica" "పోడ్గోరికా"
+    "America/Marigot" "మారిగోట్"
+    "Indian/Antananarivo" "అంటానానారివో"
+    "Pacific/Majuro" "మజురో"
+    "Europe/Skopje" "స్కోప్‌యే"
+    "Africa/Bamako" "బామాకో"
+    "Pacific/Saipan" "సాయ్పాన్"
+    "Africa/Nouakchott" "న్వాక్షోట్"
+    "America/Montserrat" "మాంట్సెరాట్"
+    "Africa/Blantyre" "బ్లాన్టైర్"
+    "Asia/Kuala_Lumpur" "కౌలాలంపూర్"
+    "Africa/Niamey" "నియామే"
+    "Europe/Amsterdam" "ఆమ్‌స్టర్‌డామ్"
+    "Europe/Oslo" "ఓస్లో"
+    "Asia/Muscat" "మస్కట్"
+    "Indian/Reunion" "రీయూనియన్"
+    "Africa/Kigali" "కీగలి"
+    "Indian/Mahe" "మాహె"
+    "Europe/Stockholm" "స్టాక్హోమ్"
+    "Atlantic/St_Helena" "సెయింట్ హెలెనా"
+    "Europe/Ljubljana" "ల్యూబ్ల్యానా"
+    "Arctic/Longyearbyen" "లాంగ్‌యియర్‌బైయన్"
+    "Europe/Bratislava" "బ్రాటిస్లావా"
+    "Africa/Freetown" "ఫ్రీటౌన్"
+    "Europe/San_Marino" "శాన్ మారినో"
+    "Africa/Dakar" "డకార్"
+    "Africa/Mogadishu" "మోగాదిషు"
+    "America/Lower_Princes" "లోయర్ ప్రిన్స్ క్వార్టర్"
+    "Africa/Mbabane" "బాబెన్"
+    "Indian/Kerguelen" "కెర్గ్యూలెన్"
+    "Africa/Lome" "లోమ్"
+    "America/Port_of_Spain" "పోర్ట్ ఆఫ్ స్పెయిన్"
+    "Pacific/Funafuti" "ఫునాఫుటి"
+    "Africa/Dar_es_Salaam" "దార్ ఎస్ సలామ్"
+    "Africa/Kampala" "కంపాలా"
+    "Pacific/Midway" "మిడ్వే"
+    "Pacific/Wake" "వేక్ దీవి"
+    "Europe/Vatican" "వాటికన్"
+    "America/St_Vincent" "సెయింట్ విన్సెంట్"
+    "America/Tortola" "టోర్టోలా"
+    "America/St_Thomas" "సెయింట్ థామస్"
+    "Pacific/Wallis" "వాల్లిస్ & ఫ్యూటునా"
+    "Asia/Aden" "ఎడెన్"
+    "Indian/Mayotte" "మయోట్"
+    "Africa/Lusaka" "లుసాకా"
+    "Africa/Harare" "హరారే"
+};
+
+// `common/main/ur.xml`: 418 of the 418 zones named.
+#[cfg(feature = "localized-exemplar-cities")]
+const UR: &str = exemplar_cities! {
+    "Europe/Andorra" "انڈورا"
+    "Asia/Dubai" "دبئی"
+    "Asia/Kabul" "کابل"
+    "Europe/Tirane" "ٹیرانی"
+    "Asia/Yerevan" "یریوان"
+    "Antarctica/Casey" "کیسی"
+    "Antarctica/Davis" "ڈیوس"
+    "Antarctica/Mawson" "ماؤسن"
+    "Antarctica/Palmer" "پلمیر"
+    "Antarctica/Rothera" "روتھیرا"
+    "Antarctica/Troll" "ٹرول"
+    "Antarctica/Vostok" "ووستوک"
+    "America/Argentina/Buenos_Aires" "بیونس آئرس"
+    "America/Argentina/Cordoba" "کورڈوبا"
+    "America/Argentina/Salta" "سالٹا"
+    "America/Argentina/Jujuy" "جوجوئی"
+    "America/Argentina/Tucuman" "ٹوکومین"
+    "America/Argentina/Catamarca" "کیٹامارکا"
+    "America/Argentina/La_Rioja" "لا ریئوجا"
+    "America/Argentina/San_Juan" "سان جوآن"
+    "America/Argentina/Mendoza" "مینڈوزا"
+    "America/Argentina/San_Luis" "سان لوئس"
+    "America/Argentina/Rio_Gallegos" "ریو گالیگوس"
+    "America/Argentina/Ushuaia" "اوشوآئیا"
+    "Pacific/Pago_Pago" "پاگو پاگو"
+    "Europe/Vienna" "ویانا"
+    "Australia/Lord_Howe" "لارڈ ہووے"
+    "Antarctica/Macquarie" "میکواری"
+    "Australia/Hobart" "ہوبارٹ"
+    "Australia/Melbourne" "ملبورن"
+    "Australia/Sydney" "سڈنی"
+    "Australia/Broken_Hill" "بروکن ہِل"
+    "Australia/Brisbane" "برسبین"
+    "Australia/Lindeman" "لِنڈمین"
+    "Australia/Adelaide" "ایڈیلیڈ"
+    "Australia/Darwin" "ڈارون"
+    "Australia/Perth" "پرتھ"
+    "Australia/Eucla" "ایوکلا"
+    "Asia/Baku" "باکو"
+    "America/Barbados" "بارباڈوس"
+    "Asia/Dhaka" "ڈھاکہ"
+    "Europe/Brussels" "برسلز"
+    "Europe/Sofia" "صوفیہ"
+    "Atlantic/Bermuda" "برمودا"
+    "America/La_Paz" "لا پاز"
+    "America/Noronha" "نورونہا"
+    "America/Belem" "بیلیم"
+    "America/Fortaleza" "فورٹالیزا"
+    "America/Recife" "ریسائف"
+    "America/Araguaina" "اراگویانا"
+    "America/Maceio" "میسیئو"
+    "America/Bahia" "باہیا"
+    "America/Sao_Paulo" "ساؤ پالو"
+    "America/Campo_Grande" "کیمپو گرینڈ"
+    "America/Cuiaba" "کوئیابا"
+    "America/Santarem" "سنٹارین"
+    "America/Porto_Velho" "پورٹو ویلہو"
+    "America/Boa_Vista" "بوآ وسٹا"
+    "America/Manaus" "مناؤس"
+    "America/Eirunepe" "ایرونیپ"
+    "America/Rio_Branco" "ریئو برینکو"
+    "Asia/Thimphu" "تھمپو"
+    "Europe/Minsk" "مِنسک"
+    "America/Belize" "بیلائز"
+    "America/St_Johns" "سینٹ جانز"
+    "America/Halifax" "ہیلیفیکس"
+    "America/Glace_Bay" "گلیس کی کھاڑی"
+    "America/Moncton" "مونکٹن"
+    "America/Goose_Bay" "گوس کی کھاڑی"
+    "America/Toronto" "ٹورنٹو"
+    "America/Iqaluit" "ایکالوئٹ"
+    "America/Winnipeg" "ونّیپیگ"
+    "America/Resolute" "ریزولیوٹ"
+    "America/Rankin_Inlet" "رینکن انلیٹ"
+    "America/Regina" "ریجینا"
+    "America/Swift_Current" "سوِفٹ کرنٹ"
+    "America/Edmonton" "ایڈمونٹن"
+    "America/Cambridge_Bay" "کیمبرج کی کھاڑی"
+    "America/Inuvik" "انووِک"
+    "America/Vancouver" "وینکوور"
+    "America/Dawson_Creek" "ڈاؤسن کریک"
+    "America/Fort_Nelson" "فورٹ نیلسن"
+    "America/Whitehorse" "وہائٹ ہارس"
+    "America/Dawson" "ڈاؤسن"
+    "Europe/Zurich" "زیورخ"
+    "Africa/Abidjan" "عابدجان"
+    "Pacific/Rarotonga" "راروٹونگا"
+    "America/Santiago" "سنٹیاگو"
+    "America/Coyhaique" "کویائیکے"
+    "America/Punta_Arenas" "پنٹا اریناس"
+    "Pacific/Easter" "ایسٹر"
+    "Asia/Shanghai" "شنگھائی"
+    "Asia/Urumqi" "یورومکی"
+    "America/Bogota" "بگوٹا"
+    "America/Costa_Rica" "کوسٹا ریکا"
+    "America/Havana" "ہوانا"
+    "Atlantic/Cape_Verde" "کیپ ورڈی"
+    "Asia/Nicosia" "نکوسیا"
+    "Asia/Famagusta" "فاماگوسٹا"
+    "Europe/Prague" "پراگ"
+    "Europe/Berlin" "برلن"
+    "America/Santo_Domingo" "سانتو ڈومنگو"
+    "Africa/Algiers" "الجیئرس"
+    "America/Guayaquil" "گوآیاکوئل"
+    "Pacific/Galapagos" "گیلاپیگوس"
+    "Europe/Tallinn" "ٹالن"
+    "Africa/Cairo" "قاہرہ"
+    "Africa/El_Aaiun" "العیون"
+    "Europe/Madrid" "میڈرڈ"
+    "Africa/Ceuta" "سیوٹا"
+    "Atlantic/Canary" "کینری"
+    "Europe/Helsinki" "ہیلسنکی"
+    "Pacific/Fiji" "فجی"
+    "Atlantic/Stanley" "اسٹینلے"
+    "Pacific/Kosrae" "کوسرائی"
+    "Atlantic/Faroe" "فارو"
+    "Europe/Paris" "پیرس"
+    "Europe/London" "لندن"
+    "Asia/Tbilisi" "طبلیسی"
+    "America/Cayenne" "کائین"
+    "Europe/Gibraltar" "جبل الطارق"
+    "America/Nuuk" "نوک"
+    "America/Danmarkshavn" "ڈنمارک شاون"
+    "America/Scoresbysund" "اسکورز بائی سنڈ"
+    "America/Thule" "تھولو"
+    "Europe/Athens" "ایتھنز"
+    "Atlantic/South_Georgia" "جنوبی جارجیا"
+    "America/Guatemala" "گواٹے مالا"
+    "Pacific/Guam" "گوآم"
+    "Africa/Bissau" "بِساؤ"
+    "America/Guyana" "گیانا"
+    "Asia/Hong_Kong" "ہانگ کانگ"
+    "America/Tegucigalpa" "ٹیگوسیگالپے"
+    "America/Port-au-Prince" "پورٹ او پرنس"
+    "Europe/Budapest" "بڈاپسٹ"
+    "Asia/Jakarta" "جکارتہ"
+    "Asia/Pontianak" "پونٹیانک"
+    "Asia/Makassar" "مکاسر"
+    "Asia/Jayapura" "جے پورہ"
+    "Europe/Dublin" "ڈبلن"
+    "Asia/Jerusalem" "یروشلم"
+    "Asia/Kolkata" "کولکاتا"
+    "Indian/Chagos" "چاگوس"
+    "Asia/Baghdad" "بغداد"
+    "Asia/Tehran" "تہران"
+    "Europe/Rome" "روم"
+    "America/Jamaica" "جمائیکا"
+    "Asia/Amman" "امّان"
+    "Asia/Tokyo" "ٹوکیو"
+    "Africa/Nairobi" "نیروبی"
+    "Asia/Bishkek" "بشکیک"
+    "Pacific/Tarawa" "ٹراوا"
+    "Pacific/Kanton" "کانٹن"
+    "Pacific/Kiritimati" "کریتیماٹی"
+    "Asia/Pyongyang" "پیونگ یانگ"
+    "Asia/Seoul" "سیئول"
+    "Asia/Almaty" "الماٹی"
+    "Asia/Qyzylorda" "کیزیلورڈا"
+    "Asia/Qostanay" "کوستانے"
+    "Asia/Aqtobe" "اکٹوب"
+    "Asia/Aqtau" "اکتاؤ"
+    "Asia/Atyrau" "آتیراؤ"
+    "Asia/Oral" "اورال"
+    "Asia/Beirut" "بیروت"
+    "Asia/Colombo" "کولمبو"
+    "Africa/Monrovia" "مونروویا"
+    "Europe/Vilnius" "وِلنیئس"
+    "Europe/Riga" "ریگا"
+    "Africa/Tripoli" "ٹریپولی"
+    "Africa/Casablanca" "کیسا بلانکا"
+    "Europe/Chisinau" "چیسیناؤ"
+    "Pacific/Kwajalein" "کواجیلین"
+    "Asia/Yangon" "رنگون"
+    "Asia/Ulaanbaatar" "اولان باتار"
+    "Asia/Hovd" "ہووارڈ"
+    "Asia/Macau" "مکاؤ"
+    "America/Martinique" "مارٹینک"
+    "Europe/Malta" "مالٹا"
+    "Indian/Mauritius" "ماریشس"
+    "Indian/Maldives" "مالدیپ"
+    "America/Mexico_City" "میکسیکو سٹی"
+    "America/Cancun" "کنکیون"
+    "America/Merida" "میریڈا"
+    "America/Monterrey" "مونٹیری"
+    "America/Matamoros" "میٹاموروس"
+    "America/Chihuahua" "چیہوآہوآ"
+    "America/Ciudad_Juarez" "سیوداد جیوریز"
+    "America/Ojinaga" "اوجیناگا"
+    "America/Mazatlan" "میزٹلان"
+    "America/Bahia_Banderas" "بہیا بندراز"
+    "America/Hermosillo" "ہرموسیلو"
+    "America/Tijuana" "تیجوآنا"
+    "Asia/Kuching" "کیوچنگ"
+    "Africa/Maputo" "مپوٹو"
+    "Africa/Windhoek" "ونڈہوک"
+    "Pacific/Noumea" "نؤمیا"
+    "Pacific/Norfolk" "نورفوک"
+    "Africa/Lagos" "لاگوس"
+    "America/Managua" "مناگوآ"
+    "Asia/Kathmandu" "کاٹھمنڈو"
+    "Pacific/Nauru" "ناؤرو"
+    "Pacific/Niue" "نیئو"
+    "Pacific/Auckland" "آکلینڈ"
+    "Pacific/Chatham" "چیتھم"
+    "America/Panama" "پنامہ"
+    "America/Lima" "لیما"
+    "Pacific/Tahiti" "تاہیتی"
+    "Pacific/Marquesas" "مارکیساس"
+    "Pacific/Gambier" "گامبیئر"
+    "Pacific/Port_Moresby" "پورٹ موریسبی"
+    "Pacific/Bougainville" "بوگینولے"
+    "Asia/Manila" "منیلا"
+    "Asia/Karachi" "کراچی"
+    "Europe/Warsaw" "وارسا"
+    "America/Miquelon" "میکلیئون"
+    "Pacific/Pitcairn" "پٹکائرن"
+    "America/Puerto_Rico" "پیورٹو ریکو"
+    "Asia/Gaza" "غزہ"
+    "Asia/Hebron" "ہیبرون"
+    "Europe/Lisbon" "لسبن"
+    "Atlantic/Madeira" "مڈیئرا"
+    "Atlantic/Azores" "ازوریس"
+    "Pacific/Palau" "پلاؤ"
+    "America/Asuncion" "اسنسیئن"
+    "Asia/Qatar" "قطر"
+    "Europe/Bucharest" "بخارسٹ"
+    "Europe/Belgrade" "بلغراد"
+    "Europe/Kaliningrad" "کالينينغراد"
+    "Europe/Moscow" "ماسکو"
+    "Europe/Simferopol" "سمفروپول"
+    "Europe/Kirov" "کیروف"
+    "Europe/Volgograd" "وولگوگراد"
+    "Europe/Astrakhan" "استراخان"
+    "Europe/Saratov" "سیراٹو"
+    "Europe/Ulyanovsk" "الیانوسک"
+    "Europe/Samara" "سمارا"
+    "Asia/Yekaterinburg" "یکاٹیرِنبرگ"
+    "Asia/Omsk" "اومسک"
+    "Asia/Novosibirsk" "نوووسِبِرسک"
+    "Asia/Barnaul" "برنال"
+    "Asia/Tomsk" "ٹامسک"
+    "Asia/Novokuznetsk" "نوووکیوزنیسک"
+    "Asia/Krasnoyarsk" "کریسنویارسک"
+    "Asia/Irkutsk" "ارکتسک"
+    "Asia/Chita" "چیتا"
+    "Asia/Yakutsk" "یکوتسک"
+    "Asia/Khandyga" "خندیگا"
+    "Asia/Vladivostok" "ولادی ووستک"
+    "Asia/Ust-Nera" "اوست-نیرا"
+    "Asia/Magadan" "میگیدن"
+    "Asia/Sakhalin" "سخالین"
+    "Asia/Srednekolymsk" "سرہدنیکولیمسک"
+    "Asia/Kamchatka" "کیمچٹکا"
+    "Asia/Anadyr" "انیدر"
+    "Asia/Riyadh" "ریاض"
+    "Pacific/Guadalcanal" "گواڈل کینال"
+    "Africa/Khartoum" "خرطوم"
+    "Asia/Singapore" "سنگاپور"
+    "America/Paramaribo" "پراماریبو"
+    "Africa/Juba" "جوبا"
+    "Africa/Sao_Tome" "ساؤ ٹوم"
+    "America/El_Salvador" "ال سلواڈور"
+    "Asia/Damascus" "دمشق"
+    "America/Grand_Turk" "عظیم ترک"
+    "Africa/Ndjamena" "اینجامینا"
+    "Asia/Bangkok" "بنکاک"
+    "Asia/Dushanbe" "دوشانبے"
+    "Pacific/Fakaofo" "فکاؤفو"
+    "Asia/Dili" "ڈلی"
+    "Asia/Ashgabat" "اشغبت"
+    "Africa/Tunis" "تیونس"
+    "Pacific/Tongatapu" "ٹونگاٹاپو"
+    "Europe/Istanbul" "استنبول"
+    "Asia/Taipei" "تائپے"
+    "Europe/Kyiv" "کیو"
+    "America/New_York" "نیو یارک"
+    "America/Detroit" "ڈیٹرائٹ"
+    "America/Kentucky/Louisville" "لوئس ویلے"
+    "America/Kentucky/Monticello" "مونٹیسیلو، کینٹوکی"
+    "America/Indiana/Indianapolis" "انڈیاناپولس"
+    "America/Indiana/Vincennes" "ونسینیز، انڈیانا"
+    "America/Indiana/Winamac" "وینامیک، انڈیانا"
+    "America/Indiana/Marengo" "مرینگو، انڈیانا"
+    "America/Indiana/Petersburg" "پیٹرزبرگ، انڈیانا"
+    "America/Indiana/Vevay" "ویوے، انڈیانا"
+    "America/Chicago" "شکاگو"
+    "America/Indiana/Tell_City" "ٹیل سٹی، انڈیانا"
+    "America/Indiana/Knox" "کنوکس، انڈیانا"
+    "America/Menominee" "مینومینی"
+    "America/North_Dakota/Center" "وسط، شمالی ڈکوٹا"
+    "America/North_Dakota/New_Salem" "نیو سلیم، شمالی ڈکوٹا"
+    "America/North_Dakota/Beulah" "بیولاہ، شمالی ڈکوٹا"
+    "America/Denver" "ڈینور"
+    "America/Boise" "بوائس"
+    "America/Phoenix" "فینکس"
+    "America/Los_Angeles" "لاس اینجلس"
+    "America/Anchorage" "اینکریج"
+    "America/Juneau" "جونیئو"
+    "America/Sitka" "سیٹکا"
+    "America/Metlakatla" "میٹلا کاٹلا"
+    "America/Yakutat" "یکوٹیٹ"
+    "America/Nome" "نوم"
+    "America/Adak" "اداک"
+    "Pacific/Honolulu" "ہونولولو"
+    "America/Montevideo" "مونٹی ویڈیو"
+    "Asia/Samarkand" "سمرقند"
+    "Asia/Tashkent" "تاشقند"
+    "America/Caracas" "کراکاس"
+    "Asia/Ho_Chi_Minh" "ہو چی منہ سٹی"
+    "Pacific/Efate" "ایفیٹ"
+    "Pacific/Apia" "اپیا"
+    "Africa/Johannesburg" "جوہانسبرگ"
+    "America/Antigua" "انٹیگوا"
+    "America/Anguilla" "انگویلا"
+    "Africa/Luanda" "لوانڈا"
+    "Antarctica/McMurdo" "میک مرڈو"
+    "Antarctica/DumontDUrville" "ڈومونٹ ڈی ارویلے"
+    "Antarctica/Syowa" "سیووا"
+    "America/Aruba" "اروبا"
+    "Europe/Mariehamn" "میریہام"
+    "Europe/Sarajevo" "سراجیوو"
+    "Africa/Ouagadougou" "اؤگاڈؤگوو"
+    "Asia/Bahrain" "بحرین"
+    "Africa/Bujumbura" "بجمبرا"
+    "Africa/Porto-Novo" "پورٹو نووو"
+    "America/St_Barthelemy" "سینٹ برتھیلمی"
+    "Asia/Brunei" "برونئی"
+    "America/Kralendijk" "کرالینڈیجک"
+    "America/Nassau" "نساؤ"
+    "Africa/Gaborone" "گبرون"
+    "America/Blanc-Sablon" "بلانک سبلون"
+    "America/Atikokan" "اٹیکوکن"
+    "America/Creston" "کریسٹون"
+    "Indian/Cocos" "کوکوس"
+    "Africa/Kinshasa" "کنشاسا"
+    "Africa/Lubumbashi" "لوبمباشی"
+    "Africa/Bangui" "بنگوئی"
+    "Africa/Brazzaville" "برازاویلے"
+    "Africa/Douala" "ڈوآلا"
+    "America/Curacao" "کیوراکاؤ"
+    "Indian/Christmas" "کرسمس"
+    "Europe/Busingen" "بزنجن"
+    "Africa/Djibouti" "جبوتی"
+    "Europe/Copenhagen" "کوپن ہیگن"
+    "America/Dominica" "ڈومنیکا"
+    "Africa/Asmara" "اسمارا"
+    "Africa/Addis_Ababa" "عدیس ابابا"
+    "Pacific/Chuuk" "چیوک"
+    "Pacific/Pohnpei" "پونپیئی"
+    "Africa/Libreville" "لبرے ویلے"
+    "America/Grenada" "غرناطہ"
+    "Europe/Guernsey" "گرنزی"
+    "Africa/Accra" "اکّرا"
+    "Africa/Banjul" "بنجول"
+    "Africa/Conakry" "کونکری"
+    "America/Guadeloupe" "گواڈیلوپ"
+    "Africa/Malabo" "ملابو"
+    "Europe/Zagreb" "زیگریب"
+    "Europe/Isle_of_Man" "آئل آف مین"
+    "Atlantic/Reykjavik" "ریکجاوک"
+    "Europe/Jersey" "جرسی"
+    "Asia/Phnom_Penh" "پنوم پن"
+    "Indian/Comoro" "کومورو"
+    "America/St_Kitts" "سینٹ کٹس"
+    "Asia/Kuwait" "کویت"
+    "America/Cayman" "کیمین"
+    "Asia/Vientiane" "وینٹیانا"
+    "America/St_Lucia" "سینٹ لوسیا"
+    "Europe/Vaduz" "ویڈوز"
+    "Africa/Maseru" "مسیرو"
+    "Europe/Luxembourg" "لگژمبرگ"
+    "Europe/Monaco" "موناکو"
+    "Europe/Podgorica" "پوڈگورسیا"
+    "America/Marigot" "میریگوٹ"
+    "Indian/Antananarivo" "انٹاناناریوو"
+    "Pacific/Majuro" "مجورو"
+    "Europe/Skopje" "اسکوپجے"
+    "Africa/Bamako" "بماکو"
+    "Pacific/Saipan" "سائپین"
+    "Africa/Nouakchott" "نواکشوط"
+    "America/Montserrat" "مونٹسیراٹ"
+    "Africa/Blantyre" "بلینٹائر"
+    "Asia/Kuala_Lumpur" "کوالا لمپور"
+    "Africa/Niamey" "نیامی"
+    "Europe/Amsterdam" "ایمسٹرڈم"
+    "Europe/Oslo" "اوسلو"
+    "Asia/Muscat" "مسقط"
+    "Indian/Reunion" "ری یونین"
+    "Africa/Kigali" "کگالی"
+    "Indian/Mahe" "ماہی"
+    "Europe/Stockholm" "اسٹاک ہوم"
+    "Atlantic/St_Helena" "سینٹ ہیلینا"
+    "Europe/Ljubljana" "لیوبلیانا"
+    "Arctic/Longyearbyen" "لانگ ایئر بین"
+    "Europe/Bratislava" "بریٹِسلاوا"
+    "Africa/Freetown" "فری ٹاؤن"
+    "Europe/San_Marino" "سان ماریانو"
+    "Africa/Dakar" "ڈکار"
+    "Africa/Mogadishu" "موگادیشو"
+    "America/Lower_Princes" "لوور پرنسس کوارٹر"
+    "Africa/Mbabane" "مبابین"
+    "Indian/Kerguelen" "کرگیولین"
+    "Africa/Lome" "لوم"
+    "America/Port_of_Spain" "پورٹ آف اسپین"
+    "Pacific/Funafuti" "فیونافیوٹی"
+    "Africa/Dar_es_Salaam" "دار السلام"
+    "Africa/Kampala" "کیمپالا"
+    "Pacific/Midway" "مڈوے"
+    "Pacific/Wake" "ویک"
+    "Europe/Vatican" "واٹیکن"
+    "America/St_Vincent" "سینٹ ونسنٹ"
+    "America/Tortola" "ٹورٹولا"
+    "America/St_Thomas" "سینٹ تھامس"
+    "Pacific/Wallis" "ولّیس"
+    "Asia/Aden" "عدن"
+    "Indian/Mayotte" "مایوٹ"
+    "Africa/Lusaka" "لیوساکا"
+    "Africa/Harare" "ہرارے"
+};
+
+// `common/main/yue_Hans.xml`: 418 of the 418 zones named.
+#[cfg(feature = "localized-exemplar-cities")]
+const YUE_HANS: &str = exemplar_cities! {
+    "Europe/Andorra" "安道尔"
+    "Asia/Dubai" "杜拜"
+    "Asia/Kabul" "喀布尔"
+    "Europe/Tirane" "地拉那"
+    "Asia/Yerevan" "叶里温"
+    "Antarctica/Casey" "凯西"
+    "Antarctica/Davis" "戴维斯"
+    "Antarctica/Mawson" "莫森"
+    "Antarctica/Palmer" "帕麦"
+    "Antarctica/Rothera" "罗瑟拉"
+    "Antarctica/Troll" "绰尔"
+    "Antarctica/Vostok" "沃斯托克"
+    "America/Argentina/Buenos_Aires" "布宜诺斯艾利斯"
+    "America/Argentina/Cordoba" "哥多华"
+    "America/Argentina/Salta" "萨尔塔"
+    "America/Argentina/Jujuy" "胡胡伊"
+    "America/Argentina/Tucuman" "吐库曼"
+    "America/Argentina/Catamarca" "卡塔马卡"
+    "America/Argentina/La_Rioja" "拉略哈"
+    "America/Argentina/San_Juan" "圣胡安"
+    "America/Argentina/Mendoza" "门多萨"
+    "America/Argentina/San_Luis" "圣路易"
+    "America/Argentina/Rio_Gallegos" "里奥加耶戈斯"
+    "America/Argentina/Ushuaia" "乌斯怀亚"
+    "Pacific/Pago_Pago" "巴哥巴哥"
+    "Europe/Vienna" "维也纳"
+    "Australia/Lord_Howe" "豪勋爵岛"
+    "Antarctica/Macquarie" "麦觉理"
+    "Australia/Hobart" "荷巴特"
+    "Australia/Melbourne" "墨尔本"
+    "Australia/Sydney" "雪梨"
+    "Australia/Broken_Hill" "布罗肯希尔"
+    "Australia/Brisbane" "布利斯班"
+    "Australia/Lindeman" "林德曼"
+    "Australia/Adelaide" "阿得雷德"
+    "Australia/Darwin" "达尔文"
+    "Australia/Perth" "伯斯"
+    "Australia/Eucla" "尤克拉"
+    "Asia/Baku" "巴库"
+    "America/Barbados" "巴贝多"
+    "Asia/Dhaka" "达卡"
+    "Europe/Brussels" "布鲁塞尔"
+    "Europe/Sofia" "索菲亚"
+    "Atlantic/Bermuda" "百慕达"
+    "America/La_Paz" "拉巴斯"
+    "America/Noronha" "诺伦哈"
+    "America/Belem" "贝伦"
+    "America/Fortaleza" "福塔力莎"
+    "America/Recife" "雷西非"
+    "America/Araguaina" "阿拉圭那"
+    "America/Maceio" "马瑟欧"
+    "America/Bahia" "巴伊阿"
+    "America/Sao_Paulo" "圣保罗"
+    "America/Campo_Grande" "格兰场"
+    "America/Cuiaba" "古雅巴"
+    "America/Santarem" "圣塔伦"
+    "America/Porto_Velho" "维留港"
+    "America/Boa_Vista" "保维斯塔"
+    "America/Manaus" "玛瑙斯"
+    "America/Eirunepe" "艾鲁内佩"
+    "America/Rio_Branco" "里约布兰"
+    "Asia/Thimphu" "廷布"
+    "Europe/Minsk" "明斯克"
+    "America/Belize" "贝里斯"
+    "America/St_Johns" "圣约翰"
+    "America/Halifax" "哈里法克斯"
+    "America/Glace_Bay" "格雷斯贝"
+    "America/Moncton" "蒙克顿"
+    "America/Goose_Bay" "鹅湾"
+    "America/Toronto" "多伦多"
+    "America/Iqaluit" "伊魁特"
+    "America/Winnipeg" "温尼伯"
+    "America/Resolute" "罗斯鲁特"
+    "America/Rankin_Inlet" "兰今湾"
+    "America/Regina" "里贾纳"
+    "America/Swift_Current" "斯威夫特卡伦特"
+    "America/Edmonton" "艾德蒙吞"
+    "America/Cambridge_Bay" "剑桥湾"
+    "America/Inuvik" "伊奴维克"
+    "America/Vancouver" "温哥华"
+    "America/Dawson_Creek" "道森克里克"
+    "America/Fort_Nelson" "纳尔逊堡"
+    "America/Whitehorse" "怀特霍斯"
+    "America/Dawson" "道森"
+    "Europe/Zurich" "苏黎世"
+    "Africa/Abidjan" "阿比让"
+    "Pacific/Rarotonga" "拉罗汤加"
+    "America/Santiago" "圣地牙哥"
+    "America/Coyhaique" "科伊艾克"
+    "America/Punta_Arenas" "蓬塔阿雷纳斯"
+    "Pacific/Easter" "复活岛"
+    "Asia/Shanghai" "上海"
+    "Asia/Urumqi" "乌鲁木齐"
+    "America/Bogota" "波哥大"
+    "America/Costa_Rica" "哥斯大黎加"
+    "America/Havana" "哈瓦那"
+    "Atlantic/Cape_Verde" "维德角"
+    "Asia/Nicosia" "尼古西亚"
+    "Asia/Famagusta" "法马古斯塔"
+    "Europe/Prague" "布拉格"
+    "Europe/Berlin" "柏林"
+    "America/Santo_Domingo" "圣多明哥"
+    "Africa/Algiers" "阿尔及尔"
+    "America/Guayaquil" "瓜亚基尔"
+    "Pacific/Galapagos" "加拉巴哥群岛"
+    "Europe/Tallinn" "塔林"
+    "Africa/Cairo" "开罗"
+    "Africa/El_Aaiun" "阿尤恩"
+    "Europe/Madrid" "马德里"
+    "Africa/Ceuta" "休达"
+    "Atlantic/Canary" "加纳利"
+    "Europe/Helsinki" "赫尔辛基"
+    "Pacific/Fiji" "斐济"
+    "Atlantic/Stanley" "史坦利"
+    "Pacific/Kosrae" "科斯瑞"
+    "Atlantic/Faroe" "法罗群岛"
+    "Europe/Paris" "巴黎"
+    "Europe/London" "伦敦"
+    "Asia/Tbilisi" "第比利斯"
+    "America/Cayenne" "开云"
+    "Europe/Gibraltar" "直布罗陀"
+    "America/Nuuk" "努克"
+    "America/Danmarkshavn" "丹马沙文"
+    "America/Scoresbysund" "伊托科尔托米特"
+    "America/Thule" "杜里"
+    "Europe/Athens" "雅典"
+    "Atlantic/South_Georgia" "南乔治亚"
+    "America/Guatemala" "瓜地马拉"
+    "Pacific/Guam" "关岛"
+    "Africa/Bissau" "比绍"
+    "America/Guyana" "盖亚那"
+    "Asia/Hong_Kong" "中华人民共和国香港特别行政区"
+    "America/Tegucigalpa" "德古斯加巴"
+    "America/Port-au-Prince" "太子港"
+    "Europe/Budapest" "布达佩斯"
+    "Asia/Jakarta" "雅加达"
+    "Asia/Pontianak" "坤甸"
+    "Asia/Makassar" "马卡沙尔"
+    "Asia/Jayapura" "加亚布拉"
+    "Europe/Dublin" "都柏林"
+    "Asia/Jerusalem" "耶路撒冷"
+    "Asia/Kolkata" "加尔各答"
+    "Indian/Chagos" "查戈斯"
+    "Asia/Baghdad" "巴格达"
+    "Asia/Tehran" "德黑兰"
+    "Europe/Rome" "罗马"
+    "America/Jamaica" "牙买加"
+    "Asia/Amman" "安曼"
+    "Asia/Tokyo" "东京"
+    "Africa/Nairobi" "奈洛比"
+    "Asia/Bishkek" "比什凯克"
+    "Pacific/Tarawa" "塔拉瓦"
+    "Pacific/Kanton" "坎顿"
+    "Pacific/Kiritimati" "基里地马地岛"
+    "Asia/Pyongyang" "平壤"
+    "Asia/Seoul" "首尔"
+    "Asia/Almaty" "阿拉木图"
+    "Asia/Qyzylorda" "克孜勒奥尔达"
+    "Asia/Qostanay" "科斯塔奈"
+    "Asia/Aqtobe" "阿克托比"
+    "Asia/Aqtau" "阿克套"
+    "Asia/Atyrau" "阿特劳"
+    "Asia/Oral" "乌拉尔"
+    "Asia/Beirut" "贝鲁特"
+    "Asia/Colombo" "可伦坡"
+    "Africa/Monrovia" "蒙罗维亚"
+    "Europe/Vilnius" "维尔纽斯"
+    "Europe/Riga" "里加"
+    "Africa/Tripoli" "的黎波里"
+    "Africa/Casablanca" "卡萨布兰卡"
+    "Europe/Chisinau" "奇西瑙"
+    "Pacific/Kwajalein" "瓜加林岛"
+    "Asia/Yangon" "仰光"
+    "Asia/Ulaanbaatar" "乌兰巴托"
+    "Asia/Hovd" "科布多"
+    "Asia/Macau" "中华人民共和国澳门特别行政区"
+    "America/Martinique" "马丁尼克"
+    "Europe/Malta" "马尔他"
+    "Indian/Mauritius" "模里西斯"
+    "Indian/Maldives" "马尔地夫"
+    "America/Mexico_City" "墨西哥市"
+    "America/Cancun" "坎昆"
+    "America/Merida" "梅里达"
+    "America/Monterrey" "蒙特瑞"
+    "America/Matamoros" "马塔莫罗斯"
+    "America/Chihuahua" "奇华华"
+    "America/Ciudad_Juarez" "华雷斯城"
+    "America/Ojinaga" "奥希纳加"
+    "America/Mazatlan" "马萨特兰"
+    "America/Bahia_Banderas" "巴伊亚班德拉斯"
+    "America/Hermosillo" "埃莫西约"
+    "America/Tijuana" "提华纳"
+    "Asia/Kuching" "古晋"
+    "Africa/Maputo" "马普托"
+    "Africa/Windhoek" "温得和克"
+    "Pacific/Noumea" "诺美亚"
+    "Pacific/Norfolk" "诺福克"
+    "Africa/Lagos" "拉哥斯"
+    "America/Managua" "马拿瓜"
+    "Asia/Kathmandu" "加德满都"
+    "Pacific/Nauru" "诺鲁"
+    "Pacific/Niue" "纽埃岛"
+    "Pacific/Auckland" "奥克兰"
+    "Pacific/Chatham" "查坦"
+    "America/Panama" "巴拿马"
+    "America/Lima" "利马"
+    "Pacific/Tahiti" "大溪地"
+    "Pacific/Marquesas" "马可萨斯岛"
+    "Pacific/Gambier" "甘比尔群岛"
+    "Pacific/Port_Moresby" "莫士比港"
+    "Pacific/Bougainville" "布干维尔"
+    "Asia/Manila" "马尼拉"
+    "Asia/Karachi" "喀拉蚩"
+    "Europe/Warsaw" "华沙"
+    "America/Miquelon" "密启仑"
+    "Pacific/Pitcairn" "皮特肯群岛"
+    "America/Puerto_Rico" "波多黎各"
+    "Asia/Gaza" "加萨"
+    "Asia/Hebron" "赫布隆"
+    "Europe/Lisbon" "里斯本"
+    "Atlantic/Madeira" "马得拉群岛"
+    "Atlantic/Azores" "亚速尔群岛"
+    "Pacific/Palau" "帛琉"
+    "America/Asuncion" "亚松森"
+    "Asia/Qatar" "卡达"
+    "Europe/Bucharest" "布加勒斯特"
+    "Europe/Belgrade" "贝尔格勒"
+    "Europe/Kaliningrad" "加里宁格勒"
+    "Europe/Moscow" "莫斯科"
+    "Europe/Simferopol" "辛非洛浦"
+    "Europe/Kirov" "基洛夫"
+    "Europe/Volgograd" "伏尔加格勒"
+    "Europe/Astrakhan" "阿斯特拉罕"
+    "Europe/Saratov" "萨拉托夫"
+    "Europe/Ulyanovsk" "乌里扬诺夫斯克"
+    "Europe/Samara" "沙马拉"
+    "Asia/Yekaterinburg" "叶卡捷林堡"
+    "Asia/Omsk" "鄂木斯克"
+    "Asia/Novosibirsk" "新西伯利亚"
+    "Asia/Barnaul" "巴尔瑙尔"
+    "Asia/Tomsk" "托木斯克"
+    "Asia/Novokuznetsk" "新库兹涅茨克"
+    "Asia/Krasnoyarsk" "克拉斯诺亚尔斯克"
+    "Asia/Irkutsk" "伊尔库次克"
+    "Asia/Chita" "赤塔"
+    "Asia/Yakutsk" "雅库次克"
+    "Asia/Khandyga" "堪地加"
+    "Asia/Vladivostok" "海参崴"
+    "Asia/Ust-Nera" "乌斯内拉"
+    "Asia/Magadan" "马加丹"
+    "Asia/Sakhalin" "库页岛"
+    "Asia/Srednekolymsk" "中科雷姆斯克"
+    "Asia/Kamchatka" "堪察加"
+    "Asia/Anadyr" "阿那底"
+    "Asia/Riyadh" "利雅德"
+    "Pacific/Guadalcanal" "瓜达康纳尔岛"
+    "Africa/Khartoum" "喀土穆"
+    "Asia/Singapore" "新加坡"
+    "America/Paramaribo" "巴拉马利波"
+    "Africa/Juba" "朱巴"
+    "Africa/Sao_Tome" "圣多美"
+    "America/El_Salvador" "萨尔瓦多"
+    "Asia/Damascus" "大马士革"
+    "America/Grand_Turk" "大特克岛"
+    "Africa/Ndjamena" "恩贾梅纳"
+    "Asia/Bangkok" "曼谷"
+    "Asia/Dushanbe" "杜桑贝"
+    "Pacific/Fakaofo" "法考福"
+    "Asia/Dili" "帝力"
+    "Asia/Ashgabat" "阿什哈巴特"
+    "Africa/Tunis" "突尼斯"
+    "Pacific/Tongatapu" "东加塔布岛"
+    "Europe/Istanbul" "伊斯坦堡"
+    "Asia/Taipei" "台北"
+    "Europe/Kyiv" "基辅"
+    "America/New_York" "纽约"
+    "America/Detroit" "底特律"
+    "America/Kentucky/Louisville" "路易斯维尔"
+    "America/Kentucky/Monticello" "肯塔基州蒙地却罗"
+    "America/Indiana/Indianapolis" "印第安那波里斯"
+    "America/Indiana/Vincennes" "印第安那州温森斯"
+    "America/Indiana/Winamac" "印第安那州威纳马克"
+    "America/Indiana/Marengo" "印第安那州马伦哥"
+    "America/Indiana/Petersburg" "印第安那州彼得堡"
+    "America/Indiana/Vevay" "印第安那州维威"
+    "America/Chicago" "芝加哥"
+    "America/Indiana/Tell_City" "印第安那州泰尔城"
+    "America/Indiana/Knox" "印第安那州诺克斯"
+    "America/Menominee" "美诺米尼"
+    "America/North_Dakota/Center" "北达科他州中心"
+    "America/North_Dakota/New_Salem" "北达科他州纽沙伦"
+    "America/North_Dakota/Beulah" "北达科他州布由拉"
+    "America/Denver" "丹佛"
+    "America/Boise" "波夕"
+    "America/Phoenix" "凤凰城"
+    "America/Los_Angeles" "洛杉矶"
+    "America/Anchorage" "安克拉治"
+    "America/Juneau" "朱诺"
+    "America/Sitka" "锡特卡"
+    "America/Metlakatla" "梅特拉卡特拉"
+    "America/Yakutat" "雅库塔"
+    "America/Nome" "诺姆"
+    "America/Adak" "艾达克"
+    "Pacific/Honolulu" "檀香山"
+    "America/Montevideo" "蒙特维多"
+    "Asia/Samarkand" "撒马尔罕"
+    "Asia/Tashkent" "塔什干"
+    "America/Caracas" "卡拉卡斯"
+    "Asia/Ho_Chi_Minh" "胡志明市"
+    "Pacific/Efate" "埃法特"
+    "Pacific/Apia" "阿皮亚"
+    "Africa/Johannesburg" "约翰尼斯堡"
+    "America/Antigua" "安地卡"
+    "America/Anguilla" "安吉拉"
+    "Africa/Luanda" "罗安达"
+    "Antarctica/McMurdo" "麦克默多"
+    "Antarctica/DumontDUrville" "杜蒙杜比尔"
+    "Antarctica/Syowa" "昭和基地"
+    "America/Aruba" "阿路巴"
+    "Europe/Mariehamn" "玛丽港"
+    "Europe/Sarajevo" "塞拉耶佛"
+    "Africa/Ouagadougou" "瓦加杜古"
+    "Asia/Bahrain" "巴林"
+    "Africa/Bujumbura" "布松布拉"
+    "Africa/Porto-Novo" "波多诺佛"
+    "America/St_Barthelemy" "圣巴托洛缪岛"
+    "Asia/Brunei" "汶莱"
+    "America/Kralendijk" "克拉伦代克"
+    "America/Nassau" "拿索"
+    "Africa/Gaborone" "嘉柏隆里"
+    "America/Blanc-Sablon" "白朗萨布隆"
+    "America/Atikokan" "阿蒂科肯"
+    "America/Creston" "克雷斯顿"
+    "Indian/Cocos" "科科斯群岛"
+    "Africa/Kinshasa" "金夏沙"
+    "Africa/Lubumbashi" "卢本巴希"
+    "Africa/Bangui" "班吉"
+    "Africa/Brazzaville" "布拉柴维尔"
+    "Africa/Douala" "杜阿拉"
+    "America/Curacao" "库拉索"
+    "Indian/Christmas" "圣诞岛"
+    "Europe/Busingen" "布辛根"
+    "Africa/Djibouti" "吉布地"
+    "Europe/Copenhagen" "哥本哈根"
+    "America/Dominica" "多明尼加"
+    "Africa/Asmara" "阿斯玛拉"
+    "Africa/Addis_Ababa" "阿迪斯阿贝巴"
+    "Pacific/Chuuk" "楚克"
+    "Pacific/Pohnpei" "波纳佩"
+    "Africa/Libreville" "自由市"
+    "America/Grenada" "格瑞纳达"
+    "Europe/Guernsey" "根息岛"
+    "Africa/Accra" "阿克拉"
+    "Africa/Banjul" "班竹"
+    "Africa/Conakry" "柯那克里"
+    "America/Guadeloupe" "瓜地洛普"
+    "Africa/Malabo" "马拉博"
+    "Europe/Zagreb" "札格瑞布"
+    "Europe/Isle_of_Man" "曼岛"
+    "Atlantic/Reykjavik" "雷克雅维克"
+    "Europe/Jersey" "泽西岛"
+    "Asia/Phnom_Penh" "金边"
+    "Indian/Comoro" "科摩罗群岛"
+    "America/St_Kitts" "圣基茨"
+    "Asia/Kuwait" "科威特"
+    "America/Cayman" "开曼群岛"
+    "Asia/Vientiane" "永珍"
+    "America/St_Lucia" "圣露西亚"
+    "Europe/Vaduz" "瓦都兹"
+    "Africa/Maseru" "马赛鲁"
+    "Europe/Luxembourg" "卢森堡"
+    "Europe/Monaco" "摩纳哥"
+    "Europe/Podgorica" "波多里察"
+    "America/Marigot" "马里戈特"
+    "Indian/Antananarivo" "安塔那那利佛"
+    "Pacific/Majuro" "马朱诺"
+    "Europe/Skopje" "史高比耶"
+    "Africa/Bamako" "巴马科"
+    "Pacific/Saipan" "塞班"
+    "Africa/Nouakchott" "诺克少"
+    "America/Montserrat" "蒙哲腊"
+    "Africa/Blantyre" "布兰太尔"
+    "Asia/Kuala_Lumpur" "吉隆坡"
+    "Africa/Niamey" "尼亚美"
+    "Europe/Amsterdam" "阿姆斯特丹"
+    "Europe/Oslo" "奥斯陆"
+    "Asia/Muscat" "马斯开特"
+    "Indian/Reunion" "留尼旺岛"
+    "Africa/Kigali" "基加利"
+    "Indian/Mahe" "马埃岛"
+    "Europe/Stockholm" "斯德哥尔摩"
+    "Atlantic/St_Helena" "圣赫勒拿岛"
+    "Europe/Ljubljana" "卢比安纳"
+    "Arctic/Longyearbyen" "隆意耳拜恩"
+    "Europe/Bratislava" "布拉提斯拉瓦"
+    "Africa/Freetown" "自由城"
+    "Europe/San_Marino" "圣马利诺"
+    "Africa/Dakar" "达喀尔"
+    "Africa/Mogadishu" "摩加迪休"
+    "America/Lower_Princes" "下太子区"
+    "Africa/Mbabane" "墨巴本"
+    "Indian/Kerguelen" "凯尔盖朗岛"
+    "Africa/Lome" "洛美"
+    "America/Port_of_Spain" "西班牙港"
+    "Pacific/Funafuti" "富那富提"
+    "Africa/Dar_es_Salaam" "沙兰港"
+    "Africa/Kampala" "坎帕拉"
+    "Pacific/Midway" "中途岛"
+    "Pacific/Wake" "威克"
+    "Europe/Vatican" "梵蒂冈"
+    "America/St_Vincent" "圣文森"
+    "America/Tortola" "托尔托拉"
+    "America/St_Thomas" "圣托马斯"
+    "Pacific/Wallis" "瓦利斯"
+    "Asia/Aden" "亚丁"
+    "Indian/Mayotte" "马约特岛"
+    "Africa/Lusaka" "路沙卡"
+    "Africa/Harare" "哈拉雷"
+};
+
+// `common/main/yue.xml`: 418 of the 418 zones named.
+#[cfg(feature = "localized-exemplar-cities")]
+const YUE_HANT: &str = exemplar_cities! {
+    "Europe/Andorra" "安道爾"
+    "Asia/Dubai" "杜拜"
+    "Asia/Kabul" "喀布爾"
+    "Europe/Tirane" "地拉那"
+    "Asia/Yerevan" "葉里溫"
+    "Antarctica/Casey" "凱西"
+    "Antarctica/Davis" "戴維斯"
+    "Antarctica/Mawson" "莫森"
+    "Antarctica/Palmer" "帕麥"
+    "Antarctica/Rothera" "羅瑟拉"
+    "Antarctica/Troll" "綽爾"
+    "Antarctica/Vostok" "沃斯托克"
+    "America/Argentina/Buenos_Aires" "布宜諾斯艾利斯"
+    "America/Argentina/Cordoba" "哥多華"
+    "America/Argentina/Salta" "薩爾塔"
+    "America/Argentina/Jujuy" "胡胡伊"
+    "America/Argentina/Tucuman" "吐庫曼"
+    "America/Argentina/Catamarca" "卡塔馬卡"
+    "America/Argentina/La_Rioja" "拉略哈"
+    "America/Argentina/San_Juan" "聖胡安"
+    "America/Argentina/Mendoza" "門多薩"
+    "America/Argentina/San_Luis" "聖路易"
+    "America/Argentina/Rio_Gallegos" "里奧加耶戈斯"
+    "America/Argentina/Ushuaia" "烏斯懷亞"
+    "Pacific/Pago_Pago" "巴哥巴哥"
+    "Europe/Vienna" "維也納"
+    "Australia/Lord_Howe" "豪勳爵島"
+    "Antarctica/Macquarie" "麥覺理"
+    "Australia/Hobart" "荷巴特"
+    "Australia/Melbourne" "墨爾本"
+    "Australia/Sydney" "雪梨"
+    "Australia/Broken_Hill" "布羅肯希爾"
+    "Australia/Brisbane" "布利斯班"
+    "Australia/Lindeman" "林德曼"
+    "Australia/Adelaide" "阿得雷德"
+    "Australia/Darwin" "達爾文"
+    "Australia/Perth" "伯斯"
+    "Australia/Eucla" "尤克拉"
+    "Asia/Baku" "巴庫"
+    "America/Barbados" "巴貝多"
+    "Asia/Dhaka" "達卡"
+    "Europe/Brussels" "布魯塞爾"
+    "Europe/Sofia" "索菲亞"
+    "Atlantic/Bermuda" "百慕達"
+    "America/La_Paz" "拉巴斯"
+    "America/Noronha" "諾倫哈"
+    "America/Belem" "貝倫"
+    "America/Fortaleza" "福塔力莎"
+    "America/Recife" "雷西非"
+    "America/Araguaina" "阿拉圭那"
+    "America/Maceio" "馬瑟歐"
+    "America/Bahia" "巴伊阿"
+    "America/Sao_Paulo" "聖保羅"
+    "America/Campo_Grande" "格蘭場"
+    "America/Cuiaba" "古雅巴"
+    "America/Santarem" "聖塔倫"
+    "America/Porto_Velho" "維留港"
+    "America/Boa_Vista" "保維斯塔"
+    "America/Manaus" "瑪瑙斯"
+    "America/Eirunepe" "艾魯內佩"
+    "America/Rio_Branco" "里約布蘭"
+    "Asia/Thimphu" "廷布"
+    "Europe/Minsk" "明斯克"
+    "America/Belize" "貝里斯"
+    "America/St_Johns" "聖約翰"
+    "America/Halifax" "哈里法克斯"
+    "America/Glace_Bay" "格雷斯貝"
+    "America/Moncton" "蒙克頓"
+    "America/Goose_Bay" "鵝灣"
+    "America/Toronto" "多倫多"
+    "America/Iqaluit" "伊魁特"
+    "America/Winnipeg" "溫尼伯"
+    "America/Resolute" "羅斯魯特"
+    "America/Rankin_Inlet" "蘭今灣"
+    "America/Regina" "里賈納"
+    "America/Swift_Current" "斯威夫特卡倫特"
+    "America/Edmonton" "艾德蒙吞"
+    "America/Cambridge_Bay" "劍橋灣"
+    "America/Inuvik" "伊奴維克"
+    "America/Vancouver" "溫哥華"
+    "America/Dawson_Creek" "道森克里克"
+    "America/Fort_Nelson" "納爾遜堡"
+    "America/Whitehorse" "懷特霍斯"
+    "America/Dawson" "道森"
+    "Europe/Zurich" "蘇黎世"
+    "Africa/Abidjan" "阿比讓"
+    "Pacific/Rarotonga" "拉羅湯加"
+    "America/Santiago" "聖地牙哥"
+    "America/Coyhaique" "科伊艾克"
+    "America/Punta_Arenas" "蓬塔阿雷納斯"
+    "Pacific/Easter" "復活島"
+    "Asia/Shanghai" "上海"
+    "Asia/Urumqi" "烏魯木齊"
+    "America/Bogota" "波哥大"
+    "America/Costa_Rica" "哥斯大黎加"
+    "America/Havana" "哈瓦那"
+    "Atlantic/Cape_Verde" "維德角"
+    "Asia/Nicosia" "尼古西亞"
+    "Asia/Famagusta" "法馬古斯塔"
+    "Europe/Prague" "布拉格"
+    "Europe/Berlin" "柏林"
+    "America/Santo_Domingo" "聖多明哥"
+    "Africa/Algiers" "阿爾及爾"
+    "America/Guayaquil" "瓜亞基爾"
+    "Pacific/Galapagos" "加拉巴哥群島"
+    "Europe/Tallinn" "塔林"
+    "Africa/Cairo" "開羅"
+    "Africa/El_Aaiun" "阿尤恩"
+    "Europe/Madrid" "馬德里"
+    "Africa/Ceuta" "休達"
+    "Atlantic/Canary" "加納利"
+    "Europe/Helsinki" "赫爾辛基"
+    "Pacific/Fiji" "斐濟"
+    "Atlantic/Stanley" "史坦利"
+    "Pacific/Kosrae" "科斯瑞"
+    "Atlantic/Faroe" "法羅群島"
+    "Europe/Paris" "巴黎"
+    "Europe/London" "倫敦"
+    "Asia/Tbilisi" "第比利斯"
+    "America/Cayenne" "開雲"
+    "Europe/Gibraltar" "直布羅陀"
+    "America/Nuuk" "努克"
+    "America/Danmarkshavn" "丹馬沙文"
+    "America/Scoresbysund" "伊托科爾托米特"
+    "America/Thule" "杜里"
+    "Europe/Athens" "雅典"
+    "Atlantic/South_Georgia" "南喬治亞"
+    "America/Guatemala" "瓜地馬拉"
+    "Pacific/Guam" "關島"
+    "Africa/Bissau" "比紹"
+    "America/Guyana" "蓋亞那"
+    "Asia/Hong_Kong" "中華人民共和國香港特別行政區"
+    "America/Tegucigalpa" "德古斯加巴"
+    "America/Port-au-Prince" "太子港"
+    "Europe/Budapest" "布達佩斯"
+    "Asia/Jakarta" "雅加達"
+    "Asia/Pontianak" "坤甸"
+    "Asia/Makassar" "馬卡沙爾"
+    "Asia/Jayapura" "加亞布拉"
+    "Europe/Dublin" "都柏林"
+    "Asia/Jerusalem" "耶路撒冷"
+    "Asia/Kolkata" "加爾各答"
+    "Indian/Chagos" "查戈斯"
+    "Asia/Baghdad" "巴格達"
+    "Asia/Tehran" "德黑蘭"
+    "Europe/Rome" "羅馬"
+    "America/Jamaica" "牙買加"
+    "Asia/Amman" "安曼"
+    "Asia/Tokyo" "東京"
+    "Africa/Nairobi" "奈洛比"
+    "Asia/Bishkek" "比什凱克"
+    "Pacific/Tarawa" "塔拉瓦"
+    "Pacific/Kanton" "坎頓"
+    "Pacific/Kiritimati" "基里地馬地島"
+    "Asia/Pyongyang" "平壤"
+    "Asia/Seoul" "首爾"
+    "Asia/Almaty" "阿拉木圖"
+    "Asia/Qyzylorda" "克孜勒奧爾達"
+    "Asia/Qostanay" "科斯塔奈"
+    "Asia/Aqtobe" "阿克托比"
+    "Asia/Aqtau" "阿克套"
+    "Asia/Atyrau" "阿特勞"
+    "Asia/Oral" "烏拉爾"
+    "Asia/Beirut" "貝魯特"
+    "Asia/Colombo" "可倫坡"
+    "Africa/Monrovia" "蒙羅維亞"
+    "Europe/Vilnius" "維爾紐斯"
+    "Europe/Riga" "里加"
+    "Africa/Tripoli" "的黎波里"
+    "Africa/Casablanca" "卡薩布蘭卡"
+    "Europe/Chisinau" "奇西瑙"
+    "Pacific/Kwajalein" "瓜加林島"
+    "Asia/Yangon" "仰光"
+    "Asia/Ulaanbaatar" "烏蘭巴托"
+    "Asia/Hovd" "科布多"
+    "Asia/Macau" "中華人民共和國澳門特別行政區"
+    "America/Martinique" "馬丁尼克"
+    "Europe/Malta" "馬爾他"
+    "Indian/Mauritius" "模里西斯"
+    "Indian/Maldives" "馬爾地夫"
+    "America/Mexico_City" "墨西哥市"
+    "America/Cancun" "坎昆"
+    "America/Merida" "梅里達"
+    "America/Monterrey" "蒙特瑞"
+    "America/Matamoros" "馬塔莫羅斯"
+    "America/Chihuahua" "奇華華"
+    "America/Ciudad_Juarez" "華雷斯城"
+    "America/Ojinaga" "奧希納加"
+    "America/Mazatlan" "馬薩特蘭"
+    "America/Bahia_Banderas" "巴伊亞班德拉斯"
+    "America/Hermosillo" "埃莫西約"
+    "America/Tijuana" "提華納"
+    "Asia/Kuching" "古晉"
+    "Africa/Maputo" "馬普托"
+    "Africa/Windhoek" "溫得和克"
+    "Pacific/Noumea" "諾美亞"
+    "Pacific/Norfolk" "諾福克"
+    "Africa/Lagos" "拉哥斯"
+    "America/Managua" "馬拿瓜"
+    "Asia/Kathmandu" "加德滿都"
+    "Pacific/Nauru" "諾魯"
+    "Pacific/Niue" "紐埃島"
+    "Pacific/Auckland" "奧克蘭"
+    "Pacific/Chatham" "查坦"
+    "America/Panama" "巴拿馬"
+    "America/Lima" "利馬"
+    "Pacific/Tahiti" "大溪地"
+    "Pacific/Marquesas" "馬可薩斯島"
+    "Pacific/Gambier" "甘比爾群島"
+    "Pacific/Port_Moresby" "莫士比港"
+    "Pacific/Bougainville" "布干維爾"
+    "Asia/Manila" "馬尼拉"
+    "Asia/Karachi" "喀拉蚩"
+    "Europe/Warsaw" "華沙"
+    "America/Miquelon" "密啟崙"
+    "Pacific/Pitcairn" "皮特肯群島"
+    "America/Puerto_Rico" "波多黎各"
+    "Asia/Gaza" "加薩"
+    "Asia/Hebron" "赫布隆"
+    "Europe/Lisbon" "里斯本"
+    "Atlantic/Madeira" "馬得拉群島"
+    "Atlantic/Azores" "亞速爾群島"
+    "Pacific/Palau" "帛琉"
+    "America/Asuncion" "亞松森"
+    "Asia/Qatar" "卡達"
+    "Europe/Bucharest" "布加勒斯特"
+    "Europe/Belgrade" "貝爾格勒"
+    "Europe/Kaliningrad" "加里寧格勒"
+    "Europe/Moscow" "莫斯科"
+    "Europe/Simferopol" "辛非洛浦"
+    "Europe/Kirov" "基洛夫"
+    "Europe/Volgograd" "伏爾加格勒"
+    "Europe/Astrakhan" "阿斯特拉罕"
+    "Europe/Saratov" "薩拉托夫"
+    "Europe/Ulyanovsk" "烏里揚諾夫斯克"
+    "Europe/Samara" "沙馬拉"
+    "Asia/Yekaterinburg" "葉卡捷林堡"
+    "Asia/Omsk" "鄂木斯克"
+    "Asia/Novosibirsk" "新西伯利亞"
+    "Asia/Barnaul" "巴爾瑙爾"
+    "Asia/Tomsk" "托木斯克"
+    "Asia/Novokuznetsk" "新庫茲涅茨克"
+    "Asia/Krasnoyarsk" "克拉斯諾亞爾斯克"
+    "Asia/Irkutsk" "伊爾庫次克"
+    "Asia/Chita" "赤塔"
+    "Asia/Yakutsk" "雅庫次克"
+    "Asia/Khandyga" "堪地加"
+    "Asia/Vladivostok" "海參崴"
+    "Asia/Ust-Nera" "烏斯內拉"
+    "Asia/Magadan" "馬加丹"
+    "Asia/Sakhalin" "庫頁島"
+    "Asia/Srednekolymsk" "中科雷姆斯克"
+    "Asia/Kamchatka" "堪察加"
+    "Asia/Anadyr" "阿那底"
+    "Asia/Riyadh" "利雅德"
+    "Pacific/Guadalcanal" "瓜達康納爾島"
+    "Africa/Khartoum" "喀土穆"
+    "Asia/Singapore" "新加坡"
+    "America/Paramaribo" "巴拉馬利波"
+    "Africa/Juba" "朱巴"
+    "Africa/Sao_Tome" "聖多美"
+    "America/El_Salvador" "薩爾瓦多"
+    "Asia/Damascus" "大馬士革"
+    "America/Grand_Turk" "大特克島"
+    "Africa/Ndjamena" "恩賈梅納"
+    "Asia/Bangkok" "曼谷"
+    "Asia/Dushanbe" "杜桑貝"
+    "Pacific/Fakaofo" "法考福"
+    "Asia/Dili" "帝力"
+    "Asia/Ashgabat" "阿什哈巴特"
+    "Africa/Tunis" "突尼斯"
+    "Pacific/Tongatapu" "東加塔布島"
+    "Europe/Istanbul" "伊斯坦堡"
+    "Asia/Taipei" "台北"
+    "Europe/Kyiv" "基輔"
+    "America/New_York" "紐約"
+    "America/Detroit" "底特律"
+    "America/Kentucky/Louisville" "路易斯維爾"
+    "America/Kentucky/Monticello" "肯塔基州蒙地卻羅"
+    "America/Indiana/Indianapolis" "印第安那波里斯"
+    "America/Indiana/Vincennes" "印第安那州溫森斯"
+    "America/Indiana/Winamac" "印第安那州威納馬克"
+    "America/Indiana/Marengo" "印第安那州馬倫哥"
+    "America/Indiana/Petersburg" "印第安那州彼得堡"
+    "America/Indiana/Vevay" "印第安那州維威"
+    "America/Chicago" "芝加哥"
+    "America/Indiana/Tell_City" "印第安那州泰爾城"
+    "America/Indiana/Knox" "印第安那州諾克斯"
+    "America/Menominee" "美諾米尼"
+    "America/North_Dakota/Center" "北達科他州中心"
+    "America/North_Dakota/New_Salem" "北達科他州紐沙倫"
+    "America/North_Dakota/Beulah" "北達科他州布由拉"
+    "America/Denver" "丹佛"
+    "America/Boise" "波夕"
+    "America/Phoenix" "鳳凰城"
+    "America/Los_Angeles" "洛杉磯"
+    "America/Anchorage" "安克拉治"
+    "America/Juneau" "朱諾"
+    "America/Sitka" "錫特卡"
+    "America/Metlakatla" "梅特拉卡特拉"
+    "America/Yakutat" "雅庫塔"
+    "America/Nome" "諾姆"
+    "America/Adak" "艾達克"
+    "Pacific/Honolulu" "檀香山"
+    "America/Montevideo" "蒙特維多"
+    "Asia/Samarkand" "撒馬爾罕"
+    "Asia/Tashkent" "塔什干"
+    "America/Caracas" "卡拉卡斯"
+    "Asia/Ho_Chi_Minh" "胡志明市"
+    "Pacific/Efate" "埃法特"
+    "Pacific/Apia" "阿皮亞"
+    "Africa/Johannesburg" "約翰尼斯堡"
+    "America/Antigua" "安地卡"
+    "America/Anguilla" "安吉拉"
+    "Africa/Luanda" "羅安達"
+    "Antarctica/McMurdo" "麥克默多"
+    "Antarctica/DumontDUrville" "杜蒙杜比爾"
+    "Antarctica/Syowa" "昭和基地"
+    "America/Aruba" "阿路巴"
+    "Europe/Mariehamn" "瑪麗港"
+    "Europe/Sarajevo" "塞拉耶佛"
+    "Africa/Ouagadougou" "瓦加杜古"
+    "Asia/Bahrain" "巴林"
+    "Africa/Bujumbura" "布松布拉"
+    "Africa/Porto-Novo" "波多諾佛"
+    "America/St_Barthelemy" "聖巴托洛繆島"
+    "Asia/Brunei" "汶萊"
+    "America/Kralendijk" "克拉倫代克"
+    "America/Nassau" "拿索"
+    "Africa/Gaborone" "嘉柏隆里"
+    "America/Blanc-Sablon" "白朗薩布隆"
+    "America/Atikokan" "阿蒂科肯"
+    "America/Creston" "克雷斯頓"
+    "Indian/Cocos" "科科斯群島"
+    "Africa/Kinshasa" "金夏沙"
+    "Africa/Lubumbashi" "盧本巴希"
+    "Africa/Bangui" "班吉"
+    "Africa/Brazzaville" "布拉柴維爾"
+    "Africa/Douala" "杜阿拉"
+    "America/Curacao" "庫拉索"
+    "Indian/Christmas" "聖誕島"
+    "Europe/Busingen" "布辛根"
+    "Africa/Djibouti" "吉布地"
+    "Europe/Copenhagen" "哥本哈根"
+    "America/Dominica" "多明尼加"
+    "Africa/Asmara" "阿斯瑪拉"
+    "Africa/Addis_Ababa" "阿迪斯阿貝巴"
+    "Pacific/Chuuk" "楚克"
+    "Pacific/Pohnpei" "波納佩"
+    "Africa/Libreville" "自由市"
+    "America/Grenada" "格瑞納達"
+    "Europe/Guernsey" "根息島"
+    "Africa/Accra" "阿克拉"
+    "Africa/Banjul" "班竹"
+    "Africa/Conakry" "柯那克里"
+    "America/Guadeloupe" "瓜地洛普"
+    "Africa/Malabo" "馬拉博"
+    "Europe/Zagreb" "札格瑞布"
+    "Europe/Isle_of_Man" "曼島"
+    "Atlantic/Reykjavik" "雷克雅維克"
+    "Europe/Jersey" "澤西島"
+    "Asia/Phnom_Penh" "金邊"
+    "Indian/Comoro" "科摩羅群島"
+    "America/St_Kitts" "聖基茨"
+    "Asia/Kuwait" "科威特"
+    "America/Cayman" "開曼群島"
+    "Asia/Vientiane" "永珍"
+    "America/St_Lucia" "聖露西亞"
+    "Europe/Vaduz" "瓦都茲"
+    "Africa/Maseru" "馬賽魯"
+    "Europe/Luxembourg" "盧森堡"
+    "Europe/Monaco" "摩納哥"
+    "Europe/Podgorica" "波多里察"
+    "America/Marigot" "馬里戈特"
+    "Indian/Antananarivo" "安塔那那利佛"
+    "Pacific/Majuro" "馬朱諾"
+    "Europe/Skopje" "史高比耶"
+    "Africa/Bamako" "巴馬科"
+    "Pacific/Saipan" "塞班"
+    "Africa/Nouakchott" "諾克少"
+    "America/Montserrat" "蒙哲臘"
+    "Africa/Blantyre" "布蘭太爾"
+    "Asia/Kuala_Lumpur" "吉隆坡"
+    "Africa/Niamey" "尼亞美"
+    "Europe/Amsterdam" "阿姆斯特丹"
+    "Europe/Oslo" "奧斯陸"
+    "Asia/Muscat" "馬斯開特"
+    "Indian/Reunion" "留尼旺島"
+    "Africa/Kigali" "基加利"
+    "Indian/Mahe" "馬埃島"
+    "Europe/Stockholm" "斯德哥爾摩"
+    "Atlantic/St_Helena" "聖赫勒拿島"
+    "Europe/Ljubljana" "盧比安納"
+    "Arctic/Longyearbyen" "隆意耳拜恩"
+    "Europe/Bratislava" "布拉提斯拉瓦"
+    "Africa/Freetown" "自由城"
+    "Europe/San_Marino" "聖馬利諾"
+    "Africa/Dakar" "達喀爾"
+    "Africa/Mogadishu" "摩加迪休"
+    "America/Lower_Princes" "下太子區"
+    "Africa/Mbabane" "墨巴本"
+    "Indian/Kerguelen" "凱爾蓋朗島"
+    "Africa/Lome" "洛美"
+    "America/Port_of_Spain" "西班牙港"
+    "Pacific/Funafuti" "富那富提"
+    "Africa/Dar_es_Salaam" "沙蘭港"
+    "Africa/Kampala" "坎帕拉"
+    "Pacific/Midway" "中途島"
+    "Pacific/Wake" "威克"
+    "Europe/Vatican" "梵蒂岡"
+    "America/St_Vincent" "聖文森"
+    "America/Tortola" "托爾托拉"
+    "America/St_Thomas" "聖托馬斯"
+    "Pacific/Wallis" "瓦利斯"
+    "Asia/Aden" "亞丁"
+    "Indian/Mayotte" "馬約特島"
+    "Africa/Lusaka" "路沙卡"
+    "Africa/Harare" "哈拉雷"
+};
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -14491,6 +19192,24 @@ mod tests {
         assert_eq!(city("en", "Asia/Tokyo"), ("Tokyo".into(), "en"));
     }
 
+    /// CLDR 48 `ur.xml` `Asia/Karachi` کراچی; `pt_PT.xml` Carachi, and the
+    /// marker for `Europe/Lisbon`, which is `pt.xml`'s Lisboa; `sw.xml` the
+    /// marker for `Asia/Karachi`, root's derived Karachi.
+    #[cfg(feature = "localized-exemplar-cities")]
+    #[test]
+    fn the_most_spoken_languages_name_their_cities() {
+        let city = |tag: &str, zone: &str| {
+            let locale = Locale::parse(tag).expect("a tag");
+            render(exemplar_city(&locale, zone_index(zone).expect(zone), zone))
+        };
+        assert_eq!(city("ur", "Asia/Karachi"), ("کراچی".into(), "ur"));
+        assert_eq!(city("pt-PT", "Asia/Karachi"), ("Carachi".into(), "pt-PT"));
+        assert_eq!(city("pt-PT", "Europe/Lisbon"), ("Lisboa".into(), "pt"));
+        assert_eq!(city("sw", "Asia/Karachi"), ("Karachi".into(), "sw"));
+        assert_eq!(city("yue", "Europe/Lisbon"), ("里斯本".into(), "yue-Hant"));
+        assert_eq!(city("pa-PK", "Asia/Karachi"), ("Karachi".into(), "en"));
+    }
+
     /// Kabyle's values are all unconfirmed in CLDR 48 `kab.xml`, Tibetan
     /// names no zone, and German has no value for `America/Coyhaique`,
     /// which tzdata added in 2025: each falls back to English.
@@ -14515,7 +19234,7 @@ mod tests {
     #[test]
     fn every_table_is_a_carried_locale_in_tag_order() {
         use crate::data::LOCALES;
-        assert_eq!(TABLES.len(), 31);
+        assert_eq!(TABLES.len(), 42);
         for pair in TABLES.windows(2) {
             assert!(
                 pair[0].tag < pair[1].tag,

@@ -169,10 +169,12 @@ The root name of step 2 is `root.xml`'s value, else the derived name.
 - **The exemplar cities** of the 418 names with a row, from CLDR 48 at the
   `approved` and `contributed` levels: English (`en.xml`'s 33 values and
   `root.xml`'s 72) always, with the `tz` feature; and with
-  `localized-exemplar-cities`, 30 more locales, every locale `hc-i18n`
-  carries whose file has at least one such value. Tibetan, Sanskrit and
-  Standard Moroccan Tamazight have none, and every Coptic and Kabyle value
-  is unconfirmed.
+  `localized-exemplar-cities`, 41 more locales, every locale `hc-i18n`
+  carries whose file has at least one such value. Tibetan, Sanskrit,
+  Standard Moroccan Tamazight and Punjabi in the Arabic script have none,
+  and every Coptic and Kabyle value is unconfirmed. European Portuguese
+  keeps the 83 names `pt_PT.xml` gives of its own and inherits the rest
+  from `pt`, its parent, rather than from root.
 - **Not carried.** The zones' rules, beyond `hc-tz`'s seventeen built-in
   zones: `hc_zone_location` says where a zone is, not what its clocks
   read. The metazone names (`Japan Standard Time`) and the other forms
@@ -212,7 +214,8 @@ The root name of step 2 is `root.xml`'s value, else the derived name.
   `backzone`, their header comments for the formats and the precedence
   of `backzone`, and `NEWS` for the release date. Read.
 - [cldr48-exemplar-cities] — `common/main/<locale>.xml` for the 36
-  carried locales with a file and `root.xml`, `dates/timeZoneNames/zone/exemplarCity`,
+  carried locales with a file and `root.xml`, and [cldr48-most-spoken]
+  for the twelve added for the most-spoken languages, `dates/timeZoneNames/zone/exemplarCity`,
   and `common/bcp47/timezone.xml` for CLDR's zone identifiers. Read.
 - [uts35-dates-48] — the fallback to the last field of the zone's
   identifier. Read.
