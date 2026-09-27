@@ -21,9 +21,10 @@
 //! Before 1912 Korea kept the Qing calendar itself, not the Qing rules at
 //! Seoul: KASI's conversion data (`kasi-lunisolar-conversion`) give the
 //! Chinese first day for every month of 1900–1911, including the five
-//! months — in 1903, 1904, 1905, 1908 and 1911 — whose conjunction fell
-//! after midnight at Seoul and before it at Beijing, and the almanac's day
-//! for the fourth month of 1906. So the calendar reads Beijing's meridian,
+//! months beginning 17 January 1904, 7 November 1904, 4 May 1905,
+//! 30 April 1908 and 20 December 1911, whose conjunction fell after
+//! midnight at Seoul and before it at Beijing, and the almanac's day for
+//! the fourth month of 1906, 24 April. So the calendar reads Beijing's meridian,
 //! [`crate::chinese::ALMANAC_CORRECTIONS`] and
 //! [`crate::chinese::ALMANAC_TERM_CORRECTIONS`] until 1912, where the
 //! published code's `korean-location` reads Seoul mean time to 1908 and
@@ -420,10 +421,15 @@ mod tests {
             }
         }
         // And the two calendars are one before 1912: every day of 1900–1911
-        // has the same month and day in both.
-        for rd in
-            (civil::to_rd(1900, 1, 1).0..civil::to_rd(1912, 1, 1).0).step_by(crate::sweep_stride(7))
-        {
+        // has the same month and day in both. A debug build takes every
+        // seventh day and each new year and the day before it.
+        let new_years = (4_233..=4_245).filter_map(|year| new_year(year).ok().map(|rd| rd.0));
+        for rd in crate::sweep_days(
+            civil::to_rd(1900, 1, 1).0,
+            civil::to_rd(1911, 12, 31).0,
+            7,
+            new_years,
+        ) {
             let korean = DangiCalendar.from_fixed(Rd(rd)).expect("in range");
             let chinese_date = ChineseCalendar.from_fixed(Rd(rd)).expect("in range");
             assert_eq!(
@@ -499,6 +505,37 @@ mod tests {
                 .from_fixed(civil::to_rd(y, m, d))
                 .expect("in range");
             assert_eq!((date.month, date.day), (Month::regular(12), 1));
+        }
+    }
+
+    /// The Qing years, where the Chinese corrections this calendar shares
+    /// live: every day of 1645–1911 round-trips, in a release build; a
+    /// debug build takes every sixty-first day, and every new year, every
+    /// day a correction moves a first day or a term from or to, and the day
+    /// before each.
+    #[test]
+    fn the_calendar_round_trips_over_the_qing_years() {
+        let calendar = DangiCalendar;
+        let years =
+            (4_281 + YEAR_OFFSET..=4_549 + YEAR_OFFSET).filter_map(|year| new_year(year).ok());
+        let corrections = chinese::ALMANAC_CORRECTIONS
+            .iter()
+            .flat_map(|c| [c.computed, c.promulgated])
+            .chain(
+                chinese::ALMANAC_TERM_CORRECTIONS
+                    .iter()
+                    .flat_map(|c| [c.computed, c.promulgated]),
+            );
+        let boundaries: Vec<i64> = years.chain(corrections).map(|rd| rd.0).collect();
+        for rd in crate::sweep_days(
+            EARLIEST.0,
+            chinese::LAST_CIVIL.0,
+            61,
+            boundaries.iter().copied(),
+        ) {
+            let rd = Rd(rd);
+            let date = calendar.from_fixed(rd).expect("in range");
+            assert_eq!(calendar.to_fixed(date), Ok(rd), "RD {rd}");
         }
     }
 

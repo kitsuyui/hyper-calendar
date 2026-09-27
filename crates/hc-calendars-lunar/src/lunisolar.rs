@@ -52,14 +52,13 @@
 //! within about a minute of local midnight the day this module assigns can
 //! be wrong by one**, and a wrong day for a zhōngqì can move a leap month by
 //! a whole month. And a date this module produces for 1700 is what the
-//! modern rules say at the modern meridian, not what the almanac of 1700
-//! said, except in the months and solar terms a calendar corrects from a
-//! record of the almanac ([`MonthStartCorrection`],
-//! [`MajorTermCorrection`]); the supported ranges are
-//! set accordingly, and the crate refuses dates outside them rather than
-//! guessing. The system document says what
-//! was checked against which publication and where the margins were
-//! measured.
+//! modern rules say at the calendar's meridian, not what the almanac of
+//! 1700 said, except in the months and solar terms a calendar corrects from
+//! a record of the almanac ([`MonthStartCorrection`],
+//! [`MajorTermCorrection`]); the supported ranges are set accordingly, and
+//! the crate refuses dates outside them rather than guessing. The system
+//! document says what was checked against which publication and where the
+//! margins were measured.
 
 use hc_astro::solar::Solstice;
 use hc_astro::{MEAN_SYNODIC_MONTH, MEAN_TROPICAL_YEAR};
@@ -1337,8 +1336,8 @@ mod tests {
 
     #[test]
     fn years_at_the_ends_of_i64_are_refused_before_any_arithmetic() {
-        // Each of these used to subtract the offset or turn the estimated
-        // start into a day number first, and overflowed in a debug build.
+        // Subtracting the offset or turning the estimated start into a day
+        // number before the range check would overflow in a debug build.
         for parameters in every_parameter_set() {
             for year in [i64::MIN, i64::MIN + 1, i64::MAX - 1, i64::MAX] {
                 let id = parameters.id.0;

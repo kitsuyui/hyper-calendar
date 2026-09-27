@@ -278,10 +278,14 @@ about a minute of local midnight, the day assigned
 can be wrong by one — and a wrong day for a zhōngqì can move a leap month by a
 whole month. The crate tests the published new years it can check (Chinese New
 Year 1900, 2000, 2020–2026; Seollal 1988 and 2024; Tết 1968, 1985 and 2024;
-the Tenpō dates of 1844 and 1872) and they all come out right, and `chinese`
+the Tenpō dates of 1844 and 1872) and they all come out right. `chinese`
 reproduces every month of 1900–2024 in the Purple Mountain Observatory's table
-of the promulgated calendar and `dangi` every month of 1900–1913 in KASI's
-data, but that is evidence, not a guarantee.
+of the promulgated calendar and the first day of every month of 1645–1911
+that the Veritable Records of the Qing give, 3 260 of them. `dangi` matches
+every month of 1900–1913 in KASI's data as queried on 2026-09-27, a
+measurement made for the system document; the tests hold six of those months
+to KASI and every day of 1900–1911 to `chinese`. That is evidence, not a
+guarantee.
 
 **The Babylonian calendar — measured against the standard table.** The
 month begins on the evening that passes the moonlag criterion at Babylon,
