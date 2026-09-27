@@ -2673,8 +2673,8 @@ const LK_FIRST: i64 = 2023;
 /// The last year they fix.
 const LK_LAST: i64 = 2027;
 
-/// The days the Holidays Act orders name, as the gazette for each year
-/// lists them, in the gazette's order.
+/// The days the Holidays Act orders name: each year's section 4 schedule in
+/// its order, with the section 10 orders that add or move a day applied.
 static LK_GAZETTED: &[(i64, u8, u8, &str)] = &[
     // 2023
     (2023, 1, 6, "Duruthu Full Moon Poya Day"),
@@ -2691,6 +2691,8 @@ static LK_GAZETTED: &[(i64, u8, u8, &str)] = &[
     (2023, 5, 6, "Day Following Vesak Full Moon Poya Day"),
     (2023, 6, 3, "Poson Full Moon Poya Day"),
     (2023, 6, 29, "Id-Ul-Adha (Hadji Festival Day)"),
+    // Order No. 2337/18 under section 10(1)(a), a bank holiday alone.
+    (2023, 6, 30, "Special Bank Holiday"),
     (2023, 7, 3, "Adhi Esala Full Moon Poya Day"),
     (2023, 8, 1, "Esala Full Moon Poya Day"),
     (2023, 8, 30, "Nikini Full Moon Poya Day"),
@@ -2718,6 +2720,9 @@ static LK_GAZETTED: &[(i64, u8, u8, &str)] = &[
     (2024, 8, 19, "Nikini Full Moon Poya Day"),
     (2024, 9, 16, "Milad-Un-Nabi (Holy Prophet's Birthday)"),
     (2024, 9, 17, "Binara Full Moon Poya Day"),
+    // Order No. 2402/25 under section 10(1)(a), which names the day only
+    // "a public holiday".
+    (2024, 9, 23, "Public Holiday"),
     (2024, 10, 17, "Vap Full Moon Poya Day"),
     (2024, 10, 31, "Deepavali Festival Day"),
     (2024, 11, 15, "Il Full Moon Poya Day"),
@@ -2755,10 +2760,15 @@ static LK_GAZETTED: &[(i64, u8, u8, &str)] = &[
     (2026, 4, 1, "Bak Full Moon Poya Day"),
     (2026, 4, 13, "Day Prior to Sinhala & Tamil New Year Day"),
     (2026, 4, 14, "Sinhala & Tamil New Year Day"),
-    (2026, 5, 1, "Vesak Full Moon Poya Day"),
-    (2026, 5, 2, "Day Following Vesak Full Moon Poya Day"),
+    // The schedule names 1 May Vesak and 30 May Adhi Poson; the Cabinet
+    // decision of 30 March 2026 makes 30 May Vesak, which leaves 1 May the
+    // adhi Poya, a full-moon day no official text read names, and Order
+    // No. 2485/14 under section 10(1)(b) moves the day following Vesak from
+    // 2 May to 31 May.
+    (2026, 5, 1, "Full Moon Poya Day"),
     (2026, 5, 28, "Id-Ul-Adha (Hadji Festival Day)"),
-    (2026, 5, 30, "Adhi Poson Full Moon Poya Day"),
+    (2026, 5, 30, "Vesak Full Moon Poya Day"),
+    (2026, 5, 31, "Day Following Vesak Full Moon Poya Day"),
     (2026, 6, 29, "Poson Full Moon Poya Day"),
     (2026, 7, 29, "Esala Full Moon Poya Day"),
     (2026, 8, 26, "Milad-Un-Nabi (Holy Prophet's Birthday)"),
@@ -2817,9 +2827,9 @@ lk_gazetted! {
     lk_navam => "Navam Full Moon Poya Day",
     lk_medin => "Medin Full Moon Poya Day",
     lk_bak => "Bak Full Moon Poya Day",
+    lk_adhi_poya => "Full Moon Poya Day",
     lk_vesak => "Vesak Full Moon Poya Day",
     lk_after_vesak => "Day Following Vesak Full Moon Poya Day",
-    lk_adhi_poson => "Adhi Poson Full Moon Poya Day",
     lk_poson => "Poson Full Moon Poya Day",
     lk_adhi_esala => "Adhi Esala Full Moon Poya Day",
     lk_esala => "Esala Full Moon Poya Day",
@@ -2837,6 +2847,7 @@ lk_gazetted! {
     lk_milad => "Milad-Un-Nabi (Holy Prophet's Birthday)",
     lk_deepavali => "Deepavali Festival Day",
     lk_special_bank => "Special Bank Holiday",
+    lk_declared => "Public Holiday",
 }
 
 /// A day the gazettes list, public and bank holiday alike, for the years
@@ -2870,10 +2881,10 @@ static LK_RULES: &[HolidayRule] = &[
         "",
         Rule::gregorian(5, 1),
     ),
+    lk("Full Moon Poya Day", lk_adhi_poya),
     lk("Vesak Full Moon Poya Day", lk_vesak),
     lk("Day Following Vesak Full Moon Poya Day", lk_after_vesak),
     lk("Id-Ul-Adha (Hadji Festival Day)", lk_adha),
-    lk("Adhi Poson Full Moon Poya Day", lk_adhi_poson),
     lk("Poson Full Moon Poya Day", lk_poson),
     lk("Adhi Esala Full Moon Poya Day", lk_adhi_esala),
     lk("Esala Full Moon Poya Day", lk_esala),
@@ -2885,19 +2896,38 @@ static LK_RULES: &[HolidayRule] = &[
     lk("Il Full Moon Poya Day", lk_il),
     lk("Unduvap Full Moon Poya Day", lk_unduvap),
     HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
-    // Marked for the banks alone: 16 January 2023 and 15 April 2025.
+    // A day a section 10 order declares: 23 September 2024.
+    lk("Public Holiday", lk_declared),
+    // Marked for the banks alone: 16 January and 30 June 2023 and 15 April
+    // 2025.
     lk("Special Bank Holiday", lk_special_bank).of_kind(Kind::Bank),
 ];
 
 /// Sri Lanka — the public and bank holidays the Minister of Public
-/// Administration orders under section 4 of the Holidays Act, No. 29 of
-/// 1971, one gazette a year.
+/// Administration orders under the Holidays Act, No. 29 of 1971: a section
+/// 4 schedule each year, and the section 10 orders that declare or move a
+/// single day.
 ///
 /// Independence Day, May Day and Christmas are fixed Gregorian dates and
 /// Good Friday is the Western Easter's; everything else — the full-moon
 /// Poya days, Thai Pongal, Maha Shivarathri, the Sinhala and Tamil New
-/// Year, the three Muslim days and Deepavali — is taken from the gazettes
-/// for 2023 to 2027, and a year outside them reports those days as a gap.
+/// Year, the three Muslim days, Deepavali and the declared days — is taken
+/// from the orders for 2023 to 2027, and a year outside them reports those
+/// days as a gap.
+///
+/// # Vesak in 2026
+///
+/// 2026 has two full moons in May, and the Poya of 30 May is its Vesak:
+/// the Cabinet decision No. අමප/26/0553/822/018 of 30 March 2026 places it
+/// there, on the day the Mahanayake Theros of the three Nikāyas gave as
+/// the Visākha *nakṣatra*'s, as the Department of Buddhist Affairs' letter
+/// DBA/4/5/01/2026 of 29 April 2026 states, although the schedule of Order
+/// No. 2438/22 names 1 May Vesak and 30 May Adhi Poson. Order No. 2485/14
+/// then puts the public holiday of 2 May, the day following Vesak, on
+/// Sunday 31 May. So the table has Vesak on 30 May, the day following on
+/// 31 May, and 1 May, which stays a holiday, as the *adhi* Poya. No
+/// official text read names 1 May after the decision, so the table calls
+/// it only "Full Moon Poya Day" and gives it no month's name.
 ///
 /// # Why the Poya days are a table
 ///
@@ -2908,11 +2938,11 @@ static LK_RULES: &[HolidayRule] = &[
 /// Poya days of these five years. The *Sūrya Siddhānta*'s full moon fits
 /// at best 59, taking the day of the last sunset before it, and only with
 /// its clock moved two and a half hours for no reason the sources give.
-/// And the intercalary month is not
-/// always India's: 2026's Adhi Poson is the adhika Jyeṣṭha of the
-/// *Rashtriya Panchang*, but 2023's Adhi Esala falls a month before its
-/// adhika Śrāvaṇa. So the days are the gazettes', and the crate does not
-/// guess the next year's.
+/// And which full moon is the adhi one is decided, not computed: 2023's
+/// Adhi Esala and 2026's adhi Poya of 1 May each fall a month before the adhika
+/// month of the *Rashtriya Panchang*, Śrāvaṇa and Jyeṣṭha, and 2026's
+/// was set by the Cabinet. So the days are the orders', and the crate does
+/// not guess the next year's.
 ///
 /// No day is moved when it falls on a weekend: the gazettes list, for
 /// instance, the Poson Poya of Saturday 3 June 2023 and no substitute.
@@ -2924,8 +2954,21 @@ pub static SRI_LANKA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 23),
-    sources: "The Holidays Act, No. 29 of 1971, section 4 orders in the Gazette Extraordinary:               Nos. 2287/4 (2023), 2341/46 (2024), 2395/33 (2025), 2438/22 (2026) and 2493/5               (2027), from the Department of Government Printing (documents.gov.lk),               retrieved 2026-09-23. Holiday names are the gazettes' English ones, their               spellings unified where they vary from year to year",
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: "The Holidays Act, No. 29 of 1971, orders in the Gazette Extraordinary: under \
+              section 4, Nos. 2287/4 (2023), 2341/46 (2024), 2395/33 (2025), 2438/22 (2026) \
+              and 2493/5 (2027); under section 10, Nos. 2337/18 (30 June 2023), 2402/25 \
+              (23 September 2024) and 2485/14 (the day following Vesak 2026 on 31 May); \
+              from the Department of Government Printing (documents.gov.lk), retrieved \
+              2026-09-23 and 2026-09-27. Vesak 2026 on 30 May, the Cabinet decision \
+              No. අමප/26/0553/822/018 of 30 March 2026 in force over the schedule of \
+              No. 2438/22: the Department of Buddhist Affairs' letter DBA/4/5/01/2026 of \
+              29 April 2026, as the Department of Government Information publishes it \
+              (sinhala.news.lk), and the Department of Labour's notice LS/S&O/SH/2026 of \
+              24 April 2026 (labourdept.gov.lk), both retrieved 2026-09-27. No official \
+              text read names 1 May 2026 after the decision, so it is carried as 'Full \
+              Moon Poya Day' with no month's name. Holiday names are the gazettes' English \
+              ones, their spellings unified where they vary from year to year",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

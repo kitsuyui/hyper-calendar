@@ -321,7 +321,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `LB` | Lebanon | 21 | yes | stated | 2026-09-22 |
 | `LC` | Saint Lucia | 13 | yes | stated | 2026-09-23 |
 | `LI` | Liechtenstein | 20 | none | stated | 2026-09-22 |
-| `LK` | Sri Lanka | 28 | none | stated | 2026-09-23 |
+| `LK` | Sri Lanka | 29 | none | stated | 2026-09-27 |
 | `LR` | Liberia | 14 | yes | stated | 2026-09-26 |
 | `LS` | Lesotho | 14 | none | stated | 2026-09-23 |
 | `LT` | Lithuania | 16 | none | stated | 2026-09-22 |
