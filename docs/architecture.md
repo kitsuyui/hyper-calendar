@@ -97,7 +97,7 @@ gives each crate's other direct dependencies. The workspace manifest,
 | `hc-tz` | Offsets, POSIX TZ, TZif, where each zone is | — |
 | `hc-i18n` | Locales, plurals, names; country names and zones' cities behind its `territories` and `exemplar-cities` features | — |
 | `hc-astro` | ΔT, solar longitude, new moon, rise and set, sundial, temporal and Edo hours, zmanim, prayer times | — |
-| `hc-format` | ISO 8601, RFC 3339, RFC 2822, patterns, Python's ISO profile, CCSDS fields, radio and IRIG time codes, the Ethiopian and Swahili hours | `hc-calendars-solar`, `hc-tz`, `hc-i18n` |
+| `hc-format` | ISO 8601, RFC 3339, RFC 5322, patterns, Python's ISO profile, CCSDS fields, radio and IRIG time codes, the Ethiopian and Swahili hours | `hc-calendars-solar`, `hc-tz`, `hc-i18n` |
 | `hc-humanize` | Relative times, spelled-out durations, Python `humanize`'s phrasing | `hc-i18n`, `hc-units`, `hc-format` |
 | `hc-planetary` | Mars sols, MTC, Darian and Martiana; Titan and Galilean circad calendars | `hc-astro` |
 | `hc-calendars-lunar` | Hijri, Hebrew, Samaritan, Babylonian, Chinese, Korean, Vietnamese, Tibetan and Mongolian, Javanese, the Japanese lunisolar systems | `hc-astro`, `hc-calendars-solar` |

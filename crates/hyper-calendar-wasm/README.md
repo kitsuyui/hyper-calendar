@@ -30,7 +30,7 @@ functions that consume text take a pointer and a length.
 A name that says what is asked for — a calendar, a table, a criterion, a
 body, a horizon, a notation, the sky of `hc_hindu_lunar_date` — comes
 before the day or instant it is asked of. A name that only qualifies the
-answer — a locale, a zone, a meridian, an output format, the ayanamsa of
+answer — a locale, a zone, a meridian, an output format, the ayanāṃśa of
 `hc_panchanga_at` and `hc_panchanga_of_day` — comes after it.
 
 ## Errors
@@ -120,7 +120,7 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_orthodox_fast_seasons` | `year` 326 through 4099; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_lectionary` | `fixed` 577 780 through 1 497 096, the liturgical years 1583 to 4099; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_panchanga_of_day`, `hc_sunrise`, `hc_sunset`, `hc_crescent_visible`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_prayer_times`, `hc_zmanim`, `hc_unix_from_edo_time`, `hc_choghadiya`, `hc_folk_day`, `hc_planetary_hours_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERR_OUT_OF_RANGE` |
-| a byte length | `hc_hindu_lunar_date` | `fixed` in the Śaka years 1622 through 2221 on the true sky, from Chaitra śukla 1 in March 1700 to the eve of the one in March 2300, whose days move with the place and the ayanamsa (620 627 through 839 773 at the Central Station with Lahiri's); on `surya-siddhanta`, −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE`, as is a place beyond 65° of latitude; on the true sky, a day whose sunrise at the place the model does not find is `HC_ERR_NO_DATA` |
+| a byte length | `hc_hindu_lunar_date` | `fixed` in the Śaka years 1622 through 2221 on the true sky, from Chaitra śukla 1 in March 1700 to the eve of the one in March 2300, whose days move with the place and the ayanāṃśa (620 627 through 839 773 at the Central Station with Lahiri's); on `surya-siddhanta`, −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE`, as is a place beyond 65° of latitude; on the true sky, a day whose sunrise at the place the model does not find is `HC_ERR_NO_DATA` |
 | a byte length | `hc_surya_siddhanta_sunrise` | `fixed` −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_surya_siddhanta_at`, `hc_barhaspatya_year_at` | `unix_seconds` −159 992 668 800 through 155 590 156 799, the days of Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_barhaspatya_year` | `saka` −3178 through 6821, the expired Śaka years of Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE` |
@@ -1638,7 +1638,7 @@ tithi, the nakṣatra and the weekday, from `hc-calendars-indic`'s
 where a pañcāṅga reads them at sunrise. A day on which the Sun does not
 rise at the place is `HC_ERR_NO_DATA`; no other moment is put in the
 sunrise's place. The yoga is the sum of the Sun's and the Moon's sidereal
-longitudes, so it needs an ayanamsa, and moves with it twice over:
+longitudes, so it needs an ayanāṃśa, and moves with it twice over:
 `ayanamsa` is `Lahiri (Chitrapaksha)`, `Raman`, `Krishnamurti` or
 `Fagan-Bradley`, or the first word of one, in any case, and anything else,
 the empty string included, is `HC_ERR_UNKNOWN`. The karaṇa, half a tithi,
@@ -1656,7 +1656,7 @@ Each call writes two lines, the yoga's and then the karaṇa's:
 | 5 | began | the instant it began, as POSIX seconds, rounded down |
 | 6 | ends | the instant it ends |
 | 7 | read at | the instant it was read at: the one asked for, or the sunrise |
-| 8 | ayanamsa | the ayanamsa the yoga was reckoned with, by its full name; empty for the karaṇa |
+| 8 | ayanamsa | the ayanāṃśa the yoga was reckoned with, by its full name; empty for the karaṇa |
 
 For 1 January 2025 at 23°11′ N, 82°30′ E, the yoga at sunrise is
 Vyaghata, ending within a minute and a half of the 17:07 IST Drik Panchang
@@ -1738,7 +1738,7 @@ ayanamsa_len, offset_seconds, locale_ptr, locale_len, buffer, capacity)`
 writes the Panchak window in progress at an instant, or the next one
 when the Moon is outside it: the Moon's passage from 300° to 360° of
 sidereal longitude, from `hc-calendars-indic`'s `panchak`, in the zodiac
-of an ayanamsa named as for `hc_panchanga_at`. The almanacs name a window
+of an ayanāṃśa named as for `hc_panchanga_at`. The almanacs name a window
 by the weekday it begins on and agree on five weekdays, so each table is
 its own name: `panchak-five-kinds`, Prokerala's five kinds, none on a
 Wednesday or a Thursday, and `panchak-raj-midweek`, Raj Panchak on those
@@ -1774,11 +1774,11 @@ writes whether a Gregorian year's sky meets one of the seven conditions
 under which the Mela Adhikari of the 2013 Kumbh gives the festival at its
 four sites, from `hc-calendars-indic`'s `kumbh`: `kumbh-haridwar`,
 `kumbh-prayag-vrishabha`, `kumbh-prayag-mesha`, `kumbh-nashik-simha`,
-`kumbh-nashik-karka`, `kumbh-ujjain-mesha` and `kumbh-ujjain-tula`, each
+`kumbh-nashik-karka`, `kumbh-ujjain-simha` and `kumbh-ujjain-tula`, each
 Jupiter in one sidereal sign and the Sun in another, some at the new
 moon. **The library has no ephemeris of Jupiter**, so Jupiter's sign is
 the caller's: `jupiter` is the sidereal sign Jupiter is in at the
-occasion's first moment, in the zodiac of the same ayanamsa, named by the
+occasion's first moment, in the zodiac of the same ayanāṃśa, named by the
 lower-case ASCII form of its Sanskrit name — `mesha`, `vrishabha`,
 `mithuna`, `karka`, `simha`, `kanya`, `tula`, `vrishchika`, `dhanus`,
 `makara`, `kumbha`, `mina` — or empty. The first moment is read because
@@ -1850,7 +1850,7 @@ gives. The registered `hindu-lunar` reads the day at the Central Station
 and `hindu-lunar-surya-siddhanta` at Ujjain; a place is a parameter and
 not a calendar of its own, and this is where it is given.
 `docs/systems/hindu-calendars.md` says how often the place moves a date.
-`sky` is the sky the day is read on: an ayanamsa as `hc_panchanga_at`
+`sky` is the sky the day is read on: an ayanāṃśa as `hc_panchanga_at`
 names them, `Lahiri` for the *Rashtriya Panchang*'s, for the true Sun and
 Moon in its zodiac; or `surya-siddhanta`, for the *Sūrya Siddhānta*'s Sun,
 Moon and sunrise; in any case, and anything else, the empty string
@@ -1888,7 +1888,7 @@ model does not find is `HC_ERR_NO_DATA`. The Siddhānta's reckoning is arithmeti
 10 000. 30 March
 2025 is Chaitra śukla 1 of Śaka 1947 on the true sky at the Central
 Station and on the Siddhānta's at Ujjain. 27 September 2026 at Tokyo is
-Śaka 1948, Bhādrapada (`Bhadra`), the sixteenth tithi, on every ayanamsa
+Śaka 1948, Bhādrapada (`Bhadra`), the sixteenth tithi, on every ayanāṃśa
 and on the Siddhānta's sky.
 
 ### The Sūrya Siddhānta's sky
@@ -1923,13 +1923,14 @@ Bārhaspatya *saṃvatsara*, that a rule of Sewell and Dikshit's Art. 59
 couples with the year that begins in an *expired* Śaka year — the Śaka
 year the *Rashtriya Panchang* prints — the name current at the apparent
 Meṣa saṅkrānti of its solar year, from `hc-calendars-indic`'s
-`barhaspatya`. The rules give names one apart in 2024–26, so each is its
-own name: `surya-siddhanta-bija`, the *Sūrya Siddhānta* with the *bīja*,
+`barhaspatya`. The two *Sūrya Siddhānta* rules give names one apart from
+2018 to 2027, so each is its own name: `surya-siddhanta-bija`, the *Sūrya Siddhānta* with the *bīja*,
 by which the pūrṇimānta calendar names its years and Drik Panchang heads
 Vikrama 2081 to 2083 Pingala, Kalayukta and Siddharthi; `surya-siddhanta`,
-the same without it, by which the Hindi press named them Kalayukta,
-Siddharthi and Raudra; and `arya-siddhanta`, the first *Ārya
-Siddhānta*. It writes one line:
+the same without it, by which some of the Hindi press's announcements of
+2021–26 name them Kalayukta, Siddharthi and Raudra, where others print the
+first rule's names; and `arya-siddhanta`, the first *Ārya Siddhānta*.
+It writes one line:
 
 | # | Column | Holds |
 | --- | --- | --- |
@@ -2403,7 +2404,7 @@ and the identifier in column 2:
 | --- | --- | --- |
 | 1 | kind | `sexagenary`, `twelve-direct`, `mansion`, `mansion-27`, `year-star`, `month-star`, `day-star`, `rokuyo`, `lower-register`, `selected-day` or `combination` |
 | 2 | id | for a cycle, the term's 1-based position in it: 甲子 1 to 癸亥 60, 建 1 to 閉 12, 角 1 to 軫 28 (and to 27 without 牛), 一白水星 1 to 九紫火星 9, 先勝 1 to 赤口 6; for a table entry its `hc-almanac` identifier, lower-case kebab: `tenshanichi`, `ichiryu-manbai`, `pardon-and-grain` |
-| 3 | name | the name in the locale, from `hc-i18n`: the locale's own where its data has one, else English's, else Japanese's; under `native`, the almanac's own language, Japanese first. The sexagenary day is in the locale's reading of the cycle by the same rule: 甲子, `jia zi`, 갑자 |
+| 3 | name | the name in the locale, from `hc-i18n`: the locale's own where its data has one, else English's, else Japanese's; under `native`, the almanac's own language, Japanese first. The sexagenary day is in the locale's reading of the cycle by the same rule: 甲子, `jia-zi`, 갑자 |
 | 4 | locale used | the tag of the data that named column 3: `ja`, `en`, or for the sexagenary day any locale with a reading of the cycle, `zh-Hant`, `ko`, `vi` |
 | 5 | japanese | the name the Japanese almanac prints, whatever the locale |
 | 6 | reading | its Hepburn reading, as `hc-almanac` writes it: `shakkō`, the Sino-Japanese `hitsu` for a mansion, the kun readings `kinoe ne` for the sexagenary day; empty for a combination, which has none |

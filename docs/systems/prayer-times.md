@@ -98,9 +98,10 @@ rounds or adjusts.
     Times offers them as general adjustments rather than as any method's
     own.
   - The Muslim World League's "Local Relative Estimation" for latitudes
-    48.6° to 66.6°. The International Astronomical Center reports that the
-    League's Fiqh Council approved it at a meeting in Mecca on 1 August
-    2009 [iac-high-latitudes]. That account is secondary, and the League's
+    48.6° to 66.6°. The International Astronomical Center reports that a
+    committee formed by the League's Fiqh Council, working with the
+    Islamic Crescents' Observation Project, approved it at its final
+    meeting, in Mecca on 1 August 2009 [iac-high-latitudes]. That account is secondary, and the League's
     own text was not read.
   - The authorities' margins of caution and their rounding.
   - The choice between the Shafiʿi and Hanafi *ʿaṣr*. It is separate from

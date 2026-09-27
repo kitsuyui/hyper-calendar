@@ -21,7 +21,7 @@ use hc_calendars_indic::tithi::{DEGREES_PER_TITHI, TITHIS_PER_MONTH};
 #[cfg(feature = "alloc")]
 use hc_calendars_indic::tithi::{sunrise_of, sunset_of, tithi_number_at};
 use hc_calendars_indic::{
-    BikramSambatCalendar, HinduLunarCalendar, HinduSolarDate, Prevalence, hindu_lunar,
+    BikramSambatCalendar, HinduLunarCalendar, HinduSolarDate, Prevalence, hindu_lunar, hindu_solar,
 };
 use hc_calendars_lunar::hebrew;
 use hc_calendars_lunar::islamic_umalqura;
@@ -434,6 +434,27 @@ hc_core::catalogue! {
             |rd| BikramSambatCalendar.from_fixed(rd).ok().map(|date| date.year),
         );
 
+        /// The Vikrami solar calendar of Punjab and Haryana, in which the
+        /// SGPC dates Vaisakhi, 1 Vaisakh: the month begins on the
+        /// sunrise-to-sunrise day its saṅkrānti falls in
+        /// (`hc_calendars_indic::hindu_solar::VIKRAMI`).
+        pub const VIKRAMI = Self::new(
+            CalendarId("hindu-solar-vikrami"),
+            |year, month, day| {
+                if month.leap {
+                    return None;
+                }
+                hindu_solar::VIKRAMI
+                    .to_fixed(HinduSolarDate {
+                        year,
+                        month: month.ordinal,
+                        day,
+                    })
+                    .ok()
+            },
+            |rd| hindu_solar::VIKRAMI.from_fixed(rd).ok().map(|date| date.year),
+        );
+
         /// The Burmese calendar, in which Myanmar dates its full-moon
         /// holidays. Tagu and Kason are split by the solar New Year, so a
         /// day of them is the early half's when the year has it there and
@@ -678,7 +699,7 @@ impl Phase {
 /// on in a given Gregorian year — and the evaluator in [`crate::engine`]
 /// knows nothing else about any holiday.
 ///
-/// A variant holds a calendar, a computus or an ayanamsa by `&'static`
+/// A variant holds a calendar, a computus or an ayanāṃśa by `&'static`
 /// reference, never by value. Every [`HolidayRule`] of every table holds a
 /// `Rule`, so the largest variant sets the size of all of them: a variant
 /// holding a [`TibetanCalendar`] by value would make each `Rule` 224 bytes
@@ -841,7 +862,7 @@ pub enum Rule {
         prevails: Prevalence,
         /// Which of two consecutive qualifying days is the festival's.
         when_twice: WhenTwice,
-        /// The calendar — its sunrise and its ayanamsa — the tithi is read in.
+        /// The calendar — its sunrise and its ayanāṃśa — the tithi is read in.
         calendar: &'static HinduLunarCalendar,
     },
     /// The Sun's entry into a sidereal sign — a saṅkrānti — as a day at a
@@ -849,7 +870,7 @@ pub enum Rule {
     Sankranti {
         /// The sign entered.
         sign: SiderealSign,
-        /// The ayanamsa that fixes the sidereal zero point.
+        /// The ayanāṃśa that fixes the sidereal zero point.
         ayanamsa: &'static Ayanamsa,
         /// The meridian whose local midnight cuts the day.
         meridian: Meridian,
@@ -876,7 +897,7 @@ pub enum Rule {
         /// The tithi the stay must lie nearest, which picks between two
         /// stays in the month.
         with_tithi: Option<u8>,
-        /// The ayanamsa that fixes the sidereal zero point.
+        /// The ayanāṃśa that fixes the sidereal zero point.
         ayanamsa: &'static Ayanamsa,
         /// The meridian whose local midnight cuts the day.
         meridian: Meridian,
@@ -1557,11 +1578,11 @@ impl<K: Ord, V: Copy> Memo<K, V> {
 #[cfg(feature = "alloc")]
 type LocationKey = [u64; 3];
 
-/// An ayanamsa as a memo key: its name and the bits of its anchor.
+/// An ayanāṃśa as a memo key: its name and the bits of its anchor.
 #[cfg(feature = "alloc")]
 type AyanamsaKey = (&'static str, u64, u64);
 
-/// A Hindu month as a memo key: the calendar's place and ayanamsa, the
+/// A Hindu month as a memo key: the calendar's place and ayanāṃśa, the
 /// Śaka year and the month.
 #[cfg(feature = "alloc")]
 type HinduMonthKey = (LocationKey, AyanamsaKey, i64, u8);

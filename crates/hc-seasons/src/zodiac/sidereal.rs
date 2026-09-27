@@ -6,9 +6,9 @@
 //! page summarises it and states the code's own facts.
 //!
 //! A sidereal sign is a 30° arc of *sidereal* longitude: the same apparent
-//! solar longitude the tropical signs use, minus the **ayanamsa** — the angle
+//! solar longitude the tropical signs use, minus the **ayanāṃśa** — the angle
 //! by which precession has carried the March equinox away from the sidereal
-//! zero point. The ayanamsa is currently about 24°, growing by about 50″ a year,
+//! zero point. The ayanāṃśa is currently about 24°, growing by about 50″ a year,
 //! so a sidereal sign begins about twenty-four days after the tropical sign
 //! of the same name.
 //!
@@ -28,7 +28,7 @@
 //! disagreement rate over a year and finds it near four fifths, as the
 //! arithmetic requires.
 //!
-//! # Which ayanamsa
+//! # Which ayanāṃśa
 //!
 //! There is no single one, because the sidereal zero point is a convention
 //! and several are in use. [`Ayanamsa::LAHIRI`] — Chitrapaksha, fixing the
@@ -41,7 +41,7 @@
 //! # Accuracy, twice over
 //!
 //! A saṅkrānti carries the series' error and, on top of it, the few tens of
-//! arcseconds by which published values of a named ayanamsa disagree — eight
+//! arcseconds by which published values of a named ayanāṃśa disagree — eight
 //! minutes of time for 20″, a disagreement between authorities rather than
 //! an error of the model. For a saṅkrānti *day* the practical consequence
 //! is the same: a boundary near midnight may move. The document states
@@ -67,7 +67,7 @@ const DAYS_PER_JULIAN_CENTURY: f64 = 36_525.0;
 
 /// The angle between the tropical and the sidereal zero point.
 ///
-/// An ayanamsa is fixed by one number at one epoch and then carried forward
+/// An ayanāṃśa is fixed by one number at one epoch and then carried forward
 /// and back by precession; the disagreements between the named ones are
 /// disagreements about that one number, not about the physics. So this type
 /// is an anchor and nothing else, and [`Ayanamsa::new`] lets a caller supply
@@ -75,7 +75,7 @@ const DAYS_PER_JULIAN_CENTURY: f64 = 36_525.0;
 ///
 /// The anchor values shipped here are the ones the Swiss Ephemeris uses,
 /// which is the most widely deployed reference implementation; other
-/// published tables for the same named ayanamsa differ by a few tens of
+/// published tables for the same named ayanāṃśa differ by a few tens of
 /// arcseconds. See the module documentation for what that costs.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Ayanamsa {
@@ -100,18 +100,18 @@ impl Ayanamsa {
     /// 0.5 TT), exactly one Julian century before J2000.
     pub const LAHIRI: Self = Self::new("Lahiri (Chitrapaksha)", 2_415_020.0, 22.460_148);
 
-    /// Raman: B. V. Raman's ayanamsa, about 1.45° smaller than Lahiri.
+    /// Raman: B. V. Raman's ayanāṃśa, about 1.45° smaller than Lahiri.
     ///
     /// Anchored at 21.010833° for Julian date 2415020.0.
     pub const RAMAN: Self = Self::new("Raman", 2_415_020.0, 21.010_833);
 
-    /// Krishnamurti: the ayanamsa of the Krishnamurti Paddhati school, about
+    /// Krishnamurti: the ayanāṃśa of the Krishnamurti Paddhati school, about
     /// 0.48° smaller than Lahiri.
     ///
     /// Anchored at 21.978333° for Julian date 2415020.0.
     pub const KRISHNAMURTI: Self = Self::new("Krishnamurti", 2_415_020.0, 21.978_333);
 
-    /// Fagan–Bradley: the Western sidereal school's ayanamsa, about 0.88°
+    /// Fagan–Bradley: the Western sidereal school's ayanāṃśa, about 0.88°
     /// larger than Lahiri.
     ///
     /// Anchored at 24.042044° for Julian date 2433282.5 (1950 January 1.0),
@@ -126,7 +126,7 @@ impl Ayanamsa {
         Self::FAGAN_BRADLEY,
     ];
 
-    /// An ayanamsa from its anchor: a value in degrees at a Julian date.
+    /// An ayanāṃśa from its anchor: a value in degrees at a Julian date.
     ///
     /// Everything away from the anchor is IAU 2006 general precession in
     /// longitude, which is what every scheme in use agrees about; only the
@@ -170,7 +170,7 @@ impl Ayanamsa {
         self.degrees_at_anchor
     }
 
-    /// The ayanamsa, in degrees, at a given moment.
+    /// The ayanāṃśa, in degrees, at a given moment.
     ///
     /// About 24.2° in the 2020s, growing by about 0.014° — 50″ — a year, and
     /// passing through zero in 285 CE for the Lahiri anchor, 389 for Raman's
@@ -344,7 +344,7 @@ impl SiderealSign {
     ///
     /// Sidereal, so this is *not* a tropical longitude and cannot be handed
     /// to [`hc_astro::solar::solar_longitude_after`] directly; add an
-    /// ayanamsa first, or use [`ingress_after`], which does.
+    /// ayanāṃśa first, or use [`ingress_after`], which does.
     #[must_use]
     pub const fn start_longitude_degrees(self) -> f64 {
         self.0 as f64 * DEGREES_PER_SIGN
@@ -437,7 +437,7 @@ impl SiderealSign {
 
 /// The Sun's apparent sidereal longitude at a moment, in degrees.
 ///
-/// The apparent tropical longitude less the ayanamsa, reduced to 0°–360°.
+/// The apparent tropical longitude less the ayanāṃśa, reduced to 0°–360°.
 #[must_use]
 pub fn sidereal_longitude(moment: Moment, ayanamsa: Ayanamsa) -> f64 {
     normalize_degrees(solar_longitude(moment) - ayanamsa.degrees_at(moment))
@@ -474,8 +474,8 @@ pub fn sign_and_degrees(moment: Moment, ayanamsa: Ayanamsa) -> (SiderealSign, f6
 /// How many refinement passes the ingress search makes.
 ///
 /// The target tropical longitude of a sidereal ingress depends on the
-/// ayanamsa *at the ingress*, which is not known until the ingress is found.
-/// The ayanamsa moves about 50″ a year, so a first guess taken up to a year
+/// ayanāṃśa *at the ingress*, which is not known until the ingress is found.
+/// The ayanāṃśa moves about 50″ a year, so a first guess taken up to a year
 /// early is at most that far out — twenty minutes of the Sun's motion — and
 /// one pass removes it. The second is below floating-point noise and is kept
 /// only so that the answer does not depend on where the search began.
@@ -505,7 +505,7 @@ pub fn ingress_after(sign: SiderealSign, ayanamsa: Ayanamsa, moment: Moment) -> 
 /// # The once-a-year guarantee, and where it lapses
 ///
 /// On 1 January the Sun stands at about 280° tropical, which with a modern
-/// ayanamsa is about 256° sidereal — well inside Dhanus, far from a boundary
+/// ayanāṃśa is about 256° sidereal — well inside Dhanus, far from a boundary
 /// — so each of the twelve saṅkrānti falls exactly once in each Gregorian
 /// year. That argument depends on the ayanamsa: it was about 10° around the
 /// year 1000, which put a boundary on 1 January itself, and a Gregorian year
@@ -605,9 +605,9 @@ pub fn sign_beginning_on(
 /// The twelve sidereal sign periods of a Gregorian year, in date order.
 ///
 /// The first is the sign whose saṅkrānti is the first one on or after
-/// 1 January; with a modern ayanamsa that is Makara, around 14 January.
+/// 1 January; with a modern ayanāṃśa that is Makara, around 14 January.
 /// Walking the year rather than rotating a fixed table means this cannot
-/// double-count however far the ayanamsa has drifted.
+/// double-count however far the ayanāṃśa has drifted.
 #[must_use]
 pub fn signs_in_year(year: i64, ayanamsa: Ayanamsa, meridian: Meridian) -> SiderealSignsInYear {
     let probe = Moment(crate::gregorian::new_year(year).0 as f64);
@@ -661,7 +661,7 @@ mod tests {
     const INDIA: Meridian = Meridian::INDIA;
     const LAHIRI: Ayanamsa = Ayanamsa::LAHIRI;
 
-    /// The Lahiri ayanamsa is published as about 23°51′ at J2000 and about
+    /// The Lahiri ayanāṃśa is published as about 23°51′ at J2000 and about
     /// 24°12′ in the mid-2020s. Rata Die 730_120 is 1 January 2000.
     #[test]
     fn the_lahiri_ayanamsa_is_about_twenty_four_degrees_today() {
@@ -677,7 +677,7 @@ mod tests {
         );
     }
 
-    /// Fifty arcseconds a year is the whole of precession, and the ayanamsa
+    /// Fifty arcseconds a year is the whole of precession, and the ayanāṃśa
     /// is nothing but precession measured from a chosen zero.
     #[test]
     fn the_ayanamsa_grows_by_about_fifty_arcseconds_a_year() {
@@ -693,7 +693,7 @@ mod tests {
         }
     }
 
-    /// Every named ayanamsa is the same precession with a different anchor,
+    /// Every named ayanāṃśa is the same precession with a different anchor,
     /// so the differences between them are constant to within the tiny
     /// second-order terms.
     #[test]
@@ -736,7 +736,7 @@ mod tests {
             assert!(degrees.abs() < 0.05, "{year}: {degrees}");
         }
         // A thousand years earlier the sidereal zero point was ahead of the
-        // equinox, so the ayanamsa is negative.
+        // equinox, so the ayanāṃśa is negative.
         assert!(LAHIRI.degrees_at(Moment(from_year_month_day(-715, 1, 1).0 as f64)) < -13.0);
     }
 
@@ -757,12 +757,12 @@ mod tests {
         let period = sign_period(2024, SiderealSign::MESHA, invented, INDIA);
         assert_eq!(period.sign, SiderealSign::MESHA);
         assert!((29..=32).contains(&period.length_days()));
-        // A larger ayanamsa puts the sidereal zero point further behind the
+        // A larger ayanāṃśa puts the sidereal zero point further behind the
         // equinox, so every boundary falls later.
         assert!(period.start.0 > ingress_moment(2024, SiderealSign::MESHA, LAHIRI).0);
     }
 
-    /// The defining relation. Tropical longitude minus ayanamsa is sidereal
+    /// The defining relation. Tropical longitude minus ayanāṃśa is sidereal
     /// longitude, at every instant, by construction.
     #[test]
     fn the_sidereal_longitude_is_the_tropical_one_less_the_ayanamsa() {
@@ -792,7 +792,7 @@ mod tests {
             if sidereal.tropical_counterpart() != tropical {
                 disagreements += 1;
                 // Where they disagree the sidereal sign is always the
-                // tropical one's immediate predecessor, because the ayanamsa
+                // tropical one's immediate predecessor, because the ayanāṃśa
                 // is between 0 and 30 degrees.
                 assert_eq!(
                     sidereal.tropical_counterpart(),
@@ -822,7 +822,7 @@ mod tests {
     }
 
     /// A sidereal ingress lags the tropical one of the same index by the
-    /// ayanamsa, which at about 24.2° and about 0.985°/day is about 24 or 25
+    /// ayanāṃśa, which at about 24.2° and about 0.985°/day is about 24 or 25
     /// days.
     #[test]
     fn a_sidereal_ingress_lags_the_tropical_one_by_the_ayanamsa() {
@@ -846,7 +846,7 @@ mod tests {
 
     /// At every saṅkrānti the Sun's sidereal longitude is exactly the sign's
     /// opening longitude. This is what the refinement passes are for: without
-    /// them the ayanamsa used to build the target would be the one at the
+    /// them the ayanāṃśa used to build the target would be the one at the
     /// start of the search, not at the crossing.
     #[test]
     fn the_sun_stands_exactly_on_the_boundary_at_a_sankranti() {
@@ -1067,7 +1067,7 @@ mod tests {
         assert_eq!(SiderealSign::MESHA.opposite(), SiderealSign::TULA);
     }
 
-    /// A different ayanamsa moves every boundary by the difference between
+    /// A different ayanāṃśa moves every boundary by the difference between
     /// the two, which for Raman against Lahiri is about 1.45° — about a day
     /// and a half of the Sun's motion.
     #[test]

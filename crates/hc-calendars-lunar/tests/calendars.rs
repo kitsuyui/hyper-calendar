@@ -376,5 +376,7 @@ fn a_lunisolar_date_carries_its_place_in_the_sexagenary_cycle() {
     assert_eq!(fields.extra.get("sexagenary_year"), Some(40));
     // The first month of a jiǎ year is bǐng-yín, index 2.
     assert_eq!(fields.extra.get("sexagenary_month"), Some(2));
-    assert_eq!(fields.extra.len(), 4);
+    // Year 4661 begins on 10 February 2024: CLDR's related Gregorian year.
+    assert_eq!(fields.extra.get("related-gregorian-year"), Some(2024));
+    assert_eq!(fields.extra.len(), 5);
 }

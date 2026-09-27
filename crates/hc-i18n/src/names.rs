@@ -664,7 +664,8 @@ pub struct SexagenaryNames {
     pub zodiac: Option<&'static [&'static str; 12]>,
     /// What the locale writes between a stem and its branch: nothing in
     /// the Han and Hangul readings (甲子, 갑자), a space in the Vietnamese
-    /// and pinyin ones (Giáp Tý, jia zi).
+    /// one (Giáp Tý), and a hyphen in English's pinyin, as CLDR's root
+    /// writes it (jia-zi).
     pub joiner: &'static str,
 }
 
@@ -1854,7 +1855,7 @@ mod tests {
             calendar_display_name_with_tag(&locale("de"), CalendarId("maya-haab")),
             None
         );
-        assert_eq!(sexagenary_joiner(&locale("en")), " ");
+        assert_eq!(sexagenary_joiner(&locale("en")), "-");
         assert_eq!(sexagenary_joiner(&locale("ja")), "");
         assert_eq!(sexagenary_joiner(&locale("de")), "");
     }

@@ -132,13 +132,13 @@ impl Default for ViraNirvanaCalendar {
 }
 
 impl ViraNirvanaCalendar {
-    /// The Central Station's sunrise and the Lahiri ayanamsa, the
+    /// The Central Station's sunrise and the Lahiri ayanāṃśa, the
     /// *Rashtriya Panchang*'s reckoning: the registered
     /// `vira-nirvana-samvat`.
     pub const RASHTRIYA: Self = Self::new(HinduLunarCalendar::RASHTRIYA);
 
     /// The era over any amānta calendar — another place's sunrise, another
-    /// ayanamsa, as a local Jain almanac would read it.
+    /// ayanāṃśa, as a local Jain almanac would read it.
     #[must_use]
     pub const fn new(lunar: HinduLunarCalendar) -> Self {
         Self { lunar }

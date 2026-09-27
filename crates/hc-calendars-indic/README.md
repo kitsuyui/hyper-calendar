@@ -7,7 +7,7 @@ the Government of India's *Rashtriya Panchang* computes it.
 
 The Hindu calendars — the amānta and pūrṇimānta months, the four regional
 solar reckonings, the Old Hindu arithmetic, the nakṣatras, the yoga and
-karaṇa, and the ayanamsa — are written up in
+karaṇa, and the ayanāṃśa — are written up in
 [`docs/systems/hindu-calendars.md`](../../docs/systems/hindu-calendars.md):
 what each is, how it works with a worked example, what is carried, how
 it was checked against the almanac, and where every statement comes from.
@@ -59,10 +59,10 @@ module.
 
 The calendar is judged at a place — a tithi that ends within an hour of
 sunrise belongs to different days in Delhi and Chennai — and with an
-ayanamsa. `HinduLunarCalendar::RASHTRIYA` is the registered one: sunrise at
-the Central Station, the Lahiri ayanamsa, as the national almanac has it.
+ayanāṃśa. `HinduLunarCalendar::RASHTRIYA` is the registered one: sunrise at
+the Central Station, the Lahiri ayanāṃśa, as the national almanac has it.
 `HinduLunarCalendar::UJJAIN` is the classical reference, and
-`HinduLunarCalendar::new` takes any place and any ayanamsa `hc-seasons`
+`HinduLunarCalendar::new` takes any place and any ayanāṃśa `hc-seasons`
 knows. Ujjain is where Reingold and Dershowitz read their astronomical
 calendars; it is a constant and not a registered calendar, because the
 place is its only difference from `hindu-lunar` and a place is a
@@ -79,7 +79,7 @@ sunrise, which gives the book's value for all 33 dates too.
 
 For the Hindu calendars, the *Rashtriya Panchang* itself, Śaka 1945 and
 1946 (2023–2025): the first day of every lunar fortnight, the intercalary
-Śrāvaṇa of 1945, the printed ayanamsa, the festival dates that are the
+Śrāvaṇa of 1945, the printed ayanāṃśa, the festival dates that are the
 tithi at sunrise, and the ninety-six first days of the solar months in
 its "Regional Calendars" tables; for the nakṣatras, Drik Panchang's
 transit times. The system document lists every check and its result.

@@ -235,7 +235,7 @@ export type KumbhYoga =
   | "kumbh-prayag-mesha"
   | "kumbh-nashik-simha"
   | "kumbh-nashik-karka"
-  | "kumbh-ujjain-mesha"
+  | "kumbh-ujjain-simha"
   | "kumbh-ujjain-tula";
 
 /** The one line of `hc_kumbh`. */

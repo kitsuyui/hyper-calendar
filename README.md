@@ -46,7 +46,7 @@ Beyond those tables, the library carries:
   NTP, UUID versions 1 and 6, FAT and GNSS week numbers.
 - The 24 solar terms, the 72 pentads and the Japanese almanac annotations.
 - Time zones: fixed offsets, POSIX TZ strings and TZif files.
-- ISO 8601, RFC 3339 and RFC 2822 text, `strftime` patterns, and relative
+- ISO 8601, RFC 3339 and RFC 5322 text, `strftime` patterns, and relative
   phrases such as "3 days ago".
 - Significant figures, error bars and Extended Date/Time Format (EDTF,
   ISO 8601-2) dates.
@@ -63,7 +63,7 @@ What is not carried yet, and what is out of scope, is listed in
 ## Two pivots
 
 The design rests on two canonical representations, called *pivots*. Every
-conversion passes through one of them.
+calendar converts through `Rd`, and every uniform time scale through TAI.
 
 A **day** is a Rata Die number, `Rd`: an integer that counts days, with
 day 1 being 1 January of year 1 in the proleptic Gregorian calendar
@@ -103,7 +103,7 @@ includes the crate.
 | [`hc-attributes`](crates/hc-attributes) | Birthstones, birth flowers, moon names, traditional month names | `attributes` |
 | [`hc-name-days`](crates/hc-name-days) | Name-day lists by authority and edition, and a loader for licensed lists | `name-days` |
 | [`hc-tz`](crates/hc-tz) | UTC offsets, POSIX TZ strings, a TZif reader, built-in zones, where each zone is | `tz` |
-| [`hc-format`](crates/hc-format) | ISO 8601, RFC 3339 and RFC 2822 text, `strftime` patterns, CCSDS time-code fields, the JJY, DCF77 and WWVB radio codes, the IRIG time codes, the Ethiopian and Swahili hours | `format` |
+| [`hc-format`](crates/hc-format) | ISO 8601, RFC 3339 and RFC 5322 text, `strftime` patterns, CCSDS time-code fields, the JJY, DCF77 and WWVB radio codes, the IRIG time codes, the Ethiopian and Swahili hours | `format` |
 | [`hc-i18n`](crates/hc-i18n) | BCP 47 locales, plural rules, numbering systems, names, country names, zones' cities | `i18n` |
 | [`hc-humanize`](crates/hc-humanize) | Relative times, spelled-out durations, Python `humanize` phrasing | `humanize` |
 | [`hc-holiday`](crates/hc-holiday) | The holiday rule engine and the country, tradition, UN and exchange tables | `holiday` |

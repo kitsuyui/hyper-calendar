@@ -2184,7 +2184,7 @@ mod calendar_days {
     /// through 27, the karaṇa the half-tithi 1 through 60), its name as
     /// Drik Panchang spells it in English and in Devanagari, the instants
     /// it began and ends and the instant it was read at as whole POSIX
-    /// seconds, rounded down, in Universal Time, and the ayanamsa the yoga
+    /// seconds, rounded down, in Universal Time, and the ayanāṃśa the yoga
     /// was reckoned with (empty for the karaṇa, which needs none).
     /// `ayanamsa` is `Lahiri (Chitrapaksha)`, `Raman`, `Krishnamurti` or
     /// `Fagan-Bradley`, or the first word of one, in any case; anything
@@ -2272,7 +2272,7 @@ mod calendar_days {
     /// does, `native` asking for Sanskrit; a name the locale's data does
     /// not have, such as either era in Sanskrit, is an empty cell. The
     /// locale argument fails as `hc_parse_iso_date` does. `sky` is an
-    /// ayanamsa `hc_panchanga_at` names, for
+    /// ayanāṃśa `hc_panchanga_at` names, for
     /// the true Sun and Moon in its zodiac, as `hindu-lunar` reads them with
     /// Lahiri's at the Central Station; or `surya-siddhanta`, for the
     /// *Sūrya Siddhānta*'s Sun and Moon at its own sunrise, as
@@ -2543,7 +2543,8 @@ mod calendar_days {
     /// `rule` is `surya-siddhanta-bija`, the *Sūrya Siddhānta* with the
     /// *bīja*, by which the pūrṇimānta calendar names its years and Drik
     /// Panchang heads Vikrama 2081 to 2083; `surya-siddhanta`, the same
-    /// without it, by which the Hindi press named those years, one name on;
+    /// without it, whose names, one on, some of the Hindi press's
+    /// announcements of 2021–26 print;
     /// or `arya-siddhanta`, the first *Ārya Siddhānta*; in any case, from
     /// Sewell and Dikshit's Art. 59. Anything else is `HC_ERR_UNKNOWN`.
     /// `saka` is an *expired* Śaka year, the year the *Rashtriya Panchang*
@@ -2902,7 +2903,7 @@ mod day_periods {
     ///
     /// `yoga` is one of the Mela Adhikari's seven conditions,
     /// `kumbh-haridwar`, `kumbh-prayag-vrishabha`, `kumbh-prayag-mesha`,
-    /// `kumbh-nashik-simha`, `kumbh-nashik-karka`, `kumbh-ujjain-mesha` or
+    /// `kumbh-nashik-simha`, `kumbh-nashik-karka`, `kumbh-ujjain-simha` or
     /// `kumbh-ujjain-tula`, in any case; the `ayanamsa` is as for
     /// `hc_panchanga_at`. The library has no ephemeris of Jupiter, so
     /// `jupiter` is the caller's: the sidereal sign Jupiter is in at the

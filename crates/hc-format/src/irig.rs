@@ -5,7 +5,8 @@
 //! Standard 200-16, August 2016, read 2026-09-28 (`rcc-200-16`). A frame
 //! is a run of pulses, one per index count: a binary 0 and an index marker
 //! last 0.2 of the index count, a binary 1 0.5, and a position identifier
-//! and the reference bit Pr 0.8 (§3.6, §3.9). That is [`Symbol`]'s three
+//! and the reference bit Pr 0.8 (the bits §3.6, the index markers §3.9, Pr
+//! §3.4 and the position identifiers §3.5). That is [`Symbol`]'s three
 //! symbols, so a frame is a slice of them, Pr first.
 //!
 //! | Format | Index count | Frame | Time of year in BCD | Year | Control bits | SBS |
@@ -38,10 +39,13 @@
 //! The code carries no time scale. The standard says the ranges keep "UTC
 //! referenced to the United States Naval Observatory (USNO) Master Clock"
 //! (chapter 1), but a generator sends whatever clock it is set to, so a
-//! reading is a date and a time of day and nothing more. On the day of a
-//! leap second the SBS reach 86 400 (§3.6); the standard does not lay out
-//! that frame, and this module reads 23:59:60 as seconds 60 at the end of a
-//! month. `docs/systems/irig-time-codes.md` works a frame through.
+//! reading is a date and a time of day and nothing more. Of a leap second
+//! the standard says only that the SBS read 0 at 24:00 "excluding leap
+//! second days when a second may be added or subtracted" (§3.6), and it
+//! lays out no leap-second frame. The frame of 23:59:60 is this module's
+//! choice: the SBS reach 86 400, the BCD seconds read 60, and a reading of
+//! second 60 is accepted only at the end of a month.
+//! `docs/systems/irig-time-codes.md` works a frame through.
 
 use core::fmt;
 
@@ -321,6 +325,9 @@ impl IrigCode {
     /// — modulation, frequency and coded expression — as `B122`, with each
     /// digit checked against Table 4-1. The modulation and the carrier are
     /// how the pulses are sent and are not kept: the frame is the same.
+    /// Table 4-1 lists the modulations and the frequencies apart, so every
+    /// pairing it lists is accepted, B020 and B100 among them, although
+    /// Figure 4-1 makes frequency 0 "no carrier".
     ///
     /// # Errors
     ///
@@ -732,9 +739,11 @@ mod tests {
     }
 
     /// Figure 5-4 draws IRIG E with Figure 5-2's pulses, units of seconds
-    /// and SBS included, which Table 5-9 and Table 4-1 do not give E; its
-    /// note puts the frame at 21:18:40. The drawn frame is refused at its
-    /// first units bit, and the frame of 21:18:40 is written without them.
+    /// and SBS included, which Table 5-9 and Table 4-1 do not give E. Its
+    /// note puts count 75 at "21 Hours, 18 Minutes, 47.5 Seconds", and 75
+    /// counts of 0.1 s after Pr make Pr 21:18:40. The drawn frame is refused
+    /// at its first units bit, and the frame of 21:18:40 is written without
+    /// them.
     #[test]
     fn figure_5_4_is_not_an_e_frame() {
         let e = code(IrigFormat::E, 5);
@@ -827,8 +836,9 @@ mod tests {
         }
     }
 
-    /// On a leap-second day the SBS reach 86 400 at 23:59:60 (§3.6), which
-    /// is read only at the end of a month.
+    /// The module's leap-second frame: the SBS reach 86 400 at 23:59:60,
+    /// which §3.6 leaves open, and second 60 is read only at the end of a
+    /// month.
     #[test]
     fn a_leap_second() {
         let b = code(IrigFormat::B, 7);
@@ -914,7 +924,7 @@ mod tests {
         assert_eq!(wrong_day.encode(), Err(FrameError::Field("day of year")));
     }
 
-    /// Every permitted code at six times of a sample of the days of
+    /// Every permitted code at four times of a sample of the days of
     /// 2000–2099, both ways: every day in a release build; every 89th and
     /// every month's first and last in a debug one.
     #[test]

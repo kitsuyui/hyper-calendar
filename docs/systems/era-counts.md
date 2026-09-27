@@ -61,7 +61,11 @@ the question of who wrote it when.
   [zhang-xinbin-huangdi]. The Hubei Military Government dated its gazette
   by 宋教仁's count after the Wuchang rising [wikipedia-zh-huangdi-era],
   and Sun ended the count: "以黄帝纪年四千六百九年十一月十三日为中华民国元旦"
-  [zhang-xinbin-huangdi].
+  [zhang-xinbin-huangdi]. The 同盟會's 4605 is the count of its address at
+  the Yellow Emperor's tomb, `huangdi-era-tongmenghui`; its paper 《民報》
+  counted as 宋教仁 did, and Wikipedia (zh)'s table heads that 2698 BC
+  column with the paper's name, so the paper's years are `huangdi-era`
+  [wikipedia-zh-huangdi-era].
 * **The Era of Philip**: "in the *Handy Tables* Ptolemy uses as epoch the
   era of Philip (noon, −323 November 12) and not the era of Nabonassar
   (noon, −746 February 26), as he did in the *Almagest*" [chabas2013].

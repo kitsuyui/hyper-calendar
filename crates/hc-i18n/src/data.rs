@@ -472,6 +472,14 @@ const HEBREW_TEMPLATES: DateTemplates = DateTemplates {
     ..DateTemplates::NONE
 };
 
+/// The English Hebrew date, day before month, as CLDR 48 `en.xml`,
+/// `calendar type="hebrew"`, writes its long form, "d MMMM y": 16 Tishri
+/// 5787.
+const EN_HEBREW_TEMPLATES: DateTemplates = DateTemplates {
+    date: "{day} {month} {year}",
+    ..HEBREW_TEMPLATES
+};
+
 /// What every Gregorian-family entry states: the current era is implied.
 const GREGORIAN_TEMPLATES: DateTemplates = DateTemplates {
     implied_era: "ad",
@@ -550,9 +558,11 @@ const ZH_TEMPLATES: DateTemplates = DateTemplates {
 /// The Hindu calendars that name their year in the southern sixty-year
 /// cycle, in English: the name after the day, as Sewell and Dikshit date a
 /// Tamil day, "Monday, 19th Vaiyasi of the year Rudhirodgarin", with the
-/// reckoning as they name it beside the northern one, "Angiras samvatsara
-/// in luni-solar or southern reckoning" (sewell1896, the example of 1752),
-/// then the Śaka year.
+/// reckoning as they name it, "Angiras samvatsara in luni-solar or
+/// southern reckoning" (sewell1896, the example of 1752), which their
+/// example of 1822 names beside the northern one, "Chitrabhanu samvatsara
+/// in the luni-solar 60-year or southern cycle reckoning, Vijaya in the
+/// northern cycle", then the Śaka year.
 const EN_SAMVATSARA_TEMPLATES: DateTemplates = DateTemplates {
     date: "{month} {day} of the year {extra:samvatsara} in southern reckoning, {year}",
     ..DateTemplates::NONE
@@ -2429,7 +2439,7 @@ const EN_CALENDARS: &[CalendarNames] = &[
         intercalary: &[(5, "Adar I")],
         in_leap_years: &[(6, "Adar II")],
     })
-    .with_templates(HEBREW_TEMPLATES),
+    .with_templates(EN_HEBREW_TEMPLATES),
     // CLDR has no Babylonian vocabulary. The months are the Akkadian names
     // in the normalisation R. H. van Gent's converter of Parker and
     // Dubberstein's tables prints (webspace.science.uu.nl/~gent0113/babylon/,
@@ -2462,6 +2472,19 @@ const EN_CALENDARS: &[CalendarNames] = &[
         templates: DateTemplates::NONE,
         leap_names: LeapMonthNames::NONE,
     },
+    // The Chinese and Dangi dates as CLDR 48 `en.xml` writes the long form
+    // of its `chinese` calendar, which `dangi` inherits: "MMMM d, r(U)", the
+    // month, the day, and the year as its item "y" writes it, "r(U)", the
+    // related Gregorian year and the year's stem and branch: Eighth Month
+    // 17, 2026(bing-wu). A date without the two, which no registered
+    // calendar gives, keeps the year number of the entries below.
+    CalendarNames::empty(&[CalendarId("chinese"), CalendarId("dangi")]).with_templates(
+        DateTemplates {
+            year: "{extra:related-gregorian-year}({sexagenary})",
+            date: "{month} {day}, {year}",
+            ..DateTemplates::NONE
+        },
+    ),
     lunisolar(
         NUMBERED_LUNISOLAR_CALENDARS,
         &[months(&[
@@ -2595,7 +2618,9 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &[],
     ),
     // Wikipedia, "Burmese calendar" (`wikipedia-burmese-calendar`),
-    // compared 2026-09-26.
+    // compared 2026-09-26. A date is the month, its half and the day of
+    // the half, and the Myanmar Era year, "Nayon waxing 3, 1374 ME"
+    // (`docs/systems/burmese.md`, from yannaingaye2013).
     dated(
         BURMESE_CALENDARS,
         &[months(&[
@@ -2614,7 +2639,11 @@ const EN_CALENDARS: &[CalendarNames] = &[
         ])],
         &[],
         &[],
-    ),
+    )
+    .with_templates(DateTemplates {
+        date: "{month} {extra:waning} {extra:fortnight-day}, {year} ME",
+        ..DateTemplates::NONE
+    }),
     // The Khmer months in the UNGEGN romanisation of Wikipedia, "Month",
     // section "Khmer calendar" (revision of 24 September 2026, read
     // 2026-09-26), month 6 as Pĭsakh of the page's "Vĭsakh/Pĭsakh", the
@@ -2644,7 +2673,15 @@ const EN_CALENDARS: &[CalendarNames] = &[
         leap_month_prefix: "",
         eras: EraNames::EMPTY,
         quarters: ContextualNames::EMPTY,
-        templates: DateTemplates::NONE,
+        // The day, the half and the month, in Tum's order, "1 keit Bos"
+        // (tum-chhankitek), then the printed Buddhist year with its era,
+        // as the Khmer form writes ព.ស. after the month, «១៥កើត ខែពិសាខ
+        // ព.ស.២៥៦៨» (`hc_calendars_regional::khmer`), here after the
+        // year as en's Buddhist era is written: 15 keit Pĭsakh 2568 BE.
+        templates: DateTemplates {
+            date: "{extra:fortnight-day} {extra:waning} {month} {extra:printed-year} BE",
+            ..DateTemplates::NONE
+        },
         leap_names: LeapMonthNames {
             intercalary: &[(8, "Bâthâmôsath")],
             in_leap_years: &[],
@@ -3142,11 +3179,11 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &["koki"],
         &["Kōki"],
     ),
-    // The Juche year with the Gregorian year beside it, as the calendar is
-    // written, 주체113(2024) (Wikipedia, "Juche calendar", retrieved
-    // 2026-09-26, as `hc_calendars_solar::juche` cites it).
+    // The era, the Juche year and the Gregorian year beside it, as the
+    // English page writes it, "Juche 99 (2010)" in the caption of its
+    // wall calendar (Wikipedia, "Juche calendar", retrieved 2026-09-28).
     dated(&[CalendarId("juche")], &[], &["juche"], &["Juche"]).with_templates(DateTemplates {
-        year: "{year} {era} ({extra:common-era-year})",
+        year: "{era} {year} ({extra:common-era-year})",
         ..DateTemplates::NONE
     }),
     // The Olympiad and its year beside the Julian date, as historians
@@ -3155,8 +3192,10 @@ const EN_CALENDARS: &[CalendarNames] = &[
         date: "{month} {day}, {year}, year {extra:year-of-olympiad} of Olympiad {extra:olympiad}",
         ..DateTemplates::NONE
     }),
-    // The Yazidi year and its day, as Kreyenbroek dates a day of it:
-    // "6774, day 173" (kreyenbroek1995).
+    // The Yazidi year and its day, "6774, day 173". The form is the
+    // library's own: no source read writes a day of the Yazidi year.
+    // The year is the 4750 count the 2023–24 press prints and the day is
+    // counted from Serêsal, as `hc_calendars_solar::yazidi` carries them.
     CalendarNames::empty(&[CalendarId("yazidi")]).with_templates(DateTemplates {
         date: "{year}, day {extra:day-of-year}",
         ..DateTemplates::NONE
@@ -3329,8 +3368,9 @@ const EN: LocaleData = LocaleData {
             "Rat", "Ox", "Tiger", "Rabbit", "Dragon", "Snake", "Horse", "Goat", "Monkey",
             "Rooster", "Dog", "Pig",
         ]),
-        // Pinyin writes the two syllables apart: jia zi.
-        joiner: " ",
+        // The two syllables joined by a hyphen, jia-zi, as CLDR 48's root
+        // `cyclicNameSets` writes them, which `en.xml` inherits.
+        joiner: "-",
     },
     calendars: EN_CALENDARS,
 };
@@ -3994,6 +4034,14 @@ const JA_CALENDARS: &[CalendarNames] = &[
     // calendar takes the same months with the year of the reign.
     lunisolar(CHINESE_FAMILY_CALENDARS, JA_LUNAR_MONTHS, "閏").with_templates(JA_CHINESE_TEMPLATES),
     lunisolar(CHINESE_REGNAL_CALENDARS, JA_LUNAR_MONTHS, "閏"),
+    // The Minguo eras as CLDR 48 `ja.xml`, `calendar type="roc"`, names
+    // them.
+    dated(
+        &[CalendarId("roc")],
+        &[],
+        &["broc", "roc"],
+        &["民国前", "民国"],
+    ),
 ];
 
 const JA_LUNAR_MONTHS: &[CycleNames] = &[months(&[
@@ -4343,10 +4391,12 @@ const KO: LocaleData = LocaleData {
             "윤",
         )
         .with_templates(KO_CHINESE_TEMPLATES),
-        // The Juche year with the Gregorian year beside it, 주체113(2024)
-        // (Wikipedia, "Juche calendar", retrieved 2026-09-26).
-        CalendarNames::empty(&[CalendarId("juche")]).with_templates(DateTemplates {
-            year: "{era} {year}({extra:common-era-year})년",
+        // The era 주체, the Juche year and the Gregorian year beside it, with
+        // no space, as the Korean page writes it in the caption of its wall
+        // calendar, 주체99(2010)년 (Wikipedia (ko), 「주체연호」, reached as
+        // 「주체력」, retrieved 2026-09-28).
+        dated(&[CalendarId("juche")], &[], &["juche"], &["주체"]).with_templates(DateTemplates {
+            year: "{era}{year}({extra:common-era-year})년",
             ..DateTemplates::NONE
         }),
         // The Cheondogyo year, 포덕 (Wikipedia (ko), 「천도교」, retrieved
@@ -4356,6 +4406,14 @@ const KO: LocaleData = LocaleData {
             &[],
             &["podeok"],
             &["포덕"],
+        ),
+        // The Minguo eras as CLDR 48 `ko.xml`, `calendar type="roc"`, names
+        // them.
+        dated(
+            &[CalendarId("roc")],
+            &[],
+            &["broc", "roc"],
+            &["중화민국전", "중화민국"],
         ),
     ],
 };
@@ -4580,7 +4638,10 @@ const ML: LocaleData = LocaleData {
 // numbered shape does not declare, so this entry is what lets a Burmese
 // date print in Burmese. The page names the intercalary month only as
 // ဝါထပ်, "watat", and does not spell "Second Waso" in Burmese script, so
-// the leap-month prefix is empty.
+// the leap-month prefix is empty. A date is written as the page writes
+// 29 March 2017, «၁၃၇၈ ခုနှစ်၊ နှောင်းတန်ခူးလဆန်း ၂ ရက်»: the year and
+// ခုနှစ်, then the month, its half and the day and ရက်. The prefix
+// နှောင်း of the late Tagu and Kason is not written.
 
 const MY_CALENDARS: &[CalendarNames] = &[
     gregorian(
@@ -4640,7 +4701,11 @@ const MY_CALENDARS: &[CalendarNames] = &[
         ])],
         &[],
         &[],
-    ),
+    )
+    .with_templates(DateTemplates {
+        date: "{year} ခုနှစ်၊ {month}{extra:waning} {extra:fortnight-day} ရက်",
+        ..DateTemplates::NONE
+    }),
 ];
 
 const MY: LocaleData = LocaleData {
@@ -6412,6 +6477,14 @@ const ZH_HANS_CALENDARS: &[CalendarNames] = &[
         &["taiping"],
         &["太平天国"],
     ),
+    // The Minguo eras as CLDR 48 `zh.xml`, `calendar type="roc"`, names
+    // them, 民国前 and 民国, before the year as in `zh_Hant.xml`.
+    dated(
+        &[CalendarId("roc")],
+        &[],
+        &["broc", "roc"],
+        &["民国前", "民国"],
+    ),
 ];
 
 const ZH_HANS_LUNAR_MONTHS: &[CycleNames] = &[months(&[
@@ -6504,6 +6577,15 @@ const ZH_HANT_CALENDARS: &[CalendarNames] = &[
         &[],
         &["taiping"],
         &["太平天國"],
+    ),
+    // The Minguo eras as CLDR 48 `zh_Hant.xml`, `calendar type="roc"`,
+    // names them, 民國前 and 民國, written before the year as its pattern
+    // "Gy年M月d日" writes them: 民國115年9月27日.
+    dated(
+        &[CalendarId("roc")],
+        &[],
+        &["broc", "roc"],
+        &["民國前", "民國"],
     ),
 ];
 

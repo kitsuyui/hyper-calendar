@@ -1,6 +1,6 @@
 [package]
 name = "hc-format"
-description = "Parsing and formatting for hyper-calendar: ISO 8601, RFC 3339, RFC 2822, ISO durations and intervals."
+description = "Parsing and formatting for hyper-calendar: ISO 8601, RFC 3339, RFC 5322, ISO durations and intervals."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

@@ -188,7 +188,7 @@ pub const PANCHAK_COLUMNS: usize = 7;
 /// [`PanchakNaming::ALL`] selected by its identifier in any case.
 ///
 /// The cells: `1` when the instant is within the window, else `0`; the
-/// moments the Moon's sidereal longitude, in the zodiac of the ayanamsa
+/// moments the Moon's sidereal longitude, in the zodiac of the ayanāṃśa
 /// [`ayanamsa`] names, reaches 300° and 360°, as whole POSIX seconds of
 /// Universal Time, rounded down; the weekday the window opens on, Monday
 /// 1 to Sunday 7, on a clock `offset_seconds` ahead of Universal Time,
@@ -205,7 +205,7 @@ pub const PANCHAK_COLUMNS: usize = 7;
 ///
 /// # Errors
 ///
-/// [`Refusal::Unknown`] for a table or an ayanamsa not named;
+/// [`Refusal::Unknown`] for a table or an ayanāṃśa not named;
 /// [`Refusal::OutOfRange`] for an offset of a day or more either way, and
 /// for an instant outside the sky layer's era.
 pub fn panchak_line(
@@ -260,7 +260,7 @@ pub const KUMBH_COLUMNS: usize = 11;
 ///
 /// The library has no ephemeris of Jupiter, so `jupiter` is the caller's:
 /// the sidereal sign, by an identifier of [`SIGN_IDS`], that Jupiter is in
-/// at the occasion's first moment, in the zodiac of the same ayanamsa. It
+/// at the occasion's first moment, in the zodiac of the same ayanāṃśa. It
 /// is read at that moment because the Sun's stay can hold a change of
 /// Jupiter's sign; the first moment is in this same line whatever `jupiter`
 /// is, so a caller asks once with it empty and again with the sign it
@@ -284,7 +284,7 @@ pub const KUMBH_COLUMNS: usize = 11;
 ///
 /// # Errors
 ///
-/// [`Refusal::Unknown`] for a condition, an ayanamsa or a sign not named;
+/// [`Refusal::Unknown`] for a condition, an ayanāṃśa or a sign not named;
 /// [`Refusal::OutOfRange`] for a year outside the sky layer's era.
 pub fn kumbh_line(
     yoga: &str,

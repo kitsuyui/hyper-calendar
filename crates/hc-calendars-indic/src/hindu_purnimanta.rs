@@ -49,12 +49,18 @@
 //! Hrishikesh Panchang of Varanasi prints it, and 2082 and 2083 are
 //! Kalayukta and Siddharthi, as Drik Panchang heads them.
 //!
-//! The Hindi press's New Year announcements, citing astrologers, name the
-//! same years one later — Kalayukta, Siddharthi, Raudra — by the
-//! Siddhānta's rule without the *bīja*; that convention is
-//! [`crate::barhaspatya::SURYA_SIDDHANTA`], which
-//! [`crate::barhaspatya::MeanSignRule::of_saka`] gives for a year. This
-//! calendar does not carry it.
+//! Drik Panchang heads 1942 Jaya, 1943 Durmukha, 2027 Raudra and 2028
+//! Dundubhi, as the rule expunges Manmatha and Durmati, and heads the days
+//! of Vikrama 2088 from Chaitra śukla 1 of 2031 Krodhana, the name current
+//! at the Meṣa saṅkrānti, while Raktaksha is still in progress.
+//!
+//! Some of the Hindi press's New Year announcements of 2021–26 name the
+//! same years one later — Kalayukta, Siddharthi, Raudra for 2081–83 — by
+//! the Siddhānta's rule without the *bīja*, and others print this
+//! calendar's names; in 2018–20 all those read print this calendar's.
+//! That second convention is [`crate::barhaspatya::SURYA_SIDDHANTA`],
+//! which [`crate::barhaspatya::MeanSignRule::of_saka`] gives for a year.
+//! This calendar does not carry it.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd,
@@ -85,7 +91,7 @@ impl Default for HinduPurnimantaCalendar {
 
 impl HinduPurnimantaCalendar {
     /// The calendar as the *Rashtriya Panchang* labels it: sunrise at the
-    /// Central Station, Lahiri ayanamsa. The registered
+    /// Central Station, Lahiri ayanāṃśa. The registered
     /// `hindu-lunar-purnimanta`.
     pub const RASHTRIYA: Self = Self {
         amanta: HinduLunarCalendar::RASHTRIYA,
@@ -449,5 +455,37 @@ mod tests {
             .extra;
         assert_eq!(south.get(crate::samvatsara::CYCLE), Some(40));
         assert_eq!(south.get(crate::barhaspatya::FIELD), None);
+    }
+
+    #[test]
+    fn the_expunctions_and_the_coupling_are_drik_panchangs() {
+        use crate::samvatsara::name;
+        let named = |rd: Rd| {
+            let date = RASHTRIYA.from_fixed(rd).unwrap();
+            let fields = Calendar::to_fields(&RASHTRIYA, date).unwrap();
+            let position = fields.extra.get(crate::barhaspatya::FIELD).unwrap();
+            name(u8::try_from(position).unwrap())
+        };
+        // Drik Panchang's day pages for New Delhi head 1 June 1942 "1999
+        // Jaya" and 1 June 1943 "2000 Durmukha", with Manmatha running from
+        // April 1942 to April 1943 and heading no year; 1 June 2027 "2084
+        // Raudra" and 1 June 2028 "2085 Dundubhi", Durmati likewise
+        // expunged; and 25 March 2031, the day after Chaitra śukla 1, "2088
+        // Krodhana", with "Raktaksha upto 06:45 PM, Mar 31, 2031": the name
+        // current at the Meṣa saṅkrānti, not the one at the pratipadā
+        // (`drikpanchang-samvatsara-days`).
+        assert_eq!(named(ymd(1942, 6, 1)), Some("Jaya"));
+        assert_eq!(named(ymd(1943, 6, 1)), Some("Durmukha"));
+        assert_eq!(named(ymd(2027, 6, 1)), Some("Raudra"));
+        assert_eq!(named(ymd(2028, 6, 1)), Some("Dundubhi"));
+        assert_eq!(named(ymd(2031, 3, 25)), Some("Krodhana"));
+        let moment = hc_calendar::fixed::Moment(ymd(2031, 3, 25).0 as f64 + 0.25 - 5.5 / 24.0);
+        assert_eq!(
+            name(crate::barhaspatya::in_progress_at(
+                crate::barhaspatya::SURYA_SIDDHANTA_BIJA,
+                moment
+            )),
+            Some("Raktaksha")
+        );
     }
 }

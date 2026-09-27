@@ -55,7 +55,7 @@ assert_eq!(
 | `dog_days` | the European dog days, one convention per source: *The Old Farmer's Almanac*'s 3 July to 11 August, the *Hundstage* of 23 July to 23 August, and the 1552 and 1559 Prayer Books' 7 July to 5 September in the Julian calendar |
 | `moon_calendar` | phase names, 月齢, illuminated fraction, a month's four principal phases, 十五夜, 十三夜, and the National Astronomical Observatory's 伝統的七夕 |
 | `seasons` | astronomical, meteorological and East Asian seasons |
-| `zodiac` | 黄道十二宮: the tropical Western signs, the sidereal rāśi with the ayanamsa, the Indian solar months, and the Chinese 十二次; `zodiac::decans`, the 36 faces of 10°, each ruled by a planet in the Chaldean order from Mars at 0° of Aries, as al-Bīrūnī tabulates them |
+| `zodiac` | 黄道十二宮: the tropical Western signs, the sidereal rāśi with the ayanāṃśa, the Indian solar months, and the Chinese 十二次; `zodiac::decans`, the 36 faces of 10°, each ruled by a planet in the Chaldean order from Mars at 0° of Aries, as al-Bīrūnī tabulates them |
 | `planetary_hours` | The twelve temporal hours of the daylight and twelve of the night, from sunrise, each ruled by a planet in the Chaldean order from the weekday's, as al-Bīrūnī states the rule and Lilly's table for London works it |
 | `lunisolar` | a minimal month/day derivation for 六曜 and the moon-viewing nights — see Known gaps |
 
@@ -84,7 +84,7 @@ reaches a multiple of 15°. A zodiac sign is the same search at a multiple of
 | Division | Zero point | Boundaries |
 | --- | --- | --- |
 | `zodiac::tropical` | the March equinox | **exactly the twelve 中気** |
-| `zodiac::sidereal` | the fixed stars, an *ayanamsa* behind the equinox | about 24° later |
+| `zodiac::sidereal` | the fixed stars, an *ayanāṃśa* behind the equinox | about 24° later |
 | `zodiac::chinese_twelve` | 大雪 at 255° | **exactly the twelve 節気** |
 
 The first and third rows are identities, not resemblances, and tests assert
@@ -104,7 +104,7 @@ calendars of Tamil Nadu, West Bengal, Assam, Odisha and Kerala take their
 months from it, so `zodiac::rashi` is month names over the same boundaries and
 no second algorithm.
 
-The ayanamsa is a parameter: four named anchors are shipped, `Ayanamsa::new`
+The ayanāṃśa is a parameter: four named anchors are shipped, `Ayanamsa::new`
 takes any other, and the document says where each anchor comes from. Moving
 from Lahiri to Raman — 1.45° — moves **all twelve** month boundaries by a day
 or more.
@@ -142,7 +142,7 @@ conjunctions land within about a minute, so month boundaries, phase dates,
 fraction are quoted for **local noon**, as NAOJ's 暦象年表 quotes its 正午月齢
 for noon; `moon_age_at` takes any instant. The sidereal boundaries carry a second,
 independent uncertainty, the few tens of arcseconds by which published values
-of a named ayanamsa disagree.
+of a named ayanāṃśa disagree.
 
 `TropicalSign::conventional_period` ships the fixed dates newspapers print
 — "Aries: March 21 – April 19" — and `tests/zodiac_conventional_dates.rs`
@@ -153,7 +153,7 @@ fixed list could be right everywhere at once.
 
 ## The reference data, and where it came from
 
-* **The 24 terms, the 72 pentads, the zodiac signs, the rāśi, the ayanamsa
+* **The 24 terms, the 72 pentads, the zodiac signs, the rāśi, the ayanāṃśa
   anchors and the 十二次** are sourced, column by column, in the document.
   Two facts worth restating here: three of the 24 terms are written
   differently in traditional Chinese and in Japanese shinjitai (驚蟄/啓蟄,
@@ -221,7 +221,7 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
   system and no chart. That matters most for the sidereal side: in Jyotiṣa a
   person's *janma rāśi* is the **Moon's** rāśi, not the Sun's, so
   `sidereal::sign_on_day` is not the birth sign an Indian almanac would give.
-  A Moon sign needs `hc_astro::lunar_longitude` minus the ayanamsa, which is
+  A Moon sign needs `hc_astro::lunar_longitude` minus the ayanāṃśa, which is
   two lines this crate deliberately does not write, because once it has a Moon
   sign it is being asked for a chart.
 * **No constellation boundaries.** A sign is a 30° arc of the ecliptic. The
@@ -291,9 +291,9 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
   The flip is a convenience for a southern-hemisphere caller, who would
   otherwise get nothing.
 * **No `Calendar` impl, no registry entry.** Deliberate; see above.
-* **Ayanamsa anchors disagree at the tens-of-arcseconds level.** The values
+* **Ayanāṃśa anchors disagree at the tens-of-arcseconds level.** The values
   here are the Swiss Ephemeris ones; other published tables for the same named
-  ayanamsa differ by a few tens of arcseconds, which is a few minutes of time
+  ayanāṃśa differ by a few tens of arcseconds, which is a few minutes of time
   in the Sun's motion and can move a saṅkrānti *day* at a midnight boundary.
   There is no way to resolve this, because the disagreement is about a
   convention and not about the sky, so the anchor is a public field of
@@ -301,7 +301,7 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
 * **`sidereal::ingress_moment` assumes one saṅkrānti per Gregorian year.**
   True for the Lahiri anchor from roughly 1100 CE onwards, because on
   1 January the Sun stands near 256° sidereal, far from a boundary. Around the
-  year 1000 the ayanamsa was near 10°, which put a boundary on 1 January
+  year 1000 the ayanāṃśa was near 10°, which put a boundary on 1 January
   itself, and a Gregorian year near then can hold a saṅkrānti twice or not at
   all. `sidereal::signs_in_year` walks the year instead and cannot
   double-count. This is the same shape of caveat as `pentad_moment` near 280°.

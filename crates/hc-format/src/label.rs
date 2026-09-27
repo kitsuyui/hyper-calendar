@@ -438,6 +438,7 @@ impl<'a> Renderer<'a> {
                 let Some((stem, branch)) = names::sexagenary_names(self.locale, position) else {
                     return Ok(());
                 };
+                self.mark("sexagenary_year");
                 out.write_str(stem)?;
                 out.write_str(names::sexagenary_joiner(self.locale))?;
                 out.write_str(branch)
@@ -858,6 +859,7 @@ mod tests {
     fn guimao() -> DateFields {
         let mut fields = DateFields::ymd_leap_month(4660, 2, 1);
         fields.extra.set("sexagenary_year", 39).unwrap();
+        fields.extra.set("related-gregorian-year", 2023).unwrap();
         fields
     }
 
@@ -955,10 +957,10 @@ mod tests {
             render(&toy, &guimao(), "en"),
             [
                 "",
-                "4660",
+                "2023(gui-mao)",
                 "leap Second Month",
                 "1",
-                "leap Second Month 1, 4660"
+                "leap Second Month 1, 2023(gui-mao)"
             ]
         );
         // Without the sexagenary extra the family's year template says

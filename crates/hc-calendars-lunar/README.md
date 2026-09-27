@@ -6,6 +6,7 @@ with the Sun by adding leap months. This crate holds:
 
 - the Hijri family;
 - the Hebrew calendar;
+- the Samaritan calendar;
 - the Babylonian calendar of the Seleucid era;
 - the Tibetan calendar in its Phugpa, Tsurphu and Bhutanese versions, and
   the Mongolian calendar on the same engine;

@@ -3,14 +3,14 @@
 //!
 //! The four regional rules, as Sewell and Dikshit state them and as the
 //! *Rashtriya Panchang*'s "Regional Calendars" tables show them, the
-//! eras, the true and the *Sūrya Siddhānta* Sun and the ayanamsa are
+//! eras, the true and the *Sūrya Siddhānta* Sun and the ayanāṃśa are
 //! written up with their sources in `docs/systems/hindu-calendars.md` in
 //! the repository. This page summarises it and states the code's own
 //! facts.
 //!
 //! Every solar reckoning of the subcontinent divides the year at the
 //! twelve *saṅkrāntis*, the Sun's entries into the sidereal signs — the
-//! same instants for everyone, fixed by the ayanamsa — and then has to say
+//! same instants for everyone, fixed by the ayanāṃśa — and then has to say
 //! which civil day a month begins on when the saṅkrānti falls in the
 //! middle of one. Four answers are in use in India:
 //!
@@ -40,7 +40,7 @@
 //! # Whose Sun
 //!
 //! The saṅkrāntis are those of a [`SolarModel`]: the true Sun of modern
-//! astronomy in the sidereal zodiac of an ayanamsa, as the national
+//! astronomy in the sidereal zodiac of an ayanāṃśa, as the national
 //! almanac computes it and all four reckonings above use, or the Sun of
 //! the *Sūrya Siddhānta* ([`crate::surya_siddhanta`]), whose saṅkrāntis
 //! fall hours away from the modern ones. The Nepali Bikram Sambat is the
@@ -180,7 +180,7 @@ impl SankrantiRule {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SolarModel {
     /// The true Sun of modern astronomy, in the sidereal zodiac whose zero
-    /// point an ayanamsa fixes: the *Rashtriya Panchang*'s, with
+    /// point an ayanāṃśa fixes: the *Rashtriya Panchang*'s, with
     /// [`Ayanamsa::LAHIRI`].
     Modern(Ayanamsa),
     /// The Sun of the *Sūrya Siddhānta*, sidereal by construction

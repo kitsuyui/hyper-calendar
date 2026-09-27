@@ -86,7 +86,15 @@ fn fault(
     if text.contains('=') {
         return Some(String::from("a name=value pair"));
     }
-    if let Some(word) = words(text).find(|word| identifiers.contains(word)) {
+    // A field's identifier is never written; a value's name that happens
+    // to be spelled like one, the Burmese half *waning*, is its name.
+    let values: Vec<String> = fields
+        .extra
+        .iter()
+        .map(|extra| label::extra(calendar, fields, extra.name, locale))
+        .collect();
+    let named = |word: &str| values.iter().any(|value| words(value).any(|w| w == word));
+    if let Some(word) = words(text).find(|word| identifiers.contains(word) && !named(word)) {
         return Some(format!("the field identifier {word}"));
     }
     // An era's code is never written; an abbreviation that happens to be
@@ -167,6 +175,53 @@ fn no_formatted_date_holds_a_raw_extra_field_or_era_code() {
         "{} unreadable texts: {faults:#?}",
         faults.len()
     );
+}
+
+/// A date marks an extra field as written exactly when its text depends
+/// on the field: changing the field's value, up or down by one, changes
+/// the text of the date that writes it and of no other. Every calendar is
+/// checked in every locale, so each template that writes an extra — a
+/// notation's `{extra:FIELD}`, a locale's `{sexagenary}` — is covered.
+#[test]
+fn the_in_date_flag_says_whether_the_date_depends_on_the_field() {
+    let registry = hyper_calendar::registry();
+    let locales = locales();
+    let mut wrong: BTreeSet<String> = BTreeSet::new();
+    let mut written = 0_usize;
+    for meta in registry.metas() {
+        let calendar = registry.get(meta.id).expect("registered");
+        let days = [meta.sample_day(Rd(739_886)), meta.sample_day(Rd(730_179))];
+        for day in days {
+            let Ok(fields) = calendar.fixed_to_fields(day) else {
+                continue;
+            };
+            for requested in &locales {
+                let locale = label::locale_for(calendar, requested.as_ref());
+                let (text, marked) = label::date_marking(calendar, &fields, &locale);
+                for (index, extra) in fields.extra.iter().enumerate() {
+                    let depends = [extra.value + 1, extra.value - 1].into_iter().any(|value| {
+                        let mut changed = fields;
+                        changed.extra.set(extra.name, value).expect("replaces");
+                        label::date(calendar, &changed, &locale) != text
+                    });
+                    if marked.contains(index) {
+                        written += 1;
+                    }
+                    if marked.contains(index) != depends {
+                        wrong.insert(format!(
+                            "{} {locale} {} {}: marked {}, depends {depends}: {text:?}",
+                            meta.id.0,
+                            day.0,
+                            extra.name,
+                            marked.contains(index)
+                        ));
+                    }
+                }
+            }
+        }
+    }
+    assert!(written > 100, "{written}");
+    assert!(wrong.is_empty(), "{} wrong flags: {wrong:#?}", wrong.len());
 }
 
 /// The lines list each extra field once, labelled, with its value named
@@ -252,7 +307,43 @@ fn every_extra_field_has_a_labelled_line() {
         row("maya-tzolkin", "tzolkin_name")[2..6],
         ["8", "Tzolkʼin day sign", "Lamat", "1"]
     );
-    assert_eq!(row("chinese", "sexagenary_year")[4], "bing wu");
+    // CLDR's root writes the stem and branch joined, bing-wu; the English
+    // Chinese date writes them, "Eighth Month 17, 2026(bing-wu)".
+    assert_eq!(
+        row("chinese", "sexagenary_year")[3..6],
+        ["Stem and branch of the year", "bing-wu", "1"]
+    );
+    assert_eq!(
+        row("chinese", "related-gregorian-year")[2..6],
+        ["2026", "Related Gregorian year", "2026", "1"]
+    );
+    // The Chinese-family dates write the year's stem and branch, 丙午年八月十七
+    // and 병오년 8월 17일, and say so.
+    for (id, tag) in [
+        ("chinese", "zh-Hans"),
+        ("chinese", "zh-Hant"),
+        ("chinese", "ja"),
+        ("chinese", "ko"),
+        ("dangi", "ko"),
+        ("vietnamese", "zh-Hans"),
+    ] {
+        let lines = lines::day_extras(&registry, day, Some(id), tag).expect("registered");
+        let sexagenary = lines
+            .lines()
+            .find(|line| line.split('\t').nth(1) == Some("sexagenary_year"))
+            .unwrap_or_else(|| panic!("{id} {tag}"));
+        assert_eq!(
+            sexagenary.split('\t').nth(5),
+            Some("1"),
+            "{id} {tag}: {sexagenary}"
+        );
+    }
+    // The Burmese and Khmer dates write the half of the month.
+    let burmese = lines::day_extras(&registry, day, Some("burmese"), "my").expect("registered");
+    assert!(
+        burmese.contains("\twaning\t1\tHalf of the month\tလဆုတ်\t1\tmy\n"),
+        "{burmese}"
+    );
     assert_eq!(
         row("symmetry454", "day-of-week")[3..6],
         ["Day of the week", "Sunday", "0"]
@@ -339,10 +430,37 @@ fn the_extras_a_source_writes_are_in_the_date() {
         formatted("odia-anka", today, "en"),
         "Asvina 16, 71 Anka 1434"
     );
+    assert_eq!(formatted("juche", today, "ko"), "주체115(2026)년 9월 27일");
     assert_eq!(
-        formatted("juche", today, "ko"),
-        "Juche 115(2026)년 9월 27일"
+        formatted("juche", today, "en"),
+        "September 27, Juche 115 (2026)"
     );
+    // The Burmese date by its month, half and day: in English as
+    // `docs/systems/burmese.md` writes one, in Burmese as Wikipedia's
+    // example of 29 March 2017, «၁၃၇၈ ခုနှစ်၊ နှောင်းတန်ခူးလဆန်း ၂ ရက်».
+    assert_eq!(
+        formatted("burmese", today, "en"),
+        "Tawthalin waning 1, 1388 ME"
+    );
+    assert_eq!(
+        formatted("burmese", today, "my"),
+        "၁၃၈၈ ခုနှစ်၊ တော်သလင်းလဆုတ် ၁ ရက်"
+    );
+    assert_eq!(
+        formatted("burmese", 736_417, "my"),
+        "၁၃၇၈ ခုနှစ်၊ တန်ခူးလဆန်း ၂ ရက်"
+    );
+    // The Khmer date in Tum's order, the printed year after it.
+    assert_eq!(formatted("khmer", today, "en"), "1 roaj Phôtrôbât 2570 BE");
+    // CLDR 48's long forms: the Chinese "MMMM d, r(U)", the Hebrew
+    // "d MMMM y", and the Minguo era under zh-Hant, 民國 and 民國前.
+    assert_eq!(
+        formatted("chinese", today, "en"),
+        "Eighth Month 17, 2026(bing-wu)"
+    );
+    assert_eq!(formatted("hebrew", today, "en"), "16 Tishri 5787");
+    assert_eq!(formatted("roc", today, "zh-Hant"), "民國115年9月27日");
+    assert_eq!(formatted("roc", 697_000, "zh-Hant"), "民國前3年4月28日");
     assert_eq!(formatted("yazidi", today, "en"), "6776, day 166");
     assert_eq!(
         formatted("olympiad", today, "en"),

@@ -280,7 +280,7 @@ pub struct LunarEraDate {
 
 impl LunarEra {
     /// An era over another calendar: another place's sunrise, another
-    /// ayanamsa — or one of the unregistered year counts, [`GUPTA`] say,
+    /// ayanāṃśa — or one of the unregistered year counts, [`GUPTA`] say,
     /// under an identifier of the caller's.
     #[must_use]
     pub const fn new(

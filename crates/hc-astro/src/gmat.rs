@@ -1,6 +1,13 @@
 //! Greenwich Mean Astronomical Time: Greenwich mean time counted from
 //! noon, the reckoning of the *Nautical Almanac* before 1925.
 //!
+//! The almanac calls both reckonings "G.M.T."; the name *Greenwich Mean
+//! Astronomical Time*, GMAT, "was introduced to unambiguously refer to the
+//! previous noon-based astronomical convention" (Wikipedia, "Greenwich Mean
+//! Time", retrieved 2026-09-28, `wikipedia-greenwich-mean-time`, citing
+//! the *Astronomical Supplement to the Astronomical Almanac*, University
+//! Science Books, 1992, p. 76, not read).
+//!
 //! The astronomical day begins at mean noon at Greenwich and is named by
 //! the civil day it begins on, so GMAT = GMT − 12 h, and the astronomical
 //! date is the civil date for the hours from noon and the day before for
@@ -12,8 +19,10 @@
 //! Almanac Office, *The Nautical Almanac and Astronomical Ephemeris for
 //! the Year 1924*, 1921, the notice before the title page; read
 //! 2026-09-28 in the Digital Library of India's scan, `nautical-almanac-1924`).
-//! So a G.M.T. printed in an almanac for 1924 or earlier is GMAT, and one
-//! printed for 1925 or later is civil GMT.
+//! So a G.M.T. printed in the *Nautical Almanac* for 1924 or earlier is
+//! GMAT, and one printed for 1925 or later is civil GMT. The notice speaks
+//! of the Office's own publications only; another almanac's reckoning is
+//! that almanac's to state.
 //!
 //! GMT here is mean solar time at Greenwich counted from midnight, what is
 //! now Universal Time. Both functions take and give a [`CivilDateTime`]:

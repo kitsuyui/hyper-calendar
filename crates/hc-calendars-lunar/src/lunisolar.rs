@@ -568,6 +568,16 @@ pub struct LunisolarParameters {
 /// sets the counts side by side.
 pub const CHINESE_EPOCH: Rd = Rd(-963_099);
 
+/// The extra field that holds the Gregorian year a date's lunisolar year
+/// begins in: TR35's *related Gregorian year*, the `r` of CLDR's patterns
+/// for the Chinese and Dangi calendars, "MMMM d, r(U)".
+pub const RELATED_GREGORIAN_YEAR: &str = "related-gregorian-year";
+
+/// Added to the years elapsed since [`CHINESE_EPOCH`] to give the related
+/// Gregorian year: the first elapsed year begins in the proleptic
+/// Gregorian year −2636.
+const RELATED_GREGORIAN_OFFSET: i64 = -2_637;
+
 /// `x` reduced into `1..=n`, the "adjusted modulo" of *Calendrical
 /// Calculations*.
 const fn adjusted_modulo(x: i64, n: i64) -> i64 {
@@ -1274,6 +1284,12 @@ impl Calendar for LunisolarCalendar {
                     .index(),
             ),
         )?;
+        // The Gregorian year the lunisolar year begins in, CLDR's "related
+        // Gregorian year": the first year of the count began in 2637 BCE,
+        // the proleptic Gregorian year −2636.
+        fields
+            .extra
+            .set(RELATED_GREGORIAN_YEAR, elapsed + RELATED_GREGORIAN_OFFSET)?;
         Ok(fields)
     }
 

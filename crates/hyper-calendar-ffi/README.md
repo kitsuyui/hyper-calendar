@@ -130,7 +130,7 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a fixed day | `hc_plum_rains` | `year` −1000 through 3000, the days of 芒种 and 小暑 in the era of `hc_term_in_effect`; any other is `HC_ERROR_OUT_OF_RANGE`, and a rule or meridian it does not name `HC_ERROR_UNKNOWN` |
 | a fixed day | `hc_cold_food_day` | `year` −999 through 3000 under every reckoning, the years whose winter solstice before and whose April are both in the era of `hc_term_in_effect`; any other is `HC_ERROR_OUT_OF_RANGE`, and a reckoning it does not name `HC_ERROR_UNKNOWN` |
 | a line or lines | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_panchanga_of_day`, `hc_sunrise`, `hc_sunset`, `hc_crescent_visible`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_prayer_times`, `hc_zmanim`, `hc_unix_from_edo_time`, `hc_choghadiya`, `hc_folk_day`, `hc_planetary_hours_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
-| a line | `hc_hindu_lunar_date` | `fixed` in the Śaka years 1622 through 2221 on the true sky, from Chaitra śukla 1 in March 1700 to the eve of the one in March 2300, whose days move with the place and the ayanamsa (620 627 through 839 773 at the Central Station with Lahiri's); on `surya-siddhanta`, −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE`, as is a place beyond 65° of latitude; on the true sky, a day whose sunrise at the place the model does not find is `HC_ERROR_NO_DATA` |
+| a line | `hc_hindu_lunar_date` | `fixed` in the Śaka years 1622 through 2221 on the true sky, from Chaitra śukla 1 in March 1700 to the eve of the one in March 2300, whose days move with the place and the ayanāṃśa (620 627 through 839 773 at the Central Station with Lahiri's); on `surya-siddhanta`, −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE`, as is a place beyond 65° of latitude; on the true sky, a day whose sunrise at the place the model does not find is `HC_ERROR_NO_DATA` |
 | a line | `hc_surya_siddhanta_sunrise` | `fixed` −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_surya_siddhanta_at`, `hc_barhaspatya_year_at` | `unix_seconds` −159 992 668 800 through 155 590 156 799, the days of Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_barhaspatya_year` | `saka` −3178 through 6821, the expired Śaka years of Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -645,7 +645,7 @@ offset_seconds, locale, buffer, capacity, written)` its line of the
 Panchak window in progress at an instant, or the next, with its kind by
 `panchak-five-kinds` or `panchak-raj-midweek` for the weekday it opens on,
 read on a clock `offset_seconds` ahead of UTC; `hc_kumbh(yoga, year,
-ayanamsa, jupiter, locale, buffer, capacity, written)` its line of when
+ayanāṃśa, jupiter, locale, buffer, capacity, written)` its line of when
 the Sun, and the Moon where asked, stand as a Kumbh condition requires in
 a year; and `hc_pushkaram(sign, entry_unix_seconds, latitude, longitude,
 elevation, meridian, locale, buffer, capacity, written)` its lines of the
@@ -674,7 +674,7 @@ the Śaka and Vikrama years, the month, the intercalary flag, the tithi,
 the repeated flag and the sunrise, then in the `locale` (a tag, `native`
 or null, as for `hc_describe_day`) the month's name, the word for an
 intercalary month, the Śaka and Vikrama eras' names and the locale used —
-on the true sky in the zodiac of a named ayanamsa,
+on the true sky in the zodiac of a named ayanāṃśa,
 as `hindu-lunar` reads it at the Central Station, or, with `sky`
 `surya-siddhanta`, on the *Sūrya Siddhānta*'s, as
 `hindu-lunar-surya-siddhanta` reads it at Ujjain.

@@ -249,10 +249,19 @@ the test `the_sources_worked_example_of_1374_me_is_reproduced` holds.
 - **Identifier** `burmese` in `hc-calendars-regional`, with the month as
   `Month { ordinal, leap }`, First Waso being `Month::leap(4)` and
   preceding the regular Waso; the day counted 1 to 30 straight through,
-  with the fortnight day and the phase (waxing, full moon, waning, new
-  moon) as extra fields; and a `late` flag for Hnaung Tagu and Hnaung
-  Kason, so that the two stretches of Tagu a year apart are distinct
-  dates.
+  with the half of the month (`waning`, 0 for the waxing half, whose 15th
+  is the full moon), the fortnight day and the phase (waxing, full moon,
+  waning, new moon) as extra fields; and a `late` flag for Hnaung Tagu and
+  Hnaung Kason, so that the two stretches of Tagu a year apart are
+  distinct dates.
+- **The written date**, by `hc-i18n`: in English the month, the half, the
+  day and the year, "Tawthalin waning 1, 1388 ME"; in Burmese as
+  [wikipedia-burmese-calendar] writes 29 March 2017, «၁၃၇၈ ခုနှစ်၊
+  နှောင်းတန်ခူးလဆန်း ၂ ရက်», the year, ခုနှစ်, the month and its half, the
+  day and ရက်: «၁၃၈၈ ခုနှစ်၊ တော်သလင်းလဆုတ် ၁ ရက်». The full-moon and
+  new-moon days are written as the 15th of the waxing half and the last
+  of the waning one, and the prefix နှောင်း, Hnaung, of the late Tagu and
+  Kason is not written.
 - **The five eras as data**: `ERAS` holds each era's first and last year,
   its full-moon offset, its NM (−1 for the Metonic rule) and its two
   exception tables, and nothing about an era lives anywhere else.

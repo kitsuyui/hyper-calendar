@@ -7,7 +7,7 @@
 //! reads its sines from a table of twenty-four values at steps of 225
 //! minutes of arc, interpolating between them. Its zodiac is sidereal by
 //! construction, so there is no ayanamsa: the zero point is where the
-//! model puts it, and it is not the zero point of any modern ayanamsa.
+//! model puts it, and it is not the zero point of any modern ayanāṃśa.
 //! Its saṅkrāntis therefore fall hours from the modern ones — the Meṣa
 //! saṅkrānti of 2024 two hours and nineteen minutes after the Lahiri one.
 //!

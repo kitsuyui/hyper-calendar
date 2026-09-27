@@ -147,7 +147,7 @@ impl Sky for SiddhantaLunarCalendar {
         (calendar == *self).then_some((earliest, latest))
     }
 
-    /// No ayanamsa's key: two NaN patterns, which no anchor or angle has.
+    /// No ayanāṃśa's key: two NaN patterns, which no anchor or angle has.
     fn zodiac_key(&self) -> [u64; 2] {
         [u64::MAX; 2]
     }

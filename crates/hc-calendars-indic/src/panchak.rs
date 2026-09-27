@@ -11,7 +11,7 @@
 //! closes when it reaches 360°, the end of Revatī and of Mīna
 //! (`nakshatrica-panchak`). It lasts four to five days and comes round once
 //! a sidereal month, thirteen or fourteen times a year. The longitude is
-//! [`crate::nakshatra`]'s, so the window moves with the ayanamsa, which is
+//! [`crate::nakshatra`]'s, so the window moves with the ayanāṃśa, which is
 //! a parameter.
 //!
 //! The almanacs name a window by the weekday it begins on. They agree on

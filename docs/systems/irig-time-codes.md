@@ -25,7 +25,7 @@ The six formats are one design at six rates (Tables 3-1 and 3-2):
 ## How it works
 
 A frame is one pulse per index count: 100 counts in A, B, E and G, 60 in
-D and H. The width of a pulse is its meaning (§3.6, §3.9):
+D and H. The width of a pulse is its meaning (§3.4 to §3.6, §3.9):
 
 | Width, of the index count | Symbol |
 | --- | --- |
@@ -118,10 +118,28 @@ Deliberate choices:
 - **Format E has no SBS.** §3.7 and Table 5-9 lay SBS out for E, but Table
   4-1 permits E only expressions 1, 2, 5 and 6, none with SBS. The module
   follows Table 4-1, and E's counts 80–98 are index markers.
-- **The leap second.** On a leap-second day the SBS do not return to 0 at
-  24:00 (§3.6), so at 23:59:60 they read 86 400. The standard lays out no
-  leap-second frame; the module writes second 60 in BCD and reads it only
-  at the end of a month, as `hc-format::radio` does.
+- **The leap second.** §3.6 says only that the SBS read 0 at 24:00
+  "excluding leap second days when a second may be added or subtracted",
+  and the standard lays out no leap-second frame. The frame is the
+  module's choice: at 23:59:60 the SBS read 86 400 and the BCD seconds 60,
+  and second 60 is read only at the end of a month, as `hc-format::radio`
+  does. Format E's frames begin every ten seconds, and the module also
+  writes an E frame for 23:59:60, which is not on that schedule: the
+  standard does not say how an E frame spans a leap second.
+- **Counts 50–58 of a code without a year.** Table 3-4 gives A, B and E
+  18 control bits, which beside the year at counts 50–58 are counts 60–68
+  and 70–78. §3.8 says the control bits begin "at index count 50, 60, or
+  70", and Tables 5-1 and 5-4 head counts 50–78 "Year and Control
+  Functions (27 Bits)", which could be read as nine more control bits
+  where the year is left out. The module takes Table 3-4's count: in a
+  code without a year, counts 50–58 are index markers, and a 1 there is
+  refused.
+- **Signal designations.** Table 4-1 lists each format's modulations and
+  frequencies apart, and the module accepts any pairing of them, B020 and
+  B100 among them, although Figure 4-1 makes frequency 0 "no carrier",
+  which a sine wave cannot be sent without, and gives a pulse-width code
+  no carrier to name. The two digits are checked and dropped, since they
+  do not change the frame.
 - **No time scale.** A reading is a date and a time of day. The module
   gives no POSIX time, because the code does not say which clock it
   carries.
@@ -139,7 +157,7 @@ pulse, and the round trip of every permitted code.
 | Check | Test | Result |
 | --- | --- | --- |
 | Figures 5-1 (A), 5-2 (B), 5-3 (D), 5-5 (G) and 5-6 (H): day 173 of 2003, 21:18:42.8, 21:18:42, hour 21, 21:18:42.80 and 21:24, both ways | `the_standards_figures` | exact |
-| Figure 5-4 (E) draws Figure 5-2's pulses, with units of seconds and SBS that E does not carry; its note puts the frame at 21:18:40. The drawn frame is refused, and the frame of 21:18:40 is written | `figure_5_4_is_not_an_e_frame` | refused; written |
+| Figure 5-4 (E) draws Figure 5-2's pulses, with units of seconds and SBS that E does not carry; its note puts count 75 at 21:18:47.5, and 75 counts of 0.1 s before it Pr is 21:18:40. The drawn frame is refused, and the frame of 21:18:40 is written | `figure_5_4_is_not_an_e_frame` | refused; written |
 | Signal designations checked against Table 4-1, and Figure 4-1's A137 | `signal_designations_follow_table_4_1` | exact |
 | Control bits at their counts, and refused where the code has none | `control_bits` | exact |
 | 23:59:60 on 31 December 2016, SBS 86 400, and refused on the 30th | `a_leap_second` | exact |

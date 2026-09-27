@@ -107,14 +107,18 @@ oblique ascension to the hour [agrippa-1651, Book II, chapter 34], and the
 Key of Solomon's table counts its hours from midnight and from sunset
 [mathers-key-of-solomon]. Neither is carried.
 
-**Worked example.** Lilly's table for London, used for Monday 15 March
-1646, Old Style (25 March 1647 Gregorian), with the Sun at 4°47′ of Aries
+**Worked example.** Lilly's table, used for Monday 15 March 1646, Old
+Style (25 March 1647 Gregorian), with the Sun at 4°47′ of Aries
 [lilly-christian-astrology-1647]: the Sun rises at 5:47 and the first
 hour, the Moon's, lasts until 6:47; Saturn has the second, until 7:51;
 Jupiter the third, until 8:54; Mars the fourth, until 9:56, so at 9:30 it
-is Mars's hour. The daylight's twelfth hour, from 5:11 to 6:13 in the
-afternoon, is the Sun's; the night's sixth, from 11:02 to 12:00, is the
-eighteenth of the day and Mars's again.
+is Mars's hour. Lilly's figures are not quite equal hours: his first is
+60 minutes and his second 64, where a daylight from 5:47 to 6:13 in the
+evening makes each hour 62 minutes 10 seconds, and the first would end
+near 6:49. The table names no place or latitude; its sunrise fits
+London's, where the tests put the day. The daylight's twelfth hour,
+from 5:11 to 6:13 in the afternoon, is the Sun's; the night's sixth, from
+11:02 to 12:00, is the eighteenth of the day and Mars's again.
 
 ### Italian hours
 
@@ -527,7 +531,7 @@ in local apparent time, the three hours he works are found with his
 numbers and rulers, and the hours begin within 2.3 minutes of his table:
 sunrise 1.2 minutes before his 5:47, and the start of the night's first
 hour 2.3 minutes after his 6:13. His table is rounded to the minute and
-gives no latitude beyond London's.
+names no place or latitude; London is the tests' choice.
 
 ## Sources
 

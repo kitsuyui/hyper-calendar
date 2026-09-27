@@ -628,11 +628,14 @@ impl Calendar for BurmeseCalendar {
         from_fixed(rd)
     }
 
-    /// The year, month and day, with the late half, the fortnight day and
-    /// the phase as extra fields.
+    /// The year, month and day, with the late half, the half of the
+    /// month, the fortnight day and the phase as extra fields. `waning` is
+    /// 0 for the waxing half, whose 15th is the full moon, and 1 for the
+    /// waning half, whose last day is the new moon.
     fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
         let mut extra = ExtraFields::new();
         extra.set("late", i64::from(date.late))?;
+        extra.set("waning", i64::from(date.day > 15))?;
         extra.set("fortnight-day", i64::from(date.fortnight_day()))?;
         extra.set(
             "phase",

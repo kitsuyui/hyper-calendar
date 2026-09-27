@@ -15,7 +15,7 @@
 //! | Division | Zero point | Boundaries in this crate's terms |
 //! | --- | --- | --- |
 //! | [`tropical`] | the March equinox | the twelve 中気, exactly |
-//! | [`sidereal`] | the fixed stars, an *ayanamsa* behind the equinox | ~24° later than the tropical ones |
+//! | [`sidereal`] | the fixed stars, an *ayanāṃśa* behind the equinox | ~24° later than the tropical ones |
 //! | [`chinese_twelve`] | 大雪 at 255° | the twelve 節気, exactly |
 //!
 //! Each tropical sign is further cut into three decans of 10°, the faces
@@ -217,7 +217,7 @@ mod tests {
             ChineseStation::SHICHEN
         );
         // The sidereal sign is the tropical one's predecessor here, which is
-        // what a 24° ayanamsa does for most of a 30° sign.
+        // what a 24° ayanāṃśa does for most of a 30° sign.
         assert_eq!(
             sidereal::sign_on_day(day, Ayanamsa::LAHIRI, japan).tropical_counterpart(),
             TropicalSign::TAURUS.previous()

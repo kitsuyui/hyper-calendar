@@ -168,15 +168,15 @@ anchor:
 
 | Convention | Functions |
 | --- | --- |
-| The Jewish temporal hours by the GRA or the MGA | `zman_gra`, `zman_mga_72_minutes` |
+| The Jewish temporal hours by the GRA or the MGA | `zman_gra`, `zman_mga_72_minutes`, `zman_mga_16_1_degrees` |
 | The Edo dawn by the 寛政暦's angle or the Observatory's | `japanese_dawn_kansei`, `japanese_dawn_naoj` |
 | Rāhu kālam over the daylight or over a fixed day | `kalam::by_sunrise`, `kalam::by_fixed_day` |
 
 A function cannot be chosen by accident either. It is as discoverable in
 the documentation as an entry is in a registry.
 
-What else such a convention is called depends on whether anything looks it
-up by a string:
+Whether such a convention also has a string name depends on whether
+anything looks it up by a string:
 
 - **Nothing looks it up by a string**, as nothing looks up an Edo dawn. The
   function's name is its only name. The roadmap writes "—" as its

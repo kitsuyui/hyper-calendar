@@ -16,8 +16,8 @@
 //! arithmetic on the *Sūrya Siddhānta*'s Sun and Moon: one plus the floor
 //! of the sum, modulo 360°, over 13°20′ (`reingold2018code`, `yoga`).
 //! Here the longitudes are the true Sun and Moon of `hc-astro` less the
-//! ayanamsa, the machinery [`crate::nakshatra`] uses for the Moon's
-//! station and the Sun's, so a yoga moves with the ayanamsa twice over: a
+//! ayanāṃśa, the machinery [`crate::nakshatra`] uses for the Moon's
+//! station and the Sun's, so a yoga moves with the ayanāṃśa twice over: a
 //! difference of 20″ in the zero point moves every yoga's end by about a
 //! minute.
 //!
@@ -37,7 +37,7 @@
 //! the number less 50 above 57, and otherwise the number less one taken
 //! round 1 to 7 (`reingold2018code`, `karana`), which [`karana_name`] is.
 //! The elongation needs no zodiac, so the karaṇa, like the tithi, does not
-//! depend on the ayanamsa.
+//! depend on the ayanāṃśa.
 //!
 //! # Which moment a day takes
 //!
@@ -440,11 +440,11 @@ mod tests {
         }
         // Every end within a minute of the printed one, from 56 seconds
         // before it to 14 seconds after, held here to a minute before and
-        // half a minute after. The karaṇas below, which need no ayanamsa,
+        // half a minute after. The karaṇas below, which need no ayanāṃśa,
         // come 35 to 94 seconds after theirs, so the yogas run about a
         // minute early against them: the Lahiri value here and Drik
         // Panchang's stand about 20″ apart, as `crate::nakshatra`'s Sun
-        // transits show, and the yoga takes the ayanamsa twice.
+        // transits show, and the yoga takes the ayanāṃśa twice.
         let (low, high) = spread(&offsets);
         assert!(low > -1.0 && high < 0.5, "{offsets:?}");
     }
@@ -459,7 +459,7 @@ mod tests {
             let (_, exit) = karana_span(before);
             offsets.push((exit.0 - printed.0) * 1440.0);
         }
-        // The karaṇa needs no ayanamsa, so the two agree to within the
+        // The karaṇa needs no ayanāṃśa, so the two agree to within the
         // minute the pages print: every end here is 35 to 94 seconds after
         // the printed minute, which the pages appear to truncate.
         let (low, high) = spread(&offsets);

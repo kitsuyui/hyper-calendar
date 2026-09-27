@@ -552,7 +552,7 @@ mod tests {
         assert_eq!(month_name(SiderealSign::SIMHA, MALAYALAM), "Chingam");
     }
 
-    /// A different ayanamsa gives a different calendar: the Raman anchor is
+    /// A different ayanāṃśa gives a different calendar: the Raman anchor is
     /// about 1.45° behind Lahiri, so every month begins a day or two earlier,
     /// and on some days the two disagree about which month it is.
     #[test]
