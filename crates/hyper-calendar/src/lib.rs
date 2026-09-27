@@ -80,6 +80,8 @@ pub use hc_calendar::{
     CalendarError, CalendarResult, CivilDateTime, CivilTime, DateFields, Month, Rd, Weekday,
 };
 
+#[cfg(all(feature = "alloc", feature = "almanac"))]
+pub mod almanac_lines;
 #[cfg(all(feature = "alloc", feature = "astro"))]
 pub mod astro_lines;
 #[cfg(feature = "alloc")]
@@ -102,6 +104,8 @@ pub mod deep_time_lines;
 pub mod hindu_lines;
 #[cfg(all(feature = "alloc", feature = "holiday"))]
 pub mod holiday_lines;
+#[cfg(all(feature = "alloc", feature = "astro"))]
+pub mod hours_lines;
 #[cfg(all(
     feature = "alloc",
     feature = "civil",
@@ -119,6 +123,8 @@ pub mod relativity_lines;
 pub mod season_lines;
 #[cfg(all(feature = "alloc", feature = "seasons"))]
 pub mod sky_lines;
+#[cfg(all(feature = "alloc", feature = "civil", feature = "format"))]
+pub mod time_code_lines;
 #[cfg(all(feature = "alloc", feature = "civil"))]
 pub mod time_lines;
 #[cfg(all(feature = "alloc", feature = "tz"))]

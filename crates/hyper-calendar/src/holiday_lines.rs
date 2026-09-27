@@ -15,6 +15,10 @@
 //!   years the Rules leave a Festival without a day, are already lines of
 //!   `hc_holidays_on`, in the `common-worship` table; the rank is what
 //!   these lines add.
+//! * The Eastern Orthodox fast a day falls in, and the fasting seasons and
+//!   fast-free weeks of a year, under each reckoning of
+//!   [`hc_holiday::orthodox_fasts`]: two reckonings, two identifiers
+//!   (`docs/policy.md` §5), which the caller names.
 
 use alloc::string::String;
 use core::fmt::Write;
@@ -23,6 +27,7 @@ use hc_calendar::Rd;
 use hc_calendars_solar::gregorian;
 use hc_holiday::common_worship::{CELEBRATIONS, COMMON_WORSHIP, Rank};
 use hc_holiday::holy_years::{self, HolyYearOn, Jubilee, JubileeKind, TableDate};
+use hc_holiday::orthodox_fasts::{self, Abstinence, Period, PeriodKind, Reckoning, Status};
 use hc_holiday::rule::RuleSet;
 use hc_holiday::{
     HolidayCalendar, computus, countries, exchanges, international, lectionary, traditions,
@@ -30,7 +35,7 @@ use hc_holiday::{
 use hc_i18n::Locale;
 use hc_i18n::territories::{self, TerritoryName};
 
-use crate::boundary::{Answer, Refusal, push_cell};
+use crate::boundary::{Answer, Refusal, names, push_cell};
 
 /// How many columns [`holiday_tables`] writes.
 pub const HOLIDAY_TABLES_COLUMNS: usize = 8;
@@ -393,11 +398,235 @@ pub fn common_worship_lines(fixed: i64) -> Answer<String> {
     Ok(out)
 }
 
+/// The reckoning of the Orthodox fasts an identifier names, one of
+/// [`Reckoning::ALL`], `orthodox-fasts` or `orthodox-fasts-revised-julian`,
+/// in any ASCII case.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for any other.
+pub fn orthodox_fasts_reckoning(id: &str) -> Answer<&'static Reckoning> {
+    Reckoning::ALL
+        .iter()
+        .find(|reckoning| names(id, reckoning.id))
+        .ok_or(Refusal::Unknown)
+}
+
+/// The identifier a [`PeriodKind`] is written as.
+const fn period_kind_id(kind: PeriodKind) -> &'static str {
+    match kind {
+        PeriodKind::Fast => "fast",
+        PeriodKind::FastFree => "fast-free",
+        PeriodKind::MeatExcluded => "meat-excluded",
+    }
+}
+
+/// The first and last years of either reckoning's calendar the Julian
+/// computus gives a Pascha for, and so the only years with a scheme.
+const FAST_YEARS: core::ops::RangeInclusive<i64> = 326..=4_099;
+
+/// How many columns [`orthodox_fast_line`] writes.
+pub const ORTHODOX_FAST_COLUMNS: usize = 6;
+
+/// The line of `hc_orthodox_fast_on`: what a day is in the fasting scheme
+/// of a reckoning — `1` if it is a fast day, else `0`; `period`,
+/// `weekly-fast` for a Wednesday or Friday in no period, or `none`; and
+/// for a period its identifier, its English name as the OCA's outline
+/// gives it and its kind, `fast`, `fast-free` or `meat-excluded`, else three
+/// empty cells; and what the day abstains from, `nothing`, `meat` or
+/// `fast`, which alone tells a day of the Meatfast, not a fast day but one
+/// without meat, from an ordinary one.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a reckoning [`orthodox_fasts_reckoning`] does
+/// not name, and [`Refusal::OutOfRange`] for a day outside the years 326
+/// to 4099 of the reckoning's calendar.
+pub fn orthodox_fast_line(reckoning: &str, fixed: i64) -> Answer<String> {
+    let reckoning = orthodox_fasts_reckoning(reckoning)?;
+    // A generous bound first, so that no calendar arithmetic meets a day
+    // near the ends of an `i64`: the years 300 to 4200.
+    if !(100_000..=1_600_000).contains(&fixed) {
+        return Err(Refusal::OutOfRange);
+    }
+    let status = orthodox_fasts::status(reckoning, Rd(fixed)).ok_or(Refusal::OutOfRange)?;
+    let mut out = String::new();
+    let _ = write!(out, "{}\t", u8::from(status.is_fast_day()));
+    match status {
+        Status::InPeriod(period) => {
+            out.push_str("period\t");
+            push_cell(&mut out, period.id);
+            out.push('\t');
+            push_cell(&mut out, period.english_name);
+            let _ = write!(out, "\t{}\t", period_kind_id(period.kind));
+        }
+        Status::WeeklyFast(_) => out.push_str("weekly-fast\t\t\t\t"),
+        Status::NotFasting => out.push_str("none\t\t\t\t"),
+    }
+    out.push_str(match status.abstinence() {
+        Abstinence::Nothing => "nothing",
+        Abstinence::Meat => "meat",
+        Abstinence::Fast => "fast",
+    });
+    out.push('\n');
+    Ok(out)
+}
+
+/// How many columns [`orthodox_fast_seasons_lines`] writes.
+pub const ORTHODOX_FAST_SEASON_COLUMNS: usize = 5;
+
+/// The lines of `hc_orthodox_fast_seasons`: every period of the scheme
+/// that begins in a year of a reckoning's calendar, one a line in the
+/// order a day is tested against them, as its identifier, its English
+/// name, its kind (`fast`, `fast-free` or `meat-excluded`), and its first and last days as fixed days, both
+/// included; both are empty in a year the period does not happen, which
+/// only the Apostles' Fast does, on the Revised Julian reckoning when
+/// Pascha is late. Christmastide ends in the next year.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a reckoning [`orthodox_fasts_reckoning`] does
+/// not name, and [`Refusal::OutOfRange`] for a year outside 326 to 4099.
+pub fn orthodox_fast_seasons_lines(reckoning: &str, year: i64) -> Answer<String> {
+    let reckoning = orthodox_fasts_reckoning(reckoning)?;
+    if !FAST_YEARS.contains(&year) {
+        return Err(Refusal::OutOfRange);
+    }
+    let mut out = String::new();
+    for period in Period::ALL {
+        push_cell(&mut out, period.id);
+        out.push('\t');
+        push_cell(&mut out, period.english_name);
+        let _ = write!(out, "\t{}\t", period_kind_id(period.kind));
+        if let Some((first, last)) = orthodox_fasts::span(reckoning, period, year) {
+            let _ = write!(out, "{}\t{}", first.0, last.0);
+        } else {
+            out.push('\t');
+        }
+        out.push('\n');
+    }
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use alloc::collections::{BTreeMap, BTreeSet};
     use alloc::vec::Vec;
+
+    fn ymd(year: i64, month: u8, day: u8) -> i64 {
+        gregorian::to_fixed(year, month, day).expect("a date").0
+    }
+
+    /// The worked example of `docs/systems/orthodox-fasts.md`, from the
+    /// OCA's outline (`oca-fasting-seasons`): in 2025 Great Lent began on
+    /// 3 March, Bright Wednesday, 23 April, was fast-free, and the week
+    /// after the Publican and the Pharisee made Wednesday 12 February
+    /// fast-free, as the Holy Trinity calendar marks it
+    /// (`holy-trinity-calendar`).
+    #[test]
+    fn the_fasts_of_2025_are_the_worked_examples() {
+        let line = |reckoning: &str, fixed: i64| {
+            let line = orthodox_fast_line(reckoning, fixed).expect("in range");
+            let cells: Vec<String> = line
+                .trim_end_matches('\n')
+                .split('\t')
+                .map(String::from)
+                .collect();
+            assert_eq!(cells.len(), ORTHODOX_FAST_COLUMNS);
+            cells
+        };
+        assert_eq!(
+            line("orthodox-fasts", ymd(2025, 3, 3)),
+            [
+                "1",
+                "period",
+                "great-lent",
+                "Great Lent & Holy Week",
+                "fast",
+                "fast"
+            ]
+        );
+        assert_eq!(
+            line("orthodox-fasts", ymd(2025, 4, 23))[..3],
+            ["0", "period", "bright-week"]
+        );
+        assert_eq!(
+            line("orthodox-fasts-revised-julian", ymd(2025, 2, 12))[..3],
+            ["0", "period", "publican-and-pharisee-week"]
+        );
+        // Wednesday 1 October 2025 is in no period on either reckoning.
+        assert_eq!(
+            line("ORTHODOX-FASTS", ymd(2025, 10, 1)),
+            ["1", "weekly-fast", "", "", "", "fast"]
+        );
+        // Wednesday 18 February 2026 is in the Meatfast, Cheesefare week,
+        // Pascha being 12 April: no fast day, though a Wednesday, but no
+        // meat (`oca-fasting-seasons`).
+        assert_eq!(
+            line("orthodox-fasts", ymd(2026, 2, 18)),
+            [
+                "0",
+                "period",
+                "meatfast",
+                "Meatfast",
+                "meat-excluded",
+                "meat"
+            ]
+        );
+        assert_eq!(
+            line("orthodox-fasts", ymd(2025, 10, 2)),
+            ["0", "none", "", "", "", "nothing"]
+        );
+        assert_eq!(
+            orthodox_fast_line("coptic", ymd(2025, 1, 1)),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            orthodox_fast_line("orthodox-fasts", i64::MIN),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
+    /// The Apostles' Fast of 2025 ran from Monday 16 June to 11 July on the
+    /// Julian reckoning and to 28 June on the Revised Julian one
+    /// (`wikipedia-apostles-fast`); in 2024 it did not happen on the
+    /// Revised Julian reckoning, the Monday after All Saints' being 1 July
+    /// (`trueorthodox-apostles-2024`).
+    #[test]
+    fn the_apostles_fast_moves_and_vanishes() {
+        let apostles = |reckoning: &str, year: i64| {
+            let text = orthodox_fast_seasons_lines(reckoning, year).expect("in range");
+            let rows: Vec<Vec<String>> = text
+                .lines()
+                .map(|line| line.split('\t').map(String::from).collect())
+                .collect();
+            assert_eq!(rows.len(), Period::ALL.len());
+            for row in &rows {
+                assert_eq!(row.len(), ORTHODOX_FAST_SEASON_COLUMNS);
+            }
+            rows.into_iter()
+                .find(|row| row[0] == "apostles-fast")
+                .expect("the Apostles' Fast has a line")
+        };
+        let julian = apostles("orthodox-fasts", 2025);
+        assert_eq!(
+            julian[2..],
+            [
+                "fast".to_owned(),
+                ymd(2025, 6, 16).to_string(),
+                ymd(2025, 7, 11).to_string()
+            ]
+        );
+        let revised = apostles("orthodox-fasts-revised-julian", 2025);
+        assert_eq!(revised[4], ymd(2025, 6, 28).to_string());
+        let vanished = apostles("orthodox-fasts-revised-julian", 2024);
+        assert_eq!(vanished[3..], ["", ""]);
+        assert_eq!(
+            orthodox_fast_seasons_lines("orthodox-fasts", 325),
+            Err(Refusal::OutOfRange)
+        );
+    }
 
     fn day(year: i64, month: u8, day: u8) -> i64 {
         hc_calendars_solar::gregorian::to_fixed(year, month, day)

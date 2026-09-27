@@ -195,3 +195,7 @@ The FAT32 specification (`fatgen103`) was not read.
 `an_ntp_timestamp_is_placed_in_its_era_by_the_reference`,
 `a_posix_instant_encodes_to_the_ntp_dates_of_figure_4`,
 `the_fat_words_of_the_last_even_second_of_26_september_2026`.
+
+The WebAssembly and C exports `hc_dotnet_ticks_from_unix` and
+`hc_unix_from_dotnet_ticks` convert .NET's ticks, from
+`hyper_calendar::time_code_lines`.

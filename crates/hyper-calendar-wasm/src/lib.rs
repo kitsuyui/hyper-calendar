@@ -74,7 +74,7 @@
 //! # Layers
 //!
 //! The exports come in layers that a page can load as it needs them, each a
-//! Cargo feature: `civil` (the default), `timestamps`, `calendars`, `holiday`, `seasons`,
+//! Cargo feature: `civil` (the default), `timestamps`, `time-codes`, `calendars`, `holiday`, `seasons`,
 //! `deep-time`, `tz`, `sky`, `orbital`, `planetary` and `relativity`, with
 //! `full` for all of them.
 //! Which feature each export needs is in the README's table.
@@ -1209,6 +1209,420 @@ pub use time_scales::{
     hc_uuid_timestamp, hc_uuid_timestamp_encode,
 };
 
+/// The CCSDS and radio time codes, behind the `time-codes` feature: the
+/// binary CCSDS codes and the ASCII codes A and B, and the long-wave radio
+/// codes of JJY, DCF77 and WWVB, read and written. A layer of its own, so
+/// that `timestamps` stays small for a page that needs only POSIX, ISO and
+/// TAI conversions. The lines are `hyper_calendar::time_code_lines`',
+/// shared with the C library.
+#[cfg(feature = "time-codes")]
+mod time_codes {
+    use super::{emit_answer, text};
+    use hc::time_code_lines;
+
+    /// A binary CCSDS time code read, as one UTF-8 line, returning the byte
+    /// length written.
+    ///
+    /// `hex` is the code's octets, the P-field and exactly the T-field it
+    /// announces, as hexadecimal, two digits an octet, in either case.
+    /// Tab-separated: the code, `cuc`, `cds` or `ccs`; the instant as TAI
+    /// seconds from 1970-01-01 00:00:00 TAI and attoseconds; and its UTC
+    /// label as the POSIX second, `1` for an inserted leap second or `0`,
+    /// and attoseconds. CUC counts TAI and CDS and CCS count UTC; the other
+    /// scale is from the leap-second table, and `strict` non-zero refuses
+    /// an instant outside it with `HC_ERR_NO_DATA`, as does 23:59:60 past
+    /// it. Text that is not a code, or fields out of their range, is
+    /// `HC_ERR_MALFORMED`; a Level 2 code, whose epoch is its agency's, or
+    /// a Level 3 or 4 code is `HC_ERR_NO_DATA`. A null `buffer` returns the
+    /// length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `hex` must be readable for `hex_len` bytes unless null with a zero
+    /// length; `buffer` must be writable for `capacity` bytes unless it is
+    /// null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_ccsds_decode(
+        hex: *const u8,
+        hex_len: usize,
+        strict: i32,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let hex = match unsafe { text(hex, hex_len) } {
+            Ok(hex) => hex,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = time_code_lines::ccsds_decode_line(hex, strict != 0);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The binary CCSDS time code of a TAI instant in the format a P-field
+    /// names, as one UTF-8 line, returning the byte length written.
+    ///
+    /// The line is the code's octets in lower-case hexadecimal, the P-field
+    /// first. A CUC code counts the TAI instant; CDS and CCS count its UTC
+    /// label from the leap-second table, `strict` non-zero refusing an
+    /// instant outside it with `HC_ERR_NO_DATA`. The finer part of the
+    /// second is floored to the format's resolution. A `p_field` that is
+    /// not one P-field is `HC_ERR_MALFORMED`, and a Level 2, 3 or 4 format
+    /// `HC_ERR_NO_DATA`; attoseconds from 10¹⁸, or an instant the format
+    /// cannot count — before 1958, past its last count, or outside the
+    /// years 1 to 9999 — are `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns
+    /// the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `p_field` must be readable for `p_field_len` bytes unless null with
+    /// a zero length; `buffer` must be writable for `capacity` bytes unless
+    /// it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_ccsds_encode(
+        tai_seconds: i64,
+        attoseconds: u64,
+        p_field: *const u8,
+        p_field_len: usize,
+        strict: i32,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let p_field = match unsafe { text(p_field, p_field_len) } {
+            Ok(p_field) => p_field,
+            Err(sentinel) => return sentinel,
+        };
+        let answer =
+            time_code_lines::ccsds_encode_line(tai_seconds, attoseconds, p_field, strict != 0);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// A CCSDS ASCII time code, A or B, read, as one UTF-8 line, returning
+    /// the byte length written.
+    ///
+    /// Tab-separated: the variation, `a` or `b`; the instant, the start of
+    /// the span a truncated code names, in the five cells of
+    /// `hc_ccsds_decode`; how far the time part runs, `hour`, `minute`,
+    /// `second` or `fraction`; the digits of the fraction, else empty; and
+    /// `1` if the terminator `Z` follows, else `0`. Text that is not a
+    /// code, a calendar or time subset alone included, is
+    /// `HC_ERR_MALFORMED`; `strict` is as for `hc_ccsds_decode`. A null
+    /// `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `code` must be readable for `code_len` bytes unless null with a zero
+    /// length; `buffer` must be writable for `capacity` bytes unless it is
+    /// null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_ccsds_ascii_parse(
+        code: *const u8,
+        code_len: usize,
+        strict: i32,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let code = match unsafe { text(code, code_len) } {
+            Ok(code) => code,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = time_code_lines::ccsds_ascii_parse_line(code, strict != 0);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The CCSDS ASCII time code of a TAI instant's UTC label, as one UTF-8
+    /// line, returning the byte length written.
+    ///
+    /// `variation` is `a`, `YYYY-MM-DDThh:mm:ss`, or `b`,
+    /// `YYYY-DDDThh:mm:ss`; `precision` is `hour`, `minute`, `second`, or
+    /// the digits of the fraction, `1` to `18`; either in any case, and
+    /// anything else is `HC_ERR_UNKNOWN`. `terminator` non-zero ends the
+    /// code with `Z`. The reading is truncated, never rounded, and the UTC
+    /// label is from the leap-second table, as for `hc_ccsds_encode`.
+    /// Attoseconds from 10¹⁸, or an instant outside the years 1 to 9999,
+    /// are `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the
+    /// text needs.
+    ///
+    /// # Safety
+    ///
+    /// `variation` and `precision` must be readable for their lengths
+    /// unless null with a zero length; `buffer` must be writable for
+    /// `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_ccsds_ascii_format(
+        tai_seconds: i64,
+        attoseconds: u64,
+        variation: *const u8,
+        variation_len: usize,
+        precision: *const u8,
+        precision_len: usize,
+        terminator: i32,
+        strict: i32,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let (variation, precision) = match unsafe {
+            (
+                text(variation, variation_len),
+                text(precision, precision_len),
+            )
+        } {
+            (Ok(variation), Ok(precision)) => (variation, precision),
+            (Err(sentinel), _) | (_, Err(sentinel)) => return sentinel,
+        };
+        let answer = time_code_lines::ccsds_ascii_format_line(
+            tai_seconds,
+            attoseconds,
+            variation,
+            precision,
+            terminator != 0,
+            strict != 0,
+        );
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// One minute's frame of a long-wave radio time code read, as one UTF-8
+    /// line, returning the byte length written.
+    ///
+    /// `code` is `jjy`, `dcf77`, `wwvb-am` or `wwvb-pm`, in any case;
+    /// anything else is `HC_ERR_UNKNOWN`. `frame` is one character a
+    /// second: `0`, `1`, and for `jjy` and `wwvb-am` `M` for a marker.
+    /// `century` is the first year of the century the two-digit year is
+    /// in, a multiple of 100 from 0 to 9900; any other is
+    /// `HC_ERR_OUT_OF_RANGE`. Tab-separated: the POSIX second of the minute
+    /// the frame names (for `dcf77` the minute it announces); that minute's
+    /// fixed day, hour and minute in the code's own time; the code's offset
+    /// from UTC in hours; the frame's seconds; the leap second announced,
+    /// `none`, `positive` or `negative`; the zone or summer-time state,
+    /// `cet` or `cest` for `dcf77`, `standard`, `begins-today`,
+    /// `in-effect` or `ends-today` for WWVB, empty for `jjy`; DCF77's A1,
+    /// `1` when the zone changes at the end of the hour, else `0`, empty
+    /// for the other codes; UT1 − UTC in tenths of a second for `wwvb-am`;
+    /// and the phase code's six-bit `dst_next` word for `wwvb-pm`. A frame
+    /// that is not the code's — a wrong length, symbol, BCD digit or
+    /// parity, or a date that does not exist — is `HC_ERR_MALFORMED`, and
+    /// JJY's call-sign frame, which carries no year, `HC_ERR_NO_DATA`. A
+    /// null `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `code` and `frame` must be readable for their lengths unless null
+    /// with a zero length; `buffer` must be writable for `capacity` bytes
+    /// unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_radio_decode(
+        code: *const u8,
+        code_len: usize,
+        frame: *const u8,
+        frame_len: usize,
+        century: i64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let (code, frame) = match unsafe { (text(code, code_len), text(frame, frame_len)) } {
+            (Ok(code), Ok(frame)) => (code, frame),
+            (Err(sentinel), _) | (_, Err(sentinel)) => return sentinel,
+        };
+        let answer = time_code_lines::radio_decode_line(code, frame, century);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The frame of a long-wave radio time code for a minute, as one UTF-8
+    /// line, returning the byte length written.
+    ///
+    /// `code` is as for `hc_radio_decode`, and the line is a frame it
+    /// reads. `unix_seconds` begins the minute, a whole minute of the years
+    /// 1 to 9999; for `dcf77` the frame is the one sent during the minute
+    /// before, which announces it. `leap` is the leap second announced, 1
+    /// inserted, −1 omitted, which only `jjy` and `wwvb-pm` can say, or 0.
+    /// `summer` is DCF77's zone, `cet` or `cest`, or WWVB's summer-time
+    /// state, `standard`, `begins-today`, `in-effect` or `ends-today`, and
+    /// empty for `jjy`; another is `HC_ERR_UNKNOWN`. `zone_change` is
+    /// DCF77's A1, read by that code alone; `dut1_tenths` is WWVB's
+    /// amplitude UT1 − UTC, −9 to 9; `dst_next` is the phase code's
+    /// six-bit word, one its Table 8 lists for the direction `summer`
+    /// gives. A second that does not begin a minute of those years, or a
+    /// `leap`, `dut1_tenths` or `dst_next` outside what the code says, is
+    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `code` and `summer` must be readable for their lengths unless null
+    /// with a zero length; `buffer` must be writable for `capacity` bytes
+    /// unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_radio_encode(
+        code: *const u8,
+        code_len: usize,
+        unix_seconds: i64,
+        leap: i32,
+        summer: *const u8,
+        summer_len: usize,
+        zone_change: i32,
+        dut1_tenths: i32,
+        dst_next: u32,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let (code, summer) = match unsafe { (text(code, code_len), text(summer, summer_len)) } {
+            (Ok(code), Ok(summer)) => (code, summer),
+            (Err(sentinel), _) | (_, Err(sentinel)) => return sentinel,
+        };
+        let answer = time_code_lines::radio_encode_line(
+            code,
+            unix_seconds,
+            leap,
+            summer,
+            zone_change != 0,
+            dut1_tenths,
+            dst_next,
+        );
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+}
+
+#[cfg(feature = "time-codes")]
+pub use time_codes::{
+    hc_ccsds_ascii_format, hc_ccsds_ascii_parse, hc_ccsds_decode, hc_ccsds_encode, hc_radio_decode,
+    hc_radio_encode,
+};
+
+/// .NET's ticks and the six-hour clocks, behind the `timestamps` feature:
+/// `DateTime.Ticks` to and from POSIX time, and the Ethiopian and Swahili
+/// six-hour readings of the civil clock. The lines are
+/// `hyper_calendar::time_code_lines`', shared with the C library.
+#[cfg(feature = "timestamps")]
+mod clock_readings {
+    use super::{emit_answer, text, value};
+    use hc::time_code_lines;
+
+    /// .NET's `DateTime.Ticks` of a POSIX instant as a `Utc` value, or an
+    /// error sentinel.
+    ///
+    /// The ticks are 100-nanosecond intervals from 0001-01-01 00:00,
+    /// floored to the tick. Attoseconds from 10¹⁸, or an instant before
+    /// 0001-01-01 or after 9999-12-31 23:59:59.9999999, are
+    /// `HC_ERR_OUT_OF_RANGE`.
+    #[unsafe(no_mangle)]
+    pub extern "C" fn hc_dotnet_ticks_from_unix(unix_seconds: i64, attoseconds: u64) -> i64 {
+        value(time_code_lines::dotnet_ticks_from_unix(
+            unix_seconds,
+            attoseconds,
+        ))
+    }
+
+    /// The reading a count of .NET ticks names, as one UTF-8 line,
+    /// returning the byte length written.
+    ///
+    /// Tab-separated: the whole seconds from 1970-01-01 00:00 and the
+    /// attoseconds, POSIX time for a `Utc` value, and for a `Local` or
+    /// `Unspecified` one the wall clock of a zone the value does not name.
+    /// Ticks outside 0 to 3 155 378 975 999 999 999 are
+    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_unix_from_dotnet_ticks(
+        ticks: i64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = time_code_lines::unix_from_dotnet_ticks_line(ticks);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// A time of the civil day on a six-hour clock, as one UTF-8 line,
+    /// returning the byte length written.
+    ///
+    /// `reckoning` is `ethiopian-hours` or `swahili-hours`, in any case;
+    /// anything else is `HC_ERR_UNKNOWN`. `seconds_of_day` is the time on
+    /// the caller's wall clock, 0 to 86 399; a later one is
+    /// `HC_ERR_OUT_OF_RANGE`. Tab-separated: the hour on the dial, 1 to 12;
+    /// the minute and the second, the civil clock's; the half, `day` or
+    /// `night`; and the part of the day the reckoning's source names, in
+    /// its language and in English, empty for `ethiopian-hours`. A null
+    /// `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `reckoning` must be readable for `reckoning_len` bytes unless null
+    /// with a zero length; `buffer` must be writable for `capacity` bytes
+    /// unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_six_hour_clock(
+        reckoning: *const u8,
+        reckoning_len: usize,
+        seconds_of_day: u32,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let reckoning = match unsafe { text(reckoning, reckoning_len) } {
+            Ok(reckoning) => reckoning,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = time_code_lines::six_hour_clock_line(reckoning, seconds_of_day);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The civil time of day of a six-hour reading, as seconds after
+    /// midnight, 0 through 86 399, or an error sentinel.
+    ///
+    /// `reckoning` is as for `hc_six_hour_clock`. The reading is the hour
+    /// on the dial, 1 to 12, the minute and second, and `night` non-zero
+    /// for the night half. An hour outside 1 to 12, or a minute or second
+    /// above 59, is `HC_ERR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `reckoning` must be readable for `reckoning_len` bytes unless null
+    /// with a zero length.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_civil_from_six_hour_clock(
+        reckoning: *const u8,
+        reckoning_len: usize,
+        hour: u32,
+        minute: u32,
+        second: u32,
+        night: i32,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let reckoning = match unsafe { text(reckoning, reckoning_len) } {
+            Ok(reckoning) => reckoning,
+            Err(sentinel) => return sentinel,
+        };
+        value(time_code_lines::civil_from_six_hour_clock(
+            reckoning,
+            hour,
+            minute,
+            second,
+            night != 0,
+        ))
+    }
+}
+
+#[cfg(feature = "timestamps")]
+pub use clock_readings::{
+    hc_civil_from_six_hour_clock, hc_dotnet_ticks_from_unix, hc_six_hour_clock,
+    hc_unix_from_dotnet_ticks,
+};
+
 /// Every calendar, behind the `calendars` feature: the registry the facade
 /// populates, described for one day, walked as eras, years, months and
 /// days, and listed, in the vocabulary of a locale; the locales
@@ -1935,6 +2349,110 @@ pub use calendar_days::{
     hc_surya_siddhanta_sunrise,
 };
 
+/// The parts of a day the calendars mark, behind the `calendars` feature:
+/// Rāhu kālam, Yamaganda and Gulika kālam by either convention of the day,
+/// and the almanac's cycles of a day — 恵方, 三元九運 and 손 없는 날. The
+/// lines are `hyper_calendar`'s `panchanga_lines` and `almanac_lines`,
+/// shared with the C library.
+#[cfg(feature = "calendars")]
+mod day_periods {
+    use super::{emit_answer, sentinel, text};
+    use hc::{almanac_lines, astro_lines, panchanga_lines};
+
+    /// Rāhu kālam, Yamaganda and Gulika kālam on a fixed day, as three
+    /// UTF-8 lines, returning the byte length written.
+    ///
+    /// `convention` is `rahu-kalam-sunrise`, the daylight from sunrise to
+    /// sunset at the place cut into eight, as Drik Panchang computes it, or
+    /// `rahu-kalam-fixed`, 06:00 to 18:00 of the local clock cut into eight
+    /// parts of an hour and a half, in any case; anything else is
+    /// `HC_ERR_UNKNOWN`. The place is as for `hc_solar_time`. One line per
+    /// period, in the order a pañcāṅga prints them, tab-separated: its
+    /// identifier (`rahu-kalam`, `yamaganda`, `gulika-kalam`), its English
+    /// name, the eighth of the day it takes, 1 to 8, the clock its times
+    /// are read on, and its start and end, then the four cells of a missing
+    /// solar event, as `hc_solar_event` writes them. On
+    /// `rahu-kalam-sunrise` the clock is `universal` and the times are
+    /// whole POSIX seconds, rounded down, empty where the Sun does not rise
+    /// or set and the event is named; on `rahu-kalam-fixed` the clock is
+    /// `local` and they are seconds after midnight of the day's own clock.
+    /// A place off the globe, or a day outside the years −1000 to 3000, is
+    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `convention` must be readable for `convention_len` bytes unless null
+    /// with a zero length; `buffer` must be writable for `capacity` bytes
+    /// unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_kalam(
+        convention: *const u8,
+        convention_len: usize,
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let convention = match unsafe { text(convention, convention_len) } {
+            Ok(convention) => convention,
+            Err(sentinel) => return sentinel,
+        };
+        let place = match astro_lines::location(latitude, longitude, elevation) {
+            Ok(place) => place,
+            Err(refusal) => return sentinel(refusal),
+        };
+        let answer = panchanga_lines::kalam_lines(convention, fixed, place);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The almanac's cycles of a fixed day, 恵方, 三元九運 and 손 없는 날, as
+    /// one UTF-8 line, returning the byte length written.
+    ///
+    /// `meridian` is as for `hc_term_in_effect`, and sets where 立春, which
+    /// turns the 三元九運 year, falls. Tab-separated: 恵方 of the day's
+    /// Gregorian year, its point of the twenty-four (甲, 庚, 丙 or 壬), the
+    /// point's reading in Hepburn romaji, its azimuth in degrees clockwise
+    /// from north and the nearest of the sixteen compass points in Japanese
+    /// and in English; the 三元九運 period in force, its number, 1 to 9, its
+    /// name, its era, the 九星 that rules it, the star of the Dipper its
+    /// source names, and its first and last years; and `1` if the day is
+    /// 손 없는 날 in the Korean lunar calendar, else `0`, empty outside that
+    /// calendar's years. A meridian not read is `HC_ERR_UNKNOWN`, and a day
+    /// outside the years −1000 to 3000 `HC_ERR_OUT_OF_RANGE`. A null
+    /// `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `meridian` must be readable for `meridian_len` bytes unless null with
+    /// a zero length; `buffer` must be writable for `capacity` bytes unless
+    /// it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_almanac_cycles(
+        fixed: i64,
+        meridian: *const u8,
+        meridian_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let meridian = match unsafe { text(meridian, meridian_len) } {
+            Ok(meridian) => meridian,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = almanac_lines::almanac_cycles_line(fixed, meridian);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+}
+
+#[cfg(feature = "calendars")]
+pub use day_periods::{hc_almanac_cycles, hc_kalam};
+
 /// The holiday tables, behind the `holiday` feature: every country,
 /// exchange, tradition and international set of `hc-holiday`, looked up by
 /// identifier and rendered as tab-separated lines.
@@ -2403,6 +2921,95 @@ pub use observances::{
     hc_astronomical_easter, hc_astronomical_paschal_full_moon, hc_common_worship_on,
     hc_holiday_tables, hc_holy_year_on, hc_lectionary,
 };
+
+/// The Eastern Orthodox fasts, behind the `holiday` feature: the fast a day
+/// falls in and the fasting seasons of a year, under each reckoning of
+/// `hc-holiday`'s `orthodox_fasts`. The lines are
+/// `hyper_calendar::holiday_lines`', shared with the C library.
+#[cfg(feature = "holiday")]
+mod fasts {
+    use super::{emit_answer, text};
+    use hc::holiday_lines;
+
+    /// What a fixed day is in the Eastern Orthodox fasting scheme of a
+    /// reckoning, as one UTF-8 line, returning the byte length written.
+    ///
+    /// `reckoning` is `orthodox-fasts`, the fixed dates in the Julian
+    /// calendar, or `orthodox-fasts-revised-julian`, in the Revised Julian
+    /// calendar, both keeping Pascha by the Julian computus, in any case;
+    /// anything else is `HC_ERR_UNKNOWN`. Tab-separated: `1` if the day is
+    /// a fast day, else `0`; `period`, `weekly-fast` for a Wednesday or
+    /// Friday in no period, or `none`; for a period its identifier, its
+    /// English name as the OCA's outline gives it, and its kind, `fast`,
+    /// `fast-free` or `meat-excluded`, else empty; and what the day abstains
+    /// from, `nothing`, `meat` or `fast`, which tells a day of the Meatfast
+    /// from an ordinary one. A day outside the years 326 to 4099 of the
+    /// reckoning's calendar is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
+    /// returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `reckoning` must be readable for `reckoning_len` bytes unless null
+    /// with a zero length; `buffer` must be writable for `capacity` bytes
+    /// unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_orthodox_fast_on(
+        reckoning: *const u8,
+        reckoning_len: usize,
+        fixed: i64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let reckoning = match unsafe { text(reckoning, reckoning_len) } {
+            Ok(reckoning) => reckoning,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = holiday_lines::orthodox_fast_line(reckoning, fixed);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The fasting seasons and fast-free weeks of a year of a reckoning, as
+    /// UTF-8 lines, returning the byte length written.
+    ///
+    /// `reckoning` is as for `hc_orthodox_fast_on`, and `year` is a year of
+    /// its calendar. One line per period of the scheme, twelve, in the
+    /// order a day is tested against them, tab-separated: its identifier,
+    /// its English name, its kind (`fast`, `fast-free` or `meat-excluded`),
+    /// and its first and last days as fixed
+    /// days, both included, empty in a year it does not happen, as the
+    /// Apostles' Fast does not on the Revised Julian reckoning when Pascha
+    /// is late. Christmastide ends in the next year. A year outside 326 to
+    /// 4099 is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length
+    /// the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `reckoning` must be readable for `reckoning_len` bytes unless null
+    /// with a zero length; `buffer` must be writable for `capacity` bytes
+    /// unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_orthodox_fast_seasons(
+        reckoning: *const u8,
+        reckoning_len: usize,
+        year: i64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let reckoning = match unsafe { text(reckoning, reckoning_len) } {
+            Ok(reckoning) => reckoning,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = holiday_lines::orthodox_fast_seasons_lines(reckoning, year);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+}
+
+#[cfg(feature = "holiday")]
+pub use fasts::{hc_orthodox_fast_on, hc_orthodox_fast_seasons};
 
 /// The almanac, behind the `seasons` feature: the 24 solar terms and the 72
 /// pentads of `hc-seasons`, judged at a named meridian, and 寒食 under each
@@ -3625,6 +4232,213 @@ pub use earth_and_sun::{
     hc_solar_event, hc_solar_time, hc_sunrise, hc_sunset, hc_ut2_minus_ut1,
 };
 
+/// The religious and traditional hours of a day, behind the `sky` feature:
+/// the Islamic prayer times by a named method, the Jewish times in
+/// temporal hours with the dawns and nightfalls, and the Edo 不定時法. The
+/// lines are `hyper_calendar::hours_lines`', shared with the C library,
+/// and answer for the years −1000 to 3000.
+#[cfg(feature = "sky")]
+mod hours {
+    use super::{emit_answer, sentinel, text};
+    use hc::{astro_lines, hours_lines};
+
+    /// The Islamic prayer times of a fixed day at a place by a named
+    /// method, as eight UTF-8 lines, returning the byte length written.
+    ///
+    /// `method` is an identifier `hc_prayer_methods` lists, in any case;
+    /// anything else, the empty string included, is `HC_ERR_UNKNOWN`. The
+    /// day and the place are as for `hc_solar_event`. `ramadan` non-zero
+    /// takes the Ramaḍān interval of a method that fixes *ʿishāʾ* after
+    /// *maghrib*; the caller says whether the day is in Ramaḍān. One line
+    /// each of `fajr`, `sunrise`, `zuhr` (the Sun's transit), `asr-shafii`
+    /// and `asr-hanafi` (the method does not choose between the shadow
+    /// rules), `maghrib`, `isha` and `midnight` (the middle of the night
+    /// that begins that evening), tab-separated: the time's identifier, the
+    /// instant as whole POSIX seconds of Universal Time, rounded down, and
+    /// the four cells of `hc_solar_event` naming a missing solar event,
+    /// with the instant empty where the time does not happen. A place off
+    /// the globe, or a day outside the years −1000 to 3000, is
+    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `method` must be readable for `method_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless
+    /// it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_prayer_times(
+        method: *const u8,
+        method_len: usize,
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        ramadan: i32,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let method = match unsafe { text(method, method_len) } {
+            Ok(method) => method,
+            Err(sentinel) => return sentinel,
+        };
+        let place = match astro_lines::location(latitude, longitude, elevation) {
+            Ok(place) => place,
+            Err(refusal) => return sentinel(refusal),
+        };
+        let answer = hours_lines::prayer_times_lines(method, fixed, place, ramadan != 0);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// Every prayer-time method `hc_prayer_times` reads, with its
+    /// parameters and source, as UTF-8 lines, returning the byte length
+    /// written.
+    ///
+    /// One line per method, tab-separated: its identifier, its English
+    /// name, the Sun's depression at *fajr* in arcminutes, the depression
+    /// at *maghrib* in arcminutes (empty for sunset), the depression at
+    /// *ʿishāʾ* in arcminutes (empty for a method of an interval), the
+    /// interval after *maghrib* in minutes outside and during Ramaḍān
+    /// (empty for a method of an angle), the middle of the night's rule,
+    /// `sunset-to-sunrise` or `sunset-to-fajr`, and its source. A null
+    /// `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_prayer_methods(buffer: *mut u8, capacity: usize) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(Ok(hours_lines::prayer_methods_lines()), buffer, capacity) }
+    }
+
+    /// The Jewish times of a fixed day at a place by a reckoning, with the
+    /// dawns and nightfalls, as nine UTF-8 lines, returning the byte length
+    /// written.
+    ///
+    /// `reckoning` is `gra`, the day from sunrise to sunset, or
+    /// `mga-72-minutes` or `mga-16-1-degrees`, the Magen Avraham's from
+    /// dawn to nightfall at 72 minutes or at 16.1°, in any case; anything
+    /// else is `HC_ERR_UNKNOWN`. The day and the place are as for
+    /// `hc_solar_event`. One line for each time in temporal hours,
+    /// `sof-zman-shma`, `sof-zman-tfila`, `mincha-gedola`, `mincha-ketana`
+    /// and `plag-hamincha`, tab-separated: its identifier, its English name
+    /// as Hebcal prints it, its temporal hours from the start of the day,
+    /// the instant as whole POSIX seconds of Universal Time, rounded down,
+    /// and the four cells of `hc_solar_event` naming a missing solar event;
+    /// then the same for `dawn-16-1-degrees`, `dawn-72-minutes`,
+    /// `nightfall-8-5-degrees` and `nightfall-72-minutes`, which no
+    /// reckoning changes, with the name and hours empty. A place off the
+    /// globe, or a day outside the years −1000 to 3000, is
+    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `reckoning` must be readable for `reckoning_len` bytes unless null
+    /// with a zero length; `buffer` must be writable for `capacity` bytes
+    /// unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_zmanim(
+        reckoning: *const u8,
+        reckoning_len: usize,
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let reckoning = match unsafe { text(reckoning, reckoning_len) } {
+            Ok(reckoning) => reckoning,
+            Err(sentinel) => return sentinel,
+        };
+        let place = match astro_lines::location(latitude, longitude, elevation) {
+            Ok(place) => place,
+            Err(refusal) => return sentinel(refusal),
+        };
+        let answer = hours_lines::zmanim_lines(reckoning, fixed, place);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The Edo 不定時法 reading of a POSIX timestamp at a place, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// The daylight from 明け六つ to 暮れ六つ, at the 寛政暦's depression of
+    /// 7°21′41″, is cut into six equal hours and the night into six more.
+    /// The timestamp is read as Universal Time, and the place is as for
+    /// `hc_solar_time`. Tab-separated: the fixed day whose 明け六つ began
+    /// the reading's day; the hour's place in the count from 明け六つ, 0 to
+    /// 11; its name, 明六つ to 暁七つ; its name in Hepburn romaji; the
+    /// strokes of the bell it is named by; its earthly branch; the 天保暦's
+    /// tenths of the hour gone, 0 to 9; and the fraction of the hour gone;
+    /// then the four cells of `hc_solar_event` naming a missing solar
+    /// event, the first eight cells being empty instead where a dawn or a
+    /// dusk does not happen. A place off the globe, or an instant outside
+    /// the years −1000 to 3000, is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
+    /// returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_edo_time(
+        unix_seconds: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = astro_lines::location(latitude, longitude, elevation)
+            .and_then(|place| hours_lines::edo_time_line(unix_seconds, place));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The instant of an Edo 不定時法 reading at a place, as one UTF-8 line,
+    /// returning the byte length written.
+    ///
+    /// The reading is the fixed day whose 明け六つ begins it, the hour's
+    /// place in the count from 明け六つ, 0 to 11, and the fraction of the
+    /// hour gone, from 0 up to 1, as `hc_edo_time` writes them.
+    /// Tab-separated: the instant as whole POSIX seconds of Universal Time,
+    /// rounded down, and the four cells of `hc_solar_event` naming a
+    /// missing solar event. An hour above 11, a fraction outside 0 to 1, a
+    /// place off the globe, or a day outside the years −1000 to 3000, is
+    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_unix_from_edo_time(
+        fixed: i64,
+        hour: u32,
+        fraction: f64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = astro_lines::location(latitude, longitude, elevation)
+            .and_then(|place| hours_lines::unix_from_edo_time_line(fixed, hour, fraction, place));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+}
+
+#[cfg(feature = "sky")]
+pub use hours::{
+    hc_edo_time, hc_prayer_methods, hc_prayer_times, hc_unix_from_edo_time, hc_zmanim,
+};
+
 /// The orbit, behind the `orbital` feature: Earth's orbital elements and
 /// the June insolation at 65° N they set, a million years either side of
 /// 1950, from Berger's 1978 series in `hc-orbital`.
@@ -4170,6 +4984,7 @@ mod tests {
     /// buffer, refuse a buffer that is too small, then read the text.
     #[cfg(any(
         feature = "timestamps",
+        feature = "time-codes",
         feature = "calendars",
         feature = "holiday",
         feature = "seasons",
@@ -7430,7 +8245,7 @@ mod tests {
                     capacity,
                 )
             });
-            assert_eq!(text, format!("\tno-noon-shadow\t{midwinter}\t\n"));
+            assert_eq!(text, format!("\tno-noon-shadow\t{midwinter}\t\t\n"));
             let null = core::ptr::null_mut();
             assert_eq!(
                 unsafe { hc_solar_event("dhuhr".as_ptr(), 5, midwinter, 0.0, 0.0, 0.0, null, 0) },
@@ -7745,6 +8560,456 @@ mod tests {
                     )
                 },
                 HC_ERR_UNKNOWN
+            );
+        }
+    }
+
+    /// The time codes and clock readings, called as a page calls them.
+    #[cfg(feature = "time-codes")]
+    mod time_codes {
+        use super::super::*;
+        use super::read_lines;
+
+        /// CCSDS 301.0-B-4's example, 1988-01-18T17:20:43.123456 UTC, in
+        /// CDS with a 16-bit day and microseconds, `41 2A DE 03 B8 CE 73 01
+        /// C8`, as `docs/systems/ccsds-time-codes.md` works it, and in ASCII
+        /// code B.
+        #[test]
+        fn the_standards_example_crosses_the_boundary() {
+            let hex = "412ade03b8ce7301c8";
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_ccsds_decode(hex.as_ptr(), hex.len(), 1, buffer, capacity)
+            });
+            assert_eq!(
+                text,
+                "cds\t569524867\t123456000000000000\t569524843\t0\t123456000000000000\n"
+            );
+            let p_field = "41";
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_ccsds_encode(
+                    569_524_867,
+                    123_456_000_000_000_000,
+                    p_field.as_ptr(),
+                    p_field.len(),
+                    1,
+                    buffer,
+                    capacity,
+                )
+            });
+            assert_eq!(text.trim_end(), hex);
+            let (variation, precision) = ("b", "6");
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_ccsds_ascii_format(
+                    569_524_867,
+                    123_456_000_000_000_000,
+                    variation.as_ptr(),
+                    variation.len(),
+                    precision.as_ptr(),
+                    precision.len(),
+                    1,
+                    1,
+                    buffer,
+                    capacity,
+                )
+            });
+            assert_eq!(text, "1988-018T17:20:43.123456Z\n");
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_ccsds_ascii_parse(text.as_ptr(), text.len() - 1, 1, buffer, capacity)
+            });
+            assert!(text.starts_with("b\t569524867\t"), "{text}");
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_ccsds_decode("4".as_ptr(), 1, 1, null, 0) },
+                HC_ERR_MALFORMED
+            );
+            assert_eq!(
+                unsafe { hc_ccsds_decode(core::ptr::null(), 2, 1, null, 0) },
+                HC_ERR_NULL_POINTER
+            );
+        }
+
+        /// NICT's frame of 17:25 JST on 1 April 2004 (`nict-jjy-timecode`),
+        /// both ways.
+        #[test]
+        fn a_jjy_frame_crosses_the_boundary() {
+            let (code, frame) = (
+                "jjy",
+                "M01000101M000100111M000001001M001000010M000000100M100000000M",
+            );
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_radio_decode(
+                    code.as_ptr(),
+                    code.len(),
+                    frame.as_ptr(),
+                    frame.len(),
+                    2000,
+                    buffer,
+                    capacity,
+                )
+            });
+            assert_eq!(text, "1080807900\t731672\t17\t25\t9\t60\tnone\t\t\t\t\n");
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_radio_encode(
+                    code.as_ptr(),
+                    code.len(),
+                    1_080_807_900,
+                    0,
+                    core::ptr::null(),
+                    0,
+                    0,
+                    0,
+                    0,
+                    buffer,
+                    capacity,
+                )
+            });
+            assert_eq!(text.trim_end(), frame);
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe {
+                    hc_radio_decode(
+                        code.as_ptr(),
+                        code.len(),
+                        frame.as_ptr(),
+                        frame.len(),
+                        2050,
+                        null,
+                        0,
+                    )
+                },
+                HC_ERR_OUT_OF_RANGE
+            );
+        }
+    }
+
+    /// .NET's ticks and the six-hour clocks, called as a page calls them.
+    #[cfg(feature = "timestamps")]
+    mod clock_readings {
+        use super::super::*;
+        use super::read_lines;
+
+        /// `DateTime.MaxValue` is 3 155 378 975 999 999 999 ticks
+        /// (`ms-datetime-maxvalue`); the UNDP page's "8 am is 2 o'clock"
+        /// (`undp-eue-ethiopian-time`).
+        #[test]
+        fn ticks_and_six_hour_clocks_cross_the_boundary() {
+            assert_eq!(
+                hc_dotnet_ticks_from_unix(253_402_300_799, 999_999_900_000_000_000),
+                3_155_378_975_999_999_999
+            );
+            assert_eq!(
+                hc_dotnet_ticks_from_unix(253_402_300_800, 0),
+                HC_ERR_OUT_OF_RANGE
+            );
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_unix_from_dotnet_ticks(621_355_968_000_000_000, buffer, capacity)
+            });
+            assert_eq!(text, "0\t0\n");
+            let reckoning = "ethiopian-hours";
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_six_hour_clock(
+                    reckoning.as_ptr(),
+                    reckoning.len(),
+                    8 * 3_600,
+                    buffer,
+                    capacity,
+                )
+            });
+            assert_eq!(text, "2\t0\t0\tday\t\t\n");
+            assert_eq!(
+                unsafe {
+                    hc_civil_from_six_hour_clock(reckoning.as_ptr(), reckoning.len(), 2, 0, 0, 0)
+                },
+                8 * 3_600
+            );
+            assert_eq!(
+                unsafe { hc_civil_from_six_hour_clock("x".as_ptr(), 1, 2, 0, 0, 0) },
+                HC_ERR_UNKNOWN
+            );
+        }
+    }
+
+    /// Rāhu kālam and the almanac's cycles, called as a page calls them.
+    #[cfg(feature = "calendars")]
+    mod day_periods {
+        use super::super::*;
+        use super::read_lines;
+
+        /// Drik Panchang's New Delhi page of 1 January 2025
+        /// (`drik-day-panchang-2025`): a Wednesday, whose Rāhu kālam is the
+        /// fifth eighth, 12:00 to 13:30 on the fixed day.
+        #[test]
+        fn a_wednesday_rahu_kalam_is_the_fifth_eighth() {
+            let convention = "rahu-kalam-fixed";
+            let day = hc_gregorian_to_fixed(2025, 1, 1);
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_kalam(
+                    convention.as_ptr(),
+                    convention.len(),
+                    day,
+                    28.6356,
+                    77.2244,
+                    0.0,
+                    buffer,
+                    capacity,
+                )
+            });
+            let first = text.lines().next().expect("three lines");
+            assert_eq!(
+                first,
+                "rahu-kalam\tRahu Kalam\t5\tlocal\t43200\t48600\t\t\t\t"
+            );
+            assert_eq!(text.lines().count(), 3);
+        }
+
+        /// The crescent criteria added with the Unified Hijri calendars.
+        /// Djamaluddin's analysis of 1447 AH by Neo-MABIMS
+        /// (`djamaluddin-kalender-1447`): met in Indonesia, at Banda Aceh or
+        /// Jakarta, on the evening of 25 July 2025 and not on 25 June. KHGT
+        /// and the Istanbul 2016 parameters judge at sunset, and KHGT's
+        /// verdict is its two geocentric thresholds, an elongation of 8° and
+        /// an altitude of 5°; Odeh's V is judged at Bruin's best time, as
+        /// Yallop's q is.
+        #[test]
+        fn the_crescent_criteria_of_the_unified_hijri_calendars_cross_the_boundary() {
+            let line = |criterion: &str, day: i64, latitude: f64, longitude: f64| -> Vec<String> {
+                let text = read_lines(|buffer, capacity| unsafe {
+                    hc_crescent_visible(
+                        criterion.as_ptr(),
+                        criterion.len(),
+                        day,
+                        latitude,
+                        longitude,
+                        0.0,
+                        buffer,
+                        capacity,
+                    )
+                });
+                let cells: Vec<String> = text
+                    .trim_end_matches('\n')
+                    .split('\t')
+                    .map(str::to_owned)
+                    .collect();
+                assert_eq!(cells.len(), 7, "{criterion}: {text}");
+                cells
+            };
+            let indonesia = [(5.55, 95.3175), (-6.18, 106.83)];
+            for criterion in [
+                "mabims-2021-topocentric",
+                "mabims-2021-geocentric-elongation",
+            ] {
+                let met = |day: i64| {
+                    indonesia.iter().any(|&(latitude, longitude)| {
+                        line(criterion, day, latitude, longitude)[0] == "1"
+                    })
+                };
+                assert!(met(hc_gregorian_to_fixed(2025, 7, 26)), "{criterion}");
+                assert!(!met(hc_gregorian_to_fixed(2025, 6, 26)), "{criterion}");
+            }
+            let mecca = (21.423_333, 39.823_333);
+            for date in [18, 19, 20] {
+                let day = hc_gregorian_to_fixed(2026, 2, date);
+                let khgt = line("khgt", day, mecca.0, mecca.1);
+                let arc_of_light: f64 = khgt[3].parse().expect("an arc of light");
+                let altitude: f64 = khgt[4].parse().expect("an altitude");
+                assert_eq!(
+                    khgt[0] == "1",
+                    arc_of_light >= 8.0 && altitude >= 5.0,
+                    "{khgt:?}"
+                );
+                let istanbul = line("istanbul-2016", day, mecca.0, mecca.1);
+                assert_eq!(istanbul[1], khgt[1], "both judge at sunset");
+                let odeh = line("odeh", day, mecca.0, mecca.1);
+                let yallop = line("yallop", day, mecca.0, mecca.1);
+                assert_eq!(odeh[1], yallop[1], "both judge at Bruin's best time");
+            }
+        }
+
+        /// 節分 2026 faces 丙, 南南東 (`allabout-eho-2026`), in 九運.
+        #[test]
+        fn setsubun_2026_crosses_the_boundary() {
+            let meridian = "japan";
+            let day = hc_gregorian_to_fixed(2026, 2, 3);
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_almanac_cycles(day, meridian.as_ptr(), meridian.len(), buffer, capacity)
+            });
+            assert!(
+                text.starts_with("丙\thinoe\t165\t南南東\tsouth-south-east\t9\t九運\t"),
+                "{text}"
+            );
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_almanac_cycles(day, "mars".as_ptr(), 4, null, 0) },
+                HC_ERR_UNKNOWN
+            );
+        }
+    }
+
+    /// The Orthodox fasts, called as a page calls them.
+    #[cfg(feature = "holiday")]
+    mod fasts {
+        use super::super::*;
+        use super::read_lines;
+
+        /// Great Lent began on 3 March 2025 (`oca-fasting-seasons`, as
+        /// `docs/systems/orthodox-fasts.md` works it).
+        #[test]
+        fn great_lent_2025_crosses_the_boundary() {
+            let reckoning = "orthodox-fasts";
+            let day = hc_gregorian_to_fixed(2025, 3, 3);
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_orthodox_fast_on(reckoning.as_ptr(), reckoning.len(), day, buffer, capacity)
+            });
+            assert_eq!(
+                text,
+                "1\tperiod\tgreat-lent\tGreat Lent & Holy Week\tfast\tfast\n"
+            );
+            // Wednesday 18 February 2026, in Cheesefare week.
+            let cheesefare = hc_gregorian_to_fixed(2026, 2, 18);
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_orthodox_fast_on(
+                    reckoning.as_ptr(),
+                    reckoning.len(),
+                    cheesefare,
+                    buffer,
+                    capacity,
+                )
+            });
+            assert_eq!(text, "0\tperiod\tmeatfast\tMeatfast\tmeat-excluded\tmeat\n");
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_orthodox_fast_seasons(
+                    reckoning.as_ptr(),
+                    reckoning.len(),
+                    2025,
+                    buffer,
+                    capacity,
+                )
+            });
+            assert!(
+                text.contains(&format!("\tfast\t{day}\t{}\n", day + 47)),
+                "{text}"
+            );
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe {
+                    hc_orthodox_fast_seasons(reckoning.as_ptr(), reckoning.len(), 5000, null, 0)
+                },
+                HC_ERR_OUT_OF_RANGE
+            );
+        }
+    }
+
+    /// The prayer times, the zmanim and the Edo hours, called as a page
+    /// calls them.
+    #[cfg(feature = "sky")]
+    mod hours {
+        use super::super::*;
+        use super::read_lines;
+
+        /// MUIS's timetable for Singapore, 1 January 2026
+        /// (`muis-prayer-timetable-2026`): Subuh 5:44, UTC+8, the computed
+        /// *fajr* up to a minute and a half earlier.
+        #[test]
+        fn singapore_prayer_times_cross_the_boundary() {
+            let method = "singapore";
+            let day = hc_gregorian_to_fixed(2026, 1, 1);
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_prayer_times(
+                    method.as_ptr(),
+                    method.len(),
+                    day,
+                    1.0 + 17.0 / 60.0,
+                    103.0 + 50.0 / 60.0,
+                    0.0,
+                    0,
+                    buffer,
+                    capacity,
+                )
+            });
+            let rows: Vec<Vec<&str>> = text
+                .lines()
+                .map(|line| line.split('\t').collect())
+                .collect();
+            assert_eq!(rows.len(), 8);
+            assert_eq!(rows[0][0], "fajr");
+            let fajr: i64 = rows[0][1].parse().expect("an instant");
+            let subuh = hc_unix_from_fixed(day) + (5 * 60 + 44 - 8 * 60) * 60;
+            assert!((0..=90).contains(&(subuh - fajr)), "{}", subuh - fajr);
+            let text =
+                read_lines(|buffer, capacity| unsafe { hc_prayer_methods(buffer, capacity) });
+            assert!(text.lines().any(|line| line.starts_with("singapore\t")));
+        }
+
+        /// Hebcal's zmanim for New York City, 1 January 2025
+        /// (`hebcal-zmanim-api`): the latest Shema by the GRA at 9:40 EST.
+        #[test]
+        fn new_york_zmanim_cross_the_boundary() {
+            let reckoning = "gra";
+            let day = hc_gregorian_to_fixed(2025, 1, 1);
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_zmanim(
+                    reckoning.as_ptr(),
+                    reckoning.len(),
+                    day,
+                    40.71427,
+                    -74.00597,
+                    0.0,
+                    buffer,
+                    capacity,
+                )
+            });
+            assert_eq!(text.lines().count(), 9);
+            let first: Vec<&str> = text.lines().next().expect("a line").split('\t').collect();
+            let at: i64 = first[3].parse().expect("an instant");
+            let printed = hc_unix_from_fixed(day) + (9 * 60 + 40 + 5 * 60) * 60;
+            assert!((at - printed).abs() < 60, "{}", at - printed);
+        }
+
+        /// Kyoto, 20 March 2020: 夜明 at 5:28:47 JST (こよみのページ), and
+        /// the Edo reading there is 明六つ.
+        #[test]
+        fn kyoto_dawn_crosses_the_boundary() {
+            let event = "japanese-dawn-naoj";
+            let day = hc_gregorian_to_fixed(2020, 3, 20);
+            let (latitude, longitude) = (35.0 + 36.0 / 3_600.0, 135.7417);
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_solar_event(
+                    event.as_ptr(),
+                    event.len(),
+                    day,
+                    latitude,
+                    longitude,
+                    0.0,
+                    buffer,
+                    capacity,
+                )
+            });
+            let dawn: i64 = text
+                .split('\t')
+                .next()
+                .expect("a cell")
+                .parse()
+                .expect("an instant");
+            let printed = hc_unix_from_fixed(day) + 5 * 3_600 + 28 * 60 + 47 - 9 * 3_600;
+            assert!((dawn - printed).abs() < 10, "{}", dawn - printed);
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_edo_time(dawn + 2, latitude, longitude, 0.0, buffer, capacity)
+            });
+            assert!(text.starts_with(&format!("{day}\t0\t明六つ\t")), "{text}");
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_unix_from_edo_time(day, 0, 0.0, latitude, longitude, 0.0, buffer, capacity)
+            });
+            let back: i64 = text
+                .split('\t')
+                .next()
+                .expect("a cell")
+                .parse()
+                .expect("an instant");
+            assert!((back - dawn).abs() <= 1);
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_unix_from_edo_time(day, 12, 0.0, latitude, longitude, 0.0, null, 0) },
+                HC_ERR_OUT_OF_RANGE
             );
         }
     }

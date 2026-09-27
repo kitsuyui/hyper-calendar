@@ -131,7 +131,7 @@ boundary crates do.
 The two boundary crates, `hyper-calendar-wasm` and `hyper-calendar-ffi`,
 marshal those answers across a WebAssembly or C interface. They expose the
 same layers as Cargo features: `civil` (the default), `timestamps`,
-`calendars`, `holiday`, `seasons`, `deep-time`, `tz`, `sky`, `orbital`,
+`time-codes`, `calendars`, `holiday`, `seasons`, `deep-time`, `tz`, `sky`, `orbital`,
 `planetary`, `relativity` and `full`. A page or a host program builds only
 the layer it loads. Each crate's README lists every export with the feature
 it needs; `crates/hyper-calendar/tests/abi.rs` renders those tables from

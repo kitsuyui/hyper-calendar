@@ -233,3 +233,8 @@ this document.
 `crates/hc-format/src/ccsds.rs`. Anchors: `the_standards_ascii_examples`,
 `the_ascii_example_in_ccs`, `the_ascii_example_in_cds`,
 `the_cuc_epoch_is_1958_tai`, `the_2016_leap_second_in_every_utc_code`.
+
+The WebAssembly and C exports `hc_ccsds_decode`, `hc_ccsds_encode`,
+`hc_ccsds_ascii_parse` and `hc_ccsds_ascii_format` read and write the
+Level 1 binary codes as hexadecimal and the ASCII codes, every instant as
+TAI and as its UTC label, from `hyper_calendar::time_code_lines`.

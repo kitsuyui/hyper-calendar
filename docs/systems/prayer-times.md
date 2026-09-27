@@ -119,3 +119,7 @@ a point elsewhere on the island moves the times by up to about a minute.
 `crates/hc-astro/src/solar_time.rs`: `PrayerMethod`, `IshaRule`,
 `MaghribRule`, `MidnightRule`, the catalogue and the four functions, with
 the tests named above.
+
+The WebAssembly and C exports `hc_prayer_times` and `hc_prayer_methods`
+write a day's times by a method, the Shafiʿi and the Hanafi *ʿaṣr* both, and
+the methods with their parameters, from `hyper_calendar::hours_lines`.

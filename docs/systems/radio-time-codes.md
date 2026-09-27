@@ -260,3 +260,7 @@ were not used for any rule.
 Anchors: `nicts_example_frame`, `sp_432s_frame`,
 `the_2012_example_in_both_codes`, `the_minute_count_of_28_july_2016`,
 `the_dcf77_leap_second_frame`.
+
+The WebAssembly and C exports `hc_radio_decode` and `hc_radio_encode`
+read and write a frame as a string of `0`, `1` and `M`, from
+`hyper_calendar::time_code_lines`.

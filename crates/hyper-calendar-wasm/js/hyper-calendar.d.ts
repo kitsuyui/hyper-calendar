@@ -55,6 +55,7 @@ export type BindingErrorName =
 export type Feature =
   | "civil"
   | "timestamps"
+  | "time-codes"
   | "calendars"
   | "holiday"
   | "seasons"
@@ -64,6 +65,252 @@ export type Feature =
   | "orbital"
   | "planetary"
   | "relativity";
+
+/** A binary CCSDS code `hc_ccsds_decode` reads. */
+export type CcsdsCodeName = "cuc" | "cds" | "ccs";
+
+/** An instant as a CCSDS line writes it: TAI, and its UTC label. */
+export interface CcsdsInstant {
+  tai: TaiInstant;
+  utc: {
+    /** The POSIX second; for a leap second, the one after it. */
+    unixSeconds: bigint;
+    /** Whether it is an inserted `23:59:60`. */
+    leapSecond: boolean;
+    attoseconds: bigint;
+  };
+}
+
+/** The one line of `hc_ccsds_decode`. */
+export interface CcsdsCode extends CcsdsInstant {
+  code: CcsdsCodeName;
+}
+
+/** How far an ASCII code's time part runs. */
+export type CcsdsAsciiPrecision = "hour" | "minute" | "second" | "fraction";
+
+/** The one line of `hc_ccsds_ascii_parse`. */
+export interface CcsdsAsciiCode extends CcsdsInstant {
+  variation: "a" | "b";
+  precision: CcsdsAsciiPrecision;
+  /** The digits of the fraction, 1 to 18, for `fraction`; else `null`. */
+  digits: number | null;
+  /** Whether the optional `Z` follows. */
+  terminator: boolean;
+}
+
+/** A radio time code `hc_radio_decode` and `hc_radio_encode` name. */
+export type RadioCode = "jjy" | "dcf77" | "wwvb-am" | "wwvb-pm";
+
+/** The leap second a frame announces. */
+export type RadioLeap = "none" | "positive" | "negative";
+
+/** DCF77's zone, or WWVB's summer-time state. */
+export type RadioSummer = "cet" | "cest" | "standard" | "begins-today" | "in-effect" | "ends-today";
+
+/** The one line of `hc_radio_decode`. */
+export interface RadioMinute {
+  /** The POSIX second of the minute the frame names. */
+  unixSeconds: number;
+  /** That minute's fixed day, hour and minute in the code's own time. */
+  fixed: number;
+  hour: number;
+  minute: number;
+  /** The code's time less UTC, in hours. */
+  offsetHours: number;
+  /** The frame's length, 59 to 61. */
+  seconds: number;
+  leap: RadioLeap;
+  /** `null` for `jjy`. */
+  summer: RadioSummer | null;
+  /** DCF77's A1; `null` for the other codes. */
+  zoneChange: boolean | null;
+  /** UT1 − UTC in tenths of a second, for `wwvb-am`; else `null`. */
+  dut1Tenths: number | null;
+  /** The phase code's six-bit `dst_next` word, for `wwvb-pm`; else `null`. */
+  dstNext: number | null;
+}
+
+/** What `radioEncode` puts in a frame besides the minute. */
+export interface RadioEncodeOptions {
+  /** 1 for a second inserted, −1 for one omitted (`jjy` and `wwvb-pm` only), 0 for none. */
+  leap?: -1 | 0 | 1;
+  /** DCF77's zone, required for `dcf77`; WWVB's summer-time state, required for both WWVB codes; absent for `jjy`. */
+  summer?: RadioSummer;
+  /** DCF77's A1. */
+  zoneChange?: boolean;
+  /** WWVB's amplitude UT1 − UTC in tenths, −9 to 9. */
+  dut1Tenths?: number;
+  /** The phase code's `dst_next` word. */
+  dstNext?: number;
+}
+
+/** The reading `hc_unix_from_dotnet_ticks` writes. */
+export interface DotnetReading {
+  unixSeconds: number;
+  attoseconds: bigint;
+}
+
+/** A six-hour reckoning of the civil clock. */
+export type SixHourReckoning = "ethiopian-hours" | "swahili-hours";
+
+/** The one line of `hc_six_hour_clock`. */
+export interface SixHourReading {
+  /** The hour on the dial, 1 to 12. */
+  hour: number;
+  minute: number;
+  second: number;
+  half: "day" | "night";
+  /** The part of the day the source names, in its language; `null` for `ethiopian-hours`. */
+  period: string | null;
+  periodEnglish: string | null;
+}
+
+/** A convention of the day `hc_kalam` divides. */
+export type KalamConvention = "rahu-kalam-sunrise" | "rahu-kalam-fixed";
+
+/** A period `hc_kalam` writes. */
+export type KalamId = "rahu-kalam" | "yamaganda" | "gulika-kalam";
+
+/** One line of `hc_kalam`. */
+export interface KalamPeriod {
+  id: KalamId;
+  englishName: string;
+  /** The eighth of the day, 1 to 8. */
+  part: number;
+  /** `universal`: POSIX seconds; `local`: seconds after the day's own midnight. */
+  clock: "universal" | "local";
+  start: number | null;
+  end: number | null;
+  missing: MissingSolarEvent | null;
+}
+
+/** The one line of `hc_almanac_cycles`. */
+export interface AlmanacCycles {
+  /** 恵方's point of the twenty-four: 甲, 庚, 丙 or 壬. */
+  eho: string;
+  ehoRomaji: string;
+  /** Degrees clockwise from north. */
+  azimuth: number;
+  /** The nearest of the sixteen points in Japanese, 南南東. */
+  sixteenPoint: string;
+  /** The same in English, `south-south-east`. */
+  direction: string;
+  /** The 三元九運 period, 1 to 9. */
+  period: number;
+  periodName: string;
+  era: string;
+  star: string;
+  ruler: string;
+  firstYear: number;
+  lastYear: number;
+  /** Whether the day is 손 없는 날; `null` outside the `dangi` calendar's years. */
+  withoutSon: boolean | null;
+}
+
+/** A reckoning of the Orthodox fasts. */
+export type OrthodoxFastReckoning = "orthodox-fasts" | "orthodox-fasts-revised-julian";
+
+/** The one line of `hc_orthodox_fast_on`. */
+export interface OrthodoxFastDay {
+  fastDay: boolean;
+  status: "period" | "weekly-fast" | "none";
+  /** For `period`, its identifier, name and kind; else `null`. */
+  period: string | null;
+  periodName: string | null;
+  /** `meat-excluded` for the Meatfast, when no day is a fast day and none allows meat. */
+  kind: "fast" | "fast-free" | "meat-excluded" | null;
+  /** What the day abstains from; a day of the Meatfast is not a fast day but abstains from `meat`. */
+  abstinence: "nothing" | "meat" | "fast";
+}
+
+/** One line of `hc_orthodox_fast_seasons`. */
+export interface OrthodoxFastSeason {
+  id: string;
+  englishName: string;
+  kind: "fast" | "fast-free" | "meat-excluded";
+  /** The first and last fixed days, both `null` in a year the period does not happen. */
+  first: number | null;
+  last: number | null;
+}
+
+/** A time `hc_prayer_times` writes. */
+export type PrayerTimeName =
+  | "fajr"
+  | "sunrise"
+  | "zuhr"
+  | "asr-shafii"
+  | "asr-hanafi"
+  | "maghrib"
+  | "isha"
+  | "midnight";
+
+/** One line of `hc_prayer_times`. */
+export interface PrayerTime {
+  time: PrayerTimeName;
+  /** POSIX seconds of Universal Time, rounded down, or `null` when the time does not happen. */
+  instant: number | null;
+  missing: MissingSolarEvent | null;
+}
+
+/** One line of `hc_prayer_methods`. */
+export interface PrayerMethod {
+  id: string;
+  englishName: string;
+  fajrArcminutes: number;
+  /** `null` for a method that takes sunset. */
+  maghribArcminutes: number | null;
+  /** `null` for a method of an interval. */
+  ishaArcminutes: number | null;
+  /** `null` for a method of an angle. */
+  ishaMinutes: number | null;
+  ishaRamadanMinutes: number | null;
+  midnight: "sunset-to-sunrise" | "sunset-to-fajr";
+  source: string;
+}
+
+/** A reckoning of the Jewish day `hc_zmanim` reads. */
+export type ZmanimReckoning = "gra" | "mga-72-minutes" | "mga-16-1-degrees";
+
+/** A time `hc_zmanim` writes. */
+export type ZmanId =
+  | "sof-zman-shma"
+  | "sof-zman-tfila"
+  | "mincha-gedola"
+  | "mincha-ketana"
+  | "plag-hamincha"
+  | "dawn-16-1-degrees"
+  | "dawn-72-minutes"
+  | "nightfall-8-5-degrees"
+  | "nightfall-72-minutes";
+
+/** One line of `hc_zmanim`. */
+export interface Zman {
+  id: ZmanId;
+  /** As Hebcal prints it; `null` for a dawn or a nightfall. */
+  englishName: string | null;
+  /** Temporal hours from the start of the day; `null` for a dawn or a nightfall. */
+  hours: number | null;
+  instant: number | null;
+  missing: MissingSolarEvent | null;
+}
+
+/** The one line of `hc_edo_time`; every field but `missing` is `null` when a dawn or dusk does not happen. */
+export interface EdoTime {
+  /** The fixed day whose 明け六つ began the reading's day. */
+  day: number | null;
+  /** From 明け六つ, 0 to 11. */
+  hour: number | null;
+  /** 明六つ … 暁七つ. */
+  name: string | null;
+  romaji: string | null;
+  strokes: number | null;
+  branch: string | null;
+  /** The 天保暦's tenths of the hour gone, 0 to 9. */
+  tenths: number | null;
+  fraction: number | null;
+  missing: MissingSolarEvent | null;
+}
 
 /** One method of `HyperCalendar` and the export it stands for. */
 export interface MethodEntry {
@@ -135,6 +382,19 @@ export const COLUMNS: {
   readonly asianDay: ReadonlyArray<string>;
   readonly holyYear: ReadonlyArray<string>;
   readonly commonWorship: ReadonlyArray<string>;
+  readonly ccsdsDecode: ReadonlyArray<string>;
+  readonly ccsdsAscii: ReadonlyArray<string>;
+  readonly radioDecode: ReadonlyArray<string>;
+  readonly unixFromDotnetTicks: ReadonlyArray<string>;
+  readonly sixHourClock: ReadonlyArray<string>;
+  readonly kalam: ReadonlyArray<string>;
+  readonly almanacCycles: ReadonlyArray<string>;
+  readonly orthodoxFast: ReadonlyArray<string>;
+  readonly orthodoxFastSeasons: ReadonlyArray<string>;
+  readonly prayerTimes: ReadonlyArray<string>;
+  readonly prayerMethods: ReadonlyArray<string>;
+  readonly zmanim: ReadonlyArray<string>;
+  readonly edoTime: ReadonlyArray<string>;
 };
 export const UNITS: readonly Unit[];
 export const NATIVE: "native";
@@ -980,7 +1240,11 @@ export type SolarEventName =
   | "asr-hanafi"
   | "jewish-dusk-vilna-gaon"
   | "jewish-sabbath-ends-cohn"
-  | "italian-zero-hour";
+  | "italian-zero-hour"
+  | "japanese-dawn-kansei"
+  | "japanese-dusk-kansei"
+  | "japanese-dawn-naoj"
+  | "japanese-dusk-naoj";
 
 /** The solar event a reckoning needs and does not have. */
 export type MissingSolarEventName = "sunrise" | "sunset" | "depression" | "no-noon-shadow";
@@ -989,8 +1253,18 @@ export interface MissingSolarEvent {
   event: MissingSolarEventName;
   /** The local day it is missing on, as a fixed day. */
   day: number;
-  /** For `depression`, the depression sought in arcminutes; else `null`. */
+  /**
+   * For `depression`, the depression sought in arcminutes; `null` for any
+   * other event, and for a depression that is not a whole number of
+   * arcminutes, the Japanese dawn and dusk's.
+   */
   depressionArcminutes: number | null;
+  /**
+   * For `depression`, the depression sought in arcseconds, from the lines
+   * that carry the cell (`hc_solar_event` and the lines after it); else
+   * `null`.
+   */
+  depressionArcseconds: number | null;
 }
 
 /** The one line of `hc_solar_time`. */
@@ -1075,7 +1349,15 @@ export interface SuryaSiddhantaSky {
   sign: number;
 }
 
-/** A crescent-visibility criterion `hc_crescent_visible` names. */
+/**
+ * A crescent-visibility criterion `hc_crescent_visible` names: `shaukat`,
+ * the arc of light and altitude with the Sun 4.5° down; `yallop`, his
+ * *q*-test, and `odeh`, his *V*, both at Bruin's best time; `saudi-rule`,
+ * the Moon past conjunction and setting after the Sun; `istanbul-2016` and
+ * `khgt`, an elongation of 8° and an altitude of 5° at sunset, the altitude
+ * topocentric for the first and geocentric for the second; and the two
+ * readings of Neo-MABIMS's 3° and 6.4° at sunset.
+ */
 export type CrescentCriterion =
   | "shaukat"
   | "yallop"
@@ -1314,6 +1596,33 @@ export class HyperCalendar {
    * TAI − 32.184 s in µs, tab-separated; an instant outside it is `no-data`.
    */
   ttBipm(series: string, taiSeconds: number | bigint, attoseconds?: number | bigint, strict?: boolean): TtBipmReading;
+  /** `hc_ccsds_decode`: a Level 2, 3 or 4 code is `no-data`, octets that are not a code `malformed`. */
+  ccsdsDecode(hex: string, strict?: boolean): CcsdsCode;
+  /** `hc_ccsds_encode`: the code in lower-case hexadecimal, P-field first. */
+  ccsdsEncode(taiSeconds: number | bigint, attoseconds: number | bigint, pField: string, strict?: boolean): string;
+  /** `hc_ccsds_ascii_parse`. */
+  ccsdsAsciiParse(code: string, strict?: boolean): CcsdsAsciiCode;
+  /** `hc_ccsds_ascii_format`: `precision` `hour`, `minute`, `second` or `1` to `18`; `terminator` unless `false`. */
+  ccsdsAsciiFormat(
+    taiSeconds: number | bigint,
+    attoseconds: number | bigint,
+    variation: "a" | "b",
+    precision: string | number,
+    terminator?: boolean,
+    strict?: boolean,
+  ): string;
+  /** `hc_radio_decode`: JJY's call-sign frame is `no-data`. */
+  radioDecode(code: RadioCode, frame: string, century: number | bigint): RadioMinute;
+  /** `hc_radio_encode`: a frame of `0`, `1` and `M`. */
+  radioEncode(code: RadioCode, unixSeconds: number | bigint, options?: RadioEncodeOptions): string;
+  /** `hc_dotnet_ticks_from_unix`: the ticks, which need not fit a number. */
+  dotnetTicksFromUnix(unixSeconds: number | bigint, attoseconds?: number | bigint): bigint;
+  /** `hc_unix_from_dotnet_ticks`. */
+  unixFromDotnetTicks(ticks: number | bigint): DotnetReading;
+  /** `hc_six_hour_clock`: `secondsOfDay` of the caller's wall clock. */
+  sixHourClock(reckoning: SixHourReckoning, secondsOfDay: number): SixHourReading;
+  /** `hc_civil_from_six_hour_clock`: seconds after civil midnight. */
+  civilFromSixHourClock(reckoning: SixHourReckoning, hour: number, minute: number, second: number, night: boolean): number;
 
   /**
    * `hc_describe_day`: the day in every registered calendar, in registry
@@ -1379,6 +1688,10 @@ export class HyperCalendar {
   hebrewSabbaticalCycleYear(hebrewYear: number | bigint): number;
   /** `hc_asian_day`; a day outside AD 4 to the Asian year 9999 is `out-of-range`. */
   asianDay(fixed: number | bigint): AsianDay;
+  /** `hc_kalam`: three lines, Rāhu kālam, Yamaganda and Gulika kālam. */
+  kalam(convention: KalamConvention, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): KalamPeriod[];
+  /** `hc_almanac_cycles`: 立春 at `meridian`, as for `termInEffect`. */
+  almanacCycles(fixed: number | bigint, meridian?: string): AlmanacCycles;
 
   /** `hc_holiday_is_day_off`; `region` may be empty. A code naming no table is `unknown`. */
   holidayIsDayOff(code: string, region: string, fixed: number | bigint): boolean;
@@ -1400,6 +1713,10 @@ export class HyperCalendar {
   holyYearOn(fixed: number | bigint): HolyYear | null;
   /** `hc_common_worship_on`: empty on a day that keeps none. */
   commonWorshipOn(fixed: number | bigint): CommonWorshipCelebration[];
+  /** `hc_orthodox_fast_on`: a day outside the years 326 to 4099 is `out-of-range`. */
+  orthodoxFastOn(reckoning: OrthodoxFastReckoning, fixed: number | bigint): OrthodoxFastDay;
+  /** `hc_orthodox_fast_seasons`: twelve periods, in the order a day is tested against them. */
+  orthodoxFastSeasons(reckoning: OrthodoxFastReckoning, year: number | bigint): OrthodoxFastSeason[];
 
   /** `hc_term_in_effect`; a meridian nobody knows is `unknown`. */
   termInEffect(fixed: number | bigint, meridian?: Meridian): TermInEffect;
@@ -1465,6 +1782,16 @@ export class HyperCalendar {
   hjdTt(ttJulianDate: number, rightAscension: number, declination: number): HeliocentricJulianDate;
   /** `hc_hjd_utc`; under `strict` a date outside the leap-second table is `no-data`. */
   hjdUtc(utcJulianDate: number, rightAscension: number, declination: number, strict?: boolean): HeliocentricJulianDateUtc;
+  /** `hc_prayer_times`: eight lines; a time the Sun does not reach is an answer, not an error. */
+  prayerTimes(method: string, fixed: number | bigint, latitude: number, longitude: number, elevation?: number, ramadan?: boolean): PrayerTime[];
+  /** `hc_prayer_methods`. */
+  prayerMethods(): PrayerMethod[];
+  /** `hc_zmanim`: nine lines, the five times in temporal hours, then the dawns and nightfalls. */
+  zmanim(reckoning: ZmanimReckoning, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): Zman[];
+  /** `hc_edo_time`: by the 寛政暦's 明け六つ and 暮れ六つ. */
+  edoTime(unixSeconds: number | bigint, latitude: number, longitude: number, elevation?: number): EdoTime;
+  /** `hc_unix_from_edo_time`: `hour` 0 to 11 from 明け六つ, `fraction` 0 up to 1. */
+  unixFromEdoTime(fixed: number | bigint, hour: number, fraction: number, latitude: number, longitude: number, elevation?: number): SolarEvent;
 
   /** `hc_orbit_at`; an epoch beyond a million years either side of 1950 is `out-of-range`. */
   orbitAt(yearsBefore1950: number): Orbit;

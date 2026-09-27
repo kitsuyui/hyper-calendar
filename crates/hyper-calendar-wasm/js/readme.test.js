@@ -253,6 +253,43 @@ test("the planetary lines read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.circadDate], columnsAfter("### Calendars of other bodies"));
 });
 
+test("the time codes and clock readings read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.ccsdsDecode], columnsAfter("### CCSDS time codes"));
+  assert.deepEqual([...COLUMNS.ccsdsAscii], columnsOfTableStarting("variation"));
+  assert.match(README, /writes one line of\s+one cell, the code of an instant in the format a P-field names/);
+  assert.deepEqual([...COLUMNS.radioDecode], columnsAfter("### Radio time codes"));
+  assert.match(README, /writes one line\s+of two cells, the whole seconds from 1970-01-01 00:00 and\s+the attoseconds/);
+  assert.deepEqual([...COLUMNS.sixHourClock], columnsAfter("### Six-hour clocks"));
+});
+
+test("the parts of a day, the cycles and the fasts read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.kalam], columnsAfter("### Rāhu kālam, Yamaganda and Gulika kālam"));
+  assert.deepEqual([...COLUMNS.almanacCycles], columnsAfter("### The almanac's cycles"));
+  assert.deepEqual([...COLUMNS.orthodoxFast], columnsAfter("### The Orthodox fasts"));
+  // The seasons' line is stated in prose: columns 3 to 5 above, then the two days.
+  assert.match(README, /the identifier, the English name and the\s+kind of columns 3 to 5 above, then the first and last days/);
+  assert.deepEqual([...COLUMNS.orthodoxFastSeasons], ["id", "english name", "kind", "first", "last"]);
+});
+
+test("the prayer times, the zmanim and the Edo hours read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.prayerTimes], columnsAfter("### Prayer times"));
+  // The methods' table is the second after the heading.
+  const methods = README.slice(README.indexOf("`hc_prayer_methods` writes one line a\nmethod:"));
+  const methodRows = methods.split("\n").filter((line) => /^\| \d+ \| /.test(line));
+  const methodColumns = [];
+  for (const row of methodRows) {
+    const cells = row.slice(1, -1).split(" | ").map((cell) => cell.trim());
+    if (cells[0] !== String(methodColumns.length + 1)) {
+      break;
+    }
+    methodColumns.push(cells[1]);
+  }
+  assert.deepEqual([...COLUMNS.prayerMethods], methodColumns);
+  assert.deepEqual([...COLUMNS.zmanim], columnsAfter("### Zmanim"));
+  assert.deepEqual([...COLUMNS.edoTime], columnsAfter("### The Edo hours"));
+  assert.match(README, /give one line in the shape of `hc_solar_event`'s/);
+});
+
 test("the relativity lines read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.properTime], columnsAfter("## Relativity"));
   assert.deepEqual([...COLUMNS.gravitationalDilation], columnsAfter("### A clock at a radius"));

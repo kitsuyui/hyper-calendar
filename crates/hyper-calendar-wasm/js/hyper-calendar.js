@@ -81,6 +81,16 @@ export const METHODS = Object.freeze([
   { method: "epochFromTt", export: "hc_epoch_from_tt", feature: "timestamps" },
   { method: "ttFromEpoch", export: "hc_tt_from_epoch", feature: "timestamps" },
   { method: "ttBipm", export: "hc_tt_bipm", feature: "timestamps" },
+  { method: "ccsdsDecode", export: "hc_ccsds_decode", feature: "time-codes" },
+  { method: "ccsdsEncode", export: "hc_ccsds_encode", feature: "time-codes" },
+  { method: "ccsdsAsciiParse", export: "hc_ccsds_ascii_parse", feature: "time-codes" },
+  { method: "ccsdsAsciiFormat", export: "hc_ccsds_ascii_format", feature: "time-codes" },
+  { method: "radioDecode", export: "hc_radio_decode", feature: "time-codes" },
+  { method: "radioEncode", export: "hc_radio_encode", feature: "time-codes" },
+  { method: "dotnetTicksFromUnix", export: "hc_dotnet_ticks_from_unix", feature: "timestamps" },
+  { method: "unixFromDotnetTicks", export: "hc_unix_from_dotnet_ticks", feature: "timestamps" },
+  { method: "sixHourClock", export: "hc_six_hour_clock", feature: "timestamps" },
+  { method: "civilFromSixHourClock", export: "hc_civil_from_six_hour_clock", feature: "timestamps" },
   { method: "describeDay", export: "hc_describe_day", feature: "calendars" },
   { method: "calendarUnits", export: "hc_calendar_units", feature: "calendars" },
   { method: "calendars", export: "hc_calendars", feature: "calendars" },
@@ -102,6 +112,8 @@ export const METHODS = Object.freeze([
   { method: "chineseMarriageAugury", export: "hc_chinese_marriage_augury", feature: "calendars" },
   { method: "hebrewSabbaticalCycleYear", export: "hc_hebrew_sabbatical_cycle_year", feature: "calendars" },
   { method: "asianDay", export: "hc_asian_day", feature: "calendars" },
+  { method: "kalam", export: "hc_kalam", feature: "calendars" },
+  { method: "almanacCycles", export: "hc_almanac_cycles", feature: "calendars" },
   { method: "holidayIsDayOff", export: "hc_holiday_is_day_off", feature: "holiday" },
   { method: "holidaysInYear", export: "hc_holidays_in_year", feature: "holiday" },
   { method: "holidayCodes", export: "hc_holiday_codes", feature: "holiday" },
@@ -112,6 +124,8 @@ export const METHODS = Object.freeze([
   { method: "astronomicalPaschalFullMoon", export: "hc_astronomical_paschal_full_moon", feature: "holiday" },
   { method: "holyYearOn", export: "hc_holy_year_on", feature: "holiday" },
   { method: "commonWorshipOn", export: "hc_common_worship_on", feature: "holiday" },
+  { method: "orthodoxFastOn", export: "hc_orthodox_fast_on", feature: "holiday" },
+  { method: "orthodoxFastSeasons", export: "hc_orthodox_fast_seasons", feature: "holiday" },
   { method: "termInEffect", export: "hc_term_in_effect", feature: "seasons" },
   { method: "pentadInEffect", export: "hc_pentad_in_effect", feature: "seasons" },
   { method: "coldFoodDay", export: "hc_cold_food_day", feature: "seasons" },
@@ -141,6 +155,11 @@ export const METHODS = Object.freeze([
   { method: "sunset", export: "hc_sunset", feature: "sky" },
   { method: "hjdTt", export: "hc_hjd_tt", feature: "sky" },
   { method: "hjdUtc", export: "hc_hjd_utc", feature: "sky" },
+  { method: "prayerTimes", export: "hc_prayer_times", feature: "sky" },
+  { method: "prayerMethods", export: "hc_prayer_methods", feature: "sky" },
+  { method: "zmanim", export: "hc_zmanim", feature: "sky" },
+  { method: "edoTime", export: "hc_edo_time", feature: "sky" },
+  { method: "unixFromEdoTime", export: "hc_unix_from_edo_time", feature: "sky" },
   { method: "orbitAt", export: "hc_orbit_at", feature: "orbital" },
   { method: "orbitSeries", export: "hc_orbit_series", feature: "orbital" },
   { method: "marsTime", export: "hc_mars_time", feature: "planetary" },
@@ -236,7 +255,7 @@ export const COLUMNS = Object.freeze({
   ]),
   value: Object.freeze(["value"]),
   solarTime: Object.freeze(["day", "hours", "missing", "missing day", "depression"]),
-  solarEvent: Object.freeze(["instant", "missing", "missing day", "depression"]),
+  solarEvent: Object.freeze(["instant", "missing", "missing day", "depression", "depression arcseconds"]),
   marsTime: Object.freeze([
     "mars sol date", "mtc", "mtc hours", "lmst", "lmst hours", "ltst", "ltst hours",
     "equation of time", "ls", "mars year", "darian year", "darian month", "darian sol",
@@ -301,6 +320,44 @@ export const COLUMNS = Object.freeze({
     "dioceses close",
   ]),
   commonWorship: Object.freeze(["title", "rank", "rank name"]),
+  ccsdsDecode: Object.freeze([
+    "code", "tai seconds", "tai attoseconds", "unix seconds", "leap second", "utc attoseconds",
+  ]),
+  ccsdsAscii: Object.freeze([
+    "variation", "tai seconds", "tai attoseconds", "unix seconds", "leap second", "utc attoseconds",
+    "precision", "digits", "terminator",
+  ]),
+  radioDecode: Object.freeze([
+    "unix seconds", "fixed", "hour", "minute", "offset hours", "seconds", "leap", "summer",
+    "zone change", "dut1 tenths", "dst next",
+  ]),
+  unixFromDotnetTicks: Object.freeze(["unix seconds", "attoseconds"]),
+  sixHourClock: Object.freeze(["hour", "minute", "second", "half", "period", "period english"]),
+  kalam: Object.freeze([
+    "id", "english name", "part", "clock", "start", "end", "missing", "missing day", "depression",
+    "depression arcseconds",
+  ]),
+  almanacCycles: Object.freeze([
+    "eho", "eho romaji", "azimuth", "sixteen-point", "direction", "period", "period name", "era",
+    "star", "ruler", "first year", "last year", "without son",
+  ]),
+  orthodoxFast: Object.freeze(["fast day", "status", "period", "period name", "kind", "abstinence"]),
+  orthodoxFastSeasons: Object.freeze(["id", "english name", "kind", "first", "last"]),
+  prayerTimes: Object.freeze([
+    "time", "instant", "missing", "missing day", "depression", "depression arcseconds",
+  ]),
+  prayerMethods: Object.freeze([
+    "id", "english name", "fajr", "maghrib", "isha", "isha minutes", "isha ramadan minutes",
+    "midnight", "source",
+  ]),
+  zmanim: Object.freeze([
+    "id", "english name", "hours", "instant", "missing", "missing day", "depression",
+    "depression arcseconds",
+  ]),
+  edoTime: Object.freeze([
+    "day", "hour", "name", "romaji", "strokes", "branch", "tenths", "fraction", "missing",
+    "missing day", "depression", "depression arcseconds",
+  ]),
 });
 
 /** The geologic ranks `hc_geologic_intervals` numbers, coarsest first. */
@@ -1299,7 +1356,7 @@ function lectionaryLine(cells) {
  * @param {string} depression
  * @returns {import("./hyper-calendar.d.ts").MissingSolarEvent | null}
  */
-function missingSolarEvent(missing, day, depression) {
+function missingSolarEvent(missing, day, depression, arcseconds = "") {
   if (missing === "") {
     return null;
   }
@@ -1307,6 +1364,7 @@ function missingSolarEvent(missing, day, depression) {
     event: /** @type {import("./hyper-calendar.d.ts").MissingSolarEventName} */ (missing),
     day: integer(day, "missing day"),
     depressionArcminutes: optionalInteger(depression, "depression"),
+    depressionArcseconds: optionalInteger(arcseconds, "depression arcseconds"),
   };
 }
 
@@ -1332,10 +1390,10 @@ function solarTime(cells) {
  * @returns {import("./hyper-calendar.d.ts").SolarEvent}
  */
 function solarEvent(cells) {
-  const [instant, missing, missingDay, depression] = cells;
+  const [instant, missing, missingDay, depression, arcseconds] = cells;
   return {
     instant: optionalInteger(instant, "instant"),
-    missing: missingSolarEvent(missing, missingDay, depression),
+    missing: missingSolarEvent(missing, missingDay, depression, arcseconds),
   };
 }
 
@@ -1722,6 +1780,255 @@ function gravitatingBody(cells) {
 }
 
 /** The capacity a text read starts with unless `load` was told otherwise. */
+/**
+ * The five cells of an instant a CCSDS line writes: TAI and its UTC label.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").CcsdsInstant}
+ */
+function ccsdsInstant(cells) {
+  const [taiSeconds, taiAttoseconds, unixSeconds, leapSecond, utcAttoseconds] = cells;
+  return {
+    tai: {
+      seconds: bigInteger(taiSeconds, "tai seconds"),
+      attoseconds: bigInteger(taiAttoseconds, "tai attoseconds"),
+    },
+    utc: {
+      unixSeconds: bigInteger(unixSeconds, "unix seconds"),
+      leapSecond: flag(leapSecond, "leap second"),
+      attoseconds: bigInteger(utcAttoseconds, "utc attoseconds"),
+    },
+  };
+}
+
+/**
+ * The one line of `hc_ccsds_decode`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").CcsdsCode}
+ */
+function ccsdsCode(cells) {
+  return {
+    code: /** @type {import("./hyper-calendar.d.ts").CcsdsCodeName} */ (cells[0]),
+    ...ccsdsInstant(cells.slice(1, 6)),
+  };
+}
+
+/**
+ * The one line of `hc_ccsds_ascii_parse`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").CcsdsAsciiCode}
+ */
+function ccsdsAsciiCode(cells) {
+  const [variation, , , , , , precision, digits, terminator] = cells;
+  return {
+    variation: /** @type {"a" | "b"} */ (variation),
+    ...ccsdsInstant(cells.slice(1, 6)),
+    precision: /** @type {import("./hyper-calendar.d.ts").CcsdsAsciiPrecision} */ (precision),
+    digits: optionalInteger(digits, "digits"),
+    terminator: flag(terminator, "terminator"),
+  };
+}
+
+/**
+ * The one line of `hc_radio_decode`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").RadioMinute}
+ */
+function radioMinute(cells) {
+  const [unixSeconds, fixed, hour, minute, offsetHours, seconds, leap, summer, zoneChange, dut1, dstNext] = cells;
+  return {
+    unixSeconds: integer(unixSeconds, "unix seconds"),
+    fixed: integer(fixed, "fixed"),
+    hour: integer(hour, "hour"),
+    minute: integer(minute, "minute"),
+    offsetHours: integer(offsetHours, "offset hours"),
+    seconds: integer(seconds, "seconds"),
+    leap: /** @type {import("./hyper-calendar.d.ts").RadioLeap} */ (leap),
+    summer: /** @type {import("./hyper-calendar.d.ts").RadioSummer | null} */ (optional(summer)),
+    zoneChange: zoneChange === "" ? null : flag(zoneChange, "zone change"),
+    dut1Tenths: optionalInteger(dut1, "dut1 tenths"),
+    dstNext: optionalInteger(dstNext, "dst next"),
+  };
+}
+
+/**
+ * The one line of `hc_six_hour_clock`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").SixHourReading}
+ */
+function sixHourReading(cells) {
+  const [hour, minute, second, half, period, periodEnglish] = cells;
+  return {
+    hour: integer(hour, "hour"),
+    minute: integer(minute, "minute"),
+    second: integer(second, "second"),
+    half: /** @type {"day" | "night"} */ (half),
+    period: optional(period),
+    periodEnglish: optional(periodEnglish),
+  };
+}
+
+/**
+ * One line of `hc_kalam`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").KalamPeriod}
+ */
+function kalamPeriod(cells) {
+  const [id, englishName, part, clock, start, end, missing, missingDay, depression, arcseconds] = cells;
+  return {
+    id: /** @type {import("./hyper-calendar.d.ts").KalamId} */ (id),
+    englishName,
+    part: integer(part, "part"),
+    clock: /** @type {"universal" | "local"} */ (clock),
+    start: optionalInteger(start, "start"),
+    end: optionalInteger(end, "end"),
+    missing: missingSolarEvent(missing, missingDay, depression, arcseconds),
+  };
+}
+
+/**
+ * The one line of `hc_almanac_cycles`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").AlmanacCycles}
+ */
+function almanacCycles(cells) {
+  const [
+    eho, ehoRomaji, azimuth, sixteenPoint, direction, period, periodName, era, star, ruler,
+    firstYear, lastYear, withoutSon,
+  ] = cells;
+  return {
+    eho,
+    ehoRomaji,
+    azimuth: integer(azimuth, "azimuth"),
+    sixteenPoint,
+    direction,
+    period: integer(period, "period"),
+    periodName,
+    era,
+    star,
+    ruler,
+    firstYear: integer(firstYear, "first year"),
+    lastYear: integer(lastYear, "last year"),
+    withoutSon: withoutSon === "" ? null : flag(withoutSon, "without son"),
+  };
+}
+
+/**
+ * The one line of `hc_orthodox_fast_on`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").OrthodoxFastDay}
+ */
+function orthodoxFastDay(cells) {
+  const [fastDay, status, period, periodName, kind, abstinence] = cells;
+  return {
+    fastDay: flag(fastDay, "fast day"),
+    status: /** @type {"period" | "weekly-fast" | "none"} */ (status),
+    period: optional(period),
+    periodName: optional(periodName),
+    kind: /** @type {"fast" | "fast-free" | "meat-excluded" | null} */ (optional(kind)),
+    abstinence: /** @type {"nothing" | "meat" | "fast"} */ (abstinence),
+  };
+}
+
+/**
+ * One line of `hc_orthodox_fast_seasons`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").OrthodoxFastSeason}
+ */
+function orthodoxFastSeason(cells) {
+  const [id, englishName, kind, first, last] = cells;
+  return {
+    id,
+    englishName,
+    kind: /** @type {"fast" | "fast-free" | "meat-excluded"} */ (kind),
+    first: optionalInteger(first, "first"),
+    last: optionalInteger(last, "last"),
+  };
+}
+
+/**
+ * One line of `hc_prayer_times`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").PrayerTime}
+ */
+function prayerTime(cells) {
+  const [time, instant, missing, missingDay, depression, arcseconds] = cells;
+  return {
+    time: /** @type {import("./hyper-calendar.d.ts").PrayerTimeName} */ (time),
+    instant: optionalInteger(instant, "instant"),
+    missing: missingSolarEvent(missing, missingDay, depression, arcseconds),
+  };
+}
+
+/**
+ * One line of `hc_prayer_methods`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").PrayerMethod}
+ */
+function prayerMethod(cells) {
+  const [id, englishName, fajr, maghrib, isha, ishaMinutes, ishaRamadanMinutes, midnight, source] = cells;
+  return {
+    id,
+    englishName,
+    fajrArcminutes: integer(fajr, "fajr"),
+    maghribArcminutes: optionalInteger(maghrib, "maghrib"),
+    ishaArcminutes: optionalInteger(isha, "isha"),
+    ishaMinutes: optionalInteger(ishaMinutes, "isha minutes"),
+    ishaRamadanMinutes: optionalInteger(ishaRamadanMinutes, "isha ramadan minutes"),
+    midnight: /** @type {"sunset-to-sunrise" | "sunset-to-fajr"} */ (midnight),
+    source,
+  };
+}
+
+/**
+ * One line of `hc_zmanim`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Zman}
+ */
+function zman(cells) {
+  const [id, englishName, hours, instant, missing, missingDay, depression, arcseconds] = cells;
+  return {
+    id: /** @type {import("./hyper-calendar.d.ts").ZmanId} */ (id),
+    englishName: optional(englishName),
+    hours: hours === "" ? null : decimal(hours, "hours"),
+    instant: optionalInteger(instant, "instant"),
+    missing: missingSolarEvent(missing, missingDay, depression, arcseconds),
+  };
+}
+
+/**
+ * The one line of `hc_edo_time`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").EdoTime}
+ */
+function edoTime(cells) {
+  const [day, hour, name, romaji, strokes, branch, tenths, fraction, missing, missingDay, depression, arcseconds] =
+    cells;
+  return {
+    day: optionalInteger(day, "day"),
+    hour: optionalInteger(hour, "hour"),
+    name: optional(name),
+    romaji: optional(romaji),
+    strokes: optionalInteger(strokes, "strokes"),
+    branch: optional(branch),
+    tenths: optionalInteger(tenths, "tenths"),
+    fraction: fraction === "" ? null : decimal(fraction, "fraction"),
+    missing: missingSolarEvent(missing, missingDay, depression, arcseconds),
+  };
+}
+
 const DEFAULT_INITIAL_CAPACITY = 64 * 1024;
 
 /**
@@ -3165,8 +3472,9 @@ export class HyperCalendar {
 
   /**
    * Whether the young crescent should have been visible on the evening
-   * that begins a fixed day, from a place, by `shaukat`, `yallop` or
-   * `saudi-rule`.
+   * that begins a fixed day, from a place, by `shaukat`, `yallop`,
+   * `saudi-rule`, `odeh`, `istanbul-2016`, `khgt`,
+   * `mabims-2021-topocentric` or `mabims-2021-geocentric-elongation`.
    *
    * @param {import("./hyper-calendar.d.ts").CrescentCriterion} criterion
    * @param {number | bigint} fixed
@@ -3716,6 +4024,340 @@ export class HyperCalendar {
     const fn = this.#export("hc_gravitating_bodies");
     const text = this.#text("hc_gravitating_bodies", (buffer, capacity) => fn(buffer, capacity), true);
     return rows(text, COLUMNS.gravitatingBodies, "hc_gravitating_bodies").map(gravitatingBody);
+  }
+
+  /**
+   * A binary CCSDS time code read from hexadecimal, P-field first.
+   *
+   * @param {string} hex
+   * @param {boolean} [strict]
+   * @returns {import("./hyper-calendar.d.ts").CcsdsCode}
+   */
+  ccsdsDecode(hex, strict = false) {
+    const fn = this.#export("hc_ccsds_decode");
+    const text = this.#withText(hex, "hex", (pointer, len) =>
+      this.#text("hc_ccsds_decode", (buffer, capacity) => fn(pointer, len, strict ? 1 : 0, buffer, capacity), true));
+    return ccsdsCode(this.#oneLine("hc_ccsds_decode", text, COLUMNS.ccsdsDecode));
+  }
+
+  /**
+   * The binary CCSDS time code of a TAI instant in a P-field's format, as
+   * lower-case hexadecimal.
+   *
+   * @param {number | bigint} taiSeconds
+   * @param {number | bigint} attoseconds
+   * @param {string} pField
+   * @param {boolean} [strict]
+   * @returns {string}
+   */
+  ccsdsEncode(taiSeconds, attoseconds, pField, strict = false) {
+    const fn = this.#export("hc_ccsds_encode");
+    const seconds = toI64(taiSeconds, "taiSeconds");
+    const attos = toU64(attoseconds, "attoseconds");
+    const text = this.#withText(pField, "pField", (pointer, len) =>
+      this.#text("hc_ccsds_encode", (buffer, capacity) =>
+        fn(seconds, attos, pointer, len, strict ? 1 : 0, buffer, capacity), true));
+    return this.#oneLine("hc_ccsds_encode", text, ["code"])[0];
+  }
+
+  /**
+   * A CCSDS ASCII time code, A or B, read.
+   *
+   * @param {string} code
+   * @param {boolean} [strict]
+   * @returns {import("./hyper-calendar.d.ts").CcsdsAsciiCode}
+   */
+  ccsdsAsciiParse(code, strict = false) {
+    const fn = this.#export("hc_ccsds_ascii_parse");
+    const text = this.#withText(code, "code", (pointer, len) =>
+      this.#text("hc_ccsds_ascii_parse", (buffer, capacity) =>
+        fn(pointer, len, strict ? 1 : 0, buffer, capacity), true));
+    return ccsdsAsciiCode(this.#oneLine("hc_ccsds_ascii_parse", text, COLUMNS.ccsdsAscii));
+  }
+
+  /**
+   * The CCSDS ASCII time code of a TAI instant's UTC label.
+   *
+   * @param {number | bigint} taiSeconds
+   * @param {number | bigint} attoseconds
+   * @param {"a" | "b"} variation
+   * @param {string} precision `hour`, `minute`, `second` or `1` to `18`
+   * @param {boolean} [terminator]
+   * @param {boolean} [strict]
+   * @returns {string}
+   */
+  ccsdsAsciiFormat(taiSeconds, attoseconds, variation, precision, terminator = true, strict = false) {
+    const fn = this.#export("hc_ccsds_ascii_format");
+    const seconds = toI64(taiSeconds, "taiSeconds");
+    const attos = toU64(attoseconds, "attoseconds");
+    const text = this.#withText(variation, "variation", (variationPointer, variationLen) =>
+      this.#withText(String(precision), "precision", (precisionPointer, precisionLen) =>
+        this.#text("hc_ccsds_ascii_format", (buffer, capacity) =>
+          fn(seconds, attos, variationPointer, variationLen, precisionPointer, precisionLen,
+            terminator ? 1 : 0, strict ? 1 : 0, buffer, capacity), true)));
+    return this.#oneLine("hc_ccsds_ascii_format", text, ["code"])[0];
+  }
+
+  /**
+   * One minute's frame of a radio time code read.
+   *
+   * @param {import("./hyper-calendar.d.ts").RadioCode} code
+   * @param {string} frame
+   * @param {number | bigint} century
+   * @returns {import("./hyper-calendar.d.ts").RadioMinute}
+   */
+  radioDecode(code, frame, century) {
+    const fn = this.#export("hc_radio_decode");
+    const start = toI64(century, "century");
+    const text = this.#withText(code, "code", (codePointer, codeLen) =>
+      this.#withText(frame, "frame", (framePointer, frameLen) =>
+        this.#text("hc_radio_decode", (buffer, capacity) =>
+          fn(codePointer, codeLen, framePointer, frameLen, start, buffer, capacity), true)));
+    return radioMinute(this.#oneLine("hc_radio_decode", text, COLUMNS.radioDecode));
+  }
+
+  /**
+   * The frame of a radio time code for a minute.
+   *
+   * @param {import("./hyper-calendar.d.ts").RadioCode} code
+   * @param {number | bigint} unixSeconds
+   * @param {import("./hyper-calendar.d.ts").RadioEncodeOptions} [options]
+   * @returns {string}
+   */
+  radioEncode(code, unixSeconds, options = {}) {
+    const fn = this.#export("hc_radio_encode");
+    const minute = toI64(unixSeconds, "unixSeconds");
+    const leap = options.leap ?? 0;
+    if (![-1, 0, 1].includes(leap)) {
+      raise(`leap must be -1, 0 or 1, got ${String(leap)}`);
+    }
+    const dut1 = options.dut1Tenths ?? 0;
+    if (!Number.isInteger(dut1)) {
+      raise(`dut1Tenths must be an integer, got ${String(dut1)}`);
+    }
+    const next = toU32(options.dstNext ?? 0, "dstNext");
+    const text = this.#withText(code, "code", (codePointer, codeLen) =>
+      this.#withText(options.summer ?? "", "summer", (summerPointer, summerLen) =>
+        this.#text("hc_radio_encode", (buffer, capacity) =>
+          fn(codePointer, codeLen, minute, leap, summerPointer, summerLen, options.zoneChange ? 1 : 0, dut1,
+            next, buffer, capacity), true)));
+    return this.#oneLine("hc_radio_encode", text, ["frame"])[0];
+  }
+
+  /**
+   * .NET's `DateTime.Ticks` of a POSIX instant as a `Utc` value.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {number | bigint} [attoseconds]
+   * @returns {bigint}
+   */
+  dotnetTicksFromUnix(unixSeconds, attoseconds = 0) {
+    const fn = this.#export("hc_dotnet_ticks_from_unix");
+    return checked(fn(toI64(unixSeconds, "unixSeconds"), toU64(attoseconds, "attoseconds")), "hc_dotnet_ticks_from_unix");
+  }
+
+  /**
+   * The reading a count of .NET ticks names, in the POSIX shape.
+   *
+   * @param {number | bigint} ticks
+   * @returns {import("./hyper-calendar.d.ts").DotnetReading}
+   */
+  unixFromDotnetTicks(ticks) {
+    const fn = this.#export("hc_unix_from_dotnet_ticks");
+    const count = toI64(ticks, "ticks");
+    const text = this.#text("hc_unix_from_dotnet_ticks", (buffer, capacity) => fn(count, buffer, capacity), true);
+    const [seconds, attoseconds] = this.#oneLine("hc_unix_from_dotnet_ticks", text, COLUMNS.unixFromDotnetTicks);
+    return {
+      unixSeconds: integer(seconds, "unix seconds"),
+      attoseconds: bigInteger(attoseconds, "attoseconds"),
+    };
+  }
+
+  /**
+   * A time of the civil day on a six-hour clock.
+   *
+   * @param {import("./hyper-calendar.d.ts").SixHourReckoning} reckoning
+   * @param {number} secondsOfDay
+   * @returns {import("./hyper-calendar.d.ts").SixHourReading}
+   */
+  sixHourClock(reckoning, secondsOfDay) {
+    const fn = this.#export("hc_six_hour_clock");
+    const seconds = toU32(secondsOfDay, "secondsOfDay");
+    const text = this.#withText(reckoning, "reckoning", (pointer, len) =>
+      this.#text("hc_six_hour_clock", (buffer, capacity) => fn(pointer, len, seconds, buffer, capacity), true));
+    return sixHourReading(this.#oneLine("hc_six_hour_clock", text, COLUMNS.sixHourClock));
+  }
+
+  /**
+   * The civil seconds after midnight of a six-hour reading.
+   *
+   * @param {import("./hyper-calendar.d.ts").SixHourReckoning} reckoning
+   * @param {number} hour
+   * @param {number} minute
+   * @param {number} second
+   * @param {boolean} night
+   * @returns {number}
+   */
+  civilFromSixHourClock(reckoning, hour, minute, second, night) {
+    const fn = this.#export("hc_civil_from_six_hour_clock");
+    const [h, m, sec] = [toU32(hour, "hour"), toU32(minute, "minute"), toU32(second, "second")];
+    return this.#withText(reckoning, "reckoning", (pointer, len) =>
+      toNumber(fn(pointer, len, h, m, sec, night ? 1 : 0), "hc_civil_from_six_hour_clock"));
+  }
+
+  /**
+   * Rāhu kālam, Yamaganda and Gulika kālam on a day.
+   *
+   * @param {import("./hyper-calendar.d.ts").KalamConvention} convention
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @returns {import("./hyper-calendar.d.ts").KalamPeriod[]}
+   */
+  kalam(convention, fixed, latitude, longitude, elevation = 0) {
+    const fn = this.#export("hc_kalam");
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(convention, "convention", (pointer, len) =>
+      this.#text("hc_kalam", (buffer, capacity) => fn(pointer, len, day, lat, lon, elev, buffer, capacity), true));
+    return rows(text, COLUMNS.kalam, "hc_kalam").map(kalamPeriod);
+  }
+
+  /**
+   * 恵方, 三元九運 and 손 없는 날 of a day.
+   *
+   * @param {number | bigint} fixed
+   * @param {string} [meridian]
+   * @returns {import("./hyper-calendar.d.ts").AlmanacCycles}
+   */
+  almanacCycles(fixed, meridian = "") {
+    const fn = this.#export("hc_almanac_cycles");
+    const day = toI64(fixed, "fixed");
+    const text = this.#withText(meridian, "meridian", (pointer, len) =>
+      this.#text("hc_almanac_cycles", (buffer, capacity) => fn(day, pointer, len, buffer, capacity), true));
+    return almanacCycles(this.#oneLine("hc_almanac_cycles", text, COLUMNS.almanacCycles));
+  }
+
+  /**
+   * What a day is in the Eastern Orthodox fasting scheme of a reckoning.
+   *
+   * @param {import("./hyper-calendar.d.ts").OrthodoxFastReckoning} reckoning
+   * @param {number | bigint} fixed
+   * @returns {import("./hyper-calendar.d.ts").OrthodoxFastDay}
+   */
+  orthodoxFastOn(reckoning, fixed) {
+    const fn = this.#export("hc_orthodox_fast_on");
+    const day = toI64(fixed, "fixed");
+    const text = this.#withText(reckoning, "reckoning", (pointer, len) =>
+      this.#text("hc_orthodox_fast_on", (buffer, capacity) => fn(pointer, len, day, buffer, capacity), true));
+    return orthodoxFastDay(this.#oneLine("hc_orthodox_fast_on", text, COLUMNS.orthodoxFast));
+  }
+
+  /**
+   * The fasting seasons and fast-free weeks of a year of a reckoning.
+   *
+   * @param {import("./hyper-calendar.d.ts").OrthodoxFastReckoning} reckoning
+   * @param {number | bigint} year
+   * @returns {import("./hyper-calendar.d.ts").OrthodoxFastSeason[]}
+   */
+  orthodoxFastSeasons(reckoning, year) {
+    const fn = this.#export("hc_orthodox_fast_seasons");
+    const y = toI64(year, "year");
+    const text = this.#withText(reckoning, "reckoning", (pointer, len) =>
+      this.#text("hc_orthodox_fast_seasons", (buffer, capacity) => fn(pointer, len, y, buffer, capacity), true));
+    return rows(text, COLUMNS.orthodoxFastSeasons, "hc_orthodox_fast_seasons").map(orthodoxFastSeason);
+  }
+
+  /**
+   * The Islamic prayer times of a day at a place by a named method.
+   *
+   * @param {string} method
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @param {boolean} [ramadan]
+   * @returns {import("./hyper-calendar.d.ts").PrayerTime[]}
+   */
+  prayerTimes(method, fixed, latitude, longitude, elevation = 0, ramadan = false) {
+    const fn = this.#export("hc_prayer_times");
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(method, "method", (pointer, len) =>
+      this.#text("hc_prayer_times", (buffer, capacity) =>
+        fn(pointer, len, day, lat, lon, elev, ramadan ? 1 : 0, buffer, capacity), true));
+    return rows(text, COLUMNS.prayerTimes, "hc_prayer_times").map(prayerTime);
+  }
+
+  /**
+   * Every prayer-time method, with its parameters and source.
+   *
+   * @returns {import("./hyper-calendar.d.ts").PrayerMethod[]}
+   */
+  prayerMethods() {
+    const fn = this.#export("hc_prayer_methods");
+    const text = this.#text("hc_prayer_methods", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(text, COLUMNS.prayerMethods, "hc_prayer_methods").map(prayerMethod);
+  }
+
+  /**
+   * The Jewish times of a day at a place by a reckoning, with the dawns
+   * and nightfalls.
+   *
+   * @param {import("./hyper-calendar.d.ts").ZmanimReckoning} reckoning
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @returns {import("./hyper-calendar.d.ts").Zman[]}
+   */
+  zmanim(reckoning, fixed, latitude, longitude, elevation = 0) {
+    const fn = this.#export("hc_zmanim");
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(reckoning, "reckoning", (pointer, len) =>
+      this.#text("hc_zmanim", (buffer, capacity) => fn(pointer, len, day, lat, lon, elev, buffer, capacity), true));
+    return rows(text, COLUMNS.zmanim, "hc_zmanim").map(zman);
+  }
+
+  /**
+   * The Edo 不定時法 reading of an instant at a place.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @returns {import("./hyper-calendar.d.ts").EdoTime}
+   */
+  edoTime(unixSeconds, latitude, longitude, elevation = 0) {
+    const fn = this.#export("hc_edo_time");
+    const instant = toI64(unixSeconds, "unixSeconds");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#text("hc_edo_time", (buffer, capacity) => fn(instant, lat, lon, elev, buffer, capacity), true);
+    return edoTime(this.#oneLine("hc_edo_time", text, COLUMNS.edoTime));
+  }
+
+  /**
+   * The instant of an Edo 不定時法 reading at a place.
+   *
+   * @param {number | bigint} fixed
+   * @param {number} hour 0 to 11, from 明け六つ
+   * @param {number} fraction 0 up to 1
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @returns {import("./hyper-calendar.d.ts").SolarEvent}
+   */
+  unixFromEdoTime(fixed, hour, fraction, latitude, longitude, elevation = 0) {
+    const fn = this.#export("hc_unix_from_edo_time");
+    const day = toI64(fixed, "fixed");
+    const h = toU32(hour, "hour");
+    const f = toF64(fraction, "fraction");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#text("hc_unix_from_edo_time", (buffer, capacity) =>
+      fn(day, h, f, lat, lon, elev, buffer, capacity), true);
+    return solarEvent(this.#oneLine("hc_unix_from_edo_time", text, COLUMNS.solarEvent));
   }
 }
 
