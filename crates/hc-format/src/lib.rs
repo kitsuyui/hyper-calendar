@@ -32,6 +32,7 @@
 //! | [`radio`] | The JJY, DCF77 and WWVB time codes, a minute's frame each way |
 //! | [`irig`] | The IRIG serial time codes A, B, D, E, G and H, a frame each way |
 //! | [`east_african_hours`] | The Ethiopian and Swahili hours, the civil clock read six hours on |
+//! | [`night_watches`] | 更点, the Chinese night in five watches of five points, by the fixed reckoning |
 //! | [`patterns`] | `strftime`/`strptime` and CLDR field patterns, both directions |
 //! | [`python`] | The ISO 8601 profile and `strptime` defaults of Python's `datetime` |
 //! | [`parse`] | A sniffing front door for "a date string" |
@@ -73,6 +74,7 @@ pub mod fat;
 pub mod irig;
 pub mod iso8601;
 pub mod label;
+pub mod night_watches;
 pub mod parse;
 pub mod patterns;
 pub mod python;

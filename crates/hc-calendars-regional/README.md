@@ -46,6 +46,7 @@ Lao lunar calendars are such counts, and are here as regional calendars.
 | `sexagenary` | 干支 over years, months and days |
 | `olympiad` | The ancient Olympiads over the Julian year, from 776 BC, as Reingold and Dershowitz count them; the IOC's modern Olympiad number from 1896 as a function ([docs/systems/olympiads.md](../../docs/systems/olympiads.md)) |
 | `arsacid` | The Arsacid era on the Babylonian months, `babylonian`'s Seleucid year less 64, AE 1 to 322 ([docs/systems/seleucid-eras.md](../../docs/systems/seleucid-eras.md)) |
+| `huangdi` | The years of the Yellow Emperor, 黃帝紀元, in four epochs, each `chinese` with the year renamed, 1645 to 2150 ([docs/systems/era-counts.md](../../docs/systems/era-counts.md)) |
 
 `register_all(&mut CalendarRegistry)` inserts every calendar in the table,
 behind the `alloc` feature, exactly as `hc-calendars-solar` does;

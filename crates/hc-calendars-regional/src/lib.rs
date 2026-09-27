@@ -31,6 +31,7 @@
 //! | [`sexagenary`] | `sexagenary` — 干支 over years, months and days |
 //! | [`olympiad`] | `olympiad` — the ancient Olympiads over the Julian year, and the IOC's modern Olympiad number as a function |
 //! | [`arsacid`] | `arsacid-era` — the Parthian era on the Babylonian months, the Seleucid year less 64 |
+//! | [`huangdi`] | `huangdi-era`, `huangdi-era-tongmenghui`, `huangdi-era-liu-shipei`, `huangdi-era-jiangsu` — the four counts of the years of the Yellow Emperor on the Chinese lunisolar calendar |
 //!
 //! # Cyclic calendars and the round-trip contract
 //!
@@ -132,6 +133,7 @@ pub mod aztec;
 pub mod balinese_pawukon;
 pub mod burmese;
 pub mod chinese_regnal;
+pub mod huangdi;
 pub mod japanese;
 pub mod javanese_pasaran;
 pub mod khmer;
@@ -157,6 +159,7 @@ pub use aztec::{
 pub use balinese_pawukon::{BalinesePawukonCalendar, PawukonDate};
 pub use burmese::{BurmeseCalendar, BurmeseDate, MoonPhase, Thingyan, YearType};
 pub use chinese_regnal::{ChineseEra, ChineseRegnalCalendar, ChineseRegnalDate, Dynasty};
+pub use huangdi::{HuangdiCalendar, HuangdiCount, HuangdiDate};
 pub use japanese::{JapaneseCalendar, JapaneseDate};
 pub use javanese_pasaran::{JavanesePasaranCalendar, WetonDate};
 pub use khmer::{KhmerCalendar, KhmerDate};
@@ -241,6 +244,9 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::LaoCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::OlympiadCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::ArsacidCalendar)));
+        for count in crate::huangdi::ALL {
+            registry.insert(Box::new(DynAdapter::new(crate::HuangdiCalendar(count))));
+        }
     }
 }
 
@@ -249,7 +255,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 37;
+const CALENDAR_COUNT: usize = 41;
 
 #[cfg(test)]
 mod tests {
@@ -336,6 +342,7 @@ mod tests {
                 LaoCalendar,
                 OlympiadCalendar,
                 ArsacidCalendar,
+                HuangdiCalendar(huangdi::SONG_JIAOREN),
             );
         }
     }
@@ -539,11 +546,13 @@ mod tests {
             assert!(!meta.english_name.is_empty());
             // Only the era calendars over a lunisolar year carry intercalary
             // months — the Japanese, in the lunisolar half of its range, and
-            // the Qing eras over the Chinese calendar, the Arsacid era over the
-            // Babylonian — and the four Theravada lunisolar calendars.
+            // the Qing eras and the Huangdi counts over the Chinese calendar,
+            // the Arsacid era over the Babylonian — and the four Theravada
+            // lunisolar calendars.
             assert!(
                 !meta.has_leap_months
                     || meta.id.as_str().starts_with("japanese")
+                    || meta.id.as_str().starts_with("huangdi-era")
                     || meta.id.as_str() == "chinese-regnal"
                     || meta.id.as_str() == "arsacid-era"
                     || meta.id.as_str() == "burmese"

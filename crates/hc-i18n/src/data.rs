@@ -159,6 +159,7 @@ const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("masonic-anno-depositionis"),
     CalendarId("masonic-anno-ordinis"),
     CalendarId("ada"),
+    CalendarId("cheondogyo-podeok"),
     CalendarId("olympiad"),
     CalendarId("gaza-era"),
 ];
@@ -224,6 +225,10 @@ const BUDDHIST_CALENDARS: &[CalendarId] = &[CalendarId("buddhist")];
 const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("chinese"),
     CalendarId("chinese-regnal"),
+    CalendarId("huangdi-era"),
+    CalendarId("huangdi-era-tongmenghui"),
+    CalendarId("huangdi-era-liu-shipei"),
+    CalendarId("huangdi-era-jiangsu"),
     CalendarId("tibetan"),
     CalendarId("tibetan-tsurphu"),
     CalendarId("tibetan-bhutan"),
@@ -254,6 +259,23 @@ const CHINESE_FAMILY_CALENDARS: &[CalendarId] = &[
 /// family, the year of the reign.
 const CHINESE_REGNAL_CALENDARS: &[CalendarId] = &[CalendarId("chinese-regnal")];
 
+/// The four counts of the years of the Yellow Emperor, which write the
+/// months of the Chinese family and number the year from their epoch.
+const HUANGDI_CALENDARS: &[CalendarId] = &[
+    CalendarId("huangdi-era"),
+    CalendarId("huangdi-era-tongmenghui"),
+    CalendarId("huangdi-era-liu-shipei"),
+    CalendarId("huangdi-era-jiangsu"),
+];
+
+/// The era codes of [`HUANGDI_CALENDARS`], in that order.
+const HUANGDI_ERA_CODES: &[&str] = &[
+    "huangdi",
+    "huangdi-tongmenghui",
+    "huangdi-liu-shipei",
+    "huangdi-jiangsu",
+];
+
 /// The five Japanese lunisolar calendars, whose months the Japanese
 /// traditional names — 睦月 … 師走 — belong to and to nothing else.
 const JAPANESE_LUNISOLAR_CALENDARS: &[CalendarId] = &[
@@ -276,12 +298,14 @@ const YERM_CALENDARS: &[CalendarId] = &[CalendarId("yerm")];
 /// arithmetic calendars, `persian-arithmetic` (Birashk's cycle) and
 /// `persian-arithmetic-33`, and the two astronomical ones of
 /// `hc-calendars-equinox`, `persian` and `persian-apparent-noon`. Their
-/// months have the same names.
+/// months have the same names, and so do those of `persian-imperial`, the
+/// same days under the imperial year of 1976–1978.
 const PERSIAN_CALENDARS: &[CalendarId] = &[
     CalendarId("persian-arithmetic"),
     CalendarId("persian-arithmetic-33"),
     CalendarId("persian"),
     CalendarId("persian-apparent-noon"),
+    CalendarId("persian-imperial"),
 ];
 
 /// The Solar Hijri calendar under every name the registry has for it: the
@@ -3139,6 +3163,35 @@ const EN_CALENDARS: &[CalendarNames] = &[
     }),
     dated(&[CalendarId("ada")], &[], &["ada"], &["ADA"]),
     dated(
+        &[CalendarId("cheondogyo-podeok")],
+        &[],
+        &["podeok"],
+        &["Podeok"],
+    ),
+    dated(
+        &[CalendarId("persian-imperial")],
+        &[],
+        &["shahanshahi"],
+        &["Shahanshahi"],
+    ),
+    dated(
+        &[CalendarId("taiping-tianli")],
+        &[],
+        &["taiping"],
+        &["Taiping"],
+    ),
+    dated(
+        HUANGDI_CALENDARS,
+        &[],
+        HUANGDI_ERA_CODES,
+        &[
+            "Huangdi era",
+            "Huangdi era (Tongmenghui)",
+            "Huangdi era (Liu Shipei)",
+            "Huangdi era (Jiangsu)",
+        ],
+    ),
+    dated(
         &[CalendarId("bostran-era")],
         &[],
         &["bostran"],
@@ -4296,6 +4349,14 @@ const KO: LocaleData = LocaleData {
             year: "{era} {year}({extra:common-era-year})년",
             ..DateTemplates::NONE
         }),
+        // The Cheondogyo year, 포덕 (Wikipedia (ko), 「천도교」, retrieved
+        // 2026-09-28), written 포덕 167년 as the church's newspaper writes it.
+        dated(
+            &[CalendarId("cheondogyo-podeok")],
+            &[],
+            &["podeok"],
+            &["포덕"],
+        ),
     ],
 };
 
@@ -6334,6 +6395,23 @@ const ZH_HANS_CALENDARS: &[CalendarNames] = &[
     lunisolar(CHINESE_FAMILY_CALENDARS, ZH_HANS_LUNAR_MONTHS, "闰")
         .with_templates(CHINESE_TEMPLATES),
     lunisolar(CHINESE_REGNAL_CALENDARS, ZH_HANS_LUNAR_MONTHS, "闰"),
+    // The years of the Yellow Emperor, 黄帝纪元 in every count (Wikipedia
+    // (zh), 「黃帝紀元」, retrieved 2026-09-28), on the Chinese months.
+    dated(
+        HUANGDI_CALENDARS,
+        ZH_HANS_LUNAR_MONTHS,
+        HUANGDI_ERA_CODES,
+        &["黄帝纪元", "黄帝纪元", "黄帝纪元", "黄帝纪元"],
+    )
+    .with_leap_month_prefix("闰"),
+    // The Taiping calendar's years are the kingdom's, 太平天国壬子二年
+    // (羅爾綱, 《太平天國史》, 天曆志).
+    dated(
+        &[CalendarId("taiping-tianli")],
+        &[],
+        &["taiping"],
+        &["太平天国"],
+    ),
 ];
 
 const ZH_HANS_LUNAR_MONTHS: &[CycleNames] = &[months(&[
@@ -6413,6 +6491,20 @@ const ZH_HANT_CALENDARS: &[CalendarNames] = &[
     lunisolar(CHINESE_FAMILY_CALENDARS, ZH_HANT_LUNAR_MONTHS, "閏")
         .with_templates(CHINESE_TEMPLATES),
     lunisolar(CHINESE_REGNAL_CALENDARS, ZH_HANT_LUNAR_MONTHS, "閏"),
+    // As the simplified entry: 黃帝紀元 and 太平天國.
+    dated(
+        HUANGDI_CALENDARS,
+        ZH_HANT_LUNAR_MONTHS,
+        HUANGDI_ERA_CODES,
+        &["黃帝紀元", "黃帝紀元", "黃帝紀元", "黃帝紀元"],
+    )
+    .with_leap_month_prefix("閏"),
+    dated(
+        &[CalendarId("taiping-tianli")],
+        &[],
+        &["taiping"],
+        &["太平天國"],
+    ),
 ];
 
 const ZH_HANT_LUNAR_MONTHS: &[CycleNames] = &[months(&[

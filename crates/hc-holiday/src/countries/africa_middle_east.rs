@@ -153,6 +153,18 @@ fn yom_haatzmaut(year: i64) -> Days {
 
 static IL_INDEPENDENCE: Rule = Rule::Computed(yom_haatzmaut);
 
+/// 29 Cheshvan, the day the Sigd Law names.
+static IL_SIGD_DAY: Rule = Rule::in_calendar(CalendarSystem::HEBREW, 2, 29);
+
+/// Sigd, the Beta Israel festival: 29 Cheshvan, or the Thursday before when
+/// 29 Cheshvan is a Sabbath. חוק חג הסיגד, התשס"ח-2008, section 1(a), makes
+/// it a state holiday, and section 1(b) a day each employee may take as
+/// leave or work, so it is an observance here and not a day off.
+static IL_SIGD: Rule = Rule::MovedByWeekday {
+    base: &IL_SIGD_DAY,
+    moves: &[(Weekday::Saturday, -2)],
+};
+
 static IL_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public(
         "Rosh Hashanah",
@@ -179,6 +191,7 @@ static IL_RULES: &[HolidayRule] = &[
         "שמחת תורה",
         Rule::in_calendar(CalendarSystem::HEBREW, 1, 22),
     ),
+    HolidayRule::observance("Sigd", "חג הסיגד", IL_SIGD).years(Some(2008), None),
     HolidayRule::observance(
         "Hanukkah",
         "חנוכה",
@@ -247,8 +260,13 @@ pub static ISRAEL: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: IL_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 9, 28),
     sources: "חוק יום העצמאות, התש\"ט-1949 and its 2004 amendment; \
+              חוק חג הסיגד, התשס\"ח-2008, passed on 30 June 2008, read in \
+              Hebrew Wikisource, retrieved 2026-09-28: Sigd on 29 Cheshvan, \
+              the Thursday before when that is a Sabbath, an optional day \
+              off; Hebcal's dates of Sigd for 2008-2030, retrieved \
+              2026-09-28, as the test anchors; \
               פקודת סדרי השלטון והמשפט for the festival days and, in \
               section 18A, the Sabbath as the day of rest; חוק שעות עבודה \
               ומנוחה, התשי\"א-1951, sections 2(b) and 7, in the ILO NATLEX \

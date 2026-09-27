@@ -1,10 +1,11 @@
-//! Year counts laid over the Julian or the Gregorian year: the Spanish era,
-//! the four Masonic years, the year After the Development of Agriculture
-//! and the Capitoline count *ab urbe condita*.
+//! Year counts laid over the Julian, the Gregorian or the Solar Hijri year:
+//! the Spanish era, the four Masonic years, the year After the Development
+//! of Agriculture, the Capitoline count *ab urbe condita*, the Cheondogyo
+//! 포덕 year and the Iranian imperial year of 1976–1978.
 //!
 //! Each is a calendar whose days, months and leap rule are another
 //! calendar's and whose year number is that calendar's plus a constant, so
-//! the seven are one table, [`ALL`], read by one [`YearCountCalendar`]; they
+//! the nine are one table, [`ALL`], read by one [`YearCountCalendar`]; they
 //! differ in data only, as policy §2 asks. Their system document is
 //! `docs/systems/era-counts.md` in the repository, which also covers the
 //! Era of Philip ([`crate::philip_era`]), the Bostran era
@@ -18,14 +19,16 @@
 //!
 //! The year number of each is counted from 1: a year count's year 0 and
 //! the years before it are refused rather than written as a negative
-//! number nobody wrote.
+//! number nobody wrote. Where the base calendar begins later than the
+//! count's year 1, as the Solar Hijri year 1 is the imperial year 1181, the
+//! count begins with its base, [`YearCount::first_year`].
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, Usage,
     YearKind,
 };
 
-use crate::{gregorian, julian};
+use crate::{gregorian, julian, persian_33};
 
 /// The calendar a year count's days, months and leap rule are taken from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -35,6 +38,10 @@ pub enum Base {
     /// The proleptic Julian calendar, [`crate::julian`], in astronomical
     /// year numbering.
     Julian,
+    /// The Solar Hijri calendar under the 33-year rule,
+    /// [`crate::persian_33`], which agrees with the equinox calendar from
+    /// A.P. 1178 to 1634 (`heydari-malayeri2004`, §8).
+    Persian33,
 }
 
 impl Base {
@@ -45,6 +52,27 @@ impl Base {
         match self {
             Self::Gregorian => gregorian::is_leap_year(year),
             Self::Julian => julian::is_leap_year(year),
+            Self::Persian33 => persian_33::is_leap_year(year),
+        }
+    }
+
+    /// The earliest year the base calendar converts.
+    #[must_use]
+    pub const fn min_year(self) -> i64 {
+        match self {
+            Self::Gregorian => gregorian::MIN_YEAR,
+            Self::Julian => julian::MIN_YEAR,
+            Self::Persian33 => persian_33::MIN_YEAR,
+        }
+    }
+
+    /// The base calendar's cycles: its twelve months and the seven-day
+    /// week.
+    #[must_use]
+    pub const fn cycles(self) -> &'static [hc_calendar::shape::CycleShape] {
+        match self {
+            Self::Gregorian | Self::Julian => hc_calendar::shape::SOLAR_TWELVE,
+            Self::Persian33 => persian_33::SHAPE,
         }
     }
 
@@ -57,6 +85,7 @@ impl Base {
         match self {
             Self::Gregorian => gregorian::to_fixed(year, month, day),
             Self::Julian => julian::to_fixed(year, month, day),
+            Self::Persian33 => persian_33::to_fixed(year, month, day),
         }
     }
 
@@ -69,6 +98,7 @@ impl Base {
         match self {
             Self::Gregorian => gregorian::from_fixed(rd),
             Self::Julian => julian::from_fixed(rd),
+            Self::Persian33 => persian_33::from_fixed(rd),
         }
     }
 
@@ -78,6 +108,7 @@ impl Base {
         match self {
             Self::Gregorian => gregorian::LATEST,
             Self::Julian => julian::LATEST,
+            Self::Persian33 => persian_33::LATEST,
         }
     }
 }
@@ -108,10 +139,18 @@ impl YearCount {
         year - self.offset
     }
 
-    /// The first fixed day of year 1 of this count.
+    /// The first year of this count converted: 1, or the year of the
+    /// base calendar's first year where that is later.
+    #[must_use]
+    pub const fn first_year(self) -> i64 {
+        let base_first = self.base.min_year() + self.offset;
+        if base_first > 1 { base_first } else { 1 }
+    }
+
+    /// The first fixed day of [`YearCount::first_year`].
     #[must_use]
     pub const fn earliest(self) -> Rd {
-        match self.base.to_fixed(self.base_year(1), 1, 1) {
+        match self.base.to_fixed(self.base_year(self.first_year()), 1, 1) {
             Ok(rd) => rd,
             Err(_) => self.base.latest(),
         }
@@ -128,10 +167,10 @@ impl YearCount {
     ///
     /// # Errors
     ///
-    /// Returns [`CalendarError::YearOutOfRange`] for a year before 1, and
-    /// the base calendar's errors otherwise.
+    /// Returns [`CalendarError::YearOutOfRange`] for a year before
+    /// [`YearCount::first_year`], and the base calendar's errors otherwise.
     pub const fn to_fixed(self, year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
-        if year < 1 {
+        if year < self.first_year() {
             return Err(CalendarError::YearOutOfRange);
         }
         self.base.to_fixed(self.base_year(year), month, day)
@@ -141,8 +180,8 @@ impl YearCount {
     ///
     /// # Errors
     ///
-    /// Returns [`CalendarError::BeforeEpoch`] before year 1, and the base
-    /// calendar's errors otherwise.
+    /// Returns [`CalendarError::BeforeEpoch`] before
+    /// [`YearCount::first_year`], and the base calendar's errors otherwise.
     pub const fn from_fixed(self, rd: Rd) -> CalendarResult<(i64, u8, u8)> {
         if rd.0 < self.earliest().0 {
             return Err(CalendarError::BeforeEpoch);
@@ -273,6 +312,79 @@ pub const CAPITOLINE_AUC: YearCount = YearCount {
     native_locales: &["la"],
 };
 
+/// Where the 포덕 year comes from.
+pub const PODEOK_SOURCE: &str = "Wikipedia (ko), \"천도교\", retrieved 2026-09-28 \
+    [wikipedia-ko-cheondogyo]: 1860, the year Choe Je-u received his revelation at Yongdamjeong, \
+    as 포덕 원년, the count still used within Cheondogyo; 천도교신문 (chondogyo.com), retrieved \
+    2026-09-28 [chondogyo-sinmun-2026], for the count on the Gregorian months: the Sunday \
+    sermons of 포덕 166년 12월 28일 and 포덕 167년 1월 11일, and 포덕 167년(2026) 7월 19일";
+
+/// The 포덕 (布德) year of Cheondogyo: the Gregorian year less 1859.
+///
+/// Year 1 is 1860, the year the religion dates its founding revelation
+/// to (`wikipedia-ko-cheondogyo`). The church's newspaper writes the year
+/// on the Gregorian months and days: its Sunday sermons are dated 포덕
+/// 166년 12월 28일, 28 December 2025, and 포덕 167년 1월 11일, 11 January
+/// 2026, both Sundays, so the year turns on 1 January
+/// (`chondogyo-sinmun-2026`). In use within the religion since, with no
+/// first day the sources date.
+pub const PODEOK: YearCount = YearCount {
+    id: "cheondogyo-podeok",
+    english_name: "Cheondogyo (Podeok)",
+    era: "podeok",
+    base: Base::Gregorian,
+    offset: -1_859,
+    usage: Usage::undated(PODEOK_SOURCE),
+    native_locales: &["ko"],
+};
+
+/// Where the Iranian imperial year comes from.
+pub const IMPERIAL_IRANIAN_SOURCE: &str = "Wikipedia, \"Iranian calendars\", section \"Imperial \
+    calendar\", retrieved 2026-09-28 [wikipedia-iranian-calendars]: introduced on 10 March 1976 \
+    (20 Esfand 1354), the first year from 559 BC and the reign of Cyrus, reversed on 2 September \
+    1978 (11 Shahrivar 2537, which became 11 Shahrivar 1357); its table pairs 1355 with 2535, \
+    21 March 1976 to 20 March 1977, 1356 with 2536 and 1357 with 2537";
+
+/// The first day of the imperial year: 10 March 1976, 20 Esfand 1354,
+/// which became 20 Esfand 2534.
+pub const IMPERIAL_IRANIAN_FROM: Rd = match gregorian::to_fixed(1976, 3, 10) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// The last day of the imperial year: 1 September 1978, 10 Shahrivar
+/// 2537. The next day, 11 Shahrivar, was written 1357.
+pub const IMPERIAL_IRANIAN_UNTIL: Rd = match gregorian::to_fixed(1978, 9, 1) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// The Iranian imperial (*Shāhanshāhī*) year: the Solar Hijri year plus
+/// 1180, from the accession of Cyrus in 559 BC.
+///
+/// The Shah made it the official year on 10 March 1976, and it was
+/// abandoned on 2 September 1978 (`wikipedia-iranian-calendars`). The
+/// days are the Solar Hijri calendar's; the base is the 33-year rule,
+/// [`crate::persian_33`], which is the equinox calendar in force from A.P.
+/// 1178 to 1634 and so over the whole period of use. The source's table
+/// gives 1355 as 2535, which is the offset; its sentence "the year
+/// changed from 1355 to 2535" dates the change to 1355, which had not
+/// begun on 10 March 1976, and is not followed. Distinct from
+/// `zoroastrian-shahanshahi`, the Parsi calendar of the Yazdegerdi era.
+pub const IMPERIAL_IRANIAN: YearCount = YearCount {
+    id: "persian-imperial",
+    english_name: "Iranian imperial year (Shahanshahi)",
+    era: "shahanshahi",
+    base: Base::Persian33,
+    offset: 1_180,
+    usage: Usage::between(
+        IMPERIAL_IRANIAN_FROM,
+        IMPERIAL_IRANIAN_UNTIL,
+        IMPERIAL_IRANIAN_SOURCE,
+    ),
+    native_locales: &["fa"],
+};
+
 /// Every year count in this module, in registry order.
 pub const ALL: &[YearCount] = &[
     SPANISH_ERA,
@@ -282,6 +394,8 @@ pub const ALL: &[YearCount] = &[
     ANNO_ORDINIS,
     ADA,
     CAPITOLINE_AUC,
+    PODEOK,
+    IMPERIAL_IRANIAN,
 ];
 
 /// The years a kingdom stopped writing the Spanish era, as the source
@@ -372,7 +486,8 @@ pub fn spanish_era_abandonment(kingdom: &str) -> Option<Abandonment> {
 pub struct YearCountDate {
     /// The year of the count, from 1.
     pub year: i64,
-    /// The base calendar's month, 1 for January through 12 for December.
+    /// The base calendar's month, from 1: January to December, or
+    /// Farvardin to Esfand.
     pub month: u8,
     /// The day of the month, from 1.
     pub day: u8,
@@ -391,11 +506,11 @@ impl Calendar for YearCountCalendar {
 
     /// The base calendar's twelve months and the seven-day week.
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        hc_calendar::shape::SOLAR_TWELVE
+        self.0.base.cycles()
     }
 
     fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
-        if year < 1 {
+        if year < self.0.first_year() {
             return Err(CalendarError::YearOutOfRange);
         }
         Ok(self.0.is_leap_year(year))
@@ -553,10 +668,75 @@ mod tests {
     }
 
     #[test]
-    fn every_count_starts_at_its_year_one_and_refuses_the_day_before() {
+    fn the_podeok_year_turns_on_the_first_of_january() {
+        // 천도교신문: the Sunday sermons of 포덕 166년 12월 28일 and 포덕
+        // 167년 1월 11일, and 포덕 167년(2026) 7월 19일, all Sundays on the
+        // Gregorian calendar.
+        for (y, m, d, podeok) in [(2025, 12, 28, 166), (2026, 1, 11, 167), (2026, 7, 19, 167)] {
+            let rd = gregorian::to_fixed(y, m, d).unwrap();
+            assert_eq!(
+                hc_calendar::Weekday::from_rd(rd),
+                hc_calendar::Weekday::Sunday
+            );
+            assert_eq!(PODEOK.from_fixed(rd), Ok((podeok, m, d)));
+        }
+        // Wikipedia (ko), 「천도교」: 1860 is 포덕 원년.
+        assert_eq!(PODEOK.earliest(), gregorian::to_fixed(1_860, 1, 1).unwrap());
+    }
+
+    #[test]
+    fn the_imperial_year_is_the_solar_hijri_year_plus_1180() {
+        let day = |y, m, d| gregorian::to_fixed(y, m, d).unwrap();
+        // Wikipedia, "Iranian calendars": 1355 (2535) from 21 March 1976.
+        assert_eq!(
+            IMPERIAL_IRANIAN.to_fixed(2_535, 1, 1),
+            Ok(day(1_976, 3, 21))
+        );
+        assert_eq!(
+            IMPERIAL_IRANIAN.from_fixed(day(1_977, 3, 20)),
+            Ok((2_535, 12, 29))
+        );
+        // Introduced on 10 March 1976, 20 Esfand 1354; reversed on
+        // 2 September 1978, 11 Shahrivar 2537, which became 11 Shahrivar
+        // 1357.
+        assert_eq!(
+            persian_33::from_fixed(day(1_976, 3, 10)),
+            Ok((1_354, 12, 20))
+        );
+        assert_eq!(
+            IMPERIAL_IRANIAN.from_fixed(day(1_976, 3, 10)),
+            Ok((2_534, 12, 20))
+        );
+        assert_eq!(
+            IMPERIAL_IRANIAN.from_fixed(day(1_978, 9, 2)),
+            Ok((2_537, 6, 11))
+        );
+        assert_eq!(persian_33::from_fixed(day(1_978, 9, 2)), Ok((1_357, 6, 11)));
+        let usage = IMPERIAL_IRANIAN.usage;
+        assert_eq!(usage.from, Some(day(1_976, 3, 10)));
+        assert_eq!(usage.until, Some(day(1_978, 9, 1)));
+        // The base begins at A.P. 1, the imperial year 1181.
+        assert_eq!(IMPERIAL_IRANIAN.first_year(), 1_181);
+        assert_eq!(IMPERIAL_IRANIAN.earliest(), persian_33::EARLIEST);
+        assert_eq!(
+            IMPERIAL_IRANIAN.to_fixed(1_180, 12, 29),
+            Err(CalendarError::YearOutOfRange)
+        );
+        // Esfand has 30 days in the leap years of the 33-year rule.
+        assert!(IMPERIAL_IRANIAN.is_leap_year(2_538));
+        assert!(persian_33::is_leap_year(1_358));
+    }
+
+    #[test]
+    fn every_count_starts_at_its_first_year_and_refuses_the_day_before() {
         for count in ALL {
             let first = count.earliest();
-            assert_eq!(count.from_fixed(first), Ok((1, 1, 1)), "{}", count.id);
+            assert_eq!(
+                count.from_fixed(first),
+                Ok((count.first_year(), 1, 1)),
+                "{}",
+                count.id
+            );
             assert_eq!(
                 count.from_fixed(Rd(first.0 - 1)),
                 Err(CalendarError::BeforeEpoch),
@@ -583,7 +763,8 @@ mod tests {
             let first = meta.earliest.unwrap().0;
             // Every day of the first 3 000 000 in a release build; every
             // 997th in a debug one, with each year's first and last day.
-            let year_starts = (1..=8_300).map(|year| {
+            let first_year = count.first_year();
+            let year_starts = (first_year..first_year + 8_300).map(|year| {
                 calendar
                     .to_fixed(YearCountDate {
                         year,
@@ -609,6 +790,7 @@ mod tests {
                 Err(CalendarError::UnknownEra)
             );
             assert_eq!(calendar.is_leap_year(0), Err(CalendarError::YearOutOfRange));
+            assert_eq!(calendar.cycles(), count.base.cycles());
         }
     }
 

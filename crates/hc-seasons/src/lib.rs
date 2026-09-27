@@ -16,6 +16,10 @@
 //! * [`rokuyo`] — 六曜, the six-day cycle Japanese calendars print.
 //! * [`san_fu`] — 三伏 and 數九, the Chinese dog days and the nine nines,
 //!   counted in 庚 days and in nines from the solstices.
+//! * [`meiyu`] — 入梅 and 出梅 of the Chinese almanac, the first 丙 or 壬
+//!   day from 芒种 and the first 未 day from 小暑.
+//! * [`hizir_kasim`] — Rûz-ı Hızır and Rûz-ı Kasım, the Turkish folk year's
+//!   summer and winter halves, and the *cemre* counted in the winter one.
 //! * [`cold_food`] — 寒食, the Cold Food Day, under each reckoning: 105
 //!   days after the winter solstice, the eve of 清明, and Korea's 한식.
 //! * [`quarter_days`] — the quarter days and term days of England and
@@ -87,7 +91,9 @@
 
 pub mod cold_food;
 pub mod dog_days;
+pub mod hizir_kasim;
 pub mod lunisolar;
+pub mod meiyu;
 pub mod meridian;
 pub mod moon_calendar;
 pub mod pentads;

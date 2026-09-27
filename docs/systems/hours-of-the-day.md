@@ -1,7 +1,8 @@
-# Hours of the day: local mean time, sundial time, temporal, planetary, Italian and Edo hours, religious times, and the Ethiopian and Swahili hours
+# Hours of the day: local mean time, sundial time, temporal, planetary, Italian and Edo hours, religious times, the Ethiopian and Swahili hours, and the Chinese night watches
 
-Backs `hc-astro::solar_time`, `hc-seasons::planetary_hours`, and `hc-format::east_african_hours` with the
-reckonings `ethiopian-hours` and `swahili-hours`. No calendar identifier is
+Backs `hc-astro::solar_time`, `hc-seasons::planetary_hours`,
+`hc-format::east_african_hours` with the reckonings `ethiopian-hours` and
+`swahili-hours`, and `hc-format::night_watches`. No calendar identifier is
 registered: these are readings of the time of day, not calendars.
 
 ## What it is
@@ -44,6 +45,10 @@ In Ethiopia and on the Swahili-speaking coast of East Africa the civil
 clock itself is read differently: a twelve-hour dial counted from about
 sunrise and about sunset, which near the equator stay close to 06:00 and
 18:00 all year, so that the reading is the civil hour less six.
+
+In China the night was kept by the watchmen in five watches, 更, struck
+through the night and still heard in 三更半夜, "the dead of night"
+[wikipedia-zh-geng].
 
 And some religious times are fixed by the Sun's altitude or by a shadow,
 with an angle each community chooses: the Islamic afternoon prayer
@@ -274,6 +279,18 @@ Noon is 6:00 of the day, *saa sita mchana*, and midnight 6:00 of the night,
 *saa sita usiku*. 06:15 is 12:15 in both, of the day in Ethiopia and of the
 night, *alfajiri*, in Swahili.
 
+### 更点, the night watches
+
+The night from 19:00 to 05:00 is five 更 of two hours, one to each double
+hour from 戌 to 寅, named 一更 to 五更 and, under the Han, 黃昏, 人定, 夜半,
+雞鳴 and 平旦 [wikipedia-zh-geng]. Each 更 is five 點 of 24 minutes, and
+"三更两点" is 23:48 [wikipedia-zh-dian], so the points count as struck: a
+watch opens at its 0th point and its 2nd is struck 48 minutes in, and the
+watchman strikes four points before he calls the next watch.
+**Worked example.** 00:40: 5 h 40 min after 19:00, so the third watch,
+which began at 23:00, and 100 minutes into it, four points of 24 minutes
+struck: 三更四點, 夜半, the hour of 子.
+
 ## What is carried
 
 In `hc-astro::solar_time`:
@@ -349,7 +366,7 @@ The Edo hours:
   hour with a branch gives the branch's hour as about an hour either side
   of a clock time, not where it begins among the unequal hours, so
   `EdoHour::branch` is a name and nothing more. The fixed twelve 辰刻 of
-  the almanac, and 更点, the night in five watches, are other reckonings.
+  the almanac, and 更点, the night in five watches, below, are other reckonings.
 
 Temporal and Italian hours, and the religious times:
 
@@ -435,6 +452,15 @@ In `hc-format::east_african_hours`:
   actual sunrise, which descriptions that say "dawn" might suggest: no
   source read defines one, and it would be a third convention.
 
+In `hc-format::night_watches`:
+
+- `fixed_night_watch`, from a civil time to a `NightWatch`, the watch 1 to
+  5 and the points struck 0 to 4, or `None` from 05:00 to 18:59; the
+  watch's number, Han name and double hour.
+- **Not carried**: the seasonal reckoning, the night from dusk to dawn in
+  fifths, which the sources read mention but whose dusk and dawn they do
+  not define.
+
 ## Accuracy
 
 The relations are exact definitions; the accuracy is the equation of
@@ -487,6 +513,9 @@ zmanim [hebcal-zmanim-api] for New York City on 1 January 2025, Jerusalem
 on 21 June 2025 and London on 20 March 2025: all sixteen times on each day,
 48 in all, are within 0.48 minutes of the printed minute. Hebcal prints no
 16.1° dawn for London on 21 June 2025, and neither does this library.
+
+The night watches are exact on the civil clock: 三更 is 23:00–01:00 and
+三更两点 23:48, as the sources give them.
 
 The six-hour reckonings are exact: `reading` and `civil` invert each other
 at every minute of the day and at the leap second, and the examples of
@@ -575,6 +604,12 @@ gives no latitude beyond London's.
   noon and midnight. Read 2026-09-27.
 - [uw-lctl-amharic-telling-time] — the Amharic parts of the day, for the
   disagreement that keeps them out. Read 2026-09-27.
+- [wikipedia-zh-geng] — Wikipedia (zh), 「更」: the five watches, their
+  hours, branches and Han names. Read 2026-09-28; its account of the fixed
+  hours cites nothing.
+- [wikipedia-zh-dian] — Wikipedia (zh), 「點 (時間)」: five points to the
+  watch, 24 minutes, 三更两点 as 23:48, the watchman's four strokes. Read
+  2026-09-28.
 
 ## Code
 
@@ -613,7 +648,10 @@ gives no latitude beyond London's.
 `crates/hc-format/src/east_african_hours.rs`, anchored by
 `the_ethiopian_examples`, `the_swahili_examples`,
 `the_reckonings_differ_only_at_the_twelfth_hours` and
-`every_minute_round_trips`.
+`every_minute_round_trips`; `crates/hc-format/src/night_watches.rs`, by
+`the_third_watch_is_the_double_hour_of_zi`,
+`the_second_point_of_the_third_watch_is_struck_at_23_48` and
+`the_night_runs_from_seven_in_the_evening_to_five_in_the_morning`.
 
 The WebAssembly and C exports `hc_zmanim`, `hc_edo_time`,
 `hc_unix_from_edo_time`, `hc_six_hour_clock` and

@@ -1,9 +1,11 @@
-# East Asian folk days and almanac cycles: お盆, the sexagenary-day festivals, 恵方, 三元九運 and 손 없는 날
+# East Asian folk days and almanac cycles: お盆, the sexagenary-day festivals, 恵方, 三元九運, 손 없는 날, the Vietnamese days avoided, the counts from 正月, and 入梅 and 出梅
 
 Backs `hc-holiday`'s `obon-july`, `obon-august`, `obon-lunar`,
 `tori-no-ichi`, `hatsuuma`, `hatsuuma-lunar`, `inoko`, `inoko-november`,
-`tokanya` and `tokanya-november`, and `hc-almanac`'s `lucky_direction`,
-`nine_periods` and `days_without_son`. None is a registered calendar: the
+`tokanya` and `tokanya-november`, `hc-almanac`'s `lucky_direction`,
+`nine_periods`, `days_without_son`, `vietnamese_days` and
+`first_month_counts`, and `hc-seasons`' `meiyu`. None is a registered
+calendar: the
 festivals are tables of days, and the rest are readings laid over the
 sexagenary cycle and the lunar calendars.
 
@@ -36,6 +38,17 @@ sexagenary cycle and the lunar calendars.
   the harmful spirit *son* is abroad in no direction, and which Koreans
   choose for moving house, weddings and opening a business
   [wikipedia-ko-son-eomneun-nal].
+- **Ngày Tam Nương and ngày Nguyệt Kỵ** are the Vietnamese lunar days on
+  which travel, weddings, building and opening a business are avoided:
+  "Chớ đi ngày bảy, chớ về ngày ba", and "Mùng năm, mười bốn, hai ba, đi
+  chơi cũng thiệt huống là đi buôn" [vtc-ngay-xau-2018].
+- **几龙治水, 几牛耕田, 几日得辛 and 几人分饼** are the Chinese almanac's
+  forecasts for the year from the day signs of its first month: the more
+  dragons govern the water, the less rain, and five or six dragons are
+  thought best [wikipedia-zh-long-zhi-shui].
+- **入梅 and 出梅** in the Chinese almanac are the beginning and end of the
+  plum rains of the Yangtze and Huai, as the 民用通书 counts them from the
+  solar terms, which is not the meteorological season [cma-meiyu-nongshi].
 
 ## How it works
 
@@ -121,6 +134,38 @@ of any month [wikipedia-ko-son-eomneun-nal]. **Worked example.** 7 January
 2026 is the Korean lunar 11/19 of 2025, so it is one; 16 February 2026 is
 12/29, and the next day, the lunar New Year, is not [superkts-son-2026].
 
+### Tam Nương and Nguyệt Kỵ
+
+Tam Nương is the 3rd, 7th, 13th, 18th, 22nd and 27th of every lunar month,
+"Thượng tuần sơ Tam dữ sơ Thất …, trung tuần Thập tam Thập bát …, hạ tuần
+Chấp nhị dữ Chấp thất"; Nguyệt Kỵ is the 5th, 14th and 23rd, whose digits
+add up to five [vtc-ngay-xau-2018]. **Worked example.** 23 March 2026 is
+the 5th of the second lunar month of 丙午, so it is Nguyệt Kỵ
+[baonghean-2026-03-23].
+
+### 几龙治水 and the other counts
+
+On the Chinese calendar, the number of the day of 正月, counting 初一 as 1,
+on which the first 辰 day falls is the number of dragons; the first 丑 day
+gives the oxen, the first 辛 day the day 辛 is got, and the first 丙 day the
+people who share the cake [wikipedia-zh-long-zhi-shui]. A branch comes
+round every twelve days and a stem every ten, so the counts run to twelve
+and to ten. **Worked example.** 正月初一 of 2026 is 17 February, 壬戌. 辰 is
+six branches on from 戌, so the first 辰 day is 初七, 七龙治水; 丑 is three
+on, 初四, 四牛耕田; 丙 is four stems on from 壬, 初五, 五人分饼; and 辛 is
+nine on, 初十, 十日得辛 — as 网易 gives the year [netease-2026-longzhishui].
+
+### 入梅 and 出梅
+
+The 民用通书 put 入梅 on the first 丙 day after 芒种 in South China and the
+first 壬 day in Central China, "相差4或6天", and 出梅 on the first 未 day
+after 小暑 in South China [cma-meiyu-nongshi]. When the term day itself
+bears the sign, it is the day: in 2024 小暑 fell on 6 July, a 未 day, and
+出梅 was 6 July [qq-meiyu-2024]. **Worked example.** In 2025 芒种 fell on
+5 June, 乙巳. 丙 is the next stem, so 入梅 by South China's rule was 6 June,
+丙午; 壬 is seven stems on, 12 June, 壬子 [netease-meiyu-2025,
+qq-meiyu-2025].
+
 ## What is carried
 
 In `hc-holiday`, as traditions ([`observances.md`](../observances.md)):
@@ -159,6 +204,17 @@ In `hc-almanac`:
   name as the source writes it; `period_of_year`, and `period`, which turns
   at 立春 at a meridian through `nine_stars::nine_star_year`.
 - `days_without_son`: `is_day_without_son`, on `dangi`, 1645 to 2150.
+- `vietnamese_days`: `is_tam_nuong` and `is_nguyet_ky`, on `vietnamese`,
+  1645 to 2150, and the day numbers as `TAM_NUONG_DAYS` and
+  `NGUYET_KY_DAYS`.
+- `first_month_counts`: `FirstMonthCounts`, the four counts, and
+  `first_month_counts`, by the Gregorian year in which the Chinese year
+  begins, 1645 to 2150.
+
+In `hc-seasons`:
+
+- `meiyu`: `ru_mei_bing`, `ru_mei_ren` and `chu_mei_wei`, one function per
+  rule ([policy.md](../policy.md) §5), with the terms at a meridian.
 
 Not carried:
 
@@ -179,6 +235,15 @@ Not carried:
 - **The 大三元 of 540 years**, whose epoch the source does not give; and
   anything the source says about where the ruling star stands.
 - **Where *son* is on the other days**: the source gives no table.
+- **A third list of bad days.** The same VTC article quotes a second
+  speaker calling the Tam Nương days Nguyệt Kỵ when counted in the West
+  on the solar calendar; that is a remark on naming, not a rule
+  [vtc-ngay-xau-2018].
+- **What the counts from 正月 portend.** The sources disagree on whether
+  many dragons bring drought or flood [wikipedia-zh-long-zhi-shui].
+- **出梅 in Central China**, which the source does not give, and the
+  reading attributed to 闽人 in one article, 入梅 on the first 庚 day after
+  立夏 and 出梅 on the first 壬 day after 芒种 [qq-meiyu-2025].
 
 ## Accuracy
 
@@ -201,6 +266,20 @@ checked against dated lists:
 - `nine_periods` gives the source's nine periods and 立春 2024.
 - `days_without_son` gives all sixty-eight days of 2026 in superkts.com's
   list, on the lunar dates it prints beside them.
+- `vietnamese_days` gives the seventy-five Tam Nương days of 2026 in Lịch
+  Ngày Tốt's list, with one correction: the list puts the 18th of the ninth
+  month on 26 October, and its own 12 October as the 3rd and 31 October as
+  the 22nd put it on 27 October, which the calendar gives
+  [lichngaytot-tam-nuong-2026]; and Báo Nghệ An's 23 March 2026 as
+  Nguyệt Kỵ.
+- `first_month_counts` gives 网易's four counts of 2026, and for every year
+  from 1645 to 2150 each count is the first day of its sign by direct
+  search.
+- `meiyu` gives the published 入梅 and 出梅 of 2024, 2025 and 2026, and
+  for 1900–2100 the two 入梅 are four or six days apart, as the source says.
+  No year read has 芒种 itself on a 丙 or 壬 day; the reading that counts
+  the term day, which 2024's 出梅 requires, is taken for 入梅 too, as
+  `san_fu` takes it for 末伏.
 
 The lunar dates are those of the full lunisolar calculation, not
 `hc-seasons`' minimal derivation for 六曜, which differs on some months of
@@ -248,6 +327,25 @@ almanacs, and no printed almanac was read.
   2026-09-27.
 - [superkts-son-2026] — superkts.com, 「2026년 손없는 날」: the sixty-eight
   days of 2026 and their lunar dates. Read 2026-09-27.
+- [vtc-ngay-xau-2018] — VTC News, "Quan niệm ngày xấu đại kỵ xuất hành,
+  cưới hỏi hoặc làm việc lớn dưới góc nhìn khoa học" (1 August 2018): the
+  two lists, as Trần Ngọc Kiệm gives them. Read 2026-09-28.
+- [lichngaytot-tam-nuong-2026] — Lịch Ngày Tốt, "Xem lịch ngày Tam Nương
+  2026" (25 December 2025): the days of 2026 with their lunar dates. Read
+  2026-09-28.
+- [baonghean-2026-03-23] — Báo Nghệ An, "Lịch Âm Dương ngày 23/3/2026":
+  23 March 2026 as 5/2 and Nguyệt Kỵ. Read 2026-09-28.
+- [wikipedia-zh-long-zhi-shui] — Wikipedia (zh), 「龍治水」 and its section
+  「相近概念」: the four counts. Read 2026-09-28; the articles it cites were
+  not read.
+- [netease-2026-longzhishui] — 网易, 「老人说:"2026年七龙治水，四牛耕田，
+  五人分饼，十日得辛"，是啥意思？」: the counts of 2026 and the days of 正月
+  they fall on. Read 2026-09-28.
+- [cma-meiyu-nongshi] — 中国气象局, 「梅雨与农事」: the 民用通书's rules for
+  South and Central China. Read 2026-09-28.
+- [qq-meiyu-2024], [qq-meiyu-2025], [netease-meiyu-2025], [qq-meiyu-2026] —
+  news articles giving 入梅 and 出梅 of 2024–2026 with their day signs.
+  Read 2026-09-28.
 
 ## Code
 
@@ -270,7 +368,19 @@ almanacs, and no printed almanac was read.
 `a_period_turns_at_the_beginning_of_spring`,
 `the_cycle_repeats_every_one_hundred_and_eighty_years`) and
 `crates/hc-almanac/src/days_without_son.rs`
-(`the_sixty_eight_days_of_2026_are_the_published_list`).
+(`the_sixty_eight_days_of_2026_are_the_published_list`),
+`crates/hc-almanac/src/vietnamese_days.rs`
+(`the_tam_nuong_days_of_2026_are_the_published_list`,
+`the_twenty_third_of_march_2026_is_nguyet_ky`) and
+`crates/hc-almanac/src/first_month_counts.rs`
+(`the_counts_of_2026_are_the_published_ones`,
+`every_count_is_the_first_day_of_its_sign`).
+
+`crates/hc-seasons/src/meiyu.rs`
+(`the_plum_rains_of_2026_are_the_published_days`,
+`the_two_rules_of_2025_are_six_days_apart`,
+`a_term_day_on_the_sign_is_the_day_itself`,
+`every_day_is_its_sign_and_within_a_cycle_of_its_term`).
 
 The WebAssembly and C export `hc_almanac_cycles` writes 恵方, 三元九運
 and 손 없는 날 for a day, from `hyper_calendar::almanac_lines`.

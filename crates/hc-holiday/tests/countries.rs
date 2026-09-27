@@ -3093,6 +3093,56 @@ fn israeli_independence_day_moves_away_from_the_sabbath() {
 }
 
 #[test]
+fn sigd_is_the_twenty_ninth_of_cheshvan_or_the_thursday_before_a_sabbath() {
+    // Hebcal's Sigd, 2008-2030 (retrieved 2026-09-28). The Sigd Law of 2008
+    // moves a 29 Cheshvan that is a Sabbath to the Thursday before: 6
+    // November 2010, 2 November 2013 and 6 November 2021 were Saturdays.
+    let published: &[(i64, u8, u8)] = &[
+        (2008, 11, 27),
+        (2009, 11, 16),
+        (2010, 11, 4),
+        (2011, 11, 24),
+        (2012, 11, 14),
+        (2013, 10, 31),
+        (2014, 11, 20),
+        (2015, 11, 11),
+        (2016, 11, 30),
+        (2017, 11, 16),
+        (2018, 11, 7),
+        (2019, 11, 27),
+        (2020, 11, 16),
+        (2021, 11, 4),
+        (2022, 11, 23),
+        (2023, 11, 13),
+        (2024, 11, 28),
+        (2025, 11, 20),
+        (2026, 11, 9),
+        (2027, 11, 29),
+        (2028, 11, 16),
+        (2029, 11, 7),
+        (2030, 11, 25),
+    ];
+    let country = table("IL");
+    for &(year, month, day) in published {
+        let calendar = HolidayCalendar::for_year(country, None, year);
+        let sigd: Vec<Rd> = (0..366)
+            .map(|offset| Rd(ymd(year, 1, 1).0 + offset))
+            .filter(|rd| calendar.on(*rd).iter().any(|h| h.name == "Sigd"))
+            .collect();
+        assert_eq!(sigd, [ymd(year, month, day)], "{year}");
+        // An observance, not a day off.
+        assert!(!calendar.is_holiday(ymd(year, month, day)), "{year}");
+    }
+    // Not carried before the law.
+    let before = HolidayCalendar::for_year(country, None, 2007);
+    assert!(
+        (0..365)
+            .map(|offset| Rd(ymd(2007, 1, 1).0 + offset))
+            .all(|rd| before.on(rd).iter().all(|h| h.name != "Sigd"))
+    );
+}
+
+#[test]
 fn israel_rests_on_the_sabbath_and_works_on_friday() {
     // The Hours of Work and Rest Law makes the Sabbath the weekly rest and
     // Friday a shortened working day.

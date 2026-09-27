@@ -309,6 +309,8 @@ impl SolarTerm {
     pub const WINTER_SOLSTICE: Self = Self(18);
     /// 芒種, grain in ear, at 75°. The anchor of the pre-modern 入梅 rule.
     pub const GRAIN_IN_EAR: Self = Self(5);
+    /// 小暑, minor heat, at 105°. The anchor of the Chinese almanac's 出梅.
+    pub const MINOR_HEAT: Self = Self(7);
 
     /// The term at an internal index, i.e. at longitude `index * 15°`.
     ///

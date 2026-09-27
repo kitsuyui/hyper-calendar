@@ -40,6 +40,10 @@ renders into its own buffer. `String`-returning conveniences sit behind the
 * **`east_african_hours`** — the Ethiopian and Swahili hours, the civil
   clock read six hours on over a day half and a night half, as two named
   reckonings. See `docs/systems/hours-of-the-day.md`.
+* **`night_watches`** — 更点, the Chinese night from 19:00 to 05:00 in five
+  watches of two hours and five points of 24 minutes, read from the civil
+  clock. The seasonal reckoning, fifths of the night from dusk to dawn, is
+  not carried.
 
 ## ISO 8601-1:2019 coverage
 
