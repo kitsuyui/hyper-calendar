@@ -13,6 +13,8 @@
 //!   polynomials.
 //! * [`ut1`] — the UT1 time scale, from ΔT or from a published DUT1 series.
 //! * [`ut_variants`] — UT2, UT1R and UT1S, the smoothed readings of UT1.
+//! * [`gmat`] — Greenwich Mean Astronomical Time, the noon-based day of
+//!   the *Nautical Almanac* before 1925.
 //! * [`earth`] — obliquity, nutation, the Earth Rotation Angle, and
 //!   sidereal time by the IAU 1982 and the IAU 2006 conventions.
 //! * [`vsop87`] — the Earth's heliocentric position from VSOP87, truncated
@@ -63,6 +65,7 @@
 pub mod delta_t_model;
 pub mod delta_t_table;
 pub mod earth;
+pub mod gmat;
 pub mod hjd;
 pub mod horizon;
 pub mod lunar;

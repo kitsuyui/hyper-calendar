@@ -94,7 +94,7 @@ includes the crate.
 | [`hc-attributes`](crates/hc-attributes) | Birthstones, birth flowers, moon names, traditional month names | `attributes` |
 | [`hc-name-days`](crates/hc-name-days) | Name-day lists by authority and edition, and a loader for licensed lists | `name-days` |
 | [`hc-tz`](crates/hc-tz) | UTC offsets, POSIX TZ strings, a TZif reader, built-in zones, where each zone is | `tz` |
-| [`hc-format`](crates/hc-format) | ISO 8601, RFC 3339 and RFC 2822 text, `strftime` patterns, CCSDS time-code fields, the JJY, DCF77 and WWVB radio codes, the Ethiopian and Swahili hours | `format` |
+| [`hc-format`](crates/hc-format) | ISO 8601, RFC 3339 and RFC 2822 text, `strftime` patterns, CCSDS time-code fields, the JJY, DCF77 and WWVB radio codes, the IRIG time codes, the Ethiopian and Swahili hours | `format` |
 | [`hc-i18n`](crates/hc-i18n) | BCP 47 locales, plural rules, numbering systems, names, country names, zones' cities | `i18n` |
 | [`hc-humanize`](crates/hc-humanize) | Relative times, spelled-out durations, Python `humanize` phrasing | `humanize` |
 | [`hc-holiday`](crates/hc-holiday) | The holiday rule engine and the country, tradition, UN and exchange tables | `holiday` |

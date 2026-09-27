@@ -174,6 +174,17 @@ eq. 5.43) were taken from the Conventions' text. The system, with worked
 examples of UT2 and the Earth Rotation Angle, is written up in
 [systems/earth-rotation.md](systems/earth-rotation.md).
 
+### GMAT, the astronomical day
+
+Almanacs before 1925 counted Greenwich mean time from noon. The
+reading is the same mean time, twelve hours behind, and the astronomical
+date is the civil date of the noon the day begins at.
+`hc-astro::gmat` converts a reading either way, exactly.
+
+| Reading | Function | Rule | Source |
+| --- | --- | --- | --- |
+| **GMAT**, Greenwich Mean Astronomical Time | `gmat_from_gmt`, `gmt_from_gmat` | GMAT = GMT − 12 h; the day begins at noon and is named by the civil day it begins on, `DayBoundary::Noon(DayNaming::ByStart)`. The *Nautical Almanac* reckons its G.M.T. so up to its volume for 1924 and from midnight from 1925: 1924 December 31, 12ʰ GMAT is 1925 January 1, 0ʰ GMT | [nautical-almanac-1924], the notice before the title page; its lunar eclipses of 20 February and 14 August 1924, at 4ʰ 12ᵐ 25ˢ.7 and 8ʰ 22ᵐ 59ˢ.1 from noon, fall where NASA's catalogue puts them, in the afternoon and evening [espenak-lunar-eclipses-1901] |
+
 ## Sidereal time and the Earth Rotation Angle
 
 UT1 is defined by the Earth's rotation, and the rotation is measured by an
@@ -322,11 +333,18 @@ Counts that software writes from one of those epochs, each a label of
   for an inserted one, and its omitted one, which PTB describes no frame
   for, is not carried [nict-jjy-timecode; ptb-dcf77-timecode;
   nist-wwvb-enhanced-2013].
+- **IRIG time codes**, `hc-format::irig`: a frame of IRIG A, B, D, E, G or
+  H, the day of the year and the time of day in BCD, the year's last two
+  digits and the seconds of the day in binary where the code carries
+  them. The code names no time scale, so a frame is read as a date and a
+  time of day; on a leap-second day the seconds of the day reach 86 400
+  [rcc-200-16].
 
 [systems/binary-timestamps.md](systems/binary-timestamps.md),
 [systems/statistical-software-dates.md](systems/statistical-software-dates.md),
-[systems/ccsds-time-codes.md](systems/ccsds-time-codes.md) and
-[systems/radio-time-codes.md](systems/radio-time-codes.md) work examples
+[systems/ccsds-time-codes.md](systems/ccsds-time-codes.md),
+[systems/radio-time-codes.md](systems/radio-time-codes.md) and
+[systems/irig-time-codes.md](systems/irig-time-codes.md) work examples
 through; the FAT date and time words, which are local time, are in
 `hc-format::fat`.
 

@@ -1,6 +1,6 @@
-# Hours of the day: local mean time, sundial time, temporal, Italian and Edo hours, religious times, and the Ethiopian and Swahili hours
+# Hours of the day: local mean time, sundial time, temporal, planetary, Italian and Edo hours, religious times, and the Ethiopian and Swahili hours
 
-Backs `hc-astro::solar_time`, and `hc-format::east_african_hours` with the
+Backs `hc-astro::solar_time`, `hc-seasons::planetary_hours`, and `hc-format::east_african_hours` with the
 reckonings `ethiopian-hours` and `swahili-hours`. No calendar identifier is
 registered: these are readings of the time of day, not calendars.
 
@@ -84,6 +84,32 @@ sunrise or no sunset the book returns its `bogus` value.
 JST and its sunset as 16:38 [nao-koyomi-dni-tokyo-2024]: 9 h 48 min of
 daylight, so a daytime temporal hour is 49 minutes, and temporal 9:00,
 three hours after sunrise, falls at 06:50 + 3 × 49 min = 09:17 JST.
+
+### Planetary hours
+
+Each temporal hour is ruled by one of the seven planets. The day runs from
+sunrise to the next sunrise, its first hour is ruled by the planet of the
+weekday, and each hour after it by the next planet of the Chaldean order:
+Saturn, Jupiter, Mars, the Sun, Venus, Mercury, the Moon. al-Bīrūnī gives
+Sunday's first hours as the Sun, Venus, Mercury, the Moon and Saturn, and
+Monday's as the Moon and Saturn, and the first hour of the night as "the
+thirteenth planet counting downwards from the lord of the preceding day"
+[biruni-wright1934, §§390–391]. Twenty-four hours move the order on by
+three places, so the first hour of each day is the next weekday's planet.
+
+Agrippa records a second division, by fifteen degrees of the ecliptic's
+oblique ascension to the hour [agrippa-1651, Book II, chapter 34], and the
+Key of Solomon's table counts its hours from midnight and from sunset
+[mathers-key-of-solomon]. Neither is carried.
+
+**Worked example.** Lilly's table for London, used for Monday 15 March
+1646, Old Style (25 March 1647 Gregorian), with the Sun at 4°47′ of Aries
+[lilly-christian-astrology-1647]: the Sun rises at 5:47 and the first
+hour, the Moon's, lasts until 6:47; Saturn has the second, until 7:51;
+Jupiter the third, until 8:54; Mars the fourth, until 9:56, so at 9:30 it
+is Mars's hour. The daylight's twelfth hour, from 5:11 to 6:13 in the
+afternoon, is the Sun's; the night's sixth, from 11:02 to 12:00, is the
+eighteenth of the day and Mars's again.
 
 ### Italian hours
 
@@ -288,6 +314,13 @@ shortcut is off by the equation's change over its own size, up to about
 Standard (zone) time is not carried here: a zone is a civil decision, and
 `hc-tz` owns it.
 
+In `hc-seasons::planetary_hours`: `ruler_of_hour` and `ruler_of_day`, the
+rule alone over a `Weekday`, with `hc_seasons::RulingPlanet`, the type of
+the decans' rulers; `planetary_hour`, the hour at a moment and a place,
+with the date of the sunrise its day began at; and `planetary_hour_start`.
+The hours are `solar_time`'s temporal hours, and are refused where they
+are, above the polar circles.
+
 The Edo hours:
 
 - `japanese_dawn_kansei` and `japanese_dusk_kansei`, 明け六つ and 暮れ六つ
@@ -459,8 +492,26 @@ The six-hour reckonings are exact: `reading` and `civil` invert each other
 at every minute of the day and at the leap second, and the examples of
 both sources are tests.
 
+Planetary hours: the rule gives al-Bīrūnī's hours of Sunday and Monday
+and his first hour of the night for every day. At London on Lilly's day,
+in local apparent time, the three hours he works are found with his
+numbers and rulers, and the hours begin within 2.3 minutes of his table:
+sunrise 1.2 minutes before his 5:47, and the start of the night's first
+hour 2.3 minutes after his 6:13. His table is rounded to the minute and
+gives no latitude beyond London's.
+
 ## Sources
 
+- [biruni-wright1934] — §§390–391, the rule of the planetary hours. Read
+  2026-09-28 in the Internet Archive's text.
+- [lilly-christian-astrology-1647] — "A Table whereby to find the
+  Planetary hour" and its use, with the three hours of 15 March 1646.
+  Read 2026-09-28 in the Internet Archive's text of the 1647 edition and of
+  a later transcription.
+- [agrippa-1651] — Book II, chapter 34, the two divisions of the day.
+  Read 2026-09-28.
+- [mathers-key-of-solomon] — the Table of the Planetary Hours, counted
+  from midnight and from sunset. Read 2026-09-28.
 - [reingold2018code] — `local-from-universal`, `universal-from-local`,
   `apparent-from-local`, `local-from-apparent`, `apparent-from-universal`,
   `universal-from-apparent`, `equation-of-time` and the location of Padua,
@@ -553,6 +604,11 @@ both sources are tests.
 `edo_time_inverts_its_universal_time`,
 `edo_time_inverts_over_the_whole_era` and
 `the_edo_hours_are_refused_on_a_white_night`.
+
+`crates/hc-seasons/src/planetary_hours.rs`, anchored by
+`al_birunis_rule`, `lillys_example`,
+`the_small_hours_are_the_night_before` and
+`no_hours_without_a_sunset`.
 
 `crates/hc-format/src/east_african_hours.rs`, anchored by
 `the_ethiopian_examples`, `the_swahili_examples`,

@@ -31,6 +31,8 @@
 //!   (the Western signs), siderally (the Indian rāśi, and the solar months
 //!   the Tamil, Bengali and Malayalam calendars take from them) and as the
 //!   Chinese 十二次; and each tropical sign in three decans of 10°.
+//! * [`planetary_hours`] — the twenty-four unequal hours from sunrise, each
+//!   ruled by a planet in the Chaldean order.
 //! * [`lunisolar`] — a minimal month-and-day derivation, kept rather than
 //!   routed through `hc-calendars-lunar` for measured reasons the module
 //!   itself records.
@@ -89,6 +91,7 @@ pub mod lunisolar;
 pub mod meridian;
 pub mod moon_calendar;
 pub mod pentads;
+pub mod planetary_hours;
 pub mod quarter_days;
 pub mod rokuyo;
 pub mod san_fu;
