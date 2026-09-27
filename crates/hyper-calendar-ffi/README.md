@@ -97,10 +97,10 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | an era and POSIX seconds | `hc_ntp_resolve` | `reference_unix` −9 223 372 034 707 292 160 through 9 223 372 032 498 303 360, within which every timestamp's date and POSIX second fit an `int64_t`; nearer the ends some timestamps are `HC_ERROR_OVERFLOW`, and the zero timestamp is `HC_ERROR_NO_DATA` everywhere |
 | a line | `hc_uuid_timestamp_encode` | `unix_seconds` −12 219 292 800 (1582-10-15) through 103 072 857 660 (5236-03-31), up to the field's last interval, which ends at 21:21:00.6846976 UTC that day, and attoseconds below 10¹⁸; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_ntp_encode` | `unix_seconds` −9 223 372 036 854 775 808 through 9 223 372 034 645 787 007, `INT64_MAX` − 2 208 988 800, the seconds whose count from 1900 fits an `int64_t`; a later one is `HC_ERROR_OVERFLOW`, and attoseconds from 10¹⁸ `HC_ERROR_OUT_OF_RANGE` |
-| a fixed day | `hc_fat_decode` | every pair of words whose fields name a day and a time, the fixed days 722 815 (1980-01-01) through 769 565 (2107-12-31) |
+| a fixed day | `hc_fat_decode` | every pair of words whose fields name a day and a time, the fixed days 722 815 (1980-01-01) through 769 565 (2107-12-31); a pair whose fields name no day or no time is `HC_ERROR_INVALID_DATE` |
 | two FAT words | `hc_fat_encode` | `fixed` 722 815 (1980-01-01) through 769 565 (2107-12-31) and a time of day below 86 400 s; any other is `HC_ERROR_OUT_OF_RANGE` |
-| a beat, 0 through 999 | `hc_swatch_beat` | every `unix_seconds`, and attoseconds below 10¹⁸ |
-| an epoch | `hc_epoch_from_tt` | every `tt_seconds`, and attoseconds below 10¹⁸ |
+| a beat, 0 through 999 | `hc_swatch_beat` | every `unix_seconds`, and attoseconds below 10¹⁸; more attoseconds are `HC_ERROR_OUT_OF_RANGE` |
+| an epoch | `hc_epoch_from_tt` | every `tt_seconds`, and attoseconds below 10¹⁸; more are `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_tt_bipm` | `tai_seconds` from 0 h UTC on the first sample's date through the last's, which the caller's series sets, and attoseconds below 10¹⁸; an instant outside the series, or an empty series, is `HC_ERROR_NO_DATA`, and more attoseconds are `HC_ERROR_OUT_OF_RANGE` |
 | TT seconds | `hc_tt_from_epoch` | every finite year whose instant is within an `int64_t` of seconds of 1970 TT, about 2.9 × 10¹¹ years either side; beyond is `HC_ERROR_OVERFLOW`, and a year not finite `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_describe_day` | every `fixed`; a calendar that refuses the day says so in its own line |
@@ -133,8 +133,11 @@ points in the third row, as it is from every calendar here: the C library
 maps a calendar's own "after its supported range" to `HC_ERROR_NO_DATA`
 for all of them alike. The WebAssembly module's `hc_gregorian_year` and
 its neighbours answer the same day with `HC_ERR_OUT_OF_RANGE`, because
-its civil exports have one sentinel for any day they cannot place. The
-status values are stable, so the difference is stated rather than changed.
+its civil exports have one sentinel for any day they cannot place.
+`hc_day_of_year` and `hc_is_leap_year` read the day through the same
+Gregorian conversion as `hc_gregorian_from_fixed`, and so answer with its
+code: each boundary keeps one code for a day its calendars cannot place,
+and the two boundaries' codes differ.
 
 ### No floor here, a floor there: a deliberate difference
 
@@ -153,11 +156,12 @@ day before fixed day −104 165 947 503, about 285 million years back, with
 
 This library returns the error as an `HcStatus` and the answer through an
 out-parameter, so no value of the answer is reserved, and a floor would
-refuse days for no reason a C caller has. `hc_unix_from_fixed_in_zone` here
-answers down to where an `int64_t` runs out: by UTC, fixed day
-−106 751 990 448 137, about 292 billion years back. For the days from there
-to fixed day −104 165 947 504, this library writes a timestamp and the
-WebAssembly module refuses.
+refuse days for no reason a C caller has. `hc_unix_from_fixed` and
+`hc_unix_from_fixed_in_zone` here answer down to where an `int64_t` runs
+out: fixed day −106 751 990 448 137, about 292 billion years back, by UTC
+for the zone variant. For the days from there to fixed day
+−104 165 947 504, this library writes a timestamp and the WebAssembly
+module refuses.
 
 The price of each choice is the other's benefit. Here, every call costs a
 status check and a pointer, and the whole `int64_t` range is usable; there,
@@ -169,21 +173,35 @@ disagreement.
 
 ### `HC_ERROR_OVERFLOW` and `HC_ERROR_OUT_OF_RANGE` for an answer too large
 
-The entry points above that can be asked for an answer an `int64_t`
-cannot hold do not all say so with the same code:
+The entry points above that can be asked for an answer an `int64_t`, or
+a 32-bit GNSS week, cannot hold do not all say so with the same code:
 
-- `hc_tai_from_unix` reports `HC_ERROR_OVERFLOW` for a timestamp after
-  `INT64_MAX − 37`: the timestamp is valid, and adding TAI − UTC to it
-  leaves the range. `hc_tai_minus_utc` would report the same code on the
-  same path, though an offset in whole seconds never comes near it.
-- `hc_unix_from_fixed_in_zone` reports `HC_ERROR_OUT_OF_RANGE` for a day
-  whose start overflows, and `hc_day_has_leap_second` the same for the
-  part-days at the ends of the range.
+- `HC_ERROR_OVERFLOW` comes from the time-scale arithmetic the entry
+  point calls, which finds that a valid input's answer leaves the range:
+  - `hc_tai_from_unix` for a timestamp after `INT64_MAX − 37`, where
+    adding TAI − UTC leaves the range; `hc_tai_minus_utc` would report
+    the same code on the same path, though an offset in whole seconds
+    never comes near it;
+  - `hc_ntp_resolve` for a timestamp whose date or POSIX second leaves an
+    `int64_t`, near the ends of the range;
+  - `hc_ntp_encode` for a second after `INT64_MAX − 2 208 988 800`, whose
+    count from 1900 leaves an `int64_t`;
+  - `hc_tt_from_epoch` for a year whose instant is more than an
+    `int64_t` of seconds from 1970 TT;
+  - `hc_gnss_week` for an instant past week 4 294 967 295, which the
+    32-bit week does not hold.
+- `HC_ERROR_OUT_OF_RANGE` comes from the entry point's own bound on the
+  day, the timestamp or the week:
+  - `hc_unix_from_fixed` and `hc_unix_from_fixed_in_zone` for a day whose
+    start overflows;
+  - `hc_day_has_leap_second` for the part-days at the ends of the range;
+  - `hc_gnss_resolve_week` for an answer past week 4 294 967 295.
 
-The status values are stable, so the difference is stated here rather than
-changed. For these entry points the two codes mean the same thing: the
-answer exists and is not an `int64_t`. A caller that needs to tell "too
-large to hold" from other failures should test for both.
+For these entry points the two codes mean the same thing: the answer
+exists and is not an `int64_t`, or for the GNSS weeks not a 32-bit week.
+A caller that needs to tell "too large to hold" from other failures
+should test for both. The WebAssembly module has no sentinel for an
+overflow and answers `HC_ERR_OUT_OF_RANGE` for all of them.
 
 ## Lines and cells
 
@@ -239,7 +257,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_unix_from_fixed(int64_t fixed, int64_t *out_unix_seconds);` | `civil` | The POSIX timestamp of midnight UTC on a fixed day. |
 | `HcStatus hc_parse_iso_date(const char *text, int64_t *out_fixed);` | `civil` | Parse an ISO 8601 date from a NUL-terminated UTF-8 string into its fixed day number. |
 | `HcStatus hc_format_iso_date(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `civil` | Render a fixed day as an ISO 8601 date into a caller-owned buffer. |
-| `HcStatus hc_tai_from_unix(int64_t unix_seconds, int strict, int64_t *out_seconds, uint64_t *out_attos);` | `civil` | Convert a POSIX timestamp to a TAI reading in seconds and attoseconds. |
+| `HcStatus hc_tai_from_unix(int64_t unix_seconds, int strict, int64_t *out_tai_seconds, uint64_t *out_attoseconds);` | `civil` | Convert a POSIX timestamp to a TAI reading in seconds and attoseconds. |
 | `HcStatus hc_tai_minus_utc(int64_t unix_seconds, int strict, int64_t *out_offset);` | `civil` | `TAI - UTC` in whole seconds at a POSIX timestamp. |
 | `HcStatus hc_day_has_leap_second(int64_t unix_seconds, int *out_has_leap);` | `civil` | Whether a POSIX timestamp names a day that ends with an inserted leap second. |
 | `HcStatus hc_utc_from_tai(int64_t tai_seconds, int strict, int64_t *out_unix_seconds, int *out_is_leap_second);` | `civil` | Convert a TAI reading back to a UTC label, naming a leap second when the instant falls inside one. |
@@ -321,11 +339,11 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_hjd_utc(double utc_julian_date, double right_ascension, double declination, int strict, char *buffer, size_t capacity, size_t *written);` | `sky` | The Heliocentric Julian Date in UTC, HJD_UTC, of a Julian Date of UTC for a target, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_orbit_at(double years_before_1950, char *buffer, size_t capacity, size_t *written);` | `orbital` | Earth's orbital elements and the June insolation at 65° N at an epoch, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_orbit_series(double from_years_before_1950, double to_years_before_1950, double step_years, char *buffer, size_t capacity, size_t *written);` | `orbital` | The line of `hc_orbit_at` at every epoch from `from_years_before_1950` to `to_years_before_1950` in steps of `step_years`, each with the epoch as a first column, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
-| `HcStatus hc_mars_time(double unix_seconds, double east_longitude_deg, char *buffer, size_t capacity, size_t *written);` | `planetary` | Mars at a POSIX instant and an east longitude, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_mars_time(double unix_seconds, double east_longitude_degrees, char *buffer, size_t capacity, size_t *written);` | `planetary` | Mars at a POSIX instant and an east longitude, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_missions(char *buffer, size_t capacity, size_t *written);` | `planetary` | Every surface mission on Mars and the rules of its sol count, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_mission_sol(const char *mission, double unix_seconds, int64_t *out_sol);` | `planetary` | The sol number of a Mars surface mission at a POSIX instant, by the mission's own clock. |
 | `HcStatus hc_bodies(char *buffer, size_t capacity, size_t *written);` | `planetary` | Every body `hc-planetary` carries, with its solar day, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
-| `HcStatus hc_body_time(const char *body, double unix_seconds, double east_longitude_deg, char *buffer, size_t capacity, size_t *written);` | `planetary` | Local mean solar time on a body at a POSIX instant and an east longitude, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_body_time(const char *body, double unix_seconds, double east_longitude_degrees, char *buffer, size_t capacity, size_t *written);` | `planetary` | Local mean solar time on a body at a POSIX instant and an east longitude, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_circad_date(const char *calendar, double unix_seconds, char *buffer, size_t capacity, size_t *written);` | `planetary` | The date at a POSIX instant in a calendar of another body's days, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_proper_time(double speed_metres_per_second, double coordinate_seconds, char *buffer, size_t capacity, size_t *written);` | `relativity` | A clock moving at a constant speed while some coordinate time passes, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_gravitational_dilation(const char *body, double radius_metres, char *buffer, size_t capacity, size_t *written);` | `relativity` | A clock held still at a radius from a body's centre, against one far from every mass, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
@@ -735,11 +753,11 @@ samples. A `to` before `from` is an empty answer.
 
 ## Time on other bodies
 
-`hc_mars_time(unix_seconds, east_longitude_deg, buffer, capacity,
+`hc_mars_time(unix_seconds, east_longitude_degrees, buffer, capacity,
 written)`, `hc_missions(buffer, capacity, written)`,
 `hc_mission_sol(mission, unix_seconds, out_sol)`, `hc_bodies(buffer,
 capacity, written)` and `hc_body_time(body, unix_seconds,
-east_longitude_deg, buffer, capacity, written)` need the `planetary`
+east_longitude_degrees, buffer, capacity, written)` need the `planetary`
 feature and write the lines the WebAssembly module's README tabulates,
 from `hc-planetary`: Mars time — the Mars Sol Date, Coordinated Mars
 Time, local mean and true solar time, the equation of time, `Ls`, the
@@ -812,5 +830,6 @@ that README's "What is not here" gives: `hc-planetary`'s circad and
 Martiana calendars in the registry, whose day number is a circad or a sol
 and not an Earth day, though `hc_circad_date` dates an instant in them;
 `hc-humanize`, `hc-fiscal`, `hc-name-days`, `hc-almanac`, `hc-attributes`
-and `hc-units`, for which no line format has been designed; and the
-encoding halves of the UUID and NTP formats.
+and `hc-units`, for which no line format has been designed; and a whole
+UUID with its clock sequence and node, where `hc_uuid_timestamp_encode`
+writes the time fields only.

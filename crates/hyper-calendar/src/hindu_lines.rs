@@ -13,8 +13,9 @@
 //!   the sign, and its sunrise on a day at a place
 //!   ([`hc_calendars_indic::surya_siddhanta`]).
 //!
-//! The true sky answers for the years the true calendars convert,
-//! Gregorian 1700 to 2299; the Siddhānta's, which is arithmetic, for the
+//! The true sky answers for the years the true calendars convert, Śaka
+//! 1622 through 2221, from Chaitra śukla 1 in March 1700 to the eve of
+//! the one in March 2300; the Siddhānta's, which is arithmetic, for the
 //! days of `hindu-lunar-surya-siddhanta`, Kali Yuga 1 to 10 000, which
 //! [`SIDDHANTA_FIRST_DAY`] and [`SIDDHANTA_LAST_DAY`] name.
 
@@ -121,8 +122,9 @@ fn date_line(date: HinduLunarDate, sunrise: Moment) -> String {
 ///
 /// [`Refusal::Unknown`] for a sky not named. [`Refusal::OutOfRange`] on
 /// either sky for a place beyond [`MAX_SUNRISE_LATITUDE`], where some day
-/// of the year has no sunrise; on the true sky for a day outside Gregorian
-/// 1700 to 2299, and on the Siddhānta's for a day outside
+/// of the year has no sunrise; on the true sky for a day outside Śaka 1622
+/// through 2221, Chaitra śukla 1 in March 1700 to the eve of the one in
+/// March 2300, and on the Siddhānta's for a day outside
 /// [`SIDDHANTA_FIRST_DAY`] to [`SIDDHANTA_LAST_DAY`].
 pub fn hindu_lunar_date_line(sky: &str, fixed: i64, place: Location) -> Answer<String> {
     if names(sky, SURYA_SIDDHANTA) {
