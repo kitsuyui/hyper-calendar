@@ -85,11 +85,27 @@ name under each — everything a caller needs to explain the problem to a user.
   the program.
 * **`builtin`** — seventeen zones as POSIX strings, for targets with no zone
   database.
+* **`location`** — where each zone is: the principal location the IANA
+  database gives each of its 312 zones in `zone1970.tab`, the 106 links
+  `zone.tab` gives a place of their own (`Europe/Oslo` at Oslo), and the
+  other links of `backward`, followed to the name that places them
+  (`Asia/Calcutta` to `Asia/Kolkata`), with `backzone`'s links keeping
+  five old names in their countries. The four files are carried
+  unmodified in `data/`, from release 2026c, and the rows the module reads
+  are generated from them and checked against them by a test. Coordinates
+  are exact whole arcseconds, read from ISO 6709's `±DDMM±DDDMM` or
+  `±DDMMSS±DDDMMSS`; `docs/systems/zone-locations.md` explains the lookup.
 
 ## Accuracy, and where the data came from
 
-* Offsets, transition instants and the daylight flag are **exact integers**.
-  No floating point appears anywhere in this crate.
+* Offsets, transition instants and the daylight flag are **exact integers**,
+  and so are a zone location's coordinates, in arcseconds.
+  `DecimalDegrees` writes them in decimal degrees to six places by integer
+  arithmetic, rounded half away from zero, which identifies the arcsecond:
+  multiplying by 3600 and rounding gives it back. The one floating point
+  operation in this crate is `Coordinates::latitude_degrees` and
+  `longitude_degrees`, a single division by 3600 whose result is the `f64`
+  nearest the exact value.
 * Everything works in **POSIX time**: every day is 86 400 seconds and leap
   seconds do not exist. That is the timeline civil zone rules are published
   in. Converting to elapsed physical time is `hc_core::unix`'s job and needs a
@@ -119,7 +135,8 @@ name under each — everything a caller needs to explain the problem to a user.
 
 * **No zone database is compiled in.** Seventeen POSIX strings are not a
   database; a real one is megabytes and belongs on disk or in a separate data
-  crate.
+  crate. The zone locations are compiled in, about 22 kB of text, because
+  they say where a zone is, not what its clocks read.
 * **No "local time zone" detection.** Reading `/etc/localtime` or `%TZ%` is a
   platform question, and a library that guesses the user's zone is a library
   that is wrong on servers.
@@ -146,5 +163,6 @@ nonexistent hours at both ends of American and European daylight saving,
 southern-hemisphere rules in Sydney and Auckland, Lord Howe Island's
 half-hour shift, Kathmandu's `+05:45`, Cairo's last-Thursday-at-24:00 rule,
 zones with no daylight saving at all, the three TZif versions against
-handcrafted byte fixtures, and hour-by-hour round trips across whole years.
-The tests that read `/usr/share/zoneinfo` skip cleanly when it is absent.
+handcrafted byte fixtures, and hour-by-hour round trips across whole years;
+five zone coordinates worked by hand from `zone1970.tab`, and the generated
+location rows held to the vendored files. The tests that read `/usr/share/zoneinfo` skip cleanly when it is absent.

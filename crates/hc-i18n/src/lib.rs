@@ -36,6 +36,9 @@
 //! * [`casing`] — the locale-dependent parts of upper/lower/title casing.
 //! * `territories` — with the `territories` feature, CLDR's names for the
 //!   regions the workspace keeps holiday tables for.
+//! * `exemplar_cities` — with the `exemplar-cities` feature, CLDR's
+//!   English exemplar cities for the zones `hc-tz` locates, and with
+//!   `localized-exemplar-cities` those of every other carried locale.
 //!
 //! # Scope
 //!
@@ -58,6 +61,8 @@ pub mod data;
 pub mod dated;
 pub mod direction;
 pub mod error;
+#[cfg(feature = "exemplar-cities")]
+pub mod exemplar_cities;
 pub mod locale;
 pub mod names;
 pub mod numbering;

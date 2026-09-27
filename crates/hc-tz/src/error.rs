@@ -51,6 +51,9 @@ pub enum TzError {
     /// the end of the string table, an out-of-range offset, a footer that is
     /// not newline-delimited.
     MalformedTzifData,
+    /// Text is not an ISO 6709 point as the zone tables write one,
+    /// `±DDMM±DDDMM` or `±DDMMSS±DDDMMSS`, within ±90° and ±180°.
+    MalformedCoordinates,
     /// The system zone database could not be read.
     #[cfg(feature = "std")]
     Io(std::io::ErrorKind),
@@ -73,6 +76,7 @@ impl fmt::Display for TzError {
             Self::UnsupportedTzifVersion => f.write_str("unsupported TZif version"),
             Self::TruncatedTzifData => f.write_str("truncated TZif data"),
             Self::MalformedTzifData => f.write_str("malformed TZif data"),
+            Self::MalformedCoordinates => f.write_str("malformed ISO 6709 coordinates"),
             #[cfg(feature = "std")]
             Self::Io(kind) => write!(f, "could not read the zone database: {kind}"),
         }
@@ -120,6 +124,7 @@ mod tests {
             TzError::AmbiguousLocalTime.to_string(),
             TzError::NonexistentLocalTime.to_string(),
             TzError::NotTzifData.to_string(),
+            TzError::MalformedCoordinates.to_string(),
         ];
         for (index, message) in messages.iter().enumerate() {
             assert!(!message.is_empty());

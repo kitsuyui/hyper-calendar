@@ -2869,6 +2869,95 @@ mod tz {
 #[cfg(feature = "tz")]
 pub use tz::{hc_fixed_from_unix_in_zone, hc_unix_from_fixed_in_zone, hc_zone_load};
 
+/// Where each zone is, behind the `tz` feature: the principal location
+/// the IANA database gives a zone, its countries and its CLDR exemplar
+/// city. The lines are `hyper_calendar::zone_lines`', shared with the C
+/// library.
+#[cfg(feature = "tz")]
+mod zones {
+    use super::{emit_answer, emit_or_measure, text};
+    use hc::zone_lines;
+
+    /// Every zone of the IANA database's `zone1970.tab` with its principal
+    /// location, as UTF-8 lines, returning the byte length written.
+    ///
+    /// One line per zone, in the table's order, tab-separated: the zone;
+    /// the latitude of its principal location, decimal degrees north; the
+    /// longitude, decimal degrees east; the ISO 3166-1 codes of the
+    /// countries it overlaps, `;`-separated, the country of the location
+    /// first; the table's comment, which tells apart a country's zones and
+    /// is empty where the country has one; the zone's CLDR 48 exemplar city
+    /// in the locale; and the tag of the data that named the city. Each
+    /// coordinate is the table's whole arcseconds written in decimal degrees
+    /// to six places, `arcseconds × 10⁶ / 3600` millionths rounded half away
+    /// from zero, so that multiplying by 3600 and rounding gives the
+    /// arcseconds back. A build
+    /// without the `calendars` feature, and a locale with no city for the
+    /// zone, names the city in English, with `en` in column 7. The locale
+    /// argument fails as `hc_parse_iso_date` does. A null `buffer` returns
+    /// the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be readable for `locale_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless
+    /// it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_zones(
+        locale: *const u8,
+        locale_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale, locale_len) } {
+            Ok(tag) => tag,
+            Err(sentinel) => return sentinel,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_or_measure(&zone_lines::zones(tag), buffer, capacity) }
+    }
+
+    /// Where one zone is, as the UTF-8 line `hc_zones` writes for it,
+    /// returning the byte length written.
+    ///
+    /// `zone` is an IANA name in any case: a zone of `zone1970.tab`; a link
+    /// `zone.tab` gives a place of its own, such as `Europe/Oslo`, which
+    /// answers with Oslo and not with the zone it links to; or another
+    /// link of the database's `backward` file, such as `Asia/Calcutta`,
+    /// which answers with the line of the name it leads to, so that column
+    /// 1 is then `Asia/Kolkata`. A name that places nothing, such as `UTC`,
+    /// is `HC_ERR_UNKNOWN`. Both text arguments fail as for
+    /// `hc_parse_iso_date`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `zone` must be readable for `zone_len` bytes and `locale` for
+    /// `locale_len`, unless null with a zero length; `buffer` must be
+    /// writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_zone_location(
+        zone: *const u8,
+        zone_len: usize,
+        locale: *const u8,
+        locale_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let (zone, tag) = match unsafe { (text(zone, zone_len), text(locale, locale_len)) } {
+            (Ok(zone), Ok(tag)) => (zone, tag),
+            (Err(sentinel), _) | (_, Err(sentinel)) => return sentinel,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(zone_lines::zone_location(zone, tag), buffer, capacity) }
+    }
+}
+
+#[cfg(feature = "tz")]
+pub use zones::{hc_zone_location, hc_zones};
+
 /// The sky, behind the `sky` feature: where the Sun and the Moon are at an
 /// instant, the solar terms and the moon phases within a span, and the
 /// Sun's decan, from `hc-astro`'s series, in Universal Time. The lines are
@@ -3955,6 +4044,7 @@ mod tests {
         feature = "holiday",
         feature = "seasons",
         feature = "deep-time",
+        feature = "tz",
         feature = "sky",
         feature = "orbital",
         feature = "planetary",
@@ -5394,6 +5484,99 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "tz")]
+    mod zones {
+        use super::super::*;
+        use super::read_lines;
+
+        fn location(zone: &str, locale: &str) -> i64 {
+            unsafe {
+                hc_zone_location(
+                    zone.as_ptr(),
+                    zone.len(),
+                    locale.as_ptr(),
+                    locale.len(),
+                    core::ptr::null_mut(),
+                    0,
+                )
+            }
+        }
+
+        fn line(zone: &str, locale: &str) -> String {
+            read_lines(|buffer, capacity| unsafe {
+                hc_zone_location(
+                    zone.as_ptr(),
+                    zone.len(),
+                    locale.as_ptr(),
+                    locale.len(),
+                    buffer,
+                    capacity,
+                )
+            })
+        }
+
+        /// `zone1970.tab` 2026c: `JP,AU +353916+1394441 Asia/Tokyo Eyre
+        /// Bird Observatory`, 128 356″ and 503 081″.
+        #[test]
+        fn every_zone_has_a_line_and_tokyo_is_its_row() {
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_zones("en".as_ptr(), 2, buffer, capacity)
+            });
+            assert_eq!(text.lines().count(), 312);
+            assert!(text.lines().all(|line| line.split('\t').count() == 7));
+            let tokyo = text
+                .lines()
+                .find(|line| line.starts_with("Asia/Tokyo\t"))
+                .expect("Tokyo");
+            assert_eq!(
+                tokyo,
+                "Asia/Tokyo\t35.654444\t139.744722\tJP;AU\tEyre Bird Observatory\tTokyo\ten"
+            );
+            assert_eq!(line("asia/tokyo", "en"), format!("{tokyo}\n"));
+        }
+
+        /// `zone.tab`: `NO +5955+01045 Europe/Oslo`; `backward`: `Link
+        /// Asia/Kolkata Asia/Calcutta` and `Link Etc/UTC UTC`.
+        #[test]
+        fn links_answer_with_their_rows_and_utc_is_unknown() {
+            assert!(
+                line("Europe/Oslo", "en").starts_with("Europe/Oslo\t59.916667\t10.750000\tNO\t")
+            );
+            assert!(line("Asia/Calcutta", "en").starts_with("Asia/Kolkata\t"));
+            assert_eq!(location("UTC", "en"), HC_ERR_UNKNOWN);
+            let not_utf8 = [0xffu8];
+            assert_eq!(
+                unsafe {
+                    hc_zone_location(
+                        not_utf8.as_ptr(),
+                        1,
+                        "en".as_ptr(),
+                        2,
+                        core::ptr::null_mut(),
+                        0,
+                    )
+                },
+                HC_ERR_NOT_UTF8
+            );
+            assert_eq!(
+                unsafe { hc_zones(core::ptr::null(), 1, core::ptr::null_mut(), 0) },
+                HC_ERR_NULL_POINTER
+            );
+        }
+
+        /// CLDR 48 `ja.xml`: `Asia/Tokyo` 東京. The city is localised only
+        /// in a build that carries `calendars` too.
+        #[test]
+        fn the_city_is_in_the_locale_where_the_build_carries_it() {
+            let tokyo = line("Asia/Tokyo", "ja-JP");
+            let cells: Vec<&str> = tokyo.trim_end().split('\t').collect();
+            if cfg!(feature = "calendars") {
+                assert_eq!(cells[5..], ["東京", "ja"]);
+            } else {
+                assert_eq!(cells[5..], ["Tokyo", "en"]);
+            }
+        }
+    }
     #[cfg(feature = "deep-time")]
     mod deep_time {
         use super::super::*;

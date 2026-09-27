@@ -100,6 +100,7 @@ export const COLUMNS: {
   readonly marriageAugury: ReadonlyArray<string>;
   readonly holidayTables: ReadonlyArray<string>;
   readonly lectionary: ReadonlyArray<string>;
+  readonly zones: ReadonlyArray<string>;
   readonly value: ReadonlyArray<string>;
   readonly solarTime: ReadonlyArray<string>;
   readonly solarEvent: ReadonlyArray<string>;
@@ -897,6 +898,28 @@ export interface HolidayTable {
   shortName: string | null;
 }
 
+/** One line of `hc_zones` and `hc_zone_location`. */
+export interface ZoneLocation {
+  /** The name of the row that answered: `Asia/Kolkata` for `Asia/Calcutta`. */
+  zone: string;
+  /**
+   * Degrees north of the principal location: the table's whole arcseconds
+   * written to six decimals, so that `Math.round(latitude * 3600)` gives the
+   * arcseconds back.
+   */
+  latitude: number;
+  /** Degrees east of the principal location, written as `latitude` is. */
+  longitude: number;
+  /** The ISO 3166-1 codes of the countries the zone overlaps, the location's first. */
+  countries: string[];
+  /** The table's comment, which tells a country's zones apart; `null` where the country has one. */
+  comment: string | null;
+  /** The zone's CLDR 48 exemplar city in the locale, else in English: 東京 under `ja`, `Tokyo` under `en`. */
+  exemplarCity: string;
+  /** The tag of the data that named the city: `ja`, `de` for `de-AT`, or `en`. */
+  localeUsed: string;
+}
+
 /** The one line of `hc_lectionary`. */
 export interface Lectionary {
   /** The civil year of the liturgical year's Easter. */
@@ -1324,6 +1347,10 @@ export class HyperCalendar {
   unixFromFixedInZone(fixed: number | bigint, zone: string): number;
   /** `hc_zone_load`; bytes that are not TZif are `malformed`. */
   loadZone(name: string, tzif: Uint8Array | ArrayBuffer): void;
+  /** `hc_zones`: every zone of `zone1970.tab`, in its order; `und` unless given. */
+  zones(locale?: string): ZoneLocation[];
+  /** `hc_zone_location`: a zone or a link; a name that places nothing, such as `UTC`, is `unknown`. */
+  zoneLocation(zone: string, locale?: string): ZoneLocation;
 
   /** `hc_sky_at`; an instant outside −1000 through 3000 is `out-of-range`. */
   skyAt(unixSeconds: number | bigint): Sky;

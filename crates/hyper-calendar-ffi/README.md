@@ -243,7 +243,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-101 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+103 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -322,6 +322,8 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_fixed_from_unix_in_zone(int64_t unix_seconds, const char *zone, int64_t *out_fixed);` | `tz` | The fixed day a POSIX timestamp falls on by the wall clock of a zone. |
 | `HcStatus hc_unix_from_fixed_in_zone(int64_t fixed, const char *zone, int64_t *out_unix_seconds);` | `tz` | The POSIX timestamp at which a fixed day begins by the wall clock of a zone. |
 | `HcStatus hc_zone_load(const char *name, const uint8_t *tzif, size_t tzif_len);` | `tz` | Give the library a zone's TZif data under an IANA name. |
+| `HcStatus hc_zones(const char *locale, char *buffer, size_t capacity, size_t *written);` | `tz` | Every zone of the IANA database's `zone1970.tab` with its principal location, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_zone_location(const char *zone, const char *locale, char *buffer, size_t capacity, size_t *written);` | `tz` | Where one zone is, as the NUL-terminated UTF-8 line `hc_zones` writes for it, in a caller-owned buffer. |
 | `HcStatus hc_sky_at(int64_t unix_seconds, char *buffer, size_t capacity, size_t *written);` | `sky` | The Sun and the Moon at a POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_solar_terms_between(int64_t from_unix, int64_t to_unix, char *buffer, size_t capacity, size_t *written);` | `sky` | Every solar term whose instant falls in `[from_unix, to_unix)`, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_moon_phases_between(int64_t from_unix, int64_t to_unix, char *buffer, size_t capacity, size_t *written);` | `sky` | Every new moon, first quarter, full moon and last quarter whose instant falls in `[from_unix, to_unix)`, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
@@ -679,6 +681,21 @@ or a zone's history, `hc_zone_load(name, tzif, tzif_len)` takes the zone's
 TZif file once and the conversions answer for that name from then on, a
 loaded zone outranking a built-in one. Bytes that are not TZif are
 `HC_ERROR_MALFORMED`.
+
+`hc_zones(locale, buffer, capacity, written)` writes where each of the 312
+zones of the IANA database's `zone1970.tab` is, in the seven columns of
+the WebAssembly module's README: the zone, the latitude and longitude of
+its principal location in decimal degrees, the table's whole arcseconds
+written to six places (multiply by 3600 and round for the arcseconds),
+its countries `;`-separated,
+the table's comment, its CLDR 48 exemplar city and the tag that named the
+city. `hc_zone_location(zone, locale, buffer, capacity, written)` writes
+the same line for one name: a zone; a link `zone.tab` gives a place of its
+own, such as `Europe/Oslo`; or another link of `backward`, such as
+`Asia/Calcutta`, which answers with the line of `Asia/Kolkata`. A name
+that places nothing, such as `UTC`, is `HC_ERROR_UNKNOWN`. The city is in
+the `locale` in a build with `calendars` too, and otherwise, and for a
+null `locale` or a locale with no city for the zone, in English with `en`.
 
 ## The sky
 

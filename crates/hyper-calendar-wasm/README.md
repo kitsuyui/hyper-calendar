@@ -124,6 +124,7 @@ out of range is `out-of-range`, never an unrecognised number.
 | a fixed day | `hc_cold_food_day` | `year` −999 through 3000 under every reckoning, the years whose winter solstice before and whose April are both in the era of `hc_term_in_effect`; any other is `HC_ERR_OUT_OF_RANGE`, and a reckoning it does not name `HC_ERR_UNKNOWN` |
 | 0 | `hc_zone_load` | any name and bytes; bytes that are not TZif are `HC_ERR_MALFORMED` |
 | a byte length | `hc_mars_time`, `hc_body_time` | no `i64` input: the instants within 100 Julian years of J2000.0 (1900-01-01T12:00 to 2100-01-01T12:00 TT); any other, or an instant or longitude not finite, is `HC_ERR_OUT_OF_RANGE`, and for `hc_body_time` a body `hc_bodies` does not list `HC_ERR_UNKNOWN` and the Sun `HC_ERR_NO_DATA` |
+| a byte length | `hc_zones`, `hc_zone_location` | no `i64` input: every locale tag, and for `hc_zone_location` every name `zone1970.tab`, `zone.tab` or `backward` places; a name they do not, such as `UTC`, is `HC_ERR_UNKNOWN` |
 | a byte length | `hc_circad_date` | no `i64` input: the instants within 100 Julian years of J2000.0 (1900-01-01T12:00 to 2100-01-01T12:00 TT), as for `hc_mars_time`; any other, or one not finite, is `HC_ERR_OUT_OF_RANGE`, and a calendar not listed `HC_ERR_UNKNOWN` |
 | a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERR_NO_DATA`, and a mission the table does not carry `HC_ERR_UNKNOWN` |
 | a byte length | `hc_version`, `hc_calendar_list`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_horizons`, `hc_missions`, `hc_bodies`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
@@ -274,6 +275,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `placeYearsAgo(yearsAgo, stdDevYears, locale)`, `cosmicEvents(locale)`, `geologicIntervals(rank, locale)` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `DeepTimeRow[]` |
 | `fixedFromUnixInZone(unixSeconds, zone)`, `unixFromFixedInZone(fixed, zone)` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone` | a number |
 | `loadZone(name, tzif)` | `hc_zone_load` | nothing |
+| `zones(locale)`, `zoneLocation(zone, locale)` | `hc_zones`, `hc_zone_location` | `ZoneLocation[]`; a `ZoneLocation` |
 | `skyAt(unixSeconds)` | `hc_sky_at` | a `Sky` |
 | `solarTermsBetween(fromUnix, toUnix)`, `moonPhasesBetween(fromUnix, toUnix)` | `hc_solar_terms_between`, `hc_moon_phases_between` | `SkyEvent[]` |
 | `decanAt(unixSeconds)` | `hc_decan_at` | a `Decan` |
@@ -351,7 +353,7 @@ the module's bytes inside it as base64, decoded with `atob` and bound by a
 `load(options)` that takes no source and fetches nothing. It is one
 self-contained ES module; `hyper-calendar.embedded.d.ts` types it. It is
 generated, not committed — CI uploads it with the layered builds below —
-and it is 2.68 MiB (2,814,734 bytes) for the `full` layer of 2026-09-27,
+and it is 3.14 MiB (3,292,635 bytes) for the `full` layer of 2026-09-27,
 base64 being four thirds of the module.
 
 ### tzdata beside the module
@@ -395,16 +397,16 @@ one job a layer.
 | --- | --- | --- | ---: | ---: |
 | `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, TAI − UTC and leap seconds | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,652 | 35 KiB |
 | `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, and TT(BIPM) from a caller's series | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation` and `tt_bipm`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` | 113,322 | 111 KiB |
-| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_asian_day` | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format` | 872,801 | 852 KiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on` | `hc-holiday` and everything it dates by | 1,186,560 | 1.13 MiB |
+| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_asian_day` | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 872,905 | 852 KiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on` | `hc-holiday` and everything it dates by | 1,186,664 | 1.13 MiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day` | `hc-seasons`, `hc-astro` | 90,029 | 88 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 152,906 | 149 KiB |
-| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load` | `hc-tz` | 57,375 | 56 KiB |
+| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zones`, `hc_zone_location`: the day by a zone's wall clock, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 92,831 | 91 KiB |
 | `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc` | `hc-astro`, `hc-seasons` | 115,479 | 113 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 64,097 | 63 KiB |
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 96,097 | 94 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 52,505 | 51 KiB |
-| `full` | all of the above | everything | 2,159,235 | 2.06 MiB |
+| `full` | all of the above | everything | 2,362,385 | 2.25 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -444,7 +446,7 @@ not pass CI.
 
 ### Exports
 
-105 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+107 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -527,6 +529,8 @@ not pass CI.
 | `hc_fixed_from_unix_in_zone(unix_seconds: i64, zone: *const u8, zone_len: usize) -> i64` | `tz` | The fixed day a POSIX timestamp falls on by the wall clock of a zone, or an error sentinel. |
 | `hc_unix_from_fixed_in_zone(fixed: i64, zone: *const u8, zone_len: usize) -> i64` | `tz` | The POSIX timestamp at which a fixed day begins by the wall clock of a zone, or an error sentinel. |
 | `hc_zone_load(name: *const u8, name_len: usize, tzif: *const u8, tzif_len: usize) -> i64` | `tz` | Give the module a zone's TZif data under an IANA name, returning 0. |
+| `hc_zones(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `tz` | Every zone of the IANA database's `zone1970.tab` with its principal location, as UTF-8 lines, returning the byte length written. |
+| `hc_zone_location(zone: *const u8, zone_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `tz` | Where one zone is, as the UTF-8 line `hc_zones` writes for it, returning the byte length written. |
 | `hc_sky_at(unix_seconds: i64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | The Sun and the Moon at a POSIX timestamp, as one UTF-8 line, returning the byte length written. |
 | `hc_solar_terms_between(from_unix: i64, to_unix: i64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | Every solar term whose instant falls in `[from_unix, to_unix)`, as UTF-8 lines, returning the byte length written. |
 | `hc_moon_phases_between(from_unix: i64, to_unix: i64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | Every new moon, first quarter, full moon and last quarter whose instant falls in `[from_unix, to_unix)`, as UTF-8 lines, returning the byte length written. |
@@ -1786,6 +1790,78 @@ const today = hc.fixedFromUnixInZone(Math.floor(Date.now() / 1000), "Europe/Rome
 The `tzdata/` artifact that CI uploads, and `scripts/wasm-tzdata.sh`
 writes, holds the seventeen built-in zones' files with the database's
 release in `VERSION`; see "tzdata beside the module" above.
+
+### Where each zone is
+
+A page that knows only the reader's zone —
+`Intl.DateTimeFormat().resolvedOptions().timeZone`, `Asia/Tokyo` — can ask
+the module where that is, for the exports that need a place: sunrise and
+sunset, the young crescent, the pañcāṅga and the Hindu date.
+`hc_zones(locale_ptr, locale_len, buffer, capacity)` writes a line for each
+of the 312 zones of the IANA database's `zone1970.tab`, in its order, and
+`hc_zone_location(zone_ptr, zone_len, locale_ptr, locale_len, buffer,
+capacity)` the same line for one name. The place is the zone's *principal
+location*, the one the database gives it — Tokyo for `Asia/Tokyo`, New
+York for `America/New_York` — and not the reader's; it is a default, for a
+page to use until the reader names a place.
+
+The tables are `hc-tz`'s copy of `zone1970.tab`, `zone.tab`, `backward`
+and `backzone` from release 2026c, unmodified; `docs/systems/zone-locations.md` explains
+the lookup with examples. The table writes each coordinate in degrees,
+minutes and seconds, `+353916+1394441`; columns 2 and 3 are the table's
+whole arcseconds written in decimal degrees to six places, by integer
+arithmetic: `arcseconds × 10⁶ / 3600` millionths of a degree, rounded half
+away from zero, so Tokyo is `35.654444` and `139.744722` and São Paulo's
+latitude `-23.533333`. One arcsecond is 0.000278°, so six places identify
+it: a caller who needs the exact arcseconds multiplies by 3600 and
+rounds.
+
+`hc_zone_location` answers any name a browser can report:
+
+- a zone of `zone1970.tab`, which answers with its own line;
+- a link that `zone.tab` gives a place of its own — `Europe/Oslo`,
+  `Europe/Stockholm`, `Asia/Muscat`, 106 of them — which answers with that
+  place, Oslo and not the Berlin its link leads to;
+- another link of `backward`, which answers with the line of the name it
+  leads to, so that column 1 says which: `Asia/Calcutta` answers as
+  `Asia/Kolkata`, `US/Eastern` as `America/New_York`. Where the file's
+  comment names the link the old name really stands for, that is followed:
+  `Iceland` answers as `Atlantic/Reykjavik`, not the `Africa/Abidjan` its
+  data line names; and where `backzone` links an old name within its
+  country, that link: `America/Coral_Harbour` answers as
+  `America/Atikokan`, in Canada, not as `backward`'s `America/Panama`.
+
+A name that places nothing — `UTC`, `Etc/GMT+5`, a name nobody knows — is
+`HC_ERR_UNKNOWN`. Names match in any ASCII case.
+
+Column 6 is the zone's exemplar city from CLDR 48, the city by which CLDR
+names a zone for a reader. English is always carried: `en.xml`'s value,
+else `root.xml`'s, else the city UTS #35 derives from the zone's name, its
+last field with underscores as spaces. In a build with the `calendars`
+feature too, the city is the locale's where `hc-i18n` carries one — 東京
+under `ja`, Wien under `de-AT` — with the tag of the data that answered in
+column 7; a locale whose file marks the city as inherited answers with the
+root name under its own tag (`Berlin` under `de`). A zone the locale has no
+city for, every zone under `native` or a tag whose chain reaches no table,
+and every zone in a build without `calendars`, is named in English with
+`en`. So column 6 is never empty.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | zone | the name of the row that answered: the zone, or the link `zone.tab` places, or for another link the name it leads to |
+| 2 | latitude | decimal degrees north of the principal location, negative south, to six places |
+| 3 | longitude | decimal degrees east, negative west, to six places |
+| 4 | countries | the ISO 3166-1 codes of the countries the zone overlaps, `;`-separated, the location's first |
+| 5 | comment | the table's comment, which tells a country's zones apart; empty where the country has one zone |
+| 6 | exemplar city | CLDR 48's exemplar city in the locale, else in English |
+| 7 | locale used | the tag of the data that named column 6: `ja`, `de`, `zh-Hant`, or `en` |
+
+```js
+const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const place = hc.zoneLocation(zone, navigator.language); // throws `unknown` for UTC
+const today = hc.fixedFromUnix(Math.floor(Date.now() / 1000));
+const sunrise = hc.sunrise("usno", today, place.latitude, place.longitude, 0);
+```
 
 ## The sky
 

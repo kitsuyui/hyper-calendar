@@ -51,6 +51,7 @@ pub mod builtin;
 pub mod error;
 pub mod fixed;
 mod gregorian;
+pub mod location;
 pub mod offset;
 pub mod posix;
 pub mod tzif;
@@ -61,6 +62,7 @@ pub mod system;
 
 pub use error::{TzError, TzResult};
 pub use fixed::{FixedTimeZone, Utc};
+pub use location::{Coordinates, DecimalDegrees, LocationTable, ZoneLocation};
 pub use offset::{MAX_OFFSET_SECONDS, OffsetStyle, OffsetText, UtcOffset};
 pub use posix::{Abbreviation, PosixDst, PosixRule, PosixTimeZone, PosixTransition, PosixTz};
 pub use tzif::{

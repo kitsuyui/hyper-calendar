@@ -25,6 +25,16 @@ libm = ["hc-core/libm"]
 # territories: the facade's `holiday` feature turns it on, and a build that
 # only renders dates does not carry it.
 territories = []
+# CLDR 48's English exemplar cities for the 418 zones hc-tz locates, from
+# en.xml and root.xml, and UTS #35's name derived from a zone's identifier
+# for the rest (the `exemplar_cities` module). About 2 kB: the facade's
+# `tz` feature turns it on.
+exemplar-cities = []
+# The exemplar cities in every other carried locale CLDR names them in.
+# About 170 kB of text, so a feature of its own: the facade's
+# `localized-exemplar-cities` feature turns it on, and a build that shows
+# zones in English does not carry it.
+localized-exemplar-cities = ["exemplar-cities"]
 
 [dependencies]
 hc-core = { workspace = true }

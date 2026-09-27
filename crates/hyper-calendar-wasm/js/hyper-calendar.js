@@ -121,6 +121,8 @@ export const METHODS = Object.freeze([
   { method: "fixedFromUnixInZone", export: "hc_fixed_from_unix_in_zone", feature: "tz" },
   { method: "unixFromFixedInZone", export: "hc_unix_from_fixed_in_zone", feature: "tz" },
   { method: "loadZone", export: "hc_zone_load", feature: "tz" },
+  { method: "zones", export: "hc_zones", feature: "tz" },
+  { method: "zoneLocation", export: "hc_zone_location", feature: "tz" },
   { method: "skyAt", export: "hc_sky_at", feature: "sky" },
   { method: "solarTermsBetween", export: "hc_solar_terms_between", feature: "sky" },
   { method: "moonPhasesBetween", export: "hc_moon_phases_between", feature: "sky" },
@@ -225,6 +227,9 @@ export const COLUMNS = Object.freeze({
     "code", "kind", "name", "english name", "locale used", "source", "country", "short name",
   ]),
   lectionary: Object.freeze(["liturgical year", "sunday cycle", "weekday cycle", "proper"]),
+  zones: Object.freeze([
+    "zone", "latitude", "longitude", "countries", "comment", "exemplar city", "locale used",
+  ]),
   value: Object.freeze(["value"]),
   solarTime: Object.freeze(["day", "hours", "missing", "missing day", "depression"]),
   solarEvent: Object.freeze(["instant", "missing", "missing day", "depression"]),
@@ -1219,6 +1224,25 @@ function holidayTable(cells) {
     source: optional(source),
     country: optional(country),
     shortName: optional(shortName),
+  };
+}
+
+/**
+ * One line of `hc_zones` and `hc_zone_location`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").ZoneLocation}
+ */
+function zoneLocation(cells) {
+  const [zone, latitude, longitude, countries, comment, exemplarCity, localeUsed] = cells;
+  return {
+    zone,
+    latitude: decimal(latitude, "latitude"),
+    longitude: decimal(longitude, "longitude"),
+    countries: countries.split(";"),
+    comment: optional(comment),
+    exemplarCity,
+    localeUsed,
   };
 }
 
@@ -2417,6 +2441,45 @@ export class HyperCalendar {
     this.#withText(name, "name", (namePointer, nameLen) =>
       this.#withBytes(tzif, "tzif", (bytesPointer, bytesLen) =>
         checked(fn(namePointer, nameLen, bytesPointer, bytesLen), "hc_zone_load")));
+  }
+
+  /**
+   * Every zone of the IANA database's `zone1970.tab`, in its order, with
+   * the latitude and longitude of its principal location in decimal
+   * degrees, its countries, the table's comment, and its CLDR 48 exemplar
+   * city in the locale. The city is English, with `localeUsed` `en`, in a
+   * build without the `calendars` layer and for a zone the locale has no
+   * city for.
+   *
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").ZoneLocation[]}
+   */
+  zones(locale = "und") {
+    const fn = this.#export("hc_zones");
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_zones", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.zones, "hc_zones").map(zoneLocation);
+  }
+
+  /**
+   * Where one zone is, as {@link zones} describes it. `zone` is an IANA
+   * name in any case: a zone, a link `zone.tab` gives a place of its own
+   * (`Europe/Oslo`), or another link of `backward` (`Asia/Calcutta`),
+   * which answers with the row it leads to, so that `zone` is then
+   * `Asia/Kolkata`. A name that places nothing, such as `UTC`, is
+   * `unknown`.
+   *
+   * @param {string} zone
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").ZoneLocation}
+   */
+  zoneLocation(zone, locale = "und") {
+    const fn = this.#export("hc_zone_location");
+    const text = this.#withText(zone, "zone", (zonePointer, zoneLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_zone_location", (buffer, capacity) =>
+          fn(zonePointer, zoneLen, localePointer, localeLen, buffer, capacity), true)));
+    return zoneLocation(this.#oneLine("hc_zone_location", text, COLUMNS.zones));
   }
 
   /**
