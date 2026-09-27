@@ -1774,6 +1774,126 @@ describe("relativity", () => {
   });
 });
 
+describe("TT(BIPM) from a caller's series", () => {
+  // TTBIPM.2025: 27.6740 µs on MJD 58 479 and 27.6745 µs on MJD 58 489;
+  // 0 h UTC on MJD 58 479, 2018-12-22, is TAI second 1 545 868 837.
+  const series = "58479\t27.6740\n58489\t27.6745\n";
+  const tai = 1_545_868_837;
+
+  test("a sample reads as the table gives it, and five days on, halfway", () => {
+    const reading = hc.ttBipm(series, tai, 0, true);
+    assert.ok(Math.abs(reading.offsetSeconds - 27.674e-6) < 1e-15, JSON.stringify(reading.offsetSeconds));
+    assert.equal(reading.minusTai.seconds, 32n);
+    const drift = reading.minusTai.attoseconds - 184_027_674_000_000_000n;
+    assert.ok(drift > -1_000n && drift < 1_000n, `${reading.minusTai.attoseconds}`);
+    assert.equal(reading.reading.seconds, BigInt(tai + 32));
+    const midway = hc.ttBipm(series, tai + 5 * 86_400);
+    assert.ok(Math.abs(midway.offsetSeconds - 27.674_25e-6) < 1e-15);
+  });
+
+  test("outside the series, or in another shape, it is refused", () => {
+    refused(() => hc.ttBipm(series, tai - 1), "no-data");
+    refused(() => hc.ttBipm("", tai), "no-data");
+    refused(() => hc.ttBipm("58479 27.674", tai), "malformed");
+    refused(() => hc.ttBipm("58489\t1\n58479\t1", tai), "malformed");
+  });
+});
+
+describe("renamed months, the Asian days and the sabbatical year", () => {
+  test("21 March 2005 is Başgün of Nowruz in Turkmen", () => {
+    const day = hc.gregorianToFixed(2005, 3, 21);
+    const named = hc.namingPeriodOn("gregory", day, "tk-TM");
+    assert.equal(named.state, "in-force");
+    assert.ok(named.period !== null);
+    assert.deepEqual(
+      [named.period.id, named.period.monthName, named.period.weekdayName, named.period.weekdayMeaning],
+      ["turkmen-2002", "Nowruz", "Başgün", "First day"],
+    );
+    assert.deepEqual(
+      [named.period.earliest, named.period.inForceBy, named.period.ended],
+      [hc.gregorianToFixed(2002, 8, 8), hc.gregorianToFixed(2003, 1, 1), hc.gregorianToFixed(2008, 7, 1)],
+    );
+    assert.equal(hc.namingPeriodOn("gregory", hc.gregorianToFixed(2002, 10, 1), "tk").state, "undecided");
+    assert.deepEqual(hc.namingPeriodOn("gregory", day, "ru"), { state: "ordinary", period: null });
+    assert.deepEqual(hc.namingPeriodOn("gregory", day, NATIVE), { state: "ordinary", period: null });
+    refused(() => hc.namingPeriodOn("no-such-calendar", day, "tk"), "unknown");
+  });
+
+  test("Sebaste opens Kaisar and 7 October is its day 14", () => {
+    assert.deepEqual(hc.asianDay(1_360), { year: 4, month: 1, monthName: "Kaisar", written: "unnumbered", number: 1 });
+    assert.deepEqual(hc.asianDay(1_374), { year: 4, month: 1, monthName: "Kaisar", written: "numbered", number: 14 });
+    // The day hc_describe_day numbers 1 is the one written unnumbered.
+    const described = hc.describeDay(1_360, "en").find((row) => row.id === "asian");
+    assert.equal(described?.day, 1);
+    refused(() => hc.asianDay(1_359), "out-of-range");
+  });
+
+  test("5782 and 5789 are sabbatical years", () => {
+    assert.equal(hc.hebrewSabbaticalCycleYear(5782), 7);
+    assert.equal(hc.hebrewSabbaticalCycleYear(5789n), 7);
+    assert.equal(hc.hebrewSabbaticalCycleYear(5786), 4);
+    refused(() => hc.hebrewSabbaticalCycleYear(10_000), "out-of-range");
+  });
+});
+
+describe("Holy Years and the Common Worship ranks", () => {
+  test("the jubilee of 2025 is the bull's, and the table's ends are refused", () => {
+    const jubilee = hc.holyYearOn(hc.gregorianToFixed(2025, 6, 1));
+    assert.deepEqual(jubilee, {
+      title: "Ordinary Jubilee of the Year 2025",
+      kind: "ordinary",
+      pope: "Francis",
+      bull: "Spes non confundit",
+      given: hc.gregorianToFixed(2024, 5, 9),
+      opens: hc.gregorianToFixed(2024, 12, 24),
+      closes: hc.gregorianToFixed(2026, 1, 6),
+      dioceses: { opens: hc.gregorianToFixed(2024, 12, 29), closes: hc.gregorianToFixed(2025, 12, 28) },
+    });
+    assert.equal(hc.holyYearOn(hc.gregorianToFixed(2016, 1, 1))?.dioceses, null);
+    assert.equal(hc.holyYearOn(hc.gregorianToFixed(2026, 1, 7)), null);
+    refused(() => hc.holyYearOn(hc.gregorianToFixed(1974, 12, 23)), "no-data");
+  });
+
+  test("St George's Day of 2025 is a Festival on the Monday, named as hc_holidays_on names it", () => {
+    const day = hc.gregorianToFixed(2025, 4, 28);
+    const kept = hc.commonWorshipOn(day);
+    assert.deepEqual(kept, [{ title: "George, Martyr, Patron of England", rank: "festival", rankName: "Festival" }]);
+    const listed = hc.holidaysOn(day).filter((row) => row.table === "common-worship").map((row) => row.name);
+    assert.deepEqual(listed, kept.map((row) => row.title));
+    assert.deepEqual(hc.commonWorshipOn(hc.gregorianToFixed(2025, 4, 23)), []);
+    assert.equal(hc.commonWorshipOn(hc.gregorianToFixed(2025, 12, 25))[0]?.rank, "principal-feast");
+  });
+});
+
+describe("the decans and the Heliocentric Julian Date", () => {
+  test("an hour after the NAOJ's 秋分 of 2026 the Sun is in the Moon's face of Libra", () => {
+    const decan = hc.decanAt(Date.UTC(2026, 8, 23, 1, 5) / 1000);
+    assert.deepEqual(
+      [decan.sign, decan.signName, decan.decan, decan.ruler, decan.rulerName],
+      [7, "Libra", 1, "moon", "Moon"],
+    );
+    assert.ok(decan.degreesIntoDecan > 0 && decan.degreesIntoDecan < 0.1, `${decan.degreesIntoDecan}`);
+    assert.equal(hc.decanAt(Date.UTC(2026, 8, 22, 23, 5) / 1000).ruler, "mercury");
+    refused(() => hc.decanAt(Date.UTC(3001, 0, 1) / 1000), "out-of-range");
+  });
+
+  test("Warren's row of 1992 in IDL's helio_jd: 350.9 s", () => {
+    // 29 February 1992, 03:15:56.2; 12h 56m 27.4s, +42° 10′ 17″ (J2000).
+    const date = 2_448_681.5 + (3 * 3_600 + 15 * 60 + 56.2) / 86_400;
+    const alpha = 15 * (12 + 56 / 60 + 27.4 / 3_600);
+    const delta = 42 + 10 / 60 + 17 / 3_600;
+    const tt = hc.hjdTt(date, alpha, delta);
+    assert.ok(Math.abs(tt.correctionSeconds - 350.9) < 0.1, JSON.stringify(tt));
+    assert.ok(Math.abs((tt.hjd - date) * 86_400 - tt.correctionSeconds) < 1e-3);
+    // TAI − UTC was 26 s in February 1992.
+    const utc = hc.hjdUtc(date, alpha, delta, true);
+    assert.equal(utc.ttMinusUtcSeconds, 58.184);
+    refused(() => hc.hjdTt(date, 361, delta), "out-of-range");
+    refused(() => hc.hjdUtc(2_433_282.5, alpha, delta, true), "no-data");
+    assert.equal(hc.hjdUtc(2_433_282.5, alpha, delta).ttMinusUtcSeconds, 32.184);
+  });
+});
+
 describe("the buffer protocol", () => {
   /**
    * The module with its exports counted.

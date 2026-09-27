@@ -80,6 +80,7 @@ export const METHODS = Object.freeze([
   { method: "swatchBeat", export: "hc_swatch_beat", feature: "timestamps" },
   { method: "epochFromTt", export: "hc_epoch_from_tt", feature: "timestamps" },
   { method: "ttFromEpoch", export: "hc_tt_from_epoch", feature: "timestamps" },
+  { method: "ttBipm", export: "hc_tt_bipm", feature: "timestamps" },
   { method: "describeDay", export: "hc_describe_day", feature: "calendars" },
   { method: "calendarUnits", export: "hc_calendar_units", feature: "calendars" },
   { method: "calendars", export: "hc_calendars", feature: "calendars" },
@@ -87,6 +88,7 @@ export const METHODS = Object.freeze([
   { method: "locales", export: "hc_locales", feature: "calendars" },
   { method: "firstDayOfWeek", export: "hc_first_day_of_week", feature: "calendars" },
   { method: "gregorianAdoption", export: "hc_gregorian_adoption", feature: "calendars" },
+  { method: "namingPeriodOn", export: "hc_naming_period_on", feature: "calendars" },
   { method: "panchangaAt", export: "hc_panchanga_at", feature: "calendars" },
   { method: "panchangaOfDay", export: "hc_panchanga_of_day", feature: "calendars" },
   { method: "hinduLunarDate", export: "hc_hindu_lunar_date", feature: "calendars" },
@@ -98,6 +100,8 @@ export const METHODS = Object.freeze([
   { method: "hebrewBirthday", export: "hc_hebrew_birthday", feature: "calendars" },
   { method: "chineseReckonedAge", export: "hc_chinese_reckoned_age", feature: "calendars" },
   { method: "chineseMarriageAugury", export: "hc_chinese_marriage_augury", feature: "calendars" },
+  { method: "hebrewSabbaticalCycleYear", export: "hc_hebrew_sabbatical_cycle_year", feature: "calendars" },
+  { method: "asianDay", export: "hc_asian_day", feature: "calendars" },
   { method: "holidayIsDayOff", export: "hc_holiday_is_day_off", feature: "holiday" },
   { method: "holidaysInYear", export: "hc_holidays_in_year", feature: "holiday" },
   { method: "holidayCodes", export: "hc_holiday_codes", feature: "holiday" },
@@ -106,6 +110,8 @@ export const METHODS = Object.freeze([
   { method: "lectionary", export: "hc_lectionary", feature: "holiday" },
   { method: "astronomicalEaster", export: "hc_astronomical_easter", feature: "holiday" },
   { method: "astronomicalPaschalFullMoon", export: "hc_astronomical_paschal_full_moon", feature: "holiday" },
+  { method: "holyYearOn", export: "hc_holy_year_on", feature: "holiday" },
+  { method: "commonWorshipOn", export: "hc_common_worship_on", feature: "holiday" },
   { method: "termInEffect", export: "hc_term_in_effect", feature: "seasons" },
   { method: "pentadInEffect", export: "hc_pentad_in_effect", feature: "seasons" },
   { method: "coldFoodDay", export: "hc_cold_food_day", feature: "seasons" },
@@ -118,6 +124,7 @@ export const METHODS = Object.freeze([
   { method: "skyAt", export: "hc_sky_at", feature: "sky" },
   { method: "solarTermsBetween", export: "hc_solar_terms_between", feature: "sky" },
   { method: "moonPhasesBetween", export: "hc_moon_phases_between", feature: "sky" },
+  { method: "decanAt", export: "hc_decan_at", feature: "sky" },
   { method: "earthRotationAngle", export: "hc_earth_rotation_angle", feature: "sky" },
   { method: "gmstIau2006", export: "hc_gmst_iau2006", feature: "sky" },
   { method: "gmstIau1982", export: "hc_gmst_iau1982", feature: "sky" },
@@ -127,6 +134,8 @@ export const METHODS = Object.freeze([
   { method: "horizons", export: "hc_horizons", feature: "sky" },
   { method: "sunrise", export: "hc_sunrise", feature: "sky" },
   { method: "sunset", export: "hc_sunset", feature: "sky" },
+  { method: "hjdTt", export: "hc_hjd_tt", feature: "sky" },
+  { method: "hjdUtc", export: "hc_hjd_utc", feature: "sky" },
   { method: "orbitAt", export: "hc_orbit_at", feature: "orbital" },
   { method: "orbitSeries", export: "hc_orbit_series", feature: "orbital" },
   { method: "marsTime", export: "hc_mars_time", feature: "planetary" },
@@ -266,6 +275,22 @@ export const COLUMNS = Object.freeze({
   crescent: Object.freeze([
     "visible", "evaluated at", "elongation", "arc of light", "altitude", "arc of vision", "width",
   ]),
+  decan: Object.freeze(["sign", "sign name", "decan", "ruler", "ruler name", "degrees into decan"]),
+  hjdTt: Object.freeze(["hjd", "correction"]),
+  hjdUtc: Object.freeze(["hjd", "correction", "tt minus utc"]),
+  ttBipm: Object.freeze([
+    "offset", "minus tai seconds", "minus tai attoseconds", "reading seconds", "reading attoseconds",
+  ]),
+  namingPeriod: Object.freeze([
+    "state", "period", "month", "weekday", "weekday meaning", "earliest", "in force by", "ended",
+    "source",
+  ]),
+  asianDay: Object.freeze(["year", "month", "month name", "written", "number"]),
+  holyYear: Object.freeze([
+    "state", "title", "kind", "pope", "bull", "given", "opens", "closes", "dioceses open",
+    "dioceses close",
+  ]),
+  commonWorship: Object.freeze(["title", "rank", "rank name"]),
 });
 
 /** The geologic ranks `hc_geologic_intervals` numbers, coarsest first. */
@@ -1345,6 +1370,144 @@ function crescentVisibility(cells) {
 }
 
 /**
+ * The one line of `hc_decan_at`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Decan}
+ */
+function decanLine(cells) {
+  const [sign, signName, decan, ruler, rulerName, degrees] = cells;
+  return {
+    sign: integer(sign, "sign"),
+    signName,
+    decan: integer(decan, "decan"),
+    ruler: /** @type {import("./hyper-calendar.d.ts").DecanRuler} */ (ruler),
+    rulerName,
+    degreesIntoDecan: decimal(degrees, "degrees into decan"),
+  };
+}
+
+/**
+ * The one line of `hc_hjd_tt` or `hc_hjd_utc`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").HeliocentricJulianDate}
+ */
+function heliocentricJulianDate(cells) {
+  const [hjd, correction] = cells;
+  return { hjd: decimal(hjd, "hjd"), correctionSeconds: decimal(correction, "correction") };
+}
+
+/**
+ * The one line of `hc_tt_bipm`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").TtBipmReading}
+ */
+function ttBipmReading(cells) {
+  const [offset, minusSeconds, minusAttoseconds, seconds, attoseconds] = cells;
+  return {
+    offsetSeconds: decimal(offset, "offset"),
+    minusTai: {
+      seconds: bigInteger(minusSeconds, "minus tai seconds"),
+      attoseconds: bigInteger(minusAttoseconds, "minus tai attoseconds"),
+    },
+    reading: {
+      seconds: bigInteger(seconds, "reading seconds"),
+      attoseconds: bigInteger(attoseconds, "reading attoseconds"),
+    },
+  };
+}
+
+/**
+ * The one line of `hc_naming_period_on`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").NamingPeriodOn}
+ */
+function namingPeriodOn(cells) {
+  const [state, period, month, weekday, meaning, earliest, inForceBy, ended, source] = cells;
+  if (state === "ordinary") {
+    return { state, period: null };
+  }
+  if (state !== "in-force" && state !== "undecided") {
+    throw new HcError("malformed", { message: `state is not a naming state: ${JSON.stringify(state)}` });
+  }
+  return {
+    state,
+    period: {
+      id: period,
+      monthName: optional(month),
+      weekdayName: optional(weekday),
+      weekdayMeaning: optional(meaning),
+      earliest: integer(earliest, "earliest"),
+      inForceBy: integer(inForceBy, "in force by"),
+      ended: integer(ended, "ended"),
+      source,
+    },
+  };
+}
+
+/**
+ * The one line of `hc_asian_day`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").AsianDay}
+ */
+function asianDayLine(cells) {
+  const [year, month, monthName, written, number] = cells;
+  if (written !== "unnumbered" && written !== "numbered") {
+    throw new HcError("malformed", { message: `written is not unnumbered or numbered: ${JSON.stringify(written)}` });
+  }
+  return {
+    year: integer(year, "year"),
+    month: integer(month, "month"),
+    monthName,
+    written,
+    number: integer(number, "number"),
+  };
+}
+
+/**
+ * The one line of `hc_holy_year_on`, `null` outside a jubilee.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").HolyYear | null}
+ */
+function holyYearLine(cells) {
+  const [state, title, kind, pope, bull, given, opens, closes, diocesesOpen, diocesesClose] = cells;
+  if (state === "outside") {
+    return null;
+  }
+  if (state !== "within") {
+    throw new HcError("malformed", { message: `state is not within or outside: ${JSON.stringify(state)}` });
+  }
+  return {
+    title,
+    kind: /** @type {"ordinary" | "extraordinary"} */ (kind),
+    pope,
+    bull,
+    given: integer(given, "given"),
+    opens: integer(opens, "opens"),
+    closes: integer(closes, "closes"),
+    dioceses: diocesesOpen === ""
+      ? null
+      : { opens: integer(diocesesOpen, "dioceses open"), closes: integer(diocesesClose, "dioceses close") },
+  };
+}
+
+/**
+ * One line of `hc_common_worship_on`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").CommonWorshipCelebration}
+ */
+function commonWorshipCelebration(cells) {
+  const [title, rank, rankName] = cells;
+  return { title, rank: /** @type {import("./hyper-calendar.d.ts").CommonWorshipRank} */ (rank), rankName };
+}
+
+/**
  * The one line of `hc_mars_time`.
  *
  * @param {string[]} cells
@@ -2305,6 +2468,19 @@ export class HyperCalendar {
   }
 
   /**
+   * The decan the Sun is in at a POSIX instant, with its sign and ruler.
+   *
+   * @param {number | bigint} unixSeconds
+   * @returns {import("./hyper-calendar.d.ts").Decan}
+   */
+  decanAt(unixSeconds) {
+    const fn = this.#export("hc_decan_at");
+    const instant = toI64(unixSeconds, "unixSeconds");
+    const text = this.#text("hc_decan_at", (buffer, capacity) => fn(instant, buffer, capacity), true);
+    return decanLine(this.#oneLine("hc_decan_at", text, COLUMNS.decan));
+  }
+
+  /**
    * @param {string} exportName
    * @param {number | bigint} fromUnix
    * @param {number | bigint} toUnix
@@ -2726,6 +2902,27 @@ export class HyperCalendar {
   }
 
   /**
+   * TT(BIPM) at a TAI instant, from a realisation the caller supplies as
+   * text: one line per sample, the MJD and TT(BIPMxx) − TAI − 32.184 s in
+   * microseconds, tab-separated.
+   *
+   * @param {string} series
+   * @param {number | bigint} taiSeconds
+   * @param {number | bigint} [attoseconds]
+   * @param {boolean} [strict]
+   * @returns {import("./hyper-calendar.d.ts").TtBipmReading}
+   */
+  ttBipm(series, taiSeconds, attoseconds = 0, strict = false) {
+    const fn = this.#export("hc_tt_bipm");
+    const seconds = toI64(taiSeconds, "taiSeconds");
+    const attos = toU64(attoseconds, "attoseconds");
+    const text = this.#withText(series, "series", (pointer, len) =>
+      this.#text("hc_tt_bipm", (buffer, capacity) =>
+        fn(pointer, len, seconds, attos, strict ? 1 : 0, buffer, capacity), true));
+    return ttBipmReading(this.#oneLine("hc_tt_bipm", text, COLUMNS.ttBipm));
+  }
+
+  /**
    * The yoga and the karaṇa in progress at a POSIX instant, read as
    * Universal Time, the yoga reckoned with an ayanamsa: `Lahiri`, `Raman`,
    * `Krishnamurti` or `Fagan-Bradley`.
@@ -2905,6 +3102,51 @@ export class HyperCalendar {
   }
 
   /**
+   * Which month and weekday names a locale writes for a calendar on a
+   * fixed day, where a government renamed them for a period.
+   *
+   * @param {string} calendar
+   * @param {number | bigint} fixed
+   * @param {string} locale
+   * @returns {import("./hyper-calendar.d.ts").NamingPeriodOn}
+   */
+  namingPeriodOn(calendar, fixed, locale) {
+    const fn = this.#export("hc_naming_period_on");
+    const day = toI64(fixed, "fixed");
+    const text = this.#withText(calendar, "calendar", (calendarPointer, calendarLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_naming_period_on", (buffer, capacity) =>
+          fn(calendarPointer, calendarLen, day, localePointer, localeLen, buffer, capacity), true)));
+    return namingPeriodOn(this.#oneLine("hc_naming_period_on", text, COLUMNS.namingPeriod));
+  }
+
+  /**
+   * The place of a Hebrew year in the sabbatical cycle, 1 through 7, the
+   * seventh being *shemittah*.
+   *
+   * @param {number | bigint} hebrewYear
+   * @returns {number}
+   */
+  hebrewSabbaticalCycleYear(hebrewYear) {
+    const fn = this.#export("hc_hebrew_sabbatical_cycle_year");
+    return toNumber(fn(toI64(hebrewYear, "hebrewYear")), "hc_hebrew_sabbatical_cycle_year");
+  }
+
+  /**
+   * A fixed day in the calendar of the Roman province of Asia as the
+   * calendar writes it, Sebaste and the other unnumbered days included.
+   *
+   * @param {number | bigint} fixed
+   * @returns {import("./hyper-calendar.d.ts").AsianDay}
+   */
+  asianDay(fixed) {
+    const fn = this.#export("hc_asian_day");
+    const day = toI64(fixed, "fixed");
+    const text = this.#text("hc_asian_day", (buffer, capacity) => fn(day, buffer, capacity), true);
+    return asianDayLine(this.#oneLine("hc_asian_day", text, COLUMNS.asianDay));
+  }
+
+  /**
    * Every holiday table, in {@link holidayCodes} order, with its kind, its
    * names, its sources and the country of an exchange where its table
    * records one. A country is named as CLDR 48 names it in the locale,
@@ -2962,6 +3204,33 @@ export class HyperCalendar {
       this.#export("hc_astronomical_paschal_full_moon")(toI64(year, "year")),
       "hc_astronomical_paschal_full_moon",
     );
+  }
+
+  /**
+   * The Holy Year a fixed day falls in, or `null` outside one; a day the
+   * table does not reach is `no-data`.
+   *
+   * @param {number | bigint} fixed
+   * @returns {import("./hyper-calendar.d.ts").HolyYear | null}
+   */
+  holyYearOn(fixed) {
+    const fn = this.#export("hc_holy_year_on");
+    const day = toI64(fixed, "fixed");
+    const text = this.#text("hc_holy_year_on", (buffer, capacity) => fn(day, buffer, capacity), true);
+    return holyYearLine(this.#oneLine("hc_holy_year_on", text, COLUMNS.holyYear));
+  }
+
+  /**
+   * Every *Common Worship* celebration kept on a fixed day, with its rank.
+   *
+   * @param {number | bigint} fixed
+   * @returns {import("./hyper-calendar.d.ts").CommonWorshipCelebration[]}
+   */
+  commonWorshipOn(fixed) {
+    const fn = this.#export("hc_common_worship_on");
+    const day = toI64(fixed, "fixed");
+    const text = this.#text("hc_common_worship_on", (buffer, capacity) => fn(day, buffer, capacity), true);
+    return rows(text, COLUMNS.commonWorship, "hc_common_worship_on").map(commonWorshipCelebration);
   }
 
   /**
@@ -3123,6 +3392,41 @@ export class HyperCalendar {
       this.#text(exportName, (buffer, capacity) =>
         fn(pointer, len, day, lat, lon, elev, buffer, capacity), true));
     return solarCrossing(this.#oneLine(exportName, text, COLUMNS.solarCrossing));
+  }
+
+  /**
+   * HJD_TT: a Julian Date of TT corrected to the Sun for a target's J2000
+   * right ascension and declination, in degrees.
+   *
+   * @param {number} ttJulianDate
+   * @param {number} rightAscension
+   * @param {number} declination
+   * @returns {import("./hyper-calendar.d.ts").HeliocentricJulianDate}
+   */
+  hjdTt(ttJulianDate, rightAscension, declination) {
+    const fn = this.#export("hc_hjd_tt");
+    const [date, alpha, delta] = [toF64(ttJulianDate, "ttJulianDate"), toF64(rightAscension, "rightAscension"), toF64(declination, "declination")];
+    const text = this.#text("hc_hjd_tt", (buffer, capacity) => fn(date, alpha, delta, buffer, capacity), true);
+    return heliocentricJulianDate(this.#oneLine("hc_hjd_tt", text, COLUMNS.hjdTt));
+  }
+
+  /**
+   * HJD_UTC: a Julian Date of UTC corrected to the Sun, with the TT − UTC
+   * the leap-second table gave.
+   *
+   * @param {number} utcJulianDate
+   * @param {number} rightAscension
+   * @param {number} declination
+   * @param {boolean} [strict]
+   * @returns {import("./hyper-calendar.d.ts").HeliocentricJulianDateUtc}
+   */
+  hjdUtc(utcJulianDate, rightAscension, declination, strict = false) {
+    const fn = this.#export("hc_hjd_utc");
+    const [date, alpha, delta] = [toF64(utcJulianDate, "utcJulianDate"), toF64(rightAscension, "rightAscension"), toF64(declination, "declination")];
+    const text = this.#text("hc_hjd_utc", (buffer, capacity) =>
+      fn(date, alpha, delta, strict ? 1 : 0, buffer, capacity), true);
+    const cells = this.#oneLine("hc_hjd_utc", text, COLUMNS.hjdUtc);
+    return { ...heliocentricJulianDate(cells), ttMinusUtcSeconds: decimal(cells[2], "tt minus utc") };
   }
 
   /**

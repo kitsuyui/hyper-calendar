@@ -205,6 +205,21 @@ test("the time-scale lines read the README's columns in order", () => {
   assert.match(README, /one line of two cells, the date word and the time word/);
   assert.deepEqual([...COLUMNS.epoch], columnsAfter("### Julian and Besselian epochs"));
   assert.match(README, /one line of three cells: the notation's letter,\s+the TT seconds and the attoseconds/);
+  assert.deepEqual([...COLUMNS.ttBipm], columnsAfter("### TT(BIPM)"));
+});
+
+test("the renamed months, the Asian days, the Holy Years and the ranks read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.namingPeriod], columnsAfter("## Renamed months and weekdays"));
+  assert.deepEqual([...COLUMNS.asianDay], columnsAfter("## The Asian calendar's days"));
+  assert.deepEqual([...COLUMNS.holyYear], columnsAfter("### Holy Years"));
+  assert.deepEqual([...COLUMNS.commonWorship], columnsAfter("### Ranks of the Common Worship calendar"));
+});
+
+test("the decans and the Heliocentric Julian Date read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.decan], columnsAfter("### Decans"));
+  assert.deepEqual([...COLUMNS.hjdUtc], columnsAfter("## The Heliocentric Julian Date"));
+  assert.match(README, /`hc_hjd_tt` writes one line of the first two of those cells/);
+  assert.deepEqual([...COLUMNS.hjdTt], COLUMNS.hjdUtc.slice(0, 2));
 });
 
 test("the pañcāṅga, the tables and the lectionary read the README's columns in order", () => {

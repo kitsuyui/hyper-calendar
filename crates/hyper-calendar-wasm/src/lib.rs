@@ -481,8 +481,9 @@ pub use civil::{
 /// Time scales and day counts, behind the `timestamps` feature: TAI64 labels
 /// in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates,
 /// Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words,
-/// Swatch Internet Time, and Julian and Besselian epochs. The lines are
-/// `hyper_calendar::time_lines`', shared with the C library. A TAI instant
+/// Swatch Internet Time, Julian and Besselian epochs, and TT(BIPM) from a
+/// series the caller supplies. The lines are `hyper_calendar::time_lines`',
+/// shared with the C library. A TAI instant
 /// is whole seconds from 1970-01-01 00:00:00 TAI and the attoseconds into
 /// that second, from 0 to 10¹⁸ − 1; a POSIX instant and a TT instant, from
 /// 1970-01-01 00:00:00 TT, cross the same way.
@@ -1149,6 +1150,52 @@ mod time_scales {
             )
         }
     }
+
+    /// TT(BIPM) at a TAI instant, read from a realisation the caller
+    /// supplies, as one UTF-8 line, returning the byte length written.
+    ///
+    /// `series` is the realisation as text, one line per sample: the
+    /// Modified Julian Date at 0 h UTC and TT(BIPMxx) − TAI − 32.184 s there
+    /// in microseconds, separated by a tab, the dates ascending, as the
+    /// first and third columns of the BIPM's `TTBIPM` files give them.
+    /// Blank lines are skipped, and text in any other shape is
+    /// `HC_ERR_MALFORMED`. The instant is whole seconds from
+    /// 1970-01-01 00:00:00 TAI and attoseconds. Tab-separated: TT(BIPMxx) −
+    /// TT(TAI) in seconds, interpolated linearly in TAI between the
+    /// samples; TT(BIPMxx) − TAI as whole seconds and attoseconds; and the
+    /// TT(BIPMxx) reading of the instant as whole seconds from
+    /// 1970-01-01 00:00:00 of that scale and attoseconds. An instant before
+    /// the first sample or after the last, or an empty series, is
+    /// `HC_ERR_NO_DATA`: the series is never extrapolated. `strict`
+    /// non-zero places the samples by the leap-second table and refuses one
+    /// outside it with `HC_ERR_NO_DATA`; zero holds the table's ends.
+    /// Attoseconds from 10¹⁸ are `HC_ERR_OUT_OF_RANGE`. A null `buffer`
+    /// returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `series` must be readable for `series_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless
+    /// it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_tt_bipm(
+        series: *const u8,
+        series_len: usize,
+        tai_seconds: i64,
+        attoseconds: u64,
+        strict: i32,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let series = match unsafe { text(series, series_len) } {
+            Ok(series) => series,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = time_lines::tt_bipm_line(series, tai_seconds, attoseconds, strict != 0);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
 }
 
 #[cfg(feature = "timestamps")]
@@ -1157,15 +1204,16 @@ pub use time_scales::{
     hc_fixed_from_ole_automation, hc_glonass_date, hc_gnss_resolve_week, hc_gnss_to_tai,
     hc_gnss_week, hc_ntp_encode, hc_ntp_resolve, hc_ole_automation_from_fixed, hc_swatch_beat,
     hc_tai_from_unix, hc_tai64_decode, hc_tai64_encode, hc_tai64_posix_plus_10_decode,
-    hc_tai64_posix_plus_10_encode, hc_tt_from_epoch, hc_utc_from_tai, hc_uuid_timestamp,
-    hc_uuid_timestamp_encode,
+    hc_tai64_posix_plus_10_encode, hc_tt_bipm, hc_tt_from_epoch, hc_utc_from_tai,
+    hc_uuid_timestamp, hc_uuid_timestamp_encode,
 };
 
 /// Every calendar, behind the `calendars` feature: the registry the facade
 /// populates, described for one day, walked as eras, years, months and
 /// days, and listed, in the vocabulary of a locale; the locales
-/// themselves; and when each country adopted the Gregorian calendar. The
-/// lines are `hyper_calendar::lines`', shared with the C library.
+/// themselves; when each country adopted the Gregorian calendar; and the
+/// month and weekday names a government decreed for a period. The lines
+/// are `hyper_calendar::lines`', shared with the C library.
 #[cfg(feature = "calendars")]
 mod calendars {
     use super::{HC_ERR_UNKNOWN, emit_answer, emit_or_measure, text};
@@ -1447,18 +1495,70 @@ mod calendars {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_or_measure(&text, buffer, capacity) }
     }
+
+    /// Which month and weekday names a locale writes for a calendar on a
+    /// fixed day, where a government renamed them for a period, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// `calendar` is a registry identifier, as `hc_calendar_units` takes
+    /// it; one the registry does not carry is `HC_ERR_UNKNOWN`. `locale` is a BCP 47 tag, read
+    /// as `hc_describe_day` reads it; `native` names no one language and
+    /// takes no period. Tab-separated: `in-force` when a period's names
+    /// were in force on the day, `undecided` when a period applies and no
+    /// source read says whether it was yet in force, or `ordinary` when
+    /// none applies and the locale's own names hold; then, for a period,
+    /// its identifier, its name for the day's month and for the day's
+    /// weekday, the English meaning of that weekday name, the first day the
+    /// names can have been in force, the first day by which every source
+    /// read has them in force and the first day the old names were back, as
+    /// fixed days, and its sources. For `ordinary` the other eight cells are
+    /// empty. The one period carried is Turkmenistan's, `turkmen-2002`, for
+    /// the Gregorian calendar in Turkmen. The text arguments fail as
+    /// `hc_parse_iso_date`'s does. A null `buffer` returns the length the
+    /// text needs.
+    ///
+    /// # Safety
+    ///
+    /// `calendar` must be readable for `calendar_len` bytes and `locale`
+    /// for `locale_len`, unless null with a zero length; `buffer` must be
+    /// writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_naming_period_on(
+        calendar: *const u8,
+        calendar_len: usize,
+        fixed: i64,
+        locale: *const u8,
+        locale_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let calendar = match unsafe { text(calendar, calendar_len) } {
+            Ok(calendar) => calendar,
+            Err(sentinel) => return sentinel,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale, locale_len) } {
+            Ok(tag) => tag,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = lines::naming_period_line(&hc::registry(), tag, calendar, fixed);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
 }
 
 #[cfg(feature = "calendars")]
 pub use calendars::{
     hc_calendar_list, hc_calendar_units, hc_calendars, hc_describe_day, hc_first_day_of_week,
-    hc_gregorian_adoption, hc_locales,
+    hc_gregorian_adoption, hc_locales, hc_naming_period_on,
 };
 
 /// Days in the calendars, behind the `calendars` feature: the pañcāṅga's
 /// yoga and karaṇa, the Hindu lunisolar date at a place, the *Sūrya
 /// Siddhānta*'s sky and sunrise, the young crescent by a named criterion,
-/// the modern Olympiad of a year, and the Hebrew anniversaries. The lines
+/// the modern Olympiad of a year, the Hebrew anniversaries and sabbatical
+/// cycle, and the days of the Asian calendar as it writes them. The lines
 /// and numbers are `hyper_calendar`'s `panchanga_lines`, `hindu_lines`,
 /// `crescent_lines` and `calendar_values`, shared with the C library.
 #[cfg(feature = "calendars")]
@@ -1772,13 +1872,49 @@ mod calendar_days {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_answer(answer, buffer, capacity) }
     }
+
+    /// The place of a Hebrew year in the seven-year sabbatical cycle, 1
+    /// through 7, or an error sentinel.
+    ///
+    /// 7 is the sabbatical year, *shemittah*, counted from Rosh Hashanah as
+    /// the years published today count it: 5782 (2021–22) and 5789
+    /// (2028–29) are sabbatical years. A year outside the Hebrew years 1 to
+    /// 9999 is `HC_ERR_OUT_OF_RANGE`.
+    #[unsafe(no_mangle)]
+    pub extern "C" fn hc_hebrew_sabbatical_cycle_year(hebrew_year: i64) -> i64 {
+        value(calendar_values::hebrew_sabbatical_cycle_year(hebrew_year))
+    }
+
+    /// A fixed day in the calendar of the Roman province of Asia as the
+    /// calendar writes it, unnumbered days included, as one UTF-8 line,
+    /// returning the byte length written.
+    ///
+    /// Tab-separated: the Julian year, AD, in which the Asian year began;
+    /// the month, 1 for Kaisar through 12 for Hyperberetaios; the month's
+    /// name; `unnumbered` for a day before day 1 — Sebaste, which opens a
+    /// 31-day month, and in a leap Xandikos Sebaste and the intercalary
+    /// day, whose order the sources read do not settle — or `numbered`; and
+    /// the day's number, 1 to 30, or for an unnumbered day its place among
+    /// them, 1 or 2. A day outside 23 September AD 4 to the end of the
+    /// Asian year 9999 is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns
+    /// the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_asian_day(fixed: i64, buffer: *mut u8, capacity: usize) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(calendar_values::asian_day_line(fixed), buffer, capacity) }
+    }
 }
 
 #[cfg(feature = "calendars")]
 pub use calendar_days::{
-    hc_chinese_marriage_augury, hc_chinese_reckoned_age, hc_crescent_visible, hc_hebrew_birthday,
-    hc_hebrew_yahrzeit, hc_hindu_lunar_date, hc_ioc_olympiad, hc_panchanga_at, hc_panchanga_of_day,
-    hc_surya_siddhanta_at, hc_surya_siddhanta_sunrise,
+    hc_asian_day, hc_chinese_marriage_augury, hc_chinese_reckoned_age, hc_crescent_visible,
+    hc_hebrew_birthday, hc_hebrew_sabbatical_cycle_year, hc_hebrew_yahrzeit, hc_hindu_lunar_date,
+    hc_ioc_olympiad, hc_panchanga_at, hc_panchanga_of_day, hc_surya_siddhanta_at,
+    hc_surya_siddhanta_sunrise,
 };
 
 /// The holiday tables, behind the `holiday` feature: every country,
@@ -2095,9 +2231,10 @@ mod holiday {
 pub use holiday::{hc_holiday_codes, hc_holiday_is_day_off, hc_holidays_in_year, hc_holidays_on};
 
 /// The tables and the liturgical year, behind the `holiday` feature: every
-/// holiday table described, the lectionary cycles of a day and the
-/// astronomical Easter. The lines are `hyper_calendar::holiday_lines`',
-/// shared with the C library.
+/// holiday table described, the lectionary cycles of a day, the
+/// astronomical Easter, the Holy Year a day falls in and the ranks of the
+/// *Common Worship* celebrations of a day. The lines are
+/// `hyper_calendar::holiday_lines`', shared with the C library.
 #[cfg(feature = "holiday")]
 mod observances {
     use super::{emit_answer, emit_or_measure, text, value};
@@ -2191,11 +2328,63 @@ mod observances {
     pub extern "C" fn hc_astronomical_paschal_full_moon(year: i64) -> i64 {
         value(holiday_lines::astronomical_paschal_full_moon(year))
     }
+
+    /// The Holy Year of the Catholic Church a fixed day falls in, if any,
+    /// as one UTF-8 line, returning the byte length written.
+    ///
+    /// Tab-separated: `within` when the day falls in a jubilee in Rome,
+    /// from the opening of the Holy Door of St Peter's to its closing, else
+    /// `outside`; then, within one, the jubilee's title, `ordinary` or
+    /// `extraordinary`, the Pope who proclaimed it, the bull of indiction
+    /// by its opening words, the day the bull was given and the jubilee's
+    /// first and last days in Rome, as fixed days, and its first and last
+    /// days in the dioceses where the bull dates them, else empty. Outside
+    /// one the nine cells after the first are empty. The table holds the
+    /// jubilees from 1975 to 2025; a day before 24 December 1974 or after
+    /// 27 September 2026, the day its sources were checked, is
+    /// `HC_ERR_NO_DATA`. A null `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_holy_year_on(fixed: i64, buffer: *mut u8, capacity: usize) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(holiday_lines::holy_year_line(fixed), buffer, capacity) }
+    }
+
+    /// The rank of every *Common Worship* celebration kept on a fixed day,
+    /// as UTF-8 lines, returning the byte length written.
+    ///
+    /// One line per Principal Feast, Principal Holy Day or Festival of the
+    /// Church of England's calendar kept on the day after the transfers its
+    /// Rules require, tab-separated: the title as the Rules print it, which
+    /// is the name `hc_holidays_on` gives it in the `common-worship` table;
+    /// the rank, `principal-feast`, `principal-holy-day` or `festival`; and
+    /// the rank's English name. A day that keeps none writes nothing. The
+    /// years the Rules leave a Festival without a day are `gap` lines of
+    /// `hc_holidays_on`. A day with no Gregorian year is
+    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_common_worship_on(
+        fixed: i64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(holiday_lines::common_worship_lines(fixed), buffer, capacity) }
+    }
 }
 
 #[cfg(feature = "holiday")]
 pub use observances::{
-    hc_astronomical_easter, hc_astronomical_paschal_full_moon, hc_holiday_tables, hc_lectionary,
+    hc_astronomical_easter, hc_astronomical_paschal_full_moon, hc_common_worship_on,
+    hc_holiday_tables, hc_holy_year_on, hc_lectionary,
 };
 
 /// The almanac, behind the `seasons` feature: the 24 solar terms and the 72
@@ -2680,8 +2869,8 @@ mod tz {
 pub use tz::{hc_fixed_from_unix_in_zone, hc_unix_from_fixed_in_zone, hc_zone_load};
 
 /// The sky, behind the `sky` feature: where the Sun and the Moon are at an
-/// instant, and the solar terms and the moon phases within a span, from
-/// `hc-astro`'s series, in Universal Time. The lines are
+/// instant, the solar terms and the moon phases within a span, and the
+/// Sun's decan, from `hc-astro`'s series, in Universal Time. The lines are
 /// `hyper_calendar::sky_lines`', shared with the C library.
 #[cfg(feature = "sky")]
 mod sky {
@@ -2768,17 +2957,46 @@ mod sky {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_answer(sky_lines::phase_lines(from_unix, to_unix), buffer, capacity) }
     }
+
+    /// The decan the Sun is in at a POSIX timestamp, as one UTF-8 line,
+    /// returning the byte length written.
+    ///
+    /// Tab-separated: the tropical sign, 1 for Aries through 12 for Pisces,
+    /// and its English name; which of the sign's three 10° decans, or
+    /// faces, the Sun is in, 1 to 3; the decan's ruler by al-Bīrūnī's
+    /// table, the Chaldean order from Mars at the first face of Aries, as
+    /// its identifier (`saturn`, `jupiter`, `mars`, `sun`, `venus`,
+    /// `mercury`, `moon`) and its English name; and how far into the decan
+    /// the Sun is, in degrees from 0 up to 10. The sign and the decan are
+    /// read from the Sun's apparent longitude, so they turn at the solar
+    /// terms. The instant is read as Universal Time; one outside the years
+    /// −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the
+    /// length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_decan_at(
+        unix_seconds: i64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(sky_lines::decan_line(unix_seconds), buffer, capacity) }
+    }
 }
 
 #[cfg(feature = "sky")]
-pub use sky::{hc_moon_phases_between, hc_sky_at, hc_solar_terms_between};
+pub use sky::{hc_decan_at, hc_moon_phases_between, hc_sky_at, hc_solar_terms_between};
 
 /// The Earth's rotation and the Sun's hours, behind the `sky` feature: the
 /// Earth Rotation Angle, the Greenwich mean sidereal time by two
 /// conventions, UT2 − UT1, the clocks and named times of day of
-/// `hc_astro::solar_time`, and the named horizons with sunrise and sunset
-/// against each. The lines are `hyper_calendar::astro_lines`', shared with
-/// the C library, and answer for the years −1000 to 3000.
+/// `hc_astro::solar_time`, the named horizons with sunrise and sunset
+/// against each, and the Heliocentric Julian Date in TT and in UTC. The
+/// lines are `hyper_calendar::astro_lines`', shared with the C library,
+/// and answer for the years −1000 to 3000.
 #[cfg(feature = "sky")]
 mod earth_and_sun {
     use super::{emit_answer, sentinel, text};
@@ -3119,12 +3337,72 @@ mod earth_and_sun {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_answer(answer, buffer, capacity) }
     }
+
+    /// The Heliocentric Julian Date in TT, HJD_TT, of a Julian Date of TT
+    /// for a target, as one UTF-8 line, returning the byte length written.
+    ///
+    /// The target's direction is its right ascension, 0 to 360 degrees, and
+    /// its declination, −90 to 90 degrees, on the mean equator and equinox
+    /// of J2000; it is taken to be infinitely far away. Tab-separated: the
+    /// HJD_TT, and the light-time correction added to the date, in seconds,
+    /// negative when the light reaches the Sun before the Earth. The HJD
+    /// is good to about 8 s, the Sun's own motion about the barycentre. A
+    /// date outside the years −1000 to 3000 or not finite, or a direction
+    /// outside those ranges, is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
+    /// returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_hjd_tt(
+        tt_julian_date: f64,
+        right_ascension: f64,
+        declination: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = astro_lines::hjd_tt_line(tt_julian_date, right_ascension, declination);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The Heliocentric Julian Date in UTC, HJD_UTC, of a Julian Date of
+    /// UTC for a target, as one UTF-8 line, returning the byte length
+    /// written.
+    ///
+    /// As `hc_hjd_tt`, with the Earth's position taken at the TT instant of
+    /// the UTC date: TT − UTC is 32.184 s plus TAI − UTC from the
+    /// leap-second table. Tab-separated: the HJD_UTC, the correction added
+    /// to the date in seconds, and the TT − UTC it used, in seconds.
+    /// `strict` non-zero refuses a date outside the leap-second table,
+    /// before 1961 or past its announced end, with `HC_ERR_NO_DATA`; zero
+    /// holds the table's ends and takes TAI − UTC as 0 before 1961. A null
+    /// `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_hjd_utc(
+        utc_julian_date: f64,
+        right_ascension: f64,
+        declination: f64,
+        strict: i32,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer =
+            astro_lines::hjd_utc_line(utc_julian_date, right_ascension, declination, strict != 0);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
 }
 
 #[cfg(feature = "sky")]
 pub use earth_and_sun::{
-    hc_earth_rotation_angle, hc_gmst_iau1982, hc_gmst_iau2006, hc_horizons, hc_solar_event,
-    hc_solar_time, hc_sunrise, hc_sunset, hc_ut2_minus_ut1,
+    hc_earth_rotation_angle, hc_gmst_iau1982, hc_gmst_iau2006, hc_hjd_tt, hc_hjd_utc, hc_horizons,
+    hc_solar_event, hc_solar_time, hc_sunrise, hc_sunset, hc_ut2_minus_ut1,
 };
 
 /// The orbit, behind the `orbital` feature: Earth's orbital elements and
@@ -3905,6 +4183,38 @@ mod tests {
     mod calendars {
         use super::super::*;
         use super::read_lines;
+
+        /// 21 March 2005, a Monday of March, is Başgün of Nowruz in Turkmen
+        /// (Wikipedia's names of 2002 to 2008); in Russian it is ordinary.
+        #[test]
+        fn a_turkmen_day_of_2005_is_named_by_the_period() {
+            let day = hc_gregorian_to_fixed(2005, 3, 21);
+            let read = |calendar: &str, locale: &str| {
+                read_lines(|buffer, capacity| unsafe {
+                    hc_naming_period_on(
+                        calendar.as_ptr(),
+                        calendar.len(),
+                        day,
+                        locale.as_ptr(),
+                        locale.len(),
+                        buffer,
+                        capacity,
+                    )
+                })
+            };
+            let text = read("gregory", "tk-TM");
+            assert!(
+                text.starts_with("in-force\tturkmen-2002\tNowruz\tBaşgün\tFirst day\t"),
+                "{text}"
+            );
+            assert_eq!(text.trim_end_matches('\n').split('\t').count(), 9);
+            assert_eq!(read("gregory", "ru"), "ordinary\t\t\t\t\t\t\t\t\n");
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_naming_period_on("maya".as_ptr(), 4, day, "tk".as_ptr(), 2, null, 0) },
+                HC_ERR_UNKNOWN
+            );
+        }
 
         /// 2026-09-21, described for a locale.
         fn describe(locale: &str) -> Vec<Vec<String>> {
@@ -5300,6 +5610,20 @@ mod tests {
         use super::super::*;
         use super::read_lines;
 
+        /// At the NAOJ's 秋分 of 2026, 23 September 00:05 UTC, the Sun enters
+        /// Libra, whose first face al-Bīrūnī gives to the Moon.
+        #[test]
+        fn the_sun_enters_the_moons_face_of_libra_at_the_equinox() {
+            let instant = at(2026, 9, 23, 1, 5);
+            let text =
+                read_lines(|buffer, capacity| unsafe { hc_decan_at(instant, buffer, capacity) });
+            assert!(text.starts_with("7\tLibra\t1\tmoon\tMoon\t0.0"), "{text}");
+            assert_eq!(
+                unsafe { hc_decan_at(i64::MIN, core::ptr::null_mut(), 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+        }
+
         /// The POSIX timestamp of a UTC date and time.
         fn at(year: i64, month: u32, day: u32, hour: i64, minute: i64) -> i64 {
             hc_unix_from_fixed(hc_gregorian_to_fixed(year, month, day)) + hour * 3_600 + minute * 60
@@ -5733,6 +6057,31 @@ mod tests {
         use super::super::*;
         use super::read_lines;
 
+        /// `TTBIPM.2025`'s 27.6740 µs on MJD 58 479, 2018-12-22, when TAI −
+        /// UTC was 37 s, and 27.6745 µs ten days later.
+        #[test]
+        fn tt_bipm_reads_the_callers_series() {
+            let series = "58479\t27.6740\n58489\t27.6745\n";
+            let tai = (58_479 - 40_587) * 86_400 + 37;
+            let cells = line(|buffer, capacity| unsafe {
+                hc_tt_bipm(series.as_ptr(), series.len(), tai, 0, 1, buffer, capacity)
+            });
+            assert_eq!(cells.len(), 5);
+            let offset: f64 = cells[0].parse().expect("seconds");
+            assert!((offset - 27.674e-6).abs() < 1e-15, "{offset}");
+            assert_eq!(cells[1], "32");
+            assert_eq!(cells[3], (tai + 32).to_string());
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_tt_bipm(series.as_ptr(), series.len(), tai - 1, 0, 1, null, 0) },
+                HC_ERR_NO_DATA
+            );
+            assert_eq!(
+                unsafe { hc_tt_bipm("58479 27.6".as_ptr(), 10, tai, 0, 1, null, 0) },
+                HC_ERR_MALFORMED
+            );
+        }
+
         fn line(call: impl Fn(*mut u8, usize) -> i64) -> Vec<String> {
             let text = read_lines(call);
             let line = text.strip_suffix('\n').expect("one line");
@@ -6112,6 +6461,31 @@ mod tests {
         use super::super::*;
         use super::read_lines;
 
+        /// 5782 (2021–22) and 5789 (2028–29) are sabbatical years, as
+        /// Wikipedia and Chabad.org list them.
+        #[test]
+        fn the_published_sabbatical_years_are_the_seventh() {
+            assert_eq!(hc_hebrew_sabbatical_cycle_year(5_782), 7);
+            assert_eq!(hc_hebrew_sabbatical_cycle_year(5_789), 7);
+            assert_eq!(hc_hebrew_sabbatical_cycle_year(5_786), 4);
+            assert_eq!(hc_hebrew_sabbatical_cycle_year(0), HC_ERR_OUT_OF_RANGE);
+        }
+
+        /// The first day carried, 23 September AD 4, is Sebaste of Kaisar,
+        /// and 7 October is day 14, as the Metropolis *hemerologion* has it.
+        #[test]
+        fn sebaste_is_unnumbered_and_the_days_after_it_are_counted() {
+            let read = |fixed: i64| {
+                read_lines(|buffer, capacity| unsafe { hc_asian_day(fixed, buffer, capacity) })
+            };
+            assert_eq!(read(1_360), "4\t1\tKaisar\tunnumbered\t1\n");
+            assert_eq!(read(1_374), "4\t1\tKaisar\tnumbered\t14\n");
+            assert_eq!(
+                unsafe { hc_asian_day(1_359, core::ptr::null_mut(), 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+        }
+
         /// Chaitra śukla 1 of Śaka 1947, Vikrama 2082, on 30 March 2025, by
         /// the true sky at the Central Station and by the Siddhānta's at
         /// Ujjain (`docs/systems/hindu-calendars.md`), with the Siddhānta's
@@ -6298,6 +6672,59 @@ mod tests {
         use super::super::*;
         use super::read_lines;
 
+        /// *Spes non confundit*, 6: the jubilee of 2025 in Rome from
+        /// 24 December 2024 to 6 January 2026.
+        #[test]
+        fn the_jubilee_of_2025_is_the_bulls() {
+            let day = hc_gregorian_to_fixed(2025, 6, 1);
+            let text =
+                read_lines(|buffer, capacity| unsafe { hc_holy_year_on(day, buffer, capacity) });
+            let cells: Vec<&str> = text.trim_end_matches('\n').split('\t').collect();
+            assert_eq!(cells.len(), 10);
+            assert_eq!(
+                cells[..3],
+                ["within", "Ordinary Jubilee of the Year 2025", "ordinary"]
+            );
+            assert_eq!(cells[6], hc_gregorian_to_fixed(2024, 12, 24).to_string());
+            assert_eq!(cells[7], hc_gregorian_to_fixed(2026, 1, 6).to_string());
+            let after = hc_gregorian_to_fixed(2026, 1, 7);
+            let text =
+                read_lines(|buffer, capacity| unsafe { hc_holy_year_on(after, buffer, capacity) });
+            assert_eq!(text, "outside\t\t\t\t\t\t\t\t\t\n");
+            let null = core::ptr::null_mut();
+            assert_eq!(unsafe { hc_holy_year_on(0, null, 0) }, HC_ERR_NO_DATA);
+        }
+
+        /// St George's Day on Monday 28 April 2025 (Full Fact), a Festival;
+        /// and in 2011, Easter being 24 April, Philip and James has no day,
+        /// which `hc_holidays_on` reports as a gap of `common-worship`.
+        #[test]
+        fn a_celebration_carries_its_rank_and_an_unsettled_one_is_a_gap() {
+            let day = hc_gregorian_to_fixed(2025, 4, 28);
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_common_worship_on(day, buffer, capacity)
+            });
+            assert_eq!(
+                text,
+                "George, Martyr, Patron of England\tfestival\tFestival\n"
+            );
+            let null = core::ptr::null_mut();
+            let ordinary = hc_gregorian_to_fixed(2025, 4, 23);
+            assert_eq!(unsafe { hc_common_worship_on(ordinary, null, 0) }, 0);
+            assert_eq!(
+                unsafe { hc_common_worship_on(i64::MAX, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+            let in_2011 = hc_gregorian_to_fixed(2011, 5, 1);
+            let text =
+                read_lines(|buffer, capacity| unsafe { hc_holidays_on(in_2011, buffer, capacity) });
+            assert!(
+                text.lines().any(|line| line.starts_with("common-worship\t")
+                    && line.contains("\tPhilip and James, Apostles\t\tgap\t")),
+                "no gap in {text}"
+            );
+        }
+
         #[test]
         fn every_table_is_described_in_the_order_of_the_codes() {
             let text = read_lines(|buffer, capacity| unsafe {
@@ -6394,6 +6821,42 @@ mod tests {
     mod earth_and_sun {
         use super::super::*;
         use super::read_lines;
+
+        /// Warren's row for 29 February 1992, 03:15:56.2, and 12h 56m 27.4s,
+        /// +42° 10′ 17″ (J2000), in the IDL Astronomy Library's `helio_jd`:
+        /// HJD − JD is 350.9 s.
+        #[test]
+        fn hjd_tt_is_the_idl_tables_correction() {
+            let date = hc_gregorian_to_fixed(1992, 2, 29) as f64
+                + 1_721_424.5
+                + (3.0 * 3_600.0 + 15.0 * 60.0 + 56.2) / 86_400.0;
+            let alpha = 15.0 * (12.0 + 56.0 / 60.0 + 27.4 / 3_600.0);
+            let delta = 42.0 + 10.0 / 60.0 + 17.0 / 3_600.0;
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_hjd_tt(date, alpha, delta, buffer, capacity)
+            });
+            let cells: Vec<f64> = text
+                .trim_end()
+                .split('\t')
+                .map(|cell| cell.parse().expect("a number"))
+                .collect();
+            assert_eq!(cells.len(), 2);
+            assert!((cells[1] - 350.9).abs() < 0.1, "{text}");
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_hjd_utc(date, alpha, delta, 1, buffer, capacity)
+            });
+            // TAI − UTC was 26 s in February 1992.
+            assert!(text.trim_end().ends_with("\t58.184"), "{text}");
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_hjd_tt(f64::INFINITY, alpha, delta, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe { hc_hjd_utc(2_433_282.5, alpha, delta, 1, null, 0) },
+                HC_ERR_NO_DATA
+            );
+        }
 
         fn number(call: impl Fn(*mut u8, usize) -> i64) -> f64 {
             read_lines(call).trim_end().parse().expect("one number")

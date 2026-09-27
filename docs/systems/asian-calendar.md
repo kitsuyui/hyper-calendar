@@ -149,4 +149,6 @@ Bultrighini and were not read.
 ## Code
 
 `crates/hc-calendars-solar/src/asian.rs`; the anchors are the tests named
-above.
+above. The WebAssembly and C export `hc_asian_day` writes a day as the
+calendar writes it, Sebaste and the intercalary day as unnumbered days,
+from `hyper_calendar::calendar_values`.

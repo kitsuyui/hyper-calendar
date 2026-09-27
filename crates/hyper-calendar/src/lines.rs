@@ -30,6 +30,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt::Write;
 
+use hc_calendar::Weekday;
 use hc_calendar::shape::MONTH;
 use hc_calendar::units::{Unit, units_at_most};
 use hc_calendar::{
@@ -38,6 +39,7 @@ use hc_calendar::{
 };
 use hc_format::label;
 use hc_i18n::Locale;
+use hc_i18n::dated::{self, NamingPeriod, PeriodOn};
 use hc_i18n::names::{self, NameContext, NameWidth};
 
 use crate::boundary::{Answer, Refusal};
@@ -57,6 +59,8 @@ pub const CALENDAR_LIST_COLUMNS: usize = 6;
 pub const LOCALES_COLUMNS: usize = 7;
 /// How many columns [`gregorian_adoption`] writes.
 pub const GREGORIAN_ADOPTION_COLUMNS: usize = 7;
+/// How many columns [`naming_period_line`] writes.
+pub const NAMING_PERIOD_COLUMNS: usize = 9;
 
 /// The most lines one call of [`calendar_units`] writes.
 ///
@@ -590,4 +594,134 @@ pub fn gregorian_adoption(region: &str) -> String {
         out.push('\n');
     }
     out
+}
+
+/// The line of `hc_naming_period_on`: which month and weekday names a
+/// locale writes for a calendar on a day, where a government renamed them
+/// for a period, by [`dated::period_on`].
+///
+/// The columns: `in-force` when a period's names were in force on the
+/// day, `undecided` when a period applies and no source read says whether
+/// it was yet in force, or `ordinary` when none applies and the locale's
+/// own names hold; then, for a period, its identifier, its name for the
+/// day's month and for the day's weekday, the English meaning of that
+/// weekday name as the source glosses it, the first day the names can have
+/// been in force, the first day by which every source read has them in
+/// force, the first day the old names were back, all three as fixed days,
+/// and the sources. For `ordinary` the eight cells after the first are
+/// empty. The tag is read as [`requested_locale`] reads it; [`NATIVE`],
+/// which names no one language, takes no period.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a calendar the registry does not carry.
+pub fn naming_period_line(
+    registry: &CalendarRegistry,
+    tag: &str,
+    calendar_id: &str,
+    fixed: i64,
+) -> Answer<String> {
+    let calendar = registry.get_by_name(calendar_id).ok_or(Refusal::Unknown)?;
+    let day = Rd(fixed);
+    let locale = requested_locale(tag).unwrap_or(Locale::ROOT);
+    let (state, period) = match dated::period_on(&locale, calendar.meta().id, day) {
+        PeriodOn::InForce(period) => ("in-force", period),
+        PeriodOn::Undecided(period) => ("undecided", period),
+        PeriodOn::Ordinary => return Ok(String::from("ordinary\t\t\t\t\t\t\t\t\n")),
+    };
+    let mut out = String::from(state);
+    out.push('\t');
+    push_period(&mut out, period, calendar, day);
+    Ok(out)
+}
+
+/// A period's cells of [`naming_period_line`] for a day, after the state.
+fn push_period(out: &mut String, period: &NamingPeriod, calendar: &dyn DynCalendar, day: Rd) {
+    let month = calendar
+        .fixed_to_fields(day)
+        .ok()
+        .and_then(|fields| fields.month)
+        .and_then(|month| period.month_name(month.ordinal));
+    let weekday = Weekday::from_rd(day);
+    let meaning = period
+        .weekday_meanings
+        .get(usize::from(weekday.monday_first_number()))
+        .copied();
+    push_cell(out, period.id);
+    for cell in [month, period.weekday_name(weekday), meaning] {
+        out.push('\t');
+        push_cell(out, cell.unwrap_or(""));
+    }
+    let _ = write!(
+        out,
+        "\t{}\t{}\t{}\t",
+        period.earliest.0, period.in_force_by.0, period.ended.0
+    );
+    push_cell(out, period.source);
+    out.push('\n');
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn cells(line: &str) -> Vec<&str> {
+        line.strip_suffix('\n')
+            .expect("a line")
+            .split('\t')
+            .collect()
+    }
+
+    fn day(year: i64, month: u8, day: u8) -> i64 {
+        hc_calendars_solar::gregorian::to_fixed(year, month, day)
+            .expect("a date")
+            .0
+    }
+
+    /// Wikipedia's names of 2002 to 2008: 21 March 2005, a Monday in March,
+    /// is Başgün of Nowruz; the People's Council's vote of 8 August 2002
+    /// begins the days no source read decides; and from 1 July 2008 the old
+    /// names are back.
+    #[test]
+    fn a_turkmen_day_of_2005_takes_the_names_of_2002() {
+        let registry = crate::registry();
+        let line = naming_period_line(&registry, "tk", "gregory", day(2005, 3, 21)).expect("known");
+        let row = cells(&line);
+        assert_eq!(row.len(), NAMING_PERIOD_COLUMNS);
+        assert_eq!(
+            row[..5],
+            ["in-force", "turkmen-2002", "Nowruz", "Başgün", "First day"]
+        );
+        assert_eq!(
+            row[5..8],
+            [
+                day(2002, 8, 8).to_string(),
+                day(2003, 1, 1).to_string(),
+                day(2008, 7, 1).to_string()
+            ]
+        );
+        let undecided =
+            naming_period_line(&registry, "tk-TM", "gregory", day(2002, 9, 1)).expect("known");
+        assert!(
+            undecided.starts_with("undecided\tturkmen-2002\tRuhnama\t"),
+            "{undecided}"
+        );
+        for (tag, calendar, on) in [
+            ("tk", "gregory", day(2008, 7, 1)),
+            ("ru", "gregory", day(2005, 3, 21)),
+            ("tk", "julian", day(2005, 3, 21)),
+            (NATIVE, "gregory", day(2005, 3, 21)),
+        ] {
+            let line = naming_period_line(&registry, tag, calendar, on).expect("known");
+            assert_eq!(
+                cells(&line),
+                ["ordinary", "", "", "", "", "", "", "", ""],
+                "{tag} {calendar}"
+            );
+        }
+        assert_eq!(
+            naming_period_line(&registry, "tk", "no-such-calendar", 0),
+            Err(Refusal::Unknown)
+        );
+    }
 }

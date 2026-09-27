@@ -126,6 +126,14 @@ export const COLUMNS: {
   readonly hinduLunarDate: ReadonlyArray<string>;
   readonly suryaSiddhanta: ReadonlyArray<string>;
   readonly crescent: ReadonlyArray<string>;
+  readonly decan: ReadonlyArray<string>;
+  readonly hjdTt: ReadonlyArray<string>;
+  readonly hjdUtc: ReadonlyArray<string>;
+  readonly ttBipm: ReadonlyArray<string>;
+  readonly namingPeriod: ReadonlyArray<string>;
+  readonly asianDay: ReadonlyArray<string>;
+  readonly holyYear: ReadonlyArray<string>;
+  readonly commonWorship: ReadonlyArray<string>;
 };
 export const UNITS: readonly Unit[];
 export const NATIVE: "native";
@@ -1005,6 +1013,109 @@ export interface CrescentVisibility {
   widthArcminutes: number | null;
 }
 
+/** A decan's ruler: one of the seven classical bodies. */
+export type DecanRuler = "saturn" | "jupiter" | "mars" | "sun" | "venus" | "mercury" | "moon";
+
+/** The one line of `hc_decan_at`. */
+export interface Decan {
+  /** The tropical sign, 1 for Aries through 12 for Pisces. */
+  sign: number;
+  signName: string;
+  /** Which of the sign's three 10° faces, 1 to 3. */
+  decan: number;
+  /** The face's ruler by al-Bīrūnī's table. */
+  ruler: DecanRuler;
+  rulerName: string;
+  /** From 0 up to 10. */
+  degreesIntoDecan: number;
+}
+
+/** The one line of `hc_hjd_tt`. */
+export interface HeliocentricJulianDate {
+  hjd: number;
+  /** The light-time correction added to the date; negative when the light reaches the Sun first. */
+  correctionSeconds: number;
+}
+
+/** The one line of `hc_hjd_utc`. */
+export interface HeliocentricJulianDateUtc extends HeliocentricJulianDate {
+  /** 32.184 s plus TAI − UTC, at which the Earth's position was taken. */
+  ttMinusUtcSeconds: number;
+}
+
+/** The one line of `hc_tt_bipm`. */
+export interface TtBipmReading {
+  /** TT(BIPMxx) − TT(TAI), interpolated between the samples. */
+  offsetSeconds: number;
+  /** TT(BIPMxx) − TAI: 32.184 s and the offset. */
+  minusTai: TaiInstant;
+  /** The TT(BIPMxx) reading from that scale's 1970 epoch. */
+  reading: TaiInstant;
+}
+
+/** A period's names on a day, from `hc_naming_period_on`. */
+export interface NamingPeriodNames {
+  id: string;
+  /** The period's name for the day's month. */
+  monthName: string | null;
+  /** The period's name for the day's weekday. */
+  weekdayName: string | null;
+  /** That weekday name's meaning in English, as the source glosses it. */
+  weekdayMeaning: string | null;
+  /** The first day the names can have been in force. */
+  earliest: number;
+  /** The first day by which every source read has them in force. */
+  inForceBy: number;
+  /** The first day the old names were back. */
+  ended: number;
+  source: string;
+}
+
+/** The one line of `hc_naming_period_on`. */
+export type NamingPeriodOn =
+  | { state: "in-force" | "undecided"; period: NamingPeriodNames }
+  | { state: "ordinary"; period: null };
+
+/** The one line of `hc_asian_day`. */
+export interface AsianDay {
+  /** The Julian year, AD, in which the Asian year began. */
+  year: number;
+  /** 1 for Kaisar through 12 for Hyperberetaios. */
+  month: number;
+  monthName: string;
+  /** `unnumbered` for Sebaste and, in a leap Xandikos, the intercalary day. */
+  written: "unnumbered" | "numbered";
+  /** The day's number, or its place among the unnumbered days. */
+  number: number;
+}
+
+/** The one line of `hc_holy_year_on`, within a jubilee. */
+export interface HolyYear {
+  title: string;
+  kind: "ordinary" | "extraordinary";
+  pope: string;
+  /** The bull of indiction, by its opening words. */
+  bull: string;
+  /** The fixed day the bull was given. */
+  given: number;
+  /** The first and last fixed days in Rome. */
+  opens: number;
+  closes: number;
+  /** The first and last fixed days in the dioceses, where the bull dates them. */
+  dioceses: { opens: number; closes: number } | null;
+}
+
+/** A rank of the *Common Worship* calendar. */
+export type CommonWorshipRank = "principal-feast" | "principal-holy-day" | "festival";
+
+/** One line of `hc_common_worship_on`. */
+export interface CommonWorshipCelebration {
+  /** The title as the Rules print it, the name `hc_holidays_on` gives it. */
+  title: string;
+  rank: CommonWorshipRank;
+  rankName: string;
+}
+
 /**
  * An instantiated module, one method per export. Every `i64` result is a
  * number; an `i64` argument may be a number or a `BigInt`. A method whose
@@ -1110,6 +1221,11 @@ export class HyperCalendar {
   epochFromTt(notation: EpochNotationName, ttSeconds: number | bigint, attoseconds?: number | bigint): Epoch;
   /** `hc_tt_from_epoch`; an empty notation is SOFA's rule for an epoch without a letter. */
   ttFromEpoch(notation: EpochNotationName | "", year: number): EpochInstant;
+  /**
+   * `hc_tt_bipm`: `series` one line per sample, the MJD and TT(BIPMxx) −
+   * TAI − 32.184 s in µs, tab-separated; an instant outside it is `no-data`.
+   */
+  ttBipm(series: string, taiSeconds: number | bigint, attoseconds?: number | bigint, strict?: boolean): TtBipmReading;
 
   /**
    * `hc_describe_day`: the day in every registered calendar, in registry
@@ -1157,6 +1273,12 @@ export class HyperCalendar {
   chineseReckonedAge(birthFixed: number | bigint, onFixed: number | bigint): number;
   /** `hc_chinese_marriage_augury`: by the Chinese calendar's year count, 4661 from 10 February 2024. */
   chineseMarriageAugury(chineseYear: number | bigint): MarriageAugury;
+  /** `hc_naming_period_on`: a calendar the registry does not carry is `unknown`. */
+  namingPeriodOn(calendar: string, fixed: number | bigint, locale: string): NamingPeriodOn;
+  /** `hc_hebrew_sabbatical_cycle_year`: 7 is *shemittah*. */
+  hebrewSabbaticalCycleYear(hebrewYear: number | bigint): number;
+  /** `hc_asian_day`; a day outside AD 4 to the Asian year 9999 is `out-of-range`. */
+  asianDay(fixed: number | bigint): AsianDay;
 
   /** `hc_holiday_is_day_off`; `region` may be empty. A code naming no table is `unknown`. */
   holidayIsDayOff(code: string, region: string, fixed: number | bigint): boolean;
@@ -1174,6 +1296,10 @@ export class HyperCalendar {
   astronomicalEaster(year: number | bigint): number;
   /** `hc_astronomical_paschal_full_moon`: the day Easter is the Sunday after; outside 1583 to 2150 is `out-of-range`. */
   astronomicalPaschalFullMoon(year: number | bigint): number;
+  /** `hc_holy_year_on`: `null` outside a jubilee; a day the table does not reach is `no-data`. */
+  holyYearOn(fixed: number | bigint): HolyYear | null;
+  /** `hc_common_worship_on`: empty on a day that keeps none. */
+  commonWorshipOn(fixed: number | bigint): CommonWorshipCelebration[];
 
   /** `hc_term_in_effect`; a meridian nobody knows is `unknown`. */
   termInEffect(fixed: number | bigint, meridian?: Meridian): TermInEffect;
@@ -1205,6 +1331,8 @@ export class HyperCalendar {
   solarTermsBetween(fromUnix: number | bigint, toUnix: number | bigint): SkyEvent[];
   /** `hc_moon_phases_between`: the phases in `[from, to)`, as `solarTermsBetween`. */
   moonPhasesBetween(fromUnix: number | bigint, toUnix: number | bigint): SkyEvent[];
+  /** `hc_decan_at`. */
+  decanAt(unixSeconds: number | bigint): Decan;
   /** `hc_earth_rotation_angle`: degrees, at UT1 counted as POSIX seconds are; outside −1000 through 3000 is `out-of-range`. */
   earthRotationAngle(ut1UnixSeconds: number): number;
   /** `hc_gmst_iau2006`: degrees. */
@@ -1223,6 +1351,10 @@ export class HyperCalendar {
   sunrise(horizon: HorizonId, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): SolarCrossing;
   /** `hc_sunset`. */
   sunset(horizon: HorizonId, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): SolarCrossing;
+  /** `hc_hjd_tt`: right ascension and declination in degrees, J2000. */
+  hjdTt(ttJulianDate: number, rightAscension: number, declination: number): HeliocentricJulianDate;
+  /** `hc_hjd_utc`; under `strict` a date outside the leap-second table is `no-data`. */
+  hjdUtc(utcJulianDate: number, rightAscension: number, declination: number, strict?: boolean): HeliocentricJulianDateUtc;
 
   /** `hc_orbit_at`; an epoch beyond a million years either side of 1950 is `out-of-range`. */
   orbitAt(yearsBefore1950: number): Orbit;
