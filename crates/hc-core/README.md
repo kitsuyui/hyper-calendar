@@ -23,14 +23,16 @@ assert_eq!(tai.since_epoch().whole_seconds(), 1_483_228_800 + 37);
 | --- | --- |
 | `duration` | `Duration`: an exact span of SI seconds, `i128` whole seconds and `u64` attoseconds, of either sign. No floating point. It also carries what Python's `timedelta` needs: weeks, floor division and a remainder with the divisor's sign (`checked_div_floor`, `checked_rem`, `checked_div_rem`), the normalised `(days, seconds, attoseconds)` split, and `days_and_clock`, the `-1 day, 19:00:00` string form. |
 | `scale` | `Instant<S>`: a reading on a uniform time scale, the scale being a zero-sized type parameter, so a TAI reading cannot be passed where a TT reading is expected. The scales are TAI (International Atomic Time), TT (Terrestrial Time), TCG (Geocentric Coordinate Time), TCB (Barycentric Coordinate Time), TDB (Barycentric Dynamical Time), and the GNSS times GPS, Galileo, BeiDou and NavIC; UT1, the Earth's rotation read as a time, is measured rather than defined, so it is in `hc-astro` beside the ΔT (TT − UT1) model it is computed from. |
-| `leap` | The UTC leap-second table, as data. |
+| `leap` | The UTC leap-second table, as data, and `end_of_day_step`, the leap second that ends a given UTC day. |
 | `tt_bipm` | TT(BIPM), the BIPM's yearly realisations of Terrestrial Time, from the table of TT(BIPMxx) − TAI − 32.184 s the caller supplies, interpolated inside it and refused outside it. |
 | `unix` | POSIX time (`UnixTime`), UTC with the leap second made explicit (`UtcInstant`), and the conversions between them and TAI under a `LeapPolicy`. |
 | `gnss` | The GNSS week numbers — GPS legacy and CNAV, Galileo, BeiDou, NavIC — with the time of week and rollover resolution against a reference the caller supplies, and GLONASS time, UTC(SU) + 3 h with its leap seconds and its four-year intervals. See `docs/systems/gnss-time.md`. |
-| `epoch` | Well-known epochs as TAI readings: Unix, GPS, Galileo, BeiDou, NavIC, GLONASS, J2000, MJD, the Julian Day, Rata Die, Windows FILETIME, NTP, Core Foundation, the TCG/TCB origin, the UUID's 1582 and SAS's and Stata's 1960. |
+| `epoch` | Well-known epochs as TAI readings: Unix, GPS, Galileo, BeiDou, NavIC, GLONASS, J2000, MJD, the Julian Day, Rata Die, .NET's ticks, the CCSDS Unsegmented Code's 1958 TAI, Windows FILETIME, NTP, Core Foundation, the TCG/TCB origin, the UUID's 1582 and SAS's and Stata's 1960. |
 | `tai64` | Bernstein's TAI64, TAI64N and TAI64NA labels: 2⁶² + TAI seconds since 1970 TAI in 8, 12 or 16 big-endian bytes, encoded from and decoded to `Instant<Tai>`; TAI64NA is exact to the attosecond. Also `tai64-posix-plus-10`, the 2⁶² + 10 + POSIX seconds that daemontools' `tai64n` writes on an ordinary clock, to and from `UnixTime`. See `docs/time-scales.md`. |
 | `ntp` | NTP's 128-bit date with its era number and era offset, and the 64-bit timestamp resolved into the era within 2³¹ s of a reference time, across the 2036 wrap. See `docs/systems/binary-timestamps.md`. |
 | `uuid` | The 60-bit timestamp of UUID versions 1 and 6, 100 ns from 1582-10-15, to and from `UnixTime`, and both octet layouts. See `docs/systems/binary-timestamps.md`. |
+| `dotnet` | .NET's `DateTime.Ticks`, 100 ns from 0001-01-01 without leap seconds, with the `DateTimeKind` that says which zone they count in; only a `Utc` value converts to `UnixTime`. See `docs/systems/binary-timestamps.md`. |
+| `ccsds` | The CCSDS time codes' P-field, and the Unsegmented Code (TAI seconds and binary fractions from 1958, or from an agency's epoch) and the Day Segmented Code (UTC days from 1958 and the millisecond of the day, to 86 400 999 on a leap-second day), both ways. The calendar codes are `hc-format::ccsds`. See `docs/systems/ccsds-time-codes.md`. |
 | `sas_stata` | SAS datetimes and Stata's `%tc` and `%tC` from 1960, the last counting leap seconds as UTC does. See `docs/systems/statistical-software-dates.md`. |
 | `epoch_notation` | Julian and Besselian epochs, J2000.0 and B1950.0, from and to `Instant<Tt>`. |
 | `internet_time` | Swatch Internet Time, @000 to @999 from POSIX time on Biel Mean Time, UTC+1. |
@@ -61,7 +63,8 @@ assert_eq!(tai.since_epoch().whole_seconds(), 1_483_228_800 + 37);
 | before 1961 | refused: UTC did not exist, and a conversion returns `BeforeModelStart` unless the caller opts into treating UTC as TAI |
 | Julian epoch | exact in definition; an `f64` year, about 10⁻¹³ of a year (3 µs) near the present |
 | Besselian epoch | ERFA's `eraEpb` constants, on TT for TDB; within 10⁻¹⁰ of a year of SOFA's example |
-| NTP, UUID, SAS and `%tc` counts | exact labels of 86 400-second days; `%tC` exact from the leap-second table, refused past it under `LeapPolicy::Strict` |
+| NTP, UUID, .NET, SAS and `%tc` counts | exact labels of 86 400-second days; `%tC` exact from the leap-second table, refused past it under `LeapPolicy::Strict` |
+| CCSDS CUC and CDS | exact; a CUC fraction finer than the attosecond, eight octets or more, is rounded up to it; a CDS leap second is checked against the table and refused past it |
 | after the table's announced validity | `LeapPolicy::Strict` refuses with `AfterModelEnd`; `LeapPolicy::Extrapolate` holds the last published offset, and the caller has named the forecast by choosing it |
 | `23:59:60` | representable: `UtcInstant` carries the leap-second flag that POSIX time cannot |
 | TDB | a model, not a constant: the truncated Fairhead–Bretagnon series in `scale`, to about 30 µs over 1980–2100 |

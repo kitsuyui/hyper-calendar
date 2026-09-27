@@ -7686,3 +7686,124 @@
   howpublished = {Chinese Wikipedia, \url{https://zh.wikipedia.org/wiki/傣曆}},
   note         = {Revision 87431644. The year from month 6, the leap month after month 9 by a fixed 19-year cycle, the 30-day month 8 moved out of a leap-month year; citing 西雙版納傣曆年曆匯編 and 张公瑾 1979, not read. Retrieved 2026-09-27}
 }
+
+@techreport{ccsds-301-0-b-4,
+  author       = {{Consultative Committee for Space Data Systems}},
+  title        = {Time Code Formats},
+  type         = {Recommended Standard, Blue Book},
+  number       = {CCSDS 301.0-B-4},
+  institution  = {CCSDS},
+  year         = {2010},
+  month        = nov,
+  howpublished = {\url{https://public.ccsds.org/Pubs/301x0b4e1.pdf}},
+  note         = {Issue 4. \S 1.3, the four levels; \S 1.5, bit 0 first and most significant; \S\S 3.1--3.6, the P-field and the CUC, CDS, CCS, ASCII and agency-defined codes; annex A, the ranges of the segments with leap seconds; annex B3.2, the 1950 agency epoch 2922 days before 1958 and ``Julian date 2436203.5'', one day early. Read 2026-09-27}
+}
+
+@misc{nict-jjy-timecode,
+  author       = {{National Institute of Information and Communications Technology}},
+  title        = {標準電波の出し方},
+  howpublished = {\url{https://jjy.nict.go.jp/jjy/trans/index.html}, with the figures \url{https://jjy.nict.go.jp/jjy/trans/timecode1.html} and \url{https://jjy.nict.go.jp/jjy/trans/timecode2.html}},
+  note         = {JJY's time code: markers of 0.2 s, ones of 0.5 s and zeros of 0.8 s; the fields, PA1 and PA2 even parity, LS1 LS2, SU1 SU2, the call sign at 15 and 45 minutes with ST1--ST6; the leap second before 09:00 JST on the 1st; JST is UTC + 9 h. Figure 1 is 2004, day 92, 17:25, Thursday. Read 2026-09-27}
+}
+
+@misc{ptb-dcf77-timecode,
+  author       = {{Physikalisch-Technische Bundesanstalt}},
+  title        = {{DCF77} time code},
+  howpublished = {\url{https://www.ptb.de/cms/en/ptb/fachabteilungen/abt4/fb-44/ag-442/dissemination-of-legal-time/dcf77/dcf77-time-code.html}},
+  note         = {The marks of 0.1 s and 0.2 s, the coding figure, bits 1--14 from a third party, R, A1, Z1 Z2, A2, S, the BCD fields and P1--P3 even parity, ``the information for the following minute'', and the 60th mark of a leap second. Read 2026-09-27}
+}
+
+@techreport{nist-sp432-2002,
+  author       = {Lombardi, Michael A.},
+  title        = {{NIST} Time and Frequency Services},
+  type         = {NIST Special Publication},
+  number       = {432},
+  institution  = {National Institute of Standards and Technology},
+  year         = {2002},
+  howpublished = {\url{https://tf.nist.gov/general/pdf/1383.pdf}},
+  note         = {2002 edition, minor revisions April 2003. Chapter 2, WWVB: Table 2.3, the time code bits, the UT1 sign and correction, the leap year and leap second bits, bits 57 and 58; Figure 2.6, 2001 day 258 18:42 UTC with UT1 - UTC = -0.7 s. Read 2026-09-27}
+}
+
+@techreport{nist-sp250-67,
+  author       = {Nelson, Glenn K. and Lombardi, Michael A. and Okayama, Dean T.},
+  title        = {{NIST} Time and Frequency Radio Stations: {WWV}, {WWVH}, and {WWVB}},
+  type         = {NIST Special Publication},
+  number       = {250-67},
+  institution  = {National Institute of Standards and Technology},
+  year         = {2005},
+  howpublished = {\url{https://tf.nist.gov/general/pdf/1969.pdf}},
+  note         = {Chapter 2, section 2, the WWVB time code: the leap year bit set ``usually sometime in January but before February 29'', the leap second warning, bits 57 and 58. Read 2026-09-27}
+}
+
+@techreport{nist-wwvb-enhanced-2013,
+  author       = {Lowe, John},
+  title        = {Enhanced {WWVB} Broadcast Format},
+  institution  = {National Institute of Standards and Technology, Time and Frequency Services},
+  year         = {2013},
+  month        = nov,
+  howpublished = {\url{https://www.nist.gov/system/files/documents/2017/05/09/NIST-Enhanced-WWVB-Broadcast-Format-1_01-2013-11-06.pdf}},
+  note         = {Revision 1.01, 6 November 2013. The phase-modulated time frame: Table 1, Table 3 sync\_T and sync\_M, \S 4.3 the minute count from 2000 and the Hamming parity, Table 4 dst\_ls, Tables 5 and 6, \S 4.4 leap seconds in both codes, Table 8 dst\_next, Table 10 the frame of 2012-07-04 17:30 UTC in both codes. Read 2026-09-27}
+}
+
+@misc{ms-datetime-ticks,
+  author       = {{Microsoft}},
+  title        = {DateTime.Ticks Property},
+  howpublished = {Microsoft Learn, .NET API reference, \url{https://learn.microsoft.com/en-us/dotnet/api/system.datetime.ticks}},
+  note         = {100-nanosecond intervals since 12:00:00 midnight, January 1, 0001 in the Gregorian calendar; excludes leap seconds; the ticks count the zone the Kind names; the examples of 2007-12-14 15:23 and 2019-11-14 18:21:38.171 from 2001-01-01. Read 2026-09-27}
+}
+
+@misc{ms-datetimekind,
+  author       = {{Microsoft}},
+  title        = {DateTimeKind Enum},
+  howpublished = {Microsoft Learn, .NET API reference, \url{https://learn.microsoft.com/en-us/dotnet/api/system.datetimekind}},
+  note         = {Unspecified 0, Utc 1, Local 2. Read 2026-09-27}
+}
+
+@misc{ms-datetime-maxvalue,
+  author       = {{Microsoft}},
+  title        = {DateTime.MaxValue Field},
+  howpublished = {Microsoft Learn, .NET API reference, \url{https://learn.microsoft.com/en-us/dotnet/api/system.datetime.maxvalue}},
+  note         = {23:59:59.9999999 UTC, December 31, 9999; the example prints its ticks as 3,155,378,975,999,999,999. Read 2026-09-27}
+}
+
+@misc{ms-gregoriancalendar,
+  author       = {{Microsoft}},
+  title        = {GregorianCalendar Class},
+  howpublished = {Microsoft Learn, .NET API reference, \url{https://learn.microsoft.com/en-us/dotnet/api/system.globalization.gregoriancalendar}},
+  note         = {The leap-year rule; DateTime values are in the Gregorian calendar by default; Denmark's 1700 example puts Julian 18 February 1700 on Gregorian 28 February. Read 2026-09-27}
+}
+
+@misc{ms-datetime-tobinary,
+  author       = {{Microsoft}},
+  title        = {DateTime.ToBinary Method},
+  howpublished = {Microsoft Learn, .NET API reference, \url{https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tobinary}},
+  note         = {A 64-bit signed integer that encodes the Kind and Ticks; the layout is not stated. Read 2026-09-27}
+}
+
+@misc{wikipedia-time-in-ethiopia,
+  author       = {{Wikipedia contributors}},
+  title        = {Time in Ethiopia},
+  howpublished = {Wikipedia, \url{https://en.wikipedia.org/wiki/Time_in_Ethiopia}},
+  note         = {The daytime cycle begins at 12:00 (6:00:00 AM EAT) and ends at 11:59:59 (5:59:59 PM EAT); the nighttime cycle begins at 12:00 (6:00:00 PM EAT); subtract 6 hours from EAT. Retrieved 2026-09-27}
+}
+
+@misc{undp-eue-ethiopian-time,
+  author       = {{UN Women's Association}},
+  title        = {Time},
+  howpublished = {In \emph{Welcome to Addis Ababa 1994--1995}, as published by the UNDP Emergencies Unit for Ethiopia, \url{http://www.africa.upenn.edu/eue_web/time.htm}; read in the Internet Archive's copy of 2011-07-22, \url{https://web.archive.org/web/20110722232850/http://www.africa.upenn.edu/eue_web/time.htm}},
+  note         = {The Ethiopian day begins at sunrise or 0600; 8 am is 2 o'clock, 10 am 4 o'clock, 6 pm 12 o'clock, 7 pm 1 o'clock, 10 pm 4 o'clock. The live page answers 403. Read 2026-09-27}
+}
+
+@misc{ku-kiswahili-lesson-17,
+  author       = {{University of Kansas, Kiswahili Program}},
+  title        = {Lesson 17: Time},
+  howpublished = {\url{https://kiswahili.ku.edu/sites/kiswahili/files/documents/lessons/lesson_17.pdf}},
+  note         = {7:00 am is saa moja asubuhi, the first hour of the day, and 7:00 pm saa moja usiku, the first hour of the night; the Swahili name of every hour from 7 am to 6 am with its part of the day; saa sita mchana is noon and saa sita usiku midnight. Read 2026-09-27}
+}
+
+@misc{uw-lctl-amharic-telling-time,
+  author       = {{University of Wisconsin--Madison Students in African 671}},
+  title        = {Amharic: Telling Time},
+  howpublished = {In \emph{Resources for Self-Instructional Learners of Less Commonly Taught Languages}, \url{https://wisc.pb.unizin.org/lctlresources/chapter/telling-time/}},
+  note         = {Day from 6 am to 6 pm and night from 6 pm to 6 am, with Tewat, Ke se at behuwala, Mata and Lelit as its parts; noon given as ``Six in the morning = Tewat sidist''. Read 2026-09-27}
+}

@@ -1,12 +1,12 @@
-# Binary timestamps: NTP eras, UUID versions 1 and 6, and FAT date words
+# Binary timestamps: NTP eras, UUID versions 1 and 6, FAT date words and .NET ticks
 
-Backs `hc-core::ntp`, `hc-core::uuid` with the epoch `uuid-gregorian`, and
-`hc-format::fat`.
+Backs `hc-core::ntp`, `hc-core::uuid` with the epoch `uuid-gregorian`,
+`hc-core::dotnet` with the epoch `dotnet-ticks`, and `hc-format::fat`.
 
 ## What it is
 
-Three fixed-width fields that protocols and file systems write a time
-into. Each is a count from an epoch in a word too narrow to last, and the
+Four fixed-width fields that protocols, file systems and runtimes write a
+time into. Each is a count from an epoch in a word too narrow to last, and the
 interesting part of each is what happens at the edge of the word.
 
 - The **NTP timestamp** of every NTP packet is 32 bits of seconds from
@@ -19,6 +19,10 @@ interesting part of each is what happens at the edge of the word.
 - The **MS-DOS date and time words** of the FAT file system pack a local
   wall-clock reading into two 16-bit values, years from 1980 and seconds at
   two-second resolution [ms-dosdatetimetofiletime; ms-file-times].
+- **.NET's `DateTime.Ticks`** is a 64-bit count of 100 ns from midnight
+  on 1 January 0001 of the Gregorian calendar, and a `DateTime` carries
+  beside it a `Kind` that says in which zone the ticks count
+  [ms-datetime-ticks; ms-datetimekind].
 
 ## How it works
 
@@ -68,6 +72,27 @@ local time", and its write time "has a resolution of 2 seconds"
 23 × 2048 + 59 × 32 + 29 = 49 021. Microsoft's pages give no dated
 example, so this one is worked from the layout alone.
 
+**.NET ticks.** "A single tick represents one hundred nanoseconds", and
+the count is "the number of 100-nanosecond intervals that have elapsed
+since 12:00:00 midnight, January 1, 0001 in the Gregorian calendar". It
+"does not include the number of ticks that are attributable to leap
+seconds", so it labels 86 400-second days as POSIX time does. The
+calendar's leap-year rule applies to every year; Microsoft's own example
+puts Julian 18 February 1700 on Gregorian 28 February [ms-gregoriancalendar].
+The largest value is 23:59:59.9999999 on 31 December 9999, 3 155 378 975
+999 999 999 ticks [ms-datetime-maxvalue]. What the ticks count depends on
+the `Kind`: `Utc` (1) counts UTC, `Local` (2) "the local time as specified
+by the current time zone setting", and `Unspecified` (0) "the unknown time
+zone" [ms-datetime-ticks; ms-datetimekind].
+
+*Worked example.* From 0001-01-01 to 1970-01-01 is 719 162 days, so the
+POSIX epoch is 719 162 × 86 400 × 10⁷ = 621 355 968 000 000 000 ticks. The
+Ticks page's example: from 2001-01-01 to 15:23 on 14 December 2007 is 2 538
+days, 15 hours and 23 minutes, 2 193 385 800 000 000 ticks. Its value is
+`DateTime.Now`, a `Local` reading, so the ticks of the two dates are wall
+clock, and their difference is right only if no change of offset lies
+between them.
+
 ## What is carried
 
 - **`hc-core::ntp`**: `NtpDate` (era, offset, 64-bit fraction) to and from
@@ -81,6 +106,12 @@ example, so this one is worked from the layout alone.
   past 2⁶⁰ − 1; `encode` writes a version 1 or 6 UUID from a timestamp and
   the caller's clock sequence and node, and `decode` reads the version and
   timestamp, refusing any other version or variant.
+- **`hc-core::dotnet`** and the epoch **`dotnet-ticks`**: `DotnetDateTime`,
+  ticks 0 to `MAX_TICKS` with a `DateTimeKind`; `from_unix` and
+  `from_utc_instant` make a `Utc` value, floored to 100 ns, and refuse a
+  leap second; `to_unix` answers for a `Utc` value only, and `wall_clock`
+  gives any value's reading in the POSIX shape for a caller who knows the
+  zone.
 - **`hc-format::fat`**: `decode_date`, `decode_time` and `decode` to a
   `CivilDateTime` in no zone; `encode_date`, `encode_time` and `encode`
   from one, 1980 to 2107, keeping the even second at or before the
@@ -94,7 +125,9 @@ example, so this one is worked from the layout alone.
     offset byte*, which Microsoft's page for these words does not
     describe. The zone of a FAT reading is not in the words and is not
     guessed.
-  - *Leap seconds* in all three: each is a label counting 86 400 s a day,
+  - *`DateTime.ToBinary`*, which packs the `Kind` and the ticks into one
+    `Int64`; its page does not state the layout [ms-datetime-tobinary].
+  - *Leap seconds* in all four: each is a label counting 86 400 s a day,
     and RFC 9562 §6.1 allows a generator to smear them.
 
 ## Accuracy
@@ -110,6 +143,10 @@ example, so this one is worked from the layout alone.
 | The 60-bit field ends on 5236-03-31 21:21:00.6846975 UTC | `the_count_starts_on_15_october_1582_and_ends_in_60_bits` | exact |
 | FAT's fields in their bits, 1980 to 2107, invalid fields refused | `each_field_is_in_its_bits`, `the_years_run_from_1980_to_2107`, `fields_outside_their_range_are_refused` | exact |
 | Every FAT date from 1 January 1980 to 31 December 2107 round-trips | `every_day_from_1980_to_2107_round_trips` | all 46 751 days, in every build |
+| The POSIX epoch is 621 355 968 000 000 000 ticks | `the_posix_epoch_is_621_355_968_000_000_000_ticks` | exact |
+| `DateTime.MaxValue` is the last tick of 9999 | `max_value_is_the_last_tick_of_9999` | exact |
+| The Ticks page's two examples from 2001-01-01 | `the_examples_on_microsofts_page` | exact |
+| Every midnight from 0001 to 9999 round-trips | `midnights_round_trip` | every day in a release build, every 997th in a debug one |
 
 Two of the sources contradict themselves, and their errata decide:
 
@@ -132,15 +169,21 @@ Two of the sources contradict themselves, and their errata decide:
 | [rfc9562-errata] | Errata 7955 and 8288 | Yes, 2026-09-26 |
 | [ms-dosdatetimetofiletime] | The FAT date and time layouts | Yes, Microsoft Learn, 2026-09-26 |
 | [ms-file-times] | FAT's local time and two-second resolution | Yes, Microsoft Learn, 2026-09-26 |
+| [ms-datetime-ticks] | The tick, its epoch, leap seconds, the Kind's zone, the two examples | Yes, Microsoft Learn, 2026-09-27 |
+| [ms-datetimekind] | The Kind's three values | Yes, Microsoft Learn, 2026-09-27 |
+| [ms-datetime-maxvalue] | The last value and its ticks | Yes, Microsoft Learn, 2026-09-27 |
+| [ms-gregoriancalendar] | The leap-year rule, and the calendar before the reform | Yes, Microsoft Learn, 2026-09-27 |
+| [ms-datetime-tobinary] | That the binary form's layout is not stated | Yes, Microsoft Learn, 2026-09-27 |
 
 The FAT32 specification (`fatgen103`) was not read.
 
 ## Code
 
-`crates/hc-core/src/ntp.rs`, `crates/hc-core/src/uuid.rs` and the epoch in
+`crates/hc-core/src/ntp.rs`, `crates/hc-core/src/uuid.rs`,
+`crates/hc-core/src/dotnet.rs` and the epochs in
 `crates/hc-core/src/epoch.rs`, and `crates/hc-format/src/fat.rs`. Anchors:
 `figure_4_of_rfc_5905`, `the_version_1_vector`, `the_version_6_vector`,
-`each_field_is_in_its_bits`. The WebAssembly module's and the C library's
+`each_field_is_in_its_bits`, `the_examples_on_microsofts_page`. The WebAssembly module's and the C library's
 `hc_uuid_timestamp`, `hc_uuid_timestamp_encode`, `hc_ntp_resolve`,
 `hc_ntp_encode`, `hc_fat_decode` and `hc_fat_encode` are
 `crates/hyper-calendar/src/time_lines.rs`, anchored to the same examples:

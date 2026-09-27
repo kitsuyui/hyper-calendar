@@ -1,7 +1,9 @@
 # Hours of the day: local mean time, sundial time, temporal, Italian and Edo hours, and religious times
+# Hours of the day: local mean time, sundial time, temporal and Italian hours, religious times, and the Ethiopian and Swahili hours
 
-Backs `hc-astro::solar_time`. No calendar identifier is registered: these
-are readings of the time of day, not calendars.
+Backs `hc-astro::solar_time`, and `hc-format::east_african_hours` with the
+reckonings `ethiopian-hours` and `swahili-hours`. No calendar identifier is
+registered: these are readings of the time of day, not calendars.
 
 ## What it is
 
@@ -38,6 +40,11 @@ Older still are hours counted from the Sun's own events:
   six more, so that a summer day's hour was about 2 h 39 min and a summer
   night's about 1 h 21 min [astro-dic-futeijiho]. The hours were named by
   the strokes of the bell that opened them.
+
+In Ethiopia and on the Swahili-speaking coast of East Africa the civil
+clock itself is read differently: a twelve-hour dial counted from about
+sunrise and about sunset, which near the equator stay close to 06:00 and
+18:00 all year, so that the reading is the civil hour less six.
 
 And some religious times are fixed by the Sun's altitude or by a shadow,
 with an angle each community chooses: the Islamic afternoon prayer
@@ -191,6 +198,35 @@ after sunrise, 07:20 + 140 min = 09:40, and *minḥah gedolah* is
 dawn at 06:08 and nightfall at 17:52, the MGA day is 704 minutes, its hour
 58.67 minutes, and the latest Shema by the MGA is 06:08 + 176 min = 09:04,
 also Hebcal's time.
+### The Ethiopian and Swahili hours
+
+The dial reads the civil hour less six, on twelve hours: 07:00 is 1, noon
+is 6, 18:00 is 12 and midnight 6 again. The Ethiopian day "begins at
+sunrise or 0600 hours … 8 am is 2 o'clock for an Ethiopian, 10 am is
+4 o'clock … 6 pm, which is 12 o'clock and then the counting begins again,
+7 pm is 1 o'clock" [undp-eue-ethiopian-time], and "the daytime cycle begins
+at dawn 12:00 (6:00:00 AM EAT) and ends at dusk 11:59:59 (5:59:59 PM EAT)"
+[wikipedia-time-in-ethiopia]. In Swahili, "7:00 am is referred to as saa
+moja asubuhi to mean that it is the first hour of the day. 7:00 pm is
+called saa moja usiku to indicate that it is the first hour of the night",
+and the lesson names every hour with its part of the day: *usiku*, night,
+from 7 pm to 3 am; *alfajiri*, dawn, 4 to 6 am; *asubuhi*, morning, 7 to
+11 am; *mchana*, afternoon, noon to 3 pm; *jioni*, evening, 4 to 6 pm
+[ku-kiswahili-lesson-17].
+
+The two agree on the dial and differ in where the halves meet. The
+Ethiopian day half is 06:00 to 17:59:59. The Swahili lesson's day hours are
+7 am to 6 pm, the night's 7 pm to 6 am, so 06:00 is the night's twelfth
+hour, *saa kumi na mbili alfajiri*, and 18:00 the day's, *saa kumi na
+mbili jioni*; between the whole hours this library gives a reading the
+half of its civil hour, which the lesson's table implies and does not
+state.
+
+**Worked example.** 10:30 in Addis Ababa or Dar es Salaam: 10 − 6 = 4,
+so 4:30 of the day, *saa nne na nusu asubuhi* in the lesson's own example.
+Noon is 6:00 of the day, *saa sita mchana*, and midnight 6:00 of the night,
+*saa sita usiku*. 06:15 is 12:15 in both, of the day in Ethiopia and of the
+night, *alfajiri*, in Swahili.
 
 ## What is carried
 
@@ -320,6 +356,23 @@ the default `geometric-dip` horizon, which differs from the book's by
 19″·√h of the observer's height; the horizons are in
 [rise-and-set.md](rise-and-set.md).
 
+In `hc-format::east_african_hours`:
+
+- `Reckoning`, a table with `ETHIOPIAN` (`ethiopian-hours`) and `SWAHILI`
+  (`swahili-hours`); `reading` from a civil time of day to an
+  `HourReading`, the dial's hour 1 to 12, the civil minute, second and
+  fraction, and the `Half`; `civil`, its inverse; and `period`, the
+  Swahili part of the day by civil hour. The civil clock is the caller's:
+  East Africa Time in both places, but the module reads any wall clock.
+- **Not carried**: the Amharic names of the parts of the day. The one
+  teaching source read [uw-lctl-amharic-telling-time] divides the day into
+  "Tewat" to noon and "Ke se at behuwala" after it, and the night into
+  "Mata" to midnight and "Lelit" after it, with noon as "Tewat sidist";
+  pages seen only in a search summary put noon in the day, *ken*, instead,
+  and no authority was found to settle it. Nor a reckoning from each day's
+  actual sunrise, which descriptions that say "dawn" might suggest: no
+  source read defines one, and it would be a third convention.
+
 ## Accuracy
 
 The relations are exact definitions; the accuracy is the equation of
@@ -369,6 +422,10 @@ zmanim [hebcal-zmanim-api] for New York City on 1 January 2025, Jerusalem
 on 21 June 2025 and London on 20 March 2025: all sixteen times on each day,
 48 in all, are within 0.48 minutes of the printed minute. Hebcal prints no
 16.1° dawn for London on 21 June 2025, and neither does this library.
+
+The six-hour reckonings are exact: `reading` and `civil` invert each other
+at every minute of the day and at the leap second, and the examples of
+both sources are tests.
 
 ## Sources
 
@@ -422,6 +479,16 @@ on 21 June 2025 and London on 20 March 2025: all sixteen times on each day,
   2026-09-27.
 - [mishnah-berurah-58] — 58:4, the Magen Avraham's and the Vilna Gaon's
   starting points for the hours. Read in Hebrew 2026-09-27.
+- [wikipedia-time-in-ethiopia] — the Ethiopian day and night halves and the
+  six-hour difference. Read 2026-09-27.
+- [undp-eue-ethiopian-time] — the Ethiopian hours' examples, from the UN
+  Women's Association's guide as the UNDP Emergencies Unit for Ethiopia
+  published it. The live page refuses the request; read in the Internet
+  Archive's copy of 22 July 2011, on 2026-09-27.
+- [ku-kiswahili-lesson-17] — the Swahili hours, their parts of the day,
+  noon and midnight. Read 2026-09-27.
+- [uw-lctl-amharic-telling-time] — the Amharic parts of the day, for the
+  disagreement that keeps them out. Read 2026-09-27.
 
 ## Code
 
@@ -450,3 +517,10 @@ on 21 June 2025 and London on 20 March 2025: all sixteen times on each day,
 `the_edo_hours_are_named_by_their_strokes_and_branches`,
 `edo_time_inverts_its_universal_time` and
 `the_edo_hours_are_refused_on_a_white_night`.
+`asr_is_where_the_shadow_rule_puts_it` and
+`the_jewish_evening_times_sit_at_their_angles_in_order`.
+
+`crates/hc-format/src/east_african_hours.rs`, anchored by
+`the_ethiopian_examples`, `the_swahili_examples`,
+`the_reckonings_differ_only_at_the_twelfth_hours` and
+`every_minute_round_trips`.

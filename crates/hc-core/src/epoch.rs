@@ -155,13 +155,43 @@ pub const JULIAN_DAY: Epoch = Epoch {
         [rots2015, usno-julian-date]",
 };
 
-/// `0001-01-01T00:00:00`, the origin of .NET ticks and Rata Die day 1.
+/// `0001-01-01T00:00:00`, Rata Die day 1. [`DOTNET_TICKS`] is the same
+/// instant, reached from Microsoft's documentation.
 pub const RATA_DIE: Epoch = Epoch {
     id: "rata-die",
     description: "Rata Die day 1, 0001-01-01 (proleptic Gregorian)",
     tai_reading: Duration::from_secs(-62_135_596_800),
     source: "Rata Die day 1 is 1 January 1 of the proleptic Gregorian calendar, \
         gregorian-epoch in reingold2018code",
+};
+
+/// `0001-01-01T00:00:00`, the origin of .NET's `DateTime.Ticks`, in the
+/// Gregorian calendar with its leap-year rule applied to every year.
+///
+/// The ticks count the time of the zone a `DateTime`'s `Kind` names, and
+/// not leap seconds; [`crate::dotnet`] reads and writes them. The TAI
+/// reading is that of the day's label on today's proleptic UTC calendar,
+/// as for the other epochs before 1961.
+pub const DOTNET_TICKS: Epoch = Epoch {
+    id: "dotnet-ticks",
+    description: ".NET DateTime.Ticks origin, 0001-01-01T00:00:00 (Gregorian)",
+    tai_reading: Duration::from_secs(-62_135_596_800),
+    source: "Microsoft Learn, DateTime.Ticks Property: 100-nanosecond intervals since \
+        12:00:00 midnight, January 1, 0001 in the Gregorian calendar, excluding leap \
+        seconds, retrieved 2026-09-27 [ms-datetime-ticks]",
+};
+
+/// `1958-01-01T00:00:00 TAI`, the Level 1 epoch of the CCSDS Unsegmented
+/// Code, whose count is TAI seconds with no leap seconds.
+///
+/// The Day Segmented Code counts UTC days from the same date; that count is
+/// `ccsds-day` in `hc-calendars-solar`, and [`crate::ccsds`] reads both.
+pub const CCSDS_CUC: Epoch = Epoch {
+    id: "ccsds-cuc",
+    description: "CCSDS Unsegmented Code Level 1 epoch, 1958-01-01T00:00:00 TAI",
+    tai_reading: Duration::from_secs(-378_691_200),
+    source: "CCSDS 301.0-B-4, Time Code Formats (2010), 3.2.1: the CCSDS-Recommended \
+        epoch is 1958 January 1 (TAI) [ccsds-301-0-b-4]",
 };
 
 /// `1601-01-01T00:00:00Z`, the origin of the Windows `FILETIME`.
@@ -233,6 +263,8 @@ pub const ALL: &[Epoch] = &[
     MJD,
     JULIAN_DAY,
     RATA_DIE,
+    DOTNET_TICKS,
+    CCSDS_CUC,
     WINDOWS_FILETIME,
     NTP,
     CORE_FOUNDATION,
@@ -336,6 +368,23 @@ mod tests {
             -122_192_928_000_000_000
         );
         assert_eq!(SAS_STATA.tai_reading, Duration::from_days(-3_653));
+    }
+
+    /// The .NET origin is Rata Die day 1, 719 162 days before 1970, which
+    /// Microsoft's page states as ticks: `DateTime.MaxValue`, 23:59:59.9999999
+    /// on 31 December 9999, is 3 155 378 975 999 999 999 of them. The CCSDS
+    /// epoch is 4 383 days before 1970, twelve years with three leap days.
+    #[test]
+    fn the_dotnet_and_ccsds_epochs_are_whole_days_before_1970() {
+        assert_eq!(DOTNET_TICKS.tai_reading, RATA_DIE.tai_reading);
+        assert_eq!(DOTNET_TICKS.tai_reading, Duration::from_days(-719_162));
+        // 9999-12-31 is 2 932 896 days after 1970-01-01.
+        let max_seconds = 2_932_896 * 86_400 + 86_399 - DOTNET_TICKS.tai_reading.whole_seconds();
+        assert_eq!(
+            max_seconds * 10_000_000 + 9_999_999,
+            3_155_378_975_999_999_999
+        );
+        assert_eq!(CCSDS_CUC.tai_reading, Duration::from_days(-4_383));
     }
 
     #[test]

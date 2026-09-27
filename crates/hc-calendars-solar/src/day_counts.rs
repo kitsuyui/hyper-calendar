@@ -301,15 +301,18 @@ hc_core::catalogue! {
 
     /// The CCSDS day count: day 0 is 1 January 1958.
     ///
-    /// The epoch of CCSDS Day Segmented time codes, and also the epoch TAI was
-    /// aligned to UT2 at.
+    /// The day segment of the Level 1 CCSDS Day Segmented time code, which
+    /// `hc_core::ccsds` reads with its millisecond of the day, and also the
+    /// epoch TAI was aligned to UT2 at.
     pub const CCSDS = DayCount::from_gregorian(
         "ccsds-day",
         "CCSDS day count",
         (1958, 1, 1),
         0,
         DayBoundary::Midnight,
-        "CCSDS 301.0-B-4, Time Code Formats, not read; JD - 2436204.5 as Wikipedia, \
+        "CCSDS 301.0-B-4, Time Code Formats (2010), 3.3.1: a continuous counter of days from \
+         1958 January 1 starting with 0 [ccsds-301-0-b-4]; its annex B3.2 gives that day as \
+         JD 2436203.5, a day early, and JD - 2436204.5 is the offset, as Wikipedia, \
          \"Julian day\", gives it [wikipedia-julian-day]",
     );
 

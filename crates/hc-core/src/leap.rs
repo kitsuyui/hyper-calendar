@@ -351,6 +351,33 @@ pub fn steps() -> impl Iterator<Item = (i64, i64)> {
     })
 }
 
+/// The leap second that ends the UTC day `unix_day`, counted in days from
+/// 1970-01-01: +1 when a second 23:59:60 was inserted before the next
+/// midnight, −1 when 23:59:59 was omitted, and 0 otherwise.
+///
+/// Every code that writes UTC with its leap second needs this check, since
+/// the code itself cannot say whether a day ended in one. Before 1972 no
+/// whole second was ever inserted, and the answer is 0.
+///
+/// # Errors
+///
+/// [`crate::TimeError::AfterModelEnd`] when the day ends after
+/// [`table_valid_until_unix`], where whether it ends in a leap second has
+/// not been announced, and [`crate::TimeError::Overflow`] for a day whose
+/// end is not a representable POSIX second.
+pub fn end_of_day_step(unix_day: i64) -> crate::TimeResult<i64> {
+    let end = unix_day
+        .checked_add(1)
+        .and_then(|day| day.checked_mul(86_400))
+        .ok_or(crate::TimeError::Overflow)?;
+    if end > table_valid_until_unix() {
+        return Err(crate::TimeError::AfterModelEnd);
+    }
+    Ok(steps()
+        .find(|(at, _)| *at == end)
+        .map_or(0, |(_, delta)| delta))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -388,5 +415,22 @@ mod tests {
         let last = TABLE[TABLE.len() - 1];
         assert_eq!(last.tai_minus_utc, 37);
         assert_eq!(last.label, "2017-01-01");
+    }
+
+    /// 2016-12-31 ended in the last inserted second; the day before did
+    /// not, a day of 1970 cannot have, and a day past the table's validity
+    /// is not yet known.
+    #[test]
+    fn the_end_of_a_day_is_read_from_the_table() {
+        assert_eq!(end_of_day_step(17_166), Ok(1), "2016-12-31");
+        assert_eq!(end_of_day_step(17_165), Ok(0), "2016-12-30");
+        assert_eq!(end_of_day_step(364), Ok(0), "1970-12-31");
+        let last_known = table_valid_until_unix() / 86_400 - 1;
+        assert_eq!(end_of_day_step(last_known), Ok(0));
+        assert_eq!(
+            end_of_day_step(last_known + 1),
+            Err(crate::TimeError::AfterModelEnd)
+        );
+        assert_eq!(end_of_day_step(i64::MAX), Err(crate::TimeError::Overflow));
     }
 }

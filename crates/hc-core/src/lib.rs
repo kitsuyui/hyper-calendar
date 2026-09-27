@@ -30,6 +30,8 @@
 extern crate alloc;
 
 pub mod catalogue;
+pub mod ccsds;
+pub mod dotnet;
 pub mod duration;
 pub mod epoch;
 pub mod epoch_notation;
